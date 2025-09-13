@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAF54258EF4;
-	Sat, 13 Sep 2025 20:09:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA5F23D7DB
+	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 20:09:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757794167; cv=none; b=VM+ZMsKBT//hPNLJdtXulDK+uDGDEuf0tjSZjKMU2DcHabOj3Qwp7ORiE0r5cCF78pQJ6bB8ThsjpdHMmcxKDJJQvlNlYljMPfcvREyJQaMFekdwhCPYuZz4evZLYp1a/9sMOLs3Z8zks4/yEKb+VHdb28gGbLjxZVUe7srUWPY=
+	t=1757794169; cv=none; b=lwN1SRVTt9TYRx+Bttqh/XAOxPkODSIoeGl5gINA41TZaJnwZsI6zV5/cDgj5uW3RvrkVl8tpEqYR/RDnMc7YKqlzvy1/0r7uLp0EvDu35j3Ben2BOPQu0S6rF9/WmW5QkiycwwBsxHGyupNQr79HFmjFH+paQobeFQYlarn0Ho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757794167; c=relaxed/simple;
-	bh=JcEtxV2oPd8E5doDvFAK0j+6xSCOLDUCCR7aokuDBr4=;
-	h=Date:To:From:Subject:Message-Id; b=EG1ciRTcBl0EyIbvmLpuRZiQKl/qP1GXwrex10TTxXJSGNjnQtjZ62NITI+AFylg+1EGDqeShrZyMJRYbD9rgfMeG7LAcqNmRUI96wp9CJGv+Lg9MlJ5d1fJMblXmo+2G3wXMtCON9lne1snbXhnOsyFj+CITtobMGSZFIkjWgE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OKhPmlIo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757794169; c=relaxed/simple;
+	bh=f8MumAnEhKY47+w0Nd9m1+Qpi9F2e44riU0sOljhtFg=;
+	h=Date:To:From:Subject:Message-Id; b=mkzJeTgqCSqBjez7QJvWUmHS/WN5N2pVxENmlLS/bV/f+W3cDm80wQ9stRn7CeooXP/0NV0Sopp60R/Uwx5ELZqj09PyoSXagIQgffTodzY2V8FiisXnWTug9uvt1dVRJ0ngLsApc+AFRO4vz/nDjLDNJOeIz0v22XfDdRvn3Qg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=msHOKU74; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OKhPmlIo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66A75C4CEEB;
-	Sat, 13 Sep 2025 20:09:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="msHOKU74"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 683E3C4CEF5;
+	Sat, 13 Sep 2025 20:09:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757794166;
-	bh=JcEtxV2oPd8E5doDvFAK0j+6xSCOLDUCCR7aokuDBr4=;
+	s=korg; t=1757794169;
+	bh=f8MumAnEhKY47+w0Nd9m1+Qpi9F2e44riU0sOljhtFg=;
 	h=Date:To:From:Subject:From;
-	b=OKhPmlIof1HnxWs7lK133NF1TAIFNoAuS2hspLxLH4VqTdIlPZsTAseQnTSjL1RS1
-	 YNQ4V/ziZ3bbf997DiJ+/VX6nT0sYUdsSywxONLtWiNehzoe5FFHDgHKER3V7Oeyoz
-	 WLPc4ZGdusWt1k5ShkxcvRWeeZELDo8dgFQm6EhQ=
-Date: Sat, 13 Sep 2025 13:09:25 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,yangge1116@126.com,willy@infradead.org,will@kernel.org,weixugc@google.com,vbabka@suse.cz,stable@vger.kernel.org,shivankg@amd.com,riel@surriel.com,peterx@redhat.com,lizhe.67@bytedance.com,koct9i@gmail.com,keirf@google.com,jhubbard@nvidia.com,jgg@ziepe.ca,hch@infradead.org,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,axelrasmussen@google.com,aneesh.kumar@kernel.org,hughd@google.com,akpm@linux-foundation.org
+	b=msHOKU745crbCgSC+ygrTDSEIbfsl343WbFU9sjVV+8CQmlaRZAhF9CmRre9ruHyM
+	 H0Ln+fBXnk+DGvsrq9FcAJXDahtg6JmPxpqrGSSHN28+of+rROgOfK6WZ58suBPg0L
+	 QgKsMK/ZVYe7XFLbXnNT3SyMtokN7QhVbnHAfDfs=
+Date: Sat, 13 Sep 2025 13:09:28 -0700
+To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-revert-mm-vmscanc-fix-oom-on-swap-stress-test.patch removed from -mm tree
-Message-Id: <20250913200926.66A75C4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-core-introduce-damon_call_control-dealloc_on_cancel.patch removed from -mm tree
+Message-Id: <20250913200929.683E3C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: revert "mm: vmscan.c: fix OOM on swap stress test"
+     Subject: mm/damon/core: introduce damon_call_control->dealloc_on_cancel
 has been removed from the -mm tree.  Its filename was
-     mm-revert-mm-vmscanc-fix-oom-on-swap-stress-test.patch
+     mm-damon-core-introduce-damon_call_control-dealloc_on_cancel.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: revert "mm: vmscan.c: fix OOM on swap stress test"
-Date: Mon, 8 Sep 2025 15:21:12 -0700 (PDT)
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: introduce damon_call_control->dealloc_on_cancel
+Date: Mon, 8 Sep 2025 13:15:12 -0700
 
-This reverts commit 0885ef470560: that was a fix to the reverted
-33dfe9204f29b415bbc0abb1a50642d1ba94f5e9.
+Patch series "mm/damon/sysfs: fix refresh_ms control overwriting on
+multi-kdamonds usages".
 
-Link: https://lkml.kernel.org/r/aa0e9d67-fbcd-9d79-88a1-641dfbe1d9d1@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Keir Fraser <keirf@google.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shivank Garg <shivankg@amd.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: yangge <yangge1116@126.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <stable@vger.kernel.org>
+Automatic esssential DAMON/DAMOS status update feature of DAMON sysfs
+interface (refresh_ms) is broken [1] for multiple DAMON contexts
+(kdamonds) use case, since it uses a global single damon_call_control
+object for all created DAMON contexts.  The fields of the object,
+particularly the list field is over-written for the contexts and it makes
+unexpected results including user-space hangup and kernel crashes [2]. 
+Fix it by extending damon_call_control for the use case and updating the
+usage on DAMON sysfs interface to use per-context dynamically allocated
+damon_call_control object.
+
+
+This patch (of 2):
+
+When damon_call_control->repeat is set, damon_call() is executed
+asynchronously, and is eventually canceled when kdamond finishes.  If the
+damon_call_control object is dynamically allocated, finding the place to
+deallocate the object is difficult.  Introduce a new damon_call_control
+field, namely dealloc_on_cancel, to ask the kdamond deallocates those
+dynamically allocated objects when those are canceled.
+
+Link: https://lkml.kernel.org/r/20250908201513.60802-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250908201513.60802-2-sj@kernel.org
+Fixes: d809a7c64ba8 ("mm/damon/sysfs: implement refresh_ms file internal work")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Yunjeong Mun <yunjeong.mun@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/damon.h |    2 ++
+ mm/damon/core.c       |    8 ++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-revert-mm-vmscanc-fix-oom-on-swap-stress-test
-+++ a/mm/vmscan.c
-@@ -4507,7 +4507,7 @@ static bool sort_folio(struct lruvec *lr
+--- a/include/linux/damon.h~mm-damon-core-introduce-damon_call_control-dealloc_on_cancel
++++ a/include/linux/damon.h
+@@ -636,6 +636,7 @@ struct damon_operations {
+  * @data:		Data that will be passed to @fn.
+  * @repeat:		Repeat invocations.
+  * @return_code:	Return code from @fn invocation.
++ * @dealloc_on_cancel:	De-allocate when canceled.
+  *
+  * Control damon_call(), which requests specific kdamond to invoke a given
+  * function.  Refer to damon_call() for more details.
+@@ -645,6 +646,7 @@ struct damon_call_control {
+ 	void *data;
+ 	bool repeat;
+ 	int return_code;
++	bool dealloc_on_cancel;
+ /* private: internal use only */
+ 	/* informs if the kdamond finished handling of the request */
+ 	struct completion completion;
+--- a/mm/damon/core.c~mm-damon-core-introduce-damon_call_control-dealloc_on_cancel
++++ a/mm/damon/core.c
+@@ -2479,10 +2479,14 @@ static void kdamond_call(struct damon_ct
+ 		mutex_lock(&ctx->call_controls_lock);
+ 		list_del(&control->list);
+ 		mutex_unlock(&ctx->call_controls_lock);
+-		if (!control->repeat)
++		if (!control->repeat) {
+ 			complete(&control->completion);
+-		else
++		} else if (control->canceled && control->dealloc_on_cancel) {
++			kfree(control);
++			continue;
++		} else {
+ 			list_add(&control->list, &repeat_controls);
++		}
  	}
- 
- 	/* ineligible */
--	if (!folio_test_lru(folio) || zone > sc->reclaim_idx) {
-+	if (zone > sc->reclaim_idx) {
- 		gen = folio_inc_gen(lruvec, folio, false);
- 		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
+ 	control = list_first_entry_or_null(&repeat_controls,
+ 			struct damon_call_control, list);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-lru_add_drain_all-do-local-lru_add_drain-first.patch
+mm-zswap-store-page_size-compression-failed-page-as-is.patch
+mm-zswap-store-page_size-compression-failed-page-as-is-fix.patch
+mm-zswap-store-page_size-compression-failed-page-as-is-v5.patch
+mm-zswap-store-page_size-compression-failed-page-as-is-fix-2.patch
+mm-damon-core-add-damon_ctx-addr_unit.patch
+mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
+mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
+mm-damon-paddr-support-addr_unit-for-damos_lru_prio.patch
+mm-damon-paddr-support-addr_unit-for-migrate_hotcold.patch
+mm-damon-paddr-support-addr_unit-for-damos_stat.patch
+mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
+docs-mm-damon-design-document-address-unit-parameter.patch
+docs-admin-guide-mm-damon-usage-document-addr_unit-file.patch
+docs-abi-damon-document-addr_unit-file.patch
 
