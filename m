@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F055D19258E;
-	Fri, 12 Sep 2025 23:45:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 050072EB10
+	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 00:48:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757720754; cv=none; b=eWSwM5Jd6IYqoGbioqJmWTAA4J83yV/jwJEfgdeyp1HZ2Aaq26hHtKgm9OPFBf1xvfc2qKAziG8bai+3+roCr+E7hC4N5q1vdgGXXu33J/N7ODXE2f0jBsIuwiLghjs5NkGJQDHDVjSZutSwQbCEOAN7pOX7ni3uEwaoFmYbiSI=
+	t=1757724525; cv=none; b=CnWQM5ZWLmasQUBjF3JTQIVAGmvt5TKxePLhcoXV1umR4lBo1K5wnwuYJJfrAYOa/5Huiztc0B4ki4BzRKaqP4r2e6bZ0i+UZEfFnl1/mPqDkjw1yxbo6272TLXLkc7Ji2SYPqSX17YpRH/GENZCcNdQPoir4jwdtQ4TGN2eSr4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757720754; c=relaxed/simple;
-	bh=SOVAzC1jMb7cNXpuMxdlDIX2YS5nXeUAkLHtZaFcXVg=;
-	h=Date:To:From:Subject:Message-Id; b=p4LYhRBuuhUO+jJ8cDu6MjMgEM3RL05zRoItrT2/SUuLdCL7R81bRN0VItVid1r/M+9uQ5HbwNAZCDgT3dqpYGG4qe5MRjRjSWBvnL5jrtiMXb/Gf9uCuQ5anVi3YqtUBAaXZOSov49Mc21Kvt7TVdno3q65q7ZhsqBJwHPqmIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HdPbYmdq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757724525; c=relaxed/simple;
+	bh=6EgntIaoMmMNiuXE8A5y6n6kpXgGycrX9M1a0Bgf7AI=;
+	h=Date:To:From:Subject:Message-Id; b=EIcTViNrkZpXhTKwvcYnuWAp3kcK5jFiYJ+OHXYooRjiw1EWP1t3Vc0yVY7Y64LyVD9c2GzYqltmih82sinUzwqXIXVwYA1dzG+fmCiXLsNTVeyh9mnA4nxBoihTV/ScXCG4leBUUiuA2VuHPDarrtb7MWKYnADO/r20aWRGHEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GiKvQMNt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HdPbYmdq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 657CFC4CEF1;
-	Fri, 12 Sep 2025 23:45:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GiKvQMNt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 708A0C4CEF1;
+	Sat, 13 Sep 2025 00:48:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757720753;
-	bh=SOVAzC1jMb7cNXpuMxdlDIX2YS5nXeUAkLHtZaFcXVg=;
+	s=korg; t=1757724524;
+	bh=6EgntIaoMmMNiuXE8A5y6n6kpXgGycrX9M1a0Bgf7AI=;
 	h=Date:To:From:Subject:From;
-	b=HdPbYmdqSZvMukJDvKiS/0t2ialGvtOy2x4UMMFp7ZpHXlimDAlZlYxBp/RI0MRUd
-	 gQPB2WIFhH5OEEWG6GM+dsBfem4wTvtgYqNhDWw90jivczelyOG8d202IduT/vX+eO
-	 WX/Z4zFmWfC6NT43551I8EPBvX7KbNqh1Vw06o+U=
-Date: Fri, 12 Sep 2025 16:45:52 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=GiKvQMNtSwn8nVfdjNGRLrpNKblj8VtqQsEKRebj833Fc7GFy2WPXNsmtlZU7nmTv
+	 4y9Sv0aTa9J6R9vQACcXQVr8HAk2V+jpMV328K0szlQt1EqxRkdsvChrEGL8nF10ec
+	 qpGUrLKabqTGQw4Se1kAZJ4yB33nVDXG5TcSZDQ4=
+Date: Fri, 12 Sep 2025 17:48:43 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,chuhu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-folio-is-still-mapped-when-deleted.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250912234553.657CFC4CEF1@smtp.kernel.org>
+Subject: + selftests-mm-fix-hugepages-cleanup-too-early.patch added to mm-unstable branch
+Message-Id: <20250913004844.708A0C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix folio is still mapped when deleted
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-folio-is-still-mapped-when-deleted.patch
+     Subject: selftests/mm: fix hugepages cleanup too early
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-fix-hugepages-cleanup-too-early.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-folio-is-still-mapped-when-deleted.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-hugepages-cleanup-too-early.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,83 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/hugetlb: fix folio is still mapped when deleted
-Date: Fri, 12 Sep 2025 15:41:39 +0800
+From: Chunyu Hu <chuhu@redhat.com>
+Subject: selftests/mm: fix hugepages cleanup too early
+Date: Fri, 12 Sep 2025 09:37:09 +0800
 
-Migration may be raced with fallocating hole.  remove_inode_single_folio
-will unmap the folio if the folio is still mapped.  However, it's called
-without folio lock.  If the folio is migrated and the mapped pte has been
-converted to migration entry, folio_mapped() returns false, and won't
-unmap it.  Due to extra refcount held by remove_inode_single_folio,
-migration fails, restores migration entry to normal pte, and the folio is
-mapped again.  As a result, we triggered BUG in filemap_unaccount_folio.
+Patch series "Fix va_high_addr_switch.sh test failure", v3.
 
-The log is as follows:
- BUG: Bad page cache in process hugetlb  pfn:156c00
- page: refcount:515 mapcount:0 mapping:0000000099fef6e1 index:0x0 pfn:0x156c00
- head: order:9 mapcount:1 entire_mapcount:1 nr_pages_mapped:0 pincount:0
- aops:hugetlbfs_aops ino:dcc dentry name(?):"my_hugepage_file"
- flags: 0x17ffffc00000c1(locked|waiters|head|node=0|zone=2|lastcpupid=0x1fffff)
- page_type: f4(hugetlb)
- page dumped because: still mapped when deleted
- CPU: 1 UID: 0 PID: 395 Comm: hugetlb Not tainted 6.17.0-rc5-00044-g7aac71907bde-dirty #484 NONE
- Hardware name: QEMU Ubuntu 24.04 PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
- Call Trace:
-  <TASK>
-  dump_stack_lvl+0x4f/0x70
-  filemap_unaccount_folio+0xc4/0x1c0
-  __filemap_remove_folio+0x38/0x1c0
-  filemap_remove_folio+0x41/0xd0
-  remove_inode_hugepages+0x142/0x250
-  hugetlbfs_fallocate+0x471/0x5a0
-  vfs_fallocate+0x149/0x380
+These three patches fix the va_high_addr_switch.sh test failure on x86_64.
 
-Hold folio lock before checking if the folio is mapped to avold race with
-migration.
+Patch 1 fixes the hugepage setup issue that nr_hugepages is reset too
+early in run_vmtests.sh and break the later va_high_addr_switch testing.
 
-Link: https://lkml.kernel.org/r/20250912074139.3575005-1-tujinjiang@huawei.com
-Fixes: 4aae8d1c051e ("mm/hugetlbfs: unmap pages if page fault raced with hole punch")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Patch 2 adds hugepage setup in va_high_addr_switch test, so that it can
+still work if vm_runtests.sh changes the hugepage setup someday.
+
+Patch 3 fixes the test failure caused by the hint addr align method change
+in hugetlb_get_unmapped_area().
+
+
+This patch (of 3):
+
+The nr_hugepgs variable is used to keep the original nr_hugepages at the
+hugepage setup step at test beginning.  After userfaultfd test, a cleaup
+is executed, both /sys/kernel/mm/hugepages/hugepages-*/nr_hugepages and
+/proc/sys//vm/nr_hugepages are reset to 'original' value before
+userfaultfd test starts.
+
+Issue here is the value used to restore /proc/sys/vm/nr_hugepages is
+nr_hugepgs which is the initial value before the vm_runtests.sh runs, not
+the value before userfaultfd test starts.  'va_high_addr_swith.sh' tests
+runs after that will possibly see no hugepages available for test, and got
+EINVAL when mmap(HUGETLB), making the result invalid.
+
+And before pkey tests, nr_hugepgs is changed to be used as a temp variable
+to save nr_hugepages before pkey test, and restore it after pkey tests
+finish.  The original nr_hugepages value is not tracked anymore, so no way
+to restore it after all tests finish.
+
+Add a new variable orig_nr_hugepgs to save the original nr_hugepages, and
+and restore it to nr_hugepages after all tests finish.  And change to use
+the nr_hugepgs variable to save the /proc/sys/vm/nr_hugeages after
+hugepage setup, it's also the value before userfaultfd test starts, and
+the correct value to be restored after userfaultfd finishes.  The
+va_high_addr_switch.sh broken will be resolved.
+
+Link: https://lkml.kernel.org/r/20250912013711.3002969-1-chuhu@redhat.com
+Link: https://lkml.kernel.org/r/20250912013711.3002969-2-chuhu@redhat.com
+Signed-off-by: Chunyu Hu <chuhu@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-fix-folio-is-still-mapped-when-deleted
-+++ a/fs/hugetlbfs/inode.c
-@@ -517,14 +517,16 @@ static bool remove_inode_single_folio(st
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-fix-hugepages-cleanup-too-early
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -174,13 +174,13 @@ fi
  
- 	/*
- 	 * If folio is mapped, it was faulted in after being
--	 * unmapped in caller.  Unmap (again) while holding
--	 * the fault mutex.  The mutex will prevent faults
--	 * until we finish removing the folio.
-+	 * unmapped in caller or hugetlb_vmdelete_list() skips
-+	 * unmapping it due to fail to grab lock.  Unmap (again)
-+	 * while holding the fault mutex.  The mutex will prevent
-+	 * faults until we finish removing the folio.  Hold folio
-+	 * lock to guarantee no concurrent migration.
- 	 */
-+	folio_lock(folio);
- 	if (unlikely(folio_mapped(folio)))
- 		hugetlb_unmap_file_folio(h, mapping, folio, index);
+ # set proper nr_hugepages
+ if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
+-	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
++	orig_nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+ 	needpgs=$((needmem_KB / hpgsize_KB))
+ 	tries=2
+ 	while [ "$tries" -gt 0 ] && [ "$freepgs" -lt "$needpgs" ]; do
+ 		lackpgs=$((needpgs - freepgs))
+ 		echo 3 > /proc/sys/vm/drop_caches
+-		if ! echo $((lackpgs + nr_hugepgs)) > /proc/sys/vm/nr_hugepages; then
++		if ! echo $((lackpgs + orig_nr_hugepgs)) > /proc/sys/vm/nr_hugepages; then
+ 			echo "Please run this test as root"
+ 			exit $ksft_skip
+ 		fi
+@@ -191,6 +191,7 @@ if [ -n "$freepgs" ] && [ -n "$hpgsize_K
+ 		done < /proc/meminfo
+ 		tries=$((tries - 1))
+ 	done
++	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+ 	if [ "$freepgs" -lt "$needpgs" ]; then
+ 		printf "Not enough huge pages available (%d < %d)\n" \
+ 		       "$freepgs" "$needpgs"
+@@ -540,6 +541,10 @@ CATEGORY="page_frag" run_test ./test_pag
  
--	folio_lock(folio);
- 	/*
- 	 * We must remove the folio from page cache before removing
- 	 * the region/ reserve map (hugetlb_unreserve_pages).  In
+ CATEGORY="rmap" run_test ./rmap
+ 
++if [ "${HAVE_HUGEPAGES}" = 1 ]; then
++	echo "$orig_nr_hugepgs" > /proc/sys/vm/nr_hugepages
++fi
++
+ echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}" | tap_prefix
+ echo "1..${count_total}" | tap_output
+ 
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from chuhu@redhat.com are
 
-mm-hugetlb-fix-folio-is-still-mapped-when-deleted.patch
-filemap-optimize-folio-refount-update-in-filemap_map_pages.patch
+selftests-mm-fix-hugepages-cleanup-too-early.patch
+selftests-mm-alloc-hugepages-in-va_high_addr_switch-test.patch
+selftests-mm-fix-va_high_addr_switchsh-failure-on-x86_64.patch
 
