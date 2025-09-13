@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64174635;
-	Sat, 13 Sep 2025 20:09:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEF29283FD3
+	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 22:05:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757794182; cv=none; b=rznhf416i7dxYxlJP16bFeWola32m5rZiJQIKbAQnwvNqFJlqZBOjTlG5Du5xcmfOTk6IzTEdb5nTiwuWvzXGlqCNZ0ahAYDfj4IzVXQK1TEUOz1F7LnhM3KRr4LfoIfVdYxefOgbZTSBVUAQsCAd06koAkhFTXE6gIqeA9IrWs=
+	t=1757801145; cv=none; b=mPhvlJWOBEf4uwyN5dAkQ8DSKYx08SyDT6Wr0K9DiAHXQWRFa6QAffTKylKN7PDcoVHCpVJ7blxO37eV6//gJNrTMq6i5SsKfDjN23ZKJu7I3XLc9ouTxBggWQnb0O+w0lxpCVZUtQ89gewtUusJ6yAbI/nguS8ZHdkmhCgzze4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757794182; c=relaxed/simple;
-	bh=bNeu1XnseTOb//C/c3M6TwSpSDpWyslTdql7MCOj+5s=;
-	h=Date:To:From:Subject:Message-Id; b=lN/CunK7pK/ngeHpGAgc7A5KYAEh4ETLQit3GmqcyZRkDSw9bmYWvmNgyIgYejijPZkH9bpa3Tq+dbYAVqRR1H23qwX8xDIhIMoPAhRSR3cJ7R/E7OrxaTbXkulhdbfJrPIcw7+I2WgS0JsiiYP9szzTqO7e6CspVoZME6IHs0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qEO7MEJ0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757801145; c=relaxed/simple;
+	bh=jX0xaXbY3rjyy54Ph5O3ES+aVPFYjI65iE5/wMT5oys=;
+	h=Date:To:From:Subject:Message-Id; b=GAMsv07EDetnnUJNOXsB3FyXqcwXE/8xiVBHMuRBWcLhbOof1SkXyB5BpD8+3rSiIq1ik40uYaS6aLmP5kZN8Rj+WMLBGEuYscBVPpwijUkywSRQsguy2HJ0zBBU833dnquT7g+B2SKjDN7W7AtFzNjB3A8Cn8VgSK8OVSff7u0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H046WCnv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qEO7MEJ0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5A69C4CEEB;
-	Sat, 13 Sep 2025 20:09:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H046WCnv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 433FDC4CEEB;
+	Sat, 13 Sep 2025 22:05:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757794182;
-	bh=bNeu1XnseTOb//C/c3M6TwSpSDpWyslTdql7MCOj+5s=;
+	s=korg; t=1757801145;
+	bh=jX0xaXbY3rjyy54Ph5O3ES+aVPFYjI65iE5/wMT5oys=;
 	h=Date:To:From:Subject:From;
-	b=qEO7MEJ0Hw5aKzw2EDdVsn2/M3jIXeYSL3mriCoxt3XHZJSK2QpUsnwD5SmkUo91G
-	 Vi3JdeDVBEYN9DrNrTGBhuFpoPmgdnaOp/4qs4Cw/EWt9QiY0t6Gx7aPujJEx7r8sd
-	 JwcRaUl4xH1WtBMdjjASFdrSGiokcEGyDYJdu4Q8=
-Date: Sat, 13 Sep 2025 13:09:41 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,minchan@kernel.org,czhong@redhat.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=H046WCnvehLqgQwucFCc/FxbKIPqaVHTbFOqHcUQqg40lytgP3OCuBtlgjDfv6xKL
+	 slrb53qm5OZnoa0rEVwn0onlBjj31/t14gBMz/zoQNr/QdB0igzHhAXfusL8D0xViP
+	 Wu6zslHUgpZ3lNeB/k7LzZ+JeDpzM+lGGYHw8a2s=
+Date: Sat, 13 Sep 2025 15:05:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,sj@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,gourry@gourry.net,david@redhat.com,byungchul@sk.com,apopple@nvidia.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] zram-fix-slot-write-race-condition.patch removed from -mm tree
-Message-Id: <20250913200941.E5A69C4CEEB@smtp.kernel.org>
+Subject: [folded-merged] mempolicy-clarify-what-zone-reclaim-means-fix.patch removed from -mm tree
+Message-Id: <20250913220545.433FDC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: fix slot write race condition
+     Subject: mempolicy-clarify-what-zone-reclaim-means-fix
 has been removed from the -mm tree.  Its filename was
-     zram-fix-slot-write-race-condition.patch
+     mempolicy-clarify-what-zone-reclaim-means-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into mempolicy-clarify-what-zone-reclaim-means.patch
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: fix slot write race condition
-Date: Tue, 9 Sep 2025 13:48:35 +0900
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mempolicy-clarify-what-zone-reclaim-means-fix
+Date: Wed, 6 Aug 2025 06:43:52 -0700
 
-Parallel concurrent writes to the same zram index result in leaked
-zsmalloc handles.  Schematically we can have something like this:
+remove the reference to the vm.zone_reclaim_mode sysctl as an ABI
 
-CPU0                              CPU1
-zram_slot_lock()
-zs_free(handle)
-zram_slot_lock()
-				zram_slot_lock()
-				zs_free(handle)
-				zram_slot_lock()
-
-compress			compress
-handle = zs_malloc()		handle = zs_malloc()
-zram_slot_lock
-zram_set_handle(handle)
-zram_slot_lock
-				zram_slot_lock
-				zram_set_handle(handle)
-				zram_slot_lock
-
-Either CPU0 or CPU1 zsmalloc handle will leak because zs_free() is done
-too early.  In fact, we need to reset zram entry right before we set its
-new handle, all under the same slot lock scope.
-
-Link: https://lkml.kernel.org/r/20250909045150.635345-1-senozhatsky@chromium.org
-Fixes: 71268035f5d7 ("zram: free slot memory early during write")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reported-by: Changhui Zhong <czhong@redhat.com>
-Closes: https://lore.kernel.org/all/CAGVVp+UtpGoW5WEdEU7uVTtsSCjPN=ksN6EcvyypAtFDOUf30A@mail.gmail.com/
-Tested-by: Changhui Zhong <czhong@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250806134404.2000234-1-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Huang Ying <ying.huang@linux.alibaba.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ include/uapi/linux/mempolicy.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-slot-write-race-condition
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1795,6 +1795,7 @@ static int write_same_filled_page(struct
- 				  u32 index)
- {
- 	zram_slot_lock(zram, index);
-+	zram_free_page(zram, index);
- 	zram_set_flag(zram, index, ZRAM_SAME);
- 	zram_set_handle(zram, index, fill);
- 	zram_slot_unlock(zram, index);
-@@ -1832,6 +1833,7 @@ static int write_incompressible_page(str
- 	kunmap_local(src);
- 
- 	zram_slot_lock(zram, index);
-+	zram_free_page(zram, index);
- 	zram_set_flag(zram, index, ZRAM_HUGE);
- 	zram_set_handle(zram, index, handle);
- 	zram_set_obj_size(zram, index, PAGE_SIZE);
-@@ -1855,11 +1857,6 @@ static int zram_write_page(struct zram *
- 	unsigned long element;
- 	bool same_filled;
- 
--	/* First, free memory allocated to this slot (if any) */
--	zram_slot_lock(zram, index);
--	zram_free_page(zram, index);
--	zram_slot_unlock(zram, index);
--
- 	mem = kmap_local_page(page);
- 	same_filled = page_same_filled(mem, &element);
- 	kunmap_local(mem);
-@@ -1901,6 +1898,7 @@ static int zram_write_page(struct zram *
- 	zcomp_stream_put(zstrm);
- 
- 	zram_slot_lock(zram, index);
-+	zram_free_page(zram, index);
- 	zram_set_handle(zram, index, handle);
- 	zram_set_obj_size(zram, index, comp_len);
- 	zram_slot_unlock(zram, index);
+--- a/include/uapi/linux/mempolicy.h~mempolicy-clarify-what-zone-reclaim-means-fix
++++ a/include/uapi/linux/mempolicy.h
+@@ -72,8 +72,8 @@ enum {
+  * Fallback allocations on the next candidates in the zonelist are considered
+  * when reclaim fails to free up enough memory in the current node/zone.
+  *
+- * These bit locations are exposed in the vm.zone_reclaim_mode sysctl
+- * ABI.  New bits are OK, but existing bits should not be changed.
++ * These bit locations are exposed in the vm.zone_reclaim_mode sysctl.
++ * New bits are OK, but existing bits should not be changed.
+  */
+ #define RECLAIM_ZONE	(1<<0)	/* Enable zone reclaim */
+ #define RECLAIM_WRITE	(1<<1)	/* Writeout pages during reclaim */
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-zram-protect-recomp_algorithm_show-with-init_lock.patch
-panic-remove-redundant-panic-cpu-backtrace.patch
+mempolicy-clarify-what-zone-reclaim-means.patch
 
