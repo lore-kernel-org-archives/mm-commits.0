@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE004635;
-	Sat, 13 Sep 2025 20:09:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED641635;
+	Sat, 13 Sep 2025 20:09:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757794178; cv=none; b=c3rglF02FnOJBrHApQn3niehBtwGLdx+uoPcZVf6D44rBzWtOo0J4Cf/kPzW/J+ChIAdAfbEVlCeRVYzkdfNuVK4gd7u8bDNQmIWH7XquBTPLGMqTnp4B+ynk/qN62mMFgYLWTDzqrcPcWIY/TCYjsFCXvGuNyeQSH7QhBeQGRo=
+	t=1757794180; cv=none; b=A1t7nC0Q0ypfoNeiit9Mbjq/ewTU721NjELS9otFdbRON2QqJFzwaf1WuifVxhGGP0invK/vGLU0per3FPtZsmet/9SQ5YqiGD7dUTYN7WFBRzSmMbIPm24ugbN6vlXnwLvfPB0bkBtyc/mUSf86zcc0T6S2BUH95Ic8RTyH0m4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757794178; c=relaxed/simple;
-	bh=wkl9/7qtEY8jWScAmEa3qXRPpJeGiJ65ZkLLnhLzR3Y=;
-	h=Date:To:From:Subject:Message-Id; b=g2Y6GzKtD2p5TVdsClZEAzt3Lc5oIiwqUFb+qDajl+YeI1qvwkHISOBfBeIgAxn7lQSnv8o5iGInGB/Txgaw97pvroovIiBLcloTS4iXypOqJfIg6XGKV1qXhm1B+HsfPLeI+pdRcbaYINWn3tpicmNJIpfFHqPiVStcTOrB3ug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UQkV5Xt2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757794180; c=relaxed/simple;
+	bh=6+N5q4OxyNoGSbYZKq2Okr8pT6qFk561j6vGJBW9ERE=;
+	h=Date:To:From:Subject:Message-Id; b=JNehX+Z4AFGE2ahUPvcb5Q+yEjkv/bVv04QpDCh7/n+RI1fmKAVL6yZfrPCq+Qh8j6wF08uL3qCaelsgElyGLuOxF8myE/PPWGm/EDqb5SOR6OpW1UKlhg9m9f4A+I6h6kga3fQuW39ccMHPttjgzmt+Ttr78HnkPHQSkBPePyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iKpTb2nK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UQkV5Xt2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D78DC4CEEB;
-	Sat, 13 Sep 2025 20:09:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iKpTb2nK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70BEDC4CEEB;
+	Sat, 13 Sep 2025 20:09:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757794178;
-	bh=wkl9/7qtEY8jWScAmEa3qXRPpJeGiJ65ZkLLnhLzR3Y=;
+	s=korg; t=1757794179;
+	bh=6+N5q4OxyNoGSbYZKq2Okr8pT6qFk561j6vGJBW9ERE=;
 	h=Date:To:From:Subject:From;
-	b=UQkV5Xt2VW+CLDOFRf9PIxZnJcWRxcUIyUau8HXVVsYzw/XF90e+lCypADoOc433R
-	 GgI0wC1zRbsZ+FucN04J5kWkzW8sKawXXMJQ+v3PaFhh55hjcu+daRhziSE+VAQCC2
-	 SmJJ3Ex+kGOUeqikoZYQMvI2I2j0EkYETk9nqujg=
-Date: Sat, 13 Sep 2025 13:09:37 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=iKpTb2nKRsP96RYMp6u11F7s3XBoY4MBOsKhfMf99hGVHpvByHCoKPPH2F+D1YTLo
+	 KJ3PLY7JSHs5Poof3HCxjQTZBjSr4az6YArFOR9+FaB1r2gd0srW/+/y//zOgm8Unr
+	 toMxYEsK6lX9uRUXmG2cN/1nR5Ved2wly4z77waU=
+Date: Sat, 13 Sep 2025 13:09:38 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,oliver.sang@intel.com,konishi.ryusuke@gmail.com,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] samples-damon-mtier-avoid-starting-damon-before-initialization.patch removed from -mm tree
-Message-Id: <20250913200938.4D78DC4CEEB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features.patch removed from -mm tree
+Message-Id: <20250913200939.70BEDC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon/mtier: avoid starting DAMON before initialization
+     Subject: nilfs2: fix CFI failure when accessing /sys/fs/nilfs2/features/*
 has been removed from the -mm tree.  Its filename was
-     samples-damon-mtier-avoid-starting-damon-before-initialization.patch
+     nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/mtier: avoid starting DAMON before initialization
-Date: Mon, 8 Sep 2025 19:22:38 -0700
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: nilfs2: fix CFI failure when accessing /sys/fs/nilfs2/features/*
+Date: Sat, 6 Sep 2025 23:43:34 +0900
 
-Commit 964314344eab ("samples/damon/mtier: support boot time enable
-setup") is somehow incompletely applying the origin patch [1].  It is
-missing the part that avoids starting DAMON before module initialization. 
-Probably a mistake during a merge has happened.  Fix it by applying the
-missed part again.
+When accessing one of the files under /sys/fs/nilfs2/features when
+CONFIG_CFI_CLANG is enabled, there is a CFI violation:
 
-Link: https://lkml.kernel.org/r/20250909022238.2989-4-sj@kernel.org
-Link: https://lore.kernel.org/20250706193207.39810-4-sj@kernel.org [1]
-Fixes: 964314344eab ("samples/damon/mtier: support boot time enable setup")
-Signed-off-by: SeongJae Park <sj@kernel.org>
+  CFI failure at kobj_attr_show+0x59/0x80 (target: nilfs_feature_revision_show+0x0/0x30; expected type: 0xfc392c4d)
+  ...
+  Call Trace:
+   <TASK>
+   sysfs_kf_seq_show+0x2a6/0x390
+   ? __cfi_kobj_attr_show+0x10/0x10
+   kernfs_seq_show+0x104/0x15b
+   seq_read_iter+0x580/0xe2b
+  ...
+
+When the kobject of the kset for /sys/fs/nilfs2 is initialized, its ktype
+is set to kset_ktype, which has a ->sysfs_ops of kobj_sysfs_ops.  When
+nilfs_feature_attr_group is added to that kobject via
+sysfs_create_group(), the kernfs_ops of each files is sysfs_file_kfops_rw,
+which will call sysfs_kf_seq_show() when ->seq_show() is called. 
+sysfs_kf_seq_show() in turn calls kobj_attr_show() through
+->sysfs_ops->show().  kobj_attr_show() casts the provided attribute out to
+a 'struct kobj_attribute' via container_of() and calls ->show(), resulting
+in the CFI violation since neither nilfs_feature_revision_show() nor
+nilfs_feature_README_show() match the prototype of ->show() in 'struct
+kobj_attribute'.
+
+Resolve the CFI violation by adjusting the second parameter in
+nilfs_feature_{revision,README}_show() from 'struct attribute' to 'struct
+kobj_attribute' to match the expected prototype.
+
+Link: https://lkml.kernel.org/r/20250906144410.22511-1-konishi.ryusuke@gmail.com
+Fixes: aebe17f68444 ("nilfs2: add /sys/fs/nilfs2/features group")
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202509021646.bc78d9ef-lkp@intel.com/
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/mtier.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/nilfs2/sysfs.c |    4 ++--
+ fs/nilfs2/sysfs.h |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/samples/damon/mtier.c~samples-damon-mtier-avoid-starting-damon-before-initialization
-+++ a/samples/damon/mtier.c
-@@ -208,6 +208,9 @@ static int damon_sample_mtier_enable_sto
- 	if (enabled == is_enabled)
- 		return 0;
+--- a/fs/nilfs2/sysfs.c~nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features
++++ a/fs/nilfs2/sysfs.c
+@@ -1075,7 +1075,7 @@ void nilfs_sysfs_delete_device_group(str
+  ************************************************************************/
  
-+	if (!init_called)
-+		return 0;
-+
- 	if (enabled) {
- 		err = damon_sample_mtier_start();
- 		if (err)
+ static ssize_t nilfs_feature_revision_show(struct kobject *kobj,
+-					    struct attribute *attr, char *buf)
++					    struct kobj_attribute *attr, char *buf)
+ {
+ 	return sysfs_emit(buf, "%d.%d\n",
+ 			NILFS_CURRENT_REV, NILFS_MINOR_REV);
+@@ -1087,7 +1087,7 @@ static const char features_readme_str[]
+ 	"(1) revision\n\tshow current revision of NILFS file system driver.\n";
+ 
+ static ssize_t nilfs_feature_README_show(struct kobject *kobj,
+-					 struct attribute *attr,
++					 struct kobj_attribute *attr,
+ 					 char *buf)
+ {
+ 	return sysfs_emit(buf, features_readme_str);
+--- a/fs/nilfs2/sysfs.h~nilfs2-fix-cfi-failure-when-accessing-sys-fs-nilfs2-features
++++ a/fs/nilfs2/sysfs.h
+@@ -50,16 +50,16 @@ struct nilfs_sysfs_dev_subgroups {
+ 	struct completion sg_segments_kobj_unregister;
+ };
+ 
+-#define NILFS_COMMON_ATTR_STRUCT(name) \
++#define NILFS_KOBJ_ATTR_STRUCT(name) \
+ struct nilfs_##name##_attr { \
+ 	struct attribute attr; \
+-	ssize_t (*show)(struct kobject *, struct attribute *, \
++	ssize_t (*show)(struct kobject *, struct kobj_attribute *, \
+ 			char *); \
+-	ssize_t (*store)(struct kobject *, struct attribute *, \
++	ssize_t (*store)(struct kobject *, struct kobj_attribute *, \
+ 			 const char *, size_t); \
+ }
+ 
+-NILFS_COMMON_ATTR_STRUCT(feature);
++NILFS_KOBJ_ATTR_STRUCT(feature);
+ 
+ #define NILFS_DEV_ATTR_STRUCT(name) \
+ struct nilfs_##name##_attr { \
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-mm-zswap-store-page_size-compression-failed-page-as-is.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-fix.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-v5.patch
-mm-zswap-store-page_size-compression-failed-page-as-is-fix-2.patch
-mm-damon-core-add-damon_ctx-addr_unit.patch
-mm-damon-paddr-support-addr_unit-for-access-monitoring.patch
-mm-damon-paddr-support-addr_unit-for-damos_pageout.patch
-mm-damon-paddr-support-addr_unit-for-damos_lru_prio.patch
-mm-damon-paddr-support-addr_unit-for-migrate_hotcold.patch
-mm-damon-paddr-support-addr_unit-for-damos_stat.patch
-mm-damon-sysfs-implement-addr_unit-file-under-context-dir.patch
-docs-mm-damon-design-document-address-unit-parameter.patch
-docs-admin-guide-mm-damon-usage-document-addr_unit-file.patch
-docs-abi-damon-document-addr_unit-file.patch
+mm-rmap-convert-enum-rmap_level-to-enum-pgtable_level-fix.patch
 
