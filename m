@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AFE91E9B0B
-	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 22:14:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B673C1E9B0B
+	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 22:14:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757801644; cv=none; b=DUeAEWtDumSdtilouMraftLdUsr5G7eAzgYoptMud7ydvn9NEDisFzPrNqO+CSKhao2Byhq+FmGJy115h5zDKXJ+xId1j6/fRNX2uGT/8EI2PNlzcSHjKODPSdIVm3xyt8y9PGZhOTvrTI7Tw6wGChAWETu/MUqY4zawbwzieQo=
+	t=1757801689; cv=none; b=oKuAc7SWjPjQnvZ7kBoU9MHinIHY/D093CQtyfAA78Twv5PXSKL3YiUBRCc/Gc+Nz/5xahNWUvWTPezBO9RLEESFj05EoH6rRr2lXfTywJUAnj16O1OOAeDq6n8my1SkBz89e+UodtESoiEgkXBGbP360K9wYXDhXH7v+ZfqUEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757801644; c=relaxed/simple;
-	bh=w1ilmna/o4Vag1LNp+ZZoqxnYMujBdOkgbqcVAIJgkY=;
-	h=Date:To:From:Subject:Message-Id; b=GMBM6CR0p5kF2Q97Yk637HRIiXlT+rJiiMJ1RxeDLXsKJhVNyu2fbRBs6oZ5nPmpuPIOkwFDY0U9jrdpkxggzc/w01BeluR7p89mJVRHELY6/gJkrdNsSOHFISZreY4R9oh7rRar66TCGgXVGFwsZnaYi6UZb9UsL2A5CtuyynM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=enct0QBH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757801689; c=relaxed/simple;
+	bh=5xVRAOEhNONxcPt06pBl9qDTb1KyidqcC/GVo5cbZpI=;
+	h=Date:To:From:Subject:Message-Id; b=OeCZ4Rt9IgcGwSAgpxOmO59e4KEuAfHlCrK5G8TeDwvyA8VCnCmIod1lnenDlU3tHYfcj/XztA+BUsppkZ6YqRDdmY5SocKnaCMCKKj3RPwZn2Tu17YaO2NvJtrFDT748Wu5pBw2Zl3s5RLrIgOxgiKh8pZBgLFReFGqD6UFe6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sZ4gQZH4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="enct0QBH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D90B9C4CEEB;
-	Sat, 13 Sep 2025 22:14:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sZ4gQZH4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41BA5C4CEEB;
+	Sat, 13 Sep 2025 22:14:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757801643;
-	bh=w1ilmna/o4Vag1LNp+ZZoqxnYMujBdOkgbqcVAIJgkY=;
+	s=korg; t=1757801689;
+	bh=5xVRAOEhNONxcPt06pBl9qDTb1KyidqcC/GVo5cbZpI=;
 	h=Date:To:From:Subject:From;
-	b=enct0QBHENX0MkJs9GHE1GRaNWoRGh/i+U3PM4ICR0eO3jmdRdz9VuvG/ZVXbmT+9
-	 P4eqOFmzJ18HufNSRPg67s2Z3GfR5n2U+8CQ1m8QBUkvtVbrHr4OP7dsB01Mxl89cz
-	 i2qYErVqoWBiXeZNI2LhXAjRvUTkOnsaBcf11J2c=
-Date: Sat, 13 Sep 2025 15:14:03 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=sZ4gQZH4hSHPbjnzZJ3DvqPYH3+KV75LbQ+g2mt5NatZjoCZVPW2DLjtRBomzNe+1
+	 as33OU8rjsMMZ8NAaCa2rnd3B0MIsqu860/zt7nUI0cr0Rkqq0OsHUZkJRYU2mp5YJ
+	 ZQpqh+TMWDrKtV/+aDF4Y+NyH5Eg+YagV7rSOf8c=
+Date: Sat, 13 Sep 2025 15:14:48 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-bitmap-mm-flags-field-fix.patch removed from -mm tree
-Message-Id: <20250913221403.D90B9C4CEEB@smtp.kernel.org>
+Subject: [folded-merged] mm-correct-sign-extension-issue-in-mmf_-flag-masks-fix.patch removed from -mm tree
+Message-Id: <20250913221449.41BA5C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: place __private in correct place, const-ify __mm_flags_get_word
+     Subject: mm: prefer BIT() to _BITUL()
 has been removed from the -mm tree.  Its filename was
-     mm-add-bitmap-mm-flags-field-fix.patch
+     mm-correct-sign-extension-issue-in-mmf_-flag-masks-fix.patch
 
-This patch was dropped because it was folded into mm-add-bitmap-mm-flags-field.patch
+This patch was dropped because it was folded into mm-correct-sign-extension-issue-in-mmf_-flag-masks.patch
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: place __private in correct place, const-ify __mm_flags_get_word
-Date: Wed, 13 Aug 2025 20:40:10 +0100
+Subject: mm: prefer BIT() to _BITUL()
+Date: Tue, 26 Aug 2025 15:01:18 +0100
 
-The __private sparse indicator was placed in the wrong location, resulting
-in sparse errors, correct this by placing it where it ought to be.
+BIT() does the same thing, and is defined in actual linux headers rather
+than a uapi header.  per David.
 
-Also, share some code for __mm_flags_get_word() and const-ify it to be
-consistent.
-
-Finally, fixup inconsistency in __mm_flags_set_word() param alignment.
-
-Link: https://lkml.kernel.org/r/d4ba117d-6234-4069-b871-254d152d7d21@lucifer.local
+Link: https://lkml.kernel.org/r/a0290c77-cd88-46d6-8d9a-073be7600d88@lucifer.local
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ include/linux/mm_types.h |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm_types.h~mm-add-bitmap-mm-flags-field-fix
+--- a/include/linux/mm_types.h~mm-correct-sign-extension-issue-in-mmf_-flag-masks-fix
 +++ a/include/linux/mm_types.h
-@@ -934,8 +934,8 @@ struct mm_cid {
+@@ -1767,7 +1767,7 @@ enum {
+  * the modes are SUID_DUMP_* defined in linux/sched/coredump.h
   */
- #define NUM_MM_FLAG_BITS BITS_PER_LONG
- typedef struct {
--	__private DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
--} mm_flags_t;
-+	DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
-+} __private mm_flags_t;
+ #define MMF_DUMPABLE_BITS 2
+-#define MMF_DUMPABLE_MASK (_BITUL(MMF_DUMPABLE_BITS) - 1)
++#define MMF_DUMPABLE_MASK (BIT(MMF_DUMPABLE_BITS) - 1)
+ /* coredump filter bits */
+ #define MMF_DUMP_ANON_PRIVATE	2
+ #define MMF_DUMP_ANON_SHARED	3
+@@ -1782,13 +1782,13 @@ enum {
+ #define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
+ #define MMF_DUMP_FILTER_BITS	9
+ #define MMF_DUMP_FILTER_MASK \
+-	((_BITUL(MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
++	((BIT(MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
+ #define MMF_DUMP_FILTER_DEFAULT \
+-	(_BITUL(MMF_DUMP_ANON_PRIVATE) | _BITUL(MMF_DUMP_ANON_SHARED) | \
+-	 _BITUL(MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
++	(BIT(MMF_DUMP_ANON_PRIVATE) | BIT(MMF_DUMP_ANON_SHARED) | \
++	 BIT(MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
  
- struct kioctx_table;
- struct iommu_mm_data;
-@@ -1233,17 +1233,8 @@ struct mm_struct {
- 	unsigned long cpu_bitmap[];
- };
+ #ifdef CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
+-# define MMF_DUMP_MASK_DEFAULT_ELF	_BITUL(MMF_DUMP_ELF_HEADERS)
++# define MMF_DUMP_MASK_DEFAULT_ELF	BIT(MMF_DUMP_ELF_HEADERS)
+ #else
+ # define MMF_DUMP_MASK_DEFAULT_ELF	0
+ #endif
+@@ -1808,7 +1808,7 @@ enum {
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
+ #define MMF_HUGE_ZERO_FOLIO	23      /* mm has ever used the global huge zero folio */
+ #define MMF_DISABLE_THP		24	/* disable THP for all VMAs */
+-#define MMF_DISABLE_THP_MASK	_BITUL(MMF_DISABLE_THP)
++#define MMF_DISABLE_THP_MASK	BIT(MMF_DISABLE_THP)
+ #define MMF_OOM_REAP_QUEUED	25	/* mm was queued for oom_reaper */
+ #define MMF_MULTIPROCESS	26	/* mm is shared between processes */
+ /*
+@@ -1821,15 +1821,15 @@ enum {
+ #define MMF_HAS_PINNED		27	/* FOLL_PIN has run, never cleared */
  
--/* Read the first system word of mm flags, non-atomically. */
--static inline unsigned long __mm_flags_get_word(struct mm_struct *mm)
--{
--	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
--
--	return bitmap_read(bitmap, 0, BITS_PER_LONG);
--}
--
- /* Set the first system word of mm flags, non-atomically. */
--static inline void __mm_flags_set_word(struct mm_struct *mm,
--				       unsigned long value)
-+static inline void __mm_flags_set_word(struct mm_struct *mm, unsigned long value)
- {
- 	unsigned long *bitmap = ACCESS_PRIVATE(&mm->_flags, __mm_flags);
+ #define MMF_HAS_MDWE		28
+-#define MMF_HAS_MDWE_MASK	_BITUL(MMF_HAS_MDWE)
++#define MMF_HAS_MDWE_MASK	BIT(MMF_HAS_MDWE)
  
-@@ -1256,6 +1247,14 @@ static inline const unsigned long *__mm_
- 	return (const unsigned long *)ACCESS_PRIVATE(&mm->_flags, __mm_flags);
- }
+ #define MMF_HAS_MDWE_NO_INHERIT	29
  
-+/* Read the first system word of mm flags, non-atomically. */
-+static inline unsigned long __mm_flags_get_word(const struct mm_struct *mm)
-+{
-+	const unsigned long *bitmap = __mm_flags_get_bitmap(mm);
-+
-+	return bitmap_read(bitmap, 0, BITS_PER_LONG);
-+}
-+
- #define MM_MT_FLAGS	(MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN | \
- 			 MT_FLAGS_USE_RCU)
- extern struct mm_struct init_mm;
+ #define MMF_VM_MERGE_ANY	30
+-#define MMF_VM_MERGE_ANY_MASK	_BITUL(MMF_VM_MERGE_ANY)
++#define MMF_VM_MERGE_ANY_MASK	BIT(MMF_VM_MERGE_ANY)
+ 
+ #define MMF_TOPDOWN		31	/* mm searches top down by default */
+-#define MMF_TOPDOWN_MASK	_BITUL(MMF_TOPDOWN)
++#define MMF_TOPDOWN_MASK	BIT(MMF_TOPDOWN)
+ 
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+ 				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK |\
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
@@ -122,7 +128,6 @@ mm-convert-uprobes-to-mm_flags_-accessors.patch
 mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags.patch
 mm-update-coredump-logic-to-correctly-use-bitmap-mm-flags-fix.patch
 mm-correct-sign-extension-issue-in-mmf_-flag-masks.patch
-mm-correct-sign-extension-issue-in-mmf_-flag-masks-fix.patch
 mm-update-fork-mm-flags-initialisation-to-use-bitmap.patch
 mm-convert-remaining-users-to-mm_flags_-accessors.patch
 mm-replace-mm-flags-with-bitmap-entirely-and-set-to-64-bits.patch
