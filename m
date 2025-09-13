@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F0C08488
-	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 22:17:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AD80254855
+	for <mm-commits@vger.kernel.org>; Sat, 13 Sep 2025 22:18:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757801844; cv=none; b=iVkLOGW5DcXNN2Cx8Osrn2AcO5xWltFp/VTi+/pdP9amA/JxYBrsxdAOvAbeRGsNYeQiSpX2KC2Et1+Fg/RLn1JopB2So3HMKyPgBNX9ckEcY9msOza3iq3FIcYII1QOjfyb2Gn0uL0hQPTIUaf1j1r+qtojNfaxEa0/BeIt6sQ=
+	t=1757801892; cv=none; b=Em6yGAXCJPdcV49TqtNQyecXCtksoo2tCKxtYWIsRhWYmq2a7yjyhRxyDIJeCAyBmCzOZOtLshukjBEYIkXk9ctWqWdbSOvgM+mFZ9dwNMv6sibGpO+tPSpo7ksxa3YgFf8K6/UWKFGhdRe4mWtAjQthM3Nplk069jnDmewK6ss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757801844; c=relaxed/simple;
-	bh=Xu5fwHLQlygmIIMhWe6nF0MEXSLZ68BPhCHKtEGAt24=;
-	h=Date:To:From:Subject:Message-Id; b=HRsFYL+PR9DAp9MGYQWFDqsbvS7tjdNegoy2DI0vdAFmwU5PtK7LrvfwMJ9ainPxo6ygQsRXOEY2F5YqKHp7fpdUqOIX80YCh2pjnjXZ17KF2yriw88yel7/m+QSH3g3qvv2Fiae2X9zs2/feE322wqVnhKfY3MW9ytkE/F9mkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pbVActRU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757801892; c=relaxed/simple;
+	bh=36PuQ0gzQ2btBbMz7hslZq2vbKpromCRFaDSw8EKLGM=;
+	h=Date:To:From:Subject:Message-Id; b=WQTtiH10m4+bdCFz9tjaS8lVhSfkvYB/yl7/Y/NfPdzLu5GVIG6mHQZYz00M7W9fUR4Tf3GMcoL3fDUPcee+wMEUDziKLgfIn1Jx/DoKcc5+Hnt65125MUym4oJbZZlC0h9+VbPB0Sj/O6sOedVrjTeoEswTTCuEd54ra4UpHZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hqslPhxY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pbVActRU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C81E9C4CEEB;
-	Sat, 13 Sep 2025 22:17:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hqslPhxY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F7E8C4CEEB;
+	Sat, 13 Sep 2025 22:18:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757801843;
-	bh=Xu5fwHLQlygmIIMhWe6nF0MEXSLZ68BPhCHKtEGAt24=;
+	s=korg; t=1757801892;
+	bh=36PuQ0gzQ2btBbMz7hslZq2vbKpromCRFaDSw8EKLGM=;
 	h=Date:To:From:Subject:From;
-	b=pbVActRURrvVdxvUKLa4XNFUic/56CjU2+Pv0TIqgndmSws7lPQJs5HHVFYsFn5w/
-	 1+WgmNBVv04aH3JWJ3jYhLuhSHP2kGtiUUet1hHhUVyXM3l74SLaIKlzi9Mfy+Fn1L
-	 uYEmLHrGMrB77DsYE5EfB2Bg0Ax8BCCNbkuzH08U=
-Date: Sat, 13 Sep 2025 15:17:23 -0700
-To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,surenb@google.com,peterx@redhat.com,kaleshsingh@google.com,david@redhat.com,baohua@kernel.org,lokeshgidra@google.com,akpm@linux-foundation.org
+	b=hqslPhxYW6e+eo1M8cmqyH4YMOYP5S1akLw93u75hwk6bhjBpqWYOFzfKWp5nWt8A
+	 bO6bynmBAvt3oBEmhfEZSJtl6QZ6zaM8MY38S7nhzNe5iM97Mim0M5jksoTVOzdklH
+	 XDm8ahLceXBIxKrpsQMGwYsX7aKfOO0WtnEcoYgU=
+Date: Sat, 13 Sep 2025 15:18:11 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,shakeel.butt@linux.dev,roman.gushchin@linux.dev,peterz@infradead.org,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6.patch removed from -mm tree
-Message-Id: <20250913221723.C81E9C4CEEB@smtp.kernel.org>
+Subject: [folded-merged] memcg-optimize-exit-to-user-space-fix.patch removed from -mm tree
+Message-Id: <20250913221812.1F7E8C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6
+     Subject: memcg-optimize-exit-to-user-space-fix
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6.patch
+     memcg-optimize-exit-to-user-space-fix.patch
 
-This patch was dropped because it was folded into userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
+This patch was dropped because it was folded into memcg-optimize-exit-to-user-space.patch
 
 ------------------------------------------------------
-From: Lokesh Gidra <lokeshgidra@google.com>
-Subject: userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6
-Date: Sat, 16 Aug 2025 12:11:23 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-optimize-exit-to-user-space-fix
+Date: Wed Aug 13 03:38:42 PM PDT 2025
 
-make calculation of largest extent that can be batched unconditional on
-length, per Barry
+remove now-unneeded test of memcg_nr_pages_over_high==0, per Shakeel
 
-Link: https://lkml.kernel.org/r/20250816191123.3601561-1-lokeshgidra@google.com
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move-v6
-+++ a/mm/userfaultfd.c
-@@ -1081,11 +1081,8 @@ static long move_present_ptes(struct mm_
- 	unsigned long src_start = src_addr;
- 	unsigned long src_end;
+--- a/mm/memcontrol.c~memcg-optimize-exit-to-user-space-fix
++++ a/mm/memcontrol.c
+@@ -2213,9 +2213,6 @@ void __mem_cgroup_handle_over_high(gfp_t
+ 	struct mem_cgroup *memcg;
+ 	bool in_retry = false;
  
--	if (len > PAGE_SIZE) {
--		len = pmd_addr_end(dst_addr, dst_addr + len) - dst_addr;
--		src_end = pmd_addr_end(src_addr, src_addr + len);
--	} else
--		src_end = src_addr + len;
-+	len = pmd_addr_end(dst_addr, dst_addr + len) - dst_addr;
-+	src_end = pmd_addr_end(src_addr, src_addr + len);
- 	flush_cache_range(src_vma, src_addr, src_end);
- 	double_pt_lock(dst_ptl, src_ptl);
+-	if (likely(!nr_pages))
+-		return;
+-
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
+ 	current->memcg_nr_pages_over_high = 0;
  
 _
 
-Patches currently in -mm which might be from lokeshgidra@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-opportunistic-tlb-flush-batching-for-present-pages-in-move.patch
+kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
+mm-convert-core-mm-to-mm_flags_-accessors-fix.patch
+memcg-optimize-exit-to-user-space.patch
+memfd-move-mfd_all_flags-definition-to-memfdh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
+mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
+panic-remove-redundant-panic-cpu-backtrace-fix.patch
+crash-add-kunit-tests-for-crash_exclude_mem_range-fix.patch
 
