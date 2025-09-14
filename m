@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FECF8635D
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30EFE381AF
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810110; cv=none; b=fepY0VwpFnRmPMCgbiP3xqZ4E4V6E+AnCrU9gQMwU9SQSqYe2YZe/ZzfOupOdhkWIrSMXAPdpp19a1ze4HIps15EVYsTtKWOgqaDsMhe+L0cuJTvUfD2CttOWu8d0L/2XcD7GBv8ZItIG+A+1AiS9z0sWlEbnTLFwtG91hVrKh8=
+	t=1757810111; cv=none; b=ungZtYXfAd3or5F9ybUSq4ueclyrQ4RDiLVuXUIVUNMDKHroqXptqLdKuVlGgrvSB7FGRZ62uS1HmR4ZP4cYp+HxLrS75XjOATBBn+6dtkRMJm+CTQX5k9fbkgvaN/MQgDQygEVPx2bExxR+aYCPZCVdrBpy5wuocjQGbKYVIU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810110; c=relaxed/simple;
-	bh=r/KeH4aw/S3juV9aSuF01mWx6kwfJ3HAXT5IvyA3mAE=;
-	h=Date:To:From:Subject:Message-Id; b=reBc0DV6iMvoER3rzeh7lM/auadMKshCn+Vel6nohEkFN7DTmy1dm8+L0XkUhfxWviF1EQjvxcOCPtvkxbIIxQWN4S4wI7ghOL0oTL1Ov1NH273dvoWXm/Yo9ZTmPofhxP3icf6QTc6l7IMKT0iviTmWLciFip9JFVcKKSoCx4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pPhJ5l8c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810111; c=relaxed/simple;
+	bh=twZsXYZ5jdqwSZEHVb4MVkfA0cTX2atgUKx9qk9OBrM=;
+	h=Date:To:From:Subject:Message-Id; b=vDCnyxM3FPj47U2d+xlWxD/v/dW4lGYNpqRdkQyITny0APJ97CwEksptyvbuawd73HgjhAUk88neOdOr/IbB4cfA5NSGTons80s28AbkXJ/IGP6bZ1fGb/ZIc8Q1zwfVdre2lsdMcnKftF/BVpBMHJYZe+pf3M4SYwSXPsMHKS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xNPTfAE6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pPhJ5l8c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8FF4C4CEEB;
-	Sun, 14 Sep 2025 00:35:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xNPTfAE6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F228DC4CEEB;
+	Sun, 14 Sep 2025 00:35:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810109;
-	bh=r/KeH4aw/S3juV9aSuF01mWx6kwfJ3HAXT5IvyA3mAE=;
+	s=korg; t=1757810111;
+	bh=twZsXYZ5jdqwSZEHVb4MVkfA0cTX2atgUKx9qk9OBrM=;
 	h=Date:To:From:Subject:From;
-	b=pPhJ5l8cI52SEFO3wG8pWJ2EoEub0r1gZMsAx4Xrzu3RC1sVB9lbcBH7/2gJUMgaV
-	 J6pIQ+Ij5RvGJRP+lZLqz6I/L+XoMJnGfZRfEWeQ2LT/ge576aSmYVuzZUMhF59tRw
-	 3AEpfUyUNBrGnDvFYNPkHNoqVIBdjYrU2RRTclj8=
-Date: Sat, 13 Sep 2025 17:35:09 -0700
-To: mm-commits@vger.kernel.org,zhao.xichao@vivo.com,akpm@linux-foundation.org
+	b=xNPTfAE6TatxRkzLhqQmdFop8QEYlUiPeihq+4qRX2sZJQLKhrtCG3+NXzylR3jOw
+	 FWUWZj669yGOSD+OucsspROb2ZLvhW9nbis+F2BJt1WEUjz4WoSyxkZpq8z+1g3wza
+	 v17A+Z6xjQoDRXxu5qEGlm/YnYyMm+BTFdbj0SOA=
+Date: Sat, 13 Sep 2025 17:35:10 -0700
+To: mm-commits@vger.kernel.org,syzbot+895c23f6917da440ed0d@syzkaller.appspotmail.com,phillip@squashfs.org.uk,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-use-ptr_err_or_zero-to-simplify-code.patch removed from -mm tree
-Message-Id: <20250914003509.D8FF4C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] squashfs-verify-inode-mode-when-loading-from-disk.patch removed from -mm tree
+Message-Id: <20250914003510.F228DC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/fault-inject-usercopy.c: use PTR_ERR_OR_ZERO() to simplify code
+     Subject: squashfs: verify inode mode when loading from disk
 has been removed from the -mm tree.  Its filename was
-     lib-use-ptr_err_or_zero-to-simplify-code.patch
+     squashfs-verify-inode-mode-when-loading-from-disk.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xichao Zhao <zhao.xichao@vivo.com>
-Subject: lib/fault-inject-usercopy.c: use PTR_ERR_OR_ZERO() to simplify code
-Date: Tue, 12 Aug 2025 16:40:45 +0800
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: squashfs: verify inode mode when loading from disk
+Date: Wed, 13 Aug 2025 16:17:43 +0900
 
-Use the standard error pointer macro to shorten the code and simplify.
+The inode mode loaded from corrupted disk might by error contain the file
+type bits.  Since the file type bits are set by squashfs_read_inode()
+using bitwise OR, the file type bits must not be set by
+squashfs_new_inode() from squashfs_read_inode(); otherwise, an invalid
+file type bits later confuses may_open().
 
-Link: https://lkml.kernel.org/r/20250812084045.64218-1-zhao.xichao@vivo.com
-Signed-off-by: Xichao Zhao <zhao.xichao@vivo.com>
+Link: https://lkml.kernel.org/r/f63d8d11-2254-4fc3-9292-9a43a93b374e@I-love.SAKURA.ne.jp
+Reported-by: syzbot <syzbot+895c23f6917da440ed0d@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=895c23f6917da440ed0d
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fault-inject-usercopy.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/squashfs/inode.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/lib/fault-inject-usercopy.c~lib-use-ptr_err_or_zero-to-simplify-code
-+++ a/lib/fault-inject-usercopy.c
-@@ -22,10 +22,8 @@ static int __init fail_usercopy_debugfs(
+--- a/fs/squashfs/inode.c~squashfs-verify-inode-mode-when-loading-from-disk
++++ a/fs/squashfs/inode.c
+@@ -68,6 +68,10 @@ static int squashfs_new_inode(struct sup
+ 	inode->i_mode = le16_to_cpu(sqsh_ino->mode);
+ 	inode->i_size = 0;
  
- 	dir = fault_create_debugfs_attr("fail_usercopy", NULL,
- 					&fail_usercopy.attr);
--	if (IS_ERR(dir))
--		return PTR_ERR(dir);
- 
--	return 0;
-+	return PTR_ERR_OR_ZERO(dir);
++	/* File type must not be set at this moment, for it will later be set by the caller. */
++	if (inode->i_mode & S_IFMT)
++		err = -EIO;
++
+ 	return err;
  }
  
- late_initcall(fail_usercopy_debugfs);
 _
 
-Patches currently in -mm which might be from zhao.xichao@vivo.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
+ocfs2-kill-osb-system_file_mutex-lock.patch
 
