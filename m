@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5790A156C6A
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:36:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82948156C6A
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:36:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810168; cv=none; b=F6ZOxHE7TmDOtvhLihojgdAQLJTqfnQuRU9jWTxqtER3o6kVCFHJbMDYexScdnzpt8bRj5pQsdc3FZSdKczsEz5hlu0GqHcgd3b9FcZfStGwbFhZWrYT0a0MS2Dx1Kjhiyi9iWKToU95NfflJQAjiohvarqwQtOBqL5P4b2b6jM=
+	t=1757810169; cv=none; b=SGo4E9AUW1BPWbigPdx+80nCSTQQCMqLbAEevY50KLPd3dyVXTlm1BVc+iXXC+4OqYA7+SW5RfXwefBHCkPDVNYsVWhNkK8w0D8QDk5Xov+UcGdsxJVDZUsh91/1rnrP7ls0bjS2+MSI8pIVH4zt68Gg+SKY2bbCT3zUR2cGsMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810168; c=relaxed/simple;
-	bh=zJEUj9nSue0jz3Xxg2ymd6Av+Tt0ZbxSuypcYtUIsJY=;
-	h=Date:To:From:Subject:Message-Id; b=RAsOgslSggodfHGcY36WyU0fhN4pm9eS6LHXpCrvZSdEm0PTYdCmTG6A+tp9x732PMrcg0mNvlz6BdqDv+JiLGMdz15K+5OPrx/EGFS/O9uOiOLLZAa3HDXuyxkpkGyxndOLaMv6Yqi6s560z7+p61s8lsRAlrcs/aUK/B48NiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mIkC48UQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810169; c=relaxed/simple;
+	bh=G3XXh3KXd9H4IQdI0Cq+tDMOSA1oaswLo+64Hu9OAEQ=;
+	h=Date:To:From:Subject:Message-Id; b=nZSegDyRZiQ6amYNnu0pCQcuE81SXCko9jIycVafBqoN1QBv4DnRusVfBfpwP78pPpmzwVhIMxrfb527ONsp6oO0B6PAVY7i0Ix0UGVJLdQBCahm3g8DLoU5EbhHDH8AGpJFfq1NjpKois44pFNB0Z/8hzd4x+sKNtRWdF/Ubmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1NEU9QPs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mIkC48UQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CC46C4CEEB;
-	Sun, 14 Sep 2025 00:36:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1NEU9QPs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 596DBC4CEEB;
+	Sun, 14 Sep 2025 00:36:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810168;
-	bh=zJEUj9nSue0jz3Xxg2ymd6Av+Tt0ZbxSuypcYtUIsJY=;
+	s=korg; t=1757810169;
+	bh=G3XXh3KXd9H4IQdI0Cq+tDMOSA1oaswLo+64Hu9OAEQ=;
 	h=Date:To:From:Subject:From;
-	b=mIkC48UQPnRUB8XhmvhaqJ9CyciGCvkVhS50vl9QtKNphzEynOQm2cepKg8uKZOG1
-	 RBPZDulr9m7gM1WR1V7EZsh1i6rZVyDAZhBqHDPFhmEmaDV1ORTtv7j+cWX+FnCJOr
-	 e1fACsl4fyEazaAkz0FQOWdWK0FzIb1mPf0FKtTM=
-Date: Sat, 13 Sep 2025 17:36:07 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,fan.yu9@zte.com.cn,akpm@linux-foundation.org
+	b=1NEU9QPsihv8FyVfVA0ImfvfzxkL0Xf+sV9nhrW3P8Xt1Lxs+ixmS5XW3ICvu+akl
+	 W4wLhAIyWl/wH9nokDsM/WKBJP72ZFMpei54XHnbFMXyWG3cwixi1pV9ArnebAVF2C
+	 toeS6b10yv9pDcjerbxmhlJxSxcKn0RdjqUeCaP8=
+Date: Sat, 13 Sep 2025 17:36:08 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,ardb@kernel.org,epetron@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] docs-update-delaytop-documentation-for-new-interactive-features.patch removed from -mm tree
-Message-Id: <20250914003608.2CC46C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec-introduce-is_kho_boot.patch removed from -mm tree
+Message-Id: <20250914003609.596DBC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,143 +35,118 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs: update delaytop documentation for new interactive features
+     Subject: kexec: introduce is_kho_boot()
 has been removed from the -mm tree.  Its filename was
-     docs-update-delaytop-documentation-for-new-interactive-features.patch
+     kexec-introduce-is_kho_boot.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Fan Yu <fan.yu9@zte.com.cn>
-Subject: docs: update delaytop documentation for new interactive features
-Date: Sun, 7 Sep 2025 00:14:57 +0800 (CST)
+From: Evangelos Petrongonas <epetron@amazon.de>
+Subject: kexec: introduce is_kho_boot()
+Date: Thu, 21 Aug 2025 17:58:59 +0000
 
-This commit updates the delaytop documentation to reflect the newly
-added features:
-1) Added comprehensive description of interactive keyboard controls
-2) Documented all available sort fields
-3) Added examples for advanced usage scenarios
-4) Included PSI availability note
+Patch series "efi: Fix EFI boot with kexec handover (KHO)", v3.
 
-Link: https://lkml.kernel.org/r/20250907001457696qAqUGGkV1VfEO6OkVMovW@zte.com.cn
-Signed-off-by: Fan Yu <fan.yu9@zte.com.cn>
-Reviewed-by: xu xin <xu.xin16@zte.com.cn>
+This patch series fixes a kernel panic that occurs when booting with both
+EFI and KHO (Kexec HandOver) enabled.
+
+The issue arises because EFI's `reserve_regions()` clears all memory
+regions with `memblock_remove(0, PHYS_ADDR_MAX)` before rebuilding them
+from EFI data.  This destroys KHO scratch regions that were set up early
+during device tree scanning, causing a panic as the kernel has no valid
+memory regions for early allocations.
+
+The first patch introduces `is_kho_boot()` to allow early boot components
+to reliably detect if the kernel was booted via KHO-enabled kexec.  The
+existing `kho_is_enabled()` only checks the command line and doesn't
+verify if an actual KHO FDT was passed.
+
+The second patch modifies EFI's `reserve_regions()` to selectively remove
+only non-KHO memory regions when KHO is active, preserving the critical
+scratch regions while still allowing EFI to rebuild its memory map.
+
+
+This patch (of 3):
+
+During early initialisation, after a kexec, other components, like EFI
+need to know if a KHO enabled kexec is performed.  The `kho_is_enabled`
+function is not enough as in the early stages, it only reflects whether
+the cmdline has KHO enabled, not if an actual KHO FDT exists.
+
+Extend the KHO API with `is_kho_boot()` to provide a way for components to
+check if a KHO enabled kexec is performed.
+
+Link: https://lkml.kernel.org/r/cover.1755721529.git.epetron@amazon.de
+Link: https://lkml.kernel.org/r/7dc6674a76bf6e68cca0222ccff32427699cc02e.1755721529.git.epetron@amazon.de
+Signed-off-by: Evangelos Petrongonas <epetron@amazon.de>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |   89 ++++++++++------
- 1 file changed, 57 insertions(+), 32 deletions(-)
+ include/linux/kexec_handover.h |    6 ++++++
+ kernel/kexec_handover.c        |   20 ++++++++++++++++++++
+ 2 files changed, 26 insertions(+)
 
---- a/Documentation/accounting/delay-accounting.rst~docs-update-delaytop-documentation-for-new-interactive-features
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -134,47 +134,72 @@ The above command can be used with -v to
+--- a/include/linux/kexec_handover.h~kexec-introduce-is_kho_boot
++++ a/include/linux/kexec_handover.h
+@@ -40,6 +40,7 @@ struct kho_serialization;
  
- After the system starts, use `delaytop` to get the system-wide delay information,
- which includes system-wide PSI information and Top-N high-latency tasks.
-+Note: PSI support requires `CONFIG_PSI=y` and `psi=1` for full functionality.
+ #ifdef CONFIG_KEXEC_HANDOVER
+ bool kho_is_enabled(void);
++bool is_kho_boot(void);
  
--`delaytop` supports sorting by CPU latency in descending order by default,
--displays the top 20 high-latency tasks by default, and refreshes the latency
--data every 2 seconds by default.
-+`delaytop` is an interactive tool for monitoring system pressure and task delays.
-+It supports multiple sorting options, display modes, and real-time keyboard controls.
+ int kho_preserve_folio(struct folio *folio);
+ int kho_preserve_phys(phys_addr_t phys, size_t size);
+@@ -59,6 +60,11 @@ static inline bool kho_is_enabled(void)
+ {
+ 	return false;
+ }
++
++static inline bool is_kho_boot(void)
++{
++	return false;
++}
  
--Get PSI information and Top-N tasks delay, since system boot::
-+Basic usage with default settings (sorts by CPU delay, shows top 20 tasks, refreshes every 2 seconds)::
+ static inline int kho_preserve_folio(struct folio *folio)
+ {
+--- a/kernel/kexec_handover.c~kexec-introduce-is_kho_boot
++++ a/kernel/kexec_handover.c
+@@ -952,6 +952,26 @@ static const void *kho_get_fdt(void)
+ }
  
- 	bash# ./delaytop
--	System Pressure Information: (avg10/avg60/avg300/total)
--	CPU some:       0.0%/   0.0%/   0.0%/     345(ms)
-+	System Pressure Information: (avg10/avg60vg300/total)
-+	CPU some:       0.0%/   0.0%/   0.0%/  106137(ms)
- 	CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
- 	Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
- 	Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
--	IO full:        0.0%/   0.0%/   0.0%/      65(ms)
--	IO some:        0.0%/   0.0%/   0.0%/      79(ms)
-+	IO full:        0.0%/   0.0%/   0.0%/    2240(ms)
-+	IO some:        0.0%/   0.0%/   0.0%/    2783(ms)
- 	IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
--	Top 20 processes (sorted by CPU delay):
--	  PID   TGID  COMMAND          CPU(ms)  IO(ms) SWAP(ms) RCL(ms) THR(ms) CMP(ms)  WP(ms) IRQ(ms)
--	----------------------------------------------------------------------------------------------
--	  161    161  zombie_memcg_re   1.40    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	  130    130  blkcg_punt_bio    1.37    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	  444    444  scsi_tmf_0        0.73    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	 1280   1280  rsyslogd          0.53    0.04    0.00    0.00    0.00    0.00    0.00    0.00
--	   12     12  ksoftirqd/0       0.47    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	 1277   1277  nbd-server        0.44    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	  308    308  kworker/2:2-sys   0.41    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	   55     55  netns             0.36    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	 1187   1187  acpid             0.31    0.03    0.00    0.00    0.00    0.00    0.00    0.00
--	 6184   6184  kworker/1:2-sys   0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	  186    186  kaluad            0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	   18     18  ksoftirqd/1       0.24    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	  185    185  kmpath_rdacd      0.23    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	  190    190  kstrp             0.23    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	 2759   2759  agetty            0.20    0.03    0.00    0.00    0.00    0.00    0.00    0.00
--	 1190   1190  kworker/0:3-sys   0.19    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	 1272   1272  sshd              0.15    0.04    0.00    0.00    0.00    0.00    0.00    0.00
--	 1156   1156  license           0.15    0.11    0.00    0.00    0.00    0.00    0.00    0.00
--	  134    134  md                0.13    0.00    0.00    0.00    0.00    0.00    0.00    0.00
--	 6142   6142  kworker/3:2-xfs   0.13    0.00    0.00    0.00    0.00    0.00    0.00    0.00
-+	[o]sort [M]memverbose [q]quit
-+	Top 20 processes (sorted by cpu delay):
-+		PID      TGID  COMMAND           CPU(ms)   IO(ms)  IRQ(ms)  MEM(ms)
-+	------------------------------------------------------------------------
-+		110       110  kworker/15:0H-s   27.91     0.00     0.00     0.00
-+		57        57  cpuhp/7            3.18     0.00     0.00     0.00
-+		99        99  cpuhp/14           2.97     0.00     0.00     0.00
-+		51        51  cpuhp/6            0.90     0.00     0.00     0.00
-+		44        44  kworker/4:0H-sy    0.80     0.00     0.00     0.00
-+		60        60  ksoftirqd/7        0.74     0.00     0.00     0.00
-+		76        76  idle_inject/10     0.31     0.00     0.00     0.00
-+		100       100  idle_inject/14     0.30     0.00     0.00     0.00
-+		1309      1309  systemsettings     0.29     0.00     0.00     0.00
-+		45        45  cpuhp/5            0.22     0.00     0.00     0.00
-+		63        63  cpuhp/8            0.20     0.00     0.00     0.00
-+		87        87  cpuhp/12           0.18     0.00     0.00     0.00
-+		93        93  cpuhp/13           0.17     0.00     0.00     0.00
-+		1265      1265  acpid              0.17     0.00     0.00     0.00
-+		1552      1552  sshd               0.17     0.00     0.00     0.00
-+		2584      2584  sddm-helper        0.16     0.00     0.00     0.00
-+		1284      1284  rtkit-daemon       0.15     0.00     0.00     0.00
-+		1326      1326  nde-netfilter      0.14     0.00     0.00     0.00
-+		27        27  cpuhp/2            0.13     0.00     0.00     0.00
-+		631       631  kworker/11:2-rc    0.11     0.00     0.00     0.00
+ /**
++ * is_kho_boot - check if current kernel was booted via KHO-enabled
++ * kexec
++ *
++ * This function checks if the current kernel was loaded through a kexec
++ * operation with KHO enabled, by verifying that a valid KHO FDT
++ * was passed.
++ *
++ * Note: This function returns reliable results only after
++ * kho_populate() has been called during early boot. Before that,
++ * it may return false even if KHO data is present.
++ *
++ * Return: true if booted via KHO-enabled kexec, false otherwise
++ */
++bool is_kho_boot(void)
++{
++	return !!kho_get_fdt();
++}
++EXPORT_SYMBOL_GPL(is_kho_boot);
 +
-+Interactive keyboard controls during runtime::
-+
-+	o - Select sort field (CPU, IO, IRQ, Memory, etc.)
-+	M - Toggle display mode (Default/Memory Verbose)
-+	q - Quit
-+
-+Available sort fields(use -s/--sort or interactive command)::
-+
-+	cpu(c)       - CPU delay
-+	blkio(i)     - I/O delay
-+	irq(q)       - IRQ delay
-+	mem(m)       - Total memory delay
-+	swapin(s)    - Swapin delay (memory verbose mode only)
-+	freepages(r) - Freepages reclaim delay (memory verbose mode only)
-+	thrashing(t) - Thrashing delay (memory verbose mode only)
-+	compact(p)   - Compaction delay (memory verbose mode only)
-+	wpcopy(w)    - Write page copy delay (memory verbose mode only)
- 
--Dynamic interactive interface of delaytop::
-+Advanced usage examples::
-+
-+	# ./delaytop -s blkio
-+	Sorted by IO delay
-+
-+	# ./delaytop -s mem -M
-+	Sorted by memory delay in memory verbose mode
- 
- 	# ./delaytop -p pid
- 	Print delayacct stats
++/**
+  * kho_retrieve_subtree - retrieve a preserved sub FDT by its name.
+  * @name: the name of the sub FDT passed to kho_add_subtree().
+  * @phys: if found, the physical address of the sub FDT is stored in @phys.
 _
 
-Patches currently in -mm which might be from fan.yu9@zte.com.cn are
+Patches currently in -mm which might be from epetron@amazon.de are
 
 
