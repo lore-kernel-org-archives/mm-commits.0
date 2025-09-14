@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01E88EEBD
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:17:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6881028E5
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:34:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757809069; cv=none; b=tcbD1S4PnY7HrdYrvlZ9Si6eajbtu5gL76WAmUMGM2nYRn9aFEERlnPc4SqYnPWo5pMggopiOV4FNwsg5aAncd+7QvGC14zUEi7db3V0rms6aR/JpRz0U12iR1882XVcDunZ302C+8l7rZCD1jkzl3nOJQgySqoMCCE+XU0W3Y0=
+	t=1757810093; cv=none; b=fI4vl+KEvgcbhryYtsrKd73e/BpFTjWzxvKulHWl9Gr83VnC8DzBshD1ae44AAzmePCksXJcHnHvI07q2Tmyw+FkWcTq6WOQvUQ75QkiE7qfbn1wskH+MCD4V8h6HxslbfUN5Ezfc5R2krq7cl13G40+t2O4ltNQ9VsB/OUTcS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757809069; c=relaxed/simple;
-	bh=7yORv1kPc/DZ/Zj3mbTVGCgsoBksCT3Sm4DWCe/LJhY=;
-	h=Date:To:From:Subject:Message-Id; b=kIYDxgxZ5k6gbOjJYnts3gI1a9B7HYo+/qvoAiReAxTzwq4rcBmbNRnQKLACDTkncigsU0ymlR67Wvzl2KkSiIVVsZjxmluBHHx3d1sIP4GBNMNEZYcX9ZbpS64AQQizKI6UIvtrCp+/eJMrh7eh0SfIISz7o0OwjP/nAT/icWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z/Rh0jK3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810093; c=relaxed/simple;
+	bh=/QQHo2fUllguQcWexlvXR+6Uhw68RgNnD0It6X4UA0Y=;
+	h=Date:To:From:Subject:Message-Id; b=GmXPLhVN6vYAEkKEONgCm0Gm1n+rELqPk+mIWQ6bh6PpqJOR81dgpX/FgDcJpI3LZ9ecz/cF67mE+AtDkpj6UUJ92DCfQs/rfzitiU1HIb5rBNah7eJevXzLDmX5c4c7wRuekYeHvd0KCHyCAwUXbinhZqmmk81jmF9FZDbySfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dLvo+r+f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z/Rh0jK3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77104C4CEEB;
-	Sun, 14 Sep 2025 00:17:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dLvo+r+f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9573C4CEEB;
+	Sun, 14 Sep 2025 00:34:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757809068;
-	bh=7yORv1kPc/DZ/Zj3mbTVGCgsoBksCT3Sm4DWCe/LJhY=;
+	s=korg; t=1757810092;
+	bh=/QQHo2fUllguQcWexlvXR+6Uhw68RgNnD0It6X4UA0Y=;
 	h=Date:To:From:Subject:From;
-	b=Z/Rh0jK3xKq2ekTD2eVDJObprbYd9MSQsSFkvwzB6SarZeQJYyd0UVHUAyhNv6DeW
-	 UmgKY0Aa+XQhLcCBMcAMx013zV3YjgqY+Vyg/hRO/33cto4MYe25E5p+/a3Sj0h+uh
-	 wAgQhOQAKjKEgRtxisN+OyxSitEvujPyyDoAJDro=
-Date: Sat, 13 Sep 2025 17:17:47 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tglx@linutronix.de,mingo@redhat.com,hpa@zytor.com,fuqiang.wang@easystack.cn,dyoung@redhat.com,coxu@redhat.com,bp@alien8.de,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=dLvo+r+fcHatjwlDBJiEW5SXEX3cgOWtiJFO/Pj6VGTDCjMIbUWipKNZoCkKmoBg+
+	 mZi5PjnTdZbgqaF1aNu3PiynsoLBdDU/eeAM8kR8wkh32Q3yFl+WvGDDSq7evNX60b
+	 Jit2yiGGm0bMtTkDDLGSsnys8rmen9T8kuIZjepw=
+Date: Sat, 13 Sep 2025 17:34:52 -0700
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,lance.yang@linux.dev,mhiramat@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] crash-add-kunit-tests-for-crash_exclude_mem_range-fix.patch removed from -mm tree
-Message-Id: <20250914001748.77104C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] hung_task-dump-blocker-task-if-it-is-not-hung.patch removed from -mm tree
+Message-Id: <20250914003452.C9573C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,163 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: crash-add-kunit-tests-for-crash_exclude_mem_range-fix
+     Subject: hung_task: dump blocker task if it is not hung
 has been removed from the -mm tree.  Its filename was
-     crash-add-kunit-tests-for-crash_exclude_mem_range-fix.patch
+     hung_task-dump-blocker-task-if-it-is-not-hung.patch
 
-This patch was dropped because it was folded into crash-add-kunit-tests-for-crash_exclude_mem_range.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: crash-add-kunit-tests-for-crash_exclude_mem_range-fix
-Date: Thu Sep  4 08:07:47 PM PDT 2025
+From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Subject: hung_task: dump blocker task if it is not hung
+Date: Thu, 31 Jul 2025 07:11:54 +0900
 
-export crash_exclude_mem_range() to modules, for kernel/crash_core_test.c
+Dump the lock blocker task if it is not hung because if the blocker task
+is also hung, it should be dumped by the detector.  This will de-duplicate
+the same stackdumps if the blocker task is also blocked by another task
+(and hung).
 
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Coiby Xu <coxu@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: fuqiang wang <fuqiang.wang@easystack.cn>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/175391351423.688839.11917911323784986774.stgit@devnote2
+Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Suggested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Lance Yang <lance.yang@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/hung_task.c |   78 ++++++++++++++++++++++---------------------
+ 1 file changed, 41 insertions(+), 37 deletions(-)
 
---- a/kernel/crash_core.c~crash-add-kunit-tests-for-crash_exclude_mem_range-fix
-+++ a/kernel/crash_core.c
-@@ -338,6 +338,7 @@ int crash_exclude_mem_range(struct crash
+--- a/kernel/hung_task.c~hung_task-dump-blocker-task-if-it-is-not-hung
++++ a/kernel/hung_task.c
+@@ -95,9 +95,41 @@ static struct notifier_block panic_block
+ 	.notifier_call = hung_task_panic,
+ };
  
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(crash_exclude_mem_range);
++static bool task_is_hung(struct task_struct *t, unsigned long timeout)
++{
++	unsigned long switch_count = t->nvcsw + t->nivcsw;
++	unsigned int state = READ_ONCE(t->__state);
++
++	/*
++	 * skip the TASK_KILLABLE tasks -- these can be killed
++	 * skip the TASK_IDLE tasks -- those are genuinely idle
++	 * skip the TASK_FROZEN task -- it reasonably stops scheduling by freezer
++	 */
++	if (!(state & TASK_UNINTERRUPTIBLE) ||
++	    (state & (TASK_WAKEKILL | TASK_NOLOAD | TASK_FROZEN)))
++		return false;
++
++	/*
++	 * When a freshly created task is scheduled once, changes its state to
++	 * TASK_UNINTERRUPTIBLE without having ever been switched out once, it
++	 * musn't be checked.
++	 */
++	if (unlikely(!switch_count))
++		return false;
++
++	if (switch_count != t->last_switch_count) {
++		t->last_switch_count = switch_count;
++		t->last_switch_time = jiffies;
++		return false;
++	}
++	if (time_is_after_jiffies(t->last_switch_time + timeout * HZ))
++		return false;
++
++	return true;
++}
  
- ssize_t crash_get_memory_size(void)
+ #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
+-static void debug_show_blocker(struct task_struct *task)
++static void debug_show_blocker(struct task_struct *task, unsigned long timeout)
  {
+ 	struct task_struct *g, *t;
+ 	unsigned long owner, blocker, blocker_type;
+@@ -174,41 +206,21 @@ static void debug_show_blocker(struct ta
+ 			       t->pid, rwsem_blocked_by);
+ 			break;
+ 		}
+-		sched_show_task(t);
++		/* Avoid duplicated task dump, skip if the task is also hung. */
++		if (!task_is_hung(t, timeout))
++			sched_show_task(t);
+ 		return;
+ 	}
+ }
+ #else
+-static inline void debug_show_blocker(struct task_struct *task)
++static inline void debug_show_blocker(struct task_struct *task, unsigned long timeout)
+ {
+ }
+ #endif
+ 
+ static void check_hung_task(struct task_struct *t, unsigned long timeout)
+ {
+-	unsigned long switch_count = t->nvcsw + t->nivcsw;
+-
+-	/*
+-	 * Ensure the task is not frozen.
+-	 * Also, skip vfork and any other user process that freezer should skip.
+-	 */
+-	if (unlikely(READ_ONCE(t->__state) & TASK_FROZEN))
+-		return;
+-
+-	/*
+-	 * When a freshly created task is scheduled once, changes its state to
+-	 * TASK_UNINTERRUPTIBLE without having ever been switched out once, it
+-	 * musn't be checked.
+-	 */
+-	if (unlikely(!switch_count))
+-		return;
+-
+-	if (switch_count != t->last_switch_count) {
+-		t->last_switch_count = switch_count;
+-		t->last_switch_time = jiffies;
+-		return;
+-	}
+-	if (time_is_after_jiffies(t->last_switch_time + timeout * HZ))
++	if (!task_is_hung(t, timeout))
+ 		return;
+ 
+ 	/*
+@@ -243,7 +255,7 @@ static void check_hung_task(struct task_
+ 		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
+ 			" disables this message.\n");
+ 		sched_show_task(t);
+-		debug_show_blocker(t);
++		debug_show_blocker(t, timeout);
+ 		hung_task_show_lock = true;
+ 
+ 		if (sysctl_hung_task_all_cpu_backtrace)
+@@ -299,7 +311,6 @@ static void check_hung_uninterruptible_t
+ 	hung_task_show_lock = false;
+ 	rcu_read_lock();
+ 	for_each_process_thread(g, t) {
+-		unsigned int state;
+ 
+ 		if (!max_count--)
+ 			goto unlock;
+@@ -308,15 +319,8 @@ static void check_hung_uninterruptible_t
+ 				goto unlock;
+ 			last_break = jiffies;
+ 		}
+-		/*
+-		 * skip the TASK_KILLABLE tasks -- these can be killed
+-		 * skip the TASK_IDLE tasks -- those are genuinely idle
+-		 */
+-		state = READ_ONCE(t->__state);
+-		if ((state & TASK_UNINTERRUPTIBLE) &&
+-		    !(state & TASK_WAKEKILL) &&
+-		    !(state & TASK_NOLOAD))
+-			check_hung_task(t, timeout);
++
++		check_hung_task(t, timeout);
+ 	}
+  unlock:
+ 	rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhiramat@kernel.org are
 
-kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
-memfd-move-mfd_all_flags-definition-to-memfdh.patch
-mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
-mm-filemap-align-last_index-to-folio-size-fix-fix.patch
-mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
-include-linux-pgtableh-convert-arch_enter_lazy_mmu_mode-and-friends-to-static-inlines.patch
-crash-add-kunit-tests-for-crash_exclude_mem_range.patch
 
