@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8ED5145329
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62F63145329
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810134; cv=none; b=Z3WtcvJuZPaC2oBZHrTcAKQiNVgloBt1AZAcgswWUlEcFyaDDAVT5XN5qislnWEPQzy27C2vaZhyI3NRoQAbkdZ4413WMiotSF7r/aPq+q5mFwg8pPJXzv7fH7s3Q03kH+NmnVVUtdcNDkMZ7MHJQE2MrX0KUE5ifhgbqWE3CRs=
+	t=1757810136; cv=none; b=SnBKGEnUW30WsmPcHOisMtaycRiC8izTVFeoO7cAuXgCfXJsMCJmfLQP/233Q81RcN5rhdAQM6vpb0VE/lAVQYn4DWiXCZ9pNUbKR+4FxULOnjvqrxJhcypFWw23jqKGN9V4OPaSLaagP2KK4nt/3JIt5xgXGlGYSq9vaXxtX9A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810134; c=relaxed/simple;
-	bh=fo/N3Vb+usnzw7NLRvCHnwtNBd5mQBNifMCOB2wqOxc=;
-	h=Date:To:From:Subject:Message-Id; b=oVKRRbHhusZ23mn1i0+FgSniDsV4a+ihMbbprfjOuW8JdyX2m7EZdAGAf1JWtwciI44TqbmkdOVCtWFsUVOrV/zjPRAdCduZc7bTP7rgTUVnXuky5989Hc+8FkCgRZl68CI976IltmnPcyYOKLPlFeadTPp8k4KwrJIig2Xs+zc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xjWCI9RT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810136; c=relaxed/simple;
+	bh=ea/UTvzxkoi1gXM0qQS+ULd19EoSlkzjVPwm1O+oqIY=;
+	h=Date:To:From:Subject:Message-Id; b=b6BSdOLpDgO7jt16jDyWB5JUosNswgY3ryZkFKUVzOjo2ykvNww9JsgevmqqRQsLw0poMoviHhdOusrouWPiLzRfDsa/6OjMfXR6d70a+g1SCqprhraQ2uLIPJPwR46fNgMscpcIlaNerjjjzOtlnyOpgCW1p2Hiu2dG2yG++uM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HJokDhHP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xjWCI9RT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F3D6C4CEEB;
-	Sun, 14 Sep 2025 00:35:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HJokDhHP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27A9CC4CEEB;
+	Sun, 14 Sep 2025 00:35:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810134;
-	bh=fo/N3Vb+usnzw7NLRvCHnwtNBd5mQBNifMCOB2wqOxc=;
+	s=korg; t=1757810136;
+	bh=ea/UTvzxkoi1gXM0qQS+ULd19EoSlkzjVPwm1O+oqIY=;
 	h=Date:To:From:Subject:From;
-	b=xjWCI9RTWZjgieMExBQSWzGMqSMnT3WqhWsPJRF10OpaSLZlg/9uZyKM/F+8iVcPi
-	 RY1Cb5pj89TEuGN0k38fqySA2syp/keIKM0M30smOGPQiibAOvOMhIhb1GP7iimIYI
-	 Z0Y6YmgpYNOYaqFX+7n5loeQAQUEgdOR31Cd3k2s=
-Date: Sat, 13 Sep 2025 17:35:34 -0700
-To: mm-commits@vger.kernel.org,safinaskar@zohomail.com,rostedt@goodmis.org,paulmck@kernel.org,lance.yang@linux.dev,john.ogness@linutronix.de,feng.tang@linux.alibaba.com,corbet@lwn.net,pmladek@suse.com,akpm@linux-foundation.org
+	b=HJokDhHPFFzCXxeqT1LAxj2IBrI3xPjqT3amuFgPUkPzA3qUQ85B/mUxeiGizGzdE
+	 HGFDIvEuORKsqMZxlBNODYo1l5fgCqb8x3DS1Ua1G0uaxc2TyGTgMMJuI9BQWNMyE1
+	 a3vfip/U437/rkn7b4W8988AeLpbR9bDBaa81qIM=
+Date: Sat, 13 Sep 2025 17:35:35 -0700
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,yangyicong@hisilicon.com,ville.syrjala@linux.intel.com,vgoyal@redhat.com,tzimmermann@suse.de,tony.luck@intel.com,tj@kernel.org,thorsten.blum@linux.dev,tglx@linutronix.de,sohil.mehta@intel.com,senozhatsky@chromium.org,rostedt@goodmis.org,qianqiang.liu@163.com,pmladek@suse.com,oushixiong@kylinos.cn,namcao@linutronix.de,mingo@kernel.org,max.kellermann@ionos.com,luogengkun@huaweicloud.com,lihuafei1@huawei.com,kees@kernel.org,Jonathan.Cameron@huawei.com,john.ogness@linutronix.de,joel.granados@kernel.org,jgg@ziepe.ca,gpiccoli@igalia.com,dyoung@redhat.com,djwong@kernel.org,dianders@chromium.org,deller@gmx.de,cuiyunhui@bytedance.com,bhe@redhat.com,anna.schumaker@oracle.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] panic-clean-up-message-about-deprecated-panic_print-parameter.patch removed from -mm tree
-Message-Id: <20250914003534.8F3D6C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] panic-introduce-helper-functions-for-panic-state.patch removed from -mm tree
+Message-Id: <20250914003536.27A9CC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,211 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: panic: clean up message about deprecated 'panic_print' parameter
+     Subject: panic: introduce helper functions for panic state
 has been removed from the -mm tree.  Its filename was
-     panic-clean-up-message-about-deprecated-panic_print-parameter.patch
+     panic-introduce-helper-functions-for-panic-state.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: panic: clean up message about deprecated 'panic_print' parameter
-Date: Mon, 25 Aug 2025 10:57:01 +0800
+From: Jinchao Wang <wangjinchao600@gmail.com>
+Subject: panic: introduce helper functions for panic state
+Date: Mon, 25 Aug 2025 10:29:29 +0800
 
-Remove duplication of the message about deprecated 'panic_print'
-parameter.
+Patch series "panic: introduce panic status function family", v2.
 
-Also make the wording more direct.  Make it clear that the new parameters
-already exist and should be used instead.
+This series introduces a family of helper functions to manage panic state
+and updates existing code to use them.
 
-Link: https://lkml.kernel.org/r/20250825025701.81921-5-feng.tang@linux.alibaba.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Askar Safin <safinaskar@zohomail.com>
+Before this series, panic state helpers were scattered and inconsistent. 
+For example, panic_in_progress() was defined in printk/printk.c, not in
+panic.c or panic.h.  As a result, developers had to look in unexpected
+places to understand or re-use panic state logic.  Other checks were open-
+coded, duplicating logic across panic, crash, and watchdog paths.
+
+The new helpers centralize the functionality in panic.c/panic.h:
+  - panic_try_start()
+  - panic_reset()
+  - panic_in_progress()
+  - panic_on_this_cpu()
+  - panic_on_other_cpu()
+
+Patches 1–8 add the helpers and convert panic/crash and printk/nbcon
+code to use them.
+
+Patch 9 fixes a bug in the watchdog subsystem by skipping checks when a
+panic is in progress, avoiding interference with the panic CPU.
+
+Together, this makes panic state handling simpler, more discoverable, and
+more robust.
+
+
+This patch (of 9):
+
+This patch introduces four new helper functions to abstract the management
+of the panic_cpu variable.  These functions will be used in subsequent
+patches to refactor existing code.
+
+The direct use of panic_cpu can be error-prone and ambiguous, as it
+requires manual checks to determine which CPU is handling the panic.  The
+new helpers clarify intent:
+
+panic_try_start():
+Atomically sets the current CPU as the panicking CPU.
+
+panic_reset():
+Reset panic_cpu to PANIC_CPU_INVALID.
+
+panic_in_progress():
+Checks if a panic has been triggered.
+
+panic_on_this_cpu():
+Returns true if the current CPU is the panic originator.
+
+panic_on_other_cpu():
+Returns true if a panic is on another CPU.
+
+This change lays the groundwork for improved code readability
+and robustness in the panic handling subsystem.
+
+Link: https://lkml.kernel.org/r/20250825022947.1596226-1-wangjinchao600@gmail.com
+Link: https://lkml.kernel.org/r/20250825022947.1596226-2-wangjinchao600@gmail.com
+Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
+Cc: Anna Schumaker <anna.schumaker@oracle.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Joel Granados <joel.granados@kernel.org>
 Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Li Huafei <lihuafei1@huawei.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Luo Gengkun <luogengkun@huaweicloud.com>
+Cc: Max Kellermann <max.kellermann@ionos.com>
+Cc: Nam Cao <namcao@linutronix.de>
+Cc: oushixiong <oushixiong@kylinos.cn>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Qianqiang Liu <qianqiang.liu@163.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Sohil Mehta <sohil.mehta@intel.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: Ville Syrjala <ville.syrjala@linux.intel.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Yicong Yang <yangyicong@hisilicon.com>
+Cc: Yunhui Cui <cuiyunhui@bytedance.com>
+Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>b
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/linux/panic.h  |    6 ++++
+ kernel/panic.c         |   53 +++++++++++++++++++++++++++++++++++++++
+ kernel/printk/printk.c |    5 ---
+ 3 files changed, 59 insertions(+), 5 deletions(-)
 
---- a/kernel/panic.c~panic-clean-up-message-about-deprecated-panic_print-parameter
-+++ a/kernel/panic.c
-@@ -77,6 +77,11 @@ ATOMIC_NOTIFIER_HEAD(panic_notifier_list
+--- a/include/linux/panic.h~panic-introduce-helper-functions-for-panic-state
++++ a/include/linux/panic.h
+@@ -43,6 +43,12 @@ void abort(void);
+ extern atomic_t panic_cpu;
+ #define PANIC_CPU_INVALID	-1
  
- EXPORT_SYMBOL(panic_notifier_list);
- 
-+static void panic_print_deprecated(void)
-+{
-+	pr_info_once("Kernel: The 'panic_print' parameter is now deprecated. Please use 'panic_sys_info' and 'panic_console_replay' instead.\n");
-+}
++bool panic_try_start(void);
++void panic_reset(void);
++bool panic_in_progress(void);
++bool panic_on_this_cpu(void);
++bool panic_on_other_cpu(void);
 +
- #ifdef CONFIG_SYSCTL
- 
  /*
-@@ -125,7 +130,7 @@ static int proc_taint(const struct ctl_t
- static int sysctl_panic_print_handler(const struct ctl_table *table, int write,
- 			   void *buffer, size_t *lenp, loff_t *ppos)
- {
--	pr_info_once("Kernel: 'panic_print' sysctl interface will be obsoleted by both 'panic_sys_info' and 'panic_console_replay'\n");
-+	panic_print_deprecated();
- 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
+  * Only to be used by arch init code. If the user over-wrote the default
+  * CONFIG_PANIC_TIMEOUT, honor it.
+--- a/kernel/panic.c~panic-introduce-helper-functions-for-panic-state
++++ a/kernel/panic.c
+@@ -299,6 +299,59 @@ void __weak crash_smp_send_stop(void)
+ 
+ atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
+ 
++bool panic_try_start(void)
++{
++	int old_cpu, this_cpu;
++
++	/*
++	 * Only one CPU is allowed to execute the crash_kexec() code as with
++	 * panic().  Otherwise parallel calls of panic() and crash_kexec()
++	 * may stop each other.  To exclude them, we use panic_cpu here too.
++	 */
++	old_cpu = PANIC_CPU_INVALID;
++	this_cpu = raw_smp_processor_id();
++
++	return atomic_try_cmpxchg(&panic_cpu, &old_cpu, this_cpu);
++}
++EXPORT_SYMBOL(panic_try_start);
++
++void panic_reset(void)
++{
++	atomic_set(&panic_cpu, PANIC_CPU_INVALID);
++}
++EXPORT_SYMBOL(panic_reset);
++
++bool panic_in_progress(void)
++{
++	return unlikely(atomic_read(&panic_cpu) != PANIC_CPU_INVALID);
++}
++EXPORT_SYMBOL(panic_in_progress);
++
++/* Return true if a panic is in progress on the current CPU. */
++bool panic_on_this_cpu(void)
++{
++	/*
++	 * We can use raw_smp_processor_id() here because it is impossible for
++	 * the task to be migrated to the panic_cpu, or away from it. If
++	 * panic_cpu has already been set, and we're not currently executing on
++	 * that CPU, then we never will be.
++	 */
++	return unlikely(atomic_read(&panic_cpu) == raw_smp_processor_id());
++}
++EXPORT_SYMBOL(panic_on_this_cpu);
++
++/*
++ * Return true if a panic is in progress on a remote CPU.
++ *
++ * On true, the local CPU should immediately release any printing resources
++ * that may be needed by the panic CPU.
++ */
++bool panic_on_other_cpu(void)
++{
++	return (panic_in_progress() && !this_cpu_in_panic());
++}
++EXPORT_SYMBOL(panic_on_other_cpu);
++
+ /*
+  * A variant of panic() called from NMI context. We return if we've already
+  * panicked on this CPU. If another CPU already panicked, loop in
+--- a/kernel/printk/printk.c~panic-introduce-helper-functions-for-panic-state
++++ a/kernel/printk/printk.c
+@@ -345,11 +345,6 @@ static void __up_console_sem(unsigned lo
  }
+ #define up_console_sem() __up_console_sem(_RET_IP_)
  
-@@ -944,13 +949,13 @@ core_param(panic_console_replay, panic_c
- 
- static int panic_print_set(const char *val, const struct kernel_param *kp)
+-static bool panic_in_progress(void)
+-{
+-	return unlikely(atomic_read(&panic_cpu) != PANIC_CPU_INVALID);
+-}
+-
+ /* Return true if a panic is in progress on the current CPU. */
+ bool this_cpu_in_panic(void)
  {
--	pr_info_once("Kernel: 'panic_print' parameter will be obsoleted by both 'panic_sys_info' and 'panic_console_replay'\n");
-+	panic_print_deprecated();
- 	return  param_set_ulong(val, kp);
- }
- 
- static int panic_print_get(char *val, const struct kernel_param *kp)
- {
--	pr_info_once("Kernel: 'panic_print' parameter will be obsoleted by both 'panic_sys_info' and 'panic_console_replay'\n");
-+	panic_print_deprecated();
- 	return  param_get_ulong(val, kp);
- }
- 
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from wangjinchao600@gmail.com are
 
 
