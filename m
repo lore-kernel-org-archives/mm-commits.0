@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C9E6184540
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09148156C6A
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810152; cv=none; b=M8thUG/TFoavNSfyDeEvI5bh1gfEGIBfzgqFz6iLsJ+LcEeMxLCTtEf+tbaGc674QRzOyRWRsGQLSpCvF/laaAscKTd8+AcZVLWJx16ZRWASh0xUsvOCJvmKV1FZgXM5Wdu8kOYMnfiIyo2lFncEOh296OMS9z6MWtLCShSzCNg=
+	t=1757810154; cv=none; b=rEeNLS1rdOhiYLkMwjKbsNEyEbDOr8VrQjizAZOeefDzWNGSJD61Cpsw8fdPFYuPaelxd3crN4f0srxn2bDdXBE5WdKQiasw2teIhf358GVG1RX6eigtQ6/P0qFe2EHgxo3hu+yVcZidsefMHFV+IDGTHQ64uU9LWChQUD5yqwg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810152; c=relaxed/simple;
-	bh=Ce6iwWGfhCwLb/dszKVYalxszNSAcdDkQpeAbqSAeGI=;
-	h=Date:To:From:Subject:Message-Id; b=d0/v2sMbG4q2f4PofWcbFkHzfD9glFWRSIX7MzKa94aIyYMS6FrEFsLzMJEWrS8TtRb9FsBEWqUEV0PbHLnv2CV3X3E0+BBQ3z/rYI0jVHVfqsJHuXNz1VeU704q9zGf88v3Xw1llLb85TKgvOlOVR+W9jvnipL/K9KCjvy2Rog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lv42bB3L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810154; c=relaxed/simple;
+	bh=04EBLzfswWThHKC4vYRT1EnY7bjz9HkHER7jzSctLCU=;
+	h=Date:To:From:Subject:Message-Id; b=aGomsY1U8xCe8pPJ9uBBERNvdw/K0fvcZ1UVRFOxvxGJZ5goMLktPhCw6gN6i5NToYfSuQlW4cZHfvxb35TkyJnvJgNgE3g1M7jEyaKfBE9kw8HtDzdCclN0UCnaMP1Mee8dLhyuNGwxp8p/CFQkJXnuttDvEGfpDINvyL4kKw4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cPMf2snE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lv42bB3L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62054C4CEEB;
-	Sun, 14 Sep 2025 00:35:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cPMf2snE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89D21C4CEEB;
+	Sun, 14 Sep 2025 00:35:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810152;
-	bh=Ce6iwWGfhCwLb/dszKVYalxszNSAcdDkQpeAbqSAeGI=;
+	s=korg; t=1757810153;
+	bh=04EBLzfswWThHKC4vYRT1EnY7bjz9HkHER7jzSctLCU=;
 	h=Date:To:From:Subject:From;
-	b=lv42bB3LjZddd5/gUpGdKa8beh8hKG434Of4/ZOY875FkF9XO2wJmYgg5Ut0bbERR
-	 vkbE5kdlU+R/tRHTz63ccCFNAvZ0TK3hkknL8UcE0zhMP3aQxdM8QXoBhlQvhSCZKt
-	 BWC5+cROSQHT8u+IIyg9vd0B2BfbtwT/+hMhIW5I=
-Date: Sat, 13 Sep 2025 17:35:51 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,rostedt@goodmis.org,qianqiang.liu@163.com,pmladek@suse.com,john.ogness@linutronix.de,wangjinchao600@gmail.com,akpm@linux-foundation.org
+	b=cPMf2snEn9tobWs3IZ3G+ME8VYhcbm/fA1TIzpYJ2uOHNff6TBdGQVF/AxuFBw47U
+	 GsrvoADSvoyxU+lMhII2A5ZnQdHYAqV9fzlOEIEDQTqWdKp0qEbwML2la6Q3YvBy6k
+	 jjiywmP+0sVsEbctvcyR0cF3yOC3nsP0xMawg9G0=
+Date: Sat, 13 Sep 2025 17:35:53 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,john.ogness@linutronix.de,feng.tang@linux.alibaba.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] panic-use-angle-bracket-include-for-panich.patch removed from -mm tree
-Message-Id: <20250914003552.62054C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] panic-remove-redundant-panic-cpu-backtrace.patch removed from -mm tree
+Message-Id: <20250914003553.89D21C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: panic: use angle-bracket include for panic.h
+     Subject: panic: remove redundant panic-cpu backtrace
 has been removed from the -mm tree.  Its filename was
-     panic-use-angle-bracket-include-for-panich.patch
+     panic-remove-redundant-panic-cpu-backtrace.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinchao Wang <wangjinchao600@gmail.com>
-Subject: panic: use angle-bracket include for panic.h
-Date: Fri, 29 Aug 2025 13:13:02 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: panic: remove redundant panic-cpu backtrace
+Date: Wed, 3 Sep 2025 12:04:18 +0200
 
-Replace quoted includes of panic.h with `#include <linux/panic.h>` for
-consistency across the kernel.
+Backtraces from all CPUs are printed during panic() when
+SYS_INFO_ALL_CPU_BT is set.  It shows the backtrace for the panic-CPU even
+when it has already been explicitly printed before.
 
-Link: https://lkml.kernel.org/r/20250829051312.33773-1-wangjinchao600@gmail.com
-Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
+Do not change the legacy code which prints the backtrace in various
+contexts, for example, as part of Oops report, right after panic message. 
+It will always be visible in the crash dump.
+
+Instead, remember when the backtrace was printed, and skip it when dumping
+the optional backtraces on all CPUs.
+
+[akpm@linux-foundation.org: make panic_this_cpu_backtrace_printed static]
+  Closes: https://lore.kernel.org/oe-kbuild-all/202509050048.FMpVvh1u-lkp@intel.com/
+[pmladek@suse.com: Handle situations when the backtrace was not printed for the panic CPU]
+Link: https://lkml.kernel.org/r/20250903100418.410026-1-pmladek@suse.com
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lore.kernel.org/r/20250731030314.3818040-1-senozhatsky@chromium.org
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Tested-by: Feng Tang <feng.tang@linux.alibaba.com>
 Reviewed-by: John Ogness <john.ogness@linutronix.de>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Qianqiang Liu <qianqiang.liu@163.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c    |    2 +-
- kernel/printk/nbcon.c  |    2 +-
- kernel/printk/printk.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/panic.c |   30 +++++++++++++++++++++---------
+ 1 file changed, 21 insertions(+), 9 deletions(-)
 
---- a/kernel/crash_core.c~panic-use-angle-bracket-include-for-panich
-+++ a/kernel/crash_core.c
-@@ -4,7 +4,6 @@
-  * Copyright (C) 2002-2004 Eric Biederman  <ebiederm@xmission.com>
+--- a/kernel/panic.c~panic-remove-redundant-panic-cpu-backtrace
++++ a/kernel/panic.c
+@@ -67,6 +67,7 @@ static unsigned int warn_limit __read_mo
+ static bool panic_console_replay;
+ 
+ bool panic_triggering_all_cpu_backtrace;
++static bool panic_this_cpu_backtrace_printed;
+ 
+ int panic_timeout = CONFIG_PANIC_TIMEOUT;
+ EXPORT_SYMBOL_GPL(panic_timeout);
+@@ -380,6 +381,19 @@ void check_panic_on_warn(const char *ori
+ 		      origin, limit);
+ }
+ 
++static void panic_trigger_all_cpu_backtrace(void)
++{
++	/* Temporary allow non-panic CPUs to write their backtraces. */
++	panic_triggering_all_cpu_backtrace = true;
++
++	if (panic_this_cpu_backtrace_printed)
++		trigger_allbutcpu_cpu_backtrace(raw_smp_processor_id());
++	else
++		trigger_all_cpu_backtrace();
++
++	panic_triggering_all_cpu_backtrace = false;
++}
++
+ /*
+  * Helper that triggers the NMI backtrace (if set in panic_print)
+  * and then performs the secondary CPUs shutdown - we cannot have
+@@ -387,12 +401,8 @@ void check_panic_on_warn(const char *ori
   */
+ static void panic_other_cpus_shutdown(bool crash_kexec)
+ {
+-	if (panic_print & SYS_INFO_ALL_CPU_BT) {
+-		/* Temporary allow non-panic CPUs to write their backtraces. */
+-		panic_triggering_all_cpu_backtrace = true;
+-		trigger_all_cpu_backtrace();
+-		panic_triggering_all_cpu_backtrace = false;
+-	}
++	if (panic_print & SYS_INFO_ALL_CPU_BT)
++		panic_trigger_all_cpu_backtrace();
  
--#include "linux/panic.h"
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 	/*
+ 	 * Note that smp_send_stop() is the usual SMP shutdown function,
+@@ -470,13 +480,15 @@ void vpanic(const char *fmt, va_list arg
+ 		buf[len - 1] = '\0';
  
- #include <linux/buildid.h>
-@@ -23,6 +22,7 @@
- #include <linux/btf.h>
- #include <linux/objtool.h>
- #include <linux/delay.h>
-+#include <linux/panic.h>
+ 	pr_emerg("Kernel panic - not syncing: %s\n", buf);
+-#ifdef CONFIG_DEBUG_BUGVERBOSE
+ 	/*
+ 	 * Avoid nested stack-dumping if a panic occurs during oops processing
+ 	 */
+-	if (!test_taint(TAINT_DIE) && oops_in_progress <= 1)
++	if (test_taint(TAINT_DIE) || oops_in_progress > 1) {
++		panic_this_cpu_backtrace_printed = true;
++	} else if (IS_ENABLED(CONFIG_DEBUG_BUGVERBOSE)) {
+ 		dump_stack();
+-#endif
++		panic_this_cpu_backtrace_printed = true;
++	}
  
- #include <asm/page.h>
- #include <asm/sections.h>
---- a/kernel/printk/nbcon.c~panic-use-angle-bracket-include-for-panich
-+++ a/kernel/printk/nbcon.c
-@@ -2,7 +2,6 @@
- // Copyright (C) 2022 Linutronix GmbH, John Ogness
- // Copyright (C) 2022 Intel, Thomas Gleixner
- 
--#include "linux/panic.h"
- #include <linux/atomic.h>
- #include <linux/bug.h>
- #include <linux/console.h>
-@@ -13,6 +12,7 @@
- #include <linux/irqflags.h>
- #include <linux/kthread.h>
- #include <linux/minmax.h>
-+#include <linux/panic.h>
- #include <linux/percpu.h>
- #include <linux/preempt.h>
- #include <linux/slab.h>
---- a/kernel/printk/printk.c~panic-use-angle-bracket-include-for-panich
-+++ a/kernel/printk/printk.c
-@@ -17,7 +17,6 @@
-  *	01Mar01 Andrew Morton
-  */
- 
--#include "linux/panic.h"
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/kernel.h>
-@@ -49,6 +48,7 @@
- #include <linux/sched/clock.h>
- #include <linux/sched/debug.h>
- #include <linux/sched/task_stack.h>
-+#include <linux/panic.h>
- 
- #include <linux/uaccess.h>
- #include <asm/sections.h>
+ 	/*
+ 	 * If kgdb is enabled, give it a chance to run before we stop all
 _
 
-Patches currently in -mm which might be from wangjinchao600@gmail.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 
