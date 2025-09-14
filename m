@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F82D154BF5
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E601D14E2F2
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810142; cv=none; b=myjVQU1ro6cJL4Fmgm5/miOoBDY9I6/Cmwk3bVKrOx5eJ0VcQU7mZ+q0wh0MFSZ9UJwEr+cPJ5MFddf4u+6RnYVqTEhdfbzCZlma29f8PVtEU3QG8TjxTqI6LRCsEVVRvfNruu9MH4QWCgNs3TuxOhplRDCmStQqpd4jJNFBoRM=
+	t=1757810144; cv=none; b=FUigy/XBvZKEjLLTu3FqZ5fZb2op0xuW8ZFyPGFw6VAO5M0sNmlxShlsNeIAiRMCCVUvGekv6BahpPqBKHZiwEg+Ctk5kiIorylsqqc432jgZ2Nqn2ivTYDN50o0Dh/lysDKm53GulsZS7Pa8zo7Vma3d+vyNxxTmZLOgXCIeRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810142; c=relaxed/simple;
-	bh=hyyiXJaljtQpbLrmLUsY6Y3ojhZK2eJ6gC17B/40yIk=;
-	h=Date:To:From:Subject:Message-Id; b=kNazoImwkzvjMhe6oXDt7lPpdNxGN8VYrhl/INIVn5ymYzZcqpjI/GnrbM0EzL96nsZwRpyBqVZbNJ2ycF4mGtMv3ZiIBn8VkR/xtHKisIDMY+Imp48EBb0UO5BlKxEmuTWOfMv6tr19TpefCa/YAZ6GkCtFamxVcZCBTodARHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TlffIAnS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810144; c=relaxed/simple;
+	bh=t6k+0/sAf0pQACE2vfJgCfNisuBvUkMmFYhiLi9b+dw=;
+	h=Date:To:From:Subject:Message-Id; b=SXxSuPML2wzKHaM1cRfYy3GsOLNFwNXmNKxirVNj+LtYa26TpMGPhpTHprss6arTTbebYwkjqKiwYqlJQffHDq2mCDr7EKnZBzLJpge2SRZZ/LmTWQ7NVT3Al17RnfnS4HKHqiP9T8vgCCMeacOPyIMmgQ0Q62J/RidgzJ8hlPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jhm8DgVl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TlffIAnS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E13C3C4CEEB;
-	Sun, 14 Sep 2025 00:35:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jhm8DgVl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65DECC4CEEB;
+	Sun, 14 Sep 2025 00:35:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810142;
-	bh=hyyiXJaljtQpbLrmLUsY6Y3ojhZK2eJ6gC17B/40yIk=;
+	s=korg; t=1757810143;
+	bh=t6k+0/sAf0pQACE2vfJgCfNisuBvUkMmFYhiLi9b+dw=;
 	h=Date:To:From:Subject:From;
-	b=TlffIAnSnMXullJESXzNEd14If6wf/OJ4XXGzV5cHdwDCJFy16XycYdmZeAcMiDml
-	 VJgbZ7Fdb3+WeRTI0lZb/fAH5I2XTeMoHjgiQrJbprte6ALORXuNSAEQVnKsD2wIwg
-	 5SA757CJbBqWSgBAwzM4sZl6/b/b0/YVRpXmyJkU=
-Date: Sat, 13 Sep 2025 17:35:41 -0700
+	b=jhm8DgVl2o1hi8I4g2KIpxQY3qhrOvFQhbiEzW2yqyMIRkQy6SSOF4XiNTeMSVyT/
+	 oIsiWKuC6LIF/0woKqg35lvT77REIPh/I/Ez2AenkrO6zC0ZFa4L8SNTmTw4TKvIcW
+	 qeaUOOiwgPCWKoSQUWwd+A8Myi7VfXpwFEi0AI2c=
+Date: Sat, 13 Sep 2025 17:35:42 -0700
 To: mm-commits@vger.kernel.org,yury.norov@gmail.com,yangyicong@hisilicon.com,ville.syrjala@linux.intel.com,vgoyal@redhat.com,tzimmermann@suse.de,tony.luck@intel.com,tj@kernel.org,thorsten.blum@linux.dev,tglx@linutronix.de,sohil.mehta@intel.com,senozhatsky@chromium.org,rostedt@goodmis.org,qianqiang.liu@163.com,pmladek@suse.com,oushixiong@kylinos.cn,namcao@linutronix.de,mingo@kernel.org,max.kellermann@ionos.com,luogengkun@huaweicloud.com,lihuafei1@huawei.com,kees@kernel.org,Jonathan.Cameron@huawei.com,john.ogness@linutronix.de,joel.granados@kernel.org,jgg@ziepe.ca,gpiccoli@igalia.com,dyoung@redhat.com,djwong@kernel.org,dianders@chromium.org,deller@gmx.de,cuiyunhui@bytedance.com,bhe@redhat.com,anna.schumaker@oracle.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] panic-use-panic_try_start-in-vpanic.patch removed from -mm tree
-Message-Id: <20250914003541.E13C3C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] printk-nbcon-use-panic_on_this_cpu-helper.patch removed from -mm tree
+Message-Id: <20250914003543.65DECC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: panic: use panic_try_start() in vpanic()
+     Subject: printk/nbcon: use panic_on_this_cpu() helper
 has been removed from the -mm tree.  Its filename was
-     panic-use-panic_try_start-in-vpanic.patch
+     printk-nbcon-use-panic_on_this_cpu-helper.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jinchao Wang <wangjinchao600@gmail.com>
-Subject: panic: use panic_try_start() in vpanic()
-Date: Mon, 25 Aug 2025 10:29:33 +0800
+Subject: printk/nbcon: use panic_on_this_cpu() helper
+Date: Mon, 25 Aug 2025 10:29:34 +0800
 
-vpanic() had open-coded logic to claim panic_cpu with atomic_try_cmpxchg. 
-This is already handled by panic_try_start().
+nbcon_context_try_acquire() compared panic_cpu directly with
+smp_processor_id().  This open-coded check is now provided by
+panic_on_this_cpu().
 
-Switch to panic_try_start() and use panic_on_other_cpu() for the fallback
-path.
+Switch to panic_on_this_cpu() to simplify the code and improve readability.
 
-This removes duplicate code and makes panic handling consistent across
-functions.
-
-Link: https://lkml.kernel.org/r/20250825022947.1596226-6-wangjinchao600@gmail.com
+Link: https://lkml.kernel.org/r/20250825022947.1596226-7-wangjinchao600@gmail.com
 Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
 Cc: Anna Schumaker <anna.schumaker@oracle.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -94,35 +91,36 @@ Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ kernel/printk/nbcon.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/panic.c~panic-use-panic_try_start-in-vpanic
-+++ a/kernel/panic.c
-@@ -420,7 +420,6 @@ void vpanic(const char *fmt, va_list arg
- 	static char buf[1024];
- 	long i, i_next = 0, len;
- 	int state = 0;
--	int old_cpu, this_cpu;
- 	bool _crash_kexec_post_notifiers = crash_kexec_post_notifiers;
+--- a/kernel/printk/nbcon.c~printk-nbcon-use-panic_on_this_cpu-helper
++++ a/kernel/printk/nbcon.c
+@@ -2,6 +2,7 @@
+ // Copyright (C) 2022 Linutronix GmbH, John Ogness
+ // Copyright (C) 2022 Intel, Thomas Gleixner
  
- 	if (panic_on_warn) {
-@@ -457,13 +456,10 @@ void vpanic(const char *fmt, va_list arg
- 	 * `old_cpu == this_cpu' means we came from nmi_panic() which sets
- 	 * panic_cpu to this CPU.  In this case, this is also the 1st CPU.
- 	 */
--	old_cpu = PANIC_CPU_INVALID;
--	this_cpu = raw_smp_processor_id();
--
- 	/* atomic_try_cmpxchg updates old_cpu on failure */
--	if (atomic_try_cmpxchg(&panic_cpu, &old_cpu, this_cpu)) {
-+	if (panic_try_start()) {
- 		/* go ahead */
--	} else if (old_cpu != this_cpu)
-+	} else if (panic_on_other_cpu())
- 		panic_smp_self_stop();
++#include "linux/panic.h"
+ #include <linux/atomic.h>
+ #include <linux/bug.h>
+ #include <linux/console.h>
+@@ -589,7 +590,6 @@ static struct printk_buffers panic_nbcon
+  */
+ static bool nbcon_context_try_acquire(struct nbcon_context *ctxt, bool is_reacquire)
+ {
+-	unsigned int cpu = smp_processor_id();
+ 	struct console *con = ctxt->console;
+ 	struct nbcon_state cur;
+ 	int err;
+@@ -614,7 +614,7 @@ out:
+ 	/* Acquire succeeded. */
  
- 	console_verbose();
+ 	/* Assign the appropriate buffer for this context. */
+-	if (atomic_read(&panic_cpu) == cpu)
++	if (panic_on_this_cpu())
+ 		ctxt->pbufs = &panic_nbcon_pbufs;
+ 	else
+ 		ctxt->pbufs = con->pbufs;
 _
 
 Patches currently in -mm which might be from wangjinchao600@gmail.com are
