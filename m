@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51EA433987
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6881F33987
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810121; cv=none; b=pIbEXkrd+TQ7Sx1fgY89gzwOY/wfw7VJePAEd3uVgHwYBRvH33abj4cHE0kOKc1VkMyQNooRYygjrkUFBzcfH4oVR9+92FjcgjZ6vm4yNbs9Ld3stXLiUiOkj3ESGm9qTpLlySepT6054+JaqWphQuLqPSfmY2/kvACW198N+oM=
+	t=1757810122; cv=none; b=NHAsN8tFoY5ADcIceVs7jlgfWfYsV3gKhiYfTB3XnnxB9LC0VXo6zItn4jovdN1TpD/8wkZqMkZrtlkLrwk+O4FlNbiHZ1PWptGAexvBwMmrObg3f5IBvF76jxkPPAdqzO1w2bTV2YoxV6s8VWyQe1F3grrsiMjOkY1lf+N7pn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810121; c=relaxed/simple;
-	bh=80nRSV7LmkBdt60/1IMSMYBn47nHpoBiaCC6PfIz784=;
-	h=Date:To:From:Subject:Message-Id; b=ieYRAWx5StCAC8bO22zZNPnw8g0z33g6abnTAG9B+E2bDL4n4RwYsQiGLPSr2fj/saicV+9BPn73z84c99h4JyhbrF9b5gbLTtbH6BoCq08X00AyzKhSKPFv0VQnMfJOfTj8LsN5MDeKF+7xpkvRXVZ277i74gFvSR34PYdBm8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cYhNot3L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810122; c=relaxed/simple;
+	bh=QiKbURbFkQHLR95AM+GkJReGDt6t3XzvLSgk30GyJGs=;
+	h=Date:To:From:Subject:Message-Id; b=Xy3W8mkte3+ZqicQo9nS9tJ08+zpp9RJLHIUNVxgWnyGzwQw657qDxHhUpib8MzQ5IbqoW8ydS/kUr0/Z1hNRJy4rHGagCQG83EDfpYNtgz7c/GFHmuJQ1x+v4fx+X779DKC962vvGAF9LhEuLV4v5+lLMMySazcuCWH5pAX/Og=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NkDI6p1Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cYhNot3L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A108C4CEEB;
-	Sun, 14 Sep 2025 00:35:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NkDI6p1Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DD28C4CEEB;
+	Sun, 14 Sep 2025 00:35:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810121;
-	bh=80nRSV7LmkBdt60/1IMSMYBn47nHpoBiaCC6PfIz784=;
+	s=korg; t=1757810122;
+	bh=QiKbURbFkQHLR95AM+GkJReGDt6t3XzvLSgk30GyJGs=;
 	h=Date:To:From:Subject:From;
-	b=cYhNot3LGZ9kSpBSZaaD5P4+CjF1D1YgwO459t66ADThv6lRE5XDZTvSTSi21GKzr
-	 hfMTn7GPZJukryaDy7XyiVBysTTokkK97k12HfHn37Nx7ysK02kofPcL1po8Gq5LaY
-	 xOEUOM6BMouyZ9LeE+hSB0yd8ivBI2d/RoDUaC4A=
-Date: Sat, 13 Sep 2025 17:35:20 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,mingo@redhat.com,jbohac@suse.cz,hpa@zytor.com,coxu@redhat.com,brgerst@gmail.com,bp@alien8.de,bhe@redhat.com,liaoyuanhong@vivo.com,akpm@linux-foundation.org
+	b=NkDI6p1YPc5rgti+W72xkreOnN6B+scbSjoy1wW8KNPU7sOVwI7l6i/J9UCKhTjbO
+	 IATRlMuHjgtxAsaF3J4V7RdIuqS/zxfwaP9Uwiixlsg7c4mJ8idK/CijWgWVnA8rel
+	 yDPU74l9xoDo0B7VqyCA6w7Y8Tj4p1w0Y1kCo52g=
+Date: Sat, 13 Sep 2025 17:35:21 -0700
+To: mm-commits@vger.kernel.org,adobriyan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] x86-crash-remove-redundant-0-value-initialization.patch removed from -mm tree
-Message-Id: <20250914003521.2A108C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] proc-test-lseek-on-proc-net-dev.patch removed from -mm tree
+Message-Id: <20250914003522.3DD28C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,130 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/crash: remove redundant 0 value initialization
+     Subject: proc: test lseek on /proc/net/dev
 has been removed from the -mm tree.  Its filename was
-     x86-crash-remove-redundant-0-value-initialization.patch
+     proc-test-lseek-on-proc-net-dev.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liao Yuanhong <liaoyuanhong@vivo.com>
-Subject: x86/crash: remove redundant 0 value initialization
-Date: Mon, 18 Aug 2025 20:35:28 +0800
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: test lseek on /proc/net/dev
+Date: Tue, 19 Aug 2025 21:19:17 +0300
 
-The crash_mem struct is already zeroed by vzalloc(). It's redundant to
-initialize cmem->nr_ranges to 0.
+This line in tools/testing/selftests/proc/read.c was added to catch
+oopses, not to verify lseek correctness:
 
-Link: https://lkml.kernel.org/r/20250818123530.635234-1-liaoyuanhong@vivo.com
-Signed-off-by: Liao Yuanhong <liaoyuanhong@vivo.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Coiby Xu <coxu@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+        (void)lseek(fd, 0, SEEK_SET);
+
+Oh, well. Prevent more embarassement with simple test.
+
+Link: https://lkml.kernel.org/r/aKTCfMuRXOpjBXxI@p183
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/crash.c |    2 --
- 1 file changed, 2 deletions(-)
+ tools/testing/selftests/proc/.gitignore           |    1 
+ tools/testing/selftests/proc/Makefile             |    1 
+ tools/testing/selftests/proc/proc-net-dev-lseek.c |   68 ++++++++++++
+ 3 files changed, 70 insertions(+)
 
---- a/arch/x86/kernel/crash.c~x86-crash-remove-redundant-0-value-initialization
-+++ a/arch/x86/kernel/crash.c
-@@ -172,7 +172,6 @@ static struct crash_mem *fill_up_crash_e
- 		return NULL;
- 
- 	cmem->max_nr_ranges = nr_ranges;
--	cmem->nr_ranges = 0;
- 
- 	return cmem;
- }
-@@ -332,7 +331,6 @@ int crash_setup_memmap_entries(struct ki
- 		return -ENOMEM;
- 
- 	cmem->max_nr_ranges = nr_ranges;
--	cmem->nr_ranges = 0;
- 
- 	memset(&cmd, 0, sizeof(struct crash_memmap_data));
- 	cmd.params = params;
+--- a/tools/testing/selftests/proc/.gitignore~proc-test-lseek-on-proc-net-dev
++++ a/tools/testing/selftests/proc/.gitignore
+@@ -7,6 +7,7 @@
+ /proc-loadavg-001
+ /proc-maps-race
+ /proc-multiple-procfs
++/proc-net-dev-lseek
+ /proc-empty-vm
+ /proc-pid-vm
+ /proc-self-map-files-001
+--- a/tools/testing/selftests/proc/Makefile~proc-test-lseek-on-proc-net-dev
++++ a/tools/testing/selftests/proc/Makefile
+@@ -10,6 +10,7 @@ TEST_GEN_PROGS += fd-003-kthread
+ TEST_GEN_PROGS += proc-2-is-kthread
+ TEST_GEN_PROGS += proc-loadavg-001
+ TEST_GEN_PROGS += proc-maps-race
++TEST_GEN_PROGS += proc-net-dev-lseek
+ TEST_GEN_PROGS += proc-empty-vm
+ TEST_GEN_PROGS += proc-pid-vm
+ TEST_GEN_PROGS += proc-self-map-files-001
+diff --git a/tools/testing/selftests/proc/proc-net-dev-lseek.c a/tools/testing/selftests/proc/proc-net-dev-lseek.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/proc/proc-net-dev-lseek.c
+@@ -0,0 +1,68 @@
++/*
++ * Copyright (c) 2025 Alexey Dobriyan <adobriyan@gmail.com>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++#undef _GNU_SOURCE
++#define _GNU_SOURCE
++#undef NDEBUG
++#include <assert.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <string.h>
++#include <unistd.h>
++#include <sched.h>
++/*
++ * Test that lseek("/proc/net/dev/", 0, SEEK_SET)
++ * a) works,
++ * b) does what you think it does.
++ */
++int main(void)
++{
++	/* /proc/net/dev output is deterministic in fresh netns only. */
++	if (unshare(CLONE_NEWNET) == -1) {
++		if (errno == ENOSYS || errno == EPERM) {
++			return 4;
++		}
++		return 1;
++	}
++
++	const int fd = open("/proc/net/dev", O_RDONLY);
++	assert(fd >= 0);
++
++	char buf1[4096];
++	const ssize_t rv1 = read(fd, buf1, sizeof(buf1));
++	/*
++	 * Not "<=", this file can't be empty:
++	 * there is header, "lo" interface with some zeroes.
++	 */
++	assert(0 < rv1);
++	assert(rv1 <= sizeof(buf1));
++
++	/* Believe it or not, this line broke one day. */
++	assert(lseek(fd, 0, SEEK_SET) == 0);
++
++	char buf2[4096];
++	const ssize_t rv2 = read(fd, buf2, sizeof(buf2));
++	/* Not "<=", see above. */
++	assert(0 < rv2);
++	assert(rv2 <= sizeof(buf2));
++
++	/* Test that lseek rewinds to the beginning of the file. */
++	assert(rv1 == rv2);
++	assert(memcmp(buf1, buf2, rv1) == 0);
++
++	/* Contents of the file is not validated: this test is about lseek(). */
++
++	return 0;
++}
 _
 
-Patches currently in -mm which might be from liaoyuanhong@vivo.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 
