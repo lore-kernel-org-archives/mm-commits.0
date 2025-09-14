@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D14B39FD9
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:34:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6A9C39FD9
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:34:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810094; cv=none; b=A5kJ/Nq//B+YFpsCXQnYtG9A0srtyM92jvlymXaEW0WC7QEX63HNIvZg4FJhqsfSzCxk02nWJAQwab5cJM0z0wG3fVMFEt6lc4W7sis0aO4UvQRcsJ3565C+wGzR0cQG/jja0C1z2rgBh4PtaaayTkyCN9jk0fMSaaq4Yr9QzvE=
+	t=1757810096; cv=none; b=VTu1IgczYQYKCN5sBemewvehb9WNLFi7wO8KqznBzsMGVfMCp5zi+IV4UvfcGETrgaGz7w2M+g6itCPA5kyB/pVoO+CZxtqcve5pdMQEzjRQ97Fp3iOhEoK0EfHpWchGvPDyZaj+5ltOzHYbSltXWHKw3DzqhOt+BWWR5/Qa2xw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810094; c=relaxed/simple;
-	bh=l1mBrRkEeM1CXmp5KHbbjqS3cLx4g0KmVfz+GCCZcOg=;
-	h=Date:To:From:Subject:Message-Id; b=rblFgWiLqTfZkbKsLkXgDU7oLhjvFKUhFxN3rGwNRt0NPiDz/IA1RPa36rVukdqpiJcjt9xXkLqATCo4aEOQTq+Me7gWFeCErpOBvwB/a2aq0HwdGlqruFCQzSlgXg7JXd6eSuOJQVlyCSpk1jOsjOdHGyq/XdbabfWK1abro/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GoCjxGv0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810096; c=relaxed/simple;
+	bh=vfXmge4Y98zLst3NQdfnhAb2/S2/PhfCewczoXSDGvQ=;
+	h=Date:To:From:Subject:Message-Id; b=mbdybSoef4a0tZj24Hbfp+eLkYJ58dWx+PF4hfrDaeGos06Vn/dhVZ3cUmhifohhsBArbVb5DYOWUOg/fWsD/OFzQgN52jZNO+hz49YH4s+FP6ySyZotwexciLwftZLlO+VLfJMzvTtRg+yvMRGRy5oioFjjtlcnlvkCSFmW6R8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bou72ylE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GoCjxGv0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 161F3C4CEF7;
-	Sun, 14 Sep 2025 00:34:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bou72ylE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55099C4CEEB;
+	Sun, 14 Sep 2025 00:34:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810094;
-	bh=l1mBrRkEeM1CXmp5KHbbjqS3cLx4g0KmVfz+GCCZcOg=;
+	s=korg; t=1757810095;
+	bh=vfXmge4Y98zLst3NQdfnhAb2/S2/PhfCewczoXSDGvQ=;
 	h=Date:To:From:Subject:From;
-	b=GoCjxGv0Q9/pmkGxG+DvmOW/VqTIqtgSH7adb7odKdfUZHKADjZ+ixjL3C2vSaYYO
-	 essONOWVY3CSzK5LNTkMl7T9NH1uMlT2bIlNIFewqcqOjpg98HVu1lJQj3di4+WFgk
-	 3LKB9w1xCbNewm9W/fZDpiEsAB0AtbxN8//x5RK8=
-Date: Sat, 13 Sep 2025 17:34:53 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,saravanak@google.com,robh@kernel.org,mingo@redhat.com,hpa@zytor.com,graf@amazon.com,dyoung@redhat.com,bp@alien8.de,bhe@redhat.com,makb@juniper.net,akpm@linux-foundation.org
+	b=Bou72ylEt19wOtI8t0xg39qES7rB34HtAiT+MibMM0ZdIyAGMp1A4VrjAs1fqN3Vt
+	 hAUSPbEldJU6AMJlqE2LbtgvYlOszv/Pv8stU/33RN+LX0X5q3m4LNj/Ku7AlIjfBU
+	 /UFlw8+/fW55twazsT6+LLf+S5OKQ/9P8io1153A=
+Date: Sat, 13 Sep 2025 17:34:54 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,rongqianfeng@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch removed from -mm tree
-Message-Id: <20250914003454.161F3C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ref_tracker-remove-redundant-__gfp_nowarn.patch removed from -mm tree
+Message-Id: <20250914003455.55099C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,200 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/kexec: carry forward the boot DTB on kexec
+     Subject: ref_tracker: remove redundant __GFP_NOWARN
 has been removed from the -mm tree.  Its filename was
-     x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch
+     ref_tracker-remove-redundant-__gfp_nowarn.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Brian Mak <makb@juniper.net>
-Subject: x86/kexec: carry forward the boot DTB on kexec
-Date: Tue, 5 Aug 2025 14:15:27 -0700
+From: Qianfeng Rong <rongqianfeng@vivo.com>
+Subject: ref_tracker: remove redundant __GFP_NOWARN
+Date: Tue, 5 Aug 2025 10:30:31 +0800
 
-Currently, the kexec_file_load syscall on x86 does not support passing a
-device tree blob to the new kernel.  Some embedded x86 systems use device
-trees.  On these systems, failing to pass a device tree to the new kernel
-causes a boot failure.
+Commit 16f5dfbc851b ("gfp: include __GFP_NOWARN in GFP_NOWAIT") made
+GFP_NOWAIT implicitly include __GFP_NOWARN.
 
-To add support for this, we copy the behavior of ARM64 and PowerPC and
-copy the current boot's device tree blob for use in the new kernel.  We do
-this on x86 by passing the device tree blob as a setup_data entry in
-accordance with the x86 boot protocol.
+Therefore, explicit __GFP_NOWARN combined with GFP_NOWAIT (e.g.,
+`GFP_NOWAIT | __GFP_NOWARN`) is now redundant.  Let's clean up these
+redundant flags across subsystems.
 
-This behavior is gated behind the KEXEC_FILE_FORCE_DTB flag.
+No functional changes.
 
-Link: https://lkml.kernel.org/r/20250805211527.122367-3-makb@juniper.net
-Signed-off-by: Brian Mak <makb@juniper.net>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Saravana Kannan <saravanak@google.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20250805023031.331718-1-rongqianfeng@vivo.com
+Signed-off-by: Qianfeng Rong <rongqianfeng@vivo.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kexec-bzimage64.c |   47 ++++++++++++++++++++++++++--
- include/linux/kexec.h             |    5 ++
- include/uapi/linux/kexec.h        |    4 ++
- kernel/kexec_file.c               |    1 
- 4 files changed, 53 insertions(+), 4 deletions(-)
+ lib/ref_tracker.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/x86/kernel/kexec-bzimage64.c~x86-kexec-carry-forward-the-boot-dtb-on-kexec
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -16,6 +16,8 @@
- #include <linux/kexec.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
-+#include <linux/libfdt.h>
-+#include <linux/of_fdt.h>
- #include <linux/efi.h>
- #include <linux/random.h>
+--- a/lib/ref_tracker.c~ref_tracker-remove-redundant-__gfp_nowarn
++++ a/lib/ref_tracker.c
+@@ -75,7 +75,7 @@ ref_tracker_get_stats(struct ref_tracker
+ 	struct ref_tracker *tracker;
  
-@@ -212,6 +214,28 @@ setup_efi_state(struct boot_params *para
- }
- #endif /* CONFIG_EFI */
- 
-+#ifdef CONFIG_OF_FLATTREE
-+static void setup_dtb(struct boot_params *params,
-+		      unsigned long params_load_addr,
-+		      unsigned int dtb_setup_data_offset)
-+{
-+	struct setup_data *sd = (void *)params + dtb_setup_data_offset;
-+	unsigned long setup_data_phys, dtb_len;
-+
-+	dtb_len = fdt_totalsize(initial_boot_params);
-+	sd->type = SETUP_DTB;
-+	sd->len = dtb_len;
-+
-+	/* Carry over current boot DTB with setup_data */
-+	memcpy(sd->data, initial_boot_params, dtb_len);
-+
-+	/* Add setup data */
-+	setup_data_phys = params_load_addr + dtb_setup_data_offset;
-+	sd->next = params->hdr.setup_data;
-+	params->hdr.setup_data = setup_data_phys;
-+}
-+#endif /* CONFIG_OF_FLATTREE */
-+
- static void
- setup_ima_state(const struct kimage *image, struct boot_params *params,
- 		unsigned long params_load_addr,
-@@ -336,6 +360,17 @@ setup_boot_parameters(struct kimage *ima
- 			sizeof(struct efi_setup_data);
- #endif
- 
-+#ifdef CONFIG_OF_FLATTREE
-+	if (image->force_dtb && initial_boot_params) {
-+		setup_dtb(params, params_load_addr, setup_data_offset);
-+		setup_data_offset += sizeof(struct setup_data) +
-+				     fdt_totalsize(initial_boot_params);
-+	} else {
-+		pr_debug("Not carrying over DTB, force_dtb = %d\n",
-+			 image->force_dtb);
-+	}
-+#endif
-+
- 	if (IS_ENABLED(CONFIG_IMA_KEXEC)) {
- 		/* Setup IMA log buffer state */
- 		setup_ima_state(image, params, params_load_addr,
-@@ -529,6 +564,12 @@ static void *bzImage64_load(struct kimag
- 				sizeof(struct setup_data) +
- 				RNG_SEED_LENGTH;
- 
-+#ifdef CONFIG_OF_FLATTREE
-+	if (image->force_dtb && initial_boot_params)
-+		kbuf.bufsz += sizeof(struct setup_data) +
-+			      fdt_totalsize(initial_boot_params);
-+#endif
-+
- 	if (IS_ENABLED(CONFIG_IMA_KEXEC))
- 		kbuf.bufsz += sizeof(struct setup_data) +
- 			      sizeof(struct ima_setup_data);
-@@ -537,7 +578,7 @@ static void *bzImage64_load(struct kimag
- 		kbuf.bufsz += sizeof(struct setup_data) +
- 			      sizeof(struct kho_data);
- 
--	params = kzalloc(kbuf.bufsz, GFP_KERNEL);
-+	params = kvzalloc(kbuf.bufsz, GFP_KERNEL);
- 	if (!params)
+ 	stats = kmalloc(struct_size(stats, stacks, limit),
+-			GFP_NOWAIT | __GFP_NOWARN);
++			GFP_NOWAIT);
+ 	if (!stats)
  		return ERR_PTR(-ENOMEM);
- 	efi_map_offset = params_cmdline_sz;
-@@ -647,7 +688,7 @@ static void *bzImage64_load(struct kimag
- 	return ldata;
- 
- out_free_params:
--	kfree(params);
-+	kvfree(params);
- 	return ERR_PTR(ret);
- }
- 
-@@ -659,7 +700,7 @@ static int bzImage64_cleanup(void *loade
- 	if (!ldata)
- 		return 0;
- 
--	kfree(ldata->bootparams_buf);
-+	kvfree(ldata->bootparams_buf);
- 	ldata->bootparams_buf = NULL;
- 
- 	return 0;
---- a/include/linux/kexec.h~x86-kexec-carry-forward-the-boot-dtb-on-kexec
-+++ a/include/linux/kexec.h
-@@ -395,6 +395,9 @@ struct kimage {
- 
- 	/* Information for loading purgatory */
- 	struct purgatory_info purgatory_info;
-+
-+	/* Force carrying over the DTB from the current boot */
-+	bool force_dtb;
- #endif
- 
- #ifdef CONFIG_CRASH_HOTPLUG
-@@ -461,7 +464,7 @@ bool kexec_load_permitted(int kexec_imag
- /* List of defined/legal kexec file flags */
- #define KEXEC_FILE_FLAGS	(KEXEC_FILE_UNLOAD | KEXEC_FILE_ON_CRASH | \
- 				 KEXEC_FILE_NO_INITRAMFS | KEXEC_FILE_DEBUG | \
--				 KEXEC_FILE_NO_CMA)
-+				 KEXEC_FILE_NO_CMA | KEXEC_FILE_FORCE_DTB)
- 
- /* flag to track if kexec reboot is in progress */
- extern bool kexec_in_progress;
---- a/include/uapi/linux/kexec.h~x86-kexec-carry-forward-the-boot-dtb-on-kexec
-+++ a/include/uapi/linux/kexec.h
-@@ -22,12 +22,16 @@
-  * KEXEC_FILE_ON_CRASH : Load/unload operation belongs to kdump image.
-  * KEXEC_FILE_NO_INITRAMFS : No initramfs is being loaded. Ignore the initrd
-  *                           fd field.
-+ * KEXEC_FILE_FORCE_DTB : Force carrying over the current boot's DTB to the new
-+ *                        kernel on x86. This is already the default behavior on
-+ *                        some other architectures, like ARM64 and PowerPC.
-  */
- #define KEXEC_FILE_UNLOAD	0x00000001
- #define KEXEC_FILE_ON_CRASH	0x00000002
- #define KEXEC_FILE_NO_INITRAMFS	0x00000004
- #define KEXEC_FILE_DEBUG	0x00000008
- #define KEXEC_FILE_NO_CMA	0x00000010
-+#define KEXEC_FILE_FORCE_DTB	0x00000020
- 
- /* These values match the ELF architecture values.
-  * Unless there is a good reason that should continue to be the case.
---- a/kernel/kexec_file.c~x86-kexec-carry-forward-the-boot-dtb-on-kexec
-+++ a/kernel/kexec_file.c
-@@ -255,6 +255,7 @@ kimage_file_prepare_segments(struct kima
+ 	stats->total = 0;
+@@ -159,7 +159,7 @@ __ref_tracker_dir_pr_ostream(struct ref_
+ 		return;
  	}
  
- 	image->no_cma = !!(flags & KEXEC_FILE_NO_CMA);
-+	image->force_dtb = flags & KEXEC_FILE_FORCE_DTB;
+-	sbuf = kmalloc(STACK_BUF_SIZE, GFP_NOWAIT | __GFP_NOWARN);
++	sbuf = kmalloc(STACK_BUF_SIZE, GFP_NOWAIT);
  
- 	if (cmdline_len) {
- 		image->cmdline_buf = memdup_user(cmdline_ptr, cmdline_len);
+ 	for (i = 0, skipped = stats->total; i < stats->count; ++i) {
+ 		stack = stats->stacks[i].stack_handle;
+@@ -306,7 +306,7 @@ int ref_tracker_free(struct ref_tracker_
+ 	}
+ 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 1);
+ 	stack_handle = stack_depot_save(entries, nr_entries,
+-					GFP_NOWAIT | __GFP_NOWARN);
++					GFP_NOWAIT);
+ 
+ 	spin_lock_irqsave(&dir->lock, flags);
+ 	if (tracker->dead) {
 _
 
-Patches currently in -mm which might be from makb@juniper.net are
+Patches currently in -mm which might be from rongqianfeng@vivo.com are
 
 
