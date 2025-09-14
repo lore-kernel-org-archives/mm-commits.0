@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2814339FD9
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:34:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C00CB28E5
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810098; cv=none; b=T56hjg2+FbtRHD1ZjkU3pqtJej6btfmWAsYClj91OyQD0RCeu2Gy1jem9eIVR8GxgOcUUESKN8thikDbCkL8ocv7P1HeZ+BTtq7QT5ZkuXaucnUTpV2X8qQ2VwWxfUt4/XtUxhr3PZr1L3rgWD44JL2kHOYuE/tsSTurX7CfsMs=
+	t=1757810101; cv=none; b=giSf6rS3xEXO6xbOpNxG4f7LyBbKbQGXZjD2fsmdGtFiF2BDpQyUTzJIPG60L8TJT2yWKHe6smARnzs+AKPL6pZlWoXB2ksanaRU4D0m2cbS+M1YR7rfPbsGMoZ3n4B46oX32MpR+ELQh7r3iP5i22Oj5b5S7J88mlBryaswPQQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810098; c=relaxed/simple;
-	bh=wCYoi+OUsiASz9+YK/1s3WjHs2SCBe2MtIxbeRPBRAA=;
-	h=Date:To:From:Subject:Message-Id; b=Xs3QLZuBJF0pkbAbpzSk8eF3DHtElyIA9MvIYsFKc7AwdC20i+KButaLeDiVXjp3jPdPTgWvkrb1aPrOb4nmptShBKYaZSdUDt1/RBVzwVBcHkxIF8v3nnWg6QL6zJ5LIL2DPlcK9gpv3Ocosa9X3kSXUxIwVzkOvNUTcjN0OtI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VC0SjEOK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810101; c=relaxed/simple;
+	bh=VwGVZakbmLbndT0tbykUWnLaLWb3/pkZzzdafURo0jU=;
+	h=Date:To:From:Subject:Message-Id; b=GNn0kgx5guTjA+GsTLXER0TiUKwTU8ilH8mhhL8cX0uz9iwXt5elh03lMStr+VdMTWZM6/F0qY842t6RrHbU5evcOCrP6+ZnfaZqGAv50nqgPpXrlqwmg4W33Kq2wR7nVBrOSCGtoTxp4VVL1awbYaySnVy6kkGKloc4lJlNmEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cqFcPeF5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VC0SjEOK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7B53C4CEEB;
-	Sun, 14 Sep 2025 00:34:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cqFcPeF5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 431D4C4CEEB;
+	Sun, 14 Sep 2025 00:35:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810098;
-	bh=wCYoi+OUsiASz9+YK/1s3WjHs2SCBe2MtIxbeRPBRAA=;
+	s=korg; t=1757810101;
+	bh=VwGVZakbmLbndT0tbykUWnLaLWb3/pkZzzdafURo0jU=;
 	h=Date:To:From:Subject:From;
-	b=VC0SjEOK8zxlSrltb7Brxcsc1/2ReEgak7W7uOrDp3o9HkqFiI0DQ7OM68yMf8jy0
-	 nYP5JnTTt63I8o97hwa2EwTOhVNYZ6uzp/ZTykYv8Bixz52Z3QAqIfinamo0D61w0M
-	 0a+sxV+YX/f8i0dvHEE2Mk4jdbwqhBiWA/XsIiFY=
-Date: Sat, 13 Sep 2025 17:34:57 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,glider@google.com,elver@google.com,dvyukov@google.com,corbet@lwn.net,arnd@arndb.de,andreyknvl@gmail.com,soham.bagchi@utah.edu,akpm@linux-foundation.org
+	b=cqFcPeF5xg5wvUqX+rCeIhTKvPD6nrQYQosOFm5sFY/R3bTH2vmqpZUX0eA/8Vy5s
+	 87kieJHc3biHLW06N4GO+wTTTaFK2qxdodo3quk3Zvm+zalicSxlYiCVAy9Ydn5Lsc
+	 5F+E/mWDMMtXSEErYgeyU5AHNsgHviVIODbrF5nU=
+Date: Sat, 13 Sep 2025 17:35:00 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kcov-load-acquire-coverage-count-in-user-space-code.patch removed from -mm tree
-Message-Id: <20250914003457.E7B53C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] idr-test-suite-remove-usage-of-the-deprecated-ida_simple_xx-api.patch removed from -mm tree
+Message-Id: <20250914003501.431D4C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kcov: load acquire coverage count in user-space code
+     Subject: idr test suite: remove usage of the deprecated ida_simple_xx() API
 has been removed from the -mm tree.  Its filename was
-     kcov-load-acquire-coverage-count-in-user-space-code.patch
+     idr-test-suite-remove-usage-of-the-deprecated-ida_simple_xx-api.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Soham Bagchi <soham.bagchi@utah.edu>
-Subject: kcov: load acquire coverage count in user-space code
-Date: Mon, 28 Jul 2025 12:43:18 -0600
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: idr test suite: remove usage of the deprecated ida_simple_xx() API
+Date: Mon, 14 Jul 2025 10:17:08 +0200
 
-Update the KCOV documentation to use a load-acquire operation for the
-first element of the shared memory buffer between kernel-space and
-user-space.
+Patch series "ida: Remove the ida_simple_xxx() API", v3.
 
-The load-acquire pairs with the write memory barrier used in
-kcov_move_area().
+These are the final steps in removing the ida_simple_xxx() API.
 
-[soham.bagchi@utah.edu: v2]
-  Link: https://lkml.kernel.org/r/20250803180558.2967962-1-soham.bagchi@utah.edu
-Link: https://lkml.kernel.org/r/20250728184318.1839137-2-soham.bagchi@utah.edu
-Signed-off-by: Soham Bagchi <soham.bagchi@utah.edu>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+This series was last proposed in August 2024.  Since then, some users of
+the old API have be re-introduced and then removed.
+
+A first time in drivers/misc/rpmb-core.c, added in commit 1e9046e3a154
+("rpmb: add Replay Protected Memory Block (RPMB) subsystem") (2024-08-26)
+and removed in commit dfc881abca42 ("rpmb: Remove usage of the deprecated
+ida_simple_xx() API") (2024-10-13).
+
+A second time in drivers/gpio/gpio-mpsse.c, added in commit c46a74ff05c0
+("gpio: add support for FTDI's MPSSE as GPIO") (2024-10-14) and removed in
+commit f57c08492866 (gpio: mpsse: Remove usage of the deprecated
+ida_simple_xx() API) (2024-11-22).
+
+Since then, I've not spotted any new usage.
+
+So things being stable now, it's time to end this story once and for all.
+
+
+This patch (of 3):
+
+ida_alloc() and ida_free() should be preferred to the deprecated
+ida_simple_get() and ida_simple_remove().
+
+Note that the upper limit of ida_simple_get() is exclusive, but the one of
+ida_alloc_range()/ida_alloc_max() is inclusive.  But because of the ranges
+used for the tests, there is no need to adjust them.
+
+While at it remove some useless {}.
+
+Link: https://lkml.kernel.org/r/cover.1752480043.git.christophe.jaillet@wanadoo.fr
+Link: https://lkml.kernel.org/r/2904fa2006e4fe58eea63aef87fa7f832c7804a1.1752480043.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kcov.rst |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ tools/testing/radix-tree/idr-test.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
---- a/Documentation/dev-tools/kcov.rst~kcov-load-acquire-coverage-count-in-user-space-code
-+++ a/Documentation/dev-tools/kcov.rst
-@@ -361,7 +361,12 @@ local tasks spawned by the process and t
- 	 */
- 	sleep(2);
+--- a/tools/testing/radix-tree/idr-test.c~idr-test-suite-remove-usage-of-the-deprecated-ida_simple_xx-api
++++ a/tools/testing/radix-tree/idr-test.c
+@@ -499,19 +499,17 @@ void ida_check_random(void)
+ 		goto repeat;
+ }
  
--	n = __atomic_load_n(&cover[0], __ATOMIC_RELAXED);
-+        /*
-+         * The load to the coverage count should be an acquire to pair with
-+         * pair with the corresponding write memory barrier (smp_wmb()) on
-+         * the kernel-side in kcov_move_area().
-+         */
-+	n = __atomic_load_n(&cover[0], __ATOMIC_ACQUIRE);
- 	for (i = 0; i < n; i++)
- 		printf("0x%lx\n", cover[i + 1]);
- 	if (ioctl(fd, KCOV_DISABLE, 0))
+-void ida_simple_get_remove_test(void)
++void ida_alloc_free_test(void)
+ {
+ 	DEFINE_IDA(ida);
+ 	unsigned long i;
+ 
+-	for (i = 0; i < 10000; i++) {
+-		assert(ida_simple_get(&ida, 0, 20000, GFP_KERNEL) == i);
+-	}
+-	assert(ida_simple_get(&ida, 5, 30, GFP_KERNEL) < 0);
+-
+-	for (i = 0; i < 10000; i++) {
+-		ida_simple_remove(&ida, i);
+-	}
++	for (i = 0; i < 10000; i++)
++		assert(ida_alloc_max(&ida, 20000, GFP_KERNEL) == i);
++	assert(ida_alloc_range(&ida, 5, 30, GFP_KERNEL) < 0);
++
++	for (i = 0; i < 10000; i++)
++		ida_free(&ida, i);
+ 	assert(ida_is_empty(&ida));
+ 
+ 	ida_destroy(&ida);
+@@ -524,7 +522,7 @@ void user_ida_checks(void)
+ 	ida_check_nomem();
+ 	ida_check_conv_user();
+ 	ida_check_random();
+-	ida_simple_get_remove_test();
++	ida_alloc_free_test();
+ 
+ 	radix_tree_cpu_dead(1);
+ }
 _
 
-Patches currently in -mm which might be from soham.bagchi@utah.edu are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
 
