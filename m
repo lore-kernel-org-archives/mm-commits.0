@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF39728E5
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FECF8635D
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810109; cv=none; b=qsNaMev6X8KYWi4t76E9ZG6t8POck/nkgXKaZIHhyDvx9k0ipnDAGxp8xa+K7mL4Qg9l784T4BGEH/hayvPADuGgNUoFw7Y0uR91UjI02ykhk3Nl4FloRVQvNmS28zQmcMUrs+NS3pvwTNZ5W2wFXWPBt3ddl1Xt+gXB0uJYdJI=
+	t=1757810110; cv=none; b=fepY0VwpFnRmPMCgbiP3xqZ4E4V6E+AnCrU9gQMwU9SQSqYe2YZe/ZzfOupOdhkWIrSMXAPdpp19a1ze4HIps15EVYsTtKWOgqaDsMhe+L0cuJTvUfD2CttOWu8d0L/2XcD7GBv8ZItIG+A+1AiS9z0sWlEbnTLFwtG91hVrKh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810109; c=relaxed/simple;
-	bh=A9NVRadkqKLZ0eH/M/EyQ/m1omhjYuA6cHvHbsbmku0=;
-	h=Date:To:From:Subject:Message-Id; b=B3UBaWbN5Fnu3me2HgqyeVZ8DvFdjsbdxo7CLRTYlHF9lUHX5Mzvl3RdVluU0+004uRfH3vjlLo5ExWttRkheysxJwQEPzSQ02VJt45WNKLUCzxELjc9gaxXO0PoIvG93Hi5S9b38QgSrKmtDpAkfvtfHIknYAr4NoMjhWjmsUI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q6kEMGVq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810110; c=relaxed/simple;
+	bh=r/KeH4aw/S3juV9aSuF01mWx6kwfJ3HAXT5IvyA3mAE=;
+	h=Date:To:From:Subject:Message-Id; b=reBc0DV6iMvoER3rzeh7lM/auadMKshCn+Vel6nohEkFN7DTmy1dm8+L0XkUhfxWviF1EQjvxcOCPtvkxbIIxQWN4S4wI7ghOL0oTL1Ov1NH273dvoWXm/Yo9ZTmPofhxP3icf6QTc6l7IMKT0iviTmWLciFip9JFVcKKSoCx4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pPhJ5l8c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q6kEMGVq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3172C4CEEB;
-	Sun, 14 Sep 2025 00:35:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pPhJ5l8c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8FF4C4CEEB;
+	Sun, 14 Sep 2025 00:35:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810108;
-	bh=A9NVRadkqKLZ0eH/M/EyQ/m1omhjYuA6cHvHbsbmku0=;
+	s=korg; t=1757810109;
+	bh=r/KeH4aw/S3juV9aSuF01mWx6kwfJ3HAXT5IvyA3mAE=;
 	h=Date:To:From:Subject:From;
-	b=q6kEMGVqRFtz2NeDIGS0caQuQKI7qh8i2AeYBqPu7G8353h6K36JaQXLQ00tuHoIx
-	 crtqR0Bw2M+V7EA031fVD5GfoQDf0Gu/fT5piJJyRjXV+tCPHSHJk/93oiLZoZ1x07
-	 NGzCPUvNg2Ist/GR9ityc703p7+FCY3zU3rNOhnE=
-Date: Sat, 13 Sep 2025 17:35:08 -0700
-To: mm-commits@vger.kernel.org,linux@treblig.org,joe@perches.com,akpm@linux-foundation.org
+	b=pPhJ5l8cI52SEFO3wG8pWJ2EoEub0r1gZMsAx4Xrzu3RC1sVB9lbcBH7/2gJUMgaV
+	 J6pIQ+Ij5RvGJRP+lZLqz6I/L+XoMJnGfZRfEWeQ2LT/ge576aSmYVuzZUMhF59tRw
+	 3AEpfUyUNBrGnDvFYNPkHNoqVIBdjYrU2RRTclj8=
+Date: Sat, 13 Sep 2025 17:35:09 -0700
+To: mm-commits@vger.kernel.org,zhao.xichao@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-allow-http-links-of-any-length-in-commit-logs.patch removed from -mm tree
-Message-Id: <20250914003508.C3172C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-use-ptr_err_or_zero-to-simplify-code.patch removed from -mm tree
+Message-Id: <20250914003509.D8FF4C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkpatch: allow http links of any length in commit logs
+     Subject: lib/fault-inject-usercopy.c: use PTR_ERR_OR_ZERO() to simplify code
 has been removed from the -mm tree.  Its filename was
-     checkpatch-allow-http-links-of-any-length-in-commit-logs.patch
+     lib-use-ptr_err_or_zero-to-simplify-code.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: allow http links of any length in commit logs
-Date: Sat, 09 Aug 2025 21:31:10 -0700
+From: Xichao Zhao <zhao.xichao@vivo.com>
+Subject: lib/fault-inject-usercopy.c: use PTR_ERR_OR_ZERO() to simplify code
+Date: Tue, 12 Aug 2025 16:40:45 +0800
 
-Dave Gilbert noticed that checkpatch warns about URL links over 75 chars
-in length in commit logs.
+Use the standard error pointer macro to shorten the code and simplify.
 
-Fix that.
-
-Link: https://lkml.kernel.org/r/3529faaf84a5a9a96c5c0ec4183ae0ba6e97673c.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dave Gilbert <linux@treblig.org>
+Link: https://lkml.kernel.org/r/20250812084045.64218-1-zhao.xichao@vivo.com
+Signed-off-by: Xichao Zhao <zhao.xichao@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/fault-inject-usercopy.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-allow-http-links-of-any-length-in-commit-logs
-+++ a/scripts/checkpatch.pl
-@@ -3294,7 +3294,7 @@ sub process {
- 					# file delta changes
- 		      $line =~ /^\s*(?:[\w\.\-\+]*\/)++[\w\.\-\+]+:/ ||
- 					# filename then :
--		      $line =~ /^\s*(?:Fixes:|$link_tags_search|$signature_tags)/i ||
-+		      $line =~ /^\s*(?:Fixes:|https?:|$link_tags_search|$signature_tags)/i ||
- 					# A Fixes:, link or signature tag line
- 		      $commit_log_possible_stack_dump)) {
- 			WARN("COMMIT_LOG_LONG_LINE",
+--- a/lib/fault-inject-usercopy.c~lib-use-ptr_err_or_zero-to-simplify-code
++++ a/lib/fault-inject-usercopy.c
+@@ -22,10 +22,8 @@ static int __init fail_usercopy_debugfs(
+ 
+ 	dir = fault_create_debugfs_attr("fail_usercopy", NULL,
+ 					&fail_usercopy.attr);
+-	if (IS_ERR(dir))
+-		return PTR_ERR(dir);
+ 
+-	return 0;
++	return PTR_ERR_OR_ZERO(dir);
+ }
+ 
+ late_initcall(fail_usercopy_debugfs);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from zhao.xichao@vivo.com are
 
 
