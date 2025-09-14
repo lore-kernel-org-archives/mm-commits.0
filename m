@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF0173AC1C
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21C2F33987
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810117; cv=none; b=APVJcZ93CPEX1+t+GuTczcNVsXi+2y50XxuEH2seAbi+WeLeEQWp/hvDj+mRMrOtcKbPOClT+7lZIP11sooqZN7Xi9yU4XkLb+xFTQJJIBh5rOOFWas71Jx2RF9iOVjUSf/JPyxhXHV3oKdd0nYZZr/Kiruv0mHSuLV2k6/ZRRY=
+	t=1757810120; cv=none; b=H/JU3h/bBZC54pxY/FLOBsnbvjjleY9urwNItdzA0bfQHaZYSWS7ZTrx+Y4IaW0ERp2CdqqwTte5NwiX1SnNS4onba0ZTiVPyeE7KMbNxY/BMvyVcO0OtwBxxwCLMxtmeAQQ4elT8My1W8oYXyVuVh3d7XfTD9W+lwjcWdQIMXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810117; c=relaxed/simple;
-	bh=lzxA1q+BgqHiX/L/y0rwcaKgbcNeCz65M7rYzNHCMq4=;
-	h=Date:To:From:Subject:Message-Id; b=NMgXSddOstNZfWDci7Ivbdn97u7D7k4Xgh+ep0oNE4RfABLoUrL3tTj2o8KKHadq2ORIc6Xt2zefV4TIUrMZ43dI6M8dYKTZhXNAbfmPEaWV+9DBgMw1OhZvhgWG8Y7OtSQxxICbUNUBFRnNGJTyzSF84id9WZrpTEBvcBxrlaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RkCn+fGo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810120; c=relaxed/simple;
+	bh=3hTPOyX1/DXy/BIG8Yff8cnadbIcScmL2woBAHps2wY=;
+	h=Date:To:From:Subject:Message-Id; b=Kba+3nnzgSaSTGmavMM7JkelaIhUW7Ti2MfjymiAGNx3lS2RKArxVksRMjlDRXz46RAb7LwBLEH89AZqAGcA6b3uQrXkQOKe4p0UHnJ4vR4Q19B3QdlLKMJm2LR5lHquvuD/txbsRnoecBkEa85lG4NJhpfOwJIXrxHb14/Z+I0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BSW3+XKv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RkCn+fGo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAA90C4CEEB;
-	Sun, 14 Sep 2025 00:35:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BSW3+XKv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAE09C4CEEB;
+	Sun, 14 Sep 2025 00:35:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810116;
-	bh=lzxA1q+BgqHiX/L/y0rwcaKgbcNeCz65M7rYzNHCMq4=;
+	s=korg; t=1757810120;
+	bh=3hTPOyX1/DXy/BIG8Yff8cnadbIcScmL2woBAHps2wY=;
 	h=Date:To:From:Subject:From;
-	b=RkCn+fGokS5gefeRSPIKdUFNQEsWNySj+ET+guffkBnoalAl83HtB/eTo4JaYAL6c
-	 GXSigpfWEuAPD7mHtQ/JLhTvNmfGwkulYbi4c0Ykk+slvtqk/8n+79RdyY1XrNeMYV
-	 x3Ot6cAEjcOWNsHS+ZEYTR/oYSxbELxmctO1gh9A=
-Date: Sat, 13 Sep 2025 17:35:16 -0700
-To: mm-commits@vger.kernel.org,yaoma@linux.alibaba.com,tglx@linutronix.de,max.kellermann@ionos.com,lihuafei1@huawei.com,yaozhenguo1@gmail.com,akpm@linux-foundation.org
+	b=BSW3+XKvSQsT4ztcZT+xhlo3MhMmEp50EN7UOqnjDJWq11dh8TTs9c0SO5LCT7hrD
+	 V+mS4OcgnYKLhKEyG8pU1vX4QKmy/FQhq0A5xBhURNPtVSjGsjN3zmLVVlq70CMZfA
+	 vjGYB4QlwaZgFQudmnNbHMj3l8YP205oF9jKwJmY=
+Date: Sat, 13 Sep 2025 17:35:19 -0700
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,teczm@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup.patch removed from -mm tree
-Message-Id: <20250914003516.BAA90C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] vfat-remove-unused-variable.patch removed from -mm tree
+Message-Id: <20250914003519.EAE09C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: watchdog/softlockup: fix incorrect CPU utilization output during softlockup
+     Subject: vfat: remove unused variable
 has been removed from the -mm tree.  Its filename was
-     watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup.patch
+     vfat-remove-unused-variable.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: ZhenguoYao <yaozhenguo1@gmail.com>
-Subject: watchdog/softlockup: fix incorrect CPU utilization output during softlockup
-Date: Tue, 12 Aug 2025 16:25:10 +0800
+From: zhoumin <teczm@foxmail.com>
+Subject: vfat: remove unused variable
+Date: Mon, 18 Aug 2025 22:44:49 +0800
 
-Since we use 16-bit precision, the raw data will undergo integer division,
-which may sometimes result in data loss.  This can lead to slightly
-inaccurate CPU utilization calculations.  Under normal circumstances, this
-isn't an issue.  However, when CPU utilization reaches 100%, the
-calculated result might exceed 100%.  For example, with raw data like the
-following:
+Remove unused variable definition and related function definition and
+redundant variable assignments within functions.
 
-sample_period 400000134 new_stat 83648414036 old_stat 83247417494
-
-sample_period=400000134/2^24=23
-new_stat=83648414036/2^24=4985
-old_stat=83247417494/2^24=4961
-util=105%
-
-Below log will output：
-
-CPU#3 Utilization every 0s during lockup:
-    #1:   0% system,          0% softirq,   105% hardirq,     0% idle
-    #2:   0% system,          0% softirq,   105% hardirq,     0% idle
-    #3:   0% system,          0% softirq,   100% hardirq,     0% idle
-    #4:   0% system,          0% softirq,   105% hardirq,     0% idle
-    #5:   0% system,          0% softirq,   105% hardirq,     0% idle
-
-To avoid confusion, we enforce a 100% display cap when calculations exceed
-this threshold.
-
-We also round to the nearest multiple of 16.8 milliseconds to improve the
-accuracy.
-
-[yaozhenguo1@gmail.com: make get_16bit_precision() more accurate, fix comment layout]
-  Link: https://lkml.kernel.org/r/20250818081438.40540-1-yaozhenguo@jd.com
-Link: https://lkml.kernel.org/r/20250812082510.32291-1-yaozhenguo@jd.com
-Signed-off-by: ZhenguoYao <yaozhenguo1@gmail.com>
-Cc: Bitao Hu <yaoma@linux.alibaba.com>
-Cc: Li Huafei <lihuafei1@huawei.com>
-Cc: Max Kellermann <max.kellermann@ionos.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/tencent_9DE7CC9367096503F6ADD2BD960079267406@qq.com
+Signed-off-by: zhoumin <teczm@foxmail.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ fs/fat/dir.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-softlockup-fix-incorrect-cpu-utilization-output-during-softlockup
-+++ a/kernel/watchdog.c
-@@ -425,7 +425,11 @@ static DEFINE_PER_CPU(u8, cpustat_tail);
-  */
- static u16 get_16bit_precision(u64 data_ns)
- {
--	return data_ns >> 24LL; /* 2^24ns ~= 16.8ms */
-+	/*
-+	 * 2^24ns ~= 16.8ms
-+	 * Round to the nearest multiple of 16.8 milliseconds.
-+	 */
-+	return (data_ns + (1 << 23)) >> 24LL;
- }
+--- a/fs/fat/dir.c~vfat-remove-unused-variable
++++ a/fs/fat/dir.c
+@@ -1209,7 +1209,7 @@ EXPORT_SYMBOL_GPL(fat_alloc_new_dir);
  
- static void update_cpustat(void)
-@@ -444,6 +448,14 @@ static void update_cpustat(void)
- 		old_stat = __this_cpu_read(cpustat_old[i]);
- 		new_stat = get_16bit_precision(cpustat[tracked_stats[i]]);
- 		util = DIV_ROUND_UP(100 * (new_stat - old_stat), sample_period_16);
-+		/*
-+		 * Since we use 16-bit precision, the raw data will undergo
-+		 * integer division, which may sometimes result in data loss,
-+		 * and then result might exceed 100%. To avoid confusion,
-+		 * we enforce a 100% display cap when calculations exceed this threshold.
-+		 */
-+		if (util > 100)
-+			util = 100;
- 		__this_cpu_write(cpustat_util[tail][i], util);
- 		__this_cpu_write(cpustat_old[i], new_stat);
- 	}
+ static int fat_add_new_entries(struct inode *dir, void *slots, int nr_slots,
+ 			       int *nr_cluster, struct msdos_dir_entry **de,
+-			       struct buffer_head **bh, loff_t *i_pos)
++			       struct buffer_head **bh)
+ {
+ 	struct super_block *sb = dir->i_sb;
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+@@ -1269,7 +1269,6 @@ static int fat_add_new_entries(struct in
+ 	get_bh(bhs[n]);
+ 	*bh = bhs[n];
+ 	*de = (struct msdos_dir_entry *)((*bh)->b_data + offset);
+-	*i_pos = fat_make_i_pos(sb, *bh, *de);
+ 
+ 	/* Second stage: clear the rest of cluster, and write outs */
+ 	err = fat_zeroed_cluster(dir, start_blknr, ++n, bhs, MAX_BUF_PER_PAGE);
+@@ -1298,7 +1297,7 @@ int fat_add_entries(struct inode *dir, v
+ 	struct buffer_head *bh, *prev, *bhs[3]; /* 32*slots (672bytes) */
+ 	struct msdos_dir_entry *de;
+ 	int err, free_slots, i, nr_bhs;
+-	loff_t pos, i_pos;
++	loff_t pos;
+ 
+ 	sinfo->nr_slots = nr_slots;
+ 
+@@ -1386,7 +1385,7 @@ found:
+ 		 * add the cluster to dir.
+ 		 */
+ 		cluster = fat_add_new_entries(dir, slots, nr_slots, &nr_cluster,
+-					      &de, &bh, &i_pos);
++					      &de, &bh);
+ 		if (cluster < 0) {
+ 			err = cluster;
+ 			goto error_remove;
 _
 
-Patches currently in -mm which might be from yaozhenguo1@gmail.com are
+Patches currently in -mm which might be from teczm@foxmail.com are
 
 
