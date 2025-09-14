@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF67428E0F;
-	Sun, 14 Sep 2025 00:35:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF39728E5
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810106; cv=none; b=a8jQzD1+NRo2yDPj+lteOoBh9KWTvXuX6VNqKpN/457376uKR32/QUGVCPO/ZH3ZOFp59xkbE8v+BF1088++AHvQcZvCP1635nAcEgluUa/HA3aMZOZUAM7aoCC05hEMaMsXlTmdzncFADMZOYpvxHo4sewvpgpxuhsrswVgbnI=
+	t=1757810109; cv=none; b=qsNaMev6X8KYWi4t76E9ZG6t8POck/nkgXKaZIHhyDvx9k0ipnDAGxp8xa+K7mL4Qg9l784T4BGEH/hayvPADuGgNUoFw7Y0uR91UjI02ykhk3Nl4FloRVQvNmS28zQmcMUrs+NS3pvwTNZ5W2wFXWPBt3ddl1Xt+gXB0uJYdJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810106; c=relaxed/simple;
-	bh=RfmBBnEUZX/mtqQMRZhsAJQ9NmUpgNJo5cG9xMSUOBo=;
-	h=Date:To:From:Subject:Message-Id; b=b9GMhbSbcg/cqD6SPa1wbw+17FftmrBWdxN1eTMGHnyUE+BsceFS9bNdSaUrYM9ISZJlMR/3Kj10Qg29q4HRrctujceNlD7htMr106PzwIzWTLaihPERsGVxDdmU7ogvfmVt44bASbO51V7YeUAsXi57mN5WZPA5nLzUyImV0ds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rcGVanUc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810109; c=relaxed/simple;
+	bh=A9NVRadkqKLZ0eH/M/EyQ/m1omhjYuA6cHvHbsbmku0=;
+	h=Date:To:From:Subject:Message-Id; b=B3UBaWbN5Fnu3me2HgqyeVZ8DvFdjsbdxo7CLRTYlHF9lUHX5Mzvl3RdVluU0+004uRfH3vjlLo5ExWttRkheysxJwQEPzSQ02VJt45WNKLUCzxELjc9gaxXO0PoIvG93Hi5S9b38QgSrKmtDpAkfvtfHIknYAr4NoMjhWjmsUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q6kEMGVq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rcGVanUc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B40A1C4CEF7;
-	Sun, 14 Sep 2025 00:35:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q6kEMGVq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3172C4CEEB;
+	Sun, 14 Sep 2025 00:35:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810105;
-	bh=RfmBBnEUZX/mtqQMRZhsAJQ9NmUpgNJo5cG9xMSUOBo=;
+	s=korg; t=1757810108;
+	bh=A9NVRadkqKLZ0eH/M/EyQ/m1omhjYuA6cHvHbsbmku0=;
 	h=Date:To:From:Subject:From;
-	b=rcGVanUcG//Ev7L64JrPshiFQimUf021c3LmEnYLyCHMH/PuBpdJFWwIAq7Ow0r4C
-	 lXD60YKpRLXy00cCtDlGWzJVl9OgBKAaqdVAuuTLC8GaozcyWIlAWauvGn7ctXRtyA
-	 WuYQnluFMpywxb4ujrrSpwcdiV+ZQYuL25id+5Aw=
-Date: Sat, 13 Sep 2025 17:35:05 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,stable@vger.kernel.org,jack@suse.cz,brauner@kernel.org,chenhuacai@loongson.cn,akpm@linux-foundation.org
+	b=q6kEMGVqRFtz2NeDIGS0caQuQKI7qh8i2AeYBqPu7G8353h6K36JaQXLQ00tuHoIx
+	 crtqR0Bw2M+V7EA031fVD5GfoQDf0Gu/fT5piJJyRjXV+tCPHSHJk/93oiLZoZ1x07
+	 NGzCPUvNg2Ist/GR9ityc703p7+FCY3zU3rNOhnE=
+Date: Sat, 13 Sep 2025 17:35:08 -0700
+To: mm-commits@vger.kernel.org,linux@treblig.org,joe@perches.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] init-handle-bootloader-identifier-in-kernel-parameters.patch removed from -mm tree
-Message-Id: <20250914003505.B40A1C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] checkpatch-allow-http-links-of-any-length-in-commit-logs.patch removed from -mm tree
+Message-Id: <20250914003508.C3172C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: init: handle bootloader identifier in kernel parameters
+     Subject: checkpatch: allow http links of any length in commit logs
 has been removed from the -mm tree.  Its filename was
-     init-handle-bootloader-identifier-in-kernel-parameters.patch
+     checkpatch-allow-http-links-of-any-length-in-commit-logs.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huacai Chen <chenhuacai@loongson.cn>
-Subject: init: handle bootloader identifier in kernel parameters
-Date: Mon, 21 Jul 2025 18:13:43 +0800
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: allow http links of any length in commit logs
+Date: Sat, 09 Aug 2025 21:31:10 -0700
 
-BootLoaders (Grub, LILO, etc) may pass an identifier such as "BOOT_IMAGE=
-/boot/vmlinuz-x.y.z" to kernel parameters.  But these identifiers are not
-recognized by the kernel itself so will be passed to userspace.  However
-user space init program also don't recognize it.
+Dave Gilbert noticed that checkpatch warns about URL links over 75 chars
+in length in commit logs.
 
-KEXEC/KDUMP (kexec-tools) may also pass an identifier such as "kexec" on
-some architectures.
+Fix that.
 
-We cannot change BootLoader's behavior, because this behavior exists for
-many years, and there are already user space programs search BOOT_IMAGE=
-in /proc/cmdline to obtain the kernel image locations:
-
-https://github.com/linuxdeepin/deepin-ab-recovery/blob/master/util.go
-(search getBootOptions)
-https://github.com/linuxdeepin/deepin-ab-recovery/blob/master/main.go
-(search getKernelReleaseWithBootOption) So the the best way is handle
-(ignore) it by the kernel itself, which can avoid such boot warnings (if
-we use something like init=/bin/bash, bootloader identifier can even cause
-a crash):
-
-Kernel command line: BOOT_IMAGE=(hd0,1)/vmlinuz-6.x root=/dev/sda3 ro console=tty
-Unknown kernel command line parameters "BOOT_IMAGE=(hd0,1)/vmlinuz-6.x", will be passed to user space.
-
-[chenhuacai@loongson.cn: use strstarts()]
-  Link: https://lkml.kernel.org/r/20250815090120.1569947-1-chenhuacai@loongson.cn
-Link: https://lkml.kernel.org/r/20250721101343.3283480-1-chenhuacai@loongson.cn
-Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/3529faaf84a5a9a96c5c0ec4183ae0ba6e97673c.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Dave Gilbert <linux@treblig.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/init/main.c~init-handle-bootloader-identifier-in-kernel-parameters
-+++ a/init/main.c
-@@ -544,6 +544,12 @@ static int __init unknown_bootoption(cha
- 				     const char *unused, void *arg)
- {
- 	size_t len = strlen(param);
-+	/*
-+	 * Well-known bootloader identifiers:
-+	 * 1. LILO/Grub pass "BOOT_IMAGE=...";
-+	 * 2. kexec/kdump (kexec-tools) pass "kexec".
-+	 */
-+	const char *bootloader[] = { "BOOT_IMAGE=", "kexec", NULL };
- 
- 	/* Handle params aliased to sysctls */
- 	if (sysctl_is_alias(param))
-@@ -551,6 +557,12 @@ static int __init unknown_bootoption(cha
- 
- 	repair_env_string(param, val);
- 
-+	/* Handle bootloader identifier */
-+	for (int i = 0; bootloader[i]; i++) {
-+		if (strstarts(param, bootloader[i]))
-+			return 0;
-+	}
-+
- 	/* Handle obsolete-style parameters */
- 	if (obsolete_checksetup(param))
- 		return 0;
+--- a/scripts/checkpatch.pl~checkpatch-allow-http-links-of-any-length-in-commit-logs
++++ a/scripts/checkpatch.pl
+@@ -3294,7 +3294,7 @@ sub process {
+ 					# file delta changes
+ 		      $line =~ /^\s*(?:[\w\.\-\+]*\/)++[\w\.\-\+]+:/ ||
+ 					# filename then :
+-		      $line =~ /^\s*(?:Fixes:|$link_tags_search|$signature_tags)/i ||
++		      $line =~ /^\s*(?:Fixes:|https?:|$link_tags_search|$signature_tags)/i ||
+ 					# A Fixes:, link or signature tag line
+ 		      $commit_log_possible_stack_dump)) {
+ 			WARN("COMMIT_LOG_LONG_LINE",
 _
 
-Patches currently in -mm which might be from chenhuacai@loongson.cn are
+Patches currently in -mm which might be from joe@perches.com are
 
 
