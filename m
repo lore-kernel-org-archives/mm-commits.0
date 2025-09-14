@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6881028E5
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:34:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D14B39FD9
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:34:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810093; cv=none; b=fI4vl+KEvgcbhryYtsrKd73e/BpFTjWzxvKulHWl9Gr83VnC8DzBshD1ae44AAzmePCksXJcHnHvI07q2Tmyw+FkWcTq6WOQvUQ75QkiE7qfbn1wskH+MCD4V8h6HxslbfUN5Ezfc5R2krq7cl13G40+t2O4ltNQ9VsB/OUTcS8=
+	t=1757810094; cv=none; b=A5kJ/Nq//B+YFpsCXQnYtG9A0srtyM92jvlymXaEW0WC7QEX63HNIvZg4FJhqsfSzCxk02nWJAQwab5cJM0z0wG3fVMFEt6lc4W7sis0aO4UvQRcsJ3565C+wGzR0cQG/jja0C1z2rgBh4PtaaayTkyCN9jk0fMSaaq4Yr9QzvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810093; c=relaxed/simple;
-	bh=/QQHo2fUllguQcWexlvXR+6Uhw68RgNnD0It6X4UA0Y=;
-	h=Date:To:From:Subject:Message-Id; b=GmXPLhVN6vYAEkKEONgCm0Gm1n+rELqPk+mIWQ6bh6PpqJOR81dgpX/FgDcJpI3LZ9ecz/cF67mE+AtDkpj6UUJ92DCfQs/rfzitiU1HIb5rBNah7eJevXzLDmX5c4c7wRuekYeHvd0KCHyCAwUXbinhZqmmk81jmF9FZDbySfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dLvo+r+f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810094; c=relaxed/simple;
+	bh=l1mBrRkEeM1CXmp5KHbbjqS3cLx4g0KmVfz+GCCZcOg=;
+	h=Date:To:From:Subject:Message-Id; b=rblFgWiLqTfZkbKsLkXgDU7oLhjvFKUhFxN3rGwNRt0NPiDz/IA1RPa36rVukdqpiJcjt9xXkLqATCo4aEOQTq+Me7gWFeCErpOBvwB/a2aq0HwdGlqruFCQzSlgXg7JXd6eSuOJQVlyCSpk1jOsjOdHGyq/XdbabfWK1abro/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GoCjxGv0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dLvo+r+f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9573C4CEEB;
-	Sun, 14 Sep 2025 00:34:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GoCjxGv0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 161F3C4CEF7;
+	Sun, 14 Sep 2025 00:34:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810092;
-	bh=/QQHo2fUllguQcWexlvXR+6Uhw68RgNnD0It6X4UA0Y=;
+	s=korg; t=1757810094;
+	bh=l1mBrRkEeM1CXmp5KHbbjqS3cLx4g0KmVfz+GCCZcOg=;
 	h=Date:To:From:Subject:From;
-	b=dLvo+r+fcHatjwlDBJiEW5SXEX3cgOWtiJFO/Pj6VGTDCjMIbUWipKNZoCkKmoBg+
-	 mZi5PjnTdZbgqaF1aNu3PiynsoLBdDU/eeAM8kR8wkh32Q3yFl+WvGDDSq7evNX60b
-	 Jit2yiGGm0bMtTkDDLGSsnys8rmen9T8kuIZjepw=
-Date: Sat, 13 Sep 2025 17:34:52 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,lance.yang@linux.dev,mhiramat@kernel.org,akpm@linux-foundation.org
+	b=GoCjxGv0Q9/pmkGxG+DvmOW/VqTIqtgSH7adb7odKdfUZHKADjZ+ixjL3C2vSaYYO
+	 essONOWVY3CSzK5LNTkMl7T9NH1uMlT2bIlNIFewqcqOjpg98HVu1lJQj3di4+WFgk
+	 3LKB9w1xCbNewm9W/fZDpiEsAB0AtbxN8//x5RK8=
+Date: Sat, 13 Sep 2025 17:34:53 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,saravanak@google.com,robh@kernel.org,mingo@redhat.com,hpa@zytor.com,graf@amazon.com,dyoung@redhat.com,bp@alien8.de,bhe@redhat.com,makb@juniper.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] hung_task-dump-blocker-task-if-it-is-not-hung.patch removed from -mm tree
-Message-Id: <20250914003452.C9573C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch removed from -mm tree
+Message-Id: <20250914003454.161F3C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,163 +35,200 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hung_task: dump blocker task if it is not hung
+     Subject: x86/kexec: carry forward the boot DTB on kexec
 has been removed from the -mm tree.  Its filename was
-     hung_task-dump-blocker-task-if-it-is-not-hung.patch
+     x86-kexec-carry-forward-the-boot-dtb-on-kexec.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Subject: hung_task: dump blocker task if it is not hung
-Date: Thu, 31 Jul 2025 07:11:54 +0900
+From: Brian Mak <makb@juniper.net>
+Subject: x86/kexec: carry forward the boot DTB on kexec
+Date: Tue, 5 Aug 2025 14:15:27 -0700
 
-Dump the lock blocker task if it is not hung because if the blocker task
-is also hung, it should be dumped by the detector.  This will de-duplicate
-the same stackdumps if the blocker task is also blocked by another task
-(and hung).
+Currently, the kexec_file_load syscall on x86 does not support passing a
+device tree blob to the new kernel.  Some embedded x86 systems use device
+trees.  On these systems, failing to pass a device tree to the new kernel
+causes a boot failure.
 
-Link: https://lkml.kernel.org/r/175391351423.688839.11917911323784986774.stgit@devnote2
-Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Suggested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Acked-by: Lance Yang <lance.yang@linux.dev>
+To add support for this, we copy the behavior of ARM64 and PowerPC and
+copy the current boot's device tree blob for use in the new kernel.  We do
+this on x86 by passing the device tree blob as a setup_data entry in
+accordance with the x86 boot protocol.
+
+This behavior is gated behind the KEXEC_FILE_FORCE_DTB flag.
+
+Link: https://lkml.kernel.org/r/20250805211527.122367-3-makb@juniper.net
+Signed-off-by: Brian Mak <makb@juniper.net>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Saravana Kannan <saravanak@google.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |   78 ++++++++++++++++++++++---------------------
- 1 file changed, 41 insertions(+), 37 deletions(-)
+ arch/x86/kernel/kexec-bzimage64.c |   47 ++++++++++++++++++++++++++--
+ include/linux/kexec.h             |    5 ++
+ include/uapi/linux/kexec.h        |    4 ++
+ kernel/kexec_file.c               |    1 
+ 4 files changed, 53 insertions(+), 4 deletions(-)
 
---- a/kernel/hung_task.c~hung_task-dump-blocker-task-if-it-is-not-hung
-+++ a/kernel/hung_task.c
-@@ -95,9 +95,41 @@ static struct notifier_block panic_block
- 	.notifier_call = hung_task_panic,
- };
+--- a/arch/x86/kernel/kexec-bzimage64.c~x86-kexec-carry-forward-the-boot-dtb-on-kexec
++++ a/arch/x86/kernel/kexec-bzimage64.c
+@@ -16,6 +16,8 @@
+ #include <linux/kexec.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
++#include <linux/libfdt.h>
++#include <linux/of_fdt.h>
+ #include <linux/efi.h>
+ #include <linux/random.h>
  
-+static bool task_is_hung(struct task_struct *t, unsigned long timeout)
+@@ -212,6 +214,28 @@ setup_efi_state(struct boot_params *para
+ }
+ #endif /* CONFIG_EFI */
+ 
++#ifdef CONFIG_OF_FLATTREE
++static void setup_dtb(struct boot_params *params,
++		      unsigned long params_load_addr,
++		      unsigned int dtb_setup_data_offset)
 +{
-+	unsigned long switch_count = t->nvcsw + t->nivcsw;
-+	unsigned int state = READ_ONCE(t->__state);
++	struct setup_data *sd = (void *)params + dtb_setup_data_offset;
++	unsigned long setup_data_phys, dtb_len;
 +
-+	/*
-+	 * skip the TASK_KILLABLE tasks -- these can be killed
-+	 * skip the TASK_IDLE tasks -- those are genuinely idle
-+	 * skip the TASK_FROZEN task -- it reasonably stops scheduling by freezer
-+	 */
-+	if (!(state & TASK_UNINTERRUPTIBLE) ||
-+	    (state & (TASK_WAKEKILL | TASK_NOLOAD | TASK_FROZEN)))
-+		return false;
++	dtb_len = fdt_totalsize(initial_boot_params);
++	sd->type = SETUP_DTB;
++	sd->len = dtb_len;
 +
-+	/*
-+	 * When a freshly created task is scheduled once, changes its state to
-+	 * TASK_UNINTERRUPTIBLE without having ever been switched out once, it
-+	 * musn't be checked.
-+	 */
-+	if (unlikely(!switch_count))
-+		return false;
++	/* Carry over current boot DTB with setup_data */
++	memcpy(sd->data, initial_boot_params, dtb_len);
 +
-+	if (switch_count != t->last_switch_count) {
-+		t->last_switch_count = switch_count;
-+		t->last_switch_time = jiffies;
-+		return false;
-+	}
-+	if (time_is_after_jiffies(t->last_switch_time + timeout * HZ))
-+		return false;
-+
-+	return true;
++	/* Add setup data */
++	setup_data_phys = params_load_addr + dtb_setup_data_offset;
++	sd->next = params->hdr.setup_data;
++	params->hdr.setup_data = setup_data_phys;
 +}
- 
- #ifdef CONFIG_DETECT_HUNG_TASK_BLOCKER
--static void debug_show_blocker(struct task_struct *task)
-+static void debug_show_blocker(struct task_struct *task, unsigned long timeout)
- {
- 	struct task_struct *g, *t;
- 	unsigned long owner, blocker, blocker_type;
-@@ -174,41 +206,21 @@ static void debug_show_blocker(struct ta
- 			       t->pid, rwsem_blocked_by);
- 			break;
- 		}
--		sched_show_task(t);
-+		/* Avoid duplicated task dump, skip if the task is also hung. */
-+		if (!task_is_hung(t, timeout))
-+			sched_show_task(t);
- 		return;
- 	}
- }
- #else
--static inline void debug_show_blocker(struct task_struct *task)
-+static inline void debug_show_blocker(struct task_struct *task, unsigned long timeout)
- {
- }
++#endif /* CONFIG_OF_FLATTREE */
++
+ static void
+ setup_ima_state(const struct kimage *image, struct boot_params *params,
+ 		unsigned long params_load_addr,
+@@ -336,6 +360,17 @@ setup_boot_parameters(struct kimage *ima
+ 			sizeof(struct efi_setup_data);
  #endif
  
- static void check_hung_task(struct task_struct *t, unsigned long timeout)
- {
--	unsigned long switch_count = t->nvcsw + t->nivcsw;
--
--	/*
--	 * Ensure the task is not frozen.
--	 * Also, skip vfork and any other user process that freezer should skip.
--	 */
--	if (unlikely(READ_ONCE(t->__state) & TASK_FROZEN))
--		return;
--
--	/*
--	 * When a freshly created task is scheduled once, changes its state to
--	 * TASK_UNINTERRUPTIBLE without having ever been switched out once, it
--	 * musn't be checked.
--	 */
--	if (unlikely(!switch_count))
--		return;
--
--	if (switch_count != t->last_switch_count) {
--		t->last_switch_count = switch_count;
--		t->last_switch_time = jiffies;
--		return;
--	}
--	if (time_is_after_jiffies(t->last_switch_time + timeout * HZ))
-+	if (!task_is_hung(t, timeout))
- 		return;
- 
- 	/*
-@@ -243,7 +255,7 @@ static void check_hung_task(struct task_
- 		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
- 			" disables this message.\n");
- 		sched_show_task(t);
--		debug_show_blocker(t);
-+		debug_show_blocker(t, timeout);
- 		hung_task_show_lock = true;
- 
- 		if (sysctl_hung_task_all_cpu_backtrace)
-@@ -299,7 +311,6 @@ static void check_hung_uninterruptible_t
- 	hung_task_show_lock = false;
- 	rcu_read_lock();
- 	for_each_process_thread(g, t) {
--		unsigned int state;
- 
- 		if (!max_count--)
- 			goto unlock;
-@@ -308,15 +319,8 @@ static void check_hung_uninterruptible_t
- 				goto unlock;
- 			last_break = jiffies;
- 		}
--		/*
--		 * skip the TASK_KILLABLE tasks -- these can be killed
--		 * skip the TASK_IDLE tasks -- those are genuinely idle
--		 */
--		state = READ_ONCE(t->__state);
--		if ((state & TASK_UNINTERRUPTIBLE) &&
--		    !(state & TASK_WAKEKILL) &&
--		    !(state & TASK_NOLOAD))
--			check_hung_task(t, timeout);
++#ifdef CONFIG_OF_FLATTREE
++	if (image->force_dtb && initial_boot_params) {
++		setup_dtb(params, params_load_addr, setup_data_offset);
++		setup_data_offset += sizeof(struct setup_data) +
++				     fdt_totalsize(initial_boot_params);
++	} else {
++		pr_debug("Not carrying over DTB, force_dtb = %d\n",
++			 image->force_dtb);
++	}
++#endif
 +
-+		check_hung_task(t, timeout);
+ 	if (IS_ENABLED(CONFIG_IMA_KEXEC)) {
+ 		/* Setup IMA log buffer state */
+ 		setup_ima_state(image, params, params_load_addr,
+@@ -529,6 +564,12 @@ static void *bzImage64_load(struct kimag
+ 				sizeof(struct setup_data) +
+ 				RNG_SEED_LENGTH;
+ 
++#ifdef CONFIG_OF_FLATTREE
++	if (image->force_dtb && initial_boot_params)
++		kbuf.bufsz += sizeof(struct setup_data) +
++			      fdt_totalsize(initial_boot_params);
++#endif
++
+ 	if (IS_ENABLED(CONFIG_IMA_KEXEC))
+ 		kbuf.bufsz += sizeof(struct setup_data) +
+ 			      sizeof(struct ima_setup_data);
+@@ -537,7 +578,7 @@ static void *bzImage64_load(struct kimag
+ 		kbuf.bufsz += sizeof(struct setup_data) +
+ 			      sizeof(struct kho_data);
+ 
+-	params = kzalloc(kbuf.bufsz, GFP_KERNEL);
++	params = kvzalloc(kbuf.bufsz, GFP_KERNEL);
+ 	if (!params)
+ 		return ERR_PTR(-ENOMEM);
+ 	efi_map_offset = params_cmdline_sz;
+@@ -647,7 +688,7 @@ static void *bzImage64_load(struct kimag
+ 	return ldata;
+ 
+ out_free_params:
+-	kfree(params);
++	kvfree(params);
+ 	return ERR_PTR(ret);
+ }
+ 
+@@ -659,7 +700,7 @@ static int bzImage64_cleanup(void *loade
+ 	if (!ldata)
+ 		return 0;
+ 
+-	kfree(ldata->bootparams_buf);
++	kvfree(ldata->bootparams_buf);
+ 	ldata->bootparams_buf = NULL;
+ 
+ 	return 0;
+--- a/include/linux/kexec.h~x86-kexec-carry-forward-the-boot-dtb-on-kexec
++++ a/include/linux/kexec.h
+@@ -395,6 +395,9 @@ struct kimage {
+ 
+ 	/* Information for loading purgatory */
+ 	struct purgatory_info purgatory_info;
++
++	/* Force carrying over the DTB from the current boot */
++	bool force_dtb;
+ #endif
+ 
+ #ifdef CONFIG_CRASH_HOTPLUG
+@@ -461,7 +464,7 @@ bool kexec_load_permitted(int kexec_imag
+ /* List of defined/legal kexec file flags */
+ #define KEXEC_FILE_FLAGS	(KEXEC_FILE_UNLOAD | KEXEC_FILE_ON_CRASH | \
+ 				 KEXEC_FILE_NO_INITRAMFS | KEXEC_FILE_DEBUG | \
+-				 KEXEC_FILE_NO_CMA)
++				 KEXEC_FILE_NO_CMA | KEXEC_FILE_FORCE_DTB)
+ 
+ /* flag to track if kexec reboot is in progress */
+ extern bool kexec_in_progress;
+--- a/include/uapi/linux/kexec.h~x86-kexec-carry-forward-the-boot-dtb-on-kexec
++++ a/include/uapi/linux/kexec.h
+@@ -22,12 +22,16 @@
+  * KEXEC_FILE_ON_CRASH : Load/unload operation belongs to kdump image.
+  * KEXEC_FILE_NO_INITRAMFS : No initramfs is being loaded. Ignore the initrd
+  *                           fd field.
++ * KEXEC_FILE_FORCE_DTB : Force carrying over the current boot's DTB to the new
++ *                        kernel on x86. This is already the default behavior on
++ *                        some other architectures, like ARM64 and PowerPC.
+  */
+ #define KEXEC_FILE_UNLOAD	0x00000001
+ #define KEXEC_FILE_ON_CRASH	0x00000002
+ #define KEXEC_FILE_NO_INITRAMFS	0x00000004
+ #define KEXEC_FILE_DEBUG	0x00000008
+ #define KEXEC_FILE_NO_CMA	0x00000010
++#define KEXEC_FILE_FORCE_DTB	0x00000020
+ 
+ /* These values match the ELF architecture values.
+  * Unless there is a good reason that should continue to be the case.
+--- a/kernel/kexec_file.c~x86-kexec-carry-forward-the-boot-dtb-on-kexec
++++ a/kernel/kexec_file.c
+@@ -255,6 +255,7 @@ kimage_file_prepare_segments(struct kima
  	}
-  unlock:
- 	rcu_read_unlock();
+ 
+ 	image->no_cma = !!(flags & KEXEC_FILE_NO_CMA);
++	image->force_dtb = flags & KEXEC_FILE_FORCE_DTB;
+ 
+ 	if (cmdline_len) {
+ 		image->cmdline_buf = memdup_user(cmdline_ptr, cmdline_len);
 _
 
-Patches currently in -mm which might be from mhiramat@kernel.org are
+Patches currently in -mm which might be from makb@juniper.net are
 
 
