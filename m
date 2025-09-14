@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E384145329
-	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F62F184540
+	for <mm-commits@vger.kernel.org>; Sun, 14 Sep 2025 00:35:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757810150; cv=none; b=NJEpPf1zrXPASmaPzDm6CfHAe+lWwCpsEo8j3sqW/LtcF/dWsL1mRoh3rAXy1TVOvKoTfhX4lnx5xIXNP4dcYs2tr0jCHz23V/DdMdadgxqWwBobT6JGTHIfmKFwlJXpajSbZPgMQUxFCvBKvQfAFXS/utdR+SHYo7bKR+9JMKI=
+	t=1757810151; cv=none; b=td4yepUqBkYBALC3LAhLr/Nm5svTWSzHKKkhRQYeEsou9gDQWOxk+5wrYbXiqGYCBBml5dr1fz0BdASQg+PTKXZ3GoPxA0ME3P0gfq9JJwiEROWZ3KxHtooWx9J0iHESO0yU5yRZMFFPai61+vhRwHVPSN89yyRI4E9Xq8DeE3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757810150; c=relaxed/simple;
-	bh=gHhGtQ7/dZdeFHTmImUls8EczrOL2NUq0S4n3ZSvHQE=;
-	h=Date:To:From:Subject:Message-Id; b=IDKmbRSA81MlNhpfiDSoQnIfSMdLnYHg8BzjG3itT4KcuRO2DETwCoLUaPBQS8l/EMDuXETVGrV8mnyWaRfwrwzC/zxWc4zzEzcAsp+a/xAkLfKEIP04yee2IiiX2XiBIvV+2FJ4sCLxYvy48n/fK4fslKnlMhycgU1hw+6e1Mo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aGBpfsfL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757810151; c=relaxed/simple;
+	bh=n94E8vkQPK9cQctLkiB5aA28r1X4hyy+Ox+HL+CfFng=;
+	h=Date:To:From:Subject:Message-Id; b=D+ZCovBt/DcwyBiHL7xCuwnDIZ81JXaB51wv97muABuw6shfj6C0sPtofyCrTxqqQGZBT+n9jQ+hocbl1lCijBIl5rcjtTZMWUEI6JC/t3LBIlpoGkOM6aje8rsxOk4A0uskHEuCmoKOaK4ssrcWtsH2WlfHMtlZFKqE1tRVomw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NPP+ixt1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aGBpfsfL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C345C4CEEB;
-	Sun, 14 Sep 2025 00:35:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NPP+ixt1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DD50C4CEEB;
+	Sun, 14 Sep 2025 00:35:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757810150;
-	bh=gHhGtQ7/dZdeFHTmImUls8EczrOL2NUq0S4n3ZSvHQE=;
+	s=korg; t=1757810151;
+	bh=n94E8vkQPK9cQctLkiB5aA28r1X4hyy+Ox+HL+CfFng=;
 	h=Date:To:From:Subject:From;
-	b=aGBpfsfLkNx5+E/BwIq7IGESaAtM3N+tgaWMLeDRtYLaZEMQ44Cr+7jQ4Yrpox9pq
-	 AzhavWaBlsfnI0smS0VNwGdotiD7dpjx4MEj8zQuEtmnUkbF3ugs2Hwpnv4ZrGDtex
-	 t2J8YoeX86hPKPAzm6SxR3E77TUf6sF0ISK8tSu4=
-Date: Sat, 13 Sep 2025 17:35:49 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,reddybalavignesh9979@gmail.com,akpm@linux-foundation.org
+	b=NPP+ixt1EqA0MVI51qbUQ8aEQqs91xwFyVK3ri2Du07PNgZoK/d0TEiMWZRaHrxJv
+	 swKld5Y8aiBkHy6kX0jcVOwTxGfecwu5zhDURiZjjPi7o6a8+99Rx4Li/MNGmPKjUI
+	 0VWICt1UFK5TlvvP0+jbKFvIWMlLZYdRUDnuJk5A=
+Date: Sat, 13 Sep 2025 17:35:50 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-proc-mark-vsyscall-strings-maybe-unused.patch removed from -mm tree
-Message-Id: <20250914003550.0C345C4CEEB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-add-suballoc-slot-check-in-ocfs2_validate_inode_block.patch removed from -mm tree
+Message-Id: <20250914003551.3DD50C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: proc: mark vsyscall strings maybe-unused
+     Subject: ocfs2: add suballoc slot check in ocfs2_validate_inode_block()
 has been removed from the -mm tree.  Its filename was
-     selftests-proc-mark-vsyscall-strings-maybe-unused.patch
+     ocfs2-add-suballoc-slot-check-in-ocfs2_validate_inode_block.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
-Subject: selftests: proc: mark vsyscall strings maybe-unused
-Date: Wed, 20 Aug 2025 23:26:10 +0530
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: add suballoc slot check in ocfs2_validate_inode_block()
+Date: Tue, 26 Aug 2025 12:51:06 +0300
 
-The str_vsyscall_* constants in proc-pid-vm.c triggers
--Wunused-const-variable warnings with gcc-13.32 and clang 18.1.
+In 'ocfs2_validate_inode_block()', add suballoc slot check similar to one
+in 'ocfs2_get_suballoc_slot_bit()', thus preventing an out-of-bounds
+accesses for 'local_system_inodes' in 'get_local_system_inode()'.
 
-Define and apply __maybe_unused locally to suppress the warnings.  No
-functional change
+Most likely this fixes
+https://syzkaller.appspot.com/bug?extid=a77d690840e60bc2ddd8 as well.
 
-Fixes compiler warning:
-warning: `str_vsyscall_*' defined but not used[-Wunused-const-variable]
-
-Link: https://lkml.kernel.org/r/20250820175610.83014-1-reddybalavignesh9979@gmail.com
-Signed-off-by: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20250826095106.666980-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reported-by: syzbot+900962ac9bf1860033f2@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=900962ac9bf1860033f2
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-pid-vm.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/ocfs2/inode.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/tools/testing/selftests/proc/proc-pid-vm.c~selftests-proc-mark-vsyscall-strings-maybe-unused
-+++ a/tools/testing/selftests/proc/proc-pid-vm.c
-@@ -47,6 +47,10 @@
- #include <sys/resource.h>
- #include <linux/fs.h>
+--- a/fs/ocfs2/inode.c~ocfs2-add-suballoc-slot-check-in-ocfs2_validate_inode_block
++++ a/fs/ocfs2/inode.c
+@@ -1495,6 +1495,14 @@ int ocfs2_validate_inode_block(struct su
+ 		goto bail;
+ 	}
  
-+#ifndef __maybe_unused
-+#define __maybe_unused __attribute__((__unused__))
-+#endif
++	if (le16_to_cpu(di->i_suballoc_slot) != (u16)OCFS2_INVALID_SLOT &&
++	    (u32)le16_to_cpu(di->i_suballoc_slot) > OCFS2_SB(sb)->max_slots - 1) {
++		rc = ocfs2_error(sb, "Invalid dinode %llu: suballoc slot %u\n",
++				 (unsigned long long)bh->b_blocknr,
++				 le16_to_cpu(di->i_suballoc_slot));
++		goto bail;
++	}
 +
- #include "../kselftest.h"
+ 	rc = 0;
  
- static inline long sys_execveat(int dirfd, const char *pathname, char **argv, char **envp, int flags)
-@@ -218,12 +222,12 @@ static int make_exe(const uint8_t *paylo
-  * 2: vsyscall VMA is r-xp		vsyscall=emulate
-  */
- static volatile int g_vsyscall;
--static const char *str_vsyscall;
-+static const char *str_vsyscall __maybe_unused;
- 
--static const char str_vsyscall_0[] = "";
--static const char str_vsyscall_1[] =
-+static const char str_vsyscall_0[] __maybe_unused = "";
-+static const char str_vsyscall_1[] __maybe_unused =
- "ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]\n";
--static const char str_vsyscall_2[] =
-+static const char str_vsyscall_2[] __maybe_unused =
- "ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n";
- 
- #ifdef __x86_64__
+ bail:
 _
 
-Patches currently in -mm which might be from reddybalavignesh9979@gmail.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
 
