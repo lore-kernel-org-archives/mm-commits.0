@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6D1D221282;
-	Mon, 15 Sep 2025 22:36:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC3729617D
+	for <mm-commits@vger.kernel.org>; Mon, 15 Sep 2025 22:43:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757975816; cv=none; b=aY9k5E+ivNwlUbjzQdMo0Y0kPVVaJzIXblQ/+lU+F6EX1EE371UlOET58HxP23NzA8oWfgpz2JZk5oQ8iuBw5ypXsoa/WCtbFtqG70GxoNZpFGeCbTeRTTAbYbPFK1UQ58AI+MZB+TczrykdZrHNLHShcUmfQ7PwlQZp6/fVpaE=
+	t=1757976210; cv=none; b=BdfDvilxTsRz70mF9p9MXd3M7DqdfI6s8A2Oaq5Vd50JA8/t0j/893VhCmtvqIzX8I21qJt5NqW0fBD9AeCd8qWyM9bWCnw1GoW3YjZfKJiLz7MTYEEIh6EVEoTTaqs+eOcyoGM04HZDLXFmy/LYIN5FV8za7XQlgtg8ZbnyOXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757975816; c=relaxed/simple;
-	bh=4RJpiPEJbovQcoZusoOGY/1DOn/aCSJvOdfaA8YpnK4=;
-	h=Date:To:From:Subject:Message-Id; b=Z67/krjPS3mFkz34W+ZuUclojtO48oSoUCXX2PrgVOk5n2/QYCy5lauu8oqTaEToIyZuro0lOhjKP6eBIYzGpqqZYGHuFkgumAb/moAtg9iQIk5Drz/kOElOLHlBJZgTjja097AjjLeyea9olsCflRSQIbaf/saOKaziY9LnkZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=noY4hCMU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757976210; c=relaxed/simple;
+	bh=34eBJSqgCU5DXUgp94mVofzr3LoNAXsipWPmUDl3LAg=;
+	h=Date:To:From:Subject:Message-Id; b=UXp2r/wj/o9+eoCO6naZQ0zUTViyJatg95Sb7J/MFRcRbIk+bBYM0QJCj0/c4uJM2Nqh74hw5tEzaMwmwJ/BGHZspziqc1TUiCS0vm4sHaD85VXUV0nt3uB8JUvY/bDG0k11g5PXLuVkFX9vylaqVxk62x9Glnw/YvcFOjqKpCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pPlqjmOz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="noY4hCMU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 588C9C4CEF1;
-	Mon, 15 Sep 2025 22:36:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pPlqjmOz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3597C4CEF1;
+	Mon, 15 Sep 2025 22:43:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757975816;
-	bh=4RJpiPEJbovQcoZusoOGY/1DOn/aCSJvOdfaA8YpnK4=;
+	s=korg; t=1757976208;
+	bh=34eBJSqgCU5DXUgp94mVofzr3LoNAXsipWPmUDl3LAg=;
 	h=Date:To:From:Subject:From;
-	b=noY4hCMUcG1ejLTBcaUS8E7t+nhMHtkVv00hpsLqdIo1yXOKP9cf4DQo6po81fy2l
-	 RIQuYe6lxQALxRkapuUrB2xcn3RoE8DSr8gFp4L+ubVhhndN79xndJyYXwU9788Wfw
-	 rhlkNXlNCQj4IXHU4NuojiNuXL9G4NQFGiyuTyGk=
-Date: Mon, 15 Sep 2025 15:36:55 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,pfalcato@suse.de,minchan@kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@redhat.com,kaleshsingh@google.com,akpm@linux-foundation.org
+	b=pPlqjmOzxNdQ5C5X3I18Kj6uMskNUonNkbYK+8dZ0nMhpaAE2V2EfcoOzWP7TSdTm
+	 7t90CWZBhszdG8vnGeuKd3U6DnZb59kmC3+mMG1L/y3QqNTpseLPtUl+d8raZuzKFq
+	 rP2DGpKZxelHz4M1D6Fyso58c5567ylzA49u/6gM=
+Date: Mon, 15 Sep 2025 15:43:28 -0700
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,surenb@google.com,shakeel.butt@linux.dev,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lenb@kernel.org,zhongjinji@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-off-by-one-error-in-vma-count-limit-checks.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250915223656.588C9C4CEF1@smtp.kernel.org>
+Subject: + mm-oom_kill-thaw-the-entire-oom-victim-process.patch added to mm-new branch
+Message-Id: <20250915224328.C3597C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix off-by-one error in VMA count limit checks
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-off-by-one-error-in-vma-count-limit-checks.patch
+     Subject: mm/oom_kill: thaw the entire OOM victim process
+has been added to the -mm mm-new branch.  Its filename is
+     mm-oom_kill-thaw-the-entire-oom-victim-process.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-off-by-one-error-in-vma-count-limit-checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-thaw-the-entire-oom-victim-process.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,67 +64,155 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kalesh Singh <kaleshsingh@google.com>
-Subject: mm: fix off-by-one error in VMA count limit checks
-Date: Mon, 15 Sep 2025 09:36:32 -0700
+From: zhongjinji <zhongjinji@honor.com>
+Subject: mm/oom_kill: thaw the entire OOM victim process
+Date: Tue, 16 Sep 2025 00:29:45 +0800
 
-The VMA count limit check in do_mmap() and do_brk_flags() uses a strict
-inequality (>), which allows a process's VMA count to exceed the
-configured sysctl_max_map_count limit by one.
+Patch series "Improvements to Victim Process Thawing and OOM Reaper
+Traversal Order", v10.
 
-A process with mm->map_count == sysctl_max_map_count will incorrectly pass
-this check and then exceed the limit upon allocation of a new VMA when its
-map_count is incremented.
+This patch series focuses on optimizing victim process thawing and
+refining the traversal order of the OOM reaper.  Since __thaw_task() is
+used to thaw a single thread of the victim, thawing only one thread cannot
+guarantee the exit of the OOM victim when it is frozen.  Patch 1 thaw the
+entire process of the OOM victim to ensure that OOM victims are able to
+terminate themselves.  Even if the oom_reaper is delayed, patch 2 is still
+beneficial for reaping processes with a large address space footprint, and
+it also greatly improves process_mrelease.
 
-Other VMA allocation paths, such as split_vma(), already use the correct,
-inclusive (>=) comparison.
 
-Fix this bug by changing the comparison to be inclusive in do_mmap() and
-do_brk_flags(), bringing them in line with the correct behavior of other
-allocation paths.
+This patch (of 10):
 
-Link: https://lkml.kernel.org/r/20250915163838.631445-2-kaleshsingh@google.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+OOM killer is a mechanism that selects and kills processes when the system
+runs out of memory to reclaim resources and keep the system stable.  But
+the oom victim cannot terminate on its own when it is frozen, even if the
+OOM victim task is thawed through __thaw_task().  This is because
+__thaw_task() can only thaw a single OOM victim thread, and cannot thaw
+the entire OOM victim process.
+
+In addition, freezing_slow_path() determines whether a task is an OOM
+victim by checking the task's TIF_MEMDIE flag.  When a task is identified
+as an OOM victim, the freezer bypasses both PM freezing and cgroup
+freezing states to thaw it.
+
+Historically, TIF_MEMDIE was a "this is the oom victim & it has access to
+memory reserves" flag in the past.  It has that thread vs.  process
+problems and tsk_is_oom_victim was introduced later to get rid of them and
+other issues as well as the guarantee that we can identify the oom
+victim's mm reliably for other oom_reaper.
+
+Therefore, thaw_process() is introduced to unfreeze all threads within the
+OOM victim process, ensuring that every thread is properly thawed.  The
+freezer now uses tsk_is_oom_victim() to determine OOM victim status,
+allowing all victim threads to be unfrozen as necessary.
+
+With this change, the entire OOM victim process will be thawed when an OOM
+event occurs, ensuring that the victim can terminate on its own.
+
+Link: https://lkml.kernel.org/r/20250915162946.5515-1-zhongjinji@honor.com
+Link: https://lkml.kernel.org/r/20250915162946.5515-2-zhongjinji@honor.com
+Signed-off-by: zhongjinji <zhongjinji@honor.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: <stable@vger.kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- mm/vma.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/freezer.h |    2 ++
+ kernel/freezer.c        |   20 +++++++++++++++++++-
+ mm/oom_kill.c           |   10 +++++-----
+ 3 files changed, 26 insertions(+), 6 deletions(-)
 
---- a/mm/mmap.c~mm-fix-off-by-one-error-in-vma-count-limit-checks
-+++ a/mm/mmap.c
-@@ -374,7 +374,7 @@ unsigned long do_mmap(struct file *file,
- 		return -EOVERFLOW;
+--- a/include/linux/freezer.h~mm-oom_kill-thaw-the-entire-oom-victim-process
++++ a/include/linux/freezer.h
+@@ -47,6 +47,7 @@ extern int freeze_processes(void);
+ extern int freeze_kernel_threads(void);
+ extern void thaw_processes(void);
+ extern void thaw_kernel_threads(void);
++extern void thaw_process(struct task_struct *p);
  
- 	/* Too many mappings? */
--	if (mm->map_count > sysctl_max_map_count)
-+	if (mm->map_count >= sysctl_max_map_count)
- 		return -ENOMEM;
+ static inline bool try_to_freeze(void)
+ {
+@@ -80,6 +81,7 @@ static inline int freeze_processes(void)
+ static inline int freeze_kernel_threads(void) { return -ENOSYS; }
+ static inline void thaw_processes(void) {}
+ static inline void thaw_kernel_threads(void) {}
++static inline void thaw_process(struct task_struct *p) {}
+ 
+ static inline bool try_to_freeze(void) { return false; }
+ 
+--- a/kernel/freezer.c~mm-oom_kill-thaw-the-entire-oom-victim-process
++++ a/kernel/freezer.c
+@@ -10,6 +10,7 @@
+ #include <linux/export.h>
+ #include <linux/syscalls.h>
+ #include <linux/freezer.h>
++#include <linux/oom.h>
+ #include <linux/kthread.h>
+ 
+ /* total number of freezing conditions in effect */
+@@ -40,7 +41,7 @@ bool freezing_slow_path(struct task_stru
+ 	if (p->flags & (PF_NOFREEZE | PF_SUSPEND_TASK))
+ 		return false;
+ 
+-	if (test_tsk_thread_flag(p, TIF_MEMDIE))
++	if (tsk_is_oom_victim(p))
+ 		return false;
+ 
+ 	if (pm_nosig_freezing || cgroup_freezing(p))
+@@ -206,6 +207,23 @@ void __thaw_task(struct task_struct *p)
+ 		wake_up_state(p, TASK_FROZEN);
+ }
+ 
++/*
++ * thaw_process - Thaw a frozen process
++ * @p: the process to be thawed
++ *
++ * Iterate over all threads of @p and call __thaw_task() on each.
++ */
++void thaw_process(struct task_struct *p)
++{
++	struct task_struct *t;
++
++	rcu_read_lock();
++	for_each_thread(p, t) {
++		__thaw_task(t);
++	}
++	rcu_read_unlock();
++}
++
+ /**
+  * set_freezable - make %current freezable
+  *
+--- a/mm/oom_kill.c~mm-oom_kill-thaw-the-entire-oom-victim-process
++++ a/mm/oom_kill.c
+@@ -772,12 +772,12 @@ static void mark_oom_victim(struct task_
+ 		mmgrab(tsk->signal->oom_mm);
  
  	/*
---- a/mm/vma.c~mm-fix-off-by-one-error-in-vma-count-limit-checks
-+++ a/mm/vma.c
-@@ -2772,7 +2772,7 @@ int do_brk_flags(struct vma_iterator *vm
- 	if (!may_expand_vm(mm, vm_flags, len >> PAGE_SHIFT))
- 		return -ENOMEM;
- 
--	if (mm->map_count > sysctl_max_map_count)
-+	if (mm->map_count >= sysctl_max_map_count)
- 		return -ENOMEM;
- 
- 	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
+-	 * Make sure that the task is woken up from uninterruptible sleep
+-	 * if it is frozen because OOM killer wouldn't be able to free
+-	 * any memory and livelock. freezing_slow_path will tell the freezer
+-	 * that TIF_MEMDIE tasks should be ignored.
++	 * Make sure that the process is woken up from uninterruptible sleep
++	 * if it is frozen because OOM killer wouldn't be able to free any
++	 * memory and livelock. The freezer will thaw the tasks that are OOM
++	 * victims regardless of the PM freezing and cgroup freezing states.
+ 	 */
+-	__thaw_task(tsk);
++	thaw_process(tsk);
+ 	atomic_inc(&oom_victims);
+ 	cred = get_task_cred(tsk);
+ 	trace_mark_victim(tsk, cred->uid.val);
 _
 
-Patches currently in -mm which might be from kaleshsingh@google.com are
+Patches currently in -mm which might be from zhongjinji@honor.com are
 
-mm-fix-off-by-one-error-in-vma-count-limit-checks.patch
+mm-oom_kill-thaw-the-entire-oom-victim-process.patch
+mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch
 
