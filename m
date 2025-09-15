@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B25202D837B
-	for <mm-commits@vger.kernel.org>; Mon, 15 Sep 2025 22:43:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E5B12DA758;
+	Mon, 15 Sep 2025 23:45:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757976210; cv=none; b=avbCf74zGcGEFGuUPwD1/IMaQ2fVtf8nnqe9W491t/1UKTkIfn9neqSFoHd9W4FmkDB3JclBgnoLX32rYaly0a8XWa2d51Gm45jHzZNj//94aQMvdAqpGk9YMoa28eYym5KbpgTTzbNZMogNTRW92ZXxLYlAk6Hq52AUdLGh3Hw=
+	t=1757979902; cv=none; b=N2QvbOkA/r3Ipytwl4rGt6qTPfPxJsZuFOekF34ak3JlSGS651Q5gSswXkUW5ah87/rWgZaWpvGSrhffaVkGTNf+zBMMRFAYs+1EVKEbCCorsy39HUU4a9+WZo11Hue3XcVMwgLewFdj9fBBHmxWmzcHpqXbPpGRXWcoSuRtr8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757976210; c=relaxed/simple;
-	bh=VmsKlOxLLEjBGWvSvzWri4JorRWk/Qx4+UcnILkJxQU=;
-	h=Date:To:From:Subject:Message-Id; b=eImVVRafWyXR0lqYvwD83yNi+xYmpD2EA/XRqTZoVIAKFxjfPuG1LDFF2nRwyBsVHdJr6/W+QMcfb1BzVC6ee3dtKImqOYWSm9+jUEAB4Vrv5Zza3TOjn3VvQLrRLDbS5SS6x0EQC4VXYfZ4M5xg0N1lX8dA4WYBnPZ5wouqIzQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rz6rofbp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757979902; c=relaxed/simple;
+	bh=42BBZUD1T9givhUOm4OpYbO6feLbqyMuP7MRy+uzOpU=;
+	h=Date:To:From:Subject:Message-Id; b=oQu/VGYD4tCch0zhMRfydUSb5HdJ+ni2biP3WmNACTgSBtRoZPz6obKNVSls1KrZD1Oa6vjffQ2XlG2aZYpriizF+yxOSBjKShsTu1MuuRrmwE6J21yetfauhIRQpwdsWcKaukGT946sCeZgbtFYOIBFDVVqZBKz7L/CW4W9EdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Odlem8N7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rz6rofbp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CAA6C4CEF5;
-	Mon, 15 Sep 2025 22:43:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Odlem8N7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 122F5C4CEF5;
+	Mon, 15 Sep 2025 23:45:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757976210;
-	bh=VmsKlOxLLEjBGWvSvzWri4JorRWk/Qx4+UcnILkJxQU=;
+	s=korg; t=1757979902;
+	bh=42BBZUD1T9givhUOm4OpYbO6feLbqyMuP7MRy+uzOpU=;
 	h=Date:To:From:Subject:From;
-	b=rz6rofbpexg3GuORGnS+4ou4O4bXFJVlsog/SXCdWfTi+CiNH4bRRO5d2602jTiq6
-	 1RAGhgsBItxXbeQPAiADuRM1HwViW/laPHnEhjrkpJ3rIbPSCnH4wZ38H8pJaNm9Ct
-	 P5XkoqfA7R4CpRlvi8CoFCacqoW+ZLxZCGO8JYuE=
-Date: Mon, 15 Sep 2025 15:43:29 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,surenb@google.com,shakeel.butt@linux.dev,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lenb@kernel.org,zhongjinji@honor.com,akpm@linux-foundation.org
+	b=Odlem8N7dvh6kIh/hR9zt1QlkKQyHnl33zzKSwjmvoRBLBmA5Ce5TGGl/gS0OeGDY
+	 L4PKPKiMTxu1yKsdNHjHd+OnP8FoHc0t70vkSQccDKDldQEDNM9Eun6ixe5noHKlD9
+	 OUxCdiz4nk38cnrrrd8/yn9DevtXx8nIHObOOysc=
+Date: Mon, 15 Sep 2025 16:45:01 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,stable@vger.kernel.org,ritesh.list@gmail.com,richard.weiyang@gmail.com,david@redhat.com,chengming.zhou@linux.dev,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch added to mm-new branch
-Message-Id: <20250915224330.6CAA6C4CEF5@smtp.kernel.org>
+Subject: + mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch added to mm-new branch
+Message-Id: <20250915234502.122F5C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/oom_kill: the OOM reaper traverses the VMA maple tree in reverse order
+     Subject: mm/ksm: fix incorrect KSM counter handling in mm_struct during fork
 has been added to the -mm mm-new branch.  Its filename is
-     mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch
+     mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,124 +64,109 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: zhongjinji <zhongjinji@honor.com>
-Subject: mm/oom_kill: the OOM reaper traverses the VMA maple tree in reverse order
-Date: Tue, 16 Sep 2025 00:29:46 +0800
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: mm/ksm: fix incorrect KSM counter handling in mm_struct during fork
+Date: Mon, 15 Sep 2025 20:33:04 +0530
 
-Although the oom_reaper is delayed and it gives the oom victim chance to
-clean up its address space this might take a while especially for
-processes with a large address space footprint.  In those cases oom_reaper
-might start racing with the dying task and compete for shared resources -
-e.g.  page table lock contention has been observed.
+Patch series "mm/ksm: Fix incorrect accounting of KSM counters during
+fork.", v2.
 
-Reduce those races by reaping the oom victim from the other end of the
-address space.
+The first patch in this series fixes the incorrect accounting of KSM
+counters such as ksm_merging_pages, ksm_rmap_items, and the global
+ksm_zero_pages during fork.
 
-It is also a significant improvement for process_mrelease().  When a
-process is killed, process_mrelease is used to reap the killed process and
-often runs concurrently with the dying task.  The test data shows that
-after applying the patch, lock contention is greatly reduced during the
-procedure of reaping the killed process.
+The following two patches add selftests to verify that the
+ksm_merging_pages counter and the global ksm_zero_pages counter are
+updated correctly during fork.
 
-The test is conducted on arm64.  The following basic perf numbers show
-that applying this patch significantly reduces pte spin lock contention.
+Test Results
+============
+Without the first patch
+-----------------------
+# [RUN] test_fork_ksm_merging_page_count
+not ok 10 ksm_merging_page in child: 32
+# [RUN] test_fork_global_ksm_zero_pages_count
+not ok 11 Incorrect global ksm zero page counter after fork
 
-Without the patch:
-|--99.57%-- oom_reaper
-|    |--73.58%-- unmap_page_range
-|    |    |--8.67%-- [hit in function]
-|    |    |--41.59%-- __pte_offset_map_lock
-|    |    |--29.47%-- folio_remove_rmap_ptes
-|    |    |--16.11%-- tlb_flush_mmu
-|    |--19.94%-- tlb_finish_mmu
-|    |--3.21%-- folio_remove_rmap_ptes
+With the first patch
+--------------------
+# [RUN] test_fork_ksm_merging_page_count
+ok 10 ksm_merging_pages is not inherited after fork
+# [RUN] test_fork_global_ksm_zero_pages_count
+ok 11 Global ksm zero page count is correct after fork
 
-With the patch:
-|--99.53%-- oom_reaper
-|    |--55.77%-- unmap_page_range
-|    |    |--20.49%-- [hit in function]
-|    |    |--58.30%-- folio_remove_rmap_ptes
-|    |    |--11.48%-- tlb_flush_mmu
-|    |    |--3.33%-- folio_mark_accessed
-|    |--32.21%-- tlb_finish_mmu
-|    |--6.93%-- folio_remove_rmap_ptes
-|    |--0.69%-- __pte_offset_map_lock
 
-Detailed breakdowns for both scenarios are provided below.  The cumulative
-time for oom_reaper plus exit_mmap(victim) in both cases is also
-summarized, making the performance improvements clear.
+This patch (of 3):
 
-+----------------------------------------------------------------+
-| Category                      | Applying patch | Without patch |
-+-------------------------------+----------------+---------------+
-| Total running time            |    132.6       |    167.1      |
-|   (exit_mmap + reaper work)   |  72.4 + 60.2   |  90.7 + 76.4  |
-+-------------------------------+----------------+---------------+
-| Time waiting for pte spinlock |     1.0        |    33.1       |
-|   (exit_mmap + reaper work)   |   0.4 + 0.6    |  10.0 + 23.1  |
-+-------------------------------+----------------+---------------+
-| folio_remove_rmap_ptes time   |    42.0        |    41.3       |
-|   (exit_mmap + reaper work)   |  18.4 + 23.6   |  22.4 + 18.9  |
-+----------------------------------------------------------------+
+Currently, the KSM-related counters in `mm_struct`, such as
+`ksm_merging_pages`, `ksm_rmap_items`, and `ksm_zero_pages`, are inherited
+by the child process during fork.  This results in inconsistent
+accounting.
 
-From this report, we can see that:
+When a process uses KSM, identical pages are merged and an rmap item is
+created for each merged page.  The `ksm_merging_pages` and
+`ksm_rmap_items` counters are updated accordingly.  However, after a fork,
+these counters are copied to the child while the corresponding rmap items
+are not.  As a result, when the child later triggers an unmerge, there are
+no rmap items present in the child, so the counters remain stale, leading
+to incorrect accounting.
 
-1. The reduction in total time comes mainly from the decrease in time
-   spent on pte spinlock and other locks.
+A similar issue exists with `ksm_zero_pages`, which maintains both a
+global counter and a per-process counter.  During fork, the per-process
+counter is inherited by the child, but the global counter is not
+incremented.  Since the child also references zero pages, the global
+counter should be updated as well.  Otherwise, during zero-page unmerge,
+both the global and per-process counters are decremented, causing the
+global counter to become inconsistent.
 
-2. oom_reaper performs more work in some areas, but at the same time,
-   exit_mmap also handles certain tasks more efficiently, such as
-   folio_remove_rmap_ptes.
+To fix this, ksm_merging_pages and ksm_rmap_items are reset to 0 during
+fork, and the global ksm_zero_pages counter is updated with the
+per-process ksm_zero_pages value inherited by the child.  This ensures
+that KSM statistics remain accurate and reflect the activity of each
+process correctly.
 
-Here is a more detailed perf report. [1]
-
-Link: https://lkml.kernel.org/r/20250915162946.5515-3-zhongjinji@honor.com
-Link: https://lore.kernel.org/all/20250915162619.5133-1-zhongjinji@honor.com/ [1]
-Signed-off-by: zhongjinji <zhongjinji@honor.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/cover.1757946863.git.donettom@linux.ibm.com
+Link: https://lkml.kernel.org/r/4044e7623953d9f4c240d0308cf0b2fe769ee553.1757946863.git.donettom@linux.ibm.com
+Fixes: 7609385337a4 ("ksm: count ksm merging pages for each process")
+Fixes: cb4df4cae4f2 ("ksm: count allocated ksm rmap_items for each process")
+Fixes: e2942062e01d ("ksm: count all zero pages placed by KSM")
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: <stable@vger.kernel.org>	[6.6]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/linux/ksm.h |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order
-+++ a/mm/oom_kill.c
-@@ -516,7 +516,7 @@ static bool __oom_reap_task_mm(struct mm
+--- a/include/linux/ksm.h~mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork
++++ a/include/linux/ksm.h
+@@ -56,8 +56,14 @@ static inline long mm_ksm_zero_pages(str
+ static inline void ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
  {
- 	struct vm_area_struct *vma;
- 	bool ret = true;
--	VMA_ITERATOR(vmi, mm, 0);
-+	MA_STATE(mas, &mm->mm_mt, ULONG_MAX, ULONG_MAX);
+ 	/* Adding mm to ksm is best effort on fork. */
+-	if (mm_flags_test(MMF_VM_MERGEABLE, oldmm))
++	if (mm_flags_test(MMF_VM_MERGEABLE, oldmm)) {
++		long nr_ksm_zero_pages = atomic_long_read(&mm->ksm_zero_pages);
++
++		mm->ksm_merging_pages = 0;
++		mm->ksm_rmap_items = 0;
++		atomic_long_add(nr_ksm_zero_pages, &ksm_zero_pages);
+ 		__ksm_enter(mm);
++	}
+ }
  
- 	/*
- 	 * Tell all users of get_user/copy_from_user etc... that the content
-@@ -526,7 +526,13 @@ static bool __oom_reap_task_mm(struct mm
- 	 */
- 	mm_flags_set(MMF_UNSTABLE, mm);
- 
--	for_each_vma(vmi, vma) {
-+	/*
-+	 * It might start racing with the dying task and compete for shared
-+	 * resources - e.g. page table lock contention has been observed.
-+	 * Reduce those races by reaping the oom victim from the other end
-+	 * of the address space.
-+	 */
-+	mas_for_each_rev(&mas, vma, 0) {
- 		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
- 			continue;
- 
+ static inline int ksm_execve(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from zhongjinji@honor.com are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-oom_kill-thaw-the-entire-oom-victim-process.patch
-mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch
+mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch
+selftests-mm-added-fork-inheritance-test-for-ksm_merging_pages-counter.patch
+selftests-mm-added-fork-test-to-verify-global-ksm_zero_pages-counter-behavior.patch
 
