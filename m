@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 338942DCBF7
-	for <mm-commits@vger.kernel.org>; Mon, 15 Sep 2025 23:45:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B628627A93A
+	for <mm-commits@vger.kernel.org>; Mon, 15 Sep 2025 23:50:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757979908; cv=none; b=szsDWa3y8K0b7PcZB/NomrNYkpVMZfYaxKXT4fFA1+T5rqiIdwr/6RqOZulL1kiFYUCPOh/NQFLfqyIfug08rCcYc4QaEz2Gv/qFbXQ6t2EDJM+9oF2/RLwFBDA0dpxZf3vms9s8nrP+POvbGHOOLHStET7Ieg1FJ9wxHYR8FmA=
+	t=1757980209; cv=none; b=Pk19WJxIZvtGPtGCnW+SyDGLoENAMe02lxbQhPfXsRnY87nii52gmugkisXLhGUB61FFBpI7NqpM1tBArftl3IgmNTMD7QHwAN55JPS04AiFJm9McrqFpVwPehXftLRgMZ7zQCjHSKlbBcDr+TgVnM4p88Dpsuq9lJgNsXQvjYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757979908; c=relaxed/simple;
-	bh=DLUGH563v+SxLDiFbVk3SrB1RDl0STH8+N2qWzuOxtc=;
-	h=Date:To:From:Subject:Message-Id; b=l3WAyfRbkmU+uJ3h30TF74iL0LICNAR9ZeKFnIVGUcvUS0qtbRCZqDWraAYkkZvOuxBTafjo25O50/CNAP+F2vAFYDO94DfFMc8xydGwLoFYxmbeIkatQWphBUd5nX5aSnGcgLQbjQ+AyglRybpiATlXNFWxBv0lW2HGnHIZA+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DLqCylGl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757980209; c=relaxed/simple;
+	bh=Gn0JjxkyPXN5701bmUcGfNOBFEKDzyM+UZvBmy8fTfE=;
+	h=Date:To:From:Subject:Message-Id; b=H0nUwGUKqsnjEfZTqcKl1a/sg4HgOcu+e9jzJO4zqoAqnoXWB3uAitzhLRCeGwEidszJenylilgbGqVmUXu74SjUzHTLMVEw8lhi0veeGtcYjPrm1XjFYWt9jf7EP0eRujzh562RSaBQM3U3AXq2gIGWUuqytA5ualucKhl3fjI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UQZytSkh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DLqCylGl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB2CDC4CEF5;
-	Mon, 15 Sep 2025 23:45:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UQZytSkh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1749FC4CEF1;
+	Mon, 15 Sep 2025 23:50:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757979907;
-	bh=DLUGH563v+SxLDiFbVk3SrB1RDl0STH8+N2qWzuOxtc=;
+	s=korg; t=1757980209;
+	bh=Gn0JjxkyPXN5701bmUcGfNOBFEKDzyM+UZvBmy8fTfE=;
 	h=Date:To:From:Subject:From;
-	b=DLqCylGlG+gDqq7p8/xbDnjUF3QAt28KoIsMn7RkhbgiLiGzHCtgNJJ7yecJuVxr1
-	 L5XHlMiNdB86/sGb3sh1icBFHc2urRj3efVDhKP2QOn/NcOI9aED4I61i5glpbAj3L
-	 HcFj/3PiW+Xswq1FlSjEHze9bH2Hlr+r6aHNYtCs=
-Date: Mon, 15 Sep 2025 16:45:07 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,ritesh.list@gmail.com,richard.weiyang@gmail.com,david@redhat.com,chengming.zhou@linux.dev,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=UQZytSkhMoH9sMlU081epRM4BMXgDv1g+QJk3V5WyA4rZs39RZO2kTwsXkZFNuLC+
+	 bVzFieOVWR3OaNPNSqCNovHYz7cDd+2KMpsu1AwyoRM3C0TO7r1XOSEiwgR7aIEB1X
+	 qaemz7z9ICny9DeCl5okw+RYOtwKSOp9Boepks9E=
+Date: Mon, 15 Sep 2025 16:50:08 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill@shutemov.name,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-added-fork-test-to-verify-global-ksm_zero_pages-counter-behavior.patch added to mm-new branch
-Message-Id: <20250915234507.AB2CDC4CEF5@smtp.kernel.org>
+Subject: + mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch added to mm-new branch
+Message-Id: <20250915235009.1749FC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: added fork test to verify global ksm_zero_pages counter behavior
+     Subject: mm/khugepaged: do not fail collapse_pte_mapped_thp() on SCAN_PMD_NULL
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-added-fork-test-to-verify-global-ksm_zero_pages-counter-behavior.patch
+     mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-added-fork-test-to-verify-global-ksm_zero_pages-counter-behavior.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,132 +64,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: selftests/mm: added fork test to verify global ksm_zero_pages counter behavior
-Date: Mon, 15 Sep 2025 20:33:06 +0530
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: mm/khugepaged: do not fail collapse_pte_mapped_thp() on SCAN_PMD_NULL
+Date: Mon, 15 Sep 2025 14:52:53 +0100
 
-Added a selftest to verify the behavior of the global KSM zero-page
-counter during fork.  When a process forks, the per-process zero-page
-counter is inherited by the child, and the global counter should be
-updated with this inherited value.  This test ensures that the global
-counter is correctly updated after fork.
+MADV_COLLAPSE on a file mapping behaves inconsistently depending on if PMD
+page table is installed or not.
 
-Link: https://lkml.kernel.org/r/5910cb6bfc7c43b169b679a0108667a56d7ebdb8.1757946863.git.donettom@linux.ibm.com
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
+Consider following example:
+
+	p = mmap(NULL, 2UL << 20, PROT_READ | PROT_WRITE,
+		 MAP_SHARED, fd, 0);
+	err = madvise(p, 2UL << 20, MADV_COLLAPSE);
+
+fd is a populated tmpfs file.
+
+The result depends on the address that the kernel returns on mmap().  If
+it is located in an existing PMD table, the madvise() will succeed. 
+However, if the table does not exist, it will fail with -EINVAL.
+
+This occurs because find_pmd_or_thp_or_none() returns SCAN_PMD_NULL when a
+page table is missing, which causes collapse_pte_mapped_thp() to fail.
+
+SCAN_PMD_NULL and SCAN_PMD_NONE should be treated the same in
+collapse_pte_mapped_thp(): install the PMD leaf entry and allocate page
+tables as needed.
+
+Link: https://lkml.kernel.org/r/v5ivpub6z2n2uyemlnxgbilzs52ep4lrary7lm7o6axxoneb75@yfacfl5rkzeh
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |   74 +++++++++++-
- 1 file changed, 73 insertions(+), 1 deletion(-)
+ mm/khugepaged.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-added-fork-test-to-verify-global-ksm_zero_pages-counter-behavior
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -602,6 +602,77 @@ unmap:
- 	munmap(map, size);
- }
- 
-+long ksm_get_global_ksm_zero_pages(void)
-+{
-+	int global_ksm_zero_pages_fd;
-+	char buf[10];
-+	ssize_t ret;
-+
-+	global_ksm_zero_pages_fd = open("/sys/kernel/mm/ksm/ksm_zero_pages",
-+								O_RDONLY);
-+	if (global_ksm_zero_pages_fd < 0)
-+		return -errno;
-+
-+	ret = pread(global_ksm_zero_pages_fd, buf, sizeof(buf) - 1, 0);
-+	close(global_ksm_zero_pages_fd);
-+	if (ret <= 0)
-+		return -errno;
-+	buf[ret] = 0;
-+
-+	return strtol(buf, NULL, 10);
-+}
-+
-+static void test_fork_global_ksm_zero_pages_count(void)
-+{
-+	const unsigned int size = 2 * MiB;
-+	char *map;
-+	pid_t child_pid;
-+	int status;
-+	long g_zpages_before = 0, g_zpages_after = 0;
-+
-+	ksft_print_msg("[RUN] %s\n", __func__);
-+
-+	/* Unmerge all pages before test */
-+	if (ksm_stop() < 0) {
-+		ksft_test_result_fail("KSM unmerging failed\n");
-+		return;
-+	}
-+	/* Get the global zero page count before test */
-+	g_zpages_before = ksm_get_global_ksm_zero_pages();
-+	/* Let KSM deduplicate zero pages. */
-+	map = mmap_and_merge_range(0x00, size, PROT_READ | PROT_WRITE, KSM_MERGE_MADVISE);
-+	if (map == MAP_FAILED)
-+		return;
-+
-+	child_pid = fork();
-+	if (!child_pid) {
-+		exit(ksm_stop());
-+	} else if (child_pid < 0) {
-+		ksft_test_result_fail("fork() failed\n");
-+		return;
-+	}
-+	if (waitpid(child_pid, &status, 0) < 0) {
-+		ksft_test_result_fail("waitpid() failed\n");
-+		return;
-+	}
-+	status = WEXITSTATUS(status);
-+	if (status < 0) {
-+		ksft_test_result_fail("KSM unmerging failed in child\n");
-+		return;
-+	}
-+
-+	/* Verify global zero-page count remains unchanged */
-+	g_zpages_after = ksm_get_global_ksm_zero_pages();
-+	if (g_zpages_before != g_zpages_after) {
-+		ksft_test_result_fail("Incorrect global ksm zero page count after fork\n");
-+		return;
-+	}
-+
-+	ksft_test_result_pass("Global ksm zero page count is correct after fork\n");
-+	ksm_stop();
-+	munmap(map, size);
-+}
-+
- static void test_fork_ksm_merging_page_count(void)
+--- a/mm/khugepaged.c~mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null
++++ a/mm/khugepaged.c
+@@ -1460,15 +1460,32 @@ static void collect_mm_slot(struct khuge
+ static int set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 			pmd_t *pmdp, struct folio *folio, struct page *page)
  {
- 	const unsigned int size = 2 * MiB;
-@@ -659,7 +730,7 @@ static void init_global_file_handles(voi
++	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_fault vmf = {
+ 		.vma = vma,
+ 		.address = addr,
+ 		.flags = 0,
+-		.pmd = pmdp,
+ 	};
++	pgd_t *pgdp;
++	p4d_t *p4dp;
++	pud_t *pudp;
  
- int main(int argc, char **argv)
- {
--	unsigned int tests = 9;
-+	unsigned int tests = 10;
- 	int err;
+ 	mmap_assert_locked(vma->vm_mm);
  
- 	if (argc > 1 && !strcmp(argv[1], FORK_EXEC_CHILD_PRG_NAME)) {
-@@ -692,6 +763,7 @@ int main(int argc, char **argv)
- 	test_prctl_fork_exec();
- 	test_prctl_unmerge();
- 	test_fork_ksm_merging_page_count();
-+	test_fork_global_ksm_zero_pages_count();
++	if (!pmdp) {
++		pgdp = pgd_offset(mm, addr);
++		p4dp = p4d_alloc(mm, pgdp, addr);
++		if (!p4dp)
++			return SCAN_FAIL;
++		pudp = pud_alloc(mm, p4dp, addr);
++		if (!pudp)
++			return SCAN_FAIL;
++		pmdp = pmd_alloc(mm, pudp, addr);
++		if (!pmdp)
++			return SCAN_FAIL;
++	}
++
++	vmf.pmd = pmdp;
+ 	if (do_set_pmd(&vmf, folio, page))
+ 		return SCAN_FAIL;
  
- 	err = ksft_get_fail_cnt();
- 	if (err)
+@@ -1544,6 +1561,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	switch (result) {
+ 	case SCAN_SUCCEED:
+ 		break;
++	case SCAN_PMD_NULL:
+ 	case SCAN_PMD_NONE:
+ 		/*
+ 		 * All pte entries have been removed and pmd cleared.
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from kas@kernel.org are
 
-mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch
-selftests-mm-added-fork-inheritance-test-for-ksm_merging_pages-counter.patch
-selftests-mm-added-fork-test-to-verify-global-ksm_zero_pages-counter-behavior.patch
+mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch
 
