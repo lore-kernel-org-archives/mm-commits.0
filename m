@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 395EF224893
-	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:33:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 114AB78F2E
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:33:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757997220; cv=none; b=CedfJEU5wKW+bhzEpoQP+iSa5RhIhR0wuPOOqOAcJ5MqUU0d1TOYM+QfLr9TkeFRZd3xvmCmy+9WbiiGacWj+of2Lc8LaC8q33Nin+LvYKFMZeg2VEqAhRaABvkVFncYwRq1asD7fmZ9zdMH4gYbc8KHkKV05DqJUqPdqtv4Unc=
+	t=1757997222; cv=none; b=bvm6HKuW5L3ui+z4opkXAzdUlNzlj4ZRbvs2Iry3MuJv2QoTHOlGGlL0f1PYYhRVMRodpf99WknOOo/13ojikDorKoyIs6G9LEFxSb01EdVjcKMqHtJx3iLhwKBVq4/JhtjdHlKEAWK5LazIHtrzYNcYroFGhRq6JjJt1IEYry4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757997220; c=relaxed/simple;
-	bh=2/YMC0n8HoniM3qVKFtKp49ObZoTXrTxjapHuQBbx/c=;
-	h=Date:To:From:Subject:Message-Id; b=bDqYFBP3eRr7dY+9CbYP5zE3j6d/UP9gzBxxX4d0aPdawPdsCSfQl7aPcP4CKpVt0UgFlTYtebHOUelz+3hLdCIdu1buyNvjxTjv/24Wca0calTSQwgqwC8ZHlx/ksSjDVatoZOiVyXF4qg8J+32q6fjCv0cHTqkJeCYXRLVkec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RUJtz3kW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757997222; c=relaxed/simple;
+	bh=2SkVokLTjBS4SbgEg5BkisfySi/XjYGoKViuhEx6sC0=;
+	h=Date:To:From:Subject:Message-Id; b=mK7NrRdR03Won8VIP95jcl6WVVKBy+R28CU8ADHSzKjpk56DOKjSBbSKUw9NuZVA4GqP+mEYWNj5fpmwC/E1odxRLrUkmElkXHHVq64JrPYTvwp/7QOP81ogIKkIel2ubXHJATTfDyp5hHBfpVDoyltpPdx1y7cyvp62ARDPFBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ItDDYUA7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RUJtz3kW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAB9EC4CEEB;
-	Tue, 16 Sep 2025 04:33:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ItDDYUA7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB333C4CEEB;
+	Tue, 16 Sep 2025 04:33:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757997219;
-	bh=2/YMC0n8HoniM3qVKFtKp49ObZoTXrTxjapHuQBbx/c=;
+	s=korg; t=1757997221;
+	bh=2SkVokLTjBS4SbgEg5BkisfySi/XjYGoKViuhEx6sC0=;
 	h=Date:To:From:Subject:From;
-	b=RUJtz3kWoSUH1cWYpC3u9hJ84ee7YrUKwT6By39l4aiN5FAgXbsRWo/koR/QNMTms
-	 tZK6ShP8BzfJd7lbwE+cJy/9Y928HKPnRE1DMq+YTy+JCXA1t1/UnLVs0IchxXFvYj
-	 W4uLE2sVHMIFv8miHYa2ttC8j0Wn7dRdOl5trNTg=
-Date: Mon, 15 Sep 2025 21:33:39 -0700
+	b=ItDDYUA7SvhqSnq7WgPtmpVF2aDJRbpEmEQ8Q1zoiA3zK6vouB9jRFNw38N6yZ4BP
+	 DyAh4FcLHsHRakgtu2n9CsggdSxE84WB4R4W6d5ZZdIMwFDu8oExApKcBoQ7FheCBU
+	 d0uVv4nnPIuh1cBuFcr9bnyikiTN+Thdz/Iw7Qng=
+Date: Mon, 15 Sep 2025 21:33:41 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-stat-use-damon_initialized.patch added to mm-new branch
-Message-Id: <20250916043339.BAB9EC4CEEB@smtp.kernel.org>
+Subject: + mm-damon-reclaim-use-damon_initialized.patch added to mm-new branch
+Message-Id: <20250916043341.CB333C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/stat: use damon_initialized()
+     Subject: mm/damon/reclaim: use damon_initialized()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-stat-use-damon_initialized.patch
+     mm-damon-reclaim-use-damon_initialized.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-use-damon_initialized.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-use-damon_initialized.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,60 +65,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: use damon_initialized()
-Date: Mon, 15 Sep 2025 20:35:06 -0700
+Subject: mm/damon/reclaim: use damon_initialized()
+Date: Mon, 15 Sep 2025 20:35:07 -0700
 
-DAMON_STAT is assuming DAMON is ready to use in module_init time, and uses
-its own hack to see if it is the time.  Use damon_initialized(), which is
-a way for seeing if DAMON is ready to be used that is more reliable and
-better to maintain instead of the hack.
+DAMON_RECLAIM is assuming DAMON is ready to use in module_init time, and
+uses its own hack to see if it is the time.  Use damon_initialized(),
+which is a way for seeing if DAMON is ready to be used that is more
+reliable and better to maintain instead of the hack.
 
-Link: https://lkml.kernel.org/r/20250916033511.116366-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250916033511.116366-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/damon/reclaim.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/damon/stat.c~mm-damon-stat-use-damon_initialized
-+++ a/mm/damon/stat.c
-@@ -214,8 +214,6 @@ static void damon_stat_stop(void)
- 	damon_destroy_ctx(damon_stat_context);
- }
- 
--static bool damon_stat_init_called;
--
- static int damon_stat_enabled_store(
- 		const char *val, const struct kernel_param *kp)
- {
-@@ -229,7 +227,7 @@ static int damon_stat_enabled_store(
- 	if (is_enabled == enabled)
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-use-damon_initialized
++++ a/mm/damon/reclaim.c
+@@ -349,7 +349,7 @@ static int damon_reclaim_enabled_store(c
  		return 0;
  
--	if (!damon_stat_init_called)
+ 	/* Called before init function.  The function will handle this. */
+-	if (!ctx)
 +	if (!damon_initialized())
- 		/*
- 		 * probably called from command line parsing (parse_args()).
- 		 * Cannot call damon_new_ctx().  Let damon_stat_init() handle.
-@@ -250,12 +248,16 @@ static int __init damon_stat_init(void)
- {
- 	int err = 0;
+ 		goto set_param_out;
  
--	damon_stat_init_called = true;
+ 	err = damon_reclaim_turn(enable);
+@@ -372,8 +372,13 @@ MODULE_PARM_DESC(enabled,
+ 
+ static int __init damon_reclaim_init(void)
+ {
+-	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
++	int err;
+ 
 +	if (!damon_initialized()) {
 +		err = -ENOMEM;
 +		goto out;
 +	}
++	err = damon_modules_new_paddr_ctx_target(&ctx, &target);
+ 	if (err)
+ 		goto out;
  
- 	/* probably set via command line */
- 	if (enabled)
- 		err = damon_stat_start();
- 
-+out:
- 	if (err && enabled)
- 		enabled = false;
- 	return err;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
