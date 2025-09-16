@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D1F7494
-	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 00:07:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A675262FC0
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 03:09:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757981269; cv=none; b=HyJQTP8YxCUawmhCDQFRrAZUi/Gk6X6qvFhpvKdaLisKrGmIIKwqas8ooPgWIlzkE7/aEw3E4/iRj1vx/WraHwa0aXJrOxDBytrQswKhV9wrP3y4LJzRJslo/fqZJYQTyLFfnmWQN20K5drm1y2ULTDeptbCzTEFLpBIo8FqYNU=
+	t=1757992149; cv=none; b=U6SE+W0JZv6nLhT0qOS3l4X6x1wewW3SRkT+t9VyMdnnj4kJ0DWmwwE4lHEmf6siFv/teaTzeaCId2NsHd1uE2sL4w0488XT6ZSaV3oqjXojGrAXuKWB5K4lzvdJDp+AXRSqXnhTCFOrHzSVrDCex4EZYRUft2YzdUZzfcMtNzg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757981269; c=relaxed/simple;
-	bh=PB/lMt5u6u4MhcxSzKzVLsmiUr5Farq50Z04v7F7ESk=;
-	h=Date:To:From:Subject:Message-Id; b=KF0PR50lhYiIcLHeG8S4prKe9jfMS6HxVZLFbzcDhaVjIulzI0WKK1dgEW+6b4pKcPL78QUYbGkHYtPJp2isBbOdAnNWwPD6mTDLGFZC2P4NqHTHeEYq8LsUzNhF+i8n+Qqudn4e3bAwGry4+BiijRkFe25DoQc+exPYJoetu6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rB8cXrix; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757992149; c=relaxed/simple;
+	bh=19anzK0snZZAQsW5P4yWBkSWgG4MjiP/1jc/fK51rkY=;
+	h=Date:To:From:Subject:Message-Id; b=B/amTlou/q64nqXNqbNdki+vaQ9TwejbVCvIapOlD2YFuZ9w2nK66GzZ1hpj5dVMRfiLvn7DkZQCycZdRTm/O7vET51OvzQTdSLQiq3hjzJbF4nDj52gZo6O8qWY08Nkq+VC9DHwJPinmYf/FdjqG39sDchizlppmOrGagm6AIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bcxg02Gw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rB8cXrix"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18230C4CEF1;
-	Tue, 16 Sep 2025 00:07:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bcxg02Gw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13DB8C4CEF1;
+	Tue, 16 Sep 2025 03:09:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757981268;
-	bh=PB/lMt5u6u4MhcxSzKzVLsmiUr5Farq50Z04v7F7ESk=;
+	s=korg; t=1757992149;
+	bh=19anzK0snZZAQsW5P4yWBkSWgG4MjiP/1jc/fK51rkY=;
 	h=Date:To:From:Subject:From;
-	b=rB8cXrixC6R00cFpjxfGaNZtE7sVi1sP7Hsgwhe2YmnHPYZV6VvfQ707WDaBer4FV
-	 9XyV0ToaXRkdd0uRHOfZBTG4M0YhjkqrM9BM2MuKloN0tda0NBGxaMq4dG/PtpQBEb
-	 d00887qM1GcwBeWBSGrxZ/syB0gnKd3+GBZX83Yo=
-Date: Mon, 15 Sep 2025 17:07:47 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,souravpanda@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,hannes@cmpxchg.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=bcxg02GwCPpsFrUHguTyUJO05OM1+rYDu1LJ+MZPLem9JB3MfBuVICmurdYq82LZ8
+	 TPxVxouQgvNz8npD4IBdTTjptmFVuVBytPz8UbLzNfbsMLKY99nZ/R1w5H3K/EH44u
+	 PKWuFnkCJFueTteu08pn7j8DMmn3Fe2y3nBpkBF0=
+Date: Mon, 15 Sep 2025 20:09:08 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,liushixin2@huawei.com,jannh@google.com,harry.yoo@oracle.com,david@redhat.com,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch added to mm-new branch
-Message-Id: <20250916000748.18230C4CEF1@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250916030909.13DB8C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output
-has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
+     Subject: mm/hugetlb: fix copy_hugetlb_page_range() to use ->pt_share_count
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,152 +58,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output
-Date: Mon, 15 Sep 2025 16:02:24 -0700
+From: Jane Chu <jane.chu@oracle.com>
+Subject: mm/hugetlb: fix copy_hugetlb_page_range() to use ->pt_share_count
+Date: Mon, 15 Sep 2025 18:45:20 -0600
 
-While rare, memory allocation profiling can contain inaccurate counters if
-slab object extension vector allocation fails.  That allocation might
-succeed later but prior to that, slab allocations that would have used
-that object extension vector will not be accounted for.  To indicate
-incorrect counters, "accurate:no" marker is appended to the call site line
-in the /proc/allocinfo output.  Bump up /proc/allocinfo version to reflect
-the change in the file format and update documentation.
+commit 59d9094df3d79 ("mm: hugetlb: independent PMD page table shared
+count") introduced ->pt_share_count dedicated to hugetlb PMD share count
+tracking, but omitted fixing copy_hugetlb_page_range(), leaving the
+function relying on page_count() for tracking that no longer works.
 
-Example output with invalid counters:
-allocinfo - version: 2.0
-           0        0 arch/x86/kernel/kdebugfs.c:105 func:create_setup_data_nodes
-           0        0 arch/x86/kernel/alternative.c:2090 func:alternatives_smp_module_add
-           0        0 arch/x86/kernel/alternative.c:127 func:__its_alloc accurate:no
-           0        0 arch/x86/kernel/fpu/regset.c:160 func:xstateregs_set
-           0        0 arch/x86/kernel/fpu/xstate.c:1590 func:fpstate_realloc
-           0        0 arch/x86/kernel/cpu/aperfmperf.c:379 func:arch_enable_hybrid_capacity_scale
-           0        0 arch/x86/kernel/cpu/amd_cache_disable.c:258 func:init_amd_l3_attrs
-       49152       48 arch/x86/kernel/cpu/mce/core.c:2709 func:mce_device_create accurate:no
-       32768        1 arch/x86/kernel/cpu/mce/genpool.c:132 func:mce_gen_pool_create
-           0        0 arch/x86/kernel/cpu/mce/amd.c:1341 func:mce_threshold_create_device
+When lazy page table copy for hugetlb is disabled, that is, revert commit
+bcd51a3c679d ("hugetlb: lazy page table copies in fork()") fork()'ing with
+hugetlb PMD sharing quickly lockup -
 
-Link: https://lkml.kernel.org/r/20250915230224.4115531-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Usama Arif <usamaarif642@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: David Wang <00107082@163.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[  239.446559] watchdog: BUG: soft lockup - CPU#75 stuck for 27s!
+[  239.446611] RIP: 0010:native_queued_spin_lock_slowpath+0x7e/0x2e0
+[  239.446631] Call Trace:
+[  239.446633]  <TASK>
+[  239.446636]  _raw_spin_lock+0x3f/0x60
+[  239.446639]  copy_hugetlb_page_range+0x258/0xb50
+[  239.446645]  copy_page_range+0x22b/0x2c0
+[  239.446651]  dup_mmap+0x3e2/0x770
+[  239.446654]  dup_mm.constprop.0+0x5e/0x230
+[  239.446657]  copy_process+0xd17/0x1760
+[  239.446660]  kernel_clone+0xc0/0x3e0
+[  239.446661]  __do_sys_clone+0x65/0xa0
+[  239.446664]  do_syscall_64+0x82/0x930
+[  239.446668]  ? count_memcg_events+0xd2/0x190
+[  239.446671]  ? syscall_trace_enter+0x14e/0x1f0
+[  239.446676]  ? syscall_exit_work+0x118/0x150
+[  239.446677]  ? arch_exit_to_user_mode_prepare.constprop.0+0x9/0xb0
+[  239.446681]  ? clear_bhb_loop+0x30/0x80
+[  239.446684]  ? clear_bhb_loop+0x30/0x80
+[  239.446686]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+There are two options to resolve the potential latent issue:
+  1. warn against PMD sharing in copy_hugetlb_page_range(),
+  2. fix it.
+This patch opts for the second option.
+While at it, simplify the comment, the details are not actually relevant
+anymore.
+
+Link: https://lkml.kernel.org/r/20250916004520.1604530-1-jane.chu@oracle.com
+Fixes: 59d9094df3d79 ("mm: hugetlb: independent PMD page table shared count")
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    4 ++++
- include/linux/alloc_tag.h          |   12 ++++++++++++
- include/linux/codetag.h            |    5 ++++-
- lib/alloc_tag.c                    |    4 +++-
- mm/slub.c                          |    2 ++
- 5 files changed, 25 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |    5 +++++
+ mm/hugetlb.c             |   15 +++++----------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
-+++ a/Documentation/filesystems/proc.rst
-@@ -1009,6 +1009,10 @@ number, module (if originates from a loa
- the allocation. The number of bytes allocated and number of calls at each
- location are reported. The first line indicates the version of the file, the
- second line is the header listing fields in the file.
-+If file version is 2.0 or higher then each line may contain additional
-+<key>:<value> pairs representing extra information about the call site.
-+For example if the counters are not accurate, the line will be appended with
-+"accurate:no" pair.
- 
- Example output.
- 
---- a/include/linux/alloc_tag.h~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
-+++ a/include/linux/alloc_tag.h
-@@ -221,6 +221,16 @@ static inline void alloc_tag_sub(union c
- 	ref->ct = NULL;
- }
- 
-+static inline void alloc_tag_set_inaccurate(struct alloc_tag *tag)
-+{
-+	tag->ct.flags |= CODETAG_FLAG_INACCURATE;
-+}
-+
-+static inline bool alloc_tag_is_inaccurate(struct alloc_tag *tag)
-+{
-+	return !!(tag->ct.flags & CODETAG_FLAG_INACCURATE);
-+}
-+
- #define alloc_tag_record(p)	((p) = current->alloc_tag)
- 
- #else /* CONFIG_MEM_ALLOC_PROFILING */
-@@ -230,6 +240,8 @@ static inline bool mem_alloc_profiling_e
- static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag,
- 				 size_t bytes) {}
- static inline void alloc_tag_sub(union codetag_ref *ref, size_t bytes) {}
-+static inline void alloc_tag_set_inaccurate(struct alloc_tag *tag) {}
-+static inline bool alloc_tag_is_inaccurate(struct alloc_tag *tag) { return false; }
- #define alloc_tag_record(p)	do {} while (0)
- 
- #endif /* CONFIG_MEM_ALLOC_PROFILING */
---- a/include/linux/codetag.h~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
-+++ a/include/linux/codetag.h
-@@ -16,13 +16,16 @@ struct module;
- #define CODETAG_SECTION_START_PREFIX	"__start_"
- #define CODETAG_SECTION_STOP_PREFIX	"__stop_"
- 
-+/* codetag flags */
-+#define CODETAG_FLAG_INACCURATE	(1 << 0)
-+
- /*
-  * An instance of this structure is created in a special ELF section at every
-  * code location being tagged.  At runtime, the special section is treated as
-  * an array of these.
-  */
- struct codetag {
--	unsigned int flags; /* used in later patches */
-+	unsigned int flags;
- 	unsigned int lineno;
- 	const char *modname;
- 	const char *function;
---- a/lib/alloc_tag.c~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
-+++ a/lib/alloc_tag.c
-@@ -80,7 +80,7 @@ static void allocinfo_stop(struct seq_fi
- static void print_allocinfo_header(struct seq_buf *buf)
+--- a/include/linux/mm_types.h~mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count
++++ a/include/linux/mm_types.h
+@@ -631,6 +631,11 @@ static inline int ptdesc_pmd_pts_count(s
  {
- 	/* Output format version, so we can change it. */
--	seq_buf_printf(buf, "allocinfo - version: 1.0\n");
-+	seq_buf_printf(buf, "allocinfo - version: 2.0\n");
- 	seq_buf_printf(buf, "#     <size>  <calls> <tag info>\n");
+ 	return atomic_read(&ptdesc->pt_share_count);
  }
++
++static inline bool ptdesc_pmd_is_shared(struct ptdesc *ptdesc)
++{
++	return !!ptdesc_pmd_pts_count(ptdesc);
++}
+ #else
+ static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
+ {
+--- a/mm/hugetlb.c~mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count
++++ a/mm/hugetlb.c
+@@ -5594,18 +5594,13 @@ int copy_hugetlb_page_range(struct mm_st
+ 			break;
+ 		}
  
-@@ -92,6 +92,8 @@ static void alloc_tag_to_text(struct seq
+-		/*
+-		 * If the pagetables are shared don't copy or take references.
+-		 *
+-		 * dst_pte == src_pte is the common case of src/dest sharing.
+-		 * However, src could have 'unshared' and dst shares with
+-		 * another vma. So page_count of ptep page is checked instead
+-		 * to reliably determine whether pte is shared.
+-		 */
+-		if (page_count(virt_to_page(dst_pte)) > 1) {
++#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
++		/* If the pagetables are shared, there is nothing to do */
++		if (ptdesc_pmd_is_shared(virt_to_ptdesc(dst_pte))) {
+ 			addr |= last_addr_mask;
+ 			continue;
+ 		}
++#endif
  
- 	seq_buf_printf(out, "%12lli %8llu ", bytes, counter.calls);
- 	codetag_to_text(out, ct);
-+	if (unlikely(alloc_tag_is_inaccurate(tag)))
-+		seq_buf_printf(out, " accurate:no");
- 	seq_buf_putc(out, ' ');
- 	seq_buf_putc(out, '\n');
- }
---- a/mm/slub.c~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
-+++ a/mm/slub.c
-@@ -2143,6 +2143,8 @@ __alloc_tagging_slab_alloc_hook(struct k
- 	 */
- 	if (likely(obj_exts))
- 		alloc_tag_add(&obj_exts->ref, current->alloc_tag, s->size);
-+	else
-+		alloc_tag_set_inaccurate(current->alloc_tag);
- }
+ 		dst_ptl = huge_pte_lock(h, dst, dst_pte);
+ 		src_ptl = huge_pte_lockptr(h, src, src_pte);
+@@ -7602,7 +7597,7 @@ int huge_pmd_unshare(struct mm_struct *m
+ 	hugetlb_vma_assert_locked(vma);
+ 	if (sz != PMD_SIZE)
+ 		return 0;
+-	if (!ptdesc_pmd_pts_count(virt_to_ptdesc(ptep)))
++	if (!ptdesc_pmd_is_shared(virt_to_ptdesc(ptep)))
+ 		return 0;
  
- static inline void
+ 	pud_clear(pud);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from jane.chu@oracle.com are
 
-alloc_tag-use-release_pages-in-the-cleanup-path.patch
-alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down.patch
-alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages.patch
-alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
+mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count.patch
 
