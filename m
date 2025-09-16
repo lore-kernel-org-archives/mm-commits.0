@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B628627A93A
-	for <mm-commits@vger.kernel.org>; Mon, 15 Sep 2025 23:50:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D1F7494
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 00:07:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757980209; cv=none; b=Pk19WJxIZvtGPtGCnW+SyDGLoENAMe02lxbQhPfXsRnY87nii52gmugkisXLhGUB61FFBpI7NqpM1tBArftl3IgmNTMD7QHwAN55JPS04AiFJm9McrqFpVwPehXftLRgMZ7zQCjHSKlbBcDr+TgVnM4p88Dpsuq9lJgNsXQvjYc=
+	t=1757981269; cv=none; b=HyJQTP8YxCUawmhCDQFRrAZUi/Gk6X6qvFhpvKdaLisKrGmIIKwqas8ooPgWIlzkE7/aEw3E4/iRj1vx/WraHwa0aXJrOxDBytrQswKhV9wrP3y4LJzRJslo/fqZJYQTyLFfnmWQN20K5drm1y2ULTDeptbCzTEFLpBIo8FqYNU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757980209; c=relaxed/simple;
-	bh=Gn0JjxkyPXN5701bmUcGfNOBFEKDzyM+UZvBmy8fTfE=;
-	h=Date:To:From:Subject:Message-Id; b=H0nUwGUKqsnjEfZTqcKl1a/sg4HgOcu+e9jzJO4zqoAqnoXWB3uAitzhLRCeGwEidszJenylilgbGqVmUXu74SjUzHTLMVEw8lhi0veeGtcYjPrm1XjFYWt9jf7EP0eRujzh562RSaBQM3U3AXq2gIGWUuqytA5ualucKhl3fjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UQZytSkh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757981269; c=relaxed/simple;
+	bh=PB/lMt5u6u4MhcxSzKzVLsmiUr5Farq50Z04v7F7ESk=;
+	h=Date:To:From:Subject:Message-Id; b=KF0PR50lhYiIcLHeG8S4prKe9jfMS6HxVZLFbzcDhaVjIulzI0WKK1dgEW+6b4pKcPL78QUYbGkHYtPJp2isBbOdAnNWwPD6mTDLGFZC2P4NqHTHeEYq8LsUzNhF+i8n+Qqudn4e3bAwGry4+BiijRkFe25DoQc+exPYJoetu6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rB8cXrix; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UQZytSkh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1749FC4CEF1;
-	Mon, 15 Sep 2025 23:50:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rB8cXrix"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18230C4CEF1;
+	Tue, 16 Sep 2025 00:07:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757980209;
-	bh=Gn0JjxkyPXN5701bmUcGfNOBFEKDzyM+UZvBmy8fTfE=;
+	s=korg; t=1757981268;
+	bh=PB/lMt5u6u4MhcxSzKzVLsmiUr5Farq50Z04v7F7ESk=;
 	h=Date:To:From:Subject:From;
-	b=UQZytSkhMoH9sMlU081epRM4BMXgDv1g+QJk3V5WyA4rZs39RZO2kTwsXkZFNuLC+
-	 bVzFieOVWR3OaNPNSqCNovHYz7cDd+2KMpsu1AwyoRM3C0TO7r1XOSEiwgR7aIEB1X
-	 qaemz7z9ICny9DeCl5okw+RYOtwKSOp9Boepks9E=
-Date: Mon, 15 Sep 2025 16:50:08 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill@shutemov.name,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=rB8cXrixC6R00cFpjxfGaNZtE7sVi1sP7Hsgwhe2YmnHPYZV6VvfQ707WDaBer4FV
+	 9XyV0ToaXRkdd0uRHOfZBTG4M0YhjkqrM9BM2MuKloN0tda0NBGxaMq4dG/PtpQBEb
+	 d00887qM1GcwBeWBSGrxZ/syB0gnKd3+GBZX83Yo=
+Date: Mon, 15 Sep 2025 17:07:47 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,souravpanda@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,hannes@cmpxchg.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch added to mm-new branch
-Message-Id: <20250915235009.1749FC4CEF1@smtp.kernel.org>
+Subject: + alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch added to mm-new branch
+Message-Id: <20250916000748.18230C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: do not fail collapse_pte_mapped_thp() on SCAN_PMD_NULL
+     Subject: alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch
+     alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,98 +64,152 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kiryl Shutsemau <kas@kernel.org>
-Subject: mm/khugepaged: do not fail collapse_pte_mapped_thp() on SCAN_PMD_NULL
-Date: Mon, 15 Sep 2025 14:52:53 +0100
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output
+Date: Mon, 15 Sep 2025 16:02:24 -0700
 
-MADV_COLLAPSE on a file mapping behaves inconsistently depending on if PMD
-page table is installed or not.
+While rare, memory allocation profiling can contain inaccurate counters if
+slab object extension vector allocation fails.  That allocation might
+succeed later but prior to that, slab allocations that would have used
+that object extension vector will not be accounted for.  To indicate
+incorrect counters, "accurate:no" marker is appended to the call site line
+in the /proc/allocinfo output.  Bump up /proc/allocinfo version to reflect
+the change in the file format and update documentation.
 
-Consider following example:
+Example output with invalid counters:
+allocinfo - version: 2.0
+           0        0 arch/x86/kernel/kdebugfs.c:105 func:create_setup_data_nodes
+           0        0 arch/x86/kernel/alternative.c:2090 func:alternatives_smp_module_add
+           0        0 arch/x86/kernel/alternative.c:127 func:__its_alloc accurate:no
+           0        0 arch/x86/kernel/fpu/regset.c:160 func:xstateregs_set
+           0        0 arch/x86/kernel/fpu/xstate.c:1590 func:fpstate_realloc
+           0        0 arch/x86/kernel/cpu/aperfmperf.c:379 func:arch_enable_hybrid_capacity_scale
+           0        0 arch/x86/kernel/cpu/amd_cache_disable.c:258 func:init_amd_l3_attrs
+       49152       48 arch/x86/kernel/cpu/mce/core.c:2709 func:mce_device_create accurate:no
+       32768        1 arch/x86/kernel/cpu/mce/genpool.c:132 func:mce_gen_pool_create
+           0        0 arch/x86/kernel/cpu/mce/amd.c:1341 func:mce_threshold_create_device
 
-	p = mmap(NULL, 2UL << 20, PROT_READ | PROT_WRITE,
-		 MAP_SHARED, fd, 0);
-	err = madvise(p, 2UL << 20, MADV_COLLAPSE);
-
-fd is a populated tmpfs file.
-
-The result depends on the address that the kernel returns on mmap().  If
-it is located in an existing PMD table, the madvise() will succeed. 
-However, if the table does not exist, it will fail with -EINVAL.
-
-This occurs because find_pmd_or_thp_or_none() returns SCAN_PMD_NULL when a
-page table is missing, which causes collapse_pte_mapped_thp() to fail.
-
-SCAN_PMD_NULL and SCAN_PMD_NONE should be treated the same in
-collapse_pte_mapped_thp(): install the PMD leaf entry and allocate page
-tables as needed.
-
-Link: https://lkml.kernel.org/r/v5ivpub6z2n2uyemlnxgbilzs52ep4lrary7lm7o6axxoneb75@yfacfl5rkzeh
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Link: https://lkml.kernel.org/r/20250915230224.4115531-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Usama Arif <usamaarif642@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David Wang <00107082@163.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.rst |    4 ++++
+ include/linux/alloc_tag.h          |   12 ++++++++++++
+ include/linux/codetag.h            |    5 ++++-
+ lib/alloc_tag.c                    |    4 +++-
+ mm/slub.c                          |    2 ++
+ 5 files changed, 25 insertions(+), 2 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null
-+++ a/mm/khugepaged.c
-@@ -1460,15 +1460,32 @@ static void collect_mm_slot(struct khuge
- static int set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
- 			pmd_t *pmdp, struct folio *folio, struct page *page)
- {
-+	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_fault vmf = {
- 		.vma = vma,
- 		.address = addr,
- 		.flags = 0,
--		.pmd = pmdp,
- 	};
-+	pgd_t *pgdp;
-+	p4d_t *p4dp;
-+	pud_t *pudp;
+--- a/Documentation/filesystems/proc.rst~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/Documentation/filesystems/proc.rst
+@@ -1009,6 +1009,10 @@ number, module (if originates from a loa
+ the allocation. The number of bytes allocated and number of calls at each
+ location are reported. The first line indicates the version of the file, the
+ second line is the header listing fields in the file.
++If file version is 2.0 or higher then each line may contain additional
++<key>:<value> pairs representing extra information about the call site.
++For example if the counters are not accurate, the line will be appended with
++"accurate:no" pair.
  
- 	mmap_assert_locked(vma->vm_mm);
+ Example output.
  
-+	if (!pmdp) {
-+		pgdp = pgd_offset(mm, addr);
-+		p4dp = p4d_alloc(mm, pgdp, addr);
-+		if (!p4dp)
-+			return SCAN_FAIL;
-+		pudp = pud_alloc(mm, p4dp, addr);
-+		if (!pudp)
-+			return SCAN_FAIL;
-+		pmdp = pmd_alloc(mm, pudp, addr);
-+		if (!pmdp)
-+			return SCAN_FAIL;
-+	}
+--- a/include/linux/alloc_tag.h~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/include/linux/alloc_tag.h
+@@ -221,6 +221,16 @@ static inline void alloc_tag_sub(union c
+ 	ref->ct = NULL;
+ }
+ 
++static inline void alloc_tag_set_inaccurate(struct alloc_tag *tag)
++{
++	tag->ct.flags |= CODETAG_FLAG_INACCURATE;
++}
 +
-+	vmf.pmd = pmdp;
- 	if (do_set_pmd(&vmf, folio, page))
- 		return SCAN_FAIL;
++static inline bool alloc_tag_is_inaccurate(struct alloc_tag *tag)
++{
++	return !!(tag->ct.flags & CODETAG_FLAG_INACCURATE);
++}
++
+ #define alloc_tag_record(p)	((p) = current->alloc_tag)
  
-@@ -1544,6 +1561,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 	switch (result) {
- 	case SCAN_SUCCEED:
- 		break;
-+	case SCAN_PMD_NULL:
- 	case SCAN_PMD_NONE:
- 		/*
- 		 * All pte entries have been removed and pmd cleared.
+ #else /* CONFIG_MEM_ALLOC_PROFILING */
+@@ -230,6 +240,8 @@ static inline bool mem_alloc_profiling_e
+ static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag,
+ 				 size_t bytes) {}
+ static inline void alloc_tag_sub(union codetag_ref *ref, size_t bytes) {}
++static inline void alloc_tag_set_inaccurate(struct alloc_tag *tag) {}
++static inline bool alloc_tag_is_inaccurate(struct alloc_tag *tag) { return false; }
+ #define alloc_tag_record(p)	do {} while (0)
+ 
+ #endif /* CONFIG_MEM_ALLOC_PROFILING */
+--- a/include/linux/codetag.h~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/include/linux/codetag.h
+@@ -16,13 +16,16 @@ struct module;
+ #define CODETAG_SECTION_START_PREFIX	"__start_"
+ #define CODETAG_SECTION_STOP_PREFIX	"__stop_"
+ 
++/* codetag flags */
++#define CODETAG_FLAG_INACCURATE	(1 << 0)
++
+ /*
+  * An instance of this structure is created in a special ELF section at every
+  * code location being tagged.  At runtime, the special section is treated as
+  * an array of these.
+  */
+ struct codetag {
+-	unsigned int flags; /* used in later patches */
++	unsigned int flags;
+ 	unsigned int lineno;
+ 	const char *modname;
+ 	const char *function;
+--- a/lib/alloc_tag.c~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/lib/alloc_tag.c
+@@ -80,7 +80,7 @@ static void allocinfo_stop(struct seq_fi
+ static void print_allocinfo_header(struct seq_buf *buf)
+ {
+ 	/* Output format version, so we can change it. */
+-	seq_buf_printf(buf, "allocinfo - version: 1.0\n");
++	seq_buf_printf(buf, "allocinfo - version: 2.0\n");
+ 	seq_buf_printf(buf, "#     <size>  <calls> <tag info>\n");
+ }
+ 
+@@ -92,6 +92,8 @@ static void alloc_tag_to_text(struct seq
+ 
+ 	seq_buf_printf(out, "%12lli %8llu ", bytes, counter.calls);
+ 	codetag_to_text(out, ct);
++	if (unlikely(alloc_tag_is_inaccurate(tag)))
++		seq_buf_printf(out, " accurate:no");
+ 	seq_buf_putc(out, ' ');
+ 	seq_buf_putc(out, '\n');
+ }
+--- a/mm/slub.c~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/mm/slub.c
+@@ -2143,6 +2143,8 @@ __alloc_tagging_slab_alloc_hook(struct k
+ 	 */
+ 	if (likely(obj_exts))
+ 		alloc_tag_add(&obj_exts->ref, current->alloc_tag, s->size);
++	else
++		alloc_tag_set_inaccurate(current->alloc_tag);
+ }
+ 
+ static inline void
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch
+alloc_tag-use-release_pages-in-the-cleanup-path.patch
+alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down.patch
+alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
 
