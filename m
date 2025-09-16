@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51B1872610
-	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:18:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9776B13C9C4
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:18:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757996330; cv=none; b=W+im7TsxnvkfZjq+QRTjtnQafr+DUlgZsKmGoTPwUxx+2xk8wLutamVg8UrkdzB5R4eCZpe0rx24S/3yoEzJnNAd7HXOzx+zqNP38L+rm58zn06OB1iVaUqSF7K+nV8+GZx8pProqdoHMNpuo5LQO52mZ2xU81yuGZguJEs2CcA=
+	t=1757996332; cv=none; b=XDWr7pnrUk/NAqpF+pJNPhmEjvJ2v2XEuAtuLQx3m8AT4dKNU1ppYhhFM6faqIiMfUKDNM5Og7ADtkoeHpNTybhpCkoSG7+WmvrbZWNiaEwThDwgu5c/e0rnIhXOs4GxR0gAXhboEYJaWHmnwegYdWZrtdPOJolM+8WOvFsnjCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757996330; c=relaxed/simple;
-	bh=6w93CGPlmR/DZEbK9tpPq+7yHw4a33qm1Hgzy2QY92c=;
-	h=Date:To:From:Subject:Message-Id; b=BJNLoe0lnWO7JMXBPvfa44MkclW05OR7xOrSHkRigdlU1daeRNZXYfBhUd/nZBrMijbKugIJYT0PaATL3elSxHciY7Kz0LGlxkI0kSfipy26tY8rAcneqM24cPE8oMvk5wVnYRij/z1t+jKEu2K24NP6UUlOdwbe5F6matAnM28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PRu4npNG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757996332; c=relaxed/simple;
+	bh=68j6flCmY2XvjatuBO8L0fBmThD8yf9yGCohvIYy7jQ=;
+	h=Date:To:From:Subject:Message-Id; b=QJEk16jPs1Uwy/Ht0XQGWD/dN0VpqYvRuFDV1wlXH5XFAyM3AKkheCMH/2EeQNKZ+OvGC5K5gmhVNySm5U/t2TalNMysntySSogVP86QvFy4WARgUgfYmMQwc7+wfETJuqaW+1b33Fjsc3ajDmVXsx3l3UiLinq8QMKlhds5LM8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r8Gr5qOn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PRu4npNG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF3E6C4CEEB;
-	Tue, 16 Sep 2025 04:18:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r8Gr5qOn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE8B9C4CEEB;
+	Tue, 16 Sep 2025 04:18:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757996329;
-	bh=6w93CGPlmR/DZEbK9tpPq+7yHw4a33qm1Hgzy2QY92c=;
+	s=korg; t=1757996331;
+	bh=68j6flCmY2XvjatuBO8L0fBmThD8yf9yGCohvIYy7jQ=;
 	h=Date:To:From:Subject:From;
-	b=PRu4npNGCxFi1p0pqR14neRNOj/REFdPGWdlseitErMWgmG8kfqkzE4m0VweCOjNp
-	 kBZUYjvzrJnJXvDhU+PqOyHBTH3c5oLKBnTI1H/eUbtNStYqhndhOWYxCmAgwRQgi8
-	 gD6RyG/pwomzCblr2lYuieWQZEZK/25+Ne3jpGOc=
-Date: Mon, 15 Sep 2025 21:18:49 -0700
+	b=r8Gr5qOn4xK/XG7YrmyXktuWaiLKImbz0L0OfZtL26F/py80w//pqkKPOyBeiTpWG
+	 J5hohgWWx0xzLOQiouVdxVp/bulhI8f8WpcWmwPSor3BqIjP6xDOj/5vf27UaMb8Gn
+	 JdLtsVNwN/NEm11WY1wy7igpSeRBugYD6mnoykCs=
+Date: Mon, 15 Sep 2025 21:18:51 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch added to mm-new branch
-Message-Id: <20250916041849.BF3E6C4CEEB@smtp.kernel.org>
+Subject: + mm-damon-core-set-effective-quota-on-first-charge-window.patch added to mm-new branch
+Message-Id: <20250916041851.BE8B9C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: reset age if nr_accesses changes between non-zero and zero
+     Subject: mm/damon/core: set effective quota on first charge window
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch
+     mm-damon-core-set-effective-quota-on-first-charge-window.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-effective-quota-on-first-charge-window.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,46 +65,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: reset age if nr_accesses changes between non-zero and zero
-Date: Mon, 15 Sep 2025 20:23:35 -0700
+Subject: mm/damon/core: set effective quota on first charge window
+Date: Mon, 15 Sep 2025 20:23:36 -0700
 
-Patch series "mm/damon: misc fixups and improvements for 6.18", v2.
+The effective quota of a scheme is initialized zero, which means there is
+no quota.  It is set based on user-specified time/quota/quota goals.  But
+the later value set is done only from the second charge window.  As a
+result, a scheme having a user-specified quota can work as not having the
+quota (unexpectedly fast) for the first charge window.  In practical and
+common use cases the quota interval is not too long, and the scheme's
+target access pattern is restrictive.  Hence the issue should be modest. 
+That said, it is apparently an unintended misbehavior.  Fix the problem by
+setting esz on the first charge window.
 
-Misc fixes and improvements for DAMON that are not critical and therefore
-aims to be merged into Linux 6.18-rc1.
-
-The first patch improves DAMON's age counting for nr_accesses zero to/from
-non-zero changes.
-
-The second patch fixes an initial DAMOS apply interval delay issue that is
-not realistic but still could happen on an odd setup.
-
-The third and the fourth patches update DAMON community meetup description
-and DAMON user-space tool example command for DAMOS usage, respectively.
-
-Finally, the fifth patch updates MAINTAINERS section name for DAMON to
-just DAMON.
-
-
-This patch (of 5):
-
-DAMON resets the age of a region if its nr_accesses value has
-significantly changed.  Specifically, the threshold is calculated as 20%
-of largest nr_accesses of the current snapshot.  This means that regions
-changing the nr_accesses from zero to small non-zero value or from a small
-non-zero value to zero will keep the age.  Since many users treat zero
-nr_accesses regions special, this can be confusing.  Kernel code including
-DAMOS' regions priority calculation and DAMON_STAT's idle time calculation
-also treat zero nr_accesses regions special.  Make it unconfusing by
-resetting the age when the nr_accesses changes between zero and a non-zero
-value.
-
-Link: https://lkml.kernel.org/r/20250916032339.115817-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20250916032339.115817-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250916032339.115817-3-sj@kernel.org
+Fixes: 1cd243030059 ("mm/damon/schemes: implement time quota") # 5.16.x
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -114,20 +93,23 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/core.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero
+--- a/mm/damon/core.c~mm-damon-core-set-effective-quota-on-first-charge-window
 +++ a/mm/damon/core.c
-@@ -2261,6 +2261,8 @@ static void damon_merge_regions_of(struc
- 	damon_for_each_region_safe(r, next, t) {
- 		if (abs(r->nr_accesses - r->last_nr_accesses) > thres)
- 			r->age = 0;
-+		else if ((r->nr_accesses == 0) != (r->last_nr_accesses == 0))
-+			r->age = 0;
- 		else
- 			r->age++;
+@@ -2142,8 +2142,10 @@ static void damos_adjust_quota(struct da
+ 		return;
  
+ 	/* First charge window */
+-	if (!quota->total_charged_sz && !quota->charged_from)
++	if (!quota->total_charged_sz && !quota->charged_from) {
+ 		quota->charged_from = jiffies;
++		damos_set_effective_quota(quota);
++	}
+ 
+ 	/* New charge window starts */
+ 	if (time_after_eq(jiffies, quota->charged_from +
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
