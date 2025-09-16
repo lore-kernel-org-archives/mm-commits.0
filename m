@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A675262FC0
-	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 03:09:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65EA9E571
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 03:18:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757992149; cv=none; b=U6SE+W0JZv6nLhT0qOS3l4X6x1wewW3SRkT+t9VyMdnnj4kJ0DWmwwE4lHEmf6siFv/teaTzeaCId2NsHd1uE2sL4w0488XT6ZSaV3oqjXojGrAXuKWB5K4lzvdJDp+AXRSqXnhTCFOrHzSVrDCex4EZYRUft2YzdUZzfcMtNzg=
+	t=1757992690; cv=none; b=m+Pg3DlGpEJDc4Pw8qUaZCvTOW7XHJdPH8WmgkU3NB7po/Jj76TfdtKrEYbpntnxqJbD47uo3sY1GQN7Q/eaC3EuehtagFxeABv/DEPamSKahqTAHO9UXNrKUe/aKiNgbhZ0JW291tjhwqwcHRV6/5RosBTcPVih75bX4V7miAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757992149; c=relaxed/simple;
-	bh=19anzK0snZZAQsW5P4yWBkSWgG4MjiP/1jc/fK51rkY=;
-	h=Date:To:From:Subject:Message-Id; b=B/amTlou/q64nqXNqbNdki+vaQ9TwejbVCvIapOlD2YFuZ9w2nK66GzZ1hpj5dVMRfiLvn7DkZQCycZdRTm/O7vET51OvzQTdSLQiq3hjzJbF4nDj52gZo6O8qWY08Nkq+VC9DHwJPinmYf/FdjqG39sDchizlppmOrGagm6AIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bcxg02Gw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757992690; c=relaxed/simple;
+	bh=cU112z2sX8C+dlrHuaYfRDpBsoQFCCwX8zBdjrc7YEQ=;
+	h=Date:To:From:Subject:Message-Id; b=IZWpEwWrBDFtOY2xL8L7gSzSmXdILrztyRHYL4E/Oy/s83kK0heB2tyTNfIvGV3cQ73bRXCT6u0qaM0Nl8gEFFdGbvfoghdua2OUSG3Llh2UzfPHtX0eK+/65wswqYT1fHmzQo0A/8MJTswEGDn1wCZ988Dk/AY56rdWdg1kd5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x2lcjQzw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bcxg02Gw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13DB8C4CEF1;
-	Tue, 16 Sep 2025 03:09:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x2lcjQzw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4974C4CEEB;
+	Tue, 16 Sep 2025 03:18:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757992149;
-	bh=19anzK0snZZAQsW5P4yWBkSWgG4MjiP/1jc/fK51rkY=;
+	s=korg; t=1757992689;
+	bh=cU112z2sX8C+dlrHuaYfRDpBsoQFCCwX8zBdjrc7YEQ=;
 	h=Date:To:From:Subject:From;
-	b=bcxg02GwCPpsFrUHguTyUJO05OM1+rYDu1LJ+MZPLem9JB3MfBuVICmurdYq82LZ8
-	 TPxVxouQgvNz8npD4IBdTTjptmFVuVBytPz8UbLzNfbsMLKY99nZ/R1w5H3K/EH44u
-	 PKWuFnkCJFueTteu08pn7j8DMmn3Fe2y3nBpkBF0=
-Date: Mon, 15 Sep 2025 20:09:08 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,liushixin2@huawei.com,jannh@google.com,harry.yoo@oracle.com,david@redhat.com,jane.chu@oracle.com,akpm@linux-foundation.org
+	b=x2lcjQzwewcm1eE3as/OPKVOyOxB11xSmJtbo87UDIc/M83qvUJfq3GPVPL9E64Ef
+	 pKKhIeGc6Te3DZyxPn2ZD+2bwwINXcOEOt3c6AaFdMWeMBTmxaLXcO3574D/pBaQE9
+	 Vgl8iBvRxRWuGTFibWT/dg1lE63mDAeGPXwNZYrU=
+Date: Mon, 15 Sep 2025 20:18:09 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250916030909.13DB8C4CEF1@smtp.kernel.org>
+Subject: + mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2.patch added to mm-unstable branch
+Message-Id: <20250916031809.C4974C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix copy_hugetlb_page_range() to use ->pt_share_count
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count.patch
+     Subject: mm: fix incorrect mixedmap implementation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,114 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: mm/hugetlb: fix copy_hugetlb_page_range() to use ->pt_share_count
-Date: Mon, 15 Sep 2025 18:45:20 -0600
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: fix incorrect mixedmap implementation
+Date: Mon, 15 Sep 2025 11:01:06 +0100
 
-commit 59d9094df3d79 ("mm: hugetlb: independent PMD page table shared
-count") introduced ->pt_share_count dedicated to hugetlb PMD share count
-tracking, but omitted fixing copy_hugetlb_page_range(), leaving the
-function relying on page_count() for tracking that no longer works.
+This was typo'd due to staring too long at the cramfs implementation.
 
-When lazy page table copy for hugetlb is disabled, that is, revert commit
-bcd51a3c679d ("hugetlb: lazy page table copies in fork()") fork()'ing with
-hugetlb PMD sharing quickly lockup -
-
-[  239.446559] watchdog: BUG: soft lockup - CPU#75 stuck for 27s!
-[  239.446611] RIP: 0010:native_queued_spin_lock_slowpath+0x7e/0x2e0
-[  239.446631] Call Trace:
-[  239.446633]  <TASK>
-[  239.446636]  _raw_spin_lock+0x3f/0x60
-[  239.446639]  copy_hugetlb_page_range+0x258/0xb50
-[  239.446645]  copy_page_range+0x22b/0x2c0
-[  239.446651]  dup_mmap+0x3e2/0x770
-[  239.446654]  dup_mm.constprop.0+0x5e/0x230
-[  239.446657]  copy_process+0xd17/0x1760
-[  239.446660]  kernel_clone+0xc0/0x3e0
-[  239.446661]  __do_sys_clone+0x65/0xa0
-[  239.446664]  do_syscall_64+0x82/0x930
-[  239.446668]  ? count_memcg_events+0xd2/0x190
-[  239.446671]  ? syscall_trace_enter+0x14e/0x1f0
-[  239.446676]  ? syscall_exit_work+0x118/0x150
-[  239.446677]  ? arch_exit_to_user_mode_prepare.constprop.0+0x9/0xb0
-[  239.446681]  ? clear_bhb_loop+0x30/0x80
-[  239.446684]  ? clear_bhb_loop+0x30/0x80
-[  239.446686]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-
-There are two options to resolve the potential latent issue:
-  1. warn against PMD sharing in copy_hugetlb_page_range(),
-  2. fix it.
-This patch opts for the second option.
-While at it, simplify the comment, the details are not actually relevant
-anymore.
-
-Link: https://lkml.kernel.org/r/20250916004520.1604530-1-jane.chu@oracle.com
-Fixes: 59d9094df3d79 ("mm: hugetlb: independent PMD page table shared count")
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/4ce3adda-6351-4530-92aa-103acf638004@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    5 +++++
- mm/hugetlb.c             |   15 +++++----------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ mm/util.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm_types.h~mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count
-+++ a/include/linux/mm_types.h
-@@ -631,6 +631,11 @@ static inline int ptdesc_pmd_pts_count(s
- {
- 	return atomic_read(&ptdesc->pt_share_count);
- }
-+
-+static inline bool ptdesc_pmd_is_shared(struct ptdesc *ptdesc)
-+{
-+	return !!ptdesc_pmd_pts_count(ptdesc);
-+}
- #else
- static inline void ptdesc_pmd_pts_init(struct ptdesc *ptdesc)
- {
---- a/mm/hugetlb.c~mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count
-+++ a/mm/hugetlb.c
-@@ -5594,18 +5594,13 @@ int copy_hugetlb_page_range(struct mm_st
- 			break;
- 		}
+--- a/mm/util.c~mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2
++++ a/mm/util.c
+@@ -1364,15 +1364,14 @@ int mmap_action_complete(struct mmap_act
+ 		unsigned long pgnum = 0;
+ 		unsigned long pfn = action->mixedmap.pfn;
+ 		unsigned long addr = action->mixedmap.addr;
+-		unsigned long vaddr = vma->vm_start;
  
--		/*
--		 * If the pagetables are shared don't copy or take references.
--		 *
--		 * dst_pte == src_pte is the common case of src/dest sharing.
--		 * However, src could have 'unshared' and dst shares with
--		 * another vma. So page_count of ptep page is checked instead
--		 * to reliably determine whether pte is shared.
--		 */
--		if (page_count(virt_to_page(dst_pte)) > 1) {
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+		/* If the pagetables are shared, there is nothing to do */
-+		if (ptdesc_pmd_is_shared(virt_to_ptdesc(dst_pte))) {
- 			addr |= last_addr_mask;
- 			continue;
- 		}
-+#endif
+ 		VM_WARN_ON_ONCE(!(vma->vm_flags & VM_MIXEDMAP));
  
- 		dst_ptl = huge_pte_lock(h, dst, dst_pte);
- 		src_ptl = huge_pte_lockptr(h, src, src_pte);
-@@ -7602,7 +7597,7 @@ int huge_pmd_unshare(struct mm_struct *m
- 	hugetlb_vma_assert_locked(vma);
- 	if (sz != PMD_SIZE)
- 		return 0;
--	if (!ptdesc_pmd_pts_count(virt_to_ptdesc(ptep)))
-+	if (!ptdesc_pmd_is_shared(virt_to_ptdesc(ptep)))
- 		return 0;
+ 		for (; pgnum < action->mixedmap.num_pages;
+-		     pgnum++, pfn++, addr += PAGE_SIZE, vaddr += PAGE_SIZE) {
++		    pgnum++, pfn++, addr += PAGE_SIZE) {
+ 			vm_fault_t vmf;
  
- 	pud_clear(pud);
+-			vmf = vmf_insert_mixed(vma, vaddr, addr);
++			vmf = vmf_insert_mixed(vma, addr, pfn);
+ 			if (vmf & VM_FAULT_ERROR) {
+ 				err = vm_fault_to_errno(vmf, 0);
+ 				break;
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-hugetlb-fix-copy_hugetlb_page_range-to-use-pt_share_count.patch
+mm-specify-separate-file-and-vm_file-params-in-vm_area_desc.patch
+mm-do-not-assume-file-==-vma-vm_file-in-compat_vma_mmap_prepare.patch
+mm-shmem-update-shmem-to-use-mmap_prepare.patch
+device-dax-update-devdax-to-use-mmap_prepare.patch
+mm-add-vma_desc_size-vma_desc_pages-helpers.patch
+relay-update-relay-to-use-mmap_prepare.patch
+mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
+mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
+mm-introduce-io_remap_pfn_range_.patch
+mm-introduce-io_remap_pfn_range_-fix.patch
+mm-add-ability-to-take-further-action-in-vm_area_desc.patch
+mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch
+mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2.patch
+doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
+mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
+mm-update-mem-char-driver-to-use-mmap_prepare.patch
+mm-update-resctl-to-use-mmap_prepare.patch
+mm-update-cramfs-to-use-mmap_prepare.patch
+fs-proc-add-the-proc_mmap_prepare-hook-for-procfs.patch
+fs-proc-update-vmcore-to-use-proc_mmap_prepare.patch
+fs-proc-update-vmcore-to-use-proc_mmap_prepare-fix.patch
+kcov-update-kcov-to-use-mmap_prepare.patch
 
