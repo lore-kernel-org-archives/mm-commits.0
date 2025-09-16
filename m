@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B9171F7575
-	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:01:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E76A8248B
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:01:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757995273; cv=none; b=sIgS4jQnYfQ5tk+UJPDDn2QkSbFyfs5IjaG1Ei81gqfCrXLbS6X4E3xO6CRXNjDIgMEPTB6ufZJ9ONFoC4OoyW/m4urTtBLInwCXqZFjdbdk17v9BdPPvIUKzXfvZolTOwx36JO/2+BHjc6uzFnxGfE/VLVx0S9hOhJIVcQjqn0=
+	t=1757995276; cv=none; b=Ala/0mpeqkSpYG1gujnC/WP044HLWgOWl87l7gzVIqTKgFxZTpCXMMWqiM8L4k0JHqlWNDtntbyqMFlzo2GupN6NLGNa0GEc7Ec8mF+WYYqFAO3y6PZfRUbEGwzTdpoqGAjeR3qDp4+Kt2rQQQEK0+ycvPOG7EPMGFoFdkygqkk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757995273; c=relaxed/simple;
-	bh=8X68bIxmTTu1NhU+jGSEsMWd+PMalHtbQccERexd0Bw=;
-	h=Date:To:From:Subject:Message-Id; b=TRuh9JI1j6YbDm0dRW+VwK/mXJqVN2TQWIB4Jo/KXWAmxrU6lYUTNPzxfdFAU7xqR+dxwXnBctNjfC8UghI34J+Y9ICmfTYOVj7cONXa92LicsVkfAZyfL6PqmuILXE/TcNG/pqSs0YwUOYgoz7QZ1axNurGG5cHPYi1s2kt4lE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VeHv205d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757995276; c=relaxed/simple;
+	bh=q0K0+bBQRdstrlj5wN/T3Go+AicYLPq10c+Sht0DliE=;
+	h=Date:To:From:Subject:Message-Id; b=I6+dIVReKzDUXhN9ABou4YyoJ3ZQxlfqK7ZMrqMDOoqVr8vmO+5WnxU9rKBSJDyYYBZzyKKm5QaNTFh3W8Evzb9uyJHX8VYQ7pUL1utFkswuuxazoJsoAeUvGqLeDHZhmATmBNnN7TcRD/zYhUXOFmLbCZcJ6LWNpp4Bl4vaX50=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BFZcu0T2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VeHv205d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD208C4CEEB;
-	Tue, 16 Sep 2025 04:01:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BFZcu0T2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 995CBC4CEEB;
+	Tue, 16 Sep 2025 04:01:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757995271;
-	bh=8X68bIxmTTu1NhU+jGSEsMWd+PMalHtbQccERexd0Bw=;
+	s=korg; t=1757995273;
+	bh=q0K0+bBQRdstrlj5wN/T3Go+AicYLPq10c+Sht0DliE=;
 	h=Date:To:From:Subject:From;
-	b=VeHv205duqBrKEiCUIDcHg+vccCMlP/j1mdZB/Ynihmnqxbgh7igrEpVKc0DeKW/h
-	 u2VO+BqH2Kqe/DP4URvc4b4JUfvfKx3RtlbBiG9Q5iS1mlR8A3FXV84VxONRXGtSj7
-	 4efO7MLIVi4z9Qcd7lNHD1xzNRLBUElyNuZ13FWI=
-Date: Mon, 15 Sep 2025 21:01:11 -0700
+	b=BFZcu0T28rWgQ27ppBK3pXzkK3jJ0ZiLbnf7Hte0ym5zzlBs0oZKd1Bo7z+OYuoNg
+	 Uj1D0nWkDc7zXBZ6wVKthXl+9SOJqO0p8zRI5gmDSieAPfWXKPw2qQ1OCP2gXqSjSI
+	 qOYlw+ojDmGJC3GK3qSKTWVLLgjgTnqh54357psE=
+Date: Mon, 15 Sep 2025 21:01:13 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements.patch added to mm-new branch
-Message-Id: <20250916040111.AD208C4CEEB@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command.patch added to mm-new branch
+Message-Id: <20250916040113.995CBC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/maintainer-profile: update community meetup for reservation requirements
+     Subject: Docs/admin-guide/mm/damon/start: add --target_pid to DAMOS example command
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements.patch
+     docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,19 +65,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/maintainer-profile: update community meetup for reservation requirements
-Date: Sun, 14 Sep 2025 18:58:05 -0700
+Subject: Docs/admin-guide/mm/damon/start: add --target_pid to DAMOS example command
+Date: Sun, 14 Sep 2025 18:58:06 -0700
 
-DAMON community meetup was having two different kinds of meetups:
-reservation required ones and unrequired ones.  Now the reservation
-unrequested one is gone, but the documentation on the maintainer-profile
-is not updated.  Update.
+The example command doesn't work [1] on the latest DAMON user-space tool,
+since --damos_action option is updated to receive multiple arguments, and
+hence cannot know if the final argument is for deductible monitoring
+target or an argument for --damos_action option.  Add --target_pid option
+to let damo understand it is for target pid.
 
-Link: https://lkml.kernel.org/r/20250915015807.101505-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250915015807.101505-6-sj@kernel.org
+Link: https://github.com/damonitor/damo/pull/32 [1]
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -87,36 +89,17 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/maintainer-profile.rst |   17 +++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ Documentation/admin-guide/mm/damon/start.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements
-+++ a/Documentation/mm/damon/maintainer-profile.rst
-@@ -89,18 +89,13 @@ the maintainer.
- Community meetup
- ----------------
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command
++++ a/Documentation/admin-guide/mm/damon/start.rst
+@@ -175,4 +175,4 @@ Below command makes every memory region
  
--DAMON community is maintaining two bi-weekly meetup series for community
--members who prefer synchronous conversations over mails.
-+DAMON community has a bi-weekly meetup series for members who prefer
-+synchronous conversations over mails.  It is for discussions on specific topics
-+between a group of members including the maintainer.  The maintainer shares the
-+available time slots, and attendees should reserve one of those at least 24
-+hours before the time slot, by reaching out to the maintainer.
- 
--The first one is for any discussion between every community member.  No
--reservation is needed.
--
--The seconds one is for discussions on specific topics between restricted
--members including the maintainer.  The maintainer shares the available time
--slots, and attendees should reserve one of those at least 24 hours before the
--time slot, by reaching out to the maintainer.
--
--Schedules and available reservation time slots are available at the Google `doc
-+Schedules and reservation status are available at the Google `doc
- <https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing>`_.
- There is also a public Google `calendar
- <https://calendar.google.com/calendar/u/0?cid=ZDIwOTA4YTMxNjc2MDQ3NTIyMmUzYTM5ZmQyM2U4NDA0ZGIwZjBiYmJlZGQxNDM0MmY4ZTRjOTE0NjdhZDRiY0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t>`_
+     $ sudo damo start --damos_access_rate 0 0 --damos_sz_region 4K max \
+                       --damos_age 60s max --damos_action pageout \
+-                      <pid of your workload>
++                      --target_pid <pid of your workload>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
