@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65EA9E571
-	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 03:18:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C80A5E571
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 03:18:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757992690; cv=none; b=m+Pg3DlGpEJDc4Pw8qUaZCvTOW7XHJdPH8WmgkU3NB7po/Jj76TfdtKrEYbpntnxqJbD47uo3sY1GQN7Q/eaC3EuehtagFxeABv/DEPamSKahqTAHO9UXNrKUe/aKiNgbhZ0JW291tjhwqwcHRV6/5RosBTcPVih75bX4V7miAw=
+	t=1757992710; cv=none; b=KgtuF+vrBi1/f2vBnL6pvrzh4f321B/Tgmq9DrY8N2EuNk/4nkG/OtJokKXuhmRvFrTadfdt78HxKw5/8jANqYyyi28O9kiIvY0QkvRlt4jEQpkuAmq1GcOXSplDDrccJ0gy4ZPxTZgy1/JnBS5fSegRhEm5VNp0+u4E+Str/zc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757992690; c=relaxed/simple;
-	bh=cU112z2sX8C+dlrHuaYfRDpBsoQFCCwX8zBdjrc7YEQ=;
-	h=Date:To:From:Subject:Message-Id; b=IZWpEwWrBDFtOY2xL8L7gSzSmXdILrztyRHYL4E/Oy/s83kK0heB2tyTNfIvGV3cQ73bRXCT6u0qaM0Nl8gEFFdGbvfoghdua2OUSG3Llh2UzfPHtX0eK+/65wswqYT1fHmzQo0A/8MJTswEGDn1wCZ988Dk/AY56rdWdg1kd5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x2lcjQzw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757992710; c=relaxed/simple;
+	bh=hznK8iIL0M6YDH1xkj/zxsJUVNESkLTMX1i3wSJd6h8=;
+	h=Date:To:From:Subject:Message-Id; b=DEKcZmBxtKSCT3l5XzHbrFW8bbayFO0yUGCXlOu539XuDnzT9gKFj6r/2y7jUUcbS8ditgtvL3iJ6GDrqNbWhBxFpX/2Y9FfmI0LsMVP4ZTA06yj4xfptQYntJOWmD72Qa34Ea+k4uwna794rjhx3QE15V1KwE7z1LVSRnaLSRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OBpWlMFU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x2lcjQzw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4974C4CEEB;
-	Tue, 16 Sep 2025 03:18:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OBpWlMFU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4808EC4CEEB;
+	Tue, 16 Sep 2025 03:18:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757992689;
-	bh=cU112z2sX8C+dlrHuaYfRDpBsoQFCCwX8zBdjrc7YEQ=;
+	s=korg; t=1757992709;
+	bh=hznK8iIL0M6YDH1xkj/zxsJUVNESkLTMX1i3wSJd6h8=;
 	h=Date:To:From:Subject:From;
-	b=x2lcjQzwewcm1eE3as/OPKVOyOxB11xSmJtbo87UDIc/M83qvUJfq3GPVPL9E64Ef
-	 pKKhIeGc6Te3DZyxPn2ZD+2bwwINXcOEOt3c6AaFdMWeMBTmxaLXcO3574D/pBaQE9
-	 Vgl8iBvRxRWuGTFibWT/dg1lE63mDAeGPXwNZYrU=
-Date: Mon, 15 Sep 2025 20:18:09 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=OBpWlMFUBqmnyBl5v0qD4Qx+r90gFYldhNcUwUU4Znr/Ci1y+JDL7x6EtOxG+t3JU
+	 Vx7aQ7SgMj2mFBSwbj/bCFbO06Phr4jNrqQ6YP8Yh5Yqqzs6WSUe1OubbZC4NbAC2M
+	 fued6sVvIPbMf95xxr8BeYuSIgpb0GFwZ51zTTkU=
+Date: Mon, 15 Sep 2025 20:18:28 -0700
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosry.ahmed@linux.dev,vitaly.wool@konsulko.se,sj@kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2.patch added to mm-unstable branch
-Message-Id: <20250916031809.C4974C4CEEB@smtp.kernel.org>
+Subject: + mm-zswap-interact-directly-with-zsmalloc-fix.patch added to mm-unstable branch
+Message-Id: <20250916031829.4808EC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix incorrect mixedmap implementation
+     Subject: mm: zswap: interact directly with zsmalloc fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2.patch
+     mm-zswap-interact-directly-with-zsmalloc-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-interact-directly-with-zsmalloc-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: fix incorrect mixedmap implementation
-Date: Mon, 15 Sep 2025 11:01:06 +0100
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: zswap: interact directly with zsmalloc fix
+Date: Mon, 15 Sep 2025 10:56:15 -0400
 
-This was typo'd due to staring too long at the cramfs implementation.
+Yosry points out that the default compressor check only applies when
+something else is configured and we fall back, but not if it was
+configured out of the box but isn't available.  Move the test.  Kconfig
+should not permit this, so replace the pr_err() with a WARN.
 
-Link: https://lkml.kernel.org/r/4ce3adda-6351-4530-92aa-103acf638004@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/20250915153640.GA828739@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Vitaly Wool <vitaly.wool@konsulko.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/zswap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/util.c~mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2
-+++ a/mm/util.c
-@@ -1364,15 +1364,14 @@ int mmap_action_complete(struct mmap_act
- 		unsigned long pgnum = 0;
- 		unsigned long pfn = action->mixedmap.pfn;
- 		unsigned long addr = action->mixedmap.addr;
--		unsigned long vaddr = vma->vm_start;
+--- a/mm/zswap.c~mm-zswap-interact-directly-with-zsmalloc-fix
++++ a/mm/zswap.c
+@@ -306,12 +306,12 @@ static struct zswap_pool *__zswap_pool_c
+ 		       zswap_compressor, CONFIG_ZSWAP_COMPRESSOR_DEFAULT);
+ 		param_free_charp(&zswap_compressor);
+ 		zswap_compressor = CONFIG_ZSWAP_COMPRESSOR_DEFAULT;
+-		if (!crypto_has_acomp(zswap_compressor, 0, 0)) {
+-			pr_err("default compressor %s not available\n",
+-			       zswap_compressor);
+-			zswap_compressor = ZSWAP_PARAM_UNSET;
+-			return NULL;
+-		}
++	}
++
++	/* Default compressor should be available. Kconfig bug? */
++	if (WARN_ON_ONCE(!crypto_has_acomp(zswap_compressor, 0, 0))) {
++		zswap_compressor = ZSWAP_PARAM_UNSET;
++		return NULL;
+ 	}
  
- 		VM_WARN_ON_ONCE(!(vma->vm_flags & VM_MIXEDMAP));
- 
- 		for (; pgnum < action->mixedmap.num_pages;
--		     pgnum++, pfn++, addr += PAGE_SIZE, vaddr += PAGE_SIZE) {
-+		    pgnum++, pfn++, addr += PAGE_SIZE) {
- 			vm_fault_t vmf;
- 
--			vmf = vmf_insert_mixed(vma, vaddr, addr);
-+			vmf = vmf_insert_mixed(vma, addr, pfn);
- 			if (vmf & VM_FAULT_ERROR) {
- 				err = vm_fault_to_errno(vmf, 0);
- 				break;
+ 	return zswap_pool_create(zswap_compressor);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-specify-separate-file-and-vm_file-params-in-vm_area_desc.patch
-mm-do-not-assume-file-==-vma-vm_file-in-compat_vma_mmap_prepare.patch
-mm-shmem-update-shmem-to-use-mmap_prepare.patch
-device-dax-update-devdax-to-use-mmap_prepare.patch
-mm-add-vma_desc_size-vma_desc_pages-helpers.patch
-relay-update-relay-to-use-mmap_prepare.patch
-mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
-mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
-mm-introduce-io_remap_pfn_range_.patch
-mm-introduce-io_remap_pfn_range_-fix.patch
-mm-add-ability-to-take-further-action-in-vm_area_desc.patch
-mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch
-mm-add-ability-to-take-further-action-in-vm_area_desc-fix-2.patch
-doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
-mm-update-mem-char-driver-to-use-mmap_prepare.patch
-mm-update-resctl-to-use-mmap_prepare.patch
-mm-update-cramfs-to-use-mmap_prepare.patch
-fs-proc-add-the-proc_mmap_prepare-hook-for-procfs.patch
-fs-proc-update-vmcore-to-use-proc_mmap_prepare.patch
-fs-proc-update-vmcore-to-use-proc_mmap_prepare-fix.patch
-kcov-update-kcov-to-use-mmap_prepare.patch
+mm-zswap-interact-directly-with-zsmalloc.patch
+mm-zswap-interact-directly-with-zsmalloc-fix.patch
+mm-remove-unused-zpool-layer.patch
+mm-zpdesc-minor-naming-and-comment-corrections.patch
 
