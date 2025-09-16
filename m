@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 606198248B;
-	Tue, 16 Sep 2025 04:07:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0C302C028F;
+	Tue, 16 Sep 2025 04:13:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757995679; cv=none; b=MezFGuilOdEtGFCB/9d1X4GX0nrLEoFEUbwRPI3+yVEn9z0+bCGvbEv2qVLK2AG3QpCtcrFqxnIwBP8DgqaproAkZuJj0l4H3t2t4ZTA90UQLEezS1YC3iyA3ApXQfAE5qZ+080oIoWfoVtILf8fXnUYSwWgWiSItV4Gs7W+088=
+	t=1757996021; cv=none; b=lGcbMsbR3vbyE4xOcOR/5gEs4go4fBqDJYGb+pvQZuJGSSEADRzYv1EvcRrAJtNBn4/4vzPgHzxn6JL8bYjac4nhy0sgQ3sVLcwKiAWZ/NgGCg0K6E7WkHeU0olyczte3Zgil8DX+q+OWTbICgMSuniheOR/goCLQtArrULNv88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757995679; c=relaxed/simple;
-	bh=NYhWKQhQ/0Cc81fHZLR4FOZInE5vxOHt2PJwuSYvfls=;
-	h=Date:To:From:Subject:Message-Id; b=LIUzEBpPzDDPjXEIflXYB9+8b1oNuAb3B+zERDoP3GwKW0oSEbvuqoDgFJwH0QdFCtAayfRJr81h7BJvddHdzwnzFwFSTOmjz09oWeCEoiNIHCsSbvQq3Rf+a+WyDZpaxM0XlN3MJJh7M+7OVuF9LOTbnVcoUXnIBNubq9u2DI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D/EaM1OC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757996021; c=relaxed/simple;
+	bh=ueWSX0OIMNV793/wPU8X3vLygfbgNOy+s9gGrQbQNc0=;
+	h=Date:To:From:Subject:Message-Id; b=OjJqaB5dyG2FN/M6WkgkE8tMjwXvq10ly6SiGEFQd1IEVIRcp3hWOWZM94gialmveSltzyXq/oeCVHyPItbYqasLivIBhP61kEe7sw5J6YFBm2O6m2kN7LAhYHTtKHMsTYB/UnfmWbC1bV/FZ32++7q57XDPKST7kN8ICHteWh4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1rZUCyyi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D/EaM1OC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBBD9C4CEEB;
-	Tue, 16 Sep 2025 04:07:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1rZUCyyi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17DF4C4CEEB;
+	Tue, 16 Sep 2025 04:13:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757995678;
-	bh=NYhWKQhQ/0Cc81fHZLR4FOZInE5vxOHt2PJwuSYvfls=;
+	s=korg; t=1757996021;
+	bh=ueWSX0OIMNV793/wPU8X3vLygfbgNOy+s9gGrQbQNc0=;
 	h=Date:To:From:Subject:From;
-	b=D/EaM1OCT2cDg+QmvfUJd188EDx4kyQxDDvz92McaLPe1Oh3chi7iRtge/UlTozQr
-	 nkirMXc6AcC0s2rlYygfMLzWQbjEj2kt//Xd7kpb7fhl7bsfTxzZR4ve5uybXKQxvK
-	 gBxKbrtw2sB1QJgmKasRxqK4stbrLwcQWSwzZJ3Q=
-Date: Mon, 15 Sep 2025 21:07:58 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mjguzik@gmail.com,jirislaby@kernel.org,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
+	b=1rZUCyyiwRcIUnnCebi/z9rdslgCPtbcYp4ajadmaswufMemyLjFW4ZOQGCUuo9OP
+	 sW9Gz2sB/bq6G/w9QXKlDwkzgNSZll8rMG0Fm5aG7LIkemJixJ7XbYIvxfP88v0LQ4
+	 YYo0B1ymviJ0vKdLcpmp2sBRl0YqEARSmrfQy1WY=
+Date: Mon, 15 Sep 2025 21:13:40 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,joshua.hahnjy@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fix-the-racy-usage-of-task_locktsk-group_leader-in-sys_prlimit64-paths.patch added to mm-nonmm-unstable branch
-Message-Id: <20250916040758.BBBD9C4CEEB@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch added to mm-unstable branch
+Message-Id: <20250916041341.17DF4C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/sys.c: fix the racy usage of task_lock(tsk->group_leader) in sys_prlimit64() paths
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fix-the-racy-usage-of-task_locktsk-group_leader-in-sys_prlimit64-paths.patch
+     Subject: mm/damon/lru_sort: use param_ctx for damon_attrs staging
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fix-the-racy-usage-of-task_locktsk-group_leader-in-sys_prlimit64-paths.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,79 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kernel/sys.c: fix the racy usage of task_lock(tsk->group_leader) in sys_prlimit64() paths
-Date: Mon, 15 Sep 2025 14:09:17 +0200
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/lru_sort: use param_ctx for damon_attrs staging
+Date: Mon, 15 Sep 2025 20:15:49 -0700
 
-The usage of task_lock(tsk->group_leader) in sys_prlimit64()->do_prlimit()
-path is very broken.
+damon_lru_sort_apply_parameters() allocates a new DAMON context, stages
+user-specified DAMON parameters on it, and commits to running DAMON
+context at once, using damon_commit_ctx().  The code is, however, directly
+updating the monitoring attributes of the running context.  And the
+attributes are over-written by later damon_commit_ctx() call.  This means
+that the monitoring attributes parameters are not really working.  Fix the
+wrong use of the parameter context.
 
-sys_prlimit64() does get_task_struct(tsk) but this only protects task_struct
-itself. If tsk != current and tsk is not a leader, this process can exit/exec
-and task_lock(tsk->group_leader) may use the already freed task_struct.
-
-Another problem is that sys_prlimit64() can race with mt-exec which changes
-->group_leader. In this case do_prlimit() may take the wrong lock, or (worse)
-->group_leader may change between task_lock() and task_unlock().
-
-Change sys_prlimit64() to take tasklist_lock when necessary. This is not
-nice, but I don't see a better fix for -stable.
-
-Link: https://lkml.kernel.org/r/20250915120917.GA27702@redhat.com
-Fixes: 18c91bb2d872 ("prlimit: do not grab the tasklist_lock")
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250916031549.115326-1-sj@kernel.org
+Fixes: a30969436428 ("mm/damon/lru_sort: use damon_commit_ctx()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: <stable@vger.kernel.org>	[6.11+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ mm/damon/lru_sort.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/sys.c~fix-the-racy-usage-of-task_locktsk-group_leader-in-sys_prlimit64-paths
-+++ a/kernel/sys.c
-@@ -1734,6 +1734,7 @@ SYSCALL_DEFINE4(prlimit64, pid_t, pid, u
- 	struct rlimit old, new;
- 	struct task_struct *tsk;
- 	unsigned int checkflags = 0;
-+	bool need_tasklist;
- 	int ret;
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging
++++ a/mm/damon/lru_sort.c
+@@ -219,7 +219,7 @@ static int damon_lru_sort_apply_paramete
+ 		goto out;
+ 	}
  
- 	if (old_rlim)
-@@ -1760,8 +1761,25 @@ SYSCALL_DEFINE4(prlimit64, pid_t, pid, u
- 	get_task_struct(tsk);
- 	rcu_read_unlock();
+-	err = damon_set_attrs(ctx, &damon_lru_sort_mon_attrs);
++	err = damon_set_attrs(param_ctx, &damon_lru_sort_mon_attrs);
+ 	if (err)
+ 		goto out;
  
--	ret = do_prlimit(tsk, resource, new_rlim ? &new : NULL,
--			old_rlim ? &old : NULL);
-+	need_tasklist = !same_thread_group(tsk, current);
-+	if (need_tasklist) {
-+		/*
-+		 * Ensure we can't race with group exit or de_thread(),
-+		 * so tsk->group_leader can't be freed or changed until
-+		 * read_unlock(tasklist_lock) below.
-+		 */
-+		read_lock(&tasklist_lock);
-+		if (!pid_alive(tsk))
-+			ret = -ESRCH;
-+	}
-+
-+	if (!ret) {
-+		ret = do_prlimit(tsk, resource, new_rlim ? &new : NULL,
-+				old_rlim ? &old : NULL);
-+	}
-+
-+	if (need_tasklist)
-+		read_unlock(&tasklist_lock);
- 
- 	if (!ret && old_rlim) {
- 		rlim_to_rlim64(&old, &old64);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-fix-the-wrong-comment-on-task_lock-nesting-with-tasklist_lock.patch
-fix-the-racy-usage-of-task_locktsk-group_leader-in-sys_prlimit64-paths.patch
+mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch
+mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch
+mm-damon-core-set-effective-quota-on-first-charge-window.patch
+mm-damon-lru_sort-use-param_ctx-correctly.patch
+docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements.patch
+docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command.patch
+maintainers-rename-damon-section.patch
 
