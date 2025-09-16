@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0C302C028F;
-	Tue, 16 Sep 2025 04:13:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51B1872610
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:18:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757996021; cv=none; b=lGcbMsbR3vbyE4xOcOR/5gEs4go4fBqDJYGb+pvQZuJGSSEADRzYv1EvcRrAJtNBn4/4vzPgHzxn6JL8bYjac4nhy0sgQ3sVLcwKiAWZ/NgGCg0K6E7WkHeU0olyczte3Zgil8DX+q+OWTbICgMSuniheOR/goCLQtArrULNv88=
+	t=1757996330; cv=none; b=W+im7TsxnvkfZjq+QRTjtnQafr+DUlgZsKmGoTPwUxx+2xk8wLutamVg8UrkdzB5R4eCZpe0rx24S/3yoEzJnNAd7HXOzx+zqNP38L+rm58zn06OB1iVaUqSF7K+nV8+GZx8pProqdoHMNpuo5LQO52mZ2xU81yuGZguJEs2CcA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757996021; c=relaxed/simple;
-	bh=ueWSX0OIMNV793/wPU8X3vLygfbgNOy+s9gGrQbQNc0=;
-	h=Date:To:From:Subject:Message-Id; b=OjJqaB5dyG2FN/M6WkgkE8tMjwXvq10ly6SiGEFQd1IEVIRcp3hWOWZM94gialmveSltzyXq/oeCVHyPItbYqasLivIBhP61kEe7sw5J6YFBm2O6m2kN7LAhYHTtKHMsTYB/UnfmWbC1bV/FZ32++7q57XDPKST7kN8ICHteWh4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1rZUCyyi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757996330; c=relaxed/simple;
+	bh=6w93CGPlmR/DZEbK9tpPq+7yHw4a33qm1Hgzy2QY92c=;
+	h=Date:To:From:Subject:Message-Id; b=BJNLoe0lnWO7JMXBPvfa44MkclW05OR7xOrSHkRigdlU1daeRNZXYfBhUd/nZBrMijbKugIJYT0PaATL3elSxHciY7Kz0LGlxkI0kSfipy26tY8rAcneqM24cPE8oMvk5wVnYRij/z1t+jKEu2K24NP6UUlOdwbe5F6matAnM28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PRu4npNG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1rZUCyyi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17DF4C4CEEB;
-	Tue, 16 Sep 2025 04:13:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PRu4npNG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF3E6C4CEEB;
+	Tue, 16 Sep 2025 04:18:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757996021;
-	bh=ueWSX0OIMNV793/wPU8X3vLygfbgNOy+s9gGrQbQNc0=;
+	s=korg; t=1757996329;
+	bh=6w93CGPlmR/DZEbK9tpPq+7yHw4a33qm1Hgzy2QY92c=;
 	h=Date:To:From:Subject:From;
-	b=1rZUCyyiwRcIUnnCebi/z9rdslgCPtbcYp4ajadmaswufMemyLjFW4ZOQGCUuo9OP
-	 sW9Gz2sB/bq6G/w9QXKlDwkzgNSZll8rMG0Fm5aG7LIkemJixJ7XbYIvxfP88v0LQ4
-	 YYo0B1ymviJ0vKdLcpmp2sBRl0YqEARSmrfQy1WY=
-Date: Mon, 15 Sep 2025 21:13:40 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,joshua.hahnjy@gmail.com,sj@kernel.org,akpm@linux-foundation.org
+	b=PRu4npNGCxFi1p0pqR14neRNOj/REFdPGWdlseitErMWgmG8kfqkzE4m0VweCOjNp
+	 kBZUYjvzrJnJXvDhU+PqOyHBTH3c5oLKBnTI1H/eUbtNStYqhndhOWYxCmAgwRQgi8
+	 gD6RyG/pwomzCblr2lYuieWQZEZK/25+Ne3jpGOc=
+Date: Mon, 15 Sep 2025 21:18:49 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch added to mm-unstable branch
-Message-Id: <20250916041341.17DF4C4CEEB@smtp.kernel.org>
+Subject: + mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch added to mm-new branch
+Message-Id: <20250916041849.BF3E6C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: use param_ctx for damon_attrs staging
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch
+     Subject: mm/damon/core: reset age if nr_accesses changes between non-zero and zero
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,39 +65,68 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: use param_ctx for damon_attrs staging
-Date: Mon, 15 Sep 2025 20:15:49 -0700
+Subject: mm/damon/core: reset age if nr_accesses changes between non-zero and zero
+Date: Mon, 15 Sep 2025 20:23:35 -0700
 
-damon_lru_sort_apply_parameters() allocates a new DAMON context, stages
-user-specified DAMON parameters on it, and commits to running DAMON
-context at once, using damon_commit_ctx().  The code is, however, directly
-updating the monitoring attributes of the running context.  And the
-attributes are over-written by later damon_commit_ctx() call.  This means
-that the monitoring attributes parameters are not really working.  Fix the
-wrong use of the parameter context.
+Patch series "mm/damon: misc fixups and improvements for 6.18", v2.
 
-Link: https://lkml.kernel.org/r/20250916031549.115326-1-sj@kernel.org
-Fixes: a30969436428 ("mm/damon/lru_sort: use damon_commit_ctx()")
+Misc fixes and improvements for DAMON that are not critical and therefore
+aims to be merged into Linux 6.18-rc1.
+
+The first patch improves DAMON's age counting for nr_accesses zero to/from
+non-zero changes.
+
+The second patch fixes an initial DAMOS apply interval delay issue that is
+not realistic but still could happen on an odd setup.
+
+The third and the fourth patches update DAMON community meetup description
+and DAMON user-space tool example command for DAMOS usage, respectively.
+
+Finally, the fifth patch updates MAINTAINERS section name for DAMON to
+just DAMON.
+
+
+This patch (of 5):
+
+DAMON resets the age of a region if its nr_accesses value has
+significantly changed.  Specifically, the threshold is calculated as 20%
+of largest nr_accesses of the current snapshot.  This means that regions
+changing the nr_accesses from zero to small non-zero value or from a small
+non-zero value to zero will keep the age.  Since many users treat zero
+nr_accesses regions special, this can be confusing.  Kernel code including
+DAMOS' regions priority calculation and DAMON_STAT's idle time calculation
+also treat zero nr_accesses regions special.  Make it unconfusing by
+resetting the age when the nr_accesses changes between zero and a non-zero
+value.
+
+Link: https://lkml.kernel.org/r/20250916032339.115817-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250916032339.115817-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: <stable@vger.kernel.org>	[6.11+]
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging
-+++ a/mm/damon/lru_sort.c
-@@ -219,7 +219,7 @@ static int damon_lru_sort_apply_paramete
- 		goto out;
- 	}
- 
--	err = damon_set_attrs(ctx, &damon_lru_sort_mon_attrs);
-+	err = damon_set_attrs(param_ctx, &damon_lru_sort_mon_attrs);
- 	if (err)
- 		goto out;
+--- a/mm/damon/core.c~mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero
++++ a/mm/damon/core.c
+@@ -2261,6 +2261,8 @@ static void damon_merge_regions_of(struc
+ 	damon_for_each_region_safe(r, next, t) {
+ 		if (abs(r->nr_accesses - r->last_nr_accesses) > thres)
+ 			r->age = 0;
++		else if ((r->nr_accesses == 0) != (r->last_nr_accesses == 0))
++			r->age = 0;
+ 		else
+ 			r->age++;
  
 _
 
@@ -100,7 +135,6 @@ Patches currently in -mm which might be from sj@kernel.org are
 mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch
 mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch
 mm-damon-core-set-effective-quota-on-first-charge-window.patch
-mm-damon-lru_sort-use-param_ctx-correctly.patch
 docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements.patch
 docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command.patch
 maintainers-rename-damon-section.patch
