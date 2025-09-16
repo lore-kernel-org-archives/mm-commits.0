@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ACE2289E07
-	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:01:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 334792C08CF
+	for <mm-commits@vger.kernel.org>; Tue, 16 Sep 2025 04:01:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757995268; cv=none; b=EDnm87Cr67fGHxWKOH6JEYWlkezsX9xT7a+1jEUT+PnoTstsdMq32fzzMza7e+Q6hpHlgD+XEJVEujDHm08ZJEYfDunYndXF2dVhMjdKDmQsLlDRJMCua3RwcTHxzUOoRLfFXOkBSOdBBfpZ8EoTRUa5ImDx8IwdjAUQSqK5Oes=
+	t=1757995270; cv=none; b=NfOrY5KPNyMf3SVGEtegn1gioGgbAeomZJWDD0iupOnHV0C0oZpxYbIHpNO19C4bggOvEYzwl1TOgQ7h/4u0HL6XwOgHbfGeUoskpyJRHQ5UVavnfZ27y3t+lq53W+GNpsHVsJAXcdiI0NssXdcwS/tiHkGEQeFu7jed3MnmEJo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757995268; c=relaxed/simple;
-	bh=lnEQtuITlz0+hibDVaWad0z7mqL2fjGWaT6alqcOH/E=;
-	h=Date:To:From:Subject:Message-Id; b=audFoF0vtHlbZcA36KvwCz7aAmVjIrE9xX7xZ3pnEaykroiRm3z4GUxJ6ef43+4q+5ST2okc9fDMsKSZjZsdIC+NUjzusHp3r3/QSfVZLEDALRvE5VkceFNOQ4sgww9mzppWzbTwkHhALJg3te5zgNQ25CgMQva0eQwUCCZe3t8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NLCNxUkO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1757995270; c=relaxed/simple;
+	bh=WMkjWFZ5tyMjxpnmLuM+C0+vm7RG6r/WXBatVqFOmxA=;
+	h=Date:To:From:Subject:Message-Id; b=t408XCDkKtH3q38H2o89ho+6FBl7nCDFtCaYhfygzdFrN+uw+VerI+Y6KYClgiyyavUCF8jSHLKiusPIFAA4yh8jOeWiyPgY3+VGmBjnzOiaJYoAUyaQMe2qbb6P+nDiJObd7xl8dBnw1p/rrcf3nzjKx/kitjNWyC31HDp/LEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I4MjUIga; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NLCNxUkO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFA1DC4CEEB;
-	Tue, 16 Sep 2025 04:01:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I4MjUIga"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3CD6C4CEEB;
+	Tue, 16 Sep 2025 04:01:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1757995267;
-	bh=lnEQtuITlz0+hibDVaWad0z7mqL2fjGWaT6alqcOH/E=;
+	s=korg; t=1757995269;
+	bh=WMkjWFZ5tyMjxpnmLuM+C0+vm7RG6r/WXBatVqFOmxA=;
 	h=Date:To:From:Subject:From;
-	b=NLCNxUkOx/VhmgxMZFaNSOghdM9fyGNAqy3vCCJzOpvFDNsewhgeP6KMWFChEVJsj
-	 nVhjXm5FGyZ3xKQD5K8L3ntBUO+1hlyaNges7pZlGPYF0CiWT6OLlJ7VahQd1fqhha
-	 kaZfYmA4K1P2IfjTxOHfngq+TQ3XVHOJKRn4h2I0=
-Date: Mon, 15 Sep 2025 21:01:07 -0700
+	b=I4MjUIgazg0PTHvvgDN3WZxItkutUVx+lRCwY/OZ48etf+UZTgSs9UjHioTkeaotZ
+	 99iUORlquU85kChxfle3n7noPZCE8BjhFoKnz0NFyZnslqe4SGJa1xKqQu6abVqEy4
+	 17Fk726gFq/pctfsgK0Y3vSn4Ei9nFlhD+LxPg8w=
+Date: Mon, 15 Sep 2025 21:01:09 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-set-effective-quota-on-first-charge-window.patch added to mm-new branch
-Message-Id: <20250916040107.BFA1DC4CEEB@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-use-param_ctx-correctly.patch added to mm-new branch
+Message-Id: <20250916040109.C3CD6C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: set effective quota on first charge window
+     Subject: mm/damon/lru_sort: use param_ctx correctly
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-set-effective-quota-on-first-charge-window.patch
+     mm-damon-lru_sort-use-param_ctx-correctly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-effective-quota-on-first-charge-window.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-use-param_ctx-correctly.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,25 +65,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: set effective quota on first charge window
-Date: Sun, 14 Sep 2025 18:58:03 -0700
+Subject: mm/damon/lru_sort: use param_ctx correctly
+Date: Sun, 14 Sep 2025 18:58:04 -0700
 
-The effective quota of a scheme is initialized zero, which means there is
-no quota.  It is set based on user-specified time/quota/quota goals.  But
-the later value set is done only from the second charge window.  As a
-result, a scheme having a user-specified quota can work as not having the
-quota (unexpectedly fast) for the first charge window.  In practical and
-common use cases the quota interval is not too long, and the scheme's
-target access pattern is restrictive.  Hence the issue should be modest. 
-That said, it is apparently an unintended misbehavior.  Fix the problem by
-setting esz on the first charge window.
+damon_lru_sort_apply_parameters() allocates a new DAMON context, stages
+user-specified DAMON parameters on it, and commits to running DAMON
+context at once, using damon_commit_ctx().  The code is, however, directly
+updating the monitoring attributes of the running context.  This doesn't
+cause a real user problem but apparently this is an unintentional mistake
+that can cause code review confusions and future real problems.  Fix the
+wrong use of the parameter context.
 
-Link: https://lkml.kernel.org/r/20250915015807.101505-3-sj@kernel.org
-Fixes: 1cd243030059 ("mm/damon/schemes: implement time quota") # 5.16.x
+Link: https://lkml.kernel.org/r/20250915015807.101505-4-sj@kernel.org
+Fixes: a30969436428 ("mm/damon/lru_sort: use damon_commit_ctx()")
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -93,23 +91,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/damon/lru_sort.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-set-effective-quota-on-first-charge-window
-+++ a/mm/damon/core.c
-@@ -2142,8 +2142,10 @@ static void damos_adjust_quota(struct da
- 		return;
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-use-param_ctx-correctly
++++ a/mm/damon/lru_sort.c
+@@ -219,7 +219,7 @@ static int damon_lru_sort_apply_paramete
+ 		goto out;
+ 	}
  
- 	/* First charge window */
--	if (!quota->total_charged_sz && !quota->charged_from)
-+	if (!quota->total_charged_sz && !quota->charged_from) {
- 		quota->charged_from = jiffies;
-+		damos_set_effective_quota(quota);
-+	}
+-	err = damon_set_attrs(ctx, &damon_lru_sort_mon_attrs);
++	err = damon_set_attrs(param_ctx, &damon_lru_sort_mon_attrs);
+ 	if (err)
+ 		goto out;
  
- 	/* New charge window starts */
- 	if (time_after_eq(jiffies, quota->charged_from +
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
