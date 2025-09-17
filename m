@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A20624A06
-	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 01:05:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F7454A06
+	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 01:06:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758071156; cv=none; b=TEE7Jai23hPcNhInphAT+K0GlAE1MBtTKc9v3casZS2HFE4m0cSfm01Xu2TWp+/XvSLIkLphq46aL04pWhIXJIGBcBDzLfoKpLUEDe5TswsMbjS41wznQRczG8hfBz8WW0SYDKmBwWBs8L8Hh+ymEK7qp2pZGK4Jyxvx2sR2xbE=
+	t=1758071160; cv=none; b=Waw3IwaaIXzSXspOvAsGZeZtlEBHr0Nz1qjIWKIr8NBEfOD5PU4uoRlyuyvrfDNTFIgFRpf9ri5CikptjMVOebWf3Amkj83MxWLPeJpbaKLQH3fpICnsyYeUeTdcXwhvTk0zoa/nBS/t0MrJ36jme1lBw2NUnFwHL/UPb5R2blw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758071156; c=relaxed/simple;
-	bh=2rczjkLBWxhe98hcuGSzXUSS4cj6OpV1umuYlu0NelA=;
-	h=Date:To:From:Subject:Message-Id; b=mZn75Kp8ZHmF5RE6Z+fg2zwvSyQiQ4+5nURsX66WgpcHXkhDgLkXO4AE0q6E5JkxF20HmrrJUNS0/kuZGNUeQRPZVToAyiFz+HSYbAO59tWn2MPrrMJRQsbqYPNRjXt/hSDshIdRARMoYYrWDkgUlbn/ywRTPJjB38ZLrSpRlx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pu9ZjiD5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758071160; c=relaxed/simple;
+	bh=zXsfGYzp3zzQAxkYtv65D+C5cVoI1R+Flm1qHDrPG4w=;
+	h=Date:To:From:Subject:Message-Id; b=XTM3IHkuyiBQ9vJ3VvY+RbfEolvbMYOyBQt0diO+0QSa4p+o1/rlMIsR8AFJ2Yb5T46r+/U/S5paxqzxt/KWAnyqbgIKMT/wu2w12b6BuCIBNRyIXj2TF2I3FoAIZKB6O4w4aO3eKpYLympbRDA6ol4cdu8KYGrxfpjUKR6cQPQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B7HL6Nwd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pu9ZjiD5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 375BAC4CEEB;
-	Wed, 17 Sep 2025 01:05:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B7HL6Nwd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 529A0C4CEEB;
+	Wed, 17 Sep 2025 01:06:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758071156;
-	bh=2rczjkLBWxhe98hcuGSzXUSS4cj6OpV1umuYlu0NelA=;
+	s=korg; t=1758071160;
+	bh=zXsfGYzp3zzQAxkYtv65D+C5cVoI1R+Flm1qHDrPG4w=;
 	h=Date:To:From:Subject:From;
-	b=Pu9ZjiD5CFKl0WT3dRpKTBIthOBnekt5P5bFusBVgGrbj/JUuHPSEEMiUfIcSCe6x
-	 +NBk/bav1dYKeYuglYUmKaCYNcS/NC23y6tp93ggAfA/+37/emdSHanl49HBQpqTHH
-	 Sz/8V9wBMCR5NIAIXevuUK9hVUT1NwE6nBBTV2F8=
-Date: Tue, 16 Sep 2025 18:05:55 -0700
+	b=B7HL6Nwdn1g0Mjvz/qVZUl00wAQqMpu47KE+Q3eTiY74x86YOgcf8A9Al4WJvRMdH
+	 r9gJckhat626eeOJKT4/LESeZ2hxR4rgAdD3tzIyDOOgYfXyxFsA/Z+SQDlBWvizL0
+	 NnlE9FamAUt8bIRawGIiEiSQleo3cdozDDuEsKLY=
+Date: Tue, 16 Sep 2025 18:05:59 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-tidy-up-swap-device-and-cluster-info-helpers.patch added to mm-unstable branch
-Message-Id: <20250917010556.375BAC4CEEB@smtp.kernel.org>
+Subject: + mm-swap-cleanup-swap-cache-api-and-add-kerneldoc.patch added to mm-unstable branch
+Message-Id: <20250917010600.529A0C4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: tidy up swap device and cluster info helpers
+     Subject: mm, swap: cleanup swap cache API and add kerneldoc
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-tidy-up-swap-device-and-cluster-info-helpers.patch
+     mm-swap-cleanup-swap-cache-api-and-add-kerneldoc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-tidy-up-swap-device-and-cluster-info-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cleanup-swap-cache-api-and-add-kerneldoc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,38 +59,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: tidy up swap device and cluster info helpers
-Date: Wed, 17 Sep 2025 00:00:52 +0800
+Subject: mm, swap: cleanup swap cache API and add kerneldoc
+Date: Wed, 17 Sep 2025 00:00:53 +0800
 
-swp_swap_info is the most commonly used helper for retrieving swap info. 
-It has an internal check that may lead to a NULL return value, but almost
-none of its caller checks the return value, making the internal check
-pointless.  In fact, most of these callers already ensured the entry is
-valid and never expect a NULL value.
+In preparation for replacing the swap cache backend with the swap table,
+clean up and add proper kernel doc for all swap cache APIs.  Now all swap
+cache APIs are well-defined with consistent names.
 
-Tidy this up and improve the function names.  If the caller can make sure
-the swap entry/type is valid and the device is pinned, use the new
-introduced __swap_entry_to_info/__swap_type_to_info instead.  They have
-more debug sanity checks and lower overhead as they are inlined.
+No feature change, only renaming and documenting.
 
-Callers that may expect a NULL value should use
-swap_entry_to_info/swap_type_to_info instead.
-
-No feature change.  The rearranged codes should have had no effect, or
-they should have been hitting NULL de-ref bugs already.  Only some new
-sanity checks are added so potential issues may show up in debug build.
-
-The new helpers will be frequently used with swap table later when working
-with swap cache folios.  A locked swap cache folio ensures the entries are
-valid and stable so these helpers are very helpful.
-
-Link: https://lkml.kernel.org/r/20250916160100.31545-8-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20250916160100.31545-9-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Acked-by: Chris Li <chrisl@kernel.org>
 Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Suggested-by: Chris Li <chrisl@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -105,339 +89,382 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ------
- mm/page_io.c         |   12 ++++++------
- mm/swap.h            |   38 +++++++++++++++++++++++++++++++++-----
- mm/swap_state.c      |    4 ++--
- mm/swapfile.c        |   37 +++++++++++++++++++------------------
- 5 files changed, 60 insertions(+), 37 deletions(-)
+ mm/filemap.c        |    2 
+ mm/memory-failure.c |    2 
+ mm/memory.c         |    2 
+ mm/shmem.c          |   10 ++--
+ mm/swap.h           |   48 +++++++++++++----------
+ mm/swap_state.c     |   86 ++++++++++++++++++++++++++++++------------
+ mm/swapfile.c       |    8 +--
+ mm/vmscan.c         |    2 
+ mm/zswap.c          |    2 
+ 9 files changed, 103 insertions(+), 59 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-tidy-up-swap-device-and-cluster-info-helpers
-+++ a/include/linux/swap.h
-@@ -479,7 +479,6 @@ extern sector_t swapdev_block(int, pgoff
- extern int __swap_count(swp_entry_t entry);
- extern bool swap_entry_swapped(struct swap_info_struct *si, swp_entry_t entry);
- extern int swp_swapcount(swp_entry_t entry);
--struct swap_info_struct *swp_swap_info(swp_entry_t entry);
- struct backing_dev_info;
- extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
- extern void exit_swap_address_space(unsigned int type);
-@@ -492,11 +491,6 @@ static inline void put_swap_device(struc
+--- a/mm/filemap.c~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
++++ a/mm/filemap.c
+@@ -4525,7 +4525,7 @@ static void filemap_cachestat(struct add
+ 				 * invalidation, so there might not be
+ 				 * a shadow in the swapcache (yet).
+ 				 */
+-				shadow = get_shadow_from_swap_cache(swp);
++				shadow = swap_cache_get_shadow(swp);
+ 				if (!shadow)
+ 					goto resched;
+ 			}
+--- a/mm/memory.c~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
++++ a/mm/memory.c
+@@ -4699,7 +4699,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 
+ 				memcg1_swapin(entry, nr_pages);
+ 
+-				shadow = get_shadow_from_swap_cache(entry);
++				shadow = swap_cache_get_shadow(entry);
+ 				if (shadow)
+ 					workingset_refault(folio, shadow);
+ 
+--- a/mm/memory-failure.c~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
++++ a/mm/memory-failure.c
+@@ -1127,7 +1127,7 @@ static int me_swapcache_clean(struct pag
+ 	struct folio *folio = page_folio(p);
+ 	int ret;
+ 
+-	delete_from_swap_cache(folio);
++	swap_cache_del_folio(folio);
+ 
+ 	ret = delete_from_lru_cache(folio) ? MF_FAILED : MF_RECOVERED;
+ 	folio_unlock(folio);
+--- a/mm/shmem.c~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
++++ a/mm/shmem.c
+@@ -1661,13 +1661,13 @@ try_split:
+ 		}
+ 
+ 		/*
+-		 * The delete_from_swap_cache() below could be left for
++		 * The swap_cache_del_folio() below could be left for
+ 		 * shrink_folio_list()'s folio_free_swap() to dispose of;
+ 		 * but I'm a little nervous about letting this folio out of
+ 		 * shmem_writeout() in a hybrid half-tmpfs-half-swap state
+ 		 * e.g. folio_mapping(folio) might give an unexpected answer.
+ 		 */
+-		delete_from_swap_cache(folio);
++		swap_cache_del_folio(folio);
+ 		goto redirty;
+ 	}
+ 	if (nr_pages > 1)
+@@ -2045,7 +2045,7 @@ retry:
+ 	new->swap = entry;
+ 
+ 	memcg1_swapin(entry, nr_pages);
+-	shadow = get_shadow_from_swap_cache(entry);
++	shadow = swap_cache_get_shadow(entry);
+ 	if (shadow)
+ 		workingset_refault(new, shadow);
+ 	folio_add_lru(new);
+@@ -2183,7 +2183,7 @@ static void shmem_set_folio_swapin_error
+ 	nr_pages = folio_nr_pages(folio);
+ 	folio_wait_writeback(folio);
+ 	if (!skip_swapcache)
+-		delete_from_swap_cache(folio);
++		swap_cache_del_folio(folio);
+ 	/*
+ 	 * Don't treat swapin error folio as alloced. Otherwise inode->i_blocks
+ 	 * won't be 0 when inode is released and thus trigger WARN_ON(i_blocks)
+@@ -2422,7 +2422,7 @@ static int shmem_swapin_folio(struct ino
+ 		folio->swap.val = 0;
+ 		swapcache_clear(si, swap, nr_pages);
+ 	} else {
+-		delete_from_swap_cache(folio);
++		swap_cache_del_folio(folio);
+ 	}
+ 	folio_mark_dirty(folio);
+ 	swap_free_nr(swap, nr_pages);
+--- a/mm/swapfile.c~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
++++ a/mm/swapfile.c
+@@ -267,7 +267,7 @@ again:
+ 	if (!need_reclaim)
+ 		goto out_unlock;
+ 
+-	delete_from_swap_cache(folio);
++	swap_cache_del_folio(folio);
+ 	folio_set_dirty(folio);
+ 	ret = nr_pages;
+ out_unlock:
+@@ -1124,7 +1124,7 @@ static void swap_range_free(struct swap_
+ 			swap_slot_free_notify(si->bdev, offset);
+ 		offset++;
+ 	}
+-	clear_shadow_from_swap_cache(si->type, begin, end);
++	swap_cache_clear_shadow(si->type, begin, end);
+ 
+ 	/*
+ 	 * Make sure that try_to_unuse() observes si->inuse_pages reaching 0
+@@ -1289,7 +1289,7 @@ int folio_alloc_swap(struct folio *folio
+ 	 * TODO: this could cause a theoretical memory reclaim
+ 	 * deadlock in the swap out path.
+ 	 */
+-	if (add_to_swap_cache(folio, entry, gfp | __GFP_NOMEMALLOC, NULL))
++	if (swap_cache_add_folio(folio, entry, gfp | __GFP_NOMEMALLOC, NULL))
+ 		goto out_free;
+ 
+ 	return 0;
+@@ -1759,7 +1759,7 @@ bool folio_free_swap(struct folio *folio
+ 	if (folio_swapped(folio))
+ 		return false;
+ 
+-	delete_from_swap_cache(folio);
++	swap_cache_del_folio(folio);
+ 	folio_set_dirty(folio);
+ 	return true;
+ }
+--- a/mm/swap.h~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
++++ a/mm/swap.h
+@@ -167,17 +167,29 @@ static inline bool folio_matches_swap_en
+ 	return folio_entry.val == round_down(entry.val, nr_pages);
  }
  
- #else /* CONFIG_SWAP */
--static inline struct swap_info_struct *swp_swap_info(swp_entry_t entry)
--{
--	return NULL;
--}
--
- static inline struct swap_info_struct *get_swap_device(swp_entry_t entry)
++/*
++ * All swap cache helpers below require the caller to ensure the swap entries
++ * used are valid and stablize the device by any of the following ways:
++ * - Hold a reference by get_swap_device(): this ensures a single entry is
++ *   valid and increases the swap device's refcount.
++ * - Locking a folio in the swap cache: this ensures the folio's swap entries
++ *   are valid and pinned, also implies reference to the device.
++ * - Locking anything referencing the swap entry: e.g. PTL that protects
++ *   swap entries in the page table, similar to locking swap cache folio.
++ * - See the comment of get_swap_device() for more complex usage.
++ */
++struct folio *swap_cache_get_folio(swp_entry_t entry);
++void *swap_cache_get_shadow(swp_entry_t entry);
++int swap_cache_add_folio(struct folio *folio, swp_entry_t entry,
++			 gfp_t gfp, void **shadow);
++void swap_cache_del_folio(struct folio *folio);
++void __swap_cache_del_folio(struct folio *folio,
++			    swp_entry_t entry, void *shadow);
++void swap_cache_clear_shadow(int type, unsigned long begin,
++			     unsigned long end);
++
+ void show_swap_cache_info(void);
+-void *get_shadow_from_swap_cache(swp_entry_t entry);
+-int add_to_swap_cache(struct folio *folio, swp_entry_t entry,
+-		      gfp_t gfp, void **shadowp);
+-void __delete_from_swap_cache(struct folio *folio,
+-			      swp_entry_t entry, void *shadow);
+-void delete_from_swap_cache(struct folio *folio);
+-void clear_shadow_from_swap_cache(int type, unsigned long begin,
+-				  unsigned long end);
+ void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr);
+-struct folio *swap_cache_get_folio(swp_entry_t entry);
+ struct folio *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+ 		struct vm_area_struct *vma, unsigned long addr,
+ 		struct swap_iocb **plug);
+@@ -305,28 +317,22 @@ static inline struct folio *swap_cache_g
+ 	return NULL;
+ }
+ 
+-static inline void *get_shadow_from_swap_cache(swp_entry_t entry)
++static inline void *swap_cache_get_shadow(swp_entry_t entry)
  {
  	return NULL;
---- a/mm/page_io.c~mm-swap-tidy-up-swap-device-and-cluster-info-helpers
-+++ a/mm/page_io.c
-@@ -204,7 +204,7 @@ static bool is_folio_zero_filled(struct
- static void swap_zeromap_folio_set(struct folio *folio)
- {
- 	struct obj_cgroup *objcg = get_obj_cgroup_from_folio(folio);
--	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
- 	int nr_pages = folio_nr_pages(folio);
- 	swp_entry_t entry;
- 	unsigned int i;
-@@ -223,7 +223,7 @@ static void swap_zeromap_folio_set(struc
- 
- static void swap_zeromap_folio_clear(struct folio *folio)
- {
--	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
- 	swp_entry_t entry;
- 	unsigned int i;
- 
-@@ -374,7 +374,7 @@ static void sio_write_complete(struct ki
- static void swap_writepage_fs(struct folio *folio, struct swap_iocb **swap_plug)
- {
- 	struct swap_iocb *sio = swap_plug ? *swap_plug : NULL;
--	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
- 	struct file *swap_file = sis->swap_file;
- 	loff_t pos = swap_dev_pos(folio->swap);
- 
-@@ -446,7 +446,7 @@ static void swap_writepage_bdev_async(st
- 
- void __swap_writepage(struct folio *folio, struct swap_iocb **swap_plug)
- {
--	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
- 
- 	VM_BUG_ON_FOLIO(!folio_test_swapcache(folio), folio);
- 	/*
-@@ -537,7 +537,7 @@ static bool swap_read_folio_zeromap(stru
- 
- static void swap_read_folio_fs(struct folio *folio, struct swap_iocb **plug)
- {
--	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
- 	struct swap_iocb *sio = NULL;
- 	loff_t pos = swap_dev_pos(folio->swap);
- 
-@@ -608,7 +608,7 @@ static void swap_read_folio_bdev_async(s
- 
- void swap_read_folio(struct folio *folio, struct swap_iocb **plug)
- {
--	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
- 	bool synchronous = sis->flags & SWP_SYNCHRONOUS_IO;
- 	bool workingset = folio_test_workingset(folio);
- 	unsigned long pflags;
---- a/mm/swapfile.c~mm-swap-tidy-up-swap-device-and-cluster-info-helpers
-+++ a/mm/swapfile.c
-@@ -102,7 +102,7 @@ static PLIST_HEAD(swap_active_head);
- static struct plist_head *swap_avail_heads;
- static DEFINE_SPINLOCK(swap_avail_lock);
- 
--static struct swap_info_struct *swap_info[MAX_SWAPFILES];
-+struct swap_info_struct *swap_info[MAX_SWAPFILES];
- 
- static DEFINE_MUTEX(swapon_mutex);
- 
-@@ -124,14 +124,20 @@ static DEFINE_PER_CPU(struct percpu_swap
- 	.lock = INIT_LOCAL_LOCK(),
- };
- 
--static struct swap_info_struct *swap_type_to_swap_info(int type)
-+/* May return NULL on invalid type, caller must check for NULL return */
-+static struct swap_info_struct *swap_type_to_info(int type)
- {
- 	if (type >= MAX_SWAPFILES)
- 		return NULL;
--
- 	return READ_ONCE(swap_info[type]); /* rcu_dereference() */
  }
  
-+/* May return NULL on invalid entry, caller must check for NULL return */
-+static struct swap_info_struct *swap_entry_to_info(swp_entry_t entry)
-+{
-+	return swap_type_to_info(swp_type(entry));
-+}
-+
- static inline unsigned char swap_count(unsigned char ent)
- {
- 	return ent & ~SWAP_HAS_CACHE;	/* may include COUNT_CONTINUED flag */
-@@ -342,7 +348,7 @@ offset_to_swap_extent(struct swap_info_s
- 
- sector_t swap_folio_sector(struct folio *folio)
- {
--	struct swap_info_struct *sis = swp_swap_info(folio->swap);
-+	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
- 	struct swap_extent *se;
- 	sector_t sector;
- 	pgoff_t offset;
-@@ -1300,7 +1306,7 @@ static struct swap_info_struct *_swap_in
- 
- 	if (!entry.val)
- 		goto out;
--	si = swp_swap_info(entry);
-+	si = swap_entry_to_info(entry);
- 	if (!si)
- 		goto bad_nofile;
- 	if (data_race(!(si->flags & SWP_USED)))
-@@ -1415,7 +1421,7 @@ struct swap_info_struct *get_swap_device
- 
- 	if (!entry.val)
- 		goto out;
--	si = swp_swap_info(entry);
-+	si = swap_entry_to_info(entry);
- 	if (!si)
- 		goto bad_nofile;
- 	if (!get_swap_device_info(si))
-@@ -1538,7 +1544,7 @@ static void swap_entries_free(struct swa
- 	unsigned char *map_end = map + nr_pages;
- 
- 	/* It should never free entries across different clusters */
--	VM_BUG_ON(ci != swp_offset_cluster(si, offset + nr_pages - 1));
-+	VM_BUG_ON(ci != __swap_offset_to_cluster(si, offset + nr_pages - 1));
- 	VM_BUG_ON(cluster_is_empty(ci));
- 	VM_BUG_ON(ci->count < nr_pages);
- 
-@@ -1596,7 +1602,7 @@ void put_swap_folio(struct folio *folio,
- 
- int __swap_count(swp_entry_t entry)
- {
--	struct swap_info_struct *si = swp_swap_info(entry);
-+	struct swap_info_struct *si = __swap_entry_to_info(entry);
- 	pgoff_t offset = swp_offset(entry);
- 
- 	return swap_count(si->swap_map[offset]);
-@@ -1827,7 +1833,7 @@ out:
- 
- swp_entry_t get_swap_page_of_type(int type)
- {
--	struct swap_info_struct *si = swap_type_to_swap_info(type);
-+	struct swap_info_struct *si = swap_type_to_info(type);
- 	unsigned long offset;
- 	swp_entry_t entry = {0};
- 
-@@ -1908,7 +1914,7 @@ int find_first_swap(dev_t *device)
-  */
- sector_t swapdev_block(int type, pgoff_t offset)
- {
--	struct swap_info_struct *si = swap_type_to_swap_info(type);
-+	struct swap_info_struct *si = swap_type_to_info(type);
- 	struct swap_extent *se;
- 
- 	if (!si || !(si->flags & SWP_WRITEOK))
-@@ -2837,7 +2843,7 @@ static void *swap_start(struct seq_file
- 	if (!l)
- 		return SEQ_START_TOKEN;
- 
--	for (type = 0; (si = swap_type_to_swap_info(type)); type++) {
-+	for (type = 0; (si = swap_type_to_info(type)); type++) {
- 		if (!(si->flags & SWP_USED) || !si->swap_map)
- 			continue;
- 		if (!--l)
-@@ -2858,7 +2864,7 @@ static void *swap_next(struct seq_file *
- 		type = si->type + 1;
- 
- 	++(*pos);
--	for (; (si = swap_type_to_swap_info(type)); type++) {
-+	for (; (si = swap_type_to_info(type)); type++) {
- 		if (!(si->flags & SWP_USED) || !si->swap_map)
- 			continue;
- 		return si;
-@@ -3531,7 +3537,7 @@ static int __swap_duplicate(swp_entry_t
- 	unsigned char has_cache;
- 	int err, i;
- 
--	si = swp_swap_info(entry);
-+	si = swap_entry_to_info(entry);
- 	if (WARN_ON_ONCE(!si)) {
- 		pr_err("%s%08lx\n", Bad_file, entry.val);
- 		return -EINVAL;
-@@ -3646,11 +3652,6 @@ void swapcache_clear(struct swap_info_st
- 	swap_entries_put_cache(si, entry, nr);
- }
- 
--struct swap_info_struct *swp_swap_info(swp_entry_t entry)
+-static inline int add_to_swap_cache(struct folio *folio, swp_entry_t entry,
+-					gfp_t gfp_mask, void **shadowp)
 -{
--	return swap_type_to_swap_info(swp_type(entry));
+-	return -1;
 -}
 -
- /*
-  * add_swap_count_continuation - called when a swap count is duplicated
-  * beyond SWAP_MAP_MAX, it allocates a new page and links that to the entry's
---- a/mm/swap.h~mm-swap-tidy-up-swap-device-and-cluster-info-helpers
-+++ a/mm/swap.h
-@@ -15,6 +15,8 @@ extern int page_cluster;
- #define swap_entry_order(order)	0
- #endif
- 
-+extern struct swap_info_struct *swap_info[];
-+
- /*
-  * We use this to track usage of a cluster. A cluster is a block of swap disk
-  * space with SWAPFILE_CLUSTER pages long and naturally aligns in disk. All
-@@ -53,9 +55,29 @@ enum swap_cluster_flags {
- #include <linux/swapops.h> /* for swp_offset */
- #include <linux/blk_types.h> /* for bio_end_io_t */
- 
--static inline struct swap_cluster_info *swp_offset_cluster(
-+/*
-+ * Callers of all helpers below must ensure the entry, type, or offset is
-+ * valid, and protect the swap device with reference count or locks.
-+ */
-+static inline struct swap_info_struct *__swap_type_to_info(int type)
-+{
-+	struct swap_info_struct *si;
-+
-+	si = READ_ONCE(swap_info[type]); /* rcu_dereference() */
-+	VM_WARN_ON_ONCE(percpu_ref_is_zero(&si->users)); /* race with swapoff */
-+	return si;
-+}
-+
-+static inline struct swap_info_struct *__swap_entry_to_info(swp_entry_t entry)
-+{
-+	return __swap_type_to_info(swp_type(entry));
-+}
-+
-+static inline struct swap_cluster_info *__swap_offset_to_cluster(
- 		struct swap_info_struct *si, pgoff_t offset)
+-static inline void __delete_from_swap_cache(struct folio *folio,
+-					swp_entry_t entry, void *shadow)
++static inline int swap_cache_add_folio(swp_entry_t entry, struct folio *folio,
++				       gfp_t gfp, void **shadow)
  {
-+	VM_WARN_ON_ONCE(percpu_ref_is_zero(&si->users)); /* race with swapoff */
-+	VM_WARN_ON_ONCE(offset >= si->max);
- 	return &si->cluster_info[offset / SWAPFILE_CLUSTER];
++	return -EINVAL;
  }
  
-@@ -70,8 +92,9 @@ static inline struct swap_cluster_info *
- static inline struct swap_cluster_info *swap_cluster_lock(
- 		struct swap_info_struct *si, unsigned long offset)
- {
--	struct swap_cluster_info *ci = swp_offset_cluster(si, offset);
-+	struct swap_cluster_info *ci = __swap_offset_to_cluster(si, offset);
- 
-+	VM_WARN_ON_ONCE(percpu_ref_is_zero(&si->users)); /* race with swapoff */
- 	spin_lock(&ci->lock);
- 	return ci;
- }
-@@ -170,7 +193,7 @@ void swap_update_readahead(struct folio
- 
- static inline unsigned int folio_swap_flags(struct folio *folio)
- {
--	return swp_swap_info(folio->swap)->flags;
-+	return __swap_entry_to_info(folio->swap)->flags;
- }
- 
- /*
-@@ -181,7 +204,7 @@ static inline unsigned int folio_swap_fl
- static inline int swap_zeromap_batch(swp_entry_t entry, int max_nr,
- 		bool *is_zeromap)
- {
--	struct swap_info_struct *sis = swp_swap_info(entry);
-+	struct swap_info_struct *sis = __swap_entry_to_info(entry);
- 	unsigned long start = swp_offset(entry);
- 	unsigned long end = start + max_nr;
- 	bool first_bit;
-@@ -200,7 +223,7 @@ static inline int swap_zeromap_batch(swp
- 
- static inline int non_swapcache_batch(swp_entry_t entry, int max_nr)
- {
--	struct swap_info_struct *si = swp_swap_info(entry);
-+	struct swap_info_struct *si = __swap_entry_to_info(entry);
- 	pgoff_t offset = swp_offset(entry);
- 	int i;
- 
-@@ -219,6 +242,11 @@ static inline int non_swapcache_batch(sw
- 
- #else /* CONFIG_SWAP */
- struct swap_iocb;
-+static inline struct swap_info_struct *__swap_entry_to_info(swp_entry_t entry)
-+{
-+	return NULL;
-+}
-+
- static inline void swap_read_folio(struct folio *folio, struct swap_iocb **plug)
+-static inline void delete_from_swap_cache(struct folio *folio)
++static inline void swap_cache_del_folio(struct folio *folio)
  {
  }
---- a/mm/swap_state.c~mm-swap-tidy-up-swap-device-and-cluster-info-helpers
+ 
+-static inline void clear_shadow_from_swap_cache(int type, unsigned long begin,
+-				unsigned long end)
++static inline void __swap_cache_del_folio(struct folio *folio, swp_entry_t entry, void *shadow)
+ {
+ }
+ 
+--- a/mm/swap_state.c~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
 +++ a/mm/swap_state.c
-@@ -336,7 +336,7 @@ struct folio *__read_swap_cache_async(sw
- 		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
- 		bool skip_if_exists)
+@@ -78,8 +78,8 @@ void show_swap_cache_info(void)
+  * Context: Caller must ensure @entry is valid and protect the swap device
+  * with reference count or locks.
+  * Return: Returns the found folio on success, NULL otherwise. The caller
+- * must lock and check if the folio still matches the swap entry before
+- * use (e.g. with folio_matches_swap_entry).
++ * must lock nd check if the folio still matches the swap entry before
++ * use (e.g., folio_matches_swap_entry).
+  */
+ struct folio *swap_cache_get_folio(swp_entry_t entry)
  {
--	struct swap_info_struct *si = swp_swap_info(entry);
-+	struct swap_info_struct *si = __swap_entry_to_info(entry);
- 	struct folio *folio;
- 	struct folio *new_folio = NULL;
- 	struct folio *result = NULL;
-@@ -560,7 +560,7 @@ struct folio *swap_cluster_readahead(swp
- 	unsigned long offset = entry_offset;
- 	unsigned long start_offset, end_offset;
- 	unsigned long mask;
--	struct swap_info_struct *si = swp_swap_info(entry);
-+	struct swap_info_struct *si = __swap_entry_to_info(entry);
- 	struct blk_plug plug;
- 	struct swap_iocb *splug = NULL;
- 	bool page_allocated;
+@@ -90,7 +90,15 @@ struct folio *swap_cache_get_folio(swp_e
+ 	return folio;
+ }
+ 
+-void *get_shadow_from_swap_cache(swp_entry_t entry)
++/**
++ * swap_cache_get_shadow - Looks up a shadow in the swap cache.
++ * @entry: swap entry used for the lookup.
++ *
++ * Context: Caller must ensure @entry is valid and protect the swap device
++ * with reference count or locks.
++ * Return: Returns either NULL or an XA_VALUE (shadow).
++ */
++void *swap_cache_get_shadow(swp_entry_t entry)
+ {
+ 	struct address_space *address_space = swap_address_space(entry);
+ 	pgoff_t idx = swap_cache_index(entry);
+@@ -102,12 +110,21 @@ void *get_shadow_from_swap_cache(swp_ent
+ 	return NULL;
+ }
+ 
+-/*
+- * add_to_swap_cache resembles filemap_add_folio on swapper_space,
+- * but sets SwapCache flag and 'swap' instead of mapping and index.
++/**
++ * swap_cache_add_folio - Add a folio into the swap cache.
++ * @folio: The folio to be added.
++ * @entry: The swap entry corresponding to the folio.
++ * @gfp: gfp_mask for XArray node allocation.
++ * @shadowp: If a shadow is found, return the shadow.
++ *
++ * Context: Caller must ensure @entry is valid and protect the swap device
++ * with reference count or locks.
++ * The caller also needs to mark the corresponding swap_map slots with
++ * SWAP_HAS_CACHE to avoid race or conflict.
++ * Return: Returns 0 on success, error code otherwise.
+  */
+-int add_to_swap_cache(struct folio *folio, swp_entry_t entry,
+-			gfp_t gfp, void **shadowp)
++int swap_cache_add_folio(struct folio *folio, swp_entry_t entry,
++			 gfp_t gfp, void **shadowp)
+ {
+ 	struct address_space *address_space = swap_address_space(entry);
+ 	pgoff_t idx = swap_cache_index(entry);
+@@ -155,12 +172,20 @@ unlock:
+ 	return xas_error(&xas);
+ }
+ 
+-/*
+- * This must be called only on folios that have
+- * been verified to be in the swap cache.
++/**
++ * __swap_cache_del_folio - Removes a folio from the swap cache.
++ * @folio: The folio.
++ * @entry: The first swap entry that the folio corresponds to.
++ * @shadow: shadow value to be filled in the swap cache.
++ *
++ * Removes a folio from the swap cache and fills a shadow in place.
++ * This won't put the folio's refcount. The caller has to do that.
++ *
++ * Context: Caller must hold the xa_lock, ensure the folio is
++ * locked and in the swap cache, using the index of @entry.
+  */
+-void __delete_from_swap_cache(struct folio *folio,
+-			swp_entry_t entry, void *shadow)
++void __swap_cache_del_folio(struct folio *folio,
++			    swp_entry_t entry, void *shadow)
+ {
+ 	struct address_space *address_space = swap_address_space(entry);
+ 	int i;
+@@ -186,27 +211,40 @@ void __delete_from_swap_cache(struct fol
+ 	__lruvec_stat_mod_folio(folio, NR_SWAPCACHE, -nr);
+ }
+ 
+-/*
+- * This must be called only on folios that have
+- * been verified to be in the swap cache and locked.
+- * It will never put the folio into the free list,
+- * the caller has a reference on the folio.
++/**
++ * swap_cache_del_folio - Removes a folio from the swap cache.
++ * @folio: The folio.
++ *
++ * Same as __swap_cache_del_folio, but handles lock and refcount. The
++ * caller must ensure the folio is either clean or has a swap count
++ * equal to zero, or it may cause data loss.
++ *
++ * Context: Caller must ensure the folio is locked and in the swap cache.
+  */
+-void delete_from_swap_cache(struct folio *folio)
++void swap_cache_del_folio(struct folio *folio)
+ {
+ 	swp_entry_t entry = folio->swap;
+ 	struct address_space *address_space = swap_address_space(entry);
+ 
+ 	xa_lock_irq(&address_space->i_pages);
+-	__delete_from_swap_cache(folio, entry, NULL);
++	__swap_cache_del_folio(folio, entry, NULL);
+ 	xa_unlock_irq(&address_space->i_pages);
+ 
+ 	put_swap_folio(folio, entry);
+ 	folio_ref_sub(folio, folio_nr_pages(folio));
+ }
+ 
+-void clear_shadow_from_swap_cache(int type, unsigned long begin,
+-				unsigned long end)
++/**
++ * swap_cache_clear_shadow - Clears a set of shadows in the swap cache.
++ * @type: Indicates the swap device.
++ * @begin: Beginning offset of the range.
++ * @end: Ending offset of the range.
++ *
++ * Context: Caller must ensure the range is valid and hold a reference to
++ * the swap device.
++ */
++void swap_cache_clear_shadow(int type, unsigned long begin,
++			     unsigned long end)
+ {
+ 	unsigned long curr = begin;
+ 	void *old;
+@@ -393,7 +431,7 @@ struct folio *__read_swap_cache_async(sw
+ 			goto put_and_return;
+ 
+ 		/*
+-		 * We might race against __delete_from_swap_cache(), and
++		 * We might race against __swap_cache_del_folio(), and
+ 		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
+ 		 * has not yet been cleared.  Or race against another
+ 		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
+@@ -412,7 +450,7 @@ struct folio *__read_swap_cache_async(sw
+ 		goto fail_unlock;
+ 
+ 	/* May fail (-ENOMEM) if XArray node allocation failed. */
+-	if (add_to_swap_cache(new_folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
++	if (swap_cache_add_folio(new_folio, entry, gfp_mask & GFP_RECLAIM_MASK, &shadow))
+ 		goto fail_unlock;
+ 
+ 	memcg1_swapin(entry, 1);
+--- a/mm/vmscan.c~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
++++ a/mm/vmscan.c
+@@ -776,7 +776,7 @@ static int __remove_mapping(struct addre
+ 
+ 		if (reclaimed && !mapping_exiting(mapping))
+ 			shadow = workingset_eviction(folio, target_memcg);
+-		__delete_from_swap_cache(folio, swap, shadow);
++		__swap_cache_del_folio(folio, swap, shadow);
+ 		memcg1_swapout(folio, swap);
+ 		xa_unlock_irq(&mapping->i_pages);
+ 		put_swap_folio(folio, swap);
+--- a/mm/zswap.c~mm-swap-cleanup-swap-cache-api-and-add-kerneldoc
++++ a/mm/zswap.c
+@@ -1069,7 +1069,7 @@ static int zswap_writeback_entry(struct
+ 
+ out:
+ 	if (ret && ret != -EEXIST) {
+-		delete_from_swap_cache(folio);
++		swap_cache_del_folio(folio);
+ 		folio_unlock(folio);
+ 	}
+ 	folio_put(folio);
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
