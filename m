@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FEE13C38
-	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 00:56:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D548E3C38
+	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 00:56:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758070607; cv=none; b=UlIm/q7SJKLARux8zmpGiMzioYdZYniLHAxvS/vgX1n9VyBD8WYgCjH9eV6f8BbhD561bBigscq5WcGm7y9IcbTZNIEgMQJA5E6ChzfwnOSctYhZfnaayZiLw36CvkSaP8Z9egYbCd+o4092F1joqGC93SlN07kH+823dfJSSoU=
+	t=1758070609; cv=none; b=ZvamvYZHbD8iqjasuNoVb406eCYepAbkd8NZFdY2ANDubsmGBnv0619foArbWk3HRJ1jRlA0PpF9Efb6u7Ys8Abs0+Ksvf+XYe1qVZVGbubbnP925dDWErEe0lg1SI7kRPaQedYzjOcpZEMWepXi/2dME4kLl1VJxZKjz2ZwuLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758070607; c=relaxed/simple;
-	bh=i45X4ByumuTzmwB/H44+RyUZNiYKrTwOCmen/zM/qhA=;
-	h=Date:To:From:Subject:Message-Id; b=aglaADMjMU+0w8bQXhfdUo/AHVcDj4dQee9ItrdUaVD1j3PaOPVWrluXNYZ/8qhHWCnaBi82GWyY0fD9+LSvzqeVmtQuvpSh+x33Zs8tbM4I0m5cm96SRJZrbHQnrwAxdTjDdVtfGlFxalZjLrVY84YNPZIzK2yNLBnezXIz1/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y3hwD0q9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758070609; c=relaxed/simple;
+	bh=E5ZKpRY/1YcnjTG9pBDFVjKtML45KTgZBROL0VJl4jE=;
+	h=Date:To:From:Subject:Message-Id; b=Yj2fjrTbfC64b3mU587+YWpJwFK1XbO9r1iVNkzTykO/Xrc9xBO5YU8p4EMy4SkG3ZdKeh9ejQ2vy6XWY1NZ025Lphi5hdu+Q81PxHsPoCQNIy/t68pdcube3Lux0uY4/wu7ETaB0pHmChPXSaozw12458yAGwvGoQRhn423IwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vgZfgqec; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y3hwD0q9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BEEEC4CEEB;
-	Wed, 17 Sep 2025 00:56:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vgZfgqec"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47B2BC4CEEB;
+	Wed, 17 Sep 2025 00:56:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758070607;
-	bh=i45X4ByumuTzmwB/H44+RyUZNiYKrTwOCmen/zM/qhA=;
+	s=korg; t=1758070609;
+	bh=E5ZKpRY/1YcnjTG9pBDFVjKtML45KTgZBROL0VJl4jE=;
 	h=Date:To:From:Subject:From;
-	b=Y3hwD0q9l5mC9NZHg+DtMwPF9OYxZVWft28It5ZQskVDCCoys7ZwCZyVAGuAtrv1n
-	 IZquJfM4UcYKSvHce4qj4q807JnuVQBv90oPiziBTX0i0Tkb1vNO2lKBcMVF7MQ3iP
-	 btsk4GvCXTGkFcK7XUAVsjJ6cm2CDLc2lfLJ+UOo=
-Date: Tue, 16 Sep 2025 17:56:46 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,souravpanda@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
+	b=vgZfgqecrTuy+vOxzGs8PZp+7nPmC+21UDVvWgHJS74zVhM+75dimsFw78/c9BIhU
+	 zS6DuxHPcHBUekH0rMzAODz5oUW+Q+yWLvfZMmgRUJuAT5IBslHW6VRTg1p4Q/ASVX
+	 qxagwa3Txsj038S3VzE6bUsZYvwKx1icp/180A/8=
+Date: Tue, 16 Sep 2025 17:56:48 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,surenb@google.com,souravpanda@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,hannes@cmpxchg.org,00107082@163.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix.patch added to mm-new branch
-Message-Id: <20250917005647.3BEEEC4CEEB@smtp.kernel.org>
+Subject: + alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch added to mm-new branch
+Message-Id: <20250917005649.47B2BC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix
+     Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix
 has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix.patch
+     alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,16 +64,12 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix
-Date: Tue, 16 Sep 2025 09:01:10 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix
+Date: Tue Sep 16 05:53:33 PM PDT 2025
 
-Document new "accurate:no" marker.
+simplification per Usama, reflow text
 
-Link: https://lkml.kernel.org/r/20250916160110.266190-1-surenb@google.com
-Fixes: 39d117e04d15 ("alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: David Wang <00107082@163.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -82,38 +78,43 @@ Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Sourav Panda <souravpanda@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/filesystems/proc.rst |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix
+--- a/Documentation/filesystems/proc.rst~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix
 +++ a/Documentation/filesystems/proc.rst
-@@ -1014,6 +1014,14 @@ If file version is 2.0 or higher then ea
- For example if the counters are not accurate, the line will be appended with
- "accurate:no" pair.
+@@ -1016,11 +1016,11 @@ For example if the counters are not accu
  
-+Supported markers in v2:
-+accurate:no
-+              Absolute values of the counters in this line are not
-+              accurate because of the failure to allocate storage required
-+              to track some of the allocations made at this location.
-+              Deltas in these counters are accurate, therefore counters
-+              can be used to track allocation size and count changes.
-+
+ Supported markers in v2:
+ accurate:no
+-              Absolute values of the counters in this line are not
+-              accurate because of the failure to allocate storage required
+-              to track some of the allocations made at this location.
+-              Deltas in these counters are accurate, therefore counters
+-              can be used to track allocation size and count changes.
++              Absolute values of the counters in this line are not accurate
++              because of the failure to allocate memory to track some of the
++              allocations made at this location.  Deltas in these counters are
++              accurate, therefore counters can be used to track allocation size
++              and count changes.
+ 
  Example output.
  
- ::
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-alloc_tag-use-release_pages-in-the-cleanup-path.patch
-alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down.patch
-alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages.patch
-alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
-alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix.patch
+kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
+memfd-move-mfd_all_flags-definition-to-memfdh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
+mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
+include-linux-pgtableh-convert-arch_enter_lazy_mmu_mode-and-friends-to-static-inlines.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
 
