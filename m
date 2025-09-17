@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 627D71B3923
-	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 20:46:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EABA1B3923
+	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 20:46:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758141998; cv=none; b=KfLOv0sSAzoMo3oxf0mPRE66T6CqZobNNNWJ2sPf2JygpSsGpg3rAdE3pkDrhadNypceQeyED7UbKJPduJ57CxeQmJRcj7a27yQd1aKB8oKfSay/y6bBFHGDzU/xaoLD7KLAhODIzb8Y2OzFEBDd5EhF1Qz6hb2Au5maUa69rJU=
+	t=1758142001; cv=none; b=jYwp8wuaQ1B9ujDC9rikvrqRx1yCouF3dDjNZtYVP47+ZmhTxEf3oMwy8d3fd4ViM+x3abAYwdOI3Q6hJutf74pYVHwkzff2FAOeiKqsQzWvGKU9zVdJpsTnd2b7XhzKWXBj6wxJ/lYVRBDHdkBzYQdJJRLmW5ueBstE28S3dw8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758141998; c=relaxed/simple;
-	bh=+H2ua/9kvoC+qeeqkjj/YVx0cbHWaNtSNWzkEamCsqo=;
-	h=Date:To:From:Subject:Message-Id; b=QQGGjuEe0k0Tv+q2gYVquArKSOJKv0cZVuyQxinOAMLA6V9E1AT/qwyBukzsSM1cdZk9PYompHZBd9ME7fSWgqqFaqEM2MbY2o1sHeuBrmWmMuGUBhBmIS4Orw0eZhCCgMSvEXt/H2+UxbSsDJIx7G5HML6UNycYV//z6t/pU/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nUWjiKOy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758142001; c=relaxed/simple;
+	bh=7lg7Ui5YqpgSc8Fe6nNx38G4jbCoVp96315Rr9KBlHQ=;
+	h=Date:To:From:Subject:Message-Id; b=mTHWRuoA1gvUzH+ji8bzd8F0iLTDAiTKQOHVUFIzr2vZibAWbE1gk88tgXdo2xf8gVbU5vEvYz+32kZ2Yhpd9UI3GjqCmv/kE+EbKBX8JVyEgJO9oKADXE2X+rshqNOUnHJdl7O3tS2kg++DcZveiiH45UnH3V9+f+7NnKth6Gk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w0+eRjxl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nUWjiKOy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7D72C4CEE7;
-	Wed, 17 Sep 2025 20:46:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w0+eRjxl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82349C4CEE7;
+	Wed, 17 Sep 2025 20:46:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758141997;
-	bh=+H2ua/9kvoC+qeeqkjj/YVx0cbHWaNtSNWzkEamCsqo=;
+	s=korg; t=1758142000;
+	bh=7lg7Ui5YqpgSc8Fe6nNx38G4jbCoVp96315Rr9KBlHQ=;
 	h=Date:To:From:Subject:From;
-	b=nUWjiKOyXmkPgLIqJDUsl77/MReEB4fvBvUYhq9Uh+OGFP/HY51uVeh0KYXseLgMR
-	 LpChiKu/b88InV5gigkds+suvBlySK1XXHyAv4zmAPnWeDyQ2VfD39CWT7oDttTDN5
-	 YsRssSDX1+c3S3Ntx3wN9JgEVfAW6c8XaM1weTmM=
-Date: Wed, 17 Sep 2025 13:46:37 -0700
-To: mm-commits@vger.kernel.org,mhocko@kernel.org,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=w0+eRjxlvujDPpwVsvAkLzxPDzHYoZfL90o7bdFIq+gF9Yf0s/qhXSw7sZ8I0Efli
+	 vm1d/L09SoV5Q5Mjxu9dwauiXV3D/BoJvQUdOt8GlHEdMsUKarjzKX/2VAb2xU0K2z
+	 88mzcxSd784aiue+psX26DG1SMidJv53H6OYWXi4=
+Date: Wed, 17 Sep 2025 13:46:39 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,mhocko@kernel.org,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-move-resched-point-into-alloc_vmap_area.patch added to mm-new branch
-Message-Id: <20250917204637.C7D72C4CEE7@smtp.kernel.org>
+Subject: + mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch added to mm-new branch
+Message-Id: <20250917204640.82349C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: move resched point into alloc_vmap_area()
+     Subject: mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-move-resched-point-into-alloc_vmap_area.patch
+     mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-move-resched-point-into-alloc_vmap_area.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,67 +64,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: move resched point into alloc_vmap_area()
-Date: Wed, 17 Sep 2025 20:59:06 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix
+Date: Wed Sep 17 01:45:36 PM PDT 2025
 
-Currently vm_area_alloc_pages() contains two cond_resched() points. 
-However, the page allocator already has its own in slow path so an extra
-resched is not optimal because it delays the loops.
+tweak comment grammar
 
-The place where CPU time can be consumed is in the VA-space search in
-alloc_vmap_area(), especially if the space is really fragmented using
-synthetic stress tests, after a fast path falls back to a slow one.
-
-Move a single cond_resched() there, after dropping free_vmap_area_lock in
-a slow path.  This keeps fairness where it matters while removing
-redundant yields from the page-allocation path.
-
-Link: https://lkml.kernel.org/r/20250917185906.1595454-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-move-resched-point-into-alloc_vmap_area
+--- a/mm/vmalloc.c~mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix
 +++ a/mm/vmalloc.c
-@@ -2057,6 +2057,13 @@ retry:
- 		addr = __alloc_vmap_area(&free_vmap_area_root, &free_vmap_area_list,
- 			size, align, vstart, vend);
+@@ -2059,9 +2059,8 @@ retry:
  		spin_unlock(&free_vmap_area_lock);
-+
-+		/*
-+		 * This is not a fast path. Check if yielding is
-+		 * needed. This is the only one reschedule point
-+		 * in vmalloc() path.
-+		 */
-+		cond_resched();
+ 
+ 		/*
+-		 * This is not a fast path. Check if yielding is
+-		 * needed. This is the only one reschedule point
+-		 * in vmalloc() path.
++		 * This is not a fast path.  Check if yielding is needed. This
++		 * is the only reschedule point in the vmalloc() path.
+ 		 */
+ 		cond_resched();
  	}
- 
- 	trace_alloc_vmap_area(addr, size, align, vstart, vend, IS_ERR_VALUE(addr));
-@@ -3622,7 +3629,6 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 							pages + nr_allocated);
- 
- 			nr_allocated += nr;
--			cond_resched();
- 
- 			/*
- 			 * If zero or pages were obtained partly,
-@@ -3664,7 +3670,6 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		for (i = 0; i < (1U << order); i++)
- 			pages[nr_allocated + i] = page + i;
- 
--		cond_resched();
- 		nr_allocated += 1U << order;
- 	}
- 
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmalloc-move-resched-point-into-alloc_vmap_area.patch
+kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
+memfd-move-mfd_all_flags-definition-to-memfdh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
+mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
+include-linux-pgtableh-convert-arch_enter_lazy_mmu_mode-and-friends-to-static-inlines.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
+mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch
 
