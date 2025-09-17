@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 652B7258A
-	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 00:50:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FEE13C38
+	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 00:56:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758070233; cv=none; b=gmSPmvem2zpkyVZkWmNGI6fEmiEKcDjVReRHyGVVI+Xwl4S8VzyqPS+80gehovZXnExFyYJYYSdLTAORCQaP87tYqvEzsneneqb4m1CwXohIh7HvdAQyXTPT0GBKhiumJb+R1153Y9dC9LkDdf69MCi0pF5sZeZyoGrlk2+7YIA=
+	t=1758070607; cv=none; b=UlIm/q7SJKLARux8zmpGiMzioYdZYniLHAxvS/vgX1n9VyBD8WYgCjH9eV6f8BbhD561bBigscq5WcGm7y9IcbTZNIEgMQJA5E6ChzfwnOSctYhZfnaayZiLw36CvkSaP8Z9egYbCd+o4092F1joqGC93SlN07kH+823dfJSSoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758070233; c=relaxed/simple;
-	bh=rrkTg2F/44HPZb6zpzhJcuMpf0/9ZW3jwVzfeqnWyU8=;
-	h=Date:To:From:Subject:Message-Id; b=pUrZspgtKSVHeHEFAn0QIUB5CzhYBR2DPhbK5C7wHSwnnXwKbqbLvjNbioaF51q4gg3at8EVzKC7M7t/fSM7Ze5Xho+fSS1mX7CrDCpgCjq5dIXR1yFw+9J2DtHWA9D2nv51LHywQew4KzEw96fXwPSpxkSzVWY6KF75QcpDFOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I1nLyjoO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758070607; c=relaxed/simple;
+	bh=i45X4ByumuTzmwB/H44+RyUZNiYKrTwOCmen/zM/qhA=;
+	h=Date:To:From:Subject:Message-Id; b=aglaADMjMU+0w8bQXhfdUo/AHVcDj4dQee9ItrdUaVD1j3PaOPVWrluXNYZ/8qhHWCnaBi82GWyY0fD9+LSvzqeVmtQuvpSh+x33Zs8tbM4I0m5cm96SRJZrbHQnrwAxdTjDdVtfGlFxalZjLrVY84YNPZIzK2yNLBnezXIz1/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y3hwD0q9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I1nLyjoO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A181C4CEEB;
-	Wed, 17 Sep 2025 00:50:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y3hwD0q9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BEEEC4CEEB;
+	Wed, 17 Sep 2025 00:56:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758070232;
-	bh=rrkTg2F/44HPZb6zpzhJcuMpf0/9ZW3jwVzfeqnWyU8=;
+	s=korg; t=1758070607;
+	bh=i45X4ByumuTzmwB/H44+RyUZNiYKrTwOCmen/zM/qhA=;
 	h=Date:To:From:Subject:From;
-	b=I1nLyjoOVYwoSFnPDmGQHKaxTX2aUDjDewmL7Ya3biNcCdgOIm3mczvIQYqXWGaD2
-	 9DOGAPTRMh90DB3vmh2AWylgWNS0NCmqdy6Xbc56T4HNLylvJGArdH3j+orTM813Sr
-	 jF5hG7fjUtu19dBoBzzlcENCeCgm+LvGq73R757o=
-Date: Tue, 16 Sep 2025 17:50:31 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=Y3hwD0q9l5mC9NZHg+DtMwPF9OYxZVWft28It5ZQskVDCCoys7ZwCZyVAGuAtrv1n
+	 IZquJfM4UcYKSvHce4qj4q807JnuVQBv90oPiziBTX0i0Tkb1vNO2lKBcMVF7MQ3iP
+	 btsk4GvCXTGkFcK7XUAVsjJ6cm2CDLc2lfLJ+UOo=
+Date: Tue, 16 Sep 2025 17:56:46 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,souravpanda@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-stat-expose-negative-idle-time.patch added to mm-new branch
-Message-Id: <20250917005032.1A181C4CEEB@smtp.kernel.org>
+Subject: + alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix.patch added to mm-new branch
+Message-Id: <20250917005647.3BEEEC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/stat: expose negative idle time
+     Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-stat-expose-negative-idle-time.patch
+     alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-expose-negative-idle-time.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,86 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: expose negative idle time
-Date: Tue, 16 Sep 2025 11:31:27 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix
+Date: Tue, 16 Sep 2025 09:01:10 -0700
 
-DAMON_STAT calculates the idle time of a region using the region's age if
-the region's nr_accesses is zero.  If the nr_accesses value is non-zero
-(positive), the idle time of the region becomes zero.
+Document new "accurate:no" marker.
 
-This means the users cannot know how warm and hot data is distributed,
-using DAMON_STAT's memory_idle_ms_percentiles output.  The other stat,
-namely estimated_memory_bandwidth, can help understanding how the overall
-access temperature of the system is, but it is still very rough
-information.  On production systems, actually, a significant portion of
-the system memory is observed with zero idle time, and we cannot break it
-down based on its internal hotness distribution.
-
-Define the idle time of the region using its age, similar to those having
-zero nr_accesses, but multiples '-1' to distinguish it.  And expose that
-using the same parameter interface, memory_idle_ms_percentiles.
-
-Link: https://lkml.kernel.org/r/20250916183127.65708-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20250916160110.266190-1-surenb@google.com
+Fixes: 39d117e04d15 ("alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David Wang <00107082@163.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/filesystems/proc.rst |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/damon/stat.c~mm-damon-stat-expose-negative-idle-time
-+++ a/mm/damon/stat.c
-@@ -34,8 +34,8 @@ module_param(estimated_memory_bandwidth,
- MODULE_PARM_DESC(estimated_memory_bandwidth,
- 		"Estimated memory bandwidth usage in bytes per second");
+--- a/Documentation/filesystems/proc.rst~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix
++++ a/Documentation/filesystems/proc.rst
+@@ -1014,6 +1014,14 @@ If file version is 2.0 or higher then ea
+ For example if the counters are not accurate, the line will be appended with
+ "accurate:no" pair.
  
--static unsigned long memory_idle_ms_percentiles[101] __read_mostly = {0,};
--module_param_array(memory_idle_ms_percentiles, ulong, NULL, 0400);
-+static long memory_idle_ms_percentiles[101] __read_mostly = {0,};
-+module_param_array(memory_idle_ms_percentiles, long, NULL, 0400);
- MODULE_PARM_DESC(memory_idle_ms_percentiles,
- 		"Memory idle time percentiles in milliseconds");
++Supported markers in v2:
++accurate:no
++              Absolute values of the counters in this line are not
++              accurate because of the failure to allocate storage required
++              to track some of the allocations made at this location.
++              Deltas in these counters are accurate, therefore counters
++              can be used to track allocation size and count changes.
++
+ Example output.
  
-@@ -61,10 +61,10 @@ static void damon_stat_set_estimated_mem
- 		MSEC_PER_SEC / c->attrs.aggr_interval;
- }
- 
--static unsigned int damon_stat_idletime(const struct damon_region *r)
-+static int damon_stat_idletime(const struct damon_region *r)
- {
- 	if (r->nr_accesses)
--		return 0;
-+		return -1 * (r->age + 1);
- 	return r->age + 1;
- }
- 
-@@ -122,7 +122,7 @@ static void damon_stat_set_idletime_perc
- 		while (next_percentile <= accounted_bytes * 100 / total_sz)
- 			memory_idle_ms_percentiles[next_percentile++] =
- 				damon_stat_idletime(region) *
--				c->attrs.aggr_interval / USEC_PER_MSEC;
-+				(long)c->attrs.aggr_interval / USEC_PER_MSEC;
- 	}
- 	kfree(sorted_regions);
- }
+ ::
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-damon-lru_sort-use-param_ctx-for-damon_attrs-staging.patch
-mm-damon-core-reset-age-if-nr_accesses-changes-between-non-zero-and-zero.patch
-mm-damon-core-set-effective-quota-on-first-charge-window.patch
-docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements.patch
-docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command.patch
-maintainers-rename-damon-section.patch
-mm-damon-core-implement-damon_initialized-function.patch
-mm-damon-stat-use-damon_initialized.patch
-mm-damon-reclaim-use-damon_initialized.patch
-mm-damon-lru_sort-use-damon_initialized.patch
-samples-damon-wsse-use-damon_initialized.patch
-samples-damon-prcl-use-damon_initialized.patch
-samples-damon-mtier-use-damon_initialized.patch
-mm-damon-stat-expose-the-current-tuned-aggregation-interval.patch
-mm-damon-stat-expose-negative-idle-time.patch
+alloc_tag-use-release_pages-in-the-cleanup-path.patch
+alloc_tag-prevent-enabling-memory-profiling-if-it-was-shut-down.patch
+alloc_tag-avoid-warnings-when-freeing-non-compound-tail-pages.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix.patch
 
