@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D548E3C38
-	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 00:56:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1EE44A06
+	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 01:05:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758070609; cv=none; b=ZvamvYZHbD8iqjasuNoVb406eCYepAbkd8NZFdY2ANDubsmGBnv0619foArbWk3HRJ1jRlA0PpF9Efb6u7Ys8Abs0+Ksvf+XYe1qVZVGbubbnP925dDWErEe0lg1SI7kRPaQedYzjOcpZEMWepXi/2dME4kLl1VJxZKjz2ZwuLU=
+	t=1758071137; cv=none; b=CKe4uzLwHEUaIKlO59Qhh1sj88I2grfng0Sdfa4B5SFC9W5DeuC2K3weekkiDIX4qPybIE0hnDWEX3jtAy32p3R6GtNVJD7Asi6DHw+8MHZj4tk/oRmEFb1NwmB/2e17P4QXFYiNkSAS2IFfnDhmB/QNiIfyRVqc8cxC72WiLJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758070609; c=relaxed/simple;
-	bh=E5ZKpRY/1YcnjTG9pBDFVjKtML45KTgZBROL0VJl4jE=;
-	h=Date:To:From:Subject:Message-Id; b=Yj2fjrTbfC64b3mU587+YWpJwFK1XbO9r1iVNkzTykO/Xrc9xBO5YU8p4EMy4SkG3ZdKeh9ejQ2vy6XWY1NZ025Lphi5hdu+Q81PxHsPoCQNIy/t68pdcube3Lux0uY4/wu7ETaB0pHmChPXSaozw12458yAGwvGoQRhn423IwQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vgZfgqec; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758071137; c=relaxed/simple;
+	bh=NYmzeTqCmfpu05ZsuBG7g1fb9BQ9PLx05Zgh6de1Ryc=;
+	h=Date:To:From:Subject:Message-Id; b=Gfls2lm5v8Me9I1XvbQqyO6qz/25M2x5LJesdnVXI1KpI2zY6kXdkd2yu0QTr03LnWgc+fBRz1AWHkHELM+sOf2SZT/B0TwmFT/2ENVKDN1Ln45o3cK6EUJKoNrQgctIrcgBcXhf+1UfmMzh1fu9ahogywXun41Z1iEc2foJerU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MQOlqLX0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vgZfgqec"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47B2BC4CEEB;
-	Wed, 17 Sep 2025 00:56:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MQOlqLX0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E30CC4CEEB;
+	Wed, 17 Sep 2025 01:05:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758070609;
-	bh=E5ZKpRY/1YcnjTG9pBDFVjKtML45KTgZBROL0VJl4jE=;
+	s=korg; t=1758071137;
+	bh=NYmzeTqCmfpu05ZsuBG7g1fb9BQ9PLx05Zgh6de1Ryc=;
 	h=Date:To:From:Subject:From;
-	b=vgZfgqecrTuy+vOxzGs8PZp+7nPmC+21UDVvWgHJS74zVhM+75dimsFw78/c9BIhU
-	 zS6DuxHPcHBUekH0rMzAODz5oUW+Q+yWLvfZMmgRUJuAT5IBslHW6VRTg1p4Q/ASVX
-	 qxagwa3Txsj038S3VzE6bUsZYvwKx1icp/180A/8=
-Date: Tue, 16 Sep 2025 17:56:48 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,surenb@google.com,souravpanda@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,hannes@cmpxchg.org,00107082@163.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=MQOlqLX0AAL0nP8RR3l0d+dUxei969eo67yKrmVgSLdbHAYdu6nyJ8CjW8ItD6TRO
+	 d6t+JxEqn2trkXNCyM88Te84kqAGoh4/dEgwGwSblZhFdSyoKHuVNzIT92PW7xBMLz
+	 Xa0VHNj0ccQSM9kPAxD+GbkO/wBWESnJtCU6ftq8=
+Date: Tue, 16 Sep 2025 18:05:36 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,chrisl@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch added to mm-new branch
-Message-Id: <20250917005649.47B2BC4CEEB@smtp.kernel.org>
+Subject: + docs-mm-add-document-for-swap-table.patch added to mm-unstable branch
+Message-Id: <20250917010537.2E30CC4CEEB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix
-has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
+     Subject: docs/mm: add document for swap table
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-mm-add-document-for-swap-table.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-add-document-for-swap-table.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,57 +58,259 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix
-Date: Tue Sep 16 05:53:33 PM PDT 2025
+From: Chris Li <chrisl@kernel.org>
+Subject: docs/mm: add document for swap table
+Date: Wed, 17 Sep 2025 00:00:46 +0800
 
-simplification per Usama, reflow text
+Patch series "mm, swap: introduce swap table as swap cache (phase I)", v4.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: David Wang <00107082@163.com>
+This is the first phase of the bigger series implementing basic
+infrastructures for the Swap Table idea proposed at the LSF/MM/BPF topic
+"Integrate swap cache, swap maps with swap allocator" [1].  To give credit
+where it is due, this is based on Chris Li's idea and a prototype of using
+cluster size atomic arrays to implement swap cache.
+
+This phase I contains 15 patches, introduces the swap table infrastructure
+and uses it as the swap cache backend.  By doing so, we have up to ~5-20%
+performance gain in throughput, RPS or build time for benchmark and
+workload tests.  The speed up is due to less contention on the swap cache
+access and shallower swap cache lookup path.  The cluster size is much
+finer-grained than the 64M address space split, which is removed in this
+phase I.  It also unifies and cleans up the swap code base.
+
+Each swap cluster will dynamically allocate the swap table, which is an
+atomic array to cover every swap slot in the cluster.  It replaces the
+swap cache backed by XArray.  In phase I, the static allocated swap_map
+still co-exists with the swap table.  The memory usage is about the same
+as the original on average.  A few exception test cases show about 1%
+higher in memory usage.  In the following phases of the series, swap_map
+will merge into the swap table without additional memory allocation.  It
+will result in net memory reduction compared to the original swap cache.
+
+Testing has shown that phase I has a significant performance improvement
+from 8c/1G ARM machine to 48c96t/128G x86_64 servers in many practical
+workloads.
+
+The full picture with a summary can be found at [2].  An older bigger
+series of 28 patches is posted at [3].
+
+vm-scability test:
+==================
+Test with:
+usemem --init-time -O -y -x -n 31 1G (4G memcg, PMEM as swap)
+                           Before:         After:
+System time:               219.12s         158.16s        (-27.82%)
+Sum Throughput:            4767.13 MB/s    6128.59 MB/s   (+28.55%)
+Single process Throughput: 150.21 MB/s     196.52 MB/s    (+30.83%)
+Free latency:              175047.58 us    131411.87 us   (-24.92%)
+
+usemem --init-time -O -y -x -n 32 1536M (16G memory, global pressure,
+PMEM as swap)
+                           Before:         After:
+System time:               356.16s         284.68s      (-20.06%)
+Sum Throughput:            4648.35 MB/s    5453.52 MB/s (+17.32%)
+Single process Throughput: 141.63 MB/s     168.35 MB/s  (+18.86%)
+Free latency:              499907.71 us    484977.03 us (-2.99%)
+
+This shows an improvement of more than 20% improvement in most readings.
+
+Build kernel test:
+==================
+The following result matrix is from building kernel with defconfig on
+tmpfs with ZSWAP / ZRAM, using different memory pressure and setups. 
+Measuring sys and real time in seconds, less is better (user time is
+almost identical as expected):
+
+ -j<NR> / Mem  | Sys before / after  | Real before / after
+Using 16G ZRAM with memcg limit:
+     6  / 192M | 9686 / 9472  -2.21% | 2130  / 2096   -1.59%
+     12 / 256M | 6610 / 6451  -2.41% |  827  /  812   -1.81%
+     24 / 384M | 5938 / 5701  -3.37% |  414  /  405   -2.17%
+     48 / 768M | 4696 / 4409  -6.11% |  188  /  182   -3.19%
+With 64k folio:
+     24 / 512M | 4222 / 4162  -1.42% |  326  /  321   -1.53%
+     48 / 1G   | 3688 / 3622  -1.79% |  151  /  149   -1.32%
+With ZSWAP with 3G memcg (using higher limit due to kmem account):
+     48 / 3G   |  603 /  581  -3.65% |  81   /   80   -1.23%
+
+Testing extremely high global memory and schedule pressure: Using ZSWAP
+with 32G NVMEs in a 48c VM that has 4G memory, no memcg limit, system
+components take up about 1.5G already, using make -j48 to build defconfig:
+
+Before:  sys time: 2069.53s            real time: 135.76s
+After:   sys time: 2021.13s (-2.34%)   real time: 134.23s (-1.12%)
+
+On another 48c 4G memory VM, using 16G ZRAM as swap, testing make
+-j48 with same config:
+
+Before:  sys time: 1756.96s            real time: 111.01s
+After:   sys time: 1715.90s (-2.34%)   real time: 109.51s (-1.35%)
+
+All cases are more or less faster, and no regression even under extremely
+heavy global memory pressure.
+
+Redis / Valkey bench:
+=====================
+The test machine is a ARM64 VM with 1536M memory 12 cores, Redis is set to
+use 2500M memory, and ZRAM swap size is set to 5G:
+
+Testing with:
+redis-benchmark -r 2000000 -n 2000000 -d 1024 -c 12 -P 32 -t get
+
+                no BGSAVE                with BGSAVE
+Before:         487576.06 RPS            280016.02 RPS
+After:          487541.76 RPS (-0.01%)   300155.32 RPS (+7.19%)
+
+Testing with:
+redis-benchmark -r 2500000 -n 2500000 -d 1024 -c 12 -P 32 -t get
+                no BGSAVE                with BGSAVE
+Before:         466789.59 RPS            281213.92 RPS
+After:          466402.89 RPS (-0.08%)   298411.84 RPS (+6.12%)
+
+With BGSAVE enabled, most Redis memory will have a swap count > 1 so swap
+cache is heavily in use.  We can see a about 6% performance gain.  No
+BGSAVE is very slightly slower (<0.1%) due to the higher memory pressure
+of the co-existence of swap_map and swap table.  This will be optimzed
+into a net gain and up to 20% gain in BGSAVE case in the following phases.
+
+HDD swap is also ~40% faster with usemem because we removed an old
+contention workaround.
+
+
+This patch (of 15):
+
+Swap table is the new swap cache.
+
+Link: https://lkml.kernel.org/r/20250916160100.31545-1-ryncsn@gmail.com
+Link: https://lore.kernel.org/linux-mm/20250514201729.48420-1-ryncsn@gmail.com/ [3]
+Link: https://lkml.kernel.org/r/20250916160100.31545-2-ryncsn@gmail.com
+Link: https://lore.kernel.org/CAMgjq7BvQ0ZXvyLGp2YP96+i+6COCBBJCYmjXHGBnfisCAb8VA@mail.gmail.com [1]
+Link: https://github.com/ryncsn/linux/tree/kasong/devel/swap-table [2]
+Signed-off-by: Chris Li <chrisl@kernel.org>
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Suggested-by: Chris Li <chrisl@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Sourav Panda <souravpanda@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: kernel test robot <oliver.sang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/mm/index.rst      |    1 
+ Documentation/mm/swap-table.rst |   72 ++++++++++++++++++++++++++++++
+ MAINTAINERS                     |    1 
+ 3 files changed, 74 insertions(+)
 
---- a/Documentation/filesystems/proc.rst~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix
-+++ a/Documentation/filesystems/proc.rst
-@@ -1016,11 +1016,11 @@ For example if the counters are not accu
- 
- Supported markers in v2:
- accurate:no
--              Absolute values of the counters in this line are not
--              accurate because of the failure to allocate storage required
--              to track some of the allocations made at this location.
--              Deltas in these counters are accurate, therefore counters
--              can be used to track allocation size and count changes.
-+              Absolute values of the counters in this line are not accurate
-+              because of the failure to allocate memory to track some of the
-+              allocations made at this location.  Deltas in these counters are
-+              accurate, therefore counters can be used to track allocation size
-+              and count changes.
- 
- Example output.
- 
+--- a/Documentation/mm/index.rst~docs-mm-add-document-for-swap-table
++++ a/Documentation/mm/index.rst
+@@ -57,6 +57,7 @@ documentation, or deleted if it has serv
+    page_table_check
+    remap_file_pages
+    split_page_table_lock
++   swap-table
+    transhuge
+    unevictable-lru
+    vmalloced-kernel-stacks
+diff --git a/Documentation/mm/swap-table.rst a/Documentation/mm/swap-table.rst
+new file mode 100644
+--- /dev/null
++++ a/Documentation/mm/swap-table.rst
+@@ -0,0 +1,72 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++:Author: Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>
++
++==========
++Swap Table
++==========
++
++Swap table implements swap cache as a per-cluster swap cache value array.
++
++Swap Entry
++----------
++
++A swap entry contains the information required to serve the anonymous page
++fault.
++
++Swap entry is encoded as two parts: swap type and swap offset.
++
++The swap type indicates which swap device to use.
++The swap offset is the offset of the swap file to read the page data from.
++
++Swap Cache
++----------
++
++Swap cache is a map to look up folios using swap entry as the key. The result
++value can have three possible types depending on which stage of this swap entry
++was in.
++
++1. NULL: This swap entry is not used.
++
++2. folio: A folio has been allocated and bound to this swap entry. This is
++   the transient state of swap out or swap in. The folio data can be in
++   the folio or swap file, or both.
++
++3. shadow: The shadow contains the working set information of the swapped
++   out folio. This is the normal state for a swapped out page.
++
++Swap Table Internals
++--------------------
++
++The previous swap cache is implemented by XArray. The XArray is a tree
++structure. Each lookup will go through multiple nodes. Can we do better?
++
++Notice that most of the time when we look up the swap cache, we are either
++in a swap in or swap out path. We should already have the swap cluster,
++which contains the swap entry.
++
++If we have a per-cluster array to store swap cache value in the cluster.
++Swap cache lookup within the cluster can be a very simple array lookup.
++
++We give such a per-cluster swap cache value array a name: the swap table.
++
++Each swap cluster contains 512 entries, so a swap table stores one cluster
++worth of swap cache values, which is exactly one page. This is not
++coincidental because the cluster size is determined by the huge page size.
++The swap table is holding an array of pointers. The pointer has the same
++size as the PTE. The size of the swap table should match to the second
++last level of the page table page, exactly one page.
++
++With swap table, swap cache lookup can achieve great locality, simpler,
++and faster.
++
++Locking
++-------
++
++Swap table modification requires taking the cluster lock. If a folio
++is being added to or removed from the swap table, the folio must be
++locked prior to the cluster lock. After adding or removing is done, the
++folio shall be unlocked.
++
++Swap table lookup is protected by RCU and atomic read. If the lookup
++returns a folio, the user must lock the folio before use.
+--- a/MAINTAINERS~docs-mm-add-document-for-swap-table
++++ a/MAINTAINERS
+@@ -16225,6 +16225,7 @@ R:	Barry Song <baohua@kernel.org>
+ R:	Chris Li <chrisl@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++F:	Documentation/mm/swap-table.rst
+ F:	include/linux/swap.h
+ F:	include/linux/swapfile.h
+ F:	include/linux/swapops.h
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chrisl@kernel.org are
 
-kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
-memfd-move-mfd_all_flags-definition-to-memfdh.patch
-mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
-mm-filemap-align-last_index-to-folio-size-fix-fix.patch
-mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
-include-linux-pgtableh-convert-arch_enter_lazy_mmu_mode-and-friends-to-static-inlines.patch
-alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
+docs-mm-add-document-for-swap-table.patch
 
