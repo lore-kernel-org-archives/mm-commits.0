@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93AE630F803
-	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 22:34:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1473714AD0D
+	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 23:16:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758148486; cv=none; b=ilnaK+r4eHW9SzLznxWy+XKUQaanS8pwFKdKHNorN1P0LikxUF3XLFltuC4OGI7xhtDok9di/qE8eTEWT6VOJnRJmYWJ2cM+hecdGvYuQmRp8DEIGtO4hU6hcDgNrzVekR/Dy+tczOY2bo3ncsjxbzTW/Vv1ID9Oqifi+GhU4Bo=
+	t=1758150993; cv=none; b=J18ebSRe8DuJZwUIbJ+k1AYuAKaLb2RRhj9Mak1nEpS2uKBO7orrnHmxtG+pGjsVjK+e6Gzr3DFWbyuxvG/id+5IK6VnwpCI8m0yBpZZ1y/KAWp+Hf7mE8dwaJj01SP4BTr9kr/4UPqDUA7k6ax1U1iU0sw3UBMVWw1irrSWYqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758148486; c=relaxed/simple;
-	bh=t7OSa73FEigxvir2eQc3WYi1Rz1aVWNms+kPUdJfC/c=;
-	h=Date:To:From:Subject:Message-Id; b=kqqKAhKnO0PLISG/jMwMWEBpxGw8Izh+wve4HhydcEpjcqWmWm8CdAPCIDJAWcQ3DncXB47Qkizn9Gn4Hxk1r4llyB9BlMdTy20JNb9Bow4LXDgbyWyF1P4sTb7TTYWWoF7NOvakCYUh2GLwedL797dcuv6UJw6aonJBnr9yYnE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MQxOQTbj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758150993; c=relaxed/simple;
+	bh=5fTEuBqtPwivL7eGlNj6fCKUP+x34kjtPIG4YTl/hxI=;
+	h=Date:To:From:Subject:Message-Id; b=QgBJkWW7MqIwfiaPtQM1D5bW7yUmU+AbFNXoXAYTScey4EPZ/5d6Vqwin8+TtQWF78aFGnQzdpBsAKt+/LiOmziDKJp+xXGpTNWezX7d3ZGe3ECwdJ7DLMKkKXy1J/qZy0kyfpcuok/wqjVLPGADqv9Rk8RxgA/YzbQcQf1ZVA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EgvU8lKy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MQxOQTbj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FB92C4CEE7;
-	Wed, 17 Sep 2025 22:34:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EgvU8lKy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79069C4CEE7;
+	Wed, 17 Sep 2025 23:16:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758148486;
-	bh=t7OSa73FEigxvir2eQc3WYi1Rz1aVWNms+kPUdJfC/c=;
+	s=korg; t=1758150992;
+	bh=5fTEuBqtPwivL7eGlNj6fCKUP+x34kjtPIG4YTl/hxI=;
 	h=Date:To:From:Subject:From;
-	b=MQxOQTbj4/7nOgwZ4PMrYyTIcx4cr7h5Rn7QV7GG9kIn+dTsyFyUP09hhmKdzJwRF
-	 bJRczw0jPvN2U8hN4oPAAAPajcs+oQtL78WnkwQvJG/zf+Y42tPszuKLxytaXFmrjb
-	 vriBPbyvw8vumLPv0XNNoFTpwxA4ghThz8TjlH3U=
-Date: Wed, 17 Sep 2025 15:34:45 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,graf@amazon.com,chrisl@kernel.org,changyuanl@google.com,bhe@redhat.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=EgvU8lKy3QgK2nDBT/fiAkqzUFLLZIKOf4UpJx+lJVzbhQEDYiaGE8bH/jOsM9BGt
+	 uWZv3JXnr8H1krkAyRzualEl54ZDdvJR0eaAwdvkFCKALDafWQu86/2FRPAdBpL9EQ
+	 ZDC1OrhTNv04ilh+KT7rX7Wla8yoJeekamc3CiuQ=
+Date: Wed, 17 Sep 2025 16:16:31 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-make-sure-page-being-restored-is-actually-from-kho.patch added to mm-new branch
-Message-Id: <20250917223446.1FB92C4CEE7@smtp.kernel.org>
+Subject: + ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name.patch added to mm-nonmm-unstable branch
+Message-Id: <20250917231632.79069C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: make sure page being restored is actually from KHO
-has been added to the -mm mm-new branch.  Its filename is
-     kho-make-sure-page-being-restored-is-actually-from-kho.patch
+     Subject: ocfs2: avoid extra calls to strlen() after ocfs2_sprintf_system_inode_name()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-make-sure-page-being-restored-is-actually-from-kho.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,121 +58,116 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pratyush Yadav <pratyush@kernel.org>
-Subject: kho: make sure page being restored is actually from KHO
-Date: Wed, 17 Sep 2025 14:56:54 +0200
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: avoid extra calls to strlen() after ocfs2_sprintf_system_inode_name()
+Date: Wed, 17 Sep 2025 09:02:29 +0300
 
-When restoring a page, no sanity checks are done to make sure the page
-actually came from a kexec handover.  The caller is trusted to pass in the
-right address.  If the caller has a bug and passes in a wrong address, an
-in-use page might be "restored" and returned, causing all sorts of memory
-corruption.
+Since 'ocfs2_sprintf_system_inode_name()' uses 'snprintf()' and returns
+the number of characters emitted, callers of the former are better to use
+that return value instead of an explicit calls to 'strlen()'.
 
-Harden the page restore logic by stashing in a magic number in
-page->private along with the order.  If the magic number does not match,
-the page won't be touched.  page->private is an unsigned long.  The union
-kho_page_info splits it into two parts, with one holding the order and the
-other holding the magic number.
-
-Link: https://lkml.kernel.org/r/20250917125725.665-2-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lkml.kernel.org/r/20250917060229.1854335-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_handover.c |   41 +++++++++++++++++++++++++++++++-------
- 1 file changed, 34 insertions(+), 7 deletions(-)
+ fs/ocfs2/ioctl.c        |   18 +++++++-----------
+ fs/ocfs2/move_extents.c |    8 ++++----
+ fs/ocfs2/sysfile.c      |   12 ++++++------
+ 3 files changed, 17 insertions(+), 21 deletions(-)
 
---- a/kernel/kexec_handover.c~kho-make-sure-page-being-restored-is-actually-from-kho
-+++ a/kernel/kexec_handover.c
-@@ -33,6 +33,22 @@
- #define PROP_PRESERVED_MEMORY_MAP "preserved-memory-map"
- #define PROP_SUB_FDT "fdt"
- 
-+#define KHO_PAGE_MAGIC 0x4b484f50U /* ASCII for 'KHOP' */
-+
-+/*
-+ * KHO uses page->private, which is an unsigned long, to store page metadata.
-+ * Use it to store both the magic and the order.
-+ */
-+union kho_page_info {
-+	unsigned long page_private;
-+	struct {
-+		unsigned int order;
-+		unsigned int magic;
-+	};
-+};
-+
-+static_assert(sizeof(union kho_page_info) == sizeof(((struct page *)0)->private));
-+
- static bool kho_enable __ro_after_init;
- 
- bool kho_is_enabled(void)
-@@ -213,16 +229,24 @@ static int __kho_preserve_order(struct k
- static struct page *kho_restore_page(phys_addr_t phys)
+--- a/fs/ocfs2/ioctl.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
++++ a/fs/ocfs2/ioctl.c
+@@ -358,13 +358,11 @@ static int ocfs2_info_handle_freeinode(s
+ 				goto bail;
+ 			}
+ 		} else {
+-			ocfs2_sprintf_system_inode_name(namebuf,
+-							sizeof(namebuf),
+-							type, i);
++			int len = ocfs2_sprintf_system_inode_name(namebuf,
++								  sizeof(namebuf),
++								  type, i);
+ 			status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
+-							    namebuf,
+-							    strlen(namebuf),
+-							    &blkno);
++							    namebuf, len, &blkno);
+ 			if (status < 0) {
+ 				status = -ENOENT;
+ 				goto bail;
+@@ -651,12 +649,10 @@ static int ocfs2_info_handle_freefrag(st
+ 			goto bail;
+ 		}
+ 	} else {
+-		ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type,
+-						OCFS2_INVALID_SLOT);
++		int len = ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf),
++							  type, OCFS2_INVALID_SLOT);
+ 		status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
+-						    namebuf,
+-						    strlen(namebuf),
+-						    &blkno);
++						    namebuf, len, &blkno);
+ 		if (status < 0) {
+ 			status = -ENOENT;
+ 			goto bail;
+--- a/fs/ocfs2/move_extents.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
++++ a/fs/ocfs2/move_extents.c
+@@ -364,7 +364,7 @@ static int ocfs2_find_victim_alloc_group
+ 					 int *vict_bit,
+ 					 struct buffer_head **ret_bh)
  {
- 	struct page *page = pfn_to_online_page(PHYS_PFN(phys));
--	unsigned int nr_pages, order;
-+	union kho_page_info info;
-+	unsigned int nr_pages;
+-	int ret, i, bits_per_unit = 0;
++	int ret, i, len, bits_per_unit = 0;
+ 	u64 blkno;
+ 	char namebuf[40];
  
- 	if (!page)
- 		return NULL;
+@@ -375,9 +375,9 @@ static int ocfs2_find_victim_alloc_group
+ 	struct ocfs2_dinode *ac_dinode;
+ 	struct ocfs2_group_desc *bg;
  
--	order = page->private;
--	if (order > MAX_PAGE_ORDER)
-+	info.page_private = page->private;
-+	/*
-+	 * deserialize_bitmap() only sets the magic on the head page. This magic
-+	 * check also implicitly makes sure phys is order-aligned since for
-+	 * non-order-aligned phys addresses, magic will never be set.
-+	 */
-+	if (WARN_ON_ONCE(info.magic != KHO_PAGE_MAGIC || info.order > MAX_PAGE_ORDER))
- 		return NULL;
--	nr_pages = (1 << order);
-+	nr_pages = (1 << info.order);
+-	ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type, slot);
+-	ret = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf,
+-					 strlen(namebuf), &blkno);
++	len = ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type, slot);
++	ret = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf, len, &blkno);
++
+ 	if (ret) {
+ 		ret = -ENOENT;
+ 		goto out;
+--- a/fs/ocfs2/sysfile.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
++++ a/fs/ocfs2/sysfile.c
+@@ -127,14 +127,14 @@ static struct inode * _ocfs2_get_system_
+ 	char namebuf[40];
+ 	struct inode *inode = NULL;
+ 	u64 blkno;
+-	int status = 0;
++	int len, status = 0;
  
-+	/* Clear private to make sure later restores on this page error out. */
-+	page->private = 0;
- 	/* Head page gets refcount of 1. */
- 	set_page_count(page, 1);
+-	ocfs2_sprintf_system_inode_name(namebuf,
+-					sizeof(namebuf),
+-					type, slot);
++	len = ocfs2_sprintf_system_inode_name(namebuf,
++					      sizeof(namebuf),
++					      type, slot);
  
-@@ -230,8 +254,8 @@ static struct page *kho_restore_page(phy
- 	for (unsigned int i = 1; i < nr_pages; i++)
- 		set_page_count(page + i, 0);
- 
--	if (order > 0)
--		prep_compound_page(page, order);
-+	if (info.order > 0)
-+		prep_compound_page(page, info.order);
- 
- 	adjust_managed_page_count(page, nr_pages);
- 	return page;
-@@ -368,10 +392,13 @@ static void __init deserialize_bitmap(un
- 		phys_addr_t phys =
- 			elm->phys_start + (bit << (order + PAGE_SHIFT));
- 		struct page *page = phys_to_page(phys);
-+		union kho_page_info info;
- 
- 		memblock_reserve(phys, sz);
- 		memblock_reserved_mark_noinit(phys, sz);
--		page->private = order;
-+		info.magic = KHO_PAGE_MAGIC;
-+		info.order = order;
-+		page->private = info.page_private;
+-	status = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf,
+-					    strlen(namebuf), &blkno);
++	status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
++					    namebuf, len, &blkno);
+ 	if (status < 0) {
+ 		goto bail;
  	}
- }
- 
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-kho-move-sanity-checks-to-kho_restore_page.patch
-kho-make-sure-page-being-restored-is-actually-from-kho.patch
+ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name.patch
 
