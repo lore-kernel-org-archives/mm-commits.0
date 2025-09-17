@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80D6727B328;
-	Wed, 17 Sep 2025 22:31:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A412FB991
+	for <mm-commits@vger.kernel.org>; Wed, 17 Sep 2025 22:34:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758148277; cv=none; b=PCr8nwEGzsVhiuoOx3Cp/uOy2K82lSB5dg8KITL7Vx3Zm2p653L9IUwx0YoCoGTRBttAKN20kYFGyD2pFyVUzxV7sCg+tMG6DH430GGjitqNP1nBLe881TLIXZT6b+DAOFJ87lviTDokQyrSpe75R3biy3BqjeOpDv2GqERJo/w=
+	t=1758148485; cv=none; b=CO2TJecTaztamndOyYcQSjZt1i/W7YKLFq/j6HT31UUWfyU5lJTqDKgj0I+SOZ4mmEKwxmXMavLMnfHPjwGFnKk3lC41qvnOKtw8jeabfD41Pl7OwF0DFgFXbaAlEoABKA3CTGN6wNVN07igUQGS/3aq4zDTw5m7TwKNAJyKoZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758148277; c=relaxed/simple;
-	bh=jcz2bedhP+luopgsdMLmEGjgZvawm0Ycx4QlSiLfpMc=;
-	h=Date:To:From:Subject:Message-Id; b=fsLl/KQyrEv1ici6xpNdk4nWSjrXiW5JUZ+OWO2JswqtwRg8657WPL2E/QQvXWovhUH4iKFTOHRNpJww/yXyIBvG3BxMO/CNP1OwJ6L8dDNltEKRzmLfq2aJsUL06LYsz7QlA+TIlQOYAz9eMiSp+Q57Lkn+OXRPXv1pTMeVQBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FHUpHJ/q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758148485; c=relaxed/simple;
+	bh=qDnSJHX3Am1Ou1hh+m5tAav293u/gm3KDp4znHdqC20=;
+	h=Date:To:From:Subject:Message-Id; b=p+kK1RilQyyRhgfkyhr2+v5gPmWBnnNh7mq3/VsNH9CF1CkriUfNe3o35+o+VgL75Po01LGArAelsvJmnwIVdBALZzpQDeBbf+Bb0BxdXflmuM0YL9zliwgCcpvBHPjmBGP7t+Jxifor1O22RCNOxJX/zKXeTV/BST1eoAq2GPQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D+wmE/lT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FHUpHJ/q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF2D7C4CEE7;
-	Wed, 17 Sep 2025 22:31:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D+wmE/lT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1DC3C4CEE7;
+	Wed, 17 Sep 2025 22:34:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758148276;
-	bh=jcz2bedhP+luopgsdMLmEGjgZvawm0Ycx4QlSiLfpMc=;
+	s=korg; t=1758148484;
+	bh=qDnSJHX3Am1Ou1hh+m5tAav293u/gm3KDp4znHdqC20=;
 	h=Date:To:From:Subject:From;
-	b=FHUpHJ/qpuOpQLeCBVIA9zqpVG/aVkjBebYofE0wnpOQ7r1Bir70294HtGC5lZUAi
-	 UdngtyhKkSZd6SuARvCZc84wQYeTeOOh6+N5OhzLN4bEcvwr4IWrv5rfYH2DW/kP9M
-	 lKm+lztUoFORePZ9PTGp5Mx4MYChqCEz+tRvs9rk=
-Date: Wed, 17 Sep 2025 15:31:15 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,lorenzo.stoakes@oracle.com,krisman@collabora.com,david@redhat.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=D+wmE/lTIJk295EHImSt8B/zgG450fwH816/otZGzmgT03valqmZs/ZKaPrvjonN8
+	 gjNyTo4Y1tOsMW2CPcMdXYeyUcssV7kD6yVemRvzYzQUoCk5T/EcMDtYuIsfOKcpTD
+	 PnrSUFuehx7lQPyUXNJ9NQ+xBH9MJKkHpYl60gVM=
+Date: Wed, 17 Sep 2025 15:34:44 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,graf@amazon.com,chrisl@kernel.org,changyuanl@google.com,bhe@redhat.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-soft-dirty-tests-when-config_mem_soft_dirty-is-disabled.patch added to mm-new branch
-Message-Id: <20250917223115.DF2D7C4CEE7@smtp.kernel.org>
+Subject: + kho-move-sanity-checks-to-kho_restore_page.patch added to mm-new branch
+Message-Id: <20250917223444.C1DC3C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip soft-dirty tests when CONFIG_MEM_SOFT_DIRTY is disabled
+     Subject: kho: move sanity checks to kho_restore_page()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-skip-soft-dirty-tests-when-config_mem_soft_dirty-is-disabled.patch
+     kho-move-sanity-checks-to-kho_restore_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-soft-dirty-tests-when-config_mem_soft_dirty-is-disabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-move-sanity-checks-to-kho_restore_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,134 +64,100 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: selftests/mm: skip soft-dirty tests when CONFIG_MEM_SOFT_DIRTY is disabled
-Date: Wed, 17 Sep 2025 21:31:37 +0800
+From: Pratyush Yadav <pratyush@kernel.org>
+Subject: kho: move sanity checks to kho_restore_page()
+Date: Wed, 17 Sep 2025 14:56:53 +0200
 
-The madv_populate and soft-dirty kselftests currently fail on systems
-where CONFIG_MEM_SOFT_DIRTY is disabled.
+While KHO exposes folio as the primitive externally, internally its
+restoration machinery operates on pages.  This can be seen with
+kho_restore_folio() for example.  It performs some sanity checks and hands
+it over to kho_restore_page() to do the heavy lifting of page restoration.
+After the work done by kho_restore_page(), kho_restore_folio() only
+converts the head page to folio and returns it.  Similarly,
+deserialize_bitmap() operates on the head page directly to store the
+order.
 
-Introduce a new helper softdirty_supported() into vm_util.c/h to ensure
-tests are properly skipped when the feature is not enabled.
+Move the sanity checks for valid phys and order from the public-facing
+kho_restore_folio() to the private-facing kho_restore_page().  This makes
+the boundary between page and folio clearer from KHO's perspective.
 
-Link: https://lkml.kernel.org/r/20250917133137.62802-1-lance.yang@linux.dev
-Fixes: 9f3265db6ae8 ("selftests: vm: add test for Soft-Dirty PTE bit")
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Gabriel Krisman Bertazi <krisman@collabora.com>
-Cc: <stable@vger.kernel.org>
+While at it, drop the comment above kho_restore_page().  The comment is
+misleading now.  The function stopped looking like free_reserved_page()
+since 12b9a2c05d1b4 ("kho: initialize tail pages for higher order folios
+properly"), and now looks even more different.
+
+Link: https://lkml.kernel.org/r/20250917125725.665-1-pratyush@kernel.org
+Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/madv_populate.c |   21 +------------------
- tools/testing/selftests/mm/soft-dirty.c    |    5 +++-
- tools/testing/selftests/mm/vm_util.c       |   17 +++++++++++++++
- tools/testing/selftests/mm/vm_util.h       |    1 
- 4 files changed, 24 insertions(+), 20 deletions(-)
+ kernel/kexec_handover.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
---- a/tools/testing/selftests/mm/madv_populate.c~selftests-mm-skip-soft-dirty-tests-when-config_mem_soft_dirty-is-disabled
-+++ a/tools/testing/selftests/mm/madv_populate.c
-@@ -264,23 +264,6 @@ static void test_softdirty(void)
- 	munmap(addr, SIZE);
+--- a/kernel/kexec_handover.c~kho-move-sanity-checks-to-kho_restore_page
++++ a/kernel/kexec_handover.c
+@@ -210,10 +210,18 @@ static int __kho_preserve_order(struct k
+ 	return 0;
  }
  
--static int system_has_softdirty(void)
--{
--	/*
--	 * There is no way to check if the kernel supports soft-dirty, other
--	 * than by writing to a page and seeing if the bit was set. But the
--	 * tests are intended to check that the bit gets set when it should, so
--	 * doing that check would turn a potentially legitimate fail into a
--	 * skip. Fortunately, we know for sure that arm64 does not support
--	 * soft-dirty. So for now, let's just use the arch as a corse guide.
--	 */
--#if defined(__aarch64__)
--	return 0;
--#else
--	return 1;
--#endif
--}
+-/* almost as free_reserved_page(), just don't free the page */
+-static void kho_restore_page(struct page *page, unsigned int order)
++static struct page *kho_restore_page(phys_addr_t phys)
+ {
+-	unsigned int nr_pages = (1 << order);
++	struct page *page = pfn_to_online_page(PHYS_PFN(phys));
++	unsigned int nr_pages, order;
++
++	if (!page)
++		return NULL;
++
++	order = page->private;
++	if (order > MAX_PAGE_ORDER)
++		return NULL;
++	nr_pages = (1 << order);
+ 
+ 	/* Head page gets refcount of 1. */
+ 	set_page_count(page, 1);
+@@ -226,6 +234,7 @@ static void kho_restore_page(struct page
+ 		prep_compound_page(page, order);
+ 
+ 	adjust_managed_page_count(page, nr_pages);
++	return page;
+ }
+ 
+ /**
+@@ -236,18 +245,9 @@ static void kho_restore_page(struct page
+  */
+ struct folio *kho_restore_folio(phys_addr_t phys)
+ {
+-	struct page *page = pfn_to_online_page(PHYS_PFN(phys));
+-	unsigned long order;
 -
- int main(int argc, char **argv)
- {
- 	int nr_tests = 16;
-@@ -288,7 +271,7 @@ int main(int argc, char **argv)
+-	if (!page)
+-		return NULL;
+-
+-	order = page->private;
+-	if (order > MAX_PAGE_ORDER)
+-		return NULL;
++	struct page *page = kho_restore_page(phys);
  
- 	pagesize = getpagesize();
- 
--	if (system_has_softdirty())
-+	if (softdirty_supported())
- 		nr_tests += 5;
- 
- 	ksft_print_header();
-@@ -300,7 +283,7 @@ int main(int argc, char **argv)
- 	test_holes();
- 	test_populate_read();
- 	test_populate_write();
--	if (system_has_softdirty())
-+	if (softdirty_supported())
- 		test_softdirty();
- 
- 	err = ksft_get_fail_cnt();
---- a/tools/testing/selftests/mm/soft-dirty.c~selftests-mm-skip-soft-dirty-tests-when-config_mem_soft_dirty-is-disabled
-+++ a/tools/testing/selftests/mm/soft-dirty.c
-@@ -200,8 +200,11 @@ int main(int argc, char **argv)
- 	int pagesize;
- 
- 	ksft_print_header();
--	ksft_set_plan(15);
- 
-+	if (!softdirty_supported())
-+		ksft_exit_skip("soft-dirty is not support\n");
-+
-+	ksft_set_plan(15);
- 	pagemap_fd = open(PAGEMAP_FILE_PATH, O_RDONLY);
- 	if (pagemap_fd < 0)
- 		ksft_exit_fail_msg("Failed to open %s\n", PAGEMAP_FILE_PATH);
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-skip-soft-dirty-tests-when-config_mem_soft_dirty-is-disabled
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -449,6 +449,23 @@ bool check_vmflag_pfnmap(void *addr)
- 	return check_vmflag(addr, "pf");
+-	kho_restore_page(page, order);
+-	return page_folio(page);
++	return page ? page_folio(page) : NULL;
  }
+ EXPORT_SYMBOL_GPL(kho_restore_folio);
  
-+bool softdirty_supported(void)
-+{
-+	char *addr;
-+	bool supported = false;
-+	const size_t pagesize = getpagesize();
-+
-+	/* New mappings are expected to be marked with VM_SOFTDIRTY (sd). */
-+	addr = mmap(0, pagesize, PROT_READ | PROT_WRITE,
-+		    MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+	if (!addr)
-+		ksft_exit_fail_msg("mmap failed\n");
-+
-+	supported = check_vmflag(addr, "sd");
-+	munmap(addr, pagesize);
-+	return supported;
-+}
-+
- /*
-  * Open an fd at /proc/$pid/maps and configure procmap_out ready for
-  * PROCMAP_QUERY query. Returns 0 on success, or an error code otherwise.
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-skip-soft-dirty-tests-when-config_mem_soft_dirty-is-disabled
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -104,6 +104,7 @@ bool find_vma_procmap(struct procmap_fd
- int close_procmap(struct procmap_fd *procmap);
- int write_sysfs(const char *file_path, unsigned long val);
- int read_sysfs(const char *file_path, unsigned long *val);
-+bool softdirty_supported(void);
- 
- static inline int open_self_procmap(struct procmap_fd *procmap_out)
- {
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
-hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
-mm-skip-mlocked-thps-that-are-underused-early-in-deferred_split_scan.patch
-selftests-mm-skip-soft-dirty-tests-when-config_mem_soft_dirty-is-disabled.patch
+kho-move-sanity-checks-to-kho_restore_page.patch
+kho-make-sure-page-being-restored-is-actually-from-kho.patch
 
