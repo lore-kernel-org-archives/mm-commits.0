@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F33B92D7D42
-	for <mm-commits@vger.kernel.org>; Thu, 18 Sep 2025 21:43:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C60C2288D5
+	for <mm-commits@vger.kernel.org>; Thu, 18 Sep 2025 22:03:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758231832; cv=none; b=amvSW86dcmglhRNm4fXyBo5WonmQwjotCiwDjcqCPZPNxUw/MCqpODOFCekMJVcmOwRGVmTxo1F6CjsymkH5PklxdDGWgSwIQr9tatpRfjJ+qbkFDzIR7F31nOcS01mSd8WZ48NljlxVq4y8PThg9h03cPtf3Bb0SdagSnTg5d0=
+	t=1758233002; cv=none; b=HUYOuSEVoT+kZH7RetfKqQ4NYpkR9BG5R2OuMJF43BMXAWJNh861CCiIURRxojVCYryp22uwXv0ELmgfOmyTQ+E8cqQejvO+v/7mwDcfP1lnIdJIXAoEeeJkGfgmv5QW92KhXGM1c55Me/y3kl5wZo05bIWyLg0rc0kXV3PQMkM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758231832; c=relaxed/simple;
-	bh=sZzv39/dGb3stLnrGk7wXx6lY/PmkZ1HwxPZ92pTVfI=;
-	h=Date:To:From:Subject:Message-Id; b=ZdDJm4VSPW2K7oS8VE+BSbg7XnJ8KLo/gPKe+bjkwM9T72p/beydi2ITyp278r15OmjaG/Jr1JaJP76jnagYXqG/q5VfJSpQYp8siyHsb+XNRgnCToGzQHlASMHr9K0Zn4U23RC9QbS1xSqz0R5C6FDI1mEkRFQ4DO4M+kH2u84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vKv7Y5em; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758233002; c=relaxed/simple;
+	bh=coRMql9klCR/J1e/rhRxbsYD1sKTAPzDindX7Oup+fQ=;
+	h=Date:To:From:Subject:Message-Id; b=b5Mz3iZdki1razRDWScv4r7Q1XCO9odbG9dM8yIAzzsFFEi2mg4qRNjAWLJkVIGW2fzaA9QRXcW6CqP6wn9t2QOKjrWvcmtbBERGr80lhCK/sZC3Mr0skEteuwLdzgFgN85olxlz+hdjXfZCYXK+L32r3jy0FJgciAm4WYF2Lpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hPHo1TSG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vKv7Y5em"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CFB0C4CEE7;
-	Thu, 18 Sep 2025 21:43:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hPHo1TSG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B1FEC4CEE7;
+	Thu, 18 Sep 2025 22:03:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758231831;
-	bh=sZzv39/dGb3stLnrGk7wXx6lY/PmkZ1HwxPZ92pTVfI=;
+	s=korg; t=1758233002;
+	bh=coRMql9klCR/J1e/rhRxbsYD1sKTAPzDindX7Oup+fQ=;
 	h=Date:To:From:Subject:From;
-	b=vKv7Y5emC0rNmhJD1akviXdFXb3nhrtaBgwKnJ3iqmivi26Uwo8ThGA5KkLP58LA3
-	 xhmXRYnwfeoHjN8HI16pxRh7ImzJKOG556fJF8IcJcnqlEnchQJ19qEW943LSQzjC2
-	 PTGaSQgcYdv4Rhb+jxt74c6Ov0iqLpvewm56ybNE=
-Date: Thu, 18 Sep 2025 14:43:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yury.norov@gmail.com,ritesh.list@gmail.com,osalvador@suse.de,kamezawa.hiroyu@jp.fujitsu.com,Jonathan.Cameron@huawei.com,gregkh@linuxfoundation.org,david@redhat.com,dave.jiang@intel.com,dakr@kernel.org,clm@meta.com,alison.schofield@intel.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=hPHo1TSGrJ/xEKR6khNT6TE9S+Bsph1utRzkiSTtnig9LRESTj1xjw/EyV4wC5tA8
+	 Mx4ZXowPfn+0wdMOgsatHMyeNZHyZGDbnj8wI1L/oyLPs6gkkeVwfVCM/6rmw2RiSk
+	 XpVZj7i3eUXaVH1AwUYZeNkeZWKnwseNsQzoVZeE=
+Date: Thu, 18 Sep 2025 15:03:21 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-node-fix-double-free-in-register_one_node.patch added to mm-new branch
-Message-Id: <20250918214351.5CFB0C4CEE7@smtp.kernel.org>
+Subject: + mm-vmscan-remove-folio_test_private-check-in-pageout.patch added to mm-new branch
+Message-Id: <20250918220322.2B1FEC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/base/node: fix double free in register_one_node()
+     Subject: mm: vmscan: remove folio_test_private() check in pageout()
 has been added to the -mm mm-new branch.  Its filename is
-     drivers-base-node-fix-double-free-in-register_one_node.patch
+     mm-vmscan-remove-folio_test_private-check-in-pageout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-node-fix-double-free-in-register_one_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-remove-folio_test_private-check-in-pageout.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,58 +64,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: drivers/base/node: fix double free in register_one_node()
-Date: Thu, 18 Sep 2025 11:11:44 +0530
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: vmscan: remove folio_test_private() check in pageout()
+Date: Thu, 18 Sep 2025 11:46:53 +0800
 
-When device_register() fails in register_node(), it calls
-put_device(&node->dev).  This triggers node_device_release(), which calls
-kfree(to_node(dev)), thereby freeing the entire node structure.
+Patch series "some cleanups for pageout()", v2.
 
-As a result, when register_node() returns an error, the node memory has
-already been freed.  Calling kfree(node) again in register_one_node()
-leads to a double free.
+Since we no longer attempt to write back filesystem folios in pageout(),
+and only tmpfs/shmem folios and anonymous swapcache folios can be written
+back, we can remove the redundant folio_test_private() related logic to
+simplify the logic of pageout(), as tmpfs/shmem and swapcache folios do
+not use the PG_private flag.
 
-This patch removes the redundant kfree(node) from register_one_node() to
-prevent the double free.
 
-Link: https://lkml.kernel.org/r/20250918054144.58980-1-donettom@linux.ibm.com
-Fixes: 786eb990cfb7 ("drivers/base/node: handle error properly in register_one_node()")
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+This patch (of 2):
+
+The folio_test_private() check in pageout() was introduced by commit
+ce91b575332b ("orphaned pagecache memleak fix") in 2005 (checked from a
+history tree[1]).  As the commit message mentioned, it was to address the
+issue where reiserfs pagecache may be truncated while still pinned.  To
+further explain, the truncation removes the page->mapping, but the page is
+still listed in the VM queues because it still has buffers.
+
+In 2008, commit a2b345642f530 ("Fix dirty page accounting leak with ext3
+data=journal") seems to be dealing with a similar issue, where the page
+becomes dirty after truncation, and it provides a very useful call stack:
+
+truncate_complete_page()
+      cancel_dirty_page() // PG_dirty cleared, decr. dirty pages
+      do_invalidatepage()
+        ext3_invalidatepage()
+          journal_invalidatepage()
+            journal_unmap_buffer()
+              __dispose_buffer()
+                __journal_unfile_buffer()
+                  __journal_temp_unlink_buffer()
+                    mark_buffer_dirty(); // PG_dirty set, incr. dirty pages
+
+In this commit a2b345642f530, we forcefully clear the page's dirty flag
+during truncation (in truncate_complete_page()).
+
+Now it seems this was just a peculiar usage specific to reiserfs.  Maybe
+reiserfs had some extra refcount on these pages, which caused them to pass
+the is_page_cache_freeable() check.
+
+With the fix provided by commit a2b345642f530 and reiserfs being removed
+in 2024 by commit fb6f20ecb121 ("reiserfs: The last commit"), such a case
+is unlikely to occur again.  So let's remove the redundant
+folio_test_private() checks and related buffer_head release logic, and
+just leave a warning here to catch such a bug.
+
+Link: https://lkml.kernel.org/r/cover.1758166683.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/9ef0e560dc83650bc538eb5dcd1594e112c1369f.1758166683.git.baolin.wang@linux.alibaba.com
+Link: https://git.kernel.org/pub/scm/linux/kernel/git/tglx/history.git [1]
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Chris Mason <clm@meta.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hiroyouki Kamezawa <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmscan.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
---- a/drivers/base/node.c~drivers-base-node-fix-double-free-in-register_one_node
-+++ a/drivers/base/node.c
-@@ -887,7 +887,6 @@ int register_one_node(int nid)
- 	error = register_node(node_devices[nid], nid);
- 	if (error) {
- 		node_devices[nid] = NULL;
--		kfree(node);
- 		return error;
+--- a/mm/vmscan.c~mm-vmscan-remove-folio_test_private-check-in-pageout
++++ a/mm/vmscan.c
+@@ -701,16 +701,10 @@ static pageout_t pageout(struct folio *f
+ 		return PAGE_KEEP;
+ 	if (!mapping) {
+ 		/*
+-		 * Some data journaling orphaned folios can have
+-		 * folio->mapping == NULL while being dirty with clean buffers.
++		 * Is it still possible to have a dirty folio with
++		 * a NULL mapping? I think not.
+ 		 */
+-		if (folio_test_private(folio)) {
+-			if (try_to_free_buffers(folio)) {
+-				folio_clear_dirty(folio);
+-				pr_info("%s: orphaned folio\n", __func__);
+-				return PAGE_CLEAN;
+-			}
+-		}
++		VM_WARN_ON_FOLIO(true, folio);
+ 		return PAGE_KEEP;
  	}
  
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch
-selftests-mm-added-fork-inheritance-test-for-ksm_merging_pages-counter.patch
-selftests-mm-added-fork-test-to-verify-global-ksm_zero_pages-counter-behavior.patch
-drivers-base-node-fix-double-free-in-register_one_node.patch
+mm-shmem-fix-the-strategy-for-the-tmpfs-huge=-options.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout.patch
+mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
 
