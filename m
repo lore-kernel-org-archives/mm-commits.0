@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF5F52E9ED7
-	for <mm-commits@vger.kernel.org>; Thu, 18 Sep 2025 10:31:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AEBE22D7A1
+	for <mm-commits@vger.kernel.org>; Thu, 18 Sep 2025 20:38:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758191467; cv=none; b=C+JeDeW9oofcEX7paWP8tw6Ndyv44GPqWiEvqB02k/8KKumk6hho9r90FgPM4EdJ2ZzDFHzVdKXlwqyScI3JbT2MLJSJXjKbotScvvJ/uDvgf+nsOwkWD1fhLBY/hOP9UMhmR0fZtAdX0WAOxVtK6Bb0J20F4CczmQ03sqKWVqo=
+	t=1758227901; cv=none; b=rzQ5xAm8qSIARQjn62X+/ssQ7ccLoEDau58zMc7yoNE+290UEl5u9xPsDPaCLtEDaMuZLL4UBbGCyyc59jkCXo7UEo5VZ4zDZpsXkHDF08rcASoiXgwHRJuyxavOinCf6bHnoJQOSKFA+s2GpZoJbfuwJtTGo8pq/3ZJ4mg4xjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758191467; c=relaxed/simple;
-	bh=UdVBqTxJLR9BCVvYPKSYijVy0wRj1+TVjbVGmA8Vs4A=;
-	h=Date:To:From:Subject:Message-Id; b=R2oMZkJ7R1FyekVo1XQhwstVTLkdrl8gmOZI9l+mqtBvYx65COMbghN+iIZaFZCMGcmqV5dDJKprFKI9I6x6wQFy9D0UTpQ55EFuD+byUJO6o/dRpmpfztp5s7LDw4Ro3yr1z5V8w5VQpFMms8F0F5Aa+HoimdK0d24DI9s2RSI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tIh+5Ad7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758227901; c=relaxed/simple;
+	bh=0Q2XwKszm2AK2Q7+ZwNxGZeK/IcCaCwqpMYnAmjyl9A=;
+	h=Date:To:From:Subject:Message-Id; b=IRFtMIGZN6JRm8vOI86YDVC/9acaNegYkcBWUxk/T07BNFVFyu9jdW62pRoYzTBQuo7aKOORhaEX119SESdc8UCuqNxftRpY/ih5aOryWHTxpKcUDrAR2HveUpMbzMdPmVkDQCQSIdZzmdQ7Hysrsr3zYTlipU9LLWJrTjA8hAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WxwYDQXC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tIh+5Ad7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7543DC4CEFB;
-	Thu, 18 Sep 2025 10:31:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WxwYDQXC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9144C4CEE7;
+	Thu, 18 Sep 2025 20:38:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758191466;
-	bh=UdVBqTxJLR9BCVvYPKSYijVy0wRj1+TVjbVGmA8Vs4A=;
+	s=korg; t=1758227900;
+	bh=0Q2XwKszm2AK2Q7+ZwNxGZeK/IcCaCwqpMYnAmjyl9A=;
 	h=Date:To:From:Subject:From;
-	b=tIh+5Ad7Mdf0NzWdzrogvq/XCw3BTABuVHIVEffyHkdG6GsaMbvdVZNjdBlHAz9Gu
-	 c2ZILhfXEwA5VGzBX+EwsOL7sKEoOY2ozS9moa9ODZui0l8ArrGYWtSEtOmuPm9yU1
-	 RvxlWw1p6SgtumcG1AeHsPhdhJyNOt+OWj4w4uJ4=
-Date: Thu, 18 Sep 2025 03:31:05 -0700
-To: mm-commits@vger.kernel.org,jgg@nvidia.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=WxwYDQXCsGj0u7w9oPFOjrnB6nepjpb5jqZaXOUx3NkoR41yA4RMvY9M/OPvf4OyX
+	 V95bXYAvufovFB/8dT2YQlCxQBTZAd7QQE3+ialcu9zpCdVSDm7g2PaZfGtD/tooJj
+	 AwHwZi4XzzkywL1fq2HNhUTTi7fjWoY9CaaHJ3hQ=
+Date: Thu, 18 Sep 2025 13:38:19 -0700
+To: mm-commits@vger.kernel.org,manish1588@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-abstract-io_remap_pfn_range-based-on-pfn-fix.patch added to mm-unstable branch
-Message-Id: <20250918103106.7543DC4CEFB@smtp.kernel.org>
+Subject: + mm-show_mem-update-printk-pr_info-messages-and-replace-legacy-printkkern_cont-with-pr_cont.patch added to mm-new branch
+Message-Id: <20250918203819.E9144C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: io_remap_pfn_range_pfn fixup
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-abstract-io_remap_pfn_range-based-on-pfn-fix.patch
+     Subject: mm/show_mem: update printk/pr_info messages and replace legacy printk(KERN_CONT ...) with pr_cont()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-show_mem-update-printk-pr_info-messages-and-replace-legacy-printkkern_cont-with-pr_cont.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-abstract-io_remap_pfn_range-based-on-pfn-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-show_mem-update-printk-pr_info-messages-and-replace-legacy-printkkern_cont-with-pr_cont.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,85 +64,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: io_remap_pfn_range_pfn fixup
-Date: Thu, 18 Sep 2025 07:41:37 +0100
+From: Manish Kumar <manish1588@gmail.com>
+Subject: mm/show_mem: update printk/pr_info messages and replace legacy printk(KERN_CONT ...) with pr_cont()
+Date: Thu, 18 Sep 2025 23:44:03 +0530
 
-Link: https://lkml.kernel.org/r/96e4a163-a791-4b08-a006-bdd7ebbecaf9@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
+Link: https://lkml.kernel.org/r/20250918181403.93812-1-manish1588@gmail.com
+Signed-off-by: Manish Kumar <manish1588@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/include/asm/pgtable.h |    2 --
- include/linux/mm.h              |   15 ++-------------
- 2 files changed, 2 insertions(+), 15 deletions(-)
+ mm/show_mem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/csky/include/asm/pgtable.h~mm-abstract-io_remap_pfn_range-based-on-pfn-fix
-+++ a/arch/csky/include/asm/pgtable.h
-@@ -263,6 +263,4 @@ void update_mmu_cache_range(struct vm_fa
- #define update_mmu_cache(vma, addr, ptep) \
- 	update_mmu_cache_range(NULL, vma, addr, ptep, 1)
- 
--#define io_remap_pfn_range_pfn(pfn, size) (pfn)
--
- #endif /* __ASM_CSKY_PGTABLE_H */
---- a/include/linux/mm.h~mm-abstract-io_remap_pfn_range-based-on-pfn-fix
-+++ a/include/linux/mm.h
-@@ -3672,23 +3672,12 @@ static inline vm_fault_t vmf_insert_page
- 	return VM_FAULT_NOPAGE;
- }
- 
--#ifdef io_remap_pfn_range_pfn
--static inline unsigned long io_remap_pfn_range_prot(pgprot_t prot)
--{
--	/* We do not decrypt if arch customises PFN. */
--	return prot;
--}
--#else
-+#ifndef io_remap_pfn_range_pfn
- static inline unsigned long io_remap_pfn_range_pfn(unsigned long pfn,
- 		unsigned long size)
+--- a/mm/show_mem.c~mm-show_mem-update-printk-pr_info-messages-and-replace-legacy-printkkern_cont-with-pr_cont
++++ a/mm/show_mem.c
+@@ -26,7 +26,7 @@ unsigned long totalcma_pages __read_most
+ static inline void show_node(struct zone *zone)
  {
- 	return pfn;
+ 	if (IS_ENABLED(CONFIG_NUMA))
+-		printk("Node %d ", zone_to_nid(zone));
++		pr_info("Node %d ", zone_to_nid(zone));
  }
--
--static inline pgprot_t io_remap_pfn_range_prot(pgprot_t prot)
--{
--	return pgprot_decrypted(prot);
--}
- #endif
  
- static inline int io_remap_pfn_range(struct vm_area_struct *vma,
-@@ -3696,7 +3685,7 @@ static inline int io_remap_pfn_range(str
- 				     unsigned long size, pgprot_t orig_prot)
- {
- 	const unsigned long pfn = io_remap_pfn_range_pfn(orig_pfn, size);
--	const pgprot_t prot = io_remap_pfn_range_prot(orig_prot);
-+	const pgprot_t prot = pgprot_decrypted(orig_prot);
+ long si_mem_available(void)
+@@ -156,7 +156,7 @@ static void show_migration_types(unsigne
+ 	}
  
- 	return remap_pfn_range(vma, addr, pfn, size, prot);
+ 	*p = '\0';
+-	printk(KERN_CONT "(%s) ", tmp);
++	pr_cont("(%s) ", tmp);
  }
+ 
+ static bool node_has_managed_zones(pg_data_t *pgdat, int max_zone_idx)
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from manish1588@gmail.com are
 
-mm-specify-separate-file-and-vm_file-params-in-vm_area_desc.patch
-mm-do-not-assume-file-==-vma-vm_file-in-compat_vma_mmap_prepare.patch
-mm-shmem-update-shmem-to-use-mmap_prepare.patch
-device-dax-update-devdax-to-use-mmap_prepare.patch
-mm-add-vma_desc_size-vma_desc_pages-helpers.patch
-relay-update-relay-to-use-mmap_prepare.patch
-mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
-mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
-mm-abstract-io_remap_pfn_range-based-on-pfn.patch
-mm-abstract-io_remap_pfn_range-based-on-pfn-fix.patch
-mm-introduce-io_remap_pfn_range_.patch
-mm-add-ability-to-take-further-action-in-vm_area_desc.patch
-doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
-mm-add-shmem_zero_setup_desc.patch
-mm-update-mem-char-driver-to-use-mmap_prepare.patch
-mm-update-resctl-to-use-mmap_prepare.patch
-mm-oom_killc-fix-inverted-check.patch
+mm-show_mem-update-printk-pr_info-messages-and-replace-legacy-printkkern_cont-with-pr_cont.patch
 
