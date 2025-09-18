@@ -1,117 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DCE81F4181;
-	Thu, 18 Sep 2025 04:13:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B95B527A108;
+	Thu, 18 Sep 2025 05:00:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758168792; cv=none; b=qArNwlnu99iReaUjFux+ygtFuRDBH9wseODZWSrLS0A8/h9Luu0XTu9X8AQPhFMlnNFOZuEZ/KCPj7zKuaOzzY95R3qaL8teQNps8lxxOLsdnmADBNODTw2RPXoGx/tt97NYsrwpN226maf2q9YGEMWknhFBa631MmbfEK2PBqE=
+	t=1758171606; cv=none; b=gfWTt71CcZXxWXjycGiYCQyUFCC1NCqPkZqxjI8+pMU7bfSCKLSW3ip/5eDwowAacKyTylEfpsE4xJW9VNNNDu/HIHAlGfMqgyAGfJlFjxcynPGHCYnVAIpbC07FjTAraLylHzYCPgffBsNTqEOFAA8UcC7/cErzohgf5CieeXM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758168792; c=relaxed/simple;
-	bh=W7Yj5+1o6KKMQC/tA+UpcbbG71xRxkrXyq2jA6xZEe8=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=f9kW3k0d/mdwGMMxV6ex/+n8Lz0Y6GLEHp+n/LEQydaVrJemep9dVpkRIbDb3hWu4/MPxtljur4SzzPotCYkbgHBSAgNfOadfNivTgjtzRKgLADku951xmwHstx+VKOkT7uacvdMK63l/+glLjsFiZgKM4YsCjFSFEKE4hksY1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ErSRjBVv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758171606; c=relaxed/simple;
+	bh=Pwe38i2essNnYnJ3UQqLil3L0njh2nUJNrRrwwF8g0Y=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=UXPOIXrYDUfuEvT+y5tIg3kPu4zpUswNxkvLAPmMNP2DRcb3ClhdYjwOciy1cpODistXBVvbCPLHIv64wMi2e/ZwGhadNvh7jsF0YW2avpnUTqLAIsPNoBQm7DbB5H0C3ZitZze/JG9uFwYekksUMFoWKT8MYUWjDGJyBotid9E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=igbs4A95; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ErSRjBVv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDEB8C4CEE7;
-	Thu, 18 Sep 2025 04:13:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758168791;
-	bh=W7Yj5+1o6KKMQC/tA+UpcbbG71xRxkrXyq2jA6xZEe8=;
-	h=Date:From:To:Cc:Subject:From;
-	b=ErSRjBVvxfZAW9IXBd47FcARzxb0fJHZzBM57kJEbVjPS9Zgw690tuQI3p5tAiFkk
-	 9dgXH8ElJQcIhJBoSCToVRqOjEbLIiv+d49mbKuWF52CyxDDhtRBV0+6lP+SLO6aWn
-	 /4v67jTsYSQ33omWwyqA4pDCVQsv6SbNG9tKTXQk=
-Date: Wed, 17 Sep 2025 21:13:10 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org
-Subject: [GIT PULL] hotfixes for 6.17-rc7
-Message-Id: <20250917211310.da8771af4cb50be2e657fe6a@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="igbs4A95"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A8E2C4CEE7;
+	Thu, 18 Sep 2025 05:00:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1758171606;
+	bh=Pwe38i2essNnYnJ3UQqLil3L0njh2nUJNrRrwwF8g0Y=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=igbs4A95i0SZAd2ZiO6v7aDzwzLJEuv4U5QGReD9svMMlfahs0WqpgCiuc+6mbZhc
+	 SThjrocxu5ORjR4k9wouv04DYLhyMhmQEpoKXDM76+dNVxlb1ZUVuKk7ere+lQ1r0e
+	 hIkKRYPIT6rjc/Tk3ky6+Lpl1XN92vkNv98cPqE0eRMnTnvnlA9A6UOjuiApKjnTAj
+	 4hFWAbj72PVv73A7MEH5e96AjenbsNx7PilrIp9kMa/aHmCmSUlcMa2o0e/MU5skzn
+	 spZ7RPpgTDAKRHgabAOYcMzTSCV/zfLB7T8ge2FIu6fagbaEd62CYqcNnrCRCAa8Bf
+	 DIfmsorlQFpLg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3533139D0C3D;
+	Thu, 18 Sep 2025 05:00:08 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.17-rc7
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20250917211310.da8771af4cb50be2e657fe6a@linux-foundation.org>
+References: <20250917211310.da8771af4cb50be2e657fe6a@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20250917211310.da8771af4cb50be2e657fe6a@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-09-17-21-10
+X-PR-Tracked-Commit-Id: ce4be9e4307c5a60701ff6e0cafa74caffdc54ce
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 8b789f2b7602a818e7c7488c74414fae21392b63
+Message-Id: <175817160718.2263649.1243233939386153850.pr-tracker-bot@kernel.org>
+Date: Thu, 18 Sep 2025 05:00:07 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
+The pull request you sent on Wed, 17 Sep 2025 21:13:10 -0700:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-09-17-21-10
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/8b789f2b7602a818e7c7488c74414fae21392b63
 
-The following changes since commit a68172d95c2845d2b5455b072b4ff51ba32650e9:
+Thank you!
 
-  MAINTAINERS: add tree entry to numa memblocks and emulation block (2025-09-08 23:45:12 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-09-17-21-10
-
-for you to fetch changes up to ce4be9e4307c5a60701ff6e0cafa74caffdc54ce:
-
-  zram: fix slot write race condition (2025-09-15 20:01:45 -0700)
-
-----------------------------------------------------------------
-15 hotfixes.  11 are cc:stable and the remainder address post-6.16 issues
-or aren't considered necessary for -stable kernels.  13 of these fixes are
-for MM.
-
-The usual shower of singletons, plus
-
-- A 5 patch series from Hugh which addresses various misbehaviors in
-  get_user_pages()
-
-- A 2 patch series from SeongJae which addresses a quite severe issue in
-  DAMON
-
-- A 3 patch series also from SeongJae which completes some fixes for a
-  DAMON startup issue
-
-----------------------------------------------------------------
-Hugh Dickins (5):
-      mm/gup: check ref_count instead of lru before migration
-      mm/gup: local lru_add_drain() to avoid lru_add_drain_all()
-      mm: revert "mm/gup: clear the LRU flag of a page before adding to LRU batch"
-      mm: revert "mm: vmscan.c: fix OOM on swap stress test"
-      mm: folio_may_be_lru_cached() unless folio_test_large()
-
-Lance Yang (1):
-      MAINTAINERS: add Lance Yang as a THP reviewer
-
-Lorenzo Stoakes (1):
-      MAINTAINERS: add Jann Horn as rmap reviewer
-
-Nathan Chancellor (1):
-      nilfs2: fix CFI failure when accessing /sys/fs/nilfs2/features/*
-
-SeongJae Park (5):
-      mm/damon/core: introduce damon_call_control->dealloc_on_cancel
-      mm/damon/sysfs: use dynamically allocated repeat mode damon_call_control
-      samples/damon/wsse: avoid starting DAMON before initialization
-      samples/damon/prcl: avoid starting DAMON before initialization
-      samples/damon/mtier: avoid starting DAMON before initialization
-
-Sergey Senozhatsky (1):
-      zram: fix slot write race condition
-
- MAINTAINERS                   |  2 ++
- drivers/block/zram/zram_drv.c |  8 +++----
- fs/nilfs2/sysfs.c             |  4 ++--
- fs/nilfs2/sysfs.h             |  8 +++----
- include/linux/damon.h         |  2 ++
- include/linux/swap.h          | 10 +++++++++
- mm/damon/core.c               |  8 +++++--
- mm/damon/sysfs.c              | 23 +++++++++++++-------
- mm/gup.c                      | 14 +++++++++---
- mm/mlock.c                    |  6 +++---
- mm/swap.c                     | 50 ++++++++++++++++++++++---------------------
- mm/vmscan.c                   |  2 +-
- samples/damon/mtier.c         |  3 +++
- samples/damon/prcl.c          |  3 +++
- samples/damon/wsse.c          |  3 +++
- 15 files changed, 94 insertions(+), 52 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
