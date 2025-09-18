@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 088CE2C0280
-	for <mm-commits@vger.kernel.org>; Thu, 18 Sep 2025 21:08:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C908226C3A7
+	for <mm-commits@vger.kernel.org>; Thu, 18 Sep 2025 21:09:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758229722; cv=none; b=r6qZOkBg5GYEC9akabdBsJDZRRhBcxMKD4KEJxiqJczX2Z1G1axVZs+2HXwSkqSqsFwOWiblO78GtAFvrbyumavU5/ZOkiZTh0YyR15nD30lpBEFpJouuTDb9+5gfHOauGmCXKfHjwbNDHkxTdB0v0NB2TJmQC7+M1iZxq4wo1g=
+	t=1758229778; cv=none; b=auxd1O5dYdzDihww/wiqNMHB0GUQhsvTOjiRXPgc8giZWx5G5jk8Og5wXAdrf4hxqFmcN6LapL+g783vhgv+ubk9Ym6G9JIWAHguPs32U3+kVgLta5lqQb7A6PpIkorzf+OwPDzvRMN1wp7YYv7KaE//wlVqnHvY6iikBtKE3LI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758229722; c=relaxed/simple;
-	bh=cCKpoWbcaQ2008cBkorspTHvFrZnncPtgJS/FqbNOHU=;
-	h=Date:To:From:Subject:Message-Id; b=TGicVyXnznbgDiB512yujGV2SU4+j4PYxhNxLR6DOyHBxZvB4EHyztqhBif7+QMIjzVh4FrY3K+wAk8RFiw/8ia5l/7GgCUlOri65Xs/CST0EKVRrrxzGf76uBIisOwytb9CW3Fz/Ti00tRyEL3XJvt6B6CPgud8EZtDXqOosjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krt2PKr7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758229778; c=relaxed/simple;
+	bh=jXyDAD7vn0rltXp4MlwIkFqBXvRDZ3OMRFFfPN4UDH8=;
+	h=Date:To:From:Subject:Message-Id; b=sF9E9nRkrzpQwxGAl1P5ondkKCC7jbe4DKufMMcHc8sNI6P4KAmf2VG+/KED0B2Kfw7B4rX4ssv+AXwJZYZrgRuq6UktMfjKjyQrpIfoxQ7sXLU71IHrFRUwnoVJw14kY+RYQyHFY651hAjKNN9mkKh2Gr9efQxmypMe5H7qc14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B7yBIJQ2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krt2PKr7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83356C4CEF1;
-	Thu, 18 Sep 2025 21:08:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B7yBIJQ2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37E33C4CEF0;
+	Thu, 18 Sep 2025 21:09:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758229721;
-	bh=cCKpoWbcaQ2008cBkorspTHvFrZnncPtgJS/FqbNOHU=;
+	s=korg; t=1758229778;
+	bh=jXyDAD7vn0rltXp4MlwIkFqBXvRDZ3OMRFFfPN4UDH8=;
 	h=Date:To:From:Subject:From;
-	b=krt2PKr7A1wTPUJShYFqJQb/eSHvXMWllzdzZAelrUm0Pn/eWTTLS4vfV2gQm4041
-	 5/hCRcBewTJOT0opJfn8h/R4kb7z9N+hOV5osmMNmtz+pawvPdggKpzCzG/szmbgDn
-	 JG+6dG3lifCXtPNqLQGkH3aCjDy5GRKbvGDUxnM8=
-Date: Thu, 18 Sep 2025 14:08:40 -0700
+	b=B7yBIJQ2szK2b7do9d+VL8zdKUePZhtz3WIqsAxP1ZPYIQEvpiUA2FC6xNG5KaeQA
+	 m7lQ8wfzP7xyo4sETaAYGnFixuPmkfrxU5VN+AmwyoeqLD/0FRTEIbuB0zeQ1yMbMV
+	 HC5ooplZJQAF5eSYLM1t8oNaSM1HNMN1zCzPyRWU=
+Date: Thu, 18 Sep 2025 14:09:37 -0700
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch added to mm-unstable branch
-Message-Id: <20250918210841.83356C4CEF1@smtp.kernel.org>
+Subject: + mm-introduce-io_remap_pfn_range_-fix.patch added to mm-unstable branch
+Message-Id: <20250918210938.37E33C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fixup: return error on broken path, update vma_internal.h
+     Subject: fixup io_remap_pfn_range_[prepare, complete]
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch
+     mm-introduce-io_remap_pfn_range_-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-io_remap_pfn_range_-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,52 +59,30 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: fixup: return error on broken path, update vma_internal.h
-Date: Thu, 18 Sep 2025 08:08:31 +0100
+Subject: fixup io_remap_pfn_range_[prepare, complete]
+Date: Thu, 18 Sep 2025 07:43:21 +0100
 
-Link: https://lkml.kernel.org/r/20f1c97d-b958-474c-b3a1-8ea9a177e096@lucifer.local
+propagate the fact that we don't need io_remap_pfn_range_prot()
+
+Link: https://lkml.kernel.org/r/2cf129c4-627b-4a78-9ec3-cf43c95cf17d@lucifer.local
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c                        |    6 ++++--
- tools/testing/vma/vma_internal.h |    1 +
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/util.c~mm-add-ability-to-take-further-action-in-vm_area_desc-fix
-+++ a/mm/util.c
-@@ -1385,17 +1385,19 @@ EXPORT_SYMBOL(mmap_action_prepare);
- int mmap_action_complete(struct mmap_action *action,
- 			struct vm_area_struct *vma)
+--- a/mm/internal.h~mm-introduce-io_remap_pfn_range_-fix
++++ a/mm/internal.h
+@@ -1670,7 +1670,7 @@ static inline int io_remap_pfn_range_com
+ 		pgprot_t orig_prot)
  {
-+	int err = 0;
-+
- 	switch (action->type) {
- 	case MMAP_NOTHING:
- 		break;
- 	case MMAP_REMAP_PFN:
- 	case MMAP_IO_REMAP_PFN:
- 		WARN_ON_ONCE(1); /* nommu cannot handle this. */
--
-+		err = -EINVAL;
- 		break;
- 	}
+ 	const unsigned long pfn = io_remap_pfn_range_pfn(orig_pfn, size);
+-	const pgprot_t prot = io_remap_pfn_range_prot(orig_prot);
++	const pgprot_t prot = pgprot_decrypted(orig_prot);
  
--	return mmap_action_finish(action, vma, /* err = */0);
-+	return mmap_action_finish(action, vma, err);
+ 	return remap_pfn_range_complete(vma, addr, pfn, size, prot);
  }
- EXPORT_SYMBOL(mmap_action_complete);
- #endif
---- a/tools/testing/vma/vma_internal.h~mm-add-ability-to-take-further-action-in-vm_area_desc-fix
-+++ a/tools/testing/vma/vma_internal.h
-@@ -279,6 +279,7 @@ struct vm_area_struct;
- enum mmap_action_type {
- 	MMAP_NOTHING,		/* Mapping is complete, no further action. */
- 	MMAP_REMAP_PFN,		/* Remap PFN range. */
-+	MMAP_IO_REMAP_PFN,	/* I/O remap PFN range. */
- };
- 
- /*
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
@@ -120,6 +98,7 @@ mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
 mm-abstract-io_remap_pfn_range-based-on-pfn.patch
 mm-abstract-io_remap_pfn_range-based-on-pfn-fix.patch
 mm-introduce-io_remap_pfn_range_.patch
+mm-introduce-io_remap_pfn_range_-fix.patch
 mm-add-ability-to-take-further-action-in-vm_area_desc.patch
 mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch
 doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
