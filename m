@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA935C96
-	for <mm-commits@vger.kernel.org>; Fri, 19 Sep 2025 20:09:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A34A257852;
+	Fri, 19 Sep 2025 20:14:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758312586; cv=none; b=CK5ookKpTKSbs1ckFbpwMsO5x8D9CESZImZngrglhSUwwc0M4KnCl3IV3YgDaALo4jhSdm5poZa0qxYEulmq28XGKDva5Zx5ol5DUcKnsvz7z5RrelWV0CAWjAgbjsxKDl/++Hi4WC0ap0SsKkyURyfhM96tcESMNAth2xyPeSw=
+	t=1758312844; cv=none; b=ZG1pux+POCLfAeRgu5mntw63R1iLZccz95x2Q75w5dmn9EZA/wLKbEnWNOhCtA7x9Bvs9lSeoiSPInf5KgQeq4IDCp66cVsheXBSrDhCp3ms4wrLSHx869zE8SasS7oMCuqhe5zqw/xNqSM90QxkROyOoPgc+28NcnBk0Pe2np4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758312586; c=relaxed/simple;
-	bh=xUIKzRavlyuMuEmTZBFohZhoJmRmMsvztqfSPOL+DiI=;
-	h=Date:To:From:Subject:Message-Id; b=R0S6RJ23a0UMNOBROLpwzONU5LXAVcXFT44saF26v8bLG4km/7aWkJUnipzQhkrPCybUiJ5ls4cOukk7d8NyE8znQBbw9i/6w6TWROE34PafK7XejxTqpn1Qbob18gBxmfbtFsu8nodtljHTNq4K89HCje0+Ei07T74b3hxHbzU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pqMtb01+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758312844; c=relaxed/simple;
+	bh=r2jwadqywijs9tE/NrgnxVbD/jn2Afyw+dU7S1pH+6Q=;
+	h=Date:To:From:Subject:Message-Id; b=JBqTfhVPxFPzb6iokVJVwCwITQuz9s3kPVb8BUGZnNyfUYwltHtyuT/0dYR+Du2SI0W9Ct/KihKW0ry5gATaNA0vqmWvXxPdezEyn2hUtOw2UUpZk0VXXFWJJA++k2ZYfitJGIE7AlE1rHR+LUeH8596FhthSw3Erhj7MP4kA8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yScsVnFk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pqMtb01+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF71DC4CEF0;
-	Fri, 19 Sep 2025 20:09:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yScsVnFk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ACB9C4CEF0;
+	Fri, 19 Sep 2025 20:14:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758312585;
-	bh=xUIKzRavlyuMuEmTZBFohZhoJmRmMsvztqfSPOL+DiI=;
+	s=korg; t=1758312844;
+	bh=r2jwadqywijs9tE/NrgnxVbD/jn2Afyw+dU7S1pH+6Q=;
 	h=Date:To:From:Subject:From;
-	b=pqMtb01+dbzmoSMj1ZUQn8JExlEUThnd/zKfrG1b/qh/myFrZW26YFLh1AJ4tshEA
-	 zh9NL/Q0UXzwcpBt2g7HfyXJu9SrJ32jgMYy9K5+xqyoSGIZopm6+ZG148DaCSl6LZ
-	 9cGOESXf4OKIlt5udqhwVNlO0d49M9X6yi0y5lb8=
-Date: Fri, 19 Sep 2025 13:09:45 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,joshua.hahnjy@gmail.com,jackmanb@google.com,gourry@gourry.net,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=yScsVnFkAxn604opWnezQ1hHQ39Ibk6u74oHlfRrcsvg3AdznSaHhelnMRcmXg5LW
+	 qQQu49+PrNbBLM+OaZYbxTMeanJl7RN3UtW+UVqGkU3Ei9E5NEGhToN94nOhi1Aa0S
+	 eGYjec7cWkZFilx5MDrXcH1+9tz+Gy+oF0bs7g4A=
+Date: Fri, 19 Sep 2025 13:14:03 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usama.anjum@collabora.com,tujinjiang@huawei.com,surenb@google.com,superman.xpt@gmail.com,stable@vger.kernel.org,sfr@canb.auug.org.au,ryan.roberts@arm.com,mirq-linux@rere.qmqm.pl,lorenzo.stoakes@oracle.com,david@redhat.com,broonie@kernel.org,baolin.wang@linux.alibaba.com,avagin@gmail.com,adobriyan@gmail.com,acsjakub@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch added to mm-unstable branch
-Message-Id: <20250919200945.CF71DC4CEF0@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-check-cur_buf-for-null.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250919201404.1ACB9C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: avoid kswapd thrashing due to NUMA restrictions
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch
+     Subject: fs/proc/task_mmu: check cur_buf for NULL
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fs-proc-task_mmu-check-cur_buf-for-null.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-check-cur_buf-for-null.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,112 +58,94 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: avoid kswapd thrashing due to NUMA restrictions
-Date: Fri, 19 Sep 2025 12:21:34 -0400
+From: Jakub Acs <acsjakub@amazon.de>
+Subject: fs/proc/task_mmu: check cur_buf for NULL
+Date: Fri, 19 Sep 2025 14:21:04 +0000
 
-On NUMA systems without bindings, allocations check all nodes for free
-space, then wake up the kswapds on all nodes and retry. This ensures
-all available space is evenly used before reclaim begins. However,
-when one process or certain allocations have node restrictions, they
-can cause kswapds on only a subset of nodes to be woken up.
+When the PAGEMAP_SCAN ioctl is invoked with vec_len = 0 reaches
+pagemap_scan_backout_range(), kernel panics with null-ptr-deref:
 
-Since kswapd hysteresis targets watermarks that are *higher* than
-needed for allocation, even *unrestricted* allocations can now get
-suckered onto such nodes that are already pressured. This ends up
-concentrating all allocations on them, even when there are idle nodes
-available for the unrestricted requests.
+[   44.936808] Oops: general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN NOPTI
+[   44.937797] KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+[   44.938391] CPU: 1 UID: 0 PID: 2480 Comm: reproducer Not tainted 6.17.0-rc6 #22 PREEMPT(none)
+[   44.939062] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
+[   44.939935] RIP: 0010:pagemap_scan_thp_entry.isra.0+0x741/0xa80
 
-This was observed with two numa nodes, where node0 is normal and node1
-is ZONE_MOVABLE to facilitate hotplugging: a kernel allocation wakes
-kswapd on node0 only (since node1 is not eligible); once kswapd0 is
-active, the watermarks hover between low and high, and then even the
-movable allocations end up on node0, only to be kicked out again;
-meanwhile node1 is empty and idle.
+<snip registers, unreliable trace>
 
-Similar behavior is possible when a process with NUMA bindings is
-causing selective kswapd wakeups.
+[   44.946828] Call Trace:
+[   44.947030]  <TASK>
+[   44.949219]  pagemap_scan_pmd_entry+0xec/0xfa0
+[   44.952593]  walk_pmd_range.isra.0+0x302/0x910
+[   44.954069]  walk_pud_range.isra.0+0x419/0x790
+[   44.954427]  walk_p4d_range+0x41e/0x620
+[   44.954743]  walk_pgd_range+0x31e/0x630
+[   44.955057]  __walk_page_range+0x160/0x670
+[   44.956883]  walk_page_range_mm+0x408/0x980
+[   44.958677]  walk_page_range+0x66/0x90
+[   44.958984]  do_pagemap_scan+0x28d/0x9c0
+[   44.961833]  do_pagemap_cmd+0x59/0x80
+[   44.962484]  __x64_sys_ioctl+0x18d/0x210
+[   44.962804]  do_syscall_64+0x5b/0x290
+[   44.963111]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-To fix this, on NUMA systems augment the (misleading) watermark test
-with a check for whether kswapd is already active during the first
-iteration through the zonelist. If this fails to place the request,
-kswapd must be running everywhere already, and the watermark test is
-good enough to decide placement.
+vec_len = 0 in pagemap_scan_init_bounce_buffer() means no buffers are
+allocated and p->vec_buf remains set to NULL.
 
-With this patch, unrestricted requests successfully make use of node1,
-even while kswapd is reclaiming node0 for restricted allocations.
+This breaks an assumption made later in pagemap_scan_backout_range(), that
+page_region is always allocated for p->vec_buf_index.
 
-[gourry@gourry.net: don't retry if no kswapds were active]
-Link: https://lkml.kernel.org/r/20250919162134.1098208-1-hannes@cmpxchg.org
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Fix it by explicitly checking cur_buf for NULL before dereferencing.
+
+Other sites that might run into same deref-issue are already (directly or
+transitively) protected by checking p->vec_buf.
+
+Note:
+From PAGEMAP_SCAN man page, it seems vec_len = 0 is valid when no output
+is requested and it's only the side effects caller is interested in, hence
+it passes check in pagemap_scan_get_args().
+
+This issue was found by syzkaller.
+
+Link: https://lkml.kernel.org/r/20250919142106.43527-1-acsjakub@amazon.de
+Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
+Signed-off-by: Jakub Acs <acsjakub@amazon.de>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Penglei Jiang <superman.xpt@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: "Michał Mirosław" <mirq-linux@rere.qmqm.pl>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ fs/proc/task_mmu.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions
-+++ a/mm/page_alloc.c
-@@ -3735,6 +3735,8 @@ get_page_from_freelist(gfp_t gfp_mask, u
- 	struct pglist_data *last_pgdat = NULL;
- 	bool last_pgdat_dirty_ok = false;
- 	bool no_fallback;
-+	bool skip_kswapd_nodes = nr_online_nodes > 1;
-+	bool skipped_kswapd_nodes = false;
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-check-cur_buf-for-null
++++ a/fs/proc/task_mmu.c
+@@ -2417,6 +2417,9 @@ static void pagemap_scan_backout_range(s
+ {
+ 	struct page_region *cur_buf = &p->vec_buf[p->vec_buf_index];
  
- retry:
- 	/*
-@@ -3797,6 +3799,19 @@ retry:
- 			}
- 		}
- 
-+		/*
-+		 * If kswapd is already active on a node, keep looking
-+		 * for other nodes that might be idle. This can happen
-+		 * if another process has NUMA bindings and is causing
-+		 * kswapd wakeups on only some nodes. Avoid accidental
-+		 * "node_reclaim_mode"-like behavior in this case.
-+		 */
-+		if (skip_kswapd_nodes &&
-+		    !waitqueue_active(&zone->zone_pgdat->kswapd_wait)) {
-+			skipped_kswapd_nodes = true;
-+			continue;
-+		}
++	if (!cur_buf)
++		return;
 +
- 		cond_accept_memory(zone, order, alloc_flags);
- 
- 		/*
-@@ -3889,6 +3904,15 @@ try_this_zone:
- 	}
- 
- 	/*
-+	 * If we skipped over nodes with active kswapds and found no
-+	 * idle nodes, retry and place anywhere the watermarks permit.
-+	 */
-+	if (skip_kswapd_nodes && skipped_kswapd_nodes) {
-+		skip_kswapd_nodes = false;
-+		goto retry;
-+	}
-+
-+	/*
- 	 * It's possible on a UMA machine to get through all zones that are
- 	 * fragmented. If avoiding fragmentation, reset and try again.
- 	 */
+ 	if (cur_buf->start != addr)
+ 		cur_buf->end = addr;
+ 	else
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from acsjakub@amazon.de are
 
-mm-zswap-interact-directly-with-zsmalloc.patch
-mm-zswap-interact-directly-with-zsmalloc-fix.patch
-mm-remove-unused-zpool-layer.patch
-mm-zpdesc-minor-naming-and-comment-corrections.patch
-mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch
+fs-proc-task_mmu-check-cur_buf-for-null.patch
 
