@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A34A257852;
-	Fri, 19 Sep 2025 20:14:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02AB12AD24
+	for <mm-commits@vger.kernel.org>; Fri, 19 Sep 2025 20:19:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758312844; cv=none; b=ZG1pux+POCLfAeRgu5mntw63R1iLZccz95x2Q75w5dmn9EZA/wLKbEnWNOhCtA7x9Bvs9lSeoiSPInf5KgQeq4IDCp66cVsheXBSrDhCp3ms4wrLSHx869zE8SasS7oMCuqhe5zqw/xNqSM90QxkROyOoPgc+28NcnBk0Pe2np4=
+	t=1758313167; cv=none; b=Ej630uGsA0/bCCbR+Hbr7FjzVHSq3+bHoXTsLPHYL8GKAvwQAGgYPFk9HP1p6RnRdKDr5BUJ6L2pSYZXoJ3sHd5DKdfhxgVL72pUf+c7rYhrKM15nwgYXKDyRnS/JeHMZ1JaY7QwEqNnN6G7vjqWaPvo6b3WsIlUovDMiu2XCRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758312844; c=relaxed/simple;
-	bh=r2jwadqywijs9tE/NrgnxVbD/jn2Afyw+dU7S1pH+6Q=;
-	h=Date:To:From:Subject:Message-Id; b=JBqTfhVPxFPzb6iokVJVwCwITQuz9s3kPVb8BUGZnNyfUYwltHtyuT/0dYR+Du2SI0W9Ct/KihKW0ry5gATaNA0vqmWvXxPdezEyn2hUtOw2UUpZk0VXXFWJJA++k2ZYfitJGIE7AlE1rHR+LUeH8596FhthSw3Erhj7MP4kA8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yScsVnFk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758313167; c=relaxed/simple;
+	bh=RdupOgzIjA2QhKzsIMtoM8XIGXpXGG8SbWefCasq92M=;
+	h=Date:To:From:Subject:Message-Id; b=omGXqLAji4u8MN1KMYGnYUm+FwEoobox2fRYCPXYBssJQXzKdaBd3IGucDbMPhst6UzY5U9vXLWshEPWo9ekkst1qkPcOhRtdgqV80r1zA+d2q3Y1zw7elveiuMbG94kXewxr8Kqp117jpfIrs8EHal0h4wtf97dQk8xvULKBrI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fIQRGRUG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yScsVnFk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ACB9C4CEF0;
-	Fri, 19 Sep 2025 20:14:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fIQRGRUG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B72AAC4CEF0;
+	Fri, 19 Sep 2025 20:19:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758312844;
-	bh=r2jwadqywijs9tE/NrgnxVbD/jn2Afyw+dU7S1pH+6Q=;
+	s=korg; t=1758313165;
+	bh=RdupOgzIjA2QhKzsIMtoM8XIGXpXGG8SbWefCasq92M=;
 	h=Date:To:From:Subject:From;
-	b=yScsVnFkAxn604opWnezQ1hHQ39Ibk6u74oHlfRrcsvg3AdznSaHhelnMRcmXg5LW
-	 qQQu49+PrNbBLM+OaZYbxTMeanJl7RN3UtW+UVqGkU3Ei9E5NEGhToN94nOhi1Aa0S
-	 eGYjec7cWkZFilx5MDrXcH1+9tz+Gy+oF0bs7g4A=
-Date: Fri, 19 Sep 2025 13:14:03 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,usama.anjum@collabora.com,tujinjiang@huawei.com,surenb@google.com,superman.xpt@gmail.com,stable@vger.kernel.org,sfr@canb.auug.org.au,ryan.roberts@arm.com,mirq-linux@rere.qmqm.pl,lorenzo.stoakes@oracle.com,david@redhat.com,broonie@kernel.org,baolin.wang@linux.alibaba.com,avagin@gmail.com,adobriyan@gmail.com,acsjakub@amazon.de,akpm@linux-foundation.org
+	b=fIQRGRUGEfd82b3EilOY9Jv9DecsgOkC4dkpORnTXHN+zP6CNqVaHghCtJzmp+fCR
+	 2x9GZNvh2FdLPPVdpWFH5PsZlFe+oRrjzTkFYd2tdkSkpFDh+jt/f1gBnKm79U/BFy
+	 NRmjwGczXQMWsUTh1FpwJmpgpnI8i31RJK5ezFpM=
+Date: Fri, 19 Sep 2025 13:19:25 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-check-cur_buf-for-null.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250919201404.1ACB9C4CEF0@smtp.kernel.org>
+Subject: + mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch added to mm-unstable branch
+Message-Id: <20250919201925.B72AAC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: check cur_buf for NULL
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-task_mmu-check-cur_buf-for-null.patch
+     Subject: mm/page_vma_mapped: track if the page is mapped across page table boundary
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-check-cur_buf-for-null.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,94 +58,109 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jakub Acs <acsjakub@amazon.de>
-Subject: fs/proc/task_mmu: check cur_buf for NULL
-Date: Fri, 19 Sep 2025 14:21:04 +0000
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: mm/page_vma_mapped: track if the page is mapped across page table boundary
+Date: Fri, 19 Sep 2025 13:40:32 +0100
 
-When the PAGEMAP_SCAN ioctl is invoked with vec_len = 0 reaches
-pagemap_scan_backout_range(), kernel panics with null-ptr-deref:
+Patch series "mm: Improve mlock tracking for large folios", v2.
 
-[   44.936808] Oops: general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN NOPTI
-[   44.937797] KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
-[   44.938391] CPU: 1 UID: 0 PID: 2480 Comm: reproducer Not tainted 6.17.0-rc6 #22 PREEMPT(none)
-[   44.939062] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
-[   44.939935] RIP: 0010:pagemap_scan_thp_entry.isra.0+0x741/0xa80
+The patchset includes several fixes and improvements related to mlock
+tracking of large folios.
 
-<snip registers, unreliable trace>
+The main objective is to reduce the undercount of Mlocked memory in
+/proc/meminfo and improve the accuracy of the statistics.
 
-[   44.946828] Call Trace:
-[   44.947030]  <TASK>
-[   44.949219]  pagemap_scan_pmd_entry+0xec/0xfa0
-[   44.952593]  walk_pmd_range.isra.0+0x302/0x910
-[   44.954069]  walk_pud_range.isra.0+0x419/0x790
-[   44.954427]  walk_p4d_range+0x41e/0x620
-[   44.954743]  walk_pgd_range+0x31e/0x630
-[   44.955057]  __walk_page_range+0x160/0x670
-[   44.956883]  walk_page_range_mm+0x408/0x980
-[   44.958677]  walk_page_range+0x66/0x90
-[   44.958984]  do_pagemap_scan+0x28d/0x9c0
-[   44.961833]  do_pagemap_cmd+0x59/0x80
-[   44.962484]  __x64_sys_ioctl+0x18d/0x210
-[   44.962804]  do_syscall_64+0x5b/0x290
-[   44.963111]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Patches 1-2:
 
-vec_len = 0 in pagemap_scan_init_bounce_buffer() means no buffers are
-allocated and p->vec_buf remains set to NULL.
+These patches address a minor race condition in folio_referenced_one()
+related to mlock_vma_folio().
 
-This breaks an assumption made later in pagemap_scan_backout_range(), that
-page_region is always allocated for p->vec_buf_index.
+Currently, mlock_vma_folio() is called on large folio without the page
+table lock, which can result in a race condition with unmap (i.e. 
+MADV_DONTNEED).  This can lead to partially mapped folios on the
+unevictable LRU list.
 
-Fix it by explicitly checking cur_buf for NULL before dereferencing.
+While not a significant issue, I do not believe backporting is necessary.
 
-Other sites that might run into same deref-issue are already (directly or
-transitively) protected by checking p->vec_buf.
+Patch 3:
 
-Note:
-From PAGEMAP_SCAN man page, it seems vec_len = 0 is valid when no output
-is requested and it's only the side effects caller is interested in, hence
-it passes check in pagemap_scan_get_args().
+This patch adds mlocking logic similar to folio_referenced_one() to
+try_to_unmap_one(), allowing for mlocking of large folios where possible.
 
-This issue was found by syzkaller.
+Patch 4:
 
-Link: https://lkml.kernel.org/r/20250919142106.43527-1-acsjakub@amazon.de
-Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
-Signed-off-by: Jakub Acs <acsjakub@amazon.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Penglei Jiang <superman.xpt@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>
+This patch modifies finish_fault() to fault in the entire folio when
+possible, enabling efficient mlocking upon addition to the rmap.
+
+Patch 5:
+
+This patch ensures that rmap mlocks large folios if they are fully mapped,
+addressing the primary source of mlock undercount for large folios.
+
+
+This patch (of 5):
+
+Add a PVMW_PGTABLE_CROSSSED flag that page_vma_mapped_walk() will set if
+the page is mapped across page table boundary.  Unlike other PVMW_* flags,
+this one is result of page_vma_mapped_walk() and not set by the caller.
+
+folio_referenced_one() will use it detect if it safe to mlock the folio.
+
+Link: https://lkml.kernel.org/r/20250919124036.455709-1-kirill@shutemov.name
+Link: https://lkml.kernel.org/r/20250919124036.455709-2-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: "Michał Mirosław" <mirq-linux@rere.qmqm.pl>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/rmap.h |    5 +++++
+ mm/page_vma_mapped.c |    1 +
+ 2 files changed, 6 insertions(+)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-check-cur_buf-for-null
-+++ a/fs/proc/task_mmu.c
-@@ -2417,6 +2417,9 @@ static void pagemap_scan_backout_range(s
- {
- 	struct page_region *cur_buf = &p->vec_buf[p->vec_buf_index];
+--- a/include/linux/rmap.h~mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary
++++ a/include/linux/rmap.h
+@@ -922,6 +922,11 @@ struct page *make_device_exclusive(struc
+ /* Look for migration entries rather than present PTEs */
+ #define PVMW_MIGRATION		(1 << 1)
  
-+	if (!cur_buf)
-+		return;
++/* Result flags */
 +
- 	if (cur_buf->start != addr)
- 		cur_buf->end = addr;
- 	else
++/* The page is mapped across page boundary */
++#define PVMW_PGTABLE_CROSSSED	(1 << 16)
++
+ struct page_vma_mapped_walk {
+ 	unsigned long pfn;
+ 	unsigned long nr_pages;
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary
++++ a/mm/page_vma_mapped.c
+@@ -309,6 +309,7 @@ next_pte:
+ 				}
+ 				pte_unmap(pvmw->pte);
+ 				pvmw->pte = NULL;
++				pvmw->flags |= PVMW_PGTABLE_CROSSSED;
+ 				goto restart;
+ 			}
+ 			pvmw->pte++;
 _
 
-Patches currently in -mm which might be from acsjakub@amazon.de are
+Patches currently in -mm which might be from kas@kernel.org are
 
-fs-proc-task_mmu-check-cur_buf-for-null.patch
+mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch
+mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch
+mm-rmap-fix-a-mlock-race-condition-in-folio_referenced_one.patch
+mm-rmap-mlock-large-folios-in-try_to_unmap_one.patch
+mm-fault-try-to-map-the-entire-file-folio-in-finish_fault.patch
+mm-rmap-improve-mlock-tracking-for-large-folios.patch
 
