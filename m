@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 170DE2BE653;
-	Fri, 19 Sep 2025 21:07:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1029C35942;
+	Fri, 19 Sep 2025 21:08:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758316044; cv=none; b=V2TlAHQC0i38fDup5FeQiJF6TcExyuMaGky2iumv2H/6PR9tHh4gO4QBnTC9B5lL9YodecKvG9/5iyUBx3/0oy1kMLEZI+tOwCzhd/6k999WVIMg0kLICTSLWp4+ccjrYjIG77LHwUhVpjhP35eQbQD0lfOxV+Ig7+RJQLEqvZI=
+	t=1758316130; cv=none; b=RoRablamohxAnO5p9PpmdMv4mWV3OH+7UL2HZf9cEmqyIinFrvcJSyZcVXQXpgjwC+EOjjU2yAwlFSHNWIlGvHZFs0ax5+PpxDhDkHYOmhUvwHzPckbqgyYEr4RHCCo5egOZnLWkyvm5WjVAGhu0pUrQU+l3x1QitskX5BVkTiE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758316044; c=relaxed/simple;
-	bh=rJc9yPU41ifibH1xbMxA1Q9hKKO4z8mUpv1BvJ+5uxk=;
-	h=Date:To:From:Subject:Message-Id; b=ZDBHnxEUqQpqYTBOkm1ooxxGTif5ealH4OG+wmuf2+qhgrZbS/NM8Vj3SAkTxb+J6l+BJIze3kRDgRMXRMLiLBotRGYHpNntHcY0NGE6T8yF0ircyOvqS+tHBGAIveaeHpMiLwcMmH9eZHRpUi8lsCMYGwYhefhZQZgwPGonEXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1bSOih1m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758316130; c=relaxed/simple;
+	bh=2BPYk2GRDKhzl7tfsBOYcymv33a0ea9HaOON3SIwMpk=;
+	h=Date:To:From:Subject:Message-Id; b=ma+tskXyW9jEKjKZvoZibjxs8EtF+6ANA5AxmqDNsfLBvLeOOd+3s+tLzLFDxaRmU3KOe9h2jn3hq9i70HALvMeITg6on9U3lzWcR/m94IqD8gEbeDAZzlWbwSGEBqCtVa1XGIGtCpLV+RZYas6/YNMKm9rwSujrKZZ12x4+nBw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EpOb77ib; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1bSOih1m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91432C4CEF0;
-	Fri, 19 Sep 2025 21:07:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EpOb77ib"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EDF7C4CEF0;
+	Fri, 19 Sep 2025 21:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758316043;
-	bh=rJc9yPU41ifibH1xbMxA1Q9hKKO4z8mUpv1BvJ+5uxk=;
+	s=korg; t=1758316129;
+	bh=2BPYk2GRDKhzl7tfsBOYcymv33a0ea9HaOON3SIwMpk=;
 	h=Date:To:From:Subject:From;
-	b=1bSOih1mDlmLTUvuK88S4MpU39ooBIWqx4G3kv8VzEZGHpCis4qRjm8sWbq/bsreP
-	 FDhwArQFEZfPSBmtNpSi1BT8HOpgpTnDIqIbsjif/QWt9aCTBH5mKGUatjMgKmHkxm
-	 SfiNaXunrQqYOG8v9OuTfPH5eWxId595D6UtkviY=
-Date: Fri, 19 Sep 2025 14:07:23 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,phillip@squashfs.org.uk,akpm@linux-foundation.org
+	b=EpOb77iblrbafi52L0rtpr4cOs4CnAdtymskL6cfYVnm8/BDtKGvM4XbvOrXsZPnH
+	 eAC3tWqwv9g0kSJU7bPTbyPMJerHApwpxDiy5U9bBfm/Jvoa9i46xrPcUaiO129d31
+	 5/gUmr/50mA7LvVRfobWodepCTeXPFShGGS7qQ9k=
+Date: Fri, 19 Sep 2025 14:08:48 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,ebiggers@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-fix-uninit-value-in-squashfs_get_parent.patch added to mm-nonmm-unstable branch
-Message-Id: <20250919210723.91432C4CEF0@smtp.kernel.org>
+Subject: + kmsan-fix-out-of-bounds-access-to-shadow-memory.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250919210849.7EDF7C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Squashfs: fix uninit-value in squashfs_get_parent
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-fix-uninit-value-in-squashfs_get_parent.patch
+     Subject: kmsan: Fix out-of-bounds access to shadow memory
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kmsan-fix-out-of-bounds-access-to-shadow-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-uninit-value-in-squashfs_get_parent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-fix-out-of-bounds-access-to-shadow-memory.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,123 +58,132 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: fix uninit-value in squashfs_get_parent
-Date: Fri, 19 Sep 2025 00:33:08 +0100
+From: Eric Biggers <ebiggers@kernel.org>
+Subject: kmsan: Fix out-of-bounds access to shadow memory
+Date: Thu, 11 Sep 2025 12:58:58 -0700
 
-Syzkaller reports a "KMSAN: uninit-value in squashfs_get_parent" bug.
+Running sha224_kunit on a KMSAN-enabled kernel results in a crash in
+kmsan_internal_set_shadow_origin():
 
-This is caused by open_by_handle_at() being called with a file handle
-containing an invalid parent inode number.  In particular the inode number
-is that of a symbolic link, rather than a directory.
+    BUG: unable to handle page fault for address: ffffbc3840291000
+    #PF: supervisor read access in kernel mode
+    #PF: error_code(0x0000) - not-present page
+    PGD 1810067 P4D 1810067 PUD 192d067 PMD 3c17067 PTE 0
+    Oops: 0000 [#1] SMP NOPTI
+    CPU: 0 UID: 0 PID: 81 Comm: kunit_try_catch Tainted: G                 N  6.17.0-rc3 #10 PREEMPT(voluntary)
+    Tainted: [N]=TEST
+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org 04/01/2014
+    RIP: 0010:kmsan_internal_set_shadow_origin+0x91/0x100
+    [...]
+    Call Trace:
+    <TASK>
+    __msan_memset+0xee/0x1a0
+    sha224_final+0x9e/0x350
+    test_hash_buffer_overruns+0x46f/0x5f0
+    ? kmsan_get_shadow_origin_ptr+0x46/0xa0
+    ? __pfx_test_hash_buffer_overruns+0x10/0x10
+    kunit_try_run_case+0x198/0xa00
 
-Squashfs_get_parent() gets called with that symbolic link inode, and
-accesses the parent member field.
+This occurs when memset() is called on a buffer that is not 4-byte aligned
+and extends to the end of a guard page, i.e.  the next page is unmapped.
 
-	unsigned int parent_ino = squashfs_i(inode)->parent;
+The bug is that the loop at the end of kmsan_internal_set_shadow_origin()
+accesses the wrong shadow memory bytes when the address is not 4-byte
+aligned.  Since each 4 bytes are associated with an origin, it rounds the
+address and size so that it can access all the origins that contain the
+buffer.  However, when it checks the corresponding shadow bytes for a
+particular origin, it incorrectly uses the original unrounded shadow
+address.  This results in reads from shadow memory beyond the end of the
+buffer's shadow memory, which crashes when that memory is not mapped.
 
-Because non-directory inodes in Squashfs do not have a parent value, this
-is uninitialised, and this causes an uninitialised value access.
+To fix this, correctly align the shadow address before accessing the 4
+shadow bytes corresponding to each origin.
 
-The fix is to initialise parent with the invalid inode 0, which will cause
-an EINVAL error to be returned.
-
-Regular inodes used to share the parent field with the block_list_start
-field.  This is removed in this commit to enable the parent field to
-contain the invalid inode number 0.
-
-Link: https://lkml.kernel.org/r/20250918233308.293861-1-phillip@squashfs.org.uk
-Fixes: 122601408d20 ("Squashfs: export operations")
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Reported-by: syzbot+157bdef5cf596ad0da2c@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/68cc2431.050a0220.139b6.0001.GAE@google.com/
+Link: https://lkml.kernel.org/r/20250911195858.394235-1-ebiggers@kernel.org
+Fixes: 2ef3cec44c60 ("kmsan: do not wipe out origin when doing partial unpoisoning")
+Signed-off-by: Eric Biggers <ebiggers@kernel.org>
+Tested-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/inode.c         |    7 +++++++
- fs/squashfs/squashfs_fs_i.h |    2 +-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ mm/kmsan/core.c       |   10 +++++++---
+ mm/kmsan/kmsan_test.c |   16 ++++++++++++++++
+ 2 files changed, 23 insertions(+), 3 deletions(-)
 
---- a/fs/squashfs/inode.c~squashfs-fix-uninit-value-in-squashfs_get_parent
-+++ a/fs/squashfs/inode.c
-@@ -169,6 +169,7 @@ int squashfs_read_inode(struct inode *in
- 		squashfs_i(inode)->start = le32_to_cpu(sqsh_ino->start_block);
- 		squashfs_i(inode)->block_list_start = block;
- 		squashfs_i(inode)->offset = offset;
-+		squashfs_i(inode)->parent = 0;
- 		inode->i_data.a_ops = &squashfs_aops;
+--- a/mm/kmsan/core.c~kmsan-fix-out-of-bounds-access-to-shadow-memory
++++ a/mm/kmsan/core.c
+@@ -195,7 +195,8 @@ void kmsan_internal_set_shadow_origin(vo
+ 				      u32 origin, bool checked)
+ {
+ 	u64 address = (u64)addr;
+-	u32 *shadow_start, *origin_start;
++	void *shadow_start;
++	u32 *aligned_shadow, *origin_start;
+ 	size_t pad = 0;
  
- 		TRACE("File inode %x:%x, start_block %llx, block_list_start "
-@@ -216,6 +217,7 @@ int squashfs_read_inode(struct inode *in
- 		squashfs_i(inode)->start = le64_to_cpu(sqsh_ino->start_block);
- 		squashfs_i(inode)->block_list_start = block;
- 		squashfs_i(inode)->offset = offset;
-+		squashfs_i(inode)->parent = 0;
- 		inode->i_data.a_ops = &squashfs_aops;
- 
- 		TRACE("File inode %x:%x, start_block %llx, block_list_start "
-@@ -296,6 +298,7 @@ int squashfs_read_inode(struct inode *in
- 		inode->i_mode |= S_IFLNK;
- 		squashfs_i(inode)->start = block;
- 		squashfs_i(inode)->offset = offset;
-+		squashfs_i(inode)->parent = 0;
- 
- 		if (type == SQUASHFS_LSYMLINK_TYPE) {
- 			__le32 xattr;
-@@ -333,6 +336,7 @@ int squashfs_read_inode(struct inode *in
- 		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
- 		rdev = le32_to_cpu(sqsh_ino->rdev);
- 		init_special_inode(inode, inode->i_mode, new_decode_dev(rdev));
-+		squashfs_i(inode)->parent = 0;
- 
- 		TRACE("Device inode %x:%x, rdev %x\n",
- 				SQUASHFS_INODE_BLK(ino), offset, rdev);
-@@ -357,6 +361,7 @@ int squashfs_read_inode(struct inode *in
- 		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
- 		rdev = le32_to_cpu(sqsh_ino->rdev);
- 		init_special_inode(inode, inode->i_mode, new_decode_dev(rdev));
-+		squashfs_i(inode)->parent = 0;
- 
- 		TRACE("Device inode %x:%x, rdev %x\n",
- 				SQUASHFS_INODE_BLK(ino), offset, rdev);
-@@ -377,6 +382,7 @@ int squashfs_read_inode(struct inode *in
- 			inode->i_mode |= S_IFSOCK;
- 		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
- 		init_special_inode(inode, inode->i_mode, 0);
-+		squashfs_i(inode)->parent = 0;
- 		break;
+ 	KMSAN_WARN_ON(!kmsan_metadata_is_contiguous(addr, size));
+@@ -214,9 +215,12 @@ void kmsan_internal_set_shadow_origin(vo
  	}
- 	case SQUASHFS_LFIFO_TYPE:
-@@ -396,6 +402,7 @@ int squashfs_read_inode(struct inode *in
- 		inode->i_op = &squashfs_inode_ops;
- 		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
- 		init_special_inode(inode, inode->i_mode, 0);
-+		squashfs_i(inode)->parent = 0;
- 		break;
+ 	__memset(shadow_start, b, size);
+ 
+-	if (!IS_ALIGNED(address, KMSAN_ORIGIN_SIZE)) {
++	if (IS_ALIGNED(address, KMSAN_ORIGIN_SIZE)) {
++		aligned_shadow = shadow_start;
++	} else {
+ 		pad = address % KMSAN_ORIGIN_SIZE;
+ 		address -= pad;
++		aligned_shadow = shadow_start - pad;
+ 		size += pad;
  	}
- 	default:
---- a/fs/squashfs/squashfs_fs_i.h~squashfs-fix-uninit-value-in-squashfs_get_parent
-+++ a/fs/squashfs/squashfs_fs_i.h
-@@ -16,6 +16,7 @@ struct squashfs_inode_info {
- 	u64		xattr;
- 	unsigned int	xattr_size;
- 	int		xattr_count;
-+	int		parent;
- 	union {
- 		struct {
- 			u64		fragment_block;
-@@ -27,7 +28,6 @@ struct squashfs_inode_info {
- 			u64		dir_idx_start;
- 			int		dir_idx_offset;
- 			int		dir_idx_cnt;
--			int		parent;
- 		};
- 	};
- 	struct inode	vfs_inode;
+ 	size = ALIGN(size, KMSAN_ORIGIN_SIZE);
+@@ -230,7 +234,7 @@ void kmsan_internal_set_shadow_origin(vo
+ 	 * corresponding shadow slot is zero.
+ 	 */
+ 	for (int i = 0; i < size / KMSAN_ORIGIN_SIZE; i++) {
+-		if (origin || !shadow_start[i])
++		if (origin || !aligned_shadow[i])
+ 			origin_start[i] = origin;
+ 	}
+ }
+--- a/mm/kmsan/kmsan_test.c~kmsan-fix-out-of-bounds-access-to-shadow-memory
++++ a/mm/kmsan/kmsan_test.c
+@@ -556,6 +556,21 @@ DEFINE_TEST_MEMSETXX(16)
+ DEFINE_TEST_MEMSETXX(32)
+ DEFINE_TEST_MEMSETXX(64)
+ 
++/* Test case: ensure that KMSAN does not access shadow memory out of bounds. */
++static void test_memset_on_guarded_buffer(struct kunit *test)
++{
++	void *buf = vmalloc(PAGE_SIZE);
++
++	kunit_info(test,
++		   "memset() on ends of guarded buffer should not crash\n");
++
++	for (size_t size = 0; size <= 128; size++) {
++		memset(buf, 0xff, size);
++		memset(buf + PAGE_SIZE - size, 0xff, size);
++	}
++	vfree(buf);
++}
++
+ static noinline void fibonacci(int *array, int size, int start)
+ {
+ 	if (start < 2 || (start == size))
+@@ -677,6 +692,7 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_memset16),
+ 	KUNIT_CASE(test_memset32),
+ 	KUNIT_CASE(test_memset64),
++	KUNIT_CASE(test_memset_on_guarded_buffer),
+ 	KUNIT_CASE(test_long_origin_chain),
+ 	KUNIT_CASE(test_stackdepot_roundtrip),
+ 	KUNIT_CASE(test_unpoison_memory),
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from ebiggers@kernel.org are
 
-squashfs-fix-uninit-value-in-squashfs_get_parent.patch
+kmsan-fix-out-of-bounds-access-to-shadow-memory.patch
 
