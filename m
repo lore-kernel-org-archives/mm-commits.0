@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E9392288D5
-	for <mm-commits@vger.kernel.org>; Thu, 18 Sep 2025 22:03:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA935C96
+	for <mm-commits@vger.kernel.org>; Fri, 19 Sep 2025 20:09:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758233005; cv=none; b=Uufju8hv2OqZB8+aFUYFxSLlYiLzbaBUaOd9ZTRxrvlunoMa4KAMx6nqFPN0RiKNQSVcRnIt11N2nXhZXCRYgO9d0eJ6jqfd5/SCn/mYIatyPi2mCgKECXeD34R8yqFGGBMNFLbbYAlKWotk52trDXPzMtpUp8/gjC5HunzITKo=
+	t=1758312586; cv=none; b=CK5ookKpTKSbs1ckFbpwMsO5x8D9CESZImZngrglhSUwwc0M4KnCl3IV3YgDaALo4jhSdm5poZa0qxYEulmq28XGKDva5Zx5ol5DUcKnsvz7z5RrelWV0CAWjAgbjsxKDl/++Hi4WC0ap0SsKkyURyfhM96tcESMNAth2xyPeSw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758233005; c=relaxed/simple;
-	bh=NqZJ+mqvRgwQWWHWm47RnfVE2EoEwhVJZ3HHl3vV1C0=;
-	h=Date:To:From:Subject:Message-Id; b=FuefCkOZVOnoX9gXDv6fWQRBJJPnz+YAYLgodvstxF3p6dYVaJrp6AYRSwqmIE8RvWkgFdwTgW+ETH8ONw20sv55uVaG8Zy9m257J/CzRV7V6rJJGm1U4DKiJivyjOtD7F6npW/xTaD9KMUuI2k8qgJURWRzlel+wL/2wogG75s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AHZKq0TT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758312586; c=relaxed/simple;
+	bh=xUIKzRavlyuMuEmTZBFohZhoJmRmMsvztqfSPOL+DiI=;
+	h=Date:To:From:Subject:Message-Id; b=R0S6RJ23a0UMNOBROLpwzONU5LXAVcXFT44saF26v8bLG4km/7aWkJUnipzQhkrPCybUiJ5ls4cOukk7d8NyE8znQBbw9i/6w6TWROE34PafK7XejxTqpn1Qbob18gBxmfbtFsu8nodtljHTNq4K89HCje0+Ei07T74b3hxHbzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pqMtb01+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AHZKq0TT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD276C4CEF0;
-	Thu, 18 Sep 2025 22:03:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pqMtb01+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF71DC4CEF0;
+	Fri, 19 Sep 2025 20:09:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758233005;
-	bh=NqZJ+mqvRgwQWWHWm47RnfVE2EoEwhVJZ3HHl3vV1C0=;
+	s=korg; t=1758312585;
+	bh=xUIKzRavlyuMuEmTZBFohZhoJmRmMsvztqfSPOL+DiI=;
 	h=Date:To:From:Subject:From;
-	b=AHZKq0TTDekN1Zdq0Eknsl7mv8x5Y2pPgOJpv93d/Jq4M3c0UAT6nzWnhxXsnyJkX
-	 +3o3Y59+uHl7+U8i5FxMfrM1iPfSrSooUEThe1Yc9o8K0rYV//IF4vJ2An0OshCNvl
-	 mtKotbH19HSpL/zuuaWulcyt4QRkArpVPymuCZRA=
-Date: Thu, 18 Sep 2025 15:03:24 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=pqMtb01+dbzmoSMj1ZUQn8JExlEUThnd/zKfrG1b/qh/myFrZW26YFLh1AJ4tshEA
+	 zh9NL/Q0UXzwcpBt2g7HfyXJu9SrJ32jgMYy9K5+xqyoSGIZopm6+ZG148DaCSl6LZ
+	 9cGOESXf4OKIlt5udqhwVNlO0d49M9X6yi0y5lb8=
+Date: Fri, 19 Sep 2025 13:09:45 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,joshua.hahnjy@gmail.com,jackmanb@google.com,gourry@gourry.net,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch added to mm-new branch
-Message-Id: <20250918220324.DD276C4CEF0@smtp.kernel.org>
+Subject: + mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch added to mm-unstable branch
+Message-Id: <20250919200945.CF71DC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: simplify the folio refcount check in pageout()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
+     Subject: mm: page_alloc: avoid kswapd thrashing due to NUMA restrictions
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,74 +58,112 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: vmscan: simplify the folio refcount check in pageout()
-Date: Thu, 18 Sep 2025 11:46:54 +0800
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: avoid kswapd thrashing due to NUMA restrictions
+Date: Fri, 19 Sep 2025 12:21:34 -0400
 
-Since we no longer attempt to write back filesystem folios in pageout()
-(they will be filtered out by the following check in pageout()), and only
-tmpfs/shmem folios and anonymous swapcache folios can be written back, we
-can remove the redundant folio_test_private() when checking the folio's
-refcount, as tmpfs/shmem and swapcache folios do not use the PG_private
-flag.
+On NUMA systems without bindings, allocations check all nodes for free
+space, then wake up the kswapds on all nodes and retry. This ensures
+all available space is evenly used before reclaim begins. However,
+when one process or certain allocations have node restrictions, they
+can cause kswapds on only a subset of nodes to be woken up.
 
-While we're at it, we can open-code the folio refcount check instead of
-adding a simple helper that has only one user.
+Since kswapd hysteresis targets watermarks that are *higher* than
+needed for allocation, even *unrestricted* allocations can now get
+suckered onto such nodes that are already pressured. This ends up
+concentrating all allocations on them, even when there are idle nodes
+available for the unrestricted requests.
 
-Link: https://lkml.kernel.org/r/4cbbec5bb92397aa4597105f1f499aabf7a1901c.1758166683.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+This was observed with two numa nodes, where node0 is normal and node1
+is ZONE_MOVABLE to facilitate hotplugging: a kernel allocation wakes
+kswapd on node0 only (since node1 is not eligible); once kswapd0 is
+active, the watermarks hover between low and high, and then even the
+movable allocations end up on node0, only to be kicked out again;
+meanwhile node1 is empty and idle.
+
+Similar behavior is possible when a process with NUMA bindings is
+causing selective kswapd wakeups.
+
+To fix this, on NUMA systems augment the (misleading) watermark test
+with a check for whether kswapd is already active during the first
+iteration through the zonelist. If this fails to place the request,
+kswapd must be running everywhere already, and the watermark test is
+good enough to decide placement.
+
+With this patch, unrestricted requests successfully make use of node1,
+even while kswapd is reclaiming node0 for restricted allocations.
+
+[gourry@gourry.net: don't retry if no kswapds were active]
+Link: https://lkml.kernel.org/r/20250919162134.1098208-1-hannes@cmpxchg.org
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-simplify-the-folio-refcount-check-in-pageout
-+++ a/mm/vmscan.c
-@@ -477,17 +477,6 @@ static int reclaimer_offset(struct scan_
- 	return PGSTEAL_DIRECT - PGSTEAL_KSWAPD;
- }
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions
++++ a/mm/page_alloc.c
+@@ -3735,6 +3735,8 @@ get_page_from_freelist(gfp_t gfp_mask, u
+ 	struct pglist_data *last_pgdat = NULL;
+ 	bool last_pgdat_dirty_ok = false;
+ 	bool no_fallback;
++	bool skip_kswapd_nodes = nr_online_nodes > 1;
++	bool skipped_kswapd_nodes = false;
  
--static inline int is_page_cache_freeable(struct folio *folio)
--{
--	/*
--	 * A freeable page cache folio is referenced only by the caller
--	 * that isolated the folio, the page cache and optional filesystem
--	 * private data at folio->private.
--	 */
--	return folio_ref_count(folio) - folio_test_private(folio) ==
--		1 + folio_nr_pages(folio);
--}
--
- /*
-  * We detected a synchronous write error writing a folio out.  Probably
-  * -ENOSPC.  We need to propagate that into the address_space for a subsequent
-@@ -696,8 +685,11 @@ static pageout_t pageout(struct folio *f
- 	 * block, for some throttling. This happens by accident, because
- 	 * swap_backing_dev_info is bust: it doesn't reflect the
- 	 * congestion state of the swapdevs.  Easy to fix, if needed.
-+	 *
-+	 * A freeable shmem or swapcache folio is referenced only by the
-+	 * caller that isolated the folio and the page cache.
- 	 */
--	if (!is_page_cache_freeable(folio))
-+	if (folio_ref_count(folio) != 1 + folio_nr_pages(folio))
- 		return PAGE_KEEP;
- 	if (!mapping) {
+ retry:
+ 	/*
+@@ -3797,6 +3799,19 @@ retry:
+ 			}
+ 		}
+ 
++		/*
++		 * If kswapd is already active on a node, keep looking
++		 * for other nodes that might be idle. This can happen
++		 * if another process has NUMA bindings and is causing
++		 * kswapd wakeups on only some nodes. Avoid accidental
++		 * "node_reclaim_mode"-like behavior in this case.
++		 */
++		if (skip_kswapd_nodes &&
++		    !waitqueue_active(&zone->zone_pgdat->kswapd_wait)) {
++			skipped_kswapd_nodes = true;
++			continue;
++		}
++
+ 		cond_accept_memory(zone, order, alloc_flags);
+ 
  		/*
+@@ -3889,6 +3904,15 @@ try_this_zone:
+ 	}
+ 
+ 	/*
++	 * If we skipped over nodes with active kswapds and found no
++	 * idle nodes, retry and place anywhere the watermarks permit.
++	 */
++	if (skip_kswapd_nodes && skipped_kswapd_nodes) {
++		skip_kswapd_nodes = false;
++		goto retry;
++	}
++
++	/*
+ 	 * It's possible on a UMA machine to get through all zones that are
+ 	 * fragmented. If avoiding fragmentation, reset and try again.
+ 	 */
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-shmem-fix-the-strategy-for-the-tmpfs-huge=-options.patch
-mm-vmscan-remove-folio_test_private-check-in-pageout.patch
-mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
+mm-zswap-interact-directly-with-zsmalloc.patch
+mm-zswap-interact-directly-with-zsmalloc-fix.patch
+mm-remove-unused-zpool-layer.patch
+mm-zpdesc-minor-naming-and-comment-corrections.patch
+mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch
 
