@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9642B225D6
-	for <mm-commits@vger.kernel.org>; Fri, 19 Sep 2025 20:44:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 284F62765ED
+	for <mm-commits@vger.kernel.org>; Fri, 19 Sep 2025 20:50:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758314644; cv=none; b=HJN5H/UB+LYaSS8h1grJ3ehUu1ld5JKL3OWHiDIIJmkrsmKtUSL5EToCkyqaWPGwTPHZuHbk4brisM3z8xg8PO9pbTvJQhXZ+Mt5e5q+AnVpxOizaM1e0j04n8rzUqr2mooTPQYUo5Bs/eKmAf89gWx9vA7CjWd4OB58dSxB8GA=
+	t=1758315037; cv=none; b=RR6ffOjvny5A3gl2J8qpHvi52D94hpaVMbU+b21Z4Uv75KB0e+09azBRTKtT22CEd1E8Ol6Q/sur9bmnmDnCBTWhaPA7qh/pkL4lOAtcn6Uh0Jc2tf4vPd6bY4ja8p6/NAELut5m/bdh34EN1HUAhSIhHPuCSK8ewvHkBvCsA5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758314644; c=relaxed/simple;
-	bh=em7Sgd9345q1nGeDohTWJtAJAepDRyeKp//BCNxOLKY=;
-	h=Date:To:From:Subject:Message-Id; b=gNFl+xLoecb8sAiJlWfp2I7gznPTNf9fMrJwA5YBtvPg0zms/1mQPJ7fh/31L3xe/RXAswQb5vgL/mEGlCPPd3Px6FnKax7D+AZ39XtJV1Tu+gTbFElje+drFEBJ+mVyNLwvlu1CnXcrm0VRcnSJR4YaSGR35s3dBKhBG2xok8E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sx+YPVQ5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758315037; c=relaxed/simple;
+	bh=3FLVOgYO8hYHld72TzwtAcY2yxdRDZx0iGa5kGE6kss=;
+	h=Date:To:From:Subject:Message-Id; b=bt9kFcw7U0oxl8QLigVjJ8uPdm9zSTFHwD8Mk9ZKVZ0rp1a21xbqqS/xYrOFbJbEmtIctm2NFvG+/gisk6pTBsT5iPtJaLP0WiEKmlQabHywE/DJ0KPT2D6kZFCr36HY1hq0f5OC1rQnsJd2snbQ6vACdmTEyj9frXFwQuBanWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a1yr15rU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sx+YPVQ5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57D33C4CEF0;
-	Fri, 19 Sep 2025 20:44:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a1yr15rU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7EB5C4CEF0;
+	Fri, 19 Sep 2025 20:50:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758314644;
-	bh=em7Sgd9345q1nGeDohTWJtAJAepDRyeKp//BCNxOLKY=;
+	s=korg; t=1758315036;
+	bh=3FLVOgYO8hYHld72TzwtAcY2yxdRDZx0iGa5kGE6kss=;
 	h=Date:To:From:Subject:From;
-	b=sx+YPVQ5uuC17Aw1gAVQvxF5ZHgUwmNEDwM9FlFmM4RJLlH8Xem+HeV0ftndVgeO5
-	 /sz9/KoIIZw7GiH7uvqT61HoSR5ZxPab+IPwNs8tGTx3ZWdyZOofEL2Igw21yV92FD
-	 ii4psB8rMMdwDa0ivSkpdj1qQn8FmOGK775cMSWg=
-Date: Fri, 19 Sep 2025 13:44:03 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,lance.yang@linux.dev,kirill@shutemov.name,dev.jain@arm.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=a1yr15rUuM4Ne15JDYApf/5cuZQBQL72HLsQ5O/7VJj/gC2YxbF5zGIB++JSJKkyu
+	 VygCzwEXRlTQBAoCh45GxmWr1SvXLkz2JOBak5YILIdjHkrIcDxenVsgj0NU7PLcrX
+	 1sJlHm5qkN1DF8bjE5BO4cSDxM9H54y3NwLD8+8k=
+Date: Fri, 19 Sep 2025 13:50:36 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rdunlap@infradead.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch added to mm-new branch
-Message-Id: <20250919204404.57D33C4CEF0@smtp.kernel.org>
+Subject: + alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix.patch added to mm-unstable branch
+Message-Id: <20250919205036.C7EB5C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: remove definition of struct khugepaged_mm_slot
-has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+     Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,223 +58,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/khugepaged: remove definition of struct khugepaged_mm_slot
-Date: Fri, 19 Sep 2025 07:12:44 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix
+Date: Fri Sep 19 01:47:57 PM PDT 2025
 
-Current code is not correct to get struct khugepaged_mm_slot by
-mm_slot_entry() without checking mm_slot is !NULL.  There is no problem
-reported since slot is the first element of struct khugepaged_mm_slot.
+add newline to prevent docs warning, per Randy
 
-While struct khugepaged_mm_slot is just a wrapper of struct mm_slot, there
-is no need to define it.
-
-Remove the definition of struct khugepaged_mm_slot, so there is not chance
-to miss use mm_slot_entry().
-
-Link: https://lkml.kernel.org/r/20250919071244.17020-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Kiryl Shutsemau <kirill@shutemov.name>
-Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   57 ++++++++++++++++------------------------------
- 1 file changed, 21 insertions(+), 36 deletions(-)
+ Documentation/filesystems/proc.rst |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot
-+++ a/mm/khugepaged.c
-@@ -104,14 +104,6 @@ struct collapse_control {
- };
+--- a/Documentation/filesystems/proc.rst~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix
++++ a/Documentation/filesystems/proc.rst
+@@ -1016,6 +1016,7 @@ For example if the counters are not accu
  
- /**
-- * struct khugepaged_mm_slot - khugepaged information per mm that is being scanned
-- * @slot: hash lookup from mm to mm_slot
-- */
--struct khugepaged_mm_slot {
--	struct mm_slot slot;
--};
--
--/**
-  * struct khugepaged_scan - cursor for scanning
-  * @mm_head: the head of the mm list to scan
-  * @mm_slot: the current mm_slot we are scanning
-@@ -121,7 +113,7 @@ struct khugepaged_mm_slot {
-  */
- struct khugepaged_scan {
- 	struct list_head mm_head;
--	struct khugepaged_mm_slot *mm_slot;
-+	struct mm_slot *mm_slot;
- 	unsigned long address;
- };
- 
-@@ -384,7 +376,10 @@ int hugepage_madvise(struct vm_area_stru
- 
- int __init khugepaged_init(void)
- {
--	mm_slot_cache = KMEM_CACHE(khugepaged_mm_slot, 0);
-+	mm_slot_cache = kmem_cache_create("khugepaged_mm_slot",
-+					  sizeof(struct mm_slot),
-+					  __alignof__(struct mm_slot),
-+					  0, NULL);
- 	if (!mm_slot_cache)
- 		return -ENOMEM;
- 
-@@ -438,7 +433,6 @@ static bool hugepage_pmd_enabled(void)
- 
- void __khugepaged_enter(struct mm_struct *mm)
- {
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	int wakeup;
- 
-@@ -447,12 +441,10 @@ void __khugepaged_enter(struct mm_struct
- 	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm)))
- 		return;
- 
--	mm_slot = mm_slot_alloc(mm_slot_cache);
--	if (!mm_slot)
-+	slot = mm_slot_alloc(mm_slot_cache);
-+	if (!slot)
- 		return;
- 
--	slot = &mm_slot->slot;
--
- 	spin_lock(&khugepaged_mm_lock);
- 	mm_slot_insert(mm_slots_hash, mm, slot);
- 	/*
-@@ -480,14 +472,12 @@ void khugepaged_enter_vma(struct vm_area
- 
- void __khugepaged_exit(struct mm_struct *mm)
- {
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	int free = 0;
- 
- 	spin_lock(&khugepaged_mm_lock);
- 	slot = mm_slot_lookup(mm_slots_hash, mm);
--	mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
--	if (mm_slot && khugepaged_scan.mm_slot != mm_slot) {
-+	if (slot && khugepaged_scan.mm_slot != slot) {
- 		hash_del(&slot->hash);
- 		list_del(&slot->mm_node);
- 		free = 1;
-@@ -496,9 +486,9 @@ void __khugepaged_exit(struct mm_struct
- 
- 	if (free) {
- 		mm_flags_clear(MMF_VM_HUGEPAGE, mm);
--		mm_slot_free(mm_slot_cache, mm_slot);
-+		mm_slot_free(mm_slot_cache, slot);
- 		mmdrop(mm);
--	} else if (mm_slot) {
-+	} else if (slot) {
- 		/*
- 		 * This is required to serialize against
- 		 * hpage_collapse_test_exit() (which is guaranteed to run
-@@ -1432,9 +1422,8 @@ out:
- 	return result;
- }
- 
--static void collect_mm_slot(struct khugepaged_mm_slot *mm_slot)
-+static void collect_mm_slot(struct mm_slot *slot)
- {
--	struct mm_slot *slot = &mm_slot->slot;
- 	struct mm_struct *mm = slot->mm;
- 
- 	lockdep_assert_held(&khugepaged_mm_lock);
-@@ -1451,7 +1440,7 @@ static void collect_mm_slot(struct khuge
- 		 */
- 
- 		/* khugepaged_mm_lock actually not necessary for the below */
--		mm_slot_free(mm_slot_cache, mm_slot);
-+		mm_slot_free(mm_slot_cache, slot);
- 		mmdrop(mm);
- 	}
- }
-@@ -2394,7 +2383,6 @@ static unsigned int khugepaged_scan_mm_s
- 	__acquires(&khugepaged_mm_lock)
- {
- 	struct vma_iterator vmi;
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
-@@ -2405,14 +2393,12 @@ static unsigned int khugepaged_scan_mm_s
- 	*result = SCAN_FAIL;
- 
- 	if (khugepaged_scan.mm_slot) {
--		mm_slot = khugepaged_scan.mm_slot;
--		slot = &mm_slot->slot;
-+		slot = khugepaged_scan.mm_slot;
- 	} else {
- 		slot = list_first_entry(&khugepaged_scan.mm_head,
- 				     struct mm_slot, mm_node);
--		mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
- 		khugepaged_scan.address = 0;
--		khugepaged_scan.mm_slot = mm_slot;
-+		khugepaged_scan.mm_slot = slot;
- 	}
- 	spin_unlock(&khugepaged_mm_lock);
- 
-@@ -2510,7 +2496,7 @@ breakouterloop:
- breakouterloop_mmap_lock:
- 
- 	spin_lock(&khugepaged_mm_lock);
--	VM_BUG_ON(khugepaged_scan.mm_slot != mm_slot);
-+	VM_BUG_ON(khugepaged_scan.mm_slot != slot);
- 	/*
- 	 * Release the current mm_slot if this mm is about to die, or
- 	 * if we scanned all vmas of this mm.
-@@ -2523,15 +2509,14 @@ breakouterloop_mmap_lock:
- 		 */
- 		if (!list_is_last(&slot->mm_node, &khugepaged_scan.mm_head)) {
- 			slot = list_next_entry(slot, mm_node);
--			khugepaged_scan.mm_slot =
--				mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
-+			khugepaged_scan.mm_slot = slot;
- 			khugepaged_scan.address = 0;
- 		} else {
- 			khugepaged_scan.mm_slot = NULL;
- 			khugepaged_full_scans++;
- 		}
- 
--		collect_mm_slot(mm_slot);
-+		collect_mm_slot(slot);
- 	}
- 
- 	return progress;
-@@ -2618,7 +2603,7 @@ static void khugepaged_wait_work(void)
- 
- static int khugepaged(void *none)
- {
--	struct khugepaged_mm_slot *mm_slot;
-+	struct mm_slot *slot;
- 
- 	set_freezable();
- 	set_user_nice(current, MAX_NICE);
-@@ -2629,10 +2614,10 @@ static int khugepaged(void *none)
- 	}
- 
- 	spin_lock(&khugepaged_mm_lock);
--	mm_slot = khugepaged_scan.mm_slot;
-+	slot = khugepaged_scan.mm_slot;
- 	khugepaged_scan.mm_slot = NULL;
--	if (mm_slot)
--		collect_mm_slot(mm_slot);
-+	if (slot)
-+		collect_mm_slot(slot);
- 	spin_unlock(&khugepaged_mm_lock);
- 	return 0;
- }
+ Supported markers in v2:
+ accurate:no
++
+               Absolute values of the counters in this line are not accurate
+               because of the failure to allocate memory to track some of the
+               allocations made at this location.  Deltas in these counters are
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch
-mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch
-mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null.patch
-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
+memfd-move-mfd_all_flags-definition-to-memfdh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
+mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
+include-linux-pgtableh-convert-arch_enter_lazy_mmu_mode-and-friends-to-static-inlines.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix.patch
+mm-add-remap_pfn_range_prepare-remap_pfn_range_complete-fix.patch
+mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
 
