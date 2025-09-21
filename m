@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5346927281D
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA3F727281D
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758490018; cv=none; b=chZOy/q1a9rv7vMFddSIAZpBCZmzmwfdgBM5XSu3QM45jZcXDc7qEnA63YzFu9e+a/7iAUEC0ggYbEaEWDEbY+n7H3TObN2VYzszWCWninl+CHW/kbOHeLnonmCDzsxnfTbjRasvAe9crPZyAhsEQi+sP2MRa/Q3g1iqqwYSnXw=
+	t=1758490019; cv=none; b=JzNVsB3qCLmQOmZXXqv4tljQcmhKvH+S485JD0VE5HBPE+pbizyMSFug7U6mnyvkFo4pQtNSa6L3h8h/vGdbRiUeNSkmjG5AMHDr46+nhLgiCwzDNONEqwHzdXT/X1i2DKmyTtc/ba+23zi33NS1rkVbirWjI1YWULNKzRJPaZw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758490018; c=relaxed/simple;
-	bh=2SRdhPrqXW1DdRx9oYE/etGmwzdZ4/XJzUzxTtD7FRs=;
-	h=Date:To:From:Subject:Message-Id; b=GoQXrsACzqsJsinEPttoNy9MZlP2fTrErLRY4cs70SnkY11dERBemvzAZhUoSXl1QOGtWOCOSWKB/8Q0n8bN/Hk1YDdn9ovWhJAnYpFHRd0mcOrsw6r63JnXPCIoPNjTIhv9wrMeZ5gbUSM2z3mTk6YMCsQrrJYmAVP4KHazf5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gzOW9Lht; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758490019; c=relaxed/simple;
+	bh=xHy9bdF86V4l4kQStjSYsm+YXd8NSOTmNq+Xmzn3COY=;
+	h=Date:To:From:Subject:Message-Id; b=BnFunzg/fmbVN+TiswzSDI7WnLKjlHD8pRHqpha/x2ZOacXt0oGx+z7zfKG2DgkKCxmTdZn8m6sv6kI5ZY6DEWrD02lhJfQpKyokfQWcKUZ0Xflw9x5k+3HOjhDzmkj1ZsjX7RvEJsiR/PBQZNsQXseaYjasg2rMbTAfavPFO/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b4FI3BTZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gzOW9Lht"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27F5DC4CEE7;
-	Sun, 21 Sep 2025 21:26:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b4FI3BTZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FBB9C4CEE7;
+	Sun, 21 Sep 2025 21:26:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758490018;
-	bh=2SRdhPrqXW1DdRx9oYE/etGmwzdZ4/XJzUzxTtD7FRs=;
+	s=korg; t=1758490019;
+	bh=xHy9bdF86V4l4kQStjSYsm+YXd8NSOTmNq+Xmzn3COY=;
 	h=Date:To:From:Subject:From;
-	b=gzOW9LhtGxHyfZ7+nwsQ4uXN+NhbaRwPJ2UQ0atwsUdpkuurHBFVZwAdlyWkAERsI
-	 jzndI6bC4GGby2E5Ol1dqnGMdOmzbbhOU7kZv02yQQN2fx6AP31D3NW5J4NnrTHovr
-	 UKl4ltoJ3i/G0m254JbrpZ15wE53V9gLWgoQqBG8=
-Date: Sun, 21 Sep 2025 14:26:57 -0700
+	b=b4FI3BTZlyuXnlTmjUSV0AZox0vMrex5UO+0LwJLAhb8qhYQXY3W92HBpc+P8dE6y
+	 l+i+P+wG8YM6e/+HdXhi66tE1+bsGlxG5sCuWM0pGg0iFs4EXx1Y/mAWkDqYOy1ucI
+	 MFZM8RlPjn4biT6+LyndNF9QrSkFlftHQC36BT+w=
+Date: Sun, 21 Sep 2025 14:26:59 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command.patch removed from -mm tree
-Message-Id: <20250921212658.27F5DC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-rename-damon-section.patch removed from -mm tree
+Message-Id: <20250921212659.9FBB9C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/start: add --target_pid to DAMOS example command
+     Subject: MAINTAINERS: rename DAMON section
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command.patch
+     maintainers-rename-damon-section.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/start: add --target_pid to DAMOS example command
-Date: Mon, 15 Sep 2025 20:23:38 -0700
+Subject: MAINTAINERS: rename DAMON section
+Date: Mon, 15 Sep 2025 20:23:39 -0700
 
-The example command doesn't work [1] on the latest DAMON user-space tool,
-since --damos_action option is updated to receive multiple arguments, and
-hence cannot know if the final argument is for deductible monitoring
-target or an argument for --damos_action option.  Add --target_pid option
-to let damo understand it is for target pid.
+DAMON section name is 'DATA ACCESS MONITOR', which implies it is only for
+data access monitoring.  But DAMON is now evolved for not only access
+monitoring but also access-aware system operations (DAMOS).  Rename the
+section to simply DAMON.  It might make it difficult to understand what it
+does at a glance, but at least not spreading more confusion.  Readers can
+further refer to the documentation to better understand what really DAMON
+does.
 
-Link: https://lkml.kernel.org/r/20250916032339.115817-5-sj@kernel.org
-Link: https://github.com/damonitor/damo/pull/32 [2]
+Link: https://lkml.kernel.org/r/20250916032339.115817-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -68,17 +69,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/start.rst |    2 +-
+ MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-add-target_pid-to-damos-example-command
-+++ a/Documentation/admin-guide/mm/damon/start.rst
-@@ -175,4 +175,4 @@ Below command makes every memory region
+--- a/MAINTAINERS~maintainers-rename-damon-section
++++ a/MAINTAINERS
+@@ -6738,7 +6738,7 @@ S:	Maintained
+ W:	https://docs.dasharo.com/
+ F:	drivers/platform/x86/dasharo-acpi.c
  
-     $ sudo damo start --damos_access_rate 0 0 --damos_sz_region 4K max \
-                       --damos_age 60s max --damos_action pageout \
--                      <pid of your workload>
-+                      --target_pid <pid of your workload>
+-DATA ACCESS MONITOR
++DAMON
+ M:	SeongJae Park <sj@kernel.org>
+ L:	damon@lists.linux.dev
+ L:	linux-mm@kvack.org
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
