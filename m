@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B19F2857FA
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 20:08:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BB862F37
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 20:43:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758485320; cv=none; b=EOZuANm7f0JNkxVwmVoqeiuRpBoKFnB7mbrgxuPnPMRTPKO+MF+YM0VjOSkkLCAe/cwbJ0SPrjJ7EAVqL8ivp3PvoK6rYPVkwfZIT2xQO2ni3iZ2eWto18HDu9K31PWFvU2IUa9mWyKwQ51tjBtsA4Jf/xhgtt+WPBN3O8kZQaY=
+	t=1758487401; cv=none; b=pxllHqknKNMiAKxa0C6D+mN+9DziBBdwqjKkMn34+UKpBL+iCT2l9NL241HrewlNTdtNMa7AkjFsAYzaztfiaAqvVhbAWIueeheqGGTDqAO8WYQNcjDeesXXKLw7wOSLoLc8rlMidJqQx48igaZmOh+1DwYVdrPvy8bJQGeZXhI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758485320; c=relaxed/simple;
-	bh=H+imLxY0rYFmiB5zk1EyIwAVDMEAbKwu2Mf0wQEdn7M=;
-	h=Date:To:From:Subject:Message-Id; b=KY7VKFJ0AV5uZeBmXL1Mchu3mv9kCUBbivzOHpr01IuVWa+NcWV8slXx0u2Uu8fg8arIa3uAA53gWB1WD0Es9G/b8p3DVvxoXZ5xGPCT6jkn+a8aahyhUBvVQQlPE02YoaxYjwzDXdN0BDxRX0oUvoTn23i4CNY7DTQeMiW7aV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vgeVR5eO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758487401; c=relaxed/simple;
+	bh=YFfm+mXkkAD+SaUCXJQt6pgNqr93fisLxtm8DhaRIuM=;
+	h=Date:To:From:Subject:Message-Id; b=bDkzC6MwNLoaF5V3is1xcDJLvONN+dL0BcRtNIgNVvXx0tCa9fJYd4uFP9O3SruIIzgI/g5Dh4Mr+rD2AsDUZRpinsH2uLXtSZ5BRE/G0cJz7XqDd4/rSnnO7nl8Yh0KT/wTgH1G7AznqsEUrsx2gdICVHJ5Ts45b6kUqICBhrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P4m+U0XV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vgeVR5eO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5366BC4CEE7;
-	Sun, 21 Sep 2025 20:08:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P4m+U0XV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 077D5C4CEE7;
+	Sun, 21 Sep 2025 20:43:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758485320;
-	bh=H+imLxY0rYFmiB5zk1EyIwAVDMEAbKwu2Mf0wQEdn7M=;
+	s=korg; t=1758487401;
+	bh=YFfm+mXkkAD+SaUCXJQt6pgNqr93fisLxtm8DhaRIuM=;
 	h=Date:To:From:Subject:From;
-	b=vgeVR5eOgOaDp7ECYNwXkBZu8KC07oP4r/GSgx6JbtNX7VKm33YnQS2z09Pmlqybl
-	 rigOx/fmIpmGv9GKD9yxwfek7p2dDaeJ9t5O0BcSsjEkJAGU9cfVOPNC0MqE5BSXBP
-	 SpZAjNTR/92QKcJEXKdV0oSTJQaL/ycnpPKGFsM4=
-Date: Sun, 21 Sep 2025 13:08:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,sj@kernel.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,chrisl@kernel.org,akpm@linux-foundation.org
+	b=P4m+U0XVyNJ86SV1RjV/4e+hUnVO3nTMaYvKbjl/DFhIduPGZjECR4O8emDUI70HO
+	 n46d4lE8oUdTfHy1u6rr8ZbHp3aSVO/c5WIZ7fEjEKm3qSu/Mveet+GEzBJm3ChZ8N
+	 ryReKlCRxl+Ft18gTgUNeeHI1KBQtyc8RZN4YGMw=
+Date: Sun, 21 Sep 2025 13:43:20 -0700
+To: mm-commits@vger.kernel.org,kernel@pankajraghav.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] docs-mm-add-document-for-swap-table-fix.patch removed from -mm tree
-Message-Id: <20250921200840.5366BC4CEE7@smtp.kernel.org>
+Subject: [folded-merged] readahead-add-trace-points-v2.patch removed from -mm tree
+Message-Id: <20250921204321.077D5C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs-mm-add-document-for-swap-table-fix
+     Subject: readahead-add-trace-points-v2
 has been removed from the -mm tree.  Its filename was
-     docs-mm-add-document-for-swap-table-fix.patch
+     readahead-add-trace-points-v2.patch
 
-This patch was dropped because it was folded into docs-mm-add-document-for-swap-table.patch
+This patch was dropped because it was folded into readahead-add-trace-points.patch
 
 ------------------------------------------------------
-From: Chris Li <chrisl@kernel.org>
-Subject: docs-mm-add-document-for-swap-table-fix
-Date: Sat, 20 Sep 2025 17:11:03 -0700
+From: Jan Kara <jack@suse.cz>
+Subject: readahead-add-trace-points-v2
+Date: Tue, 9 Sep 2025 16:58:50 +0200
 
-- Move the swap table document to the mm main section. [SeongJae Park]
+Move tracepoint from do_page_cache_ra() to page_cache_ra_unbounded() as
+that is a more standard function.
 
-- Rewrite the swap table size sentence for easier to understand. [ Barry]
-
-Link: https://lkml.kernel.org/r/CACePvbXjaUyzB_9RSSSgR6BNvz+L9anvn0vcNf_J0jD7-4Yy6Q@mail.gmail.com
-Signed-off-by: Chris Li <chrisl@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: kernel test robot <oliver.sang@intel.com>
+Link: https://lkml.kernel.org/r/20250909145849.5090-2-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Pankaj Raghav <kernel@pankajraghav.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/index.rst      |    2 +-
- Documentation/mm/swap-table.rst |    9 +++------
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ include/trace/events/readahead.h |    2 +-
+ mm/readahead.c                   |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/index.rst~docs-mm-add-document-for-swap-table-fix
-+++ a/Documentation/mm/index.rst
-@@ -20,6 +20,7 @@ see the :doc:`admin guide <../admin-guid
-    highmem
-    page_reclaim
-    swap
-+   swap-table
-    page_cache
-    shmfs
-    oom
-@@ -57,7 +58,6 @@ documentation, or deleted if it has serv
-    page_table_check
-    remap_file_pages
-    split_page_table_lock
--   swap-table
-    transhuge
-    unevictable-lru
-    vmalloced-kernel-stacks
---- a/Documentation/mm/swap-table.rst~docs-mm-add-document-for-swap-table-fix
-+++ a/Documentation/mm/swap-table.rst
-@@ -50,12 +50,9 @@ Swap cache lookup within the cluster can
+--- a/include/trace/events/readahead.h~readahead-add-trace-points-v2
++++ a/include/trace/events/readahead.h
+@@ -11,7 +11,7 @@
+ #include <linux/fs.h>
+ #include <linux/pagemap.h>
  
- We give such a per-cluster swap cache value array a name: the swap table.
+-TRACE_EVENT(do_page_cache_ra,
++TRACE_EVENT(page_cache_ra_unbounded,
+ 	TP_PROTO(struct inode *inode, pgoff_t index, unsigned long nr_to_read,
+ 		 unsigned long lookahead_size),
  
--Each swap cluster contains 512 entries, so a swap table stores one cluster
--worth of swap cache values, which is exactly one page. This is not
--coincidental because the cluster size is determined by the huge page size.
--The swap table is holding an array of pointers. The pointer has the same
--size as the PTE. The size of the swap table should match to the second
--last level of the page table page, exactly one page.
-+A swap table is an array of pointers. Each pointer is the same size as a
-+PTE. The size of a swap table for one swap cluster typically matches a PTE
-+page table, which is one page on modern 64-bit systems.
+--- a/mm/readahead.c~readahead-add-trace-points-v2
++++ a/mm/readahead.c
+@@ -228,6 +228,8 @@ void page_cache_ra_unbounded(struct read
+ 	 */
+ 	unsigned int nofs = memalloc_nofs_save();
  
- With swap table, swap cache lookup can achieve great locality, simpler,
- and faster.
++	trace_page_cache_ra_unbounded(mapping->host, index, nr_to_read,
++				      lookahead_size);
+ 	filemap_invalidate_lock_shared(mapping);
+ 	index = mapping_align_index(mapping, index);
+ 
+@@ -317,7 +319,6 @@ static void do_page_cache_ra(struct read
+ 	loff_t isize = i_size_read(inode);
+ 	pgoff_t end_index;	/* The last page we want to read */
+ 
+-	trace_do_page_cache_ra(inode, index, nr_to_read, lookahead_size);
+ 	if (isize == 0)
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from chrisl@kernel.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-docs-mm-add-document-for-swap-table.patch
+readahead-add-trace-points.patch
 
