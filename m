@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3790C29D292
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C60D429D292
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489909; cv=none; b=l24HJsMBobljMhCll5j9YjCTfHDxyoplUdro6tnEdUtQATLUtZ/LHx2OvGuLsOzBp2Hyv3KR5JwAxXJGbWn3NIyx3CZJwBi8PaCIMb6VxXhPasi4SRWl8oHNuM1zWWVDNGmL1zjt9pESv1/q8ZgRxSmK0hiBCH2jIY3AvydOKS8=
+	t=1758489910; cv=none; b=IBN7inLO22bmPCC5fmw/oS7Nsvadwj3+9mB9XQJPX58NlB9QtavZCt3mSUOOnnqzbHui54MDIGmjU+hY+FsFQwW9g4adPbY5hY9oJt6idtMr0IvX1+tZcZ2JrGCrBTFFVLKa/UoEmZNz6NsA71HL3DbKgN80oVXOEsBvs3w/ItI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489909; c=relaxed/simple;
-	bh=vFVfjdvEXHMIWbd6lxM25vsqZoEyG6YK+GqfDDpyAzI=;
-	h=Date:To:From:Subject:Message-Id; b=rvSr0tMfe8Hz74U62CEWbty3sX9rR+hMUJ5zEyH0JeHuK6xhJHXtuLKWNong2//Dt5qNfqN6L27+kDfQQLx8NX37zvydnrbhLYRGD/+4YaWM9y8jYSNQLS/tgntLYCTEPqdXOI6c3Ig4sjs5WDtxAZK4iLIg63gESSCs+Vu6uZ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MZpW9qJv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489910; c=relaxed/simple;
+	bh=BPDQ5qSQbWogKKAaZpCZUSOl35kwZXDRR6J74AR2XcM=;
+	h=Date:To:From:Subject:Message-Id; b=NgamGT/guPdGmkiB1P9tHXTmeAIeizKGX/QPjGibIqsueoPVXcFrKFeHMs9+uD21jIJDVdjYKgFVi6pesU0472noU34JIKWtsT0RN4vfWS5tFmiZ9MX8PhJopzVl0erlqS+OMJeHunm9ZdeVG8HR/AgQo/Qu/hN3I3qJFG1v6h8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qCj4+vG8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MZpW9qJv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CD0BC4CEE7;
-	Sun, 21 Sep 2025 21:25:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qCj4+vG8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A9EFC113D0;
+	Sun, 21 Sep 2025 21:25:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489909;
-	bh=vFVfjdvEXHMIWbd6lxM25vsqZoEyG6YK+GqfDDpyAzI=;
+	s=korg; t=1758489910;
+	bh=BPDQ5qSQbWogKKAaZpCZUSOl35kwZXDRR6J74AR2XcM=;
 	h=Date:To:From:Subject:From;
-	b=MZpW9qJvEs+Aug4pQbcqWwdZgEZgcvwIM0zIWxj7mPeIarrimAALE8Gt0cgzaTMkz
-	 mCez5et0oL4lQ7V9b9V1vwTbuBcbWAlIkvbbXIye8x9vK+9OyVYFUSqEBL0cC7NdQC
-	 YNrGVQs4pOV7gKUq4o341Mz+TetQ777b7yvt2UFs=
-Date: Sun, 21 Sep 2025 14:25:08 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vishal.moola@gmail.com,vbabka@suse.cz,usamaarif642@gmail.com,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,pyyjason@gmail.com,akpm@linux-foundation.org
+	b=qCj4+vG81GY6+wUwXMd7zMwY6hT2cvfmfJy9/P3OhnoSPlBWh47hfKE2yKasOWa0b
+	 yPxky57nMG40I34jdkZNUVgrR8rvxlsUECC1Yh7crOHtXH4VLLuyAvLrcWZXDu8Ogr
+	 MKGoqjURiy9nsMnEZsXiF/8OQIrXOw7PtmrzuLPU=
+Date: Sun, 21 Sep 2025 14:25:10 -0700
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,gary@garyguo.net,daniel.almeida@collabora.com,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,andrewjballance@gmail.com,a.hindborg@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-show_mem-add-trylock-while-printing-alloc-info.patch removed from -mm tree
-Message-Id: <20250921212509.0CD0BC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] rust-maple_tree-add-mapletree.patch removed from -mm tree
+Message-Id: <20250921212510.9A9EFC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,500 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/show_mem: add trylock while printing alloc info
+     Subject: rust: maple_tree: add MapleTree
 has been removed from the -mm tree.  Its filename was
-     mm-show_mem-add-trylock-while-printing-alloc-info.patch
+     rust-maple_tree-add-mapletree.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yueyang Pan <pyyjason@gmail.com>
-Subject: mm/show_mem: add trylock while printing alloc info
-Date: Wed, 3 Sep 2025 04:16:14 -0700
+From: Alice Ryhl <aliceryhl@google.com>
+Subject: rust: maple_tree: add MapleTree
+Date: Tue, 02 Sep 2025 08:35:11 +0000
 
-In production, show_mem() can be called concurrently from two different
-entities, for example one from oom_kill_process() another from
-__alloc_pages_slowpath from another kthread.  This patch adds a spinlock
-and invokes trylock before printing out the kernel alloc info in
-show_mem().  This way two alloc info won't interleave with each other,
-which then makes parsing easier.
+Patch series "Add Rust abstraction for Maple Trees", v3.
 
-Link: https://lkml.kernel.org/r/4ed91296e0c595d945a38458f7a8d9611b0c1e52.1756897825.git.pyyjason@gmail.com
-Signed-off-by: Yueyang Pan <pyyjason@gmail.com>
-Acked-by: Usama Arif <usamaarif642@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+This will be used in the Tyr driver [1] to allocate from the GPU's VA
+space that is not owned by userspace, but by the kernel, for kernel GPU
+mappings.
+
+Danilo tells me that in nouveau, the maple tree is used for keeping track
+of "VM regions" on top of GPUVM, and that he will most likely end up doing
+the same in the Rust Nova driver as well.
+
+These abstractions intentionally do not expose any way to make use of
+external locking.  You are required to use the internal spinlock.  For
+now, we do not support loads that only utilize rcu for protection.
+
+This contains some parts taken from Andrew Ballance's RFC [2] from April. 
+However, it has also been reworked significantly compared to that RFC
+taking the use-cases in Tyr into account.
+
+
+This patch (of 3):
+
+The maple tree will be used in the Tyr driver to allocate and keep track
+of GPU allocations created internally (i.e.  not by userspace).  It will
+likely also be used in the Nova driver eventually.
+
+This adds the simplest methods for additional and removal that do not
+require any special care with respect to concurrency.
+
+This implementation is based on the RFC by Andrew but with significant
+changes to simplify the implementation.
+
+[ojeda@kernel.org: fix intra-doc links]
+  Link: https://lkml.kernel.org/r/20250910140212.997771-1-ojeda@kernel.org
+Link: https://lkml.kernel.org/r/20250902-maple-tree-v3-0-fb5c8958fb1e@google.com
+Link: https://lkml.kernel.org/r/20250902-maple-tree-v3-1-fb5c8958fb1e@google.com
+Link: https://lore.kernel.org/r/20250627-tyr-v1-1-cb5f4c6ced46@collabora.com [1]
+Link: https://lore.kernel.org/r/20250405060154.1550858-1-andrewjballance@gmail.com [2]
+Co-developed-by: Andrew Ballance <andrewjballance@gmail.com>
+Signed-off-by: Andrew Ballance <andrewjballance@gmail.com>
+Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Reviewed-by: Danilo Krummrich <dakr@kernel.org>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Daniel Almeida <daniel.almeida@collabora.com>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/show_mem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ MAINTAINERS                |    4 
+ include/linux/maple_tree.h |    3 
+ rust/helpers/helpers.c     |    1 
+ rust/helpers/maple_tree.c  |    8 
+ rust/kernel/lib.rs         |    1 
+ rust/kernel/maple_tree.rs  |  349 +++++++++++++++++++++++++++++++++++
+ 6 files changed, 366 insertions(+)
 
---- a/mm/show_mem.c~mm-show_mem-add-trylock-while-printing-alloc-info
-+++ a/mm/show_mem.c
-@@ -425,7 +425,9 @@ void __show_mem(unsigned int filter, nod
- 	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
- #endif
- #ifdef CONFIG_MEM_ALLOC_PROFILING
--	{
-+	static DEFINE_SPINLOCK(mem_alloc_profiling_spinlock);
-+
-+	if (spin_trylock(&mem_alloc_profiling_spinlock)) {
- 		struct codetag_bytes tags[10];
- 		size_t i, nr;
+--- a/include/linux/maple_tree.h~rust-maple_tree-add-mapletree
++++ a/include/linux/maple_tree.h
+@@ -481,6 +481,9 @@ struct ma_wr_state {
+ #define MA_ERROR(err) \
+ 		((struct maple_enode *)(((unsigned long)err << 2) | 2UL))
  
-@@ -452,6 +454,7 @@ void __show_mem(unsigned int filter, nod
- 						  ct->lineno, ct->function);
- 			}
- 		}
-+		spin_unlock(&mem_alloc_profiling_spinlock);
- 	}
- #endif
- }
++/*
++ * When changing MA_STATE, remember to also change rust/kernel/maple_tree.rs
++ */
+ #define MA_STATE(name, mt, first, end)					\
+ 	struct ma_state name = {					\
+ 		.tree = mt,						\
+--- a/MAINTAINERS~rust-maple_tree-add-mapletree
++++ a/MAINTAINERS
+@@ -14672,6 +14672,8 @@ F:	net/mctp/
+ 
+ MAPLE TREE
+ M:	Liam R. Howlett <Liam.Howlett@oracle.com>
++R:	Alice Ryhl <aliceryhl@google.com>
++R:	Andrew Ballance <andrewjballance@gmail.com>
+ L:	maple-tree@lists.infradead.org
+ L:	linux-mm@kvack.org
+ S:	Supported
+@@ -14680,6 +14682,8 @@ F:	include/linux/maple_tree.h
+ F:	include/trace/events/maple_tree.h
+ F:	lib/maple_tree.c
+ F:	lib/test_maple_tree.c
++F:	rust/helpers/maple_tree.c
++F:	rust/kernel/maple_tree.rs
+ F:	tools/testing/radix-tree/maple.c
+ F:	tools/testing/shared/linux/maple_tree.h
+ 
+--- a/rust/helpers/helpers.c~rust-maple_tree-add-mapletree
++++ a/rust/helpers/helpers.c
+@@ -26,6 +26,7 @@
+ #include "io.c"
+ #include "jump_label.c"
+ #include "kunit.c"
++#include "maple_tree.c"
+ #include "mm.c"
+ #include "mutex.c"
+ #include "of.c"
+diff --git a/rust/helpers/maple_tree.c a/rust/helpers/maple_tree.c
+new file mode 100644
+--- /dev/null
++++ a/rust/helpers/maple_tree.c
+@@ -0,0 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/maple_tree.h>
++
++void rust_helper_mt_init_flags(struct maple_tree *mt, unsigned int flags)
++{
++	mt_init_flags(mt, flags);
++}
+--- a/rust/kernel/lib.rs~rust-maple_tree-add-mapletree
++++ a/rust/kernel/lib.rs
+@@ -96,6 +96,7 @@ pub mod jump_label;
+ #[cfg(CONFIG_KUNIT)]
+ pub mod kunit;
+ pub mod list;
++pub mod maple_tree;
+ pub mod miscdevice;
+ pub mod mm;
+ #[cfg(CONFIG_NET)]
+diff --git a/rust/kernel/maple_tree.rs a/rust/kernel/maple_tree.rs
+new file mode 100644
+--- /dev/null
++++ a/rust/kernel/maple_tree.rs
+@@ -0,0 +1,349 @@
++// SPDX-License-Identifier: GPL-2.0
++
++//! Maple trees.
++//!
++//! C header: [`include/linux/maple_tree.h`](srctree/include/linux/maple_tree.h)
++//!
++//! Reference: <https://docs.kernel.org/core-api/maple_tree.html>
++
++use core::{
++    marker::PhantomData,
++    ops::{Bound, RangeBounds},
++    ptr,
++};
++
++use kernel::{
++    alloc::Flags,
++    error::to_result,
++    prelude::*,
++    types::{ForeignOwnable, Opaque},
++};
++
++/// A maple tree optimized for storing non-overlapping ranges.
++///
++/// # Invariants
++///
++/// Each range in the maple tree owns an instance of `T`.
++#[pin_data(PinnedDrop)]
++#[repr(transparent)]
++pub struct MapleTree<T: ForeignOwnable> {
++    #[pin]
++    tree: Opaque<bindings::maple_tree>,
++    _p: PhantomData<T>,
++}
++
++#[inline]
++fn to_maple_range(range: impl RangeBounds<usize>) -> Option<(usize, usize)> {
++    let first = match range.start_bound() {
++        Bound::Included(start) => *start,
++        Bound::Excluded(start) => start.checked_add(1)?,
++        Bound::Unbounded => 0,
++    };
++
++    let last = match range.end_bound() {
++        Bound::Included(end) => *end,
++        Bound::Excluded(end) => end.checked_sub(1)?,
++        Bound::Unbounded => usize::MAX,
++    };
++
++    if last < first {
++        return None;
++    }
++
++    Some((first, last))
++}
++
++impl<T: ForeignOwnable> MapleTree<T> {
++    /// Create a new maple tree.
++    ///
++    /// The tree will use the regular implementation with a higher branching factor, rather than
++    /// the allocation tree.
++    #[inline]
++    pub fn new() -> impl PinInit<Self> {
++        pin_init!(MapleTree {
++            // SAFETY: This initializes a maple tree into a pinned slot. The maple tree will be
++            // destroyed in Drop before the memory location becomes invalid.
++            tree <- Opaque::ffi_init(|slot| unsafe { bindings::mt_init_flags(slot, 0) }),
++            _p: PhantomData,
++        })
++    }
++
++    /// Insert the value at the given index.
++    ///
++    /// # Errors
++    ///
++    /// If the maple tree already contains a range using the given index, then this call will
++    /// return an [`InsertErrorKind::Occupied`]. It may also fail if memory allocation fails.
++    ///
++    /// # Examples
++    ///
++    /// ```
++    /// use kernel::maple_tree::{InsertErrorKind, MapleTree};
++    ///
++    /// let tree = KBox::pin_init(MapleTree::<KBox<i32>>::new(), GFP_KERNEL)?;
++    ///
++    /// let ten = KBox::new(10, GFP_KERNEL)?;
++    /// let twenty = KBox::new(20, GFP_KERNEL)?;
++    /// let the_answer = KBox::new(42, GFP_KERNEL)?;
++    ///
++    /// // These calls will succeed.
++    /// tree.insert(100, ten, GFP_KERNEL)?;
++    /// tree.insert(101, twenty, GFP_KERNEL)?;
++    ///
++    /// // This will fail because the index is already in use.
++    /// assert_eq!(
++    ///     tree.insert(100, the_answer, GFP_KERNEL).unwrap_err().cause,
++    ///     InsertErrorKind::Occupied,
++    /// );
++    /// # Ok::<_, Error>(())
++    /// ```
++    #[inline]
++    pub fn insert(&self, index: usize, value: T, gfp: Flags) -> Result<(), InsertError<T>> {
++        self.insert_range(index..=index, value, gfp)
++    }
++
++    /// Insert a value to the specified range, failing on overlap.
++    ///
++    /// This accepts the usual types of Rust ranges using the `..` and `..=` syntax for exclusive
++    /// and inclusive ranges respectively. The range must not be empty, and must not overlap with
++    /// any existing range.
++    ///
++    /// # Errors
++    ///
++    /// If the maple tree already contains an overlapping range, then this call will return an
++    /// [`InsertErrorKind::Occupied`]. It may also fail if memory allocation fails or if the
++    /// requested range is invalid (e.g. empty).
++    ///
++    /// # Examples
++    ///
++    /// ```
++    /// use kernel::maple_tree::{InsertErrorKind, MapleTree};
++    ///
++    /// let tree = KBox::pin_init(MapleTree::<KBox<i32>>::new(), GFP_KERNEL)?;
++    ///
++    /// let ten = KBox::new(10, GFP_KERNEL)?;
++    /// let twenty = KBox::new(20, GFP_KERNEL)?;
++    /// let the_answer = KBox::new(42, GFP_KERNEL)?;
++    /// let hundred = KBox::new(100, GFP_KERNEL)?;
++    ///
++    /// // Insert the value 10 at the indices 100 to 499.
++    /// tree.insert_range(100..500, ten, GFP_KERNEL)?;
++    ///
++    /// // Insert the value 20 at the indices 500 to 1000.
++    /// tree.insert_range(500..=1000, twenty, GFP_KERNEL)?;
++    ///
++    /// // This will fail due to overlap with the previous range on index 1000.
++    /// assert_eq!(
++    ///     tree.insert_range(1000..1200, the_answer, GFP_KERNEL).unwrap_err().cause,
++    ///     InsertErrorKind::Occupied,
++    /// );
++    ///
++    /// // When using .. to specify the range, you must be careful to ensure that the range is
++    /// // non-empty.
++    /// assert_eq!(
++    ///     tree.insert_range(72..72, hundred, GFP_KERNEL).unwrap_err().cause,
++    ///     InsertErrorKind::InvalidRequest,
++    /// );
++    /// # Ok::<_, Error>(())
++    /// ```
++    pub fn insert_range<R>(&self, range: R, value: T, gfp: Flags) -> Result<(), InsertError<T>>
++    where
++        R: RangeBounds<usize>,
++    {
++        let Some((first, last)) = to_maple_range(range) else {
++            return Err(InsertError {
++                value,
++                cause: InsertErrorKind::InvalidRequest,
++            });
++        };
++
++        let ptr = T::into_foreign(value);
++
++        // SAFETY: The tree is valid, and we are passing a pointer to an owned instance of `T`.
++        let res = to_result(unsafe {
++            bindings::mtree_insert_range(self.tree.get(), first, last, ptr, gfp.as_raw())
++        });
++
++        if let Err(err) = res {
++            // SAFETY: As `mtree_insert_range` failed, it is safe to take back ownership.
++            let value = unsafe { T::from_foreign(ptr) };
++
++            let cause = if err == ENOMEM {
++                InsertErrorKind::AllocError(kernel::alloc::AllocError)
++            } else if err == EEXIST {
++                InsertErrorKind::Occupied
++            } else {
++                InsertErrorKind::InvalidRequest
++            };
++            Err(InsertError { value, cause })
++        } else {
++            Ok(())
++        }
++    }
++
++    /// Erase the range containing the given index.
++    ///
++    /// # Examples
++    ///
++    /// ```
++    /// use kernel::maple_tree::MapleTree;
++    ///
++    /// let tree = KBox::pin_init(MapleTree::<KBox<i32>>::new(), GFP_KERNEL)?;
++    ///
++    /// let ten = KBox::new(10, GFP_KERNEL)?;
++    /// let twenty = KBox::new(20, GFP_KERNEL)?;
++    ///
++    /// tree.insert_range(100..500, ten, GFP_KERNEL)?;
++    /// tree.insert(67, twenty, GFP_KERNEL)?;
++    ///
++    /// assert_eq!(tree.erase(67).map(|v| *v), Some(20));
++    /// assert_eq!(tree.erase(275).map(|v| *v), Some(10));
++    ///
++    /// // The previous call erased the entire range, not just index 275.
++    /// assert!(tree.erase(127).is_none());
++    /// # Ok::<_, Error>(())
++    /// ```
++    #[inline]
++    pub fn erase(&self, index: usize) -> Option<T> {
++        // SAFETY: `self.tree` contains a valid maple tree.
++        let ret = unsafe { bindings::mtree_erase(self.tree.get(), index) };
++
++        // SAFETY: If the pointer is not null, then we took ownership of a valid instance of `T`
++        // from the tree.
++        unsafe { T::try_from_foreign(ret) }
++    }
++
++    /// Free all `T` instances in this tree.
++    ///
++    /// # Safety
++    ///
++    /// This frees Rust data referenced by the maple tree without removing it from the maple tree,
++    /// leaving it in an invalid state. The caller must ensure that this invalid state cannot be
++    /// observed by the end-user.
++    unsafe fn free_all_entries(self: Pin<&mut Self>) {
++        // SAFETY: The caller provides exclusive access to the entire maple tree, so we have
++        // exclusive access to the entire maple tree despite not holding the lock.
++        let mut ma_state = unsafe { MaState::new_raw(self.into_ref().get_ref(), 0, usize::MAX) };
++
++        loop {
++            // This uses the raw accessor because we're destroying pointers without removing them
++            // from the maple tree, which is only valid because this is the destructor.
++            let ptr = ma_state.mas_find_raw(usize::MAX);
++            if ptr.is_null() {
++                break;
++            }
++            // SAFETY: By the type invariants, this pointer references a valid value of type `T`.
++            // By the safety requirements, it is okay to free it without removing it from the maple
++            // tree.
++            drop(unsafe { T::from_foreign(ptr) });
++        }
++    }
++}
++
++#[pinned_drop]
++impl<T: ForeignOwnable> PinnedDrop for MapleTree<T> {
++    #[inline]
++    fn drop(mut self: Pin<&mut Self>) {
++        // We only iterate the tree if the Rust value has a destructor.
++        if core::mem::needs_drop::<T>() {
++            // SAFETY: Other than the below `mtree_destroy` call, the tree will not be accessed
++            // after this call.
++            unsafe { self.as_mut().free_all_entries() };
++        }
++
++        // SAFETY: The tree is valid, and will not be accessed after this call.
++        unsafe { bindings::mtree_destroy(self.tree.get()) };
++    }
++}
++
++/// A helper type used for navigating a [`MapleTree`].
++///
++/// # Invariants
++///
++/// For the duration of `'tree`:
++///
++/// * The `ma_state` references a valid `MapleTree<T>`.
++/// * The `ma_state` has read/write access to the tree.
++pub struct MaState<'tree, T: ForeignOwnable> {
++    state: bindings::ma_state,
++    _phantom: PhantomData<&'tree mut MapleTree<T>>,
++}
++
++impl<'tree, T: ForeignOwnable> MaState<'tree, T> {
++    /// Initialize a new `MaState` with the given tree.
++    ///
++    /// # Safety
++    ///
++    /// The caller must ensure that this `MaState` has read/write access to the maple tree.
++    #[inline]
++    unsafe fn new_raw(mt: &'tree MapleTree<T>, first: usize, end: usize) -> Self {
++        // INVARIANT:
++        // * Having a reference ensures that the `MapleTree<T>` is valid for `'tree`.
++        // * The caller ensures that we have read/write access.
++        Self {
++            state: bindings::ma_state {
++                tree: mt.tree.get(),
++                index: first,
++                last: end,
++                node: ptr::null_mut(),
++                status: bindings::maple_status_ma_start,
++                min: 0,
++                max: usize::MAX,
++                alloc: ptr::null_mut(),
++                mas_flags: 0,
++                store_type: bindings::store_type_wr_invalid,
++                ..Default::default()
++            },
++            _phantom: PhantomData,
++        }
++    }
++
++    #[inline]
++    fn as_raw(&mut self) -> *mut bindings::ma_state {
++        &raw mut self.state
++    }
++
++    #[inline]
++    fn mas_find_raw(&mut self, max: usize) -> *mut c_void {
++        // SAFETY: By the type invariants, the `ma_state` is active and we have read/write access
++        // to the tree.
++        unsafe { bindings::mas_find(self.as_raw(), max) }
++    }
++}
++
++/// Error type for failure to insert a new value.
++pub struct InsertError<T> {
++    /// The value that could not be inserted.
++    pub value: T,
++    /// The reason for the failure to insert.
++    pub cause: InsertErrorKind,
++}
++
++/// The reason for the failure to insert.
++#[derive(PartialEq, Eq, Copy, Clone, Debug)]
++pub enum InsertErrorKind {
++    /// There is already a value in the requested range.
++    Occupied,
++    /// Failure to allocate memory.
++    AllocError(kernel::alloc::AllocError),
++    /// The insertion request was invalid.
++    InvalidRequest,
++}
++
++impl From<InsertErrorKind> for Error {
++    #[inline]
++    fn from(kind: InsertErrorKind) -> Error {
++        match kind {
++            InsertErrorKind::Occupied => EEXIST,
++            InsertErrorKind::AllocError(kernel::alloc::AllocError) => ENOMEM,
++            InsertErrorKind::InvalidRequest => EINVAL,
++        }
++    }
++}
++
++impl<T> From<InsertError<T>> for Error {
++    #[inline]
++    fn from(insert_err: InsertError<T>) -> Error {
++        Error::from(insert_err.cause)
++    }
++}
 _
 
-Patches currently in -mm which might be from pyyjason@gmail.com are
+Patches currently in -mm which might be from aliceryhl@google.com are
 
 
