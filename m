@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6F9C25D1E6
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 16:54:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FEA519F12D
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 17:02:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758473659; cv=none; b=PnaeLpniikJzHOqAlMdgBDBUE+Xqlx0sfm1r9yNgLOf2xx6i4dEVOUqTOiesEx/RS08JUcY5ZOdBvdUqqQ86ZLKhyNY/agP5Dc3aexf8LzeskvYcUMg6TLaOcmLmWyKWjgmzLbh0XBMkq1MGpNqZeahTeAhzY3unF3LhVPfP2EQ=
+	t=1758474159; cv=none; b=uEirPeLHd3xI9GeOED5oznFC6RGUpkEi1fguGbvsMbyBaCer+l2D6s+pPqU/7fN2U0MGMXGiWjS5rhXgx0aeaMp3rO/xoYvPCl54hNrggAxcAhOqoB8l+N4gsmkelEwj2GX8HVAor7Z7r0e2cXC2dpQAiLtAIEGfMRS6zAPqwNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758473659; c=relaxed/simple;
-	bh=CeCth3O1Cz4iM9o5Ww+xYF9xuU/Udw81Cquf72zBk1k=;
-	h=Date:To:From:Subject:Message-Id; b=ultVPuwr3kvQA2jDhts60de/ZNhs4rv6boz+ROYkLT7hmmgxLEGG8SIDmYgR8RlXRSn7dr2t/0umcKzeSt7Nzo+D+dZmnijgh5hWzVMBA/j5Y+KYOX9YwkOiKrOVKo4aOK45k5tiLn1DJRIzdkYd9YuRoSKqUuRUEZ72q9RS3I0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tOe61Mlf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758474159; c=relaxed/simple;
+	bh=0d2Bg6QquH4xEpyyc9X5IJxoefzQ1jVc2XiCq9BVMSo=;
+	h=Date:To:From:Subject:Message-Id; b=gAxXqWJvl/+dbBAyV8cQB/eBG9s6UacxOgQuxiQvU6W8sdkgPncwf18ylwPu6z8EVkOHeQHGnfFxTKLVDnpuwjEK9l3C0DORCC61i7CW1wZn6rNqRfEErJS1mZ15kdtvtkf1wg6uzswLr7GrHxY7a2+sSIMTAI88M/ysq854XXI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LDMmMhRf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tOe61Mlf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F91BC4CEE7;
-	Sun, 21 Sep 2025 16:54:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LDMmMhRf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72085C4CEE7;
+	Sun, 21 Sep 2025 17:02:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758473659;
-	bh=CeCth3O1Cz4iM9o5Ww+xYF9xuU/Udw81Cquf72zBk1k=;
+	s=korg; t=1758474158;
+	bh=0d2Bg6QquH4xEpyyc9X5IJxoefzQ1jVc2XiCq9BVMSo=;
 	h=Date:To:From:Subject:From;
-	b=tOe61MlfoFImKgj8Ye3VZR8+x4FwBOPvMeSSZ52Y4R2fvxb1dW8yqX5PEvQkabFpT
-	 SxTOWKwwPvxbkRDFoPA0JZ3kVUmrtj7gkPAi+n4OjvZ13VHAAV4sVUUEapJt4CvTtR
-	 i3DJ1j58/dC8Bfo8yiiINIBCW4VQtgFp46WsQHXc=
-Date: Sun, 21 Sep 2025 09:54:18 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=LDMmMhRfYXrAJq8o4fUTAv97P/vXK1CmN0pZvoCFcI9tw1wdWNBeXczg4rDxK0ktz
+	 NVVN4i3R6GdvG8lyDz4j5cSfTL/jk1UykfDx0/qWvn39BHT1TBi+5daUXo/2WJO/j4
+	 +wbxe1tmhd8Dv2KFmXi82KYj0HU1h/w0X5nl3wMY=
+Date: Sun, 21 Sep 2025 10:02:37 -0700
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,liam.howlett@oracle.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,andrewjballance@gmail.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,ojeda@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch added to mm-nonmm-unstable branch
-Message-Id: <20250921165419.1F91BC4CEE7@smtp.kernel.org>
+Subject: + rust-maple_tree-add-mapletree-fix.patch added to mm-unstable branch
+Message-Id: <20250921170238.72085C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch
+     Subject: rust: maple_tree: fix intra-doc link
+has been added to the -mm mm-unstable branch.  Its filename is
+     rust-maple_tree-add-mapletree-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-maple_tree-add-mapletree-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,95 +58,77 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
-Date: Sun Sep 21 09:52:59 AM PDT 2025
+From: Miguel Ojeda <ojeda@kernel.org>
+Subject: rust: maple_tree: fix intra-doc link
+Date: Wed, 10 Sep 2025 16:02:12 +0200
 
-ERROR: code indent should use tabs where possible
-#38: FILE: include/linux/kexec_handover.h:44:
-+        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);$
+A couple `Occupied` intra-doc links are broken:
 
-WARNING: please, no spaces at the start of a line
-#38: FILE: include/linux/kexec_handover.h:44:
-+        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);$
+    error: unresolved link to `Occupied`
+      --> rust/kernel/maple_tree.rs:96:46
+       |
+    96 |     /// return an [`InsertError`] with the [`Occupied`] kind. It may also fail if memory
+       |                                              ^^^^^^^^ no item named `Occupied` in scope
+       |
+       = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+       = note: `-D rustdoc::broken-intra-doc-links` implied by `-D warnings`
+       = help: to override `-D warnings` add `#[allow(rustdoc::broken_intra_doc_links)]`
 
-ERROR: code indent should use tabs where possible
-#39: FILE: include/linux/kexec_handover.h:45:
-+        unsigned int total_pages;$
+    error: unresolved link to `Occupied`
+       --> rust/kernel/maple_tree.rs:135:36
+        |
+    135 |     /// [`InsertError`] with the [`Occupied`] kind. It may also fail if memory allocation fails
+        |                                    ^^^^^^^^ no item named `Occupied` in scope
+        |
+        = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
 
-WARNING: please, no spaces at the start of a line
-#39: FILE: include/linux/kexec_handover.h:45:
-+        unsigned int total_pages;$
+Thus fix them.
 
-ERROR: code indent should use tabs where possible
-#40: FILE: include/linux/kexec_handover.h:46:
-+        unsigned short flags;$
-
-WARNING: please, no spaces at the start of a line
-#40: FILE: include/linux/kexec_handover.h:46:
-+        unsigned short flags;$
-
-ERROR: code indent should use tabs where possible
-#41: FILE: include/linux/kexec_handover.h:47:
-+        unsigned short order;$
-
-WARNING: please, no spaces at the start of a line
-#41: FILE: include/linux/kexec_handover.h:47:
-+        unsigned short order;$
-
-total: 4 errors, 4 warnings, 350 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/kho-add-support-for-preserving-vmalloc-allocations.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20250910140212.997771-1-ojeda@kernel.org
+Fixes: 7f51d867d2ed ("rust: maple_tree: add MapleTree")
+Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
+Reviewed-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Trevor Gross <tmgross@umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec_handover.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ rust/kernel/maple_tree.rs |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/include/linux/kexec_handover.h~kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
-+++ a/include/linux/kexec_handover.h
-@@ -41,10 +41,10 @@ struct kho_serialization;
- 
- struct kho_vmalloc_chunk;
- struct kho_vmalloc {
--        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
--        unsigned int total_pages;
--        unsigned short flags;
--        unsigned short order;
-+	DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
-+	unsigned int total_pages;
-+	unsigned short flags;
-+	unsigned short order;
- };
- 
- #ifdef CONFIG_KEXEC_HANDOVER
+--- a/rust/kernel/maple_tree.rs~rust-maple_tree-add-mapletree-fix
++++ a/rust/kernel/maple_tree.rs
+@@ -73,8 +73,7 @@ impl<T: ForeignOwnable> MapleTree<T> {
+     /// # Errors
+     ///
+     /// If the maple tree already contains a range using the given index, then this call will
+-    /// return an [`InsertError`] with the [`Occupied`] kind. It may also fail if memory
+-    /// allocation fails.
++    /// return an [`InsertErrorKind::Occupied`]. It may also fail if memory allocation fails.
+     ///
+     /// # Examples
+     ///
+@@ -112,8 +111,8 @@ impl<T: ForeignOwnable> MapleTree<T> {
+     /// # Errors
+     ///
+     /// If the maple tree already contains an overlapping range, then this call will return an
+-    /// [`InsertError`] with the [`Occupied`] kind. It may also fail if memory allocation fails
+-    /// or if the requested range is invalid (e.g. empty).
++    /// [`InsertErrorKind::Occupied`]. It may also fail if memory allocation fails or if the
++    /// requested range is invalid (e.g. empty).
+     ///
+     /// # Examples
+     ///
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ojeda@kernel.org are
 
-kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
-memfd-move-mfd_all_flags-definition-to-memfdh.patch
-mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
-mm-filemap-align-last_index-to-folio-size-fix-fix.patch
-mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
-include-linux-pgtableh-convert-arch_enter_lazy_mmu_mode-and-friends-to-static-inlines.patch
-alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
-alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix.patch
-mm-add-remap_pfn_range_prepare-remap_pfn_range_complete-fix.patch
-mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch
-mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
-kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch
+rust-maple_tree-add-mapletree-fix.patch
 
