@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A871721D3C0
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A32721D3C0
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489994; cv=none; b=usgX7M2SVL/rzjPcRXsVfWZrkaTo6BcrVvM0oqPhAm3Q8hjbCxPE9OFnOH047jn2Lh1OFPSAsWQMvspCsZrFJC+xjlHjoJi0QHaO52JfzTko/WDBHqfjfKwWe64lcnZgXH4yXV1TzdM4iZXOPfLh5i8WeC5xoaTzqsH78ORLGy0=
+	t=1758489995; cv=none; b=bLg0eelinKCgYdAQiHHggrJ0QyuQ2Y7WIeeV2LI/2Uk+Vv6goxuTXVkrrP3hYsezK/hsz9GYD50+Yv7oyVlqt585LrT3FVkq0c4rjIyw3mrcy9i6DvLs4Xa21AxBnaTb6nukl5JC/cVpTyEDWrHIhkOG+GcIvXHdfNjLpXoapJQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489994; c=relaxed/simple;
-	bh=tKBi+x0+erXm889lY6UZ9zIATlaz9xzo/v6CxrhdTKg=;
-	h=Date:To:From:Subject:Message-Id; b=VMnsGSQ0IVQNmNmX28xbzFIzbl91A6R/5DQUzpWrLc4PEo+Hu4k428KUMndzy3SFtJzhbHS1Je/IOMd/SKcBCM2QFX3LGiTL/Q1in56txHGE39EVNhArI6XWdKWioVJRnaujrTgErF805zw7/QbpX7eGbYql4XE2gyCc6AwKfQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D2UwaNxf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489995; c=relaxed/simple;
+	bh=PQGtHLKJLmm3ce0872e8Ewluk8oYBrzqGa6T8k6Efag=;
+	h=Date:To:From:Subject:Message-Id; b=jJY27+vAw1ZEDcepODbNBTJyNImx0kaKlvKkpFA/qaygc3c1eW6hBGSxxKxAZ+Eb6Gn6LCRMF2+/2+hLj5WGDk6WPlPDG3l4eoJOrZQUzfM3ax0LwKLyrtdTpEIabtK1uCHxXsLoFK83xekAfacdxBH2KpyYmzOZQJVzJt3RoNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1iS1ArgH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D2UwaNxf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ECD2C4CEE7;
-	Sun, 21 Sep 2025 21:26:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1iS1ArgH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60D73C4CEE7;
+	Sun, 21 Sep 2025 21:26:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489994;
-	bh=tKBi+x0+erXm889lY6UZ9zIATlaz9xzo/v6CxrhdTKg=;
+	s=korg; t=1758489995;
+	bh=PQGtHLKJLmm3ce0872e8Ewluk8oYBrzqGa6T8k6Efag=;
 	h=Date:To:From:Subject:From;
-	b=D2UwaNxfF4udFzIT2aPzlwFqetDsGtpV1KTLnept6qyr45UBdFkO3rYxa/BXaHxOa
-	 lh4xlQufbZSTo7S/2gtINDBMMy18Vvn+gi+Ga6h7hKG/kHg7gimnBO+/habOJdJO8D
-	 101sKMRgNkU2VNECqoQ2fmQ15CAQGa2afYhZpXcc=
-Date: Sun, 21 Sep 2025 14:26:33 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,ast@kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=1iS1ArgHfKgR6GfTAimuEgNlkeZPGlIpuqVi0vm7eyfoXeMmwKzVyTQm1C+th0Bph
+	 pRAsBYM/ayiPGiSUsIo+GRKjq6yiSBqJi0sgB+jqofnw8jGbAUgM0h/UeDkCG7MDQN
+	 awlT4n+EPIs2/Ocf4pvZoBtGN6SPPGTLKQGdjqWE=
+Date: Sun, 21 Sep 2025 14:26:34 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-page-order.patch removed from -mm tree
-Message-Id: <20250921212634.2ECD2C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-gup_tests-option-to-gup-all-pages-in-a-single-call.patch removed from -mm tree
+Message-Id: <20250921212635.60D73C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove page->order
+     Subject: selftests/mm: gup_tests: option to GUP all pages in a single call
 has been removed from the -mm tree.  Its filename was
-     mm-remove-page-order.patch
+     selftests-mm-gup_tests-option-to-gup-all-pages-in-a-single-call.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove page->order
-Date: Wed, 10 Sep 2025 15:29:19 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/mm: gup_tests: option to GUP all pages in a single call
+Date: Wed, 10 Sep 2025 11:30:51 +0200
 
-We already use page->private for storing the order of a page while it's in
-the buddy allocator system; extend that to also storing the order while
-it's in the pcp_llist.
+We recently missed detecting an issue during early testing because the
+default (!all) tests would not trigger it and even when running "all"
+tests it only would happen sometimes because of races.
 
-Link: https://lkml.kernel.org/r/20250910142923.2465470-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Alexei Starovoitov <ast@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+So let's allow for an easy way to specify "GUP all pages in a single
+call", extend the test matrix and extend our default (!all) tests.
+
+By GUP'ing all pages in a single call, with the default size of 128MiB
+we'll cover multiple leaf page tables / PMDs on architectures with sane
+THP sizes.
+
+Link: https://lkml.kernel.org/r/20250910093051.1693097-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    8 +++-----
- mm/page_alloc.c          |    4 ++--
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/gup_test.c     |    2 ++
+ tools/testing/selftests/mm/run_vmtests.sh |    8 +++++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm_types.h~mm-remove-page-order
-+++ a/include/linux/mm_types.h
-@@ -97,10 +97,7 @@ struct page {
- 				/* Or, free page */
- 				struct list_head buddy_list;
- 				struct list_head pcp_list;
--				struct {
--					struct llist_node pcp_llist;
--					unsigned int order;
--				};
-+				struct llist_node pcp_llist;
- 			};
- 			struct address_space *mapping;
- 			union {
-@@ -111,7 +108,8 @@ struct page {
- 			 * @private: Mapping-private opaque data.
- 			 * Usually used for buffer_heads if PagePrivate.
- 			 * Used for swp_entry_t if swapcache flag set.
--			 * Indicates order in the buddy system if PageBuddy.
-+			 * Indicates order in the buddy system if PageBuddy
-+			 * or on pcp_llist.
- 			 */
- 			unsigned long private;
- 		};
---- a/mm/page_alloc.c~mm-remove-page-order
-+++ a/mm/page_alloc.c
-@@ -1520,7 +1520,7 @@ static void add_page_to_zone_llist(struc
- 				   unsigned int order)
- {
- 	/* Remember the order */
--	page->order = order;
-+	page->private = order;
- 	/* Add the page to the free list */
- 	llist_add(&page->pcp_llist, &zone->trylock_free_pages);
- }
-@@ -1549,7 +1549,7 @@ static void free_one_page(struct zone *z
- 
- 		llnode = llist_del_all(llhead);
- 		llist_for_each_entry_safe(p, tmp, llnode, pcp_llist) {
--			unsigned int p_order = p->order;
-+			unsigned int p_order = p->private;
- 
- 			split_large_buddy(zone, p, page_to_pfn(p), p_order, fpi_flags);
- 			__count_vm_events(PGFREE, 1 << p_order);
+--- a/tools/testing/selftests/mm/gup_test.c~selftests-mm-gup_tests-option-to-gup-all-pages-in-a-single-call
++++ a/tools/testing/selftests/mm/gup_test.c
+@@ -139,6 +139,8 @@ int main(int argc, char **argv)
+ 			break;
+ 		case 'n':
+ 			nr_pages = atoi(optarg);
++			if (nr_pages < 0)
++				nr_pages = size / psize();
+ 			break;
+ 		case 't':
+ 			thp = 1;
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-gup_tests-option-to-gup-all-pages-in-a-single-call
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -138,7 +138,7 @@ run_gup_matrix() {
+                     # -n: How many pages to fetch together?  512 is special
+                     # because it's default thp size (or 2M on x86), 123 to
+                     # just test partial gup when hit a huge in whatever form
+-                    for num in "-n 1" "-n 512" "-n 123"; do
++                    for num in "-n 1" "-n 512" "-n 123" "-n -1"; do
+                         CATEGORY="gup_test" run_test ./gup_test \
+                                 $huge $test_cmd $write $share $num
+                     done
+@@ -314,9 +314,11 @@ if $RUN_ALL; then
+     run_gup_matrix
+ else
+     # get_user_pages_fast() benchmark
+-    CATEGORY="gup_test" run_test ./gup_test -u
++    CATEGORY="gup_test" run_test ./gup_test -u -n 1
++    CATEGORY="gup_test" run_test ./gup_test -u -n -1
+     # pin_user_pages_fast() benchmark
+-    CATEGORY="gup_test" run_test ./gup_test -a
++    CATEGORY="gup_test" run_test ./gup_test -a -n 1
++    CATEGORY="gup_test" run_test ./gup_test -a -n -1
+ fi
+ # Dump pages 0, 19, and 4096, using pin_user_pages:
+ CATEGORY="gup_test" run_test ./gup_test -ct -F 0x1 0 19 0x1000
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-ksm-use-a-folio-inside-cmp_and_merge_page.patch
 
