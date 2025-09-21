@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E19129ACC3
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7686129ACC3
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489885; cv=none; b=i2cfJJ+4QSx2fY2miA9H0Do2kc4Yysfo8lBUTNHFBiKCrglBvHtFXUOvbaAsrLyvzj3TBV5psBTXMmeHOh2OCNdOGDtZS+E36elyxz8VXHiOqa5Nts7RqD6KSdwgoA/pm2Ylib3KV6rgNE6Od4OUWQT7gQjqs/4s12Qc4V+dbtk=
+	t=1758489889; cv=none; b=t3Rk9ZqzVgjQkc9vd9ulhYAhNVYvhScquR0xbC0posCj7Cdjw90NqxZPcVExEdJDU9Z3gtjmgpRzMk54VcZqgKo7wm2K5Jk9yUc0RXdvDoJtqVvxaZ7K30nK+Ly2mc68qZYYrVMhrY73uJyrz8GUgtcLf36mr7/59ECxG8PStX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489885; c=relaxed/simple;
-	bh=HqdcXuHOsMeSDxq4hYGA2YM5Ga8VTDDCt9c4t7e85hc=;
-	h=Date:To:From:Subject:Message-Id; b=bf9esYDm4gQbmRzd0OaPuSXJOg1KlZ4P1noVB7+KZ//Vry+ORmvXiDw22sc4fXqWRh0hTdg5Mc8COj5G9nOgO0vWpyYG9tB9CxPEX8Hm/HdfmXzVvcQZc3MVRHXi5j6kqTKxaOLSBdpIbQdgBDUzknBE9ZfoBn1zKYTRDxAsSKc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ELGpWHTr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489889; c=relaxed/simple;
+	bh=M9D+qzCAzExI5GSa6MimXl/BjjWG6ryrPUDci2pqh2g=;
+	h=Date:To:From:Subject:Message-Id; b=LD+YHbnYukRADAqrQH+Sh3bEwx+nlrdgphgdvqOxdXMYFJNyO9Gx0M2eCxg5r3eJ827veaN/BlP/synn3PIbBrOELwSqvgw1AhPHK2kQ4+nktV5H5WvNg1OFgaiyoJzjBPtnSpA8YCW4LYOVXqWg6OyM2UqNfvH6bHegdf98zRo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xRn777iW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ELGpWHTr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27CE7C4CEE7;
-	Sun, 21 Sep 2025 21:24:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xRn777iW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44699C4CEE7;
+	Sun, 21 Sep 2025 21:24:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489885;
-	bh=HqdcXuHOsMeSDxq4hYGA2YM5Ga8VTDDCt9c4t7e85hc=;
+	s=korg; t=1758489889;
+	bh=M9D+qzCAzExI5GSa6MimXl/BjjWG6ryrPUDci2pqh2g=;
 	h=Date:To:From:Subject:From;
-	b=ELGpWHTraJZeLkWtLhVArNOk8ur8VW8xmzzMBfF/5iJ22SgHTNZlyy9oPvPdgK0AI
-	 rZbv81xWTqZkiFZkgA95X7zRPGTCtZz7QJcWhH8z7IIhQ68m/a3dPmtebI1Jloy7uJ
-	 AtLAqa+b2C1pFrRaeWxLFpqMPPaYTEYVPPZPlHWo=
-Date: Sun, 21 Sep 2025 14:24:44 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,thuth@redhat.com,tglx@linutronix.de,svens@linux.ibm.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,osalvador@suse.de,nysal@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,linux@armlinux.org.uk,liam.howlett@oracle.com,jfalempe@redhat.com,jcmvbkbc@gmail.com,james.bottomley@HansenPartnership.com,jack@suse.cz,hughd@google.com,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,deller@gmx.de,david@redhat.com,davem@davemloft.net,chris@zankel.net,broonie@kernel.org,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,andreas@gaisler.com,agordeev@linux.ibm.com,max.kellermann@ionos.com,akpm@linux-foundation.org
+	b=xRn777iWqsawZIil8HDYeJweIM8UNV3a5xR53u76j7yI1GQ7KvXjDQ71DtAdAPnjM
+	 WI4uyT0li9d35rfTXfX8RCZDEbIUNdMZ0T0BN/YtoJ0dX/IfqBVFTHXZMWQBC02DOh
+	 +uR4+oAmBkCK+uas5XMqI1i3tUrwOKAnxA10nWNs=
+Date: Sun, 21 Sep 2025 14:24:48 -0700
+To: mm-commits@vger.kernel.org,youling.tang@linux.dev,willy@infradead.org,ryan.roberts@arm.com,klarasmodin@gmail.com,jack@suse.cz,david@redhat.com,chizhiling@kylinos.cn,tangyouling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-constify-highmem-related-functions-for-improved-const-correctness.patch removed from -mm tree
-Message-Id: <20250921212445.27CE7C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-filemap-align-last_index-to-folio-size.patch removed from -mm tree
+Message-Id: <20250921212449.44699C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,359 +35,167 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: constify highmem related functions for improved const-correctness
+     Subject: mm/filemap: align last_index to folio size
 has been removed from the -mm tree.  Its filename was
-     mm-constify-highmem-related-functions-for-improved-const-correctness.patch
+     mm-filemap-align-last_index-to-folio-size.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Max Kellermann <max.kellermann@ionos.com>
-Subject: mm: constify highmem related functions for improved const-correctness
-Date: Mon, 1 Sep 2025 22:50:21 +0200
+From: Youling Tang <tangyouling@kylinos.cn>
+Subject: mm/filemap: align last_index to folio size
+Date: Fri, 11 Jul 2025 13:55:09 +0800
 
-Lots of functions in mm/highmem.c do not write to the given pointers and
-do not call functions that take non-const pointers and can therefore be
-constified.
+On XFS systems with pagesize=4K, blocksize=16K, and
+CONFIG_TRANSPARENT_HUGEPAGE enabled, We observed the following readahead
+behaviors:
 
-This includes functions like kunmap() which might be implemented in a way
-that writes to the pointer (e.g.  to update reference counters or mapping
-fields), but currently are not.
+ # echo 3 > /proc/sys/vm/drop_caches
+ # dd if=test of=/dev/null bs=64k count=1
+ # ./tools/mm/page-types -r -L -f  /mnt/xfs/test
+ foffset	offset	flags
+ 0	136d4c	__RU_l_________H______t_________________F_1
+ 1	136d4d	__RU_l__________T_____t_________________F_1
+ 2	136d4e	__RU_l__________T_____t_________________F_1
+ 3	136d4f	__RU_l__________T_____t_________________F_1
+ ...
+ c	136bb8	__RU_l_________H______t_________________F_1
+ d	136bb9	__RU_l__________T_____t_________________F_1
+ e	136bba	__RU_l__________T_____t_________________F_1
+ f	136bbb	__RU_l__________T_____t_________________F_1   <-- first read
+ 10	13c2cc	___U_l_________H______t______________I__F_1   <-- readahead flag
+ 11	13c2cd	___U_l__________T_____t______________I__F_1
+ 12	13c2ce	___U_l__________T_____t______________I__F_1
+ 13	13c2cf	___U_l__________T_____t______________I__F_1
+ ...
+ 1c	1405d4	___U_l_________H______t_________________F_1
+ 1d	1405d5	___U_l__________T_____t_________________F_1
+ 1e	1405d6	___U_l__________T_____t_________________F_1
+ 1f	1405d7	___U_l__________T_____t_________________F_1
+ [ra_size = 32, req_count = 16, async_size = 16]
 
-kmap() on the other hand cannot be made const because it calls
-set_page_address() which is non-const in some
-architectures/configurations.
+ # echo 3 > /proc/sys/vm/drop_caches
+ # dd if=test of=/dev/null bs=60k count=1
+ # ./page-types -r -L -f  /mnt/xfs/test
+ foffset	offset	flags
+ 0	136048	__RU_l_________H______t_________________F_1
+ ...
+ c	110a40	__RU_l_________H______t_________________F_1
+ d	110a41	__RU_l__________T_____t_________________F_1
+ e	110a42	__RU_l__________T_____t_________________F_1   <-- first read
+ f	110a43	__RU_l__________T_____t_________________F_1   <-- first readahead flag
+ 10	13e7a8	___U_l_________H______t_________________F_1
+ ...
+ 20	137a00	___U_l_________H______t_______P______I__F_1   <-- second readahead flag (20 - 2f)
+ 21	137a01	___U_l__________T_____t_______P______I__F_1
+ ...
+ 3f	10d4af	___U_l__________T_____t_______P_________F_1
+ [first readahead: ra_size = 32, req_count = 15, async_size = 17]
 
-[akpm@linux-foundation.org: "fix" folio_page() build failure]
-Link: https://lkml.kernel.org/r/20250901205021.3573313-13-max.kellermann@ionos.com
-Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christian Zankel <chris@zankel.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Bottomley <james.bottomley@HansenPartnership.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jocelyn Falempe <jfalempe@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
+When reading 64k data (same for 61-63k range, where last_index is
+page-aligned in filemap_get_pages()), 128k readahead is triggered via
+page_cache_sync_ra() and the PG_readahead flag is set on the next folio
+(the one containing 0x10 page).
+
+When reading 60k data, 128k readahead is also triggered via
+page_cache_sync_ra().  However, in this case the readahead flag is set on
+the 0xf page.  Although the requested read size (req_count) is 60k, the
+actual read will be aligned to folio size (64k), which triggers the
+readahead flag and initiates asynchronous readahead via
+page_cache_async_ra().  This results in two readahead operations totaling
+256k.
+
+The root cause is that when the requested size is smaller than the actual
+read size (due to folio alignment), it triggers asynchronous readahead. 
+By changing last_index alignment from page size to folio size, we ensure
+the requested size matches the actual read size, preventing the case where
+a single read operation triggers two readahead operations.
+
+After applying the patch:
+ # echo 3 > /proc/sys/vm/drop_caches
+ # dd if=test of=/dev/null bs=60k count=1
+ # ./page-types -r -L -f  /mnt/xfs/test
+ foffset	offset	flags
+ 0	136d4c	__RU_l_________H______t_________________F_1
+ 1	136d4d	__RU_l__________T_____t_________________F_1
+ 2	136d4e	__RU_l__________T_____t_________________F_1
+ 3	136d4f	__RU_l__________T_____t_________________F_1
+ ...
+ c	136bb8	__RU_l_________H______t_________________F_1
+ d	136bb9	__RU_l__________T_____t_________________F_1
+ e	136bba	__RU_l__________T_____t_________________F_1   <-- first read
+ f	136bbb	__RU_l__________T_____t_________________F_1
+ 10	13c2cc	___U_l_________H______t______________I__F_1   <-- readahead flag
+ 11	13c2cd	___U_l__________T_____t______________I__F_1
+ 12	13c2ce	___U_l__________T_____t______________I__F_1
+ 13	13c2cf	___U_l__________T_____t______________I__F_1
+ ...
+ 1c	1405d4	___U_l_________H______t_________________F_1
+ 1d	1405d5	___U_l__________T_____t_________________F_1
+ 1e	1405d6	___U_l__________T_____t_________________F_1
+ 1f	1405d7	___U_l__________T_____t_________________F_1
+ [ra_size = 32, req_count = 16, async_size = 16]
+
+The same phenomenon will occur when reading from 49k to 64k.  Set the
+readahead flag to the next folio.
+
+Because the minimum order of folio in address_space equals the block size
+(at least in xfs and bcachefs that already support bs > ps), having
+request_count aligned to block size will not cause overread.
+
+[klarasmodin@gmail.com: fix overflow on 32-bit]
+  Link: https://lkml.kernel.org/r/yru7qf5gvyzccq5ohhpylvxug5lr5tf54omspbjh4sm6pcdb2r@fpjgj2pxw7va
+[akpm@linux-foundation.org: update it for Max's constification efforts]
+Link: https://lkml.kernel.org/r/20250711055509.91587-1-youling.tang@linux.dev
+Co-developed-by: Chi Zhiling <chizhiling@kylinos.cn>
+Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
+Signed-off-by: Youling Tang <tangyouling@kylinos.cn>
+Signed-off-by: Klara Modin <klarasmodin@gmail.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Nysal Jan K.A" <nysal@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Russel King <linux@armlinux.org.uk>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Thomas Huth <thuth@redhat.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Youling Tang <youling.tang@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Klara Modin <klarasmodin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/highmem.h    |    6 ++--
- arch/xtensa/include/asm/highmem.h |    2 -
- include/linux/highmem-internal.h  |   36 ++++++++++++++--------------
- include/linux/highmem.h           |    8 +++---
- include/linux/page-flags.h        |    4 +--
- mm/highmem.c                      |   10 +++----
- 6 files changed, 33 insertions(+), 33 deletions(-)
+ include/linux/pagemap.h |    6 ++++++
+ mm/filemap.c            |    5 +++--
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
---- a/arch/arm/include/asm/highmem.h~mm-constify-highmem-related-functions-for-improved-const-correctness
-+++ a/arch/arm/include/asm/highmem.h
-@@ -46,9 +46,9 @@ extern pte_t *pkmap_page_table;
- #endif
- 
- #ifdef ARCH_NEEDS_KMAP_HIGH_GET
--extern void *kmap_high_get(struct page *page);
-+extern void *kmap_high_get(const struct page *page);
- 
--static inline void *arch_kmap_local_high_get(struct page *page)
-+static inline void *arch_kmap_local_high_get(const struct page *page)
- {
- 	if (IS_ENABLED(CONFIG_DEBUG_HIGHMEM) && !cache_is_vivt())
- 		return NULL;
-@@ -57,7 +57,7 @@ static inline void *arch_kmap_local_high
- #define arch_kmap_local_high_get arch_kmap_local_high_get
- 
- #else /* ARCH_NEEDS_KMAP_HIGH_GET */
--static inline void *kmap_high_get(struct page *page)
-+static inline void *kmap_high_get(const struct page *page)
- {
- 	return NULL;
+--- a/include/linux/pagemap.h~mm-filemap-align-last_index-to-folio-size
++++ a/include/linux/pagemap.h
+@@ -482,6 +482,12 @@ mapping_min_folio_nrpages(const struct a
+ 	return 1UL << mapping_min_folio_order(mapping);
  }
---- a/arch/xtensa/include/asm/highmem.h~mm-constify-highmem-related-functions-for-improved-const-correctness
-+++ a/arch/xtensa/include/asm/highmem.h
-@@ -29,7 +29,7 @@
  
- #if DCACHE_WAY_SIZE > PAGE_SIZE
- #define get_pkmap_color get_pkmap_color
--static inline int get_pkmap_color(struct page *page)
-+static inline int get_pkmap_color(const struct page *page)
- {
- 	return DCACHE_ALIAS(page_to_phys(page));
- }
---- a/include/linux/highmem.h~mm-constify-highmem-related-functions-for-improved-const-correctness
-+++ a/include/linux/highmem.h
-@@ -43,7 +43,7 @@ static inline void *kmap(struct page *pa
-  * Counterpart to kmap(). A NOOP for CONFIG_HIGHMEM=n and for mappings of
-  * pages in the low memory area.
-  */
--static inline void kunmap(struct page *page);
-+static inline void kunmap(const struct page *page);
- 
++static inline unsigned long
++mapping_min_folio_nrbytes(const struct address_space *mapping)
++{
++	return mapping_min_folio_nrpages(mapping) << PAGE_SHIFT;
++}
++
  /**
-  * kmap_to_page - Get the page for a kmap'ed address
-@@ -93,7 +93,7 @@ static inline void kmap_flush_unused(voi
-  * disabling migration in order to keep the virtual address stable across
-  * preemption. No caller of kmap_local_page() can rely on this side effect.
-  */
--static inline void *kmap_local_page(struct page *page);
-+static inline void *kmap_local_page(const struct page *page);
+  * mapping_align_index() - Align index for this mapping.
+  * @mapping: The address_space.
+--- a/mm/filemap.c~mm-filemap-align-last_index-to-folio-size
++++ a/mm/filemap.c
+@@ -2600,8 +2600,9 @@ static int filemap_get_pages(struct kioc
+ 	unsigned int flags;
+ 	int err = 0;
  
- /**
-  * kmap_local_folio - Map a page in this folio for temporary usage
-@@ -129,7 +129,7 @@ static inline void *kmap_local_page(stru
-  * Context: Can be invoked from any context.
-  * Return: The virtual address of @offset.
-  */
--static inline void *kmap_local_folio(struct folio *folio, size_t offset);
-+static inline void *kmap_local_folio(const struct folio *folio, size_t offset);
- 
- /**
-  * kmap_atomic - Atomically map a page for temporary usage - Deprecated!
-@@ -176,7 +176,7 @@ static inline void *kmap_local_folio(str
-  * kunmap_atomic(vaddr2);
-  * kunmap_atomic(vaddr1);
-  */
--static inline void *kmap_atomic(struct page *page);
-+static inline void *kmap_atomic(const struct page *page);
- 
- /* Highmem related interfaces for management code */
- static inline unsigned long nr_free_highpages(void);
---- a/include/linux/highmem-internal.h~mm-constify-highmem-related-functions-for-improved-const-correctness
-+++ a/include/linux/highmem-internal.h
-@@ -7,7 +7,7 @@
-  */
- #ifdef CONFIG_KMAP_LOCAL
- void *__kmap_local_pfn_prot(unsigned long pfn, pgprot_t prot);
--void *__kmap_local_page_prot(struct page *page, pgprot_t prot);
-+void *__kmap_local_page_prot(const struct page *page, pgprot_t prot);
- void kunmap_local_indexed(const void *vaddr);
- void kmap_local_fork(struct task_struct *tsk);
- void __kmap_local_sched_out(void);
-@@ -33,7 +33,7 @@ static inline void kmap_flush_tlb(unsign
- #endif
- 
- void *kmap_high(struct page *page);
--void kunmap_high(struct page *page);
-+void kunmap_high(const struct page *page);
- void __kmap_flush_unused(void);
- struct page *__kmap_to_page(void *addr);
- 
-@@ -50,7 +50,7 @@ static inline void *kmap(struct page *pa
- 	return addr;
- }
- 
--static inline void kunmap(struct page *page)
-+static inline void kunmap(const struct page *page)
- {
- 	might_sleep();
- 	if (!PageHighMem(page))
-@@ -68,12 +68,12 @@ static inline void kmap_flush_unused(voi
- 	__kmap_flush_unused();
- }
- 
--static inline void *kmap_local_page(struct page *page)
-+static inline void *kmap_local_page(const struct page *page)
- {
- 	return __kmap_local_page_prot(page, kmap_prot);
- }
- 
--static inline void *kmap_local_page_try_from_panic(struct page *page)
-+static inline void *kmap_local_page_try_from_panic(const struct page *page)
- {
- 	if (!PageHighMem(page))
- 		return page_address(page);
-@@ -81,13 +81,13 @@ static inline void *kmap_local_page_try_
- 	return NULL;
- }
- 
--static inline void *kmap_local_folio(struct folio *folio, size_t offset)
-+static inline void *kmap_local_folio(const struct folio *folio, size_t offset)
- {
--	struct page *page = folio_page(folio, offset / PAGE_SIZE);
-+	const struct page *page = folio_page(folio, offset / PAGE_SIZE);
- 	return __kmap_local_page_prot(page, kmap_prot) + offset % PAGE_SIZE;
- }
- 
--static inline void *kmap_local_page_prot(struct page *page, pgprot_t prot)
-+static inline void *kmap_local_page_prot(const struct page *page, pgprot_t prot)
- {
- 	return __kmap_local_page_prot(page, prot);
- }
-@@ -102,7 +102,7 @@ static inline void __kunmap_local(const
- 	kunmap_local_indexed(vaddr);
- }
- 
--static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-+static inline void *kmap_atomic_prot(const struct page *page, pgprot_t prot)
- {
- 	if (IS_ENABLED(CONFIG_PREEMPT_RT))
- 		migrate_disable();
-@@ -113,7 +113,7 @@ static inline void *kmap_atomic_prot(str
- 	return __kmap_local_page_prot(page, prot);
- }
- 
--static inline void *kmap_atomic(struct page *page)
-+static inline void *kmap_atomic(const struct page *page)
- {
- 	return kmap_atomic_prot(page, kmap_prot);
- }
-@@ -173,32 +173,32 @@ static inline void *kmap(struct page *pa
- 	return page_address(page);
- }
- 
--static inline void kunmap_high(struct page *page) { }
-+static inline void kunmap_high(const struct page *page) { }
- static inline void kmap_flush_unused(void) { }
- 
--static inline void kunmap(struct page *page)
-+static inline void kunmap(const struct page *page)
- {
- #ifdef ARCH_HAS_FLUSH_ON_KUNMAP
- 	kunmap_flush_on_unmap(page_address(page));
- #endif
- }
- 
--static inline void *kmap_local_page(struct page *page)
-+static inline void *kmap_local_page(const struct page *page)
- {
- 	return page_address(page);
- }
- 
--static inline void *kmap_local_page_try_from_panic(struct page *page)
-+static inline void *kmap_local_page_try_from_panic(const struct page *page)
- {
- 	return page_address(page);
- }
- 
--static inline void *kmap_local_folio(struct folio *folio, size_t offset)
-+static inline void *kmap_local_folio(const struct folio *folio, size_t offset)
- {
- 	return folio_address(folio) + offset;
- }
- 
--static inline void *kmap_local_page_prot(struct page *page, pgprot_t prot)
-+static inline void *kmap_local_page_prot(const struct page *page, pgprot_t prot)
- {
- 	return kmap_local_page(page);
- }
-@@ -215,7 +215,7 @@ static inline void __kunmap_local(const
- #endif
- }
- 
--static inline void *kmap_atomic(struct page *page)
-+static inline void *kmap_atomic(const struct page *page)
- {
- 	if (IS_ENABLED(CONFIG_PREEMPT_RT))
- 		migrate_disable();
-@@ -225,7 +225,7 @@ static inline void *kmap_atomic(struct p
- 	return page_address(page);
- }
- 
--static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-+static inline void *kmap_atomic_prot(const struct page *page, pgprot_t prot)
- {
- 	return kmap_atomic(page);
- }
---- a/include/linux/page-flags.h~mm-constify-highmem-related-functions-for-improved-const-correctness
-+++ a/include/linux/page-flags.h
-@@ -316,9 +316,9 @@ static __always_inline unsigned long _co
-  * check that the page number lies within @folio; the caller is presumed
-  * to have a reference to the page.
-  */
--static inline struct page *folio_page(struct folio *folio, unsigned long n)
-+static inline struct page *folio_page(const struct folio *folio, unsigned long n)
- {
--	return &folio->page + n;
-+	return (struct page *)(&folio->page + n);
- }
- 
- static __always_inline int PageTail(const struct page *page)
---- a/mm/highmem.c~mm-constify-highmem-related-functions-for-improved-const-correctness
-+++ a/mm/highmem.c
-@@ -61,7 +61,7 @@ static inline int kmap_local_calc_idx(in
- /*
-  * Determine color of virtual address where the page should be mapped.
-  */
--static inline unsigned int get_pkmap_color(struct page *page)
-+static inline unsigned int get_pkmap_color(const struct page *page)
- {
- 	return 0;
- }
-@@ -334,7 +334,7 @@ EXPORT_SYMBOL(kmap_high);
-  *
-  * This can be called from any context.
-  */
--void *kmap_high_get(struct page *page)
-+void *kmap_high_get(const struct page *page)
- {
- 	unsigned long vaddr, flags;
- 
-@@ -356,7 +356,7 @@ void *kmap_high_get(struct page *page)
-  * If ARCH_NEEDS_KMAP_HIGH_GET is not defined then this may be called
-  * only from user context.
-  */
--void kunmap_high(struct page *page)
-+void kunmap_high(const struct page *page)
- {
- 	unsigned long vaddr;
- 	unsigned long nr;
-@@ -508,7 +508,7 @@ static inline void kmap_local_idx_pop(vo
- #endif
- 
- #ifndef arch_kmap_local_high_get
--static inline void *arch_kmap_local_high_get(struct page *page)
-+static inline void *arch_kmap_local_high_get(const struct page *page)
- {
- 	return NULL;
- }
-@@ -572,7 +572,7 @@ void *__kmap_local_pfn_prot(unsigned lon
- }
- EXPORT_SYMBOL_GPL(__kmap_local_pfn_prot);
- 
--void *__kmap_local_page_prot(struct page *page, pgprot_t prot)
-+void *__kmap_local_page_prot(const struct page *page, pgprot_t prot)
- {
- 	void *kmap;
- 
+-	/* "last_index" is the index of the page beyond the end of the read */
+-	last_index = DIV_ROUND_UP(iocb->ki_pos + count, PAGE_SIZE);
++	/* "last_index" is the index of the folio beyond the end of the read */
++	last_index = round_up(iocb->ki_pos + count,
++			mapping_min_folio_nrbytes(mapping)) >> PAGE_SHIFT;
+ retry:
+ 	if (fatal_signal_pending(current))
+ 		return -EINTR;
 _
 
-Patches currently in -mm which might be from max.kellermann@ionos.com are
+Patches currently in -mm which might be from tangyouling@kylinos.cn are
 
 
