@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 590081F4CBB
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 168871F4CBB
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489925; cv=none; b=cKQyTiSVWYqTwtDAF2L3Lbv5/8tat+a66e+7ON0IZ/eOR0yPP7TPXkn8g6lYc0MeXW3pdSiYP0j4zNzh7kRqyHaME8sMJO60ji1qQul4DoTakKOORYZahrMXdmRnOTuGcQO5Jgt1DL6MPfqfzXDyVqNG3CuixDmyTreCF57nnXI=
+	t=1758489927; cv=none; b=EGOiYt0bL2/66MDwddvKB6diRKnmtKKzAgBWdTVxpLke3tsyyIuyhh0QpYOXqxlPsjyajqsVIJtpWCc5FTwFH952CAaTET2dx3uRLzGbw2QOBFuKWjcK847UCqeTrP+xMblP0U+ThRNAm1nVeYpS2LNxDX5Qjs78wbyJihZJwMI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489925; c=relaxed/simple;
-	bh=HwW5woAc/aZcOvMBoIZNRLDtSFO4T7kXmY/CHE1xYiA=;
-	h=Date:To:From:Subject:Message-Id; b=A/9gwxWeZO+OpV/Jt0OPaEMKARXYME3SxgLf8Nj7s/AMDydHitHunwUFl6FXz2BeK97CKSoHpwTTip71LA5SMKhV5eu/1f4UCsl7GqV3xU0i3U+gTZGbp2r3gD28GS4ok1S4zBMuCIi4orrcz6uvNDFCjoCxoJ2PxcmFmE5AZlo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e1n+GejZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489927; c=relaxed/simple;
+	bh=Zk2x5dWPNDoxxs/Wta5wLG0HaMb1RaQ0xCfch30ehZU=;
+	h=Date:To:From:Subject:Message-Id; b=RdlrlVNgXms2SUKZckzAosjpuB+Yqvly4CcpiuByn64EzSWERNBreCxAoXBdQixwhEGfbENztmltTz+crQ45zmhhkbDE2FnF6/Vlw+GIk5rJ83DHIPwwKkkDfwr8l7M5QYfQFcYgKiL0klaLvlOuUfLz6gKnq2WfeH+ohIkc8wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GPqdWAnJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e1n+GejZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BC28C4CEE7;
-	Sun, 21 Sep 2025 21:25:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GPqdWAnJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91E47C4CEE7;
+	Sun, 21 Sep 2025 21:25:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489925;
-	bh=HwW5woAc/aZcOvMBoIZNRLDtSFO4T7kXmY/CHE1xYiA=;
+	s=korg; t=1758489926;
+	bh=Zk2x5dWPNDoxxs/Wta5wLG0HaMb1RaQ0xCfch30ehZU=;
 	h=Date:To:From:Subject:From;
-	b=e1n+GejZ3i+cJKN2LgM5H8UbTTObBoRFbYWarKeYjp0BR6RdFGOVvqEVTI2lYwfCG
-	 BTsR8Lo/tjyD2fsvoHF82ZSPaYcuQY98bOANmkGL1Te2mkXApMEfmMVfEoaiblid8i
-	 x/vn9ENWSh7E1ptmeb4Abuus5QEiIuVnedWBKPXo=
-Date: Sun, 21 Sep 2025 14:25:24 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=GPqdWAnJVOZ/MpYPS23l+o2GahCuU2KfLAVZ5pS9xdCkAbLenInn+Jx3k3CCT8AnB
+	 sd7Piiz2lDX75gZN/SVaOR4VbRHH+5/H8wLjlQXl3iuCtvH8jpXN8f91kM3YhN6AEt
+	 XcdB5DdopYDISxWVTwKHg1CFrTuUCgBK07l+W+Jg=
+Date: Sun, 21 Sep 2025 14:25:26 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,dan.j.williams@intel.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch removed from -mm tree
-Message-Id: <20250921212525.2BC28C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-remove-dead-pgmap-refcounting-code.patch removed from -mm tree
+Message-Id: <20250921212526.91E47C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,112 +35,314 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: check the correct buddy if it is a starting block
+     Subject: mm/gup: remove dead pgmap refcounting code
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block.patch
+     mm-gup-remove-dead-pgmap-refcounting-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc: check the correct buddy if it is a starting block
-Date: Fri, 5 Sep 2025 14:03:58 +0000
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/gup: remove dead pgmap refcounting code
+Date: Thu, 4 Sep 2025 08:59:25 +1000
 
-find_large_buddy() search buddy based on start_pfn, which maybe different
-from page's pfn, e.g.  when page is not pageblock aligned, because
-prep_move_freepages_block() always align start_pfn to pageblock.
+Prior to commit aed877c2b425 ("device/dax: properly refcount device dax
+pages when mapping") ZONE_DEVICE pages were not fully reference counted
+when mapped into user page tables.  Instead GUP would take a reference on
+the associated pgmap to ensure the results of pfn_to_page() remained
+valid.
 
-This means when we found a starting block at start_pfn, it may check on
-the wrong page theoretically.  And not split the free page as it is
-supposed to, causing a freelist migratetype mismatch.
+This is no longer required and most of the code was removed by commit
+fd2825b0760a ("mm/gup: remove pXX_devmap usage from get_user_pages()"). 
+Finish cleaning this up by removing the dead calls to put_dev_pagemap()
+and the temporary context struct.
 
-The good news is the page passed to __move_freepages_block_isolate() has
-only two possible cases:
-
-  * page is pageblock aligned
-  * page is __first_valid_page() of this block
-
-So it is safe for the first case, and it won't get a buddy larger than
-pageblock for the second case.
-
-To fix the issue, check the returned pfn of find_large_buddy() to decide
-whether to split the free page:
-
-  1. if it is not a PageBuddy pfn, no split;
-  2. if it is a PageBuddy pfn but order <= pageblock_order, no split;
-  3. if it is a PageBuddy pfn with order > pageblock_order, start_pfn is
-     either in the starting block or tail block, split the PageBuddy at
-     pageblock_order level.
-
-Link: https://lkml.kernel.org/r/20250905140358.28849-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250903225926.34702-1-apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ mm/gup.c |   67 ++++++++++++++++++++---------------------------------
+ 1 file changed, 26 insertions(+), 41 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-check-the-correct-buddy-if-it-is-a-starting-block
-+++ a/mm/page_alloc.c
-@@ -2090,9 +2090,10 @@ static inline void toggle_pageblock_isol
- static bool __move_freepages_block_isolate(struct zone *zone,
- 		struct page *page, bool isolate)
- {
--	unsigned long start_pfn, pfn;
-+	unsigned long start_pfn, buddy_pfn;
- 	int from_mt;
- 	int to_mt;
-+	struct page *buddy;
+--- a/mm/gup.c~mm-gup-remove-dead-pgmap-refcounting-code
++++ a/mm/gup.c
+@@ -28,11 +28,6 @@
+ #include "internal.h"
+ #include "swap.h"
  
- 	if (isolate == get_pageblock_isolate(page)) {
- 		VM_WARN_ONCE(1, "%s a pageblock that is already in that state",
-@@ -2107,29 +2108,19 @@ static bool __move_freepages_block_isola
- 	if (pageblock_order == MAX_PAGE_ORDER)
- 		goto move;
- 
--	/* We're a tail block in a larger buddy */
--	pfn = find_large_buddy(start_pfn);
--	if (pfn != start_pfn) {
--		struct page *buddy = pfn_to_page(pfn);
-+	buddy_pfn = find_large_buddy(start_pfn);
-+	buddy = pfn_to_page(buddy_pfn);
-+	/* We're a part of a larger buddy */
-+	if (PageBuddy(buddy) && buddy_order(buddy) > pageblock_order) {
- 		int order = buddy_order(buddy);
- 
- 		del_page_from_free_list(buddy, zone, order,
--					get_pfnblock_migratetype(buddy, pfn));
-+					get_pfnblock_migratetype(buddy, buddy_pfn));
- 		toggle_pageblock_isolate(page, isolate);
--		split_large_buddy(zone, buddy, pfn, order, FPI_NONE);
-+		split_large_buddy(zone, buddy, buddy_pfn, order, FPI_NONE);
- 		return true;
- 	}
- 
--	/* We're the starting block of a larger buddy */
--	if (PageBuddy(page) && buddy_order(page) > pageblock_order) {
--		int order = buddy_order(page);
+-struct follow_page_context {
+-	struct dev_pagemap *pgmap;
+-	unsigned int page_mask;
+-};
 -
--		del_page_from_free_list(page, zone, order,
--					get_pfnblock_migratetype(page, pfn));
--		toggle_pageblock_isolate(page, isolate);
--		split_large_buddy(zone, page, pfn, order, FPI_NONE);
--		return true;
--	}
- move:
- 	/* Use MIGRATETYPE_MASK to get non-isolate migratetype */
- 	if (isolate) {
+ static inline void sanity_check_pinned_pages(struct page **pages,
+ 					     unsigned long npages)
+ {
+@@ -653,7 +648,7 @@ static inline bool can_follow_write_pud(
+ 
+ static struct page *follow_huge_pud(struct vm_area_struct *vma,
+ 				    unsigned long addr, pud_t *pudp,
+-				    int flags, struct follow_page_context *ctx)
++				    int flags, unsigned long *page_mask)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct page *page;
+@@ -680,7 +675,7 @@ static struct page *follow_huge_pud(stru
+ 	if (ret)
+ 		page = ERR_PTR(ret);
+ 	else
+-		ctx->page_mask = HPAGE_PUD_NR - 1;
++		*page_mask = HPAGE_PUD_NR - 1;
+ 
+ 	return page;
+ }
+@@ -706,7 +701,7 @@ static inline bool can_follow_write_pmd(
+ static struct page *follow_huge_pmd(struct vm_area_struct *vma,
+ 				    unsigned long addr, pmd_t *pmd,
+ 				    unsigned int flags,
+-				    struct follow_page_context *ctx)
++				    unsigned long *page_mask)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t pmdval = *pmd;
+@@ -743,7 +738,7 @@ static struct page *follow_huge_pmd(stru
+ #endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
+-	ctx->page_mask = HPAGE_PMD_NR - 1;
++	*page_mask = HPAGE_PMD_NR - 1;
+ 
+ 	return page;
+ }
+@@ -751,7 +746,7 @@ static struct page *follow_huge_pmd(stru
+ #else  /* CONFIG_PGTABLE_HAS_HUGE_LEAVES */
+ static struct page *follow_huge_pud(struct vm_area_struct *vma,
+ 				    unsigned long addr, pud_t *pudp,
+-				    int flags, struct follow_page_context *ctx)
++				    int flags, unsigned long *page_mask)
+ {
+ 	return NULL;
+ }
+@@ -759,7 +754,7 @@ static struct page *follow_huge_pud(stru
+ static struct page *follow_huge_pmd(struct vm_area_struct *vma,
+ 				    unsigned long addr, pmd_t *pmd,
+ 				    unsigned int flags,
+-				    struct follow_page_context *ctx)
++				    unsigned long *page_mask)
+ {
+ 	return NULL;
+ }
+@@ -805,8 +800,7 @@ static inline bool can_follow_write_pte(
+ }
+ 
+ static struct page *follow_page_pte(struct vm_area_struct *vma,
+-		unsigned long address, pmd_t *pmd, unsigned int flags,
+-		struct dev_pagemap **pgmap)
++		unsigned long address, pmd_t *pmd, unsigned int flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct folio *folio;
+@@ -904,7 +898,7 @@ no_page:
+ static struct page *follow_pmd_mask(struct vm_area_struct *vma,
+ 				    unsigned long address, pud_t *pudp,
+ 				    unsigned int flags,
+-				    struct follow_page_context *ctx)
++				    unsigned long *page_mask)
+ {
+ 	pmd_t *pmd, pmdval;
+ 	spinlock_t *ptl;
+@@ -918,7 +912,7 @@ static struct page *follow_pmd_mask(stru
+ 	if (!pmd_present(pmdval))
+ 		return no_page_table(vma, flags, address);
+ 	if (likely(!pmd_leaf(pmdval)))
+-		return follow_page_pte(vma, address, pmd, flags, &ctx->pgmap);
++		return follow_page_pte(vma, address, pmd, flags);
+ 
+ 	if (pmd_protnone(pmdval) && !gup_can_follow_protnone(vma, flags))
+ 		return no_page_table(vma, flags, address);
+@@ -931,16 +925,16 @@ static struct page *follow_pmd_mask(stru
+ 	}
+ 	if (unlikely(!pmd_leaf(pmdval))) {
+ 		spin_unlock(ptl);
+-		return follow_page_pte(vma, address, pmd, flags, &ctx->pgmap);
++		return follow_page_pte(vma, address, pmd, flags);
+ 	}
+ 	if (pmd_trans_huge(pmdval) && (flags & FOLL_SPLIT_PMD)) {
+ 		spin_unlock(ptl);
+ 		split_huge_pmd(vma, pmd, address);
+ 		/* If pmd was left empty, stuff a page table in there quickly */
+ 		return pte_alloc(mm, pmd) ? ERR_PTR(-ENOMEM) :
+-			follow_page_pte(vma, address, pmd, flags, &ctx->pgmap);
++			follow_page_pte(vma, address, pmd, flags);
+ 	}
+-	page = follow_huge_pmd(vma, address, pmd, flags, ctx);
++	page = follow_huge_pmd(vma, address, pmd, flags, page_mask);
+ 	spin_unlock(ptl);
+ 	return page;
+ }
+@@ -948,7 +942,7 @@ static struct page *follow_pmd_mask(stru
+ static struct page *follow_pud_mask(struct vm_area_struct *vma,
+ 				    unsigned long address, p4d_t *p4dp,
+ 				    unsigned int flags,
+-				    struct follow_page_context *ctx)
++				    unsigned long *page_mask)
+ {
+ 	pud_t *pudp, pud;
+ 	spinlock_t *ptl;
+@@ -961,7 +955,7 @@ static struct page *follow_pud_mask(stru
+ 		return no_page_table(vma, flags, address);
+ 	if (pud_leaf(pud)) {
+ 		ptl = pud_lock(mm, pudp);
+-		page = follow_huge_pud(vma, address, pudp, flags, ctx);
++		page = follow_huge_pud(vma, address, pudp, flags, page_mask);
+ 		spin_unlock(ptl);
+ 		if (page)
+ 			return page;
+@@ -970,13 +964,13 @@ static struct page *follow_pud_mask(stru
+ 	if (unlikely(pud_bad(pud)))
+ 		return no_page_table(vma, flags, address);
+ 
+-	return follow_pmd_mask(vma, address, pudp, flags, ctx);
++	return follow_pmd_mask(vma, address, pudp, flags, page_mask);
+ }
+ 
+ static struct page *follow_p4d_mask(struct vm_area_struct *vma,
+ 				    unsigned long address, pgd_t *pgdp,
+ 				    unsigned int flags,
+-				    struct follow_page_context *ctx)
++				    unsigned long *page_mask)
+ {
+ 	p4d_t *p4dp, p4d;
+ 
+@@ -987,7 +981,7 @@ static struct page *follow_p4d_mask(stru
+ 	if (!p4d_present(p4d) || p4d_bad(p4d))
+ 		return no_page_table(vma, flags, address);
+ 
+-	return follow_pud_mask(vma, address, p4dp, flags, ctx);
++	return follow_pud_mask(vma, address, p4dp, flags, page_mask);
+ }
+ 
+ /**
+@@ -995,20 +989,16 @@ static struct page *follow_p4d_mask(stru
+  * @vma: vm_area_struct mapping @address
+  * @address: virtual address to look up
+  * @flags: flags modifying lookup behaviour
+- * @ctx: contains dev_pagemap for %ZONE_DEVICE memory pinning and a
+- *       pointer to output page_mask
++ * @page_mask: a pointer to output page_mask
+  *
+  * @flags can have FOLL_ flags set, defined in <linux/mm.h>
+  *
+- * When getting pages from ZONE_DEVICE memory, the @ctx->pgmap caches
+- * the device's dev_pagemap metadata to avoid repeating expensive lookups.
+- *
+  * When getting an anonymous page and the caller has to trigger unsharing
+  * of a shared anonymous page first, -EMLINK is returned. The caller should
+  * trigger a fault with FAULT_FLAG_UNSHARE set. Note that unsharing is only
+  * relevant with FOLL_PIN and !FOLL_WRITE.
+  *
+- * On output, the @ctx->page_mask is set according to the size of the page.
++ * On output, @page_mask is set according to the size of the page.
+  *
+  * Return: the mapped (struct page *), %NULL if no mapping exists, or
+  * an error pointer if there is a mapping to something not represented
+@@ -1016,7 +1006,7 @@ static struct page *follow_p4d_mask(stru
+  */
+ static struct page *follow_page_mask(struct vm_area_struct *vma,
+ 			      unsigned long address, unsigned int flags,
+-			      struct follow_page_context *ctx)
++			      unsigned long *page_mask)
+ {
+ 	pgd_t *pgd;
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -1024,13 +1014,13 @@ static struct page *follow_page_mask(str
+ 
+ 	vma_pgtable_walk_begin(vma);
+ 
+-	ctx->page_mask = 0;
++	*page_mask = 0;
+ 	pgd = pgd_offset(mm, address);
+ 
+ 	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
+ 		page = no_page_table(vma, flags, address);
+ 	else
+-		page = follow_p4d_mask(vma, address, pgd, flags, ctx);
++		page = follow_p4d_mask(vma, address, pgd, flags, page_mask);
+ 
+ 	vma_pgtable_walk_end(vma);
+ 
+@@ -1368,7 +1358,7 @@ static long __get_user_pages(struct mm_s
+ {
+ 	long ret = 0, i = 0;
+ 	struct vm_area_struct *vma = NULL;
+-	struct follow_page_context ctx = { NULL };
++	unsigned long page_mask = 0;
+ 
+ 	if (!nr_pages)
+ 		return 0;
+@@ -1410,7 +1400,7 @@ static long __get_user_pages(struct mm_s
+ 						pages ? &page : NULL);
+ 				if (ret)
+ 					goto out;
+-				ctx.page_mask = 0;
++				page_mask = 0;
+ 				goto next_page;
+ 			}
+ 
+@@ -1433,7 +1423,7 @@ retry:
+ 		}
+ 		cond_resched();
+ 
+-		page = follow_page_mask(vma, start, gup_flags, &ctx);
++		page = follow_page_mask(vma, start, gup_flags, &page_mask);
+ 		if (!page || PTR_ERR(page) == -EMLINK) {
+ 			ret = faultin_page(vma, start, gup_flags,
+ 					   PTR_ERR(page) == -EMLINK, locked);
+@@ -1466,7 +1456,7 @@ retry:
+ 			goto out;
+ 		}
+ next_page:
+-		page_increm = 1 + (~(start >> PAGE_SHIFT) & ctx.page_mask);
++		page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
+ 		if (page_increm > nr_pages)
+ 			page_increm = nr_pages;
+ 
+@@ -1516,8 +1506,6 @@ next_page:
+ 		nr_pages -= page_increm;
+ 	} while (nr_pages);
+ out:
+-	if (ctx.pgmap)
+-		put_dev_pagemap(ctx.pgmap);
+ 	return i ? i : ret;
+ }
+ 
+@@ -2853,7 +2841,6 @@ static int gup_fast_pte_range(pmd_t pmd,
+ 		unsigned long end, unsigned int flags, struct page **pages,
+ 		int *nr)
+ {
+-	struct dev_pagemap *pgmap = NULL;
+ 	int ret = 0;
+ 	pte_t *ptep, *ptem;
+ 
+@@ -2926,8 +2913,6 @@ static int gup_fast_pte_range(pmd_t pmd,
+ 	ret = 1;
+ 
+ pte_unmap:
+-	if (pgmap)
+-		put_dev_pagemap(pgmap);
+ 	pte_unmap(ptem);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch
-mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null.patch
-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
 
