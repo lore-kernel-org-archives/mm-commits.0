@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E04BE28DB3
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63F4028DB3
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489859; cv=none; b=ZRH2m51TlajgzutCVIr0iBlSXO7GcDQcf7HkUPZfYlGdpEvEHspz933z0UP2O99IfmmRbC1jEe4xOajjkEljYZuB8Z+dU8Gl7lbKFCYKlww616l2gjTbc7GyJBMzWAoU9dotYtEI7+lHENkp0QWc6I4WO+4EYWNdy2XinkcigfQ=
+	t=1758489860; cv=none; b=e3X5cIoJnSTOXos9fVn3c9fmTInmbnBG8Aw90WCo2SEAk94xVo/yyNr0dMctKzHdAgq61Tl2XL2S4XxJQBr1qRzRanrHLFtsa+YFmlQKwyUriWP3X3NGOWBltzPFlALDaNXHReLWEWOjE5c59GDA9kn3BFr5CenFIWCD2gPhwDI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489859; c=relaxed/simple;
-	bh=MMPj1L6V7wVTlqIhWn3NTmUIy2DXpyuqZ9yeNtUgMF8=;
-	h=Date:To:From:Subject:Message-Id; b=qavbVFH4eusDIJ27vEu8Ekctrs+plix2/wxnHzEWbicYHCKHWyaR6CFoayGkrQ/b65bt1zuJloIcqPVa6vQUhiyJqqkAQ+csz9bTSXh/F2mGBD6/3yt2RYoP1MwT9E5XxWRUgimC2mcTKg2tZ6LVcd0vRB2VBKqJ5RZhiVmtamc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P21YWnzS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489860; c=relaxed/simple;
+	bh=LCs4mOEZFaGAWbdN/LYATWBMDcXQUzVUiAv3qE/9Qd0=;
+	h=Date:To:From:Subject:Message-Id; b=V7/KHs+Wf36yVYQXUw3WWt2z7keJj3HRJ/ngXiiPSuX24ocxrW7cb4NCNiVZSLmETW1kopGciz3dPMW/po1NlyclirKvGGziIqQBvouG+CYbSvhB9oqUJaFJe3bX+JshRSLevX3+uKgdEbh8/UH6cijibkaUrGOIcwG77aVAjoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D+i8UR1W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P21YWnzS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5111C4CEE7;
-	Sun, 21 Sep 2025 21:24:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D+i8UR1W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CCAFC4CEE7;
+	Sun, 21 Sep 2025 21:24:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489858;
-	bh=MMPj1L6V7wVTlqIhWn3NTmUIy2DXpyuqZ9yeNtUgMF8=;
+	s=korg; t=1758489860;
+	bh=LCs4mOEZFaGAWbdN/LYATWBMDcXQUzVUiAv3qE/9Qd0=;
 	h=Date:To:From:Subject:From;
-	b=P21YWnzSzOBzLfUyWHUSlC2tRPbH2PLVUa0KNZK6UrUpSh2sf9b3lexdidKa8L+dQ
-	 7eRvMLyfJ4gHuZMG9tjhsNAK7H8rO0O8lYNRMbJlDnD32P7ejKFIrmhZ9jNZVrAnhV
-	 UD2Z54VdYGpmlnliZTL/vdAuTFSCYQxcnWgtV1FI=
-Date: Sun, 21 Sep 2025 14:24:18 -0700
+	b=D+i8UR1WksNWr7n9Gxm3YxPnlDnsVrslJKKvSXQi6af0lYbCoUD1aWaA5suF0FvHH
+	 krzaM3jqKUc4dUYjT8vu/gZhlm9mhPnC2ZKK+IZig4BKdyEb77uHCMRpYXPmE/mtXI
+	 yRF6fg7K5hx4sLBAWZmsN0ZnNvcZx17lFJ5j/mxQ=
+Date: Sun, 21 Sep 2025 14:24:19 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-convert-to-use-more-alloc_fresh_hugetlb_folio.patch removed from -mm tree
-Message-Id: <20250921212418.B5111C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-convert-to-account_new_hugetlb_folio.patch removed from -mm tree
+Message-Id: <20250921212420.3CCAFC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugetlb: convert to use more alloc_fresh_hugetlb_folio()
+     Subject: mm: hugetlb: convert to account_new_hugetlb_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-convert-to-use-more-alloc_fresh_hugetlb_folio.patch
+     mm-hugetlb-convert-to-account_new_hugetlb_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hugetlb: convert to use more alloc_fresh_hugetlb_folio()
-Date: Wed, 10 Sep 2025 21:39:54 +0800
+Subject: mm: hugetlb: convert to account_new_hugetlb_folio()
+Date: Wed, 10 Sep 2025 21:39:55 +0800
 
-Patch series "mm: hugetlb: cleanup hugetlb folio allocation", v3.
+In order to avoid the wrong nid passed into the account, and we did make
+such mistake before, so it's better to move folio_nid() into
+account_new_hugetlb_folio().
 
-Some cleanups for hugetlb folio allocation.
-
-
-This patch (of 3):
-
-Simplify alloc_fresh_hugetlb_folio() and convert more functions to use it,
-which help us to remove prep_new_hugetlb_folio() and
-__prep_new_hugetlb_folio().
-
-Link: https://lkml.kernel.org/r/20250910133958.301467-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20250910133958.301467-2-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20250910133958.301467-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Acked-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
@@ -73,104 +65,79 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   46 ++++++++++++++--------------------------------
- 1 file changed, 14 insertions(+), 32 deletions(-)
+ mm/hugetlb.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-convert-to-use-more-alloc_fresh_hugetlb_folio
+--- a/mm/hugetlb.c~mm-hugetlb-convert-to-account_new_hugetlb_folio
 +++ a/mm/hugetlb.c
-@@ -1906,20 +1906,6 @@ static void init_new_hugetlb_folio(struc
- 	set_hugetlb_cgroup_rsvd(folio, NULL);
- }
- 
--static void __prep_new_hugetlb_folio(struct hstate *h, struct folio *folio)
--{
--	init_new_hugetlb_folio(h, folio);
--	hugetlb_vmemmap_optimize_folio(h, folio);
--}
--
--static void prep_new_hugetlb_folio(struct hstate *h, struct folio *folio, int nid)
--{
--	__prep_new_hugetlb_folio(h, folio);
--	spin_lock_irq(&hugetlb_lock);
--	__prep_account_new_huge_page(h, nid);
--	spin_unlock_irq(&hugetlb_lock);
--}
--
+@@ -1890,11 +1890,11 @@ void free_huge_folio(struct folio *folio
  /*
-  * Find and lock address space (mapping) in write mode.
-  *
-@@ -2005,25 +1991,20 @@ static struct folio *only_alloc_fresh_hu
- }
- 
- /*
-- * Common helper to allocate a fresh hugetlb page. All specific allocators
-- * should use this function to get new hugetlb pages
-+ * Common helper to allocate a fresh hugetlb folio. All specific allocators
-+ * should use this function to get new hugetlb folio
-  *
-- * Note that returned page is 'frozen':  ref count of head page and all tail
-- * pages is zero.
-+ * Note that returned folio is 'frozen':  ref count of head page and all tail
-+ * pages is zero, and the accounting must be done in the caller.
+  * Must be called with the hugetlb lock held
   */
- static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask)
+-static void __prep_account_new_huge_page(struct hstate *h, int nid)
++static void account_new_hugetlb_folio(struct hstate *h, struct folio *folio)
  {
- 	struct folio *folio;
- 
--	if (hstate_is_gigantic(h))
--		folio = alloc_gigantic_folio(h, gfp_mask, nid, nmask);
--	else
--		folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
--	if (!folio)
--		return NULL;
--
--	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
-+	folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
-+	if (folio)
-+		hugetlb_vmemmap_optimize_folio(h, folio);
- 	return folio;
+ 	lockdep_assert_held(&hugetlb_lock);
+ 	h->nr_huge_pages++;
+-	h->nr_huge_pages_node[nid]++;
++	h->nr_huge_pages_node[folio_nid(folio)]++;
  }
  
-@@ -2241,12 +2222,10 @@ static struct folio *alloc_surplus_huget
- 		goto out_unlock;
+ static void init_new_hugetlb_folio(struct hstate *h, struct folio *folio)
+@@ -2020,7 +2020,7 @@ static void prep_and_add_allocated_folio
+ 	/* Add all new pool pages to free lists in one lock cycle */
+ 	spin_lock_irqsave(&hugetlb_lock, flags);
+ 	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
+-		__prep_account_new_huge_page(h, folio_nid(folio));
++		account_new_hugetlb_folio(h, folio);
+ 		enqueue_hugetlb_folio(h, folio);
+ 	}
+ 	spin_unlock_irqrestore(&hugetlb_lock, flags);
+@@ -2232,7 +2232,7 @@ static struct folio *alloc_surplus_huget
+ 	 * as surplus_pages, otherwise it might confuse
+ 	 * persistent_huge_pages() momentarily.
+ 	 */
+-	__prep_account_new_huge_page(h, folio_nid(folio));
++	account_new_hugetlb_folio(h, folio);
+ 
+ 	/*
+ 	 * We could have raced with the pool size change.
+@@ -2270,7 +2270,7 @@ static struct folio *alloc_migrate_huget
+ 		return NULL;
+ 
+ 	spin_lock_irq(&hugetlb_lock);
+-	__prep_account_new_huge_page(h, folio_nid(folio));
++	account_new_hugetlb_folio(h, folio);
  	spin_unlock_irq(&hugetlb_lock);
  
--	folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask, NULL);
-+	folio = alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask);
- 	if (!folio)
- 		return NULL;
- 
--	hugetlb_vmemmap_optimize_folio(h, folio);
--
- 	spin_lock_irq(&hugetlb_lock);
- 	/*
- 	 * nr_huge_pages needs to be adjusted within the same lock cycle
-@@ -2290,6 +2269,10 @@ static struct folio *alloc_migrate_huget
- 	if (!folio)
- 		return NULL;
- 
-+	spin_lock_irq(&hugetlb_lock);
-+	__prep_account_new_huge_page(h, folio_nid(folio));
-+	spin_unlock_irq(&hugetlb_lock);
-+
  	/* fresh huge pages are frozen */
- 	folio_ref_unfreeze(folio, 1);
- 	/*
-@@ -2836,11 +2819,10 @@ retry:
- 		if (!new_folio) {
- 			spin_unlock_irq(&hugetlb_lock);
- 			gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
--			new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid,
--							      NULL, NULL);
-+			new_folio = alloc_fresh_hugetlb_folio(h, gfp_mask,
-+							      nid, NULL);
- 			if (!new_folio)
- 				return -ENOMEM;
--			__prep_new_hugetlb_folio(h, new_folio);
- 			goto retry;
- 		}
+@@ -2829,7 +2829,7 @@ retry:
+ 		/*
+ 		 * Ok, old_folio is still a genuine free hugepage. Remove it from
+ 		 * the freelist and decrease the counters. These will be
+-		 * incremented again when calling __prep_account_new_huge_page()
++		 * incremented again when calling account_new_hugetlb_folio()
+ 		 * and enqueue_hugetlb_folio() for new_folio. The counters will
+ 		 * remain stable since this happens under the lock.
+ 		 */
+@@ -2839,7 +2839,7 @@ retry:
+ 		 * Ref count on new_folio is already zero as it was dropped
+ 		 * earlier.  It can be directly added to the pool free list.
+ 		 */
+-		__prep_account_new_huge_page(h, nid);
++		account_new_hugetlb_folio(h, new_folio);
+ 		enqueue_hugetlb_folio(h, new_folio);
  
+ 		/*
+@@ -3313,7 +3313,7 @@ static void __init prep_and_add_bootmem_
+ 		hugetlb_bootmem_init_migratetype(folio, h);
+ 		/* Subdivide locks to achieve better parallel performance */
+ 		spin_lock_irqsave(&hugetlb_lock, flags);
+-		__prep_account_new_huge_page(h, folio_nid(folio));
++		account_new_hugetlb_folio(h, folio);
+ 		enqueue_hugetlb_folio(h, folio);
+ 		spin_unlock_irqrestore(&hugetlb_lock, flags);
+ 	}
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
