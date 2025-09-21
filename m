@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7797C2C11E5
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BFF3274B57
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758490008; cv=none; b=WeClFkkcvFIhj4LnSSldJfYTJCjEDvu2KypMncREr0/97dhoILqv7dlaVIVgD+9rXMnObffGnuYAmoqgPBow3M2/rdNZRN2T4ccaQ5iJz6vUWiATESt2GVPCxbV65hBf3TV2fya4S6tXSIPEuf+AdovSkb2z1cdSaldw+SB1hFk=
+	t=1758490010; cv=none; b=odXLhVdLoOqUveFKHRfNGERo6ze14q0yEhpCPkRoI8mVxg+cMNdOVyjypiZ2mWXeFKu06h+v2PHBDKBtZG8RZN9kKYVb06YR8AlOFqs74f7u13mzFYOgelhaK/AkRB/zeO/DjuFRNIb6nf3QMVSDj5KDNVAWOiKbgiIoRv369vE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758490008; c=relaxed/simple;
-	bh=sQeTOUiVOw29PpNON9rGFKk+w6+6ndbu+u1o/d1Ilo0=;
-	h=Date:To:From:Subject:Message-Id; b=HNv2FPJqW/DLVdo2dQFh0spwBnMmK0U9ypWeo0bL3mxlvwsUyXjIVYz5JLCmNSos+wKuqoy7ZASt85AvHvNXN24F05+N+H9118K4mVm2eSvidD9XGq5Sbcw9Flb0nVseLtRMS4fJzlTWCQk7t1NUF/tYjF8a1/bu6PMCd0U+AMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rlasRjrc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758490010; c=relaxed/simple;
+	bh=66sSV34I9ze5WtwQrNecscfCy45uVJFXfy4iURzxrYA=;
+	h=Date:To:From:Subject:Message-Id; b=aTx0LT8P5UVW4SCAuAno0FU9+EPrOdAOV/bV1rb875KYCqtE/osgUIELk27O/1FA0mJ2qZQqvUQfVAsez6DMGaE7fRCoYKdwtFje9WWKaq22m3WHg1OrKp9gMgWUa8uf9paZgTanH3k1Su99DCDLK19pWqgu6WTNCLEZ7VUp8IY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fMx+Gqi9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rlasRjrc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E626C4CEE7;
-	Sun, 21 Sep 2025 21:26:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fMx+Gqi9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6FD0C4CEE7;
+	Sun, 21 Sep 2025 21:26:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758490008;
-	bh=sQeTOUiVOw29PpNON9rGFKk+w6+6ndbu+u1o/d1Ilo0=;
+	s=korg; t=1758490009;
+	bh=66sSV34I9ze5WtwQrNecscfCy45uVJFXfy4iURzxrYA=;
 	h=Date:To:From:Subject:From;
-	b=rlasRjrcKBnhAKH4Hp9RBPlTHudpKWW7uKxQQ/1S7L0j+xqvgLVMRNGcDYndZEaQP
-	 tJqzeMS7zBS1/C8wFBtPFj1l8qL940HpNLIbcNnM6kotLxtjkatOBxG/YKWvDtZUsn
-	 0x4EX00A0owNTkL7TLoQ+/pq6Wdwbt8cIcyxxe80=
-Date: Sun, 21 Sep 2025 14:26:47 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,surenb@google.com,shakeel.butt@linux.dev,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lenb@kernel.org,zhongjinji@honor.com,akpm@linux-foundation.org
+	b=fMx+Gqi9uA6gQOYFLFqXIlhV468uuzDb2/Cuh0uRpJMD1uqISiykhJ0yjtV31RwBd
+	 qV/O500CbSJB3BmQgfLcm7MrY6wKUBX/1jfTMm0CfsQDhFoj/OY/xsWK2YbzINZ7zs
+	 eiN1xKScYKSJq8lBc2M+wZ/mz4PUmecow7PXWFzk=
+Date: Sun, 21 Sep 2025 14:26:49 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,souravpanda@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,pasha.tatashin@soleen.com,kent.overstreet@linux.dev,hannes@cmpxchg.org,00107082@163.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch removed from -mm tree
-Message-Id: <20250921212648.4E626C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch removed from -mm tree
+Message-Id: <20250921212649.D6FD0C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,169 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/oom_kill: the OOM reaper traverses the VMA maple tree in reverse order
+     Subject: alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output
 has been removed from the -mm tree.  Its filename was
-     mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order.patch
+     alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: zhongjinji <zhongjinji@honor.com>
-Subject: mm/oom_kill: the OOM reaper traverses the VMA maple tree in reverse order
-Date: Tue, 16 Sep 2025 00:29:46 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output
+Date: Mon, 15 Sep 2025 16:02:24 -0700
 
-Although the oom_reaper is delayed and it gives the oom victim chance to
-clean up its address space this might take a while especially for
-processes with a large address space footprint.  In those cases oom_reaper
-might start racing with the dying task and compete for shared resources -
-e.g.  page table lock contention has been observed.
+While rare, memory allocation profiling can contain inaccurate counters if
+slab object extension vector allocation fails.  That allocation might
+succeed later but prior to that, slab allocations that would have used
+that object extension vector will not be accounted for.  To indicate
+incorrect counters, "accurate:no" marker is appended to the call site line
+in the /proc/allocinfo output.  Bump up /proc/allocinfo version to reflect
+the change in the file format and update documentation.
 
-Reduce those races by reaping the oom victim from the other end of the
-address space.
+Example output with invalid counters:
+allocinfo - version: 2.0
+           0        0 arch/x86/kernel/kdebugfs.c:105 func:create_setup_data_nodes
+           0        0 arch/x86/kernel/alternative.c:2090 func:alternatives_smp_module_add
+           0        0 arch/x86/kernel/alternative.c:127 func:__its_alloc accurate:no
+           0        0 arch/x86/kernel/fpu/regset.c:160 func:xstateregs_set
+           0        0 arch/x86/kernel/fpu/xstate.c:1590 func:fpstate_realloc
+           0        0 arch/x86/kernel/cpu/aperfmperf.c:379 func:arch_enable_hybrid_capacity_scale
+           0        0 arch/x86/kernel/cpu/amd_cache_disable.c:258 func:init_amd_l3_attrs
+       49152       48 arch/x86/kernel/cpu/mce/core.c:2709 func:mce_device_create accurate:no
+       32768        1 arch/x86/kernel/cpu/mce/genpool.c:132 func:mce_gen_pool_create
+           0        0 arch/x86/kernel/cpu/mce/amd.c:1341 func:mce_threshold_create_device
 
-It is also a significant improvement for process_mrelease().  When a
-process is killed, process_mrelease is used to reap the killed process and
-often runs concurrently with the dying task.  The test data shows that
-after applying the patch, lock contention is greatly reduced during the
-procedure of reaping the killed process.
-
-The test is conducted on arm64.  The following basic perf numbers show
-that applying this patch significantly reduces pte spin lock contention.
-
-Without the patch:
-|--99.57%-- oom_reaper
-|    |--73.58%-- unmap_page_range
-|    |    |--8.67%-- [hit in function]
-|    |    |--41.59%-- __pte_offset_map_lock
-|    |    |--29.47%-- folio_remove_rmap_ptes
-|    |    |--16.11%-- tlb_flush_mmu
-|    |--19.94%-- tlb_finish_mmu
-|    |--3.21%-- folio_remove_rmap_ptes
-
-With the patch:
-|--99.53%-- oom_reaper
-|    |--55.77%-- unmap_page_range
-|    |    |--20.49%-- [hit in function]
-|    |    |--58.30%-- folio_remove_rmap_ptes
-|    |    |--11.48%-- tlb_flush_mmu
-|    |    |--3.33%-- folio_mark_accessed
-|    |--32.21%-- tlb_finish_mmu
-|    |--6.93%-- folio_remove_rmap_ptes
-|    |--0.69%-- __pte_offset_map_lock
-
-Detailed breakdowns for both scenarios are provided below.  The cumulative
-time for oom_reaper plus exit_mmap(victim) in both cases is also
-summarized, making the performance improvements clear.
-
-+----------------------------------------------------------------+
-| Category                      | Applying patch | Without patch |
-+-------------------------------+----------------+---------------+
-| Total running time            |    132.6       |    167.1      |
-|   (exit_mmap + reaper work)   |  72.4 + 60.2   |  90.7 + 76.4  |
-+-------------------------------+----------------+---------------+
-| Time waiting for pte spinlock |     1.0        |    33.1       |
-|   (exit_mmap + reaper work)   |   0.4 + 0.6    |  10.0 + 23.1  |
-+-------------------------------+----------------+---------------+
-| folio_remove_rmap_ptes time   |    42.0        |    41.3       |
-|   (exit_mmap + reaper work)   |  18.4 + 23.6   |  22.4 + 18.9  |
-+----------------------------------------------------------------+
-
-From this report, we can see that:
-
-1. The reduction in total time comes mainly from the decrease in time
-   spent on pte spinlock and other locks.
-
-2. oom_reaper performs more work in some areas, but at the same time,
-   exit_mmap also handles certain tasks more efficiently, such as
-   folio_remove_rmap_ptes.
-
-Here is a more detailed perf report. [1]
-
-Link: https://lkml.kernel.org/r/20250915162946.5515-3-zhongjinji@honor.com
-Link: https://lore.kernel.org/all/20250915162619.5133-1-zhongjinji@honor.com/ [1]
-Signed-off-by: zhongjinji <zhongjinji@honor.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+[surenb@google.com: document new "accurate:no" marker]
+  Fixes: 39d117e04d15 ("alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output")
+[akpm@linux-foundation.org: simplification per Usama, reflow text]
+[akpm@linux-foundation.org: add newline to prevent docs warning, per Randy]
+Link: https://lkml.kernel.org/r/20250915230224.4115531-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Usama Arif <usamaarif642@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: David Wang <00107082@163.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sourav Panda <souravpanda@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ Documentation/filesystems/proc.rst |   13 +++++++++++++
+ include/linux/alloc_tag.h          |   12 ++++++++++++
+ include/linux/codetag.h            |    5 ++++-
+ lib/alloc_tag.c                    |    4 +++-
+ mm/slub.c                          |    2 ++
+ 5 files changed, 34 insertions(+), 2 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-the-oom-reaper-traverses-the-vma-maple-tree-in-reverse-order
-+++ a/mm/oom_kill.c
-@@ -516,7 +516,7 @@ static bool __oom_reap_task_mm(struct mm
+--- a/Documentation/filesystems/proc.rst~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/Documentation/filesystems/proc.rst
+@@ -1009,6 +1009,19 @@ number, module (if originates from a loa
+ the allocation. The number of bytes allocated and number of calls at each
+ location are reported. The first line indicates the version of the file, the
+ second line is the header listing fields in the file.
++If file version is 2.0 or higher then each line may contain additional
++<key>:<value> pairs representing extra information about the call site.
++For example if the counters are not accurate, the line will be appended with
++"accurate:no" pair.
++
++Supported markers in v2:
++accurate:no
++
++              Absolute values of the counters in this line are not accurate
++              because of the failure to allocate memory to track some of the
++              allocations made at this location.  Deltas in these counters are
++              accurate, therefore counters can be used to track allocation size
++              and count changes.
+ 
+ Example output.
+ 
+--- a/include/linux/alloc_tag.h~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/include/linux/alloc_tag.h
+@@ -221,6 +221,16 @@ static inline void alloc_tag_sub(union c
+ 	ref->ct = NULL;
+ }
+ 
++static inline void alloc_tag_set_inaccurate(struct alloc_tag *tag)
++{
++	tag->ct.flags |= CODETAG_FLAG_INACCURATE;
++}
++
++static inline bool alloc_tag_is_inaccurate(struct alloc_tag *tag)
++{
++	return !!(tag->ct.flags & CODETAG_FLAG_INACCURATE);
++}
++
+ #define alloc_tag_record(p)	((p) = current->alloc_tag)
+ 
+ #else /* CONFIG_MEM_ALLOC_PROFILING */
+@@ -230,6 +240,8 @@ static inline bool mem_alloc_profiling_e
+ static inline void alloc_tag_add(union codetag_ref *ref, struct alloc_tag *tag,
+ 				 size_t bytes) {}
+ static inline void alloc_tag_sub(union codetag_ref *ref, size_t bytes) {}
++static inline void alloc_tag_set_inaccurate(struct alloc_tag *tag) {}
++static inline bool alloc_tag_is_inaccurate(struct alloc_tag *tag) { return false; }
+ #define alloc_tag_record(p)	do {} while (0)
+ 
+ #endif /* CONFIG_MEM_ALLOC_PROFILING */
+--- a/include/linux/codetag.h~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/include/linux/codetag.h
+@@ -16,13 +16,16 @@ struct module;
+ #define CODETAG_SECTION_START_PREFIX	"__start_"
+ #define CODETAG_SECTION_STOP_PREFIX	"__stop_"
+ 
++/* codetag flags */
++#define CODETAG_FLAG_INACCURATE	(1 << 0)
++
+ /*
+  * An instance of this structure is created in a special ELF section at every
+  * code location being tagged.  At runtime, the special section is treated as
+  * an array of these.
+  */
+ struct codetag {
+-	unsigned int flags; /* used in later patches */
++	unsigned int flags;
+ 	unsigned int lineno;
+ 	const char *modname;
+ 	const char *function;
+--- a/lib/alloc_tag.c~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/lib/alloc_tag.c
+@@ -80,7 +80,7 @@ static void allocinfo_stop(struct seq_fi
+ static void print_allocinfo_header(struct seq_buf *buf)
  {
- 	struct vm_area_struct *vma;
- 	bool ret = true;
--	VMA_ITERATOR(vmi, mm, 0);
-+	MA_STATE(mas, &mm->mm_mt, ULONG_MAX, ULONG_MAX);
+ 	/* Output format version, so we can change it. */
+-	seq_buf_printf(buf, "allocinfo - version: 1.0\n");
++	seq_buf_printf(buf, "allocinfo - version: 2.0\n");
+ 	seq_buf_printf(buf, "#     <size>  <calls> <tag info>\n");
+ }
  
- 	/*
- 	 * Tell all users of get_user/copy_from_user etc... that the content
-@@ -526,7 +526,13 @@ static bool __oom_reap_task_mm(struct mm
+@@ -92,6 +92,8 @@ static void alloc_tag_to_text(struct seq
+ 
+ 	seq_buf_printf(out, "%12lli %8llu ", bytes, counter.calls);
+ 	codetag_to_text(out, ct);
++	if (unlikely(alloc_tag_is_inaccurate(tag)))
++		seq_buf_printf(out, " accurate:no");
+ 	seq_buf_putc(out, ' ');
+ 	seq_buf_putc(out, '\n');
+ }
+--- a/mm/slub.c~alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output
++++ a/mm/slub.c
+@@ -2143,6 +2143,8 @@ __alloc_tagging_slab_alloc_hook(struct k
  	 */
- 	mm_flags_set(MMF_UNSTABLE, mm);
+ 	if (likely(obj_exts))
+ 		alloc_tag_add(&obj_exts->ref, current->alloc_tag, s->size);
++	else
++		alloc_tag_set_inaccurate(current->alloc_tag);
+ }
  
--	for_each_vma(vmi, vma) {
-+	/*
-+	 * It might start racing with the dying task and compete for shared
-+	 * resources - e.g. page table lock contention has been observed.
-+	 * Reduce those races by reaping the oom victim from the other end
-+	 * of the address space.
-+	 */
-+	mas_for_each_rev(&mas, vma, 0) {
- 		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
- 			continue;
- 
+ static inline void
 _
 
-Patches currently in -mm which might be from zhongjinji@honor.com are
+Patches currently in -mm which might be from surenb@google.com are
 
 
