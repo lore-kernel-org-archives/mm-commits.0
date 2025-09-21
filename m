@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59E2B27281D
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDE3227281D
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758490015; cv=none; b=CBS2sA1ZSV33V5udHye5gi8arEwB/Dhu+zZQrwPBCv98HHf0ZbMN0J+CNvIU5bccDMh970OVi3s8vqOGTgK8EOyQuK14H8+ovzYnrK6pr13VsIMMOkK6UJgOaaHwSq5PQqS++95Yse2uRaWscT5YmeNxzALDKqQeichVyZTYhJM=
+	t=1758490016; cv=none; b=CitO6X3bnr/ugU7MmPtXEoMgRaMNij1I9UxympNzA5mnHNmDIHWYytZMH0CSxuaTd0lta20rIhLyOsVMBhZb9c/yKo8YN1/PYjM3N1wgJmozHTBPcjItXPsNyXK9lj8FDLwibkPNalteNILeG0iIF83By7b05gQzJmj0rXtTk+E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758490015; c=relaxed/simple;
-	bh=/vTPEj9dg1QjQ7A6BOQRxONNNhLSBdeP5GysYWTBGtk=;
-	h=Date:To:From:Subject:Message-Id; b=AHL6/5kj2oD3WMv2OWdkZcpsbUOo7R0yep5+VJ03SoUmuSXjygXj+S7Wcy8iuf8V1syN+WWf9c0Dt+43UuxqKoAzLfVJ+2ojnhaBYp7S+MBGPFiswCMYMuZZ8WI3CfAaVwQ54fO4Fm0os/HxS5l531iq24rRyZ0d5c3aovegMTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UANLc5Bu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758490016; c=relaxed/simple;
+	bh=iaNyuK7uP7vC03++lGpBcerR2eo7n5+6QxioVrOWX/8=;
+	h=Date:To:From:Subject:Message-Id; b=tSkptnsnP5Q8Y8e9dsTn9USrDgOZKJ2rP4YX3fXtwQKWUL3SupdWBPR2EU5pYCIX5Wpp/Pn3CJ8FC9484Dc9IXhJsYxHMdres/aF3fegvzyca406EzNekoMO2W0hOaf5/o7sYMipmDBxRVJQrIpp8j7WaSMdA4iup0TeIjh40/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UX6viW1T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UANLc5Bu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29555C4CEE7;
-	Sun, 21 Sep 2025 21:26:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UX6viW1T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A240BC4CEE7;
+	Sun, 21 Sep 2025 21:26:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758490015;
-	bh=/vTPEj9dg1QjQ7A6BOQRxONNNhLSBdeP5GysYWTBGtk=;
+	s=korg; t=1758490016;
+	bh=iaNyuK7uP7vC03++lGpBcerR2eo7n5+6QxioVrOWX/8=;
 	h=Date:To:From:Subject:From;
-	b=UANLc5Bul3YWma08hGRq2RI+uVSmDVQt5ufhuKLnraWC4QEeiSXkhtLDWdzcRda/l
-	 seTwDU7NYu8PTqUfUIEAs2KICSV8jGIqHD1YlALkCyMUkLRRrrpnkMlISSPY9WqMZb
-	 UrJJ2S+mfXCaUFnjD36nljIHc6bMbXaTeSGUEEKg=
-Date: Sun, 21 Sep 2025 14:26:54 -0700
+	b=UX6viW1TH1gqsmzArRhadzkSdsI8jsbWCQEcQm/OoswwrapN85U/uAqvp8B2a31JL
+	 kDHefcFfSvt7ZQ2TLQqPCjgzDUpESHiZ04Ltyc41fSvk4+CkPnJUM8dWOiC6854G7r
+	 4jgS5xsPG0GI88XTT6aYJprcwENzxvBQ0Kn4nojs=
+Date: Sun, 21 Sep 2025 14:26:56 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-set-effective-quota-on-first-charge-window.patch removed from -mm tree
-Message-Id: <20250921212655.29555C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements.patch removed from -mm tree
+Message-Id: <20250921212656.A240BC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: set effective quota on first charge window
+     Subject: Docs/mm/damon/maintainer-profile: update community meetup for reservation requirements
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-set-effective-quota-on-first-charge-window.patch
+     docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: set effective quota on first charge window
-Date: Mon, 15 Sep 2025 20:23:36 -0700
+Subject: Docs/mm/damon/maintainer-profile: update community meetup for reservation requirements
+Date: Mon, 15 Sep 2025 20:23:37 -0700
 
-The effective quota of a scheme is initialized zero, which means there is
-no quota.  It is set based on user-specified time/quota/quota goals.  But
-the later value set is done only from the second charge window.  As a
-result, a scheme having a user-specified quota can work as not having the
-quota (unexpectedly fast) for the first charge window.  In practical and
-common use cases the quota interval is not too long, and the scheme's
-target access pattern is restrictive.  Hence the issue should be modest. 
-That said, it is apparently an unintended misbehavior.  Fix the problem by
-setting esz on the first charge window.
+DAMON community meetup was having two different kinds of meetups:
+reservation required ones and unrequired ones.  Now the reservation
+unrequested one is gone, but the documentation on the maintainer-profile
+is not updated.  Update.
 
-Link: https://lkml.kernel.org/r/20250916032339.115817-3-sj@kernel.org
-Fixes: 1cd243030059 ("mm/damon/schemes: implement time quota") # 5.16.x
+Link: https://lkml.kernel.org/r/20250916032339.115817-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -72,23 +66,36 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/mm/damon/maintainer-profile.rst |   17 +++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-set-effective-quota-on-first-charge-window
-+++ a/mm/damon/core.c
-@@ -2142,8 +2142,10 @@ static void damos_adjust_quota(struct da
- 		return;
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-update-community-meetup-for-reservation-requirements
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -89,18 +89,13 @@ the maintainer.
+ Community meetup
+ ----------------
  
- 	/* First charge window */
--	if (!quota->total_charged_sz && !quota->charged_from)
-+	if (!quota->total_charged_sz && !quota->charged_from) {
- 		quota->charged_from = jiffies;
-+		damos_set_effective_quota(quota);
-+	}
+-DAMON community is maintaining two bi-weekly meetup series for community
+-members who prefer synchronous conversations over mails.
++DAMON community has a bi-weekly meetup series for members who prefer
++synchronous conversations over mails.  It is for discussions on specific topics
++between a group of members including the maintainer.  The maintainer shares the
++available time slots, and attendees should reserve one of those at least 24
++hours before the time slot, by reaching out to the maintainer.
  
- 	/* New charge window starts */
- 	if (time_after_eq(jiffies, quota->charged_from +
+-The first one is for any discussion between every community member.  No
+-reservation is needed.
+-
+-The seconds one is for discussions on specific topics between restricted
+-members including the maintainer.  The maintainer shares the available time
+-slots, and attendees should reserve one of those at least 24 hours before the
+-time slot, by reaching out to the maintainer.
+-
+-Schedules and available reservation time slots are available at the Google `doc
++Schedules and reservation status are available at the Google `doc
+ <https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing>`_.
+ There is also a public Google `calendar
+ <https://calendar.google.com/calendar/u/0?cid=ZDIwOTA4YTMxNjc2MDQ3NTIyMmUzYTM5ZmQyM2U4NDA0ZGIwZjBiYmJlZGQxNDM0MmY4ZTRjOTE0NjdhZDRiY0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t>`_
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
