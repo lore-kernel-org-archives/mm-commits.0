@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 420662AE99
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FB722AE99
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489917; cv=none; b=oNMOk5mMH9kjNA1dCMIACBQ5IfSuHmozDMECRYhfB1Hxp6bKtx4qlbQt9bzI/VWYzDI2N1HYutYP9mWlynmkXtrcQZ3rAptbFq+m3Z2Fw9i9gOrT84goiZ4c3W6EOOfcQx+Ghto+LM3vpe7vPDvgmd/OCMJNXt3Lxj/tdnFoNOw=
+	t=1758489918; cv=none; b=h4sp6nHFMyB9fVmB50oyxPNHmKiMg54XSpOwDsUD1NHJKh/yAFN12B9gquMETGEfPMeGplEs5eZ4C7ITxqfyTmHXCKsfdJ3gbOKwH6mZdcg1nVEvWsPiCbdwCYHptCK7l1tGpwIdyLtNR3t/m32kGJdEIzuoQsiF3aZsEjJeO6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489917; c=relaxed/simple;
-	bh=amZwPOZPQtkUC9X6kTiRfPFHv8wBGG74cxpCYIMkflg=;
-	h=Date:To:From:Subject:Message-Id; b=V+zyNxwjr3q3F3ucerZ0N18EpW5Iv/pywwSg4dj+16swfEqrm+VDKVFyPvE8EF8fC0iXGr06Dh3B0nHmgHa3a6XOw+X+JvlGs8wpI19p7ZGU8s+BNxu6wzexzZjgzr3QOza7iOzOZoDNIiPxqkFJXbjzSgRZsFouqHNxgXe6YK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ffAoo+8R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489918; c=relaxed/simple;
+	bh=FQTHg2gAzSKtgaoQxU2Qen6zk8p66Cjx5STXKot8u68=;
+	h=Date:To:From:Subject:Message-Id; b=sEdE0GYYPOEas8JS5Fu/Vt0FVH5F0Rkn5LBfAXozKuJRtpHtFzYbbNzFA4yupfisreqPxDOWHVu8Q41UM4nxmBEuxazRa3tjh0NYtIKmWcKFKrvE8cV1AVbIFRhy+/TcrvQiS52S8P59b3suFTUhTRCX2dYXAv1iQ410V8Y+bs4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0tKe7v39; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ffAoo+8R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2944C4CEE7;
-	Sun, 21 Sep 2025 21:25:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0tKe7v39"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3904C4CEE7;
+	Sun, 21 Sep 2025 21:25:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489916;
-	bh=amZwPOZPQtkUC9X6kTiRfPFHv8wBGG74cxpCYIMkflg=;
+	s=korg; t=1758489918;
+	bh=FQTHg2gAzSKtgaoQxU2Qen6zk8p66Cjx5STXKot8u68=;
 	h=Date:To:From:Subject:From;
-	b=ffAoo+8R5tfGDK2PUv3M3D54XO9zt/+qlCMycR2NQbj6cXORRm04l6xnjQNESqvhI
-	 3uDlglPLxwIe1215dcPdRypM2gDl5o6i4NTkWWcn7706TK+0rZX2DgMOs8rbHVq9F1
-	 UxC/hNSdG6K5XuM/BQBwL0lRqjX0dIkJesBHYIt8=
-Date: Sun, 21 Sep 2025 14:25:16 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=0tKe7v395nmZg4JtLGBDByyFyo6XGku7UkCT7jNHRJ8nu4iEdshh96lMoc+GlkD8r
+	 B/JNdlhtFpE/tu7cAr/Kp3sinIa5ejBpl8A3dTxJC3zvsYO6jb1KFRqwoWmJEQ9i8w
+	 +0IBBZxlGYZTvSy0OF4qrzL+4D1KNWQYO2fJeyXA=
+Date: Sun, 21 Sep 2025 14:25:17 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-fix-the-strategy-for-the-tmpfs-huge=-options.patch removed from -mm tree
-Message-Id: <20250921212516.C2944C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-split_huge_page_test-fix-occasional-is_backed_by_folio-wrong-results.patch removed from -mm tree
+Message-Id: <20250921212517.F3904C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,190 +35,113 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: fix the strategy for the tmpfs 'huge=' options
+     Subject: selftests/mm: split_huge_page_test: fix occasional is_backed_by_folio() wrong results
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-fix-the-strategy-for-the-tmpfs-huge=-options.patch
+     selftests-mm-split_huge_page_test-fix-occasional-is_backed_by_folio-wrong-results.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: fix the strategy for the tmpfs 'huge=' options
-Date: Wed, 3 Sep 2025 16:54:24 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/mm: split_huge_page_test: fix occasional is_backed_by_folio() wrong results
+Date: Wed, 3 Sep 2025 09:02:52 +0200
 
-After commit acd7ccb284b8 ("mm: shmem: add large folio support for
-tmpfs"), we have extended tmpfs to allow any sized large folios, rather
-than just PMD-sized large folios.
+Patch series "selftests/mm: split_huge_page_test: split_pte_mapped_thp
+improvements", v2.
 
-The strategy discussed previously was:
+One fix for occasional failures I found while testing and a bunch of
+cleanups that should make that test easier to digest.
 
-: Considering that tmpfs already has the 'huge=' option to control the
-: PMD-sized large folios allocation, we can extend the 'huge=' option to
-: allow any sized large folios.  The semantics of the 'huge=' mount option
-: are:
-: 
-:     huge=never: no any sized large folios
-:     huge=always: any sized large folios
-:     huge=within_size: like 'always' but respect the i_size
-:     huge=advise: like 'always' if requested with madvise()
-: 
-: Note: for tmpfs mmap() faults, due to the lack of a write size hint, still
-: allocate the PMD-sized huge folios if huge=always/within_size/advise is
-: set.
-: 
-: Moreover, the 'deny' and 'force' testing options controlled by
-: '/sys/kernel/mm/transparent_hugepage/shmem_enabled', still retain the same
-: semantics.  The 'deny' can disable any sized large folios for tmpfs, while
-: the 'force' can enable PMD sized large folios for tmpfs.
 
-This means that when tmpfs is mounted with 'huge=always' or
-'huge=within_size', tmpfs will allow getting a highest order hint based on
-the size of write() and fallocate() paths.  It will then try each
-allowable large order, rather than continually attempting to allocate
-PMD-sized large folios as before.
+This patch (of 2):
 
-However, this might break some user scenarios for those who want to use
-PMD-sized large folios, such as the i915 driver which did not supply a
-write size hint when allocating shmem [1].
+When checking for actual tail or head pages of a folio, we must make sure
+that the KPF_COMPOUND_HEAD/KPF_COMPOUND_TAIL flag is paired with KPF_THP.
 
-Moreover, Hugh also complained that this will cause a regression in userspace
-with 'huge=always' or 'huge=within_size'.
+For example, if we have another large folio after our large folio in
+physical memory, our "pfn_flags & (KPF_THP | KPF_COMPOUND_TAIL)" would
+trigger even though it's actually a head page of the next folio.
 
-So, let's revisit the strategy for tmpfs large page allocation. A simple fix
-would be to always try PMD-sized large folios first, and if that fails, fall
-back to smaller large folios. This approach differs from the strategy for
-large folio allocation used by other file systems, however, tmpfs is somewhat
-different from other file systems, as quoted from David's opinion:
+If is_backed_by_folio() returns a wrong result, split_pte_mapped_thp() can
+fail with "Some THPs are missing during mremap".
 
-: There were opinions in the past that tmpfs should just behave like any
-: other fs, and I think that's what we tried to satisfy here: use the write
-: size as an indication.
-: 
-: I assume there will be workloads where either approach will be beneficial.
-: I also assume that workloads that use ordinary fs'es could benefit from
-: the same strategy (start with PMD), while others will clearly not.
+Fix it by checking for head/tail pages of folios properly.  Add
+folio_tail_flags/folio_head_flags to improve readability and use these
+masks also when just testing for any compound page.
 
-Link: https://lkml.kernel.org/r/10e7ac6cebe6535c137c064d5c5a235643eebb4a.1756888965.git.baolin.wang@linux.alibaba.com
-Link: https://lore.kernel.org/lkml/0d734549d5ed073c80b11601da3abdd5223e1889.1753689802.git.baolin.wang@linux.alibaba.com/ [1]
-Fixes: acd7ccb284b8 ("mm: shmem: add large folio support for tmpfs")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20250903070253.34556-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20250903070253.34556-2-david@redhat.com
+Fixes: 169b456b0162 ("selftests/mm: reimplement is_backed_by_thp() with more precise check")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    6 ++
- mm/shmem.c                                 |   47 ++-----------------
- 2 files changed, 10 insertions(+), 43 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   15 +++++-------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-fix-the-strategy-for-the-tmpfs-huge=-options
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -419,6 +419,8 @@ option: ``huge=``. It can have following
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-split_huge_page_test-fix-occasional-is_backed_by_folio-wrong-results
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -44,6 +44,8 @@ int kpageflags_fd;
+ static bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
+ 		int kpageflags_fd)
+ {
++	const uint64_t folio_head_flags = KPF_THP | KPF_COMPOUND_HEAD;
++	const uint64_t folio_tail_flags = KPF_THP | KPF_COMPOUND_TAIL;
+ 	const unsigned long nr_pages = 1UL << order;
+ 	unsigned long pfn_head;
+ 	uint64_t pfn_flags;
+@@ -61,7 +63,7 @@ static bool is_backed_by_folio(char *vad
  
- always
-     Attempt to allocate huge pages every time we need a new page;
-+    Always try PMD-sized huge pages first, and fall back to smaller-sized
-+    huge pages if the PMD-sized huge page allocation fails;
+ 	/* check for order-0 pages */
+ 	if (!order) {
+-		if (pfn_flags & (KPF_THP | KPF_COMPOUND_HEAD | KPF_COMPOUND_TAIL))
++		if (pfn_flags & (folio_head_flags | folio_tail_flags))
+ 			return false;
+ 		return true;
+ 	}
+@@ -76,14 +78,14 @@ static bool is_backed_by_folio(char *vad
+ 		goto fail;
  
- never
-     Do not allocate huge pages. Note that ``madvise(..., MADV_COLLAPSE)``
-@@ -426,7 +428,9 @@ never
-     is specified everywhere;
+ 	/* head PFN has no compound_head flag set */
+-	if (!(pfn_flags & (KPF_THP | KPF_COMPOUND_HEAD)))
++	if ((pfn_flags & folio_head_flags) != folio_head_flags)
+ 		return false;
  
- within_size
--    Only allocate huge page if it will be fully within i_size.
-+    Only allocate huge page if it will be fully within i_size;
-+    Always try PMD-sized huge pages first, and fall back to smaller-sized
-+    huge pages if the PMD-sized huge page allocation fails;
-     Also respect madvise() hints;
+ 	/* check all tail PFN flags */
+ 	for (i = 1; i < nr_pages; i++) {
+ 		if (pageflags_get(pfn_head + i, kpageflags_fd, &pfn_flags))
+ 			goto fail;
+-		if (!(pfn_flags & (KPF_THP | KPF_COMPOUND_TAIL)))
++		if ((pfn_flags & folio_tail_flags) != folio_tail_flags)
+ 			return false;
+ 	}
  
- advise
---- a/mm/shmem.c~mm-shmem-fix-the-strategy-for-the-tmpfs-huge=-options
-+++ a/mm/shmem.c
-@@ -573,42 +573,6 @@ static int shmem_confirm_swap(struct add
- static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
- static int tmpfs_huge __read_mostly = SHMEM_HUGE_NEVER;
+@@ -94,11 +96,8 @@ static bool is_backed_by_folio(char *vad
+ 	if (pageflags_get(pfn_head + nr_pages, kpageflags_fd, &pfn_flags))
+ 		return true;
  
--/**
-- * shmem_mapping_size_orders - Get allowable folio orders for the given file size.
-- * @mapping: Target address_space.
-- * @index: The page index.
-- * @write_end: end of a write, could extend inode size.
-- *
-- * This returns huge orders for folios (when supported) based on the file size
-- * which the mapping currently allows at the given index. The index is relevant
-- * due to alignment considerations the mapping might have. The returned order
-- * may be less than the size passed.
-- *
-- * Return: The orders.
-- */
--static inline unsigned int
--shmem_mapping_size_orders(struct address_space *mapping, pgoff_t index, loff_t write_end)
--{
--	unsigned int order;
--	size_t size;
+-	/* this folio is bigger than the given order */
+-	if (pfn_flags & (KPF_THP | KPF_COMPOUND_TAIL))
+-		return false;
 -
--	if (!mapping_large_folio_support(mapping) || !write_end)
--		return 0;
--
--	/* Calculate the write size based on the write_end */
--	size = write_end - (index << PAGE_SHIFT);
--	order = filemap_get_order(size);
--	if (!order)
--		return 0;
--
--	/* If we're not aligned, allocate a smaller folio */
--	if (index & ((1UL << order) - 1))
--		order = __ffs(index);
--
--	order = min_t(size_t, order, MAX_PAGECACHE_ORDER);
--	return order > 0 ? BIT(order + 1) - 1 : 0;
--}
--
- static unsigned int shmem_get_orders_within_size(struct inode *inode,
- 		unsigned long within_size_orders, pgoff_t index,
- 		loff_t write_end)
-@@ -655,22 +619,21 @@ static unsigned int shmem_huge_global_en
- 	 * For tmpfs mmap()'s huge order, we still use PMD-sized order to
- 	 * allocate huge pages due to lack of a write size hint.
- 	 *
--	 * Otherwise, tmpfs will allow getting a highest order hint based on
--	 * the size of write and fallocate paths, then will try each allowable
--	 * huge orders.
-+	 * For tmpfs with 'huge=always' or 'huge=within_size' mount option,
-+	 * we will always try PMD-sized order first. If that failed, it will
-+	 * fall back to small large folios.
- 	 */
- 	switch (SHMEM_SB(inode->i_sb)->huge) {
- 	case SHMEM_HUGE_ALWAYS:
- 		if (vma)
- 			return maybe_pmd_order;
- 
--		return shmem_mapping_size_orders(inode->i_mapping, index, write_end);
-+		return THP_ORDERS_ALL_FILE_DEFAULT;
- 	case SHMEM_HUGE_WITHIN_SIZE:
- 		if (vma)
- 			within_size_orders = maybe_pmd_order;
- 		else
--			within_size_orders = shmem_mapping_size_orders(inode->i_mapping,
--								       index, write_end);
-+			within_size_orders = THP_ORDERS_ALL_FILE_DEFAULT;
- 
- 		within_size_orders = shmem_get_orders_within_size(inode, within_size_orders,
- 								  index, write_end);
+-	return true;
++	/* If we find another tail page, then the folio is larger. */
++	return (pfn_flags & folio_tail_flags) != folio_tail_flags;
+ fail:
+ 	ksft_exit_fail_msg("Failed to get folio info\n");
+ 	return false;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-vmscan-remove-folio_test_private-check-in-pageout.patch
-mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
 
