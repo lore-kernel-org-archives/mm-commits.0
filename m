@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23D4D29ACEE
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D50F829ACC3
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489864; cv=none; b=qazIILa4OuWVCsMKiR1RIYIcvWP+vbrogK/6Z080WT/GfDuaRvRWLq+3zD0kiUAJjEAA+F7p4eGeCyjrOF/fLvSnTatEpYLONmvxry5O6txAWYr3dPge3wLZe9tbJWhsaYe/WOBl+FDz6a1y9LSRIb2fheFoXCjn4hN/ug6cyYs=
+	t=1758489865; cv=none; b=exquZh0vDk6BkosLJ5NwYA5gTJ+Qo5c7LYbcBLbZuXFQKSkeMgjO4HG7h8C5p+D9h/Y52gjfdkRoaQctl8k02QFOVUDm3JxcS5S2FxrSCwJnwN7kkr8HYpEUQsq82Tl2sCsRmOhdBQ3kuLpHb6FL/N7r1Z7Ly3B+R64wIktrpNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489864; c=relaxed/simple;
-	bh=yDvD2LnNCR3eic7RomjVo1RBXKGxFuNFzUfU6yC4aiY=;
-	h=Date:To:From:Subject:Message-Id; b=W2mchbQogNd5O65dq/yJ8lKMoeJJ+0bK2YM6YJaSmBgzuDfhe9gZMNyTUb1jolMLfUe/NC/I5JNBVboczvUvPmvq8eRo1+GkqQ+gj5fH+ZjlCPFx3pbcto9ubJhGINv1EdP42upetx10neaUz3FmuJTFWkiFetq83+k/NjADe14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BaajOn6j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489865; c=relaxed/simple;
+	bh=MQNcKHcc8+tmcGvOA+GFipCAb18nV6NXTQs3BbElCM4=;
+	h=Date:To:From:Subject:Message-Id; b=Dnn8uirHM6G4cJNaQE9P3/6xdS5xh1Ar/5M1YNJXPaGLkE5tjWRXOsUwII0kSqkor8PVDo/Is+ZFPZKgqFIZmyKSBsY/KC3QrkGYJTg1mGLVRcu3LgUTcBx6miPkx4H5wMGjq75tI0EH85I3FeqRWI9BRMQ5Gl9TQBMzvDMDxbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nKjT8LdU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BaajOn6j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE6AFC4CEE7;
-	Sun, 21 Sep 2025 21:24:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nKjT8LdU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A56DEC4CEE7;
+	Sun, 21 Sep 2025 21:24:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489864;
-	bh=yDvD2LnNCR3eic7RomjVo1RBXKGxFuNFzUfU6yC4aiY=;
+	s=korg; t=1758489865;
+	bh=MQNcKHcc8+tmcGvOA+GFipCAb18nV6NXTQs3BbElCM4=;
 	h=Date:To:From:Subject:From;
-	b=BaajOn6je6ir89umxrQzssk/GVMcMGBx1mZE4gu5DuFah1MiI2sbIpCJDMwzHJDWC
-	 tlz8IFjVzGhNMpfW0NclYrRQznW/ICzHwwj3rUm4qY9GAjhB94HoRse4Dq3jXiMR+d
-	 kejpHP37508VS1AxaBtTbQEoq1BvXYALHvON9XME=
-Date: Sun, 21 Sep 2025 14:24:23 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=nKjT8LdUPoGxILi7fDX/Prq+T5G0r2VpRcZrLsqKlUK1SDl6FfDdjo3gz/WGQpFS9
+	 EPRRYHHX1kegy959nuQYEugACnbo9JBXjTV2E1vStJW6EOzfh9kixvBwE5tPu+AVf5
+	 9X7NZGzrmJGc1lmLvtwgaya+1HJdc8HpomtjWWkk=
+Date: Sun, 21 Sep 2025 14:24:25 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,thuth@redhat.com,tglx@linutronix.de,svens@linux.ibm.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,osalvador@suse.de,nysal@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,linux@armlinux.org.uk,liam.howlett@oracle.com,jfalempe@redhat.com,jcmvbkbc@gmail.com,james.bottomley@HansenPartnership.com,jack@suse.cz,hughd@google.com,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,deller@gmx.de,david@redhat.com,davem@davemloft.net,chris@zankel.net,broonie@kernel.org,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,andreas@gaisler.com,agordeev@linux.ibm.com,max.kellermann@ionos.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugeltb-check-numa_no_node-in-only_alloc_fresh_hugetlb_folio.patch removed from -mm tree
-Message-Id: <20250921212423.EE6AFC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-constify-shmem-related-test-functions-for-improved-const-correctness.patch removed from -mm tree
+Message-Id: <20250921212425.A56DEC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,150 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugeltb: check NUMA_NO_NODE in only_alloc_fresh_hugetlb_folio()
+     Subject: mm: constify shmem related test functions for improved const-correctness
 has been removed from the -mm tree.  Its filename was
-     mm-hugeltb-check-numa_no_node-in-only_alloc_fresh_hugetlb_folio.patch
+     mm-constify-shmem-related-test-functions-for-improved-const-correctness.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hugeltb: check NUMA_NO_NODE in only_alloc_fresh_hugetlb_folio()
-Date: Wed, 10 Sep 2025 21:39:58 +0800
+From: Max Kellermann <max.kellermann@ionos.com>
+Subject: mm: constify shmem related test functions for improved const-correctness
+Date: Mon, 1 Sep 2025 22:50:10 +0200
 
-Move the NUMA_NO_NODE check out of buddy and gigantic folio allocation to
-cleanup code a bit, also this will avoid NUMA_NO_NODE passed as 'nid' to
-node_isset() in alloc_buddy_hugetlb_folio().
+Patch series "mm: establish const-correctness for pointer parameters", v6.
 
-Link: https://lkml.kernel.org/r/20250910133958.301467-6-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This series is to improved const-correctness in the low-level
+memory-management subsystem, which provides a basis for further
+constification further up the call stack (e.g.  filesystems).
+
+I started this work when I tried to constify the Ceph filesystem code, but
+found that to be impossible because many "mm" functions accept non-const
+pointers, even though they modify nothing.
+
+
+This patch (of 12):
+
+We select certain test functions which either invoke each other, functions
+that are already const-ified, or no further functions.
+
+It is therefore relatively trivial to const-ify them, which provides a
+basis for further const-ification further up the call stack.
+
+Link: https://lkml.kernel.org/r/20250901205021.3573313-1-max.kellermann@ionos.com
+Link: https://lkml.kernel.org/r/20250901205021.3573313-2-max.kellermann@ionos.com
+Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christian Zankel <chris@zankel.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Bottomley <james.bottomley@HansenPartnership.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jocelyn Falempe <jfalempe@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Nysal Jan K.A" <nysal@linux.ibm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Russel King <linux@armlinux.org.uk>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Thomas Huth <thuth@redhat.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/mm.h       |    8 ++++----
+ include/linux/shmem_fs.h |    4 ++--
+ mm/shmem.c               |    6 +++---
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugeltb-check-numa_no_node-in-only_alloc_fresh_hugetlb_folio
-+++ a/mm/hugetlb.c
-@@ -1479,8 +1479,6 @@ static struct folio *alloc_gigantic_foli
- 	struct folio *folio;
- 	bool retried = false;
+--- a/include/linux/mm.h~mm-constify-shmem-related-test-functions-for-improved-const-correctness
++++ a/include/linux/mm.h
+@@ -995,11 +995,11 @@ static inline void vma_iter_set(struct v
+  * The vma_is_shmem is not inline because it is used only by slow
+  * paths in userfault.
+  */
+-bool vma_is_shmem(struct vm_area_struct *vma);
+-bool vma_is_anon_shmem(struct vm_area_struct *vma);
++bool vma_is_shmem(const struct vm_area_struct *vma);
++bool vma_is_anon_shmem(const struct vm_area_struct *vma);
+ #else
+-static inline bool vma_is_shmem(struct vm_area_struct *vma) { return false; }
+-static inline bool vma_is_anon_shmem(struct vm_area_struct *vma) { return false; }
++static inline bool vma_is_shmem(const struct vm_area_struct *vma) { return false; }
++static inline bool vma_is_anon_shmem(const struct vm_area_struct *vma) { return false; }
+ #endif
  
--	if (nid == NUMA_NO_NODE)
--		nid = numa_mem_id();
- retry:
- 	folio = hugetlb_cma_alloc_folio(order, gfp_mask, nid, nodemask);
- 	if (!folio) {
-@@ -1942,8 +1940,6 @@ static struct folio *alloc_buddy_hugetlb
- 		alloc_try_hard = false;
- 	if (alloc_try_hard)
- 		gfp_mask |= __GFP_RETRY_MAYFAIL;
--	if (nid == NUMA_NO_NODE)
--		nid = numa_mem_id();
+ int vma_is_stack_for_current(struct vm_area_struct *vma);
+--- a/include/linux/shmem_fs.h~mm-constify-shmem-related-test-functions-for-improved-const-correctness
++++ a/include/linux/shmem_fs.h
+@@ -99,9 +99,9 @@ extern unsigned long shmem_get_unmapped_
+ 		unsigned long len, unsigned long pgoff, unsigned long flags);
+ extern int shmem_lock(struct file *file, int lock, struct ucounts *ucounts);
+ #ifdef CONFIG_SHMEM
+-bool shmem_mapping(struct address_space *mapping);
++bool shmem_mapping(const struct address_space *mapping);
+ #else
+-static inline bool shmem_mapping(struct address_space *mapping)
++static inline bool shmem_mapping(const struct address_space *mapping)
+ {
+ 	return false;
+ }
+--- a/mm/shmem.c~mm-constify-shmem-related-test-functions-for-improved-const-correctness
++++ a/mm/shmem.c
+@@ -275,18 +275,18 @@ static const struct vm_operations_struct
+ static const struct vm_operations_struct shmem_anon_vm_ops;
+ static struct file_system_type shmem_fs_type;
  
- 	folio = (struct folio *)__alloc_frozen_pages(gfp_mask, order, nid, nmask);
+-bool shmem_mapping(struct address_space *mapping)
++bool shmem_mapping(const struct address_space *mapping)
+ {
+ 	return mapping->a_ops == &shmem_aops;
+ }
+ EXPORT_SYMBOL_GPL(shmem_mapping);
  
-@@ -1979,6 +1975,9 @@ static struct folio *only_alloc_fresh_hu
- 	struct folio *folio;
- 	int order = huge_page_order(h);
+-bool vma_is_anon_shmem(struct vm_area_struct *vma)
++bool vma_is_anon_shmem(const struct vm_area_struct *vma)
+ {
+ 	return vma->vm_ops == &shmem_anon_vm_ops;
+ }
  
-+	if (nid == NUMA_NO_NODE)
-+		nid = numa_mem_id();
-+
- 	if (order_is_gigantic(order))
- 		folio = alloc_gigantic_folio(order, gfp_mask, nid, nmask);
- 	else
+-bool vma_is_shmem(struct vm_area_struct *vma)
++bool vma_is_shmem(const struct vm_area_struct *vma)
+ {
+ 	return vma_is_anon_shmem(vma) || vma->vm_ops == &shmem_vm_ops;
+ }
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from max.kellermann@ionos.com are
 
 
