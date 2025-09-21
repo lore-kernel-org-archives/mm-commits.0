@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D98828DB3
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:23:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED8028DB3
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:23:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489794; cv=none; b=fFCE55oWkMUSPH2StAm1NcyDq5Olu4X9MK2/XSsdt6DGWnA4KG5CEbiTW+SROFmXFBvvJ6T0Rwuc/+8LP1C13ONCdt+JnibYqmjVTVwNeqVc3iJ7PCSlO8X8X2dRCYOgMcPAVJ+UMMGHRaiXi3iWpy/zQGSl0rKF6FzWWhtqIP0=
+	t=1758489796; cv=none; b=Fb6R7xftW7eNYmpqy1xT6WGcip+6chjS0cr/U2VJyQGEqcTCq4LfndGooEy5FfdQSigbpPU5jSTeKJGsCq6QTbP4avmJUsd61RJUpacCfnDdVfVySIIn6hK+yoCbGvtZM828qg10Z/bH7GERjBwN2XO1cojbDCyrOg99BIZlqsU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489794; c=relaxed/simple;
-	bh=NeHeWyrbNrhK2RKVQ1ElhMOx5wroma0o8i6+ys8SnWk=;
-	h=Date:To:From:Subject:Message-Id; b=PaWB5KuKK8zDVqbPa1nW+LzKKH/IkwwQp1DRH2C70iIKpyQ8JzsRk6QKVSg8NaXGKJqcqsLEb3DsXq9ug6v3Q2hk12DLNMWm5/m+SaFOa1tiVeB0oKY95iqMj267Aj19TsZCStD0j/AnkPcYvyvfKZ77gPkxif47amoEz8ZA2pg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lKIS/6mU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489796; c=relaxed/simple;
+	bh=/tCEXFW+9+MrC5BqLuLjNGKdPMM7g8wzLwxQrBy+ZPE=;
+	h=Date:To:From:Subject:Message-Id; b=SELyY27WzQLGJIK/1yw9BIYDLATvZSy66oCwfSARFT/OW3Kz/3zjUS2wsZjaIuDbuR72GnCBFaZRQbU+Y5WajbXQJka5UxJ05snI4E/Nzxn/bS/uDhdn//ZoYRX2kvgc/1BV0Zf3WQPj1pARKOzrPwT6KChhiEd6E81EaokS8kc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yo9oln7V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lKIS/6mU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0726CC4CEE7;
-	Sun, 21 Sep 2025 21:23:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yo9oln7V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C121C4CEE7;
+	Sun, 21 Sep 2025 21:23:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489793;
-	bh=NeHeWyrbNrhK2RKVQ1ElhMOx5wroma0o8i6+ys8SnWk=;
+	s=korg; t=1758489795;
+	bh=/tCEXFW+9+MrC5BqLuLjNGKdPMM7g8wzLwxQrBy+ZPE=;
 	h=Date:To:From:Subject:From;
-	b=lKIS/6mUPfL+eV4+mD3ziHdi/H9KFKW3VkhW7fhGYvU49gr/AJBjTHcL+uCM1h13I
-	 fBNlg3W2OxV91EULg641idTeILyd7MquDEHwN1F/FeksBAqe9YGccpSyFoBGZdHZTE
-	 r309a+HsACjvR5DFHzzw+tAtRjChIifs1STlkApQ=
-Date: Sun, 21 Sep 2025 14:23:12 -0700
-To: mm-commits@vger.kernel.org,zhangqing@loongson.cn,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,ritesh.list@gmail.com,hca@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,davidgow@google.com,christophe.leroy@csgroup.eu,chenhuacai@loongson.cn,bhe@redhat.com,andreyknvl@gmail.com,alexghiti@rivosinc.com,alex@ghiti.fr,agordeev@linux.ibm.com,snovitoll@gmail.com,akpm@linux-foundation.org
+	b=yo9oln7VLcTqjSS3BI4MHA6XuoZGdNJOq+naJ3X9BlZHt3Qqe1MGUlUv98QM+cJ3a
+	 WZRXU1phQbNCwc97ewohpVCVE4xepmIEm+Dh9WhG04KRmHQ0tj7jrqlyyFXXM6RV8d
+	 vDBDMvkAT5F9RJS0hyo60dsTR+OY3XjO7ZdZLozA=
+Date: Sun, 21 Sep 2025 14:23:15 -0700
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosry.ahmed@linux.dev,vitaly.wool@konsulko.se,sj@kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes.patch removed from -mm tree
-Message-Id: <20250921212313.0726CC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-interact-directly-with-zsmalloc.patch removed from -mm tree
+Message-Id: <20250921212315.9C121C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,637 +35,510 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: introduce ARCH_DEFER_KASAN and unify static key across modes
+     Subject: mm: zswap: interact directly with zsmalloc
 has been removed from the -mm tree.  Its filename was
-     kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes.patch
+     mm-zswap-interact-directly-with-zsmalloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: kasan: introduce ARCH_DEFER_KASAN and unify static key across modes
-Date: Sun, 10 Aug 2025 17:57:45 +0500
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: zswap: interact directly with zsmalloc
+Date: Fri, 29 Aug 2025 17:15:26 +0100
 
-Patch series "kasan: unify kasan_enabled() and remove arch-specific
-implementations", v6.
+Patch series "mm: remove zpool".
 
-This patch series addresses the fragmentation in KASAN initialization
-across architectures by introducing a unified approach that eliminates
-duplicate static keys and arch-specific kasan_arch_is_ready()
-implementations.
-
-The core issue is that different architectures have inconsistent approaches
-to KASAN readiness tracking:
-- PowerPC, LoongArch, and UML arch, each implement own kasan_arch_is_ready()
-- Only HW_TAGS mode had a unified static key (kasan_flag_enabled)
-- Generic and SW_TAGS modes relied on arch-specific solutions
-  or always-on behavior
+zpool is an indirection layer for zswap to switch between multiple
+allocator backends at runtime.  Since 6.15, zsmalloc is the only allocator
+left in-tree, so there is no point in keeping zpool around.
 
 
-This patch (of 2):
+This patch (of 3):
 
-Introduce CONFIG_ARCH_DEFER_KASAN to identify architectures [1] that need
-to defer KASAN initialization until shadow memory is properly set up, and
-unify the static key infrastructure across all KASAN modes.
+zswap goes through the zpool layer to enable runtime-switching of
+allocator backends for compressed data.  However, since zbud and z3fold
+were removed in 6.15, zsmalloc has been the only option available.
 
-[1] PowerPC, UML, LoongArch selects ARCH_DEFER_KASAN.
+As such, the zpool indirection is unnecessary.  Make zswap deal with
+zsmalloc directly.  This is comparable to zram, which also directly
+interacts with zsmalloc and has never supported a different backend.
 
-The core issue is that different architectures haveinconsistent approaches
-to KASAN readiness tracking:
-- PowerPC, LoongArch, and UML arch, each implement own
-  kasan_arch_is_ready()
-- Only HW_TAGS mode had a unified static key (kasan_flag_enabled)
-- Generic and SW_TAGS modes relied on arch-specific solutions or always-on
-    behavior
+Note that this does not preclude future improvements and experiments with
+different allocation strategies.  Should it become necessary, it's
+possible to provide an alternate implementation for the zsmalloc API,
+selectable at compile time.  However, zsmalloc is also rather mature and
+feature rich, with years of widespread production exposure; it's
+encouraged to make incremental improvements rather than fork it.
 
-This patch addresses the fragmentation in KASAN initialization across
-architectures by introducing a unified approach that eliminates duplicate
-static keys and arch-specific kasan_arch_is_ready() implementations.
+In any case, the complexity of runtime pluggability seems excessive and
+unjustified at this time.  Switch zswap to zsmalloc to remove the last
+user of the zpool API.
 
-Let's replace kasan_arch_is_ready() with existing kasan_enabled() check,
-which examines the static key being enabled if arch selects
-ARCH_DEFER_KASAN or has HW_TAGS mode support.  For other arch,
-kasan_enabled() checks the enablement during compile time.
-
-Now KASAN users can use a single kasan_enabled() check everywhere.
-
-Link: https://lkml.kernel.org/r/20250810125746.1105476-1-snovitoll@gmail.com
-Link: https://lkml.kernel.org/r/20250810125746.1105476-2-snovitoll@gmail.com
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=217049
-Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com> #powerpc
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huacai Chen <chenhuacai@loongson.cn>
-Cc: Marco Elver <elver@google.com>
-Cc: Qing Zhang <zhangqing@loongson.cn>
-Cc: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+[hannes@cmpxchg.org: fix default compressr test]
+  Link: https://lkml.kernel.org/r/20250915153640.GA828739@cmpxchg.org
+Link: https://lkml.kernel.org/r/20250829162212.208258-1-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20250829162212.208258-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Nacked-by: Vitaly Wool <vitaly.wool@konsulko.se>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/Kconfig                 |    1 
- arch/loongarch/include/asm/kasan.h     |    7 -----
- arch/loongarch/mm/kasan_init.c         |    8 ++---
- arch/powerpc/Kconfig                   |    1 
- arch/powerpc/include/asm/kasan.h       |   12 --------
- arch/powerpc/mm/kasan/init_32.c        |    2 -
- arch/powerpc/mm/kasan/init_book3e_64.c |    2 -
- arch/powerpc/mm/kasan/init_book3s_64.c |    6 ----
- arch/um/Kconfig                        |    1 
- arch/um/include/asm/kasan.h            |    5 +--
- arch/um/kernel/mem.c                   |   13 +++++++--
- include/linux/kasan-enabled.h          |   32 ++++++++++++++++-------
- include/linux/kasan.h                  |    6 ++++
- lib/Kconfig.kasan                      |   12 ++++++++
- mm/kasan/common.c                      |   17 +++++++++---
- mm/kasan/generic.c                     |   19 ++++++++++---
- mm/kasan/hw_tags.c                     |    9 ------
- mm/kasan/kasan.h                       |    8 +++++
- mm/kasan/shadow.c                      |   12 ++++----
- mm/kasan/sw_tags.c                     |    1 
- mm/kasan/tags.c                        |    2 -
- 21 files changed, 106 insertions(+), 70 deletions(-)
+ mm/zswap.c |  198 +++++++++++++--------------------------------------
+ 1 file changed, 52 insertions(+), 146 deletions(-)
 
---- a/arch/loongarch/include/asm/kasan.h~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/loongarch/include/asm/kasan.h
-@@ -66,7 +66,6 @@
- #define XKPRANGE_WC_SHADOW_OFFSET	(KASAN_SHADOW_START + XKPRANGE_WC_KASAN_OFFSET)
- #define XKVRANGE_VC_SHADOW_OFFSET	(KASAN_SHADOW_START + XKVRANGE_VC_KASAN_OFFSET)
+--- a/mm/zswap.c~mm-zswap-interact-directly-with-zsmalloc
++++ a/mm/zswap.c
+@@ -25,7 +25,6 @@
+ #include <linux/scatterlist.h>
+ #include <linux/mempolicy.h>
+ #include <linux/mempool.h>
+-#include <linux/zpool.h>
+ #include <crypto/acompress.h>
+ #include <linux/zswap.h>
+ #include <linux/mm_types.h>
+@@ -35,6 +34,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/workqueue.h>
+ #include <linux/list_lru.h>
++#include <linux/zsmalloc.h>
  
--extern bool kasan_early_stage;
- extern unsigned char kasan_early_shadow_page[PAGE_SIZE];
+ #include "swap.h"
+ #include "internal.h"
+@@ -107,16 +107,6 @@ static const struct kernel_param_ops zsw
+ module_param_cb(compressor, &zswap_compressor_param_ops,
+ 		&zswap_compressor, 0644);
  
- #define kasan_mem_to_shadow kasan_mem_to_shadow
-@@ -75,12 +74,6 @@ void *kasan_mem_to_shadow(const void *ad
- #define kasan_shadow_to_mem kasan_shadow_to_mem
- const void *kasan_shadow_to_mem(const void *shadow_addr);
- 
--#define kasan_arch_is_ready kasan_arch_is_ready
--static __always_inline bool kasan_arch_is_ready(void)
--{
--	return !kasan_early_stage;
--}
+-/* Compressed storage zpool to use */
+-static char *zswap_zpool_type = CONFIG_ZSWAP_ZPOOL_DEFAULT;
+-static int zswap_zpool_param_set(const char *, const struct kernel_param *);
+-static const struct kernel_param_ops zswap_zpool_param_ops = {
+-	.set =		zswap_zpool_param_set,
+-	.get =		param_get_charp,
+-	.free =		param_free_charp,
+-};
+-module_param_cb(zpool, &zswap_zpool_param_ops, &zswap_zpool_type, 0644);
 -
- #define addr_has_metadata addr_has_metadata
- static __always_inline bool addr_has_metadata(const void *addr)
- {
---- a/arch/loongarch/Kconfig~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/loongarch/Kconfig
-@@ -9,6 +9,7 @@ config LOONGARCH
- 	select ACPI_PPTT if ACPI
- 	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI
- 	select ARCH_BINFMT_ELF_STATE
-+	select ARCH_NEEDS_DEFER_KASAN
- 	select ARCH_DISABLE_KASAN_INLINE
- 	select ARCH_ENABLE_MEMORY_HOTPLUG
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE
---- a/arch/loongarch/mm/kasan_init.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/loongarch/mm/kasan_init.c
-@@ -40,11 +40,9 @@ static pgd_t kasan_pg_dir[PTRS_PER_PGD]
- #define __pte_none(early, pte) (early ? pte_none(pte) : \
- ((pte_val(pte) & _PFN_MASK) == (unsigned long)__pa(kasan_early_shadow_page)))
+ /* The maximum percentage of memory that the compressed pool can occupy */
+ static unsigned int zswap_max_pool_percent = 20;
+ module_param_named(max_pool_percent, zswap_max_pool_percent, uint, 0644);
+@@ -161,7 +151,7 @@ struct crypto_acomp_ctx {
+  * needs to be verified that it's still valid in the tree.
+  */
+ struct zswap_pool {
+-	struct zpool *zpool;
++	struct zs_pool *zs_pool;
+ 	struct crypto_acomp_ctx __percpu *acomp_ctx;
+ 	struct percpu_ref ref;
+ 	struct list_head list;
+@@ -193,7 +183,7 @@ static struct shrinker *zswap_shrinker;
+  *              logic if referenced is unset. See comments in the shrinker
+  *              section for context.
+  * pool - the zswap_pool the entry's data is in
+- * handle - zpool allocation handle that stores the compressed page data
++ * handle - zsmalloc allocation handle that stores the compressed page data
+  * objcg - the obj_cgroup that the compressed memory is charged to
+  * lru - handle to the pool's lru used to evict pages.
+  */
+@@ -214,7 +204,7 @@ static unsigned int nr_zswap_trees[MAX_S
+ static LIST_HEAD(zswap_pools);
+ /* protects zswap_pools list modification */
+ static DEFINE_SPINLOCK(zswap_pools_lock);
+-/* pool counter to provide unique names to zpool */
++/* pool counter to provide unique names to zsmalloc */
+ static atomic_t zswap_pools_count = ATOMIC_INIT(0);
  
--bool kasan_early_stage = true;
--
- void *kasan_mem_to_shadow(const void *addr)
- {
--	if (!kasan_arch_is_ready()) {
-+	if (!kasan_enabled()) {
- 		return (void *)(kasan_early_shadow_page);
- 	} else {
- 		unsigned long maddr = (unsigned long)addr;
-@@ -298,7 +296,8 @@ void __init kasan_init(void)
- 	kasan_populate_early_shadow(kasan_mem_to_shadow((void *)VMALLOC_START),
- 					kasan_mem_to_shadow((void *)KFENCE_AREA_END));
- 
--	kasan_early_stage = false;
-+	/* Enable KASAN here before kasan_mem_to_shadow(). */
-+	kasan_init_generic();
- 
- 	/* Populate the linear mapping */
- 	for_each_mem_range(i, &pa_start, &pa_end) {
-@@ -329,5 +328,4 @@ void __init kasan_init(void)
- 
- 	/* At this point kasan is fully initialized. Enable error messages */
- 	init_task.kasan_depth = 0;
--	pr_info("KernelAddressSanitizer initialized.\n");
- }
---- a/arch/powerpc/include/asm/kasan.h~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/powerpc/include/asm/kasan.h
-@@ -53,18 +53,6 @@
- #endif
- 
- #ifdef CONFIG_KASAN
--#ifdef CONFIG_PPC_BOOK3S_64
--DECLARE_STATIC_KEY_FALSE(powerpc_kasan_enabled_key);
--
--static __always_inline bool kasan_arch_is_ready(void)
--{
--	if (static_branch_likely(&powerpc_kasan_enabled_key))
--		return true;
--	return false;
--}
--
--#define kasan_arch_is_ready kasan_arch_is_ready
--#endif
- 
- void kasan_early_init(void);
- void kasan_mmu_init(void);
---- a/arch/powerpc/Kconfig~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/powerpc/Kconfig
-@@ -122,6 +122,7 @@ config PPC
- 	# Please keep this list sorted alphabetically.
- 	#
- 	select ARCH_32BIT_OFF_T if PPC32
-+	select ARCH_NEEDS_DEFER_KASAN		if PPC_RADIX_MMU
- 	select ARCH_DISABLE_KASAN_INLINE	if PPC_RADIX_MMU
- 	select ARCH_DMA_DEFAULT_COHERENT	if !NOT_COHERENT_CACHE
- 	select ARCH_ENABLE_MEMORY_HOTPLUG
---- a/arch/powerpc/mm/kasan/init_32.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/powerpc/mm/kasan/init_32.c
-@@ -165,7 +165,7 @@ void __init kasan_init(void)
- 
- 	/* At this point kasan is fully initialized. Enable error messages */
- 	init_task.kasan_depth = 0;
--	pr_info("KASAN init done\n");
-+	kasan_init_generic();
+ enum zswap_init_type {
+@@ -241,32 +231,22 @@ static inline struct xarray *swap_zswap_
+ 		>> SWAP_ADDRESS_SPACE_SHIFT];
  }
  
- void __init kasan_late_init(void)
---- a/arch/powerpc/mm/kasan/init_book3e_64.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/powerpc/mm/kasan/init_book3e_64.c
-@@ -127,7 +127,7 @@ void __init kasan_init(void)
+-#define zswap_pool_debug(msg, p)				\
+-	pr_debug("%s pool %s/%s\n", msg, (p)->tfm_name,		\
+-		 zpool_get_type((p)->zpool))
++#define zswap_pool_debug(msg, p)			\
++	pr_debug("%s pool %s\n", msg, (p)->tfm_name)
  
- 	/* Enable error messages */
- 	init_task.kasan_depth = 0;
--	pr_info("KASAN init done\n");
-+	kasan_init_generic();
+ /*********************************
+ * pool functions
+ **********************************/
+ static void __zswap_pool_empty(struct percpu_ref *ref);
+ 
+-static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
++static struct zswap_pool *zswap_pool_create(char *compressor)
+ {
+ 	struct zswap_pool *pool;
+ 	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
+-	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
+ 	int ret, cpu;
+ 
+-	if (!zswap_has_pool) {
+-		/* if either are unset, pool initialization failed, and we
+-		 * need both params to be set correctly before trying to
+-		 * create a pool.
+-		 */
+-		if (!strcmp(type, ZSWAP_PARAM_UNSET))
+-			return NULL;
+-		if (!strcmp(compressor, ZSWAP_PARAM_UNSET))
+-			return NULL;
+-	}
++	if (!zswap_has_pool && !strcmp(compressor, ZSWAP_PARAM_UNSET))
++		return NULL;
+ 
+ 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+ 	if (!pool)
+@@ -274,12 +254,9 @@ static struct zswap_pool *zswap_pool_cre
+ 
+ 	/* unique name for each pool specifically required by zsmalloc */
+ 	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
+-	pool->zpool = zpool_create_pool(type, name, gfp);
+-	if (!pool->zpool) {
+-		pr_err("%s zpool not available\n", type);
++	pool->zs_pool = zs_create_pool(name);
++	if (!pool->zs_pool)
+ 		goto error;
+-	}
+-	pr_debug("using %s zpool\n", zpool_get_type(pool->zpool));
+ 
+ 	strscpy(pool->tfm_name, compressor, sizeof(pool->tfm_name));
+ 
+@@ -315,52 +292,29 @@ ref_fail:
+ error:
+ 	if (pool->acomp_ctx)
+ 		free_percpu(pool->acomp_ctx);
+-	if (pool->zpool)
+-		zpool_destroy_pool(pool->zpool);
++	if (pool->zs_pool)
++		zs_destroy_pool(pool->zs_pool);
+ 	kfree(pool);
+ 	return NULL;
  }
  
- void __init kasan_late_init(void) { }
---- a/arch/powerpc/mm/kasan/init_book3s_64.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/powerpc/mm/kasan/init_book3s_64.c
-@@ -19,8 +19,6 @@
- #include <linux/memblock.h>
- #include <asm/pgalloc.h>
- 
--DEFINE_STATIC_KEY_FALSE(powerpc_kasan_enabled_key);
+ static struct zswap_pool *__zswap_pool_create_fallback(void)
+ {
+-	bool has_comp, has_zpool;
 -
- static void __init kasan_init_phys_region(void *start, void *end)
- {
- 	unsigned long k_start, k_end, k_cur;
-@@ -92,11 +90,9 @@ void __init kasan_init(void)
- 	 */
- 	memset(kasan_early_shadow_page, 0, PAGE_SIZE);
- 
--	static_branch_inc(&powerpc_kasan_enabled_key);
+-	has_comp = crypto_has_acomp(zswap_compressor, 0, 0);
+-	if (!has_comp && strcmp(zswap_compressor,
+-				CONFIG_ZSWAP_COMPRESSOR_DEFAULT)) {
++	if (!crypto_has_acomp(zswap_compressor, 0, 0) &&
++	    strcmp(zswap_compressor, CONFIG_ZSWAP_COMPRESSOR_DEFAULT)) {
+ 		pr_err("compressor %s not available, using default %s\n",
+ 		       zswap_compressor, CONFIG_ZSWAP_COMPRESSOR_DEFAULT);
+ 		param_free_charp(&zswap_compressor);
+ 		zswap_compressor = CONFIG_ZSWAP_COMPRESSOR_DEFAULT;
+-		has_comp = crypto_has_acomp(zswap_compressor, 0, 0);
+-	}
+-	if (!has_comp) {
+-		pr_err("default compressor %s not available\n",
+-		       zswap_compressor);
+-		param_free_charp(&zswap_compressor);
+-		zswap_compressor = ZSWAP_PARAM_UNSET;
+-	}
 -
- 	/* Enable error messages */
- 	init_task.kasan_depth = 0;
--	pr_info("KASAN init done\n");
-+	kasan_init_generic();
- }
- 
- void __init kasan_early_init(void) { }
---- a/arch/um/include/asm/kasan.h~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/um/include/asm/kasan.h
-@@ -24,10 +24,9 @@
- 
- #ifdef CONFIG_KASAN
- void kasan_init(void);
--extern int kasan_um_is_ready;
- 
--#ifdef CONFIG_STATIC_LINK
--#define kasan_arch_is_ready() (kasan_um_is_ready)
-+#if defined(CONFIG_STATIC_LINK) && defined(CONFIG_KASAN_INLINE)
-+#error UML does not work in KASAN_INLINE mode with STATIC_LINK enabled!
- #endif
- #else
- static inline void kasan_init(void) { }
---- a/arch/um/Kconfig~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/um/Kconfig
-@@ -5,6 +5,7 @@ menu "UML-specific options"
- config UML
- 	bool
- 	default y
-+	select ARCH_NEEDS_DEFER_KASAN if STATIC_LINK
- 	select ARCH_WANTS_DYNAMIC_TASK_STRUCT
- 	select ARCH_HAS_CACHE_LINE_SIZE
- 	select ARCH_HAS_CPU_FINALIZE_INIT
---- a/arch/um/kernel/mem.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/arch/um/kernel/mem.c
-@@ -21,10 +21,10 @@
- #include <os.h>
- #include <um_malloc.h>
- #include <linux/sched/task.h>
-+#include <linux/kasan.h>
- 
- #ifdef CONFIG_KASAN
--int kasan_um_is_ready;
--void kasan_init(void)
-+void __init kasan_init(void)
- {
- 	/*
- 	 * kasan_map_memory will map all of the required address space and
-@@ -32,7 +32,11 @@ void kasan_init(void)
- 	 */
- 	kasan_map_memory((void *)KASAN_SHADOW_START, KASAN_SHADOW_SIZE);
- 	init_task.kasan_depth = 0;
--	kasan_um_is_ready = true;
-+	/*
-+	 * Since kasan_init() is called before main(),
-+	 * KASAN is initialized but the enablement is deferred after
-+	 * jump_label_init(). See arch_mm_preinit().
-+	 */
- }
- 
- static void (*kasan_init_ptr)(void)
-@@ -58,6 +62,9 @@ static unsigned long brk_end;
- 
- void __init arch_mm_preinit(void)
- {
-+	/* Safe to call after jump_label_init(). Enables KASAN. */
-+	kasan_init_generic();
-+
- 	/* clear the zero-page */
- 	memset(empty_zero_page, 0, PAGE_SIZE);
- 
---- a/include/linux/kasan-enabled.h~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/include/linux/kasan-enabled.h
-@@ -4,32 +4,46 @@
- 
- #include <linux/static_key.h>
- 
--#ifdef CONFIG_KASAN_HW_TAGS
--
-+#if defined(CONFIG_ARCH_DEFER_KASAN) || defined(CONFIG_KASAN_HW_TAGS)
-+/*
-+ * Global runtime flag for KASAN modes that need runtime control.
-+ * Used by ARCH_DEFER_KASAN architectures and HW_TAGS mode.
-+ */
- DECLARE_STATIC_KEY_FALSE(kasan_flag_enabled);
- 
-+/*
-+ * Runtime control for shadow memory initialization or HW_TAGS mode.
-+ * Uses static key for architectures that need deferred KASAN or HW_TAGS.
-+ */
- static __always_inline bool kasan_enabled(void)
- {
- 	return static_branch_likely(&kasan_flag_enabled);
- }
- 
--static inline bool kasan_hw_tags_enabled(void)
-+static inline void kasan_enable(void)
- {
--	return kasan_enabled();
-+	static_branch_enable(&kasan_flag_enabled);
- }
--
--#else /* CONFIG_KASAN_HW_TAGS */
--
--static inline bool kasan_enabled(void)
-+#else
-+/* For architectures that can enable KASAN early, use compile-time check. */
-+static __always_inline bool kasan_enabled(void)
- {
- 	return IS_ENABLED(CONFIG_KASAN);
- }
- 
-+static inline void kasan_enable(void) {}
-+#endif /* CONFIG_ARCH_DEFER_KASAN || CONFIG_KASAN_HW_TAGS */
-+
-+#ifdef CONFIG_KASAN_HW_TAGS
-+static inline bool kasan_hw_tags_enabled(void)
-+{
-+	return kasan_enabled();
-+}
-+#else
- static inline bool kasan_hw_tags_enabled(void)
- {
- 	return false;
- }
--
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
- #endif /* LINUX_KASAN_ENABLED_H */
---- a/include/linux/kasan.h~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/include/linux/kasan.h
-@@ -543,6 +543,12 @@ void kasan_report_async(void);
- 
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
-+#ifdef CONFIG_KASAN_GENERIC
-+void __init kasan_init_generic(void);
-+#else
-+static inline void kasan_init_generic(void) { }
-+#endif
-+
- #ifdef CONFIG_KASAN_SW_TAGS
- void __init kasan_init_sw_tags(void);
- #else
---- a/lib/Kconfig.kasan~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/lib/Kconfig.kasan
-@@ -19,6 +19,18 @@ config ARCH_DISABLE_KASAN_INLINE
- 	  Disables both inline and stack instrumentation. Selected by
- 	  architectures that do not support these instrumentation types.
- 
-+config ARCH_NEEDS_DEFER_KASAN
-+	bool
-+
-+config ARCH_DEFER_KASAN
-+	def_bool y
-+	depends on KASAN && ARCH_NEEDS_DEFER_KASAN
-+	help
-+	  Architectures should select this if they need to defer KASAN
-+	  initialization until shadow memory is properly set up. This
-+	  enables runtime control via static keys. Otherwise, KASAN uses
-+	  compile-time constants for better performance.
-+
- config CC_HAS_KASAN_GENERIC
- 	def_bool $(cc-option, -fsanitize=kernel-address)
- 
---- a/mm/kasan/common.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/mm/kasan/common.c
-@@ -32,6 +32,15 @@
- #include "kasan.h"
- #include "../slab.h"
- 
-+#if defined(CONFIG_ARCH_DEFER_KASAN) || defined(CONFIG_KASAN_HW_TAGS)
-+/*
-+ * Definition of the unified static key declared in kasan-enabled.h.
-+ * This provides consistent runtime enable/disable across KASAN modes.
-+ */
-+DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
-+EXPORT_SYMBOL_GPL(kasan_flag_enabled);
-+#endif
-+
- struct slab *kasan_addr_to_slab(const void *addr)
- {
- 	if (virt_addr_valid(addr))
-@@ -246,7 +255,7 @@ static inline void poison_slab_object(st
- bool __kasan_slab_pre_free(struct kmem_cache *cache, void *object,
- 				unsigned long ip)
- {
--	if (!kasan_arch_is_ready() || is_kfence_address(object))
-+	if (is_kfence_address(object))
- 		return false;
- 	return check_slab_allocation(cache, object, ip);
- }
-@@ -254,7 +263,7 @@ bool __kasan_slab_pre_free(struct kmem_c
- bool __kasan_slab_free(struct kmem_cache *cache, void *object, bool init,
- 		       bool still_accessible)
- {
--	if (!kasan_arch_is_ready() || is_kfence_address(object))
-+	if (is_kfence_address(object))
- 		return false;
- 
- 	/*
-@@ -293,7 +302,7 @@ bool __kasan_slab_free(struct kmem_cache
- 
- static inline bool check_page_allocation(void *ptr, unsigned long ip)
- {
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return false;
- 
- 	if (ptr != page_address(virt_to_head_page(ptr))) {
-@@ -522,7 +531,7 @@ bool __kasan_mempool_poison_object(void
- 		return true;
+-	has_zpool = zpool_has_pool(zswap_zpool_type);
+-	if (!has_zpool && strcmp(zswap_zpool_type,
+-				 CONFIG_ZSWAP_ZPOOL_DEFAULT)) {
+-		pr_err("zpool %s not available, using default %s\n",
+-		       zswap_zpool_type, CONFIG_ZSWAP_ZPOOL_DEFAULT);
+-		param_free_charp(&zswap_zpool_type);
+-		zswap_zpool_type = CONFIG_ZSWAP_ZPOOL_DEFAULT;
+-		has_zpool = zpool_has_pool(zswap_zpool_type);
+-	}
+-	if (!has_zpool) {
+-		pr_err("default zpool %s not available\n",
+-		       zswap_zpool_type);
+-		param_free_charp(&zswap_zpool_type);
+-		zswap_zpool_type = ZSWAP_PARAM_UNSET;
  	}
  
--	if (is_kfence_address(ptr) || !kasan_arch_is_ready())
-+	if (is_kfence_address(ptr))
- 		return true;
+-	if (!has_comp || !has_zpool)
++	/* Default compressor should be available. Kconfig bug? */
++	if (WARN_ON_ONCE(!crypto_has_acomp(zswap_compressor, 0, 0))) {
++		zswap_compressor = ZSWAP_PARAM_UNSET;
+ 		return NULL;
++	}
  
- 	slab = folio_slab(folio);
---- a/mm/kasan/generic.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/mm/kasan/generic.c
-@@ -37,6 +37,17 @@
- #include "../slab.h"
- 
- /*
-+ * Initialize Generic KASAN and enable runtime checks.
-+ * This should be called from arch kasan_init() once shadow memory is ready.
-+ */
-+void __init kasan_init_generic(void)
-+{
-+	kasan_enable();
-+
-+	pr_info("KernelAddressSanitizer initialized (generic)\n");
-+}
-+
-+/*
-  * All functions below always inlined so compiler could
-  * perform better optimizations in each of __asan_loadX/__assn_storeX
-  * depending on memory access size X.
-@@ -165,7 +176,7 @@ static __always_inline bool check_region
- 						size_t size, bool write,
- 						unsigned long ret_ip)
- {
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return true;
- 
- 	if (unlikely(size == 0))
-@@ -193,7 +204,7 @@ bool kasan_byte_accessible(const void *a
- {
- 	s8 shadow_byte;
- 
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return true;
- 
- 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(addr));
-@@ -495,7 +506,7 @@ static void release_alloc_meta(struct ka
- 
- static void release_free_meta(const void *object, struct kasan_free_meta *meta)
- {
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return;
- 
- 	/* Check if free meta is valid. */
-@@ -562,7 +573,7 @@ void kasan_save_alloc_info(struct kmem_c
- 	kasan_save_track(&alloc_meta->alloc_track, flags);
+-	return zswap_pool_create(zswap_zpool_type, zswap_compressor);
++	return zswap_pool_create(zswap_compressor);
  }
  
--void kasan_save_free_info(struct kmem_cache *cache, void *object)
-+void __kasan_save_free_info(struct kmem_cache *cache, void *object)
- {
- 	struct kasan_free_meta *free_meta;
+ static void zswap_pool_destroy(struct zswap_pool *pool)
+@@ -370,7 +324,7 @@ static void zswap_pool_destroy(struct zs
+ 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
+ 	free_percpu(pool->acomp_ctx);
  
---- a/mm/kasan/hw_tags.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/mm/kasan/hw_tags.c
-@@ -46,13 +46,6 @@ static enum kasan_arg_mode kasan_arg_mod
- static enum kasan_arg_vmalloc kasan_arg_vmalloc __initdata;
+-	zpool_destroy_pool(pool->zpool);
++	zs_destroy_pool(pool->zs_pool);
+ 	kfree(pool);
+ }
+ 
+@@ -462,7 +416,7 @@ static struct zswap_pool *zswap_pool_cur
+ }
+ 
+ /* type and compressor must be null-terminated */
+-static struct zswap_pool *zswap_pool_find_get(char *type, char *compressor)
++static struct zswap_pool *zswap_pool_find_get(char *compressor)
+ {
+ 	struct zswap_pool *pool;
+ 
+@@ -471,8 +425,6 @@ static struct zswap_pool *zswap_pool_fin
+ 	list_for_each_entry_rcu(pool, &zswap_pools, list) {
+ 		if (strcmp(pool->tfm_name, compressor))
+ 			continue;
+-		if (strcmp(zpool_get_type(pool->zpool), type))
+-			continue;
+ 		/* if we can't get it, it's about to be destroyed */
+ 		if (!zswap_pool_tryget(pool))
+ 			continue;
+@@ -499,7 +451,7 @@ unsigned long zswap_total_pages(void)
+ 
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(pool, &zswap_pools, list)
+-		total += zpool_get_total_pages(pool->zpool);
++		total += zs_get_total_pages(pool->zs_pool);
+ 	rcu_read_unlock();
+ 
+ 	return total;
+@@ -524,33 +476,22 @@ static bool zswap_check_limits(void)
+ * param callbacks
+ **********************************/
+ 
+-static bool zswap_pool_changed(const char *s, const struct kernel_param *kp)
+-{
+-	/* no change required */
+-	if (!strcmp(s, *(char **)kp->arg) && zswap_has_pool)
+-		return false;
+-	return true;
+-}
+-
+-/* val must be a null-terminated string */
+-static int __zswap_param_set(const char *val, const struct kernel_param *kp,
+-			     char *type, char *compressor)
++static int zswap_compressor_param_set(const char *val, const struct kernel_param *kp)
+ {
+ 	struct zswap_pool *pool, *put_pool = NULL;
+ 	char *s = strstrip((char *)val);
++	bool create_pool = false;
+ 	int ret = 0;
+-	bool new_pool = false;
+ 
+ 	mutex_lock(&zswap_init_lock);
+ 	switch (zswap_init_state) {
+ 	case ZSWAP_UNINIT:
+-		/* if this is load-time (pre-init) param setting,
+-		 * don't create a pool; that's done during init.
+-		 */
++		/* Handled in zswap_setup() */
+ 		ret = param_set_charp(s, kp);
+ 		break;
+ 	case ZSWAP_INIT_SUCCEED:
+-		new_pool = zswap_pool_changed(s, kp);
++		if (!zswap_has_pool || strcmp(s, *(char **)kp->arg))
++			create_pool = true;
+ 		break;
+ 	case ZSWAP_INIT_FAILED:
+ 		pr_err("can't set param, initialization failed\n");
+@@ -558,30 +499,17 @@ static int __zswap_param_set(const char
+ 	}
+ 	mutex_unlock(&zswap_init_lock);
+ 
+-	/* no need to create a new pool, return directly */
+-	if (!new_pool)
++	if (!create_pool)
+ 		return ret;
+ 
+-	if (!type) {
+-		if (!zpool_has_pool(s)) {
+-			pr_err("zpool %s not available\n", s);
+-			return -ENOENT;
+-		}
+-		type = s;
+-	} else if (!compressor) {
+-		if (!crypto_has_acomp(s, 0, 0)) {
+-			pr_err("compressor %s not available\n", s);
+-			return -ENOENT;
+-		}
+-		compressor = s;
+-	} else {
+-		WARN_ON(1);
+-		return -EINVAL;
++	if (!crypto_has_acomp(s, 0, 0)) {
++		pr_err("compressor %s not available\n", s);
++		return -ENOENT;
+ 	}
+ 
+ 	spin_lock_bh(&zswap_pools_lock);
+ 
+-	pool = zswap_pool_find_get(type, compressor);
++	pool = zswap_pool_find_get(s);
+ 	if (pool) {
+ 		zswap_pool_debug("using existing", pool);
+ 		WARN_ON(pool == zswap_pool_current());
+@@ -591,7 +519,7 @@ static int __zswap_param_set(const char
+ 	spin_unlock_bh(&zswap_pools_lock);
+ 
+ 	if (!pool)
+-		pool = zswap_pool_create(type, compressor);
++		pool = zswap_pool_create(s);
+ 	else {
+ 		/*
+ 		 * Restore the initial ref dropped by percpu_ref_kill()
+@@ -616,7 +544,8 @@ static int __zswap_param_set(const char
+ 		list_add_rcu(&pool->list, &zswap_pools);
+ 		zswap_has_pool = true;
+ 	} else if (pool) {
+-		/* add the possibly pre-existing pool to the end of the pools
++		/*
++		 * Add the possibly pre-existing pool to the end of the pools
+ 		 * list; if it's new (and empty) then it'll be removed and
+ 		 * destroyed by the put after we drop the lock
+ 		 */
+@@ -626,18 +555,8 @@ static int __zswap_param_set(const char
+ 
+ 	spin_unlock_bh(&zswap_pools_lock);
+ 
+-	if (!zswap_has_pool && !pool) {
+-		/* if initial pool creation failed, and this pool creation also
+-		 * failed, maybe both compressor and zpool params were bad.
+-		 * Allow changing this param, so pool creation will succeed
+-		 * when the other param is changed. We already verified this
+-		 * param is ok in the zpool_has_pool() or crypto_has_acomp()
+-		 * checks above.
+-		 */
+-		ret = param_set_charp(s, kp);
+-	}
+-
+-	/* drop the ref from either the old current pool,
++	/*
++	 * Drop the ref from either the old current pool,
+ 	 * or the new pool we failed to add
+ 	 */
+ 	if (put_pool)
+@@ -646,18 +565,6 @@ static int __zswap_param_set(const char
+ 	return ret;
+ }
+ 
+-static int zswap_compressor_param_set(const char *val,
+-				      const struct kernel_param *kp)
+-{
+-	return __zswap_param_set(val, kp, zswap_zpool_type, NULL);
+-}
+-
+-static int zswap_zpool_param_set(const char *val,
+-				 const struct kernel_param *kp)
+-{
+-	return __zswap_param_set(val, kp, NULL, zswap_compressor);
+-}
+-
+ static int zswap_enabled_param_set(const char *val,
+ 				   const struct kernel_param *kp)
+ {
+@@ -801,13 +708,13 @@ static void zswap_entry_cache_free(struc
+ }
  
  /*
-- * Whether KASAN is enabled at all.
-- * The value remains false until KASAN is initialized by kasan_init_hw_tags().
-- */
--DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
--EXPORT_SYMBOL(kasan_flag_enabled);
--
--/*
-  * Whether the selected mode is synchronous, asynchronous, or asymmetric.
-  * Defaults to KASAN_MODE_SYNC.
+- * Carries out the common pattern of freeing and entry's zpool allocation,
++ * Carries out the common pattern of freeing an entry's zsmalloc allocation,
+  * freeing the entry itself, and decrementing the number of stored pages.
   */
-@@ -260,7 +253,7 @@ void __init kasan_init_hw_tags(void)
- 	kasan_init_tags();
- 
- 	/* KASAN is now initialized, enable it. */
--	static_branch_enable(&kasan_flag_enabled);
-+	kasan_enable();
- 
- 	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s)\n",
- 		kasan_mode_info(),
---- a/mm/kasan/kasan.h~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/mm/kasan/kasan.h
-@@ -398,7 +398,13 @@ depot_stack_handle_t kasan_save_stack(gf
- void kasan_set_track(struct kasan_track *track, depot_stack_handle_t stack);
- void kasan_save_track(struct kasan_track *track, gfp_t flags);
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
--void kasan_save_free_info(struct kmem_cache *cache, void *object);
-+
-+void __kasan_save_free_info(struct kmem_cache *cache, void *object);
-+static inline void kasan_save_free_info(struct kmem_cache *cache, void *object)
-+{
-+	if (kasan_enabled())
-+		__kasan_save_free_info(cache, object);
-+}
- 
- #ifdef CONFIG_KASAN_GENERIC
- bool kasan_quarantine_put(struct kmem_cache *cache, void *object);
---- a/mm/kasan/shadow.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/mm/kasan/shadow.c
-@@ -125,7 +125,7 @@ void kasan_poison(const void *addr, size
+ static void zswap_entry_free(struct zswap_entry *entry)
  {
- 	void *shadow_start, *shadow_end;
+ 	zswap_lru_del(&zswap_list_lru, entry);
+-	zpool_free(entry->pool->zpool, entry->handle);
++	zs_free(entry->pool->zs_pool, entry->handle);
+ 	zswap_pool_put(entry->pool);
+ 	if (entry->objcg) {
+ 		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
+@@ -949,7 +856,6 @@ static bool zswap_compress(struct page *
+ 	int comp_ret = 0, alloc_ret = 0;
+ 	unsigned int dlen = PAGE_SIZE;
+ 	unsigned long handle;
+-	struct zpool *zpool;
+ 	gfp_t gfp;
+ 	u8 *dst;
+ 	bool mapped = false;
+@@ -997,13 +903,14 @@ static bool zswap_compress(struct page *
+ 		mapped = true;
+ 	}
  
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return;
+-	zpool = pool->zpool;
+ 	gfp = GFP_NOWAIT | __GFP_NORETRY | __GFP_HIGHMEM | __GFP_MOVABLE;
+-	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle, page_to_nid(page));
+-	if (alloc_ret)
++	handle = zs_malloc(pool->zs_pool, dlen, gfp, page_to_nid(page));
++	if (IS_ERR_VALUE(handle)) {
++		alloc_ret = PTR_ERR((void *)handle);
+ 		goto unlock;
++	}
+ 
+-	zpool_obj_write(zpool, handle, dst, dlen);
++	zs_obj_write(pool->zs_pool, handle, dst, dlen);
+ 	entry->handle = handle;
+ 	entry->length = dlen;
+ 
+@@ -1023,14 +930,14 @@ unlock:
+ 
+ static bool zswap_decompress(struct zswap_entry *entry, struct folio *folio)
+ {
+-	struct zpool *zpool = entry->pool->zpool;
++	struct zswap_pool *pool = entry->pool;
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	int decomp_ret = 0, dlen = PAGE_SIZE;
+ 	u8 *src, *obj;
+ 
+-	acomp_ctx = acomp_ctx_get_cpu_lock(entry->pool);
+-	obj = zpool_obj_read_begin(zpool, entry->handle, acomp_ctx->buffer);
++	acomp_ctx = acomp_ctx_get_cpu_lock(pool);
++	obj = zs_obj_read_begin(pool->zs_pool, entry->handle, acomp_ctx->buffer);
+ 
+ 	/* zswap entries of length PAGE_SIZE are not compressed. */
+ 	if (entry->length == PAGE_SIZE) {
+@@ -1039,7 +946,7 @@ static bool zswap_decompress(struct zswa
+ 	}
  
  	/*
-@@ -150,7 +150,7 @@ EXPORT_SYMBOL_GPL(kasan_poison);
- #ifdef CONFIG_KASAN_GENERIC
- void kasan_poison_last_granule(const void *addr, size_t size)
- {
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return;
- 
- 	if (size & KASAN_GRANULE_MASK) {
-@@ -408,7 +408,7 @@ int kasan_populate_vmalloc(unsigned long
- 	unsigned long shadow_start, shadow_end;
- 	int ret;
- 
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return 0;
- 
- 	if (!is_vmalloc_or_module_addr((void *)addr))
-@@ -583,7 +583,7 @@ void kasan_release_vmalloc(unsigned long
- 	unsigned long region_start, region_end;
- 	unsigned long size;
- 
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return;
- 
- 	region_start = ALIGN(start, KASAN_MEMORY_PER_SHADOW_PAGE);
-@@ -634,7 +634,7 @@ void *__kasan_unpoison_vmalloc(const voi
- 	 * with setting memory tags, so the KASAN_VMALLOC_INIT flag is ignored.
+-	 * zpool_obj_read_begin() might return a kmap address of highmem when
++	 * zs_obj_read_begin() might return a kmap address of highmem when
+ 	 * acomp_ctx->buffer is not used.  However, sg_init_one() does not
+ 	 * handle highmem addresses, so copy the object to acomp_ctx->buffer.
  	 */
+@@ -1059,7 +966,7 @@ static bool zswap_decompress(struct zswa
+ 	dlen = acomp_ctx->req->dlen;
  
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return (void *)start;
+ read_done:
+-	zpool_obj_read_end(zpool, entry->handle, obj);
++	zs_obj_read_end(pool->zs_pool, entry->handle, obj);
+ 	acomp_ctx_put_unlock(acomp_ctx);
  
- 	if (!is_vmalloc_or_module_addr(start))
-@@ -659,7 +659,7 @@ void *__kasan_unpoison_vmalloc(const voi
-  */
- void __kasan_poison_vmalloc(const void *start, unsigned long size)
- {
--	if (!kasan_arch_is_ready())
-+	if (!kasan_enabled())
- 		return;
+ 	if (!decomp_ret && dlen == PAGE_SIZE)
+@@ -1576,7 +1483,7 @@ static bool zswap_store_page(struct page
+ 	return true;
  
- 	if (!is_vmalloc_or_module_addr(start))
---- a/mm/kasan/sw_tags.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/mm/kasan/sw_tags.c
-@@ -44,6 +44,7 @@ void __init kasan_init_sw_tags(void)
- 		per_cpu(prng_state, cpu) = (u32)get_cycles();
+ store_failed:
+-	zpool_free(pool->zpool, entry->handle);
++	zs_free(pool->zs_pool, entry->handle);
+ compress_failed:
+ 	zswap_entry_cache_free(entry);
+ 	return false;
+@@ -1906,8 +1813,7 @@ static int zswap_setup(void)
  
- 	kasan_init_tags();
-+	kasan_enable();
- 
- 	pr_info("KernelAddressSanitizer initialized (sw-tags, stacktrace=%s)\n",
- 		str_on_off(kasan_stack_collection_enabled()));
---- a/mm/kasan/tags.c~kasan-introduce-arch_defer_kasan-and-unify-static-key-across-modes
-+++ a/mm/kasan/tags.c
-@@ -142,7 +142,7 @@ void kasan_save_alloc_info(struct kmem_c
- 	save_stack_info(cache, object, flags, false);
- }
- 
--void kasan_save_free_info(struct kmem_cache *cache, void *object)
-+void __kasan_save_free_info(struct kmem_cache *cache, void *object)
- {
- 	save_stack_info(cache, object, 0, true);
- }
+ 	pool = __zswap_pool_create_fallback();
+ 	if (pool) {
+-		pr_info("loaded using pool %s/%s\n", pool->tfm_name,
+-			zpool_get_type(pool->zpool));
++		pr_info("loaded using pool %s\n", pool->tfm_name);
+ 		list_add(&pool->list, &zswap_pools);
+ 		zswap_has_pool = true;
+ 		static_branch_enable(&zswap_ever_enabled);
 _
 
-Patches currently in -mm which might be from snovitoll@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch
 
