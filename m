@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1EFA27281D
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:27:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB92F27281D
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:27:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758490024; cv=none; b=PP8pFwgs6laosXnzZjPjn/+3Axjf25lc4+u/5I1cKoEmjkh7mvOmvZfpojf4IjAk97HfXMtQW/E8/Sz3hCqYHnF4INAu8ZKVLyFmf5PuwvdseQvB8dTV2Q8bEaSw51n4o336JDpbsqHvDnuCLzOTR/Xx/BAG3T571lsZMVRK2hQ=
+	t=1758490025; cv=none; b=oknkuDCRGjzSefAJQv/Jchs+IAhy5oEM9pnKZKFyZpN6FsrP6FKcbQtmLWHd79HhkoGErjsfa7Obyfh6ejOxW2o05jAquEIl35yDw7yJH/j86f68KHfb+p2rEMA6U5GcSIeyQuw+w3L6Pde2+S+QZSYLCCjjbIMTHaoV27OvrAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758490024; c=relaxed/simple;
-	bh=bwgZS1Zd6YhkuD2vzaV40wMC01RPhz7WH4VLcXnWRho=;
-	h=Date:To:From:Subject:Message-Id; b=A/nFADzBFqIFgiorDroG0WNaKGo3ot4IFSeFroq0DN3QcCr+Z/eSOh19VnE+1Fwop9IxMtQyNGHtJEEhQw+/qBrjM+GI433WuasykelsVxawXn3x9wIBhG8vEbZN4HybFpeLjlBT0yvD+8h5KBTFRYgL+m9yGiO5lm8hm+gMI9U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MQ0x+O3j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758490025; c=relaxed/simple;
+	bh=3OZS21XpbvxNHEkEdnc2OFhXuR2nWuOFLgGRQIxkyM0=;
+	h=Date:To:From:Subject:Message-Id; b=m3r1OdKu6Wml+q6n8PoYbT3IsdKS+eKogcSjGDEsaLgLn+kVz7oaueUgCB18d4ahYiNPLXryTsPlmRe4rU3B/OI/nw6zM7FUbk+M6lEAyIFj9QeF31j4j9+sII1n6icNhcua5Y7vJFaQa7nR+I8ebLofHS35uelUi+9j9mnw3Xs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2vs5hHG+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MQ0x+O3j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98A8DC4CEE7;
-	Sun, 21 Sep 2025 21:27:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2vs5hHG+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8BF4C4CEE7;
+	Sun, 21 Sep 2025 21:27:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758490024;
-	bh=bwgZS1Zd6YhkuD2vzaV40wMC01RPhz7WH4VLcXnWRho=;
+	s=korg; t=1758490025;
+	bh=3OZS21XpbvxNHEkEdnc2OFhXuR2nWuOFLgGRQIxkyM0=;
 	h=Date:To:From:Subject:From;
-	b=MQ0x+O3j8sBTK4HJZZ3DOY6AkdqNFhDox7iyEpYRy9QbzsuzN8yuRQRwxFSpN9/8V
-	 p0gOvP6/2dUVZmD0Scqyqku6fPKO2fngYO/oKVuDaw+SWAOvEXzesGdG0o9+s/t4kr
-	 XSkAG4R8A+YHMZ9bd2/dcZTsYFjt7ZE4i/DPrEgA=
-Date: Sun, 21 Sep 2025 14:27:04 -0700
+	b=2vs5hHG+fLJIoVnyiW6f9pk5AzLmzcwk56TTr/daq5X+bDiblkejbKMxAZnakdJQE
+	 HjxCLAAbnbOVrSgMj3nIM8/QMj/C2w8RcnwpH32T/7ghSUdWdmd/46CDskr22UYMhE
+	 7UaTpTkgZdzupzCUXV6HAgrj5V7qw+ajx+EzWv4M=
+Date: Sun, 21 Sep 2025 14:27:05 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-lru_sort-use-damon_initialized.patch removed from -mm tree
-Message-Id: <20250921212704.98A8DC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-wsse-use-damon_initialized.patch removed from -mm tree
+Message-Id: <20250921212705.A8BF4C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/lru_sort: use damon_initialized()
+     Subject: samples/damon/wsse: use damon_initialized()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-lru_sort-use-damon_initialized.patch
+     samples-damon-wsse-use-damon_initialized.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: use damon_initialized()
-Date: Mon, 15 Sep 2025 20:35:08 -0700
+Subject: samples/damon/wsse: use damon_initialized()
+Date: Mon, 15 Sep 2025 20:35:09 -0700
 
-DAMON_LRU_SORT is assuming DAMON is ready to use in module_init time, and
-uses its own hack to see if it is the time.  Use damon_initialized(),
+damon_sample_wsse is assuming DAMON is ready to use in module_init time,
+and uses its own hack to see if it is the time.  Use damon_initialized(),
 which is a way for seeing if DAMON is ready to be used that is more
 reliable and better to maintain instead of the hack.
 
-Link: https://lkml.kernel.org/r/20250916033511.116366-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250916033511.116366-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ samples/damon/wsse.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-use-damon_initialized
-+++ a/mm/damon/lru_sort.c
-@@ -345,7 +345,7 @@ static int damon_lru_sort_enabled_store(
+--- a/samples/damon/wsse.c~samples-damon-wsse-use-damon_initialized
++++ a/samples/damon/wsse.c
+@@ -102,8 +102,6 @@ static void damon_sample_wsse_stop(void)
+ 	}
+ }
+ 
+-static bool init_called;
+-
+ static int damon_sample_wsse_enable_store(
+ 		const char *val, const struct kernel_param *kp)
+ {
+@@ -117,10 +115,10 @@ static int damon_sample_wsse_enable_stor
+ 	if (enabled == is_enabled)
  		return 0;
  
- 	/* Called before init function.  The function will handle this. */
--	if (!ctx)
+-	if (enabled) {
+-		if (!init_called)
+-			return 0;
 +	if (!damon_initialized())
- 		goto set_param_out;
++		return 0;
  
- 	err = damon_lru_sort_turn(enable);
-@@ -368,8 +368,13 @@ MODULE_PARM_DESC(enabled,
- 
- static int __init damon_lru_sort_init(void)
++	if (enabled) {
+ 		err = damon_sample_wsse_start();
+ 		if (err)
+ 			enabled = false;
+@@ -134,7 +132,12 @@ static int __init damon_sample_wsse_init
  {
--	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
-+	int err;
+ 	int err = 0;
  
+-	init_called = true;
 +	if (!damon_initialized()) {
 +		err = -ENOMEM;
-+		goto out;
++		if (enabled)
++			enabled = false;
 +	}
-+	err = damon_modules_new_paddr_ctx_target(&ctx, &target);
- 	if (err)
- 		goto out;
- 
++
+ 	if (enabled) {
+ 		err = damon_sample_wsse_start();
+ 		if (err)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
