@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A137C21D3C0
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C3DA21D3C0
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489965; cv=none; b=Q92A2qEnCTsMyZXvlroZy4vAjn9fQUaowK6zbhChALDeEdhFt5dao6tJmhv3KVncRn8UAra8k89fzjwZI5wW89G//LgHbP0k6gd1CRoNrd9dTfqqiCaYTYUD1UUoXVIrFf8JpZIRXgt7tRHgbvXXPVexAGj9kG8tNlWCpHDvn64=
+	t=1758489969; cv=none; b=tE+GYt+j+oUbc5vw+7uc6NmQm/C4NwKHVGLvf403eet+hxxjWnts6WxYtr6cFqp98ESw4wbDlNUBYeyoRbCZzwGxbZzDewiVue3rFiH6Wbmj2Bg+/M64F4ZR7dHCQGEie9OY0zNe9MW+xJSRfX6bSREelAlH8bDfo1U8vxUCOEI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489965; c=relaxed/simple;
-	bh=OERphrzPIxx0z++0BbtLfyHvKF6c9WmdJjZsnpjQsMA=;
-	h=Date:To:From:Subject:Message-Id; b=Y9TBluLxFsJm2k5+kXzteOAnzWl2XDuSVaWMBiPfnwW2XDW3+dQ5/9dTatP5B55Fkk8jPV4Ys7gR99fHs6dQzHVR75b2zFkVI6zVBzw+wXFgxNQNNsj3dEmbKgIfy7RFOgzSmX88gc4zWAoQg8TnRfGrKYPbgPUDgPd/COeSV4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+vBR5ao; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489969; c=relaxed/simple;
+	bh=hSPHLYFlA0A2JV3FIsCatPW+ngfhrteYk7Rcpd7RALE=;
+	h=Date:To:From:Subject:Message-Id; b=ZyTqQ7L+0ZwtCV02+FbZNdHccRAmF5TtyTimrPp60e6wB0GYhfXAZ1vm1SyyrovdtcSZ9zY7H8xuYRh+49c2ZRgFMz5BpCLDMfkLRHcpxHWxvE4wrsUg5MOMNPTphJP//r7/iHjBw8D77ZOlhv5oqgDGZLK80QIpDO2PYsKeCHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ilk+tY/3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+vBR5ao"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78DABC4CEE7;
-	Sun, 21 Sep 2025 21:26:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ilk+tY/3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94DDEC4CEE7;
+	Sun, 21 Sep 2025 21:26:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489965;
-	bh=OERphrzPIxx0z++0BbtLfyHvKF6c9WmdJjZsnpjQsMA=;
+	s=korg; t=1758489968;
+	bh=hSPHLYFlA0A2JV3FIsCatPW+ngfhrteYk7Rcpd7RALE=;
 	h=Date:To:From:Subject:From;
-	b=j+vBR5aoXgEEWFC15Cs8RVOptArSGZR4PAOWq301zY/giA58T4DEI67nc3a3Z1Kas
-	 iEov0a+TWsIjMtiRINg2nEXc/PHtxZBY2a2Ipn2TR2Y6FmkJgbnYM9g5Mo4iWJjjt/
-	 tw7hQc27zuEmVypNwpbujHIsqNEgbNIcldV2lqhQ=
-Date: Sun, 21 Sep 2025 14:26:04 -0700
-To: mm-commits@vger.kernel.org,p.raghav@samsung.com,jack@suse.cz,akpm@linux-foundation.org
+	b=Ilk+tY/3anhaUuxsOPziBZ0ZNHFdz/Ig6xScKCLHYQBWEfwRn0evSI+p8cZGId/pJ
+	 ym/F4kUfUnaxP0Xnx6p7YQ5dhD1xx38k13Q/4j2AtRBW9PG8qGyyGGo7941l3AtfkK
+	 R14n7n6PCf6jQ7w+Dtfexizwyg6nNnFzfNpLCVoc=
+Date: Sun, 21 Sep 2025 14:26:08 -0700
+To: mm-commits@vger.kernel.org,david@redhat.com,chuhu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] readahead-add-trace-points.patch removed from -mm tree
-Message-Id: <20250921212605.78DABC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-hugepages-cleanup-too-early.patch removed from -mm tree
+Message-Id: <20250921212608.94DDEC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,216 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: readahead: add trace points
+     Subject: selftests/mm: fix hugepages cleanup too early
 has been removed from the -mm tree.  Its filename was
-     readahead-add-trace-points.patch
+     selftests-mm-fix-hugepages-cleanup-too-early.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: readahead: add trace points
-Date: Mon, 8 Sep 2025 16:55:34 +0200
+From: Chunyu Hu <chuhu@redhat.com>
+Subject: selftests/mm: fix hugepages cleanup too early
+Date: Fri, 12 Sep 2025 09:37:09 +0800
 
-Add a couple of trace points to make debugging readahead logic easier.
+Patch series "Fix va_high_addr_switch.sh test failure", v3.
 
-[jack@suse.cz: v2]
-  Link: https://lkml.kernel.org/r/20250909145849.5090-2-jack@suse.cz
-Link: https://lkml.kernel.org/r/20250908145533.31528-2-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Tested-by: Pankaj Raghav <p.raghav@samsung.com>
+These three patches fix the va_high_addr_switch.sh test failure on x86_64.
+
+Patch 1 fixes the hugepage setup issue that nr_hugepages is reset too
+early in run_vmtests.sh and break the later va_high_addr_switch testing.
+
+Patch 2 adds hugepage setup in va_high_addr_switch test, so that it can
+still work if vm_runtests.sh changes the hugepage setup someday.
+
+Patch 3 fixes the test failure caused by the hint addr align method change
+in hugetlb_get_unmapped_area().
+
+
+This patch (of 3):
+
+The nr_hugepgs variable is used to keep the original nr_hugepages at the
+hugepage setup step at test beginning.  After userfaultfd test, a cleaup
+is executed, both /sys/kernel/mm/hugepages/hugepages-*/nr_hugepages and
+/proc/sys//vm/nr_hugepages are reset to 'original' value before
+userfaultfd test starts.
+
+Issue here is the value used to restore /proc/sys/vm/nr_hugepages is
+nr_hugepgs which is the initial value before the vm_runtests.sh runs, not
+the value before userfaultfd test starts.  'va_high_addr_swith.sh' tests
+runs after that will possibly see no hugepages available for test, and got
+EINVAL when mmap(HUGETLB), making the result invalid.
+
+And before pkey tests, nr_hugepgs is changed to be used as a temp variable
+to save nr_hugepages before pkey test, and restore it after pkey tests
+finish.  The original nr_hugepages value is not tracked anymore, so no way
+to restore it after all tests finish.
+
+Add a new variable orig_nr_hugepgs to save the original nr_hugepages, and
+and restore it to nr_hugepages after all tests finish.  And change to use
+the nr_hugepgs variable to save the /proc/sys/vm/nr_hugeages after
+hugepage setup, it's also the value before userfaultfd test starts, and
+the correct value to be restored after userfaultfd finishes.  The
+va_high_addr_switch.sh broken will be resolved.
+
+Link: https://lkml.kernel.org/r/20250912013711.3002969-1-chuhu@redhat.com
+Link: https://lkml.kernel.org/r/20250912013711.3002969-2-chuhu@redhat.com
+Signed-off-by: Chunyu Hu <chuhu@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/readahead.h |  132 +++++++++++++++++++++++++++++
- mm/readahead.c                   |    8 +
- 2 files changed, 140 insertions(+)
+ tools/testing/selftests/mm/run_vmtests.sh |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/include/trace/events/readahead.h a/include/trace/events/readahead.h
-new file mode 100644
---- /dev/null
-+++ a/include/trace/events/readahead.h
-@@ -0,0 +1,132 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM readahead
-+
-+#if !defined(_TRACE_FILEMAP_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_READAHEAD_H
-+
-+#include <linux/types.h>
-+#include <linux/tracepoint.h>
-+#include <linux/mm.h>
-+#include <linux/fs.h>
-+#include <linux/pagemap.h>
-+
-+TRACE_EVENT(page_cache_ra_unbounded,
-+	TP_PROTO(struct inode *inode, pgoff_t index, unsigned long nr_to_read,
-+		 unsigned long lookahead_size),
-+
-+	TP_ARGS(inode, index, nr_to_read, lookahead_size),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, i_ino)
-+		__field(dev_t, s_dev)
-+		__field(pgoff_t, index)
-+		__field(unsigned long, nr_to_read)
-+		__field(unsigned long, lookahead_size)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->i_ino = inode->i_ino;
-+		__entry->s_dev = inode->i_sb->s_dev;
-+		__entry->index = index;
-+		__entry->nr_to_read = nr_to_read;
-+		__entry->lookahead_size = lookahead_size;
-+	),
-+
-+	TP_printk(
-+		"dev=%d:%d ino=%lx index=%lu nr_to_read=%lu lookahead_size=%lu",
-+		MAJOR(__entry->s_dev), MINOR(__entry->s_dev), __entry->i_ino,
-+		__entry->index, __entry->nr_to_read, __entry->lookahead_size
-+	)
-+);
-+
-+TRACE_EVENT(page_cache_ra_order,
-+	TP_PROTO(struct inode *inode, pgoff_t index, struct file_ra_state *ra),
-+
-+	TP_ARGS(inode, index, ra),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, i_ino)
-+		__field(dev_t, s_dev)
-+		__field(pgoff_t, index)
-+		__field(unsigned int, order)
-+		__field(unsigned int, size)
-+		__field(unsigned int, async_size)
-+		__field(unsigned int, ra_pages)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->i_ino = inode->i_ino;
-+		__entry->s_dev = inode->i_sb->s_dev;
-+		__entry->index = index;
-+		__entry->order = ra->order;
-+		__entry->size = ra->size;
-+		__entry->async_size = ra->async_size;
-+		__entry->ra_pages = ra->ra_pages;
-+	),
-+
-+	TP_printk(
-+		"dev=%d:%d ino=%lx index=%lu order=%u size=%u async_size=%u ra_pages=%u",
-+		MAJOR(__entry->s_dev), MINOR(__entry->s_dev), __entry->i_ino,
-+		__entry->index, __entry->order, __entry->size,
-+		__entry->async_size, __entry->ra_pages
-+	)
-+);
-+
-+DECLARE_EVENT_CLASS(page_cache_ra_op,
-+	TP_PROTO(struct inode *inode, pgoff_t index, struct file_ra_state *ra,
-+		 unsigned long req_count),
-+
-+	TP_ARGS(inode, index, ra, req_count),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, i_ino)
-+		__field(dev_t, s_dev)
-+		__field(pgoff_t, index)
-+		__field(unsigned int, order)
-+		__field(unsigned int, size)
-+		__field(unsigned int, async_size)
-+		__field(unsigned int, ra_pages)
-+		__field(unsigned int, mmap_miss)
-+		__field(loff_t, prev_pos)
-+		__field(unsigned long, req_count)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->i_ino = inode->i_ino;
-+		__entry->s_dev = inode->i_sb->s_dev;
-+		__entry->index = index;
-+		__entry->order = ra->order;
-+		__entry->size = ra->size;
-+		__entry->async_size = ra->async_size;
-+		__entry->ra_pages = ra->ra_pages;
-+		__entry->mmap_miss = ra->mmap_miss;
-+		__entry->prev_pos = ra->prev_pos;
-+		__entry->req_count = req_count;
-+	),
-+
-+	TP_printk(
-+		"dev=%d:%d ino=%lx index=%lu req_count=%lu order=%u size=%u async_size=%u ra_pages=%u mmap_miss=%u prev_pos=%lld",
-+		MAJOR(__entry->s_dev), MINOR(__entry->s_dev), __entry->i_ino,
-+		__entry->index, __entry->req_count, __entry->order,
-+		__entry->size, __entry->async_size, __entry->ra_pages,
-+		__entry->mmap_miss, __entry->prev_pos
-+	)
-+);
-+
-+DEFINE_EVENT(page_cache_ra_op, page_cache_sync_ra,
-+	TP_PROTO(struct inode *inode, pgoff_t index, struct file_ra_state *ra,
-+		 unsigned long req_count),
-+	TP_ARGS(inode, index, ra, req_count)
-+);
-+
-+DEFINE_EVENT(page_cache_ra_op, page_cache_async_ra,
-+	TP_PROTO(struct inode *inode, pgoff_t index, struct file_ra_state *ra,
-+		 unsigned long req_count),
-+	TP_ARGS(inode, index, ra, req_count)
-+);
-+
-+#endif /* _TRACE_FILEMAP_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
---- a/mm/readahead.c~readahead-add-trace-points
-+++ a/mm/readahead.c
-@@ -129,6 +129,9 @@
- #include <linux/fadvise.h>
- #include <linux/sched/mm.h>
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-fix-hugepages-cleanup-too-early
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -174,13 +174,13 @@ fi
  
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/readahead.h>
+ # set proper nr_hugepages
+ if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
+-	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
++	orig_nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+ 	needpgs=$((needmem_KB / hpgsize_KB))
+ 	tries=2
+ 	while [ "$tries" -gt 0 ] && [ "$freepgs" -lt "$needpgs" ]; do
+ 		lackpgs=$((needpgs - freepgs))
+ 		echo 3 > /proc/sys/vm/drop_caches
+-		if ! echo $((lackpgs + nr_hugepgs)) > /proc/sys/vm/nr_hugepages; then
++		if ! echo $((lackpgs + orig_nr_hugepgs)) > /proc/sys/vm/nr_hugepages; then
+ 			echo "Please run this test as root"
+ 			exit $ksft_skip
+ 		fi
+@@ -191,6 +191,7 @@ if [ -n "$freepgs" ] && [ -n "$hpgsize_K
+ 		done < /proc/meminfo
+ 		tries=$((tries - 1))
+ 	done
++	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+ 	if [ "$freepgs" -lt "$needpgs" ]; then
+ 		printf "Not enough huge pages available (%d < %d)\n" \
+ 		       "$freepgs" "$needpgs"
+@@ -540,6 +541,10 @@ CATEGORY="page_frag" run_test ./test_pag
+ 
+ CATEGORY="rmap" run_test ./rmap
+ 
++if [ "${HAVE_HUGEPAGES}" = 1 ]; then
++	echo "$orig_nr_hugepgs" > /proc/sys/vm/nr_hugepages
++fi
 +
- #include "internal.h"
+ echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}" | tap_prefix
+ echo "1..${count_total}" | tap_output
  
- /*
-@@ -225,6 +228,8 @@ void page_cache_ra_unbounded(struct read
- 	 */
- 	unsigned int nofs = memalloc_nofs_save();
- 
-+	trace_page_cache_ra_unbounded(mapping->host, index, nr_to_read,
-+				      lookahead_size);
- 	filemap_invalidate_lock_shared(mapping);
- 	index = mapping_align_index(mapping, index);
- 
-@@ -470,6 +475,7 @@ void page_cache_ra_order(struct readahea
- 	gfp_t gfp = readahead_gfp_mask(mapping);
- 	unsigned int new_order = ra->order;
- 
-+	trace_page_cache_ra_order(mapping->host, start, ra);
- 	if (!mapping_large_folio_support(mapping)) {
- 		ra->order = 0;
- 		goto fallback;
-@@ -554,6 +560,7 @@ void page_cache_sync_ra(struct readahead
- 	unsigned long max_pages, contig_count;
- 	pgoff_t prev_index, miss;
- 
-+	trace_page_cache_sync_ra(ractl->mapping->host, index, ra, req_count);
- 	/*
- 	 * Even if readahead is disabled, issue this request as readahead
- 	 * as we'll need it to satisfy the requested range. The forced
-@@ -638,6 +645,7 @@ void page_cache_async_ra(struct readahea
- 	if (folio_test_writeback(folio))
- 		return;
- 
-+	trace_page_cache_async_ra(ractl->mapping->host, index, ra, req_count);
- 	folio_clear_readahead(folio);
- 
- 	if (blk_cgroup_congested())
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from chuhu@redhat.com are
 
 
