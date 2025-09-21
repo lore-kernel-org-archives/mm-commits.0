@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20B401A9FB9
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 19:52:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557AA45948
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 19:54:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758484376; cv=none; b=YMFfauVmSBUEl5Ed2oWtPUEULei/4WuNWW4DWiSSzzZFO90D0ZoHdJDAlWdonWc5vpJz5RuxfH0eH999FoKoo404PuO4JBysFjUxWv8oWHjjUbrsYQnynb9tkY9FJ4I95IcLgoeKOHHP3y0yfjR3H0PlpIeZWhoM0yeQJ9rxGEY=
+	t=1758484443; cv=none; b=JCCi4+qPbbVTG8uXbUAN3UL6cCXQYjEAyk4AWWoatEVt841B9cARQeBAyiNEGzzbyBQ/QgqQ3IZW009rDVZoYMsTn+rU1FB+yKXkcLumPD1JWTnRVcD0f82E0cDFkqBB8C+2JrrP9EOqCXw8jDkPqi6/XIp+mtqhQvvCvZEEKUg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758484376; c=relaxed/simple;
-	bh=jV897/fMZgZIFTKSbNkSBMW5ufawTDDhB4wBQwc6aUs=;
-	h=Date:To:From:Subject:Message-Id; b=BGHlcs34uIVihEyBkO2lhAzfhgYkJJXfTVj9XXDSW449xnQlkZphuA0hadiUYfRY4vnLIKfN7Faw4GLP8paqafz6STyAnlwIHWhhO0QEcsMFl616D5pAGMq23kpsHJVJseQVO3Ynsi4lzoBIVSyZX3fVPu7l6Q71a+0yGzxg4e0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0Zcx2U/W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758484443; c=relaxed/simple;
+	bh=wsynotVcbz67gjGMpTChpp5xw15dtx6BSCvjfRB/mJA=;
+	h=Date:To:From:Subject:Message-Id; b=DmWSmq592PuTLBgvM1WJJmXlkaEOANuUOEm6wVtB0GQk+joqAPsJARbPbLYV2y+MSmiCLg77avTmGJXhprrGLI2MGwK/6QBjD9/s3MD5R0KIZt2KzQXKNy8uRO//YjKIg2Ebv6II7NnN0nZHq7bhwx2cofzI2vLZXcxSOaOmbNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J8VjkUiM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0Zcx2U/W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D0A6C4CEE7;
-	Sun, 21 Sep 2025 19:52:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J8VjkUiM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F28C4CEE7;
+	Sun, 21 Sep 2025 19:54:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758484375;
-	bh=jV897/fMZgZIFTKSbNkSBMW5ufawTDDhB4wBQwc6aUs=;
+	s=korg; t=1758484441;
+	bh=wsynotVcbz67gjGMpTChpp5xw15dtx6BSCvjfRB/mJA=;
 	h=Date:To:From:Subject:From;
-	b=0Zcx2U/W5+NUJJN77nfCVOPVuyDWosF2VoI4TlVaJLVNaXQon7r1TF6WbUuK74xIC
-	 Qb64znHYTreNceCXv3NBQLCszR4e1WgmAyHNxGxBpJV2U6HRs4jjX0ddHM7022HKWR
-	 ozq0Y8JnfLqKXk7fINqVy8N5eOWn2SuyAp9PHO1s=
-Date: Sun, 21 Sep 2025 12:52:55 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,ebiggers@kernel.org,axboe@kernel.dk,david@redhat.com,akpm@linux-foundation.org
+	b=J8VjkUiMVrLjhryiy23W31QMnaoZSrM1b6v+UGQwtxv+ie1ZzvOPD/6XfSpt7bpV5
+	 goFmfkdjudzgUlImoHsc04n7HLF70l6HRByGZDb9eYblXHTYIJiIkzH+PzADD5C0RI
+	 WkcMCIfuNYggvWC7x7473hO98RicRy1oBLFBdCwQ=
+Date: Sun, 21 Sep 2025 12:54:01 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,alexandru.elisei@arm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-gup-remove-record_subpages-fix.patch removed from -mm tree
-Message-Id: <20250921195255.9D0A6C4CEE7@smtp.kernel.org>
+Subject: [folded-merged] mm-cma-refuse-handing-out-non-contiguous-page-ranges-fix.patch removed from -mm tree
+Message-Id: <20250921195401.C0F28C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fixup: mm/gup: remove record_subpages()
+     Subject: mm-cma-refuse-handing-out-non-contiguous-page-ranges-fix
 has been removed from the -mm tree.  Its filename was
-     mm-gup-remove-record_subpages-fix.patch
+     mm-cma-refuse-handing-out-non-contiguous-page-ranges-fix.patch
 
-This patch was dropped because it was folded into mm-gup-remove-record_subpages.patch
+This patch was dropped because it was folded into mm-cma-refuse-handing-out-non-contiguous-page-ranges.patch
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: fixup: mm/gup: remove record_subpages()
-Date: Fri, 5 Sep 2025 08:38:43 +0200
+Subject: mm-cma-refuse-handing-out-non-contiguous-page-ranges-fix
+Date: Tue, 9 Sep 2025 05:50:13 -0400
 
-pages is not adjusted by the caller, but indexed by existing *nr.
+apparently we can have NUMMU configs with SPARSEMEM enabled
 
-Link: https://lkml.kernel.org/r/cc7f03f8-da8b-407e-a03a-e8e5a9ec5462@redhat.com
+Link: https://lkml.kernel.org/r/6ec933b1-b3f7-41c0-95d8-e518bb87375e@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: syzbot+1ab243d3eebb2aabf4a4@syzkaller.appspotmail.com
-Tested-by: syzbot+1ab243d3eebb2aabf4a4@syzkaller.appspotmail.com
-Reported-by: Jens Axboe <axboe@kernel.dk>
-Tested-by: Jens Axboe <axboe@kernel.dk>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Eric Biggers <ebiggers@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Alexandru Elisei <alexandru.elisei@arm.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-remove-record_subpages-fix
-+++ a/mm/gup.c
-@@ -2979,6 +2979,7 @@ static int gup_fast_pmd_leaf(pmd_t orig,
- 		return 0;
- 	}
+--- a/mm/util.c~mm-cma-refuse-handing-out-non-contiguous-page-ranges-fix
++++ a/mm/util.c
+@@ -1280,6 +1280,7 @@ unsigned int folio_pte_batch(struct foli
+ {
+ 	return folio_pte_batch_flags(folio, NULL, ptep, &pte, max_nr, 0);
+ }
++#endif /* CONFIG_MMU */
  
-+	pages += *nr;
- 	*nr += refs;
- 	for (; refs; refs--)
- 		*(pages++) = page++;
-@@ -3022,6 +3023,7 @@ static int gup_fast_pud_leaf(pud_t orig,
- 		return 0;
- 	}
- 
-+	pages += *nr;
- 	*nr += refs;
- 	for (; refs; refs--)
- 		*(pages++) = page++;
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ /**
+@@ -1315,4 +1316,3 @@ bool page_range_contiguous(const struct
+ 	return true;
+ }
+ #endif
+-#endif /* CONFIG_MMU */
 _
 
 Patches currently in -mm which might be from david@redhat.com are
@@ -107,7 +99,6 @@ mm-gup-remove-record_subpages.patch
 io_uring-zcrx-remove-nth_page-usage-within-folio.patch
 mips-mm-convert-__flush_dcache_pages-to-__flush_dcache_folio_pages.patch
 mm-cma-refuse-handing-out-non-contiguous-page-ranges.patch
-mm-cma-refuse-handing-out-non-contiguous-page-ranges-fix.patch
 dma-remap-drop-nth_page-in-dma_common_contiguous_remap.patch
 scatterlist-disallow-non-contigous-page-ranges-in-a-single-sg-entry.patch
 ata-libata-sff-drop-nth_page-usage-within-sg-entry.patch
