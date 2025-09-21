@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA6442C11E6
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24DE22C11D4
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489997; cv=none; b=iRHsEoem844s1hKoL60vcyugtiIW8PRxh7UhvWFTg5aQnj/xeLSlMs2UalThSx2wu3LOfgJdlcYoRaI1y8B+6qxtco4yN2xhrOf81k1MoAOgZnhitBinrnalBBtjJ0oamuUbAXIyIl5KRJvkD6Yf4iRrviMIPUXfGrPf/x2IWkA=
+	t=1758489999; cv=none; b=PA5PcdAZmrqaGTwk2nDx1LoCZaLCc1ropvaOCNXHRCZQClQ6R8Il8ASQGUcUsoB0VJSIwqkUrVoATF/f6reFIxXW5d/6LRnnekm5zLmEzdk9Z1S+tUZ0HCbfwAVZvgn6dfxb6B9LUf8N6z2nCH0thNdLf86UrnUVygoN1Gbnl7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489997; c=relaxed/simple;
-	bh=yE2lh33ccnkaBV/V3utuGhmOSzmaetnnXGPxrJDo1t0=;
-	h=Date:To:From:Subject:Message-Id; b=fCiZCGn5CHM6WqIDp22NNbxjIUmsRTwrNm7bbaYnUwF+vXjMccUeEh4m3k52F9gufmV59uWokhD8cr2zYCKY7kdOR9HpsJHCZrkiNz6N73z1wSGmJgdgFEyKj3zlIT/mafut+Ma2SDKh7gsGlohsUUW7hEuJo1ZfiUtjpKm8oNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hnxOfhQi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489999; c=relaxed/simple;
+	bh=odbcgsTBnCUbE3bJXw7PeockxsxNZm5SCaRk9hTakZw=;
+	h=Date:To:From:Subject:Message-Id; b=nL1HTla5BQskAZzhthnsohdw26ko3fwRSF2FLF6O/nKRyDakf1VPNsXro/Rq3jjUMvuXUHk8CckF7X3vm1rk4qqGOtpJ9+MTOH5LYm81I8ySVU7WzRWJ+BJwlwRsTnurpikWfhc3TAxTEIXn3wleEXfF0+FGpyxfHGnRE7bket8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CislxugD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hnxOfhQi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0C51C4CEE7;
-	Sun, 21 Sep 2025 21:26:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CislxugD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC77FC4CEE7;
+	Sun, 21 Sep 2025 21:26:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489997;
-	bh=yE2lh33ccnkaBV/V3utuGhmOSzmaetnnXGPxrJDo1t0=;
+	s=korg; t=1758489999;
+	bh=odbcgsTBnCUbE3bJXw7PeockxsxNZm5SCaRk9hTakZw=;
 	h=Date:To:From:Subject:From;
-	b=hnxOfhQih5Y/p5CSk+8HqBMYLxh2rXTA5XcsSXmtYKAyDDxhdUkdWAn7C5E7pKsKR
-	 WVh1d+F9XbdKx5HYAAdCIlyWrkZwMeJUrrq4ogN/ZKEA/X1syZQ3Ugp42RLPFgNhjg
-	 /eaqfyU+6CsCt41w/g8e/Gi4R5jLLbpSSc5arlUE=
-Date: Sun, 21 Sep 2025 14:26:37 -0700
-To: mm-commits@vger.kernel.org,zuoze1@huawei.com,wangkefeng.wang@huawei.com,sj@kernel.org,yanquanmin1@huawei.com,akpm@linux-foundation.org
+	b=CislxugDMqp7DwK5wTLpMX288v6ZWq1xud0eMEFYMs67kpArsyt0qTDsSwLUgHrZ2
+	 Xcs4ewRvwk0nHSWrIerpZdt1dY/ZZ0Kmo4eGhZDgzADqUJw/G3Fjcbd77szXt9NOL9
+	 H1Ozv6nUeD7vv4ZiJuqb1IQszSOO9T3IAl1U5QFE=
+Date: Sun, 21 Sep 2025 14:26:38 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,sd@queasysnail.net,rppt@kernel.org,pabeni@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kuba@kernel.org,horms@kernel.org,edumazet@google.com,david@redhat.com,davem@davemloft.net,antonio@openvpn.net,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-reclaim-support-addr_unit-for-damon_reclaim.patch removed from -mm tree
-Message-Id: <20250921212637.B0C51C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-centralize-the-__always_unused-macro.patch removed from -mm tree
+Message-Id: <20250921212638.EC77FC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,108 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/reclaim: support addr_unit for DAMON_RECLAIM
+     Subject: selftests/mm: centralize the __always_unused macro
 has been removed from the -mm tree.  Its filename was
-     mm-damon-reclaim-support-addr_unit-for-damon_reclaim.patch
+     selftests-mm-centralize-the-__always_unused-macro.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Quanmin Yan <yanquanmin1@huawei.com>
-Subject: mm/damon/reclaim: support addr_unit for DAMON_RECLAIM
-Date: Wed, 10 Sep 2025 19:32:21 +0800
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests/mm: centralize the __always_unused macro
+Date: Fri, 12 Sep 2025 17:51:01 +0500
 
-Implement a sysfs file to expose addr_unit for DAMON_RECLAIM users. 
-During parameter application, use the configured addr_unit parameter to
-perform the necessary initialization.  Similar to the core layer, prevent
-setting addr_unit to zero.
+This macro gets used in different tests.  Add it to kselftest.h which is
+central location and tests use this header.  Then use this new macro.
 
-It is worth noting that when monitor_region_start and monitor_region_end
-are unset (i.e., 0), their values will later be set to biggest_system_ram.
-At that point, addr_unit may not be the default value 1.  Although we
-could divide the biggest_system_ram value by addr_unit, changing addr_unit
-without setting monitor_region_start/end should be considered a user
-misoperation.  And biggest_system_ram is only within the 0~ULONG_MAX
-range, system can clearly work correctly with addr_unit=1.  Therefore, if
-monitor_region_start/end are unset, always silently reset addr_unit to 1.
-
-Link: https://lkml.kernel.org/r/20250910113221.1065764-3-yanquanmin1@huawei.com
-Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: ze zuo <zuoze1@huawei.com>
+Link: https://lkml.kernel.org/r/20250912125102.1309796-1-usama.anjum@collabora.com
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Antonio Quartulli <antonio@openvpn.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kacinski <kuba@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: "Sabrina Dubroca" <sd@queasysnail.net>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Simon Horman <horms@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ tools/testing/selftests/kselftest.h          |    4 ++++
+ tools/testing/selftests/mm/protection_keys.c |    2 +-
+ tools/testing/selftests/net/ovpn/ovpn-cli.c  |    3 ++-
+ 3 files changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-support-addr_unit-for-damon_reclaim
-+++ a/mm/damon/reclaim.c
-@@ -129,6 +129,13 @@ static unsigned long monitor_region_end
- module_param(monitor_region_end, ulong, 0600);
+--- a/tools/testing/selftests/kselftest.h~selftests-mm-centralize-the-__always_unused-macro
++++ a/tools/testing/selftests/kselftest.h
+@@ -92,6 +92,10 @@
+ #endif
+ #define __printf(a, b)   __attribute__((format(printf, a, b)))
  
- /*
-+ * Scale factor for DAMON_RECLAIM to ops address conversion.
-+ *
-+ * This parameter must not be set to 0.
-+ */
-+static unsigned long addr_unit __read_mostly = 1;
++#ifndef __always_unused
++#define __always_unused __attribute__((__unused__))
++#endif
 +
-+/*
-  * Skip anonymous pages reclamation.
-  *
-  * If this parameter is set as ``Y``, DAMON_RECLAIM does not reclaim anonymous
-@@ -194,6 +201,15 @@ static int damon_reclaim_apply_parameter
- 	if (err)
- 		return err;
+ #ifndef __maybe_unused
+ #define __maybe_unused __attribute__((__unused__))
+ #endif
+--- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-centralize-the-__always_unused-macro
++++ a/tools/testing/selftests/mm/protection_keys.c
+@@ -1304,7 +1304,7 @@ static void test_mprotect_with_pkey_0(in
  
-+	/*
-+	 * If monitor_region_start/end are unset, always silently
-+	 * reset addr_unit to 1.
-+	 */
-+	if (!monitor_region_start && !monitor_region_end)
-+		addr_unit = 1;
-+	param_ctx->addr_unit = addr_unit;
-+	param_ctx->min_sz_region = max(DAMON_MIN_REGION / addr_unit, 1);
-+
- 	if (!damon_reclaim_mon_attrs.aggr_interval) {
- 		err = -EINVAL;
- 		goto out;
-@@ -294,6 +310,30 @@ static int damon_reclaim_turn(bool on)
- 	return damon_call(ctx, &call_control);
- }
- 
-+static int damon_reclaim_addr_unit_store(const char *val,
-+		const struct kernel_param *kp)
-+{
-+	unsigned long input_addr_unit;
-+	int err = kstrtoul(val, 0, &input_addr_unit);
-+
-+	if (err)
-+		return err;
-+	if (!input_addr_unit)
-+		return -EINVAL;
-+
-+	addr_unit = input_addr_unit;
-+	return 0;
-+}
-+
-+static const struct kernel_param_ops addr_unit_param_ops = {
-+	.set = damon_reclaim_addr_unit_store,
-+	.get = param_get_ulong,
-+};
-+
-+module_param_cb(addr_unit, &addr_unit_param_ops, &addr_unit, 0600);
-+MODULE_PARM_DESC(addr_unit,
-+	"Scale factor for DAMON_RECLAIM to ops address conversion (default: 1)");
-+
- static int damon_reclaim_enabled_store(const char *val,
- 		const struct kernel_param *kp)
+ static void test_ptrace_of_child(int *ptr, u16 pkey)
  {
+-	__attribute__((__unused__)) int peek_result;
++	__always_unused int peek_result;
+ 	pid_t child_pid;
+ 	void *ignored = 0;
+ 	long ret;
+--- a/tools/testing/selftests/net/ovpn/ovpn-cli.c~selftests-mm-centralize-the-__always_unused-macro
++++ a/tools/testing/selftests/net/ovpn/ovpn-cli.c
+@@ -32,9 +32,10 @@
+ 
+ #include <sys/socket.h>
+ 
++#include "../../kselftest.h"
++
+ /* defines to make checkpatch happy */
+ #define strscpy strncpy
+-#define __always_unused __attribute__((__unused__))
+ 
+ /* libnl < 3.5.0 does not set the NLA_F_NESTED on its own, therefore we
+  * have to explicitly do it to prevent the kernel from failing upon
 _
 
-Patches currently in -mm which might be from yanquanmin1@huawei.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
 
