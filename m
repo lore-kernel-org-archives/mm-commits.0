@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2892D21D3C0
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FFB21D3C0
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489992; cv=none; b=Al3BzKYJMqoUxndBYNG6apSGFIctYG9r0G5LJnxz6maQIv85PSbQ9owyVPv4h+fNFReHsOxXH8lDz8A29OO/3Bmi2eNu2Gam4Rdl5IktRmV4aDVAD/gewUBggLPvKvK9dD6iUfcSn9iUhjXeBI7+GK//gOhEJmRty5zhV4JLcgA=
+	t=1758489993; cv=none; b=KwN20xwHCB1yi6ChoMiK5xysHaUY0gYyjqf8L8IIajbF/NhBJoFIDmGibpZEQxlNj/dCUF5/7hI1pt25321rVYdMgoFvPjw4IA34z+YDo097FBvZG9uWO/VMJzm+Htgf3zvvpevOo5vfUrpUr6/1xqfqdplDeBPbY4+E8TFVX6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489992; c=relaxed/simple;
-	bh=ibcjc8fEd1ty8ATtkgTUm3JRZSJFTAj/rYuA5ggH7N0=;
-	h=Date:To:From:Subject:Message-Id; b=MYKE0O7H6NEpjf5oTDHm5+o3Gd4l8xWGVorYrFiV1wocsh6upBIXWasMM7dl52Pnra581pXcTOaD6v6OF0qjd7S293MeBEI9ZhxyZecPXDF+uqEI5hUZJCyZtlSh9X84ZZscvTueIKzHXyqzpXEcSHH1CN1J9EQFBPtwHYmJE+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HsaErlbH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489993; c=relaxed/simple;
+	bh=kgm3h4NbriXsCiHpJmm3PpHajAtA8t4+ZUAhe9kfiP8=;
+	h=Date:To:From:Subject:Message-Id; b=mlBN+XV2yqlQRCsa8+fMfPN+9ZYq90PCHt8RzAt08VbPRAowewRlN9Bwalz3fjyrZGNEpIJVZUWY2oDshNvFTq+M6MIfgWGO/+dckml58b++vWwj2AjrONaOgjkgnRi1zNfQ6SerrwtFAx0zenNIwa6OD+4A+L82iiRsmfcubnE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rVWdZ5Ir; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HsaErlbH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F013DC4CEE7;
-	Sun, 21 Sep 2025 21:26:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rVWdZ5Ir"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1923AC4CEE7;
+	Sun, 21 Sep 2025 21:26:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489992;
-	bh=ibcjc8fEd1ty8ATtkgTUm3JRZSJFTAj/rYuA5ggH7N0=;
+	s=korg; t=1758489993;
+	bh=kgm3h4NbriXsCiHpJmm3PpHajAtA8t4+ZUAhe9kfiP8=;
 	h=Date:To:From:Subject:From;
-	b=HsaErlbHsNPvrwFtLMdM38cOR8BpEbV15JHw8/jMfpugPmB6TXs3QcHdhxdZW+fNu
-	 QDtknx7FR32Md8XEcogaOzHxxUNEX0/RNK/rQLn0ipYBCIAWoFayhed4z63Lq283H/
-	 zVb8OgnXo43gvLKks6Ii2W+9BxKfOefECIooqqM8=
-Date: Sun, 21 Sep 2025 14:26:31 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=rVWdZ5Iri7dZrcpSGQJTsdVReSpdh1R6KSqhhYfaLTewylf3GH7FBcjqif9tJPXno
+	 l5cIhRTMAg6IAS61vvyCM7N11fweNGd0Guxz6vwBNU3G7ofHNSUNXxaPqrrax4qF95
+	 H9zPFwSnqjucvy/I2cy499VH5msmwBWVoC+0pyBk=
+Date: Sun, 21 Sep 2025 14:26:32 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-constify-compound_order-and-page_size.patch removed from -mm tree
-Message-Id: <20250921212631.F013DC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-redundant-test-in-validate_page_before_insert.patch removed from -mm tree
+Message-Id: <20250921212633.1923AC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: constify compound_order() and page_size()
+     Subject: mm: remove redundant test in validate_page_before_insert()
 has been removed from the -mm tree.  Its filename was
-     mm-constify-compound_order-and-page_size.patch
+     mm-remove-redundant-test-in-validate_page_before_insert.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: constify compound_order() and page_size()
-Date: Wed, 10 Sep 2025 15:29:17 +0100
+Subject: mm: remove redundant test in validate_page_before_insert()
+Date: Wed, 10 Sep 2025 15:29:18 +0100
 
-Patch series "Small cleanups".
+The page_has_type() call would have included slab since commit
+46df8e73a4a3 and now we don't even get that far because slab pages have a
+zero refcount since commit 9aec2fb0fd5e.
 
-These small cleanups can be applied now to reduce conflicts during the
-next merge window.  They're all from various efforts to split struct page
-from other memdescs.  Thanks to Vlastimil for the suggestion.
-
-
-This patch (of 3):
-
-These functions do not modify their arguments.  Telling the compiler this
-may improve code generation, and allows us to pass const arguments from
-other functions.
-
-Link: https://lkml.kernel.org/r/20250910142923.2465470-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20250910142923.2465470-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20250910142923.2465470-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-constify-compound_order-and-page_size
-+++ a/include/linux/mm.h
-@@ -1036,9 +1036,9 @@ static inline unsigned long folio_large_
-  * set before the order is initialised, or this may be a tail page.
-  * See compaction.c for some good examples.
-  */
--static inline unsigned int compound_order(struct page *page)
-+static inline unsigned int compound_order(const struct page *page)
- {
--	struct folio *folio = (struct folio *)page;
-+	const struct folio *folio = (struct folio *)page;
- 
- 	if (!test_bit(PG_head, &folio->flags.f))
+--- a/mm/memory.c~mm-remove-redundant-test-in-validate_page_before_insert
++++ a/mm/memory.c
+@@ -2266,8 +2266,7 @@ static int validate_page_before_insert(s
+ 			return -EINVAL;
  		return 0;
-@@ -1256,7 +1256,7 @@ int folio_mc_copy(struct folio *dst, str
- unsigned long nr_free_buffer_pages(void);
- 
- /* Returns the number of bytes in this potentially compound page. */
--static inline unsigned long page_size(struct page *page)
-+static inline unsigned long page_size(const struct page *page)
- {
- 	return PAGE_SIZE << compound_order(page);
- }
+ 	}
+-	if (folio_test_anon(folio) || folio_test_slab(folio) ||
+-	    page_has_type(page))
++	if (folio_test_anon(folio) || page_has_type(page))
+ 		return -EINVAL;
+ 	flush_dcache_folio(folio);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
