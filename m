@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EE312C21F3
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:27:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A1CA2C21D8
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:27:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758490030; cv=none; b=QHrXsNkctBWhW8vQqJPraK7nBYxPEPHKdCWEAWxKtB/ga8fyFusQTkIUvNREVzK5HGF3xGLHQ4GroGqX7YksIPAl2Z7HFXCvGASSYEqNtHZ0rH/q03QjP06zDWc725o5iBDaqOn7McaBIDrKcZgxqJbSFrwWGP6DKothRF3yENE=
+	t=1758490031; cv=none; b=RqD0aFKjZ9hIWOEn5nGCdeCct6NW8Nz2DEaGD0SE9ssAaB5vBcuA/jas4UY6F4st0IzYPMdQNwvAWGLtQkGIcuU6PBPwTKtCYBRocRSVx7CHmxbWyeOXV925ctPtO6OUfvRdY9dN0NWoKG82owFycW8AIP/YF73Y+Ziy41PN8Is=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758490030; c=relaxed/simple;
-	bh=9Hl0nV7ZR27AharsJXH85BDsmSjyzdnnBOi3YJ48bsI=;
-	h=Date:To:From:Subject:Message-Id; b=oMGHrhdRcfJiCl9+4B8GoRM1iMB1nljcD+s9ELgRFBxK5bvXFNowHTTM6VpxF/ccCKirgBl0pf1uEdTgB5OQXB29mRR2Gq9u9I+6Y2+iOGFBDGuMtnwrk9/8v1OqdpA424WrdQG/iuCIWeRxpY1IFcb1P8pYOsomKry3FZAO2Tc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JEVegdc3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758490031; c=relaxed/simple;
+	bh=udU8jCZ5H9miBluEz4WNwuAGmjeB1KyI5jw56LZHyZ8=;
+	h=Date:To:From:Subject:Message-Id; b=SN2C5sHxkQD2eqFy9FDKY0FC/YCzPRo2MoaebjkfyHreV2CmXa4mmXJOcu7zGRtOCkcrbFFJ+M6PJFyi9ebQHdjyasPaHfXeJqXgDL/CHETmPfmP842qAu4HlZlnq26jYzW+Bc+31qbCMkPSUthx3N77pV51GRiGFf3r1JA94ZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NdgTqkSa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JEVegdc3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AFA6C4CEE7;
-	Sun, 21 Sep 2025 21:27:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NdgTqkSa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71F82C4CEE7;
+	Sun, 21 Sep 2025 21:27:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758490030;
-	bh=9Hl0nV7ZR27AharsJXH85BDsmSjyzdnnBOi3YJ48bsI=;
+	s=korg; t=1758490031;
+	bh=udU8jCZ5H9miBluEz4WNwuAGmjeB1KyI5jw56LZHyZ8=;
 	h=Date:To:From:Subject:From;
-	b=JEVegdc3JpI03lLoUNcxYSWM7/wWEO3WtiTRTPGHkgwXpQ1dsMunjDRNMe+0O+1FP
-	 4lyqyPTrYkGdr87+ELX6MGZteM11uB/kSaUVGnFC/0aE2ur0zGwjD8q/kd413yWczl
-	 vFbFdk+ss0cAzAMGVbcM8ceC3cx4z7+KCVa2Lc+0=
-Date: Sun, 21 Sep 2025 14:27:09 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=NdgTqkSaCoSFV8XDiwo1S+AmsE9i0A3ba5cokYd2s+YfGYN55xAYVTJOwM02HWt75
+	 yFZ56GPxraJls2lOFXSuH9qELbTkF/CzpR4+B4eC/lnPg9SkI9lNW1LTh4zpJDZt8x
+	 +m+YWWXLotV/4eDt/vz4HFabdt5Mcfvk+WLhVVac=
+Date: Sun, 21 Sep 2025 14:27:10 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,willy@infradead.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kas@kernel.org,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-stat-expose-negative-idle-time.patch removed from -mm tree
-Message-Id: <20250921212710.0AFA6C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-enable-khugepaged-anonymous-collapse-on-non-writable-regions.patch removed from -mm tree
+Message-Id: <20250921212711.71F82C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,174 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/stat: expose negative idle time
+     Subject: mm: enable khugepaged anonymous collapse on non-writable regions
 has been removed from the -mm tree.  Its filename was
-     mm-damon-stat-expose-negative-idle-time.patch
+     mm-enable-khugepaged-anonymous-collapse-on-non-writable-regions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: expose negative idle time
-Date: Tue, 16 Sep 2025 11:31:27 -0700
+From: Dev Jain <dev.jain@arm.com>
+Subject: mm: enable khugepaged anonymous collapse on non-writable regions
+Date: Mon, 8 Sep 2025 13:20:27 +0530
 
-DAMON_STAT calculates the idle time of a region using the region's age if
-the region's nr_accesses is zero.  If the nr_accesses value is non-zero
-(positive), the idle time of the region becomes zero.
+Patch series "Expand scope of khugepaged anonymous collapse", v2.
 
-This means the users cannot know how warm and hot data is distributed,
-using DAMON_STAT's memory_idle_ms_percentiles output.  The other stat,
-namely estimated_memory_bandwidth, can help understanding how the overall
-access temperature of the system is, but it is still very rough
-information.  On production systems, actually, a significant portion of
-the system memory is observed with zero idle time, and we cannot break it
-down based on its internal hotness distribution.
+Currently khugepaged does not collapse an anonymous region which does not
+have a single writable pte.  This is wasteful since a region mapped with
+non-writable ptes, for example, non-writable VMAs mapped by the
+application, won't benefit from THP collapse.
 
-Define the idle time of the region using its age, similar to those having
-zero nr_accesses, but multiples '-1' to distinguish it.  And expose that
-using the same parameter interface, memory_idle_ms_percentiles.
+An additional consequence of this constraint is that MADV_COLLAPSE does
+not perform a collapse on a non-writable VMA, and this restriction is
+nowhere to be found on the manpage - the restriction itself sounds wrong
+to me since the user knows the protection of the memory it has mapped, so
+collapsing read-only memory via madvise() should be a choice of the user
+which shouldn't be overridden by the kernel.
 
-Link: https://lkml.kernel.org/r/20250916183127.65708-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Therefore, remove this constraint.
+
+On an arm64 bare metal machine, comparing with vanilla 6.17-rc2, an
+average of 5% improvement is seen on some mmtests benchmarks, particularly
+hackbench, with a maximum improvement of 12%.  In the following table, (I)
+denotes statistically significant improvement, (R) denotes statistically
+significant regression.
+
++-------------------------+--------------------------------+---------------+
+| mmtests/hackbench       | process-pipes-1 (seconds)      |        -0.06% |
+|                         | process-pipes-4 (seconds)      |        -0.27% |
+|                         | process-pipes-7 (seconds)      |   (I) -12.13% |
+|                         | process-pipes-12 (seconds)     |    (I) -5.32% |
+|                         | process-pipes-21 (seconds)     |    (I) -2.87% |
+|                         | process-pipes-30 (seconds)     |    (I) -3.39% |
+|                         | process-pipes-48 (seconds)     |    (I) -5.65% |
+|                         | process-pipes-79 (seconds)     |    (I) -6.74% |
+|                         | process-pipes-110 (seconds)    |    (I) -6.26% |
+|                         | process-pipes-141 (seconds)    |    (I) -4.99% |
+|                         | process-pipes-172 (seconds)    |    (I) -4.45% |
+|                         | process-pipes-203 (seconds)    |    (I) -3.65% |
+|                         | process-pipes-234 (seconds)    |    (I) -3.45% |
+|                         | process-pipes-256 (seconds)    |    (I) -3.47% |
+|                         | process-sockets-1 (seconds)    |         2.13% |
+|                         | process-sockets-4 (seconds)    |         1.02% |
+|                         | process-sockets-7 (seconds)    |        -0.26% |
+|                         | process-sockets-12 (seconds)   |        -1.24% |
+|                         | process-sockets-21 (seconds)   |         0.01% |
+|                         | process-sockets-30 (seconds)   |        -0.15% |
+|                         | process-sockets-48 (seconds)   |         0.15% |
+|                         | process-sockets-79 (seconds)   |         1.45% |
+|                         | process-sockets-110 (seconds)  |        -1.64% |
+|                         | process-sockets-141 (seconds)  |    (I) -4.27% |
+|                         | process-sockets-172 (seconds)  |         0.30% |
+|                         | process-sockets-203 (seconds)  |        -1.71% |
+|                         | process-sockets-234 (seconds)  |        -1.94% |
+|                         | process-sockets-256 (seconds)  |        -0.71% |
+|                         | thread-pipes-1 (seconds)       |         0.66% |
+|                         | thread-pipes-4 (seconds)       |         1.66% |
+|                         | thread-pipes-7 (seconds)       |        -0.17% |
+|                         | thread-pipes-12 (seconds)      |    (I) -4.12% |
+|                         | thread-pipes-21 (seconds)      |    (I) -2.13% |
+|                         | thread-pipes-30 (seconds)      |    (I) -3.78% |
+|                         | thread-pipes-48 (seconds)      |    (I) -5.77% |
+|                         | thread-pipes-79 (seconds)      |    (I) -5.31% |
+|                         | thread-pipes-110 (seconds)     |    (I) -6.12% |
+|                         | thread-pipes-141 (seconds)     |    (I) -4.00% |
+|                         | thread-pipes-172 (seconds)     |    (I) -3.01% |
+|                         | thread-pipes-203 (seconds)     |    (I) -2.62% |
+|                         | thread-pipes-234 (seconds)     |    (I) -2.00% |
+|                         | thread-pipes-256 (seconds)     |    (I) -2.30% |
+|                         | thread-sockets-1 (seconds)     |     (R) 2.39% |
++-------------------------+--------------------------------+---------------+
+
++-------------------------+------------------------------------------------+
+| mmtests/sysbench-mutex  | sysbenchmutex-1 (usec)         |        -0.02% |
+|                         | sysbenchmutex-4 (usec)         |        -0.02% |
+|                         | sysbenchmutex-7 (usec)         |         0.00% |
+|                         | sysbenchmutex-12 (usec)        |         0.12% |
+|                         | sysbenchmutex-21 (usec)        |        -0.40% |
+|                         | sysbenchmutex-30 (usec)        |         0.08% |
+|                         | sysbenchmutex-48 (usec)        |         2.59% |
+|                         | sysbenchmutex-79 (usec)        |        -0.80% |
+|                         | sysbenchmutex-110 (usec)       |        -3.87% |
+|                         | sysbenchmutex-128 (usec)       |    (I) -4.46% |
++-------------------------+--------------------------------+---------------+
+
+
+This patch (of 2):
+
+Currently khugepaged does not collapse an anonymous region which does not
+have a single writable pte.  This is wasteful since a region mapped with
+non-writable ptes, for example, non-writable VMAs mapped by the
+application, won't benefit from THP collapse.
+
+An additional consequence of this constraint is that MADV_COLLAPSE does
+not perform a collapse on a non-writable VMA, and this restriction is
+nowhere to be found on the manpage - the restriction itself sounds wrong
+to me since the user knows the protection of the memory it has mapped, so
+collapsing read-only memory via madvise() should be a choice of the user
+which shouldn't be overridden by the kernel.
+
+Therefore, remove this restriction by not honouring SCAN_PAGE_RO.
+
+Link: https://lkml.kernel.org/r/20250908075028.38431-1-dev.jain@arm.com
+Link: https://lkml.kernel.org/r/20250908075028.38431-2-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Kiryl Shutsemau <kas@kernel.org>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Zach O'Keefe <zokeefe@google.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/khugepaged.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/mm/damon/stat.c~mm-damon-stat-expose-negative-idle-time
-+++ a/mm/damon/stat.c
-@@ -34,8 +34,8 @@ module_param(estimated_memory_bandwidth,
- MODULE_PARM_DESC(estimated_memory_bandwidth,
- 		"Estimated memory bandwidth usage in bytes per second");
- 
--static unsigned long memory_idle_ms_percentiles[101] __read_mostly = {0,};
--module_param_array(memory_idle_ms_percentiles, ulong, NULL, 0400);
-+static long memory_idle_ms_percentiles[101] __read_mostly = {0,};
-+module_param_array(memory_idle_ms_percentiles, long, NULL, 0400);
- MODULE_PARM_DESC(memory_idle_ms_percentiles,
- 		"Memory idle time percentiles in milliseconds");
- 
-@@ -61,10 +61,10 @@ static void damon_stat_set_estimated_mem
- 		MSEC_PER_SEC / c->attrs.aggr_interval;
- }
- 
--static unsigned int damon_stat_idletime(const struct damon_region *r)
-+static int damon_stat_idletime(const struct damon_region *r)
- {
- 	if (r->nr_accesses)
--		return 0;
-+		return -1 * (r->age + 1);
- 	return r->age + 1;
- }
- 
-@@ -122,7 +122,7 @@ static void damon_stat_set_idletime_perc
- 		while (next_percentile <= accounted_bytes * 100 / total_sz)
- 			memory_idle_ms_percentiles[next_percentile++] =
- 				damon_stat_idletime(region) *
--				c->attrs.aggr_interval / USEC_PER_MSEC;
-+				(long)c->attrs.aggr_interval / USEC_PER_MSEC;
+--- a/mm/khugepaged.c~mm-enable-khugepaged-anonymous-collapse-on-non-writable-regions
++++ a/mm/khugepaged.c
+@@ -676,9 +676,7 @@ next:
+ 			writable = true;
  	}
- 	kfree(sorted_regions);
- }
+ 
+-	if (unlikely(!writable)) {
+-		result = SCAN_PAGE_RO;
+-	} else if (unlikely(cc->is_khugepaged && !referenced)) {
++	if (unlikely(cc->is_khugepaged && !referenced)) {
+ 		result = SCAN_LACK_REFERENCED_PAGE;
+ 	} else {
+ 		result = SCAN_SUCCEED;
+@@ -1421,9 +1419,7 @@ static int hpage_collapse_scan_pmd(struc
+ 		     mmu_notifier_test_young(vma->vm_mm, _address)))
+ 			referenced++;
+ 	}
+-	if (!writable) {
+-		result = SCAN_PAGE_RO;
+-	} else if (cc->is_khugepaged &&
++	if (cc->is_khugepaged &&
+ 		   (!referenced ||
+ 		    (unmapped && referenced < HPAGE_PMD_NR / 2))) {
+ 		result = SCAN_LACK_REFERENCED_PAGE;
+@@ -2830,7 +2826,6 @@ handle_result:
+ 		case SCAN_PMD_NULL:
+ 		case SCAN_PTE_NON_PRESENT:
+ 		case SCAN_PTE_UFFD_WP:
+-		case SCAN_PAGE_RO:
+ 		case SCAN_LACK_REFERENCED_PAGE:
+ 		case SCAN_PAGE_NULL:
+ 		case SCAN_PAGE_COUNT:
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-damon-sysfs-set-damon_ctx-min_sz_region-only-for-paddr-use-case.patch
+mm-remove-pmd-alignment-constraint-in-execmem_vmalloc.patch
 
