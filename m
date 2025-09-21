@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F61034BA47
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 16:52:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EF12256C6D
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 16:52:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758473538; cv=none; b=XxDemKZ3uR/cWmqXnqp7j+0xchOAy/FlxA13J7qmIvz8kLVdHVh+fwey4EKjJq/JnUmk/LON9uLu3MFiqQqqOcg5S2oNhWnLAdFz867EAfzVB61s6LyvyRgZREdbIls6cbp9hBo9RbZfZV0oPyjcNHJDCPUUvhsyGdRUriuI6Pg=
+	t=1758473540; cv=none; b=MyjVhS7/1HMxCDP0kHAO7nEjAUhjXkg2fZ6xq4UQ5fkfQlUz0Zqgm4TfjEEJHI8O2X4ap1l+m4i0FyKFV+W0NiAakZclI27K+u6K/y3uAE4oD4ytxN5ZoKH1kW0YJ4dAxfWIUkMlhJ9RcurbJEU5gH1C5hs/JWxm9TZv6TTFo2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758473538; c=relaxed/simple;
-	bh=bef5nRZSVg5UlH7SDppErYaGeXLTwDP6sV65uUYlQgg=;
-	h=Date:To:From:Subject:Message-Id; b=nm6W64DhPyPLk73ObpJWGRMzw6LtPZ4VmHAkgDYhGfQ6Mpz1L3zcPsbf++W+xaXDPepf3Bv2TSZ+dQi5IEOSu+gzunrqsVYYkCLdUUTZ58eVJZX4mgLBXLBLcHVl7ZI1Psn3my8S0Z+f6SmKWGjRNu4DDDiy7rLNFWHFZJiDhEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e4rvpReh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758473540; c=relaxed/simple;
+	bh=OWxWY2T9P0lo6hAMdAex4APgN/hY8m/t9m4kXwXvwsU=;
+	h=Date:To:From:Subject:Message-Id; b=GRaPsXUishszKdwIc1HrltJsV7FZ0Svd7c7/jTGMHVci1bHUVFbJWb6UqjiW932ddKZEoS8zxw8QRpWGCquRsOdk0L8qzm9TqkIG37/49TMYRBV6vc6kt4XNSlM5b3L7KqI/K0jGsnkouBFs7b9CWSYuksCDhwJ9A3akNrS8ic8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wMrbFfLJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e4rvpReh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3F54C4CEE7;
-	Sun, 21 Sep 2025 16:52:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wMrbFfLJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8C31C4CEE7;
+	Sun, 21 Sep 2025 16:52:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758473537;
-	bh=bef5nRZSVg5UlH7SDppErYaGeXLTwDP6sV65uUYlQgg=;
+	s=korg; t=1758473539;
+	bh=OWxWY2T9P0lo6hAMdAex4APgN/hY8m/t9m4kXwXvwsU=;
 	h=Date:To:From:Subject:From;
-	b=e4rvpRehvbsKx0yiy+cH2c+KUemH8iJ83humxIKbgGb+VZP+svtSH0BmDKO0bL+OR
-	 YvBNBfeQ/bDShlgxeSe+q6EsHB5Z9+r/H6o4WhvelljU22uV/dsNbsbYVLz5GCTJ6k
-	 YDk7CWvSAfnMoOJTFuWhHNVC4f56RLbSUElHPSGk=
-Date: Sun, 21 Sep 2025 09:52:17 -0700
+	b=wMrbFfLJtEBFd+tY19IqA/B7fBteUO81uNviTToLvJczkQaXxZC3ytxQcbJo5koID
+	 Y6E66deChILfVeKEIse9sfiGYLoeDiZsLcMVO7Dhd7VM4U7xy79wqTstIT4Mt8dMqH
+	 jUb9DGWw9zb9gEk/M3kks69aN6Bt01L9T2cHLGBs=
+Date: Sun, 21 Sep 2025 09:52:19 -0700
 To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,graf@amazon.com,chrisl@kernel.org,changyuanl@google.com,bhe@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-check-if-kho-is-finalized-in-__kho_preserve_order.patch added to mm-nonmm-unstable branch
-Message-Id: <20250921165217.B3F54C4CEE7@smtp.kernel.org>
+Subject: + kho-replace-kho_preserve_phys-with-kho_preserve_pages.patch added to mm-nonmm-unstable branch
+Message-Id: <20250921165219.C8C31C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: check if kho is finalized in __kho_preserve_order()
+     Subject: kho: replace kho_preserve_phys() with kho_preserve_pages()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-check-if-kho-is-finalized-in-__kho_preserve_order.patch
+     kho-replace-kho_preserve_phys-with-kho_preserve_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-check-if-kho-is-finalized-in-__kho_preserve_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-replace-kho_preserve_phys-with-kho_preserve_pages.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,141 +59,122 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: kho: check if kho is finalized in __kho_preserve_order()
-Date: Sun, 21 Sep 2025 08:44:55 +0300
+Subject: kho: replace kho_preserve_phys() with kho_preserve_pages()
+Date: Sun, 21 Sep 2025 08:44:56 +0300
 
-Patch series "kho: add support for preserving vmalloc allocations", v5.
+to make it clear that KHO operates on pages rather than on a random
+physical address.
 
-Following the discussion about preservation of memfd with LUO [1] these
-patches add support for preserving vmalloc allocations.
+The kho_preserve_pages() will be also used in upcoming support for vmalloc
+preservation.
 
-Any KHO uses case presumes that there's a data structure that lists
-physical addresses of preserved folios (and potentially some additional
-metadata).  Allowing vmalloc preservations with KHO allows scalable
-preservation of such data structures.
-
-For instance, instead of allocating array describing preserved folios in
-the fdt, memfd preservation can use vmalloc:
-
-        preserved_folios = vmalloc_array(nr_folios, sizeof(*preserved_folios));
-        memfd_luo_preserve_folios(preserved_folios, folios, nr_folios);
-        kho_preserve_vmalloc(preserved_folios, &folios_info);
-
-
-This patch (of 4):
-
-Instead of checking if kho is finalized in each caller of
-__kho_preserve_order(), do it in the core function itself.
-
-Link: https://lkml.kernel.org/r/20250921054458.4043761-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20250921054458.4043761-2-rppt@kernel.org
-Link: https://lore.kernel.org/all/20250807014442.3829950-30-pasha.tatashin@soleen.com [1]
+Link: https://lkml.kernel.org/r/20250921054458.4043761-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Changyuan Lyu <changyuanl@google.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_handover.c |   55 +++++++++++++++++---------------------
- 1 file changed, 26 insertions(+), 29 deletions(-)
+ include/linux/kexec_handover.h |    5 +++--
+ kernel/kexec_handover.c        |   25 +++++++++++--------------
+ mm/memblock.c                  |    4 +++-
+ 3 files changed, 17 insertions(+), 17 deletions(-)
 
---- a/kernel/kexec_handover.c~kho-check-if-kho-is-finalized-in-__kho_preserve_order
+--- a/include/linux/kexec_handover.h~kho-replace-kho_preserve_phys-with-kho_preserve_pages
++++ a/include/linux/kexec_handover.h
+@@ -18,6 +18,7 @@ enum kho_event {
+ 
+ struct folio;
+ struct notifier_block;
++struct page;
+ 
+ #define DECLARE_KHOSER_PTR(name, type) \
+ 	union {                        \
+@@ -43,7 +44,7 @@ bool kho_is_enabled(void);
+ bool is_kho_boot(void);
+ 
+ int kho_preserve_folio(struct folio *folio);
+-int kho_preserve_phys(phys_addr_t phys, size_t size);
++int kho_preserve_pages(struct page *page, unsigned int nr_pages);
+ struct folio *kho_restore_folio(phys_addr_t phys);
+ int kho_add_subtree(struct kho_serialization *ser, const char *name, void *fdt);
+ int kho_retrieve_subtree(const char *name, phys_addr_t *phys);
+@@ -71,7 +72,7 @@ static inline int kho_preserve_folio(str
+ 	return -EOPNOTSUPP;
+ }
+ 
+-static inline int kho_preserve_phys(phys_addr_t phys, size_t size)
++static inline int kho_preserve_pages(struct page *page, unsigned int nr_pages)
+ {
+ 	return -EOPNOTSUPP;
+ }
+--- a/kernel/kexec_handover.c~kho-replace-kho_preserve_phys-with-kho_preserve_pages
 +++ a/kernel/kexec_handover.c
-@@ -107,6 +107,29 @@ struct kho_serialization {
- 	struct khoser_mem_chunk *preserved_mem_map;
- };
- 
-+struct kho_out {
-+	struct blocking_notifier_head chain_head;
-+
-+	struct dentry *dir;
-+
-+	struct mutex lock; /* protects KHO FDT finalization */
-+
-+	struct kho_serialization ser;
-+	bool finalized;
-+};
-+
-+static struct kho_out kho_out = {
-+	.chain_head = BLOCKING_NOTIFIER_INIT(kho_out.chain_head),
-+	.lock = __MUTEX_INITIALIZER(kho_out.lock),
-+	.ser = {
-+		.fdt_list = LIST_HEAD_INIT(kho_out.ser.fdt_list),
-+		.track = {
-+			.orders = XARRAY_INIT(kho_out.ser.track.orders, 0),
-+		},
-+	},
-+	.finalized = false,
-+};
-+
- static void *xa_load_or_alloc(struct xarray *xa, unsigned long index, size_t sz)
- {
- 	void *elm, *res;
-@@ -165,6 +188,9 @@ static int __kho_preserve_order(struct k
- 
- 	might_sleep();
- 
-+	if (kho_out.finalized)
-+		return -EBUSY;
-+
- 	physxa = xa_load(&track->orders, order);
- 	if (!physxa) {
- 		int err;
-@@ -667,29 +693,6 @@ int kho_add_subtree(struct kho_serializa
- }
- EXPORT_SYMBOL_GPL(kho_add_subtree);
- 
--struct kho_out {
--	struct blocking_notifier_head chain_head;
--
--	struct dentry *dir;
--
--	struct mutex lock; /* protects KHO FDT finalization */
--
--	struct kho_serialization ser;
--	bool finalized;
--};
--
--static struct kho_out kho_out = {
--	.chain_head = BLOCKING_NOTIFIER_INIT(kho_out.chain_head),
--	.lock = __MUTEX_INITIALIZER(kho_out.lock),
--	.ser = {
--		.fdt_list = LIST_HEAD_INIT(kho_out.ser.fdt_list),
--		.track = {
--			.orders = XARRAY_INIT(kho_out.ser.track.orders, 0),
--		},
--	},
--	.finalized = false,
--};
--
- int register_kho_notifier(struct notifier_block *nb)
- {
- 	return blocking_notifier_chain_register(&kho_out.chain_head, nb);
-@@ -717,9 +720,6 @@ int kho_preserve_folio(struct folio *fol
- 	const unsigned int order = folio_order(folio);
- 	struct kho_mem_track *track = &kho_out.ser.track;
- 
--	if (kho_out.finalized)
--		return -EBUSY;
--
- 	return __kho_preserve_order(track, pfn, order);
- }
+@@ -725,26 +725,23 @@ int kho_preserve_folio(struct folio *fol
  EXPORT_SYMBOL_GPL(kho_preserve_folio);
-@@ -743,9 +743,6 @@ int kho_preserve_phys(phys_addr_t phys,
+ 
+ /**
+- * kho_preserve_phys - preserve a physically contiguous range across kexec.
+- * @phys: physical address of the range.
+- * @size: size of the range.
++ * kho_preserve_pages - preserve contiguous pages across kexec
++ * @page: first page in the list.
++ * @nr_pages: number of pages.
+  *
+- * Instructs KHO to preserve the memory range from @phys to @phys + @size
+- * across kexec.
++ * Preserve a contiguous list of order 0 pages. Must be restored using
++ * kho_restore_pages() to ensure the pages are restored properly as order 0.
+  *
+  * Return: 0 on success, error code on failure
+  */
+-int kho_preserve_phys(phys_addr_t phys, size_t size)
++int kho_preserve_pages(struct page *page, unsigned int nr_pages)
+ {
+-	unsigned long pfn = PHYS_PFN(phys);
++	struct kho_mem_track *track = &kho_out.ser.track;
++	const unsigned long start_pfn = page_to_pfn(page);
++	const unsigned long end_pfn = start_pfn + nr_pages;
++	unsigned long pfn = start_pfn;
+ 	unsigned long failed_pfn = 0;
+-	const unsigned long start_pfn = pfn;
+-	const unsigned long end_pfn = PHYS_PFN(phys + size);
  	int err = 0;
- 	struct kho_mem_track *track = &kho_out.ser.track;
- 
--	if (kho_out.finalized)
--		return -EBUSY;
+-	struct kho_mem_track *track = &kho_out.ser.track;
 -
- 	if (!PAGE_ALIGNED(phys) || !PAGE_ALIGNED(size))
- 		return -EINVAL;
+-	if (!PAGE_ALIGNED(phys) || !PAGE_ALIGNED(size))
+-		return -EINVAL;
  
+ 	while (pfn < end_pfn) {
+ 		const unsigned int order =
+@@ -764,7 +761,7 @@ int kho_preserve_phys(phys_addr_t phys,
+ 
+ 	return err;
+ }
+-EXPORT_SYMBOL_GPL(kho_preserve_phys);
++EXPORT_SYMBOL_GPL(kho_preserve_pages);
+ 
+ /* Handling for debug/kho/out */
+ 
+--- a/mm/memblock.c~kho-replace-kho_preserve_phys-with-kho_preserve_pages
++++ a/mm/memblock.c
+@@ -2516,8 +2516,10 @@ static int reserve_mem_kho_finalize(stru
+ 
+ 	for (i = 0; i < reserved_mem_count; i++) {
+ 		struct reserve_mem_table *map = &reserved_mem_table[i];
++		struct page *page = phys_to_page(map->start);
++		unsigned int nr_pages = map->size >> PAGE_SHIFT;
+ 
+-		err |= kho_preserve_phys(map->start, map->size);
++		err |= kho_preserve_pages(page, nr_pages);
+ 	}
+ 
+ 	err |= kho_preserve_folio(page_folio(kho_fdt));
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
