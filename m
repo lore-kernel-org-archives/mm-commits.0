@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51F6228DB3
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B556C28DB3
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489851; cv=none; b=Ti3Nx0hi2PF1qwhxxE/+F7j61lEJLECQgWeMHpYK7YOsUvmje5Fw4cvlbSK92evhgV5fU0JfzulTRy1p2zMI5h8bvaCtqBqCULbnsvu5kpAuZZoQgE+KNtQ1wsmasl2WvS66RseR5LgElEFu/QTYUkHv4W5IsfRJJiyzeRGuTeg=
+	t=1758489852; cv=none; b=RyUGx7gZUqQh8GJJ4uLLDGIO/rsDHYr+mL/Gk+V01H/u02wbEAZv8J7qXDZXV8jVy0uyPGkwQy7UL/EJivpevU/2cdKOeHUUevasoEWvgZPDj4f3ELGvwfoymjiZx+iZJFI4bK4gAxWcnBeoG4XW7XNHoJOtumySOHtlUBrJIdI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489851; c=relaxed/simple;
-	bh=zCmuj/1BaIBnChPWVDvhtBSUTKoiBAdRjeBjC2T+W8I=;
-	h=Date:To:From:Subject:Message-Id; b=k4HVL08IFBmY52dbbuS9BH2c8Fbrkk/WRjAMIFa2K88S3felcm87qujtP6d3HRMesQciCFfqA0tQvgeD8B0MpJ06cfWYn1eqmlOwJgk4HJcI20wxne4NkITaNYDX4ehWATNJ/yd1lSKLbNVB/CKE4djZgJmxEnf+1fiPMZyR6Lk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XiHoyR5w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489852; c=relaxed/simple;
+	bh=psECZE85N0GVNnSQ3m44gAZl/519q17zn+QG38KrQ2s=;
+	h=Date:To:From:Subject:Message-Id; b=Mk6ezTISGgq9o6U2lRkFXTcy0tsBwi8l2Mf+OOmf024Du4htQ/ascQ71+negBAyTxzkiAf0SHEMcp/CutsEXRFBEJpSwfaD66r/lKV0rMgTQscQx4IbkEDnF7LdMdzBXgmD5wHZUeEYn2CBTYvElcBSicrv47WiNJYvulCPrTM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2sHh5Sk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XiHoyR5w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EF21C4CEE7;
-	Sun, 21 Sep 2025 21:24:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2sHh5Sk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B71CC4CEE7;
+	Sun, 21 Sep 2025 21:24:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489851;
-	bh=zCmuj/1BaIBnChPWVDvhtBSUTKoiBAdRjeBjC2T+W8I=;
+	s=korg; t=1758489852;
+	bh=psECZE85N0GVNnSQ3m44gAZl/519q17zn+QG38KrQ2s=;
 	h=Date:To:From:Subject:From;
-	b=XiHoyR5wiYaJ8Cfl5ugmMyT3Pm+m+TdBP5GNAJmiyr4SIEXjk9fgkar45Fl8v0Njv
-	 L4enXNoffEeTox0SMEECcZy+qwsP/KXGRyV7sjrlKd217lI8VjZkaHh5upA1tSzYJz
-	 suaYdwmjbhrvUwd2HxkgIvhFenHbj2NESU4niPHo=
-Date: Sun, 21 Sep 2025 14:24:10 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=G2sHh5SkmVc6HrRT+/XzozKa6Je6dQnWSQxDCeyegx4spEmXFJljNYNtHiWbGV3P9
+	 d000r/2xNbnrPtGlDjnR5ZR7AxWXHDEcwysagrptypb3XLwDdlX3//gCPzpSzyDFOm
+	 5TZrzdddu+S7vI0lujgOI5+vSSUJ4WxgD49md1BM=
+Date: Sun, 21 Sep 2025 14:24:12 -0700
+To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,will@kernel.org,vincenzo.frascino@arm.com,scott@os.amperecomputing.com,ryabinin.a.a@gmail.com,pankaj.gupta@amd.com,oliver.upton@linux.dev,maz@kernel.org,leitao@debian.org,kaleshsingh@google.com,jhubbard@nvidia.com,james.morse@arm.com,hardevsinh.palaniya@siliconsignals.io,glider@google.com,dvyukov@google.com,david@redhat.com,corbet@lwn.net,catalin.marinas@arm.com,broonie@kernel.org,ardb@kernel.org,andreyknvl@gmail.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-nth_page.patch removed from -mm tree
-Message-Id: <20250921212411.1EF21C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-hw-tags-introduce-kasanwrite_only-option.patch removed from -mm tree
+Message-Id: <20250921212412.8B71CC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,290 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove nth_page()
+     Subject: kasan/hw-tags: introduce kasan.write_only option
 has been removed from the -mm tree.  Its filename was
-     mm-remove-nth_page.patch
+     kasan-hw-tags-introduce-kasanwrite_only-option.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove nth_page()
-Date: Mon, 1 Sep 2025 17:03:58 +0200
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: kasan/hw-tags: introduce kasan.write_only option
+Date: Tue, 16 Sep 2025 23:27:54 +0100
 
-Now that all users are gone, let's remove it.
+Patch series "introduce kasan.write_only option in hw-tags", v8.
 
-Link: https://lkml.kernel.org/r/20250901150359.867252-38-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Hardware tag based KASAN is implemented using the Memory Tagging Extension
+(MTE) feature.
+
+MTE is built on top of the ARMv8.0 virtual address tagging TBI (Top Byte
+Ignore) feature and allows software to access a 4-bit allocation tag for
+each 16-byte granule in the physical address space.  A logical tag is
+derived from bits 59-56 of the virtual address used for the memory access.
+A CPU with MTE enabled will compare the logical tag against the
+allocation tag and potentially raise an tag check fault on mismatch,
+subject to system registers configuration.
+
+Since ARMv8.9, FEAT_MTE_STORE_ONLY can be used to restrict raise of tag
+check fault on store operation only.
+
+Using this feature (FEAT_MTE_STORE_ONLY), introduce KASAN write-only mode
+which restricts KASAN check write (store) operation only.  This mode omits
+KASAN check for read (fetch/load) operation.  Therefore, it might be used
+not only debugging purpose but also in normal environment.
+
+
+This patch (of 2):
+
+Since Armv8.9, FEATURE_MTE_STORE_ONLY feature is introduced to restrict
+raise of tag check fault on store operation only.  Introduce KASAN write
+only mode based on this feature.
+
+KASAN write only mode restricts KASAN checks operation for write only and
+omits the checks for fetch/read operations when accessing memory.  So it
+might be used not only debugging enviroment but also normal enviroment to
+check memory safty.
+
+This features can be controlled with "kasan.write_only" arguments.  When
+"kasan.write_only=on", KASAN checks write operation only otherwise KASAN
+checks all operations.
+
+This changes the MTE_STORE_ONLY feature as BOOT_CPU_FEATURE like
+ARM64_MTE_ASYMM so that makes it initialise in kasan_init_hw_tags() with
+other function together.
+
+Link: https://lkml.kernel.org/r/20250916222755.466009-1-yeoreum.yun@arm.com
+Link: https://lkml.kernel.org/r/20250916222755.466009-2-yeoreum.yun@arm.com
+Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: D Scott Phillips <scott@os.amperecomputing.com>
+Cc: Hardevsinh Palaniya <hardevsinh.palaniya@siliconsignals.io>
+Cc: James Morse <james.morse@arm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: levi.yun <yeoreum.yun@arm.com>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Oliver Upton <oliver.upton@linux.dev>
+Cc: Pankaj Gupta <pankaj.gupta@amd.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h                   |    2 --
- tools/testing/scatterlist/linux/mm.h |    1 -
- 2 files changed, 3 deletions(-)
+ Documentation/dev-tools/kasan.rst  |    3 +
+ arch/arm64/include/asm/memory.h    |    1 
+ arch/arm64/include/asm/mte-kasan.h |    6 +++
+ arch/arm64/kernel/cpufeature.c     |    2 -
+ arch/arm64/kernel/mte.c            |   18 ++++++++++
+ mm/kasan/hw_tags.c                 |   45 +++++++++++++++++++++++++--
+ mm/kasan/kasan.h                   |    7 ++++
+ 7 files changed, 79 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-nth_page
-+++ a/include/linux/mm.h
-@@ -210,9 +210,7 @@ extern unsigned long sysctl_admin_reserv
+--- a/arch/arm64/include/asm/memory.h~kasan-hw-tags-introduce-kasanwrite_only-option
++++ a/arch/arm64/include/asm/memory.h
+@@ -308,6 +308,7 @@ static inline const void *__tag_set(cons
+ #define arch_enable_tag_checks_sync()		mte_enable_kernel_sync()
+ #define arch_enable_tag_checks_async()		mte_enable_kernel_async()
+ #define arch_enable_tag_checks_asymm()		mte_enable_kernel_asymm()
++#define arch_enable_tag_checks_write_only()	mte_enable_kernel_store_only()
+ #define arch_suppress_tag_checks_start()	mte_enable_tco()
+ #define arch_suppress_tag_checks_stop()		mte_disable_tco()
+ #define arch_force_async_tag_fault()		mte_check_tfsr_exit()
+--- a/arch/arm64/include/asm/mte-kasan.h~kasan-hw-tags-introduce-kasanwrite_only-option
++++ a/arch/arm64/include/asm/mte-kasan.h
+@@ -200,6 +200,7 @@ static inline void mte_set_mem_tag_range
+ void mte_enable_kernel_sync(void);
+ void mte_enable_kernel_async(void);
+ void mte_enable_kernel_asymm(void);
++int mte_enable_kernel_store_only(void);
  
- #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- bool page_range_contiguous(const struct page *page, unsigned long nr_pages);
--#define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
- #else
--#define nth_page(page,n) ((page) + (n))
- static inline bool page_range_contiguous(const struct page *page,
- 		unsigned long nr_pages)
+ #else /* CONFIG_ARM64_MTE */
+ 
+@@ -251,6 +252,11 @@ static inline void mte_enable_kernel_asy
  {
---- a/tools/testing/scatterlist/linux/mm.h~mm-remove-nth_page
-+++ a/tools/testing/scatterlist/linux/mm.h
-@@ -51,7 +51,6 @@ static inline unsigned long page_to_phys
+ }
  
- #define page_to_pfn(page) ((unsigned long)(page) / PAGE_SIZE)
- #define pfn_to_page(pfn) (void *)((pfn) * PAGE_SIZE)
--#define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
++static inline int mte_enable_kernel_store_only(void)
++{
++	return -EINVAL;
++}
++
+ #endif /* CONFIG_ARM64_MTE */
  
- #define __min(t1, t2, min1, min2, x, y) ({              \
- 	t1 min1 = (x);                                  \
+ #endif /* __ASSEMBLY__ */
+--- a/arch/arm64/kernel/cpufeature.c~kasan-hw-tags-introduce-kasanwrite_only-option
++++ a/arch/arm64/kernel/cpufeature.c
+@@ -2945,7 +2945,7 @@ static const struct arm64_cpu_capabiliti
+ 	{
+ 		.desc = "Store Only MTE Tag Check",
+ 		.capability = ARM64_MTE_STORE_ONLY,
+-		.type = ARM64_CPUCAP_SYSTEM_FEATURE,
++		.type = ARM64_CPUCAP_BOOT_CPU_FEATURE,
+ 		.matches = has_cpuid_feature,
+ 		ARM64_CPUID_FIELDS(ID_AA64PFR2_EL1, MTESTOREONLY, IMP)
+ 	},
+--- a/arch/arm64/kernel/mte.c~kasan-hw-tags-introduce-kasanwrite_only-option
++++ a/arch/arm64/kernel/mte.c
+@@ -157,6 +157,24 @@ void mte_enable_kernel_asymm(void)
+ 		mte_enable_kernel_sync();
+ 	}
+ }
++
++int mte_enable_kernel_store_only(void)
++{
++	/*
++	 * If the CPU does not support MTE store only,
++	 * the kernel checks all operations.
++	 */
++	if (!cpus_have_cap(ARM64_MTE_STORE_ONLY))
++		return -EINVAL;
++
++	sysreg_clear_set(sctlr_el1, SCTLR_EL1_TCSO_MASK,
++			 SYS_FIELD_PREP(SCTLR_EL1, TCSO, 1));
++	isb();
++
++	pr_info_once("MTE: enabled store only mode at EL1\n");
++
++	return 0;
++}
+ #endif
+ 
+ #ifdef CONFIG_KASAN_HW_TAGS
+--- a/Documentation/dev-tools/kasan.rst~kasan-hw-tags-introduce-kasanwrite_only-option
++++ a/Documentation/dev-tools/kasan.rst
+@@ -143,6 +143,9 @@ disabling KASAN altogether or controllin
+   Asymmetric mode: a bad access is detected synchronously on reads and
+   asynchronously on writes.
+ 
++- ``kasan.write_only=off`` or ``kasan.write_only=on`` controls whether KASAN
++  checks the write (store) accesses only or all accesses (default: ``off``).
++
+ - ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
+   allocations (default: ``on``).
+ 
+--- a/mm/kasan/hw_tags.c~kasan-hw-tags-introduce-kasanwrite_only-option
++++ a/mm/kasan/hw_tags.c
+@@ -60,6 +60,9 @@ DEFINE_STATIC_KEY_FALSE(kasan_flag_vmall
+ #endif
+ EXPORT_SYMBOL_GPL(kasan_flag_vmalloc);
+ 
++/* Whether to check write accesses only. */
++static bool kasan_flag_write_only = false;
++
+ #define PAGE_ALLOC_SAMPLE_DEFAULT	1
+ #define PAGE_ALLOC_SAMPLE_ORDER_DEFAULT	3
+ 
+@@ -134,6 +137,23 @@ static int __init early_kasan_flag_vmall
+ }
+ early_param("kasan.vmalloc", early_kasan_flag_vmalloc);
+ 
++/* kasan.write_only=off/on */
++static int __init early_kasan_flag_write_only(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	if (!strcmp(arg, "off"))
++		kasan_flag_write_only = false;
++	else if (!strcmp(arg, "on"))
++		kasan_flag_write_only = true;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++early_param("kasan.write_only", early_kasan_flag_write_only);
++
+ static inline const char *kasan_mode_info(void)
+ {
+ 	if (kasan_mode == KASAN_MODE_ASYNC)
+@@ -255,10 +275,11 @@ void __init kasan_init_hw_tags(void)
+ 	/* KASAN is now initialized, enable it. */
+ 	kasan_enable();
+ 
+-	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s)\n",
++	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s, write_only=%s)\n",
+ 		kasan_mode_info(),
+ 		str_on_off(kasan_vmalloc_enabled()),
+-		str_on_off(kasan_stack_collection_enabled()));
++		str_on_off(kasan_stack_collection_enabled()),
++		str_on_off(kasan_flag_write_only));
+ }
+ 
+ #ifdef CONFIG_KASAN_VMALLOC
+@@ -385,6 +406,20 @@ void kasan_enable_hw_tags(void)
+ 		hw_enable_tag_checks_asymm();
+ 	else
+ 		hw_enable_tag_checks_sync();
++
++	/*
++	 * CPUs can only be in one of two states:
++	 *   - All CPUs support the write_only feature
++	 *   - No CPUs support the write_only feature
++	 *
++	 * If the first CPU attempts hw_enable_tag_checks_write_only() and
++	 * finds the feature unsupported, kasan_flag_write_only is set to OFF
++	 * to avoid further unnecessary calls on other CPUs.
++	 */
++	if (kasan_flag_write_only && hw_enable_tag_checks_write_only()) {
++		kasan_flag_write_only = false;
++		pr_err_once("write-only mode is not supported and thus not enabled\n");
++	}
+ }
+ 
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+@@ -397,4 +432,10 @@ VISIBLE_IF_KUNIT void kasan_force_async_
+ }
+ EXPORT_SYMBOL_IF_KUNIT(kasan_force_async_fault);
+ 
++VISIBLE_IF_KUNIT bool kasan_write_only_enabled(void)
++{
++	return kasan_flag_write_only;
++}
++EXPORT_SYMBOL_IF_KUNIT(kasan_write_only_enabled);
++
+ #endif
+--- a/mm/kasan/kasan.h~kasan-hw-tags-introduce-kasanwrite_only-option
++++ a/mm/kasan/kasan.h
+@@ -437,6 +437,7 @@ static inline const void *arch_kasan_set
+ #define hw_suppress_tag_checks_start()		arch_suppress_tag_checks_start()
+ #define hw_suppress_tag_checks_stop()		arch_suppress_tag_checks_stop()
+ #define hw_force_async_tag_fault()		arch_force_async_tag_fault()
++#define hw_enable_tag_checks_write_only()	arch_enable_tag_checks_write_only()
+ #define hw_get_random_tag()			arch_get_random_tag()
+ #define hw_get_mem_tag(addr)			arch_get_mem_tag(addr)
+ #define hw_set_mem_tag_range(addr, size, tag, init) \
+@@ -457,11 +458,17 @@ void __init kasan_init_tags(void);
+ #if defined(CONFIG_KASAN_HW_TAGS) && IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+ void kasan_force_async_fault(void);
++bool kasan_write_only_enabled(void);
+ 
+ #else /* CONFIG_KASAN_HW_TAGS && CONFIG_KASAN_KUNIT_TEST */
+ 
+ static inline void kasan_force_async_fault(void) { }
+ 
++static inline bool kasan_write_only_enabled(void)
++{
++	return false;
++}
++
+ #endif /* CONFIG_KASAN_HW_TAGS && CONFIG_KASAN_KUNIT_TEST */
+ 
+ #ifdef CONFIG_KASAN_SW_TAGS
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from yeoreum.yun@arm.com are
 
 
