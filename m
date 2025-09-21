@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8366B21D3C0
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59F4521D3C0
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489988; cv=none; b=MLRRRtZnq8YfunFJf/oT1R0fklhMTZ/MJbxQeDHyqrYvjFQFaq24zzXwhkEfkyAK7nMvqVlJ4hAQuTV9BRlE2bWreXbmQibdecoMvgsjYopZbr4MtRaOZQv2a1vrF8tmKDf7jBoe4+0RmrNQ6yokTxBNduDJPfEV/nyV7ZaZnMg=
+	t=1758489989; cv=none; b=hDhEOO/fJGsYpc+zy++n5nXuIT+RcmMyJQRhv05DiN4NluRVvSnGxl7GtQYg6W+4bwixDHsPYybOKskRzyRWwo31pTs1u3CHKLcggaFtj4WLTz6Num91M6r38WMnkRv+FeOXiDBJ7sW8m0uwgQlbGsIg82S8YXTQHao908EcrY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489988; c=relaxed/simple;
-	bh=DUZPqtWKtFStRa7T+Gy6zDsr8QG6wAPBhysEIJjFDl8=;
-	h=Date:To:From:Subject:Message-Id; b=f/IOCYEdRQpfhezOS7/kL96mxQaK+Bic1S3RUm20aphNiqEERnzpYoPcoQVUcZe9OlyxqsBzECHJeyf6PJP1Z7bUH4wHFUVjQUCuzICRuDVjcR7WvUf2fE7dgQUDwPUCn6fx0fdcFNBlml6Z6UkBCPNdOxNrz8I+7frgM1qjnjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dQtLH8mS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489989; c=relaxed/simple;
+	bh=77VrIafMjbaGsXN38RQa0XUBy0K9hb2UmH9mfxw6rN0=;
+	h=Date:To:From:Subject:Message-Id; b=X8nPfwGH4rtDD47EYQnuGrt+sHRj/ec5QmV9d63HaXwYNXwjRdK5m00FBPuIHLsyRUFyX571KwIuc3t37pHTe44BqAgRN44wcwdMGU5qTrxh27V1ANAyRStgUltk2Hip07GjcWdoFF+fMCXbEmI8wSbyQdk9yiLpjb+Cx0rvstc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BnjTFgDy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dQtLH8mS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB026C4CEE7;
-	Sun, 21 Sep 2025 21:26:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BnjTFgDy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D9B0C4CEE7;
+	Sun, 21 Sep 2025 21:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489988;
-	bh=DUZPqtWKtFStRa7T+Gy6zDsr8QG6wAPBhysEIJjFDl8=;
+	s=korg; t=1758489989;
+	bh=77VrIafMjbaGsXN38RQa0XUBy0K9hb2UmH9mfxw6rN0=;
 	h=Date:To:From:Subject:From;
-	b=dQtLH8mSj3RU7LUQedxA8himSW6VGYtZAmm43hZdK9kvgSt/xCKeEmfomL1SVi1mI
-	 YCxctiANVu1ees4GdaQSnDx7MUJLpougDse5pxkFSBiVcTS4bn2XQSFAFg7SkUVuwT
-	 /wAso5n3Dp9rSI/9ZoEA2fl+jplF2WMxVswQcyLY=
-Date: Sun, 21 Sep 2025 14:26:27 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shuah@kernel.org,ryan.roberts@arm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,zokeefe@google.com,akpm@linux-foundation.org
+	b=BnjTFgDyUD8Bne/Zvj434dDmR9twGfRdVgnodb/fEiVKQmEQSUX4rlUGkUOYScBP9
+	 mCfYUHkkp0Ec6IObVkjtD6q3SrxH+ONFkMxa8CvCgSyQOSgEv6UlROUfyLuVYRIWFd
+	 U4iUX6JiNFVMpMUDcLdnuHI49N27+w/l3d2c7wqM=
+Date: Sun, 21 Sep 2025 14:26:28 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,simona@ffwll.ch,mripard@kernel.org,maarten.lankhorst@linux.intel.com,david@redhat.com,akpm@linux-foundation.org,airlied@gmail.com,aris@ruivo.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-remove-prot_exec-req-from-file-collapse-tests.patch removed from -mm tree
-Message-Id: <20250921212627.EB026C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-folio-page-count-functions-return-unsigned.patch removed from -mm tree
+Message-Id: <20250921212629.2D9B0C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: remove PROT_EXEC req from file-collapse tests
+     Subject: mm: make folio page count functions return unsigned
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-remove-prot_exec-req-from-file-collapse-tests.patch
+     mm-make-folio-page-count-functions-return-unsigned.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: selftests/mm: remove PROT_EXEC req from file-collapse tests
-Date: Tue, 9 Sep 2025 12:05:34 -0700
+From: Aristeu Rozanski <aris@ruivo.org>
+Subject: mm: make folio page count functions return unsigned
+Date: Tue, 26 Aug 2025 11:37:21 -0400
 
-As of v6.8 commit 7fbb5e188248 ("mm: remove VM_EXEC requirement for THP
-eligibility") thp collapse no longer requires file-backed mappings be
-created with PROT_EXEC.
+As raised by Andrew [1], a folio/compound page never spans a negative
+number of pages.  Consequently, let's use "unsigned long" instead of
+"long" consistently for folio_nr_pages(), folio_large_nr_pages() and
+compound_nr().
 
-Remove the overly-strict dependency from thp collapse tests so we test the
-least-strict requirement for success.
+Using "unsigned long" as return value is fine, because even
+"(long)-folio_nr_pages()" will keep on working as expected.  Using
+"unsigned int" instead would actually break these use cases.
 
-Link: https://lkml.kernel.org/r/20250909190534.512801-1-zokeefe@google.com
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+This patch takes the first step changing these to return unsigned long
+(and making drm_gem_get_pages() use the new types instead of replacing
+min()).
+
+In the future, we might want to make more callers of these functions to
+consistently use "unsigned long".
+
+
+Link: https://lore.kernel.org/linux-mm/20250503182858.5a02729fcffd6d4723afcfc2@linux-foundation.org/
+Link: https://lkml.kernel.org/r/20250826153721.GA23292@cathedrallabs.org
+Link: https://lore.kernel.org/linux-mm/20250503182858.5a02729fcffd6d4723afcfc2@linux-foundation.org/ [1]
+Signed-off-by: Aristeu Rozanski <aris@ruivo.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/drm_gem.c |    4 ++--
+ include/linux/mm.h        |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-remove-prot_exec-req-from-file-collapse-tests
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -394,7 +394,7 @@ static void *file_setup_area(int nr_hpag
- 		perror("open()");
- 		exit(EXIT_FAILURE);
- 	}
--	p = mmap(BASE_ADDR, size, PROT_READ | PROT_EXEC,
-+	p = mmap(BASE_ADDR, size, PROT_READ,
- 		 MAP_PRIVATE, finfo.fd, 0);
- 	if (p == MAP_FAILED || p != BASE_ADDR) {
- 		perror("mmap()");
+--- a/drivers/gpu/drm/drm_gem.c~mm-make-folio-page-count-functions-return-unsigned
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -621,7 +621,7 @@ struct page **drm_gem_get_pages(struct d
+ 	struct page **pages;
+ 	struct folio *folio;
+ 	struct folio_batch fbatch;
+-	long i, j, npages;
++	unsigned long i, j, npages;
+ 
+ 	if (WARN_ON(!obj->filp))
+ 		return ERR_PTR(-EINVAL);
+@@ -645,7 +645,7 @@ struct page **drm_gem_get_pages(struct d
+ 
+ 	i = 0;
+ 	while (i < npages) {
+-		long nr;
++		unsigned long nr;
+ 		folio = shmem_read_folio_gfp(mapping, i,
+ 				mapping_gfp_mask(mapping));
+ 		if (IS_ERR(folio))
+--- a/include/linux/mm.h~mm-make-folio-page-count-functions-return-unsigned
++++ a/include/linux/mm.h
+@@ -1018,12 +1018,12 @@ static inline unsigned int folio_large_o
+ }
+ 
+ #ifdef NR_PAGES_IN_LARGE_FOLIO
+-static inline long folio_large_nr_pages(const struct folio *folio)
++static inline unsigned long folio_large_nr_pages(const struct folio *folio)
+ {
+ 	return folio->_nr_pages;
+ }
+ #else
+-static inline long folio_large_nr_pages(const struct folio *folio)
++static inline unsigned long folio_large_nr_pages(const struct folio *folio)
+ {
+ 	return 1L << folio_large_order(folio);
+ }
+@@ -2062,7 +2062,7 @@ static inline void set_page_links(struct
+  *
+  * Return: A positive power of two.
+  */
+-static inline long folio_nr_pages(const struct folio *folio)
++static inline unsigned long folio_nr_pages(const struct folio *folio)
+ {
+ 	if (!folio_test_large(folio))
+ 		return 1;
+@@ -2097,7 +2097,7 @@ static inline long folio_nr_pages(const
+  * page.  compound_nr() can be called on a tail page, and is defined to
+  * return 1 in that case.
+  */
+-static inline long compound_nr(const struct page *page)
++static inline unsigned long compound_nr(const struct page *page)
+ {
+ 	const struct folio *folio = (struct folio *)page;
+ 
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from aris@ruivo.org are
 
 
