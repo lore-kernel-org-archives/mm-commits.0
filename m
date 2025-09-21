@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5FF82C15B0
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:27:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1EFA27281D
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:27:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758490023; cv=none; b=evwjhZAVXWthSqPYBiAn/ODR49NOGjTKJsWodMONp5xyxjwwGM/cJnRKyrK/YRfOuhL1cLhY75lXLMKbox/hdEu6Y46wP1gpQi8bxu57E8SYusAbIRULQH7wCP1rwVtnJ/UzMFSEXAI9McXvwmNIlOjvQUePrAAnazYRFlB+sJg=
+	t=1758490024; cv=none; b=PP8pFwgs6laosXnzZjPjn/+3Axjf25lc4+u/5I1cKoEmjkh7mvOmvZfpojf4IjAk97HfXMtQW/E8/Sz3hCqYHnF4INAu8ZKVLyFmf5PuwvdseQvB8dTV2Q8bEaSw51n4o336JDpbsqHvDnuCLzOTR/Xx/BAG3T571lsZMVRK2hQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758490023; c=relaxed/simple;
-	bh=8pEVLwe4mcerY7VhqLHnpzRtkh88fK+2221rpI1sGuQ=;
-	h=Date:To:From:Subject:Message-Id; b=Gy9OCdxH4+AnDtjTtrxqa9cTv/0P2zfIaLLJ1iwb/SMRVeSg8wSseji994gUly2kX5iv3daFjdNga5omZHFtdFaJeElSf7uUF9Sy8dacNEx3QiXIJluerjohULIT9uQXzEKao2iymxS1z8pf/2hNt8thIh1KGoe5QEkIT5CEuls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JIDgd5Mz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758490024; c=relaxed/simple;
+	bh=bwgZS1Zd6YhkuD2vzaV40wMC01RPhz7WH4VLcXnWRho=;
+	h=Date:To:From:Subject:Message-Id; b=A/nFADzBFqIFgiorDroG0WNaKGo3ot4IFSeFroq0DN3QcCr+Z/eSOh19VnE+1Fwop9IxMtQyNGHtJEEhQw+/qBrjM+GI433WuasykelsVxawXn3x9wIBhG8vEbZN4HybFpeLjlBT0yvD+8h5KBTFRYgL+m9yGiO5lm8hm+gMI9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MQ0x+O3j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JIDgd5Mz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D221C4CEE7;
-	Sun, 21 Sep 2025 21:27:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MQ0x+O3j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98A8DC4CEE7;
+	Sun, 21 Sep 2025 21:27:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758490023;
-	bh=8pEVLwe4mcerY7VhqLHnpzRtkh88fK+2221rpI1sGuQ=;
+	s=korg; t=1758490024;
+	bh=bwgZS1Zd6YhkuD2vzaV40wMC01RPhz7WH4VLcXnWRho=;
 	h=Date:To:From:Subject:From;
-	b=JIDgd5Mz8xh73z2++niFN5mpdurLNjIFcM35VkUbGj4yTtvuRdupv/iA8AUlOwW8E
-	 iMyuBokfq0KNa0mrzNblBWZ2mPAyHhr9vyb0jkzY+K+48BzgIZzbgJZODkjR9D+CiL
-	 M5h1zyUd0JZzzh41HDJkwFku+wSpfktsTsGyzOTs=
-Date: Sun, 21 Sep 2025 14:27:03 -0700
+	b=MQ0x+O3j8sBTK4HJZZ3DOY6AkdqNFhDox7iyEpYRy9QbzsuzN8yuRQRwxFSpN9/8V
+	 p0gOvP6/2dUVZmD0Scqyqku6fPKO2fngYO/oKVuDaw+SWAOvEXzesGdG0o9+s/t4kr
+	 XSkAG4R8A+YHMZ9bd2/dcZTsYFjt7ZE4i/DPrEgA=
+Date: Sun, 21 Sep 2025 14:27:04 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-reclaim-use-damon_initialized.patch removed from -mm tree
-Message-Id: <20250921212703.8D221C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-lru_sort-use-damon_initialized.patch removed from -mm tree
+Message-Id: <20250921212704.98A8DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/reclaim: use damon_initialized()
+     Subject: mm/damon/lru_sort: use damon_initialized()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-reclaim-use-damon_initialized.patch
+     mm-damon-lru_sort-use-damon_initialized.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: use damon_initialized()
-Date: Mon, 15 Sep 2025 20:35:07 -0700
+Subject: mm/damon/lru_sort: use damon_initialized()
+Date: Mon, 15 Sep 2025 20:35:08 -0700
 
-DAMON_RECLAIM is assuming DAMON is ready to use in module_init time, and
+DAMON_LRU_SORT is assuming DAMON is ready to use in module_init time, and
 uses its own hack to see if it is the time.  Use damon_initialized(),
 which is a way for seeing if DAMON is ready to be used that is more
 reliable and better to maintain instead of the hack.
 
-Link: https://lkml.kernel.org/r/20250916033511.116366-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250916033511.116366-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    9 +++++++--
+ mm/damon/lru_sort.c |    9 +++++++--
  1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-use-damon_initialized
-+++ a/mm/damon/reclaim.c
-@@ -349,7 +349,7 @@ static int damon_reclaim_enabled_store(c
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-use-damon_initialized
++++ a/mm/damon/lru_sort.c
+@@ -345,7 +345,7 @@ static int damon_lru_sort_enabled_store(
  		return 0;
  
  	/* Called before init function.  The function will handle this. */
@@ -70,10 +70,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	if (!damon_initialized())
  		goto set_param_out;
  
- 	err = damon_reclaim_turn(enable);
-@@ -372,8 +372,13 @@ MODULE_PARM_DESC(enabled,
+ 	err = damon_lru_sort_turn(enable);
+@@ -368,8 +368,13 @@ MODULE_PARM_DESC(enabled,
  
- static int __init damon_reclaim_init(void)
+ static int __init damon_lru_sort_init(void)
  {
 -	int err = damon_modules_new_paddr_ctx_target(&ctx, &target);
 +	int err;
