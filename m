@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0E9634BA47
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 16:52:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6F9C25D1E6
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 16:54:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758473546; cv=none; b=i+0Rr1ioyeT2yrwQ+j0WgExaXdWYwhcKVj6fL5oBPhTuGLY1FbG8AXCHF+w/6qASp1B2FmrMKGrbv8musb7AIxbgtjdUJVGL2MkVHcMPElZRwkru6OKb+yEKcGuKjq+yHfYMdSyZPVq37ELze8lgcYJtcXp//wJbpQOWKPZRsJ4=
+	t=1758473659; cv=none; b=PnaeLpniikJzHOqAlMdgBDBUE+Xqlx0sfm1r9yNgLOf2xx6i4dEVOUqTOiesEx/RS08JUcY5ZOdBvdUqqQ86ZLKhyNY/agP5Dc3aexf8LzeskvYcUMg6TLaOcmLmWyKWjgmzLbh0XBMkq1MGpNqZeahTeAhzY3unF3LhVPfP2EQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758473546; c=relaxed/simple;
-	bh=T8mFqbLojDoTTdnPeyAnIZTzCcTh14kWWZnaeSwcwjI=;
-	h=Date:To:From:Subject:Message-Id; b=WeUq6axU49Xkvj+jbk5l1qRoyzKCGYsG+ci4fZ82qDdJKP6BkvhV/8WzcxG7pU4CslmfmByTuxvx03XYGykueL5IrReWZsqFQYnK6QHXGOly5Jo5JEWaGA3ulf/+81Cc669/voqQrYBXjvImYqes7RJsNGPSaomGG5KM78YFM8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IfOHIley; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758473659; c=relaxed/simple;
+	bh=CeCth3O1Cz4iM9o5Ww+xYF9xuU/Udw81Cquf72zBk1k=;
+	h=Date:To:From:Subject:Message-Id; b=ultVPuwr3kvQA2jDhts60de/ZNhs4rv6boz+ROYkLT7hmmgxLEGG8SIDmYgR8RlXRSn7dr2t/0umcKzeSt7Nzo+D+dZmnijgh5hWzVMBA/j5Y+KYOX9YwkOiKrOVKo4aOK45k5tiLn1DJRIzdkYd9YuRoSKqUuRUEZ72q9RS3I0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tOe61Mlf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IfOHIley"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 573BAC4CEE7;
-	Sun, 21 Sep 2025 16:52:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tOe61Mlf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F91BC4CEE7;
+	Sun, 21 Sep 2025 16:54:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758473545;
-	bh=T8mFqbLojDoTTdnPeyAnIZTzCcTh14kWWZnaeSwcwjI=;
+	s=korg; t=1758473659;
+	bh=CeCth3O1Cz4iM9o5Ww+xYF9xuU/Udw81Cquf72zBk1k=;
 	h=Date:To:From:Subject:From;
-	b=IfOHIleyBJtbe3npNDT4w//Hkf3cXe3MpVFLVHFDnPANtFMRJE6bJsVBouRp6c6LI
-	 JljKIW6wHcrn/zsvK6Jx+LmpXULEYNoaried97pTQScrHfhARmS53FBxE2zIPga+F/
-	 MQnesMa2Rqse6AVAuAMK7drmP4B6PpbZllV8Wzus=
-Date: Sun, 21 Sep 2025 09:52:24 -0700
-To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,graf@amazon.com,chrisl@kernel.org,changyuanl@google.com,bhe@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=tOe61MlfoFImKgj8Ye3VZR8+x4FwBOPvMeSSZ52Y4R2fvxb1dW8yqX5PEvQkabFpT
+	 SxTOWKwwPvxbkRDFoPA0JZ3kVUmrtj7gkPAi+n4OjvZ13VHAAV4sVUUEapJt4CvTtR
+	 i3DJ1j58/dC8Bfo8yiiINIBCW4VQtgFp46WsQHXc=
+Date: Sun, 21 Sep 2025 09:54:18 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt.patch added to mm-nonmm-unstable branch
-Message-Id: <20250921165225.573BAC4CEE7@smtp.kernel.org>
+Subject: + kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch added to mm-nonmm-unstable branch
+Message-Id: <20250921165419.1F91BC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_kho: use kho_preserve_vmalloc instead of storing addresses in fdt
+     Subject: kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt.patch
+     kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,134 +58,95 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: lib/test_kho: use kho_preserve_vmalloc instead of storing addresses in fdt
-Date: Sun, 21 Sep 2025 08:44:58 +0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
+Date: Sun Sep 21 09:52:59 AM PDT 2025
 
-KHO test stores physical addresses of the preserved folios directly in
-fdt.  Use kho_preserve_vmalloc() instead of it and kho_restore_vmalloc()
-to retrieve the addresses after kexec.
+ERROR: code indent should use tabs where possible
+#38: FILE: include/linux/kexec_handover.h:44:
++        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);$
 
-This makes the test more scalable from one side and adds tests coverage
-for kho_preserve_vmalloc() from the other.
+WARNING: please, no spaces at the start of a line
+#38: FILE: include/linux/kexec_handover.h:44:
++        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);$
 
-Link: https://lkml.kernel.org/r/20250921054458.4043761-5-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+ERROR: code indent should use tabs where possible
+#39: FILE: include/linux/kexec_handover.h:45:
++        unsigned int total_pages;$
+
+WARNING: please, no spaces at the start of a line
+#39: FILE: include/linux/kexec_handover.h:45:
++        unsigned int total_pages;$
+
+ERROR: code indent should use tabs where possible
+#40: FILE: include/linux/kexec_handover.h:46:
++        unsigned short flags;$
+
+WARNING: please, no spaces at the start of a line
+#40: FILE: include/linux/kexec_handover.h:46:
++        unsigned short flags;$
+
+ERROR: code indent should use tabs where possible
+#41: FILE: include/linux/kexec_handover.h:47:
++        unsigned short order;$
+
+WARNING: please, no spaces at the start of a line
+#41: FILE: include/linux/kexec_handover.h:47:
++        unsigned short order;$
+
+total: 4 errors, 4 warnings, 350 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/kho-add-support-for-preserving-vmalloc-allocations.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kho.c |   41 +++++++++++++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ include/linux/kexec_handover.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/lib/test_kho.c~lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt
-+++ a/lib/test_kho.c
-@@ -32,6 +32,7 @@ module_param(max_mem, long, 0644);
- struct kho_test_state {
- 	unsigned int nr_folios;
- 	struct folio **folios;
-+	phys_addr_t *folios_info;
- 	struct folio *fdt;
- 	__wsum csum;
+--- a/include/linux/kexec_handover.h~kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
++++ a/include/linux/kexec_handover.h
+@@ -41,10 +41,10 @@ struct kho_serialization;
+ 
+ struct kho_vmalloc_chunk;
+ struct kho_vmalloc {
+-        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
+-        unsigned int total_pages;
+-        unsigned short flags;
+-        unsigned short order;
++	DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
++	unsigned int total_pages;
++	unsigned short flags;
++	unsigned short order;
  };
-@@ -67,18 +68,15 @@ static struct notifier_block kho_test_nb
  
- static int kho_test_save_data(struct kho_test_state *state, void *fdt)
- {
--	phys_addr_t *folios_info;
-+	phys_addr_t *folios_info __free(kvfree) = NULL;
-+	struct kho_vmalloc folios_info_phys;
- 	int err = 0;
- 
--	err |= fdt_begin_node(fdt, "data");
--	err |= fdt_property(fdt, "nr_folios", &state->nr_folios,
--			    sizeof(state->nr_folios));
--	err |= fdt_property_placeholder(fdt, "folios_info",
--					state->nr_folios * sizeof(*folios_info),
--					(void **)&folios_info);
--	err |= fdt_property(fdt, "csum", &state->csum, sizeof(state->csum));
--	err |= fdt_end_node(fdt);
-+	folios_info = vmalloc_array(state->nr_folios, sizeof(*folios_info));
-+	if (!folios_info)
-+		return -ENOMEM;
- 
-+	err = kho_preserve_vmalloc(folios_info, &folios_info_phys);
- 	if (err)
- 		return err;
- 
-@@ -93,6 +91,17 @@ static int kho_test_save_data(struct kho
- 			break;
- 	}
- 
-+	err |= fdt_begin_node(fdt, "data");
-+	err |= fdt_property(fdt, "nr_folios", &state->nr_folios,
-+			    sizeof(state->nr_folios));
-+	err |= fdt_property(fdt, "folios_info", &folios_info_phys,
-+			    sizeof(folios_info_phys));
-+	err |= fdt_property(fdt, "csum", &state->csum, sizeof(state->csum));
-+	err |= fdt_end_node(fdt);
-+
-+	if (!err)
-+		state->folios_info = no_free_ptr(folios_info);
-+
- 	return err;
- }
- 
-@@ -209,8 +218,9 @@ err_free_folios:
- 
- static int kho_test_restore_data(const void *fdt, int node)
- {
-+	const struct kho_vmalloc *folios_info_phys;
- 	const unsigned int *nr_folios;
--	const phys_addr_t *folios_info;
-+	phys_addr_t *folios_info;
- 	const __wsum *old_csum;
- 	__wsum csum = 0;
- 	int len;
-@@ -225,8 +235,12 @@ static int kho_test_restore_data(const v
- 	if (!old_csum || len != sizeof(*old_csum))
- 		return -EINVAL;
- 
--	folios_info = fdt_getprop(fdt, node, "folios_info", &len);
--	if (!folios_info || len != sizeof(*folios_info) * *nr_folios)
-+	folios_info_phys = fdt_getprop(fdt, node, "folios_info", &len);
-+	if (!folios_info_phys || len != sizeof(*folios_info_phys))
-+		return -EINVAL;
-+
-+	folios_info = kho_restore_vmalloc(folios_info_phys);
-+	if (!folios_info)
- 		return -EINVAL;
- 
- 	for (int i = 0; i < *nr_folios; i++) {
-@@ -246,6 +260,8 @@ static int kho_test_restore_data(const v
- 		folio_put(folio);
- 	}
- 
-+	vfree(folios_info);
-+
- 	if (csum != *old_csum)
- 		return -EINVAL;
- 
-@@ -304,6 +320,7 @@ static void kho_test_cleanup(void)
- 		folio_put(kho_test_state.folios[i]);
- 
- 	kvfree(kho_test_state.folios);
-+	vfree(kho_test_state.folios_info);
- 	folio_put(kho_test_state.fdt);
- }
- 
+ #ifdef CONFIG_KEXEC_HANDOVER
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kho-check-if-kho-is-finalized-in-__kho_preserve_order.patch
-kho-replace-kho_preserve_phys-with-kho_preserve_pages.patch
-kho-add-support-for-preserving-vmalloc-allocations.patch
-lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt.patch
+kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
+memfd-move-mfd_all_flags-definition-to-memfdh.patch
+mm-constify-highmem-related-functions-for-improved-const-correctness-fix.patch
+mm-filemap-align-last_index-to-folio-size-fix-fix.patch
+mm-re-enable-kswapd-when-memory-pressure-subsides-or-demotion-is-toggled-fix.patch
+include-linux-pgtableh-convert-arch_enter_lazy_mmu_mode-and-friends-to-static-inlines.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix.patch
+alloc_tag-mark-inaccurate-allocation-counters-in-proc-allocinfo-output-fix-fix-fix.patch
+mm-add-remap_pfn_range_prepare-remap_pfn_range_complete-fix.patch
+mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
+kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch
 
