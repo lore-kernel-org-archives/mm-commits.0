@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF1B1F4CBB
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 805861F4CBB
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489927; cv=none; b=rs8mhjNKZG7eZW+6QWC5Y3ivEKEynh3uUKxo7OSCicWJr2eYNKT3mPqbF8cpyhdrzGJ5uxes19iRS6dr2i88gmSfvmWogGRn1f477V/EaNYqm5GaTSzqdiOdID60DWWtloPyozpyt619+53XGWml3L4nQMOskGBbMxv82LY6DZE=
+	t=1758489929; cv=none; b=ej1ju9ILwEtwybWy40Bpj/hHNwXP94Hnu0KeItwRF5pEoL5veYYkZztFUEhk9T1TalAcLIIDS2/jS00O1BtSDZpQFGpRZa4T0qbfl8afmt1cyLMVLKTFrSRSj6KXvopqzg9vVQMbP1s/5OCF7lJuAjWPVS7wipUNEgsxIXCA2Ds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489927; c=relaxed/simple;
-	bh=LUa7/nl82XVRIMMDazz+Zgm/SQ5Cq4JmkJiX632WPhY=;
-	h=Date:To:From:Subject:Message-Id; b=OPBgZXPEYy+vPOPhByIrA6x769mla+aoiX4JqhEBe4n64+mg0th6VUrwu9t6G1vv/njJ4m6bN3qHYwya8M76i0wMus3etzC7PGtQcGrWFzsqMw3RmTaVvvf17lU++NLR8xikU9z8YrDF2FGk7gMcIpkLsf8UlBtlPkMTRxijfvU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1B6d8LNc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489929; c=relaxed/simple;
+	bh=28hYqQO+PmNLLC80Tz3SjOxr+1nzu4C0BFCyJby2b1Y=;
+	h=Date:To:From:Subject:Message-Id; b=XeZNk+Gvo2dIRy5je3u7A6Kg4zzZEvF0tItSEIbAK+u2DgB8Cp2LNulnS/13pces8kSPtKeqFchT5l120j/G9nBmpYOPuAOBNJYY8D5pb8U29rZVWc+3m03v1g7lqvc3CRqPWhgv2CUkCXQlY3L4o8dXNaGM1IxGYh0kn0OjUYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KMzXYINj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1B6d8LNc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2F6BC4CEE7;
-	Sun, 21 Sep 2025 21:25:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KMzXYINj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 564D4C4CEE7;
+	Sun, 21 Sep 2025 21:25:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489927;
-	bh=LUa7/nl82XVRIMMDazz+Zgm/SQ5Cq4JmkJiX632WPhY=;
+	s=korg; t=1758489929;
+	bh=28hYqQO+PmNLLC80Tz3SjOxr+1nzu4C0BFCyJby2b1Y=;
 	h=Date:To:From:Subject:From;
-	b=1B6d8LNc8CjQMdAeZFFNlFefa/SZQNtWUiGA46KAh2LWUmGh9WVAAnUDCkkKu1p3S
-	 T2B31583cOsBKkpoL/9ACk+Q3hg19PxqTsoFfgIapaoI6x0U305LXhXUOspaGwUxNh
-	 Q94Wt5yiTpoSu9BRXm5T43PuTMF3BTID4YIrDNgs=
-Date: Sun, 21 Sep 2025 14:25:27 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,jhubbard@nvidia.com,jgg@nvidia.com,david@redhat.com,dan.j.williams@intel.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=KMzXYINjHGKG3eGaYinot91kENjpuVH5xieCh8HI6h6w71rE5Vz0K/XG67fUfDMpc
+	 8/A+Js49Sl5oSiOr5pAST+FNGgpqp7QIsRuSc1YMZvBzsjtf17/HhVJWHRVHJX79at
+	 ckxVzrakzmAyEWTuepdiOx1jloaLDs7pEPp4eaKU=
+Date: Sun, 21 Sep 2025 14:25:28 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,sj@kernel.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,chrisl@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memremap-remove-unused-get_dev_pagemap-parameter.patch removed from -mm tree
-Message-Id: <20250921212527.B2F6BC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-add-document-for-swap-table.patch removed from -mm tree
+Message-Id: <20250921212529.564D4C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,132 +35,266 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memremap: remove unused get_dev_pagemap() parameter
+     Subject: docs/mm: add document for swap table
 has been removed from the -mm tree.  Its filename was
-     mm-memremap-remove-unused-get_dev_pagemap-parameter.patch
+     docs-mm-add-document-for-swap-table.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/memremap: remove unused get_dev_pagemap() parameter
-Date: Thu, 4 Sep 2025 08:59:26 +1000
+From: Chris Li <chrisl@kernel.org>
+Subject: docs/mm: add document for swap table
+Date: Wed, 17 Sep 2025 00:00:46 +0800
 
-GUP no longer uses get_dev_pagemap().  As it was the only user of the
-get_dev_pagemap() pgmap caching feature it can be removed.
+Patch series "mm, swap: introduce swap table as swap cache (phase I)", v4.
 
-Link: https://lkml.kernel.org/r/20250903225926.34702-2-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
+This is the first phase of the bigger series implementing basic
+infrastructures for the Swap Table idea proposed at the LSF/MM/BPF topic
+"Integrate swap cache, swap maps with swap allocator" [1].  To give credit
+where it is due, this is based on Chris Li's idea and a prototype of using
+cluster size atomic arrays to implement swap cache.
+
+This phase I contains 15 patches, introduces the swap table infrastructure
+and uses it as the swap cache backend.  By doing so, we have up to ~5-20%
+performance gain in throughput, RPS or build time for benchmark and
+workload tests.  The speed up is due to less contention on the swap cache
+access and shallower swap cache lookup path.  The cluster size is much
+finer-grained than the 64M address space split, which is removed in this
+phase I.  It also unifies and cleans up the swap code base.
+
+Each swap cluster will dynamically allocate the swap table, which is an
+atomic array to cover every swap slot in the cluster.  It replaces the
+swap cache backed by XArray.  In phase I, the static allocated swap_map
+still co-exists with the swap table.  The memory usage is about the same
+as the original on average.  A few exception test cases show about 1%
+higher in memory usage.  In the following phases of the series, swap_map
+will merge into the swap table without additional memory allocation.  It
+will result in net memory reduction compared to the original swap cache.
+
+Testing has shown that phase I has a significant performance improvement
+from 8c/1G ARM machine to 48c96t/128G x86_64 servers in many practical
+workloads.
+
+The full picture with a summary can be found at [2].  An older bigger
+series of 28 patches is posted at [3].
+
+vm-scability test:
+==================
+Test with:
+usemem --init-time -O -y -x -n 31 1G (4G memcg, PMEM as swap)
+                           Before:         After:
+System time:               219.12s         158.16s        (-27.82%)
+Sum Throughput:            4767.13 MB/s    6128.59 MB/s   (+28.55%)
+Single process Throughput: 150.21 MB/s     196.52 MB/s    (+30.83%)
+Free latency:              175047.58 us    131411.87 us   (-24.92%)
+
+usemem --init-time -O -y -x -n 32 1536M (16G memory, global pressure,
+PMEM as swap)
+                           Before:         After:
+System time:               356.16s         284.68s      (-20.06%)
+Sum Throughput:            4648.35 MB/s    5453.52 MB/s (+17.32%)
+Single process Throughput: 141.63 MB/s     168.35 MB/s  (+18.86%)
+Free latency:              499907.71 us    484977.03 us (-2.99%)
+
+This shows an improvement of more than 20% improvement in most readings.
+
+Build kernel test:
+==================
+The following result matrix is from building kernel with defconfig on
+tmpfs with ZSWAP / ZRAM, using different memory pressure and setups. 
+Measuring sys and real time in seconds, less is better (user time is
+almost identical as expected):
+
+ -j<NR> / Mem  | Sys before / after  | Real before / after
+Using 16G ZRAM with memcg limit:
+     6  / 192M | 9686 / 9472  -2.21% | 2130  / 2096   -1.59%
+     12 / 256M | 6610 / 6451  -2.41% |  827  /  812   -1.81%
+     24 / 384M | 5938 / 5701  -3.37% |  414  /  405   -2.17%
+     48 / 768M | 4696 / 4409  -6.11% |  188  /  182   -3.19%
+With 64k folio:
+     24 / 512M | 4222 / 4162  -1.42% |  326  /  321   -1.53%
+     48 / 1G   | 3688 / 3622  -1.79% |  151  /  149   -1.32%
+With ZSWAP with 3G memcg (using higher limit due to kmem account):
+     48 / 3G   |  603 /  581  -3.65% |  81   /   80   -1.23%
+
+Testing extremely high global memory and schedule pressure: Using ZSWAP
+with 32G NVMEs in a 48c VM that has 4G memory, no memcg limit, system
+components take up about 1.5G already, using make -j48 to build defconfig:
+
+Before:  sys time: 2069.53s            real time: 135.76s
+After:   sys time: 2021.13s (-2.34%)   real time: 134.23s (-1.12%)
+
+On another 48c 4G memory VM, using 16G ZRAM as swap, testing make
+-j48 with same config:
+
+Before:  sys time: 1756.96s            real time: 111.01s
+After:   sys time: 1715.90s (-2.34%)   real time: 109.51s (-1.35%)
+
+All cases are more or less faster, and no regression even under extremely
+heavy global memory pressure.
+
+Redis / Valkey bench:
+=====================
+The test machine is a ARM64 VM with 1536M memory 12 cores, Redis is set to
+use 2500M memory, and ZRAM swap size is set to 5G:
+
+Testing with:
+redis-benchmark -r 2000000 -n 2000000 -d 1024 -c 12 -P 32 -t get
+
+                no BGSAVE                with BGSAVE
+Before:         487576.06 RPS            280016.02 RPS
+After:          487541.76 RPS (-0.01%)   300155.32 RPS (+7.19%)
+
+Testing with:
+redis-benchmark -r 2500000 -n 2500000 -d 1024 -c 12 -P 32 -t get
+                no BGSAVE                with BGSAVE
+Before:         466789.59 RPS            281213.92 RPS
+After:          466402.89 RPS (-0.08%)   298411.84 RPS (+6.12%)
+
+With BGSAVE enabled, most Redis memory will have a swap count > 1 so swap
+cache is heavily in use.  We can see a about 6% performance gain.  No
+BGSAVE is very slightly slower (<0.1%) due to the higher memory pressure
+of the co-existence of swap_map and swap table.  This will be optimzed
+into a net gain and up to 20% gain in BGSAVE case in the following phases.
+
+HDD swap is also ~40% faster with usemem because we removed an old
+contention workaround.
+
+
+This patch (of 15):
+
+Swap table is the new swap cache.
+
+[chrisl@kernel.org: move swap table document, redo swap table size sentence]
+  Link: https://lkml.kernel.org/r/CACePvbXjaUyzB_9RSSSgR6BNvz+L9anvn0vcNf_J0jD7-4Yy6Q@mail.gmail.com
+Link: https://lkml.kernel.org/r/20250916160100.31545-1-ryncsn@gmail.com
+Link: https://lore.kernel.org/linux-mm/20250514201729.48420-1-ryncsn@gmail.com/ [3]
+Link: https://lkml.kernel.org/r/20250916160100.31545-2-ryncsn@gmail.com
+Link: https://lore.kernel.org/CAMgjq7BvQ0ZXvyLGp2YP96+i+6COCBBJCYmjXHGBnfisCAb8VA@mail.gmail.com [1]
+Link: https://github.com/ryncsn/linux/tree/kasong/devel/swap-table [2]
+Signed-off-by: Chris Li <chrisl@kernel.org>
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Suggested-by: Chris Li <chrisl@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: kernel test robot <oliver.sang@intel.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |    6 ++----
- mm/memory-failure.c      |    2 +-
- mm/memory_hotplug.c      |    2 +-
- mm/memremap.c            |   22 ++++------------------
- 4 files changed, 8 insertions(+), 24 deletions(-)
+ Documentation/mm/index.rst      |    1 
+ Documentation/mm/swap-table.rst |   69 ++++++++++++++++++++++++++++++
+ MAINTAINERS                     |    1 
+ 3 files changed, 71 insertions(+)
 
---- a/include/linux/memremap.h~mm-memremap-remove-unused-get_dev_pagemap-parameter
-+++ a/include/linux/memremap.h
-@@ -211,8 +211,7 @@ void *memremap_pages(struct dev_pagemap
- void memunmap_pages(struct dev_pagemap *pgmap);
- void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
- void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
--struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
--		struct dev_pagemap *pgmap);
-+struct dev_pagemap *get_dev_pagemap(unsigned long pfn);
- bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
- 
- unsigned long memremap_compat_align(void);
-@@ -234,8 +233,7 @@ static inline void devm_memunmap_pages(s
- {
- }
- 
--static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
--		struct dev_pagemap *pgmap)
-+static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn)
- {
- 	return NULL;
- }
---- a/mm/memory-failure.c~mm-memremap-remove-unused-get_dev_pagemap-parameter
-+++ a/mm/memory-failure.c
-@@ -2194,7 +2194,7 @@ int memory_failure(unsigned long pfn, in
- 			goto unlock_mutex;
- 
- 		if (pfn_valid(pfn)) {
--			pgmap = get_dev_pagemap(pfn, NULL);
-+			pgmap = get_dev_pagemap(pfn);
- 			put_ref_page(pfn, flags);
- 			if (pgmap) {
- 				res = memory_failure_dev_pagemap(pfn, flags,
---- a/mm/memory_hotplug.c~mm-memremap-remove-unused-get_dev_pagemap-parameter
-+++ a/mm/memory_hotplug.c
-@@ -375,7 +375,7 @@ struct page *pfn_to_online_page(unsigned
- 	 * the section may be 'offline' but 'valid'. Only
- 	 * get_dev_pagemap() can determine sub-section online status.
- 	 */
--	pgmap = get_dev_pagemap(pfn, NULL);
-+	pgmap = get_dev_pagemap(pfn);
- 	put_dev_pagemap(pgmap);
- 
- 	/* The presence of a pgmap indicates ZONE_DEVICE offline pfn */
---- a/mm/memremap.c~mm-memremap-remove-unused-get_dev_pagemap-parameter
-+++ a/mm/memremap.c
-@@ -153,14 +153,14 @@ static int pagemap_range(struct dev_page
- 				"altmap not supported for multiple ranges\n"))
- 		return -EINVAL;
- 
--	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->start), NULL);
-+	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->start));
- 	if (conflict_pgmap) {
- 		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
- 		return -ENOMEM;
- 	}
- 
--	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->end), NULL);
-+	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->end));
- 	if (conflict_pgmap) {
- 		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
-@@ -397,26 +397,12 @@ EXPORT_SYMBOL_GPL(devm_memunmap_pages);
- /**
-  * get_dev_pagemap() - take a new live reference on the dev_pagemap for @pfn
-  * @pfn: page frame number to lookup page_map
-- * @pgmap: optional known pgmap that already has a reference
-- *
-- * If @pgmap is non-NULL and covers @pfn it will be returned as-is.  If @pgmap
-- * is non-NULL but does not cover @pfn the reference to it will be released.
-  */
--struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
--		struct dev_pagemap *pgmap)
-+struct dev_pagemap *get_dev_pagemap(unsigned long pfn)
- {
-+	struct dev_pagemap *pgmap;
- 	resource_size_t phys = PFN_PHYS(pfn);
- 
--	/*
--	 * In the cached case we're already holding a live reference.
--	 */
--	if (pgmap) {
--		if (phys >= pgmap->range.start && phys <= pgmap->range.end)
--			return pgmap;
--		put_dev_pagemap(pgmap);
--	}
--
--	/* fall back to slow path lookup */
- 	rcu_read_lock();
- 	pgmap = xa_load(&pgmap_array, PHYS_PFN(phys));
- 	if (pgmap && !percpu_ref_tryget_live_rcu(&pgmap->ref))
+--- a/Documentation/mm/index.rst~docs-mm-add-document-for-swap-table
++++ a/Documentation/mm/index.rst
+@@ -20,6 +20,7 @@ see the :doc:`admin guide <../admin-guid
+    highmem
+    page_reclaim
+    swap
++   swap-table
+    page_cache
+    shmfs
+    oom
+diff --git a/Documentation/mm/swap-table.rst a/Documentation/mm/swap-table.rst
+new file mode 100644
+--- /dev/null
++++ a/Documentation/mm/swap-table.rst
+@@ -0,0 +1,69 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++:Author: Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>
++
++==========
++Swap Table
++==========
++
++Swap table implements swap cache as a per-cluster swap cache value array.
++
++Swap Entry
++----------
++
++A swap entry contains the information required to serve the anonymous page
++fault.
++
++Swap entry is encoded as two parts: swap type and swap offset.
++
++The swap type indicates which swap device to use.
++The swap offset is the offset of the swap file to read the page data from.
++
++Swap Cache
++----------
++
++Swap cache is a map to look up folios using swap entry as the key. The result
++value can have three possible types depending on which stage of this swap entry
++was in.
++
++1. NULL: This swap entry is not used.
++
++2. folio: A folio has been allocated and bound to this swap entry. This is
++   the transient state of swap out or swap in. The folio data can be in
++   the folio or swap file, or both.
++
++3. shadow: The shadow contains the working set information of the swapped
++   out folio. This is the normal state for a swapped out page.
++
++Swap Table Internals
++--------------------
++
++The previous swap cache is implemented by XArray. The XArray is a tree
++structure. Each lookup will go through multiple nodes. Can we do better?
++
++Notice that most of the time when we look up the swap cache, we are either
++in a swap in or swap out path. We should already have the swap cluster,
++which contains the swap entry.
++
++If we have a per-cluster array to store swap cache value in the cluster.
++Swap cache lookup within the cluster can be a very simple array lookup.
++
++We give such a per-cluster swap cache value array a name: the swap table.
++
++A swap table is an array of pointers. Each pointer is the same size as a
++PTE. The size of a swap table for one swap cluster typically matches a PTE
++page table, which is one page on modern 64-bit systems.
++
++With swap table, swap cache lookup can achieve great locality, simpler,
++and faster.
++
++Locking
++-------
++
++Swap table modification requires taking the cluster lock. If a folio
++is being added to or removed from the swap table, the folio must be
++locked prior to the cluster lock. After adding or removing is done, the
++folio shall be unlocked.
++
++Swap table lookup is protected by RCU and atomic read. If the lookup
++returns a folio, the user must lock the folio before use.
+--- a/MAINTAINERS~docs-mm-add-document-for-swap-table
++++ a/MAINTAINERS
+@@ -16225,6 +16225,7 @@ R:	Barry Song <baohua@kernel.org>
+ R:	Chris Li <chrisl@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++F:	Documentation/mm/swap-table.rst
+ F:	include/linux/swap.h
+ F:	include/linux/swapfile.h
+ F:	include/linux/swapops.h
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from chrisl@kernel.org are
 
 
