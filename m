@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 805861F4CBB
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24BB11F4CBB
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:25:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489929; cv=none; b=ej1ju9ILwEtwybWy40Bpj/hHNwXP94Hnu0KeItwRF5pEoL5veYYkZztFUEhk9T1TalAcLIIDS2/jS00O1BtSDZpQFGpRZa4T0qbfl8afmt1cyLMVLKTFrSRSj6KXvopqzg9vVQMbP1s/5OCF7lJuAjWPVS7wipUNEgsxIXCA2Ds=
+	t=1758489933; cv=none; b=qo4etY23JXAycnO4/QKkQNEAK3MuEPiptOfFIhwev6tYQTCL+0XUQjvt8F3+bEQyFetBUJ9vv4kHsDtI/hBHEDgJtcsFZ3uHWMHjgUZuZ5gw+ovWRNfoRZAj0DpE0AUt79K0DUJmR4XNufi6tr3qeJmuMZoiTwNarGvzwsHqIWw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489929; c=relaxed/simple;
-	bh=28hYqQO+PmNLLC80Tz3SjOxr+1nzu4C0BFCyJby2b1Y=;
-	h=Date:To:From:Subject:Message-Id; b=XeZNk+Gvo2dIRy5je3u7A6Kg4zzZEvF0tItSEIbAK+u2DgB8Cp2LNulnS/13pces8kSPtKeqFchT5l120j/G9nBmpYOPuAOBNJYY8D5pb8U29rZVWc+3m03v1g7lqvc3CRqPWhgv2CUkCXQlY3L4o8dXNaGM1IxGYh0kn0OjUYg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KMzXYINj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489933; c=relaxed/simple;
+	bh=xaEed4BxcbkvVaGZbiioMy73/9YR/RdNlJwLP0uVsf0=;
+	h=Date:To:From:Subject:Message-Id; b=R4ieIvXMnmvTiyNqjm4+Ahx0tmMkhkJqUIw0EeG3A3rxBGGXEU4aNqT8SVXJyIXWHf/CojCeyvv42sxR54XenffiPRVL9xS5FMF2Ql1dK4CMXfFkRc8qO1ErZlICuMYwm5f+FTxzceybtFebv2RZjQDPHOKKhaaugGhKSQqjCgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dCe5KZdi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KMzXYINj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 564D4C4CEE7;
-	Sun, 21 Sep 2025 21:25:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dCe5KZdi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED56FC4CEE7;
+	Sun, 21 Sep 2025 21:25:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489929;
-	bh=28hYqQO+PmNLLC80Tz3SjOxr+1nzu4C0BFCyJby2b1Y=;
+	s=korg; t=1758489933;
+	bh=xaEed4BxcbkvVaGZbiioMy73/9YR/RdNlJwLP0uVsf0=;
 	h=Date:To:From:Subject:From;
-	b=KMzXYINjHGKG3eGaYinot91kENjpuVH5xieCh8HI6h6w71rE5Vz0K/XG67fUfDMpc
-	 8/A+Js49Sl5oSiOr5pAST+FNGgpqp7QIsRuSc1YMZvBzsjtf17/HhVJWHRVHJX79at
-	 ckxVzrakzmAyEWTuepdiOx1jloaLDs7pEPp4eaKU=
-Date: Sun, 21 Sep 2025 14:25:28 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,sj@kernel.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,chrisl@kernel.org,akpm@linux-foundation.org
+	b=dCe5KZdihMUlsgZ8bCiMNg9aVG//QHheG1itEHV5h9nz+wgAV2iVJSb7NwPfiiX0G
+	 4ARQxI+jAdmiYmzjp1dm/I/NaeDPrF790Vu5eqjMvM556JJFpQpA853f9TWIZEa08E
+	 Enqo+5/cLQPi8KP6ulr8CvA5JlHO/ao7WKN4jAcM=
+Date: Sun, 21 Sep 2025 14:25:32 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,sj@kernel.org,shikemeng@huaweicloud.com,oliver.sang@intel.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-add-document-for-swap-table.patch removed from -mm tree
-Message-Id: <20250921212529.564D4C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-use-unified-helper-for-swap-cache-look-up.patch removed from -mm tree
+Message-Id: <20250921212532.ED56FC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,266 +35,356 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs/mm: add document for swap table
+     Subject: mm, swap: use unified helper for swap cache look up
 has been removed from the -mm tree.  Its filename was
-     docs-mm-add-document-for-swap-table.patch
+     mm-swap-use-unified-helper-for-swap-cache-look-up.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chris Li <chrisl@kernel.org>
-Subject: docs/mm: add document for swap table
-Date: Wed, 17 Sep 2025 00:00:46 +0800
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: use unified helper for swap cache look up
+Date: Wed, 17 Sep 2025 00:00:47 +0800
 
-Patch series "mm, swap: introduce swap table as swap cache (phase I)", v4.
+The swap cache lookup helper swap_cache_get_folio currently does readahead
+updates as well, so callers that are not doing swapin from any VMA or
+mapping are forced to reuse filemap helpers instead, and have to access
+the swap cache space directly.
 
-This is the first phase of the bigger series implementing basic
-infrastructures for the Swap Table idea proposed at the LSF/MM/BPF topic
-"Integrate swap cache, swap maps with swap allocator" [1].  To give credit
-where it is due, this is based on Chris Li's idea and a prototype of using
-cluster size atomic arrays to implement swap cache.
+So decouple readahead update with swap cache lookup.  Move the readahead
+update part into a standalone helper.  Let the caller call the readahead
+update helper if they do readahead.  And convert all swap cache lookups to
+use swap_cache_get_folio.
 
-This phase I contains 15 patches, introduces the swap table infrastructure
-and uses it as the swap cache backend.  By doing so, we have up to ~5-20%
-performance gain in throughput, RPS or build time for benchmark and
-workload tests.  The speed up is due to less contention on the swap cache
-access and shallower swap cache lookup path.  The cluster size is much
-finer-grained than the 64M address space split, which is removed in this
-phase I.  It also unifies and cleans up the swap code base.
+After this commit, there are only three special cases for accessing swap
+cache space now: huge memory splitting, migration, and shmem replacing,
+because they need to lock the XArray.  The following commits will wrap
+their accesses to the swap cache too, with special helpers.
 
-Each swap cluster will dynamically allocate the swap table, which is an
-atomic array to cover every swap slot in the cluster.  It replaces the
-swap cache backed by XArray.  In phase I, the static allocated swap_map
-still co-exists with the swap table.  The memory usage is about the same
-as the original on average.  A few exception test cases show about 1%
-higher in memory usage.  In the following phases of the series, swap_map
-will merge into the swap table without additional memory allocation.  It
-will result in net memory reduction compared to the original swap cache.
+And worth noting, currently dropbehind is not supported for anon folio,
+and we will never see a dropbehind folio in swap cache.  The unified
+helper can be updated later to handle that.
 
-Testing has shown that phase I has a significant performance improvement
-from 8c/1G ARM machine to 48c96t/128G x86_64 servers in many practical
-workloads.
+While at it, add proper kernedoc for touched helpers.
 
-The full picture with a summary can be found at [2].  An older bigger
-series of 28 patches is posted at [3].
+No functional change.
 
-vm-scability test:
-==================
-Test with:
-usemem --init-time -O -y -x -n 31 1G (4G memcg, PMEM as swap)
-                           Before:         After:
-System time:               219.12s         158.16s        (-27.82%)
-Sum Throughput:            4767.13 MB/s    6128.59 MB/s   (+28.55%)
-Single process Throughput: 150.21 MB/s     196.52 MB/s    (+30.83%)
-Free latency:              175047.58 us    131411.87 us   (-24.92%)
-
-usemem --init-time -O -y -x -n 32 1536M (16G memory, global pressure,
-PMEM as swap)
-                           Before:         After:
-System time:               356.16s         284.68s      (-20.06%)
-Sum Throughput:            4648.35 MB/s    5453.52 MB/s (+17.32%)
-Single process Throughput: 141.63 MB/s     168.35 MB/s  (+18.86%)
-Free latency:              499907.71 us    484977.03 us (-2.99%)
-
-This shows an improvement of more than 20% improvement in most readings.
-
-Build kernel test:
-==================
-The following result matrix is from building kernel with defconfig on
-tmpfs with ZSWAP / ZRAM, using different memory pressure and setups. 
-Measuring sys and real time in seconds, less is better (user time is
-almost identical as expected):
-
- -j<NR> / Mem  | Sys before / after  | Real before / after
-Using 16G ZRAM with memcg limit:
-     6  / 192M | 9686 / 9472  -2.21% | 2130  / 2096   -1.59%
-     12 / 256M | 6610 / 6451  -2.41% |  827  /  812   -1.81%
-     24 / 384M | 5938 / 5701  -3.37% |  414  /  405   -2.17%
-     48 / 768M | 4696 / 4409  -6.11% |  188  /  182   -3.19%
-With 64k folio:
-     24 / 512M | 4222 / 4162  -1.42% |  326  /  321   -1.53%
-     48 / 1G   | 3688 / 3622  -1.79% |  151  /  149   -1.32%
-With ZSWAP with 3G memcg (using higher limit due to kmem account):
-     48 / 3G   |  603 /  581  -3.65% |  81   /   80   -1.23%
-
-Testing extremely high global memory and schedule pressure: Using ZSWAP
-with 32G NVMEs in a 48c VM that has 4G memory, no memcg limit, system
-components take up about 1.5G already, using make -j48 to build defconfig:
-
-Before:  sys time: 2069.53s            real time: 135.76s
-After:   sys time: 2021.13s (-2.34%)   real time: 134.23s (-1.12%)
-
-On another 48c 4G memory VM, using 16G ZRAM as swap, testing make
--j48 with same config:
-
-Before:  sys time: 1756.96s            real time: 111.01s
-After:   sys time: 1715.90s (-2.34%)   real time: 109.51s (-1.35%)
-
-All cases are more or less faster, and no regression even under extremely
-heavy global memory pressure.
-
-Redis / Valkey bench:
-=====================
-The test machine is a ARM64 VM with 1536M memory 12 cores, Redis is set to
-use 2500M memory, and ZRAM swap size is set to 5G:
-
-Testing with:
-redis-benchmark -r 2000000 -n 2000000 -d 1024 -c 12 -P 32 -t get
-
-                no BGSAVE                with BGSAVE
-Before:         487576.06 RPS            280016.02 RPS
-After:          487541.76 RPS (-0.01%)   300155.32 RPS (+7.19%)
-
-Testing with:
-redis-benchmark -r 2500000 -n 2500000 -d 1024 -c 12 -P 32 -t get
-                no BGSAVE                with BGSAVE
-Before:         466789.59 RPS            281213.92 RPS
-After:          466402.89 RPS (-0.08%)   298411.84 RPS (+6.12%)
-
-With BGSAVE enabled, most Redis memory will have a swap count > 1 so swap
-cache is heavily in use.  We can see a about 6% performance gain.  No
-BGSAVE is very slightly slower (<0.1%) due to the higher memory pressure
-of the co-existence of swap_map and swap table.  This will be optimzed
-into a net gain and up to 20% gain in BGSAVE case in the following phases.
-
-HDD swap is also ~40% faster with usemem because we removed an old
-contention workaround.
-
-
-This patch (of 15):
-
-Swap table is the new swap cache.
-
-[chrisl@kernel.org: move swap table document, redo swap table size sentence]
-  Link: https://lkml.kernel.org/r/CACePvbXjaUyzB_9RSSSgR6BNvz+L9anvn0vcNf_J0jD7-4Yy6Q@mail.gmail.com
-Link: https://lkml.kernel.org/r/20250916160100.31545-1-ryncsn@gmail.com
-Link: https://lore.kernel.org/linux-mm/20250514201729.48420-1-ryncsn@gmail.com/ [3]
-Link: https://lkml.kernel.org/r/20250916160100.31545-2-ryncsn@gmail.com
-Link: https://lore.kernel.org/CAMgjq7BvQ0ZXvyLGp2YP96+i+6COCBBJCYmjXHGBnfisCAb8VA@mail.gmail.com [1]
-Link: https://github.com/ryncsn/linux/tree/kasong/devel/swap-table [2]
-Signed-off-by: Chris Li <chrisl@kernel.org>
+Link: https://lkml.kernel.org/r/20250916160100.31545-3-ryncsn@gmail.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
 Suggested-by: Chris Li <chrisl@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: kernel test robot <oliver.sang@intel.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: kernel test robot <oliver.sang@intel.com>
 Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/index.rst      |    1 
- Documentation/mm/swap-table.rst |   69 ++++++++++++++++++++++++++++++
- MAINTAINERS                     |    1 
- 3 files changed, 71 insertions(+)
+ mm/memory.c      |    6 +-
+ mm/mincore.c     |    3 -
+ mm/shmem.c       |    4 +
+ mm/swap.h        |   13 +++--
+ mm/swap_state.c  |  109 +++++++++++++++++++++++----------------------
+ mm/swapfile.c    |   11 ++--
+ mm/userfaultfd.c |    5 --
+ 7 files changed, 81 insertions(+), 70 deletions(-)
 
---- a/Documentation/mm/index.rst~docs-mm-add-document-for-swap-table
-+++ a/Documentation/mm/index.rst
-@@ -20,6 +20,7 @@ see the :doc:`admin guide <../admin-guid
-    highmem
-    page_reclaim
-    swap
-+   swap-table
-    page_cache
-    shmfs
-    oom
-diff --git a/Documentation/mm/swap-table.rst a/Documentation/mm/swap-table.rst
-new file mode 100644
---- /dev/null
-+++ a/Documentation/mm/swap-table.rst
-@@ -0,0 +1,69 @@
-+.. SPDX-License-Identifier: GPL-2.0
+--- a/mm/memory.c~mm-swap-use-unified-helper-for-swap-cache-look-up
++++ a/mm/memory.c
+@@ -4660,9 +4660,11 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	if (unlikely(!si))
+ 		goto out;
+ 
+-	folio = swap_cache_get_folio(entry, vma, vmf->address);
+-	if (folio)
++	folio = swap_cache_get_folio(entry);
++	if (folio) {
++		swap_update_readahead(folio, vma, vmf->address);
+ 		page = folio_file_page(folio, swp_offset(entry));
++	}
+ 	swapcache = folio;
+ 
+ 	if (!folio) {
+--- a/mm/mincore.c~mm-swap-use-unified-helper-for-swap-cache-look-up
++++ a/mm/mincore.c
+@@ -76,8 +76,7 @@ static unsigned char mincore_swap(swp_en
+ 		if (!si)
+ 			return 0;
+ 	}
+-	folio = filemap_get_entry(swap_address_space(entry),
+-				  swap_cache_index(entry));
++	folio = swap_cache_get_folio(entry);
+ 	if (shmem)
+ 		put_swap_device(si);
+ 	/* The swap cache space contains either folio, shadow or NULL */
+--- a/mm/shmem.c~mm-swap-use-unified-helper-for-swap-cache-look-up
++++ a/mm/shmem.c
+@@ -2317,7 +2317,7 @@ static int shmem_swapin_folio(struct ino
+ 	}
+ 
+ 	/* Look it up and read it in.. */
+-	folio = swap_cache_get_folio(swap, NULL, 0);
++	folio = swap_cache_get_folio(swap);
+ 	if (!folio) {
+ 		if (data_race(si->flags & SWP_SYNCHRONOUS_IO)) {
+ 			/* Direct swapin skipping swap cache & readahead */
+@@ -2342,6 +2342,8 @@ static int shmem_swapin_folio(struct ino
+ 			count_vm_event(PGMAJFAULT);
+ 			count_memcg_event_mm(fault_mm, PGMAJFAULT);
+ 		}
++	} else {
++		swap_update_readahead(folio, NULL, 0);
+ 	}
+ 
+ 	if (order > folio_order(folio)) {
+--- a/mm/swapfile.c~mm-swap-use-unified-helper-for-swap-cache-look-up
++++ a/mm/swapfile.c
+@@ -213,15 +213,14 @@ static int __try_to_reclaim_swap(struct
+ 				 unsigned long offset, unsigned long flags)
+ {
+ 	swp_entry_t entry = swp_entry(si->type, offset);
+-	struct address_space *address_space = swap_address_space(entry);
+ 	struct swap_cluster_info *ci;
+ 	struct folio *folio;
+ 	int ret, nr_pages;
+ 	bool need_reclaim;
+ 
+ again:
+-	folio = filemap_get_folio(address_space, swap_cache_index(entry));
+-	if (IS_ERR(folio))
++	folio = swap_cache_get_folio(entry);
++	if (!folio)
+ 		return 0;
+ 
+ 	nr_pages = folio_nr_pages(folio);
+@@ -2131,7 +2130,7 @@ static int unuse_pte_range(struct vm_are
+ 		pte_unmap(pte);
+ 		pte = NULL;
+ 
+-		folio = swap_cache_get_folio(entry, vma, addr);
++		folio = swap_cache_get_folio(entry);
+ 		if (!folio) {
+ 			struct vm_fault vmf = {
+ 				.vma = vma,
+@@ -2357,8 +2356,8 @@ retry:
+ 	       (i = find_next_to_unuse(si, i)) != 0) {
+ 
+ 		entry = swp_entry(type, i);
+-		folio = filemap_get_folio(swap_address_space(entry), swap_cache_index(entry));
+-		if (IS_ERR(folio))
++		folio = swap_cache_get_folio(entry);
++		if (!folio)
+ 			continue;
+ 
+ 		/*
+--- a/mm/swap.h~mm-swap-use-unified-helper-for-swap-cache-look-up
++++ a/mm/swap.h
+@@ -62,8 +62,7 @@ void delete_from_swap_cache(struct folio
+ void clear_shadow_from_swap_cache(int type, unsigned long begin,
+ 				  unsigned long end);
+ void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr);
+-struct folio *swap_cache_get_folio(swp_entry_t entry,
+-		struct vm_area_struct *vma, unsigned long addr);
++struct folio *swap_cache_get_folio(swp_entry_t entry);
+ struct folio *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+ 		struct vm_area_struct *vma, unsigned long addr,
+ 		struct swap_iocb **plug);
+@@ -74,6 +73,8 @@ struct folio *swap_cluster_readahead(swp
+ 		struct mempolicy *mpol, pgoff_t ilx);
+ struct folio *swapin_readahead(swp_entry_t entry, gfp_t flag,
+ 		struct vm_fault *vmf);
++void swap_update_readahead(struct folio *folio, struct vm_area_struct *vma,
++			   unsigned long addr);
+ 
+ static inline unsigned int folio_swap_flags(struct folio *folio)
+ {
+@@ -159,6 +160,11 @@ static inline struct folio *swapin_reada
+ 	return NULL;
+ }
+ 
++static inline void swap_update_readahead(struct folio *folio,
++		struct vm_area_struct *vma, unsigned long addr)
++{
++}
 +
-+:Author: Chris Li <chrisl@kernel.org>, Kairui Song <kasong@tencent.com>
+ static inline int swap_writeout(struct folio *folio,
+ 		struct swap_iocb **swap_plug)
+ {
+@@ -169,8 +175,7 @@ static inline void swapcache_clear(struc
+ {
+ }
+ 
+-static inline struct folio *swap_cache_get_folio(swp_entry_t entry,
+-		struct vm_area_struct *vma, unsigned long addr)
++static inline struct folio *swap_cache_get_folio(swp_entry_t entry)
+ {
+ 	return NULL;
+ }
+--- a/mm/swap_state.c~mm-swap-use-unified-helper-for-swap-cache-look-up
++++ a/mm/swap_state.c
+@@ -69,6 +69,27 @@ void show_swap_cache_info(void)
+ 	printk("Total swap = %lukB\n", K(total_swap_pages));
+ }
+ 
++/**
++ * swap_cache_get_folio - Looks up a folio in the swap cache.
++ * @entry: swap entry used for the lookup.
++ *
++ * A found folio will be returned unlocked and with its refcount increased.
++ *
++ * Context: Caller must ensure @entry is valid and protect the swap device
++ * with reference count or locks.
++ * Return: Returns the found folio on success, NULL otherwise. The caller
++ * must lock and check if the folio still matches the swap entry before
++ * use.
++ */
++struct folio *swap_cache_get_folio(swp_entry_t entry)
++{
++	struct folio *folio = filemap_get_folio(swap_address_space(entry),
++						swap_cache_index(entry));
++	if (IS_ERR(folio))
++		return NULL;
++	return folio;
++}
 +
-+==========
-+Swap Table
-+==========
+ void *get_shadow_from_swap_cache(swp_entry_t entry)
+ {
+ 	struct address_space *address_space = swap_address_space(entry);
+@@ -272,55 +293,43 @@ static inline bool swap_use_vma_readahea
+ 	return READ_ONCE(enable_vma_readahead) && !atomic_read(&nr_rotate_swap);
+ }
+ 
+-/*
+- * Lookup a swap entry in the swap cache. A found folio will be returned
+- * unlocked and with its refcount incremented - we rely on the kernel
+- * lock getting page table operations atomic even if we drop the folio
+- * lock before returning.
+- *
+- * Caller must lock the swap device or hold a reference to keep it valid.
++/**
++ * swap_update_readahead - Update the readahead statistics of VMA or globally.
++ * @folio: the swap cache folio that just got hit.
++ * @vma: the VMA that should be updated, could be NULL for global update.
++ * @addr: the addr that triggered the swapin, ignored if @vma is NULL.
+  */
+-struct folio *swap_cache_get_folio(swp_entry_t entry,
+-		struct vm_area_struct *vma, unsigned long addr)
++void swap_update_readahead(struct folio *folio, struct vm_area_struct *vma,
++			   unsigned long addr)
+ {
+-	struct folio *folio;
++	bool readahead, vma_ra = swap_use_vma_readahead();
+ 
+-	folio = filemap_get_folio(swap_address_space(entry), swap_cache_index(entry));
+-	if (!IS_ERR(folio)) {
+-		bool vma_ra = swap_use_vma_readahead();
+-		bool readahead;
+-
+-		/*
+-		 * At the moment, we don't support PG_readahead for anon THP
+-		 * so let's bail out rather than confusing the readahead stat.
+-		 */
+-		if (unlikely(folio_test_large(folio)))
+-			return folio;
+-
+-		readahead = folio_test_clear_readahead(folio);
+-		if (vma && vma_ra) {
+-			unsigned long ra_val;
+-			int win, hits;
+-
+-			ra_val = GET_SWAP_RA_VAL(vma);
+-			win = SWAP_RA_WIN(ra_val);
+-			hits = SWAP_RA_HITS(ra_val);
+-			if (readahead)
+-				hits = min_t(int, hits + 1, SWAP_RA_HITS_MAX);
+-			atomic_long_set(&vma->swap_readahead_info,
+-					SWAP_RA_VAL(addr, win, hits));
+-		}
+-
+-		if (readahead) {
+-			count_vm_event(SWAP_RA_HIT);
+-			if (!vma || !vma_ra)
+-				atomic_inc(&swapin_readahead_hits);
+-		}
+-	} else {
+-		folio = NULL;
++	/*
++	 * At the moment, we don't support PG_readahead for anon THP
++	 * so let's bail out rather than confusing the readahead stat.
++	 */
++	if (unlikely(folio_test_large(folio)))
++		return;
 +
-+Swap table implements swap cache as a per-cluster swap cache value array.
++	readahead = folio_test_clear_readahead(folio);
++	if (vma && vma_ra) {
++		unsigned long ra_val;
++		int win, hits;
 +
-+Swap Entry
-+----------
++		ra_val = GET_SWAP_RA_VAL(vma);
++		win = SWAP_RA_WIN(ra_val);
++		hits = SWAP_RA_HITS(ra_val);
++		if (readahead)
++			hits = min_t(int, hits + 1, SWAP_RA_HITS_MAX);
++		atomic_long_set(&vma->swap_readahead_info,
++				SWAP_RA_VAL(addr, win, hits));
+ 	}
+ 
+-	return folio;
++	if (readahead) {
++		count_vm_event(SWAP_RA_HIT);
++		if (!vma || !vma_ra)
++			atomic_inc(&swapin_readahead_hits);
++	}
+ }
+ 
+ struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+@@ -336,14 +345,10 @@ struct folio *__read_swap_cache_async(sw
+ 	*new_page_allocated = false;
+ 	for (;;) {
+ 		int err;
+-		/*
+-		 * First check the swap cache.  Since this is normally
+-		 * called after swap_cache_get_folio() failed, re-calling
+-		 * that would confuse statistics.
+-		 */
+-		folio = filemap_get_folio(swap_address_space(entry),
+-					  swap_cache_index(entry));
+-		if (!IS_ERR(folio))
 +
-+A swap entry contains the information required to serve the anonymous page
-+fault.
-+
-+Swap entry is encoded as two parts: swap type and swap offset.
-+
-+The swap type indicates which swap device to use.
-+The swap offset is the offset of the swap file to read the page data from.
-+
-+Swap Cache
-+----------
-+
-+Swap cache is a map to look up folios using swap entry as the key. The result
-+value can have three possible types depending on which stage of this swap entry
-+was in.
-+
-+1. NULL: This swap entry is not used.
-+
-+2. folio: A folio has been allocated and bound to this swap entry. This is
-+   the transient state of swap out or swap in. The folio data can be in
-+   the folio or swap file, or both.
-+
-+3. shadow: The shadow contains the working set information of the swapped
-+   out folio. This is the normal state for a swapped out page.
-+
-+Swap Table Internals
-+--------------------
-+
-+The previous swap cache is implemented by XArray. The XArray is a tree
-+structure. Each lookup will go through multiple nodes. Can we do better?
-+
-+Notice that most of the time when we look up the swap cache, we are either
-+in a swap in or swap out path. We should already have the swap cluster,
-+which contains the swap entry.
-+
-+If we have a per-cluster array to store swap cache value in the cluster.
-+Swap cache lookup within the cluster can be a very simple array lookup.
-+
-+We give such a per-cluster swap cache value array a name: the swap table.
-+
-+A swap table is an array of pointers. Each pointer is the same size as a
-+PTE. The size of a swap table for one swap cluster typically matches a PTE
-+page table, which is one page on modern 64-bit systems.
-+
-+With swap table, swap cache lookup can achieve great locality, simpler,
-+and faster.
-+
-+Locking
-+-------
-+
-+Swap table modification requires taking the cluster lock. If a folio
-+is being added to or removed from the swap table, the folio must be
-+locked prior to the cluster lock. After adding or removing is done, the
-+folio shall be unlocked.
-+
-+Swap table lookup is protected by RCU and atomic read. If the lookup
-+returns a folio, the user must lock the folio before use.
---- a/MAINTAINERS~docs-mm-add-document-for-swap-table
-+++ a/MAINTAINERS
-@@ -16225,6 +16225,7 @@ R:	Barry Song <baohua@kernel.org>
- R:	Chris Li <chrisl@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
-+F:	Documentation/mm/swap-table.rst
- F:	include/linux/swap.h
- F:	include/linux/swapfile.h
- F:	include/linux/swapops.h
++		/* Check the swap cache in case the folio is already there */
++		folio = swap_cache_get_folio(entry);
++		if (folio)
+ 			goto got_folio;
+ 
+ 		/*
+--- a/mm/userfaultfd.c~mm-swap-use-unified-helper-for-swap-cache-look-up
++++ a/mm/userfaultfd.c
+@@ -1489,9 +1489,8 @@ retry:
+ 		 * separately to allow proper handling.
+ 		 */
+ 		if (!src_folio)
+-			folio = filemap_get_folio(swap_address_space(entry),
+-					swap_cache_index(entry));
+-		if (!IS_ERR_OR_NULL(folio)) {
++			folio = swap_cache_get_folio(entry);
++		if (folio) {
+ 			if (folio_test_large(folio)) {
+ 				ret = -EBUSY;
+ 				folio_put(folio);
 _
 
-Patches currently in -mm which might be from chrisl@kernel.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
 
