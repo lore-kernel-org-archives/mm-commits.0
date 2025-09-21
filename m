@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D50F829ACC3
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93A5C29ACC3
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489865; cv=none; b=exquZh0vDk6BkosLJ5NwYA5gTJ+Qo5c7LYbcBLbZuXFQKSkeMgjO4HG7h8C5p+D9h/Y52gjfdkRoaQctl8k02QFOVUDm3JxcS5S2FxrSCwJnwN7kkr8HYpEUQsq82Tl2sCsRmOhdBQ3kuLpHb6FL/N7r1Z7Ly3B+R64wIktrpNY=
+	t=1758489867; cv=none; b=ieF4E8IwOSVUsW5+imWtyiitiRxAuQVQT1rn62VoDbKH+Kz/+ElWHVxqqtiRqoReWsS5Zckv9EAc3Pjek3PQHlP1krR7onhteIDvRI81H6d0lBTibJQ71RKnljXEmHXPltm7WttV87ffFQ7i9oR2k3jMB/nwDayMh6n3ROD6NIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489865; c=relaxed/simple;
-	bh=MQNcKHcc8+tmcGvOA+GFipCAb18nV6NXTQs3BbElCM4=;
-	h=Date:To:From:Subject:Message-Id; b=Dnn8uirHM6G4cJNaQE9P3/6xdS5xh1Ar/5M1YNJXPaGLkE5tjWRXOsUwII0kSqkor8PVDo/Is+ZFPZKgqFIZmyKSBsY/KC3QrkGYJTg1mGLVRcu3LgUTcBx6miPkx4H5wMGjq75tI0EH85I3FeqRWI9BRMQ5Gl9TQBMzvDMDxbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nKjT8LdU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489867; c=relaxed/simple;
+	bh=EzkJG9DNAsaYIGg9/dbK015c1WSmrZjPZpaLIid33Yc=;
+	h=Date:To:From:Subject:Message-Id; b=HzZQuo5m01qmM1mZEwi/zNUQZmAgoZq9wV3whR8DByIJVzfS3nOEPEzKTqtljPYiKro4Xm+30pW9YJiMXnl64NCi6wKWWoHaxOvnHvOK+aGUhCTcPn6SELfZ9yyP9rq4ewfskKG3yxukZG6RWXRrOOkt8za5Tk+jPT4AssGkWLo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IBKDB0SH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nKjT8LdU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A56DEC4CEE7;
-	Sun, 21 Sep 2025 21:24:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IBKDB0SH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61D7DC4CEE7;
+	Sun, 21 Sep 2025 21:24:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489865;
-	bh=MQNcKHcc8+tmcGvOA+GFipCAb18nV6NXTQs3BbElCM4=;
+	s=korg; t=1758489867;
+	bh=EzkJG9DNAsaYIGg9/dbK015c1WSmrZjPZpaLIid33Yc=;
 	h=Date:To:From:Subject:From;
-	b=nKjT8LdUPoGxILi7fDX/Prq+T5G0r2VpRcZrLsqKlUK1SDl6FfDdjo3gz/WGQpFS9
-	 EPRRYHHX1kegy959nuQYEugACnbo9JBXjTV2E1vStJW6EOzfh9kixvBwE5tPu+AVf5
-	 9X7NZGzrmJGc1lmLvtwgaya+1HJdc8HpomtjWWkk=
-Date: Sun, 21 Sep 2025 14:24:25 -0700
+	b=IBKDB0SHJTnNfghiiH5tUGW9Iz/zTq8m0v1yg7kIwzCaFI9oYZ1JbXFTCU+tQtYV6
+	 FV3ni7PMYxbflAtymdAisn64eoFtibMPOgZcYEGotXDQvHpWYG1folXfD6anyayABg
+	 ZyrWWQE3C7TsX0i+6vpfB4hyHB9fzcKatUuP72h0=
+Date: Sun, 21 Sep 2025 14:24:26 -0700
 To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,thuth@redhat.com,tglx@linutronix.de,svens@linux.ibm.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,peterz@infradead.org,osalvador@suse.de,nysal@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,linux@armlinux.org.uk,liam.howlett@oracle.com,jfalempe@redhat.com,jcmvbkbc@gmail.com,james.bottomley@HansenPartnership.com,jack@suse.cz,hughd@google.com,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,deller@gmx.de,david@redhat.com,davem@davemloft.net,chris@zankel.net,broonie@kernel.org,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,andreas@gaisler.com,agordeev@linux.ibm.com,max.kellermann@ionos.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-constify-shmem-related-test-functions-for-improved-const-correctness.patch removed from -mm tree
-Message-Id: <20250921212425.A56DEC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-constify-pagemap-related-test-getter-functions.patch removed from -mm tree
+Message-Id: <20250921212427.61D7DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,19 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: constify shmem related test functions for improved const-correctness
+     Subject: mm: constify pagemap related test/getter functions
 has been removed from the -mm tree.  Its filename was
-     mm-constify-shmem-related-test-functions-for-improved-const-correctness.patch
+     mm-constify-pagemap-related-test-getter-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Max Kellermann <max.kellermann@ionos.com>
-Subject: mm: constify shmem related test functions for improved const-correctness
-Date: Mon, 1 Sep 2025 22:50:10 +0200
+Subject: mm: constify pagemap related test/getter functions
+Date: Mon, 1 Sep 2025 22:50:11 +0200
 
-Patch series "mm: establish const-correctness for pointer parameters", v6.
-
-This series is to improved const-correctness in the low-level
-memory-management subsystem, which provides a basis for further
-constification further up the call stack (e.g.  filesystems).
-
-I started this work when I tried to constify the Ceph filesystem code, but
-found that to be impossible because many "mm" functions accept non-const
-pointers, even though they modify nothing.
-
-
-This patch (of 12):
+For improved const-correctness.
 
 We select certain test functions which either invoke each other, functions
 that are already const-ified, or no further functions.
@@ -66,8 +55,7 @@ that are already const-ified, or no further functions.
 It is therefore relatively trivial to const-ify them, which provides a
 basis for further const-ification further up the call stack.
 
-Link: https://lkml.kernel.org/r/20250901205021.3573313-1-max.kellermann@ionos.com
-Link: https://lkml.kernel.org/r/20250901205021.3573313-2-max.kellermann@ionos.com
+Link: https://lkml.kernel.org/r/20250901205021.3573313-3-max.kellermann@ionos.com
 Signed-off-by: Max Kellermann <max.kellermann@ionos.com>
 Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -116,66 +104,229 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    8 ++++----
- include/linux/shmem_fs.h |    4 ++--
- mm/shmem.c               |    6 +++---
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ include/linux/pagemap.h |   55 +++++++++++++++++++-------------------
+ 1 file changed, 28 insertions(+), 27 deletions(-)
 
---- a/include/linux/mm.h~mm-constify-shmem-related-test-functions-for-improved-const-correctness
-+++ a/include/linux/mm.h
-@@ -995,11 +995,11 @@ static inline void vma_iter_set(struct v
-  * The vma_is_shmem is not inline because it is used only by slow
-  * paths in userfault.
+--- a/include/linux/pagemap.h~mm-constify-pagemap-related-test-getter-functions
++++ a/include/linux/pagemap.h
+@@ -140,7 +140,7 @@ static inline int inode_drain_writes(str
+ 	return filemap_write_and_wait(inode->i_mapping);
+ }
+ 
+-static inline bool mapping_empty(struct address_space *mapping)
++static inline bool mapping_empty(const struct address_space *mapping)
+ {
+ 	return xa_empty(&mapping->i_pages);
+ }
+@@ -166,7 +166,7 @@ static inline bool mapping_empty(struct
+  * refcount and the referenced bit, which will be elevated or set in
+  * the process of adding new cache pages to an inode.
   */
--bool vma_is_shmem(struct vm_area_struct *vma);
--bool vma_is_anon_shmem(struct vm_area_struct *vma);
-+bool vma_is_shmem(const struct vm_area_struct *vma);
-+bool vma_is_anon_shmem(const struct vm_area_struct *vma);
- #else
--static inline bool vma_is_shmem(struct vm_area_struct *vma) { return false; }
--static inline bool vma_is_anon_shmem(struct vm_area_struct *vma) { return false; }
-+static inline bool vma_is_shmem(const struct vm_area_struct *vma) { return false; }
-+static inline bool vma_is_anon_shmem(const struct vm_area_struct *vma) { return false; }
- #endif
- 
- int vma_is_stack_for_current(struct vm_area_struct *vma);
---- a/include/linux/shmem_fs.h~mm-constify-shmem-related-test-functions-for-improved-const-correctness
-+++ a/include/linux/shmem_fs.h
-@@ -99,9 +99,9 @@ extern unsigned long shmem_get_unmapped_
- 		unsigned long len, unsigned long pgoff, unsigned long flags);
- extern int shmem_lock(struct file *file, int lock, struct ucounts *ucounts);
- #ifdef CONFIG_SHMEM
--bool shmem_mapping(struct address_space *mapping);
-+bool shmem_mapping(const struct address_space *mapping);
- #else
--static inline bool shmem_mapping(struct address_space *mapping)
-+static inline bool shmem_mapping(const struct address_space *mapping)
+-static inline bool mapping_shrinkable(struct address_space *mapping)
++static inline bool mapping_shrinkable(const struct address_space *mapping)
  {
- 	return false;
- }
---- a/mm/shmem.c~mm-constify-shmem-related-test-functions-for-improved-const-correctness
-+++ a/mm/shmem.c
-@@ -275,18 +275,18 @@ static const struct vm_operations_struct
- static const struct vm_operations_struct shmem_anon_vm_ops;
- static struct file_system_type shmem_fs_type;
+ 	void *head;
  
--bool shmem_mapping(struct address_space *mapping)
-+bool shmem_mapping(const struct address_space *mapping)
- {
- 	return mapping->a_ops == &shmem_aops;
- }
- EXPORT_SYMBOL_GPL(shmem_mapping);
- 
--bool vma_is_anon_shmem(struct vm_area_struct *vma)
-+bool vma_is_anon_shmem(const struct vm_area_struct *vma)
- {
- 	return vma->vm_ops == &shmem_anon_vm_ops;
+@@ -267,7 +267,7 @@ static inline void mapping_clear_unevict
+ 	clear_bit(AS_UNEVICTABLE, &mapping->flags);
  }
  
--bool vma_is_shmem(struct vm_area_struct *vma)
-+bool vma_is_shmem(const struct vm_area_struct *vma)
+-static inline bool mapping_unevictable(struct address_space *mapping)
++static inline bool mapping_unevictable(const struct address_space *mapping)
  {
- 	return vma_is_anon_shmem(vma) || vma->vm_ops == &shmem_vm_ops;
+ 	return mapping && test_bit(AS_UNEVICTABLE, &mapping->flags);
+ }
+@@ -277,7 +277,7 @@ static inline void mapping_set_exiting(s
+ 	set_bit(AS_EXITING, &mapping->flags);
+ }
+ 
+-static inline int mapping_exiting(struct address_space *mapping)
++static inline int mapping_exiting(const struct address_space *mapping)
+ {
+ 	return test_bit(AS_EXITING, &mapping->flags);
+ }
+@@ -287,7 +287,7 @@ static inline void mapping_set_no_writeb
+ 	set_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
+ }
+ 
+-static inline int mapping_use_writeback_tags(struct address_space *mapping)
++static inline int mapping_use_writeback_tags(const struct address_space *mapping)
+ {
+ 	return !test_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
+ }
+@@ -333,7 +333,7 @@ static inline void mapping_set_inaccessi
+ 	set_bit(AS_INACCESSIBLE, &mapping->flags);
+ }
+ 
+-static inline bool mapping_inaccessible(struct address_space *mapping)
++static inline bool mapping_inaccessible(const struct address_space *mapping)
+ {
+ 	return test_bit(AS_INACCESSIBLE, &mapping->flags);
+ }
+@@ -343,18 +343,18 @@ static inline void mapping_set_writeback
+ 	set_bit(AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM, &mapping->flags);
+ }
+ 
+-static inline bool mapping_writeback_may_deadlock_on_reclaim(struct address_space *mapping)
++static inline bool mapping_writeback_may_deadlock_on_reclaim(const struct address_space *mapping)
+ {
+ 	return test_bit(AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM, &mapping->flags);
+ }
+ 
+-static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
++static inline gfp_t mapping_gfp_mask(const struct address_space *mapping)
+ {
+ 	return mapping->gfp_mask;
+ }
+ 
+ /* Restricts the given gfp_mask to what the mapping allows. */
+-static inline gfp_t mapping_gfp_constraint(struct address_space *mapping,
++static inline gfp_t mapping_gfp_constraint(const struct address_space *mapping,
+ 		gfp_t gfp_mask)
+ {
+ 	return mapping_gfp_mask(mapping) & gfp_mask;
+@@ -477,7 +477,7 @@ mapping_min_folio_order(const struct add
+ }
+ 
+ static inline unsigned long
+-mapping_min_folio_nrpages(struct address_space *mapping)
++mapping_min_folio_nrpages(const struct address_space *mapping)
+ {
+ 	return 1UL << mapping_min_folio_order(mapping);
+ }
+@@ -491,7 +491,7 @@ mapping_min_folio_nrpages(struct address
+  * new folio to the page cache and need to know what index to give it,
+  * call this function.
+  */
+-static inline pgoff_t mapping_align_index(struct address_space *mapping,
++static inline pgoff_t mapping_align_index(const struct address_space *mapping,
+ 					  pgoff_t index)
+ {
+ 	return round_down(index, mapping_min_folio_nrpages(mapping));
+@@ -501,7 +501,7 @@ static inline pgoff_t mapping_align_inde
+  * Large folio support currently depends on THP.  These dependencies are
+  * being worked on but are not yet fixed.
+  */
+-static inline bool mapping_large_folio_support(struct address_space *mapping)
++static inline bool mapping_large_folio_support(const struct address_space *mapping)
+ {
+ 	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
+ 	VM_WARN_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON,
+@@ -516,7 +516,7 @@ static inline size_t mapping_max_folio_s
+ 	return PAGE_SIZE << mapping_max_folio_order(mapping);
+ }
+ 
+-static inline int filemap_nr_thps(struct address_space *mapping)
++static inline int filemap_nr_thps(const struct address_space *mapping)
+ {
+ #ifdef CONFIG_READ_ONLY_THP_FOR_FS
+ 	return atomic_read(&mapping->nr_thps);
+@@ -930,7 +930,7 @@ static inline struct page *grab_cache_pa
+  *
+  * Return: The index of the folio which follows this folio in the file.
+  */
+-static inline pgoff_t folio_next_index(struct folio *folio)
++static inline pgoff_t folio_next_index(const struct folio *folio)
+ {
+ 	return folio->index + folio_nr_pages(folio);
+ }
+@@ -959,7 +959,7 @@ static inline struct page *folio_file_pa
+  * e.g., shmem did not move this folio to the swap cache.
+  * Return: true or false.
+  */
+-static inline bool folio_contains(struct folio *folio, pgoff_t index)
++static inline bool folio_contains(const struct folio *folio, pgoff_t index)
+ {
+ 	VM_WARN_ON_ONCE_FOLIO(folio_test_swapcache(folio), folio);
+ 	return index - folio->index < folio_nr_pages(folio);
+@@ -1036,13 +1036,13 @@ static inline loff_t page_offset(struct
+ /*
+  * Get the offset in PAGE_SIZE (even for hugetlb folios).
+  */
+-static inline pgoff_t folio_pgoff(struct folio *folio)
++static inline pgoff_t folio_pgoff(const struct folio *folio)
+ {
+ 	return folio->index;
+ }
+ 
+-static inline pgoff_t linear_page_index(struct vm_area_struct *vma,
+-					unsigned long address)
++static inline pgoff_t linear_page_index(const struct vm_area_struct *vma,
++					const unsigned long address)
+ {
+ 	pgoff_t pgoff;
+ 	pgoff = (address - vma->vm_start) >> PAGE_SHIFT;
+@@ -1462,7 +1462,7 @@ static inline unsigned int __readahead_b
+  * readahead_pos - The byte offset into the file of this readahead request.
+  * @rac: The readahead request.
+  */
+-static inline loff_t readahead_pos(struct readahead_control *rac)
++static inline loff_t readahead_pos(const struct readahead_control *rac)
+ {
+ 	return (loff_t)rac->_index * PAGE_SIZE;
+ }
+@@ -1471,7 +1471,7 @@ static inline loff_t readahead_pos(struc
+  * readahead_length - The number of bytes in this readahead request.
+  * @rac: The readahead request.
+  */
+-static inline size_t readahead_length(struct readahead_control *rac)
++static inline size_t readahead_length(const struct readahead_control *rac)
+ {
+ 	return rac->_nr_pages * PAGE_SIZE;
+ }
+@@ -1480,7 +1480,7 @@ static inline size_t readahead_length(st
+  * readahead_index - The index of the first page in this readahead request.
+  * @rac: The readahead request.
+  */
+-static inline pgoff_t readahead_index(struct readahead_control *rac)
++static inline pgoff_t readahead_index(const struct readahead_control *rac)
+ {
+ 	return rac->_index;
+ }
+@@ -1489,7 +1489,7 @@ static inline pgoff_t readahead_index(st
+  * readahead_count - The number of pages in this readahead request.
+  * @rac: The readahead request.
+  */
+-static inline unsigned int readahead_count(struct readahead_control *rac)
++static inline unsigned int readahead_count(const struct readahead_control *rac)
+ {
+ 	return rac->_nr_pages;
+ }
+@@ -1498,12 +1498,12 @@ static inline unsigned int readahead_cou
+  * readahead_batch_length - The number of bytes in the current batch.
+  * @rac: The readahead request.
+  */
+-static inline size_t readahead_batch_length(struct readahead_control *rac)
++static inline size_t readahead_batch_length(const struct readahead_control *rac)
+ {
+ 	return rac->_batch_count * PAGE_SIZE;
+ }
+ 
+-static inline unsigned long dir_pages(struct inode *inode)
++static inline unsigned long dir_pages(const struct inode *inode)
+ {
+ 	return (unsigned long)(inode->i_size + PAGE_SIZE - 1) >>
+ 			       PAGE_SHIFT;
+@@ -1517,8 +1517,8 @@ static inline unsigned long dir_pages(st
+  * Return: the number of bytes in the folio up to EOF,
+  * or -EFAULT if the folio was truncated.
+  */
+-static inline ssize_t folio_mkwrite_check_truncate(struct folio *folio,
+-					      struct inode *inode)
++static inline ssize_t folio_mkwrite_check_truncate(const struct folio *folio,
++						   const struct inode *inode)
+ {
+ 	loff_t size = i_size_read(inode);
+ 	pgoff_t index = size >> PAGE_SHIFT;
+@@ -1549,7 +1549,8 @@ static inline ssize_t folio_mkwrite_chec
+  * Return: The number of filesystem blocks covered by this folio.
+  */
+ static inline
+-unsigned int i_blocks_per_folio(struct inode *inode, struct folio *folio)
++unsigned int i_blocks_per_folio(const struct inode *inode,
++				const struct folio *folio)
+ {
+ 	return folio_size(folio) >> inode->i_blkbits;
  }
 _
 
