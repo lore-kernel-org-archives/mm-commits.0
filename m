@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB92F27281D
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:27:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB19327281D
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:27:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758490025; cv=none; b=oknkuDCRGjzSefAJQv/Jchs+IAhy5oEM9pnKZKFyZpN6FsrP6FKcbQtmLWHd79HhkoGErjsfa7Obyfh6ejOxW2o05jAquEIl35yDw7yJH/j86f68KHfb+p2rEMA6U5GcSIeyQuw+w3L6Pde2+S+QZSYLCCjjbIMTHaoV27OvrAY=
+	t=1758490027; cv=none; b=jj43TQ/8dkTNQ6MwIWjBXsOhZ3kCJjNY0IJrOQbecj0prt60iREXCHQCTmVBuL7iC5tXLG8BntyzzClIIoy93FmxOYSJBRVG1sKTT6QyQrIagUmWoinvwTnUJ9KTVLcB8Ue/W1ql7/8F4xF1/Ng39B2tDF3ScCytVbdXiVMm8Ts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758490025; c=relaxed/simple;
-	bh=3OZS21XpbvxNHEkEdnc2OFhXuR2nWuOFLgGRQIxkyM0=;
-	h=Date:To:From:Subject:Message-Id; b=m3r1OdKu6Wml+q6n8PoYbT3IsdKS+eKogcSjGDEsaLgLn+kVz7oaueUgCB18d4ahYiNPLXryTsPlmRe4rU3B/OI/nw6zM7FUbk+M6lEAyIFj9QeF31j4j9+sII1n6icNhcua5Y7vJFaQa7nR+I8ebLofHS35uelUi+9j9mnw3Xs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2vs5hHG+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758490027; c=relaxed/simple;
+	bh=g1ZDW+oTL+JgHQfw53J92vxxKXmchfxmwEOjKGwXSQ8=;
+	h=Date:To:From:Subject:Message-Id; b=W5xEEL0vVntS35l03JlrwpLZW0kAhNTLcmBgdsbRDV6HcuT0DGkqK9YD7FYvwtFbJgRQ/KfzLeIUov8sCseLwtbSGowEZTu6BzblSkQD+WA8RCwL6kOOGz2NLUrsfs+3gnxiitE4RS2C8D/eGB2phwj3J3jBSnzm4s5MOug2Gps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FSn9YU+7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2vs5hHG+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8BF4C4CEE7;
-	Sun, 21 Sep 2025 21:27:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FSn9YU+7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C04F6C4CEE7;
+	Sun, 21 Sep 2025 21:27:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758490025;
-	bh=3OZS21XpbvxNHEkEdnc2OFhXuR2nWuOFLgGRQIxkyM0=;
+	s=korg; t=1758490026;
+	bh=g1ZDW+oTL+JgHQfw53J92vxxKXmchfxmwEOjKGwXSQ8=;
 	h=Date:To:From:Subject:From;
-	b=2vs5hHG+fLJIoVnyiW6f9pk5AzLmzcwk56TTr/daq5X+bDiblkejbKMxAZnakdJQE
-	 HjxCLAAbnbOVrSgMj3nIM8/QMj/C2w8RcnwpH32T/7ghSUdWdmd/46CDskr22UYMhE
-	 7UaTpTkgZdzupzCUXV6HAgrj5V7qw+ajx+EzWv4M=
-Date: Sun, 21 Sep 2025 14:27:05 -0700
+	b=FSn9YU+7HO5DZQoPO4c7LakZEHQnHdjWFWCMoMOf+LNkGTUNG3lSh86YhQR0ccb3V
+	 MgUXgKd3MADaYSCYLauLFCk9aHnYA+dNqBm7m/Z/RRBXpRUtMp+oGX5voQUaRjUSVC
+	 r7VSEQKVO4E66NbQ3yg8toOyC6dEJP9cfqre3lUo=
+Date: Sun, 21 Sep 2025 14:27:06 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] samples-damon-wsse-use-damon_initialized.patch removed from -mm tree
-Message-Id: <20250921212705.A8BF4C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-prcl-use-damon_initialized.patch removed from -mm tree
+Message-Id: <20250921212706.C04F6C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: samples/damon/wsse: use damon_initialized()
+     Subject: samples/damon/prcl: use damon_initialized()
 has been removed from the -mm tree.  Its filename was
-     samples-damon-wsse-use-damon_initialized.patch
+     samples-damon-prcl-use-damon_initialized.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: samples/damon/wsse: use damon_initialized()
-Date: Mon, 15 Sep 2025 20:35:09 -0700
+Subject: samples/damon/prcl: use damon_initialized()
+Date: Mon, 15 Sep 2025 20:35:10 -0700
 
-damon_sample_wsse is assuming DAMON is ready to use in module_init time,
+damon_sample_prcl is assuming DAMON is ready to use in module_init time,
 and uses its own hack to see if it is the time.  Use damon_initialized(),
 which is a way for seeing if DAMON is ready to be used that is more
 reliable and better to maintain instead of the hack.
 
-Link: https://lkml.kernel.org/r/20250916033511.116366-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20250916033511.116366-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/damon/wsse.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ samples/damon/prcl.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/samples/damon/wsse.c~samples-damon-wsse-use-damon_initialized
-+++ a/samples/damon/wsse.c
-@@ -102,8 +102,6 @@ static void damon_sample_wsse_stop(void)
+--- a/samples/damon/prcl.c~samples-damon-prcl-use-damon_initialized
++++ a/samples/damon/prcl.c
+@@ -122,8 +122,6 @@ static void damon_sample_prcl_stop(void)
  	}
  }
  
 -static bool init_called;
 -
- static int damon_sample_wsse_enable_store(
+ static int damon_sample_prcl_enable_store(
  		const char *val, const struct kernel_param *kp)
  {
-@@ -117,10 +115,10 @@ static int damon_sample_wsse_enable_stor
+@@ -137,7 +135,7 @@ static int damon_sample_prcl_enable_stor
  	if (enabled == is_enabled)
  		return 0;
  
--	if (enabled) {
--		if (!init_called)
--			return 0;
+-	if (!init_called)
 +	if (!damon_initialized())
-+		return 0;
+ 		return 0;
  
-+	if (enabled) {
- 		err = damon_sample_wsse_start();
- 		if (err)
- 			enabled = false;
-@@ -134,7 +132,12 @@ static int __init damon_sample_wsse_init
+ 	if (enabled) {
+@@ -154,7 +152,12 @@ static int __init damon_sample_prcl_init
  {
  	int err = 0;
  
 -	init_called = true;
 +	if (!damon_initialized()) {
-+		err = -ENOMEM;
 +		if (enabled)
 +			enabled = false;
++		return -ENOMEM;
 +	}
 +
  	if (enabled) {
- 		err = damon_sample_wsse_start();
+ 		err = damon_sample_prcl_start();
  		if (err)
 _
 
