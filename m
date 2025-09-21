@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0E162BCF41
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 140E629D292
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:24:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489894; cv=none; b=JHn6t66AnI680e3yDgR9JVXSks2ra4yBM+/NbjujDmzfuR4RWmIUX49mVHYAbyN8Sqtemh8852TLHfzR67JJPng8eMBqg+8JnSfodHtW9Wu+wljDCEswsCxWDykcQ8qRte0MpBSVowgbx0FYjpn3K8RdRYMwTIUXmxDrpM68K24=
+	t=1758489895; cv=none; b=QNqADAcJfArZtVgB7/QKa7s3ZPY0/qMEuMpIE32G3QQ9fycNk+G8n2fAxniePHdUwK8oichDe/VzEEOd/+3I72ITdY332omrkXjvu7OfRTeBcSPVzfWJs5lJsU2/uZusrmOGfljlr2I+3t6ZPRFoMPNleDNWSXp7gbdZsds9dXs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489894; c=relaxed/simple;
-	bh=nVDGaObQrHU9b6Gn+0+83KR5tll5P3mJCezyH68Xyno=;
-	h=Date:To:From:Subject:Message-Id; b=EmEerwXMEqbSQBczZkZUh7zgUW/vGNxZJuA7JpnrpM9AkuC4J0p2sOIQXybYMsG9S2uLuKDnxvWP+AEWhVAjP5JPuIw7ixtxgx07TLGi7IX3MXXWGlRChZrHVvJaH7bya+x33jk2GxNHp2uvDW8/MF8ZcWmqi/WiRJsYv/4iSm4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZifPbFcM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489895; c=relaxed/simple;
+	bh=9P91f6PYry0BCK17EFN3dBTGeQnefvs+T0khLM8sXv0=;
+	h=Date:To:From:Subject:Message-Id; b=i5aiOLxN8KhZOve+cE2XY6EVbVZrDW+SuM0QIFiWQoaP+zDpzlhvj588ENfTI64rpwxceX0PEg+aOuVSsV2Tfx2KkjNaUTZxkMKWCQwQ2lRe+2EgMTzKCYdj61167DKEtXUhUQPMIWg0onocpW9Mw3YECt1B2/XrJzvVOfCC7II=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TKtElI9e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZifPbFcM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C62FBC4CEE7;
-	Sun, 21 Sep 2025 21:24:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TKtElI9e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFB0DC4CEE7;
+	Sun, 21 Sep 2025 21:24:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489893;
-	bh=nVDGaObQrHU9b6Gn+0+83KR5tll5P3mJCezyH68Xyno=;
+	s=korg; t=1758489895;
+	bh=9P91f6PYry0BCK17EFN3dBTGeQnefvs+T0khLM8sXv0=;
 	h=Date:To:From:Subject:From;
-	b=ZifPbFcMSQhBDCickHXQ9OB1ZktRof1Rg8XC/+DcMOWV3pd5pkKyNjaCHzibNyVTu
-	 ttqFxhnxXISB+shyd/6QDcp7PiptTaMi0/1UMATq1F7/w+yxNkAyG7E7O/k9dRtpCh
-	 Qwj3TG8zzNpUjJ5QrTO6kmMIrddeg5af+tFDLWVA=
-Date: Sun, 21 Sep 2025 14:24:53 -0700
-To: mm-commits@vger.kernel.org,Yuezhang.Mo@sony.com,willy@infradead.org,viro@zeniv.linux.org.uk,sj1557.seo@samsung.com,linkinjeon@kernel.org,jack@suse.cz,brauner@kernel.org,chizhiling@kylinos.cn,akpm@linux-foundation.org
+	b=TKtElI9eYU+1ntRiGR+IhxP6+uoMS8VHBDUwUCMfSqbIwIGjmttES+F9F23q985lA
+	 pMoPDDQ85evCzFPjytwakv0qQdzQXhEdwa2HBhsqaoUbH3C0cBDM/wEsMS6PpQO6Be
+	 FxdMvcXgkO1PB7BUv3T4vbVWSTnc03U0i1ZK81VU=
+Date: Sun, 21 Sep 2025 14:24:54 -0700
+To: mm-commits@vger.kernel.org,hughd@google.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mpage-convert-do_mpage_readpage-to-return-void-type.patch removed from -mm tree
-Message-Id: <20250921212453.C62FBC4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-mlock_count-from-struct-page.patch removed from -mm tree
+Message-Id: <20250921212454.DFB0DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mpage: convert do_mpage_readpage() to return void type
+     Subject: mm: remove mlock_count from struct page
 has been removed from the -mm tree.  Its filename was
-     mpage-convert-do_mpage_readpage-to-return-void-type.patch
+     mm-remove-mlock_count-from-struct-page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chi Zhiling <chizhiling@kylinos.cn>
-Subject: mpage: convert do_mpage_readpage() to return void type
-Date: Fri, 29 Aug 2025 10:36:59 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove mlock_count from struct page
+Date: Wed, 3 Sep 2025 20:10:39 +0100
 
-The return value of do_mpage_readpage() is arg->bio, which is already set
-in the arg structure.  Returning it again is redundant.
+All users now use folio->mlock_count so we can remove this element of
+struct page.  Move the useful comments over to struct folio.
 
-This patch changes the return type to void since the caller doesn't care
-about the return value.
-
-Link: https://lkml.kernel.org/r/20250829023659.688649-2-chizhiling@163.com
-Signed-off-by: Chi Zhiling <chizhiling@kylinos.cn>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Namjae Jeon <linkinjeon@kernel.org>
-Cc: Sungjong Seo <sj1557.seo@samsung.com>
-Cc: Yuezhang Mo <Yuezhang.Mo@sony.com>
+Link: https://lkml.kernel.org/r/20250903191041.1630338-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/mm_types.h |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/fs/mpage.c~mpage-convert-do_mpage_readpage-to-return-void-type
-+++ a/fs/mpage.c
-@@ -148,7 +148,7 @@ struct mpage_readpage_args {
-  * represent the validity of its disk mapping and to decide when to do the next
-  * get_block() call.
-  */
--static struct bio *do_mpage_readpage(struct mpage_readpage_args *args)
-+static void do_mpage_readpage(struct mpage_readpage_args *args)
- {
- 	struct folio *folio = args->folio;
- 	struct inode *inode = folio->mapping->host;
-@@ -305,7 +305,7 @@ alloc_new:
- 	else
- 		args->last_block_in_bio = first_block + blocks_per_folio - 1;
- out:
--	return args->bio;
-+	return;
+--- a/include/linux/mm_types.h~mm-remove-mlock_count-from-struct-page
++++ a/include/linux/mm_types.h
+@@ -94,14 +94,6 @@ struct page {
+ 			union {
+ 				struct list_head lru;
  
- confused:
- 	if (args->bio)
-@@ -368,7 +368,7 @@ void mpage_readahead(struct readahead_co
- 		prefetchw(&folio->flags);
- 		args.folio = folio;
- 		args.nr_pages = readahead_count(rac);
--		args.bio = do_mpage_readpage(&args);
-+		do_mpage_readpage(&args);
- 		/*
- 		 * If read ahead failed synchronously, it may cause by removed
- 		 * device, or some filesystem metadata error.
-@@ -392,7 +392,7 @@ int mpage_read_folio(struct folio *folio
- 		.get_block = get_block,
- 	};
- 
--	args.bio = do_mpage_readpage(&args);
-+	do_mpage_readpage(&args);
- 	if (args.bio)
- 		mpage_bio_submit_read(args.bio);
- 	return 0;
+-				/* Or, for the Unevictable "LRU list" slot */
+-				struct {
+-					/* Always even, to negate PageTail */
+-					void *__filler;
+-					/* Count page's or folio's mlocks */
+-					unsigned int mlock_count;
+-				};
+-
+ 				/* Or, free page */
+ 				struct list_head buddy_list;
+ 				struct list_head pcp_list;
+@@ -391,7 +383,9 @@ struct folio {
+ 			union {
+ 				struct list_head lru;
+ 	/* private: avoid cluttering the output */
++				/* For the Unevictable "LRU list" slot */
+ 				struct {
++					/* Avoid compound_head */
+ 					void *__filler;
+ 	/* public: */
+ 					unsigned int mlock_count;
 _
 
-Patches currently in -mm which might be from chizhiling@kylinos.cn are
+Patches currently in -mm which might be from willy@infradead.org are
 
+ksm-use-a-folio-inside-cmp_and_merge_page.patch
 
