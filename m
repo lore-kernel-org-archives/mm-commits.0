@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B17B42C027B
-	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9FE22C027B
+	for <mm-commits@vger.kernel.org>; Sun, 21 Sep 2025 21:26:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758489976; cv=none; b=ckSG2Y7ZvFFmn5Pef+s00s5U5wRzhlqPwHfQ4VkhyF8JgN757WV8GYGTCcVZ33y2K6k+Tk9nRU/MfNA2YgAYy4paT94WfHB372d81AA9+lfVGT0+NpvJOcWcLEnMdc6qx1/E/+krk2ISaL6pVcStf7rcJGq7RRUxwqfp5XuaGOg=
+	t=1758489977; cv=none; b=joVv9Ej5CjJJOwDTH9LpWeWzKoBodajC+aBR8KfnJiwaN+BFlJzsZ2KsMK0tFC63P5vdEWWEX9xo0Fsv8bt2Dw9yZIZrR50VyoWfH2EsYeH0XSVulhsLt6PkqQepabme620cXhdrJerOE9McXLS8crTjGOQr5nCPm+OgvSqMJwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758489976; c=relaxed/simple;
-	bh=AndMzT6JbFdTofqlqKtE1VQl9RH6cVdJSNjPLlU9mrs=;
-	h=Date:To:From:Subject:Message-Id; b=MzY+u5ch4dwdYN9RDQdmmI6pw2PK+BAWdr5zdXEw5KI3tkUVLlyYebqchSbOJ2jMunLLVCbJ1lpQQxuatrz0fOnOu4p/rlkZvT87WtrRmFMkFkfoUBEl3pEXNPbHGtEUw147Z5A6jn6rwEgNxkouOE9AwFecQlqV3hYmN+tJ8Ww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MIYyNN07; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758489977; c=relaxed/simple;
+	bh=fyIpkvp0CkkY/x7ZXIX3N9jXocdmpCje30+2MB6wpGU=;
+	h=Date:To:From:Subject:Message-Id; b=flhQAIVxsoY1/RAItc/yaFW6Tbs5aOwlCI4AykN7AaQLm/L5SN4blDKXrVFKu9Ka9kh25dQg/SAFSjujYjAwoc73wDarg0Q96xV4LY/B90Jg9Pp3M2oL7vMbsILBxK704UT1wK8H9IN71tKDX1IksjQo6L81jEy6C3h2d2Bu5As=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NHvgi0aO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MIYyNN07"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36483C4CEE7;
-	Sun, 21 Sep 2025 21:26:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NHvgi0aO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78516C4CEE7;
+	Sun, 21 Sep 2025 21:26:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758489976;
-	bh=AndMzT6JbFdTofqlqKtE1VQl9RH6cVdJSNjPLlU9mrs=;
+	s=korg; t=1758489977;
+	bh=fyIpkvp0CkkY/x7ZXIX3N9jXocdmpCje30+2MB6wpGU=;
 	h=Date:To:From:Subject:From;
-	b=MIYyNN07KtSucn8oahxOq5f5FT0JNIWw097fl3Aw3D4EP+UEdUscxmok+aijEpleL
-	 SMYTAo4eEQDYQELWRDOkKlK/arUmq8kvAFw4B27Bmsc2KrVrm4Lq2NmFuFyPXls7FY
-	 ZdXbT0Lbsbnr4Ub+H/7W4ih9w1xKgSG30MZj8y0U=
-Date: Sun, 21 Sep 2025 14:26:15 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@ziepe.ca,imbrenda@linux.ibm.com,borntraeger@de.ibm.com,david@redhat.com,akpm@linux-foundation.org
+	b=NHvgi0aOVvUghVYaRRgdJE7fUvlrtfdBZ3OYZxWK+16IKwtHiUNh5HeD66nBAJobg
+	 qo9W23xaI9MWF/9KYdpjeztrzPTi2Z97UzCz5IKatrAOm3es6ilPp2gDWxPGBMfI5X
+	 6FmGxaXVIsuCYoEaR/x1NNFximdrQNkWDZ5DBBL4=
+Date: Sun, 21 Sep 2025 14:26:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,thomas.hellstrom@linux.intel.com,mpenttil@redhat.com,matthew.brost@intel.com,leonro@nvidia.com,jgg@nvidia.com,christian.koenig@amd.com,balbirs@nvidia.com,apopple@nvidia.com,airlied@gmail.com,francois.dugast@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-fix-handling-of-errors-from-arch_make_folio_accessible-in-follow_page_pte.patch removed from -mm tree
-Message-Id: <20250921212616.36483C4CEE7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hmm-populate-pfns-from-pmd-swap-entry.patch removed from -mm tree
+Message-Id: <20250921212617.78516C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,144 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup: fix handling of errors from arch_make_folio_accessible() in follow_page_pte()
+     Subject: mm/hmm: populate PFNs from PMD swap entry
 has been removed from the -mm tree.  Its filename was
-     mm-gup-fix-handling-of-errors-from-arch_make_folio_accessible-in-follow_page_pte.patch
+     mm-hmm-populate-pfns-from-pmd-swap-entry.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/gup: fix handling of errors from arch_make_folio_accessible() in follow_page_pte()
-Date: Mon, 8 Sep 2025 11:45:17 +0200
+From: Francois Dugast <francois.dugast@intel.com>
+Subject: mm/hmm: populate PFNs from PMD swap entry
+Date: Mon, 8 Sep 2025 11:10:52 +0200
 
-In case we call arch_make_folio_accessible() and it fails, we would
-incorrectly return a value that is "!= 0" to the caller, indicating that
-we pinned all requested pages and that the caller can keep going.
+Once support for THP migration of zone device pages is enabled, device
+private swap entries will be found during the walk not only for PTEs but
+also for PMDs.
 
-follow_page_pte() is not supposed to return error values, but instead "0"
-on failure and "1" on success -- we'll clean that up separately.
+Therefore, it is necessary to extend to PMDs the special handling which is
+already in place for PTEs when device private pages are owned by the
+caller: instead of faulting or skipping the range, the correct behavior is
+to use the swap entry to populate HMM PFNs.
 
-In case we return "!= 0", the caller will just keep going pinning more
-pages.  If we happen to pin a page afterwards, we're in trouble, because
-we essentially skipped some pages in the requested range.
+This change is a prerequisite to make use of device-private THP in drivers
+using drivers/gpu/drm/drm_pagemap, such as xe.
 
-Staring at the arch_make_folio_accessible() implementation on s390x, I
-assume it should actually never really fail unless something unexpected
-happens (BUG?).  So let's not CC stable and just fix common code to do the
-right thing.
+Even though subsequent PFNs can be inferred when handling large order
+PFNs, the PFN list is still fully populated because this is currently
+expected by HMM users.  In case this changes in the future, that is all
+HMM users support a sparsely populated PFN list, the for() loop can be
+made to skip remaining PFNs for the current order.  A quick test shows the
+loop takes about 10 ns, roughly 20 times faster than without this
+optimization.
 
-Clean up the code a bit now that there is no reason to store the return
-value of arch_make_folio_accessible().
-
-Link: https://lkml.kernel.org/r/20250908094517.303409-1-david@redhat.com
-Fixes: f28d43636d6f ("mm/gup/writeback: add callbacks for inaccessible pages")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Link: https://lkml.kernel.org/r/20250908091052.612303-1-francois.dugast@intel.com
+Signed-off-by: Francois Dugast <francois.dugast@intel.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Leon Romanovsky <leonro@nvidia.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Thomas Hellstrom <thomas.hellstrom@linux.intel.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/hmm.c |   70 +++++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 65 insertions(+), 5 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-handling-of-errors-from-arch_make_folio_accessible-in-follow_page_pte
-+++ a/mm/gup.c
-@@ -2898,12 +2898,9 @@ static int gup_fast_pte_range(pmd_t pmd,
- 		 * see Documentation/core-api/pin_user_pages.rst for
- 		 * details.
- 		 */
--		if (flags & FOLL_PIN) {
--			ret = arch_make_folio_accessible(folio);
--			if (ret) {
--				gup_put_folio(folio, 1, flags);
--				goto pte_unmap;
--			}
-+		if ((flags & FOLL_PIN) && arch_make_folio_accessible(folio)) {
-+			gup_put_folio(folio, 1, flags);
-+			goto pte_unmap;
- 		}
- 		folio_set_referenced(folio);
- 		pages[*nr] = page;
+--- a/mm/hmm.c~mm-hmm-populate-pfns-from-pmd-swap-entry
++++ a/mm/hmm.c
+@@ -326,6 +326,68 @@ fault:
+ 	return hmm_vma_fault(addr, end, required_fault, walk);
+ }
+ 
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++static int hmm_vma_handle_absent_pmd(struct mm_walk *walk, unsigned long start,
++				     unsigned long end, unsigned long *hmm_pfns,
++				     pmd_t pmd)
++{
++	struct hmm_vma_walk *hmm_vma_walk = walk->private;
++	struct hmm_range *range = hmm_vma_walk->range;
++	unsigned long npages = (end - start) >> PAGE_SHIFT;
++	unsigned long addr = start;
++	swp_entry_t entry = pmd_to_swp_entry(pmd);
++	unsigned int required_fault;
++
++	if (is_device_private_entry(entry) &&
++	    pfn_swap_entry_folio(entry)->pgmap->owner ==
++	    range->dev_private_owner) {
++		unsigned long cpu_flags = HMM_PFN_VALID |
++			hmm_pfn_flags_order(PMD_SHIFT - PAGE_SHIFT);
++		unsigned long pfn = swp_offset_pfn(entry);
++		unsigned long i;
++
++		if (is_writable_device_private_entry(entry))
++			cpu_flags |= HMM_PFN_WRITE;
++
++		/*
++		 * Fully populate the PFN list though subsequent PFNs could be
++		 * inferred, because drivers which are not yet aware of large
++		 * folios probably do not support sparsely populated PFN lists.
++		 */
++		for (i = 0; addr < end; addr += PAGE_SIZE, i++, pfn++) {
++			hmm_pfns[i] &= HMM_PFN_INOUT_FLAGS;
++			hmm_pfns[i] |= pfn | cpu_flags;
++		}
++
++		return 0;
++	}
++
++	required_fault = hmm_range_need_fault(hmm_vma_walk, hmm_pfns,
++					      npages, 0);
++	if (required_fault) {
++		if (is_device_private_entry(entry))
++			return hmm_vma_fault(addr, end, required_fault, walk);
++		else
++			return -EFAULT;
++	}
++
++	return hmm_pfns_fill(start, end, range, HMM_PFN_ERROR);
++}
++#else
++static int hmm_vma_handle_absent_pmd(struct mm_walk *walk, unsigned long start,
++				     unsigned long end, unsigned long *hmm_pfns,
++				     pmd_t pmd)
++{
++	struct hmm_vma_walk *hmm_vma_walk = walk->private;
++	struct hmm_range *range = hmm_vma_walk->range;
++	unsigned long npages = (end - start) >> PAGE_SHIFT;
++
++	if (hmm_range_need_fault(hmm_vma_walk, hmm_pfns, npages, 0))
++		return -EFAULT;
++	return hmm_pfns_fill(start, end, range, HMM_PFN_ERROR);
++}
++#endif  /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
++
+ static int hmm_vma_walk_pmd(pmd_t *pmdp,
+ 			    unsigned long start,
+ 			    unsigned long end,
+@@ -354,11 +416,9 @@ again:
+ 		return hmm_pfns_fill(start, end, range, 0);
+ 	}
+ 
+-	if (!pmd_present(pmd)) {
+-		if (hmm_range_need_fault(hmm_vma_walk, hmm_pfns, npages, 0))
+-			return -EFAULT;
+-		return hmm_pfns_fill(start, end, range, HMM_PFN_ERROR);
+-	}
++	if (!pmd_present(pmd))
++		return hmm_vma_handle_absent_pmd(walk, start, end, hmm_pfns,
++						 pmd);
+ 
+ 	if (pmd_trans_huge(pmd)) {
+ 		/*
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from francois.dugast@intel.com are
 
 
