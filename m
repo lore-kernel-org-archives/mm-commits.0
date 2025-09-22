@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12BB74A0C
-	for <mm-commits@vger.kernel.org>; Mon, 22 Sep 2025 22:41:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6E8230DED7
+	for <mm-commits@vger.kernel.org>; Mon, 22 Sep 2025 22:48:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758580914; cv=none; b=fza/mbwwDYuL3sGPYNJyaOVgVHpnyZCV+WSB76E3QuVXRkVJwmtB9fKX9/3iItrHEi/SfRZh/BLpc7BLyDdhKTxngjFn2/05g0W9Se8p+0i7eSqaJqHr+GlMnBbhNTOAOuG7CmvOnH0FVhqTYWYGuh4y0q8aewF6JcovlkS/3yE=
+	t=1758581319; cv=none; b=It7jUihiCZdAvapAvuEs1C23rUZcMJ0Jh6RY7RIFwZoKs2hRQeJJzfm25KboxiaBXN1KTDniIawDuKiNRFi+uO0W/KstHa3qh9rafh3AKSbeVE/X0rtEOOxkxI1oWlLp+LO1Z6tpe+TLhVY1XOAlUQkxrU2MpxPbt3y/gNHjK+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758580914; c=relaxed/simple;
-	bh=OK92UIAPEC4z1qae0T5rU601Y9a07c+kqKe2vY+lPkc=;
-	h=Date:To:From:Subject:Message-Id; b=b2byL8HJPsWsj++cveTVWqt05oqe9n8aPMmRZLYnaTZX0AUw8qFteY71o7xvPjRMItQjkm2huhPDzhLaPp2D5OLaLH3lGivZmd/4K4MRe24Firdhm4pvUXyFdaBTXdp42lm7PFIEmVp+lu0K7i0f76UsAH+qsoCyR2n4rtIXfVY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pvph1wWm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758581319; c=relaxed/simple;
+	bh=9NaxDpyPLqL7CuWSTNJFUc3KmPC3fayb32l4Ztd4C80=;
+	h=Date:To:From:Subject:Message-Id; b=fzheDGL8d9K+4FJYJAvQeCwrKWPN+RHYaLJzw0Y3n1sUpeR4qeXnWD0G/uqNJPx5oY4tR/NuJAQhgR/4CqNZDz3A18Uo/cHEL3qWjf8CMPsc6qvxVz/EyAWubHr0IvNgqR+UxZH817DgWWV/QFlb/ynV3qL3Xu8UtR0KE6BAKks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qc8brXFm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pvph1wWm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75247C4CEF0;
-	Mon, 22 Sep 2025 22:41:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qc8brXFm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 310E3C4CEF0;
+	Mon, 22 Sep 2025 22:48:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758580913;
-	bh=OK92UIAPEC4z1qae0T5rU601Y9a07c+kqKe2vY+lPkc=;
+	s=korg; t=1758581317;
+	bh=9NaxDpyPLqL7CuWSTNJFUc3KmPC3fayb32l4Ztd4C80=;
 	h=Date:To:From:Subject:From;
-	b=Pvph1wWm/KHoynwefw0GqoNYDMEpwrB6bayS+/jev1oYxWlbT81jy3yI/O/hFPstl
-	 wFBSGzumvxdXfDBrbnoz2bnEiZV9ukLxo3YwRkDwPV9Jei77UopqZFyhdciQm12ydQ
-	 P7w7fcZi3hXTmwHiuUJDQr1aD5BAIxkICYhduDDE=
-Date: Mon, 22 Sep 2025 15:41:52 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,kirill@shutemov.name,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=qc8brXFmELappKWjLwErgOpd+33GdjBHYy/1rU1cp2yv26x89GQujE+QFBrWHUmyB
+	 tJxisA/KYIcqlZFZLf8/+rTb92ayeVMAMjL72c1rAFa2cJtRSaDtPLKyw6mNq119Jw
+	 iSXMpBNBh+hzqT0wEPrB+l6Csmmv5bH/S+x2XXsU=
+Date: Mon, 22 Sep 2025 15:48:36 -0700
+To: mm-commits@vger.kernel.org,oleg@redhat.com,demiobenour@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix.patch added to mm-new branch
-Message-Id: <20250922224153.75247C4CEF0@smtp.kernel.org>
+Subject: + kernel-prevent-prctlpr_set_pdeathsig-from-racing-with-parent-process-exit.patch added to mm-nonmm-unstable branch
+Message-Id: <20250922224837.310E3C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix.patch
+     Subject: kernel: prevent prctl(PR_SET_PDEATHSIG) from racing with parent process exit
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-prevent-prctlpr_set_pdeathsig-from-racing-with-parent-process-exit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-prevent-prctlpr_set_pdeathsig-from-racing-with-parent-process-exit.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,52 +58,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix
-Date: Mon, 22 Sep 2025 00:28:34 +0000
+From: Demi Marie Obenour <demiobenour@gmail.com>
+Subject: kernel: prevent prctl(PR_SET_PDEATHSIG) from racing with parent process exit
+Date: Sat, 13 Sep 2025 18:28:49 -0400
 
-fix use-after-free crash
+If a process calls prctl(PR_SET_PDEATHSIG) at the same time that the
+parent process exits, the child will write to me->pdeath_sig at the same
+time the parent is reading it.  Since there is no synchronization, this is
+a data race.
 
-Link: https://lkml.kernel.org/r/20250922002834.vz6ntj36e75ehkyp@master
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Debugged-by: Lance Yang <lance.yang@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Zi Yan <ziy@nvidia.com>
+Worse, it is possible that a subsequent call to getppid() can continue to
+return the previous parent process ID without the parent death signal
+being delivered.  This happens in the following scenario:
+
+parent                                                 child
+
+forget_original_parent()                               prctl(PR_SET_PDEATHSIG, SIGKILL)
+                                                         sys_prctl()
+                                                           me->pdeath_sig = SIGKILL;
+                                                       getppid();
+  RCU_INIT_POINTER(t->real_parent, reaper);
+  if (t->pdeath_signal) /* reads stale me->pdeath_sig */
+           group_send_sig_info(t->pdeath_signal, ...);
+
+And in the following:
+
+parent                                                 child
+
+forget_original_parent()
+    RCU_INIT_POINTER(t->real_parent, reaper);
+    /* also no barrier */
+     if (t->pdeath_signal) /* reads stale me->pdeath_sig */
+             group_send_sig_info(t->pdeath_signal, ...);
+
+                                                       prctl(PR_SET_PDEATHSIG, SIGKILL)
+                                                         sys_prctl()
+                                                           me->pdeath_sig = SIGKILL;
+                                                       getppid(); /* reads old ppid() */
+
+As a result, the following pattern is racy:
+
+	pid_t parent_pid = getpid();
+	pid_t child_pid = fork();
+	if (child_pid == -1) {
+		/* handle error... */
+		return;
+	}
+	if (child_pid == 0) {
+		if (prctl(PR_SET_PDEATHSIG, SIGKILL) != 0) {
+			/* handle error */
+			_exit(126);
+		}
+		if (getppid() != parent_pid) {
+			/* parent died already */
+			raise(SIGKILL);
+		}
+		/* keep going in child */
+	}
+	/* keep going in parent */
+
+If the parent is killed at exactly the wrong time, the child process can
+(wrongly) stay running.
+
+I didn't manage to reproduce this in my testing, but I'm pretty sure the
+race is real.  KCSAN is probably the best way to spot the race.
+
+Fix the bug by holding tasklist_lock for reading whenever pdeath_signal is
+being written to.  This prevents races on me->pdeath_sig, and the locking
+and unlocking of the rwlock provide the needed memory barriers.  If
+prctl(PR_SET_PDEATHSIG) happens before the parent exits, the signal will
+be sent.  If it happens afterwards, a subsequent getppid() will return the
+new value.
+
+Link: https://lkml.kernel.org/r/20250913-fix-prctl-pdeathsig-race-v1-1-44e2eb426fe9@gmail.com
+Signed-off-by: Demi Marie Obenour <demiobenour@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/sys.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix
-+++ a/mm/khugepaged.c
-@@ -2508,8 +2508,7 @@ breakouterloop_mmap_lock:
- 		 * mm_slot not pointing to the exiting mm.
- 		 */
- 		if (!list_is_last(&slot->mm_node, &khugepaged_scan.mm_head)) {
--			slot = list_next_entry(slot, mm_node);
--			khugepaged_scan.mm_slot = slot;
-+			khugepaged_scan.mm_slot = list_next_entry(slot, mm_node);
- 			khugepaged_scan.address = 0;
- 		} else {
- 			khugepaged_scan.mm_slot = NULL;
+--- a/kernel/sys.c~kernel-prevent-prctlpr_set_pdeathsig-from-racing-with-parent-process-exit
++++ a/kernel/sys.c
+@@ -2533,7 +2533,17 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 			error = -EINVAL;
+ 			break;
+ 		}
++		/*
++		 * Ensure that either:
++		 *
++		 * 1. Subsequent getppid() calls reflect the parent process having died.
++		 * 2. forget_original_parent() will send the new me->pdeath_signal.
++		 *
++		 * Also prevent the read of me->pdeath_signal from being a data race.
++		 */
++		read_lock(&tasklist_lock);
+ 		me->pdeath_signal = arg2;
++		read_unlock(&tasklist_lock);
+ 		break;
+ 	case PR_GET_PDEATHSIG:
+ 		error = put_user(me->pdeath_signal, (int __user *)arg2);
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from demiobenour@gmail.com are
 
-mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch
-mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null.patch
-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix.patch
-mm-khugepaged-use-start_addr-addr-for-better-reading.patch
+kernel-prevent-prctlpr_set_pdeathsig-from-racing-with-parent-process-exit.patch
 
