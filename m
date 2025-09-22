@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D4E226FDAC
-	for <mm-commits@vger.kernel.org>; Mon, 22 Sep 2025 21:19:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BB0C1D63F3
+	for <mm-commits@vger.kernel.org>; Mon, 22 Sep 2025 21:29:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758575970; cv=none; b=LK9Pd/saiKNa2DzmWvDLIBBnKwpkUEXSC/fFS7I2pm9oMsN4XoMBfVRfOicIgPSSdWs0C5chYIK1xeEWHyYyJSTHU3QW8jRZrz7uw7DeaH4phsALN83vEPKir72ejdy6l+gd+SacGFg7a+Hu6Mze1HZoJjl0UU8g4N/PTlEeVhc=
+	t=1758576590; cv=none; b=DGOdR5cim3CFjh/HHnRjy6dvxAR8MFQUY/HprtA7lUUg5F8G5ihLgyf1H4m+RXeRSR6PB4k1MKTj/MwdcnztC/93QQAMNHeRKg27iy0P1D8x5ZvbN1a3jNiUoVOuckZuU694bHWoMnP3woGRkabq5xl/CaI8TiYpnHoyFzcqZYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758575970; c=relaxed/simple;
-	bh=fio63SV5PPXW+wEo2FIxStB1t90FuZ4YPUnVwEPu4VM=;
-	h=Date:To:From:Subject:Message-Id; b=l2+WDGOyojkFWh/mTiarEPIrr4Qbq785i7mC+l+4QSgJIsrvjJdWk6B0AJ8vu9qSx4KK9mLCt7HoPfFO6N3T6w5U4c/OzOSSpS37U2bBQIxccYsmMuGcaggO1eMytjEOJ82SeQIjEphNSxWJYNPjX7z0X64Dgc7WHbpQpdr6jTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ms6ViqaU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758576590; c=relaxed/simple;
+	bh=x4Dchfow7sgoU+R+3sVL5Oktzm+7ATwtFXwIABTJJAw=;
+	h=Date:To:From:Subject:Message-Id; b=uofmgJ1MnN/WOlX+0BPDBoIXFR1uFv30UhLTFeWUmhuMivFWv6iBfJ33KKimVUotMldrDpW4trd27fFJR++m+d/tJlXtTbFOUyCCLDUtiZscPi58Ef6+/yLq8C5X95+X0Pb4YkjiIiETMTxwLX7+KqzqPDlJiCrfauc8EkiHmb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RPUnXHU/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ms6ViqaU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D94AAC4CEF0;
-	Mon, 22 Sep 2025 21:19:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RPUnXHU/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7C09C4CEF0;
+	Mon, 22 Sep 2025 21:29:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758575970;
-	bh=fio63SV5PPXW+wEo2FIxStB1t90FuZ4YPUnVwEPu4VM=;
+	s=korg; t=1758576589;
+	bh=x4Dchfow7sgoU+R+3sVL5Oktzm+7ATwtFXwIABTJJAw=;
 	h=Date:To:From:Subject:From;
-	b=Ms6ViqaUnhYI7+L/g6PHAYfbuok0zQujXEunQ4TKfd7hpnI/0IX2Z82ybByVpt3xV
-	 DnuMKYU51gIgnan1l65T5UiO5D+22MOHXYICjMRohT08R0lvxo5GjxSSmctUkCfOiD
-	 MMs7P77YpCUCf4hS6f4YqCVylqyPlRgUD+I8hjAg=
-Date: Mon, 22 Sep 2025 14:19:29 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,david@redhat.com,xieyuanbin1@huawei.com,akpm@linux-foundation.org
+	b=RPUnXHU/HOmUTh7Cw4CrGnTg1Uf7avhf6s/t0TXZ2ghjjZrkrXh0aLTFm9rL3DGqS
+	 iZpqxZIww36ckm2wbWCZI3syJcPGuwtMIWYuqtmc3atobg9+/Np2FAMezLRDKKaA1T
+	 qLoleGqTU68i9R7YJTOVGtkbPe+uL+b/Sm5rfctw=
+Date: Mon, 22 Sep 2025 14:29:49 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-not-select-memory_isolation.patch added to mm-new branch
-Message-Id: <20250922211929.D94AAC4CEF0@smtp.kernel.org>
+Subject: + mm-khugepaged-use-start_addr-addr-for-better-reading.patch added to mm-new branch
+Message-Id: <20250922212949.C7C09C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: don't select MEMORY_ISOLATION
+     Subject: mm/khugepaged: use start_addr/addr for improved readability
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-failure-not-select-memory_isolation.patch
+     mm-khugepaged-use-start_addr-addr-for-better-reading.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-not-select-memory_isolation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-use-start_addr-addr-for-better-reading.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,53 +64,194 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xie Yuanbin <xieyuanbin1@huawei.com>
-Subject: mm/memory-failure: don't select MEMORY_ISOLATION
-Date: Mon, 22 Sep 2025 22:36:18 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/khugepaged: use start_addr/addr for improved readability
+Date: Mon, 22 Sep 2025 14:09:38 +0000
 
-We added that "select MEMORY_ISOLATION" in commit ee6f509c3274 ("mm:
-factor out memory isolate functions").  However, in commit add05cecef80
-("mm: soft-offline: don't free target page in successful page migration")
-we remove the need for it, where we removed the calls to
-set_migratetype_isolate() etc.
+When collapsing a pmd, there are two address in use:
 
-What CONFIG_MEMORY_FAILURE soft-offline support wants is migrate_pages()
-support.  But that comes with CONFIG_MIGRATION.  And
-isolate_folio_to_list() has nothing to do with CONFIG_MEMORY_ISOLATION.
+  * address points to the start of pmd
+  * address points to each individual page
 
-Therefore, we can remove "select MEMORY_ISOLATION" of MEMORY_FAILURE.
+Current naming makes it difficult to distinguish these two and is hence
+error prone.
 
-Link: https://lkml.kernel.org/r/20250922143618.48640-1-xieyuanbin1@huawei.com
-Signed-off-by: Xie Yuanbin <xieyuanbin1@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Considering the plan to collapse mTHP, name the first one `start_addr' and
+the second `addr' for better readability and consistency.
+
+Link: https://lkml.kernel.org/r/20250922140938.27343-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ mm/khugepaged.c |   43 ++++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
 
---- a/mm/Kconfig~mm-memory-failure-not-select-memory_isolation
-+++ a/mm/Kconfig
-@@ -748,7 +748,6 @@ config MEMORY_FAILURE
- 	depends on MMU
- 	depends on ARCH_SUPPORTS_MEMORY_FAILURE
- 	bool "Enable recovery from hardware memory errors"
--	select MEMORY_ISOLATION
- 	select RAS
- 	help
- 	  Enables code to recover from some memory failures on systems
+--- a/mm/khugepaged.c~mm-khugepaged-use-start_addr-addr-for-better-reading
++++ a/mm/khugepaged.c
+@@ -537,18 +537,19 @@ static void release_pte_pages(pte_t *pte
+ }
+ 
+ static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
+-					unsigned long address,
++					unsigned long start_addr,
+ 					pte_t *pte,
+ 					struct collapse_control *cc,
+ 					struct list_head *compound_pagelist)
+ {
+ 	struct page *page = NULL;
+ 	struct folio *folio = NULL;
++	unsigned long addr = start_addr;
+ 	pte_t *_pte;
+ 	int none_or_zero = 0, shared = 0, result = SCAN_FAIL, referenced = 0;
+ 
+ 	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
+-	     _pte++, address += PAGE_SIZE) {
++	     _pte++, addr += PAGE_SIZE) {
+ 		pte_t pteval = ptep_get(_pte);
+ 		if (pte_none(pteval) || (pte_present(pteval) &&
+ 				is_zero_pfn(pte_pfn(pteval)))) {
+@@ -571,7 +572,7 @@ static int __collapse_huge_page_isolate(
+ 			result = SCAN_PTE_UFFD_WP;
+ 			goto out;
+ 		}
+-		page = vm_normal_page(vma, address, pteval);
++		page = vm_normal_page(vma, addr, pteval);
+ 		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
+ 			result = SCAN_PAGE_NULL;
+ 			goto out;
+@@ -656,8 +657,8 @@ next:
+ 		 */
+ 		if (cc->is_khugepaged &&
+ 		    (pte_young(pteval) || folio_test_young(folio) ||
+-		     folio_test_referenced(folio) || mmu_notifier_test_young(vma->vm_mm,
+-								     address)))
++		     folio_test_referenced(folio) ||
++		     mmu_notifier_test_young(vma->vm_mm, addr)))
+ 			referenced++;
+ 	}
+ 
+@@ -986,21 +987,21 @@ static int check_pmd_still_valid(struct
+  */
+ static int __collapse_huge_page_swapin(struct mm_struct *mm,
+ 				       struct vm_area_struct *vma,
+-				       unsigned long haddr, pmd_t *pmd,
++				       unsigned long start_addr, pmd_t *pmd,
+ 				       int referenced)
+ {
+ 	int swapped_in = 0;
+ 	vm_fault_t ret = 0;
+-	unsigned long address, end = haddr + (HPAGE_PMD_NR * PAGE_SIZE);
++	unsigned long addr, end = start_addr + (HPAGE_PMD_NR * PAGE_SIZE);
+ 	int result;
+ 	pte_t *pte = NULL;
+ 	spinlock_t *ptl;
+ 
+-	for (address = haddr; address < end; address += PAGE_SIZE) {
++	for (addr = start_addr; addr < end; addr += PAGE_SIZE) {
+ 		struct vm_fault vmf = {
+ 			.vma = vma,
+-			.address = address,
+-			.pgoff = linear_page_index(vma, address),
++			.address = addr,
++			.pgoff = linear_page_index(vma, addr),
+ 			.flags = FAULT_FLAG_ALLOW_RETRY,
+ 			.pmd = pmd,
+ 		};
+@@ -1010,7 +1011,7 @@ static int __collapse_huge_page_swapin(s
+ 			 * Here the ptl is only used to check pte_same() in
+ 			 * do_swap_page(), so readonly version is enough.
+ 			 */
+-			pte = pte_offset_map_ro_nolock(mm, pmd, address, &ptl);
++			pte = pte_offset_map_ro_nolock(mm, pmd, addr, &ptl);
+ 			if (!pte) {
+ 				mmap_read_unlock(mm);
+ 				result = SCAN_PMD_NULL;
+@@ -1253,7 +1254,7 @@ out_nolock:
+ 
+ static int hpage_collapse_scan_pmd(struct mm_struct *mm,
+ 				   struct vm_area_struct *vma,
+-				   unsigned long address, bool *mmap_locked,
++				   unsigned long start_addr, bool *mmap_locked,
+ 				   struct collapse_control *cc)
+ {
+ 	pmd_t *pmd;
+@@ -1262,26 +1263,26 @@ static int hpage_collapse_scan_pmd(struc
+ 	int none_or_zero = 0, shared = 0;
+ 	struct page *page = NULL;
+ 	struct folio *folio = NULL;
+-	unsigned long _address;
++	unsigned long addr;
+ 	spinlock_t *ptl;
+ 	int node = NUMA_NO_NODE, unmapped = 0;
+ 
+-	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
++	VM_BUG_ON(start_addr & ~HPAGE_PMD_MASK);
+ 
+-	result = find_pmd_or_thp_or_none(mm, address, &pmd);
++	result = find_pmd_or_thp_or_none(mm, start_addr, &pmd);
+ 	if (result != SCAN_SUCCEED)
+ 		goto out;
+ 
+ 	memset(cc->node_load, 0, sizeof(cc->node_load));
+ 	nodes_clear(cc->alloc_nmask);
+-	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
++	pte = pte_offset_map_lock(mm, pmd, start_addr, &ptl);
+ 	if (!pte) {
+ 		result = SCAN_PMD_NULL;
+ 		goto out;
+ 	}
+ 
+-	for (_address = address, _pte = pte; _pte < pte + HPAGE_PMD_NR;
+-	     _pte++, _address += PAGE_SIZE) {
++	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
++	     _pte++, addr += PAGE_SIZE) {
+ 		pte_t pteval = ptep_get(_pte);
+ 		if (is_swap_pte(pteval)) {
+ 			++unmapped;
+@@ -1329,7 +1330,7 @@ static int hpage_collapse_scan_pmd(struc
+ 			goto out_unmap;
+ 		}
+ 
+-		page = vm_normal_page(vma, _address, pteval);
++		page = vm_normal_page(vma, addr, pteval);
+ 		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
+ 			result = SCAN_PAGE_NULL;
+ 			goto out_unmap;
+@@ -1398,7 +1399,7 @@ static int hpage_collapse_scan_pmd(struc
+ 		if (cc->is_khugepaged &&
+ 		    (pte_young(pteval) || folio_test_young(folio) ||
+ 		     folio_test_referenced(folio) ||
+-		     mmu_notifier_test_young(vma->vm_mm, _address)))
++		     mmu_notifier_test_young(vma->vm_mm, addr)))
+ 			referenced++;
+ 	}
+ 	if (cc->is_khugepaged &&
+@@ -1411,7 +1412,7 @@ static int hpage_collapse_scan_pmd(struc
+ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
+ 	if (result == SCAN_SUCCEED) {
+-		result = collapse_huge_page(mm, address, referenced,
++		result = collapse_huge_page(mm, start_addr, referenced,
+ 					    unmapped, cc);
+ 		/* collapse_huge_page will return with the mmap_lock released */
+ 		*mmap_locked = false;
 _
 
-Patches currently in -mm which might be from xieyuanbin1@huawei.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-memory-failure-not-select-memory_isolation.patch
+mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch
+mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null.patch
+mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+mm-khugepaged-use-start_addr-addr-for-better-reading.patch
 
