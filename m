@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4A511DE2A7
-	for <mm-commits@vger.kernel.org>; Mon, 22 Sep 2025 22:33:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD21119A288;
+	Mon, 22 Sep 2025 22:37:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758580395; cv=none; b=lk4pxJS2JRYo1cZQ3AuPYcStJvCn/UFwAvtqnrA42FYTtFxKe5wu528LocKVXZtgiij21thbZ+f23yHcPf8pAjIjz7nAp2aM7J42kOvHhlTlHO7K97szawjk5COZrpZ3sPF38QYjJQXtO9zxPXQxLKsJPDwANm7REypAD5y18ZI=
+	t=1758580676; cv=none; b=oIaj98t9z9M5AYLP9Piwpu9Z5fobS2pCoeB+Yx1Mr8K6fxx8XQJCMvWWL8AfHsuXJqEAa9Qyz/MOIGjXgpxqUhGsrbe8X5wu7ChDd8MU5NtLAhS27jcm9OnHIuWNHDOS5e8rta3fsVJPU/ucVpZBRwjriFA26ZFIQo+XmgWKB3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758580395; c=relaxed/simple;
-	bh=y0LE/kufETZkXiL0SJpNSwThic5bUI29UOsfYL9Il0Y=;
-	h=Date:To:From:Subject:Message-Id; b=N+C1V3kdvik0N89UzS9o3rGICsvo/nkGNF2sXWjE/S+BMOeGofiTBb0lanhSzdTTS6r/CLEkTgWPmQ/Qk5CKUIagFehK/g09oJGRtPBbbtSUUpELyIcu54F3RmHKfrv93sAwKjXtE5a8VV6jPHPtsUgokcZjp2XGdylKq65UPbw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ht6cFgxa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758580676; c=relaxed/simple;
+	bh=R4eju/JW8BmOqw+IGO3wqLX9p1tngOBCcWl/O6J38OE=;
+	h=Date:To:From:Subject:Message-Id; b=gxnwiSPsKQiG4D8w4bLYrQeSqrpERwcY2rXmqgLwsCWWDwe8wPRM5vJp1DwCfKKRSLyKvwLGx3MnCYRr/VcyZIOW+1GX8/Ea6E3YNsQv8ZB/K4zGVlUtFZn/AmWW72wMeWvCRRZcC/ajd5VtWwsT64aJurC5X5kxaDYC8r+vJOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NAhWY+oR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ht6cFgxa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E692C4CEF0;
-	Mon, 22 Sep 2025 22:33:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NAhWY+oR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BC95C4CEF0;
+	Mon, 22 Sep 2025 22:37:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758580395;
-	bh=y0LE/kufETZkXiL0SJpNSwThic5bUI29UOsfYL9Il0Y=;
+	s=korg; t=1758580674;
+	bh=R4eju/JW8BmOqw+IGO3wqLX9p1tngOBCcWl/O6J38OE=;
 	h=Date:To:From:Subject:From;
-	b=ht6cFgxaUdb13DwHXBcaSOmw9KBO4oWi97hF+HEq5oxn4PtkthwNOlUln1Q0QNo6P
-	 ACkO3vpZw3Aj3QYDaIocDGIWZYZZu1UFozD5y4uESu+ZEk+SUbDOeLzAhkFJirbHin
-	 AVLVS61Y3+hTt5FLLQMnDxviV7VtiWKj9eDNywu0=
-Date: Mon, 22 Sep 2025 15:33:14 -0700
-To: mm-commits@vger.kernel.org,hughd@google.com,da.gomez@samsung.com,baolin.wang@linux.alibaba.com,yanglincheng@kylinos.cn,akpm@linux-foundation.org
+	b=NAhWY+oRZnn8NDkmCMW+2+FoM2nsMyAn75vl9ZzkJq4btbTX0P10wfUeHtTIkoFKR
+	 9YIpdjUuWLKKGf9Fvb1tuouqeJYUmwglK9goRPPrig9nD23KklkYNwMKQsZpoMmiZn
+	 zk0nmXillRlQGmHkJJqPpvK1Ekh0uunroXQuGU34=
+Date: Mon, 22 Sep 2025 15:37:53 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-shmem-fix-too-little-space-for-tmpfs-only-fallback-4kb.patch removed from -mm tree
-Message-Id: <20250922223315.1E692C4CEF0@smtp.kernel.org>
+Subject: + mm-damon-sysfs-do-not-ignore-callbacks-return-value-in-damon_sysfs_damon_call.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250922223754.4BC95C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,69 +34,71 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: shmem: fix too little space for tmpfs only fallback 4KB
-has been removed from the -mm tree.  Its filename was
-     mm-shmem-fix-too-little-space-for-tmpfs-only-fallback-4kb.patch
+The patch titled
+     Subject: mm/damon/sysfs: do not ignore callback's return value in damon_sysfs_damon_call()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-sysfs-do-not-ignore-callbacks-return-value-in-damon_sysfs_damon_call.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-do-not-ignore-callbacks-return-value-in-damon_sysfs_damon_call.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vernon Yang <yanglincheng@kylinos.cn>
-Subject: mm: shmem: fix too little space for tmpfs only fallback 4KB
-Date: Mon, 8 Sep 2025 20:31:28 +0800
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm/damon/sysfs: do not ignore callback's return value in damon_sysfs_damon_call()
+Date: Sat, 20 Sep 2025 22:25:46 +0900
 
-When the system memory is sufficient, allocating memory is always
-successful, but when tmpfs size is low (e.g.  1MB), it falls back directly
-from 2MB to 4KB, and other small granularity (8KB ~ 1024KB) will not be
-tried.
+The callback return value is ignored in damon_sysfs_damon_call(), which
+means that it is not possible to detect invalid user input when writing
+commands such as 'commit' to
+/sys/kernel/mm/damon/admin/kdamonds/<K>/state.  Fix it.
 
-Therefore add check whether the remaining space of tmpfs is sufficient for
-allocation.  If there is too little space left, try smaller large folio.
-
-Link: https://lkml.kernel.org/r/20250908123128.900254-1-vernon2gm@gmail.com
-Fixes: acd7ccb284b8 ("mm: shmem: add large folio support for tmpfs")
-Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/20250920132546.5822-1-akinobu.mita@gmail.com
+Fixes: f64539dcdb87 ("mm/damon/sysfs: use damon_call() for update_schemes_stats")
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/damon/sysfs.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~mm-shmem-fix-too-little-space-for-tmpfs-only-fallback-4kb
-+++ a/mm/shmem.c
-@@ -1820,6 +1820,7 @@ static unsigned long shmem_suitable_orde
- 					   unsigned long orders)
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-do-not-ignore-callbacks-return-value-in-damon_sysfs_damon_call
++++ a/mm/damon/sysfs.c
+@@ -1592,12 +1592,14 @@ static int damon_sysfs_damon_call(int (*
+ 		struct damon_sysfs_kdamond *kdamond)
  {
- 	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
-+	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	pgoff_t aligned_index;
- 	unsigned long pages;
- 	int order;
-@@ -1835,6 +1836,18 @@ static unsigned long shmem_suitable_orde
- 	while (orders) {
- 		pages = 1UL << order;
- 		aligned_index = round_down(index, pages);
-+
-+		/*
-+		 * Check whether the remaining space of tmpfs is sufficient for
-+		 * allocation. If there is too little space left, try smaller
-+		 * large folio.
-+		 */
-+		if (sbinfo->max_blocks && percpu_counter_read(&sbinfo->used_blocks)
-+						+ pages > sbinfo->max_blocks) {
-+			order = next_order(&orders, order);
-+			continue;
-+		}
-+
- 		/*
- 		 * Check for conflict before waiting on a huge allocation.
- 		 * Conflict might be that a huge page has just been allocated
+ 	struct damon_call_control call_control = {};
++	int err;
+ 
+ 	if (!kdamond->damon_ctx)
+ 		return -EINVAL;
+ 	call_control.fn = fn;
+ 	call_control.data = kdamond;
+-	return damon_call(kdamond->damon_ctx, &call_control);
++	err = damon_call(kdamond->damon_ctx, &call_control);
++	return err ? err : call_control.return_code;
+ }
+ 
+ struct damon_sysfs_schemes_walk_data {
 _
 
-Patches currently in -mm which might be from yanglincheng@kylinos.cn are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
+mm-damon-sysfs-do-not-ignore-callbacks-return-value-in-damon_sysfs_damon_call.patch
 
