@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8CF23F431
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:11:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE0151DDA09
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:12:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597092; cv=none; b=nMt35FQ3iC7mLdlzkuy4A+EQ0HyzP09xx53iKBlOdFlg+d7aU0dk1cb3kj9AxknolOGzf/m7ZCpM4cvVCUMS9QLVwx00JsE7hqfFDo7oOeUj3UIr8eA5K8F4qNn81LAEiTvDoBjh1OvzbLw4BcK68sVlhRy02oxgGLLQ6cYXed4=
+	t=1758597130; cv=none; b=aeI99LAdRs2W7tCvFRtg4gMhNsla7En5DcTXLPUDMuzBd2PtQj1h6yuyQuOtQogYkp0rhn3DKWvcFhqIjHQ+3aFm9EfMy1uhY3QJsBxV/tnIQkhGQ4irfvT5wAapUfeI8cQ7KasJBjp6qeuIIOk8z5Lv3CyggE2S3Ma82i8KknU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758597092; c=relaxed/simple;
-	bh=jJESpoygv/ODzj5/+61WO94LofJlSV4jrC3+6asbNec=;
-	h=Date:To:From:Subject:Message-Id; b=nRzhL7fsEyYN/F0bOkuo6/wVm7frYDxLPZ8dS07cgy4QY42gkSK9GvprrAs7R9qFdI8N+xyg6Au6CvdzxT4nffoXRsjfDLgKfPm4rTH3Fmvgws1wom5BUNyQLCSrE2rSqAOgfpkR15LT6NTKUBW286zwUT10Vo9AhfEjsDW/jaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iJj1W25F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597130; c=relaxed/simple;
+	bh=dfDjumudUb78FLaNQUfYWBC+d3JUtatxF3Tib8HvE2w=;
+	h=Date:To:From:Subject:Message-Id; b=Xa0qehh1/BC/c3DbBbzGKF/x16/EDGHG1x85r9VLAMvQD9b4p9erWPlS4kuSTQ0IHjOxzIhC6pTs/LjBnzzp+8PbmJNSvYKg+IG/XokokA1QvNg8SGPnGh8mkRY2GAnzVZde+N4Q26xQTxbCOCbpt06bdkZu4+/EYKixlQeZJrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vru5tPGZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iJj1W25F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47D78C116B1;
-	Tue, 23 Sep 2025 03:11:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vru5tPGZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0CBCC4CEF0;
+	Tue, 23 Sep 2025 03:12:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597092;
-	bh=jJESpoygv/ODzj5/+61WO94LofJlSV4jrC3+6asbNec=;
+	s=korg; t=1758597130;
+	bh=dfDjumudUb78FLaNQUfYWBC+d3JUtatxF3Tib8HvE2w=;
 	h=Date:To:From:Subject:From;
-	b=iJj1W25Flv4iLruNR9kYBs4Dh1ZLUmUeY8MC+ggOQ7Uu41GKLAkkBW682/zqiHxqq
-	 1csgBLDotOiLff5I8PRi+fgYwor3lVxj98ACCJUdhsyPVFiJcs1SO/alcVijPAYoz7
-	 7jZzP+TCCL7SmK/6F2Dnw9itKP9kOKkkrLR0CAxw=
-Date: Mon, 22 Sep 2025 20:11:31 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=Vru5tPGZujCAZIQBUks89eNVnGhAJqX2lXDD4efky3Squg6A/xyTf/HQpcfNzh+Wr
+	 zTQarF9pGpC2PKuq9bbbXPEt4sqsXROdTa0axjNxT/Jh6G31x5/3p/xHNqd3pyWTMD
+	 MYOuduWuF/4Prj/ACOZ/V/axq/Z2L1bBl2VXWFTc=
+Date: Mon, 22 Sep 2025 20:12:10 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,jgg@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name.patch removed from -mm tree
-Message-Id: <20250923031132.47D78C116B1@smtp.kernel.org>
+Subject: [folded-merged] mm-add-remap_pfn_range_prepare-remap_pfn_range_complete-fix.patch removed from -mm tree
+Message-Id: <20250923031210.A0CBCC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,123 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: avoid extra calls to strlen() after ocfs2_sprintf_system_inode_name()
+     Subject: mm-add-remap_pfn_range_prepare-remap_pfn_range_complete-fix
 has been removed from the -mm tree.  Its filename was
-     ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name.patch
+     mm-add-remap_pfn_range_prepare-remap_pfn_range_complete-fix.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: ocfs2: avoid extra calls to strlen() after ocfs2_sprintf_system_inode_name()
-Date: Wed, 17 Sep 2025 09:02:29 +0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-remap_pfn_range_prepare-remap_pfn_range_complete-fix
+Date: Thu Sep 18 02:38:36 PM PDT 2025
 
-Since 'ocfs2_sprintf_system_inode_name()' uses 'snprintf()' and returns
-the number of characters emitted, callers of the former are better to use
-that return value instead of an explicit calls to 'strlen()'.
+restore inadvertently-removed newline
 
-Link: https://lkml.kernel.org/r/20250917060229.1854335-1-dmantipov@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ioctl.c        |   18 +++++++-----------
- fs/ocfs2/move_extents.c |    8 ++++----
- fs/ocfs2/sysfile.c      |   12 ++++++------
- 3 files changed, 17 insertions(+), 21 deletions(-)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/ocfs2/ioctl.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
-+++ a/fs/ocfs2/ioctl.c
-@@ -358,13 +358,11 @@ static int ocfs2_info_handle_freeinode(s
- 				goto bail;
- 			}
- 		} else {
--			ocfs2_sprintf_system_inode_name(namebuf,
--							sizeof(namebuf),
--							type, i);
-+			int len = ocfs2_sprintf_system_inode_name(namebuf,
-+								  sizeof(namebuf),
-+								  type, i);
- 			status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
--							    namebuf,
--							    strlen(namebuf),
--							    &blkno);
-+							    namebuf, len, &blkno);
- 			if (status < 0) {
- 				status = -ENOENT;
- 				goto bail;
-@@ -651,12 +649,10 @@ static int ocfs2_info_handle_freefrag(st
- 			goto bail;
- 		}
- 	} else {
--		ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type,
--						OCFS2_INVALID_SLOT);
-+		int len = ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf),
-+							  type, OCFS2_INVALID_SLOT);
- 		status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
--						    namebuf,
--						    strlen(namebuf),
--						    &blkno);
-+						    namebuf, len, &blkno);
- 		if (status < 0) {
- 			status = -ENOENT;
- 			goto bail;
---- a/fs/ocfs2/move_extents.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
-+++ a/fs/ocfs2/move_extents.c
-@@ -364,7 +364,7 @@ static int ocfs2_find_victim_alloc_group
- 					 int *vict_bit,
- 					 struct buffer_head **ret_bh)
+--- a/mm/memory.c~mm-add-remap_pfn_range_prepare-remap_pfn_range_complete-fix
++++ a/mm/memory.c
+@@ -2955,6 +2955,7 @@ static int remap_pfn_range_notrack(struc
+ 		unsigned long pfn, unsigned long size, pgprot_t prot)
  {
--	int ret, i, bits_per_unit = 0;
-+	int ret, i, len, bits_per_unit = 0;
- 	u64 blkno;
- 	char namebuf[40];
- 
-@@ -375,9 +375,9 @@ static int ocfs2_find_victim_alloc_group
- 	struct ocfs2_dinode *ac_dinode;
- 	struct ocfs2_group_desc *bg;
- 
--	ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type, slot);
--	ret = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf,
--					 strlen(namebuf), &blkno);
-+	len = ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type, slot);
-+	ret = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf, len, &blkno);
+ 	int error = remap_pfn_range_internal(vma, addr, pfn, size, prot);
 +
- 	if (ret) {
- 		ret = -ENOENT;
- 		goto out;
---- a/fs/ocfs2/sysfile.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
-+++ a/fs/ocfs2/sysfile.c
-@@ -127,14 +127,14 @@ static struct inode * _ocfs2_get_system_
- 	char namebuf[40];
- 	struct inode *inode = NULL;
- 	u64 blkno;
--	int status = 0;
-+	int len, status = 0;
+ 	if (!error)
+ 		return 0;
  
--	ocfs2_sprintf_system_inode_name(namebuf,
--					sizeof(namebuf),
--					type, slot);
-+	len = ocfs2_sprintf_system_inode_name(namebuf,
-+					      sizeof(namebuf),
-+					      type, slot);
- 
--	status = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf,
--					    strlen(namebuf), &blkno);
-+	status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
-+					    namebuf, len, &blkno);
- 	if (status < 0) {
- 		goto bail;
- 	}
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
+mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
+mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
 
