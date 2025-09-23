@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE2982512DE
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:18:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEF241DFDE
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:18:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597505; cv=none; b=L3htDxxhI3M+ZjNMXFPfx8jIo3Y74xES22w7/PAhxIX8CZxO7uog0H+6vQC/qxZN1za2+5/+a0sZGAFTw+EMIPpBSoE5KoOKLeYwgTA9rkeoXx1ISJn72VhTKpncEJpLQhKcNzEEi8Y7ptuRkNTdsT5Cj6BZBPzdz2lt0OBFMWs=
+	t=1758597507; cv=none; b=Zd0uRn5trmu1j7GJj+YblmE5DaBdV1YyzANolGZq0PZOTNJdxLVlj+prCXmdVcLHxmgWj4wxhJ6vNCi/3FGYJMnCARuc8SKPFj942ZggeE8WKZSDj1vV1O42nECRUV1R4+9ZdQfh+2DglrgCRbqPeF2pcO3Spw143jiK2+ITB+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758597505; c=relaxed/simple;
-	bh=zZgAwp7XhL/VgXstqGZFKE41mDRnLNfsq8YnurBc4tg=;
-	h=Date:To:From:Subject:Message-Id; b=ZhqHq/Jb82tBLUr5MXVSeTpzpwVpShb3IY9evTVnMjDd2Yx60Z3d741gNWgKDK6ye0n38A7JzS/8d/VegDYokU3eQ9uaq40LCXTStmpWkMOsBl7zMF6kUNjKxskOggu9e46e+YRsDM0SvgmnSR0LVqPwR5bnmlxIY119fXc91bE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2JQRYQDi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597507; c=relaxed/simple;
+	bh=oRHjhHIBnelT+e2p52hfQk5BqpAscL8U83GwvvLrkBk=;
+	h=Date:To:From:Subject:Message-Id; b=PLlwluabnDKaxu4hx0FrrCUWJZkchB8pQLVK3aBHmcUK9JgrIpjMqzwF00FbBJJldp6ImrDBdEFi81E7Qet5rB2XwcGuDRP10n8IK3esOF94DfykRs1HOwPIcwu/pFRbm8oLQEZlcx67Re2rremKkQc75Y+/5mqCJMjJ1GP+uV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0TaCDDF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2JQRYQDi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FF10C4CEF0;
-	Tue, 23 Sep 2025 03:18:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0TaCDDF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B327FC4CEF0;
+	Tue, 23 Sep 2025 03:18:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597505;
-	bh=zZgAwp7XhL/VgXstqGZFKE41mDRnLNfsq8YnurBc4tg=;
+	s=korg; t=1758597506;
+	bh=oRHjhHIBnelT+e2p52hfQk5BqpAscL8U83GwvvLrkBk=;
 	h=Date:To:From:Subject:From;
-	b=2JQRYQDiNFx6wLg/ALeODQOBpSftAPgHWjK/X4EW5drvj3bzSBKEYdi0M2NtkIIEE
-	 gxobYdCLWkVxqdlzZ1QuXwcjNbPqPRhlodwPtlCgl5dCzYI6Mut/+a8bOTsV3OD2w+
-	 uYknRw9Z7bktNwa7Eytnba0htgMvmvUW0FYaPfkY=
-Date: Mon, 22 Sep 2025 20:18:25 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,joshua.hahnjy@gmail.com,jackmanb@google.com,gourry@gourry.net,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=J0TaCDDFV7QMYhQ8xGzTN5CPP9YICPaEXta8zdmr8fItfA2AOEHP7cA/HYPdLTQm6
+	 sxY45GuE/U3VAr9K1mldS7jvbUUoRH24Rkmi3dIcB8F2vPU9/uyXV3sidKQwb3Lwpm
+	 dAculKjBsTi10aQDlyuAaCJeU5u+e2Acl5OxJfuQ=
+Date: Mon, 22 Sep 2025 20:18:26 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,xialonglong@kylinos.cn,david@redhat.com,chengming.zhou@linux.dev,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch removed from -mm tree
-Message-Id: <20250923031825.8FF10C4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] ksm-use-a-folio-inside-cmp_and_merge_page.patch removed from -mm tree
+Message-Id: <20250923031826.B327FC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,115 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: avoid kswapd thrashing due to NUMA restrictions
+     Subject: ksm: use a folio inside cmp_and_merge_page()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions.patch
+     ksm-use-a-folio-inside-cmp_and_merge_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: avoid kswapd thrashing due to NUMA restrictions
-Date: Fri, 19 Sep 2025 12:21:34 -0400
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: ksm: use a folio inside cmp_and_merge_page()
+Date: Tue, 16 Sep 2025 19:11:59 +0100
 
-On NUMA systems without bindings, allocations check all nodes for free
-space, then wake up the kswapds on all nodes and retry. This ensures
-all available space is evenly used before reclaim begins. However,
-when one process or certain allocations have node restrictions, they
-can cause kswapds on only a subset of nodes to be woken up.
+This removes the last call to page_stable_node(), so delete the wrapper. 
+It also removes a call to trylock_page() and saves a call to
+compound_head(), as well as removing a reference to folio->page.
 
-Since kswapd hysteresis targets watermarks that are *higher* than
-needed for allocation, even *unrestricted* allocations can now get
-suckered onto such nodes that are already pressured. This ends up
-concentrating all allocations on them, even when there are idle nodes
-available for the unrestricted requests.
-
-This was observed with two numa nodes, where node0 is normal and node1
-is ZONE_MOVABLE to facilitate hotplugging: a kernel allocation wakes
-kswapd on node0 only (since node1 is not eligible); once kswapd0 is
-active, the watermarks hover between low and high, and then even the
-movable allocations end up on node0, only to be kicked out again;
-meanwhile node1 is empty and idle.
-
-Similar behavior is possible when a process with NUMA bindings is
-causing selective kswapd wakeups.
-
-To fix this, on NUMA systems augment the (misleading) watermark test
-with a check for whether kswapd is already active during the first
-iteration through the zonelist. If this fails to place the request,
-kswapd must be running everywhere already, and the watermark test is
-good enough to decide placement.
-
-With this patch, unrestricted requests successfully make use of node1,
-even while kswapd is reclaiming node0 for restricted allocations.
-
-[gourry@gourry.net: don't retry if no kswapds were active]
-Link: https://lkml.kernel.org/r/20250919162134.1098208-1-hannes@cmpxchg.org
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20250916181219.2400258-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Longlong Xia <xialonglong@kylinos.cn>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ mm/ksm.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-avoid-kswapd-thrashing-due-to-numa-restrictions
-+++ a/mm/page_alloc.c
-@@ -3735,6 +3735,8 @@ get_page_from_freelist(gfp_t gfp_mask, u
- 	struct pglist_data *last_pgdat = NULL;
- 	bool last_pgdat_dirty_ok = false;
- 	bool no_fallback;
-+	bool skip_kswapd_nodes = nr_online_nodes > 1;
-+	bool skipped_kswapd_nodes = false;
+--- a/mm/ksm.c~ksm-use-a-folio-inside-cmp_and_merge_page
++++ a/mm/ksm.c
+@@ -1061,11 +1061,6 @@ struct ksm_stable_node *folio_stable_nod
+ 	return folio_test_ksm(folio) ? folio_raw_mapping(folio) : NULL;
+ }
  
- retry:
- 	/*
-@@ -3797,6 +3799,19 @@ retry:
- 			}
- 		}
+-static inline struct ksm_stable_node *page_stable_node(struct page *page)
+-{
+-	return folio_stable_node(page_folio(page));
+-}
+-
+ static inline void folio_set_stable_node(struct folio *folio,
+ 					 struct ksm_stable_node *stable_node)
+ {
+@@ -2225,6 +2220,7 @@ static void stable_tree_append(struct ks
+  */
+ static void cmp_and_merge_page(struct page *page, struct ksm_rmap_item *rmap_item)
+ {
++	struct folio *folio = page_folio(page);
+ 	struct ksm_rmap_item *tree_rmap_item;
+ 	struct page *tree_page = NULL;
+ 	struct ksm_stable_node *stable_node;
+@@ -2233,7 +2229,7 @@ static void cmp_and_merge_page(struct pa
+ 	int err;
+ 	bool max_page_sharing_bypass = false;
  
-+		/*
-+		 * If kswapd is already active on a node, keep looking
-+		 * for other nodes that might be idle. This can happen
-+		 * if another process has NUMA bindings and is causing
-+		 * kswapd wakeups on only some nodes. Avoid accidental
-+		 * "node_reclaim_mode"-like behavior in this case.
-+		 */
-+		if (skip_kswapd_nodes &&
-+		    !waitqueue_active(&zone->zone_pgdat->kswapd_wait)) {
-+			skipped_kswapd_nodes = true;
-+			continue;
-+		}
-+
- 		cond_accept_memory(zone, order, alloc_flags);
+-	stable_node = page_stable_node(page);
++	stable_node = folio_stable_node(folio);
+ 	if (stable_node) {
+ 		if (stable_node->head != &migrate_nodes &&
+ 		    get_kpfn_nid(READ_ONCE(stable_node->kpfn)) !=
+@@ -2272,7 +2268,7 @@ static void cmp_and_merge_page(struct pa
  
- 		/*
-@@ -3889,6 +3904,15 @@ try_this_zone:
+ 	/* Start by searching for the folio in the stable tree */
+ 	kfolio = stable_tree_search(page);
+-	if (&kfolio->page == page && rmap_item->head == stable_node) {
++	if (kfolio == folio && rmap_item->head == stable_node) {
+ 		folio_put(kfolio);
+ 		return;
  	}
- 
- 	/*
-+	 * If we skipped over nodes with active kswapds and found no
-+	 * idle nodes, retry and place anywhere the watermarks permit.
-+	 */
-+	if (skip_kswapd_nodes && skipped_kswapd_nodes) {
-+		skip_kswapd_nodes = false;
-+		goto retry;
-+	}
-+
-+	/*
- 	 * It's possible on a UMA machine to get through all zones that are
- 	 * fragmented. If avoiding fragmentation, reset and try again.
- 	 */
+@@ -2353,10 +2349,11 @@ static void cmp_and_merge_page(struct pa
+ 			 * the page is locked, it is better to skip it and
+ 			 * perhaps try again later.
+ 			 */
+-			if (!trylock_page(page))
++			if (!folio_trylock(folio))
+ 				return;
+ 			split_huge_page(page);
+-			unlock_page(page);
++			folio = page_folio(page);
++			folio_unlock(folio);
+ 		}
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
