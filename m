@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22A363A1CD
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:29:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9473B1CAB3
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:30:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758598145; cv=none; b=K/jriip/vZMtm0Ubz6Q2t7hwbC4zR8DpwIsTpDR5H2lNYErxH4UXnlHfiGj7xhYl/ruJmCmZAYq+5WRwMZ97TJlNjswtnYj8z/1UC00JlpAKQ9xFLDENC0T1KoVmFC8TdG7e/3/zSCwxAaQRR/HdQJb1/cKmSojTtyIFFik39ho=
+	t=1758598223; cv=none; b=DnFdtVa5iclMVogUprkm9F3vMEY1eMIv5/erFnmK5nHqglcjfBdJOgq6gYq0cvMx0FxTXz0/NggCNNwH62cof3LiG1Z+lYiYBiIuNASw82bQW2G/VszEzyDN1o2qg495SkTaxZxKHeYQcgbpT16XO/RTUN3p//IM2Sf+PTesv5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758598145; c=relaxed/simple;
-	bh=GJy19n+5fU3p1KcXsTJgR+/00dVQwJ/+U7dhaIHO6Y0=;
-	h=Date:To:From:Subject:Message-Id; b=kIxywS96/7/JogQ2eq4FBs8UQIYb72qKSEDARFem2k0gLU7wiwjQCB5kMivoaZxb05XiSWVRu9WgEWzF2q4n3Fayzm5gqz2A5tCyRJh3ePAAv6D2rqCT6BxO7db2NPtHzXCR1rVswX8KmTnbzgFqO3/ot5GggrKeEw3GfOaOfdI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SEVdwTxK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758598223; c=relaxed/simple;
+	bh=eTsQsfbdLboIFItguqIWwH9k2aZP2XPHXz2BaYXFUlg=;
+	h=Date:To:From:Subject:Message-Id; b=oXs6kPPeqpIKPQT/JaPKVgKnxHD2mNT+Y38f85T1WDMTYHAwSHju/A0TbTvNKSyvQ4S9q6Q1BKPuzmqrkXXuu1At8XP0C8WLMkZBHslKWgBReWsQo2UMmO/G5KY8IuyqhmWgI8i8Hklkp2Uop9VoESNA1zPxACDv0Gk1zd9rnFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CvHdieig; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SEVdwTxK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A86A8C4CEF0;
-	Tue, 23 Sep 2025 03:29:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CvHdieig"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AEEAC4CEF0;
+	Tue, 23 Sep 2025 03:30:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758598144;
-	bh=GJy19n+5fU3p1KcXsTJgR+/00dVQwJ/+U7dhaIHO6Y0=;
+	s=korg; t=1758598223;
+	bh=eTsQsfbdLboIFItguqIWwH9k2aZP2XPHXz2BaYXFUlg=;
 	h=Date:To:From:Subject:From;
-	b=SEVdwTxK6pEf2FK4gckZIVUPqs1DfZxXaAjHPh4kpGrbIBK59tQFySM8J56BSxGPI
-	 7QrFMRVB9alsePDPy+qrlcwDatlbarYFRYBL1fY7JLT2r468EzArXNFWz15xPFFhCD
-	 OPHbJUJRYXxNF/VR6r/eNWMEZtwCFGbfqNTvt+Ic=
-Date: Mon, 22 Sep 2025 20:29:04 -0700
-To: mm-commits@vger.kernel.org,nico@fluxnic.net,haiyuewa@163.com,david@redhat.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=CvHdieigJTaTijX7heX0Ozt5XqvDMxyYK6oK/Sh17IRC51KIvHo9r6pcpl/rnjZtw
+	 btLzAVlCoXzPC1DvUsk7kHEuTppAeagks6ev351We7XhF05BBrDBu86wX6jzS4DV5W
+	 YE3epUmv9IPb29VnRkQbRnN25O6pTrF3ahrr4ZRo=
+Date: Mon, 22 Sep 2025 20:30:22 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,anshuman.khandual@arm.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cramfs-fix-incorrect-physical-page-address-calculation.patch added to mm-nonmm-unstable branch
-Message-Id: <20250923032904.A86A8C4CEF0@smtp.kernel.org>
+Subject: + mm-page_alloc-fix-alignment-for-alloc_contig_pages_noprof.patch added to mm-new branch
+Message-Id: <20250923033023.0AEEAC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cramfs: fix incorrect physical page address calculation
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     cramfs-fix-incorrect-physical-page-address-calculation.patch
+     Subject: mm/page_alloc: fix alignment for alloc_contig_pages_noprof()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_alloc-fix-alignment-for-alloc_contig_pages_noprof.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cramfs-fix-incorrect-physical-page-address-calculation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-alignment-for-alloc_contig_pages_noprof.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,43 +64,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: cramfs: fix incorrect physical page address calculation
-Date: Tue, 23 Sep 2025 10:53:33 +1000
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/page_alloc: fix alignment for alloc_contig_pages_noprof()
+Date: Tue, 23 Sep 2025 00:19:43 +0000
 
-Commit 21aa65bf82a7 ("mm: remove callers of pfn_t functionality")
-incorrectly replaced the pfn with the physical address when calling
-vmf_insert_mixed().  Instead the phys_to_pfn_t() call should have been
-replaced with PHYS_PFN().
+Commit 5e27a2df03b8 ("mm/page_alloc: add alloc_contig_pages()") introduced
+generic method for alloc_contig_pages().  But the alignment calculation
+seems wrong.
 
-Found by inspection after a similar issue was noted in fuse virtio_fs.
+Since ALIGN() only accepts power of two values, while nr_pages could be
+any positive one, the result is not defined.
 
-Link: https://lkml.kernel.org/r/20250923005333.3165032-1-apopple@nvidia.com
-Fixes: 21aa65bf82a7 ("mm: remove callers of pfn_t functionality")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Cc: Haiyue Wang <haiyuewa@163.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>
+Use roundup() to calculate the correct alignment.
+
+Link: https://lkml.kernel.org/r/20250923001943.2479-1-richard.weiyang@gmail.com
+Fixes: 5e27a2df03b8 ("mm/page_alloc: add alloc_contig_pages()")
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/cramfs/inode.c~cramfs-fix-incorrect-physical-page-address-calculation
-+++ a/fs/cramfs/inode.c
-@@ -412,7 +412,7 @@ static int cramfs_physmem_mmap(struct fi
- 			vm_fault_t vmf;
- 			unsigned long off = i * PAGE_SIZE;
- 			vmf = vmf_insert_mixed(vma, vma->vm_start + off,
--					address + off);
-+					PHYS_PFN(address + off));
- 			if (vmf & VM_FAULT_ERROR)
- 				ret = vm_fault_to_errno(vmf, 0);
- 		}
+--- a/mm/page_alloc.c~mm-page_alloc-fix-alignment-for-alloc_contig_pages_noprof
++++ a/mm/page_alloc.c
+@@ -7098,7 +7098,7 @@ struct page *alloc_contig_pages_noprof(u
+ 					gfp_zone(gfp_mask), nodemask) {
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 
+-		pfn = ALIGN(zone->zone_start_pfn, nr_pages);
++		pfn = roundup(zone->zone_start_pfn, nr_pages);
+ 		while (zone_spans_last_pfn(zone, pfn, nr_pages)) {
+ 			if (pfn_range_valid_contig(zone, pfn, nr_pages)) {
+ 				/*
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-cramfs-fix-incorrect-physical-page-address-calculation.patch
+mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch
+mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null.patch
+mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix.patch
+mm-khugepaged-use-start_addr-addr-for-better-reading.patch
+mm-page_alloc-fix-alignment-for-alloc_contig_pages_noprof.patch
 
