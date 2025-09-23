@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B3AE3A1CD
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:17:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD883A1CD
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:17:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597476; cv=none; b=cn1s3mIkiBMNHoNAxJiZ5BlHkGRyhDr7+bKHW8hLJYnBpjQoDy3LdN79GUDraj3djkv1Divfpr5pze7IRumUyFqE4WBHcQ7/dbOAp2CdamUuRCVV8bZS84lC9zmZ81USxrwrF6NTF4v5ocJmIMq+MKk8cLyNcZQzo470UpChK4w=
+	t=1758597477; cv=none; b=FZTB1QC1SgT7QtKnQgdy8+bFuPK1WxwLinh+ZqBAlp8SpgU6HPMl+9QADnnD3MdTk3Mpdvea4GJ0y/eefMnsdC8zFeF9CgVWwLIb17bs0/LjMC+8pk2F22rbHUWk+6oNQ/dw0Q/+aUAFIOuL707lFL/pe/uAJQ6TjZ+hBPrR1UM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758597476; c=relaxed/simple;
-	bh=HkO3x1VLPNQ+z3CigLr+CyPilV889Ora80RNA9CocRY=;
-	h=Date:To:From:Subject:Message-Id; b=lbfBdez3HYlT7/1vIgjkNXFW6rSAW8dQNeBAAeu/XXEDEOQu4Rm3SnXVMR+UWzwjAuFPgGzBXo/rmiZPBu48fdRbiUx/nVh7rGGr73CEgFMJxBufpiPOk6RUD22GL0LSHhw05XsuHNSryqXaAp8Wcl4jmfHSaxpmmc+K/x7zZU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pElSdAUv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597477; c=relaxed/simple;
+	bh=0zMS1RGcPDQXtStyLRTh57AY8rzzCZRLMPDGZ751cJQ=;
+	h=Date:To:From:Subject:Message-Id; b=ZjjRL4N8DGODiH8qFkfNpeJn8FVcIknReL0/rrgv1oaSlIbcC/iJqcI8j+e5Yn+hYcL7p6EE8GpgvjZ5hZBISuJ3MkMucdhyB3qmPj5a+ZihJaNhaiV1dp2OOAbR9X0Usb4wyG54n/PaSUPjoSUNZkQUXabKsDWc2MSLODl0BnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rYBRvOZe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pElSdAUv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CDB8C4CEF0;
-	Tue, 23 Sep 2025 03:17:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rYBRvOZe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A51CBC116B1;
+	Tue, 23 Sep 2025 03:17:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597474;
-	bh=HkO3x1VLPNQ+z3CigLr+CyPilV889Ora80RNA9CocRY=;
+	s=korg; t=1758597476;
+	bh=0zMS1RGcPDQXtStyLRTh57AY8rzzCZRLMPDGZ751cJQ=;
 	h=Date:To:From:Subject:From;
-	b=pElSdAUvOwxnwjyABkWI+12oL4LkXqdkFw6KCNfMU5xD+Gzvvo8X+iDt722ZkMA/x
-	 2ZO0zCK/8urpi9gIHbPZduZwgwtB6PvGl3j9xs1bLSpApH6X5V434U9S7beRWyGfFe
-	 DAP1HSmFtXd2zYhKsKfskqwKoCK/97qZoqaD255w=
-Date: Mon, 22 Sep 2025 20:17:54 -0700
+	b=rYBRvOZeO6rI0ENaNkyaGgQ+89CyCs63ngSkE34cc897Rab/g4OcrjGdozQZTDlHV
+	 6Xrn5bSAd34sed7N3x2kDRlZyamDRwfqnBiUaVLwAe0PA5SQqx7yWWejDTfoMFfTnD
+	 QdAYmlemfvQvOzfFTa8SXXYLiv5HiDOo5HpIJfuw=
+Date: Mon, 22 Sep 2025 20:17:56 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,viro@zeniv.linux.org.uk,vgoyal@redhat.com,vbabka@suse.cz,urezki@gmail.com,tsbogend@alpha.franken.de,tony.luck@intel.com,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,robin.murphy@arm.com,reinette.chatre@intel.com,pfalcato@suse.de,osalvador@suse.de,nico@fluxnic.net,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kevin.tian@intel.com,jgg@nvidia.com,jannh@google.com,james.morse@arm.com,jack@suse.cz,hughd@google.com,hca@linux.ibm.com,guoren@kernel.org,gregkh@linuxfoundation.org,gor@linux.ibm.com,dyoung@redhat.com,dvyukov@google.com,david@redhat.com,davem@davemloft.net,dave.martin@arm.com,dave.jiang@intel.com,dan.j.williams@intel.com,corbet@lwn.net,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,arnd@arndb.de,andreyknvl@gmail.com,andreas@gaisler.com,almaz.alexandrovich@paragon-software.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] relay-update-relay-to-use-mmap_prepare.patch removed from -mm tree
-Message-Id: <20250923031754.8CDB8C4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch removed from -mm tree
+Message-Id: <20250923031756.A51CBC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: relay: update relay to use mmap_prepare
+     Subject: mm/vma: rename __mmap_prepare() function to avoid confusion
 has been removed from the -mm tree.  Its filename was
-     relay-update-relay-to-use-mmap_prepare.patch
+     mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: relay: update relay to use mmap_prepare
-Date: Wed, 17 Sep 2025 20:11:06 +0100
+Subject: mm/vma: rename __mmap_prepare() function to avoid confusion
+Date: Wed, 17 Sep 2025 20:11:07 +0100
 
-It is relatively trivial to update this code to use the f_op->mmap_prepare
-hook in favour of the deprecated f_op->mmap hook, so do so.
+Now we have the f_op->mmap_prepare() hook, having a static function called
+__mmap_prepare() that has nothing to do with it is confusing, so rename
+the function to __mmap_setup().
 
-Link: https://lkml.kernel.org/r/4b2c7517603debcc40be1e2274215eba2bfc6d40.1758135681.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/24cdbee385fd734d9b1c5aa547d5bbf7a573f292.1758135681.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
@@ -102,81 +103,47 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ mm/vma.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/relay.c~relay-update-relay-to-use-mmap_prepare
-+++ a/kernel/relay.c
-@@ -72,17 +72,18 @@ static void relay_free_page_array(struct
+--- a/mm/vma.c~mm-vma-rename-__mmap_prepare-function-to-avoid-confusion
++++ a/mm/vma.c
+@@ -2329,7 +2329,7 @@ static void update_ksm_flags(struct mmap
  }
  
- /**
-- *	relay_mmap_buf: - mmap channel buffer to process address space
-- *	@buf: relay channel buffer
-- *	@vma: vm_area_struct describing memory to be mapped
-+ *	relay_mmap_prepare_buf: - mmap channel buffer to process address space
-+ *	@buf: the relay channel buffer
-+ *	@desc: describing what to map
+ /*
+- * __mmap_prepare() - Prepare to gather any overlapping VMAs that need to be
++ * __mmap_setup() - Prepare to gather any overlapping VMAs that need to be
+  * unmapped once the map operation is completed, check limits, account mapping
+  * and clean up any pre-existing VMAs.
   *
-  *	Returns 0 if ok, negative on error
+@@ -2338,7 +2338,7 @@ static void update_ksm_flags(struct mmap
   *
-  *	Caller should already have grabbed mmap_lock.
+  * Returns: 0 on success, error code otherwise.
   */
--static int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
-+static int relay_mmap_prepare_buf(struct rchan_buf *buf,
-+				  struct vm_area_desc *desc)
+-static int __mmap_prepare(struct mmap_state *map, struct list_head *uf)
++static int __mmap_setup(struct mmap_state *map, struct list_head *uf)
  {
--	unsigned long length = vma->vm_end - vma->vm_start;
-+	unsigned long length = vma_desc_size(desc);
+ 	int error;
+ 	struct vma_iterator *vmi = map->vmi;
+@@ -2649,7 +2649,7 @@ static unsigned long __mmap_region(struc
  
- 	if (!buf)
- 		return -EBADF;
-@@ -90,9 +91,9 @@ static int relay_mmap_buf(struct rchan_b
- 	if (length != (unsigned long)buf->chan->alloc_size)
- 		return -EINVAL;
+ 	map.check_ksm_early = can_set_ksm_flags_early(&map);
  
--	vma->vm_ops = &relay_file_mmap_ops;
--	vm_flags_set(vma, VM_DONTEXPAND);
--	vma->vm_private_data = buf;
-+	desc->vm_ops = &relay_file_mmap_ops;
-+	desc->vm_flags |= VM_DONTEXPAND;
-+	desc->private_data = buf;
+-	error = __mmap_prepare(&map, uf);
++	error = __mmap_setup(&map, uf);
+ 	if (!error && have_mmap_prepare)
+ 		error = call_mmap_prepare(&map);
+ 	if (error)
+@@ -2679,7 +2679,7 @@ static unsigned long __mmap_region(struc
  
- 	return 0;
- }
-@@ -749,16 +750,16 @@ static int relay_file_open(struct inode
- }
+ 	return addr;
  
- /**
-- *	relay_file_mmap - mmap file op for relay files
-- *	@filp: the file
-- *	@vma: the vma describing what to map
-+ *	relay_file_mmap_prepare - mmap file op for relay files
-+ *	@desc: describing what to map
-  *
-- *	Calls upon relay_mmap_buf() to map the file into user space.
-+ *	Calls upon relay_mmap_prepare_buf() to map the file into user space.
-  */
--static int relay_file_mmap(struct file *filp, struct vm_area_struct *vma)
-+static int relay_file_mmap_prepare(struct vm_area_desc *desc)
- {
--	struct rchan_buf *buf = filp->private_data;
--	return relay_mmap_buf(buf, vma);
-+	struct rchan_buf *buf = desc->file->private_data;
-+
-+	return relay_mmap_prepare_buf(buf, desc);
- }
- 
- /**
-@@ -1006,7 +1007,7 @@ static ssize_t relay_file_read(struct fi
- const struct file_operations relay_file_operations = {
- 	.open		= relay_file_open,
- 	.poll		= relay_file_poll,
--	.mmap		= relay_file_mmap,
-+	.mmap_prepare	= relay_file_mmap_prepare,
- 	.read		= relay_file_read,
- 	.release	= relay_file_release,
- };
+-	/* Accounting was done by __mmap_prepare(). */
++	/* Accounting was done by __mmap_setup(). */
+ unacct_error:
+ 	if (map.charged)
+ 		vm_unacct_memory(map.charged);
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
