@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8989B2459FE
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:14:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 481EF1C6B4
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:15:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597274; cv=none; b=YeIxB+QlbPbgFbTK8zuDQPeUmCiTdIDzCEfdx+arSwxrhgSnpuDfM9qAJAcagPbtQGwrTToXJn1YEIvOkMQB5NWruBJPbUCmU28Fe4JGtvusx98pr6C3hBcad6C3SlbNrCkEHFkOxlHUYge/9uH1+9Kg8yIrGAs+RSNkoZGVkkw=
+	t=1758597346; cv=none; b=YbhIZJ4RPAsWKbVS245Q8b1qpy3mnjinZCYWWkpanTDiBBS9SeUQCfERYNb7EC9rN5GlOe5HHgL3I8Ap3p3gje575H9FiCeH+SpRCDUOmnDTrKmicoqMfX67gGf64ZFs0XT/C1RLLqzld9KSL8aSzLyu1W7Q6Et6Pde2t4gPHqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758597274; c=relaxed/simple;
-	bh=rAqykF/4xBFGh9yMJq3q4IJpLsBrBCt/kHLT6GEbjXw=;
-	h=Date:To:From:Subject:Message-Id; b=n1Dnk2bbVA7XzjEQvtWRM8Sxf6o3BX1IO+IMSA00Ny4Oiyr0wSXfGTNpBKwXiIylmF9n6DAgHH6JXmtITtDLQ5Mc3TS18YlVTO1dPj+yr3S/4O0rCHgfCDwOdgSzhQEjP2t9nTeSZ+eTLHz4IHL8cOFWALrLitEw3VDZ/vdWUv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SJxm0Q6w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597346; c=relaxed/simple;
+	bh=oOEwO49sd1oRbrrh4XYUhwfwpqrRqv2KNkmPR125uJk=;
+	h=Date:To:From:Subject:Message-Id; b=PYVu3q2pBVYbyR5GP6cvdLV7lDM2SLXUFOI7BjUP8yq+X0JoYDjvjlV88DwjvLHVLzeDku6v5cycdCBATQFtMCXs2Y73EDZymSl+vZOfWXSWMUl0mLieodfkF+jUkTHBYLCCmQJM7Mno7f5HU71BYfO07elyiWS2LtRwtfTIcj4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zOFC5W/u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SJxm0Q6w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06D15C4CEF0;
-	Tue, 23 Sep 2025 03:14:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zOFC5W/u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2563C4CEF0;
+	Tue, 23 Sep 2025 03:15:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597274;
-	bh=rAqykF/4xBFGh9yMJq3q4IJpLsBrBCt/kHLT6GEbjXw=;
+	s=korg; t=1758597345;
+	bh=oOEwO49sd1oRbrrh4XYUhwfwpqrRqv2KNkmPR125uJk=;
 	h=Date:To:From:Subject:From;
-	b=SJxm0Q6wrmZxTz7sQVA0IL/EHiw3CHjKgU9/FPb9/y2YxjO+9VRUN8tsuGoqJPJzf
-	 usJbaCztA28iS4ZNbRJLbTqDSzdaHwI64v+Pf/kvsr19Rr+qd1fflKPcLDUhege6FX
-	 nxZISMcWK7RnmgZyL/AaiEqQs/Lb3U0pDRoH95IA=
-Date: Mon, 22 Sep 2025 20:14:33 -0700
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=zOFC5W/uqSgYAItmeiU2KP3F4mWFXfRslSv3iuziD0y5i+r9gDdkwTcbHZe0lGn9X
+	 zKKuTQHQdGQPge/v2U9dEIYdOTgoD707tdDfm0+M0IEqV26fK2lZXQEBXzxNa5tktu
+	 kNEHK8LPglpKrBy+upBxYEMvrHis/iTyTZZuIewg=
+Date: Mon, 22 Sep 2025 20:15:45 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,mhocko@kernel.org,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch removed from -mm tree
-Message-Id: <20250923031434.06D15C4CEF0@smtp.kernel.org>
+Subject: [folded-merged] mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch removed from -mm tree
+Message-Id: <20250923031545.B2563C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fixup: return error on broken path, update vma_internal.h
+     Subject: mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-ability-to-take-further-action-in-vm_area_desc-fix.patch
+     mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix.patch
 
-This patch was dropped because it was folded into mm-add-ability-to-take-further-action-in-vm_area_desc.patch
+This patch was dropped because it was folded into mm-vmalloc-move-resched-point-into-alloc_vmap_area.patch
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: fixup: return error on broken path, update vma_internal.h
-Date: Thu, 18 Sep 2025 08:08:31 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix
+Date: Wed Sep 17 01:45:36 PM PDT 2025
 
-Link: https://lkml.kernel.org/r/20f1c97d-b958-474c-b3a1-8ea9a177e096@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+tweak comment grammar
+
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c                        |    6 ++++--
- tools/testing/vma/vma_internal.h |    1 +
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/util.c~mm-add-ability-to-take-further-action-in-vm_area_desc-fix
-+++ a/mm/util.c
-@@ -1385,17 +1385,19 @@ EXPORT_SYMBOL(mmap_action_prepare);
- int mmap_action_complete(struct mmap_action *action,
- 			struct vm_area_struct *vma)
- {
-+	int err = 0;
-+
- 	switch (action->type) {
- 	case MMAP_NOTHING:
- 		break;
- 	case MMAP_REMAP_PFN:
- 	case MMAP_IO_REMAP_PFN:
- 		WARN_ON_ONCE(1); /* nommu cannot handle this. */
--
-+		err = -EINVAL;
- 		break;
+--- a/mm/vmalloc.c~mm-vmalloc-move-resched-point-into-alloc_vmap_area-fix
++++ a/mm/vmalloc.c
+@@ -2059,9 +2059,8 @@ retry:
+ 		spin_unlock(&free_vmap_area_lock);
+ 
+ 		/*
+-		 * This is not a fast path. Check if yielding is
+-		 * needed. This is the only one reschedule point
+-		 * in vmalloc() path.
++		 * This is not a fast path.  Check if yielding is needed. This
++		 * is the only reschedule point in the vmalloc() path.
+ 		 */
+ 		cond_resched();
  	}
- 
--	return mmap_action_finish(action, vma, /* err = */0);
-+	return mmap_action_finish(action, vma, err);
- }
- EXPORT_SYMBOL(mmap_action_complete);
- #endif
---- a/tools/testing/vma/vma_internal.h~mm-add-ability-to-take-further-action-in-vm_area_desc-fix
-+++ a/tools/testing/vma/vma_internal.h
-@@ -279,6 +279,7 @@ struct vm_area_struct;
- enum mmap_action_type {
- 	MMAP_NOTHING,		/* Mapping is complete, no further action. */
- 	MMAP_REMAP_PFN,		/* Remap PFN range. */
-+	MMAP_IO_REMAP_PFN,	/* I/O remap PFN range. */
- };
- 
- /*
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-specify-separate-file-and-vm_file-params-in-vm_area_desc.patch
-mm-do-not-assume-file-==-vma-vm_file-in-compat_vma_mmap_prepare.patch
-mm-shmem-update-shmem-to-use-mmap_prepare.patch
-device-dax-update-devdax-to-use-mmap_prepare.patch
-mm-add-vma_desc_size-vma_desc_pages-helpers.patch
-relay-update-relay-to-use-mmap_prepare.patch
-mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
-mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
-mm-abstract-io_remap_pfn_range-based-on-pfn.patch
-mm-introduce-io_remap_pfn_range_.patch
-mm-introduce-io_remap_pfn_range_-fix.patch
-mm-add-ability-to-take-further-action-in-vm_area_desc.patch
-doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
-mm-add-shmem_zero_setup_desc.patch
-mm-update-mem-char-driver-to-use-mmap_prepare.patch
-mm-update-resctl-to-use-mmap_prepare.patch
-mm-oom_killc-fix-inverted-check.patch
+kasan-fix-warnings-caused-by-use-of-arch_enter_lazy_mmu_mode-fix.patch
+mm-vmalloc-move-resched-point-into-alloc_vmap_area.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
 
