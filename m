@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE0392512DE
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:11:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 073A2252910
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:11:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597088; cv=none; b=asyoFXBTo6bNUOmeNi08umqh4lINdxLi4ftX6bazHZ9ExiDld+JzxLk4FKPaobNhDg9a2GlEeh8DBj1M7uHW0XeeVirNnLzNu2JwNj8URm+B8uwti3dcpTBTuj5I6uGXlM0JFaAtez6PgIj2K8IR/KYR4uN0OYWob2jFXKn/00I=
+	t=1758597089; cv=none; b=lw68hKoK9gMUSlDxH5xHohLOmAHHb77oXwlkLXZpKWEritQcTi0jSk7HFAR48UONHA4Df7m+L4bEFj/t8gdNTDU79IV0NmfuG2+dfv72+vtKHz6dClva+B2TFcElU2XfNVaTz/GIe6FLqZqtgnAWAMy1VdTSaJMtE+M+m6HsOw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758597088; c=relaxed/simple;
-	bh=6R3WxvpUj8i6hPGbM/IzIC4CUifAzyWoWX/j7S67HzI=;
-	h=Date:To:From:Subject:Message-Id; b=l46yICGWbLThnoofUHmzJJwi1rppgw7fP5/pBybsFcCPCAL7hfDxcqDIe3yMysbwZTk39d1zi+knZ3i0a7bVR054hvkzljNrMTaT7JEhiLkUuYRAIheYGNTXzXpNxIWfaMPnORfff9G71yoGQwuO9w11QjBu3uOSBFm6b0T0E14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N9OKWG7e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597089; c=relaxed/simple;
+	bh=nT+GCYzkhXAK0MNyB7mf8FgAGSu6gI71OtuuFrPHkFA=;
+	h=Date:To:From:Subject:Message-Id; b=JyUiE1XJuqYDfUl/Q5Bi04sguwRvxhcuHvU/Fr6K5Eo+rfWoSZrGTi6DcqVM7Wred4Gj3k2D8XAl3+z4L8uDu0IMzwZgdTk+mucHCaO481rUKKVvp19hgkO+wYFwqjTQSqiEPFIUCT4tKUg7oopo8dw46+ey5R6e5iAU2qx7TmY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n0QmFC8s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N9OKWG7e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55213C19421;
-	Tue, 23 Sep 2025 03:11:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n0QmFC8s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EBB6C113D0;
+	Tue, 23 Sep 2025 03:11:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597087;
-	bh=6R3WxvpUj8i6hPGbM/IzIC4CUifAzyWoWX/j7S67HzI=;
+	s=korg; t=1758597088;
+	bh=nT+GCYzkhXAK0MNyB7mf8FgAGSu6gI71OtuuFrPHkFA=;
 	h=Date:To:From:Subject:From;
-	b=N9OKWG7ehQLabnbIwLjvTQ7M0cRCn8w6Alm2KunNqxInwUxqIJliMWMKrbVfb5G4x
-	 qOxncAs9j5elheNoCJ8eS1b2xTHnXBu+Uoy565EAiyZLsnSaDMQYwKaDcaEiIqgzm9
-	 QNMB6I4nYBpGL+XgyKLsksyoJbPczzSZzP6E1IBY=
-Date: Mon, 22 Sep 2025 20:11:26 -0700
+	b=n0QmFC8sLY26gitckuD0QzPoJRYVx3suyNdd7Om/PptIcemE7SlH8TrJ+DKoIF2s1
+	 XPmMOnvqL5FJvdC0G545cqD4K56LiTuj3mcpAgpLi4sS49fZ9QmEFC4eVlrYUwV4ni
+	 f9WDL+7V/hS/hJ+njA12IQJtz/S0KgDmEz+QIcTg=
+Date: Mon, 22 Sep 2025 20:11:28 -0700
 To: mm-commits@vger.kernel.org,nicolas.palix@imag.fr,nathan@kernel.org,julia.lawall@inria.fr,krzysztof.kozlowski@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] coccinelle-of_table-handle-spi-device-id-tables.patch removed from -mm tree
-Message-Id: <20250923031127.55213C19421@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] coccinelle-platform_no_drv_owner-handle-also-built-in-drivers.patch removed from -mm tree
+Message-Id: <20250923031128.7EBB6C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: coccinelle: of_table: handle SPI device ID tables
+     Subject: coccinelle: platform_no_drv_owner: handle also built-in drivers
 has been removed from the -mm tree.  Its filename was
-     coccinelle-of_table-handle-spi-device-id-tables.patch
+     coccinelle-platform_no_drv_owner-handle-also-built-in-drivers.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: coccinelle: of_table: handle SPI device ID tables
-Date: Thu, 11 Sep 2025 21:33:55 +0200
+Subject: coccinelle: platform_no_drv_owner: handle also built-in drivers
+Date: Thu, 11 Sep 2025 20:47:27 +0200
 
-'struct spi_device_id' tables also need to be NULL terminated.
+builtin_platform_driver() and others also use macro
+platform_driver_register() which sets the .owner=THIS_MODULE, so extend
+the cocci script to detect these as well.
 
-Link: https://lkml.kernel.org/r/20250911193354.56262-2-krzysztof.kozlowski@linaro.org
+Link: https://lkml.kernel.org/r/20250911184726.23154-2-krzysztof.kozlowski@linaro.org
 Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Cc: Julia Lawall <julia.lawall@inria.fr>
 Cc: Nathan Chancellor <nathan@kernel.org>
@@ -57,71 +59,33 @@ Cc: Nicolas Palix <nicolas.palix@imag.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/coccinelle/misc/of_table.cocci |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ scripts/coccinelle/api/platform_no_drv_owner.cocci |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/scripts/coccinelle/misc/of_table.cocci~coccinelle-of_table-handle-spi-device-id-tables
-+++ a/scripts/coccinelle/misc/of_table.cocci
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
--/// Make sure (of/i2c/platform)_device_id tables are NULL terminated
-+/// Make sure (of/i2c/platform/spi)_device_id tables are NULL terminated
- //
- // Keywords: of_table i2c_table platform_table
- // Confidence: Medium
-@@ -15,14 +15,14 @@ identifier var, arr;
- expression E;
+--- a/scripts/coccinelle/api/platform_no_drv_owner.cocci~coccinelle-platform_no_drv_owner-handle-also-built-in-drivers
++++ a/scripts/coccinelle/api/platform_no_drv_owner.cocci
+@@ -10,12 +10,21 @@ virtual org
+ virtual report
+ 
+ @match1@
++declarer name builtin_i2c_driver;
++declarer name builtin_platform_driver;
++declarer name builtin_platform_driver_probe;
+ declarer name module_i2c_driver;
+ declarer name module_platform_driver;
+ declarer name module_platform_driver_probe;
+ identifier __driver;
  @@
  (
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{
- 	.var = E,
- *	}
- };
++	builtin_i2c_driver(__driver);
++|
++	builtin_platform_driver(__driver);
++|
++	builtin_platform_driver_probe(__driver, ...);
++|
+ 	module_i2c_driver(__driver);
  |
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- *	{ ..., E, ... },
- };
-@@ -33,7 +33,7 @@ identifier var, arr;
- expression E;
- @@
- (
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{
- 	.var = E,
-@@ -42,7 +42,7 @@ struct \(of_device_id \| i2c_device_id \
- +	{ }
- };
- |
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{ ..., E, ... },
- +	{ },
-@@ -55,7 +55,7 @@ identifier var, arr;
- expression E;
- @@
- (
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{
- 	.var = E,
-@@ -63,7 +63,7 @@ struct \(of_device_id \| i2c_device_id \
- 	@p1
- };
- |
--struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
-+struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
- 	...,
- 	{ ..., E, ... }
- 	@p1
+ 	module_platform_driver(__driver);
 _
 
 Patches currently in -mm which might be from krzysztof.kozlowski@linaro.org are
