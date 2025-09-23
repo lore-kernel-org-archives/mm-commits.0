@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68E4A7E105
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 21:30:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83BEA2836A4
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 21:30:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758663046; cv=none; b=KU8GWUUQBYDW6dhhvn8JcM6RwRf6HIl+GFOxMqgfWk4JVRQ7sA4NZ5hMK/4nqvRBgvhwDhHB3ihbRWXb/AZbrBPHusvVvME5DHmMX4HwinEnkLJQv3gnmQs4vuAYM0lPslOY8Pj1NNMLxR1Dol8qO2iJ0CwcaLHMCy10mabtxAc=
+	t=1758663048; cv=none; b=DAahsKaJgvqnKQrUy/Dl58DY8IwRgCv5OEKj6P7v4qQWKbRS3Zi/6ZOovj1ghAhtxXQ8AVKJsMIy7SCRQhR5d15nCu2+xBuw6NZhp07SOOd8yVyAJxRQkt6Lm6c3qzZtdRhJV/ubhIuxXLLpRmzC9FFetAFUwuSwgl0kXv8uBKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758663046; c=relaxed/simple;
-	bh=gYiiQKbjJvK470VTvs/ItpxyYwJCYGIDMMu1F+BsPtw=;
-	h=Date:To:From:Subject:Message-Id; b=r3VTpWaLKz2VR9zNAD+exuTIVmceG9BQMXNpowEpkGIhDtuVDWfGLQTCxvzcOvBfSdjQQVXkTSEgAvmC288esrv20ZkYvRSNch7O1c18uMzJqpgOiriJ34eFhm2rNhf0A3kK7/xKgOWfgCjNZQUO/f/Qmp/pU5PpFRigVNHIN+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tpKAGeMP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758663048; c=relaxed/simple;
+	bh=5YWO5H4vc3TNUuQ5GgJuNv/kt6fzPxcA03MKIVs8fG4=;
+	h=Date:To:From:Subject:Message-Id; b=oBo+zKLWlKulUSgKIGqANPQHRutDaHIDMfZ7jySwK95Vfwy4DWJj4RXyuif8bLI0EAcPsPxHSeZNdOu+sUfE3fIqD0p2TwGskkPnv8QZ/xp71JcVfGes0FruUjnR0wtU62UKmbhQsXHav6Wjn+g5VW1/CcazcKCFsscFmK8FjLs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WIYvcZMx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tpKAGeMP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED4A1C4CEF5;
-	Tue, 23 Sep 2025 21:30:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WIYvcZMx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F35CC4CEF5;
+	Tue, 23 Sep 2025 21:30:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758663046;
-	bh=gYiiQKbjJvK470VTvs/ItpxyYwJCYGIDMMu1F+BsPtw=;
+	s=korg; t=1758663048;
+	bh=5YWO5H4vc3TNUuQ5GgJuNv/kt6fzPxcA03MKIVs8fG4=;
 	h=Date:To:From:Subject:From;
-	b=tpKAGeMPMUQwOpGQ98L5msxpSRRqI8M8hGCg9qafaW7NDm6zXLZbQTLqPCeaU2av4
-	 HIUTOpvK+IDosm2Gp5UuoWJJSDP6klqNY8LTkSJpR/h8Z88MNWzJo0zhknMXrYS1M0
-	 WNUW88jeUJelbEM1NlsXNooOpH3gJJa5ayYq1txo=
-Date: Tue, 23 Sep 2025 14:30:45 -0700
+	b=WIYvcZMx8IaennUM6Z+hoLCwxsb1X3JpvgvvtSmukfmzaAzqCeBqJ93PLXwcSG/5F
+	 FO+YxHLv226ZaoTNia4kv0URaNtYHm703pvkamBhGkaW8/Rmbab3eqHGaoW+xz8/Os
+	 8kYtjt5ny4wZod8P+zi3UrZkfA/1JvNTcx6m+uhs=
+Date: Tue, 23 Sep 2025 14:30:47 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fault-try-to-map-the-entire-file-folio-in-finish_fault.patch added to mm-unstable branch
-Message-Id: <20250923213045.ED4A1C4CEF5@smtp.kernel.org>
+Subject: + mm-filemap-map-entire-large-folio-faultaround.patch added to mm-unstable branch
+Message-Id: <20250923213048.0F35CC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/fault: try to map the entire file folio in finish_fault()
+     Subject: mm/filemap: map entire large folio faultaround
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fault-try-to-map-the-entire-file-folio-in-finish_fault.patch
+     mm-filemap-map-entire-large-folio-faultaround.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fault-try-to-map-the-entire-file-folio-in-finish_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-map-entire-large-folio-faultaround.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,55 +59,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kiryl Shutsemau <kas@kernel.org>
-Subject: mm/fault: try to map the entire file folio in finish_fault()
-Date: Tue, 23 Sep 2025 12:07:09 +0100
+Subject: mm/filemap: map entire large folio faultaround
+Date: Tue, 23 Sep 2025 12:07:10 +0100
 
-finish_fault() uses per-page fault for file folios.  This only occurs for
-file folios smaller than PMD_SIZE.
+Currently, kernel only maps part of large folio that fits into
+start_pgoff/end_pgoff range.
 
-The comment suggests that this approach prevents RSS inflation.  However,
-it only prevents RSS accounting.  The folio is still mapped to the
-process, and the fact that it is mapped by a single PTE does not affect
-memory pressure.  Additionally, the kernel's ability to map large folios
-as PMD if they are large enough does not support this argument.
-
-When possible, map large folios in one shot.  This reduces the number of
-minor page faults and allows for TLB coalescing.
+Map entire folio where possible.  It will match finish_fault() behaviour
+that user hits on cold page cache.
 
 Mapping large folios at once will allow the rmap code to mlock it on add,
 as it will recognize that it is fully mapped and mlocking is safe.
 
-Link: https://lkml.kernel.org/r/20250923110711.690639-5-kirill@shutemov.name
+Link: https://lkml.kernel.org/r/20250923110711.690639-6-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ mm/filemap.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/mm/memory.c~mm-fault-try-to-map-the-entire-file-folio-in-finish_fault
-+++ a/mm/memory.c
-@@ -5560,13 +5560,8 @@ fallback:
+--- a/mm/filemap.c~mm-filemap-map-entire-large-folio-faultaround
++++ a/mm/filemap.c
+@@ -3670,6 +3670,21 @@ static vm_fault_t filemap_map_folio_rang
+ 	struct page *page = folio_page(folio, start);
+ 	unsigned int count = 0;
+ 	pte_t *old_ptep = vmf->pte;
++	unsigned long addr0;
++
++	/*
++	 * Map the large folio fully where possible.
++	 *
++	 * The folio must not cross VMA or page table boundary.
++	 */
++	addr0 = addr - start * PAGE_SIZE;
++	if (folio_within_vma(folio, vmf->vma) &&
++	    (addr0 & PMD_MASK) == ((addr0 + folio_size(folio) - 1) & PMD_MASK)) {
++		vmf->pte -= start;
++		page -= start;
++		addr = addr0;
++		nr_pages = folio_nr_pages(folio);
++	}
  
- 	nr_pages = folio_nr_pages(folio);
- 
--	/*
--	 * Using per-page fault to maintain the uffd semantics, and same
--	 * approach also applies to non shmem/tmpfs faults to avoid
--	 * inflating the RSS of the process.
--	 */
--	if (!vma_is_shmem(vma) || unlikely(userfaultfd_armed(vma)) ||
--	    unlikely(needs_fallback)) {
-+	/* Using per-page fault to maintain the uffd semantics */
-+	if (unlikely(userfaultfd_armed(vma)) || unlikely(needs_fallback)) {
- 		nr_pages = 1;
- 	} else if (nr_pages > 1) {
- 		pgoff_t idx = folio_page_idx(folio, page);
+ 	do {
+ 		if (PageHWPoison(page + count))
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
