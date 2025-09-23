@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7456723F431;
-	Tue, 23 Sep 2025 03:11:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8CF23F431
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:11:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597091; cv=none; b=D7NX+iy6hprqaIdlNc7r5LSGVhIQuy7+GnwRMUE8FBTs1+V1Boraf8vx5ewcaXWuMExFCBBycKt0gilUkwJMEieYmAvyTfBfHmYNC6jJD2k+IOWrYBTa27/8JxM3zI9O76yfclyYqzXt/OMh2aDv9V9cqK+JV2jI4KBi9ogFLUw=
+	t=1758597092; cv=none; b=nMt35FQ3iC7mLdlzkuy4A+EQ0HyzP09xx53iKBlOdFlg+d7aU0dk1cb3kj9AxknolOGzf/m7ZCpM4cvVCUMS9QLVwx00JsE7hqfFDo7oOeUj3UIr8eA5K8F4qNn81LAEiTvDoBjh1OvzbLw4BcK68sVlhRy02oxgGLLQ6cYXed4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758597091; c=relaxed/simple;
-	bh=vLgC7cotGmZQAHqKfrDNPWcIPYolEK7PTznTsaaZ1Pw=;
-	h=Date:To:From:Subject:Message-Id; b=RaqN9Tl/IAmrgKtKxPi4+rWMsEPusa6e/yr+iYymfCqU4qSaU3vKnC66cnh3qAVQUFWgmeMl3TyTUK46+L0C0DNWUr7fIe8CDBFPwWah4BGX40K/lzlK8SFIKdx1+9IoQFoHFY7uvl2m6+ZwNFIwJo0EG7U4VIUWQRMKut5SA74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2oXhEHFG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597092; c=relaxed/simple;
+	bh=jJESpoygv/ODzj5/+61WO94LofJlSV4jrC3+6asbNec=;
+	h=Date:To:From:Subject:Message-Id; b=nRzhL7fsEyYN/F0bOkuo6/wVm7frYDxLPZ8dS07cgy4QY42gkSK9GvprrAs7R9qFdI8N+xyg6Au6CvdzxT4nffoXRsjfDLgKfPm4rTH3Fmvgws1wom5BUNyQLCSrE2rSqAOgfpkR15LT6NTKUBW286zwUT10Vo9AhfEjsDW/jaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iJj1W25F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2oXhEHFG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 031C0C113D0;
-	Tue, 23 Sep 2025 03:11:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iJj1W25F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47D78C116B1;
+	Tue, 23 Sep 2025 03:11:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597091;
-	bh=vLgC7cotGmZQAHqKfrDNPWcIPYolEK7PTznTsaaZ1Pw=;
+	s=korg; t=1758597092;
+	bh=jJESpoygv/ODzj5/+61WO94LofJlSV4jrC3+6asbNec=;
 	h=Date:To:From:Subject:From;
-	b=2oXhEHFGVJWX+QkzXB3f/Z27WfzBsVxrFWZmxJdqXNZ9f1+juAPwae6EYCXsrfySp
-	 1t/tq0D8xikfWP+h0GAtZGaPjbA0dCcBBO4nHS3LPa/0B0tpmPbujJ/FBX/KPOcA4b
-	 r0TxdITsE/ASj0Wdtggix7F+hrIL23er62WPxs70=
-Date: Mon, 22 Sep 2025 20:11:30 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mjguzik@gmail.com,jirislaby@kernel.org,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
+	b=iJj1W25Flv4iLruNR9kYBs4Dh1ZLUmUeY8MC+ggOQ7Uu41GKLAkkBW682/zqiHxqq
+	 1csgBLDotOiLff5I8PRi+fgYwor3lVxj98ACCJUdhsyPVFiJcs1SO/alcVijPAYoz7
+	 7jZzP+TCCL7SmK/6F2Dnw9itKP9kOKkkrLR0CAxw=
+Date: Mon, 22 Sep 2025 20:11:31 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fix-the-racy-usage-of-task_locktsk-group_leader-in-sys_prlimit64-paths.patch removed from -mm tree
-Message-Id: <20250923031131.031C0C113D0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name.patch removed from -mm tree
+Message-Id: <20250923031132.47D78C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,123 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/sys.c: fix the racy usage of task_lock(tsk->group_leader) in sys_prlimit64() paths
+     Subject: ocfs2: avoid extra calls to strlen() after ocfs2_sprintf_system_inode_name()
 has been removed from the -mm tree.  Its filename was
-     fix-the-racy-usage-of-task_locktsk-group_leader-in-sys_prlimit64-paths.patch
+     ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kernel/sys.c: fix the racy usage of task_lock(tsk->group_leader) in sys_prlimit64() paths
-Date: Mon, 15 Sep 2025 14:09:17 +0200
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: avoid extra calls to strlen() after ocfs2_sprintf_system_inode_name()
+Date: Wed, 17 Sep 2025 09:02:29 +0300
 
-The usage of task_lock(tsk->group_leader) in sys_prlimit64()->do_prlimit()
-path is very broken.
+Since 'ocfs2_sprintf_system_inode_name()' uses 'snprintf()' and returns
+the number of characters emitted, callers of the former are better to use
+that return value instead of an explicit calls to 'strlen()'.
 
-sys_prlimit64() does get_task_struct(tsk) but this only protects task_struct
-itself. If tsk != current and tsk is not a leader, this process can exit/exec
-and task_lock(tsk->group_leader) may use the already freed task_struct.
-
-Another problem is that sys_prlimit64() can race with mt-exec which changes
-->group_leader. In this case do_prlimit() may take the wrong lock, or (worse)
-->group_leader may change between task_lock() and task_unlock().
-
-Change sys_prlimit64() to take tasklist_lock when necessary. This is not
-nice, but I don't see a better fix for -stable.
-
-Link: https://lkml.kernel.org/r/20250915120917.GA27702@redhat.com
-Fixes: 18c91bb2d872 ("prlimit: do not grab the tasklist_lock")
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250917060229.1854335-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ fs/ocfs2/ioctl.c        |   18 +++++++-----------
+ fs/ocfs2/move_extents.c |    8 ++++----
+ fs/ocfs2/sysfile.c      |   12 ++++++------
+ 3 files changed, 17 insertions(+), 21 deletions(-)
 
---- a/kernel/sys.c~fix-the-racy-usage-of-task_locktsk-group_leader-in-sys_prlimit64-paths
-+++ a/kernel/sys.c
-@@ -1734,6 +1734,7 @@ SYSCALL_DEFINE4(prlimit64, pid_t, pid, u
- 	struct rlimit old, new;
- 	struct task_struct *tsk;
- 	unsigned int checkflags = 0;
-+	bool need_tasklist;
- 	int ret;
+--- a/fs/ocfs2/ioctl.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
++++ a/fs/ocfs2/ioctl.c
+@@ -358,13 +358,11 @@ static int ocfs2_info_handle_freeinode(s
+ 				goto bail;
+ 			}
+ 		} else {
+-			ocfs2_sprintf_system_inode_name(namebuf,
+-							sizeof(namebuf),
+-							type, i);
++			int len = ocfs2_sprintf_system_inode_name(namebuf,
++								  sizeof(namebuf),
++								  type, i);
+ 			status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
+-							    namebuf,
+-							    strlen(namebuf),
+-							    &blkno);
++							    namebuf, len, &blkno);
+ 			if (status < 0) {
+ 				status = -ENOENT;
+ 				goto bail;
+@@ -651,12 +649,10 @@ static int ocfs2_info_handle_freefrag(st
+ 			goto bail;
+ 		}
+ 	} else {
+-		ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type,
+-						OCFS2_INVALID_SLOT);
++		int len = ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf),
++							  type, OCFS2_INVALID_SLOT);
+ 		status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
+-						    namebuf,
+-						    strlen(namebuf),
+-						    &blkno);
++						    namebuf, len, &blkno);
+ 		if (status < 0) {
+ 			status = -ENOENT;
+ 			goto bail;
+--- a/fs/ocfs2/move_extents.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
++++ a/fs/ocfs2/move_extents.c
+@@ -364,7 +364,7 @@ static int ocfs2_find_victim_alloc_group
+ 					 int *vict_bit,
+ 					 struct buffer_head **ret_bh)
+ {
+-	int ret, i, bits_per_unit = 0;
++	int ret, i, len, bits_per_unit = 0;
+ 	u64 blkno;
+ 	char namebuf[40];
  
- 	if (old_rlim)
-@@ -1760,8 +1761,25 @@ SYSCALL_DEFINE4(prlimit64, pid_t, pid, u
- 	get_task_struct(tsk);
- 	rcu_read_unlock();
+@@ -375,9 +375,9 @@ static int ocfs2_find_victim_alloc_group
+ 	struct ocfs2_dinode *ac_dinode;
+ 	struct ocfs2_group_desc *bg;
  
--	ret = do_prlimit(tsk, resource, new_rlim ? &new : NULL,
--			old_rlim ? &old : NULL);
-+	need_tasklist = !same_thread_group(tsk, current);
-+	if (need_tasklist) {
-+		/*
-+		 * Ensure we can't race with group exit or de_thread(),
-+		 * so tsk->group_leader can't be freed or changed until
-+		 * read_unlock(tasklist_lock) below.
-+		 */
-+		read_lock(&tasklist_lock);
-+		if (!pid_alive(tsk))
-+			ret = -ESRCH;
-+	}
+-	ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type, slot);
+-	ret = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf,
+-					 strlen(namebuf), &blkno);
++	len = ocfs2_sprintf_system_inode_name(namebuf, sizeof(namebuf), type, slot);
++	ret = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf, len, &blkno);
 +
-+	if (!ret) {
-+		ret = do_prlimit(tsk, resource, new_rlim ? &new : NULL,
-+				old_rlim ? &old : NULL);
-+	}
-+
-+	if (need_tasklist)
-+		read_unlock(&tasklist_lock);
+ 	if (ret) {
+ 		ret = -ENOENT;
+ 		goto out;
+--- a/fs/ocfs2/sysfile.c~ocfs2-avoid-extra-calls-to-strlen-after-ocfs2_sprintf_system_inode_name
++++ a/fs/ocfs2/sysfile.c
+@@ -127,14 +127,14 @@ static struct inode * _ocfs2_get_system_
+ 	char namebuf[40];
+ 	struct inode *inode = NULL;
+ 	u64 blkno;
+-	int status = 0;
++	int len, status = 0;
  
- 	if (!ret && old_rlim) {
- 		rlim_to_rlim64(&old, &old64);
+-	ocfs2_sprintf_system_inode_name(namebuf,
+-					sizeof(namebuf),
+-					type, slot);
++	len = ocfs2_sprintf_system_inode_name(namebuf,
++					      sizeof(namebuf),
++					      type, slot);
+ 
+-	status = ocfs2_lookup_ino_from_name(osb->sys_root_inode, namebuf,
+-					    strlen(namebuf), &blkno);
++	status = ocfs2_lookup_ino_from_name(osb->sys_root_inode,
++					    namebuf, len, &blkno);
+ 	if (status < 0) {
+ 		goto bail;
+ 	}
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
 
