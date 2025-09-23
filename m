@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0735B2264BD
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:08:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D0CD23E25B
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:11:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758596898; cv=none; b=skInfLOLEIt1727U4UN11rrFWmpuWM7hnXH5YjNYdX63zSKDdosYR0HEy7C4uDzS2/JkT47NZANVMrx0T46YQN/eNE5qi1xdnlQZyyxTxqumu+6yxv6YlDEPOlzKrFcWQn/64bBfpJHMiYKBfp9+wBMqoTNmQMVcTB8JqcuZAtE=
+	t=1758597086; cv=none; b=eRO9CET85HZSsV25FtVxh+RWpCs2+/GrmDc38VJZvau37sWh6rM8kMx9Vt9/wX5QXlLhJjBvsaVOji41Kf/0IpsBOIxn+QZrLxvU/Oj7X65qsxTG6SUE5sMdT+4h04qUELFODzn4Xv/U9ZQNmwor9CRcAHgdxjnxNC/1L9ZCKUw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758596898; c=relaxed/simple;
-	bh=sL7G/OJ//JBsYcImw/g512wGUyh3fe3pjgtB+9RIC2c=;
-	h=Date:To:From:Subject:Message-Id; b=s4eDwkUHjmvfW0cgfe1Bka8/4K4SnMutLjCv0SXDogtmXrVDgBeJWSrRpFNhUzQFFDQxlnMM9Vco6xMqxpASxaDsYZVyLBliUMxwAB/pRIUhNWZX822dMV7pXkZkwWW1+kLRaDlj1rGm9qgB1PDgsBhP0wdXOoT9MCSZCIh6VPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OmpIMMVR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597086; c=relaxed/simple;
+	bh=MofV+cchyz7bIumbaxUT7B+ujZraIdS1kBh8G9DcfkE=;
+	h=Date:To:From:Subject:Message-Id; b=nu27RC9FN/UZoIocT1wUwTtxvFRhzBAmzjNc04QA+J7KpZDz3af49zZ/Yutn5DUoyWVu1GmOsngpeQQnemMb2QEs1JCldRLyWhJ6v4vluOVIjfNFafir8klukhquYgtXG8jlBJZI1nZc3rzEvydHWIyz/F4cIyFKCXU0ptJp984=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P61tvBjQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OmpIMMVR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3AC2C4CEF0;
-	Tue, 23 Sep 2025 03:08:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P61tvBjQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17F9AC16AAE;
+	Tue, 23 Sep 2025 03:11:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758596897;
-	bh=sL7G/OJ//JBsYcImw/g512wGUyh3fe3pjgtB+9RIC2c=;
+	s=korg; t=1758597086;
+	bh=MofV+cchyz7bIumbaxUT7B+ujZraIdS1kBh8G9DcfkE=;
 	h=Date:To:From:Subject:From;
-	b=OmpIMMVRiwoKyGHMom0kd8JpcU/ekrhI0+U8G85WSV/RSHBZ9Y6vG/r7olGLpju8p
-	 3mugJZZFVIOaulCosjQsy9u/ERu8uh96RRunOsa9KyTsxBZASJbuhlIA3V5Uz+v0yp
-	 UBkOqLRtYM1+d8/Tw9/HKe2Lng/lsi2B3jaefQmI=
-Date: Mon, 22 Sep 2025 20:08:17 -0700
-To: mm-commits@vger.kernel.org,yan.y.zhao@intel.com,pmladek@suse.com,nathan@kernel.org,mpdesouza@suse.com,morbo@google.com,mario.limonciello@amd.com,justinstitt@google.com,gunnarku@amazon.com,graf@amazon.com,bhe@redhat.com,andriy.shevchenko@linux.intel.com,jbouron@amazon.com,akpm@linux-foundation.org
+	b=P61tvBjQ4xEwC1bm4WGiFrYISipTnxqvqhHkRQzvDg1qh9mmwX969301o+xg4PdWg
+	 VbLc1ojO64VrZkufLNDu0O1JXotark3reRFdOdAWdQouldBW+TrVc3SQs2y5bicoIq
+	 1uq9dkw2Y3FxKYLLS/qUY3IhWNuLsuSzdXDKK5ow=
+Date: Mon, 22 Sep 2025 20:11:25 -0700
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,terrelln@fb.com,dsterba@suse.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kexec_core-remove-superfluous-page-offset-handling-in-segment-loading.patch removed from -mm tree
-Message-Id: <20250923030817.C3AC2C4CEF0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-decompress-use-designated-initializers-for-struct-compress_format.patch removed from -mm tree
+Message-Id: <20250923031126.17F9AC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec_core: remove superfluous page offset handling in segment loading
+     Subject: lib/decompress: use designated initializers for struct compress_format
 has been removed from the -mm tree.  Its filename was
-     kexec_core-remove-superfluous-page-offset-handling-in-segment-loading.patch
+     lib-decompress-use-designated-initializers-for-struct-compress_format.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Justinien Bouron <jbouron@amazon.com>
-Subject: kexec_core: remove superfluous page offset handling in segment loading
-Date: Wed, 10 Sep 2025 09:31:16 -0700
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: lib/decompress: use designated initializers for struct compress_format
+Date: Thu, 11 Sep 2025 01:23:51 +0200
 
-Kexec does not accept segments for which the destination address is not
-page aligned.  Therefore there is no need for page offset handling when
-loading segments.
+Switch 'compressed_formats[]' to the more modern and flexible designated
+initializers.  This improves readability and allows struct fields to be
+reordered.  Also use a more concise sentinel marker.
 
-[andriy.shevchenko@linux.intel.com: remove unused code in kimage_load_cma_segment()]
-  Link: https://lkml.kernel.org/r/20250916125124.3094021-2-andriy.shevchenko@linux.intel.com
-Link: https://lkml.kernel.org/r/20250910163116.49148-1-jbouron@amazon.com
-Signed-off-by: Justinien Bouron <jbouron@amazon.com>
-Reviewed-by: Gunnar Kudrjavets <gunnarku@amazon.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Marcos Paulo de Souza <mpdesouza@suse.com>
-Cc: Mario Limonciello <mario.limonciello@amd.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Yan Zhao <yan.y.zhao@intel.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Remove the curly braces around the for loop while we're at it.
+
+No functional changes intended.
+
+Link: https://lkml.kernel.org/r/20250910232350.1308206-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Nick Terrell <terrelln@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ lib/decompress.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
---- a/kernel/kexec_core.c~kexec_core-remove-superfluous-page-offset-handling-in-segment-loading
-+++ a/kernel/kexec_core.c
-@@ -742,7 +742,6 @@ static int kimage_load_cma_segment(struc
- 	struct kexec_segment *segment = &image->segment[idx];
- 	struct page *cma = image->segment_cma[idx];
- 	char *ptr = page_address(cma);
--	unsigned long maddr;
- 	size_t ubytes, mbytes;
- 	int result = 0;
- 	unsigned char __user *buf = NULL;
-@@ -754,15 +753,12 @@ static int kimage_load_cma_segment(struc
- 		buf = segment->buf;
- 	ubytes = segment->bufsz;
- 	mbytes = segment->memsz;
--	maddr = segment->mem;
+--- a/lib/decompress.c~lib-decompress-use-designated-initializers-for-struct-compress_format
++++ a/lib/decompress.c
+@@ -49,15 +49,15 @@ struct compress_format {
+ };
  
- 	/* Then copy from source buffer to the CMA one */
- 	while (mbytes) {
- 		size_t uchunk, mchunk;
+ static const struct compress_format compressed_formats[] __initconst = {
+-	{ {0x1f, 0x8b}, "gzip", gunzip },
+-	{ {0x1f, 0x9e}, "gzip", gunzip },
+-	{ {0x42, 0x5a}, "bzip2", bunzip2 },
+-	{ {0x5d, 0x00}, "lzma", unlzma },
+-	{ {0xfd, 0x37}, "xz", unxz },
+-	{ {0x89, 0x4c}, "lzo", unlzo },
+-	{ {0x02, 0x21}, "lz4", unlz4 },
+-	{ {0x28, 0xb5}, "zstd", unzstd },
+-	{ {0, 0}, NULL, NULL }
++	{ .magic = {0x1f, 0x8b}, .name = "gzip", .decompressor = gunzip },
++	{ .magic = {0x1f, 0x9e}, .name = "gzip", .decompressor = gunzip },
++	{ .magic = {0x42, 0x5a}, .name = "bzip2", .decompressor = bunzip2 },
++	{ .magic = {0x5d, 0x00}, .name = "lzma", .decompressor = unlzma },
++	{ .magic = {0xfd, 0x37}, .name = "xz", .decompressor = unxz },
++	{ .magic = {0x89, 0x4c}, .name = "lzo", .decompressor = unlzo },
++	{ .magic = {0x02, 0x21}, .name = "lz4", .decompressor = unlz4 },
++	{ .magic = {0x28, 0xb5}, .name = "zstd", .decompressor = unzstd },
++	{ /* sentinel */ }
+ };
  
--		ptr += maddr & ~PAGE_MASK;
--		mchunk = min_t(size_t, mbytes,
--				PAGE_SIZE - (maddr & ~PAGE_MASK));
-+		mchunk = min_t(size_t, mbytes, PAGE_SIZE);
- 		uchunk = min(ubytes, mchunk);
+ decompress_fn __init decompress_method(const unsigned char *inbuf, long len,
+@@ -73,11 +73,10 @@ decompress_fn __init decompress_method(c
  
- 		if (uchunk) {
-@@ -784,7 +780,6 @@ static int kimage_load_cma_segment(struc
- 		}
+ 	pr_debug("Compressed data magic: %#.2x %#.2x\n", inbuf[0], inbuf[1]);
  
- 		ptr    += mchunk;
--		maddr  += mchunk;
- 		mbytes -= mchunk;
+-	for (cf = compressed_formats; cf->name; cf++) {
++	for (cf = compressed_formats; cf->name; cf++)
+ 		if (!memcmp(inbuf, cf->magic, 2))
+ 			break;
  
- 		cond_resched();
-@@ -814,6 +809,7 @@ static int kimage_load_normal_segment(st
- 	mbytes = segment->memsz;
- 	maddr = segment->mem;
- 
-+
- 	if (image->segment_cma[idx])
- 		return kimage_load_cma_segment(image, idx);
- 
-@@ -839,9 +835,7 @@ static int kimage_load_normal_segment(st
- 		ptr = kmap_local_page(page);
- 		/* Start with a clear page */
- 		clear_page(ptr);
--		ptr += maddr & ~PAGE_MASK;
--		mchunk = min_t(size_t, mbytes,
--				PAGE_SIZE - (maddr & ~PAGE_MASK));
-+		mchunk = min_t(size_t, mbytes, PAGE_SIZE);
- 		uchunk = min(ubytes, mchunk);
- 
- 		if (uchunk) {
-@@ -904,9 +898,7 @@ static int kimage_load_crash_segment(str
- 		}
- 		arch_kexec_post_alloc_pages(page_address(page), 1, 0);
- 		ptr = kmap_local_page(page);
--		ptr += maddr & ~PAGE_MASK;
--		mchunk = min_t(size_t, mbytes,
--				PAGE_SIZE - (maddr & ~PAGE_MASK));
-+		mchunk = min_t(size_t, mbytes, PAGE_SIZE);
- 		uchunk = min(ubytes, mchunk);
- 		if (mchunk > uchunk) {
- 			/* Zero the trailing part of the page */
+-	}
+ 	if (name)
+ 		*name = cf->name;
+ 	return cf->decompressor;
 _
 
-Patches currently in -mm which might be from jbouron@amazon.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
 
