@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291972FE581
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 21:21:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 146F41A7264
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 21:30:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758662468; cv=none; b=NBHhoTzeVFaBL8JUoahvrEKltAXRnhMEomYe6cbuJP4dx69pyKXfIvnevuuFrpESiYWBC7TzbqavzlJirWz+fo/z41AxdHlYmdbjHcjDwShXj0U5QDjZC0mdqzMWCeGNRSzdDCTeqOUXFkxK9HHKasUVzYdTgRioPigLZxiMzw0=
+	t=1758663034; cv=none; b=lHqacj9eLNNoPRdoEDFGmUgPjkATfI7SYIpueGMcVu5z1U8c8OFwA0oglZ3QLrloIpLhlTNQqo3sxsGQOlPBD8xxJCGiYZ6vH1Q+kPWDB/PrQmwXHMkEn55kUnfsn7qAD0hP1jrsMKkvizJt1eQhMio8lug70xSVJzDxCrjI0pg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758662468; c=relaxed/simple;
-	bh=4H3bHVLgFwbOhVKb2MFPTTNFn6Pwqko3z4WdNQCVhew=;
-	h=Date:To:From:Subject:Message-Id; b=ChGcucPw9XSHCmbYm/kdy4vOdGMiLa3TF9zY5RxOR/O4xUPMQbf6kP+rarWpO8ikMHx6Zwr2kN0R2drGp5+BvY14Hyn9z0OuFmmDa1ttKAWZCARBzPhpdWiStlaVcJTdhPKAbptt6Qht94+plgXR/bEltWGARNYY0lTMiioEWq4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HbZo7p2P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758663034; c=relaxed/simple;
+	bh=EZotcZjZrKwyHFNYeSeVfkZ+7CESAPFMVNVj1Vkwg9o=;
+	h=Date:To:From:Subject:Message-Id; b=b1fB4z+KWzGIkBvdMitC3xVhTIbhVzzxDhs//zC4JWpNcf6xobqOvRquqwnCTZlMg56cFQ1H0ktiaH8gpe26O++a/dnmcgqbR4nwEBm/CEXfnWOk63FrQZc3GvMW5ZfqByEBwAXeHBx8+85kbVUlJrYzJCIZz9i9l1GM+Ad2np4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ssfoHQdt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HbZo7p2P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9794CC4CEF5;
-	Tue, 23 Sep 2025 21:21:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ssfoHQdt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61996C4CEF5;
+	Tue, 23 Sep 2025 21:30:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758662467;
-	bh=4H3bHVLgFwbOhVKb2MFPTTNFn6Pwqko3z4WdNQCVhew=;
+	s=korg; t=1758663033;
+	bh=EZotcZjZrKwyHFNYeSeVfkZ+7CESAPFMVNVj1Vkwg9o=;
 	h=Date:To:From:Subject:From;
-	b=HbZo7p2P5OwcdPAqgNoJ/YfL1dozaUEUDAIMt5uafGKgCjPHkBXAXOfIBoLkbTyHv
-	 LNiKCldSf8+BzPsvAxk7NOJD0JzgsK4gb7JoMkTmg3CfsrvvXpJx5MLhsQmGw+ls6r
-	 wyNAm5SOAfMj5mfcmSgcgj2M+X/p+FcX/ta5XTBg=
-Date: Tue, 23 Sep 2025 14:21:07 -0700
-To: mm-commits@vger.kernel.org,rgoldwyn@suse.de,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dan.carpenter@linaro.org,akpm@linux-foundation.org
+	b=ssfoHQdtOm9LE2Ap5uh3neu7U3IFJu4lHVoeez1nQRMmS5jAFMQdn+TzheHjMH3UC
+	 1YDbhVEYuo2NHugtRshwQ7DrvNVgEZs+OahSyvzGO8WTh47GYCF2EDfsbnkN3NlXeJ
+	 RPRNW2UZr1PQ07jY8yoHVevHYBgrdFmC/GqeTIiY=
+Date: Tue, 23 Sep 2025 14:30:32 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-double-free-in-user_cluster_connect.patch added to mm-nonmm-unstable branch
-Message-Id: <20250923212107.9794CC4CEF5@smtp.kernel.org>
+Subject: + mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch added to mm-unstable branch
+Message-Id: <20250923213033.61996C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix double free in user_cluster_connect()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-double-free-in-user_cluster_connect.patch
+     Subject: mm/page_vma_mapped: track if the page is mapped across page table boundary
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-double-free-in-user_cluster_connect.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,103 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@linaro.org>
-Subject: ocfs2: fix double free in user_cluster_connect()
-Date: Tue, 23 Sep 2025 14:26:07 +0300
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: mm/page_vma_mapped: track if the page is mapped across page table boundary
+Date: Tue, 23 Sep 2025 12:07:06 +0100
 
-user_cluster_disconnect() frees "conn->cc_private" which is "lc" but then
-the error handling frees "lc" a second time.  Set "lc" to NULL on this
-path to avoid a double free.
+Patch series "mm: Improve mlock tracking for large folios", v3.
 
-Link: https://lkml.kernel.org/r/aNKDz_7JF7aycZ0k@stanley.mountain
-Fixes: c994c2ebdbbc ("ocfs2: use the new DLM operation callbacks while requesting new lockspace")
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+The patchset includes several fixes and improvements related to mlock
+tracking of large folios.
+
+The main objective is to reduce the undercount of Mlocked memory in
+/proc/meminfo and improve the accuracy of the statistics.
+
+Patches 1-2:
+
+These patches address a minor race condition in folio_referenced_one()
+related to mlock_vma_folio().
+
+Currently, mlock_vma_folio() is called on large folio without the page
+table lock, which can result in a race condition with unmap (i.e. 
+MADV_DONTNEED).  This can lead to partially mapped folios on the
+unevictable LRU list.
+
+While not a significant issue, I do not believe backporting is necessary.
+
+Patch 3:
+
+This patch adds mlocking logic similar to folio_referenced_one() to
+try_to_unmap_one(), allowing for mlocking of large folios where possible.
+
+Patch 4-5:
+
+These patches modifies finish_fault() and faultaround to map in the entire
+folio when possible, enabling efficient mlocking upon addition to the
+rmap.
+
+Patch 6:
+
+This patch makes rmap mlock large folios if they are fully mapped,
+addressing the primary source of mlock undercount for large folios.
+
+
+This patch (of 6):
+
+Add a PVMW_PGTABLE_CROSSSED flag that page_vma_mapped_walk() will set if
+the page is mapped across page table boundary.  Unlike other PVMW_* flags,
+this one is result of page_vma_mapped_walk() and not set by the caller.
+
+folio_referenced_one() will use it to detect if it safe to mlock the
+folio.
+
+Link: https://lkml.kernel.org/r/20250923110711.690639-1-kirill@shutemov.name
+Link: https://lkml.kernel.org/r/20250923110711.690639-2-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_user.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/rmap.h |    5 +++++
+ mm/page_vma_mapped.c |    1 +
+ 2 files changed, 6 insertions(+)
 
---- a/fs/ocfs2/stack_user.c~ocfs2-fix-double-free-in-user_cluster_connect
-+++ a/fs/ocfs2/stack_user.c
-@@ -1011,6 +1011,7 @@ static int user_cluster_connect(struct o
- 			printk(KERN_ERR "ocfs2: Could not determine"
- 					" locking version\n");
- 			user_cluster_disconnect(conn);
-+			lc = NULL;
- 			goto out;
- 		}
- 		wait_event(lc->oc_wait, (atomic_read(&lc->oc_this_node) > 0));
+--- a/include/linux/rmap.h~mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary
++++ a/include/linux/rmap.h
+@@ -922,6 +922,11 @@ struct page *make_device_exclusive(struc
+ /* Look for migration entries rather than present PTEs */
+ #define PVMW_MIGRATION		(1 << 1)
+ 
++/* Result flags */
++
++/* The page is mapped across page table boundary */
++#define PVMW_PGTABLE_CROSSSED	(1 << 16)
++
+ struct page_vma_mapped_walk {
+ 	unsigned long pfn;
+ 	unsigned long nr_pages;
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary
++++ a/mm/page_vma_mapped.c
+@@ -309,6 +309,7 @@ next_pte:
+ 				}
+ 				pte_unmap(pvmw->pte);
+ 				pvmw->pte = NULL;
++				pvmw->flags |= PVMW_PGTABLE_CROSSSED;
+ 				goto restart;
+ 			}
+ 			pvmw->pte++;
 _
 
-Patches currently in -mm which might be from dan.carpenter@linaro.org are
+Patches currently in -mm which might be from kas@kernel.org are
 
-ocfs2-fix-double-free-in-user_cluster_connect.patch
+mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch
+mm-rmap-fix-a-mlock-race-condition-in-folio_referenced_one.patch
+mm-rmap-mlock-large-folios-in-try_to_unmap_one.patch
+mm-fault-try-to-map-the-entire-file-folio-in-finish_fault.patch
+mm-filemap-map-entire-large-folio-faultaround.patch
+mm-rmap-improve-mlock-tracking-for-large-folios.patch
 
