@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D0CD23E25B
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:11:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE0392512DE
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:11:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597086; cv=none; b=eRO9CET85HZSsV25FtVxh+RWpCs2+/GrmDc38VJZvau37sWh6rM8kMx9Vt9/wX5QXlLhJjBvsaVOji41Kf/0IpsBOIxn+QZrLxvU/Oj7X65qsxTG6SUE5sMdT+4h04qUELFODzn4Xv/U9ZQNmwor9CRcAHgdxjnxNC/1L9ZCKUw=
+	t=1758597088; cv=none; b=asyoFXBTo6bNUOmeNi08umqh4lINdxLi4ftX6bazHZ9ExiDld+JzxLk4FKPaobNhDg9a2GlEeh8DBj1M7uHW0XeeVirNnLzNu2JwNj8URm+B8uwti3dcpTBTuj5I6uGXlM0JFaAtez6PgIj2K8IR/KYR4uN0OYWob2jFXKn/00I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758597086; c=relaxed/simple;
-	bh=MofV+cchyz7bIumbaxUT7B+ujZraIdS1kBh8G9DcfkE=;
-	h=Date:To:From:Subject:Message-Id; b=nu27RC9FN/UZoIocT1wUwTtxvFRhzBAmzjNc04QA+J7KpZDz3af49zZ/Yutn5DUoyWVu1GmOsngpeQQnemMb2QEs1JCldRLyWhJ6v4vluOVIjfNFafir8klukhquYgtXG8jlBJZI1nZc3rzEvydHWIyz/F4cIyFKCXU0ptJp984=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P61tvBjQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597088; c=relaxed/simple;
+	bh=6R3WxvpUj8i6hPGbM/IzIC4CUifAzyWoWX/j7S67HzI=;
+	h=Date:To:From:Subject:Message-Id; b=l46yICGWbLThnoofUHmzJJwi1rppgw7fP5/pBybsFcCPCAL7hfDxcqDIe3yMysbwZTk39d1zi+knZ3i0a7bVR054hvkzljNrMTaT7JEhiLkUuYRAIheYGNTXzXpNxIWfaMPnORfff9G71yoGQwuO9w11QjBu3uOSBFm6b0T0E14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N9OKWG7e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P61tvBjQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17F9AC16AAE;
-	Tue, 23 Sep 2025 03:11:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N9OKWG7e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55213C19421;
+	Tue, 23 Sep 2025 03:11:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597086;
-	bh=MofV+cchyz7bIumbaxUT7B+ujZraIdS1kBh8G9DcfkE=;
+	s=korg; t=1758597087;
+	bh=6R3WxvpUj8i6hPGbM/IzIC4CUifAzyWoWX/j7S67HzI=;
 	h=Date:To:From:Subject:From;
-	b=P61tvBjQ4xEwC1bm4WGiFrYISipTnxqvqhHkRQzvDg1qh9mmwX969301o+xg4PdWg
-	 VbLc1ojO64VrZkufLNDu0O1JXotark3reRFdOdAWdQouldBW+TrVc3SQs2y5bicoIq
-	 1uq9dkw2Y3FxKYLLS/qUY3IhWNuLsuSzdXDKK5ow=
-Date: Mon, 22 Sep 2025 20:11:25 -0700
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,terrelln@fb.com,dsterba@suse.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=N9OKWG7ehQLabnbIwLjvTQ7M0cRCn8w6Alm2KunNqxInwUxqIJliMWMKrbVfb5G4x
+	 qOxncAs9j5elheNoCJ8eS1b2xTHnXBu+Uoy565EAiyZLsnSaDMQYwKaDcaEiIqgzm9
+	 QNMB6I4nYBpGL+XgyKLsksyoJbPczzSZzP6E1IBY=
+Date: Mon, 22 Sep 2025 20:11:26 -0700
+To: mm-commits@vger.kernel.org,nicolas.palix@imag.fr,nathan@kernel.org,julia.lawall@inria.fr,krzysztof.kozlowski@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-decompress-use-designated-initializers-for-struct-compress_format.patch removed from -mm tree
-Message-Id: <20250923031126.17F9AC16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] coccinelle-of_table-handle-spi-device-id-tables.patch removed from -mm tree
+Message-Id: <20250923031127.55213C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,95 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/decompress: use designated initializers for struct compress_format
+     Subject: coccinelle: of_table: handle SPI device ID tables
 has been removed from the -mm tree.  Its filename was
-     lib-decompress-use-designated-initializers-for-struct-compress_format.patch
+     coccinelle-of_table-handle-spi-device-id-tables.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: lib/decompress: use designated initializers for struct compress_format
-Date: Thu, 11 Sep 2025 01:23:51 +0200
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Subject: coccinelle: of_table: handle SPI device ID tables
+Date: Thu, 11 Sep 2025 21:33:55 +0200
 
-Switch 'compressed_formats[]' to the more modern and flexible designated
-initializers.  This improves readability and allows struct fields to be
-reordered.  Also use a more concise sentinel marker.
+'struct spi_device_id' tables also need to be NULL terminated.
 
-Remove the curly braces around the for loop while we're at it.
-
-No functional changes intended.
-
-Link: https://lkml.kernel.org/r/20250910232350.1308206-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Nick Terrell <terrelln@fb.com>
+Link: https://lkml.kernel.org/r/20250911193354.56262-2-krzysztof.kozlowski@linaro.org
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Cc: Julia Lawall <julia.lawall@inria.fr>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nicolas Palix <nicolas.palix@imag.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ scripts/coccinelle/misc/of_table.cocci |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/lib/decompress.c~lib-decompress-use-designated-initializers-for-struct-compress_format
-+++ a/lib/decompress.c
-@@ -49,15 +49,15 @@ struct compress_format {
+--- a/scripts/coccinelle/misc/of_table.cocci~coccinelle-of_table-handle-spi-device-id-tables
++++ a/scripts/coccinelle/misc/of_table.cocci
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
+-/// Make sure (of/i2c/platform)_device_id tables are NULL terminated
++/// Make sure (of/i2c/platform/spi)_device_id tables are NULL terminated
+ //
+ // Keywords: of_table i2c_table platform_table
+ // Confidence: Medium
+@@ -15,14 +15,14 @@ identifier var, arr;
+ expression E;
+ @@
+ (
+-struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
++struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
+ 	...,
+ 	{
+ 	.var = E,
+ *	}
  };
- 
- static const struct compress_format compressed_formats[] __initconst = {
--	{ {0x1f, 0x8b}, "gzip", gunzip },
--	{ {0x1f, 0x9e}, "gzip", gunzip },
--	{ {0x42, 0x5a}, "bzip2", bunzip2 },
--	{ {0x5d, 0x00}, "lzma", unlzma },
--	{ {0xfd, 0x37}, "xz", unxz },
--	{ {0x89, 0x4c}, "lzo", unlzo },
--	{ {0x02, 0x21}, "lz4", unlz4 },
--	{ {0x28, 0xb5}, "zstd", unzstd },
--	{ {0, 0}, NULL, NULL }
-+	{ .magic = {0x1f, 0x8b}, .name = "gzip", .decompressor = gunzip },
-+	{ .magic = {0x1f, 0x9e}, .name = "gzip", .decompressor = gunzip },
-+	{ .magic = {0x42, 0x5a}, .name = "bzip2", .decompressor = bunzip2 },
-+	{ .magic = {0x5d, 0x00}, .name = "lzma", .decompressor = unlzma },
-+	{ .magic = {0xfd, 0x37}, .name = "xz", .decompressor = unxz },
-+	{ .magic = {0x89, 0x4c}, .name = "lzo", .decompressor = unlzo },
-+	{ .magic = {0x02, 0x21}, .name = "lz4", .decompressor = unlz4 },
-+	{ .magic = {0x28, 0xb5}, .name = "zstd", .decompressor = unzstd },
-+	{ /* sentinel */ }
+ |
+-struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
++struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
+ 	...,
+ *	{ ..., E, ... },
  };
- 
- decompress_fn __init decompress_method(const unsigned char *inbuf, long len,
-@@ -73,11 +73,10 @@ decompress_fn __init decompress_method(c
- 
- 	pr_debug("Compressed data magic: %#.2x %#.2x\n", inbuf[0], inbuf[1]);
- 
--	for (cf = compressed_formats; cf->name; cf++) {
-+	for (cf = compressed_formats; cf->name; cf++)
- 		if (!memcmp(inbuf, cf->magic, 2))
- 			break;
- 
--	}
- 	if (name)
- 		*name = cf->name;
- 	return cf->decompressor;
+@@ -33,7 +33,7 @@ identifier var, arr;
+ expression E;
+ @@
+ (
+-struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
++struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
+ 	...,
+ 	{
+ 	.var = E,
+@@ -42,7 +42,7 @@ struct \(of_device_id \| i2c_device_id \
+ +	{ }
+ };
+ |
+-struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
++struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
+ 	...,
+ 	{ ..., E, ... },
+ +	{ },
+@@ -55,7 +55,7 @@ identifier var, arr;
+ expression E;
+ @@
+ (
+-struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
++struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
+ 	...,
+ 	{
+ 	.var = E,
+@@ -63,7 +63,7 @@ struct \(of_device_id \| i2c_device_id \
+ 	@p1
+ };
+ |
+-struct \(of_device_id \| i2c_device_id \| platform_device_id\) arr[] = {
++struct \(of_device_id \| i2c_device_id \| platform_device_id \| spi_device_id\) arr[] = {
+ 	...,
+ 	{ ..., E, ... }
+ 	@p1
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from krzysztof.kozlowski@linaro.org are
 
 
