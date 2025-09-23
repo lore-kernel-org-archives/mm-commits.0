@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F32D621C9F4
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 21:04:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFBA626B971
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 21:06:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758661469; cv=none; b=ZlrSOf8RrveWL0gm3JwZslx8AXXLhk0CRM1DNo/VVeyRqDh1A5YLWqGgC2kB6oOEHqUVAeLq0o2qdpzAzulA9oWYPGeZk5FR+wSg9Pinku9nA8xn1bZreBFxgpOP5a6Gb5smFrd0I9uf9Ni/bCCWUskh7ZeSZjLTsaIq7f0wG8s=
+	t=1758661578; cv=none; b=WfORVq4CLG8jygkCa4p/Ly3WDNjkN7gnltX+I6GEugUz/TMo31Z8c8AmpSCX1SVb2O9GKI2UpaB5niydFaQzu81FPgsZ+ILWxj8am/yKdye9Ys6Wil9VK78Em4bx7E51mdIhrIT0IiIFR70CQMumLQ1Kvxppe+DFYm1mwMOAL9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758661469; c=relaxed/simple;
-	bh=K72x+Kp6xzMNWDnmpo9cHwqQRILTaCOLnpADu6t7Thc=;
-	h=Date:To:From:Subject:Message-Id; b=mFyDLJldCOW3z3E69oE2HpdIBrdNQ3FfLi0jF3m+X4jBg3BxFadVD1inZw3qsRuJNxAWCkgYBZ5PoroW64SfSFYgLKm3JM6mn+Aa/bsgXk7P7bI88N4sL181E5mopCsEAEvDlVwnnOcjHwBHS4+U4xk9Xg1VL0oqZQqXB4H3P4c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rqIucd/l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758661578; c=relaxed/simple;
+	bh=xjviS5lC60tmw0KmIXFSIjZEcCJDdGoNOYJPH3c1O0Q=;
+	h=Date:To:From:Subject:Message-Id; b=JHW4+YTeSmN7Y8tbDc/H+J4nsYD0a2bu6aRzc/CWyP0ocv5ZNe7WZAwHLibzuutDWAkdJfV/06LLbXURLKeJ9ZTiFkgiDxgwGJ35aJurXz1iZ7p2MjOpCZav11T6pyfpQi2cAvM1VCQ1QbJvRXHppFn/92S7Lgdghb87Gr2ej2c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D2LsLRa0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rqIucd/l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E10AC4CEF5;
-	Tue, 23 Sep 2025 21:04:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D2LsLRa0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F0DDC4CEF5;
+	Tue, 23 Sep 2025 21:06:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758661468;
-	bh=K72x+Kp6xzMNWDnmpo9cHwqQRILTaCOLnpADu6t7Thc=;
+	s=korg; t=1758661578;
+	bh=xjviS5lC60tmw0KmIXFSIjZEcCJDdGoNOYJPH3c1O0Q=;
 	h=Date:To:From:Subject:From;
-	b=rqIucd/lGkxop711Ap19/trvLJSpcjVA0rEmNah2Xua6H5rdvzUM6Ln+u8DjvzhWq
-	 1EtN5TOdSd5rv7Q4ullVsPFQfODuRB1dmF0UAqIOgZVMGxoKKWRnVubulHXOG0xlqB
-	 1IfTmn9cB2XbNM3m1Qb+mDZu9mUb9ZL4ea7mq43g=
-Date: Tue, 23 Sep 2025 14:04:27 -0700
-To: mm-commits@vger.kernel.org,zhang.run@zte.com.cn,nao.horiguchi@gmail.com,mawupeng1@huawei.com,linmiaohe@huawei.com,hu.shengming@zte.com.cn,david@redhat.com,shengminghu512@qq.com,akpm@linux-foundation.org
+	b=D2LsLRa0lg9+PWfsG/F5ozuTbmNQaE9SvlSd3qnqOUeLuwvgnrKY0rGU4qHaupwLs
+	 /mp5zLJtuMoZm2KsMc7ECoohaDbkDkdtKN91Tqg/15jHtXuf/yISwE9RpQ2TOZGxbC
+	 w4H9hELYK/Kqy5EJes1rMJeJgQ+Crxe/VeuHsCPQ=
+Date: Tue, 23 Sep 2025 14:06:17 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kas@kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-ensure-collect_procs-is-retried-when-unmap-fails.patch added to mm-new branch
-Message-Id: <20250923210428.6E10AC4CEF5@smtp.kernel.org>
+Subject: + mm-convert-folio_page-back-to-a-macro.patch added to mm-new branch
+Message-Id: <20250923210618.3F0DDC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: ensure collect_procs is retried when unmap fails
+     Subject: mm: convert folio_page() back to a macro
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-failure-ensure-collect_procs-is-retried-when-unmap-fails.patch
+     mm-convert-folio_page-back-to-a-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-ensure-collect_procs-is-retried-when-unmap-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-folio_page-back-to-a-macro.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,52 +64,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shengming Hu <shengminghu512@qq.com>
-Subject: mm/memory-failure: ensure collect_procs is retried when unmap fails
-Date: Tue, 23 Sep 2025 22:57:09 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: convert folio_page() back to a macro
+Date: Tue, 23 Sep 2025 16:00:58 +0200
 
-In the memory_failure process, if collect_procs is not executed with the
-flag set, the to_kill list may be empty.  Even if there are pages that
-fail to be unmapped, SIGKILL or SIGBUS cannot be sent to the process via
-collect_procs.
+In commit 73b3294b1152 ("mm: simplify folio_page() and folio_page_idx()")
+we converted folio_page() into a static inline function.  However briefly
+afterwards in commit a847b17009ec ("mm: constify highmem related functions
+for improved const-correctness") we had to add some nasty const-away
+casting to make the compiler happy when checking const correctness.
 
-This patch fixes the issue by re-executing collect_procs when the to_kill
-list is empty and unmap fails.  This collects processes with unmap
-failures into the to_kill list, allowing SIGBUS or SIGKILL to terminate
-them in subsequent code.
+So let's just convert it back to a simple macro so the compiler can check
+const correctness properly.  There is the alternative of using a
+_Generic() similar to page_folio(), but there is not a lot of benefit
+compared to just using a simple macro.
 
-Link: https://lkml.kernel.org/r/tencent_EDEED996FC685E61AADA14A23BCE9CCDAF09@qq.com
-Signed-off-by: Shengming Hu <hu.shengming@zte.com.cn>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Zhang Run <zhang.run@zte.com.cn>
-Cc: Ma Wupeng <mawupeng1@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20250923140058.2020023-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/page-flags.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-ensure-collect_procs-is-retried-when-unmap-fails
-+++ a/mm/memory-failure.c
-@@ -1600,9 +1600,12 @@ static bool hwpoison_user_mappings(struc
- 	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
+--- a/include/linux/page-flags.h~mm-convert-folio_page-back-to-a-macro
++++ a/include/linux/page-flags.h
+@@ -316,10 +316,7 @@ static __always_inline unsigned long _co
+  * check that the page number lies within @folio; the caller is presumed
+  * to have a reference to the page.
+  */
+-static inline struct page *folio_page(const struct folio *folio, unsigned long n)
+-{
+-	return (struct page *)(&folio->page + n);
+-}
++#define folio_page(folio, n)	(&(folio)->page + (n))
  
- 	unmap_success = !unmap_poisoned_folio(folio, pfn, flags & MF_MUST_KILL);
--	if (!unmap_success)
-+	if (!unmap_success) {
- 		pr_err("%#lx: failed to unmap page (folio mapcount=%d)\n",
- 		       pfn, folio_mapcount(folio));
-+		if (list_empty(&tokill))
-+			collect_procs(folio, p, &tokill, 1);
-+	}
- 
- 	/*
- 	 * try_to_unmap() might put mlocked page in lru cache, so call
+ static __always_inline int PageTail(const struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from shengminghu512@qq.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-memory-failure-ensure-collect_procs-is-retried-when-unmap-fails.patch
+mm-convert-folio_page-back-to-a-macro.patch
 
