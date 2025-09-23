@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80718275AFA;
-	Tue, 23 Sep 2025 20:53:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7948D30ACF5
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 20:53:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758660810; cv=none; b=ekClo3/bMbn8qBwUuGkrEdyss7M6FPf509VV+i8D47A71Fc1A0Txp6OQeBfYfhsIuIa+oPH5U1mLrWXl/pvvkzUA0ARFWtjH/Kcn4P/y4Vh1tIaJDpMHHtFC38bz36ckzmBXOLB2ghB+sW46RhOHzYSAXCUYy6IfLWKjyPjjMSw=
+	t=1758660812; cv=none; b=qppN7dF1IqSOaVrtw2aUeXl475tLRiChldHCAXP3Ml1maSv/pLxRhk/oFTqv9EBwche+K8hFjeEgwX6Ezx1tQ13BxYgGgP96a8RQaykkO36HgmiaXat0DLcq6muO89M9XUAj1r7QN3mqs2HnLpUFUAuNB9H0TPqJ8NTtF7wSFAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758660810; c=relaxed/simple;
-	bh=S7kuV4IM5np6xEYITyuYJE0L8KFy4LYGQWHw/4jQr8Q=;
-	h=Date:To:From:Subject:Message-Id; b=eUnV8gRv26nq5Giq3LqkkHupNSFPSgtUTdhaTGvfp4vT/ofRX5YBfLqyO8U857NqL6ezwQU3qRWb1QKnL6tn/y3I1b/YfnZ3ZaSnXRszivX/gE6uLOD9gdUUJMwYBiYpZANebS0stFmLPYOD4BGcoLz2jEss9qkhb/mC0aKUAMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uNlQXMEM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758660812; c=relaxed/simple;
+	bh=wtuQvkw+dycF79+j0n6wiXkKBHRev/Dl/mLHXrTwXag=;
+	h=Date:To:From:Subject:Message-Id; b=S9rylUg1w2YS2n7ukhWGe6HzXQ2skIhViw3el9iXPsXCeA/rP1H3KQL7EtwbF9i4LLU7Yf7SUL+5mQT8auxUG4tKl+yfhWUscGlxo2Gm/3xA49AIehdWKQo0Mc+7KJ+zShVqIaIr/hwqi2mCsrip9R9h4MRtdEGJey/X7YaMW6E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qhyPXg1W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uNlQXMEM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA450C4CEF5;
-	Tue, 23 Sep 2025 20:53:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qhyPXg1W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1BBDC4CEF5;
+	Tue, 23 Sep 2025 20:53:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758660809;
-	bh=S7kuV4IM5np6xEYITyuYJE0L8KFy4LYGQWHw/4jQr8Q=;
+	s=korg; t=1758660812;
+	bh=wtuQvkw+dycF79+j0n6wiXkKBHRev/Dl/mLHXrTwXag=;
 	h=Date:To:From:Subject:From;
-	b=uNlQXMEMoTsikM6b4cUBDhRYVt2QuO1qQnfGA2tqFca7xDjfI4CyfGMqvqH2r3iGS
-	 4AVtjWoDo8fdXWcYDsaC5d6wfbZWkDbWG/bs+AZdrfrTfGAlqlH13J8z1KnzdgRTJr
-	 xLTf6z8QZ+yfKaVCKbu+OTDOSRfhhEmKDkwr7TgE=
-Date: Tue, 23 Sep 2025 13:53:29 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,stable@vger.kernel.org,ritesh.list@gmail.com,richard.weiyang@gmail.com,david@redhat.com,chengming.zhou@linux.dev,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=qhyPXg1WzeWQ2z5wfYs3Tyg92hlXnBkEPfQb/yljU3GfhEu4USWy285wXDGg/vZuK
+	 k6C51nBqDLbkPywtAsOe+x6rIuK5IAiD60V528x/jX51YS+BnDSzV3Mdk6NAyYr+lU
+	 FTy4isOj/48oYr/BThyzp8/wQlqAm6bQpqo/Vjxg=
+Date: Tue, 23 Sep 2025 13:53:31 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,ritesh.list@gmail.com,richard.weiyang@gmail.com,david@redhat.com,chengming.zhou@linux.dev,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch added to mm-unstable branch
-Message-Id: <20250923205329.DA450C4CEF5@smtp.kernel.org>
+Subject: + selftests-mm-added-fork-inheritance-test-for-ksm_merging_pages-counter.patch added to mm-unstable branch
+Message-Id: <20250923205331.E1BBDC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: fix incorrect KSM counter handling in mm_struct during fork
+     Subject: selftests/mm: add fork inheritance test for ksm_merging_pages counter
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch
+     selftests-mm-added-fork-inheritance-test-for-ksm_merging_pages-counter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-added-fork-inheritance-test-for-ksm_merging_pages-counter.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,100 +59,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Donet Tom <donettom@linux.ibm.com>
-Subject: mm/ksm: fix incorrect KSM counter handling in mm_struct during fork
-Date: Wed, 24 Sep 2025 00:16:59 +0530
+Subject: selftests/mm: add fork inheritance test for ksm_merging_pages counter
+Date: Wed, 24 Sep 2025 00:17:00 +0530
 
-Patch series "mm/ksm: Fix incorrect accounting of KSM counters during
-fork", v3.
+Add a new selftest to verify whether the `ksm_merging_pages` counter in
+`mm_struct` is not inherited by a child process after fork.  This helps
+ensure correctness of KSM accounting across process creation.
 
-The first patch in this series fixes the incorrect accounting of KSM
-counters such as ksm_merging_pages, ksm_rmap_items, and the global
-ksm_zero_pages during fork.
-
-The following patch add a selftest to verify the ksm_merging_pages counter
-was updated correctly during fork.
-
-Test Results
-============
-Without the first patch
------------------------
- # [RUN] test_fork_ksm_merging_page_count
- not ok 10 ksm_merging_page in child: 32
-
-With the first patch
---------------------
- # [RUN] test_fork_ksm_merging_page_count
- ok 10 ksm_merging_pages is not inherited after fork
-
-
-This patch (of 2):
-
-Currently, the KSM-related counters in `mm_struct`, such as
-`ksm_merging_pages`, `ksm_rmap_items`, and `ksm_zero_pages`, are inherited
-by the child process during fork.  This results in inconsistent
-accounting.
-
-When a process uses KSM, identical pages are merged and an rmap item is
-created for each merged page.  The `ksm_merging_pages` and
-`ksm_rmap_items` counters are updated accordingly.  However, after a fork,
-these counters are copied to the child while the corresponding rmap items
-are not.  As a result, when the child later triggers an unmerge, there are
-no rmap items present in the child, so the counters remain stale, leading
-to incorrect accounting.
-
-A similar issue exists with `ksm_zero_pages`, which maintains both a
-global counter and a per-process counter.  During fork, the per-process
-counter is inherited by the child, but the global counter is not
-incremented.  Since the child also references zero pages, the global
-counter should be updated as well.  Otherwise, during zero-page unmerge,
-both the global and per-process counters are decremented, causing the
-global counter to become inconsistent.
-
-To fix this, ksm_merging_pages and ksm_rmap_items are reset to 0 during
-fork, and the global ksm_zero_pages counter is updated with the
-per-process ksm_zero_pages value inherited by the child.  This ensures
-that KSM statistics remain accurate and reflect the activity of each
-process correctly.
-
-Link: https://lkml.kernel.org/r/cover.1758648700.git.donettom@linux.ibm.com
-Link: https://lkml.kernel.org/r/7b9870eb67ccc0d79593940d9dbd4a0b39b5d396.1758648700.git.donettom@linux.ibm.com
-Fixes: 7609385337a4 ("ksm: count ksm merging pages for each process")
-Fixes: cb4df4cae4f2 ("ksm: count allocated ksm rmap_items for each process")
-Fixes: e2942062e01d ("ksm: count all zero pages placed by KSM")
+Link: https://lkml.kernel.org/r/e7bb17d374133bd31a3e423aa9e46e1122e74971.1758648700.git.donettom@linux.ibm.com
 Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: <stable@vger.kernel.org>	[6.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ksm.h |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/ksm_functional_tests.c |   43 +++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
---- a/include/linux/ksm.h~mm-ksm-fix-incorrect-ksm-counter-handling-in-mm_struct-during-fork
-+++ a/include/linux/ksm.h
-@@ -56,8 +56,14 @@ static inline long mm_ksm_zero_pages(str
- static inline void ksm_fork(struct mm_struct *mm, struct mm_struct *oldmm)
- {
- 	/* Adding mm to ksm is best effort on fork. */
--	if (mm_flags_test(MMF_VM_MERGEABLE, oldmm))
-+	if (mm_flags_test(MMF_VM_MERGEABLE, oldmm)) {
-+		long nr_ksm_zero_pages = atomic_long_read(&mm->ksm_zero_pages);
-+
-+		mm->ksm_merging_pages = 0;
-+		mm->ksm_rmap_items = 0;
-+		atomic_long_add(nr_ksm_zero_pages, &ksm_zero_pages);
- 		__ksm_enter(mm);
-+	}
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-added-fork-inheritance-test-for-ksm_merging_pages-counter
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -602,6 +602,46 @@ unmap:
+ 	munmap(map, size);
  }
  
- static inline int ksm_execve(struct mm_struct *mm)
++static void test_fork_ksm_merging_page_count(void)
++{
++	const unsigned int size = 2 * MiB;
++	char *map;
++	pid_t child_pid;
++	int status;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	map = mmap_and_merge_range(0xcf, size, PROT_READ | PROT_WRITE, KSM_MERGE_MADVISE);
++	if (map == MAP_FAILED)
++		return;
++
++	child_pid = fork();
++	if (!child_pid) {
++		init_global_file_handles();
++		exit(ksm_get_self_merging_pages());
++	} else if (child_pid < 0) {
++		ksft_test_result_fail("fork() failed\n");
++		goto unmap;
++	}
++
++	if (waitpid(child_pid, &status, 0) < 0) {
++		ksft_test_result_fail("waitpid() failed\n");
++		goto unmap;
++	}
++
++	status = WEXITSTATUS(status);
++	if (status) {
++		ksft_test_result_fail("ksm_merging_page in child: %d\n", status);
++		goto unmap;
++	}
++
++	ksft_test_result_pass("ksm_merging_pages is not inherited after fork\n");
++
++unmap:
++	ksm_stop();
++	munmap(map, size);
++}
++
+ static void init_global_file_handles(void)
+ {
+ 	mem_fd = open("/proc/self/mem", O_RDWR);
+@@ -620,7 +660,7 @@ static void init_global_file_handles(voi
+ 
+ int main(int argc, char **argv)
+ {
+-	unsigned int tests = 8;
++	unsigned int tests = 9;
+ 	int err;
+ 
+ 	if (argc > 1 && !strcmp(argv[1], FORK_EXEC_CHILD_PRG_NAME)) {
+@@ -652,6 +692,7 @@ int main(int argc, char **argv)
+ 	test_prctl_fork();
+ 	test_prctl_fork_exec();
+ 	test_prctl_unmerge();
++	test_fork_ksm_merging_page_count();
+ 
+ 	err = ksft_get_fail_cnt();
+ 	if (err)
 _
 
 Patches currently in -mm which might be from donettom@linux.ibm.com are
