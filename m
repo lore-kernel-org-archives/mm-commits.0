@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F460253F20
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:17:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B3AE3A1CD
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:17:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597473; cv=none; b=QNuFAalQR+0vOzWoWanr/rzkMg8TB+E9T2xQZY3EEuoE3YpWZtHS3WHdbG5MigP6MRFcTjK3lR2H4H5e652q2C45jkkLf1/yfbiz9qtPq5TMo0McSbyrIW9XtAm8Rr/boToSTg9WzmsF4JWRXyACDA1d5sZsh7jnhbkaffjM2fk=
+	t=1758597476; cv=none; b=cn1s3mIkiBMNHoNAxJiZ5BlHkGRyhDr7+bKHW8hLJYnBpjQoDy3LdN79GUDraj3djkv1Divfpr5pze7IRumUyFqE4WBHcQ7/dbOAp2CdamUuRCVV8bZS84lC9zmZ81USxrwrF6NTF4v5ocJmIMq+MKk8cLyNcZQzo470UpChK4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758597473; c=relaxed/simple;
-	bh=S6ipM+SCPQBPj706BACkHx+FDox+o6MvNyVukRXsplY=;
-	h=Date:To:From:Subject:Message-Id; b=GEa+CyFIdealTADx4lcN00YE1lmP6ehDK4pPmS8vDYFnfMsQ1lm3mTpGfLwbJgV9mKZYoFPtgotLXc4VdhVitJKGp5CHCH0yLiXht5qDvviTRyaa2eUoolqYZcYrZHWKmBLU0KuC56chT+VVlM9gQgh+4aYFGE5JRCSg2k0h5rY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vwEAy7+a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758597476; c=relaxed/simple;
+	bh=HkO3x1VLPNQ+z3CigLr+CyPilV889Ora80RNA9CocRY=;
+	h=Date:To:From:Subject:Message-Id; b=lbfBdez3HYlT7/1vIgjkNXFW6rSAW8dQNeBAAeu/XXEDEOQu4Rm3SnXVMR+UWzwjAuFPgGzBXo/rmiZPBu48fdRbiUx/nVh7rGGr73CEgFMJxBufpiPOk6RUD22GL0LSHhw05XsuHNSryqXaAp8Wcl4jmfHSaxpmmc+K/x7zZU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pElSdAUv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vwEAy7+a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95BF3C4CEF0;
-	Tue, 23 Sep 2025 03:17:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pElSdAUv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CDB8C4CEF0;
+	Tue, 23 Sep 2025 03:17:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597472;
-	bh=S6ipM+SCPQBPj706BACkHx+FDox+o6MvNyVukRXsplY=;
+	s=korg; t=1758597474;
+	bh=HkO3x1VLPNQ+z3CigLr+CyPilV889Ora80RNA9CocRY=;
 	h=Date:To:From:Subject:From;
-	b=vwEAy7+aHIIKL9fB+YmadiV0uz8HqxejQit+Mf6tJEn/cC6NZpG75fPQbAcjRSfld
-	 HEK2CCOMk/gFuw6suQH8TVdYTOBM/1DpKEnip+9DO/cx+y5gT3k7wTIn34VXyvpWMS
-	 0zLobGMuOWxLez1TBXqQN6jpA1QpbspGFrIIwcK4=
-Date: Mon, 22 Sep 2025 20:17:52 -0700
+	b=pElSdAUvOwxnwjyABkWI+12oL4LkXqdkFw6KCNfMU5xD+Gzvvo8X+iDt722ZkMA/x
+	 2ZO0zCK/8urpi9gIHbPZduZwgwtB6PvGl3j9xs1bLSpApH6X5V434U9S7beRWyGfFe
+	 DAP1HSmFtXd2zYhKsKfskqwKoCK/97qZoqaD255w=
+Date: Mon, 22 Sep 2025 20:17:54 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,viro@zeniv.linux.org.uk,vgoyal@redhat.com,vbabka@suse.cz,urezki@gmail.com,tsbogend@alpha.franken.de,tony.luck@intel.com,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,robin.murphy@arm.com,reinette.chatre@intel.com,pfalcato@suse.de,osalvador@suse.de,nico@fluxnic.net,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kevin.tian@intel.com,jgg@nvidia.com,jannh@google.com,james.morse@arm.com,jack@suse.cz,hughd@google.com,hca@linux.ibm.com,guoren@kernel.org,gregkh@linuxfoundation.org,gor@linux.ibm.com,dyoung@redhat.com,dvyukov@google.com,david@redhat.com,davem@davemloft.net,dave.martin@arm.com,dave.jiang@intel.com,dan.j.williams@intel.com,corbet@lwn.net,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,arnd@arndb.de,andreyknvl@gmail.com,andreas@gaisler.com,almaz.alexandrovich@paragon-software.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-vma_desc_size-vma_desc_pages-helpers.patch removed from -mm tree
-Message-Id: <20250923031752.95BF3C4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] relay-update-relay-to-use-mmap_prepare.patch removed from -mm tree
+Message-Id: <20250923031754.8CDB8C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add vma_desc_size(), vma_desc_pages() helpers
+     Subject: relay: update relay to use mmap_prepare
 has been removed from the -mm tree.  Its filename was
-     mm-add-vma_desc_size-vma_desc_pages-helpers.patch
+     relay-update-relay-to-use-mmap_prepare.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: add vma_desc_size(), vma_desc_pages() helpers
-Date: Wed, 17 Sep 2025 20:11:05 +0100
+Subject: relay: update relay to use mmap_prepare
+Date: Wed, 17 Sep 2025 20:11:06 +0100
 
-It's useful to be able to determine the size of a VMA descriptor range
-used on f_op->mmap_prepare, expressed both in bytes and pages, so add
-helpers for both and update code that could make use of it to do so.
+It is relatively trivial to update this code to use the f_op->mmap_prepare
+hook in favour of the deprecated f_op->mmap hook, so do so.
 
-Link: https://lkml.kernel.org/r/5fa007dc4905c863abe6fe97de1238c30b1958ff.1758135681.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/4b2c7517603debcc40be1e2274215eba2bfc6d40.1758135681.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -78,6 +76,7 @@ Cc: Guo Ren <guoren@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: James Morse <james.morse@arm.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kevin Tian <kevin.tian@intel.com>
@@ -103,52 +102,81 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs3/file.c    |    2 +-
- include/linux/mm.h |   10 ++++++++++
- mm/secretmem.c     |    2 +-
- 3 files changed, 12 insertions(+), 2 deletions(-)
+ kernel/relay.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
---- a/fs/ntfs3/file.c~mm-add-vma_desc_size-vma_desc_pages-helpers
-+++ a/fs/ntfs3/file.c
-@@ -304,7 +304,7 @@ static int ntfs_file_mmap_prepare(struct
- 
- 	if (rw) {
- 		u64 to = min_t(loff_t, i_size_read(inode),
--			       from + desc->end - desc->start);
-+			       from + vma_desc_size(desc));
- 
- 		if (is_sparsed(ni)) {
- 			/* Allocate clusters for rw map. */
---- a/include/linux/mm.h~mm-add-vma_desc_size-vma_desc_pages-helpers
-+++ a/include/linux/mm.h
-@@ -3571,6 +3571,16 @@ static inline unsigned long vma_pages(co
- 	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+--- a/kernel/relay.c~relay-update-relay-to-use-mmap_prepare
++++ a/kernel/relay.c
+@@ -72,17 +72,18 @@ static void relay_free_page_array(struct
  }
  
-+static inline unsigned long vma_desc_size(const struct vm_area_desc *desc)
-+{
-+	return desc->end - desc->start;
-+}
-+
-+static inline unsigned long vma_desc_pages(const struct vm_area_desc *desc)
-+{
-+	return vma_desc_size(desc) >> PAGE_SHIFT;
-+}
-+
- /* Look up the first VMA which exactly match the interval vm_start ... vm_end */
- static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
- 				unsigned long vm_start, unsigned long vm_end)
---- a/mm/secretmem.c~mm-add-vma_desc_size-vma_desc_pages-helpers
-+++ a/mm/secretmem.c
-@@ -120,7 +120,7 @@ static int secretmem_release(struct inod
- 
- static int secretmem_mmap_prepare(struct vm_area_desc *desc)
+ /**
+- *	relay_mmap_buf: - mmap channel buffer to process address space
+- *	@buf: relay channel buffer
+- *	@vma: vm_area_struct describing memory to be mapped
++ *	relay_mmap_prepare_buf: - mmap channel buffer to process address space
++ *	@buf: the relay channel buffer
++ *	@desc: describing what to map
+  *
+  *	Returns 0 if ok, negative on error
+  *
+  *	Caller should already have grabbed mmap_lock.
+  */
+-static int relay_mmap_buf(struct rchan_buf *buf, struct vm_area_struct *vma)
++static int relay_mmap_prepare_buf(struct rchan_buf *buf,
++				  struct vm_area_desc *desc)
  {
--	const unsigned long len = desc->end - desc->start;
-+	const unsigned long len = vma_desc_size(desc);
+-	unsigned long length = vma->vm_end - vma->vm_start;
++	unsigned long length = vma_desc_size(desc);
  
- 	if ((desc->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
+ 	if (!buf)
+ 		return -EBADF;
+@@ -90,9 +91,9 @@ static int relay_mmap_buf(struct rchan_b
+ 	if (length != (unsigned long)buf->chan->alloc_size)
  		return -EINVAL;
+ 
+-	vma->vm_ops = &relay_file_mmap_ops;
+-	vm_flags_set(vma, VM_DONTEXPAND);
+-	vma->vm_private_data = buf;
++	desc->vm_ops = &relay_file_mmap_ops;
++	desc->vm_flags |= VM_DONTEXPAND;
++	desc->private_data = buf;
+ 
+ 	return 0;
+ }
+@@ -749,16 +750,16 @@ static int relay_file_open(struct inode
+ }
+ 
+ /**
+- *	relay_file_mmap - mmap file op for relay files
+- *	@filp: the file
+- *	@vma: the vma describing what to map
++ *	relay_file_mmap_prepare - mmap file op for relay files
++ *	@desc: describing what to map
+  *
+- *	Calls upon relay_mmap_buf() to map the file into user space.
++ *	Calls upon relay_mmap_prepare_buf() to map the file into user space.
+  */
+-static int relay_file_mmap(struct file *filp, struct vm_area_struct *vma)
++static int relay_file_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	struct rchan_buf *buf = filp->private_data;
+-	return relay_mmap_buf(buf, vma);
++	struct rchan_buf *buf = desc->file->private_data;
++
++	return relay_mmap_prepare_buf(buf, desc);
+ }
+ 
+ /**
+@@ -1006,7 +1007,7 @@ static ssize_t relay_file_read(struct fi
+ const struct file_operations relay_file_operations = {
+ 	.open		= relay_file_open,
+ 	.poll		= relay_file_poll,
+-	.mmap		= relay_file_mmap,
++	.mmap_prepare	= relay_file_mmap_prepare,
+ 	.read		= relay_file_read,
+ 	.release	= relay_file_release,
+ };
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
