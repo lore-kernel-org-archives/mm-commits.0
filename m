@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7AE9245005
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:18:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 317782550D8
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2025 03:18:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758597503; cv=none; b=EUavZh4XLJZwck0M11fhCTIvdVSJpVL8lI5uGqYdEUU89gRi4xY6k/oxidwZLpP4mWqZPIFTuMT+no8cpX9oHVMaoImH1C36e5eOoLelhQdpHcUHz4QpR8jJGpjS6J2ZC5uTOL5y7vH9jNsXh4yJcL8GFoHH768HDNsF9Z6r18A=
+	t=1758597503; cv=none; b=a4o1h5jJYswGNO2Tu/N/JhlQ4m27oz5CHG9csmhmwld98EWDBRM3v8LnVTdqtd4I/31ccMHd1qAy/xJXCW4i/krQYxYOtAaXTe7EeS0iPkPPbgctYlEJ4qw7RrQAqINUgNd8gG9V57ETYbL7hMFBtkO+fvZeEfMVazMM00EerVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1758597503; c=relaxed/simple;
-	bh=/yNG+Lx0mSyfepk0soWllhZiG/ehLvKu8SGSpXN7bbg=;
-	h=Date:To:From:Subject:Message-Id; b=E0PdwxN67WYg/cE+CNllkiFvwgPoO2b3XHTrWMR/M2Nya/5BMWFRqGDXu3O7bnTjtpnzDbfc+HBoe72+3zpbWx332HSnBWYCVVqHRnzW9LH53ONmS3qL0fZDf62v7/3BeDS5ZrdtWhSSioYeFCZOaKhKdLZj0BrhZbIFCP5R8fE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t1pH6NXe; arc=none smtp.client-ip=10.30.226.201
+	bh=zZQsoVwKCQInmBxwtdEonRvSfI1cMLQBKQQcxF7iIZk=;
+	h=Date:To:From:Subject:Message-Id; b=ppmj9EJlBwQScIbfpckgPzQ/cn+AtHgn1ZFticD/rUHe5FRF544dsXbofTWOmNci+wrKL5x4zVEHHHoJDPMKvbZBZoUbfIKtOy3hQoCa+S3dBYwvSKLAxBhSiBuW//Az6mX4DXBQqRGeQFEzAxhFFcJ319wWN/wh7MOAfEVyWiE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=be2uSv1I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t1pH6NXe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65CBCC4CEF0;
-	Tue, 23 Sep 2025 03:18:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="be2uSv1I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F04A5C116B1;
+	Tue, 23 Sep 2025 03:18:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758597501;
-	bh=/yNG+Lx0mSyfepk0soWllhZiG/ehLvKu8SGSpXN7bbg=;
+	s=korg; t=1758597503;
+	bh=zZQsoVwKCQInmBxwtdEonRvSfI1cMLQBKQQcxF7iIZk=;
 	h=Date:To:From:Subject:From;
-	b=t1pH6NXea/Q7B4wCzE46W7/lHpf6h0ItBiZsqvjVUj7OwPjpRqxefzoE2IW+f6H05
-	 8MssKmVPQ13aB9W7itixIb/CAuIvNZlbiOkfGyZHsp7V8EQFXSXKd5Z7YCcb6GaCti
-	 4UxcBNexqSmsVzPTXpy2LvyabxBT2p42CinV++s8=
-Date: Mon, 22 Sep 2025 20:18:20 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,viro@zeniv.linux.org.uk,vgoyal@redhat.com,vbabka@suse.cz,urezki@gmail.com,tsbogend@alpha.franken.de,tony.luck@intel.com,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,robin.murphy@arm.com,reinette.chatre@intel.com,pfalcato@suse.de,osalvador@suse.de,nico@fluxnic.net,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kevin.tian@intel.com,jgg@nvidia.com,jannh@google.com,james.morse@arm.com,jack@suse.cz,hughd@google.com,hca@linux.ibm.com,guoren@kernel.org,gregkh@linuxfoundation.org,gor@linux.ibm.com,dyoung@redhat.com,dvyukov@google.com,david@redhat.com,davem@davemloft.net,dave.martin@arm.com,dave.jiang@intel.com,dan.j.williams@intel.com,corbet@lwn.net,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,arnd@arndb.de,andreyknvl@gmail.com,andreas@gaisler.com,almaz.alexandrovich@paragon-software.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=be2uSv1ITykYralnZicTRnGwhksxjTSHTzoW5ovLDDcHk6KzE9arREZtDuZYfVP6m
+	 MbnQFfK3TMG7DMSFhl9ENzjsIZs+q407o/moo+oNta3KAZLQAu/tNc83kv97hvcAYB
+	 uUqj6nA31cmKtVwmeVItcYnvmKANiMUcyQsoI1M0=
+Date: Mon, 22 Sep 2025 20:18:22 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill@shutemov.name,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-update-resctl-to-use-mmap_prepare.patch removed from -mm tree
-Message-Id: <20250923031821.65CBCC4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch removed from -mm tree
+Message-Id: <20250923031822.F04A5C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: update resctl to use mmap_prepare
+     Subject: mm/khugepaged: do not fail collapse_pte_mapped_thp() on SCAN_PMD_NULL
 has been removed from the -mm tree.  Its filename was
-     mm-update-resctl-to-use-mmap_prepare.patch
+     mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: update resctl to use mmap_prepare
-Date: Wed, 17 Sep 2025 20:11:16 +0100
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: mm/khugepaged: do not fail collapse_pte_mapped_thp() on SCAN_PMD_NULL
+Date: Mon, 15 Sep 2025 14:52:53 +0100
 
-Make use of the ability to specify a remap action within mmap_prepare to
-update the resctl pseudo-lock to use mmap_prepare in favour of the
-deprecated mmap hook.
+MADV_COLLAPSE on a file mapping behaves inconsistently depending on if PMD
+page table is installed or not.
 
-Link: https://lkml.kernel.org/r/ed05dfdff6f77e33628784b6492f66f347673b50.1758135681.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Reinette Chatre <reinette.chatre@intel.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Dave Martin <dave.martin@arm.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kevin Tian <kevin.tian@intel.com>
-Cc: Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
+Consider following example:
+
+	p = mmap(NULL, 2UL << 20, PROT_READ | PROT_WRITE,
+		 MAP_SHARED, fd, 0);
+	err = madvise(p, 2UL << 20, MADV_COLLAPSE);
+
+fd is a populated tmpfs file.
+
+The result depends on the address that the kernel returns on mmap().  If
+it is located in an existing PMD table, the madvise() will succeed. 
+However, if the table does not exist, it will fail with -EINVAL.
+
+This occurs because find_pmd_or_thp_or_none() returns SCAN_PMD_NULL when a
+page table is missing, which causes collapse_pte_mapped_thp() to fail.
+
+SCAN_PMD_NULL and SCAN_PMD_NONE should be treated the same in
+collapse_pte_mapped_thp(): install the PMD leaf entry and allocate page
+tables as needed.
+
+Link: https://lkml.kernel.org/r/v5ivpub6z2n2uyemlnxgbilzs52ep4lrary7lm7o6axxoneb75@yfacfl5rkzeh
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Zach O'Keefe <zokeefe@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nicolas Pitre <nico@fluxnic.net>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Robin Murohy <robin.murphy@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/resctrl/pseudo_lock.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ mm/khugepaged.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
---- a/fs/resctrl/pseudo_lock.c~mm-update-resctl-to-use-mmap_prepare
-+++ a/fs/resctrl/pseudo_lock.c
-@@ -995,10 +995,11 @@ static const struct vm_operations_struct
- 	.mremap = pseudo_lock_dev_mremap,
- };
- 
--static int pseudo_lock_dev_mmap(struct file *filp, struct vm_area_struct *vma)
-+static int pseudo_lock_dev_mmap_prepare(struct vm_area_desc *desc)
+--- a/mm/khugepaged.c~mm-khugepaged-do-not-fail-collapse_pte_mapped_thp-on-scan_pmd_null
++++ a/mm/khugepaged.c
+@@ -1460,15 +1460,32 @@ static void collect_mm_slot(struct khuge
+ static int set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 			pmd_t *pmdp, struct folio *folio, struct page *page)
  {
--	unsigned long vsize = vma->vm_end - vma->vm_start;
--	unsigned long off = vma->vm_pgoff << PAGE_SHIFT;
-+	unsigned long off = desc->pgoff << PAGE_SHIFT;
-+	unsigned long vsize = vma_desc_size(desc);
-+	struct file *filp = desc->file;
- 	struct pseudo_lock_region *plr;
- 	struct rdtgroup *rdtgrp;
- 	unsigned long physical;
-@@ -1043,7 +1044,7 @@ static int pseudo_lock_dev_mmap(struct f
- 	 * Ensure changes are carried directly to the memory being mapped,
- 	 * do not allow copy-on-write mapping.
- 	 */
--	if (!(vma->vm_flags & VM_SHARED)) {
-+	if (!(desc->vm_flags & VM_SHARED)) {
- 		mutex_unlock(&rdtgroup_mutex);
- 		return -EINVAL;
- 	}
-@@ -1055,12 +1056,9 @@ static int pseudo_lock_dev_mmap(struct f
++	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_fault vmf = {
+ 		.vma = vma,
+ 		.address = addr,
+ 		.flags = 0,
+-		.pmd = pmdp,
+ 	};
++	pgd_t *pgdp;
++	p4d_t *p4dp;
++	pud_t *pudp;
  
- 	memset(plr->kmem + off, 0, vsize);
+ 	mmap_assert_locked(vma->vm_mm);
  
--	if (remap_pfn_range(vma, vma->vm_start, physical + vma->vm_pgoff,
--			    vsize, vma->vm_page_prot)) {
--		mutex_unlock(&rdtgroup_mutex);
--		return -EAGAIN;
--	}
--	vma->vm_ops = &pseudo_mmap_ops;
-+	desc->vm_ops = &pseudo_mmap_ops;
-+	mmap_action_remap_full(desc, physical + desc->pgoff);
++	if (!pmdp) {
++		pgdp = pgd_offset(mm, addr);
++		p4dp = p4d_alloc(mm, pgdp, addr);
++		if (!p4dp)
++			return SCAN_FAIL;
++		pudp = pud_alloc(mm, p4dp, addr);
++		if (!pudp)
++			return SCAN_FAIL;
++		pmdp = pmd_alloc(mm, pudp, addr);
++		if (!pmdp)
++			return SCAN_FAIL;
++	}
 +
- 	mutex_unlock(&rdtgroup_mutex);
- 	return 0;
- }
-@@ -1071,7 +1069,7 @@ static const struct file_operations pseu
- 	.write =	NULL,
- 	.open =		pseudo_lock_dev_open,
- 	.release =	pseudo_lock_dev_release,
--	.mmap =		pseudo_lock_dev_mmap,
-+	.mmap_prepare =	pseudo_lock_dev_mmap_prepare,
- };
++	vmf.pmd = pmdp;
+ 	if (do_set_pmd(&vmf, folio, page))
+ 		return SCAN_FAIL;
  
- int rdt_pseudo_lock_init(void)
+@@ -1544,6 +1561,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	switch (result) {
+ 	case SCAN_SUCCEED:
+ 		break;
++	case SCAN_PMD_NULL:
+ 	case SCAN_PMD_NONE:
+ 		/*
+ 		 * All pte entries have been removed and pmd cleared.
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from kas@kernel.org are
 
+mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch
+mm-rmap-fix-a-mlock-race-condition-in-folio_referenced_one.patch
+mm-rmap-mlock-large-folios-in-try_to_unmap_one.patch
+mm-fault-try-to-map-the-entire-file-folio-in-finish_fault.patch
+mm-rmap-improve-mlock-tracking-for-large-folios.patch
 
