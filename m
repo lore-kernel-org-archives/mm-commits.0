@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECC95276058
-	for <mm-commits@vger.kernel.org>; Wed, 24 Sep 2025 22:22:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E418296BD1
+	for <mm-commits@vger.kernel.org>; Wed, 24 Sep 2025 22:25:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758752579; cv=none; b=uZ1BLtofDUGvnMYcH/7f5bmwVn/u9RVxZBSW3pWFzkxsZLF3RYFoFk+AxhDaEb18L1XdVLw7WUdGrpsk0wneArmlBoqgHo014joI+huh4UO4J7BnvWTxKheFVXt9V5kAjgtrjn90ZzGKINlxbRtTiNjRiCdRYALbSh1EoNp/jC8=
+	t=1758752706; cv=none; b=deable9MA+tztjLuEHgLErCDkmbTaoXiNhwqrOZxaojNjeHEXSO18Lr7ETXSga5QAgVCf20T67RlhRnvbjMFL+rqz04x8NmgcVSByFkaPL0ufNv0ZeVFkpRRYN2hEln0SbrjvrxdKQakd/8Tnnl22tyN/wObISg55AcAILJmqhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758752579; c=relaxed/simple;
-	bh=EjurXETFboT5dhRhiRdWcBqiVOlVFkkoIezRESyGKYQ=;
-	h=Date:To:From:Subject:Message-Id; b=FjihSlFLQFYWVxK9EKCRtClypvW55gRNXFcHxRI0ILXeOk2uxaYkxRPMlV9eJUuZIWas9qtcKvfoSMkhIb1N5qH9aNheM7ody3nu/4rXnjnJKbbYUhbU3IqN+2C/LFJWwB68nK5odO4jIEyJIy97e2/Gmd9J9ydQ6cIus0QZZK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JlidQPVh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758752706; c=relaxed/simple;
+	bh=0WPcDJlfAPaQs2WTwKcNV2KbObcT5jZNEwI09q6XUx8=;
+	h=Date:To:From:Subject:Message-Id; b=AGT6GrBnfgR7t4Dr4uUL5u72/1H0ZrKlbw1LwRnivze91HMGHxPrcYA7ojktnIbW6MsBxcHK2AbsN5zqPd82ZsujMw3iIKr/6HK3HXyRdpDArre/QP7NFC3o3bIvgtHKL33e0sHm/6KbpHmSjrsmgJjoURfw93cEDifAWgr4FqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fDIpOHQ9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JlidQPVh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A083C4CEE7;
-	Wed, 24 Sep 2025 22:22:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fDIpOHQ9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CED5C4CEE7;
+	Wed, 24 Sep 2025 22:25:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758752578;
-	bh=EjurXETFboT5dhRhiRdWcBqiVOlVFkkoIezRESyGKYQ=;
+	s=korg; t=1758752705;
+	bh=0WPcDJlfAPaQs2WTwKcNV2KbObcT5jZNEwI09q6XUx8=;
 	h=Date:To:From:Subject:From;
-	b=JlidQPVhg5flvGkdvdUdYp2G3IvenNg2E3TZ1Xbm+/crxpwAXyPHGdyCDWHE6wUP3
-	 5fg63ae1ZCZLlUgcf81usUHbg8WAwiDmNjWJDLhTvaC//PUtAFqYTMqf1Yu4XjfBld
-	 n/pbaJl+O+ptqvw+IRXWuYKrOp1i9vX6iPqdx5Ds=
-Date: Wed, 24 Sep 2025 15:22:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,anshuman.khandual@arm.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=fDIpOHQ9JdtBglVJmzfc9D0sRExCV5Eep1upu7xwD12YJ6K37xoXIR5iMfXm536Pf
+	 YUd9xfjk88crPs6xelqtLzKWOKKZLd8iQ2Cfyc5leJyomEq0wuGNYrruU3RXt90SoR
+	 Xe5NwO4ZEcB74P75FecfsYKIQGeUnQ5ET9QQBs9g=
+Date: Wed, 24 Sep 2025 15:25:05 -0700
+To: mm-commits@vger.kernel.org,zhang.run@zte.com.cn,nao.horiguchi@gmail.com,mawupeng1@huawei.com,linmiaohe@huawei.com,hu.shengming@zte.com.cn,david@redhat.com,shengminghu512@qq.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-page_alloc-fix-alignment-for-alloc_contig_pages_noprof.patch removed from -mm tree
-Message-Id: <20250924222258.6A083C4CEE7@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory-failure-ensure-collect_procs-is-retried-when-unmap-fails.patch removed from -mm tree
+Message-Id: <20250924222505.9CED5C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: fix alignment for alloc_contig_pages_noprof()
+     Subject: mm/memory-failure: ensure collect_procs is retried when unmap fails
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-alignment-for-alloc_contig_pages_noprof.patch
+     mm-memory-failure-ensure-collect_procs-is-retried-when-unmap-fails.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc: fix alignment for alloc_contig_pages_noprof()
-Date: Tue, 23 Sep 2025 00:19:43 +0000
+From: Shengming Hu <shengminghu512@qq.com>
+Subject: mm/memory-failure: ensure collect_procs is retried when unmap fails
+Date: Tue, 23 Sep 2025 22:57:09 +0800
 
-Commit 5e27a2df03b8 ("mm/page_alloc: add alloc_contig_pages()") introduced
-generic method for alloc_contig_pages().  But the alignment calculation
-seems wrong.
+In the memory_failure process, if collect_procs is not executed with the
+flag set, the to_kill list may be empty.  Even if there are pages that
+fail to be unmapped, SIGKILL or SIGBUS cannot be sent to the process via
+collect_procs.
 
-Since ALIGN() only accepts power of two values, while nr_pages could be
-any positive one, the result is not defined.
+This patch fixes the issue by re-executing collect_procs when the to_kill
+list is empty and unmap fails.  This collects processes with unmap
+failures into the to_kill list, allowing SIGBUS or SIGKILL to terminate
+them in subsequent code.
 
-Use roundup() to calculate the correct alignment.
-
-Link: https://lkml.kernel.org/r/20250923001943.2479-1-richard.weiyang@gmail.com
-Fixes: 5e27a2df03b8 ("mm/page_alloc: add alloc_contig_pages()")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Link: https://lkml.kernel.org/r/tencent_EDEED996FC685E61AADA14A23BCE9CCDAF09@qq.com
+Signed-off-by: Shengming Hu <hu.shengming@zte.com.cn>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Zhang Run <zhang.run@zte.com.cn>
+Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-alignment-for-alloc_contig_pages_noprof
-+++ a/mm/page_alloc.c
-@@ -7098,7 +7098,7 @@ struct page *alloc_contig_pages_noprof(u
- 					gfp_zone(gfp_mask), nodemask) {
- 		spin_lock_irqsave(&zone->lock, flags);
+--- a/mm/memory-failure.c~mm-memory-failure-ensure-collect_procs-is-retried-when-unmap-fails
++++ a/mm/memory-failure.c
+@@ -1600,9 +1600,12 @@ static bool hwpoison_user_mappings(struc
+ 	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
  
--		pfn = ALIGN(zone->zone_start_pfn, nr_pages);
-+		pfn = roundup(zone->zone_start_pfn, nr_pages);
- 		while (zone_spans_last_pfn(zone, pfn, nr_pages)) {
- 			if (pfn_range_valid_contig(zone, pfn, nr_pages)) {
- 				/*
+ 	unmap_success = !unmap_poisoned_folio(folio, pfn, flags & MF_MUST_KILL);
+-	if (!unmap_success)
++	if (!unmap_success) {
+ 		pr_err("%#lx: failed to unmap page (folio mapcount=%d)\n",
+ 		       pfn, folio_mapcount(folio));
++		if (list_empty(&tokill))
++			collect_procs(folio, p, &tokill, 1);
++	}
+ 
+ 	/*
+ 	 * try_to_unmap() might put mlocked page in lru cache, so call
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from shengminghu512@qq.com are
 
-mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch
-mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null.patch
-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot-fix.patch
-mm-khugepaged-use-start_addr-addr-for-better-reading.patch
 
