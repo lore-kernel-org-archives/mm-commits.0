@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60CE4285C91;
-	Wed, 24 Sep 2025 21:58:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60B7E14658D
+	for <mm-commits@vger.kernel.org>; Wed, 24 Sep 2025 22:01:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758751087; cv=none; b=Mk1MPFNU+HKQT0W6sPzRAD+WuHuazYf8kGsL3zg6zgHQD6EQMNexag1SAv5mNZiIahtqPvbt+GRa5ynMguhy7xw4f/HiTX22X47dfu/7KLc9FkOk9HASqcVVtoKHNv46A1mvnZgN0gCRodXMatsvdhZB9krOJZVBMqfwjwuDCx4=
+	t=1758751272; cv=none; b=PYr8AhWccsVZ/25MeYu6YmjN9zfuuNlQth9WwZhZaYycyfZIsh7314HXkH2yH3h/V1pfHVO/CIXjKx174Xol7f+SKYMmV99042pu2xAOjA5uWzSrODxYLGt/zA0uOBdC2DJVAvgxlRKBZYSIut3/MZ+pxhSXdUIdzT+hH4U0mfw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758751087; c=relaxed/simple;
-	bh=ZZcO+Mr7RggpYqbZ7zOwH2ILwZjTr0dGvYRYCDHDlSk=;
-	h=Date:To:From:Subject:Message-Id; b=oVFVU8UcBxPjLZHKcmHj2zypjZhMX60wpmfmOwrqmuuiiRgVIWQp2Lu0LWDO+JMwf3EEPoAuMOI96c5ZKTz0+Bl3oQj4GbxukmW4ktN5K0p8DRDy33wY0Ylljp62WdsGxlCsvvD10tm6O49HiN5jVsqiMd9xkDVqyOjdx2wABjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SKit6eLk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758751272; c=relaxed/simple;
+	bh=CsOVMQMB/uHB7AC/KGzuvtkfprMgHT8Mwn6jfcEEBzM=;
+	h=Date:To:From:Subject:Message-Id; b=NGmHlEOQ/s/XNz3NG/c/jAioDJ6XQ+I+mlgqUkVXgoNRHPWwnPRETHSlPb6kj5rdWAWhhZWr5wTp92zEXpzjTj0Dh+Ld6DCm67khMaqUMN+uhI8QbqtYq2cwJKF6ugYfpYbi4qEUEIRhXzZH/X2vVf4sXeSP5PVm2rHypIbAt4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yymoeVLy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SKit6eLk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAA9FC4CEE7;
-	Wed, 24 Sep 2025 21:58:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yymoeVLy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F11C4CEE7;
+	Wed, 24 Sep 2025 22:01:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758751086;
-	bh=ZZcO+Mr7RggpYqbZ7zOwH2ILwZjTr0dGvYRYCDHDlSk=;
+	s=korg; t=1758751271;
+	bh=CsOVMQMB/uHB7AC/KGzuvtkfprMgHT8Mwn6jfcEEBzM=;
 	h=Date:To:From:Subject:From;
-	b=SKit6eLkZt52EaopruCqUMZyLaPhwhYoiEMZM8CJA8FP/74fCuPdhmdT3h0A/zsc/
-	 bm3ANV80cm9DZBuhU38we585aPHsR42NQiRDXiZMrbVrVJeds4KILvUfG+cDUGqOTj
-	 7Q9n20JFfimvN6pMPd/3uMNolXT8a3F90HpzJFbE=
-Date: Wed, 24 Sep 2025 14:58:06 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,rppt@kernel.org,nogikh@google.com,Markus.Elfring@web.de,elver@google.com,dvyukov@google.com,david@redhat.com,glider@google.com,akpm@linux-foundation.org
+	b=yymoeVLyp1z3BZNpvwIjgp9TVYQGQoCnblWfhxTYWlRXhyhbB1qGZJGRMgLiRTISu
+	 o46c9D9WbDP8AG9JvSRRbRMMdvIjiZs9cWdfoXeOJTu63S9XF0CMdQsqRQYh6KS/MC
+	 6Dqqkoqxy5Cv576DiCXh6rTk1U3GuNIGXaW7ph/Y=
+Date: Wed, 24 Sep 2025 15:01:11 -0700
+To: mm-commits@vger.kernel.org,johannes.berg@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memblock-correct-totalram_pages-accounting-with-kmsan.patch added to mm-new branch
-Message-Id: <20250924215806.DAA9FC4CEE7@smtp.kernel.org>
+Subject: + panic-remove-config_panic_on_oops_value.patch added to mm-nonmm-unstable branch
+Message-Id: <20250924220111.D5F11C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memblock: correct totalram_pages accounting with KMSAN
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memblock-correct-totalram_pages-accounting-with-kmsan.patch
+     Subject: panic: remove CONFIG_PANIC_ON_OOPS_VALUE
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-remove-config_panic_on_oops_value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memblock-correct-totalram_pages-accounting-with-kmsan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-remove-config_panic_on_oops_value.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,159 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: mm/memblock: correct totalram_pages accounting with KMSAN
-Date: Wed, 24 Sep 2025 12:03:01 +0200
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: panic: remove CONFIG_PANIC_ON_OOPS_VALUE
+Date: Wed, 24 Sep 2025 11:43:04 +0200
 
-When KMSAN is enabled, `kmsan_memblock_free_pages()` can hold back pages
-for metadata instead of returning them to the early allocator.  The
-callers, however, would unconditionally increment `totalram_pages`,
-assuming the pages were always freed.  This resulted in an incorrect
-calculation of the total available RAM, causing the kernel to believe it
-had more memory than it actually did.
+There's really no need for this since it's 0 or 1 when
+CONFIG_PANIC_ON_OOPS is disabled/enabled, so just use IS_ENABLED()
+instead.  The extra symbol goes back to the original code adding it in
+commit 2a01bb3885c9 ("panic: Make panic_on_oops configurable").
 
-This patch refactors `memblock_free_pages()` to return the number of pages
-it successfully frees.  If KMSAN stashes the pages, the function now
-returns 0; otherwise, it returns the number of pages in the block.
-
-The callers in `memblock.c` have been updated to use this return value,
-ensuring that `totalram_pages` is incremented only by the number of pages
-actually returned to the allocator.  This corrects the total RAM
-accounting when KMSAN is active.
-
-Link: https://lkml.kernel.org/r/20250924100301.1558645-1-glider@google.com
-Fixes: 3c2065098260 ("init: kmsan: call KMSAN initialization routines")
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Markus Elfring <Markus.Elfring@web.de>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20250924094303.18521-2-johannes@sipsolutions.net
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    4 ++--
- mm/memblock.c |   21 +++++++++++----------
- mm/mm_init.c  |    9 +++++----
- 3 files changed, 18 insertions(+), 16 deletions(-)
+ kernel/panic.c    |    2 +-
+ lib/Kconfig.debug |    6 ------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
---- a/mm/internal.h~mm-memblock-correct-totalram_pages-accounting-with-kmsan
-+++ a/mm/internal.h
-@@ -742,8 +742,8 @@ static inline void clear_zone_contiguous
- extern int __isolate_free_page(struct page *page, unsigned int order);
- extern void __putback_isolated_page(struct page *page, unsigned int order,
- 				    int mt);
--extern void memblock_free_pages(struct page *page, unsigned long pfn,
--					unsigned int order);
-+unsigned long memblock_free_pages(struct page *page, unsigned long pfn,
-+				  unsigned int order);
- extern void __free_pages_core(struct page *page, unsigned int order,
- 		enum meminit_context context);
+--- a/kernel/panic.c~panic-remove-config_panic_on_oops_value
++++ a/kernel/panic.c
+@@ -53,7 +53,7 @@ static unsigned int __read_mostly sysctl
+ #define sysctl_oops_all_cpu_backtrace 0
+ #endif /* CONFIG_SMP */
  
---- a/mm/memblock.c~mm-memblock-correct-totalram_pages-accounting-with-kmsan
-+++ a/mm/memblock.c
-@@ -1826,6 +1826,7 @@ void *__init __memblock_alloc_or_panic(p
- void __init memblock_free_late(phys_addr_t base, phys_addr_t size)
- {
- 	phys_addr_t cursor, end;
-+	unsigned long freed_pages = 0;
+-int panic_on_oops = CONFIG_PANIC_ON_OOPS_VALUE;
++int panic_on_oops = IS_ENABLED(CONFIG_PANIC_ON_OOPS);
+ static unsigned long tainted_mask =
+ 	IS_ENABLED(CONFIG_RANDSTRUCT) ? (1 << TAINT_RANDSTRUCT) : 0;
+ static int pause_on_oops;
+--- a/lib/Kconfig.debug~panic-remove-config_panic_on_oops_value
++++ a/lib/Kconfig.debug
+@@ -1067,12 +1067,6 @@ config PANIC_ON_OOPS
  
- 	end = base + size - 1;
- 	memblock_dbg("%s: [%pa-%pa] %pS\n",
-@@ -1834,10 +1835,9 @@ void __init memblock_free_late(phys_addr
- 	cursor = PFN_UP(base);
- 	end = PFN_DOWN(base + size);
+ 	  Say N if unsure.
  
--	for (; cursor < end; cursor++) {
--		memblock_free_pages(pfn_to_page(cursor), cursor, 0);
--		totalram_pages_inc();
--	}
-+	for (; cursor < end; cursor++)
-+		freed_pages += memblock_free_pages(pfn_to_page(cursor), cursor, 0);
-+	totalram_pages_add(freed_pages);
- }
- 
- /*
-@@ -2259,9 +2259,11 @@ static void __init free_unused_memmap(vo
- #endif
- }
- 
--static void __init __free_pages_memory(unsigned long start, unsigned long end)
-+static unsigned long __init __free_pages_memory(unsigned long start,
-+						unsigned long end)
- {
- 	int order;
-+	unsigned long freed = 0;
- 
- 	while (start < end) {
- 		/*
-@@ -2279,14 +2281,15 @@ static void __init __free_pages_memory(u
- 		while (start + (1UL << order) > end)
- 			order--;
- 
--		memblock_free_pages(pfn_to_page(start), start, order);
-+		freed += memblock_free_pages(pfn_to_page(start), start, order);
- 
- 		start += (1UL << order);
- 	}
-+	return freed;
- }
- 
- static unsigned long __init __free_memory_core(phys_addr_t start,
--				 phys_addr_t end)
-+					       phys_addr_t end)
- {
- 	unsigned long start_pfn = PFN_UP(start);
- 	unsigned long end_pfn = PFN_DOWN(end);
-@@ -2297,9 +2300,7 @@ static unsigned long __init __free_memor
- 	if (start_pfn >= end_pfn)
- 		return 0;
- 
--	__free_pages_memory(start_pfn, end_pfn);
+-config PANIC_ON_OOPS_VALUE
+-	int
+-	range 0 1
+-	default 0 if !PANIC_ON_OOPS
+-	default 1 if PANIC_ON_OOPS
 -
--	return end_pfn - start_pfn;
-+	return __free_pages_memory(start_pfn, end_pfn);
- }
- 
- static void __init memmap_init_reserved_pages(void)
---- a/mm/mm_init.c~mm-memblock-correct-totalram_pages-accounting-with-kmsan
-+++ a/mm/mm_init.c
-@@ -2547,24 +2547,25 @@ void *__init alloc_large_system_hash(con
- 	return table;
- }
- 
--void __init memblock_free_pages(struct page *page, unsigned long pfn,
--							unsigned int order)
-+unsigned long __init memblock_free_pages(struct page *page, unsigned long pfn,
-+					 unsigned int order)
- {
- 	if (IS_ENABLED(CONFIG_DEFERRED_STRUCT_PAGE_INIT)) {
- 		int nid = early_pfn_to_nid(pfn);
- 
- 		if (!early_page_initialised(pfn, nid))
--			return;
-+			return 0;
- 	}
- 
- 	if (!kmsan_memblock_free_pages(page, order)) {
- 		/* KMSAN will take care of these pages. */
--		return;
-+		return 0;
- 	}
- 
- 	/* pages were reserved and not allocated */
- 	clear_page_tag_ref(page);
- 	__free_pages_core(page, order, MEMINIT_EARLY);
-+	return 1UL << order;
- }
- 
- DEFINE_STATIC_KEY_MAYBE(CONFIG_INIT_ON_ALLOC_DEFAULT_ON, init_on_alloc);
+ config PANIC_TIMEOUT
+ 	int "panic timeout"
+ 	default 0
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
-mm-memblock-correct-totalram_pages-accounting-with-kmsan.patch
+panic-remove-config_panic_on_oops_value.patch
 
