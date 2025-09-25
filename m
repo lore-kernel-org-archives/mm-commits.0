@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 302DD2D837E;
-	Thu, 25 Sep 2025 23:11:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A1BE2D837E;
+	Thu, 25 Sep 2025 23:11:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758841869; cv=none; b=uQPnQHQj7yMOPANFacLC7JVz5qg1d/RViz4HDy0+72qRFxDYHIQDGRxEPto+M+rBTzoJfK14JWyGoCAYh7KkDJb0mfhNbGw2DjqlZSXnFnq5718poickfrORWU6IYXUp00OJIv0CnohSF5uvj3YCroVd2kJeEQlq+mYMIyPBs2c=
+	t=1758841870; cv=none; b=W4FW8d4VzBDsFa9IYXJ81xUgO7g1YWMucCZfxnsEwkTb6jKN9qdXIAm+hAsE8BouhDlqv8b4kjKy3hnk4H3keyUze11T2RQbNM7G0lg8zie9LW4Old18jq325w6GkaniA9gLCQDg8sU4usHPI88dAW2BLcgdYHYMmbqJQzTzWVA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758841869; c=relaxed/simple;
-	bh=8SstXx6jnlD5MC453SXmk7nBnUdIhqWepozKWhJFMZ8=;
-	h=Date:To:From:Subject:Message-Id; b=sR8fNMYD2ld4by9Ax0iwI1K8auJel8fOqz3GmmwLquw/Azuw0kPKFjnCYMrdPCcR10WFFLjqlENt2iYq8QEGPvcD4/CMOXRZ+chib7rLtoh6k7/+/FpY/L0EjDOgik3j/BNQxCbsczqokm69y5dZHCaiVHJ36mpc+S9D8NyzE10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VZ8ak5sj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758841870; c=relaxed/simple;
+	bh=7mA1KD2uW5O4ACTarVWNMcJRxuIdk+3apoEZTmxDZ14=;
+	h=Date:To:From:Subject:Message-Id; b=OOLPX52m0uKAFjesjkGoBDgNzNm0ngmIgfWxDKjY8nSIzukaoVWBJg1FHiJBWcA9zfE1DN3L4n9QpnJ1aM7guq6efvi+pPOpMPI15a83y4gQ+FJqQew7pOO95Dfy/Mn0ZGYptq1I4VMcSAMq9OU46ynlQjAzuAziP6/OiKEyfJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A+LlfugZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VZ8ak5sj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAD69C4CEF7;
-	Thu, 25 Sep 2025 23:11:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A+LlfugZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3823C4CEF0;
+	Thu, 25 Sep 2025 23:11:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758841868;
-	bh=8SstXx6jnlD5MC453SXmk7nBnUdIhqWepozKWhJFMZ8=;
+	s=korg; t=1758841869;
+	bh=7mA1KD2uW5O4ACTarVWNMcJRxuIdk+3apoEZTmxDZ14=;
 	h=Date:To:From:Subject:From;
-	b=VZ8ak5sjDD/w28wuuYvGuneEHkIh5iqCuOztYIFJu+TND60jvb2omXsKS8zyjyN3Q
-	 +g8a8ZnXCIHJ0McRIQWi9SxGldmNlc47V9cTi0WmwtnSSwHP1tTyviBwtS10YdKcsm
-	 mwI/TIO5sLWHilZNzj+oy/5Db5/rLsv+/+i7X3Os=
-Date: Thu, 25 Sep 2025 16:11:08 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,ebiggers@kernel.org,akpm@linux-foundation.org
+	b=A+LlfugZJqVhohf2rOUaz1XnfKmbhK1gN0o2XBxRiUSzDZ8Ip430IQNuA6hIbTEWJ
+	 1dZy+vnJW2Q4hdJJtpeKBjVXMRwxEge152zGTpxc4ITV1q06Q1BThOYBGllAitaRDJ
+	 n8py6ZwR9lolfNktnjIzulQBN3BaKX0JE5pkm+CI=
+Date: Thu, 25 Sep 2025 16:11:09 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usama.anjum@collabora.com,tujinjiang@huawei.com,surenb@google.com,superman.xpt@gmail.com,stable@vger.kernel.org,sfr@canb.auug.org.au,ryan.roberts@arm.com,mirq-linux@rere.qmqm.pl,lorenzo.stoakes@oracle.com,david@redhat.com,broonie@kernel.org,baolin.wang@linux.alibaba.com,avagin@gmail.com,acsjakub@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kmsan-fix-out-of-bounds-access-to-shadow-memory.patch removed from -mm tree
-Message-Id: <20250925231108.BAD69C4CEF7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-task_mmu-check-p-vec_buf-for-null.patch removed from -mm tree
+Message-Id: <20250925231109.B3823C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,139 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kmsan: fix out-of-bounds access to shadow memory
+     Subject: fs/proc/task_mmu: check p->vec_buf for NULL
 has been removed from the -mm tree.  Its filename was
-     kmsan-fix-out-of-bounds-access-to-shadow-memory.patch
+     fs-proc-task_mmu-check-p-vec_buf-for-null.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@kernel.org>
-Subject: kmsan: fix out-of-bounds access to shadow memory
-Date: Thu, 11 Sep 2025 12:58:58 -0700
+From: Jakub Acs <acsjakub@amazon.de>
+Subject: fs/proc/task_mmu: check p->vec_buf for NULL
+Date: Mon, 22 Sep 2025 08:22:05 +0000
 
-Running sha224_kunit on a KMSAN-enabled kernel results in a crash in
-kmsan_internal_set_shadow_origin():
+When the PAGEMAP_SCAN ioctl is invoked with vec_len = 0 reaches
+pagemap_scan_backout_range(), kernel panics with null-ptr-deref:
 
-    BUG: unable to handle page fault for address: ffffbc3840291000
-    #PF: supervisor read access in kernel mode
-    #PF: error_code(0x0000) - not-present page
-    PGD 1810067 P4D 1810067 PUD 192d067 PMD 3c17067 PTE 0
-    Oops: 0000 [#1] SMP NOPTI
-    CPU: 0 UID: 0 PID: 81 Comm: kunit_try_catch Tainted: G                 N  6.17.0-rc3 #10 PREEMPT(voluntary)
-    Tainted: [N]=TEST
-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org 04/01/2014
-    RIP: 0010:kmsan_internal_set_shadow_origin+0x91/0x100
-    [...]
-    Call Trace:
-    <TASK>
-    __msan_memset+0xee/0x1a0
-    sha224_final+0x9e/0x350
-    test_hash_buffer_overruns+0x46f/0x5f0
-    ? kmsan_get_shadow_origin_ptr+0x46/0xa0
-    ? __pfx_test_hash_buffer_overruns+0x10/0x10
-    kunit_try_run_case+0x198/0xa00
+[   44.936808] Oops: general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN NOPTI
+[   44.937797] KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+[   44.938391] CPU: 1 UID: 0 PID: 2480 Comm: reproducer Not tainted 6.17.0-rc6 #22 PREEMPT(none)
+[   44.939062] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
+[   44.939935] RIP: 0010:pagemap_scan_thp_entry.isra.0+0x741/0xa80
 
-This occurs when memset() is called on a buffer that is not 4-byte aligned
-and extends to the end of a guard page, i.e.  the next page is unmapped.
+<snip registers, unreliable trace>
 
-The bug is that the loop at the end of kmsan_internal_set_shadow_origin()
-accesses the wrong shadow memory bytes when the address is not 4-byte
-aligned.  Since each 4 bytes are associated with an origin, it rounds the
-address and size so that it can access all the origins that contain the
-buffer.  However, when it checks the corresponding shadow bytes for a
-particular origin, it incorrectly uses the original unrounded shadow
-address.  This results in reads from shadow memory beyond the end of the
-buffer's shadow memory, which crashes when that memory is not mapped.
+[   44.946828] Call Trace:
+[   44.947030]  <TASK>
+[   44.949219]  pagemap_scan_pmd_entry+0xec/0xfa0
+[   44.952593]  walk_pmd_range.isra.0+0x302/0x910
+[   44.954069]  walk_pud_range.isra.0+0x419/0x790
+[   44.954427]  walk_p4d_range+0x41e/0x620
+[   44.954743]  walk_pgd_range+0x31e/0x630
+[   44.955057]  __walk_page_range+0x160/0x670
+[   44.956883]  walk_page_range_mm+0x408/0x980
+[   44.958677]  walk_page_range+0x66/0x90
+[   44.958984]  do_pagemap_scan+0x28d/0x9c0
+[   44.961833]  do_pagemap_cmd+0x59/0x80
+[   44.962484]  __x64_sys_ioctl+0x18d/0x210
+[   44.962804]  do_syscall_64+0x5b/0x290
+[   44.963111]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-To fix this, correctly align the shadow address before accessing the 4
-shadow bytes corresponding to each origin.
+vec_len = 0 in pagemap_scan_init_bounce_buffer() means no buffers are
+allocated and p->vec_buf remains set to NULL.
 
-Link: https://lkml.kernel.org/r/20250911195858.394235-1-ebiggers@kernel.org
-Fixes: 2ef3cec44c60 ("kmsan: do not wipe out origin when doing partial unpoisoning")
-Signed-off-by: Eric Biggers <ebiggers@kernel.org>
-Tested-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
+This breaks an assumption made later in pagemap_scan_backout_range(), that
+page_region is always allocated for p->vec_buf_index.
+
+Fix it by explicitly checking p->vec_buf for NULL before dereferencing.
+
+Other sites that might run into same deref-issue are already (directly or
+transitively) protected by checking p->vec_buf.
+
+Note:
+From PAGEMAP_SCAN man page, it seems vec_len = 0 is valid when no output
+is requested and it's only the side effects caller is interested in,
+hence it passes check in pagemap_scan_get_args().
+
+This issue was found by syzkaller.
+
+Link: https://lkml.kernel.org/r/20250922082206.6889-1-acsjakub@amazon.de
+Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
+Signed-off-by: Jakub Acs <acsjakub@amazon.de>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Penglei Jiang <superman.xpt@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: "Michał Mirosław" <mirq-linux@rere.qmqm.pl>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c       |   10 +++++++---
- mm/kmsan/kmsan_test.c |   16 ++++++++++++++++
- 2 files changed, 23 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/kmsan/core.c~kmsan-fix-out-of-bounds-access-to-shadow-memory
-+++ a/mm/kmsan/core.c
-@@ -195,7 +195,8 @@ void kmsan_internal_set_shadow_origin(vo
- 				      u32 origin, bool checked)
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-check-p-vec_buf-for-null
++++ a/fs/proc/task_mmu.c
+@@ -2417,6 +2417,9 @@ static void pagemap_scan_backout_range(s
  {
- 	u64 address = (u64)addr;
--	u32 *shadow_start, *origin_start;
-+	void *shadow_start;
-+	u32 *aligned_shadow, *origin_start;
- 	size_t pad = 0;
+ 	struct page_region *cur_buf = &p->vec_buf[p->vec_buf_index];
  
- 	KMSAN_WARN_ON(!kmsan_metadata_is_contiguous(addr, size));
-@@ -214,9 +215,12 @@ void kmsan_internal_set_shadow_origin(vo
- 	}
- 	__memset(shadow_start, b, size);
- 
--	if (!IS_ALIGNED(address, KMSAN_ORIGIN_SIZE)) {
-+	if (IS_ALIGNED(address, KMSAN_ORIGIN_SIZE)) {
-+		aligned_shadow = shadow_start;
-+	} else {
- 		pad = address % KMSAN_ORIGIN_SIZE;
- 		address -= pad;
-+		aligned_shadow = shadow_start - pad;
- 		size += pad;
- 	}
- 	size = ALIGN(size, KMSAN_ORIGIN_SIZE);
-@@ -230,7 +234,7 @@ void kmsan_internal_set_shadow_origin(vo
- 	 * corresponding shadow slot is zero.
- 	 */
- 	for (int i = 0; i < size / KMSAN_ORIGIN_SIZE; i++) {
--		if (origin || !shadow_start[i])
-+		if (origin || !aligned_shadow[i])
- 			origin_start[i] = origin;
- 	}
- }
---- a/mm/kmsan/kmsan_test.c~kmsan-fix-out-of-bounds-access-to-shadow-memory
-+++ a/mm/kmsan/kmsan_test.c
-@@ -556,6 +556,21 @@ DEFINE_TEST_MEMSETXX(16)
- DEFINE_TEST_MEMSETXX(32)
- DEFINE_TEST_MEMSETXX(64)
- 
-+/* Test case: ensure that KMSAN does not access shadow memory out of bounds. */
-+static void test_memset_on_guarded_buffer(struct kunit *test)
-+{
-+	void *buf = vmalloc(PAGE_SIZE);
++	if (!p->vec_buf)
++		return;
 +
-+	kunit_info(test,
-+		   "memset() on ends of guarded buffer should not crash\n");
-+
-+	for (size_t size = 0; size <= 128; size++) {
-+		memset(buf, 0xff, size);
-+		memset(buf + PAGE_SIZE - size, 0xff, size);
-+	}
-+	vfree(buf);
-+}
-+
- static noinline void fibonacci(int *array, int size, int start)
- {
- 	if (start < 2 || (start == size))
-@@ -677,6 +692,7 @@ static struct kunit_case kmsan_test_case
- 	KUNIT_CASE(test_memset16),
- 	KUNIT_CASE(test_memset32),
- 	KUNIT_CASE(test_memset64),
-+	KUNIT_CASE(test_memset_on_guarded_buffer),
- 	KUNIT_CASE(test_long_origin_chain),
- 	KUNIT_CASE(test_stackdepot_roundtrip),
- 	KUNIT_CASE(test_unpoison_memory),
+ 	if (cur_buf->start != addr)
+ 		cur_buf->end = addr;
+ 	else
 _
 
-Patches currently in -mm which might be from ebiggers@kernel.org are
+Patches currently in -mm which might be from acsjakub@amazon.de are
 
 
