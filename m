@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AB4A7A13A
-	for <mm-commits@vger.kernel.org>; Fri, 26 Sep 2025 20:00:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2ECD2641CA
+	for <mm-commits@vger.kernel.org>; Fri, 26 Sep 2025 20:01:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758916834; cv=none; b=G4nIb4VGU6wci+9Ip9tGvk9xu3q/qkHKxGH8Yx8trTESW9jqdp6wzX+Dg52YC+KyZszfqpVzEFZVzaR/vanbGSvCH5E/Y+OQH9Ap/FLb2YiduKgekAwqzelT567wBA0lbmjnObSHcagvi6NMKoJBwi1VYxZCPkjzC/eaKrj9ZGk=
+	t=1758916910; cv=none; b=DHFfF45qmBZsklfQcPHR+KdaLAskVgsn91FtQ9KmWnjPeVo9+rB6g3ztj19Ftx8awoxoschdIEuczXmndEYZOzGAaRfkmvZKVw5aRxptJxLjG1cBthvewBHAavgc77UXqXAV8CEqoui4qxAEGcCme8boUPqeDe/j68CCy/tLPEk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758916834; c=relaxed/simple;
-	bh=iWOHqoZgUIZutOdPu4ZUUlQ8mlif5UHIyADZeywY/2k=;
-	h=Date:To:From:Subject:Message-Id; b=BdQMo7Jx8D2NL8//tv7AsyRjLSk4ArEFRkgo2+u+OrDq8M4d0evuWpB9EELbZ97MaTSJggUxvBAh/v2/Ng9QSQEjd64NhbXM5ccObUjj6aq46+aI6aRpBtNw28zvr+LtTcshQ6pwwEPRitVG9mM9C8d40rS3PMHmb/AxE3FJ02g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YzHK0bfJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758916910; c=relaxed/simple;
+	bh=TFFsJ8R1CC1JyppmFbvQbD3uX5GTWTH/+ScdxO2Uf/c=;
+	h=Date:To:From:Subject:Message-Id; b=OdOABn6AbnK8+S5DAbmQ7VAxLeCaZJdqFaggC/jL0naeCXfRypuToQYkiLB8UOW0fF8jW32HY2adEgr5IJdxE5jLyyA8oX1+vxSYiE9insvooPyQ4CW/a3qbIF702NhQodY1aZrHkmhidDWk/S4n2wHliW9frN61s0+gLLTuFXI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E79dT+3i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YzHK0bfJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA8CDC4CEF4;
-	Fri, 26 Sep 2025 20:00:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E79dT+3i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36A5FC4CEF4;
+	Fri, 26 Sep 2025 20:01:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758916831;
-	bh=iWOHqoZgUIZutOdPu4ZUUlQ8mlif5UHIyADZeywY/2k=;
+	s=korg; t=1758916910;
+	bh=TFFsJ8R1CC1JyppmFbvQbD3uX5GTWTH/+ScdxO2Uf/c=;
 	h=Date:To:From:Subject:From;
-	b=YzHK0bfJrJpm/Pu75rMdwtf6Un8/3+JONciW0HfWXnxK1+XYM6DAR1puQRYs4nXbc
-	 fE7rCt+EaRUJ8fdFJiJWqVlx7yTUpN3CEsMu1LiXyEMPGk/u/Wph4As9WHV1AW42YC
-	 EV5ei+jm8XJl/4XRzAD5Fm+hsfzqXc1XiiUYbo8I=
-Date: Fri, 26 Sep 2025 13:00:31 -0700
-To: mm-commits@vger.kernel.org,sln@onemain.com,jarkko@kernel.org,carlos.bilbao@kernel.org,andersson@kernel.org,sibi.sankar@oss.qualcomm.com,akpm@linux-foundation.org
+	b=E79dT+3iiNrQKcf+GS5zxo7URC7tSDojWcPDSgHdyj4SoaG87anJl4lHHM0ICoFMf
+	 QjjRA3BaOKrFhaFOozKSjP7+ubGbiqrqnks0gtoTxzgeYrLmFTuCccalWIC/tXAt0x
+	 9nw9whq3twdJdEBFgkET8oKCJ5uxZnwVEbmUYWK4=
+Date: Fri, 26 Sep 2025 13:01:49 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,elver@google.com,david@redhat.com,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-sibi-sankars-email-address.patch added to mm-nonmm-unstable branch
-Message-Id: <20250926200031.CA8CDC4CEF4@smtp.kernel.org>
+Subject: + mm-silence-data-race-in-update_hiwater_rss.patch added to mm-unstable branch
+Message-Id: <20250926200150.36A5FC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: update Sibi Sankar's email address
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     maintainers-update-sibi-sankars-email-address.patch
+     Subject: mm: silence data-race in update_hiwater_rss
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-silence-data-race-in-update_hiwater_rss.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-sibi-sankars-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-silence-data-race-in-update_hiwater_rss.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,52 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sibi Sankar <sibi.sankar@oss.qualcomm.com>
-Subject: MAINTAINERS: update Sibi Sankar's email address
-Date: Fri, 26 Sep 2025 15:04:26 +0530
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm: silence data-race in update_hiwater_rss
+Date: Fri, 26 Sep 2025 17:24:26 +0800
 
-Switch to using oss.qualcomm.com email ID in the MAINTAINERS file.  Also
-update mailmap to ensure proper attribution across historical commits.
+KCSAN reports a data race on mm_cluster.hiwater_rss, which can be accessed
+concurrently from various paths like page migration and memory unmapping
+without synchronization.
 
-Link: https://lkml.kernel.org/r/20250926093426.1735334-1-sibi.sankar@oss.qualcomm.com
-Signed-off-by: Sibi Sankar <sibi.sankar@oss.qualcomm.com>
-Cc: Bjorn Andersson <andersson@kernel.org>
-Cc: Carlos Bilbao <carlos.bilbao@kernel.org>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Shannon Nelson <sln@onemain.com>
+Since hiwater_rss is a statistical field for accounting purposes, this
+data race is benign.  Annotate both the read and write accesses with
+data_race() to make KCSAN happy.
+
+Link: https://lkml.kernel.org/r/20250926092426.43312-1-lance.yang@linux.dev
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Reported-by: syzbot+60192c8877d0bc92a92b@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-mm/68d6364e.050a0220.3390a8.000d.GAE@google.com
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    3 ++-
- MAINTAINERS |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~maintainers-update-sibi-sankars-email-address
-+++ a/.mailmap
-@@ -716,7 +716,8 @@ Shuah Khan <shuah@kernel.org> <shuahkhan
- Shuah Khan <shuah@kernel.org> <shuah.khan@hp.com>
- Shuah Khan <shuah@kernel.org> <shuahkh@osg.samsung.com>
- Shuah Khan <shuah@kernel.org> <shuah.kh@samsung.com>
--Sibi Sankar <quic_sibis@quicinc.com> <sibis@codeaurora.org>
-+Sibi Sankar <sibi.sankar@oss.qualcomm.com> <sibis@codeaurora.org>
-+Sibi Sankar <sibi.sankar@oss.qualcomm.com> <quic_sibis@quicinc.com>
- Sid Manning <quic_sidneym@quicinc.com> <sidneym@codeaurora.org>
- Simon Arlott <simon@octiron.net> <simon@fire.lp0.eu>
- Simona Vetter <simona.vetter@ffwll.ch> <daniel.vetter@ffwll.ch>
---- a/MAINTAINERS~maintainers-update-sibi-sankars-email-address
-+++ a/MAINTAINERS
-@@ -20720,7 +20720,7 @@ F:	Documentation/devicetree/bindings/pow
- F:	drivers/pmdomain/qcom/cpr.c
+--- a/include/linux/mm.h~mm-silence-data-race-in-update_hiwater_rss
++++ a/include/linux/mm.h
+@@ -2742,7 +2742,7 @@ static inline void update_hiwater_rss(st
+ 	unsigned long _rss = get_mm_rss(mm);
  
- QUALCOMM CPUCP MAILBOX DRIVER
--M:	Sibi Sankar <quic_sibis@quicinc.com>
-+M:	Sibi Sankar <sibi.sankar@oss.qualcomm.com>
- L:	linux-arm-msm@vger.kernel.org
- S:	Supported
- F:	Documentation/devicetree/bindings/mailbox/qcom,cpucp-mbox.yaml
+ 	if (data_race(mm->hiwater_rss) < _rss)
+-		(mm)->hiwater_rss = _rss;
++		data_race(mm->hiwater_rss = _rss);
+ }
+ 
+ static inline void update_hiwater_vm(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from sibi.sankar@oss.qualcomm.com are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-maintainers-update-sibi-sankars-email-address.patch
+hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
+mm-thp-fix-mte-tag-mismatch-when-replacing-zero-filled-subpages.patch
+mm-silence-data-race-in-update_hiwater_rss.patch
+mm-clean-up-is_guard_pte_marker.patch
 
