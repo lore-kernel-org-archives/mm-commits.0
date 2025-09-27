@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 720F817B505
-	for <mm-commits@vger.kernel.org>; Sat, 27 Sep 2025 01:19:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAD7F1F4CAE
+	for <mm-commits@vger.kernel.org>; Sat, 27 Sep 2025 01:19:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758935957; cv=none; b=nMOeuqvq7LG0rjCSs7RT7KVPY2CN0+UqR73QiRhGZe3i5TJITDLaBPwMEPGgEtDvhQyrpe2W0EIOxP0K0Sv/f0GEMhe3d2pDdiB2OvhHOpMvf6IjCgXTQ5/ROgQaus/3Pajn+ECCNKztVXTeOAey8hEQCOtIzE0knFZqkAQRN74=
+	t=1758935981; cv=none; b=BLuQFTiSm3y07fpimRmH3iPMzDcktze4H34/Jw/pd95fQCCyreh+cdBppRrJOmislvPWW+fHwMh7HXaPo0biSqq8eenkEKbLckDGj5V/9SpBCbKfNrOAt5GmIMAUfwegHJxMIf5SU5rti6yP01ebseASVOKkTIX8RhBhd7rafgg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758935957; c=relaxed/simple;
-	bh=5Fkj+eaTZTzklDaLzGFA/DMrdRAd9SlXMBPBSAmveL0=;
-	h=Date:To:From:Subject:Message-Id; b=N//wbMElv2GjavTh+j7QSk/DUnu2UenBIvJzZnj/3lum7Y8KCucdsLC1/k8YfRDXQSvVmAy5RXwszlB2wQ4UgcdSgrhV/Cm1WhInQQhBlSzMC5jFQ3esAot67TEKLDQynB2ICecTLol3IpbLl2FFTHBRXBDTo/dFiqjE9vs8yeo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dc561lzK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758935981; c=relaxed/simple;
+	bh=ES8UqK2jHPcshL14UdV9CyB1Rlyo3RrgE6MbLj6EUH0=;
+	h=Date:To:From:Subject:Message-Id; b=osFr9Hs9xV7ftNVYkzrh1J//gcvZFVOFu+ARNJUE6JRuLhk2WXJn4E4yM3YtgXxiBrkeQDCvG6FaZSOjxn9qsUgu/YvMSEe74pgn2RVCAhThYuLYiYQeVVZnMQ5oVVXFv3SuMOcnNEtTVI5r2M8VajJkBRZ/v38TpR72Ic725rA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k0lrif3U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dc561lzK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6741C4CEF4;
-	Sat, 27 Sep 2025 01:19:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k0lrif3U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63F9CC4CEF5;
+	Sat, 27 Sep 2025 01:19:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758935956;
-	bh=5Fkj+eaTZTzklDaLzGFA/DMrdRAd9SlXMBPBSAmveL0=;
+	s=korg; t=1758935981;
+	bh=ES8UqK2jHPcshL14UdV9CyB1Rlyo3RrgE6MbLj6EUH0=;
 	h=Date:To:From:Subject:From;
-	b=Dc561lzKWzfvP/LSWh+Ycw0eYc/h/VedLEFQD+Ag1RD2cF2FKEaPWQ/aKdA9FWpax
-	 JdUj+lbklfTF6LOtp0g8It1Sp/0sXEvmKLnRpdt6lEtYQ0EPIspBew1j1K8JX7ttXp
-	 nogdwJCVArG3i3Ru0YYSjJda+ltVE89xzOzcD52I=
-Date: Fri, 26 Sep 2025 18:19:16 -0700
+	b=k0lrif3U40gKeM69xXURVs4RkTpFdzjTkqfV//zWEr4tjzb3pHdMKuxbwSjILRWEx
+	 Y9QxTtQcuFfcyEZQjfU6l5ZowUvxPzhXMQeX9XE2KLDKVMjwJovTnsJ2+Ahy/tSfdX
+	 x5Xc+Uo73I4R5y5KI3gkagSQ3GyayVSfrqvXSVqo=
+Date: Fri, 26 Sep 2025 18:19:40 -0700
 To: mm-commits@vger.kernel.org,amir73il@gmail.com,phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-reject-negative-file-sizes-in-squashfs_read_inode-v2.patch added to mm-nonmm-unstable branch
-Message-Id: <20250927011916.D6741C4CEF4@smtp.kernel.org>
+Subject: [folded-merged] squashfs-reject-negative-file-sizes-in-squashfs_read_inode-v2.patch removed from -mm tree
+Message-Id: <20250927011941.63F9CC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: squashfs-reject-negative-file-sizes-in-squashfs_read_inode-v2
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      squashfs-reject-negative-file-sizes-in-squashfs_read_inode-v2.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-reject-negative-file-sizes-in-squashfs_read_inode-v2.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into squashfs-reject-negative-file-sizes-in-squashfs_read_inode.patch
 
 ------------------------------------------------------
 From: Phillip Lougher <phillip@squashfs.org.uk>
@@ -132,5 +116,4 @@ squashfs-fix-uninit-value-in-squashfs_get_parent.patch
 squashfs-add-additional-inode-sanity-checking.patch
 squashfs-add-seek_data-seek_hole-support.patch
 squashfs-reject-negative-file-sizes-in-squashfs_read_inode.patch
-squashfs-reject-negative-file-sizes-in-squashfs_read_inode-v2.patch
 
