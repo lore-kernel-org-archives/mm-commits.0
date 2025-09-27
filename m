@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234AE27FB1E
-	for <mm-commits@vger.kernel.org>; Fri, 26 Sep 2025 20:29:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CDC519F115;
+	Sat, 27 Sep 2025 01:17:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758918541; cv=none; b=ZFBPoYugFvrfxh2uXREF02fAqWxmuM6PtzX34R/mQMg2e6nxd0hazfOHlxrp3l5YdweXAX9hF6ipPFldDMUSxLCsnknQE0bKDp/ad8lBEvoBYrBl6F1uECZ6NH6mGN2Hq2Ism+WExf+rWICL8j7a1UTdM5E13m5Va/z0PViKYxM=
+	t=1758935855; cv=none; b=f7LafHlv8KTr52WxdM2FgJ6d1X7G02DDFXjiBcMvhw2pCApl7DooSWF98Wk8QgTXSfIpam+vITz3UumO58irTawvWP1YbOrl7ri6JQQv29EQQJZdQnvBVdk7g4HvjYHIBDbBJhVGa3i0pfa8B2iOL4pqQq68fFm2C1dnfgq1eEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758918541; c=relaxed/simple;
-	bh=nqL/08zDDv2XeribPyEo8utpbU46a3gZKkqVkUUDfRw=;
-	h=Date:To:From:Subject:Message-Id; b=vFniq8uMJAuOlplGwEsWs88kbX3QrGICE9/PD1TwiVP9Yr5ysiDNM937EvsgZQg2a1rgDymI26e1Z2LTlTy7PVhJZE8Nr3AuA7TdYe07AHiht/SmpY0YiBHIO14B+MYMy+Kg268XZOsaWMQlJZuEr6FjtmjFyDcdzGhhPFO4d0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iar7vXg3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1758935855; c=relaxed/simple;
+	bh=pizmtrfKoypHyRxkeP8m/nrxYXysI7n7A6x0lqgFs/A=;
+	h=Date:To:From:Subject:Message-Id; b=Xu5OvqJMkRplz3o5lpQ0/lX1KQx358AY+3HKNVyfh1kcbxWAl/9evi+DajL9ejp95o64cZXpuOfq6jjf7cCcUJp5fwb8jjaFKNgr8MUGAF5CaQr/EUBSioDP5qoBbF1Bs4vxwoZI5uTXNiAAgBl4HtdVcXz+ZZlGdugncZwn9lg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Svye4Gpq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iar7vXg3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62B24C4CEF4;
-	Fri, 26 Sep 2025 20:29:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Svye4Gpq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18C16C4CEF4;
+	Sat, 27 Sep 2025 01:17:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1758918540;
-	bh=nqL/08zDDv2XeribPyEo8utpbU46a3gZKkqVkUUDfRw=;
+	s=korg; t=1758935855;
+	bh=pizmtrfKoypHyRxkeP8m/nrxYXysI7n7A6x0lqgFs/A=;
 	h=Date:To:From:Subject:From;
-	b=Iar7vXg3AavoY0DH7vy9o62At3IxXPWwEw2lr5oeuaY4rf5RV5kiW8foOSgjLgfLE
-	 7Q0qvN7/dLsrDBP3UFY6lv0VzxhBwbewcc/70Y0xaOor8mcF1n09/X/oGmEFTQhcGe
-	 Vwzc/sjkGE2D2ERK0HLlDUVeyjS6fQ3vPkFVOB5E=
-Date: Fri, 26 Sep 2025 13:28:59 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,akpm@linux-foundation.org,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=Svye4GpqK37A4M6v0FQ/BIcwN4vdDwswIoWXCIC6flCfwZto1iAkZ3w2SiUbNFKhV
+	 lsong9s3G+sFXrV7ituBhAfewBLimp+M7X+AzaLOrUhQTeaxmHEsuq2Bq06VFBXoI4
+	 /Ld1rBZ8ud30ZHYNIaT/YR/NAg/YAiL1IU7ua8oc=
+Date: Fri, 26 Sep 2025 18:17:34 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,amir73il@gmail.com,phillip@squashfs.org.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlbfs-skip-vmas-without-shareable-locks-in-hugetlb_vmdelete_list.patch added to mm-unstable branch
-Message-Id: <20250926202900.62B24C4CEF4@smtp.kernel.org>
+Subject: + squashfs-reject-negative-file-sizes-in-squashfs_read_inode.patch added to mm-nonmm-unstable branch
+Message-Id: <20250927011735.18C16C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlbfs: skip VMAs without shareable locks in hugetlb_vmdelete_list
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlbfs-skip-vmas-without-shareable-locks-in-hugetlb_vmdelete_list.patch
+     Subject: Squashfs: reject negative file sizes in squashfs_read_inode()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-reject-negative-file-sizes-in-squashfs_read_inode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-skip-vmas-without-shareable-locks-in-hugetlb_vmdelete_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-reject-negative-file-sizes-in-squashfs_read_inode.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,77 +58,98 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: hugetlbfs: skip VMAs without shareable locks in hugetlb_vmdelete_list
-Date: Fri, 26 Sep 2025 09:02:54 +0530
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: Squashfs: reject negative file sizes in squashfs_read_inode()
+Date: Fri, 26 Sep 2025 22:59:35 +0100
 
-hugetlb_vmdelete_list() uses trylock to acquire VMA locks during truncate
-operations.  As per the original design in commit 40549ba8f8e0 ("hugetlb:
-use new vma_lock for pmd sharing synchronization"), if the trylock fails
-or the VMA has no lock, it should skip that VMA.  Any remaining mapped
-pages are handled by remove_inode_hugepages() which is called after
-hugetlb_vmdelete_list() and uses proper lock ordering to guarantee
-unmapping success.
+Syskaller reports a "WARNING in ovl_copy_up_file" in overlayfs.
 
-Currently, when hugetlb_vma_trylock_write() returns success (1) for VMAs
-without shareable locks, the code proceeds to call unmap_hugepage_range().
-This causes assertion failures in huge_pmd_unshare() →
-hugetlb_vma_assert_locked() because no lock is actually held:
+This warning is ultimately caused because the underlying Squashfs file
+system returns a file with a negative file size.
 
-  WARNING: CPU: 1 PID: 6594 Comm: syz.0.28 Not tainted
-  Call Trace:
-   hugetlb_vma_assert_locked+0x1dd/0x250
-   huge_pmd_unshare+0x2c8/0x540
-   __unmap_hugepage_range+0x6e3/0x1aa0
-   unmap_hugepage_range+0x32e/0x410
-   hugetlb_vmdelete_list+0x189/0x1f0
+This commit checks for a negative file size and returns EINVAL.
 
-Fix by using goto to ensure locks acquired by trylock are always released,
-even when skipping VMAs without shareable locks.
-
-Link: https://lkml.kernel.org/r/20250926033255.10930-1-kartikey406@gmail.com
-Fixes: 40549ba8f8e0 ("hugetlb: use new vma_lock for pmd sharing synchronization")
-Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
-Reported-by: syzbot+f26d7c75c26ec19790e7@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=f26d7c75c26ec19790e7
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20250926215935.107233-1-phillip@squashfs.org.uk
+Fixes: 6545b246a2c8 ("Squashfs: inode operations")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: syzbot+f754e01116421e9754b9@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/68d580e5.a00a0220.303701.0019.GAE@google.com/
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/squashfs/inode.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-skip-vmas-without-shareable-locks-in-hugetlb_vmdelete_list
-+++ a/fs/hugetlbfs/inode.c
-@@ -478,6 +478,14 @@ hugetlb_vmdelete_list(struct rb_root_cac
- 		if (!hugetlb_vma_trylock_write(vma))
- 			continue;
+--- a/fs/squashfs/inode.c~squashfs-reject-negative-file-sizes-in-squashfs_read_inode
++++ a/fs/squashfs/inode.c
+@@ -145,6 +145,10 @@ int squashfs_read_inode(struct inode *in
+ 			goto failed_read;
  
-+		/*
-+		 * Skip VMAs without shareable locks. Per the design in commit
-+		 * 40549ba8f8e0, these will be handled by remove_inode_hugepages()
-+		 * called after this function with proper locking.
-+		 */
-+		if (!__vma_shareable_lock(vma))
-+			goto skip;
-+
- 		v_start = vma_offset_start(vma, start);
- 		v_end = vma_offset_end(vma, end);
+ 		inode->i_size = le32_to_cpu(sqsh_ino->file_size);
++		if (inode->i_size < 0) {
++			err = -EINVAL;
++			goto failed_read;
++		}
+ 		frag = le32_to_cpu(sqsh_ino->fragment);
+ 		if (frag != SQUASHFS_INVALID_FRAG) {
+ 			/*
+@@ -197,6 +201,10 @@ int squashfs_read_inode(struct inode *in
+ 			goto failed_read;
  
-@@ -488,6 +496,7 @@ hugetlb_vmdelete_list(struct rb_root_cac
- 		 * vmas.  Therefore, lock is not held when calling
- 		 * unmap_hugepage_range for private vmas.
- 		 */
-+skip:
- 		hugetlb_vma_unlock_write(vma);
- 	}
- }
+ 		inode->i_size = le64_to_cpu(sqsh_ino->file_size);
++		if (inode->i_size < 0) {
++			err = -EINVAL;
++			goto failed_read;
++		}
+ 		frag = le32_to_cpu(sqsh_ino->fragment);
+ 		if (frag != SQUASHFS_INVALID_FRAG) {
+ 			/*
+@@ -249,8 +257,12 @@ int squashfs_read_inode(struct inode *in
+ 		if (err < 0)
+ 			goto failed_read;
+ 
+-		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
+ 		inode->i_size = le16_to_cpu(sqsh_ino->file_size);
++		if (inode->i_size < 0) {
++			err = -EINVAL;
++			goto failed_read;
++		}
++		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
+ 		inode->i_op = &squashfs_dir_inode_ops;
+ 		inode->i_fop = &squashfs_dir_ops;
+ 		inode->i_mode |= S_IFDIR;
+@@ -273,9 +285,13 @@ int squashfs_read_inode(struct inode *in
+ 		if (err < 0)
+ 			goto failed_read;
+ 
++		inode->i_size = le32_to_cpu(sqsh_ino->file_size);
++		if (inode->i_size < 0) {
++			err = -EINVAL;
++			goto failed_read;
++		}
+ 		xattr_id = le32_to_cpu(sqsh_ino->xattr);
+ 		set_nlink(inode, le32_to_cpu(sqsh_ino->nlink));
+-		inode->i_size = le32_to_cpu(sqsh_ino->file_size);
+ 		inode->i_op = &squashfs_dir_inode_ops;
+ 		inode->i_fop = &squashfs_dir_ops;
+ 		inode->i_mode |= S_IFDIR;
+@@ -302,7 +318,7 @@ int squashfs_read_inode(struct inode *in
+ 			goto failed_read;
+ 
+ 		inode->i_size = le32_to_cpu(sqsh_ino->symlink_size);
+-		if (inode->i_size > PAGE_SIZE) {
++		if (inode->i_size < 0 || inode->i_size > PAGE_SIZE) {
+ 			ERROR("Corrupted symlink\n");
+ 			return -EINVAL;
+ 		}
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-hugetlbfs-skip-vmas-without-shareable-locks-in-hugetlb_vmdelete_list.patch
+squashfs-fix-uninit-value-in-squashfs_get_parent.patch
+squashfs-add-additional-inode-sanity-checking.patch
+squashfs-add-seek_data-seek_hole-support.patch
+squashfs-reject-negative-file-sizes-in-squashfs_read_inode.patch
 
