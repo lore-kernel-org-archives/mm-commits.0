@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7980259C87
-	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B2D225A321
+	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759085546; cv=none; b=JEJi6pqUO6+NdqyB0CyLBXPxfPL298TopMwj4bvqHcUVL9xH2Fl92XHyEkwH/cYyzAGYCFoycwy50WIvGMfVwAA8cJDykycgTE/0l7vD8nqcqErhnzwaIMC+ZCwXplR6vo8ivCf2EcZKEa4/aof3NnPlSZjcsa5HRSuA98j09yA=
+	t=1759085549; cv=none; b=qcLAEhjrZLCrc8VmDoHwjSkg3p6zof1ooosFj+ZSqJdXExlW+KD1XUhulmvH5Y6MrvVwJFLGKp2jxtsbO5vm0KMck8pwo11Ju54Tvybb6TzKVXGwPSyPmykKTHu0ZBhlpJ8kYGpux2pNxoEmhcNlAt3L3SdjjJZtXwgvMzGJhn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759085546; c=relaxed/simple;
-	bh=f6orpeERc5IF1WbSZ1gGNyfi3vEZc/RL6sjxBL1MsGo=;
-	h=Date:To:From:Subject:Message-Id; b=ZY9Qn7AdLHGdROxo+vOs4z4jOkP7DJAUHny83LtFlxQHvSyLG4y0tUynUsqaS2UZnUc287xrAl9YVnDlcTZoAIcDu60mXyousuHCumxYRFbBHKZXGg4SyDNpLxi1e6KdJSOwK10BZFDXyMaVHBDDJo+iD1UgK9vyqXs8eug2gTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rzr7cjAh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759085549; c=relaxed/simple;
+	bh=2JvHQ4Bz6GtxAzLV2AD8wCcs9WwYz4rQBW1NlwybAxs=;
+	h=Date:To:From:Subject:Message-Id; b=fahcpPeMOy+YWi7zOp0/ctr/zprxnu7G9wUtsU+/rHq9VOWaqCY2nrSSGTzDIHS8wKgV6CBWqNIBfJTR7TmAOL95Y2CCQ8jQlxauWY+GvsJ0hUNDSA14iBlHfc+5xn4NEagL6Y29jJwRzaAOdoaLLsJCauWCmSGa7w1MrVvxUPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IQm+UUGg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rzr7cjAh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D44AC4CEF0;
-	Sun, 28 Sep 2025 18:52:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IQm+UUGg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17029C4CEF0;
+	Sun, 28 Sep 2025 18:52:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759085546;
-	bh=f6orpeERc5IF1WbSZ1gGNyfi3vEZc/RL6sjxBL1MsGo=;
+	s=korg; t=1759085549;
+	bh=2JvHQ4Bz6GtxAzLV2AD8wCcs9WwYz4rQBW1NlwybAxs=;
 	h=Date:To:From:Subject:From;
-	b=Rzr7cjAhn4LFF6MXvrDirlOvqkN0ncus/6XbNRLIMOSnX2vcLSlahj6azn/nSaUFG
-	 5GcHb2ne8ZINdghvao30rE3+ZJzW2Wd6kTWjYdrXwNmwuW1iEXiu76MG6HGgTc3m9w
-	 /rrIInjQ8d9ZHO9OVcBqOb7yay3VPGIX2YXOGczE=
-Date: Sun, 28 Sep 2025 11:52:25 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,lance.yang@linux.dev,kirill@shutemov.name,dev.jain@arm.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=IQm+UUGgiAj6826TandQ/AFoIKq1vxPEZToKAJryHuV+TzVwdC45jqmwhYKf9qGrJ
+	 1NleX+drJ17urGqzovXFdNxU7YWpUpEnvY2c/kHL5vW9/5zaKnfTNBXKQC5eMUMyRJ
+	 dFM3H5Lfbqf3f+jjGjvUMJMM06Qw0RZ1vXlFSwoo=
+Date: Sun, 28 Sep 2025 11:52:28 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,david@redhat.com,anshuman.khandual@arm.com,xieyuanbin1@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch removed from -mm tree
-Message-Id: <20250928185226.1D44AC4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-not-select-memory_isolation.patch removed from -mm tree
+Message-Id: <20250928185229.17029C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,230 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: remove definition of struct khugepaged_mm_slot
+     Subject: mm/memory-failure: don't select MEMORY_ISOLATION
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+     mm-memory-failure-not-select-memory_isolation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/khugepaged: remove definition of struct khugepaged_mm_slot
-Date: Fri, 19 Sep 2025 07:12:44 +0000
+From: Xie Yuanbin <xieyuanbin1@huawei.com>
+Subject: mm/memory-failure: don't select MEMORY_ISOLATION
+Date: Mon, 22 Sep 2025 22:36:18 +0800
 
-Current code is not correct to get struct khugepaged_mm_slot by
-mm_slot_entry() without checking mm_slot is !NULL.  There is no problem
-reported since slot is the first element of struct khugepaged_mm_slot.
+We added that "select MEMORY_ISOLATION" in commit ee6f509c3274 ("mm:
+factor out memory isolate functions").  However, in commit add05cecef80
+("mm: soft-offline: don't free target page in successful page migration")
+we remove the need for it, where we removed the calls to
+set_migratetype_isolate() etc.
 
-While struct khugepaged_mm_slot is just a wrapper of struct mm_slot, there
-is no need to define it.
+What CONFIG_MEMORY_FAILURE soft-offline support wants is migrate_pages()
+support.  But that comes with CONFIG_MIGRATION.  And
+isolate_folio_to_list() has nothing to do with CONFIG_MEMORY_ISOLATION.
 
-Remove the definition of struct khugepaged_mm_slot, so there is not chance
-to miss use mm_slot_entry().
+Therefore, we can remove "select MEMORY_ISOLATION" of MEMORY_FAILURE.
 
-[richard.weiyang@gmail.com: fix use-after-free crash]
-  Link: https://lkml.kernel.org/r/20250922002834.vz6ntj36e75ehkyp@master
-Link: https://lkml.kernel.org/r/20250919071244.17020-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Kiryl Shutsemau <kirill@shutemov.name>
-Cc: xu xin <xu.xin16@zte.com.cn>
+Link: https://lkml.kernel.org/r/20250922143618.48640-1-xieyuanbin1@huawei.com
+Signed-off-by: Xie Yuanbin <xieyuanbin1@huawei.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   58 ++++++++++++++++------------------------------
- 1 file changed, 21 insertions(+), 37 deletions(-)
+ mm/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot
-+++ a/mm/khugepaged.c
-@@ -104,14 +104,6 @@ struct collapse_control {
- };
- 
- /**
-- * struct khugepaged_mm_slot - khugepaged information per mm that is being scanned
-- * @slot: hash lookup from mm to mm_slot
-- */
--struct khugepaged_mm_slot {
--	struct mm_slot slot;
--};
--
--/**
-  * struct khugepaged_scan - cursor for scanning
-  * @mm_head: the head of the mm list to scan
-  * @mm_slot: the current mm_slot we are scanning
-@@ -121,7 +113,7 @@ struct khugepaged_mm_slot {
-  */
- struct khugepaged_scan {
- 	struct list_head mm_head;
--	struct khugepaged_mm_slot *mm_slot;
-+	struct mm_slot *mm_slot;
- 	unsigned long address;
- };
- 
-@@ -384,7 +376,10 @@ int hugepage_madvise(struct vm_area_stru
- 
- int __init khugepaged_init(void)
- {
--	mm_slot_cache = KMEM_CACHE(khugepaged_mm_slot, 0);
-+	mm_slot_cache = kmem_cache_create("khugepaged_mm_slot",
-+					  sizeof(struct mm_slot),
-+					  __alignof__(struct mm_slot),
-+					  0, NULL);
- 	if (!mm_slot_cache)
- 		return -ENOMEM;
- 
-@@ -438,7 +433,6 @@ static bool hugepage_pmd_enabled(void)
- 
- void __khugepaged_enter(struct mm_struct *mm)
- {
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	int wakeup;
- 
-@@ -447,12 +441,10 @@ void __khugepaged_enter(struct mm_struct
- 	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm)))
- 		return;
- 
--	mm_slot = mm_slot_alloc(mm_slot_cache);
--	if (!mm_slot)
-+	slot = mm_slot_alloc(mm_slot_cache);
-+	if (!slot)
- 		return;
- 
--	slot = &mm_slot->slot;
--
- 	spin_lock(&khugepaged_mm_lock);
- 	mm_slot_insert(mm_slots_hash, mm, slot);
- 	/*
-@@ -480,14 +472,12 @@ void khugepaged_enter_vma(struct vm_area
- 
- void __khugepaged_exit(struct mm_struct *mm)
- {
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	int free = 0;
- 
- 	spin_lock(&khugepaged_mm_lock);
- 	slot = mm_slot_lookup(mm_slots_hash, mm);
--	mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
--	if (mm_slot && khugepaged_scan.mm_slot != mm_slot) {
-+	if (slot && khugepaged_scan.mm_slot != slot) {
- 		hash_del(&slot->hash);
- 		list_del(&slot->mm_node);
- 		free = 1;
-@@ -496,9 +486,9 @@ void __khugepaged_exit(struct mm_struct
- 
- 	if (free) {
- 		mm_flags_clear(MMF_VM_HUGEPAGE, mm);
--		mm_slot_free(mm_slot_cache, mm_slot);
-+		mm_slot_free(mm_slot_cache, slot);
- 		mmdrop(mm);
--	} else if (mm_slot) {
-+	} else if (slot) {
- 		/*
- 		 * This is required to serialize against
- 		 * hpage_collapse_test_exit() (which is guaranteed to run
-@@ -1432,9 +1422,8 @@ out:
- 	return result;
- }
- 
--static void collect_mm_slot(struct khugepaged_mm_slot *mm_slot)
-+static void collect_mm_slot(struct mm_slot *slot)
- {
--	struct mm_slot *slot = &mm_slot->slot;
- 	struct mm_struct *mm = slot->mm;
- 
- 	lockdep_assert_held(&khugepaged_mm_lock);
-@@ -1451,7 +1440,7 @@ static void collect_mm_slot(struct khuge
- 		 */
- 
- 		/* khugepaged_mm_lock actually not necessary for the below */
--		mm_slot_free(mm_slot_cache, mm_slot);
-+		mm_slot_free(mm_slot_cache, slot);
- 		mmdrop(mm);
- 	}
- }
-@@ -2394,7 +2383,6 @@ static unsigned int khugepaged_scan_mm_s
- 	__acquires(&khugepaged_mm_lock)
- {
- 	struct vma_iterator vmi;
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
-@@ -2405,14 +2393,12 @@ static unsigned int khugepaged_scan_mm_s
- 	*result = SCAN_FAIL;
- 
- 	if (khugepaged_scan.mm_slot) {
--		mm_slot = khugepaged_scan.mm_slot;
--		slot = &mm_slot->slot;
-+		slot = khugepaged_scan.mm_slot;
- 	} else {
- 		slot = list_first_entry(&khugepaged_scan.mm_head,
- 				     struct mm_slot, mm_node);
--		mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
- 		khugepaged_scan.address = 0;
--		khugepaged_scan.mm_slot = mm_slot;
-+		khugepaged_scan.mm_slot = slot;
- 	}
- 	spin_unlock(&khugepaged_mm_lock);
- 
-@@ -2510,7 +2496,7 @@ breakouterloop:
- breakouterloop_mmap_lock:
- 
- 	spin_lock(&khugepaged_mm_lock);
--	VM_BUG_ON(khugepaged_scan.mm_slot != mm_slot);
-+	VM_BUG_ON(khugepaged_scan.mm_slot != slot);
- 	/*
- 	 * Release the current mm_slot if this mm is about to die, or
- 	 * if we scanned all vmas of this mm.
-@@ -2522,16 +2508,14 @@ breakouterloop_mmap_lock:
- 		 * mm_slot not pointing to the exiting mm.
- 		 */
- 		if (!list_is_last(&slot->mm_node, &khugepaged_scan.mm_head)) {
--			slot = list_next_entry(slot, mm_node);
--			khugepaged_scan.mm_slot =
--				mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
-+			khugepaged_scan.mm_slot = list_next_entry(slot, mm_node);
- 			khugepaged_scan.address = 0;
- 		} else {
- 			khugepaged_scan.mm_slot = NULL;
- 			khugepaged_full_scans++;
- 		}
- 
--		collect_mm_slot(mm_slot);
-+		collect_mm_slot(slot);
- 	}
- 
- 	return progress;
-@@ -2618,7 +2602,7 @@ static void khugepaged_wait_work(void)
- 
- static int khugepaged(void *none)
- {
--	struct khugepaged_mm_slot *mm_slot;
-+	struct mm_slot *slot;
- 
- 	set_freezable();
- 	set_user_nice(current, MAX_NICE);
-@@ -2629,10 +2613,10 @@ static int khugepaged(void *none)
- 	}
- 
- 	spin_lock(&khugepaged_mm_lock);
--	mm_slot = khugepaged_scan.mm_slot;
-+	slot = khugepaged_scan.mm_slot;
- 	khugepaged_scan.mm_slot = NULL;
--	if (mm_slot)
--		collect_mm_slot(mm_slot);
-+	if (slot)
-+		collect_mm_slot(slot);
- 	spin_unlock(&khugepaged_mm_lock);
- 	return 0;
- }
+--- a/mm/Kconfig~mm-memory-failure-not-select-memory_isolation
++++ a/mm/Kconfig
+@@ -748,7 +748,6 @@ config MEMORY_FAILURE
+ 	depends on MMU
+ 	depends on ARCH_SUPPORTS_MEMORY_FAILURE
+ 	bool "Enable recovery from hardware memory errors"
+-	select MEMORY_ISOLATION
+ 	select RAS
+ 	help
+ 	  Enables code to recover from some memory failures on systems
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from xieyuanbin1@huawei.com are
 
 
