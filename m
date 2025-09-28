@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D24AA25A350
-	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A32D25A2C7
+	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759085550; cv=none; b=DKXKdT/EHyu8sUrmX46ZVuNw2kDEIQnkrdUVjTZntf/ApsIYN0D06kQ5GwdYlStLjBWZE3bhBlxe27kuzbekzmLilyfxmsGdOEGfhQvHNC13ly1A5L0pZx+c1JLnRKm4x24KsBDaLecjO51RFBv0VZrx6LkemkC1jPdKg3wDHVY=
+	t=1759085552; cv=none; b=lVV62FxIEZnDD3cY93Wbhp6Kc7ahc7auJ2VuZBIuXx8nvlgSwgMUdxtmFOhMlBVms2rr0O4d9WDDozy6n0NDsU8zNoVrIhjI4o6djdrZdJ6Z51sXx+VqG2V4h10JHrxvAdL8k24ZsCDriKsRupku3Uu6rgYW6BVkgJIumoO2I2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759085550; c=relaxed/simple;
-	bh=Zv2JraAwPoi7gxyIKnIOL2kuYgkSzvYOwmGjKuDGV1E=;
-	h=Date:To:From:Subject:Message-Id; b=evVrVP2g2GGGysMhB4wf2fguocHATJGOme1JbXn4rUNPYYtWsOEIBuGApGvwQA06f1fjI7lBuXV7oY3b1gWXzkBlrwcykT7Ok0L8ElBLY2x4ExV7i49Hg29syvfQUoMPstPnovr14BRLECr2bkoU2UpkQk87v7Q0vQjWSyL7XnE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MU5SMhNR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759085552; c=relaxed/simple;
+	bh=a1w8unI2eYXRS2CU0J9I2t80uGp0L67VLfSVSTdo8Eg=;
+	h=Date:To:From:Subject:Message-Id; b=SgekyzVWno/4be2lujVcuxSY+LZ+rocjfoY8qsubbt0kK//kyZJGVOCvYNqdev4S2jcgK4LMUoLd0/0TrWTtOQMLb4gv8pL2b8DEHEj5scA0082wVYuNbjjAWLED+G6SvVcioxH9RbdVn61lthj56+Qi5oH3kAu7FPt9iniKZzE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gmnNIGBO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MU5SMhNR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46195C4CEF0;
-	Sun, 28 Sep 2025 18:52:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gmnNIGBO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A858C4CEF0;
+	Sun, 28 Sep 2025 18:52:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759085550;
-	bh=Zv2JraAwPoi7gxyIKnIOL2kuYgkSzvYOwmGjKuDGV1E=;
+	s=korg; t=1759085551;
+	bh=a1w8unI2eYXRS2CU0J9I2t80uGp0L67VLfSVSTdo8Eg=;
 	h=Date:To:From:Subject:From;
-	b=MU5SMhNR2E9POCjway5qpBqGVM9x9iAqEoh5DqlQSVAmOwvAEXyqnU/ouuM7/szlL
-	 x7y2Pt5jrKeDa/x7sTI5FRY65oXUAgxSIQqgc6xSEeeZxXINoquyYATMp9fQkPzlJl
-	 c/p2vwfnoJOhOj8CiG26Cj0paESl8eqqIng/AFC0=
-Date: Sun, 28 Sep 2025 11:52:29 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,elver@google.com,david@redhat.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=gmnNIGBOVHoeFKdWWfYV7Um6ETfAfcUIw4Ug861Ub9Kg0Jyk7vGTMdCiGImGmRMMV
+	 A+lxnCQeVsHoL+dhDvZqp9LQbjJVmSKKy0N8VIPA0xJ7/OP3YHMUsOtpeMvlECACl5
+	 HRPYeUUnK4CmpVAZ9odJDfxx3OfK7CvcTpdWN5iY=
+Date: Sun, 28 Sep 2025 11:52:31 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usamaarif642@gmail.com,surenb@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,cl@gentwo.org,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-silence-data-race-in-update_hiwater_rss.patch removed from -mm tree
-Message-Id: <20250928185230.46195C4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] alloc_tag-fix-boot-failure-due-to-null-pointer-dereference.patch removed from -mm tree
+Message-Id: <20250928185231.8A858C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: silence data-race in update_hiwater_rss
+     Subject: alloc_tag: fix boot failure due to NULL pointer dereference
 has been removed from the -mm tree.  Its filename was
-     mm-silence-data-race-in-update_hiwater_rss.patch
+     alloc_tag-fix-boot-failure-due-to-null-pointer-dereference.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm: silence data-race in update_hiwater_rss
-Date: Fri, 26 Sep 2025 17:24:26 +0800
+From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Subject: alloc_tag: fix boot failure due to NULL pointer dereference
+Date: Fri, 26 Sep 2025 08:06:59 +0000
 
-KCSAN reports a data race on mm_cluster.hiwater_rss, which can be accessed
-concurrently from various paths like page migration and memory unmapping
-without synchronization.
+There is a boot failure when both CONFIG_DEBUG_KMEMLEAK and
+CONFIG_MEM_ALLOC_PROFILING are enabled.
 
-Since hiwater_rss is a statistical field for accounting purposes, this
-data race is benign.  Annotate both the read and write accesses with
-data_race() to make KCSAN happy.
+BUG: kernel NULL pointer dereference, address: 0000000000000000
+RIP: 0010:__alloc_tagging_slab_alloc_hook+0x181/0x2f0
+Call Trace:
+ kmem_cache_alloc_noprof+0x1c8/0x5c0
+ __alloc_object+0x2f/0x290
+ __create_object+0x22/0x80
+ kmemleak_init+0x122/0x190
+ mm_core_init+0xb6/0x160
+ start_kernel+0x39f/0x920
+ x86_64_start_reservations+0x18/0x30
+ x86_64_start_kernel+0x104/0x120
+ common_startup_64+0x12c/0x138
 
-Link: https://lkml.kernel.org/r/20250926092426.43312-1-lance.yang@linux.dev
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Reported-by: syzbot+60192c8877d0bc92a92b@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/68d6364e.050a0220.3390a8.000d.GAE@google.com
+In kmemleak, mem_pool_alloc() directly calls kmem_cache_alloc_noprof(), as
+a result, current->alloc_tag is NULL, leading to a null pointer
+dereference.
+
+Move the checks for SLAB_NO_OBJ_EXT, SLAB_NOLEAKTRACE, and
+__GFP_NO_OBJ_EXT to the parent function __alloc_tagging_slab_alloc_hook()
+to fix this.
+
+Also this distinguishes the SLAB_NOLEAKTRACE case between the actual
+memory allocation failures case, make CODETAG_FLAG_INACCURATE more
+accurate.
+
+Link: https://lkml.kernel.org/r/20250926080659.741991-1-ranxiaokai627@163.com
+Fixes: b9e2f58ffb84 ("alloc_tag: mark inaccurate allocation counters in /proc/allocinfo output")
+Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Rik van Riel <riel@surriel.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~mm-silence-data-race-in-update_hiwater_rss
-+++ a/include/linux/mm.h
-@@ -2742,7 +2742,7 @@ static inline void update_hiwater_rss(st
- 	unsigned long _rss = get_mm_rss(mm);
+--- a/mm/slub.c~alloc_tag-fix-boot-failure-due-to-null-pointer-dereference
++++ a/mm/slub.c
+@@ -2109,15 +2109,6 @@ prepare_slab_obj_exts_hook(struct kmem_c
+ {
+ 	struct slab *slab;
  
- 	if (data_race(mm->hiwater_rss) < _rss)
--		(mm)->hiwater_rss = _rss;
-+		data_race(mm->hiwater_rss = _rss);
- }
+-	if (!p)
+-		return NULL;
+-
+-	if (s->flags & (SLAB_NO_OBJ_EXT | SLAB_NOLEAKTRACE))
+-		return NULL;
+-
+-	if (flags & __GFP_NO_OBJ_EXT)
+-		return NULL;
+-
+ 	slab = virt_to_slab(p);
+ 	if (!slab_obj_exts(slab) &&
+ 	    alloc_slab_obj_exts(slab, s, flags, false)) {
+@@ -2135,6 +2126,15 @@ __alloc_tagging_slab_alloc_hook(struct k
+ {
+ 	struct slabobj_ext *obj_exts;
  
- static inline void update_hiwater_vm(struct mm_struct *mm)
++	if (!object)
++		return;
++
++	if (s->flags & (SLAB_NO_OBJ_EXT | SLAB_NOLEAKTRACE))
++		return;
++
++	if (flags & __GFP_NO_OBJ_EXT)
++		return;
++
+ 	obj_exts = prepare_slab_obj_exts_hook(s, flags, object);
+ 	/*
+ 	 * Currently obj_exts is used only for allocation profiling.
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
 
-hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
-mm-thp-fix-mte-tag-mismatch-when-replacing-zero-filled-subpages.patch
-mm-clean-up-is_guard_pte_marker.patch
 
