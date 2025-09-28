@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B2D225A321
-	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D24AA25A350
+	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759085549; cv=none; b=qcLAEhjrZLCrc8VmDoHwjSkg3p6zof1ooosFj+ZSqJdXExlW+KD1XUhulmvH5Y6MrvVwJFLGKp2jxtsbO5vm0KMck8pwo11Ju54Tvybb6TzKVXGwPSyPmykKTHu0ZBhlpJ8kYGpux2pNxoEmhcNlAt3L3SdjjJZtXwgvMzGJhn0=
+	t=1759085550; cv=none; b=DKXKdT/EHyu8sUrmX46ZVuNw2kDEIQnkrdUVjTZntf/ApsIYN0D06kQ5GwdYlStLjBWZE3bhBlxe27kuzbekzmLilyfxmsGdOEGfhQvHNC13ly1A5L0pZx+c1JLnRKm4x24KsBDaLecjO51RFBv0VZrx6LkemkC1jPdKg3wDHVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759085549; c=relaxed/simple;
-	bh=2JvHQ4Bz6GtxAzLV2AD8wCcs9WwYz4rQBW1NlwybAxs=;
-	h=Date:To:From:Subject:Message-Id; b=fahcpPeMOy+YWi7zOp0/ctr/zprxnu7G9wUtsU+/rHq9VOWaqCY2nrSSGTzDIHS8wKgV6CBWqNIBfJTR7TmAOL95Y2CCQ8jQlxauWY+GvsJ0hUNDSA14iBlHfc+5xn4NEagL6Y29jJwRzaAOdoaLLsJCauWCmSGa7w1MrVvxUPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IQm+UUGg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759085550; c=relaxed/simple;
+	bh=Zv2JraAwPoi7gxyIKnIOL2kuYgkSzvYOwmGjKuDGV1E=;
+	h=Date:To:From:Subject:Message-Id; b=evVrVP2g2GGGysMhB4wf2fguocHATJGOme1JbXn4rUNPYYtWsOEIBuGApGvwQA06f1fjI7lBuXV7oY3b1gWXzkBlrwcykT7Ok0L8ElBLY2x4ExV7i49Hg29syvfQUoMPstPnovr14BRLECr2bkoU2UpkQk87v7Q0vQjWSyL7XnE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MU5SMhNR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IQm+UUGg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17029C4CEF0;
-	Sun, 28 Sep 2025 18:52:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MU5SMhNR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46195C4CEF0;
+	Sun, 28 Sep 2025 18:52:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759085549;
-	bh=2JvHQ4Bz6GtxAzLV2AD8wCcs9WwYz4rQBW1NlwybAxs=;
+	s=korg; t=1759085550;
+	bh=Zv2JraAwPoi7gxyIKnIOL2kuYgkSzvYOwmGjKuDGV1E=;
 	h=Date:To:From:Subject:From;
-	b=IQm+UUGgiAj6826TandQ/AFoIKq1vxPEZToKAJryHuV+TzVwdC45jqmwhYKf9qGrJ
-	 1NleX+drJ17urGqzovXFdNxU7YWpUpEnvY2c/kHL5vW9/5zaKnfTNBXKQC5eMUMyRJ
-	 dFM3H5Lfbqf3f+jjGjvUMJMM06Qw0RZ1vXlFSwoo=
-Date: Sun, 28 Sep 2025 11:52:28 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,david@redhat.com,anshuman.khandual@arm.com,xieyuanbin1@huawei.com,akpm@linux-foundation.org
+	b=MU5SMhNR2E9POCjway5qpBqGVM9x9iAqEoh5DqlQSVAmOwvAEXyqnU/ouuM7/szlL
+	 x7y2Pt5jrKeDa/x7sTI5FRY65oXUAgxSIQqgc6xSEeeZxXINoquyYATMp9fQkPzlJl
+	 c/p2vwfnoJOhOj8CiG26Cj0paESl8eqqIng/AFC0=
+Date: Sun, 28 Sep 2025 11:52:29 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,elver@google.com,david@redhat.com,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-not-select-memory_isolation.patch removed from -mm tree
-Message-Id: <20250928185229.17029C4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-silence-data-race-in-update_hiwater_rss.patch removed from -mm tree
+Message-Id: <20250928185230.46195C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: don't select MEMORY_ISOLATION
+     Subject: mm: silence data-race in update_hiwater_rss
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-not-select-memory_isolation.patch
+     mm-silence-data-race-in-update_hiwater_rss.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xie Yuanbin <xieyuanbin1@huawei.com>
-Subject: mm/memory-failure: don't select MEMORY_ISOLATION
-Date: Mon, 22 Sep 2025 22:36:18 +0800
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm: silence data-race in update_hiwater_rss
+Date: Fri, 26 Sep 2025 17:24:26 +0800
 
-We added that "select MEMORY_ISOLATION" in commit ee6f509c3274 ("mm:
-factor out memory isolate functions").  However, in commit add05cecef80
-("mm: soft-offline: don't free target page in successful page migration")
-we remove the need for it, where we removed the calls to
-set_migratetype_isolate() etc.
+KCSAN reports a data race on mm_cluster.hiwater_rss, which can be accessed
+concurrently from various paths like page migration and memory unmapping
+without synchronization.
 
-What CONFIG_MEMORY_FAILURE soft-offline support wants is migrate_pages()
-support.  But that comes with CONFIG_MIGRATION.  And
-isolate_folio_to_list() has nothing to do with CONFIG_MEMORY_ISOLATION.
+Since hiwater_rss is a statistical field for accounting purposes, this
+data race is benign.  Annotate both the read and write accesses with
+data_race() to make KCSAN happy.
 
-Therefore, we can remove "select MEMORY_ISOLATION" of MEMORY_FAILURE.
-
-Link: https://lkml.kernel.org/r/20250922143618.48640-1-xieyuanbin1@huawei.com
-Signed-off-by: Xie Yuanbin <xieyuanbin1@huawei.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20250926092426.43312-1-lance.yang@linux.dev
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Reported-by: syzbot+60192c8877d0bc92a92b@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-mm/68d6364e.050a0220.3390a8.000d.GAE@google.com
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/Kconfig~mm-memory-failure-not-select-memory_isolation
-+++ a/mm/Kconfig
-@@ -748,7 +748,6 @@ config MEMORY_FAILURE
- 	depends on MMU
- 	depends on ARCH_SUPPORTS_MEMORY_FAILURE
- 	bool "Enable recovery from hardware memory errors"
--	select MEMORY_ISOLATION
- 	select RAS
- 	help
- 	  Enables code to recover from some memory failures on systems
+--- a/include/linux/mm.h~mm-silence-data-race-in-update_hiwater_rss
++++ a/include/linux/mm.h
+@@ -2742,7 +2742,7 @@ static inline void update_hiwater_rss(st
+ 	unsigned long _rss = get_mm_rss(mm);
+ 
+ 	if (data_race(mm->hiwater_rss) < _rss)
+-		(mm)->hiwater_rss = _rss;
++		data_race(mm->hiwater_rss = _rss);
+ }
+ 
+ static inline void update_hiwater_vm(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from xieyuanbin1@huawei.com are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
+hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
+mm-thp-fix-mte-tag-mismatch-when-replacing-zero-filled-subpages.patch
+mm-clean-up-is_guard_pte_marker.patch
 
