@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD92F244698
-	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:37:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25DBA216E1B
+	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:37:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759084635; cv=none; b=Y8852FwU8FUEoq+SVCAc7cf1pHMF8v4V66H5SvPO4+KVDZ89dT+jTuWpqb0us9orKDzM/fu456tBHQONQl+KedbLIP97tUY/5ESQUk+Cjh4WOh16pda5jSSxn1UnPMRDQJgKtYQwLdnYpM23BUsop3WZVSEQDnlEfN+21Lxg7DQ=
+	t=1759084638; cv=none; b=stRMKhPGBfTvsl3GKPsT/TQ0iC8XOlUbb32rLzWDHkNDVD0L8v2TUcdLtnVSs6TNghA0jSZsJFePXjRpNR68rZFs7GOXTK1solDGc2tt+BNKl9Vl7sgy1btERgyS791jZYcv2Im/sl92tgHC6g947z2fCUSy0NU4nLZUqvZiiXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759084635; c=relaxed/simple;
-	bh=jKfFXtFLU0n6miP5EGK6za4kMIyT13kiW58YagN4GGo=;
-	h=Date:To:From:Subject:Message-Id; b=qe8GiuTRGLfJVNl5CYQ3PBPd8D3kNkLgh5yfWofmZZsXN8VFcMpTpT8Huom50Y7jTfKW+pFig/lnYIR0c5lhsPVgaETFXWnUdsg3b1pYHSnnbRKUv29/vQsPZ4gOj4eJV9hnB1yUsen0OoToMIGIc5qE5AxGjnUGakWxDldtS3g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yh4uEwlA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759084638; c=relaxed/simple;
+	bh=iElNLh2P5JvondGMk5GL6EPSu/ECWLu2NQWDXLAfj08=;
+	h=Date:To:From:Subject:Message-Id; b=UYz+p85bUvtbkKNYfoZQ0yjBrV7MSBcxHHVLA0mFPUtDrpXLDwy8GXYEL28tLLyn6Q8tcgDpwDYcp0uR0qveyqG1owk97qQPilfBzU/GTX8fyi24jtJAOZtk/KPzNZ/ZyTCmUO1/fejAWAzDCIJUp+3In+sOKFu9td7fxdr3nck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Ig2RUmW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yh4uEwlA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DBC7C4CEF7;
-	Sun, 28 Sep 2025 18:37:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Ig2RUmW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D28DC4CEF0;
+	Sun, 28 Sep 2025 18:37:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759084634;
-	bh=jKfFXtFLU0n6miP5EGK6za4kMIyT13kiW58YagN4GGo=;
+	s=korg; t=1759084636;
+	bh=iElNLh2P5JvondGMk5GL6EPSu/ECWLu2NQWDXLAfj08=;
 	h=Date:To:From:Subject:From;
-	b=Yh4uEwlArv7baGDvqGs9BYkfrfSox2Vkoi0vxkaRH8Ct9BA1LiNMBzhWq8loEUDuP
-	 PPGJrVyRu0wHamIoVxpHv9SEPct0CrWeX0VaY/ROvxiEyYI5cDJQSdy3725jVnmeqY
-	 +vcS9TtrPn9kh51lbMyi2XPgJsh5Nd5s8zmnRN7U=
-Date: Sun, 28 Sep 2025 11:37:13 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,suchitkarunakaran@gmail.com,akpm@linux-foundation.org
+	b=2Ig2RUmWvCbiI7zWF1i6gsEGQ1D39q/S+/zM5NVHgzi1+JYYKJs8DrHcLio8xOYha
+	 BPaxuXnabA82nXWfFPFqvy/FcNDk9Y7mMRi85XYIEMCoaWZFLCzuYFKT5f+Ijz0++q
+	 DwzMF/40nux5My7xa3e68AML4ywjTB3ZghbIom7s=
+Date: Sun, 28 Sep 2025 11:37:16 -0700
+To: mm-commits@vger.kernel.org,johannes.berg@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-suppress-strscpy-warnings-for-userspace-tools.patch removed from -mm tree
-Message-Id: <20250928183714.5DBC7C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] panic-remove-config_panic_on_oops_value.patch removed from -mm tree
+Message-Id: <20250928183716.9D28DC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkpatch: suppress strscpy warnings for userspace tools
+     Subject: panic: remove CONFIG_PANIC_ON_OOPS_VALUE
 has been removed from the -mm tree.  Its filename was
-     checkpatch-suppress-strscpy-warnings-for-userspace-tools.patch
+     panic-remove-config_panic_on_oops_value.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suchit Karunakaran <suchitkarunakaran@gmail.com>
-Subject: checkpatch: suppress strscpy warnings for userspace tools
-Date: Tue, 23 Sep 2025 22:47:21 +0530
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: panic: remove CONFIG_PANIC_ON_OOPS_VALUE
+Date: Wed, 24 Sep 2025 11:43:04 +0200
 
-The checkpatch.pl script currently warns against the use of strcpy,
-strlcpy, and strncpy, recommending strscpy as a safer alternative. 
-However, these warnings are also triggered for code under tools/ and
-scripts/, which are userspace utilities where strscpy is not available. 
-This patch suppresses these warnings for files in tools/ and scripts/.
+There's really no need for this since it's 0 or 1 when
+CONFIG_PANIC_ON_OOPS is disabled/enabled, so just use IS_ENABLED()
+instead.  The extra symbol goes back to the original code adding it in
+commit 2a01bb3885c9 ("panic: Make panic_on_oops configurable").
 
-Link: https://lkml.kernel.org/r/20250923171722.7798-1-suchitkarunakaran@gmail.com
-Signed-off-by: Suchit Karunakaran <suchitkarunakaran@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20250924094303.18521-2-johannes@sipsolutions.net
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ kernel/panic.c    |    2 +-
+ lib/Kconfig.debug |    6 ------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-suppress-strscpy-warnings-for-userspace-tools
-+++ a/scripts/checkpatch.pl
-@@ -2636,6 +2636,11 @@ sub exclude_global_initialisers {
- 		$realfile =~ m@/bpf/.*\.bpf\.c$@;
- }
+--- a/kernel/panic.c~panic-remove-config_panic_on_oops_value
++++ a/kernel/panic.c
+@@ -53,7 +53,7 @@ static unsigned int __read_mostly sysctl
+ #define sysctl_oops_all_cpu_backtrace 0
+ #endif /* CONFIG_SMP */
  
-+sub is_userspace {
-+    my ($realfile) = @_;
-+    return ($realfile =~ m@^tools/@ || $realfile =~ m@^scripts/@);
-+}
-+
- sub process {
- 	my $filename = shift;
+-int panic_on_oops = CONFIG_PANIC_ON_OOPS_VALUE;
++int panic_on_oops = IS_ENABLED(CONFIG_PANIC_ON_OOPS);
+ static unsigned long tainted_mask =
+ 	IS_ENABLED(CONFIG_RANDSTRUCT) ? (1 << TAINT_RANDSTRUCT) : 0;
+ static int pause_on_oops;
+--- a/lib/Kconfig.debug~panic-remove-config_panic_on_oops_value
++++ a/lib/Kconfig.debug
+@@ -1067,12 +1067,6 @@ config PANIC_ON_OOPS
  
-@@ -7018,21 +7023,20 @@ sub process {
- #				}
- #			}
- #		}
+ 	  Say N if unsure.
+ 
+-config PANIC_ON_OOPS_VALUE
+-	int
+-	range 0 1
+-	default 0 if !PANIC_ON_OOPS
+-	default 1 if PANIC_ON_OOPS
 -
- # strcpy uses that should likely be strscpy
--		if ($line =~ /\bstrcpy\s*\(/) {
-+		if ($line =~ /\bstrcpy\s*\(/ && !is_userspace($realfile)) {
- 			WARN("STRCPY",
- 			     "Prefer strscpy over strcpy - see: https://github.com/KSPP/linux/issues/88\n" . $herecurr);
- 		}
- 
- # strlcpy uses that should likely be strscpy
--		if ($line =~ /\bstrlcpy\s*\(/) {
-+		if ($line =~ /\bstrlcpy\s*\(/ && !is_userspace($realfile)) {
- 			WARN("STRLCPY",
- 			     "Prefer strscpy over strlcpy - see: https://github.com/KSPP/linux/issues/89\n" . $herecurr);
- 		}
- 
- # strncpy uses that should likely be strscpy or strscpy_pad
--		if ($line =~ /\bstrncpy\s*\(/) {
-+		if ($line =~ /\bstrncpy\s*\(/ && !is_userspace($realfile)) {
- 			WARN("STRNCPY",
- 			     "Prefer strscpy, strscpy_pad, or __nonstring over strncpy - see: https://github.com/KSPP/linux/issues/90\n" . $herecurr);
- 		}
+ config PANIC_TIMEOUT
+ 	int "panic timeout"
+ 	default 0
 _
 
-Patches currently in -mm which might be from suchitkarunakaran@gmail.com are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
 
