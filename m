@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC33120101D
-	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:37:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0CD0216E1B
+	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:37:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759084635; cv=none; b=QBw0Py5lWJQJmhMscPOmXj6muk0XBCKAP35RSpu7z5FbBlH/+HoFx5bNm5mDx+ItaXpOCU0D8dRbKZH7pdKOoF4Cz7RlRGBzxsLnQSeA9KVpaNI7tjmC0U1BRPm2YE2YbrOtR5XMCaCHk/kH2a/mqaVFgSkZUxT1s1+hGpN1IB8=
+	t=1759084635; cv=none; b=ZBiO7btaULsM8gYsuLS+9OS4hmbMYITt6/nKRdget/W+g2/8udj93TAlHrkeDoEWGU+/hvEa3UvoTgZJR1h4ePsTItwCpaWoYZavQGXgm+pZRC6FsZw0QNkFacV8CecL4aHDHv4NQNPRshwU/w6jKI3XFYg7WROQJKNcU7kjbyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1759084635; c=relaxed/simple;
-	bh=eA58ErCjaGqJcCPiesp2uztTpwXA4qC3Ot0j+Qpp2cg=;
-	h=Date:To:From:Subject:Message-Id; b=f14EJjxz21ERU7tcrdQT86TGwT6N9GIiu0/Irv3Jw25qfoY1YsdTXneSvebBCUC7uh1AacC8gR3Mc0eqE9OvyqEqGSVLkAeIWvjxyK9rlZxVpyAKZ++qV+PBHThPMfODfNHTN4YnEwQtxtQPY1Uvz0uv+oZyWum0wIvCCyQYCmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J38XwY0V; arc=none smtp.client-ip=10.30.226.201
+	bh=qDcdF9iqLV33fYRK49CUmMXnJ3DF7EoFXrK0F5OV86o=;
+	h=Date:To:From:Subject:Message-Id; b=Qyi0Rdzj5G4Fa3AEMSeihUg1w03jHGruiIh5d6JrcxQCakS9/ifOn+iA3TnMUMdlOIaaeAQpKfvk6T7Q/hnGPU5qOyiwg8TuP6g8Z25/6dhR3RlMzZx2x9S1hvtjV9JzBT76U7JL3cAXnyAZjmm8mkJS60iarW8N81ndSZXPDsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jyTZhTU8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J38XwY0V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22524C4CEF0;
-	Sun, 28 Sep 2025 18:37:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jyTZhTU8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 851C1C116B1;
+	Sun, 28 Sep 2025 18:37:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759084633;
-	bh=eA58ErCjaGqJcCPiesp2uztTpwXA4qC3Ot0j+Qpp2cg=;
+	s=korg; t=1759084635;
+	bh=qDcdF9iqLV33fYRK49CUmMXnJ3DF7EoFXrK0F5OV86o=;
 	h=Date:To:From:Subject:From;
-	b=J38XwY0VZTEIliSSAAHn1aXPTscmvaXEbHteQlfKeJDH3vLoI1MFyr9z1XFFaYuSq
-	 n+5b+TPxcIfSK6AJeAr9FN9aXkS0bm8F5XMdcCLOyQQAXEdvUqYhPlfRU+nVdrhILM
-	 EgvQe9wb7PcBvL+6r3Jb1vP462OguFezEijhPy2k=
-Date: Sun, 28 Sep 2025 11:37:12 -0700
-To: mm-commits@vger.kernel.org,nico@fluxnic.net,haiyuewa@163.com,dev.jain@arm.com,david@redhat.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=jyTZhTU8qaJRmbQgNuruPTL5Ke5prUDhiGiQV7t0HXUNZuDuX5wan6lexuiN87mmY
+	 Rx4snhpaM/POK1V+O85UopEVimKOpr0pfvHWmd+nDcis/QD5w3XCff2v5vRmBW27Vo
+	 73A6SPPfIS32WUt0iEx+Dkl3mny9hdUYIqrngkYU=
+Date: Sun, 28 Sep 2025 11:37:15 -0700
+To: mm-commits@vger.kernel.org,rgoldwyn@suse.de,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] cramfs-fix-incorrect-physical-page-address-calculation.patch removed from -mm tree
-Message-Id: <20250928183713.22524C4CEF0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-fix-double-free-in-user_cluster_connect.patch removed from -mm tree
+Message-Id: <20250928183715.851C1C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: cramfs: fix incorrect physical page address calculation
+     Subject: ocfs2: fix double free in user_cluster_connect()
 has been removed from the -mm tree.  Its filename was
-     cramfs-fix-incorrect-physical-page-address-calculation.patch
+     ocfs2-fix-double-free-in-user_cluster_connect.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: cramfs: fix incorrect physical page address calculation
-Date: Tue, 23 Sep 2025 10:53:33 +1000
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: ocfs2: fix double free in user_cluster_connect()
+Date: Tue, 23 Sep 2025 14:26:07 +0300
 
-Commit 21aa65bf82a7 ("mm: remove callers of pfn_t functionality")
-incorrectly replaced the pfn with the physical address when calling
-vmf_insert_mixed().  Instead the phys_to_pfn_t() call should have been
-replaced with PHYS_PFN().
+user_cluster_disconnect() frees "conn->cc_private" which is "lc" but then
+the error handling frees "lc" a second time.  Set "lc" to NULL on this
+path to avoid a double free.
 
-Found by inspection after a similar issue was noted in fuse virtio_fs.
-
-Link: https://lkml.kernel.org/r/20250923005333.3165032-1-apopple@nvidia.com
-Fixes: 21aa65bf82a7 ("mm: remove callers of pfn_t functionality")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Haiyue Wang <haiyuewa@163.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>
+Link: https://lkml.kernel.org/r/aNKDz_7JF7aycZ0k@stanley.mountain
+Fixes: c994c2ebdbbc ("ocfs2: use the new DLM operation callbacks while requesting new lockspace")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/stack_user.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/cramfs/inode.c~cramfs-fix-incorrect-physical-page-address-calculation
-+++ a/fs/cramfs/inode.c
-@@ -412,7 +412,7 @@ static int cramfs_physmem_mmap(struct fi
- 			vm_fault_t vmf;
- 			unsigned long off = i * PAGE_SIZE;
- 			vmf = vmf_insert_mixed(vma, vma->vm_start + off,
--					address + off);
-+					PHYS_PFN(address + off));
- 			if (vmf & VM_FAULT_ERROR)
- 				ret = vm_fault_to_errno(vmf, 0);
+--- a/fs/ocfs2/stack_user.c~ocfs2-fix-double-free-in-user_cluster_connect
++++ a/fs/ocfs2/stack_user.c
+@@ -1011,6 +1011,7 @@ static int user_cluster_connect(struct o
+ 			printk(KERN_ERR "ocfs2: Could not determine"
+ 					" locking version\n");
+ 			user_cluster_disconnect(conn);
++			lc = NULL;
+ 			goto out;
  		}
+ 		wait_event(lc->oc_wait, (atomic_read(&lc->oc_this_node) > 0));
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
 
