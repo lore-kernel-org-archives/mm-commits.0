@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 744E421FF3B
-	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DFE421FF3B
+	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759085522; cv=none; b=NCFT80UX2CQ1jVD+QndQSfsZMWjC/cInFJML77DeZ4IhtSNgoxRpLDJH8W3/Z8xA1UbTMLdBJN7Q39ZZsoDnSzEfHvm3tgiHQuIfKT/O3V6leDO8+fiGewfWgyybCTrgK3BlaE+E/LrblNbtEZTjJHWoZMz+U3cY8OHRM6XYQF4=
+	t=1759085523; cv=none; b=E/P7FSOYF5NHUo87MdDumrbO04yBz0jeiUSBT8SSi0EKB0t157UyQObcCAdgNMdVkcD2twhoXFR6LKUbbcTf0U4zhQItis/w2Uj9gA+bL2uKyA6qWKdtom66YlPhYer1U89Oo9ZHKq8AsH+J33YIQ6j/62nWUIfugyxAcJ1UGm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759085522; c=relaxed/simple;
-	bh=/kpxyBdIlmcX6WQlYmMeQ+TD2eOp2vAWzPVlLLSm3l4=;
-	h=Date:To:From:Subject:Message-Id; b=A5OkaUgQIc52rgs3vlKKzMB1PaS57dHuv0ITjjqnUkdUJl80lU2m7LLtvyop/pPeW6a36H1EqS+JKjqxkcRyZagznGt0KIpUS2faYbfkam/84/VU//mmjpHEHwC6db39hkriJeNL/qy0znYlfBkrmE4nYCseYUnrMUJqe7tJNcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CnSXTgXM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759085523; c=relaxed/simple;
+	bh=HIGvi5HdgT4YjNMA3ReKRy5Da3beNu9drziMM6cpN3s=;
+	h=Date:To:From:Subject:Message-Id; b=BHlLZblaRYLhCLu3jCbbRqbK5BNUT8E1b9a4q7CGiBToyKBLGpJCLSjJnSD+iHu7ZLcePVIxxLKII80+QnOn/Umu0Bo2aC8SgKIziUmPG8x1yGFDxV7ADCpe5B9rcScT2ns+gVY+C7Jhn6OrDy0R0iZ+ii9bDZZneKlLbsGfBlY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oiSwnPRC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CnSXTgXM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03ACBC4CEF0;
-	Sun, 28 Sep 2025 18:52:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oiSwnPRC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 482BDC4CEF0;
+	Sun, 28 Sep 2025 18:52:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759085522;
-	bh=/kpxyBdIlmcX6WQlYmMeQ+TD2eOp2vAWzPVlLLSm3l4=;
+	s=korg; t=1759085523;
+	bh=HIGvi5HdgT4YjNMA3ReKRy5Da3beNu9drziMM6cpN3s=;
 	h=Date:To:From:Subject:From;
-	b=CnSXTgXM/PRsHRQoZIJDlYkiwtjY7Rswodvhw+/vQRjPPD2Ym7lfAEMEuhgRrtnbJ
-	 D3cMBQAPqWYw5gX6xYxhgBVJvkk+Rcst6QrXIjLVo5E2SP0MQTL3EdKwOuvsrvQHbG
-	 1oo8wQKYkeZmBgJf+e0f5elO9wScPtfbY4kVGhlI=
-Date: Sun, 28 Sep 2025 11:52:01 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=oiSwnPRCTCV+Qr4V2phHZ8x2JnnbI3Vh30HDa4y/2mIVSQq1mJ3OiY8EmPYr5wqZx
+	 JpYXY/bQz830RkntH+FcXNGAHRgH19u9llAlonoAnKA9QX6+61nO/iwtXhqZv0glIG
+	 Jwx9jDDxdeQyXhNvn8MyHmjS7dMSQ1ch+ueNe5uE=
+Date: Sun, 28 Sep 2025 11:52:02 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch removed from -mm tree
-Message-Id: <20250928185202.03ACBC4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch removed from -mm tree
+Message-Id: <20250928185203.482BDC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/compaction: fix low_pfn advance on isolating hugetlb
+     Subject: mm/page_vma_mapped: track if the page is mapped across page table boundary
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch
+     mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/compaction: fix low_pfn advance on isolating hugetlb
-Date: Wed, 10 Sep 2025 09:22:40 +0000
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: mm/page_vma_mapped: track if the page is mapped across page table boundary
+Date: Tue, 23 Sep 2025 12:07:06 +0100
 
-Commit 56ae0bb349b4 ("mm: compaction: convert to use a folio in
-isolate_migratepages_block()") converts api from page to folio.  But the
-low_pfn advance for hugetlb page seems wrong when low_pfn doesn't point to
-head page.
+Patch series "mm: Improve mlock tracking for large folios", v3.
 
-Originally, if page is a hugetlb tail page, compound_nr() return 1, which
-means low_pfn only advance one in next iteration.  After the change,
-low_pfn would advance more than the hugetlb range, since folio_nr_pages()
-always return total number of the large page.  This results in skipping
-some range to isolate and then to migrate.
+The patchset includes several fixes and improvements related to mlock
+tracking of large folios.
 
-The worst case for alloc_contig is it does all the isolation and
-migration, but finally find some range is still not isolated.  And then
-undo all the work and try a new range.
+The main objective is to reduce the undercount of Mlocked memory in
+/proc/meminfo and improve the accuracy of the statistics.
 
-Advance low_pfn to the end of hugetlb.
+Patches 1-2:
 
-Link: https://lkml.kernel.org/r/20250910092240.3981-1-richard.weiyang@gmail.com
-Fixes: 56ae0bb349b4 ("mm: compaction: convert to use a folio in isolate_migratepages_block()")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Brendan Jackman <jackmanb@google.com>
+These patches address a minor race condition in folio_referenced_one()
+related to mlock_vma_folio().
+
+Currently, mlock_vma_folio() is called on large folio without the page
+table lock, which can result in a race condition with unmap (i.e. 
+MADV_DONTNEED).  This can lead to partially mapped folios on the
+unevictable LRU list.
+
+While not a significant issue, I do not believe backporting is necessary.
+
+Patch 3:
+
+This patch adds mlocking logic similar to folio_referenced_one() to
+try_to_unmap_one(), allowing for mlocking of large folios where possible.
+
+Patch 4-5:
+
+These patches modifies finish_fault() and faultaround to map in the entire
+folio when possible, enabling efficient mlocking upon addition to the
+rmap.
+
+Patch 6:
+
+This patch makes rmap mlock large folios if they are fully mapped,
+addressing the primary source of mlock undercount for large folios.
+
+
+This patch (of 6):
+
+Add a PVMW_PGTABLE_CROSSSED flag that page_vma_mapped_walk() will set if
+the page is mapped across page table boundary.  Unlike other PVMW_* flags,
+this one is result of page_vma_mapped_walk() and not set by the caller.
+
+folio_referenced_one() will use it to detect if it safe to mlock the
+folio.
+
+[akpm@linux-foundation.org: s/CROSSSED/CROSSED/]
+Link: https://lkml.kernel.org/r/20250923110711.690639-1-kirill@shutemov.name
+Link: https://lkml.kernel.org/r/20250923110711.690639-2-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rmap.h |    5 +++++
+ mm/page_vma_mapped.c |    1 +
+ 2 files changed, 6 insertions(+)
 
---- a/mm/compaction.c~mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb
-+++ a/mm/compaction.c
-@@ -989,7 +989,7 @@ isolate_migratepages_block(struct compac
- 				 * Hugepage was successfully isolated and placed
- 				 * on the cc->migratepages list.
- 				 */
--				low_pfn += folio_nr_pages(folio) - 1;
-+				low_pfn += folio_nr_pages(folio) - folio_page_idx(folio, page) - 1;
- 				goto isolate_success_no_list;
- 			}
+--- a/include/linux/rmap.h~mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary
++++ a/include/linux/rmap.h
+@@ -922,6 +922,11 @@ struct page *make_device_exclusive(struc
+ /* Look for migration entries rather than present PTEs */
+ #define PVMW_MIGRATION		(1 << 1)
  
++/* Result flags */
++
++/* The page is mapped across page table boundary */
++#define PVMW_PGTABLE_CROSSED	(1 << 16)
++
+ struct page_vma_mapped_walk {
+ 	unsigned long pfn;
+ 	unsigned long nr_pages;
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped-track-if-the-page-is-mapped-across-page-table-boundary
++++ a/mm/page_vma_mapped.c
+@@ -309,6 +309,7 @@ next_pte:
+ 				}
+ 				pte_unmap(pvmw->pte);
+ 				pvmw->pte = NULL;
++				pvmw->flags |= PVMW_PGTABLE_CROSSED;
+ 				goto restart;
+ 			}
+ 			pvmw->pte++;
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from kas@kernel.org are
 
 
