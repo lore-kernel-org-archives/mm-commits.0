@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFD7D34BA4D
-	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E051534BA4D
+	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759085534; cv=none; b=kGlmtxaTZnDdqXcIoJN4pqVFsMFtups7PgMgpbYXaF8yuqBBQmGWm2v+JUjm+IFoJyafBxybshP66g4Qv6cx6gdgl30JRBc2FOEK0sIboUp1nSwH+Yw8L5yWxQln0Mk5GX6j7Ls9BobESTPb2m4zF27tYGUISitG381Ewyw77/o=
+	t=1759085536; cv=none; b=fSy4EMH9ZmIPlFf0q240A/GtjY2CoaS0+c2e6IRWNZlqt9M4v5odPbLhmE/npiJEeNZbx8o32u7qPm78p4rNNE+ZzVozMboJvahbcJe4hXVxUqGI+qVG8t/JC9J4TgGLEfi6/Oxag4Fi5rjEVBb/JUEW/P3htIrGQTXUf+Ri+6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759085534; c=relaxed/simple;
-	bh=XsI5v+DUgu6t2oUznr+CDQuAe+vCqQKwJohQe27mA6A=;
-	h=Date:To:From:Subject:Message-Id; b=HHNL/2GjpkKQk58AF+9PrLT5SPvF7fr3uvchYhu2XBqd+BRYBSGzhl2BN5WbGHd3mk0Ca5xno0I52Hu7Uk6+po1NmySjrb39MA/SQvDjb5gQN8rMT41hPDHzWlgVrUlF8pxYHAxgHFrcLeNflJZmrBmV9d61uLDQbz1yvkLHrus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l+3oT1zF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759085536; c=relaxed/simple;
+	bh=HPNlaE//tNT+am+TX4YQ5HRZwT4OBtwKFbn7OTpgRW0=;
+	h=Date:To:From:Subject:Message-Id; b=u/frzhPllPQvx1OsR+F/ejWbLzXr2in1dskbWBF9w6LgQPTg8sBrffdNpE2PbuF3kCHAakv4xNmP7uTH+1aTAo7AdF1vleMXGAibBwfFaLSZ+gOPNCdhaJvwyDFYocXCfMMFIvHnl2mpVSRvCWLoFP1dnJtGJuVv1ck3pjJpwfI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uWksREzA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l+3oT1zF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81F2FC4CEF0;
-	Sun, 28 Sep 2025 18:52:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uWksREzA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE2BAC4CEF0;
+	Sun, 28 Sep 2025 18:52:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759085534;
-	bh=XsI5v+DUgu6t2oUznr+CDQuAe+vCqQKwJohQe27mA6A=;
+	s=korg; t=1759085535;
+	bh=HPNlaE//tNT+am+TX4YQ5HRZwT4OBtwKFbn7OTpgRW0=;
 	h=Date:To:From:Subject:From;
-	b=l+3oT1zFuWoJScXqgwCbQEfRWXliQWKz27mW6BYS0sSRuP4FjXjEIHdOu8YmuwNfJ
-	 q1mpuhe8ljGoRqD+ajgTcS7PCcX8XvTbjT8XaV24ggZZ8H+nLZwL3iIygX7VVQoADV
-	 TdnrLL6+H1nBHSbTqH1nrUgRHwtat3nUOui1CJqQ=
-Date: Sun, 28 Sep 2025 11:52:13 -0700
+	b=uWksREzAEvJiRJCDqYvmsXzDGzpJoxin2fhD4feGMXyt6h9dofuJpMRWZDP0jXfBB
+	 SDE/mhnAad02fjxOrIiPy86Ir78zabrtHTiPkKlbs/6nGZBsF6mrC+naIDzPMVA3a1
+	 L+Xs5Degzch2j1Z69XCuoet0MI1LApxLwc6Etf+Q=
+Date: Sun, 28 Sep 2025 11:52:15 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-filemap-map-entire-large-folio-faultaround.patch removed from -mm tree
-Message-Id: <20250928185214.81F2FC4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-improve-mlock-tracking-for-large-folios.patch removed from -mm tree
+Message-Id: <20250928185215.AE2BAC4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/filemap: map entire large folio faultaround
+     Subject: mm/rmap: improve mlock tracking for large folios
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-map-entire-large-folio-faultaround.patch
+     mm-rmap-improve-mlock-tracking-for-large-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kiryl Shutsemau <kas@kernel.org>
-Subject: mm/filemap: map entire large folio faultaround
-Date: Tue, 23 Sep 2025 12:07:10 +0100
+Subject: mm/rmap: improve mlock tracking for large folios
+Date: Tue, 23 Sep 2025 12:07:11 +0100
 
-Currently, kernel only maps part of large folio that fits into
-start_pgoff/end_pgoff range.
+The kernel currently does not mlock large folios when adding them to rmap,
+stating that it is difficult to confirm that the folio is fully mapped and
+safe to mlock it.
 
-Map entire folio where possible.  It will match finish_fault() behaviour
-that user hits on cold page cache.
+This leads to a significant undercount of Mlocked in /proc/meminfo,
+causing problems in production where the stat was used to estimate system
+utilization and determine if load shedding is required.
 
-Mapping large folios at once will allow the rmap code to mlock it on add,
-as it will recognize that it is fully mapped and mlocking is safe.
+However, nowadays the caller passes a number of pages of the folio that
+are getting mapped, making it easy to check if the entire folio is mapped
+to the VMA.
 
-Link: https://lkml.kernel.org/r/20250923110711.690639-6-kirill@shutemov.name
+mlock the folio on rmap if it is fully mapped to the VMA.
+
+Mlocked in /proc/meminfo can still undercount, but the value is closer the
+truth and is useful for userspace.
+
+Link: https://lkml.kernel.org/r/20250923110711.690639-7-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ mm/rmap.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-map-entire-large-folio-faultaround
-+++ a/mm/filemap.c
-@@ -3670,6 +3670,21 @@ static vm_fault_t filemap_map_folio_rang
- 	struct page *page = folio_page(folio, start);
- 	unsigned int count = 0;
- 	pte_t *old_ptep = vmf->pte;
-+	unsigned long addr0;
-+
-+	/*
-+	 * Map the large folio fully where possible.
-+	 *
-+	 * The folio must not cross VMA or page table boundary.
-+	 */
-+	addr0 = addr - start * PAGE_SIZE;
-+	if (folio_within_vma(folio, vmf->vma) &&
-+	    (addr0 & PMD_MASK) == ((addr0 + folio_size(folio) - 1) & PMD_MASK)) {
-+		vmf->pte -= start;
-+		page -= start;
-+		addr = addr0;
-+		nr_pages = folio_nr_pages(folio);
-+	}
+--- a/mm/rmap.c~mm-rmap-improve-mlock-tracking-for-large-folios
++++ a/mm/rmap.c
+@@ -1463,12 +1463,12 @@ static __always_inline void __folio_add_
+ 	}
  
- 	do {
- 		if (PageHWPoison(page + count))
+ 	/*
+-	 * For large folio, only mlock it if it's fully mapped to VMA. It's
+-	 * not easy to check whether the large folio is fully mapped to VMA
+-	 * here. Only mlock normal 4K folio and leave page reclaim to handle
+-	 * large folio.
++	 * Only mlock it if the folio is fully mapped to the VMA.
++	 *
++	 * Partially mapped folios can be split on reclaim and part outside
++	 * of mlocked VMA can be evicted or freed.
+ 	 */
+-	if (!folio_test_large(folio))
++	if (folio_nr_pages(folio) == nr_pages)
+ 		mlock_vma_folio(folio, vma);
+ }
+ 
+@@ -1601,8 +1601,13 @@ static __always_inline void __folio_add_
+ 
+ 	__folio_add_rmap(folio, page, nr_pages, vma, level);
+ 
+-	/* See comments in folio_add_anon_rmap_*() */
+-	if (!folio_test_large(folio))
++	/*
++	 * Only mlock it if the folio is fully mapped to the VMA.
++	 *
++	 * Partially mapped folios can be split on reclaim and part outside
++	 * of mlocked VMA can be evicted or freed.
++	 */
++	if (folio_nr_pages(folio) == nr_pages)
+ 		mlock_vma_folio(folio, vma);
+ }
+ 
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
