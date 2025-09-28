@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53CF2259CAB
-	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26BA0259C98
+	for <mm-commits@vger.kernel.org>; Sun, 28 Sep 2025 18:52:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759085544; cv=none; b=N0efuU5FamIhAQFGfLRxym96kvlkH6nTGQIf/HT3jswwO05MNd2U23r46dfjZPPzawmMBRLqVC1UMTNN/HzFjBig2o3Ses+FQH29LnqpSJQhtAP+6lmBO/lBRMR+y7UzVB2JK8Z0rJ1jQ5ZQCW9TAMKszG/tXD9FL/ocd6/LIgs=
+	t=1759085545; cv=none; b=tvMOFBdAvM2EaZK2ffbPaqj4pQvNNDbfsMcydAeokEEQO0Rca3r4zfmbcI39Eqo1bI2e6A9fhv67AHvclkDYxpHOMD/2gBlkDj+xxnZl8YKQ6IQKMc0s8gg1eKEE5MXe+KFHbGaIRG4O8/Wi4DqFK6i1fjUM38gIkMSgeU6/2e4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759085544; c=relaxed/simple;
-	bh=l3bZL5o3maoIcuFcIGAQaiOC50vt43Dsy5whlclc6qg=;
-	h=Date:To:From:Subject:Message-Id; b=mWjO39dCFV9g9K/XcHZ92jWLhHH2kIWPSrFPUxcGnBw+1UqCvOGup/e/0WAxX/8knSwgWpw6qSi8266wDBQ8st69Dc1BJ3kipoLG5G9FQwAbnVR1gMcdkho/T4Tj7V+AKTP7bCMVqTsbuPKJvnddwjE3rlZcdXptOjH8bTK7Qz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P7cmuJ6d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759085545; c=relaxed/simple;
+	bh=J7bVAjb9XdoMnHMALry8ampXpj8CPpKTCHF+VnIStbI=;
+	h=Date:To:From:Subject:Message-Id; b=AGxCt2WlxJvMMq4V/MxrkIZnpR7BGpAEIQPFWiup3aEKMx7AdbqElhyrJ76MLY79DwblPK5lwl+hV9MRivhhIgXpsJf8P9+gUGE75cn0iZq7Ymv3AREKdlnSquMj0zCTk6iHW6+AYIMwlgPltr0kBVsMZkBWwmG06FQsT0Zrnxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GauZhfzf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P7cmuJ6d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C120DC4CEF0;
-	Sun, 28 Sep 2025 18:52:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GauZhfzf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6C23C4CEF0;
+	Sun, 28 Sep 2025 18:52:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759085543;
-	bh=l3bZL5o3maoIcuFcIGAQaiOC50vt43Dsy5whlclc6qg=;
+	s=korg; t=1759085545;
+	bh=J7bVAjb9XdoMnHMALry8ampXpj8CPpKTCHF+VnIStbI=;
 	h=Date:To:From:Subject:From;
-	b=P7cmuJ6dtTqTtU+j9ZT7AtpynteiEQf2Xow8t8r+Y3sXOrrA+oiKracjPcMcW/rB8
-	 CQlbmbj+QuZib7KNMlGU+8P8tRMhVB+wwDcWt2M+r4TTsMaBmaIoCKProSLssu+Z8o
-	 YdqI3Kgpq3r+CkcKNt7f8vWtwEOiVvDJVaPDVa2s=
-Date: Sun, 28 Sep 2025 11:52:23 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,lizhe.67@bytedance.com,akpm@linux-foundation.org
+	b=GauZhfzfVbIzIUk8MbBRH2c3webyaGkQEQD2GiNObvXLkLUQZtUsm4XgR9zzcUXhO
+	 meBAOWxJoTdGG1dH6nNR0jg2/bua81BPgR3jPTsRFs3fmuBceocT8yAzjXMukMVoKy
+	 6IekrsG9tXL1+39mNMbg2ZEoHhD8WhnspA2AIVVw=
+Date: Sun, 28 Sep 2025 11:52:24 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,lance.yang@linux.dev,kirill@shutemov.name,dev.jain@arm.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-increase-number-of-reserving-hugepages-via-cmdline.patch removed from -mm tree
-Message-Id: <20250928185223.C120DC4CEF0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null.patch removed from -mm tree
+Message-Id: <20250928185224.E6C23C4CEF0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlb: increase number of reserving hugepages via cmdline
+     Subject: mm/ksm: get mm_slot by mm_slot_entry() when slot is !NULL
 has been removed from the -mm tree.  Its filename was
-     hugetlb-increase-number-of-reserving-hugepages-via-cmdline.patch
+     mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li Zhe <lizhe.67@bytedance.com>
-Subject: hugetlb: increase number of reserving hugepages via cmdline
-Date: Fri, 19 Sep 2025 17:23:53 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/ksm: get mm_slot by mm_slot_entry() when slot is !NULL
+Date: Fri, 19 Sep 2025 07:12:43 +0000
 
-Commit 79359d6d24df ("hugetlb: perform vmemmap optimization on a list of
-pages") batches the submission of HugeTLB vmemmap optimization (HVO)
-during hugepage reservation.  With HVO enabled, hugepages obtained from
-the buddy allocator are not submitted for optimization and their
-struct-page memory is therefore not released—until the entire
-reservation request has been satisfied.  As a result, any struct-page
-memory freed in the course of the allocation cannot be reused for the
-ongoing reservation, artificially limiting the number of huge pages that
-can ultimately be provided.
+Patch series "mm_slot: fix the usage of mm_slot_entry", v2.
 
-As commit b1222550fbf7 ("mm/hugetlb: do pre-HVO for bootmem allocated
-pages") already applies early HVO to bootmem-allocated huge pages, this
-patch extends the same benefit to non-bootmem pages by incrementally
-submitting them for HVO as they are allocated, thereby returning
-struct-page memory to the buddy allocator in real time.  The change raises
-the maximum 2 MiB hugepage reservation from just under 376 GB to more than
-381 GB on a 384 GB x86 VM.
+When using mm_slot in ksm, there is code like:
 
-Link: https://lkml.kernel.org/r/20250919092353.41671-1-lizhe.67@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+     slot = mm_slot_lookup(mm_slots_hash, mm);
+     mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
+     if (mm_slot && ..) {
+     }
+
+The mm_slot_entry() won't return a valid value if slot is NULL generally. 
+But currently it works since slot is the first element of struct
+ksm_mm_slot.
+
+To reduce the ambiguity and make it robust, access mm_slot_entry() when
+slot is !NULL.
+
+Link: https://lkml.kernel.org/r/20250919071244.17020-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250919071244.17020-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: Kiryl Shutsemau <kirill@shutemov.name>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/ksm.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-increase-number-of-reserving-hugepages-via-cmdline
-+++ a/mm/hugetlb.c
-@@ -3538,7 +3538,14 @@ static void __init hugetlb_pages_alloc_b
- 	nodes_clear(node_alloc_noretry);
+--- a/mm/ksm.c~mm-ksm-get-mm_slot-by-mm_slot_entry-when-slot-is-null
++++ a/mm/ksm.c
+@@ -2936,15 +2936,17 @@ void __ksm_exit(struct mm_struct *mm)
  
- 	for (i = 0; i < num; ++i) {
--		struct folio *folio = alloc_pool_huge_folio(h, &node_states[N_MEMORY],
-+		struct folio *folio;
-+
-+		if (hugetlb_vmemmap_optimizable_size(h) &&
-+		    (si_mem_available() == 0) && !list_empty(&folio_list)) {
-+			prep_and_add_allocated_folios(h, &folio_list);
-+			INIT_LIST_HEAD(&folio_list);
-+		}
-+		folio = alloc_pool_huge_folio(h, &node_states[N_MEMORY],
- 						&node_alloc_noretry, &next_node);
- 		if (!folio)
- 			break;
+ 	spin_lock(&ksm_mmlist_lock);
+ 	slot = mm_slot_lookup(mm_slots_hash, mm);
+-	mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
+-	if (mm_slot && ksm_scan.mm_slot != mm_slot) {
+-		if (!mm_slot->rmap_list) {
+-			hash_del(&slot->hash);
+-			list_del(&slot->mm_node);
+-			easy_to_free = 1;
+-		} else {
+-			list_move(&slot->mm_node,
+-				  &ksm_scan.mm_slot->slot.mm_node);
++	if (slot) {
++		mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
++		if (ksm_scan.mm_slot != mm_slot) {
++			if (!mm_slot->rmap_list) {
++				hash_del(&slot->hash);
++				list_del(&slot->mm_node);
++				easy_to_free = 1;
++			} else {
++				list_move(&slot->mm_node,
++					  &ksm_scan.mm_slot->slot.mm_node);
++			}
+ 		}
+ 	}
+ 	spin_unlock(&ksm_mmlist_lock);
 _
 
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
 
