@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 778B31F09B3
-	for <mm-commits@vger.kernel.org>; Mon, 29 Sep 2025 22:19:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF78E46BF
+	for <mm-commits@vger.kernel.org>; Mon, 29 Sep 2025 22:50:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759184360; cv=none; b=uwDOnyVuHQMWVbOn0I18wnCFxxFe2sNIwo5+xBu/qyjn6nk0XN975r816j78wBhPt+f3G3Dyzm40tJU8m7U+MnOUpRArCjT1uRVET9j0tW8k9c5dmin8R8mNXTQxsau5tV5eco9MqtBqJtEOxN/63bSLcfKRfiRwALgl4guoHY4=
+	t=1759186215; cv=none; b=cMYDkI11+OUWrCF4CUcRvoacfib4V3q5HAdLPig1HK8QaEwSCi63ZUWt9ZKEL6INvNmNe7kWEQGTA0qvf4Mk3L+GAeN1eSCSKxvNWoCzN3YzLCFP+wxHlfvSvNWh+5MmHCGiDDJG6B4pj9XunEVHo7Yt8L6KqUf1ys2/oxQXAi8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759184360; c=relaxed/simple;
-	bh=acnmyRMN0JQQTxONsXpGvDgULIRx8GNmsAR5OeyjB8U=;
-	h=Date:To:From:Subject:Message-Id; b=Zt8k9zPm+QvmVcyTKP6ryR7pfMgi+2TTUlWhUju1OlvuDBU2V9b7fQL9GxrJBq9nDS1d5qIVnsSVBzCsPu/c7J66cI8CPNwnI/FIxiXaoVAkRgm5QMh7d7WLCCUpJbJjigwAXyGPMVTwcoeGPv7oFoFBouNKZhPTrB7cipCU4cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yk9CKItQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759186215; c=relaxed/simple;
+	bh=3dm22E1qtOPltsdNOjhKREHTpzU6TlatAvLhiarawus=;
+	h=Date:To:From:Subject:Message-Id; b=pqseUmEiy32L4NCJdn+izHvGF2IUWllv70r0S9WT3yVQaxJwLQDj17oQkWtWDmBU8VnQkyiGb87HroDpgyxkaNR6VC4ZE3G4fLslwdYnxnQvWbes7ggllpuX3WAl3mVvtSv21YeQz3MQ8aIoK2hy2reCuf9u15zAtAKe1zwgSN4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LQglYgzT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yk9CKItQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE8FCC116B1;
-	Mon, 29 Sep 2025 22:19:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LQglYgzT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30F32C4CEF4;
+	Mon, 29 Sep 2025 22:50:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759184359;
-	bh=acnmyRMN0JQQTxONsXpGvDgULIRx8GNmsAR5OeyjB8U=;
+	s=korg; t=1759186215;
+	bh=3dm22E1qtOPltsdNOjhKREHTpzU6TlatAvLhiarawus=;
 	h=Date:To:From:Subject:From;
-	b=Yk9CKItQAzzYavvXuCGGJfMMki/K9L7EEjjnC6SDpthl5LGF2n4GfEDJUliyQzRff
-	 AeuwozVtiyg/hDg/GL3ERdPFX4Z3EKb5Fg/G4lcHzR3rGtCXnpBK+znwO9m2fHdL0v
-	 en7+XkzZxc/tj55X6GuSNKzpxp2KlmoLlufNtV3k=
-Date: Mon, 29 Sep 2025 15:19:19 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,usama.anjum@collabora.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,kirill@shutemov.name,kas@kernel.org,dev.jain@arm.com,david@redhat.com,dan.carpenter@linaro.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=LQglYgzT+Ya3c8hBIWM+SVL0tU//E2Q/VU6SO+Tw2YPZf8v5RCL2qOyJ8FfdQ7pX/
+	 WPjH9Ikoganku4C2vBZuyBJgpR32rmNpE9oyxpGx1sscUohexR6zXbWFh4go7QwbOM
+	 JuQ0Cu4AAz8D+bQLL+dIK2vjv5IcINUCZS8zahFI=
+Date: Mon, 29 Sep 2025 15:50:14 -0700
+To: mm-commits@vger.kernel.org,zhouyuhang@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch added to mm-unstable branch
-Message-Id: <20250929221919.CE8FCC116B1@smtp.kernel.org>
+Subject: + samples-fix-coding-style-issues-in-kconfig.patch added to mm-nonmm-unstable branch
+Message-Id: <20250929225015.30F32C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: remove definition of struct khugepaged_mm_slot
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+     Subject: samples: fix coding style issues in Kconfig
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     samples-fix-coding-style-issues-in-kconfig.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-fix-coding-style-issues-in-kconfig.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,234 +58,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/khugepaged: remove definition of struct khugepaged_mm_slot
-Date: Sat, 27 Sep 2025 00:45:39 +0000
+From: Zhou Yuhang <zhouyuhang@kylinos.cn>
+Subject: samples: fix coding style issues in Kconfig
+Date: Mon, 29 Sep 2025 14:24:34 +0800
 
-Current code calls mm_slot_entry() even when we don't have a valid slot,
-which is not future proof. Currently, this is not a problem because
-"slot" is the first member in struct khugepaged_mm_slot.
+Fix some coding style issues in Kconfig: use one tab to indent lines under
+a config definition, and use an additional two spaces to indent help text.
 
-While struct khugepaged_mm_slot is just a wrapper of struct mm_slot, there
-is no need to define it.
-
-Remove the definition of struct khugepaged_mm_slot, so there is not chance
-to miss use mm_slot_entry().
-
-Link: https://lkml.kernel.org/r/20250927004539.19308-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Kiryl Shutsemau <kirill@shutemov.name>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20250929062434.4114607-1-zhouyuhang1010@163.com
+Signed-off-by: Zhou Yuhang <zhouyuhang@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   55 +++++++++++++++-------------------------------
- 1 file changed, 18 insertions(+), 37 deletions(-)
+ samples/Kconfig |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot
-+++ a/mm/khugepaged.c
-@@ -104,14 +104,6 @@ struct collapse_control {
- };
+--- a/samples/Kconfig~samples-fix-coding-style-issues-in-kconfig
++++ a/samples/Kconfig
+@@ -23,11 +23,11 @@ config SAMPLE_TRACE_CUSTOM_EVENTS
+ 	  This builds the custom trace event example module.
  
- /**
-- * struct khugepaged_mm_slot - khugepaged information per mm that is being scanned
-- * @slot: hash lookup from mm to mm_slot
-- */
--struct khugepaged_mm_slot {
--	struct mm_slot slot;
--};
--
--/**
-  * struct khugepaged_scan - cursor for scanning
-  * @mm_head: the head of the mm list to scan
-  * @mm_slot: the current mm_slot we are scanning
-@@ -121,7 +113,7 @@ struct khugepaged_mm_slot {
-  */
- struct khugepaged_scan {
- 	struct list_head mm_head;
--	struct khugepaged_mm_slot *mm_slot;
-+	struct mm_slot *mm_slot;
- 	unsigned long address;
- };
+ config SAMPLE_TRACE_PRINTK
+-        tristate "Build trace_printk module - tests various trace_printk formats"
++	tristate "Build trace_printk module - tests various trace_printk formats"
+ 	depends on EVENT_TRACING && m
+ 	help
+-	 This builds a module that calls trace_printk() and can be used to
+-	 test various trace_printk() calls from a module.
++	  This builds a module that calls trace_printk() and can be used to
++	  test various trace_printk() calls from a module.
  
-@@ -384,7 +376,7 @@ int hugepage_madvise(struct vm_area_stru
+ config SAMPLE_FTRACE_DIRECT
+ 	tristate "Build register_ftrace_direct() example"
+@@ -54,11 +54,11 @@ config SAMPLE_FTRACE_OPS
+ 	  measures the time taken to invoke one function a number of times.
  
- int __init khugepaged_init(void)
- {
--	mm_slot_cache = KMEM_CACHE(khugepaged_mm_slot, 0);
-+	mm_slot_cache = KMEM_CACHE(mm_slot, 0);
- 	if (!mm_slot_cache)
- 		return -ENOMEM;
+ config SAMPLE_TRACE_ARRAY
+-        tristate "Build sample module for kernel access to Ftrace instances"
++	tristate "Build sample module for kernel access to Ftrace instances"
+ 	depends on EVENT_TRACING && m
+ 	help
+-	 This builds a module that demonstrates the use of various APIs to
+-	 access Ftrace instances from within the kernel.
++	  This builds a module that demonstrates the use of various APIs to
++	  access Ftrace instances from within the kernel.
  
-@@ -438,7 +430,6 @@ static bool hugepage_pmd_enabled(void)
+ config SAMPLE_KOBJECT
+ 	tristate "Build kobject examples"
+@@ -290,11 +290,11 @@ config SAMPLE_CORESIGHT_SYSCFG
+ 	  configurations and easily load them into the system at runtime.
  
- void __khugepaged_enter(struct mm_struct *mm)
- {
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	int wakeup;
+ config SAMPLE_KMEMLEAK
+-        tristate "Simple test for the kernel memory leak detector"
+-        depends on DEBUG_KMEMLEAK && m
+-        help
+-          Build a sample program which have explicitly leaks memory to test
+-          kmemleak
++	tristate "Simple test for the kernel memory leak detector"
++	depends on DEBUG_KMEMLEAK && m
++	help
++	  Build a sample program which have explicitly leaks memory to test
++	  kmemleak.
  
-@@ -447,12 +438,10 @@ void __khugepaged_enter(struct mm_struct
- 	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm)))
- 		return;
- 
--	mm_slot = mm_slot_alloc(mm_slot_cache);
--	if (!mm_slot)
-+	slot = mm_slot_alloc(mm_slot_cache);
-+	if (!slot)
- 		return;
- 
--	slot = &mm_slot->slot;
--
- 	spin_lock(&khugepaged_mm_lock);
- 	mm_slot_insert(mm_slots_hash, mm, slot);
- 	/*
-@@ -480,14 +469,12 @@ void khugepaged_enter_vma(struct vm_area
- 
- void __khugepaged_exit(struct mm_struct *mm)
- {
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	int free = 0;
- 
- 	spin_lock(&khugepaged_mm_lock);
- 	slot = mm_slot_lookup(mm_slots_hash, mm);
--	mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
--	if (mm_slot && khugepaged_scan.mm_slot != mm_slot) {
-+	if (slot && khugepaged_scan.mm_slot != slot) {
- 		hash_del(&slot->hash);
- 		list_del(&slot->mm_node);
- 		free = 1;
-@@ -496,9 +483,9 @@ void __khugepaged_exit(struct mm_struct
- 
- 	if (free) {
- 		mm_flags_clear(MMF_VM_HUGEPAGE, mm);
--		mm_slot_free(mm_slot_cache, mm_slot);
-+		mm_slot_free(mm_slot_cache, slot);
- 		mmdrop(mm);
--	} else if (mm_slot) {
-+	} else if (slot) {
- 		/*
- 		 * This is required to serialize against
- 		 * hpage_collapse_test_exit() (which is guaranteed to run
-@@ -1432,9 +1419,8 @@ out:
- 	return result;
- }
- 
--static void collect_mm_slot(struct khugepaged_mm_slot *mm_slot)
-+static void collect_mm_slot(struct mm_slot *slot)
- {
--	struct mm_slot *slot = &mm_slot->slot;
- 	struct mm_struct *mm = slot->mm;
- 
- 	lockdep_assert_held(&khugepaged_mm_lock);
-@@ -1451,7 +1437,7 @@ static void collect_mm_slot(struct khuge
- 		 */
- 
- 		/* khugepaged_mm_lock actually not necessary for the below */
--		mm_slot_free(mm_slot_cache, mm_slot);
-+		mm_slot_free(mm_slot_cache, slot);
- 		mmdrop(mm);
- 	}
- }
-@@ -2394,7 +2380,6 @@ static unsigned int khugepaged_scan_mm_s
- 	__acquires(&khugepaged_mm_lock)
- {
- 	struct vma_iterator vmi;
--	struct khugepaged_mm_slot *mm_slot;
- 	struct mm_slot *slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
-@@ -2405,14 +2390,12 @@ static unsigned int khugepaged_scan_mm_s
- 	*result = SCAN_FAIL;
- 
- 	if (khugepaged_scan.mm_slot) {
--		mm_slot = khugepaged_scan.mm_slot;
--		slot = &mm_slot->slot;
-+		slot = khugepaged_scan.mm_slot;
- 	} else {
- 		slot = list_first_entry(&khugepaged_scan.mm_head,
- 				     struct mm_slot, mm_node);
--		mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
- 		khugepaged_scan.address = 0;
--		khugepaged_scan.mm_slot = mm_slot;
-+		khugepaged_scan.mm_slot = slot;
- 	}
- 	spin_unlock(&khugepaged_mm_lock);
- 
-@@ -2510,7 +2493,7 @@ breakouterloop:
- breakouterloop_mmap_lock:
- 
- 	spin_lock(&khugepaged_mm_lock);
--	VM_BUG_ON(khugepaged_scan.mm_slot != mm_slot);
-+	VM_BUG_ON(khugepaged_scan.mm_slot != slot);
- 	/*
- 	 * Release the current mm_slot if this mm is about to die, or
- 	 * if we scanned all vmas of this mm.
-@@ -2522,16 +2505,14 @@ breakouterloop_mmap_lock:
- 		 * mm_slot not pointing to the exiting mm.
- 		 */
- 		if (!list_is_last(&slot->mm_node, &khugepaged_scan.mm_head)) {
--			slot = list_next_entry(slot, mm_node);
--			khugepaged_scan.mm_slot =
--				mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
-+			khugepaged_scan.mm_slot = list_next_entry(slot, mm_node);
- 			khugepaged_scan.address = 0;
- 		} else {
- 			khugepaged_scan.mm_slot = NULL;
- 			khugepaged_full_scans++;
- 		}
- 
--		collect_mm_slot(mm_slot);
-+		collect_mm_slot(slot);
- 	}
- 
- 	return progress;
-@@ -2618,7 +2599,7 @@ static void khugepaged_wait_work(void)
- 
- static int khugepaged(void *none)
- {
--	struct khugepaged_mm_slot *mm_slot;
-+	struct mm_slot *slot;
- 
- 	set_freezable();
- 	set_user_nice(current, MAX_NICE);
-@@ -2629,10 +2610,10 @@ static int khugepaged(void *none)
- 	}
- 
- 	spin_lock(&khugepaged_mm_lock);
--	mm_slot = khugepaged_scan.mm_slot;
-+	slot = khugepaged_scan.mm_slot;
- 	khugepaged_scan.mm_slot = NULL;
--	if (mm_slot)
--		collect_mm_slot(mm_slot);
-+	if (slot)
-+		collect_mm_slot(slot);
- 	spin_unlock(&khugepaged_mm_lock);
- 	return 0;
- }
+ config SAMPLE_CGROUP
+ 	bool "Build cgroup sample code"
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from zhouyuhang@kylinos.cn are
 
-mm-compaction-fix-low_pfn-advance-on-isolating-hugetlb.patch
-mm-ksm-dont-call-mm_slot_entry-when-the-slot-is-null.patch
-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
-mm-khugepaged-use-start_addr-addr-for-better-reading.patch
+samples-fix-coding-style-issues-in-kconfig.patch
 
