@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFCB346BF
-	for <mm-commits@vger.kernel.org>; Mon, 29 Sep 2025 22:56:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8C4A261573
+	for <mm-commits@vger.kernel.org>; Mon, 29 Sep 2025 23:09:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759186570; cv=none; b=F8T1xrWfTReQs3MOgv9jUQxXLabPEKGYi7Vr2Er1el0oQHh2MgjlwD1kbsVZtMgOoN4/nYBslX6pIY5u9ciga47jfwypFxGKwHNmdHV6Om/ZUuonKnz294klw71TnbHzWnwf5RXSFPZcVVgPsqFg1dls2wzHAuhZ8QK628ytTkM=
+	t=1759187400; cv=none; b=Fy0Pc1OJ8WAx7jQNPVjwP4B3PHQvYyqCrCRnbfRZ4faoR7g4M++YFZFELiP1U/PeaxqlifDB0nPgfyBM8PmyXpXYzDAF7akAbOW+5uUx8EQzJdCXcYgsRydDPmW8JmfXpWiLo5up1HRAsmHFn/Kc7lLHgFMICz2qTpkXAX2A4iw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759186570; c=relaxed/simple;
-	bh=MkU1GNLFzRaNiLKg6/XEBSy6ZFnmnoMhacKYovODeQQ=;
-	h=Date:To:From:Subject:Message-Id; b=XFgeMshB4+HXHkqovWkJavunVz/tTynevHBlQejPnN4ZNVi2s3gdtbcaEkOpSvOEF5W1EM567yFwYYCOWScZmIieRZET2Xgjj2LDc7EfKdw0G7oDEmsCtNcpt81U36CLYVAA/kkNut8Swir9xAjqMEYzq1KZdL5kjyqouX7BwTA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ks9Z0hTo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759187400; c=relaxed/simple;
+	bh=QBkLD84k923TdpU+jTH0a24+hXNhfSsKGxmmYB67ph8=;
+	h=Date:To:From:Subject:Message-Id; b=uGtUbPe6gB2gjmcxwo5T8eTjgCV3VqqaxGid6rtfxEtMI7kpeeJw07SLRZ7XSwb6MfGiHYmnNYHmQoduOaW3qrBJHd1PBZU/OUezbXSeuJ/gZcQEsHFIMS6iO0GUVLDUbr9VTb0VY7ToJyV91eFAkvlB6AJfly79uHkNUw33z0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uU/JTpca; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ks9Z0hTo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25E46C4CEF4;
-	Mon, 29 Sep 2025 22:56:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uU/JTpca"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E2DFC113D0;
+	Mon, 29 Sep 2025 23:09:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759186569;
-	bh=MkU1GNLFzRaNiLKg6/XEBSy6ZFnmnoMhacKYovODeQQ=;
+	s=korg; t=1759187399;
+	bh=QBkLD84k923TdpU+jTH0a24+hXNhfSsKGxmmYB67ph8=;
 	h=Date:To:From:Subject:From;
-	b=Ks9Z0hToNqtwecIg40dj5BG4stzdDEWuRzywpNAQTUzTSCZmPX9SG0FuRDXnPehZh
-	 ZACHUlrvFxuWD4f091tUTry2gdajFMQIw+Tiux/7Ok8UHxsct4M7WLqxuLd8fnusbE
-	 55yKkPUSmri/kHMOtJRwPsXucxcZj+g9BpWvDNMQ=
-Date: Mon, 29 Sep 2025 15:56:08 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,weibu@redadmin.org,akpm@linux-foundation.org
+	b=uU/JTpcaxMNhAyJ4NiTrxkqh9fspq3SFkSHHRf5QWF82TrZSUokah8pBYJh7ieNyq
+	 A8WLvuJu7oa8IHNw8eUnAw1MuEi4ejLKchBXysO54sO422y6Tg9s4wG8PeXUN18pPj
+	 0CBoYkUfjsY31USxFNn/h720OMCKbv07Sxc5gtJ8=
+Date: Mon, 29 Sep 2025 16:09:58 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,richard.weiyang@gmail.com,Liam.Howlett@oracle.com,dev.jain@arm.com,chrisl@kernel.org,jianyungao89@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-correct-typo-directores.patch added to mm-new branch
-Message-Id: <20250929225609.25E46C4CEF4@smtp.kernel.org>
+Subject: + mm-fix-some-typos-in-mm-module.patch added to mm-new branch
+Message-Id: <20250929230959.3E2DFC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: admin-guide/mm/damon: correct typo "directores"
+     Subject: mm: Fix some typos in mm module
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-correct-typo-directores.patch
+     mm-fix-some-typos-in-mm-module.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-correct-typo-directores.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-some-typos-in-mm-module.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,36 +64,271 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Akiyoshi Kurita <weibu@redadmin.org>
-Subject: docs: admin-guide/mm/damon: correct typo "directores"
-Date: Sun, 28 Sep 2025 15:46:51 +0900
+From: "jianyun.gao" <jianyungao89@gmail.com>
+Subject: mm: Fix some typos in mm module
+Date: Mon, 29 Sep 2025 08:26:08 +0800
 
-The word "directores" is a typo in usage.rst.  Correct it to "directories"
-to improve documentation clarity.
+Below are some typos in the code comments:
 
-Link: https://lkml.kernel.org/r/20250928064651.281325-1-weibu@redadmin.org
-Signed-off-by: Akiyoshi Kurita <weibu@redadmin.org>
+  intevals ==> intervals
+  addesses ==> addresses
+  unavaliable ==> unavailable
+  facor ==> factor
+  droping ==> dropping
+  exlusive ==> exclusive
+  decription ==> description
+  confict ==> conflict
+  desriptions ==> descriptions
+  otherwize ==> otherwise
+  vlaue ==> value
+  cheching ==> checking
+  exisitng ==> existing
+  modifed ==> modified
+  differenciate ==> differentiate
+  refernece ==> reference
+  permissons ==> permissions
+  indepdenent ==> independent
+  spliting ==> splitting
+
+Just fix it.
+
+Link: https://lkml.kernel.org/r/20250929002608.1633825-1-jianyungao89@gmail.com
+Signed-off-by: jianyun.gao <jianyungao89@gmail.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Acked-by: Chris Li <chrisl@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/sysfs.c     |    2 +-
+ mm/gup.c             |    2 +-
+ mm/hugetlb.c         |    6 +++---
+ mm/hugetlb_vmemmap.c |    6 +++---
+ mm/kmsan/core.c      |    2 +-
+ mm/ksm.c             |    2 +-
+ mm/memory-tiers.c    |    2 +-
+ mm/memory.c          |    4 ++--
+ mm/secretmem.c       |    2 +-
+ mm/slab_common.c     |    2 +-
+ mm/slub.c            |    2 +-
+ mm/swapfile.c        |    2 +-
+ mm/userfaultfd.c     |    2 +-
+ mm/vma.c             |    4 ++--
+ 14 files changed, 20 insertions(+), 20 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-correct-typo-directores
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -360,7 +360,7 @@ The directory for the :ref:`quotas <damo
- DAMON-based operation scheme.
+--- a/mm/damon/sysfs.c~mm-fix-some-typos-in-mm-module
++++ a/mm/damon/sysfs.c
+@@ -1264,7 +1264,7 @@ enum damon_sysfs_cmd {
+ 	DAMON_SYSFS_CMD_UPDATE_SCHEMES_EFFECTIVE_QUOTAS,
+ 	/*
+ 	 * @DAMON_SYSFS_CMD_UPDATE_TUNED_INTERVALS: Update the tuned monitoring
+-	 * intevals.
++	 * intervals.
+ 	 */
+ 	DAMON_SYSFS_CMD_UPDATE_TUNED_INTERVALS,
+ 	/*
+--- a/mm/gup.c~mm-fix-some-typos-in-mm-module
++++ a/mm/gup.c
+@@ -2710,7 +2710,7 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+  *
+  *  *) ptes can be read atomically by the architecture.
+  *
+- *  *) valid user addesses are below TASK_MAX_SIZE
++ *  *) valid user addresses are below TASK_MAX_SIZE
+  *
+  * The last two assumptions can be relaxed by the addition of helper functions.
+  *
+--- a/mm/hugetlb.c~mm-fix-some-typos-in-mm-module
++++ a/mm/hugetlb.c
+@@ -2954,7 +2954,7 @@ typedef enum {
+ 	 * NOTE: This is mostly identical to MAP_CHG_NEEDED, except
+ 	 * that currently vma_needs_reservation() has an unwanted side
+ 	 * effect to either use end() or commit() to complete the
+-	 * transaction.	 Hence it needs to differenciate from NEEDED.
++	 * transaction. Hence it needs to differentiate from NEEDED.
+ 	 */
+ 	MAP_CHG_ENFORCED = 2,
+ } map_chg_state;
+@@ -6020,7 +6020,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 	/*
+ 	 * If we unshared PMDs, the TLB flush was not recorded in mmu_gather. We
+ 	 * could defer the flush until now, since by holding i_mmap_rwsem we
+-	 * guaranteed that the last refernece would not be dropped. But we must
++	 * guaranteed that the last reference would not be dropped. But we must
+ 	 * do the flushing before we return, as otherwise i_mmap_rwsem will be
+ 	 * dropped and the last reference to the shared PMDs page might be
+ 	 * dropped as well.
+@@ -7206,7 +7206,7 @@ long hugetlb_change_protection(struct vm
+ 		} else if (unlikely(is_pte_marker(pte))) {
+ 			/*
+ 			 * Do nothing on a poison marker; page is
+-			 * corrupted, permissons do not apply.  Here
++			 * corrupted, permissions do not apply. Here
+ 			 * pte_marker_uffd_wp()==true implies !poison
+ 			 * because they're mutual exclusive.
+ 			 */
+--- a/mm/hugetlb_vmemmap.c~mm-fix-some-typos-in-mm-module
++++ a/mm/hugetlb_vmemmap.c
+@@ -75,7 +75,7 @@ static int vmemmap_split_pmd(pmd_t *pmd,
+ 	if (likely(pmd_leaf(*pmd))) {
+ 		/*
+ 		 * Higher order allocations from buddy allocator must be able to
+-		 * be treated as indepdenent small pages (as they can be freed
++		 * be treated as independent small pages (as they can be freed
+ 		 * individually).
+ 		 */
+ 		if (!PageReserved(head))
+@@ -684,7 +684,7 @@ static void __hugetlb_vmemmap_optimize_f
+ 		ret = hugetlb_vmemmap_split_folio(h, folio);
  
- Under ``quotas`` directory, four files (``ms``, ``bytes``,
--``reset_interval_ms``, ``effective_bytes``) and two directores (``weights`` and
-+``reset_interval_ms``, ``effective_bytes``) and two directories (``weights`` and
- ``goals``) exist.
+ 		/*
+-		 * Spliting the PMD requires allocating a page, thus lets fail
++		 * Splitting the PMD requires allocating a page, thus let's fail
+ 		 * early once we encounter the first OOM. No point in retrying
+ 		 * as it can be dynamically done on remap with the memory
+ 		 * we get back from the vmemmap deduplication.
+@@ -715,7 +715,7 @@ static void __hugetlb_vmemmap_optimize_f
+ 		/*
+ 		 * Pages to be freed may have been accumulated.  If we
+ 		 * encounter an ENOMEM,  free what we have and try again.
+-		 * This can occur in the case that both spliting fails
++		 * This can occur in the case that both splitting fails
+ 		 * halfway and head page allocation also failed. In this
+ 		 * case __hugetlb_vmemmap_optimize_folio() would free memory
+ 		 * allowing more vmemmap remaps to occur.
+--- a/mm/kmsan/core.c~mm-fix-some-typos-in-mm-module
++++ a/mm/kmsan/core.c
+@@ -33,7 +33,7 @@ bool kmsan_enabled __read_mostly;
  
- You can set the ``time quota`` in milliseconds, ``size quota`` in bytes, and
+ /*
+  * Per-CPU KMSAN context to be used in interrupts, where current->kmsan is
+- * unavaliable.
++ * unavailable.
+  */
+ DEFINE_PER_CPU(struct kmsan_ctx, kmsan_percpu_ctx);
+ 
+--- a/mm/ksm.c~mm-fix-some-typos-in-mm-module
++++ a/mm/ksm.c
+@@ -389,7 +389,7 @@ static unsigned long ewma(unsigned long
+  * exponentially weighted moving average. The new pages_to_scan value is
+  * multiplied with that change factor:
+  *
+- *      new_pages_to_scan *= change facor
++ *      new_pages_to_scan *= change factor
+  *
+  * The new_pages_to_scan value is limited by the cpu min and max values. It
+  * calculates the cpu percent for the last scan and calculates the new
+--- a/mm/memory.c~mm-fix-some-typos-in-mm-module
++++ a/mm/memory.c
+@@ -4371,7 +4371,7 @@ static inline bool should_try_to_free_sw
+ 	 * If we want to map a page that's in the swapcache writable, we
+ 	 * have to detect via the refcount if we're really the exclusive
+ 	 * user. Try freeing the swapcache to get rid of the swapcache
+-	 * reference only in case it's likely that we'll be the exlusive user.
++	 * reference only in case it's likely that we'll be the exclusive user.
+ 	 */
+ 	return (fault_flags & FAULT_FLAG_WRITE) && !folio_test_ksm(folio) &&
+ 		folio_ref_count(folio) == (1 + folio_nr_pages(folio));
+@@ -5448,7 +5448,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 
+ /**
+  * set_pte_range - Set a range of PTEs to point to pages in a folio.
+- * @vmf: Fault decription.
++ * @vmf: Fault description.
+  * @folio: The folio that contains @page.
+  * @page: The first page to create a PTE for.
+  * @nr: The number of PTEs to create.
+--- a/mm/memory-tiers.c~mm-fix-some-typos-in-mm-module
++++ a/mm/memory-tiers.c
+@@ -519,7 +519,7 @@ static inline void __init_node_memory_ty
+ 	 * for each device getting added in the same NUMA node
+ 	 * with this specific memtype, bump the map count. We
+ 	 * Only take memtype device reference once, so that
+-	 * changing a node memtype can be done by droping the
++	 * changing a node memtype can be done by dropping the
+ 	 * only reference count taken here.
+ 	 */
+ 
+--- a/mm/secretmem.c~mm-fix-some-typos-in-mm-module
++++ a/mm/secretmem.c
+@@ -227,7 +227,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
+ 	struct file *file;
+ 	int fd, err;
+ 
+-	/* make sure local flags do not confict with global fcntl.h */
++	/* make sure local flags do not conflict with global fcntl.h */
+ 	BUILD_BUG_ON(SECRETMEM_FLAGS_MASK & O_CLOEXEC);
+ 
+ 	if (!secretmem_enable || !can_set_direct_map())
+--- a/mm/slab_common.c~mm-fix-some-typos-in-mm-module
++++ a/mm/slab_common.c
+@@ -256,7 +256,7 @@ out:
+  * @object_size: The size of objects to be created in this cache.
+  * @args: Additional arguments for the cache creation (see
+  *        &struct kmem_cache_args).
+- * @flags: See the desriptions of individual flags. The common ones are listed
++ * @flags: See the descriptions of individual flags. The common ones are listed
+  *         in the description below.
+  *
+  * Not to be called directly, use the kmem_cache_create() wrapper with the same
+--- a/mm/slub.c~mm-fix-some-typos-in-mm-module
++++ a/mm/slub.c
+@@ -2409,7 +2409,7 @@ bool slab_free_hook(struct kmem_cache *s
+ 		memset((char *)kasan_reset_tag(x) + inuse, 0,
+ 		       s->size - inuse - rsize);
+ 		/*
+-		 * Restore orig_size, otherwize kmalloc redzone overwritten
++		 * Restore orig_size, otherwise kmalloc redzone overwritten
+ 		 * would be reported
+ 		 */
+ 		set_orig_size(s, x, orig_size);
+--- a/mm/swapfile.c~mm-fix-some-typos-in-mm-module
++++ a/mm/swapfile.c
+@@ -1677,7 +1677,7 @@ static bool swap_entries_put_map_nr(stru
+ 
+ /*
+  * Check if it's the last ref of swap entry in the freeing path.
+- * Qualified vlaue includes 1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM.
++ * Qualified value includes 1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM.
+  */
+ static inline bool __maybe_unused swap_is_last_ref(unsigned char count)
+ {
+--- a/mm/userfaultfd.c~mm-fix-some-typos-in-mm-module
++++ a/mm/userfaultfd.c
+@@ -1578,7 +1578,7 @@ static int validate_move_areas(struct us
+ 
+ 	/*
+ 	 * For now, we keep it simple and only move between writable VMAs.
+-	 * Access flags are equal, therefore cheching only the source is enough.
++	 * Access flags are equal, therefore checking only the source is enough.
+ 	 */
+ 	if (!(src_vma->vm_flags & VM_WRITE))
+ 		return -EINVAL;
+--- a/mm/vma.c~mm-fix-some-typos-in-mm-module
++++ a/mm/vma.c
+@@ -109,7 +109,7 @@ static inline bool is_mergeable_vma(stru
+ static bool is_mergeable_anon_vma(struct vma_merge_struct *vmg, bool merge_next)
+ {
+ 	struct vm_area_struct *tgt = merge_next ? vmg->next : vmg->prev;
+-	struct vm_area_struct *src = vmg->middle; /* exisitng merge case. */
++	struct vm_area_struct *src = vmg->middle; /* existing merge case. */
+ 	struct anon_vma *tgt_anon = tgt->anon_vma;
+ 	struct anon_vma *src_anon = vmg->anon_vma;
+ 
+@@ -798,7 +798,7 @@ static bool can_merge_remove_vma(struct
+  * Returns: The merged VMA if merge succeeds, or NULL otherwise.
+  *
+  * ASSUMPTIONS:
+- * - The caller must assign the VMA to be modifed to @vmg->middle.
++ * - The caller must assign the VMA to be modified to @vmg->middle.
+  * - The caller must have set @vmg->prev to the previous VMA, if there is one.
+  * - The caller must not set @vmg->next, as we determine this.
+  * - The caller must hold a WRITE lock on the mm_struct->mmap_lock.
 _
 
-Patches currently in -mm which might be from weibu@redadmin.org are
+Patches currently in -mm which might be from jianyungao89@gmail.com are
 
-docs-admin-guide-mm-damon-correct-typo-directores.patch
+mm-fix-some-typos-in-mm-module.patch
 
