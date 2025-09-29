@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A53E2594B7;
-	Sun, 28 Sep 2025 18:52:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C0491FE451;
+	Mon, 29 Sep 2025 21:44:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759085557; cv=none; b=D5pijC2iGgk0W3jwU3+ZdKVMpu/QjxGgU/TlPi7YMsS19GbL1TJCY2HdsfNJnSimE2W7H1s5t9mNieXQdLZ23yigrLVRvGOkOKXz35HAPCFatqfnpcBtWX0XRe3KiAVfvTIJUBqzWJsSEH+KuXGcZ/yCtg0VgBcfYKKp6wf6Tok=
+	t=1759182251; cv=none; b=thxnuZPQPaGhq5Iu5e3B784ziaHMMbHaAciOBvnXMDDCIp8opYAsL8LlPyf7BRU7EmK0S/RqpYhmR23RXBPoe9BAsZSJu/pA4MloVPEerd8kcz2aF+ZfEqYPlOxbMEgNOM3PXiCYere1SNojAfXQyqn3RjCxC2qnm3D/EB2h/do=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759085557; c=relaxed/simple;
-	bh=fSr5Uy1i/0w2EBoAsVB4ctteU7EBxTeivJxTvYvNguU=;
-	h=Date:To:From:Subject:Message-Id; b=SIfkrka4DXEIM4nNtQfW9Wk/d2Fr19syev1t1kWXFUECCDRmMLasVeB/R++70ff/roryshr8XVQuiFeILqyrgataKmFj/pwYZnvoLrt3Zw4BHyjMTMLwC3rUKTBcfimbTsdfVWttGSZeX2SGnE0kgURma5qhvHSsElvnRnJP6/w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vIc+kwes; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759182251; c=relaxed/simple;
+	bh=HmoZH92Flk1DUhziXKPLm0ZtE7udoDgjLc27E+Jn4vM=;
+	h=Date:To:From:Subject:Message-Id; b=A6rzf+N6O/dAbLrJ3sDbpdsokrPdkbEnTYTLqMv/eurDEhkm7kMw0mTB/V/NxBkDNQcQqgM7uUMZvyzf5amNfA0RWR3cIO8RLZecCGAD942BdJ/8qyrR4pFnSq7CFQeGq65adHwcAHqyvFnX6MS51K22XxOPO4TfPsFFRXZX+z0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HA1LS6CC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vIc+kwes"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5C69C4CEF0;
-	Sun, 28 Sep 2025 18:52:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HA1LS6CC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5941AC4CEF4;
+	Mon, 29 Sep 2025 21:44:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759085557;
-	bh=fSr5Uy1i/0w2EBoAsVB4ctteU7EBxTeivJxTvYvNguU=;
+	s=korg; t=1759182250;
+	bh=HmoZH92Flk1DUhziXKPLm0ZtE7udoDgjLc27E+Jn4vM=;
 	h=Date:To:From:Subject:From;
-	b=vIc+kwes4OoLfUkNlclSWx+HLdEeLr34Z1C4VpOtrgR/ubmqv7Oh6olzHh2GQRU3/
-	 QodvtZmkH/vig0wGr70y5jHM6bH6tEcTGT43xOn/X6FKC9hGw3t/UKiOMd/cZixmNh
-	 XHjUMzEGKizB0Gy417dN/O6gZ/uXQw0ySnYLWaU4=
-Date: Sun, 28 Sep 2025 11:52:36 -0700
-To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kasong@tencent.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,charan.kalla@oss.qualcomm.com,akpm@linux-foundation.org
+	b=HA1LS6CC+Jt7JdJJQp1VVbPNnveQ/gGtHQTXsskD18McNw5yUcVhRWt0BlHrFOG/S
+	 mXtvrkqV1idcfDuPE4jiZzlg8Hf2JCYYdRHtMQa+Z/AlTCYICNbrMdGvwxLxqrcb31
+	 FotOp7u/i4FSc+NQX66zW4vC3R50wA9q6QsSr7vs=
+Date: Mon, 29 Sep 2025 14:44:09 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@redhat.com,cl@gentwo.org,catalin.marinas@arm.com,carl@os.amperecomputing.com,anshuman.khandual@arm.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-check-for-stable-address-space-before-operating-on-the-vma.patch removed from -mm tree
-Message-Id: <20250928185236.E5C69C4CEF0@smtp.kernel.org>
+Subject: + mm-hugetlb-avoid-soft-lockup-when-mprotect-to-large-memory-area.patch added to mm-hotfixes-unstable branch
+Message-Id: <20250929214410.5941AC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,113 +34,112 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: swap: check for stable address space before operating on the VMA
-has been removed from the -mm tree.  Its filename was
-     mm-swap-check-for-stable-address-space-before-operating-on-the-vma.patch
+The patch titled
+     Subject: mm: hugetlb: avoid soft lockup when mprotect to large memory area
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-avoid-soft-lockup-when-mprotect-to-large-memory-area.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-avoid-soft-lockup-when-mprotect-to-large-memory-area.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Charan Teja Kalla <charan.kalla@oss.qualcomm.com>
-Subject: mm: swap: check for stable address space before operating on the VMA
-Date: Wed, 24 Sep 2025 23:41:38 +0530
+From: Yang Shi <yang@os.amperecomputing.com>
+Subject: mm: hugetlb: avoid soft lockup when mprotect to large memory area
+Date: Mon, 29 Sep 2025 13:24:02 -0700
 
-It is possible to hit a zero entry while traversing the vmas in unuse_mm()
-called from swapoff path and accessing it causes the OOPS:
+When calling mprotect() to a large hugetlb memory area in our customer's
+workload (~300GB hugetlb memory), soft lockup was observed:
 
-Unable to handle kernel NULL pointer dereference at virtual address
-0000000000000446--> Loading the memory from offset 0x40 on the
-XA_ZERO_ENTRY as address.
-Mem abort info:
-  ESR = 0x0000000096000005
-  EC = 0x25: DABT (current EL), IL = 32 bits
-  SET = 0, FnV = 0
-  EA = 0, S1PTW = 0
-  FSC = 0x05: level 1 translation fault
+watchdog: BUG: soft lockup - CPU#98 stuck for 23s! [t2_new_sysv:126916]
 
-The issue is manifested from the below race between the fork() on a
-process and swapoff:
-fork(dup_mmap())			swapoff(unuse_mm)
----------------                         -----------------
-1) Identical mtree is built using
-   __mt_dup().
+CPU: 98 PID: 126916 Comm: t2_new_sysv Kdump: loaded Not tainted 6.17-rc7
+Hardware name: GIGACOMPUTING R2A3-T40-AAV1/Jefferson CIO, BIOS 5.4.4.1 07/15/2025
+pstate: 20400009 (nzCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : mte_clear_page_tags+0x14/0x24
+lr : mte_sync_tags+0x1c0/0x240
+sp : ffff80003150bb80
+x29: ffff80003150bb80 x28: ffff00739e9705a8 x27: 0000ffd2d6a00000
+x26: 0000ff8e4bc00000 x25: 00e80046cde00f45 x24: 0000000000022458
+x23: 0000000000000000 x22: 0000000000000004 x21: 000000011b380000
+x20: ffff000000000000 x19: 000000011b379f40 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000000 x10: 0000000000000000 x9 : ffffc875e0aa5e2c
+x8 : 0000000000000000 x7 : 0000000000000000 x6 : 0000000000000000
+x5 : fffffc01ce7a5c00 x4 : 00000000046cde00 x3 : fffffc0000000000
+x2 : 0000000000000004 x1 : 0000000000000040 x0 : ffff0046cde7c000
 
-2) copy_pte_range()-->
-	copy_nonpresent_pte():
-       The dst mm is added into the
-    mmlist to be visible to the
-    swapoff operation.
+Call trace:
+  mte_clear_page_tags+0x14/0x24
+  set_huge_pte_at+0x25c/0x280
+  hugetlb_change_protection+0x220/0x430
+  change_protection+0x5c/0x8c
+  mprotect_fixup+0x10c/0x294
+  do_mprotect_pkey.constprop.0+0x2e0/0x3d4
+  __arm64_sys_mprotect+0x24/0x44
+  invoke_syscall+0x50/0x160
+  el0_svc_common+0x48/0x144
+  do_el0_svc+0x30/0xe0
+  el0_svc+0x30/0xf0
+  el0t_64_sync_handler+0xc4/0x148
+  el0t_64_sync+0x1a4/0x1a8
 
-3) Fatal signal is sent to the parent
-process(which is the current during the
-fork) thus skip the duplication of the
-vmas and mark the vma range with
-XA_ZERO_ENTRY as a marker for this process
-that helps during exit_mmap().
+Soft lockup is not triggered with THP or base page because there is
+cond_resched() called for each PMD size.
 
-				     4) swapoff is tried on the
-					'mm' added to the 'mmlist' as
-					part of the 2.
+Although the soft lockup was triggered by MTE, it should be not MTE
+specific.  The other processing which takes long time in the loop may
+trigger soft lockup too.
 
-				     5) unuse_mm(), that iterates
-					through the vma's of this 'mm'
-					will hit the non-NULL zero entry
-					and operating on this zero entry
-					as a vma is resulting into the
-					oops.
+So add cond_resched() for hugetlb to avoid soft lockup.
 
-The proper fix would be around not exposing this partially-valid tree to
-others when droping the mmap lock, which is being solved with [1].  A
-simpler solution would be checking for MMF_UNSTABLE, as it is set if
-mm_struct is not fully initialized in dup_mmap().
-
-Thanks to Liam/Lorenzo/David for all the suggestions in fixing this
-issue.
-
-Link: https://lkml.kernel.org/r/20250924181138.1762750-1-charan.kalla@oss.qualcomm.com
-Link: https://lore.kernel.org/all/20250815191031.3769540-1-Liam.Howlett@oracle.com/ [1]
-Fixes: d24062914837 ("fork: use __mt_dup() to duplicate maple tree in dup_mmap()")
-Signed-off-by: Charan Teja Kalla <charan.kalla@oss.qualcomm.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Link: https://lkml.kernel.org/r/20250929202402.1663290-1-yang@os.amperecomputing.com
+Fixes: 8f860591ffb2 ("[PATCH] Enable mprotect on huge pages")
+Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
+Tested-by: Carl Worth <carl@os.amperecomputing.com>
+Reviewed-by: Christoph Lameter (Ampere) <cl@gentwo.org>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Will Deacon <will@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/hugetlb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/swapfile.c~mm-swap-check-for-stable-address-space-before-operating-on-the-vma
-+++ a/mm/swapfile.c
-@@ -2389,6 +2389,8 @@ static int unuse_mm(struct mm_struct *mm
- 	VMA_ITERATOR(vmi, mm, 0);
- 
- 	mmap_read_lock(mm);
-+	if (check_stable_address_space(mm))
-+		goto unlock;
- 	for_each_vma(vmi, vma) {
- 		if (vma->anon_vma && !is_vm_hugetlb_page(vma)) {
- 			ret = unuse_vma(vma, type);
-@@ -2398,6 +2400,7 @@ static int unuse_mm(struct mm_struct *mm
- 
- 		cond_resched();
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-when-mprotect-to-large-memory-area
++++ a/mm/hugetlb.c
+@@ -7203,6 +7203,8 @@ long hugetlb_change_protection(struct vm
+ 						psize);
+ 		}
+ 		spin_unlock(ptl);
++
++		cond_resched();
  	}
-+unlock:
- 	mmap_read_unlock(mm);
- 	return ret;
- }
+ 	/*
+ 	 * Must flush TLB before releasing i_mmap_rwsem: x86's huge_pmd_unshare
 _
 
-Patches currently in -mm which might be from charan.kalla@oss.qualcomm.com are
+Patches currently in -mm which might be from yang@os.amperecomputing.com are
 
+mm-hugetlb-avoid-soft-lockup-when-mprotect-to-large-memory-area.patch
 
