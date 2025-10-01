@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3F70302768;
-	Wed,  1 Oct 2025 20:52:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAA2BC148
+	for <mm-commits@vger.kernel.org>; Wed,  1 Oct 2025 20:56:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759351966; cv=none; b=UoPchMISurHqf2k+20xEeXF09s1Bj8bXFvcKXmqKNeFmjubwvL7fb4zOAQhu3WzZylsKfa7rh5ljA8gmaidM62ViM2XcCfs0YOnCpTB3M+odgAbcY0iRZRm95aY6A2pM1UHulXgTj9jH7H3hqQNItSjS923nuIgxK/rpMN8fd+c=
+	t=1759352199; cv=none; b=DEfTHn36a8EBp5L7S9xlzn5eyTaTQVUordZF5tLCqNMDToZEa1EOO7pb4Q0nvPnp5NbHYXlTHfBxvIwxM8P5JkK3J8STP9vSrllr73FNCEcIIeqTovHkAzsw1oqBKUT0LtGPpjByDzbhy9EBLhjlqSRPv4IFdbPJFBL+qcqUeMY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759351966; c=relaxed/simple;
-	bh=nuggKT4B+/cwdFthBZZHXFM/gZ5aXtLjPy9a5wkLf9A=;
-	h=Date:To:From:Subject:Message-Id; b=HxOgmyecskc4vAd0yaWcaRztL6BHGboPvMD2qzlwcdaIx3LgUC1sw1d443smUVytYxoWBMEp31558nFylNVrjsH5LPC53fCD5DHm3HfDw32kCy3CwayQtWZQCKj70d5qKVhkY4qa1RIrf/j8hLrmRUsVMM2axd97p2IvcWPFjTc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zyybq6Pt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759352199; c=relaxed/simple;
+	bh=yyllv02kci1xgI3bAT8VYL6z8Vs9/s7dJBNBUy4WQ6A=;
+	h=Date:To:From:Subject:Message-Id; b=oD2L7aAsXdO6wvXowpWRUQaEplwhQUYkFpe4Hntay8kvKWTjFn/EQyFNT0ewkHFFXMs2hQ0w0qx+AW7iQ1QxLrBuV2TniBxpgpzbKTButz/TfKSofL/QpK6AN0E0r+Aj9TVTfs6od6bEmZJt6fgS0Q5P4tmyzj1K0IwXXuuJiS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AyRyS/AJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zyybq6Pt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30014C4CEF4;
-	Wed,  1 Oct 2025 20:52:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AyRyS/AJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 663AFC4CEF1;
+	Wed,  1 Oct 2025 20:56:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759351966;
-	bh=nuggKT4B+/cwdFthBZZHXFM/gZ5aXtLjPy9a5wkLf9A=;
+	s=korg; t=1759352199;
+	bh=yyllv02kci1xgI3bAT8VYL6z8Vs9/s7dJBNBUy4WQ6A=;
 	h=Date:To:From:Subject:From;
-	b=zyybq6Ptc4wn29wkV9AGwrjGxCxwTxZ/KcP6tPaKEWwjv71eE9lY1Vy2ogb+iGlZL
-	 PwTa7POjVHBUOBALY3qAnSRAw03NGXYmBBH+db2uemhCwlW4qqN1VxQJq9/I1e5MeC
-	 VGmopQ/KhGK5Zln+B85pG/70szfKcFaDqsJ81GAU=
-Date: Wed, 01 Oct 2025 13:52:45 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,stable@vger.kernel.org,sj@kernel.org,peterx@redhat.com,david@redhat.com,chengming.zhou@linux.dev,axelrasmussen@google.com,acsjakub@amazon.de,akpm@linux-foundation.org
+	b=AyRyS/AJ2+M+FPRk+Gu/FsN7M/0ckMV+aLfPwRbE4aUDJSXjRhlzDbkeWwEIukph/
+	 D0Ub/RFpIOvVKvJAW7eWNGEw7Du/YO+bplY0db7DeIYqDy3E7sfbIlbnVzUelK7J3n
+	 l9eFER5FpFIB7OsSCRjvNxQAOs1F9tnHpJL37JoE=
+Date: Wed, 01 Oct 2025 13:56:38 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251001205246.30014C4CEF4@smtp.kernel.org>
+Subject: + mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch added to mm-new branch
+Message-Id: <20251001205639.663AFC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: fix flag-dropping behavior in ksm_madvise
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise.patch
+     Subject: mm/ptdump: replace READ_ONCE() with standard page table accessors
+has been added to the -mm mm-new branch.  Its filename is
+     mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,99 +64,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jakub Acs <acsjakub@amazon.de>
-Subject: mm/ksm: fix flag-dropping behavior in ksm_madvise
-Date: Wed, 1 Oct 2025 09:03:52 +0000
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/ptdump: replace READ_ONCE() with standard page table accessors
+Date: Wed, 1 Oct 2025 05:25:02 +0100
 
-syzkaller discovered the following crash: (kernel BUG)
+Replace READ_ONCE() with standard page table accessors i.e pxdp_get()
+which anyways default into READ_ONCE() in cases where platform does not
+override.  Also convert ptep_get_lockless() into ptep_get() as well.
 
-[   44.607039] ------------[ cut here ]------------
-[   44.607422] kernel BUG at mm/userfaultfd.c:2067!
-[   44.608148] Oops: invalid opcode: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN NOPTI
-[   44.608814] CPU: 1 UID: 0 PID: 2475 Comm: reproducer Not tainted 6.16.0-rc6 #1 PREEMPT(none)
-[   44.609635] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
-[   44.610695] RIP: 0010:userfaultfd_release_all+0x3a8/0x460
-
-<snip other registers, drop unreliable trace>
-
-[   44.617726] Call Trace:
-[   44.617926]  <TASK>
-[   44.619284]  userfaultfd_release+0xef/0x1b0
-[   44.620976]  __fput+0x3f9/0xb60
-[   44.621240]  fput_close_sync+0x110/0x210
-[   44.622222]  __x64_sys_close+0x8f/0x120
-[   44.622530]  do_syscall_64+0x5b/0x2f0
-[   44.622840]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-[   44.623244] RIP: 0033:0x7f365bb3f227
-
-Kernel panics because it detects UFFD inconsistency during
-userfaultfd_release_all().  Specifically, a VMA which has a valid pointer
-to vma->vm_userfaultfd_ctx, but no UFFD flags in vma->vm_flags.
-
-The inconsistency is caused in ksm_madvise(): when user calls madvise()
-with MADV_UNMEARGEABLE on a VMA that is registered for UFFD in MINOR mode,
-it accidentally clears all flags stored in the upper 32 bits of
-vma->vm_flags.
-
-Assuming x86_64 kernel build, unsigned long is 64-bit and unsigned int and
-int are 32-bit wide.  This setup causes the following mishap during the &=
-~VM_MERGEABLE assignment.
-
-VM_MERGEABLE is a 32-bit constant of type unsigned int, 0x8000'0000. 
-After ~ is applied, it becomes 0x7fff'ffff unsigned int, which is then
-promoted to unsigned long before the & operation.  This promotion fills
-upper 32 bits with leading 0s, as we're doing unsigned conversion (and
-even for a signed conversion, this wouldn't help as the leading bit is 0).
-& operation thus ends up AND-ing vm_flags with 0x0000'0000'7fff'ffff
-instead of intended 0xffff'ffff'7fff'ffff and hence accidentally clears
-the upper 32-bits of its value.
-
-Fix it by changing `VM_MERGEABLE` constant to unsigned long, using the
-BIT() macro.
-
-Note: other VM_* flags are not affected: This only happens to the
-VM_MERGEABLE flag, as the other VM_* flags are all constants of type int
-and after ~ operation, they end up with leading 1 and are thus converted
-to unsigned long with leading 1s.
-
-Note 2:
-After commit 31defc3b01d9 ("userfaultfd: remove (VM_)BUG_ON()s"), this is
-no longer a kernel BUG, but a WARNING at the same place:
-
-[   45.595973] WARNING: CPU: 1 PID: 2474 at mm/userfaultfd.c:2067
-
-but the root-cause (flag-drop) remains the same.
-
-Link: https://lkml.kernel.org/r/20251001090353.57523-2-acsjakub@amazon.de
-Fixes: 7677f7fd8be7 ("userfaultfd: add minor fault registration mode")
-Signed-off-by: Jakub Acs <acsjakub@amazon.de>
-Acked-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20251001042502.1400726-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Lance Yang <lance.yang@linux.dev>
 Acked-by: SeongJae Park <sj@kernel.org>
-Cc: Xu Xin <xu.xin16@zte.com.cn>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/ptdump.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/mm.h~mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise
-+++ a/include/linux/mm.h
-@@ -296,7 +296,7 @@ extern unsigned int kobjsize(const void
- #define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
- #define VM_HUGEPAGE	0x20000000	/* MADV_HUGEPAGE marked this vma */
- #define VM_NOHUGEPAGE	0x40000000	/* MADV_NOHUGEPAGE marked this vma */
--#define VM_MERGEABLE	0x80000000	/* KSM may merge identical pages */
-+#define VM_MERGEABLE	BIT(31)		/* KSM may merge identical pages */
+--- a/mm/ptdump.c~mm-ptdump-replace-read_once-with-standard-page-table-accessors
++++ a/mm/ptdump.c
+@@ -31,7 +31,7 @@ static int ptdump_pgd_entry(pgd_t *pgd,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pgd_t val = READ_ONCE(*pgd);
++	pgd_t val = pgdp_get(pgd);
  
- #ifdef CONFIG_ARCH_USES_HIGH_VMA_FLAGS
- #define VM_HIGH_ARCH_BIT_0	32	/* bit only usable on 64-bit architectures */
+ #if CONFIG_PGTABLE_LEVELS > 4 && \
+ 		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+@@ -54,7 +54,7 @@ static int ptdump_p4d_entry(p4d_t *p4d,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	p4d_t val = READ_ONCE(*p4d);
++	p4d_t val = p4dp_get(p4d);
+ 
+ #if CONFIG_PGTABLE_LEVELS > 3 && \
+ 		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+@@ -77,7 +77,7 @@ static int ptdump_pud_entry(pud_t *pud,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pud_t val = READ_ONCE(*pud);
++	pud_t val = pudp_get(pud);
+ 
+ #if CONFIG_PGTABLE_LEVELS > 2 && \
+ 		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+@@ -100,7 +100,7 @@ static int ptdump_pmd_entry(pmd_t *pmd,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pmd_t val = READ_ONCE(*pmd);
++	pmd_t val = pmdp_get(pmd);
+ 
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ 	if (pmd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pte)))
+@@ -121,7 +121,7 @@ static int ptdump_pte_entry(pte_t *pte,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pte_t val = ptep_get_lockless(pte);
++	pte_t val = ptep_get(pte);
+ 
+ 	if (st->effective_prot_pte)
+ 		st->effective_prot_pte(st, val);
 _
 
-Patches currently in -mm which might be from acsjakub@amazon.de are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise.patch
+documentation-mm-drop-pxx_mkdevmap-descriptions-from-page-table-helpers.patch
+mm-thp-drop-follow_devmap_pmd-default-stub.patch
+mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
 
