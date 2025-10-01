@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CB78136658;
-	Tue, 30 Sep 2025 21:59:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B09291946AA
+	for <mm-commits@vger.kernel.org>; Wed,  1 Oct 2025 20:49:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759269594; cv=none; b=q5fnkycMnimL0lYFBy1wPJbfGC3Ar9rMyGQvK/S4D+ym0tLzqDFg7fElQHyVUN4ExJKBITwmC33dzRs09dBLgiTdXx1+1YmJ+LZOqNwI9AGqym9b5+EkTgkECkqk53Y0uce7T9dK6KHbkUgvNLxsogZMKbT6tNxBZnSL3PbHeqo=
+	t=1759351792; cv=none; b=LsJNp8bsLIFNxqBizGeHm15ZcBbjQIiYVpsVesvlVSdocMqS+iH+1DdNO8f8S4Mhb2zfg1vz/HSHWRmLiiOTlRMFZzNMzQ4C9aHgMhB+g+CN7zmnbUfVv9Sh+bMb/rHPewp6snpej/X5Dh1ztjlRQxmBRgWz3qabs8FJ5TkTffE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759269594; c=relaxed/simple;
-	bh=kgDYbTQOzHkBO7O974DWE+h+U0Jm/XMCx7/0Ma2DD9s=;
-	h=Date:To:From:Subject:Message-Id; b=tn7Y0WBBXJ+tSe2/77Vv+vb8bQI/CY9JKHK8a2CXZ4A4ozYvgwl5J6x2N66LC2d6SFXABDNxVRrHhqJLc9DLwruMkAOlshS8G/uw1WT4L7+Fu9kCeL0MQ/RwnPyStz11EBCfIMf7tR52OjcOFpwazcenSC5j3BZSMrXYbIukP/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HYtPxRyQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759351792; c=relaxed/simple;
+	bh=22msGwpp84lfpU/Uj3RGjDISVsXaxH/Ni9tLvFdkHz0=;
+	h=Date:To:From:Subject:Message-Id; b=U4H8uqh+awGhDwAk9rexKbGtHxZCdjAykkSqt5flMHkmiKZtuayM60hi0D/5XEzS8BbL92tnDZuS5enrmlI1do/2iumlKhyewxssWGE/FKXPP971WHwea0YcN0GNtK4CCkDyeMi4dMV4u9KL0IDzmVm/YgF+pzjMsfpXLogKnsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZO5C7OUI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HYtPxRyQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CEF2C4CEF0;
-	Tue, 30 Sep 2025 21:59:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZO5C7OUI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21737C4CEF1;
+	Wed,  1 Oct 2025 20:49:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759269593;
-	bh=kgDYbTQOzHkBO7O974DWE+h+U0Jm/XMCx7/0Ma2DD9s=;
+	s=korg; t=1759351792;
+	bh=22msGwpp84lfpU/Uj3RGjDISVsXaxH/Ni9tLvFdkHz0=;
 	h=Date:To:From:Subject:From;
-	b=HYtPxRyQvBMLuBDwemZIszz8FSS/jfIN4SNOFLsFu+FuTXQzk0VuvaBa+HUMynrWl
-	 +QpJpG9bfhY2BkFDMn6PDy1x0krHXs+hV1lPAxz6L2ig5INTfqnkfajdrORJO86F9Y
-	 YbV5sntC/0uHbFBBJiKxp0yVHPx9XSdne9dK23Vw=
-Date: Tue, 30 Sep 2025 14:59:52 -0700
-To: mm-commits@vger.kernel.org,zhengxinyu6@huawei.com,stable@vger.kernel.org,hughd@google.com,sj@kernel.org,akpm@linux-foundation.org
+	b=ZO5C7OUITyaE+diFslutSD506/jE5qADoseI+mjHak4ULefIKKJpPLE0Y3Fh3emMO
+	 /ein3N8T7h5fK0PVB1h7OAjywTXkqmDvq/OBpRH4YCDd7HEk+3SBuXlGUBXbfrxBdw
+	 K0XjQP7Zju7V01Heqy/9ubyvqP+eSCU6q37PYyho=
+Date: Wed, 01 Oct 2025 13:49:51 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,sj@kernel.org,ryan.roberts@arm.com,raghavendra.kt@amd.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,kirill@shutemov.name,kas@kernel.org,dev.jain@arm.com,david@redhat.com,dan.carpenter@linaro.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-do-not-repeat-pte_offset_map_lock-until-success.patch added to mm-hotfixes-unstable branch
-Message-Id: <20250930215953.0CEF2C4CEF0@smtp.kernel.org>
+Subject: + mm-ksm-cleanup-mm_slot_entry-invocation.patch added to mm-unstable branch
+Message-Id: <20251001204952.21737C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/vaddr: do not repeat pte_offset_map_lock() until success
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-vaddr-do-not-repeat-pte_offset_map_lock-until-success.patch
+     Subject: mm/ksm: cleanup mm_slot_entry() invocation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-ksm-cleanup-mm_slot_entry-invocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-do-not-repeat-pte_offset_map_lock-until-success.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-cleanup-mm_slot_entry-invocation.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,68 +58,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/vaddr: do not repeat pte_offset_map_lock() until success
-Date: Mon, 29 Sep 2025 17:44:09 -0700
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/ksm: cleanup mm_slot_entry() invocation
+Date: Wed, 1 Oct 2025 09:18:59 +0000
 
-DAMON's virtual address space operation set implementation (vaddr) calls
-pte_offset_map_lock() inside the page table walk callback function.  This
-is for reading and writing page table accessed bits.  If
-pte_offset_map_lock() fails, it retries by returning the page table walk
-callback function with ACTION_AGAIN.
+Patch series "mm_slot: following fixup for usage of mm_slot_entry()", v2.
 
-pte_offset_map_lock() can continuously fail if the target is a pmd
-migration entry, though.  Hence it could cause an infinite page table walk
-if the migration cannot be done until the page table walk is finished. 
-This indeed caused a soft lockup when CPU hotplugging and DAMON were
-running in parallel.
+We got some late review commits during review of "mm_slot: fix the usage of
+mm_slot_entry()" in [1].
 
-Avoid the infinite loop by simply not retrying the page table walk.  DAMON
-is promising only a best-effort accuracy, so missing access to such pages
-is no problem.
 
-Link: https://lkml.kernel.org/r/20250930004410.55228-1-sj@kernel.org
-Fixes: 7780d04046a2 ("mm/pagewalkers: ACTION_AGAIN if pte_offset_map_lock() fails")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Xinyu Zheng <zhengxinyu6@huawei.com>
-Closes: https://lore.kernel.org/20250918030029.2652607-1-zhengxinyu6@huawei.com
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[6.5+]
+This patch (of 2):
+
+We got some late review commits during review of commit 08498be43ee6
+("mm/ksm: get mm_slot by mm_slot_entry() when slot is !NULL").  Let's
+reduce the indentation level and make the code easier to follow by using
+gotos to a new label.
+
+Link: https://lkml.kernel.org/r/20251001091900.20041-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20251001091900.20041-2-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20250927004539.19308-1-richard.weiyang@gmail.com [1]
+Fixes: 08498be43ee6 ("mm/ksm: get mm_slot by mm_slot_entry() when slot is !NULL")
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Kiryl Shutsemau <kas@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Kiryl Shutsemau <kirill@shutemov.name>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/ksm.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-do-not-repeat-pte_offset_map_lock-until-success
-+++ a/mm/damon/vaddr.c
-@@ -328,10 +328,8 @@ static int damon_mkold_pmd_entry(pmd_t *
+--- a/mm/ksm.c~mm-ksm-cleanup-mm_slot_entry-invocation
++++ a/mm/ksm.c
+@@ -2921,7 +2921,7 @@ int __ksm_enter(struct mm_struct *mm)
+ 
+ void __ksm_exit(struct mm_struct *mm)
+ {
+-	struct ksm_mm_slot *mm_slot;
++	struct ksm_mm_slot *mm_slot = NULL;
+ 	struct mm_slot *slot;
+ 	int easy_to_free = 0;
+ 
+@@ -2936,19 +2936,20 @@ void __ksm_exit(struct mm_struct *mm)
+ 
+ 	spin_lock(&ksm_mmlist_lock);
+ 	slot = mm_slot_lookup(mm_slots_hash, mm);
+-	if (slot) {
+-		mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
+-		if (ksm_scan.mm_slot != mm_slot) {
+-			if (!mm_slot->rmap_list) {
+-				hash_del(&slot->hash);
+-				list_del(&slot->mm_node);
+-				easy_to_free = 1;
+-			} else {
+-				list_move(&slot->mm_node,
+-					  &ksm_scan.mm_slot->slot.mm_node);
+-			}
+-		}
++	if (!slot)
++		goto unlock;
++	mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
++	if (ksm_scan.mm_slot == mm_slot)
++		goto unlock;
++	if (!mm_slot->rmap_list) {
++		hash_del(&slot->hash);
++		list_del(&slot->mm_node);
++		easy_to_free = 1;
++	} else {
++		list_move(&slot->mm_node,
++			  &ksm_scan.mm_slot->slot.mm_node);
  	}
++unlock:
+ 	spin_unlock(&ksm_mmlist_lock);
  
- 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
--	if (!pte) {
--		walk->action = ACTION_AGAIN;
-+	if (!pte)
- 		return 0;
--	}
- 	if (!pte_present(ptep_get(pte)))
- 		goto out;
- 	damon_ptep_mkold(pte, walk->vma, addr);
-@@ -481,10 +479,8 @@ regular_page:
- #endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
--	if (!pte) {
--		walk->action = ACTION_AGAIN;
-+	if (!pte)
- 		return 0;
--	}
- 	ptent = ptep_get(pte);
- 	if (!pte_present(ptent))
- 		goto out;
+ 	if (easy_to_free) {
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-damon-vaddr-do-not-repeat-pte_offset_map_lock-until-success.patch
+mm-ksm-cleanup-mm_slot_entry-invocation.patch
+mm-khugepaged-use-kmem_cache.patch
 
