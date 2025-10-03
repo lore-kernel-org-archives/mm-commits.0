@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28BD8258EF0
-	for <mm-commits@vger.kernel.org>; Fri,  3 Oct 2025 23:43:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E65F258EF0
+	for <mm-commits@vger.kernel.org>; Fri,  3 Oct 2025 23:43:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759534999; cv=none; b=rUjDbWkDEep+q4wRH66o+E0Vjenq8s91kX5tmee+YqgNzmmX4wWmcOK3w4npqNq+3eOMy5ItqVHa1EoJVN8rWAvS+ZZJWd4OqBJOgjKn1jW11oMe6wT1eDbRiNz7HJysU4gTt6b6M5UiNhmDc7eaago3zcpaPq0uwM0B0KsvXX8=
+	t=1759535000; cv=none; b=llnj/TywA8uwNyptRUyZpnxMpWuFCbLmadTqkcGWHEFmZHtQgu7TrMcnrbGmCb+MFan/I2jCKEOa8P+pFHJZViX/YtuyUDWyPmBGhaEBc+eL8KIP/QMMD+T4ssv532wywChWweVe9BtjzNFrMFFKRAUAvolBsREW+tkW6mv/G4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759534999; c=relaxed/simple;
-	bh=ff1jqtDr6gQtXvgixO+k+oZv5q0WZUUSePN217Z/iUo=;
-	h=Date:To:From:Subject:Message-Id; b=faanBZb4gpaggzwDRyXKTQB1977XUwO2sd2O//UrPhGA1MG6jBgVTvh0//2Y5RAoHQ9yXw2+Ok5QyTSnfA22hg11SOluKIMZCv1RYoubgtl32vHnGZYPpqk0qIDjfx9ld++W9gHqOLJOoywyPkbCRi89sLpRDbWVTBCkvF1ddKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ioLZldL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759535000; c=relaxed/simple;
+	bh=sUakpsI9w87UVgLnshVcV4skjX6wEnJUjUyOGHeE+5g=;
+	h=Date:To:From:Subject:Message-Id; b=tQduylFKcB6SCRkW30WVWy4ugy7jz+tOpyIAALoT13MkY9K/rIQuJ833LLhGKgqnmCdFXeqpaYWeiDYUPc6vWoWkJzbfnna2MLfub88BRUEAav5Ve7TtLqEz9TVW5J9wk1GdL9eopgBJXZ3ibdzV9YB5bcva0423jOGTVq/K9L8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HN00q+L3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ioLZldL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7544C4CEF5;
-	Fri,  3 Oct 2025 23:43:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HN00q+L3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48BDFC4CEF5;
+	Fri,  3 Oct 2025 23:43:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759534999;
-	bh=ff1jqtDr6gQtXvgixO+k+oZv5q0WZUUSePN217Z/iUo=;
+	s=korg; t=1759535000;
+	bh=sUakpsI9w87UVgLnshVcV4skjX6wEnJUjUyOGHeE+5g=;
 	h=Date:To:From:Subject:From;
-	b=1ioLZldLOJP6x8qnsuxkLpJjCN4IL+mRwfu4DEZ55XaJ6QnZfRhABcnjqUKweWSNh
-	 kPry2wgo5SVTFjCHwmxVKvOIO3TMlsyc/FM6d/OqeSjUazJRxM6Kqox38tkkFfdxx9
-	 3MvuDWlzMMwNQJJTtI6q610k8iTaBRyj9dtkDLKs=
-Date: Fri, 03 Oct 2025 16:43:18 -0700
+	b=HN00q+L38naCjZDy62cZQAdafyfhmYgpLEovdWnC3+5X9M3ZQHiVz8QQf/23Hs0Ya
+	 uKnz9hoifCtReQ7Z8XkWyrz14pjEW/HTeJ8KTcwm5nX52P0tkPNTGTb4pXNDMPgFMd
+	 fC1LN14J5vR59p+W+x4pU4a/W9xH9/VFpfnv3RZM=
+Date: Fri, 03 Oct 2025 16:43:19 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin16@zte.com.cn,sj@kernel.org,ryan.roberts@arm.com,raghavendra.kt@amd.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,kirill@shutemov.name,kas@kernel.org,dev.jain@arm.com,david@redhat.com,dan.carpenter@linaro.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-cleanup-mm_slot_entry-invocation.patch removed from -mm tree
-Message-Id: <20251003234318.E7544C4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-use-kmem_cache.patch removed from -mm tree
+Message-Id: <20251003234320.48BDFC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: cleanup mm_slot_entry() invocation
+     Subject: mm/khugepaged: use KMEM_CACHE()
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-cleanup-mm_slot_entry-invocation.patch
+     mm-khugepaged-use-kmem_cache.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/ksm: cleanup mm_slot_entry() invocation
-Date: Wed, 1 Oct 2025 09:18:59 +0000
+Subject: mm/khugepaged: use KMEM_CACHE()
+Date: Wed, 1 Oct 2025 09:19:00 +0000
 
-Patch series "mm_slot: following fixup for usage of mm_slot_entry()", v2.
+We got some late review commits during review of commit b4c9ffb54b32
+("mm/khugepaged: remove definition of struct khugepaged_mm_slot").  No
+need to keep the old cache name "khugepaged_mm_slot", let's simply use
+KMEM_CACHE().
 
-We got some late review commits during review of "mm_slot: fix the usage of
-mm_slot_entry()" in [1].
-
-
-This patch (of 2):
-
-We got some late review commits during review of commit 08498be43ee6
-("mm/ksm: get mm_slot by mm_slot_entry() when slot is !NULL").  Let's
-reduce the indentation level and make the code easier to follow by using
-gotos to a new label.
-
-Link: https://lkml.kernel.org/r/20251001091900.20041-1-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20251001091900.20041-2-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20250927004539.19308-1-richard.weiyang@gmail.com [1]
-Fixes: 08498be43ee6 ("mm/ksm: get mm_slot by mm_slot_entry() when slot is !NULL")
+Link: https://lkml.kernel.org/r/20251001091900.20041-3-richard.weiyang@gmail.com
+Fixes: b4c9ffb54b32 ("mm/khugepaged: remove definition of struct khugepaged_mm_slot")
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Kiryl Shutsemau <kas@kernel.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Kiryl Shutsemau <kirill@shutemov.name>
 Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Raghavendra K T <raghavendra.kt@amd.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Kiryl Shutsemau <kirill@shutemov.name>
-Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ mm/khugepaged.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-cleanup-mm_slot_entry-invocation
-+++ a/mm/ksm.c
-@@ -2921,7 +2921,7 @@ int __ksm_enter(struct mm_struct *mm)
+--- a/mm/khugepaged.c~mm-khugepaged-use-kmem_cache
++++ a/mm/khugepaged.c
+@@ -376,10 +376,7 @@ int hugepage_madvise(struct vm_area_stru
  
- void __ksm_exit(struct mm_struct *mm)
+ int __init khugepaged_init(void)
  {
--	struct ksm_mm_slot *mm_slot;
-+	struct ksm_mm_slot *mm_slot = NULL;
- 	struct mm_slot *slot;
- 	int easy_to_free = 0;
+-	mm_slot_cache = kmem_cache_create("khugepaged_mm_slot",
+-					  sizeof(struct mm_slot),
+-					  __alignof__(struct mm_slot),
+-					  0, NULL);
++	mm_slot_cache = KMEM_CACHE(mm_slot, 0);
+ 	if (!mm_slot_cache)
+ 		return -ENOMEM;
  
-@@ -2936,19 +2936,20 @@ void __ksm_exit(struct mm_struct *mm)
- 
- 	spin_lock(&ksm_mmlist_lock);
- 	slot = mm_slot_lookup(mm_slots_hash, mm);
--	if (slot) {
--		mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
--		if (ksm_scan.mm_slot != mm_slot) {
--			if (!mm_slot->rmap_list) {
--				hash_del(&slot->hash);
--				list_del(&slot->mm_node);
--				easy_to_free = 1;
--			} else {
--				list_move(&slot->mm_node,
--					  &ksm_scan.mm_slot->slot.mm_node);
--			}
--		}
-+	if (!slot)
-+		goto unlock;
-+	mm_slot = mm_slot_entry(slot, struct ksm_mm_slot, slot);
-+	if (ksm_scan.mm_slot == mm_slot)
-+		goto unlock;
-+	if (!mm_slot->rmap_list) {
-+		hash_del(&slot->hash);
-+		list_del(&slot->mm_node);
-+		easy_to_free = 1;
-+	} else {
-+		list_move(&slot->mm_node,
-+			  &ksm_scan.mm_slot->slot.mm_node);
- 	}
-+unlock:
- 	spin_unlock(&ksm_mmlist_lock);
- 
- 	if (easy_to_free) {
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
