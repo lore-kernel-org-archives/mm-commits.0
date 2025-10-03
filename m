@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCE617A2E1;
-	Fri,  3 Oct 2025 20:04:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1FFE26738D
+	for <mm-commits@vger.kernel.org>; Fri,  3 Oct 2025 23:43:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759521866; cv=none; b=e+0qHuD5qmmCHH1xDMPcnXSDCgrlq4A0INW8HFgBpjeChJYzE0fC0xvRmAZm0V9lVFqJaWsESOGrnRBRqF2Gpzi87R1kQVIGTHN0Up7uMI2WK75ubkKAW5ts1nXhB29Kez8EVnmCKUpxIZo1guvMUZ2d8oLUlyooKGdxSL07mp8=
+	t=1759534993; cv=none; b=duHCW6AAookGWdEO7pUVhGhJrvwyM2IM4zPOwI5+nVge8nntqdIYIM0sjvQhdkYyLzWosFRAlLOavwnbZ3y6Krw/wJ7BYtM0bXmyP6CtkXffytiUDtHyTkK0z8PZGG4gcLEBfVRYHM/N/Trz4swo+o/oIUUN5UPhx9AUuFcvX04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759521866; c=relaxed/simple;
-	bh=u1QnQx13LE9hjNdiPOQyvWmgHXi8c3nrDp92oymNCQ0=;
-	h=Date:To:From:Subject:Message-Id; b=uHyO8+I9EDmeiqDeT0KbysNI6mkwOUUTfZu7VmulQ3qyQuynRSfCExMOx5wjGgYnjQXdUGPg4vYuDPCTgT2pCrzssdVFuvhGTR/CbVKJ7fb8YlsK4YDmpRtpJ6XonDVzQQSZvCzZa7hOdnXQNHSqyT3HHmfEtehRo66hMCi+/4c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D9k694jR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759534993; c=relaxed/simple;
+	bh=hFxPHnerK73eAeNSUdAkeFF0LslCWblou3n1Nws0qqY=;
+	h=Date:To:From:Subject:Message-Id; b=dYwBQqRY3GZyPM70zC1LU3civhHCUKyWuHrJJ/df8G+8AaC6jXsTG1vB+tGvianSOHmOvewrmEZM6S+yUMt5e4PqHOyt5PDQlvrnTxMooEUt5MdnRJeFg85ej9geDxKRaZYzJRqGbGeBCYjeMtZO9CrIhm+fEH1X8m1kT+N/Nis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sl6BwdGL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D9k694jR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15BB0C4CEF5;
-	Fri,  3 Oct 2025 20:04:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sl6BwdGL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44A80C4CEF5;
+	Fri,  3 Oct 2025 23:43:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759521866;
-	bh=u1QnQx13LE9hjNdiPOQyvWmgHXi8c3nrDp92oymNCQ0=;
+	s=korg; t=1759534992;
+	bh=hFxPHnerK73eAeNSUdAkeFF0LslCWblou3n1Nws0qqY=;
 	h=Date:To:From:Subject:From;
-	b=D9k694jRMkn9A/5EaRNVGvqqp5aL06IJARqeqfI53DUOQFWGlWWMRoE7sc5KflvY/
-	 K566eWahxxjRvnmlwHL4hEPQSofV1lR+v3U/vn/5H6GBWgwJ3w08q4fQiFOlGBXYuQ
-	 cEHTHa6fae6jYBvRJxnlbYkOlDELU7q+i1PupNCA=
-Date: Fri, 03 Oct 2025 13:04:25 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kas@kernel.org,david@redhat.com,amir73il@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=sl6BwdGLXrj1OXMuQPH9xhfW7TISws6hrVkzclYGo7r6kFeLbU4WmSTDmNuusNEUG
+	 qGSSl9tG+GQOjPV0ZFNc3ZEZ4R8kCEBePk6IEkxVdkivOpuQIpmokm2aK4sCt9LhzT
+	 q5GnCx8pzwbyL2VkWU+7mCBUrRE6lNgqKF0t5xXg=
+Date: Fri, 03 Oct 2025 16:43:11 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,donettom@linux.ibm.com,david@redhat.com,hare@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fsnotify-pass-correct-offset-to-fsnotify_mmap_perm.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251003200426.15BB0C4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] drivers-base-memory-add-node-id-parameter-to-add_memory_block.patch removed from -mm tree
+Message-Id: <20251003234312.44A80C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,82 +34,154 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: fsnotify: pass correct offset to fsnotify_mmap_perm()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fsnotify-pass-correct-offset-to-fsnotify_mmap_perm.patch
+The quilt patch titled
+     Subject: drivers/base/memory: add node id parameter to add_memory_block()
+has been removed from the -mm tree.  Its filename was
+     drivers-base-memory-add-node-id-parameter-to-add_memory_block.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fsnotify-pass-correct-offset-to-fsnotify_mmap_perm.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: fsnotify: pass correct offset to fsnotify_mmap_perm()
-Date: Fri, 3 Oct 2025 16:52:36 +0100
+From: Hannes Reinecke <hare@kernel.org>
+Subject: drivers/base/memory: add node id parameter to add_memory_block()
+Date: Tue, 29 Jul 2025 08:46:34 +0200
 
-fsnotify_mmap_perm() requires a byte offset for the file about to be
-mmap'ed.  But it is called from vm_mmap_pgoff(), which has a page offset. 
-Previously the conversion was done incorrectly so let's fix it, being
-careful not to overflow on 32-bit platforms.
+Patch series "mm/memory_hotplug: fixup crash during uevent handling", v4.
 
-Discovered during code review.
+we have some udev rules trying to read the sysfs attribute 'valid_zones'
+during an memory 'add' event, causing a crash in zone_for_pfn_range(). 
+Debugging found that mem->nid was set to NUMA_NO_NODE, which crashed in
+NODE_DATA(nid).  Further analysis revealed that we're running into a race
+with udev event processing: add_memory_resource() has this function calls:
 
-Link: https://lkml.kernel.org/r/20251003155238.2147410-1-ryan.roberts@arm.com
-Fixes: 066e053fe208 ("fsnotify: add pre-content hooks on mmap()")
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Kiryl Shutsemau <kas@kernel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+1) __try_online_node()
+2) arch_add_memory()
+3) create_memory_block_devices()
+  -> calls device_register() -> memory 'add' event
+4) node_set_online()/__register_one_node()
+  -> calls device_register() -> node 'add' event
+5) register_memory_blocks_under_node()
+  -> sets mem->nid
+
+Which, to the uninitated, is ... weird ...
+
+Why do we try to online the node in 1), but only register the node in 4)
+_after_ we have created the memory blocks in 3) ?  And why do we set the
+'nid' value in 5), when the uevent (which might need to see the correct
+'nid' value) is sent out in 3) ?  There must be a reason, I'm sure ...
+
+So here's a small patchset to fixup uevent ordering.  The first patch adds
+a 'nid' parameter to add_memory_blocks() (to avoid mem->nid being
+initialized with NUMA_NO_NODE), and the second patch reshuffles the code
+in add_memory_resource() to fully initialize the node prior to calling
+create_memory_block_devices() so that the node is valid at that time and
+uevent processing will see correct values in sysfs.
+
+
+This patch (of 3):
+
+We have some udev rules trying to read the sysfs attribute 'valid_zones'
+during an memory 'add' event, causing a crash in zone_for_pfn_range(). 
+Debugging found that mem->nid was set to NUMA_NO_NODE, which crashed in
+NODE_DATA(nid).  Further analysis revealed that we're running into a race
+with udev event processing: add_memory_resource() has this function calls:
+
+1) __try_online_node()
+2) arch_add_memory()
+3) create_memory_block_devices()
+  -> calls device_register() -> memory 'add' event
+4) node_set_online()/__register_one_node()
+  -> calls device_register() -> node 'add' event
+5) register_memory_blocks_under_node()
+  -> sets mem->nid
+
+Which, to the uninitated, is ... weird ...
+
+Why do we try to online the node in 1), but only register the node in 4)
+_after_ we have created the memory blocks in 3) ?  And why do we set the
+'nid' value in 5), when the uevent (which might need to see the correct
+'nid' value) is sent out in 3) ?  There must be a reason, I'm sure ...
+
+So here's a small patchset to fixup uevent ordering.  The first patch adds
+a 'nid' parameter to add_memory_blocks() (to avoid mem->nid being
+initialized with NUMA_NO_NODE), and the second patch reshuffles the code
+in add_memory_resource() to fully initialize the node prior to calling
+create_memory_block_devices() so that the node is valid at that time and
+uevent processing will see correct values in sysfs.
+
+
+This patch (of 3):
+
+Add a 'nid' parameter to add_memory_block() to initialize the memory block
+with the correct node id.
+
+Link: https://lkml.kernel.org/r/20250729064637.51662-1-hare@kernel.org
+Link: https://lkml.kernel.org/r/20250729064637.51662-2-hare@kernel.org
+Signed-off-by: Hannes Reinecke <hare@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/base/memory.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
---- a/mm/util.c~fsnotify-pass-correct-offset-to-fsnotify_mmap_perm
-+++ a/mm/util.c
-@@ -566,6 +566,7 @@ unsigned long vm_mmap_pgoff(struct file
- 	unsigned long len, unsigned long prot,
- 	unsigned long flag, unsigned long pgoff)
- {
-+	loff_t off = (loff_t)pgoff << PAGE_SHIFT;
- 	unsigned long ret;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long populate;
-@@ -573,7 +574,7 @@ unsigned long vm_mmap_pgoff(struct file
+--- a/drivers/base/memory.c~drivers-base-memory-add-node-id-parameter-to-add_memory_block
++++ a/drivers/base/memory.c
+@@ -809,7 +809,7 @@ void memory_block_add_nid(struct memory_
+ }
+ #endif
  
- 	ret = security_mmap_file(file, prot, flag);
- 	if (!ret)
--		ret = fsnotify_mmap_perm(file, prot, pgoff >> PAGE_SHIFT, len);
-+		ret = fsnotify_mmap_perm(file, prot, off, len);
- 	if (!ret) {
- 		if (mmap_write_lock_killable(mm))
- 			return -EINTR;
+-static int add_memory_block(unsigned long block_id, unsigned long state,
++static int add_memory_block(unsigned long block_id, int nid, unsigned long state,
+ 			    struct vmem_altmap *altmap,
+ 			    struct memory_group *group)
+ {
+@@ -827,7 +827,7 @@ static int add_memory_block(unsigned lon
+ 
+ 	mem->start_section_nr = block_id * sections_per_block;
+ 	mem->state = state;
+-	mem->nid = NUMA_NO_NODE;
++	mem->nid = nid;
+ 	mem->altmap = altmap;
+ 	INIT_LIST_HEAD(&mem->group_next);
+ 
+@@ -854,13 +854,6 @@ static int add_memory_block(unsigned lon
+ 	return 0;
+ }
+ 
+-static int add_hotplug_memory_block(unsigned long block_id,
+-				    struct vmem_altmap *altmap,
+-				    struct memory_group *group)
+-{
+-	return add_memory_block(block_id, MEM_OFFLINE, altmap, group);
+-}
+-
+ static void remove_memory_block(struct memory_block *memory)
+ {
+ 	if (WARN_ON_ONCE(memory->dev.bus != &memory_subsys))
+@@ -900,7 +893,7 @@ int create_memory_block_devices(unsigned
+ 		return -EINVAL;
+ 
+ 	for (block_id = start_block_id; block_id != end_block_id; block_id++) {
+-		ret = add_hotplug_memory_block(block_id, altmap, group);
++		ret = add_memory_block(block_id, NUMA_NO_NODE, MEM_OFFLINE, altmap, group);
+ 		if (ret)
+ 			break;
+ 	}
+@@ -1005,7 +998,7 @@ void __init memory_dev_init(void)
+ 			continue;
+ 
+ 		block_id = memory_block_id(nr);
+-		ret = add_memory_block(block_id, MEM_ONLINE, NULL, NULL);
++		ret = add_memory_block(block_id, NUMA_NO_NODE, MEM_ONLINE, NULL, NULL);
+ 		if (ret) {
+ 			panic("%s() failed to add memory block: %d\n",
+ 			      __func__, ret);
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from hare@kernel.org are
 
-fsnotify-pass-correct-offset-to-fsnotify_mmap_perm.patch
 
