@@ -1,63 +1,115 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E6042D320E;
-	Fri,  3 Oct 2025 02:18:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCE617A2E1;
+	Fri,  3 Oct 2025 20:04:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759457903; cv=none; b=taEkKn6X9u7W3wr2pFpTjgU/Wn1o6kuhy1t8bRFpJ2PhVkF1Jso/Gk/Y6P/LetcmKBY+g/31YjXRPPkBKV0jZhpmh8jwggNHktS29jziDiq1B5PY7gyTwfnIAG/yXFoCcRoXZPmjDlPGP8S0O/MMbXroG5uJFJodwSbg8dfku1c=
+	t=1759521866; cv=none; b=e+0qHuD5qmmCHH1xDMPcnXSDCgrlq4A0INW8HFgBpjeChJYzE0fC0xvRmAZm0V9lVFqJaWsESOGrnRBRqF2Gpzi87R1kQVIGTHN0Up7uMI2WK75ubkKAW5ts1nXhB29Kez8EVnmCKUpxIZo1guvMUZ2d8oLUlyooKGdxSL07mp8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759457903; c=relaxed/simple;
-	bh=Dc9/hZWk9fHRv7vY+ojxRQScjdcyQGHx3TOlkrD6eLc=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=EX1pBG9sQ4rAI0FTHEacFtTJfOpKMT9yo3oXT3ReLd67bRwxxRJkX8/PO/1via9Rcj6EVFj1ikVVUvBfnMUWMM621E+7tKGsqBxFHUv9UCPIFszS1SaquYgVltYiASmkJYK0UTancOeEJDj4mbDVE9tRwqyuLTjMadKjGv0WDzs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YOetLl5f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759521866; c=relaxed/simple;
+	bh=u1QnQx13LE9hjNdiPOQyvWmgHXi8c3nrDp92oymNCQ0=;
+	h=Date:To:From:Subject:Message-Id; b=uHyO8+I9EDmeiqDeT0KbysNI6mkwOUUTfZu7VmulQ3qyQuynRSfCExMOx5wjGgYnjQXdUGPg4vYuDPCTgT2pCrzssdVFuvhGTR/CbVKJ7fb8YlsK4YDmpRtpJ6XonDVzQQSZvCzZa7hOdnXQNHSqyT3HHmfEtehRo66hMCi+/4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D9k694jR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YOetLl5f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B4E4C4CEF5;
-	Fri,  3 Oct 2025 02:18:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1759457903;
-	bh=Dc9/hZWk9fHRv7vY+ojxRQScjdcyQGHx3TOlkrD6eLc=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=YOetLl5fKaj7OEU72LUSqOE6CRDtzwNw0H4yD6enkY8XcmXZ2PT9W/5nDF4T1tqx2
-	 uLYL6L4T9gFgNZDOQpA0XFmMuqfku2qeU5qXpQHxcsU03jncwiJCmWAnt1SIaKjyAJ
-	 JVkJZj+lZztFYx6Oxbk2ij9zdxKBKKdedW1xtWOco5b4HnyfjNf/8Tai7pf6/y4kLa
-	 HWcSyU7zOYZnvFnbCvubyqaIVIYiDD8JR26XZNGesTLM5WMwB+D77Su08CKVVD4Qly
-	 8YuiSSfrTS46OW0aH7xzT1hRUW5hT37F0guzWHRon+LE+tV4TcwyR/OyNuwWrEy6Dh
-	 85PwkR4xHgYtQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3401139D0C1A;
-	Fri,  3 Oct 2025 02:18:16 +0000 (UTC)
-Subject: Re: [GIT PULL] non-MM updates for 6.18-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20251002153627.8890d5019e8e25a9df283e99@linux-foundation.org>
-References: <20251002153627.8890d5019e8e25a9df283e99@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20251002153627.8890d5019e8e25a9df283e99@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2025-10-02-15-29
-X-PR-Tracked-Commit-Id: 9f1c14c1de1bdde395f6cc893efa4f80a2ae3b2b
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: e406d57be7bd2a4e73ea512c1ae36a40a44e499e
-Message-Id: <175945789476.3590395.14349776223212846303.pr-tracker-bot@kernel.org>
-Date: Fri, 03 Oct 2025 02:18:14 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D9k694jR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15BB0C4CEF5;
+	Fri,  3 Oct 2025 20:04:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1759521866;
+	bh=u1QnQx13LE9hjNdiPOQyvWmgHXi8c3nrDp92oymNCQ0=;
+	h=Date:To:From:Subject:From;
+	b=D9k694jRMkn9A/5EaRNVGvqqp5aL06IJARqeqfI53DUOQFWGlWWMRoE7sc5KflvY/
+	 K566eWahxxjRvnmlwHL4hEPQSofV1lR+v3U/vn/5H6GBWgwJ3w08q4fQiFOlGBXYuQ
+	 cEHTHa6fae6jYBvRJxnlbYkOlDELU7q+i1PupNCA=
+Date: Fri, 03 Oct 2025 13:04:25 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kas@kernel.org,david@redhat.com,amir73il@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + fsnotify-pass-correct-offset-to-fsnotify_mmap_perm.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251003200426.15BB0C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Thu, 2 Oct 2025 15:36:27 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2025-10-02-15-29
+The patch titled
+     Subject: fsnotify: pass correct offset to fsnotify_mmap_perm()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fsnotify-pass-correct-offset-to-fsnotify_mmap_perm.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/e406d57be7bd2a4e73ea512c1ae36a40a44e499e
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fsnotify-pass-correct-offset-to-fsnotify_mmap_perm.patch
 
-Thank you!
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: fsnotify: pass correct offset to fsnotify_mmap_perm()
+Date: Fri, 3 Oct 2025 16:52:36 +0100
+
+fsnotify_mmap_perm() requires a byte offset for the file about to be
+mmap'ed.  But it is called from vm_mmap_pgoff(), which has a page offset. 
+Previously the conversion was done incorrectly so let's fix it, being
+careful not to overflow on 32-bit platforms.
+
+Discovered during code review.
+
+Link: https://lkml.kernel.org/r/20251003155238.2147410-1-ryan.roberts@arm.com
+Fixes: 066e053fe208 ("fsnotify: add pre-content hooks on mmap()")
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Kiryl Shutsemau <kas@kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/util.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/mm/util.c~fsnotify-pass-correct-offset-to-fsnotify_mmap_perm
++++ a/mm/util.c
+@@ -566,6 +566,7 @@ unsigned long vm_mmap_pgoff(struct file
+ 	unsigned long len, unsigned long prot,
+ 	unsigned long flag, unsigned long pgoff)
+ {
++	loff_t off = (loff_t)pgoff << PAGE_SHIFT;
+ 	unsigned long ret;
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long populate;
+@@ -573,7 +574,7 @@ unsigned long vm_mmap_pgoff(struct file
+ 
+ 	ret = security_mmap_file(file, prot, flag);
+ 	if (!ret)
+-		ret = fsnotify_mmap_perm(file, prot, pgoff >> PAGE_SHIFT, len);
++		ret = fsnotify_mmap_perm(file, prot, off, len);
+ 	if (!ret) {
+ 		if (mmap_write_lock_killable(mm))
+ 			return -EINTR;
+_
+
+Patches currently in -mm which might be from ryan.roberts@arm.com are
+
+fsnotify-pass-correct-offset-to-fsnotify_mmap_perm.patch
+
