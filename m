@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AF9C258EF0
-	for <mm-commits@vger.kernel.org>; Fri,  3 Oct 2025 23:43:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C8C0258EF0
+	for <mm-commits@vger.kernel.org>; Fri,  3 Oct 2025 23:43:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759534996; cv=none; b=LjBTJOA+BCQcV8IWf3f4s39+YH9u17WcNxuJbnJXh3N90tw1Mgz8iLEdBOIC2n+iXQ0/00ex8/JncDC7wedO8st9vdrYYAq7YN40dWmxxCH3/RNG79QlBTNy086LANlkotZLxbBZCe+JbHxJR4T9PWi8rZsrSG1tngazYcC35vY=
+	t=1759534997; cv=none; b=ANZr2xEXn2z3eIV7qyvygtBY0EKRfw+VIgfBHIb2byteDMJoOPhnzVR5g/MSHBZ+AArYPha9ItJxKZ4woflIEtzbRKg8LuWcb4DlSbzyELuJQAOdbXhetoMnhGSDXxW+QZFgC5XfwaiouYjZhtDfsFX8CS32WuLlI3CpsNIW1/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759534996; c=relaxed/simple;
-	bh=9W+lTMKQefr1uADuNZ2qgzFyK3YCESWxD6crfp9a4F4=;
-	h=Date:To:From:Subject:Message-Id; b=PtZZEj2VOgbyDZ6AiJ6E3KTfMjRtNH57mbZ4ppzUzGx4pvUDwQcKY8Tgi5zEXJMLoNAUOR7k6NygvmXcbShPgvUmL5/18FM9ZcI+REmITjnJnKJVoP+lBGe3MLJ+9cEYTV2O7oheraTv24M+AHYI7sp4sMnbKHrqn8dKlf05cM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nfcg5WZQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759534997; c=relaxed/simple;
+	bh=fYN8Yo74FkjOXRFjBsahzTxAL6E4ombi45QR/eE8TY8=;
+	h=Date:To:From:Subject:Message-Id; b=DWMA8/aTeR36TuMQrmCDu4Cl2Cd0jaYzaalY4NETDyu9fXONLCeBlFVGsAW43AhxzWvY+SOyUMazyphSxOojR4b6SzZpSzFSA5BPWvyPFC33+1ltmz9B2w2Fs3gEXpvLfw8x4QzN3kIk5NQwnVNRQtuANBlVufJWA3AaC27hM48=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pQyZyX0q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nfcg5WZQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D0D2C4CEFA;
-	Fri,  3 Oct 2025 23:43:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pQyZyX0q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61379C4CEF5;
+	Fri,  3 Oct 2025 23:43:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759534996;
-	bh=9W+lTMKQefr1uADuNZ2qgzFyK3YCESWxD6crfp9a4F4=;
+	s=korg; t=1759534997;
+	bh=fYN8Yo74FkjOXRFjBsahzTxAL6E4ombi45QR/eE8TY8=;
 	h=Date:To:From:Subject:From;
-	b=nfcg5WZQ3tIhg+2nHGpZP9AmRZJc0F/bq9KiYAz2SeXSgMaJGBtveKoT27nD5+z4W
-	 6N77F61Z0DFWTCnCI7pJALkCwZGpUModGL202c1ZCwMgqDcaiyLIllFjlHKXBZNMIr
-	 cDHPILJtGv9mXl6SkIojE3PgRmmQ6FGYiJ/e6Ewk=
-Date: Fri, 03 Oct 2025 16:43:15 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,mpenttil@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill@shutemov.name,kasong@tencent.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=pQyZyX0qPl3cZ57M/Qe2cTxKApheib3eB/qOnYOQsmLOEk87/EkeyYFmpXRC/lAJw
+	 55y3e3DkRzsgdsZ0YdkvndBnR8wp+LJ16QOgZj4Pm4RYhYaWMH6ZU/aG4f5tu3W4T3
+	 OmBDT1q1UPTXF+yKtuzXtcSsy2bYGqBJRDfsxZak=
+Date: Fri, 03 Oct 2025 16:43:16 -0700
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,dev.jain@arm.com,david@redhat.com,apopple@nvidia.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-clean-up-is_guard_pte_marker.patch removed from -mm tree
-Message-Id: <20251003234316.2D0D2C4CEFA@smtp.kernel.org>
+Subject: [merged mm-stable] documentation-mm-drop-pxx_mkdevmap-descriptions-from-page-table-helpers.patch removed from -mm tree
+Message-Id: <20251003234317.61379C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: clean up is_guard_pte_marker()
+     Subject: Documentation/mm: drop pxx_mkdevmap() descriptions from page table helpers
 has been removed from the -mm tree.  Its filename was
-     mm-clean-up-is_guard_pte_marker.patch
+     documentation-mm-drop-pxx_mkdevmap-descriptions-from-page-table-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm: clean up is_guard_pte_marker()
-Date: Wed, 24 Sep 2025 12:58:30 +0800
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Documentation/mm: drop pxx_mkdevmap() descriptions from page table helpers
+Date: Mon, 29 Sep 2025 13:00:45 +0100
 
-Let's simplify the implementation. The current code is redundant as it
-effectively expands to:
+Remove pxx_mkdevmap() descriptions, as these helper functions have already
+been dropped (including DEBUG_VM_PGTABLE test) via the commit d438d2734170
+("mm: remove devmap related functions and page table bits").
 
-  is_swap_pte(pte) &&
-  is_pte_marker_entry(...) && // from is_pte_marker()
-  is_pte_marker_entry(...)    // from is_guard_swp_entry()
-
-While a modern compiler could likely optimize this away, let's have clean
-code and not rely on it.
-
-Link: https://lkml.kernel.org/r/20250924045830.3817-1-lance.yang@linux.dev
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20250929120045.1109707-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/mm/arch_pgtable_helpers.rst |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/madvise.c~mm-clean-up-is_guard_pte_marker
-+++ a/mm/madvise.c
-@@ -1071,8 +1071,8 @@ static bool is_valid_guard_vma(struct vm
- 
- static bool is_guard_pte_marker(pte_t ptent)
- {
--	return is_pte_marker(ptent) &&
--		is_guard_swp_entry(pte_to_swp_entry(ptent));
-+	return is_swap_pte(ptent) &&
-+	       is_guard_swp_entry(pte_to_swp_entry(ptent));
- }
- 
- static int guard_install_pud_entry(pud_t *pud, unsigned long addr,
+--- a/Documentation/mm/arch_pgtable_helpers.rst~documentation-mm-drop-pxx_mkdevmap-descriptions-from-page-table-helpers
++++ a/Documentation/mm/arch_pgtable_helpers.rst
+@@ -52,8 +52,6 @@ PTE Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pte_mkspecial             | Creates a special PTE                            |
+ +---------------------------+--------------------------------------------------+
+-| pte_mkdevmap              | Creates a ZONE_DEVICE mapped PTE                 |
+-+---------------------------+--------------------------------------------------+
+ | pte_mksoft_dirty          | Creates a soft dirty PTE                         |
+ +---------------------------+--------------------------------------------------+
+ | pte_clear_soft_dirty      | Clears a soft dirty PTE                          |
+@@ -124,8 +122,6 @@ PMD Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pmd_mkspecial             | Creates a special PMD                            |
+ +---------------------------+--------------------------------------------------+
+-| pmd_mkdevmap              | Creates a ZONE_DEVICE mapped PMD                 |
+-+---------------------------+--------------------------------------------------+
+ | pmd_mksoft_dirty          | Creates a soft dirty PMD                         |
+ +---------------------------+--------------------------------------------------+
+ | pmd_clear_soft_dirty      | Clears a soft dirty PMD                          |
+@@ -185,8 +181,6 @@ PUD Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pud_wrprotect             | Creates a write protected PUD                    |
+ +---------------------------+--------------------------------------------------+
+-| pud_mkdevmap              | Creates a ZONE_DEVICE mapped PUD                 |
+-+---------------------------+--------------------------------------------------+
+ | pud_mkinvalid             | Invalidates a present PUD; do not call for       |
+ |                           | non-present PUD [1]                              |
+ +---------------------------+--------------------------------------------------+
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
-mm-thp-fix-mte-tag-mismatch-when-replacing-zero-filled-subpages.patch
-mm-rmap-fix-soft-dirty-and-uffd-wp-bit-loss-when-remapping-zero-filled-mthp-subpage-to-shared-zeropage.patch
-mm-khugepaged-abort-collapse-scan-on-non-swap-entries.patch
+mm-thp-drop-follow_devmap_pmd-default-stub.patch
+mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
 
