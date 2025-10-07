@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BD4E253F1A
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 21:36:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA871246BB7;
+	Tue,  7 Oct 2025 21:53:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759873007; cv=none; b=r4OfjM3w27dPifmAUukMzvwjrs4Ul5Jli5x2EMYqiXO4pQBbBd6t3cwLzZN3zOxF+rj3DaN/KWGN1BmRh28ufnO2zHZWdufVc/aIoBgj6CJtti3+tI4QXN4jCDGzeEhKmNUfvWj+hs2crmhCqE2HbB+gbiiL24Dmb4STf8lsA7E=
+	t=1759874005; cv=none; b=m5m6BAGHclOqfxj0ET7KPJh7ZIggmjKhB6uiREY+XAH/EVtlz+9+E68eK1IlwnNX9RzZW+NfkSEQtFeIVq9aCvKM5pQyv1nyAe5mQFXXP0uBqORAV0AD3YMKh20P1vB/mCyXBzQTh7rLyD8EjlYqyiwmTn1n7MgUdSyguYHo8qw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759873007; c=relaxed/simple;
-	bh=UWbD5AEpnw8R541hUSG6Uu9MNVUTy+arFBa1ONl0xrs=;
-	h=Date:To:From:Subject:Message-Id; b=JImVkXmm7QYpfYmXkv5HL+3vI/YAueTtfg7dmga/beE+kmgtdID4NPwklplx9T1MtdFmfBf+P2kIflXmbeqPEUoXyuwnsLtwlcyXrmKu9mJWX0dkZjdjrcMfvJGFBrt1rmtI6TFbppM4udU8IeGr4jFULa0RWAB1aMygzR5peso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Aie6txRZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759874005; c=relaxed/simple;
+	bh=okTtg+KeoWVUc3MEEXJT9sF3H7Hq+pWjuiMXXLui/R0=;
+	h=Date:To:From:Subject:Message-Id; b=oV6L2Wcm5Igswig6Bg2FR9GYjoBM4vvmp+TR4QhOTm0mVK3OCn+EAUu/2IIGP2mRrmneP8qgsZupt00Dj+So/aiYo7ozyBuWOsOuSikqM5EIDBzwxjNswsjr+nl0ZpuzfNs6wh8TzsReAyYp1Lp9fViAmeFtY1eqltJQkmNNOdc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0z9xIjsg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Aie6txRZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FE18C4CEF1;
-	Tue,  7 Oct 2025 21:36:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0z9xIjsg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73E38C4CEF1;
+	Tue,  7 Oct 2025 21:53:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759873007;
-	bh=UWbD5AEpnw8R541hUSG6Uu9MNVUTy+arFBa1ONl0xrs=;
+	s=korg; t=1759874004;
+	bh=okTtg+KeoWVUc3MEEXJT9sF3H7Hq+pWjuiMXXLui/R0=;
 	h=Date:To:From:Subject:From;
-	b=Aie6txRZDbAHjLMobI6FbFfBmufuCG2MUaIKp73eT+OtXuN+tJlLLxtoU9H/+c7IP
-	 tRp1TOX+ZSeazQA2KrdlU6NkthI2XcDvg8+YM2FawIsJUDia4Ks4S7/e4YF/kMrYDm
-	 iIX10Ww3pF8P1oW/xQf1BYHM2VnZeZSBse+jh2wc=
-Date: Tue, 07 Oct 2025 14:36:46 -0700
-To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,mhocko@suse.com,mhocko@kernel.org,glider@google.com,elver@google.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=0z9xIjsgZK4bp1VBYdijeOD7CeI2GIBcGGt0hdeWIvLzfvNhWWyQQuY6SlIVDJ9i3
+	 3yHQgyOCj2JEbUhUIK+nn8h5qEfvVkdTj5/KFbaiwxJ4AF7kIeJkHt6W0WDWPHiHWV
+	 kSDmqPst8mWsKAh/omdbSjOTl4/cFlG2l9mWd2OY=
+Date: Tue, 07 Oct 2025 14:53:23 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,tujinjiang@huawei.com,stable@vger.kernel.org,shr@devkernel.io,david@redhat.com,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kvmalloc-add-non-blocking-support-for-vmalloc.patch added to mm-new branch
-Message-Id: <20251007213647.4FE18C4CEF1@smtp.kernel.org>
+Subject: + mm-ksm-fix-exec-fork-inheritance-support-for-prctl.patch added to mm-new branch
+Message-Id: <20251007215324.73E38C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kvmalloc: add non-blocking support for vmalloc
+     Subject: mm/ksm: fix exec/fork inheritance support for prctl
 has been added to the -mm mm-new branch.  Its filename is
-     mm-kvmalloc-add-non-blocking-support-for-vmalloc.patch
+     mm-ksm-fix-exec-fork-inheritance-support-for-prctl.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kvmalloc-add-non-blocking-support-for-vmalloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-exec-fork-inheritance-support-for-prctl.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,101 +64,148 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: kvmalloc: add non-blocking support for vmalloc
-Date: Tue, 7 Oct 2025 14:20:35 +0200
+From: xu xin <xu.xin16@zte.com.cn>
+Subject: mm/ksm: fix exec/fork inheritance support for prctl
+Date: Tue, 7 Oct 2025 18:28:21 +0800 (CST)
 
-Extend __kvmalloc_node_noprof() to handle non-blocking GFP flags
-(GFP_NOWAIT and GFP_ATOMIC).  Previously such flags were rejected,
-returning NULL.  With this change:
+Patch series "ksm: fix exec/fork inheritance", v2.
 
-- kvmalloc() can fall back to vmalloc() if non-blocking contexts;
-- for non-blocking allocations the VM_ALLOW_HUGE_VMAP option is
-  disabled, since the huge mapping path still contains might_sleep();
-- documentation update to reflect that GFP_NOWAIT and GFP_ATOMIC
-  are now supported.
+This series fixes exec/fork inheritance.  See the detailed description of
+the issue below.
 
-Link: https://lkml.kernel.org/r/20251007122035.56347-11-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+
+This patch (of 2):
+
+Background
+==========
+
+commit d7597f59d1d33 ("mm: add new api to enable ksm per process")
+introduced MMF_VM_MERGE_ANY for mm->flags, and allowed user to set it by
+prctl() so that the process's VMAs are forcibly scanned by ksmd. 
+
+Subsequently, the 3c6f33b7273a ("mm/ksm: support fork/exec for prctl")
+supported inheriting the MMF_VM_MERGE_ANY flag when a task calls execve().
+
+Finally, commit 3a9e567ca45fb ("mm/ksm: fix ksm exec support for prctl")
+fixed the issue that ksmd doesn't scan the mm_struct with MMF_VM_MERGE_ANY
+by adding the mm_slot to ksm_mm_head in __bprm_mm_init().
+
+Problem
+=======
+
+In some extreme scenarios, however, this inheritance of MMF_VM_MERGE_ANY
+during exec/fork can fail.  For example, when the scanning frequency of
+ksmd is tuned extremely high, a process carrying MMF_VM_MERGE_ANY may
+still fail to pass it to the newly exec'd process.  This happens because
+ksm_execve() is executed too early in the do_execve flow (prematurely
+adding the new mm_struct to the ksm_mm_slot list).
+
+As a result, before do_execve completes, ksmd may have already performed a
+scan and found that this new mm_struct has no VM_MERGEABLE VMAs, thus
+clearing its MMF_VM_MERGE_ANY flag.  Consequently, when the new program
+executes, the flag MMF_VM_MERGE_ANY inheritance missed.
+
+Root reason
+===========
+
+commit d7597f59d1d33 ("mm: add new api to enable ksm per process") clear
+the flag MMF_VM_MERGE_ANY when ksmd found no VM_MERGEABLE VMAs.
+
+Solution
+========
+
+Firstly, Don't clear MMF_VM_MERGE_ANY when ksmd found no VM_MERGEABLE
+VMAs, because perhaps their mm_struct has just been added to ksm_mm_slot
+list, and its process has not yet officially started running or has not
+yet performed mmap/brk to allocate anonymous VMAS.
+
+Secondly, recheck MMF_VM_MERGEABLE again if a process takes
+MMF_VM_MERGE_ANY, and create a mm_slot and join it into ksm_scan_list
+again.
+
+Link: https://lkml.kernel.org/r/20251007182504440BJgK8VXRHh8TD7IGSUIY4@zte.com.cn
+Link: https://lkml.kernel.org/r/20251007182821572h_SoFqYZXEP1mvWI4n9VL@zte.com.cn
+Fixes: 3c6f33b7273a ("mm/ksm: support fork/exec for prctl")
+Fixes: d7597f59d1d3 ("mm: add new api to enable ksm per process")
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
+Cc: Stefan Roesch <shr@devkernel.io>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jinjiang Tu <tujinjiang@huawei.com>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ include/linux/ksm.h |    4 ++--
+ mm/ksm.c            |   20 +++++++++++++++++---
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
---- a/mm/slub.c~mm-kvmalloc-add-non-blocking-support-for-vmalloc
-+++ a/mm/slub.c
-@@ -7018,7 +7018,7 @@ static gfp_t kmalloc_gfp_adjust(gfp_t fl
-  * Uses kmalloc to get the memory but if the allocation fails then falls back
-  * to the vmalloc allocator. Use kvfree for freeing the memory.
-  *
-- * GFP_NOWAIT and GFP_ATOMIC are not supported, neither is the __GFP_NORETRY modifier.
-+ * GFP_NOWAIT and GFP_ATOMIC are supported, the __GFP_NORETRY modifier is not.
-  * __GFP_RETRY_MAYFAIL is supported, and it should be used only if kmalloc is
-  * preferable to the vmalloc fallback, due to visible performance drawbacks.
-  *
-@@ -7027,6 +7027,7 @@ static gfp_t kmalloc_gfp_adjust(gfp_t fl
- void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), unsigned long align,
- 			     gfp_t flags, int node)
+--- a/include/linux/ksm.h~mm-ksm-fix-exec-fork-inheritance-support-for-prctl
++++ a/include/linux/ksm.h
+@@ -17,7 +17,7 @@
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 		unsigned long end, int advice, vm_flags_t *vm_flags);
+-vm_flags_t ksm_vma_flags(const struct mm_struct *mm, const struct file *file,
++vm_flags_t ksm_vma_flags(struct mm_struct *mm, const struct file *file,
+ 			 vm_flags_t vm_flags);
+ int ksm_enable_merge_any(struct mm_struct *mm);
+ int ksm_disable_merge_any(struct mm_struct *mm);
+@@ -103,7 +103,7 @@ bool ksm_process_mergeable(struct mm_str
+ 
+ #else  /* !CONFIG_KSM */
+ 
+-static inline vm_flags_t ksm_vma_flags(const struct mm_struct *mm,
++static inline vm_flags_t ksm_vma_flags(struct mm_struct *mm,
+ 		const struct file *file, vm_flags_t vm_flags)
  {
-+	bool allow_block;
- 	void *ret;
+ 	return vm_flags;
+--- a/mm/ksm.c~mm-ksm-fix-exec-fork-inheritance-support-for-prctl
++++ a/mm/ksm.c
+@@ -2617,8 +2617,14 @@ no_vmas:
+ 		spin_unlock(&ksm_mmlist_lock);
  
- 	/*
-@@ -7039,10 +7040,6 @@ void *__kvmalloc_node_noprof(DECL_BUCKET
- 	if (ret || size <= PAGE_SIZE)
- 		return ret;
+ 		mm_slot_free(mm_slot_cache, mm_slot);
++		/*
++		 * Only clear MMF_VM_MERGEABLE. We must not clear
++		 * MMF_VM_MERGE_ANY, because for those MMF_VM_MERGE_ANY process,
++		 * perhaps their mm_struct has just been added to ksm_mm_slot
++		 * list, and its process has not yet officially started running
++		 * or has not yet performed mmap/brk to allocate anonymous VMAS.
++		 */
+ 		mm_flags_clear(MMF_VM_MERGEABLE, mm);
+-		mm_flags_clear(MMF_VM_MERGE_ANY, mm);
+ 		mmap_read_unlock(mm);
+ 		mmdrop(mm);
+ 	} else {
+@@ -2736,12 +2742,20 @@ static int __ksm_del_vma(struct vm_area_
+  *
+  * Returns: @vm_flags possibly updated to mark mergeable.
+  */
+-vm_flags_t ksm_vma_flags(const struct mm_struct *mm, const struct file *file,
++vm_flags_t ksm_vma_flags(struct mm_struct *mm, const struct file *file,
+ 			 vm_flags_t vm_flags)
+ {
+ 	if (mm_flags_test(MMF_VM_MERGE_ANY, mm) &&
+-	    __ksm_should_add_vma(file, vm_flags))
++	    __ksm_should_add_vma(file, vm_flags)) {
+ 		vm_flags |= VM_MERGEABLE;
++		/*
++		 * Generally, the flags here always include MMF_VM_MERGEABLE.
++		 * However, in rare cases, this flag may be cleared by ksmd who
++		 * scans a cycle without finding any mergeable vma.
++		 */
++		if (unlikely(!mm_flags_test(MMF_VM_MERGEABLE, mm)))
++			__ksm_enter(mm);
++	}
  
--	/* non-sleeping allocations are not supported by vmalloc */
--	if (!gfpflags_allow_blocking(flags))
--		return NULL;
--
- 	/* Don't even allow crazy sizes */
- 	if (unlikely(size > INT_MAX)) {
- 		WARN_ON_ONCE(!(flags & __GFP_NOWARN));
-@@ -7050,13 +7047,23 @@ void *__kvmalloc_node_noprof(DECL_BUCKET
- 	}
- 
- 	/*
-+	 * For non-blocking the VM_ALLOW_HUGE_VMAP is not used
-+	 * because the huge-mapping path in vmalloc contains at
-+	 * least one might_sleep() call.
-+	 *
-+	 * TODO: Revise huge-mapping path to support non-blocking
-+	 * flags.
-+	 */
-+	allow_block = gfpflags_allow_blocking(flags);
-+
-+	/*
- 	 * kvmalloc() can always use VM_ALLOW_HUGE_VMAP,
- 	 * since the callers already cannot assume anything
- 	 * about the resulting pointer, and cannot play
- 	 * protection games.
- 	 */
- 	return __vmalloc_node_range_noprof(size, align, VMALLOC_START, VMALLOC_END,
--			flags, PAGE_KERNEL, VM_ALLOW_HUGE_VMAP,
-+			flags, PAGE_KERNEL, allow_block ? VM_ALLOW_HUGE_VMAP:0,
- 			node, __builtin_return_address(0));
+ 	return vm_flags;
  }
- EXPORT_SYMBOL(__kvmalloc_node_noprof);
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from xu.xin16@zte.com.cn are
 
-lib-test_vmalloc-add-no_block_alloc_test-case.patch
-lib-test_vmalloc-remove-xfail-condition-check.patch
-mm-vmalloc-support-non-blocking-gfp-flags-in-alloc_vmap_area.patch
-mm-vmalloc-defer-freeing-partly-initialized-vm_struct.patch
-mm-vmalloc-handle-non-blocking-gfp-in-__vmalloc_area_node.patch
-mm-kasan-support-non-blocking-gfp-in-kasan_populate_vmalloc.patch
-kmsan-remove-hard-coded-gfp_kernel-flags.patch
-mm-skip-might_alloc-warnings-when-pf_memalloc-is-set.patch
-mm-vmalloc-update-__vmalloc_node_range-documentation.patch
-mm-kvmalloc-add-non-blocking-support-for-vmalloc.patch
+mm-ksm-fix-exec-fork-inheritance-support-for-prctl.patch
+selftests-update-ksm-inheritation-tests-for-prctl-fork-exec.patch
 
