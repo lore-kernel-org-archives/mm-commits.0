@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C76D24676C
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 21:36:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F68124676C
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 21:36:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759873000; cv=none; b=r342a8kTUnZRhdU71azOKyJx58ZefzCUEQVlI9nTne6TgKQ8e4VJTm6FpKta1LA6f8tyedJC1+xJCenWPaPGrbxEXh3FKGZfKCqCRZi/eoK1CuDDhPZ4ckilWUhivg1gWMjpHNcjunwLAO0enCrSmCemkvUmNQWipEzFkB/Kecg=
+	t=1759873003; cv=none; b=XFQ3MvNIPqYj92okQgAhWfBPNf0owWhi5L76XEa5PylUT9cj5X6Glfy7i5fLw5R8+OP2gCLToiiqw60q8kwjXrw/EOO61MM/y3VjchAmGaufMa/oTjJlsKjBCnVct8b3UJ9p/qg5otkB5vohE8KuSv7Brn2cS/NqERbISpOPzEo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759873000; c=relaxed/simple;
-	bh=41wVTjZaZbGhnE7yXVCJUqEuY7vliV/PaMaDyo4Mk+8=;
-	h=Date:To:From:Subject:Message-Id; b=PoSkcp4ZY69cNzagIhi6BlplKO9Cke+Trdbc+MapMjN4Zz+QZK+P7Ojt8sWvUHXV+LTizJrJPOcB6YWjdHP5b3ASCcE7GCOu2gUPH+D5bNWZmnZ/ZsmYT44P4mQc4qVJpPyjA6AFQ+yj57YqEQXr4Yz4eaN2xBnLiGn5/+vQin8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MsNQdzZK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759873003; c=relaxed/simple;
+	bh=XrQzfYYKAf06E5PjgSWmfiOOP3lUErjPOxbffJnetik=;
+	h=Date:To:From:Subject:Message-Id; b=TfoqV2CQczPthp72paBBJVGDFQKjxmcl/UZADrSLD50GnUamWXWoT+B3o/Dzfw4Zup71Mymra6XLYjbRL1molZgvTvvADpbX8WOImNgKbsB8ZoPkN5xZww30+WCa+bou76UftAa6pFPWE1IxKmyjpP8fSL0ANOPbMqtSkyZ/TnI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AtWlFdTG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MsNQdzZK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD833C4CEF1;
-	Tue,  7 Oct 2025 21:36:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AtWlFdTG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 545A2C4CEF1;
+	Tue,  7 Oct 2025 21:36:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759872999;
-	bh=41wVTjZaZbGhnE7yXVCJUqEuY7vliV/PaMaDyo4Mk+8=;
+	s=korg; t=1759873003;
+	bh=XrQzfYYKAf06E5PjgSWmfiOOP3lUErjPOxbffJnetik=;
 	h=Date:To:From:Subject:From;
-	b=MsNQdzZKhNiAsUF56UK9aKXut/f6vtX7IRH9yQqJtIelEpGNlfjZBAyk+yZbsX0j+
-	 GqgwIDXv9OYBdILkAQs6IqNBxzEu3EmX+ZNqVwsmvlGWcouEqy7ki9sHk4+o7CWK1H
-	 A3yF3iAmvdTOpIypeJ+z3qlwnUhLp+CFTmfvBLms=
-Date: Tue, 07 Oct 2025 14:36:39 -0700
+	b=AtWlFdTGwpiUGFfkJX5MlsmqzPcOKQK8YEp+X5BVJEDd2hC5F8Yi2XTt9WcudUjDq
+	 lshnBpWGGsshFjUFOmUjlZGXMP00wISNezmHshG8ZDZ7SQwodw84aEuu14w0VO6AYS
+	 ucWvCIMJp8X/CHRxSaPrwurIdjt0s/otkoItJTws=
+Date: Tue, 07 Oct 2025 14:36:42 -0700
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,mhocko@suse.com,mhocko@kernel.org,glider@google.com,elver@google.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-remove-hard-coded-gfp_kernel-flags.patch added to mm-new branch
-Message-Id: <20251007213639.BD833C4CEF1@smtp.kernel.org>
+Subject: + mm-skip-might_alloc-warnings-when-pf_memalloc-is-set.patch added to mm-new branch
+Message-Id: <20251007213643.545A2C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: remove hard-coded GFP_KERNEL flags
+     Subject: mm: skip might_alloc() warnings when PF_MEMALLOC is set
 has been added to the -mm mm-new branch.  Its filename is
-     kmsan-remove-hard-coded-gfp_kernel-flags.patch
+     mm-skip-might_alloc-warnings-when-pf_memalloc-is-set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-remove-hard-coded-gfp_kernel-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-skip-might_alloc-warnings-when-pf_memalloc-is-set.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,178 +65,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: kmsan: remove hard-coded GFP_KERNEL flags
-Date: Tue, 7 Oct 2025 14:20:32 +0200
+Subject: mm: skip might_alloc() warnings when PF_MEMALLOC is set
+Date: Tue, 7 Oct 2025 14:20:33 +0200
 
-kmsan_vmap_pages_range_noflush() allocates its temp s_pages/o_pages arrays
-with GFP_KERNEL, which may sleep.  This is inconsistent with vmalloc() as
-it will support non-blocking requests later.
+might_alloc() catches invalid blocking allocations in contexts where
+sleeping is not allowed.
 
-Plumb gfp_mask through the kmsan_vmap_pages_range_noflush(), so it can use
-it internally for its demand.
+However when PF_MEMALLOC is set, the page allocator already skips reclaim
+and other blocking paths.  In such cases, a blocking gfp_mask does not
+actually lead to blocking, so triggering might_alloc() splats is
+misleading.
 
-Please note, the subsequent __vmap_pages_range_noflush() still uses
-GFP_KERNEL and can sleep.  If a caller runs under reclaim constraints,
-sleeping is forbidden, it must establish the appropriate memalloc scope
-API.
+Adjust might_alloc() to skip warnings when the current task has
+PF_MEMALLOC set, matching the allocator's actual blocking behaviour.
 
-Link: https://lkml.kernel.org/r/20251007122035.56347-8-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20251007122035.56347-9-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmsan.h |    6 ++++--
- mm/internal.h         |    4 ++--
- mm/kmsan/shadow.c     |    6 +++---
- mm/percpu-vm.c        |    2 +-
- mm/vmalloc.c          |   26 +++++++++++++++++---------
- 5 files changed, 27 insertions(+), 17 deletions(-)
+ include/linux/sched/mm.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/kmsan.h~kmsan-remove-hard-coded-gfp_kernel-flags
-+++ a/include/linux/kmsan.h
-@@ -133,6 +133,7 @@ void kmsan_kfree_large(const void *ptr);
-  * @prot:	page protection flags used for vmap.
-  * @pages:	array of pages.
-  * @page_shift:	page_shift passed to vmap_range_noflush().
-+ * @gfp_mask:	gfp_mask to use internally.
-  *
-  * KMSAN maps shadow and origin pages of @pages into contiguous ranges in
-  * vmalloc metadata address range. Returns 0 on success, callers must check
-@@ -142,7 +143,8 @@ int __must_check kmsan_vmap_pages_range_
- 						unsigned long end,
- 						pgprot_t prot,
- 						struct page **pages,
--						unsigned int page_shift);
-+						unsigned int page_shift,
-+						gfp_t gfp_mask);
+--- a/include/linux/sched/mm.h~mm-skip-might_alloc-warnings-when-pf_memalloc-is-set
++++ a/include/linux/sched/mm.h
+@@ -318,6 +318,9 @@ static inline void might_alloc(gfp_t gfp
+ 	fs_reclaim_acquire(gfp_mask);
+ 	fs_reclaim_release(gfp_mask);
  
- /**
-  * kmsan_vunmap_kernel_range_noflush() - Notify KMSAN about a vunmap.
-@@ -347,7 +349,7 @@ static inline void kmsan_kfree_large(con
- 
- static inline int __must_check kmsan_vmap_pages_range_noflush(
- 	unsigned long start, unsigned long end, pgprot_t prot,
--	struct page **pages, unsigned int page_shift)
-+	struct page **pages, unsigned int page_shift, gfp_t gfp_mask)
- {
- 	return 0;
- }
---- a/mm/internal.h~kmsan-remove-hard-coded-gfp_kernel-flags
-+++ a/mm/internal.h
-@@ -1355,7 +1355,7 @@ size_t splice_folio_into_pipe(struct pip
- #ifdef CONFIG_MMU
- void __init vmalloc_init(void);
- int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
--                pgprot_t prot, struct page **pages, unsigned int page_shift);
-+	pgprot_t prot, struct page **pages, unsigned int page_shift, gfp_t gfp_mask);
- unsigned int get_vm_area_page_order(struct vm_struct *vm);
- #else
- static inline void vmalloc_init(void)
-@@ -1364,7 +1364,7 @@ static inline void vmalloc_init(void)
- 
- static inline
- int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
--                pgprot_t prot, struct page **pages, unsigned int page_shift)
-+	pgprot_t prot, struct page **pages, unsigned int page_shift, gfp_t gfp_mask)
- {
- 	return -EINVAL;
- }
---- a/mm/kmsan/shadow.c~kmsan-remove-hard-coded-gfp_kernel-flags
-+++ a/mm/kmsan/shadow.c
-@@ -215,7 +215,7 @@ void kmsan_free_page(struct page *page,
- 
- int kmsan_vmap_pages_range_noflush(unsigned long start, unsigned long end,
- 				   pgprot_t prot, struct page **pages,
--				   unsigned int page_shift)
-+				   unsigned int page_shift, gfp_t gfp_mask)
- {
- 	unsigned long shadow_start, origin_start, shadow_end, origin_end;
- 	struct page **s_pages, **o_pages;
-@@ -230,8 +230,8 @@ int kmsan_vmap_pages_range_noflush(unsig
- 		return 0;
- 
- 	nr = (end - start) / PAGE_SIZE;
--	s_pages = kcalloc(nr, sizeof(*s_pages), GFP_KERNEL);
--	o_pages = kcalloc(nr, sizeof(*o_pages), GFP_KERNEL);
-+	s_pages = kcalloc(nr, sizeof(*s_pages), gfp_mask);
-+	o_pages = kcalloc(nr, sizeof(*o_pages), gfp_mask);
- 	if (!s_pages || !o_pages) {
- 		err = -ENOMEM;
- 		goto ret;
---- a/mm/percpu-vm.c~kmsan-remove-hard-coded-gfp_kernel-flags
-+++ a/mm/percpu-vm.c
-@@ -194,7 +194,7 @@ static int __pcpu_map_pages(unsigned lon
- 			    int nr_pages)
- {
- 	return vmap_pages_range_noflush(addr, addr + (nr_pages << PAGE_SHIFT),
--					PAGE_KERNEL, pages, PAGE_SHIFT);
-+			PAGE_KERNEL, pages, PAGE_SHIFT, GFP_KERNEL);
- }
- 
- /**
---- a/mm/vmalloc.c~kmsan-remove-hard-coded-gfp_kernel-flags
-+++ a/mm/vmalloc.c
-@@ -671,16 +671,28 @@ int __vmap_pages_range_noflush(unsigned
- }
- 
- int vmap_pages_range_noflush(unsigned long addr, unsigned long end,
--		pgprot_t prot, struct page **pages, unsigned int page_shift)
-+		pgprot_t prot, struct page **pages, unsigned int page_shift,
-+		gfp_t gfp_mask)
- {
- 	int ret = kmsan_vmap_pages_range_noflush(addr, end, prot, pages,
--						 page_shift);
-+						page_shift, gfp_mask);
- 
- 	if (ret)
- 		return ret;
- 	return __vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
- }
- 
-+static int __vmap_pages_range(unsigned long addr, unsigned long end,
-+		pgprot_t prot, struct page **pages, unsigned int page_shift,
-+		gfp_t gfp_mask)
-+{
-+	int err;
++	if (current->flags & PF_MEMALLOC)
++		return;
 +
-+	err = vmap_pages_range_noflush(addr, end, prot, pages, page_shift, gfp_mask);
-+	flush_cache_vmap(addr, end);
-+	return err;
-+}
-+
- /**
-  * vmap_pages_range - map pages to a kernel virtual address
-  * @addr: start of the VM area to map
-@@ -696,11 +708,7 @@ int vmap_pages_range_noflush(unsigned lo
- int vmap_pages_range(unsigned long addr, unsigned long end,
- 		pgprot_t prot, struct page **pages, unsigned int page_shift)
- {
--	int err;
--
--	err = vmap_pages_range_noflush(addr, end, prot, pages, page_shift);
--	flush_cache_vmap(addr, end);
--	return err;
-+	return __vmap_pages_range(addr, end, prot, pages, page_shift, GFP_KERNEL);
+ 	might_sleep_if(gfpflags_allow_blocking(gfp_mask));
  }
  
- static int check_sparse_vm_area(struct vm_struct *area, unsigned long start,
-@@ -3839,8 +3847,8 @@ static void *__vmalloc_area_node(struct
- 	 */
- 	flags = memalloc_apply_gfp_scope(gfp_mask);
- 	do {
--		ret = vmap_pages_range(addr, addr + size, prot, area->pages,
--			page_shift);
-+		ret = __vmap_pages_range(addr, addr + size, prot, area->pages,
-+				page_shift, nested_gfp);
- 		if (nofail && (ret < 0))
- 			schedule_timeout_uninterruptible(1);
- 	} while (nofail && (ret < 0));
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
