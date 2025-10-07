@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69E03170A11;
-	Tue,  7 Oct 2025 21:01:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1760170A11;
+	Tue,  7 Oct 2025 21:01:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759870897; cv=none; b=QzaEnZVtGqB6MrftHMTBZ2N4PeAWNZRc6d8BJBz4kVzPjWkLS1P+r1SBAAxyS3CqPg23cwsDIAidwuHqku3ubj+VAvmhs5adyEevpsm/JGvkZXthuInzFcV19VL0zrTHc5Z1rvL664m2D30xdV70IdPDYfl3/a1GEFgpk0fABjs=
+	t=1759870898; cv=none; b=YnZma4RDE3nqG0otyyD1keBnz69gigxToX/zwFceWwWIC2CJjoe1zCIEM26hb4jK+xFGx9RdWHzw81fL1mPE65z1w23SpNtz5VNai4tej7U3WiZMgWHoei002vE2Ffoet1wJLOYUH6ZHqQqUt4ShnLxSzLWH162VkIk4h2isgNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759870897; c=relaxed/simple;
-	bh=tKukAxvsWfBzeeSOTVGl9lTiM98rrKJPY74Reip57mQ=;
-	h=Date:To:From:Subject:Message-Id; b=thJPWgvKVRr/MTJ8FqTESSnDo8Eo5V8XRtQix0cUlyA6JEhMzeGN918T4yb2TR2ev0saFLmyqWEl3sGMOeoswZRfqRe7mlu2WPlDxl/K46O1p/Bi6EnPB3oyCucAqqtnMWgEaaflnwd8Q291MFHPIz/ewfXzgCraoIvdks0r9fE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EiqYiC9u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759870898; c=relaxed/simple;
+	bh=vi20csZzDB8qfwZOrztuGnyhL+sJBi1QwcaY6Man4Hg=;
+	h=Date:To:From:Subject:Message-Id; b=ipEqQtDHzSAF+BbjiDSToHN6BIxm0MVPUaJIGx6ksXlSbf+oWQ0OQwrNqReGZgPOyI+0ZQ3c/knXX2m7TyZbIM1aopdvtl2W+qrTXlVKwKtcM5tRUK/urxinIIIcU2WfFbblAfSG5x802i32pRhqdy8KojopZ/fpp2RQePx5gog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kdy5KnxZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EiqYiC9u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE60DC4CEF1;
-	Tue,  7 Oct 2025 21:01:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kdy5KnxZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6636FC4CEFF;
+	Tue,  7 Oct 2025 21:01:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759870896;
-	bh=tKukAxvsWfBzeeSOTVGl9lTiM98rrKJPY74Reip57mQ=;
+	s=korg; t=1759870898;
+	bh=vi20csZzDB8qfwZOrztuGnyhL+sJBi1QwcaY6Man4Hg=;
 	h=Date:To:From:Subject:From;
-	b=EiqYiC9u0rFqmPy1Yzj5FHAM+IINM86RvMR6fK81xYE7Rc5b5i0DcJ8mH7Un5D4i/
-	 ipURhQwpS1CWN4NRYRjIC1Bohg6OuDKn8ofF3ahy42xvFgEFXE1a2H+qk1i99eTo+2
-	 +4qp4aH6Zh6bkiSZLLq7CVwiXWgvCeRafBVPA8V0=
-Date: Tue, 07 Oct 2025 14:01:36 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,usamaarif642@gmail.com,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,samuel.holland@sifive.com,ryncsn@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,richard.weiyang@gmail.com,rakie.kim@sk.com,Qun-wei.Lin@mediatek.com,palmer@rivosinc.com,npache@redhat.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kaleshsingh@google.com,joshua.hahnjy@gmail.com,hughd@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@redhat.com,chinwen.chang@mediatek.com,charlie@rivosinc.com,cerasuolodomenico@gmail.com,catalin.marinas@arm.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,andrew.yang@mediatek.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=kdy5KnxZjHzG+w5LdqUh6iaHa4itOdP8HejpFolWcoaALyyylHlLI2FA0o+f/4Stx
+	 0+pkKC7KBNtH5JGRopDeDvAUlLe35u5o5rmrPfqPPeSf+0RRKXNWrMn0H44m64bvze
+	 t59KEXTKYSL7cgRiOirm6PB0dvIe093IUy7BsY/I=
+Date: Tue, 07 Oct 2025 14:01:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,ying.huang@linux.alibaba.com,vbabka@suse.cz,usamaarif642@gmail.com,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,npache@redhat.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,jannh@google.com,harry.yoo@oracle.com,gourry@gourry.net,dev.jain@arm.com,david@redhat.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-thp-fix-mte-tag-mismatch-when-replacing-zero-filled-subpages.patch removed from -mm tree
-Message-Id: <20251007210136.CE60DC4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-rmap-fix-soft-dirty-and-uffd-wp-bit-loss-when-remapping-zero-filled-mthp-subpage-to-shared-zeropage.patch removed from -mm tree
+Message-Id: <20251007210138.6636FC4CEFF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,156 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/thp: fix MTE tag mismatch when replacing zero-filled subpages
+     Subject: mm/rmap: fix soft-dirty and uffd-wp bit loss when remapping zero-filled mTHP subpage to shared zeropage
 has been removed from the -mm tree.  Its filename was
-     mm-thp-fix-mte-tag-mismatch-when-replacing-zero-filled-subpages.patch
+     mm-rmap-fix-soft-dirty-and-uffd-wp-bit-loss-when-remapping-zero-filled-mthp-subpage-to-shared-zeropage.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/thp: fix MTE tag mismatch when replacing zero-filled subpages
-Date: Mon, 22 Sep 2025 10:14:58 +0800
+Subject: mm/rmap: fix soft-dirty and uffd-wp bit loss when remapping zero-filled mTHP subpage to shared zeropage
+Date: Tue, 30 Sep 2025 16:10:40 +0800
 
-From: Lance Yang <lance.yang@linux.dev>
+When splitting an mTHP and replacing a zero-filled subpage with the shared
+zeropage, try_to_map_unused_to_zeropage() currently drops several
+important PTE bits.
 
-When both THP and MTE are enabled, splitting a THP and replacing its
-zero-filled subpages with the shared zeropage can cause MTE tag mismatch
-faults in userspace.
+For userspace tools like CRIU, which rely on the soft-dirty mechanism for
+incremental snapshots, losing the soft-dirty bit means modified pages are
+missed, leading to inconsistent memory state after restore.
 
-Remapping zero-filled subpages to the shared zeropage is unsafe, as the
-zeropage has a fixed tag of zero, which may not match the tag expected by
-the userspace pointer.
+As pointed out by David, the more critical uffd-wp bit is also dropped. 
+This breaks the userfaultfd write-protection mechanism, causing writes to
+be silently missed by monitoring applications, which can lead to data
+corruption.
 
-KSM already avoids this problem by using memcmp_pages(), which on arm64
-intentionally reports MTE-tagged pages as non-identical to prevent unsafe
-merging.
+Preserve both the soft-dirty and uffd-wp bits from the old PTE when
+creating the new zeropage mapping to ensure they are correctly tracked.
 
-As suggested by David[1], this patch adopts the same pattern, replacing the
-memchr_inv() byte-level check with a call to pages_identical(). This
-leverages existing architecture-specific logic to determine if a page is
-truly identical to the shared zeropage.
-
-Having both the THP shrinker and KSM rely on pages_identical() makes the
-design more future-proof, IMO. Instead of handling quirks in generic code,
-we just let the architecture decide what makes two pages identical.
-
-[1] https://lore.kernel.org/all/ca2106a3-4bb2-4457-81af-301fd99fbef4@redhat.com
-
-Link: https://lkml.kernel.org/r/20250922021458.68123-1-lance.yang@linux.dev
+Link: https://lkml.kernel.org/r/20250930081040.80926-1-lance.yang@linux.dev
 Fixes: b1f202060afe ("mm: remap unused subpages to shared zeropage when splitting isolated thp")
 Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Reported-by: Qun-wei Lin <Qun-wei.Lin@mediatek.com>
-Closes: https://lore.kernel.org/all/a7944523fcc3634607691c35311a5d59d1a3f8d4.camel@mediatek.com
 Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: Dev Jain <dev.jain@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Usama Arif <usamaarif642@gmail.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: andrew.yang <andrew.yang@mediatek.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Byungchul Park <byungchul@sk.com>
-Cc: Charlie Jenkins <charlie@rivosinc.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jann Horn <jannh@google.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
 Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Samuel Holland <samuel.holland@sifive.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yu Zhao <yuzhao@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   15 +++------------
- mm/migrate.c     |    8 +-------
- 2 files changed, 4 insertions(+), 19 deletions(-)
+ mm/migrate.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-fix-mte-tag-mismatch-when-replacing-zero-filled-subpages
-+++ a/mm/huge_memory.c
-@@ -4104,32 +4104,23 @@ static unsigned long deferred_split_coun
- static bool thp_underused(struct folio *folio)
- {
- 	int num_zero_pages = 0, num_filled_pages = 0;
--	void *kaddr;
- 	int i;
- 
- 	if (khugepaged_max_ptes_none == HPAGE_PMD_NR - 1)
- 		return false;
- 
- 	for (i = 0; i < folio_nr_pages(folio); i++) {
--		kaddr = kmap_local_folio(folio, i * PAGE_SIZE);
--		if (!memchr_inv(kaddr, 0, PAGE_SIZE)) {
--			num_zero_pages++;
--			if (num_zero_pages > khugepaged_max_ptes_none) {
--				kunmap_local(kaddr);
-+		if (pages_identical(folio_page(folio, i), ZERO_PAGE(0))) {
-+			if (++num_zero_pages > khugepaged_max_ptes_none)
- 				return true;
--			}
- 		} else {
- 			/*
- 			 * Another path for early exit once the number
- 			 * of non-zero filled pages exceeds threshold.
- 			 */
--			num_filled_pages++;
--			if (num_filled_pages >= HPAGE_PMD_NR - khugepaged_max_ptes_none) {
--				kunmap_local(kaddr);
-+			if (++num_filled_pages >= HPAGE_PMD_NR - khugepaged_max_ptes_none)
- 				return false;
--			}
- 		}
--		kunmap_local(kaddr);
- 	}
- 	return false;
- }
---- a/mm/migrate.c~mm-thp-fix-mte-tag-mismatch-when-replacing-zero-filled-subpages
+--- a/mm/migrate.c~mm-rmap-fix-soft-dirty-and-uffd-wp-bit-loss-when-remapping-zero-filled-mthp-subpage-to-shared-zeropage
 +++ a/mm/migrate.c
-@@ -300,9 +300,7 @@ static bool try_to_map_unused_to_zeropag
- 					  unsigned long idx)
+@@ -296,8 +296,7 @@ bool isolate_folio_to_list(struct folio
+ }
+ 
+ static bool try_to_map_unused_to_zeropage(struct page_vma_mapped_walk *pvmw,
+-					  struct folio *folio,
+-					  unsigned long idx)
++		struct folio *folio, pte_t old_pte, unsigned long idx)
  {
  	struct page *page = folio_page(folio, idx);
--	bool contains_data;
  	pte_t newpte;
--	void *addr;
+@@ -306,7 +305,7 @@ static bool try_to_map_unused_to_zeropag
+ 		return false;
+ 	VM_BUG_ON_PAGE(!PageAnon(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+-	VM_BUG_ON_PAGE(pte_present(ptep_get(pvmw->pte)), page);
++	VM_BUG_ON_PAGE(pte_present(old_pte), page);
  
- 	if (PageCompound(page))
- 		return false;
-@@ -319,11 +317,7 @@ static bool try_to_map_unused_to_zeropag
- 	 * this subpage has been non present. If the subpage is only zero-filled
- 	 * then map it to the shared zeropage.
- 	 */
--	addr = kmap_local_page(page);
--	contains_data = memchr_inv(addr, 0, PAGE_SIZE);
--	kunmap_local(addr);
--
--	if (contains_data)
-+	if (!pages_identical(page, ZERO_PAGE(0)))
- 		return false;
+ 	if (folio_test_mlocked(folio) || (pvmw->vma->vm_flags & VM_LOCKED) ||
+ 	    mm_forbids_zeropage(pvmw->vma->vm_mm))
+@@ -322,6 +321,12 @@ static bool try_to_map_unused_to_zeropag
  
  	newpte = pte_mkspecial(pfn_pte(my_zero_pfn(pvmw->address),
+ 					pvmw->vma->vm_page_prot));
++
++	if (pte_swp_soft_dirty(old_pte))
++		newpte = pte_mksoft_dirty(newpte);
++	if (pte_swp_uffd_wp(old_pte))
++		newpte = pte_mkuffd_wp(newpte);
++
+ 	set_pte_at(pvmw->vma->vm_mm, pvmw->address, pvmw->pte, newpte);
+ 
+ 	dec_mm_counter(pvmw->vma->vm_mm, mm_counter(folio));
+@@ -364,13 +369,13 @@ static bool remove_migration_pte(struct
+ 			continue;
+ 		}
+ #endif
++		old_pte = ptep_get(pvmw.pte);
+ 		if (rmap_walk_arg->map_unused_to_zeropage &&
+-		    try_to_map_unused_to_zeropage(&pvmw, folio, idx))
++		    try_to_map_unused_to_zeropage(&pvmw, folio, old_pte, idx))
+ 			continue;
+ 
+ 		folio_get(folio);
+ 		pte = mk_pte(new, READ_ONCE(vma->vm_page_prot));
+-		old_pte = ptep_get(pvmw.pte);
+ 
+ 		entry = pte_to_swp_entry(old_pte);
+ 		if (!is_migration_entry_young(entry))
 _
 
 Patches currently in -mm which might be from lance.yang@linux.dev are
