@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F3B322AE7F
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 20:46:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46EA95227
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 20:49:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759870010; cv=none; b=WLyXgLdGfcTz8oEOdwa3TNT3t66EwLmsISOus8RmtXbHtp8gU6DlbNqW6RAyYtMRMq9twoiTy+s3RnxnIzuFgHgZ224b1yc5ucmvc0lrCZGeGlJmNOFaMnhiem8QXn10aEKnvIaqtE6cR5l6ReMMqS1p28meUaCBmUA6HleK6NA=
+	t=1759870159; cv=none; b=CD3a+Ygrv4LYkzr5wLdMGb6rkzd9ozDYckJwHhvO42JoKDY7jkGgyHFaEyoNrFoeo9rJRSA+ybbWAbVKwoDhSCDOtanvDtgB51vYCxyxPh7rd6ifs5pjRtSsCW1l4eZPwf/T0/rqoRT6Z+TR+8u4EfEy3doMS2ZcdupRFJd82hg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759870010; c=relaxed/simple;
-	bh=O69JgtUOA6YWJdvxkOzOKTnmg28KgVpPQsihIlbJ2G0=;
-	h=Date:To:From:Subject:Message-Id; b=mwlKwtt0RvOWMG5gj0aOUZ8boSoCIy013C0RZg2dBmTDo97vnlid8wsV+N05T6U9ruThyTsVNsxAI2Wl4/+75FjQZ+gSFReFvNudmcqAV8lA1ri8BFFx8HKVB5jqLCUe4cYPBgTxcKlSdGEAw6UG9VfWJVzmRSy/oG3x6HCsdBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PysrDHQt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759870159; c=relaxed/simple;
+	bh=eFob/itTur7j4hOAD0QZl8yUqerUa6at18whCDE+sqk=;
+	h=Date:To:From:Subject:Message-Id; b=V1HcnpZPy1IBzxfKGxPdlEahYDjhPtNy2S01bRMDt27ZvdRfTJHH0DwD0Tlj6IxFqdF+tL0c9yF9dv3usvehvoB63LK3NSm0JPliIEJFFNgLc68W3Eakm2fpx7BHa14EIZ9bv4IQF8p70Y7fHoAt1HkicGlLLAjhxxTCNjc6W2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yaPdSqD1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PysrDHQt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECAFFC4CEF1;
-	Tue,  7 Oct 2025 20:46:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yaPdSqD1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EB05C4CEF1;
+	Tue,  7 Oct 2025 20:49:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759870010;
-	bh=O69JgtUOA6YWJdvxkOzOKTnmg28KgVpPQsihIlbJ2G0=;
+	s=korg; t=1759870158;
+	bh=eFob/itTur7j4hOAD0QZl8yUqerUa6at18whCDE+sqk=;
 	h=Date:To:From:Subject:From;
-	b=PysrDHQtwv+ZoLa8+we/ZDDmYxqRVoTVSXKMBYbZxqnxEdiV3bzO06v6kLnnTcVtl
-	 p8OvIoI29WWwC91skn+ERpWZB6dPfbIwpLOJyUpPX/pYKSqbuSnT32MZDr9hP7vfuf
-	 12c0cjDjAih5jI7QSq82SniTfqyAxGYf5JokBOGI=
-Date: Tue, 07 Oct 2025 13:46:49 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=yaPdSqD1CHM/SpTdMFQ0aiKbOcb1m+03xsQEwC3I6P9ru66wQ/tG3J+9fxNYuJ+r8
+	 GXTHlcsfOa1qJ+4d3OCq5eOZ9Yb8NcxJjgw73IKi+adIs0K4Sak0bjikVEoMlNdx6l
+	 BpJBSpB1FzQ3eApJTXZpjILVXs8BdlJUtxlbD/rA=
+Date: Tue, 07 Oct 2025 13:49:18 -0700
+To: mm-commits@vger.kernel.org,uajain@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20251007204649.ECAFFC4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] maintainers-mailmap-update-umangs-email-address.patch removed from -mm tree
+Message-Id: <20251007204918.9EB05C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
+     Subject: MAINTAINERS, .mailmap: update Umang's email address
 has been removed from the -mm tree.  Its filename was
-     kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes.patch
+     maintainers-mailmap-update-umangs-email-address.patch
 
-This patch was dropped because it was folded into kho-add-support-for-preserving-vmalloc-allocations.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
-Date: Sun Sep 21 09:52:59 AM PDT 2025
+From: Umang Jain <uajain@igalia.com>
+Subject: MAINTAINERS, .mailmap: update Umang's email address
+Date: Mon, 29 Sep 2025 13:10:24 +0530
 
-ERROR: code indent should use tabs where possible
-#38: FILE: include/linux/kexec_handover.h:44:
-+        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);$
+Map my new professional email address in .mailmap and also update
+the IMX283 driver entry with the same.
 
-WARNING: please, no spaces at the start of a line
-#38: FILE: include/linux/kexec_handover.h:44:
-+        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);$
+At the same time, update my role to a reviewer for the IMX283 driver.
 
-ERROR: code indent should use tabs where possible
-#39: FILE: include/linux/kexec_handover.h:45:
-+        unsigned int total_pages;$
-
-WARNING: please, no spaces at the start of a line
-#39: FILE: include/linux/kexec_handover.h:45:
-+        unsigned int total_pages;$
-
-ERROR: code indent should use tabs where possible
-#40: FILE: include/linux/kexec_handover.h:46:
-+        unsigned short flags;$
-
-WARNING: please, no spaces at the start of a line
-#40: FILE: include/linux/kexec_handover.h:46:
-+        unsigned short flags;$
-
-ERROR: code indent should use tabs where possible
-#41: FILE: include/linux/kexec_handover.h:47:
-+        unsigned short order;$
-
-WARNING: please, no spaces at the start of a line
-#41: FILE: include/linux/kexec_handover.h:47:
-+        unsigned short order;$
-
-total: 4 errors, 4 warnings, 350 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/kho-add-support-for-preserving-vmalloc-allocations.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20250929074025.84407-1-uajain@igalia.com
+Signed-off-by: Umang Jain <uajain@igalia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec_handover.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/kexec_handover.h~kho-add-support-for-preserving-vmalloc-allocations-checkpatch-fixes
-+++ a/include/linux/kexec_handover.h
-@@ -41,10 +41,10 @@ struct kho_serialization;
+--- a/.mailmap~maintainers-mailmap-update-umangs-email-address
++++ a/.mailmap
+@@ -803,6 +803,7 @@ Tvrtko Ursulin <tursulin@ursulin.net> <t
+ Tvrtko Ursulin <tursulin@ursulin.net> <tvrtko@ursulin.net>
+ Tycho Andersen <tycho@tycho.pizza> <tycho@tycho.ws>
+ Tzung-Bi Shih <tzungbi@kernel.org> <tzungbi@google.com>
++Umang Jain <uajain@igalia.com> <umang.jain@ideasonboard.com>
+ Uwe Kleine-König <ukleinek@informatik.uni-freiburg.de>
+ Uwe Kleine-König <u.kleine-koenig@baylibre.com> <ukleinek@baylibre.com>
+ Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+--- a/MAINTAINERS~maintainers-mailmap-update-umangs-email-address
++++ a/MAINTAINERS
+@@ -23882,7 +23882,7 @@ F:	drivers/media/i2c/imx274.c
  
- struct kho_vmalloc_chunk;
- struct kho_vmalloc {
--        DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
--        unsigned int total_pages;
--        unsigned short flags;
--        unsigned short order;
-+	DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
-+	unsigned int total_pages;
-+	unsigned short flags;
-+	unsigned short order;
- };
- 
- #ifdef CONFIG_KEXEC_HANDOVER
+ SONY IMX283 SENSOR DRIVER
+ M:	Kieran Bingham <kieran.bingham@ideasonboard.com>
+-M:	Umang Jain <umang.jain@ideasonboard.com>
++R:	Umang Jain <uajain@igalia.com>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ T:	git git://linuxtv.org/media.git
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from uajain@igalia.com are
 
-mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise-fix.patch
-mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
-kho-add-support-for-preserving-vmalloc-allocations.patch
 
