@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5670823D7C7
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 20:49:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C4B225762
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 20:58:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759870168; cv=none; b=bEcMQMzLRctjXWl32vqBc/3x+Ou1SP0iTKYJAssXoSvDtPVBbx0cn9ffm48sZzrtA9ORsnqEk3GjRzROsoOhxUy+Qo8Ge8TfPnjQUDlRJ9y3LL9VoQ+uq86nzEvNsH416EldwYtJKZlsgNj2SeAqdHpdQq2uFLPXUXD7OYpGctQ=
+	t=1759870721; cv=none; b=ouABnbS0iycPUTDNKMGXkHg+G6CwfaSO8+G5LT6pOvNxhEJjdaxNLn2i0HlD2Ps9v/N1WSR2haIICiD2NrXGI9QHS6j0A8pwgE/00uVjw62/NdgmwmZTzxyktrpi2QqovoIw01Dz/o77bM31SbLf7mOmxdtMdS10tAousESafpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759870168; c=relaxed/simple;
-	bh=Ay27GPgLxJWUHfNi2sHehobVgg1W1XE81qOyEikaEi0=;
-	h=Date:To:From:Subject:Message-Id; b=OyBwzAMuLdnDdJuKBHO5JyBqzNZuVvNbnjeoFq5QlIsujRCdR5LESdfP51ZeeooHgzNFRaZBHuFlptAkILkM7gxQw903R3rTZ+/IHQmGXWIkZwJmTbGueIsw6eaZGpjSPTnk2BhWQkX6mu/mQYFPDbbzWTE4o20PGFJFFp/S8tc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=alueH4BD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759870721; c=relaxed/simple;
+	bh=8vfJdlTDlJhUwiiGYEYCOyraQ01EGQCszPGcvrho9L8=;
+	h=Date:To:From:Subject:Message-Id; b=QQ8gSNaooHmAntiUWBrP+X2U8XTpKPNHmo5L2RXzKYTLcXUSv5xQItHLAXw6DRspUaVVQlJ3BhRFtuO+Gxvt/Ir4WnL90OCMJikSZod2HIziIe+r1OQzttysvC8oj0V7L5dXN7T/foqARTaJbb+NuBwqtqRflGtE1x/TjWVg+PU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cfAQc7O8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="alueH4BD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFE8FC4CEF1;
-	Tue,  7 Oct 2025 20:49:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cfAQc7O8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68F1FC4CEF1;
+	Tue,  7 Oct 2025 20:58:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759870166;
-	bh=Ay27GPgLxJWUHfNi2sHehobVgg1W1XE81qOyEikaEi0=;
+	s=korg; t=1759870720;
+	bh=8vfJdlTDlJhUwiiGYEYCOyraQ01EGQCszPGcvrho9L8=;
 	h=Date:To:From:Subject:From;
-	b=alueH4BDsgxhNoJe6wGVDo809k6F7lLqqkQyGUl5XlccmFgIF9EzfsSsWqkl7zOOS
-	 cH1hyHb6hez6mVPT0s3kaeHYcXfpiO7ColCffc3tWCDWRX1cp7z+9A//opMSeTNKN1
-	 UatLAXn4HgZu7ph+3gfLvMI50yD15nOrfGNyZ2AE=
-Date: Tue, 07 Oct 2025 13:49:26 -0700
-To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,graf@amazon.com,chrisl@kernel.org,changyuanl@google.com,bhe@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=cfAQc7O8khMIwX8KcX5vgAsHNjP5MI1TnXAkAOUtrMgdQ7S8upC9Kyvo95t8hh3av
+	 iPohxJltKvwlIIK0TVHtm0z2+F64TvEiRFVcyzOb+c054HOX0JCo0dWGsMBUKWsQBr
+	 j4GeqwQ7+DPw0MZ8NNAhwamxvaA4kgWpTVsQGv6c=
+Date: Tue, 07 Oct 2025 13:58:39 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,sj@kernel.org,peterx@redhat.com,miguel.ojeda.sandonis@gmail.com,lkp@intel.com,david@redhat.com,chengming.zhou@linux.dev,axelrasmussen@google.com,aliceryhl@google.com,acsjakub@amazon.de,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt.patch removed from -mm tree
-Message-Id: <20251007204926.CFE8FC4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise-fix.patch removed from -mm tree
+Message-Id: <20251007205840.68F1FC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,138 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/test_kho: use kho_preserve_vmalloc instead of storing addresses in fdt
+     Subject: mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise-fix
 has been removed from the -mm tree.  Its filename was
-     lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt.patch
+     mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise-fix.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise.patch
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: lib/test_kho: use kho_preserve_vmalloc instead of storing addresses in fdt
-Date: Sun, 21 Sep 2025 08:44:58 +0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise-fix
+Date: Thu Oct  2 03:37:47 PM PDT 2025
 
-KHO test stores physical addresses of the preserved folios directly in
-fdt.  Use kho_preserve_vmalloc() instead of it and kho_restore_vmalloc()
-to retrieve the addresses after kexec.
+Rust bindgen wasn't able to handle the BIT() macro.  Add a helper (from
+Miguel) to fix this.
 
-This makes the test more scalable from one side and adds tests coverage
-for kho_preserve_vmalloc() from the other.
-
-Link: https://lkml.kernel.org/r/20250921054458.4043761-5-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202510030449.VfSaAjvd-lkp@intel.com/
+Tested-by: Alice Ryhl <aliceryhl@google.com>
+Tested-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Signed-off-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jakub Acs <acsjakub@amazon.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Xu Xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kho.c |   41 +++++++++++++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ rust/bindings/bindings_helper.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/test_kho.c~lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt
-+++ a/lib/test_kho.c
-@@ -32,6 +32,7 @@ module_param(max_mem, long, 0644);
- struct kho_test_state {
- 	unsigned int nr_folios;
- 	struct folio **folios;
-+	phys_addr_t *folios_info;
- 	struct folio *fdt;
- 	__wsum csum;
- };
-@@ -67,18 +68,15 @@ static struct notifier_block kho_test_nb
+--- a/rust/bindings/bindings_helper.h~mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise-fix
++++ a/rust/bindings/bindings_helper.h
+@@ -108,6 +108,7 @@ const xa_mark_t RUST_CONST_HELPER_XA_PRE
  
- static int kho_test_save_data(struct kho_test_state *state, void *fdt)
- {
--	phys_addr_t *folios_info;
-+	phys_addr_t *folios_info __free(kvfree) = NULL;
-+	struct kho_vmalloc folios_info_phys;
- 	int err = 0;
+ const gfp_t RUST_CONST_HELPER_XA_FLAGS_ALLOC = XA_FLAGS_ALLOC;
+ const gfp_t RUST_CONST_HELPER_XA_FLAGS_ALLOC1 = XA_FLAGS_ALLOC1;
++const vm_flags_t RUST_CONST_HELPER_VM_MERGEABLE = VM_MERGEABLE;
  
--	err |= fdt_begin_node(fdt, "data");
--	err |= fdt_property(fdt, "nr_folios", &state->nr_folios,
--			    sizeof(state->nr_folios));
--	err |= fdt_property_placeholder(fdt, "folios_info",
--					state->nr_folios * sizeof(*folios_info),
--					(void **)&folios_info);
--	err |= fdt_property(fdt, "csum", &state->csum, sizeof(state->csum));
--	err |= fdt_end_node(fdt);
-+	folios_info = vmalloc_array(state->nr_folios, sizeof(*folios_info));
-+	if (!folios_info)
-+		return -ENOMEM;
- 
-+	err = kho_preserve_vmalloc(folios_info, &folios_info_phys);
- 	if (err)
- 		return err;
- 
-@@ -93,6 +91,17 @@ static int kho_test_save_data(struct kho
- 			break;
- 	}
- 
-+	err |= fdt_begin_node(fdt, "data");
-+	err |= fdt_property(fdt, "nr_folios", &state->nr_folios,
-+			    sizeof(state->nr_folios));
-+	err |= fdt_property(fdt, "folios_info", &folios_info_phys,
-+			    sizeof(folios_info_phys));
-+	err |= fdt_property(fdt, "csum", &state->csum, sizeof(state->csum));
-+	err |= fdt_end_node(fdt);
-+
-+	if (!err)
-+		state->folios_info = no_free_ptr(folios_info);
-+
- 	return err;
- }
- 
-@@ -209,8 +218,9 @@ err_free_folios:
- 
- static int kho_test_restore_data(const void *fdt, int node)
- {
-+	const struct kho_vmalloc *folios_info_phys;
- 	const unsigned int *nr_folios;
--	const phys_addr_t *folios_info;
-+	phys_addr_t *folios_info;
- 	const __wsum *old_csum;
- 	__wsum csum = 0;
- 	int len;
-@@ -225,8 +235,12 @@ static int kho_test_restore_data(const v
- 	if (!old_csum || len != sizeof(*old_csum))
- 		return -EINVAL;
- 
--	folios_info = fdt_getprop(fdt, node, "folios_info", &len);
--	if (!folios_info || len != sizeof(*folios_info) * *nr_folios)
-+	folios_info_phys = fdt_getprop(fdt, node, "folios_info", &len);
-+	if (!folios_info_phys || len != sizeof(*folios_info_phys))
-+		return -EINVAL;
-+
-+	folios_info = kho_restore_vmalloc(folios_info_phys);
-+	if (!folios_info)
- 		return -EINVAL;
- 
- 	for (int i = 0; i < *nr_folios; i++) {
-@@ -246,6 +260,8 @@ static int kho_test_restore_data(const v
- 		folio_put(folio);
- 	}
- 
-+	vfree(folios_info);
-+
- 	if (csum != *old_csum)
- 		return -EINVAL;
- 
-@@ -304,6 +320,7 @@ static void kho_test_cleanup(void)
- 		folio_put(kho_test_state.folios[i]);
- 
- 	kvfree(kho_test_state.folios);
-+	vfree(kho_test_state.folios_info);
- 	folio_put(kho_test_state.fdt);
- }
- 
+ #if IS_ENABLED(CONFIG_ANDROID_BINDER_IPC_RUST)
+ #include "../../drivers/android/binder/rust_binder.h"
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-ksm-fix-flag-dropping-behavior-in-ksm_madvise.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
 
