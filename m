@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAEDD23816C
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 21:36:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D9923816C
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 21:36:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759872992; cv=none; b=Pxgxb1+e7VYxRx9aKt2f70K69OXpWBQst5AjdSxtU7sCApuzte91IMmURFnzeLQdYgGZ25znMQKAGkblUg8E9jWkXENBo+Ee5bK3H9K8cGrcTLc59w+KiiCZWWNObCpjijYGeUvDIbyLsckgTs9uFCK6vyMJhcYJOodLUHwlU40=
+	t=1759872995; cv=none; b=KiiuNDqMemLmY/HUvZBW1g9Krfbn3yMl3IO1Qt2p4hlsYQNj+SCEUEuP3suQJfssDuQJzo25nOU9yIQ3kYqpXtA7hFPC08FVKcOTeQGoKCUM/7zFp1aRc58iPAj+HPbl3emPalJnVCrYVQy6P/mNGUBBi8M4Sq3s3/iz4jt6xa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759872992; c=relaxed/simple;
-	bh=9nAwfCnw8WYnlBxUH31AZn1U1HunKMSv6DJAPWA/ep0=;
-	h=Date:To:From:Subject:Message-Id; b=nNGsSdF7vaRGBBR2UN9AqH5r7HkVnTEcoNrd79qBRjnFMmvcc2q3N7263uva7EmMPQcr97KvbkoancuO5Klnw7LYugyzcIWk8L30uYmWg3ZCGp5OLbdj1Wroc1n8PKJG3wSEGQ+WmAeGeeQrfidLQIPjdG+DYDQhIO5DEW26Huc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OArJhErn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759872995; c=relaxed/simple;
+	bh=ZSXjlrjkawdiQKCoshiqkqMcmlMPPDltN/iki9GEztQ=;
+	h=Date:To:From:Subject:Message-Id; b=qyl9D5LhEWOSYwf9Jnv+LZ9PqjpgTUTDD+DweFjc1PpCnm3mIO3HZ29W9yvUsaqeXUiU12EB56AM/MJsECDd7SQuk0svwcS7cV1m7rhoOxquEpSLN2LwzPHsvNoKeI7zd0/2HVAOUtc51Osan/9R3xT/eR6cMeBdzEZFtdUI2Ew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xl7HrsVW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OArJhErn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99979C4CEF1;
-	Tue,  7 Oct 2025 21:36:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xl7HrsVW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32E80C4CEF1;
+	Tue,  7 Oct 2025 21:36:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759872992;
-	bh=9nAwfCnw8WYnlBxUH31AZn1U1HunKMSv6DJAPWA/ep0=;
+	s=korg; t=1759872995;
+	bh=ZSXjlrjkawdiQKCoshiqkqMcmlMPPDltN/iki9GEztQ=;
 	h=Date:To:From:Subject:From;
-	b=OArJhErntjIARdOd+yJTAEHZqbcOY6ZgmnYcQAXrMbuEpo8RF4HVhbuGwRk8n/Y1a
-	 qps1Pi0uthvVFgka7jD0nTo4JNYIfgVRsbOhmjEr1qppWp1toG4gLIb3liPFNGokGI
-	 2/vfwy6rw50TLcw5ov4pkDqsZ1lVeG2hRny2lQQE=
-Date: Tue, 07 Oct 2025 14:36:32 -0700
+	b=Xl7HrsVWK0JRFQ2EGu85yIkF+GYu5s6v2uPjADlq4ZaXPotS/3cnPzFOlryiLKvBl
+	 fo+dRK4gQdngxEGi91kS9qoJ8PHv4w0+smZazxRz9GYOPWaj5ubmhDQSBJKC9KBs03
+	 Hf6oKfWPP0cQLcQtSJeeq0g43eRgo4RR/bxBSci4=
+Date: Tue, 07 Oct 2025 14:36:34 -0700
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,mhocko@suse.com,mhocko@kernel.org,glider@google.com,elver@google.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-defer-freeing-partly-initialized-vm_struct.patch added to mm-new branch
-Message-Id: <20251007213632.99979C4CEF1@smtp.kernel.org>
+Subject: + mm-vmalloc-handle-non-blocking-gfp-in-__vmalloc_area_node.patch added to mm-new branch
+Message-Id: <20251007213635.32E80C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: defer freeing partly initialized vm_struct
+     Subject: mm/vmalloc: handle non-blocking GFP in __vmalloc_area_node()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-defer-freeing-partly-initialized-vm_struct.patch
+     mm-vmalloc-handle-non-blocking-gfp-in-__vmalloc_area_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-defer-freeing-partly-initialized-vm_struct.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-handle-non-blocking-gfp-in-__vmalloc_area_node.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,19 +65,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: defer freeing partly initialized vm_struct
-Date: Tue, 7 Oct 2025 14:20:29 +0200
+Subject: mm/vmalloc: handle non-blocking GFP in __vmalloc_area_node()
+Date: Tue, 7 Oct 2025 14:20:30 +0200
 
-__vmalloc_area_node() may call free_vmap_area() or vfree() on error paths,
-both of which can sleep.  This becomes problematic if the function is
-invoked from an atomic context, such as when GFP_ATOMIC or GFP_NOWAIT is
-passed via gfp_mask.
+Make __vmalloc_area_node() respect non-blocking GFP masks such as
+GFP_ATOMIC and GFP_NOWAIT.
 
-To fix this, unify error paths and defer the cleanup of partly initialized
-vm_struct objects to a workqueue.  This ensures that freeing happens in a
-process context and avoids invalid sleeps in atomic regions.
+- Add memalloc_apply_gfp_scope()/memalloc_restore_scope()
+  helpers to apply a proper scope.
+- Apply memalloc_apply_gfp_scope()/memalloc_restore_scope()
+  around vmap_pages_range() for page table setup.
+- Set "nofail" to false if a non-blocking mask is used, as
+  they are mutually exclusive.
 
-Link: https://lkml.kernel.org/r/20251007122035.56347-5-urezki@gmail.com
+This is particularly important for page table allocations that internally
+use GFP_PGTABLE_KERNEL, which may sleep unless such scope restrictions are
+applied.  For example:
+
+<snip>
+__pte_alloc_kernel()
+  pte_alloc_one_kernel(&init_mm);
+    pagetable_alloc_noprof(GFP_PGTABLE_KERNEL & ~__GFP_HIGHMEM, 0);
+<snip>
+
+Note: in most cases, PTE entries are established only up to the level
+required by current vmap space usage, meaning the page tables are
+typically fully populated during the mapping process.
+
+Link: https://lkml.kernel.org/r/20251007122035.56347-6-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
@@ -88,82 +103,100 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    6 +++++-
- mm/vmalloc.c            |   34 +++++++++++++++++++++++++++++++---
- 2 files changed, 36 insertions(+), 4 deletions(-)
+ include/linux/vmalloc.h |    2 +
+ mm/vmalloc.c            |   52 ++++++++++++++++++++++++++++++--------
+ 2 files changed, 44 insertions(+), 10 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-defer-freeing-partly-initialized-vm_struct
+--- a/include/linux/vmalloc.h~mm-vmalloc-handle-non-blocking-gfp-in-__vmalloc_area_node
 +++ a/include/linux/vmalloc.h
-@@ -50,7 +50,11 @@ struct iov_iter;		/* in uio.h */
+@@ -332,4 +332,6 @@ bool vmalloc_dump_obj(void *object);
+ static inline bool vmalloc_dump_obj(void *object) { return false; }
  #endif
  
- struct vm_struct {
--	struct vm_struct	*next;
-+	union {
-+		struct vm_struct *next;	  /* Early registration of vm_areas. */
-+		struct llist_node llnode; /* Asynchronous freeing on error paths. */
-+	};
-+
- 	void			*addr;
- 	unsigned long		size;
- 	unsigned long		flags;
---- a/mm/vmalloc.c~mm-vmalloc-defer-freeing-partly-initialized-vm_struct
++unsigned int memalloc_apply_gfp_scope(gfp_t gfp_mask);
++void memalloc_restore_scope(unsigned int flags);
+ #endif /* _LINUX_VMALLOC_H */
+--- a/mm/vmalloc.c~mm-vmalloc-handle-non-blocking-gfp-in-__vmalloc_area_node
 +++ a/mm/vmalloc.c
-@@ -3687,6 +3687,35 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 	return nr_allocated;
+@@ -3716,6 +3716,42 @@ static void defer_vm_area_cleanup(struct
+ 		schedule_work(&cleanup_vm_area);
  }
  
-+static LLIST_HEAD(pending_vm_area_cleanup);
-+static void cleanup_vm_area_work(struct work_struct *work)
++/*
++ * Page tables allocations ignore external GFP. Enforces it by
++ * the memalloc scope API. It is used by vmalloc internals and
++ * KASAN shadow population only.
++ *
++ * GFP to scope mapping:
++ *
++ * non-blocking (no __GFP_DIRECT_RECLAIM) - memalloc_noreclaim_save()
++ * GFP_NOFS - memalloc_nofs_save()
++ * GFP_NOIO - memalloc_noio_save()
++ *
++ * Returns a flag cookie to pair with restore.
++ */
++unsigned int
++memalloc_apply_gfp_scope(gfp_t gfp_mask)
 +{
-+	struct vm_struct *area, *tmp;
-+	struct llist_node *head;
++	unsigned int flags = 0;
 +
-+	head = llist_del_all(&pending_vm_area_cleanup);
-+	if (!head)
-+		return;
++	if (!gfpflags_allow_blocking(gfp_mask))
++		flags = memalloc_noreclaim_save();
++	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
++		flags = memalloc_nofs_save();
++	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == 0)
++		flags = memalloc_noio_save();
 +
-+	llist_for_each_entry_safe(area, tmp, head, llnode) {
-+		if (!area->pages)
-+			free_vm_area(area);
-+		else
-+			vfree(area->addr);
-+	}
++	/* 0 - no scope applied. */
++	return flags;
 +}
 +
-+/*
-+ * Helper for __vmalloc_area_node() to defer cleanup
-+ * of partially initialized vm_struct in error paths.
-+ */
-+static DECLARE_WORK(cleanup_vm_area, cleanup_vm_area_work);
-+static void defer_vm_area_cleanup(struct vm_struct *area)
++void
++memalloc_restore_scope(unsigned int flags)
 +{
-+	if (llist_add(&area->llnode, &pending_vm_area_cleanup))
-+		schedule_work(&cleanup_vm_area);
++	if (flags)
++		memalloc_flags_restore(flags);
 +}
 +
  static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
  				 pgprot_t prot, unsigned int page_shift,
  				 int node)
-@@ -3718,8 +3747,7 @@ static void *__vmalloc_area_node(struct
+@@ -3732,6 +3768,10 @@ static void *__vmalloc_area_node(struct
+ 
+ 	array_size = (unsigned long)nr_small_pages * sizeof(struct page *);
+ 
++	/* __GFP_NOFAIL and "noblock" flags are mutually exclusive. */
++	if (!gfpflags_allow_blocking(gfp_mask))
++		nofail = false;
++
+ 	if (!(gfp_mask & (GFP_DMA | GFP_DMA32)))
+ 		gfp_mask |= __GFP_HIGHMEM;
+ 
+@@ -3797,22 +3837,14 @@ static void *__vmalloc_area_node(struct
+ 	 * page tables allocations ignore external gfp mask, enforce it
+ 	 * by the scope API
+ 	 */
+-	if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
+-		flags = memalloc_nofs_save();
+-	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == 0)
+-		flags = memalloc_noio_save();
+-
++	flags = memalloc_apply_gfp_scope(gfp_mask);
+ 	do {
+ 		ret = vmap_pages_range(addr, addr + size, prot, area->pages,
+ 			page_shift);
+ 		if (nofail && (ret < 0))
+ 			schedule_timeout_uninterruptible(1);
+ 	} while (nofail && (ret < 0));
+-
+-	if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
+-		memalloc_nofs_restore(flags);
+-	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == 0)
+-		memalloc_noio_restore(flags);
++	memalloc_restore_scope(flags);
+ 
+ 	if (ret < 0) {
  		warn_alloc(gfp_mask, NULL,
- 			"vmalloc error: size %lu, failed to allocated page array size %lu",
- 			nr_small_pages * PAGE_SIZE, array_size);
--		free_vm_area(area);
--		return NULL;
-+		goto fail;
- 	}
- 
- 	set_vm_area_page_order(area, page_shift - PAGE_SHIFT);
-@@ -3796,7 +3824,7 @@ static void *__vmalloc_area_node(struct
- 	return area->addr;
- 
- fail:
--	vfree(area->addr);
-+	defer_vm_area_cleanup(area);
- 	return NULL;
- }
- 
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
