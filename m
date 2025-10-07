@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46EA95227
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 20:49:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABC565227
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 20:49:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759870159; cv=none; b=CD3a+Ygrv4LYkzr5wLdMGb6rkzd9ozDYckJwHhvO42JoKDY7jkGgyHFaEyoNrFoeo9rJRSA+ybbWAbVKwoDhSCDOtanvDtgB51vYCxyxPh7rd6ifs5pjRtSsCW1l4eZPwf/T0/rqoRT6Z+TR+8u4EfEy3doMS2ZcdupRFJd82hg=
+	t=1759870160; cv=none; b=Bod6CqtqbiqD79zcInI0mQDVbtWfR4WfK3Dx74iEXOmnKoFL/wOITKEFZ/lhk0Dc4Ze4H63YDpWNi4Sri1qsHsQmArabHRY4zScn3QJpZ19Flw7T7YAtQt7ihF29fTKCaY/YxAvUjV45ub6iOkVFAW6+LJx0ByAD3V1WRVcpXLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759870159; c=relaxed/simple;
-	bh=eFob/itTur7j4hOAD0QZl8yUqerUa6at18whCDE+sqk=;
-	h=Date:To:From:Subject:Message-Id; b=V1HcnpZPy1IBzxfKGxPdlEahYDjhPtNy2S01bRMDt27ZvdRfTJHH0DwD0Tlj6IxFqdF+tL0c9yF9dv3usvehvoB63LK3NSm0JPliIEJFFNgLc68W3Eakm2fpx7BHa14EIZ9bv4IQF8p70Y7fHoAt1HkicGlLLAjhxxTCNjc6W2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yaPdSqD1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759870160; c=relaxed/simple;
+	bh=DZfMv3AuHu4FxYd8nV8ClMZsmGOnJ5zIFTwJ/L/Fhmg=;
+	h=Date:To:From:Subject:Message-Id; b=cBtQKivSXZa7mn1B946GQhCFo/oEjFZNRSE/DZSUK06VtYI4O5ab3J/XbTYtWSutHjsm7vZ5/wDgPaf7crkNDYBNxbfKkw6WbtzboTaE0oVd8IXozONPv8W37v+c6PJQvyuBY2jqGVDo09Qsj4EUVzPoXNAgm8RtYR4qk+X9R2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uzMpdI3J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yaPdSqD1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EB05C4CEF1;
-	Tue,  7 Oct 2025 20:49:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uzMpdI3J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 203BBC4CEF1;
+	Tue,  7 Oct 2025 20:49:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759870158;
-	bh=eFob/itTur7j4hOAD0QZl8yUqerUa6at18whCDE+sqk=;
+	s=korg; t=1759870160;
+	bh=DZfMv3AuHu4FxYd8nV8ClMZsmGOnJ5zIFTwJ/L/Fhmg=;
 	h=Date:To:From:Subject:From;
-	b=yaPdSqD1CHM/SpTdMFQ0aiKbOcb1m+03xsQEwC3I6P9ru66wQ/tG3J+9fxNYuJ+r8
-	 GXTHlcsfOa1qJ+4d3OCq5eOZ9Yb8NcxJjgw73IKi+adIs0K4Sak0bjikVEoMlNdx6l
-	 BpJBSpB1FzQ3eApJTXZpjILVXs8BdlJUtxlbD/rA=
-Date: Tue, 07 Oct 2025 13:49:18 -0700
-To: mm-commits@vger.kernel.org,uajain@igalia.com,akpm@linux-foundation.org
+	b=uzMpdI3JytKwupEOlPeGH0+H47bJCdgEIFTi6pQw6jVqYxLtVTJFe/P6XQJHOprM3
+	 14DV+44CS0JG4fRfMGY/5xteE4UiBrA6AQwGBneJX4/Ue+HtpShVRIK7ckIez7YHYY
+	 F4VaRJbMMr909GnMP1utZXKI+1q+BsuIsx0AHvrI=
+Date: Tue, 07 Oct 2025 13:49:19 -0700
+To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,graf@amazon.com,chrisl@kernel.org,changyuanl@google.com,bhe@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] maintainers-mailmap-update-umangs-email-address.patch removed from -mm tree
-Message-Id: <20251007204918.9EB05C4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kho-check-if-kho-is-finalized-in-__kho_preserve_order.patch removed from -mm tree
+Message-Id: <20251007204920.203BBC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,155 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS, .mailmap: update Umang's email address
+     Subject: kho: check if kho is finalized in __kho_preserve_order()
 has been removed from the -mm tree.  Its filename was
-     maintainers-mailmap-update-umangs-email-address.patch
+     kho-check-if-kho-is-finalized-in-__kho_preserve_order.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Umang Jain <uajain@igalia.com>
-Subject: MAINTAINERS, .mailmap: update Umang's email address
-Date: Mon, 29 Sep 2025 13:10:24 +0530
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: kho: check if kho is finalized in __kho_preserve_order()
+Date: Sun, 21 Sep 2025 08:44:55 +0300
 
-Map my new professional email address in .mailmap and also update
-the IMX283 driver entry with the same.
+Patch series "kho: add support for preserving vmalloc allocations", v5.
 
-At the same time, update my role to a reviewer for the IMX283 driver.
+Following the discussion about preservation of memfd with LUO [1] these
+patches add support for preserving vmalloc allocations.
 
-Link: https://lkml.kernel.org/r/20250929074025.84407-1-uajain@igalia.com
-Signed-off-by: Umang Jain <uajain@igalia.com>
+Any KHO uses case presumes that there's a data structure that lists
+physical addresses of preserved folios (and potentially some additional
+metadata).  Allowing vmalloc preservations with KHO allows scalable
+preservation of such data structures.
+
+For instance, instead of allocating array describing preserved folios in
+the fdt, memfd preservation can use vmalloc:
+
+        preserved_folios = vmalloc_array(nr_folios, sizeof(*preserved_folios));
+        memfd_luo_preserve_folios(preserved_folios, folios, nr_folios);
+        kho_preserve_vmalloc(preserved_folios, &folios_info);
+
+
+This patch (of 4):
+
+Instead of checking if kho is finalized in each caller of
+__kho_preserve_order(), do it in the core function itself.
+
+Link: https://lkml.kernel.org/r/20250921054458.4043761-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20250921054458.4043761-2-rppt@kernel.org
+Link: https://lore.kernel.org/all/20250807014442.3829950-30-pasha.tatashin@soleen.com [1]
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ kernel/kexec_handover.c |   55 +++++++++++++++++---------------------
+ 1 file changed, 26 insertions(+), 29 deletions(-)
 
---- a/.mailmap~maintainers-mailmap-update-umangs-email-address
-+++ a/.mailmap
-@@ -803,6 +803,7 @@ Tvrtko Ursulin <tursulin@ursulin.net> <t
- Tvrtko Ursulin <tursulin@ursulin.net> <tvrtko@ursulin.net>
- Tycho Andersen <tycho@tycho.pizza> <tycho@tycho.ws>
- Tzung-Bi Shih <tzungbi@kernel.org> <tzungbi@google.com>
-+Umang Jain <uajain@igalia.com> <umang.jain@ideasonboard.com>
- Uwe Kleine-König <ukleinek@informatik.uni-freiburg.de>
- Uwe Kleine-König <u.kleine-koenig@baylibre.com> <ukleinek@baylibre.com>
- Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
---- a/MAINTAINERS~maintainers-mailmap-update-umangs-email-address
-+++ a/MAINTAINERS
-@@ -23882,7 +23882,7 @@ F:	drivers/media/i2c/imx274.c
+--- a/kernel/kexec_handover.c~kho-check-if-kho-is-finalized-in-__kho_preserve_order
++++ a/kernel/kexec_handover.c
+@@ -107,6 +107,29 @@ struct kho_serialization {
+ 	struct khoser_mem_chunk *preserved_mem_map;
+ };
  
- SONY IMX283 SENSOR DRIVER
- M:	Kieran Bingham <kieran.bingham@ideasonboard.com>
--M:	Umang Jain <umang.jain@ideasonboard.com>
-+R:	Umang Jain <uajain@igalia.com>
- L:	linux-media@vger.kernel.org
- S:	Maintained
- T:	git git://linuxtv.org/media.git
++struct kho_out {
++	struct blocking_notifier_head chain_head;
++
++	struct dentry *dir;
++
++	struct mutex lock; /* protects KHO FDT finalization */
++
++	struct kho_serialization ser;
++	bool finalized;
++};
++
++static struct kho_out kho_out = {
++	.chain_head = BLOCKING_NOTIFIER_INIT(kho_out.chain_head),
++	.lock = __MUTEX_INITIALIZER(kho_out.lock),
++	.ser = {
++		.fdt_list = LIST_HEAD_INIT(kho_out.ser.fdt_list),
++		.track = {
++			.orders = XARRAY_INIT(kho_out.ser.track.orders, 0),
++		},
++	},
++	.finalized = false,
++};
++
+ static void *xa_load_or_alloc(struct xarray *xa, unsigned long index, size_t sz)
+ {
+ 	void *elm, *res;
+@@ -165,6 +188,9 @@ static int __kho_preserve_order(struct k
+ 
+ 	might_sleep();
+ 
++	if (kho_out.finalized)
++		return -EBUSY;
++
+ 	physxa = xa_load(&track->orders, order);
+ 	if (!physxa) {
+ 		int err;
+@@ -667,29 +693,6 @@ int kho_add_subtree(struct kho_serializa
+ }
+ EXPORT_SYMBOL_GPL(kho_add_subtree);
+ 
+-struct kho_out {
+-	struct blocking_notifier_head chain_head;
+-
+-	struct dentry *dir;
+-
+-	struct mutex lock; /* protects KHO FDT finalization */
+-
+-	struct kho_serialization ser;
+-	bool finalized;
+-};
+-
+-static struct kho_out kho_out = {
+-	.chain_head = BLOCKING_NOTIFIER_INIT(kho_out.chain_head),
+-	.lock = __MUTEX_INITIALIZER(kho_out.lock),
+-	.ser = {
+-		.fdt_list = LIST_HEAD_INIT(kho_out.ser.fdt_list),
+-		.track = {
+-			.orders = XARRAY_INIT(kho_out.ser.track.orders, 0),
+-		},
+-	},
+-	.finalized = false,
+-};
+-
+ int register_kho_notifier(struct notifier_block *nb)
+ {
+ 	return blocking_notifier_chain_register(&kho_out.chain_head, nb);
+@@ -717,9 +720,6 @@ int kho_preserve_folio(struct folio *fol
+ 	const unsigned int order = folio_order(folio);
+ 	struct kho_mem_track *track = &kho_out.ser.track;
+ 
+-	if (kho_out.finalized)
+-		return -EBUSY;
+-
+ 	return __kho_preserve_order(track, pfn, order);
+ }
+ EXPORT_SYMBOL_GPL(kho_preserve_folio);
+@@ -743,9 +743,6 @@ int kho_preserve_phys(phys_addr_t phys,
+ 	int err = 0;
+ 	struct kho_mem_track *track = &kho_out.ser.track;
+ 
+-	if (kho_out.finalized)
+-		return -EBUSY;
+-
+ 	if (!PAGE_ALIGNED(phys) || !PAGE_ALIGNED(size))
+ 		return -EINVAL;
+ 
 _
 
-Patches currently in -mm which might be from uajain@igalia.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
+kho-replace-kho_preserve_phys-with-kho_preserve_pages.patch
+kho-add-support-for-preserving-vmalloc-allocations.patch
+lib-test_kho-use-kho_preserve_vmalloc-instead-of-storing-addresses-in-fdt.patch
 
