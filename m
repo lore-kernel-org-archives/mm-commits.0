@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86F1524676C
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 21:36:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BD4E253F1A
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 21:36:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759873005; cv=none; b=DdqT3N4zX1ojnvzZfykXzePSAu2XAocMuYamWLI8tCQNjefH6IZQJEMtyiSfk16Ju+GMdjODD6t+O7sFjX1gElw28AIuV9/qmIjP6YCacG6HCdVCvNbPTU0//bZVX40OG9lLGecJuI9Pn0qek/hepTpmpHc7sWXEeWeY+oup4ew=
+	t=1759873007; cv=none; b=r4OfjM3w27dPifmAUukMzvwjrs4Ul5Jli5x2EMYqiXO4pQBbBd6t3cwLzZN3zOxF+rj3DaN/KWGN1BmRh28ufnO2zHZWdufVc/aIoBgj6CJtti3+tI4QXN4jCDGzeEhKmNUfvWj+hs2crmhCqE2HbB+gbiiL24Dmb4STf8lsA7E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759873005; c=relaxed/simple;
-	bh=s+1BiNXhhjhbCr1GeOs98pdvV0/OCgy1MG6SH8UWhss=;
-	h=Date:To:From:Subject:Message-Id; b=jHeepy7eMCrb6lACbFBhqhVngBqLTMKGYLVXnZ6mnu88XJLX67+0g78iVqPwXYkZfdDRfodeGqqJlfLxYtlH5kzM6hEulnCQx6OvEYCLOLnuWwSpoRixgI6nHgF7pWBvsYzGIMKikKRo9nfEE4pUzD/h/xE1GXjjWP7Z/E4AbSg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xaRU5VdD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759873007; c=relaxed/simple;
+	bh=UWbD5AEpnw8R541hUSG6Uu9MNVUTy+arFBa1ONl0xrs=;
+	h=Date:To:From:Subject:Message-Id; b=JImVkXmm7QYpfYmXkv5HL+3vI/YAueTtfg7dmga/beE+kmgtdID4NPwklplx9T1MtdFmfBf+P2kIflXmbeqPEUoXyuwnsLtwlcyXrmKu9mJWX0dkZjdjrcMfvJGFBrt1rmtI6TFbppM4udU8IeGr4jFULa0RWAB1aMygzR5peso=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Aie6txRZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xaRU5VdD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5373BC4CEF1;
-	Tue,  7 Oct 2025 21:36:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Aie6txRZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FE18C4CEF1;
+	Tue,  7 Oct 2025 21:36:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759873005;
-	bh=s+1BiNXhhjhbCr1GeOs98pdvV0/OCgy1MG6SH8UWhss=;
+	s=korg; t=1759873007;
+	bh=UWbD5AEpnw8R541hUSG6Uu9MNVUTy+arFBa1ONl0xrs=;
 	h=Date:To:From:Subject:From;
-	b=xaRU5VdD44ty3Yx9edCq4WkbasAAaCC+u5zx5MUwJhAjQsTXl/eCJpJRkRtA8xrOz
-	 jPXeJIV5eUKeaxAdnnX+w/OagdEsbaRTQZzXFauDv5LM2Zh4EY5Kry1ySo/QjA6YVY
-	 eq14aMTqpUKUTF63xhnWxeaP+drw4RijDoVxFUFg=
-Date: Tue, 07 Oct 2025 14:36:44 -0700
+	b=Aie6txRZDbAHjLMobI6FbFfBmufuCG2MUaIKp73eT+OtXuN+tJlLLxtoU9H/+c7IP
+	 tRp1TOX+ZSeazQA2KrdlU6NkthI2XcDvg8+YM2FawIsJUDia4Ks4S7/e4YF/kMrYDm
+	 iIX10Ww3pF8P1oW/xQf1BYHM2VnZeZSBse+jh2wc=
+Date: Tue, 07 Oct 2025 14:36:46 -0700
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,mhocko@suse.com,mhocko@kernel.org,glider@google.com,elver@google.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-update-__vmalloc_node_range-documentation.patch added to mm-new branch
-Message-Id: <20251007213645.5373BC4CEF1@smtp.kernel.org>
+Subject: + mm-kvmalloc-add-non-blocking-support-for-vmalloc.patch added to mm-new branch
+Message-Id: <20251007213647.4FE18C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: update __vmalloc_node_range() documentation
+     Subject: mm: kvmalloc: add non-blocking support for vmalloc
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-update-__vmalloc_node_range-documentation.patch
+     mm-kvmalloc-add-non-blocking-support-for-vmalloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-update-__vmalloc_node_range-documentation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kvmalloc-add-non-blocking-support-for-vmalloc.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,59 +65,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: update __vmalloc_node_range() documentation
-Date: Tue, 7 Oct 2025 14:20:34 +0200
+Subject: mm: kvmalloc: add non-blocking support for vmalloc
+Date: Tue, 7 Oct 2025 14:20:35 +0200
 
-__vmalloc() now supports non-blocking flags such as GFP_ATOMIC and
-GFP_NOWAIT.  Update the documentation accordingly.
+Extend __kvmalloc_node_noprof() to handle non-blocking GFP flags
+(GFP_NOWAIT and GFP_ATOMIC).  Previously such flags were rejected,
+returning NULL.  With this change:
 
-Link: https://lkml.kernel.org/r/20251007122035.56347-10-urezki@gmail.com
+- kvmalloc() can fall back to vmalloc() if non-blocking contexts;
+- for non-blocking allocations the VM_ALLOW_HUGE_VMAP option is
+  disabled, since the huge mapping path still contains might_sleep();
+- documentation update to reflect that GFP_NOWAIT and GFP_ATOMIC
+  are now supported.
+
+Link: https://lkml.kernel.org/r/20251007122035.56347-11-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ mm/slub.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-update-__vmalloc_node_range-documentation
-+++ a/mm/vmalloc.c
-@@ -3881,19 +3881,20 @@ fail:
-  * @caller:		  caller's return address
+--- a/mm/slub.c~mm-kvmalloc-add-non-blocking-support-for-vmalloc
++++ a/mm/slub.c
+@@ -7018,7 +7018,7 @@ static gfp_t kmalloc_gfp_adjust(gfp_t fl
+  * Uses kmalloc to get the memory but if the allocation fails then falls back
+  * to the vmalloc allocator. Use kvfree for freeing the memory.
   *
-  * Allocate enough pages to cover @size from the page level
-- * allocator with @gfp_mask flags. Please note that the full set of gfp
-- * flags are not supported. GFP_KERNEL, GFP_NOFS and GFP_NOIO are all
-- * supported.
-- * Zone modifiers are not supported. From the reclaim modifiers
-- * __GFP_DIRECT_RECLAIM is required (aka GFP_NOWAIT is not supported)
-- * and only __GFP_NOFAIL is supported (i.e. __GFP_NORETRY and
-- * __GFP_RETRY_MAYFAIL are not supported).
-+ * allocator with @gfp_mask flags and map them into contiguous
-+ * virtual range with protection @prot.
+- * GFP_NOWAIT and GFP_ATOMIC are not supported, neither is the __GFP_NORETRY modifier.
++ * GFP_NOWAIT and GFP_ATOMIC are supported, the __GFP_NORETRY modifier is not.
+  * __GFP_RETRY_MAYFAIL is supported, and it should be used only if kmalloc is
+  * preferable to the vmalloc fallback, due to visible performance drawbacks.
   *
-- * __GFP_NOWARN can be used to suppress failures messages.
-+ * Supported GFP classes: %GFP_KERNEL, %GFP_ATOMIC, %GFP_NOWAIT,
-+ * %GFP_NOFS and %GFP_NOIO. Zone modifiers are not supported.
-+ * Please note %GFP_ATOMIC and %GFP_NOWAIT are supported only
-+ * by __vmalloc().
-  *
-- * Map them into contiguous kernel virtual space, using a pagetable
-- * protection of @prot.
-+ * Retry modifiers: only %__GFP_NOFAIL is supported; %__GFP_NORETRY
-+ * and %__GFP_RETRY_MAYFAIL are not supported.
-  *
-+ * %__GFP_NOWARN can be used to suppress failure messages.
-+ *
-+ * Can not be called from interrupt nor NMI contexts.
-  * Return: the address of the area or %NULL on failure
-  */
- void *__vmalloc_node_range_noprof(unsigned long size, unsigned long align,
+@@ -7027,6 +7027,7 @@ static gfp_t kmalloc_gfp_adjust(gfp_t fl
+ void *__kvmalloc_node_noprof(DECL_BUCKET_PARAMS(size, b), unsigned long align,
+ 			     gfp_t flags, int node)
+ {
++	bool allow_block;
+ 	void *ret;
+ 
+ 	/*
+@@ -7039,10 +7040,6 @@ void *__kvmalloc_node_noprof(DECL_BUCKET
+ 	if (ret || size <= PAGE_SIZE)
+ 		return ret;
+ 
+-	/* non-sleeping allocations are not supported by vmalloc */
+-	if (!gfpflags_allow_blocking(flags))
+-		return NULL;
+-
+ 	/* Don't even allow crazy sizes */
+ 	if (unlikely(size > INT_MAX)) {
+ 		WARN_ON_ONCE(!(flags & __GFP_NOWARN));
+@@ -7050,13 +7047,23 @@ void *__kvmalloc_node_noprof(DECL_BUCKET
+ 	}
+ 
+ 	/*
++	 * For non-blocking the VM_ALLOW_HUGE_VMAP is not used
++	 * because the huge-mapping path in vmalloc contains at
++	 * least one might_sleep() call.
++	 *
++	 * TODO: Revise huge-mapping path to support non-blocking
++	 * flags.
++	 */
++	allow_block = gfpflags_allow_blocking(flags);
++
++	/*
+ 	 * kvmalloc() can always use VM_ALLOW_HUGE_VMAP,
+ 	 * since the callers already cannot assume anything
+ 	 * about the resulting pointer, and cannot play
+ 	 * protection games.
+ 	 */
+ 	return __vmalloc_node_range_noprof(size, align, VMALLOC_START, VMALLOC_END,
+-			flags, PAGE_KERNEL, VM_ALLOW_HUGE_VMAP,
++			flags, PAGE_KERNEL, allow_block ? VM_ALLOW_HUGE_VMAP:0,
+ 			node, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(__kvmalloc_node_noprof);
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
