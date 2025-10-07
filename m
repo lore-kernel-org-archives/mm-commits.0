@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B143246BB7
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 21:53:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C5E61CEAD6
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 22:01:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759874007; cv=none; b=qFjpaGQ+1zEx2sR/Pg6NTSzXfcu87UFCOa3b/SnXYIbS8Aow5qvjJMbwSZ/JmYfcENNNXyX937H5KZ2ovWWaeLO4dzAoswybcKAmzIhbtUMb7e8PYPUk3SatOPjulFf9jHR2CYdIkVQoymTNdO8kF3u1gcN7U49UcsLCb+dj1eQ=
+	t=1759874507; cv=none; b=oddECenh29k3zbcDo0mnXsjL61pzZzFR5T/nrS7BOzZEWBdXKOOX8Mdt9XPvuzvo+1dIyW120kLspeXQgPvsZbM733KSkkkT0kF0E9dNbmM/TLFKYERjuXgTtm5HNg4l/nEdYdNA33ZarUfY+ULXOXP0guyp/0PPy2lKJ9hU1PQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759874007; c=relaxed/simple;
-	bh=L9+R4dbsrClTMfnBs6NlvPkTElf55Np+VItfwqCnb8Q=;
-	h=Date:To:From:Subject:Message-Id; b=Ag/PPtabiTpudykfR7OTInWTaHake23uEvqev2wzg7mZkSDmgU19dFadq/AiUjYKOkUKZBkA7yZskXNHESdwMPshcsW7+sOJWM35AjaCWYuzSrkh106QcETnAHX9LkeJl5+7ur/03evWbuPHp5U1Nk45JixlW/L3NL0BDRJG0eA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0gqfiMLk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759874507; c=relaxed/simple;
+	bh=7/mjbT904c3yXGpv5zQDIwHLmNvxyBLdBVPnULmAbmc=;
+	h=Date:To:From:Subject:Message-Id; b=Nyi0HHiHD3YzP5hweogY8PauuaMoWFEFGNzmDasZRWpHhMOJXaLkcdnynNnX+nC8vlZWAA0jqDhLi7/W1ya+CZgcv/gNg3PMMdnklnLqBuUnRd0WOAuxLVUXyv7ea+/e6PkVoEFKra9kUNHmJvGNdlwIAfBZc8pRoWpVRpO2hgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cQ8kuaeD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0gqfiMLk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F02A9C4CEF1;
-	Tue,  7 Oct 2025 21:53:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cQ8kuaeD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 186FEC4CEF1;
+	Tue,  7 Oct 2025 22:01:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759874007;
-	bh=L9+R4dbsrClTMfnBs6NlvPkTElf55Np+VItfwqCnb8Q=;
+	s=korg; t=1759874507;
+	bh=7/mjbT904c3yXGpv5zQDIwHLmNvxyBLdBVPnULmAbmc=;
 	h=Date:To:From:Subject:From;
-	b=0gqfiMLksbH1oB0s1e6B46HxslxDVtDTSFQjszRT7QCSi9id0ee4sGXZN7wblmh6M
-	 KS/4D7w2ANybwASaYPIQm8MwmsJoUOziNGwzBX1QV/ZT98IF4HDaJyowlMVQd1JGT6
-	 oAUDE9T+iQjBGP9HT+5G2IX4zBFZ1kznGFAX1ahE=
-Date: Tue, 07 Oct 2025 14:53:26 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,tujinjiang@huawei.com,shr@devkernel.io,david@redhat.com,xu.xin16@zte.com.cn,akpm@linux-foundation.org
+	b=cQ8kuaeDsOgOfizW10wg77CMAThq6uTSIIkaE6jkkeCYC5m2m30aiovnjr3PbWxmI
+	 YRsrDWBYuWRcH7YR0PgHeufsBCHjjBtgvj6zVTcw0prc5VZLN1OP0eJavevvIJauMs
+	 D3pNEoOrPmBJUqaAk1lqeY9bqIPDFrEhidJVPlLs=
+Date: Tue, 07 Oct 2025 15:01:46 -0700
+To: mm-commits@vger.kernel.org,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-update-ksm-inheritation-tests-for-prctl-fork-exec.patch added to mm-new branch
-Message-Id: <20251007215326.F02A9C4CEF1@smtp.kernel.org>
+Subject: + mm-replace-read_once-with-standard-page-table-accessors.patch added to mm-new branch
+Message-Id: <20251007220147.186FEC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: update ksm inheritance tests for prctl fork/exec
+     Subject: mm: replace READ_ONCE() with standard page table accessors
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-update-ksm-inheritation-tests-for-prctl-fork-exec.patch
+     mm-replace-read_once-with-standard-page-table-accessors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-update-ksm-inheritation-tests-for-prctl-fork-exec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-read_once-with-standard-page-table-accessors.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,127 +64,142 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: xu xin <xu.xin16@zte.com.cn>
-Subject: selftests: update ksm inheritance tests for prctl fork/exec
-Date: Tue, 7 Oct 2025 18:29:35 +0800 (CST)
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm: replace READ_ONCE() with standard page table accessors
+Date: Tue, 7 Oct 2025 07:31:00 +0100
 
-To reproduce the issue mentioned by [1], this add a setting of
-pages_to_scan and sleep_millisecs at the start of test_prctl_fork_exec(). 
-The main change is just raise the scanning frequency of ksmd.
+Replace all READ_ONCE() with a standard page table accessors i.e
+pxdp_get() that defaults into READ_ONCE() in cases where platform does not
+override.
 
-[1] https://lore.kernel.org/all/202510012256278259zrhgATlLA2C510DMD3qI@zte.com.cn/
-
-Link: https://lkml.kernel.org/r/20251007182935207jm31wCIgLpZg5XbXQY64S@zte.com.cn
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
-Cc: Stefan Roesch <shr@devkernel.io>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lkml.kernel.org/r/20251007063100.2396936-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |   57 ++++++++++++
- 1 file changed, 57 insertions(+)
+ mm/gup.c            |   10 +++++-----
+ mm/hmm.c            |    2 +-
+ mm/memory.c         |    4 ++--
+ mm/mprotect.c       |    2 +-
+ mm/sparse-vmemmap.c |    2 +-
+ mm/vmscan.c         |    2 +-
+ 6 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-update-ksm-inheritation-tests-for-prctl-fork-exec
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -38,6 +38,8 @@ enum ksm_merge_mode {
- };
+--- a/mm/gup.c~mm-replace-read_once-with-standard-page-table-accessors
++++ a/mm/gup.c
+@@ -950,7 +950,7 @@ static struct page *follow_pud_mask(stru
+ 	struct mm_struct *mm = vma->vm_mm;
  
- static int mem_fd;
-+static int pages_to_scan_fd;
-+static int sleep_millisecs_fd;
- static int pagemap_fd;
- static size_t pagesize;
+ 	pudp = pud_offset(p4dp, address);
+-	pud = READ_ONCE(*pudp);
++	pud = pudp_get(pudp);
+ 	if (!pud_present(pud))
+ 		return no_page_table(vma, flags, address);
+ 	if (pud_leaf(pud)) {
+@@ -975,7 +975,7 @@ static struct page *follow_p4d_mask(stru
+ 	p4d_t *p4dp, p4d;
  
-@@ -493,6 +495,46 @@ static void test_prctl_fork(void)
- 	ksft_test_result_pass("PR_SET_MEMORY_MERGE value is inherited\n");
- }
+ 	p4dp = p4d_offset(pgdp, address);
+-	p4d = READ_ONCE(*p4dp);
++	p4d = p4dp_get(p4dp);
+ 	BUILD_BUG_ON(p4d_leaf(p4d));
  
-+static int start_ksmd_and_set_frequency(char *pages_to_scan, char *sleep_ms)
-+{
-+	int ksm_fd;
-+
-+	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
-+	if (ksm_fd < 0)
-+		return -errno;
-+
-+	if (write(ksm_fd, "1", 1) != 1)
-+		return -errno;
-+
-+	if (write(pages_to_scan_fd, pages_to_scan, strlen(pages_to_scan)) <= 0)
-+		return -errno;
-+
-+	if (write(sleep_millisecs_fd, sleep_ms, strlen(sleep_ms)) <= 0)
-+		return -errno;
-+
-+	return 0;
-+}
-+
-+static int stop_ksmd_and_restore_frequency(void)
-+{
-+	int ksm_fd;
-+
-+	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
-+	if (ksm_fd < 0)
-+		return -errno;
-+
-+	if (write(ksm_fd, "2", 1) != 1)
-+		return -errno;
-+
-+	if (write(pages_to_scan_fd, "100", 3) <= 0)
-+		return -errno;
-+
-+	if (write(sleep_millisecs_fd, "20", 2) <= 0)
-+		return -errno;
-+
-+	return 0;
-+}
-+
- static void test_prctl_fork_exec(void)
- {
- 	int ret, status;
-@@ -500,6 +542,9 @@ static void test_prctl_fork_exec(void)
+ 	if (!p4d_present(p4d) || p4d_bad(p4d))
+@@ -3060,7 +3060,7 @@ static int gup_fast_pud_range(p4d_t *p4d
  
- 	ksft_print_msg("[RUN] %s\n", __func__);
+ 	pudp = pud_offset_lockless(p4dp, p4d, addr);
+ 	do {
+-		pud_t pud = READ_ONCE(*pudp);
++		pud_t pud = pudp_get(pudp);
  
-+	if (start_ksmd_and_set_frequency("2000", "0"))
-+		ksft_test_result_fail("set ksmd's scanning frequency failed\n");
-+
- 	ret = prctl(PR_SET_MEMORY_MERGE, 1, 0, 0, 0);
- 	if (ret < 0 && errno == EINVAL) {
- 		ksft_test_result_skip("PR_SET_MEMORY_MERGE not supported\n");
-@@ -542,6 +587,11 @@ static void test_prctl_fork_exec(void)
- 		return;
- 	}
+ 		next = pud_addr_end(addr, end);
+ 		if (unlikely(!pud_present(pud)))
+@@ -3086,7 +3086,7 @@ static int gup_fast_p4d_range(pgd_t *pgd
  
-+	if (stop_ksmd_and_restore_frequency()) {
-+		ksft_test_result_fail("restore ksmd frequency failed\n");
-+		return;
-+	}
-+
- 	ksft_test_result_pass("PR_SET_MEMORY_MERGE value is inherited\n");
- }
+ 	p4dp = p4d_offset_lockless(pgdp, pgd, addr);
+ 	do {
+-		p4d_t p4d = READ_ONCE(*p4dp);
++		p4d_t p4d = p4dp_get(p4dp);
  
-@@ -656,6 +706,13 @@ static void init_global_file_handles(voi
- 		ksft_exit_skip("open(\"/proc/self/pagemap\") failed\n");
- 	if (ksm_get_self_merging_pages() < 0)
- 		ksft_exit_skip("accessing \"/proc/self/ksm_merging_pages\") failed\n");
-+
-+	pages_to_scan_fd = open("/sys/kernel/mm/ksm/pages_to_scan", O_RDWR);
-+	if (pages_to_scan_fd < 0)
-+		ksft_exit_fail_msg("opening /sys/kernel/mm/ksm/pages_to_scan failed\n");
-+	sleep_millisecs_fd = open("/sys/kernel/mm/ksm/sleep_millisecs", O_RDWR);
-+	if (sleep_millisecs_fd < 0)
-+		ksft_exit_fail_msg("opening /sys/kernel/mm/ksm/sleep_millisecs failed\n");
- }
+ 		next = p4d_addr_end(addr, end);
+ 		if (!p4d_present(p4d))
+@@ -3108,7 +3108,7 @@ static void gup_fast_pgd_range(unsigned
  
- int main(int argc, char **argv)
+ 	pgdp = pgd_offset(current->mm, addr);
+ 	do {
+-		pgd_t pgd = READ_ONCE(*pgdp);
++		pgd_t pgd = pgdp_get(pgdp);
+ 
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none(pgd))
+--- a/mm/hmm.c~mm-replace-read_once-with-standard-page-table-accessors
++++ a/mm/hmm.c
+@@ -491,7 +491,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+ 	/* Normally we don't want to split the huge page */
+ 	walk->action = ACTION_CONTINUE;
+ 
+-	pud = READ_ONCE(*pudp);
++	pud = pudp_get(pudp);
+ 	if (!pud_present(pud)) {
+ 		spin_unlock(ptl);
+ 		return hmm_vma_walk_hole(start, end, -1, walk);
+--- a/mm/memory.c~mm-replace-read_once-with-standard-page-table-accessors
++++ a/mm/memory.c
+@@ -6716,12 +6716,12 @@ retry:
+ 		goto out;
+ 
+ 	p4dp = p4d_offset(pgdp, address);
+-	p4d = READ_ONCE(*p4dp);
++	p4d = p4dp_get(p4dp);
+ 	if (p4d_none(p4d) || unlikely(p4d_bad(p4d)))
+ 		goto out;
+ 
+ 	pudp = pud_offset(p4dp, address);
+-	pud = READ_ONCE(*pudp);
++	pud = pudp_get(pudp);
+ 	if (pud_none(pud))
+ 		goto out;
+ 	if (pud_leaf(pud)) {
+--- a/mm/mprotect.c~mm-replace-read_once-with-standard-page-table-accessors
++++ a/mm/mprotect.c
+@@ -599,7 +599,7 @@ again:
+ 			break;
+ 		}
+ 
+-		pud = READ_ONCE(*pudp);
++		pud = pudp_get(pudp);
+ 		if (pud_none(pud))
+ 			continue;
+ 
+--- a/mm/sparse-vmemmap.c~mm-replace-read_once-with-standard-page-table-accessors
++++ a/mm/sparse-vmemmap.c
+@@ -439,7 +439,7 @@ int __meminit vmemmap_populate_hugepages
+ 			return -ENOMEM;
+ 
+ 		pmd = pmd_offset(pud, addr);
+-		if (pmd_none(READ_ONCE(*pmd))) {
++		if (pmd_none(pmdp_get(pmd))) {
+ 			void *p;
+ 
+ 			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
+--- a/mm/vmscan.c~mm-replace-read_once-with-standard-page-table-accessors
++++ a/mm/vmscan.c
+@@ -3751,7 +3751,7 @@ static int walk_pud_range(p4d_t *p4d, un
+ 	pud = pud_offset(p4d, start & P4D_MASK);
+ restart:
+ 	for (i = pud_index(start), addr = start; addr != end; i++, addr = next) {
+-		pud_t val = READ_ONCE(pud[i]);
++		pud_t val = pudp_get(pud + i);
+ 
+ 		next = pud_addr_end(addr, end);
+ 
 _
 
-Patches currently in -mm which might be from xu.xin16@zte.com.cn are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-ksm-fix-exec-fork-inheritance-support-for-prctl.patch
-selftests-update-ksm-inheritation-tests-for-prctl-fork-exec.patch
+mm-thp-drop-follow_devmap_pmd-default-stub.patch
+mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
+mm-replace-read_once-with-standard-page-table-accessors.patch
 
