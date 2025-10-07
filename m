@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 827DA2472B0
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 22:21:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E742517D2
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 22:26:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759875662; cv=none; b=g2pkp3CR7RIPBC3yHDptS3EIbY6VJzHgVPAMm+X7Au0Gdy8WGvRY+iS0CniXXD6C8QaylgGLIvSCoiXqwzYhPlHIJ1CdRoHqgiMuHwX1AzsPmwhUWighKY2ha7IiEKYX86ottyimdJaQJCIHpf7+pAO6EsHghis2HKI1SnO4MvY=
+	t=1759876019; cv=none; b=Gzixymf2t5th+pJT9EsW/JOZK/Ty1d0n7WNN/Sr7YKjFRWKjEM9elH33QwPYuYQYizufcukmJ+2JN7u5idQGc7WihNwoK1ye/uls0bHvU+LgKmbOEC+oB2845kvBRa1jRm3oPRrAQ6D5R7Ek2XpLQvGkEVTOUaFeLsvpmuGpDxs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759875662; c=relaxed/simple;
-	bh=GJNbZuDk7KtCM6WvhKAwNUfkC6TIO78dweyXWGUZhHU=;
-	h=Date:To:From:Subject:Message-Id; b=nCTQDb0VLVeittksRWgT2eXJLR3NAVdwxS6Mr4mIm0s7GIG6RLJA2E1Vf5uRpJKB0BvOV0EJF5IxPVC31x6Om35vUpxIZ4VrpAAGaNGxakuoUzffRjEgyWLSdkux0Thq/rjMLwhIJZWj9NF/0shfyomdgLeMW5D3IsXRo/x6zeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x5B8Wl2t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759876019; c=relaxed/simple;
+	bh=2AzWb58ShsjbicGcVhNw4I+pNPCZgvIfQo4bROGWK6Y=;
+	h=Date:To:From:Subject:Message-Id; b=FgOq9VOjNk5Nm9lPsVto9z256NM3DPXfoykno1JTTroH09IBGpst9+bUWkF512UdelbdmjHJPFW0LQ3UCvr23Z3sPyp5SIAKKhveVb2Ivn2VlrSu6MYpko8/C0lNGdShZWLbwqBlDbd8dJOF410P/Rmro9Xa+XhFMZKvH0wPKL0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oV/VgxTP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x5B8Wl2t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56F75C4CEF1;
-	Tue,  7 Oct 2025 22:21:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oV/VgxTP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50CFCC4CEF1;
+	Tue,  7 Oct 2025 22:26:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759875662;
-	bh=GJNbZuDk7KtCM6WvhKAwNUfkC6TIO78dweyXWGUZhHU=;
+	s=korg; t=1759876018;
+	bh=2AzWb58ShsjbicGcVhNw4I+pNPCZgvIfQo4bROGWK6Y=;
 	h=Date:To:From:Subject:From;
-	b=x5B8Wl2t85yck3ulp+KQskLjiSoVhjaI9ZFOnKvLFVAIZt6O5andiYRLrjDIV1x9+
-	 Mm4hDzXDE7vIy+HKM/qoy/Ea9EvMH9n9K9etLIkZAKq3uiWbPbZnoz+DUEVOXtUz2m
-	 AVVXcCoFpmMfAoqdDIxDwV4w2Id8MaIgg+cZtKgw=
-Date: Tue, 07 Oct 2025 15:21:01 -0700
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=oV/VgxTP72zqiXR6K1nM/lGs2YrAmE5OHpkoELyXfazv/mH/BI4AlhrnCshFEQ9+D
+	 WcHcflSbDbQ/qKd5z+/Sv4Xh9G4H8wEpc+X8CSPsSyavqJv5HeTVaTBslT2y5s6jqx
+	 CVfCTS6xGaa9Eo3tx4mylYoKshhw43PkwgerJnPY=
+Date: Tue, 07 Oct 2025 15:26:57 -0700
+To: mm-commits@vger.kernel.org,riel@surriel.com,osalvador@suse.de,muchun.song@linux.dev,hannes@cmpxchg.org,david@redhat.com,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-swap-drop-usage-of-folio_index.patch added to mm-new branch
-Message-Id: <20251007222102.56F75C4CEF1@smtp.kernel.org>
+Subject: + mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch added to mm-new branch
+Message-Id: <20251007222658.50CFCC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate, swap: drop usage of folio_index
+     Subject: mm/hugetlb: allow overcommitting gigantic hugepages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-migrate-swap-drop-usage-of-folio_index.patch
+     mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-swap-drop-usage-of-folio_index.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,89 +64,94 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/migrate, swap: drop usage of folio_index
-Date: Tue, 07 Oct 2025 04:02:36 +0800
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm/hugetlb: allow overcommitting gigantic hugepages
+Date: Mon, 6 Oct 2025 19:56:07 +0100
 
-This helper was used when swap cache was mixed with swap cache.  Now they
-are completely separate from each other, access to the swap cache is all
-wrapped by the swap_cache_* helpers, which expect the folio's swap entry
-as a parameter.
+Currently, gigantic hugepages cannot use the overcommit mechanism
+(nr_overcommit_hugepages), forcing users to permanently reserve memory via
+nr_hugepages even when pages might not be actively used.
 
-This helper is no longer used, remove the last redundant user and drop it.
+Remove this blanket restriction on gigantic hugepage overcommit.  This
+will bring the same benefits to gigantic pages as hugepages:
 
-Link: https://lkml.kernel.org/r/20251007-swap-clean-after-swap-table-p1-v1-4-74860ef8ba74@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
+- Memory is only taken out of regular use when actually needed
+- Unused surplus pages can be returned to the system
+- Better memory utilization, especially with CMA backing which can
+  significantly increase the changes of hugepage allocation
+
+Without this patch:
+echo 3 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_overcommit_hugepages
+bash: echo: write error: Invalid argument
+
+With this patch:
+echo 3 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_overcommit_hugepages
+./mmap_hugetlb_test
+Successfully allocated huge pages at address: 0x7f9d40000000
+
+cat mmap_hugetlb_test.c
+...
+    unsigned long ALLOC_SIZE = 3 * (unsigned long) HUGE_PAGE_SIZE;
+    addr = mmap(NULL,
+                ALLOC_SIZE, // 3GB
+                PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_HUGE_1GB,
+                -1,
+                0);
+
+    if (addr == MAP_FAILED) {
+        fprintf(stderr, "mmap failed: %s\n", strerror(errno));
+        return 1;
+    }
+    printf("Successfully allocated huge pages at address: %p\n", addr);
+...
+
+Link: https://lkml.kernel.org/r/20251006185607.3257340-1-usamaarif642@gmail.com
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 ++--
- mm/swap.h    |   21 ---------------------
- 2 files changed, 2 insertions(+), 23 deletions(-)
+ mm/hugetlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-swap-drop-usage-of-folio_index
-+++ a/mm/migrate.c
-@@ -561,7 +561,7 @@ unlock:
- static int __folio_migrate_mapping(struct address_space *mapping,
- 		struct folio *newfolio, struct folio *folio, int expected_count)
+--- a/mm/hugetlb.c~mm-hugetlb-allow-overcommitting-gigantic-hugepages
++++ a/mm/hugetlb.c
+@@ -2232,7 +2232,7 @@ static struct folio *alloc_surplus_huget
  {
--	XA_STATE(xas, &mapping->i_pages, folio_index(folio));
-+	XA_STATE(xas, &mapping->i_pages, folio->index);
- 	struct swap_cluster_info *ci = NULL;
- 	struct zone *oldzone, *newzone;
- 	int dirty;
-@@ -714,7 +714,7 @@ EXPORT_SYMBOL(folio_migrate_mapping);
- int migrate_huge_page_move_mapping(struct address_space *mapping,
- 				   struct folio *dst, struct folio *src)
- {
--	XA_STATE(xas, &mapping->i_pages, folio_index(src));
-+	XA_STATE(xas, &mapping->i_pages, src->index);
- 	int rc, expected_count = folio_expected_ref_count(src) + 1;
+ 	struct folio *folio = NULL;
  
- 	if (folio_ref_count(src) != expected_count)
---- a/mm/swap.h~mm-migrate-swap-drop-usage-of-folio_index
-+++ a/mm/swap.h
-@@ -445,25 +445,4 @@ static inline int non_swapcache_batch(sw
- 	return 0;
- }
- #endif /* CONFIG_SWAP */
--
--/**
-- * folio_index - File index of a folio.
-- * @folio: The folio.
-- *
-- * For a folio which is either in the page cache or the swap cache,
-- * return its index within the address_space it belongs to.  If you know
-- * the folio is definitely in the page cache, you can look at the folio's
-- * index directly.
-- *
-- * Return: The index (offset in units of pages) of a folio in its file.
-- */
--static inline pgoff_t folio_index(struct folio *folio)
--{
--#ifdef CONFIG_SWAP
--	if (unlikely(folio_test_swapcache(folio)))
--		return swp_offset(folio->swap);
--#endif
--	return folio->index;
--}
--
- #endif /* _MM_SWAP_H */
+-	if (hstate_is_gigantic(h))
++	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+ 		return NULL;
+ 
+ 	spin_lock_irq(&hugetlb_lock);
+@@ -4294,7 +4294,7 @@ static ssize_t nr_overcommit_hugepages_s
+ 	unsigned long input;
+ 	struct hstate *h = kobj_to_hstate(kobj, NULL);
+ 
+-	if (hstate_is_gigantic(h))
++	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+ 		return -EINVAL;
+ 
+ 	err = kstrtoul(buf, 10, &input);
+@@ -5181,7 +5181,7 @@ static int hugetlb_overcommit_handler(co
+ 
+ 	tmp = h->nr_overcommit_huge_pages;
+ 
+-	if (write && hstate_is_gigantic(h))
++	if (write && hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+ 		return -EINVAL;
+ 
+ 	ret = proc_hugetlb_doulongvec_minmax(table, write, buffer, length, ppos,
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
-mm-swap-rename-helper-for-setup-bad-slots.patch
-mm-swap-cleanup-swap-entry-allocation-parameter.patch
-mm-migrate-swap-drop-usage-of-folio_index.patch
+mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch
 
