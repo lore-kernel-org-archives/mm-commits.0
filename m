@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49F403A1D2
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 22:34:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A17A3A1D2
+	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 22:51:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759876496; cv=none; b=LCSzxzrILZJYvu+CtjXtE+B6SODQwAxsInnyWRxKzE9bNFzczOV1K55Hh0+DkTS7a2Uwbooc5siz83GE6EwowDWHo8KPFYanJDM1wFaUwid9EdhzdfkPiZzbRraFXWA7KIJSOrp4+R3ZCEBfNdLB91+8PfYoCJpDZCKGuNVtyVA=
+	t=1759877516; cv=none; b=QUQyDDGUauzve9pdaHiMSMRUx0TreE7HzT6fof4zHn7Our43iGPMsncNMnjEpm5E8wm7RZHG0sD0LGw9IiKYASoO632FbUrpTFwY4VBuR3AYXNKJeAPLCqrFxW9SHiPLFWzIJCO4TN9u3oTq13Pqv6z56kCJqoL3PWFbWTxWaYY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759876496; c=relaxed/simple;
-	bh=/nqLzf3C2ahlyPJ2z5VRddcYwa+/7ZVVOvxZQgEGPeI=;
-	h=Date:To:From:Subject:Message-Id; b=LxZxTWyJCIWmFzO2u/eq4LIcO+NEvSdeoOLmwTqHh1s37Yb0jxynTL+laUq4D18cegXIIHG29xh9yE9wsIyud8HLfvidsRh6ToVxcEnf6coNJuJenrqoda58N0OwVKl50ruPrxbDGH36tPZqUmXsevlR9K+bgtRhw7E9HLJQBAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JYFNrCKr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759877516; c=relaxed/simple;
+	bh=gEB4sZb2gMD97tOa9oy0WK9GhAjOM+0HeAiWS51QFmw=;
+	h=Date:To:From:Subject:Message-Id; b=NNBDHrgR0/AyYoHUJMJmwjn+YY5YBzyB+dPWJ/MlYoxNyd5vDSDr0O52//0kwOHeBL4S/hY1erGv0GSV51D6Ds5eeZXEqaMKG8g3j31ddEN4B93WY7x2kZP3LbABjBNdnBmxz7sOFpLeAHHbsFOlk08BLCpZuimjT2iJhGSXhwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rJ7CfvgR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JYFNrCKr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0521C4CEF1;
-	Tue,  7 Oct 2025 22:34:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rJ7CfvgR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 862E4C4CEF1;
+	Tue,  7 Oct 2025 22:51:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759876495;
-	bh=/nqLzf3C2ahlyPJ2z5VRddcYwa+/7ZVVOvxZQgEGPeI=;
+	s=korg; t=1759877515;
+	bh=gEB4sZb2gMD97tOa9oy0WK9GhAjOM+0HeAiWS51QFmw=;
 	h=Date:To:From:Subject:From;
-	b=JYFNrCKrAN4eT9sniQSHWYLZh56ywIDl/EmJcgdeDxihSwI2cXi6HdwLOPSyRG5M3
-	 IPJNA/DuNazg75GaHfUite93xAPgVJ8xEo8Xo7XSPjg36cPAykiDQUF4CVTJWKkuUg
-	 cEhEckbTsta8hw95NQlPy2TxiNBs++krj4BEvXU0=
-Date: Tue, 07 Oct 2025 15:34:55 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,dev.jain@arm.com,roman.gushchin@linux.dev,akpm@linux-foundation.org
+	b=rJ7CfvgR26jeJ06s1frrYuXuwzpGULDLPgbX0gIVoKx1GTDB4tsRXjTT4MF6KJFuj
+	 PY3k8c+ECBjH9lMNH/PWybkTiDeaKUoSogEGSjTdUoo/Ci0asYbhERzbx6aKqc7s0Q
+	 VG0Y96jHTIim1EJWpj5TQGaaDz6z6WfmL2CKK2nQ=
+Date: Tue, 07 Oct 2025 15:51:55 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,usamaarif642@gmail.com,sj@kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,kas@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,axelrasmussen@google.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-readahead-make-thp-readahead-conditional-to-mmap_miss-logic.patch added to mm-new branch
-Message-Id: <20251007223455.B0521C4CEF1@smtp.kernel.org>
+Subject: + mm-skip-folio_activate-for-mlocked-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251007225155.862E4C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: readahead: make thp readahead conditional to mmap_miss logic
-has been added to the -mm mm-new branch.  Its filename is
-     mm-readahead-make-thp-readahead-conditional-to-mmap_miss-logic.patch
+     Subject: mm: skip folio_activate() for mlocked folios
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-skip-folio_activate-for-mlocked-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-make-thp-readahead-conditional-to-mmap_miss-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-skip-folio_activate-for-mlocked-folios.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,134 +58,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: readahead: make thp readahead conditional to mmap_miss logic
-Date: Mon, 6 Oct 2025 10:51:06 -0700
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+Subject: mm: skip folio_activate() for mlocked folios
+Date: Mon, 6 Oct 2025 13:25:26 +0000
 
-Commit 4687fdbb805a ("mm/filemap: Support VM_HUGEPAGE for file mappings")
-introduced a special handling for VM_HUGEPAGE mappings: even if the
-readahead is disabled, 1 or 2 HPAGE_PMD_ORDER pages are allocated.
+__mlock_folio() does not move folio to unevicable LRU, when
+folio_activate() removes folio from LRU.
 
-This change causes a significant regression for containers with a tight
-memory.max limit, if VM_HUGEPAGE is widely used.  Prior to this commit,
-mmap_miss logic would eventually lead to the readahead disablement,
-effectively reducing the memory pressure in the cgroup.  With this change
-the kernel is trying to allocate 1-2 huge pages for each fault, no matter
-if these pages are used or not before being evicted, increasing the memory
-pressure multi-fold.
+To prevent this case also check for folio_test_mlocked() in
+folio_mark_accessed().  If folio is not yet marked as unevictable, but
+already marked as mlocked, then skip folio_activate() call to allow
+__mlock_folio() to make all necessary updates.  It should be safe to skip
+folio_activate() here, because mlocked folio should end up in unevictable
+LRU eventually anyway.
 
-To fix the regression, let's make the new VM_HUGEPAGE conditional to the
-mmap_miss check, but keep independent from the ra->ra_pages.  This way the
-main intention of commit 4687fdbb805a ("mm/filemap: Support VM_HUGEPAGE
-for file mappings") stays intact, but the regression is resolved.
+To observe the problem mmap() and mlock() big file and check Unevictable
+and Mlocked values from /proc/meminfo.  On freshly booted system without
+any other mlocked memory we expect them to match or be quite close.
 
-The logic behind this changes is simple: even if a user explicitly
-requests using huge pages to back the file mapping (using VM_HUGEPAGE
-flag), under a very strong memory pressure it's better to fall back to
-ordinary pages.
+See below for more detailed reproduction steps.  Source code of stat.c is
+available at [1].
 
-Link: https://lkml.kernel.org/r/20251006175106.377411-1-roman.gushchin@linux.dev
-Fixes: 4687fdbb805a ("mm/filemap: Support VM_HUGEPAGE for file mappings")
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+  $ head -c 8G < /dev/urandom > /tmp/random.bin
+
+  $ cc -pedantic -Wall -std=c99 stat.c -O3 -o /tmp/stat
+  $ /tmp/stat
+  Unevictable:     8389668 kB
+  Mlocked:         8389700 kB
+
+  Need to run binary twice. Problem does not reproduce on the first run,
+  but always reproduces on the second run.
+
+  $ /tmp/stat
+  Unevictable:     5374676 kB
+  Mlocked:         8389332 kB
+
+Link: https://lkml.kernel.org/r/aOPDRmk2Zd20qxfk@shell.ilvokhin.com
+Link: https://gist.github.com/ilvokhin/e50c3d2ff5d9f70dcbb378c6695386dd [1]
+Co-developed-by: Kiryl Shutsemau <kas@kernel.org>
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Acked-by: Usama Arif <usamaarif642@gmail.com>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   68 +++++++++++++++++++++++++++----------------------
- 1 file changed, 38 insertions(+), 30 deletions(-)
+ mm/swap.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/filemap.c~mm-readahead-make-thp-readahead-conditional-to-mmap_miss-logic
-+++ a/mm/filemap.c
-@@ -3253,11 +3253,47 @@ static struct file *do_sync_mmap_readahe
- 	DEFINE_READAHEAD(ractl, file, ra, mapping, vmf->pgoff);
- 	struct file *fpin = NULL;
- 	vm_flags_t vm_flags = vmf->vma->vm_flags;
-+	bool force_thp_readahead = false;
- 	unsigned short mmap_miss;
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	/* Use the readahead code, even if readahead is disabled */
--	if ((vm_flags & VM_HUGEPAGE) && HPAGE_PMD_ORDER <= MAX_PAGECACHE_ORDER) {
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
-+	    (vm_flags & VM_HUGEPAGE) && HPAGE_PMD_ORDER <= MAX_PAGECACHE_ORDER)
-+		force_thp_readahead = true;
-+
-+	if (!force_thp_readahead) {
+--- a/mm/swap.c~mm-skip-folio_activate-for-mlocked-folios
++++ a/mm/swap.c
+@@ -469,6 +469,16 @@ void folio_mark_accessed(struct folio *f
+ 		 * this list is never rotated or maintained, so marking an
+ 		 * unevictable page accessed has no effect.
+ 		 */
++	} else if (folio_test_mlocked(folio)) {
 +		/*
-+		 * If we don't want any read-ahead, don't bother.
-+		 * VM_EXEC case below is already intended for random access.
++		 * Pages that are mlocked, but not yet on unevictable LRU.
++		 * They might be still in mlock_fbatch waiting to be processed
++		 * and activating it here might interfere with
++		 * mlock_folio_batch(). __mlock_folio() will fail
++		 * folio_test_clear_lru() check and give up. It happens because
++		 * __folio_batch_add_and_move() clears LRU flag, when adding
++		 * folio to activate batch.
 +		 */
-+		if ((vm_flags & (VM_RAND_READ | VM_EXEC)) == VM_RAND_READ)
-+			return fpin;
-+
-+		if (!ra->ra_pages)
-+			return fpin;
-+
-+		if (vm_flags & VM_SEQ_READ) {
-+			fpin = maybe_unlock_mmap_for_io(vmf, fpin);
-+			page_cache_sync_ra(&ractl, ra->ra_pages);
-+			return fpin;
-+		}
-+	}
-+
-+	if (!(vm_flags & VM_SEQ_READ)) {
-+		/* Avoid banging the cache line if not needed */
-+		mmap_miss = READ_ONCE(ra->mmap_miss);
-+		if (mmap_miss < MMAP_LOTSAMISS * 10)
-+			WRITE_ONCE(ra->mmap_miss, ++mmap_miss);
-+
-+		/*
-+		 * Do we miss much more than hit in this file? If so,
-+		 * stop bothering with read-ahead. It will only hurt.
-+		 */
-+		if (mmap_miss > MMAP_LOTSAMISS)
-+			return fpin;
-+	}
-+
-+	if (force_thp_readahead) {
- 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
- 		ractl._index &= ~((unsigned long)HPAGE_PMD_NR - 1);
- 		ra->size = HPAGE_PMD_NR;
-@@ -3272,34 +3308,6 @@ static struct file *do_sync_mmap_readahe
- 		page_cache_ra_order(&ractl, ra);
- 		return fpin;
- 	}
--#endif
--
--	/*
--	 * If we don't want any read-ahead, don't bother. VM_EXEC case below is
--	 * already intended for random access.
--	 */
--	if ((vm_flags & (VM_RAND_READ | VM_EXEC)) == VM_RAND_READ)
--		return fpin;
--	if (!ra->ra_pages)
--		return fpin;
--
--	if (vm_flags & VM_SEQ_READ) {
--		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
--		page_cache_sync_ra(&ractl, ra->ra_pages);
--		return fpin;
--	}
--
--	/* Avoid banging the cache line if not needed */
--	mmap_miss = READ_ONCE(ra->mmap_miss);
--	if (mmap_miss < MMAP_LOTSAMISS * 10)
--		WRITE_ONCE(ra->mmap_miss, ++mmap_miss);
--
--	/*
--	 * Do we miss much more than hit in this file? If so,
--	 * stop bothering with read-ahead. It will only hurt.
--	 */
--	if (mmap_miss > MMAP_LOTSAMISS)
--		return fpin;
- 
- 	if (vm_flags & VM_EXEC) {
+ 	} else if (!folio_test_active(folio)) {
  		/*
+ 		 * If the folio is on the LRU, queue it for activation via
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from d@ilvokhin.com are
 
-mm-readahead-make-thp-readahead-conditional-to-mmap_miss-logic.patch
+mm-skip-folio_activate-for-mlocked-folios.patch
 
