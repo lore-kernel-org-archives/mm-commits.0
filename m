@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C5E61CEAD6
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 22:01:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 217C3205E25;
+	Tue,  7 Oct 2025 22:20:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759874507; cv=none; b=oddECenh29k3zbcDo0mnXsjL61pzZzFR5T/nrS7BOzZEWBdXKOOX8Mdt9XPvuzvo+1dIyW120kLspeXQgPvsZbM733KSkkkT0kF0E9dNbmM/TLFKYERjuXgTtm5HNg4l/nEdYdNA33ZarUfY+ULXOXP0guyp/0PPy2lKJ9hU1PQ=
+	t=1759875653; cv=none; b=HMJKTDe70wisjCX+Atqx4YaMZGmKsJLMpgELQIRQBnILtK99WIE1t2wBKhbter6e1DbwN4sUAjWLpgJ+Mbc1gt9gxjuuRDFYsE9bRvW2rXVqavT4UTy4mP+94WjozyjTW2T+HeOtAK0bR5i4hJ2V2w2UmvaTbaO54yrlj3tlC/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759874507; c=relaxed/simple;
-	bh=7/mjbT904c3yXGpv5zQDIwHLmNvxyBLdBVPnULmAbmc=;
-	h=Date:To:From:Subject:Message-Id; b=Nyi0HHiHD3YzP5hweogY8PauuaMoWFEFGNzmDasZRWpHhMOJXaLkcdnynNnX+nC8vlZWAA0jqDhLi7/W1ya+CZgcv/gNg3PMMdnklnLqBuUnRd0WOAuxLVUXyv7ea+/e6PkVoEFKra9kUNHmJvGNdlwIAfBZc8pRoWpVRpO2hgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cQ8kuaeD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759875653; c=relaxed/simple;
+	bh=p8A34ohAJamPb8OD/El1rmZBHDH5AP58AbhO4XTvbIM=;
+	h=Date:To:From:Subject:Message-Id; b=YbeyMRwKZBKJM65F+f+go2BFg1sYIBVWwIoL8U65bFmcRXag0a+j/Ch/WmF2+TLynHr/GUJRiw+bWbmeqEwNh+lUUKjsrT0CDwzNOz32lhSHjHpkRHyd2tNNUuGcDUDzhlEyq90JR1CIjkAbJFB+MQRsgyiZHaRPbPdko1wAPnU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+RzqxcY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cQ8kuaeD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 186FEC4CEF1;
-	Tue,  7 Oct 2025 22:01:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+RzqxcY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AF73C4CEF1;
+	Tue,  7 Oct 2025 22:20:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759874507;
-	bh=7/mjbT904c3yXGpv5zQDIwHLmNvxyBLdBVPnULmAbmc=;
+	s=korg; t=1759875652;
+	bh=p8A34ohAJamPb8OD/El1rmZBHDH5AP58AbhO4XTvbIM=;
 	h=Date:To:From:Subject:From;
-	b=cQ8kuaeDsOgOfizW10wg77CMAThq6uTSIIkaE6jkkeCYC5m2m30aiovnjr3PbWxmI
-	 YRsrDWBYuWRcH7YR0PgHeufsBCHjjBtgvj6zVTcw0prc5VZLN1OP0eJavevvIJauMs
-	 D3pNEoOrPmBJUqaAk1lqeY9bqIPDFrEhidJVPlLs=
-Date: Tue, 07 Oct 2025 15:01:46 -0700
-To: mm-commits@vger.kernel.org,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=h+RzqxcYMzrIT9a+nOg8nWL5HpU31SlFzrRVCsfrlPwxwkhOt+E4VCBtZrpq8GgR0
+	 dJx6e6PqmjzUpQuCLVNB5cLs4Uft9xY7k1YB+6lahZN/4DGRN1R909mH2FnVMZHlUS
+	 ENxWbMbhQPtZRXz3iuWI3sWBJX6Wx7724J8q2hzk=
+Date: Tue, 07 Oct 2025 15:20:52 -0700
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-replace-read_once-with-standard-page-table-accessors.patch added to mm-new branch
-Message-Id: <20251007220147.186FEC4CEF1@smtp.kernel.org>
+Subject: + mm-swap-do-not-perform-synchronous-discard-during-allocation.patch added to mm-new branch
+Message-Id: <20251007222052.9AF73C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: replace READ_ONCE() with standard page table accessors
+     Subject: mm, swap: do not perform synchronous discard during allocation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-replace-read_once-with-standard-page-table-accessors.patch
+     mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-replace-read_once-with-standard-page-table-accessors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,142 +64,144 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: replace READ_ONCE() with standard page table accessors
-Date: Tue, 7 Oct 2025 07:31:00 +0100
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: do not perform synchronous discard during allocation
+Date: Tue, 07 Oct 2025 04:02:33 +0800
 
-Replace all READ_ONCE() with a standard page table accessors i.e
-pxdp_get() that defaults into READ_ONCE() in cases where platform does not
-override.
+Patch series "mm, swap: misc cleanup and bugfix".
 
-Link: https://lkml.kernel.org/r/20251007063100.2396936-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
+A few cleanups and a bugfix that are either suitable after the swap table
+phase I or found during code review.
+
+Patch 1 is a bugfix and needs to be included in the stable branch, the
+rest have no behavior change.
+
+
+This patch (of 4):
+
+Since commit 1b7e90020eb77 ("mm, swap: use percpu cluster as allocation
+fast path"), swap allocation is protected by a local lock, which means we
+can't do any sleeping calls during allocation.
+
+However, the discard routine is not taken well care of.  When the swap
+allocator failed to find any usable cluster, it would look at the pending
+discard cluster and try to issue some blocking discards.  It may not
+necessarily sleep, but the cond_resched at the bio layer indicates this is
+wrong when combined with a local lock.  And the bio GFP flag used for
+discard bio is also wrong (not atomic).
+
+It's arguable whether this synchronous discard is helpful at all.  In most
+cases, the async discard is good enough.  And the swap allocator is doing
+very differently at organizing the clusters since the recent change, so it
+is very rare to see discard clusters piling up.
+
+So far, no issues have been observed or reported with typical SSD setups
+under months of high pressure.  This issue was found during my code
+review.  But by hacking the kernel a bit: adding a mdelay(100) in the
+async discard path, this issue will be observable with WARNING triggered
+by the wrong GFP and cond_resched in the bio layer.
+
+So let's fix this issue in a safe way: remove the synchronous discard in
+the swap allocation path.  And when order 0 is failing with all cluster
+list drained on all swap devices, try to do a discard following the swap
+device priority list.  If any discards released some cluster, try the
+allocation again.  This way, we can still avoid OOM due to swap failure if
+the hardware is very slow and memory pressure is extremely high.
+
+Link: https://lkml.kernel.org/r/20251007-swap-clean-after-swap-table-p1-v1-0-74860ef8ba74@tencent.com
+Link: https://lkml.kernel.org/r/20251007-swap-clean-after-swap-table-p1-v1-1-74860ef8ba74@tencent.com
+Fixes: 1b7e90020eb77 ("mm, swap: use percpu cluster as allocation fast path")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c            |   10 +++++-----
- mm/hmm.c            |    2 +-
- mm/memory.c         |    4 ++--
- mm/mprotect.c       |    2 +-
- mm/sparse-vmemmap.c |    2 +-
- mm/vmscan.c         |    2 +-
- 6 files changed, 11 insertions(+), 11 deletions(-)
+ mm/swapfile.c |   40 +++++++++++++++++++++++++++++++++-------
+ 1 file changed, 33 insertions(+), 7 deletions(-)
 
---- a/mm/gup.c~mm-replace-read_once-with-standard-page-table-accessors
-+++ a/mm/gup.c
-@@ -950,7 +950,7 @@ static struct page *follow_pud_mask(stru
- 	struct mm_struct *mm = vma->vm_mm;
+--- a/mm/swapfile.c~mm-swap-do-not-perform-synchronous-discard-during-allocation
++++ a/mm/swapfile.c
+@@ -1101,13 +1101,6 @@ new_cluster:
+ 			goto done;
+ 	}
  
- 	pudp = pud_offset(p4dp, address);
--	pud = READ_ONCE(*pudp);
-+	pud = pudp_get(pudp);
- 	if (!pud_present(pud))
- 		return no_page_table(vma, flags, address);
- 	if (pud_leaf(pud)) {
-@@ -975,7 +975,7 @@ static struct page *follow_p4d_mask(stru
- 	p4d_t *p4dp, p4d;
+-	/*
+-	 * We don't have free cluster but have some clusters in discarding,
+-	 * do discard now and reclaim them.
+-	 */
+-	if ((si->flags & SWP_PAGE_DISCARD) && swap_do_scheduled_discard(si))
+-		goto new_cluster;
+-
+ 	if (order)
+ 		goto done;
  
- 	p4dp = p4d_offset(pgdp, address);
--	p4d = READ_ONCE(*p4dp);
-+	p4d = p4dp_get(p4dp);
- 	BUILD_BUG_ON(p4d_leaf(p4d));
+@@ -1394,6 +1387,33 @@ start_over:
+ 	return false;
+ }
  
- 	if (!p4d_present(p4d) || p4d_bad(p4d))
-@@ -3060,7 +3060,7 @@ static int gup_fast_pud_range(p4d_t *p4d
- 
- 	pudp = pud_offset_lockless(p4dp, p4d, addr);
- 	do {
--		pud_t pud = READ_ONCE(*pudp);
-+		pud_t pud = pudp_get(pudp);
- 
- 		next = pud_addr_end(addr, end);
- 		if (unlikely(!pud_present(pud)))
-@@ -3086,7 +3086,7 @@ static int gup_fast_p4d_range(pgd_t *pgd
- 
- 	p4dp = p4d_offset_lockless(pgdp, pgd, addr);
- 	do {
--		p4d_t p4d = READ_ONCE(*p4dp);
-+		p4d_t p4d = p4dp_get(p4dp);
- 
- 		next = p4d_addr_end(addr, end);
- 		if (!p4d_present(p4d))
-@@ -3108,7 +3108,7 @@ static void gup_fast_pgd_range(unsigned
- 
- 	pgdp = pgd_offset(current->mm, addr);
- 	do {
--		pgd_t pgd = READ_ONCE(*pgdp);
-+		pgd_t pgd = pgdp_get(pgdp);
- 
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
---- a/mm/hmm.c~mm-replace-read_once-with-standard-page-table-accessors
-+++ a/mm/hmm.c
-@@ -491,7 +491,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
- 	/* Normally we don't want to split the huge page */
- 	walk->action = ACTION_CONTINUE;
- 
--	pud = READ_ONCE(*pudp);
-+	pud = pudp_get(pudp);
- 	if (!pud_present(pud)) {
- 		spin_unlock(ptl);
- 		return hmm_vma_walk_hole(start, end, -1, walk);
---- a/mm/memory.c~mm-replace-read_once-with-standard-page-table-accessors
-+++ a/mm/memory.c
-@@ -6716,12 +6716,12 @@ retry:
- 		goto out;
- 
- 	p4dp = p4d_offset(pgdp, address);
--	p4d = READ_ONCE(*p4dp);
-+	p4d = p4dp_get(p4dp);
- 	if (p4d_none(p4d) || unlikely(p4d_bad(p4d)))
- 		goto out;
- 
- 	pudp = pud_offset(p4dp, address);
--	pud = READ_ONCE(*pudp);
-+	pud = pudp_get(pudp);
- 	if (pud_none(pud))
- 		goto out;
- 	if (pud_leaf(pud)) {
---- a/mm/mprotect.c~mm-replace-read_once-with-standard-page-table-accessors
-+++ a/mm/mprotect.c
-@@ -599,7 +599,7 @@ again:
- 			break;
++/*
++ * Discard pending clusters in a synchronized way when under high pressure.
++ * Return: true if any cluster is discarded.
++ */
++static bool swap_sync_discard(void)
++{
++	bool ret = false;
++	int nid = numa_node_id();
++	struct swap_info_struct *si, *next;
++
++	spin_lock(&swap_avail_lock);
++	plist_for_each_entry_safe(si, next, &swap_avail_heads[nid], avail_lists[nid]) {
++		spin_unlock(&swap_avail_lock);
++		if (get_swap_device_info(si)) {
++			if (si->flags & SWP_PAGE_DISCARD)
++				ret = swap_do_scheduled_discard(si);
++			put_swap_device(si);
++		}
++		if (ret)
++			break;
++		spin_lock(&swap_avail_lock);
++	}
++	spin_unlock(&swap_avail_lock);
++
++	return ret;
++}
++
+ /**
+  * folio_alloc_swap - allocate swap space for a folio
+  * @folio: folio we want to move to swap
+@@ -1432,11 +1452,17 @@ int folio_alloc_swap(struct folio *folio
  		}
+ 	}
  
--		pud = READ_ONCE(*pudp);
-+		pud = pudp_get(pudp);
- 		if (pud_none(pud))
- 			continue;
++again:
+ 	local_lock(&percpu_swap_cluster.lock);
+ 	if (!swap_alloc_fast(&entry, order))
+ 		swap_alloc_slow(&entry, order);
+ 	local_unlock(&percpu_swap_cluster.lock);
  
---- a/mm/sparse-vmemmap.c~mm-replace-read_once-with-standard-page-table-accessors
-+++ a/mm/sparse-vmemmap.c
-@@ -439,7 +439,7 @@ int __meminit vmemmap_populate_hugepages
- 			return -ENOMEM;
- 
- 		pmd = pmd_offset(pud, addr);
--		if (pmd_none(READ_ONCE(*pmd))) {
-+		if (pmd_none(pmdp_get(pmd))) {
- 			void *p;
- 
- 			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
---- a/mm/vmscan.c~mm-replace-read_once-with-standard-page-table-accessors
-+++ a/mm/vmscan.c
-@@ -3751,7 +3751,7 @@ static int walk_pud_range(p4d_t *p4d, un
- 	pud = pud_offset(p4d, start & P4D_MASK);
- restart:
- 	for (i = pud_index(start), addr = start; addr != end; i++, addr = next) {
--		pud_t val = READ_ONCE(pud[i]);
-+		pud_t val = pudp_get(pud + i);
- 
- 		next = pud_addr_end(addr, end);
- 
++	if (unlikely(!order && !entry.val)) {
++		if (swap_sync_discard())
++			goto again;
++	}
++
+ 	/* Need to call this even if allocation failed, for MEMCG_SWAP_FAIL. */
+ 	if (mem_cgroup_try_charge_swap(folio, entry))
+ 		goto out_free;
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-thp-drop-follow_devmap_pmd-default-stub.patch
-mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
-mm-replace-read_once-with-standard-page-table-accessors.patch
+mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
+mm-swap-rename-helper-for-setup-bad-slots.patch
+mm-swap-cleanup-swap-entry-allocation-parameter.patch
+mm-migrate-swap-drop-usage-of-folio_index.patch
 
