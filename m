@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 299BB21C19E
-	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:22:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7951C1DE4FB
+	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:22:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759882936; cv=none; b=unDXlanM2zOSQZNPkjPxlnbFWfxFRl/1++2HgBjLqiIP1JfdKjTiEFkrJp3ujWoQkiHf85b8o1vXmgECXnmHS8qpZ0uT8d1b8+AnbpASqN8R9FjAPeYb1PzgHcn/JvexL7ESRLojMeBCy3STYoMU7JU7d/9Oj0C9fanQKvK+1Ds=
+	t=1759882938; cv=none; b=HFMa7ymzmzx7PqKw7Nz1nXhALqdEB6p0UeBNcVA90LAdtScPwkhzFTPPFxB/bo4qRhyNptjAgwsxT9CBKd2H1O5vLEAXOQCTK1yiX3T+n4lfPdTOvIANCJ1CNyIclXPTGUb5w6z3k/kwPhQ4MQ+W5dettYSl2KSLNLgW5KYxWf0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759882936; c=relaxed/simple;
-	bh=dQvyKlD/qVLXsmax0VyO5x/QJLlhRywsvNvLS3orIcg=;
-	h=Date:To:From:Subject:Message-Id; b=T++HK3OBhghv1gmUqPNywVcEMNJuPm29pGCvRLmHd4EnY76itIvNyyCgJVQ6r4Lh9PcyntoRXNOv+Vp9XAYdeA+wVV4sYJ425CC1JHs3278Dncn9l14hTfhTsRDkgcbI72MhzSkCuu8nkqb+LgIOxfx/t/3nNDAURUp6t7hAA+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C3ai/bp3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759882938; c=relaxed/simple;
+	bh=p68WiqL0MjMO0Slk/BsRNjtsOy2PEB/9xsrDTKBuj9E=;
+	h=Date:To:From:Subject:Message-Id; b=qft1XUIh8Y5laGEINwHohJimugaKpE/fYG3D1Uns6IlKGi5luSqlRyfZDJbG+Z+lwvrTTskQkV03p+79PryCJHI0gS3XP1XITwiS8sVuYCupJABeRZVOgzsBLlT0MU7UyGPuBymUYUKxUNwHWexeY8GL0VFz/4PZXK1hrIuwgYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IfUorCjr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C3ai/bp3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA25EC4CEF1;
-	Wed,  8 Oct 2025 00:22:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IfUorCjr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED9E6C4CEF1;
+	Wed,  8 Oct 2025 00:22:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759882935;
-	bh=dQvyKlD/qVLXsmax0VyO5x/QJLlhRywsvNvLS3orIcg=;
+	s=korg; t=1759882938;
+	bh=p68WiqL0MjMO0Slk/BsRNjtsOy2PEB/9xsrDTKBuj9E=;
 	h=Date:To:From:Subject:From;
-	b=C3ai/bp3PJ+wucR24RaTn/YEii0hehp8bPQxND7+IK9BRVjHTojUxeaHhYUFSjLAq
-	 kwsxU+HkHzCMyyZxU4K6nzOA6esg30fS7YiMvXXRpOCiWzSntcbXi4AGxsnbZGbc2P
-	 6Fvv9viZ8TnvKXrCHErl1RwDEN0vqGIyb5Hk/44c=
-Date: Tue, 07 Oct 2025 17:22:15 -0700
+	b=IfUorCjrwEQ/JzQ30VVbj8sFcFujz3+d7xkYWGdpig2lmVr7gRxmRPGL6N5YCXc/l
+	 oi1uLFh5x1WGKd7QiI61eKJiB7dRvS7VA3fsm1qsIfHqTePxjcRycp5GsHUbBHYty2
+	 5POuM//l7jz/dWojjsopsrVRaGdEqlH5iOzcrzLM=
+Date: Tue, 07 Oct 2025 17:22:17 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-s-red-black-tree-xarray.patch added to mm-new branch
-Message-Id: <20251008002215.DA25EC4CEF1@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch added to mm-new branch
+Message-Id: <20251008002217.ED9E6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: s/red-black tree/xarray/
+     Subject: Docs/admin-guide/mm/zswap: s/red-black tree/xarray/
 has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-s-red-black-tree-xarray.patch
+     docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-s-red-black-tree-xarray.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,13 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/zswap: s/red-black tree/xarray/
-Date: Fri, 3 Oct 2025 13:38:50 -0700
+Subject: Docs/admin-guide/mm/zswap: s/red-black tree/xarray/
+Date: Fri, 3 Oct 2025 13:38:51 -0700
 
-Changes made by commit 796c2c23e14e ("zswap: replace RB tree with xarray")
-are not reflected on a comment.  Update the comment.
+The change from commit 796c2c23e14e ("zswap: replace RB tree with xarray")
+is not reflected on the document.  Update the document.
 
-Link: https://lkml.kernel.org/r/20251003203851.43128-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251003203851.43128-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
@@ -91,20 +91,28 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/zswap.rst |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-s-red-black-tree-xarray
-+++ a/mm/zswap.c
-@@ -175,7 +175,7 @@ static struct shrinker *zswap_shrinker;
-  * This structure contains the metadata for tracking a single compressed
-  * page within zswap.
-  *
-- * swpentry - associated swap entry, the offset indexes into the red-black tree
-+ * swpentry - associated swap entry, the offset indexes into the xarray
-  * length - the length in bytes of the compressed page data.  Needed during
-  *          decompression.
-  * referenced - true if the entry recently entered the zswap pool. Unset by the
+--- a/Documentation/admin-guide/mm/zswap.rst~docs-admin-guide-mm-zswap-s-red-black-tree-xarray
++++ a/Documentation/admin-guide/mm/zswap.rst
+@@ -59,11 +59,11 @@ returned by the allocation routine and t
+ accessed.  The compressed memory pool grows on demand and shrinks as compressed
+ pages are freed.  The pool is not preallocated.
+ 
+-When a swap page is passed from swapout to zswap, zswap maintains a mapping
+-of the swap entry, a combination of the swap type and swap offset, to the
+-zsmalloc handle that references that compressed swap page.  This mapping is
+-achieved with a red-black tree per swap type.  The swap offset is the search
+-key for the tree nodes.
++When a swap page is passed from swapout to zswap, zswap maintains a mapping of
++the swap entry, a combination of the swap type and swap offset, to the zsmalloc
++handle that references that compressed swap page.  This mapping is achieved
++with an xarray per swap type.  The swap offset is the search key for the xarray
++nodes.
+ 
+ During a page fault on a PTE that is a swap entry, the swapin code calls the
+ zswap load function to decompress the page into the page allocated by the page
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
