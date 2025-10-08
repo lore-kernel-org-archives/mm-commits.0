@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2551E2857EF
-	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:33:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDF8C28507D
+	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:33:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759883597; cv=none; b=k5q7Ov/mYLQlK8qaJLj8+SdN16XNhoKcObJ+AvbMWOTqAn1Q1sfjPgP69lGotEGefAi1kj0TgR1UqFYK2dDZmXvPVvp1UOdm/G95X+WkqRMMjW0I71iNV89Nk7fT9PU8Y1z8Fv/HpQlH7LBDG9k/5H49xZOYGqZm7GrvCM1LekE=
+	t=1759883599; cv=none; b=MBiqJ0Ps6E63x/cP8f+8w7FpK+4C+wwQtLL0+tQIoeF8x2KG6b7It9J7w++uafbUMEwBpL5VoMu6fHoWZ2DPE3p4GiCdB6tdinNv1qBDj/XnHHDpJNdXg53Iql0+dYCPQ0oGfVMFa30jBL6lhEIjoOu15vOYXItue3Ruh45/U6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759883597; c=relaxed/simple;
-	bh=5plb1U2dbs8FIObx2Owq8UBhsDq2fck+6XQY3Hkm5fg=;
-	h=Date:To:From:Subject:Message-Id; b=FfBzgigo/DjynNz7v+2ZWPDofNT8Noyu06aU5jCrWWjwODZitbBVDlhYbIGZn7RUlCMV5BGiew68Vyn4KCqT3QnWlJ8RmZbE5wW63B88qjzTQH1VpWUCQCYuYbbKBoVW2AglnxhRJLpaZKDbbdSgaKJvoMXZ3khcxdoMQpQTE/k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xIUcOHHv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759883599; c=relaxed/simple;
+	bh=gaY647dEKqRzBZl7DLGZuJKQ7kZBvcGJHNo/1IUkziI=;
+	h=Date:To:From:Subject:Message-Id; b=BH9l+0LpCX00nuoHpiUFwNTY+EnWxpmFKI90lB2vjwMsdeV5wwa0I4DgG9YMa54RKZbQ0putnecAyljQlTttX5A6E9UV8MDxyqK/sEhZXjD+mxiC4ViKt/LtlrcJ0T2JlkM9YJdm+QHomtnCoLUDhTN5R1tXYWgyqmKUQLdOloA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sZPp83J3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xIUcOHHv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94716C4CEF1;
-	Wed,  8 Oct 2025 00:33:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sZPp83J3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 481C8C4CEF1;
+	Wed,  8 Oct 2025 00:33:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759883596;
-	bh=5plb1U2dbs8FIObx2Owq8UBhsDq2fck+6XQY3Hkm5fg=;
+	s=korg; t=1759883599;
+	bh=gaY647dEKqRzBZl7DLGZuJKQ7kZBvcGJHNo/1IUkziI=;
 	h=Date:To:From:Subject:From;
-	b=xIUcOHHvIEHXiQEbNYsV5fnoXQD1RDt35744YEiax/GPskhoJNSXqJ+Pb9PIFGiz6
-	 F/82eGKEqUrexvkqnkyQFatPIP17TY8ON3l53/BzV1Hdv4fLvAjQI/3SIdc60V8kXW
-	 PYZlPIBee6+AMdxTMP0B1tNLqDSHnZ1dc0ePw7ww=
-Date: Tue, 07 Oct 2025 17:33:16 -0700
+	b=sZPp83J3owkfvGlQTYPAbl4E92Ghk+wkRZFRAwcAArBxz+68Z39FCJ1wMDmwnidNj
+	 cTDkdFDKu9/anNqWuyc7RH00CwcedR5p+P/b/LGj6AAm89gO70aMGS8PQOQuFXDkfL
+	 opzihlHHOKA1CTGva2Yw3jp3pVgL85PJRB6ue0Uw=
+Date: Tue, 07 Oct 2025 17:33:18 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,harry.yoo@oracle.com,hannes@cmpxchg.org,david@redhat.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-introduce-folio_split_queue_lock-and-its-variants.patch added to mm-new branch
-Message-Id: <20251008003316.94716C4CEF1@smtp.kernel.org>
+Subject: + mm-thp-use-folio_batch-to-handle-thp-splitting-in-deferred_split_scan.patch added to mm-new branch
+Message-Id: <20251008003319.481C8C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: thp: introduce folio_split_queue_lock and its variants
+     Subject: mm: thp: use folio_batch to handle THP splitting in deferred_split_scan()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-thp-introduce-folio_split_queue_lock-and-its-variants.patch
+     mm-thp-use-folio_batch-to-handle-thp-splitting-in-deferred_split_scan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-introduce-folio_split_queue_lock-and-its-variants.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-use-folio_batch-to-handle-thp-splitting-in-deferred_split_scan.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,288 +65,194 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: thp: introduce folio_split_queue_lock and its variants
-Date: Sat, 4 Oct 2025 00:53:16 +0800
+Subject: mm: thp: use folio_batch to handle THP splitting in deferred_split_scan()
+Date: Sat, 4 Oct 2025 00:53:17 +0800
 
-In future memcg removal, the binding between a folio and a memcg may
-change, making the split lock within the memcg unstable when held.
+The maintenance of the folio->_deferred_list is intricate because it's
+reused in a local list.
 
-A new approach is required to reparent the split queue to its parent. 
-This patch starts introducing a unified way to acquire the split lock for
-future work.
+Here are some peculiarities:
 
-It's a code-only refactoring with no functional changes.
+   1) When a folio is removed from its split queue and added to a local
+      on-stack list in deferred_split_scan(), the ->split_queue_len isn't
+      updated, leading to an inconsistency between it and the actual
+      number of folios in the split queue.
 
-Link: https://lkml.kernel.org/r/68492101fa51d4bab4ade327354b986c0959250e.1759510072.git.zhengqi.arch@bytedance.com
+   2) When the folio is split via split_folio() later, it's removed from
+      the local list while holding the split queue lock. At this time,
+      this lock protects the local list, not the split queue.
+
+   3) To handle the race condition with a third-party freeing or migrating
+      the preceding folio, we must ensure there's always one safe (with
+      raised refcount) folio before by delaying its folio_put(). More
+      details can be found in commit e66f3185fa04 ("mm/thp: fix deferred
+      split queue not partially_mapped"). It's rather tricky.
+
+We can use the folio_batch infrastructure to handle this clearly.  In this
+case, ->split_queue_len will be consistent with the real number of folios
+in the split queue.  If list_empty(&folio->_deferred_list) returns false,
+it's clear the folio must be in its split queue (not in a local list
+anymore).
+
+In the future, we will reparent LRU folios during memcg offline to
+eliminate dying memory cgroups, which requires reparenting the split queue
+to its parent first.  So this patch prepares for using
+folio_split_queue_lock_irqsave() as the memcg may change then.
+
+Link: https://lkml.kernel.org/r/304df1ad1e8180e102c4d6931733bcc77774eb9e.1759510072.git.zhengqi.arch@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Harry Yoo <harry.yoo@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 ++
- mm/huge_memory.c           |  119 ++++++++++++++++++++++++-----------
- 2 files changed, 94 insertions(+), 35 deletions(-)
+ mm/huge_memory.c |   85 ++++++++++++++++++++-------------------------
+ 1 file changed, 39 insertions(+), 46 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-thp-introduce-folio_split_queue_lock-and-its-variants
-+++ a/include/linux/memcontrol.h
-@@ -1674,6 +1674,11 @@ int alloc_shrinker_info(struct mem_cgrou
- void free_shrinker_info(struct mem_cgroup *memcg);
- void set_shrinker_bit(struct mem_cgroup *memcg, int nid, int shrinker_id);
- void reparent_shrinker_deferred(struct mem_cgroup *memcg);
-+
-+static inline int shrinker_id(struct shrinker *shrinker)
-+{
-+	return shrinker->id;
-+}
- #else
- #define mem_cgroup_sockets_enabled 0
- 
-@@ -1705,6 +1710,11 @@ static inline void set_shrinker_bit(stru
- 				    int nid, int shrinker_id)
- {
- }
-+
-+static inline int shrinker_id(struct shrinker *shrinker)
-+{
-+	return -1;
-+}
- #endif
- 
- #ifdef CONFIG_MEMCG
---- a/mm/huge_memory.c~mm-thp-introduce-folio_split_queue_lock-and-its-variants
+--- a/mm/huge_memory.c~mm-thp-use-folio_batch-to-handle-thp-splitting-in-deferred_split_scan
 +++ a/mm/huge_memory.c
-@@ -1076,28 +1076,86 @@ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struc
- 	return pmd;
- }
- 
-+static struct deferred_split *split_queue_node(int nid)
-+{
-+	struct pglist_data *pgdata = NODE_DATA(nid);
-+
-+	return &pgdata->deferred_split_queue;
-+}
-+
- #ifdef CONFIG_MEMCG
- static inline
--struct deferred_split *get_deferred_split_queue(struct folio *folio)
-+struct mem_cgroup *folio_split_queue_memcg(struct folio *folio,
-+					   struct deferred_split *queue)
- {
--	struct mem_cgroup *memcg = folio_memcg(folio);
--	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
-+	if (mem_cgroup_disabled())
-+		return NULL;
-+	if (split_queue_node(folio_nid(folio)) == queue)
-+		return NULL;
-+	return container_of(queue, struct mem_cgroup, deferred_split_queue);
-+}
- 
--	if (memcg)
--		return &memcg->deferred_split_queue;
--	else
--		return &pgdat->deferred_split_queue;
-+static struct deferred_split *memcg_split_queue(int nid, struct mem_cgroup *memcg)
-+{
-+	return memcg ? &memcg->deferred_split_queue : split_queue_node(nid);
- }
- #else
- static inline
--struct deferred_split *get_deferred_split_queue(struct folio *folio)
-+struct mem_cgroup *folio_split_queue_memcg(struct folio *folio,
-+					   struct deferred_split *queue)
- {
--	struct pglist_data *pgdat = NODE_DATA(folio_nid(folio));
-+	return NULL;
-+}
- 
--	return &pgdat->deferred_split_queue;
-+static struct deferred_split *memcg_split_queue(int nid, struct mem_cgroup *memcg)
-+{
-+	return split_queue_node(nid);
- }
- #endif
- 
-+static struct deferred_split *split_queue_lock(int nid, struct mem_cgroup *memcg)
-+{
-+	struct deferred_split *queue;
-+
-+	queue = memcg_split_queue(nid, memcg);
-+	spin_lock(&queue->split_queue_lock);
-+
-+	return queue;
-+}
-+
-+static struct deferred_split *
-+split_queue_lock_irqsave(int nid, struct mem_cgroup *memcg, unsigned long *flags)
-+{
-+	struct deferred_split *queue;
-+
-+	queue = memcg_split_queue(nid, memcg);
-+	spin_lock_irqsave(&queue->split_queue_lock, *flags);
-+
-+	return queue;
-+}
-+
-+static struct deferred_split *folio_split_queue_lock(struct folio *folio)
-+{
-+	return split_queue_lock(folio_nid(folio), folio_memcg(folio));
-+}
-+
-+static struct deferred_split *
-+folio_split_queue_lock_irqsave(struct folio *folio, unsigned long *flags)
-+{
-+	return split_queue_lock_irqsave(folio_nid(folio), folio_memcg(folio), flags);
-+}
-+
-+static inline void split_queue_unlock(struct deferred_split *queue)
-+{
-+	spin_unlock(&queue->split_queue_lock);
-+}
-+
-+static inline void split_queue_unlock_irqrestore(struct deferred_split *queue,
-+						 unsigned long flags)
-+{
-+	spin_unlock_irqrestore(&queue->split_queue_lock, flags);
-+}
-+
- static inline bool is_transparent_hugepage(const struct folio *folio)
- {
- 	if (!folio_test_large(folio))
-@@ -3579,7 +3637,7 @@ static int __folio_split(struct folio *f
- 		struct page *split_at, struct page *lock_at,
- 		struct list_head *list, bool uniform_split)
- {
--	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
-+	struct deferred_split *ds_queue;
- 	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
- 	struct folio *end_folio = folio_next(folio);
- 	bool is_anon = folio_test_anon(folio);
-@@ -3718,7 +3776,7 @@ static int __folio_split(struct folio *f
- 	}
- 
- 	/* Prevent deferred_split_scan() touching ->_refcount */
--	spin_lock(&ds_queue->split_queue_lock);
-+	ds_queue = folio_split_queue_lock(folio);
- 	if (folio_ref_freeze(folio, 1 + extra_pins)) {
- 		struct swap_cluster_info *ci = NULL;
+@@ -3782,21 +3782,22 @@ static int __folio_split(struct folio *f
  		struct lruvec *lruvec;
-@@ -3740,7 +3798,7 @@ static int __folio_split(struct folio *f
- 			 */
- 			list_del_init(&folio->_deferred_list);
+ 		int expected_refs;
+ 
+-		if (folio_order(folio) > 1 &&
+-		    !list_empty(&folio->_deferred_list)) {
+-			ds_queue->split_queue_len--;
++		if (folio_order(folio) > 1) {
++			if (!list_empty(&folio->_deferred_list)) {
++				ds_queue->split_queue_len--;
++				/*
++				 * Reinitialize page_deferred_list after removing the
++				 * page from the split_queue, otherwise a subsequent
++				 * split will see list corruption when checking the
++				 * page_deferred_list.
++				 */
++				list_del_init(&folio->_deferred_list);
++			}
+ 			if (folio_test_partially_mapped(folio)) {
+ 				folio_clear_partially_mapped(folio);
+ 				mod_mthp_stat(folio_order(folio),
+ 					      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+ 			}
+-			/*
+-			 * Reinitialize page_deferred_list after removing the
+-			 * page from the split_queue, otherwise a subsequent
+-			 * split will see list corruption when checking the
+-			 * page_deferred_list.
+-			 */
+-			list_del_init(&folio->_deferred_list);
  		}
--		spin_unlock(&ds_queue->split_queue_lock);
-+		split_queue_unlock(ds_queue);
+ 		split_queue_unlock(ds_queue);
  		if (mapping) {
- 			int nr = folio_nr_pages(folio);
- 
-@@ -3835,7 +3893,7 @@ static int __folio_split(struct folio *f
- 		if (ci)
- 			swap_cluster_unlock(ci);
- 	} else {
--		spin_unlock(&ds_queue->split_queue_lock);
-+		split_queue_unlock(ds_queue);
- 		ret = -EAGAIN;
- 	}
- fail:
-@@ -4016,8 +4074,7 @@ bool __folio_unqueue_deferred_split(stru
- 	WARN_ON_ONCE(folio_ref_count(folio));
- 	WARN_ON_ONCE(!mem_cgroup_disabled() && !folio_memcg_charged(folio));
- 
--	ds_queue = get_deferred_split_queue(folio);
--	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
-+	ds_queue = folio_split_queue_lock_irqsave(folio, &flags);
- 	if (!list_empty(&folio->_deferred_list)) {
- 		ds_queue->split_queue_len--;
- 		if (folio_test_partially_mapped(folio)) {
-@@ -4028,7 +4085,7 @@ bool __folio_unqueue_deferred_split(stru
- 		list_del_init(&folio->_deferred_list);
- 		unqueued = true;
- 	}
--	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
-+	split_queue_unlock_irqrestore(ds_queue, flags);
- 
- 	return unqueued;	/* useful for debug warnings */
- }
-@@ -4036,10 +4093,7 @@ bool __folio_unqueue_deferred_split(stru
- /* partially_mapped=false won't clear PG_partially_mapped folio flag */
- void deferred_split_folio(struct folio *folio, bool partially_mapped)
+@@ -4185,35 +4186,40 @@ static unsigned long deferred_split_scan
  {
--	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
--#ifdef CONFIG_MEMCG
--	struct mem_cgroup *memcg = folio_memcg(folio);
--#endif
-+	struct deferred_split *ds_queue;
+ 	struct deferred_split *ds_queue;
  	unsigned long flags;
+-	LIST_HEAD(list);
+-	struct folio *folio, *next, *prev = NULL;
+-	int split = 0, removed = 0;
++	struct folio *folio, *next;
++	int split = 0, i;
++	struct folio_batch fbatch;
  
- 	/*
-@@ -4062,7 +4116,7 @@ void deferred_split_folio(struct folio *
- 	if (folio_test_swapcache(folio))
- 		return;
- 
--	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
-+	ds_queue = folio_split_queue_lock_irqsave(folio, &flags);
- 	if (partially_mapped) {
- 		if (!folio_test_partially_mapped(folio)) {
- 			folio_set_partially_mapped(folio);
-@@ -4077,15 +4131,16 @@ void deferred_split_folio(struct folio *
- 		VM_WARN_ON_FOLIO(folio_test_partially_mapped(folio), folio);
- 	}
- 	if (list_empty(&folio->_deferred_list)) {
-+		struct mem_cgroup *memcg;
++	folio_batch_init(&fbatch);
 +
-+		memcg = folio_split_queue_memcg(folio, ds_queue);
- 		list_add_tail(&folio->_deferred_list, &ds_queue->split_queue);
- 		ds_queue->split_queue_len++;
--#ifdef CONFIG_MEMCG
- 		if (memcg)
- 			set_shrinker_bit(memcg, folio_nid(folio),
--					 deferred_split_shrinker->id);
--#endif
-+					 shrinker_id(deferred_split_shrinker));
- 	}
--	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
-+	split_queue_unlock_irqrestore(ds_queue, flags);
- }
- 
- static unsigned long deferred_split_count(struct shrinker *shrink,
-@@ -4128,19 +4183,13 @@ static bool thp_underused(struct folio *
- static unsigned long deferred_split_scan(struct shrinker *shrink,
- 		struct shrink_control *sc)
- {
--	struct pglist_data *pgdata = NODE_DATA(sc->nid);
--	struct deferred_split *ds_queue = &pgdata->deferred_split_queue;
-+	struct deferred_split *ds_queue;
- 	unsigned long flags;
- 	LIST_HEAD(list);
- 	struct folio *folio, *next, *prev = NULL;
- 	int split = 0, removed = 0;
- 
--#ifdef CONFIG_MEMCG
--	if (sc->memcg)
--		ds_queue = &sc->memcg->deferred_split_queue;
--#endif
--
--	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
-+	ds_queue = split_queue_lock_irqsave(sc->nid, sc->memcg, &flags);
++retry:
+ 	ds_queue = split_queue_lock_irqsave(sc->nid, sc->memcg, &flags);
  	/* Take pin on all head pages to avoid freeing them under us */
  	list_for_each_entry_safe(folio, next, &ds_queue->split_queue,
  							_deferred_list) {
-@@ -4159,7 +4208,7 @@ static unsigned long deferred_split_scan
+ 		if (folio_try_get(folio)) {
+-			list_move(&folio->_deferred_list, &list);
+-		} else {
++			folio_batch_add(&fbatch, folio);
++		} else if (folio_test_partially_mapped(folio)) {
+ 			/* We lost race with folio_put() */
+-			if (folio_test_partially_mapped(folio)) {
+-				folio_clear_partially_mapped(folio);
+-				mod_mthp_stat(folio_order(folio),
+-					      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+-			}
+-			list_del_init(&folio->_deferred_list);
+-			ds_queue->split_queue_len--;
++			folio_clear_partially_mapped(folio);
++			mod_mthp_stat(folio_order(folio),
++				      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+ 		}
++		list_del_init(&folio->_deferred_list);
++		ds_queue->split_queue_len--;
  		if (!--sc->nr_to_scan)
  			break;
++		if (!folio_batch_space(&fbatch))
++			break;
  	}
--	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
-+	split_queue_unlock_irqrestore(ds_queue, flags);
+ 	split_queue_unlock_irqrestore(ds_queue, flags);
  
- 	list_for_each_entry_safe(folio, next, &list, _deferred_list) {
+-	list_for_each_entry_safe(folio, next, &list, _deferred_list) {
++	for (i = 0; i < folio_batch_count(&fbatch); i++) {
  		bool did_split = false;
+ 		bool underused = false;
++		struct deferred_split *fqueue;
+ 
++		folio = fbatch.folios[i];
+ 		if (!folio_test_partially_mapped(folio)) {
+ 			/*
+ 			 * See try_to_map_unused_to_zeropage(): we cannot
+@@ -4236,38 +4242,25 @@ static unsigned long deferred_split_scan
+ 		}
+ 		folio_unlock(folio);
+ next:
++		if (did_split || !folio_test_partially_mapped(folio))
++			continue;
+ 		/*
+-		 * split_folio() removes folio from list on success.
+ 		 * Only add back to the queue if folio is partially mapped.
+ 		 * If thp_underused returns false, or if split_folio fails
+ 		 * in the case it was underused, then consider it used and
+ 		 * don't add it back to split_queue.
+ 		 */
+-		if (did_split) {
+-			; /* folio already removed from list */
+-		} else if (!folio_test_partially_mapped(folio)) {
+-			list_del_init(&folio->_deferred_list);
+-			removed++;
+-		} else {
+-			/*
+-			 * That unlocked list_del_init() above would be unsafe,
+-			 * unless its folio is separated from any earlier folios
+-			 * left on the list (which may be concurrently unqueued)
+-			 * by one safe folio with refcount still raised.
+-			 */
+-			swap(folio, prev);
++		fqueue = folio_split_queue_lock_irqsave(folio, &flags);
++		if (list_empty(&folio->_deferred_list)) {
++			list_add_tail(&folio->_deferred_list, &fqueue->split_queue);
++			fqueue->split_queue_len++;
+ 		}
+-		if (folio)
+-			folio_put(folio);
++		split_queue_unlock_irqrestore(fqueue, flags);
+ 	}
++	folios_put(&fbatch);
+ 
+-	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+-	list_splice_tail(&list, &ds_queue->split_queue);
+-	ds_queue->split_queue_len -= removed;
+-	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
+-
+-	if (prev)
+-		folio_put(prev);
++	if (sc->nr_to_scan)
++		goto retry;
+ 
+ 	/*
+ 	 * Stop shrinker if we didn't split any page, but the queue is empty.
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
