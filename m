@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 226D923D289
-	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:33:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13F9C1F92E
+	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:37:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759883603; cv=none; b=pwYRU2tmx9/CXNPe9Y6pbzcLdxL8xcdxX4wsGvPsAnMxxro39bGct9E1kcOSIEg7CY/FbMRMdlNlhpnYrLwc/nXJsdFhhCvnrVMB5PQyaavES7HoQBWqJyV0UOnDqZLWild3SlTLxdClucpqhpiUWDEcRZY44TcP0mNd8CBGVTI=
+	t=1759883837; cv=none; b=IfY9tPpHfG1UboPE6uSp46gmS0ulDrZhzhlzbGMBhvMxc7UsHXdZMpmyKeyV/AAdnqIscO+jQc9385wcWg+GmjnjH3mza6KNSjUgDt/oIsAN4BwoK60Wvaql6Sm/RMv5TMW4OIdDmoHt5ky+MSdJD+efGSGtorYOl2UWTlgYfbs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759883603; c=relaxed/simple;
-	bh=7gzskd5vcIhD47U6T3+C/BY7xZb1F3x4WgVGQ0HGjyc=;
-	h=Date:To:From:Subject:Message-Id; b=BMRzgYJVVkTGODe4H6KRAl0HRJHkoP7g6H+T+C0zpoDayW3ERChu2oy0gHfhPmKv9LUMyqawNa1hMAkZRfp/PiLhAa+IBtUbyk8GaqMjx6FB966v4br9pKUkg38b94JtzAa7f5GOmjR1bAh7XbbNGqUPJOlaMQoww444fjNLRAU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YTGYasaG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759883837; c=relaxed/simple;
+	bh=jcXlbDTD+zYhmHlmqMQGm+PZUCh/7FmnvvniSmDb0sk=;
+	h=Date:To:From:Subject:Message-Id; b=EQuXmHdFxzLuohPy5IpcCzETxRXUhasI4Lp2PFX4PQOb0rK595cZXGthdLCph3MwwFdUqkcqPFLtkQ60wgQRN97Jzk5AdzZ4lszFJfVlk6CeZ6G73S3hNbWONOVgaXqfJZpU7t9lT/gSyRjUomywQMYu6f1Ch2SnVCEF5/cIenE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eOjN/f1q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YTGYasaG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C640C4CEF1;
-	Wed,  8 Oct 2025 00:33:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eOjN/f1q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EADCC4CEF1;
+	Wed,  8 Oct 2025 00:37:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759883601;
-	bh=7gzskd5vcIhD47U6T3+C/BY7xZb1F3x4WgVGQ0HGjyc=;
+	s=korg; t=1759883836;
+	bh=jcXlbDTD+zYhmHlmqMQGm+PZUCh/7FmnvvniSmDb0sk=;
 	h=Date:To:From:Subject:From;
-	b=YTGYasaGm4TobFqAzHA2NqLphD2pRSICOU58P1n6prXAt8DU1u92xOKrTtOVr4LMD
-	 74q7z+uAwFGSDVCZ5BpGj5y0T8Mjj+3Uk3noVHgbg1I7jQXYiSpLnAy5PSWwML03Ec
-	 iOTZSjxYvIUUzf76mhxPEPps8EdpeJhAlq0r2FmY=
-Date: Tue, 07 Oct 2025 17:33:20 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,harry.yoo@oracle.com,hannes@cmpxchg.org,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=eOjN/f1qnlGcMuBx2LRGz6mRHA1Dua2R3qu9NegynZ6QWVBtraqP+6/2h6HbrhWXz
+	 rfXW56uw83M5Z5sL43ESVdXAUHCWXGRefxV1lJNO9fhZKCzp/bcoXI840KG7e8zbYs
+	 jkT4K4cGZN0vCl8zyhQXy4+w3DADAzAQBmUdwNWE=
+Date: Tue, 07 Oct 2025 17:37:15 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,osalvador@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-reparent-the-split-queue-during-memcg-offline.patch added to mm-new branch
-Message-Id: <20251008003321.8C640C4CEF1@smtp.kernel.org>
+Subject: + mm-consistently-use-current-mm-in-mm_get_unmapped_area.patch added to mm-new branch
+Message-Id: <20251008003716.6EADCC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: thp: reparent the split queue during memcg offline
+     Subject: mm: consistently use current->mm in mm_get_unmapped_area()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-thp-reparent-the-split-queue-during-memcg-offline.patch
+     mm-consistently-use-current-mm-in-mm_get_unmapped_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-reparent-the-split-queue-during-memcg-offline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-consistently-use-current-mm-in-mm_get_unmapped_area.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,162 +64,310 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: thp: reparent the split queue during memcg offline
-Date: Sat, 4 Oct 2025 00:53:18 +0800
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: consistently use current->mm in mm_get_unmapped_area()
+Date: Fri, 3 Oct 2025 16:53:04 +0100
 
-Similar to list_lru, the split queue is relatively independent and does
-not need to be reparented along with objcg and LRU folios (holding objcg
-lock and lru lock).  So let's apply the similar mechanism as list_lru to
-reparent the split queue separately when memcg is offine.
+mm_get_unmapped_area() is a wrapper around arch_get_unmapped_area() /
+arch_get_unmapped_area_topdown(), both of which search current->mm for
+some free space.  Neither take an mm_struct - they implicitly operate on
+current->mm.
 
-This is also a preparation for reparenting LRU folios.
+But the wrapper takes an mm_struct and uses it to decide whether to search
+bottom up or top down.  All callers pass in current->mm for this, so
+everything is working consistently.  But it feels like an accident waiting
+to happen; eventually someone will call that function with a different mm,
+expecting to find free space in it, but what gets returned is free space
+in the current mm.
 
-Link: https://lkml.kernel.org/r/a01588414c9911f2bc912fa87f181aa5620d89d4.1759510072.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+So let's simplify by removing the parameter and have the wrapper use
+current->mm to decide which end to start at.  Now everything is consistent
+and self-documenting.
+
+Link: https://lkml.kernel.org/r/20251003155306.2147572-1-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 ++
- mm/huge_memory.c        |   54 ++++++++++++++++++++++++++++++++++++++
- mm/memcontrol.c         |    1 
- 3 files changed, 59 insertions(+)
+ arch/sparc/kernel/sys_sparc_64.c |    6 +++---
+ arch/x86/kernel/cpu/sgx/driver.c |    2 +-
+ drivers/char/mem.c               |    2 +-
+ drivers/dax/device.c             |    5 ++---
+ fs/hugetlbfs/inode.c             |    3 +--
+ fs/proc/inode.c                  |    2 +-
+ fs/ramfs/file-mmu.c              |    2 +-
+ include/linux/sched/mm.h         |    9 ++++-----
+ io_uring/memmap.c                |    2 +-
+ kernel/bpf/arena.c               |    2 +-
+ kernel/bpf/syscall.c             |    2 +-
+ mm/huge_memory.c                 |    4 ++--
+ mm/mmap.c                        |   17 +++++++----------
+ mm/shmem.c                       |    8 +++-----
+ 14 files changed, 29 insertions(+), 37 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-thp-reparent-the-split-queue-during-memcg-offline
-+++ a/include/linux/huge_mm.h
-@@ -417,6 +417,9 @@ static inline int split_huge_page(struct
- 	return split_huge_page_to_list_to_order(page, NULL, ret);
- }
- void deferred_split_folio(struct folio *folio, bool partially_mapped);
-+#ifdef CONFIG_MEMCG
-+void reparent_deferred_split_queue(struct mem_cgroup *memcg);
-+#endif
+--- a/arch/sparc/kernel/sys_sparc_64.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/arch/sparc/kernel/sys_sparc_64.c
+@@ -241,7 +241,7 @@ unsigned long get_fb_unmapped_area(struc
  
- void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long address, bool freeze);
-@@ -611,6 +614,7 @@ static inline int try_folio_split(struct
+ 	if (flags & MAP_FIXED) {
+ 		/* Ok, don't mess with it. */
+-		return mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, flags);
++		return mm_get_unmapped_area(NULL, orig_addr, len, pgoff, flags);
+ 	}
+ 	flags &= ~MAP_SHARED;
+ 
+@@ -254,7 +254,7 @@ unsigned long get_fb_unmapped_area(struc
+ 		align_goal = (64UL * 1024);
+ 
+ 	do {
+-		addr = mm_get_unmapped_area(current->mm, NULL, orig_addr,
++		addr = mm_get_unmapped_area(NULL, orig_addr,
+ 					    len + (align_goal - PAGE_SIZE), pgoff, flags);
+ 		if (!(addr & ~PAGE_MASK)) {
+ 			addr = (addr + (align_goal - 1UL)) & ~(align_goal - 1UL);
+@@ -273,7 +273,7 @@ unsigned long get_fb_unmapped_area(struc
+ 	 * be obtained.
+ 	 */
+ 	if (addr & ~PAGE_MASK)
+-		addr = mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, flags);
++		addr = mm_get_unmapped_area(NULL, orig_addr, len, pgoff, flags);
+ 
+ 	return addr;
+ }
+--- a/arch/x86/kernel/cpu/sgx/driver.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/arch/x86/kernel/cpu/sgx/driver.c
+@@ -113,7 +113,7 @@ static unsigned long sgx_get_unmapped_ar
+ 	if (flags & MAP_FIXED)
+ 		return addr;
+ 
+-	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
  }
  
- static inline void deferred_split_folio(struct folio *folio, bool partially_mapped) {}
-+static inline void reparent_deferred_split_queue(struct mem_cgroup *memcg) {}
- #define split_huge_pmd(__vma, __pmd, __address)	\
- 	do { } while (0)
- 
---- a/mm/huge_memory.c~mm-thp-reparent-the-split-queue-during-memcg-offline
-+++ a/mm/huge_memory.c
-@@ -1099,6 +1099,11 @@ static struct deferred_split *memcg_spli
- {
- 	return memcg ? &memcg->deferred_split_queue : split_queue_node(nid);
- }
-+
-+static bool memcg_is_dying(struct mem_cgroup *memcg)
-+{
-+	return memcg ? css_is_dying(&memcg->css) : false;
-+}
+ #ifdef CONFIG_COMPAT
+--- a/drivers/char/mem.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/drivers/char/mem.c
+@@ -558,7 +558,7 @@ static unsigned long get_unmapped_area_z
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	return thp_get_unmapped_area(file, addr, len, pgoff, flags);
  #else
- static inline
- struct mem_cgroup *folio_split_queue_memcg(struct folio *folio,
-@@ -1111,14 +1116,30 @@ static struct deferred_split *memcg_spli
- {
- 	return split_queue_node(nid);
+-	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
+ #endif
  }
-+
-+static bool memcg_is_dying(struct mem_cgroup *memcg)
-+{
-+	return false;
-+}
+ #endif /* CONFIG_MMU */
+--- a/drivers/dax/device.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/drivers/dax/device.c
+@@ -340,14 +340,13 @@ static unsigned long dax_get_unmapped_ar
+ 	if ((off + len_align) < off)
+ 		goto out;
+ 
+-	addr_align = mm_get_unmapped_area(current->mm, filp, addr, len_align,
+-					  pgoff, flags);
++	addr_align = mm_get_unmapped_area(filp, addr, len_align, pgoff, flags);
+ 	if (!IS_ERR_VALUE(addr_align)) {
+ 		addr_align += (off - addr_align) & (align - 1);
+ 		return addr_align;
+ 	}
+  out:
+-	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(filp, addr, len, pgoff, flags);
+ }
+ 
+ static const struct address_space_operations dev_dax_aops = {
+--- a/fs/hugetlbfs/inode.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/fs/hugetlbfs/inode.c
+@@ -194,8 +194,7 @@ hugetlb_get_unmapped_area(struct file *f
+ 	if (addr)
+ 		addr0 = ALIGN(addr, huge_page_size(h));
+ 
+-	return mm_get_unmapped_area_vmflags(current->mm, file, addr0, len, pgoff,
+-					    flags, 0);
++	return mm_get_unmapped_area_vmflags(file, addr0, len, pgoff, flags, 0);
+ }
+ 
+ /*
+--- a/fs/proc/inode.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/fs/proc/inode.c
+@@ -443,7 +443,7 @@ pde_get_unmapped_area(struct proc_dir_en
+ 		return pde->proc_ops->proc_get_unmapped_area(file, orig_addr, len, pgoff, flags);
+ 
+ #ifdef CONFIG_MMU
+-	return mm_get_unmapped_area(current->mm, file, orig_addr, len, pgoff, flags);
++	return mm_get_unmapped_area(file, orig_addr, len, pgoff, flags);
  #endif
  
- static struct deferred_split *split_queue_lock(int nid, struct mem_cgroup *memcg)
+ 	return orig_addr;
+--- a/fs/ramfs/file-mmu.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/fs/ramfs/file-mmu.c
+@@ -35,7 +35,7 @@ static unsigned long ramfs_mmu_get_unmap
+ 		unsigned long addr, unsigned long len, unsigned long pgoff,
+ 		unsigned long flags)
  {
- 	struct deferred_split *queue;
- 
-+retry:
- 	queue = memcg_split_queue(nid, memcg);
- 	spin_lock(&queue->split_queue_lock);
-+	/*
-+	 * There is a period between setting memcg to dying and reparenting
-+	 * deferred split queue, and during this period the THPs in the deferred
-+	 * split queue will be hidden from the shrinker side.
-+	 */
-+	if (unlikely(memcg_is_dying(memcg))) {
-+		spin_unlock(&queue->split_queue_lock);
-+		memcg = parent_mem_cgroup(memcg);
-+		goto retry;
-+	}
- 
- 	return queue;
- }
-@@ -1128,8 +1149,14 @@ split_queue_lock_irqsave(int nid, struct
- {
- 	struct deferred_split *queue;
- 
-+retry:
- 	queue = memcg_split_queue(nid, memcg);
- 	spin_lock_irqsave(&queue->split_queue_lock, *flags);
-+	if (unlikely(memcg_is_dying(memcg))) {
-+		spin_unlock_irqrestore(&queue->split_queue_lock, *flags);
-+		memcg = parent_mem_cgroup(memcg);
-+		goto retry;
-+	}
- 
- 	return queue;
- }
-@@ -4271,6 +4298,33 @@ next:
- 	return split;
+-	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
  }
  
-+#ifdef CONFIG_MEMCG
-+void reparent_deferred_split_queue(struct mem_cgroup *memcg)
-+{
-+	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
-+	struct deferred_split *ds_queue = &memcg->deferred_split_queue;
-+	struct deferred_split *parent_ds_queue = &parent->deferred_split_queue;
-+	int nid;
-+
-+	spin_lock_irq(&ds_queue->split_queue_lock);
-+	spin_lock_nested(&parent_ds_queue->split_queue_lock, SINGLE_DEPTH_NESTING);
-+
-+	if (!ds_queue->split_queue_len)
-+		goto unlock;
-+
-+	list_splice_tail_init(&ds_queue->split_queue, &parent_ds_queue->split_queue);
-+	parent_ds_queue->split_queue_len += ds_queue->split_queue_len;
-+	ds_queue->split_queue_len = 0;
-+
-+	for_each_node(nid)
-+		set_shrinker_bit(parent, nid, shrinker_id(deferred_split_shrinker));
-+
-+unlock:
-+	spin_unlock(&parent_ds_queue->split_queue_lock);
-+	spin_unlock_irq(&ds_queue->split_queue_lock);
-+}
-+#endif
-+
- #ifdef CONFIG_DEBUG_FS
- static void split_huge_pages_all(void)
- {
---- a/mm/memcontrol.c~mm-thp-reparent-the-split-queue-during-memcg-offline
-+++ a/mm/memcontrol.c
-@@ -3888,6 +3888,7 @@ static void mem_cgroup_css_offline(struc
- 	zswap_memcg_offline_cleanup(memcg);
+ const struct file_operations ramfs_file_operations = {
+--- a/include/linux/sched/mm.h~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/include/linux/sched/mm.h
+@@ -189,12 +189,11 @@ arch_get_unmapped_area_topdown(struct fi
+ 			       unsigned long len, unsigned long pgoff,
+ 			       unsigned long flags, vm_flags_t);
  
- 	memcg_offline_kmem(memcg);
-+	reparent_deferred_split_queue(memcg);
- 	reparent_shrinker_deferred(memcg);
- 	wb_memcg_offline(memcg);
- 	lru_gen_offline_memcg(memcg);
+-unsigned long mm_get_unmapped_area(struct mm_struct *mm, struct file *filp,
+-				   unsigned long addr, unsigned long len,
+-				   unsigned long pgoff, unsigned long flags);
++unsigned long mm_get_unmapped_area(struct file *filp, unsigned long addr,
++				   unsigned long len, unsigned long pgoff,
++				   unsigned long flags);
+ 
+-unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm,
+-					   struct file *filp,
++unsigned long mm_get_unmapped_area_vmflags(struct file *filp,
+ 					   unsigned long addr,
+ 					   unsigned long len,
+ 					   unsigned long pgoff,
+--- a/io_uring/memmap.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/io_uring/memmap.c
+@@ -387,7 +387,7 @@ unsigned long io_uring_get_unmapped_area
+ #else
+ 	addr = 0UL;
+ #endif
+-	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(filp, addr, len, pgoff, flags);
+ }
+ 
+ #else /* !CONFIG_MMU */
+--- a/kernel/bpf/arena.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/kernel/bpf/arena.c
+@@ -334,7 +334,7 @@ static unsigned long arena_get_unmapped_
+ 			return -EINVAL;
+ 	}
+ 
+-	ret = mm_get_unmapped_area(current->mm, filp, addr, len * 2, 0, flags);
++	ret = mm_get_unmapped_area(filp, addr, len * 2, 0, flags);
+ 	if (IS_ERR_VALUE(ret))
+ 		return ret;
+ 	if ((ret >> 32) == ((ret + len - 1) >> 32))
+--- a/kernel/bpf/syscall.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/kernel/bpf/syscall.c
+@@ -1147,7 +1147,7 @@ static unsigned long bpf_get_unmapped_ar
+ 	if (map->ops->map_get_unmapped_area)
+ 		return map->ops->map_get_unmapped_area(filp, addr, len, pgoff, flags);
+ #ifdef CONFIG_MMU
+-	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(filp, addr, len, pgoff, flags);
+ #else
+ 	return addr;
+ #endif
+--- a/mm/huge_memory.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/mm/huge_memory.c
+@@ -1211,7 +1211,7 @@ static unsigned long __thp_get_unmapped_
+ 	if (len_pad < len || (off + len_pad) < off)
+ 		return 0;
+ 
+-	ret = mm_get_unmapped_area_vmflags(current->mm, filp, addr, len_pad,
++	ret = mm_get_unmapped_area_vmflags(filp, addr, len_pad,
+ 					   off >> PAGE_SHIFT, flags, vm_flags);
+ 
+ 	/*
+@@ -1248,7 +1248,7 @@ unsigned long thp_get_unmapped_area_vmfl
+ 	if (ret)
+ 		return ret;
+ 
+-	return mm_get_unmapped_area_vmflags(current->mm, filp, addr, len, pgoff, flags,
++	return mm_get_unmapped_area_vmflags(filp, addr, len, pgoff, flags,
+ 					    vm_flags);
+ }
+ 
+--- a/mm/mmap.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/mm/mmap.c
+@@ -797,12 +797,11 @@ arch_get_unmapped_area_topdown(struct fi
+ }
+ #endif
+ 
+-unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm, struct file *filp,
+-					   unsigned long addr, unsigned long len,
+-					   unsigned long pgoff, unsigned long flags,
+-					   vm_flags_t vm_flags)
++unsigned long mm_get_unmapped_area_vmflags(struct file *filp, unsigned long addr,
++					   unsigned long len, unsigned long pgoff,
++					   unsigned long flags, vm_flags_t vm_flags)
+ {
+-	if (mm_flags_test(MMF_TOPDOWN, mm))
++	if (mm_flags_test(MMF_TOPDOWN, current->mm))
+ 		return arch_get_unmapped_area_topdown(filp, addr, len, pgoff,
+ 						      flags, vm_flags);
+ 	return arch_get_unmapped_area(filp, addr, len, pgoff, flags, vm_flags);
+@@ -848,7 +847,7 @@ __get_unmapped_area(struct file *file, u
+ 		addr = thp_get_unmapped_area_vmflags(file, addr, len,
+ 						     pgoff, flags, vm_flags);
+ 	} else {
+-		addr = mm_get_unmapped_area_vmflags(current->mm, file, addr, len,
++		addr = mm_get_unmapped_area_vmflags(file, addr, len,
+ 						    pgoff, flags, vm_flags);
+ 	}
+ 	if (IS_ERR_VALUE(addr))
+@@ -864,12 +863,10 @@ __get_unmapped_area(struct file *file, u
+ }
+ 
+ unsigned long
+-mm_get_unmapped_area(struct mm_struct *mm, struct file *file,
+-		     unsigned long addr, unsigned long len,
++mm_get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
+ 		     unsigned long pgoff, unsigned long flags)
+ {
+-	return mm_get_unmapped_area_vmflags(mm, file, addr, len,
+-					    pgoff, flags, 0);
++	return mm_get_unmapped_area_vmflags(file, addr, len, pgoff, flags, 0);
+ }
+ EXPORT_SYMBOL(mm_get_unmapped_area);
+ 
+--- a/mm/shmem.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
++++ a/mm/shmem.c
+@@ -2756,8 +2756,7 @@ unsigned long shmem_get_unmapped_area(st
+ 	if (len > TASK_SIZE)
+ 		return -ENOMEM;
+ 
+-	addr = mm_get_unmapped_area(current->mm, file, uaddr, len, pgoff,
+-				    flags);
++	addr = mm_get_unmapped_area(file, uaddr, len, pgoff, flags);
+ 
+ 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
+ 		return addr;
+@@ -2835,8 +2834,7 @@ unsigned long shmem_get_unmapped_area(st
+ 	if (inflated_len < len)
+ 		return addr;
+ 
+-	inflated_addr = mm_get_unmapped_area(current->mm, NULL, uaddr,
+-					     inflated_len, 0, flags);
++	inflated_addr = mm_get_unmapped_area(NULL, uaddr, inflated_len, 0, flags);
+ 	if (IS_ERR_VALUE(inflated_addr))
+ 		return addr;
+ 	if (inflated_addr & ~PAGE_MASK)
+@@ -5773,7 +5771,7 @@ unsigned long shmem_get_unmapped_area(st
+ 				      unsigned long addr, unsigned long len,
+ 				      unsigned long pgoff, unsigned long flags)
+ {
+-	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-thp-reparent-the-split-queue-during-memcg-offline.patch
+mm-consistently-use-current-mm-in-mm_get_unmapped_area.patch
 
