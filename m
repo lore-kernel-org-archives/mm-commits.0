@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B16A286413
-	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 01:39:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8996D286413
+	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 01:39:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759887594; cv=none; b=q94S6XmxMj3pDCASAFO/gZmUESTD+Rkp5ng62EO3tY/e1hYy1xYu7e7ABxhAww3CCRJsgm8QJlzxSA9sanlBxoClh/mq+5d+otk2uMxQbDCdxi/tG3t+6UEafWLdB6u55FREUEAag8JISLXC4YZaSrL/7IS7MG17XUiFBdcm/68=
+	t=1759887596; cv=none; b=IuwPeMammOK6FTYSGlFLXuGpw/zQzY+HyoIB3Q/LvpUrW1Z3fjMbUe20Li8BRs2zQNspoOnyb6LG4pwS018HV63Wc9MFtLVu6/YCoJRQEEVyH5ouMzsvtfXwJpVjxn4Tr8yBiTZ2tHlGdXD5GeR2XjCDsp4fsttzc5lRXQSB55Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759887594; c=relaxed/simple;
-	bh=xmiXKLH+b5jMDGuUVleP/o+girdxzKMZim7qoHbprXU=;
-	h=Date:To:From:Subject:Message-Id; b=M4AsflRBBcHQr6Pd/LE1AtIMzdgV2sJHDH9pZtFCSb9KhpBRK9irMH4YBsVcSNQToMnoyXk9G3ygbfNTUUaNGgKAnmu7i5zau+0Y0AiDoXpt8ZfX0SzRFdfe+IsNWpife5t8MKsDW3xTpi7vsmm/EiS92e4+LcRjhjOKC4gDT6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UcjJY5gH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759887596; c=relaxed/simple;
+	bh=L4UfsAM3/eVijnEPoRhoLgX9lb6PgQfrnsPEM03LFMU=;
+	h=Date:To:From:Subject:Message-Id; b=l0bvPtAhNTbzkcktC0SykYKdz7wc+rj13MUmHqndgU0fNRR6yS2vSBK2gwm90fFMu/kvL17X1SBMQG9A8idEPxQiP5VDeyiL8w1ab79GpbocWr2yJDAO1TpFBtPuEpUTdfKUpM4/YDNb+mFpGJhw1hfdZtrR29MIA6LmNLvjf8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RT8+t/kz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UcjJY5gH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95ED4C4CEF1;
-	Wed,  8 Oct 2025 01:39:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RT8+t/kz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13498C4CEF1;
+	Wed,  8 Oct 2025 01:39:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759887593;
-	bh=xmiXKLH+b5jMDGuUVleP/o+girdxzKMZim7qoHbprXU=;
+	s=korg; t=1759887596;
+	bh=L4UfsAM3/eVijnEPoRhoLgX9lb6PgQfrnsPEM03LFMU=;
 	h=Date:To:From:Subject:From;
-	b=UcjJY5gHgI/v6+uZxpfbb9VX1luZAd2L4wjWdPAIFT4pty+bP3ZbjBQWdDhKvxG7j
-	 HDC91hSSY/Y87YlU+ocr7cfuihQlWuVSeAI0xRv4DoR9KJX0pV383ThNIjH89X7tqW
-	 RtGJMpPDcz8dHhJSai4losL3gq9rOoiyi15eKOLo=
-Date: Tue, 07 Oct 2025 18:39:52 -0700
+	b=RT8+t/kzOou0ZO0L4baIW8YENZN/QNMIVrKun+2CQHtsFAv5rutZZLTMWMcWLuaL3
+	 9Jz1n2BvzHxMKPW3niy7y/qB9TeLKFxbYETufb+kR17HYrMrSo7tNypC7ncmJJZmCZ
+	 VrDld8tgb3H3kTrdnAeuboase3pcMK2t9ehYgYpk=
+Date: Tue, 07 Oct 2025 18:39:55 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jackmanb@google.com,iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch added to mm-new branch
-Message-Id: <20251008013953.95ED4C4CEF1@smtp.kernel.org>
+Subject: + mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch added to mm-new branch
+Message-Id: <20251008013956.13498C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/compaction: check the range to pageblock_pfn_to_page() is within the zone first
+     Subject: mm/compaction: fix the range to pageblock_pfn_to_page()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch
+     mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,57 +65,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/compaction: check the range to pageblock_pfn_to_page() is within the zone first
-Date: Thu, 2 Oct 2025 03:31:39 +0000
+Subject: mm/compaction: fix the range to pageblock_pfn_to_page()
+Date: Thu, 2 Oct 2025 03:31:40 +0000
 
-While reviewing isolate_migratepages_range(), I noticed a discrepancy: the
-page range passed to pageblock_pfn_to_page() is different from the range
-passed to isolate_migratepages_block().
+The function pageblock_pfn_to_page() must confirm that the target range is
+contained entirely within the current zone.
 
-This difference creates a potential issue: pageblock_pfn_to_page() might
-incorrectly confirm that the range is entirely within the same zone, but
-isolate_migratepages_block() could then proceed to isolate pages that span
-two different zones.  This is unexpected behavior.
+Originally, when pageblock_pfn_to_page() was introduced by commit
+7d49d8868336, it operated on a single range, [pfn, block_end_pfn], for
+both range checking and isolation.
 
-Further investigation revealed that pageblock_pfn_to_page() contains an
-optimization for zones marked as contiguous.  This optimization is buggy,
-as it causes the function to assume a range is within the same zone even
-if the PFNs actually cross a zone boundary.
+However, commit e1409c325fdc ("mm/compaction: pass only pageblock aligned
+range to pageblock_pfn_to_page") changed this behavior, causing the
+function to operate on two different ranges:
 
-To resolve these issues, two patches are introduced:
+[block_start_pfn, block_end_pfn] is used to check if the range is in the
+same zone.
 
-Patch 1: Check the range belongs to the zone first.
+[pfn, block_end_pfn] is used for page isolation.
 
-Patch 2: Pass the correct range to pageblock_pfn_to_page() to ensure
-consistency between the check and the isolation steps.
+This split logic fails when start_pfn < zone_start_pfn, even if both are
+within the same pageblock.  In this scenario, the checking range
+[block_start_pfn, block_end_pfn] is used, which incorrectly misses the
+pages before zone_start_pfn.
 
+         start_pfn     zone_start_pfn
+    +----+-------------+-------------------+
+    block_start_pfn                        block_end_pfn
 
-This patch (of 2):
+This oversight allows the range check to pass, even though the isolation
+step ([pfn, block_end_pfn]) may attempt to isolate pages belonging to two
+different zones.
 
-The function pageblock_pfn_to_page() was introduced by commit 7d49d8868336
-("mm, compaction: reduce zone checking frequency in the migration
-scanner").  At that time, it had no requirement that start_pfn and end_pfn
-had to be contained within the zone boundary; the only requirement was
-that they were in the same pageblock.  Therefore, pageblock_pfn_to_page()
-would be called with a PFN (Page Frame Number) that wasn't checked against
-the zone boundary.
+To fix this, we should revert to using the same range ([block_start_pfn,
+block_end_pfn]) for both checking and isolation in each iteration.
 
-However, after commit 7cf91a98e607 ("mm/compaction: speed up
-pageblock_pfn_to_page() when zone is contiguous"), pageblock_pfn_to_page()
-may incorrectly assume a range is valid and belongs to a contiguous zone,
-even if the range is outside that zone's actual boundaries.
-
-For instance, in fast_isolate_freepages(), min_pfn is assigned using
-pageblock_start_pfn() and passed to pageblock_pfn_to_page() without
-checking it against zone_start_pfn.  Similarly, end_pfn is often not
-checked against zone_end_pfn().
-
-To make this function robust, the range must be checked to ensure it is
-within the zone boundary first.
-
-Link: https://lkml.kernel.org/r/20251002033140.24462-1-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20251002033140.24462-2-richard.weiyang@gmail.com
-Fixes: 7cf91a98e607 ("mm/compaction: speed up pageblock_pfn_to_page() when zone is contiguous")
+Link: https://lkml.kernel.org/r/20251002033140.24462-3-richard.weiyang@gmail.com
+Fixes: e1409c325fdc ("mm/compaction: pass only pageblock aligned range to pageblock_pfn_to_page")
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -131,20 +117,114 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/compaction.c |   37 ++++++++++++++-----------------------
+ 1 file changed, 14 insertions(+), 23 deletions(-)
 
---- a/mm/internal.h~mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first
-+++ a/mm/internal.h
-@@ -724,6 +724,9 @@ extern struct page *__pageblock_pfn_to_p
- static inline struct page *pageblock_pfn_to_page(unsigned long start_pfn,
- 				unsigned long end_pfn, struct zone *zone)
+--- a/mm/compaction.c~mm-compaction-fix-the-range-to-pageblock_pfn_to_page
++++ a/mm/compaction.c
+@@ -1320,27 +1320,22 @@ int
+ isolate_migratepages_range(struct compact_control *cc, unsigned long start_pfn,
+ 							unsigned long end_pfn)
  {
-+	if (start_pfn < zone->zone_start_pfn || end_pfn > zone_end_pfn(zone))
-+		return NULL;
-+
- 	if (zone->contiguous)
- 		return pfn_to_page(start_pfn);
+-	unsigned long pfn, block_start_pfn, block_end_pfn;
++	unsigned long block_start_pfn, block_end_pfn;
+ 	int ret = 0;
+ 
+ 	/* Scan block by block. First and last block may be incomplete */
+-	pfn = start_pfn;
+-	block_start_pfn = pageblock_start_pfn(pfn);
+-	if (block_start_pfn < cc->zone->zone_start_pfn)
+-		block_start_pfn = cc->zone->zone_start_pfn;
+-	block_end_pfn = pageblock_end_pfn(pfn);
++	block_start_pfn = start_pfn;
++	block_end_pfn = pageblock_end_pfn(start_pfn);
+ 
+-	for (; pfn < end_pfn; pfn = block_end_pfn,
+-				block_start_pfn = block_end_pfn,
++	for (; block_start_pfn < end_pfn; block_start_pfn = block_end_pfn,
+ 				block_end_pfn += pageblock_nr_pages) {
+ 
+ 		block_end_pfn = min(block_end_pfn, end_pfn);
+ 
+-		if (!pageblock_pfn_to_page(block_start_pfn,
+-					block_end_pfn, cc->zone))
++		if (!pageblock_pfn_to_page(block_start_pfn, block_end_pfn, cc->zone))
+ 			continue;
+ 
+-		ret = isolate_migratepages_block(cc, pfn, block_end_pfn,
++		ret = isolate_migratepages_block(cc, block_start_pfn, block_end_pfn,
+ 						 ISOLATE_UNEVICTABLE);
+ 
+ 		if (ret)
+@@ -2046,7 +2041,6 @@ static isolate_migrate_t isolate_migrate
+ {
+ 	unsigned long block_start_pfn;
+ 	unsigned long block_end_pfn;
+-	unsigned long low_pfn;
+ 	struct page *page;
+ 	const isolate_mode_t isolate_mode =
+ 		(sysctl_compact_unevictable_allowed ? ISOLATE_UNEVICTABLE : 0) |
+@@ -2058,20 +2052,17 @@ static isolate_migrate_t isolate_migrate
+ 	 * initialized by compact_zone(). The first failure will use
+ 	 * the lowest PFN as the starting point for linear scanning.
+ 	 */
+-	low_pfn = fast_find_migrateblock(cc);
+-	block_start_pfn = pageblock_start_pfn(low_pfn);
+-	if (block_start_pfn < cc->zone->zone_start_pfn)
+-		block_start_pfn = cc->zone->zone_start_pfn;
++	block_start_pfn = fast_find_migrateblock(cc);
+ 
+ 	/*
+ 	 * fast_find_migrateblock() has already ensured the pageblock is not
+ 	 * set with a skipped flag, so to avoid the isolation_suitable check
+ 	 * below again, check whether the fast search was successful.
+ 	 */
+-	fast_find_block = low_pfn != cc->migrate_pfn && !cc->fast_search_fail;
++	fast_find_block = block_start_pfn != cc->migrate_pfn && !cc->fast_search_fail;
+ 
+ 	/* Only scan within a pageblock boundary */
+-	block_end_pfn = pageblock_end_pfn(low_pfn);
++	block_end_pfn = pageblock_end_pfn(block_start_pfn);
+ 
+ 	/*
+ 	 * Iterate over whole pageblocks until we find the first suitable.
+@@ -2079,7 +2070,7 @@ static isolate_migrate_t isolate_migrate
+ 	 */
+ 	for (; block_end_pfn <= cc->free_pfn;
+ 			fast_find_block = false,
+-			cc->migrate_pfn = low_pfn = block_end_pfn,
++			cc->migrate_pfn = block_end_pfn,
+ 			block_start_pfn = block_end_pfn,
+ 			block_end_pfn += pageblock_nr_pages) {
+ 
+@@ -2088,7 +2079,7 @@ static isolate_migrate_t isolate_migrate
+ 		 * many pageblocks unsuitable, so periodically check if we
+ 		 * need to schedule.
+ 		 */
+-		if (!(low_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
++		if (!(block_start_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
+ 			cond_resched();
+ 
+ 		page = pageblock_pfn_to_page(block_start_pfn,
+@@ -2109,8 +2100,8 @@ static isolate_migrate_t isolate_migrate
+ 		 * before making it "skip" so other compaction instances do
+ 		 * not scan the same block.
+ 		 */
+-		if ((pageblock_aligned(low_pfn) ||
+-		     low_pfn == cc->zone->zone_start_pfn) &&
++		if ((pageblock_aligned(block_start_pfn) ||
++		     block_start_pfn == cc->zone->zone_start_pfn) &&
+ 		    !fast_find_block && !isolation_suitable(cc, page))
+ 			continue;
+ 
+@@ -2128,7 +2119,7 @@ static isolate_migrate_t isolate_migrate
+ 		}
+ 
+ 		/* Perform the isolation */
+-		if (isolate_migratepages_block(cc, low_pfn, block_end_pfn,
++		if (isolate_migratepages_block(cc, block_start_pfn, block_end_pfn,
+ 						isolate_mode))
+ 			return ISOLATE_ABORT;
  
 _
 
