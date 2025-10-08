@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7951C1DE4FB
-	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:22:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E9442367C1;
+	Wed,  8 Oct 2025 00:23:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759882938; cv=none; b=HFMa7ymzmzx7PqKw7Nz1nXhALqdEB6p0UeBNcVA90LAdtScPwkhzFTPPFxB/bo4qRhyNptjAgwsxT9CBKd2H1O5vLEAXOQCTK1yiX3T+n4lfPdTOvIANCJ1CNyIclXPTGUb5w6z3k/kwPhQ4MQ+W5dettYSl2KSLNLgW5KYxWf0=
+	t=1759883003; cv=none; b=le2AOWuO1QzEjLK1XhXyY7WhFcFV31o0o+Qq4FMI8nfVPUIlzRjuUxQGJySnUwZL23qgD0nq0XPe04pq+qanto3B0divVkhS8wp3yhWImaEL831m5fJfcJlCZMq4e6vOeBnJM13sOj0Sk7v3hJPN1sp+2eDSzI5AvQKtVesLYSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759882938; c=relaxed/simple;
-	bh=p68WiqL0MjMO0Slk/BsRNjtsOy2PEB/9xsrDTKBuj9E=;
-	h=Date:To:From:Subject:Message-Id; b=qft1XUIh8Y5laGEINwHohJimugaKpE/fYG3D1Uns6IlKGi5luSqlRyfZDJbG+Z+lwvrTTskQkV03p+79PryCJHI0gS3XP1XITwiS8sVuYCupJABeRZVOgzsBLlT0MU7UyGPuBymUYUKxUNwHWexeY8GL0VFz/4PZXK1hrIuwgYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IfUorCjr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759883003; c=relaxed/simple;
+	bh=9qTl8MFrq8byUI/luyAshzWL2uR9+2LJSMmBqC/BeUA=;
+	h=Date:To:From:Subject:Message-Id; b=g4P4tPB/oJD0wiagMpYOpHqtJAm0QLgnnWSS9ywOE8t4UvyMsPkN/eSvfbjv7w9QorlgHK7G9EKRzdyh4qgGWeIrnq4u9VyyRMS23oXy/t1m0exrr829mJZkp2Y6VaAZrrkLuDS2TAgBrg9JqYhjMUSuzaxATvSNh5S5wBAoQDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CBoONFi7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IfUorCjr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED9E6C4CEF1;
-	Wed,  8 Oct 2025 00:22:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CBoONFi7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB549C4CEF1;
+	Wed,  8 Oct 2025 00:23:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759882938;
-	bh=p68WiqL0MjMO0Slk/BsRNjtsOy2PEB/9xsrDTKBuj9E=;
+	s=korg; t=1759883002;
+	bh=9qTl8MFrq8byUI/luyAshzWL2uR9+2LJSMmBqC/BeUA=;
 	h=Date:To:From:Subject:From;
-	b=IfUorCjrwEQ/JzQ30VVbj8sFcFujz3+d7xkYWGdpig2lmVr7gRxmRPGL6N5YCXc/l
-	 oi1uLFh5x1WGKd7QiI61eKJiB7dRvS7VA3fsm1qsIfHqTePxjcRycp5GsHUbBHYty2
-	 5POuM//l7jz/dWojjsopsrVRaGdEqlH5iOzcrzLM=
-Date: Tue, 07 Oct 2025 17:22:17 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=CBoONFi7REQiuzx8CWeEj9fzqCpspOCxRS++vaAPorc5Ey9WJWieyd5o/I0bC/gPx
+	 MRpCtNLt0gW8j7d+H3kL8tveUqtzBGTVGRfgVuHZz/USNYxL7VX56YYzn+MzXi0Ct3
+	 fnYUaG/c5EWvT9lVOeL3mH0aCtsvkxzoE+IIWtis=
+Date: Tue, 07 Oct 2025 17:23:22 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch added to mm-new branch
-Message-Id: <20251008002217.ED9E6C4CEF1@smtp.kernel.org>
+Subject: + mm-damon-sysfs-catch-commit-test-ctx-alloc-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251008002322.AB549C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/zswap: s/red-black tree/xarray/
-has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
+     Subject: mm/damon/sysfs: catch commit test ctx alloc failure
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-sysfs-catch-commit-test-ctx-alloc-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-catch-commit-test-ctx-alloc-failure.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,58 +59,41 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/zswap: s/red-black tree/xarray/
-Date: Fri, 3 Oct 2025 13:38:51 -0700
+Subject: mm/damon/sysfs: catch commit test ctx alloc failure
+Date: Fri, 3 Oct 2025 13:14:54 -0700
 
-The change from commit 796c2c23e14e ("zswap: replace RB tree with xarray")
-is not reflected on the document.  Update the document.
+The damon_ctx for testing online DAMON parameters commit inputs is used
+without its allocation failure check.  This could result in an invalid
+memory access.  Fix it by directly returning an error when the allocation
+failed.
 
-Link: https://lkml.kernel.org/r/20251003203851.43128-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251003201455.41448-2-sj@kernel.org
+Fixes: 4c9ea539ad59 ("mm/damon/sysfs: validate user inputs from damon_sysfs_commit_input()")
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>	[6.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/zswap.rst |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/damon/sysfs.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/Documentation/admin-guide/mm/zswap.rst~docs-admin-guide-mm-zswap-s-red-black-tree-xarray
-+++ a/Documentation/admin-guide/mm/zswap.rst
-@@ -59,11 +59,11 @@ returned by the allocation routine and t
- accessed.  The compressed memory pool grows on demand and shrinks as compressed
- pages are freed.  The pool is not preallocated.
- 
--When a swap page is passed from swapout to zswap, zswap maintains a mapping
--of the swap entry, a combination of the swap type and swap offset, to the
--zsmalloc handle that references that compressed swap page.  This mapping is
--achieved with a red-black tree per swap type.  The swap offset is the search
--key for the tree nodes.
-+When a swap page is passed from swapout to zswap, zswap maintains a mapping of
-+the swap entry, a combination of the swap type and swap offset, to the zsmalloc
-+handle that references that compressed swap page.  This mapping is achieved
-+with an xarray per swap type.  The swap offset is the search key for the xarray
-+nodes.
- 
- During a page fault on a PTE that is a swap entry, the swapin code calls the
- zswap load function to decompress the page into the page allocated by the page
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-catch-commit-test-ctx-alloc-failure
++++ a/mm/damon/sysfs.c
+@@ -1473,6 +1473,8 @@ static int damon_sysfs_commit_input(void
+ 	if (IS_ERR(param_ctx))
+ 		return PTR_ERR(param_ctx);
+ 	test_ctx = damon_new_ctx();
++	if (!test_ctx)
++		return -ENOMEM;
+ 	err = damon_commit_ctx(test_ctx, param_ctx);
+ 	if (err) {
+ 		damon_destroy_ctx(test_ctx);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-sysfs-catch-commit-test-ctx-alloc-failure.patch
+mm-damon-sysfs-dealloc-commit-test-ctx-always.patch
 mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
 mm-zswap-fix-typos-s-zwap-zswap.patch
 mm-zswap-s-red-black-tree-xarray.patch
