@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B16E62857EA
-	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:48:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B16A286413
+	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 01:39:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759884486; cv=none; b=IrvA24wSnY1GVOqlkH8zlGgTWowhtEFlJPJkBE3ApTacJKt1AZtkG/irHOsLRE0Ww0kVzCOrP99IgDrkwhdsmkh/ThcBO6boNx8ScLOJPsiG3ou9lwcoueBYy7CvOE9CM5dB9xMooZu31OkX1O/Hl7T4Savf5DrroByhl/PeiwM=
+	t=1759887594; cv=none; b=q94S6XmxMj3pDCASAFO/gZmUESTD+Rkp5ng62EO3tY/e1hYy1xYu7e7ABxhAww3CCRJsgm8QJlzxSA9sanlBxoClh/mq+5d+otk2uMxQbDCdxi/tG3t+6UEafWLdB6u55FREUEAag8JISLXC4YZaSrL/7IS7MG17XUiFBdcm/68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759884486; c=relaxed/simple;
-	bh=Iw0f1U513cHgQNk3ALMsLgWgTmkcseVCjom3D2EcFek=;
-	h=Date:To:From:Subject:Message-Id; b=PTETV0tNwnPT6I2jOr4/23ywLNr58+wg8HCS164hSxSa60ofoSZnf/NKrc57qLKjQAuxYbXnFwW1KPRcFKwfY5DiTxShhG1bxylCMVzyX2RhTz3M+JxiVwS107RD8kzpAX2oiLklWBoYEAfRs+Itzv+sO4tKvpZlV7J7dV3IfQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WVnEYsV1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759887594; c=relaxed/simple;
+	bh=xmiXKLH+b5jMDGuUVleP/o+girdxzKMZim7qoHbprXU=;
+	h=Date:To:From:Subject:Message-Id; b=M4AsflRBBcHQr6Pd/LE1AtIMzdgV2sJHDH9pZtFCSb9KhpBRK9irMH4YBsVcSNQToMnoyXk9G3ygbfNTUUaNGgKAnmu7i5zau+0Y0AiDoXpt8ZfX0SzRFdfe+IsNWpife5t8MKsDW3xTpi7vsmm/EiS92e4+LcRjhjOKC4gDT6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UcjJY5gH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WVnEYsV1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D6B9C4CEF7;
-	Wed,  8 Oct 2025 00:48:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UcjJY5gH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95ED4C4CEF1;
+	Wed,  8 Oct 2025 01:39:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759884484;
-	bh=Iw0f1U513cHgQNk3ALMsLgWgTmkcseVCjom3D2EcFek=;
+	s=korg; t=1759887593;
+	bh=xmiXKLH+b5jMDGuUVleP/o+girdxzKMZim7qoHbprXU=;
 	h=Date:To:From:Subject:From;
-	b=WVnEYsV1R464icPYkoDfEDOGtSKyasDuccKE8KDCQ5PrkoGczNlwMvQqgeGU/k0GF
-	 TTpXu1uUDHeRPU66fDRU6Ou7kbQlEaMhcNf2heLlUyYp2RbPxXvARdXUkEIXUPEtDE
-	 Jkng1rGZv/WIEzTOMy+QigZQEqykSDr8FFEsA3f4=
-Date: Tue, 07 Oct 2025 17:48:03 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill@shutemov.name,jackmanb@google.com,hdanton@sina.com,hannes@cmpxchg.org,david@redhat.com,clm@fb.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=UcjJY5gHgI/v6+uZxpfbb9VX1luZAd2L4wjWdPAIFT4pty+bP3ZbjBQWdDhKvxG7j
+	 HDC91hSSY/Y87YlU+ocr7cfuihQlWuVSeAI0xRv4DoR9KJX0pV383ThNIjH89X7tqW
+	 RtGJMpPDcz8dHhJSai4losL3gq9rOoiyi15eKOLo=
+Date: Tue, 07 Oct 2025 18:39:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jackmanb@google.com,iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch added to mm-new branch
-Message-Id: <20251008004804.1D6B9C4CEF7@smtp.kernel.org>
+Subject: + mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch added to mm-new branch
+Message-Id: <20251008013953.95ED4C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: batch page freeing in free_frozen_page_commit
+     Subject: mm/compaction: check the range to pageblock_pfn_to_page() is within the zone first
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
+     mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,171 +64,92 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/page_alloc: batch page freeing in free_frozen_page_commit
-Date: Thu, 2 Oct 2025 13:46:33 -0700
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/compaction: check the range to pageblock_pfn_to_page() is within the zone first
+Date: Thu, 2 Oct 2025 03:31:39 +0000
 
-Before returning, free_frozen_page_commit calls free_pcppages_bulk using
-nr_pcp_free to determine how many pages can appropritately be freed, based
-on the tunable parameters stored in pcp.  While this number is an accurate
-representation of how many pages should be freed in total, it is not an
-appropriate number of pages to free at once using free_pcppages_bulk,
-since we have seen the value consistently go above 2000 in the Meta fleet
-on larger machines.
+While reviewing isolate_migratepages_range(), I noticed a discrepancy: the
+page range passed to pageblock_pfn_to_page() is different from the range
+passed to isolate_migratepages_block().
 
-As such, perform batched page freeing in free_pcppages_bulk by using
-pcp->batch member.  In order to ensure that other processes are not
-starved of the zone lock, free both the zone lock and pcp lock to yield to
-other threads.
+This difference creates a potential issue: pageblock_pfn_to_page() might
+incorrectly confirm that the range is entirely within the same zone, but
+isolate_migratepages_block() could then proceed to isolate pages that span
+two different zones.  This is unexpected behavior.
 
-Note that because free_frozen_page_commit now performs a spinlock inside
-the function (and can fail), the function may now return with a freed pcp.
-To handle this, return true if the pcp is locked on exit and false
-otherwise.
+Further investigation revealed that pageblock_pfn_to_page() contains an
+optimization for zones marked as contiguous.  This optimization is buggy,
+as it causes the function to assume a range is within the same zone even
+if the PFNs actually cross a zone boundary.
 
-In addition, since free_frozen_page_commit must now be aware of what UP
-flags were stored at the time of the spin lock, and because we must be
-able to report new UP flags to the callers, add a new unsigned long*
-parameter UP_flags to keep track of this.
+To resolve these issues, two patches are introduced:
 
-Link: https://lkml.kernel.org/r/20251002204636.4016712-4-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Suggested-by: Chris Mason <clm@fb.com>
-Co-developed-by: Johannes Weiner <hannes@cmpxchg.org>
+Patch 1: Check the range belongs to the zone first.
+
+Patch 2: Pass the correct range to pageblock_pfn_to_page() to ensure
+consistency between the check and the isolation steps.
+
+
+This patch (of 2):
+
+The function pageblock_pfn_to_page() was introduced by commit 7d49d8868336
+("mm, compaction: reduce zone checking frequency in the migration
+scanner").  At that time, it had no requirement that start_pfn and end_pfn
+had to be contained within the zone boundary; the only requirement was
+that they were in the same pageblock.  Therefore, pageblock_pfn_to_page()
+would be called with a PFN (Page Frame Number) that wasn't checked against
+the zone boundary.
+
+However, after commit 7cf91a98e607 ("mm/compaction: speed up
+pageblock_pfn_to_page() when zone is contiguous"), pageblock_pfn_to_page()
+may incorrectly assume a range is valid and belongs to a contiguous zone,
+even if the range is outside that zone's actual boundaries.
+
+For instance, in fast_isolate_freepages(), min_pfn is assigned using
+pageblock_start_pfn() and passed to pageblock_pfn_to_page() without
+checking it against zone_start_pfn.  Similarly, end_pfn is often not
+checked against zone_end_pfn().
+
+To make this function robust, the range must be checked to ensure it is
+within the zone boundary first.
+
+Link: https://lkml.kernel.org/r/20251002033140.24462-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20251002033140.24462-2-richard.weiyang@gmail.com
+Fixes: 7cf91a98e607 ("mm/compaction: speed up pageblock_pfn_to_page() when zone is contiguous")
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   66 +++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 57 insertions(+), 9 deletions(-)
+ mm/internal.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit
-+++ a/mm/page_alloc.c
-@@ -2818,12 +2818,21 @@ static int nr_pcp_high(struct per_cpu_pa
- 	return high;
- }
- 
--static void free_frozen_page_commit(struct zone *zone,
-+/*
-+ * Tune pcp alloc factor and adjust count & free_count. Free pages to bring the
-+ * pcp's watermarks below high.
-+ *
-+ * May return a freed pcp, if during page freeing the pcp spinlock cannot be
-+ * reacquired. Return true if pcp is locked, false otherwise.
-+ */
-+static bool free_frozen_page_commit(struct zone *zone,
- 		struct per_cpu_pages *pcp, struct page *page, int migratetype,
--		unsigned int order, fpi_t fpi_flags)
-+		unsigned int order, fpi_t fpi_flags, unsigned long *UP_flags)
+--- a/mm/internal.h~mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first
++++ a/mm/internal.h
+@@ -724,6 +724,9 @@ extern struct page *__pageblock_pfn_to_p
+ static inline struct page *pageblock_pfn_to_page(unsigned long start_pfn,
+ 				unsigned long end_pfn, struct zone *zone)
  {
- 	int high, batch;
-+	int to_free, to_free_batched;
- 	int pindex;
-+	int cpu = smp_processor_id();
- 	bool free_high = false;
- 
- 	/*
-@@ -2861,15 +2870,20 @@ static void free_frozen_page_commit(stru
- 		 * Do not attempt to take a zone lock. Let pcp->count get
- 		 * over high mark temporarily.
- 		 */
--		return;
-+		return true;
- 	}
- 
- 	high = nr_pcp_high(pcp, zone, batch, free_high);
- 	if (pcp->count < high)
--		return;
-+		return true;
- 
--	free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
--			   pcp, pindex);
-+	to_free = nr_pcp_free(pcp, batch, high, free_high);
-+	if (to_free == 0)
-+		return true;
++	if (start_pfn < zone->zone_start_pfn || end_pfn > zone_end_pfn(zone))
++		return NULL;
 +
-+free_batch:
-+	to_free_batched = min(to_free, batch);
-+	free_pcppages_bulk(zone, to_free_batched, pcp, pindex);
- 	if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
- 	    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
- 			      ZONE_MOVABLE, 0)) {
-@@ -2887,6 +2901,35 @@ static void free_frozen_page_commit(stru
- 		    next_memory_node(pgdat->node_id) < MAX_NUMNODES)
- 			atomic_set(&pgdat->kswapd_failures, 0);
- 	}
-+	high = nr_pcp_high(pcp, zone, batch, free_high);
-+	to_free -= to_free_batched;
-+	if (pcp->count >= high) {
-+		pcp_spin_unlock(pcp);
-+		pcp_trylock_finish(*UP_flags);
-+
-+		pcp_trylock_prepare(*UP_flags);
-+		pcp = pcp_spin_trylock(zone->per_cpu_pageset);
-+		if (!pcp) {
-+			pcp_trylock_finish(*UP_flags);
-+			return false;
-+		}
-+
-+		/*
-+		 * Check if this thread has been migrated to a different
-+		 * CPU. If that is the case, give up and indicate that
-+		 * the pcp is returned in an unlocked state.
-+		 */
-+		if (smp_processor_id() != cpu) {
-+			pcp_spin_unlock(pcp);
-+			pcp_trylock_finish(*UP_flags);
-+			return false;
-+		}
-+	}
-+
-+	if (to_free > 0 && pcp->count >= high)
-+		goto free_batch;
-+
-+	return true;
- }
+ 	if (zone->contiguous)
+ 		return pfn_to_page(start_pfn);
  
- /*
-@@ -2934,7 +2977,9 @@ static void __free_frozen_pages(struct p
- 	pcp_trylock_prepare(UP_flags);
- 	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (pcp) {
--		free_frozen_page_commit(zone, pcp, page, migratetype, order, fpi_flags);
-+		if (!free_frozen_page_commit(zone, pcp, page, migratetype,
-+						order, fpi_flags, &UP_flags))
-+			return;
- 		pcp_spin_unlock(pcp);
- 	} else {
- 		free_one_page(zone, page, pfn, order, fpi_flags);
-@@ -3034,8 +3079,11 @@ void free_unref_folios(struct folio_batc
- 			migratetype = MIGRATE_MOVABLE;
- 
- 		trace_mm_page_free_batched(&folio->page);
--		free_frozen_page_commit(zone, pcp, &folio->page, migratetype,
--					order, FPI_NONE);
-+		if (!free_frozen_page_commit(zone, pcp, &folio->page,
-+				migratetype, order, FPI_NONE, &UP_flags)) {
-+			pcp = NULL;
-+			locked_zone = NULL;
-+		}
- 	}
- 
- 	if (pcp) {
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
-mm-page_alloc-batch-page-freeing-in-decay_pcp_high.patch
-mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
+mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch
+mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch
 
