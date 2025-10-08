@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13F9C1F92E
-	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:37:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8076D2857EA
+	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:47:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759883837; cv=none; b=IfY9tPpHfG1UboPE6uSp46gmS0ulDrZhzhlzbGMBhvMxc7UsHXdZMpmyKeyV/AAdnqIscO+jQc9385wcWg+GmjnjH3mza6KNSjUgDt/oIsAN4BwoK60Wvaql6Sm/RMv5TMW4OIdDmoHt5ky+MSdJD+efGSGtorYOl2UWTlgYfbs=
+	t=1759884479; cv=none; b=bOrfUxF/am4u1WNmcSNtyK+3vsNyLQE0uMaR5WcQKX9K7QLK5yLxfADxrwZliDL62VNyJ6fVkcRXVhVZpyV524vWR3Cmq/lzM9DsQHXDLMvTFZQugkqmKscrecPwhWtJT+M9Hzf6qfmVIE8uW9Prvm4vv4dkopMFLoMVXRbUlSU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759883837; c=relaxed/simple;
-	bh=jcXlbDTD+zYhmHlmqMQGm+PZUCh/7FmnvvniSmDb0sk=;
-	h=Date:To:From:Subject:Message-Id; b=EQuXmHdFxzLuohPy5IpcCzETxRXUhasI4Lp2PFX4PQOb0rK595cZXGthdLCph3MwwFdUqkcqPFLtkQ60wgQRN97Jzk5AdzZ4lszFJfVlk6CeZ6G73S3hNbWONOVgaXqfJZpU7t9lT/gSyRjUomywQMYu6f1Ch2SnVCEF5/cIenE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eOjN/f1q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759884479; c=relaxed/simple;
+	bh=jk+S967iZ0eAuBKI0eVg4xRVFUpXqlKo4oAJHBR8KIk=;
+	h=Date:To:From:Subject:Message-Id; b=YZEhNF3uFlsvghOfXTHiGPiMy9lKBZLqfRsVVKMltXPpgdWsg+Ds56XPkXK8PHV5oG2VOvLwyZ9WQCo0sv9Bhvq1XnZOcAvVCU/x1UpCATkA4a1TdUs3xi9v1J8u3ieyVq7WIgynC2U5AjHnG/slAx7MIh2upqAM7LgXHIdzA64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qZ/vibP1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eOjN/f1q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EADCC4CEF1;
-	Wed,  8 Oct 2025 00:37:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qZ/vibP1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09EA0C4CEF1;
+	Wed,  8 Oct 2025 00:47:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759883836;
-	bh=jcXlbDTD+zYhmHlmqMQGm+PZUCh/7FmnvvniSmDb0sk=;
+	s=korg; t=1759884479;
+	bh=jk+S967iZ0eAuBKI0eVg4xRVFUpXqlKo4oAJHBR8KIk=;
 	h=Date:To:From:Subject:From;
-	b=eOjN/f1qnlGcMuBx2LRGz6mRHA1Dua2R3qu9NegynZ6QWVBtraqP+6/2h6HbrhWXz
-	 rfXW56uw83M5Z5sL43ESVdXAUHCWXGRefxV1lJNO9fhZKCzp/bcoXI840KG7e8zbYs
-	 jkT4K4cGZN0vCl8zyhQXy4+w3DADAzAQBmUdwNWE=
-Date: Tue, 07 Oct 2025 17:37:15 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,osalvador@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=qZ/vibP1TfOJ+C5RTsVpMCnh7qKw8QdGRs5oVfmv3Rk4/vX3zsJWVbnTay+/OGnI6
+	 pCrVj5veATYoj/fv0lZluUj2ypb5eSwfsqcu3gc014xxNXjHXBFzvKTaSCZ/mBBmTS
+	 oJwwN6m1g2PZG50DzEOu7U2AuMVjIIYzVQGdSgpQ=
+Date: Tue, 07 Oct 2025 17:47:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill@shutemov.name,jackmanb@google.com,hdanton@sina.com,hannes@cmpxchg.org,david@redhat.com,clm@fb.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-consistently-use-current-mm-in-mm_get_unmapped_area.patch added to mm-new branch
-Message-Id: <20251008003716.6EADCC4CEF1@smtp.kernel.org>
+Subject: + mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch added to mm-new branch
+Message-Id: <20251008004759.09EA0C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: consistently use current->mm in mm_get_unmapped_area()
+     Subject: mm/page_alloc/vmstat: simplify refresh_cpu_vm_stats change detection
 has been added to the -mm mm-new branch.  Its filename is
-     mm-consistently-use-current-mm-in-mm_get_unmapped_area.patch
+     mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-consistently-use-current-mm-in-mm_get_unmapped_area.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,310 +64,287 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: consistently use current->mm in mm_get_unmapped_area()
-Date: Fri, 3 Oct 2025 16:53:04 +0100
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/page_alloc/vmstat: simplify refresh_cpu_vm_stats change detection
+Date: Thu, 2 Oct 2025 13:46:31 -0700
 
-mm_get_unmapped_area() is a wrapper around arch_get_unmapped_area() /
-arch_get_unmapped_area_topdown(), both of which search current->mm for
-some free space.  Neither take an mm_struct - they implicitly operate on
-current->mm.
+Patch series "mm/page_alloc: Batch callers of free_pcppages_bulk", v3.
 
-But the wrapper takes an mm_struct and uses it to decide whether to search
-bottom up or top down.  All callers pass in current->mm for this, so
-everything is working consistently.  But it feels like an accident waiting
-to happen; eventually someone will call that function with a different mm,
-expecting to find free space in it, but what gets returned is free space
-in the current mm.
+Motivation & Approach
+=====================
 
-So let's simplify by removing the parameter and have the wrapper use
-current->mm to decide which end to start at.  Now everything is consistent
-and self-documenting.
+While testing workloads with high sustained memory pressure on large
+machines in the Meta fleet (1Tb memory, 316 CPUs), we saw an unexpectedly
+high number of softlockups.  Further investigation showed that the zone
+lock in free_pcppages_bulk was being held for a long time, and was called
+to free 2k+ pages over 100 times just during boot.
 
-Link: https://lkml.kernel.org/r/20251003155306.2147572-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+This causes starvation in other processes for the zone lock, which can
+lead to the system stalling as multiple threads cannot make progress
+without the locks.  We can see these issues manifesting as warnings:
+
+[ 4512.591979] rcu: INFO: rcu_sched self-detected stall on CPU
+[ 4512.604370] rcu:     20-....: (9312 ticks this GP) idle=a654/1/0x4000000000000000 softirq=309340/309344 fqs=5426
+[ 4512.626401] rcu:              hardirqs   softirqs   csw/system
+[ 4512.638793] rcu:      number:        0        145            0
+[ 4512.651177] rcu:     cputime:       30      10410          174   ==> 10558(ms)
+[ 4512.666657] rcu:     (t=21077 jiffies g=783665 q=1242213 ncpus=316)
+
+While these warnings are benign, they do point to the underlying issue of
+lock contention.  To prevent starvation in both locks, batch the freeing
+of pages using pcp->batch.
+
+Because free_pcppages_bulk is called with both the pcp and zone lock,
+relinquishing and reacquiring the locks are only effective when both of
+them are broken together (unless the system was built with queued
+spinlocks).  Thus, instead of modifying free_pcppages_bulk to break both
+locks, batch the freeing from its callers instead.
+
+A similar fix has been implemented in the Meta fleet, and we have seen
+significantly less softlockups.
+
+Testing
+=======
+
+The following are a few synthetic benchmarks, made on two machines.  The
+first is a large, single-node machine with 754GiB memory and 316
+processors.  The second is a relatively smaller single-node machine with
+251GiB memory and 176 processors.
+
+On both machines, I kick off a kernel build with -j$(nproc).  Lower delta
+is better (faster compilation).
+
+Large machine (754GiB memory, 316 processors)
+make -j$(nproc)
++------------+---------------+----------+
+| Metric (s) | Variation (%) | Delta(%) |
++------------+---------------+----------+
+| real       |        0.4627 |  -1.2627 |
+| user       |        0.2281 |  +0.2680 |
+| sys        |        4.6345 |  -7.5425 |
++------------+---------------+----------+
+
+Medium machine (251GiB memory, 176 processors)
+make -j$(nproc)
++------------+---------------+----------+
+| Metric (s) | Variation (%) | Delta(%) |
++------------+---------------+----------+
+| real       |        0.2321 |  +0.0888 |
+| user       |        0.1730 |  -0.1182 |
+| sys        |        0.7680 |  +1.2067 |
++------------+---------------+----------+
+
+Small machine (62GiB memory, 36 processors)
+make -j$(nproc)
++------------+---------------+----------+
+| Metric (s) | Variation (%) | Delta(%) |
++------------+---------------+----------+
+| real       |        0.1920 |  -0.1270 |
+| user       |        0.1730 |  -0.0358 |
+| sys        |        0.7680 |  +0.9143 |
++------------+---------------+----------+
+
+Here, variation is the coefficient of variation, i.e.  standard deviation
+/ mean.
+
+Based on these results, there is definitely some gain to be had when lock
+contention is observed in a larger machine, especially if it is running on
+one node.  It leads to both a measurable decrease in compilation time for
+both the real and system times (i.e.  relieving lock contention).
+
+For the medium machine, there is negligible regression in real time (<<
+coefficient of variation), although it leads to a measurable increase in
+the system time.
+
+For the small machine, there is a negligible performance gain in real
+time, but has a similar regression to the medium machine.
+
+Despite the regressions (~1%) of system time in the smaller machines, it
+seems to be (1) not observable in realtime and (2) is much smaller than
+the gain made in the large machine.
+
+
+This patch (of 3):
+
+Currently, refresh_cpu_vm_stats returns an int, indicating how many
+changes were made during its updates.  Using this information, callers
+like vmstat_update can heuristically determine if more work will be done
+in the future.
+
+However, all of refresh_cpu_vm_stats's callers either (a) ignore the
+result, only caring about performing the updates, or (b) only care about
+whether changes were made, but not *how many* changes were made.
+
+Simplify the code by returning a bool instead to indicate if updates
+were made.
+
+In addition, simplify fold_diff and decay_pcp_high to return a bool
+for the same reason.
+
+Link: https://lkml.kernel.org/r/20251002204636.4016712-1-joshua.hahnjy@gmail.com
+Link: https://lkml.kernel.org/r/20251002204636.4016712-2-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sys_sparc_64.c |    6 +++---
- arch/x86/kernel/cpu/sgx/driver.c |    2 +-
- drivers/char/mem.c               |    2 +-
- drivers/dax/device.c             |    5 ++---
- fs/hugetlbfs/inode.c             |    3 +--
- fs/proc/inode.c                  |    2 +-
- fs/ramfs/file-mmu.c              |    2 +-
- include/linux/sched/mm.h         |    9 ++++-----
- io_uring/memmap.c                |    2 +-
- kernel/bpf/arena.c               |    2 +-
- kernel/bpf/syscall.c             |    2 +-
- mm/huge_memory.c                 |    4 ++--
- mm/mmap.c                        |   17 +++++++----------
- mm/shmem.c                       |    8 +++-----
- 14 files changed, 29 insertions(+), 37 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/page_alloc.c     |    8 ++++----
+ mm/vmstat.c         |   28 +++++++++++++++-------------
+ 3 files changed, 20 insertions(+), 18 deletions(-)
 
---- a/arch/sparc/kernel/sys_sparc_64.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -241,7 +241,7 @@ unsigned long get_fb_unmapped_area(struc
+--- a/include/linux/gfp.h~mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection
++++ a/include/linux/gfp.h
+@@ -386,7 +386,7 @@ extern void free_pages(unsigned long add
+ #define free_page(addr) free_pages((addr), 0)
  
- 	if (flags & MAP_FIXED) {
- 		/* Ok, don't mess with it. */
--		return mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, flags);
-+		return mm_get_unmapped_area(NULL, orig_addr, len, pgoff, flags);
+ void page_alloc_init_cpuhp(void);
+-int decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp);
++bool decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp);
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
+ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
+--- a/mm/page_alloc.c~mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection
++++ a/mm/page_alloc.c
+@@ -2557,10 +2557,10 @@ static int rmqueue_bulk(struct zone *zon
+  * Called from the vmstat counter updater to decay the PCP high.
+  * Return whether there are addition works to do.
+  */
+-int decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp)
++bool decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp)
+ {
+ 	int high_min, to_drain, batch;
+-	int todo = 0;
++	bool todo = false;
+ 
+ 	high_min = READ_ONCE(pcp->high_min);
+ 	batch = READ_ONCE(pcp->batch);
+@@ -2573,7 +2573,7 @@ int decay_pcp_high(struct zone *zone, st
+ 		pcp->high = max3(pcp->count - (batch << CONFIG_PCP_BATCH_SCALE_MAX),
+ 				 pcp->high - (pcp->high >> 3), high_min);
+ 		if (pcp->high > high_min)
+-			todo++;
++			todo = true;
  	}
- 	flags &= ~MAP_SHARED;
  
-@@ -254,7 +254,7 @@ unsigned long get_fb_unmapped_area(struc
- 		align_goal = (64UL * 1024);
- 
- 	do {
--		addr = mm_get_unmapped_area(current->mm, NULL, orig_addr,
-+		addr = mm_get_unmapped_area(NULL, orig_addr,
- 					    len + (align_goal - PAGE_SIZE), pgoff, flags);
- 		if (!(addr & ~PAGE_MASK)) {
- 			addr = (addr + (align_goal - 1UL)) & ~(align_goal - 1UL);
-@@ -273,7 +273,7 @@ unsigned long get_fb_unmapped_area(struc
- 	 * be obtained.
- 	 */
- 	if (addr & ~PAGE_MASK)
--		addr = mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, flags);
-+		addr = mm_get_unmapped_area(NULL, orig_addr, len, pgoff, flags);
- 
- 	return addr;
- }
---- a/arch/x86/kernel/cpu/sgx/driver.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/arch/x86/kernel/cpu/sgx/driver.c
-@@ -113,7 +113,7 @@ static unsigned long sgx_get_unmapped_ar
- 	if (flags & MAP_FIXED)
- 		return addr;
- 
--	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
- }
- 
- #ifdef CONFIG_COMPAT
---- a/drivers/char/mem.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/drivers/char/mem.c
-@@ -558,7 +558,7 @@ static unsigned long get_unmapped_area_z
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	return thp_get_unmapped_area(file, addr, len, pgoff, flags);
- #else
--	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
- #endif
- }
- #endif /* CONFIG_MMU */
---- a/drivers/dax/device.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/drivers/dax/device.c
-@@ -340,14 +340,13 @@ static unsigned long dax_get_unmapped_ar
- 	if ((off + len_align) < off)
- 		goto out;
- 
--	addr_align = mm_get_unmapped_area(current->mm, filp, addr, len_align,
--					  pgoff, flags);
-+	addr_align = mm_get_unmapped_area(filp, addr, len_align, pgoff, flags);
- 	if (!IS_ERR_VALUE(addr_align)) {
- 		addr_align += (off - addr_align) & (align - 1);
- 		return addr_align;
+ 	to_drain = pcp->count - pcp->high;
+@@ -2581,7 +2581,7 @@ int decay_pcp_high(struct zone *zone, st
+ 		spin_lock(&pcp->lock);
+ 		free_pcppages_bulk(zone, to_drain, pcp, 0);
+ 		spin_unlock(&pcp->lock);
+-		todo++;
++		todo = true;
  	}
-  out:
--	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(filp, addr, len, pgoff, flags);
- }
  
- static const struct address_space_operations dev_dax_aops = {
---- a/fs/hugetlbfs/inode.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/fs/hugetlbfs/inode.c
-@@ -194,8 +194,7 @@ hugetlb_get_unmapped_area(struct file *f
- 	if (addr)
- 		addr0 = ALIGN(addr, huge_page_size(h));
+ 	return todo;
+--- a/mm/vmstat.c~mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection
++++ a/mm/vmstat.c
+@@ -771,25 +771,25 @@ EXPORT_SYMBOL(dec_node_page_state);
  
--	return mm_get_unmapped_area_vmflags(current->mm, file, addr0, len, pgoff,
--					    flags, 0);
-+	return mm_get_unmapped_area_vmflags(file, addr0, len, pgoff, flags, 0);
+ /*
+  * Fold a differential into the global counters.
+- * Returns the number of counters updated.
++ * Returns whether counters were updated.
+  */
+ static int fold_diff(int *zone_diff, int *node_diff)
+ {
+ 	int i;
+-	int changes = 0;
++	bool changed = false;
+ 
+ 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+ 		if (zone_diff[i]) {
+ 			atomic_long_add(zone_diff[i], &vm_zone_stat[i]);
+-			changes++;
++			changed = true;
+ 	}
+ 
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 		if (node_diff[i]) {
+ 			atomic_long_add(node_diff[i], &vm_node_stat[i]);
+-			changes++;
++			changed = true;
+ 	}
+-	return changes;
++	return changed;
  }
  
  /*
---- a/fs/proc/inode.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/fs/proc/inode.c
-@@ -443,7 +443,7 @@ pde_get_unmapped_area(struct proc_dir_en
- 		return pde->proc_ops->proc_get_unmapped_area(file, orig_addr, len, pgoff, flags);
- 
- #ifdef CONFIG_MMU
--	return mm_get_unmapped_area(current->mm, file, orig_addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(file, orig_addr, len, pgoff, flags);
- #endif
- 
- 	return orig_addr;
---- a/fs/ramfs/file-mmu.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/fs/ramfs/file-mmu.c
-@@ -35,7 +35,7 @@ static unsigned long ramfs_mmu_get_unmap
- 		unsigned long addr, unsigned long len, unsigned long pgoff,
- 		unsigned long flags)
+@@ -806,16 +806,16 @@ static int fold_diff(int *zone_diff, int
+  * with the global counters. These could cause remote node cache line
+  * bouncing and will have to be only done when necessary.
+  *
+- * The function returns the number of global counters updated.
++ * The function returns whether global counters were updated.
+  */
+-static int refresh_cpu_vm_stats(bool do_pagesets)
++static bool refresh_cpu_vm_stats(bool do_pagesets)
  {
--	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
- }
+ 	struct pglist_data *pgdat;
+ 	struct zone *zone;
+ 	int i;
+ 	int global_zone_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+ 	int global_node_diff[NR_VM_NODE_STAT_ITEMS] = { 0, };
+-	int changes = 0;
++	bool changed = false;
  
- const struct file_operations ramfs_file_operations = {
---- a/include/linux/sched/mm.h~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/include/linux/sched/mm.h
-@@ -189,12 +189,11 @@ arch_get_unmapped_area_topdown(struct fi
- 			       unsigned long len, unsigned long pgoff,
- 			       unsigned long flags, vm_flags_t);
+ 	for_each_populated_zone(zone) {
+ 		struct per_cpu_zonestat __percpu *pzstats = zone->per_cpu_zonestats;
+@@ -839,7 +839,8 @@ static int refresh_cpu_vm_stats(bool do_
+ 		if (do_pagesets) {
+ 			cond_resched();
  
--unsigned long mm_get_unmapped_area(struct mm_struct *mm, struct file *filp,
--				   unsigned long addr, unsigned long len,
--				   unsigned long pgoff, unsigned long flags);
-+unsigned long mm_get_unmapped_area(struct file *filp, unsigned long addr,
-+				   unsigned long len, unsigned long pgoff,
-+				   unsigned long flags);
+-			changes += decay_pcp_high(zone, this_cpu_ptr(pcp));
++			if (decay_pcp_high(zone, this_cpu_ptr(pcp)))
++				changed = true;
+ #ifdef CONFIG_NUMA
+ 			/*
+ 			 * Deal with draining the remote pageset of this
+@@ -861,13 +862,13 @@ static int refresh_cpu_vm_stats(bool do_
+ 			}
  
--unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm,
--					   struct file *filp,
-+unsigned long mm_get_unmapped_area_vmflags(struct file *filp,
- 					   unsigned long addr,
- 					   unsigned long len,
- 					   unsigned long pgoff,
---- a/io_uring/memmap.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/io_uring/memmap.c
-@@ -387,7 +387,7 @@ unsigned long io_uring_get_unmapped_area
- #else
- 	addr = 0UL;
+ 			if (__this_cpu_dec_return(pcp->expire)) {
+-				changes++;
++				changed = true;
+ 				continue;
+ 			}
+ 
+ 			if (__this_cpu_read(pcp->count)) {
+ 				drain_zone_pages(zone, this_cpu_ptr(pcp));
+-				changes++;
++				changed = true;
+ 			}
  #endif
--	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(filp, addr, len, pgoff, flags);
- }
- 
- #else /* !CONFIG_MMU */
---- a/kernel/bpf/arena.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/kernel/bpf/arena.c
-@@ -334,7 +334,7 @@ static unsigned long arena_get_unmapped_
- 			return -EINVAL;
+ 		}
+@@ -887,8 +888,9 @@ static int refresh_cpu_vm_stats(bool do_
+ 		}
  	}
  
--	ret = mm_get_unmapped_area(current->mm, filp, addr, len * 2, 0, flags);
-+	ret = mm_get_unmapped_area(filp, addr, len * 2, 0, flags);
- 	if (IS_ERR_VALUE(ret))
- 		return ret;
- 	if ((ret >> 32) == ((ret + len - 1) >> 32))
---- a/kernel/bpf/syscall.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/kernel/bpf/syscall.c
-@@ -1147,7 +1147,7 @@ static unsigned long bpf_get_unmapped_ar
- 	if (map->ops->map_get_unmapped_area)
- 		return map->ops->map_get_unmapped_area(filp, addr, len, pgoff, flags);
- #ifdef CONFIG_MMU
--	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(filp, addr, len, pgoff, flags);
- #else
- 	return addr;
- #endif
---- a/mm/huge_memory.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/mm/huge_memory.c
-@@ -1211,7 +1211,7 @@ static unsigned long __thp_get_unmapped_
- 	if (len_pad < len || (off + len_pad) < off)
- 		return 0;
- 
--	ret = mm_get_unmapped_area_vmflags(current->mm, filp, addr, len_pad,
-+	ret = mm_get_unmapped_area_vmflags(filp, addr, len_pad,
- 					   off >> PAGE_SHIFT, flags, vm_flags);
- 
- 	/*
-@@ -1248,7 +1248,7 @@ unsigned long thp_get_unmapped_area_vmfl
- 	if (ret)
- 		return ret;
- 
--	return mm_get_unmapped_area_vmflags(current->mm, filp, addr, len, pgoff, flags,
-+	return mm_get_unmapped_area_vmflags(filp, addr, len, pgoff, flags,
- 					    vm_flags);
+-	changes += fold_diff(global_zone_diff, global_node_diff);
+-	return changes;
++	if (fold_diff(global_zone_diff, global_node_diff))
++		changed = true;
++	return changed;
  }
  
---- a/mm/mmap.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/mm/mmap.c
-@@ -797,12 +797,11 @@ arch_get_unmapped_area_topdown(struct fi
- }
- #endif
- 
--unsigned long mm_get_unmapped_area_vmflags(struct mm_struct *mm, struct file *filp,
--					   unsigned long addr, unsigned long len,
--					   unsigned long pgoff, unsigned long flags,
--					   vm_flags_t vm_flags)
-+unsigned long mm_get_unmapped_area_vmflags(struct file *filp, unsigned long addr,
-+					   unsigned long len, unsigned long pgoff,
-+					   unsigned long flags, vm_flags_t vm_flags)
- {
--	if (mm_flags_test(MMF_TOPDOWN, mm))
-+	if (mm_flags_test(MMF_TOPDOWN, current->mm))
- 		return arch_get_unmapped_area_topdown(filp, addr, len, pgoff,
- 						      flags, vm_flags);
- 	return arch_get_unmapped_area(filp, addr, len, pgoff, flags, vm_flags);
-@@ -848,7 +847,7 @@ __get_unmapped_area(struct file *file, u
- 		addr = thp_get_unmapped_area_vmflags(file, addr, len,
- 						     pgoff, flags, vm_flags);
- 	} else {
--		addr = mm_get_unmapped_area_vmflags(current->mm, file, addr, len,
-+		addr = mm_get_unmapped_area_vmflags(file, addr, len,
- 						    pgoff, flags, vm_flags);
- 	}
- 	if (IS_ERR_VALUE(addr))
-@@ -864,12 +863,10 @@ __get_unmapped_area(struct file *file, u
- }
- 
- unsigned long
--mm_get_unmapped_area(struct mm_struct *mm, struct file *file,
--		     unsigned long addr, unsigned long len,
-+mm_get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
- 		     unsigned long pgoff, unsigned long flags)
- {
--	return mm_get_unmapped_area_vmflags(mm, file, addr, len,
--					    pgoff, flags, 0);
-+	return mm_get_unmapped_area_vmflags(file, addr, len, pgoff, flags, 0);
- }
- EXPORT_SYMBOL(mm_get_unmapped_area);
- 
---- a/mm/shmem.c~mm-consistently-use-current-mm-in-mm_get_unmapped_area
-+++ a/mm/shmem.c
-@@ -2756,8 +2756,7 @@ unsigned long shmem_get_unmapped_area(st
- 	if (len > TASK_SIZE)
- 		return -ENOMEM;
- 
--	addr = mm_get_unmapped_area(current->mm, file, uaddr, len, pgoff,
--				    flags);
-+	addr = mm_get_unmapped_area(file, uaddr, len, pgoff, flags);
- 
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
- 		return addr;
-@@ -2835,8 +2834,7 @@ unsigned long shmem_get_unmapped_area(st
- 	if (inflated_len < len)
- 		return addr;
- 
--	inflated_addr = mm_get_unmapped_area(current->mm, NULL, uaddr,
--					     inflated_len, 0, flags);
-+	inflated_addr = mm_get_unmapped_area(NULL, uaddr, inflated_len, 0, flags);
- 	if (IS_ERR_VALUE(inflated_addr))
- 		return addr;
- 	if (inflated_addr & ~PAGE_MASK)
-@@ -5773,7 +5771,7 @@ unsigned long shmem_get_unmapped_area(st
- 				      unsigned long addr, unsigned long len,
- 				      unsigned long pgoff, unsigned long flags)
- {
--	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
-+	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
- }
- #endif
- 
+ /*
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-mm-consistently-use-current-mm-in-mm_get_unmapped_area.patch
+mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
+mm-page_alloc-batch-page-freeing-in-decay_pcp_high.patch
+mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
 
