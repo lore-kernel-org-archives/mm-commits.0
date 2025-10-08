@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC0472C9D
-	for <mm-commits@vger.kernel.org>; Tue,  7 Oct 2025 23:03:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C185F1DE4FB
+	for <mm-commits@vger.kernel.org>; Wed,  8 Oct 2025 00:22:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759878223; cv=none; b=m1uZlcvWgEb/UT1K33MLQ7WXGrlcBtvkNVpIcg880WhKq0c9MU3iK73mao6ZO9TuXLiSGw1M63trm3f73I3ZUP0Q3Nm/gRx/mHAy29lkMvQRZLqXdirAGD0eP+rRMQLr6QIb9VztUsdQWVjPney0GRj9uo4Cb/pHLmRn2Msk1Dg=
+	t=1759882933; cv=none; b=r8wscArkPSuIPxzih45NT0Boxi6zFBKusW9t6K4u2R+hNS9m856pZm2jKKSa8TsYXJArHmIHIs90TpzOuRJ3Wf4lBWGPRtiGJBIMWNiMzRRJ2Y6tCcOeFWLrViO+1W9jW6VpdppG5Y67dC40nh3k/LFLVfpjXtg/Fjv9C3X5MwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759878223; c=relaxed/simple;
-	bh=1eF0Vqplr+kxVGssmXT9peWPqDkenFZ7AdlllJo0FWE=;
-	h=Date:To:From:Subject:Message-Id; b=Qt/b4R9FLM0PA9Bf+qaHDCDE7A8LqOP84lmA35ExTnc64NH0yDm+Y8Ad3cDM4IqQPOXtm0hi2EK7/AbovvdJ4kvcgsN163hmRahX/tmYjk2zyYJpBpzo2icRJvpKwjLi4i/CEArdT08ZIqq46nIF0hhCRAIODSrxLGehp7GPpVI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hjrQxyrE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759882933; c=relaxed/simple;
+	bh=JhMBvF5yTCf3UrudWOtxfH3I5ru6DSdeSvcxUqQ7RtA=;
+	h=Date:To:From:Subject:Message-Id; b=h3OwFtjs93kxi9iVi7bxoy++DzUfaSg6oYOdXxFdGeQv1rOcueKatDWtW1XPH8N6YcEDX+cjxpxv8BNzvKFKlzs/7/E97Zja9RttKA9g0awKXhTtFkFOh0ZkVck/cLztzlqvKStXkVKJ52Tix2InrWTLN3E/4CtQgaX185mRvRw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TKfwH64c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hjrQxyrE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59E9BC4CEF1;
-	Tue,  7 Oct 2025 23:03:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TKfwH64c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40537C4CEF1;
+	Wed,  8 Oct 2025 00:22:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759878222;
-	bh=1eF0Vqplr+kxVGssmXT9peWPqDkenFZ7AdlllJo0FWE=;
+	s=korg; t=1759882931;
+	bh=JhMBvF5yTCf3UrudWOtxfH3I5ru6DSdeSvcxUqQ7RtA=;
 	h=Date:To:From:Subject:From;
-	b=hjrQxyrEhgZC7s1M076XXAQPDK0CEzfurhfCWLxRx2Q1CEG5ql2tzdvIdP6wrB0su
-	 sR0ENiZXP/bnKlXvhjUWVjyf74D25RKSZGZbo4pWBE8Aspv+Wb8e2UwmayPUzxbhss
-	 OyTtB9gBEfK3r+PYoqXPSZaSGawqtBGVnTBEpfZQ=
-Date: Tue, 07 Oct 2025 16:03:41 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,mpenttil@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill@shutemov.name,hughd@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=TKfwH64cMmb68bSsiBvUg/w6jfKW6TRdgffoRBKY4XZKYbTlq8cINFtdD17VnENX3
+	 pwtTqfEJU8/1yhL39fbg0PBDkMu6RE/fFRzNL4JoRcnNpYG5tyqGAUvBST26Nm3Hns
+	 sTa+kHoT9Tu1d4kqxusADrS1cQm9/83fdqUJb/Nk=
+Date: Tue, 07 Oct 2025 17:22:10 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-khugepaged-abort-collapse-scan-on-non-swap-entries.patch removed from -mm tree
-Message-Id: <20251007230342.59E9BC4CEF1@smtp.kernel.org>
+Subject: + mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch added to mm-new branch
+Message-Id: <20251008002211.40537C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,114 +34,96 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/khugepaged: abort collapse scan on non-swap entries
-has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-abort-collapse-scan-on-non-swap-entries.patch
+The patch titled
+     Subject: mm/zswap: remove unnecessary dlen writes for incompressible pages
+has been added to the -mm mm-new branch.  Its filename is
+     mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/khugepaged: abort collapse scan on non-swap entries
-Date: Wed, 1 Oct 2025 11:22:51 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/zswap: remove unnecessary dlen writes for incompressible pages
+Date: Fri, 3 Oct 2025 13:38:48 -0700
 
-Currently, special non-swap entries (like migration, hwpoison, or PTE
-markers) are not caught early in hpage_collapse_scan_pmd(), leading to
-failures deep in the swap-in logic.
+Patch series "mm/zswap: misc cleanup of code and documentations".
 
-hpage_collapse_scan_pmd()
- `- collapse_huge_page()
-     `- __collapse_huge_page_swapin() -> fails!
-
-As David suggested[1], this patch skips any such non-swap entries early. 
-If any one is found, the scan is aborted immediately with the
-SCAN_PTE_NON_PRESENT result, as Lorenzo suggested[2], avoiding wasted
-work.
+Clean up an unnecessary local variable write in incompressible pages
+handling, typos (s/zwap/zswap/) and outdated comments/documentations about
+the zswap's red-black tree, which is replaced by xarray.
 
 
-Link: https://lkml.kernel.org/r/20251001032251.85888-1-lance.yang@linux.dev
-Link: https://lore.kernel.org/linux-mm/7840f68e-7580-42cb-a7c8-1ba64fd6df69@redhat.com [1]
-Link: https://lore.kernel.org/linux-mm/7df49fe7-c6b7-426a-8680-dcd55219c8bd@lucifer.local [2]
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+This patch (of 4):
+
+Incompressible pages handling logic in zswap_compress() is setting 'dlen'
+as PAGE_SIZE twice.  Once before deciding whether to save the content as
+is, and once again after it is decided to save it as is.  But the value of
+'dlen' is used only if it is decided to save the content as is, so the
+first write is unnecessary.  It is not causing real user issues, but
+making code confusing to read.  Remove the unnecessary write operation.
+
+Link: https://lkml.kernel.org/r/20251003203851.43128-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251003203851.43128-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Chris Li <chrisl@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   32 ++++++++++++++++++--------------
- 1 file changed, 18 insertions(+), 14 deletions(-)
+ mm/zswap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-abort-collapse-scan-on-non-swap-entries
-+++ a/mm/khugepaged.c
-@@ -1281,7 +1281,23 @@ static int hpage_collapse_scan_pmd(struc
- 	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
- 	     _pte++, addr += PAGE_SIZE) {
- 		pte_t pteval = ptep_get(_pte);
--		if (is_swap_pte(pteval)) {
-+		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
-+			++none_or_zero;
-+			if (!userfaultfd_armed(vma) &&
-+			    (!cc->is_khugepaged ||
-+			     none_or_zero <= khugepaged_max_ptes_none)) {
-+				continue;
-+			} else {
-+				result = SCAN_EXCEED_NONE_PTE;
-+				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
-+				goto out_unmap;
-+			}
-+		} else if (!pte_present(pteval)) {
-+			if (non_swap_entry(pte_to_swp_entry(pteval))) {
-+				result = SCAN_PTE_NON_PRESENT;
-+				goto out_unmap;
-+			}
-+
- 			++unmapped;
- 			if (!cc->is_khugepaged ||
- 			    unmapped <= khugepaged_max_ptes_swap) {
-@@ -1290,7 +1306,7 @@ static int hpage_collapse_scan_pmd(struc
- 				 * enabled swap entries.  Please see
- 				 * comment below for pte_uffd_wp().
- 				 */
--				if (pte_swp_uffd_wp_any(pteval)) {
-+				if (pte_swp_uffd_wp(pteval)) {
- 					result = SCAN_PTE_UFFD_WP;
- 					goto out_unmap;
- 				}
-@@ -1301,18 +1317,6 @@ static int hpage_collapse_scan_pmd(struc
- 				goto out_unmap;
- 			}
- 		}
--		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
--			++none_or_zero;
--			if (!userfaultfd_armed(vma) &&
--			    (!cc->is_khugepaged ||
--			     none_or_zero <= khugepaged_max_ptes_none)) {
--				continue;
--			} else {
--				result = SCAN_EXCEED_NONE_PTE;
--				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
--				goto out_unmap;
--			}
--		}
- 		if (pte_uffd_wp(pteval)) {
- 			/*
- 			 * Don't collapse the page if any of the small
+--- a/mm/zswap.c~mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages
++++ a/mm/zswap.c
+@@ -894,7 +894,6 @@ static bool zswap_compress(struct page *
+ 	 * to the active LRU list in the case.
+ 	 */
+ 	if (comp_ret || !dlen || dlen >= PAGE_SIZE) {
+-		dlen = PAGE_SIZE;
+ 		if (!mem_cgroup_zswap_writeback_enabled(
+ 					folio_memcg(page_folio(page)))) {
+ 			comp_ret = comp_ret ? comp_ret : -EINVAL;
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from sj@kernel.org are
 
-hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
+mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
+mm-zswap-fix-typos-s-zwap-zswap.patch
+mm-zswap-s-red-black-tree-xarray.patch
+docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
 
