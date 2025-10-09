@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7062722DFA5
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 03:18:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCD5622DFA5
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 03:18:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759979936; cv=none; b=IGIEv5IqKQ0o80cDf4ORYNxSVUtubL33hS9t+kbCaERNcTGCMyUI2YiGQ4SjpL9dsZxD9TNU7OuGO3+9YcT8BhteFm/nUyGylgxIqLt2GV3jtVlk/7bokU8js2yEaToz+MZyKxnwwdzJwAWeeBAR3Q79uwrxkJykjvR1kiltQhw=
+	t=1759979938; cv=none; b=sJRqhFigzBiLodkiYWi3y1ijdMORPogsew+gZxA1DACzXZ5/ten5lo/WeeCLoxuLxAubp52Qz2tMToxvSLK830yTzFrdx8yhpl2htIgDdxIYpgoIXMDww/42Xapiks2GhjLz9SWjmbhiAlhroX7V9XK3ZXWLW/GG74wl0qzjdJo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759979936; c=relaxed/simple;
-	bh=dy/kwdaMHPtiku0yzJvGXARboBRHYQmoa6di+rw5tKk=;
-	h=Date:To:From:Subject:Message-Id; b=Z5hQFIt/mK79stiBBjdIzSjnhYBuXDdTP08Eo9zd8Fk4bhNY0KEY7ypaqKuulQS2LFSTtKu4w5JeAdl0FoBoPdBoeE74lBHTcMMtCBHOR5IYCynUGVnWoMG5n3sztKoKYljo001nPHmOIt3bVel2q/pAArMGGiUyPk12ub8KTPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hRTAp2yS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759979938; c=relaxed/simple;
+	bh=S2ok4Vg6JA+akrkaTLaySzj226subkUvQkEDc8zWCfA=;
+	h=Date:To:From:Subject:Message-Id; b=cIjRzVGgjHPG8Er9N7aBTl5o7y6D9N0/MlHBwE8EmVVmnWHVTw1mMMN9WK/KI2RRy2C55qKyMrDllN1oxk4Sf1fKvlTZph0izwiiqYRDyExVO9AvkGz4CSPvN4+XlX6VRx+fIoUXoeyXIUzpYGs7G5nDU4FnojxWEF/eMvZMnRA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FzW/hhLl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hRTAp2yS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2E47C4CEE7;
-	Thu,  9 Oct 2025 03:18:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FzW/hhLl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98F6BC4CEE7;
+	Thu,  9 Oct 2025 03:18:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759979936;
-	bh=dy/kwdaMHPtiku0yzJvGXARboBRHYQmoa6di+rw5tKk=;
+	s=korg; t=1759979938;
+	bh=S2ok4Vg6JA+akrkaTLaySzj226subkUvQkEDc8zWCfA=;
 	h=Date:To:From:Subject:From;
-	b=hRTAp2ySsRVlxeuo5lG9LkBLPQ0uqjocm7MIFRbBshrCLefWZ0AOYbx6KsJjmLlfq
-	 pYmVfV5YcAZRWJ2oqTznbrYxnK49k4oGP9u1mtRPdo6o/RqcQaVaejrM7E/otKOIxn
-	 VUAcnomdN0Yhj2Zxd1L71hxeweycGSBcKccveHQg=
-Date: Wed, 08 Oct 2025 20:18:55 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
+	b=FzW/hhLlUdc63S6i+SemFqd6Aq+0clwmN/lDr7tu450Ey4JFzWNORwow9CC3cBFz5
+	 DT5EEpPrJno9aGQhOGdA818WmtqPPySAfIE/lrxiN/oa1TJx/RV9xvZ1AQG2hKk8/n
+	 AL8wjhd8DbR7WKdL+CFCXUcqWB0OAS6714YfyCco=
+Date: Wed, 08 Oct 2025 20:18:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,airlied@gmail.com,matthew.brost@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch added to mm-new branch
-Message-Id: <20251009031855.D2E47C4CEE7@smtp.kernel.org>
+Subject: + selftests-mm-hmm-tests-partial-unmap-mremap-and-anon_write-tests.patch added to mm-new branch
+Message-Id: <20251009031858.98F6BC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm/hmm-tests: new tests for zone device THP migration
+     Subject: selftests/mm/hmm-tests: partial unmap, mremap and anon_write tests
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
+     selftests-mm-hmm-tests-partial-unmap-mremap-and-anon_write-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hmm-tests-partial-unmap-mremap-and-anon_write-tests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,16 +64,23 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Balbir Singh <balbirs@nvidia.com>
-Subject: selftests/mm/hmm-tests: new tests for zone device THP migration
-Date: Wed, 1 Oct 2025 16:57:04 +1000
+From: Matthew Brost <matthew.brost@intel.com>
+Subject: selftests/mm/hmm-tests: partial unmap, mremap and anon_write tests
+Date: Wed, 1 Oct 2025 16:57:05 +1000
 
-Add new tests for migrating anon THP pages, including anon_huge,
-anon_huge_zero and error cases involving forced splitting of pages during
-migration.
+Add partial unmap test case which munmaps memory while in the device.
 
-Link: https://lkml.kernel.org/r/20251001065707.920170-14-balbirs@nvidia.com
+Add tests exercising mremap on faulted-in memory (CPU and GPU) at various
+offsets and verify correctness.
+
+Update anon_write_child to read device memory after fork verifying this
+flow works in the kernel.
+
+Both THP and non-THP cases are updated.
+
+Link: https://lkml.kernel.org/r/20251001065707.920170-15-balbirs@nvidia.com
 Signed-off-by: Balbir Singh <balbirs@nvidia.com>
+Signed-off-by: Matthew Brost <matthew.brost@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
@@ -101,443 +108,358 @@ Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hmm-tests.c |  410 +++++++++++++++++++++++
- 1 file changed, 410 insertions(+)
+ tools/testing/selftests/mm/hmm-tests.c |  308 ++++++++++++++++++-----
+ 1 file changed, 250 insertions(+), 58 deletions(-)
 
---- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration
+--- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-hmm-tests-partial-unmap-mremap-and-anon_write-tests
 +++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -2055,4 +2055,414 @@ TEST_F(hmm, hmm_cow_in_device)
+@@ -50,6 +50,8 @@ enum {
+ 	HMM_COHERENCE_DEVICE_TWO,
+ };
  
- 	hmm_buffer_free(buffer);
++#define ONEKB		(1 << 10)
++#define ONEMEG		(1 << 20)
+ #define TWOMEG		(1 << 21)
+ #define HMM_BUFFER_SIZE (1024 << 12)
+ #define HMM_PATH_MAX    64
+@@ -525,6 +527,8 @@ TEST_F(hmm, anon_write_prot)
+ /*
+  * Check that a device writing an anonymous private mapping
+  * will copy-on-write if a child process inherits the mapping.
++ *
++ * Also verifies after fork() memory the device can be read by child.
+  */
+ TEST_F(hmm, anon_write_child)
+ {
+@@ -532,72 +536,101 @@ TEST_F(hmm, anon_write_child)
+ 	unsigned long npages;
+ 	unsigned long size;
+ 	unsigned long i;
++	void *old_ptr;
++	void *map;
+ 	int *ptr;
+ 	pid_t pid;
+ 	int child_fd;
+-	int ret;
++	int ret, use_thp, migrate;
+ 
+-	npages = ALIGN(HMM_BUFFER_SIZE, self->page_size) >> self->page_shift;
+-	ASSERT_NE(npages, 0);
+-	size = npages << self->page_shift;
++	for (migrate = 0; migrate < 2; ++migrate) {
++		for (use_thp = 0; use_thp < 2; ++use_thp) {
++			npages = ALIGN(use_thp ? TWOMEG : HMM_BUFFER_SIZE,
++				       self->page_size) >> self->page_shift;
++			ASSERT_NE(npages, 0);
++			size = npages << self->page_shift;
++
++			buffer = malloc(sizeof(*buffer));
++			ASSERT_NE(buffer, NULL);
++
++			buffer->fd = -1;
++			buffer->size = size * 2;
++			buffer->mirror = malloc(size);
++			ASSERT_NE(buffer->mirror, NULL);
++
++			buffer->ptr = mmap(NULL, size * 2,
++					   PROT_READ | PROT_WRITE,
++					   MAP_PRIVATE | MAP_ANONYMOUS,
++					   buffer->fd, 0);
++			ASSERT_NE(buffer->ptr, MAP_FAILED);
++
++			old_ptr = buffer->ptr;
++			if (use_thp) {
++				map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
++				ret = madvise(map, size, MADV_HUGEPAGE);
++				ASSERT_EQ(ret, 0);
++				buffer->ptr = map;
++			}
++
++			/* Initialize buffer->ptr so we can tell if it is written. */
++			for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++				ptr[i] = i;
++
++			/* Initialize data that the device will write to buffer->ptr. */
++			for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
++				ptr[i] = -i;
++
++			if (migrate) {
++				ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
++				ASSERT_EQ(ret, 0);
++				ASSERT_EQ(buffer->cpages, npages);
++
++			}
++
++			pid = fork();
++			if (pid == -1)
++				ASSERT_EQ(pid, 0);
++			if (pid != 0) {
++				waitpid(pid, &ret, 0);
++				ASSERT_EQ(WIFEXITED(ret), 1);
++
++				/* Check that the parent's buffer did not change. */
++				for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++					ASSERT_EQ(ptr[i], i);
++
++				buffer->ptr = old_ptr;
++				hmm_buffer_free(buffer);
++				continue;
++			}
++
++			/* Check that we see the parent's values. */
++			for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++				ASSERT_EQ(ptr[i], i);
++			if (!migrate) {
++				for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
++					ASSERT_EQ(ptr[i], -i);
++			}
++
++			/* The child process needs its own mirror to its own mm. */
++			child_fd = hmm_open(0);
++			ASSERT_GE(child_fd, 0);
+ 
+-	buffer = malloc(sizeof(*buffer));
+-	ASSERT_NE(buffer, NULL);
+-
+-	buffer->fd = -1;
+-	buffer->size = size;
+-	buffer->mirror = malloc(size);
+-	ASSERT_NE(buffer->mirror, NULL);
+-
+-	buffer->ptr = mmap(NULL, size,
+-			   PROT_READ | PROT_WRITE,
+-			   MAP_PRIVATE | MAP_ANONYMOUS,
+-			   buffer->fd, 0);
+-	ASSERT_NE(buffer->ptr, MAP_FAILED);
+-
+-	/* Initialize buffer->ptr so we can tell if it is written. */
+-	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
+-		ptr[i] = i;
+-
+-	/* Initialize data that the device will write to buffer->ptr. */
+-	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
+-		ptr[i] = -i;
++			/* Simulate a device writing system memory. */
++			ret = hmm_dmirror_cmd(child_fd, HMM_DMIRROR_WRITE, buffer, npages);
++			ASSERT_EQ(ret, 0);
++			ASSERT_EQ(buffer->cpages, npages);
++			ASSERT_EQ(buffer->faults, 1);
+ 
+-	pid = fork();
+-	if (pid == -1)
+-		ASSERT_EQ(pid, 0);
+-	if (pid != 0) {
+-		waitpid(pid, &ret, 0);
+-		ASSERT_EQ(WIFEXITED(ret), 1);
++			/* Check what the device wrote. */
++			if (!migrate) {
++				for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++					ASSERT_EQ(ptr[i], -i);
++			}
+ 
+-		/* Check that the parent's buffer did not change. */
+-		for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
+-			ASSERT_EQ(ptr[i], i);
+-		return;
++			close(child_fd);
++			exit(0);
++		}
+ 	}
+-
+-	/* Check that we see the parent's values. */
+-	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
+-		ASSERT_EQ(ptr[i], i);
+-	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
+-		ASSERT_EQ(ptr[i], -i);
+-
+-	/* The child process needs its own mirror to its own mm. */
+-	child_fd = hmm_open(0);
+-	ASSERT_GE(child_fd, 0);
+-
+-	/* Simulate a device writing system memory. */
+-	ret = hmm_dmirror_cmd(child_fd, HMM_DMIRROR_WRITE, buffer, npages);
+-	ASSERT_EQ(ret, 0);
+-	ASSERT_EQ(buffer->cpages, npages);
+-	ASSERT_EQ(buffer->faults, 1);
+-
+-	/* Check what the device wrote. */
+-	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
+-		ASSERT_EQ(ptr[i], -i);
+-
+-	close(child_fd);
+-	exit(0);
  }
-+
-+/*
-+ * Migrate private anonymous huge empty page.
+ 
+ /*
+@@ -2290,6 +2323,165 @@ TEST_F(hmm, migrate_anon_huge_fault)
+ }
+ 
+ /*
++ * Migrate memory and fault back to sysmem after partially unmapping.
 + */
-+TEST_F(hmm, migrate_anon_huge_empty)
++TEST_F(hmm, migrate_partial_unmap_fault)
 +{
 +	struct hmm_buffer *buffer;
 +	unsigned long npages;
-+	unsigned long size;
++	unsigned long size = TWOMEG;
 +	unsigned long i;
 +	void *old_ptr;
 +	void *map;
 +	int *ptr;
-+	int ret;
++	int ret, j, use_thp;
++	int offsets[] = { 0, 512 * ONEKB, ONEMEG };
 +
-+	size = TWOMEG;
++	for (use_thp = 0; use_thp < 2; ++use_thp) {
++		for (j = 0; j < ARRAY_SIZE(offsets); ++j) {
++			buffer = malloc(sizeof(*buffer));
++			ASSERT_NE(buffer, NULL);
 +
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
++			buffer->fd = -1;
++			buffer->size = 2 * size;
++			buffer->mirror = malloc(size);
++			ASSERT_NE(buffer->mirror, NULL);
++			memset(buffer->mirror, 0xFF, size);
 +
-+	buffer->fd = -1;
-+	buffer->size = 2 * size;
-+	buffer->mirror = malloc(size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+	memset(buffer->mirror, 0xFF, size);
++			buffer->ptr = mmap(NULL, 2 * size,
++					   PROT_READ | PROT_WRITE,
++					   MAP_PRIVATE | MAP_ANONYMOUS,
++					   buffer->fd, 0);
++			ASSERT_NE(buffer->ptr, MAP_FAILED);
 +
-+	buffer->ptr = mmap(NULL, 2 * size,
-+			   PROT_READ,
-+			   MAP_PRIVATE | MAP_ANONYMOUS,
-+			   buffer->fd, 0);
-+	ASSERT_NE(buffer->ptr, MAP_FAILED);
++			npages = size >> self->page_shift;
++			map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
++			if (use_thp)
++				ret = madvise(map, size, MADV_HUGEPAGE);
++			else
++				ret = madvise(map, size, MADV_NOHUGEPAGE);
++			ASSERT_EQ(ret, 0);
++			old_ptr = buffer->ptr;
++			buffer->ptr = map;
 +
-+	npages = size >> self->page_shift;
-+	map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
-+	ret = madvise(map, size, MADV_HUGEPAGE);
-+	ASSERT_EQ(ret, 0);
-+	old_ptr = buffer->ptr;
-+	buffer->ptr = map;
++			/* Initialize buffer in system memory. */
++			for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++				ptr[i] = i;
 +
-+	/* Migrate memory to device. */
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
++			/* Migrate memory to device. */
++			ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
++			ASSERT_EQ(ret, 0);
++			ASSERT_EQ(buffer->cpages, npages);
 +
-+	/* Check what the device read. */
-+	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], 0);
++			/* Check what the device read. */
++			for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
++				ASSERT_EQ(ptr[i], i);
 +
-+	buffer->ptr = old_ptr;
-+	hmm_buffer_free(buffer);
-+}
++			munmap(buffer->ptr + offsets[j], ONEMEG);
 +
-+/*
-+ * Migrate private anonymous huge zero page.
-+ */
-+TEST_F(hmm, migrate_anon_huge_zero)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages;
-+	unsigned long size;
-+	unsigned long i;
-+	void *old_ptr;
-+	void *map;
-+	int *ptr;
-+	int ret;
-+	int val;
++			/* Fault pages back to system memory and check them. */
++			for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++				if (i * sizeof(int) < offsets[j] ||
++				    i * sizeof(int) >= offsets[j] + ONEMEG)
++					ASSERT_EQ(ptr[i], i);
 +
-+	size = TWOMEG;
-+
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
-+
-+	buffer->fd = -1;
-+	buffer->size = 2 * size;
-+	buffer->mirror = malloc(size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+	memset(buffer->mirror, 0xFF, size);
-+
-+	buffer->ptr = mmap(NULL, 2 * size,
-+			   PROT_READ,
-+			   MAP_PRIVATE | MAP_ANONYMOUS,
-+			   buffer->fd, 0);
-+	ASSERT_NE(buffer->ptr, MAP_FAILED);
-+
-+	npages = size >> self->page_shift;
-+	map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
-+	ret = madvise(map, size, MADV_HUGEPAGE);
-+	ASSERT_EQ(ret, 0);
-+	old_ptr = buffer->ptr;
-+	buffer->ptr = map;
-+
-+	/* Initialize a read-only zero huge page. */
-+	val = *(int *)buffer->ptr;
-+	ASSERT_EQ(val, 0);
-+
-+	/* Migrate memory to device. */
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/* Check what the device read. */
-+	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], 0);
-+
-+	/* Fault pages back to system memory and check them. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i) {
-+		ASSERT_EQ(ptr[i], 0);
-+		/* If it asserts once, it probably will 500,000 times */
-+		if (ptr[i] != 0)
-+			break;
++			buffer->ptr = old_ptr;
++			hmm_buffer_free(buffer);
++		}
 +	}
-+
-+	buffer->ptr = old_ptr;
-+	hmm_buffer_free(buffer);
 +}
 +
-+/*
-+ * Migrate private anonymous huge page and free.
-+ */
-+TEST_F(hmm, migrate_anon_huge_free)
++TEST_F(hmm, migrate_remap_fault)
 +{
 +	struct hmm_buffer *buffer;
 +	unsigned long npages;
-+	unsigned long size;
++	unsigned long size = TWOMEG;
 +	unsigned long i;
-+	void *old_ptr;
++	void *old_ptr, *new_ptr = NULL;
 +	void *map;
 +	int *ptr;
-+	int ret;
++	int ret, j, use_thp, dont_unmap, before;
++	int offsets[] = { 0, 512 * ONEKB, ONEMEG };
 +
-+	size = TWOMEG;
++	for (before = 0; before < 2; ++before) {
++		for (dont_unmap = 0; dont_unmap < 2; ++dont_unmap) {
++			for (use_thp = 0; use_thp < 2; ++use_thp) {
++				for (j = 0; j < ARRAY_SIZE(offsets); ++j) {
++					int flags = MREMAP_MAYMOVE | MREMAP_FIXED;
 +
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
++					if (dont_unmap)
++						flags |= MREMAP_DONTUNMAP;
 +
-+	buffer->fd = -1;
-+	buffer->size = 2 * size;
-+	buffer->mirror = malloc(size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+	memset(buffer->mirror, 0xFF, size);
++					buffer = malloc(sizeof(*buffer));
++					ASSERT_NE(buffer, NULL);
 +
-+	buffer->ptr = mmap(NULL, 2 * size,
-+			   PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANONYMOUS,
-+			   buffer->fd, 0);
-+	ASSERT_NE(buffer->ptr, MAP_FAILED);
++					buffer->fd = -1;
++					buffer->size = 8 * size;
++					buffer->mirror = malloc(size);
++					ASSERT_NE(buffer->mirror, NULL);
++					memset(buffer->mirror, 0xFF, size);
 +
-+	npages = size >> self->page_shift;
-+	map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
-+	ret = madvise(map, size, MADV_HUGEPAGE);
-+	ASSERT_EQ(ret, 0);
-+	old_ptr = buffer->ptr;
-+	buffer->ptr = map;
++					buffer->ptr = mmap(NULL, buffer->size,
++							   PROT_READ | PROT_WRITE,
++							   MAP_PRIVATE | MAP_ANONYMOUS,
++							   buffer->fd, 0);
++					ASSERT_NE(buffer->ptr, MAP_FAILED);
 +
-+	/* Initialize buffer in system memory. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ptr[i] = i;
++					npages = size >> self->page_shift;
++					map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
++					if (use_thp)
++						ret = madvise(map, size, MADV_HUGEPAGE);
++					else
++						ret = madvise(map, size, MADV_NOHUGEPAGE);
++					ASSERT_EQ(ret, 0);
++					old_ptr = buffer->ptr;
++					munmap(map + size, size * 2);
++					buffer->ptr = map;
 +
-+	/* Migrate memory to device. */
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
++					/* Initialize buffer in system memory. */
++					for (i = 0, ptr = buffer->ptr;
++					     i < size / sizeof(*ptr); ++i)
++						ptr[i] = i;
 +
-+	/* Check what the device read. */
-+	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], i);
++					if (before) {
++						new_ptr = mremap((void *)map, size, size, flags,
++								 map + size + offsets[j]);
++						ASSERT_NE(new_ptr, MAP_FAILED);
++						buffer->ptr = new_ptr;
++					}
 +
-+	/* Try freeing it. */
-+	ret = madvise(map, size, MADV_FREE);
-+	ASSERT_EQ(ret, 0);
++					/* Migrate memory to device. */
++					ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
++					ASSERT_EQ(ret, 0);
++					ASSERT_EQ(buffer->cpages, npages);
 +
-+	buffer->ptr = old_ptr;
-+	hmm_buffer_free(buffer);
-+}
++					/* Check what the device read. */
++					for (i = 0, ptr = buffer->mirror;
++					     i < size / sizeof(*ptr); ++i)
++						ASSERT_EQ(ptr[i], i);
 +
-+/*
-+ * Migrate private anonymous huge page and fault back to sysmem.
-+ */
-+TEST_F(hmm, migrate_anon_huge_fault)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages;
-+	unsigned long size;
-+	unsigned long i;
-+	void *old_ptr;
-+	void *map;
-+	int *ptr;
-+	int ret;
++					if (!before) {
++						new_ptr = mremap((void *)map, size, size, flags,
++								 map + size + offsets[j]);
++						ASSERT_NE(new_ptr, MAP_FAILED);
++						buffer->ptr = new_ptr;
++					}
 +
-+	size = TWOMEG;
++					/* Fault pages back to system memory and check them. */
++					for (i = 0, ptr = buffer->ptr;
++					     i < size / sizeof(*ptr); ++i)
++						ASSERT_EQ(ptr[i], i);
 +
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
-+
-+	buffer->fd = -1;
-+	buffer->size = 2 * size;
-+	buffer->mirror = malloc(size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+	memset(buffer->mirror, 0xFF, size);
-+
-+	buffer->ptr = mmap(NULL, 2 * size,
-+			   PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANONYMOUS,
-+			   buffer->fd, 0);
-+	ASSERT_NE(buffer->ptr, MAP_FAILED);
-+
-+	npages = size >> self->page_shift;
-+	map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
-+	ret = madvise(map, size, MADV_HUGEPAGE);
-+	ASSERT_EQ(ret, 0);
-+	old_ptr = buffer->ptr;
-+	buffer->ptr = map;
-+
-+	/* Initialize buffer in system memory. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ptr[i] = i;
-+
-+	/* Migrate memory to device. */
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/* Check what the device read. */
-+	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], i);
-+
-+	/* Fault pages back to system memory and check them. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], i);
-+
-+	buffer->ptr = old_ptr;
-+	hmm_buffer_free(buffer);
-+}
-+
-+/*
-+ * Migrate private anonymous huge page with allocation errors.
-+ */
-+TEST_F(hmm, migrate_anon_huge_err)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages;
-+	unsigned long size;
-+	unsigned long i;
-+	void *old_ptr;
-+	void *map;
-+	int *ptr;
-+	int ret;
-+
-+	size = TWOMEG;
-+
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
-+
-+	buffer->fd = -1;
-+	buffer->size = 2 * size;
-+	buffer->mirror = malloc(2 * size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+	memset(buffer->mirror, 0xFF, 2 * size);
-+
-+	old_ptr = mmap(NULL, 2 * size, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS, buffer->fd, 0);
-+	ASSERT_NE(old_ptr, MAP_FAILED);
-+
-+	npages = size >> self->page_shift;
-+	map = (void *)ALIGN((uintptr_t)old_ptr, size);
-+	ret = madvise(map, size, MADV_HUGEPAGE);
-+	ASSERT_EQ(ret, 0);
-+	buffer->ptr = map;
-+
-+	/* Initialize buffer in system memory. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ptr[i] = i;
-+
-+	/* Migrate memory to device but force a THP allocation error. */
-+	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_FLAGS, buffer,
-+			      HMM_DMIRROR_FLAG_FAIL_ALLOC);
-+	ASSERT_EQ(ret, 0);
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/* Check what the device read. */
-+	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i) {
-+		ASSERT_EQ(ptr[i], i);
-+		if (ptr[i] != i)
-+			break;
++					munmap(new_ptr, size);
++					buffer->ptr = old_ptr;
++					hmm_buffer_free(buffer);
++				}
++			}
++		}
 +	}
-+
-+	/* Try faulting back a single (PAGE_SIZE) page. */
-+	ptr = buffer->ptr;
-+	ASSERT_EQ(ptr[2048], 2048);
-+
-+	/* unmap and remap the region to reset things. */
-+	ret = munmap(old_ptr, 2 * size);
-+	ASSERT_EQ(ret, 0);
-+	old_ptr = mmap(NULL, 2 * size, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS, buffer->fd, 0);
-+	ASSERT_NE(old_ptr, MAP_FAILED);
-+	map = (void *)ALIGN((uintptr_t)old_ptr, size);
-+	ret = madvise(map, size, MADV_HUGEPAGE);
-+	ASSERT_EQ(ret, 0);
-+	buffer->ptr = map;
-+
-+	/* Initialize buffer in system memory. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ptr[i] = i;
-+
-+	/* Migrate THP to device. */
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/*
-+	 * Force an allocation error when faulting back a THP resident in the
-+	 * device.
-+	 */
-+	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_FLAGS, buffer,
-+			      HMM_DMIRROR_FLAG_FAIL_ALLOC);
-+	ASSERT_EQ(ret, 0);
-+
-+	ret = hmm_migrate_dev_to_sys(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ptr = buffer->ptr;
-+	ASSERT_EQ(ptr[2048], 2048);
-+
-+	buffer->ptr = old_ptr;
-+	hmm_buffer_free(buffer);
 +}
 +
 +/*
-+ * Migrate private anonymous huge zero page with allocation errors.
-+ */
-+TEST_F(hmm, migrate_anon_huge_zero_err)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages;
-+	unsigned long size;
-+	unsigned long i;
-+	void *old_ptr;
-+	void *map;
-+	int *ptr;
-+	int ret;
-+
-+	size = TWOMEG;
-+
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
-+
-+	buffer->fd = -1;
-+	buffer->size = 2 * size;
-+	buffer->mirror = malloc(2 * size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+	memset(buffer->mirror, 0xFF, 2 * size);
-+
-+	old_ptr = mmap(NULL, 2 * size, PROT_READ,
-+			MAP_PRIVATE | MAP_ANONYMOUS, buffer->fd, 0);
-+	ASSERT_NE(old_ptr, MAP_FAILED);
-+
-+	npages = size >> self->page_shift;
-+	map = (void *)ALIGN((uintptr_t)old_ptr, size);
-+	ret = madvise(map, size, MADV_HUGEPAGE);
-+	ASSERT_EQ(ret, 0);
-+	buffer->ptr = map;
-+
-+	/* Migrate memory to device but force a THP allocation error. */
-+	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_FLAGS, buffer,
-+			      HMM_DMIRROR_FLAG_FAIL_ALLOC);
-+	ASSERT_EQ(ret, 0);
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/* Check what the device read. */
-+	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], 0);
-+
-+	/* Try faulting back a single (PAGE_SIZE) page. */
-+	ptr = buffer->ptr;
-+	ASSERT_EQ(ptr[2048], 0);
-+
-+	/* unmap and remap the region to reset things. */
-+	ret = munmap(old_ptr, 2 * size);
-+	ASSERT_EQ(ret, 0);
-+	old_ptr = mmap(NULL, 2 * size, PROT_READ,
-+			MAP_PRIVATE | MAP_ANONYMOUS, buffer->fd, 0);
-+	ASSERT_NE(old_ptr, MAP_FAILED);
-+	map = (void *)ALIGN((uintptr_t)old_ptr, size);
-+	ret = madvise(map, size, MADV_HUGEPAGE);
-+	ASSERT_EQ(ret, 0);
-+	buffer->ptr = map;
-+
-+	/* Initialize buffer in system memory (zero THP page). */
-+	ret = ptr[0];
-+	ASSERT_EQ(ret, 0);
-+
-+	/* Migrate memory to device but force a THP allocation error. */
-+	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_FLAGS, buffer,
-+			      HMM_DMIRROR_FLAG_FAIL_ALLOC);
-+	ASSERT_EQ(ret, 0);
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/* Fault the device memory back and check it. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], 0);
-+
-+	buffer->ptr = old_ptr;
-+	hmm_buffer_free(buffer);
-+}
- TEST_HARNESS_MAIN
+  * Migrate private anonymous huge page with allocation errors.
+  */
+ TEST_F(hmm, migrate_anon_huge_err)
 _
 
-Patches currently in -mm which might be from balbirs@nvidia.com are
+Patches currently in -mm which might be from matthew.brost@intel.com are
 
-mm-zone_device-support-large-zone-device-private-folios.patch
-mm-zone_device-rename-page_free-callback-to-folio_free.patch
-mm-huge_memory-add-device-private-thp-support-to-pmd-operations.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
-mm-huge_memory-implement-device-private-thp-splitting.patch
-mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
-mm-migrate_device-implement-thp-migration-of-zone-device-pages.patch
-mm-memory-fault-add-thp-fault-handling-for-zone-device-private-pages.patch
-lib-test_hmm-add-zone-device-private-thp-test-infrastructure.patch
-mm-memremap-add-driver-callback-support-for-folio-splitting.patch
-mm-migrate_device-add-thp-splitting-during-migration.patch
-lib-test_hmm-add-large-page-allocation-failure-testing.patch
-selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
-selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
-gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
+selftests-mm-hmm-tests-partial-unmap-mremap-and-anon_write-tests.patch
 
