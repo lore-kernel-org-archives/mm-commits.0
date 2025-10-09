@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65ED9284678
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 21:26:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2272F2417E0
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 23:20:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760045161; cv=none; b=imA+fQxN05G/XbcUxR0x54rCIhsQUYXKkhOrAeEeSRPT+RveSZDaThND89cUXpYdOuH3ACSoDgtcoiwumYKZPwe9uY7NP+zG1GnngsqDK9ulvKLpYO8z387pRd6wIflK7Hjx0oZpq3wPwN/ax65xKp6+ejUCnpp6s+ZbGodeFI0=
+	t=1760052058; cv=none; b=RdqzleGItTmWVysMY7X7gVx9xXDOb6VOy3+8lawecJ/9QcOL3bh6gCgODXmQbJ2gEiy+jtc6dxY18x239DRgoivw4D6CYPTqRWsZ2AlInlDoJT7B/tuTj1v/Pili6Fe14HjSxEF9QFQfS/2ge3UMbJyiJCke4OSQ9lJEwYq6Ew8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760045161; c=relaxed/simple;
-	bh=zhTC74MU9xxXqQBxxnC/WXQJ8Fj2MRxKFKJciodPmHo=;
-	h=Date:To:From:Subject:Message-Id; b=sgIwahOeQ14FPvRkk2L6lRErfBMlTZ1PM7ItiUP+7FkP0Qd8hh/6oUbeFuzEDZGikf2n5GFwRyiOFw3OsyV4zEaqbAuh6l01aY1tMcrx5bJNFPG4jAjvVLxuY8a8ftLz0zqUXilFc9S0jcV8pJPd47Nq4xW0A+dkBvYGMmIfzr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vUsUeEww; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760052058; c=relaxed/simple;
+	bh=he/UtPmQXsTuOVFzmxU/tzH1Edw0vy15laF1fOY+278=;
+	h=Date:To:From:Subject:Message-Id; b=kTTFJk+wZapRIafU/YK5Dp1wwuwu1666VwUuuoUiEpQk7ZQj2EaiCZlpGjwSxxNrmw6YTvR5HH1QcP9WUJXI5ZWdqCXQM8Mq0cb6YKCwWhZcpOkzlNaTFAEsjDf1Cg/kUvG6wItXhonqHBtLqIyEesdNyj8b9YNu9HK6EvoJ7uI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eGABuhyg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vUsUeEww"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06584C4CEE7;
-	Thu,  9 Oct 2025 21:26:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eGABuhyg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 892EFC4CEE7;
+	Thu,  9 Oct 2025 23:20:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760045161;
-	bh=zhTC74MU9xxXqQBxxnC/WXQJ8Fj2MRxKFKJciodPmHo=;
+	s=korg; t=1760052057;
+	bh=he/UtPmQXsTuOVFzmxU/tzH1Edw0vy15laF1fOY+278=;
 	h=Date:To:From:Subject:From;
-	b=vUsUeEwwBg18MnCg03QIQczNMLcm7wIOCGcV54mBQVXFLvV235d/gXU5C4IrNXVSA
-	 QLsRkTanvbDopCrVsnou2TEz9OdUoEnJHWqzIm1gZEjMXuF3vN9Z7VKWGQmqzjjpmA
-	 H6i+c7VnmPqlAtVORnb4zQ/hu0AmmbEhMb9+rnV8=
-Date: Thu, 09 Oct 2025 14:26:00 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,riel@surriel.com,osalvador@suse.de,muchun.song@linux.dev,hannes@cmpxchg.org,david@redhat.com,usamaarif642@gmail.com,akpm@linux-foundation.org
+	b=eGABuhygiu2aMbWlSyiNWf9Av/2VlUtiyqQom8rhunyhSSiJ+uG1q5t0zJKNy4dO3
+	 SQQLnUvDW/Ltyez1D4R8mySkP4CwpjdAFkN2/q843VSOucJw6QP5tfKE0B/JKcHVJ9
+	 28xMzdc7RVUisONQGPNoxzd9Ytkgr7M5w3pklP/Q=
+Date: Thu, 09 Oct 2025 16:20:56 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,peterx@redhat.com,ngeoffray@google.com,lorenzo.stoakes@oracle.com,kaleshsingh@google.com,jannh@google.com,harry.yoo@oracle.com,david@redhat.com,baohua@kernel.org,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch added to mm-new branch
-Message-Id: <20251009212601.06584C4CEE7@smtp.kernel.org>
+Subject: + mm-always-call-rmap_walk-on-locked-folios.patch added to mm-new branch
+Message-Id: <20251009232057.892EFC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: allow overcommitting gigantic hugepages
+     Subject: mm: always call rmap_walk() on locked folios
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch
+     mm-always-call-rmap_walk-on-locked-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-always-call-rmap_walk-on-locked-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,99 +64,344 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Usama Arif <usamaarif642@gmail.com>
-Subject: mm/hugetlb: allow overcommitting gigantic hugepages
-Date: Thu, 9 Oct 2025 18:24:31 +0100
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: mm: always call rmap_walk() on locked folios
+Date: Tue, 23 Sep 2025 00:10:18 -0700
 
-Currently, gigantic hugepages cannot use the overcommit mechanism
-(nr_overcommit_hugepages), forcing users to permanently reserve memory via
-nr_hugepages even when pages might not be actively used.
+Patch series "Improve UFFDIO_MOVE scalability by removing anon_vma lock", v2.
 
-The restriction was added in 2011 [1], which was before there was support
-for reserving 1G hugepages at runtime.  Remove this blanket restriction on
-gigantic hugepage overcommit.  This will bring the same benefits to
-gigantic pages as hugepages:
+Userfaultfd has a scalability issue in its UFFDIO_MOVE ioctl, which is
+heavily used in Android as its java garbage collector uses it for
+concurrent heap compaction.
 
-- Memory is only taken out of regular use when actually needed
-- Unused surplus pages can be returned to the system
-- Better memory utilization, especially with CMA backing which can
-  significantly increase the changes of hugepage allocation
+The issue arises because UFFDIO_MOVE updates folio->mapping to an anon_vma
+with a different root, in order to move the folio from a src VMA to dst
+VMA.  It performs the operation with the folio locked, but this is
+insufficient, because rmap_walk() can be performed on non-KSM anonymous
+folios without folio lock.
 
-Without this patch:
-echo 3 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_overcommit_hugepages
-bash: echo: write error: Invalid argument
+This means that UFFDIO_MOVE has to acquire the anon_vma write lock of the
+root anon_vma belonging to the folio it wishes to move.
 
-With this patch:
-echo 3 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_overcommit_hugepages
-./mmap_hugetlb_test
-Successfully allocated huge pages at address: 0x7f9d40000000
+This causes scalability bottleneck when multiple threads perform
+UFFDIO_MOVE simultanously on distinct pages of the same src VMA.  In field
+traces of arm64 android devices, we have observed janky user interactions
+due to long (sometimes over ~50ms) uninterruptible sleeps on main UI
+thread caused by anon_vma lock contention in UFFDIO_MOVE.  This is
+particularly severe during the beginning of GC's compaction phase when it
+is likely to have multiple threads involved.
 
-cat mmap_hugetlb_test.c
-...
-    unsigned long ALLOC_SIZE = 3 * (unsigned long) HUGE_PAGE_SIZE;
-    addr = mmap(NULL,
-                ALLOC_SIZE, // 3GB
-                PROT_READ | PROT_WRITE,
-                MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_HUGE_1GB,
-                -1,
-                0);
+This patch resolves the issue by removing the exception in rmap_walk() for
+non-KSM anon folios by ensuring that all folios are locked during rmap
+walk.  This is less problematic than it might seem, as the only major
+caller which utilises this mode is shrink_active_list(), which is covered
+in detail in the first patch of this series.
 
-    if (addr == MAP_FAILED) {
-        fprintf(stderr, "mmap failed: %s\n", strerror(errno));
-        return 1;
-    }
-    printf("Successfully allocated huge pages at address: %p\n", addr);
-...
+As a result of changing our approach to locking, we can remove all the
+code that took steps to acquire an anon_vma write lock instead of a folio
+lock.  This results in a significant simplification and scalability
+improvement of the code (currently only in UFFDIO_MOVE).  Furthermore, as
+a side-effect, folio_lock_anon_vma_read() gets simpler as we don't need to
+worry that folio->mapping may have changed under us.
 
-Link: https://lkml.kernel.org/r/20251009172433.4158118-2-usamaarif642@gmail.com
-Link: https://git.zx2c4.com/linux-rng/commit/mm/hugetlb.c?id=adbe8726dc2a3805630d517270db17e3af86e526 [1]
-Signed-off-by: Usama Arif <usamaarif642@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+
+This patch (of 2):
+
+Guarantee that rmap_walk() is called on locked folios so that threads
+changing folio->mapping and folio->index for non-KSM anon folios can
+serialize on fine-grained folio lock rather than anon_vma lock.  Other
+folio types are already always locked before rmap_walk().  With this, we
+are going from 'not necessarily' locking the non-KSM anon folio to
+'definitely' locking it during rmap walks.
+
+This patch is in preparation for removing anon_vma write-lock from
+UFFDIO_MOVE.
+
+With this patch, three functions are now expected to be called with a
+locked folio.  To be careful of not missing any case, here is the
+exhaustive list of all their callers.
+
+1) rmap_walk() is called from:
+
+a) folio_referenced()
+b) damon_folio_mkold()
+c) damon_folio_young()
+d) page_idle_clear_pte_refs()
+e) try_to_unmap()
+f) try_to_migrate()
+g) folio_mkclean()
+h) remove_migration_ptes()
+
+In the above list, first 4 are changed in this patch to try-lock non-KSM
+anon folios, similar to other types of folios.  The remaining functions in
+the list already hold folio lock when calling rmap_walk().
+
+2) folio_lock_anon_vma_read() is called from following functions:
+
+a) collect_procs_anon()
+b) page_idle_clear_pte_refs()
+c) damon_folio_mkold()
+d) damon_folio_young()
+e) folio_referenced()
+f) try_to_unmap()
+g) try_to_migrate()
+
+All the functions in above list, except collect_procs_anon(), are covered
+by the rmap_walk() list above.  For collect_procs_anon(), with
+kill_procs_now() changed to take folio lock in this patch ensures that all
+callers of folio_lock_anon_vma_read() now hold the lock.
+
+3) folio_get_anon_vma() is called from following functions, all of which
+   already hold the folio lock:
+
+a) move_pages_huge_pmd()
+b) __folio_split()
+c) move_pages_ptes()
+d) migrate_folio_unmap()
+e) unmap_and_move_huge_page()
+
+Functionally, this patch doesn't break the logic because rmap walkers
+generally do some other check to see if what is expected to mapped did
+happen so it's fine, or otherwise treat things as best-effort.
+
+Among the 4 functions changed in this patch, folio_referenced() is the
+only core-mm function, and is also frequently accessed.  To assess the
+impact of locking non-KSM anon folios in
+shrink_active_list()->folio_referenced() path, we performed an app cycle
+test on an arm64 android device.  During the whole duration of the test
+there were over 140k invocations of shrink_active_list(), out of which
+over 29k had at least one non-KSM anon folio on which folio_referenced()
+was called.  In none of these invocations folio_trylock() failed.
+
+Of course, we now take a lock where we wouldn't previously have.  In the
+past it would have had a major impact in causing a CoW write fault to copy
+a page in do_wp_page(), as commit 09854ba94c6a ("mm: do_wp_page()
+simplification") caused a failure to obtain folio lock to result in a page
+copy even if one wasn't necessary.
+
+However, since commit 6c287605fd56 ("mm: remember exclusively mapped
+anonymous pages with PG_anon_exclusive"), and the introduction of the
+folio anon exclusive flag, this issue is significantly mitigated.
+
+The only case remaining that we might worry about from this perspective is
+that of read-only folios immediately after fork where the anon exclusive
+bit will not have been set yet.
+
+We note however in the case of read-only just-forked folios that
+wp_can_reuse_anon_folio() will notice the raised reference count
+established by shrink_active_list() via isolate_lru_folios() and refuse to
+reuse in any case, so this will in fact have no impact - the folio lock is
+ultimately immaterial here.
+
+All-in-all it appears that there is little opportunity for meaningful
+negative impact from this change.
+
+Link: https://lkml.kernel.org/r/20250923071019.775806-1-lokeshgidra@google.com
+Link: https://lkml.kernel.org/r/20250923071019.775806-2-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Harry Yoo <harry.yoo@oracle.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: SeongJae Park <sj@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/ops-common.c |   16 +++------------
+ mm/memory-failure.c   |    3 ++
+ mm/page_idle.c        |    8 +------
+ mm/rmap.c             |   42 +++++++++++-----------------------------
+ 4 files changed, 21 insertions(+), 48 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-allow-overcommitting-gigantic-hugepages
-+++ a/mm/hugetlb.c
-@@ -2243,7 +2243,7 @@ static struct folio *alloc_surplus_huget
+--- a/mm/damon/ops-common.c~mm-always-call-rmap_walk-on-locked-folios
++++ a/mm/damon/ops-common.c
+@@ -174,21 +174,17 @@ void damon_folio_mkold(struct folio *fol
+ 		.rmap_one = damon_folio_mkold_one,
+ 		.anon_lock = folio_lock_anon_vma_read,
+ 	};
+-	bool need_lock;
+ 
+ 	if (!folio_mapped(folio) || !folio_raw_mapping(folio)) {
+ 		folio_set_idle(folio);
+ 		return;
+ 	}
+ 
+-	need_lock = !folio_test_anon(folio) || folio_test_ksm(folio);
+-	if (need_lock && !folio_trylock(folio))
++	if (!folio_trylock(folio))
+ 		return;
+ 
+ 	rmap_walk(folio, &rwc);
+-
+-	if (need_lock)
+-		folio_unlock(folio);
++	folio_unlock(folio);
+ 
+ }
+ 
+@@ -242,7 +238,6 @@ bool damon_folio_young(struct folio *fol
+ 		.rmap_one = damon_folio_young_one,
+ 		.anon_lock = folio_lock_anon_vma_read,
+ 	};
+-	bool need_lock;
+ 
+ 	if (!folio_mapped(folio) || !folio_raw_mapping(folio)) {
+ 		if (folio_test_idle(folio))
+@@ -251,14 +246,11 @@ bool damon_folio_young(struct folio *fol
+ 			return true;
+ 	}
+ 
+-	need_lock = !folio_test_anon(folio) || folio_test_ksm(folio);
+-	if (need_lock && !folio_trylock(folio))
++	if (!folio_trylock(folio))
+ 		return false;
+ 
+ 	rmap_walk(folio, &rwc);
+-
+-	if (need_lock)
+-		folio_unlock(folio);
++	folio_unlock(folio);
+ 
+ 	return accessed;
+ }
+--- a/mm/memory-failure.c~mm-always-call-rmap_walk-on-locked-folios
++++ a/mm/memory-failure.c
+@@ -2143,7 +2143,10 @@ static void kill_procs_now(struct page *
  {
- 	struct folio *folio = NULL;
+ 	LIST_HEAD(tokill);
  
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic_no_runtime(h))
- 		return NULL;
++	folio_lock(folio);
+ 	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
++	folio_unlock(folio);
++
+ 	kill_procs(&tokill, true, pfn, flags);
+ }
  
- 	spin_lock_irq(&hugetlb_lock);
-@@ -4305,7 +4305,7 @@ static ssize_t nr_overcommit_hugepages_s
- 	unsigned long input;
- 	struct hstate *h = kobj_to_hstate(kobj, NULL);
+--- a/mm/page_idle.c~mm-always-call-rmap_walk-on-locked-folios
++++ a/mm/page_idle.c
+@@ -104,19 +104,15 @@ static void page_idle_clear_pte_refs(str
+ 		.rmap_one = page_idle_clear_pte_refs_one,
+ 		.anon_lock = folio_lock_anon_vma_read,
+ 	};
+-	bool need_lock;
  
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic_no_runtime(h))
- 		return -EINVAL;
+ 	if (!folio_mapped(folio) || !folio_raw_mapping(folio))
+ 		return;
  
- 	err = kstrtoul(buf, 10, &input);
-@@ -5192,7 +5192,7 @@ static int hugetlb_overcommit_handler(co
+-	need_lock = !folio_test_anon(folio) || folio_test_ksm(folio);
+-	if (need_lock && !folio_trylock(folio))
++	if (!folio_trylock(folio))
+ 		return;
  
- 	tmp = h->nr_overcommit_huge_pages;
+ 	rmap_walk(folio, &rwc);
+-
+-	if (need_lock)
+-		folio_unlock(folio);
++	folio_unlock(folio);
+ }
  
--	if (write && hstate_is_gigantic(h))
-+	if (write && hstate_is_gigantic_no_runtime(h))
- 		return -EINVAL;
+ static ssize_t page_idle_bitmap_read(struct file *file, struct kobject *kobj,
+--- a/mm/rmap.c~mm-always-call-rmap_walk-on-locked-folios
++++ a/mm/rmap.c
+@@ -489,17 +489,15 @@ void __init anon_vma_init(void)
+  * if there is a mapcount, we can dereference the anon_vma after observing
+  * those.
+  *
+- * NOTE: the caller should normally hold folio lock when calling this.  If
+- * not, the caller needs to double check the anon_vma didn't change after
+- * taking the anon_vma lock for either read or write (UFFDIO_MOVE can modify it
+- * concurrently without folio lock protection). See folio_lock_anon_vma_read()
+- * which has already covered that, and comment above remap_pages().
++ * NOTE: the caller should hold folio lock when calling this.
+  */
+ struct anon_vma *folio_get_anon_vma(const struct folio *folio)
+ {
+ 	struct anon_vma *anon_vma = NULL;
+ 	unsigned long anon_mapping;
  
- 	ret = proc_hugetlb_doulongvec_minmax(table, write, buffer, length, ppos,
++	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++
+ 	rcu_read_lock();
+ 	anon_mapping = (unsigned long)READ_ONCE(folio->mapping);
+ 	if ((anon_mapping & FOLIO_MAPPING_FLAGS) != FOLIO_MAPPING_ANON)
+@@ -546,7 +544,8 @@ struct anon_vma *folio_lock_anon_vma_rea
+ 	struct anon_vma *root_anon_vma;
+ 	unsigned long anon_mapping;
+ 
+-retry:
++	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++
+ 	rcu_read_lock();
+ 	anon_mapping = (unsigned long)READ_ONCE(folio->mapping);
+ 	if ((anon_mapping & FOLIO_MAPPING_FLAGS) != FOLIO_MAPPING_ANON)
+@@ -558,17 +557,6 @@ retry:
+ 	root_anon_vma = READ_ONCE(anon_vma->root);
+ 	if (down_read_trylock(&root_anon_vma->rwsem)) {
+ 		/*
+-		 * folio_move_anon_rmap() might have changed the anon_vma as we
+-		 * might not hold the folio lock here.
+-		 */
+-		if (unlikely((unsigned long)READ_ONCE(folio->mapping) !=
+-			     anon_mapping)) {
+-			up_read(&root_anon_vma->rwsem);
+-			rcu_read_unlock();
+-			goto retry;
+-		}
+-
+-		/*
+ 		 * If the folio is still mapped, then this anon_vma is still
+ 		 * its anon_vma, and holding the mutex ensures that it will
+ 		 * not go away, see anon_vma_free().
+@@ -602,18 +590,6 @@ retry:
+ 	rcu_read_unlock();
+ 	anon_vma_lock_read(anon_vma);
+ 
+-	/*
+-	 * folio_move_anon_rmap() might have changed the anon_vma as we might
+-	 * not hold the folio lock here.
+-	 */
+-	if (unlikely((unsigned long)READ_ONCE(folio->mapping) !=
+-		     anon_mapping)) {
+-		anon_vma_unlock_read(anon_vma);
+-		put_anon_vma(anon_vma);
+-		anon_vma = NULL;
+-		goto retry;
+-	}
+-
+ 	if (atomic_dec_and_test(&anon_vma->refcount)) {
+ 		/*
+ 		 * Oops, we held the last refcount, release the lock
+@@ -988,7 +964,7 @@ int folio_referenced(struct folio *folio
+ 	if (!folio_raw_mapping(folio))
+ 		return 0;
+ 
+-	if (!is_locked && (!folio_test_anon(folio) || folio_test_ksm(folio))) {
++	if (!is_locked) {
+ 		we_locked = folio_trylock(folio);
+ 		if (!we_locked)
+ 			return 1;
+@@ -2848,6 +2824,12 @@ static void rmap_walk_anon(struct folio
+ 	pgoff_t pgoff_start, pgoff_end;
+ 	struct anon_vma_chain *avc;
+ 
++	/*
++	 * The folio lock ensures that folio->mapping can't be changed under us
++	 * to an anon_vma with different root.
++	 */
++	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++
+ 	if (locked) {
+ 		anon_vma = folio_anon_vma(folio);
+ 		/* anon_vma disappear under us? */
 _
 
-Patches currently in -mm which might be from usamaarif642@gmail.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-mm-hugetlb-create-hstate_is_gigantic_no_runtime-helper.patch
-mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch
+mm-always-call-rmap_walk-on-locked-folios.patch
+mm-userfaultfd-dont-lock-anon_vma-when-performing-uffdio_move.patch
 
