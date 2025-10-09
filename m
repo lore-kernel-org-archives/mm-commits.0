@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F7872AE97
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 00:44:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E7802AE97
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 00:44:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759970690; cv=none; b=ioZc78qMQxAAHi7ziQGZ8mQqdzH12BF961XXnRre2xI80A4rqMjT6UQx81VMztQ6w8URTK7QCQ09F5Pxg9CVsZHpaezGOBnWk1BG1HLG+ibNSPM3uGrFu1NPvCNyqiI+dDdUK1pRs/rCCTVzDY4Ulom2uQzNKy//CpkC2HWQLbU=
+	t=1759970692; cv=none; b=dGXUR87RNebQZwP8RSkql58bJVsOmiSFrcuoljC3Tmuapxt4OPoD2cRFtMDDhUIr9ZfWs5ruEP2cHuFJpS2HveoAlL1585mGk3VqjbeGc1QTv6xZ0MQ63ju1jA7qVd314xXCmqN2S+wR8G8d6Z7D2YhfFaxboTkiXk5WnRiGdnQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759970690; c=relaxed/simple;
-	bh=ztQEvCY8md/cLVn2RrsoI1dpQAH6KY/3U3yfjplxEwM=;
-	h=Date:To:From:Subject:Message-Id; b=WIgTIpX8iWVUOI0B6cX8HOJgNIS2TdaortE5UlTjJCUwYEaoKMHFA79F/jS5+vTLzUWBcHTdmdh9Q0BKVd+hDtqDTyICzCI3Ye70aUHml7iS5RohXy5o3SQn5o0I+q3B4zWNpKbYwfIOXnL+uT7tmyCGtPO+JXDcsujLhTUQ3M4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FZuYWHhW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759970692; c=relaxed/simple;
+	bh=fqPvtU71hIsj8xa87TMzplBjbEIvkiL4I4uTJMWro+I=;
+	h=Date:To:From:Subject:Message-Id; b=lpMXlsIB5Cox+VSUdbuS/gDv6x5MeRQXHjpfb8LLtf4n6ZtO/NN6pBxtnDpX7YgIhVMXgyGOI1cAaNZBm9gsYUQ1Z+775F6LDUhBL5/X5oveXlOXNNKPHXb8MVEb1yZhpCNpd2Blm9fvOxS2Iyl6F+aEa13BYP1BxEbPILUOndM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NTm5p2Ki; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FZuYWHhW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6ABDC4CEE7;
-	Thu,  9 Oct 2025 00:44:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NTm5p2Ki"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0071AC4CEE7;
+	Thu,  9 Oct 2025 00:44:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759970690;
-	bh=ztQEvCY8md/cLVn2RrsoI1dpQAH6KY/3U3yfjplxEwM=;
+	s=korg; t=1759970692;
+	bh=fqPvtU71hIsj8xa87TMzplBjbEIvkiL4I4uTJMWro+I=;
 	h=Date:To:From:Subject:From;
-	b=FZuYWHhWAxxQAVI4xkEy4U75NwVqJxNtL9O76imgstOMlrCTgvFCWhmpCJND3GnC9
-	 MPyH2Rj3PQpWFdtartSxZ4kQBbHt+2EUcBgCEzjPAvbg7AMAdgBYCbc/BRHkb0cBkL
-	 63Z1de2ibOhgdyoBQQL2O/iP49sG2mM96zjiH9P0=
-Date: Wed, 08 Oct 2025 17:44:49 -0700
+	b=NTm5p2KizJmcxcOZHqsCrgVml7DhYbUJgjkBLwUgzDDBhM6PATA033+9j36o3Jqv2
+	 1t1xALJmKe5RjX3OsM6yhgK3Z6W1oUjGx5nRRe5DwaEGrkzJDqezAUEZj4OZ692YMs
+	 SclcpnJTxiY1P9oFXWAGtnQHVvKq0ck0NHp+3EWI=
+Date: Wed, 08 Oct 2025 17:44:51 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-use-vm_warn_on_folio-instead-of-vm_bug_on_folio-for-non-anon-folios.patch added to mm-new branch
-Message-Id: <20251009004449.E6ABDC4CEE7@smtp.kernel.org>
+Subject: + mm-khugepaged-merge-pte-scanning-logic-into-a-new-helper.patch added to mm-new branch
+Message-Id: <20251009004452.0071AC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: use VM_WARN_ON_FOLIO instead of VM_BUG_ON_FOLIO for non-anon folios
+     Subject: mm/khugepaged: merge PTE scanning logic into a new helper
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-use-vm_warn_on_folio-instead-of-vm_bug_on_folio-for-non-anon-folios.patch
+     mm-khugepaged-merge-pte-scanning-logic-into-a-new-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-use-vm_warn_on_folio-instead-of-vm_bug_on_folio-for-non-anon-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-merge-pte-scanning-logic-into-a-new-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,62 +65,330 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/khugepaged: use VM_WARN_ON_FOLIO instead of VM_BUG_ON_FOLIO for non-anon folios
-Date: Wed, 8 Oct 2025 12:37:47 +0800
+Subject: mm/khugepaged: merge PTE scanning logic into a new helper
+Date: Wed, 8 Oct 2025 12:37:48 +0800
 
-As Zi pointed out, we should avoid crashing the kernel for conditions that
-can be handled gracefully.  Encountering a non-anonymous folio in an
-anonymous VMA is a bug, but a warning is sufficient.
+As David suggested, the PTE scanning logic in hpage_collapse_scan_pmd()
+and __collapse_huge_page_isolate() was almost duplicated.
 
-This patch changes the VM_BUG_ON_FOLIO(!folio_test_anon(folio)) to a
-VM_WARN_ON_FOLIO() in both __collapse_huge_page_isolate() and
-hpage_collapse_scan_pmd(), and then aborts the scan with SCAN_PAGE_ANON.
+This patch cleans things up by moving all the common PTE checking logic
+into a new shared helper, thp_collapse_check_pte().  While at it, we use
+vm_normal_folio() instead of vm_normal_page().
 
-Making more of the scanning logic common between hpage_collapse_scan_pmd()
-and __collapse_huge_page_isolate(), as suggested by Dev.
-
-Link: https://lkml.kernel.org/r/20251008043748.45554-3-lance.yang@linux.dev
+Link: https://lkml.kernel.org/r/20251008043748.45554-4-lance.yang@linux.dev
 Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Suggested-by: Dev Jain <dev.jain@arm.com>
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/khugepaged.c |  243 ++++++++++++++++++++++++----------------------
+ 1 file changed, 130 insertions(+), 113 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-use-vm_warn_on_folio-instead-of-vm_bug_on_folio-for-non-anon-folios
+--- a/mm/khugepaged.c~mm-khugepaged-merge-pte-scanning-logic-into-a-new-helper
 +++ a/mm/khugepaged.c
-@@ -573,7 +573,11 @@ static int __collapse_huge_page_isolate(
- 		}
+@@ -61,6 +61,12 @@ enum scan_result {
+ 	SCAN_PAGE_FILLED,
+ };
  
- 		folio = page_folio(page);
--		VM_BUG_ON_FOLIO(!folio_test_anon(folio), folio);
-+		if (!folio_test_anon(folio)) {
-+			VM_WARN_ON_FOLIO(true, folio);
-+			result = SCAN_PAGE_ANON;
-+			goto out;
++enum pte_check_result {
++	PTE_CHECK_SUCCEED,
++	PTE_CHECK_CONTINUE,
++	PTE_CHECK_FAIL,
++};
++
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/huge_memory.h>
+ 
+@@ -533,62 +539,139 @@ static void release_pte_pages(pte_t *pte
+ 	}
+ }
+ 
++/*
++ * thp_collapse_check_pte - Check if a PTE is suitable for THP collapse
++ * @pte:           The PTE to check
++ * @vma:           The VMA the PTE belongs to
++ * @addr:          The virtual address corresponding to this PTE
++ * @foliop:        On success, used to return a pointer to the folio
++ *                 Must be non-NULL
++ * @none_or_zero:  Counter for none/zero PTEs. Must be non-NULL
++ * @unmapped:      Counter for swap PTEs. Can be NULL if not scanning swaps
++ * @shared:        Counter for shared pages. Must be non-NULL
++ * @scan_result:   Used to return the failure reason (SCAN_*) on a
++ *                 PTE_CHECK_FAIL return. Must be non-NULL
++ * @cc:            Collapse control settings
++ *
++ * Returns:
++ *   PTE_CHECK_SUCCEED  - PTE is suitable, proceed with further checks
++ *   PTE_CHECK_CONTINUE - Skip this PTE and continue scanning
++ *   PTE_CHECK_FAIL     - Abort collapse scan
++ */
++static inline int thp_collapse_check_pte(pte_t pte, struct vm_area_struct *vma,
++		unsigned long addr, struct folio **foliop, int *none_or_zero,
++		int *unmapped, int *shared, int *scan_result,
++		struct collapse_control *cc)
++{
++	struct folio *folio = NULL;
++
++	if (pte_none(pte) || is_zero_pfn(pte_pfn(pte))) {
++		(*none_or_zero)++;
++		if (!userfaultfd_armed(vma) &&
++		    (!cc->is_khugepaged ||
++		     *none_or_zero <= khugepaged_max_ptes_none)) {
++			return PTE_CHECK_CONTINUE;
++		} else {
++			*scan_result = SCAN_EXCEED_NONE_PTE;
++			count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
++			return PTE_CHECK_FAIL;
 +		}
++	} else if (!pte_present(pte)) {
++		if (!unmapped) {
++			*scan_result = SCAN_PTE_NON_PRESENT;
++			return PTE_CHECK_FAIL;
++		}
++
++		if (non_swap_entry(pte_to_swp_entry(pte))) {
++			*scan_result = SCAN_PTE_NON_PRESENT;
++			return PTE_CHECK_FAIL;
++		}
++
++		(*unmapped)++;
++		if (!cc->is_khugepaged ||
++		    *unmapped <= khugepaged_max_ptes_swap) {
++			/*
++			 * Always be strict with uffd-wp enabled swap
++			 * entries. Please see comment below for
++			 * pte_uffd_wp().
++			 */
++			if (pte_swp_uffd_wp(pte)) {
++				*scan_result = SCAN_PTE_UFFD_WP;
++				return PTE_CHECK_FAIL;
++			}
++			return PTE_CHECK_CONTINUE;
++		} else {
++			*scan_result = SCAN_EXCEED_SWAP_PTE;
++			count_vm_event(THP_SCAN_EXCEED_SWAP_PTE);
++			return PTE_CHECK_FAIL;
++		}
++	} else if (pte_uffd_wp(pte)) {
++		/*
++		 * Don't collapse the page if any of the small PTEs are
++		 * armed with uffd write protection. Here we can also mark
++		 * the new huge pmd as write protected if any of the small
++		 * ones is marked but that could bring unknown userfault
++		 * messages that falls outside of the registered range.
++		 * So, just be simple.
++		 */
++		*scan_result = SCAN_PTE_UFFD_WP;
++		return PTE_CHECK_FAIL;
++	}
++
++	folio = vm_normal_folio(vma, addr, pte);
++	if (unlikely(!folio) || unlikely(folio_is_zone_device(folio))) {
++		*scan_result = SCAN_PAGE_NULL;
++		return PTE_CHECK_FAIL;
++	}
++
++	if (!folio_test_anon(folio)) {
++		VM_WARN_ON_FOLIO(true, folio);
++		*scan_result = SCAN_PAGE_ANON;
++		return PTE_CHECK_FAIL;
++	}
++
++	/*
++	 * We treat a single page as shared if any part of the THP
++	 * is shared.
++	 */
++	if (folio_maybe_mapped_shared(folio)) {
++		(*shared)++;
++		if (cc->is_khugepaged && *shared > khugepaged_max_ptes_shared) {
++			*scan_result = SCAN_EXCEED_SHARED_PTE;
++			count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
++			return PTE_CHECK_FAIL;
++		}
++	}
++
++	*foliop = folio;
++
++	return PTE_CHECK_SUCCEED;
++}
++
+ static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
+ 					unsigned long start_addr,
+ 					pte_t *pte,
+ 					struct collapse_control *cc,
+ 					struct list_head *compound_pagelist)
+ {
+-	struct page *page = NULL;
+ 	struct folio *folio = NULL;
+ 	unsigned long addr = start_addr;
+ 	pte_t *_pte;
+ 	int none_or_zero = 0, shared = 0, result = SCAN_FAIL, referenced = 0;
++	int pte_check_res;
  
- 		/* See hpage_collapse_scan_pmd(). */
- 		if (folio_maybe_mapped_shared(folio)) {
-@@ -1340,6 +1344,7 @@ static int hpage_collapse_scan_pmd(struc
- 		folio = page_folio(page);
+ 	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
+ 	     _pte++, addr += PAGE_SIZE) {
+ 		pte_t pteval = ptep_get(_pte);
+-		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
+-			++none_or_zero;
+-			if (!userfaultfd_armed(vma) &&
+-			    (!cc->is_khugepaged ||
+-			     none_or_zero <= khugepaged_max_ptes_none)) {
+-				continue;
+-			} else {
+-				result = SCAN_EXCEED_NONE_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
+-				goto out;
+-			}
+-		} else if (!pte_present(pteval)) {
+-			result = SCAN_PTE_NON_PRESENT;
+-			goto out;
+-		} else if (pte_uffd_wp(pteval)) {
+-			result = SCAN_PTE_UFFD_WP;
+-			goto out;
+-		}
+-		page = vm_normal_page(vma, addr, pteval);
+-		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
+-			result = SCAN_PAGE_NULL;
+-			goto out;
+-		}
  
- 		if (!folio_test_anon(folio)) {
-+			VM_WARN_ON_FOLIO(true, folio);
- 			result = SCAN_PAGE_ANON;
+-		folio = page_folio(page);
+-		if (!folio_test_anon(folio)) {
+-			VM_WARN_ON_FOLIO(true, folio);
+-			result = SCAN_PAGE_ANON;
+-			goto out;
+-		}
++		pte_check_res = thp_collapse_check_pte(pteval, vma, addr,
++					&folio, &none_or_zero, NULL, &shared,
++					&result, cc);
+ 
+-		/* See hpage_collapse_scan_pmd(). */
+-		if (folio_maybe_mapped_shared(folio)) {
+-			++shared;
+-			if (cc->is_khugepaged &&
+-			    shared > khugepaged_max_ptes_shared) {
+-				result = SCAN_EXCEED_SHARED_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+-				goto out;
+-			}
+-		}
++		if (pte_check_res == PTE_CHECK_CONTINUE)
++			continue;
++		else if (pte_check_res == PTE_CHECK_FAIL)
++			goto out;
+ 
+ 		if (folio_test_large(folio)) {
+ 			struct folio *f;
+@@ -1264,11 +1347,11 @@ static int hpage_collapse_scan_pmd(struc
+ 	pte_t *pte, *_pte;
+ 	int result = SCAN_FAIL, referenced = 0;
+ 	int none_or_zero = 0, shared = 0;
+-	struct page *page = NULL;
+ 	struct folio *folio = NULL;
+ 	unsigned long addr;
+ 	spinlock_t *ptl;
+ 	int node = NUMA_NO_NODE, unmapped = 0;
++	int pte_check_res;
+ 
+ 	VM_BUG_ON(start_addr & ~HPAGE_PMD_MASK);
+ 
+@@ -1287,81 +1370,15 @@ static int hpage_collapse_scan_pmd(struc
+ 	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
+ 	     _pte++, addr += PAGE_SIZE) {
+ 		pte_t pteval = ptep_get(_pte);
+-		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
+-			++none_or_zero;
+-			if (!userfaultfd_armed(vma) &&
+-			    (!cc->is_khugepaged ||
+-			     none_or_zero <= khugepaged_max_ptes_none)) {
+-				continue;
+-			} else {
+-				result = SCAN_EXCEED_NONE_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
+-				goto out_unmap;
+-			}
+-		} else if (!pte_present(pteval)) {
+-			if (non_swap_entry(pte_to_swp_entry(pteval))) {
+-				result = SCAN_PTE_NON_PRESENT;
+-				goto out_unmap;
+-			}
+ 
+-			++unmapped;
+-			if (!cc->is_khugepaged ||
+-			    unmapped <= khugepaged_max_ptes_swap) {
+-				/*
+-				 * Always be strict with uffd-wp
+-				 * enabled swap entries.  Please see
+-				 * comment below for pte_uffd_wp().
+-				 */
+-				if (pte_swp_uffd_wp(pteval)) {
+-					result = SCAN_PTE_UFFD_WP;
+-					goto out_unmap;
+-				}
+-				continue;
+-			} else {
+-				result = SCAN_EXCEED_SWAP_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_SWAP_PTE);
+-				goto out_unmap;
+-			}
+-		} else if (pte_uffd_wp(pteval)) {
+-			/*
+-			 * Don't collapse the page if any of the small
+-			 * PTEs are armed with uffd write protection.
+-			 * Here we can also mark the new huge pmd as
+-			 * write protected if any of the small ones is
+-			 * marked but that could bring unknown
+-			 * userfault messages that falls outside of
+-			 * the registered range.  So, just be simple.
+-			 */
+-			result = SCAN_PTE_UFFD_WP;
+-			goto out_unmap;
+-		}
+-
+-		page = vm_normal_page(vma, addr, pteval);
+-		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
+-			result = SCAN_PAGE_NULL;
+-			goto out_unmap;
+-		}
+-		folio = page_folio(page);
++		pte_check_res = thp_collapse_check_pte(pteval, vma, addr,
++					&folio, &none_or_zero, &unmapped,
++					&shared, &result, cc);
+ 
+-		if (!folio_test_anon(folio)) {
+-			VM_WARN_ON_FOLIO(true, folio);
+-			result = SCAN_PAGE_ANON;
++		if (pte_check_res == PTE_CHECK_CONTINUE)
++			continue;
++		else if (pte_check_res == PTE_CHECK_FAIL)
  			goto out_unmap;
- 		}
+-		}
+-
+-		/*
+-		 * We treat a single page as shared if any part of the THP
+-		 * is shared.
+-		 */
+-		if (folio_maybe_mapped_shared(folio)) {
+-			++shared;
+-			if (cc->is_khugepaged &&
+-			    shared > khugepaged_max_ptes_shared) {
+-				result = SCAN_EXCEED_SHARED_PTE;
+-				count_vm_event(THP_SCAN_EXCEED_SHARED_PTE);
+-				goto out_unmap;
+-			}
+-		}
+ 
+ 		/*
+ 		 * Record which node the original page is from and save this
 _
 
 Patches currently in -mm which might be from lance.yang@linux.dev are
