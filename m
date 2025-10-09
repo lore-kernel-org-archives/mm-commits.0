@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0119622578A
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 03:18:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82F2D57C9F
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 03:18:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759979894; cv=none; b=A76Yq4RtwhSLHQ0E0dPZxLXU5VVbKga7aFpn1KAnSToZvp7O7VKt7WBUw/DiLCOt2RVhTGy7s0NQ3uV9NVL43fwu6gAtKeAXXbdaYZ71ac5/sesxKkg1FTCygeUzW/v7sI8qMatDuu1IyD+RX86J5mrEqGmHvD1nkVuLMlGvloA=
+	t=1759979899; cv=none; b=EuNclXxtP7cCmVAekIyjwPwmuYq773zq5IS8T/QxC/ALnIUOwoSI3zRr+ttvyru8bO0f87QQEfoPu98AmqG45glF2TJMuxjJCKZ6xtXMVw5AcF+e2KOc/DUWjl3jW2mchYuedSLFyCAEhT06sxw6ptBlS+kXndCkwNeku91bL04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759979894; c=relaxed/simple;
-	bh=LTTqSkig+//ZiI5HJ5P6wCkveAJfedN0bBIfrXL+AHI=;
-	h=Date:To:From:Subject:Message-Id; b=T5r2aBpP4qMSe9k9wSdr8eALU5VMR3jPrGop5WU3FwW3i91d9SI3JguI/qiOWKERldlB7kSOhFu7J5rLRVVQ6hZFUBfDa5n0qYMjPD3YrgH+O4h29sWAUcxtNmQ+e50SLVJk2LFf5FW/P6UURQBRT5kpDa7HsPt52Q/K9iH21h4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F4hLgKZK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759979899; c=relaxed/simple;
+	bh=WxDIsHFXkVjea8GrAuqj3b5scT/XF5zIrG1KqYLKAvs=;
+	h=Date:To:From:Subject:Message-Id; b=kz90p3OisZ+Ysiy1hX7wm+X5vvGUVOZI6WgaiDedeHfV4Tz6dYvoXx+05TeTAShH9EY9EpSYqqqgphOAffJO71buDel3CihCRvaq5Z6cw8VyP/wWPM3byUYw8wDIh9XNqtMo3qJhpikOEY3RX7VCj0zFMyRz7Wzd4bY4b05pO4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MCfPiq0s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F4hLgKZK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74E6BC4CEF4;
-	Thu,  9 Oct 2025 03:18:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MCfPiq0s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFA65C4CEE7;
+	Thu,  9 Oct 2025 03:18:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759979893;
-	bh=LTTqSkig+//ZiI5HJ5P6wCkveAJfedN0bBIfrXL+AHI=;
+	s=korg; t=1759979898;
+	bh=WxDIsHFXkVjea8GrAuqj3b5scT/XF5zIrG1KqYLKAvs=;
 	h=Date:To:From:Subject:From;
-	b=F4hLgKZKa1AV4rBekDV1Nq4SAdcRbfO5ELX+IG7VYsCu2JF5ZnWTedOVasDIyp9vy
-	 yaZuFjAzmKh/zS8/O3o4FH6cL6/unxjsvoSkKfHx3lW8n1wtU0TPrdgdC2fLb0qM6O
-	 F4+DTGIY3oEobPkP3I7GILuTLcPyHj9X4rMWe4Do=
-Date: Wed, 08 Oct 2025 20:18:12 -0700
+	b=MCfPiq0sPzci1uYojShLOcZZ9DYqbPgKKRdD3DFtblpyWYTf42NPxn6qt5RVfg/5y
+	 yE6SJxkMwxkHkcPq1IGoouZ1vTkcSS5Y4CdoCbZy/2fRmBQ9M/c0w26uCxQ+NMnaRO
+	 Ybhyelt3z+IUnzNhiNH/Kaz05mrRrPrHLJscS/7A=
+Date: Wed, 08 Oct 2025 20:18:18 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,maddy@linux.ibm.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,Felix.Kuehling@amd.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,christophe.leroy@csgroup.eu,christian.koenig@amd.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,alexander.deucher@amd.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zone_device-support-large-zone-device-private-folios.patch added to mm-new branch
-Message-Id: <20251009031813.74E6BC4CEF4@smtp.kernel.org>
+Subject: + mm-zone_device-rename-page_free-callback-to-folio_free.patch added to mm-new branch
+Message-Id: <20251009031818.BFA65C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zone_device: support large zone device private folios
+     Subject: mm/zone_device: Rename page_free callback to folio_free
 has been added to the -mm mm-new branch.  Its filename is
-     mm-zone_device-support-large-zone-device-private-folios.patch
+     mm-zone_device-rename-page_free-callback-to-folio_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zone_device-support-large-zone-device-private-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zone_device-rename-page_free-callback-to-folio_free.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,99 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Balbir Singh <balbirs@nvidia.com>
-Subject: mm/zone_device: support large zone device private folios
-Date: Wed, 1 Oct 2025 16:56:52 +1000
+Subject: mm/zone_device: Rename page_free callback to folio_free
+Date: Wed, 1 Oct 2025 16:56:53 +1000
 
-Patch series "mm: support device-private THP", v7.
+Change page_free to folio_free to make the folio support for
+zone device-private more consistent. The PCI P2PDMA callback
+has also been updated and changed to folio_free() as a result.
 
-This patch series introduces support for Transparent Huge Page (THP)
-migration in zone device-private memory.  The implementation enables
-efficient migration of large folios between system memory and
-device-private memory
+For drivers that do not support folios (yet), the folio is
+converted back into page via &folio->page and the page is used
+as is, in the current callback implementation.
 
-Background
-
-Current zone device-private memory implementation only supports PAGE_SIZE
-granularity, leading to:
-- Increased TLB pressure
-- Inefficient migration between CPU and device memory
-
-This series extends the existing zone device-private infrastructure to
-support THP, leading to:
-- Reduced page table overhead
-- Improved memory bandwidth utilization
-- Seamless fallback to base pages when needed
-
-In my local testing (using lib/test_hmm) and a throughput test, the series
-shows a 350% improvement in data transfer throughput and a 80% improvement
-in latency
-
-These patches build on the earlier posts by Ralph Campbell [1]
-
-Two new flags are added in vma_migration to select and mark compound
-pages.  migrate_vma_setup(), migrate_vma_pages() and
-migrate_vma_finalize() support migration of these pages when
-MIGRATE_VMA_SELECT_COMPOUND is passed in as arguments.
-
-The series also adds zone device awareness to (m)THP pages along with
-fault handling of large zone device private pages.  page vma walk and the
-rmap code is also zone device aware.  Support has also been added for
-folios that might need to be split in the middle of migration (when the
-src and dst do not agree on MIGRATE_PFN_COMPOUND), that occurs when src
-side of the migration can migrate large pages, but the destination has not
-been able to allocate large pages.  The code supported and used
-folio_split() when migrating THP pages, this is used when
-MIGRATE_VMA_SELECT_COMPOUND is not passed as an argument to
-migrate_vma_setup().
-
-The test infrastructure lib/test_hmm.c has been enhanced to support THP
-migration.  A new ioctl to emulate failure of large page allocations has
-been added to test the folio split code path.  hmm-tests.c has new test
-cases for huge page migration and to test the folio split path.  A new
-throughput test has been added as well.
-
-The nouveau dmem code has been enhanced to use the new THP migration
-capability.  
-
-mTHP support:
-
-The patches hard code, HPAGE_PMD_NR in a few places, but the code has been
-kept generic to support various order sizes.  With additional refactoring
-of the code support of different order sizes should be possible.
-
-The future plan is to post enhancements to support mTHP with a rough
-design as follows:
-
-1. Add the notion of allowable thp orders to the HMM based test driver
-2. For non PMD based THP paths in migrate_device.c, check to see if
-   a suitable order is found and supported by the driver
-3. Iterate across orders to check the highest supported order for migration
-4. Migrate and finalize
-
-The mTHP patches can be built on top of this series, the key design
-elements that need to be worked out are infrastructure and driver support
-for multiple ordered pages and their migration.
-
-HMM support for large folios, patches are already posted and in
-mm-unstable.
-
-
-This patch (of 16)
-
-Add routines to support allocation of large order zone device folios and
-helper functions for zone device folios, to check if a folio is device
-private and helpers for setting zone device data.
-
-When large folios are used, the existing page_free() callback in pgmap is
-called when the folio is freed, this is true for both PAGE_SIZE and higher
-order pages.
-
-Zone device private large folios do not support deferred split and scan
-like normal THP folios.
-
-Link: https://lkml.kernel.org/r/20251001065707.920170-1-balbirs@nvidia.com
-Link: https://lkml.kernel.org/r/20251001065707.920170-2-balbirs@nvidia.com
-Link: https://lore.kernel.org/linux-mm/20201106005147.20113-1-rcampbell@nvidia.com/ [1]
+Link: https://lkml.kernel.org/r/20251001065707.920170-3-balbirs@nvidia.com
 Signed-off-by: Balbir Singh <balbirs@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Zi Yan <ziy@nvidia.com>
@@ -191,176 +110,234 @@ Cc: "Christian König" <christian.koenig@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c       |    2 -
- drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |    2 -
- drivers/gpu/drm/drm_pagemap.c            |    2 -
- drivers/gpu/drm/nouveau/nouveau_dmem.c   |    2 -
- include/linux/memremap.h                 |   10 +++++++-
- lib/test_hmm.c                           |    2 -
- mm/memremap.c                            |   26 ++++++++++++---------
- mm/rmap.c                                |    6 ++++
- 8 files changed, 34 insertions(+), 18 deletions(-)
+ Documentation/mm/memory-model.rst        |    2 +-
+ arch/powerpc/kvm/book3s_hv_uvmem.c       |    5 +++--
+ drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |    5 +++--
+ drivers/gpu/drm/drm_pagemap.c            |   10 +++++-----
+ drivers/gpu/drm/nouveau/nouveau_dmem.c   |    5 +++--
+ drivers/pci/p2pdma.c                     |    5 +++--
+ include/linux/memremap.h                 |    6 +++---
+ lib/test_hmm.c                           |    5 +++--
+ mm/memremap.c                            |   16 ++++++++--------
+ 9 files changed, 32 insertions(+), 27 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-zone_device-support-large-zone-device-private-folios
+--- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-zone_device-rename-page_free-callback-to-folio_free
 +++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -723,7 +723,7 @@ static struct page *kvmppc_uvmem_get_pag
- 
- 	dpage = pfn_to_page(uvmem_pfn);
- 	dpage->zone_device_data = pvt;
--	zone_device_page_init(dpage);
-+	zone_device_page_init(dpage, 0);
- 	return dpage;
- out_clear:
- 	spin_lock(&kvmppc_uvmem_bitmap_lock);
---- a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c~mm-zone_device-support-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
-@@ -218,7 +218,7 @@ svm_migrate_get_vram_page(struct svm_ran
- 	page = pfn_to_page(pfn);
- 	svm_range_bo_ref(prange->svm_bo);
- 	page->zone_device_data = prange->svm_bo;
--	zone_device_page_init(page);
-+	zone_device_page_init(page, 0);
+@@ -1014,8 +1014,9 @@ static vm_fault_t kvmppc_uvmem_migrate_t
+  * to a normal PFN during H_SVM_PAGE_OUT.
+  * Gets called with kvm->arch.uvmem_lock held.
+  */
+-static void kvmppc_uvmem_page_free(struct page *page)
++static void kvmppc_uvmem_folio_free(struct folio *folio)
+ {
++	struct page *page = &folio->page;
+ 	unsigned long pfn = page_to_pfn(page) -
+ 			(kvmppc_uvmem_pgmap.range.start >> PAGE_SHIFT);
+ 	struct kvmppc_uvmem_page_pvt *pvt;
+@@ -1034,7 +1035,7 @@ static void kvmppc_uvmem_page_free(struc
  }
  
- static void
---- a/drivers/gpu/drm/drm_pagemap.c~mm-zone_device-support-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/drm_pagemap.c
-@@ -196,7 +196,7 @@ static void drm_pagemap_get_devmem_page(
- 					struct drm_pagemap_zdd *zdd)
+ static const struct dev_pagemap_ops kvmppc_uvmem_ops = {
+-	.page_free = kvmppc_uvmem_page_free,
++	.folio_free = kvmppc_uvmem_folio_free,
+ 	.migrate_to_ram	= kvmppc_uvmem_migrate_to_ram,
+ };
+ 
+--- a/Documentation/mm/memory-model.rst~mm-zone_device-rename-page_free-callback-to-folio_free
++++ a/Documentation/mm/memory-model.rst
+@@ -165,7 +165,7 @@ The users of `ZONE_DEVICE` are:
+ * pmem: Map platform persistent memory to be used as a direct-I/O target
+   via DAX mappings.
+ 
+-* hmm: Extend `ZONE_DEVICE` with `->page_fault()` and `->page_free()`
++* hmm: Extend `ZONE_DEVICE` with `->page_fault()` and `->folio_free()`
+   event callbacks to allow a device-driver to coordinate memory management
+   events related to device-memory, typically GPU memory. See
+   Documentation/mm/hmm.rst.
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c~mm-zone_device-rename-page_free-callback-to-folio_free
++++ a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
+@@ -568,8 +568,9 @@ out:
+ 	return r < 0 ? r : 0;
+ }
+ 
+-static void svm_migrate_page_free(struct page *page)
++static void svm_migrate_folio_free(struct folio *folio)
  {
- 	page->zone_device_data = drm_pagemap_zdd_get(zdd);
--	zone_device_page_init(page);
-+	zone_device_page_init(page, 0);
++	struct page *page = &folio->page;
+ 	struct svm_range_bo *svm_bo = page->zone_device_data;
+ 
+ 	if (svm_bo) {
+@@ -1009,7 +1010,7 @@ out_mmput:
+ }
+ 
+ static const struct dev_pagemap_ops svm_migrate_pgmap_ops = {
+-	.page_free		= svm_migrate_page_free,
++	.folio_free		= svm_migrate_folio_free,
+ 	.migrate_to_ram		= svm_migrate_to_ram,
+ };
+ 
+--- a/drivers/gpu/drm/drm_pagemap.c~mm-zone_device-rename-page_free-callback-to-folio_free
++++ a/drivers/gpu/drm/drm_pagemap.c
+@@ -752,15 +752,15 @@ err_out:
  }
  
  /**
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-zone_device-support-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -318,7 +318,7 @@ nouveau_dmem_page_alloc_locked(struct no
- 			return NULL;
- 	}
- 
--	zone_device_page_init(page);
-+	zone_device_page_init(page, 0);
- 	return page;
- }
- 
---- a/include/linux/memremap.h~mm-zone_device-support-large-zone-device-private-folios
-+++ a/include/linux/memremap.h
-@@ -206,7 +206,7 @@ static inline bool is_fsdax_page(const s
- }
- 
- #ifdef CONFIG_ZONE_DEVICE
--void zone_device_page_init(struct page *page);
-+void zone_device_page_init(struct page *page, unsigned int order);
- void *memremap_pages(struct dev_pagemap *pgmap, int nid);
- void memunmap_pages(struct dev_pagemap *pgmap);
- void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
-@@ -215,6 +215,14 @@ struct dev_pagemap *get_dev_pagemap(unsi
- bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
- 
- unsigned long memremap_compat_align(void);
-+
-+static inline void zone_device_folio_init(struct folio *folio, unsigned int order)
-+{
-+	zone_device_page_init(&folio->page, order);
-+	if (order)
-+		folio_set_large_rmappable(folio);
-+}
-+
- #else
- static inline void *devm_memremap_pages(struct device *dev,
- 		struct dev_pagemap *pgmap)
---- a/lib/test_hmm.c~mm-zone_device-support-large-zone-device-private-folios
-+++ a/lib/test_hmm.c
-@@ -627,7 +627,7 @@ static struct page *dmirror_devmem_alloc
- 			goto error;
- 	}
- 
--	zone_device_page_init(dpage);
-+	zone_device_page_init(dpage, 0);
- 	dpage->zone_device_data = rpage;
- 	return dpage;
- 
---- a/mm/memremap.c~mm-zone_device-support-large-zone-device-private-folios
-+++ a/mm/memremap.c
-@@ -416,20 +416,19 @@ EXPORT_SYMBOL_GPL(get_dev_pagemap);
- void free_zone_device_folio(struct folio *folio)
+- * drm_pagemap_page_free() - Put GPU SVM zone device data associated with a page
+- * @page: Pointer to the page
++ * drm_pagemap_folio_free() - Put GPU SVM zone device data associated with a folio
++ * @folio: Pointer to the folio
+  *
+  * This function is a callback used to put the GPU SVM zone device data
+  * associated with a page when it is being released.
+  */
+-static void drm_pagemap_page_free(struct page *page)
++static void drm_pagemap_folio_free(struct folio *folio)
  {
- 	struct dev_pagemap *pgmap = folio->pgmap;
-+	unsigned long nr = folio_nr_pages(folio);
-+	int i;
+-	drm_pagemap_zdd_put(page->zone_device_data);
++	drm_pagemap_zdd_put(folio->page.zone_device_data);
+ }
  
- 	if (WARN_ON_ONCE(!pgmap))
- 		return;
+ /**
+@@ -788,7 +788,7 @@ static vm_fault_t drm_pagemap_migrate_to
+ }
  
- 	mem_cgroup_uncharge(folio);
+ static const struct dev_pagemap_ops drm_pagemap_pagemap_ops = {
+-	.page_free = drm_pagemap_page_free,
++	.folio_free = drm_pagemap_folio_free,
+ 	.migrate_to_ram = drm_pagemap_migrate_to_ram,
+ };
  
--	/*
--	 * Note: we don't expect anonymous compound pages yet. Once supported
--	 * and we could PTE-map them similar to THP, we'd have to clear
--	 * PG_anon_exclusive on all tail pages.
--	 */
- 	if (folio_test_anon(folio)) {
--		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
--		__ClearPageAnonExclusive(folio_page(folio, 0));
-+		for (i = 0; i < nr; i++)
-+			__ClearPageAnonExclusive(folio_page(folio, i));
-+	} else {
-+		VM_WARN_ON_ONCE(folio_test_large(folio));
- 	}
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-zone_device-rename-page_free-callback-to-folio_free
++++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -108,8 +108,9 @@ unsigned long nouveau_dmem_page_addr(str
+ 	return chunk->bo->offset + off;
+ }
+ 
+-static void nouveau_dmem_page_free(struct page *page)
++static void nouveau_dmem_folio_free(struct folio *folio)
+ {
++	struct page *page = &folio->page;
+ 	struct nouveau_dmem_chunk *chunk = nouveau_page_to_chunk(page);
+ 	struct nouveau_dmem *dmem = chunk->drm->dmem;
+ 
+@@ -220,7 +221,7 @@ done:
+ }
+ 
+ static const struct dev_pagemap_ops nouveau_dmem_pagemap_ops = {
+-	.page_free		= nouveau_dmem_page_free,
++	.folio_free		= nouveau_dmem_folio_free,
+ 	.migrate_to_ram		= nouveau_dmem_migrate_to_ram,
+ };
+ 
+--- a/drivers/pci/p2pdma.c~mm-zone_device-rename-page_free-callback-to-folio_free
++++ a/drivers/pci/p2pdma.c
+@@ -200,8 +200,9 @@ static const struct attribute_group p2pm
+ 	.name = "p2pmem",
+ };
+ 
+-static void p2pdma_page_free(struct page *page)
++static void p2pdma_folio_free(struct folio *folio)
+ {
++	struct page *page = &folio->page;
+ 	struct pci_p2pdma_pagemap *pgmap = to_p2p_pgmap(page_pgmap(page));
+ 	/* safe to dereference while a reference is held to the percpu ref */
+ 	struct pci_p2pdma *p2pdma =
+@@ -214,7 +215,7 @@ static void p2pdma_page_free(struct page
+ }
+ 
+ static const struct dev_pagemap_ops p2pdma_pgmap_ops = {
+-	.page_free = p2pdma_page_free,
++	.folio_free = p2pdma_folio_free,
+ };
+ 
+ static void pci_p2pdma_release(void *data)
+--- a/include/linux/memremap.h~mm-zone_device-rename-page_free-callback-to-folio_free
++++ a/include/linux/memremap.h
+@@ -77,11 +77,11 @@ enum memory_type {
+ 
+ struct dev_pagemap_ops {
+ 	/*
+-	 * Called once the page refcount reaches 0.  The reference count will be
++	 * Called once the folio refcount reaches 0.  The reference count will be
+ 	 * reset to one by the core code after the method is called to prepare
+-	 * for handing out the page again.
++	 * for handing out the folio again.
+ 	 */
+-	void (*page_free)(struct page *page);
++	void (*folio_free)(struct folio *folio);
  
  	/*
-@@ -456,8 +455,8 @@ void free_zone_device_folio(struct folio
+ 	 * Used for private (un-addressable) device memory only.  Must migrate
+--- a/lib/test_hmm.c~mm-zone_device-rename-page_free-callback-to-folio_free
++++ a/lib/test_hmm.c
+@@ -1374,8 +1374,9 @@ static const struct file_operations dmir
+ 	.owner		= THIS_MODULE,
+ };
+ 
+-static void dmirror_devmem_free(struct page *page)
++static void dmirror_devmem_free(struct folio *folio)
+ {
++	struct page *page = &folio->page;
+ 	struct page *rpage = BACKING_PAGE(page);
+ 	struct dmirror_device *mdevice;
+ 
+@@ -1438,7 +1439,7 @@ static vm_fault_t dmirror_devmem_fault(s
+ }
+ 
+ static const struct dev_pagemap_ops dmirror_devmem_ops = {
+-	.page_free	= dmirror_devmem_free,
++	.folio_free	= dmirror_devmem_free,
+ 	.migrate_to_ram	= dmirror_devmem_fault,
+ };
+ 
+--- a/mm/memremap.c~mm-zone_device-rename-page_free-callback-to-folio_free
++++ a/mm/memremap.c
+@@ -289,8 +289,8 @@ void *memremap_pages(struct dev_pagemap
+ 			WARN(1, "Missing migrate_to_ram method\n");
+ 			return ERR_PTR(-EINVAL);
+ 		}
+-		if (!pgmap->ops->page_free) {
+-			WARN(1, "Missing page_free method\n");
++		if (!pgmap->ops->folio_free) {
++			WARN(1, "Missing folio_free method\n");
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 		if (!pgmap->owner) {
+@@ -299,8 +299,8 @@ void *memremap_pages(struct dev_pagemap
+ 		}
+ 		break;
  	case MEMORY_DEVICE_COHERENT:
- 		if (WARN_ON_ONCE(!pgmap->ops || !pgmap->ops->page_free))
+-		if (!pgmap->ops->page_free) {
+-			WARN(1, "Missing page_free method\n");
++		if (!pgmap->ops->folio_free) {
++			WARN(1, "Missing folio_free method\n");
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 		if (!pgmap->owner) {
+@@ -453,9 +453,9 @@ void free_zone_device_folio(struct folio
+ 	switch (pgmap->type) {
+ 	case MEMORY_DEVICE_PRIVATE:
+ 	case MEMORY_DEVICE_COHERENT:
+-		if (WARN_ON_ONCE(!pgmap->ops || !pgmap->ops->page_free))
++		if (WARN_ON_ONCE(!pgmap->ops || !pgmap->ops->folio_free))
  			break;
--		pgmap->ops->page_free(folio_page(folio, 0));
--		put_dev_pagemap(pgmap);
-+		pgmap->ops->page_free(&folio->page);
-+		percpu_ref_put_many(&folio->pgmap->ref, nr);
+-		pgmap->ops->page_free(&folio->page);
++		pgmap->ops->folio_free(folio);
+ 		percpu_ref_put_many(&folio->pgmap->ref, nr);
  		break;
  
- 	case MEMORY_DEVICE_GENERIC:
-@@ -480,14 +479,19 @@ void free_zone_device_folio(struct folio
+@@ -472,9 +472,9 @@ void free_zone_device_folio(struct folio
+ 		break;
+ 
+ 	case MEMORY_DEVICE_PCI_P2PDMA:
+-		if (WARN_ON_ONCE(!pgmap->ops || !pgmap->ops->page_free))
++		if (WARN_ON_ONCE(!pgmap->ops || !pgmap->ops->folio_free))
+ 			break;
+-		pgmap->ops->page_free(folio_page(folio, 0));
++		pgmap->ops->folio_free(folio);
+ 		break;
  	}
  }
- 
--void zone_device_page_init(struct page *page)
-+void zone_device_page_init(struct page *page, unsigned int order)
- {
-+	VM_WARN_ON_ONCE(order > MAX_ORDER_NR_PAGES);
-+
- 	/*
- 	 * Drivers shouldn't be allocating pages after calling
- 	 * memunmap_pages().
- 	 */
--	WARN_ON_ONCE(!percpu_ref_tryget_live(&page_pgmap(page)->ref));
-+	WARN_ON_ONCE(!percpu_ref_tryget_many(&page_pgmap(page)->ref, 1 << order));
- 	set_page_count(page, 1);
- 	lock_page(page);
-+
-+	if (order)
-+		prep_compound_page(page, order);
- }
- EXPORT_SYMBOL_GPL(zone_device_page_init);
---- a/mm/rmap.c~mm-zone_device-support-large-zone-device-private-folios
-+++ a/mm/rmap.c
-@@ -1757,9 +1757,13 @@ static __always_inline void __folio_remo
- 	 * the folio is unmapped and at least one page is still mapped.
- 	 *
- 	 * Check partially_mapped first to ensure it is a large folio.
-+	 *
-+	 * Device private folios do not support deferred splitting and
-+	 * shrinker based scanning of the folios to free.
- 	 */
- 	if (partially_mapped && folio_test_anon(folio) &&
--	    !folio_test_partially_mapped(folio))
-+	    !folio_test_partially_mapped(folio) &&
-+	    !folio_is_device_private(folio))
- 		deferred_split_folio(folio, true);
- 
- 	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
 _
 
 Patches currently in -mm which might be from balbirs@nvidia.com are
