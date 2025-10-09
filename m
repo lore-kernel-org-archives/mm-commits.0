@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4164A70830
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 21:11:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A595D27FD5D
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 21:16:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760044286; cv=none; b=icT5sps6bi+HjbAcs3K4WpgRVFnfg9Q43xJLTa5EpN563ngpWFyddWSAJJLBoSYUIw3aJN+/00M3XrY3yWiMEhwiCRz4Nf7P/amy3U3ZS+MGgRis1xpaVu3JnWOLZYuGJQlblmy+uaZwD8N1/XvLkXXerCWbUpamNMCqSPYty+g=
+	t=1760044605; cv=none; b=VLSdYFPwCg0bzHM9KMu2JSiBVYaaHlq5c+HpsPngCdD8bZq80ROuOl8Ew5MbwN0C8skCLZZjZ56OP3tv038+Z7qbXseaMl0Gkc3ds6kGhYQaFpBmKVkMRo5a/hXiKUVGFiAp9GHi2ro5V9V61koeatyYlks6WIJIG50pKyJeMCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760044286; c=relaxed/simple;
-	bh=ZweGYLg0fyCYjo3XdF/bciPR6QdZhTskiC8Juv4fqWI=;
-	h=Date:To:From:Subject:Message-Id; b=AmYrtlSafrKG2fNWQnTEsJ8YyUpT0QDsKw2B4POs5d1by+4c4T22dDF/3p2zicv7FsAM2zn1prjKF4doKcRR9/0JqMnAYIcKJDAfb2hj/UBwKIoxgq+esATA6vZ4M8MADDdZbeO/DLeFE1ZNftQkT6DHhAvjyLsYkBz88Ek57rA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bdd47Bvg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760044605; c=relaxed/simple;
+	bh=vxk5Nw3J6jkhsQ4dtBfYqmQxRl1EjwrAlL+cGaQ1SCY=;
+	h=Date:To:From:Subject:Message-Id; b=FLK9xu6lj5JGF/yx/kruEPBOpsjSprR+9eQDtBmbN+FQrTKNEhnzzJhHVAvDwfQF0m3VnnobD9krXnH6q8HgHXYLocgYM+GBgyFZB8+FmkRCyR/sN7F+HewGJGdxVZ9DIVIwb/Y2MWAVZLggEWlXVcc6mwS7I8PH8hlsEFhSpts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MbmueC65; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bdd47Bvg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3141C4CEF9;
-	Thu,  9 Oct 2025 21:11:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MbmueC65"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12853C4CEE7;
+	Thu,  9 Oct 2025 21:16:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760044286;
-	bh=ZweGYLg0fyCYjo3XdF/bciPR6QdZhTskiC8Juv4fqWI=;
+	s=korg; t=1760044605;
+	bh=vxk5Nw3J6jkhsQ4dtBfYqmQxRl1EjwrAlL+cGaQ1SCY=;
 	h=Date:To:From:Subject:From;
-	b=Bdd47BvgRz4Lk+7w4mT0yKYca0hSzKR2L1UkdYaaZX65sEbXpMRB4S4HhChCUQyAY
-	 MgCIGp/bgKVEEvwDyhuD9JXUc6TmbP4juxmU79dO0eAZl3HzVRGPEL8TL8KLZ3FXZq
-	 yZbPLc89fiR7ni2zT5t1sx7rNEpyjqSOEB+7i7S4=
-Date: Thu, 09 Oct 2025 14:11:25 -0700
-To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,corbet@lwn.net,apw@canonical.com,work@onurozkan.dev,akpm@linux-foundation.org
+	b=MbmueC65WGBeZ+bobGH8kMNcsnaPK7b4ogqmwjE2feqJc/VBUFVQikzCdgYMkM+06
+	 U8u9TEOedb4H9/y8Xjb2mhcHwawHnaN9boEQHy01EuuE8xml7AdXguhFYVit9BHStC
+	 s+WnglpC3KRP3+ORNZ6n1Ik3q1PEE8S91V0/4s1g=
+Date: Thu, 09 Oct 2025 14:16:44 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,dave.hansen@intel.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-document-new-check-placeholder_use.patch added to mm-nonmm-unstable branch
-Message-Id: <20251009211125.E3141C4CEF9@smtp.kernel.org>
+Subject: + mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch added to mm-new branch
+Message-Id: <20251009211645.12853C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: checkpatch: document new check PLACEHOLDER_USE
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-document-new-check-placeholder_use.patch
+     Subject: mm/page_alloc: clarify batch tuning in zone_batchsize
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-document-new-check-placeholder_use.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,48 +64,95 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Onur Özkan <work@onurozkan.dev>
-Subject: checkpatch: document new check PLACEHOLDER_USE
-Date: Wed, 17 Sep 2025 20:37:25 +0300
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/page_alloc: clarify batch tuning in zone_batchsize
+Date: Thu, 9 Oct 2025 12:29:30 -0700
 
-Adds documentation for the new check PLACEHOLDER_USE in checkpatch.
+Patch series "mm/page_alloc: pcp->batch cleanups", v2.
 
-Link: https://lkml.kernel.org/r/20250917173725.22547-3-work@onurozkan.dev
-Signed-off-by: Onur Özkan <work@onurozkan.dev>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Two small cleanups for mm/page_alloc.
+
+Patch 1 cleans up a misleading comment about how pcp->batch is calculated,
+and folds in the calculation to increase clarity. No functional change
+intended.
+
+Patch 2 corrects zones from reporting that their pcp->batch is 0 when it
+is actually 1. Namely, corrects ZONE_DMA from reporting that its batch
+size is 0.
+
+
+This patch (of 2):
+
+Recently while working on another patch about batching free_pcppages_bulk
+[1], I was curious why pcp->batch was always 63 on my machine.  This led
+me to zone_batchsize(), where I found this set of lines to determine what
+the batch size should be for the host:
+
+	batch = min(zone_managed_pages(zone) >> 10, SZ_1M / PAGE_SIZE);
+	batch /= 4;		/* We effectively *= 4 below */
+	if (batch < 1)
+		batch = 1;
+
+All of this is good, except the comment above which says "We effectively
+*= 4 below".  Nowhere else in the function zone_batchsize(), is there a
+corresponding multipliation by 4.  Looking into the history of this, it
+seems like Dave Hansen had also noticed this back in 2013 [1].  Turns out
+there *used* to be a corresponding *= 4, which was turned into a *= 6
+later on to be used in pageset_setup_from_batch_size(), which no longer
+exists.
+
+Despite this mismatch not being corrected in the comments, it seems that
+getting rid of the /= 4 leads to a performance regression on machines with
+less than 250G memory and 176 processors.  As such, let us preserve the
+functionality but clean up the comments.
+
+Fold the /= 4 into the calculation above: bitshift by 10+2=12, and instead
+of dividing 1MB, divide 256KB and adjust the comments accordingly.  No
+functional change intended.
+
+Link: https://lkml.kernel.org/r/20251009192933.3756712-1-joshua.hahnjy@gmail.com
+Link: https://lkml.kernel.org/r/20251009192933.3756712-2-joshua.hahnjy@gmail.com
+Link: https://lore.kernel.org/all/20251002204636.4016712-1-joshua.hahnjy@gmail.com/ [1]
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Suggested-by: Dave Hansen <dave.hansen@intel.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/checkpatch.rst |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/page_alloc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/Documentation/dev-tools/checkpatch.rst~checkpatch-document-new-check-placeholder_use
-+++ a/Documentation/dev-tools/checkpatch.rst
-@@ -1245,6 +1245,16 @@ Others
-     The patch file does not appear to be in unified-diff format.  Please
-     regenerate the patch file before sending it to the maintainer.
+--- a/mm/page_alloc.c~mm-page_alloc-clarify-batch-tuning-in-zone_batchsize
++++ a/mm/page_alloc.c
+@@ -5911,13 +5911,12 @@ static int zone_batchsize(struct zone *z
+ 	int batch;
  
-+  **PLACEHOLDER_USE**
-+    Detects unhandled placeholder text left in cover letters or commit headers/logs.
-+    Common placeholders include lines like::
-+
-+      *** SUBJECT HERE ***
-+      *** BLURB HERE ***
-+
-+    These typically come from autogenerated templates. Replace them with a proper
-+    subject and description before sending.
-+
-   **PRINTF_0XDECIMAL**
-     Prefixing 0x with decimal output is defective and should be corrected.
+ 	/*
+-	 * The number of pages to batch allocate is either ~0.1%
+-	 * of the zone or 1MB, whichever is smaller. The batch
++	 * The number of pages to batch allocate is either ~0.025%
++	 * of the zone or 256KB, whichever is smaller. The batch
+ 	 * size is striking a balance between allocation latency
+ 	 * and zone lock contention.
+ 	 */
+-	batch = min(zone_managed_pages(zone) >> 10, SZ_1M / PAGE_SIZE);
+-	batch /= 4;		/* We effectively *= 4 below */
++	batch = min(zone_managed_pages(zone) >> 12, SZ_256K / PAGE_SIZE);
+ 	if (batch < 1)
+ 		batch = 1;
  
 _
 
-Patches currently in -mm which might be from work@onurozkan.dev are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-checkpatch-detect-unhandled-placeholders-in-cover-letters.patch
-checkpatch-document-new-check-placeholder_use.patch
+mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
+mm-page_alloc-batch-page-freeing-in-decay_pcp_high.patch
+mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
+mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch
+mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch
 
