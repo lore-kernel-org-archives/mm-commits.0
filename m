@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70ECC34BA3C
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 02:33:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E3F633993
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 02:33:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759977192; cv=none; b=mPQvHk2owN7qt6oIsQGgIpA17oTP0zHusOIfqmQiO0pMVbUSqpdUTTDWeI2mVJCSxyEqbiQfZ4K1LIirlXrFwo9CbKfyXhTh1G+UjM9eK3B36NjiOIPTwtgGJcCbzbN+hSxiLqRaBbCs+CyB8us73g9hHpJkG/Hh0NqCMRkZKsI=
+	t=1759977193; cv=none; b=ienK4fFEiZm/7e0RNzxHPnuvhNqFXb66CcVJA6CuFO3XiE3Lz1IWQvM4BmmoE7dRraU7rBeUMEVluu2cdAZGGdhA++lvqCcKs+KWFexUSZiG1F5YzHuR2C0JIlI3vmzk/azb0M4FrBsN+95sYw5S2hytO9iILUg4/1xknTto5JI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759977192; c=relaxed/simple;
-	bh=UoNlV/hbAahXmXmy8SBdJJhXqNY9J3oyQPjlxmJB9Es=;
-	h=Date:To:From:Subject:Message-Id; b=QzC4puI/hJ1og5GjW9L4FwwlQBcnIHBtDeLT16GnlaV1m05uZNL8sLyF/z4xXgC/IQMpw4B9cRquaMVL/1mU18bGxwL76NEpWQ6PpAjkw8IXnhBBHkx5Vb52u3qZAMu3Wm2R6FiPwseHmUiKjCvQkUsZfzkAlSeTNsjsP4BNtzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQbbmn2Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759977193; c=relaxed/simple;
+	bh=YSeKut1TQDpXVPtxDA50FVffw/4htzBianAHzj/msMU=;
+	h=Date:To:From:Subject:Message-Id; b=rCxbQoFGPA2Gz+7JRdG0bgwOpMySGtqRc1/UuXOGur+ao8BBr0I65QFM1Kn57ndNkZwizx4RTMxISgcOd6NtCxULlBETw3S2MuiilMVxLWvUb/E2RZCbweS4/uq9wcKbooLTlADyMQvrI3CbH7pijDjMxgoK1FvnZDklOdVLI8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e7PybNbD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQbbmn2Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7D54C4CEE7;
-	Thu,  9 Oct 2025 02:33:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e7PybNbD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03523C4CEF5;
+	Thu,  9 Oct 2025 02:33:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759977189;
-	bh=UoNlV/hbAahXmXmy8SBdJJhXqNY9J3oyQPjlxmJB9Es=;
+	s=korg; t=1759977193;
+	bh=YSeKut1TQDpXVPtxDA50FVffw/4htzBianAHzj/msMU=;
 	h=Date:To:From:Subject:From;
-	b=CQbbmn2YxNdMsXCZdcpDGlnSav6JfGDZ7ErWFAwuwF8aYPM1j5ToBNxjms1S1R30R
-	 XEmPA1W9hDLzX6h7QzhnUEc6w9fIFrm9vMVfaWnVFNoEwytti618D25MbZ0CcH+61Z
-	 m3rZ1zHAXW2+Zp/xzpZsAGAHnKnFV6V3K43lBAMU=
-Date: Wed, 08 Oct 2025 19:33:08 -0700
+	b=e7PybNbDwBN2eGP1uCBiO/Cyt1iYKhb1z5d3kNB2Wxw8gtLYH0S4LZz6iisKvxYJH
+	 kbiA/KNvp30EUAMtU8BP9A+aoWzKY9pcYIRFffqu3n2lBdsNz/sXI3CVlxztTMc3A0
+	 SQ/B7XwuuiKA6Y0pn1Y2qBWECG2ezR70TEt7+kHQ=
+Date: Wed, 08 Oct 2025 19:33:10 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,mfo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-debugfs-file-show_handles.patch added to mm-new branch
-Message-Id: <20251009023308.E7D54C4CEE7@smtp.kernel.org>
+Subject: + mm-page_owner-add-debugfs-file-show_stacks_handles.patch added to mm-new branch
+Message-Id: <20251009023313.03523C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: add debugfs file 'show_handles'
+     Subject: mm/page_owner: add debugfs file 'show_stacks_handles'
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-add-debugfs-file-show_handles.patch
+     mm-page_owner-add-debugfs-file-show_stacks_handles.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-debugfs-file-show_handles.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-debugfs-file-show_stacks_handles.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,16 +65,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mauricio Faria de Oliveira <mfo@igalia.com>
-Subject: mm/page_owner: add debugfs file 'show_handles'
-Date: Wed, 1 Oct 2025 14:56:09 -0300
+Subject: mm/page_owner: add debugfs file 'show_stacks_handles'
+Date: Wed, 1 Oct 2025 14:56:10 -0300
 
-Add the flag STACK_PRINT_FLAG_HANDLE to print a stack's handle number from
-stackdepot, and add the file 'show_handles' to show just handles and their
-number of pages.
+Add the file 'show_stacks_handles' to show just stack traces and their
+handles, in order to resolve stack traces and handles (i.e., to identify
+the stack traces for handles in previous reads from 'show_handles').
 
-This is similar to 'show_stacks', with handles instead of stack traces.
+All stacks/handles must show up, regardless of their number of pages, that
+might have become zero or no longer make 'count_threshold', but made it in
+previous reads from 'show_handles' -- and need to be resolved later.
 
-Link: https://lkml.kernel.org/r/20251001175611.575861-4-mfo@igalia.com
+P.S.: now, print the extra newline independently of the number of pages.
+
+Link: https://lkml.kernel.org/r/20251001175611.575861-5-mfo@igalia.com
 Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -86,35 +90,38 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/page_owner.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-debugfs-file-show_handles
+--- a/mm/page_owner.c~mm-page_owner-add-debugfs-file-show_stacks_handles
 +++ a/mm/page_owner.c
-@@ -47,6 +47,7 @@ static DEFINE_SPINLOCK(stack_list_lock);
+@@ -913,7 +913,8 @@ static int stack_print(struct seq_file *
  
- #define STACK_PRINT_FLAG_STACK		0x1
- #define STACK_PRINT_FLAG_PAGES		0x2
-+#define STACK_PRINT_FLAG_HANDLE		0x4
+ 	nr_base_pages = refcount_read(&stack_record->count) - 1;
  
- struct stack_print_ctx {
- 	struct stack *stack;
-@@ -921,6 +922,8 @@ static int stack_print(struct seq_file *
- 		for (i = 0; i < nr_entries; i++)
- 			seq_printf(m, " %pS\n", (void *)entries[i]);
- 	}
-+	if (ctx->flags & STACK_PRINT_FLAG_HANDLE)
-+		seq_printf(m, "handle: %d\n", stack_record->handle.handle);
+-	if (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold)
++	if (ctx->flags & STACK_PRINT_FLAG_PAGES &&
++	    (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold))
+ 		return 0;
+ 
+ 	if (ctx->flags & STACK_PRINT_FLAG_STACK) {
+@@ -925,7 +926,8 @@ static int stack_print(struct seq_file *
+ 	if (ctx->flags & STACK_PRINT_FLAG_HANDLE)
+ 		seq_printf(m, "handle: %d\n", stack_record->handle.handle);
  	if (ctx->flags & STACK_PRINT_FLAG_PAGES)
- 		seq_printf(m, "nr_base_pages: %d\n\n", nr_base_pages);
+-		seq_printf(m, "nr_base_pages: %d\n\n", nr_base_pages);
++		seq_printf(m, "nr_base_pages: %d\n", nr_base_pages);
++	seq_putc(m, '\n');
  
-@@ -992,6 +995,10 @@ static int __init pageowner_init(void)
- 			    (void *)(STACK_PRINT_FLAG_STACK |
+ 	return 0;
+ }
+@@ -999,6 +1001,10 @@ static int __init pageowner_init(void)
+ 			    (void *)(STACK_PRINT_FLAG_HANDLE |
  				     STACK_PRINT_FLAG_PAGES),
  			    &page_owner_stack_operations);
-+	debugfs_create_file("show_handles", 0400, dir,
-+			    (void *)(STACK_PRINT_FLAG_HANDLE |
-+				     STACK_PRINT_FLAG_PAGES),
++	debugfs_create_file("show_stacks_handles", 0400, dir,
++			    (void *)(STACK_PRINT_FLAG_STACK |
++				     STACK_PRINT_FLAG_HANDLE),
 +			    &page_owner_stack_operations);
  	debugfs_create_file("count_threshold", 0600, dir, NULL,
  			    &proc_page_owner_threshold);
