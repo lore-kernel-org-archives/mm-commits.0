@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C73E1C695
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 03:31:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9143154BE2;
+	Thu,  9 Oct 2025 04:09:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759980700; cv=none; b=uhokY4hELGiw2WnF2IQSIN3D+5TT+x8giUdr1eGDKIOHyERc1PY2TxR9x2yoXrSyJMF2xDs+e/pPKRdPGXEBJK65dkBWBVWpAnTLzy8ZDyuAPPrbtmY7KxtNHyTj0hfnlpMpZzpywBFqGwM6Rs9ZIXmO7z390sEZgWBTQwtqeqU=
+	t=1759982995; cv=none; b=sOwEpp1NkKp4uxr06hbpUz9u3FFCRzabarbACrAIDSrAplAjIeoomFdD5ouqTp3+3uWhqdvqIcdc6XhGh+fCe3nx6BLHO/1kuWBLEeRs19zzwGkDSDUfL8jVeroDodDgrkyUJ5XRD1XusC0tdiFWwQr7BZlX3jY3UaAWcKOyUNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759980700; c=relaxed/simple;
-	bh=Z8CbAzk1DS+8fYpWHpJcCVJkpot0TRTlQQfLZJPvZ1U=;
-	h=Date:To:From:Subject:Message-Id; b=dXTRC7RbQ/ZYfuKwCVHCTHJlYidnh3TD+Lig5A6RJXCO9QVfYC1Tq/42DineFbcFXX1vTHkX6K9S9ZNaX2Ywv8Sy15LjuLDStjy7h9ah+ldTuVhcVCHE47J3sVAmmuW+hnhX2vljAmDr3+i9vWCOSCqO86iHTf3jYarZ4ce7j3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tKx2kzLO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759982995; c=relaxed/simple;
+	bh=76GtxTQ9g8hb2HTgrV261GUqJcKp2bKqR5EmQDQA3fw=;
+	h=Date:To:From:Subject:Message-Id; b=u/D5MHkQJP73924C/PJSYjIr09s0nOYLVH/JwNgdY6uunmAr3Tk/U3wGvF2puLU0wR3rUqV1BCjY4RMPUrv9z4uRcX6w0cGcKCqPca+gWFMpAewX+ukjnQw4Ds4RcMRBRYPL7Oq5hRS1IJJ9B6BU8RqCumvZZIUpj22JMRSursQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JP2SWXsP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tKx2kzLO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96955C4CEE7;
-	Thu,  9 Oct 2025 03:31:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JP2SWXsP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66108C4CEE7;
+	Thu,  9 Oct 2025 04:09:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759980699;
-	bh=Z8CbAzk1DS+8fYpWHpJcCVJkpot0TRTlQQfLZJPvZ1U=;
+	s=korg; t=1759982995;
+	bh=76GtxTQ9g8hb2HTgrV261GUqJcKp2bKqR5EmQDQA3fw=;
 	h=Date:To:From:Subject:From;
-	b=tKx2kzLO/w5t8oBuhrXTLuWC9EXXyWp4tIMmSPafMnZQzwzpRqiwVQ322FsNJIJkY
-	 ec3+l+vBfy+VZzkaFxuIYKgGam0s1PcGYXCSZxKodKl1zI/Wnf7uGFO/y96HtlaT4T
-	 RmSRVJaYD2m1afqs63x0/mM5gQx0BnDTFhRo4oPM=
-Date: Wed, 08 Oct 2025 20:31:39 -0700
-To: mm-commits@vger.kernel.org,iii@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,aleksei.nikiforov@linux.ibm.com,akpm@linux-foundation.org
+	b=JP2SWXsP56WqouBVdjSGEXCsCRVrxc5cpqZF4Mos7Ttt1Y/9BtpkZ9tq19fGAzNBt
+	 0BsudSkDZFdbxq5KCQ5v9dci2gv4n1CRlvdCtCpxetzo02pmhSm/1HuMhEZ6Sq87Ue
+	 aUCYcuD5f7mZcb3L69sDAEfuR3csr2hQZrFxiblc=
+Date: Wed, 08 Oct 2025 21:09:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,usamaarif642@gmail.com,stable@vger.kernel.org,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet.patch added to mm-new branch
-Message-Id: <20251009033139.96955C4CEE7@smtp.kernel.org>
+Subject: + mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch added to mm-new branch
+Message-Id: <20251009040955.66108C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kmsan: Fix kmsan kmalloc hook when no stack depots are allocated yet
+     Subject: mm/huge_memory: add pmd folio to ds_queue in do_huge_zero_wp_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet.patch
+     mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,87 +64,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Aleksei Nikiforov <aleksei.nikiforov@linux.ibm.com>
-Subject: mm/kmsan: Fix kmsan kmalloc hook when no stack depots are allocated yet
-Date: Tue, 30 Sep 2025 13:56:01 +0200
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/huge_memory: add pmd folio to ds_queue in do_huge_zero_wp_pmd()
+Date: Wed, 8 Oct 2025 09:54:52 +0000
 
-If no stack depot is allocated yet, due to masking out __GFP_RECLAIM flags
-kmsan called from kmalloc cannot allocate stack depot.  kmsan fails to
-record origin and report issues.
+We add pmd folio into ds_queue on the first page fault in
+__do_huge_pmd_anonymous_page(), so that we can split it in case of memory
+pressure.  This should be the same for a pmd folio during wp page fault.
 
-Reusing flags from kmalloc without modifying them should be safe for kmsan.
-For example, such chain of calls is possible:
-test_uninit_kmalloc -> kmalloc -> __kmalloc_cache_noprof ->
-slab_alloc_node -> slab_post_alloc_hook ->
-kmsan_slab_alloc -> kmsan_internal_poison_memory.
+Commit 1ced09e0331f ("mm: allocate THP on hugezeropage wp-fault") miss to
+add it to ds_queue, which means system may not reclaim enough memory in
+case of memory pressure even the pmd folio is under used.
 
-Only when it is called in a context without flags present should
-__GFP_RECLAIM flags be masked.
+Move deferred_split_folio() into map_anon_folio_pmd() to make the pmd
+folio installation consistent.
 
-With this change all kmsan tests start working reliably.
-
-Link: https://lkml.kernel.org/r/20250930115600.709776-2-aleksei.nikiforov@linux.ibm.com
-Signed-off-by: Aleksei Nikiforov <aleksei.nikiforov@linux.ibm.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20251008095453.18772-2-richard.weiyang@gmail.com
+Fixes: 1ced09e0331f ("mm: allocate THP on hugezeropage wp-fault")
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Usama Arif <usamaarif642@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c   |    3 ---
- mm/kmsan/hooks.c  |    6 ++++--
- mm/kmsan/shadow.c |    2 +-
- 3 files changed, 5 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kmsan/core.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
-+++ a/mm/kmsan/core.c
-@@ -72,9 +72,6 @@ depot_stack_handle_t kmsan_save_stack_wi
+--- a/mm/huge_memory.c~mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd
++++ a/mm/huge_memory.c
+@@ -1317,6 +1317,7 @@ static void map_anon_folio_pmd(struct fo
+ 	count_vm_event(THP_FAULT_ALLOC);
+ 	count_mthp_stat(HPAGE_PMD_ORDER, MTHP_STAT_ANON_FAULT_ALLOC);
+ 	count_memcg_event_mm(vma->vm_mm, THP_FAULT_ALLOC);
++	deferred_split_folio(folio, false);
+ }
  
- 	nr_entries = stack_trace_save(entries, KMSAN_STACK_DEPTH, 0);
+ static vm_fault_t __do_huge_pmd_anonymous_page(struct vm_fault *vmf)
+@@ -1357,7 +1358,6 @@ static vm_fault_t __do_huge_pmd_anonymou
+ 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
+ 		map_anon_folio_pmd(folio, vmf->pmd, vma, haddr);
+ 		mm_inc_nr_ptes(vma->vm_mm);
+-		deferred_split_folio(folio, false);
+ 		spin_unlock(vmf->ptl);
+ 	}
  
--	/* Don't sleep. */
--	flags &= ~(__GFP_DIRECT_RECLAIM | __GFP_KSWAPD_RECLAIM);
--
- 	handle = stack_depot_save(entries, nr_entries, flags);
- 	return stack_depot_set_extra_bits(handle, extra);
- }
---- a/mm/kmsan/hooks.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
-+++ a/mm/kmsan/hooks.c
-@@ -84,7 +84,8 @@ void kmsan_slab_free(struct kmem_cache *
- 	if (s->ctor)
- 		return;
- 	kmsan_enter_runtime();
--	kmsan_internal_poison_memory(object, s->object_size, GFP_KERNEL,
-+	kmsan_internal_poison_memory(object, s->object_size,
-+				     GFP_KERNEL & ~(__GFP_RECLAIM),
- 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
- 	kmsan_leave_runtime();
- }
-@@ -114,7 +115,8 @@ void kmsan_kfree_large(const void *ptr)
- 	kmsan_enter_runtime();
- 	page = virt_to_head_page((void *)ptr);
- 	KMSAN_WARN_ON(ptr != page_address(page));
--	kmsan_internal_poison_memory((void *)ptr, page_size(page), GFP_KERNEL,
-+	kmsan_internal_poison_memory((void *)ptr, page_size(page),
-+				     GFP_KERNEL & ~(__GFP_RECLAIM),
- 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
- 	kmsan_leave_runtime();
- }
---- a/mm/kmsan/shadow.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
-+++ a/mm/kmsan/shadow.c
-@@ -208,7 +208,7 @@ void kmsan_free_page(struct page *page,
- 		return;
- 	kmsan_enter_runtime();
- 	kmsan_internal_poison_memory(page_address(page), page_size(page),
--				     GFP_KERNEL,
-+				     GFP_KERNEL & ~(__GFP_RECLAIM),
- 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
- 	kmsan_leave_runtime();
- }
 _
 
-Patches currently in -mm which might be from aleksei.nikiforov@linux.ibm.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet.patch
+mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch
+mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch
+mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
 
