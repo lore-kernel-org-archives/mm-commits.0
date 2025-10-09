@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76D50DF6C
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 00:42:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69E862AE97
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 00:44:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759970533; cv=none; b=BW8l7h/X9bhuJBGSAfEr6tIrtxLz3TD9vFk0Z6+R0OiZxfEXjQfyWwstG6bXYlgK2ixqVxsqoH9HyPTXf7vWmKujASZzJa5Yp/bTHTPyhsNEeyAf2KUwFh7JqUNac+74IjgOSXAPvOhWrtG8ztH1jCZkK0V7FuMNcu4SlmgkFFk=
+	t=1759970688; cv=none; b=d/AbTWX2PXeZ8EhFcv0naX4UEksspRat2nf0r6MZJtychCJBPaCr2pyt5VnLua+KVU7WXbsunBDai4SLcWxBdu+9HY2pFiUqnDUv6F749zWhUNfFH20QX+r+dr/qYJnJw6vUmiwRUM1jIqknwxCEUosHkcbBO9ACcVHHpyuwcqA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759970533; c=relaxed/simple;
-	bh=2Pv4FYVwpPojnFrK8M6dLx0iSqEHigIOFXTpup/Gx2A=;
-	h=Date:To:From:Subject:Message-Id; b=eZv4efJ7evxrHp+IlrC0WllWR1aWlWG5Z2oBTm+8HBir+F9cx+H0/sYJR1FbSRoyRdRaNCt5un7GEICtWCGcXA9dkXJCkq8HdNQmL0kGfIJ6OYG8G93cuHlytC1XpF2iThTv5q0lXQhLzWyHOxygtLMxfJiaBVoO7d+B19vCht0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fEWNSMC2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759970688; c=relaxed/simple;
+	bh=x9Tz2nuRSQZF2RU9HT093SfLdtaTjS49GgXPs3iQJr0=;
+	h=Date:To:From:Subject:Message-Id; b=kS49U9dcxUtftur+VLDSvjfzjU7+N404PgzSA5nXWA95dWZXmsv2R4hZAoQ4CW53/ANleuPWsGFrCNXqBA4x76+Xsh57Z+0jrCDSgEfYO59IwA7r9WBq3xllfWYyXmusPA15FIDG/1qV5RPewPKRTPBVftwgZWeqqAqreI3rnbw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uL8uh+No; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fEWNSMC2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4BAEC4CEE7;
-	Thu,  9 Oct 2025 00:42:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uL8uh+No"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8435C4CEE7;
+	Thu,  9 Oct 2025 00:44:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759970532;
-	bh=2Pv4FYVwpPojnFrK8M6dLx0iSqEHigIOFXTpup/Gx2A=;
+	s=korg; t=1759970688;
+	bh=x9Tz2nuRSQZF2RU9HT093SfLdtaTjS49GgXPs3iQJr0=;
 	h=Date:To:From:Subject:From;
-	b=fEWNSMC2U82HM7f3JG8j5iYnXKEnT0+XMBLbi1vmYKpM/8u1kqdBJBr4Oq3LYFtu8
-	 exmppmkPoOFIUcS6jo5v2IViN0xgkPsNcERYXONXOA0v+Crt1BC8qqH2O0JSgBAPYH
-	 xI/AZ1LLZXezHdZ1I1BGfai3sweOTg/LO9lGCIio=
-Date: Wed, 08 Oct 2025 17:42:11 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,mpenttil@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kirill@shutemov.name,hughd@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=uL8uh+NoKjvOps7UWfG3N2iPPIU9a4oLf2Mt5hSRHC9GrYXPv++ubbwiuRzVbCQDl
+	 8nHQpOPYiMagGP6OKAdNRPDMcSlWRgKLbYmBel+8EjtGodOax/NhbrQL136AJZi65B
+	 nbV8SD+Ufv9bLt4qsJqbXIUY/uuuARjJcqlPQtZ8=
+Date: Wed, 08 Oct 2025 17:44:47 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-abort-collapse-scan-on-non-swap-entries.patch added to mm-new branch
-Message-Id: <20251009004211.E4BAEC4CEE7@smtp.kernel.org>
+Subject: + mm-khugepaged-optimize-pte-scanning-with-if-else-if-else-if-chain.patch added to mm-new branch
+Message-Id: <20251009004447.D8435C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: abort collapse scan on non-swap entries
+     Subject: mm/khugepaged: optimize PTE scanning with if-else-if-else-if chain
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-abort-collapse-scan-on-non-swap-entries.patch
+     mm-khugepaged-optimize-pte-scanning-with-if-else-if-else-if-chain.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-abort-collapse-scan-on-non-swap-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-optimize-pte-scanning-with-if-else-if-else-if-chain.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,157 +65,102 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/khugepaged: abort collapse scan on non-swap entries
-Date: Wed, 8 Oct 2025 11:26:57 +0800
+Subject: mm/khugepaged: optimize PTE scanning with if-else-if-else-if chain
+Date: Wed, 8 Oct 2025 12:37:46 +0800
 
-Currently, special non-swap entries (like PTE markers) are not caught
-early in hpage_collapse_scan_pmd(), leading to failures deep in the
-swap-in logic.
+Patch series "refactor and merge PTE scanning logic", v3.
 
-A function that is called __collapse_huge_page_swapin() and documented to
-"Bring missing pages in from swap" will handle other types as well.
+This series cleans up the almost-duplicated PTE scanning logic in the
+collapse path.
 
-As analyzed by David[1], we could have ended up with the following entry
-types right before do_swap_page():
+The first one is a preparatory step that refactors both loops to use
+a single if-else-if-else-if chain for checking disjoint PTEs.
 
-  (1) Migration entries. We would have waited.
-      -> Maybe worth it to wait, maybe not. We suspect we don't stumble
-         into that frequently such that we don't care. We could always
-         unlock this separately later.
+The second one replaces VM_BUG_ON_FOLIO() with a more graceful
+VM_WARN_ON_FOLIO() for handling non-anonymous folios.
 
-  (2) Device-exclusive entries. We would have converted to non-exclusive.
-      -> See make_device_exclusive(), we cannot tolerate PMD entries and
-         have to split them through FOLL_SPLIT_PMD. As popped up during
-         a recent discussion, collapsing here is actually
-         counter-productive, because the next conversion will PTE-map
-         it again.
-      -> Ok to not collapse.
+The last one then extracts the common logic into a shared helper.
 
-  (3) Device-private entries. We would have migrated to RAM.
-      -> Device-private still does not support THPs, so collapsing right
-         now just means that the next device access would split the
-         folio again.
-      -> Ok to not collapse.
 
-  (4) HWPoison entries
-      -> Cannot collapse
+This patch (of 3):
 
-  (5) Markers
-      -> Cannot collapse
+As pointed out by Dev, the PTE checks for disjoint conditions in the
+scanning loops can be optimized.  is_swap_pte, (pte_none && is_zero_pfn),
+and pte_uffd_wp are mutually exclusive.
 
-First, this patch adds an early check for these non-swap entries.  If any
-one is found, the scan is aborted immediately with the
-SCAN_PTE_NON_PRESENT result, as Lorenzo suggested[2], avoiding wasted
-work.  While at it, convert pte_swp_uffd_wp_any() to pte_swp_uffd_wp()
-since we are in the swap pte branch.
+This patch refactors the loops in both __collapse_huge_page_isolate() and
+hpage_collapse_scan_pmd() to use a continuous if-else-if-else-if chain
+instead of separate if blocks.  While at it, the redundant pte_present()
+check before is_zero_pfn() is also removed.
 
-Second, as Wei pointed out[3], we may have a chance to get a non-swap
-entry, since we will drop and re-acquire the mmap lock before
-__collapse_huge_page_swapin().  To handle this, we also add a
-non_swap_entry() check there.
+Also, this is a preparatory step to make it easier to merge the
+almost-duplicated scanning logic in these two functions, as suggested by
+David.
 
-Note that we can unlock later what we really need, and not account it
-towards max_swap_ptes.
-
-Link: https://lkml.kernel.org/r/20251008032657.72406-1-lance.yang@linux.dev
-Link: https://lore.kernel.org/linux-mm/09eaca7b-9988-41c7-8d6e-4802055b3f1e@redhat.com [1]
-Link: https://lore.kernel.org/linux-mm/7df49fe7-c6b7-426a-8680-dcd55219c8bd@lucifer.local [2]
-Link: https://lore.kernel.org/linux-mm/20251005010511.ysek2nqojebqngf3@master [3]
+Link: https://lkml.kernel.org/r/20251008043748.45554-1-lance.yang@linux.dev
+Link: https://lkml.kernel.org/r/20251008043748.45554-2-lance.yang@linux.dev
 Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: Dev Jain <dev.jain@arm.com>
 Suggested-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mariano Pache <npache@redhat.com>
-Cc: Mika Penttilä <mpenttil@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   37 +++++++++++++++++++++++--------------
- 1 file changed, 23 insertions(+), 14 deletions(-)
+ mm/khugepaged.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-abort-collapse-scan-on-non-swap-entries
+--- a/mm/khugepaged.c~mm-khugepaged-optimize-pte-scanning-with-if-else-if-else-if-chain
 +++ a/mm/khugepaged.c
-@@ -1020,6 +1020,11 @@ static int __collapse_huge_page_swapin(s
- 		if (!is_swap_pte(vmf.orig_pte))
- 			continue;
- 
-+		if (non_swap_entry(pte_to_swp_entry(vmf.orig_pte))) {
-+			result = SCAN_PTE_NON_PRESENT;
-+			goto out;
-+		}
-+
- 		vmf.pte = pte;
- 		vmf.ptl = ptl;
- 		ret = do_swap_page(&vmf);
-@@ -1281,7 +1286,23 @@ static int hpage_collapse_scan_pmd(struc
- 	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
+@@ -548,8 +548,7 @@ static int __collapse_huge_page_isolate(
+ 	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
  	     _pte++, addr += PAGE_SIZE) {
  		pte_t pteval = ptep_get(_pte);
--		if (is_swap_pte(pteval)) {
+-		if (pte_none(pteval) || (pte_present(pteval) &&
+-				is_zero_pfn(pte_pfn(pteval)))) {
 +		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
-+			++none_or_zero;
-+			if (!userfaultfd_armed(vma) &&
-+			    (!cc->is_khugepaged ||
-+			     none_or_zero <= khugepaged_max_ptes_none)) {
-+				continue;
-+			} else {
-+				result = SCAN_EXCEED_NONE_PTE;
-+				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
-+				goto out_unmap;
-+			}
+ 			++none_or_zero;
+ 			if (!userfaultfd_armed(vma) &&
+ 			    (!cc->is_khugepaged ||
+@@ -560,12 +559,10 @@ static int __collapse_huge_page_isolate(
+ 				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
+ 				goto out;
+ 			}
+-		}
+-		if (!pte_present(pteval)) {
 +		} else if (!pte_present(pteval)) {
-+			if (non_swap_entry(pte_to_swp_entry(pteval))) {
-+				result = SCAN_PTE_NON_PRESENT;
-+				goto out_unmap;
-+			}
-+
- 			++unmapped;
- 			if (!cc->is_khugepaged ||
- 			    unmapped <= khugepaged_max_ptes_swap) {
-@@ -1290,7 +1311,7 @@ static int hpage_collapse_scan_pmd(struc
- 				 * enabled swap entries.  Please see
- 				 * comment below for pte_uffd_wp().
- 				 */
--				if (pte_swp_uffd_wp_any(pteval)) {
-+				if (pte_swp_uffd_wp(pteval)) {
- 					result = SCAN_PTE_UFFD_WP;
- 					goto out_unmap;
- 				}
-@@ -1301,18 +1322,6 @@ static int hpage_collapse_scan_pmd(struc
+ 			result = SCAN_PTE_NON_PRESENT;
+ 			goto out;
+-		}
+-		if (pte_uffd_wp(pteval)) {
++		} else if (pte_uffd_wp(pteval)) {
+ 			result = SCAN_PTE_UFFD_WP;
+ 			goto out;
+ 		}
+@@ -1321,8 +1318,7 @@ static int hpage_collapse_scan_pmd(struc
+ 				count_vm_event(THP_SCAN_EXCEED_SWAP_PTE);
  				goto out_unmap;
  			}
- 		}
--		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
--			++none_or_zero;
--			if (!userfaultfd_armed(vma) &&
--			    (!cc->is_khugepaged ||
--			     none_or_zero <= khugepaged_max_ptes_none)) {
--				continue;
--			} else {
--				result = SCAN_EXCEED_NONE_PTE;
--				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
--				goto out_unmap;
--			}
 -		}
- 		if (pte_uffd_wp(pteval)) {
+-		if (pte_uffd_wp(pteval)) {
++		} else if (pte_uffd_wp(pteval)) {
  			/*
  			 * Don't collapse the page if any of the small
+ 			 * PTEs are armed with uffd write protection.
 _
 
 Patches currently in -mm which might be from lance.yang@linux.dev are
 
 hung_task-fix-warnings-caused-by-unaligned-lock-pointers.patch
 mm-khugepaged-abort-collapse-scan-on-non-swap-entries.patch
+mm-khugepaged-optimize-pte-scanning-with-if-else-if-else-if-chain.patch
+mm-khugepaged-use-vm_warn_on_folio-instead-of-vm_bug_on_folio-for-non-anon-folios.patch
+mm-khugepaged-merge-pte-scanning-logic-into-a-new-helper.patch
 
