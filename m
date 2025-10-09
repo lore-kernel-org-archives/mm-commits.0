@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94EC91A9FA4
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 04:10:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E05E70830
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 21:11:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759983051; cv=none; b=Am5qWI+N5j0iElPZqzYmAKgy/QiJpIypCpnYQjtWVB94QyUqmv6xbZcvwmr/stmCBzOC2JYRotf+X+6usQrYKeWLPwbocVXTpnPuQo8b3YehWIwQ8GCB+zO0KgMyih2b0XeIs3VAQo+SmeAXRuq0BAjYxnVMYzCOkgi8YpKnSUY=
+	t=1760044285; cv=none; b=lCwFpkhSin7r8l02aVwN2wvy71Fn1Qglr6t/1vSEVKe0rjN6vctCAfrOYLPDb/9CrmOq/K68p2JdrfFQFQ6/bE+on+lhX5KDMYCkOYRLY6aKV/lMkOr+w3GtY3O6I3paAO/b+DaunO6j+y6Q49JLvETDNCieOdVomM/s5KXvzAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759983051; c=relaxed/simple;
-	bh=yR8nZmTZTYbv0Wzg/aOB7TTxVT1V2UaLVsnl1Oopcfo=;
-	h=Date:To:From:Subject:Message-Id; b=DI7oYnKctGTiNbfHhtUM3wKdj1L8AOsKCFaT8nt41GSMWNi0bgpYCtOqp7sk736QIj3gzI1XI9CrJvd91jBBISBXAMHOdYgE3StlfC3FN78Wj+wn4R7EkhGUU2IPHB8dF/snwBJVkCbSNsPi4cahePqksni2DllIpNM4mQr+RnE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fj+rGAc1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760044285; c=relaxed/simple;
+	bh=RuMuR6p4cFT1BJaprJtTnVJaW/vH9Jf0cc3bNJV8Yxw=;
+	h=Date:To:From:Subject:Message-Id; b=l2CVTmoQgFyGnSqMrWIcvkWdxXzIeWJQ8T3x9fOQqeQca7zQGZVVNcl+BCQ1s16JGNhAzhU0G4Rt/b5wW71YpQOoNinXcuiC7ffEyejgriVa3lfE6BS9eiM+ExZzaEpWKalggevVbK8/R1qlVqPZKB1p8uWGeq8hRvSmdzdsyF4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cz1zEnsy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fj+rGAc1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1013DC4CEE7;
-	Thu,  9 Oct 2025 04:10:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cz1zEnsy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADC90C4CEE7;
+	Thu,  9 Oct 2025 21:11:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759983051;
-	bh=yR8nZmTZTYbv0Wzg/aOB7TTxVT1V2UaLVsnl1Oopcfo=;
+	s=korg; t=1760044284;
+	bh=RuMuR6p4cFT1BJaprJtTnVJaW/vH9Jf0cc3bNJV8Yxw=;
 	h=Date:To:From:Subject:From;
-	b=Fj+rGAc1kd1zHRCDx4ZHxX76Vs2CEra1NzZXYHyMbzPO/f9VeBTn6hJbRE+C5h5pJ
-	 4C2a0yFwVM3pVfU7FXYaA0OCKfFMf3GhUrz9OyQy9++ZL2OF+VFinO3J2LJLPGg4CK
-	 rDArqNTu1+jTxtogKIF86/xlmZvyzR/NwoYe+Y1c=
-Date: Wed, 08 Oct 2025 21:10:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,usamaarif642@gmail.com,richard.weiyang@gmail.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=cz1zEnsySqM8fIJ6wm7gSvcnH66xHEUDc2nigRpOs1nIK4VvPoamglqbmGsvkWQzt
+	 Yay5dLymo2oDBxlMTMGZs3xNo0f1aqanQjSeJBCodF5TMt7v+tIyveDSw7jiMBByZd
+	 yQnYoGIT2AQD+tGf3IFDOcP9GtkD+jRaGhWg9PJ8=
+Date: Thu, 09 Oct 2025 14:11:24 -0700
+To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,corbet@lwn.net,apw@canonical.com,work@onurozkan.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch added to mm-new branch
-Message-Id: <20251009041051.1013DC4CEE7@smtp.kernel.org>
+Subject: + checkpatch-detect-unhandled-placeholders-in-cover-letters.patch added to mm-nonmm-unstable branch
+Message-Id: <20251009211124.ADC90C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+     Subject: checkpatch: detect unhandled placeholders in cover letters
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     checkpatch-detect-unhandled-placeholders-in-cover-letters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-detect-unhandled-placeholders-in-cover-letters.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,44 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix
-Date: Wed Oct  8 09:10:01 PM PDT 2025
+From: Onur Özkan <work@onurozkan.dev>
+Subject: checkpatch: detect unhandled placeholders in cover letters
+Date: Wed, 17 Sep 2025 20:37:24 +0300
 
-remove unneeded map_anon_folio_pmd_nopf() stub, per Wei & David
+Add a new check PLACEHOLDER_USE to detect unhandled placeholders.  This
+prevents sending patch series with incomplete patches (mostly in cover
+letters) containing auto generated subject or blurb lines.
 
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+These placeholders can be seen on mailing lists.  With this change,
+checkpatch will emit an error when such text is found.
+
+Link: https://lkml.kernel.org/r/20250917173725.22547-2-work@onurozkan.dev
+Signed-off-by: Onur Özkan <work@onurozkan.dev>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    5 -----
- 1 file changed, 5 deletions(-)
+ scripts/checkpatch.pl |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/include/linux/huge_mm.h~mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix
-+++ a/include/linux/huge_mm.h
-@@ -644,11 +644,6 @@ static inline bool unmap_huge_pmd_locked
- 	return false;
- }
+--- a/scripts/checkpatch.pl~checkpatch-detect-unhandled-placeholders-in-cover-letters
++++ a/scripts/checkpatch.pl
+@@ -3345,6 +3345,13 @@ sub process {
+ 			}
+ 		}
  
--static inline void map_anon_folio_pmd_nopf(struct folio *folio, pmd_t *pmd,
--		struct vm_area_struct *vma, unsigned long haddr)
--{
--}
--
- #define split_huge_pud(__vma, __pmd, __address)	\
- 	do { } while (0)
- 
++# Check for auto-generated unhandled placeholder text (mostly for cover letters)
++		if (($in_commit_log || $in_header_lines) &&
++		    $rawline =~ /(?:SUBJECT|BLURB) HERE/) {
++			ERROR("PLACEHOLDER_USE",
++			      "Placeholder text detected\n" . $herecurr);
++		}
++
+ # Check for git id commit length and improperly formed commit descriptions
+ # A correctly formed commit description is:
+ #    commit <SHA-1 hash length 12+ chars> ("Complete commit subject")
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from work@onurozkan.dev are
 
-mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
-mm-khugepaged-merge-pte-scanning-logic-into-a-new-helper-checkpatch-fixes.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+checkpatch-detect-unhandled-placeholders-in-cover-letters.patch
+checkpatch-document-new-check-placeholder_use.patch
 
