@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C09CA27FD5D
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 21:16:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25EEE284678
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 21:25:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760044606; cv=none; b=BNN19U9sm+I3WjznyBCdoQmweWyO/mKqVOY/QDW5TxGZ6aVtudspiZAvNjxAWbEkfE5Kp96KSzz6Mlf/r4TignGj8SvwMw7GnjBp9U3Foud5LcKlEwEjoWeRWrNCFHCvxfizJnnv/KtvbvGYiOYt6lXWC+D9ADYfYYiYs5ghR3U=
+	t=1760045160; cv=none; b=AJ9T4LW0BBMMLacWiajiypfaflfvfzNWh9z+3mO+o8g8Sa4ll/BaXoUrK4MZnN+eYOiebo+RjcPnedx1iUuMTibXmjJ08/iF0+Qwcf7x+MEdjy/d3Sgs/hn8/MgkBH71DrsR0N7g4zFqywOgGbdEVLIIaMvx4fQAkGOLpqleE48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760044606; c=relaxed/simple;
-	bh=Nx+hfCRJ2YB/AYD0KQ//4HXn6N3As5pZHXRE/94wn4s=;
-	h=Date:To:From:Subject:Message-Id; b=URg8zjnM2Mx0NiA3xUhUi0/E6qtq/5ZwLBywUwO/83cmBkeClJV9xZrSvpLsRTet31KMwINmv4CRW67YFpFeS8Sr46LhJ4PzokkMXu7clIHX6BZKd1HL7JOavh5rGWkFZ841e6vmSy9YM4N1S+v8+Ft8mAUonG8/dT3x7ivO0A4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qYAQTSEe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760045160; c=relaxed/simple;
+	bh=lVYBIIO4JNAJs4DnkDNHyUOZBBvMhm/5k4bGltmicms=;
+	h=Date:To:From:Subject:Message-Id; b=HOPu5tFDyneoIvpiuTYkmkd3ZrcI884cXxGM0Nq+0uEcCkL4vpl09cI7I5/hnToNHxM0es1m6B+jpLWAsoOUWzzW/3rWgnV6qRx51nbTrLnkYKXAw6Q6BK9KzWwLYfZ/lAuOSjOmt1uQw04dN9wtef/wH3KAawKCxcOkH+x3Udk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sw5bKGcE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qYAQTSEe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 475E7C4CEE7;
-	Thu,  9 Oct 2025 21:16:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sw5bKGcE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC34FC4CEE7;
+	Thu,  9 Oct 2025 21:25:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760044606;
-	bh=Nx+hfCRJ2YB/AYD0KQ//4HXn6N3As5pZHXRE/94wn4s=;
+	s=korg; t=1760045159;
+	bh=lVYBIIO4JNAJs4DnkDNHyUOZBBvMhm/5k4bGltmicms=;
 	h=Date:To:From:Subject:From;
-	b=qYAQTSEePsiAQL5pgCODc6BB4lFx0hA9LpgJzTlspRumubcF1fP/PfNbw5hpKQ55p
-	 oc6/P2ujYzdvhvTWASm3xJdgilBP0dKje+5/DCEIdzVUDkghw8RFrjByHSFkhJTNHg
-	 VtQ2SEAfe9rEPZpWiDduDxVQQRWDUV9y5o+hZ1Cw=
-Date: Thu, 09 Oct 2025 14:16:45 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,dave.hansen@intel.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=Sw5bKGcE6gij2/LTN8xQhIuODXIgZDxBxQ3rATO3Sl4BWLk845AFQODrbf8tAxP8T
+	 US4h0YXYuv49sSHnfhVAkYYmsUPYS4vQGHK7rA3sQrueV9cCGc5C6JGPxXrv86K6kF
+	 n0+LUPQUTBFwdF5MFFEWp4EK4xaLa2uYvaTANClU=
+Date: Thu, 09 Oct 2025 14:25:59 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,riel@surriel.com,osalvador@suse.de,muchun.song@linux.dev,hannes@cmpxchg.org,david@redhat.com,akpm@linux-foundation.org,usamaarif642@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch added to mm-new branch
-Message-Id: <20251009211646.475E7C4CEE7@smtp.kernel.org>
+Subject: + mm-hugetlb-create-hstate_is_gigantic_no_runtime-helper.patch added to mm-new branch
+Message-Id: <20251009212559.CC34FC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: Prevent reporting pcp->batch = 0
+     Subject: mm/hugetlb: create hstate_is_gigantic_no_runtime helper
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch
+     mm-hugetlb-create-hstate_is_gigantic_no_runtime-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-create-hstate_is_gigantic_no_runtime-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,83 +64,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/page_alloc: Prevent reporting pcp->batch = 0
-Date: Thu, 9 Oct 2025 12:29:31 -0700
+From: Usama Arif <usamaarif642@gmail.com>
+Subject: mm/hugetlb: create hstate_is_gigantic_no_runtime helper
+Date: Thu, 9 Oct 2025 18:24:30 +0100
 
-zone_batchsize returns the appropriate value that should be used for
-pcp->batch. If it finds a zone with less than 4096 pages or PAGE_SIZE >
-1M, however, it leads to some incorrect math.
+This is a common condition used to skip operations that cannot be
+performed on gigantic pages when runtime support is disabled.  This helper
+is introduced as the condition will exist even more when allowing
+"overcommit" of gigantic hugepages.  No functional change intended with
+this patch.
 
-In the above case, we will get an intermediary value of 1, which is then
-rounded down to the nearest power of two, and 1 is subtracted from it.
-Since 1 is already a power of two, we will get batch = 1-1 = 0:
-
-	batch = rounddown_pow_of_two(batch + batch/2) - 1;
-
-A pcp->batch value of 0 is nonsensical. If this were actually set, then
-functions like drain_zone_pages would become no-ops, since they could
-only free 0 pages at a time.
-
-Of the two callers of zone_batchsize, the one that is actually used to
-set pcp->batch works around this by setting pcp->batch to the maximum
-of 1 and zone_batchsize. However, the other caller, zone_pcp_init,
-incorrectly prints out the batch size of the zone to be 0.
-
-This is probably rare in a typical zone, but the DMA zone can often have
-less than 4096 pages, which means it will print out "LIFO batch:0".
-
-Before: [    0.001216]   DMA zone: 3998 pages, LIFO batch:0
-After:  [    0.001210]   DMA zone: 3998 pages, LIFO batch:1
-
-Instead of dealing with the error handling and the mismatch between the
-reported and actual zone batchsize, just return 1 if the zone_batchsize
-is 1 page or less before the rounding.
-
-Link: https://lkml.kernel.org/r/20251009192933.3756712-3-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Link: https://lkml.kernel.org/r/20251009172433.4158118-1-usamaarif642@gmail.com
+Signed-off-by: Usama Arif <usamaarif642@gmail.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-prevent-reporting-pcp-batch-=-0
-+++ a/mm/page_alloc.c
-@@ -5917,8 +5917,8 @@ static int zone_batchsize(struct zone *z
- 	 * and zone lock contention.
- 	 */
- 	batch = min(zone_managed_pages(zone) >> 12, SZ_256K / PAGE_SIZE);
--	if (batch < 1)
--		batch = 1;
-+	if (batch <= 1)
-+		return 1;
+--- a/mm/hugetlb.c~mm-hugetlb-create-hstate_is_gigantic_no_runtime-helper
++++ a/mm/hugetlb.c
+@@ -134,6 +134,17 @@ static void hugetlb_free_folio(struct fo
+ 	folio_put(folio);
+ }
+ 
++/*
++ * Check if the hstate represents gigantic pages but gigantic page
++ * runtime support is not available. This is a common condition used to
++ * skip operations that cannot be performed on gigantic pages when runtime
++ * support is disabled.
++ */
++static inline bool hstate_is_gigantic_no_runtime(struct hstate *h)
++{
++	return hstate_is_gigantic(h) && !gigantic_page_runtime_supported();
++}
++
+ static inline bool subpool_is_free(struct hugepage_subpool *spool)
+ {
+ 	if (spool->count)
+@@ -1555,7 +1566,7 @@ static void remove_hugetlb_folio(struct
+ 	VM_BUG_ON_FOLIO(hugetlb_cgroup_from_folio_rsvd(folio), folio);
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+-	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
++	if (hstate_is_gigantic_no_runtime(h))
+ 		return;
+ 
+ 	list_del(&folio->lru);
+@@ -1617,7 +1628,7 @@ static void __update_and_free_hugetlb_fo
+ {
+ 	bool clear_flag = folio_test_hugetlb_vmemmap_optimized(folio);
+ 
+-	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
++	if (hstate_is_gigantic_no_runtime(h))
+ 		return;
  
  	/*
- 	 * Clamp the batch to a 2^n - 1 value. Having a power
-@@ -6069,7 +6069,7 @@ static void zone_set_pageset_high_and_ba
- {
- 	int new_high_min, new_high_max, new_batch;
+@@ -2511,7 +2522,7 @@ static void return_unused_surplus_pages(
+ 	/* Uncommit the reservation */
+ 	h->resv_huge_pages -= unused_resv_pages;
  
--	new_batch = max(1, zone_batchsize(zone));
-+	new_batch = zone_batchsize(zone);
- 	if (percpu_pagelist_high_fraction) {
- 		new_high_min = zone_highsize(zone, new_batch, cpu_online,
- 					     percpu_pagelist_high_fraction);
+-	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
++	if (hstate_is_gigantic_no_runtime(h))
+ 		goto out;
+ 
+ 	/*
+@@ -3725,7 +3736,7 @@ static void __init hugetlb_init_hstates(
+ 		 * - If CMA allocation is possible, we can not demote
+ 		 *   HUGETLB_PAGE_ORDER or smaller size pages.
+ 		 */
+-		if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
++		if (hstate_is_gigantic_no_runtime(h))
+ 			continue;
+ 		if (hugetlb_cma_total_size() && h->order <= HUGETLB_PAGE_ORDER)
+ 			continue;
+@@ -4202,7 +4213,7 @@ static ssize_t __nr_hugepages_store_comm
+ 	int err;
+ 	nodemask_t nodes_allowed, *n_mask;
+ 
+-	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
++	if (hstate_is_gigantic_no_runtime(h))
+ 		return -EINVAL;
+ 
+ 	if (nid == NUMA_NO_NODE) {
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from usamaarif642@gmail.com are
 
-mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
-mm-page_alloc-batch-page-freeing-in-decay_pcp_high.patch
-mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
-mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch
-mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch
+mm-hugetlb-create-hstate_is_gigantic_no_runtime-helper.patch
+mm-hugetlb-allow-overcommitting-gigantic-hugepages.patch
 
