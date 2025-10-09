@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28F0F8615A
-	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 02:15:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 813E534BA3C
+	for <mm-commits@vger.kernel.org>; Thu,  9 Oct 2025 02:33:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759976130; cv=none; b=KMHvGsWR7HFCMEIceaztxGBQJ8YngECgK/dSGm1EhovQjQXJl3rtq6Mvp8w4up66Q7Iv6ItGAqQ4pPpKgoSJydFIO0Xv0vz/xxNHLCsSUQKs6d+Q04dEEwFU6uKs+bDYRK0og6EZI3U0lzour8ZJkcm6GsePVd+RV7dFqss8bPA=
+	t=1759977187; cv=none; b=qrYgEKbz3J7qfCHKNfrn/hQxzY8WG/hnFUYFjRC6DG1ldA46TA0dkpUmbYhnL+S1jViVqcc5Wjk+CjNrDhHWb/frLINVoSrq0cnhfR8BVi7XRCV1o1TuxWe6kIhOyCd29ZxgJ2KY09Z9byPRpCHo0nODdWzUa4T9mE7Gn73dvwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759976130; c=relaxed/simple;
-	bh=LHjmBkRVYmB85MJ/c7ZEOKLrgpNVWHfJv9Qkzo5XI2k=;
-	h=Date:To:From:Subject:Message-Id; b=adVNkRBeqkyHibkaiyErL4mQb97DaH4WxLmEFTuj/Zcl4vqEESAVkpqh+okUXL7RcH0w+CWpHtiQlKPEpCkDH/JtDzz7sel/AtQWJkilAAh5MdRAOB4U5WrKkoarSB54WDLfE8TOF291uSHbYgFuHj7baLhn8mCBpcZiefmkAjI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yEgut/qW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759977187; c=relaxed/simple;
+	bh=VUh0Gu3bzFgwmAdnIsCxoOvFdPRV2wRRFUunWDHvuuI=;
+	h=Date:To:From:Subject:Message-Id; b=MkbekPY/gRa8DYQbNd+stUxOnCsF2NrdWhR2WaeSZMQpcGmmcQnvuvX1VktBDFflcWEm6xbSObUkhZSCjedprKbM49Uj9bUvxNlfLx7XsK5PDFh7GtrN0Bc4qc+o5V34mV0cWx/2YT45wQ+G2yldndxDkQQ80EYCFLTPch375dU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a6hhjjVF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yEgut/qW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DED7C4CEE7;
-	Thu,  9 Oct 2025 02:15:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a6hhjjVF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D52BBC4CEE7;
+	Thu,  9 Oct 2025 02:33:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1759976129;
-	bh=LHjmBkRVYmB85MJ/c7ZEOKLrgpNVWHfJv9Qkzo5XI2k=;
+	s=korg; t=1759977184;
+	bh=VUh0Gu3bzFgwmAdnIsCxoOvFdPRV2wRRFUunWDHvuuI=;
 	h=Date:To:From:Subject:From;
-	b=yEgut/qWRORod4edV7+aAgpH6XeuMm+PrHE5OfdtqnaD7yIA1RSgrLp4X00ueh6HV
-	 sXSxJdIhpk+8fmZPy0ne6WQPZwHHItkrnaY2qQ6GlIQy+/o146LbQIQ5P/FHFuW2EF
-	 zuANK2YlrjyIRkfAlsooBPce2dxdd33ocSkDBb+Q=
-Date: Wed, 08 Oct 2025 19:15:29 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,rppt@kernel.org,rdunlap@infradead.org,pratyush@kernel.org,ojeda@kernel.org,masahiroy@kernel.org,jgg@ziepe.ca,jgg@nvidia.com,graf@amazon.com,corbet@lwn.net,brauner@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=a6hhjjVF53fcjE1U2LokmRNIDiT+t3x3yMuRpMmKgSpeMq1kBeoCtwMF0/mfNaYbO
+	 Dbb9ukIsArM8OYP74DkUeKKuLSu6karyV7f1lv8juZGvArFuEAeIZ8hMJ03LoiU5M3
+	 goJvVSGgE4yznj9BKCSUx6ndBCTL5+A2wwnKUBFE=
+Date: Wed, 08 Oct 2025 19:33:04 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,mfo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-move-kho-debugfs-directory-to-liveupdate.patch added to mm-nonmm-unstable branch
-Message-Id: <20251009021529.8DED7C4CEE7@smtp.kernel.org>
+Subject: + mm-page_owner-introduce-struct-stack_print_ctx.patch added to mm-new branch
+Message-Id: <20251009023304.D52BBC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: move kho debugfs directory to liveupdate
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-move-kho-debugfs-directory-to-liveupdate.patch
+     Subject: mm/page_owner: introduce struct stack_print_ctx
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_owner-introduce-struct-stack_print_ctx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-move-kho-debugfs-directory-to-liveupdate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-introduce-struct-stack_print_ctx.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,115 +64,210 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: move kho debugfs directory to liveupdate
-Date: Tue, 7 Oct 2025 03:31:00 +0000
+From: Mauricio Faria de Oliveira <mfo@igalia.com>
+Subject: mm/page_owner: introduce struct stack_print_ctx
+Date: Wed, 1 Oct 2025 14:56:07 -0300
 
-Now, that LUO and KHO both live under kernel/liveupdate, it makes sense to
-also move the kho debugfs files to liveupdate/
+Patch series "mm/page_owner: add debugfs files 'show_handles' and
+'show_stacks_handles'", v2.
 
-The old names:
-/sys/kernel/debug/kho/out/
-/sys/kernel/debug/kho/in/
+Context:
 
-The new names:
-/sys/kernel/debug/liveupdate/kho_out/
-/sys/kernel/debug/liveupdate/kho_in/
+The page_owner debug feature can help understand a particular situation in
+in a point in time (e.g., identify biggest memory consumers; verify memory
+counters that do not add up).
 
-Also, export the liveupdate_debufs_root, so future LUO selftests could
-use it as well.
+Another useful usecase is to collect data repeatedly over time, and use it
+for profiling, monitoring, and even comparing different kernel versions,
+at the stack trace level (e.g., watch for trends, leaks, correlations, and
+regressions).
 
-Link: https://lkml.kernel.org/r/20251007033100.836886-8-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
+For this usecase, userspace periorically collects the data from page_owner
+and organizes it in data structures appropriate for access per-stack
+trace.
+
+Problem:
+
+The usecase of tracking memory usage per stack trace (or tracking it for a
+particular stack trace) requires uniquely identifying each stack trace
+(i.e., keys to store their memory usage over periodic data collections).
+
+This has to be done for every stack trace in every sample/data collection,
+even if tracking only one stack trace (to identify it among all others).
+
+Therefore, an approach like hashing the stack traces in userspace to
+create unique keys/identifiers for them during post-processing can quickly
+become expensive, considering the repetition and a growing number of stack
+traces.
+
+Solution:
+
+Fortunately, the kernel can provide a unique identifier for stack traces
+in page_owner, which is the handle number in stackdepot.  This eliminates
+the need for creating keys (hashing) in userspace during post-processing.
+
+Additionally, with that information, the stack traces themselves are not
+needed until the memory usage should be resolved from a handle to a stack
+trace (say, to look at the stack traces of a few top consumers).  This can
+reduce the amount of text emitted/copied by the kernel to userspace, and
+save userspace from matching and discarding stack traces when not needed.
+
+Changes:
+
+This patchset adds 2 files to provide information, like 'show_stacks':
+ - show_handles: print handle number and number of pages (no stack traces)
+ - show_stacks_handles: print handle numbers and stack traces (no pages)
+
+Now, it's possible to periodically collect data with handle numbers (keys)
+and without stack traces (lower overhead) from 'show_handles', and later
+do a final collection with handles and stack traces from
+'show_stacks_handles' to resolve the handles to their stack traces.
+
+The output format follows the existing 'show_stacks' file, for simplicity,
+but it can certainly be changed if a different format is more convenient.
+
+Example:
+
+The number of base pages collected can be stored per-handle number over
+the periodic data collections, and finally resolved to stack traces
+per-handle number as well with a final collection.
+
+Later, one can, for example, identify the biggest consumers and watch
+their trends or correlate increases/decreases with other events in the
+system, or watch a particular stack trace(s) of interest during
+development.
+
+Testing:
+
+Tested on next-20250929.
+
+ - show_stacks:
+	
+	 register_dummy_stack+0x32/0x70
+	 init_page_owner+0x29/0x2f0
+	 page_ext_init+0x27c/0x2b0
+	 mm_core_init+0xdc/0x110
+	nr_base_pages: 47
+		
+ - show_handles:
+
+	handle: 1
+	nr_base_pages: 47
+
+ - show_stacks_handles:
+
+	 register_dummy_stack+0x32/0x70
+	 init_page_owner+0x29/0x2f0
+	 page_ext_init+0x27c/0x2b0
+	 mm_core_init+0xdc/0x110
+	handle: 1
+	
+ - count_threshold:
+
+	# echo 100 >/sys/kernel/debug/page_owner_stacks/count_threshold
+	# grep register_dummy_stack show_stacks		# not present
+	# grep -B4 '^handle: 1$' show_handles  		# not present 
+	# grep -B4 '^handle: 1$' show_stacks_handles	# present
+	 register_dummy_stack+0x32/0x70
+	 init_page_owner+0x29/0x2f0
+	 page_ext_init+0x27c/0x2b0
+	 mm_core_init+0xdc/0x110
+	handle: 1
+
+
+This patch (of 5):
+
+Currently, struct seq_file.private is used as an iterator in stack_list by
+stack_start|next(), for stack_print().
+
+Create a context struct for this, in order to add another field next.
+
+No behavior change intended.
+
+P.S.: page_owner_stack_open() is expanded with separate statements for
+variable definition and return just in preparation for the next patch.
+
+Link: https://lkml.kernel.org/r/20251001175611.575861-1-mfo@igalia.com
+Link: https://lkml.kernel.org/r/20251001175611.575861-2-mfo@igalia.com
+Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover_debug.c    |   10 +++++-----
- kernel/liveupdate/kexec_handover_internal.h |    2 ++
- tools/testing/selftests/kho/init.c          |    2 +-
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ mm/page_owner.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover_debug.c~kho-move-kho-debugfs-directory-to-liveupdate
-+++ a/kernel/liveupdate/kexec_handover_debug.c
-@@ -15,7 +15,7 @@
- #include <linux/mm.h>
- #include "kexec_handover_internal.h"
+--- a/mm/page_owner.c~mm-page_owner-introduce-struct-stack_print_ctx
++++ a/mm/page_owner.c
+@@ -45,6 +45,10 @@ static struct stack failure_stack;
+ static struct stack *stack_list;
+ static DEFINE_SPINLOCK(stack_list_lock);
  
--static struct dentry *debugfs_root;
-+struct dentry *liveupdate_debugfs_root;
- 
- struct fdt_debugfs {
- 	struct list_head list;
-@@ -115,7 +115,7 @@ __init void kho_in_debugfs_init(struct k
- 
- 	INIT_LIST_HEAD(&dbg->fdt_list);
- 
--	dir = debugfs_create_dir("in", debugfs_root);
-+	dir = debugfs_create_dir("kho_in", liveupdate_debugfs_root);
- 	if (IS_ERR(dir)) {
- 		err = PTR_ERR(dir);
- 		goto err_out;
-@@ -175,7 +175,7 @@ __init int kho_out_debugfs_init(struct k
- 
- 	INIT_LIST_HEAD(&dbg->fdt_list);
- 
--	dir = debugfs_create_dir("out", debugfs_root);
-+	dir = debugfs_create_dir("kho_out", liveupdate_debugfs_root);
- 	if (IS_ERR(dir))
- 		return -ENOMEM;
- 
-@@ -209,8 +209,8 @@ err_rmdir:
- 
- __init int kho_debugfs_init(void)
- {
--	debugfs_root = debugfs_create_dir("kho", NULL);
--	if (IS_ERR(debugfs_root))
-+	liveupdate_debugfs_root = debugfs_create_dir("liveupdate", NULL);
-+	if (IS_ERR(liveupdate_debugfs_root))
- 		return -ENOENT;
- 	return 0;
- }
---- a/kernel/liveupdate/kexec_handover_internal.h~kho-move-kho-debugfs-directory-to-liveupdate
-+++ a/kernel/liveupdate/kexec_handover_internal.h
-@@ -15,6 +15,8 @@ struct kho_debugfs {
- 	struct list_head fdt_list;
- };
- 
-+extern struct dentry *liveupdate_debugfs_root;
++struct stack_print_ctx {
++	struct stack *stack;
++};
 +
- #else
- struct kho_debugfs {};
- #endif
---- a/tools/testing/selftests/kho/init.c~kho-move-kho-debugfs-directory-to-liveupdate
-+++ a/tools/testing/selftests/kho/init.c
-@@ -11,7 +11,7 @@
- /* from arch/x86/include/asm/setup.h */
- #define COMMAND_LINE_SIZE	2048
+ static bool page_owner_enabled __initdata;
+ DEFINE_STATIC_KEY_FALSE(page_owner_inited);
  
--#define KHO_FINALIZE "/debugfs/kho/out/finalize"
-+#define KHO_FINALIZE "/debugfs/liveupdate/kho_out/finalize"
- #define KERNEL_IMAGE "/kernel"
+@@ -856,6 +860,7 @@ static const struct file_operations proc
+ static void *stack_start(struct seq_file *m, loff_t *ppos)
+ {
+ 	struct stack *stack;
++	struct stack_print_ctx *ctx = m->private;
  
- static int mount_filesystems(void)
+ 	if (*ppos == -1UL)
+ 		return NULL;
+@@ -867,9 +872,9 @@ static void *stack_start(struct seq_file
+ 		 * value of stack_list.
+ 		 */
+ 		stack = smp_load_acquire(&stack_list);
+-		m->private = stack;
++		ctx->stack = stack;
+ 	} else {
+-		stack = m->private;
++		stack = ctx->stack;
+ 	}
+ 
+ 	return stack;
+@@ -878,10 +883,11 @@ static void *stack_start(struct seq_file
+ static void *stack_next(struct seq_file *m, void *v, loff_t *ppos)
+ {
+ 	struct stack *stack = v;
++	struct stack_print_ctx *ctx = m->private;
+ 
+ 	stack = stack->next;
+ 	*ppos = stack ? *ppos + 1 : -1UL;
+-	m->private = stack;
++	ctx->stack = stack;
+ 
+ 	return stack;
+ }
+@@ -926,7 +932,10 @@ static const struct seq_operations page_
+ 
+ static int page_owner_stack_open(struct inode *inode, struct file *file)
+ {
+-	return seq_open_private(file, &page_owner_stack_op, 0);
++	int ret = seq_open_private(file, &page_owner_stack_op,
++				   sizeof(struct stack_print_ctx));
++
++	return ret;
+ }
+ 
+ static const struct file_operations page_owner_stack_operations = {
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from mfo@igalia.com are
 
-kho-allow-to-drive-kho-from-within-kernel.patch
-kho-make-debugfs-interface-optional.patch
-kho-add-interfaces-to-unpreserve-folios-and-page-ranes.patch
-kho-dont-unpreserve-memory-during-abort.patch
-liveupdate-kho-move-to-kernel-liveupdate.patch
-kho-move-kho-debugfs-directory-to-liveupdate.patch
+mm-page_owner-introduce-struct-stack_print_ctx.patch
+mm-page_owner-add-struct-stack_print_ctxflags.patch
+mm-page_owner-add-debugfs-file-show_handles.patch
+mm-page_owner-add-debugfs-file-show_stacks_handles.patch
+mm-page_owner-update-documentation-with-show_handles-and-show_stacks_handles.patch
 
