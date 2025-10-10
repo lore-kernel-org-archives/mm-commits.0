@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53EB61A704B;
-	Fri, 10 Oct 2025 00:01:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F34AC433B3
+	for <mm-commits@vger.kernel.org>; Fri, 10 Oct 2025 00:04:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760054472; cv=none; b=WiTHmFc5XGoLsZup2uUOUl0lpTfJcxhiYxShihnJawhPYNxN9LQxcfbW9lp+RjNz0DeIGQM2PeyhVRk6opLCNnIWjSpcGiG0fvmDAEVJo8oUDYfa0iVV/f1TC8zDMGEjq8/1kOoaqlJpre1hZjD4PzoLvEivdYibk7HZ7tEkoss=
+	t=1760054669; cv=none; b=acxPrJk5sqz3TwfgSJGIV7QEBiQvGr+hDnNqrW2JgxhuelRv8+9u6R5BkXAmovJQ/z6MYzymmLtVXllMtftktt+DSAqzmOt9UDQPv+XqolkE86IewrzhAm0EL8RS7Eum4v1oNR1+AHoAj5v15+8G7CTGmigSQy7K8zlANeMy/NQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760054472; c=relaxed/simple;
-	bh=Nve+FDMqu5oHzuPx7ousn3dk94XJF1L/E7wJ74Vh7YE=;
-	h=Date:To:From:Subject:Message-Id; b=FFSo4PGMWbvazUL/de1cXmeXBjb7z/DtOycDeCmwDyIM9DTgSvoUreV82WwpxhcteZIuvq8RGCgZ/k3WU+G7YOfU8+g2D/ePIQg0xCv0Q2CDV6Cd2sF8h4gRBURjfC4scviSCRMFz37LrMM9xks1xeTrbD7Qu4loZ1ZLOAhdRQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q0QKg5hL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760054669; c=relaxed/simple;
+	bh=IkV16S5+IygshybNqS5ceQ+1ALNh4VaY5J8Qzerf8RQ=;
+	h=Date:To:From:Subject:Message-Id; b=qBFVMVTaoBIuj2b0bjQ5fkCenUjA2Cq3uIXu9A0dBuH7ll9rkkSQPU15pvYahPZcccq0E0l39szFlut3vEwUjuJoQ4cT3LSWrhU7yZTLvfKY0LKXjIR9ykT4Mwtdm/BZZG01TS8LktUIp4Rh6crkPCkkWLZxQJF8k2J6TuD87bg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qRi2PaJL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q0QKg5hL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15CE1C4CEE7;
-	Fri, 10 Oct 2025 00:01:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qRi2PaJL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BAEBC4CEE7;
+	Fri, 10 Oct 2025 00:04:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760054472;
-	bh=Nve+FDMqu5oHzuPx7ousn3dk94XJF1L/E7wJ74Vh7YE=;
+	s=korg; t=1760054668;
+	bh=IkV16S5+IygshybNqS5ceQ+1ALNh4VaY5J8Qzerf8RQ=;
 	h=Date:To:From:Subject:From;
-	b=Q0QKg5hLS+S8H1RDxNnQCSxqCCK0/+CVNCLv4qYNJZJe/yneXb/4zZRywsUVDiIst
-	 Y9QU8S2VzV8vr/bAH60AUZJaDLbETQZ0pq3EAbosrU19HHHX8fJg47dgQzMju0IGSV
-	 BpHT8hyBkBvDlZxsHNuSVgLXUVxAjhdW73W3cI90=
-Date: Thu, 09 Oct 2025 17:01:11 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,robin.murphy@arm.com,isaacmanjarres@google.com,hch@lst.de,catalin.marinas@arm.com,m.szyprowski@samsung.com,akpm@linux-foundation.org
+	b=qRi2PaJLEcK3XyaQBE0qw9ItXTfFeLR1Kcas08dZ89joDZ/J353EgSx3GYv1JAEOw
+	 PuLn27g2cKFGp2cmM6696ReOrd5bZXRsD6yeEZhDeufLvm/AtDBN8sV0uGMMtBvaV0
+	 uDhrqHlWnG8zwe5ZenPvlSD814egaWwZMZM0s1Lg=
+Date: Thu, 09 Oct 2025 17:04:27 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dma-debug-dont-report-false-positives-with-dma_bounce_unaligned_kmalloc.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251010000112.15CE1C4CEE7@smtp.kernel.org>
+Subject: + ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch added to mm-nonmm-unstable branch
+Message-Id: <20251010000428.2BAEBC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dma-debug: don't report false positives with DMA_BOUNCE_UNALIGNED_KMALLOC
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     dma-debug-dont-report-false-positives-with-dma_bounce_unaligned_kmalloc.patch
+     Subject: ocfs2: add extra flags check in ocfs2_ioctl_move_extents()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dma-debug-dont-report-false-positives-with-dma_bounce_unaligned_kmalloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,61 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: dma-debug: don't report false positives with DMA_BOUNCE_UNALIGNED_KMALLOC
-Date: Thu, 9 Oct 2025 16:15:08 +0200
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: add extra flags check in ocfs2_ioctl_move_extents()
+Date: Thu, 9 Oct 2025 13:23:48 +0300
 
-Commit 370645f41e6e ("dma-mapping: force bouncing if the kmalloc() size is
-not cache-line-aligned") introduced DMA_BOUNCE_UNALIGNED_KMALLOC feature
-and lets architecture specific code to configure kmalloc slabs with sizes
-smaller than the value of dma_get_cache_alignment().
+In 'ocfs2_ioctl_move_extents()', add extra check whether only actually
+supported flags are passed via 'ioctl(..., OCFS2_IOC_MOVE_EXT, ...)',
+and reject anything beyond OCFS2_MOVE_EXT_FL_AUTO_DEFRAG and
+OCFS2_MOVE_EXT_FL_PART_DEFRAG with -EINVAL. In particular,
+OCFS2_MOVE_EXT_FL_COMPLETE may be set by the kernel only and
+should never be passed from userspace.
 
-When that feature is enabled, the physical address of some small
-kmalloc()-ed buffers might be not aligned to the CPU cachelines, thus not
-really suitable for typical DMA.  To properly handle that case a SWIOTLB
-buffer bouncing is used, so no CPU cache corruption occurs.  When that
-happens, there is no point reporting a false-positive DMA-API warning that
-the buffer is not properly aligned, as this is not a client driver fault.
-
-Link: https://lkml.kernel.org/r/20251009141508.2342138-1-m.szyprowski@samsung.com
-Fixes: 370645f41e6e ("dma-mapping: force bouncing if the kmalloc() size is not cache-line-aligned")
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Inki Dae <m.szyprowski@samsung.com>
-Cc: Robin Murohy <robin.murphy@arm.com>
-Cc: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251009102349.181126-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma/debug.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/move_extents.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/kernel/dma/debug.c~dma-debug-dont-report-false-positives-with-dma_bounce_unaligned_kmalloc
-+++ a/kernel/dma/debug.c
-@@ -23,6 +23,7 @@
- #include <linux/ctype.h>
- #include <linux/list.h>
- #include <linux/slab.h>
-+#include <linux/swiotlb.h>
- #include <asm/sections.h>
- #include "debug.h"
+--- a/fs/ocfs2/move_extents.c~ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents
++++ a/fs/ocfs2/move_extents.c
+@@ -1031,6 +1031,12 @@ int ocfs2_ioctl_move_extents(struct file
+ 	if (range.me_threshold > i_size_read(inode))
+ 		range.me_threshold = i_size_read(inode);
  
-@@ -594,7 +595,9 @@ static void add_dma_entry(struct dma_deb
- 	if (rc == -ENOMEM) {
- 		pr_err_once("cacheline tracking ENOMEM, dma-debug disabled\n");
- 		global_disable = true;
--	} else if (rc == -EEXIST && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
-+	} else if (rc == -EEXIST && !(attrs & DMA_ATTR_SKIP_CPU_SYNC) &&
-+		   !(IS_ENABLED(CONFIG_DMA_BOUNCE_UNALIGNED_KMALLOC) &&
-+		     is_swiotlb_allocated())) {
- 		err_printk(entry->dev, entry,
- 			"cacheline tracking EEXIST, overlapping mappings aren't supported\n");
- 	}
++	if (range.me_flags & ~(OCFS2_MOVE_EXT_FL_AUTO_DEFRAG |
++			       OCFS2_MOVE_EXT_FL_PART_DEFRAG)) {
++		status = -EINVAL;
++		goto out_free;
++	}
++
+ 	if (range.me_flags & OCFS2_MOVE_EXT_FL_AUTO_DEFRAG) {
+ 		context->auto_defrag = 1;
+ 
 _
 
-Patches currently in -mm which might be from m.szyprowski@samsung.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-dma-debug-dont-report-false-positives-with-dma_bounce_unaligned_kmalloc.patch
+ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch
+ocfs2-relax-bug-to-ocfs2_error-in-__ocfs2_move_extent.patch
 
