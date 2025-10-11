@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E23AB2BAF9
-	for <mm-commits@vger.kernel.org>; Sat, 11 Oct 2025 18:07:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E04601F03C9
+	for <mm-commits@vger.kernel.org>; Sat, 11 Oct 2025 18:11:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760206051; cv=none; b=IZj0/t/0hDA3RAMiuWrbWPA/Ukb18LGWhczq0hl5vLsSqNYqzuVDM8q3HMJu/3sRxRnvP95jQ0fdO9nxymVCiDmi7gjQkwxCJYrrsXgaX/yAva81JEeDVqjI+saDYINX3ZZv7VaIgoyGDeb2OZ1lN2AiGG1EZ0gbhVYfvzf18B4=
+	t=1760206261; cv=none; b=u/mhlPG1YYRfzwsoidkef4djNci2WaLDIQaZm0B30/Cv1U+Ld7Kl3TCJpT5siMu7nwQ15wWtSOIWzM9tUYUPPTR6Ath6ZDfuIlsKUcv7LYj15pjn0KhEQnBp/0d0dK8jf6pafRrkpaZ/9PGm+SQ4cZrJHcHtVmV6i8Z4jdbcy5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760206051; c=relaxed/simple;
-	bh=3Y399hCb0Z4OatMNTiSK/Z2crYRlGkpjftk8joDez4I=;
-	h=Date:To:From:Subject:Message-Id; b=Vj8SzbsiddqGB3nHPKcCJqfEBi6ZOq2yqQgPFghaa6ty3mNInLa8Ck0MW+iQSnfQSuLlzECFf7iX4pvtECX9xp7lV9l7AWJvZFnACQojWi+iSC2HTuoIM1rPayxA+QFVFYjA0jkHqviXj9dBpTkYx6T+APHC7VfhLtSeouD5ymI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZCIftL6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760206261; c=relaxed/simple;
+	bh=r2o9TH29LpgRJ7Df7pns8AdLBcx0Nvzd8pbG0v0W6Wg=;
+	h=Date:To:From:Subject:Message-Id; b=p0UBScPTu8+xPTYFHRZENix7RXWVGqvqSCs4oivA9wR4YH1lxy1yQpIc5zes1u5m1TWIpONgGiX47Xn3bS3bRwYBFrpomQZryZWUC7ATPdEiseHT5IQD2FU00vBHV56MXPixhACPT/lsO9H0TTs3/ZpBv9MYCfjF/tWfWtjRB4o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ftPHgXNN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZCIftL6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A739C4CEF4;
-	Sat, 11 Oct 2025 18:07:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ftPHgXNN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56193C4CEF4;
+	Sat, 11 Oct 2025 18:11:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760206050;
-	bh=3Y399hCb0Z4OatMNTiSK/Z2crYRlGkpjftk8joDez4I=;
+	s=korg; t=1760206260;
+	bh=r2o9TH29LpgRJ7Df7pns8AdLBcx0Nvzd8pbG0v0W6Wg=;
 	h=Date:To:From:Subject:From;
-	b=jZCIftL6J/fV+tLWPhTMHrOYHYGSKu3MC9OAuAHpiCqZ8k4z6xqvv9vaGb7Z5qZ+E
-	 MovttwTHGGcgftsSZhhQU9XgP3ymaJzH/h9tfJQmZ45EBp2UMifbyNGbzN+zZJ5wik
-	 srOlWneJr8VwE3R3/BExyNDXTAaDxAfDNKfVqN28=
-Date: Sat, 11 Oct 2025 11:07:29 -0700
-To: mm-commits@vger.kernel.org,martink@posteo.de,akpm@linux-foundation.org
+	b=ftPHgXNNyC8Mx2owiIYwg3Lp4focLSnthqcP5c3GMSRFJDVYW7KqcU7NUJc95DY9n
+	 TwqxDObGPUElCV/fhxbu2FCvegUeIBqHpmHsvVfP95AgKT/EB5uu65EGG7lc1Q8yBR
+	 RskxrUuj2LE8o5sBWiCyLjCYL0SfUb0Xpb6jaSjQ=
+Date: Sat, 11 Oct 2025 11:10:59 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baohua@kernel.org,aaron.lu@intel.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-apply-name-and-email-address-changes-for-martin.patch added to mm-nonmm-unstable branch
-Message-Id: <20251011180730.6A739C4CEF4@smtp.kernel.org>
+Subject: + mm-swap-do-not-choose-swap-device-according-to-numa-node.patch added to mm-new branch
+Message-Id: <20251011181100.56193C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: apply name and email address changes for Martin
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     maintainers-apply-name-and-email-address-changes-for-martin.patch
+     Subject: mm/swap: do not choose swap device according to numa node
+has been added to the -mm mm-new branch.  Its filename is
+     mm-swap-do-not-choose-swap-device-according-to-numa-node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-apply-name-and-email-address-changes-for-martin.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-do-not-choose-swap-device-according-to-numa-node.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,45 +64,477 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Martin Kepplinger-Novaković <martink@posteo.de>
-Subject: MAINTAINERS: apply name and email address changes for Martin
-Date: Sat, 11 Oct 2025 15:59:39 +0000
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/swap: do not choose swap device according to numa node
+Date: Sat, 11 Oct 2025 16:16:23 +0800
 
-Update to new surname addition and currently used email address.
+Patch series "mm/swapfile.c: select the swap device with default priority
+round robin", v4.
 
-Link: https://lkml.kernel.org/r/20251011155903.7442-2-martink@posteo.de
-Signed-off-by: Martin Kepplinger-Novaković <martink@posteo.de>
+Currently, on system with multiple swap devices, swap allocation will
+select one swap device according to priority.  The swap device with the
+highest priority will be chosen to allocate firstly.
+
+People can specify a priority from 0 to 32767 when swapon a swap device,
+or the system will set it from -2 then downwards by default.  Meanwhile,
+on NUMA system, the swap device with node_id will be considered first on
+that NUMA node of the node_id.
+
+In the current code, an array of plist, swap_avail_heads[nid], is used to
+organize swap devices on each NUMA node.  For each NUMA node, there is a
+plist organizing all swap devices.  The 'prio' value in the plist is the
+negated value of the device's priority due to plist being sorted from low
+to high.  The swap device owning one node_id will be promoted to the front
+position on that NUMA node, then other swap devices are put in order of
+their default priority.
+
+E.g I got a system with 8 NUMA nodes, and I setup 4 zram partition as swap
+devices.
+
+Current behaviour:
+their priorities will be(note that -1 is skipped):
+NAME       TYPE      SIZE USED PRIO
+/dev/zram0 partition  16G   0B   -2
+/dev/zram1 partition  16G   0B   -3
+/dev/zram2 partition  16G   0B   -4
+/dev/zram3 partition  16G   0B   -5
+
+And their positions in the 8 swap_avail_lists[nid] will be:
+swap_avail_lists[0]: /* node 0's available swap device list */
+zram0   -> zram1   -> zram2   -> zram3
+prio:1     prio:3     prio:4     prio:5
+swap_avali_lists[1]: /* node 1's available swap device list */
+zram1   -> zram0   -> zram2   -> zram3
+prio:1     prio:2     prio:4     prio:5
+swap_avail_lists[2]: /* node 2's available swap device list */
+zram2   -> zram0   -> zram1   -> zram3
+prio:1     prio:2     prio:3     prio:5
+swap_avail_lists[3]: /* node 3's available swap device list */
+zram3   -> zram0   -> zram1   -> zram2
+prio:1     prio:2     prio:3     prio:4
+swap_avail_lists[4-7]: /* node 4,5,6,7's available swap device list */
+zram0   -> zram1   -> zram2   -> zram3
+prio:2     prio:3     prio:4     prio:5
+
+The adjustment for swap device with node_id intended to decrease the
+pressure of lock contention for one swap device by taking different swap
+device on different node.  The adjustment was introduced in commit
+a2468cc9bfdf ("swap: choose swap device according to numa node"). 
+However, the adjustment is a little coarse-grained.  On the node, the swap
+device sharing the node's id will always be selected firstly by node's
+CPUs until exhausted, then next one.  And on other nodes where no swap
+device shares its node id, swap device with priority '-2' will be selected
+firstly until exhausted, then next with priority '-3'.
+
+This is the swapon output during the process high pressure vm-scability
+test is being taken.  It's clearly showing zram0 is heavily exploited
+until exhausted.
+
+===================================
+[root@hp-dl385g10-03 ~]# swapon
+NAME       TYPE      SIZE  USED PRIO
+/dev/zram0 partition  16G 15.7G   -2
+/dev/zram1 partition  16G  3.4G   -3
+/dev/zram2 partition  16G  3.4G   -4
+/dev/zram3 partition  16G  2.6G   -5
+
+The node based strategy on selecting swap device is much better then the
+old way one by one selecting swap device.  However it is still
+unreasonable because swap devices are assumed to have similar accessing
+speed if no priority is specified when swapon.  It's unfair and doesn't
+make sense just because one swap device is swapped on firstly, its
+priority will be higher than the one swapped on later.
+
+So in this patchset, change is made to select the swap device round robin
+if default priority.  In code, the plist array swap_avail_heads[nid] is
+replaced with a plist swap_avail_head which reverts commit a2468cc9bfdf. 
+Meanwhile, on top of the revert, further change is taken to make any
+device w/o specified priority get the same default priority '-1'.  Surely,
+swap device with specified priority are always put foremost, this is not
+impacted.  If you care about their different accessing speed, then use
+'swapon -p xx' to deploy priority for your swap devices.
+
+New behaviour:
+
+swap_avail_list: /* one global available swap device list */
+zram0   -> zram1   -> zram2   -> zram3
+prio:1     prio:1     prio:1     prio:1
+
+This is the swapon output during the process high pressure vm-scability
+being taken, all is selected round robin:
+=======================================
+[root@hp-dl385g10-03 linux]# swapon
+NAME       TYPE      SIZE  USED PRIO
+/dev/zram0 partition  16G 12.6G   -1
+/dev/zram1 partition  16G 12.6G   -1
+/dev/zram2 partition  16G 12.6G   -1
+/dev/zram3 partition  16G 12.6G   -1
+
+With the change, we can see about 18% efficiency promotion as below:
+
+vm-scability test:
+==================
+Test with:
+usemem --init-time -O -y -x -n 31 2G (4G memcg, zram as swap)
+                           Before:          After:
+System time:               637.92 s         526.74 s      (lower is better)
+Sum Throughput:            3546.56 MB/s     4207.56 MB/s  (higher is better)
+Single process Throughput: 114.40 MB/s      135.72 MB/s   (higher is better)
+free latency:              10138455.99 us   6810119.01 us (low is better)
+
+
+This patch (of 2):
+
+This reverts commit a2468cc9bfdf ("swap: choose swap device according to
+numa node").
+
+After this patch, the behaviour will change back to pre-commit
+a2468cc9bfdf.  Means the priority will be set from -1 then downwards by
+default, and when swapping, it will exhault swap device one by one
+according to priority from high to low.  This is preparation work for
+later change.
+
+[root@hp-dl385g10-03 ~]# swapon
+NAME       TYPE      SIZE   USED PRIO
+/dev/zram0 partition  16G    16G   -1
+/dev/zram1 partition  16G 966.2M   -2
+/dev/zram2 partition  16G     0B   -3
+/dev/zram3 partition  16G     0B   -4
+
+Link: https://lkml.kernel.org/r/20251011081624.224202-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20251011081624.224202-2-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Suggested-by: Chris Li <chrisl@kernel.org>
+Acked-by: Chris Li <chrisl@kernel.org>Cc:
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/mm/swap_numa.rst |   78 -------------------
+ include/linux/swap.h                       |   11 --
+ mm/swapfile.c                              |   76 +++---------------
+ 3 files changed, 14 insertions(+), 151 deletions(-)
 
---- a/MAINTAINERS~maintainers-apply-name-and-email-address-changes-for-martin
-+++ a/MAINTAINERS
-@@ -11563,7 +11563,7 @@ T:	git git://linuxtv.org/media.git
- F:	drivers/media/i2c/hi556.c
+diff --git a/Documentation/admin-guide/mm/swap_numa.rst a/Documentation/admin-guide/mm/swap_numa.rst
+deleted file mode 100644
+--- a/Documentation/admin-guide/mm/swap_numa.rst
++++ /dev/null
+@@ -1,78 +0,0 @@
+-===========================================
+-Automatically bind swap device to numa node
+-===========================================
+-
+-If the system has more than one swap device and swap device has the node
+-information, we can make use of this information to decide which swap
+-device to use in get_swap_pages() to get better performance.
+-
+-
+-How to use this feature
+-=======================
+-
+-Swap device has priority and that decides the order of it to be used. To make
+-use of automatically binding, there is no need to manipulate priority settings
+-for swap devices. e.g. on a 2 node machine, assume 2 swap devices swapA and
+-swapB, with swapA attached to node 0 and swapB attached to node 1, are going
+-to be swapped on. Simply swapping them on by doing::
+-
+-	# swapon /dev/swapA
+-	# swapon /dev/swapB
+-
+-Then node 0 will use the two swap devices in the order of swapA then swapB and
+-node 1 will use the two swap devices in the order of swapB then swapA. Note
+-that the order of them being swapped on doesn't matter.
+-
+-A more complex example on a 4 node machine. Assume 6 swap devices are going to
+-be swapped on: swapA and swapB are attached to node 0, swapC is attached to
+-node 1, swapD and swapE are attached to node 2 and swapF is attached to node3.
+-The way to swap them on is the same as above::
+-
+-	# swapon /dev/swapA
+-	# swapon /dev/swapB
+-	# swapon /dev/swapC
+-	# swapon /dev/swapD
+-	# swapon /dev/swapE
+-	# swapon /dev/swapF
+-
+-Then node 0 will use them in the order of::
+-
+-	swapA/swapB -> swapC -> swapD -> swapE -> swapF
+-
+-swapA and swapB will be used in a round robin mode before any other swap device.
+-
+-node 1 will use them in the order of::
+-
+-	swapC -> swapA -> swapB -> swapD -> swapE -> swapF
+-
+-node 2 will use them in the order of::
+-
+-	swapD/swapE -> swapA -> swapB -> swapC -> swapF
+-
+-Similaly, swapD and swapE will be used in a round robin mode before any
+-other swap devices.
+-
+-node 3 will use them in the order of::
+-
+-	swapF -> swapA -> swapB -> swapC -> swapD -> swapE
+-
+-
+-Implementation details
+-======================
+-
+-The current code uses a priority based list, swap_avail_list, to decide
+-which swap device to use and if multiple swap devices share the same
+-priority, they are used round robin. This change here replaces the single
+-global swap_avail_list with a per-numa-node list, i.e. for each numa node,
+-it sees its own priority based list of available swap devices. Swap
+-device's priority can be promoted on its matching node's swap_avail_list.
+-
+-The current swap device's priority is set as: user can set a >=0 value,
+-or the system will pick one starting from -1 then downwards. The priority
+-value in the swap_avail_list is the negated value of the swap device's
+-due to plist being sorted from low to high. The new policy doesn't change
+-the semantics for priority >=0 cases, the previous starting from -1 then
+-downwards now becomes starting from -2 then downwards and -1 is reserved
+-as the promoted value. So if multiple swap devices are attached to the same
+-node, they will all be promoted to priority -1 on that node's plist and will
+-be used round robin before any other swap devices.
+--- a/include/linux/swap.h~mm-swap-do-not-choose-swap-device-according-to-numa-node
++++ a/include/linux/swap.h
+@@ -301,16 +301,7 @@ struct swap_info_struct {
+ 	struct work_struct discard_work; /* discard worker */
+ 	struct work_struct reclaim_work; /* reclaim worker */
+ 	struct list_head discard_clusters; /* discard clusters list */
+-	struct plist_node avail_lists[]; /*
+-					   * entries in swap_avail_heads, one
+-					   * entry per node.
+-					   * Must be last as the number of the
+-					   * array is nr_node_ids, which is not
+-					   * a fixed value so have to allocate
+-					   * dynamically.
+-					   * And it has to be an array so that
+-					   * plist_for_each_* can work.
+-					   */
++	struct plist_node avail_list;   /* entry in swap_avail_head */
+ };
  
- HYNIX HI846 SENSOR DRIVER
--M:	Martin Kepplinger <martin.kepplinger@puri.sm>
-+M:	Martin Kepplinger-Novakovic <martink@posteo.de>
- L:	linux-media@vger.kernel.org
- S:	Maintained
- F:	drivers/media/i2c/hi846.c
-@@ -15516,7 +15516,7 @@ F:	include/media/imx.h
- MEDIA DRIVERS FOR FREESCALE IMX7/8
- M:	Rui Miguel Silva <rmfrfs@gmail.com>
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
--M:	Martin Kepplinger <martin.kepplinger@puri.sm>
-+M:	Martin Kepplinger-Novakovic <martink@posteo.de>
- R:	Purism Kernel Team <kernel@puri.sm>
- L:	linux-media@vger.kernel.org
- S:	Maintained
+ static inline swp_entry_t page_swap_entry(struct page *page)
+--- a/mm/swapfile.c~mm-swap-do-not-choose-swap-device-according-to-numa-node
++++ a/mm/swapfile.c
+@@ -74,7 +74,7 @@ atomic_long_t nr_swap_pages;
+ EXPORT_SYMBOL_GPL(nr_swap_pages);
+ /* protected with swap_lock. reading in vm_swap_full() doesn't need lock */
+ long total_swap_pages;
+-static int least_priority = -1;
++static int least_priority;
+ unsigned long swapfile_maximum_size;
+ #ifdef CONFIG_MIGRATION
+ bool swap_migration_ad_supported;
+@@ -103,7 +103,7 @@ static PLIST_HEAD(swap_active_head);
+  * is held and the locking order requires swap_lock to be taken
+  * before any swap_info_struct->lock.
+  */
+-static struct plist_head *swap_avail_heads;
++static PLIST_HEAD(swap_avail_head);
+ static DEFINE_SPINLOCK(swap_avail_lock);
+ 
+ struct swap_info_struct *swap_info[MAX_SWAPFILES];
+@@ -1130,7 +1130,6 @@ done:
+ /* SWAP_USAGE_OFFLIST_BIT can only be set by this helper. */
+ static void del_from_avail_list(struct swap_info_struct *si, bool swapoff)
+ {
+-	int nid;
+ 	unsigned long pages;
+ 
+ 	spin_lock(&swap_avail_lock);
+@@ -1159,8 +1158,7 @@ static void del_from_avail_list(struct s
+ 			goto skip;
+ 	}
+ 
+-	for_each_node(nid)
+-		plist_del(&si->avail_lists[nid], &swap_avail_heads[nid]);
++	plist_del(&si->avail_list, &swap_avail_head);
+ 
+ skip:
+ 	spin_unlock(&swap_avail_lock);
+@@ -1169,7 +1167,6 @@ skip:
+ /* SWAP_USAGE_OFFLIST_BIT can only be cleared by this helper. */
+ static void add_to_avail_list(struct swap_info_struct *si, bool swapon)
+ {
+-	int nid;
+ 	long val;
+ 	unsigned long pages;
+ 
+@@ -1202,8 +1199,7 @@ static void add_to_avail_list(struct swa
+ 			goto skip;
+ 	}
+ 
+-	for_each_node(nid)
+-		plist_add(&si->avail_lists[nid], &swap_avail_heads[nid]);
++	plist_add(&si->avail_list, &swap_avail_head);
+ 
+ skip:
+ 	spin_unlock(&swap_avail_lock);
+@@ -1346,16 +1342,14 @@ static bool swap_alloc_fast(swp_entry_t
+ static bool swap_alloc_slow(swp_entry_t *entry,
+ 			    int order)
+ {
+-	int node;
+ 	unsigned long offset;
+ 	struct swap_info_struct *si, *next;
+ 
+-	node = numa_node_id();
+ 	spin_lock(&swap_avail_lock);
+ start_over:
+-	plist_for_each_entry_safe(si, next, &swap_avail_heads[node], avail_lists[node]) {
++	plist_for_each_entry_safe(si, next, &swap_avail_head, avail_list) {
+ 		/* Rotate the device and switch to a new cluster */
+-		plist_requeue(&si->avail_lists[node], &swap_avail_heads[node]);
++		plist_requeue(&si->avail_list, &swap_avail_head);
+ 		spin_unlock(&swap_avail_lock);
+ 		if (get_swap_device_info(si)) {
+ 			offset = cluster_alloc_swap_entry(si, order, SWAP_HAS_CACHE);
+@@ -1380,7 +1374,7 @@ start_over:
+ 		 * still in the swap_avail_head list then try it, otherwise
+ 		 * start over if we have not gotten any slots.
+ 		 */
+-		if (plist_node_empty(&next->avail_lists[node]))
++		if (plist_node_empty(&si->avail_list))
+ 			goto start_over;
+ 	}
+ 	spin_unlock(&swap_avail_lock);
+@@ -2709,25 +2703,11 @@ static int setup_swap_extents(struct swa
+ 	return generic_swapfile_activate(sis, swap_file, span);
+ }
+ 
+-static int swap_node(struct swap_info_struct *si)
+-{
+-	struct block_device *bdev;
+-
+-	if (si->bdev)
+-		bdev = si->bdev;
+-	else
+-		bdev = si->swap_file->f_inode->i_sb->s_bdev;
+-
+-	return bdev ? bdev->bd_disk->node_id : NUMA_NO_NODE;
+-}
+-
+ static void setup_swap_info(struct swap_info_struct *si, int prio,
+ 			    unsigned char *swap_map,
+ 			    struct swap_cluster_info *cluster_info,
+ 			    unsigned long *zeromap)
+ {
+-	int i;
+-
+ 	if (prio >= 0)
+ 		si->prio = prio;
+ 	else
+@@ -2737,16 +2717,7 @@ static void setup_swap_info(struct swap_
+ 	 * low-to-high, while swap ordering is high-to-low
+ 	 */
+ 	si->list.prio = -si->prio;
+-	for_each_node(i) {
+-		if (si->prio >= 0)
+-			si->avail_lists[i].prio = -si->prio;
+-		else {
+-			if (swap_node(si) == i)
+-				si->avail_lists[i].prio = 1;
+-			else
+-				si->avail_lists[i].prio = -si->prio;
+-		}
+-	}
++	si->avail_list.prio = -si->prio;
+ 	si->swap_map = swap_map;
+ 	si->cluster_info = cluster_info;
+ 	si->zeromap = zeromap;
+@@ -2924,10 +2895,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		plist_for_each_entry_continue(si, &swap_active_head, list) {
+ 			si->prio++;
+ 			si->list.prio--;
+-			for_each_node(nid) {
+-				if (si->avail_lists[nid].prio != 1)
+-					si->avail_lists[nid].prio--;
+-			}
++			si->avail_list.prio--;
+ 		}
+ 		least_priority++;
+ 	}
+@@ -3168,9 +3136,8 @@ static struct swap_info_struct *alloc_sw
+ 	struct swap_info_struct *p;
+ 	struct swap_info_struct *defer = NULL;
+ 	unsigned int type;
+-	int i;
+ 
+-	p = kvzalloc(struct_size(p, avail_lists, nr_node_ids), GFP_KERNEL);
++	p = kvzalloc(sizeof(struct swap_info_struct), GFP_KERNEL);
+ 	if (!p)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -3209,8 +3176,7 @@ static struct swap_info_struct *alloc_sw
+ 	}
+ 	p->swap_extent_root = RB_ROOT;
+ 	plist_node_init(&p->list, 0);
+-	for_each_node(i)
+-		plist_node_init(&p->avail_lists[i], 0);
++	plist_node_init(&p->avail_list, 0);
+ 	p->flags = SWP_USED;
+ 	spin_unlock(&swap_lock);
+ 	if (defer) {
+@@ -3467,9 +3433,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	if (!swap_avail_heads)
+-		return -ENOMEM;
+-
+ 	si = alloc_swap_info();
+ 	if (IS_ERR(si))
+ 		return PTR_ERR(si);
+@@ -4079,7 +4042,6 @@ static bool __has_usable_swap(void)
+ void __folio_throttle_swaprate(struct folio *folio, gfp_t gfp)
+ {
+ 	struct swap_info_struct *si, *next;
+-	int nid = folio_nid(folio);
+ 
+ 	if (!(gfp & __GFP_IO))
+ 		return;
+@@ -4098,8 +4060,8 @@ void __folio_throttle_swaprate(struct fo
+ 		return;
+ 
+ 	spin_lock(&swap_avail_lock);
+-	plist_for_each_entry_safe(si, next, &swap_avail_heads[nid],
+-				  avail_lists[nid]) {
++	plist_for_each_entry_safe(si, next, &swap_avail_head,
++				  avail_list) {
+ 		if (si->bdev) {
+ 			blkcg_schedule_throttle(si->bdev->bd_disk, true);
+ 			break;
+@@ -4111,18 +4073,6 @@ void __folio_throttle_swaprate(struct fo
+ 
+ static int __init swapfile_init(void)
+ {
+-	int nid;
+-
+-	swap_avail_heads = kmalloc_array(nr_node_ids, sizeof(struct plist_head),
+-					 GFP_KERNEL);
+-	if (!swap_avail_heads) {
+-		pr_emerg("Not enough memory for swap heads, swap is disabled\n");
+-		return -ENOMEM;
+-	}
+-
+-	for_each_node(nid)
+-		plist_head_init(&swap_avail_heads[nid]);
+-
+ 	swapfile_maximum_size = arch_max_swapfile_size();
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from martink@posteo.de are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mailmap-update-name-and-email-addresses.patch
-credits-update-martins-information.patch
-maintainers-apply-name-and-email-address-changes-for-martin.patch
+mm-swap-do-not-choose-swap-device-according-to-numa-node.patch
+mm-swap-select-swap-device-with-default-priority-round-robin.patch
 
