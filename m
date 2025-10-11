@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 776EF3F9D2
-	for <mm-commits@vger.kernel.org>; Sat, 11 Oct 2025 18:45:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F709241695
+	for <mm-commits@vger.kernel.org>; Sat, 11 Oct 2025 18:53:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760208321; cv=none; b=EKix4uiRbPTJsxXfjTgJqABN8LLWvOLc9FaKLqzyxTbLn88GYlRKY9ueIbL1a1UyF7a7J/t7sxSqc+MPxLD95n8qPuCWzZI47jBvzzTSYWD/ElIzK+XXPGXRMzBi/t0gser2j6lzHOIzQM+JP8Raqptw4SD+LkC52dKDEGJ+I1g=
+	t=1760208822; cv=none; b=eK43/ndQN0c0QS4JrvcXx01IlcBlPKnTkeJoDnrS0Cb7J/vQhWmklerCTFjzLad6pHYDV1p8I9eypgEBdq0jOdqSEDOEV5jlw7h9WzjgYiozHZ8n8SdtdUquC4JZX45xPheor+lwIpYozJ1mz0Ev0+xGH2a9cDCUpehvTW6Jx1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760208321; c=relaxed/simple;
-	bh=LzQIUyRm7ZTBOgCgw6Sxp9qxdOZ9x2XkxVbAPS0LPJQ=;
-	h=Date:To:From:Subject:Message-Id; b=iLlKC1rrgzHa/9Y3BpPGFo8rFfdKM3/1bDQl95+TtsD7Dfgv4xRSEFWAokGaTP/Sxcn2rzvuZUfQJhagLbo1om6DIU7dIdgs7aqCr0Pkg5gkKlxPxHcU54C2WRxWDANvnb4TYvPFXnGli9M0OiPQMktWoheDvRZyuQLRqjJ9tsU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qCwu5qYe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760208822; c=relaxed/simple;
+	bh=1OtwSTAcJVHVwd68KPxs97gXW1cJlj0djW2FQwZQnUE=;
+	h=Date:To:From:Subject:Message-Id; b=LvBj3M/K50RQjZzmTsfOuW/BkMWF6hZ6aCbmaIWSLGBV5NJPvAmPfujwUoI1bkk/zP4p3nIlUL89g9rfmN5xnu89dwH63GXyRvYUxqCbX8XoWFNtH0vjN3VoI0QjU3imaYse/TiEInXRIUDN6tAbWd6kQv/QNUchHc05izfS3dg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fOyPUHcs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qCwu5qYe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD0FCC4CEF4;
-	Sat, 11 Oct 2025 18:45:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fOyPUHcs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D169FC4CEF4;
+	Sat, 11 Oct 2025 18:53:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760208320;
-	bh=LzQIUyRm7ZTBOgCgw6Sxp9qxdOZ9x2XkxVbAPS0LPJQ=;
+	s=korg; t=1760208821;
+	bh=1OtwSTAcJVHVwd68KPxs97gXW1cJlj0djW2FQwZQnUE=;
 	h=Date:To:From:Subject:From;
-	b=qCwu5qYegB8RkX4q3twgmC6jV7fBnHuDhnta94p4gDcsxp70a8hgygz4rBOJtrcKo
-	 ELyaPLhLI8PZZSaClxEo/HeVErRLa2QCpcm/hxyWdfQNvC5ORhODEE5qpB4T3hDPsQ
-	 WOhC4c/gl8Zi1wKuYlkYIL3qz52h+lFE96Dk7BL4=
-Date: Sat, 11 Oct 2025 11:45:20 -0700
-To: mm-commits@vger.kernel.org,nathan@kernel.org,morbo@google.com,linux@armlinux.org.uk,justinstitt@google.com,lukas.bulwahn@redhat.com,akpm@linux-foundation.org
+	b=fOyPUHcsgNU6HOg0beW7Dk3fp7nWYf16oePQS2Jul3cNtDTmYuucGRwv2Y83fQcL9
+	 MnryK2Lbkxt9trO6bNE39lHxMhysybEQh/NdOKALuC+qNZ7+LFL+Z2udCqWe1j7rDi
+	 f+AMXP8ai8ZtYvK2s06o0m6G0qIpNbRf2GpGMerg=
+Date: Sat, 11 Oct 2025 11:53:41 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + treewide-drop-outdated-compiler-version-remarks-in-kconfig-help-texts.patch added to mm-nonmm-unstable branch
-Message-Id: <20251011184520.CD0FCC4CEF4@smtp.kernel.org>
+Subject: + ocfs2-annotate-flexible-array-members-with-__counted_by_le.patch added to mm-nonmm-unstable branch
+Message-Id: <20251011185341.D169FC4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: treewide: drop outdated compiler version remarks in Kconfig help texts
+     Subject: ocfs2: annotate flexible array members with __counted_by_le()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     treewide-drop-outdated-compiler-version-remarks-in-kconfig-help-texts.patch
+     ocfs2-annotate-flexible-array-members-with-__counted_by_le.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-drop-outdated-compiler-version-remarks-in-kconfig-help-texts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-annotate-flexible-array-members-with-__counted_by_le.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,88 +58,102 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@redhat.com>
-Subject: treewide: drop outdated compiler version remarks in Kconfig help texts
-Date: Fri, 10 Oct 2025 10:21:38 +0200
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: annotate flexible array members with __counted_by_le()
+Date: Tue, 7 Oct 2025 15:35:26 +0300
 
-As of writing, Documentation/Changes states the minimal versions of GNU C
-being 8.1, Clang being 15.0.0 and binutils being 2.30.  A few Kconfig help
-texts are pointing out that specific GCC and Clang versions are needed,
-but by now, those pointers to versions, such later than 4.0, later than
-4.4, or clang later than 5.0, are obsolete and unlikely to be found by
-users configuring their kernel builds anyway.
+Annotate flexible array members of 'struct ocfs2_extent_list',
+'struct ocfs2_chain_list', 'struct ocfs2_truncate_log',
+'struct ocfs2_dx_entry_list', 'ocfs2_refcount_list' and
+'struct ocfs2_xattr_header' with  '__counted_by_le()'
+attribute to improve array bounds checking when
+CONFIG_UBSAN_BOUNDS is enabled.
 
-Drop these outdated remarks in Kconfig help texts referring to older
-compiler and binutils versions.  No functional change.
-
-Link: https://lkml.kernel.org/r/20251010082138.185752-1-lukas.bulwahn@redhat.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Russel King <linux@armlinux.org.uk>
+Link: https://lkml.kernel.org/r/20251007123526.213150-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig      |   19 ++++++++-----------
- arch/arm/Kconfig  |    2 --
- lib/Kconfig.debug |    3 +--
- 3 files changed, 9 insertions(+), 15 deletions(-)
+ fs/ocfs2/ocfs2_fs.h |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
---- a/arch/arm/Kconfig~treewide-drop-outdated-compiler-version-remarks-in-kconfig-help-texts
-+++ a/arch/arm/Kconfig
-@@ -1158,8 +1158,6 @@ config AEABI
- 	  disambiguate both ABIs and allow for backward compatibility support
- 	  (selected with CONFIG_OABI_COMPAT).
+--- a/fs/ocfs2/ocfs2_fs.h~ocfs2-annotate-flexible-array-members-with-__counted_by_le
++++ a/fs/ocfs2/ocfs2_fs.h
+@@ -468,7 +468,8 @@ struct ocfs2_extent_list {
+ 	__le16 l_reserved1;
+ 	__le64 l_reserved2;		/* Pad to
+ 					   sizeof(ocfs2_extent_rec) */
+-/*10*/	struct ocfs2_extent_rec l_recs[];	/* Extent records */
++					/* Extent records */
++/*10*/	struct ocfs2_extent_rec l_recs[] __counted_by_le(l_count);
+ };
  
--	  To use this you need GCC version 4.0.0 or later.
--
- config OABI_COMPAT
- 	bool "Allow old ABI binaries to run with this kernel (EXPERIMENTAL)"
- 	depends on AEABI && !THUMB2_KERNEL
---- a/arch/Kconfig~treewide-drop-outdated-compiler-version-remarks-in-kconfig-help-texts
-+++ a/arch/Kconfig
-@@ -232,17 +232,14 @@ config HAVE_EFFICIENT_UNALIGNED_ACCESS
- config ARCH_USE_BUILTIN_BSWAP
- 	bool
- 	help
--	  Modern versions of GCC (since 4.4) have builtin functions
--	  for handling byte-swapping. Using these, instead of the old
--	  inline assembler that the architecture code provides in the
--	  __arch_bswapXX() macros, allows the compiler to see what's
--	  happening and offers more opportunity for optimisation. In
--	  particular, the compiler will be able to combine the byteswap
--	  with a nearby load or store and use load-and-swap or
--	  store-and-swap instructions if the architecture has them. It
--	  should almost *never* result in code which is worse than the
--	  hand-coded assembler in <asm/swab.h>.  But just in case it
--	  does, the use of the builtins is optional.
-+	  GCC and Clang have builtin functions for handling byte-swapping.
-+	  Using these allows the compiler to see what's happening and
-+	  offers more opportunity for optimisation. In particular, the
-+	  compiler will be able to combine the byteswap with a nearby load
-+	  or store and use load-and-swap or store-and-swap instructions if
-+	  the architecture has them. It should almost *never* result in code
-+	  which is worse than the hand-coded assembler in <asm/swab.h>.
-+	  But just in case it does, the use of the builtins is optional.
+ /*
+@@ -482,7 +483,8 @@ struct ocfs2_chain_list {
+ 	__le16 cl_count;		/* Total chains in this list */
+ 	__le16 cl_next_free_rec;	/* Next unused chain slot */
+ 	__le64 cl_reserved1;
+-/*10*/	struct ocfs2_chain_rec cl_recs[];	/* Chain records */
++					/* Chain records */
++/*10*/	struct ocfs2_chain_rec cl_recs[] __counted_by_le(cl_count);
+ };
  
- 	  Any architecture with load-and-swap or store-and-swap
- 	  instructions should set this. And it shouldn't hurt to set it
---- a/lib/Kconfig.debug~treewide-drop-outdated-compiler-version-remarks-in-kconfig-help-texts
-+++ a/lib/Kconfig.debug
-@@ -332,8 +332,7 @@ config DEBUG_INFO_COMPRESSED_ZLIB
- 	depends on $(cc-option,-gz=zlib)
- 	depends on $(ld-option,--compress-debug-sections=zlib)
- 	help
--	  Compress the debug information using zlib.  Requires GCC 5.0+ or Clang
--	  5.0+, binutils 2.26+, and zlib.
-+	  Compress the debug information using zlib.
+ /*
+@@ -494,7 +496,8 @@ struct ocfs2_truncate_log {
+ /*00*/	__le16 tl_count;		/* Total records in this log */
+ 	__le16 tl_used;			/* Number of records in use */
+ 	__le32 tl_reserved1;
+-/*08*/	struct ocfs2_truncate_rec tl_recs[];	/* Truncate records */
++					/* Truncate records */
++/*08*/	struct ocfs2_truncate_rec tl_recs[] __counted_by_le(tl_count);
+ };
  
- 	  Users of dpkg-deb via debian/rules may find an increase in
- 	  size of their debug .deb packages with this config set, due to the
+ /*
+@@ -796,9 +799,10 @@ struct ocfs2_dx_entry_list {
+ 					 * possible in de_entries */
+ 	__le16		de_num_used;	/* Current number of
+ 					 * de_entries entries */
+-	struct	ocfs2_dx_entry		de_entries[];	/* Indexed dir entries
+-							 * in a packed array of
+-							 * length de_num_used */
++					/* Indexed dir entries in a packed
++					 * array of length de_num_used.
++					 */
++	struct	ocfs2_dx_entry		de_entries[] __counted_by_le(de_count);
+ };
+ 
+ #define OCFS2_DX_FLAG_INLINE	0x01
+@@ -934,7 +938,8 @@ struct ocfs2_refcount_list {
+ 	__le16 rl_used;		/* Current number of used records */
+ 	__le32 rl_reserved2;
+ 	__le64 rl_reserved1;	/* Pad to sizeof(ocfs2_refcount_record) */
+-/*10*/	struct ocfs2_refcount_rec rl_recs[];	/* Refcount records */
++				/* Refcount records */
++/*10*/	struct ocfs2_refcount_rec rl_recs[] __counted_by_le(rl_count);
+ };
+ 
+ 
+@@ -1020,7 +1025,8 @@ struct ocfs2_xattr_header {
+ 						    buckets.  A block uses
+ 						    xb_check and sets
+ 						    this field to zero.) */
+-	struct ocfs2_xattr_entry xh_entries[]; /* xattr entry list. */
++						/* xattr entry list. */
++	struct ocfs2_xattr_entry xh_entries[] __counted_by_le(xh_count);
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@redhat.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-treewide-drop-outdated-compiler-version-remarks-in-kconfig-help-texts.patch
+ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch
+ocfs2-relax-bug-to-ocfs2_error-in-__ocfs2_move_extent.patch
+ocfs2-annotate-flexible-array-members-with-__counted_by_le.patch
 
