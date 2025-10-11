@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 120752BAF9
-	for <mm-commits@vger.kernel.org>; Sat, 11 Oct 2025 18:07:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E23AB2BAF9
+	for <mm-commits@vger.kernel.org>; Sat, 11 Oct 2025 18:07:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760206049; cv=none; b=ZfxfZrwPV8of3PcP6VShEyM8ijyJ+zv6vlgvxv1ZFUmaBk8u9ViM3t6FDmcpNx3cDhNxRKCPiqJN501KpjT4E5YIMhAS3ZiB8bCNbaJPwUsgvLB1YknJQPlZBMMvB0lZfkx6yP0+5yKFbqEpIMY1p9J4vQFAyd183tjJtdHlZ2o=
+	t=1760206051; cv=none; b=IZj0/t/0hDA3RAMiuWrbWPA/Ukb18LGWhczq0hl5vLsSqNYqzuVDM8q3HMJu/3sRxRnvP95jQ0fdO9nxymVCiDmi7gjQkwxCJYrrsXgaX/yAva81JEeDVqjI+saDYINX3ZZv7VaIgoyGDeb2OZ1lN2AiGG1EZ0gbhVYfvzf18B4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760206049; c=relaxed/simple;
-	bh=ubgDomZSPRam0l6+XvHoBiu114RgNNMporADYtG1IlI=;
-	h=Date:To:From:Subject:Message-Id; b=KTFyivTkwJwB1nneWOzj9h7rOewa5BuKyLNtZZJ99C167NKxgb85KTvsBCQzDKioVDr8XUGG9/3VH0Ehdrsxt/yb94Epj+zs0Qxg7JmfDXQYWW6NNfVgURxkV137R9kClVbwU8J6whVT9G3AtHLr425cxDMm4ktIvRXL1Vi/8YA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZE+S2zjT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760206051; c=relaxed/simple;
+	bh=3Y399hCb0Z4OatMNTiSK/Z2crYRlGkpjftk8joDez4I=;
+	h=Date:To:From:Subject:Message-Id; b=Vj8SzbsiddqGB3nHPKcCJqfEBi6ZOq2yqQgPFghaa6ty3mNInLa8Ck0MW+iQSnfQSuLlzECFf7iX4pvtECX9xp7lV9l7AWJvZFnACQojWi+iSC2HTuoIM1rPayxA+QFVFYjA0jkHqviXj9dBpTkYx6T+APHC7VfhLtSeouD5ymI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZCIftL6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZE+S2zjT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 814F1C4CEFE;
-	Sat, 11 Oct 2025 18:07:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZCIftL6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A739C4CEF4;
+	Sat, 11 Oct 2025 18:07:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760206048;
-	bh=ubgDomZSPRam0l6+XvHoBiu114RgNNMporADYtG1IlI=;
+	s=korg; t=1760206050;
+	bh=3Y399hCb0Z4OatMNTiSK/Z2crYRlGkpjftk8joDez4I=;
 	h=Date:To:From:Subject:From;
-	b=ZE+S2zjTDyJQMs60AAvR8LurzyUwBprfNbm3/cBC458cMgMTS0vYhPKFwSRlfy0fj
-	 2EruMZgdSkVcY5s2ZWoaMXovYoI4aiBcCHjffYCI2XJVpX5XJoCHvtS8BSZ78bWx2i
-	 n3P0lWj+FveFnZELRZtsyeQK3jDS7LN6AwTPptZs=
-Date: Sat, 11 Oct 2025 11:07:27 -0700
+	b=jZCIftL6J/fV+tLWPhTMHrOYHYGSKu3MC9OAuAHpiCqZ8k4z6xqvv9vaGb7Z5qZ+E
+	 MovttwTHGGcgftsSZhhQU9XgP3ymaJzH/h9tfJQmZ45EBp2UMifbyNGbzN+zZJ5wik
+	 srOlWneJr8VwE3R3/BExyNDXTAaDxAfDNKfVqN28=
+Date: Sat, 11 Oct 2025 11:07:29 -0700
 To: mm-commits@vger.kernel.org,martink@posteo.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + credits-update-martins-information.patch added to mm-nonmm-unstable branch
-Message-Id: <20251011180728.814F1C4CEFE@smtp.kernel.org>
+Subject: + maintainers-apply-name-and-email-address-changes-for-martin.patch added to mm-nonmm-unstable branch
+Message-Id: <20251011180730.6A739C4CEF4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: CREDITS: update Martin's information
+     Subject: MAINTAINERS: apply name and email address changes for Martin
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     credits-update-martins-information.patch
+     maintainers-apply-name-and-email-address-changes-for-martin.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/credits-update-martins-information.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-apply-name-and-email-address-changes-for-martin.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,42 +59,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Martin Kepplinger-Novaković <martink@posteo.de>
-Subject: CREDITS: update Martin's information
+Subject: MAINTAINERS: apply name and email address changes for Martin
 Date: Sat, 11 Oct 2025 15:59:39 +0000
 
-Surname, address, email and the description changed. Apply these updates.
+Update to new surname addition and currently used email address.
 
-Link: https://lkml.kernel.org/r/20251011155903.7442-3-martink@posteo.de
+Link: https://lkml.kernel.org/r/20251011155903.7442-2-martink@posteo.de
 Signed-off-by: Martin Kepplinger-Novaković <martink@posteo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/CREDITS~credits-update-martins-information
-+++ a/CREDITS
-@@ -2052,16 +2052,15 @@ S: Korte Heul 95
- S: 1403 ND  BUSSUM
- S: The Netherlands
+--- a/MAINTAINERS~maintainers-apply-name-and-email-address-changes-for-martin
++++ a/MAINTAINERS
+@@ -11563,7 +11563,7 @@ T:	git git://linuxtv.org/media.git
+ F:	drivers/media/i2c/hi556.c
  
--N: Martin Kepplinger
-+N: Martin Kepplinger-Novakovic
- E: martink@posteo.de
--E: martin.kepplinger@puri.sm
--W: http://www.martinkepplinger.com
- P: 4096R/5AB387D3 F208 2B88 0F9E 4239 3468  6E3F 5003 98DF 5AB3 87D3
- D: mma8452 accelerators iio driver
- D: pegasus_notetaker input driver
-+D: imx8m media and hi846 sensor driver
- D: Kernel fixes and cleanups
--S: Garnisonstraße 26
--S: 4020 Linz
-+S: Keplerstr. 6
-+S: 4050 Traun
- S: Austria
- 
- N: Karl Keyte
+ HYNIX HI846 SENSOR DRIVER
+-M:	Martin Kepplinger <martin.kepplinger@puri.sm>
++M:	Martin Kepplinger-Novakovic <martink@posteo.de>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ F:	drivers/media/i2c/hi846.c
+@@ -15516,7 +15516,7 @@ F:	include/media/imx.h
+ MEDIA DRIVERS FOR FREESCALE IMX7/8
+ M:	Rui Miguel Silva <rmfrfs@gmail.com>
+ M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+-M:	Martin Kepplinger <martin.kepplinger@puri.sm>
++M:	Martin Kepplinger-Novakovic <martink@posteo.de>
+ R:	Purism Kernel Team <kernel@puri.sm>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
 _
 
 Patches currently in -mm which might be from martink@posteo.de are
