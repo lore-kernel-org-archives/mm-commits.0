@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C23B23504B
-	for <mm-commits@vger.kernel.org>; Tue, 14 Oct 2025 22:02:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E90E1E47CA
+	for <mm-commits@vger.kernel.org>; Tue, 14 Oct 2025 22:12:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760479334; cv=none; b=ElL7wGkzBRpehwhaqVGEZ4u/RdlDdWz74W4dLOTEHLPNDapl8+KAdHTs3psOQQkbw5NPZrw5vo/16q2zceT5ZZ/oPiKePk51NOTbjqtcfNoOgeJULDALIkFUKX3Zgg05TE1FGEMqSwQloxGM53dv6ZqVcDM9sly2SUIpj4+HAV8=
+	t=1760479971; cv=none; b=jUmoSFqHgPOiPzorWAsB62BPAV+LDVx6YjqHealoLkFEXpKStaOE7LURVFTUb1lFwkEK4GMlh5SIdSzF+7mwg+JEObvOpk4eOFOMVylRKzCSD7bvnJInJilqLEIZniD9X9Twys6hBSVVo/gMNK9usXaAVJEpgi/jYlOm6N+SmbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760479334; c=relaxed/simple;
-	bh=SSMSbil1TCw30mmkjdp6TcgQgaWqqvu01KHx0+2+3KU=;
-	h=Date:To:From:Subject:Message-Id; b=nf3SX1NUqEZXn5xwCBBWjDk6krGiw2g4cwLYCdEkwQ56fN9G+C2IQGLCQgpZ4KqTNxx+Fbzq3H7XRVeo9UVYn/IOfigqEqDmeqKlgs3Pq0qS5TW9/we9NJb98JXizS2fgunDb3BWcT2WDEEBqo2MIoKE8upF/0H6+wiBxEKeiqI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pn4eDzXl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760479971; c=relaxed/simple;
+	bh=eDYvP1uFNFOlTppy+79mGCbRGi1WsKeGFHmV7nXitEM=;
+	h=Date:To:From:Subject:Message-Id; b=m6d+2Z1iEouhqe1JC2T8uU+SL2dkSM/L8cJ/WaZjmThvq/Qozyd5xQSZHjZ9hiX7U5NsF6iqhSqaqrMcAv3Xp37+kSVsK/BRrATNAklAOIDtWRZaZm5TAUi8BrajGl1/S8izmeqhQUDFm4nQEq45+AP4rKKwPMPFleMA1cXGYvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Acpp9ilU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pn4eDzXl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C13AAC4CEE7;
-	Tue, 14 Oct 2025 22:02:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Acpp9ilU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47B21C4CEE7;
+	Tue, 14 Oct 2025 22:12:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760479333;
-	bh=SSMSbil1TCw30mmkjdp6TcgQgaWqqvu01KHx0+2+3KU=;
+	s=korg; t=1760479971;
+	bh=eDYvP1uFNFOlTppy+79mGCbRGi1WsKeGFHmV7nXitEM=;
 	h=Date:To:From:Subject:From;
-	b=Pn4eDzXlr7zogeRVP29eY1lJP9ejZHhdAW0NDGT4tUUR2CADoCijM8rB0m6mqSiPx
-	 NMTByuFjb5sqPjlYTmXbkkTnNttVPZL/ohoqnjzZ3beJn05ZDuEHJULpLsnCOf0uUP
-	 58RkysD1pdpQeSKTLgLcQSUauK/eMW/nAYXpubdI=
-Date: Tue, 14 Oct 2025 15:02:13 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,ritesh.list@gmail.com,peterz@infradead.org,osalvador@suse.de,mingo@redhat.com,maddy@linux.ibm.com,gregkh@linuxfoundation.org,david@redhat.com,dave.jiang@intel.com,dakr@kernel.org,christophe.leroy@csgroup.eu,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=Acpp9ilUyEHmWjEjuvC/9OV+CePr88BRWo7C0h6yX0jIik/sR+zR5sp4Ehk0Z9y5j
+	 yavkHj7/Ko/tdcKNuofdB8dCRAOq3AS4sPO9MUslRwuH6FOvJ2c589lwTrxVjMmhfT
+	 OFH9r3Y1vOdaShDpT/Cx1lAiTT3Tw+srDmFgJUwo=
+Date: Tue, 14 Oct 2025 15:12:50 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,mhocko@suse.com,kirill@shutemov.name,jackmanb@google.com,hannes@cmpxchg.org,clm@fb.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-node-fold-unregister_node-into-unregister_one_node.patch added to mm-new branch
-Message-Id: <20251014220213.C13AAC4CEE7@smtp.kernel.org>
+Subject: + mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch added to mm-new branch
+Message-Id: <20251014221251.47B21C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/base/node: fold unregister_node() into unregister_one_node()
+     Subject: mm/page_alloc/vmstat: simplify refresh_cpu_vm_stats change detection
 has been added to the -mm mm-new branch.  Its filename is
-     drivers-base-node-fold-unregister_node-into-unregister_one_node.patch
+     mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-node-fold-unregister_node-into-unregister_one_node.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,149 +64,283 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: drivers/base/node: fold unregister_node() into unregister_one_node()
-Date: Tue, 14 Oct 2025 21:09:17 +0530
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/page_alloc/vmstat: simplify refresh_cpu_vm_stats change detection
+Date: Tue, 14 Oct 2025 07:50:08 -0700
 
-unregister_node() is only called from unregister_one_node().  This patch
-folds unregister_node() into its only caller and renames
-unregister_one_node() to unregister_node().
+Patch series "mm/page_alloc: Batch callers of free_pcppages_bulk", v5.
 
-This reduces unnecessary indirection and simplifies the code structure. 
-No functional changes are introduced.
+Motivation & Approach
+=====================
 
-Link: https://lkml.kernel.org/r/32b7d5d8f0f30d313c3e1d8798f591459c8746f9.1760097208.git.donettom@linux.ibm.com
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+While testing workloads with high sustained memory pressure on large
+machines in the Meta fleet (1Tb memory, 316 CPUs), we saw an unexpectedly
+high number of softlockups.  Further investigation showed that the zone
+lock in free_pcppages_bulk was being held for a long time, and was called
+to free 2k+ pages over 100 times just during boot.
+
+This causes starvation in other processes for the zone lock, which can
+lead to the system stalling as multiple threads cannot make progress
+without the locks.  We can see these issues manifesting as warnings:
+
+[ 4512.591979] rcu: INFO: rcu_sched self-detected stall on CPU
+[ 4512.604370] rcu:     20-....: (9312 ticks this GP) idle=a654/1/0x4000000000000000 softirq=309340/309344 fqs=5426
+[ 4512.626401] rcu:              hardirqs   softirqs   csw/system
+[ 4512.638793] rcu:      number:        0        145            0
+[ 4512.651177] rcu:     cputime:       30      10410          174   ==> 10558(ms)
+[ 4512.666657] rcu:     (t=21077 jiffies g=783665 q=1242213 ncpus=316)
+
+While these warnings don't indicate a crash or a kernel panic, they do
+point to the underlying issue of lock contention.  To prevent starvation
+in both locks, batch the freeing of pages using pcp->batch.
+
+Because free_pcppages_bulk is called with the pcp lock and acquires the
+zone lock, relinquishing and reacquiring the locks are only effective when
+both of them are broken together (unless the system was built with queued
+spinlocks).  Thus, instead of modifying free_pcppages_bulk to break both
+locks, batch the freeing from its callers instead.
+
+A similar fix has been implemented in the Meta fleet, and we have seen
+significantly less softlockups.
+
+Testing
+=======
+The following are a few synthetic benchmarks, made on three machines. The
+first is a large machine with 754GiB memory and 316 processors.
+The second is a relatively smaller machine with 251GiB memory and 176
+processors. The third and final is the smallest of the three, which has 62GiB
+memory and 36 processors.
+
+On all machines, I kick off a kernel build with -j$(nproc).
+Negative delta is better (faster compilation).
+
+Large machine (754GiB memory, 316 processors)
+make -j$(nproc)
++------------+---------------+-----------+
+| Metric (s) | Variation (%) | Delta(%)  |
++------------+---------------+-----------+
+| real       |        0.8070 |  - 1.4865 |
+| user       |        0.2823 |  + 0.4081 |
+| sys        |        5.0267 |  -11.8737 |
++------------+---------------+-----------+
+
+Medium machine (251GiB memory, 176 processors)
+make -j$(nproc)
++------------+---------------+----------+
+| Metric (s) | Variation (%) | Delta(%) |
++------------+---------------+----------+
+| real       |        0.2806 |  +0.0351 |
+| user       |        0.0994 |  +0.3170 |
+| sys        |        0.6229 |  -0.6277 |
++------------+---------------+----------+
+
+Small machine (62GiB memory, 36 processors)
+make -j$(nproc)
++------------+---------------+----------+
+| Metric (s) | Variation (%) | Delta(%) |
++------------+---------------+----------+
+| real       |        0.1503 |  -2.6585 |
+| user       |        0.0431 |  -2.2984 |
+| sys        |        0.1870 |  -3.2013 |
++------------+---------------+----------+
+
+Here, variation is the coefficient of variation, i.e.  standard deviation
+/ mean.
+
+Based on these results, it seems like there are varying degrees to how
+much lock contention this reduces.  For the largest and smallest machines
+that I ran the tests on, it seems like there is quite some significant
+reduction.  There is also some performance increases visible from
+userspace.
+
+Interestingly, the performance gains don't scale with the size of the
+machine, but rather there seems to be a dip in the gain there is for the
+medium-sized machine.  One possible theory is that because the high
+watermark depends on both memory and the number of local CPUs, what
+impacts zone contention the most is not these individual values, but
+rather the ratio of mem:processors.
+
+
+This patch (of 5):
+
+Currently, refresh_cpu_vm_stats returns an int, indicating how many
+changes were made during its updates.  Using this information, callers
+like vmstat_update can heuristically determine if more work will be done
+in the future.
+
+However, all of refresh_cpu_vm_stats's callers either (a) ignore the
+result, only caring about performing the updates, or (b) only care about
+whether changes were made, but not *how many* changes were made.
+
+Simplify the code by returning a bool instead to indicate if updates
+were made.
+
+In addition, simplify fold_diff and decay_pcp_high to return a bool
+for the same reason.
+
+Link: https://lkml.kernel.org/r/20251014145011.3427205-1-joshua.hahnjy@gmail.com
+Link: https://lkml.kernel.org/r/20251014145011.3427205-2-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c  |   38 +++++++++++++++++---------------------
- include/linux/node.h |    6 ++----
- mm/memory_hotplug.c  |    4 ++--
- 3 files changed, 21 insertions(+), 27 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/page_alloc.c     |    8 ++++----
+ mm/vmstat.c         |   28 +++++++++++++++-------------
+ 3 files changed, 20 insertions(+), 18 deletions(-)
 
---- a/drivers/base/node.c~drivers-base-node-fold-unregister_node-into-unregister_one_node
-+++ a/drivers/base/node.c
-@@ -676,23 +676,6 @@ static void node_device_release(struct d
- 	kfree(to_node(dev));
- }
+--- a/include/linux/gfp.h~mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection
++++ a/include/linux/gfp.h
+@@ -386,7 +386,7 @@ extern void free_pages(unsigned long add
+ #define free_page(addr) free_pages((addr), 0)
  
--/**
-- * unregister_node - unregister a node device
-- * @node: node going away
-- *
-- * Unregisters a node device @node.  All the devices on the node must be
-- * unregistered before calling this function.
-- */
--void unregister_node(struct node *node)
--{
--	hugetlb_unregister_node(node);
--	compaction_unregister_node(node);
--	reclaim_unregister_node(node);
--	node_remove_accesses(node);
--	node_remove_caches(node);
--	device_unregister(&node->dev);
--}
--
- struct node *node_devices[MAX_NUMNODES];
+ void page_alloc_init_cpuhp(void);
+-int decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp);
++bool decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp);
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
+ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
+--- a/mm/page_alloc.c~mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection
++++ a/mm/page_alloc.c
+@@ -2557,10 +2557,10 @@ static int rmqueue_bulk(struct zone *zon
+  * Called from the vmstat counter updater to decay the PCP high.
+  * Return whether there are addition works to do.
+  */
+-int decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp)
++bool decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp)
+ {
+ 	int high_min, to_drain, batch;
+-	int todo = 0;
++	bool todo = false;
+ 
+ 	high_min = READ_ONCE(pcp->high_min);
+ 	batch = READ_ONCE(pcp->batch);
+@@ -2573,7 +2573,7 @@ int decay_pcp_high(struct zone *zone, st
+ 		pcp->high = max3(pcp->count - (batch << CONFIG_PCP_BATCH_SCALE_MAX),
+ 				 pcp->high - (pcp->high >> 3), high_min);
+ 		if (pcp->high > high_min)
+-			todo++;
++			todo = true;
+ 	}
+ 
+ 	to_drain = pcp->count - pcp->high;
+@@ -2581,7 +2581,7 @@ int decay_pcp_high(struct zone *zone, st
+ 		spin_lock(&pcp->lock);
+ 		free_pcppages_bulk(zone, to_drain, pcp, 0);
+ 		spin_unlock(&pcp->lock);
+-		todo++;
++		todo = true;
+ 	}
+ 
+ 	return todo;
+--- a/mm/vmstat.c~mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection
++++ a/mm/vmstat.c
+@@ -771,25 +771,25 @@ EXPORT_SYMBOL(dec_node_page_state);
  
  /*
-@@ -924,13 +907,26 @@ int register_node(int nid)
- 
- 	return error;
- }
--
--void unregister_one_node(int nid)
-+/**
-+ * unregister_node - unregister a node device
-+ * @nid: nid of the node going away
-+ *
-+ * Unregisters the node device at node id  @nid.  All the devices on the
-+ * node must be unregistered before calling this function.
-+ */
-+void unregister_node(int nid)
+  * Fold a differential into the global counters.
+- * Returns the number of counters updated.
++ * Returns whether counters were updated.
+  */
+ static int fold_diff(int *zone_diff, int *node_diff)
  {
--	if (!node_devices[nid])
-+	struct node *node = node_devices[nid];
-+
-+	if (!node)
- 		return;
+ 	int i;
+-	int changes = 0;
++	bool changed = false;
  
--	unregister_node(node_devices[nid]);
-+	hugetlb_unregister_node(node);
-+	compaction_unregister_node(node);
-+	reclaim_unregister_node(node);
-+	node_remove_accesses(node);
-+	node_remove_caches(node);
-+	device_unregister(&node->dev);
- 	node_devices[nid] = NULL;
- }
- 
---- a/include/linux/node.h~drivers-base-node-fold-unregister_node-into-unregister_one_node
-+++ a/include/linux/node.h
-@@ -132,8 +132,6 @@ static inline void register_memory_block
- }
- #endif
- 
--extern void unregister_node(struct node *node);
--
- struct node_notify {
- 	int nid;
- };
-@@ -177,7 +175,7 @@ static inline int hotplug_node_notifier(
- extern void node_dev_init(void);
- /* Core of the node registration - only memory hotplug should use this */
- int register_node(int nid);
--extern void unregister_one_node(int nid);
-+void unregister_node(int nid);
- extern int register_cpu_under_node(unsigned int cpu, unsigned int nid);
- extern int unregister_cpu_under_node(unsigned int cpu, unsigned int nid);
- extern void unregister_memory_block_under_nodes(struct memory_block *mem_blk);
-@@ -193,7 +191,7 @@ static inline int register_node(int nid)
- {
- 	return 0;
- }
--static inline int unregister_one_node(int nid)
-+static inline int unregister_node(int nid)
- {
- 	return 0;
- }
---- a/mm/memory_hotplug.c~drivers-base-node-fold-unregister_node-into-unregister_one_node
-+++ a/mm/memory_hotplug.c
-@@ -1596,7 +1596,7 @@ int add_memory_resource(int nid, struct
- error:
- 	if (new_node) {
- 		node_set_offline(nid);
--		unregister_one_node(nid);
-+		unregister_node(nid);
+ 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+ 		if (zone_diff[i]) {
+ 			atomic_long_add(zone_diff[i], &vm_zone_stat[i]);
+-			changes++;
++			changed = true;
  	}
- error_memblock_remove:
- 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
-@@ -2201,7 +2201,7 @@ void try_offline_node(int nid)
- 	 * node now.
- 	 */
- 	node_set_offline(nid);
--	unregister_one_node(nid);
-+	unregister_node(nid);
- }
- EXPORT_SYMBOL(try_offline_node);
  
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 		if (node_diff[i]) {
+ 			atomic_long_add(node_diff[i], &vm_node_stat[i]);
+-			changes++;
++			changed = true;
+ 	}
+-	return changes;
++	return changed;
+ }
+ 
+ /*
+@@ -806,16 +806,16 @@ static int fold_diff(int *zone_diff, int
+  * with the global counters. These could cause remote node cache line
+  * bouncing and will have to be only done when necessary.
+  *
+- * The function returns the number of global counters updated.
++ * The function returns whether global counters were updated.
+  */
+-static int refresh_cpu_vm_stats(bool do_pagesets)
++static bool refresh_cpu_vm_stats(bool do_pagesets)
+ {
+ 	struct pglist_data *pgdat;
+ 	struct zone *zone;
+ 	int i;
+ 	int global_zone_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+ 	int global_node_diff[NR_VM_NODE_STAT_ITEMS] = { 0, };
+-	int changes = 0;
++	bool changed = false;
+ 
+ 	for_each_populated_zone(zone) {
+ 		struct per_cpu_zonestat __percpu *pzstats = zone->per_cpu_zonestats;
+@@ -839,7 +839,8 @@ static int refresh_cpu_vm_stats(bool do_
+ 		if (do_pagesets) {
+ 			cond_resched();
+ 
+-			changes += decay_pcp_high(zone, this_cpu_ptr(pcp));
++			if (decay_pcp_high(zone, this_cpu_ptr(pcp)))
++				changed = true;
+ #ifdef CONFIG_NUMA
+ 			/*
+ 			 * Deal with draining the remote pageset of this
+@@ -861,13 +862,13 @@ static int refresh_cpu_vm_stats(bool do_
+ 			}
+ 
+ 			if (__this_cpu_dec_return(pcp->expire)) {
+-				changes++;
++				changed = true;
+ 				continue;
+ 			}
+ 
+ 			if (__this_cpu_read(pcp->count)) {
+ 				drain_zone_pages(zone, this_cpu_ptr(pcp));
+-				changes++;
++				changed = true;
+ 			}
+ #endif
+ 		}
+@@ -887,8 +888,9 @@ static int refresh_cpu_vm_stats(bool do_
+ 		}
+ 	}
+ 
+-	changes += fold_diff(global_zone_diff, global_node_diff);
+-	return changes;
++	if (fold_diff(global_zone_diff, global_node_diff))
++		changed = true;
++	return changed;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-drivers-base-node-fold-register_node-into-register_one_node.patch
-drivers-base-node-fold-unregister_node-into-unregister_one_node.patch
+mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch
+mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch
+mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
+mm-page_alloc-batch-page-freeing-in-decay_pcp_high.patch
+mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
+mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit-fix.patch
 
