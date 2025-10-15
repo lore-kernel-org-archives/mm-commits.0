@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C31431EBFE0
-	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2025 00:59:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD331A2547
+	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2025 01:36:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760489996; cv=none; b=RJeaY5yOENOZwqd5BRFRfWRHv3wJRAR9zL3DSRS0Q0TUJrbo1NlclHOIG3zxkB8/KaQMO2KXKutS8egIwtDUfK4NKc5A5DXCTtBYe+fS5aprNXC/kOuL6+qFXG4eaMV0gR/yHV/nN5XV3CCdi108KNm34dg5Eb84dTTuGdAxwv0=
+	t=1760492220; cv=none; b=L1FvFje50DUBHDUwcFl1PcCXZkJUzEB9kPlLTZZ9/Qx+MhZ5O5bL30nSPwFECzM2pGx0+LgAPZTnTlKDi6A+BiX8ccCS0xPObRmyC6BPuoUIFPM4dmLuyPmolp2TTBPRNE5WuhP4V1ewoFEn/HkvqeYGsiDTJfYMh3yEIIRdzjQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760489996; c=relaxed/simple;
-	bh=k60RSILyGhaEicl+EAFgFQfqvxNHjbfJ9RqsFkHzoA4=;
-	h=Date:To:From:Subject:Message-Id; b=UPplN8r+GcU1YBfIijlfExZjjDa3r+zScXN3PQjGqEKIwftgCdSf0qMOyTgS/VNx9y3nIiCroz+PV5d5mS5CJnPsFE/zJ5ojbvrFNcCbUiNJ5o8Codz8I8OD80/nkn0VtA73G07lp2gGVION+Tg1LKtr/hAFoCydT86DMCcK3QI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=anBF/WSL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760492220; c=relaxed/simple;
+	bh=++PDgqDYYnJTLeS8gs4lbVkOEbucbuvNMWdfgzrXKmA=;
+	h=Date:To:From:Subject:Message-Id; b=UMvu1l8XakoLLf8EzWWEFxu0ZMdAGGnCKZ2ex83s76pTFESJDwi3xPEnvfd8Es4qz6NOvw7/cAKrNmyyAzLIpI4P5t+nwDON1JZoKTSE+jEUGB265rGJTKJzm8odyXmyMdtU80GfF3jw1RPM32/+UmMm1tIoWLMrdJ62toVPo6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bhqYUftL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="anBF/WSL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAA31C4CEE7;
-	Wed, 15 Oct 2025 00:59:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bhqYUftL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550F3C4CEE7;
+	Wed, 15 Oct 2025 01:36:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760489996;
-	bh=k60RSILyGhaEicl+EAFgFQfqvxNHjbfJ9RqsFkHzoA4=;
+	s=korg; t=1760492219;
+	bh=++PDgqDYYnJTLeS8gs4lbVkOEbucbuvNMWdfgzrXKmA=;
 	h=Date:To:From:Subject:From;
-	b=anBF/WSLKg6UgSfBg4Dd6Oy7wqtPB00vX1yfWFDekephurtutsnGeN8hvo0SFVYM3
-	 FFJpAJXIPuR0KzHz5pVvt2VLlg6n46Wx9vKJu1z9Ggl8UtNyc6m2D9bgFKB1KH8tYI
-	 sHjqIXEa/8v+YVQf/9xNRgen2aNllY6qM/hHHBaE=
-Date: Tue, 14 Oct 2025 17:59:55 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,cl@gentwo.org,bigeasy@linutronix.de,thomas.weissschuh@linutronix.de,akpm@linux-foundation.org
+	b=bhqYUftLn4SRZ4PcFxFzSWTDkqmssZ85/nBRV/+gBjebe8nke9SkXMXfXwhowD90o
+	 vfX3GJU/R5yp7cQ/AwoGCEtw1799Y4pcuXQtin28DMhMCIsKDi/s7+82UmGTAVqCEy
+	 uI+NOpH8HrzsCojRCgZKKPcpeF4gmjv3xdxRJEgQ=
+Date: Tue, 14 Oct 2025 18:36:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempool-clarify-behavior-of-mempool_alloc_preallocated.patch added to mm-new branch
-Message-Id: <20251015005955.EAA31C4CEE7@smtp.kernel.org>
+Subject: + mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch added to mm-new branch
+Message-Id: <20251015013659.550F3C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mempool: clarify behavior of mempool_alloc_preallocated()
+     Subject: mm: mprotect: always skip dma pinned folio in prot_numa_skip()
 has been added to the -mm mm-new branch.  Its filename is
-     mempool-clarify-behavior-of-mempool_alloc_preallocated.patch
+     mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempool-clarify-behavior-of-mempool_alloc_preallocated.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,50 +64,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Subject: mempool: clarify behavior of mempool_alloc_preallocated()
-Date: Tue, 14 Oct 2025 14:17:23 +0200
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: mprotect: always skip dma pinned folio in prot_numa_skip()
+Date: Tue, 14 Oct 2025 19:33:47 +0800
 
-The documentation of that function promises to never sleep.  However on
-PREEMPT_RT a spinlock_t might in fact sleep.
+Patch series "mm: some optimizations for prot numa", v2.
 
-Reword the documentation so users can predict its behavior better.
 
-mempool could also replace spinlock_t with raw_spinlock_t which doesn't
-sleep even on PREEMPT_RT but that would take away the improved
-preemptibility of sleeping locks.
+This patch (of 3):
 
-Link: https://lkml.kernel.org/r/20251014-mempool-doc-v1-1-bc9ebf169700@linutronix.de
-Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+If the folio(even not CoW folio) is dma pinned, it can't be migrated, so
+always skip pinned folio to avoid a waste of cycles when folios migration.
+
+Link: https://lkml.kernel.org/r/20251014113349.2618158-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20251014113349.2618158-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mprotect.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/mempool.c~mempool-clarify-behavior-of-mempool_alloc_preallocated
-+++ a/mm/mempool.c
-@@ -461,8 +461,8 @@ EXPORT_SYMBOL(mempool_alloc_noprof);
-  *             mempool_create().
-  *
-  * This function is similar to mempool_alloc, but it only attempts allocating
-- * an element from the preallocated elements. It does not sleep and immediately
-- * returns if no preallocated elements are available.
-+ * an element from the preallocated elements. It only takes a single spinlock_t
-+ * and immediately returns if no preallocated elements are available.
-  *
-  * Return: pointer to the allocated element or %NULL if no elements are
-  * available.
+--- a/mm/mprotect.c~mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip
++++ a/mm/mprotect.c
+@@ -136,9 +136,12 @@ static bool prot_numa_skip(struct vm_are
+ 	if (folio_is_zone_device(folio) || folio_test_ksm(folio))
+ 		goto skip;
+ 
+-	/* Also skip shared copy-on-write pages */
+-	if (is_cow_mapping(vma->vm_flags) &&
+-	    (folio_maybe_dma_pinned(folio) || folio_maybe_mapped_shared(folio)))
++	/* Also skip shared copy-on-write folios */
++	if (is_cow_mapping(vma->vm_flags) && folio_maybe_mapped_shared(folio))
++		goto skip;
++
++	/* Folios are pinned and can't be migrated */
++	if (folio_maybe_dma_pinned(folio))
+ 		goto skip;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from thomas.weissschuh@linutronix.de are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mempool-clarify-behavior-of-mempool_alloc_preallocated.patch
-compiler-remove-arch_sel.patch
+mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
+mm-mprotect-avoid-unnecessary-struct-page-accessing-if-pte_protnone.patch
+mm-huge_memory-use-folio_skip_prot_numa-for-pmd-folio.patch
 
