@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFA402DC79E
-	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2025 21:21:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30B1E2F90C4
+	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2025 21:28:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760563303; cv=none; b=ZJ3qx5rQzdh75likzasxnVWOre+RAAMVa+6YxpxsaxCy0nlSYE+TYptVtUxOanCAe8ub14ktVSsrZVY0rH0sO+9CNVVH8XFIoT63qye3S0aK3muCcak4Ipv8e2zxVG1SrvgaOxr02/8lTaH/Tu9r0MMgrQWyTTPzmuvbaDXOLZQ=
+	t=1760563729; cv=none; b=eUmiryVcMcLsv7I6oGchvUrvlThRZp9aYlmuZ2M8B+vomiOEPpZL+eutDfOo+WHBddpiJXSn7VzdhtlCGjQgTAjWspbd5azSv0YImMFvISIprO7WZ/Rny5wCSukb60bsg6t1ejgxY5tKVhCz45XXLeHYZe3S17gTFISGWBBrZd0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760563303; c=relaxed/simple;
-	bh=0j7XBS+vMOn4ph3hArrZs7BfiPbA0B4mcSihX01oKMQ=;
-	h=Date:To:From:Subject:Message-Id; b=B5/OElQt2/KTOAGSSXdXpLa1lCG7D1g58hKDXKng1DWkbl7RpPp+QF8mfLocxd4DFkicwb6k+P/9k9n/sS1E4QzwvvCKc1JT7ljsvDS18Cj8+g3b/CATN7C4oDcTmd46u5TWRqhWGXHiDnln23cf4VIG3faU8hHBSXX32IhP1+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cxVlkkV+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760563729; c=relaxed/simple;
+	bh=uxQrkv04DETkDhnyW418iSXjWu2kzTGLgsaSHwNAK0Q=;
+	h=Date:To:From:Subject:Message-Id; b=PqfgAq0Ffq1V1BLF8bz9P+KPNmfNyLMwyxOq4DZuzOUnVjjvj9NAFPqKIceD/sVzmdl2np9xJYVqHne9byC+w2K8Fzwhcf6lCMk1G05yCt6P0x06TUFwupS/29+vKhyT2EJ8Oqs6oeLzm+oVRKJHAhBAMmvEijmPr1l6i4tTsXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mmbc3dLn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cxVlkkV+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A99FC4CEF8;
-	Wed, 15 Oct 2025 21:21:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mmbc3dLn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81D67C4CEF8;
+	Wed, 15 Oct 2025 21:28:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760563303;
-	bh=0j7XBS+vMOn4ph3hArrZs7BfiPbA0B4mcSihX01oKMQ=;
+	s=korg; t=1760563728;
+	bh=uxQrkv04DETkDhnyW418iSXjWu2kzTGLgsaSHwNAK0Q=;
 	h=Date:To:From:Subject:From;
-	b=cxVlkkV+kREQawkz87RW5aPUmIuLsr32NoYZ7TpRk70zOw7p3FfogDpmo3H+1nH+A
-	 dmnzf6BkQ60xrGItSC6/Uyq6Lb1DibOnSZEW1W//77gxO+t1MlSU0BY5XgtNcunYFo
-	 yQHYYUxf6NQZ/Ol98t5wnjkSnuVL19sZeMERfdVQ=
-Date: Wed, 15 Oct 2025 14:21:42 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,dev.jain@arm.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=mmbc3dLnemYyVKaCRCWqnF0P0GDpD9kCI/3IWGjP+sFC2yFprAwrySf2VVhRt87SC
+	 qiLE1hVM//qeHR3lT2TeaOAVUR7zy9Xa5hA8Eb590HrCKvdE3r0Tpgkcvx/v1vpldt
+	 q5Ql61ZwVluucrCeFd9/cBPrIOdVNUDuW64J2rF0=
+Date: Wed, 15 Oct 2025 14:28:47 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vishal.moola@gmail.com,sj@kernel.org,ryan.roberts@arm.com,riel@redhat.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,aarcange@redhat.com,lianux.mm@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-use-stdboolh-in-page_owner_sortc.patch added to mm-new branch
-Message-Id: <20251015212143.2A99FC4CEF8@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-comment-for-default-scan-sleep-duration.patch added to mm-new branch
+Message-Id: <20251015212848.81D67C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm: use <stdbool.h> in page_owner_sort.c
+     Subject: mm/khugepaged: fix comment for default scan sleep duration
 has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-use-stdboolh-in-page_owner_sortc.patch
+     mm-khugepaged-fix-comment-for-default-scan-sleep-duration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-use-stdboolh-in-page_owner_sortc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-comment-for-default-scan-sleep-duration.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,45 +64,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: tools/mm: use <stdbool.h> in page_owner_sort.c
-Date: Wed, 15 Oct 2025 17:38:50 +0800
+From: wang lian <lianux.mm@gmail.com>
+Subject: mm/khugepaged: fix comment for default scan sleep duration
+Date: Wed, 15 Oct 2025 17:29:57 +0800
 
-Use standard <stdbool.h> instead of manually defining bool, true and false.
+The comment for khugepaged_scan_sleep_millisecs incorrectly states the
+default scan period is 30 seconds.  The actual default value in the code
+is 10000ms (10 seconds).
 
-Link: https://lkml.kernel.org/r/20251015093851.109663-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
+This patch corrects the comment to match the code, preventing potential
+confusion.  The incorrect comment has existed since the feature was first
+introduced.  While at it, replace the magic value 512 by HPAGE_PMD_NR and
+use 'ptes'.
+
+Link: https://lkml.kernel.org/r/20251015092957.37432-1-lianux.mm@gmail.com
+Signed-off-by: wang lian <lianux.mm@gmail.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-use-stdboolh-in-page_owner_sortc
-+++ a/tools/mm/page_owner_sort.c
-@@ -13,6 +13,7 @@
+--- a/mm/khugepaged.c~mm-khugepaged-fix-comment-for-default-scan-sleep-duration
++++ a/mm/khugepaged.c
+@@ -67,7 +67,7 @@ enum scan_result {
+ static struct task_struct *khugepaged_thread __read_mostly;
+ static DEFINE_MUTEX(khugepaged_mutex);
  
- #include <stdio.h>
- #include <stdlib.h>
-+#include <stdbool.h>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <fcntl.h>
-@@ -23,9 +24,6 @@
- #include <linux/types.h>
- #include <getopt.h>
- 
--#define bool int
--#define true 1
--#define false 0
- #define TASK_COMM_LEN 16
- 
- struct block_list {
+-/* default scan 8*512 pte (or vmas) every 30 second */
++/* default scan 8*HPAGE_PMD_NR ptes (or vmas) every 10 second */
+ static unsigned int khugepaged_pages_to_scan __read_mostly;
+ static unsigned int khugepaged_pages_collapsed;
+ static unsigned int khugepaged_full_scans;
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from lianux.mm@gmail.com are
 
-tools-mm-use-stdboolh-in-page_owner_sortc.patch
+mm-khugepaged-fix-comment-for-default-scan-sleep-duration.patch
 
