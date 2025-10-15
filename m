@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD331A2547
-	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2025 01:36:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E825F1F4613
+	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2025 01:37:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760492220; cv=none; b=L1FvFje50DUBHDUwcFl1PcCXZkJUzEB9kPlLTZZ9/Qx+MhZ5O5bL30nSPwFECzM2pGx0+LgAPZTnTlKDi6A+BiX8ccCS0xPObRmyC6BPuoUIFPM4dmLuyPmolp2TTBPRNE5WuhP4V1ewoFEn/HkvqeYGsiDTJfYMh3yEIIRdzjQ=
+	t=1760492223; cv=none; b=F3aIWufF3itjUSiMlvwoqY6wTFzdon2l5zLs1vSvW8ABHXn52zLB4OXRI2VVHtIf5k62OxXt0Rxm2n9dhXiBsyfkxor32xGEKdT7gF3/aTFRD5kWu9zGzswDUnqbk+SCz4kqd3nWuN1kzOcjWmmwwq4Km+zDSm9OrJUnlCwzv5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760492220; c=relaxed/simple;
-	bh=++PDgqDYYnJTLeS8gs4lbVkOEbucbuvNMWdfgzrXKmA=;
-	h=Date:To:From:Subject:Message-Id; b=UMvu1l8XakoLLf8EzWWEFxu0ZMdAGGnCKZ2ex83s76pTFESJDwi3xPEnvfd8Es4qz6NOvw7/cAKrNmyyAzLIpI4P5t+nwDON1JZoKTSE+jEUGB265rGJTKJzm8odyXmyMdtU80GfF3jw1RPM32/+UmMm1tIoWLMrdJ62toVPo6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bhqYUftL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760492223; c=relaxed/simple;
+	bh=vsLhpHSN3fi4HZAyK9yKg7ea6SEe2p5F5c+hqTc208s=;
+	h=Date:To:From:Subject:Message-Id; b=EwT8uE7xBko4AJ3xWRQq48ubwew+q3Kl41oF+YNAXawuS5Bw6z3FxzMGXVGJjKc8k4vKiFj5eYly9bMzlqoVAo0BC+jDTUFsthKg7qX+jz2mtld5fG/ZLTupCpeDkL62ubMHstsoA12slcY2zoPs1lPb/fZjgySYq1QdiBePOhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQAojmnV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bhqYUftL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550F3C4CEE7;
-	Wed, 15 Oct 2025 01:36:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQAojmnV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63513C4CEE7;
+	Wed, 15 Oct 2025 01:37:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760492219;
-	bh=++PDgqDYYnJTLeS8gs4lbVkOEbucbuvNMWdfgzrXKmA=;
+	s=korg; t=1760492221;
+	bh=vsLhpHSN3fi4HZAyK9yKg7ea6SEe2p5F5c+hqTc208s=;
 	h=Date:To:From:Subject:From;
-	b=bhqYUftLn4SRZ4PcFxFzSWTDkqmssZ85/nBRV/+gBjebe8nke9SkXMXfXwhowD90o
-	 vfX3GJU/R5yp7cQ/AwoGCEtw1799Y4pcuXQtin28DMhMCIsKDi/s7+82UmGTAVqCEy
-	 uI+NOpH8HrzsCojRCgZKKPcpeF4gmjv3xdxRJEgQ=
-Date: Tue, 14 Oct 2025 18:36:58 -0700
+	b=JQAojmnVVOhkkEhsAfb7giIPnJys521DbafT5lLwMrgGeJnCi2QQxRkRdHXsRt6TK
+	 wxibxNjUz5aVcywpcfFs6K0W6TZUpSpH/C50UV3K7zV/938krs2XOFt6awhK1ASaFO
+	 xupDOjY8M8sxdMSyI4Ea71J9H6WyFxD2kyCXh4UQ=
+Date: Tue, 14 Oct 2025 18:37:00 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch added to mm-new branch
-Message-Id: <20251015013659.550F3C4CEE7@smtp.kernel.org>
+Subject: + mm-mprotect-avoid-unnecessary-struct-page-accessing-if-pte_protnone.patch added to mm-new branch
+Message-Id: <20251015013701.63513C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mprotect: always skip dma pinned folio in prot_numa_skip()
+     Subject: mm: mprotect: avoid unnecessary struct page accessing if pte_protnone()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
+     mm-mprotect-avoid-unnecessary-struct-page-accessing-if-pte_protnone.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-avoid-unnecessary-struct-page-accessing-if-pte_protnone.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,26 +65,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: mprotect: always skip dma pinned folio in prot_numa_skip()
-Date: Tue, 14 Oct 2025 19:33:47 +0800
+Subject: mm: mprotect: avoid unnecessary struct page accessing if pte_protnone()
+Date: Tue, 14 Oct 2025 19:33:48 +0800
 
-Patch series "mm: some optimizations for prot numa", v2.
+If the pte_protnone() is true, we could avoid unnecessary struct page
+accessing and reduce cache footprint when scanning page tables for prot
+numa, the performance test of pmbench memory accessing benchmark should be
+benifit, see more commit a818f5363a0e ("autonuma: reduce cache footprint
+when scanning page tables").
 
-
-This patch (of 3):
-
-If the folio(even not CoW folio) is dma pinned, it can't be migrated, so
-always skip pinned folio to avoid a waste of cycles when folios migration.
-
-Link: https://lkml.kernel.org/r/20251014113349.2618158-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20251014113349.2618158-2-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20251014113349.2618158-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -92,27 +89,66 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/mprotect.c |   29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip
+--- a/mm/mprotect.c~mm-mprotect-avoid-unnecessary-struct-page-accessing-if-pte_protnone
 +++ a/mm/mprotect.c
-@@ -136,9 +136,12 @@ static bool prot_numa_skip(struct vm_are
- 	if (folio_is_zone_device(folio) || folio_test_ksm(folio))
+@@ -118,18 +118,13 @@ static int mprotect_folio_pte_batch(stru
+ 	return folio_pte_batch_flags(folio, NULL, ptep, &pte, max_nr_ptes, flags);
+ }
+ 
+-static bool prot_numa_skip(struct vm_area_struct *vma, unsigned long addr,
+-			   pte_t oldpte, pte_t *pte, int target_node,
+-			   struct folio *folio)
++static bool prot_numa_skip(struct vm_area_struct *vma, int target_node,
++		struct folio *folio)
+ {
+ 	bool ret = true;
+ 	bool toptier;
+ 	int nid;
+ 
+-	/* Avoid TLB flush if possible */
+-	if (pte_protnone(oldpte))
+-		goto skip;
+-
+ 	if (!folio)
  		goto skip;
  
--	/* Also skip shared copy-on-write pages */
--	if (is_cow_mapping(vma->vm_flags) &&
--	    (folio_maybe_dma_pinned(folio) || folio_maybe_mapped_shared(folio)))
-+	/* Also skip shared copy-on-write folios */
-+	if (is_cow_mapping(vma->vm_flags) && folio_maybe_mapped_shared(folio))
-+		goto skip;
+@@ -307,23 +302,23 @@ static long change_pte_range(struct mmu_
+ 			struct page *page;
+ 			pte_t ptent;
+ 
++			/* Already in the desired state. */
++			if (prot_numa && pte_protnone(oldpte))
++				continue;
 +
-+	/* Folios are pinned and can't be migrated */
-+	if (folio_maybe_dma_pinned(folio))
- 		goto skip;
+ 			page = vm_normal_page(vma, addr, oldpte);
+ 			if (page)
+ 				folio = page_folio(page);
++
+ 			/*
+ 			 * Avoid trapping faults against the zero or KSM
+ 			 * pages. See similar comment in change_huge_pmd.
+ 			 */
+-			if (prot_numa) {
+-				int ret = prot_numa_skip(vma, addr, oldpte, pte,
+-							 target_node, folio);
+-				if (ret) {
+-
+-					/* determine batch to skip */
+-					nr_ptes = mprotect_folio_pte_batch(folio,
+-						  pte, oldpte, max_nr_ptes, /* flags = */ 0);
+-					continue;
+-				}
++			if (prot_numa & prot_numa_skip(vma, target_node, folio)) {
++				/* determine batch to skip */
++				nr_ptes = mprotect_folio_pte_batch(folio,
++					  pte, oldpte, max_nr_ptes, /* flags = */ 0);
++				continue;
+ 			}
  
- 	/*
+ 			nr_ptes = mprotect_folio_pte_batch(folio, pte, oldpte, max_nr_ptes, flags);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
