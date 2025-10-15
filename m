@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9FEB2EA73B
-	for <mm-commits@vger.kernel.org>; Tue, 14 Oct 2025 22:12:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD66E44C63
+	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2025 00:03:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760479979; cv=none; b=DvERpELVGfMhWA76XSWSlrdkBsyX6mLGe+AxPHnJ7ZwCuJyfi0JzsSFf8rg06eYYJ63iHCNPur/El2AcSVVLD7UX+JgpEXYvndGNqpkq02zh9hL9z7tijOv3ZfmwmHLqc4JaIcdcvtAq3gzg6nibvJmmgNTxhztESwPt2itbzDY=
+	t=1760486591; cv=none; b=mum3W84Yq+gsHL6Z9i2hoOYuiWl8cl5PjpF/lGKqsAt/jV02h9xZL1tLIwuOr6p6U85f0ZJy3hez3XAE23hK4iqWwUyldeg2DdGpaZGz+Je5WPIzfM8LZIUhAIq37QCUI51iW+rzpzGll32eZpTx0X1MGz7QNGYf+S/F1adYBYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760479979; c=relaxed/simple;
-	bh=ethT13eGDfnDmT+VfKufXXVXjkRnWzg3SiK2yDGacHo=;
-	h=Date:To:From:Subject:Message-Id; b=F8cO70mPiJGf9/vLCx1I5FQqSe7Uu8CZzBs8/LPXJqllr9yIpRk6JqnV0gL8PSNkGu35s6clAQOiSOpytWkD5hUBs9k4HfCyVqIUGlhPg/fB+/qmn0JeaFC6WX2SvZWrOH1Fe4wq10eBxE5mESTkCW4b7H+ggyL3WIkNolewtZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tzO5uubt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760486591; c=relaxed/simple;
+	bh=4qbwYBR1r/pZl9Sf00owFU3J7/PJ3nWrMw0BzEVYk1k=;
+	h=Date:To:From:Subject:Message-Id; b=tHkSvwX6sFbW2A+cG9Y6znGYQsXf4UrUN/xjG7sKHPbHhBIi7/uhVieUWMV1hsVHpjiE6VZzu2pjvAsWtjV7/y6VU1AIDTY3GVWnipWaHhVDyfRVvXLxZu99vqEqb3zN8x2H3bk62avQ7fapPB26lwykEMIm4C1p1i63j+PubX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LcYeZOkf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tzO5uubt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D29AC4CEE7;
-	Tue, 14 Oct 2025 22:12:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LcYeZOkf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 445D3C4CEE7;
+	Wed, 15 Oct 2025 00:03:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760479978;
-	bh=ethT13eGDfnDmT+VfKufXXVXjkRnWzg3SiK2yDGacHo=;
+	s=korg; t=1760486589;
+	bh=4qbwYBR1r/pZl9Sf00owFU3J7/PJ3nWrMw0BzEVYk1k=;
 	h=Date:To:From:Subject:From;
-	b=tzO5uubtNfFb4v9K0lI6aAOtVG8HZ0ViF7zVhHCmKrfdiovb7VQE4R+4m8T0nhxCY
-	 HdezvIJupn/15PUEEiJPHEipyUH24b696CnSeZnyTzdlULQtwt1oR90QWHuC5u7uxt
-	 rn66pCiveFq+4/x2ZaIULi9v53oNDmvHgA0po454=
-Date: Tue, 14 Oct 2025 15:12:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,mhocko@suse.com,kirill@shutemov.name,jackmanb@google.com,hannes@cmpxchg.org,clm@fb.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=LcYeZOkfaTpBnGeIyBWJMevlVidLfSfn7N6MQTAtMxaMX+CS/sSIQBWizaezDSq/D
+	 XYaREyrouGN+byuYgS0Is6huCkC2vWzPEjvaXfm23CAT4gxxbJ5Z8EHg5aydMJzwLY
+	 ZLflN+MSCeeIA5WFSnvzEi7Dos/7yBu4u1TUzrvM=
+Date: Tue, 14 Oct 2025 17:03:08 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit-fix.patch added to mm-new branch
-Message-Id: <20251014221258.6D29AC4CEE7@smtp.kernel.org>
+Subject: + mm-huge_memory-cache-folio-attribute-in-__split_unmapped_folio.patch added to mm-new branch
+Message-Id: <20251015000309.445D3C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit-fix
+     Subject: mm/huge_memory: cache folio attribute in __split_unmapped_folio()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit-fix.patch
+     mm-huge_memory-cache-folio-attribute-in-__split_unmapped_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-cache-folio-attribute-in-__split_unmapped_folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,51 +64,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit-fix
-Date: Tue, 14 Oct 2025 12:28:22 -0700
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/huge_memory: cache folio attribute in __split_unmapped_folio()
+Date: Tue, 14 Oct 2025 13:46:02 +0000
 
-checking for 0-ness is sufficient, per Vlastimil
+Patch series "mm/huge_memory: cleanup __split_unmapped_folio()".
 
-Since to_free and pcp->count cannot become negative, make the checks into an
-equality check instead.
+This series cleans up and optimizes the internal logic of folio splitting,
+particularly focusing on __split_unmapped_folio().
 
-Link: https://lkml.kernel.org/r/20251014192827.851389-1-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+The goal is to improve clarity and efficiency by eliminating redundant
+checks, caching stable attribute values, and simplifying the iteration
+logic used for updating folio statistics.
+
+These changes make the code easier to follow and maintain.
+
+
+This patch (of 5):
+
+During the execution of __split_unmapped_folio(), the folio's anon/!anon
+attribute is invariant (not expected to change).
+
+Therefore, it is safe and more efficient to retrieve this attribute once
+at the start and reuse it throughout the function.
+
+Link: https://lkml.kernel.org/r/20251014134606.22543-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20251014134606.22543-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit-fix
-+++ a/mm/page_alloc.c
-@@ -2884,7 +2884,7 @@ static bool free_frozen_page_commit(stru
- 		free_pcppages_bulk(zone, to_free_batched, pcp, pindex);
- 		to_free -= to_free_batched;
+--- a/mm/huge_memory.c~mm-huge_memory-cache-folio-attribute-in-__split_unmapped_folio
++++ a/mm/huge_memory.c
+@@ -3527,6 +3527,7 @@ static int __split_unmapped_folio(struct
+ 		struct page *split_at, struct xa_state *xas,
+ 		struct address_space *mapping, bool uniform_split)
+ {
++	bool is_anon = folio_test_anon(folio);
+ 	int order = folio_order(folio);
+ 	int start_order = uniform_split ? new_order : order - 1;
+ 	bool stop_split = false;
+@@ -3534,7 +3535,7 @@ static int __split_unmapped_folio(struct
+ 	int split_order;
+ 	int ret = 0;
  
--		if (to_free <= 0 || pcp->count <= 0)
-+		if (to_free == 0 || pcp->count == 0)
- 			break;
+-	if (folio_test_anon(folio))
++	if (is_anon)
+ 		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
  
- 		pcp_spin_unlock(pcp);
+ 	folio_clear_has_hwpoisoned(folio);
+@@ -3551,7 +3552,7 @@ static int __split_unmapped_folio(struct
+ 		struct folio *new_folio;
+ 
+ 		/* order-1 anonymous folio is not supported */
+-		if (folio_test_anon(folio) && split_order == 1)
++		if (is_anon && split_order == 1)
+ 			continue;
+ 		if (uniform_split && split_order != new_order)
+ 			continue;
+@@ -3603,7 +3604,7 @@ static int __split_unmapped_folio(struct
+ 				if (split_order != new_order && !stop_split)
+ 					continue;
+ 			}
+-			if (folio_test_anon(new_folio))
++			if (is_anon)
+ 				mod_mthp_stat(folio_order(new_folio),
+ 					      MTHP_STAT_NR_ANON, 1);
+ 		}
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch
-mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch
-mm-page_alloc-vmstat-simplify-refresh_cpu_vm_stats-change-detection.patch
-mm-page_alloc-batch-page-freeing-in-decay_pcp_high.patch
-mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
-mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit-fix.patch
+mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch
+mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch
+mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
+mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch
+mm-huge_memory-cache-folio-attribute-in-__split_unmapped_folio.patch
+mm-huge_memory-update-folio-stat-after-successful-split.patch
+mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split.patch
+mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch
+mm-huge_memory-remove-redundant-split_order-=-new_order-check-in-uniform_split.patch
 
