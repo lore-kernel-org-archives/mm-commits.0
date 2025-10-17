@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25F452D46C0
-	for <mm-commits@vger.kernel.org>; Fri, 17 Oct 2025 21:43:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18F5223816A
+	for <mm-commits@vger.kernel.org>; Fri, 17 Oct 2025 22:14:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760737416; cv=none; b=izaoHajOcMOijCpmrOgqNoQUPMH5v8OAG0/gJIg8hNAIePg0ieZbCAIJ8axJqL4SemipDimRqupYcE9xBOjHbhpMjLVaC+Pq437dWouowbANTaGCpNzFDSJMVFTSvCAI0eEr9gPGuzfDaNETpiUbo1Tpu4Z2yPn1V3VStpYF81Q=
+	t=1760739259; cv=none; b=Tps7Fz67FmWf22PwKWKSPee4SYro4Y3PNf2WjysuhSs0oLE2nttoXXU3UKSEjY/gDyv9lGQJYXqevyOmERuNIWa5KnGQJg5fN3NvSKrss8aEMilVkgbYUKuDnIy3ku3AqCj3tOB3u9a0pC0sm0wWDnauq+WZVZRFx823/fnjbO0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760737416; c=relaxed/simple;
-	bh=ELjHRRf7KxW78ZKs49Uh4ZZEJF8e6N+R1VwLTOjENXA=;
-	h=Date:To:From:Subject:Message-Id; b=Jwx5eOnZktFw5q4MLDS5vmfbHbc94VFIemg4msxOTcMmvjRDbCe6wQV70LgN0VmTJmup8aHm1BeWXWy2VnGhznXoepxxq5X/b+HJ6TW5GwbSvIEmIRx68WqtaTYH+l08SsOP/mhWcaigWxzjffYTLTvOy9FHalNMjPUY25hyvmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1dXSuZcJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760739259; c=relaxed/simple;
+	bh=5UcZsctXACj4yYPjSjaKdy6m49tqPSlZSRbRirhlfTA=;
+	h=Date:To:From:Subject:Message-Id; b=oUrWtmnbWho3Xq4dTndPvajDaPSpQnEAFgajOm9hAuAcoBwbNEO9peeoAr9GHVmXf9DEpfSh1M5giCtS8xdtq9UHsEdor/Ab0fgNl7W1MAD+R+/3JiK/DgRTmdcpQY7IbVQkFlRfm3yRRhUX4cpJlnvpOjut8TzD1RPnAtai+Hc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qyO0cAbf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1dXSuZcJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAA19C4CEE7;
-	Fri, 17 Oct 2025 21:43:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qyO0cAbf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E87DC4CEE7;
+	Fri, 17 Oct 2025 22:14:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760737415;
-	bh=ELjHRRf7KxW78ZKs49Uh4ZZEJF8e6N+R1VwLTOjENXA=;
+	s=korg; t=1760739258;
+	bh=5UcZsctXACj4yYPjSjaKdy6m49tqPSlZSRbRirhlfTA=;
 	h=Date:To:From:Subject:From;
-	b=1dXSuZcJJxUkbj8gevWMdMjywB3QmqaDcOMGVWipI9FyWbvWhQuTCFMhjQbU/6P3T
-	 l9kAkWVLsS7C2XdCpfo5dJn8GCAJJcst8k87LkkmeD+sirlTakHwkMxQBIpiPWAs+W
-	 ly8VZHC75u9iN0c4GoYU8xWvE3VJKMVvwxJbvhl0=
-Date: Fri, 17 Oct 2025 14:43:34 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,broonie@kernel.org,reddybalavignesh9979@gmail.com,akpm@linux-foundation.org
+	b=qyO0cAbf0di0tJ8Pua3AqK/TUIeZ+hMBeMlhfYrEJKHO9Na07LWJwt/IIomYgbmH1
+	 2SdCMECrGsTTRldGjoAN3qGHyhajAUwXt1uWvFjnOj9v+8Sn7L20YzUI0Z+aR7fsdF
+	 m3zrm3WK6LasjnU6rLuNCUOJMSPCfXowOsdxhU/g=
+Date: Fri, 17 Oct 2025 15:14:17 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-complete-kselftest-include-centralization-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251017214335.AAA19C4CEE7@smtp.kernel.org>
+Subject: + mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim.patch added to mm-new branch
+Message-Id: <20251017221418.6E87DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: samples/vfs: add selftests include path for kselftest.h
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-complete-kselftest-include-centralization-fix.patch
+     Subject: mm: vmscan: filter out the dirty file folios for node_reclaim()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-complete-kselftest-include-centralization-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,41 +64,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
-Subject: samples/vfs: add selftests include path for kselftest.h
-Date: Fri, 17 Oct 2025 14:32:01 +0530
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: vmscan: filter out the dirty file folios for node_reclaim()
+Date: Fri, 17 Oct 2025 15:53:06 +0800
 
-The test-list-all-mounts sample includes pidfd.h from selftests, which now
-uses the centralized kselftest.h include after the previous change.  Add
-the selftests directory to the include path so the build can find
-kselftest.h
+Patch series "optimize the logic for handling dirty file folios during
+reclaim", v2.
 
-This fixes a build error reported by the kernel test robot.
+Since we no longer attempt to write back filesystem folios during reclaim,
+some logic for handling dirty file folios in the reclaim process also
+needs to be updated.  Please check the details in each patch.  
 
-Link: https://lkml.kernel.org/r/20251017090201.317521-1-reddybalavignesh9979@gmail.com
-Signed-off-by: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202510171513.6IWk005g-lkp@intel.com/
-Reported-by: Mark Brown <broonie@kernel.org>
-Closes: https://lkml.kernel.org/r/aPJD4ANRWUDVDqKc@sirena.org.uk
+
+This patch (of 2):
+
+After commit 6b0dfabb3555 ("fs: Remove aops->writepage"), we no longer
+attempt to write back filesystem folios in pageout(), and only tmpfs/shmem
+folios and anonymous swapcache folios can be written back.  Therefore, we
+should also filter out the dirty filesystem folios for node_reclaim() to
+avoid unnecessary LRU scans.
+
+Link: https://lkml.kernel.org/r/cover.1760687075.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/c91f5ecc5152b647904c7503618a01885d913928.1760687075.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/vfs/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/samples/vfs/Makefile~selftests-complete-kselftest-include-centralization-fix
-+++ a/samples/vfs/Makefile
-@@ -1,4 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0-only
- userprogs-always-y += test-fsmount test-statx mountinfo test-list-all-mounts
+--- a/mm/vmscan.c~mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim
++++ a/mm/vmscan.c
+@@ -7601,9 +7601,11 @@ static unsigned long node_pagecache_recl
+ 	else
+ 		nr_pagecache_reclaimable = node_unmapped_file_pages(pgdat);
  
-+userccflags += -I $(srctree)/tools/testing/selftests/
- userccflags += -I usr/include
+-	/* If we can't clean pages, remove dirty pages from consideration */
+-	if (!(node_reclaim_mode & RECLAIM_WRITE))
+-		delta += node_page_state(pgdat, NR_FILE_DIRTY);
++	/*
++	 * Since we can't clean folios through reclaim, remove dirty file
++	 * folios from consideration.
++	 */
++	delta += node_page_state(pgdat, NR_FILE_DIRTY);
+ 
+ 	/* Watch for any possible underflows due to delta */
+ 	if (unlikely(delta > nr_pagecache_reclaimable))
 _
 
-Patches currently in -mm which might be from reddybalavignesh9979@gmail.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-selftests-complete-kselftest-include-centralization.patch
-selftests-complete-kselftest-include-centralization-fix.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout.patch
+mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
+mm-vmscan-simplify-the-folio-refcount-check-in-pageout-fix.patch
+mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim.patch
+mm-vmscan-simplify-the-logic-for-activating-dirty-file-folios.patch
 
