@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9EB723A98E
-	for <mm-commits@vger.kernel.org>; Fri, 17 Oct 2025 21:10:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD4DF25F984
+	for <mm-commits@vger.kernel.org>; Fri, 17 Oct 2025 21:35:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760735440; cv=none; b=Zn9BrBh6Baz8DhQxJpCjzKEXJrnzMOpdt5g221t9J+C63ye4/kdyIEJ99YrOQJIhCOZRnShxuO7tgmFZ49lJ3WyArAAweZSymolClBWAFYjRVads4w8UmDy2GmDUioYGCqm86eyreBdGAqloDObuTrcLOyjcdZudiwrLuWeh8lU=
+	t=1760736956; cv=none; b=rp2DWL2yKqJ5Mimaw+x54lPmNA/ElGW1h76ue3GxZHrzJyqageMkUmYMOZnMvZ+GDaMZfHMpqx6DKeAgcBE+e3PKpZKkKVpop5CHUrLZGv26kJ5Bc7XwDUlSJ+5SCDgAL05p5Foo+2tY29VB8WQPGNcctqGXNr1txOxvbNWWIgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760735440; c=relaxed/simple;
-	bh=mx49M3X17dtjD7LymMNRCZrwqBjO/RKjTAHuhXTYCzY=;
-	h=Date:To:From:Subject:Message-Id; b=pIqSEwofNABX1kPrVyHRmhBjNGMSjNwc18e7j5GnMEtFUuAQ5vEb5ye+KHwaAeJLTNGFpcpbgdsfjm7v3KYWuyFslzBXmFBtEDVZ7HwOcKNAufAdimRQdM+yitafTvqO1lMdbsXrtUCBD3zNFA3GZkjMjZbcfZMWsf4zyJ/Vlgo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l0xruBNe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760736956; c=relaxed/simple;
+	bh=Vber18BiUu3kpGqKG4hRvio6nXhzg/PeePQZ17hcf5o=;
+	h=Date:To:From:Subject:Message-Id; b=htPlUEnOWmUvZED418YfHYWuEsm0E9+w2pJLzhv4YSHKzQXq7ef6xDo5OW7eby1gBazs2fc2xXTxLX3RT7ZEs/zrUX7jDyFx731RXdfLNJO1XM0koYJRiuTsQKpaa7++3B6n6BQumX4TquKLBnehlV4yojJti6kN+HiDEK12h38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dvQZxHQb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l0xruBNe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55FB7C4CEE7;
-	Fri, 17 Oct 2025 21:10:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dvQZxHQb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 741DDC4CEE7;
+	Fri, 17 Oct 2025 21:35:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760735440;
-	bh=mx49M3X17dtjD7LymMNRCZrwqBjO/RKjTAHuhXTYCzY=;
+	s=korg; t=1760736956;
+	bh=Vber18BiUu3kpGqKG4hRvio6nXhzg/PeePQZ17hcf5o=;
 	h=Date:To:From:Subject:From;
-	b=l0xruBNeyaC2+7G5po7dPbR/oDXpebGS6V31Ze4AIWWay9gZrWf6dawSSvcIwQdoO
-	 lHNt57VqAYqQsXK9qd2kR+fG1Qj02iqWjEcRTK/7jFav18mKzKO59GJeBQa4PuWVo3
-	 v9hLyawSvyDMCPQp2Z7j6o398TYhL3Bglc919mB8=
-Date: Fri, 17 Oct 2025 14:10:39 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,david@redhat.com,craftfever@airmail.cc,chengming.zhou@linux.dev,pedrodemargomes@gmail.com,akpm@linux-foundation.org
+	b=dvQZxHQb7siG5aKfrFzO2JuBsGcBOf/LO4AXXHVHy2Nx0iipg2rF3aIkhoaoCTZex
+	 IIFtNXZt2jqanLDlAY/cXf6iB/y+HlMi4ydu/fMgxoXg1SFU/UpIzfvFd2da9hYOgh
+	 vyQbsFIJPLgVZE6vaY8DpyR2GGIdtAH2o/Z4TTbY=
+Date: Fri, 17 Oct 2025 14:35:55 -0700
+To: mm-commits@vger.kernel.org,reddybalavignesh9979@gmail.com,broonie@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch removed from -mm tree
-Message-Id: <20251017211040.55FB7C4CEE7@smtp.kernel.org>
+Subject: + selftests-complete-kselftest-include-centralization-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251017213556.741DDC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,262 +34,68 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
-has been removed from the -mm tree.  Its filename was
-     ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
+The patch titled
+     Subject: selftests-complete-kselftest-include-centralization-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-complete-kselftest-include-centralization-fix.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-complete-kselftest-include-centralization-fix.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Subject: ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
-Date: Wed, 15 Oct 2025 22:22:36 -0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-complete-kselftest-include-centralization-fix
+Date: Fri Oct 17 02:27:53 PM PDT 2025
 
-Currently, scan_get_next_rmap_item() walks every page address in a VMA to
-locate mergeable pages.  This becomes highly inefficient when scanning
-large virtual memory areas that contain mostly unmapped regions.
+fix samples/vfs/test-list-all-mounts.c build
 
-This patch replaces the per-address lookup with a range walk using
-walk_page_range().  The range walker allows KSM to skip over entire
-unmapped holes in a VMA, avoiding unnecessary lookups.  This problem was
-previously discussed in [1].
+In file included from /tmp/next/build/samples/vfs/test-list-all-mounts.c:11:
+/tmp/next/build/samples/vfs/../../tools/testing/selftests/pidfd/pidfd.h:28:10: fatal error: kselftest.h: No such file or directory
+   28 | #include "kselftest.h"
+      |          ^~~~~~~~~~~~~
 
-[1] https://lore.kernel.org/linux-mm/423de7a3-1c62-4e72-8e79-19a6413e420c@redhat.com/
 
-Link: https://lkml.kernel.org/r/20251016012236.4189-1-pedrodemargomes@gmail.com
-Link: https://lore.kernel.org/linux-mm/423de7a3-1c62-4e72-8e79-19a6413e420c@redhat.com/ [1]
-Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Reported-by: craftfever <craftfever@airmail.cc>
-Closes: https://lkml.kernel.org/r/020cf8de6e773bb78ba7614ef250129f11a63781@murena.io
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: xu xin <xu.xin16@zte.com.cn>
+Reported-by: Mark Brown <broonie@kernel.org>
+Closes: https://lkml.kernel.org/r/aPJD4ANRWUDVDqKc@sirena.org.uk
+Cc: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |  185 ++++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 135 insertions(+), 50 deletions(-)
+ samples/vfs/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/ksm.c~ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item
-+++ a/mm/ksm.c
-@@ -2455,14 +2455,119 @@ static bool should_skip_rmap_item(struct
- 	return true;
- }
+--- a/samples/vfs/Makefile~selftests-complete-kselftest-include-centralization-fix
++++ a/samples/vfs/Makefile
+@@ -1,4 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ userprogs-always-y += test-fsmount test-statx mountinfo test-list-all-mounts
  
-+struct ksm_walk_private {
-+	struct page *page;
-+	struct folio *folio;
-+	struct vm_area_struct *vma;
-+	unsigned long address;
-+};
++CFLAGS += -I../../tools/testing/selftests
 +
-+static int ksm_walk_test(unsigned long addr, unsigned long next, struct mm_walk *walk)
-+{
-+	struct vm_area_struct *vma = walk->vma;
-+	struct ksm_walk_private *private;
-+
-+	if (!(vma->vm_flags & VM_MERGEABLE))
-+		return 1;
-+
-+	private = (struct ksm_walk_private *) walk->private;
-+	private->address = vma->vm_end;
-+
-+	if (!vma->anon_vma)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static int ksm_pmd_entry(pmd_t *pmd, unsigned long addr,
-+			    unsigned long end, struct mm_walk *walk)
-+{
-+	struct mm_struct *mm = walk->mm;
-+	struct vm_area_struct *vma = walk->vma;
-+	struct ksm_walk_private *private = (struct ksm_walk_private *) walk->private;
-+	struct folio *folio;
-+	pte_t *start_pte, *pte, ptent;
-+	pmd_t pmde;
-+	struct page *page;
-+	spinlock_t *ptl;
-+	int ret = 0;
-+
-+	if (ksm_test_exit(mm))
-+		return 1;
-+
-+	ptl = pmd_lock(mm, pmd);
-+	pmde = pmdp_get(pmd);
-+
-+	if (!pmd_present(pmde))
-+		goto pmd_out;
-+
-+	if (!pmd_trans_huge(pmde))
-+		goto pte_table;
-+
-+	page = vm_normal_page_pmd(vma, addr, pmde);
-+
-+	if (!page)
-+		goto pmd_out;
-+
-+	folio = page_folio(page);
-+	if (folio_is_zone_device(folio) || !folio_test_anon(folio))
-+		goto pmd_out;
-+
-+	ret = 1;
-+	folio_get(folio);
-+	private->page = page + ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
-+	private->folio = folio;
-+	private->vma = vma;
-+	private->address = addr;
-+pmd_out:
-+	spin_unlock(ptl);
-+	return ret;
-+
-+pte_table:
-+	spin_unlock(ptl);
-+
-+	start_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+	if (!start_pte)
-+		return 0;
-+
-+	for (; addr < end; pte++, addr += PAGE_SIZE) {
-+		ptent = ptep_get(pte);
-+		page = vm_normal_page(vma, addr, ptent);
-+
-+		if (!page)
-+			continue;
-+
-+		folio = page_folio(page);
-+		if (folio_is_zone_device(folio) || !folio_test_anon(folio))
-+			continue;
-+
-+		ret = 1;
-+		folio_get(folio);
-+		private->page = page;
-+		private->folio = folio;
-+		private->vma = vma;
-+		private->address = addr;
-+		break;
-+	}
-+	pte_unmap_unlock(start_pte, ptl);
-+
-+	cond_resched();
-+	return ret;
-+}
-+
-+struct mm_walk_ops walk_ops = {
-+	.pmd_entry = ksm_pmd_entry,
-+	.test_walk = ksm_walk_test,
-+	.walk_lock = PGWALK_RDLOCK,
-+};
-+
- static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
- {
- 	struct mm_struct *mm;
- 	struct ksm_mm_slot *mm_slot;
- 	struct mm_slot *slot;
--	struct vm_area_struct *vma;
- 	struct ksm_rmap_item *rmap_item;
--	struct vma_iterator vmi;
-+	struct ksm_walk_private walk_private;
- 	int nid;
- 
- 	if (list_empty(&ksm_mm_head.slot.mm_node))
-@@ -2527,64 +2632,44 @@ next_mm:
- 
- 	slot = &mm_slot->slot;
- 	mm = slot->mm;
--	vma_iter_init(&vmi, mm, ksm_scan.address);
- 
- 	mmap_read_lock(mm);
- 	if (ksm_test_exit(mm))
- 		goto no_vmas;
- 
--	for_each_vma(vmi, vma) {
--		if (!(vma->vm_flags & VM_MERGEABLE))
--			continue;
--		if (ksm_scan.address < vma->vm_start)
--			ksm_scan.address = vma->vm_start;
--		if (!vma->anon_vma)
--			ksm_scan.address = vma->vm_end;
--
--		while (ksm_scan.address < vma->vm_end) {
--			struct page *tmp_page = NULL;
--			struct folio_walk fw;
--			struct folio *folio;
-+	while (true) {
-+		struct folio *folio;
- 
--			if (ksm_test_exit(mm))
--				break;
-+		walk_private.page = NULL;
-+		walk_private.folio = NULL;
-+		walk_private.address = ksm_scan.address;
-+
-+		walk_page_range(mm, ksm_scan.address, -1, &walk_ops, (void *) &walk_private);
-+		ksm_scan.address = walk_private.address;
-+		if (!walk_private.page)
-+			break;
-+
-+		folio = walk_private.folio;
-+		flush_anon_page(walk_private.vma, walk_private.page, ksm_scan.address);
-+		flush_dcache_page(walk_private.page);
-+		rmap_item = get_next_rmap_item(mm_slot,
-+			ksm_scan.rmap_list, ksm_scan.address);
-+		if (rmap_item) {
-+			ksm_scan.rmap_list =
-+					&rmap_item->rmap_list;
- 
--			folio = folio_walk_start(&fw, vma, ksm_scan.address, 0);
--			if (folio) {
--				if (!folio_is_zone_device(folio) &&
--				     folio_test_anon(folio)) {
--					folio_get(folio);
--					tmp_page = fw.page;
--				}
--				folio_walk_end(&fw, vma);
-+			ksm_scan.address += PAGE_SIZE;
-+			if (should_skip_rmap_item(folio, rmap_item)) {
-+				folio_put(folio);
-+				continue;
- 			}
- 
--			if (tmp_page) {
--				flush_anon_page(vma, tmp_page, ksm_scan.address);
--				flush_dcache_page(tmp_page);
--				rmap_item = get_next_rmap_item(mm_slot,
--					ksm_scan.rmap_list, ksm_scan.address);
--				if (rmap_item) {
--					ksm_scan.rmap_list =
--							&rmap_item->rmap_list;
--
--					if (should_skip_rmap_item(folio, rmap_item)) {
--						folio_put(folio);
--						goto next_page;
--					}
--
--					ksm_scan.address += PAGE_SIZE;
--					*page = tmp_page;
--				} else {
--					folio_put(folio);
--				}
--				mmap_read_unlock(mm);
--				return rmap_item;
--			}
--next_page:
--			ksm_scan.address += PAGE_SIZE;
--			cond_resched();
-+			*page = walk_private.page;
-+		} else {
-+			folio_put(folio);
- 		}
-+		mmap_read_unlock(mm);
-+		return rmap_item;
- 	}
- 
- 	if (ksm_test_exit(mm)) {
+ userccflags += -I usr/include
 _
 
-Patches currently in -mm which might be from pedrodemargomes@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+mm-swap-do-not-choose-swap-device-according-to-numa-node-fix.patch
+drivers-base-node-fold-register_node-into-register_one_node-fix.patch
+liveupdate-kho-move-to-kernel-liveupdate-fix.patch
+selftests-complete-kselftest-include-centralization-fix.patch
 
