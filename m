@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47300B672
-	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07489B672
+	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760746795; cv=none; b=NKfumbmMH1OS7wSIgZeDwddTI4kQYoj1y5tuuN+3/A9shn/u+qRPSl5Es9AYwCE65ZQXS1CQN/PRmwBPUnysLfDcPUMh4bW48nxrvy/VGGaLHvuDuMDXH8KyDIC8xQGQIa3NiJUW44YlXKVGOsPq3qkQD/725OxSNeVh3zwiY3g=
+	t=1760746797; cv=none; b=Ol4ThGvoU8/UsCqMzHBeoDixj9UKt8PLsrh+jp2oHJttvUHHru6YbpqOwUJgQ1YoBcha973XyOVKKRq1S4n3EEncl3YZA6sPIpohxcT7zUHmOW5geW36Eja6ZOjmhXn4nQZC3cvU9a9+M8gy7s1LNZItdy3tVKjzinY8xw5EMFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760746795; c=relaxed/simple;
-	bh=wUvKxHIrK5bqZCh2VNoLgsml4+aBgHAlrAHgtVDFZ8M=;
-	h=Date:To:From:Subject:Message-Id; b=VuqyLmsE64p9kTEbeeJc2mnQgGuyVHiRPjGssNq6jnB5UnGTMEDh09M0w4zhxuDUtYsvTNLlI4AveahHJDn0ifoyLa7ugktHZlYuZvJ43ZA/ubB5lV5QA+vp5veCCGW9cfPk9tPO5mVv10f45fHiSmyJ+bTVnlqhdSRurLVr0rY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WyeBblSY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760746797; c=relaxed/simple;
+	bh=LR4rafaVOMA77+sIKmh1lYC+NTWlrH9Ia1zvCy5hTFo=;
+	h=Date:To:From:Subject:Message-Id; b=RqGpCo7F740EaVuPlf36mk2PGJvZa9NCgtfw00AtBffVQn+KiO4WLTVrqBX43TRX8UxTyLyd7WfkA/UJBksF33/4P2g2kgPxxdm/tqypgKVMk3KDsJJ6qvjzBNXcfjF9h4Hh9Z/j6bfBHstTMZc63hFz5lizMHQpOLS6MMXOo0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0z97xlQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WyeBblSY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02671C4CEF9;
-	Sat, 18 Oct 2025 00:19:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0z97xlQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6579C4CEF9;
+	Sat, 18 Oct 2025 00:19:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760746795;
-	bh=wUvKxHIrK5bqZCh2VNoLgsml4+aBgHAlrAHgtVDFZ8M=;
+	s=korg; t=1760746796;
+	bh=LR4rafaVOMA77+sIKmh1lYC+NTWlrH9Ia1zvCy5hTFo=;
 	h=Date:To:From:Subject:From;
-	b=WyeBblSY2dfhQ8W0wKZpoWiS1pVI6PLGyR6DjtmBrJGYXbNS3RodEUiGvSzyAEEhT
-	 Fyqzx1BIq7mTUnZ65k7FtKR3X8N++tSoENo2lBKEzvPWiPgTqWw9p1khv9fvm4ft8Y
-	 8/CAWKOz6MnmtnWtAiH8wyCq0prS0VUT3P3/wCBw=
-Date: Fri, 17 Oct 2025 17:19:54 -0700
+	b=J0z97xlQeraXu1kdAYnfehZzBv14TR5y0t2zm55B39bGJn+bm41BjSHRtJxc2qV0Y
+	 PskSFyDyTjDUrc8ExiRi0Sgu2XOgJ0RwV9Mu4a+cuI444aEFJgufK/Ey3ArXFK8sYV
+	 2i7OvModUdaM3FmckSBjRA9i1eNyvyEIPykAJqJk=
+Date: Fri, 17 Oct 2025 17:19:56 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch added to mm-new branch
-Message-Id: <20251018001955.02671C4CEF9@smtp.kernel.org>
+Subject: + docs-abi-damon-document-damos-quota-goal-path-file.patch added to mm-new branch
+Message-Id: <20251018001956.C6579C4CEF9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document DAMOS quota goal path file
+     Subject: Docs/ABI/damon: document DAMOS quota goal path file
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
+     docs-abi-damon-document-damos-quota-goal-path-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-damos-quota-goal-path-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,46 +65,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document DAMOS quota goal path file
-Date: Fri, 17 Oct 2025 14:27:01 -0700
+Subject: Docs/ABI/damon: document DAMOS quota goal path file
+Date: Fri, 17 Oct 2025 14:27:02 -0700
 
-A new DAMON sysfs interface file, namely 'path' has been added under DAMOS
-quota goal directory, for specifying the cgroup for
-DAMOS_QUOTA_NODE_MEMCG_{USED,FREE}_BP metrics.  Document it on the usage
-document.
+A DAMON sysfs interface file for DAMOS quota goal's optional path argument
+has been added.  Document it on the ABI doc.
 
-Link: https://lkml.kernel.org/r/20251017212706.183502-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251017212706.183502-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -81,7 +81,7 @@ comma (",").
-     │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms,effective_bytes
-     │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
-     │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
--    │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value,nid
-+    │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value,nid,path
-     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
-     │ │ │ │ │ │ │ :ref:`{core_,ops_,}filters <sysfs_filters>`/nr_filters
-     │ │ │ │ │ │ │ │ 0/type,matching,allow,memcg_path,addr_start,addr_end,target_idx,min,max
-@@ -402,9 +402,9 @@ number (``N``) to the file creates the n
- to ``N-1``.  Each directory represents each goal and current achievement.
- Among the multiple feedback, the best one is used.
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-damos-quota-goal-path-file
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -303,6 +303,12 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Writing to and reading from this file sets and gets the nid
+ 		parameter of the goal.
  
--Each goal directory contains four files, namely ``target_metric``,
--``target_value``, ``current_value`` and ``nid``.  Users can set and get the
--four parameters for the quota auto-tuning goals that specified on the
-+Each goal directory contains five files, namely ``target_metric``,
-+``target_value``, ``current_value`` ``nid`` and ``path``.  Users can set and
-+get the five parameters for the quota auto-tuning goals that specified on the
- :ref:`design doc <damon_design_damos_quotas_auto_tuning>` by writing to and
- reading from each of the files.  Note that users should further write
- ``commit_schemes_quota_goals`` to the ``state`` file of the :ref:`kdamond
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/path
++Date:		Oct 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the path
++		parameter of the goal.
++
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/sz_permil
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
