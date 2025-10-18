@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF4AB672
-	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 384A3B672
+	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760746783; cv=none; b=aBVt/Ybgl2tbMzlNtnzg+SsevQdCXeCViF9cHTx3bfrLF/glG5nKsgVMhNw0ckLz63XJDYiYVu4XFurT+9BIMAp6D9bFfewzqQK2CZ5PPqI3RpPOUirpLlg42GyguT3LWPeM9BOXPuTjkON6ftyTtHbshK/p/ELRJYk+82672IM=
+	t=1760746785; cv=none; b=LQec0I5Rt0NxOFvU21kDtPObYIqIrkgAqUi9hlFMx3fLQ/+MeKpHqrJdYO9QtGDCDmKOpbf0NsnCa3apLasYUXBl/3S8B+qCn6a0Wgv7p7CHDaqPpcg2iwMHOsoz962I2UIWja8B9nvBDUoHhdMt5n1a3wdCK5iM3wEWdQuaJZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760746783; c=relaxed/simple;
-	bh=O/aleL7kr5YLtBsPceJVshq1b7I1msbdO0styZCxXgk=;
-	h=Date:To:From:Subject:Message-Id; b=AqmuyC6PWeYtEsHacKA7YznU/oawB579ymVSchjyBRzo8tqIU0hqEuWBxzRCfS2ol54Qvo/FR+tZ0cdRMR4IChmcJFGVyfoFAxOBfMkun3NSe3m6FzvlkeXu5xi7sWojbejzjJ0EwFB2GYyDiqzj33o2RKmOZpNVNxLkNvSgnD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1lrjAqeE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760746785; c=relaxed/simple;
+	bh=jWBnFyeuuAhptaZ4ExrzAUuriMKm5Sd6PjupW5MWNgk=;
+	h=Date:To:From:Subject:Message-Id; b=QLJ4liLj8pGlh4BjRlHvdBt/L5+jai4j3UswpFlfwiKAFqaQ96C5o+H7lQE9pDAzAAh96RDx5JVk09p2tNdW5vCgtbYVZPvbB76+/8YOld/dvdVrzwt+rQxWa5zxfeEXhVsyDd2ZrutEL4JQ/q+NDqx+GuQg7m7Hkcv4ZpT3bjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I7Id9cBm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1lrjAqeE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06E1EC4CEE7;
-	Sat, 18 Oct 2025 00:19:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I7Id9cBm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A7A5C4CEE7;
+	Sat, 18 Oct 2025 00:19:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760746783;
-	bh=O/aleL7kr5YLtBsPceJVshq1b7I1msbdO0styZCxXgk=;
+	s=korg; t=1760746785;
+	bh=jWBnFyeuuAhptaZ4ExrzAUuriMKm5Sd6PjupW5MWNgk=;
 	h=Date:To:From:Subject:From;
-	b=1lrjAqeEStQsUcJ94v1LKpOSXGkaeHm0W5JN1I5umEij3szeLqL3gFB8pUvx7NRHr
-	 gu4PURBnlbfyTpMLPlayiTaN52JPPTrI+4qaKkWCD2WGzilXarOxvrc3Ff2dwaxD29
-	 cfVYOJFtS8vDM9gyASmxY32uK2IfcEzC8T0ISal0=
-Date: Fri, 17 Oct 2025 17:19:42 -0700
+	b=I7Id9cBmWjStfdSzNNqI+I1PRZ+nDNidg8wp3NlmGhf5Ne5kxt6+w8YZB9Tg7e+Qe
+	 p8CZ12ovVMQjbRowKfpsX+UyUlWrwiZya6hC0xyAF4rY80+JJalhtX1Sr918l5SlCN
+	 Em7I58KcrtL3hloWymhAgTDcWAR5E4W+9SOc+y9M=
+Date: Fri, 17 Oct 2025 17:19:44 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch added to mm-new branch
-Message-Id: <20251018001943.06E1EC4CEE7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch added to mm-new branch
+Message-Id: <20251018001945.0A7A5C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: implement DAMOS_QUOTA_NODE_MEMCG_USED_BP
+     Subject: mm/damon/sysfs-schemes: implement path file under quota goal directory
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
+     mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,100 +65,88 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: implement DAMOS_QUOTA_NODE_MEMCG_USED_BP
-Date: Fri, 17 Oct 2025 14:26:55 -0700
+Subject: mm/damon/sysfs-schemes: implement path file under quota goal directory
+Date: Fri, 17 Oct 2025 14:26:56 -0700
 
-Implement the handling of the new DAMOS quota goal metric for per-memcg
-per-node memory usage, namely DAMOS_QUOTA_NODE_MEMCG_USED_BP.  The metric
-value is calculated as the sum of active/inactive anon/file pages of the
-given cgroup for a given NUMA node.
+Add a DAMOS sysfs file for specifying the cgroup of the interest for
+DAMOS_QUOTA_NODE_MEMCG_USED_BP.
 
-Link: https://lkml.kernel.org/r/20251017212706.183502-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251017212706.183502-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ mm/damon/sysfs-schemes.c |   38 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 36 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-implement-damos_quota_node_memcg_used_bp
-+++ a/mm/damon/core.c
-@@ -10,6 +10,7 @@
- #include <linux/damon.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
-+#include <linux/memcontrol.h>
- #include <linux/mm.h>
- #include <linux/psi.h>
- #include <linux/slab.h>
-@@ -788,6 +789,10 @@ static void damos_commit_quota_goal_unio
- 	case DAMOS_QUOTA_NODE_MEM_FREE_BP:
- 		dst->nid = src->nid;
- 		break;
-+	case DAMOS_QUOTA_NODE_MEMCG_USED_BP:
-+		dst->nid = src->nid;
-+		dst->memcg_id = src->memcg_id;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -2035,12 +2040,46 @@ static __kernel_ulong_t damos_get_node_m
- 		numerator = i.freeram;
- 	return numerator * 10000 / i.totalram;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory
++++ a/mm/damon/sysfs-schemes.c
+@@ -999,6 +999,7 @@ struct damos_sysfs_quota_goal {
+ 	unsigned long target_value;
+ 	unsigned long current_value;
+ 	int nid;
++	char *path;
+ };
+ 
+ static struct damos_sysfs_quota_goal *damos_sysfs_quota_goal_alloc(void)
+@@ -1128,10 +1129,39 @@ static ssize_t nid_store(struct kobject
+ 	return err ? err : count;
  }
-+
-+static unsigned long damos_get_node_memcg_used_bp(
-+		struct damos_quota_goal *goal)
+ 
++static ssize_t path_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
 +{
-+	struct mem_cgroup *memcg;
-+	struct lruvec *lruvec;
-+	unsigned long used_pages;
-+	struct sysinfo i;
++	struct damos_sysfs_quota_goal *goal = container_of(kobj,
++			struct damos_sysfs_quota_goal, kobj);
 +
-+	rcu_read_lock();
-+	memcg = mem_cgroup_from_id(goal->memcg_id);
-+	rcu_read_unlock();
-+	if (!memcg) {
-+		if (goal->metric == DAMOS_QUOTA_NODE_MEMCG_USED_BP)
-+			return 0;
-+		else	/* DAMOS_QUOTA_NODE_MEMCG_FREE_BP */
-+			return 10000;
-+	}
-+	mem_cgroup_flush_stats(memcg);
-+	lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(goal->nid));
-+	used_pages = lruvec_page_state(lruvec, NR_ACTIVE_ANON);
-+	used_pages += lruvec_page_state(lruvec, NR_INACTIVE_ANON);
-+	used_pages += lruvec_page_state(lruvec, NR_ACTIVE_FILE);
-+	used_pages += lruvec_page_state(lruvec, NR_INACTIVE_FILE);
-+
-+	si_meminfo_node(&i, goal->nid);
-+	return used_pages * 10000 / i.totalram;
++	return sysfs_emit(buf, "%s\n", goal->path ? goal->path : "");
 +}
- #else
- static __kernel_ulong_t damos_get_node_mem_bp(
- 		struct damos_quota_goal *goal)
++
++static ssize_t path_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damos_sysfs_quota_goal *goal = container_of(kobj,
++			struct damos_sysfs_quota_goal, kobj);
++	char *path = kmalloc_array(size_add(count, 1), sizeof(*path),
++				   GFP_KERNEL);
++
++	if (!path)
++		return -ENOMEM;
++
++	strscpy(path, buf, count + 1);
++	kfree(goal->path);
++	goal->path = path;
++	return count;
++}
++
+ static void damos_sysfs_quota_goal_release(struct kobject *kobj)
  {
- 	return 0;
- }
+-	/* or, notify this release to the feed callback */
+-	kfree(container_of(kobj, struct damos_sysfs_quota_goal, kobj));
++	struct damos_sysfs_quota_goal *goal = container_of(kobj,
++			struct damos_sysfs_quota_goal, kobj);
 +
-+static unsigned long damos_get_node_memcg_used_bp(
-+		struct damos_quota_goal *goal)
-+{
-+	return 0;
-+}
- #endif
++	kfree(goal->path);
++	kfree(goal);
+ }
  
+ static struct kobj_attribute damos_sysfs_quota_goal_target_metric_attr =
+@@ -1146,11 +1176,15 @@ static struct kobj_attribute damos_sysfs
+ static struct kobj_attribute damos_sysfs_quota_goal_nid_attr =
+ 		__ATTR_RW_MODE(nid, 0600);
  
-@@ -2061,6 +2100,9 @@ static void damos_set_quota_goal_current
- 	case DAMOS_QUOTA_NODE_MEM_FREE_BP:
- 		goal->current_value = damos_get_node_mem_bp(goal);
- 		break;
-+	case DAMOS_QUOTA_NODE_MEMCG_USED_BP:
-+		goal->current_value = damos_get_node_memcg_used_bp(goal);
-+		break;
- 	default:
- 		break;
- 	}
++static struct kobj_attribute damos_sysfs_quota_goal_path_attr =
++		__ATTR_RW_MODE(path, 0600);
++
+ static struct attribute *damos_sysfs_quota_goal_attrs[] = {
+ 	&damos_sysfs_quota_goal_target_metric_attr.attr,
+ 	&damos_sysfs_quota_goal_target_value_attr.attr,
+ 	&damos_sysfs_quota_goal_current_value_attr.attr,
+ 	&damos_sysfs_quota_goal_nid_attr.attr,
++	&damos_sysfs_quota_goal_path_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damos_sysfs_quota_goal);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
