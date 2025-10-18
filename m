@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D20BB672
-	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF4AB672
+	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760746781; cv=none; b=tTQDPJURTvLvkTnmHD7RebuUnyPEE9ARQV1w3e9+hjD+hyhS8Qv3k1lUgSj5ufV4fS0JBlbgZDHjjs7NeOEXObacalOThyfP+Ts5ADQ5g7Q7YROY+0JYzb8gDstiG0Ycl2n86AlgGU4pTy4MCT+SY/xpTjZt3LZp5C6KTlDxVzA=
+	t=1760746783; cv=none; b=aBVt/Ybgl2tbMzlNtnzg+SsevQdCXeCViF9cHTx3bfrLF/glG5nKsgVMhNw0ckLz63XJDYiYVu4XFurT+9BIMAp6D9bFfewzqQK2CZ5PPqI3RpPOUirpLlg42GyguT3LWPeM9BOXPuTjkON6ftyTtHbshK/p/ELRJYk+82672IM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760746781; c=relaxed/simple;
-	bh=YBSlBdSRvr1UgeGfib6bfy1thkLV8HYL5qthHrLf7ds=;
-	h=Date:To:From:Subject:Message-Id; b=SCxT5NwGD/fQUAXJ5W9CpCTfjyA70tFOPb9Q7B+iJ1F7k94VIZrMYVGPFh3l022ziFPBJTQys6SwcGCijG3QMkLpWMYqJlLHrOj0MVqQTTj5FDp2wMMn+2KyVW7Ah90i8inPIMMtXBVgOkQ4IHMcIhfyiKfsHkGfUEAgIIcrjk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ybe44ne5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760746783; c=relaxed/simple;
+	bh=O/aleL7kr5YLtBsPceJVshq1b7I1msbdO0styZCxXgk=;
+	h=Date:To:From:Subject:Message-Id; b=AqmuyC6PWeYtEsHacKA7YznU/oawB579ymVSchjyBRzo8tqIU0hqEuWBxzRCfS2ol54Qvo/FR+tZ0cdRMR4IChmcJFGVyfoFAxOBfMkun3NSe3m6FzvlkeXu5xi7sWojbejzjJ0EwFB2GYyDiqzj33o2RKmOZpNVNxLkNvSgnD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1lrjAqeE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ybe44ne5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A858C4CEE7;
-	Sat, 18 Oct 2025 00:19:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1lrjAqeE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06E1EC4CEE7;
+	Sat, 18 Oct 2025 00:19:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760746781;
-	bh=YBSlBdSRvr1UgeGfib6bfy1thkLV8HYL5qthHrLf7ds=;
+	s=korg; t=1760746783;
+	bh=O/aleL7kr5YLtBsPceJVshq1b7I1msbdO0styZCxXgk=;
 	h=Date:To:From:Subject:From;
-	b=ybe44ne5N7iqFfk0plIhIOXY7gUmyn9gGuQSO0k/nKEWvaRl9Vs7X6EqbrvQqa6Uq
-	 2WkvDzRJJCnJu5SItwKm9fyVfCaIdshj+lRYZGX2ziVST0QYt6k1jKG3+m7cBT6F6O
-	 2j7/DrMzRey1TBDOrm99jmYDSJCOBO8+MFzmwwqI=
-Date: Fri, 17 Oct 2025 17:19:40 -0700
+	b=1lrjAqeEStQsUcJ94v1LKpOSXGkaeHm0W5JN1I5umEij3szeLqL3gFB8pUvx7NRHr
+	 gu4PURBnlbfyTpMLPlayiTaN52JPPTrI+4qaKkWCD2WGzilXarOxvrc3Ff2dwaxD29
+	 cfVYOJFtS8vDM9gyASmxY32uK2IfcEzC8T0ISal0=
+Date: Fri, 17 Oct 2025 17:19:42 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch added to mm-new branch
-Message-Id: <20251018001941.1A858C4CEE7@smtp.kernel.org>
+Subject: + mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch added to mm-new branch
+Message-Id: <20251018001943.06E1EC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: add DAMOS quota goal type for per-memcg per-node memory usage
+     Subject: mm/damon/core: implement DAMOS_QUOTA_NODE_MEMCG_USED_BP
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
+     mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,73 +65,100 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: add DAMOS quota goal type for per-memcg per-node memory usage
-Date: Fri, 17 Oct 2025 14:26:54 -0700
+Subject: mm/damon/core: implement DAMOS_QUOTA_NODE_MEMCG_USED_BP
+Date: Fri, 17 Oct 2025 14:26:55 -0700
 
-Define a new DAMOS quota auto-tuning target metric for per-cgroup per-node
-memory usage.  For specifying the cgroup of the interest, add a field,
-namely memcg_id, to damos_quota_goal struct.
+Implement the handling of the new DAMOS quota goal metric for per-memcg
+per-node memory usage, namely DAMOS_QUOTA_NODE_MEMCG_USED_BP.  The metric
+value is calculated as the sum of active/inactive anon/file pages of the
+given cgroup for a given NUMA node.
 
-Note that this commit is only implementing the interface.  The handling of
-the interface (the metric value calculation) will be implemented in the
-following commit.
-
-Link: https://lkml.kernel.org/r/20251017212706.183502-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251017212706.183502-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ mm/damon/core.c |   42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage
-+++ a/include/linux/damon.h
-@@ -147,6 +147,7 @@ enum damos_action {
-  * @DAMOS_QUOTA_SOME_MEM_PSI_US:	System level some memory PSI in us.
-  * @DAMOS_QUOTA_NODE_MEM_USED_BP:	MemUsed ratio of a node.
-  * @DAMOS_QUOTA_NODE_MEM_FREE_BP:	MemFree ratio of a node.
-+ * @DAMOS_QUOTA_NODE_MEMCG_USED_BP:	MemUsed ratio of a node for a cgroup.
-  * @NR_DAMOS_QUOTA_GOAL_METRICS:	Number of DAMOS quota goal metrics.
-  *
-  * Metrics equal to larger than @NR_DAMOS_QUOTA_GOAL_METRICS are unsupported.
-@@ -156,6 +157,7 @@ enum damos_quota_goal_metric {
- 	DAMOS_QUOTA_SOME_MEM_PSI_US,
- 	DAMOS_QUOTA_NODE_MEM_USED_BP,
- 	DAMOS_QUOTA_NODE_MEM_FREE_BP,
-+	DAMOS_QUOTA_NODE_MEMCG_USED_BP,
- 	NR_DAMOS_QUOTA_GOAL_METRICS,
- };
+--- a/mm/damon/core.c~mm-damon-core-implement-damos_quota_node_memcg_used_bp
++++ a/mm/damon/core.c
+@@ -10,6 +10,7 @@
+ #include <linux/damon.h>
+ #include <linux/delay.h>
+ #include <linux/kthread.h>
++#include <linux/memcontrol.h>
+ #include <linux/mm.h>
+ #include <linux/psi.h>
+ #include <linux/slab.h>
+@@ -788,6 +789,10 @@ static void damos_commit_quota_goal_unio
+ 	case DAMOS_QUOTA_NODE_MEM_FREE_BP:
+ 		dst->nid = src->nid;
+ 		break;
++	case DAMOS_QUOTA_NODE_MEMCG_USED_BP:
++		dst->nid = src->nid;
++		dst->memcg_id = src->memcg_id;
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -2035,12 +2040,46 @@ static __kernel_ulong_t damos_get_node_m
+ 		numerator = i.freeram;
+ 	return numerator * 10000 / i.totalram;
+ }
++
++static unsigned long damos_get_node_memcg_used_bp(
++		struct damos_quota_goal *goal)
++{
++	struct mem_cgroup *memcg;
++	struct lruvec *lruvec;
++	unsigned long used_pages;
++	struct sysinfo i;
++
++	rcu_read_lock();
++	memcg = mem_cgroup_from_id(goal->memcg_id);
++	rcu_read_unlock();
++	if (!memcg) {
++		if (goal->metric == DAMOS_QUOTA_NODE_MEMCG_USED_BP)
++			return 0;
++		else	/* DAMOS_QUOTA_NODE_MEMCG_FREE_BP */
++			return 10000;
++	}
++	mem_cgroup_flush_stats(memcg);
++	lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(goal->nid));
++	used_pages = lruvec_page_state(lruvec, NR_ACTIVE_ANON);
++	used_pages += lruvec_page_state(lruvec, NR_INACTIVE_ANON);
++	used_pages += lruvec_page_state(lruvec, NR_ACTIVE_FILE);
++	used_pages += lruvec_page_state(lruvec, NR_INACTIVE_FILE);
++
++	si_meminfo_node(&i, goal->nid);
++	return used_pages * 10000 / i.totalram;
++}
+ #else
+ static __kernel_ulong_t damos_get_node_mem_bp(
+ 		struct damos_quota_goal *goal)
+ {
+ 	return 0;
+ }
++
++static unsigned long damos_get_node_memcg_used_bp(
++		struct damos_quota_goal *goal)
++{
++	return 0;
++}
+ #endif
  
-@@ -166,6 +168,7 @@ enum damos_quota_goal_metric {
-  * @current_value:	Current value of @metric.
-  * @last_psi_total:	Last measured total PSI
-  * @nid:		Node id.
-+ * @memcg_id:		Memcg id.
-  * @list:		List head for siblings.
-  *
-  * Data structure for getting the current score of the quota tuning goal.  The
-@@ -179,6 +182,9 @@ enum damos_quota_goal_metric {
-  *
-  * If @metric is DAMOS_QUOTA_NODE_MEM_{USED,FREE}_BP, @nid represents the node
-  * id of the target node to account the used/free memory.
-+ *
-+ * If @metric is DAMOS_QUOTA_NODE_MEMCG_USED_BP, @nid and @memcg_id represents
-+ * the node id and the cgroup to account the used memory for.
-  */
- struct damos_quota_goal {
- 	enum damos_quota_goal_metric metric;
-@@ -187,7 +193,10 @@ struct damos_quota_goal {
- 	/* metric-dependent fields */
- 	union {
- 		u64 last_psi_total;
--		int nid;
-+		struct {
-+			int nid;
-+			unsigned short memcg_id;
-+		};
- 	};
- 	struct list_head list;
- };
+ 
+@@ -2061,6 +2100,9 @@ static void damos_set_quota_goal_current
+ 	case DAMOS_QUOTA_NODE_MEM_FREE_BP:
+ 		goal->current_value = damos_get_node_mem_bp(goal);
+ 		break;
++	case DAMOS_QUOTA_NODE_MEMCG_USED_BP:
++		goal->current_value = damos_get_node_memcg_used_bp(goal);
++		break;
+ 	default:
+ 		break;
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
