@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE5B139FD9
-	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 798AEB672
+	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760746752; cv=none; b=DBJ/RzX9AwjJMaeXH6g6nFL7a0FBF/e6bJQx4pw5pcyCDSJmLL9U5GJ3agbGRwjXL9UgqS/FLWiROGn4yiIa8v0+6ekJn6L7mYsTcCmdqXlDbhzBbKsGvtJfjZyEzYM3nmRj7c5LI5w9vUxNdfwZVOZlaOskYWJpfuCkL38ZCio=
+	t=1760746779; cv=none; b=NSrEwXh/5KDKcQHEIUG+U4en2uJ5eLJjz9rC7I0yV1pABD19VHOF+TDB1w+nlNeQaVLPVNXrsPNRp6qJn2w1kVhVCd74ELvzsQXeO+tqRdaUneXQGmMopd5YqmnhgRvVvgxzkSC1oSx1jVsNzEZCTd2x+aVsitN1F3WwI5RlPa4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760746752; c=relaxed/simple;
-	bh=wlqBfyJAuNuB2D+uPp9PLIqz7/DClZ9zEYlwiJ8kTTc=;
-	h=Date:To:From:Subject:Message-Id; b=IQmiYKQ9cAZuY8JD1xJMqawhK5YTyNlzt4bgT83PJAhKv1V+eH2vZyXRYLr66hWZd4sDlHiVjq8gR5B4vPdYY0w2oCrJ4HmwcLTWPywGDQrUie04TNFTSbbSOWz+GB8CH4Fs/ZOpE+lluaBMDZQWSoYJcQDGX2yB/T8pYXP6BPs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rcnlZJXf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760746779; c=relaxed/simple;
+	bh=/IPurc6uX8Tp7uR6ao0kgQm7zfXi8Q/uCu3h870xcDY=;
+	h=Date:To:From:Subject:Message-Id; b=rR2gPzCoDQp51NrtxqKub7PARhlvuLtBaZqKaZzNJM0CDlFAkBVFdLtSKVxWraRxeuXSA7qF0JG6xr7SLisuv7LdtjdUrQrHyCtpA5RSxcS9/iZh8v1rbrNB4eGcdj28vrvW2MHCuUe0SA2X37WxzH9bmBU8D6Y/nX+EI8OrFRY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yg/mLtOS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rcnlZJXf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53A6DC4CEE7;
-	Sat, 18 Oct 2025 00:19:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yg/mLtOS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CE64C4CEE7;
+	Sat, 18 Oct 2025 00:19:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760746750;
-	bh=wlqBfyJAuNuB2D+uPp9PLIqz7/DClZ9zEYlwiJ8kTTc=;
+	s=korg; t=1760746779;
+	bh=/IPurc6uX8Tp7uR6ao0kgQm7zfXi8Q/uCu3h870xcDY=;
 	h=Date:To:From:Subject:From;
-	b=rcnlZJXfZIlEdy0rW6w4Cdsi++cCzjZ4ixfG2UUKLS2waVbi0HtLNXhz0mCQNRqm8
-	 X+DKcJX98RqZEjyv/kMsvQmanu5epVIcgmZjhdrHZOvcjLYGdGxaIcgLkA+9j4cKXB
-	 ukUpn7mD+rE6zMi8B7rgGg79LyjG5YpipmAd0OP4=
-Date: Fri, 17 Oct 2025 17:19:09 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=Yg/mLtOS9Q6xjVSOgaC8VE3uDxHbKXSqTmxOqFaPV5u+axqJh8mKHoNNYhUn/sPxl
+	 +Jg678jc1LKqVv5BH33Db3x7ZOeXBaMYH4imrZQumSh890jEPK8OkYxfX2a9zLYAbE
+	 SoLd2hLiPqNgrpx25GCHP5cJeRG16eSGnn20YvEQ=
+Date: Fri, 17 Oct 2025 17:19:38 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-introduce-chain-list-sanity-check-with-ocfs2_check_chain_list.patch added to mm-nonmm-unstable branch
-Message-Id: <20251018001910.53A6DC4CEE7@smtp.kernel.org>
+Subject: + mm-damon-document-damos_quota_goal-nid-use-case.patch added to mm-new branch
+Message-Id: <20251018001939.2CE64C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: introduce chain list sanity check with ocfs2_check_chain_list()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-introduce-chain-list-sanity-check-with-ocfs2_check_chain_list.patch
+     Subject: mm/damon: document damos_quota_goal->nid use case
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-document-damos_quota_goal-nid-use-case.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-introduce-chain-list-sanity-check-with-ocfs2_check_chain_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-document-damos_quota_goal-nid-use-case.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,90 +64,373 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: ocfs2: introduce chain list sanity check with ocfs2_check_chain_list()
-Date: Fri, 17 Oct 2025 14:34:22 +0300
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: document damos_quota_goal->nid use case
+Date: Fri, 17 Oct 2025 14:26:53 -0700
 
-Fix an array-index-out-of-bounds error reported by UBSAN:
+Patch series "mm/damon: allow DAMOS auto-tuned for per-memcg per-node
+memory usage".
 
-UBSAN: array-index-out-of-bounds in fs/ocfs2/suballoc.c:380:22
-index 0 is out of range for type 'struct ocfs2_chain_rec[] __counted_by(cl_count)' (aka 'struct ocfs2_chain_rec[]')
+Introduce two new DAMOS quota auto-tuning target metrics for per-cgroup
+per-NUMA node memory utilization.  Expected use cases are cgroup level
+access-aware NUMA memory managements, such as memory tiering or proactive
+reclamation on cgroup-based multi-tenant NUMA systems.
 
-Introduce 'ocfs2_check_chain_list()' to check whether a) the maximum
-amount of chain records in 'struct ocfs2_chain_list' matches the value
-calculated based on the filesystem block size, and b) the next free slot
-index is within the valid range, and use the aforementioned function in
-'ocfs2_block_group_alloc()' and 'ocfs2_claim_suballoc_bits()'.
+Background
+==========
 
-Link: https://lkml.kernel.org/r/20251017113422.243762-1-dmantipov@yandex.ru
-Reported-by: syzbot+77026564530dbc29b854@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=77026564530dbc29b854
-Reported-by: syzbot+5054473a31f78f735416@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=5054473a31f78f735416
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Cc: Heming Zhao <heming.zhao@suse.com>> ---
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+The aim-oriented aggressiveness auto-tuning feature of DAMOS is a highly
+recommended way for modern DAMOS use cases.  Using it, users can specify
+what system status they want to achieve with what access-aware system
+operations.  For example, reclaim cold memory aiming for 0.5 percent of
+memory pressure (proactive reclaim), or migrate hot and cold memory
+between NUMA nodes having different speed (memory tiering).  Then DAMOS
+automatically adjusts the aggressiveness of the system operation (e.g.,
+increase/decrease reclaim target coldness threshold) based on current
+status of the system.
 
+The use case is limited by the supported system status metrics for
+specifying the target system status.  Two new system metrics for per-node
+memory usage ratio, namely DAMOS_QUOTA_NODE_MEM_{USED,FREE}_BP, were
+recently added to extend the use cases for access-aware NUMA nodes
+management, such as memory tiering.  Those are expected to be useful for
+not only memory tiering but also general access-aware inter-NUMA node page
+migration, though.
+
+Limitation
+----------
+
+The per-node memory usage based auto-tuning can be applied only
+system-wide.  For cgroups-based multi-tenant systems, it could arguably
+harm the fairness.  For example, a cgroup may use faster NUMA node memory
+more than other cgroup, depending on their access pattern.  If the user of
+each cgroup are promised to get the same quality and amount of the system
+resource, this can arguably be an unfair situation.
+
+DAMOS supports cgroup level system operations via DAMOS filter.  But the
+quota auto-tuning system is not aware of cgroups.
+
+New DAMOS Quota Tuning Metrics for Per-Cgroup Per-NUMA Memory Usage
+===================================================================
+
+To overcome the limitation, introduce two new DAMOS quota auto-tuning goal
+metrics, namely DAMOS_QUOTA_NODE_MEMCG_{USED,FREE}_BP.  Those can be
+thought of as a variant of DAMOS_QUOTA_NODE_MEM_{USED,FREE}_BP that
+extended for cgroups.
+
+The two metrics specifies per-cgroup, per-node amount of used and unused
+memory in ratio to the total memory of the node.  For example, let's
+assume a system has two NUMA nodes of size 100 GiB and 50 GiB.  And two
+cgroups are using 40 GiB and 60 GiB of node 0, 20 GiB and 10 GiB of node
+1, respectively, as illustrated by the below table.
+
+                     node-0    node-1
+    Total memory     100 GiB   50 GiB
+    Cgroup A usage   40 GiB    20 GiB
+    Cgroup B usage   60 GiB    10 GiB
+
+Then, DAMOS_QUOTA_NODE_MEMCG_USED_BP for the cgroups for the first node
+are, 40 GiB / 100 GiB = 4,000 bp (40 percent) and 60 GiB / 100 GiB = 6,000
+bp (60 percent), respectively.  Those for the second node are, 20 GiB / 50
+GiB = 4000 bp (40 percent) and 10 GiB / 50 GiB = 2000 bp (20 percent),
+respectively.
+
+DAMOS_QUOTA_NODE_MEMCG_FREE_BP for the four cases are, 60 GiB /100 GiB =
+6000 bp, 40 GiB / 100 GiB = 4000 bp, 30 GiB / 50 GiB = 6000 bp, and 40 GiB
+/ 50 GiB = 8000 bp, respectively.
+
+    DAMOS_QUOTA_NODE_MEMCG_USED_BP for cgroup A node-0: 4000 bp
+    DAMOS_QUOTA_NODE_MEMCG_USED_BP for cgroup B node-0: 6000 bp
+    DAMOS_QUOTA_NODE_MEMCG_USED_BP for cgroup A node-1: 4000 bp
+    DAMOS_QUOTA_NODE_MEMCG_USED_BP for cgroup B node-1: 2000 bp
+
+    DAMOS_QUOTA_NODE_MEMCG_FREE_BP for cgroup A node-0: 6000 bp
+    DAMOS_QUOTA_NODE_MEMCG_FREE_BP for cgroup B node-0: 4000 bp
+    DAMOS_QUOTA_NODE_MEMCG_FREE_BP for cgroup A node-1: 6000 bp
+    DAMOS_QUOTA_NODE_MEMCG_FREE_BP for cgroup B node-1: 8000 bp
+
+Using these, users can specify how much [un]used amount of memory for
+per-cgroup and per-node DAMOS should make as a result of the auto-tuning.
+
+Example Usecase: Cgroup Level Memory Tiering
+============================================
+
+Let's suppose a typical and simple tiered memory system.  The system
+equips two NUMA nodes.  The first node (node 0) is CPU-attached and fast. 
+The second node (node 1) is CPU-unattached and slow.  It runs two cgroups
+that desire to use about 30 percent and 70 percent of the faster node as
+much as possible for their hot data, respectively.  Then, the user can
+implement DAMOS-based memory tiering for the system using the DAMON
+user-space tool (damo), like below.
+
+    # ./damo start \
+    	`# kdamond for node 1 (slow)` \
+        --numa_node 1 --monitoring_intervals_goal 4% 3 5ms 10s \
+	    `# promotion scheme for cgroup a` \
+            --damos_action migrate_hot 0 --damos_access_rate 5% max \
+            --damos_apply_interval 1s \
+	    --damos_filter allow memcg /workloads/a \
+            --damos_filter allow young \
+            --damos_quota_interval 1s --damos_quota_space 200MB \
+            --damos_quota_goal node_memcg_used_bp 29.7% 0 /workloads/a \
+	    \
+	    `# promotion scheme for cgroup b` \
+            --damos_action migrate_hot 0 --damos_access_rate 5% max \
+            --damos_apply_interval 1s \
+	    --damos_filter allow memcg /workloads/b \
+            --damos_filter allow young \
+            --damos_quota_interval 1s --damos_quota_space 200MB \
+            --damos_quota_goal node_memcg_used_bp 69.7% 0 workloads/b \
+	    \
+    	`# kdamond for node 0 (fast)` \
+        --numa_node 0 --monitoring_intervals_goal 4% 3 5ms 10s \
+            `# demotion scheme for cgroup a` \
+            --damos_action migrate_cold 1 --damos_access_rate 0% 0% \
+            --damos_apply_interval 1s \
+	    --damos_filter allow memcg /workloads/a \
+            --damos_filter reject young \
+            --damos_quota_interval 1s --damos_quota_space 200MB \
+            --damos_quota_goal node_memcg_free_bp 70.5% 0 \
+	    \
+            `# demotion scheme for cgroup b` \
+            --damos_action migrate_cold 1 --damos_access_rate 0% 0% \
+            --damos_apply_interval 1s \
+	    --damos_filter allow memcg /workloads/a \
+            --damos_filter reject young \
+            --damos_quota_interval 1s --damos_quota_space 200MB \
+            --damos_quota_goal node_memcg_free_bp 30.5% 0 \
+	    \
+            --damos_nr_quota_goals 1 1 1 1 --damos_nr_filters 1 1 1 1 \
+        --nr_targets 1 1 --nr_schemes 2 2 --nr_ctxs 1 1
+
+With the command, the user-space tool will ask DAMON to spawn two kernel
+threads, each for monitoring accesses to node 1 (slow) and node 0 (fast),
+respectively.  It installs two DAMOS schemes on each thread.  Let's call
+them "promotion scheme for cgroup a/b", and "demotion scheme for cgroup
+a/b" in the order.  The promotion schemes are installed on the DAMON
+thread for node 1 (slow), and demotion schemes are installed on the DAMON
+thread for node 0 (fast).
+
+Cgroup Level Hot Pages Migration (Promotion)
+--------------------------------------------
+
+Promotion schemes will find memory regions on node 1 (slow), that some
+access was detected.  The schemes will then migrate the found memory to
+node 0 (fast), hottest pages first.
+
+For accurate and effective migration, these schemes use two page level
+filters.  First, the migration will be filtered for only cgroup A and
+cgroup B.  That is, "promotion scheme for cgroup B" will not do the
+migration if the page is for cgroup A.  Secondly, the schemes will ignore
+pages that having their page table's Accessed bits unset.  The per-page
+Accessed bit check logic will also unset the bit if it was set, for the
+next check.
+
+For controlled amounts of system resource consumption and aiming on the
+target memory usage, the schemes use quotas setup.  The migration is
+limited to be done only up to 200 MiB per second, to limit the peak system
+resource usage.  And DAMOS_QUOTA_NODE_MEMCG_USED_BP target is set for
+29.7% and 69.7% of node 0 (fast), respectively.  The target value is lower
+than the high level goal (30% and 70% system memory), to give headroom on
+node 0 (fast).  DAMOS will adjust the speed of the pages migration based
+on the target and current per-cgroup node 0 memory usage.  For example, if
+cgroup A is utilizing only 10% of node 0, DAMOS will try to migrate more
+of cgroup A hot pages from node 1 to node 0, up to 200 MiB per second.  If
+cgroup A utilizes more than 29.7% of node 0 memory, the cgroup A hot pages
+migration from node 1 to node 0 will be slowed and eventually stopped.
+
+Cgroup Level Cold Pages Migration (Demotion)
+--------------------------------------------
+
+Demotion schemes are similar to promotion schemes, but differ in filtering
+setup and quota tuning setup.  Those filter out pages having their page
+table Accessed bits set.  And set 70.5% and 30.5% of node 0 memory free
+rate for the cgroup A and B, respectively.  Hence, if promotion schemes or
+something made cgroup A and/or B uses more than 29.5% and 69.5% of node 0,
+demotion schemes will start migrating cold pages of appropriate cgroups in
+node 0 to node 1, under the 200 MiB per second speed cap, while adjusting
+the speed based on how much more than wanted memory is being used.
+
+The quota target values are set to overlap with promotion targets, to keep
+a minimum level of page exchanges between the nodes.  This is to avoid a
+case that the target memory utilization is met, and then access pattern
+changes (pages in node 1 become hotter than pages in node 0) while the
+memory utilization is unchanged.  Without the overlap, neither promotion
+of hotter pages in node 1, nor demotion of colder pages in node 0 will
+happen since both goals are met.  As a result, the faster and slower node
+will unexpectedly serve cold and hot data.
+
+Test: Per-cgroup Memory Tiering
+===============================
+
+I ran a simplified cgroup level memory tiering using the feature, and
+confirmed it works as intended.
+
+Setup
+-----
+
+I configured a QEMU virtual machine representing a simplified version of
+the system that described on the above cgroup level memory tiering example
+use case.  The system equips 40 CPU cores and two NUMA nodes each having
+30 GiB physical memory.  The first node (node 0) represents the faster
+NUMA node, and the second node (node 1) represents the slower NUMA node. 
+In specific, below qemu command line options are used.
+
+    [...]
+    -object memory-backend-ram,size=30G,id=m0 \
+    -object memory-backend-ram,size=30G,id=m1 \
+    -numa node,cpus=0-39,memdev=m0 \
+    -numa node,memdev=m1 \
+    [...]
+
+I booted the virtual machine with a kernel that this patch series is
+applied.  On the virtual machine, I created two cgroups, namely workload_a
+and workload_b.  And ran a test program in each cgroup, resulting in one
+process per cgroup.  The test program allocates 10 GiB memory and evenly
+split it into 10 regions.  After the allocation, it repeatedly access the
+first region for one minute, than the second one for one minute, and so
+on.  After the one minute repeated access for the 10-th region is done, it
+repeats the access from the first region.  So the process has 10 GiB of
+data in total, but only 1 GiB of it is hot at a given moment, and the hot
+data is gradually changed.
+
+While the processes are running, run DAMON for a simple access-aware
+memory tiering using below script.  It migrates hot and cold data of the
+cgroups into node 0 and node 1, aiming the first and the second cgroups
+(workload_a and workload_b, respectively) utilizing about 9.7 percent and
+19.7 percent of node 0, respectively.
+
+Note that this setup is a simplified version of the above example use
+case, for ease of test.  Also note that we assigned 30 GiB physical memory
+to node 0, but DAMON in this setup works for only 27 GiB of the memory. 
+It is due to an internal implementation detail of DAMON user-space tool
+that not really important for this test.
+
+    #!/bin/bash
+    damo start \
+        --numa_node 1 \
+            --damos_action migrate_hot 0 --damos_access_rate 5% max \
+                --damos_apply_interval 1s \
+                --damos_filter allow memcg /workload_a \
+                --damos_filter allow young \
+                --damos_quota_interval 1s \
+                --damos_quota_goal node_memcg_used_bp 9.7% 0 /workload_a \
+            --damos_action migrate_hot 0 --damos_access_rate 5% max \
+                --damos_apply_interval 1s \
+                --damos_filter allow memcg /workload_b \
+                --damos_filter allow young \
+                --damos_quota_interval 1s \
+                --damos_quota_goal node_memcg_used_bp 19.7% 0 /workload_b \
+        --numa_node 0 \
+            --damos_action migrate_cold 1 --damos_access_rate 0% 0% \
+                --damos_apply_interval 1s \
+                --damos_filter allow memcg /workload_a \
+                --damos_filter reject young \
+                --damos_quota_interval 1s \
+                --damos_quota_goal node_memcg_free_bp 90.5% 0 /workload_a \
+            --damos_action migrate_cold 1 --damos_access_rate 0% 0% \
+                --damos_apply_interval 1s \
+                --damos_filter allow memcg /workload_b \
+                --damos_filter reject young \
+                --damos_quota_interval 1s \
+                --damos_quota_goal node_memcg_free_bp 80.5% 0 /workload_b \
+                --damos_nr_quota_goals 1 1 1 1 --damos_nr_filters 2 2 2 2 \
+        --nr_targets 1 1 --nr_schemes 2 2 --nr_ctxs 1 1
+
+After starting DAMON, the pages continuously be migrated across nodes.  A
+few minutes later, the memory usage of the cgroups converges into the
+aimed amounts, and keeps the level, as expected.  To confirm the status is
+kept in the target level as expected, I collected the memory usage stat of
+the cgroups using memory.numa_stat file, after the stats are converged.  I
+repeat the stat collection 42 times with 5 seconds delay between each of
+the collections.  The results are as below:
+
+    node0_memory_usage  average  stdev
+    workload_a          2.79GiB  522.06MiB
+    workload_b          5.15GiB  739.10MiB
+
+The average values are quite close to the targeted values: 27 GiB * 9.7% =
+2.619 GiB for workload_a, and 27 GiB * 19.7% = 5.319 GiB.  A level of
+variances are expected, given the overlap of the promotion/demotion
+targets, and dynamic data access pattern of the workloads.  Give that, the
+measured variances are at a reasonable level.
+
+Patches Sequence
+================
+
+The first patch (patch 1) updates the kernel-doc comment of
+damos_quota_goal struct to clarify usage of optional fields of the struct,
+since later patches will add such optional fields.
+
+Following four patches (patches 2-5) implement a new DAMOS quota goal
+metric for per-cgroup per-node memory usage.  Those extends the core layer
+interface for the new metric (patch 2), implement the metric value
+calculation on the core layer (patch 3), add DAMON sysfs interface file
+for the target cgroup specification (patch 4), and implement support of
+the new metric on DAMON sysfs interface (patch 5).
+
+Next two patches implment the second new DAMOS quota goal metric for
+per-cgroup per-node free (or, unused) memory.  Those implement it in the
+core layer (patch 6) and DAMON sysfs interface (patch 7), extending the
+existing implementation for memory usage metric.
+
+Final three patches update the design (patch 8), the usage (patch 9), and
+the ABI (patch 10) documents for the changes that are introduced by this
+patch series.
+
+
+This patch (of 10):
+
+damos_quota_goal kerneldoc comment is not explaining when @metric is used.
+Update the comment for that.
+
+Link: https://lkml.kernel.org/r/20251017212706.183502-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251017212706.183502-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ include/linux/damon.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/ocfs2/suballoc.c~ocfs2-introduce-chain-list-sanity-check-with-ocfs2_check_chain_list
-+++ a/fs/ocfs2/suballoc.c
-@@ -649,6 +649,16 @@ bail:
- 	return status ? ERR_PTR(status) : bg_bh;
- }
- 
-+static int ocfs2_check_chain_list(struct ocfs2_chain_list *cl,
-+				  struct super_block *sb)
-+{
-+	if (le16_to_cpu(cl->cl_count) != ocfs2_chain_recs_per_inode(sb))
-+		return -EINVAL;
-+	if (le16_to_cpu(cl->cl_next_free_rec) >= le16_to_cpu(cl->cl_count))
-+		return -EINVAL;
-+	return 0;
-+}
-+
- /*
-  * We expect the block group allocator to already be locked.
+--- a/include/linux/damon.h~mm-damon-document-damos_quota_goal-nid-use-case
++++ a/include/linux/damon.h
+@@ -176,6 +176,9 @@ enum damos_quota_goal_metric {
+  * If @metric is DAMOS_QUOTA_USER_INPUT, @current_value should be manually
+  * entered by the user, probably inside the kdamond callbacks.  Otherwise,
+  * DAMON sets @current_value with self-measured value of @metric.
++ *
++ * If @metric is DAMOS_QUOTA_NODE_MEM_{USED,FREE}_BP, @nid represents the node
++ * id of the target node to account the used/free memory.
   */
-@@ -671,6 +681,10 @@ static int ocfs2_block_group_alloc(struc
- 	BUG_ON(ocfs2_is_cluster_bitmap(alloc_inode));
- 
- 	cl = &fe->id2.i_chain;
-+	status = ocfs2_check_chain_list(cl, alloc_inode->i_sb);
-+	if (status)
-+		goto bail;
-+
- 	status = ocfs2_reserve_clusters_with_limit(osb,
- 						   le16_to_cpu(cl->cl_cpg),
- 						   max_block, flags, &ac);
-@@ -1992,6 +2006,9 @@ static int ocfs2_claim_suballoc_bits(str
- 	}
- 
- 	cl = (struct ocfs2_chain_list *) &fe->id2.i_chain;
-+	status = ocfs2_check_chain_list(cl, ac->ac_inode->i_sb);
-+	if (status)
-+		goto bail;
- 
- 	victim = ocfs2_find_victim_chain(cl);
- 	ac->ac_chain = victim;
+ struct damos_quota_goal {
+ 	enum damos_quota_goal_metric metric;
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from sj@kernel.org are
 
-ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch
-ocfs2-relax-bug-to-ocfs2_error-in-__ocfs2_move_extent.patch
-ocfs2-annotate-flexible-array-members-with-__counted_by_le.patch
-ocfs2-annotate-flexible-array-members-with-__counted_by_le-fix.patch
-ocfs2-add-extra-consistency-check-to-ocfs2_dx_dir_lookup_rec.patch
-ocfs2-add-directory-size-check-to-ocfs2_find_dir_space_id.patch
-ocfs2-introduce-chain-list-sanity-check-with-ocfs2_check_chain_list.patch
+mm-damon-core-fix-list_add_tail-call-on-damon_call.patch
+mm-damon-core-use-damos_commit_quota_goal-for-new-goal-commit.patch
+mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
+mm-zswap-fix-typos-s-zwap-zswap.patch
+mm-zswap-s-red-black-tree-xarray.patch
+docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
+mm-damon-document-damos_quota_goal-nid-use-case.patch
+mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
+mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
+mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
+mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
+docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
+docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
+docs-abi-damon-document-damos-quota-goal-path-file.patch
 
