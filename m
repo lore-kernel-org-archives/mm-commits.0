@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C79B232395
-	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 18:44:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF54B2D47F6
+	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 18:47:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760985883; cv=none; b=PTH1vaGUaILkM9w+4k27dsm2ICfF+aaf93Tj9o7DNKV62yOUBfWhbb2n0vKao+llMrB+XlwnN8Q6E7cYmkqzUd4AC/PGePAACN4ljnOJMxBAv6R49uuuZ2eAAlEUMGldOCwv+QIMQmkHfSBuagdbDvA679uGicdGB6U4Abt402c=
+	t=1760986043; cv=none; b=DGxa15zqnAxcdNV58X+bGbXe4Xo6VkBgZ0hiLCkjKuI6E/4+bh2x0VM/27YAooexwSf4r0qEdwDsXShaq2v0YexWmapYZoLoXV9R2GnqneBjcsq27o8posmCJeA/A1N+yJMM/E6ibUvpdVpoJPJ3NfQq4aLDwtzActn8EAntqdU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760985883; c=relaxed/simple;
-	bh=JgQEAvnsfCkx3WmkJdH4e1LFb4wDxA2erBKBKQT4QLM=;
-	h=Date:To:From:Subject:Message-Id; b=i33N06M3H3rMkvpVGga3btBi9ol4taE9bl8gmuhmo50PLcZrdfPTHebkycyGnpi6XlO/0UEVbmr6eJzzY8agpP/ky9KD+nOsVYeC5k3e2h+moxs71+C08vTQYd89yanjMmxKQ9rZsXz5GKsD/wI6NpY0meIBT31A7pwEDlhomW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K1aMtWhq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760986043; c=relaxed/simple;
+	bh=wd2IYQ7/PXr1wmHxkjbG25QigdAdFJ0jpBXNm19wtOU=;
+	h=Date:To:From:Subject:Message-Id; b=A7XRmpywa1jACIn5G8RbqUYA5U8ArlQFVOBhk7UA1d/l4lVw3VrrpBK/d7A26C9HNHmZVnbHuVPZobYS8cFgzrxI2xi107Q3tTDBqKFsA6187TOasy903PfuVp43O0DKNPCM6Cp8Em5EBXaujL534IThGcxuuxmlwEEoXBFfWu0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=khfP4pNo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K1aMtWhq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77E57C113D0;
-	Mon, 20 Oct 2025 18:44:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="khfP4pNo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ECADC116B1;
+	Mon, 20 Oct 2025 18:47:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760985882;
-	bh=JgQEAvnsfCkx3WmkJdH4e1LFb4wDxA2erBKBKQT4QLM=;
+	s=korg; t=1760986042;
+	bh=wd2IYQ7/PXr1wmHxkjbG25QigdAdFJ0jpBXNm19wtOU=;
 	h=Date:To:From:Subject:From;
-	b=K1aMtWhqnCLFJ9h5ummdg05l5/gzOZ+vm8FUQ8Si7Co6NchIRZHIA/BFzCNclKOVR
-	 VR51zLWqp1qha7rA+8zjirqLDX+T7/QH+M/KMGyi5TNYtciiVPJNbg04I8FYkq6vpB
-	 YJhEvpe/onIdtbzEn3S/FCsGWTt7dwThYOlNgKic=
-Date: Mon, 20 Oct 2025 11:44:41 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,sfr@canb.auug.org.au,bhe@redhat.com,bagasdotme@gmail.com,akpm@linux-foundation.org
+	b=khfP4pNoJjl+eUXfn6VDXsMkIIYqj1aA6ZeTq7G9EtZeP5y2lU7f407ndjLhciXai
+	 W828QhERFWR5SxNDAiK8F2OFWL6nBCFmlNtTB3nXACHZCceWLR0BDdmX6zp5sfiO6s
+	 J01K68gLPRgJm/2YErAbw5hV4uCG082Gw/urUEqg=
+Date: Mon, 20 Oct 2025 11:47:21 -0700
+To: mm-commits@vger.kernel.org,bagasdotme@gmail.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmalloc-separate-gfp_mask-adjunctive-parentheses-in-__vmalloc_node_noprof-kernel-doc-comment.patch added to mm-new branch
-Message-Id: <20251020184442.77E57C113D0@smtp.kernel.org>
+Subject: + mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2.patch added to mm-unstable branch
+Message-Id: <20251020184722.4ECADC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmalloc: separate gfp_mask adjunctive parentheses in __vmalloc_node_noprof() kernel-doc comment
-has been added to the -mm mm-new branch.  Its filename is
-     vmalloc-separate-gfp_mask-adjunctive-parentheses-in-__vmalloc_node_noprof-kernel-doc-comment.patch
+     Subject: doc: clean up the relics of swap_numa
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmalloc-separate-gfp_mask-adjunctive-parentheses-in-__vmalloc_node_noprof-kernel-doc-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,45 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bagas Sanjaya <bagasdotme@gmail.com>
-Subject: vmalloc: separate gfp_mask adjunctive parentheses in __vmalloc_node_noprof() kernel-doc comment
-Date: Mon, 20 Oct 2025 11:49:33 +0700
+From: Baoquan He <bhe@redhat.com>
+Subject: doc: clean up the relics of swap_numa
+Date: Mon, 20 Oct 2025 11:37:09 +0800
+Content-type: text/plain
 
-Sphinx reports htmldocs warning on __vmalloc_node() comment:
+The doc swap_numa.rst has been removed in mm-new commit 9e1d0b5b7f28
+("mm/swap: do not choose swap device according to numa node").  Clean up
+the rest in mm/index.rst.
 
-Documentation/core-api/mm-api:52: ./mm/vmalloc.c:4036: WARNING: Inline strong start-string without end-string. [docutils]
-
-Fix it by separating adjunctive parentheses from preceding gfp_mask
-formatting markup.
-
-Link: https://lkml.kernel.org/r/20251020044933.15222-1-bagasdotme@gmail.com
-Fixes: 32904ba6f5ef ("vmalloc: update __vmalloc_node_noprof() documentation")
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Closes: https://lore.kernel.org/linux-next/20251020134902.3a11107e@canb.auug.org.au/
-Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Stehen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/aPWvfu5MQROcWKOf@MiWiFi-R3L-srv
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/index.rst |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/vmalloc.c~vmalloc-separate-gfp_mask-adjunctive-parentheses-in-__vmalloc_node_noprof-kernel-doc-comment
-+++ a/mm/vmalloc.c
-@@ -4034,7 +4034,7 @@ fail:
-  * Allocate enough pages to cover @size from the page level allocator with
-  * @gfp_mask flags.  Map them into contiguous kernel virtual space.
-  *
-- * Semantics of @gfp_mask(including reclaim/retry modifiers such as
-+ * Semantics of @gfp_mask (including reclaim/retry modifiers such as
-  * __GFP_NOFAIL) are the same as in __vmalloc_node_range_noprof().
-  *
-  * Return: pointer to the allocated memory or %NULL on error
+--- a/Documentation/admin-guide/mm/index.rst~mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2
++++ a/Documentation/admin-guide/mm/index.rst
+@@ -39,7 +39,6 @@ the Linux memory management.
+    shrinker_debugfs
+    slab
+    soft-dirty
+-   swap_numa
+    transhuge
+    userfaultfd
+    zswap
 _
 
-Patches currently in -mm which might be from bagasdotme@gmail.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-vmalloc-separate-gfp_mask-adjunctive-parentheses-in-__vmalloc_node_noprof-kernel-doc-comment.patch
+mm-swap-do-not-choose-swap-device-according-to-numa-node.patch
+mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2.patch
+mm-swap-select-swap-device-with-default-priority-round-robin.patch
 
