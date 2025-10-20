@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D837B8635D
-	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 17:46:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2755023EAA3
+	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 18:06:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760982376; cv=none; b=r4KLttRycPFykLOJVrCN3GxX4qa/vDiQsxZeLsq+p/z1xxAuOK5YFzYVc8N/1EklPoLmF4XrPTrNUWn7UrTD399fQke8kV2i9K38Qa03dubCtV7VuhO8NgujfbQnqx9mxW8F1/+1j6N2EFpmW/bMOq1abjkXdGXDDr11Kp3ocT0=
+	t=1760983588; cv=none; b=QsGuNdMINwHKp5UQnEdBre+ArBYh2BYQmX9pzHXVMie0HKZDegGDp6SoY2AjiVkaWYwPMdHbF3PCyNjoxVP4qxgUwu2wOmLuvkoVPaTh+K8RNsAMqEF9QQWSGSigdRymb5ku2lgb7270I/IbGxF77WbneWrYY1bOOHvZodP/g9c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760982376; c=relaxed/simple;
-	bh=8y/rc7Jmwiw0uS6BIvmhYdjqBj6nI3u76UONrFzWVq0=;
-	h=Date:To:From:Subject:Message-Id; b=gwRYYn97goF8CXgcq89sY43xErnCb2n2p/05Q3rldPoW+n8fObvV9h+6raKNxtgBTrl+znen0JepRpaT8ZYtCFTUC/ZFXuKb9CaORM6YBzMMP8sYC90mW4LnlL6ek9IfX3RHJMXx3sit+waDAep3w9Cx0RA61yhxSGveQ7deVx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JHUdLSIw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760983588; c=relaxed/simple;
+	bh=fybVKFZkmQWO+XVTDq41tYq5/VPd/knOrZFStr1+84k=;
+	h=Date:To:From:Subject:Message-Id; b=nVBHQ1mCr6OaidDxtCfujB0hBSjsM0MKAEA+DnGlEwxyJY9qHbfEDLePxFNwaWI8vqiV6Qx9T1bncnAustY0KnZX2/pm8e+za2HIciWF4NEzk5vDz6DlxZNqNilgr93Co3BVJRXBW83TBxPN24QhQJ0D0OkDITfAUv9uU3dLeRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BBojfgh8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JHUdLSIw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BAB7C4CEF9;
-	Mon, 20 Oct 2025 17:46:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BBojfgh8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 825B0C4CEF9;
+	Mon, 20 Oct 2025 18:06:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760982374;
-	bh=8y/rc7Jmwiw0uS6BIvmhYdjqBj6nI3u76UONrFzWVq0=;
+	s=korg; t=1760983587;
+	bh=fybVKFZkmQWO+XVTDq41tYq5/VPd/knOrZFStr1+84k=;
 	h=Date:To:From:Subject:From;
-	b=JHUdLSIw0EYBZs+hDlgvgIhPAJm0LA6NThEskgxUuHHc3efQV86iIJv53b1cULVzm
-	 3a1TiOKYGEIZqVfyOyLnx+8GK2Gj9WxlOYzn+pGegV8hRhHJdJOVVTNczBvS0zD+30
-	 DHe0xhJYQTGKTdKKwqee4Yd2uLPJXG5++xNI7Q5c=
-Date: Mon, 20 Oct 2025 10:46:13 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=BBojfgh8+f1/a3JRVBWvifFuS8EG71IB2vqaxbcYwyD49AS1PTrI8tgRO5AAb8p73
+	 fqyDGv9uSz/JR4oCT+mnnM8K4dHSK2kEYM29TEQhCLIDWBWkRYlYP45RzveQVjAgbH
+	 tFgaHb6A7brYA6Ye7Rwc5g1yMUzQG9YMFrfhI4nk=
+Date: Mon, 20 Oct 2025 11:06:27 -0700
+To: mm-commits@vger.kernel.org,zuoze1@huawei.com,wangkefeng.wang@huawei.com,sj@kernel.org,yanquanmin1@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch added to mm-new branch
-Message-Id: <20251020174614.3BAB7C4CEF9@smtp.kernel.org>
+Subject: + mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default.patch added to mm-new branch
+Message-Id: <20251020180627.825B0C4CEF9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: guard is_zero_pfn() calls with pte_present()
+     Subject: mm/damon: add a min_sz_region parameter to damon_set_region_biggest_system_ram_default()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch
+     mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,121 +64,151 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/khugepaged: guard is_zero_pfn() calls with pte_present()
-Date: Mon, 20 Oct 2025 23:11:11 +0800
+From: Quanmin Yan <yanquanmin1@huawei.com>
+Subject: mm/damon: add a min_sz_region parameter to damon_set_region_biggest_system_ram_default()
+Date: Mon, 20 Oct 2025 21:01:24 +0800
 
-A non-present entry, like a swap PTE, contains completely different data
-(swap type and offset).  pte_pfn() doesn't know this, so if we feed it a
-non-present entry, it will spit out a junk PFN.
+Patch series "mm/damon: fixes for address alignment issues in
+DAMON_LRU_SORT and DAMON_RECLAIM", v2.
 
-What if that junk PFN happens to match the zeropage's PFN by sheer chance?
-While really unlikely, this would be really bad if it did.
+In DAMON_LRU_SORT and DAMON_RECLAIM, damon_set_regions() will apply
+DAMON_MIN_REGION as the core address alignment, and the monitoring target
+address ranges would be aligned on DAMON_MIN_REGION * addr_unit.  When
+users 1) set addr_unit to a value larger than 1, and 2) set the monitoring
+target address range as not aligned on DAMON_MIN_REGION * addr_unit, it
+will cause DAMON_LRU_SORT and DAMON_RECLAIM to operate on unexpectedly
+large physical address ranges.
 
-So, let's fix this potential bug by ensuring all calls to is_zero_pfn() in
-khugepaged.c are properly guarded by a pte_present() check.
+For example, if the user sets the monitoring target address range to [4,
+8) and addr_unit as 1024, the aimed monitoring target address range is [4
+KiB, 8 KiB).  Assuming DAMON_MIN_REGION is 4096, so resulting target
+address range will be [0, 4096) in the DAMON core layer address system,
+and [0, 4 MiB) in the physical address space, which is an unexpected
+range.
 
-Link: https://lkml.kernel.org/r/20251020151111.53561-1-lance.yang@linux.dev
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+To fix the issue, add a min_sz_region parameter to
+damon_set_region_biggest_system_ram_default() and use it when calling
+damon_set_regions(), replacing the direct use of DAMON_MIN_REGION.
+
+
+This patch (of 2):
+
+In DAMON_LRU_SORT, damon_set_regions() will apply DAMON_MIN_REGION as the
+core address alignment, and the monitoring target address ranges would be
+aligned on DAMON_MIN_REGION * addr_unit.  When users 1) set addr_unit to a
+value larger than 1, and 2) set the monitoring target address range as not
+aligned on DAMON_MIN_REGION * addr_unit, it will cause DAMON_LRU_SORT to
+operate on unexpectedly large physical address ranges.
+
+For example, if the user sets the monitoring target address range to [4,
+8) and addr_unit as 1024, the aimed monitoring target address range is [4
+KiB, 8 KiB).  Assuming DAMON_MIN_REGION is 4096, so resulting target
+address range will be [0, 4096) in the DAMON core layer address system,
+and [0, 4 MiB) in the physical address space, which is an unexpected
+range.
+
+To fix the issue, add a min_sz_region parameter to
+damon_set_region_biggest_system_ram_default() and use it when calling
+damon_set_regions(), replacing the direct use of DAMON_MIN_REGION.
+
+Link: https://lkml.kernel.org/r/20251020130125.2875164-1-yanquanmin1@huawei.com
+Link: https://lkml.kernel.org/r/20251020130125.2875164-2-yanquanmin1@huawei.com
+Fixes: 2e0fe9245d6b ("mm/damon/lru_sort: support addr_unit for DAMON_LRU_SORT")
+Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: ze zuo <zuoze1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   35 +++++++++++++++++++++--------------
- 1 file changed, 21 insertions(+), 14 deletions(-)
+ include/linux/damon.h |    3 ++-
+ mm/damon/core.c       |    6 ++++--
+ mm/damon/lru_sort.c   |    3 ++-
+ mm/damon/reclaim.c    |    3 ++-
+ mm/damon/stat.c       |    3 ++-
+ 5 files changed, 12 insertions(+), 6 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present
-+++ a/mm/khugepaged.c
-@@ -337,6 +337,13 @@ struct attribute_group khugepaged_attr_g
- };
- #endif /* CONFIG_SYSFS */
+--- a/include/linux/damon.h~mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default
++++ a/include/linux/damon.h
+@@ -961,7 +961,8 @@ int damon_call(struct damon_ctx *ctx, st
+ int damos_walk(struct damon_ctx *ctx, struct damos_walk_control *control);
  
-+static bool pte_none_or_zero(pte_t pte)
-+{
-+	if (pte_none(pte))
-+		return true;
-+	return pte_present(pte) && is_zero_pfn(pte_pfn(pte));
-+}
-+
- int hugepage_madvise(struct vm_area_struct *vma,
- 		     vm_flags_t *vm_flags, int advice)
+ int damon_set_region_biggest_system_ram_default(struct damon_target *t,
+-				unsigned long *start, unsigned long *end);
++				unsigned long *start, unsigned long *end,
++				unsigned long min_sz_region);
+ 
+ #endif	/* CONFIG_DAMON */
+ 
+--- a/mm/damon/core.c~mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default
++++ a/mm/damon/core.c
+@@ -2818,6 +2818,7 @@ static bool damon_find_biggest_system_ra
+  * @t:		The monitoring target to set the region.
+  * @start:	The pointer to the start address of the region.
+  * @end:	The pointer to the end address of the region.
++ * @min_sz_region:	Minimum region size.
+  *
+  * This function sets the region of @t as requested by @start and @end.  If the
+  * values of @start and @end are zero, however, this function finds the biggest
+@@ -2828,7 +2829,8 @@ static bool damon_find_biggest_system_ra
+  * Return: 0 on success, negative error code otherwise.
+  */
+ int damon_set_region_biggest_system_ram_default(struct damon_target *t,
+-			unsigned long *start, unsigned long *end)
++			unsigned long *start, unsigned long *end,
++			unsigned long min_sz_region)
  {
-@@ -518,6 +525,7 @@ static void release_pte_pages(pte_t *pte
+ 	struct damon_addr_range addr_range;
  
- 		if (pte_none(pteval))
- 			continue;
-+		VM_WARN_ON_ONCE(!pte_present(pteval));
- 		pfn = pte_pfn(pteval);
- 		if (is_zero_pfn(pfn))
- 			continue;
-@@ -548,8 +556,7 @@ static int __collapse_huge_page_isolate(
- 	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
- 	     _pte++, addr += PAGE_SIZE) {
- 		pte_t pteval = ptep_get(_pte);
--		if (pte_none(pteval) || (pte_present(pteval) &&
--				is_zero_pfn(pte_pfn(pteval)))) {
-+		if (pte_none_or_zero(pteval)) {
- 			++none_or_zero;
- 			if (!userfaultfd_armed(vma) &&
- 			    (!cc->is_khugepaged ||
-@@ -690,17 +697,17 @@ static void __collapse_huge_page_copy_su
- 	     address += nr_ptes * PAGE_SIZE) {
- 		nr_ptes = 1;
- 		pteval = ptep_get(_pte);
--		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
-+		if (pte_none_or_zero(pteval)) {
- 			add_mm_counter(vma->vm_mm, MM_ANONPAGES, 1);
--			if (is_zero_pfn(pte_pfn(pteval))) {
--				/*
--				 * ptl mostly unnecessary.
--				 */
--				spin_lock(ptl);
--				ptep_clear(vma->vm_mm, address, _pte);
--				spin_unlock(ptl);
--				ksm_might_unmap_zero_page(vma->vm_mm, pteval);
--			}
-+			if (pte_none(pteval))
-+				continue;
-+			/*
-+			 * ptl mostly unnecessary.
-+			 */
-+			spin_lock(ptl);
-+			ptep_clear(vma->vm_mm, address, _pte);
-+			spin_unlock(ptl);
-+			ksm_might_unmap_zero_page(vma->vm_mm, pteval);
- 		} else {
- 			struct page *src_page = pte_page(pteval);
+@@ -2841,7 +2843,7 @@ int damon_set_region_biggest_system_ram_
  
-@@ -794,7 +801,7 @@ static int __collapse_huge_page_copy(pte
- 		unsigned long src_addr = address + i * PAGE_SIZE;
- 		struct page *src_page;
+ 	addr_range.start = *start;
+ 	addr_range.end = *end;
+-	return damon_set_regions(t, &addr_range, 1, DAMON_MIN_REGION);
++	return damon_set_regions(t, &addr_range, 1, min_sz_region);
+ }
  
--		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
-+		if (pte_none_or_zero(pteval)) {
- 			clear_user_highpage(page, src_addr);
- 			continue;
- 		}
-@@ -1294,7 +1301,7 @@ static int hpage_collapse_scan_pmd(struc
- 				goto out_unmap;
- 			}
- 		}
--		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
-+		if (pte_none_or_zero(pteval)) {
- 			++none_or_zero;
- 			if (!userfaultfd_armed(vma) &&
- 			    (!cc->is_khugepaged ||
+ /*
+--- a/mm/damon/lru_sort.c~mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default
++++ a/mm/damon/lru_sort.c
+@@ -242,7 +242,8 @@ static int damon_lru_sort_apply_paramete
+ 
+ 	err = damon_set_region_biggest_system_ram_default(param_target,
+ 					&monitor_region_start,
+-					&monitor_region_end);
++					&monitor_region_end,
++					param_ctx->min_sz_region);
+ 	if (err)
+ 		goto out;
+ 	err = damon_commit_ctx(ctx, param_ctx);
+--- a/mm/damon/reclaim.c~mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default
++++ a/mm/damon/reclaim.c
+@@ -250,7 +250,8 @@ static int damon_reclaim_apply_parameter
+ 
+ 	err = damon_set_region_biggest_system_ram_default(param_target,
+ 					&monitor_region_start,
+-					&monitor_region_end);
++					&monitor_region_end,
++					DAMON_MIN_REGION);
+ 	if (err)
+ 		goto out;
+ 	err = damon_commit_ctx(ctx, param_ctx);
+--- a/mm/damon/stat.c~mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default
++++ a/mm/damon/stat.c
+@@ -187,7 +187,8 @@ static struct damon_ctx *damon_stat_buil
+ 	if (!target)
+ 		goto free_out;
+ 	damon_add_target(ctx, target);
+-	if (damon_set_region_biggest_system_ram_default(target, &start, &end))
++	if (damon_set_region_biggest_system_ram_default(target, &start, &end,
++							ctx->min_sz_region))
+ 		goto free_out;
+ 	return ctx;
+ free_out:
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from yanquanmin1@huawei.com are
 
-mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch
+mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default.patch
+mm-damon-reclaim-use-min_sz_region-for-core-address-alignment-when-setting-regions.patch
 
