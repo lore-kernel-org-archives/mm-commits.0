@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8A2C1E511
-	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 19:10:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F13E26A0D0
+	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 19:17:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760987447; cv=none; b=QJZrkz6PBcsDtNn7uEoUR6pewoC01vlcRVEkOpnQdTIcHF+u5j4kmSc56c98VGxg+z3sXItNgAlj6qqbyvD15/Wjs5P/QArAX0JnM77ReaybnYzo4dre1+UB59DTPjQTxUciZXKaLF5qBagqOXnex9ZiO6AJrFnve615ZjV5U14=
+	t=1760987829; cv=none; b=UJM7v5lsztFXC+IJxkYaJpgRDUDvU7ezbSAGnYBdeO9nqd4BNrHabEgiAEyPHHdyaGIDPYxcLL8Re6gJEI7+W7JcfdCzXTJC1X6jmvxmIFGnIB0hLuwWD7Px/VfT6PG/QB/obTs8ZKo+NX1LuM4awCmIfe3NfEbdlfE20ABOcTg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760987447; c=relaxed/simple;
-	bh=IYWgiNAeERdjFDt0aA77pMybCYdzgaO+nUuAT3jtpYM=;
-	h=Date:To:From:Subject:Message-Id; b=lYNNlDoYivlsd/3MO89CNDGG4fBrmyivuAJzexd5OKcrgb+UfCAJGER5OwtMXzU9xkegV+THmJYcKT9duVTU/bFb4Az+j57mfmCml2opq7rDgBoCFDMoXb1Y4I1dvSQE0yw5wJVvkVm5DmpuYnDUOgO2Wpj4HJdWyUaeaHyaDNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UICJ6jeA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760987829; c=relaxed/simple;
+	bh=geZBBoo0VZFLszDUvA94cljtxHson+Oi0QHT0K0au8w=;
+	h=Date:To:From:Subject:Message-Id; b=eqh7CXoM42DCZ7FLDTHVylc2f+T47XxWQInUinBOy41Q84rBuNeEvLJdlCqgl/eEIV24yGBaBBX6JzP43zxhu9n3MeMcXkZ/wczFQAJIkn8AUYe2uAwh1pS6CBeHVwjeahhBxf5gCq5ayc0aNZR+guEmXP+/QXzqSaN49DYteNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CEvDRmAE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UICJ6jeA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3517DC113D0;
-	Mon, 20 Oct 2025 19:10:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CEvDRmAE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 839A9C113D0;
+	Mon, 20 Oct 2025 19:17:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760987447;
-	bh=IYWgiNAeERdjFDt0aA77pMybCYdzgaO+nUuAT3jtpYM=;
+	s=korg; t=1760987828;
+	bh=geZBBoo0VZFLszDUvA94cljtxHson+Oi0QHT0K0au8w=;
 	h=Date:To:From:Subject:From;
-	b=UICJ6jeAObIfXRUMa6Rqcn6VvBhc3jy+Y2402GwcPythZZi+OT8s3ItQkpwEBsDKX
-	 xQMaEnVJwEUXNSUvYBUcoraCu6tyBdDBQdM5RQ1Pu14FtOzJF4NYXMW2uQSgSD7DBA
-	 gaPvkRK5mkiDXVnAGuv3wZ+bw0htoiHBATBM1+Bc=
-Date: Mon, 20 Oct 2025 12:10:46 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,khalid@kernel.org,david.hunter.linux@gmail.com,mehdi.benhadjkhelifa@gmail.com,akpm@linux-foundation.org
+	b=CEvDRmAElEWsCXihBoml53MrWeorX/2/524hcq4vffHfbm+c9qErU0HDhXLuuHOui
+	 6pRiAi8mN34Q37mgKNh7dpVVAUChpWUvepv8nxmIP/hdh1LjhSWMRsa9py+wLz7/ZG
+	 ++ZegMKLIslclxIUQpzsJdxhhQbdFQfhGISruiWw=
+Date: Mon, 20 Oct 2025 12:17:07 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch added to mm-new branch
-Message-Id: <20251020191047.3517DC113D0@smtp.kernel.org>
+Subject: + ocfs2-add-chain-list-sanity-check-to-ocfs2_block_group_alloc.patch added to mm-nonmm-unstable branch
+Message-Id: <20251020191708.839A9C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: use kmalloc_array() instead of kmalloc()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch
+     Subject: ocfs2: add chain list sanity check to ocfs2_block_group_alloc()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-add-chain-list-sanity-check-to-ocfs2_block_group_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-add-chain-list-sanity-check-to-ocfs2_block_group_alloc.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,43 +58,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
-Subject: mm/vmalloc: use kmalloc_array() instead of kmalloc()
-Date: Sat, 18 Oct 2025 21:11:48 +0100
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: add chain list sanity check to ocfs2_block_group_alloc()
+Date: Thu, 16 Oct 2025 11:46:53 +0300
 
-The number of NUMA nodes (nr_node_ids) is bounded, so overflow is not a
-practical concern here.  However, using kmalloc_array() better reflects
-the intent to allocate an array of unsigned ints, and improves consistency
-with other NUMA-related allocations.
+In 'ocfs2_block_group_alloc()', add an extra check whether the maximum
+amount of chain records in 'struct ocfs2_chain_list' matches the value
+calculated based on the filesystem block size.
 
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20251018201207.27441-1-mehdi.benhadjkhelifa@gmail.com
-Signed-off-by: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Khalid Aziz <khalid@kernel.org>
-Cc: David Hunter <david.hunter.linux@gmail.com>
+Link: https://lkml.kernel.org/r/20251016084653.59686-1-dmantipov@yandex.ru
+Reported-by: syzbot+77026564530dbc29b854@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=77026564530dbc29b854
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/suballoc.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-kmalloc_array-instead-of-kmalloc
-+++ a/mm/vmalloc.c
-@@ -5140,7 +5140,7 @@ static int vmalloc_info_show(struct seq_
- 	unsigned int *counters;
+--- a/fs/ocfs2/suballoc.c~ocfs2-add-chain-list-sanity-check-to-ocfs2_block_group_alloc
++++ a/fs/ocfs2/suballoc.c
+@@ -671,6 +671,11 @@ static int ocfs2_block_group_alloc(struc
+ 	BUG_ON(ocfs2_is_cluster_bitmap(alloc_inode));
  
- 	if (IS_ENABLED(CONFIG_NUMA))
--		counters = kmalloc(nr_node_ids * sizeof(unsigned int), GFP_KERNEL);
-+		counters = kmalloc_array(nr_node_ids, sizeof(unsigned int), GFP_KERNEL);
- 
- 	for_each_vmap_node(vn) {
- 		spin_lock(&vn->busy.lock);
+ 	cl = &fe->id2.i_chain;
++	if (le16_to_cpu(cl->cl_count) != ocfs2_chain_recs_per_inode(osb->sb)) {
++		status = -EINVAL;
++		goto bail;
++	}
++
+ 	status = ocfs2_reserve_clusters_with_limit(osb,
+ 						   le16_to_cpu(cl->cl_cpg),
+ 						   max_block, flags, &ac);
 _
 
-Patches currently in -mm which might be from mehdi.benhadjkhelifa@gmail.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch
+ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch
+ocfs2-relax-bug-to-ocfs2_error-in-__ocfs2_move_extent.patch
+ocfs2-annotate-flexible-array-members-with-__counted_by_le.patch
+ocfs2-annotate-flexible-array-members-with-__counted_by_le-fix.patch
+ocfs2-add-extra-consistency-check-to-ocfs2_dx_dir_lookup_rec.patch
+ocfs2-add-directory-size-check-to-ocfs2_find_dir_space_id.patch
+ocfs2-add-chain-list-sanity-check-to-ocfs2_block_group_alloc.patch
+ocfs2-introduce-chain-list-sanity-check-with-ocfs2_check_chain_list.patch
 
