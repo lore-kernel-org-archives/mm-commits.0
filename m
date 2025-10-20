@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07489B672
-	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2025 00:19:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D837B8635D
+	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 17:46:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760746797; cv=none; b=Ol4ThGvoU8/UsCqMzHBeoDixj9UKt8PLsrh+jp2oHJttvUHHru6YbpqOwUJgQ1YoBcha973XyOVKKRq1S4n3EEncl3YZA6sPIpohxcT7zUHmOW5geW36Eja6ZOjmhXn4nQZC3cvU9a9+M8gy7s1LNZItdy3tVKjzinY8xw5EMFc=
+	t=1760982376; cv=none; b=r4KLttRycPFykLOJVrCN3GxX4qa/vDiQsxZeLsq+p/z1xxAuOK5YFzYVc8N/1EklPoLmF4XrPTrNUWn7UrTD399fQke8kV2i9K38Qa03dubCtV7VuhO8NgujfbQnqx9mxW8F1/+1j6N2EFpmW/bMOq1abjkXdGXDDr11Kp3ocT0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760746797; c=relaxed/simple;
-	bh=LR4rafaVOMA77+sIKmh1lYC+NTWlrH9Ia1zvCy5hTFo=;
-	h=Date:To:From:Subject:Message-Id; b=RqGpCo7F740EaVuPlf36mk2PGJvZa9NCgtfw00AtBffVQn+KiO4WLTVrqBX43TRX8UxTyLyd7WfkA/UJBksF33/4P2g2kgPxxdm/tqypgKVMk3KDsJJ6qvjzBNXcfjF9h4Hh9Z/j6bfBHstTMZc63hFz5lizMHQpOLS6MMXOo0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0z97xlQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760982376; c=relaxed/simple;
+	bh=8y/rc7Jmwiw0uS6BIvmhYdjqBj6nI3u76UONrFzWVq0=;
+	h=Date:To:From:Subject:Message-Id; b=gwRYYn97goF8CXgcq89sY43xErnCb2n2p/05Q3rldPoW+n8fObvV9h+6raKNxtgBTrl+znen0JepRpaT8ZYtCFTUC/ZFXuKb9CaORM6YBzMMP8sYC90mW4LnlL6ek9IfX3RHJMXx3sit+waDAep3w9Cx0RA61yhxSGveQ7deVx8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JHUdLSIw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0z97xlQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6579C4CEF9;
-	Sat, 18 Oct 2025 00:19:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JHUdLSIw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BAB7C4CEF9;
+	Mon, 20 Oct 2025 17:46:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760746796;
-	bh=LR4rafaVOMA77+sIKmh1lYC+NTWlrH9Ia1zvCy5hTFo=;
+	s=korg; t=1760982374;
+	bh=8y/rc7Jmwiw0uS6BIvmhYdjqBj6nI3u76UONrFzWVq0=;
 	h=Date:To:From:Subject:From;
-	b=J0z97xlQeraXu1kdAYnfehZzBv14TR5y0t2zm55B39bGJn+bm41BjSHRtJxc2qV0Y
-	 PskSFyDyTjDUrc8ExiRi0Sgu2XOgJ0RwV9Mu4a+cuI444aEFJgufK/Ey3ArXFK8sYV
-	 2i7OvModUdaM3FmckSBjRA9i1eNyvyEIPykAJqJk=
-Date: Fri, 17 Oct 2025 17:19:56 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=JHUdLSIw0EYBZs+hDlgvgIhPAJm0LA6NThEskgxUuHHc3efQV86iIJv53b1cULVzm
+	 3a1TiOKYGEIZqVfyOyLnx+8GK2Gj9WxlOYzn+pGegV8hRhHJdJOVVTNczBvS0zD+30
+	 DHe0xhJYQTGKTdKKwqee4Yd2uLPJXG5++xNI7Q5c=
+Date: Mon, 20 Oct 2025 10:46:13 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-document-damos-quota-goal-path-file.patch added to mm-new branch
-Message-Id: <20251018001956.C6579C4CEF9@smtp.kernel.org>
+Subject: + mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch added to mm-new branch
+Message-Id: <20251020174614.3BAB7C4CEF9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: document DAMOS quota goal path file
+     Subject: mm/khugepaged: guard is_zero_pfn() calls with pte_present()
 has been added to the -mm mm-new branch.  Its filename is
-     docs-abi-damon-document-damos-quota-goal-path-file.patch
+     mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-damos-quota-goal-path-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,54 +64,121 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: document DAMOS quota goal path file
-Date: Fri, 17 Oct 2025 14:27:02 -0700
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm/khugepaged: guard is_zero_pfn() calls with pte_present()
+Date: Mon, 20 Oct 2025 23:11:11 +0800
 
-A DAMON sysfs interface file for DAMOS quota goal's optional path argument
-has been added.  Document it on the ABI doc.
+A non-present entry, like a swap PTE, contains completely different data
+(swap type and offset).  pte_pfn() doesn't know this, so if we feed it a
+non-present entry, it will spit out a junk PFN.
 
-Link: https://lkml.kernel.org/r/20251017212706.183502-11-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+What if that junk PFN happens to match the zeropage's PFN by sheer chance?
+While really unlikely, this would be really bad if it did.
+
+So, let's fix this potential bug by ensuring all calls to is_zero_pfn() in
+khugepaged.c are properly guarded by a pte_present() check.
+
+Link: https://lkml.kernel.org/r/20251020151111.53561-1-lance.yang@linux.dev
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Suggested-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/khugepaged.c |   35 +++++++++++++++++++++--------------
+ 1 file changed, 21 insertions(+), 14 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-damos-quota-goal-path-file
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -303,6 +303,12 @@ Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing to and reading from this file sets and gets the nid
- 		parameter of the goal.
+--- a/mm/khugepaged.c~mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present
++++ a/mm/khugepaged.c
+@@ -337,6 +337,13 @@ struct attribute_group khugepaged_attr_g
+ };
+ #endif /* CONFIG_SYSFS */
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/path
-+Date:		Oct 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the path
-+		parameter of the goal.
++static bool pte_none_or_zero(pte_t pte)
++{
++	if (pte_none(pte))
++		return true;
++	return pte_present(pte) && is_zero_pfn(pte_pfn(pte));
++}
 +
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/sz_permil
- Date:		Mar 2022
- Contact:	SeongJae Park <sj@kernel.org>
+ int hugepage_madvise(struct vm_area_struct *vma,
+ 		     vm_flags_t *vm_flags, int advice)
+ {
+@@ -518,6 +525,7 @@ static void release_pte_pages(pte_t *pte
+ 
+ 		if (pte_none(pteval))
+ 			continue;
++		VM_WARN_ON_ONCE(!pte_present(pteval));
+ 		pfn = pte_pfn(pteval);
+ 		if (is_zero_pfn(pfn))
+ 			continue;
+@@ -548,8 +556,7 @@ static int __collapse_huge_page_isolate(
+ 	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
+ 	     _pte++, addr += PAGE_SIZE) {
+ 		pte_t pteval = ptep_get(_pte);
+-		if (pte_none(pteval) || (pte_present(pteval) &&
+-				is_zero_pfn(pte_pfn(pteval)))) {
++		if (pte_none_or_zero(pteval)) {
+ 			++none_or_zero;
+ 			if (!userfaultfd_armed(vma) &&
+ 			    (!cc->is_khugepaged ||
+@@ -690,17 +697,17 @@ static void __collapse_huge_page_copy_su
+ 	     address += nr_ptes * PAGE_SIZE) {
+ 		nr_ptes = 1;
+ 		pteval = ptep_get(_pte);
+-		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++		if (pte_none_or_zero(pteval)) {
+ 			add_mm_counter(vma->vm_mm, MM_ANONPAGES, 1);
+-			if (is_zero_pfn(pte_pfn(pteval))) {
+-				/*
+-				 * ptl mostly unnecessary.
+-				 */
+-				spin_lock(ptl);
+-				ptep_clear(vma->vm_mm, address, _pte);
+-				spin_unlock(ptl);
+-				ksm_might_unmap_zero_page(vma->vm_mm, pteval);
+-			}
++			if (pte_none(pteval))
++				continue;
++			/*
++			 * ptl mostly unnecessary.
++			 */
++			spin_lock(ptl);
++			ptep_clear(vma->vm_mm, address, _pte);
++			spin_unlock(ptl);
++			ksm_might_unmap_zero_page(vma->vm_mm, pteval);
+ 		} else {
+ 			struct page *src_page = pte_page(pteval);
+ 
+@@ -794,7 +801,7 @@ static int __collapse_huge_page_copy(pte
+ 		unsigned long src_addr = address + i * PAGE_SIZE;
+ 		struct page *src_page;
+ 
+-		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++		if (pte_none_or_zero(pteval)) {
+ 			clear_user_highpage(page, src_addr);
+ 			continue;
+ 		}
+@@ -1294,7 +1301,7 @@ static int hpage_collapse_scan_pmd(struc
+ 				goto out_unmap;
+ 			}
+ 		}
+-		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++		if (pte_none_or_zero(pteval)) {
+ 			++none_or_zero;
+ 			if (!userfaultfd_armed(vma) &&
+ 			    (!cc->is_khugepaged ||
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-mm-damon-core-fix-list_add_tail-call-on-damon_call.patch
-mm-damon-core-use-damos_commit_quota_goal-for-new-goal-commit.patch
-mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
-mm-zswap-fix-typos-s-zwap-zswap.patch
-mm-zswap-s-red-black-tree-xarray.patch
-docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
-mm-damon-document-damos_quota_goal-nid-use-case.patch
-mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
-mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
-mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
-mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
-docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
-docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
-docs-abi-damon-document-damos-quota-goal-path-file.patch
+mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch
 
