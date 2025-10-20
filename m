@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF54B2D47F6
-	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 18:47:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8A2C1E511
+	for <mm-commits@vger.kernel.org>; Mon, 20 Oct 2025 19:10:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760986043; cv=none; b=DGxa15zqnAxcdNV58X+bGbXe4Xo6VkBgZ0hiLCkjKuI6E/4+bh2x0VM/27YAooexwSf4r0qEdwDsXShaq2v0YexWmapYZoLoXV9R2GnqneBjcsq27o8posmCJeA/A1N+yJMM/E6ibUvpdVpoJPJ3NfQq4aLDwtzActn8EAntqdU=
+	t=1760987447; cv=none; b=QJZrkz6PBcsDtNn7uEoUR6pewoC01vlcRVEkOpnQdTIcHF+u5j4kmSc56c98VGxg+z3sXItNgAlj6qqbyvD15/Wjs5P/QArAX0JnM77ReaybnYzo4dre1+UB59DTPjQTxUciZXKaLF5qBagqOXnex9ZiO6AJrFnve615ZjV5U14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760986043; c=relaxed/simple;
-	bh=wd2IYQ7/PXr1wmHxkjbG25QigdAdFJ0jpBXNm19wtOU=;
-	h=Date:To:From:Subject:Message-Id; b=A7XRmpywa1jACIn5G8RbqUYA5U8ArlQFVOBhk7UA1d/l4lVw3VrrpBK/d7A26C9HNHmZVnbHuVPZobYS8cFgzrxI2xi107Q3tTDBqKFsA6187TOasy903PfuVp43O0DKNPCM6Cp8Em5EBXaujL534IThGcxuuxmlwEEoXBFfWu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=khfP4pNo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760987447; c=relaxed/simple;
+	bh=IYWgiNAeERdjFDt0aA77pMybCYdzgaO+nUuAT3jtpYM=;
+	h=Date:To:From:Subject:Message-Id; b=lYNNlDoYivlsd/3MO89CNDGG4fBrmyivuAJzexd5OKcrgb+UfCAJGER5OwtMXzU9xkegV+THmJYcKT9duVTU/bFb4Az+j57mfmCml2opq7rDgBoCFDMoXb1Y4I1dvSQE0yw5wJVvkVm5DmpuYnDUOgO2Wpj4HJdWyUaeaHyaDNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UICJ6jeA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="khfP4pNo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ECADC116B1;
-	Mon, 20 Oct 2025 18:47:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UICJ6jeA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3517DC113D0;
+	Mon, 20 Oct 2025 19:10:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1760986042;
-	bh=wd2IYQ7/PXr1wmHxkjbG25QigdAdFJ0jpBXNm19wtOU=;
+	s=korg; t=1760987447;
+	bh=IYWgiNAeERdjFDt0aA77pMybCYdzgaO+nUuAT3jtpYM=;
 	h=Date:To:From:Subject:From;
-	b=khfP4pNoJjl+eUXfn6VDXsMkIIYqj1aA6ZeTq7G9EtZeP5y2lU7f407ndjLhciXai
-	 W828QhERFWR5SxNDAiK8F2OFWL6nBCFmlNtTB3nXACHZCceWLR0BDdmX6zp5sfiO6s
-	 J01K68gLPRgJm/2YErAbw5hV4uCG082Gw/urUEqg=
-Date: Mon, 20 Oct 2025 11:47:21 -0700
-To: mm-commits@vger.kernel.org,bagasdotme@gmail.com,bhe@redhat.com,akpm@linux-foundation.org
+	b=UICJ6jeAObIfXRUMa6Rqcn6VvBhc3jy+Y2402GwcPythZZi+OT8s3ItQkpwEBsDKX
+	 xQMaEnVJwEUXNSUvYBUcoraCu6tyBdDBQdM5RQ1Pu14FtOzJF4NYXMW2uQSgSD7DBA
+	 gaPvkRK5mkiDXVnAGuv3wZ+bw0htoiHBATBM1+Bc=
+Date: Mon, 20 Oct 2025 12:10:46 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,khalid@kernel.org,david.hunter.linux@gmail.com,mehdi.benhadjkhelifa@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2.patch added to mm-unstable branch
-Message-Id: <20251020184722.4ECADC116B1@smtp.kernel.org>
+Subject: + mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch added to mm-new branch
+Message-Id: <20251020191047.3517DC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: doc: clean up the relics of swap_numa
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2.patch
+     Subject: mm/vmalloc: use kmalloc_array() instead of kmalloc()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,39 +64,43 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: doc: clean up the relics of swap_numa
-Date: Mon, 20 Oct 2025 11:37:09 +0800
-Content-type: text/plain
+From: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
+Subject: mm/vmalloc: use kmalloc_array() instead of kmalloc()
+Date: Sat, 18 Oct 2025 21:11:48 +0100
 
-The doc swap_numa.rst has been removed in mm-new commit 9e1d0b5b7f28
-("mm/swap: do not choose swap device according to numa node").  Clean up
-the rest in mm/index.rst.
+The number of NUMA nodes (nr_node_ids) is bounded, so overflow is not a
+practical concern here.  However, using kmalloc_array() better reflects
+the intent to allocate an array of unsigned ints, and improves consistency
+with other NUMA-related allocations.
 
-Link: https://lkml.kernel.org/r/aPWvfu5MQROcWKOf@MiWiFi-R3L-srv
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20251018201207.27441-1-mehdi.benhadjkhelifa@gmail.com
+Signed-off-by: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Khalid Aziz <khalid@kernel.org>
+Cc: David Hunter <david.hunter.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/index.rst |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/index.rst~mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2
-+++ a/Documentation/admin-guide/mm/index.rst
-@@ -39,7 +39,6 @@ the Linux memory management.
-    shrinker_debugfs
-    slab
-    soft-dirty
--   swap_numa
-    transhuge
-    userfaultfd
-    zswap
+--- a/mm/vmalloc.c~mm-vmalloc-use-kmalloc_array-instead-of-kmalloc
++++ a/mm/vmalloc.c
+@@ -5140,7 +5140,7 @@ static int vmalloc_info_show(struct seq_
+ 	unsigned int *counters;
+ 
+ 	if (IS_ENABLED(CONFIG_NUMA))
+-		counters = kmalloc(nr_node_ids * sizeof(unsigned int), GFP_KERNEL);
++		counters = kmalloc_array(nr_node_ids, sizeof(unsigned int), GFP_KERNEL);
+ 
+ 	for_each_vmap_node(vn) {
+ 		spin_lock(&vn->busy.lock);
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from mehdi.benhadjkhelifa@gmail.com are
 
-mm-swap-do-not-choose-swap-device-according-to-numa-node.patch
-mm-swap-do-not-choose-swap-device-according-to-numa-node-fix-2.patch
-mm-swap-select-swap-device-with-default-priority-round-robin.patch
+mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch
 
