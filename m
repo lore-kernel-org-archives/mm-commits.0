@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 354A327FD72
-	for <mm-commits@vger.kernel.org>; Tue, 21 Oct 2025 20:53:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8C0F283151
+	for <mm-commits@vger.kernel.org>; Tue, 21 Oct 2025 20:53:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761080033; cv=none; b=oYi8tjJ63rrfYYvBQtKC/EBQdcKPig2AWRqlIwqZFr5PXTZ7MRGZNy+p4i8O3mkuAfWFRR7PXf16Qypo03c3ZX+ly55y0iDSojgkDBxs0hSg6HozgcNigy8hdGThIkisLBsmfNzvMe56FSAeQhcKujs0OWWND+ks0d33MBykgvY=
+	t=1761080033; cv=none; b=fmtBg7nvCoMpDif2R41PMLizG3w1sfEx5tgvk3ceQ7x41xSTfmD49PQKatqncXPIMUuoJ8SZMMdT5Uj6xXVSPVhEnVRUwRs8Tual/g24kAtd0zPCaGoxZr/uFYc0FAqiy6+AjZfvJWBhFlW62ZY3Yb2EXs7geI2daLabqXIvLBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1761080033; c=relaxed/simple;
-	bh=8iLJ7SpADup2Qz3gPYNUF5OSltTSXqrd9m6W5nNrGV0=;
-	h=Date:To:From:Subject:Message-Id; b=rypN3U9kffUN2fhW+488EzlpnzGjUqTz4AYFtgyoxD0GWWNppd1uPaYE8QSf4UQLB06MyP+wvAgPRe5JVVanzgrOa36XvtrMqPaOa8WXkQ6NEFFEDqU3NBqfyuGdoA1ElHOh3NVVcwfpaKbtGKFDXhP0x5lLJtK0Fl/kPzFTW1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eENSCQkc; arc=none smtp.client-ip=10.30.226.201
+	bh=SUDf5IAQDsaFkgrIjRGGZxB3zfvR2Y8Jt8NUjoY9v/I=;
+	h=Date:To:From:Subject:Message-Id; b=Kg1mkyp1UoafNImJy1csnCd4AVgURBO3yOh2BB4Ep0wiaw1E/onEB8i51m3PG+OvfzZ3gEscekiiDAvSVutU2mk+LvpdwkmEvPrC2sNFpBymj/XsA+im4N2zp3dmupYP0Pb+XCiggxdDIkbUenjgoRdEkEDQB4QWp+6aa/l4UXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N/mnE/t5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eENSCQkc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA16DC4CEF7;
-	Tue, 21 Oct 2025 20:53:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N/mnE/t5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 421CFC4CEF1;
+	Tue, 21 Oct 2025 20:53:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761080031;
-	bh=8iLJ7SpADup2Qz3gPYNUF5OSltTSXqrd9m6W5nNrGV0=;
+	s=korg; t=1761080033;
+	bh=SUDf5IAQDsaFkgrIjRGGZxB3zfvR2Y8Jt8NUjoY9v/I=;
 	h=Date:To:From:Subject:From;
-	b=eENSCQkcrE/wwJLHmrdI1A6q4Ml2Yp/Y4ftAPdMjdEeh7F07E0QZdGHvL03QCjn6a
-	 ApPYmin6KQtGcRG8mEKdbQI0voYh3Oq5cyEP+JJu8fQz2qunBhLvwPVHWKnJLzJ9qc
-	 EWrzt1ENWfxu16G7LifDqwxh9p+bOjCt3RIVx5OA=
-Date: Tue, 21 Oct 2025 13:53:51 -0700
+	b=N/mnE/t54u1OviVmfxNxRDVnKk4K+Fov1yOejw8o3AmrTpJpBU7wQpOcVwhXG2W37
+	 mtOqXwoyGKOiiipspiTgzAFdyOXfhRj+TtP7IJWbycebrRXJEN3m6No28TIo8GsGKB
+	 2TkSk//3K3GcJihNhVSKni0viiHIj03AKqNmHCxA=
+Date: Tue, 21 Oct 2025 13:53:52 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,skhawaja@google.com,rppt@kernel.org,rdunlap@infradead.org,pratyush@kernel.org,ojeda@kernel.org,masahiroy@kernel.org,jgg@ziepe.ca,graf@amazon.com,dmatlack@google.com,corbet@lwn.net,brauner@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-kho-increase-metadata-bitmap-size-to-page_size.patch added to mm-new branch
-Message-Id: <20251021205351.AA16DC4CEF7@smtp.kernel.org>
+Subject: + liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator.patch added to mm-new branch
+Message-Id: <20251021205353.421CFC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: increase metadata bitmap size to PAGE_SIZE
+     Subject: kho: allocate metadata directly from the buddy allocator
 has been added to the -mm mm-new branch.  Its filename is
-     liveupdate-kho-increase-metadata-bitmap-size-to-page_size.patch
+     liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-kho-increase-metadata-bitmap-size-to-page_size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,27 +65,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: increase metadata bitmap size to PAGE_SIZE
-Date: Mon, 20 Oct 2025 20:08:51 -0400
+Subject: kho: allocate metadata directly from the buddy allocator
+Date: Mon, 20 Oct 2025 20:08:52 -0400
 
-KHO memory preservation metadata is preserved in 512 byte chunks which
-requires their allocation from slab allocator.  Slabs are not safe to be
-used with KHO because of kfence, and because partial slabs may lead leaks
-to the next kernel.  Change the size to be PAGE_SIZE.
+KHO allocates metadata for its preserved memory map using the slab
+allocator via kzalloc().  This metadata is temporary and is used by the
+next kernel during early boot to find preserved memory.
 
-The kfence specifically may cause memory corruption, where it randomly
-provides slab objects that can be within the scratch area.  The reason for
-that is that kfence allocates its objects prior to KHO scratch is marked
-as CMA region.
+A problem arises when KFENCE is enabled.  kzalloc() calls can be randomly
+intercepted by kfence_alloc(), which services the allocation from a
+dedicated KFENCE memory pool.  This pool is allocated early in boot via
+memblock.
 
-While this change could potentially increase metadata overhead on systems
-with sparsely preserved memory, this is being mitigated by ongoing work to
-reduce sparseness during preservation via 1G guest pages.  Furthermore,
-this change aligns with future work on a stateless KHO, which will also
-use page-sized bitmaps for its radix tree metadata.
+When booting via KHO, the memblock allocator is restricted to a "scratch
+area", forcing the KFENCE pool to be allocated within it.  This creates a
+conflict, as the scratch area is expected to be ephemeral and
+overwriteable by a subsequent kexec.  If KHO metadata is placed in this
+KFENCE pool, it leads to memory corruption when the next kernel is loaded.
 
-Link: https://lkml.kernel.org/r/20251021000852.2924827-3-pasha.tatashin@soleen.com
+To fix this, modify KHO to allocate its metadata directly from the buddy
+allocator instead of slab.
+
+Link: https://lkml.kernel.org/r/20251021000852.2924827-4-pasha.tatashin@soleen.com
+Fixes: fc33e4b44b27 ("kexec: enable KHO support for memory preservation")
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -94,81 +98,55 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
 Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Pratyush Yadav <pratyush@kernel.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Samiullah Khawaja <skhawaja@google.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_handover.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ include/linux/gfp.h     |    3 +++
+ kernel/kexec_handover.c |    6 +++---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/kernel/kexec_handover.c~liveupdate-kho-increase-metadata-bitmap-size-to-page_size
-+++ a/kernel/kexec_handover.c
-@@ -69,10 +69,10 @@ early_param("kho", kho_parse_enable);
-  * Keep track of memory that is to be preserved across KHO.
-  *
-  * The serializing side uses two levels of xarrays to manage chunks of per-order
-- * 512 byte bitmaps. For instance if PAGE_SIZE = 4096, the entire 1G order of a
-- * 1TB system would fit inside a single 512 byte bitmap. For order 0 allocations
-- * each bitmap will cover 16M of address space. Thus, for 16G of memory at most
-- * 512K of bitmap memory will be needed for order 0.
-+ * PAGE_SIZE byte bitmaps. For instance if PAGE_SIZE = 4096, the entire 1G order
-+ * of a 8TB system would fit inside a single 4096 byte bitmap. For order 0
-+ * allocations each bitmap will cover 128M of address space. Thus, for 16G of
-+ * memory at most 512K of bitmap memory will be needed for order 0.
-  *
-  * This approach is fully incremental, as the serialization progresses folios
-  * can continue be aggregated to the tracker. The final step, immediately prior
-@@ -80,12 +80,14 @@ early_param("kho", kho_parse_enable);
-  * successor kernel to parse.
-  */
+--- a/include/linux/gfp.h~liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator
++++ a/include/linux/gfp.h
+@@ -7,6 +7,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/topology.h>
+ #include <linux/alloc_tag.h>
++#include <linux/cleanup.h>
+ #include <linux/sched.h>
  
--#define PRESERVE_BITS (512 * 8)
-+#define PRESERVE_BITS (PAGE_SIZE * 8)
+ struct vm_area_struct;
+@@ -463,4 +464,6 @@ static inline struct folio *folio_alloc_
+ /* This should be paired with folio_put() rather than free_contig_range(). */
+ #define folio_alloc_gigantic(...) alloc_hooks(folio_alloc_gigantic_noprof(__VA_ARGS__))
  
- struct kho_mem_phys_bits {
- 	DECLARE_BITMAP(preserve, PRESERVE_BITS);
- };
- 
-+static_assert(sizeof(struct kho_mem_phys_bits) == PAGE_SIZE);
++DEFINE_FREE(free_page, void *, free_page((unsigned long)_T))
 +
- struct kho_mem_phys {
- 	/*
- 	 * Points to kho_mem_phys_bits, a sparse bitmap array. Each bit is sized
-@@ -133,19 +135,19 @@ static struct kho_out kho_out = {
- 	.finalized = false,
- };
- 
--static void *xa_load_or_alloc(struct xarray *xa, unsigned long index, size_t sz)
-+static void *xa_load_or_alloc(struct xarray *xa, unsigned long index)
- {
- 	void *res = xa_load(xa, index);
- 
+ #endif /* __LINUX_GFP_H */
+--- a/kernel/kexec_handover.c~liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator
++++ a/kernel/kexec_handover.c
+@@ -142,7 +142,7 @@ static void *xa_load_or_alloc(struct xar
  	if (res)
  		return res;
  
--	void *elm __free(kfree) = kzalloc(sz, GFP_KERNEL);
-+	void *elm __free(kfree) = kzalloc(PAGE_SIZE, GFP_KERNEL);
+-	void *elm __free(kfree) = kzalloc(PAGE_SIZE, GFP_KERNEL);
++	void *elm __free(free_page) = (void *)get_zeroed_page(GFP_KERNEL);
  
  	if (!elm)
  		return ERR_PTR(-ENOMEM);
+@@ -348,9 +348,9 @@ static_assert(sizeof(struct khoser_mem_c
+ static struct khoser_mem_chunk *new_chunk(struct khoser_mem_chunk *cur_chunk,
+ 					  unsigned long order)
+ {
+-	struct khoser_mem_chunk *chunk __free(kfree) = NULL;
++	struct khoser_mem_chunk *chunk __free(free_page) = NULL;
  
--	if (WARN_ON(kho_scratch_overlap(virt_to_phys(elm), sz)))
-+	if (WARN_ON(kho_scratch_overlap(virt_to_phys(elm), PAGE_SIZE)))
- 		return ERR_PTR(-EINVAL);
- 
- 	res = xa_cmpxchg(xa, index, NULL, elm, GFP_KERNEL);
-@@ -218,8 +220,7 @@ static int __kho_preserve_order(struct k
- 		}
- 	}
- 
--	bits = xa_load_or_alloc(&physxa->phys_bits, pfn_high / PRESERVE_BITS,
--				sizeof(*bits));
-+	bits = xa_load_or_alloc(&physxa->phys_bits, pfn_high / PRESERVE_BITS);
- 	if (IS_ERR(bits))
- 		return PTR_ERR(bits);
+-	chunk = kzalloc(PAGE_SIZE, GFP_KERNEL);
++	chunk = (void *)get_zeroed_page(GFP_KERNEL);
+ 	if (!chunk)
+ 		return ERR_PTR(-ENOMEM);
  
 _
 
