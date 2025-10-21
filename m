@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A6802BE636
-	for <mm-commits@vger.kernel.org>; Tue, 21 Oct 2025 22:46:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28ABD2BE636;
+	Tue, 21 Oct 2025 22:46:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761086819; cv=none; b=pHUwR5rKggxVdmc/iKIFtv2B7WwhkgVnjyZk9OeXBZZUGg3u/yK+d17S++ON9ZTRHyWP2tNm1Dx/0RC1ncvcHdaYmce6TyXhHMunoa2zUbLeaJORHIBUmwR9SUrs7RupqYgiaxCG6DNaoyvaAhpluQ03AJDlhKIibPVc5Txij4A=
+	t=1761086820; cv=none; b=L9w0K/Q7WjBsoP39ejmUo2QIfywtv+DPjj/F5I342Tf4hxIDQtacbe1QVH//TGMaldi6HW+WtggQwCu6zJx64OioaKnleuI5RB6rb65vZnbg8ATBZrTVloEat7jNyR8zGJ3xaB3+Z1KVxLHMEX9fcikFE3UQEWZoZnn27Slkt5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761086819; c=relaxed/simple;
-	bh=s45RZkPWG649/IMUZZ6molqcC8aTarI6kyc5FPMDokE=;
-	h=Date:To:From:Subject:Message-Id; b=AZQYxN7xBCpsSlG3mhJS7WNlc6c8qXtLkYKlpUkldRE88I92H8cItWR2+pKh0cKZRGoVnEBBKZSscx7Us5r71Uod+Dn8TcrrYdGUiN/lMDi8kf15BoXOmZ3LfDJhNvYIZKKzCnPAF9R+J6L5EqppzA29t2ITbmRF8WvXOXLDOPo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NjsBWprf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761086820; c=relaxed/simple;
+	bh=l2GkWEFTS3t8kI2a4r+Boo5pB5vyH1ikZd1lB18+zIs=;
+	h=Date:To:From:Subject:Message-Id; b=BHJPSE3aCXLVtFtr7IWg0zclRjbx3hkG9UZC/hkM00Gtin2A5dE8ncI/NGV2YF4i3UtD9vRGEplBG8NmrU/wTOEXOpZX91COCRY9nRoOtaE6WhJabpaLR/MFdEElLC5RooibGKjkkfJfHGE4k6lJWUu6UhG3+5qz0qLkTNtQp6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uAjXibi+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NjsBWprf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB7EC4CEF1;
-	Tue, 21 Oct 2025 22:46:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uAjXibi+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A80AC4CEF1;
+	Tue, 21 Oct 2025 22:46:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761086818;
-	bh=s45RZkPWG649/IMUZZ6molqcC8aTarI6kyc5FPMDokE=;
+	s=korg; t=1761086819;
+	bh=l2GkWEFTS3t8kI2a4r+Boo5pB5vyH1ikZd1lB18+zIs=;
 	h=Date:To:From:Subject:From;
-	b=NjsBWprfsu7yIbzI6ZAJpNhwDFE6h7uocsRxc8Kthgd2pg9rdIpnoHxAesPXmdveU
-	 6mjrI/EExqoaMtJsAe47z20iGMOhnWL77t846IiTK0bGAymM5n+NmIp6TXPikM2AAV
-	 bnY5sPB4T2+Yj/V2Tf9MwenZoemKvDgVyQ7J7Rkk=
-Date: Tue, 21 Oct 2025 15:46:57 -0700
-To: mm-commits@vger.kernel.org,syzbot+f26d7c75c26ec19790e7@syzkaller.appspotmail.com,osalvador@suse.de,david@redhat.com,broonie@kernel.org,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=uAjXibi+brwR66NH0a+04xrFZnRk6kt5aJro4Qo4IE52HRyEfjWkJ9kRisbSBOtqB
+	 ZmzD7ILAxKiV3NbR3k66JvL+I9X9pFI31F2ffDc2hgic2jQkApGOnVrpRaLGYSoP0N
+	 Hx3S6fe003DnAtWv0mhI2CtA/aNLd4Lo9X4tg35c=
+Date: Tue, 21 Oct 2025 15:46:58 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] hugetlbfs-move-lock-assertions-after-early-returns-in-huge_pmd_unshare.patch removed from -mm tree
-Message-Id: <20251021224658.8DB7EC4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-core-fix-potential-memory-leak-by-cleaning-ops_filter-in-damon_destroy_scheme.patch removed from -mm tree
+Message-Id: <20251021224659.8A80AC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlbfs: move lock assertions after early returns in huge_pmd_unshare()
+     Subject: mm/damon/core: fix potential memory leak by cleaning ops_filter in damon_destroy_scheme
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-move-lock-assertions-after-early-returns-in-huge_pmd_unshare.patch
+     mm-damon-core-fix-potential-memory-leak-by-cleaning-ops_filter-in-damon_destroy_scheme.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: hugetlbfs: move lock assertions after early returns in huge_pmd_unshare()
-Date: Tue, 14 Oct 2025 17:03:44 +0530
+From: Enze Li <lienze@kylinos.cn>
+Subject: mm/damon/core: fix potential memory leak by cleaning ops_filter in damon_destroy_scheme
+Date: Tue, 14 Oct 2025 16:42:25 +0800
 
-When hugetlb_vmdelete_list() processes VMAs during truncate operations, it
-may encounter VMAs where huge_pmd_unshare() is called without the required
-shareable lock.  This triggers an assertion failure in
-hugetlb_vma_assert_locked().
+Currently, damon_destroy_scheme() only cleans up the filter list but
+leaves ops_filter untouched, which could lead to memory leaks when a
+scheme is destroyed.
 
-The previous fix in commit dd83609b8898 ("hugetlbfs: skip VMAs without
-shareable locks in hugetlb_vmdelete_list") skipped entire VMAs without
-shareable locks to avoid the assertion.  However, this prevented pages
-from being unmapped and freed, causing a regression in
-fallocate(PUNCH_HOLE) operations where pages were not freed immediately,
-as reported by Mark Brown.
+This patch ensures both filter and ops_filter are properly freed in
+damon_destroy_scheme(), preventing potential memory leaks.
 
-Instead of checking locks in the caller or skipping VMAs, move the lock
-assertions in huge_pmd_unshare() to after the early return checks.  The
-assertions are only needed when actual PMD unsharing work will be
-performed.  If the function returns early because sz != PMD_SIZE or the
-PMD is not shared, no locks are required and assertions should not fire.
-
-This approach reverts the VMA skipping logic from commit dd83609b8898
-("hugetlbfs: skip VMAs without shareable locks in hugetlb_vmdelete_list")
-while moving the assertions to avoid the assertion failure, keeping all
-the logic within huge_pmd_unshare() itself and allowing page unmapping and
-freeing to proceed for all VMAs.
-
-Link: https://lkml.kernel.org/r/20251014113344.21194-1-kartikey406@gmail.com
-Fixes: dd83609b8898 ("hugetlbfs: skip VMAs without shareable locks in hugetlb_vmdelete_list")
-Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
-Reported-by: <syzbot+f26d7c75c26ec19790e7@syzkaller.appspotmail.com>
-Reported-by: Mark Brown <broonie@kernel.org>
-Closes: https://syzkaller.appspot.com/bug?extid=f26d7c75c26ec19790e7
-Suggested-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Oscar Salvador <osalvador@suse.de>
-Tested-by: <syzbot+f26d7c75c26ec19790e7@syzkaller.appspotmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20251014084225.313313-1-lienze@kylinos.cn
+Fixes: ab82e57981d0 ("mm/damon/core: introduce damos->ops_filters")
+Signed-off-by: Enze Li <lienze@kylinos.cn>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Tested-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    9 ---------
- mm/hugetlb.c         |    5 ++---
- 2 files changed, 2 insertions(+), 12 deletions(-)
+ mm/damon/core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-move-lock-assertions-after-early-returns-in-huge_pmd_unshare
-+++ a/fs/hugetlbfs/inode.c
-@@ -478,14 +478,6 @@ hugetlb_vmdelete_list(struct rb_root_cac
- 		if (!hugetlb_vma_trylock_write(vma))
- 			continue;
+--- a/mm/damon/core.c~mm-damon-core-fix-potential-memory-leak-by-cleaning-ops_filter-in-damon_destroy_scheme
++++ a/mm/damon/core.c
+@@ -452,6 +452,9 @@ void damon_destroy_scheme(struct damos *
+ 	damos_for_each_filter_safe(f, next, s)
+ 		damos_destroy_filter(f);
  
--		/*
--		 * Skip VMAs without shareable locks. Per the design in commit
--		 * 40549ba8f8e0, these will be handled by remove_inode_hugepages()
--		 * called after this function with proper locking.
--		 */
--		if (!__vma_shareable_lock(vma))
--			goto skip;
--
- 		v_start = vma_offset_start(vma, start);
- 		v_end = vma_offset_end(vma, end);
- 
-@@ -496,7 +488,6 @@ hugetlb_vmdelete_list(struct rb_root_cac
- 		 * vmas.  Therefore, lock is not held when calling
- 		 * unmap_hugepage_range for private vmas.
- 		 */
--skip:
- 		hugetlb_vma_unlock_write(vma);
- 	}
- }
---- a/mm/hugetlb.c~hugetlbfs-move-lock-assertions-after-early-returns-in-huge_pmd_unshare
-+++ a/mm/hugetlb.c
-@@ -7614,13 +7614,12 @@ int huge_pmd_unshare(struct mm_struct *m
- 	p4d_t *p4d = p4d_offset(pgd, addr);
- 	pud_t *pud = pud_offset(p4d, addr);
- 
--	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
--	hugetlb_vma_assert_locked(vma);
- 	if (sz != PMD_SIZE)
- 		return 0;
- 	if (!ptdesc_pmd_is_shared(virt_to_ptdesc(ptep)))
- 		return 0;
--
-+	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
-+	hugetlb_vma_assert_locked(vma);
- 	pud_clear(pud);
- 	/*
- 	 * Once our caller drops the rmap lock, some other process might be
++	damos_for_each_ops_filter_safe(f, next, s)
++		damos_destroy_filter(f);
++
+ 	kfree(s->migrate_dests.node_id_arr);
+ 	kfree(s->migrate_dests.weight_arr);
+ 	damon_del_scheme(s);
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
 
