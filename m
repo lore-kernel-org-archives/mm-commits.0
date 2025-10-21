@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0D5B350A02;
-	Tue, 21 Oct 2025 22:46:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A6802BE636
+	for <mm-commits@vger.kernel.org>; Tue, 21 Oct 2025 22:46:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761086817; cv=none; b=opvn9/CMOegvJM07uPnbZIpm6qPnN7Xfw9VisBN8c/3x4J0he/lCo9wXKogQ+IWC4Wcgo7bmShVDyNa4kQ/V7lxNK5GiY/HUypRFfUrn9ewS8CnTB4jyT2c/Ge0iLMouKOIEDL6UzEwazvNqRg6RxRmoKZ1s4/5+EhaPQIBlK3s=
+	t=1761086819; cv=none; b=pHUwR5rKggxVdmc/iKIFtv2B7WwhkgVnjyZk9OeXBZZUGg3u/yK+d17S++ON9ZTRHyWP2tNm1Dx/0RC1ncvcHdaYmce6TyXhHMunoa2zUbLeaJORHIBUmwR9SUrs7RupqYgiaxCG6DNaoyvaAhpluQ03AJDlhKIibPVc5Txij4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761086817; c=relaxed/simple;
-	bh=LM9P/srTUMHNetw2DNwFne4Fy4HW4DxWALPWYyCSX38=;
-	h=Date:To:From:Subject:Message-Id; b=ZMZeYTBPXz6JA7WG6hflXR5LbmtI04WFTJEkHCCrmZJxmqayQ+5MGjTMZxFzS7v0lVNnGyAeKF1+MbwAuRwUChoJJji7R3bHODfw8sbClmNPpVtu6WrKtA0QileKwCKyvqR+y6OxkMdMve/Y9rO0kYbYGsYQOYmHeP/T5uBxRAU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GfAV3E5z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761086819; c=relaxed/simple;
+	bh=s45RZkPWG649/IMUZZ6molqcC8aTarI6kyc5FPMDokE=;
+	h=Date:To:From:Subject:Message-Id; b=AZQYxN7xBCpsSlG3mhJS7WNlc6c8qXtLkYKlpUkldRE88I92H8cItWR2+pKh0cKZRGoVnEBBKZSscx7Us5r71Uod+Dn8TcrrYdGUiN/lMDi8kf15BoXOmZ3LfDJhNvYIZKKzCnPAF9R+J6L5EqppzA29t2ITbmRF8WvXOXLDOPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NjsBWprf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GfAV3E5z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B77CC19424;
-	Tue, 21 Oct 2025 22:46:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NjsBWprf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB7EC4CEF1;
+	Tue, 21 Oct 2025 22:46:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761086817;
-	bh=LM9P/srTUMHNetw2DNwFne4Fy4HW4DxWALPWYyCSX38=;
+	s=korg; t=1761086818;
+	bh=s45RZkPWG649/IMUZZ6molqcC8aTarI6kyc5FPMDokE=;
 	h=Date:To:From:Subject:From;
-	b=GfAV3E5zrryf+AYwRdc3tS6Qk012SB0/KwMDoMnVtm8beZ3io4Iss7DEBRPUyozgx
-	 Ee5IcbJB+mN2WHyzzhUbQM3TL8HvfwFBITH8UpM2zuMG7xbeZOjuApTQpL54EvzC6S
-	 lE4yZHez1jpBfOvrzVBHqJwktn4Y1BN75ZO5xuyk=
+	b=NjsBWprfsu7yIbzI6ZAJpNhwDFE6h7uocsRxc8Kthgd2pg9rdIpnoHxAesPXmdveU
+	 6mjrI/EExqoaMtJsAe47z20iGMOhnWL77t846IiTK0bGAymM5n+NmIp6TXPikM2AAV
+	 bnY5sPB4T2+Yj/V2Tf9MwenZoemKvDgVyQ7J7Rkk=
 Date: Tue, 21 Oct 2025 15:46:57 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jerrin.shaji-george@broadcom.com,gregkh@linuxfoundation.org,bcm-kernel-feedback-list@broadcom.com,arnd@arndb.de,david@redhat.com,akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org,syzbot+f26d7c75c26ec19790e7@syzkaller.appspotmail.com,osalvador@suse.de,david@redhat.com,broonie@kernel.org,kartikey406@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] vmw_balloon-indicate-success-when-effectively-deflating-during-migration.patch removed from -mm tree
-Message-Id: <20251021224657.8B77CC19424@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] hugetlbfs-move-lock-assertions-after-early-returns-in-huge_pmd_unshare.patch removed from -mm tree
+Message-Id: <20251021224658.8DB7EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vmw_balloon: indicate success when effectively deflating during migration
+     Subject: hugetlbfs: move lock assertions after early returns in huge_pmd_unshare()
 has been removed from the -mm tree.  Its filename was
-     vmw_balloon-indicate-success-when-effectively-deflating-during-migration.patch
+     hugetlbfs-move-lock-assertions-after-early-returns-in-huge_pmd_unshare.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: vmw_balloon: indicate success when effectively deflating during migration
-Date: Tue, 14 Oct 2025 14:44:55 +0200
+From: Deepanshu Kartikey <kartikey406@gmail.com>
+Subject: hugetlbfs: move lock assertions after early returns in huge_pmd_unshare()
+Date: Tue, 14 Oct 2025 17:03:44 +0530
 
-When migrating a balloon page, we first deflate the old page to then
-inflate the new page.
+When hugetlb_vmdelete_list() processes VMAs during truncate operations, it
+may encounter VMAs where huge_pmd_unshare() is called without the required
+shareable lock.  This triggers an assertion failure in
+hugetlb_vma_assert_locked().
 
-However, if inflating the new page succeeded, we effectively deflated the
-old page, reducing the balloon size.
+The previous fix in commit dd83609b8898 ("hugetlbfs: skip VMAs without
+shareable locks in hugetlb_vmdelete_list") skipped entire VMAs without
+shareable locks to avoid the assertion.  However, this prevented pages
+from being unmapped and freed, causing a regression in
+fallocate(PUNCH_HOLE) operations where pages were not freed immediately,
+as reported by Mark Brown.
 
-In that case, the migration actually worked: similar to migrating+
-immediately deflating the new page.  The old page will be freed back to
-the buddy.
+Instead of checking locks in the caller or skipping VMAs, move the lock
+assertions in huge_pmd_unshare() to after the early return checks.  The
+assertions are only needed when actual PMD unsharing work will be
+performed.  If the function returns early because sz != PMD_SIZE or the
+PMD is not shared, no locks are required and assertions should not fire.
 
-Right now, the core will leave the page be marked as isolated (as we
-returned an error).  When later trying to putback that page, we will run
-into the WARN_ON_ONCE() in balloon_page_putback().
+This approach reverts the VMA skipping logic from commit dd83609b8898
+("hugetlbfs: skip VMAs without shareable locks in hugetlb_vmdelete_list")
+while moving the assertions to avoid the assertion failure, keeping all
+the logic within huge_pmd_unshare() itself and allowing page unmapping and
+freeing to proceed for all VMAs.
 
-That handling was changed in commit 3544c4faccb8 ("mm/balloon_compaction:
-stop using __ClearPageMovable()"); before that change, we would have
-tolerated that way of handling it.
-
-To fix it, let's just return 0 in that case, making the core effectively
-just clear the "isolated" flag + freeing it back to the buddy as if the
-migration succeeded.  Note that the new page will also get freed when the
-core puts the last reference.
-
-Note that this also makes it all be more consistent: we will no longer
-unisolate the page in the balloon driver while keeping it marked as being
-isolated in migration core.
-
-This was found by code inspection.
-
-Link: https://lkml.kernel.org/r/20251014124455.478345-1-david@redhat.com
-Fixes: 3544c4faccb8 ("mm/balloon_compaction: stop using __ClearPageMovable()")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Jerrin Shaji George <jerrin.shaji-george@broadcom.com>
-Cc: Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251014113344.21194-1-kartikey406@gmail.com
+Fixes: dd83609b8898 ("hugetlbfs: skip VMAs without shareable locks in hugetlb_vmdelete_list")
+Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
+Reported-by: <syzbot+f26d7c75c26ec19790e7@syzkaller.appspotmail.com>
+Reported-by: Mark Brown <broonie@kernel.org>
+Closes: https://syzkaller.appspot.com/bug?extid=f26d7c75c26ec19790e7
+Suggested-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Oscar Salvador <osalvador@suse.de>
+Tested-by: <syzbot+f26d7c75c26ec19790e7@syzkaller.appspotmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/vmw_balloon.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/hugetlbfs/inode.c |    9 ---------
+ mm/hugetlb.c         |    5 ++---
+ 2 files changed, 2 insertions(+), 12 deletions(-)
 
---- a/drivers/misc/vmw_balloon.c~vmw_balloon-indicate-success-when-effectively-deflating-during-migration
-+++ a/drivers/misc/vmw_balloon.c
-@@ -1737,7 +1737,7 @@ static int vmballoon_migratepage(struct
- {
- 	unsigned long status, flags;
- 	struct vmballoon *b;
--	int ret;
-+	int ret = 0;
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-move-lock-assertions-after-early-returns-in-huge_pmd_unshare
++++ a/fs/hugetlbfs/inode.c
+@@ -478,14 +478,6 @@ hugetlb_vmdelete_list(struct rb_root_cac
+ 		if (!hugetlb_vma_trylock_write(vma))
+ 			continue;
  
- 	b = container_of(b_dev_info, struct vmballoon, b_dev_info);
+-		/*
+-		 * Skip VMAs without shareable locks. Per the design in commit
+-		 * 40549ba8f8e0, these will be handled by remove_inode_hugepages()
+-		 * called after this function with proper locking.
+-		 */
+-		if (!__vma_shareable_lock(vma))
+-			goto skip;
+-
+ 		v_start = vma_offset_start(vma, start);
+ 		v_end = vma_offset_end(vma, end);
  
-@@ -1796,17 +1796,15 @@ static int vmballoon_migratepage(struct
- 		 * A failure happened. While we can deflate the page we just
- 		 * inflated, this deflation can also encounter an error. Instead
- 		 * we will decrease the size of the balloon to reflect the
--		 * change and report failure.
-+		 * change.
+@@ -496,7 +488,6 @@ hugetlb_vmdelete_list(struct rb_root_cac
+ 		 * vmas.  Therefore, lock is not held when calling
+ 		 * unmap_hugepage_range for private vmas.
  		 */
- 		atomic64_dec(&b->size);
--		ret = -EBUSY;
- 	} else {
- 		/*
- 		 * Success. Take a reference for the page, and we will add it to
- 		 * the list after acquiring the lock.
- 		 */
- 		get_page(newpage);
--		ret = 0;
+-skip:
+ 		hugetlb_vma_unlock_write(vma);
  	}
+ }
+--- a/mm/hugetlb.c~hugetlbfs-move-lock-assertions-after-early-returns-in-huge_pmd_unshare
++++ a/mm/hugetlb.c
+@@ -7614,13 +7614,12 @@ int huge_pmd_unshare(struct mm_struct *m
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+ 	pud_t *pud = pud_offset(p4d, addr);
  
- 	/* Update the balloon list under the @pages_lock */
-@@ -1817,7 +1815,7 @@ static int vmballoon_migratepage(struct
- 	 * If we succeed just insert it to the list and update the statistics
- 	 * under the lock.
- 	 */
--	if (!ret) {
-+	if (status == VMW_BALLOON_SUCCESS) {
- 		balloon_page_insert(&b->b_dev_info, newpage);
- 		__count_vm_event(BALLOON_MIGRATE);
- 	}
+-	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
+-	hugetlb_vma_assert_locked(vma);
+ 	if (sz != PMD_SIZE)
+ 		return 0;
+ 	if (!ptdesc_pmd_is_shared(virt_to_ptdesc(ptep)))
+ 		return 0;
+-
++	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
++	hugetlb_vma_assert_locked(vma);
+ 	pud_clear(pud);
+ 	/*
+ 	 * Once our caller drops the rmap lock, some other process might be
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from kartikey406@gmail.com are
 
 
