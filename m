@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ECC71C3C11;
-	Tue, 21 Oct 2025 22:46:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0D5B350A02;
+	Tue, 21 Oct 2025 22:46:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761086817; cv=none; b=QBOjL8E62cefQD0ptfjWlIJCMi3IJ+eTgSVzrCzli76fZduNMA5RKybkm6u3XIOg3mZkvQ2QwRrZY/cctkQCIz2iwqL9yA9x8onw9sznSDeSUUNx9QFznAfUZdXPL3HQkGNrmvo20YHWR/EPk+DyFRnVUtPFcPC/MQj3v3dIEmA=
+	t=1761086817; cv=none; b=opvn9/CMOegvJM07uPnbZIpm6qPnN7Xfw9VisBN8c/3x4J0he/lCo9wXKogQ+IWC4Wcgo7bmShVDyNa4kQ/V7lxNK5GiY/HUypRFfUrn9ewS8CnTB4jyT2c/Ge0iLMouKOIEDL6UzEwazvNqRg6RxRmoKZ1s4/5+EhaPQIBlK3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1761086817; c=relaxed/simple;
-	bh=JXub9fOrDGF3WuKQ/J+8Zv2pu+lIwPGencIdv8IjiPk=;
-	h=Date:To:From:Subject:Message-Id; b=MC2EMnuZ/sicn9a9dgGJJUukAxKQM7YyEGZyuJGK2OAjo7PLITS3JwNTIJFMRF3DG0Jvz4W5tso2/nn5zjJyAdNLBIaN2eux8pTcBcZgVEHH55hgQLXcEtWctTlFYp0YIjr1YTLP2muFAy/g5PE49hdeyZm4Rh1bzJ1IoDZhkic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YvsWrfXW; arc=none smtp.client-ip=10.30.226.201
+	bh=LM9P/srTUMHNetw2DNwFne4Fy4HW4DxWALPWYyCSX38=;
+	h=Date:To:From:Subject:Message-Id; b=ZMZeYTBPXz6JA7WG6hflXR5LbmtI04WFTJEkHCCrmZJxmqayQ+5MGjTMZxFzS7v0lVNnGyAeKF1+MbwAuRwUChoJJji7R3bHODfw8sbClmNPpVtu6WrKtA0QileKwCKyvqR+y6OxkMdMve/Y9rO0kYbYGsYQOYmHeP/T5uBxRAU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GfAV3E5z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YvsWrfXW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99891C4CEF1;
-	Tue, 21 Oct 2025 22:46:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GfAV3E5z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B77CC19424;
+	Tue, 21 Oct 2025 22:46:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761086816;
-	bh=JXub9fOrDGF3WuKQ/J+8Zv2pu+lIwPGencIdv8IjiPk=;
+	s=korg; t=1761086817;
+	bh=LM9P/srTUMHNetw2DNwFne4Fy4HW4DxWALPWYyCSX38=;
 	h=Date:To:From:Subject:From;
-	b=YvsWrfXWrMW2mJRWb2D1aRaZ5jnsgBLkohn0IjKM25C1HMA7eNEMZQwYS3/9YJCat
-	 2Tr2Yon+nrSl+zMSn+eX4s81EptdMbl2G9KI8RUwGq+ew4zanCFBfeIzIO5wswyj2E
-	 TLWT+PIqfXp3ow5A+vsTN0mkpxAz27reU2VnrVlA=
-Date: Tue, 21 Oct 2025 15:46:56 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=GfAV3E5zrryf+AYwRdc3tS6Qk012SB0/KwMDoMnVtm8beZ3io4Iss7DEBRPUyozgx
+	 Ee5IcbJB+mN2WHyzzhUbQM3TL8HvfwFBITH8UpM2zuMG7xbeZOjuApTQpL54EvzC6S
+	 lE4yZHez1jpBfOvrzVBHqJwktn4Y1BN75ZO5xuyk=
+Date: Tue, 21 Oct 2025 15:46:57 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jerrin.shaji-george@broadcom.com,gregkh@linuxfoundation.org,bcm-kernel-feedback-list@broadcom.com,arnd@arndb.de,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-core-fix-list_add_tail-call-on-damon_call.patch removed from -mm tree
-Message-Id: <20251021224656.99891C4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] vmw_balloon-indicate-success-when-effectively-deflating-during-migration.patch removed from -mm tree
+Message-Id: <20251021224657.8B77CC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,102 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: fix list_add_tail() call on damon_call()
+     Subject: vmw_balloon: indicate success when effectively deflating during migration
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-fix-list_add_tail-call-on-damon_call.patch
+     vmw_balloon-indicate-success-when-effectively-deflating-during-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: fix list_add_tail() call on damon_call()
-Date: Tue, 14 Oct 2025 13:59:36 -0700
+From: David Hildenbrand <david@redhat.com>
+Subject: vmw_balloon: indicate success when effectively deflating during migration
+Date: Tue, 14 Oct 2025 14:44:55 +0200
 
-Each damon_ctx maintains callback requests using a linked list
-(damon_ctx->call_controls).  When a new callback request is received via
-damon_call(), the new request should be added to the list.  However, the
-function is making a mistake at list_add_tail() invocation: putting the
-new item to add and the list head to add it before, in the opposite order.
-Because of the linked list manipulation implementation, the new request
-can still be reached from the context's list head.  But the list items
-that were added before the new request are dropped from the list.
+When migrating a balloon page, we first deflate the old page to then
+inflate the new page.
 
-As a result, the callbacks are unexpectedly not invocated.  Worse yet, if
-the dropped callback requests were dynamically allocated, the memory is
-leaked.  Actually DAMON sysfs interface is using a dynamically allocated
-repeat-mode callback request for automatic essential stats update.  And
-because the online DAMON parameters commit is using a non-repeat-mode
-callback request, the issue can easily be reproduced, like below.
+However, if inflating the new page succeeded, we effectively deflated the
+old page, reducing the balloon size.
 
-    # damo start --damos_action stat --refresh_stat 1s
-    # damo tune --damos_action stat --refresh_stat 1s
+In that case, the migration actually worked: similar to migrating+
+immediately deflating the new page.  The old page will be freed back to
+the buddy.
 
-The first command dynamically allocates the repeat-mode callback request
-for automatic essential stat update.  Users can see the essential stats
-are automatically updated for every second, using the sysfs interface.
+Right now, the core will leave the page be marked as isolated (as we
+returned an error).  When later trying to putback that page, we will run
+into the WARN_ON_ONCE() in balloon_page_putback().
 
-The second command calls damon_commit() with a new callback request that
-was made for the commit.  As a result, the previously added repeat-mode
-callback request is dropped from the list.  The automatic stats refresh
-stops working, and the memory for the repeat-mode callback request is
-leaked.  It can be confirmed using kmemleak.
+That handling was changed in commit 3544c4faccb8 ("mm/balloon_compaction:
+stop using __ClearPageMovable()"); before that change, we would have
+tolerated that way of handling it.
 
-Fix the mistake on the list_add_tail() call.
+To fix it, let's just return 0 in that case, making the core effectively
+just clear the "isolated" flag + freeing it back to the buddy as if the
+migration succeeded.  Note that the new page will also get freed when the
+core puts the last reference.
 
-Link: https://lkml.kernel.org/r/20251014205939.1206-1-sj@kernel.org
-Fixes: 004ded6bee11 ("mm/damon: accept parallel damon_call() requests")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.17+]
+Note that this also makes it all be more consistent: we will no longer
+unisolate the page in the balloon driver while keeping it marked as being
+isolated in migration core.
+
+This was found by code inspection.
+
+Link: https://lkml.kernel.org/r/20251014124455.478345-1-david@redhat.com
+Fixes: 3544c4faccb8 ("mm/balloon_compaction: stop using __ClearPageMovable()")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Jerrin Shaji George <jerrin.shaji-george@broadcom.com>
+Cc: Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/vmw_balloon.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-fix-list_add_tail-call-on-damon_call
-+++ a/mm/damon/core.c
-@@ -1450,7 +1450,7 @@ int damon_call(struct damon_ctx *ctx, st
- 	INIT_LIST_HEAD(&control->list);
+--- a/drivers/misc/vmw_balloon.c~vmw_balloon-indicate-success-when-effectively-deflating-during-migration
++++ a/drivers/misc/vmw_balloon.c
+@@ -1737,7 +1737,7 @@ static int vmballoon_migratepage(struct
+ {
+ 	unsigned long status, flags;
+ 	struct vmballoon *b;
+-	int ret;
++	int ret = 0;
  
- 	mutex_lock(&ctx->call_controls_lock);
--	list_add_tail(&ctx->call_controls, &control->list);
-+	list_add_tail(&control->list, &ctx->call_controls);
- 	mutex_unlock(&ctx->call_controls_lock);
- 	if (!damon_is_running(ctx))
- 		return -EINVAL;
+ 	b = container_of(b_dev_info, struct vmballoon, b_dev_info);
+ 
+@@ -1796,17 +1796,15 @@ static int vmballoon_migratepage(struct
+ 		 * A failure happened. While we can deflate the page we just
+ 		 * inflated, this deflation can also encounter an error. Instead
+ 		 * we will decrease the size of the balloon to reflect the
+-		 * change and report failure.
++		 * change.
+ 		 */
+ 		atomic64_dec(&b->size);
+-		ret = -EBUSY;
+ 	} else {
+ 		/*
+ 		 * Success. Take a reference for the page, and we will add it to
+ 		 * the list after acquiring the lock.
+ 		 */
+ 		get_page(newpage);
+-		ret = 0;
+ 	}
+ 
+ 	/* Update the balloon list under the @pages_lock */
+@@ -1817,7 +1815,7 @@ static int vmballoon_migratepage(struct
+ 	 * If we succeed just insert it to the list and update the statistics
+ 	 * under the lock.
+ 	 */
+-	if (!ret) {
++	if (status == VMW_BALLOON_SUCCESS) {
+ 		balloon_page_insert(&b->b_dev_info, newpage);
+ 		__count_vm_event(BALLOON_MIGRATE);
+ 	}
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
-mm-zswap-fix-typos-s-zwap-zswap.patch
-mm-zswap-s-red-black-tree-xarray.patch
-docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
-mm-damon-document-damos_quota_goal-nid-use-case.patch
-mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
-mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
-mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
-mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
-docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
-docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
-docs-abi-damon-document-damos-quota-goal-path-file.patch
 
