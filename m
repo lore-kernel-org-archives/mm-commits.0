@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E15542853F2
-	for <mm-commits@vger.kernel.org>; Tue, 21 Oct 2025 21:25:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32E911C3C11;
+	Tue, 21 Oct 2025 22:46:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761081918; cv=none; b=Gal9KTFHjXEVLueHzwN0WRZv7dcbs3/8HFCmVnOgak81R0qUC3FuAtG5SYxT0BQCWAd6L/EnfFG80nrgq4bx+7xgTFYbKogZxuIrUPvXcs/EVnGWysW/Jf9dPttdn00Plm/PD8xOSYoyEto5X6OhsmxxKkLmcXNk2euqTDYW7Sw=
+	t=1761086816; cv=none; b=etE31qAD/FJjHOV/cz+2ibJs8JhYuSohme5SVs9Rov+NVSJGkT6q0B5/G4QVHFo967hblssilufn5Usv50tLfwpytEJ3Q0YkF62JKhZAiiBytr/0N2GHtnuXMsBPhyhHkTPDRtVFlSpbmx+2AJlgxZ4oB+ZRpznlWbDg4V4u79M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761081918; c=relaxed/simple;
-	bh=E/fcu6m4C+HNeI0DQJyCtVlodr4Q7ewTfRXdgxwyTSg=;
-	h=Date:To:From:Subject:Message-Id; b=PNN/RSURXJFIFI8st7e4I0S6wUs0VSllTSp/mpQEtNCcNOg/IclxHRQJd7C4ccK++/y80DFS1f2E1TxL12a4hSzouwFNUzJIiWIRKMgDLoTCuIkUjatgp3IYbMA0kEiNSZ2HCB6z9iCOLxW3jU/ZmwfCHhENGLeO5lhJdpDmSVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0qoeWbVU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761086816; c=relaxed/simple;
+	bh=HwjKxoRqWWm+zyASq59PHrY+g+Yeveiw7Tu3cLecB6w=;
+	h=Date:To:From:Subject:Message-Id; b=QbEwqGUUzKAH9CmAHv1i1O0ImWle1MpsrEI7Z11D9FCYddkbnmYE0IxQ9isJDqZXTFlzvnVIoO5BUV5bni1RFhLTIjHO30PL+wnTykndNdvT3qNZ0fEdnnDg26fs21w+GTxIeU+u371TDlb00ZcrSPv6Zyf4l7SGkV1NQ3f8KWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MmKFGYey; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0qoeWbVU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 463CCC4CEF1;
-	Tue, 21 Oct 2025 21:25:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MmKFGYey"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A58D2C4CEF1;
+	Tue, 21 Oct 2025 22:46:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761081917;
-	bh=E/fcu6m4C+HNeI0DQJyCtVlodr4Q7ewTfRXdgxwyTSg=;
+	s=korg; t=1761086815;
+	bh=HwjKxoRqWWm+zyASq59PHrY+g+Yeveiw7Tu3cLecB6w=;
 	h=Date:To:From:Subject:From;
-	b=0qoeWbVUX1684CmW+msdzEWOSdPmr92zLHhZ8FV0cf/63w1hoU6GdtX8iuxK2YZci
-	 /Y9YcNv3cl1HU2CEKXobMGuCqm5u/rMQJlu/BwpzNhY9qxLVq/YtR8n64rdZ6k9+0i
-	 /TSCyVC6kKb/IYzgXqcKt3y14ByDp1dL+/KQ/2Qs=
-Date: Tue, 21 Oct 2025 14:25:16 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=MmKFGYeyiuJ/Ir+cGavCqcdpPxRcJqHnWo+hWzXhtiRqxnyGwbsKhUtu4z2cSMM8y
+	 WfKskFApNUPbZ2SdGSzUh6CQSURTPWatZ600RL356hVqmM42qMSDXAHYrcF3FTg2f3
+	 4EN8n5AN7sTJxFaciZL02tOvMpRoeV6w781g1UN8=
+Date: Tue, 21 Oct 2025 15:46:54 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,pfalcato@suse.de,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-request-large-order-pages-from-buddy-allocator.patch added to mm-new branch
-Message-Id: <20251021212517.463CCC4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mremap-correctly-account-old-mapping-after-mremap_dontunmap-remap.patch removed from -mm tree
+Message-Id: <20251021224655.A58D2C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,122 +34,95 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/vmalloc: request large order pages from buddy allocator
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-request-large-order-pages-from-buddy-allocator.patch
+The quilt patch titled
+     Subject: mm/mremap: correctly account old mapping after MREMAP_DONTUNMAP remap
+has been removed from the -mm tree.  Its filename was
+     mm-mremap-correctly-account-old-mapping-after-mremap_dontunmap-remap.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-request-large-order-pages-from-buddy-allocator.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/vmalloc: request large order pages from buddy allocator
-Date: Tue, 21 Oct 2025 12:44:56 -0700
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/mremap: correctly account old mapping after MREMAP_DONTUNMAP remap
+Date: Mon, 13 Oct 2025 17:58:36 +0100
 
-Sometimes, vm_area_alloc_pages() will want many pages from the buddy
-allocator.  Rather than making requests to the buddy allocator for at most
-100 pages at a time, we can eagerly request large order pages a smaller
-number of times.
+Commit b714ccb02a76 ("mm/mremap: complete refactor of move_vma()")
+mistakenly introduced a new behaviour - clearing the VM_ACCOUNT flag of
+the old mapping when a mapping is mremap()'d with the MREMAP_DONTUNMAP
+flag set.
 
-We still split the large order pages down to order-0 as the rest of the
-vmalloc code (and some callers) depend on it.  We still defer to the bulk
-allocator and fallback path in case of order-0 pages or failure.
+While we always clear the VM_LOCKED and VM_LOCKONFAULT flags for the old
+mapping (the page tables have been moved, so there is no data that could
+possibly be locked in memory), there is no reason to touch any other VMA
+flags.
 
-Running 1000 iterations of allocations on a small 4GB system finds:
+This is because after the move the old mapping is in a state as if it were
+freshly mapped.  This implies that the attributes of the mapping ought to
+remain the same, including whether or not the mapping is accounted.
 
-1000 2mb allocations:
-	[Baseline]			[This patch]
-	real    46.310s			real    0m34.582
-	user    0.001s			user    0.006s
-	sys     46.058s			sys     0m34.365s
-
-10000 200kb allocations:
-	[Baseline]			[This patch]
-	real    56.104s			real    0m43.696
-	user    0.001s			user    0.003s
-	sys     55.375s			sys     0m42.995s
-
-Link: https://lkml.kernel.org/r/20251021194455.33351-2-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20251013165836.273113-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Fixes: b714ccb02a76 ("mm/mremap: complete refactor of move_vma()")
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ mm/mremap.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-request-large-order-pages-from-buddy-allocator
-+++ a/mm/vmalloc.c
-@@ -3619,8 +3619,44 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		unsigned int order, unsigned int nr_pages, struct page **pages)
- {
- 	unsigned int nr_allocated = 0;
-+	unsigned int nr_remaining = nr_pages;
-+	unsigned int max_attempt_order = MAX_PAGE_ORDER;
- 	struct page *page;
- 	int i;
-+	gfp_t large_gfp = (gfp &
-+		~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL | __GFP_COMP))
-+		| __GFP_NOWARN;
-+	unsigned int large_order = ilog2(nr_remaining);
-+
-+	large_order = min(max_attempt_order, large_order);
-+
-+	/*
-+	 * Initially, attempt to have the page allocator give us large order
-+	 * pages. Do not attempt allocating smaller than order chunks since
-+	 * __vmap_pages_range() expects physically contigous pages of exactly
-+	 * order long chunks.
-+	 */
-+	while (large_order > order && nr_remaining) {
-+		if (nid == NUMA_NO_NODE)
-+			page = alloc_pages_noprof(large_gfp, large_order);
-+		else
-+			page = alloc_pages_node_noprof(nid, large_gfp, large_order);
-+
-+		if (unlikely(!page)) {
-+			max_attempt_order = --large_order;
-+			continue;
-+		}
-+
-+		split_page(page, large_order);
-+		for (i = 0; i < (1U << large_order); i++)
-+			pages[nr_allocated + i] = page + i;
-+
-+		nr_allocated += 1U << large_order;
-+		nr_remaining = nr_pages - nr_allocated;
-+
-+		large_order = ilog2(nr_remaining);
-+		large_order = min(max_attempt_order, large_order);
-+	}
+--- a/mm/mremap.c~mm-mremap-correctly-account-old-mapping-after-mremap_dontunmap-remap
++++ a/mm/mremap.c
+@@ -1237,10 +1237,10 @@ static int copy_vma_and_data(struct vma_
+ }
+ 
+ /*
+- * Perform final tasks for MADV_DONTUNMAP operation, clearing mlock() and
+- * account flags on remaining VMA by convention (it cannot be mlock()'d any
+- * longer, as pages in range are no longer mapped), and removing anon_vma_chain
+- * links from it (if the entire VMA was copied over).
++ * Perform final tasks for MADV_DONTUNMAP operation, clearing mlock() flag on
++ * remaining VMA by convention (it cannot be mlock()'d any longer, as pages in
++ * range are no longer mapped), and removing anon_vma_chain links from it if the
++ * entire VMA was copied over.
+  */
+ static void dontunmap_complete(struct vma_remap_struct *vrm,
+ 			       struct vm_area_struct *new_vma)
+@@ -1250,11 +1250,8 @@ static void dontunmap_complete(struct vm
+ 	unsigned long old_start = vrm->vma->vm_start;
+ 	unsigned long old_end = vrm->vma->vm_end;
+ 
+-	/*
+-	 * We always clear VM_LOCKED[ONFAULT] | VM_ACCOUNT on the old
+-	 * vma.
+-	 */
+-	vm_flags_clear(vrm->vma, VM_LOCKED_MASK | VM_ACCOUNT);
++	/* We always clear VM_LOCKED[ONFAULT] on the old VMA. */
++	vm_flags_clear(vrm->vma, VM_LOCKED_MASK);
  
  	/*
- 	 * For order-0 pages we make use of bulk allocator, if
+ 	 * anon_vma links of the old vma is no longer needed after its page
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-vmalloc-request-large-order-pages-from-buddy-allocator.patch
+mm-shmem-update-shmem-to-use-mmap_prepare.patch
+device-dax-update-devdax-to-use-mmap_prepare.patch
+mm-vma-remove-unused-function-make-internal-functions-static.patch
+mm-add-vma_desc_size-vma_desc_pages-helpers.patch
+relay-update-relay-to-use-mmap_prepare.patch
+mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
+mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
+mm-abstract-io_remap_pfn_range-based-on-pfn.patch
+mm-introduce-io_remap_pfn_range_.patch
+mm-add-ability-to-take-further-action-in-vm_area_desc.patch
+doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
+mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
+mm-add-shmem_zero_setup_desc.patch
+mm-update-mem-char-driver-to-use-mmap_prepare.patch
+mm-update-resctl-to-use-mmap_prepare.patch
 
