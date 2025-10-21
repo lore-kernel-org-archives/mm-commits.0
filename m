@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C7F32586C8
-	for <mm-commits@vger.kernel.org>; Tue, 21 Oct 2025 19:02:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 785EF25B1DA
+	for <mm-commits@vger.kernel.org>; Tue, 21 Oct 2025 19:46:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761073359; cv=none; b=p1dD95XJOwsj520q0x4aPHs+s4SKfRN01a4wGcNW9rw20wRXKAgtRFH3OJS7maEucJ5CaI9se9VTW12hH6qSPW3NgwCMKKSqmaYkmmKExLAgQixNcI8j1VveECbn2ul+HROZaNa6YsBSicmxhw3z3CUnPIhHpNtPILmrfIQ6eUw=
+	t=1761075999; cv=none; b=CgjrJ/lek/LyyWLRMRacO689aiuzmWzpFlM9cMk0brASnVjQ56hOL4+h2sq4xejJVkZ8PmetL6rwqN51HB3bVSI3jPYM5QGcuZvf5gBS/eXvpMnHCzD81e6mQlO9ML7Zb95EP8I1DNHph9XodJ037UQEDRoiK3zIH2yN2Vyr8U4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761073359; c=relaxed/simple;
-	bh=971xribwDLIESCiUVA9VdNdDCXWV/HqifU6AJVDFyfQ=;
-	h=Date:To:From:Subject:Message-Id; b=YhnzvAF1mtL7Z6uO5vGOqWGmCI8401tX6zmnct0JQOgeYofZMxY2MXFHW4J9jILfEJa1iYIAiEvvk0g67/ITup8da/SRwo24PJKeXW6ue5t2EYgnywii7aB4RNo+fLAJ5nANqeMLg+jUawEn8tlVNWLqQFztMfQkJw9PPdxv7DQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l1mcp+tv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761075999; c=relaxed/simple;
+	bh=7iaTCCcwDlvV+ovXuXD+uCdxdSM5/kuLdewzSDfQnSE=;
+	h=Date:To:From:Subject:Message-Id; b=WL1YOIK5lwXmHtnOhGOjctdFjhbZGu7XDdAEmZzCbgcGGYBW1gbgTvmzgr5NuEoNaU1jQDjk24o7k117YIZhV1BEwR3LxzObg1AVWHwo8Ar3LszEt2o1cTonP25I8sxiAV6XmJye7rDH6edvQSUxh7TKs+SCWvIl4nnot4sJrsU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qt13lAxf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l1mcp+tv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6C63C4CEF1;
-	Tue, 21 Oct 2025 19:02:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qt13lAxf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2F29C4CEF1;
+	Tue, 21 Oct 2025 19:46:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761073358;
-	bh=971xribwDLIESCiUVA9VdNdDCXWV/HqifU6AJVDFyfQ=;
+	s=korg; t=1761075998;
+	bh=7iaTCCcwDlvV+ovXuXD+uCdxdSM5/kuLdewzSDfQnSE=;
 	h=Date:To:From:Subject:From;
-	b=l1mcp+tvEadWsfqvWY1j/WGvcRDrR7N5TV0A1E2vdceSotHhNafH7u0mDxcBq6fDk
-	 TkPefOXSW921B+fgG/W2g5yHZ1W0xyl2hS2tNWNcK2jQpKHHW7VPuCghWLdqCr1Hso
-	 RqF5qHdQCmXr1MXu6pBGjO8UAmqqO8OGxXNNv3yM=
-Date: Tue, 21 Oct 2025 12:02:38 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,rientjes@google.com,lethal@linux-sh.org,harry.yoo@oracle.com,cl@gentwo.org,william.kucharski@oracle.com,akpm@linux-foundation.org
+	b=qt13lAxfUAdBY7+4n9/Ov3pPEreon38Y4A8QVBWXPpfTqxPSWsxIZLXziW90Puaui
+	 6WqlkLB5RPByFevr0p2KQG4Gul5Qm4tY9LeSPbg7jkh+L5U+I8PwX0NwQB1mkqXZVd
+	 SFOjy1fm7o7iPbgZFu4OgNUiddcV8dCJEdq/HxrY=
+Date: Tue, 21 Oct 2025 12:46:37 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,donettom@linux.ibm.com,david@redhat.com,jingsusu@didiglobal.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-reference-to-destructor-in-comment-in-calculate_sizes.patch added to mm-new branch
-Message-Id: <20251021190238.C6C63C4CEF1@smtp.kernel.org>
+Subject: + mm-vmstat-fix-indentation-in-fold_diff-function.patch added to mm-new branch
+Message-Id: <20251021194637.E2F29C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove reference to destructor in comment in calculate_sizes()
+     Subject: mm/vmstat: fix indentation in fold_diff function
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-reference-to-destructor-in-comment-in-calculate_sizes.patch
+     mm-vmstat-fix-indentation-in-fold_diff-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-reference-to-destructor-in-comment-in-calculate_sizes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-fix-indentation-in-fold_diff-function.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,51 +64,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: William Kucharski <william.kucharski@oracle.com>
-Subject: mm: remove reference to destructor in comment in calculate_sizes()
-Date: Tue, 21 Oct 2025 05:00:04 -0600
+From: Jing Su <jingsusu@didiglobal.com>
+Subject: mm/vmstat: fix indentation in fold_diff function
+Date: Tue, 21 Oct 2025 15:37:07 +0800
 
-The commit that removed support for destructors from kmem_cache_alloc()
-never removed the comment regarding destructors in the explanation of the
-possible relocation of the free pointer in calculate_sizes().
+Adjust misaligned braces in fold_diff() to improve code readability and
+maintain consistent coding style.
 
-Link: https://lkml.kernel.org/r/20251021110004.2209008-1-william.kucharski@oracle.com
-Fixes: 20c2df83d25c ("mm: Remove slab destructors from kmem_cache_create().")
-Signed-off-by: William Kucharski <william.kucharski@oracle.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Link: https://lkml.kernel.org/r/aPc4I/8zXCGyiapN@pilot-ThinkCentre-M930t-N000
+Signed-off-by: Jing Su <jingsusu@didiglobal.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Harry Yoo <harry.yoo@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/vmstat.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-remove-reference-to-destructor-in-comment-in-calculate_sizes
-+++ a/mm/slub.c
-@@ -7874,11 +7874,11 @@ static int calculate_sizes(struct kmem_c
- 		 * permitted to overwrite the first word of the object on
- 		 * kmem_cache_free.
- 		 *
--		 * This is the case if we do RCU, have a constructor or
--		 * destructor, are poisoning the objects, or are
--		 * redzoning an object smaller than sizeof(void *) or are
--		 * redzoning an object with slub_debug_orig_size() enabled,
--		 * in which case the right redzone may be extended.
-+		 * This is the case if we do RCU, have a constructor, are
-+		 * poisoning the objects, or are redzoning an object smaller
-+		 * than sizeof(void *) or are redzoning an object with
-+		 * slub_debug_orig_size() enabled, in which case the right
-+		 * redzone may be extended.
- 		 *
- 		 * The assumption that s->offset >= s->inuse means free
- 		 * pointer is outside of the object is used in the
+--- a/mm/vmstat.c~mm-vmstat-fix-indentation-in-fold_diff-function
++++ a/mm/vmstat.c
+@@ -782,13 +782,14 @@ static int fold_diff(int *zone_diff, int
+ 		if (zone_diff[i]) {
+ 			atomic_long_add(zone_diff[i], &vm_zone_stat[i]);
+ 			changed = true;
+-	}
++		}
+ 
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 		if (node_diff[i]) {
+ 			atomic_long_add(node_diff[i], &vm_node_stat[i]);
+ 			changed = true;
+-	}
++		}
++
+ 	return changed;
+ }
+ 
 _
 
-Patches currently in -mm which might be from william.kucharski@oracle.com are
+Patches currently in -mm which might be from jingsusu@didiglobal.com are
 
-mm-remove-reference-to-destructor-in-comment-in-calculate_sizes.patch
+mm-vmstat-fix-indentation-in-fold_diff-function.patch
 
