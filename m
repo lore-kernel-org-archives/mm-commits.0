@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D3632797B8
-	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 21:45:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7762328504F
+	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 21:45:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761169506; cv=none; b=MNgYNmZf5oXIUHQdI7qnV8dbMY4YS6HEFP+ejiTNZh5oYpczdL+l7N6DTflywT4KpIq5pW1wzrp86gKIS1rUCqvaw7xrjKXGpekNKbd7IEUTHLaWXo4tmEvSsbcjrEpy6Vm08hAYaAfPYE9Dg8R3a8SgEiMijO3oJp9xv5WKwLc=
+	t=1761169507; cv=none; b=W0Dosgq6jrVQEPg1iJvKgmqseoa7VSELWNdBZKhDJ6M+D3VwvJiUxcbD9b8LpRM3/BtVsfGHxPD4bhnoWBSq6zWxGFzQ5RLJ0N0unQ5vC9hJ1FXIA1+kdR74nHAuNU9sjSK0TbelEgcXB4u4ZB6xfy1p3D5U8TJdphmYcdALMXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761169506; c=relaxed/simple;
-	bh=a77LTiPkBcO3R8od4DfYERollptXhvNKcEjagn3CWDY=;
-	h=Date:To:From:Subject:Message-Id; b=HYq1NXlTdBeYA1q6zKkElWzk151CZLr4fqPmgKE+6K/8KYJ0o0vYoEJWzSpGn+VdMsTHCizpg2fcdg9CGVODh3avQ1jYi25zMG3/1IpcfJaRlOix2tAbAq9wLxNcB+Jx2FDiWAMaLbS+lI7nOSoueQ25iKI4CcdzUxbBZySwuAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JCGMeXyB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761169507; c=relaxed/simple;
+	bh=/BETeeZ17OllUQOSH2okiAwTkNxHVZUD7Rr+Auchkxo=;
+	h=Date:To:From:Subject:Message-Id; b=YrsWmvgBxzq80ULVDLRve0rYiIBq1SG+n+U6ygTOabA+nYG01pFhobtpC+3gb6nQdc3CBRhKLGSyy83HdbweEG7a/rrWOnGSKGrVa5Wu1MkdYFPmlO8mRaxs3z3SCg3ICR6WcS+4tuiU7X+8nf4lOPvl3wnbovn+Kf34rfz/EdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GdnB7mit; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JCGMeXyB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AAC3C4CEE7;
-	Wed, 22 Oct 2025 21:45:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GdnB7mit"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0770C4CEE7;
+	Wed, 22 Oct 2025 21:45:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761169505;
-	bh=a77LTiPkBcO3R8od4DfYERollptXhvNKcEjagn3CWDY=;
+	s=korg; t=1761169507;
+	bh=/BETeeZ17OllUQOSH2okiAwTkNxHVZUD7Rr+Auchkxo=;
 	h=Date:To:From:Subject:From;
-	b=JCGMeXyBgQfG63PC+2j7DW5acDEVsBOTCoAaiXECamgTDoQ3e4QCY8lCpW1QN5e2q
-	 /pgcMGpiaa6RDRXMG9KAymlaPHRX7jR6cVFrk2IfWl/xIK03vjl2yj2U1dLp9mZ4gr
-	 S/4vEbPPeGpRir3nIliIIFJDKyDMK9TAaRtthE7E=
-Date: Wed, 22 Oct 2025 14:45:05 -0700
+	b=GdnB7mitCSAV5RHmQf0p7gpgOb+aoieCMinALdI8iPWLY7rRlgNlFN/IZzgHYw0yb
+	 KTM7PwnuSDifdB0hQMi1MG60kMvnSJoJYSEpilDg+kOOOVd6gXbgY1cx02E+pZ+pL9
+	 pgBDln/wa0018JQ3rlEmgVoDsfjcZGn9+LmijPXc=
+Date: Wed, 22 Oct 2025 14:45:06 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split.patch added to mm-new branch
-Message-Id: <20251022214505.8AAC3C4CEE7@smtp.kernel.org>
+Subject: + mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch added to mm-new branch
+Message-Id: <20251022214506.F0770C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: optimize and simplify folio stat update after split
+     Subject: mm/huge_memory: optimize old_order derivation during folio splitting
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split.patch
+     mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,33 +65,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/huge_memory: optimize and simplify folio stat update after split
-Date: Tue, 21 Oct 2025 21:21:41 +0000
+Subject: mm/huge_memory: optimize old_order derivation during folio splitting
+Date: Tue, 21 Oct 2025 21:21:42 +0000
 
-The loop executed after a successful folio split currently has two
-combined responsibilities:
+Folio splitting requires both the folio's original order (@old_order) and
+the new target order (@split_order).
 
-  * updating statistics for the new folios
-  * determining the folio for the next split iteration.
+In the current implementation, @old_order is repeatedly retrieved using
+folio_order().
 
-This commit refactors the logic to directly calculate and update folio
-statistics, eliminating the need for the iteration step.
+However, for every iteration after the first, the folio being split is the
+result of the previous split, meaning its order is already known to be
+equal to the previous iteration's @split_order.
 
-We can do this because all necessary information is already available:
+This commit optimizes the logic:
 
-  * All resulting new folios have the same order, which is @split_order.
-  * The exact number of new folios can be calculated directly using
-    @old_order and @split_order.
-  * The folio for the subsequent split is simply the one containing
-    @split_at.
+  * Instead of calling folio_order(), we now set @old_order directly to
+    the value of @split_order from the previous iteration.
 
-By leveraging this knowledge, we can achieve the stat update more cleanly
-and efficiently without the looping logic.
+This change avoids unnecessary function calls and simplifies the loop
+setup.
 
-Link: https://lkml.kernel.org/r/20251021212142.25766-4-richard.weiyang@gmail.com
+Also it removes a check for non-existent case, since for uniform splitting
+we only do split when @split_order == @new_order.
+
+Link: https://lkml.kernel.org/r/20251021212142.25766-5-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: wang lian <lianux.mm@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -104,50 +105,48 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ mm/huge_memory.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split
+--- a/mm/huge_memory.c~mm-huge_memory-optimize-old_order-derivation-during-folio-splitting
 +++ a/mm/huge_memory.c
-@@ -3609,7 +3609,6 @@ static int __split_unmapped_folio(struct
+@@ -3607,8 +3607,8 @@ static int __split_unmapped_folio(struct
+ 		struct address_space *mapping, bool uniform_split)
+ {
  	const bool is_anon = folio_test_anon(folio);
- 	int order = folio_order(folio);
- 	int start_order = uniform_split ? new_order : order - 1;
--	struct folio *next;
+-	int order = folio_order(folio);
+-	int start_order = uniform_split ? new_order : order - 1;
++	int old_order = folio_order(folio);
++	int start_order = uniform_split ? new_order : old_order - 1;
  	int split_order;
  
  	folio_clear_has_hwpoisoned(folio);
-@@ -3621,9 +3620,8 @@ static int __split_unmapped_folio(struct
+@@ -3620,14 +3620,11 @@ static int __split_unmapped_folio(struct
  	for (split_order = start_order;
  	     split_order >= new_order;
  	     split_order--) {
--		struct folio *end_folio = folio_next(folio);
- 		int old_order = folio_order(folio);
--		struct folio *new_folio;
-+		int nr_new_folios = 1UL << (old_order - split_order);
+-		int old_order = folio_order(folio);
+ 		int nr_new_folios = 1UL << (old_order - split_order);
  
  		/* order-1 anonymous folio is not supported */
  		if (is_anon && split_order == 1)
-@@ -3652,19 +3650,11 @@ static int __split_unmapped_folio(struct
- 		pgalloc_tag_split(folio, old_order, split_order);
- 		__split_folio_to_order(folio, old_order, split_order);
+ 			continue;
+-		if (uniform_split && split_order != new_order)
+-			continue;
  
--		if (is_anon)
-+		if (is_anon) {
+ 		if (mapping) {
+ 			/*
+@@ -3654,7 +3651,13 @@ static int __split_unmapped_folio(struct
  			mod_mthp_stat(old_order, MTHP_STAT_NR_ANON, -1);
--		/*
--		 * Iterate through after-split folios and update folio stats.
--		 */
--		for (new_folio = folio; new_folio != end_folio; new_folio = next) {
--			next = folio_next(new_folio);
--			if (new_folio == page_folio(split_at))
--				folio = new_folio;
--			if (is_anon)
--				mod_mthp_stat(folio_order(new_folio),
--					      MTHP_STAT_NR_ANON, 1);
-+			mod_mthp_stat(split_order, MTHP_STAT_NR_ANON, nr_new_folios);
+ 			mod_mthp_stat(split_order, MTHP_STAT_NR_ANON, nr_new_folios);
  		}
-+		folio = page_folio(split_at);
++		/*
++		 * If uniform split, the process is complete.
++		 * If non-uniform, continue splitting the folio at @split_at
++		 * as long as the next @split_order is >= @new_order.
++		 */
+ 		folio = page_folio(split_at);
++		old_order = split_order;
  	}
  
  	return 0;
