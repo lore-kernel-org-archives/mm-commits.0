@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A7A2F363B
-	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 21:27:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7229E2FC891
+	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 21:45:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761168421; cv=none; b=uSbuwT1IHOdt1N2MF3Huu0Vx1FcUx9yWdbJzcEKQ96Tl2C+8S4sHD/PerUZJAlN+mbHsvmmM1RtGlFFiV/DKLEYXlzV1VQ1wxol9OOIdQ+nvvq07hhUpKGMeFmVAKXqxMTIbt3N6b6pZ6+G8ITBVUJD3qr6VhMlSx+jqkwXFDaY=
+	t=1761169504; cv=none; b=pm5QpAMNVMV1hrY/dSY5Azi7ZOD2gMk5pli2ekgNnO5XrJFILYmSD10N9hWtUsz/teNGyWLpV5O4D03RSc4MIu+eekvbxsSrwCY7qFALniYwZDOwx0df1bo1LXH86mfFvCKZyWH/I9OvNXexT9rTZoHbYFk8iOliMuIw9831KK0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761168421; c=relaxed/simple;
-	bh=UhceWK4RiXawM7xuOhWPzNYEHozU0iU36ndUIpVlIiQ=;
-	h=Date:To:From:Subject:Message-Id; b=NiryQYurVuDXFdZTLsU1HkrY0ZlE+c77JKwv3QkuHU17GeWSKM6h7KXl+Ar5yWjrpeUUGb5+cCFR2tFaNDOdzNinpqQhqL1J55b0ETUVbFefOP64D0FWPBwthLGV3TXPbhYOdqELXyb1OnjFPJzQXBysk5DJoznZhl/vKqRApIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gR5xEBoD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761169504; c=relaxed/simple;
+	bh=f7oX94YhRdZdaG7HZa7yn/vOi+GKuORAPH+RUi9Szyg=;
+	h=Date:To:From:Subject:Message-Id; b=uMdqHzBKu9k3ikmlPstEZcgA2ck/d+OGx9V88rl4LMCE7PeiHpymsN4DG2DXVF1KWhaNcnifP/DTl7k7HdIHe2gOOWX1tMwDuvT2PFPsjkuQ+NnujuY+EcTTpwISqNGODipOI1h5sfmJQR6egIOm7cwZ2uYFObU+qsJCP7Sm110=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PM328DEE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gR5xEBoD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70A7CC4CEE7;
-	Wed, 22 Oct 2025 21:27:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PM328DEE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1036C4CEE7;
+	Wed, 22 Oct 2025 21:45:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761168420;
-	bh=UhceWK4RiXawM7xuOhWPzNYEHozU0iU36ndUIpVlIiQ=;
+	s=korg; t=1761169503;
+	bh=f7oX94YhRdZdaG7HZa7yn/vOi+GKuORAPH+RUi9Szyg=;
 	h=Date:To:From:Subject:From;
-	b=gR5xEBoDZhFegjhgFi2LUUk1+UrVp9DUvSro/vfJt/308VDDA8+9eWoVDkCnZM+AC
-	 nnjVOhfLjY99p5fmXU0pMtcBqb8nffWcyrUMxDVZyh0BX613JAF3WAm35wTDoDSl6v
-	 lloqLTB8B73RFECg6wbfKNZJC7KM2LhJzdmT85Rs=
-Date: Wed, 22 Oct 2025 14:26:59 -0700
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,david@redhat.com,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=PM328DEEtM8Y+ZxlyKGCDwvsZIqlMClLyjO645bXbVDAbYy4pHrnhYsMkZc/XokfW
+	 mLghW9GKxIY3hDP8fukdilDMWI4NlIhpVXCn0pjRx7a08PWKydBean1lRaxqAn/90X
+	 tGsZk9wEVbiYJ6CRzYlSHuzZ5SPmriFiPAZfEH8Y=
+Date: Wed, 22 Oct 2025 14:45:02 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch added to mm-new branch
-Message-Id: <20251022212700.70A7CC4CEE7@smtp.kernel.org>
+Subject: + mm-huge_memory-avoid-reinvoking-folio_test_anon.patch added to mm-new branch
+Message-Id: <20251022214502.D1036C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: add [pte|pmd]_mkwrite_novma() tests
+     Subject: mm/huge_memory: avoid reinvoking folio_test_anon()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch
+     mm-huge_memory-avoid-reinvoking-folio_test_anon.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-avoid-reinvoking-folio_test_anon.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,59 +64,103 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/debug_vm_pgtable: add [pte|pmd]_mkwrite_novma() tests
-Date: Wed, 22 Oct 2025 04:29:51 +0100
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/huge_memory: avoid reinvoking folio_test_anon()
+Date: Tue, 21 Oct 2025 21:21:39 +0000
 
-Add some [pte|pmd]_mkwrite_novma() relevant tests.
+Patch series "mm/huge_memory: cleanup __split_unmapped_folio()", v3.
 
-Link: https://lkml.kernel.org/r/20251022032951.3498553-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Huang Ying <ying.huang@linux.alibaba.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+This patch series cleans up and optimizes the internal logic of the
+__split_unmapped_folio() function.
+
+The goal is to improve clarity and efficiency by eliminating redundant
+checks, caching stable attribute values, and simplifying the iteration
+logic used for updating folio statistics.
+
+These changes make the code easier to follow and maintain.
+
+The split_huge_page_test selftest pass.
+
+
+This patch (of 4):
+
+During the execution of __split_unmapped_folio(), the folio's anon/!anon
+attribute is invariant (not expected to change).
+
+Therefore, it is safe and more efficient to retrieve this attribute once
+at the start and reuse it throughout the function.
+
+Link: https://lkml.kernel.org/r/20251021212142.25766-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20251016004613.514-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20251016004613.514-2-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20251021212142.25766-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: wang lian <lianux.mm@gmail.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mariano Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Nico Pache <npache@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/huge_memory.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-add-_mkwrite_novma-tests
-+++ a/mm/debug_vm_pgtable.c
-@@ -102,6 +102,12 @@ static void __init pte_basic_tests(struc
- 	WARN_ON(pte_write(pte_wrprotect(pte_mkwrite(pte, args->vma))));
- 	WARN_ON(pte_dirty(pte_wrprotect(pte_mkclean(pte))));
- 	WARN_ON(!pte_dirty(pte_wrprotect(pte_mkdirty(pte))));
-+
-+	WARN_ON(!pte_dirty(pte_mkwrite_novma(pte_mkdirty(pte))));
-+	WARN_ON(pte_dirty(pte_mkwrite_novma(pte_mkclean(pte))));
-+	WARN_ON(!pte_write(pte_mkdirty(pte_mkwrite_novma(pte))));
-+	WARN_ON(!pte_write(pte_mkwrite_novma(pte_wrprotect(pte))));
-+	WARN_ON(pte_write(pte_wrprotect(pte_mkwrite_novma(pte))));
- }
+--- a/mm/huge_memory.c~mm-huge_memory-avoid-reinvoking-folio_test_anon
++++ a/mm/huge_memory.c
+@@ -3606,6 +3606,7 @@ static int __split_unmapped_folio(struct
+ 		struct page *split_at, struct xa_state *xas,
+ 		struct address_space *mapping, bool uniform_split)
+ {
++	const bool is_anon = folio_test_anon(folio);
+ 	int order = folio_order(folio);
+ 	int start_order = uniform_split ? new_order : order - 1;
+ 	bool stop_split = false;
+@@ -3613,7 +3614,7 @@ static int __split_unmapped_folio(struct
+ 	int split_order;
+ 	int ret = 0;
  
- static void __init pte_advanced_tests(struct pgtable_debug_args *args)
-@@ -195,6 +201,12 @@ static void __init pmd_basic_tests(struc
- 	WARN_ON(pmd_write(pmd_wrprotect(pmd_mkwrite(pmd, args->vma))));
- 	WARN_ON(pmd_dirty(pmd_wrprotect(pmd_mkclean(pmd))));
- 	WARN_ON(!pmd_dirty(pmd_wrprotect(pmd_mkdirty(pmd))));
-+
-+	WARN_ON(pmd_dirty(pmd_mkwrite_novma(pmd_mkclean(pmd))));
-+	WARN_ON(!pmd_write(pmd_mkdirty(pmd_mkwrite_novma(pmd))));
-+	WARN_ON(!pmd_write(pmd_mkwrite_novma(pmd_wrprotect(pmd))));
-+	WARN_ON(pmd_write(pmd_wrprotect(pmd_mkwrite_novma(pmd))));
-+
- 	/*
- 	 * A huge page does not point to next level page table
- 	 * entry. Hence this must qualify as pmd_bad().
+-	if (folio_test_anon(folio))
++	if (is_anon)
+ 		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
+ 
+ 	folio_clear_has_hwpoisoned(folio);
+@@ -3630,7 +3631,7 @@ static int __split_unmapped_folio(struct
+ 		struct folio *new_folio;
+ 
+ 		/* order-1 anonymous folio is not supported */
+-		if (folio_test_anon(folio) && split_order == 1)
++		if (is_anon && split_order == 1)
+ 			continue;
+ 		if (uniform_split && split_order != new_order)
+ 			continue;
+@@ -3682,7 +3683,7 @@ static int __split_unmapped_folio(struct
+ 				if (split_order != new_order && !stop_split)
+ 					continue;
+ 			}
+-			if (folio_test_anon(new_folio))
++			if (is_anon)
+ 				mod_mthp_stat(folio_order(new_folio),
+ 					      MTHP_STAT_NR_ANON, 1);
+ 		}
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-thp-drop-follow_devmap_pmd-default-stub.patch
-mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
-mm-replace-read_once-with-standard-page-table-accessors.patch
-mm-dirty-replace-read_once-with-pudp_get.patch
-mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch
+mm-compaction-check-the-range-to-pageblock_pfn_to_page-is-within-the-zone-first.patch
+mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch
+mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
+mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch
+mm-huge_memory-avoid-reinvoking-folio_test_anon.patch
+mm-huge_memory-update-folio-stat-after-successful-split.patch
+mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split.patch
+mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch
 
