@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20E182222AF
-	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 19:02:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16D82222AF
+	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 19:02:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761159726; cv=none; b=LEVKOtnXSBwQLLbUPlm4YoQ+ZoegI+Kv3MJdmaQhfjS9+cBFAFsFfhe5TBh3xOsOxX4NUG0My42Z52IWplqdHsrR90PEQzjqcaak3LAqn6OKNM4+4vDxc3O2BkUloWJgEbLeM7kCZWBiX6Iu8Q/qlcO0LcYaO8RYNjjoH4EowqY=
+	t=1761159726; cv=none; b=fQSyMZwQac4lNrsPuOFVQCU6y3omJ3tbmOairUGDjCW0+fcBoL6SZrNyPtZRYfkZ4Vm7a13OpHEAhIh/a38y8T46Ih37v5mdKng6qr3P48lDjURqlvrd0L0UmSuzMWWFS9DDR9nK0yDNhHIBz18oQyOn00ZIS3NCytVh91MHxT8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1761159726; c=relaxed/simple;
-	bh=S2OjIeEwS97TtKP//DZyf5fy7pINM9kSai9e5w8PT7w=;
-	h=Date:To:From:Subject:Message-Id; b=eSfLiY6E1v4wXYKlnRH+SMlzAO7Xf74wUpp5zB0Uk8UTvxP1TpCFL4J/Zb4q4r1n/ltClrb8G/G5cKR0T7knBDfOGPAaIKngThlgMUXon3/mMxHE1+Z7fxjNMAMggEV59ZkZL95lceIGhEZ/LpJcKqG0eiDC+St3mc4wPBJZqOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2GHIlMvK; arc=none smtp.client-ip=10.30.226.201
+	bh=RJNFnEFdADRhOSMEyCHAoNJ7l4faZzUp4EvgoNgdGjY=;
+	h=Date:To:From:Subject:Message-Id; b=jMYxYGRuT+ARDJ3IQmJxDW9jCh11mnBBFIGIvAW5mJqy3JfTgnmEZ3Sdy01fKZVOScuZ9hA3cautOGLUppIbQnPh1LENXnHZT+8+B+rNddc6qQ2jJK0JZprEy8LyBEH3a8/PWzrV+HFOPpb7igVt974Wcx5dPPYy8sJvSeeiRxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c0Y4FQcc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2GHIlMvK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C04CFC4CEE7;
-	Wed, 22 Oct 2025 19:02:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c0Y4FQcc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 192B0C4CEF7;
+	Wed, 22 Oct 2025 19:02:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761159724;
-	bh=S2OjIeEwS97TtKP//DZyf5fy7pINM9kSai9e5w8PT7w=;
+	s=korg; t=1761159726;
+	bh=RJNFnEFdADRhOSMEyCHAoNJ7l4faZzUp4EvgoNgdGjY=;
 	h=Date:To:From:Subject:From;
-	b=2GHIlMvKBxYHBpedji/7e+cAD1qI/jt/ELNc1c+mgbxZOvSn7MT6sMd5EwvSj2HWx
-	 d04/3Ana20RIXXEIFxa8oRhY1PyAA5A1tUNWsAw4ZqYDwTLMkxsRWPrfS69nLkauYe
-	 CxMtTe0zz2ET7K0cYD29fTO0SfofkPZ3E5eEg19w=
-Date: Wed, 22 Oct 2025 12:02:04 -0700
+	b=c0Y4FQccqVrjBSW+rbDYN1iEX5+kOW5FGSnhRl/idQpg1tSWxZlNM47cpKbblgDV8
+	 stWAblez5tpWL9yj6Qc2xhpMi03Y6MGWRfkWEqKQ3umQcJuW+qualj7J+a2pYTNa/v
+	 K08mMfNMch+8R/DopBqHb1p4OaNxeIOs/63eXN0g=
+Date: Wed, 22 Oct 2025 12:02:05 -0700
 To: mm-commits@vger.kernel.org,yi1.lai@intel.com,willy@infradead.org,will@kernel.org,vinicius.gomes@intel.com,vbabka@suse.cz,vasant.hegde@amd.com,urezki@gmail.com,tglx@linutronix.de,rppt@kernel.org,robin.murphy@arm.com,peterz@infradead.org,mingo@redhat.com,mhocko@kernel.org,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.tian@intel.com,joro@8bytes.org,jgg@nvidia.com,jean-philippe@linaro.org,jannh@google.com,david@redhat.com,bp@alien8.de,baolu.lu@linux.intel.com,apopple@nvidia.com,dave.hansen@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-a-ptdesc-flag-to-mark-kernel-page-tables.patch added to mm-new branch
-Message-Id: <20251022190204.C04CFC4CEE7@smtp.kernel.org>
+Subject: + mm-actually-mark-kernel-page-table-pages.patch added to mm-new branch
+Message-Id: <20251022190206.192B0C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add a ptdesc flag to mark kernel page tables
+     Subject: mm: actually mark kernel page table pages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-a-ptdesc-flag-to-mark-kernel-page-tables.patch
+     mm-actually-mark-kernel-page-table-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-a-ptdesc-flag-to-mark-kernel-page-tables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-actually-mark-kernel-page-table-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,37 +65,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm: add a ptdesc flag to mark kernel page tables
-Date: Wed, 22 Oct 2025 16:26:28 +0800
+Subject: mm: actually mark kernel page table pages
+Date: Wed, 22 Oct 2025 16:26:29 +0800
 
-The page tables used to map the kernel and userspace often have very
-different handling rules.  There are frequently *_kernel() variants of
-functions just for kernel page tables.  That's not great and has lead to
-code duplication.
+Now that the API is in place, mark kernel page table pages just after they
+are allocated.  Unmark them just before they are freed.
 
-Instead of having completely separate call paths, allow a 'ptdesc' to be
-marked as being for kernel mappings.  Introduce helpers to set and clear
-this status.
+Note: Unconditionally clearing the 'kernel' marking (via
+ptdesc_clear_kernel()) would be functionally identical to what is here. 
+But having the if() makes it logically clear that this function can be
+used for kernel and non-kernel page tables.
 
-Note: this uses the PG_referenced bit.  Page flags are a great fit for
-this since it is truly a single bit of information.  Use PG_referenced
-itself because it's a fairly benign flag (as opposed to things like
-PG_lock).  It's also (according to Willy) unlikely to go away any time
-soon.
-
-PG_referenced is not in PAGE_FLAGS_CHECK_AT_FREE.  It does not need to be
-cleared before freeing the page, and pages coming out of the allocator
-should have it cleared.  Regardless, introduce an API to clear it anyway. 
-Having symmetry in the API makes it easier to change the underlying
-implementation later, like if there was a need to move to a
-PAGE_FLAGS_CHECK_AT_FREE bit.
-
-Link: https://lkml.kernel.org/r/20251022082635.2462433-3-baolu.lu@linux.intel.com
+Link: https://lkml.kernel.org/r/20251022082635.2462433-4-baolu.lu@linux.intel.com
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Lu Baolu <baolu.lu@linux.intel.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Reviewed-by: Kevin Tian <kevin.tian@intel.com>
 Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -107,7 +94,6 @@ Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Robin Murohy <robin.murphy@arm.com>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
@@ -120,66 +106,77 @@ Cc: Yi Lai <yi1.lai@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ include/asm-generic/pgalloc.h |   18 ++++++++++++++++++
+ include/linux/mm.h            |    3 +++
+ 2 files changed, 21 insertions(+)
 
---- a/include/linux/mm.h~mm-add-a-ptdesc-flag-to-mark-kernel-page-tables
-+++ a/include/linux/mm.h
-@@ -2955,6 +2955,7 @@ static inline pmd_t *pmd_alloc(struct mm
- #endif /* CONFIG_MMU */
+--- a/include/asm-generic/pgalloc.h~mm-actually-mark-kernel-page-table-pages
++++ a/include/asm-generic/pgalloc.h
+@@ -28,6 +28,8 @@ static inline pte_t *__pte_alloc_one_ker
+ 		return NULL;
+ 	}
  
- enum pt_flags {
-+	PT_kernel = PG_referenced,
- 	PT_reserved = PG_reserved,
- 	/* High bits are used for zone/node/section */
- };
-@@ -2981,6 +2982,46 @@ static inline bool pagetable_is_reserved
++	ptdesc_set_kernel(ptdesc);
++
+ 	return ptdesc_address(ptdesc);
+ }
+ #define __pte_alloc_one_kernel(...)	alloc_hooks(__pte_alloc_one_kernel_noprof(__VA_ARGS__))
+@@ -146,6 +148,10 @@ static inline pmd_t *pmd_alloc_one_nopro
+ 		pagetable_free(ptdesc);
+ 		return NULL;
+ 	}
++
++	if (mm == &init_mm)
++		ptdesc_set_kernel(ptdesc);
++
+ 	return ptdesc_address(ptdesc);
+ }
+ #define pmd_alloc_one(...)	alloc_hooks(pmd_alloc_one_noprof(__VA_ARGS__))
+@@ -179,6 +185,10 @@ static inline pud_t *__pud_alloc_one_nop
+ 		return NULL;
+ 
+ 	pagetable_pud_ctor(ptdesc);
++
++	if (mm == &init_mm)
++		ptdesc_set_kernel(ptdesc);
++
+ 	return ptdesc_address(ptdesc);
+ }
+ #define __pud_alloc_one(...)	alloc_hooks(__pud_alloc_one_noprof(__VA_ARGS__))
+@@ -233,6 +243,10 @@ static inline p4d_t *__p4d_alloc_one_nop
+ 		return NULL;
+ 
+ 	pagetable_p4d_ctor(ptdesc);
++
++	if (mm == &init_mm)
++		ptdesc_set_kernel(ptdesc);
++
+ 	return ptdesc_address(ptdesc);
+ }
+ #define __p4d_alloc_one(...)	alloc_hooks(__p4d_alloc_one_noprof(__VA_ARGS__))
+@@ -277,6 +291,10 @@ static inline pgd_t *__pgd_alloc_noprof(
+ 		return NULL;
+ 
+ 	pagetable_pgd_ctor(ptdesc);
++
++	if (mm == &init_mm)
++		ptdesc_set_kernel(ptdesc);
++
+ 	return ptdesc_address(ptdesc);
+ }
+ #define __pgd_alloc(...)	alloc_hooks(__pgd_alloc_noprof(__VA_ARGS__))
+--- a/include/linux/mm.h~mm-actually-mark-kernel-page-table-pages
++++ a/include/linux/mm.h
+@@ -3050,6 +3050,9 @@ static inline void pagetable_free(struct
+ {
+ 	struct page *page = ptdesc_page(pt);
+ 
++	if (ptdesc_test_kernel(pt))
++		ptdesc_clear_kernel(pt);
++
+ 	__free_pages(page, compound_order(page));
  }
  
- /**
-+ * ptdesc_set_kernel - Mark a ptdesc used to map the kernel
-+ * @ptdesc: The ptdesc to be marked
-+ *
-+ * Kernel page tables often need special handling. Set a flag so that
-+ * the handling code knows this ptdesc will not be used for userspace.
-+ */
-+static inline void ptdesc_set_kernel(struct ptdesc *ptdesc)
-+{
-+	set_bit(PT_kernel, &ptdesc->pt_flags.f);
-+}
-+
-+/**
-+ * ptdesc_clear_kernel - Mark a ptdesc as no longer used to map the kernel
-+ * @ptdesc: The ptdesc to be unmarked
-+ *
-+ * Use when the ptdesc is no longer used to map the kernel and no longer
-+ * needs special handling.
-+ */
-+static inline void ptdesc_clear_kernel(struct ptdesc *ptdesc)
-+{
-+	/*
-+	 * Note: the 'PG_referenced' bit does not strictly need to be
-+	 * cleared before freeing the page. But this is nice for
-+	 * symmetry.
-+	 */
-+	clear_bit(PT_kernel, &ptdesc->pt_flags.f);
-+}
-+
-+/**
-+ * ptdesc_test_kernel - Check if a ptdesc is used to map the kernel
-+ * @ptdesc: The ptdesc being tested
-+ *
-+ * Call to tell if the ptdesc used to map the kernel.
-+ */
-+static inline bool ptdesc_test_kernel(const struct ptdesc *ptdesc)
-+{
-+	return test_bit(PT_kernel, &ptdesc->pt_flags.f);
-+}
-+
-+/**
-  * pagetable_alloc - Allocate pagetables
-  * @gfp:    GFP flags
-  * @order:  desired pagetable order
 _
 
 Patches currently in -mm which might be from dave.hansen@linux.intel.com are
