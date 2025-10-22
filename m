@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A64CD2FF15F
-	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 21:11:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A7A2F363B
+	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 21:27:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761167482; cv=none; b=tD9lOlroWIuXV3xDGLyygyLgJ7981jFrcakPSp78Y1J5R1dr/ySWfeh1n1rhHQ/x6FT5xEHN3s2Eq9QffkJt5qkQQn0/3wtVuwhhUn6t6oWaK8lS69MSw4VoBIfTu8+pQZTDV0xvONvHpg2MkIezWr7mSqo2OSbdbIEqgXxRbYE=
+	t=1761168421; cv=none; b=uSbuwT1IHOdt1N2MF3Huu0Vx1FcUx9yWdbJzcEKQ96Tl2C+8S4sHD/PerUZJAlN+mbHsvmmM1RtGlFFiV/DKLEYXlzV1VQ1wxol9OOIdQ+nvvq07hhUpKGMeFmVAKXqxMTIbt3N6b6pZ6+G8ITBVUJD3qr6VhMlSx+jqkwXFDaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761167482; c=relaxed/simple;
-	bh=RRbGBsbtlSIhCrIGmwHp1EU8j5S2fpCiAArdWLs2Nhk=;
-	h=Date:To:From:Subject:Message-Id; b=DMgSMqKqTutAViLpQiWIhTC/fZW+9lD5hcIw3LBLXUykxDN1BLKrgkKD1la1BNhfVWjVwRrbyDjLHUi5N3DjQTf1DXd1XhMJoONL96Gq5it48FGRLzmpWR9fwS8bEJ1Si0Xj+VUrb5DIr6T/BvATFd7L5HLRyNOYXIPDh8jJV9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ikKexBJC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761168421; c=relaxed/simple;
+	bh=UhceWK4RiXawM7xuOhWPzNYEHozU0iU36ndUIpVlIiQ=;
+	h=Date:To:From:Subject:Message-Id; b=NiryQYurVuDXFdZTLsU1HkrY0ZlE+c77JKwv3QkuHU17GeWSKM6h7KXl+Ar5yWjrpeUUGb5+cCFR2tFaNDOdzNinpqQhqL1J55b0ETUVbFefOP64D0FWPBwthLGV3TXPbhYOdqELXyb1OnjFPJzQXBysk5DJoznZhl/vKqRApIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gR5xEBoD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ikKexBJC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E906C4CEE7;
-	Wed, 22 Oct 2025 21:11:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gR5xEBoD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70A7CC4CEE7;
+	Wed, 22 Oct 2025 21:27:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761167482;
-	bh=RRbGBsbtlSIhCrIGmwHp1EU8j5S2fpCiAArdWLs2Nhk=;
+	s=korg; t=1761168420;
+	bh=UhceWK4RiXawM7xuOhWPzNYEHozU0iU36ndUIpVlIiQ=;
 	h=Date:To:From:Subject:From;
-	b=ikKexBJCX5lplB2zzvW7XJWwLdDcA17PVel1SQltrwtsL1PCHo+nya9aSihnlwQyV
-	 7tyIL1wK8xc3zRqw5GrfhepGgSHX+Ud4wOjiDkkWeXTnbVnJn5YMv4gRYh73m9uzQb
-	 /TkrGLvzzVbENQ9QS9qgz+ouWScd6+X+rQifT99k=
-Date: Wed, 22 Oct 2025 14:11:21 -0700
-To: mm-commits@vger.kernel.org,samitolvanen@google.com,rdunlap@infradead.org,pmladek@suse.com,mcgrof@kernel.org,atomlin@atomlin.com,petr.pavlu@suse.com,akpm@linux-foundation.org
+	b=gR5xEBoDZhFegjhgFi2LUUk1+UrVp9DUvSro/vfJt/308VDDA8+9eWoVDkCnZM+AC
+	 nnjVOhfLjY99p5fmXU0pMtcBqb8nffWcyrUMxDVZyh0BX613JAF3WAm35wTDoDSl6v
+	 lloqLTB8B73RFECg6wbfKNZJC7KM2LhJzdmT85Rs=
+Date: Wed, 22 Oct 2025 14:26:59 -0700
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,david@redhat.com,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + taint-module-remove-unnecessary-taint_flagmodule-field.patch added to mm-nonmm-unstable branch
-Message-Id: <20251022211122.1E906C4CEE7@smtp.kernel.org>
+Subject: + mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch added to mm-new branch
+Message-Id: <20251022212700.70A7CC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: taint/module: remove unnecessary taint_flag.module field
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     taint-module-remove-unnecessary-taint_flagmodule-field.patch
+     Subject: mm/debug_vm_pgtable: add [pte|pmd]_mkwrite_novma() tests
+has been added to the -mm mm-new branch.  Its filename is
+     mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taint-module-remove-unnecessary-taint_flagmodule-field.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,131 +64,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Petr Pavlu <petr.pavlu@suse.com>
-Subject: taint/module: remove unnecessary taint_flag.module field
-Date: Wed, 22 Oct 2025 10:28:04 +0200
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/debug_vm_pgtable: add [pte|pmd]_mkwrite_novma() tests
+Date: Wed, 22 Oct 2025 04:29:51 +0100
 
-The TAINT_RANDSTRUCT and TAINT_FWCTL flags are mistakenly set in the
-taint_flags table as per-module flags.  While this can be trivially
-corrected, the issue can be avoided altogether by removing the
-taint_flag.module field.
+Add some [pte|pmd]_mkwrite_novma() relevant tests.
 
-This is possible because, since commit 7fd8329ba502 ("taint/module: Clean
-up global and module taint flags handling") in 2016, the handling of
-module taint flags has been fully generic.  Specifically,
-module_flags_taint() can print all flags, and the required output buffer
-size is properly defined in terms of TAINT_FLAGS_COUNT.  The actual
-per-module flags are always those added to module.taints by calls to
-add_taint_module().
-
-Link: https://lkml.kernel.org/r/20251022082938.26670-1-petr.pavlu@suse.com
-Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
-Acked-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Aaron Tomlin <atomlin@atomlin.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
+Link: https://lkml.kernel.org/r/20251022032951.3498553-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Ying <ying.huang@linux.alibaba.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/panic.h |    1 
- kernel/module/main.c  |    2 -
- kernel/panic.c        |   46 ++++++++++++++++++----------------------
- 3 files changed, 22 insertions(+), 27 deletions(-)
+ mm/debug_vm_pgtable.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/include/linux/panic.h~taint-module-remove-unnecessary-taint_flagmodule-field
-+++ a/include/linux/panic.h
-@@ -86,7 +86,6 @@ static inline void set_arch_panic_timeou
- struct taint_flag {
- 	char c_true;		/* character printed when tainted */
- 	char c_false;		/* character printed when not tainted */
--	bool module;		/* also show as a per-module taint flag */
- 	const char *desc;	/* verbose description of the set taint flag */
- };
- 
---- a/kernel/module/main.c~taint-module-remove-unnecessary-taint_flagmodule-field
-+++ a/kernel/module/main.c
-@@ -954,7 +954,7 @@ size_t module_flags_taint(unsigned long
- 	int i;
- 
- 	for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
--		if (taint_flags[i].module && test_bit(i, &taints))
-+		if (test_bit(i, &taints))
- 			buf[l++] = taint_flags[i].c_true;
- 	}
- 
---- a/kernel/panic.c~taint-module-remove-unnecessary-taint_flagmodule-field
-+++ a/kernel/panic.c
-@@ -628,17 +628,13 @@ void panic(const char *fmt, ...)
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-add-_mkwrite_novma-tests
++++ a/mm/debug_vm_pgtable.c
+@@ -102,6 +102,12 @@ static void __init pte_basic_tests(struc
+ 	WARN_ON(pte_write(pte_wrprotect(pte_mkwrite(pte, args->vma))));
+ 	WARN_ON(pte_dirty(pte_wrprotect(pte_mkclean(pte))));
+ 	WARN_ON(!pte_dirty(pte_wrprotect(pte_mkdirty(pte))));
++
++	WARN_ON(!pte_dirty(pte_mkwrite_novma(pte_mkdirty(pte))));
++	WARN_ON(pte_dirty(pte_mkwrite_novma(pte_mkclean(pte))));
++	WARN_ON(!pte_write(pte_mkdirty(pte_mkwrite_novma(pte))));
++	WARN_ON(!pte_write(pte_mkwrite_novma(pte_wrprotect(pte))));
++	WARN_ON(pte_write(pte_wrprotect(pte_mkwrite_novma(pte))));
  }
- EXPORT_SYMBOL(panic);
  
--#define TAINT_FLAG(taint, _c_true, _c_false, _module)			\
-+#define TAINT_FLAG(taint, _c_true, _c_false)				\
- 	[ TAINT_##taint ] = {						\
- 		.c_true = _c_true, .c_false = _c_false,			\
--		.module = _module,					\
- 		.desc = #taint,						\
- 	}
- 
- /*
-- * TAINT_FORCED_RMMOD could be a per-module flag but the module
-- * is being removed anyway.
-- *
-  * NOTE: if you modify the taint_flags or TAINT_FLAGS_COUNT,
-  * please also modify tools/debugging/kernel-chktaint and
-  * Documentation/admin-guide/tainted-kernels.rst, including its
-@@ -646,26 +642,26 @@ EXPORT_SYMBOL(panic);
-  * /proc/sys/kernel/tainted.
-  */
- const struct taint_flag taint_flags[TAINT_FLAGS_COUNT] = {
--	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G', true),
--	TAINT_FLAG(FORCED_MODULE,		'F', ' ', true),
--	TAINT_FLAG(CPU_OUT_OF_SPEC,		'S', ' ', false),
--	TAINT_FLAG(FORCED_RMMOD,		'R', ' ', false),
--	TAINT_FLAG(MACHINE_CHECK,		'M', ' ', false),
--	TAINT_FLAG(BAD_PAGE,			'B', ' ', false),
--	TAINT_FLAG(USER,			'U', ' ', false),
--	TAINT_FLAG(DIE,				'D', ' ', false),
--	TAINT_FLAG(OVERRIDDEN_ACPI_TABLE,	'A', ' ', false),
--	TAINT_FLAG(WARN,			'W', ' ', false),
--	TAINT_FLAG(CRAP,			'C', ' ', true),
--	TAINT_FLAG(FIRMWARE_WORKAROUND,		'I', ' ', false),
--	TAINT_FLAG(OOT_MODULE,			'O', ' ', true),
--	TAINT_FLAG(UNSIGNED_MODULE,		'E', ' ', true),
--	TAINT_FLAG(SOFTLOCKUP,			'L', ' ', false),
--	TAINT_FLAG(LIVEPATCH,			'K', ' ', true),
--	TAINT_FLAG(AUX,				'X', ' ', true),
--	TAINT_FLAG(RANDSTRUCT,			'T', ' ', true),
--	TAINT_FLAG(TEST,			'N', ' ', true),
--	TAINT_FLAG(FWCTL,			'J', ' ', true),
-+	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G'),
-+	TAINT_FLAG(FORCED_MODULE,		'F', ' '),
-+	TAINT_FLAG(CPU_OUT_OF_SPEC,		'S', ' '),
-+	TAINT_FLAG(FORCED_RMMOD,		'R', ' '),
-+	TAINT_FLAG(MACHINE_CHECK,		'M', ' '),
-+	TAINT_FLAG(BAD_PAGE,			'B', ' '),
-+	TAINT_FLAG(USER,			'U', ' '),
-+	TAINT_FLAG(DIE,				'D', ' '),
-+	TAINT_FLAG(OVERRIDDEN_ACPI_TABLE,	'A', ' '),
-+	TAINT_FLAG(WARN,			'W', ' '),
-+	TAINT_FLAG(CRAP,			'C', ' '),
-+	TAINT_FLAG(FIRMWARE_WORKAROUND,		'I', ' '),
-+	TAINT_FLAG(OOT_MODULE,			'O', ' '),
-+	TAINT_FLAG(UNSIGNED_MODULE,		'E', ' '),
-+	TAINT_FLAG(SOFTLOCKUP,			'L', ' '),
-+	TAINT_FLAG(LIVEPATCH,			'K', ' '),
-+	TAINT_FLAG(AUX,				'X', ' '),
-+	TAINT_FLAG(RANDSTRUCT,			'T', ' '),
-+	TAINT_FLAG(TEST,			'N', ' '),
-+	TAINT_FLAG(FWCTL,			'J', ' '),
- };
- 
- #undef TAINT_FLAG
+ static void __init pte_advanced_tests(struct pgtable_debug_args *args)
+@@ -195,6 +201,12 @@ static void __init pmd_basic_tests(struc
+ 	WARN_ON(pmd_write(pmd_wrprotect(pmd_mkwrite(pmd, args->vma))));
+ 	WARN_ON(pmd_dirty(pmd_wrprotect(pmd_mkclean(pmd))));
+ 	WARN_ON(!pmd_dirty(pmd_wrprotect(pmd_mkdirty(pmd))));
++
++	WARN_ON(pmd_dirty(pmd_mkwrite_novma(pmd_mkclean(pmd))));
++	WARN_ON(!pmd_write(pmd_mkdirty(pmd_mkwrite_novma(pmd))));
++	WARN_ON(!pmd_write(pmd_mkwrite_novma(pmd_wrprotect(pmd))));
++	WARN_ON(pmd_write(pmd_wrprotect(pmd_mkwrite_novma(pmd))));
++
+ 	/*
+ 	 * A huge page does not point to next level page table
+ 	 * entry. Hence this must qualify as pmd_bad().
 _
 
-Patches currently in -mm which might be from petr.pavlu@suse.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-taint-module-remove-unnecessary-taint_flagmodule-field.patch
+mm-thp-drop-follow_devmap_pmd-default-stub.patch
+mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
+mm-replace-read_once-with-standard-page-table-accessors.patch
+mm-dirty-replace-read_once-with-pudp_get.patch
+mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch
 
