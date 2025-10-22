@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 356632F0C69
-	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 19:02:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2337B169AD2
+	for <mm-commits@vger.kernel.org>; Wed, 22 Oct 2025 19:02:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761159729; cv=none; b=o+Drf2i2ZE7t06z0OOx6LOARwP7n9uTo9uJOVMjiInSWN9o2zj/urYBzrngCKna5SWcjW5aNbFmJc+o32jnGce1rpObhbhEIY3BQS3Ed0Hps7D1/R5+KQ7Mkz7CTxptbVpBuWturuUrbWYdCFwyLiOW2jlmZQ6N7JHW4RJhyil4=
+	t=1761159732; cv=none; b=G/IRfk1MF2EXZlPtg0SubO4jPB/DxjCBZySeQXgd+ixUPEgqF3/3My6INvPwK/EMeW2AG6wmW3Kjr9aJKLlZvmcbJ5kNtnjOwzvIIbMp5GDH2kCtdIxPexXrtzT2f7HDEtpGO6IaxoqU2eS4fYTXnrKeqKHQv+mYkgMpFJO1ZeY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761159729; c=relaxed/simple;
-	bh=00yOVY2talwHu4Xap1ijMKv6qiaSFB0C3StvBf1Sei4=;
-	h=Date:To:From:Subject:Message-Id; b=tRgpNfYqtdOMmx4tpD0DwaW1M6ljhTyxdykyn40ApgUfJw98giTA/Zegitv+SjT0MF9IXrjt9PLbUBKCHwFbIuO/HNmPCMkudcP9PLFyP2z/tQ5Y81aqerigHFI7b0cXON3820nRETlip2dNfxBHpLr6/mZUYeckYbajQNW+pu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0/MwDFBP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761159732; c=relaxed/simple;
+	bh=VToR2lH/TMLbb06e+8rZBhhw/TEWwBX5dG91Wa9D65Q=;
+	h=Date:To:From:Subject:Message-Id; b=cgaP6RwkXbdvcQfkbsNeSV7hKXXDPqAW5wsh0xgqdq6VfI8oy4+d13W3YK+FGmGLph4pEGqZCb6SH2dkT9u7Wcx/Mf4ELMgUz4TMuV9OqwXeHGbmgMhwvuVZTV/IBQQ6JMAMo4cWXKYi56MYr8ZqYxov48v5ORHrV8wVT8tUETk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ERcQtMXI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0/MwDFBP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D842C4CEE7;
-	Wed, 22 Oct 2025 19:02:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ERcQtMXI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 848BEC4CEE7;
+	Wed, 22 Oct 2025 19:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761159727;
-	bh=00yOVY2talwHu4Xap1ijMKv6qiaSFB0C3StvBf1Sei4=;
+	s=korg; t=1761159730;
+	bh=VToR2lH/TMLbb06e+8rZBhhw/TEWwBX5dG91Wa9D65Q=;
 	h=Date:To:From:Subject:From;
-	b=0/MwDFBP9FXt2UftC2KcfP/6rJSnCvISBy9mxivmMqD4fu4M2WeAynEbok3aoFvh4
-	 jTvioc5PfC4DYGrU+GY1KdigkgqnCpZU8ES0GNbCCAPasyN/zea2ausFXKrrnSPRb0
-	 hcxKQZ85PhB5cQfIX76godrkpmC6EcyHvuGK1aFE=
-Date: Wed, 22 Oct 2025 12:02:07 -0700
-To: mm-commits@vger.kernel.org,yi1.lai@intel.com,willy@infradead.org,will@kernel.org,vinicius.gomes@intel.com,vbabka@suse.cz,vasant.hegde@amd.com,urezki@gmail.com,tglx@linutronix.de,rppt@kernel.org,robin.murphy@arm.com,peterz@infradead.org,mingo@redhat.com,mhocko@kernel.org,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.tian@intel.com,joro@8bytes.org,jgg@nvidia.com,jean-philippe@linaro.org,jannh@google.com,david@redhat.com,bp@alien8.de,baolu.lu@linux.intel.com,apopple@nvidia.com,dave.hansen@linux.intel.com,akpm@linux-foundation.org
+	b=ERcQtMXIIJVAn9uAYYbgm9ZscuPtTfHPpwYp3EO5jO7Le9/phf69T4U2OLnEQ2ktV
+	 8yAuK/kvABPmK5YplVCS8homcbRrgBK/K+Tam1CnGq3BDJbB9OvcXKY9CDLZB2i2kv
+	 prub1ij/gczbYqWfOpTuij3wLk61Sep/Gb3WaV5g=
+Date: Wed, 22 Oct 2025 12:02:10 -0700
+To: mm-commits@vger.kernel.org,yi1.lai@intel.com,willy@infradead.org,will@kernel.org,vinicius.gomes@intel.com,vbabka@suse.cz,vasant.hegde@amd.com,urezki@gmail.com,tglx@linutronix.de,rppt@kernel.org,robin.murphy@arm.com,peterz@infradead.org,mingo@redhat.com,mhocko@kernel.org,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.tian@intel.com,joro@8bytes.org,jgg@nvidia.com,jean-philippe@linaro.org,jannh@google.com,david@redhat.com,dave.hansen@intel.com,bp@alien8.de,apopple@nvidia.com,baolu.lu@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-use-ptdesc-when-freeing-pmd-pages.patch added to mm-new branch
-Message-Id: <20251022190207.8D842C4CEE7@smtp.kernel.org>
+Subject: + x86-mm-use-pagetable_free.patch added to mm-new branch
+Message-Id: <20251022190210.848BEC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm: use 'ptdesc' when freeing PMD pages
+     Subject: x86/mm: use pagetable_free()
 has been added to the -mm mm-new branch.  Its filename is
-     x86-mm-use-ptdesc-when-freeing-pmd-pages.patch
+     x86-mm-use-pagetable_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-use-ptdesc-when-freeing-pmd-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-use-pagetable_free.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,41 +64,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: x86/mm: use 'ptdesc' when freeing PMD pages
-Date: Wed, 22 Oct 2025 16:26:30 +0800
+From: Lu Baolu <baolu.lu@linux.intel.com>
+Subject: x86/mm: use pagetable_free()
+Date: Wed, 22 Oct 2025 16:26:32 +0800
 
-There are a billion ways to refer to a physical memory address.  One of
-the x86 PMD freeing code location chooses to use a 'pte_t *' to point to a
-PMD page and then call a PTE-specific freeing function for it.  That's a
-bit wonky.
+The kernel's memory management subsystem provides a dedicated interface,
+pagetable_free(), for freeing page table pages.  Updates two call sites to
+use pagetable_free() instead of the lower-level __free_page() or
+free_pages().  This improves code consistency and clarity, and ensures the
+correct freeing mechanism is used.
 
-Just use a 'struct ptdesc *' instead.  Its entire purpose is to refer to
-page table pages.  It also means being able to remove an explicit cast.
-
-Right now, pte_free_kernel() is a one-liner that calls
-pagetable_dtor_free().  Effectively, all this patch does is remove one
-superfluous __pa(__va(paddr)) conversion and then call
-pagetable_dtor_free() directly instead of through a helper.
-
-Link: https://lkml.kernel.org/r/20251022082635.2462433-5-baolu.lu@linux.intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Link: https://lkml.kernel.org/r/20251022082635.2462433-7-baolu.lu@linux.intel.com
 Signed-off-by: Lu Baolu <baolu.lu@linux.intel.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Kevin Tian <kevin.tian@intel.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jean-Philippe Brucker <jean-philippe@linaro.org>
 Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Kevin Tian <kevin.tian@intel.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Robin Murohy <robin.murphy@arm.com>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
@@ -111,57 +104,37 @@ Cc: Yi Lai <yi1.lai@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/mm/init_64.c        |    2 +-
+ arch/x86/mm/pat/set_memory.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/x86/mm/pgtable.c~x86-mm-use-ptdesc-when-freeing-pmd-pages
-+++ a/arch/x86/mm/pgtable.c
-@@ -729,7 +729,7 @@ int pmd_clear_huge(pmd_t *pmd)
- int pud_free_pmd_page(pud_t *pud, unsigned long addr)
- {
- 	pmd_t *pmd, *pmd_sv;
--	pte_t *pte;
-+	struct ptdesc *pt;
- 	int i;
- 
- 	pmd = pud_pgtable(*pud);
-@@ -750,8 +750,8 @@ int pud_free_pmd_page(pud_t *pud, unsign
- 
- 	for (i = 0; i < PTRS_PER_PMD; i++) {
- 		if (!pmd_none(pmd_sv[i])) {
--			pte = (pte_t *)pmd_page_vaddr(pmd_sv[i]);
--			pte_free_kernel(&init_mm, pte);
-+			pt = page_ptdesc(pmd_page(pmd_sv[i]));
-+			pagetable_dtor_free(pt);
- 		}
+--- a/arch/x86/mm/init_64.c~x86-mm-use-pagetable_free
++++ a/arch/x86/mm/init_64.c
+@@ -1031,7 +1031,7 @@ static void __meminit free_pagetable(str
+ 		free_reserved_pages(page, nr_pages);
+ #endif
+ 	} else {
+-		__free_pages(page, order);
++		pagetable_free(page_ptdesc(page));
  	}
- 
-@@ -772,15 +772,15 @@ int pud_free_pmd_page(pud_t *pud, unsign
-  */
- int pmd_free_pte_page(pmd_t *pmd, unsigned long addr)
- {
--	pte_t *pte;
-+	struct ptdesc *pt;
- 
--	pte = (pte_t *)pmd_page_vaddr(*pmd);
-+	pt = page_ptdesc(pmd_page(*pmd));
- 	pmd_clear(pmd);
- 
- 	/* INVLPG to clear all paging-structure caches */
- 	flush_tlb_kernel_range(addr, addr + PAGE_SIZE-1);
- 
--	pte_free_kernel(&init_mm, pte);
-+	pagetable_dtor_free(pt);
- 
- 	return 1;
  }
+ 
+--- a/arch/x86/mm/pat/set_memory.c~x86-mm-use-pagetable_free
++++ a/arch/x86/mm/pat/set_memory.c
+@@ -429,7 +429,7 @@ static void cpa_collapse_large_pages(str
+ 
+ 	list_for_each_entry_safe(ptdesc, tmp, &pgtables, pt_list) {
+ 		list_del(&ptdesc->pt_list);
+-		__free_page(ptdesc_page(ptdesc));
++		pagetable_free(ptdesc);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from baolu.lu@linux.intel.com are
 
-mm-add-a-ptdesc-flag-to-mark-kernel-page-tables.patch
-mm-actually-mark-kernel-page-table-pages.patch
-x86-mm-use-ptdesc-when-freeing-pmd-pages.patch
-mm-introduce-pure-page-table-freeing-function.patch
-mm-introduce-deferred-freeing-for-kernel-page-tables.patch
+iommu-disable-sva-when-config_x86-is-set.patch
+x86-mm-use-pagetable_free.patch
+iommu-sva-invalidate-stale-iotlb-entries-for-kernel-address-space.patch
 
