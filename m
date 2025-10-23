@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C16432B9B7
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 19:37:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CFF91F0E3E
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 20:00:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761248267; cv=none; b=fHyZgEKF74wSxpivd0FD+R1lg7+bdyG/nS7Yc4DbxuiDcwzV8aB4d9Dg7T546hdRsQZrBkf3UWHb57NSs5KsC0gf6p/NGlOsPxAB0nXhldaQzEMgQ3izKszYMbWUCPE/xMlJlsfbGlEqKVT/db+22Og1fjP+vxb8+xUf5jG7DW4=
+	t=1761249621; cv=none; b=QaENikYmj0OCYWMpVLSLUa06Hlx3wxdq8S3SnMyqc0Mag2a/eMWrEWImDPr8QWcGgLAfQsYCV+9jCV5LxKd++YrF0zMWChQdi9UFFZzFY/To1NnKO75Qoi+P9v74r5LFQfiNQHZPjZbEoLmAMnU0A1OTRfvEBTHZIRixBUwBBuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761248267; c=relaxed/simple;
-	bh=+IAcabHBkaU5A0NSb34mj1x1SQzZ8+C+A1pklPSxrnM=;
-	h=Date:To:From:Subject:Message-Id; b=UFJ+MK/wh1mSUX15afLcMjQiDlt4ErWOeNTPJBLSSaWyGk8NJ/zq6UzCFDWXDV5RMtu5XZY5AbtxOG+S/qlerRTFEsBwlw5mc1mjHbW6hVIrWMSrB+b33bN1KLeXLt96cdzYfsi/3CCIqZl+2gJCmfuIzV0NnZyMM74HH9rZNc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1x2fMVHZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761249621; c=relaxed/simple;
+	bh=+M2cL9y/0RDc22tjBQ1w2lNxJrFW7z58M1BKTE4XFnY=;
+	h=Date:To:From:Subject:Message-Id; b=jVg0THJXeOl+x46HSosTu6h9W1XX7ykerKLnL7JmSADkTpi2VLwj/uubEPpRoMXaE1g303S7bpm3st0d7l+APRg3x2sw9D3egZ/03JzciuQmAgpiMvApzFtCED2xLpVCvzZs925vKdLkKuuumWncEs6dfJ4wCQ/M3uNAD530HA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mvVGxzEf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1x2fMVHZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA4A8C4CEE7;
-	Thu, 23 Oct 2025 19:37:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mvVGxzEf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6117AC4CEE7;
+	Thu, 23 Oct 2025 20:00:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761248267;
-	bh=+IAcabHBkaU5A0NSb34mj1x1SQzZ8+C+A1pklPSxrnM=;
+	s=korg; t=1761249620;
+	bh=+M2cL9y/0RDc22tjBQ1w2lNxJrFW7z58M1BKTE4XFnY=;
 	h=Date:To:From:Subject:From;
-	b=1x2fMVHZ8k3BHISjgL/GqIOe/nL97VGyZ8WRykLKZRr3OSIPldV5MfiKgXnSiS3fW
-	 UalizsKiQ6r99gU+lqw4tWTwpE7Io9JYvRlvRLGaKgf+wJ19SJmxDosWWe+GmuppBG
-	 w6IGuAvkGtn6HlT3Bxsli6aT7pveh4vQ7x5eo3/Y=
-Date: Thu, 23 Oct 2025 12:37:46 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,shakeel.butt@linux.dev,rppt@kernel.org,rdunlap@infradead.org,peterz@infradead.org,paulmck@kernel.org,ojeda@kernel.org,nathan@kernel.org,mkoutny@suse.com,mingo@kernel.org,masahiroy@kernel.org,kernel@jfarr.cc,kees@kernel.org,jeffxu@chromium.org,hca@linux.ibm.com,guoweikang.kernel@gmail.com,geert@linux-m68k.org,francesco@valla.it,dianders@chromium.org,chenhuacai@kernel.org,brgerst@gmail.com,brauner@kernel.org,alexander.shishkin@linux.intel.com,achant@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=mvVGxzEfUsECZNvIfyKRjYwxHwV+b5w3BVdqdY4LJJw0oo/NyHIyYZXOgsVvi4mdp
+	 o7tZ6zEI/Yzz3h3PKpNY5VnlgvxendMNYNx1AArmaPj1/Q+wAeddhg57AX2tUjaSEM
+	 We31yc0r2b99kllgli5i60jD9WLv90W7tDMPutkk=
+Date: Thu, 23 Oct 2025 13:00:19 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251023193746.EA4A8C4CEE7@smtp.kernel.org>
+Subject: + mm-shmem-tmpfs-hugepage-defaults-config-choice.patch added to mm-new branch
+Message-Id: <20251023200020.6117AC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix.patch
+     Subject: mm: shmem/tmpfs hugepage defaults config choice
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shmem-tmpfs-hugepage-defaults-config-choice.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-tmpfs-hugepage-defaults-config-choice.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,62 +64,186 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix
-Date: Thu Oct 23 12:32:59 PM PDT 2025
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+Subject: mm: shmem/tmpfs hugepage defaults config choice
+Date: Thu, 23 Oct 2025 18:12:02 +0000
 
-make print_kernel_cmdline __init
+Allow to override defaults for shmem and tmpfs at config time.  This is
+consistent with how transparent hugepages can be configured.
 
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Andrew Chant <achant@google.com>
-Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Francesco Valla <francesco@valla.it>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: guoweikang <guoweikang.kernel@gmail.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jan Hendrik Farr <kernel@jfarr.cc>
-Cc: Jeff Xu <jeffxu@chromium.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
+Same results can be achieved with the existing
+'transparent_hugepage_shmem' and 'transparent_hugepage_tmpfs' settings in
+the kernel command line, but it is more convenient to define basic
+settings at config time instead of changing kernel command line later.
+
+Defaults for shmem and tmpfs were not changed.  They are remained the same
+as before: 'never' for both cases.  Options 'deny' and 'force' are omitted
+intentionally since these are special values and supposed to be used for
+emergencies or testing and are not expected to be permanent ones.
+
+Link: https://lkml.kernel.org/r/aPpv8sAa2sYgNu3L@shell.ilvokhin.com
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |   91 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/shmem.c |   33 +++++++++++++++++-
+ 2 files changed, 122 insertions(+), 2 deletions(-)
 
---- a/init/main.c~init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix
-+++ a/init/main.c
-@@ -944,7 +944,7 @@ static void __init early_numa_node_init(
-  *   Kernel command line: jumps over the \
-  *   Kernel command line: lazy dog."
-  */
--static void print_kernel_cmdline(const char *cmdline)
-+static void __init print_kernel_cmdline(const char *cmdline)
- {
- 	size_t len;
+--- a/mm/Kconfig~mm-shmem-tmpfs-hugepage-defaults-config-choice
++++ a/mm/Kconfig
+@@ -853,6 +853,97 @@ choice
+ 	  enabled at runtime via sysfs.
+ endchoice
  
++choice
++	prompt "Shmem hugepage allocation defaults"
++	depends on TRANSPARENT_HUGEPAGE
++	default TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER
++	help
++	  Selects the hugepage allocation policy defaults for
++	  the internal shmem mount.
++
++	  The selection made here can be overridden by using the kernel
++	  command line 'transparent_hugepage_shmem=' option.
++
++	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER
++		bool "never"
++	help
++	  Disable hugepage allocation for shmem mount by default. It can
++	  still be enabled with the kernel command line
++	  'transparent_hugepage_shmem=' option or at runtime via sysfs
++	  knob. Note that madvise(MADV_COLLAPSE) can still cause
++	  transparent huge pages to be obtained even if this mode is
++	  specified.
++
++	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ALWAYS
++		bool "always"
++	help
++	  Always attempt to allocate hugepage for shmem mount, can
++	  increase the memory footprint of applications without a
++	  guaranteed benefit but it will work automatically for all
++	  applications.
++
++	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_WITHIN_SIZE
++		bool "within_size"
++	help
++	  Enable hugepage allocation for shmem mount if the allocation
++	  will be fully within the i_size. This configuration also takes
++	  into account any madvise(MADV_HUGEPAGE) hints that may be
++	  provided by the applications.
++
++	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ADVISE
++		bool "advise"
++	help
++	  Enable hugepage allocation for the shmem mount exclusively when
++	  applications supply the madvise(MADV_HUGEPAGE) hint.
++	  This ensures that hugepages are used only in response to explicit
++	  requests from applications.
++endchoice
++
++choice
++	prompt "Tmpfs hugepage allocation defaults"
++	depends on TRANSPARENT_HUGEPAGE
++	default TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER
++	help
++	  Selects the hugepage allocation policy defaults for
++	  the tmpfs mount.
++
++	  The selection made here can be overridden by using the kernel
++	  command line 'transparent_hugepage_tmpfs=' option.
++
++	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER
++		bool "never"
++	help
++	  Disable hugepage allocation for tmpfs mount by default. It can
++	  still be enabled with the kernel command line
++	  'transparent_hugepage_tmpfs=' option. Note that
++	  madvise(MADV_COLLAPSE) can still cause transparent huge pages
++	  to be obtained even if this mode is specified.
++
++	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ALWAYS
++		bool "always"
++	help
++	  Always attempt to allocate hugepage for tmpfs mount, can
++	  increase the memory footprint of applications without a
++	  guaranteed benefit but it will work automatically for all
++	  applications.
++
++	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_WITHIN_SIZE
++		bool "within_size"
++	help
++	  Enable hugepage allocation for tmpfs mount if the allocation
++	  will be fully within the i_size. This configuration also takes
++	  into account any madvise(MADV_HUGEPAGE) hints that may be
++	  provided by the applications.
++
++	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ADVISE
++		bool "advise"
++	help
++	  Enable hugepage allocation for the tmpfs mount exclusively when
++	  applications supply the madvise(MADV_HUGEPAGE) hint.
++	  This ensures that hugepages are used only in response to explicit
++	  requests from applications.
++endchoice
++
+ config THP_SWAP
+ 	def_bool y
+ 	depends on TRANSPARENT_HUGEPAGE && ARCH_WANTS_THP_SWAP && SWAP && 64BIT
+--- a/mm/shmem.c~mm-shmem-tmpfs-hugepage-defaults-config-choice
++++ a/mm/shmem.c
+@@ -570,8 +570,37 @@ static int shmem_confirm_swap(struct add
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /* ifdef here to avoid bloating shmem.o when not necessary */
+ 
+-static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
+-static int tmpfs_huge __read_mostly = SHMEM_HUGE_NEVER;
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER)
++#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_NEVER
++#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ALWAYS)
++#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_ALWAYS
++#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_WITHIN_SIZE)
++#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_WITHIN_SIZE
++#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ADVISE)
++#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_ADVISE
++#else
++#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_NEVER
++#endif
++
++static int shmem_huge __read_mostly = SHMEM_HUGE_DEFAULT;
++
++#undef SHMEM_HUGE_DEFAULT
++
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER)
++#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_NEVER
++#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ALWAYS)
++#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_ALWAYS
++#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_WITHIN_SIZE)
++#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_WITHIN_SIZE
++#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ADVISE)
++#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_ADVISE
++#else
++#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_NEVER
++#endif
++
++static int tmpfs_huge __read_mostly = TMPFS_HUGE_DEFAULT;
++
++#undef TMPFS_HUGE_DEFAULT
+ 
+ static unsigned int shmem_get_orders_within_size(struct inode *inode,
+ 		unsigned long within_size_orders, pgoff_t index,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from d@ilvokhin.com are
 
-mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
-drivers-base-node-fold-register_node-into-register_one_node-fix.patch
-mm-vmstat-fix-indentation-in-fold_diff-function-fix.patch
-init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix.patch
+mm-shmem-tmpfs-hugepage-defaults-config-choice.patch
 
