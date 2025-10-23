@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CFF91F0E3E
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 20:00:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06011F0E3E
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 20:02:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761249621; cv=none; b=QaENikYmj0OCYWMpVLSLUa06Hlx3wxdq8S3SnMyqc0Mag2a/eMWrEWImDPr8QWcGgLAfQsYCV+9jCV5LxKd++YrF0zMWChQdi9UFFZzFY/To1NnKO75Qoi+P9v74r5LFQfiNQHZPjZbEoLmAMnU0A1OTRfvEBTHZIRixBUwBBuo=
+	t=1761249753; cv=none; b=OXC2ABbL5eEsobxaAFnDH1edHjGg+YE/v/6Q2kmue4GA7kbVjH1yHNyICKrI0GNjXBa/pN424suNsQkFkOIsob3RjMW28sdX7ISltfci3ZqB4e2JNivDbZCIVcywPsrjRDIvgAqpUQUDKpTuosM5k5s8/jDC9atHEfTAYsVtUlI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761249621; c=relaxed/simple;
-	bh=+M2cL9y/0RDc22tjBQ1w2lNxJrFW7z58M1BKTE4XFnY=;
-	h=Date:To:From:Subject:Message-Id; b=jVg0THJXeOl+x46HSosTu6h9W1XX7ykerKLnL7JmSADkTpi2VLwj/uubEPpRoMXaE1g303S7bpm3st0d7l+APRg3x2sw9D3egZ/03JzciuQmAgpiMvApzFtCED2xLpVCvzZs925vKdLkKuuumWncEs6dfJ4wCQ/M3uNAD530HA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mvVGxzEf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761249753; c=relaxed/simple;
+	bh=8Ww8Yr6ZTdIGmRwJdoSgvvdqsuYMPfNtgmZ44u0q/0o=;
+	h=Date:To:From:Subject:Message-Id; b=nhI26esHa/Mmuib0oDRpUJGvqPRLyjifbX9FCs6jLdkeh3mbbMpNs04N8VYt0RAYtudy8iMJ550+xLbqBwvlFitmNVs1a/fGc2sE5oL0DUXMizI7ghQCm3OQozd9ez0mE0Lwk+A2jzbKXFpKPaUzIRIsRXqFYkl/vb3swRMDiKE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NJSVF3cU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mvVGxzEf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6117AC4CEE7;
-	Thu, 23 Oct 2025 20:00:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NJSVF3cU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57186C4CEE7;
+	Thu, 23 Oct 2025 20:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761249620;
-	bh=+M2cL9y/0RDc22tjBQ1w2lNxJrFW7z58M1BKTE4XFnY=;
+	s=korg; t=1761249752;
+	bh=8Ww8Yr6ZTdIGmRwJdoSgvvdqsuYMPfNtgmZ44u0q/0o=;
 	h=Date:To:From:Subject:From;
-	b=mvVGxzEfUsECZNvIfyKRjYwxHwV+b5w3BVdqdY4LJJw0oo/NyHIyYZXOgsVvi4mdp
-	 o7tZ6zEI/Yzz3h3PKpNY5VnlgvxendMNYNx1AArmaPj1/Q+wAeddhg57AX2tUjaSEM
-	 We31yc0r2b99kllgli5i60jD9WLv90W7tDMPutkk=
-Date: Thu, 23 Oct 2025 13:00:19 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,d@ilvokhin.com,akpm@linux-foundation.org
+	b=NJSVF3cULZI/6lv7Et5AHKOEz+k3OKyqJHlqsCCXHgWO4beA9aLbDZTIb4pTkZyjr
+	 AcdI/YRi109EUdc9hIUPHN0cicBXLQ+fN6VKqI2CkuV4mpvdrADH9lI9CY7DDYz3zF
+	 gpFNAOPROjUOSw+m/r9QXoMvClcfc72aJEiIVwVQ=
+Date: Thu, 23 Oct 2025 13:02:31 -0700
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,jhubbard@nvidia.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,arnd@arndb.de,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,yury.norov@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-tmpfs-hugepage-defaults-config-choice.patch added to mm-new branch
-Message-Id: <20251023200020.6117AC4CEE7@smtp.kernel.org>
+Subject: + uaccess-decouple-inline_copy_from_user-and-config_rust.patch added to mm-nonmm-unstable branch
+Message-Id: <20251023200232.57186C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem/tmpfs hugepage defaults config choice
-has been added to the -mm mm-new branch.  Its filename is
-     mm-shmem-tmpfs-hugepage-defaults-config-choice.patch
+     Subject: uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     uaccess-decouple-inline_copy_from_user-and-config_rust.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-tmpfs-hugepage-defaults-config-choice.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uaccess-decouple-inline_copy_from_user-and-config_rust.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,186 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm: shmem/tmpfs hugepage defaults config choice
-Date: Thu, 23 Oct 2025 18:12:02 +0000
+From: "Yury Norov (NVIDIA)" <yury.norov@gmail.com>
+Subject: uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST
+Date: Thu, 23 Oct 2025 13:16:06 -0400
 
-Allow to override defaults for shmem and tmpfs at config time.  This is
-consistent with how transparent hugepages can be configured.
+Commit 1f9a8286bc0c ("uaccess: always export _copy_[from|to]_user with
+CONFIG_RUST") exports _copy_{from,to}_user() unconditionally, if RUST is
+enabled.  This pollutes exported symbols namespace, and spreads RUST
+ifdefery in core files.
 
-Same results can be achieved with the existing
-'transparent_hugepage_shmem' and 'transparent_hugepage_tmpfs' settings in
-the kernel command line, but it is more convenient to define basic
-settings at config time instead of changing kernel command line later.
+It's better to declare a corresponding helper under the rust/helpers,
+similarly to how non-underscored copy_{from,to}_user() is handled.
 
-Defaults for shmem and tmpfs were not changed.  They are remained the same
-as before: 'never' for both cases.  Options 'deny' and 'force' are omitted
-intentionally since these are special values and supposed to be used for
-emergencies or testing and are not expected to be permanent ones.
-
-Link: https://lkml.kernel.org/r/aPpv8sAa2sYgNu3L@shell.ilvokhin.com
-Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251023171607.1171534-1-yury.norov@gmail.com
+Signed-off-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   91 +++++++++++++++++++++++++++++++++++++++++++++++++++
- mm/shmem.c |   33 +++++++++++++++++-
- 2 files changed, 122 insertions(+), 2 deletions(-)
+ lib/usercopy.c         |    4 ++--
+ rust/helpers/uaccess.c |   12 ++++++++++++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
---- a/mm/Kconfig~mm-shmem-tmpfs-hugepage-defaults-config-choice
-+++ a/mm/Kconfig
-@@ -853,6 +853,97 @@ choice
- 	  enabled at runtime via sysfs.
- endchoice
+--- a/lib/usercopy.c~uaccess-decouple-inline_copy_from_user-and-config_rust
++++ a/lib/usercopy.c
+@@ -12,7 +12,7 @@
  
-+choice
-+	prompt "Shmem hugepage allocation defaults"
-+	depends on TRANSPARENT_HUGEPAGE
-+	default TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER
-+	help
-+	  Selects the hugepage allocation policy defaults for
-+	  the internal shmem mount.
-+
-+	  The selection made here can be overridden by using the kernel
-+	  command line 'transparent_hugepage_shmem=' option.
-+
-+	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER
-+		bool "never"
-+	help
-+	  Disable hugepage allocation for shmem mount by default. It can
-+	  still be enabled with the kernel command line
-+	  'transparent_hugepage_shmem=' option or at runtime via sysfs
-+	  knob. Note that madvise(MADV_COLLAPSE) can still cause
-+	  transparent huge pages to be obtained even if this mode is
-+	  specified.
-+
-+	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ALWAYS
-+		bool "always"
-+	help
-+	  Always attempt to allocate hugepage for shmem mount, can
-+	  increase the memory footprint of applications without a
-+	  guaranteed benefit but it will work automatically for all
-+	  applications.
-+
-+	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_WITHIN_SIZE
-+		bool "within_size"
-+	help
-+	  Enable hugepage allocation for shmem mount if the allocation
-+	  will be fully within the i_size. This configuration also takes
-+	  into account any madvise(MADV_HUGEPAGE) hints that may be
-+	  provided by the applications.
-+
-+	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ADVISE
-+		bool "advise"
-+	help
-+	  Enable hugepage allocation for the shmem mount exclusively when
-+	  applications supply the madvise(MADV_HUGEPAGE) hint.
-+	  This ensures that hugepages are used only in response to explicit
-+	  requests from applications.
-+endchoice
-+
-+choice
-+	prompt "Tmpfs hugepage allocation defaults"
-+	depends on TRANSPARENT_HUGEPAGE
-+	default TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER
-+	help
-+	  Selects the hugepage allocation policy defaults for
-+	  the tmpfs mount.
-+
-+	  The selection made here can be overridden by using the kernel
-+	  command line 'transparent_hugepage_tmpfs=' option.
-+
-+	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER
-+		bool "never"
-+	help
-+	  Disable hugepage allocation for tmpfs mount by default. It can
-+	  still be enabled with the kernel command line
-+	  'transparent_hugepage_tmpfs=' option. Note that
-+	  madvise(MADV_COLLAPSE) can still cause transparent huge pages
-+	  to be obtained even if this mode is specified.
-+
-+	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ALWAYS
-+		bool "always"
-+	help
-+	  Always attempt to allocate hugepage for tmpfs mount, can
-+	  increase the memory footprint of applications without a
-+	  guaranteed benefit but it will work automatically for all
-+	  applications.
-+
-+	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_WITHIN_SIZE
-+		bool "within_size"
-+	help
-+	  Enable hugepage allocation for tmpfs mount if the allocation
-+	  will be fully within the i_size. This configuration also takes
-+	  into account any madvise(MADV_HUGEPAGE) hints that may be
-+	  provided by the applications.
-+
-+	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ADVISE
-+		bool "advise"
-+	help
-+	  Enable hugepage allocation for the tmpfs mount exclusively when
-+	  applications supply the madvise(MADV_HUGEPAGE) hint.
-+	  This ensures that hugepages are used only in response to explicit
-+	  requests from applications.
-+endchoice
-+
- config THP_SWAP
- 	def_bool y
- 	depends on TRANSPARENT_HUGEPAGE && ARCH_WANTS_THP_SWAP && SWAP && 64BIT
---- a/mm/shmem.c~mm-shmem-tmpfs-hugepage-defaults-config-choice
-+++ a/mm/shmem.c
-@@ -570,8 +570,37 @@ static int shmem_confirm_swap(struct add
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /* ifdef here to avoid bloating shmem.o when not necessary */
+ /* out-of-line parts */
  
--static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
--static int tmpfs_huge __read_mostly = SHMEM_HUGE_NEVER;
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER)
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_NEVER
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ALWAYS)
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_ALWAYS
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_WITHIN_SIZE)
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_WITHIN_SIZE
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ADVISE)
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_ADVISE
-+#else
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_NEVER
+-#if !defined(INLINE_COPY_FROM_USER) || defined(CONFIG_RUST)
++#if !defined(INLINE_COPY_FROM_USER)
+ unsigned long _copy_from_user(void *to, const void __user *from, unsigned long n)
+ {
+ 	return _inline_copy_from_user(to, from, n);
+@@ -20,7 +20,7 @@ unsigned long _copy_from_user(void *to,
+ EXPORT_SYMBOL(_copy_from_user);
+ #endif
+ 
+-#if !defined(INLINE_COPY_TO_USER) || defined(CONFIG_RUST)
++#if !defined(INLINE_COPY_TO_USER)
+ unsigned long _copy_to_user(void __user *to, const void *from, unsigned long n)
+ {
+ 	return _inline_copy_to_user(to, from, n);
+--- a/rust/helpers/uaccess.c~uaccess-decouple-inline_copy_from_user-and-config_rust
++++ a/rust/helpers/uaccess.c
+@@ -13,3 +13,15 @@ unsigned long rust_helper_copy_to_user(v
+ {
+ 	return copy_to_user(to, from, n);
+ }
++
++#ifdef INLINE_COPY_FROM_USER
++unsigned long rust_helper__copy_from_user(void *to, const void __user *from, unsigned long n)
++{
++	return _inline_copy_from_user(to, from, n);
++}
++
++unsigned long rust_helper__copy_to_user(void __user *to, const void *from, unsigned long n)
++{
++	return _inline_copy_to_user(to, from, n);
++}
 +#endif
-+
-+static int shmem_huge __read_mostly = SHMEM_HUGE_DEFAULT;
-+
-+#undef SHMEM_HUGE_DEFAULT
-+
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER)
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_NEVER
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ALWAYS)
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_ALWAYS
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_WITHIN_SIZE)
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_WITHIN_SIZE
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ADVISE)
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_ADVISE
-+#else
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_NEVER
-+#endif
-+
-+static int tmpfs_huge __read_mostly = TMPFS_HUGE_DEFAULT;
-+
-+#undef TMPFS_HUGE_DEFAULT
- 
- static unsigned int shmem_get_orders_within_size(struct inode *inode,
- 		unsigned long within_size_orders, pgoff_t index,
 _
 
-Patches currently in -mm which might be from d@ilvokhin.com are
+Patches currently in -mm which might be from yury.norov@gmail.com are
 
-mm-shmem-tmpfs-hugepage-defaults-config-choice.patch
+uaccess-decouple-inline_copy_from_user-and-config_rust.patch
 
