@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A27252882CE
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 19:19:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1833B29405
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 19:19:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761247178; cv=none; b=hfKPEL7uHgT47xrVJwYr6ndWNmW82Q2SeeqHiTzCLZEdw8TJLgFnBm6zcLGiVr2WbpsyHKl4LIRs2CAJAr/KpWAbnaqJeuFU6jsgX4ItcA+zW3FlTbUepDKA1jXes/ekaNbwLGJb8q/ZkzMr+iSl0FY9gzi5c5quo5h+/qlaYmo=
+	t=1761247182; cv=none; b=lIv1WHkSO4yD92b6m6VXEJx5Zz4fxsFHNN66JFnZF/mUFT21YbPOisWG7JRM5HxGOsrb034n/eq8z5vVNMDZW3jsvm1YuKGjFuZck33/lSqj5vmRGTFAvGTkyjopbxfye7/8VbOgVcLdg/JpAve/3M3B70+WNXuDiZxsEZIsAyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761247178; c=relaxed/simple;
-	bh=XLzxMCO0Og9hhZ4XK/pYvdtvmYDC5X4hllkr1afK3k8=;
-	h=Date:To:From:Subject:Message-Id; b=X2G7dO+ca5U4ne8E0zK/9YK9gltOW6m/Lz2fCFMcwApeGSw1buvMNeEDf14ZKL3eTw1EzfRR5T9QdDUvJKekdhGr4HwDTtNMjmUxJeklwaiViR34sbegUCBlG6wMg01QuL0xaFC8nzgJviNzhLslA9c3bs/tLI4mUdIwgD0j9Ic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SOm2Zo+W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761247182; c=relaxed/simple;
+	bh=MigUJN+wZTz6RiaNWHNxUUR0xHcp79z0zqWNOh44jEQ=;
+	h=Date:To:From:Subject:Message-Id; b=RYfENxwgxK7UFfGoDt3WN+iHjsfvxcxv1QfsyQnYa+jfhvf6qf5INdwbm3S7bYCcBPcg+FSwD3AcbaqUJWJrC9GrVp9KwBbOy+H2HD5//LEGN2o1/69Ha1N/3cLE9ezpHRZjlulmaImlJIurUm8L2WCm7zNs4jaOcKYNQ2mLPaQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KwEF0wqf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SOm2Zo+W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D11CC4CEE7;
-	Thu, 23 Oct 2025 19:19:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KwEF0wqf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DECFC4CEE7;
+	Thu, 23 Oct 2025 19:19:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761247178;
-	bh=XLzxMCO0Og9hhZ4XK/pYvdtvmYDC5X4hllkr1afK3k8=;
+	s=korg; t=1761247181;
+	bh=MigUJN+wZTz6RiaNWHNxUUR0xHcp79z0zqWNOh44jEQ=;
 	h=Date:To:From:Subject:From;
-	b=SOm2Zo+WtEP1n7abq/fWr90z5mCaRVNsq0akz2NScnIBwxpU3S499lqqU7DDETitm
-	 INOIKsxnlPVIpAFa4X9uNjpF4ALN5JGtU0SCh61wCglUi0yZqgKds1fFLf24Yqv1T0
-	 UhgcKSaKSFtwZIT4fSs/ELL8CMSl2w1zNrRnbE18=
-Date: Thu, 23 Oct 2025 12:19:37 -0700
+	b=KwEF0wqfuh7GD72lD5Vb5LA8qa/PnDZwxQxojfCDcZAhIzbo7Vuz43V3WU5tNASpo
+	 /+IQBobv9V2mPh2S8V4GxKsYwpCKJOnsjUNolulgiMhyUj+zTXvDwSvh1G60zX68Cu
+	 zrZnNXQ39xuSXkb7zHxvWGF06kkho40DVro2n98M=
+Date: Thu, 23 Oct 2025 12:19:40 -0700
 To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-cleanup-swap-entry-allocation-parameter.patch added to mm-new branch
-Message-Id: <20251023191938.1D11CC4CEE7@smtp.kernel.org>
+Subject: + mm-migrate-swap-drop-usage-of-folio_index.patch added to mm-new branch
+Message-Id: <20251023191941.7DECFC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: cleanup swap entry allocation parameter
+     Subject: mm/migrate, swap: drop usage of folio_index
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-cleanup-swap-entry-allocation-parameter.patch
+     mm-migrate-swap-drop-usage-of-folio_index.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cleanup-swap-entry-allocation-parameter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-swap-drop-usage-of-folio_index.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,108 +65,82 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: cleanup swap entry allocation parameter
-Date: Fri, 24 Oct 2025 02:00:41 +0800
+Subject: mm/migrate, swap: drop usage of folio_index
+Date: Fri, 24 Oct 2025 02:00:42 +0800
 
-We no longer need this GFP parameter after commit 8578e0c00dcf ("mm, swap:
-use the swap table for the swap cache and switch API").  Before that
-commit the GFP parameter is already almost identical for all callers, so
-nothing changed by that commit.  Swap table just moved the GFP to lower
-layer and make it more defined and changes depend on atomic or sleep
-allocation.
+This helper was used when swap cache was mixed with page cache.  Now they
+are completely separate from each other, access to the swap cache is all
+wrapped by the swap_cache_* helpers, which expect the folio's swap entry
+as a parameter.
 
-Now this parameter is no longer used, just remove it.  No behavior change.
+This helper is no longer used, remove the last redundant user and drop it.
 
-Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-3-a709469052e7@tencent.com
+Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-4-a709469052e7@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Acked-by: Chris Li <chrisl@kernel.org>
 Acked-by: Nhat Pham <nphamcs@gmail.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 ++--
- mm/shmem.c           |    2 +-
- mm/swapfile.c        |    3 +--
- mm/vmscan.c          |    4 ++--
- 4 files changed, 6 insertions(+), 7 deletions(-)
+ mm/migrate.c |    4 ++--
+ mm/swap.h    |   21 ---------------------
+ 2 files changed, 2 insertions(+), 23 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-cleanup-swap-entry-allocation-parameter
-+++ a/include/linux/swap.h
-@@ -462,7 +462,7 @@ static inline long get_nr_swap_pages(voi
- }
+--- a/mm/migrate.c~mm-migrate-swap-drop-usage-of-folio_index
++++ a/mm/migrate.c
+@@ -563,7 +563,7 @@ unlock:
+ static int __folio_migrate_mapping(struct address_space *mapping,
+ 		struct folio *newfolio, struct folio *folio, int expected_count)
+ {
+-	XA_STATE(xas, &mapping->i_pages, folio_index(folio));
++	XA_STATE(xas, &mapping->i_pages, folio->index);
+ 	struct swap_cluster_info *ci = NULL;
+ 	struct zone *oldzone, *newzone;
+ 	int dirty;
+@@ -716,7 +716,7 @@ EXPORT_SYMBOL(folio_migrate_mapping);
+ int migrate_huge_page_move_mapping(struct address_space *mapping,
+ 				   struct folio *dst, struct folio *src)
+ {
+-	XA_STATE(xas, &mapping->i_pages, folio_index(src));
++	XA_STATE(xas, &mapping->i_pages, src->index);
+ 	int rc, expected_count = folio_expected_ref_count(src) + 1;
  
- extern void si_swapinfo(struct sysinfo *);
--int folio_alloc_swap(struct folio *folio, gfp_t gfp_mask);
-+int folio_alloc_swap(struct folio *folio);
- bool folio_free_swap(struct folio *folio);
- void put_swap_folio(struct folio *folio, swp_entry_t entry);
- extern swp_entry_t get_swap_page_of_type(int);
-@@ -560,7 +560,7 @@ static inline int swp_swapcount(swp_entr
+ 	if (folio_ref_count(src) != expected_count)
+--- a/mm/swap.h~mm-migrate-swap-drop-usage-of-folio_index
++++ a/mm/swap.h
+@@ -445,25 +445,4 @@ static inline int non_swapcache_batch(sw
  	return 0;
  }
- 
--static inline int folio_alloc_swap(struct folio *folio, gfp_t gfp_mask)
-+static inline int folio_alloc_swap(struct folio *folio)
- {
- 	return -EINVAL;
- }
---- a/mm/shmem.c~mm-swap-cleanup-swap-entry-allocation-parameter
-+++ a/mm/shmem.c
-@@ -1617,7 +1617,7 @@ try_split:
- 		folio_mark_uptodate(folio);
- 	}
- 
--	if (!folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN)) {
-+	if (!folio_alloc_swap(folio)) {
- 		bool first_swapped = shmem_recalc_inode(inode, 0, nr_pages);
- 		int error;
- 
---- a/mm/swapfile.c~mm-swap-cleanup-swap-entry-allocation-parameter
-+++ a/mm/swapfile.c
-@@ -1417,7 +1417,6 @@ static bool swap_sync_discard(void)
- /**
-  * folio_alloc_swap - allocate swap space for a folio
-  * @folio: folio we want to move to swap
-- * @gfp: gfp mask for shadow nodes
-  *
-  * Allocate swap space for the folio and add the folio to the
-  * swap cache.
-@@ -1425,7 +1424,7 @@ static bool swap_sync_discard(void)
-  * Context: Caller needs to hold the folio lock.
-  * Return: Whether the folio was added to the swap cache.
-  */
--int folio_alloc_swap(struct folio *folio, gfp_t gfp)
-+int folio_alloc_swap(struct folio *folio)
- {
- 	unsigned int order = folio_order(folio);
- 	unsigned int size = 1 << order;
---- a/mm/vmscan.c~mm-swap-cleanup-swap-entry-allocation-parameter
-+++ a/mm/vmscan.c
-@@ -1296,7 +1296,7 @@ retry:
- 					    split_folio_to_list(folio, folio_list))
- 						goto activate_locked;
- 				}
--				if (folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOWARN)) {
-+				if (folio_alloc_swap(folio)) {
- 					int __maybe_unused order = folio_order(folio);
- 
- 					if (!folio_test_large(folio))
-@@ -1312,7 +1312,7 @@ retry:
- 					}
- #endif
- 					count_mthp_stat(order, MTHP_STAT_SWPOUT_FALLBACK);
--					if (folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOWARN))
-+					if (folio_alloc_swap(folio))
- 						goto activate_locked_split;
- 				}
- 				/*
+ #endif /* CONFIG_SWAP */
+-
+-/**
+- * folio_index - File index of a folio.
+- * @folio: The folio.
+- *
+- * For a folio which is either in the page cache or the swap cache,
+- * return its index within the address_space it belongs to.  If you know
+- * the folio is definitely in the page cache, you can look at the folio's
+- * index directly.
+- *
+- * Return: The index (offset in units of pages) of a folio in its file.
+- */
+-static inline pgoff_t folio_index(struct folio *folio)
+-{
+-#ifdef CONFIG_SWAP
+-	if (unlikely(folio_test_swapcache(folio)))
+-		return swp_offset(folio->swap);
+-#endif
+-	return folio->index;
+-}
+-
+ #endif /* _MM_SWAP_H */
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
