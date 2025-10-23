@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0496B72629
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 23:19:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F30B72629
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 23:19:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761261591; cv=none; b=T5AIATDRvd5wr19WCiFA474Ke6boR5mKjaJC1y82579DtcZTsJgnV3yaiqlc8GVQvd7tVpUGWNrdtFXA3tB/oZgTEGKbrXPVvr/No2mhV63AeLv5BOuWQdDcaHkVHL5xrE+a7uMAt3c8JRHwXNg1vBB4ULqBhy88xnFLAqGg2DM=
+	t=1761261594; cv=none; b=UmMLow/0ZqMZLs5IYJrxa1bzGNWw0m0K17PXk/rmCVXUQbPThW1NyvZs/39TB/uZnYO0EC6VRFls7qvxXEaWc41xgKUSOLNTAdGTiLeqd78LeDJsHjGmmCvfCq1SOWlrF5KN8wZOYq5F0LfcC4YQ6vxtJjGt1wIzoplNu4c7w+Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761261591; c=relaxed/simple;
-	bh=x5bNLdkK25ibE1iQztfI6owP9rUoymNx/Jv/L66OccY=;
-	h=Date:To:From:Subject:Message-Id; b=Xpr5kHNjmBLVPYSeRLqUObib5rnK7g7tSe5g2Ojp++LbwerSKFv6ZoAnzKWS/oSkSS1aQdG6N1NkHVo/P4UN68HXgDHAqAUQGMJHB1P1LTp3hzXVdRPDqtKqhCstuouW8aTd+eJ8ybAvii7+dfpcgNZaxJMJUnD+3/MSS6gke8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F9PPcDp2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761261594; c=relaxed/simple;
+	bh=NCwQQ9XwE79oWrtkeKvzREETA+qIKy/PhwTkY93kf9Q=;
+	h=Date:To:From:Subject:Message-Id; b=pG3DUgX2bqgh2FhAeItt8MlAb+R/3TrYD6xa8WVvmxRrzq0ilYqnx0wOq1XHGoWsEyfWiGvr1V+PkqRl/kcNDgziRM6qcWhQ1LlxJL92ARnflQ7apf5YHIxjha+o9F5+0kmj3a50cEz025b6+E4Uj87j0yxL5XfsG4Sm9uFxtZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LlsE7khZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F9PPcDp2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 990EBC4CEE7;
-	Thu, 23 Oct 2025 23:19:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LlsE7khZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94A1DC4CEE7;
+	Thu, 23 Oct 2025 23:19:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761261590;
-	bh=x5bNLdkK25ibE1iQztfI6owP9rUoymNx/Jv/L66OccY=;
+	s=korg; t=1761261592;
+	bh=NCwQQ9XwE79oWrtkeKvzREETA+qIKy/PhwTkY93kf9Q=;
 	h=Date:To:From:Subject:From;
-	b=F9PPcDp28+lAj0NdCUbtRVL0crKnjNxGOllheAGTNyUKWvG+Uv8AEQXi1ITX6iYd+
-	 pFGpI5dIMe3tOqwul7Z5ROBKGIZp2XmYg9y7b2fQxq+Jpj2onPfPNraHd6q0xopNCy
-	 6NHq9w48LqfJZKA/rs6IYSl/l70uXN5enZg9FDC8=
-Date: Thu, 23 Oct 2025 16:19:50 -0700
+	b=LlsE7khZFzPwnAs+TFXcmmNU0DR890Z2pvVzd75Ashb3cbkHTl/qmwQ2uJheeV9xY
+	 eobBGPBBb6go/kWuvUiIY6gJh7x5S85ib54qz6AAY+wdHVyd/3lSFhh/OsNcAdJl5c
+	 w93aS8WQGSqzpTObbR9MjmZrFo5X9J8EduyDSegI=
+Date: Thu, 23 Oct 2025 16:19:52 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,bijan311@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drgn_dump_damon_status-dump-damon_target-obsolete.patch added to mm-new branch
-Message-Id: <20251023231950.990EBC4CEE7@smtp.kernel.org>
+Subject: + sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch added to mm-new branch
+Message-Id: <20251023231952.94A1DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drgn_dump_damon_status: dump damon_target->obsolete
+     Subject: sysfs.py: extend assert_ctx_committed() for monitoring targets
 has been added to the -mm mm-new branch.  Its filename is
-     drgn_dump_damon_status-dump-damon_target-obsolete.patch
+     sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drgn_dump_damon_status-dump-damon_target-obsolete.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: drgn_dump_damon_status: dump damon_target->obsolete
-Date: Wed, 22 Oct 2025 18:25:31 -0700
+Subject: sysfs.py: extend assert_ctx_committed() for monitoring targets
+Date: Wed, 22 Oct 2025 18:25:32 -0700
 
-A new field of damon_target for pin-point target removal, namely obsolete,
-has newly been added.  Extend drgn_dump_damon_status.py to dump it, for
-easily writing a future DAMON selftests of it.
+assert_ctx_committed() is not asserting monitoring targets commitment,
+since all existing callers of the function assume no target changes. 
+Extend it for future usage.
 
-Link: https://lkml.kernel.org/r/20251023012535.69625-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251023012535.69625-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Bijan Tabatabai <bijan311@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -87,19 +87,36 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/drgn_dump_damon_status.py |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/damon/sysfs.py |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~drgn_dump_damon_status-dump-damon_target-obsolete
-+++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -73,6 +73,7 @@ def target_to_dict(target):
-         ['pid', int],
-         ['nr_regions', int],
-         ['regions_list', regions_to_list],
-+        ['obsolete', bool],
-         ])
+--- a/tools/testing/selftests/damon/sysfs.py~sysfspy-extend-assert_ctx_committed-for-monitoring-targets
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -164,6 +164,16 @@ def assert_monitoring_attrs_committed(at
+     assert_true(dump['max_nr_regions'] == attrs.max_nr_regions,
+                 'max_nr_regions', dump)
  
- def targets_to_list(targets):
++def assert_monitoring_target_committed(target, dump):
++    # target.pid is the pid "number", while dump['pid'] is 'struct pid'
++    # pointer, and hence cannot be compared.
++    assert_true(dump['obsolete'] == target.obsolete, 'target obsolete', dump)
++
++def assert_monitoring_targets_committed(targets, dump):
++    assert_true(len(targets) == len(dump), 'len_targets', dump)
++    for idx, target in enumerate(targets):
++        assert_monitoring_target_committed(target, dump[idx])
++
+ def assert_ctx_committed(ctx, dump):
+     ops_val = {
+             'vaddr': 0,
+@@ -172,6 +182,7 @@ def assert_ctx_committed(ctx, dump):
+             }
+     assert_true(dump['ops']['id'] == ops_val[ctx.ops], 'ops_id', dump)
+     assert_monitoring_attrs_committed(ctx.monitoring_attrs, dump['attrs'])
++    assert_monitoring_targets_committed(ctx.targets, dump['adaptive_targets'])
+     assert_schemes_committed(ctx.schemes, dump['schemes'])
+ 
+ def assert_ctxs_committed(ctxs, dump):
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
