@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F1D02C11D5
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 20:10:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F2028E00
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 20:10:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761250204; cv=none; b=BT/LWeu5lVknxTPgVKeh3LOz6pCPeGUO5GGBcvpgfSjvNF3RiIOXa9rASN6MnpdK6OWkHHRtFZWnACZ8E1ekDq5FZ3n67l5wBJqHvHkNZXnd17ZefcbvorAf3196BtA5BeQ4QERoAvNWaQro/6mg8PEhSYXKu8CZdVnbgYML5gY=
+	t=1761250208; cv=none; b=PrsBxFg7NDByOWuWvDQw18JySmNXgG3JuyTOPS0YnfTosfE0YdRCeMKy9e7Hywc7L/IvgtNfJLVoVqTFQhr6yiNBLqpsQXRg7+jLQpvAdDAUkdmMWuZJ6ql3jI7CMYC2FoTsq8FJ4QlNGQpmDJoQwE+1+bDhDJ1JKWSsdshMotY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761250204; c=relaxed/simple;
-	bh=jOkmNvL+6y1vQnq/2npCZ31Wq5LabCj/0RLZuMtzJ2w=;
-	h=Date:To:From:Subject:Message-Id; b=VKgFwCH06BWbTVpnk/9ltuQPMom1UBoLDubDgNRs8AXWgvtB6je01QtUlqcS56VMmQl4fWJDtBvM3TwufJQJNUTYnOhEXTrYs3M+FG+6uFUUXSP/7JU1yoqqGBXMitoNAy6oN8ujI6OSfW9BpS0x0lCmC6J5vX3rNqqAG/fW6TA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PdjDDvUP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761250208; c=relaxed/simple;
+	bh=NFNB+hOYVoGJ0Ud8aMVRwpuUu1URuf7mY3QA5iYh8N0=;
+	h=Date:To:From:Subject:Message-Id; b=k/DCcqsSaLH/Lj4W1sSsC7bvdKMdKGePH8UkR3vKLRbEWNAt21pEaAyKB5NQvwO2IgetwOTy0KYsNIajOwViH9IB7/zQw13d0XJKU48C2B8ejU/61Nl7I4aRPoln2IrMrihUJjm9WQ2OXQZuJNl/aHZbRsrxHMlZfptqglO2PnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mCw/s/2c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PdjDDvUP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55DA2C4CEE7;
-	Thu, 23 Oct 2025 20:10:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mCw/s/2c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC6FFC4CEE7;
+	Thu, 23 Oct 2025 20:10:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761250204;
-	bh=jOkmNvL+6y1vQnq/2npCZ31Wq5LabCj/0RLZuMtzJ2w=;
+	s=korg; t=1761250206;
+	bh=NFNB+hOYVoGJ0Ud8aMVRwpuUu1URuf7mY3QA5iYh8N0=;
 	h=Date:To:From:Subject:From;
-	b=PdjDDvUPEUrnDIrig543SWxGxz6gnaGhxwbJ/sxZqZpk8Pq8BhdJuAD4iiEH9L04M
-	 3nOHQ48wJ7VtoRfbs/6902cpvQu7RmItXxcyje1dx9DMRLWvpDtEGC5FWnSD46Oyvy
-	 2L7fajZNMgwk6qcfZmMkQi+dR9Wel9p9yHUpGfFE=
-Date: Thu, 23 Oct 2025 13:10:03 -0700
+	b=mCw/s/2cnIEofuUExPTth0yHk1zZEja1ztyzRpKkyfRCT6vm+Oy/64YW9eTq+e1PU
+	 cOOhyI0aTNmtCwS7drWIwTppu/8bzo3kYp3CANn/7c+53qwCofyNbM3q3SIRG73qLk
+	 WavjMRauc6PgdPrnSUbCZFPWGmuywy33n2f2lzd8=
+Date: Thu, 23 Oct 2025 13:10:06 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-add-__split_page.patch added to mm-new branch
-Message-Id: <20251023201004.55DA2C4CEE7@smtp.kernel.org>
+Subject: + mm-cma-add-__cma_release.patch added to mm-new branch
+Message-Id: <20251023201006.DC6FFC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: add __split_page()
+     Subject: mm: cma: add __cma_release()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-add-__split_page.patch
+     mm-cma-add-__cma_release.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-add-__split_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-add-__cma_release.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,19 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: page_alloc: add __split_page()
-Date: Thu, 23 Oct 2025 19:59:36 +0800
+Subject: mm: cma: add __cma_release()
+Date: Thu, 23 Oct 2025 19:59:37 +0800
 
-Factor out the splitting of non-compound page from make_alloc_exact() and
-split_page() into a new helper function __split_page().
+Kill cma_pages_valid() which only used in cma_release(), also cleanup code
+duplication between cma pages valid checking and cma memrange finding, add
+__cma_release() helper to prepare for the upcoming frozen page release.
 
-While at it, convert the VM_BUG_ON_PAGE() into a VM_WARN_ON_PAGE().
-
-Link: https://lkml.kernel.org/r/20251023115940.3573158-3-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20251023115940.3573158-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -88,74 +87,123 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    9 +++++++++
- mm/page_alloc.c         |   19 ++++++++++++-------
- 2 files changed, 21 insertions(+), 7 deletions(-)
+ include/linux/cma.h |    1 
+ mm/cma.c            |   62 ++++++++++++++----------------------------
+ 2 files changed, 21 insertions(+), 42 deletions(-)
 
---- a/include/linux/mmdebug.h~mm-page_alloc-add-__split_page
-+++ a/include/linux/mmdebug.h
-@@ -47,6 +47,15 @@ void vma_iter_dump_tree(const struct vma
- 			BUG();						\
- 		}							\
- 	} while (0)
-+#define VM_WARN_ON_PAGE(cond, page)		({			\
-+	int __ret_warn = !!(cond);					\
-+									\
-+	if (unlikely(__ret_warn)) {					\
-+		dump_page(page, "VM_WARN_ON_PAGE(" __stringify(cond)")");\
-+		WARN_ON(1);						\
-+	}								\
-+	unlikely(__ret_warn);						\
-+})
- #define VM_WARN_ON_ONCE_PAGE(cond, page)	({			\
- 	static bool __section(".data..once") __warned;			\
- 	int __ret_warn_once = !!(cond);					\
---- a/mm/page_alloc.c~mm-page_alloc-add-__split_page
-+++ a/mm/page_alloc.c
-@@ -3082,6 +3082,15 @@ void free_unref_folios(struct folio_batc
- 	folio_batch_reinit(folios);
+--- a/include/linux/cma.h~mm-cma-add-__cma_release
++++ a/include/linux/cma.h
+@@ -49,7 +49,6 @@ extern int cma_init_reserved_mem(phys_ad
+ 					struct cma **res_cma);
+ extern struct page *cma_alloc(struct cma *cma, unsigned long count, unsigned int align,
+ 			      bool no_warn);
+-extern bool cma_pages_valid(struct cma *cma, const struct page *pages, unsigned long count);
+ extern bool cma_release(struct cma *cma, const struct page *pages, unsigned long count);
+ 
+ extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
+--- a/mm/cma.c~mm-cma-add-__cma_release
++++ a/mm/cma.c
+@@ -942,34 +942,43 @@ struct folio *cma_alloc_folio(struct cma
+ 	return page ? page_folio(page) : NULL;
  }
  
-+static void __split_page(struct page *page, unsigned int order)
-+{
-+	VM_WARN_ON_PAGE(PageCompound(page), page);
-+
-+	split_page_owner(page, order, 0);
-+	pgalloc_tag_split(page_folio(page), order, 0);
-+	split_page_memcg(page, order);
-+}
-+
- /*
-  * split_page takes a non-compound higher-order page, and splits it into
-  * n (1<<order) sub-pages: page[0..n]
-@@ -3094,14 +3103,12 @@ void split_page(struct page *page, unsig
+-bool cma_pages_valid(struct cma *cma, const struct page *pages,
+-		     unsigned long count)
++static bool __cma_release(struct cma *cma, const struct page *pages,
++			  unsigned long count)
  {
- 	int i;
- 
--	VM_BUG_ON_PAGE(PageCompound(page), page);
- 	VM_BUG_ON_PAGE(!page_count(page), page);
- 
- 	for (i = 1; i < (1 << order); i++)
- 		set_page_refcounted(page + i);
--	split_page_owner(page, order, 0);
--	pgalloc_tag_split(page_folio(page), order, 0);
--	split_page_memcg(page, order);
+ 	unsigned long pfn, end;
+ 	int r;
+ 	struct cma_memrange *cmr;
+-	bool ret;
 +
-+	__split_page(page, order);
++	pr_debug("%s(page %p, count %lu)\n", __func__, (void *)pages, count);
+ 
+ 	if (!cma || !pages || count > cma->count)
+ 		return false;
+ 
+ 	pfn = page_to_pfn(pages);
+-	ret = false;
+ 
+ 	for (r = 0; r < cma->nranges; r++) {
+ 		cmr = &cma->ranges[r];
+ 		end = cmr->base_pfn + cmr->count;
+ 		if (pfn >= cmr->base_pfn && pfn < end) {
+-			ret = pfn + count <= end;
+-			break;
++			if (pfn + count <= end)
++				break;
++
++			VM_WARN_ON_ONCE(1);
+ 		}
+ 	}
+ 
+-	if (!ret)
+-		pr_debug("%s(page %p, count %lu)\n",
+-				__func__, (void *)pages, count);
++	if (r == cma->nranges) {
++		pr_debug("%s(page %p, count %lu, no cma range matches the page range)\n",
++			 __func__, (void *)pages, count);
++		return false;
++	}
+ 
+-	return ret;
++	free_contig_range(pfn, count);
++	cma_clear_bitmap(cma, cmr, pfn, count);
++	cma_sysfs_account_release_pages(cma, count);
++	trace_cma_release(cma->name, pfn, pages, count);
++
++	return true;
  }
- EXPORT_SYMBOL_GPL(split_page);
  
-@@ -5370,9 +5377,7 @@ static void *make_alloc_exact(unsigned l
- 		struct page *page = virt_to_page((void *)addr);
- 		struct page *last = page + nr;
+ /**
+@@ -985,36 +994,7 @@ bool cma_pages_valid(struct cma *cma, co
+ bool cma_release(struct cma *cma, const struct page *pages,
+ 		 unsigned long count)
+ {
+-	struct cma_memrange *cmr;
+-	unsigned long pfn, end_pfn;
+-	int r;
+-
+-	pr_debug("%s(page %p, count %lu)\n", __func__, (void *)pages, count);
+-
+-	if (!cma_pages_valid(cma, pages, count))
+-		return false;
+-
+-	pfn = page_to_pfn(pages);
+-	end_pfn = pfn + count;
+-
+-	for (r = 0; r < cma->nranges; r++) {
+-		cmr = &cma->ranges[r];
+-		if (pfn >= cmr->base_pfn &&
+-		    pfn < (cmr->base_pfn + cmr->count)) {
+-			VM_BUG_ON(end_pfn > cmr->base_pfn + cmr->count);
+-			break;
+-		}
+-	}
+-
+-	if (r == cma->nranges)
+-		return false;
+-
+-	free_contig_range(pfn, count);
+-	cma_clear_bitmap(cma, cmr, pfn, count);
+-	cma_sysfs_account_release_pages(cma, count);
+-	trace_cma_release(cma->name, pfn, pages, count);
+-
+-	return true;
++	return __cma_release(cma, pages, count);
+ }
  
--		split_page_owner(page, order, 0);
--		pgalloc_tag_split(page_folio(page), order, 0);
--		split_page_memcg(page, order);
-+		__split_page(page, order);
- 		while (page < --last)
- 			set_page_refcounted(last);
+ bool cma_free_folio(struct cma *cma, const struct folio *folio)
+@@ -1022,7 +1002,7 @@ bool cma_free_folio(struct cma *cma, con
+ 	if (WARN_ON(!folio_test_large(folio)))
+ 		return false;
  
+-	return cma_release(cma, &folio->page, folio_nr_pages(folio));
++	return __cma_release(cma, &folio->page, folio_nr_pages(folio));
+ }
+ 
+ int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data)
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
