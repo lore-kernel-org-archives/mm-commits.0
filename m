@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E37952C08B6
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 23:19:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5F7F2BB1D
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 23:19:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761261583; cv=none; b=hWSu3zK4wYsvTUP8o/bUm5g4H5wh15dCjy1NPdc5XANzsPjCFIBCnFXNjNtzzSZlTVOL08pEAredDGsYn/v2hv5PDXDOH5A69AHlE4OUz169UJTPuEDE7jFPgD0GS5Kl2aKESUgLlcqlIfA3HyTrFkYNqm26Ur0RlviooXLscPc=
+	t=1761261585; cv=none; b=lwNrJA/M6TyoEzwFggVK1ZIAE/PLT3x8L2KLyKHY9Ced4zFQjRrXlmAT4a4ZQi7swis0sQ1Ru2wDvhJyVLsCUvS3Ycb63LvTTQeXxLgBH3pfiSMjtn4YiSuhRSVVomjOk24RYtW3vMZe7gndo2cjFNwVPM1YkfuV6Z7vPcdfDXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761261583; c=relaxed/simple;
-	bh=r9RXj/mCdeCYUWtV6q73FGZzlN466nJo8o5wTVAi6oc=;
-	h=Date:To:From:Subject:Message-Id; b=QqeQWZkW5TLuTpWijJosFkCYxFNwCCjXsxxBCHhU6a30apKDhA51EXyVNzBe/KPdCMy17F8C8Dwetx3EeQW6NvD2Hx5iTglLVMyZURavbj4fYwWTyQz6NR1jIMIGbrnBEC4EEHx+jPE35d486Tjc8zJLROIJZQOBV+luM83JK7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hCy/Dj+G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761261585; c=relaxed/simple;
+	bh=5K1JOf6qWJ0dh8AfF394/6JwK0xAItu+dciwGgFUuZg=;
+	h=Date:To:From:Subject:Message-Id; b=Vo3uKSwD4O1+5GYzMI7//UnQh6c03iY7hExbteby9bCgSth+IpXhhqQLu0OYw7gpADCgXqU5UXDMmMlbsJfY8RMhoavzF82wv2HQ9eABMEWgVX791vG5wAZSQAG40kr5eiJaRe9ZosDsNuzCtvKE6rWnDnSWtClRpNNJAOKuap8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IMS95zhN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hCy/Dj+G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7FEDC4CEF7;
-	Thu, 23 Oct 2025 23:19:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IMS95zhN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9A6CC4CEE7;
+	Thu, 23 Oct 2025 23:19:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761261582;
-	bh=r9RXj/mCdeCYUWtV6q73FGZzlN466nJo8o5wTVAi6oc=;
+	s=korg; t=1761261584;
+	bh=5K1JOf6qWJ0dh8AfF394/6JwK0xAItu+dciwGgFUuZg=;
 	h=Date:To:From:Subject:From;
-	b=hCy/Dj+GlJzShrMGQfzJ5wUtJKZ4QzWAaUYddNQ5rAXRi6Cep/8vhPfGA6+ZVHAuM
-	 ffRrbfWpOyElYahM7b+j2QsqEyZiO5ajx5J1OG4Hcml897YfZTJm7aSI4Abcg27g7Q
-	 BXaoMHhuV7Wmh/xObMfjBdWY2hEu+INtWf+TTYhs=
-Date: Thu, 23 Oct 2025 16:19:42 -0700
+	b=IMS95zhNraInXBeiwIPhD8ALJvnt8pEaUqQp74h1M0q3Kzp71qjWMEzui13mKg8m7
+	 jDKax9wxGEkbig0ylq7ZWI35Qbxe11qKvBJcrkvyXwNdYgqgDk5J4MATWwTd3j3RFI
+	 A3SS7fPzHoGp/GlzVuRCMLq9V8SQHEcjgfbHTSBw=
+Date: Thu, 23 Oct 2025 16:19:44 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,bijan311@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-implement-obsolete_target-file.patch added to mm-new branch
-Message-Id: <20251023231942.A7FEDC4CEF7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch added to mm-new branch
+Message-Id: <20251023231944.B9A6CC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: implement obsolete_target file
+     Subject: Docs/admin-guide/mm/damon/usage: document obsolete_target file
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-implement-obsolete_target-file.patch
+     docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-obsolete_target-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,33 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: implement obsolete_target file
-Date: Wed, 22 Oct 2025 18:25:27 -0700
+Subject: Docs/admin-guide/mm/damon/usage: document obsolete_target file
+Date: Wed, 22 Oct 2025 18:25:28 -0700
 
-There is no good way to remove DAMON targets in the middle of the existing
-targets list.  It restricts efficient and flexible DAMON use cases. 
-Improve the usability by implementing a new DAMON sysfs interface file,
-namely obsolete_target, under each target directory.  It is connected to
-the obsolete field of parameters commit-source targets, so allows removing
-arbitrary targets in the middle of existing targets list.
+Document the newly added obsolete_target DAMON sysfs file.
 
-Note that the sysfs files are not automatically updated.  For example,
-let's suppose there are three targets in the running context, and a user
-removes the third target using this feature.  If the user writes 'commit'
-to the kdamond 'state' file again, DAMON sysfs interface will again try to
-remove the third target.  But because there is no matching target in the
-running context, the commit will fail.  It is the user's responsibility to
-understand resulting DAMON internal targets list change, and construct
-sysfs files (using nr_targets and other sysfs files) to correctly
-represent it.
-
-Also note that this is arguably an improvement rather than a fix of broken
-things.
-
-Link: https://lkml.kernel.org/r/20251023012535.69625-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251023012535.69625-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Bijan Tabatabai <bijan311@gmail.com>
-Closes: https://github.com/damonitor/damo/issues/36
 Reviewed-by: Bijan Tabatabai <bijan311@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -105,70 +85,43 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-obsolete_target-file
-+++ a/mm/damon/sysfs.c
-@@ -212,6 +212,7 @@ struct damon_sysfs_target {
- 	struct kobject kobj;
- 	struct damon_sysfs_regions *regions;
- 	int pid;
-+	bool obsolete;
- };
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-obsolete_target-file
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -67,7 +67,7 @@ comma (",").
+     │ │ │ │ │ │ │ intervals_goal/access_bp,aggrs,min_sample_us,max_sample_us
+     │ │ │ │ │ │ nr_regions/min,max
+     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
+-    │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target
++    │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target,obsolete_target
+     │ │ │ │ │ │ │ :ref:`regions <sysfs_regions>`/nr_regions
+     │ │ │ │ │ │ │ │ :ref:`0 <sysfs_region>`/start,end
+     │ │ │ │ │ │ │ │ ...
+@@ -264,13 +264,20 @@ to ``N-1``.  Each directory represents e
+ targets/<N>/
+ ------------
  
- static struct damon_sysfs_target *damon_sysfs_target_alloc(void)
-@@ -263,6 +264,29 @@ static ssize_t pid_target_store(struct k
- 	return count;
- }
+-In each target directory, one file (``pid_target``) and one directory
+-(``regions``) exist.
++In each target directory, two files (``pid_target`` and ``obsolete_target``)
++and one directory (``regions``) exist.
  
-+static ssize_t obsolete_target_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_target *target = container_of(kobj,
-+			struct damon_sysfs_target, kobj);
-+
-+	return sysfs_emit(buf, "%c\n", target->obsolete ? 'Y' : 'N');
-+}
-+
-+static ssize_t obsolete_target_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_target *target = container_of(kobj,
-+			struct damon_sysfs_target, kobj);
-+	bool obsolete;
-+	int err = kstrtobool(buf, &obsolete);
-+
-+	if (err)
-+		return err;
-+	target->obsolete = obsolete;
-+	return count;
-+}
-+
- static void damon_sysfs_target_release(struct kobject *kobj)
- {
- 	kfree(container_of(kobj, struct damon_sysfs_target, kobj));
-@@ -271,8 +295,12 @@ static void damon_sysfs_target_release(s
- static struct kobj_attribute damon_sysfs_target_pid_attr =
- 		__ATTR_RW_MODE(pid_target, 0600);
+ If you wrote ``vaddr`` to the ``contexts/<N>/operations``, each target should
+ be a process.  You can specify the process to DAMON by writing the pid of the
+ process to the ``pid_target`` file.
  
-+static struct kobj_attribute damon_sysfs_target_obsolete_attr =
-+		__ATTR_RW_MODE(obsolete_target, 0600);
++Users can selectively remove targets in the middle of the targets array by
++writing non-zero value to ``obsolete_target`` file and committing it (writing
++``commit`` to ``state`` file).  DAMON will remove the matching targets from its
++internal targets array.  Users are responsible to construct target directories
++again, so that those correctly represent the changed internal targets array.
 +
- static struct attribute *damon_sysfs_target_attrs[] = {
- 	&damon_sysfs_target_pid_attr.attr,
-+	&damon_sysfs_target_obsolete_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_target);
-@@ -1377,6 +1405,7 @@ static int damon_sysfs_add_target(struct
- 			/* caller will destroy targets */
- 			return -EINVAL;
- 	}
-+	t->obsolete = sys_target->obsolete;
- 	return damon_sysfs_set_regions(t, sys_target->regions, ctx->min_sz_region);
- }
++
+ .. _sysfs_regions:
  
+ targets/<N>/regions
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
