@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B3B02FE045
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 20:10:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86C5729A322
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 20:14:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761250217; cv=none; b=DNa0hFubq12dHumMxf5m4uLp5U9D5Ha6XqFMTRRDR50wg5nA8O29SVgu0T+JyWJi5f7dQ+4wVGZcZaIT2bK0eAdgF6MOh3DyOYTEeEqCobxJkuQBU0t/hydWIkPbnNAwmhYSdbgkyWgAhDbE2K+juUuE+TtDOomFWbH+rBe5fDg=
+	t=1761250469; cv=none; b=LWRO7M/8MIg72uMBheVm/X8FPjkC3ckRfSvu6zxMY2j3eqeGooHIZCuvp90XnyyixUOr9CxQUweotOfvYGBqTkkukqrTnmK6ec0RF+1Lh6HHiRwlORWSLEyICNdKUTnGfAwAVzxiheXFWQw1SiFJzztw+XLqChlvXuiIW3lSJQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761250217; c=relaxed/simple;
-	bh=nWuil1ArXVG3KPrgxHzhdUBHiS080CkUgwdfSHXJg1o=;
-	h=Date:To:From:Subject:Message-Id; b=p5qOUamkwx05OS3gOUMqO4GdCmc/U+KOMz1TYjK71rGZyRuCwKnOJ8H1VplKWqtywgKZHNXFbIFSMT3SgVjy/WPvzZeOkYt2lfGiyGjjXB2/bZl7iX8IfT0Axl+ADRY6fS63yZZ8oIeQ4yg5Lkfd0VzO1lu+MCvmQvRnN8KSLrM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LkT0L+lZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761250469; c=relaxed/simple;
+	bh=lp5SFmUW54yLkCVXhsOiCpZKHqW3Cmdyi6qYIKL2C/A=;
+	h=Date:To:From:Subject:Message-Id; b=b8ajXrycHEOIX0HSPpliQ0VIWohC87Aqakk8GPtqZO7cXzhU3cRRMN3Rpu9IXkNw6xAfIn1j6I75iDZ0prVjijCGRQhCkPlojSop03H77RsXhbvND4obKDcQ+oL5nXurkgjyEAKxOIhChzCDx+j5/blLdPjrSLpZQaObWYq8PRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OO9C/zIb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LkT0L+lZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A0AEC4CEE7;
-	Thu, 23 Oct 2025 20:10:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OO9C/zIb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0C37C4CEE7;
+	Thu, 23 Oct 2025 20:14:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761250216;
-	bh=nWuil1ArXVG3KPrgxHzhdUBHiS080CkUgwdfSHXJg1o=;
+	s=korg; t=1761250469;
+	bh=lp5SFmUW54yLkCVXhsOiCpZKHqW3Cmdyi6qYIKL2C/A=;
 	h=Date:To:From:Subject:From;
-	b=LkT0L+lZu0iA1tFsZMiGfQ7t4PQnTHeQSUyjhXQav4uvXOHXo/2Qgo2XEqNsslVnG
-	 uzeZdf895f6drxSHRQlvZNhi0FS57EBeee/MgLj1fyNK9hAyir8caMQv6j/QgRSsVU
-	 NGqfTUtpjC7xKwwljUc6jPBCvjjD1c/TIcNIYf1E=
-Date: Thu, 23 Oct 2025 13:10:16 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=OO9C/zIbtD+3EEwMXYrsEY8n/dBUzAjq3tuRxo1LrDmaZpO7vY6aNXNxv+MQtx08C
+	 z0rh0EzAvVRTILqvPA+v1f+poVslqK2V46XSTQIZRVCfeTBSC+yLrtIjh9rMnl8oDR
+	 azW0TrQb3rUbGIvOQFW6oLv9ETW3n6f12OMxtgzE=
+Date: Thu, 23 Oct 2025 13:14:28 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio.patch added to mm-new branch
-Message-Id: <20251023201016.9A0AEC4CEE7@smtp.kernel.org>
+Subject: + mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch added to mm-unstable branch
+Message-Id: <20251023201428.F0C37C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: hugetlb: allocate frozen pages in alloc_gigantic_folio()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio.patch
+     Subject: mm: mprotect: always skip dma pinned folio in prot_numa_skip()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,225 +59,63 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hugetlb: allocate frozen pages in alloc_gigantic_folio()
-Date: Thu, 23 Oct 2025 19:59:40 +0800
+Subject: mm: mprotect: always skip dma pinned folio in prot_numa_skip()
+Date: Thu, 23 Oct 2025 19:37:34 +0800
 
-The alloc_gigantic_folio() allocates a folio by alloc_contig_range() with
-refcount increated and then freeze it, convert to allocate a frozen folio
-to remove the atomic operation about folio refcount, and saving atomic
-operation during __update_and_free_hugetlb_folio too.  Also rename
-hugetlb_cma_{alloc,free}_folio() with frozen which make them more
-self-explanatory.
+Patch series "mm: some optimizations for prot numa", v5.
 
-Link: https://lkml.kernel.org/r/20251023115940.3573158-7-wangkefeng.wang@huawei.com
+
+This patch (of 4):
+
+If the folio (even not CoW folio) is dma pinned, it can't be migrated due
+to the elevated reference count.  So always skip a pinned folio to avoid
+wasting cycles when folios are migrated.
+
+Link: https://lkml.kernel.org/r/20251023113737.3572790-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20251023113737.3572790-2-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   23 ----------------
- mm/hugetlb.c        |   58 ++++++++++--------------------------------
- mm/hugetlb_cma.c    |    9 ++----
- mm/hugetlb_cma.h    |   10 +++----
- 4 files changed, 22 insertions(+), 78 deletions(-)
+ mm/mprotect.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/include/linux/gfp.h~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/include/linux/gfp.h
-@@ -454,29 +454,6 @@ void free_contig_frozen_range(unsigned l
- void free_contig_range(unsigned long pfn, unsigned long nr_pages);
- #endif
+--- a/mm/mprotect.c~mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip
++++ a/mm/mprotect.c
+@@ -136,9 +136,12 @@ static bool prot_numa_skip(struct vm_are
+ 	if (folio_is_zone_device(folio) || folio_test_ksm(folio))
+ 		goto skip;
  
--#ifdef CONFIG_CONTIG_ALLOC
--static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
--							int nid, nodemask_t *node)
--{
--	struct page *page;
--
--	if (WARN_ON(!order || !(gfp & __GFP_COMP)))
--		return NULL;
--
--	page = alloc_contig_pages_noprof(1 << order, gfp, nid, node);
--
--	return page ? page_folio(page) : NULL;
--}
--#else
--static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
--							int nid, nodemask_t *node)
--{
--	return NULL;
--}
--#endif
--/* This should be paired with folio_put() rather than free_contig_range(). */
--#define folio_alloc_gigantic(...) alloc_hooks(folio_alloc_gigantic_noprof(__VA_ARGS__))
--
- DEFINE_FREE(free_page, void *, free_page((unsigned long)_T))
+-	/* Also skip shared copy-on-write pages */
+-	if (is_cow_mapping(vma->vm_flags) &&
+-	    (folio_maybe_dma_pinned(folio) || folio_maybe_mapped_shared(folio)))
++	/* Also skip shared copy-on-write folios */
++	if (is_cow_mapping(vma->vm_flags) && folio_maybe_mapped_shared(folio))
++		goto skip;
++
++	/* Folios are pinned and can't be migrated */
++	if (folio_maybe_dma_pinned(folio))
+ 		goto skip;
  
- #endif /* __LINUX_GFP_H */
---- a/mm/hugetlb.c~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/mm/hugetlb.c
-@@ -124,16 +124,6 @@ static void hugetlb_unshare_pmds(struct
- 		unsigned long start, unsigned long end, bool take_locks);
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
- 
--static void hugetlb_free_folio(struct folio *folio)
--{
--	if (folio_test_hugetlb_cma(folio)) {
--		hugetlb_cma_free_folio(folio);
--		return;
--	}
--
--	folio_put(folio);
--}
--
- /*
-  * Check if the hstate represents gigantic pages but gigantic page
-  * runtime support is not available. This is a common condition used to
-@@ -1502,46 +1492,24 @@ static int hstate_next_node_to_free(stru
- 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
- 		nr_nodes--)
- 
--#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
--#ifdef CONFIG_CONTIG_ALLOC
-+#if defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE) && defined(CONFIG_CONTIG_ALLOC)
- static struct folio *alloc_gigantic_folio(int order, gfp_t gfp_mask,
- 		int nid, nodemask_t *nodemask)
- {
- 	struct folio *folio;
--	bool retried = false;
- 
--retry:
--	folio = hugetlb_cma_alloc_folio(order, gfp_mask, nid, nodemask);
--	if (!folio) {
--		if (hugetlb_cma_exclusive_alloc())
--			return NULL;
--
--		folio = folio_alloc_gigantic(order, gfp_mask, nid, nodemask);
--		if (!folio)
--			return NULL;
--	}
--
--	if (folio_ref_freeze(folio, 1))
-+	folio = hugetlb_cma_alloc_frozen_folio(order, gfp_mask, nid, nodemask);
-+	if (folio)
- 		return folio;
- 
--	pr_warn("HugeTLB: unexpected refcount on PFN %lu\n", folio_pfn(folio));
--	hugetlb_free_folio(folio);
--	if (!retried) {
--		retried = true;
--		goto retry;
--	}
--	return NULL;
--}
-+	if (hugetlb_cma_exclusive_alloc())
-+		return NULL;
- 
--#else /* !CONFIG_CONTIG_ALLOC */
--static struct folio *alloc_gigantic_folio(int order, gfp_t gfp_mask, int nid,
--					  nodemask_t *nodemask)
--{
--	return NULL;
-+	folio = (struct folio *)alloc_contig_frozen_pages(1 << order, gfp_mask,
-+							  nid, nodemask);
-+	return folio;
- }
--#endif /* CONFIG_CONTIG_ALLOC */
--
--#else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
-+#else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE || !CONFIG_CONTIG_ALLOC */
- static struct folio *alloc_gigantic_folio(int order, gfp_t gfp_mask, int nid,
- 					  nodemask_t *nodemask)
- {
-@@ -1672,9 +1640,11 @@ static void __update_and_free_hugetlb_fo
- 	if (unlikely(folio_test_hwpoison(folio)))
- 		folio_clear_hugetlb_hwpoison(folio);
- 
--	folio_ref_unfreeze(folio, 1);
--
--	hugetlb_free_folio(folio);
-+	VM_BUG_ON_FOLIO(folio_ref_count(folio), folio);
-+	if (folio_test_hugetlb_cma(folio))
-+		hugetlb_cma_free_frozen_folio(folio);
-+	else
-+		free_frozen_pages(&folio->page, folio_order(folio));
- }
- 
- /*
---- a/mm/hugetlb_cma.c~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/mm/hugetlb_cma.c
-@@ -18,16 +18,14 @@ static unsigned long hugetlb_cma_size_in
- static bool hugetlb_cma_only;
- static unsigned long hugetlb_cma_size __initdata;
- 
--void hugetlb_cma_free_folio(struct folio *folio)
-+void hugetlb_cma_free_frozen_folio(struct folio *folio)
- {
--	folio_ref_dec(folio);
--
- 	WARN_ON_ONCE(!cma_release_frozen(hugetlb_cma[folio_nid(folio)],
- 					 &folio->page, folio_nr_pages(folio)));
- }
- 
--struct folio *hugetlb_cma_alloc_folio(int order, gfp_t gfp_mask,
--				      int nid, nodemask_t *nodemask)
-+struct folio *hugetlb_cma_alloc_frozen_folio(int order, gfp_t gfp_mask,
-+		int nid, nodemask_t *nodemask)
- {
- 	int node;
- 	struct folio *folio;
-@@ -50,7 +48,6 @@ struct folio *hugetlb_cma_alloc_folio(in
- 	if (!page)
- 		return NULL;
- 
--	set_page_refcounted(page);
- 	folio = page_folio(page);
- 	folio_set_hugetlb_cma(folio);
- 	return folio;
---- a/mm/hugetlb_cma.h~mm-hugetlb-allocate-frozen-pages-in-alloc_gigantic_folio
-+++ a/mm/hugetlb_cma.h
-@@ -3,8 +3,8 @@
- #define _LINUX_HUGETLB_CMA_H
- 
- #ifdef CONFIG_CMA
--void hugetlb_cma_free_folio(struct folio *folio);
--struct folio *hugetlb_cma_alloc_folio(int order, gfp_t gfp_mask,
-+void hugetlb_cma_free_frozen_folio(struct folio *folio);
-+struct folio *hugetlb_cma_alloc_frozen_folio(int order, gfp_t gfp_mask,
- 				      int nid, nodemask_t *nodemask);
- struct huge_bootmem_page *hugetlb_cma_alloc_bootmem(struct hstate *h, int *nid,
- 						    bool node_exact);
-@@ -14,12 +14,12 @@ unsigned long hugetlb_cma_total_size(voi
- void hugetlb_cma_validate_params(void);
- bool hugetlb_early_cma(struct hstate *h);
- #else
--static inline void hugetlb_cma_free_folio(struct folio *folio)
-+static inline void hugetlb_cma_free_frozen_folio(struct folio *folio)
- {
- }
- 
--static inline struct folio *hugetlb_cma_alloc_folio(int order, gfp_t gfp_mask,
--		int nid, nodemask_t *nodemask)
-+static inline struct folio *hugetlb_cma_alloc_frozen_folio(int order,
-+		gfp_t gfp_mask,	int nid, nodemask_t *nodemask)
- {
- 	return NULL;
- }
+ 	/*
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
 mm-mprotect-avoid-unnecessary-struct-page-accessing-if-pte_protnone.patch
-mm-huge_memory-use-folio_skip_prot_numa-for-pmd-folio.patch
+mm-mprotect-convert-to-folio_can_map_prot_numa.patch
+mm-huge_memory-use-folio_can_map_prot_numa-for-pmd-folio.patch
 mm-debug_vm_pgtable-add-debug_vm_pgtable_free_huge_page.patch
 mm-page_alloc-add-__split_page.patch
 mm-cma-add-__cma_release.patch
