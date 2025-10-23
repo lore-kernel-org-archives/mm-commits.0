@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53DA627F00A;
-	Thu, 23 Oct 2025 23:12:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C51011D6DA9
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 23:19:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761261139; cv=none; b=OaX+omZ7gdvGSAhvZlnldSt7jbTWjHbDeOR7js+E0hc4ZHdBrQ+icsV5WB2ypilrv9XG8GCI9dP6+CIlKNxlpF6Ga67dEKX5DRm2zpGAcME5NiXIpKrH45ssEkxPoUMuXqEb5evNNoE9Cr+ZBBGTvO5HLmOkLEVAEckesQ6vJic=
+	t=1761261578; cv=none; b=bzbaj+19KQW40eH8NiYx+q9/phzqFjgJuSUKJn/ucip4khrjKTka8vAg7ZukXvKAMHQwvM1jeXPzy3L1Xnl4RxJmQsnxv43mbVjcg2MFmOUS/FWk+64twweRgFMVvYRKu4/mOVFaXMnMBOLWYSFX/1vQP23BVo5nB7IAuVWdTIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761261139; c=relaxed/simple;
-	bh=R6VHOs6crHStYqt6NpOLBoOrpNxWX9apRS5fy/uQaf4=;
-	h=Date:To:From:Subject:Message-Id; b=jP3rjcCSg3UJAp28aZL13Dgcn1YB9Dv2U6s+mh1XPDOuyzkF0ygk4MYTWy8QxFyOSQ75zUx235MQtE3O98ip7aLwJxWeAsFA7mPEa3mQ8/KrBmNkoR3j+fyagygeBAYwHtnXq5wKaENuJcIaSyP0sGXtdXT4ino5S2Fh1cBeamY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jk50ZrsW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761261578; c=relaxed/simple;
+	bh=jOHx1y783lRUgV1scCbx0NcNCuYlf8yYD2Q7p6W71n4=;
+	h=Date:To:From:Subject:Message-Id; b=qm8MMn65lMdwKBrctV62MSuLAvbv9iaEKv04AUAjTgD5jVDBtH1blewyqLVCFx9FS7EwtmWAOv9+GjlGu6SWLDMz2qXC/XOjXP/xqwX+7Nfio0sRqY7JNuZ50+Whj1p/pTjrGufMHtGG4B22YQEiHAVfRpctKT0S3Ai7b+XttfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hf/KN7+o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jk50ZrsW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AECFCC4CEE7;
-	Thu, 23 Oct 2025 23:12:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hf/KN7+o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28F74C4CEF7;
+	Thu, 23 Oct 2025 23:19:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761261138;
-	bh=R6VHOs6crHStYqt6NpOLBoOrpNxWX9apRS5fy/uQaf4=;
+	s=korg; t=1761261578;
+	bh=jOHx1y783lRUgV1scCbx0NcNCuYlf8yYD2Q7p6W71n4=;
 	h=Date:To:From:Subject:From;
-	b=Jk50ZrsW0KmsxZtep4rZOWbjKJYspv1j/TBFhPetc9vZZrfYvZaS5YCD6Gu1nwAp9
-	 kB0pbaWSEzG46miwyUs1rti8pi9fCNC9SntTPjGx9O3dfzEHLHH49I/cwlXgCD2RTW
-	 OFLVLjP9xzxUG/Mer5BVVgV1V0O8gctuLBFKhZbA=
-Date: Thu, 23 Oct 2025 16:12:18 -0700
-To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lance.yang@linux.dev,kernel@pankajraghav.com,jane.chu@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=hf/KN7+odrWt674Iz6JKxkK+s+hJL7asqry729RMu+tWHzk+4erSHLXzPUuZ2Lhvb
+	 /1GfaqKH8bNk1krXpebv9xih7+dH7r0knEVReAZ/kdtcjJYUOfkBZpFOUs0vCwdGPP
+	 vo7NQ/k/tWjrvkk9mj4lgWijwSzAWs8hgHSpCv5w=
+Date: Thu, 23 Oct 2025 16:19:37 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,bijan311@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251023231218.AECFCC4CEE7@smtp.kernel.org>
+Subject: + mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch added to mm-new branch
+Message-Id: <20251023231938.28F74C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: preserve PG_has_hwpoisoned if a folio is split to >0 order
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order.patch
+     Subject: mm/damon/core: add damon_target->obsolete for pin-point removal
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,126 +64,163 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: preserve PG_has_hwpoisoned if a folio is split to >0 order
-Date: Wed, 22 Oct 2025 23:05:21 -0400
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: add damon_target->obsolete for pin-point removal
+Date: Wed, 22 Oct 2025 18:25:25 -0700
 
-folio split clears PG_has_hwpoisoned, but the flag should be preserved in
-after-split folios containing pages with PG_hwpoisoned flag if the folio
-is split to >0 order folios.  Scan all pages in a to-be-split folio to
-determine which after-split folios need the flag.
+Patch series "mm/damon: support pin-point targets removal".
 
-An alternatives is to change PG_has_hwpoisoned to PG_maybe_hwpoisoned to
-avoid the scan and set it on all after-split folios, but resulting false
-positive has undesirable negative impact.  To remove false positive,
-caller of folio_test_has_hwpoisoned() and folio_contain_hwpoisoned_page()
-needs to do the scan.  That might be causing a hassle for current and
-future callers and more costly than doing the scan in the split code. 
-More details are discussed in [1].
+DAMON maintains the targets in a list, and allows committing only an
+entire list of targets having the new parameters.  Targets having same
+index on the lists are treated as matching source and destination
+targets.  If an existing target cannot find a matching one in the
+sources list, the target is removed.  This means that there is no way to
+remove only a specific monitoring target in the middle of the current
+targets list.
 
-This issue can be exposed via:
-1. splitting a has_hwpoisoned folio to >0 order from debugfs interface;
-2. truncating part of a has_hwpoisoned folio in
-   truncate_inode_partial_folio().
+Such pin-point target removal is really needed in some use cases,
+though.  Monitoring access patterns on virtual address spaces of
+processes that spawned from the same ancestor is one example.  If a
+process of the group is terminated, the user may want to remove the
+matching DAMON target as soon as possible, to save in-kernel memory
+usage for the unnecessary target data.  The user may also want to do
+that without turning DAMON off or removing unnecessary targets, to keep
+the current monitoring results for other active processes.
 
-And later accesses to a hwpoisoned page could be possible due to the
-missing has_hwpoisoned folio flag.  This will lead to MCE errors.
+Extend DAMON kernel API and sysfs ABI to support the pin-point removal
+in the following way.  For API, add a new damon_target field, namely
+'obsolete'.  If the field on parameters commit source target is set, it
+means the matching destination target is obsolete.  Then the parameters
+commit logic removes the destination target from the existing targets
+list.  For sysfs ABI, add a new file under the target directory, namely
+'obsolete_target'.  It is connected with the 'obsolete' field of the
+commit source targets, so internally using the new API.
 
-Link: https://lore.kernel.org/all/CAHbLzkoOZm0PXxE9qwtF4gKR=cpRXrSrJ9V9Pm2DJexs985q4g@mail.gmail.com/ [1]
-Link: https://lkml.kernel.org/r/20251023030521.473097-1-ziy@nvidia.com
-Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Pankaj Raghav <kernel@pankajraghav.com>
-Reviewed-by: Yang Shi <yang@os.amperecomputing.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Lance Yang <lance.yang@linux.dev>
+Also add a selftest for the new feature.  The related helper scripts for
+manipulating the sysfs interface and dumping in-kernel DAMON status are
+also extended for this.  Note that the selftest part was initially
+posted as an individual RFC series [1], but now merged into this one.
+
+Bijan Tabatabai has originally reported this issue, and participated in
+this solution design on a GitHub issue [1] for DAMON user-space tool.
+
+
+This patch (of 9):
+
+DAMON's monitoring targets parameters update function,
+damon_commit_targets(), is not providing a way to remove a target in the
+middle of the existing targets list.  Extend the API by adding a field to
+struct damon_target.  If the field of a damon_commit_targets() source
+target is set, it indicates the matching target on the existing targets
+list is obsolete.  damon_commit_targets() understands that and removes
+those from the list, while respecting the index based matching for other
+non-obsolete targets.
+
+Link: https://lkml.kernel.org/r/20251023012535.69625-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251023012535.69625-2-sj@kernel.org
+Link: https://github.com/damonitor/damo/issues/36 [1]
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Bijan Tabatabai <bijan311@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    6 ++++++
+ mm/damon/core.c       |   10 +++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order
-+++ a/mm/huge_memory.c
-@@ -3263,6 +3263,14 @@ bool can_split_folio(struct folio *folio
- 					caller_pins;
+--- a/include/linux/damon.h~mm-damon-core-add-damon_target-obsolete-for-pin-point-removal
++++ a/include/linux/damon.h
+@@ -91,17 +91,23 @@ struct damon_region {
+  * @nr_regions:		Number of monitoring target regions of this target.
+  * @regions_list:	Head of the monitoring target regions of this target.
+  * @list:		List head for siblings.
++ * @obsolete:		Whether the commit destination target is obsolete.
+  *
+  * Each monitoring context could have multiple targets.  For example, a context
+  * for virtual memory address spaces could have multiple target processes.  The
+  * @pid should be set for appropriate &struct damon_operations including the
+  * virtual address spaces monitoring operations.
++ *
++ * @obsolete is used only for damon_commit_targets() source targets, to specify
++ * the matching destination targets are obsolete.  Read damon_commit_targets()
++ * to see how it is handled.
+  */
+ struct damon_target {
+ 	struct pid *pid;
+ 	unsigned int nr_regions;
+ 	struct list_head regions_list;
+ 	struct list_head list;
++	bool obsolete;
+ };
+ 
+ /**
+--- a/mm/damon/core.c~mm-damon-core-add-damon_target-obsolete-for-pin-point-removal
++++ a/mm/damon/core.c
+@@ -479,6 +479,7 @@ struct damon_target *damon_new_target(vo
+ 	t->nr_regions = 0;
+ 	INIT_LIST_HEAD(&t->regions_list);
+ 	INIT_LIST_HEAD(&t->list);
++	t->obsolete = false;
+ 
+ 	return t;
  }
+@@ -1187,7 +1188,11 @@ static int damon_commit_targets(
  
-+static bool page_range_has_hwpoisoned(struct page *page, long nr_pages)
-+{
-+	for (; nr_pages; page++, nr_pages--)
-+		if (PageHWPoison(page))
-+			return true;
-+	return false;
-+}
-+
- /*
-  * It splits @folio into @new_order folios and copies the @folio metadata to
-  * all the resulting folios.
-@@ -3270,17 +3278,24 @@ bool can_split_folio(struct folio *folio
- static void __split_folio_to_order(struct folio *folio, int old_order,
- 		int new_order)
- {
-+	/* Scan poisoned pages when split a poisoned folio to large folios */
-+	const bool handle_hwpoison = folio_test_has_hwpoisoned(folio) && new_order;
- 	long new_nr_pages = 1 << new_order;
- 	long nr_pages = 1 << old_order;
- 	long i;
- 
-+	folio_clear_has_hwpoisoned(folio);
-+
-+	/* Check first new_nr_pages since the loop below skips them */
-+	if (handle_hwpoison &&
-+	    page_range_has_hwpoisoned(folio_page(folio, 0), new_nr_pages))
-+		folio_set_has_hwpoisoned(folio);
- 	/*
- 	 * Skip the first new_nr_pages, since the new folio from them have all
- 	 * the flags from the original folio.
- 	 */
- 	for (i = new_nr_pages; i < nr_pages; i += new_nr_pages) {
- 		struct page *new_head = &folio->page + i;
--
- 		/*
- 		 * Careful: new_folio is not a "real" folio before we cleared PageTail.
- 		 * Don't pass it around before clear_compound_head().
-@@ -3322,6 +3337,10 @@ static void __split_folio_to_order(struc
- 				 (1L << PG_dirty) |
- 				 LRU_GEN_MASK | LRU_REFS_MASK));
- 
-+		if (handle_hwpoison &&
-+		    page_range_has_hwpoisoned(new_head, new_nr_pages))
-+			folio_set_has_hwpoisoned(new_folio);
-+
- 		new_folio->mapping = folio->mapping;
- 		new_folio->index = folio->index + i;
- 
-@@ -3422,8 +3441,6 @@ static int __split_unmapped_folio(struct
- 	if (folio_test_anon(folio))
- 		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
- 
--	folio_clear_has_hwpoisoned(folio);
--
- 	/*
- 	 * split to new_order one order at a time. For uniform split,
- 	 * folio is split to new_order directly.
+ 	damon_for_each_target_safe(dst_target, next, dst) {
+ 		src_target = damon_nth_target(i++, src);
+-		if (src_target) {
++		/*
++		 * If src target is obsolete, do not commit the parameters to
++		 * the dst target, and further remove the dst target.
++		 */
++		if (src_target && !src_target->obsolete) {
+ 			err = damon_commit_target(
+ 					dst_target, damon_target_has_pid(dst),
+ 					src_target, damon_target_has_pid(src),
+@@ -1210,6 +1215,9 @@ static int damon_commit_targets(
+ 	damon_for_each_target_safe(src_target, next, src) {
+ 		if (j++ < i)
+ 			continue;
++		/* target to remove has no matching dst */
++		if (src_target->obsolete)
++			return -EINVAL;
+ 		new_target = damon_new_target();
+ 		if (!new_target)
+ 			return -ENOMEM;
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-huge_memory-do-not-change-split_huge_page-target-order-silently.patch
-mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order.patch
+mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
+mm-zswap-fix-typos-s-zwap-zswap.patch
+mm-zswap-s-red-black-tree-xarray.patch
+docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
+mm-damon-document-damos_quota_goal-nid-use-case.patch
+mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
+mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
+mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
+mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
+docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
+docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
+docs-abi-damon-document-damos-quota-goal-path-file.patch
+mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
+mm-damon-sysfs-test-commit-input-against-realistic-destination.patch
+mm-damon-sysfs-implement-obsolete_target-file.patch
+docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
+docs-abi-damon-document-obsolete_target-sysfs-file.patch
+selftests-damon-_damon_sysfs-support-obsolete_target-file.patch
+drgn_dump_damon_status-dump-damon_target-obsolete.patch
+sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
+selftests-damon-sysfs-add-obsolete_target-test.patch
 
