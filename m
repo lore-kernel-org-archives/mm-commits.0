@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 789BD29C33F
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 19:19:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5784D2264A0
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 19:37:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761247184; cv=none; b=D0IFZyfirvkC8JNwTHF6rWKzpJlLvyoo34OiR6LLvkclRwLNZ5fZC5Ut2yjeuL8TZ++yya/DlTuJierahJxt7Xg21HOMWU6wDmOuqE9Fn8jqZDPiI9lpp/diyZxlxY7W6WLF5hyqMu3bVyqXGXlYCp8GXH8ncyXuQOhCl73Kz7Q=
+	t=1761248264; cv=none; b=T0+LNclHP6n6oeiHOpSOqf9T7ONESsz8RoGkkrM5FZTq+cwpE8xJpD11Iwov5/V4x4VKrFpHqhm5WGHNtf38+Nnwdjm6+DSV14rCtZtkoxltjgCzgw4TpzeMqWgkHABNkqTCZg/nEaiPmqVzXQQiVK1tg4l1N/m2AJWCjfRIAPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761247184; c=relaxed/simple;
-	bh=i7GoFPXXh1RjBkcu43DKSie87Ma+luQDjXwkBk7QSRY=;
-	h=Date:To:From:Subject:Message-Id; b=oD5WgflsHB6Aoj6j1HsQCOJXKT7RtgvudltoPqzcuO/3p2TLxh3HwIkAuZEuOT3Hv1WItDuku1dqfDRRx0UnbW0MPSH8NaiWuL02eK6Dr28CBA6AUmTCNep6stLKOk90VxW1q0l8D75T3l4Kg+WO3J89jnXr5v2fDq5Au5TV+7w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lPczWnEW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761248264; c=relaxed/simple;
+	bh=z07zHENrk+wgPfetbxWu4Jtr+4SeC8Nvt/XefRkfCOg=;
+	h=Date:To:From:Subject:Message-Id; b=E+Wza7Y3/Ag7nMfb7FSZ0W+NdOPqfqROzVlgTaG+0aFMvD1fEg1VlLh27IRs7+uKft61QObisUjwymJ7sulQ8oyjsmSAMvAh3yXTcwTal6dAG4jDwI0WsaAH4Vpc0OlyToy1AKzJnGQ8CpBB3jcAYsIsVj96SVzy6tFmZ00R+nU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A1MHfHap; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lPczWnEW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06F69C4CEE7;
-	Thu, 23 Oct 2025 19:19:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A1MHfHap"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 058E0C4CEE7;
+	Thu, 23 Oct 2025 19:37:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761247184;
-	bh=i7GoFPXXh1RjBkcu43DKSie87Ma+luQDjXwkBk7QSRY=;
+	s=korg; t=1761248264;
+	bh=z07zHENrk+wgPfetbxWu4Jtr+4SeC8Nvt/XefRkfCOg=;
 	h=Date:To:From:Subject:From;
-	b=lPczWnEWGChHOi0ohsn3zRfh/zFrA1Hglb1zR88ySu39uYaVmtP9+DROjk/C4FcVZ
-	 nuFhl4YZXXB23H4YQK5DeZX/gGDY/6METwj3hYKaDBwtRaHhCwgB7oY0BjCO4nETjl
-	 F09bn2NLLQ/Y6wXeYiOBnw+vfSsq5HxmhxDxE5cE=
-Date: Thu, 23 Oct 2025 12:19:43 -0700
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=A1MHfHapFIN1Vs7W5tjF+dKBs4lqz5xoJ/aqLxvDSFatT5DPLTQ3qV4tCbgxG+d0S
+	 NwD+l2pFKsHziMdy/bY5t79t/gIprBaSjWYfDhENSCh+5yXVSSIBeyFPRMy8BPnL+J
+	 Qns8BDfEDj8IoZ5P7uYARdj6ULGrhuadtozRaRpQ=
+Date: Thu, 23 Oct 2025 12:37:43 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,shakeel.butt@linux.dev,rppt@kernel.org,rdunlap@infradead.org,peterz@infradead.org,paulmck@kernel.org,ojeda@kernel.org,nathan@kernel.org,mkoutny@suse.com,mingo@kernel.org,masahiroy@kernel.org,kernel@jfarr.cc,kees@kernel.org,jeffxu@chromium.org,hca@linux.ibm.com,guoweikang.kernel@gmail.com,geert@linux-m68k.org,francesco@valla.it,chenhuacai@kernel.org,brgerst@gmail.com,brauner@kernel.org,alexander.shishkin@linux.intel.com,achant@google.com,dianders@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch added to mm-new branch
-Message-Id: <20251023191944.06F69C4CEE7@smtp.kernel.org>
+Subject: + init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs.patch added to mm-nonmm-unstable branch
+Message-Id: <20251023193744.058E0C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: remove redundant argument for isolating a cluster
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch
+     Subject: init/main.c: wrap long kernel cmdline when printing to logs
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,67 +58,255 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: remove redundant argument for isolating a cluster
-Date: Fri, 24 Oct 2025 02:00:43 +0800
+From: Douglas Anderson <dianders@chromium.org>
+Subject: init/main.c: wrap long kernel cmdline when printing to logs
+Date: Thu, 23 Oct 2025 11:33:05 -0700
 
-The order argument was introduced by an intermediate commit and was then
-never used, just remove it.
+The kernel cmdline length is allowed to be longer than what printk can
+handle.  When this happens the cmdline that's printed to the kernel ring
+buffer at bootup is cutoff and some kernel cmdline options are "hidden"
+from the logs.  This undercuts the usefulness of the log message.
 
-Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-5-a709469052e7@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Specifically, grepping for COMMAND_LINE_SIZE shows that 2048 is common and
+some architectures even define it as 4096.  s390 allows a CONFIG-based
+maximum up to 1MB (though it's not expected that anyone will go over the
+default max of 4096 [1]).
+
+The maximum message pr_notice() seems to be able to handle (based on
+experiment) is 1021 characters.  This appears to be based on the current
+value of PRINTKRB_RECORD_MAX as 1024 and the fact that pr_notice() spends
+2 characters on the loglevel prefix and we have a '\n' at the end.
+
+While it would be possible to increase the limits of printk() (and
+therefore pr_notice()) somewhat, it doesn't appear possible to increase it
+enough to fully include a 2048-character cmdline without breaking
+userspace.  Specifically on at least two tested userspaces (ChromeOS plus
+the Debian-based distro I'm typing this message on) the `dmesg` tool reads
+lines from `/dev/kmsg` in 2047-byte chunks.  As per
+`Documentation/ABI/testing/dev-kmsg`:
+
+  Every read() from the opened device node receives one record
+  of the kernel's printk buffer.
+  ...
+  Messages in the record ring buffer get overwritten as whole,
+  there are never partial messages received by read().
+
+We simply can't fit a 2048-byte cmdline plus the "Kernel command line:"
+prefix plus info about time/log_level/etc in a 2047-byte read.
+
+The above means that if we want to avoid the truncation we need to do some
+type of wrapping of the cmdline when printing.
+
+Add wrapping to the printout of the kernel command line.  By default, the
+wrapping is set to 1021 characters to avoid breaking anyone, but allow
+wrapping to be set lower by a Kconfig knob
+"CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN".  Any tools that are correctly parsing
+the cmdline today (because it is less than 1021 characters) will see no
+difference in their behavior.  The format of wrapped output is designed to
+be matched by anyone using "grep" to search for the cmdline and also to be
+easy for tools to handle.  Anyone who is sure their tools (if any) handle
+the wrapped format can choose a lower wrapping value and have prettier
+output.
+
+Setting CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN to -1 fully disables the
+wrapping logic.  This means that long command lines will be truncated
+again, but this config could be set if command lines are expected to be
+long and userspace is known not to handle parsing logs with the wrapping.
+
+Wrapping is based on spaces, ignoring quotes.  All lines are prefixed with
+"Kernel command line: " and lines that are not the last line have a " \"
+suffix added to them.  The prefix and suffix count towards the line length
+for wrapping purposes.  The ideal length will be exceeded if no
+appropriate place to wrap is found.
+
+The wrapping function added here is fairly generic and could be made a
+library function (somewhat like print_hex_dump()) if it's needed elsewhere
+in the kernel.  However, having printk() directly incorporate this
+wrapping would be unlikely to be a good idea since it would break
+printouts into more than one record without any obvious common line prefix
+to tie lines together.  It would also be extra overhead when, in general,
+kernel log message should simply be kept smaller than 1021 bytes.  For
+some discussion on this topic, see responses to the v1 posting of this
+patch [2].
+
+Link: https://lkml.kernel.org/r/20251023113257.v3.1.I095f1e2c6c27f9f4de0b4841f725f356c643a13f@changeid
+Link: https://lore.kernel.org/r/20251021131633.26700Dd6-hca@linux.ibm.com [1]
+Link: https://lore.kernel.org/r/CAD=FV=VNyt1zG_8pS64wgV8VkZWiWJymnZ-XCfkrfaAhhFSKcA@mail.gmail.com [2]
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andrew Chant <achant@google.com>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Francesco Valla <francesco@valla.it>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: guoweikang <guoweikang.kernel@gmail.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jan Hendrik Farr <kernel@jfarr.cc>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ init/Kconfig |   18 +++++++++
+ init/main.c  |   96 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 113 insertions(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-remove-redundant-argument-for-isolating-a-cluster
-+++ a/mm/swapfile.c
-@@ -594,7 +594,7 @@ static void __free_cluster(struct swap_i
-  * this returns NULL for an non-empty list.
-  */
- static struct swap_cluster_info *isolate_lock_cluster(
--		struct swap_info_struct *si, struct list_head *list, int order)
-+		struct swap_info_struct *si, struct list_head *list)
+--- a/init/Kconfig~init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs
++++ a/init/Kconfig
+@@ -1512,6 +1512,24 @@ config BOOT_CONFIG_EMBED_FILE
+ 	  This bootconfig will be used if there is no initrd or no other
+ 	  bootconfig in the initrd.
+ 
++config CMDLINE_LOG_WRAP_IDEAL_LEN
++	int "Length to try to wrap the cmdline when logged at boot"
++	default 1021
++	range -1 1021
++	help
++	  At boot time, the kernel command line is logged to the console.
++	  The log message will start with the prefix "Kernel command line: ".
++	  The log message will attempt to be wrapped (split into multiple log
++	  messages) at spaces based on CMDLINE_LOG_WRAP_IDEAL_LEN characters.
++	  If wrapping happens, each log message will start with the prefix and
++	  all but the last message will end with " \". Messages may exceed the
++	  ideal length if a place to wrap isn't found before the specified
++	  number of characters.
++
++	  A value of -1 disables wrapping, though be warned that the maximum
++	  length of a log message (1021 characters) may cause the cmdline to
++	  be truncated.
++
+ config INITRAMFS_PRESERVE_MTIME
+ 	bool "Preserve cpio archive mtimes in initramfs"
+ 	depends on BLK_DEV_INITRD
+--- a/init/main.c~init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs
++++ a/init/main.c
+@@ -906,6 +906,100 @@ static void __init early_numa_node_init(
+ #endif
+ }
+ 
++#define KERNEL_CMDLINE_PREFIX		"Kernel command line: "
++#define KERNEL_CMDLINE_PREFIX_LEN	(sizeof(KERNEL_CMDLINE_PREFIX) - 1)
++#define KERNEL_CMDLINE_CONTINUATION	" \\"
++#define KERNEL_CMDLINE_CONTINUATION_LEN	(sizeof(KERNEL_CMDLINE_CONTINUATION) - 1)
++
++#define MIN_CMDLINE_LOG_WRAP_IDEAL_LEN	(KERNEL_CMDLINE_PREFIX_LEN + \
++					 KERNEL_CMDLINE_CONTINUATION_LEN)
++#define CMDLINE_LOG_WRAP_IDEAL_LEN	(CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN > \
++					 MIN_CMDLINE_LOG_WRAP_IDEAL_LEN ? \
++					 CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN : \
++					 MIN_CMDLINE_LOG_WRAP_IDEAL_LEN)
++
++#define IDEAL_CMDLINE_LEN		(CMDLINE_LOG_WRAP_IDEAL_LEN - KERNEL_CMDLINE_PREFIX_LEN)
++#define IDEAL_CMDLINE_SPLIT_LEN		(IDEAL_CMDLINE_LEN - KERNEL_CMDLINE_CONTINUATION_LEN)
++
++/**
++ * print_kernel_cmdline() - Print the kernel cmdline with wrapping.
++ * @cmdline: The cmdline to print.
++ *
++ * Print the kernel command line, trying to wrap based on the Kconfig knob
++ * CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN.
++ *
++ * Wrapping is based on spaces, ignoring quotes. All lines are prefixed
++ * with "Kernel command line: " and lines that are not the last line have
++ * a " \" suffix added to them. The prefix and suffix count towards the
++ * line length for wrapping purposes. The ideal length will be exceeded
++ * if no appropriate place to wrap is found.
++ *
++ * Example output if CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN is 40:
++ *   Kernel command line: loglevel=7 \
++ *   Kernel command line: init=/sbin/init \
++ *   Kernel command line: root=PARTUUID=8c3efc1a-768b-6642-8d0c-89eb782f19f0/PARTNROFF=1 \
++ *   Kernel command line: rootwait ro \
++ *   Kernel command line: my_quoted_arg="The \
++ *   Kernel command line: quick brown fox \
++ *   Kernel command line: jumps over the \
++ *   Kernel command line: lazy dog."
++ */
++static void print_kernel_cmdline(const char *cmdline)
++{
++	size_t len;
++
++	/* Config option of -1 disables wrapping */
++	if (CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN < 0) {
++		pr_notice("%s%s\n", KERNEL_CMDLINE_PREFIX, cmdline);
++		return;
++	}
++
++	len = strlen(cmdline);
++	while (len > IDEAL_CMDLINE_LEN) {
++		const char *first_space;
++		const char *prev_cutoff;
++		const char *cutoff;
++		int to_print;
++		size_t used;
++
++		/* Find the last ' ' that wouldn't make the line too long */
++		prev_cutoff = NULL;
++		cutoff = cmdline;
++		while (true) {
++			cutoff = strchr(cutoff + 1, ' ');
++			if (!cutoff || cutoff - cmdline > IDEAL_CMDLINE_SPLIT_LEN)
++				break;
++			prev_cutoff = cutoff;
++		}
++		if (prev_cutoff)
++			cutoff = prev_cutoff;
++		else if (!cutoff)
++			break;
++
++		/* Find the beginning and end of the string of spaces */
++		first_space = cutoff;
++		while (first_space > cmdline && first_space[-1] == ' ')
++			first_space--;
++		to_print = first_space - cmdline;
++		while (*cutoff == ' ')
++			cutoff++;
++		used = cutoff - cmdline;
++
++		/* If the whole string is used, break and do the final printout */
++		if (len == used)
++			break;
++
++		if (to_print)
++			pr_notice("%s%.*s%s\n", KERNEL_CMDLINE_PREFIX,
++				  to_print, cmdline, KERNEL_CMDLINE_CONTINUATION);
++
++		len -= used;
++		cmdline += used;
++	}
++	if (len)
++		pr_notice("%s%s\n", KERNEL_CMDLINE_PREFIX, cmdline);
++}
++
+ asmlinkage __visible __init __no_sanitize_address __noreturn __no_stack_protector
+ void start_kernel(void)
  {
- 	struct swap_cluster_info *ci, *found = NULL;
+@@ -942,7 +1036,7 @@ void start_kernel(void)
+ 	early_numa_node_init();
+ 	boot_cpu_hotplug_init();
  
-@@ -957,7 +957,7 @@ static unsigned int alloc_swap_scan_list
- 	unsigned int found = SWAP_ENTRY_INVALID;
- 
- 	do {
--		struct swap_cluster_info *ci = isolate_lock_cluster(si, list, order);
-+		struct swap_cluster_info *ci = isolate_lock_cluster(si, list);
- 		unsigned long offset;
- 
- 		if (!ci)
-@@ -982,7 +982,7 @@ static void swap_reclaim_full_clusters(s
- 	if (force)
- 		to_scan = swap_usage_in_pages(si) / SWAPFILE_CLUSTER;
- 
--	while ((ci = isolate_lock_cluster(si, &si->full_clusters, 0))) {
-+	while ((ci = isolate_lock_cluster(si, &si->full_clusters))) {
- 		offset = cluster_offset(si, ci);
- 		end = min(si->max, offset + SWAPFILE_CLUSTER);
- 		to_scan--;
+-	pr_notice("Kernel command line: %s\n", saved_command_line);
++	print_kernel_cmdline(saved_command_line);
+ 	/* parameters may set static keys */
+ 	parse_early_param();
+ 	after_dashes = parse_args("Booting kernel",
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from dianders@chromium.org are
 
-mm-shmem-fix-thp-allocation-and-fallback-loop.patch
-mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
-mm-swap-rename-helper-for-setup-bad-slots.patch
-mm-swap-cleanup-swap-entry-allocation-parameter.patch
-mm-migrate-swap-drop-usage-of-folio_index.patch
-mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch
+init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs.patch
 
