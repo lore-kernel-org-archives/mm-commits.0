@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D8E2882CE
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 19:19:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A27252882CE
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 19:19:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761247176; cv=none; b=VEzH+s4t+f+LIFkUUim+Oxb6Pf30gOm5uqt+ey2PztYGEQemkDA32v4CwYfFlsBv6CviFCkt/09pgIB+RYjhNRYwfErWcU3Crio4xC8bjMVXLc1RcUC3CEUm0TBRA6INliOXRW+NGpo4pvSo3BLxmG6Qd2QHioxEx04NfpwJ/+U=
+	t=1761247178; cv=none; b=hfKPEL7uHgT47xrVJwYr6ndWNmW82Q2SeeqHiTzCLZEdw8TJLgFnBm6zcLGiVr2WbpsyHKl4LIRs2CAJAr/KpWAbnaqJeuFU6jsgX4ItcA+zW3FlTbUepDKA1jXes/ekaNbwLGJb8q/ZkzMr+iSl0FY9gzi5c5quo5h+/qlaYmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761247176; c=relaxed/simple;
-	bh=CeXEWcw2Y7W4Aizh08N3vu6Pyoc0wWeuU/rZzIqR5sA=;
-	h=Date:To:From:Subject:Message-Id; b=FwW26JfIxe1usr1ucHN/+VKHpGlfZv1btqKwVBrMTY3XV6QWBZKSdBXTD+tUYMihLYtUkwa3F/In8vYz9DjCvWw+t+uyCowMLRLZpRLkQRaYkfjpfaNsvZWSzSijUEXtIm9G4UwI4bvBL0Y0k+cFCJ6kuaHemiCpj8j7E/PIcJ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QhEVTcvW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761247178; c=relaxed/simple;
+	bh=XLzxMCO0Og9hhZ4XK/pYvdtvmYDC5X4hllkr1afK3k8=;
+	h=Date:To:From:Subject:Message-Id; b=X2G7dO+ca5U4ne8E0zK/9YK9gltOW6m/Lz2fCFMcwApeGSw1buvMNeEDf14ZKL3eTw1EzfRR5T9QdDUvJKekdhGr4HwDTtNMjmUxJeklwaiViR34sbegUCBlG6wMg01QuL0xaFC8nzgJviNzhLslA9c3bs/tLI4mUdIwgD0j9Ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SOm2Zo+W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QhEVTcvW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7B05C4CEE7;
-	Thu, 23 Oct 2025 19:19:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SOm2Zo+W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D11CC4CEE7;
+	Thu, 23 Oct 2025 19:19:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761247176;
-	bh=CeXEWcw2Y7W4Aizh08N3vu6Pyoc0wWeuU/rZzIqR5sA=;
+	s=korg; t=1761247178;
+	bh=XLzxMCO0Og9hhZ4XK/pYvdtvmYDC5X4hllkr1afK3k8=;
 	h=Date:To:From:Subject:From;
-	b=QhEVTcvWEjdFI86EaosAe9NJKVkPhUzmU/cEPm80H/386+liu+gv8GJyl+2+ohiSN
-	 rYULyVB36t6z4oS2gFlDjpU59rTSEq1diFWtHQl2bFrxg3TumOM9ShVcWZutwWRbZ4
-	 CwZgdv4Dj3f46oTmVIDRYl0CXBij8zDOkC8w8UAk=
-Date: Thu, 23 Oct 2025 12:19:35 -0700
+	b=SOm2Zo+WtEP1n7abq/fWr90z5mCaRVNsq0akz2NScnIBwxpU3S499lqqU7DDETitm
+	 INOIKsxnlPVIpAFa4X9uNjpF4ALN5JGtU0SCh61wCglUi0yZqgKds1fFLf24Yqv1T0
+	 UhgcKSaKSFtwZIT4fSs/ELL8CMSl2w1zNrRnbE18=
+Date: Thu, 23 Oct 2025 12:19:37 -0700
 To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-rename-helper-for-setup-bad-slots.patch added to mm-new branch
-Message-Id: <20251023191935.E7B05C4CEE7@smtp.kernel.org>
+Subject: + mm-swap-cleanup-swap-entry-allocation-parameter.patch added to mm-new branch
+Message-Id: <20251023191938.1D11CC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: rename helper for setup bad slots
+     Subject: mm, swap: cleanup swap entry allocation parameter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-rename-helper-for-setup-bad-slots.patch
+     mm-swap-cleanup-swap-entry-allocation-parameter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-rename-helper-for-setup-bad-slots.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cleanup-swap-entry-allocation-parameter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,22 +65,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: rename helper for setup bad slots
-Date: Fri, 24 Oct 2025 02:00:40 +0800
+Subject: mm, swap: cleanup swap entry allocation parameter
+Date: Fri, 24 Oct 2025 02:00:41 +0800
 
-The name inc_cluster_info_page is very confusing, as this helper is only
-used during swapon to mark bad slots.  Rename it properly and turn the
-VM_BUG_ON in it into WARN_ON to expose more potential issues.  Swapon is a
-cold path, so adding more checks should be a good idea.
+We no longer need this GFP parameter after commit 8578e0c00dcf ("mm, swap:
+use the swap table for the swap cache and switch API").  Before that
+commit the GFP parameter is already almost identical for all callers, so
+nothing changed by that commit.  Swap table just moved the GFP to lower
+layer and make it more defined and changes depend on atomic or sleep
+allocation.
 
-No feature change except new WARN_ON.
+Now this parameter is no longer used, just remove it.  No behavior change.
 
-Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-2-a709469052e7@tencent.com
+Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-3-a709469052e7@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Acked-by: Chris Li <chrisl@kernel.org>
 Acked-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
@@ -89,67 +91,82 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/swap.h |    4 ++--
+ mm/shmem.c           |    2 +-
+ mm/swapfile.c        |    3 +--
+ mm/vmscan.c          |    4 ++--
+ 4 files changed, 6 insertions(+), 7 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-rename-helper-for-setup-bad-slots
-+++ a/mm/swapfile.c
-@@ -751,14 +751,14 @@ static void relocate_cluster(struct swap
+--- a/include/linux/swap.h~mm-swap-cleanup-swap-entry-allocation-parameter
++++ a/include/linux/swap.h
+@@ -462,7 +462,7 @@ static inline long get_nr_swap_pages(voi
  }
  
- /*
-- * The cluster corresponding to page_nr will be used. The cluster will not be
-- * added to free cluster list and its usage counter will be increased by 1.
-- * Only used for initialization.
-+ * The cluster corresponding to @offset will be accounted as having one bad
-+ * slot. The cluster will not be added to the free cluster list, and its
-+ * usage counter will be increased by 1. Only used for initialization.
-  */
--static int inc_cluster_info_page(struct swap_info_struct *si,
--	struct swap_cluster_info *cluster_info, unsigned long page_nr)
-+static int swap_cluster_setup_bad_slot(struct swap_cluster_info *cluster_info,
-+				       unsigned long offset)
- {
--	unsigned long idx = page_nr / SWAPFILE_CLUSTER;
-+	unsigned long idx = offset / SWAPFILE_CLUSTER;
- 	struct swap_table *table;
- 	struct swap_cluster_info *ci;
- 
-@@ -772,8 +772,8 @@ static int inc_cluster_info_page(struct
- 
- 	ci->count++;
- 
--	VM_BUG_ON(ci->count > SWAPFILE_CLUSTER);
--	VM_BUG_ON(ci->flags);
-+	WARN_ON(ci->count > SWAPFILE_CLUSTER);
-+	WARN_ON(ci->flags);
- 
+ extern void si_swapinfo(struct sysinfo *);
+-int folio_alloc_swap(struct folio *folio, gfp_t gfp_mask);
++int folio_alloc_swap(struct folio *folio);
+ bool folio_free_swap(struct folio *folio);
+ void put_swap_folio(struct folio *folio, swp_entry_t entry);
+ extern swp_entry_t get_swap_page_of_type(int);
+@@ -560,7 +560,7 @@ static inline int swp_swapcount(swp_entr
  	return 0;
  }
-@@ -3396,7 +3396,7 @@ static struct swap_cluster_info *setup_c
- 	 * See setup_swap_map(): header page, bad pages,
- 	 * and the EOF part of the last cluster.
- 	 */
--	err = inc_cluster_info_page(si, cluster_info, 0);
-+	err = swap_cluster_setup_bad_slot(cluster_info, 0);
- 	if (err)
- 		goto err;
- 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
-@@ -3404,12 +3404,12 @@ static struct swap_cluster_info *setup_c
  
- 		if (page_nr >= maxpages)
- 			continue;
--		err = inc_cluster_info_page(si, cluster_info, page_nr);
-+		err = swap_cluster_setup_bad_slot(cluster_info, page_nr);
- 		if (err)
- 			goto err;
+-static inline int folio_alloc_swap(struct folio *folio, gfp_t gfp_mask)
++static inline int folio_alloc_swap(struct folio *folio)
+ {
+ 	return -EINVAL;
+ }
+--- a/mm/shmem.c~mm-swap-cleanup-swap-entry-allocation-parameter
++++ a/mm/shmem.c
+@@ -1617,7 +1617,7 @@ try_split:
+ 		folio_mark_uptodate(folio);
  	}
- 	for (i = maxpages; i < round_up(maxpages, SWAPFILE_CLUSTER); i++) {
--		err = inc_cluster_info_page(si, cluster_info, i);
-+		err = swap_cluster_setup_bad_slot(cluster_info, i);
- 		if (err)
- 			goto err;
- 	}
+ 
+-	if (!folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN)) {
++	if (!folio_alloc_swap(folio)) {
+ 		bool first_swapped = shmem_recalc_inode(inode, 0, nr_pages);
+ 		int error;
+ 
+--- a/mm/swapfile.c~mm-swap-cleanup-swap-entry-allocation-parameter
++++ a/mm/swapfile.c
+@@ -1417,7 +1417,6 @@ static bool swap_sync_discard(void)
+ /**
+  * folio_alloc_swap - allocate swap space for a folio
+  * @folio: folio we want to move to swap
+- * @gfp: gfp mask for shadow nodes
+  *
+  * Allocate swap space for the folio and add the folio to the
+  * swap cache.
+@@ -1425,7 +1424,7 @@ static bool swap_sync_discard(void)
+  * Context: Caller needs to hold the folio lock.
+  * Return: Whether the folio was added to the swap cache.
+  */
+-int folio_alloc_swap(struct folio *folio, gfp_t gfp)
++int folio_alloc_swap(struct folio *folio)
+ {
+ 	unsigned int order = folio_order(folio);
+ 	unsigned int size = 1 << order;
+--- a/mm/vmscan.c~mm-swap-cleanup-swap-entry-allocation-parameter
++++ a/mm/vmscan.c
+@@ -1296,7 +1296,7 @@ retry:
+ 					    split_folio_to_list(folio, folio_list))
+ 						goto activate_locked;
+ 				}
+-				if (folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOWARN)) {
++				if (folio_alloc_swap(folio)) {
+ 					int __maybe_unused order = folio_order(folio);
+ 
+ 					if (!folio_test_large(folio))
+@@ -1312,7 +1312,7 @@ retry:
+ 					}
+ #endif
+ 					count_mthp_stat(order, MTHP_STAT_SWPOUT_FALLBACK);
+-					if (folio_alloc_swap(folio, __GFP_HIGH | __GFP_NOWARN))
++					if (folio_alloc_swap(folio))
+ 						goto activate_locked_split;
+ 				}
+ 				/*
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
