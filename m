@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5F7F2BB1D
-	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 23:19:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E34702BB1D
+	for <mm-commits@vger.kernel.org>; Thu, 23 Oct 2025 23:19:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761261585; cv=none; b=lwNrJA/M6TyoEzwFggVK1ZIAE/PLT3x8L2KLyKHY9Ced4zFQjRrXlmAT4a4ZQi7swis0sQ1Ru2wDvhJyVLsCUvS3Ycb63LvTTQeXxLgBH3pfiSMjtn4YiSuhRSVVomjOk24RYtW3vMZe7gndo2cjFNwVPM1YkfuV6Z7vPcdfDXU=
+	t=1761261587; cv=none; b=ZjXSPiPmebtpRsOEzDlmhYg/er3hyhl5zzYaQrX3rHnzmO4/4shVQzUv9g68n7zGCImb8bCTPed1/J/25on7lIdv+2NGzM+4BMQtYFaJ3DPG0eM8utd4BNWT5s20TRknagbIWrtFsg33IKUmUHkP/Phqz875WMdwNQdHpUMAKS0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761261585; c=relaxed/simple;
-	bh=5K1JOf6qWJ0dh8AfF394/6JwK0xAItu+dciwGgFUuZg=;
-	h=Date:To:From:Subject:Message-Id; b=Vo3uKSwD4O1+5GYzMI7//UnQh6c03iY7hExbteby9bCgSth+IpXhhqQLu0OYw7gpADCgXqU5UXDMmMlbsJfY8RMhoavzF82wv2HQ9eABMEWgVX791vG5wAZSQAG40kr5eiJaRe9ZosDsNuzCtvKE6rWnDnSWtClRpNNJAOKuap8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IMS95zhN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761261587; c=relaxed/simple;
+	bh=MtYdoMOkHVIX8CA2O//ntm1jKiKQM6kC4z1Fly7SSro=;
+	h=Date:To:From:Subject:Message-Id; b=Ce5uTpTULivyfJN7+JEoyJaP7zNpgInhECCRxVk5CYLVr5wmXZeIqcV5KDjumUVjmlwaDktnzd2C6y+JjrjkR/7dxn3QFDCmeEh2wmTXWHs6X1DI0tTd0Xp9K2ivLifPdpOw2MaWuB8/Ek4/I99fMejANNZrB1xksPTW3AbkO8c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jU3UZL3X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IMS95zhN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9A6CC4CEE7;
-	Thu, 23 Oct 2025 23:19:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jU3UZL3X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD7C5C4CEE7;
+	Thu, 23 Oct 2025 23:19:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761261584;
-	bh=5K1JOf6qWJ0dh8AfF394/6JwK0xAItu+dciwGgFUuZg=;
+	s=korg; t=1761261586;
+	bh=MtYdoMOkHVIX8CA2O//ntm1jKiKQM6kC4z1Fly7SSro=;
 	h=Date:To:From:Subject:From;
-	b=IMS95zhNraInXBeiwIPhD8ALJvnt8pEaUqQp74h1M0q3Kzp71qjWMEzui13mKg8m7
-	 jDKax9wxGEkbig0ylq7ZWI35Qbxe11qKvBJcrkvyXwNdYgqgDk5J4MATWwTd3j3RFI
-	 A3SS7fPzHoGp/GlzVuRCMLq9V8SQHEcjgfbHTSBw=
-Date: Thu, 23 Oct 2025 16:19:44 -0700
+	b=jU3UZL3XLNwtbCyGsMKxq/X5ENNhuU7ZvjpF+23PZVClIlGBULSYVTBpj3XpYV2oO
+	 osiPso+Foe3Mp7+ozvdjh0mCa8Iw1rst9O7FWJuI20ge8pPgeRVT0AjXr66BNBf41+
+	 vnYdr7And6dJLetSSHmZX7aRh1Sa+Z2X+myd2mK0=
+Date: Thu, 23 Oct 2025 16:19:46 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,bijan311@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch added to mm-new branch
-Message-Id: <20251023231944.B9A6CC4CEE7@smtp.kernel.org>
+Subject: + docs-abi-damon-document-obsolete_target-sysfs-file.patch added to mm-new branch
+Message-Id: <20251023231946.AD7C5C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document obsolete_target file
+     Subject: Docs/ABI/damon: document obsolete_target sysfs file
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
+     docs-abi-damon-document-obsolete_target-sysfs-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-obsolete_target-sysfs-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,12 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document obsolete_target file
-Date: Wed, 22 Oct 2025 18:25:28 -0700
+Subject: Docs/ABI/damon: document obsolete_target sysfs file
+Date: Wed, 22 Oct 2025 18:25:29 -0700
 
-Document the newly added obsolete_target DAMON sysfs file.
+Update DAMON ABI document for the newly added obsolete_target DAMON sysfs
+file.
 
-Link: https://lkml.kernel.org/r/20251023012535.69625-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251023012535.69625-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Bijan Tabatabai <bijan311@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -85,43 +86,25 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-obsolete_target-file
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -67,7 +67,7 @@ comma (",").
-     │ │ │ │ │ │ │ intervals_goal/access_bp,aggrs,min_sample_us,max_sample_us
-     │ │ │ │ │ │ nr_regions/min,max
-     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
--    │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target
-+    │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target,obsolete_target
-     │ │ │ │ │ │ │ :ref:`regions <sysfs_regions>`/nr_regions
-     │ │ │ │ │ │ │ │ :ref:`0 <sysfs_region>`/start,end
-     │ │ │ │ │ │ │ │ ...
-@@ -264,13 +264,20 @@ to ``N-1``.  Each directory represents e
- targets/<N>/
- ------------
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-obsolete_target-sysfs-file
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -164,6 +164,13 @@ Description:	Writing to and reading from
+ 		the target process if the context is for virtual address spaces
+ 		monitoring, respectively.
  
--In each target directory, one file (``pid_target``) and one directory
--(``regions``) exist.
-+In each target directory, two files (``pid_target`` and ``obsolete_target``)
-+and one directory (``regions``) exist.
- 
- If you wrote ``vaddr`` to the ``contexts/<N>/operations``, each target should
- be a process.  You can specify the process to DAMON by writing the pid of the
- process to the ``pid_target`` file.
- 
-+Users can selectively remove targets in the middle of the targets array by
-+writing non-zero value to ``obsolete_target`` file and committing it (writing
-+``commit`` to ``state`` file).  DAMON will remove the matching targets from its
-+internal targets array.  Users are responsible to construct target directories
-+again, so that those correctly represent the changed internal targets array.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/obsolete_target
++Date:		Oct 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the
++		obsoleteness of the matching parameters commit destination
++		target.
 +
-+
- .. _sysfs_regions:
- 
- targets/<N>/regions
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/targets/<T>/regions/nr_regions
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
