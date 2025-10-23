@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A20318405C;
-	Thu, 23 Oct 2025 22:10:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A383E35B128;
+	Thu, 23 Oct 2025 22:16:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761257429; cv=none; b=GjKdoQluLFRsR7bZEmcc5LJPuqUlzUrv092Ut/Fq2pejP+mRVCvxUaw7skdGKCBcUw6f34uf+OqGvYV4smgg+tmxovK19J0gw0ecUWBWX/cSlt3DCnQdZpmIqe3bhAL/3zrU0YPdM1l54YqjBQr7FE5YJhidrQ3zTpG4ylqG7AE=
+	t=1761257764; cv=none; b=ID3KKK5SMuc4Fkz/rrbgZc2ZkRkAosmxEc5hTcrlECwMPlW9F32gIow5lYC1+9r/7iXF/K6bvZyF9VDq3qyQ33C+oNOlptBpubO5VcgNK7uyqlujyM1I2jvW0ACPPt0hsYhfcWt9vLoEI9mtS87+50qlUKbMLDeNqA2WhP3zliY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761257429; c=relaxed/simple;
-	bh=zVzi8JPFFKcdiVLrixflS8iwyGUm4h0mqx/TSW/q/yE=;
-	h=Date:To:From:Subject:Message-Id; b=lc5P2LpK3ooWl6WacAEYYwRp7/2yGhiqlku/AlA4MwqctnQlNcwh3CFcADb/6ZUDY45f5HuxcbaFP+wBixetaQSYKYXq3MD2VmMQJTpeRZAYvrrl8xN+PXEZcyGPvJt4LDGvnqgO0oEfnfb5BAe6xbdMWhL1hYQUuvJdEL6RKXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wNU57mIK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761257764; c=relaxed/simple;
+	bh=faXrbZAoE/bw+8GMvjjR9xOa71muXkA7l96YHkfcZj8=;
+	h=Date:To:From:Subject:Message-Id; b=EEe3G9qC6ZkAUFdSApkGJy+y+SbD9nlPer0AukGWZ/cpnpDP4Mbd6TW3uRH0+VKqoMguty7k0+L4+krxq6S9bR2vUcuJmOo9NUvSUs+tbnPyc8TlPDyIraa8ipkbwUrNviRW81g0zA53GAs4+LMrVSwPH0dN20cofzsHK6tHoQo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SXraSFZZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wNU57mIK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E49F9C4CEE7;
-	Thu, 23 Oct 2025 22:10:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SXraSFZZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22114C4CEE7;
+	Thu, 23 Oct 2025 22:16:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761257429;
-	bh=zVzi8JPFFKcdiVLrixflS8iwyGUm4h0mqx/TSW/q/yE=;
+	s=korg; t=1761257764;
+	bh=faXrbZAoE/bw+8GMvjjR9xOa71muXkA7l96YHkfcZj8=;
 	h=Date:To:From:Subject:From;
-	b=wNU57mIKtfOw+dSY6D1bju9vjM508osoqMyYLAaPwUvF7whCCLHNioD7G3J1qG9M0
-	 zBUduwowK93p3TLpe4Qg8HlGovf8xHdwqiIMBLS+NO9xFWYtnK6+z2E/70IzZSpX1f
-	 Y/XX9oDYouN1SIrO300UwCw9GDmcy2xQNQH98xYI=
-Date: Thu, 23 Oct 2025 15:10:28 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=SXraSFZZ3i0TndEHbtzoM2Wa66MMMysPfKYo3dctq0uWhPPv+zc+a/dXuG8hi0t1B
+	 EJujAbFjQ0MXsU41d3ahB+Aws8wo4i6Ea6QmOqIv7lbCK1dDRUivVHjtDQ7ojLQcel
+	 gKDhi/Df26VhQCBUVkpKLLkcD1u0gnmcBDhQQsco=
+Date: Thu, 23 Oct 2025 15:16:03 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,stable@vger.kernel.org,david@redhat.com,craftfever@airmail.cc,chengming.zhou@linux.dev,pedrodemargomes@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-fix-thp-allocation-and-fallback-loop-v3.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251023221028.E49F9C4CEE7@smtp.kernel.org>
+Subject: + ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251023221604.22114C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-shmem-fix-thp-allocation-and-fallback-loop-v3
+     Subject: ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-fix-thp-allocation-and-fallback-loop-v3.patch
+     ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-fix-thp-allocation-and-fallback-loop-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,66 +58,216 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm-shmem-fix-thp-allocation-and-fallback-loop-v3
-Date: Thu, 23 Oct 2025 14:59:13 +0800
+From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Subject: ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
+Date: Wed, 22 Oct 2025 12:30:59 -0300
 
-introduce a temporary variable to improve code
+Currently, scan_get_next_rmap_item() walks every page address in a VMA to
+locate mergeable pages.  This becomes highly inefficient when scanning
+large virtual memory areas that contain mostly unmapped regions, causing
+ksmd to use large amount of cpu without deduplicating much pages.
 
-Link: https://lkml.kernel.org/r/20251023065913.36925-1-ryncsn@gmail.com
-Link: https://lore.kernel.org/linux-mm/CAMgjq7DqgAmj25nDUwwu1U2cSGSn8n4-Hqpgottedy0S6YYeUw@mail.gmail.com/ [1]
-Fixes: e7a2ab7b3bb5d ("mm: shmem: add mTHP support for anonymous shmem")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+This patch replaces the per-address lookup with a range walk using
+walk_page_range().  The range walker allows KSM to skip over entire
+unmapped holes in a VMA, avoiding unnecessary lookups.  This problem was
+previously discussed in [1].
+
+Consider the following test program which creates a 32 TiB mapping in the
+virtual address space but only populates a single page:
+
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/mman.h>
+
+/* 32 TiB */
+const size_t size = 32ul * 1024 * 1024 * 1024 * 1024;
+
+int main() {
+        char *area = mmap(NULL, size, PROT_READ | PROT_WRITE,
+                          MAP_NORESERVE | MAP_PRIVATE | MAP_ANON, -1, 0);
+
+        if (area == MAP_FAILED) {
+                perror("mmap() failed\n");
+                return -1;
+        }
+
+        /* Populate a single page such that we get an anon_vma. */
+        *area = 0;
+
+        /* Enable KSM. */
+        madvise(area, size, MADV_MERGEABLE);
+        pause();
+        return 0;
+}
+
+$ ./ksm-sparse  &
+$ echo 1 > /sys/kernel/mm/ksm/run 
+
+Without this patch ksmd uses 100% of the cpu for a long time (more then 1
+hour in my test machine) scanning all the 32 TiB virtual address space
+that contain only one mapped page.  This makes ksmd essentially deadlocked
+not able to deduplicate anything of value.  With this patch ksmd walks
+only the one mapped page and skips the rest of the 32 TiB virtual address
+space, making the scan fast using little cpu.
+
+Link: https://lkml.kernel.org/r/20251023035841.41406-1-pedrodemargomes@gmail.com
+Link: https://lkml.kernel.org/r/20251022153059.22763-1-pedrodemargomes@gmail.com
+Link: https://lore.kernel.org/linux-mm/423de7a3-1c62-4e72-8e79-19a6413e420c@redhat.com/ [1]
+Fixes: 31dbd01f3143 ("ksm: Kernel SamePage Merging")
+Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Co-developed-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: craftfever <craftfever@airmail.cc>
+Closes: https://lkml.kernel.org/r/020cf8de6e773bb78ba7614ef250129f11a63781@murena.io
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/ksm.c |  113 ++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 104 insertions(+), 9 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-fix-thp-allocation-and-fallback-loop-v3
-+++ a/mm/shmem.c
-@@ -1882,6 +1882,7 @@ static struct folio *shmem_alloc_and_add
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	unsigned long suitable_orders = 0;
- 	struct folio *folio = NULL;
-+	pgoff_t aligned_index;
- 	long pages;
- 	int error, order;
+--- a/mm/ksm.c~ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item
++++ a/mm/ksm.c
+@@ -2455,6 +2455,95 @@ static bool should_skip_rmap_item(struct
+ 	return true;
+ }
  
-@@ -1895,9 +1896,10 @@ static struct folio *shmem_alloc_and_add
- 		order = highest_order(suitable_orders);
- 		while (suitable_orders) {
- 			pages = 1UL << order;
--			folio = shmem_alloc_folio(gfp, order, info, round_down(index, pages));
-+			aligned_index = round_down(index, pages);
-+			folio = shmem_alloc_folio(gfp, order, info, aligned_index);
- 			if (folio) {
--				index = round_down(index, pages);
-+				index = aligned_index;
- 				goto allocated;
++struct ksm_next_page_arg {
++	struct folio *folio;
++	struct page *page;
++	unsigned long addr;
++};
++
++static int ksm_next_page_pmd_entry(pmd_t *pmdp, unsigned long addr, unsigned long end,
++		struct mm_walk *walk)
++{
++	struct ksm_next_page_arg *private = walk->private;
++	struct vm_area_struct *vma = walk->vma;
++	pte_t *start_ptep = NULL, *ptep, pte;
++	struct mm_struct *mm = walk->mm;
++	struct folio *folio;
++	struct page *page;
++	spinlock_t *ptl;
++	pmd_t pmd;
++
++	if (ksm_test_exit(mm))
++		return 0;
++
++	cond_resched();
++
++	pmd = pmdp_get_lockless(pmdp);
++	if (!pmd_present(pmd))
++		return 0;
++
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && pmd_leaf(pmd)) {
++		ptl = pmd_lock(mm, pmdp);
++		pmd = pmdp_get(pmdp);
++
++		if (!pmd_present(pmd)) {
++			goto not_found_unlock;
++		} else if (pmd_leaf(pmd)) {
++			page = vm_normal_page_pmd(vma, addr, pmd);
++			if (!page)
++				goto not_found_unlock;
++			folio = page_folio(page);
++
++			if (folio_is_zone_device(folio) || !folio_test_anon(folio))
++				goto not_found_unlock;
++
++			page += ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
++			goto found_unlock;
++		}
++		spin_unlock(ptl);
++	}
++
++	start_ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	if (!start_ptep)
++		return 0;
++
++	for (ptep = start_ptep; addr < end; ptep++, addr += PAGE_SIZE) {
++		pte = ptep_get(ptep);
++
++		if (!pte_present(pte))
++			continue;
++
++		page = vm_normal_page(vma, addr, pte);
++		if (!page)
++			continue;
++		folio = page_folio(page);
++
++		if (folio_is_zone_device(folio) || !folio_test_anon(folio))
++			continue;
++		goto found_unlock;
++	}
++
++not_found_unlock:
++	spin_unlock(ptl);
++	if (start_ptep)
++		pte_unmap(start_ptep);
++	return 0;
++found_unlock:
++	folio_get(folio);
++	spin_unlock(ptl);
++	if (start_ptep)
++		pte_unmap(start_ptep);
++	private->page = page;
++	private->folio = folio;
++	private->addr = addr;
++	return 1;
++}
++
++static struct mm_walk_ops ksm_next_page_ops = {
++	.pmd_entry = ksm_next_page_pmd_entry,
++	.walk_lock = PGWALK_RDLOCK,
++};
++
+ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+ {
+ 	struct mm_struct *mm;
+@@ -2542,21 +2631,27 @@ next_mm:
+ 			ksm_scan.address = vma->vm_end;
+ 
+ 		while (ksm_scan.address < vma->vm_end) {
++			struct ksm_next_page_arg ksm_next_page_arg;
+ 			struct page *tmp_page = NULL;
+-			struct folio_walk fw;
+ 			struct folio *folio;
+ 
+ 			if (ksm_test_exit(mm))
+ 				break;
+ 
+-			folio = folio_walk_start(&fw, vma, ksm_scan.address, 0);
+-			if (folio) {
+-				if (!folio_is_zone_device(folio) &&
+-				     folio_test_anon(folio)) {
+-					folio_get(folio);
+-					tmp_page = fw.page;
+-				}
+-				folio_walk_end(&fw, vma);
++			int found;
++
++			found = walk_page_range_vma(vma, ksm_scan.address,
++						    vma->vm_end,
++						    &ksm_next_page_ops,
++						    &ksm_next_page_arg);
++
++			if (found > 0) {
++				folio = ksm_next_page_arg.folio;
++				tmp_page = ksm_next_page_arg.page;
++				ksm_scan.address = ksm_next_page_arg.addr;
++			} else {
++				VM_WARN_ON_ONCE(found < 0);
++				ksm_scan.address = vma->vm_end - PAGE_SIZE;
  			}
  
+ 			if (tmp_page) {
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from pedrodemargomes@gmail.com are
 
-mm-shmem-fix-thp-allocation-and-fallback-loop.patch
-mm-shmem-fix-thp-allocation-and-fallback-loop-v3.patch
-mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
-mm-swap-rename-helper-for-setup-bad-slots.patch
-mm-swap-cleanup-swap-entry-allocation-parameter.patch
-mm-migrate-swap-drop-usage-of-folio_index.patch
-mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch
+ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
 
