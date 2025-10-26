@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD4BA19E968
-	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:15:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C03202963
+	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:23:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761452111; cv=none; b=Bq6lduKXDizsgqhPlDtNFsliRGDZWLeF2iHKqQh7vC3UU9w41mkiSnqMS78gWwA1ZK36UHXVcFCYXzvHVHmPk8+ayBpusQ4ExLUI3qL8ilnkqoVfkZSTMCi6ild+DBz/QvYgUA3JXZ4pZZtqFR5uF8zTFrvhwnGMLuTQX0odVRE=
+	t=1761452606; cv=none; b=OEXZrlJKl39CfWhG88WRR5BbPhj4x82HTrjp68mOEpQ0Q4xDcywI17AGyJlj6e4sS0ho16YrYzX1u1nKZiZIcjghJ1mT6AFHksbhxGWQU/zi+H8wBShnlk3kOZoJzIHS9LLRjSLJJKtZgNssj33yScTKiVQV3nGfChGzGTg03Rs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761452111; c=relaxed/simple;
-	bh=hjK9cCUBrb/BO9ENAS6Kvm8H6cQcMrLogFv8MD5QkrQ=;
-	h=Date:To:From:Subject:Message-Id; b=I+egzew2ACWa2kIaEZYHtTO62mvZWo1QfnIV9bPuCCz9u7vnquKF+5bGNfssx6A8jdmNYpQuOaCB60ZpM+N7GwMki3WmFTBsUb5TMPlUln5H1jlicvZ9Ix936mvEQfoSGlnL8mch3A22aVigBAM880BbJEpK9AO5UgN6+xFN+I8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YGTjoWkS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761452606; c=relaxed/simple;
+	bh=97qmtDGSrVxrOC2BxAcQ5nCn10mOnDqKGQLqs8RgXt0=;
+	h=Date:To:From:Subject:Message-Id; b=sBkLe/p03aBKBCZ+TYH5s64bpyykfAR/THFUmnc0KDI/21UG1dPHhI1AQcDg9UMyBJE99ThFGsdGnLZ2DxwxrHmaCct5PBeiXwhPB6Zl9LzszZDAEv7CVrAHNwso7uwJNITepP/vqGOPNiK7Iabs28SgSFg8s/KsOraK5y1sgpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KarORtji; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YGTjoWkS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04360C4CEE7;
-	Sun, 26 Oct 2025 04:15:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KarORtji"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C508DC4CEE7;
+	Sun, 26 Oct 2025 04:23:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761452111;
-	bh=hjK9cCUBrb/BO9ENAS6Kvm8H6cQcMrLogFv8MD5QkrQ=;
+	s=korg; t=1761452605;
+	bh=97qmtDGSrVxrOC2BxAcQ5nCn10mOnDqKGQLqs8RgXt0=;
 	h=Date:To:From:Subject:From;
-	b=YGTjoWkSWTJmfvcesS18+dOcMbiA/1ZZIuxr5G+VsvZ3Re/N+PCSUimaPR67sn9Bi
-	 68B1m+OGAqpE3cd9xnWSgSZQiJl4Jg47bKTt8IWAiSpBN21xRWYyk3JSjjV2CCLTZI
-	 CIkq9Bn8lkR1sXjAyBVC/Fm+MV4hH2ghgyqnO8Ik=
-Date: Sat, 25 Oct 2025 21:15:10 -0700
-To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,jhubbard@nvidia.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,arnd@arndb.de,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,yury.norov@gmail.com,akpm@linux-foundation.org
+	b=KarORtji5mrFjJ9g62wDov+rZPKjHQA7wVuGQ1Xmw+x4qZ0oc9r4OY0DME0LoEgPA
+	 YxogcxrEekjPa/IkMGeRJkIa+eaebtCfHzYecdU/pVGX40S6diTrMD7ZhKgAxGYDU2
+	 DQi7uZkwAuYqnP09HUypVCJojxMes6weCM1tahxI=
+Date: Sat, 25 Oct 2025 21:23:25 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + uaccess-decouple-inline_copy_from_user-and-config_rust-v2.patch added to mm-nonmm-unstable branch
-Message-Id: <20251026041511.04360C4CEE7@smtp.kernel.org>
+Subject: + maintainers-add-include-linux-pgalloch-to-mm-core-section.patch added to mm-new branch
+Message-Id: <20251026042325.C508DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     uaccess-decouple-inline_copy_from_user-and-config_rust-v2.patch
+     Subject: MAINTAINERS: add include/linux/pgalloc.h to MM CORE section
+has been added to the -mm mm-new branch.  Its filename is
+     maintainers-add-include-linux-pgalloch-to-mm-core-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uaccess-decouple-inline_copy_from_user-and-config_rust-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-include-linux-pgalloch-to-mm-core-section.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,47 +64,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Yury Norov (NVIDIA)" <yury.norov@gmail.com>
-Subject: uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST
-Date: Fri, 24 Oct 2025 11:47:53 -0400
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: MAINTAINERS: add include/linux/pgalloc.h to MM CORE section
+Date: Fri, 24 Oct 2025 20:30:46 +0900
 
-drop rust part of comment for _copy_from_user(), per Alice
+Patch series "mm: MISC follow-up patches for linux/pgalloc.h", v2.
 
-Link: https://lkml.kernel.org/r/20251024154754.99768-1-yury.norov@gmail.com
-Signed-off-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Miguel Ojeda <ojeda@kernel.org>
-Reviewed-by: Alice Ryhl <aliceryhl@google.com>
-Tested-by: Alice Ryhl <aliceryhl@google.com>
-Cc: Alex Gaynor <alex.gaynor@gmail.com>
-Cc: Andreas Hindborg <a.hindborg@kernel.org>
-Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Trevor Gross <tmgross@umich.edu>
+This is a follow-up patch series for the patch series named: "[PATCH V5
+mm-hotfixes 0/3] mm, x86: fix crash due to missing page table sync and
+make it harder to miss".
+
+
+This patch (of 2):
+
+Since include/linux/pgtable.h is already listed in the MM CORE section,
+add it to the section as well to keep it maintained by the appropriate
+maintainers.
+
+Link: https://lkml.kernel.org/r/20251024113047.119058-1-harry.yoo@oracle.com
+Link: https://lkml.kernel.org/r/20251024113047.119058-2-harry.yoo@oracle.com
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Acked-by: SeongJae Park <sj@kernel.org>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |    2 --
- 1 file changed, 2 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/uaccess.h~uaccess-decouple-inline_copy_from_user-and-config_rust-v2
-+++ a/include/linux/uaccess.h
-@@ -152,8 +152,6 @@ __copy_to_user(void __user *to, const vo
-  * directly in the normal copy_to/from_user(), the other ones go
-  * through an extern _copy_to/from_user(), which expands the same code
-  * here.
-- *
-- * Rust code always uses the extern definition.
-  */
- static inline __must_check unsigned long
- _inline_copy_from_user(void *to, const void __user *from, unsigned long n)
+--- a/MAINTAINERS~maintainers-add-include-linux-pgalloch-to-mm-core-section
++++ a/MAINTAINERS
+@@ -16248,6 +16248,7 @@ F:	include/linux/mmzone.h
+ F:	include/linux/mmdebug.h
+ F:	include/linux/mmu_notifier.h
+ F:	include/linux/pagewalk.h
++F:	include/linux/pgalloc.h
+ F:	include/linux/pgtable.h
+ F:	include/linux/ptdump.h
+ F:	include/linux/vmpressure.h
 _
 
-Patches currently in -mm which might be from yury.norov@gmail.com are
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
-uaccess-decouple-inline_copy_from_user-and-config_rust.patch
-uaccess-decouple-inline_copy_from_user-and-config_rust-v2.patch
+maintainers-add-include-linux-pgalloch-to-mm-core-section.patch
+treewide-include-linux-pgalloch-instead-of-asm-pgalloch.patch
 
