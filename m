@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C03202963
-	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:23:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F6AD202963
+	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:23:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761452606; cv=none; b=OEXZrlJKl39CfWhG88WRR5BbPhj4x82HTrjp68mOEpQ0Q4xDcywI17AGyJlj6e4sS0ho16YrYzX1u1nKZiZIcjghJ1mT6AFHksbhxGWQU/zi+H8wBShnlk3kOZoJzIHS9LLRjSLJJKtZgNssj33yScTKiVQV3nGfChGzGTg03Rs=
+	t=1761452608; cv=none; b=O0G3+B5Qk2tXvUanVYCPGthkdFB6edPLRyCaTkXK27pv0PUDyW/Fff/f8tQZoM+o9XxcLxlLPe1Kxu9quu4elFxKiC5wil9WxRgXBguJFgZs0SM9+I92l779TqCxUp1FotWPCp0dSiD896QvfcrcEpRz62yegomR4UsakDCKhyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761452606; c=relaxed/simple;
-	bh=97qmtDGSrVxrOC2BxAcQ5nCn10mOnDqKGQLqs8RgXt0=;
-	h=Date:To:From:Subject:Message-Id; b=sBkLe/p03aBKBCZ+TYH5s64bpyykfAR/THFUmnc0KDI/21UG1dPHhI1AQcDg9UMyBJE99ThFGsdGnLZ2DxwxrHmaCct5PBeiXwhPB6Zl9LzszZDAEv7CVrAHNwso7uwJNITepP/vqGOPNiK7Iabs28SgSFg8s/KsOraK5y1sgpc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KarORtji; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761452608; c=relaxed/simple;
+	bh=AYH1dHy25pjR3x8S644vY/g1ZPkipsCBpvZVjtnjDoQ=;
+	h=Date:To:From:Subject:Message-Id; b=oHiAmVBDUZiZ7CCRrtO1pih32vNim6ukU5K4qs2eqIOxPzl6f+K14EjE2mjXVxDRDWvtoVuEySz/p8gYr3J8xH8lyWatIffrzViBH7L50k+FgMO6dbi9zD5POy3bhBfzgGgAFWfujh7faAIjfMPBTOhQDkJC9lmkLG+TYIhvOr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R7/udgmQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KarORtji"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C508DC4CEE7;
-	Sun, 26 Oct 2025 04:23:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R7/udgmQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3872C4CEE7;
+	Sun, 26 Oct 2025 04:23:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761452605;
-	bh=97qmtDGSrVxrOC2BxAcQ5nCn10mOnDqKGQLqs8RgXt0=;
+	s=korg; t=1761452608;
+	bh=AYH1dHy25pjR3x8S644vY/g1ZPkipsCBpvZVjtnjDoQ=;
 	h=Date:To:From:Subject:From;
-	b=KarORtji5mrFjJ9g62wDov+rZPKjHQA7wVuGQ1Xmw+x4qZ0oc9r4OY0DME0LoEgPA
-	 YxogcxrEekjPa/IkMGeRJkIa+eaebtCfHzYecdU/pVGX40S6diTrMD7ZhKgAxGYDU2
-	 DQi7uZkwAuYqnP09HUypVCJojxMes6weCM1tahxI=
-Date: Sat, 25 Oct 2025 21:23:25 -0700
+	b=R7/udgmQSdm/W9NvGup9/10mhNm6ERCLJlzIOFeK1JivzPvUH6qPLjM1EQQCgqAGs
+	 AgwVfvYtwRXrXITPDVW844M/xvfIw/fBG5LIzHpg8IHdwMi0ZaZaZNNi8VSnsPN1jO
+	 ylagPvmpmSAMm+pzY5aDxlhvThMdwIO9ANq26hsA=
+Date: Sat, 25 Oct 2025 21:23:27 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-include-linux-pgalloch-to-mm-core-section.patch added to mm-new branch
-Message-Id: <20251026042325.C508DC4CEE7@smtp.kernel.org>
+Subject: + treewide-include-linux-pgalloch-instead-of-asm-pgalloch.patch added to mm-new branch
+Message-Id: <20251026042327.E3872C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add include/linux/pgalloc.h to MM CORE section
+     Subject: treewide: include linux/pgalloc.h instead of asm/pgalloc.h
 has been added to the -mm mm-new branch.  Its filename is
-     maintainers-add-include-linux-pgalloch-to-mm-core-section.patch
+     treewide-include-linux-pgalloch-instead-of-asm-pgalloch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-include-linux-pgalloch-to-mm-core-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-include-linux-pgalloch-instead-of-asm-pgalloch.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,49 +65,276 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Harry Yoo <harry.yoo@oracle.com>
-Subject: MAINTAINERS: add include/linux/pgalloc.h to MM CORE section
-Date: Fri, 24 Oct 2025 20:30:46 +0900
+Subject: treewide: include linux/pgalloc.h instead of asm/pgalloc.h
+Date: Fri, 24 Oct 2025 20:30:47 +0900
 
-Patch series "mm: MISC follow-up patches for linux/pgalloc.h", v2.
+For now, including <asm/pgalloc.h> instead of <linux/pgalloc.h> is
+technically fine unless the .c file calls p*d_populate_kernel() helper
+functions.
 
-This is a follow-up patch series for the patch series named: "[PATCH V5
-mm-hotfixes 0/3] mm, x86: fix crash due to missing page table sync and
-make it harder to miss".
+But it is a better practice to always include <linux/pgalloc.h>.  Include
+<linux/pgalloc.h> instead of <asm/pgalloc.h> outside arch/.
 
-
-This patch (of 2):
-
-Since include/linux/pgtable.h is already listed in the MM CORE section,
-add it to the section as well to keep it maintained by the appropriate
-maintainers.
-
-Link: https://lkml.kernel.org/r/20251024113047.119058-1-harry.yoo@oracle.com
-Link: https://lkml.kernel.org/r/20251024113047.119058-2-harry.yoo@oracle.com
+Link: https://lkml.kernel.org/r/20251024113047.119058-3-harry.yoo@oracle.com
 Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/firmware/efi/arm-runtime.c   |    4 ++--
+ drivers/firmware/efi/riscv-runtime.c |    4 ++--
+ drivers/s390/char/sclp_sd.c          |    3 +--
+ fs/dax.c                             |    2 +-
+ kernel/fork.c                        |    4 ++--
+ mm/debug_vm_pgtable.c                |    2 +-
+ mm/filemap.c                         |    3 ++-
+ mm/huge_memory.c                     |    2 +-
+ mm/hugetlb.c                         |    2 +-
+ mm/hugetlb_vmemmap.c                 |    3 ++-
+ mm/khugepaged.c                      |    2 +-
+ mm/memory.c                          |    4 ++--
+ mm/mmu_gather.c                      |    2 +-
+ mm/mremap.c                          |    2 +-
+ mm/pgtable-generic.c                 |    3 ++-
+ mm/pt_reclaim.c                      |    3 ++-
+ 16 files changed, 24 insertions(+), 21 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-include-linux-pgalloch-to-mm-core-section
-+++ a/MAINTAINERS
-@@ -16248,6 +16248,7 @@ F:	include/linux/mmzone.h
- F:	include/linux/mmdebug.h
- F:	include/linux/mmu_notifier.h
- F:	include/linux/pagewalk.h
-+F:	include/linux/pgalloc.h
- F:	include/linux/pgtable.h
- F:	include/linux/ptdump.h
- F:	include/linux/vmpressure.h
+--- a/drivers/firmware/efi/arm-runtime.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/drivers/firmware/efi/arm-runtime.c
+@@ -12,18 +12,18 @@
+ #include <linux/io.h>
+ #include <linux/memblock.h>
+ #include <linux/mm_types.h>
++#include <linux/pgalloc.h>
++#include <linux/pgtable.h>
+ #include <linux/preempt.h>
+ #include <linux/rbtree.h>
+ #include <linux/rwsem.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+-#include <linux/pgtable.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/efi.h>
+ #include <asm/mmu.h>
+-#include <asm/pgalloc.h>
+ 
+ #if defined(CONFIG_PTDUMP_DEBUGFS) || defined(CONFIG_ARM_PTDUMP_DEBUGFS)
+ #include <asm/ptdump.h>
+--- a/drivers/firmware/efi/riscv-runtime.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/drivers/firmware/efi/riscv-runtime.c
+@@ -14,18 +14,18 @@
+ #include <linux/io.h>
+ #include <linux/memblock.h>
+ #include <linux/mm_types.h>
++#include <linux/pgalloc.h>
++#include <linux/pgtable.h>
+ #include <linux/preempt.h>
+ #include <linux/rbtree.h>
+ #include <linux/rwsem.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+-#include <linux/pgtable.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/efi.h>
+ #include <asm/mmu.h>
+-#include <asm/pgalloc.h>
+ 
+ static bool __init efi_virtmap_init(void)
+ {
+--- a/drivers/s390/char/sclp_sd.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/drivers/s390/char/sclp_sd.c
+@@ -17,8 +17,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/async.h>
+ #include <linux/mutex.h>
+-
+-#include <asm/pgalloc.h>
++#include <linux/pgalloc.h>
+ 
+ #include "sclp.h"
+ 
+--- a/fs/dax.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/fs/dax.c
+@@ -24,7 +24,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/iomap.h>
+ #include <linux/rmap.h>
+-#include <asm/pgalloc.h>
++#include <linux/pgalloc.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/fs_dax.h>
+--- a/kernel/fork.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/kernel/fork.c
+@@ -106,9 +106,9 @@
+ #include <linux/pidfs.h>
+ #include <linux/tick.h>
+ #include <linux/unwind_deferred.h>
+-
+-#include <asm/pgalloc.h>
++#include <linux/pgalloc.h>
+ #include <linux/uaccess.h>
++
+ #include <asm/mmu_context.h>
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+--- a/mm/debug_vm_pgtable.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/debug_vm_pgtable.c
+@@ -30,9 +30,9 @@
+ #include <linux/sched/mm.h>
+ #include <linux/io.h>
+ #include <linux/vmalloc.h>
++#include <linux/pgalloc.h>
+ 
+ #include <asm/cacheflush.h>
+-#include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
+ 
+ /*
+--- a/mm/filemap.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/filemap.c
+@@ -48,7 +48,8 @@
+ #include <linux/rcupdate_wait.h>
+ #include <linux/sched/mm.h>
+ #include <linux/sysctl.h>
+-#include <asm/pgalloc.h>
++#include <linux/pgalloc.h>
++
+ #include <asm/tlbflush.h>
+ #include "internal.h"
+ 
+--- a/mm/huge_memory.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/huge_memory.c
+@@ -37,11 +37,11 @@
+ #include <linux/sched/sysctl.h>
+ #include <linux/memory-tiers.h>
+ #include <linux/compat.h>
++#include <linux/pgalloc.h>
+ #include <linux/pgalloc_tag.h>
+ #include <linux/pagewalk.h>
+ 
+ #include <asm/tlb.h>
+-#include <asm/pgalloc.h>
+ #include "internal.h"
+ #include "swap.h"
+ 
+--- a/mm/hugetlb.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/hugetlb.c
+@@ -39,9 +39,9 @@
+ #include <linux/memory.h>
+ #include <linux/mm_inline.h>
+ #include <linux/padata.h>
++#include <linux/pgalloc.h>
+ 
+ #include <asm/page.h>
+-#include <asm/pgalloc.h>
+ #include <asm/tlb.h>
+ #include <asm/setup.h>
+ 
+--- a/mm/hugetlb_vmemmap.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/hugetlb_vmemmap.c
+@@ -15,7 +15,8 @@
+ #include <linux/bootmem_info.h>
+ #include <linux/mmdebug.h>
+ #include <linux/pagewalk.h>
+-#include <asm/pgalloc.h>
++#include <linux/pgalloc.h>
++
+ #include <asm/tlbflush.h>
+ #include "hugetlb_vmemmap.h"
+ 
+--- a/mm/khugepaged.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/khugepaged.c
+@@ -21,9 +21,9 @@
+ #include <linux/shmem_fs.h>
+ #include <linux/dax.h>
+ #include <linux/ksm.h>
++#include <linux/pgalloc.h>
+ 
+ #include <asm/tlb.h>
+-#include <asm/pgalloc.h>
+ #include "internal.h"
+ #include "mm_slot.h"
+ 
+--- a/mm/memory.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/memory.c
+@@ -75,13 +75,13 @@
+ #include <linux/ptrace.h>
+ #include <linux/vmalloc.h>
+ #include <linux/sched/sysctl.h>
++#include <linux/pgalloc.h>
++#include <linux/uaccess.h>
+ 
+ #include <trace/events/kmem.h>
+ 
+ #include <asm/io.h>
+ #include <asm/mmu_context.h>
+-#include <asm/pgalloc.h>
+-#include <linux/uaccess.h>
+ #include <asm/tlb.h>
+ #include <asm/tlbflush.h>
+ 
+--- a/mm/mmu_gather.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/mmu_gather.c
+@@ -9,8 +9,8 @@
+ #include <linux/smp.h>
+ #include <linux/swap.h>
+ #include <linux/rmap.h>
++#include <linux/pgalloc.h>
+ 
+-#include <asm/pgalloc.h>
+ #include <asm/tlb.h>
+ 
+ #ifndef CONFIG_MMU_GATHER_NO_GATHER
+--- a/mm/mremap.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/mremap.c
+@@ -25,10 +25,10 @@
+ #include <linux/uaccess.h>
+ #include <linux/userfaultfd_k.h>
+ #include <linux/mempolicy.h>
++#include <linux/pgalloc.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/tlb.h>
+-#include <asm/pgalloc.h>
+ 
+ #include "internal.h"
+ 
+--- a/mm/pgtable-generic.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/pgtable-generic.c
+@@ -14,7 +14,8 @@
+ #include <linux/swapops.h>
+ #include <linux/mm_inline.h>
+ #include <linux/iommu.h>
+-#include <asm/pgalloc.h>
++#include <linux/pgalloc.h>
++
+ #include <asm/tlb.h>
+ 
+ /*
+--- a/mm/pt_reclaim.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
++++ a/mm/pt_reclaim.c
+@@ -1,7 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <linux/hugetlb.h>
++#include <linux/pgalloc.h>
++
+ #include <asm-generic/tlb.h>
+-#include <asm/pgalloc.h>
+ 
+ #include "internal.h"
+ 
 _
 
 Patches currently in -mm which might be from harry.yoo@oracle.com are
