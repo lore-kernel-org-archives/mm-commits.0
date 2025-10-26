@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8008A182D2;
-	Sun, 26 Oct 2025 03:59:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A6ED4502F
+	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:00:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761451162; cv=none; b=NSh8gx4R2dcgQ/5YrbIi7PSDcDxC4kFerHBNl4W29IOrMJzX016k5kINZ5CSpWmG3/Niq2p6zp7NJ1H2aD5OIic0bpFo9FVwwZ1+9J+A+WN6MSRKl84zRoI2Ca/NVyxO8JugCRLURD7hCu2RdMgUPvLK8jn1DOytaGGZ0pWYDf4=
+	t=1761451248; cv=none; b=G8KXffWbYbnsL2yC+5SDeZ5nGimfywnGCQPCQf4qxpTyMPxVAAp3A1uXrnpzIlfx/hVPDE0AQ9JaEdnu8KmItqrY9T5nD0f1qecSBYDpXl8ZSO3af9NWQZuYUKXc4bTJEgNK0xpjj85fJU6HA+sGOZQrwblq7eHn0M1nk3U5F5Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761451162; c=relaxed/simple;
-	bh=6Gp9raUBPHcZ4I/DV/S1GtUuBi+6/amBX7YEBV0n6cQ=;
-	h=Date:To:From:Subject:Message-Id; b=IJDxGPm3DEK807W1e82IWcycHpPZ+aO12ACOf283hBjUDbbbOnxsn5QhKllVbPB6gGPOSrjGJHhcboPOrH0UdwBjVt7uAwyj5Ddl9yGqaf+Yczq8LvspCjlSgomzs8Dw7DpqJmUMosjCOeHn0qtrGCdkx1vv29j/Kdl1EaJa0RI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ly4Cm5bJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761451248; c=relaxed/simple;
+	bh=I/nlVRl59D1bIGup/Vvn7RFaLM+iP9v2JQRpQcjEXs4=;
+	h=Date:To:From:Subject:Message-Id; b=PO9fGdSGNFmlOy3ApcwZmGeLFm7YAlctmpO+7wBtUO0GzLRnuiPg/anWPnweYB/GxnpFjanwOthWi9m26dm+c+q5GvmaxgDZxco1J6GTTHnfG67sLB4E2u8yRrgmV/JUIhNCjO8qTeZiiVOWAeLjWSVMJn1lmWmlY3fW8/2rtn4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qsMHYniS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ly4Cm5bJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDD8EC4CEE7;
-	Sun, 26 Oct 2025 03:59:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qsMHYniS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A8ABC4CEE7;
+	Sun, 26 Oct 2025 04:00:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761451162;
-	bh=6Gp9raUBPHcZ4I/DV/S1GtUuBi+6/amBX7YEBV0n6cQ=;
+	s=korg; t=1761451248;
+	bh=I/nlVRl59D1bIGup/Vvn7RFaLM+iP9v2JQRpQcjEXs4=;
 	h=Date:To:From:Subject:From;
-	b=Ly4Cm5bJjfDLi1A2H3o245ndxniftc7qQE+5XAkTzrjWGexf3nCyAJD61W91UPTNp
-	 rxKP+jwPj+MDRD4Ssv/EPYbsZO7VIhpaYs+8ccqfCyn0Kgfa5hzVRgfIY5ewaTCYlS
-	 7fPCYLMyMhLvQO29fovrosSMCJ8AqBXmuEcDmCG4=
-Date: Sat, 25 Oct 2025 20:59:21 -0700
-To: mm-commits@vger.kernel.org,wangzijie1@honor.com,viro@zeniv.linux.org.uk,stable@vger.kernel.org,brauner@kernel.org,adobriyan@gmail.com,albinwyang@tencent.com,akpm@linux-foundation.org
+	b=qsMHYniS0lNIetVqV0ZEsnzQREhne5+7kxx3fTYO38M//SlRTm+IuDQlHJQNkrwk0
+	 e/podojMqsmIlNyX5N6uo738Ej10ESUjn3yYn2KVGZmPPG2BZPgmiqX1Wm71K5yEsI
+	 2RBvosZIbTaA6HoXNQT+GDAs3kT91hVdSIXG95tk=
+Date: Sat, 25 Oct 2025 21:00:47 -0700
+To: mm-commits@vger.kernel.org,hch@infradead.org,linux@treblig.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-fix-uaf-in-proc_readdir_de.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251026035921.DDD8EC4CEE7@smtp.kernel.org>
+Subject: + lib-xxhash-remove-more-unused-xxh-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20251026040048.3A8ABC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc: fix uaf in proc_readdir_de()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-fix-uaf-in-proc_readdir_de.patch
+     Subject: lib/xxhash: remove more unused xxh functions
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-xxhash-remove-more-unused-xxh-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-fix-uaf-in-proc_readdir_de.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-xxhash-remove-more-unused-xxh-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,109 +58,145 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <albinwyang@tencent.com>
-Subject: fs/proc: fix uaf in proc_readdir_de()
-Date: Sat, 25 Oct 2025 10:42:33 +0800
+From: "Dr. David Alan Gilbert" <linux@treblig.org>
+Subject: lib/xxhash: remove more unused xxh functions
+Date: Fri, 24 Oct 2025 21:51:20 +0100
 
-Pde is erased from subdir rbtree through rb_erase(), but not set the node
-to EMPTY, which may result in uaf access.  We should use RB_CLEAR_NODE()
-set the erased node to EMPTY, then pde_subdir_next() will return NULL to
-avoid uaf access.
+xxh32_reset() and xxh32_copy_state() are unused, and with those gone, the
+xxh32_state struct is also unused.
 
-We found an uaf issue while using stress-ng testing, need to run testcase
-getdent and tun in the same time.  The steps of the issue is as follows:
+xxh64_copy_state() is also unused.
 
-1) use getdent to traverse dir /proc/pid/net/dev_snmp6/, and current
-   pde is tun3;
+Remove them all.
 
-2) in the [time windows] unregister netdevice tun3 and tun2, and erase
-   them from rbtree.  erase tun3 first, and then erase tun2.  the
-   pde(tun2) will be released to slab;
+(Also fixes a comment above the xxh64_state that referred to it as
+xxh32_state).
 
-3) continue to getdent process, then pde_subdir_next() will return
-   pde(tun2) which is released, it will case uaf access.
-
-CPU 0                                      |    CPU 1
-----------------------------------------------------------------------------------------------
-traverse dir /proc/pid/net/dev_snmp6/      |   unregister_netdevice(tun->dev)   //tun3 tun2
-sys_getdents64()                           |
-  iterate_dir()                            |
-    proc_readdir()                         |
-      proc_readdir_de()                    |     snmp6_unregister_dev()
-        pde_get(de);                       |       proc_remove()
-        read_unlock(&proc_subdir_lock);    |         remove_proc_subtree()
-                                           |           write_lock(&proc_subdir_lock);
-        [time window]                      |           rb_erase(&root->subdir_node, &parent->subdir);
-                                           |           write_unlock(&proc_subdir_lock);
-        read_lock(&proc_subdir_lock);      |
-        next = pde_subdir_next(de);        |
-        pde_put(de);                       |
-        de = next;    //UAF                |
-
-rbtree of dev_snmp6
-                        |
-                    pde(tun3)
-                     /    \
-                  NULL  pde(tun2)
-
-Link: https://lkml.kernel.org/r/20251025024233.158363-1-albin_yang@163.com
-Signed-off-by: Wei Yang <albinwyang@tencent.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: wangzijie <wangzijie1@honor.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251024205120.454508-1-linux@treblig.org
+Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/linux/xxhash.h |   46 ---------------------------------------
+ lib/xxhash.c           |   29 ------------------------
+ 2 files changed, 1 insertion(+), 74 deletions(-)
 
---- a/fs/proc/generic.c~fs-proc-fix-uaf-in-proc_readdir_de
-+++ a/fs/proc/generic.c
-@@ -698,6 +698,12 @@ void pde_put(struct proc_dir_entry *pde)
- 	}
- }
- 
-+static void pde_erase(struct proc_dir_entry *pde, struct proc_dir_entry *parent)
-+{
-+	rb_erase(&pde->subdir_node, &parent->subdir);
-+	RB_CLEAR_NODE(&pde->subdir_node);
-+}
-+
- /*
-  * Remove a /proc entry and free it if it's not currently in use.
+--- a/include/linux/xxhash.h~lib-xxhash-remove-more-unused-xxh-functions
++++ a/include/linux/xxhash.h
+@@ -141,21 +141,7 @@ static inline unsigned long xxhash(const
   */
-@@ -720,7 +726,7 @@ void remove_proc_entry(const char *name,
- 			WARN(1, "removing permanent /proc entry '%s'", de->name);
- 			de = NULL;
- 		} else {
--			rb_erase(&de->subdir_node, &parent->subdir);
-+			pde_erase(de, parent);
- 			if (S_ISDIR(de->mode))
- 				parent->nlink--;
- 		}
-@@ -764,7 +770,7 @@ int remove_proc_subtree(const char *name
- 			root->parent->name, root->name);
- 		return -EINVAL;
- 	}
--	rb_erase(&root->subdir_node, &parent->subdir);
-+	pde_erase(root, parent);
  
- 	de = root;
- 	while (1) {
-@@ -776,7 +782,7 @@ int remove_proc_subtree(const char *name
- 					next->parent->name, next->name);
- 				return -EINVAL;
- 			}
--			rb_erase(&next->subdir_node, &de->subdir);
-+			pde_erase(next, de);
- 			de = next;
- 			continue;
- 		}
+ /**
+- * struct xxh32_state - private xxh32 state, do not use members directly
+- */
+-struct xxh32_state {
+-	uint32_t total_len_32;
+-	uint32_t large_len;
+-	uint32_t v1;
+-	uint32_t v2;
+-	uint32_t v3;
+-	uint32_t v4;
+-	uint32_t mem32[4];
+-	uint32_t memsize;
+-};
+-
+-/**
+- * struct xxh32_state - private xxh64 state, do not use members directly
++ * struct xxh64_state - private xxh64 state, do not use members directly
+  */
+ struct xxh64_state {
+ 	uint64_t total_len;
+@@ -168,16 +154,6 @@ struct xxh64_state {
+ };
+ 
+ /**
+- * xxh32_reset() - reset the xxh32 state to start a new hashing operation
+- *
+- * @state: The xxh32 state to reset.
+- * @seed:  Initialize the hash state with this seed.
+- *
+- * Call this function on any xxh32_state to prepare for a new hashing operation.
+- */
+-void xxh32_reset(struct xxh32_state *state, uint32_t seed);
+-
+-/**
+  * xxh64_reset() - reset the xxh64 state to start a new hashing operation
+  *
+  * @state: The xxh64 state to reset.
+@@ -210,24 +186,4 @@ int xxh64_update(struct xxh64_state *sta
+  */
+ uint64_t xxh64_digest(const struct xxh64_state *state);
+ 
+-/*-**************************
+- * Utils
+- ***************************/
+-
+-/**
+- * xxh32_copy_state() - copy the source state into the destination state
+- *
+- * @src: The source xxh32 state.
+- * @dst: The destination xxh32 state.
+- */
+-void xxh32_copy_state(struct xxh32_state *dst, const struct xxh32_state *src);
+-
+-/**
+- * xxh64_copy_state() - copy the source state into the destination state
+- *
+- * @src: The source xxh64 state.
+- * @dst: The destination xxh64 state.
+- */
+-void xxh64_copy_state(struct xxh64_state *dst, const struct xxh64_state *src);
+-
+ #endif /* XXHASH_H */
+--- a/lib/xxhash.c~lib-xxhash-remove-more-unused-xxh-functions
++++ a/lib/xxhash.c
+@@ -73,21 +73,6 @@ static const uint64_t PRIME64_3 =  16095
+ static const uint64_t PRIME64_4 =  9650029242287828579ULL;
+ static const uint64_t PRIME64_5 =  2870177450012600261ULL;
+ 
+-/*-**************************
+- *  Utils
+- ***************************/
+-void xxh32_copy_state(struct xxh32_state *dst, const struct xxh32_state *src)
+-{
+-	memcpy(dst, src, sizeof(*dst));
+-}
+-EXPORT_SYMBOL(xxh32_copy_state);
+-
+-void xxh64_copy_state(struct xxh64_state *dst, const struct xxh64_state *src)
+-{
+-	memcpy(dst, src, sizeof(*dst));
+-}
+-EXPORT_SYMBOL(xxh64_copy_state);
+-
+ /*-***************************
+  * Simple Hash Functions
+  ****************************/
+@@ -239,20 +224,6 @@ EXPORT_SYMBOL(xxh64);
+ /*-**************************************************
+  * Advanced Hash Functions
+  ***************************************************/
+-void xxh32_reset(struct xxh32_state *statePtr, const uint32_t seed)
+-{
+-	/* use a local state for memcpy() to avoid strict-aliasing warnings */
+-	struct xxh32_state state;
+-
+-	memset(&state, 0, sizeof(state));
+-	state.v1 = seed + PRIME32_1 + PRIME32_2;
+-	state.v2 = seed + PRIME32_2;
+-	state.v3 = seed + 0;
+-	state.v4 = seed - PRIME32_1;
+-	memcpy(statePtr, &state, sizeof(state));
+-}
+-EXPORT_SYMBOL(xxh32_reset);
+-
+ void xxh64_reset(struct xxh64_state *statePtr, const uint64_t seed)
+ {
+ 	/* use a local state for memcpy() to avoid strict-aliasing warnings */
 _
 
-Patches currently in -mm which might be from albinwyang@tencent.com are
+Patches currently in -mm which might be from linux@treblig.org are
 
-fs-proc-fix-uaf-in-proc_readdir_de.patch
+lib-xxhash-remove-more-unused-xxh-functions.patch
 
