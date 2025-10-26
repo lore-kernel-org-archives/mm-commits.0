@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4910747F
-	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 19:45:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F054A2F656B;
+	Sun, 26 Oct 2025 23:56:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761507952; cv=none; b=qWtBJb10KND+mVGq34l/5xM+iYY/6fKDbZqnb8yw2j/uEC3y9YsZETWVp80Ng/zQnVSC/L4ln50IvzH2yF8ZIzVeHEXFW32AQ7+MpN523rqWiLh3RvJevCWCjHPf8aq6BmC0TJYSJT2cTJeSIRYJnPyHbdVgF+9tVhqZS3MRsmY=
+	t=1761522993; cv=none; b=dQX2kmz7kjqMXcI/vk+PfZnALN1ti+rkWLouEKjc9A/qi1hdPeTS3lnfQ2UizmAdOZEaz+t9il2ZIycr9Vj6Rg5Gni6JkgL5SLY/wQTD5eqVCV81ZoC/YNOu+gGm+Jku1+PoYKr6iprOhIOLZhMSDrRb9N6bGJRZn4rGQ3Hn6Ao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761507952; c=relaxed/simple;
-	bh=yzJby/hLszEodPnea0TYuNMNnBFn00zMUgksy2y5M3I=;
-	h=Date:To:From:Subject:Message-Id; b=IEL7Cp5rS+ICoOiSTpyZp5ZoCu+wERItRROsn1pu0Qs78tJBJBk3ZXj6wWnskR7+db6yhg5gT+0erB1+gBNEA+WNpv6e+Rl9WsF1vX1e9UM4LIoR62D5IZ68MK7gPJmjJM96bTpFEY2qPjhfTYVrlP5LUanTrDFhAt5dIUmimwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lUrE3mi3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761522993; c=relaxed/simple;
+	bh=w2EViOQ6CP6uAtzoo4LkqoEClWWci4dIHlu1CegL8fU=;
+	h=Date:To:From:Subject:Message-Id; b=AtLX3ZKf0A7QPCRVN5V46hGg9HDI5TVEaoq7qVDBAydzoqIWrACImSXjdIgdvQRnaCJs7Fh0HmNH+hFxmDkbf3KiSpFEujcnJIriI71AXduFjcuki8RCxvHYAnrjm+LKjscbnGQQ6Kk2tafD6ASPaAWpyx4M1DmkcZ1bp6oyHik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hr5ZMmsp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lUrE3mi3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFA1EC4CEE7;
-	Sun, 26 Oct 2025 19:45:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hr5ZMmsp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E245C4CEE7;
+	Sun, 26 Oct 2025 23:56:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761507951;
-	bh=yzJby/hLszEodPnea0TYuNMNnBFn00zMUgksy2y5M3I=;
+	s=korg; t=1761522992;
+	bh=w2EViOQ6CP6uAtzoo4LkqoEClWWci4dIHlu1CegL8fU=;
 	h=Date:To:From:Subject:From;
-	b=lUrE3mi3TfkcZV/888SVyBvdDZr+SGTrddtXswYqOTOne6XVU9bpX5Ewetw5U+66j
-	 2Q08DNl622HCEArLxcBxBlyarRNtAuopO614tMw49BqPYa128lwkxnSz7fexKx83cl
-	 HtygVzdPyp/UrUlsFs0T6dtDdWxcIXUmroemjsHM=
-Date: Sun, 26 Oct 2025 12:45:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=Hr5ZMmspqAsS1ULQl/ZToGbbs1T6/LxO3gfClJHQYgedhNAs88kXHwRTIFMp80iPn
+	 tbPNHVwEvkOhSoKhUKAjqnpeokGt0HLsdR0qIeA2/ofWfzMBnhZnT9lHS816x7pEAv
+	 QTir2KVADENZE4jUUjJeBdJ4hAMs9X94ercU+rjY=
+Date: Sun, 26 Oct 2025 16:56:30 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kees@kernel.org,gustavoars@kernel.org,david.hunter.linux@gmail.com,arnd@arndb.de,hannelotta@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch added to mm-unstable branch
-Message-Id: <20251026194551.AFA1EC4CEE7@smtp.kernel.org>
+Subject: + headers-add-check-for-c-standard-version.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251026235632.6E245C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/stat: document negative idle time
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
+     Subject: headers: add check for C standard version
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     headers-add-check-for-c-standard-version.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/headers-add-check-for-c-standard-version.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/stat: document negative idle time
-Date: Sun, 26 Oct 2025 11:22:13 -0700
+From: Hanne-Lotta Mäenpää <hannelotta@gmail.com>
+Subject: headers: add check for C standard version
+Date: Sun, 26 Oct 2025 21:58:46 +0200
 
-Commit a983a26d5298 ("mm/damon/stat: expose negative idle time")
-introduced the negative idle time feature for DAMON_STAT.  But it is not
-documented.  Document it on the usage document.
+Compiling the kernel with GCC 15 results in errors, as with GCC 15 the
+default language version for C compilation has been changed from
+-std=gnu17 to -std=gnu23 - unless the language version has been changed
+using
 
-Link: https://lkml.kernel.org/r/20251026182216.118200-9-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+    KBUILD_CFLAGS += -std=gnu17
+
+or earlier.
+
+C23 includes new keywords 'bool', 'true' and 'false', which cause
+compilation errors in Linux headers:
+
+    ./include/linux/types.h:30:33: error: `bool' cannot be defined
+        via `typedef'
+
+    ./include/linux/stddef.h:11:9: error: cannot use keyword `false'
+        as enumeration constant
+
+Add check for C Standard's version in the header files to be able to
+compile the kernel with C23.
+
+Link: https://lkml.kernel.org/r/20251026195846.69740-1-hannelotta@gmail.com
+Signed-off-by: Hanne-Lotta Mäenpää <hannelotta@gmail.com>
+Cc: David Hunter <david.hunter.linux@gmail.com>
+Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/stat.rst |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ include/linux/stddef.h |    2 ++
+ include/linux/types.h  |    2 ++
+ 2 files changed, 4 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-stat-document-negative-idle-time
-+++ a/Documentation/admin-guide/mm/damon/stat.rst
-@@ -74,12 +74,13 @@ memory_idle_ms_percentiles
- Per-byte idle time (milliseconds) percentiles of the system.
+--- a/include/linux/stddef.h~headers-add-check-for-c-standard-version
++++ a/include/linux/stddef.h
+@@ -7,10 +7,12 @@
+ #undef NULL
+ #define NULL ((void *)0)
  
- DAMON_STAT calculates how long each byte of the memory was not accessed until
--now (idle time), based on the current DAMON results snapshot.  If DAMON found a
--region of access frequency (nr_accesses) larger than zero, every byte of the
--region gets zero idle time.  If a region has zero access frequency
--(nr_accesses), how long the region was keeping the zero access frequency (age)
--becomes the idle time of every byte of the region.  Then, DAMON_STAT exposes
--the percentiles of the idle time values via this read-only parameter.  Reading
--the parameter returns 101 idle time values in milliseconds, separated by comma.
-+now (idle time), based on the current DAMON results snapshot.  For regions
-+having access frequency (nr_accesses) larger than zero, how long the current
-+access frequency level was kept multiplied by ``-1`` becomes the idlee time of
-+every byte of the region.  If a region has zero access frequency (nr_accesses),
-+how long the region was keeping the zero access frequency (age) becomes the
-+idle time of every byte of the region.  Then, DAMON_STAT exposes the
-+percentiles of the idle time values via this read-only parameter.  Reading the
-+parameter returns 101 idle time values in milliseconds, separated by comma.
- Each value represents 0-th, 1st, 2nd, 3rd, ..., 99th and 100th percentile idle
- times.
++#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 202311L
+ enum {
+ 	false	= 0,
+ 	true	= 1
+ };
++#endif
+ 
+ #undef offsetof
+ #define offsetof(TYPE, MEMBER)	__builtin_offsetof(TYPE, MEMBER)
+--- a/include/linux/types.h~headers-add-check-for-c-standard-version
++++ a/include/linux/types.h
+@@ -32,7 +32,9 @@ typedef __kernel_timer_t	timer_t;
+ typedef __kernel_clockid_t	clockid_t;
+ typedef __kernel_mqd_t		mqd_t;
+ 
++#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 202311L
+ typedef _Bool			bool;
++#endif
+ 
+ typedef __kernel_uid32_t	uid_t;
+ typedef __kernel_gid32_t	gid_t;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from hannelotta@gmail.com are
 
-mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
-mm-zswap-fix-typos-s-zwap-zswap.patch
-mm-zswap-s-red-black-tree-xarray.patch
-docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
-mm-damon-document-damos_quota_goal-nid-use-case.patch
-mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
-mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
-mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
-mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
-docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
-docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
-docs-abi-damon-document-damos-quota-goal-path-file.patch
-mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch
-docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section.patch
-docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
-docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
-docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter.patch
-docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter.patch
-docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch
-docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
-mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
-mm-damon-sysfs-test-commit-input-against-realistic-destination.patch
-mm-damon-sysfs-implement-obsolete_target-file.patch
-docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
-docs-abi-damon-document-obsolete_target-sysfs-file.patch
-selftests-damon-_damon_sysfs-support-obsolete_target-file.patch
-drgn_dump_damon_status-dump-damon_target-obsolete.patch
-sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
-selftests-damon-sysfs-add-obsolete_target-test.patch
+headers-add-check-for-c-standard-version.patch
 
