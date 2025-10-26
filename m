@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1447C4A08
-	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:58:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CD83747F
+	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 19:45:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761454716; cv=none; b=g92YmTvnbcY0OHXxMhUdbsycmml5SZhpze3xI0CFTyCcQg/spY7rqeoyE59SoCv0vq9NkzM9eDmaSxZ8eSc8POaeJs9FqD8OvSNYfsjAy5JsILwywpxEITlH12aI938yPdf54jcUFqsmHmVL6vcDU27A4T3nwsu+/3u9rncbEcM=
+	t=1761507938; cv=none; b=bWlpN6cIgpoGqXYp2zXj0QaG1MF72Bmr+g+9HwTlcBavGDpH5Gi0tF+2qVCEcdhPsppqfPyvrf4YQKX+uH3W0+N59dCeSIPhTtKFNpTYPL+VlhigO6gJrH1A55tlQkp/SJf/MaWyTQ6tR0QkKMPPKilb1P2hIdobrNOjLdlwnEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761454716; c=relaxed/simple;
-	bh=hse1kbblfZ1uf7Tv3WLhx2NqXLFbGuYlY42i7fkCgxQ=;
-	h=Date:To:From:Subject:Message-Id; b=l6C8W8RQ2sLlL0J1TXNG0COVmKIRjFuXLodIPmziw2Xw9jcQK0ImSlOyr3NCIuU0vKuIJ5MJz6wYvD28w7XmVwHzXB1TgVx1v5HDThrb2De/aIYH/SHmm4yvEfC/Jb+oTxPgATwhF9yTCt/RagySN7QjrLklp073OgKGWqKOsKc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t5FnDktW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761507938; c=relaxed/simple;
+	bh=65UEusY0E7jXkUhjyJ/sZzH4/HU/uQdHkP0PyZUE2QM=;
+	h=Date:To:From:Subject:Message-Id; b=m+qq8RtIcW0D10TCsai03D36LaW+6Ybm9CCf6arzphxWeCt4oAi31WT06vmkvQ8Tu8GaJw51na/3MSC+4Qv/00PHx0TYp2lSxfpuwaEMXPv7b7JXfYjwXFI+2GguyKGV7aIntV582c0WYDnEn5H7+vY3wUzvj7SefQOnwAaZw4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v4quHMBq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t5FnDktW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68A01C4CEE7;
-	Sun, 26 Oct 2025 04:58:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v4quHMBq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94A7AC4CEE7;
+	Sun, 26 Oct 2025 19:45:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761454715;
-	bh=hse1kbblfZ1uf7Tv3WLhx2NqXLFbGuYlY42i7fkCgxQ=;
+	s=korg; t=1761507937;
+	bh=65UEusY0E7jXkUhjyJ/sZzH4/HU/uQdHkP0PyZUE2QM=;
 	h=Date:To:From:Subject:From;
-	b=t5FnDktWWsqccsfsn8jkvVIjbKIaySrZML1wWSiLjYVxlcafl4Hq18rLdpuL7MOsE
-	 UpyodOe12PA154cWauUUJqPRMVvYznv6iStlK1b9hx0a/H/zoLN8W+8CFPWHKI/s+3
-	 8uHvf6150eHRPjfIiw9U1Ll5xYv9GAqTIOkNc9MY=
-Date: Sat, 25 Oct 2025 21:58:34 -0700
-To: mm-commits@vger.kernel.org,agordeev@linux.ibm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=v4quHMBqcHGTevJZ+y0fsF7zwuhZ8Ed2DrgewQMggM9IKQ5EvGCBzX047M3foJtgP
+	 P0tx72eOUvW3gwcoxIXc8mn4IEEFIX6mfNA+T+BLMDYouIrJFS3/EzUolrpHn0Aulg
+	 SouSxrihJYVibU6Em1/F/B3z2KQgmjJDG17iKGqA=
+Date: Sun, 26 Oct 2025 12:45:36 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-invalid_phys_addr-a-generic-macro.patch added to mm-new branch
-Message-Id: <20251026045835.68A01C4CEE7@smtp.kernel.org>
+Subject: + mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch added to mm-unstable branch
+Message-Id: <20251026194537.94A7AC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make INVALID_PHYS_ADDR a generic macro
-has been added to the -mm mm-new branch.  Its filename is
-     mm-make-invalid_phys_addr-a-generic-macro.patch
+     Subject: mm/damon/core: fix wrong comment of damon_call() return timing
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-invalid_phys_addr-a-generic-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,90 +58,88 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: make INVALID_PHYS_ADDR a generic macro
-Date: Tue, 21 Oct 2025 03:56:38 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: fix wrong comment of damon_call() return timing
+Date: Sun, 26 Oct 2025 11:22:06 -0700
 
-INVALID_PHYS_ADDR has very similar definitions across the code base. 
-Hence just move that inside header <liux/mm.h> for more generic usage. 
-Also drop the now redundant ones which are no longer required.
+Patch series "mm/damon: misc documentation fixups".
 
-Link: https://lkml.kernel.org/r/20251021025638.2420216-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>	[s390]
+First three patches fix up issues in the documents, including wrong
+explanation of a behavior, wrong link, and a contextual typo.  Following
+five patches update documents for not yet documented features and
+behaviors.
+
+
+This patch (of 8):
+
+damon_call() works asynchronously and synchronously for repeat and
+non-repeat mode requests, respectively.  The comment about the behavior is
+wrong, though.  Fix it.
+
+The wrong comment was introduced together with the repeat mode, by commit
+43df7676e550 ("mm/damon/core: introduce repeat mode damon_call()").
+
+Link: https://lkml.kernel.org/r/20251026182216.118200-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251026182216.118200-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c                  |    2 --
- arch/s390/boot/vmem.c                |    1 -
- drivers/vdpa/vdpa_user/iova_domain.h |    2 --
- include/linux/mm.h                   |    2 ++
- kernel/dma/swiotlb.c                 |    2 --
- 5 files changed, 2 insertions(+), 7 deletions(-)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/mm/mmu.c~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/arch/arm64/mm/mmu.c
-@@ -470,8 +470,6 @@ static void __create_pgd_mapping(pgd_t *
- 	mutex_unlock(&fixmap_lock);
- }
- 
--#define INVALID_PHYS_ADDR	(-1ULL)
--
- static phys_addr_t __pgd_pgtable_alloc(struct mm_struct *mm, gfp_t gfp,
- 				       enum pgtable_type pgtable_type)
- {
---- a/arch/s390/boot/vmem.c~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/arch/s390/boot/vmem.c
-@@ -16,7 +16,6 @@
- #include "decompressor.h"
- #include "boot.h"
- 
--#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
- struct ctlreg __bootdata_preserved(s390_invalid_asce);
- 
- #ifdef CONFIG_PROC_FS
---- a/drivers/vdpa/vdpa_user/iova_domain.h~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/drivers/vdpa/vdpa_user/iova_domain.h
-@@ -17,8 +17,6 @@
- 
- #define IOVA_START_PFN 1
- 
--#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
--
- #define BOUNCE_MAP_SHIFT	12
- #define BOUNCE_MAP_SIZE	(1 << BOUNCE_MAP_SHIFT)
- #define BOUNCE_MAP_MASK	(~(BOUNCE_MAP_SIZE - 1))
---- a/include/linux/mm.h~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/include/linux/mm.h
-@@ -105,6 +105,8 @@ extern int mmap_rnd_compat_bits __read_m
- # endif
- #endif
- 
-+#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
-+
- #include <asm/page.h>
- #include <asm/processor.h>
- 
---- a/kernel/dma/swiotlb.c~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/kernel/dma/swiotlb.c
-@@ -61,8 +61,6 @@
-  */
- #define IO_TLB_MIN_SLABS ((1<<20) >> IO_TLB_SHIFT)
- 
--#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
--
- /**
-  * struct io_tlb_slot - IO TLB slot descriptor
-  * @orig_addr:	The original address corresponding to a mapped entry.
+--- a/mm/damon/core.c~mm-damon-core-fix-wrong-comment-of-damon_call-return-timing
++++ a/mm/damon/core.c
+@@ -1440,7 +1440,7 @@ bool damon_is_running(struct damon_ctx *
+  * Ask DAMON worker thread (kdamond) of @ctx to call a function with an
+  * argument data that respectively passed via &damon_call_control->fn and
+  * &damon_call_control->data of @control.  If &damon_call_control->repeat of
+- * @control is set, further wait until the kdamond finishes handling of the
++ * @control is unset, further wait until the kdamond finishes handling of the
+  * request.  Otherwise, return as soon as the request is made.
+  *
+  * The kdamond executes the function with the argument in the main loop, just
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-thp-drop-follow_devmap_pmd-default-stub.patch
-mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
-mm-replace-read_once-with-standard-page-table-accessors.patch
-mm-dirty-replace-read_once-with-pudp_get.patch
-mm-debug_vm_pgtable-add-_mkwrite_novma-tests.patch
-mm-debug_vm_pgtable-add-_mkwrite_novma-tests-v3.patch
-mm-make-invalid_phys_addr-a-generic-macro.patch
+mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
+mm-zswap-fix-typos-s-zwap-zswap.patch
+mm-zswap-s-red-black-tree-xarray.patch
+docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
+mm-damon-document-damos_quota_goal-nid-use-case.patch
+mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
+mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
+mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
+mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
+docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
+docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
+docs-abi-damon-document-damos-quota-goal-path-file.patch
+mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch
+docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section.patch
+docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
+docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
+docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter.patch
+docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter.patch
+docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch
+docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
+mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
+mm-damon-sysfs-test-commit-input-against-realistic-destination.patch
+mm-damon-sysfs-implement-obsolete_target-file.patch
+docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
+docs-abi-damon-document-obsolete_target-sysfs-file.patch
+selftests-damon-_damon_sysfs-support-obsolete_target-file.patch
+drgn_dump_damon_status-dump-damon_target-obsolete.patch
+sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
+selftests-damon-sysfs-add-obsolete_target-test.patch
 
