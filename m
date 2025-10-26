@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D34544502F
-	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:06:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 882C9245012
+	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:06:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761451593; cv=none; b=IO7BK3KcclLYADOI8q4sFYf//RsjRB66tBiFsa4ul+BS6MKun0r0mpZpX8Jd91pb6PnE2R6WxaSwziiz0GJFLHJICVb8nXBYhdGF3PuuqrN93l6JefuXYx9OSaADrHbJ7HE9lH5cbHonfP9mSJ2F/HHHUnEMy4HXLbfImYuLcO4=
+	t=1761451595; cv=none; b=G+WbVuUWFeuuDWZnXNKrmuQeBCMvFQxwg6JtkhZjxkzmxoaAnX1hLOjfm2e0M+KJ9x/7jA5HwmDJ86JDxJ0rK31IFNO25EiliE0NgyubiHd0/rO49Wr+4Nn/NF42Z55D7IufVJa4mK7s7Cxtk1Dq39EUxWv916NJigQewTR1aXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761451593; c=relaxed/simple;
-	bh=MP3NoTmeuyySwLvEZCDVLeEVrcbpDVzTuZF7n01YSSI=;
-	h=Date:To:From:Subject:Message-Id; b=KZQdTTbCzmpqs1APKGVRw3bpELVaRknDo2CaoFd/8jMiUfqmKBCPpr+pcK7JUlm5okB7CfIwprm7ko/NKuUNgiV5Y3bQGaHCFGnuxM1dkYF/FM3HXFYhD+7UYYfWoY21u8llH6ksBedR3p9Z4tw3wuI8d6vJJpLI4UrNiO/nGD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Az+pYEK0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761451595; c=relaxed/simple;
+	bh=tjoZcpSeOTwiCn3WFdeIDJGvA8BOakJUAK9lZi/0LGc=;
+	h=Date:To:From:Subject:Message-Id; b=r6J0ly45tAE5rVnWP6OooqAw6LXKQyf1Dz2fBLaVD037aE9gbaHlXpVFNjopQhnFRubCvKJEtZijtqXUnPSQruBF3TmD063cXUYb1bIpjhqIMuZe7l+tSEbcrDt+GOkz0gVfc2pw9EXThIMVX2nxkqUqlp0AxVyJsQfu1RQ7KTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PusbErCD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Az+pYEK0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BAEBC4CEE7;
-	Sun, 26 Oct 2025 04:06:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PusbErCD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0963FC4CEE7;
+	Sun, 26 Oct 2025 04:06:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761451592;
-	bh=MP3NoTmeuyySwLvEZCDVLeEVrcbpDVzTuZF7n01YSSI=;
+	s=korg; t=1761451595;
+	bh=tjoZcpSeOTwiCn3WFdeIDJGvA8BOakJUAK9lZi/0LGc=;
 	h=Date:To:From:Subject:From;
-	b=Az+pYEK0eHhqWGdmyv3hKaXtdSxkzlnNfn3a1eJMUZr7j471v70JXodPxefKwhwjp
-	 FurU6U9mPZXzTzzfkawMbTY6WNi314XisqZutqV3g3VQxuoNe70iN77co0oHLAtgsX
-	 N3EV9qESlstWtPgLByRMt0l+gQb/bNM7Gas10Zv0=
-Date: Sat, 25 Oct 2025 21:06:31 -0700
+	b=PusbErCDSbt2GAfxYA1dAv5PU6CK8Q7zq/+WW8sEmAa8VS4m5pTY2Ar91kLd8cp6m
+	 zUYSdG2svqv7mMmpKoaL4pL558mYKhqjXNoUP4XkMmz/M9ECvvojfFOmFExXtJPVes
+	 1jSapF4Y8SXUTHzVbIF/MZexf8uhUdRzyJp6O1l0=
+Date: Sat, 25 Oct 2025 21:06:34 -0700
 To: mm-commits@vger.kernel.org,tj@kernel.org,rppt@kernel.org,rdunlap@infradead.org,pratyush@kernel.org,ojeda@kernel.org,masahiroy@kernel.org,jgg@ziepe.ca,jgg@nvidia.com,graf@amazon.com,corbet@lwn.net,brauner@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-add-interfaces-to-unpreserve-folios-and-page-ranges.patch added to mm-nonmm-unstable branch
-Message-Id: <20251026040632.5BAEBC4CEE7@smtp.kernel.org>
+Subject: + kho-dont-unpreserve-memory-during-abort.patch added to mm-nonmm-unstable branch
+Message-Id: <20251026040635.0963FC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: add interfaces to unpreserve folios and page ranges
+     Subject: kho: don't unpreserve memory during abort
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-add-interfaces-to-unpreserve-folios-and-page-ranges.patch
+     kho-dont-unpreserve-memory-during-abort.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-add-interfaces-to-unpreserve-folios-and-page-ranges.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-dont-unpreserve-memory-during-abort.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: add interfaces to unpreserve folios and page ranges
-Date: Fri, 24 Oct 2025 12:09:58 -0400
+Subject: kho: don't unpreserve memory during abort
+Date: Fri, 24 Oct 2025 12:09:59 -0400
 
-Allow users of KHO to cancel the previous preservation by adding the
-necessary interfaces to unpreserve folio and pages.
+KHO allows clients to preserve memory regions at any point before the KHO
+state is finalized.  The finalization process itself involves KHO
+performing its own actions, such as serializing the overall preserved
+memory map.
 
-Link: https://lkml.kernel.org/r/20251024161002.747372-5-pasha.tatashin@soleen.com
+If this finalization process is aborted, the current implementation
+destroys KHO's internal memory tracking structures
+(`kho_out.ser.track.orders`).  This behavior effectively unpreserves all
+memory from KHO's perspective, regardless of whether those preservations
+were made by clients before the finalization attempt or by KHO itself
+during finalization.
+
+This premature unpreservation is incorrect.  An abort of the finalization
+process should only undo actions taken by KHO as part of that specific
+finalization attempt.  Individual memory regions preserved by clients
+prior to finalization should remain preserved, as their lifecycle is
+managed by the clients themselves.  These clients might still need to call
+kho_unpreserve_folio() or kho_unpreserve_phys() based on their own logic,
+even after a KHO finalization attempt is aborted.
+
+Link: https://lkml.kernel.org/r/20251024161002.747372-6-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
@@ -76,162 +92,50 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
 Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec_handover.h |   12 ++++
- kernel/kexec_handover.c        |   84 ++++++++++++++++++++++++++-----
- 2 files changed, 83 insertions(+), 13 deletions(-)
+ kernel/kexec_handover.c |   21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
---- a/include/linux/kexec_handover.h~kho-add-interfaces-to-unpreserve-folios-and-page-ranges
-+++ a/include/linux/kexec_handover.h
-@@ -43,7 +43,9 @@ bool kho_is_enabled(void);
- bool is_kho_boot(void);
- 
- int kho_preserve_folio(struct folio *folio);
-+int kho_unpreserve_folio(struct folio *folio);
- int kho_preserve_pages(struct page *page, unsigned int nr_pages);
-+int kho_unpreserve_pages(struct page *page, unsigned int nr_pages);
- int kho_preserve_vmalloc(void *ptr, struct kho_vmalloc *preservation);
- struct folio *kho_restore_folio(phys_addr_t phys);
- struct page *kho_restore_pages(phys_addr_t phys, unsigned int nr_pages);
-@@ -76,10 +78,20 @@ static inline int kho_preserve_folio(str
- 	return -EOPNOTSUPP;
- }
- 
-+static inline int kho_unpreserve_folio(struct folio *folio)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
- static inline int kho_preserve_pages(struct page *page, unsigned int nr_pages)
- {
- 	return -EOPNOTSUPP;
- }
-+
-+static inline int kho_unpreserve_pages(struct page *page, unsigned int nr_pages)
-+{
-+	return -EOPNOTSUPP;
-+}
- 
- static inline int kho_preserve_vmalloc(void *ptr,
- 				       struct kho_vmalloc *preservation)
---- a/kernel/kexec_handover.c~kho-add-interfaces-to-unpreserve-folios-and-page-ranges
+--- a/kernel/kexec_handover.c~kho-dont-unpreserve-memory-during-abort
 +++ a/kernel/kexec_handover.c
-@@ -157,26 +157,33 @@ static void *xa_load_or_alloc(struct xar
- 	return no_free_ptr(elm);
- }
+@@ -1098,31 +1098,12 @@ EXPORT_SYMBOL_GPL(kho_restore_vmalloc);
  
--static void __kho_unpreserve(struct kho_mem_track *track, unsigned long pfn,
--			     unsigned long end_pfn)
-+static void __kho_unpreserve_order(struct kho_mem_track *track, unsigned long pfn,
-+				   unsigned int order)
+ static int __kho_abort(void)
  {
- 	struct kho_mem_phys_bits *bits;
- 	struct kho_mem_phys *physxa;
-+	const unsigned long pfn_high = pfn >> order;
- 
--	while (pfn < end_pfn) {
--		const unsigned int order =
--			min(count_trailing_zeros(pfn), ilog2(end_pfn - pfn));
--		const unsigned long pfn_high = pfn >> order;
-+	physxa = xa_load(&track->orders, order);
-+	if (!physxa)
-+		return;
-+
-+	bits = xa_load(&physxa->phys_bits, pfn_high / PRESERVE_BITS);
-+	if (!bits)
-+		return;
- 
--		physxa = xa_load(&track->orders, order);
--		if (!physxa)
--			continue;
-+	clear_bit(pfn_high % PRESERVE_BITS, bits->preserve);
-+}
-+
-+static void __kho_unpreserve(struct kho_mem_track *track, unsigned long pfn,
-+			     unsigned long end_pfn)
-+{
-+	unsigned int order;
- 
--		bits = xa_load(&physxa->phys_bits, pfn_high / PRESERVE_BITS);
--		if (!bits)
--			continue;
-+	while (pfn < end_pfn) {
-+		order = min(count_trailing_zeros(pfn), ilog2(end_pfn - pfn));
- 
--		clear_bit(pfn_high % PRESERVE_BITS, bits->preserve);
-+		__kho_unpreserve_order(track, pfn, order);
- 
- 		pfn += 1 << order;
+-	int err = 0;
+-	unsigned long order;
+-	struct kho_mem_phys *physxa;
+-
+-	xa_for_each(&kho_out.track.orders, order, physxa) {
+-		struct kho_mem_phys_bits *bits;
+-		unsigned long phys;
+-
+-		xa_for_each(&physxa->phys_bits, phys, bits)
+-			kfree(bits);
+-
+-		xa_destroy(&physxa->phys_bits);
+-		kfree(physxa);
+-	}
+-	xa_destroy(&kho_out.track.orders);
+-
+ 	if (kho_out.preserved_mem_map) {
+ 		kho_mem_ser_free(kho_out.preserved_mem_map);
+ 		kho_out.preserved_mem_map = NULL;
  	}
-@@ -746,6 +753,30 @@ int kho_preserve_folio(struct folio *fol
- EXPORT_SYMBOL_GPL(kho_preserve_folio);
  
- /**
-+ * kho_unpreserve_folio - unpreserve a folio.
-+ * @folio: folio to unpreserve.
-+ *
-+ * Instructs KHO to unpreserve a folio that was preserved by
-+ * kho_preserve_folio() before. The provided @folio (pfn and order)
-+ * must exactly match a previously preserved folio.
-+ *
-+ * Return: 0 on success, error code on failure
-+ */
-+int kho_unpreserve_folio(struct folio *folio)
-+{
-+	const unsigned long pfn = folio_pfn(folio);
-+	const unsigned int order = folio_order(folio);
-+	struct kho_mem_track *track = &kho_out.track;
-+
-+	if (kho_out.finalized)
-+		return -EBUSY;
-+
-+	__kho_unpreserve_order(track, pfn, order);
+-	if (err)
+-		pr_err("Failed to abort KHO finalization: %d\n", err);
+-
+-	return err;
 +	return 0;
-+}
-+EXPORT_SYMBOL_GPL(kho_unpreserve_folio);
-+
-+/**
-  * kho_preserve_pages - preserve contiguous pages across kexec
-  * @page: first page in the list.
-  * @nr_pages: number of pages.
-@@ -789,6 +820,33 @@ int kho_preserve_pages(struct page *page
  }
- EXPORT_SYMBOL_GPL(kho_preserve_pages);
  
-+/**
-+ * kho_unpreserve_pages - unpreserve contiguous pages.
-+ * @page: first page in the list.
-+ * @nr_pages: number of pages.
-+ *
-+ * Instructs KHO to unpreserve @nr_pages contiguous pages starting from @page.
-+ * This must be called with the same @page and @nr_pages as the corresponding
-+ * kho_preserve_pages() call. Unpreserving arbitrary sub-ranges of larger
-+ * preserved blocks is not supported.
-+ *
-+ * Return: 0 on success, error code on failure
-+ */
-+int kho_unpreserve_pages(struct page *page, unsigned int nr_pages)
-+{
-+	struct kho_mem_track *track = &kho_out.track;
-+	const unsigned long start_pfn = page_to_pfn(page);
-+	const unsigned long end_pfn = start_pfn + nr_pages;
-+
-+	if (kho_out.finalized)
-+		return -EBUSY;
-+
-+	__kho_unpreserve(track, start_pfn, end_pfn);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(kho_unpreserve_pages);
-+
- struct kho_vmalloc_hdr {
- 	DECLARE_KHOSER_PTR(next, struct kho_vmalloc_chunk *);
- };
+ int kho_abort(void)
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
