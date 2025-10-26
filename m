@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D31A747F
-	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 19:45:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37D5E747F
+	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 19:45:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761507942; cv=none; b=D7QZnv41tGJEJR0Mh3SmyLEywtUvwsYr7ir4ZEt2dD3UEsVruv13a+e5Q7dsWPJJwvC9YCQRMrs7tf9bQ7FB9P0hikK3uTzGrsmsWo30Nw4wl8HbaxfZl4EDAduQBe0wPhcQaFgpzlyLjNY17LZ2lwbWCrWZ9oFkD3WA731+qec=
+	t=1761507944; cv=none; b=oODDdHf3/t0DfGdoRwR8mHEFrjO6GPPwB3nVwcMfskupbQhQoNo/umD19+GgnEXzxfKOvJE625AcmnKUWWZae0s0h0PQ/7PLZA6NqwT/pB5hnezk8AyeWl/dl28f1RMK4qtif7h111xlvIIJ6Sb/SNpzvwWN6ZUnpbf+qOATp8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761507942; c=relaxed/simple;
-	bh=3CR710o3FURB87FIXs5Yn60ScDvz1UbRXrmiB1tyP9w=;
-	h=Date:To:From:Subject:Message-Id; b=VjK3IPLlePaHQtzDz6h0yXPQV6pSTq4cunFhH3WwaRxY9DL2N8P0N5c4taJyvXS7vi7Yta+Ok4mmj5vh7jvQBa2UA9U1+sr0mcebXYt6LQtHIymOPw819yWwVoHe33IOVFYjjErr/NOxtWCzHTtqgmoC/BQeo5Sjs0I34RqyDuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0SVH1AGl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761507944; c=relaxed/simple;
+	bh=/ic+qqBMP4iqsIvwhP1wpWTIrIcIdZ4NikI2EXx2VAo=;
+	h=Date:To:From:Subject:Message-Id; b=uKl3JE29D4/BAE0zlUgnhqH4cP0YuLbp2BRCsqHGMFEKOjmOfvz706K6XGQPsPqusNntViojmiml2qe0CHmIEyqzxq20sK683Nzx8yFrHlV7G8CXunviQ/5Op0KV6D6lxf9BP1+3WknglpYUoUnPNwDSZgA4dwmODxozBhlSjVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c3i8hJs+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0SVH1AGl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6503C4CEE7;
-	Sun, 26 Oct 2025 19:45:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c3i8hJs+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2CBFC4CEE7;
+	Sun, 26 Oct 2025 19:45:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761507941;
-	bh=3CR710o3FURB87FIXs5Yn60ScDvz1UbRXrmiB1tyP9w=;
+	s=korg; t=1761507943;
+	bh=/ic+qqBMP4iqsIvwhP1wpWTIrIcIdZ4NikI2EXx2VAo=;
 	h=Date:To:From:Subject:From;
-	b=0SVH1AGlMoNP8PsnjaxcQGUWJu6ltkW4BsjlfB4YINc4FqfZJ+OIYVqdFr1kkZw0b
-	 LdghtYxgggD83KFleIKQj3oyVFI/7sy3y8BgQYsMrT+E/6DBp4U07sQmYtZart+k+n
-	 XHvMOsQbVChF99sHHP9mL7K6PmaS2jDa2vWee43E=
-Date: Sun, 26 Oct 2025 12:45:41 -0700
+	b=c3i8hJs+VI7ZAti1136GgF4NGf3yaDEoy8FalNQhjSBQTkdVkKWNueR/o34RNL7AD
+	 LBlRnmI8lEK3dmJWr0Kjj6pY2cfS0H7ejrxWYd9JhJYElr+HsHr3kv4CgY3jIhYvMw
+	 RPmfe0deEwBZ6HxBN29sMJWYpfSDxlv0B/FyITp0=
+Date: Sun, 26 Oct 2025 12:45:43 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch added to mm-unstable branch
-Message-Id: <20251026194541.B6503C4CEE7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch added to mm-unstable branch
+Message-Id: <20251026194543.C2CBFC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/stat: fix a typo: s/sampling events/sampling interval/
+     Subject: Docs/admin-guide/mm/damon/usage: document empty target regions commit behavior
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
+     docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/stat: fix a typo: s/sampling events/sampling interval/
-Date: Sun, 26 Oct 2025 11:22:08 -0700
+Subject: Docs/admin-guide/mm/damon/usage: document empty target regions commit behavior
+Date: Sun, 26 Oct 2025 11:22:09 -0700
 
-It is a contextual typo.  Fix it.
+Committing a monitoring target with empty target regions is for keeping
+the current monitoring results.  This behavior was introduced by commit
+973233600676 ("mm/damon/sysfs: update monitoring target regions for online
+input commit").  The behavior is not documented, though.  Update the usage
+document for clarifying this behavior.
 
-Link: https://lkml.kernel.org/r/20251026182216.118200-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251026182216.118200-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -77,20 +81,33 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/stat.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/damon/usage.rst |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval
-+++ a/Documentation/admin-guide/mm/damon/stat.rst
-@@ -17,7 +17,7 @@ DAMON_STAT uses monitoring intervals :re
- <damon_design_monitoring_intervals_autotuning>` to make its accuracy high and
- overhead minimum.  It auto-tunes the intervals aiming 4 % of observable access
- events to be captured in each snapshot, while limiting the resulting sampling
--events to be 5 milliseconds in minimum and 10 seconds in maximum.  On a few
-+interval to be 5 milliseconds in minimum and 10 seconds in maximum.  On a few
- production server systems, it resulted in consuming only 0.x % single CPU time,
- while capturing reasonable quality of access patterns.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -134,7 +134,8 @@ Users can write below commands for the k
+ - ``on``: Start running.
+ - ``off``: Stop running.
+ - ``commit``: Read the user inputs in the sysfs files except ``state`` file
+-  again.
++  again.  Monitoring :ref:`target region <sysfs_regions>` inputs are also be
++  ignored if no target region is specified.
+ - ``update_tuned_intervals``: Update the contents of ``sample_us`` and
+   ``aggr_us`` files of the kdamond with the auto-tuning applied ``sampling
+   interval`` and ``aggregation interval`` for the files.  Please refer to
+@@ -289,6 +290,11 @@ In the beginning, this directory has onl
+ number (``N``) to the file creates the number of child directories named ``0``
+ to ``N-1``.  Each directory represents each initial monitoring target region.
  
++If ``nr_regions`` is zero when committing new DAMON parameters online (writing
++``commit`` to ``state`` file of :ref:`kdamond <sysfs_kdamond>`), the commit
++logic ignores the target regions.  In other words, the current monitoring
++results for the target are preserved.
++
+ .. _sysfs_region:
+ 
+ regions/<N>/
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
