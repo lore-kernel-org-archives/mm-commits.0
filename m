@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87E7B2F5B
-	for <mm-commits@vger.kernel.org>; Sat, 25 Oct 2025 23:57:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8008A182D2;
+	Sun, 26 Oct 2025 03:59:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761436658; cv=none; b=koFU2BTI2VHlHcV5fD2EybR16Ksm2xqk7ncqJYIhU/JbrYlOPn0i/05oNCPofOMlswZI9kM5RpmFi5q3Ch+dnZJU41+l5peu7YYa/F4hLGGHrvre/id/ZwfUPKfLlR4KqPYR5r0o0ogTlmG3d0aYBtCFOjMSSH3I8TG8MHnMhzw=
+	t=1761451162; cv=none; b=NSh8gx4R2dcgQ/5YrbIi7PSDcDxC4kFerHBNl4W29IOrMJzX016k5kINZ5CSpWmG3/Niq2p6zp7NJ1H2aD5OIic0bpFo9FVwwZ1+9J+A+WN6MSRKl84zRoI2Ca/NVyxO8JugCRLURD7hCu2RdMgUPvLK8jn1DOytaGGZ0pWYDf4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761436658; c=relaxed/simple;
-	bh=7Op8zupV9e8X16q5wjhIEfkp1vG5oOTFdSXIR6rZ0tM=;
-	h=Date:To:From:Subject:Message-Id; b=P6z5Rxg18T27De1wLAfhFEga+/iRiHtQfckoUIX0lmSeDLAjDSGWC4v6OIbrUF8ssFIeDBJfeVKoyOfgtqLZelOOfSCBv19E33Qq4udg3Y3SD6moYpg/ZEzly1EomzwnqrPW+/M28arZnWisugu1a2usEmuZiGjFB4t5s7+AZFc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tSRyPMNx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761451162; c=relaxed/simple;
+	bh=6Gp9raUBPHcZ4I/DV/S1GtUuBi+6/amBX7YEBV0n6cQ=;
+	h=Date:To:From:Subject:Message-Id; b=IJDxGPm3DEK807W1e82IWcycHpPZ+aO12ACOf283hBjUDbbbOnxsn5QhKllVbPB6gGPOSrjGJHhcboPOrH0UdwBjVt7uAwyj5Ddl9yGqaf+Yczq8LvspCjlSgomzs8Dw7DpqJmUMosjCOeHn0qtrGCdkx1vv29j/Kdl1EaJa0RI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ly4Cm5bJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tSRyPMNx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08F90C4CEF5;
-	Sat, 25 Oct 2025 23:57:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ly4Cm5bJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDD8EC4CEE7;
+	Sun, 26 Oct 2025 03:59:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761436658;
-	bh=7Op8zupV9e8X16q5wjhIEfkp1vG5oOTFdSXIR6rZ0tM=;
+	s=korg; t=1761451162;
+	bh=6Gp9raUBPHcZ4I/DV/S1GtUuBi+6/amBX7YEBV0n6cQ=;
 	h=Date:To:From:Subject:From;
-	b=tSRyPMNxM/PECyYRL2nkIFdykZXb372ivqKaBmuxRXVL6q525gcVFJtoiNpLS+SwG
-	 m2r05J9rtAY2mWe21DG8l4fgkbi7UhnhlFoBZ/gAhENNPNQkqrYLTuaFneGPuFYN+C
-	 dlPid4m3PNzzp1oti58L+DpWLFI5cAoLTp2AQ9gM=
-Date: Sat, 25 Oct 2025 16:57:37 -0700
-To: mm-commits@vger.kernel.org,jim.cromie@gmail.com,jbaron@akamai.com,yebin10@huawei.com,akpm@linux-foundation.org
+	b=Ly4Cm5bJjfDLi1A2H3o245ndxniftc7qQE+5XAkTzrjWGexf3nCyAJD61W91UPTNp
+	 rxKP+jwPj+MDRD4Ssv/EPYbsZO7VIhpaYs+8ccqfCyn0Kgfa5hzVRgfIY5ewaTCYlS
+	 7fPCYLMyMhLvQO29fovrosSMCJ8AqBXmuEcDmCG4=
+Date: Sat, 25 Oct 2025 20:59:21 -0700
+To: mm-commits@vger.kernel.org,wangzijie1@honor.com,viro@zeniv.linux.org.uk,stable@vger.kernel.org,brauner@kernel.org,adobriyan@gmail.com,albinwyang@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dynamic_debug-add-support-for-print-stack.patch added to mm-nonmm-unstable branch
-Message-Id: <20251025235738.08F90C4CEF5@smtp.kernel.org>
+Subject: + fs-proc-fix-uaf-in-proc_readdir_de.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251026035921.DDD8EC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dynamic_debug: add support for print stack
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     dynamic_debug-add-support-for-print-stack.patch
+     Subject: fs/proc: fix uaf in proc_readdir_de()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fs-proc-fix-uaf-in-proc_readdir_de.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dynamic_debug-add-support-for-print-stack.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-fix-uaf-in-proc_readdir_de.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,113 +58,109 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ye Bin <yebin10@huawei.com>
-Subject: dynamic_debug: add support for print stack
-Date: Sat, 25 Oct 2025 16:00:03 +0800
+From: Wei Yang <albinwyang@tencent.com>
+Subject: fs/proc: fix uaf in proc_readdir_de()
+Date: Sat, 25 Oct 2025 10:42:33 +0800
 
-In practical problem diagnosis, especially during the boot phase, it is
-often desirable to know the call sequence.  However, currently, apart from
-adding print statements and recompiling the kernel, there seems to be no
-good alternative.  If dynamic_debug supported printing the call stack, it
-would be very helpful for diagnosing issues.  This patch add support '+d'
-for dump stack.
+Pde is erased from subdir rbtree through rb_erase(), but not set the node
+to EMPTY, which may result in uaf access.  We should use RB_CLEAR_NODE()
+set the erased node to EMPTY, then pde_subdir_next() will return NULL to
+avoid uaf access.
 
-Link: https://lkml.kernel.org/r/20251025080003.312536-1-yebin@huaweicloud.com
-Signed-off-by: Ye Bin <yebin10@huawei.com>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Jim Cromie <jim.cromie@gmail.com>
+We found an uaf issue while using stress-ng testing, need to run testcase
+getdent and tun in the same time.  The steps of the issue is as follows:
+
+1) use getdent to traverse dir /proc/pid/net/dev_snmp6/, and current
+   pde is tun3;
+
+2) in the [time windows] unregister netdevice tun3 and tun2, and erase
+   them from rbtree.  erase tun3 first, and then erase tun2.  the
+   pde(tun2) will be released to slab;
+
+3) continue to getdent process, then pde_subdir_next() will return
+   pde(tun2) which is released, it will case uaf access.
+
+CPU 0                                      |    CPU 1
+----------------------------------------------------------------------------------------------
+traverse dir /proc/pid/net/dev_snmp6/      |   unregister_netdevice(tun->dev)   //tun3 tun2
+sys_getdents64()                           |
+  iterate_dir()                            |
+    proc_readdir()                         |
+      proc_readdir_de()                    |     snmp6_unregister_dev()
+        pde_get(de);                       |       proc_remove()
+        read_unlock(&proc_subdir_lock);    |         remove_proc_subtree()
+                                           |           write_lock(&proc_subdir_lock);
+        [time window]                      |           rb_erase(&root->subdir_node, &parent->subdir);
+                                           |           write_unlock(&proc_subdir_lock);
+        read_lock(&proc_subdir_lock);      |
+        next = pde_subdir_next(de);        |
+        pde_put(de);                       |
+        de = next;    //UAF                |
+
+rbtree of dev_snmp6
+                        |
+                    pde(tun3)
+                     /    \
+                  NULL  pde(tun2)
+
+Link: https://lkml.kernel.org/r/20251025024233.158363-1-albin_yang@163.com
+Signed-off-by: Wei Yang <albinwyang@tencent.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: wangzijie <wangzijie1@honor.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/dynamic-debug-howto.rst |    5 ++-
- include/linux/dynamic_debug.h                     |   17 +++++++++---
- lib/dynamic_debug.c                               |    1 
- 3 files changed, 18 insertions(+), 5 deletions(-)
+ fs/proc/generic.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/dynamic-debug-howto.rst~dynamic_debug-add-support-for-print-stack
-+++ a/Documentation/admin-guide/dynamic-debug-howto.rst
-@@ -223,12 +223,13 @@ The flags are::
-   f    Include the function name
-   s    Include the source file name
-   l    Include line number
-+  d    Include call trace
+--- a/fs/proc/generic.c~fs-proc-fix-uaf-in-proc_readdir_de
++++ a/fs/proc/generic.c
+@@ -698,6 +698,12 @@ void pde_put(struct proc_dir_entry *pde)
+ 	}
+ }
  
- For ``print_hex_dump_debug()`` and ``print_hex_dump_bytes()``, only
- the ``p`` flag has meaning, other flags are ignored.
- 
--Note the regexp ``^[-+=][fslmpt_]+$`` matches a flags specification.
--To clear all flags at once, use ``=_`` or ``-fslmpt``.
-+Note the regexp ``^[-+=][fslmptd_]+$`` matches a flags specification.
-+To clear all flags at once, use ``=_`` or ``-fslmptd``.
- 
- 
- Debug messages during Boot Process
---- a/include/linux/dynamic_debug.h~dynamic_debug-add-support-for-print-stack
-+++ a/include/linux/dynamic_debug.h
-@@ -38,11 +38,12 @@ struct _ddebug {
- #define _DPRINTK_FLAGS_INCL_LINENO	(1<<3)
- #define _DPRINTK_FLAGS_INCL_TID		(1<<4)
- #define _DPRINTK_FLAGS_INCL_SOURCENAME	(1<<5)
-+#define _DPRINTK_FLAGS_INCL_STACK	(1<<6)
- 
- #define _DPRINTK_FLAGS_INCL_ANY		\
- 	(_DPRINTK_FLAGS_INCL_MODNAME | _DPRINTK_FLAGS_INCL_FUNCNAME |\
- 	 _DPRINTK_FLAGS_INCL_LINENO  | _DPRINTK_FLAGS_INCL_TID |\
--	 _DPRINTK_FLAGS_INCL_SOURCENAME)
-+	 _DPRINTK_FLAGS_INCL_SOURCENAME | _DPRINTK_FLAGS_INCL_STACK)
- 
- #if defined DEBUG
- #define _DPRINTK_FLAGS_DEFAULT _DPRINTK_FLAGS_PRINT
-@@ -160,6 +161,12 @@ void __dynamic_ibdev_dbg(struct _ddebug
- 			 const struct ib_device *ibdev,
- 			 const char *fmt, ...);
- 
-+#define __dynamic_dump_stack(desc)				\
-+{								\
-+	if (desc.flags & _DPRINTK_FLAGS_INCL_STACK)		\
-+		dump_stack();					\
++static void pde_erase(struct proc_dir_entry *pde, struct proc_dir_entry *parent)
++{
++	rb_erase(&pde->subdir_node, &parent->subdir);
++	RB_CLEAR_NODE(&pde->subdir_node);
 +}
 +
- #define DEFINE_DYNAMIC_DEBUG_METADATA_CLS(name, cls, fmt)	\
- 	static struct _ddebug  __aligned(8)			\
- 	__section("__dyndbg") name = {				\
-@@ -220,8 +227,10 @@ void __dynamic_ibdev_dbg(struct _ddebug
+ /*
+  * Remove a /proc entry and free it if it's not currently in use.
   */
- #define __dynamic_func_call_cls(id, cls, fmt, func, ...) do {	\
- 	DEFINE_DYNAMIC_DEBUG_METADATA_CLS(id, cls, fmt);	\
--	if (DYNAMIC_DEBUG_BRANCH(id))				\
-+	if (DYNAMIC_DEBUG_BRANCH(id)) {				\
- 		func(&id, ##__VA_ARGS__);			\
-+		__dynamic_dump_stack(id);			\
-+	}							\
- } while (0)
- #define __dynamic_func_call(id, fmt, func, ...)				\
- 	__dynamic_func_call_cls(id, _DPRINTK_CLASS_DFLT, fmt,		\
-@@ -229,8 +238,10 @@ void __dynamic_ibdev_dbg(struct _ddebug
+@@ -720,7 +726,7 @@ void remove_proc_entry(const char *name,
+ 			WARN(1, "removing permanent /proc entry '%s'", de->name);
+ 			de = NULL;
+ 		} else {
+-			rb_erase(&de->subdir_node, &parent->subdir);
++			pde_erase(de, parent);
+ 			if (S_ISDIR(de->mode))
+ 				parent->nlink--;
+ 		}
+@@ -764,7 +770,7 @@ int remove_proc_subtree(const char *name
+ 			root->parent->name, root->name);
+ 		return -EINVAL;
+ 	}
+-	rb_erase(&root->subdir_node, &parent->subdir);
++	pde_erase(root, parent);
  
- #define __dynamic_func_call_cls_no_desc(id, cls, fmt, func, ...) do {	\
- 	DEFINE_DYNAMIC_DEBUG_METADATA_CLS(id, cls, fmt);		\
--	if (DYNAMIC_DEBUG_BRANCH(id))					\
-+	if (DYNAMIC_DEBUG_BRANCH(id)) {					\
- 		func(__VA_ARGS__);					\
-+		__dynamic_dump_stack(id);				\
-+	}								\
- } while (0)
- #define __dynamic_func_call_no_desc(id, fmt, func, ...)			\
- 	__dynamic_func_call_cls_no_desc(id, _DPRINTK_CLASS_DFLT,	\
---- a/lib/dynamic_debug.c~dynamic_debug-add-support-for-print-stack
-+++ a/lib/dynamic_debug.c
-@@ -95,6 +95,7 @@ static const struct { unsigned flag:8; c
- 	{ _DPRINTK_FLAGS_INCL_SOURCENAME, 's' },
- 	{ _DPRINTK_FLAGS_INCL_LINENO, 'l' },
- 	{ _DPRINTK_FLAGS_INCL_TID, 't' },
-+	{ _DPRINTK_FLAGS_INCL_STACK, 'd' },
- 	{ _DPRINTK_FLAGS_NONE, '_' },
- };
- 
+ 	de = root;
+ 	while (1) {
+@@ -776,7 +782,7 @@ int remove_proc_subtree(const char *name
+ 					next->parent->name, next->name);
+ 				return -EINVAL;
+ 			}
+-			rb_erase(&next->subdir_node, &de->subdir);
++			pde_erase(next, de);
+ 			de = next;
+ 			continue;
+ 		}
 _
 
-Patches currently in -mm which might be from yebin10@huawei.com are
+Patches currently in -mm which might be from albinwyang@tencent.com are
 
-dynamic_debug-add-support-for-print-stack.patch
+fs-proc-fix-uaf-in-proc_readdir_de.patch
 
