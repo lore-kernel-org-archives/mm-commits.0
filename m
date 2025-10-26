@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F6AD202963
-	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:23:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2B901DFDAB
+	for <mm-commits@vger.kernel.org>; Sun, 26 Oct 2025 04:24:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761452608; cv=none; b=O0G3+B5Qk2tXvUanVYCPGthkdFB6edPLRyCaTkXK27pv0PUDyW/Fff/f8tQZoM+o9XxcLxlLPe1Kxu9quu4elFxKiC5wil9WxRgXBguJFgZs0SM9+I92l779TqCxUp1FotWPCp0dSiD896QvfcrcEpRz62yegomR4UsakDCKhyU=
+	t=1761452694; cv=none; b=kIrpl60+A5wv3XiYFSV8d+nDyqVoXAeJSI059Az4vrH+/aOC+h5oc0IYIYf5UxyQPE6KSpnckKa9osUHYN/DBVtofpt/iY8J1xbhDT94ky8+Km7JZ9E4yFmHppeXzaymmTcEHPPp6EKSjpBDDSUEvYlWTcV1GV1ViydeLC68d/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761452608; c=relaxed/simple;
-	bh=AYH1dHy25pjR3x8S644vY/g1ZPkipsCBpvZVjtnjDoQ=;
-	h=Date:To:From:Subject:Message-Id; b=oHiAmVBDUZiZ7CCRrtO1pih32vNim6ukU5K4qs2eqIOxPzl6f+K14EjE2mjXVxDRDWvtoVuEySz/p8gYr3J8xH8lyWatIffrzViBH7L50k+FgMO6dbi9zD5POy3bhBfzgGgAFWfujh7faAIjfMPBTOhQDkJC9lmkLG+TYIhvOr4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R7/udgmQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761452694; c=relaxed/simple;
+	bh=c15xncAuOkoswJc3NRLiwmZBeWm1+BnbbjRYyzn/cSk=;
+	h=Date:To:From:Subject:Message-Id; b=YqeFLpm5vDdIMTA7YoPaRsjiQ4FUo9DzLt+EZuwfysxesGJ4X7r8IlfJTRDiYPCb/pUzR0/HJeuHy8kXzsY65yy6c4lJuzg27K89GYyafqbjCLRUo9KggPfYYQylQABhZH3wU1jEkMG4KL6PlWD+9hbH66U7Cws6yb2tyMcoViA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nKJy39dM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R7/udgmQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3872C4CEE7;
-	Sun, 26 Oct 2025 04:23:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nKJy39dM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51814C4CEE7;
+	Sun, 26 Oct 2025 04:24:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761452608;
-	bh=AYH1dHy25pjR3x8S644vY/g1ZPkipsCBpvZVjtnjDoQ=;
+	s=korg; t=1761452694;
+	bh=c15xncAuOkoswJc3NRLiwmZBeWm1+BnbbjRYyzn/cSk=;
 	h=Date:To:From:Subject:From;
-	b=R7/udgmQSdm/W9NvGup9/10mhNm6ERCLJlzIOFeK1JivzPvUH6qPLjM1EQQCgqAGs
-	 AgwVfvYtwRXrXITPDVW844M/xvfIw/fBG5LIzHpg8IHdwMi0ZaZaZNNi8VSnsPN1jO
-	 ylagPvmpmSAMm+pzY5aDxlhvThMdwIO9ANq26hsA=
-Date: Sat, 25 Oct 2025 21:23:27 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,harry.yoo@oracle.com,akpm@linux-foundation.org
+	b=nKJy39dMtNnx8OFTtPxeZRsBL84sEHB7hkzbbZxMk+XGo4uXdKPgvAGLQq57OOyBJ
+	 j05ITWOmYvRshahRLD19feDKZCT14m92fWEu9nSp+avDSxlyxd5EucbCFQsZAOtS6+
+	 OV+A8CCFzMe7zPUc9HCUX/GwuLlHRtq9cEaHZ3Qo=
+Date: Sat, 25 Oct 2025 21:24:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,liam.howlett@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + treewide-include-linux-pgalloch-instead-of-asm-pgalloch.patch added to mm-new branch
-Message-Id: <20251026042327.E3872C4CEE7@smtp.kernel.org>
+Subject: + mm-vma-small-vma-lock-cleanups.patch added to mm-new branch
+Message-Id: <20251026042454.51814C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: treewide: include linux/pgalloc.h instead of asm/pgalloc.h
+     Subject: mm/vma: small VMA lock cleanups
 has been added to the -mm mm-new branch.  Its filename is
-     treewide-include-linux-pgalloch-instead-of-asm-pgalloch.patch
+     mm-vma-small-vma-lock-cleanups.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-include-linux-pgalloch-instead-of-asm-pgalloch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-small-vma-lock-cleanups.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,281 +64,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Harry Yoo <harry.yoo@oracle.com>
-Subject: treewide: include linux/pgalloc.h instead of asm/pgalloc.h
-Date: Fri, 24 Oct 2025 20:30:47 +0900
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/vma: small VMA lock cleanups
+Date: Fri, 24 Oct 2025 10:09:02 +0100
 
-For now, including <asm/pgalloc.h> instead of <linux/pgalloc.h> is
-technically fine unless the .c file calls p*d_populate_kernel() helper
-functions.
+We declare vma_start_read() as a static function in mm/mmap_lock.c, so
+there is no need to provide a stub for !CONFIG_PER_VMA_LOCK.
 
-But it is a better practice to always include <linux/pgalloc.h>.  Include
-<linux/pgalloc.h> instead of <asm/pgalloc.h> outside arch/.
+__is_vma_write_locked() is declared in a header and should therefore be
+static inline.
 
-Link: https://lkml.kernel.org/r/20251024113047.119058-3-harry.yoo@oracle.com
-Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Put parens around (refcnt & VMA_LOCK_OFFSET) in is_vma_writer_only() to
+make precedence clear.
+
+Link: https://lkml.kernel.org/r/20251024090902.1118174-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/arm-runtime.c   |    4 ++--
- drivers/firmware/efi/riscv-runtime.c |    4 ++--
- drivers/s390/char/sclp_sd.c          |    3 +--
- fs/dax.c                             |    2 +-
- kernel/fork.c                        |    4 ++--
- mm/debug_vm_pgtable.c                |    2 +-
- mm/filemap.c                         |    3 ++-
- mm/huge_memory.c                     |    2 +-
- mm/hugetlb.c                         |    2 +-
- mm/hugetlb_vmemmap.c                 |    3 ++-
- mm/khugepaged.c                      |    2 +-
- mm/memory.c                          |    4 ++--
- mm/mmu_gather.c                      |    2 +-
- mm/mremap.c                          |    2 +-
- mm/pgtable-generic.c                 |    3 ++-
- mm/pt_reclaim.c                      |    3 ++-
- 16 files changed, 24 insertions(+), 21 deletions(-)
+ include/linux/mmap_lock.h |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/drivers/firmware/efi/arm-runtime.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/drivers/firmware/efi/arm-runtime.c
-@@ -12,18 +12,18 @@
- #include <linux/io.h>
- #include <linux/memblock.h>
- #include <linux/mm_types.h>
-+#include <linux/pgalloc.h>
-+#include <linux/pgtable.h>
- #include <linux/preempt.h>
- #include <linux/rbtree.h>
- #include <linux/rwsem.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
--#include <linux/pgtable.h>
+--- a/include/linux/mmap_lock.h~mm-vma-small-vma-lock-cleanups
++++ a/include/linux/mmap_lock.h
+@@ -130,7 +130,7 @@ static inline bool is_vma_writer_only(in
+ 	 * a detached vma happens only in vma_mark_detached() and is a rare
+ 	 * case, therefore most of the time there will be no unnecessary wakeup.
+ 	 */
+-	return refcnt & VMA_LOCK_OFFSET && refcnt <= VMA_LOCK_OFFSET + 1;
++	return (refcnt & VMA_LOCK_OFFSET) && refcnt <= VMA_LOCK_OFFSET + 1;
+ }
  
- #include <asm/cacheflush.h>
- #include <asm/efi.h>
- #include <asm/mmu.h>
--#include <asm/pgalloc.h>
+ static inline void vma_refcount_put(struct vm_area_struct *vma)
+@@ -183,7 +183,7 @@ static inline void vma_end_read(struct v
+ }
  
- #if defined(CONFIG_PTDUMP_DEBUGFS) || defined(CONFIG_ARM_PTDUMP_DEBUGFS)
- #include <asm/ptdump.h>
---- a/drivers/firmware/efi/riscv-runtime.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/drivers/firmware/efi/riscv-runtime.c
-@@ -14,18 +14,18 @@
- #include <linux/io.h>
- #include <linux/memblock.h>
- #include <linux/mm_types.h>
-+#include <linux/pgalloc.h>
-+#include <linux/pgtable.h>
- #include <linux/preempt.h>
- #include <linux/rbtree.h>
- #include <linux/rwsem.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
--#include <linux/pgtable.h>
- 
- #include <asm/cacheflush.h>
- #include <asm/efi.h>
- #include <asm/mmu.h>
--#include <asm/pgalloc.h>
- 
- static bool __init efi_virtmap_init(void)
+ /* WARNING! Can only be used if mmap_lock is expected to be write-locked */
+-static bool __is_vma_write_locked(struct vm_area_struct *vma, unsigned int *mm_lock_seq)
++static inline bool __is_vma_write_locked(struct vm_area_struct *vma, unsigned int *mm_lock_seq)
  {
---- a/drivers/s390/char/sclp_sd.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/drivers/s390/char/sclp_sd.c
-@@ -17,8 +17,7 @@
- #include <linux/vmalloc.h>
- #include <linux/async.h>
- #include <linux/mutex.h>
--
--#include <asm/pgalloc.h>
-+#include <linux/pgalloc.h>
+ 	mmap_assert_write_locked(vma->vm_mm);
  
- #include "sclp.h"
- 
---- a/fs/dax.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/fs/dax.c
-@@ -24,7 +24,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/iomap.h>
- #include <linux/rmap.h>
--#include <asm/pgalloc.h>
-+#include <linux/pgalloc.h>
- 
- #define CREATE_TRACE_POINTS
- #include <trace/events/fs_dax.h>
---- a/kernel/fork.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/kernel/fork.c
-@@ -106,9 +106,9 @@
- #include <linux/pidfs.h>
- #include <linux/tick.h>
- #include <linux/unwind_deferred.h>
--
--#include <asm/pgalloc.h>
-+#include <linux/pgalloc.h>
- #include <linux/uaccess.h>
-+
- #include <asm/mmu_context.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
---- a/mm/debug_vm_pgtable.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/debug_vm_pgtable.c
-@@ -30,9 +30,9 @@
- #include <linux/sched/mm.h>
- #include <linux/io.h>
- #include <linux/vmalloc.h>
-+#include <linux/pgalloc.h>
- 
- #include <asm/cacheflush.h>
--#include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- 
- /*
---- a/mm/filemap.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/filemap.c
-@@ -48,7 +48,8 @@
- #include <linux/rcupdate_wait.h>
- #include <linux/sched/mm.h>
- #include <linux/sysctl.h>
--#include <asm/pgalloc.h>
-+#include <linux/pgalloc.h>
-+
- #include <asm/tlbflush.h>
- #include "internal.h"
- 
---- a/mm/huge_memory.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/huge_memory.c
-@@ -37,11 +37,11 @@
- #include <linux/sched/sysctl.h>
- #include <linux/memory-tiers.h>
- #include <linux/compat.h>
-+#include <linux/pgalloc.h>
- #include <linux/pgalloc_tag.h>
- #include <linux/pagewalk.h>
- 
- #include <asm/tlb.h>
--#include <asm/pgalloc.h>
- #include "internal.h"
- #include "swap.h"
- 
---- a/mm/hugetlb.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/hugetlb.c
-@@ -39,9 +39,9 @@
- #include <linux/memory.h>
- #include <linux/mm_inline.h>
- #include <linux/padata.h>
-+#include <linux/pgalloc.h>
- 
- #include <asm/page.h>
--#include <asm/pgalloc.h>
- #include <asm/tlb.h>
- #include <asm/setup.h>
- 
---- a/mm/hugetlb_vmemmap.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/hugetlb_vmemmap.c
-@@ -15,7 +15,8 @@
- #include <linux/bootmem_info.h>
- #include <linux/mmdebug.h>
- #include <linux/pagewalk.h>
--#include <asm/pgalloc.h>
-+#include <linux/pgalloc.h>
-+
- #include <asm/tlbflush.h>
- #include "hugetlb_vmemmap.h"
- 
---- a/mm/khugepaged.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/khugepaged.c
-@@ -21,9 +21,9 @@
- #include <linux/shmem_fs.h>
- #include <linux/dax.h>
- #include <linux/ksm.h>
-+#include <linux/pgalloc.h>
- 
- #include <asm/tlb.h>
--#include <asm/pgalloc.h>
- #include "internal.h"
- #include "mm_slot.h"
- 
---- a/mm/memory.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/memory.c
-@@ -75,13 +75,13 @@
- #include <linux/ptrace.h>
- #include <linux/vmalloc.h>
- #include <linux/sched/sysctl.h>
-+#include <linux/pgalloc.h>
-+#include <linux/uaccess.h>
- 
- #include <trace/events/kmem.h>
- 
- #include <asm/io.h>
- #include <asm/mmu_context.h>
--#include <asm/pgalloc.h>
--#include <linux/uaccess.h>
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
- 
---- a/mm/mmu_gather.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/mmu_gather.c
-@@ -9,8 +9,8 @@
- #include <linux/smp.h>
- #include <linux/swap.h>
- #include <linux/rmap.h>
-+#include <linux/pgalloc.h>
- 
--#include <asm/pgalloc.h>
- #include <asm/tlb.h>
- 
- #ifndef CONFIG_MMU_GATHER_NO_GATHER
---- a/mm/mremap.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/mremap.c
-@@ -25,10 +25,10 @@
- #include <linux/uaccess.h>
- #include <linux/userfaultfd_k.h>
- #include <linux/mempolicy.h>
-+#include <linux/pgalloc.h>
- 
- #include <asm/cacheflush.h>
- #include <asm/tlb.h>
--#include <asm/pgalloc.h>
- 
- #include "internal.h"
- 
---- a/mm/pgtable-generic.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/pgtable-generic.c
-@@ -14,7 +14,8 @@
- #include <linux/swapops.h>
- #include <linux/mm_inline.h>
- #include <linux/iommu.h>
--#include <asm/pgalloc.h>
-+#include <linux/pgalloc.h>
-+
- #include <asm/tlb.h>
- 
- /*
---- a/mm/pt_reclaim.c~treewide-include-linux-pgalloch-instead-of-asm-pgalloch
-+++ a/mm/pt_reclaim.c
-@@ -1,7 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0
- #include <linux/hugetlb.h>
-+#include <linux/pgalloc.h>
-+
- #include <asm-generic/tlb.h>
--#include <asm/pgalloc.h>
- 
- #include "internal.h"
- 
+@@ -281,9 +281,6 @@ static inline bool mmap_lock_speculate_r
+ 	return true;
+ }
+ static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt) {}
+-static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
+-						    struct vm_area_struct *vma)
+-		{ return NULL; }
+ static inline void vma_end_read(struct vm_area_struct *vma) {}
+ static inline void vma_start_write(struct vm_area_struct *vma) {}
+ static inline void vma_assert_write_locked(struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from harry.yoo@oracle.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-maintainers-add-include-linux-pgalloch-to-mm-core-section.patch
-treewide-include-linux-pgalloch-instead-of-asm-pgalloch.patch
+mm-shmem-update-shmem-to-use-mmap_prepare.patch
+device-dax-update-devdax-to-use-mmap_prepare.patch
+mm-vma-remove-unused-function-make-internal-functions-static.patch
+mm-add-vma_desc_size-vma_desc_pages-helpers.patch
+relay-update-relay-to-use-mmap_prepare.patch
+mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
+mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
+mm-abstract-io_remap_pfn_range-based-on-pfn.patch
+mm-introduce-io_remap_pfn_range_.patch
+mm-add-ability-to-take-further-action-in-vm_area_desc.patch
+doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
+mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
+mm-add-shmem_zero_setup_desc.patch
+mm-update-mem-char-driver-to-use-mmap_prepare.patch
+mm-update-resctl-to-use-mmap_prepare.patch
+mm-vma-small-vma-lock-cleanups.patch
 
