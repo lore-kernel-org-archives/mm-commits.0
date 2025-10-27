@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F04C32D0EE;
-	Mon, 27 Oct 2025 22:34:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E695D2609D4
+	for <mm-commits@vger.kernel.org>; Mon, 27 Oct 2025 23:29:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761604469; cv=none; b=Yr3CBGd3FWH2Un1lEvICQk/5H5yvjXvrk3m4i/pWdPbWolEbxty4TiwBFe08KGndiMR5tRERCe+jZK+pWyIkkb0DrOg/By4cXF9ulY0bC+Mmk4stO7oH8bHKnSQ4e1r7wm+x6mXiPsErO+9Ve24NuNFGKbBAIFmqCrORezCmi74=
+	t=1761607758; cv=none; b=gID5MBZZc8V0faUhm56yYtZH4tqoxy9GBTKsB3SjAYsZUh8s2HxfHqmt90arlldb06kSNt7PefI5RNo+d9TO8TD9opQRbBxp21NeDxkfQDjuRC2XzKOY19uWjf6GZDfoDj5lwd/yLePjqNis5l1TP+LMygOMT8ffLE6W9UjLLVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761604469; c=relaxed/simple;
-	bh=85Dx+ZREDsqf3iZEyX6kMtR1ZeBO15vWCmqqzcBVxO4=;
-	h=Date:To:From:Subject:Message-Id; b=lJaMhry5Eyaptml+fgDOWcO1j/mB/nfnyDlNuJljYyG6gHBNneeyJCfWIK4MFXoN+eXwsc+WJE+zGYGgGQztpCP2ljWGCRNFo/98lYERLkA51GQ0i3ZyPk5ntDUh3H6XsB0cwebI7csDkn1BCAxTg5y/eE8NEUGuQ9lEmxOX8R8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XYtrIbiw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761607758; c=relaxed/simple;
+	bh=6AYjNdX8snqdVjZfQPPxU6oOhCtk28SkqLuipCaJkDs=;
+	h=Date:To:From:Subject:Message-Id; b=AGoeMybK/IA3RKc2Ukut6oj7/nV8kRK2VB+2jdogQW3O3ixxzMvvjc6PxvnYKsi9YGET4D+keGp1aq4wt2ZMoM5tUtCpdkjJy+iJQSfrnD+9XcE+6W/S/q0MrhifJNynEmkFQVof1RXdWmhnccQk68xd1G94RrXBG27bwhJQ05Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JrUQdhMY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XYtrIbiw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB4A9C113D0;
-	Mon, 27 Oct 2025 22:34:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JrUQdhMY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8033CC4CEF1;
+	Mon, 27 Oct 2025 23:29:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761604468;
-	bh=85Dx+ZREDsqf3iZEyX6kMtR1ZeBO15vWCmqqzcBVxO4=;
+	s=korg; t=1761607757;
+	bh=6AYjNdX8snqdVjZfQPPxU6oOhCtk28SkqLuipCaJkDs=;
 	h=Date:To:From:Subject:From;
-	b=XYtrIbiw6e0L/ElLH5ZsLfRVfGPBQEmmJyw1Oee830InfSMnqj7MYemX40h2qLIhF
-	 W/KVVNQhSsjFXzHZPBz8TKnIlVP9XpekJt2zm7If+AEKJcF+lvzDKAzFneWms9PxrJ
-	 X4nxM9oado2mhONeNo7uQgVgSwTJ+JQEvwkfcLdc=
-Date: Mon, 27 Oct 2025 15:34:28 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,hannes@cmpxchg.org,djwong@kernel.org,david@redhat.com,david@fromorbit.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
+	b=JrUQdhMYtKRqGVGrVA/w5hT0Sb9fgyjgMRuuECaVpk84cpVeMiqUDBsiarmPo/XVf
+	 jCHQJGmsDlLyD29LKFdzR6J74RGecSSSzsvRbsSSCdo8Wl4IOdc22j/98zS6huYS6J
+	 /j44C1yzbVhyyz63qgMhKBNv12ZqE2wlPrKf7n8A=
+Date: Mon, 27 Oct 2025 16:29:16 -0700
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,stanley_chang@realtek.com,eleanor.lin@realtek.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-truncate-unmap-large-folio-on-split-failure.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251027223428.BB4A9C113D0@smtp.kernel.org>
+Subject: + mailmap-add-entry-for-yu-chun-lin.patch added to mm-nonmm-unstable branch
+Message-Id: <20251027232917.8033CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/truncate: unmap large folio on split failure
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-truncate-unmap-large-folio-on-split-failure.patch
+     Subject: mailmap: add entry for Yu-Chun Lin
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mailmap-add-entry-for-yu-chun-lin.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-unmap-large-folio-on-split-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-yu-chun-lin.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,119 +58,35 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kiryl Shutsemau <kas@kernel.org>
-Subject: mm/truncate: unmap large folio on split failure
-Date: Mon, 27 Oct 2025 11:56:36 +0000
+From: Yu-Chun Lin <eleanor.lin@realtek.com>
+Subject: mailmap: add entry for Yu-Chun Lin
+Date: Mon, 27 Oct 2025 18:03:09 +0800
 
-Accesses within VMA, but beyond i_size rounded up to PAGE_SIZE are
-supposed to generate SIGBUS.
+Map my personal email to my business email.
 
-This behavior might not be respected on truncation.
-
-During truncation, the kernel splits a large folio in order to reclaim
-memory.  As a side effect, it unmaps the folio and destroys PMD mappings
-of the folio.  The folio will be refaulted as PTEs and SIGBUS semantics
-are preserved.
-
-However, if the split fails, PMD mappings are preserved and the user will
-not receive SIGBUS on any accesses within the PMD.
-
-Unmap the folio on split failure.  It will lead to refault as PTEs and
-preserve SIGBUS semantics.
-
-Make an exception for shmem/tmpfs that for long time intentionally mapped
-with PMDs across i_size.
-
-Link: https://lkml.kernel.org/r/20251027115636.82382-3-kirill@shutemov.name
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251027100309.22035-1-eleanor.lin@realtek.com
+Signed-off-by: Yu-Chun Lin <eleanor.lin@realtek.com>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Stanley Chang <stanley_chang@realtek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/truncate.c~mm-truncate-unmap-large-folio-on-split-failure
-+++ a/mm/truncate.c
-@@ -177,6 +177,32 @@ int truncate_inode_folio(struct address_
- 	return 0;
- }
- 
-+static int try_folio_split_or_unmap(struct folio *folio, struct page *split_at,
-+				    unsigned long min_order)
-+{
-+	enum ttu_flags ttu_flags =
-+		TTU_SYNC |
-+		TTU_SPLIT_HUGE_PMD |
-+		TTU_IGNORE_MLOCK;
-+	int ret;
-+
-+	ret = try_folio_split_to_order(folio, split_at, min_order);
-+
-+	/*
-+	 * If the split fails, unmap the folio, so it will be refaulted
-+	 * with PTEs to respect SIGBUS semantics.
-+	 *
-+	 * Make an exception for shmem/tmpfs that for long time
-+	 * intentionally mapped with PMDs across i_size.
-+	 */
-+	if (ret && !shmem_mapping(folio->mapping)) {
-+		try_to_unmap(folio, ttu_flags);
-+		WARN_ON(folio_mapped(folio));
-+	}
-+
-+	return ret;
-+}
-+
- /*
-  * Handle partial folios.  The folio may be entirely within the
-  * range if a split has raced with us.  If not, we zero the part of the
-@@ -226,7 +252,7 @@ bool truncate_inode_partial_folio(struct
- 
- 	min_order = mapping_min_folio_order(folio->mapping);
- 	split_at = folio_page(folio, PAGE_ALIGN_DOWN(offset) / PAGE_SIZE);
--	if (!try_folio_split_to_order(folio, split_at, min_order)) {
-+	if (!try_folio_split_or_unmap(folio, split_at, min_order)) {
- 		/*
- 		 * try to split at offset + length to make sure folios within
- 		 * the range can be dropped, especially to avoid memory waste
-@@ -250,13 +276,10 @@ bool truncate_inode_partial_folio(struct
- 		if (!folio_trylock(folio2))
- 			goto out;
- 
--		/*
--		 * make sure folio2 is large and does not change its mapping.
--		 * Its split result does not matter here.
--		 */
-+		/* make sure folio2 is large and does not change its mapping */
- 		if (folio_test_large(folio2) &&
- 		    folio2->mapping == folio->mapping)
--			try_folio_split_to_order(folio2, split_at2, min_order);
-+			try_folio_split_or_unmap(folio2, split_at2, min_order);
- 
- 		folio_unlock(folio2);
- out:
+--- a/.mailmap~mailmap-add-entry-for-yu-chun-lin
++++ a/.mailmap
+@@ -855,6 +855,7 @@ Yakir Yang <kuankuan.y@gmail.com> <ykk@r
+ Yanteng Si <si.yanteng@linux.dev> <siyanteng@loongson.cn>
+ Ying Huang <huang.ying.caritas@gmail.com> <ying.huang@intel.com>
+ Yosry Ahmed <yosry.ahmed@linux.dev> <yosryahmed@google.com>
++Yu-Chun Lin <eleanor.lin@realtek.com> <eleanor15x@gmail.com>
+ Yusuke Goda <goda.yusuke@renesas.com>
+ Zack Rusin <zack.rusin@broadcom.com> <zackr@vmware.com>
+ Zhu Yanjun <zyjzyj2000@gmail.com> <yanjunz@nvidia.com>
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from eleanor.lin@realtek.com are
 
-mm-memory-do-not-populate-page-table-entries-beyond-i_size.patch
-mm-truncate-unmap-large-folio-on-split-failure.patch
+mailmap-add-entry-for-yu-chun-lin.patch
 
