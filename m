@@ -1,141 +1,142 @@
-Received: from fhigh-b2-smtp.messagingengine.com (fhigh-b2-smtp.messagingengine.com [202.12.124.153])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7D102F5B;
-	Mon, 27 Oct 2025 07:03:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.153
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD0B92D94A3
+	for <mm-commits@vger.kernel.org>; Mon, 27 Oct 2025 22:11:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761548601; cv=none; b=KIAzpvCSmV7QmDr95TwyyySMQ01Ht9htL/EwPkb3B6vgizljGqef8IDOQParI2UDg3eUyMjhg94DM+YGhxg4bULGSgSNbUErtT2L23wAiT9LzjNfsgpshomPL6FJKSCUoVsjCSmqEPq0c5N5ihgsnVq2f/f9abTwRj5oavSvDoI=
+	t=1761603116; cv=none; b=r5BYb6a1/NDqsoSBv3CK+EN/zqAJhMvQ8OQBwlb9UgbdHxm8Msiaq+EgGa6WXG25SoINt5O221r2KK7gpLCtBpA8tmVU2e9omeq4o9zp0TbIAqR1IFJNm33V25J4SAiO7n4EewnMAZAEFaUzwD50sDEVUU+uAkwVuJ+m2w9559I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761548601; c=relaxed/simple;
-	bh=ZFi3PiJUz4T9a0j8bsBUFz9ZoQQLLy+GZe69LdVi5dk=;
-	h=MIME-Version:Date:From:To:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=JuvT2m3U93ONlRcI4jhHIT33uuu4vdT9WKOlnLXNpdUB/hh9iqGTV22cn4QA8/hc7EuG0f9UZOqFtp8ZH2cJpN3IvxEtExJmO+UMiLbUH31JNYcZCJFtHJe3nlhtzyEqT+JD41bWl40iNxwnkkzuaHJBOA5tCAEIRnki89J0Dn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=sOalyLYI; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=dJjhGg4x; arc=none smtp.client-ip=202.12.124.153
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1761603116; c=relaxed/simple;
+	bh=mAgLIhr2MRGyMdKMdN6qLDYpqd1uWCbcJaQR4K+EuG4=;
+	h=Date:To:From:Subject:Message-Id; b=nKqpn0EzRToLWYbXUt9duA02cag5AxFSS+yA37w/87gr9b4EScJtUGs9vmG4CQuXZF1ihbZ0C7IcoItt+ekDqUAnSyCs8ezRo5km9TrsEMhGh5Ts76lL4J5IXF/tkh5uhp+yGiqW5BM9GQwOmR9aQf0tbY7Gc7hOYqkHAR4xwVc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qr/ND/eX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="sOalyLYI";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="dJjhGg4x"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id B85EA7A01FB;
-	Mon, 27 Oct 2025 03:03:18 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-05.internal (MEProxy); Mon, 27 Oct 2025 03:03:18 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:content-transfer-encoding:content-type:content-type:date:date
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1761548598;
-	 x=1761634998; bh=adaMRzF6ds8teu7leuvNSwnScW38m8MWre0/lgf0omk=; b=
-	sOalyLYIVSjqIejTzQg+lH4kM7mlvRS4ECGsvGt8/1NLYGKxIRnzMoj6NmCTzrYm
-	OzAMaAZH4XYPdvMttQKHS8CouoLAq2xi8LYnyVH/nognFVGbsEeLBcFVR1V3dCry
-	6G+JEyFmfxn+XsS+3s9xpZyhuf4aBYatvYSpfNJ/hUUZOOZLaJRF+bzDAoK2Ra+I
-	k2awfow2TB61ghakYDxWpSNu7O1s7rRHTfn5uUwiAmNXuQ/nihAKg9AEIt6Vq0Rn
-	lOBTrmxFb8B8Y+s7t+YIkJsPxhaJ3rafVQMogGiew4BNpLlbPVO06LC+LRTty8aa
-	P3SiweQ0gDR0OgpM5kOdrg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:subject:subject:to:to:x-me-proxy:x-me-sender
-	:x-me-sender:x-sasl-enc; s=fm3; t=1761548598; x=1761634998; bh=a
-	daMRzF6ds8teu7leuvNSwnScW38m8MWre0/lgf0omk=; b=dJjhGg4x22kfvEVln
-	tDe2aHgEk8X7P/14dGGVWLxG5NtsY03m1YRA04FlZy8pbPWWa5Xs+tLs6BYryyS5
-	MLOenns7yYIibFw6yRo/aQhEKJsROYmpzxVGNHZ+sGeEjOy66gjo8w0UpenigMdg
-	GdPbo1alfxZ5Hu05pv1kG60cgv/VyvryeLJtbhXtBl6TeLhfwoEbSEoY4bAksIjM
-	SSGimXVkMYcx2xh7C4KKhDpEfx+soUt1eHwmbQjLSDGChcHal5olYoq/WMaW8n03
-	+D3ImRQXFgQJREYbOlEL+THgzko7ZLnYqxqp1NyGTqwnEsfKZkbw/ZiIL4D6j27a
-	0SADA==
-X-ME-Sender: <xms:Nhn_aJN5BJp4_4cZygUT8du4Qv9LnrI0Q2Q-SNwr2S8V9qWrH_7QrA>
-    <xme:Nhn_aGypNAKC9K_5M4AqI79pk1Ed_XD3ypj1VLbiGCg3rk2T9SpHLPN3Uh8toJoN-
-    -TTLhVg-NSQGn6Cqe3u6565d4g4QXropKugMmn1EPI2-htLL56jf1Y4>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggdduheejfedvucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvffkjghfufgtgfesthhqredtredtjeenucfhrhhomhepfdetrhhnugcu
-    uegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtthgvrh
-    hnpefhfeduveehheejgfeileelheduieffleevudelvdejtdektedtgfeggffffefgvden
-    ucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnug
-    esrghrnhgusgdruggvpdhnsggprhgtphhtthhopeejpdhmohguvgepshhmthhpohhuthdp
-    rhgtphhtthhopegurghvihgurdhhuhhnthgvrhdrlhhinhhugiesghhmrghilhdrtghomh
-    dprhgtphhtthhopehhrghnnhgvlhhothhtrgesghhmrghilhdrtghomhdprhgtphhtthho
-    pehguhhsthgrvhhorghrsheskhgvrhhnvghlrdhorhhgpdhrtghpthhtohepkhgvvghsse
-    hkvghrnhgvlhdrohhrghdprhgtphhtthhopegrkhhpmheslhhinhhugidqfhhouhhnuggr
-    thhiohhnrdhorhhgpdhrtghpthhtohepmhhmqdgtohhmmhhithhssehvghgvrhdrkhgvrh
-    hnvghlrdhorhhgpdhrtghpthhtohepshhtrggslhgvsehvghgvrhdrkhgvrhhnvghlrdho
-    rhhg
-X-ME-Proxy: <xmx:Nhn_aC1sZcjdwZyDGVsMI_8YhmvDJqv7LIfZ5FEYVcjzE0pyJYgfEQ>
-    <xmx:Nhn_aPLcKIQrwoA7fCU6kESbycp55Lasdd6BQc452_My6Poo476Iqw>
-    <xmx:Nhn_aKza2fpiCMo-JwbRNg9btuqxkKdzfAQZ-WDvtxYdyWl0QAE74g>
-    <xmx:Nhn_aFWeMdaccpEC6n5Cb-kF7CrHINWmd0iDquSnCyvsbutUrSCftw>
-    <xmx:Nhn_aB2YNSVO8NpiEOR5xcnAfGD4d1-HZ5PBE0JGpXVdo6ErnEL3PRcz>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 13E4B700054; Mon, 27 Oct 2025 03:03:18 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qr/ND/eX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C8B9C4CEF1;
+	Mon, 27 Oct 2025 22:11:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1761603116;
+	bh=mAgLIhr2MRGyMdKMdN6qLDYpqd1uWCbcJaQR4K+EuG4=;
+	h=Date:To:From:Subject:From;
+	b=Qr/ND/eXUNY2btpfiWXxoa0RrFx8Go102vzkSBSEHnRQixj5gyV3+kYCglNvL6S3u
+	 TFM+8zxczbVc/c8XfxK91H2NBi4rgMVNsmsFP/3abngbRgxDN/sxj3LP3Pj8G8Jdea
+	 XZ8YCmrFo6NqtnIE2qMCOiczjeDmvmSf9Pxp62m4=
+Date: Mon, 27 Oct 2025 15:11:55 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,shakeel.butt@linux.dev,rppt@kernel.org,rdunlap@infradead.org,peterz@infradead.org,paulmck@kernel.org,ojeda@kernel.org,nathan@kernel.org,mkoutny@suse.com,mingo@kernel.org,masahiroy@kernel.org,kernel@jfarr.cc,kees@kernel.org,jeffxu@chromium.org,hca@linux.ibm.com,guoweikang.kernel@gmail.com,geert@linux-m68k.org,francesco@valla.it,chenhuacai@kernel.org,brgerst@gmail.com,brauner@kernel.org,alexander.shishkin@linux.intel.com,achant@google.com,dianders@chromium.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-v4.patch added to mm-nonmm-unstable branch
+Message-Id: <20251027221156.3C8B9C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-ThreadId: A-keNruaM7oc
-Date: Mon, 27 Oct 2025 08:02:57 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Kees Cook" <kees@kernel.org>,
- "Andrew Morton" <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- stable@vger.kernel.org, "Gustavo A. R. Silva" <gustavoars@kernel.org>,
- david.hunter.linux@gmail.com, hannelotta@gmail.com
-Message-Id: <b47b1167-28b0-445f-947b-55f7a07c1bf8@app.fastmail.com>
-In-Reply-To: <4FFB0358-0312-45AA-84BD-9249D8CE9C41@kernel.org>
-References: <20251026235632.6E245C4CEE7@smtp.kernel.org>
- <4FFB0358-0312-45AA-84BD-9249D8CE9C41@kernel.org>
-Subject: Re: + headers-add-check-for-c-standard-version.patch added to
- mm-hotfixes-unstable branch
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 27, 2025, at 03:31, Kees Cook wrote:
-> On October 26, 2025 4:56:30 PM PDT, Andrew Morton=20
-> <akpm@linux-foundation.org> wrote:
 
->>------------------------------------------------------
->>From: Hanne-Lotta M=EF=BF=BD=EF=BF=BDenp=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=
-=BF=BD <hannelotta@gmail.com>
->>Subject: headers: add check for C standard version
->>Date: Sun, 26 Oct 2025 21:58:46 +0200
->>
->>Compiling the kernel with GCC 15 results in errors, as with GCC 15 the
->>default language version for C compilation has been changed from
->>-std=3Dgnu17 to -std=3Dgnu23 - unless the language version has been ch=
-anged
->>using
->>
->>    KBUILD_CFLAGS +=3D -std=3Dgnu17
->>
->>or earlier.
->>
->>C23 includes new keywords 'bool', 'true' and 'false', which cause
->>compilation errors in Linux headers:
->>
->>    ./include/linux/types.h:30:33: error: `bool' cannot be defined
->>        via `typedef'
->>
->>    ./include/linux/stddef.h:11:9: error: cannot use keyword `false'
->>        as enumeration constant
->>
->>Add check for C Standard's version in the header files to be able to
->>compile the kernel with C23.
->
-> What? These are internal headers, not UAPI. We build Linux with=20
-> -std=3Dgnu11. Let's not add meaningless version checks.
+The patch titled
+     Subject: init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-v4
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-v4.patch
 
-I have a similar patch in my own testing tree but in the end
-decided not to send it because supporting std=3Dgnu23 doesn't actually
-add any features we want.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-v4.patch
 
-The next time we raise the compiler version from gcc-8 to anything
-newer, we can change the version selection to use --std=3Dgnu2x
-unconditionally.
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-      Arnd
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Douglas Anderson <dianders@chromium.org>
+Subject: init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-v4
+Date: Mon, 27 Oct 2025 08:22:13 -0700
+
+- Use 0 instead of -1 to disable wrapping.
+- If COMMAND_LINE_SIZE makes wrapping impossible then help compiler optimize.
+
+Link: https://lkml.kernel.org/r/20251027082204.v4.1.I095f1e2c6c27f9f4de0b4841f725f356c643a13f@changeid
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Tested-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andrew Chant <achant@google.com>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Francesco Valla <francesco@valla.it>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: guoweikang <guoweikang.kernel@gmail.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jan Hendrik Farr <kernel@jfarr.cc>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ init/Kconfig |    4 ++--
+ init/main.c  |    5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+--- a/init/Kconfig~init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-v4
++++ a/init/Kconfig
+@@ -1515,7 +1515,7 @@ config BOOT_CONFIG_EMBED_FILE
+ config CMDLINE_LOG_WRAP_IDEAL_LEN
+ 	int "Length to try to wrap the cmdline when logged at boot"
+ 	default 1021
+-	range -1 1021
++	range 0 1021
+ 	help
+ 	  At boot time, the kernel command line is logged to the console.
+ 	  The log message will start with the prefix "Kernel command line: ".
+@@ -1526,7 +1526,7 @@ config CMDLINE_LOG_WRAP_IDEAL_LEN
+ 	  ideal length if a place to wrap isn't found before the specified
+ 	  number of characters.
+ 
+-	  A value of -1 disables wrapping, though be warned that the maximum
++	  A value of 0 disables wrapping, though be warned that the maximum
+ 	  length of a log message (1021 characters) may cause the cmdline to
+ 	  be truncated.
+ 
+--- a/init/main.c~init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-v4
++++ a/init/main.c
+@@ -948,8 +948,9 @@ static void __init print_kernel_cmdline(
+ {
+ 	size_t len;
+ 
+-	/* Config option of -1 disables wrapping */
+-	if (CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN < 0) {
++	/* Config option of 0 or anything longer than the max disables wrapping */
++	if (CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN == 0 ||
++	    IDEAL_CMDLINE_LEN >= COMMAND_LINE_SIZE - 1) {
+ 		pr_notice("%s%s\n", KERNEL_CMDLINE_PREFIX, cmdline);
+ 		return;
+ 	}
+_
+
+Patches currently in -mm which might be from dianders@chromium.org are
+
+init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs.patch
+init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-v4.patch
+
