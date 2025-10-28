@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B25C926F45A;
-	Tue, 28 Oct 2025 20:18:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1C3A29CB4D
+	for <mm-commits@vger.kernel.org>; Tue, 28 Oct 2025 20:21:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761682725; cv=none; b=MIYy4JTCJrXSRNBk+7hcNgcl3ISJfIn6323Ed7JM2g0jwi/hCQVsPxBUWSB2Kubin0wjnOYwZRKL8iEbuix058JpL+oC6hWYE91Uo63zeD1B+OG53arfcAL1uvhHw1Z5j5MYVwIEOcGURz4Zjz2BAn6A6STpoc6d+c2cY9aTcXo=
+	t=1761682875; cv=none; b=Pi+r1IodYGPlYFDC9AylVP7REvbwXzAYGEQx2o/p1nvtMeCMQHKUniEvmjwjIwMl/wHjjsNsFiPvZYWvgHPOSoUsxp5OqIAnFwltBbxU3r6a6l8IpElNidi3iVSKdOJbraYY9P3HPS2z3W/f88tkq448THT4YZtEXB50CBMK2uc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761682725; c=relaxed/simple;
-	bh=G/DeR1+OI+6jQSknYH0IpEvj4EMs9GoX5ZRaBksYlk8=;
-	h=Date:To:From:Subject:Message-Id; b=lIxmR+/xeZCmCyE0RUU6FxnFkwrJP6VgYDWgDljSMIanqQ+yUnp/CPJXqpyScwWr9WA+CaXc2Vay5oq5BLJu3nbu3TK9f8J1b8p6c/UzDAc1k8mW1TZN21yrpca8m23mbLoU8+ihEP2dbyM6hfYOodOG9zoYUa6LXvoR4mEvyZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLu3E/09; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761682875; c=relaxed/simple;
+	bh=N4tgzsYGM43TIIMprJq4f6KnDHoDfvjuyenmnnxJsjY=;
+	h=Date:To:From:Subject:Message-Id; b=c0Zj5kHXRA0nShqKUvHWmWvGcCfoHdHG/dw+gTEcPR4nK5bsMgXqokGHq7sRcP1RV/s9eAkijaQHm73BgEfPha22F1UoY6MyZrz/CNInnJhI+Uib8wN8W0VK5auufPaKvRT/39gteuGNm1RDERCIG/wID8rPCi/KPNCqFdk7Kk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WoYSMtAL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLu3E/09"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EEBC4CEE7;
-	Tue, 28 Oct 2025 20:18:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WoYSMtAL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A1EEC4CEFF;
+	Tue, 28 Oct 2025 20:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761682724;
-	bh=G/DeR1+OI+6jQSknYH0IpEvj4EMs9GoX5ZRaBksYlk8=;
+	s=korg; t=1761682874;
+	bh=N4tgzsYGM43TIIMprJq4f6KnDHoDfvjuyenmnnxJsjY=;
 	h=Date:To:From:Subject:From;
-	b=gLu3E/09jOhA40SrRJb8b1RG+IN06fUaTrFKyf+OncDFsL3bxxvrZW/xoknRk3ogH
-	 BqqgDi5Mj2tmNzhe0yoyCwQbc0AE2WAffF+QXi11gEFVAm5IPE3zB82HlzgjPGEjDF
-	 J91x+eLa36GXZYT8T8wuemO/tFH67F+XiZLsGgr4=
-Date: Tue, 28 Oct 2025 13:18:49 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,isaacmanjarres@google.com,akpm@linux-foundation.org
+	b=WoYSMtALEfzRgdv1CnQ5ktJhdki5F3FDobCScoDtuZWqf0MtIaohEb+y3i6KKunLB
+	 ZnQfmlIUkRzPuIjhy9WmEenCCN1X5wn7Ge0FTnu7NtnoftoXcvMlIeiEBBpgcrvyhT
+	 dTdqtW+9vsqOSrUzffdB4y416TmvLFWVtRz/RxBM=
+Date: Tue, 28 Oct 2025 13:21:13 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251028201844.D4EEBC4CEE7@smtp.kernel.org>
+Subject: + mm-shmem-tmpfs-hugepage-defaults-config-choice-v2.patch added to mm-unstable branch
+Message-Id: <20251028202114.5A1EEC4CEFF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: fix hash table order logging in alloc_large_system_hash()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch
+     Subject: mm-shmem-tmpfs-hugepage-defaults-config-choice-v2
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shmem-tmpfs-hugepage-defaults-config-choice-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-tmpfs-hugepage-defaults-config-choice-v2.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,51 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Subject: mm/mm_init: fix hash table order logging in alloc_large_system_hash()
-Date: Tue, 28 Oct 2025 12:10:12 -0700
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+Subject: mm-shmem-tmpfs-hugepage-defaults-config-choice-v2
+Date: Tue, 28 Oct 2025 17:49:50 +0000
 
-When emitting the order of the allocation for a hash table,
-alloc_large_system_hash() unconditionally subtracts PAGE_SHIFT from log
-base 2 of the allocation size.  This is not correct if the allocation size
-is smaller than a page, and yields a negative value for the order as seen
-below:
+- Mentioned Kconfig options in Documentation/admin-guide/mm/transhuge.rst. 
+  Didn't list all of them intentionally to avoid duplication and possible 
+  content drift in the future.
+- Expanded commit message with rationale behind the change. Mentioned Meta
+  explicitly.
 
-TCP established hash table entries: 32 (order: -4, 256 bytes, linear) TCP
-bind hash table entries: 32 (order: -2, 1024 bytes, linear)
-
-Use get_order() to compute the order when emitting the hash table
-information to correctly handle cases where the allocation size is smaller
-than a page:
-
-TCP established hash table entries: 32 (order: 0, 256 bytes, linear) TCP
-bind hash table entries: 32 (order: 0, 1024 bytes, linear)
-
-Link: https://lkml.kernel.org/r/20251028191020.413002-1-isaacmanjarres@google.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
+Link: https://lkml.kernel.org/r/aQECPpjd-fU_TC79@shell.ilvokhin.com
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/transhuge.rst |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/mm_init.c~mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash
-+++ a/mm/mm_init.c
-@@ -2469,7 +2469,7 @@ void *__init alloc_large_system_hash(con
- 		panic("Failed to allocate %s hash table\n", tablename);
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-tmpfs-hugepage-defaults-config-choice-v2
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -381,6 +381,11 @@ hugepage allocation policy for the tmpfs
+ four valid policies for tmpfs (``always``, ``within_size``, ``advise``,
+ ``never``). The tmpfs mount default policy is ``never``.
  
- 	pr_info("%s hash table entries: %ld (order: %d, %lu bytes, %s)\n",
--		tablename, 1UL << log2qty, ilog2(size) - PAGE_SHIFT, size,
-+		tablename, 1UL << log2qty, get_order(size), size,
- 		virt ? (huge ? "vmalloc hugepage" : "vmalloc") : "linear");
- 
- 	if (_hash_shift)
++Additionally, Kconfig options are available to set the default hugepage
++policies for shmem (``CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_*``) and tmpfs
++(``CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_*``) at build time. Refer to the
++Kconfig help for more details.
++
+ In the same manner as ``thp_anon`` controls each supported anonymous THP
+ size, ``thp_shmem`` controls each supported shmem THP size. ``thp_shmem``
+ has the same format as ``thp_anon``, but also supports the policy
 _
 
-Patches currently in -mm which might be from isaacmanjarres@google.com are
+Patches currently in -mm which might be from d@ilvokhin.com are
 
-mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch
+mm-shmem-tmpfs-hugepage-defaults-config-choice.patch
+mm-shmem-tmpfs-hugepage-defaults-config-choice-v2.patch
 
