@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BA531B423B;
-	Tue, 28 Oct 2025 22:54:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC2B2D0634;
+	Tue, 28 Oct 2025 23:10:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761692055; cv=none; b=FeAv0r83UT4ETbJFLS6junjBkZ1+N2nnmbgabsli2iiyrn1ostdwOU8+4PJpIkUhIgHD4tjYlj6ks5S8YK3IzVuJzcDQTiflw3h63nkjApYZnuTAeL8ZKBS5O/OsN2lwA1HZ9kvo9VlhXQkNhKer8zGERM/zkOzdRuIWEE0we3w=
+	t=1761693015; cv=none; b=P0qNs7H2cuA+6EaBykeuFcO8VPCUsIhAfO5sKa1HQKjHy3RdNMzzmZ5flwjgu5LLJsVdWvv6vsnqv4QdJ42CyArqC0eARvIGUL8FVF+++XSwKuTK/deVmfZDsuf4XnKjWSTL+Pchq91lI3RJxDwhmKz0r7XBn6SlAY3KDgycyAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761692055; c=relaxed/simple;
-	bh=r6cxVJmstfAl4tbo41BS0KrpXkPyrkkCbiFySiG/Ufc=;
-	h=Date:To:From:Subject:Message-Id; b=NHHyg+rFrs/8sfasRVujCMsu7SKS5/Ut5a12a7WRH/CjoEPWRkNhfdTEXGzYWuCR2m3hpTD4y64dqzbAuRSSsTwdyxQDUdgufHqW0Nej5XDa6nOlpRh0FikpxfYKj0spCbk3NyFUmm7BJRcsMH+FcbDsB8bDsj5fvl57khlvANo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0wZH9Qza; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761693015; c=relaxed/simple;
+	bh=HQ5OuiNHcqt9r8gsflkpBn3jscyw7EbZR3y5hPvG3DI=;
+	h=Date:To:From:Subject:Message-Id; b=pIDEAqTAGpMH+cmsZ//jupfwiWWiBlGWZZ8PhxN81C0MDZK4UfDzRWT87YI7FMeSou84hyT0PVg4CZxycPpXYg27z6V8DMrELy2Fhh6ZXE9VRUGOnpirkYLA9odxSMJ7iHncf24qAKWxFz4iTnMg1ewTwk4tWa8kJQcLtlX12LI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GjbqA4Vp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0wZH9Qza"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF865C4CEE7;
-	Tue, 28 Oct 2025 22:54:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GjbqA4Vp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18473C4CEE7;
+	Tue, 28 Oct 2025 23:10:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761692054;
-	bh=r6cxVJmstfAl4tbo41BS0KrpXkPyrkkCbiFySiG/Ufc=;
+	s=korg; t=1761693014;
+	bh=HQ5OuiNHcqt9r8gsflkpBn3jscyw7EbZR3y5hPvG3DI=;
 	h=Date:To:From:Subject:From;
-	b=0wZH9Qzaii7XazTpEIxOD/AN0p6jM/1VPuc99e2AijmdhNV8FjZ6qmkQ2NymTX2Z5
-	 79xVBPu4lBcX08NM7lDfkJrL9jo6/HWQqfpSTaarUck1uNgTMrqjF5KraNI7NBFbFE
-	 GsPQzTvcu2qBKWfpDRK43NWqbSlyjsQIfdTNFvO4=
-Date: Tue, 28 Oct 2025 15:54:13 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,matttbe@kernel.org,oberpar@linux.ibm.com,akpm@linux-foundation.org
+	b=GjbqA4VpLtPiv3nSOq2rDIjeXwaX7y68LuzQLrbHEibPm1WE5I6LpnUuONWkmrASY
+	 iFraeb7pOM7QpGBLWjx0J4D8NLcc1WBH4T9Ep/TL95aILmd+MDXwXM+yqHfDaTLX8H
+	 dUaFRrldfoZzvNWqhi0ZDUT5HDR0J2S5JVvL/WJI=
+Date: Tue, 28 Oct 2025 16:10:13 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,pfalcato@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,david@redhat.com,baohua@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + gcov-add-support-for-gcc-15.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251028225414.AF865C4CEE7@smtp.kernel.org>
+Subject: + mm-mremap-honour-writable-bit-in-mremap-pte-batching.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251028231014.18473C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: gcov: add support for GCC 15
+     Subject: mm/mremap: honour writable bit in mremap pte batching
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     gcov-add-support-for-gcc-15.patch
+     mm-mremap-honour-writable-bit-in-mremap-pte-batching.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gcov-add-support-for-gcc-15.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-honour-writable-bit-in-mremap-pte-batching.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,44 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Oberparleiter <oberpar@linux.ibm.com>
-Subject: gcov: add support for GCC 15
-Date: Tue, 28 Oct 2025 12:51:25 +0100
+From: Dev Jain <dev.jain@arm.com>
+Subject: mm/mremap: honour writable bit in mremap pte batching
+Date: Tue, 28 Oct 2025 12:09:52 +0530
 
-Using gcov on kernels compiled with GCC 15 results in truncated 16-byte
-long .gcda files with no usable data.  To fix this, update GCOV_COUNTERS
-to match the value defined by GCC 15.
+Currently mremap folio pte batch ignores the writable bit during figuring
+out a set of similar ptes mapping the same folio.  Suppose that the first
+pte of the batch is writable while the others are not - set_ptes will end
+up setting the writable bit on the other ptes, which is a violation of
+mremap semantics.  Therefore, use FPB_RESPECT_WRITE to check the writable
+bit while determining the pte batch.
 
-Tested with GCC 14.3.0 and GCC 15.2.0.
-
-Link: https://lkml.kernel.org/r/20251028115125.1319410-1-oberpar@linux.ibm.com
-Signed-off-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Reported-by: Matthieu Baerts <matttbe@kernel.org>
-Closes: https://github.com/linux-test-project/lcov/issues/445
-Tested-by: Matthieu Baerts <matttbe@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251028063952.90313-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Fixes: f822a9a81a31 ("mm: optimize mremap() by PTE batching")
+Reported-by: David Hildenbrand <david@redhat.com>
+Debugged-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>	[6.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/gcc_4_7.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/mremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-15
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -18,7 +18,9 @@
- #include <linux/mm.h>
- #include "gcov.h"
+--- a/mm/mremap.c~mm-mremap-honour-writable-bit-in-mremap-pte-batching
++++ a/mm/mremap.c
+@@ -187,7 +187,7 @@ static int mremap_folio_pte_batch(struct
+ 	if (!folio || !folio_test_large(folio))
+ 		return 1;
  
--#if (__GNUC__ >= 14)
-+#if (__GNUC__ >= 15)
-+#define GCOV_COUNTERS			10
-+#elif (__GNUC__ >= 14)
- #define GCOV_COUNTERS			9
- #elif (__GNUC__ >= 10)
- #define GCOV_COUNTERS			8
+-	return folio_pte_batch(folio, ptep, pte, max_nr);
++	return folio_pte_batch_flags(folio, NULL, ptep, &pte, max_nr, FPB_RESPECT_WRITE);
+ }
+ 
+ static int move_ptes(struct pagetable_move_control *pmc,
 _
 
-Patches currently in -mm which might be from oberpar@linux.ibm.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-gcov-add-support-for-gcc-15.patch
+mm-mremap-honour-writable-bit-in-mremap-pte-batching.patch
 
