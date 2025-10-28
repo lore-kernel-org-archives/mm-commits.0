@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30B9A330338
-	for <mm-commits@vger.kernel.org>; Tue, 28 Oct 2025 00:00:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B38825227
+	for <mm-commits@vger.kernel.org>; Tue, 28 Oct 2025 00:06:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761609631; cv=none; b=ATjRY1Hdelg/DQCQIJXWrXe3Z4z3fdVwriN1kpl6hf79ht0Bi3c9aPcfYkXsUc/IHATH0gtauPIKKg1K2+40tcfjW5mWIDtHxy9IaPOKVdeuXmAbHjLmrGWqi/tsh8soTO7rTomR6rB7bCGeCS3btEg0SZSKP77ku1bZw3NY1Nc=
+	t=1761610008; cv=none; b=VeiTgQJ9M5fcNPJABGNyAfHNDn+2EPsZW7KQZIJjU9xsUNQfTVtFEDQ/JAQog6aP4Lxl8Nrm/xUQ4Lpzmy+dBDh8Q9/ys8U8Z4hXe62fsg2FSuyhBLkHKqpztcJNcr1JQ4U6BfTYWkInLkExsyLWm8plq0taBmhM6qtYkbNWsxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761609631; c=relaxed/simple;
-	bh=s3qCCbRhr1hqvba/NiqECN0uRXjAghgzjDZZK94oEg4=;
-	h=Date:To:From:Subject:Message-Id; b=RYFwlWAJWADtQwdyKSEVa4fm++GPu49K5dFwblCJN8CJsG69Eyp33emIG5HDPDPBxSlPsPLn4toP2hLdglDosjbs3MBFZg8oeWQd3az4NBnSlrS2yIUM5wq8sjVMpVveZE38/Xiz2KW2ncr+YFxqxpjJUG9mCaZyVLNlnq0PkQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cT1rlYth; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761610008; c=relaxed/simple;
+	bh=n3srh3GebPAIxhHNDZ6f4BTAlpMGYjtDfboR4dfZj7o=;
+	h=Date:To:From:Subject:Message-Id; b=jlSXA0EsiGqe4hWqj1t4RwuibtzRy5IYR7NCF72QMoVIDH1Tc+av5VDR0HXe3zxt2bWthXW5sOi0olQ3J6AcyVauVXv7PazqQ/7TgdYZIRD3Tg5HZXdeWsnUvjjA/a4Xopbz6XqkqZVSlQpREfKxzCc7NhH17htIsUFvm0xVy98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nTuTsNrq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cT1rlYth"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E03DC116B1;
-	Tue, 28 Oct 2025 00:00:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nTuTsNrq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3682DC4CEF1;
+	Tue, 28 Oct 2025 00:06:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761609630;
-	bh=s3qCCbRhr1hqvba/NiqECN0uRXjAghgzjDZZK94oEg4=;
+	s=korg; t=1761610007;
+	bh=n3srh3GebPAIxhHNDZ6f4BTAlpMGYjtDfboR4dfZj7o=;
 	h=Date:To:From:Subject:From;
-	b=cT1rlYthKvE9bDkju1rW1jfRHwx1V4AgCAdsajVh/1+nYs3mmqBLSKT1/Obk943Uc
-	 rsGHjD1YtA6Uwg7GveaVCOjoREoNloNareY0QnOrceZf+1SU2QBp3ixFF6fasA2nBp
-	 Adm5oBXKOPNSN4DeP7fwXN7YOkGOvZZ7j1H1Ki2k=
-Date: Mon, 27 Oct 2025 17:00:30 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hch@infradead.org,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=nTuTsNrqLl3sGfRYml7gMLnDzwfwO/h6qntC6Huru1GXxQtWtF5dDeK/OoWgK4VSz
+	 n0EaExjOU83S+RPNvebYuDFB9NE0z511Q9B3BFPVGKSuem1WPVZqUnN+TvtdiaStEn
+	 7OAKeqNMf28/mkR/i8iyIypDB/H/j1h5/Vv4XCKA=
+Date: Mon, 27 Oct 2025 17:06:46 -0700
+To: mm-commits@vger.kernel.org,paulmck@kernel.org,mjguzik@gmail.com,legion@kernel.org,kees@kernel.org,dhowells@redhat.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-manually-uninline-__memcg_memory_event-fix.patch added to mm-unstable branch
-Message-Id: <20251028000030.9E03DC116B1@smtp.kernel.org>
+Subject: + release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts.patch added to mm-nonmm-unstable branch
+Message-Id: <20251028000647.3682DC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg-manually-uninline-__memcg_memory_event-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-manually-uninline-__memcg_memory_event-fix.patch
+     Subject: release_task: kill unnecessary rcu_read_lock() around dec_rlimit_ucounts()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-manually-uninline-__memcg_memory_event-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-manually-uninline-__memcg_memory_event-fix
-Date: Mon Oct 27 04:58:56 PM PDT 2025
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: release_task: kill unnecessary rcu_read_lock() around dec_rlimit_ucounts()
+Date: Sun, 26 Oct 2025 15:31:40 +0100
 
-use EXPORT_SYMBOL_GPL for __memcg_memory_event, per Michal and Christoph
+rcu_read_lock() was added to shut RCU-lockdep up when this code used
+__task_cred()->rcu_dereference(), but after the commit 21d1c5e386bc
+("Reimplement RLIMIT_NPROC on top of ucounts") it is no longer needed:
+task_ucounts()->task_cred_xxx() takes rcu_read_lock() itself.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Christoph Hellwig <hch@infradead.org>
+NOTE: task_ucounts() returns the pointer to another rcu-protected data,
+struct ucounts.  So it should either be used when task->real_cred and thus
+task->real_cred->ucounts is stable (release_task, copy_process,
+copy_creds), or it should be called under rcu_read_lock().  In both cases
+it is pointless to take rcu_read_lock() to read the cred->ucounts pointer.
+
+Link: https://lkml.kernel.org/r/20251026143140.GA22463@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Alexey Gladkov <legion@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~memcg-manually-uninline-__memcg_memory_event-fix
-+++ a/mm/memcontrol.c
-@@ -1655,7 +1655,7 @@ void __memcg_memory_event(struct mem_cgr
- 	} while ((memcg = parent_mem_cgroup(memcg)) &&
- 		 !mem_cgroup_is_root(memcg));
- }
--EXPORT_SYMBOL(__memcg_memory_event);
-+EXPORT_SYMBOL_GPL(__memcg_memory_event);
+--- a/kernel/exit.c~release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts
++++ a/kernel/exit.c
+@@ -251,10 +251,8 @@ repeat:
+ 	memset(&post, 0, sizeof(post));
  
- static bool mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
- 				     int order)
+ 	/* don't need to get the RCU readlock here - the process is dead and
+-	 * can't be modifying its own credentials. But shut RCU-lockdep up */
+-	rcu_read_lock();
++	 * can't be modifying its own credentials. */
+ 	dec_rlimit_ucounts(task_ucounts(p), UCOUNT_RLIMIT_NPROC, 1);
+-	rcu_read_unlock();
+ 
+ 	pidfs_exit(p);
+ 	cgroup_release(p);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
-drivers-base-node-fold-register_node-into-register_one_node-fix.patch
-mm-vmstat-fix-indentation-in-fold_diff-function-fix.patch
-memcg-manually-uninline-__memcg_memory_event-fix.patch
-init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix.patch
+release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts.patch
 
