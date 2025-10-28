@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D6892D592E;
-	Tue, 28 Oct 2025 20:34:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17C9E2E040E;
+	Tue, 28 Oct 2025 21:53:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761683680; cv=none; b=csqXUqbFmgaM1S4UHya+i9RZLMIxH5EueQCR7Rl+vk/zSlpXuPLnTczbf1/p3ypYLqMtv3E3Ict4V1/U32+rt5LLSDXahPkIaX1RxXct5u9SaKqf+az8Uwx8CNVYezI4FDAQBXSXekmShH/7qX17FsoOoK6+fHxrRXKjvSvSJWY=
+	t=1761688420; cv=none; b=cSLxUOj485FAMuPXdoHmd5HJURWXv5gF6nE4trWXIs/GJ124YRpSnHxSeZQZU+D99PCDt+ftFLmcx32aJu+yrR2aLSzVfOexkG3ORnzyhVz++hl3ADm4K53XM+mgLdF8e7iesQelN1h+D/xE+HEJ0eHBr1QOnkA1MDGkXWamdDI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761683680; c=relaxed/simple;
-	bh=5p0oJfAp3/0bwptooAuUlXvObN5G8sGD7etCf7q7MhQ=;
-	h=Date:To:From:Subject:Message-Id; b=pinDK7L0alBIA+jJfvAoQhHFpNWIO5JAgHLD4wdprGhJK7CJ6+dlnb4MkaW+PWhohAytI3thBNXakOGIriNAP7r6WFZPwDZrJ8B30a5RAEb84Aj6JIykIwIoM6BHU/hID9tvmDh6BV3suLnKk3qzyZYTpxwIPzoXCVQo8Py6AH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wArhh396; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761688420; c=relaxed/simple;
+	bh=NxCqAKzuebn/CbY/tBwGbi4jDm2bHZzxnG10F91Lk0A=;
+	h=Date:To:From:Subject:Message-Id; b=vEUglfO1/2K89hTPchOI5AZGMsd+EgJXtzLnTrlV4+GpsiNc4TRjozNPJcbALjsAVgHAVpST/tYdc9Il0XN7thVfvD/aK0TQ7iaVRXXgm6vIO+gXqTHjZaMjdiqRerj7hlxPXgFGGPuCzPrfjsXELXpsiy6FBWcPpMeeJSXIWAU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NHVVUfe3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wArhh396"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D97EC4CEE7;
-	Tue, 28 Oct 2025 20:34:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NHVVUfe3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0712C4CEE7;
+	Tue, 28 Oct 2025 21:53:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761683679;
-	bh=5p0oJfAp3/0bwptooAuUlXvObN5G8sGD7etCf7q7MhQ=;
+	s=korg; t=1761688419;
+	bh=NxCqAKzuebn/CbY/tBwGbi4jDm2bHZzxnG10F91Lk0A=;
 	h=Date:To:From:Subject:From;
-	b=wArhh396OzUi8her9LTD5XX7iPL0O3k1I2T93w66ZWfaTtFK27jOveMvTo4tYotQk
-	 tTmD9R/chMp/xAHki8S0YqIy7xWdOeEgG1q+bkyRPH9IHaeXXiUO3Efy0X4xm5d8Vv
-	 5ty5B5gAtQnVSHRaDApfm/+1JfGZF/UEiMsc2znM=
-Date: Tue, 28 Oct 2025 13:34:38 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,cl@gentwo.org,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=NHVVUfe3NJv7eCo2LEo/P9srf5qs3cmbOqjPo6cLyQpAusY62/hJaHSy2wsYJlPNn
+	 rxHi7nk4rKlXD5nLX9GO4A+4M8ZWMJvhbqgnXGla2K6xP3Ax9ftfDWUYKBQ4o8X0XU
+	 HexdQTHCzD9mFO9IBqlNpq6uEX8gFll80PT/vg94=
+Date: Tue, 28 Oct 2025 14:53:39 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,mike.kravetz@oracle.com,joao.m.martins@oracle.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,borntraeger@linux.ibm.com,aneesh.kumar@kernel.org,agordeev@linux.ibm.com,luizcap@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext.patch added to mm-new branch
-Message-Id: <20251028203439.5D97EC4CEE7@smtp.kernel.org>
+Subject: + s390-fix-hugetlb-vmemmap-optimization-crash.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251028215339.D0712C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: codetag: debug: handle existing CODETAG_EMPTY in mark_objexts_empty for slabobj_ext
-has been added to the -mm mm-new branch.  Its filename is
-     codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext.patch
+     Subject: s390: fix HugeTLB vmemmap optimization crash
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     s390-fix-hugetlb-vmemmap-optimization-crash.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-fix-hugetlb-vmemmap-optimization-crash.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,154 +58,115 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: codetag: debug: handle existing CODETAG_EMPTY in mark_objexts_empty for slabobj_ext
-Date: Mon, 27 Oct 2025 16:52:14 +0800
+From: Luiz Capitulino <luizcap@redhat.com>
+Subject: s390: fix HugeTLB vmemmap optimization crash
+Date: Tue, 28 Oct 2025 17:15:33 -0400
 
-Even though obj_exts was created with the __GFP_NO_OBJ_EXT flag, objects
-in the same slab may have their extensions allocated via
-alloc_slab_obj_exts, and handle_failed_objexts_alloc may be called within
-alloc_slab_obj_exts to set their codetag to CODETAG_EMPTY.
+A reproducible crash occurs when enabling HugeTLB vmemmap optimization
+(HVO) on s390.  The crash and the proposed fix were worked on an s390 KVM
+guest running on an older hypervisor, as I don't have access to an LPAR. 
+However, the same issue should occur on bare-metal.
 
-Therefore, both NULL and CODETAG_EMPTY are valid for the codetag of
-slabobj_ext, as we do not need to re-set it to CODETAG_EMPTY if it is
-already CODETAG_EMPTY.  It also resolves the warning triggered when the
-codetag is CODETAG_EMPTY during slab freeing.
+Reproducer (it may take a few runs to trigger):
 
-This issue also occurred during our memory stress testing.
+ # sysctl vm.hugetlb_optimize_vmemmap=1
+ # echo 1 > /proc/sys/vm/nr_hugepages
+ # echo 0 > /proc/sys/vm/nr_hugepages
 
-The possibility of its occurrence should be as follows:
+Crash log:
 
-When a slab allocates a slabobj_ext, the slab to which this slabobj_ext 
-belongs may have already allocated its own slabobj_ext
+[   52.340369] list_del corruption. prev->next should be 000000d382110008, but was 000000d7116d3880. (prev=000000d7116d3910)
+[   52.340420] ------------[ cut here ]------------
+[   52.340424] kernel BUG at lib/list_debug.c:62!
+[   52.340566] monitor event: 0040 ilc:2 [#1]SMP
+[   52.340573] Modules linked in: ctcm fsm qeth ccwgroup zfcp scsi_transport_fc qdio dasd_fba_mod dasd_eckd_mod dasd_mod xfs ghash_s390 prng des_s390 libdes sha3_512_s390 sha3_256_s390 virtio_net virtio_blk net_failover sha_common failover dm_mirror dm_region_hash dm_log dm_mod paes_s390 crypto_engine pkey_cca pkey_ep11 zcrypt pkey_pckmo pkey aes_s390
+[   52.340606] CPU: 1 UID: 0 PID: 1672 Comm: root-rep2 Kdump: loaded Not tainted 6.18.0-rc3 #1 NONE
+[   52.340610] Hardware name: IBM 3931 LA1 400 (KVM/Linux)
+[   52.340611] Krnl PSW : 0704c00180000000 0000015710cda7fe (__list_del_entry_valid_or_report+0xfe/0x128)
+[   52.340619]            R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 CC:0 PM:0 RI:0 EA:3
+[   52.340622] Krnl GPRS: c0000000ffffefff 0000000100000027 000000000000006d 0000000000000000
+[   52.340623]            000000d7116d35d8 000000d7116d35d0 0000000000000002 000000d7116d39b0
+[   52.340625]            000000d7116d3880 000000d7116d3910 000000d7116d3910 000000d382110008
+[   52.340626]            000003ffac1ccd08 000000d7116d39b0 0000015710cda7fa 000000d7116d37d0
+[   52.340632] Krnl Code: 0000015710cda7ee: c020003e496f	larl	%r2,00000157114a3acc
+           0000015710cda7f4: c0e5ffd5280e	brasl	%r14,000001571077f810
+          #0000015710cda7fa: af000000		mc	0,0
+          >0000015710cda7fe: b9040029		lgr	%r2,%r9
+           0000015710cda802: c0e5ffe5e193	brasl	%r14,0000015710996b28
+           0000015710cda808: e34090080004	lg	%r4,8(%r9)
+           0000015710cda80e: b9040059		lgr	%r5,%r9
+           0000015710cda812: b9040038		lgr	%r3,%r8
+[   52.340643] Call Trace:
+[   52.340645]  [<0000015710cda7fe>] __list_del_entry_valid_or_report+0xfe/0x128
+[   52.340649] ([<0000015710cda7fa>] __list_del_entry_valid_or_report+0xfa/0x128)
+[   52.340652]  [<0000015710a30b2e>] hugetlb_vmemmap_restore_folios+0x96/0x138
+[   52.340655]  [<0000015710a268ac>] update_and_free_pages_bulk+0x64/0x150
+[   52.340659]  [<0000015710a26f8a>] set_max_huge_pages+0x4ca/0x6f0
+[   52.340662]  [<0000015710a273ba>] hugetlb_sysctl_handler_common+0xea/0x120
+[   52.340665]  [<0000015710a27484>] hugetlb_sysctl_handler+0x44/0x50
+[   52.340667]  [<0000015710b53ffa>] proc_sys_call_handler+0x17a/0x280
+[   52.340672]  [<0000015710a90968>] vfs_write+0x2c8/0x3a0
+[   52.340676]  [<0000015710a90bd2>] ksys_write+0x72/0x100
+[   52.340679]  [<00000157111483a8>] __do_syscall+0x150/0x318
+[   52.340682]  [<0000015711153a5e>] system_call+0x6e/0x90
+[   52.340684] Last Breaking-Event-Address:
+[   52.340684]  [<000001571077f85c>] _printk+0x4c/0x58
+[   52.340690] Kernel panic - not syncing: Fatal exception: panic_on_oops
 
-and called handle_failed_objexts_alloc. That is to say, the codetag of 
-this slabobj_ext has been set to CODETAG_EMPTY.
+This issue was introduced by commit f13b83fdd996 ("hugetlb: batch TLB
+flushes when freeing vmemmap").  Before that change, the HVO
+implementation called flush_tlb_kernel_range() each time a vmemmap PMD
+split and remapping was performed.  The mentioned commit changed this to
+issue a few flush_tlb_all() calls after performing all remappings.
 
-To quickly detect this WARN, I modified the code 
-from:WARN_ON(slab_exts[offs].ref.ct) to WARN_ON(slab_exts[offs].ref.ct 
-== 1);
+However, on s390, flush_tlb_kernel_range() expands to __tlb_flush_kernel()
+while flush_tlb_all() is not implemented.  As a result, we went from
+flushing the TLB for every remapping to no flushing at all.
 
-We then obtained this message:
+This commit fixes this by implementing flush_tlb_all() on s390 as an alias
+to __tlb_flush_global().  This should cause a flush on all TLB entries on
+all CPUs as expected by the flush_tlb_all() semantics.
 
-[21630.898561] ------------[ cut here ]------------
-[21630.898596] kernel BUG at mm/slub.c:2050!
-[21630.898611] Internal error: Oops - BUG: 00000000f2000800 [#1] SMP
-[21630.900372] Modules linked in: squashfs isofs vfio_iommu_type1 
-vhost_vsock vfio vhost_net vmw_vsock_virtio_transport_common vhost tap 
-vhost_iotlb iommufd vsock binfmt_misc nfsv3 nfs_acl nfs lockd grace 
-netfs tls rds dns_resolver tun brd overlay ntfs3 exfat btrfs 
-blake2b_generic xor xor_neon raid6_pq loop sctp ip6_udp_tunnel 
-udp_tunnel nft_fib_inet nft_fib_ipv4 nft_fib_ipv6 nft_fib 
-nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 nft_reject nft_ct 
-nft_chain_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 
-nf_tables rfkill ip_set sunrpc vfat fat joydev sg sch_fq_codel nfnetlink 
-virtio_gpu sr_mod cdrom drm_client_lib virtio_dma_buf drm_shmem_helper 
-drm_kms_helper drm ghash_ce backlight virtio_net virtio_blk virtio_scsi 
-net_failover virtio_console failover virtio_mmio dm_mirror 
-dm_region_hash dm_log dm_multipath dm_mod fuse i2c_dev virtio_pci 
-virtio_pci_legacy_dev virtio_pci_modern_dev virtio virtio_ring autofs4 
-aes_neon_bs aes_ce_blk [last unloaded: hwpoison_inject]
-[21630.909177] CPU: 3 UID: 0 PID: 3787 Comm: kylin-process-m Kdump: 
-loaded Tainted: G        W           6.18.0-rc1+ #74 PREEMPT(voluntary)
-[21630.910495] Tainted: [W]=WARN
-[21630.910867] Hardware name: QEMU KVM Virtual Machine, BIOS unknown 
-2/2/2022
-[21630.911625] pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS 
-BTYPE=--)
-[21630.912392] pc : __free_slab+0x228/0x250
-[21630.912868] lr : __free_slab+0x18c/0x250[21630.913334] sp : 
-ffff8000a02f73e0
-[21630.913830] x29: ffff8000a02f73e0 x28: fffffdffc43fc800 x27: 
-ffff0000c0011c40
-[21630.914677] x26: ffff0000c000cac0 x25: ffff00010fe5e5f0 x24: 
-ffff000102199b40
-[21630.915469] x23: 0000000000000003 x22: 0000000000000003 x21: 
-ffff0000c0011c40
-[21630.916259] x20: fffffdffc4086600 x19: fffffdffc43fc800 x18: 
-0000000000000000
-[21630.917048] x17: 0000000000000000 x16: 0000000000000000 x15: 
-0000000000000000
-[21630.917837] x14: 0000000000000000 x13: 0000000000000000 x12: 
-ffff70001405ee66
-[21630.918640] x11: 1ffff0001405ee65 x10: ffff70001405ee65 x9 : 
-ffff800080a295dc
-[21630.919442] x8 : ffff8000a02f7330 x7 : 0000000000000000 x6 : 
-0000000000003000
-[21630.920232] x5 : 0000000024924925 x4 : 0000000000000001 x3 : 
-0000000000000007
-[21630.921021] x2 : 0000000000001b40 x1 : 000000000000001f x0 : 
-0000000000000001
-[21630.921810] Call trace:
-[21630.922130]  __free_slab+0x228/0x250 (P)
-[21630.922669]  free_slab+0x38/0x118
-[21630.923079]  free_to_partial_list+0x1d4/0x340
-[21630.923591]  __slab_free+0x24c/0x348
-[21630.924024]  ___cache_free+0xf0/0x110
-[21630.924468]  qlist_free_all+0x78/0x130
-[21630.924922]  kasan_quarantine_reduce+0x114/0x148
-[21630.925525]  __kasan_slab_alloc+0x7c/0xb0
-[21630.926006]  kmem_cache_alloc_noprof+0x164/0x5c8
-[21630.926699]  __alloc_object+0x44/0x1f8
-[21630.927153]  __create_object+0x34/0xc8
-[21630.927604]  kmemleak_alloc+0xb8/0xd8
-[21630.928052]  kmem_cache_alloc_noprof+0x368/0x5c8
-[21630.928606]  getname_flags.part.0+0xa4/0x610
-[21630.929112]  getname_flags+0x80/0xd8
-[21630.929557]  vfs_fstatat+0xc8/0xe0
-[21630.929975]  __do_sys_newfstatat+0xa0/0x100
-[21630.930469]  __arm64_sys_newfstatat+0x90/0xd8
-[21630.931046]  invoke_syscall+0xd4/0x258
-[21630.931685]  el0_svc_common.constprop.0+0xb4/0x240
-[21630.932467]  do_el0_svc+0x48/0x68
-[21630.932972]  el0_svc+0x40/0xe0
-[21630.933472]  el0t_64_sync_handler+0xa0/0xe8
-[21630.934151]  el0t_64_sync+0x1ac/0x1b0
-[21630.934923] Code: aa1803e0 97ffef2b a9446bf9 17ffff9c (d4210000)
-[21630.936461] SMP: stopping secondary CPUs
-[21630.939550] Starting crashdump kernel...
-[21630.940108] Bye!
-
-Link: https://lkml.kernel.org/r/20251027085214.184672-1-hao.ge@linux.dev
-Fixes: 09c46563ff6d ("codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations")
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251028211533.47694-1-luizcap@redhat.com
+Fixes: f13b83fdd996 ("hugetlb: batch TLB flushes when freeing vmemmap")
+Signed-off-by: Luiz Capitulino <luizcap@redhat.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ arch/s390/include/asm/tlbflush.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/slub.c~codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext
-+++ a/mm/slub.c
-@@ -2046,7 +2046,17 @@ static inline void mark_objexts_empty(st
- 	if (slab_exts) {
- 		unsigned int offs = obj_to_index(obj_exts_slab->slab_cache,
- 						 obj_exts_slab, obj_exts);
--		/* codetag should be NULL */
+--- a/arch/s390/include/asm/tlbflush.h~s390-fix-hugetlb-vmemmap-optimization-crash
++++ a/arch/s390/include/asm/tlbflush.h
+@@ -103,9 +103,13 @@ static inline void __tlb_flush_mm_lazy(s
+  * flush_tlb_range functions need to do the flush.
+  */
+ #define flush_tlb()				do { } while (0)
+-#define flush_tlb_all()				do { } while (0)
+ #define flush_tlb_page(vma, addr)		do { } while (0)
+ 
++static inline void flush_tlb_all(void)
++{
++	__tlb_flush_global();
++}
 +
-+		/*
-+		 * codetag should be either NULL or CODETAG_EMPTY.
-+		 * When the same slab calls handle_failed_objexts_alloc,
-+		 * it will set us to CODETAG_EMPTY.
-+		 *
-+		 * If codetag is already CODETAG_EMPTY, no action is needed here.
-+		 */
-+		if (unlikely(is_codetag_empty(&slab_exts[offs].ref)))
-+			return;
-+
- 		WARN_ON(slab_exts[offs].ref.ct);
- 		set_codetag_empty(&slab_exts[offs].ref);
- 	}
+ static inline void flush_tlb_mm(struct mm_struct *mm)
+ {
+ 	__tlb_flush_mm_lazy(mm);
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from luizcap@redhat.com are
 
-codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext.patch
+s390-fix-hugetlb-vmemmap-optimization-crash.patch
 
