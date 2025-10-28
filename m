@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B38825227
-	for <mm-commits@vger.kernel.org>; Tue, 28 Oct 2025 00:06:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B25C926F45A;
+	Tue, 28 Oct 2025 20:18:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761610008; cv=none; b=VeiTgQJ9M5fcNPJABGNyAfHNDn+2EPsZW7KQZIJjU9xsUNQfTVtFEDQ/JAQog6aP4Lxl8Nrm/xUQ4Lpzmy+dBDh8Q9/ys8U8Z4hXe62fsg2FSuyhBLkHKqpztcJNcr1JQ4U6BfTYWkInLkExsyLWm8plq0taBmhM6qtYkbNWsxw=
+	t=1761682725; cv=none; b=MIYy4JTCJrXSRNBk+7hcNgcl3ISJfIn6323Ed7JM2g0jwi/hCQVsPxBUWSB2Kubin0wjnOYwZRKL8iEbuix058JpL+oC6hWYE91Uo63zeD1B+OG53arfcAL1uvhHw1Z5j5MYVwIEOcGURz4Zjz2BAn6A6STpoc6d+c2cY9aTcXo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761610008; c=relaxed/simple;
-	bh=n3srh3GebPAIxhHNDZ6f4BTAlpMGYjtDfboR4dfZj7o=;
-	h=Date:To:From:Subject:Message-Id; b=jlSXA0EsiGqe4hWqj1t4RwuibtzRy5IYR7NCF72QMoVIDH1Tc+av5VDR0HXe3zxt2bWthXW5sOi0olQ3J6AcyVauVXv7PazqQ/7TgdYZIRD3Tg5HZXdeWsnUvjjA/a4Xopbz6XqkqZVSlQpREfKxzCc7NhH17htIsUFvm0xVy98=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nTuTsNrq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761682725; c=relaxed/simple;
+	bh=G/DeR1+OI+6jQSknYH0IpEvj4EMs9GoX5ZRaBksYlk8=;
+	h=Date:To:From:Subject:Message-Id; b=lIxmR+/xeZCmCyE0RUU6FxnFkwrJP6VgYDWgDljSMIanqQ+yUnp/CPJXqpyScwWr9WA+CaXc2Vay5oq5BLJu3nbu3TK9f8J1b8p6c/UzDAc1k8mW1TZN21yrpca8m23mbLoU8+ihEP2dbyM6hfYOodOG9zoYUa6LXvoR4mEvyZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLu3E/09; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nTuTsNrq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3682DC4CEF1;
-	Tue, 28 Oct 2025 00:06:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLu3E/09"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4EEBC4CEE7;
+	Tue, 28 Oct 2025 20:18:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761610007;
-	bh=n3srh3GebPAIxhHNDZ6f4BTAlpMGYjtDfboR4dfZj7o=;
+	s=korg; t=1761682724;
+	bh=G/DeR1+OI+6jQSknYH0IpEvj4EMs9GoX5ZRaBksYlk8=;
 	h=Date:To:From:Subject:From;
-	b=nTuTsNrqLl3sGfRYml7gMLnDzwfwO/h6qntC6Huru1GXxQtWtF5dDeK/OoWgK4VSz
-	 n0EaExjOU83S+RPNvebYuDFB9NE0z511Q9B3BFPVGKSuem1WPVZqUnN+TvtdiaStEn
-	 7OAKeqNMf28/mkR/i8iyIypDB/H/j1h5/Vv4XCKA=
-Date: Mon, 27 Oct 2025 17:06:46 -0700
-To: mm-commits@vger.kernel.org,paulmck@kernel.org,mjguzik@gmail.com,legion@kernel.org,kees@kernel.org,dhowells@redhat.com,oleg@redhat.com,akpm@linux-foundation.org
+	b=gLu3E/09jOhA40SrRJb8b1RG+IN06fUaTrFKyf+OncDFsL3bxxvrZW/xoknRk3ogH
+	 BqqgDi5Mj2tmNzhe0yoyCwQbc0AE2WAffF+QXi11gEFVAm5IPE3zB82HlzgjPGEjDF
+	 J91x+eLa36GXZYT8T8wuemO/tFH67F+XiZLsGgr4=
+Date: Tue, 28 Oct 2025 13:18:49 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,isaacmanjarres@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts.patch added to mm-nonmm-unstable branch
-Message-Id: <20251028000647.3682DC4CEF1@smtp.kernel.org>
+Subject: + mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251028201844.D4EEBC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: release_task: kill unnecessary rcu_read_lock() around dec_rlimit_ucounts()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts.patch
+     Subject: mm/mm_init: fix hash table order logging in alloc_large_system_hash()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,51 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: release_task: kill unnecessary rcu_read_lock() around dec_rlimit_ucounts()
-Date: Sun, 26 Oct 2025 15:31:40 +0100
+From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
+Subject: mm/mm_init: fix hash table order logging in alloc_large_system_hash()
+Date: Tue, 28 Oct 2025 12:10:12 -0700
 
-rcu_read_lock() was added to shut RCU-lockdep up when this code used
-__task_cred()->rcu_dereference(), but after the commit 21d1c5e386bc
-("Reimplement RLIMIT_NPROC on top of ucounts") it is no longer needed:
-task_ucounts()->task_cred_xxx() takes rcu_read_lock() itself.
+When emitting the order of the allocation for a hash table,
+alloc_large_system_hash() unconditionally subtracts PAGE_SHIFT from log
+base 2 of the allocation size.  This is not correct if the allocation size
+is smaller than a page, and yields a negative value for the order as seen
+below:
 
-NOTE: task_ucounts() returns the pointer to another rcu-protected data,
-struct ucounts.  So it should either be used when task->real_cred and thus
-task->real_cred->ucounts is stable (release_task, copy_process,
-copy_creds), or it should be called under rcu_read_lock().  In both cases
-it is pointless to take rcu_read_lock() to read the cred->ucounts pointer.
+TCP established hash table entries: 32 (order: -4, 256 bytes, linear) TCP
+bind hash table entries: 32 (order: -2, 1024 bytes, linear)
 
-Link: https://lkml.kernel.org/r/20251026143140.GA22463@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Alexey Gladkov <legion@kernel.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
+Use get_order() to compute the order when emitting the hash table
+information to correctly handle cases where the allocation size is smaller
+than a page:
+
+TCP established hash table entries: 32 (order: 0, 256 bytes, linear) TCP
+bind hash table entries: 32 (order: 0, 1024 bytes, linear)
+
+Link: https://lkml.kernel.org/r/20251028191020.413002-1-isaacmanjarres@google.com
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/mm_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/exit.c~release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts
-+++ a/kernel/exit.c
-@@ -251,10 +251,8 @@ repeat:
- 	memset(&post, 0, sizeof(post));
+--- a/mm/mm_init.c~mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash
++++ a/mm/mm_init.c
+@@ -2469,7 +2469,7 @@ void *__init alloc_large_system_hash(con
+ 		panic("Failed to allocate %s hash table\n", tablename);
  
- 	/* don't need to get the RCU readlock here - the process is dead and
--	 * can't be modifying its own credentials. But shut RCU-lockdep up */
--	rcu_read_lock();
-+	 * can't be modifying its own credentials. */
- 	dec_rlimit_ucounts(task_ucounts(p), UCOUNT_RLIMIT_NPROC, 1);
--	rcu_read_unlock();
+ 	pr_info("%s hash table entries: %ld (order: %d, %lu bytes, %s)\n",
+-		tablename, 1UL << log2qty, ilog2(size) - PAGE_SHIFT, size,
++		tablename, 1UL << log2qty, get_order(size), size,
+ 		virt ? (huge ? "vmalloc hugepage" : "vmalloc") : "linear");
  
- 	pidfs_exit(p);
- 	cgroup_release(p);
+ 	if (_hash_shift)
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from isaacmanjarres@google.com are
 
-release_task-kill-unnecessary-rcu_read_lock-around-dec_rlimit_ucounts.patch
+mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch
 
