@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 404A935975
-	for <mm-commits@vger.kernel.org>; Tue, 28 Oct 2025 22:47:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11CDA28D8E8
+	for <mm-commits@vger.kernel.org>; Tue, 28 Oct 2025 22:53:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761691678; cv=none; b=upnTDAZ+YSI2X1Ch5FId5c8gca32he3Ze6IRtl7mS2YCU4khuDS8Bxu+wST7t6o1AfQ2i9zr2k329JWYf0ghWlXclzQKzTGBB3EGJjRwCKeawcekkaUJO4Rc5GNIIXIjbrPuU6WPt2199c4OhrqQrSy5vunDTI0A3xDOAhYgMqA=
+	t=1761691989; cv=none; b=EzpbsVDYf0jKlyssO9lUk1MdxfVDFABc8SxoDKxH6/l2T83WH9xfrl+d9Jg1mNr0zCpB94xUZGhWGfvD3BPSTTzbrNS8OG8bUVARgXaMyBqN8OO+hwMVGyzLzqdVLH+0QW8OK5WjwdnBU9f76rsmsqXMbbv62TBZ2ew6KFWbGVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761691678; c=relaxed/simple;
-	bh=NFvtGOfkMjT26F/y+13iJlTgA+3T3Q3Xrz4fnQXMxLo=;
-	h=Date:To:From:Subject:Message-Id; b=OBsZaY8PGPRn8ESWFRLbiiyOIXx788iDj3lEMj9PB/g5jphM3NtCgkbUDGerzY2trzmqyeuk98FNBCwBHFTwYO2UzaObKsmFiZFdhmzEReGaE/log397AFFaNEdBWdt5JX+SJs0pr7yjslLpUsZ6C6/UbTIAQBnwsPWYOJe+7L8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QdCaFV5m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761691989; c=relaxed/simple;
+	bh=Ar3bZRxrrFTkXGa+i47pHLLeiXhYLaJjMAzM43drW6Q=;
+	h=Date:To:From:Subject:Message-Id; b=Qec9TElA99MG2j7zyiLQ/5c+8czONSRjPwtnpmBN9ZYDUQ40SqE6kB4Hu6mOqF6VHNcR1WgrtSpBe8WxlNmWjHH0i66T+u6PIvkrHP3b41sBMna9gbcV+pB/FhqTbQvuinzdpea0ZpNG7r6WANrihJpDSxIdGSmiLZisNs2uUq8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=svXhLx2B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QdCaFV5m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7790C4CEE7;
-	Tue, 28 Oct 2025 22:47:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="svXhLx2B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 755E8C4CEE7;
+	Tue, 28 Oct 2025 22:53:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761691676;
-	bh=NFvtGOfkMjT26F/y+13iJlTgA+3T3Q3Xrz4fnQXMxLo=;
+	s=korg; t=1761691988;
+	bh=Ar3bZRxrrFTkXGa+i47pHLLeiXhYLaJjMAzM43drW6Q=;
 	h=Date:To:From:Subject:From;
-	b=QdCaFV5m/cTPGfoXz8pw6r3tOAmt2IV3m92+ztuL6fcpwvIcuYB5bIa+m5smDz1M0
-	 MSP+zflpQ/HlAHRiV2ScyL8pzs1u16GrGFkhbmpwLIrA2wR3AgaSn7Uo9pQgTS5NvO
-	 1QlutvF+tIg1lrS4fWB/yhZeT23BZbbzENceXaCA=
-Date: Tue, 28 Oct 2025 15:47:56 -0700
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,david@redhat.com,chengming.zhou@linux.dev,pedrodemargomes@gmail.com,akpm@linux-foundation.org
+	b=svXhLx2BPjz3ooVselwOgHClaJWM79YXedSBf7jfafI9Jr9+odE5++coxx90uBo/l
+	 fU4ULiuon5SjcCpkpc85sWzq3pnHbrcoj+pVwW9TZiFtRQDXUQdQ4twlWANmk3oVZj
+	 aw60lwxLnMWywrQZ0j7aF3WUOp7qp+3MEl1MdOAI=
+Date: Tue, 28 Oct 2025 15:53:07 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,hca@linux.ibm.com,gourry@gourry.net,gor@linux.ibm.com,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,borntraeger@linux.ibm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,airlied@gmail.com,agordeev@linux.ibm.com,imbrenda@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-replace-function-unmerge_ksm_pages-with-break_ksm.patch added to mm-new branch
-Message-Id: <20251028224756.A7790C4CEE7@smtp.kernel.org>
+Subject: + kvm-s390-fix-missing-present-bit-for-gmap-puds.patch added to mm-unstable branch
+Message-Id: <20251028225308.755E8C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ksm: replace function unmerge_ksm_pages with break_ksm
-has been added to the -mm mm-new branch.  Its filename is
-     ksm-replace-function-unmerge_ksm_pages-with-break_ksm.patch
+     Subject: KVM: s390: fix missing present bit for gmap puds
+has been added to the -mm mm-unstable branch.  Its filename is
+     kvm-s390-fix-missing-present-bit-for-gmap-puds.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-replace-function-unmerge_ksm_pages-with-break_ksm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-s390-fix-missing-present-bit-for-gmap-puds.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,114 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Subject: ksm: replace function unmerge_ksm_pages with break_ksm
-Date: Tue, 28 Oct 2025 10:19:45 -0300
+From: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Subject: KVM: s390: fix missing present bit for gmap puds
+Date: Tue, 28 Oct 2025 14:01:50 +0100
 
-unmerge_ksm_pages() is unnecessary since now break_ksm() walks an address
-range.  So replace it with break_ksm().
+For hugetlbs, gmap puds have the present bit set.  For normal puds (which
+point to ptes), the bit is not set.  This is in contrast to the normal
+userspace puds, which always have the bit set for present pmds.
 
-Link: https://lkml.kernel.org/r/20251028131945.26445-4-pedrodemargomes@gmail.com
-Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
+This causes issues when ___pte_offset_map() is modified to only check for
+the present bit.
+
+The solution to the problem is simply to always set the present bit for
+present gmap pmds.
+
+Link: https://lkml.kernel.org/r/20251028130150.57379-2-imbrenda@linux.ibm.com
+Signed-off-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Link: https://lore.kernel.org/lkml/20251017144924.10034-1-borntraeger@linux.ibm.com/
+Tested-by: Christian Borntraeger <borntraeger@linux.ibm.com>
+Acked-by: Christian Borntraeger <borntraeger@linux.ibm.com>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Francois Dugast <francois.dugast@intel.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Lyude <lyude@redhat.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   39 ++++++++++++++++-----------------------
- 1 file changed, 16 insertions(+), 23 deletions(-)
+ arch/s390/mm/gmap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/ksm.c~ksm-replace-function-unmerge_ksm_pages-with-break_ksm
-+++ a/mm/ksm.c
-@@ -669,6 +669,18 @@ static const struct mm_walk_ops break_ks
- };
- 
- /*
-+ * Though it's very tempting to unmerge rmap_items from stable tree rather
-+ * than check every pte of a given vma, the locking doesn't quite work for
-+ * that - an rmap_item is assigned to the stable tree after inserting ksm
-+ * page and upping mmap_lock.  Nor does it fit with the way we skip dup'ing
-+ * rmap_items from parent to child at fork time (so as not to waste time
-+ * if exit comes before the next scan reaches it).
-+ *
-+ * Similarly, although we'd like to remove rmap_items (so updating counts
-+ * and freeing memory) when unmerging an area, it's easier to leave that
-+ * to the next pass of ksmd - consider, for example, how ksmd might be
-+ * in cmp_and_merge_page on one of the rmap_items we would be removing.
-+ *
-  * We use break_ksm to break COW on a ksm page by triggering unsharing,
-  * such that the ksm page will get replaced by an exclusive anonymous page.
-  *
-@@ -1077,25 +1089,6 @@ static void remove_trailing_rmap_items(s
- 	}
- }
- 
--/*
-- * Though it's very tempting to unmerge rmap_items from stable tree rather
-- * than check every pte of a given vma, the locking doesn't quite work for
-- * that - an rmap_item is assigned to the stable tree after inserting ksm
-- * page and upping mmap_lock.  Nor does it fit with the way we skip dup'ing
-- * rmap_items from parent to child at fork time (so as not to waste time
-- * if exit comes before the next scan reaches it).
-- *
-- * Similarly, although we'd like to remove rmap_items (so updating counts
-- * and freeing memory) when unmerging an area, it's easier to leave that
-- * to the next pass of ksmd - consider, for example, how ksmd might be
-- * in cmp_and_merge_page on one of the rmap_items we would be removing.
-- */
--static int unmerge_ksm_pages(struct vm_area_struct *vma,
--			     unsigned long start, unsigned long end, bool lock_vma)
--{
--	return break_ksm(vma, start, end, lock_vma);
--}
--
- static inline
- struct ksm_stable_node *folio_stable_node(const struct folio *folio)
- {
-@@ -1233,7 +1226,7 @@ static int unmerge_and_remove_all_rmap_i
- 		for_each_vma(vmi, vma) {
- 			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
- 				continue;
--			err = unmerge_ksm_pages(vma,
-+			err = break_ksm(vma,
- 						vma->vm_start, vma->vm_end, false);
- 			if (err)
- 				goto error;
-@@ -2861,7 +2854,7 @@ static int __ksm_del_vma(struct vm_area_
- 		return 0;
- 
- 	if (vma->anon_vma) {
--		err = unmerge_ksm_pages(vma, vma->vm_start, vma->vm_end, true);
-+		err = break_ksm(vma, vma->vm_start, vma->vm_end, true);
- 		if (err)
- 			return err;
- 	}
-@@ -3013,7 +3006,7 @@ int ksm_madvise(struct vm_area_struct *v
- 			return 0;		/* just ignore the advice */
- 
- 		if (vma->anon_vma) {
--			err = unmerge_ksm_pages(vma, start, end, true);
-+			err = break_ksm(vma, start, end, true);
- 			if (err)
- 				return err;
+--- a/arch/s390/mm/gmap.c~kvm-s390-fix-missing-present-bit-for-gmap-puds
++++ a/arch/s390/mm/gmap.c
+@@ -599,8 +599,9 @@ int __gmap_link(struct gmap *gmap, unsig
+ 					| _SEGMENT_ENTRY_GMAP_UC
+ 					| _SEGMENT_ENTRY;
+ 			} else
+-				*table = pmd_val(*pmd) &
+-					_SEGMENT_ENTRY_HARDWARE_BITS;
++				*table = (pmd_val(*pmd) &
++					_SEGMENT_ENTRY_HARDWARE_BITS)
++					| _SEGMENT_ENTRY;
  		}
-@@ -3395,7 +3388,7 @@ static int ksm_memory_callback(struct no
- 		 * Prevent ksm_do_scan(), unmerge_and_remove_all_rmap_items()
- 		 * and remove_all_stable_nodes() while memory is going offline:
- 		 * it is unsafe for them to touch the stable tree at this time.
--		 * But unmerge_ksm_pages(), rmap lookups and other entry points
-+		 * But break_ksm(), rmap lookups and other entry points
- 		 * which do not need the ksm_thread_mutex are all safe.
- 		 */
- 		mutex_lock(&ksm_thread_mutex);
+ 	} else if (*table & _SEGMENT_ENTRY_PROTECT &&
+ 		   !(pmd_val(*pmd) & _SEGMENT_ENTRY_PROTECT)) {
 _
 
-Patches currently in -mm which might be from pedrodemargomes@gmail.com are
+Patches currently in -mm which might be from imbrenda@linux.ibm.com are
 
-ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
-revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
-ksm-perform-a-range-walk-in-break_ksm.patch
-ksm-replace-function-unmerge_ksm_pages-with-break_ksm.patch
+kvm-s390-fix-missing-present-bit-for-gmap-puds.patch
 
