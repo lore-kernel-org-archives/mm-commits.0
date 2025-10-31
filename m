@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 970A02D0C8B
-	for <mm-commits@vger.kernel.org>; Fri, 31 Oct 2025 03:12:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5FFE2D0C8B
+	for <mm-commits@vger.kernel.org>; Fri, 31 Oct 2025 03:12:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761880378; cv=none; b=vGeCVUJv4nhDCt36L4jS/CXnQJCMpsUyTXjq1CuI1FY417IGgahHYQrl/c2yElijPHnvWxHBaN6dONiz8tVHi3n1u+3RDuySL3Xf2K4+leCbzBdDcps4yzX7F/DctFbE2dpkBlI0wPVIqqd1wQkEhl6BQOyIqNJMVlMEt2dWUl4=
+	t=1761880379; cv=none; b=BSYCIVXMo7YjYLpnvoQZ6gDloKSvOk7Ym9JBOUhLlh9TFEPNDTtHLQ8ak9QoLbdQl0K4R6LE1F++ynZeBK5wpYgLSSA7jUY8fPPn6y91nEkTWn4J/Mw8YuPz5/OCions2vRGQAhb/+2heIf53CcICkd14ExsLlr94oNlhVt1cdM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761880378; c=relaxed/simple;
-	bh=evuDytT/YPCBhyTmp7oTVXzxTUok3co1Je/FoMm6Dlk=;
-	h=Date:To:From:Subject:Message-Id; b=TVV8BKPObRPRt+jG0rr9ubtwvkvXI+OZ6wchr/1bFqd5Oy+f248Gdx0l9KPp/jvEhy8qT58HsylSf7PkKvzAD4smm1SnFmpXJ+E7GHrwF+b37IZydTAINfR+/lvf3GCxDc5cuXBiKKnukeQEUDQgXKmE1ERXbY0Q2Ma8VdclHIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eiSgsWIN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761880379; c=relaxed/simple;
+	bh=VlBNtfRgTnjdC9ckmXCX3RnkHJafE9S7mJBSUpcBJig=;
+	h=Date:To:From:Subject:Message-Id; b=mzgibJbvheqIzrTolT16pwRY+iB75vqkLI71kZDR1bZlOr3oKVltgcDKHy2B4wM+qrReZsW1E7E850m4RG+ncMaR320KBZP1LLAQV9bATGuP5XjElf6I833pI3f4FKyAUYSl1yQjip+aqjdodDnKC0upiIRDER8V85AB33wMJuU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iYJ4/ASC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eiSgsWIN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2158FC4CEF1;
-	Fri, 31 Oct 2025 03:12:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iYJ4/ASC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E71EC113D0;
+	Fri, 31 Oct 2025 03:12:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761880377;
-	bh=evuDytT/YPCBhyTmp7oTVXzxTUok3co1Je/FoMm6Dlk=;
+	s=korg; t=1761880379;
+	bh=VlBNtfRgTnjdC9ckmXCX3RnkHJafE9S7mJBSUpcBJig=;
 	h=Date:To:From:Subject:From;
-	b=eiSgsWINv8F+wtd43BTLpmBl/htFx+OjO+3xJyzt+PdlAqjHkuGNvnpYa2cN7WNGN
-	 biaDzkGnIyxYaQJgVFto4ZHQd25zUI5EQLFinDbcykcYVdF7SHHAELCrSo5Ls99KJh
-	 VVp2c/c3/ib/feg4gGuRPPkMH5r6jzif7nD2QSCc=
-Date: Thu, 30 Oct 2025 20:12:56 -0700
+	b=iYJ4/ASCPzyD9JBYzE2hmjB4WRYi/oPooo/A32tOfciliF1KysXHy1dUTVYk1HuRv
+	 CpaZdXHG5pRDH7M2qPqUje9HOPxioH55m4nZ/Omq4uIBnhjEwr46ElPDGMP9ni41zg
+	 Hu/5X8MBgVV4WSq3AaZhJKttlWC0xeH6TtT+WZyo=
+Date: Thu, 30 Oct 2025 20:12:58 -0700
 To: mm-commits@vger.kernel.org,pmladek@suse.com,feng.tang@linux.alibaba.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-sys_info-rewrite-a-fix-for-a-compilation-error-make-w=1.patch added to mm-nonmm-unstable branch
-Message-Id: <20251031031257.2158FC4CEF1@smtp.kernel.org>
+Subject: + panic-sys_info-deduplicate-local-variable-table-assignments.patch added to mm-nonmm-unstable branch
+Message-Id: <20251031031259.1E71EC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: sys_info: rewrite a fix for a compilation error (`make W=1`)
+     Subject: panic: sys_info: deduplicate local variable 'table; assignments
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-sys_info-rewrite-a-fix-for-a-compilation-error-make-w=1.patch
+     panic-sys_info-deduplicate-local-variable-table-assignments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-sys_info-rewrite-a-fix-for-a-compilation-error-make-w=1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-sys_info-deduplicate-local-variable-table-assignments.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,115 +59,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: panic: sys_info: rewrite a fix for a compilation error (`make W=1`)
-Date: Thu, 30 Oct 2025 12:44:20 +0100
+Subject: panic: sys_info: deduplicate local variable 'table; assignments
+Date: Thu, 30 Oct 2025 12:44:21 +0100
 
-Compiler was not happy about dead variable in use:
+The both handlers use the local 'table' variable and assign the same data
+to it, deduplicate that.
 
-lib/sys_info.c:52:19: error: variable 'sys_info_avail' is not needed and will not be emitted [-Werror,-Wunneeded-internal-declaration]
-   52 | static const char sys_info_avail[] = "tasks,mem,timers,locks,ftrace,all_bt,blocked_tasks";
-      |                   ^~~~~~~~~~~~~~
-
-This was fixed by adding __maybe_unused attribute that just hides the
-issue and didn't actually fix the root cause.  Rewrite the fix by moving
-the local variable from stack to a heap.
-
-As a side effect this drops unneeded "synchronisation" of duplicative info
-and also makes code ready for the further refactoring.
-
-Link: https://lkml.kernel.org/r/20251030132007.3742368-5-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20251030132007.3742368-6-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Feng Tang <feng.tang@linux.alibaba.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sys_info.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ lib/sys_info.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/lib/sys_info.c~panic-sys_info-rewrite-a-fix-for-a-compilation-error-make-w=1
+--- a/lib/sys_info.c~panic-sys_info-deduplicate-local-variable-table-assignments
 +++ a/lib/sys_info.c
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-only
-+#include <linux/array_size.h>
- #include <linux/bitops.h>
-+#include <linux/cleanup.h>
- #include <linux/console.h>
- #include <linux/log2.h>
- #include <linux/kernel.h>
-@@ -11,10 +13,6 @@
+@@ -63,12 +63,13 @@ int sysctl_sys_info_handler(const struct
+ 	if (!names)
+ 		return -ENOMEM;
  
- #include <linux/sys_info.h>
- 
--/*
-- * When 'si_names' gets updated,  please make sure the 'sys_info_avail'
-- * below is updated accordingly.
-- */
- static const char * const si_names[] = {
- 	[ilog2(SYS_INFO_TASKS)]			= "tasks",
- 	[ilog2(SYS_INFO_MEM)]			= "mem",
-@@ -45,25 +43,32 @@ unsigned long sys_info_parse_param(char
- 
- #ifdef CONFIG_SYSCTL
- 
--static const char sys_info_avail[] __maybe_unused = "tasks,mem,timers,locks,ftrace,all_bt,blocked_tasks";
--
- int sysctl_sys_info_handler(const struct ctl_table *ro_table, int write,
- 					  void *buffer, size_t *lenp,
- 					  loff_t *ppos)
- {
--	char names[sizeof(sys_info_avail)];
- 	struct ctl_table table;
- 	unsigned long *si_bits_global;
- 	unsigned long si_bits;
-+	unsigned int i;
-+	size_t maxlen;
- 
- 	si_bits_global = ro_table->data;
- 
-+	maxlen = 0;
-+	for (i = 0; i < ARRAY_SIZE(si_names); i++)
-+		maxlen += strlen(si_names[i]) + 1;
-+
-+	char *names __free(kfree) = kzalloc(maxlen, GFP_KERNEL);
-+	if (!names)
-+		return -ENOMEM;
++	table = *ro_table;
++	table.data = names;
++	table.maxlen = maxlen;
 +
  	if (write) {
  		int ret;
  
- 		table = *ro_table;
- 		table.data = names;
--		table.maxlen = sizeof(names);
-+		table.maxlen = maxlen;
+-		table = *ro_table;
+-		table.data = names;
+-		table.maxlen = maxlen;
  		ret = proc_dostring(&table, write, buffer, lenp, ppos);
  		if (ret)
  			return ret;
-@@ -74,16 +79,15 @@ int sysctl_sys_info_handler(const struct
- 		return 0;
- 	} else {
- 		/* for 'read' operation */
-+		unsigned int len = 0;
- 		char *delim = "";
--		int i, len = 0;
- 
- 		/* The access to the global value is not synchronized. */
- 		si_bits = READ_ONCE(*si_bits_global);
- 
--		names[0] = '\0';
- 		for_each_set_bit(i, &si_bits, ARRAY_SIZE(si_names)) {
- 			if (*si_names[i]) {
--				len += scnprintf(names + len, sizeof(names) - len,
-+				len += scnprintf(names + len, maxlen - len,
- 						 "%s%s", delim, si_names[i]);
- 				delim = ",";
+@@ -93,9 +94,6 @@ int sysctl_sys_info_handler(const struct
  			}
-@@ -91,7 +95,7 @@ int sysctl_sys_info_handler(const struct
+ 		}
  
- 		table = *ro_table;
- 		table.data = names;
--		table.maxlen = sizeof(names);
-+		table.maxlen = maxlen;
+-		table = *ro_table;
+-		table.data = names;
+-		table.maxlen = maxlen;
  		return proc_dostring(&table, write, buffer, lenp, ppos);
  	}
  }
