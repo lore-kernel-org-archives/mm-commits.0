@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DF804C81
-	for <mm-commits@vger.kernel.org>; Fri, 31 Oct 2025 01:19:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52582ED848;
+	Fri, 31 Oct 2025 02:33:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761873565; cv=none; b=l0r4HqtPaKKjCdRf1t61VObvlHMe3baFqoCZV+jlPqOPVUgZaE+JIhAXc2/ZFtM56r+X7RRcb2UvkFhDsrsNH1Rk1gUHBEP52egFb4vTIHWOsBhwLOyBAJLKhISeeGuuXw8+nrXH7jcpCCXtqjgMJDpMoX8kAHYZmYBpMz0fvGc=
+	t=1761877995; cv=none; b=JU3gLgwVi2y6lGNqF1JQcX+RQrbaR2IyjGa7ofBxJXuKqUpgBQipWknb/hXbr6L0q4Xq1U03trmPOh4ElmEc08UiyvqcQSEOC45qDxTdI1iegFNLTHbCyJIGFdFB8b+rjYDjtZqiGZ/8fO7ie8gboBFLxhhCJzp6LKKb5Rs7LFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761873565; c=relaxed/simple;
-	bh=SQ80TDowXgJJtX069LT1s9JgXckq8qjh2VYz7eVmUco=;
-	h=Date:To:From:Subject:Message-Id; b=bhJ47oHjLw2fMVCKcCTnn0mR2u5cK7kMiYse5UPjKBMMqmNTLH0wKLAbyvQMX3QJMQYNHAt4ttqhoc7GRwoXfVK1cTaytCkNmko4Vqpld1XjIUAnFw4dyxFa/9Zzaj/cjRwJrBB3qiREnfiOEFznttNqc11YJYfuIuPFxn8RQeM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NW5w2JNQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761877995; c=relaxed/simple;
+	bh=Mq11uDNf3+isSSCsfm8wsU/RMUMtENJ4C8jb6Om1Oho=;
+	h=Date:To:From:Subject:Message-Id; b=a8EYVkjHWsDTmNcQrtRPvlZtG5wGija4bhGWVkD2T16LXxK1NciLE/iUCNR+kpNTDkkJaxq84sisBWDwyiBfycmBcKDX4owwE723iQOfVKldt4UOJdmLUtlgSMJqE9yCzItfpfQ//hqevcgVYPhVVe6gnjjdoGApfxqRKoy5fCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+ABI03J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NW5w2JNQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B6BBC4CEFD;
-	Fri, 31 Oct 2025 01:19:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+ABI03J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5945FC4CEF1;
+	Fri, 31 Oct 2025 02:33:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761873564;
-	bh=SQ80TDowXgJJtX069LT1s9JgXckq8qjh2VYz7eVmUco=;
+	s=korg; t=1761877994;
+	bh=Mq11uDNf3+isSSCsfm8wsU/RMUMtENJ4C8jb6Om1Oho=;
 	h=Date:To:From:Subject:From;
-	b=NW5w2JNQ8bNye1eKuDR5roD/8nPPKhtaBT+R7ncQrjJzZ3ScMq5sDGiobMy5MSDNR
-	 UBEd14QM5xVC6SHUrDsUfeanmTEQIiJjQdyFb4UFTgHmIB/Ug8oFTAaef4lx3ecXPK
-	 yx1tRC/yXmjiV96+LKiSzpTBaYt5gCRq01Pg9Koo=
-Date: Thu, 30 Oct 2025 18:19:23 -0700
-To: mm-commits@vger.kernel.org,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=j+ABI03JQZewrzLh4fN9bF2FaR4bl+HRrCL53v+cy++a6tUjMi5VrM2h072yeDpDs
+	 QZVZ/7HHrAd2SHF4jADUoEoAGjvYITaDwUlPl8o8REtovz2ZioCcJAqZ/BzXGux8WE
+	 R80WZnCoH7UogCaDLtqBkb4opHEH72tDpGypV2V8=
+Date: Thu, 30 Oct 2025 19:33:13 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,liam.howlett@oracle.com,martin@kaiser.cx,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-entry-for-hao-ge.patch added to mm-nonmm-unstable branch
-Message-Id: <20251031011924.7B6BBC4CEFD@smtp.kernel.org>
+Subject: + maple_tree-fix-tracepoint-string-pointers.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251031023314.5945FC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: add entry for Hao Ge
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-add-entry-for-hao-ge.patch
+     Subject: maple_tree: fix tracepoint string pointers
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maple_tree-fix-tracepoint-string-pointers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-hao-ge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-tracepoint-string-pointers.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,34 +58,172 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: mailmap: add entry for Hao Ge
-Date: Thu, 30 Oct 2025 20:17:46 +0800
+From: Martin Kaiser <martin@kaiser.cx>
+Subject: maple_tree: fix tracepoint string pointers
+Date: Thu, 30 Oct 2025 16:55:05 +0100
 
-Use hao.ge@linux.dev as the main address for kernel work
+maple_tree tracepoints contain pointers to function names. Such a pointer
+is saved when a tracepoint logs an event. There's no guarantee that it's
+still valid when the event is parsed later and the pointer is dereferenced.
 
-Link: https://lkml.kernel.org/r/20251030121746.230747-1-hao.ge@linux.dev
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
+The kernel warns about these unsafe pointers.
+
+	event 'ma_read' has unsafe pointer field 'fn'
+	WARNING: kernel/trace/trace.c:3779 at ignore_event+0x1da/0x1e4
+
+Mark the function names as tracepoint_string() to fix the events.
+
+Link: https://lkml.kernel.org/r/20251030155537.87972-1-martin@kaiser.cx
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Martin Kaiser <martin@kaiser.cx>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ lib/maple_tree.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
---- a/.mailmap~mailmap-add-entry-for-hao-ge
-+++ a/.mailmap
-@@ -298,6 +298,7 @@ Hans de Goede <hansg@kernel.org> <hdegoe
- Hans Verkuil <hverkuil@kernel.org> <hverkuil@xs4all.nl>
- Hans Verkuil <hverkuil@kernel.org> <hverkuil-cisco@xs4all.nl>
- Hans Verkuil <hverkuil@kernel.org> <hansverk@cisco.com>
-+Hao Ge <hao.ge@linux.dev> <gehao@kylinos.cn>
- Harry Yoo <harry.yoo@oracle.com> <42.hyeyoo@gmail.com>
- Heiko Carstens <hca@linux.ibm.com> <h.carstens@de.ibm.com>
- Heiko Carstens <hca@linux.ibm.com> <heiko.carstens@de.ibm.com>
+--- a/lib/maple_tree.c~maple_tree-fix-tracepoint-string-pointers
++++ a/lib/maple_tree.c
+@@ -64,6 +64,8 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/maple_tree.h>
+ 
++#define TP_FCT tracepoint_string(__func__)
++
+ /*
+  * Kernel pointer hashing renders much of the maple tree dump useless as tagged
+  * pointers get hashed to arbitrary values.
+@@ -2756,7 +2758,7 @@ static inline void mas_rebalance(struct
+ 	MA_STATE(l_mas, mas->tree, mas->index, mas->last);
+ 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
+ 
+-	trace_ma_op(__func__, mas);
++	trace_ma_op(TP_FCT, mas);
+ 
+ 	/*
+ 	 * Rebalancing occurs if a node is insufficient.  Data is rebalanced
+@@ -2997,7 +2999,7 @@ static void mas_split(struct ma_state *m
+ 	MA_STATE(prev_l_mas, mas->tree, mas->index, mas->last);
+ 	MA_STATE(prev_r_mas, mas->tree, mas->index, mas->last);
+ 
+-	trace_ma_op(__func__, mas);
++	trace_ma_op(TP_FCT, mas);
+ 
+ 	mast.l = &l_mas;
+ 	mast.r = &r_mas;
+@@ -3172,7 +3174,7 @@ static bool mas_is_span_wr(struct ma_wr_
+ 			return false;
+ 	}
+ 
+-	trace_ma_write(__func__, wr_mas->mas, wr_mas->r_max, entry);
++	trace_ma_write(TP_FCT, wr_mas->mas, wr_mas->r_max, entry);
+ 	return true;
+ }
+ 
+@@ -3416,7 +3418,7 @@ static noinline void mas_wr_spanning_sto
+ 	 * of data may happen.
+ 	 */
+ 	mas = wr_mas->mas;
+-	trace_ma_op(__func__, mas);
++	trace_ma_op(TP_FCT, mas);
+ 
+ 	if (unlikely(!mas->index && mas->last == ULONG_MAX))
+ 		return mas_new_root(mas, wr_mas->entry);
+@@ -3552,7 +3554,7 @@ done:
+ 	} else {
+ 		memcpy(wr_mas->node, newnode, sizeof(struct maple_node));
+ 	}
+-	trace_ma_write(__func__, mas, 0, wr_mas->entry);
++	trace_ma_write(TP_FCT, mas, 0, wr_mas->entry);
+ 	mas_update_gap(mas);
+ 	mas->end = new_end;
+ 	return;
+@@ -3596,7 +3598,7 @@ static inline void mas_wr_slot_store(str
+ 		mas->offset++; /* Keep mas accurate. */
+ 	}
+ 
+-	trace_ma_write(__func__, mas, 0, wr_mas->entry);
++	trace_ma_write(TP_FCT, mas, 0, wr_mas->entry);
+ 	/*
+ 	 * Only update gap when the new entry is empty or there is an empty
+ 	 * entry in the original two ranges.
+@@ -3717,7 +3719,7 @@ static inline void mas_wr_append(struct
+ 		mas_update_gap(mas);
+ 
+ 	mas->end = new_end;
+-	trace_ma_write(__func__, mas, new_end, wr_mas->entry);
++	trace_ma_write(TP_FCT, mas, new_end, wr_mas->entry);
+ 	return;
+ }
+ 
+@@ -3731,7 +3733,7 @@ static void mas_wr_bnode(struct ma_wr_st
+ {
+ 	struct maple_big_node b_node;
+ 
+-	trace_ma_write(__func__, wr_mas->mas, 0, wr_mas->entry);
++	trace_ma_write(TP_FCT, wr_mas->mas, 0, wr_mas->entry);
+ 	memset(&b_node, 0, sizeof(struct maple_big_node));
+ 	mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
+ 	mas_commit_b_node(wr_mas, &b_node);
+@@ -5062,7 +5064,7 @@ void *mas_store(struct ma_state *mas, vo
+ {
+ 	MA_WR_STATE(wr_mas, mas, entry);
+ 
+-	trace_ma_write(__func__, mas, 0, entry);
++	trace_ma_write(TP_FCT, mas, 0, entry);
+ #ifdef CONFIG_DEBUG_MAPLE_TREE
+ 	if (MAS_WARN_ON(mas, mas->index > mas->last))
+ 		pr_err("Error %lX > %lX " PTR_FMT "\n", mas->index, mas->last,
+@@ -5163,7 +5165,7 @@ void mas_store_prealloc(struct ma_state
+ 	}
+ 
+ store:
+-	trace_ma_write(__func__, mas, 0, entry);
++	trace_ma_write(TP_FCT, mas, 0, entry);
+ 	mas_wr_store_entry(&wr_mas);
+ 	MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
+ 	mas_destroy(mas);
+@@ -5882,7 +5884,7 @@ void *mtree_load(struct maple_tree *mt,
+ 	MA_STATE(mas, mt, index, index);
+ 	void *entry;
+ 
+-	trace_ma_read(__func__, &mas);
++	trace_ma_read(TP_FCT, &mas);
+ 	rcu_read_lock();
+ retry:
+ 	entry = mas_start(&mas);
+@@ -5925,7 +5927,7 @@ int mtree_store_range(struct maple_tree
+ 	MA_STATE(mas, mt, index, last);
+ 	int ret = 0;
+ 
+-	trace_ma_write(__func__, &mas, 0, entry);
++	trace_ma_write(TP_FCT, &mas, 0, entry);
+ 	if (WARN_ON_ONCE(xa_is_advanced(entry)))
+ 		return -EINVAL;
+ 
+@@ -6148,7 +6150,7 @@ void *mtree_erase(struct maple_tree *mt,
+ 	void *entry = NULL;
+ 
+ 	MA_STATE(mas, mt, index, index);
+-	trace_ma_op(__func__, &mas);
++	trace_ma_op(TP_FCT, &mas);
+ 
+ 	mtree_lock(mt);
+ 	entry = mas_erase(&mas);
+@@ -6485,7 +6487,7 @@ void *mt_find(struct maple_tree *mt, uns
+ 	unsigned long copy = *index;
+ #endif
+ 
+-	trace_ma_read(__func__, &mas);
++	trace_ma_read(TP_FCT, &mas);
+ 
+ 	if ((*index) > max)
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from martin@kaiser.cx are
 
-codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext.patch
-mailmap-add-entry-for-hao-ge.patch
+maple_tree-fix-tracepoint-string-pointers.patch
 
