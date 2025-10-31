@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19CFC273803;
-	Fri, 31 Oct 2025 04:20:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 747792FFFAC
+	for <mm-commits@vger.kernel.org>; Fri, 31 Oct 2025 20:56:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761884411; cv=none; b=h/j1ovDnkHqSUD7MyjSFd9i0rzMmx03/jltChqTjC54y3qGP+SxhodnDUqc51u2yIhWL1TBoLbTfQzxaA/fcovfM8iBd++L8Q5eFcLXzXNN9k3iCgO2YXoD7duzHftziLuuvD6FT+3rfAfnYkcfFW56uHz48dXdAfmMNNli5plA=
+	t=1761944203; cv=none; b=uH+CBANmXakLXz5+iS3xA5cQHWMwJkcgBH5bN1MiJPZxkAcB5WxJjyJ1UIwffR1IkKTe/xvZcPSrs0MjAAvnpSfHj1UxXw3aDYYKnvMKpFX51OVGb3BXnq2C+c8bz6Sm0EP2rt+8QzCT1+vK4ZFzpzSDC6u2d0sqx8B1KrXxPv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761884411; c=relaxed/simple;
-	bh=RpWLEx/hY1HUCYETjsc6DQVxiV1NBa7nSxNwgCcxgNk=;
-	h=Date:To:From:Subject:Message-Id; b=u+pC/QmQGeMgoYCS8GRKuIxmSaHeELA2c8FDPFwDEJzdQoapujrRrMDuJ/mJHHjOwizHDLRd1qNe4lVpt8IzOd5zvzJRiaO0TLbrA2EW97SUaqiW3lLPJlWycxwEl9K4evqfUmzn0b/h5ED0aavvIEhk9Ya9sFaGcm1Vu/7JFEg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HWBxe1fx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761944203; c=relaxed/simple;
+	bh=JLIJsJrYmmuYsUDRWFFyCSeZxz7DRECPv6jN8SC0obg=;
+	h=Date:To:From:Subject:Message-Id; b=iNs5VtAHN4lREigsw5S5N+RZ3WpZA9B0XgmIhsANYBvNfC+9srmD2+GMDtijRiff4uMxk0ybIoZqSGqjHFWqO2LDEpyL9g/7LTjPrOAZDN+/3xCjNeJLmjyUP7iJDN5pastBn/FZ8YRZBKiaf2GQ+THwIzaiX5x09jWxfLjVcD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hknWIE7c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HWBxe1fx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 764EEC4CEE7;
-	Fri, 31 Oct 2025 04:20:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hknWIE7c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0DB0C4CEE7;
+	Fri, 31 Oct 2025 20:56:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761884410;
-	bh=RpWLEx/hY1HUCYETjsc6DQVxiV1NBa7nSxNwgCcxgNk=;
+	s=korg; t=1761944203;
+	bh=JLIJsJrYmmuYsUDRWFFyCSeZxz7DRECPv6jN8SC0obg=;
 	h=Date:To:From:Subject:From;
-	b=HWBxe1fxUGw92nexDm4N0E3wEmEx0geilB3w2iSvJBxKfVgV3SxiuDl6eD/UkVIQ+
-	 lDy7ZgFZRHk3NPqcwxRvG6H9mSDMBY17Gss7ZWTkBgC1opWlOI4L8kF6EsFTRpB+o1
-	 +mfKJ74WzEhqWoo0noyz9NwTvPMFOvqiL/tDXZoI=
-Date: Thu, 30 Oct 2025 21:20:09 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,eadavis@qq.com,akpm@linux-foundation.org
+	b=hknWIE7cfbKs5oExu7scwtqe937UpDxlIsPn4/9FXHY8bN67g8pu8VJBW0F21A/Fq
+	 a6pZZKKL8TJjXdQf7n1epYMsqPdly8/KVHy7afVYqMQwD8KovDuTMXXze28oP8OLYl
+	 kbHeOXWpVwPQy1Aap+iDDc84ZybndOe+LETDr17c=
+Date: Fri, 31 Oct 2025 13:56:42 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,david@redhat.com,chengming.zhou@linux.dev,pedrodemargomes@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-avoid-having-an-active-sc_timer-before-freeing-sci.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251031042010.764EEC4CEE7@smtp.kernel.org>
+Subject: + revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch added to mm-new branch
+Message-Id: <20251031205642.E0DB0C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: avoid having an active sc_timer before freeing sci
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-avoid-having-an-active-sc_timer-before-freeing-sci.patch
+     Subject: Revert "mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk"
+has been added to the -mm mm-new branch.  Its filename is
+     revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-avoid-having-an-active-sc_timer-before-freeing-sci.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,64 +64,176 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Edward Adam Davis <eadavis@qq.com>
-Subject: nilfs2: avoid having an active sc_timer before freeing sci
-Date: Thu, 30 Oct 2025 07:51:52 +0900
+From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Subject: Revert "mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk"
+Date: Fri, 31 Oct 2025 14:46:23 -0300
 
-Because kthread_stop did not stop sc_task properly and returned -EINTR,
-the sc_timer was not properly closed, ultimately causing the problem [1]
-reported by syzbot when freeing sci due to the sc_timer not being closed.
+Patch series "ksm: perform a range-walk to jump over holes in break_ksm",
+v2.
 
-Because the thread sc_task main function nilfs_segctor_thread() returns 0
-when it succeeds, when the return value of kthread_stop() is not 0 in
-nilfs_segctor_destroy(), we believe that it has not properly closed
-sc_timer.
+When unmerging an address range, unmerge_ksm_pages function walks every
+page address in the specified range to locate ksm pages.  This becomes
+highly inefficient when scanning large virtual memory areas that contain
+mostly unmapped regions, causing the process to get blocked for several
+minutes.
 
-We use timer_shutdown_sync() to sync wait for sc_timer to shutdown, and
-set the value of sc_task to NULL under the protection of lock
-sc_state_lock, so as to avoid the issue caused by sc_timer not being
-properly shutdowned.
+This patch makes break_ksm, function called by unmerge_ksm_pages for every
+page in an address range, perform a range walk, allowing it to skip over
+entire unmapped holes in a VMA, avoiding unnecessary lookups.
 
-[1]
-ODEBUG: free active (active state 0) object: 00000000dacb411a object type: timer_list hint: nilfs_construction_timeout
-Call trace:
- nilfs_segctor_destroy fs/nilfs2/segment.c:2811 [inline]
- nilfs_detach_log_writer+0x668/0x8cc fs/nilfs2/segment.c:2877
- nilfs_put_super+0x4c/0x12c fs/nilfs2/super.c:509
+As pointed by David Hildenbrand in [1], unmerge_ksm_pages() is called
+from:
 
-Link: https://lkml.kernel.org/r/20251029225226.16044-1-konishi.ryusuke@gmail.com
-Fixes: 3f66cc261ccb ("nilfs2: use kthread_create and kthread_stop for the log writer thread")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+24d8b70f039151f65590@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=24d8b70f039151f65590
-Tested-by: syzbot+24d8b70f039151f65590@syzkaller.appspotmail.com
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
-Cc: <stable@vger.kernel.org>	[6.12+]
+* ksm_madvise() through madvise(MADV_UNMERGEABLE).  There are not a lot
+  of users of that function.
+
+* __ksm_del_vma() through ksm_del_vmas().  Effectively called when
+  disabling KSM for a process either through the sysctl or from s390x gmap
+  code when enabling storage keys for a VM.
+
+Consider the following test program which creates a 32 TiB mapping in the
+virtual address space but only populates a single page:
+
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/mman.h>
+
+/* 32 TiB */
+const size_t size = 32ul * 1024 * 1024 * 1024 * 1024;
+
+int main() {
+        char *area = mmap(NULL, size, PROT_READ | PROT_WRITE,
+                          MAP_NORESERVE | MAP_PRIVATE | MAP_ANON, -1, 0);
+
+        if (area == MAP_FAILED) {
+                perror("mmap() failed\n");
+                return -1;
+        }
+
+        /* Populate a single page such that we get an anon_vma. */
+        *area = 0;
+
+        /* Enable KSM. */
+        madvise(area, size, MADV_MERGEABLE);
+        madvise(area, size, MADV_UNMERGEABLE);
+        return 0;
+}
+
+
+Without this patch, this program takes 9 minutes to finish, while with
+this patch it finishes in less then 5 seconds.
+
+
+This patch (of 3):
+
+This reverts commit e317a8d8b4f600fc7ec9725e26417030ee594f52 and changes
+function break_ksm_pmd_entry() to use folios.
+
+This reverts break_ksm() to use walk_page_range_vma() instead of
+folio_walk_start().  This will make it easier to later modify break_ksm()
+to perform a proper range walk.
+
+Link: https://lkml.kernel.org/r/20251031174625.127417-2-pedrodemargomes@gmail.com
+Link: https://lore.kernel.org/linux-mm/e0886fdf-d198-4130-bd9a-be276c59da37@redhat.com/ [1]
+Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/ksm.c |   63 +++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 47 insertions(+), 16 deletions(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-avoid-having-an-active-sc_timer-before-freeing-sci
-+++ a/fs/nilfs2/segment.c
-@@ -2768,7 +2768,12 @@ static void nilfs_segctor_destroy(struct
+--- a/mm/ksm.c~revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk
++++ a/mm/ksm.c
+@@ -607,6 +607,47 @@ static inline bool ksm_test_exit(struct
+ 	return atomic_read(&mm->mm_users) == 0;
+ }
  
- 	if (sci->sc_task) {
- 		wake_up(&sci->sc_wait_daemon);
--		kthread_stop(sci->sc_task);
-+		if (kthread_stop(sci->sc_task)) {
-+			spin_lock(&sci->sc_state_lock);
-+			sci->sc_task = NULL;
-+			timer_shutdown_sync(&sci->sc_timer);
-+			spin_unlock(&sci->sc_state_lock);
-+		}
- 	}
++static int break_ksm_pmd_entry(pmd_t *pmd, unsigned long addr, unsigned long next,
++			struct mm_walk *walk)
++{
++	struct folio *folio = NULL;
++	spinlock_t *ptl;
++	pte_t *pte;
++	pte_t ptent;
++	int ret;
++
++	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
++	if (!pte)
++		return 0;
++	ptent = ptep_get(pte);
++	if (pte_present(ptent)) {
++		folio = vm_normal_folio(walk->vma, addr, ptent);
++	} else if (!pte_none(ptent)) {
++		swp_entry_t entry = pte_to_swp_entry(ptent);
++
++		/*
++		 * As KSM pages remain KSM pages until freed, no need to wait
++		 * here for migration to end.
++		 */
++		if (is_migration_entry(entry))
++			folio = pfn_swap_entry_folio(entry);
++	}
++	/* return 1 if the page is an normal ksm page or KSM-placed zero page */
++	ret = (folio && folio_test_ksm(folio)) || is_ksm_zero_pte(ptent);
++	pte_unmap_unlock(pte, ptl);
++	return ret;
++}
++
++static const struct mm_walk_ops break_ksm_ops = {
++	.pmd_entry = break_ksm_pmd_entry,
++	.walk_lock = PGWALK_RDLOCK,
++};
++
++static const struct mm_walk_ops break_ksm_lock_vma_ops = {
++	.pmd_entry = break_ksm_pmd_entry,
++	.walk_lock = PGWALK_WRLOCK,
++};
++
+ /*
+  * We use break_ksm to break COW on a ksm page by triggering unsharing,
+  * such that the ksm page will get replaced by an exclusive anonymous page.
+@@ -623,26 +664,16 @@ static inline bool ksm_test_exit(struct
+ static int break_ksm(struct vm_area_struct *vma, unsigned long addr, bool lock_vma)
+ {
+ 	vm_fault_t ret = 0;
+-
+-	if (lock_vma)
+-		vma_start_write(vma);
++	const struct mm_walk_ops *ops = lock_vma ?
++				&break_ksm_lock_vma_ops : &break_ksm_ops;
  
- 	spin_lock(&sci->sc_state_lock);
+ 	do {
+-		bool ksm_page = false;
+-		struct folio_walk fw;
+-		struct folio *folio;
++		int ksm_page;
+ 
+ 		cond_resched();
+-		folio = folio_walk_start(&fw, vma, addr,
+-					 FW_MIGRATION | FW_ZEROPAGE);
+-		if (folio) {
+-			/* Small folio implies FW_LEVEL_PTE. */
+-			if (!folio_test_large(folio) &&
+-			    (folio_test_ksm(folio) || is_ksm_zero_pte(fw.pte)))
+-				ksm_page = true;
+-			folio_walk_end(&fw, vma);
+-		}
+-
++		ksm_page = walk_page_range_vma(vma, addr, addr + 1, ops, NULL);
++		if (WARN_ON_ONCE(ksm_page < 0))
++			return ksm_page;
+ 		if (!ksm_page)
+ 			return 0;
+ 		ret = handle_mm_fault(vma, addr,
 _
 
-Patches currently in -mm which might be from eadavis@qq.com are
+Patches currently in -mm which might be from pedrodemargomes@gmail.com are
 
-nilfs2-avoid-having-an-active-sc_timer-before-freeing-sci.patch
+ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
+revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
+ksm-perform-a-range-walk-in-break_ksm.patch
+ksm-replace-function-unmerge_ksm_pages-with-break_ksm.patch
 
