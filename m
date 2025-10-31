@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52582ED848;
-	Fri, 31 Oct 2025 02:33:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD4902C11E6
+	for <mm-commits@vger.kernel.org>; Fri, 31 Oct 2025 02:34:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761877995; cv=none; b=JU3gLgwVi2y6lGNqF1JQcX+RQrbaR2IyjGa7ofBxJXuKqUpgBQipWknb/hXbr6L0q4Xq1U03trmPOh4ElmEc08UiyvqcQSEOC45qDxTdI1iegFNLTHbCyJIGFdFB8b+rjYDjtZqiGZ/8fO7ie8gboBFLxhhCJzp6LKKb5Rs7LFU=
+	t=1761878047; cv=none; b=loBR6Z2FKm8itQ4LwDTrXwUYDeEoEiC8pmkhs6uTthmGnHwcgLxubWaS8YFF/Sjh3fwfjvYpnOHqf+htYz+zDjCSYdpOAYSasVSkpKMURxN/h2ijRbsilFCzzN0MfiLRaaBIh5h+1lMICxud4tVw7viHate3XmbGLifXQp6uruY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761877995; c=relaxed/simple;
-	bh=Mq11uDNf3+isSSCsfm8wsU/RMUMtENJ4C8jb6Om1Oho=;
-	h=Date:To:From:Subject:Message-Id; b=a8EYVkjHWsDTmNcQrtRPvlZtG5wGija4bhGWVkD2T16LXxK1NciLE/iUCNR+kpNTDkkJaxq84sisBWDwyiBfycmBcKDX4owwE723iQOfVKldt4UOJdmLUtlgSMJqE9yCzItfpfQ//hqevcgVYPhVVe6gnjjdoGApfxqRKoy5fCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+ABI03J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761878047; c=relaxed/simple;
+	bh=+XA2rhVltKCrjEbjSTYqjHIHUqBL5qn8+6p6L6M3068=;
+	h=Date:To:From:Subject:Message-Id; b=kAsKzLtKJb1vrlq8BRqLoCTuL9BRnvOBzj2oTjyeQboiG6ekQ8wTpcUPpdvwaM4tcU1uJAWmFW52PcDC95rPo+q3mNT1alEAgsgQ7F3kQm34NLl7a1zwDiCp4cvxq9maymWL+KXQtB9xNLNA4ZXVtuHhIZVA1iUiqKfd68uSTy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u5Tk066p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+ABI03J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5945FC4CEF1;
-	Fri, 31 Oct 2025 02:33:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u5Tk066p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7889C4CEF1;
+	Fri, 31 Oct 2025 02:34:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761877994;
-	bh=Mq11uDNf3+isSSCsfm8wsU/RMUMtENJ4C8jb6Om1Oho=;
+	s=korg; t=1761878046;
+	bh=+XA2rhVltKCrjEbjSTYqjHIHUqBL5qn8+6p6L6M3068=;
 	h=Date:To:From:Subject:From;
-	b=j+ABI03JQZewrzLh4fN9bF2FaR4bl+HRrCL53v+cy++a6tUjMi5VrM2h072yeDpDs
-	 QZVZ/7HHrAd2SHF4jADUoEoAGjvYITaDwUlPl8o8REtovz2ZioCcJAqZ/BzXGux8WE
-	 R80WZnCoH7UogCaDLtqBkb4opHEH72tDpGypV2V8=
-Date: Thu, 30 Oct 2025 19:33:13 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,liam.howlett@oracle.com,martin@kaiser.cx,akpm@linux-foundation.org
+	b=u5Tk066psvMG8plg/RD8TrmhbNku8sXxkHQOrev83jvPRUuvpGCsHzDbxkpP7ki51
+	 YwExmrIHiaOVxidBWMbkX2t5/p40DCLOtubGKvOgWtkIcj/I31P9JhQbxS3H0p+bAO
+	 YHR7XwsjqWnlAdLdBB7EDm9tTYzONLoMo+9gKKvg=
+Date: Thu, 30 Oct 2025 19:34:06 -0700
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-fix-tracepoint-string-pointers.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251031023314.5945FC4CEF1@smtp.kernel.org>
+Subject: + nilfs2-replace-vmalloc-copy_from_user-with-vmemdup_user.patch added to mm-nonmm-unstable branch
+Message-Id: <20251031023406.D7889C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: fix tracepoint string pointers
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-fix-tracepoint-string-pointers.patch
+     Subject: nilfs2: replace vmalloc + copy_from_user with vmemdup_user
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-replace-vmalloc-copy_from_user-with-vmemdup_user.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-tracepoint-string-pointers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-replace-vmalloc-copy_from_user-with-vmemdup_user.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,172 +58,132 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Martin Kaiser <martin@kaiser.cx>
-Subject: maple_tree: fix tracepoint string pointers
-Date: Thu, 30 Oct 2025 16:55:05 +0100
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: nilfs2: replace vmalloc + copy_from_user with vmemdup_user
+Date: Fri, 31 Oct 2025 00:46:43 +0900
 
-maple_tree tracepoints contain pointers to function names. Such a pointer
-is saved when a tracepoint logs an event. There's no guarantee that it's
-still valid when the event is parsed later and the pointer is dereferenced.
+Replace vmalloc() followed by copy_from_user() with vmemdup_user() to
+improve nilfs_ioctl_clean_segments() and nilfs_ioctl_set_suinfo().  Use
+kvfree() to free the buffers created by vmemdup_user().
 
-The kernel warns about these unsafe pointers.
+Use u64_to_user_ptr() instead of manually casting the pointers and
+remove the obsolete 'out_free' label.
 
-	event 'ma_read' has unsafe pointer field 'fn'
-	WARNING: kernel/trace/trace.c:3779 at ignore_event+0x1da/0x1e4
+No functional changes intended.
 
-Mark the function names as tracepoint_string() to fix the events.
-
-Link: https://lkml.kernel.org/r/20251030155537.87972-1-martin@kaiser.cx
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Martin Kaiser <martin@kaiser.cx>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251030154700.7444-1-konishi.ryusuke@gmail.com
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ fs/nilfs2/ioctl.c |   35 ++++++++++-------------------------
+ 1 file changed, 10 insertions(+), 25 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-tracepoint-string-pointers
-+++ a/lib/maple_tree.c
-@@ -64,6 +64,8 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/maple_tree.h>
- 
-+#define TP_FCT tracepoint_string(__func__)
-+
- /*
-  * Kernel pointer hashing renders much of the maple tree dump useless as tagged
-  * pointers get hashed to arbitrary values.
-@@ -2756,7 +2758,7 @@ static inline void mas_rebalance(struct
- 	MA_STATE(l_mas, mas->tree, mas->index, mas->last);
- 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
- 
--	trace_ma_op(__func__, mas);
-+	trace_ma_op(TP_FCT, mas);
- 
- 	/*
- 	 * Rebalancing occurs if a node is insufficient.  Data is rebalanced
-@@ -2997,7 +2999,7 @@ static void mas_split(struct ma_state *m
- 	MA_STATE(prev_l_mas, mas->tree, mas->index, mas->last);
- 	MA_STATE(prev_r_mas, mas->tree, mas->index, mas->last);
- 
--	trace_ma_op(__func__, mas);
-+	trace_ma_op(TP_FCT, mas);
- 
- 	mast.l = &l_mas;
- 	mast.r = &r_mas;
-@@ -3172,7 +3174,7 @@ static bool mas_is_span_wr(struct ma_wr_
- 			return false;
- 	}
- 
--	trace_ma_write(__func__, wr_mas->mas, wr_mas->r_max, entry);
-+	trace_ma_write(TP_FCT, wr_mas->mas, wr_mas->r_max, entry);
- 	return true;
- }
- 
-@@ -3416,7 +3418,7 @@ static noinline void mas_wr_spanning_sto
- 	 * of data may happen.
+--- a/fs/nilfs2/ioctl.c~nilfs2-replace-vmalloc-copy_from_user-with-vmemdup_user
++++ a/fs/nilfs2/ioctl.c
+@@ -49,7 +49,7 @@ static int nilfs_ioctl_wrap_copy(struct
+ 						   void *, size_t, size_t))
+ {
+ 	void *buf;
+-	void __user *base = (void __user *)(unsigned long)argv->v_base;
++	void __user *base = u64_to_user_ptr(argv->v_base);
+ 	size_t maxmembs, total, n;
+ 	ssize_t nr;
+ 	int ret, i;
+@@ -836,7 +836,6 @@ static int nilfs_ioctl_clean_segments(st
+ 		sizeof(struct nilfs_bdesc),
+ 		sizeof(__u64),
+ 	};
+-	void __user *base;
+ 	void *kbufs[5];
+ 	struct the_nilfs *nilfs;
+ 	size_t len, nsegs;
+@@ -863,7 +862,7 @@ static int nilfs_ioctl_clean_segments(st
+ 	 * use kmalloc() for its buffer because the memory used for the
+ 	 * segment numbers is small enough.
  	 */
- 	mas = wr_mas->mas;
--	trace_ma_op(__func__, mas);
-+	trace_ma_op(TP_FCT, mas);
+-	kbufs[4] = memdup_array_user((void __user *)(unsigned long)argv[4].v_base,
++	kbufs[4] = memdup_array_user(u64_to_user_ptr(argv[4].v_base),
+ 				     nsegs, sizeof(__u64));
+ 	if (IS_ERR(kbufs[4])) {
+ 		ret = PTR_ERR(kbufs[4]);
+@@ -883,20 +882,14 @@ static int nilfs_ioctl_clean_segments(st
+ 			goto out_free;
  
- 	if (unlikely(!mas->index && mas->last == ULONG_MAX))
- 		return mas_new_root(mas, wr_mas->entry);
-@@ -3552,7 +3554,7 @@ done:
- 	} else {
- 		memcpy(wr_mas->node, newnode, sizeof(struct maple_node));
+ 		len = argv[n].v_size * argv[n].v_nmembs;
+-		base = (void __user *)(unsigned long)argv[n].v_base;
+ 		if (len == 0) {
+ 			kbufs[n] = NULL;
+ 			continue;
+ 		}
+ 
+-		kbufs[n] = vmalloc(len);
+-		if (!kbufs[n]) {
+-			ret = -ENOMEM;
+-			goto out_free;
+-		}
+-		if (copy_from_user(kbufs[n], base, len)) {
+-			ret = -EFAULT;
+-			vfree(kbufs[n]);
++		kbufs[n] = vmemdup_user(u64_to_user_ptr(argv[n].v_base), len);
++		if (IS_ERR(kbufs[n])) {
++			ret = PTR_ERR(kbufs[n]);
+ 			goto out_free;
+ 		}
  	}
--	trace_ma_write(__func__, mas, 0, wr_mas->entry);
-+	trace_ma_write(TP_FCT, mas, 0, wr_mas->entry);
- 	mas_update_gap(mas);
- 	mas->end = new_end;
- 	return;
-@@ -3596,7 +3598,7 @@ static inline void mas_wr_slot_store(str
- 		mas->offset++; /* Keep mas accurate. */
- 	}
+@@ -928,7 +921,7 @@ static int nilfs_ioctl_clean_segments(st
  
--	trace_ma_write(__func__, mas, 0, wr_mas->entry);
-+	trace_ma_write(TP_FCT, mas, 0, wr_mas->entry);
- 	/*
- 	 * Only update gap when the new entry is empty or there is an empty
- 	 * entry in the original two ranges.
-@@ -3717,7 +3719,7 @@ static inline void mas_wr_append(struct
- 		mas_update_gap(mas);
+ out_free:
+ 	while (--n >= 0)
+-		vfree(kbufs[n]);
++		kvfree(kbufs[n]);
+ 	kfree(kbufs[4]);
+ out:
+ 	mnt_drop_write_file(filp);
+@@ -1181,7 +1174,6 @@ static int nilfs_ioctl_set_suinfo(struct
+ 	struct nilfs_transaction_info ti;
+ 	struct nilfs_argv argv;
+ 	size_t len;
+-	void __user *base;
+ 	void *kbuf;
+ 	int ret;
  
- 	mas->end = new_end;
--	trace_ma_write(__func__, mas, new_end, wr_mas->entry);
-+	trace_ma_write(TP_FCT, mas, new_end, wr_mas->entry);
- 	return;
- }
- 
-@@ -3731,7 +3733,7 @@ static void mas_wr_bnode(struct ma_wr_st
- {
- 	struct maple_big_node b_node;
- 
--	trace_ma_write(__func__, wr_mas->mas, 0, wr_mas->entry);
-+	trace_ma_write(TP_FCT, wr_mas->mas, 0, wr_mas->entry);
- 	memset(&b_node, 0, sizeof(struct maple_big_node));
- 	mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
- 	mas_commit_b_node(wr_mas, &b_node);
-@@ -5062,7 +5064,7 @@ void *mas_store(struct ma_state *mas, vo
- {
- 	MA_WR_STATE(wr_mas, mas, entry);
- 
--	trace_ma_write(__func__, mas, 0, entry);
-+	trace_ma_write(TP_FCT, mas, 0, entry);
- #ifdef CONFIG_DEBUG_MAPLE_TREE
- 	if (MAS_WARN_ON(mas, mas->index > mas->last))
- 		pr_err("Error %lX > %lX " PTR_FMT "\n", mas->index, mas->last,
-@@ -5163,7 +5165,7 @@ void mas_store_prealloc(struct ma_state
+@@ -1212,18 +1204,12 @@ static int nilfs_ioctl_set_suinfo(struct
+ 		goto out;
  	}
  
- store:
--	trace_ma_write(__func__, mas, 0, entry);
-+	trace_ma_write(TP_FCT, mas, 0, entry);
- 	mas_wr_store_entry(&wr_mas);
- 	MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
- 	mas_destroy(mas);
-@@ -5882,7 +5884,7 @@ void *mtree_load(struct maple_tree *mt,
- 	MA_STATE(mas, mt, index, index);
- 	void *entry;
+-	base = (void __user *)(unsigned long)argv.v_base;
+-	kbuf = vmalloc(len);
+-	if (!kbuf) {
+-		ret = -ENOMEM;
++	kbuf = vmemdup_user(u64_to_user_ptr(argv.v_base), len);
++	if (IS_ERR(kbuf)) {
++		ret = PTR_ERR(kbuf);
+ 		goto out;
+ 	}
  
--	trace_ma_read(__func__, &mas);
-+	trace_ma_read(TP_FCT, &mas);
- 	rcu_read_lock();
- retry:
- 	entry = mas_start(&mas);
-@@ -5925,7 +5927,7 @@ int mtree_store_range(struct maple_tree
- 	MA_STATE(mas, mt, index, last);
- 	int ret = 0;
+-	if (copy_from_user(kbuf, base, len)) {
+-		ret = -EFAULT;
+-		goto out_free;
+-	}
+-
+ 	nilfs_transaction_begin(inode->i_sb, &ti, 0);
+ 	ret = nilfs_sufile_set_suinfo(nilfs->ns_sufile, kbuf, argv.v_size,
+ 			argv.v_nmembs);
+@@ -1232,8 +1218,7 @@ static int nilfs_ioctl_set_suinfo(struct
+ 	else
+ 		nilfs_transaction_commit(inode->i_sb); /* never fails */
  
--	trace_ma_write(__func__, &mas, 0, entry);
-+	trace_ma_write(TP_FCT, &mas, 0, entry);
- 	if (WARN_ON_ONCE(xa_is_advanced(entry)))
- 		return -EINVAL;
- 
-@@ -6148,7 +6150,7 @@ void *mtree_erase(struct maple_tree *mt,
- 	void *entry = NULL;
- 
- 	MA_STATE(mas, mt, index, index);
--	trace_ma_op(__func__, &mas);
-+	trace_ma_op(TP_FCT, &mas);
- 
- 	mtree_lock(mt);
- 	entry = mas_erase(&mas);
-@@ -6485,7 +6487,7 @@ void *mt_find(struct maple_tree *mt, uns
- 	unsigned long copy = *index;
- #endif
- 
--	trace_ma_read(__func__, &mas);
-+	trace_ma_read(TP_FCT, &mas);
- 
- 	if ((*index) > max)
- 		return NULL;
+-out_free:
+-	vfree(kbuf);
++	kvfree(kbuf);
+ out:
+ 	mnt_drop_write_file(filp);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from martin@kaiser.cx are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-maple_tree-fix-tracepoint-string-pointers.patch
+nilfs2-replace-vmalloc-copy_from_user-with-vmemdup_user.patch
 
