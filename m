@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EA9D274B30;
-	Fri, 31 Oct 2025 03:29:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4760F21257E
+	for <mm-commits@vger.kernel.org>; Fri, 31 Oct 2025 03:48:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761881393; cv=none; b=iozhhCNYaLbxV8Q4LP0rAZ22ZPPOC6aNXRwC1bD/1fwFapQtI7ouGqZS3xIO6pxQ08xINlM12E1N+atH5yeuO53djCT/xy3JngMZuSBC8dhooUz3pqJKyG9bFT/7jtvov6a0oUnFWDAPYMbAVxYVszH3WGa2gwSRzX6Ilwkjjys=
+	t=1761882490; cv=none; b=jXS9AYRC29N5ZsFF1zNAkUBIAZAQLP32cDzptWznU3YpBeLEW/YLehKQfOzHjZUoHSOu8Y9Rw0zcMCFstvB5ocK/65+afqZLHCix9pRdGU8GHJSgFjsAAy6ha2C7+IXDekUMDA8XX43CWxel4GWpSYwhxGb/mK5cZhpzD5n2zhs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761881393; c=relaxed/simple;
-	bh=tOp+KRVH2sLltKtt6CMWxaH3Av4wegBgKUKCf/CTyEo=;
-	h=Date:To:From:Subject:Message-Id; b=Qr/y/lZeJ4APpuUPHWKDhR3QwunSbfFi4cNXMoHTgtSMP8JMh8g5OXGX451waElaepA0r/+K4qfhpbKULPrMNhvE1kqOtX0JJl6uD9hXZg/B7zo+0SbwJF4yxvY1fPvdyJfIZn2swhkKhtgKeg568ZTI0WtKLSR1OkoZebJPQDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CkMI+lT5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761882490; c=relaxed/simple;
+	bh=gEUWLn3Zr9W2Zgt92PIMdtMoOEuwzVI337FAtOjDuMg=;
+	h=Date:To:From:Subject:Message-Id; b=B0M831ISrdQmO7I8/ztar6z7ze7wnUOfCjV/WJLnT9wFTOzm8V5DMm4jYSrkxzQoqUzNc2DArlhciE6JEqiXV9TEiT9ze9LpHjLxjwAkdkGnmnoHegxklHugrYpTEphk1LvlyPmCc7VsJK42zeV5NCpK02V0bEQi0ChsBm57ucM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=is7Bq/CZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CkMI+lT5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 232E8C113D0;
-	Fri, 31 Oct 2025 03:29:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="is7Bq/CZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91460C4CEE7;
+	Fri, 31 Oct 2025 03:48:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761881393;
-	bh=tOp+KRVH2sLltKtt6CMWxaH3Av4wegBgKUKCf/CTyEo=;
+	s=korg; t=1761882489;
+	bh=gEUWLn3Zr9W2Zgt92PIMdtMoOEuwzVI337FAtOjDuMg=;
 	h=Date:To:From:Subject:From;
-	b=CkMI+lT5dKKfziI8gEoCOIod4BnOdLS6EuZdg4v0hwQ0INQsjScz5+JUfkHl+YyyW
-	 28NuUGgzOsLmseXmgXOzCo2ISqSqwwgQN6y3LAdWuN/STEXyWAU+Z71QNHNKY2gbZZ
-	 IK9OVV42BW2J7PhjFgdmQ/4NcTRZ0g0ApZpVTtAM=
-Date: Thu, 30 Oct 2025 20:29:52 -0700
-To: mm-commits@vger.kernel.org,zuoze1@huawei.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,sj@kernel.org,yanquanmin1@huawei.com,akpm@linux-foundation.org
+	b=is7Bq/CZB2KIy2keRsaY0RFiILLORpvzlp//L2dctNIEKzv0WKm1PJn4GKPwieQxJ
+	 pjf0Z7cDl9YxkSUkNv/ahDP6AzyW7pLvTM27ZuF5cpQA/TUbNBPODj7SV+Yq+IwqWS
+	 OfsE8La51D4u26ybkHvysKGY/6HImszuzFWC7Ox8=
+Date: Thu, 30 Oct 2025 20:48:08 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lance.yang@linux.dev,kernel@pankajraghav.com,jane.chu@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-change-next_update_jiffies-to-a-global-variable.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251031032953.232E8C113D0@smtp.kernel.org>
+Subject: + mm-huge_memory-add-split_huge_page_to_order.patch added to mm-new branch
+Message-Id: <20251031034809.91460C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: change next_update_jiffies to a global variable
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-change-next_update_jiffies-to-a-global-variable.patch
+     Subject: mm/huge_memory: add split_huge_page_to_order()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-huge_memory-add-split_huge_page_to_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-change-next_update_jiffies-to-a-global-variable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-split_huge_page_to_order.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,85 +64,88 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Quanmin Yan <yanquanmin1@huawei.com>
-Subject: mm/damon/sysfs: change next_update_jiffies to a global variable
-Date: Thu, 30 Oct 2025 10:07:46 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: add split_huge_page_to_order()
+Date: Wed, 29 Oct 2025 21:40:18 -0400
 
-In DAMON's damon_sysfs_repeat_call_fn(), time_before() is used to compare
-the current jiffies with next_update_jiffies to determine whether to
-update the sysfs files at this moment.
+Patch series "Optimize folio split in memory failure", v4.
 
-On 32-bit systems, the kernel initializes jiffies to "-5 minutes" to make
-jiffies wrap bugs appear earlier. However, this causes time_before() in
-damon_sysfs_repeat_call_fn() to unexpectedly return true during the first
-5 minutes after boot on 32-bit systems (see [1] for more explanation,
-which fixes another jiffies-related issue before). As a result, DAMON
-does not update sysfs files during that period.
 
-There is also an issue unrelated to the system's word size[2]: if the
-user stops DAMON just after next_update_jiffies is updated and restarts
-it after 'refresh_ms' or a longer delay, next_update_jiffies will retain
-an older value, causing time_before() to return false and the update to
-happen earlier than expected.
+This patch (of 3):
 
-Fix these issues by making next_update_jiffies a global variable and
-initializing it each time DAMON is started.
+When the caller does not supply a list to
+split_huge_page_to_list_to_order(), use split_huge_page_to_order()
+instead.
 
-Link: https://lkml.kernel.org/r/20251030020746.967174-3-yanquanmin1@huawei.com
-Link: https://lkml.kernel.org/r/20250822025057.1740854-1-ekffu200098@gmail.com [1]
-Link: https://lore.kernel.org/all/20251029013038.66625-1-sj@kernel.org/ [2]
-Fixes: d809a7c64ba8 ("mm/damon/sysfs: implement refresh_ms file internal work")
-Suggested-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: ze zuo <zuoze1@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251030014020.475659-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20251030014020.475659-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Pankaj Raghav <kernel@pankajraghav.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/linux/huge_mm.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-change-next_update_jiffies-to-a-global-variable
-+++ a/mm/damon/sysfs.c
-@@ -1552,16 +1552,17 @@ static struct damon_ctx *damon_sysfs_bui
- 	return ctx;
- }
- 
-+static unsigned long damon_sysfs_next_update_jiffies;
-+
- static int damon_sysfs_repeat_call_fn(void *data)
+--- a/include/linux/huge_mm.h~mm-huge_memory-add-split_huge_page_to_order
++++ a/include/linux/huge_mm.h
+@@ -381,6 +381,10 @@ static inline int split_huge_page_to_lis
  {
- 	struct damon_sysfs_kdamond *sysfs_kdamond = data;
--	static unsigned long next_update_jiffies;
+ 	return __split_huge_page_to_list_to_order(page, list, new_order, false);
+ }
++static inline int split_huge_page_to_order(struct page *page, unsigned int new_order)
++{
++	return split_huge_page_to_list_to_order(page, NULL, new_order);
++}
  
- 	if (!sysfs_kdamond->refresh_ms)
- 		return 0;
--	if (time_before(jiffies, next_update_jiffies))
-+	if (time_before(jiffies, damon_sysfs_next_update_jiffies))
- 		return 0;
--	next_update_jiffies = jiffies +
-+	damon_sysfs_next_update_jiffies = jiffies +
- 		msecs_to_jiffies(sysfs_kdamond->refresh_ms);
- 
- 	if (!mutex_trylock(&damon_sysfs_lock))
-@@ -1607,6 +1608,9 @@ static int damon_sysfs_turn_damon_on(str
- 	}
- 	kdamond->damon_ctx = ctx;
- 
-+	damon_sysfs_next_update_jiffies =
-+		jiffies + msecs_to_jiffies(kdamond->refresh_ms);
-+
- 	repeat_call_control->fn = damon_sysfs_repeat_call_fn;
- 	repeat_call_control->data = kdamond;
- 	repeat_call_control->repeat = true;
+ /*
+  * try_folio_split_to_order - try to split a @folio at @page to @new_order using
+@@ -400,8 +404,7 @@ static inline int try_folio_split_to_ord
+ 		struct page *page, unsigned int new_order)
+ {
+ 	if (!non_uniform_split_supported(folio, new_order, /* warns= */ false))
+-		return split_huge_page_to_list_to_order(&folio->page, NULL,
+-				new_order);
++		return split_huge_page_to_order(&folio->page, new_order);
+ 	return folio_split(folio, new_order, page, NULL);
+ }
+ static inline int split_huge_page(struct page *page)
+@@ -589,6 +592,11 @@ split_huge_page_to_list_to_order(struct
+ {
+ 	VM_WARN_ON_ONCE_PAGE(1, page);
+ 	return -EINVAL;
++}
++static inline int split_huge_page_to_order(struct page *page, unsigned int new_order)
++{
++	VM_WARN_ON_ONCE_PAGE(1, page);
++	return -EINVAL;
+ }
+ static inline int split_huge_page(struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from yanquanmin1@huawei.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-damon-stat-change-last_refresh_jiffies-to-a-global-variable.patch
-mm-damon-sysfs-change-next_update_jiffies-to-a-global-variable.patch
-mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default.patch
-mm-damon-reclaim-use-min_sz_region-for-core-address-alignment-when-setting-regions.patch
+mm-huge_memory-do-not-change-split_huge_page-target-order-silently.patch
+mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order.patch
+mm-huge_memory-add-split_huge_page_to_order.patch
+mm-memory-failure-improve-large-block-size-folio-handling.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
 
