@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D20C18C03F
-	for <mm-commits@vger.kernel.org>; Sat,  1 Nov 2025 03:08:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E0F18C03F
+	for <mm-commits@vger.kernel.org>; Sat,  1 Nov 2025 03:08:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761966534; cv=none; b=AcL0eIwWd1yvZa6Wi969cDDh39ljqPd/kJSb3YkQ+wCDUnzByjG/0UIBsB9D0Cj0dS5hJruG/RkB7Z1fwop8VszvpWQsUBPmX4kMRnJErPSWVMPVDQPWUMrhjVBVOTzgdHEzr0DfyyB5z3QdfkEHnk0AvV3dRCHMOP0BOo0GUYs=
+	t=1761966537; cv=none; b=OvBAsdKl7ek9paxMKUEwk7KguE09orlOILmS/hTXQqRWbh2PwihKuET6VvZUSTst6BCPSj9vrXWRji9lfsV6DSOpJ3aVVCBx6YBrIkZQeFjZKPFiIJ1wSgiKAbAF4yFksVIfFbJTO3oNrQX42F7OYieD6z2JiIXRdsF75POOMwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761966534; c=relaxed/simple;
-	bh=o3beqTDiPbLcE06D/LtWI7W7LSmEC+ayNy2vzXYwcco=;
-	h=Date:To:From:Subject:Message-Id; b=LYFBYhL1pOsDrGNIwK6Vz+57m937ZsN+/0aoyJ5sgsDYXyA76KWXmfbdaBwhUmi4Vs9/DPFstP/ZDrsrRZEZ+VuLFNSxT7Uh3cV9+GQ14Kl7AdoVAQ0LZ1Q0hzyq1djMj8q3PWRPDMMpfT6VNhzIhYGn10W3LwWsoeNs83DD7Ag=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zNY5Skpt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761966537; c=relaxed/simple;
+	bh=ZO3YHhQZS3E/oiZ73ziZjghXqJzqvI74cNGCPxXO7Co=;
+	h=Date:To:From:Subject:Message-Id; b=pQjztmTt9LXkzNTzvAyfItCM8octmCDOPmks8TtEJrinB+VvR9A5p6OM5fQBY3lNCPbCr5SLwqElIkbmocbhR2pjkG+1Zg75ttb8+5J8N01ab7WKScPwxSsry0KPtqKFFLYrcg9P8vAly0Mx+i7Ow8l+rprz8Kf3vwlvPQUdnJk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gsukVUF/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zNY5Skpt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4D6FC4CEE7;
-	Sat,  1 Nov 2025 03:08:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gsukVUF/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6266AC4CEE7;
+	Sat,  1 Nov 2025 03:08:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761966534;
-	bh=o3beqTDiPbLcE06D/LtWI7W7LSmEC+ayNy2vzXYwcco=;
+	s=korg; t=1761966536;
+	bh=ZO3YHhQZS3E/oiZ73ziZjghXqJzqvI74cNGCPxXO7Co=;
 	h=Date:To:From:Subject:From;
-	b=zNY5SkptjHz4Neu12k0zLhGNhUo8U6t+osCM/W3SZmfbfG/ODGNuAl64RkvCeioQc
-	 aN4REJUPtzQUo7cPIRyW/O5OsfEWepNgE1hswxePLK3lK5cqGqUDLFHc3prtnmpjNj
-	 xQ4yK6y2NX52EVVeS6rrz/pFMFrv7i0JyXMybEfM=
-Date: Fri, 31 Oct 2025 20:08:53 -0700
+	b=gsukVUF/eBvvSLF7MTW2OBSnWaLzJDB1i8sdth6x5EmCPbAkmK8iiDqrTtvIKhi2e
+	 9HrlRUc7g97Sauf0lMgTgBWygbqtGpG67S+b/TefIenRXApDURFGTc7dn7npGhr08z
+	 vU0xKo9gjvFycRxUT+8QD+Ya+7gCSrqJhGaXnXzE=
+Date: Fri, 31 Oct 2025 20:08:55 -0700
 To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-memory-leak-in-setup_clusters-error-path.patch added to mm-new branch
-Message-Id: <20251101030853.E4D6FC4CEE7@smtp.kernel.org>
+Subject: + mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational.patch added to mm-new branch
+Message-Id: <20251101030856.6266AC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: fix memory leak in setup_clusters() error path
+     Subject: mm, swap: use SWP_SOLIDSTATE to determine if swap is rotational
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-fix-memory-leak-in-setup_clusters-error-path.patch
+     mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-memory-leak-in-setup_clusters-error-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,67 +65,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm, swap: fix memory leak in setup_clusters() error path
-Date: Fri, 31 Oct 2025 15:50:07 +0900
+Subject: mm, swap: use SWP_SOLIDSTATE to determine if swap is rotational
+Date: Fri, 31 Oct 2025 15:50:08 +0900
 
-Patch series "mm: swap: small fixes and comment cleanups", v2.
+The current non rotational check is unreliable as the device's rotational
+status can be changed by a user via sysfs.
 
-This series provides a few small fixes and cleanups for the swap code.
+Use the more reliable SWP_SOLIDSTATE flag which is set at swapon time, to
+ensure the nr_rotate_swap count remains consistent.  Plus, it is easy to
+read and simple.
 
-The first patch fixes a memory leak in an error path that was recently
-introduced. The subsequent patches include minor logic adjustments and
-the removal of redundant comments.
-
-
-This patch (of 5):
-
-setup_clusters() could leak 'cluster_info' memory if an error occurred on
-a path that did not jump to the 'err_free' label.
-
-This patch simplifies the error handling by removing the goto label and
-instead calling free_cluster_info() on all error exit paths.
-
-The new logic is safe, as free_cluster_info() already handles NULL pointer
-inputs.
-
-Link: https://lkml.kernel.org/r/20251031065011.40863-1-youngjun.park@lge.com
-Link: https://lkml.kernel.org/r/20251031065011.40863-2-youngjun.park@lge.com
-Fixes: 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap table")
+Link: https://lkml.kernel.org/r/20251031065011.40863-3-youngjun.park@lge.com
+Fixes: 81a0298bdfab ("mm, swap: don't use VMA based swap readahead if HDD is used as swap")
 Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-fix-memory-leak-in-setup_clusters-error-path
+--- a/mm/swapfile.c~mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational
 +++ a/mm/swapfile.c
-@@ -3324,7 +3324,7 @@ static struct swap_cluster_info *setup_c
- 		si->global_cluster = kmalloc(sizeof(*si->global_cluster),
- 				     GFP_KERNEL);
- 		if (!si->global_cluster)
--			goto err_free;
-+			goto err;
- 		for (i = 0; i < SWAP_NR_ORDERS; i++)
- 			si->global_cluster->next[i] = SWAP_ENTRY_INVALID;
- 		spin_lock_init(&si->global_cluster_lock);
-@@ -3377,9 +3377,8 @@ static struct swap_cluster_info *setup_c
- 	}
+@@ -2913,7 +2913,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	if (p->flags & SWP_CONTINUED)
+ 		free_swap_count_continuations(p);
  
- 	return cluster_info;
--err_free:
--	free_cluster_info(cluster_info, maxpages);
- err:
-+	free_cluster_info(cluster_info, maxpages);
- 	return ERR_PTR(err);
- }
+-	if (!p->bdev || !bdev_nonrot(p->bdev))
++	if (!(p->flags & SWP_SOLIDSTATE))
+ 		atomic_dec(&nr_rotate_swap);
  
+ 	mutex_lock(&swapon_mutex);
 _
 
 Patches currently in -mm which might be from youngjun.park@lge.com are
