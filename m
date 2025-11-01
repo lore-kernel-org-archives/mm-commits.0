@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B5C8212FB3
-	for <mm-commits@vger.kernel.org>; Sat,  1 Nov 2025 03:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5BD8212FB3
+	for <mm-commits@vger.kernel.org>; Sat,  1 Nov 2025 03:09:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761966540; cv=none; b=l6TZvHnNhGbOcCwlljRPSpPcf7optxWXUOANap97ScQB/FK0pHaRmbS06NAU+fGarwzj/JIzg/AXJw53/UkpIbUXrrdhU+23pQqjBS/9fpyE6Qn/RfXvZ8Npfk1N3+U2aK4c1Z4MY8DpqfYBmf+M7vCTo0HLPit92R3T+a1sc4A=
+	t=1761966542; cv=none; b=iJZgYrFOxfInKCZ94Tnj1KqpYOLhJOouREQsL/3v2+BTOmoBj+4ACUv3k59Z18uOxy8yx7dlnid+OiqDf1OzuZY/REfg7xSU2w4U84CxRPIv0/yfWT1mA1HdGkfx7G99mfVfP3W3zd7mrY//sPaPCpt/2hmPfpzdqOuBpa1acGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761966540; c=relaxed/simple;
-	bh=3S3Fb4nVGH+KFpu/l5DU65bvlfYdOaVM6jjeDe3spMg=;
-	h=Date:To:From:Subject:Message-Id; b=tz8pvZitD8X1akpkY5jPOkoeqEPgFQnHtnPu33So9c01SOwmiavuNfsmMogtJHrbjTMHvkjP4nf6hIPtGcRn3QeHHpIQm3Hc+aO4/vd5tblbyM6ZVZKHfJ1gLUFZxgiNp05DGcLkFxXBRK/QWk86tKMC/cFg+TUqpjoZrO656Xo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=apNUAypY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761966542; c=relaxed/simple;
+	bh=px/Cw+D/rrx4jCvhawOahNPdl5BF9NsFUGCqahoO/a8=;
+	h=Date:To:From:Subject:Message-Id; b=rRUyE4FVNxrgsbPxm/w5qxGCM72sRZIFSflqMsLhAFS46s6K0ReGu5c3tfGl+wI1hYGfJBUIRy1SQkmSGWo5LxOkHfLq+nUGJlmAzOjlLObC7jw3PRhS/wFHrlO8W1y3QW248J6iu7+zhT+NxMR4aAORDzO23xPWfytKHVXtFS8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HSW8PNvB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="apNUAypY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EBE3C4CEE7;
-	Sat,  1 Nov 2025 03:09:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HSW8PNvB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4169DC4CEE7;
+	Sat,  1 Nov 2025 03:09:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761966540;
-	bh=3S3Fb4nVGH+KFpu/l5DU65bvlfYdOaVM6jjeDe3spMg=;
+	s=korg; t=1761966542;
+	bh=px/Cw+D/rrx4jCvhawOahNPdl5BF9NsFUGCqahoO/a8=;
 	h=Date:To:From:Subject:From;
-	b=apNUAypYOE7eWlIHRbQGL0/GrmPyoVIgszuysJJt9vJ6DEOynAfOi2ArBxisoDDRN
-	 hrmpcR9wGRnZXtbFv1wlu9MzCRFG4IFBvq5ALFZGqUwZ3iu5N7KO9VqPH75KVCYGYs
-	 BPUicIu7hgB1by7V88B0pJdQgxzQgS7f9VovAkKs=
-Date: Fri, 31 Oct 2025 20:08:59 -0700
+	b=HSW8PNvBBkjlrXg+CC17vI9CCgaZLbRe9obuBnzM/xqPQNMNB7D6ga20Z9hJuozHJ
+	 lbEWKNOKUfLfPXsQ/A70l6k2RWZKtZ/VF2HjOmrgIALO7C6y+k3fbweuy844xRlLaq
+	 lX3qhusYpTiWZ3coXdecV+QqPEP+N1Pr9I0oTyTY=
+Date: Fri, 31 Oct 2025 20:09:01 -0700
 To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-change-swap_alloc_slow-to-void.patch added to mm-new branch
-Message-Id: <20251101030900.4EBE3C4CEE7@smtp.kernel.org>
+Subject: + mm-swap-remove-scan_swap_map_slots-references-from-comments.patch added to mm-new branch
+Message-Id: <20251101030902.4169DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: change swap_alloc_slow() to void
+     Subject: mm: swap: remove scan_swap_map_slots() references from comments
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-change-swap_alloc_slow-to-void.patch
+     mm-swap-remove-scan_swap_map_slots-references-from-comments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-change-swap_alloc_slow-to-void.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-scan_swap_map_slots-references-from-comments.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,59 +65,66 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm: swap: change swap_alloc_slow() to void
-Date: Fri, 31 Oct 2025 15:50:10 +0900
+Subject: mm: swap: remove scan_swap_map_slots() references from comments
+Date: Fri, 31 Oct 2025 15:50:11 +0900
 
-swap_alloc_slow() does not need to return a bool, as all callers handle
-allocation results via the entry parameter.  Update the function signature
-and remove return statements accordingly.
+The scan_swap_map_slots() helper has been removed, but several comments
+still referred to it in swap allocation and reclaim paths.  This patch
+cleans up those outdated references and reflows the affected comment
+blocks to match kernel coding style.
 
-Link: https://lkml.kernel.org/r/20251031065011.40863-5-youngjun.park@lge.com
+Link: https://lkml.kernel.org/r/20251031065011.40863-6-youngjun.park@lge.com
 Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/swapfile.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-change-swap_alloc_slow-to-void
+--- a/mm/swapfile.c~mm-swap-remove-scan_swap_map_slots-references-from-comments
 +++ a/mm/swapfile.c
-@@ -1339,7 +1339,7 @@ static bool swap_alloc_fast(swp_entry_t
- }
+@@ -236,11 +236,10 @@ again:
+ 	ret = -nr_pages;
  
- /* Rotate the device and switch to a new cluster */
--static bool swap_alloc_slow(swp_entry_t *entry,
-+static void swap_alloc_slow(swp_entry_t *entry,
- 			    int order)
- {
- 	unsigned long offset;
-@@ -1356,10 +1356,10 @@ start_over:
- 			put_swap_device(si);
- 			if (offset) {
- 				*entry = swp_entry(si->type, offset);
--				return true;
-+				return;
- 			}
- 			if (order)
--				return false;
-+				return;
- 		}
- 
+ 	/*
+-	 * When this function is called from scan_swap_map_slots() and it's
+-	 * called by vmscan.c at reclaiming folios. So we hold a folio lock
+-	 * here. We have to use trylock for avoiding deadlock. This is a special
+-	 * case and you should use folio_free_swap() with explicit folio_lock()
+-	 * in usual operations.
++	 * We hold a folio lock here. We have to use trylock for
++	 * avoiding deadlock. This is a special case and you should
++	 * use folio_free_swap() with explicit folio_lock() in usual
++	 * operations.
+ 	 */
+ 	if (!folio_trylock(folio))
+ 		goto out;
+@@ -1365,14 +1364,13 @@ start_over:
  		spin_lock(&swap_avail_lock);
-@@ -1378,7 +1378,6 @@ start_over:
+ 		/*
+ 		 * if we got here, it's likely that si was almost full before,
+-		 * and since scan_swap_map_slots() can drop the si->lock,
+ 		 * multiple callers probably all tried to get a page from the
+ 		 * same si and it filled up before we could get one; or, the si
+-		 * filled up between us dropping swap_avail_lock and taking
+-		 * si->lock. Since we dropped the swap_avail_lock, the
+-		 * swap_avail_head list may have been modified; so if next is
+-		 * still in the swap_avail_head list then try it, otherwise
+-		 * start over if we have not gotten any slots.
++		 * filled up between us dropping swap_avail_lock.
++		 * Since we dropped the swap_avail_lock, the swap_avail_list
++		 * may have been modified; so if next is still in the
++		 * swap_avail_head list then try it, otherwise start over if we
++		 * have not gotten any slots.
+ 		 */
+ 		if (plist_node_empty(&si->avail_list))
  			goto start_over;
- 	}
- 	spin_unlock(&swap_avail_lock);
--	return false;
- }
- 
- /*
 _
 
 Patches currently in -mm which might be from youngjun.park@lge.com are
