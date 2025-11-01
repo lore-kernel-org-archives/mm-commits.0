@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E0F18C03F
-	for <mm-commits@vger.kernel.org>; Sat,  1 Nov 2025 03:08:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D15023958D
+	for <mm-commits@vger.kernel.org>; Sat,  1 Nov 2025 03:08:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761966537; cv=none; b=OvBAsdKl7ek9paxMKUEwk7KguE09orlOILmS/hTXQqRWbh2PwihKuET6VvZUSTst6BCPSj9vrXWRji9lfsV6DSOpJ3aVVCBx6YBrIkZQeFjZKPFiIJ1wSgiKAbAF4yFksVIfFbJTO3oNrQX42F7OYieD6z2JiIXRdsF75POOMwU=
+	t=1761966538; cv=none; b=YHOdFYZK6Y/vKgeYQOLVNZDaXsx6tB26MS+LQwJ/2rlqDVp54vBgp5bod4YETwauGFQX3DfQ8UlXSztNK8VxHsC62MthlWjtlPha5s7PDTbLYTLbizSfNDtqUtxyxybkW6jb6jq8RIio95gxh4LaHrC+FORBOipXXq5vb8kJfOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761966537; c=relaxed/simple;
-	bh=ZO3YHhQZS3E/oiZ73ziZjghXqJzqvI74cNGCPxXO7Co=;
-	h=Date:To:From:Subject:Message-Id; b=pQjztmTt9LXkzNTzvAyfItCM8octmCDOPmks8TtEJrinB+VvR9A5p6OM5fQBY3lNCPbCr5SLwqElIkbmocbhR2pjkG+1Zg75ttb8+5J8N01ab7WKScPwxSsry0KPtqKFFLYrcg9P8vAly0Mx+i7Ow8l+rprz8Kf3vwlvPQUdnJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gsukVUF/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761966538; c=relaxed/simple;
+	bh=oVtwe1cXxRM6FHAB3LL1ezBvn2jQuPtIXS7hR6qO5BI=;
+	h=Date:To:From:Subject:Message-Id; b=uXLQ9WrT30Gu77/+YP2KjXacCV7RflK8zpu/TInhjxTcZMl9C1JRWp3EaF/mCIqwATvU938/5hhkj3mtnChB7pTbmZbfGkohO9CQjqo0l46qT4WDsRGAwFIgYR3hi94VuhWBvAZZirF7UakB09WnfUKpvb6/oqmJe9E8xkQ485E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wCCVvtP7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gsukVUF/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6266AC4CEE7;
-	Sat,  1 Nov 2025 03:08:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wCCVvtP7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59F1DC4CEE7;
+	Sat,  1 Nov 2025 03:08:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761966536;
-	bh=ZO3YHhQZS3E/oiZ73ziZjghXqJzqvI74cNGCPxXO7Co=;
+	s=korg; t=1761966538;
+	bh=oVtwe1cXxRM6FHAB3LL1ezBvn2jQuPtIXS7hR6qO5BI=;
 	h=Date:To:From:Subject:From;
-	b=gsukVUF/eBvvSLF7MTW2OBSnWaLzJDB1i8sdth6x5EmCPbAkmK8iiDqrTtvIKhi2e
-	 9HrlRUc7g97Sauf0lMgTgBWygbqtGpG67S+b/TefIenRXApDURFGTc7dn7npGhr08z
-	 vU0xKo9gjvFycRxUT+8QD+Ya+7gCSrqJhGaXnXzE=
-Date: Fri, 31 Oct 2025 20:08:55 -0700
+	b=wCCVvtP7S97yfZzNYhVUR1tJhiIsveIlKLoCunBjDxZ4mwQhY1B4pVGwiRg5rNzM3
+	 kyp/afUEBvwwzscc2uWCguEqlLeB6xHbnTQ2/s2GA25eztBXFr+s3wNOh6DffewG9k
+	 ppxxnHvX90BJWvaImGNzszpBsWtzVmOxcBWi2cIs=
+Date: Fri, 31 Oct 2025 20:08:57 -0700
 To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational.patch added to mm-new branch
-Message-Id: <20251101030856.6266AC4CEE7@smtp.kernel.org>
+Subject: + mm-swap-remove-redundant-comment-for-read_swap_cache_async.patch added to mm-new branch
+Message-Id: <20251101030858.59F1DC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: use SWP_SOLIDSTATE to determine if swap is rotational
+     Subject: mm, swap: remove redundant comment for read_swap_cache_async
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational.patch
+     mm-swap-remove-redundant-comment-for-read_swap_cache_async.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-redundant-comment-for-read_swap_cache_async.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,18 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm, swap: use SWP_SOLIDSTATE to determine if swap is rotational
-Date: Fri, 31 Oct 2025 15:50:08 +0900
+Subject: mm, swap: remove redundant comment for read_swap_cache_async
+Date: Fri, 31 Oct 2025 15:50:09 +0900
 
-The current non rotational check is unreliable as the device's rotational
-status can be changed by a user via sysfs.
+The function now manages get/put_swap_device() internally, making the
+comment explaining this behavior to callers unnecessary.
 
-Use the more reliable SWP_SOLIDSTATE flag which is set at swapon time, to
-ensure the nr_rotate_swap count remains consistent.  Plus, it is easy to
-read and simple.
-
-Link: https://lkml.kernel.org/r/20251031065011.40863-3-youngjun.park@lge.com
-Fixes: 81a0298bdfab ("mm, swap: don't use VMA based swap readahead if HDD is used as swap")
+Link: https://lkml.kernel.org/r/20251031065011.40863-4-youngjun.park@lge.com
 Signed-off-by: Youngjun Park <youngjun.park@lge.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -87,20 +82,22 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap_state.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational
-+++ a/mm/swapfile.c
-@@ -2913,7 +2913,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	if (p->flags & SWP_CONTINUED)
- 		free_swap_count_continuations(p);
- 
--	if (!p->bdev || !bdev_nonrot(p->bdev))
-+	if (!(p->flags & SWP_SOLIDSTATE))
- 		atomic_dec(&nr_rotate_swap);
- 
- 	mutex_lock(&swapon_mutex);
+--- a/mm/swap_state.c~mm-swap-remove-redundant-comment-for-read_swap_cache_async
++++ a/mm/swap_state.c
+@@ -509,10 +509,6 @@ put_and_return:
+  * and reading the disk if it is not already cached.
+  * A failure return means that either the page allocation failed or that
+  * the swap entry is no longer in use.
+- *
+- * get/put_swap_device() aren't needed to call this function, because
+- * __read_swap_cache_async() call them and swap_read_folio() holds the
+- * swap cache folio lock.
+  */
+ struct folio *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+ 		struct vm_area_struct *vma, unsigned long addr,
 _
 
 Patches currently in -mm which might be from youngjun.park@lge.com are
