@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3C2E303A06;
-	Fri, 31 Oct 2025 21:58:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4B142AD16
+	for <mm-commits@vger.kernel.org>; Sat,  1 Nov 2025 02:07:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761947931; cv=none; b=MSAcF8BEb/zaDkFfuH/LP5nFnZI+VMRj98axAezz0/URKNfhAG5DayNjOM6VUU6Vae8oilox9f+BvFJa5P85Wg0fEXY54EF+7VT/RfcVX648s52OCKSbTexoWIdRMBUym/FBJiZuIVT3tMOVSW4dr5GFiUuPLY8xAarlHaLJe60=
+	t=1761962849; cv=none; b=pWiwAWHlz5iKBLKr2s2Feom/mMnjpH/dGceeR1YVkZBBo5w+fHXLrpbSh78NhlElz2e3yaht4tuTpoXrUAir6O601IdNNNiT6BV0kRPGaWUiGwW4gJUj5YfyaNFvP+t37XILeShqZDOKzcA/wxZUQfq/K2GOXxu0uEPIPMqsI3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761947931; c=relaxed/simple;
-	bh=/cvZzBpFeVRkAE4Xx16DRajzLv/fquS5fXtcC3cFVUQ=;
-	h=Date:To:From:Subject:Message-Id; b=MBRIb9brM8zYCVcrxunn5DG1bTpr5B22w86gFx7rJ/0YS1ajqZKGDArHbXvTbEa7Etf7LTUxg2fQlA6TfTUHUO/5ZQSViE6UE/3pt60WSoCJ+jKZ/rKcfxlRTUSSFEJJFlh2f+ttjicxprqylhScem40HMpp4eDVOD+npdZ2raM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NlYYwgd9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761962849; c=relaxed/simple;
+	bh=07/G0PRp0+dC5L7miEgg2ZTDg7NBKDKuQlfehW41ypY=;
+	h=Date:To:From:Subject:Message-Id; b=O9a7W2cAXvlYQLZx6+yVkvyu+VdnAtkVRqQxfu1xpI9KhATBUVG0Pl3zBq6knF8nnnVYOY0xHGFk205O6W4fqDHKvzeQA4Vb46j4nER/+lvx3aysRu6Yt/yfO3AA4JFzTESp/pmIYOtWJLVEujZXXsMrigV6Z1LzdqzAIstUrxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zOzFXA2S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NlYYwgd9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 840A6C4CEE7;
-	Fri, 31 Oct 2025 21:58:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zOzFXA2S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3911EC4CEE7;
+	Sat,  1 Nov 2025 02:07:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1761947930;
-	bh=/cvZzBpFeVRkAE4Xx16DRajzLv/fquS5fXtcC3cFVUQ=;
+	s=korg; t=1761962849;
+	bh=07/G0PRp0+dC5L7miEgg2ZTDg7NBKDKuQlfehW41ypY=;
 	h=Date:To:From:Subject:From;
-	b=NlYYwgd9gCmXZ/IJ5pXlbTiLq0FFnWKi+bW6N1mJUvnKYV//4soFB6lsJe2zdXDh9
-	 tpbLfa7ERpRDFA4KgEV6Gtjl2LW1jm64/aLGX5VXfLFAPJyw21883oPCwY28IiwauZ
-	 qjCyvh1ZaS3JmxIkAMcbHqeYghDLHaP4DY4B0H3Y=
-Date: Fri, 31 Oct 2025 14:58:49 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,rppt@kernel.org,lorenzo.stoakes@oracle.com,david@redhat.com,big-sleep-vuln-reports@google.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=zOzFXA2SK5aslAWOCmH3OYa4LDkjnBV6jmKYKUoZRej4nA0tzNAeF1fh4U9xx+2FX
+	 2tuYuEvic6BX7cIgv7lZxLmBppVFLyBzGtk6kh5Ej9AYrLeNLaH7UQX4n7T1I9Hcik
+	 OCjy0Ut4fOEQH874rhvv3ygNf5FahljBwEzC5zEE=
+Date: Fri, 31 Oct 2025 19:07:28 -0700
+To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-secretmem-fix-use-after-free-race-in-fault-handler.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251031215850.840A6C4CEE7@smtp.kernel.org>
+Subject: + mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch added to mm-new branch
+Message-Id: <20251101020729.3911EC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/secretmem: fix use-after-free race in fault handler
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-secretmem-fix-use-after-free-race-in-fault-handler.patch
+     Subject: mm/huge_memory: kernel-doc fixup
+has been added to the -mm mm-new branch.  Its filename is
+     mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-secretmem-fix-use-after-free-race-in-fault-handler.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,66 +64,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/secretmem: fix use-after-free race in fault handler
-Date: Fri, 31 Oct 2025 20:09:55 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: kernel-doc fixup
+Date: Fri, 31 Oct 2025 19:50:55 -0400
 
-When a page fault occurs in a secret memory file created with
-`memfd_secret(2)`, the kernel will allocate a new folio for it, mark the
-underlying page as not-present in the direct map, and add it to the file
-mapping.
-
-If two tasks cause a fault in the same page concurrently, both could end
-up allocating a folio and removing the page from the direct map, but only
-one would succeed in adding the folio to the file mapping.  The task that
-failed undoes the effects of its attempt by (a) freeing the folio again
-and (b) putting the page back into the direct map.  However, by doing
-these two operations in this order, the page becomes available to the
-allocator again before it is placed back in the direct mapping.
-
-If another task attempts to allocate the page between (a) and (b), and the
-kernel tries to access it via the direct map, it would result in a
-supervisor not-present page fault.
-
-Fix the ordering to restore the direct map before the folio is freed.
-
-Link: https://lkml.kernel.org/r/20251031120955.92116-1-lance.yang@linux.dev
-Fixes: 1507f51255c9 ("mm: introduce memfd_secret system call to create "secret" memory areas")
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Reported-by: Google Big Sleep <big-sleep-vuln-reports@google.com>
-Closes: https://lore.kernel.org/linux-mm/CAEXGt5QeDpiHTu3K9tvjUTPqo+d-=wuCNYPa+6sWKrdQJ-ATdg@mail.gmail.com/
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/BE7AC5F3-9E64-4923-861D-C2C4E0CB91EB@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/secretmem.c~mm-secretmem-fix-use-after-free-race-in-fault-handler
-+++ a/mm/secretmem.c
-@@ -82,13 +82,13 @@ retry:
- 		__folio_mark_uptodate(folio);
- 		err = filemap_add_folio(mapping, folio, offset, gfp);
- 		if (unlikely(err)) {
--			folio_put(folio);
- 			/*
- 			 * If a split of large page was required, it
- 			 * already happened when we marked the page invalid
- 			 * which guarantees that this call won't fail
- 			 */
- 			set_direct_map_default_noflush(folio_page(folio, 0));
-+			folio_put(folio);
- 			if (err == -EEXIST)
- 				goto retry;
- 
+--- a/mm/huge_memory.c~mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix
++++ a/mm/huge_memory.c
+@@ -3587,7 +3587,7 @@ static void __split_folio_to_order(struc
+  *    uniform_split is true.
+  * 2. buddy allocator like (non-uniform) split: the given @folio is split into
+  *    half and one of the half (containing the given page) is split into half
+- *    until the given @page's order becomes @new_order. This is done when
++ *    until the given @folio's order becomes @new_order. This is done when
+  *    uniform_split is false.
+  *
+  * The high level flow for these two methods are:
+@@ -3596,14 +3596,14 @@ static void __split_folio_to_order(struc
+  *    along with stats update.
+  * 2. non-uniform split: folio_order - @new_order calls to
+  *    __split_folio_to_order() are expected to be made in a for loop to split
+- *    the @folio to one lower order at a time. The folio containing @page is
+- *    split in each iteration. @xas is split into half in each iteration and
++ *    the @folio to one lower order at a time. The folio containing @split_at
++ *    is split in each iteration. @xas is split into half in each iteration and
+  *    can fail. A failed @xas split leaves split folios as is without merging
+  *    them back.
+  *
+  * After splitting, the caller's folio reference will be transferred to the
+- * folio containing @page. The caller needs to unlock and/or free after-split
+- * folios if necessary.
++ * folio containing @split_at. The caller needs to unlock and/or free
++ * after-split folios if necessary.
+  *
+  * Return: 0 - successful, <0 - failed (if -ENOMEM is returned, @folio might be
+  * split but not to @new_order, the caller needs to check)
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-secretmem-fix-use-after-free-race-in-fault-handler.patch
-mm-khugepaged-guard-is_zero_pfn-calls-with-pte_present.patch
+mm-huge_memory-do-not-change-split_huge_page-target-order-silently.patch
+mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order.patch
+mm-huge_memory-add-split_huge_page_to_order.patch
+mm-memory-failure-improve-large-block-size-folio-handling.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch
 
