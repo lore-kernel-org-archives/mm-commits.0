@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C333B34D3B1
-	for <mm-commits@vger.kernel.org>; Sat,  1 Nov 2025 23:54:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F51D322A
+	for <mm-commits@vger.kernel.org>; Sun,  2 Nov 2025 18:44:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762041286; cv=none; b=hfcGTmw22WfM/IJeY8TvuSmXWXUzrksqFWIDCeu7Sss1IQSoJ1Nrmi7kQwdMptgcRavb5l2RtaMwI+NVNahHDQMlRGasvgzM6YEyP9bckPFMawA11yCaG5kwCkAmaC7VRz6xA1V84XngzmWNfAC9Ufh3aNwLfs7j0GtBMs3sFBg=
+	t=1762109080; cv=none; b=iBl0bcEMilLWGSQuxrJSxNNuBYafxXR6ZwWAm7lL5mYY+a/ykRdYUNsyypNzxj+ireA3akCdm64my6hnEPxU5kYdEQBjo1kTG+gNLUpBLDe7AvRduYIglkbyBmsxGwvx3tii+2qiT9dthaNC6936nTaepAbWQAm2T3pzIiGC80Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762041286; c=relaxed/simple;
-	bh=HanQ8BhajQly5U6UJ6ZY1OMeCsH+Vm97dBubXMoRK8o=;
-	h=Date:To:From:Subject:Message-Id; b=NQ6N7WTl2BcrlnJIQ7opZildYNkMJs1/ovhJ8t94UvFZdWngZZuk/glp+4zXaIGKlO1rSB5iHIeQIrsaSDvd23igILDUaxQNcgP1kcHlZF98rEbtZkAcGPCUOXmfymDs6K/DqU2CJ9aaaVuZoWLJcy9wDCWC1tXcQQGhB92J2R0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hTLWrD77; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762109080; c=relaxed/simple;
+	bh=e4m8CEMzlgICtz4uo5YFFBptmkLjtcTmBaFdat9xQZc=;
+	h=Date:To:From:Subject:Message-Id; b=l066qk1F54LeZUSuG0MVXEXhu6/XpJ3DsjvdGMdPwiwhOS2JvQI6anSFaE8XEaBRFLjS0ZCFj4L6+LxoTfMRZVuIG1D90yFlqn7Y4iYJzmi26ZIf/OnmyTXzq38IKftM4991+dtKHE2wcpe8PWtWIXTkTlB+UyqI4E5bPcFuLtw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ll2JUtFJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hTLWrD77"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D660C4CEF1;
-	Sat,  1 Nov 2025 23:54:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ll2JUtFJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABE50C4CEF7;
+	Sun,  2 Nov 2025 18:44:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762041286;
-	bh=HanQ8BhajQly5U6UJ6ZY1OMeCsH+Vm97dBubXMoRK8o=;
+	s=korg; t=1762109079;
+	bh=e4m8CEMzlgICtz4uo5YFFBptmkLjtcTmBaFdat9xQZc=;
 	h=Date:To:From:Subject:From;
-	b=hTLWrD777i3iVxLoJTxuxb5OKZ12nqv1w01QuLnOLs0UIM9srYinXC68aifNOsBNF
-	 p/CQWWaVsmuROmDjbaf3fo1r/ElrCi6GiQop7MTDECHlCk0l7Xk3NyYMYrxFVB1YkO
-	 +zMAN+2FMGKNHZiCO7w79/44ibkC/M2e2GgTMWRg=
-Date: Sat, 01 Nov 2025 16:54:45 -0700
-To: mm-commits@vger.kernel.org,yukuai3@huawei.com,u.kleine-koenig@baylibre.com,tglx@linutronix.de,peterz@infradead.org,oleg@redhat.com,npitre@baylibre.com,mingo@redhat.com,lirongqing@baidu.com,hpa@zytor.com,david.laight.linux@gmail.com,bp@alien8.de,biju.das.jz@bp.renesas.com,axboe@kernel.dk,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ll2JUtFJXCBVpfiQ9dyOxc2MEcBFy3JxLxOiEENK0RJa4nf5oaovdSs3OrDUdzYET
+	 UP0xD4RA0awrpif2X0SC1q+QQVWd7YWUv9Mmrj99Q8twDifeIqjHCL0QGLKFVZYX5B
+	 N820YbEkVZ4tQGVnr3uvtu7/FPZtPgnr6hjw+DBA=
+Date: Sun, 02 Nov 2025 10:44:39 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,roman.gushchin@linux.dev,nphamcs@gmail.com,minchan@kernel.org,mhocko@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,bhe@redhat.com,baohua@kernel.org,chrisl@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup-fix-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251101235446.3D660C4CEF1@smtp.kernel.org>
+Subject: + maintainers-add-chris-and-kairui-as-the-swap-maintainer.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251102184439.ABE50C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup-fix-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup-fix-fix.patch
+     Subject: MAINTAINERS: add Chris and Kairui as the swap maintainer
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-chris-and-kairui-as-the-swap-maintainer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-chris-and-kairui-as-the-swap-maintainer.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,54 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup-fix-fix
-Date: Sat Nov  1 04:54:04 PM PDT 2025
+From: Chris Li <chrisl@kernel.org>
+Subject: MAINTAINERS: add Chris and Kairui as the swap maintainer
+Date: Sun, 02 Nov 2025 07:11:07 -0800
 
-fix the fix
+We have been collaborating on a systematic effort to clean up and improve
+the Linux swap system, and might as well take responsibility for it.
 
-Cc: Biju Das <biju.das.jz@bp.renesas.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Li RongQing <lirongqing@baidu.com>
-Cc: Nicolas Pitre <npitre@baylibre.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
-Cc: "yukuai (C)" <yukuai3@huawei.com>
+Link: https://lkml.kernel.org/r/20251102-swap-m-v1-1-582f275d5bce@kernel.org
+Signed-off-by: Chris Li <chrisl@kernel.org>
+Acked-by: Kairui Song <kasong@tencent.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/div64.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/x86/include/asm/div64.h~lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup-fix-fix
-+++ a/arch/x86/include/asm/div64.h
-@@ -90,7 +90,7 @@ static inline u64 mul_u64_add_u64_div_u6
+--- a/MAINTAINERS~maintainers-add-chris-and-kairui-as-the-swap-maintainer
++++ a/MAINTAINERS
+@@ -16496,12 +16496,12 @@ F:	mm/secretmem.c
  
- 	asm ("mulq %[mul]" : "+a" (rax), "=d" (rdx) : [mul] "rm" (mul));
- 
--	if (!statically_true(add))
-+	if (!statically_true(!add))
- 		asm ("addq %[add], %[lo]; adcq $0, %[hi]" :
- 			[lo] "+r" (rax), [hi] "+r" (rdx) : [add] "irm" (add));
- 
+ MEMORY MANAGEMENT - SWAP
+ M:	Andrew Morton <akpm@linux-foundation.org>
++M:	Chris Li <chrisl@kernel.org>
++M:	Kairui Song <kasong@tencent.com>
+ R:	Kemeng Shi <shikemeng@huaweicloud.com>
+-R:	Kairui Song <kasong@tencent.com>
+ R:	Nhat Pham <nphamcs@gmail.com>
+ R:	Baoquan He <bhe@redhat.com>
+ R:	Barry Song <baohua@kernel.org>
+-R:	Chris Li <chrisl@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/mm/swap-table.rst
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chrisl@kernel.org are
 
-mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
-drivers-base-node-fold-register_node-into-register_one_node-fix.patch
-mm-vmstat-fix-indentation-in-fold_diff-function-fix.patch
-memcg-manually-uninline-__memcg_memory_event-fix.patch
-mm-change-type-of-state-in-struct-memory_block-fix.patch
-init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix.patch
-panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
-lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup-fix.patch
-lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup-fix-fix.patch
+maintainers-add-chris-and-kairui-as-the-swap-maintainer.patch
 
