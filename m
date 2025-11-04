@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C4941FFC6D;
-	Tue,  4 Nov 2025 02:56:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B2C92609D6;
+	Tue,  4 Nov 2025 02:59:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762224995; cv=none; b=Pm80zvpWoS36Hw4G9LR70FMkpHiVMxPstXvwYwEhN33mJeyWkp8jzC7IIFhKYaLv3XNeRQZiSULrFwLKDop+EVYo9xAPXdOdd2GFZTUw+rMJGyMWX7IRQ3iq+RgidOnx5anWol3tstVjgJpzz9e4uENjnsCPVL9lar9UK3CIIfE=
+	t=1762225141; cv=none; b=aBrfBL4EwgyUKBOCJpsr00NxYyVeRfJBiAZteYHBAdRRCmxe4dXUNjdi2P574mVY8Jz4uQRnzwBHsoGPMNmIGGS01uxjS+BrMvgq1PUQAxL9r+bZYExy6z4/t3oUxcjhufiC0+l+RYdzlu7OW6dpFjKwcltp5ATKzaWgr4nh5nM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762224995; c=relaxed/simple;
-	bh=4VqIHlFwqNUDSrq9/GBg8Qg5x+RYOaG8VD9lOz5AFYY=;
-	h=Date:To:From:Subject:Message-Id; b=S2Gcgtyz7Udlk9HUkNgBrxMkPfXEWr0SQcQg6H2MNpeTDmHAeaKitLVNKzN/hBUsETKo3rUNAMY6vD8hECxJJa5QvFxAVuwNRk9L259weE0T8jQoWeeGXmJMENwHpucF6OfgGv4a9GkRPnRBUPBvhibRpllioPNL/e5eb/5RmXU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KIKleBAn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225141; c=relaxed/simple;
+	bh=IcOuYlJB53idZbAmddJQli+QJwDAwzfIs89z8rhSVRY=;
+	h=Date:To:From:Subject:Message-Id; b=lllAZIGImPcSCtyEyRD7R2QuTC+0IOan2XqdEWHQFKiDBCAlmyl7or0RD7tfTPDWTvyxinXA77yCrki1BJES5UTr//bGpJYcXgmFDZcj1UThpqysWX25mbaHciuMuRsXSuB8+NWnTnGp1Y20xWlJedsoDaXsTyXE36sCIJlitbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+GxhirF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KIKleBAn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37878C4CEE7;
-	Tue,  4 Nov 2025 02:56:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+GxhirF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79A2BC113D0;
+	Tue,  4 Nov 2025 02:59:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762224995;
-	bh=4VqIHlFwqNUDSrq9/GBg8Qg5x+RYOaG8VD9lOz5AFYY=;
+	s=korg; t=1762225140;
+	bh=IcOuYlJB53idZbAmddJQli+QJwDAwzfIs89z8rhSVRY=;
 	h=Date:To:From:Subject:From;
-	b=KIKleBAncYLvyu3QszqwL4iefpBpiRMQTaDkAl0LKJPuz/UA4qCSemGV4tnVxQ85O
-	 mWSoV9b2jHzS+yzEG2yv/33iHgYHsIoURAr8eU1gN7tLKtQ1+jVtAE3pV5m+qoifNH
-	 dhwNreuyI8r+Q3mrjZadx1wyI11ux/pdpfSp37q4=
-Date: Mon, 03 Nov 2025 18:56:34 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
+	b=z+GxhirFTTC95O3OF8pYhH4jCaUR/9c7lWvDF6WOnL/IagqSGcP/mNa2bkYHgSgQt
+	 n/jJIlWAfFoliQ88w4Xm0mqFks7DQrhZpT3iRYhknZJHoV4rkkXZwujhV1rqBESbPD
+	 P2zIeO6rKG8slthm81jx6V/G6arN748s7cxGxieo=
+Date: Mon, 03 Nov 2025 18:58:59 -0800
+To: mm-commits@vger.kernel.org,thunder.leizhen@huawei.com,stable@vger.kernel.org,bhe@redhat.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-duplicate-nr_swap_pages-decrement-in-get_swap_page_of_type.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251104025635.37878C4CEE7@smtp.kernel.org>
+Subject: + crash-fix-crashkernel-resource-shrink.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251104025900.79A2BC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: remove duplicate nr_swap_pages decrement in get_swap_page_of_type()
+     Subject: crash: fix crashkernel resource shrink
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swap-remove-duplicate-nr_swap_pages-decrement-in-get_swap_page_of_type.patch
+     crash-fix-crashkernel-resource-shrink.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-duplicate-nr_swap_pages-decrement-in-get_swap_page_of_type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-crashkernel-resource-shrink.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm: swap: remove duplicate nr_swap_pages decrement in get_swap_page_of_type()
-Date: Sun, 2 Nov 2025 17:24:56 +0900
+From: Sourabh Jain <sourabhjain@linux.ibm.com>
+Subject: crash: fix crashkernel resource shrink
+Date: Sun, 2 Nov 2025 01:07:41 +0530
 
-After commit 4f78252da887, nr_swap_pages is decremented in
-swap_range_alloc(). Since cluster_alloc_swap_entry() calls
-swap_range_alloc() internally, the decrement in get_swap_page_of_type()
-causes double-decrementing.
+When crashkernel is configured with a high reservation, shrinking its
+value below the low crashkernel reservation causes two issues:
 
-Remove the duplicate decrement.
+1. Invalid crashkernel resource objects
+2. Kernel crash if crashkernel shrinking is done twice
 
-Link: https://lkml.kernel.org/r/20251102082456.79807-1-youngjun.park@lge.com
-Fixes: 4f78252da887 ("mm: swap: move nr_swap_pages counter decrement from folio_alloc_swap() to swap_range_alloc()")
-Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org> [6.17+]
+For example, with crashkernel=200M,high, the kernel reserves 200MB of high
+memory and some default low memory (say 256MB).  The reservation appears
+as:
+
+cat /proc/iomem | grep -i crash
+af000000-beffffff : Crash kernel
+433000000-43f7fffff : Crash kernel
+
+If crashkernel is then shrunk to 50MB (echo 52428800 >
+/sys/kernel/kexec_crash_size), /proc/iomem still shows 256MB reserved:
+af000000-beffffff : Crash kernel
+
+Instead, it should show 50MB:
+af000000-b21fffff : Crash kernel
+
+Further shrinking crashkernel to 40MB causes a kernel crash with the
+following trace (x86):
+
+BUG: kernel NULL pointer dereference, address: 0000000000000038
+PGD 0 P4D 0
+Oops: 0000 [#1] PREEMPT SMP NOPTI
+<snip...>
+Call Trace: <TASK>
+? __die_body.cold+0x19/0x27
+? page_fault_oops+0x15a/0x2f0
+? search_module_extables+0x19/0x60
+? search_bpf_extables+0x5f/0x80
+? exc_page_fault+0x7e/0x180
+? asm_exc_page_fault+0x26/0x30
+? __release_resource+0xd/0xb0
+release_resource+0x26/0x40
+__crash_shrink_memory+0xe5/0x110
+crash_shrink_memory+0x12a/0x190
+kexec_crash_size_store+0x41/0x80
+kernfs_fop_write_iter+0x141/0x1f0
+vfs_write+0x294/0x460
+ksys_write+0x6d/0xf0
+<snip...>
+
+This happens because __crash_shrink_memory()/kernel/crash_core.c
+incorrectly updates the crashk_res resource object even when
+crashk_low_res should be updated.
+
+Fix this by ensuring the correct crashkernel resource object is updated
+when shrinking crashkernel memory.
+
+Link: https://lkml.kernel.org/r/20251101193741.289252-1-sourabhjain@linux.ibm.com
+Fixes: 16c6006af4d4 ("kexec: enable kexec_crash_size to support two crash kernel regions")
+Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ kernel/crash_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-remove-duplicate-nr_swap_pages-decrement-in-get_swap_page_of_type
-+++ a/mm/swapfile.c
-@@ -2005,10 +2005,8 @@ swp_entry_t get_swap_page_of_type(int ty
- 			local_lock(&percpu_swap_cluster.lock);
- 			offset = cluster_alloc_swap_entry(si, 0, 1);
- 			local_unlock(&percpu_swap_cluster.lock);
--			if (offset) {
-+			if (offset)
- 				entry = swp_entry(si->type, offset);
--				atomic_long_dec(&nr_swap_pages);
--			}
- 		}
- 		put_swap_device(si);
+--- a/kernel/crash_core.c~crash-fix-crashkernel-resource-shrink
++++ a/kernel/crash_core.c
+@@ -373,7 +373,7 @@ static int __crash_shrink_memory(struct
+ 		old_res->start = 0;
+ 		old_res->end   = 0;
+ 	} else {
+-		crashk_res.end = ram_res->start - 1;
++		old_res->end = ram_res->start - 1;
  	}
+ 
+ 	crash_free_reserved_phys_range(ram_res->start, ram_res->end);
 _
 
-Patches currently in -mm which might be from youngjun.park@lge.com are
+Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
 
-mm-swap-remove-duplicate-nr_swap_pages-decrement-in-get_swap_page_of_type.patch
-mm-swap-fix-memory-leak-in-setup_clusters-error-path.patch
-mm-swap-use-swp_solidstate-to-determine-if-swap-is-rotational.patch
-mm-swap-remove-redundant-comment-for-read_swap_cache_async.patch
-mm-swap-change-swap_alloc_slow-to-void.patch
-mm-swap-remove-scan_swap_map_slots-references-from-comments.patch
+crash-fix-crashkernel-resource-shrink.patch
+crash-let-architecture-decide-crash-memory-export-to-iomem_resource.patch
 
