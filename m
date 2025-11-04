@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A41E3271457;
-	Tue,  4 Nov 2025 03:07:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D672426E6F5
+	for <mm-commits@vger.kernel.org>; Tue,  4 Nov 2025 03:07:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762225665; cv=none; b=k/6qDPd3tpNNjDMgho9F2gHOW23KlSB2OlZqldGPL9UG0Zgr3QbGbyOUKWh/sU6CiipBYiT2PICfiHiT277aMEPKRym3h1baX/JQLWZOhDbPRwHwUWC4fOCpHLiMSZ/6NaGuI4x0P9Q5XFNdvWHebkDEjd5Cx3uXA9YXg2wWIGA=
+	t=1762225668; cv=none; b=sUWd7KM/kG7L11y1/J5qPEf0R3E5SizUG6qxd2ULK5KPPzajaS4RZgN+/7ekrIenyyw8reI0/SJrRZQy2MlJSt1EcivoJlPzAYtYO7GwT7Gz0RPX0w8Yi0IbuQ7t66DbguM50zGPgrcYO4q+kmGAmVDsh22LxD4Er3c0H+zXGUY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762225665; c=relaxed/simple;
-	bh=66dCAk89a9moo41qrnpYpxN/kUIgeCaxDtCwhc3WNXo=;
-	h=Date:To:From:Subject:Message-Id; b=q3+2wY2QH8YKCV/ig5BTXAmdysuu2b01Xgd0YqvPYPWo/JrPBo6FGspDihdcTP12IfsNQWyAQ9GVTLQBNwGUixLJMAWHssbZMDZ0tg48TRkVEuFCEC+DR5LIA1q1LCR0f0KP229ErYpWqAH/W/aDEPnOHZgNEEJTnH+ZFFqx3Fk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C+KSYFiP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225668; c=relaxed/simple;
+	bh=Yi5uEC6T5b0qSe5TSCxsZhTHJJQZy3/bTnfY7SBK8vw=;
+	h=Date:To:From:Subject:Message-Id; b=rY6AU9bk3MKnzDn4Vafjybb61rI9ahrvWpIoZULGwDEvoKh7B4QLGWKZH5b58Wt5Kl9c5kS6myuV3LQjVeEk4Y20LocfB6qGrvBIqhHhFyR6a/BIhKJjDV2fmSpWyqyLzlXC3b4Y/MLS4i7Z5EJO0vLC0veAWIVEsz1nkyPlIpY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V82QmJu8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C+KSYFiP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 704FCC4CEE7;
-	Tue,  4 Nov 2025 03:07:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V82QmJu8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66AA6C4CEFD;
+	Tue,  4 Nov 2025 03:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762225665;
-	bh=66dCAk89a9moo41qrnpYpxN/kUIgeCaxDtCwhc3WNXo=;
+	s=korg; t=1762225667;
+	bh=Yi5uEC6T5b0qSe5TSCxsZhTHJJQZy3/bTnfY7SBK8vw=;
 	h=Date:To:From:Subject:From;
-	b=C+KSYFiPi8vzQfFMjVUtT+adWWBGv3yYBfj0krRqa33SrEejQuzcVysq+LeKSPsCB
-	 uyR9u7sLtBanxVz/L6gddKlFl3xFomWT4DQSCSvKV2ESbK5TFEhe2W28mA21txPFsg
-	 IsPb3UXmA5q8tdnBJ0V9GDcI9f4c7sQA7df3DF7w=
-Date: Mon, 03 Nov 2025 19:07:44 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=V82QmJu8kv21lo4tBiwA59KG59Rk7oTWWCZNrmzOBv+U4u+MGfjVrsxdVG+yLdIFH
+	 HCEPNW9a50k9UQ28bnz1iD0aKwrtEfd+7UrwlnthSsG11SnzhxPMKUk0bjBreZkUoz
+	 zg84P37qfBx4wCWy4II6raBHUsXFfEoS1kWtVKmc=
+Date: Mon, 03 Nov 2025 19:07:46 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-sysfs-kunit-handle-alloc-failures-on-damon_sysfs_test_add_targets.patch added to mm-new branch
-Message-Id: <20251104030745.704FCC4CEE7@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-remove-unnecessary-damon_ctx-variable-on-damon_test_split_at.patch added to mm-new branch
+Message-Id: <20251104030747.66AA6C4CEFD@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/sysfs-kunit: handle alloc failures on damon_sysfs_test_add_targets()
+     Subject: mm/damon/tests/core-kunit: remove unnecessary damon_ctx variable on damon_test_split_at()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-sysfs-kunit-handle-alloc-failures-on-damon_sysfs_test_add_targets.patch
+     mm-damon-tests-core-kunit-remove-unnecessary-damon_ctx-variable-on-damon_test_split_at.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-sysfs-kunit-handle-alloc-failures-on-damon_sysfs_test_add_targets.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-remove-unnecessary-damon_ctx-variable-on-damon_test_split_at.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,73 +65,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/sysfs-kunit: handle alloc failures on damon_sysfs_test_add_targets()
-Date: Sat, 1 Nov 2025 11:20:14 -0700
+Subject: mm/damon/tests/core-kunit: remove unnecessary damon_ctx variable on damon_test_split_at()
+Date: Sat, 1 Nov 2025 11:20:15 -0700
 
-damon_sysfs_test_add_targets() is assuming all dynamic memory allocation
-in it will succeed.  Those are indeed likely in the real use cases since
-those allocations are too small to fail, but theoretically those could
-fail.  In the case, inappropriate memory access can happen.  Fix it by
-appropriately cleanup pre-allocated memory and skip the execution of the
-remaining tests in the failure cases.
+damon_test_split_at() dynamically allocates a 'struct damon_ctx' object,
+but it is not really being used in the code other than handling the
+allocation failure and deallocating it at the end of the function.  Remove
+the unnecessary allocation and deallocation of the object.
 
-Link: https://lkml.kernel.org/r/20251101182021.74868-21-sj@kernel.org
-Fixes: b8ee5575f763 ("mm/damon/sysfs-test: add a unit test for damon_sysfs_set_targets()")
+Link: https://lkml.kernel.org/r/20251101182021.74868-22-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <stable@vger.kernel.org>	[6.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/sysfs-kunit.h |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ mm/damon/tests/core-kunit.h |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
---- a/mm/damon/tests/sysfs-kunit.h~mm-damon-tests-sysfs-kunit-handle-alloc-failures-on-damon_sysfs_test_add_targets
-+++ a/mm/damon/tests/sysfs-kunit.h
-@@ -45,16 +45,41 @@ static void damon_sysfs_test_add_targets
- 	struct damon_ctx *ctx;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-remove-unnecessary-damon_ctx-variable-on-damon_test_split_at
++++ a/mm/damon/tests/core-kunit.h
+@@ -144,20 +144,14 @@ static void damon_test_aggregate(struct
  
- 	sysfs_targets = damon_sysfs_targets_alloc();
-+	if (!sysfs_targets)
-+		kunit_skip(test, "sysfs_targets alloc fail");
- 	sysfs_targets->nr = 1;
- 	sysfs_targets->targets_arr = kmalloc_array(1,
- 			sizeof(*sysfs_targets->targets_arr), GFP_KERNEL);
-+	if (!sysfs_targets->targets_arr) {
-+		kfree(sysfs_targets);
-+		kunit_skip(test, "targets_arr alloc fail");
-+	}
+ static void damon_test_split_at(struct kunit *test)
+ {
+-	struct damon_ctx *c = damon_new_ctx();
+ 	struct damon_target *t;
+ 	struct damon_region *r, *r_new;
  
- 	sysfs_target = damon_sysfs_target_alloc();
-+	if (!sysfs_target) {
-+		kfree(sysfs_targets->targets_arr);
-+		kfree(sysfs_targets);
-+		kunit_skip(test, "sysfs_target alloc fail");
-+	}
- 	sysfs_target->pid = __damon_sysfs_test_get_any_pid(12, 100);
- 	sysfs_target->regions = damon_sysfs_regions_alloc();
-+	if (!sysfs_target->regions) {
-+		kfree(sysfs_targets->targets_arr);
-+		kfree(sysfs_targets);
-+		kfree(sysfs_target);
-+		kunit_skip(test, "sysfs_regions alloc fail");
-+	}
-+
- 	sysfs_targets->targets_arr[0] = sysfs_target;
+-	if (!c)
+-		kunit_skip(test, "ctx alloc fail");
+ 	t = damon_new_target();
+-	if (!t) {
+-		damon_destroy_ctx(c);
++	if (!t)
+ 		kunit_skip(test, "target alloc fail");
+-	}
+ 	r = damon_new_region(0, 100);
+ 	if (!r) {
+-		damon_destroy_ctx(c);
+ 		damon_free_target(t);
+ 		kunit_skip(test, "region alloc fail");
+ 	}
+@@ -178,7 +172,6 @@ static void damon_test_split_at(struct k
+ 	KUNIT_EXPECT_EQ(test, r->last_nr_accesses, r_new->last_nr_accesses);
  
- 	ctx = damon_new_ctx();
-+	if (!ctx) {
-+		kfree(sysfs_targets->targets_arr);
-+		kfree(sysfs_targets);
-+		kfree(sysfs_target);
-+		kfree(sysfs_target->regions);
-+		kunit_skip(test, "ctx alloc fail");
-+	}
+ 	damon_free_target(t);
+-	damon_destroy_ctx(c);
+ }
  
- 	damon_sysfs_add_targets(ctx, sysfs_targets);
- 	KUNIT_EXPECT_EQ(test, 1u, nr_damon_targets(ctx));
+ static void damon_test_merge_two(struct kunit *test)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
