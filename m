@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 250C7262FCB;
-	Tue,  4 Nov 2025 03:07:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5AD62571B8;
+	Tue,  4 Nov 2025 03:07:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762225628; cv=none; b=Gdi58gucKY5/1z2E/K0MSrQ/BVIOZ0XUHDxaULBS9R6+VM1gxGJid7knuWOWfNsUqv74utw26tkChvLZmufdkT5iBpz33cA+zK4hImdG7MwwYaKvwXIajyCTpUx8LEfxbpoSkzSsdSqeTp3YFnCVi6ESpUzy94Tk+t77xJ48454=
+	t=1762225629; cv=none; b=Gt/R0nkJfYu+IfflhJtUbQD6KwMz4L8ZFL8PcEoO/WLzKy9XsF0TNaI2UAq5eWHjADjJ0lfGR/wLYTyPSIVvdFE+hZtwdEitTJwD4t2V8b8mDgXEJyLJxZzLw0aKPjaGENDutRnD3xw2KhCtMGZJ6yrutpYIWNkrmhejMCgIE4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762225628; c=relaxed/simple;
-	bh=N4prdXb6e98ATa7T/mIPtyAJ3xgIhoNpZyZB/H64lFo=;
-	h=Date:To:From:Subject:Message-Id; b=d+YFiqq3OINb8azwwDcVCiIZzere1eWURDZX4pUrdXldFzmPZElpBf7UPXCeAkIeQd5xm2cU9tAieWGES8dqJq5MA547VuSSfJjsJJRCwc0fJiHoBWOO1KER6BEUJ8LB6yToWf1Fu7YJlcmR5gsFq0OW83MHkfhJluzYGTSqegI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P2IBKyql; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225629; c=relaxed/simple;
+	bh=vp1dF96cQrm/4/+WTcdqjZSW0ThfVFPf4qx8X2mOu/Q=;
+	h=Date:To:From:Subject:Message-Id; b=EcVnYAXuKTJ0sG8dIC1ygb+fQWplaOxBG7o7R/ZXLZZDGGFLfFXRFvYmCs101vpQH9CyTc5dv67BzqBO1uGlahM9B0tYi/yvBUTeI+sGBqeZl/TUadtL03ZGnOQ5mvlgYDDSgsi0Ir4lI0DByzFumM6hx4f6kThykVKtlJRjqoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OBBUm1ex; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P2IBKyql"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91EF3C4CEE7;
-	Tue,  4 Nov 2025 03:07:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OBBUm1ex"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91387C116C6;
+	Tue,  4 Nov 2025 03:07:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762225627;
-	bh=N4prdXb6e98ATa7T/mIPtyAJ3xgIhoNpZyZB/H64lFo=;
+	s=korg; t=1762225629;
+	bh=vp1dF96cQrm/4/+WTcdqjZSW0ThfVFPf4qx8X2mOu/Q=;
 	h=Date:To:From:Subject:From;
-	b=P2IBKyqlcsyfU/ibVgFxGMX+PnG7TZPLomjTLS1vF0i+cSAX6XORYvkBGT/DMdDa6
-	 0Gt7oUSgw0uv1t/bHDvitT+Ty/aUP4jrlgFvDNUnYnuiG9l+3SFMmhaEY9jddLiB3k
-	 Qqu6bCYgmEKMZZE6eL3z0CGMmpAvfZTYIINuaxZg=
-Date: Mon, 03 Nov 2025 19:07:07 -0800
+	b=OBBUm1exTjvE7XzQZOb/zMgXwZo6EC751+kiY+kZqUaA3uG6oSGeFvx5FA3batAeh
+	 jy/rYsz4DgZk6T5N45R8kCwzhpM/ZLgjBH5BSjjP4K/KQZshXId0oyYCPaDU24SVZq
+	 Zb+xUyca1sf2vkuu/VnYge7/Tuin8/VxWJLwzVBM=
+Date: Mon, 03 Nov 2025 19:07:09 -0800
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch added to mm-new branch
-Message-Id: <20251104030707.91EF3C4CEE7@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-handle-allocation-failures-in-damon_test_regions.patch added to mm-new branch
+Message-Id: <20251104030709.91387C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: fix memory leak in damon_test_set_filters_default_reject()
+     Subject: mm/damon/tests/core-kunit: handle allocation failures in damon_test_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
+     mm-damon-tests-core-kunit-handle-allocation-failures-in-damon_test_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-handle-allocation-failures-in-damon_test_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,75 +65,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: fix memory leak in damon_test_set_filters_default_reject()
-Date: Sat, 1 Nov 2025 11:19:55 -0700
+Subject: mm/damon/tests/core-kunit: handle allocation failures in damon_test_regions()
+Date: Sat, 1 Nov 2025 11:19:56 -0700
 
-Patch series "mm/damon/tests: fix memory bugs in kunit tests".
+damon_test_regions() is assuming all dynamic memory allocation in it will
+succeed.  Those are indeed likely in the real use cases since those
+allocations are too small to fail, but theoretically those could fail.  In
+the case, inappropriate memory access can happen.  Fix it by appropriately
+cleanup pre-allocated memory and skip the execution of the remaining tests
+in the failure cases.
 
-DAMON kunit tests were initially written assuming those will be run on
-environments that are well controlled and therefore tolerant to transient
-test failures and bugs in the test code itself.  The user-mode linux based
-manual run of the tests is one example of such an environment.  And the
-test code was written for adding more test coverage as fast as possible,
-over making those safe and reliable.
-
-As a result, the tests resulted in having a number of bugs including real
-memory leaks, theoretical unhandled memory allocation failures, and unused
-memory allocations.  The allocation failures that are not handled well are
-unlikely in the real world, since those allocations are too small to fail.
-But in theory, it can happen and cause inappropriate memory access.
-
-It is arguable if bugs in test code can really harm users.  But, anyway
-bugs are bugs that need to be fixed.  Fix the bugs one by one.  Also Cc
-stable@ for the fixes of memory leak and unhandled memory allocation
-failures.  The unused memory allocations are only a matter of memory
-efficiency, so not Cc-ing stable@.
-
-The first patch fixes memory leaks in the test code for the DAMON core
-layer.
-
-Following fifteen, three, and one patches respectively fix unhandled
-memory allocation failures in the test code for DAMON core layer, virtual
-address space DAMON operation set, and DAMON sysfs interface, one by one
-per test function.
-
-Final two patches remove memory allocations that are correctly deallocated
-at the end, but not really being used by any code.
-
-
-This patch (of 22):
-
-Kunit test function for damos_set_filters_default_reject() allocates two
-'struct damos_filter' objects and not deallocates those, so that the
-memory for the two objects are leaked for every time the test runs.  Fix
-this by deallocating those objects at the end of the test code.
-
-Link: https://lkml.kernel.org/r/20251101182021.74868-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20251101182021.74868-2-sj@kernel.org
-Fixes: 094fb14913c7 ("mm/damon/tests/core-kunit: add a test for damos_set_filters_default_reject()")
+Link: https://lkml.kernel.org/r/20251101182021.74868-3-sj@kernel.org
+Fixes: 17ccae8bb5c9 ("mm/damon: add kunit tests")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <stable@vger.kernel.org>	[6.16+]
+Cc: <stable@vger.kernel.org>	[5.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/damon/tests/core-kunit.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-handle-allocation-failures-in-damon_test_regions
 +++ a/mm/damon/tests/core-kunit.h
-@@ -598,6 +598,9 @@ static void damon_test_set_filters_defau
- 	 */
- 	KUNIT_EXPECT_EQ(test, scheme.core_filters_default_reject, false);
- 	KUNIT_EXPECT_EQ(test, scheme.ops_filters_default_reject, true);
-+
-+	damos_free_filter(anon_filter);
-+	damos_free_filter(target_filter);
- }
+@@ -20,11 +20,17 @@ static void damon_test_regions(struct ku
+ 	struct damon_target *t;
  
- static struct kunit_case damon_test_cases[] = {
+ 	r = damon_new_region(1, 2);
++	if (!r)
++		kunit_skip(test, "region alloc fail");
+ 	KUNIT_EXPECT_EQ(test, 1ul, r->ar.start);
+ 	KUNIT_EXPECT_EQ(test, 2ul, r->ar.end);
+ 	KUNIT_EXPECT_EQ(test, 0u, r->nr_accesses);
+ 
+ 	t = damon_new_target();
++	if (!t) {
++		damon_free_region(r);
++		kunit_skip(test, "target alloc fail");
++	}
+ 	KUNIT_EXPECT_EQ(test, 0u, damon_nr_regions(t));
+ 
+ 	damon_add_region(r, t);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
