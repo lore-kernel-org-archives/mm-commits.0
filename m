@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 503C62749E0;
-	Tue,  4 Nov 2025 03:07:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A8E274B58;
+	Tue,  4 Nov 2025 03:07:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762225652; cv=none; b=SRp08S177qtOxS/l0ykavGsbOpY7YZS6P0xHL2LHyyR6+GggAYGDS2uqeva0Fss4muBI+dBneS01SBQgeQtvPZPg11cBYvSJ8gQ4RWtodTLFC8NGebv5SQHk/O5g3kwAh1c4Dtwta3sixPPK5Q5tvGzqKRxBbQuzPyI+GAz1xkM=
+	t=1762225654; cv=none; b=HieOf4YpWth+MFI/7HXBAyCk+BfqL0WxFQFVie4dZjQzeq7ZVH4WhoLZKyJE+xJAoMrCIwNT8zUr4VzMqrIXKBJp85ydL6JFSbh4x7HAGoXKmX5GlHDGDHzCVH1HtmW43Uio7kig65yvNyckz4rkZJ468O2PkCcO/XR1yL2GEbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762225652; c=relaxed/simple;
-	bh=Qqk/hVfcIc8U1mcFBPQ26BOdS8awrNt4TpPV7N9niSY=;
-	h=Date:To:From:Subject:Message-Id; b=VFeuD6iEYRyKdQ3EA4zGGX6I90OcgvoT9LTTlM5iss32asHNXgsyg0NphTxsM+IbPR+LabMl6fNJIjx0R8rhFhZDYH8Zh5Is39NYtISVFBENi4MaFDs+Qj18UPn5+ilnvjGQaQRJpQV7kqIOksM8Jy/Rmppo3UEWju0wEtYb7aU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=twiqcZSj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225654; c=relaxed/simple;
+	bh=hJ51Ec86mkLf5wHsUVAskGntIGbB1VFom3yWS8P1ZRA=;
+	h=Date:To:From:Subject:Message-Id; b=uxslJnD7/qH0sPaj0WbO6RK7K4WRFT6miWdhphCHUpzFP5uyHAOPF9q2uwIY7nvIpyT/2BYPxXEOBhHItuiFuYM3m1trWNKGrm+g8NkCs2FMyd+fqskRFpuiLBQXW6AjikLDUZTT1EmRFl81X9D6vn3odgCVRQqivF0ayb96jEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VPs+cP2v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="twiqcZSj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CADEEC4CEE7;
-	Tue,  4 Nov 2025 03:07:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VPs+cP2v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBB7CC4CEE7;
+	Tue,  4 Nov 2025 03:07:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762225651;
-	bh=Qqk/hVfcIc8U1mcFBPQ26BOdS8awrNt4TpPV7N9niSY=;
+	s=korg; t=1762225653;
+	bh=hJ51Ec86mkLf5wHsUVAskGntIGbB1VFom3yWS8P1ZRA=;
 	h=Date:To:From:Subject:From;
-	b=twiqcZSjzSTgdT64LaM7bNYqGJWmzQHt1XhMk8fAcVIoBnJNjnyaZzrFBgvEqqVRc
-	 xHHMlGXKOoUQlWC12JTdF5h1dAVLVC6wp9KWlVAv1StUwP1mfkZdYJewC7SULBop3X
-	 iyiwuBJG2sQzdlG6XYQzXGH2ubXlFaazx2KHTa7k=
-Date: Mon, 03 Nov 2025 19:07:31 -0800
+	b=VPs+cP2vtQCZG4D62y/GlHnoqe4U9f0eXNqxvlsjNLRQ7w+jTK6/h4GX+82ssdCSk
+	 tLfnzltgWDElaH49NlVB1EGVAQUOa/gcFyPah7H6q8XJa04vGnzqPh6PkvzxcQ5fg1
+	 muds83mo+yactU9fXzW0AXsi3UhuoUUmCzRqZWSo=
+Date: Mon, 03 Nov 2025 19:07:33 -0800
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-handle-alloc-failres-in-damon_test_new_filter.patch added to mm-new branch
-Message-Id: <20251104030731.CADEEC4CEE7@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-handle-alloc-failure-on-damos_test_commit_filter.patch added to mm-new branch
+Message-Id: <20251104030733.BBB7CC4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: handle alloc failres in damon_test_new_filter()
+     Subject: mm/damon/tests/core-kunit: handle alloc failure on damos_test_commit_filter()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-handle-alloc-failres-in-damon_test_new_filter.patch
+     mm-damon-tests-core-kunit-handle-alloc-failure-on-damos_test_commit_filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-handle-alloc-failres-in-damon_test_new_filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-handle-alloc-failure-on-damos_test_commit_filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,40 +65,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: handle alloc failres in damon_test_new_filter()
-Date: Sat, 1 Nov 2025 11:20:07 -0700
+Subject: mm/damon/tests/core-kunit: handle alloc failure on damos_test_commit_filter()
+Date: Sat, 1 Nov 2025 11:20:08 -0700
 
-damon_test_new_filter() is assuming all dynamic memory allocation in it
+damon_test_commit_filter() is assuming all dynamic memory allocation in it
 will succeed.  Those are indeed likely in the real use cases since those
 allocations are too small to fail, but theoretically those could fail.  In
 the case, inappropriate memory access can happen.  Fix it by appropriately
 cleanup pre-allocated memory and skip the execution of the remaining tests
 in the failure cases.
 
-Link: https://lkml.kernel.org/r/20251101182021.74868-14-sj@kernel.org
-Fixes: 2a158e956b98 ("mm/damon/core-test: add a test for damos_new_filter()")
+Link: https://lkml.kernel.org/r/20251101182021.74868-15-sj@kernel.org
+Fixes: f6a4a150f1ec ("mm/damon/tests/core-kunit: add damos_commit_filter test")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <stable@vger.kernel.org>	[6.6+]
+Cc: <stable@vger.kernel.org>	[6.18+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/tests/core-kunit.h |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-handle-alloc-failres-in-damon_test_new_filter
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-handle-alloc-failure-on-damos_test_commit_filter
 +++ a/mm/damon/tests/core-kunit.h
-@@ -505,6 +505,8 @@ static void damos_test_new_filter(struct
- 	struct damos_filter *filter;
+@@ -516,11 +516,16 @@ static void damos_test_new_filter(struct
  
- 	filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true, false);
-+	if (!filter)
-+		kunit_skip(test, "filter alloc fail");
- 	KUNIT_EXPECT_EQ(test, filter->type, DAMOS_FILTER_TYPE_ANON);
- 	KUNIT_EXPECT_EQ(test, filter->matching, true);
- 	KUNIT_EXPECT_PTR_EQ(test, filter->list.prev, &filter->list);
+ static void damos_test_commit_filter(struct kunit *test)
+ {
+-	struct damos_filter *src_filter = damos_new_filter(
+-		DAMOS_FILTER_TYPE_ANON, true, true);
+-	struct damos_filter *dst_filter = damos_new_filter(
+-		DAMOS_FILTER_TYPE_ACTIVE, false, false);
++	struct damos_filter *src_filter, *dst_filter;
+ 
++	src_filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true, true);
++	if (!src_filter)
++		kunit_skip(test, "src filter alloc fail");
++	dst_filter = damos_new_filter(DAMOS_FILTER_TYPE_ACTIVE, false, false);
++	if (!dst_filter) {
++		damos_destroy_filter(src_filter);
++		kunit_skip(test, "dst filter alloc fail");
++	}
+ 	damos_commit_filter(dst_filter, src_filter);
+ 	KUNIT_EXPECT_EQ(test, dst_filter->type, src_filter->type);
+ 	KUNIT_EXPECT_EQ(test, dst_filter->matching, src_filter->matching);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
