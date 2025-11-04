@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFD5C345CC2
-	for <mm-commits@vger.kernel.org>; Tue,  4 Nov 2025 21:47:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE4D5757EA;
+	Tue,  4 Nov 2025 22:22:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762292839; cv=none; b=lJKFBc97keaAmMGuEFYSLwavrjprBSxDaIUx+pCF2SSjeZKvpFSTH7LCvHQERJAEXiIzc0YKPbIy69h/iaUYJO3NmtQq8WriwGyVVX7ZWdSy12ndLNgg8XiLH2rlvM7CgqMWGhkcaEbWh+o7hrz1PZDFsgsTWt/PtJ5RpCgZffA=
+	t=1762294968; cv=none; b=GQx+eYUCoNts2gUrCxiOogRl0zVUqspwvr9J6CH/+cYQw5l5RA6EqwrlHxpMhBngdMMga2O+xwEK+Jdkx1xRbghsSe8wb8vajmCrndV8tUJaqzjjGtYO2IBqMWdGl/loDAIqwPwJQ1xbIuD1D/WPyYTxIh3YRDTT1lxD1nR2Eug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762292839; c=relaxed/simple;
-	bh=mdPqXMcu1xydCGKtqJ4fKGViRHCjtLf4KYO5+6/wwjM=;
-	h=Date:To:From:Subject:Message-Id; b=munJ3kEiEhDsg4jr1twkv32AQiDkpd7SkPw4SDivz6hhHie+RgndQQYx5Ru+b5IHPasS1kG8PHltCD+nerrTmPITAdwq9gaopuxnl+hiv/w4X8MmvOzoZeT3ha75wlo0MyqQkEfqzjIR5lJV8VBlZCfDz+EoJnXE1e1zHNwXVpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w1P32hX5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762294968; c=relaxed/simple;
+	bh=mrIRRSyaoVZUhB2h+ZUo6J/2YFCCxLm0OFA6MBAI7d4=;
+	h=Date:To:From:Subject:Message-Id; b=OzcvRuG1OE3c8e0IYIaz2BBwpvrwyfyWAgK3vmwAXkkTCdiwq2NA6/tl5AP94z+iNpBcU+ktT2StxRAhLEV/P2Vh8A4DmIPgRygb2zFzirFiIkZGBjEcGyRLcU3PerZYgoJrTX67FPWWjV2hnPHYe619GGWmTYjueLQg0pXOFzM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KCN75bUS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w1P32hX5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23495C4CEF7;
-	Tue,  4 Nov 2025 21:47:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KCN75bUS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68F8FC4CEF7;
+	Tue,  4 Nov 2025 22:22:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762292839;
-	bh=mdPqXMcu1xydCGKtqJ4fKGViRHCjtLf4KYO5+6/wwjM=;
+	s=korg; t=1762294967;
+	bh=mrIRRSyaoVZUhB2h+ZUo6J/2YFCCxLm0OFA6MBAI7d4=;
 	h=Date:To:From:Subject:From;
-	b=w1P32hX5cKpFUnBiGMSXf4U+tWpdrnYj+Q/728ZRLuxNB9UVVXNxZ7pxDV0iqiNai
-	 9FJhfHOUB6p+5qpswRc0Fqpsy2Rfeth2YXWiVJF38NL3uFIheZH8G/MnqAQ5nGqgko
-	 uP2zyEiQ8zGupZ8ljT1iZnXOxgddEnrvATNQDqhc=
-Date: Tue, 04 Nov 2025 13:47:18 -0800
-To: mm-commits@vger.kernel.org,aardelean@baylibre.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=KCN75bUSYEKbGjhky/w08gkr3giMaURPMGoJZWhehw2HC9KyOl3blJKKuX1e6Yws4
+	 UkO34YtNr2OCp5PNDuxlIeUPhfq8ppJQXTTHvOE6VSgpTNoT+Hi1V0kaHN6gQz/GV+
+	 9b8Wjzj7cMKTbUA7iGJQaSBI19LN4AQLAAvfg5jI=
+Date: Tue, 04 Nov 2025 14:22:46 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,bhe@redhat.com,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + util_macrosh-fix-kernel-doc-for-u64_to_user_ptr.patch added to mm-nonmm-unstable branch
-Message-Id: <20251104214719.23495C4CEF7@smtp.kernel.org>
+Subject: + kasan-unpoison-pcpu-chunks-with-base-address-tag.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251104222247.68F8FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: util_macros.h: fix kernel-doc for u64_to_user_ptr()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     util_macrosh-fix-kernel-doc-for-u64_to_user_ptr.patch
+     Subject: kasan: unpoison pcpu chunks with base address tag
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kasan-unpoison-pcpu-chunks-with-base-address-tag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/util_macrosh-fix-kernel-doc-for-u64_to_user_ptr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-unpoison-pcpu-chunks-with-base-address-tag.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,47 +58,151 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: util_macros.h: fix kernel-doc for u64_to_user_ptr()
-Date: Tue, 4 Nov 2025 19:38:34 +0100
+From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Subject: kasan: unpoison pcpu chunks with base address tag
+Date: Tue, 04 Nov 2025 14:49:08 +0000
 
-The added documentation to u64_to_user_ptr() misspelled the function name.
-Fix it.
+Patch series "kasan: vmalloc: Fix incorrect tag assignment with multiple
+vm_structs".
 
-Link: https://lkml.kernel.org/r/20251104183834.1046584-1-andriy.shevchenko@linux.intel.com
-Fixes: 029c896c4105 ("kernel.h: move PTR_IF() and u64_to_user_ptr() to util_macros.h")
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexandru Ardelean <aardelean@baylibre.com>
+A KASAN tag mismatch, possibly resulting in a kernel panic, can be
+observed on systems with a tag-based KASAN enabled and with multiple NUMA
+nodes.  Initially it was only noticed on x86 [1] but later a similar issue
+was also reported on arm64 [2].
+
+Specifically the problem is related to how vm_structs interact with
+pcpu_chunks - both when they are allocated, assigned and when pcpu_chunk
+addresses are derived.
+
+When vm_structs are allocated they are tagged if vmalloc support is
+enabled along the KASAN mode.  Later when first pcpu chunk is allocated it
+gets its 'base_addr' field set to the first allocated vm_struct.  With
+that it inherits that vm_struct's tag.
+
+When pcpu_chunk addresses are later derived (by pcpu_chunk_addr(), for
+example in pcpu_alloc_noprof()) the base_addr field is used and offsets
+are added to it.  If the initial conditions are satisfied then some of the
+offsets will point into memory allocated with a different vm_struct.  So
+while the lower bits will get accurately derived the tag bits in the top
+of the pointer won't match the shadow memory contents.
+
+The solution (proposed at v2 of the x86 KASAN series [3]) is to tag the
+vm_structs the same when allocating them for the per cpu allocator (in
+pcpu_get_vm_areas()).
+
+Originally these patches were part of the x86 KASAN series [4].
+
+
+This patch (of 2):
+
+A KASAN tag mismatch, possibly causing a kernel panic, can be observed on
+systems with a tag-based KASAN enabled and with multiple NUMA nodes.  It
+was reported on arm64 and reproduced on x86.  It can be explained in the
+following points:
+
+1. There can be more than one virtual memory chunk.
+2. Chunk's base address has a tag.
+3. The base address points at the first chunk and thus inherits
+   the tag of the first chunk.
+4. The subsequent chunks will be accessed with the tag from the
+   first chunk.
+5. Thus, the subsequent chunks need to have their tag set to
+   match that of the first chunk.
+
+Refactor code by moving it into a helper in preparation for the actual
+fix.
+
+Link: https://lkml.kernel.org/r/821677dd824d003cc5b7a77891db4723e23518ea.1762267022.git.m.wieczorretman@pm.me
+Link: https://lore.kernel.org/all/e7e04692866d02e6d3b32bb43b998e5d17092ba4.1738686764.git.maciej.wieczor-retman@intel.com/ [1]
+Link: https://lore.kernel.org/all/aMUrW1Znp1GEj7St@MiWiFi-R3L-srv/ [2]
+Link: https://lore.kernel.org/all/CAPAsAGxDRv_uFeMYu9TwhBVWHCCtkSxoWY4xmFB_vowMbi8raw@mail.gmail.com/ [3]
+Link: https://lore.kernel.org/all/cover.1761763681.git.m.wieczorretman@pm.me/ [4]
+Fixes: 1d96320f8d53 ("kasan, vmalloc: add vmalloc tagging for SW_TAGS")
+Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Tested-by: Baoquan He <bhe@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <stable@vger.kernel.org>	[6.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/util_macros.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kasan.h |   10 ++++++++++
+ mm/kasan/common.c     |   11 +++++++++++
+ mm/vmalloc.c          |    4 +---
+ 3 files changed, 22 insertions(+), 3 deletions(-)
 
---- a/include/linux/util_macros.h~util_macrosh-fix-kernel-doc-for-u64_to_user_ptr
-+++ a/include/linux/util_macros.h
-@@ -136,10 +136,10 @@
- #define PTR_IF(cond, ptr)	((cond) ? (ptr) : NULL)
+--- a/include/linux/kasan.h~kasan-unpoison-pcpu-chunks-with-base-address-tag
++++ a/include/linux/kasan.h
+@@ -614,6 +614,13 @@ static __always_inline void kasan_poison
+ 		__kasan_poison_vmalloc(start, size);
+ }
  
- /**
-- * to_user_ptr - cast a pointer passed as u64 from user space to void __user *
-+ * u64_to_user_ptr - cast a pointer passed as u64 from user space to void __user *
-  * @x: The u64 value from user space, usually via IOCTL
-  *
-- * to_user_ptr() simply casts a pointer passed as u64 from user space to void
-+ * u64_to_user_ptr() simply casts a pointer passed as u64 from user space to void
-  * __user * correctly. Using this lets us get rid of all the tiresome casts.
-  */
- #define u64_to_user_ptr(x)		\
++void __kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms);
++static __always_inline void kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms)
++{
++	if (kasan_enabled())
++		__kasan_unpoison_vmap_areas(vms, nr_vms);
++}
++
+ #else /* CONFIG_KASAN_VMALLOC */
+ 
+ static inline void kasan_populate_early_vm_area_shadow(void *start,
+@@ -638,6 +645,9 @@ static inline void *kasan_unpoison_vmall
+ static inline void kasan_poison_vmalloc(const void *start, unsigned long size)
+ { }
+ 
++static inline void kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms)
++{ }
++
+ #endif /* CONFIG_KASAN_VMALLOC */
+ 
+ #if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
+--- a/mm/kasan/common.c~kasan-unpoison-pcpu-chunks-with-base-address-tag
++++ a/mm/kasan/common.c
+@@ -28,6 +28,7 @@
+ #include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/bug.h>
++#include <linux/vmalloc.h>
+ 
+ #include "kasan.h"
+ #include "../slab.h"
+@@ -582,3 +583,13 @@ bool __kasan_check_byte(const void *addr
+ 	}
+ 	return true;
+ }
++
++void __kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms)
++{
++	int area;
++
++	for (area = 0 ; area < nr_vms ; area++) {
++		kasan_poison(vms[area]->addr, vms[area]->size,
++			     arch_kasan_get_tag(vms[area]->addr), false);
++	}
++}
+--- a/mm/vmalloc.c~kasan-unpoison-pcpu-chunks-with-base-address-tag
++++ a/mm/vmalloc.c
+@@ -4870,9 +4870,7 @@ retry:
+ 	 * With hardware tag-based KASAN, marking is skipped for
+ 	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
+ 	 */
+-	for (area = 0; area < nr_vms; area++)
+-		vms[area]->addr = kasan_unpoison_vmalloc(vms[area]->addr,
+-				vms[area]->size, KASAN_VMALLOC_PROT_NORMAL);
++	kasan_unpoison_vmap_areas(vms, nr_vms);
+ 
+ 	kfree(vas);
+ 	return vms;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
 
-panic-sys_info-capture-si_bits_global-before-iterating-over-it.patch
-panic-sys_info-align-constant-definition-names-with-parameters.patch
-panic-sys_info-replace-struct-sys_info_name-with-plain-array-of-strings.patch
-panic-sys_info-rewrite-a-fix-for-a-compilation-error-make-w=1.patch
-panic-sys_info-deduplicate-local-variable-table-assignments.patch
-panic-sys_info-factor-out-read-and-write-handlers.patch
-util_macrosh-fix-kernel-doc-for-u64_to_user_ptr.patch
+kasan-unpoison-pcpu-chunks-with-base-address-tag.patch
+kasan-unpoison-vms-addresses-with-a-common-tag.patch
 
