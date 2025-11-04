@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD698347FC6
-	for <mm-commits@vger.kernel.org>; Tue,  4 Nov 2025 23:39:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A7C334B68C
+	for <mm-commits@vger.kernel.org>; Tue,  4 Nov 2025 23:54:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762299555; cv=none; b=A+GqHyNZLaZoPMrtVc3qhLI/rYscnUE+fOKRJs0KEN1ZXxaa9ov6Cn0XTig9lQ5JG/rSdT+va6lovWr+0QuLPwwOQX+F6Q7VqIpROwYipmF0prD8O1FjOQ75FlpJcORS8RymylSJ4EfR+wbOOh2fkioy878n+0N1H7HKniFZgDs=
+	t=1762300487; cv=none; b=oeV5B5D0q7JiyVHO+AUB9KppbmOli2BZ1MZfEvvkh0DjcdpAH6Ry7XGaG0/a5z84e7NOYI3wQ7Bj4GYlNk6bB2XbCsf9dfnQ/G4sKreIorBINmjfdA+ySaFtiyqKDbvmEp3Z5g3DLyzDvuLUGLJKNsCXH+opUans6L8Eyj4fEVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762299555; c=relaxed/simple;
-	bh=c2Nr95m7zzm8oakKWhuLVMgZIDxsp1O1i3/jRzyNsOY=;
-	h=Date:To:From:Subject:Message-Id; b=Vcnj60jAH4o2vY2jdnk8skIMepsDuD5/tJUwV2pmjbf5v0OVFOYmlovcibfAiOcJ56JZtzp620dtovbFvfRTNQTNypSBnNDNoAEeElniY30wMtJAHXB2I4Hjb8VD68j9K/BcKypsfvvVtpjESzSW2rI8VkDzbUkX051ro157atQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NAPI0bFM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762300487; c=relaxed/simple;
+	bh=soHZnY6X/QKOtPjeqo/kfNhlcwroZN57iexKSKdmL6o=;
+	h=Date:To:From:Subject:Message-Id; b=ZT29Orb5WkyKihzgxdGBL6aWfI7VTMSSZbpN2YVe1ktRX0axhDSulfQTbSCi/ECt9A49rIHsr2Gh18qROuHyyj8vt/jA0YuGRIQH9qEZMHBI7wOvG0rxhMEu59sjuO9SoEb8dpfJyXy4lyM3hdUuqkmtVLj86odGa8ni9m23bpY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hdh3ywK9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NAPI0bFM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E76DC4CEF7;
-	Tue,  4 Nov 2025 23:39:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hdh3ywK9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5358BC4CEF7;
+	Tue,  4 Nov 2025 23:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762299555;
-	bh=c2Nr95m7zzm8oakKWhuLVMgZIDxsp1O1i3/jRzyNsOY=;
+	s=korg; t=1762300487;
+	bh=soHZnY6X/QKOtPjeqo/kfNhlcwroZN57iexKSKdmL6o=;
 	h=Date:To:From:Subject:From;
-	b=NAPI0bFMnIoRg/jgZQCby6Xq5X8eiSRZf2RTmToR6bZROjGu705qalA4AFN1RHNON
-	 2apnLVyhwbDfUn+B/RCUdXMYm/8ECWfUxjLfVvXjk0f7txSSIIdxWDbNll04w6ADKA
-	 K7qrFDsGQcBiAS+hv4AhMmf5ZhxuTN20vhO4mp9U=
-Date: Tue, 04 Nov 2025 15:39:14 -0800
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Hdh3ywK9jFEe00q7zuJBBocsjyp17msSoYztxdSDnGSuX+fKZM5d4tvG3HX5o1FVv
+	 DN0L6Eg9H9YXgfiDYRlCc/EWSWhqShGO61kP2WfW23xfTmpOFvOV5kQqQtbQKOHUxw
+	 Rgf8QiIX1XUyEwS/ykLNdVphZigacvR6iHgXH15s=
+Date: Tue, 04 Nov 2025 15:54:46 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,lkp@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-non_swap_entry-and-use-leaf-entry-helpers-instead-fix.patch added to mm-new branch
-Message-Id: <20251104233915.4E76DC4CEF7@smtp.kernel.org>
+Subject: + liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251104235447.5358BC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-remove-non_swap_entry-and-use-leaf-entry-helpers-instead-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-non_swap_entry-and-use-leaf-entry-helpers-instead-fix.patch
+     Subject: liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-non_swap_entry-and-use-leaf-entry-helpers-instead-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,68 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-remove-non_swap_entry-and-use-leaf-entry-helpers-instead-fix
-Date: Tue, 4 Nov 2025 06:16:03 +0000
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2
+Date: Tue, 4 Nov 2025 12:50:49 -0500
 
-fix instance of over-zealous const usage in s390
+build fix
 
-Link: https://lkml.kernel.org/r/4700dcda-13c8-4ba7-aea9-5513c01cc4a2@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/CA+CK2bBnorfsTymKtv4rKvqGBHs=y=MjEMMRg_tE-RME6n-zUw@mail.gmail.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202511042251.paO6f5BZ-lkp@intel.com/
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/pgtable.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec_handover.c          |    4 ++--
+ kernel/kexec_handover_internal.h |    4 ++++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/arch/s390/mm/pgtable.c~mm-remove-non_swap_entry-and-use-leaf-entry-helpers-instead-fix
-+++ a/arch/s390/mm/pgtable.c
-@@ -688,7 +688,7 @@ static void ptep_zap_leaf_entry(struct m
- 	if (leafent_is_swap(entry))
- 		dec_mm_counter(mm, MM_SWAPENTS);
- 	else if (leafent_is_migration(entry)) {
--		const struct folio *folio = leafent_to_folio(entry);
-+		struct folio *folio = leafent_to_folio(entry);
+--- a/kernel/kexec_handover.c~liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2
++++ a/kernel/kexec_handover.c
+@@ -476,8 +476,8 @@ static void __init kho_mem_deserialize(c
+  * area for early allocations that happen before page allocator is
+  * initialized.
+  */
+-static struct kho_scratch *kho_scratch;
+-static unsigned int kho_scratch_cnt;
++struct kho_scratch *kho_scratch;
++unsigned int kho_scratch_cnt;
  
- 		dec_mm_counter(mm, mm_counter(folio));
- 	}
+ /*
+  * The scratch areas are scaled by default as percent of memory allocated from
+--- a/kernel/kexec_handover_internal.h~liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2
++++ a/kernel/kexec_handover_internal.h
+@@ -2,8 +2,12 @@
+ #ifndef LINUX_KEXEC_HANDOVER_INTERNAL_H
+ #define LINUX_KEXEC_HANDOVER_INTERNAL_H
+ 
++#include <linux/kexec_handover.h>
+ #include <linux/types.h>
+ 
++extern struct kho_scratch *kho_scratch;
++extern unsigned int kho_scratch_cnt;
++
+ #ifdef CONFIG_KEXEC_HANDOVER_DEBUG
+ bool kho_scratch_overlap(phys_addr_t phys, size_t size);
+ #else
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-shmem-update-shmem-to-use-mmap_prepare.patch
-device-dax-update-devdax-to-use-mmap_prepare.patch
-mm-vma-remove-unused-function-make-internal-functions-static.patch
-mm-add-vma_desc_size-vma_desc_pages-helpers.patch
-relay-update-relay-to-use-mmap_prepare.patch
-mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
-mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
-mm-abstract-io_remap_pfn_range-based-on-pfn.patch
-mm-introduce-io_remap_pfn_range_.patch
-mm-add-ability-to-take-further-action-in-vm_area_desc.patch
-doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
-mm-add-shmem_zero_setup_desc.patch
-mm-update-mem-char-driver-to-use-mmap_prepare.patch
-mm-update-resctl-to-use-mmap_prepare.patch
-mm-vma-small-vma-lock-cleanups.patch
-mm-correctly-handle-uffd-pte-markers.patch
-mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
-mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic-fix.patch
-mm-avoid-unnecessary-uses-of-is_swap_pte.patch
-mm-eliminate-uses-of-is_swap_pte-when-leafent_from_pte-suffices.patch
-mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
-fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
-mm-avoid-unnecessary-use-of-is_swap_pmd.patch
-mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
-mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
-mm-replace-pmd_to_swp_entry-with-leafent_from_pmd.patch
-mm-replace-pmd_to_swp_entry-with-leafent_from_pmd-fix.patch
-mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
-mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
-mm-remove-non_swap_entry-and-use-leaf-entry-helpers-instead.patch
-mm-remove-non_swap_entry-and-use-leaf-entry-helpers-instead-fix.patch
-mm-remove-is_hugetlb_entry_.patch
-mm-eliminate-further-swapops-predicates.patch
-mm-replace-remaining-pte_to_swp_entry-with-leafent_from_pte.patch
+liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area.patch
+liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2.patch
+liveupdate-kho-increase-metadata-bitmap-size-to-page_size.patch
+liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator.patch
+kho-make-debugfs-interface-optional.patch
+kho-add-interfaces-to-unpreserve-folios-page-ranges-and-vmalloc.patch
+memblock-unpreserve-memory-in-case-of-error.patch
+test_kho-unpreserve-memory-in-case-of-error.patch
+kho-dont-unpreserve-memory-during-abort.patch
+liveupdate-kho-move-to-kernel-liveupdate.patch
+maintainers-update-kho-maintainers.patch
 
