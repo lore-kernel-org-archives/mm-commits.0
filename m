@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC99E26E16E
-	for <mm-commits@vger.kernel.org>; Tue,  4 Nov 2025 03:07:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FD612727FE
+	for <mm-commits@vger.kernel.org>; Tue,  4 Nov 2025 03:11:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762225669; cv=none; b=k91v36EW4wgYoxJwWIw92YBBqhd9dGWCtf44F+ZGXFHsyLCke7Mkv7T0VogYFVI2u2jrYgMCQyKhBYT2F3K36T0zAmAjspIMplnabhxpX0ZTAU6oCDacId0sxDLNfsiSpaCnABcO0M+VCdZ1vk7+7Jw+ijfvE6MAyT/PHhhQyZY=
+	t=1762225861; cv=none; b=FlSB9IBef+SfpjYaRlNVifnzCnvP78wyZYrOeIJBbvWpgInhh+qJd64DvR+1TvS7Z6A+lHPvqejF76jqNM63yXxQgFA9I3WbXhuSQbMZPFl55XyTgGlLOgH0GXMc2cpMDJW4geuRvrsvxoVqU+h06LAGVQOyTaNOuYzvp+/UsUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762225669; c=relaxed/simple;
-	bh=IKjTxkpjrr9F6GPJxdQkcgOC1Pejj/vM4IjZ/t/ZwP4=;
-	h=Date:To:From:Subject:Message-Id; b=L+KpfIUI3TznoaCMfqEnYdNGad/EOFs4EDYmLqDrhB1f1CpzQ1j9KuYuJ9FgJVFGB8S52dqCCWHqNYfGK06TP2Y1i93Id1xJeZjd6nzyWfZRDY1iv2vJWgd6cnXGPt0kPMyp+PL6SDUFJ4BXWfQ0ueHbWvLNw5ji7P/fwbhrO/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QV/A9b5r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225861; c=relaxed/simple;
+	bh=saOs6ufkCewRbyA1SEfTn6Ht/jiLTZ4OCrLov48tpRk=;
+	h=Date:To:From:Subject:Message-Id; b=dpCKVvvl5/NNenFDGRYj85Jr8c/HGbb+Ua1QevflGwF66O6Wi2VtushSjf7WokqStUPwUEw6ojNXm87c67pjvs0GTTswWSdybDHphPTxaGZhi3xRTrKELuCS/IomIlMaWspwqXo046fc27znGCqV6XuITmM+Lx1hdnGTDvnXJ7U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HsoiJm+M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QV/A9b5r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52338C4CEE7;
-	Tue,  4 Nov 2025 03:07:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HsoiJm+M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CDC1C116C6;
+	Tue,  4 Nov 2025 03:11:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762225669;
-	bh=IKjTxkpjrr9F6GPJxdQkcgOC1Pejj/vM4IjZ/t/ZwP4=;
+	s=korg; t=1762225860;
+	bh=saOs6ufkCewRbyA1SEfTn6Ht/jiLTZ4OCrLov48tpRk=;
 	h=Date:To:From:Subject:From;
-	b=QV/A9b5r5gZapwqe92aK8YHxMhUCCQ0JrJOQndOmokj5JBDL88g9nOe37wZsZM/7X
-	 yT9G10Dm2BJSU5/fLrxBSNMfdGGvMzB9Wb+/3l52B+N3k4IkBvT0NNmBI7bZy3DlsR
-	 0T8GUGEwvQDA1gUR9JrBsKeFPjFNBPDWaV688Y4s=
-Date: Mon, 03 Nov 2025 19:07:48 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=HsoiJm+MIu6nwnyk25i0YZjMF9In2/DXQ3zv28eu9Ct0OgGBf4TZil+O7SnLkLyOH
+	 ALi8lkII+cgboepVPs+jfknZJBggaI7JVEQWM1s0Ygg0pidIqDFmlPJp9b8lwpG3Tg
+	 Oiru9qjWOxiWaB6mhv864yuAV8UPjE6WCoSIgiTM=
+Date: Mon, 03 Nov 2025 19:10:59 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,dan.j.williams@intel.com,apw@canonical.com,clopez@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-remove-unused-ctx-in-damon_test_split_regions_of.patch added to mm-new branch
-Message-Id: <20251104030749.52338C4CEE7@smtp.kernel.org>
+Subject: + checkpatch-add-idr-to-the-deprecated-list.patch added to mm-nonmm-unstable branch
+Message-Id: <20251104031100.9CDC1C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: remove unused ctx in damon_test_split_regions_of()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-remove-unused-ctx-in-damon_test_split_regions_of.patch
+     Subject: checkpatch: add IDR to the deprecated list
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     checkpatch-add-idr-to-the-deprecated-list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-remove-unused-ctx-in-damon_test_split_regions_of.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-idr-to-the-deprecated-list.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,128 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: remove unused ctx in damon_test_split_regions_of()
-Date: Sat, 1 Nov 2025 11:20:16 -0700
+From: : Carlos López <clopez@suse.de>
+Subject: checkpatch: add IDR to the deprecated list
+Date: Fri, 31 Oct 2025 12:19:09 +0100
 
-damon_test_split_regions_of() dynamically allocates a 'struct damon_ctx'
-object, but it is not really being used in the code other than handling
-the allocation failure and deallocating it at the end of the function. 
-Remove the unnecessary allocation and deallocation of the object.
+As of commit 85656ec193e9, the IDR interface is marked as deprecated in
+the documentation, but no checks are made in that regard for new code. 
+Add the existing IDR initialization APIs to the deprecated list in
+checkpatch, so that if new code is introduced using these APIs, a warning
+is emitted.
 
-Link: https://lkml.kernel.org/r/20251101182021.74868-23-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20251031111908.2266077-2-clopez@suse.de
+Signed-off-by: Carlos López <clopez@suse.de>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ scripts/checkpatch.pl |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-remove-unused-ctx-in-damon_test_split_regions_of
-+++ a/mm/damon/tests/core-kunit.h
-@@ -267,20 +267,14 @@ static void damon_test_merge_regions_of(
+--- a/scripts/checkpatch.pl~checkpatch-add-idr-to-the-deprecated-list
++++ a/scripts/checkpatch.pl
+@@ -860,6 +860,10 @@ our %deprecated_apis = (
+ 	"kunmap"				=> "kunmap_local",
+ 	"kmap_atomic"				=> "kmap_local_page",
+ 	"kunmap_atomic"				=> "kunmap_local",
++	#These should be enough to drive away new IDR users
++	"DEFINE_IDR"				=> "DEFINE_XARRAY",
++	"idr_init"				=> "xa_init",
++	"idr_init_base"				=> "xa_init_flags"
+ );
  
- static void damon_test_split_regions_of(struct kunit *test)
- {
--	struct damon_ctx *c = damon_new_ctx();
- 	struct damon_target *t;
- 	struct damon_region *r;
- 
--	if (!c)
--		kunit_skip("ctx alloc fail");
- 	t = damon_new_target();
--	if (!t) {
--		damon_destroy_ctx(c);
-+	if (!t)
- 		kunit_skip(test, "target alloc fail");
--	}
- 	r = damon_new_region(0, 22);
- 	if (!r) {
--		damon_destroy_ctx(c);
- 		damon_free_target(t);
- 		kunit_skip(test, "region alloc fail");
- 	}
-@@ -290,13 +284,10 @@ static void damon_test_split_regions_of(
- 	damon_free_target(t);
- 
- 	t = damon_new_target();
--	if (!t) {
--		damon_destroy_ctx(c);
-+	if (!t)
- 		kunit_skip(test, "second target alloc fail");
--	}
- 	r = damon_new_region(0, 220);
- 	if (!r) {
--		damon_destroy_ctx(c);
- 		damon_free_target(t);
- 		kunit_skip(test, "second region alloc fail");
- 	}
-@@ -304,7 +295,6 @@ static void damon_test_split_regions_of(
- 	damon_split_regions_of(t, 4, DAMON_MIN_REGION);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
- 	damon_free_target(t);
--	damon_destroy_ctx(c);
- }
- 
- static void damon_test_ops_registration(struct kunit *test)
+ #Create a search pattern for all these strings to speed up a loop below
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from clopez@suse.de are
 
-mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
-mm-zswap-fix-typos-s-zwap-zswap.patch
-mm-zswap-s-red-black-tree-xarray.patch
-docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
-mm-damon-document-damos_quota_goal-nid-use-case.patch
-mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
-mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
-mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
-mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
-docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
-docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
-docs-abi-damon-document-damos-quota-goal-path-file.patch
-mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch
-docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section.patch
-docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
-docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
-docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter.patch
-docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter.patch
-docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch
-docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
-mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
-mm-damon-sysfs-test-commit-input-against-realistic-destination.patch
-mm-damon-sysfs-implement-obsolete_target-file.patch
-docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
-docs-abi-damon-document-obsolete_target-sysfs-file.patch
-selftests-damon-_damon_sysfs-support-obsolete_target-file.patch
-drgn_dump_damon_status-dump-damon_target-obsolete.patch
-sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
-selftests-damon-sysfs-add-obsolete_target-test.patch
-mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
-mm-damon-tests-core-kunit-handle-allocation-failures-in-damon_test_regions.patch
-mm-damon-tests-core-kunit-handle-memory-failure-from-damon_test_target.patch
-mm-damon-tests-core-kunit-handle-memory-alloc-failure-from-damon_test_aggregate.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_split_at.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_merge_two.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-dasmon_test_merge_regions_of.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_split_regions_of.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_ops_registration.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_set_regions.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_update_monitoring_result.patch
-mm-damon-tests-core-kunit-handle-alloc-failure-on-damon_test_set_attrs.patch
-mm-damon-tests-core-kunit-handle-alloc-failres-in-damon_test_new_filter.patch
-mm-damon-tests-core-kunit-handle-alloc-failure-on-damos_test_commit_filter.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damos_test_filter_out.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch
-mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch
-mm-damon-tests-vaddr-kunit-handle-alloc-failures-in-damon_test_split_evenly_fail.patch
-mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_test_split_evenly_succ.patch
-mm-damon-tests-sysfs-kunit-handle-alloc-failures-on-damon_sysfs_test_add_targets.patch
-mm-damon-tests-core-kunit-remove-unnecessary-damon_ctx-variable-on-damon_test_split_at.patch
-mm-damon-tests-core-kunit-remove-unused-ctx-in-damon_test_split_regions_of.patch
+checkpatch-add-idr-to-the-deprecated-list.patch
 
