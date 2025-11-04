@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1274026CE2E;
-	Tue,  4 Nov 2025 03:07:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E2FD26ED3C;
+	Tue,  4 Nov 2025 03:07:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762225648; cv=none; b=KYLr5Fws10pzjtI8eGAlT1AwdyZcQNMcw8yxz68cSH2dvyhaSUv8MuXFfI5ndHYImjgDEKTo7k/x6axDYyz2bP+fRB6HvESFhj8NOaw3oKIoblfsrJc6PuWPB79bCEbsnKI1VuPlREYuLZyrfRzNR7EGT9YWh51yxnDke4kieII=
+	t=1762225650; cv=none; b=h+6/OZgYye1LekdWjjbu9Dv4fUZ0vtz9keU6Rsxnr+0/YF1fHW3HHLYDCHtGtMlYe1zY5S9px2akkgLtkK/7Qhxk0WyHZqtFZJhQA5rIwaBDXEdmSMdDcFGyWc2rUSZB9IrcZNeRJVLibNA4I4SqJDSfWPb/d5jqTNK1R8D6ypQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762225648; c=relaxed/simple;
-	bh=5SQf5d9uo6OTfVqVUso5ZIZkGN6kEkIrauwpGvN3c+E=;
-	h=Date:To:From:Subject:Message-Id; b=HR4AjMjsULmnW0yJEQlS+QGQxGnOfeY49NjNyaNtiq3RPngyTmF16Zjm8hWg0F9JgcffwVdPpyh+qeyXOnzkUOJ5WCA9Pbh6eudDB0xcyJN3BuUrFqnzJ8hPZRtdnwRVDRrGJIItEJf1SXv6CYiJiWcZFNI33yxzwDWGdjtufWg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D+W/EZkY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225650; c=relaxed/simple;
+	bh=bVQHBfKdBVELi7092LddPX9FoQia2/+nv8mC4V3tWds=;
+	h=Date:To:From:Subject:Message-Id; b=Tbm+Zc9+7OTm5RI4o+9MqAejPZmBU5udJrl/ft+qRHBoU+6X4KK8LQut1WDyDrdiO1J5Asy5oEHZdFCczkfl9HXS2dLoDn/DPDnyiohl3gW1+uYmDNotC5rbIRZzrVb9TqPj55BDiQ1e9ROgMsLeTUSKVDnILGGEfpi9uokJHpM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JuJOKyps; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D+W/EZkY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D43DCC4CEFD;
-	Tue,  4 Nov 2025 03:07:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JuJOKyps"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4A7CC116C6;
+	Tue,  4 Nov 2025 03:07:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762225647;
-	bh=5SQf5d9uo6OTfVqVUso5ZIZkGN6kEkIrauwpGvN3c+E=;
+	s=korg; t=1762225649;
+	bh=bVQHBfKdBVELi7092LddPX9FoQia2/+nv8mC4V3tWds=;
 	h=Date:To:From:Subject:From;
-	b=D+W/EZkY3EJ7cuo/+QmVtwHlj7ARIfSsydQVRZZcSygu1GE6kwrFPtbgEp8QZhkvt
-	 llmimCJ7kS202Kmae0HR5+bjUPEcTGKcW3PLhlyE5BVY3UIChh4hnl9fo5G4pkbqz1
-	 Q69wyEV56Gx5o5ZZzhJgHVL9IHxkCGb0Kzn/4eA4=
-Date: Mon, 03 Nov 2025 19:07:27 -0800
+	b=JuJOKypsJSB974RAPI5klYQG8CtOzV7CaZ+3f2H2kioUlQtJVoWFECXtzdr04yAlg
+	 eWnR3KY0VOYnf8oGnUqEuZsAvkOz63/xDixjIPggSkI8U1bsUMy2uNCYbqIvVeBYyq
+	 ZBCoxCSsBYq/TD/U9M90k/vbg23Q0etrbLZ1/gMo=
+Date: Mon, 03 Nov 2025 19:07:29 -0800
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_update_monitoring_result.patch added to mm-new branch
-Message-Id: <20251104030727.D43DCC4CEFD@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-handle-alloc-failure-on-damon_test_set_attrs.patch added to mm-new branch
+Message-Id: <20251104030729.D4A7CC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: handle alloc failures in damon_test_update_monitoring_result()
+     Subject: mm/damon/tests/core-kunit: handle alloc failure on damon_test_set_attrs()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_update_monitoring_result.patch
+     mm-damon-tests-core-kunit-handle-alloc-failure-on-damon_test_set_attrs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_update_monitoring_result.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-handle-alloc-failure-on-damon_test_set_attrs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,41 +65,41 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: handle alloc failures in damon_test_update_monitoring_result()
-Date: Sat, 1 Nov 2025 11:20:05 -0700
+Subject: mm/damon/tests/core-kunit: handle alloc failure on damon_test_set_attrs()
+Date: Sat, 1 Nov 2025 11:20:06 -0700
 
-damon_test_update_monitoring_result() is assuming all dynamic memory
-allocation in it will succeed.  Those are indeed likely in the real use
-cases since those allocations are too small to fail, but theoretically
-those could fail.  In the case, inappropriate memory access can happen. 
-Fix it by appropriately cleanup pre-allocated memory and skip the
-execution of the remaining tests in the failure cases.
+damon_test_set_attrs() is assuming all dynamic memory allocation in it
+will succeed.  Those are indeed likely in the real use cases since those
+allocations are too small to fail, but theoretically those could fail.  In
+the case, inappropriate memory access can happen.  Fix it by appropriately
+cleanup pre-allocated memory and skip the execution of the remaining tests
+in the failure cases.
 
-Link: https://lkml.kernel.org/r/20251101182021.74868-12-sj@kernel.org
-Fixes: f4c978b6594b ("mm/damon/core-test: add a test for damon_update_monitoring_results()")
+Link: https://lkml.kernel.org/r/20251101182021.74868-13-sj@kernel.org
+Fixes: aa13779be6b7 ("mm/damon/core-test: add a test for damon_set_attrs()")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <stable@vger.kernel.org>	[6.3+]
+Cc: <stable@vger.kernel.org>	[6.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/damon/tests/core-kunit.h |    3 +++
  1 file changed, 3 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_update_monitoring_result
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-handle-alloc-failure-on-damon_test_set_attrs
 +++ a/mm/damon/tests/core-kunit.h
-@@ -429,6 +429,9 @@ static void damon_test_update_monitoring
- 	struct damon_attrs new_attrs;
- 	struct damon_region *r = damon_new_region(3, 7);
+@@ -465,6 +465,9 @@ static void damon_test_set_attrs(struct
+ 		.sample_interval = 5000, .aggr_interval = 100000,};
+ 	struct damon_attrs invalid_attrs;
  
-+	if (!r)
-+		kunit_skip(test, "region alloc fail");
++	if (!c)
++		kunit_skip(test, "ctx alloc fail");
 +
- 	r->nr_accesses = 15;
- 	r->nr_accesses_bp = 150000;
- 	r->age = 20;
+ 	KUNIT_EXPECT_EQ(test, damon_set_attrs(c, &valid_attrs), 0);
+ 
+ 	invalid_attrs = valid_attrs;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
