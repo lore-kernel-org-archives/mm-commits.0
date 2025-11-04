@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2F6D14F9D6
-	for <mm-commits@vger.kernel.org>; Tue,  4 Nov 2025 01:21:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 071762080C8;
+	Tue,  4 Nov 2025 01:21:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762219300; cv=none; b=mn+EVmho9dKtAw91hA37akiqLNUZqlWEAipelPuGNHmAa7mrdatsi3NxDW1q4SZ0q4ju9/U8eanzn/2/zZYfTKNBkSTYObMN5+KANTP3nhtoAanCoyNie//xPRulDECuxR5g9dsTjWruVLxZPfsJXoW1KsXd59BYkgJtYVJ1zeM=
+	t=1762219302; cv=none; b=WJsCfHqcWCxueg0qeTYoYEG1fjHdW6QbTXG7tw2Jz5K/q38LX954f/LujS5Zp7OWCwK/CDA18ns3CVZsSoinDoS9T6iBBIAUUQI6Au0uX1YcC/XTVTXv7E1yVOC+M9XQIEPtLZYh4H8pZ4jxya4/JrTI7IJgsvaGSGLWCyWQTx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762219300; c=relaxed/simple;
-	bh=GzNpdfFNfzOfQgeNd5wuPyKycrA9DpPsmSvZP4xqIkI=;
-	h=Date:To:From:Subject:Message-Id; b=U0ee//e2UD9HeU71vdQhNZeToMwH9ktcNGlehkcJ+xA+wyjG3yHwxU/Mhr2kkdE5woMUUnwiuEYhQ3tBshRgFW3QU4uQCJlSS1pwV16dNf/ml/c552CbOn2L1bWffR58Zm3nm6zkoJ5Y8MsoA5TNP9cBnoWquuxW5nqD9D2uUXQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VVsGm+nw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762219302; c=relaxed/simple;
+	bh=zYIr3Y1Qwn8E5cDTMEfflgtvikzLeEfiA7PbWL+Yz+Y=;
+	h=Date:To:From:Subject:Message-Id; b=tbkk2lV6RNYoQSBERDa8ycSn0k1gbKWcndDYUaGrzVsSBuSIleDBaqxBSPzbD53If9fY663GwuY/5FdxtFUht1EnCni1UeoPQ9rDRYvWkLIgN4HLNxTfqKuvvwV5ko+ovSqPgrNGXyKyIzF6HEViPIzoZ3tvQTgobB5Sy1ZLIsk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CNPRS2Lg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VVsGm+nw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4086C4CEE7;
-	Tue,  4 Nov 2025 01:21:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CNPRS2Lg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BECD5C4CEE7;
+	Tue,  4 Nov 2025 01:21:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762219299;
-	bh=GzNpdfFNfzOfQgeNd5wuPyKycrA9DpPsmSvZP4xqIkI=;
+	s=korg; t=1762219301;
+	bh=zYIr3Y1Qwn8E5cDTMEfflgtvikzLeEfiA7PbWL+Yz+Y=;
 	h=Date:To:From:Subject:From;
-	b=VVsGm+nwZT62Ev0Iq+sWcaqXnknkzo9WHU/0PGhKQyRJMYEDimaRKNTzC3C8AMZ+f
-	 cIWVun34gQBt+H42rNSQEPclsXLy6QSb3lvzs7HWNIOozZuOSp94tqRgL0AFLFNU62
-	 er1wJkOE4wKKfXFIKsxa5Zy1FgswD+bqUK8CUXog=
-Date: Mon, 03 Nov 2025 17:21:39 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,bhe@redhat.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=CNPRS2LgNphVgeHu6dKol8lVKZVSku4fJEd6lJKbhZzQFaEEYBD1ErynUWlmg8dNP
+	 JyLsCBf58bIvbl9SC2VVtEB8qnvI0bKYoJKv68vCKEXh/AVvlnDpAQCeouaMej4pET
+	 Iy9UQiBelBUeMn/Y9qJXpa6S+B1BHm+F2+3JtWkI=
+Date: Mon, 03 Nov 2025 17:21:41 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,bhe@redhat.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-fix-unpreservation-of-higher-order-vmalloc-preservations.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251104012139.B4086C4CEE7@smtp.kernel.org>
+Subject: + kho-warn-and-exit-when-unpreserved-page-wasnt-preserved.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251104012141.BECD5C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: fix unpreservation of higher-order vmalloc preservations
+     Subject: kho: warn and exit when unpreserved page wasn't preserved
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kho-fix-unpreservation-of-higher-order-vmalloc-preservations.patch
+     kho-warn-and-exit-when-unpreserved-page-wasnt-preserved.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-fix-unpreservation-of-higher-order-vmalloc-preservations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-warn-and-exit-when-unpreserved-page-wasnt-preserved.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,67 +59,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pratyush Yadav <pratyush@kernel.org>
-Subject: kho: fix unpreservation of higher-order vmalloc preservations
-Date: Mon, 3 Nov 2025 19:02:31 +0100
+Subject: kho: warn and exit when unpreserved page wasn't preserved
+Date: Mon, 3 Nov 2025 19:02:32 +0100
 
-kho_vmalloc_unpreserve_chunk() calls __kho_unpreserve() with end_pfn as
-pfn + 1.  This happens to work for 0-order pages, but leaks higher order
-pages.
+Calling __kho_unpreserve() on a pair of (pfn, end_pfn) that wasn't
+preserved is a bug.  Currently, if that is done, the physxa or bits can be
+NULL.  This results in a soft lockup since a NULL physxa or bits results
+in redoing the loop without ever making any progress.
 
-For example, say order 2 pages back the allocation.  During preservation,
-they get preserved in the order 2 bitmaps, but
-kho_vmalloc_unpreserve_chunk() would try to unpreserve them from the order
-0 bitmaps, which should not have these bits set anyway, leaving the order
-2 bitmaps untouched.  This results in the pages being carried over to the
-next kernel.  Nothing will free those pages in the next boot, leaking
-them.
+Return when physxa or bits are not found, but WARN first to loudly
+indicate invalid behaviour.
 
-Fix this by taking the order into account when calculating the end PFN for
-__kho_unpreserve().
-
-Link: https://lkml.kernel.org/r/20251103180235.71409-2-pratyush@kernel.org
-Fixes: a667300bd53f2 ("kho: add support for preserving vmalloc allocations")
+Link: https://lkml.kernel.org/r/20251103180235.71409-3-pratyush@kernel.org
+Fixes: fc33e4b44b271 ("kexec: enable KHO support for memory preservation")
 Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_handover.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/kexec_handover.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/kernel/kexec_handover.c~kho-fix-unpreservation-of-higher-order-vmalloc-preservations
+--- a/kernel/kexec_handover.c~kho-warn-and-exit-when-unpreserved-page-wasnt-preserved
 +++ a/kernel/kexec_handover.c
-@@ -882,7 +882,8 @@ err_free:
- 	return NULL;
- }
+@@ -171,12 +171,12 @@ static void __kho_unpreserve(struct kho_
+ 		const unsigned long pfn_high = pfn >> order;
  
--static void kho_vmalloc_unpreserve_chunk(struct kho_vmalloc_chunk *chunk)
-+static void kho_vmalloc_unpreserve_chunk(struct kho_vmalloc_chunk *chunk,
-+					 unsigned short order)
- {
- 	struct kho_mem_track *track = &kho_out.ser.track;
- 	unsigned long pfn = PHYS_PFN(virt_to_phys(chunk));
-@@ -891,7 +892,7 @@ static void kho_vmalloc_unpreserve_chunk
+ 		physxa = xa_load(&track->orders, order);
+-		if (!physxa)
+-			continue;
++		if (WARN_ON_ONCE(!physxa))
++			return;
  
- 	for (int i = 0; i < ARRAY_SIZE(chunk->phys) && chunk->phys[i]; i++) {
- 		pfn = PHYS_PFN(chunk->phys[i]);
--		__kho_unpreserve(track, pfn, pfn + 1);
-+		__kho_unpreserve(track, pfn, pfn + (1 << order));
- 	}
- }
+ 		bits = xa_load(&physxa->phys_bits, pfn_high / PRESERVE_BITS);
+-		if (!bits)
+-			continue;
++		if (WARN_ON_ONCE(!bits))
++			return;
  
-@@ -902,7 +903,7 @@ static void kho_vmalloc_free_chunks(stru
- 	while (chunk) {
- 		struct kho_vmalloc_chunk *tmp = chunk;
+ 		clear_bit(pfn_high % PRESERVE_BITS, bits->preserve);
  
--		kho_vmalloc_unpreserve_chunk(chunk);
-+		kho_vmalloc_unpreserve_chunk(chunk, kho_vmalloc->order);
- 
- 		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
- 		free_page((unsigned long)tmp);
 _
 
 Patches currently in -mm which might be from pratyush@kernel.org are
