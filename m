@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9C5026FA5E;
-	Tue,  4 Nov 2025 03:07:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0478F26F47D;
+	Tue,  4 Nov 2025 03:07:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762225659; cv=none; b=gfjuvDLHWe9EvRlLWRpDrxOe+mqvGzbmbTJRnGX52AIwG4Qtnal0mcYdBK6EOCVVK6vz2K0TCIhmACcD0T72TBNMtqwqHDSdC/UBzsT2A5vsyrrI0McCQa1dEz5Y88iGgtBEY5wOX6b1jSMK7qEC3eYTIuzucDwshD2deXNMvBA=
+	t=1762225662; cv=none; b=Lp5wXv4ey8jX6/z8cjRRiZrOLGL2eBggNsBnlnOPW2EgROwfok5iEJ5LR8fK6LBV56oJibrtc/sqZ82QIlmHl7nNahFt3SDbZBs94eXoTIF2Rhv7NsxCuF9/ZkYpHTqJhdCd2BWh6kd6/e4+RmGy1LpItBrMu2vvXxkwvTs3hWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762225659; c=relaxed/simple;
-	bh=TfRYeewWR3Pb7kwg48lnopzsoQT1ftCvFo+WDG+Z1eo=;
-	h=Date:To:From:Subject:Message-Id; b=f9cjkNVdruojisP65B6s6Bthb957280ovoWTfQSaOvliHmHb/l8byM3Fdgb0/Ji4aQaoYt2r3/tuTIZ3emqBhUsv71Bav2u8Mo4t4zuelxSNZWUC3eNVlFklMKS3Bk8CcrlUOBY4P/ZYkTHdgxdhsQuabqFAeCSgTZNbug6J+k4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ap1kVMVP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225662; c=relaxed/simple;
+	bh=wZ1mZD0tLVt68xtgF3LqbGoPHLfmtYLKgBeohAnQ5I8=;
+	h=Date:To:From:Subject:Message-Id; b=h+YMVk5KuENzEV63wY5Y3qj7IwsGAihyUmMmugixDp4x/tYRjw4NvHVhC08sLtDcuIoNEzhtBDKINl0VEmx9J6MH4vTOJ0fsOolxSYENTE6P6BsPHrvMU7m4h7+NC9WhKkSB2fpKyOsvRGhm9yhaZ8JiMPaL28/RihtHiKmeXpY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ejljt8MY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ap1kVMVP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F685C4CEE7;
-	Tue,  4 Nov 2025 03:07:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ejljt8MY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85B42C4CEE7;
+	Tue,  4 Nov 2025 03:07:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762225659;
-	bh=TfRYeewWR3Pb7kwg48lnopzsoQT1ftCvFo+WDG+Z1eo=;
+	s=korg; t=1762225661;
+	bh=wZ1mZD0tLVt68xtgF3LqbGoPHLfmtYLKgBeohAnQ5I8=;
 	h=Date:To:From:Subject:From;
-	b=Ap1kVMVPlgB1XtkYCTHCMRelci+dbhAnCPH1N3M543pRVlWRHO8JKjS0wIKaU2KKH
-	 z+7LewNHpRJ2zGCtHWGF9EHQOu1RBXpEu2ATKXgw5uPPxVeZOu1dKa2scZf94E8p9E
-	 wwTm7wsA/Q6xm5E/LsfwbY4ucil3ipjvevynIKD4=
-Date: Mon, 03 Nov 2025 19:07:39 -0800
+	b=ejljt8MYyJ8gTC+ryHe73kjTrmrXw8cK4kQho568CW/MJBko0MjnyUwWezzsN37wh
+	 rSD3TlzXg7dEXPC9qP6G7PCIHQ+lPtvywjGRN0VbnVbAtBCDUr3LN/esxJYV3jIteO
+	 rJMEztR/TbVEjiDBGA6UZyxezIEOQclzvWE7fHR0=
+Date: Mon, 03 Nov 2025 19:07:41 -0800
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch added to mm-new branch
-Message-Id: <20251104030739.8F685C4CEE7@smtp.kernel.org>
+Subject: + mm-damon-tests-vaddr-kunit-handle-alloc-failures-in-damon_test_split_evenly_fail.patch added to mm-new branch
+Message-Id: <20251104030741.85B42C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/vaddr-kunit: handle alloc failures on damon_do_test_apply_three_regions()
+     Subject: mm/damon/tests/vaddr-kunit: handle alloc failures in damon_test_split_evenly_fail()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch
+     mm-damon-tests-vaddr-kunit-handle-alloc-failures-in-damon_test_split_evenly_fail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-vaddr-kunit-handle-alloc-failures-in-damon_test_split_evenly_fail.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,17 +65,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/vaddr-kunit: handle alloc failures on damon_do_test_apply_three_regions()
-Date: Sat, 1 Nov 2025 11:20:11 -0700
+Subject: mm/damon/tests/vaddr-kunit: handle alloc failures in damon_test_split_evenly_fail()
+Date: Sat, 1 Nov 2025 11:20:12 -0700
 
-damon_do_test_apply_three_regions() is assuming all dynamic memory
-allocation in it will succeed.  Those are indeed likely in the real use
-cases since those allocations are too small to fail, but theoretically
-those could fail.  In the case, inappropriate memory access can happen. 
-Fix it by appropriately cleanup pre-allocated memory and skip the
-execution of the remaining tests in the failure cases.
+damon_test_split_evenly_fail() is assuming all dynamic memory allocation
+in it will succeed.  Those are indeed likely in the real use cases since
+those allocations are too small to fail, but theoretically those could
+fail.  In the case, inappropriate memory access can happen.  Fix it by
+appropriately cleanup pre-allocated memory and skip the execution of the
+remaining tests in the failure cases.
 
-Link: https://lkml.kernel.org/r/20251101182021.74868-18-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251101182021.74868-19-sj@kernel.org
 Fixes: 17ccae8bb5c9 ("mm/damon: add kunit tests")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -85,26 +85,29 @@ Cc: <stable@vger.kernel.org>	[5.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/vaddr-kunit.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/damon/tests/vaddr-kunit.h |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/damon/tests/vaddr-kunit.h~mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions
+--- a/mm/damon/tests/vaddr-kunit.h~mm-damon-tests-vaddr-kunit-handle-alloc-failures-in-damon_test_split_evenly_fail
 +++ a/mm/damon/tests/vaddr-kunit.h
-@@ -136,8 +136,14 @@ static void damon_do_test_apply_three_re
- 	int i;
- 
- 	t = damon_new_target();
+@@ -256,7 +256,16 @@ static void damon_test_split_evenly_fail
+ 		unsigned long start, unsigned long end, unsigned int nr_pieces)
+ {
+ 	struct damon_target *t = damon_new_target();
+-	struct damon_region *r = damon_new_region(start, end);
++	struct damon_region *r;
++
 +	if (!t)
 +		kunit_skip(test, "target alloc fail");
- 	for (i = 0; i < nr_regions / 2; i++) {
- 		r = damon_new_region(regions[i * 2], regions[i * 2 + 1]);
-+		if (!r) {
-+			damon_destroy_target(t, NULL);
-+			kunit_skip(test, "region alloc fail");
-+		}
- 		damon_add_region(r, t);
- 	}
++
++	r = damon_new_region(start, end);
++	if (!r) {
++		damon_free_target(t);
++		kunit_skip(test, "region alloc fail");
++	}
  
+ 	damon_add_region(r, t);
+ 	KUNIT_EXPECT_EQ(test,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
