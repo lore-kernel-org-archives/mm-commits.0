@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B2C92609D6;
-	Tue,  4 Nov 2025 02:59:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 250C7262FCB;
+	Tue,  4 Nov 2025 03:07:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762225141; cv=none; b=aBrfBL4EwgyUKBOCJpsr00NxYyVeRfJBiAZteYHBAdRRCmxe4dXUNjdi2P574mVY8Jz4uQRnzwBHsoGPMNmIGGS01uxjS+BrMvgq1PUQAxL9r+bZYExy6z4/t3oUxcjhufiC0+l+RYdzlu7OW6dpFjKwcltp5ATKzaWgr4nh5nM=
+	t=1762225628; cv=none; b=Gdi58gucKY5/1z2E/K0MSrQ/BVIOZ0XUHDxaULBS9R6+VM1gxGJid7knuWOWfNsUqv74utw26tkChvLZmufdkT5iBpz33cA+zK4hImdG7MwwYaKvwXIajyCTpUx8LEfxbpoSkzSsdSqeTp3YFnCVi6ESpUzy94Tk+t77xJ48454=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762225141; c=relaxed/simple;
-	bh=IcOuYlJB53idZbAmddJQli+QJwDAwzfIs89z8rhSVRY=;
-	h=Date:To:From:Subject:Message-Id; b=lllAZIGImPcSCtyEyRD7R2QuTC+0IOan2XqdEWHQFKiDBCAlmyl7or0RD7tfTPDWTvyxinXA77yCrki1BJES5UTr//bGpJYcXgmFDZcj1UThpqysWX25mbaHciuMuRsXSuB8+NWnTnGp1Y20xWlJedsoDaXsTyXE36sCIJlitbs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+GxhirF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225628; c=relaxed/simple;
+	bh=N4prdXb6e98ATa7T/mIPtyAJ3xgIhoNpZyZB/H64lFo=;
+	h=Date:To:From:Subject:Message-Id; b=d+YFiqq3OINb8azwwDcVCiIZzere1eWURDZX4pUrdXldFzmPZElpBf7UPXCeAkIeQd5xm2cU9tAieWGES8dqJq5MA547VuSSfJjsJJRCwc0fJiHoBWOO1KER6BEUJ8LB6yToWf1Fu7YJlcmR5gsFq0OW83MHkfhJluzYGTSqegI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P2IBKyql; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+GxhirF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79A2BC113D0;
-	Tue,  4 Nov 2025 02:59:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P2IBKyql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91EF3C4CEE7;
+	Tue,  4 Nov 2025 03:07:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762225140;
-	bh=IcOuYlJB53idZbAmddJQli+QJwDAwzfIs89z8rhSVRY=;
+	s=korg; t=1762225627;
+	bh=N4prdXb6e98ATa7T/mIPtyAJ3xgIhoNpZyZB/H64lFo=;
 	h=Date:To:From:Subject:From;
-	b=z+GxhirFTTC95O3OF8pYhH4jCaUR/9c7lWvDF6WOnL/IagqSGcP/mNa2bkYHgSgQt
-	 n/jJIlWAfFoliQ88w4Xm0mqFks7DQrhZpT3iRYhknZJHoV4rkkXZwujhV1rqBESbPD
-	 P2zIeO6rKG8slthm81jx6V/G6arN748s7cxGxieo=
-Date: Mon, 03 Nov 2025 18:58:59 -0800
-To: mm-commits@vger.kernel.org,thunder.leizhen@huawei.com,stable@vger.kernel.org,bhe@redhat.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
+	b=P2IBKyqlcsyfU/ibVgFxGMX+PnG7TZPLomjTLS1vF0i+cSAX6XORYvkBGT/DMdDa6
+	 0Gt7oUSgw0uv1t/bHDvitT+Ty/aUP4jrlgFvDNUnYnuiG9l+3SFMmhaEY9jddLiB3k
+	 Qqu6bCYgmEKMZZE6eL3z0CGMmpAvfZTYIINuaxZg=
+Date: Mon, 03 Nov 2025 19:07:07 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + crash-fix-crashkernel-resource-shrink.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251104025900.79A2BC113D0@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch added to mm-new branch
+Message-Id: <20251104030707.91EF3C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: crash: fix crashkernel resource shrink
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     crash-fix-crashkernel-resource-shrink.patch
+     Subject: mm/damon/tests/core-kunit: fix memory leak in damon_test_set_filters_default_reject()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash-fix-crashkernel-resource-shrink.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,89 +64,131 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: crash: fix crashkernel resource shrink
-Date: Sun, 2 Nov 2025 01:07:41 +0530
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/tests/core-kunit: fix memory leak in damon_test_set_filters_default_reject()
+Date: Sat, 1 Nov 2025 11:19:55 -0700
 
-When crashkernel is configured with a high reservation, shrinking its
-value below the low crashkernel reservation causes two issues:
+Patch series "mm/damon/tests: fix memory bugs in kunit tests".
 
-1. Invalid crashkernel resource objects
-2. Kernel crash if crashkernel shrinking is done twice
+DAMON kunit tests were initially written assuming those will be run on
+environments that are well controlled and therefore tolerant to transient
+test failures and bugs in the test code itself.  The user-mode linux based
+manual run of the tests is one example of such an environment.  And the
+test code was written for adding more test coverage as fast as possible,
+over making those safe and reliable.
 
-For example, with crashkernel=200M,high, the kernel reserves 200MB of high
-memory and some default low memory (say 256MB).  The reservation appears
-as:
+As a result, the tests resulted in having a number of bugs including real
+memory leaks, theoretical unhandled memory allocation failures, and unused
+memory allocations.  The allocation failures that are not handled well are
+unlikely in the real world, since those allocations are too small to fail.
+But in theory, it can happen and cause inappropriate memory access.
 
-cat /proc/iomem | grep -i crash
-af000000-beffffff : Crash kernel
-433000000-43f7fffff : Crash kernel
+It is arguable if bugs in test code can really harm users.  But, anyway
+bugs are bugs that need to be fixed.  Fix the bugs one by one.  Also Cc
+stable@ for the fixes of memory leak and unhandled memory allocation
+failures.  The unused memory allocations are only a matter of memory
+efficiency, so not Cc-ing stable@.
 
-If crashkernel is then shrunk to 50MB (echo 52428800 >
-/sys/kernel/kexec_crash_size), /proc/iomem still shows 256MB reserved:
-af000000-beffffff : Crash kernel
+The first patch fixes memory leaks in the test code for the DAMON core
+layer.
 
-Instead, it should show 50MB:
-af000000-b21fffff : Crash kernel
+Following fifteen, three, and one patches respectively fix unhandled
+memory allocation failures in the test code for DAMON core layer, virtual
+address space DAMON operation set, and DAMON sysfs interface, one by one
+per test function.
 
-Further shrinking crashkernel to 40MB causes a kernel crash with the
-following trace (x86):
+Final two patches remove memory allocations that are correctly deallocated
+at the end, but not really being used by any code.
 
-BUG: kernel NULL pointer dereference, address: 0000000000000038
-PGD 0 P4D 0
-Oops: 0000 [#1] PREEMPT SMP NOPTI
-<snip...>
-Call Trace: <TASK>
-? __die_body.cold+0x19/0x27
-? page_fault_oops+0x15a/0x2f0
-? search_module_extables+0x19/0x60
-? search_bpf_extables+0x5f/0x80
-? exc_page_fault+0x7e/0x180
-? asm_exc_page_fault+0x26/0x30
-? __release_resource+0xd/0xb0
-release_resource+0x26/0x40
-__crash_shrink_memory+0xe5/0x110
-crash_shrink_memory+0x12a/0x190
-kexec_crash_size_store+0x41/0x80
-kernfs_fop_write_iter+0x141/0x1f0
-vfs_write+0x294/0x460
-ksys_write+0x6d/0xf0
-<snip...>
 
-This happens because __crash_shrink_memory()/kernel/crash_core.c
-incorrectly updates the crashk_res resource object even when
-crashk_low_res should be updated.
+This patch (of 22):
 
-Fix this by ensuring the correct crashkernel resource object is updated
-when shrinking crashkernel memory.
+Kunit test function for damos_set_filters_default_reject() allocates two
+'struct damos_filter' objects and not deallocates those, so that the
+memory for the two objects are leaked for every time the test runs.  Fix
+this by deallocating those objects at the end of the test code.
 
-Link: https://lkml.kernel.org/r/20251101193741.289252-1-sourabhjain@linux.ibm.com
-Fixes: 16c6006af4d4 ("kexec: enable kexec_crash_size to support two crash kernel regions")
-Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251101182021.74868-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251101182021.74868-2-sj@kernel.org
+Fixes: 094fb14913c7 ("mm/damon/tests/core-kunit: add a test for damos_set_filters_default_reject()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: <stable@vger.kernel.org>	[6.16+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/tests/core-kunit.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/crash_core.c~crash-fix-crashkernel-resource-shrink
-+++ a/kernel/crash_core.c
-@@ -373,7 +373,7 @@ static int __crash_shrink_memory(struct
- 		old_res->start = 0;
- 		old_res->end   = 0;
- 	} else {
--		crashk_res.end = ram_res->start - 1;
-+		old_res->end = ram_res->start - 1;
- 	}
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject
++++ a/mm/damon/tests/core-kunit.h
+@@ -598,6 +598,9 @@ static void damon_test_set_filters_defau
+ 	 */
+ 	KUNIT_EXPECT_EQ(test, scheme.core_filters_default_reject, false);
+ 	KUNIT_EXPECT_EQ(test, scheme.ops_filters_default_reject, true);
++
++	damos_free_filter(anon_filter);
++	damos_free_filter(target_filter);
+ }
  
- 	crash_free_reserved_phys_range(ram_res->start, ram_res->end);
+ static struct kunit_case damon_test_cases[] = {
 _
 
-Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-crash-fix-crashkernel-resource-shrink.patch
-crash-let-architecture-decide-crash-memory-export-to-iomem_resource.patch
+mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
+mm-zswap-fix-typos-s-zwap-zswap.patch
+mm-zswap-s-red-black-tree-xarray.patch
+docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
+mm-damon-document-damos_quota_goal-nid-use-case.patch
+mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
+mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
+mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
+mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
+docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
+docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
+docs-abi-damon-document-damos-quota-goal-path-file.patch
+mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch
+docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section.patch
+docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
+docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
+docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter.patch
+docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter.patch
+docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch
+docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
+mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
+mm-damon-sysfs-test-commit-input-against-realistic-destination.patch
+mm-damon-sysfs-implement-obsolete_target-file.patch
+docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
+docs-abi-damon-document-obsolete_target-sysfs-file.patch
+selftests-damon-_damon_sysfs-support-obsolete_target-file.patch
+drgn_dump_damon_status-dump-damon_target-obsolete.patch
+sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
+selftests-damon-sysfs-add-obsolete_target-test.patch
+mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
+mm-damon-tests-core-kunit-handle-allocation-failures-in-damon_test_regions.patch
+mm-damon-tests-core-kunit-handle-memory-failure-from-damon_test_target.patch
+mm-damon-tests-core-kunit-handle-memory-alloc-failure-from-damon_test_aggregate.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_split_at.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_merge_two.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-dasmon_test_merge_regions_of.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_split_regions_of.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_ops_registration.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_set_regions.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_update_monitoring_result.patch
+mm-damon-tests-core-kunit-handle-alloc-failure-on-damon_test_set_attrs.patch
+mm-damon-tests-core-kunit-handle-alloc-failres-in-damon_test_new_filter.patch
+mm-damon-tests-core-kunit-handle-alloc-failure-on-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damos_test_filter_out.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch
+mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch
+mm-damon-tests-vaddr-kunit-handle-alloc-failures-in-damon_test_split_evenly_fail.patch
+mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_test_split_evenly_succ.patch
+mm-damon-tests-sysfs-kunit-handle-alloc-failures-on-damon_sysfs_test_add_targets.patch
+mm-damon-tests-core-kunit-remove-unnecessary-damon_ctx-variable-on-damon_test_split_at.patch
+mm-damon-tests-core-kunit-remove-unused-ctx-in-damon_test_split_regions_of.patch
 
