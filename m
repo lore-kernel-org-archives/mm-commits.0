@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E7DE26F2AD;
-	Tue,  4 Nov 2025 03:07:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9C5026FA5E;
+	Tue,  4 Nov 2025 03:07:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762225658; cv=none; b=AXSx840XXtnxxNGj356jH4P2eDZ/zzsOe3q421bIGu50T+D75V1FMxp3wqFGj2Xo+zVA1e7ZlgAapkpboCQRk9mRQic8rhsQ0CSa6g95eFsvoONIrnkOHu1S4jnyXuSR24lqOa97bQiIsbPXrg8q2FTzCUI70xlGqbsfeYuSwBY=
+	t=1762225659; cv=none; b=gfjuvDLHWe9EvRlLWRpDrxOe+mqvGzbmbTJRnGX52AIwG4Qtnal0mcYdBK6EOCVVK6vz2K0TCIhmACcD0T72TBNMtqwqHDSdC/UBzsT2A5vsyrrI0McCQa1dEz5Y88iGgtBEY5wOX6b1jSMK7qEC3eYTIuzucDwshD2deXNMvBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762225658; c=relaxed/simple;
-	bh=3tg7VvWlWy3tAZqgYW8Wo2Ub82nzv3RDApCeH/tiuSo=;
-	h=Date:To:From:Subject:Message-Id; b=um9D0qgP7XRju3eTLPvpCz+cpoJ0EPlsl7+9YDqAEMCr2o+VgIItItbeO4HE1kXOGsNvRMtz4pEr/ZKY4uA9II1aqtstMQJ06B4UemnMBOE25K8GNK3l4VfUeMemuM93LyN9NJqok5RpidTMBWvLtO1p+QcQij7WyYrGJaQrjEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z5sT6S/s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762225659; c=relaxed/simple;
+	bh=TfRYeewWR3Pb7kwg48lnopzsoQT1ftCvFo+WDG+Z1eo=;
+	h=Date:To:From:Subject:Message-Id; b=f9cjkNVdruojisP65B6s6Bthb957280ovoWTfQSaOvliHmHb/l8byM3Fdgb0/Ji4aQaoYt2r3/tuTIZ3emqBhUsv71Bav2u8Mo4t4zuelxSNZWUC3eNVlFklMKS3Bk8CcrlUOBY4P/ZYkTHdgxdhsQuabqFAeCSgTZNbug6J+k4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ap1kVMVP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z5sT6S/s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 966A0C4CEE7;
-	Tue,  4 Nov 2025 03:07:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ap1kVMVP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F685C4CEE7;
+	Tue,  4 Nov 2025 03:07:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762225657;
-	bh=3tg7VvWlWy3tAZqgYW8Wo2Ub82nzv3RDApCeH/tiuSo=;
+	s=korg; t=1762225659;
+	bh=TfRYeewWR3Pb7kwg48lnopzsoQT1ftCvFo+WDG+Z1eo=;
 	h=Date:To:From:Subject:From;
-	b=z5sT6S/se0HkzJGmQOutL1hzxx6ZSF2kwY9xgMwILFlemhXsNnhEQzwnblgv74KWv
-	 /+/lBT33kSSpMfO4hL+8rXtc+v9K9i5MxX3zM9X8vEtBPA90JD/NuPCxuPNGwhy4nC
-	 ICSGSf1q80ObmwZbDRBRhKyLK90CaDo6gZxP2Dvc=
-Date: Mon, 03 Nov 2025 19:07:37 -0800
+	b=Ap1kVMVPlgB1XtkYCTHCMRelci+dbhAnCPH1N3M543pRVlWRHO8JKjS0wIKaU2KKH
+	 z+7LewNHpRJ2zGCtHWGF9EHQOu1RBXpEu2ATKXgw5uPPxVeZOu1dKa2scZf94E8p9E
+	 wwTm7wsA/Q6xm5E/LsfwbY4ucil3ipjvevynIKD4=
+Date: Mon, 03 Nov 2025 19:07:39 -0800
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch added to mm-new branch
-Message-Id: <20251104030737.966A0C4CEE7@smtp.kernel.org>
+Subject: + mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch added to mm-new branch
+Message-Id: <20251104030739.8F685C4CEE7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: handle alloc failures on damon_test_set_filters_default_reject()
+     Subject: mm/damon/tests/vaddr-kunit: handle alloc failures on damon_do_test_apply_three_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch
+     mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,51 +65,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: handle alloc failures on damon_test_set_filters_default_reject()
-Date: Sat, 1 Nov 2025 11:20:10 -0700
+Subject: mm/damon/tests/vaddr-kunit: handle alloc failures on damon_do_test_apply_three_regions()
+Date: Sat, 1 Nov 2025 11:20:11 -0700
 
-damon_test_set_filters_default_reject() is assuming all dynamic memory
+damon_do_test_apply_three_regions() is assuming all dynamic memory
 allocation in it will succeed.  Those are indeed likely in the real use
 cases since those allocations are too small to fail, but theoretically
 those could fail.  In the case, inappropriate memory access can happen. 
 Fix it by appropriately cleanup pre-allocated memory and skip the
 execution of the remaining tests in the failure cases.
 
-Link: https://lkml.kernel.org/r/20251101182021.74868-17-sj@kernel.org
-Fixes: 094fb14913c7 ("mm/damon/tests/core-kunit: add a test for damos_set_filters_default_reject()")
+Link: https://lkml.kernel.org/r/20251101182021.74868-18-sj@kernel.org
+Fixes: 17ccae8bb5c9 ("mm/damon: add kunit tests")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <stable@vger.kernel.org>	[6.16+]
+Cc: <stable@vger.kernel.org>	[5.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    6 ++++++
+ mm/damon/tests/vaddr-kunit.h |    6 ++++++
  1 file changed, 6 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject
-+++ a/mm/damon/tests/core-kunit.h
-@@ -659,6 +659,8 @@ static void damon_test_set_filters_defau
- 	KUNIT_EXPECT_EQ(test, scheme.ops_filters_default_reject, false);
+--- a/mm/damon/tests/vaddr-kunit.h~mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions
++++ a/mm/damon/tests/vaddr-kunit.h
+@@ -136,8 +136,14 @@ static void damon_do_test_apply_three_re
+ 	int i;
  
- 	target_filter = damos_new_filter(DAMOS_FILTER_TYPE_TARGET, true, true);
-+	if (!target_filter)
-+		kunit_skip(test, "filter alloc fail");
- 	damos_add_filter(&scheme, target_filter);
- 	damos_set_filters_default_reject(&scheme);
- 	/*
-@@ -684,6 +686,10 @@ static void damon_test_set_filters_defau
- 	KUNIT_EXPECT_EQ(test, scheme.ops_filters_default_reject, false);
+ 	t = damon_new_target();
++	if (!t)
++		kunit_skip(test, "target alloc fail");
+ 	for (i = 0; i < nr_regions / 2; i++) {
+ 		r = damon_new_region(regions[i * 2], regions[i * 2 + 1]);
++		if (!r) {
++			damon_destroy_target(t, NULL);
++			kunit_skip(test, "region alloc fail");
++		}
+ 		damon_add_region(r, t);
+ 	}
  
- 	anon_filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true, true);
-+	if (!anon_filter) {
-+		damos_free_filter(target_filter);
-+		kunit_skip(test, "anon_filter alloc fail");
-+	}
- 	damos_add_filter(&scheme, anon_filter);
- 
- 	damos_set_filters_default_reject(&scheme);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
