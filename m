@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516B0243956;
-	Wed,  5 Nov 2025 01:17:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC51E2AF1D;
+	Wed,  5 Nov 2025 01:17:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762305425; cv=none; b=sNkW2FSITyIlS3UMgh3Ho5U3aewJqhehjoofbnd9EQTCCGYh8a6yfgyKD6vBjqBxMVsOWosfPH7aRp37Y1lqRluy4X0sOLkJUZJL4pRYTQMGwcmS2VnE/iiOrK5zArUq1vXgzwLxuyDwtnXBBv1MpgCUlbcLiJ1g9MB7Ua/0PoE=
+	t=1762305426; cv=none; b=M+LSVfgevYduYvKD/V3APAsFze5IIhBqAjwzpqg4vJXczLU/6MUYgzVzAAxTx4vPKxeV206U7PRYUYaBeyJi9Qh6+O679fzeCEdr07A0PYi3od03NDTf7IiiAqKv/gRp+U3s7cK9pBiNwDyum52WIgmAqNxmS1wlc+XLESpjNcU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762305425; c=relaxed/simple;
-	bh=TEhujn3+102t5j2GDtH+2OQqeQ1Bm1yp6TWFDAwLES4=;
-	h=Date:To:From:Subject:Message-Id; b=fI4QXtLaollxk3o/OpTb8Q4+qmoLHc/kwLK7Om8NJYXKAVw2LVmv+jWgjHA9plAXF8+Auw6aBIHoHMAsHrfXwt1zRcSmCqOGdpU2cXi70HE/kFi1mD2LPvcsFKcs2qv9s3iPgwfELYoTXE3SIXq/CzY45nBhuXJ+eMfRIpErIuw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EHudpTd8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762305426; c=relaxed/simple;
+	bh=7pUUe0TPmWjbaxIbMmv/d9IcXUJPlWjiZBweoyN3jeU=;
+	h=Date:To:From:Subject:Message-Id; b=mXAP2YwGXk9lpno8Ob23KAzSVFAJhz5TDZ/hq8cqsikJ6kVW67v1O95tRZKrLUHLmJBFU4GXLMEHIFPjph/qTYV5PVRT8pPpyknQYA5zHfLqe75lRVShni5lJwan3xUV+2gkXH1567n9KVTlLnpkH/JDRXRf6Rgh1CMFdwfdhbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hAV9E494; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EHudpTd8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2A8DC116D0;
-	Wed,  5 Nov 2025 01:17:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hAV9E494"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 776A2C116D0;
+	Wed,  5 Nov 2025 01:17:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762305424;
-	bh=TEhujn3+102t5j2GDtH+2OQqeQ1Bm1yp6TWFDAwLES4=;
+	s=korg; t=1762305426;
+	bh=7pUUe0TPmWjbaxIbMmv/d9IcXUJPlWjiZBweoyN3jeU=;
 	h=Date:To:From:Subject:From;
-	b=EHudpTd8KHiE+PBmpBDyidOvNV0oVKSoFFeSH+u0j4wDE7IE0dwWurE6qE/wDK0pf
-	 asdO4V6rwFUwXgvAk8PulAGXGh2K805jH1BZATmJ9QQAArZymkjjVIX8EeESsrqXZD
-	 EigA/jays1hqkzeSfeBy8R/C+JBixE4xHIPS4YtA=
-Date: Tue, 04 Nov 2025 17:17:04 -0800
+	b=hAV9E494oCea6QQb3OKlxDXbT7CyEvLTZFHLNmjGd+A2q/xAtOETNdsnRUHlmC+sy
+	 SAEflOOWsTTcktV90BLsDNkr+xpY4l71rNa5aKmOJ37Li/QRQ0MEnTgJEKKxLO7vqk
+	 VYQ4KUltHxTluXL93NVaHOiNDlmkpIxLe6uUAPAs=
+Date: Tue, 04 Nov 2025 17:17:05 -0800
 To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,bhe@redhat.com,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kasan-unpoison-pcpu-chunks-with-base-address-tag.patch removed from -mm tree
-Message-Id: <20251105011704.D2A8DC116D0@smtp.kernel.org>
+Subject: [to-be-updated] kasan-unpoison-vms-addresses-with-a-common-tag.patch removed from -mm tree
+Message-Id: <20251105011706.776A2C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,16 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: unpoison pcpu chunks with base address tag
+     Subject: kasan: unpoison vms[area] addresses with a common tag
 has been removed from the -mm tree.  Its filename was
-     kasan-unpoison-pcpu-chunks-with-base-address-tag.patch
+     kasan-unpoison-vms-addresses-with-a-common-tag.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Subject: kasan: unpoison pcpu chunks with base address tag
-Date: Tue, 04 Nov 2025 14:49:08 +0000
-
-Patch series "kasan: vmalloc: Fix incorrect tag assignment with multiple
-vm_structs".
-
-A KASAN tag mismatch, possibly resulting in a kernel panic, can be
-observed on systems with a tag-based KASAN enabled and with multiple NUMA
-nodes.  Initially it was only noticed on x86 [1] but later a similar issue
-was also reported on arm64 [2].
-
-Specifically the problem is related to how vm_structs interact with
-pcpu_chunks - both when they are allocated, assigned and when pcpu_chunk
-addresses are derived.
-
-When vm_structs are allocated they are tagged if vmalloc support is
-enabled along the KASAN mode.  Later when first pcpu chunk is allocated it
-gets its 'base_addr' field set to the first allocated vm_struct.  With
-that it inherits that vm_struct's tag.
-
-When pcpu_chunk addresses are later derived (by pcpu_chunk_addr(), for
-example in pcpu_alloc_noprof()) the base_addr field is used and offsets
-are added to it.  If the initial conditions are satisfied then some of the
-offsets will point into memory allocated with a different vm_struct.  So
-while the lower bits will get accurately derived the tag bits in the top
-of the pointer won't match the shadow memory contents.
-
-The solution (proposed at v2 of the x86 KASAN series [3]) is to tag the
-vm_structs the same when allocating them for the per cpu allocator (in
-pcpu_get_vm_areas()).
-
-Originally these patches were part of the x86 KASAN series [4].
-
-
-This patch (of 2):
+Subject: kasan: unpoison vms[area] addresses with a common tag
+Date: Tue, 04 Nov 2025 14:49:48 +0000
 
 A KASAN tag mismatch, possibly causing a kernel panic, can be observed on
 systems with a tag-based KASAN enabled and with multiple NUMA nodes.  It
@@ -93,14 +60,10 @@ following points:
 5. Thus, the subsequent chunks need to have their tag set to
    match that of the first chunk.
 
-Refactor code by moving it into a helper in preparation for the actual
-fix.
+Unpoison all vm_structs after allocating them for the percpu allocator. 
+Use the same tag to resolve the pcpu chunk address mismatch.
 
-Link: https://lkml.kernel.org/r/821677dd824d003cc5b7a77891db4723e23518ea.1762267022.git.m.wieczorretman@pm.me
-Link: https://lore.kernel.org/all/e7e04692866d02e6d3b32bb43b998e5d17092ba4.1738686764.git.maciej.wieczor-retman@intel.com/ [1]
-Link: https://lore.kernel.org/all/aMUrW1Znp1GEj7St@MiWiFi-R3L-srv/ [2]
-Link: https://lore.kernel.org/all/CAPAsAGxDRv_uFeMYu9TwhBVWHCCtkSxoWY4xmFB_vowMbi8raw@mail.gmail.com/ [3]
-Link: https://lore.kernel.org/all/cover.1761763681.git.m.wieczorretman@pm.me/ [4]
+Link: https://lkml.kernel.org/r/cf8fe0ffcdbf54e06d9df26c8473b123c4065f02.1762267022.git.m.wieczorretman@pm.me
 Fixes: 1d96320f8d53 ("kasan, vmalloc: add vmalloc tagging for SW_TAGS")
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 Tested-by: Baoquan He <bhe@redhat.com>
@@ -115,77 +78,35 @@ Cc: <stable@vger.kernel.org>	[6.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   10 ++++++++++
- mm/kasan/common.c     |   11 +++++++++++
- mm/vmalloc.c          |    4 +---
- 3 files changed, 22 insertions(+), 3 deletions(-)
+ mm/kasan/common.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/include/linux/kasan.h~kasan-unpoison-pcpu-chunks-with-base-address-tag
-+++ a/include/linux/kasan.h
-@@ -614,6 +614,13 @@ static __always_inline void kasan_poison
- 		__kasan_poison_vmalloc(start, size);
- }
- 
-+void __kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms);
-+static __always_inline void kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms)
-+{
-+	if (kasan_enabled())
-+		__kasan_unpoison_vmap_areas(vms, nr_vms);
-+}
-+
- #else /* CONFIG_KASAN_VMALLOC */
- 
- static inline void kasan_populate_early_vm_area_shadow(void *start,
-@@ -638,6 +645,9 @@ static inline void *kasan_unpoison_vmall
- static inline void kasan_poison_vmalloc(const void *start, unsigned long size)
- { }
- 
-+static inline void kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms)
-+{ }
-+
- #endif /* CONFIG_KASAN_VMALLOC */
- 
- #if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
---- a/mm/kasan/common.c~kasan-unpoison-pcpu-chunks-with-base-address-tag
+--- a/mm/kasan/common.c~kasan-unpoison-vms-addresses-with-a-common-tag
 +++ a/mm/kasan/common.c
-@@ -28,6 +28,7 @@
- #include <linux/string.h>
- #include <linux/types.h>
- #include <linux/bug.h>
-+#include <linux/vmalloc.h>
- 
- #include "kasan.h"
- #include "../slab.h"
-@@ -582,3 +583,13 @@ bool __kasan_check_byte(const void *addr
- 	}
+@@ -584,12 +584,20 @@ bool __kasan_check_byte(const void *addr
  	return true;
  }
-+
-+void __kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms)
-+{
-+	int area;
-+
-+	for (area = 0 ; area < nr_vms ; area++) {
-+		kasan_poison(vms[area]->addr, vms[area]->size,
-+			     arch_kasan_get_tag(vms[area]->addr), false);
-+	}
-+}
---- a/mm/vmalloc.c~kasan-unpoison-pcpu-chunks-with-base-address-tag
-+++ a/mm/vmalloc.c
-@@ -4870,9 +4870,7 @@ retry:
- 	 * With hardware tag-based KASAN, marking is skipped for
- 	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
- 	 */
--	for (area = 0; area < nr_vms; area++)
--		vms[area]->addr = kasan_unpoison_vmalloc(vms[area]->addr,
--				vms[area]->size, KASAN_VMALLOC_PROT_NORMAL);
-+	kasan_unpoison_vmap_areas(vms, nr_vms);
  
- 	kfree(vas);
- 	return vms;
++/*
++ * A tag mismatch happens when calculating per-cpu chunk addresses, because
++ * they all inherit the tag from vms[0]->addr, even when nr_vms is bigger
++ * than 1. This is a problem because all the vms[]->addr come from separate
++ * allocations and have different tags so while the calculated address is
++ * correct the tag isn't.
++ */
+ void __kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms)
+ {
+ 	int area;
+ 
+ 	for (area = 0 ; area < nr_vms ; area++) {
+ 		kasan_poison(vms[area]->addr, vms[area]->size,
+-			     arch_kasan_get_tag(vms[area]->addr), false);
++			     arch_kasan_get_tag(vms[0]->addr), false);
++		arch_kasan_set_tag(vms[area]->addr, arch_kasan_get_tag(vms[0]->addr));
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
 
-kasan-unpoison-vms-addresses-with-a-common-tag.patch
 
