@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DCCE2F28FC
-	for <mm-commits@vger.kernel.org>; Wed,  5 Nov 2025 22:44:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E3792DECA5
+	for <mm-commits@vger.kernel.org>; Wed,  5 Nov 2025 23:54:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762382670; cv=none; b=tA80rVZsIhy3Dd1AkTvJBnsGzfHojM7xld8CsKix4m8Qe6c14+mVrxA/qosv4tMJ9r9VxOfkADlL4WeJcs0AuAVaeqcqywFUXcxs/ce/JSPGsr/o/mC3vAjtTYyLrby0lIAGkofqFb1IJPS0nfFXQqb+2XcS7QGgO0yfHgSYsws=
+	t=1762386897; cv=none; b=lwfrlG8v6/zESTfySrucppqi1NXWCfEwpHgYFgmIMHQPGjmY9uvYrILkpEtoXycvmgIBQJweTC/yfzXTJ5qT4jE9SQHj1zweJjzO8GSdv6gej/6j+OW3YWxajI0xiHTC1SAhVfq0QXFHBQd5tvZmMUQkBQU7xux06jeoyzzLv2Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762382670; c=relaxed/simple;
-	bh=nl05+F0odhnojIyIuGWzf0BaIByCSqt5a0oBz9BlJmw=;
-	h=Date:To:From:Subject:Message-Id; b=fUzeAbYaQiEHDoIEnyFbum9iZijxlK1HYE6ajk8ZKW15kh1drcSLiQ2PoyUDvg0mLclBSFnBZMjL1/TepJJ7f16Su5AkGtv/KcTeiY0vHGGZzkM+B92xfcNoOIplQVrtQPfvs4e8O6IsV3GYY+MPLPMkBG3AISC1fuBi4PR7VkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KU89fcTs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762386897; c=relaxed/simple;
+	bh=oD6BW+nnlOR3JRAEq0Hr1aNBS6UMTUfwxPoc0jeIWUA=;
+	h=Date:To:From:Subject:Message-Id; b=LcAatrJ5eWPE98mQGAAhfwP8F7K+UiH7hqHzLJTFHNArV7CO+kw5x/Xa4YtGkIetz+50VQbf5avuAkCZVkYcP9w12HQ8K1A5lbjcU2rCtHtNkhfK/3lXhRQmpAHG+VZIo+Y9tp1ewwD/+FwWvAuR5fRBBTURK9DzAzBJXOVdk7Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cr3ecymn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KU89fcTs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EA09C4CEF5;
-	Wed,  5 Nov 2025 22:44:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cr3ecymn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94264C4CEF5;
+	Wed,  5 Nov 2025 23:54:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762382670;
-	bh=nl05+F0odhnojIyIuGWzf0BaIByCSqt5a0oBz9BlJmw=;
+	s=korg; t=1762386896;
+	bh=oD6BW+nnlOR3JRAEq0Hr1aNBS6UMTUfwxPoc0jeIWUA=;
 	h=Date:To:From:Subject:From;
-	b=KU89fcTs4r3wgYGgkeDykuFA2Cg5VlEyV+efG3nPy70ozI/3D45UQbuXrcZo9jwRc
-	 K3kHCali91K1cHJH6hmbvjctwY0DWZeq/nSutUOXEVgmwC4sq5bDpI1Zh9OptEzp8L
-	 wht/a6n3grQ92o0XDBoajV6X3dDeT00Vv1j9DmFg=
-Date: Wed, 05 Nov 2025 14:44:29 -0800
-To: mm-commits@vger.kernel.org,u.kleine-koenig@baylibre.com,tglx@linutronix.de,peterz@infradead.org,oleg@redhat.com,npitre@baylibre.com,mingo@redhat.com,lirongqing@baidu.com,hpa@zytor.com,bp@alien8.de,biju.das.jz@bp.renesas.com,axboe@kernel.dk,david.laight.linux@gmail.com,akpm@linux-foundation.org
+	b=Cr3ecymn1sF7CCGuaLyfLLE0CDE5TcngkgmlTdK/Cr33PdC4kWjyGQdWHeNiyIMxu
+	 xnAqK7L7MzXkjcJwjg5LTosGtcvf+1UcX9a5aLDE6v+LGAo1PqjBid8wkLaH5fQJUK
+	 uRkCGpvghNBDo38dM/qLRpdoRA8mVaIjWulPnBG0=
+Date: Wed, 05 Nov 2025 15:54:56 -0800
+To: mm-commits@vger.kernel.org,david@kernel.org,pedrodemargomes@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_mul_u64_u64_div_u64-test-the-32bit-code-on-64bit.patch added to mm-nonmm-unstable branch
-Message-Id: <20251105224430.3EA09C4CEF5@smtp.kernel.org>
+Subject: + revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch added to mm-unstable branch
+Message-Id: <20251105235456.94264C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: test_mul_u64_u64_div_u64(): test the 32bit code on 64bit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-test_mul_u64_u64_div_u64-test-the-32bit-code-on-64bit.patch
+     Subject: Revert "mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk"
+has been added to the -mm mm-unstable branch.  Its filename is
+     revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_mul_u64_u64_div_u64-test-the-32bit-code-on-64bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,105 +58,180 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Laight <david.laight.linux@gmail.com>
-Subject: lib: test_mul_u64_u64_div_u64(): test the 32bit code on 64bit
-Date: Wed, 5 Nov 2025 20:10:35 +0000
+From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Subject: Revert "mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk"
+Date: Wed, 5 Nov 2025 15:49:10 -0300
 
-There are slight differences in the mul_u64_add_u64_div_u64() code between
-32bit and 64bit systems.
+Patch series "ksm: perform a range-walk to jump over holes in break_ksm",
+v4.
 
-Compile and test the 32bit version on 64bit hosts for better test
-coverage.
+When unmerging an address range, unmerge_ksm_pages function walks every
+page address in the specified range to locate ksm pages.  This becomes
+highly inefficient when scanning large virtual memory areas that contain
+mostly unmapped regions, causing the process to get blocked for several
+minutes.
 
-Link: https://lkml.kernel.org/r/20251105201035.64043-10-david.laight.linux@gmail.com
-Signed-off-by: David Laight <david.laight.linux@gmail.com>
-Reviewed-by: Nicolas Pitre <npitre@baylibre.com>
-Cc: Biju Das <biju.das.jz@bp.renesas.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Li RongQing <lirongqing@baidu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
+This patch makes break_ksm, function called by unmerge_ksm_pages for every
+page in an address range, perform a range walk, allowing it to skip over
+entire unmapped holes in a VMA, avoiding unnecessary lookups.
+
+As pointed out by David Hildenbrand in [1], unmerge_ksm_pages() is called
+from:
+
+* ksm_madvise() through madvise(MADV_UNMERGEABLE).  There are not a lot
+  of users of that function.
+
+* __ksm_del_vma() through ksm_del_vmas().  Effectively called when
+  disabling KSM for a process either through the sysctl or from s390x gmap
+  code when enabling storage keys for a VM.
+
+Consider the following test program which creates a 32 TiB mapping in the
+virtual address space but only populates a single page:
+
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/mman.h>
+
+/* 32 TiB */
+const size_t size = 32ul * 1024 * 1024 * 1024 * 1024;
+
+int main() {
+        char *area = mmap(NULL, size, PROT_READ | PROT_WRITE,
+                          MAP_NORESERVE | MAP_PRIVATE | MAP_ANON, -1, 0);
+
+        if (area == MAP_FAILED) {
+                perror("mmap() failed\n");
+                return -1;
+        }
+
+        /* Populate a single page such that we get an anon_vma. */
+        *area = 0;
+
+        /* Enable KSM. */
+        madvise(area, size, MADV_MERGEABLE);
+        madvise(area, size, MADV_UNMERGEABLE);
+        return 0;
+}
+
+
+Without this patch, this program takes 9 minutes to finish, while with
+this patch it finishes in less then 5 seconds.
+
+
+This patch (of 3):
+
+This reverts commit e317a8d8b4f600fc7ec9725e26417030ee594f52 and changes
+function break_ksm_pmd_entry() to use folios.
+
+This reverts break_ksm() to use walk_page_range_vma() instead of
+folio_walk_start().
+
+Change break_ksm_pmd_entry() to call is_ksm_zero_pte() only if we know the
+folio is present, and also rename variable ret to found.  This will make
+it easier to later modify break_ksm() to perform a proper range walk.
+
+Link: https://lkml.kernel.org/r/20251105184912.186329-1-pedrodemargomes@gmail.com
+Link: https://lkml.kernel.org/r/20251105184912.186329-2-pedrodemargomes@gmail.com
+Link: https://lore.kernel.org/linux-mm/e0886fdf-d198-4130-bd9a-be276c59da37@redhat.com/ [1]
+Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Suggested-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/test_mul_u64_u64_div_u64.c |   29 ++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ mm/ksm.c |   64 +++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 48 insertions(+), 16 deletions(-)
 
---- a/lib/math/test_mul_u64_u64_div_u64.c~lib-test_mul_u64_u64_div_u64-test-the-32bit-code-on-64bit
-+++ a/lib/math/test_mul_u64_u64_div_u64.c
-@@ -74,6 +74,10 @@ done
-  */
- 
- static u64 test_mul_u64_add_u64_div_u64(u64 a, u64 b, u64 c, u64 d);
-+#if __LONG_WIDTH__ >= 64
-+#define TEST_32BIT_DIV
-+static u64 test_mul_u64_add_u64_div_u64_32bit(u64 a, u64 b, u64 c, u64 d);
-+#endif
- 
- static int __init test_run(unsigned int fn_no, const char *fn_name)
- {
-@@ -100,6 +104,12 @@ static int __init test_run(unsigned int
- 			result = test_mul_u64_add_u64_div_u64(a, b, 0, d);
- 			result_up = test_mul_u64_add_u64_div_u64(a, b, d - 1, d);
- 			break;
-+#ifdef TEST_32BIT_DIV
-+		case 2:
-+			result = test_mul_u64_add_u64_div_u64_32bit(a, b, 0, d);
-+			result_up = test_mul_u64_add_u64_div_u64_32bit(a, b, d - 1, d);
-+			break;
-+#endif
- 		}
- 
- 		tests += 2;
-@@ -131,6 +141,10 @@ static int __init test_init(void)
- 		return -EINVAL;
- 	if (test_run(1, "test_mul_u64_u64_div_u64"))
- 		return -EINVAL;
-+#ifdef TEST_32BIT_DIV
-+	if (test_run(2, "test_mul_u64_u64_div_u64_32bit"))
-+		return -EINVAL;
-+#endif
- 	return 0;
+--- a/mm/ksm.c~revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk
++++ a/mm/ksm.c
+@@ -607,6 +607,48 @@ static inline bool ksm_test_exit(struct
+ 	return atomic_read(&mm->mm_users) == 0;
  }
  
-@@ -153,6 +167,21 @@ static void __exit test_exit(void)
- 
- #include "div64.c"
- 
-+#ifdef TEST_32BIT_DIV
-+/* Recompile the generic code for 32bit long */
-+#undef test_mul_u64_add_u64_div_u64
-+#define test_mul_u64_add_u64_div_u64 test_mul_u64_add_u64_div_u64_32bit
-+#undef BITS_PER_ITER
-+#define BITS_PER_ITER 16
++static int break_ksm_pmd_entry(pmd_t *pmd, unsigned long addr, unsigned long next,
++			struct mm_walk *walk)
++{
++	struct folio *folio = NULL;
++	spinlock_t *ptl;
++	pte_t *pte;
++	pte_t ptent;
++	int found;
 +
-+#define mul_u64_u64_add_u64 mul_u64_u64_add_u64_32bit
-+#undef mul_u64_long_add_u64
-+#undef add_u64_long
-+#undef mul_add
++	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
++	if (!pte)
++		return 0;
++	ptent = ptep_get(pte);
++	if (pte_present(ptent)) {
++		folio = vm_normal_folio(walk->vma, addr, ptent);
++	} else if (!pte_none(ptent)) {
++		swp_entry_t entry = pte_to_swp_entry(ptent);
 +
-+#include "div64.c"
-+#endif
++		/*
++		 * As KSM pages remain KSM pages until freed, no need to wait
++		 * here for migration to end.
++		 */
++		if (is_migration_entry(entry))
++			folio = pfn_swap_entry_folio(entry);
++	}
++	/* return 1 if the page is an normal ksm page or KSM-placed zero page */
++	found = (folio && folio_test_ksm(folio)) ||
++		(pte_present(ptent) && is_ksm_zero_pte(ptent));
++	pte_unmap_unlock(pte, ptl);
++	return found;
++}
 +
- module_init(test_init);
- module_exit(test_exit);
++static const struct mm_walk_ops break_ksm_ops = {
++	.pmd_entry = break_ksm_pmd_entry,
++	.walk_lock = PGWALK_RDLOCK,
++};
++
++static const struct mm_walk_ops break_ksm_lock_vma_ops = {
++	.pmd_entry = break_ksm_pmd_entry,
++	.walk_lock = PGWALK_WRLOCK,
++};
++
+ /*
+  * We use break_ksm to break COW on a ksm page by triggering unsharing,
+  * such that the ksm page will get replaced by an exclusive anonymous page.
+@@ -623,26 +665,16 @@ static inline bool ksm_test_exit(struct
+ static int break_ksm(struct vm_area_struct *vma, unsigned long addr, bool lock_vma)
+ {
+ 	vm_fault_t ret = 0;
+-
+-	if (lock_vma)
+-		vma_start_write(vma);
++	const struct mm_walk_ops *ops = lock_vma ?
++				&break_ksm_lock_vma_ops : &break_ksm_ops;
  
+ 	do {
+-		bool ksm_page = false;
+-		struct folio_walk fw;
+-		struct folio *folio;
++		int ksm_page;
+ 
+ 		cond_resched();
+-		folio = folio_walk_start(&fw, vma, addr,
+-					 FW_MIGRATION | FW_ZEROPAGE);
+-		if (folio) {
+-			/* Small folio implies FW_LEVEL_PTE. */
+-			if (!folio_test_large(folio) &&
+-			    (folio_test_ksm(folio) || is_ksm_zero_pte(fw.pte)))
+-				ksm_page = true;
+-			folio_walk_end(&fw, vma);
+-		}
+-
++		ksm_page = walk_page_range_vma(vma, addr, addr + 1, ops, NULL);
++		if (WARN_ON_ONCE(ksm_page < 0))
++			return ksm_page;
+ 		if (!ksm_page)
+ 			return 0;
+ 		ret = handle_mm_fault(vma, addr,
 _
 
-Patches currently in -mm which might be from david.laight.linux@gmail.com are
+Patches currently in -mm which might be from pedrodemargomes@gmail.com are
 
-lib-mul_u64_u64_div_u64-rename-parameter-c-to-d.patch
-lib-mul_u64_u64_div_u64-combine-overflow-and-divide-by-zero-checks.patch
-lib-mul_u64_u64_div_u64-simplify-check-for-a-64bit-product.patch
-lib-add-mul_u64_add_u64_div_u64-and-mul_u64_u64_div_u64_roundup.patch
-lib-add-tests-for-mul_u64_u64_div_u64_roundup.patch
-lib-test_mul_u64_u64_div_u64-test-both-generic-and-arch-versions.patch
-lib-mul_u64_u64_div_u64-optimise-multiply-on-32bit-x86.patch
-lib-mul_u64_u64_div_u64-optimise-the-divide-code.patch
-lib-test_mul_u64_u64_div_u64-test-the-32bit-code-on-64bit.patch
+ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
+revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
+ksm-perform-a-range-walk-in-break_ksm.patch
+ksm-replace-function-unmerge_ksm_pages-with-break_ksm.patch
 
