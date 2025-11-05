@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3871B246BC6
-	for <mm-commits@vger.kernel.org>; Wed,  5 Nov 2025 04:07:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39404256C70
+	for <mm-commits@vger.kernel.org>; Wed,  5 Nov 2025 22:34:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762315637; cv=none; b=fwkFPzJ8crFfxl8YzofAOxe3ZbjC0163/wKaqAOe6zKCxv0uXesRAdvaCETREBh/swqJQ9ItGjlMQo/Z3CCGzcZaRYy5/duFrWwvvT1mDulb6m6n31Y89k5ushf4x9hSmL0TyVcCQOvMnNlh+mzVOd6AONIm24P22FVWfSZcY60=
+	t=1762382082; cv=none; b=WE9AeLmGI/vsjRD6PJbh9+QGoQ8O+jqWTIpyhbw7FILwMDe2vYPV9BuKeX6/IxlXUDFSx4lUQYlNsOuHOoWU+wd/ztGERhHuynvLCTV8DJ/3TmCGorVTJ7u4202AF6FhYyhX68Qco0nBBpLNd+GcDl19lSqiTFe9DgtZglmjuu0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762315637; c=relaxed/simple;
-	bh=HmdNc7ToMPU/MoQLqOcrYoHxEKhe4SF1fKRWv18sdOE=;
-	h=Date:To:From:Subject:Message-Id; b=CHLZ0mYPwbnEtwjM8Itai3ImxvZJzrYeQZrPRreaUKIpHcoBqIxPLCaOMULF4kSpCT1ElbWtqbcvJ4W0vwCfav5DvwX1kRBLDkrfKengChHqwfs58H1IFC24dmYHlhwxRJK3fLoc3xOgil7Rfwsc5+/H4gvqV1lJWzfDhxPlQWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KXYQS3bb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762382082; c=relaxed/simple;
+	bh=XW9X0NrkDxwVVQYRRgTFfQ6cR5w8lFi/tiOoUg3xtag=;
+	h=Date:To:From:Subject:Message-Id; b=o0lcVm23hZPcmgZPHWfGYZ31hMl9hUhu1fWrMTJAewHw8xE9z0Nw9tTfGCR9LJpQunEVJKP87a/C8DwXp3F9561twjopFHinRnztBzOkfdpNzyMn8dHM65Qpx9TQCUSim6/rilPq0I2ZrjuScgNWx7CyqOz7DNonWnjVl5is/44=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rQqubFEF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KXYQS3bb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6768C116B1;
-	Wed,  5 Nov 2025 04:07:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rQqubFEF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9696CC4CEFB;
+	Wed,  5 Nov 2025 22:34:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762315636;
-	bh=HmdNc7ToMPU/MoQLqOcrYoHxEKhe4SF1fKRWv18sdOE=;
+	s=korg; t=1762382081;
+	bh=XW9X0NrkDxwVVQYRRgTFfQ6cR5w8lFi/tiOoUg3xtag=;
 	h=Date:To:From:Subject:From;
-	b=KXYQS3bbFMKUTOrFN2Obe94s4ChC+4L8qFkqRS8q5XdRQ5D6wFayoR8GyewagMFWl
-	 YaGxIC4fKYPx9rayYHm/A/zPd+2MNmPnGLz/dnm5lTsIs0ckdwffxFzAqb94iOHD50
-	 rAEw3xGCI0uxFblsanawF3R4KIokt4VubMbxeCag=
-Date: Tue, 04 Nov 2025 20:07:16 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,graf@amazon.com,changyuanl@google.com,bhe@redhat.com,maqianga@uniontech.com,akpm@linux-foundation.org
+	b=rQqubFEFwtbjvq60osUDYKRNpHqjuY+e21nvuOFzlsK7Xk8a1T1so+aOc6Z/uS8cd
+	 rMS3A5v4R781YDSxALQ77ovVOfA8k7IdBMAjQfZFIFo8LzjfVYJLqD1zAGO7/blFvN
+	 sehWTtIo/S7MEG+Hd96JzhmZUhwvu+Crg/AC9bEQ=
+Date: Wed, 05 Nov 2025 14:34:41 -0800
+To: mm-commits@vger.kernel.org,thomas.weissschuh@linutronix.de,david@kernel.org,zhangchujun@cmss.chinamobile.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kexec_file-fix-the-issue-of-mismatch-between-loop-variable-types.patch removed from -mm tree
-Message-Id: <20251105040716.A6768C116B1@smtp.kernel.org>
+Subject: [failures] selftest-vm_util-remove-unused-variables.patch removed from -mm tree
+Message-Id: <20251105223441.9696CC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec_file: fix the issue of mismatch between loop variable types
+     Subject: selftest/vm_util: remove unused variables
 has been removed from the -mm tree.  Its filename was
-     kexec_file-fix-the-issue-of-mismatch-between-loop-variable-types.patch
+     selftest-vm_util-remove-unused-variables.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Qiang Ma <maqianga@uniontech.com>
-Subject: kexec_file: fix the issue of mismatch between loop variable types
-Date: Mon, 3 Nov 2025 14:34:40 +0800
+From: Zhang Chujun <zhangchujun@cmss.chinamobile.com>
+Subject: selftest/vm_util: remove unused variables
+Date: Tue, 4 Nov 2025 14:28:55 +0800
 
-The type of the struct kimage member variable nr_segments is unsigned
-long.  Correct the loop variable i and the print format specifier type.
+The global variables __page_size and __page_shift are declared in
+vm_util.c, but they are never used anywhere in the codebase.  This patch
+removes them to clean up the source and eliminate dead code.
 
-Link: https://lkml.kernel.org/r/20251103063440.1681657-5-maqianga@uniontech.com
-Signed-off-by: Qiang Ma <maqianga@uniontech.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20251104062855.2468-1-zhangchujun@cmss.chinamobile.com
+Signed-off-by: Zhang Chujun <zhangchujun@cmss.chinamobile.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/kernel/kexec_file.c~kexec_file-fix-the-issue-of-mismatch-between-loop-variable-types
-+++ a/kernel/kexec_file.c
-@@ -366,7 +366,8 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 	int image_type = (flags & KEXEC_FILE_ON_CRASH) ?
- 			 KEXEC_TYPE_CRASH : KEXEC_TYPE_DEFAULT;
- 	struct kimage **dest_image, *image;
--	int ret = 0, i;
-+	int ret = 0;
-+	unsigned long i;
+--- a/tools/testing/selftests/mm/vm_util.c~selftest-vm_util-remove-unused-variables
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -17,9 +17,6 @@
+ #define STATUS_FILE_PATH "/proc/self/status"
+ #define MAX_LINE_LENGTH 500
  
- 	/* We only trust the superuser with rebooting the system. */
- 	if (!kexec_load_permitted(image_type))
-@@ -432,7 +433,7 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 		struct kexec_segment *ksegment;
- 
- 		ksegment = &image->segment[i];
--		kexec_dprintk("segment[%d]: buf=0x%p bufsz=0x%zx mem=0x%lx memsz=0x%zx\n",
-+		kexec_dprintk("segment[%lu]: buf=0x%p bufsz=0x%zx mem=0x%lx memsz=0x%zx\n",
- 			      i, ksegment->buf, ksegment->bufsz, ksegment->mem,
- 			      ksegment->memsz);
- 
+-unsigned int __page_size;
+-unsigned int __page_shift;
+-
+ uint64_t pagemap_get_entry(int fd, char *start)
+ {
+ 	const unsigned long pfn = (unsigned long)start / getpagesize();
 _
 
-Patches currently in -mm which might be from maqianga@uniontech.com are
+Patches currently in -mm which might be from zhangchujun@cmss.chinamobile.com are
 
+mm-debug-fix-missing-space-in-case-statement.patch
 
