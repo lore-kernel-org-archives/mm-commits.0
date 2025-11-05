@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C3C2F28FC
-	for <mm-commits@vger.kernel.org>; Wed,  5 Nov 2025 22:44:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC9E02F28FC
+	for <mm-commits@vger.kernel.org>; Wed,  5 Nov 2025 22:44:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762382666; cv=none; b=nVSS439PacA+e9EZ8rXYRmH6HWLPELOPE/RMMXHbG8bCVCRU9HUGU+FDmHRgFm3KPEfHkEfbyAPvVt19BODSpJC4TppgAbgvJEV4B9UWXRC1OsmH9XeFLcHIDOJUrnUQ1C8hon1avCHvhz82yMSCZHxo0gvfrEcfRXnLm+9hnuI=
+	t=1762382667; cv=none; b=Tu7T2nRmNV49E3olAfJcKTyMryKWP/LRjNPsAt8EYSz9/u7+uUN1hq7OO1+u/4UJrbmgIgmqrpzUYENaUC0KuOdrLkTVeNF8GUBp2s8XubEQjTLLzHrKdKBfhjHmmMmRvxexms6He5Mzx0yduoz7o48EUWov4FeW97IUKjOWsBo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762382666; c=relaxed/simple;
-	bh=alBsTZUxBwnQXo+KlOKgtlKAG0gnCfyeyyQtaifcUiI=;
-	h=Date:To:From:Subject:Message-Id; b=WrzXs7tsyYqDEIqulE7V7xUUDhImslFrTInK1aepp1Ut/oxpbSNCNkjFyLJRTCNSmdiDOcN16cuJP699xu/hG0As5WqM5NzWByL7wFJsBGsb5gWYdf6PKP/KlUnhsnv6gAPus22rALGtqPJt3/jGOBrvM3L/uuQuR5ODOpdrWlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nURvA00d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762382667; c=relaxed/simple;
+	bh=s3uOZ8DOAhMePXYL9L3719vL/FoT3QJ2hcEBK0OrHCs=;
+	h=Date:To:From:Subject:Message-Id; b=nGIfvi4H2y9QRe/HhelhAmv+WQT2nnKFxDkgLD/1Ho5IeKoC+A/FHzbwn5E19MFE8rf7/00l9slWCoJXx+ka6gd2vvUZJJhTZ4NTXCbQZgJUkUTS5oDJ/3YvMp/gIbXineV40QBiY8w+IEHcMskm299FX8sA/sL+MpxeFlpw8Vk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=elWw+sCm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nURvA00d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BD16C4AF0B;
-	Wed,  5 Nov 2025 22:44:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="elWw+sCm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 868E2C4CEF5;
+	Wed,  5 Nov 2025 22:44:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762382666;
-	bh=alBsTZUxBwnQXo+KlOKgtlKAG0gnCfyeyyQtaifcUiI=;
+	s=korg; t=1762382667;
+	bh=s3uOZ8DOAhMePXYL9L3719vL/FoT3QJ2hcEBK0OrHCs=;
 	h=Date:To:From:Subject:From;
-	b=nURvA00d2nMFEhhM9CojiaEbqE0shpHMvRKgXqlnc3xWBcbUFVD7Pgx0D3nRUEks5
-	 j1R9xLuvfD+KD+lhse4AXhXPD7+gmaAvTyL5VNe8tvvZ/AEw7nNqQsmjDwxvcIC4MT
-	 BPyZBNZ/XJZ6xvKVSLwf8xKBrNWthEShi5ZC+qW4=
-Date: Wed, 05 Nov 2025 14:44:25 -0800
+	b=elWw+sCmgY0kTx4MuCwFJ9VPcdzZxPBgzQSKCxGlRcSGchO1QuiYWZVhOc+4xavyG
+	 Gkop8xMKCXir9d54rY1Q4OBhyN445C3+XBqD0bn2QL8m9FkxnwQQbymBnyGNZlPr1p
+	 2BasekUY/jRGxgHg5KVuqQRoRZ5/jwGijG/xKreo=
+Date: Wed, 05 Nov 2025 14:44:27 -0800
 To: mm-commits@vger.kernel.org,u.kleine-koenig@baylibre.com,tglx@linutronix.de,peterz@infradead.org,oleg@redhat.com,npitre@baylibre.com,mingo@redhat.com,lirongqing@baidu.com,hpa@zytor.com,bp@alien8.de,biju.das.jz@bp.renesas.com,axboe@kernel.dk,david.laight.linux@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_mul_u64_u64_div_u64-test-both-generic-and-arch-versions.patch added to mm-nonmm-unstable branch
-Message-Id: <20251105224426.2BD16C4AF0B@smtp.kernel.org>
+Subject: + lib-mul_u64_u64_div_u64-optimise-multiply-on-32bit-x86.patch added to mm-nonmm-unstable branch
+Message-Id: <20251105224427.868E2C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: test_mul_u64_u64_div_u64(): test both generic and arch versions
+     Subject: lib: mul_u64_u64_div_u64(): optimise multiply on 32bit x86
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-test_mul_u64_u64_div_u64-test-both-generic-and-arch-versions.patch
+     lib-mul_u64_u64_div_u64-optimise-multiply-on-32bit-x86.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_mul_u64_u64_div_u64-test-both-generic-and-arch-versions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-mul_u64_u64_div_u64-optimise-multiply-on-32bit-x86.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Laight <david.laight.linux@gmail.com>
-Subject: lib: test_mul_u64_u64_div_u64(): test both generic and arch versions
-Date: Wed, 5 Nov 2025 20:10:32 +0000
+Subject: lib: mul_u64_u64_div_u64(): optimise multiply on 32bit x86
+Date: Wed, 5 Nov 2025 20:10:33 +0000
 
-Change the #if in div64.c so that test_mul_u64_u64_div_u64.c can compile
-and test the generic version (including the 'long multiply') on
-architectures (eg amd64) that define their own copy.
+gcc generates horrid code for both ((u64)u32_a * u32_b) and (u64_a +
+u32_b).  As well as the extra instructions it can generate a lot of spills
+to stack (including spills of constant zeros and even multiplies by
+constant zero).
 
-Test the kernel version and the locally compiled version on all arch. 
-Output the time taken (in ns) on the 'test completed' trace.
+mul_u32_u32() already exists to optimise the multiply.  Add a similar
+add_u64_32() for the addition.  Disable both for clang - it generates
+better code without them.
 
-For reference, on my zen 5, the optimised version takes ~220ns and the
-generic version ~3350ns.  Using the native multiply saves ~200ns and
-adding back the ilog2() 'optimisation' test adds ~50ms.
+Move the 64x64 => 128 multiply into a static inline helper function for
+code clarity.  No need for the a/b_hi/lo variables, the implicit casts on
+the function calls do the work for us.  Should have minimal effect on the
+generated code.
 
-Link: https://lkml.kernel.org/r/20251105201035.64043-7-david.laight.linux@gmail.com
+Use mul_u32_u32() and add_u64_u32() in the 64x64 => 128 multiply in
+mul_u64_add_u64_div_u64().
+
+Link: https://lkml.kernel.org/r/20251105201035.64043-8-david.laight.linux@gmail.com
 Signed-off-by: David Laight <david.laight.linux@gmail.com>
 Reviewed-by: Nicolas Pitre <npitre@baylibre.com>
 Cc: Biju Das <biju.das.jz@bp.renesas.com>
@@ -89,125 +95,127 @@ Cc: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/div64.c                    |    8 +++-
- lib/math/test_mul_u64_u64_div_u64.c |   52 ++++++++++++++++++++++----
- 2 files changed, 51 insertions(+), 9 deletions(-)
+ arch/x86/include/asm/div64.h |   19 +++++++++++++++
+ include/linux/math64.h       |   11 +++++++++
+ lib/math/div64.c             |   40 +++++++++++++++++++++------------
+ 3 files changed, 56 insertions(+), 14 deletions(-)
 
---- a/lib/math/div64.c~lib-test_mul_u64_u64_div_u64-test-both-generic-and-arch-versions
-+++ a/lib/math/div64.c
-@@ -177,16 +177,18 @@ EXPORT_SYMBOL(div64_s64);
-  * Iterative div/mod for use when dividend is not expected to be much
-  * bigger than divisor.
-  */
-+#ifndef iter_div_u64_rem
- u32 iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder)
- {
- 	return __iter_div_u64_rem(dividend, divisor, remainder);
+--- a/arch/x86/include/asm/div64.h~lib-mul_u64_u64_div_u64-optimise-multiply-on-32bit-x86
++++ a/arch/x86/include/asm/div64.h
+@@ -60,6 +60,12 @@ static inline u64 div_u64_rem(u64 divide
  }
- EXPORT_SYMBOL(iter_div_u64_rem);
-+#endif
+ #define div_u64_rem	div_u64_rem
  
--#ifndef mul_u64_add_u64_div_u64
-+#if !defined(mul_u64_add_u64_div_u64) || defined(test_mul_u64_add_u64_div_u64)
- u64 mul_u64_add_u64_div_u64(u64 a, u64 b, u64 c, u64 d)
++/*
++ * gcc tends to zero extend 32bit values and do full 64bit maths.
++ * Define asm functions that avoid this.
++ * (clang generates better code for the C versions.)
++ */
++#ifndef __clang__
+ static inline u64 mul_u32_u32(u32 a, u32 b)
  {
--#if defined(__SIZEOF_INT128__)
-+#if defined(__SIZEOF_INT128__) && !defined(test_mul_u64_add_u64_div_u64)
+ 	u32 high, low;
+@@ -71,6 +77,19 @@ static inline u64 mul_u32_u32(u32 a, u32
+ }
+ #define mul_u32_u32 mul_u32_u32
  
++static inline u64 add_u64_u32(u64 a, u32 b)
++{
++	u32 high = a >> 32, low = a;
++
++	asm ("addl %[b], %[low]; adcl $0, %[high]"
++		: [low] "+r" (low), [high] "+r" (high)
++		: [b] "rm" (b) );
++
++	return low | (u64)high << 32;
++}
++#define add_u64_u32 add_u64_u32
++#endif
++
+ /*
+  * __div64_32() is never called on x86, so prevent the
+  * generic definition from getting built.
+--- a/include/linux/math64.h~lib-mul_u64_u64_div_u64-optimise-multiply-on-32bit-x86
++++ a/include/linux/math64.h
+@@ -158,6 +158,17 @@ static inline u64 mul_u32_u32(u32 a, u32
+ }
+ #endif
+ 
++#ifndef add_u64_u32
++/*
++ * Many a GCC version also messes this up.
++ * Zero extending b and then spilling everything to stack.
++ */
++static inline u64 add_u64_u32(u64 a, u32 b)
++{
++	return a + b;
++}
++#endif
++
+ #if defined(CONFIG_ARCH_SUPPORTS_INT128) && defined(__SIZEOF_INT128__)
+ 
+ #ifndef mul_u64_u32_shr
+--- a/lib/math/div64.c~lib-mul_u64_u64_div_u64-optimise-multiply-on-32bit-x86
++++ a/lib/math/div64.c
+@@ -186,33 +186,45 @@ EXPORT_SYMBOL(iter_div_u64_rem);
+ #endif
+ 
+ #if !defined(mul_u64_add_u64_div_u64) || defined(test_mul_u64_add_u64_div_u64)
+-u64 mul_u64_add_u64_div_u64(u64 a, u64 b, u64 c, u64 d)
+-{
++
++#define mul_add(a, b, c) add_u64_u32(mul_u32_u32(a, b), c)
++
+ #if defined(__SIZEOF_INT128__) && !defined(test_mul_u64_add_u64_div_u64)
+ 
++static inline u64 mul_u64_u64_add_u64(u64 *p_lo, u64 a, u64 b, u64 c)
++{
  	/* native 64x64=128 bits multiplication */
  	u128 prod = (u128)a * b + c;
-@@ -267,5 +269,7 @@ u64 mul_u64_add_u64_div_u64(u64 a, u64 b
- 
- 	return res;
- }
-+#if !defined(test_mul_u64_add_u64_div_u64)
- EXPORT_SYMBOL(mul_u64_add_u64_div_u64);
- #endif
-+#endif
---- a/lib/math/test_mul_u64_u64_div_u64.c~lib-test_mul_u64_u64_div_u64-test-both-generic-and-arch-versions
-+++ a/lib/math/test_mul_u64_u64_div_u64.c
-@@ -73,21 +73,34 @@ done
- 
-  */
- 
--static int __init test_init(void)
-+static u64 test_mul_u64_add_u64_div_u64(u64 a, u64 b, u64 c, u64 d);
+-	u64 n_lo = prod, n_hi = prod >> 64;
 +
-+static int __init test_run(unsigned int fn_no, const char *fn_name)
- {
-+	u64 start_time;
- 	int errors = 0;
- 	int tests = 0;
- 	int i;
- 
--	pr_info("Starting mul_u64_u64_div_u64() test\n");
-+	start_time = ktime_get_ns();
- 
- 	for (i = 0; i < ARRAY_SIZE(test_values); i++) {
- 		u64 a = test_values[i].a;
- 		u64 b = test_values[i].b;
- 		u64 d = test_values[i].d;
- 		u64 expected_result = test_values[i].result;
--		u64 result = mul_u64_u64_div_u64(a, b, d);
--		u64 result_up = mul_u64_u64_div_u64_roundup(a, b, d);
-+		u64 result, result_up;
-+
-+		switch (fn_no) {
-+		default:
-+			result = mul_u64_u64_div_u64(a, b, d);
-+			result_up = mul_u64_u64_div_u64_roundup(a, b, d);
-+			break;
-+		case 1:
-+			result = test_mul_u64_add_u64_div_u64(a, b, 0, d);
-+			result_up = test_mul_u64_add_u64_div_u64(a, b, d - 1, d);
-+			break;
-+		}
- 
- 		tests += 2;
- 
-@@ -106,15 +119,40 @@ static int __init test_init(void)
- 		}
- 	}
- 
--	pr_info("Completed mul_u64_u64_div_u64() test, %d tests, %d errors\n",
--		tests, errors);
--	return errors ? -EINVAL : 0;
-+	pr_info("Completed %s() test, %d tests, %d errors, %llu ns\n",
-+		fn_name, tests, errors, ktime_get_ns() - start_time);
-+	return errors;
++	*p_lo = prod;
++	return prod >> 64;
 +}
-+
-+static int __init test_init(void)
+ 
+ #else
+ 
+-	/* perform a 64x64=128 bits multiplication manually */
+-	u32 a_lo = a, a_hi = a >> 32, b_lo = b, b_hi = b >> 32;
++static inline u64 mul_u64_u64_add_u64(u64 *p_lo, u64 a, u64 b, u64 c)
 +{
-+	pr_info("Starting mul_u64_u64_div_u64() test\n");
-+	if (test_run(0, "mul_u64_u64_div_u64"))
-+		return -EINVAL;
-+	if (test_run(1, "test_mul_u64_u64_div_u64"))
-+		return -EINVAL;
-+	return 0;
- }
++	/* perform a 64x64=128 bits multiplication in 32bit chunks */
+ 	u64 x, y, z;
  
- static void __exit test_exit(void)
- {
- }
+ 	/* Since (x-1)(x-1) + 2(x-1) == x.x - 1 two u32 can be added to a u64 */
+-	x = (u64)a_lo * b_lo + (u32)c;
+-	y = (u64)a_lo * b_hi + (u32)(c >> 32);
+-	y += (u32)(x >> 32);
+-	z = (u64)a_hi * b_hi + (u32)(y >> 32);
+-	y = (u64)a_hi * b_lo + (u32)y;
+-	z += (u32)(y >> 32);
+-	x = (y << 32) + (u32)x;
+-
+-	u64 n_lo = x, n_hi = z;
++	x = mul_add(a, b, c);
++	y = mul_add(a, b >> 32, c >> 32);
++	y = add_u64_u32(y, x >> 32);
++	z = mul_add(a >> 32, b >> 32, y >> 32);
++	y = mul_add(a >> 32, b, y);
++	*p_lo = (y << 32) + (u32)x;
++	return add_u64_u32(z, y >> 32);
++}
  
-+/* Compile the generic mul_u64_add_u64_div_u64() code */
-+#undef __div64_32
-+#define __div64_32 __div64_32
-+#define div_s64_rem div_s64_rem
-+#define div64_u64_rem div64_u64_rem
-+#define div64_u64 div64_u64
-+#define div64_s64 div64_s64
-+#define iter_div_u64_rem iter_div_u64_rem
+ #endif
+ 
++u64 mul_u64_add_u64_div_u64(u64 a, u64 b, u64 c, u64 d)
++{
++	u64 n_lo, n_hi;
 +
-+#undef mul_u64_add_u64_div_u64
-+#define mul_u64_add_u64_div_u64 test_mul_u64_add_u64_div_u64
-+#define test_mul_u64_add_u64_div_u64 test_mul_u64_add_u64_div_u64
++	n_hi = mul_u64_u64_add_u64(&n_lo, a, b, c);
 +
-+#include "div64.c"
-+
- module_init(test_init);
- module_exit(test_exit);
+ 	if (!n_hi)
+ 		return div64_u64(n_lo, d);
  
 _
 
