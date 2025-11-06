@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BC241D5151;
-	Wed,  5 Nov 2025 23:58:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC67E3207
+	for <mm-commits@vger.kernel.org>; Thu,  6 Nov 2025 00:01:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762387133; cv=none; b=QKBlL4PCzWAHxLFymkTuX8z13SmuKTw9drU4YrRRw2Byf/zF1LxGb/0gB7oDXUlHsqfwVYNlVY5n437BNECAom0xr09qQJnuU5UaJccUZTAuwqXRJBGz+N3jA6+PfhS/UuUdNibh7nAZMofUg7UTNRBQnQN6kbnzOi4nty4bO+M=
+	t=1762387317; cv=none; b=XacicPB0TY3Pxdb81WczDZ586yG0VFlQsSD+8KM2Q4ZBaIQlV2ZUqE9WMgmFqstBov6/N+QpEGCDUEQ7qKmr3HXkzKL4xDu8Ip/wVUz3NXId5Zj9w+/orVBB8Wt3PULWsja5e7Tafa6shNyJ73w/r+LZLoYTxQIZqDQ3UPGLpQA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762387133; c=relaxed/simple;
-	bh=twFpIo4KfTnKr3nXoYN9uYKscwGeun6j1FvX4UGvHgY=;
-	h=Date:To:From:Subject:Message-Id; b=Fp6D3g6DN0TLuqMtlGneSM1vgnuxDKXStPkth2PqKTU4fhlXKJ0knYyaYGWkHytHYI2K6Zu5PdhOaIVCrv+e0XqqRoQIpuFH9389Y4sKD4wD1BZ+RjW8Vpkoj/uptLm1kAMt3cxXZSvPOOqxRQVrV3soIS4QJsCYIiu88IuPoOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rg0MkhP7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762387317; c=relaxed/simple;
+	bh=4Zt0mqUZ9P3DRs4TxrH/M8ROchYUkYkvJbM/omMwsWw=;
+	h=Date:To:From:Subject:Message-Id; b=kHWJGwDS+jsk3LM1qMD9w7uLuE7cVNet9ZhaFdgHpzQf8ouAhUWK/ch4YdoaEG70/0R/JIQVHHKRVMc5/OtU69kPMGba0PtY7x2fytGpyP7gtuUCXQVSVtEArHcN3VZvqqYvwG41kKgeYFd4IQJ/Ibs3hhxwFegamjdGKs4ovDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HUojigAa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rg0MkhP7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFCC7C4CEF5;
-	Wed,  5 Nov 2025 23:58:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HUojigAa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86E63C4CEFB;
+	Thu,  6 Nov 2025 00:01:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762387132;
-	bh=twFpIo4KfTnKr3nXoYN9uYKscwGeun6j1FvX4UGvHgY=;
+	s=korg; t=1762387317;
+	bh=4Zt0mqUZ9P3DRs4TxrH/M8ROchYUkYkvJbM/omMwsWw=;
 	h=Date:To:From:Subject:From;
-	b=Rg0MkhP7Oc+c13iPVEA50KrILqNN7Eoy2rdPaOU41tIIe8qi+niQnicwvBjckXCYC
-	 a0xIg0EMV5KoGif8sQnj6F8w1Os971Hbt8eXPYlegI29jI0a5BODwgE4cY4q25AnlZ
-	 QxpNk7Bd8GqFH3tpqtJ7P17mPLHfM5g2IIjpiA0g=
-Date: Wed, 05 Nov 2025 15:58:52 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=HUojigAaceqmVzpH1crb1+JYVsx6vriy20FEk/d7U0Inz3oLv9cye7Qep5q5AEIp1
+	 WcSXNckoLaAEfWm1S9i7PkABpgRQt9HP03TZn4G5Nne57OmhGxcmxtI/Avz8njdLDA
+	 XVXFwoC7RWPwn5pVfoOq0XIQtd0TsllrmG0Aks2g=
+Date: Wed, 05 Nov 2025 16:01:57 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-folio-split-check-for-anon-folios-in-swapcache.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251105235852.AFCC7C4CEF5@smtp.kernel.org>
+Subject: + mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch added to mm-unstable branch
+Message-Id: <20251106000157.86E63C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: fix folio split check for anon folios in swapcache.
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-fix-folio-split-check-for-anon-folios-in-swapcache.patch
+     Subject: mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-folio-split-check-for-anon-folios-in-swapcache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,56 +59,34 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: fix folio split check for anon folios in swapcache.
-Date: Wed, 5 Nov 2025 11:29:10 -0500
+Subject: mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2
+Date: Wed, 5 Nov 2025 11:01:09 -0500
 
-Both uniform and non uniform split check missed the check to prevent
-splitting anon folios in swapcache to non-zero order.  Fix the check.
+add newline to fix an error and a warning from docutils
 
-Link: https://lkml.kernel.org/r/20251105162910.752266-1-ziy@nvidia.com
-Fixes: 58729c04cf10 ("mm/huge_memory: add buddy allocator like (non-uniform) folio_split()")
+Documentation/core-api/mm-api:134: mm/huge_memory.c:3593: ERROR: Unexpect=
+ed indentation. [docutils]
+Documentation/core-api/mm-api:134: mm/huge_memory.c:3595: WARNING: Block =
+quote ends without a blank line; unexpected unindent. [docutils]
+
+Link: https://lkml.kernel.org/r/040B38C0-23C6-4AEA-B069-69AE6DAA828B@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Closes: https://lore.kernel.org/all/dc0ecc2c-4089-484f-917f-920fdca4c898@kernel.org/
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-folio-split-check-for-anon-folios-in-swapcache
+--- a/mm/huge_memory.c~mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2
 +++ a/mm/huge_memory.c
-@@ -3522,7 +3522,8 @@ bool non_uniform_split_supported(struct
- 		/* order-1 is not supported for anonymous THP. */
- 		VM_WARN_ONCE(warns && new_order == 1,
- 				"Cannot split to order-1 folio");
--		return new_order != 1;
-+		if (new_order == 1)
-+			return false;
- 	} else if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
- 	    !mapping_large_folio_support(folio->mapping)) {
- 		/*
-@@ -3553,7 +3554,8 @@ bool uniform_split_supported(struct foli
- 	if (folio_test_anon(folio)) {
- 		VM_WARN_ONCE(warns && new_order == 1,
- 				"Cannot split to order-1 folio");
--		return new_order != 1;
-+		if (new_order == 1)
-+			return false;
- 	} else  if (new_order) {
- 		if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
- 		    !mapping_large_folio_support(folio->mapping)) {
+@@ -3591,6 +3591,7 @@ static void __split_folio_to_order(struc
+  *    uniform_split is false.
+  *
+  * The high level flow for these two methods are:
++ *
+  * 1. uniform split: @xas is split with no expectation of failure and a single
+  *    __split_folio_to_order() is called to split the @folio into @new_order
+  *    along with stats update.
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
@@ -120,4 +98,5 @@ mm-huge_memory-add-split_huge_page_to_order.patch
 mm-memory-failure-improve-large-block-size-folio-handling.patch
 mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
 mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch
 
