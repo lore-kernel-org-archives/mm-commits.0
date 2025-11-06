@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 016CC335BA5
-	for <mm-commits@vger.kernel.org>; Thu,  6 Nov 2025 23:24:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50627306B35
+	for <mm-commits@vger.kernel.org>; Thu,  6 Nov 2025 23:24:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762471473; cv=none; b=V01yRnuADyTL5B3csCFN248j2/DVnMLqRy0Muh7jVYvp6AQKciU0B6iKAok1eoWZ9OXagQdIhG35umCovpOqhVOrNuLUybpyh9B/48ufIHrudfhimeGHRxIt3EiauTUNCHM1jEzrVwFrkwWGfOjRH2CJ7RI0FQePPztU0/oGKuE=
+	t=1762471475; cv=none; b=KKJYwxKrVM8FuEICcDnbJD9/jgpqE+LnbOc++wPjYA32yZZsV1onzeuzAowZFGxIRcBkpQZxM+XJAh7rCNjEHHXZ1On85W4fBCWnJ7wxx3CgZ4hV/PbYiKsS5ncmYl/fTlrtvto+fRoeTlVrT3jwtnet24RlKxie2tIs4IbZVu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762471473; c=relaxed/simple;
-	bh=eNwl7shZhX9zWjqtsqH7Qy8dEzNV4Riz1CAjXGE/q4w=;
-	h=Date:To:From:Subject:Message-Id; b=jTsLE17Ygf4fhhYB6tJ0+703wYXF7RUaPAkmzgfUktZeOkI5dktmP48MoSZ4Bd2JMoH0e7O1oi76nwl8nxs6x6+selQttsAKHLPpZEDZfAMtvnii9yk/JRtKiWANfYl+4+ZwzU/kQLIPJfa4qms43SIsNKHMtGMwYIEls1I05iU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VWy8f1GE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762471475; c=relaxed/simple;
+	bh=gqwMqWJ+r8ddnGLVio6z8pYq3J+UuKgE973+I3Imq/U=;
+	h=Date:To:From:Subject:Message-Id; b=r++QFC/pKERkYZTy2L7BsYuauH8bJMAaBzg01ZpKZETatH4LrW8jK4Uk8XmvOrnYdC0VcmHpuHZ7tUZHkplGECBarvnP+BuqRFP5YETWIc+z+C9CucWncgCSWXmeqdELPCrEfGxsHTJrfhp7teQ6QILmk0WirSReMWPqIxBaQqE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XyWgHmra; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VWy8f1GE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C65FC113D0;
-	Thu,  6 Nov 2025 23:24:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XyWgHmra"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B00B8C4CEFB;
+	Thu,  6 Nov 2025 23:24:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762471472;
-	bh=eNwl7shZhX9zWjqtsqH7Qy8dEzNV4Riz1CAjXGE/q4w=;
+	s=korg; t=1762471474;
+	bh=gqwMqWJ+r8ddnGLVio6z8pYq3J+UuKgE973+I3Imq/U=;
 	h=Date:To:From:Subject:From;
-	b=VWy8f1GEdKY+QS7sZ1L9bwgZJ2RLm6C3rlYJOc+9jql+9rDNA4J7yJSSb+pUeur00
-	 /fzqygtg5iL2gpB2+H787P5BbXMi4dc68AxDIHLn4RFmN2wSdGufa+iAZbF3tvJ71J
-	 GbetBDKkM4kiRI8CQrARA4d90rvHTZtfsQAvlo3Q=
-Date: Thu, 06 Nov 2025 15:24:31 -0800
+	b=XyWgHmraSQpRymkq0aHxu0APqhyYMcCRxZLPJfcGNGBKZVCCXn33uLwrosvYxdnTW
+	 rWrBTWAQUWEB+OfbjuHdl2diO2SAUxQM7AbiFHu1tBULHt1d2TFashTO/WbTqeigsE
+	 EGyraIbPjJDSPJd/3SVTzZgxA50yiG2FKZdDBNfY=
+Date: Thu, 06 Nov 2025 15:24:34 -0800
 To: mm-commits@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,hca@linux.ibm.com,gor@linux.ibm.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,agordeev@linux.ibm.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-radix-tree-add-lx-radix-tree-command.patch added to mm-nonmm-unstable branch
-Message-Id: <20251106232432.6C65FC113D0@smtp.kernel.org>
+Subject: + scripts-gdb-symbols-make-bpf-debug-info-available-to-gdb.patch added to mm-nonmm-unstable branch
+Message-Id: <20251106232434.B00B8C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb/radix-tree: add lx-radix-tree-command
+     Subject: scripts/gdb/symbols: make BPF debug info available to GDB
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-radix-tree-add-lx-radix-tree-command.patch
+     scripts-gdb-symbols-make-bpf-debug-info-available-to-gdb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-radix-tree-add-lx-radix-tree-command.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-symbols-make-bpf-debug-info-available-to-gdb.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,27 +59,45 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: scripts/gdb/radix-tree: add lx-radix-tree-command
-Date: Thu, 6 Nov 2025 13:43:41 +0100
+Subject: scripts/gdb/symbols: make BPF debug info available to GDB
+Date: Thu, 6 Nov 2025 13:43:42 +0100
 
-Patch series "scripts/gdb/symbols: make BPF debug info available to GDB",
-v2.
+One can debug BPF programs with QEMU gdbstub by setting a breakpoint on
+bpf_prog_kallsyms_add(), waiting for a hit with a matching aux.name, and
+then setting a breakpoint on bpf_func.  This is tedious, error-prone, and
+also lacks line numbers.
 
-This series greatly simplifies debugging BPF progs when using QEMU gdbstub
-by providing symbol names, sizes, and line numbers to GDB.
+Automate this in a way similar to the existing support for modules in
+lx-symbols.
 
-Patch 1 adds radix tree iteration, which is necessary for parsing
-prog_idr.  Patch 2 is the actual implementation; its description contains
-some details on how to use this.
+Enumerate and monitor changes to both BPF kallsyms and JITed progs.  For
+each ksym, generate and compile a synthetic .s file containing the name,
+code, and size.  In addition, if this ksym is also a prog, and not a
+trampoline, add line number information.
 
+Ensure that this is a no-op if the kernel is built without BPF support or
+if "as" is missing.  In theory the "as" dependency may be dropped by
+generating the synthetic .o file manually, but this is too much complexity
+for too little benefit.
 
-This patch (of 2):
+Now one can debug BPF progs out of the box like this:
 
-Add a function and a command to iterate over radix tree contents. 
-Duplicate the C implementation in Python, but drop support for tagging.
+    (gdb) lx-symbols -bpf
+    (gdb) b bpf_prog_4e612a6a881a086b_arena_list_add
+    Breakpoint 2 (bpf_prog_4e612a6a881a086b_arena_list_add) pending.
 
-Link: https://lkml.kernel.org/r/20251106124600.86736-1-iii@linux.ibm.com
-Link: https://lkml.kernel.org/r/20251106124600.86736-2-iii@linux.ibm.com
+    # ./test_progs -t arena_list
+
+    Thread 4 hit Breakpoint 2, bpf_prog_4e612a6a881a086b_arena_list_add ()
+        at linux/tools/testing/selftests/bpf/progs/arena_list.c:51
+    51              list_head = &global_head;
+    (gdb) n
+    bpf_prog_4e612a6a881a086b_arena_list_add () at linux/tools/testing/selftests/bpf/progs/arena_list.c:53
+    53              for (i = zero; i < cnt && can_loop; i++) {
+
+This also works for subprogs.
+
+Link: https://lkml.kernel.org/r/20251106124600.86736-3-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -92,177 +110,447 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/radixtree.py |  139 +++++++++++++++++++++++++++++--
- 1 file changed, 132 insertions(+), 7 deletions(-)
+ scripts/gdb/linux/bpf.py          |  253 ++++++++++++++++++++++++++++
+ scripts/gdb/linux/constants.py.in |    3 
+ scripts/gdb/linux/symbols.py      |  105 ++++++++++-
+ 3 files changed, 349 insertions(+), 12 deletions(-)
 
---- a/scripts/gdb/linux/radixtree.py~scripts-gdb-radix-tree-add-lx-radix-tree-command
-+++ a/scripts/gdb/linux/radixtree.py
-@@ -30,13 +30,16 @@ def entry_to_node(node):
- def node_maxindex(node):
-     return (constants.LX_RADIX_TREE_MAP_SIZE << node['shift']) - 1
- 
--def lookup(root, index):
-+def resolve_root(root):
-+    if root.type == radix_tree_root_type.get_type():
-+        return root
-     if root.type == radix_tree_root_type.get_type().pointer():
--        node = root.dereference()
--    elif root.type != radix_tree_root_type.get_type():
--        raise gdb.GdbError("must be {} not {}"
--                           .format(radix_tree_root_type.get_type(), root.type))
-+        return root.dereference()
-+    raise gdb.GdbError("must be {} not {}"
-+                       .format(radix_tree_root_type.get_type(), root.type))
- 
-+def lookup(root, index):
-+    root = resolve_root(root)
-     node = root['xa_head']
-     if node == 0:
-         return None
-@@ -71,14 +74,120 @@ def lookup(root, index):
- 
-     return node
- 
--class LxRadixTree(gdb.Function):
-+def descend(parent, index):
-+    offset = (index >> int(parent["shift"])) & constants.LX_RADIX_TREE_MAP_MASK
-+    return offset, parent["slots"][offset]
+diff --git a/scripts/gdb/linux/bpf.py a/scripts/gdb/linux/bpf.py
+new file mode 100644
+--- /dev/null
++++ a/scripts/gdb/linux/bpf.py
+@@ -0,0 +1,253 @@
++# SPDX-License-Identifier: GPL-2.0
 +
-+def load_root(root):
-+    node = root["xa_head"]
-+    nodep = node
++import json
++import subprocess
++import tempfile
 +
-+    if is_internal_node(node):
-+        node = entry_to_node(node)
-+        maxindex = node_maxindex(node)
-+        return int(node["shift"]) + constants.LX_RADIX_TREE_MAP_SHIFT, \
-+               nodep, maxindex
++import gdb
 +
-+    return 0, nodep, 0
++from linux import constants, lists, radixtree, utils
 +
-+class RadixTreeIter:
-+    def __init__(self, start):
-+        self.index = 0
-+        self.next_index = start
-+        self.node = None
 +
-+def xa_mk_internal(v):
-+    return (v << 2) | 2
++if constants.LX_CONFIG_BPF and constants.LX_CONFIG_BPF_JIT:
++    bpf_ksym_type = utils.CachedType("struct bpf_ksym")
++if constants.LX_CONFIG_BPF_SYSCALL:
++    bpf_prog_type = utils.CachedType("struct bpf_prog")
 +
-+LX_XA_RETRY_ENTRY = xa_mk_internal(256)
-+LX_RADIX_TREE_RETRY = LX_XA_RETRY_ENTRY
 +
-+def next_chunk(root, iter):
-+    mask = (1 << (utils.get_ulong_type().sizeof * 8)) - 1
++def get_ksym_name(ksym):
++    name = ksym["name"].bytes
++    end = name.find(b"\x00")
++    if end != -1:
++        name = name[:end]
++    return name.decode()
 +
-+    index = iter.next_index
-+    if index == 0 and iter.index != 0:
-+        return None
 +
-+    restart = True
-+    while restart:
-+        restart = False
++def list_ksyms():
++    if not (constants.LX_CONFIG_BPF and constants.LX_CONFIG_BPF_JIT):
++        return []
++    bpf_kallsyms = gdb.parse_and_eval("&bpf_kallsyms")
++    bpf_ksym_ptr_type = bpf_ksym_type.get_type().pointer()
++    return list(lists.list_for_each_entry(bpf_kallsyms,
++                                          bpf_ksym_ptr_type,
++                                          "lnode"))
 +
-+        _, child, maxindex = load_root(root)
-+        if index > maxindex:
-+            return None
-+        if not child:
-+            return None
 +
-+        if not is_internal_node(child):
-+            iter.index = index
-+            iter.next_index = (maxindex + 1) & mask
-+            iter.node = None
-+            return root["xa_head"].address
++class KsymAddBreakpoint(gdb.Breakpoint):
++    def __init__(self, monitor):
++        super(KsymAddBreakpoint, self).__init__("bpf_ksym_add", internal=True)
++        self.silent = True
++        self.monitor = monitor
 +
-+        while True:
-+            node = entry_to_node(child)
-+            offset, child = descend(node, index)
++    def stop(self):
++        self.monitor.add(gdb.parse_and_eval("ksym"))
++        return False
 +
-+            if not child:
-+                while True:
-+                    offset += 1
-+                    if offset >= constants.LX_RADIX_TREE_MAP_SIZE:
-+                        break
-+                    slot = node["slots"][offset]
-+                    if slot:
-+                        break
-+                index &= ~node_maxindex(node)
-+                index = (index + (offset << int(node["shift"]))) & mask
-+                if index == 0:
-+                    return None
-+                if offset == constants.LX_RADIX_TREE_MAP_SIZE:
-+                    restart = True
-+                    break
-+                child = node["slots"][offset]
 +
-+            if not child:
-+                restart = True
-+                break
-+            if child == LX_XA_RETRY_ENTRY:
-+                break
-+            if not node["shift"] or not is_internal_node(child):
-+                break
++class KsymRemoveBreakpoint(gdb.Breakpoint):
++    def __init__(self, monitor):
++        super(KsymRemoveBreakpoint, self).__init__("bpf_ksym_del",
++                                                   internal=True)
++        self.silent = True
++        self.monitor = monitor
 +
-+    iter.index = (index & ~node_maxindex(node)) | offset
-+    iter.next_index = ((index | node_maxindex(node)) + 1) & mask
-+    iter.node = node
++    def stop(self):
++        self.monitor.remove(gdb.parse_and_eval("ksym"))
++        return False
 +
-+    return node["slots"][offset].address
 +
-+def next_slot(slot, iter):
-+    mask = (1 << (utils.get_ulong_type().sizeof * 8)) - 1
-+    for _ in range(iter.next_index - iter.index - 1):
-+        slot += 1
-+        iter.index = (iter.index + 1) & mask
-+        if slot.dereference():
-+            return slot
++class KsymMonitor:
++    def __init__(self, add, remove):
++        self.add = add
++        self.remove = remove
++
++        self.add_bp = KsymAddBreakpoint(self)
++        self.remove_bp = KsymRemoveBreakpoint(self)
++
++        self.notify_initial()
++
++    def notify_initial(self):
++        for ksym in list_ksyms():
++            self.add(ksym)
++
++    def delete(self):
++        self.add_bp.delete()
++        self.remove_bp.delete()
++
++
++def list_progs():
++    if not constants.LX_CONFIG_BPF_SYSCALL:
++        return []
++    idr_rt = gdb.parse_and_eval("&prog_idr.idr_rt")
++    bpf_prog_ptr_type = bpf_prog_type.get_type().pointer()
++    progs = []
++    for _, slot in radixtree.for_each_slot(idr_rt):
++        prog = slot.dereference().cast(bpf_prog_ptr_type)
++        progs.append(prog)
++        # Subprogs are not registered in prog_idr, fetch them manually.
++        # func[0] is the current prog.
++        aux = prog["aux"]
++        func = aux["func"]
++        real_func_cnt = int(aux["real_func_cnt"])
++        for i in range(1, real_func_cnt):
++            progs.append(func[i])
++    return progs
++
++
++class ProgAddBreakpoint(gdb.Breakpoint):
++    def __init__(self, monitor):
++        super(ProgAddBreakpoint, self).__init__("bpf_prog_kallsyms_add",
++                                                internal=True)
++        self.silent = True
++        self.monitor = monitor
++
++    def stop(self):
++        self.monitor.add(gdb.parse_and_eval("fp"))
++        return False
++
++
++class ProgRemoveBreakpoint(gdb.Breakpoint):
++    def __init__(self, monitor):
++        super(ProgRemoveBreakpoint, self).__init__("bpf_prog_free_id",
++                                                   internal=True)
++        self.silent = True
++        self.monitor = monitor
++
++    def stop(self):
++        self.monitor.remove(gdb.parse_and_eval("prog"))
++        return False
++
++
++class ProgMonitor:
++    def __init__(self, add, remove):
++        self.add = add
++        self.remove = remove
++
++        self.add_bp = ProgAddBreakpoint(self)
++        self.remove_bp = ProgRemoveBreakpoint(self)
++
++        self.notify_initial()
++
++    def notify_initial(self):
++        for prog in list_progs():
++            self.add(prog)
++
++    def delete(self):
++        self.add_bp.delete()
++        self.remove_bp.delete()
++
++
++def btf_str_by_offset(btf, offset):
++    while offset < btf["start_str_off"]:
++        btf = btf["base_btf"]
++
++    offset -= btf["start_str_off"]
++    if offset < btf["hdr"]["str_len"]:
++        return (btf["strings"] + offset).string()
++
 +    return None
 +
-+def for_each_slot(root, start=0):
-+    iter = RadixTreeIter(start)
-+    slot = None
-+    while True:
-+        if not slot:
-+            slot = next_chunk(root, iter)
-+            if not slot:
-+                break
-+        yield iter.index, slot
-+        slot = next_slot(slot, iter)
 +
-+class LxRadixTreeLookup(gdb.Function):
-     """ Lookup and return a node from a RadixTree.
++def bpf_line_info_line_num(line_col):
++    return line_col >> 10
++
++
++def bpf_line_info_line_col(line_col):
++    return line_col & 0x3ff
++
++
++class LInfoIter:
++    def __init__(self, prog):
++        # See bpf_prog_get_file_line() for details.
++        self.pos = 0
++        self.nr_linfo = 0
++
++        if prog is None:
++            return
++
++        self.bpf_func = int(prog["bpf_func"])
++        aux = prog["aux"]
++        self.btf = aux["btf"]
++        linfo_idx = aux["linfo_idx"]
++        self.nr_linfo = int(aux["nr_linfo"]) - linfo_idx
++        if self.nr_linfo == 0:
++            return
++
++        linfo_ptr = aux["linfo"]
++        tpe = linfo_ptr.type.target().array(self.nr_linfo).pointer()
++        self.linfo = (linfo_ptr + linfo_idx).cast(tpe).dereference()
++        jited_linfo_ptr = aux["jited_linfo"]
++        tpe = jited_linfo_ptr.type.target().array(self.nr_linfo).pointer()
++        self.jited_linfo = (jited_linfo_ptr + linfo_idx).cast(tpe).dereference()
++
++        self.filenos = {}
++
++    def get_code_off(self):
++        if self.pos >= self.nr_linfo:
++            return -1
++        return self.jited_linfo[self.pos] - self.bpf_func
++
++    def advance(self):
++        self.pos += 1
++
++    def get_fileno(self):
++        file_name_off = int(self.linfo[self.pos]["file_name_off"])
++        fileno = self.filenos.get(file_name_off)
++        if fileno is not None:
++            return fileno, None
++        file_name = btf_str_by_offset(self.btf, file_name_off)
++        fileno = len(self.filenos) + 1
++        self.filenos[file_name_off] = fileno
++        return fileno, file_name
++
++    def get_line_col(self):
++        line_col = int(self.linfo[self.pos]["line_col"])
++        return bpf_line_info_line_num(line_col), \
++               bpf_line_info_line_col(line_col)
++
++
++def generate_debug_obj(ksym, prog):
++    name = get_ksym_name(ksym)
++    # Avoid read_memory(); it throws bogus gdb.MemoryError in some contexts.
++    start = ksym["start"]
++    code = start.cast(gdb.lookup_type("unsigned char")
++                      .array(int(ksym["end"]) - int(start))
++                      .pointer()).dereference().bytes
++    linfo_iter = LInfoIter(prog)
++
++    result = tempfile.NamedTemporaryFile(suffix=".o", mode="wb")
++    try:
++        with tempfile.NamedTemporaryFile(suffix=".s", mode="w") as src:
++            # ".loc" does not apply to ".byte"s, only to ".insn"s, but since
++            # this needs to work for all architectures, the latter are not an
++            # option. Ask the assembler to apply ".loc"s to labels as well,
++            # and generate dummy labels after each ".loc".
++            src.write(".loc_mark_labels 1\n")
++
++            src.write(".globl {}\n".format(name))
++            src.write(".type {},@function\n".format(name))
++            src.write("{}:\n".format(name))
++            for code_off, code_byte in enumerate(code):
++                if linfo_iter.get_code_off() == code_off:
++                    fileno, file_name = linfo_iter.get_fileno()
++                    if file_name is not None:
++                        src.write(".file {} {}\n".format(
++                            fileno, json.dumps(file_name)))
++                    line, col = linfo_iter.get_line_col()
++                    src.write(".loc {} {} {}\n".format(fileno, line, col))
++                    src.write("0:\n")
++                    linfo_iter.advance()
++                src.write(".byte {}\n".format(code_byte))
++            src.write(".size {},{}\n".format(name, len(code)))
++            src.flush()
++
++            try:
++                subprocess.check_call(["as", "-c", src.name, "-o", result.name])
++            except FileNotFoundError:
++                # "as" is not installed.
++                result.close()
++                return None
++        return result
++    except:
++        result.close()
++        raise
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-symbols-make-bpf-debug-info-available-to-gdb
++++ a/scripts/gdb/linux/constants.py.in
+@@ -170,3 +170,6 @@ LX_CONFIG(CONFIG_PAGE_OWNER)
+ LX_CONFIG(CONFIG_SLUB_DEBUG)
+ LX_CONFIG(CONFIG_SLAB_FREELIST_HARDENED)
+ LX_CONFIG(CONFIG_MMU)
++LX_CONFIG(CONFIG_BPF)
++LX_CONFIG(CONFIG_BPF_JIT)
++LX_CONFIG(CONFIG_BPF_SYSCALL)
+--- a/scripts/gdb/linux/symbols.py~scripts-gdb-symbols-make-bpf-debug-info-available-to-gdb
++++ a/scripts/gdb/linux/symbols.py
+@@ -11,13 +11,14 @@
+ # This work is licensed under the terms of the GNU GPL version 2.
+ #
  
- $lx_radix_tree_lookup(root_node [, index]): Return the node at the given index.
- If index is omitted, the root node is dereference and returned."""
++import atexit
+ import gdb
+ import os
+ import re
+ import struct
+ 
+ from itertools import count
+-from linux import modules, utils, constants
++from linux import bpf, constants, modules, utils
+ 
+ 
+ if hasattr(gdb, 'Breakpoint'):
+@@ -114,17 +115,27 @@ class LxSymbols(gdb.Command):
+ The kernel (vmlinux) is taken from the current working directly. Modules (.ko)
+ are scanned recursively, starting in the same directory. Optionally, the module
+ search path can be extended by a space separated list of paths passed to the
+-lx-symbols command."""
++lx-symbols command.
++
++When the -bpf flag is specified, symbols from the currently loaded BPF programs
++are loaded as well."""
+ 
+     module_paths = []
+     module_files = []
+     module_files_updated = False
+     loaded_modules = []
+     breakpoint = None
++    bpf_prog_monitor = None
++    bpf_ksym_monitor = None
++    bpf_progs = {}
++    # The remove-symbol-file command, even when invoked with -a, requires the
++    # respective object file to exist, so keep them around.
++    bpf_debug_objs = {}
  
      def __init__(self):
--        super(LxRadixTree, self).__init__("lx_radix_tree_lookup")
-+        super(LxRadixTreeLookup, self).__init__("lx_radix_tree_lookup")
+         super(LxSymbols, self).__init__("lx-symbols", gdb.COMMAND_FILES,
+                                         gdb.COMPLETE_FILENAME)
++        atexit.register(self.cleanup_bpf)
  
-     def invoke(self, root, index=0):
-         result = lookup(root, index)
-@@ -87,4 +196,20 @@ If index is omitted, the root node is de
+     def _update_module_files(self):
+         self.module_files = []
+@@ -197,6 +208,51 @@ lx-symbols command."""
+         else:
+             gdb.write("no module object found for '{0}'\n".format(module_name))
  
-         return result
++    def add_bpf_prog(self, prog):
++        if prog["jited"]:
++            self.bpf_progs[int(prog["bpf_func"])] = prog
++
++    def remove_bpf_prog(self, prog):
++        self.bpf_progs.pop(int(prog["bpf_func"]), None)
++
++    def add_bpf_ksym(self, ksym):
++        addr = int(ksym["start"])
++        name = bpf.get_ksym_name(ksym)
++        with utils.pagination_off():
++            gdb.write("loading @{addr}: {name}\n".format(
++                addr=hex(addr), name=name))
++            debug_obj = bpf.generate_debug_obj(ksym, self.bpf_progs.get(addr))
++            if debug_obj is None:
++                return
++            try:
++                cmdline = "add-symbol-file {obj} {addr}".format(
++                    obj=debug_obj.name, addr=hex(addr))
++                gdb.execute(cmdline, to_string=True)
++            except:
++                debug_obj.close()
++                raise
++            self.bpf_debug_objs[addr] = debug_obj
++
++    def remove_bpf_ksym(self, ksym):
++        addr = int(ksym["start"])
++        debug_obj = self.bpf_debug_objs.pop(addr, None)
++        if debug_obj is None:
++            return
++        try:
++            name = bpf.get_ksym_name(ksym)
++            gdb.write("unloading @{addr}: {name}\n".format(
++                addr=hex(addr), name=name))
++            cmdline = "remove-symbol-file {path}".format(path=debug_obj.name)
++            gdb.execute(cmdline, to_string=True)
++        finally:
++            debug_obj.close()
++
++    def cleanup_bpf(self):
++        self.bpf_progs = {}
++        while len(self.bpf_debug_objs) > 0:
++            self.bpf_debug_objs.popitem()[1].close()
++
++
+     def load_all_symbols(self):
+         gdb.write("loading vmlinux\n")
  
-+class LxRadixTree(gdb.Command):
-+    """Show all values stored in a RadixTree."""
+@@ -224,34 +280,59 @@ lx-symbols command."""
+         else:
+             [self.load_module_symbols(module) for module in module_list]
+ 
++        self.cleanup_bpf()
++        if self.bpf_prog_monitor is not None:
++            self.bpf_prog_monitor.notify_initial()
++        if self.bpf_ksym_monitor is not None:
++            self.bpf_ksym_monitor.notify_initial()
 +
-+    def __init__(self):
-+        super(LxRadixTree, self).__init__("lx-radix-tree", gdb.COMMAND_DATA,
-+                                          gdb.COMPLETE_NONE)
+         for saved_state in saved_states:
+             saved_state['breakpoint'].enabled = saved_state['enabled']
+ 
+     def invoke(self, arg, from_tty):
+         skip_decompressor()
+ 
+-        self.module_paths = [os.path.abspath(os.path.expanduser(p))
+-                             for p in arg.split()]
++        monitor_bpf = False
++        self.module_paths = []
++        for p in arg.split():
++            if p == "-bpf":
++                monitor_bpf = True
++            else:
++                p.append(os.path.abspath(os.path.expanduser(p)))
+         self.module_paths.append(os.getcwd())
+ 
++        if self.breakpoint is not None:
++            self.breakpoint.delete()
++            self.breakpoint = None
++        if self.bpf_prog_monitor is not None:
++            self.bpf_prog_monitor.delete()
++            self.bpf_prog_monitor = None
++        if self.bpf_ksym_monitor is not None:
++            self.bpf_ksym_monitor.delete()
++            self.bpf_ksym_monitor = None
 +
-+    def invoke(self, argument, from_tty):
-+        args = gdb.string_to_argv(argument)
-+        if len(args) != 1:
-+            raise gdb.GdbError("Usage: lx-radix-tree ROOT")
-+        root = gdb.parse_and_eval(args[0])
-+        for index, slot in for_each_slot(root):
-+            gdb.write("[{}] = {}\n".format(index, slot.dereference()))
+         # enforce update
+         self.module_files = []
+         self.module_files_updated = False
+ 
+         self.load_all_symbols()
+ 
+-        if not modules.has_modules():
++        if not hasattr(gdb, 'Breakpoint'):
++            gdb.write("Note: symbol update on module and BPF loading not "
++                      "supported with this gdb version\n")
+             return
+ 
+-        if hasattr(gdb, 'Breakpoint'):
+-            if self.breakpoint is not None:
+-                self.breakpoint.delete()
+-                self.breakpoint = None
++        if modules.has_modules():
+             self.breakpoint = LoadModuleBreakpoint(
+                 "kernel/module/main.c:do_init_module", self)
+-        else:
+-            gdb.write("Note: symbol update on module loading not supported "
+-                      "with this gdb version\n")
 +
- LxRadixTree()
-+LxRadixTreeLookup()
++        if monitor_bpf:
++            if constants.LX_CONFIG_BPF_SYSCALL:
++                self.bpf_prog_monitor = bpf.ProgMonitor(self.add_bpf_prog,
++                                                        self.remove_bpf_prog)
++            if constants.LX_CONFIG_BPF and constants.LX_CONFIG_BPF_JIT:
++                self.bpf_ksym_monitor = bpf.KsymMonitor(self.add_bpf_ksym,
++                                                        self.remove_bpf_ksym)
+ 
+ 
+ LxSymbols()
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
