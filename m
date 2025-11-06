@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 334F117A300
-	for <mm-commits@vger.kernel.org>; Thu,  6 Nov 2025 00:24:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DFEB7FBAC
+	for <mm-commits@vger.kernel.org>; Thu,  6 Nov 2025 00:33:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762388650; cv=none; b=k+QZmgfhe3d+trr8o47uEecqkUEK0LJEgyH2EYyg0dWc47DINkgphpYhjglaqSyx9YHxRUV+UAQ1R7pRTK8RfNgq12AA2IsCcPhrzbilnaydhRqVhZK4AeC6rq+4t1UBOdevtFvNfuYC0tN9d6KhzZ1iauNuUZje7oAy0oMw6+Q=
+	t=1762389229; cv=none; b=cMjycFVnk9FUKGJCW9uKCBnEl0f+fGv+dy+HczclLU25oAjAQHJXQAcaIykLsJanWiNU+lKC1rVpvi52MklwQwpYdWfIz/HO6JK7AEarcsPy7wHGcCiA7dBh002BsWAPYChJat0iDMq1UloJOak+WwSrpYBup3waVJ6UspbvhOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762388650; c=relaxed/simple;
-	bh=6Kd97k1pOLx34i3wZngaG+v2Wf3yipFi4lwwRdUKrww=;
-	h=Date:To:From:Subject:Message-Id; b=gDJ8Kgai4GSLIfsFELxCWelLCFiBrmBzILAHiGzFujp3ZWHmH5ugEkdx+RzyoDLnDQBvRgNoNtgOTE+q6A5l1LUianAB13zsJpYzoyxmQ3rXZPFmaznyArh6BF006iqHvTLoCsqYIHvTcadRnBZzea9beNEn5nmZ/eM55mOOpeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vgbCR5Pg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762389229; c=relaxed/simple;
+	bh=0POmBnuZFJkBKFgFY8j2m69SCu3gtwg4tgy8NOhRQ4g=;
+	h=Date:To:From:Subject:Message-Id; b=DRrd+/b98RiON6G4jNIl7NoMAyX4arlortNH4T5xOE1OGA9j9QdlhtHiO+EzxNe3XhK8Wgea9lOhgivgScCZuVm7BiVpHSRFcfweDdqLAuqEvvIz5YYftdlb5AbzcliF8nitwVSQXEhLb68nFPt5QRYTwuLje9H0dVb8Z6TSwgQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ODsx9SvE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vgbCR5Pg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D148EC4CEF5;
-	Thu,  6 Nov 2025 00:24:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ODsx9SvE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6CADC4CEF5;
+	Thu,  6 Nov 2025 00:33:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762388649;
-	bh=6Kd97k1pOLx34i3wZngaG+v2Wf3yipFi4lwwRdUKrww=;
+	s=korg; t=1762389228;
+	bh=0POmBnuZFJkBKFgFY8j2m69SCu3gtwg4tgy8NOhRQ4g=;
 	h=Date:To:From:Subject:From;
-	b=vgbCR5Pg23fB6Q8Rj9VQLi4XDPYyNQ+ZKGC/PODRd6+NyMk3Vt7FH+MPdbghbxrUV
-	 88p2cGvwNkXCjon8eyZb810g+j75BIlEH3w9EQ3exPvyv29zDY39OsiuLRZD7ObiOS
-	 yokgIZ4REbPOu9q/hd8cfHg41Dib8bFhRFIVtpyc=
-Date: Wed, 05 Nov 2025 16:24:09 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yi.zhang@huawei.com,yangerkun@huawei.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,jack@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,libaokun1@huawei.com,akpm@linux-foundation.org
+	b=ODsx9SvE/joht00Dhde0wgsuuYoj4fKuC0m6lg3zRTJpUb5FWIP9pWndjkQyv7u7b
+	 zBz370xLk1tTlbvhQf1OINwmfAc6yltMnLqRNsvkZCQn0Xafn+cXj1Kkscs5qvqNhO
+	 n2MiQg1GLg+ufOE4mc7fIWc3uhrB25dpFTH1i4l4=
+Date: Wed, 05 Nov 2025 16:33:47 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,kent.overstreet@linux.dev,zengchi@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-dont-warn-about-large-allocations-with-__gfp_nofail.patch added to mm-unstable branch
-Message-Id: <20251106002409.D148EC4CEF5@smtp.kernel.org>
+Subject: + alloc_tag-use-%pe-format-specifier.patch added to mm-new branch
+Message-Id: <20251106003347.D6CADC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: don't warn about large allocations with __GFP_NOFAIL
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-dont-warn-about-large-allocations-with-__gfp_nofail.patch
+     Subject: lib/alloc_tag: use %pe format specifier
+has been added to the -mm mm-new branch.  Its filename is
+     alloc_tag-use-%pe-format-specifier.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-dont-warn-about-large-allocations-with-__gfp_nofail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-use-%pe-format-specifier.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,73 +64,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baokun Li <libaokun1@huawei.com>
-Subject: mm/page_alloc: don't warn about large allocations with __GFP_NOFAIL
-Date: Wed, 5 Nov 2025 16:56:52 +0800
+From: Zeng Chi <zengchi@kylinos.cn>
+Subject: lib/alloc_tag: use %pe format specifier
+Date: Wed, 5 Nov 2025 10:39:25 +0800
 
-Filesystems use __GFP_NOFAIL to allocate block-sized folios for metadata
-reads at critical points, since they cannot afford to go read-only, shut
-down, or enter an inconsistent state due to memory pressure.
+The %pe format specifier is designed to print error pointers.  It prints a
+symbolic error name (eg.  -EINVAL) and it makes the code simpler by
+omitting PTR_ERR();
 
-Currently, attempting to allocate page units greater than order-1 with the
-__GFP_NOFAIL flag triggers a WARN_ON() in __alloc_pages_slowpath(). 
-However, filesystems supporting large block sizes (blocksize > PAGE_SIZE)
-can easily require allocations larger than order-1.
+This patch fixes this cocci report:
+lib/alloc_tag.c:776:63-70: WARNING: Consider using %pe to print PTR_ERR()
 
-As Matthew Wilcox noted in [1], if we have a filesystem with 64KiB
-sectors, there will be many clean folios in the page cache that are 64KiB
-or larger.  He also explained in [2] why kvmalloc isn't a valid approach
-here.
-
-With gfp flags and order already included in the OOM report, both
-Vlastimil Babka and Michal Hocko suggested that we can take the risk of
-removing this warning first and then observe whether a large number of
-related OOM reports appear.
-
-If that happens, we can consider adding special handling in other places.
-
-Link: https://lkml.kernel.org/r/20251105085652.4081123-1-libaokun@huaweicloud.com
-Signed-off-by: Baokun Li <libaokun1@huawei.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Link: https://lore.kernel.org/all/aQPX1-XWQjKaMTZB@casper.infradead.org [1]
-Link: https://lore.kernel.org/all/aQTHMI3t5mNXp0M1@casper.infradead.org [2]
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Link: https://lore.kernel.org/all/188a95ba-6384-4319-bb74-c0d9ec6c4079@suse.cz
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Link: https://lore.kernel.org/all/aQotQBjnDDeL_wHx@tiehlicka
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: ErKun Yang <yangerkun@huawei.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lkml.kernel.org/r/20251105023925.1447482-1-zeng_chi911@163.com
+Signed-off-by: Zeng Chi <zengchi@kylinos.cn>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 -----
- 1 file changed, 5 deletions(-)
+ lib/alloc_tag.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-dont-warn-about-large-allocations-with-__gfp_nofail
-+++ a/mm/page_alloc.c
-@@ -4684,11 +4684,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+--- a/lib/alloc_tag.c~alloc_tag-use-%pe-format-specifier
++++ a/lib/alloc_tag.c
+@@ -845,7 +845,7 @@ static int __init alloc_tag_init(void)
  
- 	if (unlikely(nofail)) {
- 		/*
--		 * We most definitely don't want callers attempting to
--		 * allocate greater than order-1 page units with __GFP_NOFAIL.
--		 */
--		WARN_ON_ONCE(order > 1);
--		/*
- 		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
- 		 * otherwise, we may result in lockup.
- 		 */
+ 	alloc_tag_cttype = codetag_register_type(&desc);
+ 	if (IS_ERR(alloc_tag_cttype)) {
+-		pr_err("Allocation tags registration failed, errno = %ld\n", PTR_ERR(alloc_tag_cttype));
++		pr_err("Allocation tags registration failed, errno = %pe\n", alloc_tag_cttype);
+ 		free_mod_tags_mem();
+ 		shutdown_mem_profiling(true);
+ 		return PTR_ERR(alloc_tag_cttype);
 _
 
-Patches currently in -mm which might be from libaokun1@huawei.com are
+Patches currently in -mm which might be from zengchi@kylinos.cn are
 
-mm-page_alloc-dont-warn-about-large-allocations-with-__gfp_nofail.patch
+alloc_tag-use-%pe-format-specifier.patch
 
