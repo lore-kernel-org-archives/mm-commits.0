@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17993148850
-	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 22:56:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E175E21CFF7
+	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 23:59:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762556161; cv=none; b=XQlkDfeCG85wMIC8OTx9pVmp8UAmx0CgDix+zno8YHsZ2VxV6JAnPRQ2Xl4DgibIMnXFcPKSyh4jMfZj9q9Ks9a3gvqre7ww0moDcMngtAEMR4lu9oRUclWFCH/HkVfCc9cOfuHJH4e82mSYIAd5Xt64gErndu6Etuk0/a1FnkM=
+	t=1762559976; cv=none; b=t9P9DeZAkYK6Fe9xtDtLN5vMLDXHTWO3ufy/a2mHT3JnEvaS7l4MREPC1TVmIVxk9Iu+nUQfrznEkA7Nttm3jrhHIFRFI6SAe51YmaGJFQ8QUTZ2ounK+lGGuJXe1248bQXzc1UAPY5EINVIjbS+3RkXwJfghHK+4d/VHKpGJBk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762556161; c=relaxed/simple;
-	bh=/u6B0cM+HUj5NgbvYxznCBlWLxeXVG1Uuio3sCOoplM=;
-	h=Date:To:From:Subject:Message-Id; b=T0gzi0KMS/buzF675FrTZ9zVdBqlRVRn0Ts4o7PK2UsYlG76PSPAsHOdrM9uJNRUqpGkqiuijzvN4DZbQWkf/h6JkuUSjsIKnE/D0YDYFTuZdbM7v5yJpovQjRFU5xy83gPdl+84QLpPLkpKg+1vKnpcN5izxabexqg0FaDzIf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T2LPYhPf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762559976; c=relaxed/simple;
+	bh=WVpFd/fLRgNKYhSMAYoAEMIGmQQJoSOU71n873Ha/bY=;
+	h=Date:To:From:Subject:Message-Id; b=sDbsJIwRJZ213t6tbaV4Jio0Fb7IJqmJF9ECX+TZh6EBbQaDTVSDPF1CSXvHF1WCOOUME9Hgu9PvO45nWDV1CmrfM2T2Qi+jAWP2hKI+/YBpbGRQ/sED0VRWXl5opZDPe0WYcVpI9lmoiHPFzXC7q7/wpv9MmfH704x0JSg2i20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oVK7hJcx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T2LPYhPf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 756A7C4CEF7;
-	Fri,  7 Nov 2025 22:56:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oVK7hJcx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59561C4CEF7;
+	Fri,  7 Nov 2025 23:59:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762556160;
-	bh=/u6B0cM+HUj5NgbvYxznCBlWLxeXVG1Uuio3sCOoplM=;
+	s=korg; t=1762559975;
+	bh=WVpFd/fLRgNKYhSMAYoAEMIGmQQJoSOU71n873Ha/bY=;
 	h=Date:To:From:Subject:From;
-	b=T2LPYhPfmSebnkXUqhQnICJ7j9xUkN/tsoE5t+aAbl8U7VmAqg/Z3noks20TNf6KX
-	 z/AnoElC+rQi3BwoRiMw4fCkZnK7TQyr7tE4UiWB1zc9Uic1Inz2blllKbsSJNuJCe
-	 UNPbrpPEJlWe2j9SQVC9lDRpbRiy9kT3XJifijFE=
-Date: Fri, 07 Nov 2025 14:55:59 -0800
-To: mm-commits@vger.kernel.org,slava@dubeyko.com,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=oVK7hJcx40ZWJYHRfrB2hQJezUBgGZRP8C2JRdyUEYALUJKgstLpFtRAm5JKojY9h
+	 HpJBwSA2N4WkZKtQbFSrUs11YLvqdzZmV52+JgedVCpadP9lqXr/+4UnqxcqKYfv8D
+	 J9Tioi6RYmD5oA++bXWKFkJy1B0Lw1fr4BRNYB/c=
+Date: Fri, 07 Nov 2025 15:59:34 -0800
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,kevin.brodsky@arm.com,jack@suse.cz,arnd@arndb.de,chenhuacai@loongson.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-nilfs2-entry.patch added to mm-nonmm-unstable branch
-Message-Id: <20251107225600.756A7C4CEF7@smtp.kernel.org>
+Subject: + mm-refine-__pgdp4dpudpmdpte_alloc_one_-about-highmem.patch added to mm-new branch
+Message-Id: <20251107235935.59561C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: update nilfs2 entry
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     maintainers-update-nilfs2-entry.patch
+     Subject: mm: refine __{pgd,p4d,pud,pmd,pte}_alloc_one_*() about HIGHMEM
+has been added to the -mm mm-new branch.  Its filename is
+     mm-refine-__pgdp4dpudpmdpte_alloc_one_-about-highmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-nilfs2-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-refine-__pgdp4dpudpmdpte_alloc_one_-about-highmem.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,46 +64,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: MAINTAINERS: update nilfs2 entry
-Date: Sat, 8 Nov 2025 00:32:49 +0900
+From: Huacai Chen <chenhuacai@loongson.cn>
+Subject: mm: refine __{pgd,p4d,pud,pmd,pte}_alloc_one_*() about HIGHMEM
+Date: Fri, 7 Nov 2025 17:55:36 +0800
 
-Viacheslav has kindly offered to help with the maintenance of nilfs2 by
-upstreaming patches, similar to the HFS/HFS+ tree.  I've accepted his
-offer, and will therefore add him as a co-maintainer and switch the
-project's git tree for that role.
+__{pgd,p4d,pud,pmd,pte}_alloc_one_*() always allocate pages with GFP
+flag GFP_PGTABLE_KERNEL/GFP_PGTABLE_USER.
 
-At the same time, change the outdated status field to Maintained to
-reflect the current state.
+Neither of these include __GFP_HIGHMEM so the clearning of __GFP_HIGHMEM
+is unnecessary.
 
-Link: https://lkml.kernel.org/r/20251107153530.9023-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Acked-by: Viacheslav Dubeyko <slava@dubeyko.com>
+Link: https://lkml.kernel.org/r/20251107095536.3101371-1-chenhuacai@loongson.cn
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/asm-generic/pgalloc.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/MAINTAINERS~maintainers-update-nilfs2-entry
-+++ a/MAINTAINERS
-@@ -18275,10 +18275,11 @@ F:	net/sunrpc/
+--- a/include/asm-generic/pgalloc.h~mm-refine-__pgdp4dpudpmdpte_alloc_one_-about-highmem
++++ a/include/asm-generic/pgalloc.h
+@@ -18,8 +18,7 @@
+  */
+ static inline pte_t *__pte_alloc_one_kernel_noprof(struct mm_struct *mm)
+ {
+-	struct ptdesc *ptdesc = pagetable_alloc_noprof(GFP_PGTABLE_KERNEL &
+-			~__GFP_HIGHMEM, 0);
++	struct ptdesc *ptdesc = pagetable_alloc_noprof(GFP_PGTABLE_KERNEL, 0);
  
- NILFS2 FILESYSTEM
- M:	Ryusuke Konishi <konishi.ryusuke@gmail.com>
-+M:	Viacheslav Dubeyko <slava@dubeyko.com>
- L:	linux-nilfs@vger.kernel.org
--S:	Supported
-+S:	Maintained
- W:	https://nilfs.sourceforge.io/
--T:	git https://github.com/konis/nilfs2.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/vdubeyko/nilfs2.git
- F:	Documentation/filesystems/nilfs2.rst
- F:	fs/nilfs2/
- F:	include/trace/events/nilfs2.h
+ 	if (!ptdesc)
+ 		return NULL;
+@@ -178,7 +177,6 @@ static inline pud_t *__pud_alloc_one_nop
+ 
+ 	if (mm == &init_mm)
+ 		gfp = GFP_PGTABLE_KERNEL;
+-	gfp &= ~__GFP_HIGHMEM;
+ 
+ 	ptdesc = pagetable_alloc_noprof(gfp, 0);
+ 	if (!ptdesc)
+@@ -236,7 +234,6 @@ static inline p4d_t *__p4d_alloc_one_nop
+ 
+ 	if (mm == &init_mm)
+ 		gfp = GFP_PGTABLE_KERNEL;
+-	gfp &= ~__GFP_HIGHMEM;
+ 
+ 	ptdesc = pagetable_alloc_noprof(gfp, 0);
+ 	if (!ptdesc)
+@@ -284,7 +281,6 @@ static inline pgd_t *__pgd_alloc_noprof(
+ 
+ 	if (mm == &init_mm)
+ 		gfp = GFP_PGTABLE_KERNEL;
+-	gfp &= ~__GFP_HIGHMEM;
+ 
+ 	ptdesc = pagetable_alloc_noprof(gfp, order);
+ 	if (!ptdesc)
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from chenhuacai@loongson.cn are
 
-maintainers-update-nilfs2-entry.patch
+mm-remove-the-bounce-config-option.patch
+mm-refine-__pgdp4dpudpmdpte_alloc_one_-about-highmem.patch
 
