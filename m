@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3C6E2D46D9
-	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 19:07:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF2A1DB125
+	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 19:07:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762542455; cv=none; b=bJiUpqCucPvjoejSy64VTS1rhRjjJuIH2pdgxrXIqFx+5N/6vmxAlLH8nCpsF+Q4gwYo5+bFOCaSCFky+EzV5o0nURkXn/19MBuF9Re+q0+HnTHAyCRWhEHjuMuF2jLwpXIdVovr/VzSHxWapDtr3pGPYJylYufzUlqB8HEwGGw=
+	t=1762542458; cv=none; b=pLp/+3KrPf4HsnupIUC1OjEvKPg4ggdxpiWoSnQAkNr+rSFFkmbHRraKd9abkxlY/XpsM+wGSfgEIeENlmdYcz4L4yLWy9wEE+41XT3y1r3lL/X5ybMo1IHQEvrbFXW7dPqzyxUcyR2GEOuDgR+tY6TwUdU5bwbfw5zkDvkT+bw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762542455; c=relaxed/simple;
-	bh=i+97Zz+0wTlpv6VUaTdA1mtI66UmZZnBj2XgFJlOOrc=;
-	h=Date:To:From:Subject:Message-Id; b=mkudXYwmVnYlN2BiRxR7nIWNNJahfbo4vnsMwV1RngwOupSKgVPf09XWBY7vE6Vm2eCB+rReG83IxIARUEheuySn9waqAhkxKwScpaYK72mJsqsUBPePv+1oBbLW1K8dclt71eWZnP4XW1vkdcvvXfHIKi8ONGz70A5wG2/J39o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PVhdmivu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762542458; c=relaxed/simple;
+	bh=nGBKyWXTAB8hs/WMR8JBkGyyta/ktC48CqFSh/4CH2E=;
+	h=Date:To:From:Subject:Message-Id; b=LafeGhRJAukAYgKLV0gjyFzoNmeC9hk7sNebN0gHY5uA+9zrxEf3Ql2IzJKJzjAoGM0CXz/kEfg3WA1SB/g/isg5tyNIJNr/Wixz22N9Qn1ASRzxkOXfTQrtu6gvQROGjjL/4l4ef4KD3MM9ygBi7K4EankxHA+iWAerxTmxQBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2jc1vPkX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PVhdmivu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D758C4CEF7;
-	Fri,  7 Nov 2025 19:07:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2jc1vPkX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 729C3C113D0;
+	Fri,  7 Nov 2025 19:07:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762542454;
-	bh=i+97Zz+0wTlpv6VUaTdA1mtI66UmZZnBj2XgFJlOOrc=;
+	s=korg; t=1762542457;
+	bh=nGBKyWXTAB8hs/WMR8JBkGyyta/ktC48CqFSh/4CH2E=;
 	h=Date:To:From:Subject:From;
-	b=PVhdmivuwVyjqKuieL5zEljvifdmx4BiIlFU2yLjongaKfO/FCNV86P6mK29WVS/3
-	 HKZgvl096dIuR/rYcST7gmliKyLso7FxVXN1ENsKb1v8NZksNUjstqO5cyDe72t9xn
-	 Z29eZ5mvTbM9RgCKNQ09oCyg/H/EuBRoJcBdvBjo=
-Date: Fri, 07 Nov 2025 11:07:33 -0800
+	b=2jc1vPkXgs1FuO+SG969OOjsUlN1kpk7U5ygt6deVkQVEDZKd7iY9R4Xnk/Ss5b3G
+	 nA0M321i66wydmrYpKgUBRRhI+6TmPR2kcdNvXAzKW63HyQLptRlpown1hJVZ2+0yj
+	 2ol/KpQr8yDUhRRjnItvNzzrVECx52ebwprXnIVA=
+Date: Fri, 07 Nov 2025 11:07:36 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-implement-sticky-vma-flags.patch added to mm-new branch
-Message-Id: <20251107190734.7D758C4CEF7@smtp.kernel.org>
+Subject: + mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch added to mm-new branch
+Message-Id: <20251107190737.729C3C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: implement sticky VMA flags
+     Subject: mm: introduce copy-on-fork VMAs and make VM_MAYBE_GUARD one
 has been added to the -mm mm-new branch.  Its filename is
-     mm-implement-sticky-vma-flags.patch
+     mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-implement-sticky-vma-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,208 +65,140 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: implement sticky VMA flags
-Date: Fri, 7 Nov 2025 16:11:48 +0000
+Subject: mm: introduce copy-on-fork VMAs and make VM_MAYBE_GUARD one
+Date: Fri, 7 Nov 2025 16:11:49 +0000
 
-It is useful to be able to designate that certain flags are 'sticky', that
-is, if two VMAs are merged one with a flag of this nature and one without,
-the merged VMA sets this flag.
+Gather all the VMA flags whose presence implies that page tables must be
+copied on fork into a single bitmap - VM_COPY_ON_FORK - and use this
+rather than specifying individual flags in vma_needs_copy().
 
-As a result we ignore these flags for the purposes of determining VMA flag
-differences between VMAs being considered for merge.
+We also add VM_MAYBE_GUARD to this list, as it being set on a VMA implies
+that there may be metadata contained in the page tables (that is - guard
+markers) which would will not and cannot be propagated upon fork.
 
-This patch therefore updates the VMA merge logic to perform this action,
-with flags possessing this property being described in the VM_STICKY
-bitmap.
+This was already being done manually previously in vma_needs_copy(), but
+this makes it very explicit, alongside VM_PFNMAP, VM_MIXEDMAP and
+VM_UFFD_WP all of which imply the same.
 
-Those flags which ought to be ignored for the purposes of VMA merge are
-described in the VM_IGNORE_MERGE bitmap, which the VMA merge logic is also
-updated to use.
+Note that VM_STICKY flags ought generally to be marked VM_COPY_ON_FORK too
+- because equally a flag being VM_STICKY indicates that the VMA contains
+metadat that is not propagated by being faulted in - i.e.  that the VMA
+metadata does not fully describe the VMA alone, and thus we must propagate
+whatever metadata there is on a fork.
 
-As part of this change we place VM_SOFTDIRTY in VM_IGNORE_MERGE as it
-already had this behaviour, alongside VM_STICKY as sticky flags by
-implication must not disallow merge.
+However, for maximum flexibility, we do not make this necessarily the case
+here.
 
-Ultimately it seems that we should make VM_SOFTDIRTY a sticky flag in its
-own right, but this change is out of scope for this series.
-
-The only sticky flag designated as such is VM_MAYBE_GUARD, so as a result
-of this change, once the VMA flag is set upon guard region installation,
-VMAs with guard ranges will now not have their merge behaviour impacted as
-a result and can be freely merged with other VMAs without VM_MAYBE_GUARD
-set.
-
-We also update the VMA userland tests to account for the changes.
-
-Link: https://lkml.kernel.org/r/1ee529ff912f71b3460d0d21bc5b32ca89d63513.1762531708.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/ca74d10646662f53627a42d49fda3f39932e20d2.1762531708.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |   29 +++++++++++++++++++++++++++++
- mm/vma.c                         |   22 ++++++++++++----------
- tools/testing/vma/vma_internal.h |   29 +++++++++++++++++++++++++++++
- 3 files changed, 70 insertions(+), 10 deletions(-)
+ include/linux/mm.h               |   26 ++++++++++++++++++++++++++
+ mm/memory.c                      |   18 ++++--------------
+ tools/testing/vma/vma_internal.h |   26 ++++++++++++++++++++++++++
+ 3 files changed, 56 insertions(+), 14 deletions(-)
 
---- a/include/linux/mm.h~mm-implement-sticky-vma-flags
+--- a/include/linux/mm.h~mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one
 +++ a/include/linux/mm.h
-@@ -528,6 +528,35 @@ extern unsigned int kobjsize(const void
- #define VM_FLAGS_CLEAR	(ARCH_VM_PKEY_FLAGS | VM_ARCH_CLEAR)
+@@ -557,6 +557,32 @@ extern unsigned int kobjsize(const void
+ #define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
  
  /*
-+ * Flags which should be 'sticky' on merge - that is, flags which, when one VMA
-+ * possesses it but the other does not, the merged VMA should nonetheless have
-+ * applied to it:
++ * Flags which should result in page tables being copied on fork. These are
++ * flags which indicate that the VMA maps page tables which cannot be
++ * reconsistuted upon page fault, so necessitate page table copying upon
 + *
-+ * VM_MAYBE_GUARD - If a VMA may have guard regions in place it implies that
-+ *                  mapped page tables may contain metadata not described by the
-+ *                  VMA and thus any merged VMA may also contain this metadata,
-+ *                  and thus we must make this flag sticky.
++ * VM_PFNMAP / VM_MIXEDMAP - These contain kernel-mapped data which cannot be
++ *                           reasonably reconstructed on page fault.
++ *
++ *              VM_UFFD_WP - Encodes metadata about an installed uffd
++ *                           write protect handler, which cannot be
++ *                           reconstructed on page fault.
++ *
++ *                           We always copy pgtables when dst_vma has uffd-wp
++ *                           enabled even if it's file-backed
++ *                           (e.g. shmem). Because when uffd-wp is enabled,
++ *                           pgtable contains uffd-wp protection information,
++ *                           that's something we can't retrieve from page cache,
++ *                           and skip copying will lose those info.
++ *
++ *          VM_MAYBE_GUARD - Could contain page guard region markers which
++ *                           by design are a property of the page tables
++ *                           only and thus cannot be reconstructed on page
++ *                           fault.
 + */
-+#define VM_STICKY VM_MAYBE_GUARD
-+
-+/*
-+ * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
-+ * of these flags and the other not does not preclude a merge.
-+ *
-+ * VM_SOFTDIRTY - Should not prevent from VMA merging, if we match the flags but
-+ *                dirty bit -- the caller should mark merged VMA as dirty. If
-+ *                dirty bit won't be excluded from comparison, we increase
-+ *                pressure on the memory system forcing the kernel to generate
-+ *                new VMAs when old one could be extended instead.
-+ *
-+ *    VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
-+ *                which should propagate to all VMAs, but the other does not,
-+ *                the merge should still proceed with the merge logic applying
-+ *                sticky flags to the final VMA.
-+ */
-+#define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
++#define VM_COPY_ON_FORK (VM_PFNMAP | VM_MIXEDMAP | VM_UFFD_WP | VM_MAYBE_GUARD)
 +
 +/*
   * mapping from the currently active vm_flags protection bits (the
   * low four bits) to a page protection mask..
   */
---- a/mm/vma.c~mm-implement-sticky-vma-flags
-+++ a/mm/vma.c
-@@ -89,15 +89,7 @@ static inline bool is_mergeable_vma(stru
- 
- 	if (!mpol_equal(vmg->policy, vma_policy(vma)))
- 		return false;
--	/*
--	 * VM_SOFTDIRTY should not prevent from VMA merging, if we
--	 * match the flags but dirty bit -- the caller should mark
--	 * merged VMA as dirty. If dirty bit won't be excluded from
--	 * comparison, we increase pressure on the memory system forcing
--	 * the kernel to generate new VMAs when old one could be
--	 * extended instead.
--	 */
--	if ((vma->vm_flags ^ vmg->vm_flags) & ~VM_SOFTDIRTY)
-+	if ((vma->vm_flags ^ vmg->vm_flags) & ~VM_IGNORE_MERGE)
- 		return false;
- 	if (vma->vm_file != vmg->file)
- 		return false;
-@@ -808,6 +800,7 @@ static bool can_merge_remove_vma(struct
- static __must_check struct vm_area_struct *vma_merge_existing_range(
- 		struct vma_merge_struct *vmg)
+--- a/mm/memory.c~mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one
++++ a/mm/memory.c
+@@ -1465,25 +1465,15 @@ copy_p4d_range(struct vm_area_struct *ds
+ static bool
+ vma_needs_copy(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma)
  {
-+	vm_flags_t sticky_flags = vmg->vm_flags & VM_STICKY;
- 	struct vm_area_struct *middle = vmg->middle;
- 	struct vm_area_struct *prev = vmg->prev;
- 	struct vm_area_struct *next;
-@@ -900,11 +893,13 @@ static __must_check struct vm_area_struc
- 	if (merge_right) {
- 		vma_start_write(next);
- 		vmg->target = next;
-+		sticky_flags |= (next->vm_flags & VM_STICKY);
- 	}
++	if (src_vma->vm_flags & VM_COPY_ON_FORK)
++		return true;
+ 	/*
+-	 * Always copy pgtables when dst_vma has uffd-wp enabled even if it's
+-	 * file-backed (e.g. shmem). Because when uffd-wp is enabled, pgtable
+-	 * contains uffd-wp protection information, that's something we can't
+-	 * retrieve from page cache, and skip copying will lose those info.
++	 * The presence of an anon_vma indicates an anonymous VMA has page
++	 * tables which naturally cannot be reconstituted on page fault.
+ 	 */
+-	if (userfaultfd_wp(dst_vma))
+-		return true;
+-
+-	if (src_vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+-		return true;
+-
+ 	if (src_vma->anon_vma)
+ 		return true;
  
- 	if (merge_left) {
- 		vma_start_write(prev);
- 		vmg->target = prev;
-+		sticky_flags |= (prev->vm_flags & VM_STICKY);
- 	}
- 
- 	if (merge_both) {
-@@ -974,6 +969,7 @@ static __must_check struct vm_area_struc
- 	if (err || commit_merge(vmg))
- 		goto abort;
- 
-+	vm_flags_set(vmg->target, sticky_flags);
- 	khugepaged_enter_vma(vmg->target, vmg->vm_flags);
- 	vmg->state = VMA_MERGE_SUCCESS;
- 	return vmg->target;
-@@ -1124,6 +1120,10 @@ int vma_expand(struct vma_merge_struct *
- 	bool remove_next = false;
- 	struct vm_area_struct *target = vmg->target;
- 	struct vm_area_struct *next = vmg->next;
-+	vm_flags_t sticky_flags;
-+
-+	sticky_flags = vmg->vm_flags & VM_STICKY;
-+	sticky_flags |= target->vm_flags & VM_STICKY;
- 
- 	VM_WARN_ON_VMG(!target, vmg);
- 
-@@ -1133,6 +1133,7 @@ int vma_expand(struct vma_merge_struct *
- 	if (next && (target != next) && (vmg->end == next->vm_end)) {
- 		int ret;
- 
-+		sticky_flags |= next->vm_flags & VM_STICKY;
- 		remove_next = true;
- 		/* This should already have been checked by this point. */
- 		VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
-@@ -1159,6 +1160,7 @@ int vma_expand(struct vma_merge_struct *
- 	if (commit_merge(vmg))
- 		goto nomem;
- 
-+	vm_flags_set(target, sticky_flags);
- 	return 0;
- 
- nomem:
-@@ -1902,7 +1904,7 @@ static int anon_vma_compatible(struct vm
- 	return a->vm_end == b->vm_start &&
- 		mpol_equal(vma_policy(a), vma_policy(b)) &&
- 		a->vm_file == b->vm_file &&
--		!((a->vm_flags ^ b->vm_flags) & ~(VM_ACCESS_FLAGS | VM_SOFTDIRTY)) &&
-+		!((a->vm_flags ^ b->vm_flags) & ~(VM_ACCESS_FLAGS | VM_IGNORE_MERGE)) &&
- 		b->vm_pgoff == a->vm_pgoff + ((b->vm_start - a->vm_start) >> PAGE_SHIFT);
- }
- 
---- a/tools/testing/vma/vma_internal.h~mm-implement-sticky-vma-flags
+-	/* Guard regions have momdified page tables that require copying. */
+-	if (src_vma->vm_flags & VM_MAYBE_GUARD)
+-		return true;
+-
+ 	/*
+ 	 * Don't copy ptes where a page fault will fill them correctly.  Fork
+ 	 * becomes much lighter when there are big shared or private readonly
+--- a/tools/testing/vma/vma_internal.h~mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one
 +++ a/tools/testing/vma/vma_internal.h
-@@ -117,6 +117,35 @@ extern unsigned long dac_mmap_min_addr;
- #define VM_SEALED	VM_NONE
- #endif
+@@ -146,6 +146,32 @@ extern unsigned long dac_mmap_min_addr;
+  */
+ #define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
  
 +/*
-+ * Flags which should be 'sticky' on merge - that is, flags which, when one VMA
-+ * possesses it but the other does not, the merged VMA should nonetheless have
-+ * applied to it:
++ * Flags which should result in page tables being copied on fork. These are
++ * flags which indicate that the VMA maps page tables which cannot be
++ * reconsistuted upon page fault, so necessitate page table copying upon
 + *
-+ * VM_MAYBE_GUARD - If a VMA may have guard regions in place it implies that
-+ *                  mapped page tables may contain metadata not described by the
-+ *                  VMA and thus any merged VMA may also contain this metadata,
-+ *                  and thus we must make this flag sticky.
++ * VM_PFNMAP / VM_MIXEDMAP - These contain kernel-mapped data which cannot be
++ *                           reasonably reconstructed on page fault.
++ *
++ *              VM_UFFD_WP - Encodes metadata about an installed uffd
++ *                           write protect handler, which cannot be
++ *                           reconstructed on page fault.
++ *
++ *                           We always copy pgtables when dst_vma has uffd-wp
++ *                           enabled even if it's file-backed
++ *                           (e.g. shmem). Because when uffd-wp is enabled,
++ *                           pgtable contains uffd-wp protection information,
++ *                           that's something we can't retrieve from page cache,
++ *                           and skip copying will lose those info.
++ *
++ *          VM_MAYBE_GUARD - Could contain page guard region markers which
++ *                           by design are a property of the page tables
++ *                           only and thus cannot be reconstructed on page
++ *                           fault.
 + */
-+#define VM_STICKY VM_MAYBE_GUARD
-+
-+/*
-+ * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
-+ * of these flags and the other not does not preclude a merge.
-+ *
-+ * VM_SOFTDIRTY - Should not prevent from VMA merging, if we match the flags but
-+ *                dirty bit -- the caller should mark merged VMA as dirty. If
-+ *                dirty bit won't be excluded from comparison, we increase
-+ *                pressure on the memory system forcing the kernel to generate
-+ *                new VMAs when old one could be extended instead.
-+ *
-+ *    VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
-+ *                which should propagate to all VMAs, but the other does not,
-+ *                the merge should still proceed with the merge logic applying
-+ *                sticky flags to the final VMA.
-+ */
-+#define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
++#define VM_COPY_ON_FORK (VM_PFNMAP | VM_MIXEDMAP | VM_UFFD_WP | VM_MAYBE_GUARD)
 +
  #define FIRST_USER_ADDRESS	0UL
  #define USER_PGTABLES_CEILING	0UL
