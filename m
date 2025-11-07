@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF2A1DB125
-	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 19:07:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 288A32BFC9B
+	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 19:07:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762542458; cv=none; b=pLp/+3KrPf4HsnupIUC1OjEvKPg4ggdxpiWoSnQAkNr+rSFFkmbHRraKd9abkxlY/XpsM+wGSfgEIeENlmdYcz4L4yLWy9wEE+41XT3y1r3lL/X5ybMo1IHQEvrbFXW7dPqzyxUcyR2GEOuDgR+tY6TwUdU5bwbfw5zkDvkT+bw=
+	t=1762542461; cv=none; b=IWbBft36blH3FqsMrMAGNkjHyzLmjqhBV1nqNfCXuti+maA2Anz5vqWaPMxABWUlg6/bgG88hS0pgP+goZG4yHJuFabKCaRfA7IOj6b9EwPKNarVXpf5BeM6YeeqFkeG+cP175PzFxhY8yg8iiQMBxfDucAeBV7nKfLNejvDOHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762542458; c=relaxed/simple;
-	bh=nGBKyWXTAB8hs/WMR8JBkGyyta/ktC48CqFSh/4CH2E=;
-	h=Date:To:From:Subject:Message-Id; b=LafeGhRJAukAYgKLV0gjyFzoNmeC9hk7sNebN0gHY5uA+9zrxEf3Ql2IzJKJzjAoGM0CXz/kEfg3WA1SB/g/isg5tyNIJNr/Wixz22N9Qn1ASRzxkOXfTQrtu6gvQROGjjL/4l4ef4KD3MM9ygBi7K4EankxHA+iWAerxTmxQBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2jc1vPkX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762542461; c=relaxed/simple;
+	bh=iDSgHZcwefsUbqs+eIOZFwPsyzlfiv8Zcbs4i/6g/jk=;
+	h=Date:To:From:Subject:Message-Id; b=SOee4rG8yh7BbD9EBclhACwX/3u2lYvuay2N1xjCGVQtqSt97bf0WkHwhE4RpMz63ZhE4kpP5n6Qgw7fwX6g02djJ1zcBcHqDlDAgvy4/+2hCLSVrnuYtcrgCGS/pSTmiSz2s7zxDtXa2mgHv8RhMKKiigefLCxvT7PF66O12k0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hu/MMrG3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2jc1vPkX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 729C3C113D0;
-	Fri,  7 Nov 2025 19:07:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hu/MMrG3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A333FC19425;
+	Fri,  7 Nov 2025 19:07:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762542457;
-	bh=nGBKyWXTAB8hs/WMR8JBkGyyta/ktC48CqFSh/4CH2E=;
+	s=korg; t=1762542460;
+	bh=iDSgHZcwefsUbqs+eIOZFwPsyzlfiv8Zcbs4i/6g/jk=;
 	h=Date:To:From:Subject:From;
-	b=2jc1vPkXgs1FuO+SG969OOjsUlN1kpk7U5ygt6deVkQVEDZKd7iY9R4Xnk/Ss5b3G
-	 nA0M321i66wydmrYpKgUBRRhI+6TmPR2kcdNvXAzKW63HyQLptRlpown1hJVZ2+0yj
-	 2ol/KpQr8yDUhRRjnItvNzzrVECx52ebwprXnIVA=
-Date: Fri, 07 Nov 2025 11:07:36 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=hu/MMrG3Lix8KzKhiQbQho7mfDrlfsMhrMFEc3BVZAKGhCsqikfwg5jjGCUHADOxu
+	 sgaAF4jvZyHoGWyG5gU35F2y5zbplOA8fckYH+nuQl+M/x5YLG0YqfHxD4yzxFxcwa
+	 k75spKg/EaVYJON+/Zw0j5TUVvW5oBp4SG/NJH4I=
+Date: Fri, 07 Nov 2025 11:07:40 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch added to mm-new branch
-Message-Id: <20251107190737.729C3C113D0@smtp.kernel.org>
+Subject: + mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch added to mm-new branch
+Message-Id: <20251107190740.A333FC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce copy-on-fork VMAs and make VM_MAYBE_GUARD one
+     Subject: mm: set the VM_MAYBE_GUARD flag on guard region install
 has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
+     mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,144 +65,239 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: introduce copy-on-fork VMAs and make VM_MAYBE_GUARD one
-Date: Fri, 7 Nov 2025 16:11:49 +0000
+Subject: mm: set the VM_MAYBE_GUARD flag on guard region install
+Date: Fri, 7 Nov 2025 16:11:50 +0000
 
-Gather all the VMA flags whose presence implies that page tables must be
-copied on fork into a single bitmap - VM_COPY_ON_FORK - and use this
-rather than specifying individual flags in vma_needs_copy().
+Now we have established the VM_MAYBE_GUARD flag and added the capacity to
+set it atomically, do so upon MADV_GUARD_INSTALL.
 
-We also add VM_MAYBE_GUARD to this list, as it being set on a VMA implies
-that there may be metadata contained in the page tables (that is - guard
-markers) which would will not and cannot be propagated upon fork.
+The places where this flag is used currently and matter are:
 
-This was already being done manually previously in vma_needs_copy(), but
-this makes it very explicit, alongside VM_PFNMAP, VM_MIXEDMAP and
-VM_UFFD_WP all of which imply the same.
+* VMA merge - performed under mmap/VMA write lock, therefore excluding
+  racing writes.
 
-Note that VM_STICKY flags ought generally to be marked VM_COPY_ON_FORK too
-- because equally a flag being VM_STICKY indicates that the VMA contains
-metadat that is not propagated by being faulted in - i.e.  that the VMA
-metadata does not fully describe the VMA alone, and thus we must propagate
-whatever metadata there is on a fork.
+* /proc/$pid/smaps - can race the write, however this isn't meaningful
+  as the flag write is performed at the point of the guard region being
+  established, and thus an smaps reader can't reasonably expect to avoid
+  races.  Due to atomicity, a reader will observe either the flag being
+  set or not.  Therefore consistency will be maintained.
 
-However, for maximum flexibility, we do not make this necessarily the case
-here.
+In all other cases the flag being set is irrelevant and atomicity
+guarantees other flags will be read correctly.
 
-Link: https://lkml.kernel.org/r/ca74d10646662f53627a42d49fda3f39932e20d2.1762531708.git.lorenzo.stoakes@oracle.com
+Note that non-atomic updates of unrelated flags do not cause an issue with
+this flag being set atomically, as writes of other flags are performed
+under mmap/VMA write lock, and these atomic writes are performed under
+mmap/VMA read lock, which excludes the write, avoiding RMW races.
+
+Note that we do not encounter issues with KCSAN by adjusting this flag
+atomically, as we are only updating a single bit in the flag bitmap and
+therefore we do not need to annotate these changes.
+
+We intentionally set this flag in advance of actually updating the page
+tables, to ensure that any racing atomic read of this flag will only
+return false prior to page tables being updated, to allow for
+serialisation via page table locks.
+
+Note that we set vma->anon_vma for anonymous mappings.  This is because
+the expectation for anonymous mappings is that an anon_vma is established
+should they possess any page table mappings.  This is also consistent with
+what we were doing prior to this patch (unconditionally setting anon_vma
+on guard region installation).
+
+We also need to update retract_page_tables() to ensure that madvise(...,
+MADV_COLLAPSE) doesn't incorrectly collapse file-backed ranges contain
+guard regions.
+
+This was previously guarded by anon_vma being set to catch MAP_PRIVATE
+cases, but the introduction of VM_MAYBE_GUARD necessitates that we check
+this flag instead.
+
+We utilise vma_flag_test_atomic() to do so - we first perform an
+optimistic check, then after the PTE page table lock is held, we can check
+again safely, as upon guard marker install the flag is set atomically
+prior to the page table lock being taken to actually apply it.
+
+So if the initial check fails either:
+
+* Page table retraction acquires page table lock prior to VM_MAYBE_GUARD
+  being set - guard marker installation will be blocked until page table
+  retraction is complete.
+
+OR:
+
+* Guard marker installation acquires page table lock after setting
+  VM_MAYBE_GUARD, which raced and didn't pick this up in the initial
+  optimistic check, blocking page table retraction until the guard regions
+  are installed - the second VM_MAYBE_GUARD check will prevent page table
+  retraction.
+
+Either way we're safe.
+
+We refactor the retraction checks into a single
+file_backed_vma_is_retractable(), there doesn't seem to be any reason that
+the checks were separated as before.
+
+Note that VM_MAYBE_GUARD being set atomically remains correct as
+vma_needs_copy() is invoked with the mmap and VMA write locks held,
+excluding any race with madvise_guard_install().
+
+Link: https://lkml.kernel.org/r/99ce6131e27592c92b43ac866da48b4c2a568298.1762531708.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |   26 ++++++++++++++++++++++++++
- mm/memory.c                      |   18 ++++--------------
- tools/testing/vma/vma_internal.h |   26 ++++++++++++++++++++++++++
- 3 files changed, 56 insertions(+), 14 deletions(-)
+ include/linux/mm.h |    2 +
+ mm/khugepaged.c    |   72 ++++++++++++++++++++++++++++---------------
+ mm/madvise.c       |   22 ++++++++-----
+ 3 files changed, 64 insertions(+), 32 deletions(-)
 
---- a/include/linux/mm.h~mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one
+--- a/include/linux/mm.h~mm-set-the-vm_maybe_guard-flag-on-guard-region-install
 +++ a/include/linux/mm.h
-@@ -557,6 +557,32 @@ extern unsigned int kobjsize(const void
- #define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
- 
- /*
-+ * Flags which should result in page tables being copied on fork. These are
-+ * flags which indicate that the VMA maps page tables which cannot be
-+ * reconsistuted upon page fault, so necessitate page table copying upon
-+ *
-+ * VM_PFNMAP / VM_MIXEDMAP - These contain kernel-mapped data which cannot be
-+ *                           reasonably reconstructed on page fault.
-+ *
-+ *              VM_UFFD_WP - Encodes metadata about an installed uffd
-+ *                           write protect handler, which cannot be
-+ *                           reconstructed on page fault.
-+ *
-+ *                           We always copy pgtables when dst_vma has uffd-wp
-+ *                           enabled even if it's file-backed
-+ *                           (e.g. shmem). Because when uffd-wp is enabled,
-+ *                           pgtable contains uffd-wp protection information,
-+ *                           that's something we can't retrieve from page cache,
-+ *                           and skip copying will lose those info.
-+ *
-+ *          VM_MAYBE_GUARD - Could contain page guard region markers which
-+ *                           by design are a property of the page tables
-+ *                           only and thus cannot be reconstructed on page
-+ *                           fault.
-+ */
-+#define VM_COPY_ON_FORK (VM_PFNMAP | VM_MIXEDMAP | VM_UFFD_WP | VM_MAYBE_GUARD)
-+
-+/*
-  * mapping from the currently active vm_flags protection bits (the
-  * low four bits) to a page protection mask..
-  */
---- a/mm/memory.c~mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one
-+++ a/mm/memory.c
-@@ -1465,25 +1465,15 @@ copy_p4d_range(struct vm_area_struct *ds
- static bool
- vma_needs_copy(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma)
+@@ -955,6 +955,8 @@ static inline bool vma_flag_test_atomic(
  {
-+	if (src_vma->vm_flags & VM_COPY_ON_FORK)
-+		return true;
- 	/*
--	 * Always copy pgtables when dst_vma has uffd-wp enabled even if it's
--	 * file-backed (e.g. shmem). Because when uffd-wp is enabled, pgtable
--	 * contains uffd-wp protection information, that's something we can't
--	 * retrieve from page cache, and skip copying will lose those info.
-+	 * The presence of an anon_vma indicates an anonymous VMA has page
-+	 * tables which naturally cannot be reconstituted on page fault.
- 	 */
--	if (userfaultfd_wp(dst_vma))
--		return true;
--
--	if (src_vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
--		return true;
--
- 	if (src_vma->anon_vma)
- 		return true;
- 
--	/* Guard regions have momdified page tables that require copying. */
--	if (src_vma->vm_flags & VM_MAYBE_GUARD)
--		return true;
--
- 	/*
- 	 * Don't copy ptes where a page fault will fill them correctly.  Fork
- 	 * becomes much lighter when there are big shared or private readonly
---- a/tools/testing/vma/vma_internal.h~mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one
-+++ a/tools/testing/vma/vma_internal.h
-@@ -146,6 +146,32 @@ extern unsigned long dac_mmap_min_addr;
-  */
- #define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
- 
-+/*
-+ * Flags which should result in page tables being copied on fork. These are
-+ * flags which indicate that the VMA maps page tables which cannot be
-+ * reconsistuted upon page fault, so necessitate page table copying upon
-+ *
-+ * VM_PFNMAP / VM_MIXEDMAP - These contain kernel-mapped data which cannot be
-+ *                           reasonably reconstructed on page fault.
-+ *
-+ *              VM_UFFD_WP - Encodes metadata about an installed uffd
-+ *                           write protect handler, which cannot be
-+ *                           reconstructed on page fault.
-+ *
-+ *                           We always copy pgtables when dst_vma has uffd-wp
-+ *                           enabled even if it's file-backed
-+ *                           (e.g. shmem). Because when uffd-wp is enabled,
-+ *                           pgtable contains uffd-wp protection information,
-+ *                           that's something we can't retrieve from page cache,
-+ *                           and skip copying will lose those info.
-+ *
-+ *          VM_MAYBE_GUARD - Could contain page guard region markers which
-+ *                           by design are a property of the page tables
-+ *                           only and thus cannot be reconstructed on page
-+ *                           fault.
-+ */
-+#define VM_COPY_ON_FORK (VM_PFNMAP | VM_MIXEDMAP | VM_UFFD_WP | VM_MAYBE_GUARD)
+ 	if (__vma_flag_atomic_valid(vma, bit))
+ 		return test_bit(bit, &vma->__vm_flags);
 +
- #define FIRST_USER_ADDRESS	0UL
- #define USER_PGTABLES_CEILING	0UL
++	return false;
+ }
  
+ static inline void vma_set_anonymous(struct vm_area_struct *vma)
+--- a/mm/khugepaged.c~mm-set-the-vm_maybe_guard-flag-on-guard-region-install
++++ a/mm/khugepaged.c
+@@ -1711,6 +1711,43 @@ drop_folio:
+ 	return result;
+ }
+ 
++/* Can we retract page tables for this file-backed VMA? */
++static bool file_backed_vma_is_retractable(struct vm_area_struct *vma)
++{
++	/*
++	 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
++	 * got written to. These VMAs are likely not worth removing
++	 * page tables from, as PMD-mapping is likely to be split later.
++	 */
++	if (READ_ONCE(vma->anon_vma))
++		return false;
++
++	/*
++	 * When a vma is registered with uffd-wp, we cannot recycle
++	 * the page table because there may be pte markers installed.
++	 * Other vmas can still have the same file mapped hugely, but
++	 * skip this one: it will always be mapped in small page size
++	 * for uffd-wp registered ranges.
++	 */
++	if (userfaultfd_wp(vma))
++		return false;
++
++	/*
++	 * If the VMA contains guard regions then we can't collapse it.
++	 *
++	 * This is set atomically on guard marker installation under mmap/VMA
++	 * read lock, and here we may not hold any VMA or mmap lock at all.
++	 *
++	 * This is therefore serialised on the PTE page table lock, which is
++	 * obtained on guard region installation after the flag is set, so this
++	 * check being performed under this lock excludes races.
++	 */
++	if (vma_flag_test_atomic(vma, VM_MAYBE_GUARD_BIT))
++		return false;
++
++	return true;
++}
++
+ static void retract_page_tables(struct address_space *mapping, pgoff_t pgoff)
+ {
+ 	struct vm_area_struct *vma;
+@@ -1725,14 +1762,6 @@ static void retract_page_tables(struct a
+ 		spinlock_t *ptl;
+ 		bool success = false;
+ 
+-		/*
+-		 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
+-		 * got written to. These VMAs are likely not worth removing
+-		 * page tables from, as PMD-mapping is likely to be split later.
+-		 */
+-		if (READ_ONCE(vma->anon_vma))
+-			continue;
+-
+ 		addr = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 		if (addr & ~HPAGE_PMD_MASK ||
+ 		    vma->vm_end < addr + HPAGE_PMD_SIZE)
+@@ -1744,14 +1773,8 @@ static void retract_page_tables(struct a
+ 
+ 		if (hpage_collapse_test_exit(mm))
+ 			continue;
+-		/*
+-		 * When a vma is registered with uffd-wp, we cannot recycle
+-		 * the page table because there may be pte markers installed.
+-		 * Other vmas can still have the same file mapped hugely, but
+-		 * skip this one: it will always be mapped in small page size
+-		 * for uffd-wp registered ranges.
+-		 */
+-		if (userfaultfd_wp(vma))
++
++		if (!file_backed_vma_is_retractable(vma))
+ 			continue;
+ 
+ 		/* PTEs were notified when unmapped; but now for the PMD? */
+@@ -1778,15 +1801,16 @@ static void retract_page_tables(struct a
+ 			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+ 
+ 		/*
+-		 * Huge page lock is still held, so normally the page table
+-		 * must remain empty; and we have already skipped anon_vma
+-		 * and userfaultfd_wp() vmas.  But since the mmap_lock is not
+-		 * held, it is still possible for a racing userfaultfd_ioctl()
+-		 * to have inserted ptes or markers.  Now that we hold ptlock,
+-		 * repeating the anon_vma check protects from one category,
+-		 * and repeating the userfaultfd_wp() check from another.
++		 * Huge page lock is still held, so normally the page table must
++		 * remain empty; and we have already skipped anon_vma and
++		 * userfaultfd_wp() vmas.  But since the mmap_lock is not held,
++		 * it is still possible for a racing userfaultfd_ioctl() or
++		 * madvise() to have inserted ptes or markers.  Now that we hold
++		 * ptlock, repeating the anon_vma check protects from one
++		 * category, and repeating the userfaultfd_wp() check from
++		 * another.
+ 		 */
+-		if (likely(!vma->anon_vma && !userfaultfd_wp(vma))) {
++		if (likely(file_backed_vma_is_retractable(vma))) {
+ 			pgt_pmd = pmdp_collapse_flush(vma, addr, pmd);
+ 			pmdp_get_lockless_sync();
+ 			success = true;
+--- a/mm/madvise.c~mm-set-the-vm_maybe_guard-flag-on-guard-region-install
++++ a/mm/madvise.c
+@@ -1139,15 +1139,21 @@ static long madvise_guard_install(struct
+ 		return -EINVAL;
+ 
+ 	/*
+-	 * If we install guard markers, then the range is no longer
+-	 * empty from a page table perspective and therefore it's
+-	 * appropriate to have an anon_vma.
+-	 *
+-	 * This ensures that on fork, we copy page tables correctly.
++	 * Set atomically under read lock. All pertinent readers will need to
++	 * acquire an mmap/VMA write lock to read it. All remaining readers may
++	 * or may not see the flag set, but we don't care.
+ 	 */
+-	err = anon_vma_prepare(vma);
+-	if (err)
+-		return err;
++	vma_flag_set_atomic(vma, VM_MAYBE_GUARD_BIT);
++
++	/*
++	 * If anonymous and we are establishing page tables the VMA ought to
++	 * have an anon_vma associated with it.
++	 */
++	if (vma_is_anonymous(vma)) {
++		err = anon_vma_prepare(vma);
++		if (err)
++			return err;
++	}
+ 
+ 	/*
+ 	 * Optimistically try to install the guard marker pages first. If any
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
