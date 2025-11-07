@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 509E12C15BB
-	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 19:07:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E3202C15BB
+	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 19:07:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762542466; cv=none; b=Pha89Ac6x7hlSTHo2RWTNWLp9Fj+uhL4jiBD9cp25AsLyfatlMmOfTRJJ4OIMchgiP6TJQqBWbfCZP+bhSWOLyzlFx2mtqYvp96UqUFUq3N7fnQ9dMGQFsdeVeuXvjlCC5PDOtFOlmBDssgNnZJE/hDggz/qbkAkQIIdXTY41zI=
+	t=1762542468; cv=none; b=Dseh3WIXp6LvYTdg4WSApVQ+tLwr49DWDxaR8uprD7zeb9bQxV6xXsYJBfP6VN2qlr9Nb0zExHIakgrft6GdnnqNnwrZoq3QNRSsVijL0X8N7AzvFDODAhb7xTL2S9OLtkdEoIr5aVde7I9KAg6sOxokfdrAkj0HdN9C6/MRE4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762542466; c=relaxed/simple;
-	bh=E/CRRe1gF0P7hujnjEFQP2TB/V8exFiTxnpgz2xjbQg=;
-	h=Date:To:From:Subject:Message-Id; b=VxfIojP9Q2YU7+yEUkypEKWAFIchhyQ68Z4rHsdtbl0rKiblVxJP65zPrQDFDagy5v//T88cO/6TMr86xCJ+KZ0UxAo2c0Qw/L7175vEfMPusKsBVKEWKpok9LKuBIIrxpEnDfqsXekFThxdZkvFp+8TynHCqmxZo6QsEw4k6J4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yrRIBGTR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762542468; c=relaxed/simple;
+	bh=0Y6fjh6INiQROfE9PuWGiXia7NBaoYjfaHmamtKP280=;
+	h=Date:To:From:Subject:Message-Id; b=OREr0lwQxmo+Vp1nRfX3k/n1sGSMhaZoq9MbE1qDRX/aaqLtSVjoj18x0v//FQinhdJcqvXF3AP3zHEWDMbVttd1YS9L88md9/icjjy5tUp5ZDJZXyPIQcCkxM9THjNpZT35ZzlF91rTtyb8OPTP4K6Hw8Yb/CF9Ttxj9pyuduY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QXL8sjzB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yrRIBGTR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9E5AC16AAE;
-	Fri,  7 Nov 2025 19:07:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QXL8sjzB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E72D5C4CEF7;
+	Fri,  7 Nov 2025 19:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762542465;
-	bh=E/CRRe1gF0P7hujnjEFQP2TB/V8exFiTxnpgz2xjbQg=;
+	s=korg; t=1762542468;
+	bh=0Y6fjh6INiQROfE9PuWGiXia7NBaoYjfaHmamtKP280=;
 	h=Date:To:From:Subject:From;
-	b=yrRIBGTRnU7WfRmVxSNfv79uhwU6GrZE/hBzRStyaemEC5bLzPgBA1Wd2Ma/NSNI6
-	 bDvE8y0as/jVvonk+Q2+qZ5AWwGlVCK/68/hEYWimcO7TtWUhMobcQrqFpPg3dli6v
-	 0vYX+eaUbvMYzURXOW+sbQWpX0T6AGXwv4uKUdvw=
-Date: Fri, 07 Nov 2025 11:07:45 -0800
+	b=QXL8sjzB2Twsd6leAN5paq89kws25hhHzgMug6lBlCuqtZASMIHzTQJ/5UTfG6e2a
+	 LJc7vdX7HonVmsvFxq3BqfeW7ifRoso/vngTBZaHY7KMixaOU1ZkwafvFomNnjBinD
+	 oUrL3waImxwNFGqYFBMCejer5Cno+iGe3L7hfvZM=
+Date: Fri, 07 Nov 2025 11:07:47 -0800
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-mm-add-madv_collapse-test-case.patch added to mm-new branch
-Message-Id: <20251107190745.C9E5AC16AAE@smtp.kernel.org>
+Subject: + tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch added to mm-new branch
+Message-Id: <20251107190747.E72D5C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/testing/selftests/mm: add MADV_COLLAPSE test case
+     Subject: tools/testing/selftests/mm: add smaps visibility guard region test
 has been added to the -mm mm-new branch.  Its filename is
-     tools-testing-selftests-mm-add-madv_collapse-test-case.patch
+     tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-mm-add-madv_collapse-test-case.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,103 +65,192 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests/mm: add MADV_COLLAPSE test case
-Date: Fri, 7 Nov 2025 16:11:52 +0000
+Subject: tools/testing/selftests/mm: add smaps visibility guard region test
+Date: Fri, 7 Nov 2025 16:11:53 +0000
 
-To ensure the retract_page_tables() logic functions correctly with the
-introduction of VM_MAYBE_GUARD, add a test to assert that madvise collapse
-fails when guard regions are established in the collapsed range in all
-cases.
+Assert that we observe guard regions appearing in /proc/$pid/smaps as
+expected, and when split/merge is performed too (with expected sticky
+behaviour).
 
-Unfortunately we cannot differentiate between e.g. 
-CONFIG_READ_ONLY_THP_FOR_FS not being set vs.  a file-backed VMA having
-collapse correctly disallowed, so in each instance we will get an assert
-pass here.
+Also add handling for file systems which don't sanely handle mmap() VMA
+merging so we don't incorrectly encounter a test failure in this
+situation.
 
-We add an additional check to see whether guard regions are preserved
-across collapse in case of a bug causing the collapse to succeed, which
-will give us more data to debug with should this occur in future.
-
-Link: https://lkml.kernel.org/r/41d851aea2975ab54ddaafa3a132e2fd6f8c5582.1762531708.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/18153d558f422bd982e2e66e723b200f62ffc849.1762531708.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/guard-regions.c |   65 +++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ tools/testing/selftests/mm/guard-regions.c |  120 +++++++++++++++++++
+ tools/testing/selftests/mm/vm_util.c       |    5 
+ tools/testing/selftests/mm/vm_util.h       |    1 
+ 3 files changed, 126 insertions(+)
 
---- a/tools/testing/selftests/mm/guard-regions.c~tools-testing-selftests-mm-add-madv_collapse-test-case
+--- a/tools/testing/selftests/mm/guard-regions.c~tools-testing-selftests-mm-add-smaps-visibility-guard-region-test
 +++ a/tools/testing/selftests/mm/guard-regions.c
-@@ -2138,4 +2138,69 @@ TEST_F(guard_regions, pagemap_scan)
- 	ASSERT_EQ(munmap(ptr, 10 * page_size), 0);
+@@ -94,6 +94,7 @@ static void *mmap_(FIXTURE_DATA(guard_re
+ 	case ANON_BACKED:
+ 		flags |= MAP_PRIVATE | MAP_ANON;
+ 		fd = -1;
++		offset = 0;
+ 		break;
+ 	case SHMEM_BACKED:
+ 	case LOCAL_FILE_BACKED:
+@@ -260,6 +261,54 @@ static bool is_buf_eq(char *buf, size_t
+ 	return true;
  }
  
-+TEST_F(guard_regions, collapse)
++/*
++ * Some file systems have issues with merging due to changing merge-sensitive
++ * parameters in the .mmap callback, and prior to .mmap_prepare being
++ * implemented everywhere this will now result in an unexpected failure to
++ * merge (e.g. - overlayfs).
++ *
++ * Perform a simple test to see if the local file system suffers from this, if
++ * it does then we can skip test logic that assumes local file system merging is
++ * sane.
++ */
++static bool local_fs_has_sane_mmap(FIXTURE_DATA(guard_regions) * self,
++				   const FIXTURE_VARIANT(guard_regions) * variant)
 +{
 +	const unsigned long page_size = self->page_size;
-+	const unsigned long size = 2 * HPAGE_SIZE;
-+	const unsigned long num_pages = size / page_size;
-+	char *ptr;
++	char *ptr, *ptr2;
++	struct procmap_fd procmap;
++
++	if (variant->backing != LOCAL_FILE_BACKED)
++		return true;
++
++	/* Map 10 pages. */
++	ptr = mmap_(self, variant, NULL, 10 * page_size, PROT_READ | PROT_WRITE, 0, 0);
++	if (ptr == MAP_FAILED)
++		return false;
++	/* Unmap the middle. */
++	munmap(&ptr[5 * page_size], page_size);
++
++	/* Map again. */
++	ptr2 = mmap_(self, variant, &ptr[5 * page_size], page_size, PROT_READ | PROT_WRITE,
++		     MAP_FIXED, 5 * page_size);
++
++	if (ptr2 == MAP_FAILED)
++		return false;
++
++	/* Now make sure they all merged. */
++	if (open_self_procmap(&procmap) != 0)
++		return false;
++	if (!find_vma_procmap(&procmap, ptr))
++		return false;
++	if (procmap.query.vma_start != (unsigned long)ptr)
++		return false;
++	if (procmap.query.vma_end != (unsigned long)ptr + 10 * page_size)
++		return false;
++	close_procmap(&procmap);
++
++	return true;
++}
++
+ FIXTURE_SETUP(guard_regions)
+ {
+ 	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
+@@ -2203,4 +2252,75 @@ TEST_F(guard_regions, collapse)
+ 	}
+ }
+ 
++TEST_F(guard_regions, smaps)
++{
++	const unsigned long page_size = self->page_size;
++	struct procmap_fd procmap;
++	char *ptr, *ptr2;
 +	int i;
 +
-+	/* Need file to be correct size for tests for non-anon. */
-+	if (variant->backing != ANON_BACKED)
-+		ASSERT_EQ(ftruncate(self->fd, size), 0);
-+
-+	/*
-+	 * We must close and re-open local-file backed as read-only for
-+	 * CONFIG_READ_ONLY_THP_FOR_FS to work.
-+	 */
-+	if (variant->backing == LOCAL_FILE_BACKED) {
-+		ASSERT_EQ(close(self->fd), 0);
-+
-+		self->fd = open(self->path, O_RDONLY);
-+		ASSERT_GE(self->fd, 0);
-+	}
-+
-+	ptr = mmap_(self, variant, NULL, size, PROT_READ, 0, 0);
++	/* Map a region. */
++	ptr = mmap_(self, variant, NULL, 10 * page_size, PROT_READ | PROT_WRITE, 0, 0);
 +	ASSERT_NE(ptr, MAP_FAILED);
 +
-+	/* Prevent being faulted-in as huge. */
-+	ASSERT_EQ(madvise(ptr, size, MADV_NOHUGEPAGE), 0);
-+	/* Fault in. */
-+	ASSERT_EQ(madvise(ptr, size, MADV_POPULATE_READ), 0);
++	/* We shouldn't yet see a guard flag. */
++	ASSERT_FALSE(check_vmflag_guard(ptr));
 +
-+	/* Install guard regions in ever other page. */
-+	for (i = 0; i < num_pages; i += 2) {
-+		char *ptr_page = &ptr[i * page_size];
++	/* Install a single guard region. */
++	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_INSTALL), 0);
 +
-+		ASSERT_EQ(madvise(ptr_page, page_size, MADV_GUARD_INSTALL), 0);
-+		/* Accesses should now fail. */
-+		ASSERT_FALSE(try_read_buf(ptr_page));
-+	}
-+
-+	/* Allow huge page throughout region. */
-+	ASSERT_EQ(madvise(ptr, size, MADV_HUGEPAGE), 0);
++	/* Now we should see a guard flag. */
++	ASSERT_TRUE(check_vmflag_guard(ptr));
 +
 +	/*
-+	 * Now collapse the entire region. This should fail in all cases.
-+	 *
-+	 * The madvise() call will also fail if CONFIG_READ_ONLY_THP_FOR_FS is
-+	 * not set for the local file case, but we can't differentiate whether
-+	 * this occurred or if the collapse was rightly rejected.
++	 * Removing the guard region should not change things because we simply
++	 * cannot accurately track whether a given VMA has had all of its guard
++	 * regions removed.
 +	 */
-+	EXPECT_NE(madvise(ptr, size, MADV_COLLAPSE), 0);
++	ASSERT_EQ(madvise(ptr, page_size, MADV_GUARD_REMOVE), 0);
++	ASSERT_TRUE(check_vmflag_guard(ptr));
++
++	/* Install guard regions throughout. */
++	for (i = 0; i < 10; i++) {
++		ASSERT_EQ(madvise(&ptr[i * page_size], page_size, MADV_GUARD_INSTALL), 0);
++		/* We should always see the guard region flag. */
++		ASSERT_TRUE(check_vmflag_guard(ptr));
++	}
++
++	/* Split into two VMAs. */
++	ASSERT_EQ(munmap(&ptr[4 * page_size], page_size), 0);
++
++	/* Both VMAs should have the guard flag set. */
++	ASSERT_TRUE(check_vmflag_guard(ptr));
++	ASSERT_TRUE(check_vmflag_guard(&ptr[5 * page_size]));
 +
 +	/*
-+	 * If we introduce a bug that causes the collapse to succeed, gather
-+	 * data on whether guard regions are at least preserved. The test will
-+	 * fail at this point in any case.
++	 * If the local file system is unable to merge VMAs due to having
++	 * unusual characteristics, there is no point in asserting merge
++	 * behaviour.
 +	 */
-+	for (i = 0; i < num_pages; i += 2) {
-+		char *ptr_page = &ptr[i * page_size];
-+
-+		/* Accesses should still fail. */
-+		ASSERT_FALSE(try_read_buf(ptr_page));
++	if (!local_fs_has_sane_mmap(self, variant)) {
++		TH_LOG("local filesystem does not support sane merging skipping merge test");
++		return;
 +	}
++
++	/* Map a fresh VMA between the two split VMAs. */
++	ptr2 = mmap_(self, variant, &ptr[4 * page_size], page_size,
++		     PROT_READ | PROT_WRITE, MAP_FIXED, 4 * page_size);
++	ASSERT_NE(ptr2, MAP_FAILED);
++
++	/*
++	 * Check the procmap to ensure that this VMA merged with the adjacent
++	 * two. The guard region flag is 'sticky' so should not preclude
++	 * merging.
++	 */
++	ASSERT_EQ(open_self_procmap(&procmap), 0);
++	ASSERT_TRUE(find_vma_procmap(&procmap, ptr));
++	ASSERT_EQ(procmap.query.vma_start, (unsigned long)ptr);
++	ASSERT_EQ(procmap.query.vma_end, (unsigned long)ptr + 10 * page_size);
++	ASSERT_EQ(close_procmap(&procmap), 0);
++	/* And, of course, this VMA should have the guard flag set. */
++	ASSERT_TRUE(check_vmflag_guard(ptr));
 +}
 +
  TEST_HARNESS_MAIN
+--- a/tools/testing/selftests/mm/vm_util.c~tools-testing-selftests-mm-add-smaps-visibility-guard-region-test
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -449,6 +449,11 @@ bool check_vmflag_pfnmap(void *addr)
+ 	return check_vmflag(addr, "pf");
+ }
+ 
++bool check_vmflag_guard(void *addr)
++{
++	return check_vmflag(addr, "gu");
++}
++
+ bool softdirty_supported(void)
+ {
+ 	char *addr;
+--- a/tools/testing/selftests/mm/vm_util.h~tools-testing-selftests-mm-add-smaps-visibility-guard-region-test
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -98,6 +98,7 @@ int uffd_register_with_ioctls(int uffd,
+ unsigned long get_free_hugepages(void);
+ bool check_vmflag_io(void *addr);
+ bool check_vmflag_pfnmap(void *addr);
++bool check_vmflag_guard(void *addr);
+ int open_procmap(pid_t pid, struct procmap_fd *procmap_out);
+ int query_procmap(struct procmap_fd *procmap);
+ bool find_vma_procmap(struct procmap_fd *procmap, void *address);
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
