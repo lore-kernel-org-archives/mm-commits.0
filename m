@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B2DA1DE8BB;
-	Fri,  7 Nov 2025 00:30:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93220262FE5;
+	Fri,  7 Nov 2025 00:30:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762475404; cv=none; b=LS53SANfxUfNVIDYiTGaoPZ/nTwjSMAvCnw5/YfCfTXNAvQ+08NKuxgKPpn95CbMOkcbZDAlxgysNOGiT9HPJM/c9OuEBELs0Lr748bIg5tWWqLDbnzWefUjAgr/U0RUZJJz3DG5kA7osqnDGp2GDLYeLR3w8dZxc4DWz4SiUPE=
+	t=1762475405; cv=none; b=ux3Bmqo0fQ9alh6quByC4XeQdVf5JGXlWl1ivERTbvPJ/l3ZYZNyADMDbpYc2f9Afz/qa0Bpt5jLzur5eETRpkDPJ9y8Dwr6YoEIp3DQux8ZHph1gZZlIvD0RD0oBpFioIS6NmqQl/wRBYI6cJzRlm/MdtG+pwY6E4vIU088tEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762475404; c=relaxed/simple;
-	bh=ENWf/WaHKFeQ+/30Bpo8P3+g7idfxsSHhsdHGjqtbHI=;
-	h=Date:To:From:Subject:Message-Id; b=YYIwUWNjXiRBSLzHe04UWWjzrfuyG/Tr/S1vjxcB6lGTrtI/6N9Xsg8a5sGSYBi9YRB85zd1izC/OC7RnptZRyw27k+/0xzZYBxLaNXTKG/cyA+4LZDFxIM/ri8yTXOkbVfLRCI6yUfX+ZOoId5cXerhCGx3fXy2cy72B7qwnRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FFjinwLt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762475405; c=relaxed/simple;
+	bh=o0kWHOE4xqTibPtbd9hzD+JdjRV1c0ZVzgaQ10Lkd2w=;
+	h=Date:To:From:Subject:Message-Id; b=cp7ZpV6f35r3A/IxzwiecpwvR7D3h5HABBGKDRaq4SQaoOaNv+Ujnc5ZFiIIFkCDpT1kpSnuetI2OJMP73N4hSkvtDejhC0B6IPyDfIAWjzQkbRzEr5gFx2qhCQ5O4+L5povbXC4Ewijm7q1Icysn+O0BL4Q+BpCkUYLTaTuhl4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D/qYM9Rn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FFjinwLt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 909C4C4CEF7;
-	Fri,  7 Nov 2025 00:30:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D/qYM9Rn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 107D6C4CEFB;
+	Fri,  7 Nov 2025 00:30:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762475403;
-	bh=ENWf/WaHKFeQ+/30Bpo8P3+g7idfxsSHhsdHGjqtbHI=;
+	s=korg; t=1762475405;
+	bh=o0kWHOE4xqTibPtbd9hzD+JdjRV1c0ZVzgaQ10Lkd2w=;
 	h=Date:To:From:Subject:From;
-	b=FFjinwLtTHKa8D9wR2j8SOgYLFcdHp2783gYuKErcORJRmPGm4LDI/LUKgxIvHt5K
-	 mzgaeEYfh9jpvHkWIckp2DCaqA1olsU1s9dev8dLosL8pKBlL8qykoJnvpn6XF9XuU
-	 rsVQd3ZZAE6jlyX9/E0KXhKH6nLVu+xPcgIRKq80=
-Date: Thu, 06 Nov 2025 16:30:01 -0800
+	b=D/qYM9Rnp+Gz3Ek7Dcn9erth58UME259rwXuwNKniHgiO1JFzXcW32JMU4n70l9oz
+	 35x9U2p8jtuV16jycWjsOV6IRj8VEVD29HYDe5GXrOLNFOkENkR7LBNfnW8beKws7a
+	 dvlKoGNldutJjmjkF+9rnyJsoV8mgG8r+qJfrCdA=
+Date: Thu, 06 Nov 2025 16:30:04 -0800
 To: mm-commits@vger.kernel.org,zohar@linux.ibm.com,stable@vger.kernel.org,roberto.sassu@huawei.com,graf@amazon.com,chenste@linux.microsoft.com,bhe@redhat.com,piliu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kernel-kexec-change-the-prototype-of-kimage_map_segment.patch removed from -mm tree
-Message-Id: <20251107003003.909C4C4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] kernel-kexec-fix-ima-when-allocation-happens-in-cma-area.patch removed from -mm tree
+Message-Id: <20251107003005.107D6C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/kexec: change the prototype of kimage_map_segment()
+     Subject: kernel/kexec: fix IMA when allocation happens in CMA area
 has been removed from the -mm tree.  Its filename was
-     kernel-kexec-change-the-prototype-of-kimage_map_segment.patch
+     kernel-kexec-fix-ima-when-allocation-happens-in-cma-area.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Pingfan Liu <piliu@redhat.com>
-Subject: kernel/kexec: change the prototype of kimage_map_segment()
-Date: Wed, 5 Nov 2025 21:09:21 +0800
+Subject: kernel/kexec: fix IMA when allocation happens in CMA area
+Date: Wed, 5 Nov 2025 21:09:22 +0800
 
-The kexec segment index will be required to extract the corresponding
-information for that segment in kimage_map_segment(). Additionally,
-kexec_segment already holds the kexec relocation destination address and
-size. Therefore, the prototype of kimage_map_segment() can be changed.
+When I tested kexec with the latest kernel, I ran into the following
+warning:
 
-Link: https://lkml.kernel.org/r/20251105130922.13321-1-piliu@redhat.com
+[   40.712410] ------------[ cut here ]------------
+[   40.712576] WARNING: CPU: 2 PID: 1562 at kernel/kexec_core.c:1001 kimage_map_segment+0x144/0x198
+[...]
+[   40.816047] Call trace:
+[   40.818498]  kimage_map_segment+0x144/0x198 (P)
+[   40.823221]  ima_kexec_post_load+0x58/0xc0
+[   40.827246]  __do_sys_kexec_file_load+0x29c/0x368
+[...]
+[   40.855423] ---[ end trace 0000000000000000 ]---
+
+This is caused by the fact that kexec allocates the destination directly
+in the CMA area.  In that case, the CMA kernel address should be exported
+directly to the IMA component, instead of using the vmalloc'd address.
+
+Link: https://lkml.kernel.org/r/20251105130922.13321-2-piliu@redhat.com
 Fixes: 0091d9241ea2 ("kexec: define functions to map and unmap segments")
 Signed-off-by: Pingfan Liu <piliu@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -63,73 +75,41 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h              |    4 ++--
- kernel/kexec_core.c                |    9 ++++++---
- security/integrity/ima/ima_kexec.c |    4 +---
- 3 files changed, 9 insertions(+), 8 deletions(-)
+ kernel/kexec_core.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/kexec.h~kernel-kexec-change-the-prototype-of-kimage_map_segment
-+++ a/include/linux/kexec.h
-@@ -530,7 +530,7 @@ extern bool kexec_file_dbg_print;
- #define kexec_dprintk(fmt, arg...) \
-         do { if (kexec_file_dbg_print) pr_info(fmt, ##arg); } while (0)
- 
--extern void *kimage_map_segment(struct kimage *image, unsigned long addr, unsigned long size);
-+extern void *kimage_map_segment(struct kimage *image, int idx);
- extern void kimage_unmap_segment(void *buffer);
- #else /* !CONFIG_KEXEC_CORE */
- struct pt_regs;
-@@ -540,7 +540,7 @@ static inline void __crash_kexec(struct
- static inline void crash_kexec(struct pt_regs *regs) { }
- static inline int kexec_should_crash(struct task_struct *p) { return 0; }
- static inline int kexec_crash_loaded(void) { return 0; }
--static inline void *kimage_map_segment(struct kimage *image, unsigned long addr, unsigned long size)
-+static inline void *kimage_map_segment(struct kimage *image, int idx)
- { return NULL; }
- static inline void kimage_unmap_segment(void *buffer) { }
- #define kexec_in_progress false
---- a/kernel/kexec_core.c~kernel-kexec-change-the-prototype-of-kimage_map_segment
+--- a/kernel/kexec_core.c~kernel-kexec-fix-ima-when-allocation-happens-in-cma-area
 +++ a/kernel/kexec_core.c
-@@ -960,17 +960,20 @@ int kimage_load_segment(struct kimage *i
- 	return result;
- }
- 
--void *kimage_map_segment(struct kimage *image,
--			 unsigned long addr, unsigned long size)
-+void *kimage_map_segment(struct kimage *image, int idx)
- {
-+	unsigned long addr, size, eaddr;
- 	unsigned long src_page_addr, dest_page_addr = 0;
--	unsigned long eaddr = addr + size;
+@@ -967,6 +967,7 @@ void *kimage_map_segment(struct kimage *
  	kimage_entry_t *ptr, entry;
  	struct page **src_pages;
  	unsigned int npages;
++	struct page *cma;
  	void *vaddr = NULL;
  	int i;
  
-+	addr = image->segment[idx].mem;
-+	size = image->segment[idx].memsz;
-+	eaddr = addr + size;
-+
+@@ -974,6 +975,9 @@ void *kimage_map_segment(struct kimage *
+ 	size = image->segment[idx].memsz;
+ 	eaddr = addr + size;
+ 
++	cma = image->segment_cma[idx];
++	if (cma)
++		return cma;
  	/*
  	 * Collect the source pages and map them in a contiguous VA range.
  	 */
---- a/security/integrity/ima/ima_kexec.c~kernel-kexec-change-the-prototype-of-kimage_map_segment
-+++ a/security/integrity/ima/ima_kexec.c
-@@ -250,9 +250,7 @@ void ima_kexec_post_load(struct kimage *
- 	if (!image->ima_buffer_addr)
- 		return;
+@@ -1014,7 +1018,8 @@ void *kimage_map_segment(struct kimage *
  
--	ima_kexec_buffer = kimage_map_segment(image,
--					      image->ima_buffer_addr,
--					      image->ima_buffer_size);
-+	ima_kexec_buffer = kimage_map_segment(image, image->ima_segment_index);
- 	if (!ima_kexec_buffer) {
- 		pr_err("Could not map measurements buffer.\n");
- 		return;
+ void kimage_unmap_segment(void *segment_buffer)
+ {
+-	vunmap(segment_buffer);
++	if (is_vmalloc_addr(segment_buffer))
++		vunmap(segment_buffer);
+ }
+ 
+ struct kexec_load_limit {
 _
 
 Patches currently in -mm which might be from piliu@redhat.com are
 
-kernel-kexec-fix-ima-when-allocation-happens-in-cma-area.patch
 
