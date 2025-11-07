@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1629AA937;
-	Fri,  7 Nov 2025 00:28:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B2DA1DE8BB;
+	Fri,  7 Nov 2025 00:30:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762475308; cv=none; b=QZYa7eW3GqyLiWB1f+WqD4EbFJcyUpe5FMUlqVYhRmEY8su89ZlcISZFJD0A9ROMtW1krcivM5bZYIKreGKv9j2OxJhTBjPn7AIQ42QZJOkf/iStLr1fyrTbTbNX4uHt7+7liDR4JCHVfwgwz/FZCyPpw5o1dkHiT6shTznr3bg=
+	t=1762475404; cv=none; b=LS53SANfxUfNVIDYiTGaoPZ/nTwjSMAvCnw5/YfCfTXNAvQ+08NKuxgKPpn95CbMOkcbZDAlxgysNOGiT9HPJM/c9OuEBELs0Lr748bIg5tWWqLDbnzWefUjAgr/U0RUZJJz3DG5kA7osqnDGp2GDLYeLR3w8dZxc4DWz4SiUPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762475308; c=relaxed/simple;
-	bh=mAmkpNM6A5qEzYrd+EQWVnt9qsw2gPyNW6zZSqRlbog=;
-	h=Date:To:From:Subject:Message-Id; b=VOGJCekUjAfzw08XnshRQYsC48LbpucRKnAjIr4Gt1caZc7lyLMMWw+lHg+Qynx/hz5voHW2TkQj2Yhg3XAANX/10dwnqA3GseiFiyV3g2OtheBz20zcXgUtXCWesnq2zYm+XKIL+rWv/vOSx8zDDCo/PkX7vpHOMdt8OreYq+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n1ZL6AZp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762475404; c=relaxed/simple;
+	bh=ENWf/WaHKFeQ+/30Bpo8P3+g7idfxsSHhsdHGjqtbHI=;
+	h=Date:To:From:Subject:Message-Id; b=YYIwUWNjXiRBSLzHe04UWWjzrfuyG/Tr/S1vjxcB6lGTrtI/6N9Xsg8a5sGSYBi9YRB85zd1izC/OC7RnptZRyw27k+/0xzZYBxLaNXTKG/cyA+4LZDFxIM/ri8yTXOkbVfLRCI6yUfX+ZOoId5cXerhCGx3fXy2cy72B7qwnRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FFjinwLt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n1ZL6AZp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DCA1C19422;
-	Fri,  7 Nov 2025 00:28:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FFjinwLt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 909C4C4CEF7;
+	Fri,  7 Nov 2025 00:30:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762475307;
-	bh=mAmkpNM6A5qEzYrd+EQWVnt9qsw2gPyNW6zZSqRlbog=;
+	s=korg; t=1762475403;
+	bh=ENWf/WaHKFeQ+/30Bpo8P3+g7idfxsSHhsdHGjqtbHI=;
 	h=Date:To:From:Subject:From;
-	b=n1ZL6AZpaDn2/12YXpvum2W2fUFf2r3ih/cqPo0eka2H3LDai6j8/QlSbxCbaf3yd
-	 uciPJrHARiKCo+59F/1rIUske+2hR/9Hn+dwVJvYPy+pL9Mi8mbCY8H3QllrHkYVOD
-	 I0wnp1lCpnbwkSBMA/Sx7SVEAFJBW18ZRz4MaHa8=
-Date: Thu, 06 Nov 2025 16:28:26 -0800
-To: mm-commits@vger.kernel.org,sunliming@kylinos.cn,stable@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,richard.weiyang@gmail.com,mhiramat@kernel.org,beaub@linux.microsoft.com,ankitkhushwaha.linux@gmail.com,akpm@linux-foundation.org
+	b=FFjinwLtTHKa8D9wR2j8SOgYLFcdHp2783gYuKErcORJRmPGm4LDI/LUKgxIvHt5K
+	 mzgaeEYfh9jpvHkWIckp2DCaqA1olsU1s9dev8dLosL8pKBlL8qykoJnvpn6XF9XuU
+	 rsVQd3ZZAE6jlyX9/E0KXhKH6nLVu+xPcgIRKq80=
+Date: Thu, 06 Nov 2025 16:30:01 -0800
+To: mm-commits@vger.kernel.org,zohar@linux.ibm.com,stable@vger.kernel.org,roberto.sassu@huawei.com,graf@amazon.com,chenste@linux.microsoft.com,bhe@redhat.com,piliu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251107002827.8DCA1C19422@smtp.kernel.org>
+Subject: [to-be-updated] kernel-kexec-change-the-prototype-of-kimage_map_segment.patch removed from -mm tree
+Message-Id: <20251107003003.909C4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,76 +34,102 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/user_events: fix type cast for write_index packed member in perf_test
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch
+The quilt patch titled
+     Subject: kernel/kexec: change the prototype of kimage_map_segment()
+has been removed from the -mm tree.  Its filename was
+     kernel-kexec-change-the-prototype-of-kimage_map_segment.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
-Subject: selftests/user_events: fix type cast for write_index packed member in perf_test
-Date: Thu, 6 Nov 2025 15:25:32 +0530
+From: Pingfan Liu <piliu@redhat.com>
+Subject: kernel/kexec: change the prototype of kimage_map_segment()
+Date: Wed, 5 Nov 2025 21:09:21 +0800
 
-Accessing 'reg.write_index' directly triggers a -Waddress-of-packed-member
-warning due to potential unaligned pointer access:
+The kexec segment index will be required to extract the corresponding
+information for that segment in kimage_map_segment(). Additionally,
+kexec_segment already holds the kexec relocation destination address and
+size. Therefore, the prototype of kimage_map_segment() can be changed.
 
-perf_test.c:239:38: warning: taking address of packed member 'write_index'
-of class or structure 'user_reg' may result in an unaligned pointer value
-[-Waddress-of-packed-member]
-  239 |         ASSERT_NE(-1, write(self->data_fd, &reg.write_index,
-      |                                             ^~~~~~~~~~~~~~~
-
-Since write(2) works with any alignment. Casting '&reg.write_index'
-explicitly to 'void *' to suppress this warning.
-
-Link: https://lkml.kernel.org/r/20251106095532.15185-1-ankitkhushwaha.linux@gmail.com
-Fixes: 42187bdc3ca4 ("selftests/user_events: Add perf self-test for empty arguments events")
-Signed-off-by: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
-Cc: Beau Belgrave <beaub@linux.microsoft.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: sunliming <sunliming@kylinos.cn>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20251105130922.13321-1-piliu@redhat.com
+Fixes: 0091d9241ea2 ("kexec: define functions to map and unmap segments")
+Signed-off-by: Pingfan Liu <piliu@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Mimi Zohar <zohar@linux.ibm.com>
+Cc: Roberto Sassu <roberto.sassu@huawei.com>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Steven Chen <chenste@linux.microsoft.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/user_events/perf_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kexec.h              |    4 ++--
+ kernel/kexec_core.c                |    9 ++++++---
+ security/integrity/ima/ima_kexec.c |    4 +---
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/user_events/perf_test.c~selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test
-+++ a/tools/testing/selftests/user_events/perf_test.c
-@@ -236,7 +236,7 @@ TEST_F(user, perf_empty_events) {
- 	ASSERT_EQ(1 << reg.enable_bit, self->check);
+--- a/include/linux/kexec.h~kernel-kexec-change-the-prototype-of-kimage_map_segment
++++ a/include/linux/kexec.h
+@@ -530,7 +530,7 @@ extern bool kexec_file_dbg_print;
+ #define kexec_dprintk(fmt, arg...) \
+         do { if (kexec_file_dbg_print) pr_info(fmt, ##arg); } while (0)
  
- 	/* Ensure write shows up at correct offset */
--	ASSERT_NE(-1, write(self->data_fd, &reg.write_index,
-+	ASSERT_NE(-1, write(self->data_fd, (void *)&reg.write_index,
- 					sizeof(reg.write_index)));
- 	val = (void *)(((char *)perf_page) + perf_page->data_offset);
- 	ASSERT_EQ(PERF_RECORD_SAMPLE, *val);
+-extern void *kimage_map_segment(struct kimage *image, unsigned long addr, unsigned long size);
++extern void *kimage_map_segment(struct kimage *image, int idx);
+ extern void kimage_unmap_segment(void *buffer);
+ #else /* !CONFIG_KEXEC_CORE */
+ struct pt_regs;
+@@ -540,7 +540,7 @@ static inline void __crash_kexec(struct
+ static inline void crash_kexec(struct pt_regs *regs) { }
+ static inline int kexec_should_crash(struct task_struct *p) { return 0; }
+ static inline int kexec_crash_loaded(void) { return 0; }
+-static inline void *kimage_map_segment(struct kimage *image, unsigned long addr, unsigned long size)
++static inline void *kimage_map_segment(struct kimage *image, int idx)
+ { return NULL; }
+ static inline void kimage_unmap_segment(void *buffer) { }
+ #define kexec_in_progress false
+--- a/kernel/kexec_core.c~kernel-kexec-change-the-prototype-of-kimage_map_segment
++++ a/kernel/kexec_core.c
+@@ -960,17 +960,20 @@ int kimage_load_segment(struct kimage *i
+ 	return result;
+ }
+ 
+-void *kimage_map_segment(struct kimage *image,
+-			 unsigned long addr, unsigned long size)
++void *kimage_map_segment(struct kimage *image, int idx)
+ {
++	unsigned long addr, size, eaddr;
+ 	unsigned long src_page_addr, dest_page_addr = 0;
+-	unsigned long eaddr = addr + size;
+ 	kimage_entry_t *ptr, entry;
+ 	struct page **src_pages;
+ 	unsigned int npages;
+ 	void *vaddr = NULL;
+ 	int i;
+ 
++	addr = image->segment[idx].mem;
++	size = image->segment[idx].memsz;
++	eaddr = addr + size;
++
+ 	/*
+ 	 * Collect the source pages and map them in a contiguous VA range.
+ 	 */
+--- a/security/integrity/ima/ima_kexec.c~kernel-kexec-change-the-prototype-of-kimage_map_segment
++++ a/security/integrity/ima/ima_kexec.c
+@@ -250,9 +250,7 @@ void ima_kexec_post_load(struct kimage *
+ 	if (!image->ima_buffer_addr)
+ 		return;
+ 
+-	ima_kexec_buffer = kimage_map_segment(image,
+-					      image->ima_buffer_addr,
+-					      image->ima_buffer_size);
++	ima_kexec_buffer = kimage_map_segment(image, image->ima_segment_index);
+ 	if (!ima_kexec_buffer) {
+ 		pr_err("Could not map measurements buffer.\n");
+ 		return;
 _
 
-Patches currently in -mm which might be from ankitkhushwaha.linux@gmail.com are
+Patches currently in -mm which might be from piliu@redhat.com are
 
-selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch
+kernel-kexec-fix-ima-when-allocation-happens-in-cma-area.patch
 
