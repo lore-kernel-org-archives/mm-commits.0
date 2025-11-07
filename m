@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 695E653A7
-	for <mm-commits@vger.kernel.org>; Fri,  7 Nov 2025 00:06:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1629AA937;
+	Fri,  7 Nov 2025 00:28:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762473986; cv=none; b=bM1omYivb0mHR0LCfcNJKU/JavGOiDRhuj3wCF1P/hfcQ2w5iZD9E6Vikw+7MkKYrECbmgga60E5auq55w+x2NiSt2v96d/IIMitg03MhP0jeySwaVWhDmIypbolQIm6K9wL+2khnykWs2ulTxJYuHd8YGcGf2vLlzcZhDWwXNc=
+	t=1762475308; cv=none; b=QZYa7eW3GqyLiWB1f+WqD4EbFJcyUpe5FMUlqVYhRmEY8su89ZlcISZFJD0A9ROMtW1krcivM5bZYIKreGKv9j2OxJhTBjPn7AIQ42QZJOkf/iStLr1fyrTbTbNX4uHt7+7liDR4JCHVfwgwz/FZCyPpw5o1dkHiT6shTznr3bg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762473986; c=relaxed/simple;
-	bh=SgHXQuIDFgt2/z/wai/vNDphNxB8l3eOXPjwjw43ofQ=;
-	h=Date:To:From:Subject:Message-Id; b=j1lPh2XjSbQ/75xg4mjVQkaUsU0mvEk6kEpN2BngbsJL2WS+w4n7TNWrSx99K77FUy5j0EFd0v95Qy0CT1F0yQNTI3H/E4hmr2h3d37IQhz4T0riJwr3rLVStCL2QmLXUZNTLj/C104pwEqg5TE9+EPOXHrWfa10eIkonU1wvWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WggxTa63; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762475308; c=relaxed/simple;
+	bh=mAmkpNM6A5qEzYrd+EQWVnt9qsw2gPyNW6zZSqRlbog=;
+	h=Date:To:From:Subject:Message-Id; b=VOGJCekUjAfzw08XnshRQYsC48LbpucRKnAjIr4Gt1caZc7lyLMMWw+lHg+Qynx/hz5voHW2TkQj2Yhg3XAANX/10dwnqA3GseiFiyV3g2OtheBz20zcXgUtXCWesnq2zYm+XKIL+rWv/vOSx8zDDCo/PkX7vpHOMdt8OreYq+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n1ZL6AZp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WggxTa63"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6C02C16AAE;
-	Fri,  7 Nov 2025 00:06:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n1ZL6AZp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DCA1C19422;
+	Fri,  7 Nov 2025 00:28:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762473986;
-	bh=SgHXQuIDFgt2/z/wai/vNDphNxB8l3eOXPjwjw43ofQ=;
+	s=korg; t=1762475307;
+	bh=mAmkpNM6A5qEzYrd+EQWVnt9qsw2gPyNW6zZSqRlbog=;
 	h=Date:To:From:Subject:From;
-	b=WggxTa63338HmFrTMvZL5PO8brcqBzfjsWzwP/7mEidf95yj0toiSc8LfwUesUefC
-	 2iYv7aByUjlAsYYn+kYpJo/upgQ2hirgqRwhT8EbEdQzOolym5eXC/rhmucnZp7E3Y
-	 5cjWmrJDuob67rZ70ikdTLVYvEvnt3/d9EkH0V1Y=
-Date: Thu, 06 Nov 2025 16:06:24 -0800
-To: mm-commits@vger.kernel.org,jic23@kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=n1ZL6AZpaDn2/12YXpvum2W2fUFf2r3ih/cqPo0eka2H3LDai6j8/QlSbxCbaf3yd
+	 uciPJrHARiKCo+59F/1rIUske+2hR/9Hn+dwVJvYPy+pL9Mi8mbCY8H3QllrHkYVOD
+	 I0wnp1lCpnbwkSBMA/Sx7SVEAFJBW18ZRz4MaHa8=
+Date: Thu, 06 Nov 2025 16:28:26 -0800
+To: mm-commits@vger.kernel.org,sunliming@kylinos.cn,stable@vger.kernel.org,shuah@kernel.org,rostedt@goodmis.org,richard.weiyang@gmail.com,mhiramat@kernel.org,beaub@linux.microsoft.com,ankitkhushwaha.linux@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mathh-amend-kernel-doc-and-add-a-note-about-signed-type-limits.patch added to mm-nonmm-unstable branch
-Message-Id: <20251107000625.D6C02C16AAE@smtp.kernel.org>
+Subject: + selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251107002827.8DCA1C19422@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: math.h: amend abs() kernel-doc and add a note about signed type limits
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mathh-amend-kernel-doc-and-add-a-note-about-signed-type-limits.patch
+     Subject: selftests/user_events: fix type cast for write_index packed member in perf_test
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mathh-amend-kernel-doc-and-add-a-note-about-signed-type-limits.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,58 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: math.h: amend abs() kernel-doc and add a note about signed type limits
-Date: Thu, 6 Nov 2025 16:20:51 +0100
+From: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
+Subject: selftests/user_events: fix type cast for write_index packed member in perf_test
+Date: Thu, 6 Nov 2025 15:25:32 +0530
 
-- amend the kernel-doc so the description is decoupled from the
-  parameter descriptions.
+Accessing 'reg.write_index' directly triggers a -Waddress-of-packed-member
+warning due to potential unaligned pointer access:
 
-- add a note to explain behaviour for the signed types when supplied
-  value is the minimum (e.g., INT_MIN for int type).
+perf_test.c:239:38: warning: taking address of packed member 'write_index'
+of class or structure 'user_reg' may result in an unaligned pointer value
+[-Waddress-of-packed-member]
+  239 |         ASSERT_NE(-1, write(self->data_fd, &reg.write_index,
+      |                                             ^~~~~~~~~~~~~~~
 
-Link: https://lkml.kernel.org/r/20251106152051.2361551-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jonathan Cameron <jic23@kernel.org>
+Since write(2) works with any alignment. Casting '&reg.write_index'
+explicitly to 'void *' to suppress this warning.
+
+Link: https://lkml.kernel.org/r/20251106095532.15185-1-ankitkhushwaha.linux@gmail.com
+Fixes: 42187bdc3ca4 ("selftests/user_events: Add perf self-test for empty arguments events")
+Signed-off-by: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
+Cc: Beau Belgrave <beaub@linux.microsoft.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: sunliming <sunliming@kylinos.cn>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/math.h |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ tools/testing/selftests/user_events/perf_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/math.h~mathh-amend-kernel-doc-and-add-a-note-about-signed-type-limits
-+++ a/include/linux/math.h
-@@ -148,11 +148,16 @@ __STRUCT_FRACT(u32)
+--- a/tools/testing/selftests/user_events/perf_test.c~selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test
++++ a/tools/testing/selftests/user_events/perf_test.c
+@@ -236,7 +236,7 @@ TEST_F(user, perf_empty_events) {
+ 	ASSERT_EQ(1 << reg.enable_bit, self->check);
  
- /**
-  * abs - return absolute value of an argument
-- * @x: the value.  If it is unsigned type, it is converted to signed type first.
-- *     char is treated as if it was signed (regardless of whether it really is)
-- *     but the macro's return type is preserved as char.
-+ * @x: the value.
-  *
-- * Return: an absolute value of x.
-+ * If it is unsigned type, @x is converted to signed type first.
-+ * char is treated as if it was signed (regardless of whether it really is)
-+ * but the macro's return type is preserved as char.
-+ *
-+ * NOTE, for signed type if @x is the minimum, the returned result is undefined
-+ * as there is not enough bits to represent it as a positive number.
-+ *
-+ * Return: an absolute value of @x.
-  */
- #define abs(x)	__abs_choose_expr(x, long long,				\
- 		__abs_choose_expr(x, long,				\
+ 	/* Ensure write shows up at correct offset */
+-	ASSERT_NE(-1, write(self->data_fd, &reg.write_index,
++	ASSERT_NE(-1, write(self->data_fd, (void *)&reg.write_index,
+ 					sizeof(reg.write_index)));
+ 	val = (void *)(((char *)perf_page) + perf_page->data_offset);
+ 	ASSERT_EQ(PERF_RECORD_SAMPLE, *val);
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from ankitkhushwaha.linux@gmail.com are
 
-panic-sys_info-capture-si_bits_global-before-iterating-over-it.patch
-panic-sys_info-align-constant-definition-names-with-parameters.patch
-panic-sys_info-replace-struct-sys_info_name-with-plain-array-of-strings.patch
-panic-sys_info-rewrite-a-fix-for-a-compilation-error-make-w=1.patch
-panic-sys_info-deduplicate-local-variable-table-assignments.patch
-panic-sys_info-factor-out-read-and-write-handlers.patch
-util_macrosh-fix-kernel-doc-for-u64_to_user_ptr.patch
-mathh-amend-kernel-doc-and-add-a-note-about-signed-type-limits.patch
+selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch
 
