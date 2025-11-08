@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47D14264617
-	for <mm-commits@vger.kernel.org>; Sat,  8 Nov 2025 18:14:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F0E723EAA1
+	for <mm-commits@vger.kernel.org>; Sat,  8 Nov 2025 18:21:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762625664; cv=none; b=nUrhQqQ9OXmRHqmg/tQb3Z4UcuzJ0W4wJNzzhj0QtUUia2AnwHcagW2dKn6WbIPvmdaIbXr7vtS2sFJMLy7J09TPSauvBQDm8TJSV2rcVYoa9nvvZs7IhC0vB9F26JuUpsla44KuH5F8R4GZc4CimrrEcCJJiFmrhCrP7N4zLSA=
+	t=1762626077; cv=none; b=AQr7guQk8KjmNKStSsFfzTeRXmNTB14Ttth2Pv2isc2mVAQEb3uBxLCgSPAywf4+YPgUYPQGB7gK5RDM8nmJ0lhE33QfeFZ2K4L/JK3EMLG5BIicTCqaf0Gs7TxVuSjetCcIDYANYvTIfJqt08Z2ZbF9/31TUGLRUltqN9GVulU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762625664; c=relaxed/simple;
-	bh=5E4Pls2F0K0gCOxhhBnbc+aodOgB3TgMpunXTMigUxU=;
-	h=Date:To:From:Subject:Message-Id; b=fLaeW/XyJIUYWBIq1dypYnuCcEaDKjFC7WeepL2Ke6MzJk1LPtzv0vNMGCmoER6dOTanKY5lv5GEHHc/lHPcJBqAKr8X7FMeZuY/Y++L+3XUdIjI5oEafEeuBLkcjyubSj8j4uUZMZTycJl39Vb9puOkJXD6hHld+5g/Za8gd4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZE6kX4KN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762626077; c=relaxed/simple;
+	bh=VbqXQXGk1Mges3GMdO+uB5Hggzkw6FS3+QTL1yza4Pc=;
+	h=Date:To:From:Subject:Message-Id; b=XDIMffrEvQ9xELTjC9KrX2fplQzYNWICnr6E52YMQ3wlGvfYMj9FPJvIH+Wa8+0RqPfT1ZF+FW+CLCgsABrqbQ8suUt9Q3jaBgYL9g2TwZ64f1QVbDnXD+FbgbxOeJhz30MmBd4zk4VjiQy4eUOXEvD2Ebvm9FpByEyDxs4I5KY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j3/m7B6t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZE6kX4KN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1BD9C4CEF7;
-	Sat,  8 Nov 2025 18:14:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3/m7B6t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE0B5C4CEF5;
+	Sat,  8 Nov 2025 18:21:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762625663;
-	bh=5E4Pls2F0K0gCOxhhBnbc+aodOgB3TgMpunXTMigUxU=;
+	s=korg; t=1762626077;
+	bh=VbqXQXGk1Mges3GMdO+uB5Hggzkw6FS3+QTL1yza4Pc=;
 	h=Date:To:From:Subject:From;
-	b=ZE6kX4KN/y+bwdAjuIErL7OkKaT8FDhkAqi0HgGKhkbdn1LhP74F7DwvIAZXfgwFQ
-	 grXd2n0vCTb48mu7n7blcwfUTDx9Y/zJqJA6UCd9LMmIno2N/7AILqvhps9lIo4peZ
-	 GmImQ5zurp7yRvo7ttZar1MRebAzLqSgVaxbLz0M=
-Date: Sat, 08 Nov 2025 10:14:23 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,ankitkhushwaha.linux@gmail.com,akpm@linux-foundation.org
+	b=j3/m7B6tP6HANuptmrBFlKFuDRi2lvHaZBDZIc+p9zqmj1ZCg5csP4H55kqp8kuDf
+	 bKcDWdbFRQR+mjIpS6qYiEc/0bTbwER4FeXvd8lpCPmmWjuyg6ho+F2Mnk/f0JFXWP
+	 cox4perb2hGIPMpq1KrdsBFH5cFoXMx3EBt5c9Zs=
+Date: Sat, 08 Nov 2025 10:21:16 -0800
+To: mm-commits@vger.kernel.org,mpenttil@redhat.com,leon@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,make24@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-mm-fix-pointer-comparison-in-mremap_test.patch added to mm-unstable branch
-Message-Id: <20251108181423.B1BD9C4CEF7@smtp.kernel.org>
+Subject: + mm-hmm-test-fix-error-handling-in-dmirror_device_init.patch added to mm-new branch
+Message-Id: <20251108182116.EE0B5C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest/mm: fix pointer comparison in mremap_test
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftest-mm-fix-pointer-comparison-in-mremap_test.patch
+     Subject: mm/hmm/test: fix error handling in dmirror_device_init
+has been added to the -mm mm-new branch.  Its filename is
+     mm-hmm-test-fix-error-handling-in-dmirror_device_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-fix-pointer-comparison-in-mremap_test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-test-fix-error-handling-in-dmirror_device_init.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,62 +64,66 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
-Subject: selftest/mm: fix pointer comparison in mremap_test
-Date: Sat, 8 Nov 2025 21:48:29 +0530
+From: Ma Ke <make24@iscas.ac.cn>
+Subject: mm/hmm/test: fix error handling in dmirror_device_init
+Date: Sat, 8 Nov 2025 19:53:46 +0800
 
-Pointer arthemitic with 'void * addr' and 'ulong dest_alignment' triggers
-following warning:
+dmirror_device_init() calls device_initialize() which sets the device
+reference count to 1, but fails to call put_device() when error occurs
+after dev_set_name() or cdev_device_add() failures.  This results in
+memory leaks of struct device objects.  Additionally,
+dmirror_device_remove() lacks the final put_device() call to properly
+release the device reference.
 
-mremap_test.c:1035:31: warning: pointer comparison always evaluates to
-false [-Wtautological-compare]
- 1035 |                 if (addr + c.dest_alignment < addr) {
-      |                                             ^
+Found by code review.
 
-this warning is raised from clang version 20.1.8 (Fedora 20.1.8-4.fc42).
-
-use 'void *tmp_addr' to do the pointer arthemitic.
-
-Link: https://lkml.kernel.org/r/20251108161829.25105-1-ankitkhushwaha.linux@gmail.com
-Signed-off-by: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251108115346.6368-1-make24@iscas.ac.cn
+Fixes: 6a760f58c792 ("mm/hmm/test: use char dev with struct device to get device node")
+Signed-off-by: Ma Ke <make24@iscas.ac.cn>
+Cc: Haoxiang Li <make24@iscas.ac.cn>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Mika Penttilä <mpenttil@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/test_hmm.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftest-mm-fix-pointer-comparison-in-mremap_test
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -994,7 +994,7 @@ static void mremap_move_multi_invalid_vm
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char *rand_addr)
+--- a/lib/test_hmm.c~mm-hmm-test-fix-error-handling-in-dmirror_device_init
++++ a/lib/test_hmm.c
+@@ -1740,20 +1740,25 @@ static int dmirror_device_init(struct dm
+ 
+ 	ret = dev_set_name(&mdevice->device, "hmm_dmirror%u", id);
+ 	if (ret)
+-		return ret;
++		goto put_device;
+ 
+ 	ret = cdev_device_add(&mdevice->cdevice, &mdevice->device);
+ 	if (ret)
+-		return ret;
++		goto put_device;
+ 
+ 	/* Build a list of free ZONE_DEVICE struct pages */
+ 	return dmirror_allocate_chunk(mdevice, NULL, false);
++
++put_device:
++	put_device(&mdevice->device);
++	return ret;
+ }
+ 
+ static void dmirror_device_remove(struct dmirror_device *mdevice)
  {
--	void *addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
-+	void *addr, *tmp_addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
- 	unsigned long long t, d;
- 	struct timespec t_start = {0, 0}, t_end = {0, 0};
- 	long long  start_ns, end_ns, align_mask, ret, offset;
-@@ -1032,7 +1032,8 @@ static long long remap_region(struct con
- 	/* Don't destroy existing mappings unless expected to overlap */
- 	while (!is_remap_region_valid(addr, c.region_size) && !c.overlapping) {
- 		/* Check for unsigned overflow */
--		if (addr + c.dest_alignment < addr) {
-+		tmp_addr = addr + c.dest_alignment;
-+		if (tmp_addr < addr) {
- 			ksft_print_msg("Couldn't find a valid region to remap to\n");
- 			ret = -1;
- 			goto clean_up_src;
+ 	dmirror_device_remove_chunks(mdevice);
+ 	cdev_device_del(&mdevice->cdevice, &mdevice->device);
++	put_device(&mdevice->device);
+ }
+ 
+ static int __init hmm_dmirror_init(void)
 _
 
-Patches currently in -mm which might be from ankitkhushwaha.linux@gmail.com are
+Patches currently in -mm which might be from make24@iscas.ac.cn are
 
-selftests-user_events-fix-type-cast-for-write_index-packed-member-in-perf_test.patch
-selftest-mm-fix-pointer-comparison-in-mremap_test.patch
+mm-hmm-test-fix-error-handling-in-dmirror_device_init.patch
 
