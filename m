@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F0E723EAA1
-	for <mm-commits@vger.kernel.org>; Sat,  8 Nov 2025 18:21:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40D551A23AC
+	for <mm-commits@vger.kernel.org>; Sat,  8 Nov 2025 18:26:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762626077; cv=none; b=AQr7guQk8KjmNKStSsFfzTeRXmNTB14Ttth2Pv2isc2mVAQEb3uBxLCgSPAywf4+YPgUYPQGB7gK5RDM8nmJ0lhE33QfeFZ2K4L/JK3EMLG5BIicTCqaf0Gs7TxVuSjetCcIDYANYvTIfJqt08Z2ZbF9/31TUGLRUltqN9GVulU=
+	t=1762626415; cv=none; b=AkrVvscPKeorQ3rc+xqrETkhcEXAoiAw0HgW7sALJ4r2DiPfbzDj/y5m9EpyNgPUlJeiRzkIqyQB3CXbplRT2K4BRlzCkWXohdBGaed9P9aeVrHrlM/tYbSQfxc2V77TCqeCKnHwCBrVO9fPT5clQktnoT/b94X+ZX/xFIiIMh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762626077; c=relaxed/simple;
-	bh=VbqXQXGk1Mges3GMdO+uB5Hggzkw6FS3+QTL1yza4Pc=;
-	h=Date:To:From:Subject:Message-Id; b=XDIMffrEvQ9xELTjC9KrX2fplQzYNWICnr6E52YMQ3wlGvfYMj9FPJvIH+Wa8+0RqPfT1ZF+FW+CLCgsABrqbQ8suUt9Q3jaBgYL9g2TwZ64f1QVbDnXD+FbgbxOeJhz30MmBd4zk4VjiQy4eUOXEvD2Ebvm9FpByEyDxs4I5KY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j3/m7B6t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762626415; c=relaxed/simple;
+	bh=Y+B9V1wPGIcy2zSq4WZJBCedHPgspoiTfokCyP+s0vg=;
+	h=Date:To:From:Subject:Message-Id; b=l01dzxtt1k2I4t3OBlyggNzMYQUT59Wsw6vTtKmM0bj1I4Ebpi7HkJuuNyf9n8FyC+UBTXpa4ug9HnK0D9fxfd8qpBS+ktchV59PLI1eHcWd3OXT5HFczEPrwBqe8a0u1QYAlv/dGTqiKOi8H6zjWu2hpRBYWDmF3DNs5q2tW2c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dftjcy3r; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3/m7B6t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE0B5C4CEF5;
-	Sat,  8 Nov 2025 18:21:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dftjcy3r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFFF0C4CEFB;
+	Sat,  8 Nov 2025 18:26:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762626077;
-	bh=VbqXQXGk1Mges3GMdO+uB5Hggzkw6FS3+QTL1yza4Pc=;
+	s=korg; t=1762626415;
+	bh=Y+B9V1wPGIcy2zSq4WZJBCedHPgspoiTfokCyP+s0vg=;
 	h=Date:To:From:Subject:From;
-	b=j3/m7B6tP6HANuptmrBFlKFuDRi2lvHaZBDZIc+p9zqmj1ZCg5csP4H55kqp8kuDf
-	 bKcDWdbFRQR+mjIpS6qYiEc/0bTbwER4FeXvd8lpCPmmWjuyg6ho+F2Mnk/f0JFXWP
-	 cox4perb2hGIPMpq1KrdsBFH5cFoXMx3EBt5c9Zs=
-Date: Sat, 08 Nov 2025 10:21:16 -0800
-To: mm-commits@vger.kernel.org,mpenttil@redhat.com,leon@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,make24@iscas.ac.cn,akpm@linux-foundation.org
+	b=Dftjcy3r9Bbr27D3Wz2Kv2l8BMRv2Xg4PKpvrs00te0m7/B0iQRtFqfd3lWjCzCDW
+	 ldRmOLyKUkbDr9BP8ebdnfvO6pNZz928IlcH+Xfv8K5rPzIdnx3tDB9H2qhdA9laLm
+	 E+2sP6HqkFoxEGe+i0fTRuOIcnA/YwK8oDy6SdWk=
+Date: Sat, 08 Nov 2025 10:26:54 -0800
+To: mm-commits@vger.kernel.org,yanjun.zhu@linux.dev,tj@kernel.org,rppt@kernel.org,rdunlap@infradead.org,pratyush@kernel.org,ojeda@kernel.org,masahiroy@kernel.org,jgg@ziepe.ca,jgg@nvidia.com,horms@kernel.org,graf@amazon.com,corbet@lwn.net,changyuanl@google.com,brauner@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hmm-test-fix-error-handling-in-dmirror_device_init.patch added to mm-new branch
-Message-Id: <20251108182116.EE0B5C4CEF5@smtp.kernel.org>
+Subject: + liveupdate-kho-move-to-kernel-liveupdate-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251108182654.DFFF0C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hmm/test: fix error handling in dmirror_device_init
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hmm-test-fix-error-handling-in-dmirror_device_init.patch
+     Subject: liveupdate-kho-move-to-kernel-liveupdate-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     liveupdate-kho-move-to-kernel-liveupdate-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-test-fix-error-handling-in-dmirror_device_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-kho-move-to-kernel-liveupdate-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,66 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ma Ke <make24@iscas.ac.cn>
-Subject: mm/hmm/test: fix error handling in dmirror_device_init
-Date: Sat, 8 Nov 2025 19:53:46 +0800
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: liveupdate-kho-move-to-kernel-liveupdate-fix
+Date: Sat, 8 Nov 2025 13:01:30 -0500
 
-dmirror_device_init() calls device_initialize() which sets the device
-reference count to 1, but fails to call put_device() when error occurs
-after dev_set_name() or cdev_device_add() failures.  This results in
-memory leaks of struct device objects.  Additionally,
-dmirror_device_remove() lacks the final put_device() call to properly
-release the device reference.
+disable the menu when DEFERRED_STRUCT_PAGE_INIT
 
-Found by code review.
-
-Link: https://lkml.kernel.org/r/20251108115346.6368-1-make24@iscas.ac.cn
-Fixes: 6a760f58c792 ("mm/hmm/test: use char dev with struct device to get device node")
-Signed-off-by: Ma Ke <make24@iscas.ac.cn>
-Cc: Haoxiang Li <make24@iscas.ac.cn>
+Link: https://lkml.kernel.org/r/CA+CK2bAvh9Oa2SLfsbJ8zztpEjrgr_hr-uGgF1coy8yoibT39A@mail.gmail.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Simon Horman <horms@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zhu Yanjun <yanjun.zhu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/liveupdate/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/test_hmm.c~mm-hmm-test-fix-error-handling-in-dmirror_device_init
-+++ a/lib/test_hmm.c
-@@ -1740,20 +1740,25 @@ static int dmirror_device_init(struct dm
+--- a/kernel/liveupdate/Kconfig~liveupdate-kho-move-to-kernel-liveupdate-fix
++++ a/kernel/liveupdate/Kconfig
+@@ -1,6 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
  
- 	ret = dev_set_name(&mdevice->device, "hmm_dmirror%u", id);
- 	if (ret)
--		return ret;
-+		goto put_device;
+ menu "Live Update and Kexec HandOver"
++	depends on !DEFERRED_STRUCT_PAGE_INIT
  
- 	ret = cdev_device_add(&mdevice->cdevice, &mdevice->device);
- 	if (ret)
--		return ret;
-+		goto put_device;
- 
- 	/* Build a list of free ZONE_DEVICE struct pages */
- 	return dmirror_allocate_chunk(mdevice, NULL, false);
-+
-+put_device:
-+	put_device(&mdevice->device);
-+	return ret;
- }
- 
- static void dmirror_device_remove(struct dmirror_device *mdevice)
- {
- 	dmirror_device_remove_chunks(mdevice);
- 	cdev_device_del(&mdevice->cdevice, &mdevice->device);
-+	put_device(&mdevice->device);
- }
- 
- static int __init hmm_dmirror_init(void)
+ config KEXEC_HANDOVER
+ 	bool "kexec handover"
 _
 
-Patches currently in -mm which might be from make24@iscas.ac.cn are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-hmm-test-fix-error-handling-in-dmirror_device_init.patch
+liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area.patch
+liveupdate-kho-warn-and-fail-on-metadata-or-preserved-memory-in-scratch-area-fix-2.patch
+liveupdate-kho-increase-metadata-bitmap-size-to-page_size.patch
+liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator.patch
+lib-test_kho-check-if-kho-is-enabled.patch
+kho-make-debugfs-interface-optional.patch
+kho-add-interfaces-to-unpreserve-folios-page-ranges-and-vmalloc.patch
+memblock-unpreserve-memory-in-case-of-error.patch
+test_kho-unpreserve-memory-in-case-of-error.patch
+kho-dont-unpreserve-memory-during-abort.patch
+liveupdate-kho-move-to-kernel-liveupdate.patch
+liveupdate-kho-move-to-kernel-liveupdate-fix.patch
+maintainers-update-kho-maintainers.patch
+liveupdate-luo_core-luo_ioctl-live-update-orchestrator.patch
+liveupdate-luo_core-integrate-with-kho.patch
+reboot-call-liveupdate_reboot-before-kexec.patch
+liveupdate-kconfig-make-debugfs-optional.patch
+liveupdate-kho-when-live-update-add-kho-image-during-kexec-load.patch
+liveupdate-luo_session-add-sessions-support.patch
+liveupdate-luo_ioctl-add-user-interface.patch
+liveupdate-luo_file-implement-file-systems-callbacks.patch
+liveupdate-luo_session-add-ioctls-for-file-preservation-and-state-management.patch
+liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
+docs-add-luo-documentation.patch
+maintainers-add-liveupdate-entry.patch
+selftests-liveupdate-add-userspace-api-selftests.patch
+selftests-liveupdate-add-kexec-based-selftest-for-session-lifecycle.patch
+selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
+tests-liveupdate-add-in-kernel-liveupdate-test.patch
 
