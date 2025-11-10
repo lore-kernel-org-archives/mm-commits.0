@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F27B1239E75
-	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2025 20:05:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CBA11E5B68
+	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2025 23:37:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762805104; cv=none; b=s0Fuqs48Y9GVn9LmquMQdQehr3JRBevG9GhmLQZLhORA5Ba7XkyAbatL+ptcvXgKhJkWqvNiV0G9UUGIpT0CMKWokbwlYjc+t37ruwHCw/I2eBewS1Ch4vjyqC2ozEu0RWH4CSQAQrV34U/qndnJ2r1WP4gwmjdfOc7jdGdAY34=
+	t=1762817823; cv=none; b=sDd9j4rHfZ8RQa/7uetVDLWvoCgLn1d4IXumJhqBOP4CDvOT6rHXrkpWMHEu+QpH3fIaR67rUW4kK+s9EjS1aWx5n/vEVcVZ/9j286/iZ+ZaHrXGRU9ANjSVTfexcp7FXtD7tldyou0ymMu4bwWNughcn4I9ZdmmZVs1/uU1A4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762805104; c=relaxed/simple;
-	bh=G3yxYQJ6kZ2ta0DP5uGbknPlaIikjjCRrHg+cmXNnQQ=;
-	h=Date:To:From:Subject:Message-Id; b=o4HISXPWgtjnZa4Rp192BEY42tS91ltBTm4A+1BOlpaZp1ocTOiHcZBO8Ybwa42HmnKnaF1QlCiJexfQ6tyKTEBV0rRtnosuDSjRhqOMBytao8YkzZwTheptcGBkOl3n58jtvOQAdIRTDjUmjWQDS0CYY7oBaFQmVroz35DU4a0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MImwqEx5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762817823; c=relaxed/simple;
+	bh=vyL0kXpXAFskwwAugp6lyO0iih2yJYf3HaIbxDvN5yI=;
+	h=Date:To:From:Subject:Message-Id; b=Me+g5PG4Pgl+H3CAz+LRfjBLxVgxJRqqEBLuD03bk9AFtWb/NoqCxFOp2XZpNdUUbZ0CcgySkoUpuk15vn2N45IRjDaWel0vOOPE4R+roiXeYu9wbGDx5LJcW5ts9IFK28RBfjU2IDFibSxn7Mrdww3l/cpNTz1cxpgBEBSnYxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zzT9shu3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MImwqEx5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CF9BC19424;
-	Mon, 10 Nov 2025 20:05:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zzT9shu3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FD88C4CEFB;
+	Mon, 10 Nov 2025 23:37:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762805103;
-	bh=G3yxYQJ6kZ2ta0DP5uGbknPlaIikjjCRrHg+cmXNnQQ=;
+	s=korg; t=1762817822;
+	bh=vyL0kXpXAFskwwAugp6lyO0iih2yJYf3HaIbxDvN5yI=;
 	h=Date:To:From:Subject:From;
-	b=MImwqEx5lp8Lug8+hlbXiJSV8kw/B97kDO/GOaX7k6Mg8FwFvPTJWY5vTE9ombWS3
-	 sXsWrcLSbrw0txhGpLDJlUtxi6o4K2k0lA4Jp5Dzldc2YIfTLNv5DBR4ZtEaJPXG3C
-	 W0VkAVBuk1O5gHzKYuAXEZ+ajBUUnCQRuW80wlfE=
-Date: Mon, 10 Nov 2025 12:05:02 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,roman.gushchin@linux.dev,richard.weiyang@gmail.com,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=zzT9shu3WsN/29WLLJLCHlZtgLNtkK3WPRwIZTZ9CrZJb/eIvJCnCsIDY/caPRghf
+	 VPq2iINTU+xGs+qPQFSpwmS2IBl9zdPSsM6bmsDl3rVSCixSJKX7Kl5DZ14pSFg6AD
+	 wiNnnufFOb+j85i9oo0yEJzuuFR3le+ICztxnPFI=
+Date: Mon, 10 Nov 2025 15:37:01 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,chriscli@google.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-reparent-the-split-queue-during-memcg-offline.patch added to mm-new branch
-Message-Id: <20251110200503.6CF9BC19424@smtp.kernel.org>
+Subject: + mm-add-vma_start_write_killable.patch added to mm-new branch
+Message-Id: <20251110233702.7FD88C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: thp: reparent the split queue during memcg offline
+     Subject: mm: add vma_start_write_killable()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-thp-reparent-the-split-queue-during-memcg-offline.patch
+     mm-add-vma_start_write_killable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-reparent-the-split-queue-during-memcg-offline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-vma_start_write_killable.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,179 +64,237 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: thp: reparent the split queue during memcg offline
-Date: Mon, 10 Nov 2025 16:17:58 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: add vma_start_write_killable()
+Date: Mon, 10 Nov 2025 20:32:01 +0000
 
-Similar to list_lru, the split queue is relatively independent and does
-not need to be reparented along with objcg and LRU folios (holding objcg
-lock and lru lock).  So let's apply the similar mechanism as list_lru to
-reparent the split queue separately when memcg is offine.
+Patch series "vma_start_write_killable"", v2.
 
-This is also a preparation for reparenting LRU folios.
+When we added the VMA lock, we made a major oversight in not adding a
+killable variant.  That can run us into trouble where a thread takes the
+VMA lock for read (eg handling a page fault) and then goes out to lunch
+for an hour (eg doing reclaim).  Another thread tries to modify the VMA,
+taking the mmap_lock for write, then attempts to lock the VMA for write. 
+That blocks on the first thread, and ensures that every other page fault
+now tries to take the mmap_lock for read.  Because everything's in an
+uninterruptible sleep, we can't kill the task, which makes me angry.
 
-Link: https://lkml.kernel.org/r/8703f907c4d1f7e8a2ef2bfed3036a84fa53028b.1762762324.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+This patchset just adds vma_start_write_killable() and converts one caller
+to use it.  Most users are somewhat tricky to convert, so expect follow-up
+individual patches per call-site which need careful analysis to make sure
+we've done proper cleanup.
+
+
+This patch (of 2):
+
+The vma can be held read-locked for a substantial period of time, eg if
+memory allocation needs to go into reclaim.  It's useful to be able to
+send fatal signals to threads which are waiting for the write lock.
+
+Link: https://lkml.kernel.org/r/20251110203204.1454057-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20251110203204.1454057-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Chris Li <chriscli@google.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h    |    4 +++
- include/linux/memcontrol.h |   11 ++++++++
- mm/huge_memory.c           |   44 +++++++++++++++++++++++++++++++++++
- mm/memcontrol.c            |    1 
- 4 files changed, 60 insertions(+)
+ Documentation/mm/process_addrs.rst |    9 ++++++-
+ include/linux/mmap_lock.h          |   30 ++++++++++++++++++++++-
+ mm/mmap_lock.c                     |   34 +++++++++++++++++++--------
+ tools/testing/vma/vma_internal.h   |    8 ++++++
+ 4 files changed, 69 insertions(+), 12 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-thp-reparent-the-split-queue-during-memcg-offline
-+++ a/include/linux/huge_mm.h
-@@ -415,6 +415,9 @@ static inline int split_huge_page(struct
- 	return split_huge_page_to_list_to_order(page, NULL, 0);
- }
- void deferred_split_folio(struct folio *folio, bool partially_mapped);
-+#ifdef CONFIG_MEMCG
-+void reparent_deferred_split_queue(struct mem_cgroup *memcg);
-+#endif
- 
- void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long address, bool freeze);
-@@ -647,6 +650,7 @@ static inline int try_folio_split_to_ord
- }
- 
- static inline void deferred_split_folio(struct folio *folio, bool partially_mapped) {}
-+static inline void reparent_deferred_split_queue(struct mem_cgroup *memcg) {}
- #define split_huge_pmd(__vma, __pmd, __address)	\
- 	do { } while (0)
- 
---- a/include/linux/memcontrol.h~mm-thp-reparent-the-split-queue-during-memcg-offline
-+++ a/include/linux/memcontrol.h
-@@ -1775,6 +1775,12 @@ static inline void count_objcg_events(st
- bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid);
- 
- void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg);
+--- a/Documentation/mm/process_addrs.rst~mm-add-vma_start_write_killable
++++ a/Documentation/mm/process_addrs.rst
+@@ -48,7 +48,8 @@ Terminology
+ * **VMA locks** - The VMA lock is at VMA granularity (of course) which behaves
+   as a read/write semaphore in practice. A VMA read lock is obtained via
+   :c:func:`!lock_vma_under_rcu` (and unlocked via :c:func:`!vma_end_read`) and a
+-  write lock via :c:func:`!vma_start_write` (all VMA write locks are unlocked
++  write lock via vma_start_write() or vma_start_write_killable()
++  (all VMA write locks are unlocked
+   automatically when the mmap write lock is released). To take a VMA write lock
+   you **must** have already acquired an :c:func:`!mmap_write_lock`.
+ * **rmap locks** - When trying to access VMAs through the reverse mapping via a
+@@ -907,3 +908,9 @@ Stack expansion
+ Stack expansion throws up additional complexities in that we cannot permit there
+ to be racing page faults, as a result we invoke :c:func:`!vma_start_write` to
+ prevent this in :c:func:`!expand_downwards` or :c:func:`!expand_upwards`.
 +
-+static inline bool memcg_is_dying(struct mem_cgroup *memcg)
-+{
-+	return memcg ? css_is_dying(&memcg->css) : false;
++------------------------
++Functions and structures
++------------------------
++
++.. kernel-doc:: include/linux/mmap_lock.h
+--- a/include/linux/mmap_lock.h~mm-add-vma_start_write_killable
++++ a/include/linux/mmap_lock.h
+@@ -195,7 +195,8 @@ static inline bool __is_vma_write_locked
+ 	return (vma->vm_lock_seq == *mm_lock_seq);
+ }
+ 
+-void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq);
++int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
++		int state);
+ 
+ /*
+  * Begin writing to a VMA.
+@@ -209,7 +210,30 @@ static inline void vma_start_write(struc
+ 	if (__is_vma_write_locked(vma, &mm_lock_seq))
+ 		return;
+ 
+-	__vma_start_write(vma, mm_lock_seq);
++	__vma_start_write(vma, mm_lock_seq, TASK_UNINTERRUPTIBLE);
 +}
 +
- #else
- static inline bool mem_cgroup_kmem_disabled(void)
- {
-@@ -1845,6 +1851,11 @@ static inline bool mem_cgroup_node_allow
- static inline void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
- {
- }
-+
-+static inline bool memcg_is_dying(struct mem_cgroup *memcg)
++/**
++ * vma_start_write_killable - Begin writing to a VMA.
++ * @vma: The VMA we are going to modify.
++ *
++ * Exclude concurrent readers under the per-VMA lock until the currently
++ * write-locked mmap_lock is dropped or downgraded.
++ *
++ * Context: May sleep while waiting for readers to drop the vma read lock.
++ * Caller must already hold the mmap_lock for write.
++ *
++ * Return: 0 for a successful acquisition.  -EINTR if a fatal signal was
++ * received.
++ */
++static inline __must_check
++int vma_start_write_killable(struct vm_area_struct *vma)
 +{
-+	return false;
-+}
- #endif /* CONFIG_MEMCG */
++	unsigned int mm_lock_seq;
++
++	if (__is_vma_write_locked(vma, &mm_lock_seq))
++		return 0;
++	return __vma_start_write(vma, mm_lock_seq, TASK_KILLABLE);
+ }
  
- #if defined(CONFIG_MEMCG) && defined(CONFIG_ZSWAP)
---- a/mm/huge_memory.c~mm-thp-reparent-the-split-queue-during-memcg-offline
-+++ a/mm/huge_memory.c
-@@ -1118,8 +1118,19 @@ static struct deferred_split *split_queu
+ static inline void vma_assert_write_locked(struct vm_area_struct *vma)
+@@ -283,6 +307,8 @@ static inline bool mmap_lock_speculate_r
+ static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt) {}
+ static inline void vma_end_read(struct vm_area_struct *vma) {}
+ static inline void vma_start_write(struct vm_area_struct *vma) {}
++static inline __must_check
++int vma_start_write_killable(struct vm_area_struct *vma) { return 0; }
+ static inline void vma_assert_write_locked(struct vm_area_struct *vma)
+ 		{ mmap_assert_write_locked(vma->vm_mm); }
+ static inline void vma_assert_attached(struct vm_area_struct *vma) {}
+--- a/mm/mmap_lock.c~mm-add-vma_start_write_killable
++++ a/mm/mmap_lock.c
+@@ -45,8 +45,15 @@ EXPORT_SYMBOL(__mmap_lock_do_trace_relea
+ 
+ #ifdef CONFIG_MMU
+ #ifdef CONFIG_PER_VMA_LOCK
+-static inline bool __vma_enter_locked(struct vm_area_struct *vma, bool detaching)
++/*
++ * Return value: 0 if vma detached,
++ * 1 if vma attached with no readers,
++ * -EINTR if signal received,
++ */
++static inline int __vma_enter_locked(struct vm_area_struct *vma,
++		bool detaching, int state)
  {
- 	struct deferred_split *queue;
++	int err;
+ 	unsigned int tgt_refcnt = VMA_LOCK_OFFSET;
  
-+retry:
- 	queue = memcg_split_queue(nid, memcg);
- 	spin_lock(&queue->split_queue_lock);
-+	/*
-+	 * There is a period between setting memcg to dying and reparenting
-+	 * deferred split queue, and during this period the THPs in the deferred
-+	 * split queue will be hidden from the shrinker side.
-+	 */
-+	if (unlikely(memcg_is_dying(memcg))) {
-+		spin_unlock(&queue->split_queue_lock);
-+		memcg = parent_mem_cgroup(memcg);
-+		goto retry;
+ 	/* Additional refcnt if the vma is attached. */
+@@ -58,15 +65,19 @@ static inline bool __vma_enter_locked(st
+ 	 * vm_refcnt. mmap_write_lock prevents racing with vma_mark_attached().
+ 	 */
+ 	if (!refcount_add_not_zero(VMA_LOCK_OFFSET, &vma->vm_refcnt))
+-		return false;
++		return 0;
+ 
+ 	rwsem_acquire(&vma->vmlock_dep_map, 0, 0, _RET_IP_);
+-	rcuwait_wait_event(&vma->vm_mm->vma_writer_wait,
++	err = rcuwait_wait_event(&vma->vm_mm->vma_writer_wait,
+ 		   refcount_read(&vma->vm_refcnt) == tgt_refcnt,
+-		   TASK_UNINTERRUPTIBLE);
++		   state);
++	if (err) {
++		rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
++		return err;
 +	}
+ 	lock_acquired(&vma->vmlock_dep_map, _RET_IP_);
  
- 	return queue;
+-	return true;
++	return 1;
  }
-@@ -1129,8 +1140,14 @@ split_queue_lock_irqsave(int nid, struct
+ 
+ static inline void __vma_exit_locked(struct vm_area_struct *vma, bool *detached)
+@@ -75,16 +86,19 @@ static inline void __vma_exit_locked(str
+ 	rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
+ }
+ 
+-void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq)
++int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
++		int state)
  {
- 	struct deferred_split *queue;
+-	bool locked;
++	int locked;
  
-+retry:
- 	queue = memcg_split_queue(nid, memcg);
- 	spin_lock_irqsave(&queue->split_queue_lock, *flags);
-+	if (unlikely(memcg_is_dying(memcg))) {
-+		spin_unlock_irqrestore(&queue->split_queue_lock, *flags);
-+		memcg = parent_mem_cgroup(memcg);
-+		goto retry;
-+	}
+ 	/*
+ 	 * __vma_enter_locked() returns false immediately if the vma is not
+ 	 * attached, otherwise it waits until refcnt is indicating that vma
+ 	 * is attached with no readers.
+ 	 */
+-	locked = __vma_enter_locked(vma, false);
++	locked = __vma_enter_locked(vma, false, state);
++	if (locked < 0)
++		return locked;
  
- 	return queue;
+ 	/*
+ 	 * We should use WRITE_ONCE() here because we can have concurrent reads
+@@ -100,6 +114,8 @@ void __vma_start_write(struct vm_area_st
+ 		__vma_exit_locked(vma, &detached);
+ 		WARN_ON_ONCE(detached); /* vma should remain attached */
+ 	}
++
++	return 0;
  }
-@@ -4391,6 +4408,33 @@ next:
- 	return split;
+ EXPORT_SYMBOL_GPL(__vma_start_write);
+ 
+@@ -118,7 +134,7 @@ void vma_mark_detached(struct vm_area_st
+ 	 */
+ 	if (unlikely(!refcount_dec_and_test(&vma->vm_refcnt))) {
+ 		/* Wait until vma is detached with no readers. */
+-		if (__vma_enter_locked(vma, true)) {
++		if (__vma_enter_locked(vma, true, TASK_UNINTERRUPTIBLE)) {
+ 			bool detached;
+ 
+ 			__vma_exit_locked(vma, &detached);
+--- a/tools/testing/vma/vma_internal.h~mm-add-vma_start_write_killable
++++ a/tools/testing/vma/vma_internal.h
+@@ -953,6 +953,14 @@ static inline void vma_start_write(struc
+ 	vma->vm_lock_seq++;
  }
  
-+#ifdef CONFIG_MEMCG
-+void reparent_deferred_split_queue(struct mem_cgroup *memcg)
++static inline __must_check
++int vma_start_write_killable(struct vm_area_struct *vma)
 +{
-+	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
-+	struct deferred_split *ds_queue = &memcg->deferred_split_queue;
-+	struct deferred_split *parent_ds_queue = &parent->deferred_split_queue;
-+	int nid;
-+
-+	spin_lock_irq(&ds_queue->split_queue_lock);
-+	spin_lock_nested(&parent_ds_queue->split_queue_lock, SINGLE_DEPTH_NESTING);
-+
-+	if (!ds_queue->split_queue_len)
-+		goto unlock;
-+
-+	list_splice_tail_init(&ds_queue->split_queue, &parent_ds_queue->split_queue);
-+	parent_ds_queue->split_queue_len += ds_queue->split_queue_len;
-+	ds_queue->split_queue_len = 0;
-+
-+	for_each_node(nid)
-+		set_shrinker_bit(parent, nid, shrinker_id(deferred_split_shrinker));
-+
-+unlock:
-+	spin_unlock(&parent_ds_queue->split_queue_lock);
-+	spin_unlock_irq(&ds_queue->split_queue_lock);
++	/* Used to indicate to tests that a write operation has begun. */
++	vma->vm_lock_seq++;
++	return 0;
 +}
-+#endif
 +
- #ifdef CONFIG_DEBUG_FS
- static void split_huge_pages_all(void)
- {
---- a/mm/memcontrol.c~mm-thp-reparent-the-split-queue-during-memcg-offline
-+++ a/mm/memcontrol.c
-@@ -3920,6 +3920,7 @@ static void mem_cgroup_css_offline(struc
- 	zswap_memcg_offline_cleanup(memcg);
- 
- 	memcg_offline_kmem(memcg);
-+	reparent_deferred_split_queue(memcg);
- 	reparent_shrinker_deferred(memcg);
- 	wb_memcg_offline(memcg);
- 	lru_gen_offline_memcg(memcg);
+ static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
+ 					 unsigned long start,
+ 					 unsigned long end,
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-vmstat-correct-the-comment-above-preempt_disable_nested.patch
-mm-thp-reparent-the-split-queue-during-memcg-offline.patch
+hugetlb-optimise-hugetlb_folio_init_tail_vmemmap.patch
+migrate-optimise-alloc_migration_target.patch
+memory_hotplug-optimise-try_offline_memory_block.patch
+mm-constify-__dump_folio-arguments.patch
+mm-add-vma_start_write_killable.patch
+mm-use-vma_start_write_killable-in-dup_mmap.patch
 
