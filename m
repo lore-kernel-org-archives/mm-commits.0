@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2EBF31CA4E
-	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2025 18:20:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDA1F27B345
+	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2025 18:39:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762798825; cv=none; b=H45E1t8y4mUuktEi/8TlkZd+kzudsd4H6ZkflBK4Rg18urDcNpkmwsWDe4w/3y43ZT9S3IXewbVgdIjIYNkynC7TOUbQIb1xgoIHmI2paWEUyarJRSUmm6ChcK6R/ublNoF+W4/DHshY6+z3rzDiggc4uU8kVPM6YsR9RPbKLwA=
+	t=1762799975; cv=none; b=OfQC4C8Jq4W2UfEpHKtDzh2Y2j3Jo7gzF7IJuRPyMw8EI9XDZHJ0D1M+iU2ESjGX/VfXLstaOa9lgXE1jsW3fHrrOPmikv86WkZ9ZjOjTPU6BYhZy4PzmI3N8ExMH1AaTuGk5SI6RIEncdGHZWTele0RGe48ZmvvdNnkE/5VyhM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762798825; c=relaxed/simple;
-	bh=ZWHEquNMzRYGwx+8oaQ7ok7ADcsuxlZq8w9GN2qECKc=;
-	h=Date:To:From:Subject:Message-Id; b=BuXDKVIoel61i/3i4oTMVNsIOIxRyn+B6VbXnBpuT9c6Qa1bJjaagNLeufjzeCJ9ZtQeS/ps2aq1GtjmkmiTOdAtSaV3M8cxI6YH4emO+qOeT30gOAte/aG6ILeKyJyuoh1MRBCx5HIBTXCMj3LEVYf+hiHJo+uPN5zf3UYlrVo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a6eLRYbu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762799975; c=relaxed/simple;
+	bh=tbRUScvHNTopValTZGLp0I/dNYzj22Y1Zu3TPyBZoxE=;
+	h=Date:To:From:Subject:Message-Id; b=WDkgV7L6vENZc2QoT17RDSg0rnt8dbtGj5ctffAJnhab+BRjK/UMA4LfeRvk1u61muxIlp4anAYW5atnIgdPREviYeyJHToi+KKTpBAp3jRyJvIjLwLOKxRE5UbFUSRRt0clzm5JoBZDPpWOBH/hZl+BHv97KHc47nmWiDNRZBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tj87QlCN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a6eLRYbu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59392C4CEFB;
-	Mon, 10 Nov 2025 18:20:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tj87QlCN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62675C116D0;
+	Mon, 10 Nov 2025 18:39:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762798825;
-	bh=ZWHEquNMzRYGwx+8oaQ7ok7ADcsuxlZq8w9GN2qECKc=;
+	s=korg; t=1762799974;
+	bh=tbRUScvHNTopValTZGLp0I/dNYzj22Y1Zu3TPyBZoxE=;
 	h=Date:To:From:Subject:From;
-	b=a6eLRYbuI5mF1G22Y7ysKXPA6+L+TcXED8YQalQUHzAwjdgTjOJmg9K+ULW2s9VO4
-	 zETHe0q+2kswtIbrotQqfUrQ+mn1U06S7PV29jgQaJlixONreejntmxIvBMVc8JWYk
-	 M+mdk7SexNo4DVftGagaet8CY7udOSl9PTfvm5Qo=
-Date: Mon, 10 Nov 2025 10:20:24 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Tj87QlCN9cmrIGBgCLzef+5DJ2mfcAf97mWO8/yNIEhgcRB9aEejyTMjGm6/hH5fO
+	 YUl2tVADFE4pSXI740nbzywI/aj3k3ZG1FQZTvCC0nTS7wgq5Symrcf5NsaVp8nQXi
+	 9R/uraLIp1d1rat3FuU6eX9UXoZcLHMwLbRQMb8Y=
+Date: Mon, 10 Nov 2025 10:39:33 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch added to mm-new branch
-Message-Id: <20251110182025.59392C4CEFB@smtp.kernel.org>
+Subject: + mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch added to mm-new branch
+Message-Id: <20251110183934.62675C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix
+     Subject: mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch
+     mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,43 +65,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix
-Date: Mon, 10 Nov 2025 17:35:11 +0000
+Subject: mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix
+Date: Mon, 10 Nov 2025 17:41:15 +0000
 
-make sparse & clang happy
+trivial comment fixup
 
-Link: https://lkml.kernel.org/r/b2fb32db-1edc-4420-ae42-96f1efa9b7f9@lucifer.local
+Link: https://lkml.kernel.org/r/0de18722-d638-48b5-8649-7b621f6f7648@lucifer.local
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix
-+++ a/include/linux/mm.h
-@@ -886,7 +886,7 @@ static inline void vma_flag_set_atomic(s
- 		vma_assert_locked(vma);
- 
- 	if (__vma_flag_atomic_valid(vma, bit))
--		set_bit(bit, &vma->__vm_flags);
-+		set_bit(bit, &ACCESS_PRIVATE(vma, __vm_flags));
- }
- 
- /*
-@@ -899,7 +899,9 @@ static inline void vma_flag_set_atomic(s
- static inline bool vma_flag_test_atomic(struct vm_area_struct *vma, int bit)
- {
- 	if (__vma_flag_atomic_valid(vma, bit))
--		return test_bit(bit, &vma->__vm_flags);
-+		return test_bit(bit, &vma->vm_flags);
-+
-+	return false;
- }
- 
- static inline void vma_set_anonymous(struct vm_area_struct *vma)
+--- a/mm/khugepaged.c~mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix
++++ a/mm/khugepaged.c
+@@ -1806,9 +1806,8 @@ static void retract_page_tables(struct a
+ 		 * userfaultfd_wp() vmas.  But since the mmap_lock is not held,
+ 		 * it is still possible for a racing userfaultfd_ioctl() or
+ 		 * madvise() to have inserted ptes or markers.  Now that we hold
+-		 * ptlock, repeating the anon_vma check protects from one
+-		 * category, and repeating the userfaultfd_wp() check from
+-		 * another.
++		* ptlock, repeating the retractable checks protects us from
++		* races against the prior checks.
+ 		 */
+ 		if (likely(file_backed_vma_is_retractable(vma))) {
+ 			pgt_pmd = pmdp_collapse_flush(vma, addr, pmd);
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
@@ -144,6 +134,7 @@ mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch
 mm-implement-sticky-vma-flags.patch
 mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
 mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
 tools-testing-vma-add-vma-sticky-userland-tests.patch
 tools-testing-selftests-mm-add-madv_collapse-test-case.patch
 tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
