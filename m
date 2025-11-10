@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C86492D77E2;
-	Mon, 10 Nov 2025 05:20:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431332D77E2;
+	Mon, 10 Nov 2025 05:20:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762752031; cv=none; b=TvmSbgzXjUMsGDhhtZ+m3ywn6EvfnioElNyZBIvO2nxezkn2XZ4RiFBjBu9gWELq7ZQ/Kio58bTW7Icp2vtuNvaOQ+QH/sd5mWvBKPSjw54MQH6NYo2CMy/X58+O8Qvj5k8pVu/cVWBsodhVwVkFZVZ1bmqZe4a8PxjNP/2dJl0=
+	t=1762752033; cv=none; b=bEHSyNxMMbGVf9KGOG4Orcp5IxwAsBg57EqeU7RlafO2Zhpg92Hk3wAalryqHY27e89hkBOfP3cvuhYi/9TJlR2FOeTVv3nExJ7aemL+1xQwikH6yBL8IYGtC4fOR9Qdr0RTLgZ05kJyH6JXKcXXZ0/uZsEG2vcxs3Xrplgl7FE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762752031; c=relaxed/simple;
-	bh=81dMDCtda24OugAL5m59kF/288E53Te81uv5lpeZhgs=;
-	h=Date:To:From:Subject:Message-Id; b=asVkFmdcqUDbTYxAY7ZYSH+WomClndYX4vDMvJDyhIXqdv6VIZnrU93oDR3N3dyotlgBa4cOj7FVAftHiYt/cUEhFYa558+FZk3WY47ZXgbG3Xi40pWMyeGzH+ExSqhAI7IQZioOyrdh4HGmMG/s3wrOOO94iAqCKWJO9QhoqVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FicfdIPd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762752033; c=relaxed/simple;
+	bh=DBEfTkQm+hy3fCYMvSaqQ9zss0ath99Vs2sp7EkV8j4=;
+	h=Date:To:From:Subject:Message-Id; b=M5B83XHRn59rHjow1NB5p9sNpw/LfO/cX3JZpGZcc7N8HuMwIISeATApSeGa42qPggpAXdi5OyQGe8kKP4QMxT+OeVNkZvykqKUG4gi/g7fJ4UwyA3La4m4guEHmPt6bWf4DWTUH2MceiBVPuhyCXMru9WpC6AXVRjSgD/yH6Cs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GHeIPF2V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FicfdIPd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88FD0C4CEFB;
-	Mon, 10 Nov 2025 05:20:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GHeIPF2V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 178BFC116B1;
+	Mon, 10 Nov 2025 05:20:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762752031;
-	bh=81dMDCtda24OugAL5m59kF/288E53Te81uv5lpeZhgs=;
+	s=korg; t=1762752033;
+	bh=DBEfTkQm+hy3fCYMvSaqQ9zss0ath99Vs2sp7EkV8j4=;
 	h=Date:To:From:Subject:From;
-	b=FicfdIPdmVU+H8ZQGX6WZBovVBKLQ5glN/yztXNgco933RM0H2SS/p3vebcqfxtXq
-	 sU1EquHTTObbIrXdCBF+tHgsxGAE2CGeh5x31pn4PqALI+GANQTjL5edLFX/+C3UjD
-	 behuR+Ah2R56lTwtbILB4u/byx4/96NiwxC/BKM4=
-Date: Sun, 09 Nov 2025 21:20:30 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,rientjes@google.com,cl@gentwo.org,gehao@kylinos.cn,akpm@linux-foundation.org
+	b=GHeIPF2V7Wrur6DSCyIOY5zM/tZtivfWMiz5ne/KE3Q1qBcGpIV+Kh4PZPFcfoRuW
+	 l6Av/S9UcTmhKT49eOCz9fEPHdOA1MIoTPAbn0gB8KxBKjAr/fMacS3l2O1EoEdjCh
+	 UosrU52TpqYMWeDS5KIvwVMRR6q37GXNlAwe2x+M=
+Date: Sun, 09 Nov 2025 21:20:32 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@oracle.com,martin@kaiser.cx,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext.patch removed from -mm tree
-Message-Id: <20251110052031.88FD0C4CEFB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-fix-tracepoint-string-pointers.patch removed from -mm tree
+Message-Id: <20251110052033.178BFC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,155 +35,185 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: codetag: debug: handle existing CODETAG_EMPTY in mark_objexts_empty for slabobj_ext
+     Subject: maple_tree: fix tracepoint string pointers
 has been removed from the -mm tree.  Its filename was
-     codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext.patch
+     maple_tree-fix-tracepoint-string-pointers.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Ge <gehao@kylinos.cn>
-Subject: codetag: debug: handle existing CODETAG_EMPTY in mark_objexts_empty for slabobj_ext
-Date: Wed, 29 Oct 2025 09:43:17 +0800
+From: Martin Kaiser <martin@kaiser.cx>
+Subject: maple_tree: fix tracepoint string pointers
+Date: Thu, 30 Oct 2025 16:55:05 +0100
 
-When alloc_slab_obj_exts() fails and then later succeeds in allocating a
-slab extension vector, it calls handle_failed_objexts_alloc() to mark all
-objects in the vector as empty.  As a result all objects in this slab
-(slabA) will have their extensions set to CODETAG_EMPTY.
+maple_tree tracepoints contain pointers to function names. Such a pointer
+is saved when a tracepoint logs an event. There's no guarantee that it's
+still valid when the event is parsed later and the pointer is dereferenced.
 
-Later on if this slabA is used to allocate a slabobj_ext vector for
-another slab (slabB), we end up with the slabB->obj_exts pointing to a
-slabobj_ext vector that itself has a non-NULL slabobj_ext equal to
-CODETAG_EMPTY.  When slabB gets freed, free_slab_obj_exts() is called to
-free slabB->obj_exts vector.  
+The kernel warns about these unsafe pointers.
 
-free_slab_obj_exts() calls mark_objexts_empty(slabB->obj_exts) which will
-generate a warning because it expects slabobj_ext vectors to have a NULL
-obj_ext, not CODETAG_EMPTY.
+	event 'ma_read' has unsafe pointer field 'fn'
+	WARNING: kernel/trace/trace.c:3779 at ignore_event+0x1da/0x1e4
 
-Modify mark_objexts_empty() to skip the warning and setting the obj_ext
-value if it's already set to CODETAG_EMPTY.
+Mark the function names as tracepoint_string() to fix the events.
 
+One case that doesn't work without my patch would be trace-cmd record
+to save the binary ringbuffer and trace-cmd report to parse it in
+userspace.  The address of __func__ can't be dereferenced from
+userspace but tracepoint_string will add an entry to
+/sys/kernel/tracing/printk_formats
 
-To quickly detect this WARN, I modified the code from
-WARN_ON(slab_exts[offs].ref.ct) to BUG_ON(slab_exts[offs].ref.ct == 1);
-
-We then obtained this message:
-
-[21630.898561] ------------[ cut here ]------------
-[21630.898596] kernel BUG at mm/slub.c:2050!
-[21630.898611] Internal error: Oops - BUG: 00000000f2000800 [#1] SMP
-[21630.900372] Modules linked in: squashfs isofs vfio_iommu_type1 
-vhost_vsock vfio vhost_net vmw_vsock_virtio_transport_common vhost tap 
-vhost_iotlb iommufd vsock binfmt_misc nfsv3 nfs_acl nfs lockd grace 
-netfs tls rds dns_resolver tun brd overlay ntfs3 exfat btrfs 
-blake2b_generic xor xor_neon raid6_pq loop sctp ip6_udp_tunnel 
-udp_tunnel nft_fib_inet nft_fib_ipv4 nft_fib_ipv6 nft_fib 
-nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 nft_reject nft_ct 
-nft_chain_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 
-nf_tables rfkill ip_set sunrpc vfat fat joydev sg sch_fq_codel nfnetlink 
-virtio_gpu sr_mod cdrom drm_client_lib virtio_dma_buf drm_shmem_helper 
-drm_kms_helper drm ghash_ce backlight virtio_net virtio_blk virtio_scsi 
-net_failover virtio_console failover virtio_mmio dm_mirror 
-dm_region_hash dm_log dm_multipath dm_mod fuse i2c_dev virtio_pci 
-virtio_pci_legacy_dev virtio_pci_modern_dev virtio virtio_ring autofs4 
-aes_neon_bs aes_ce_blk [last unloaded: hwpoison_inject]
-[21630.909177] CPU: 3 UID: 0 PID: 3787 Comm: kylin-process-m Kdump: 
-loaded Tainted: G        W           6.18.0-rc1+ #74 PREEMPT(voluntary)
-[21630.910495] Tainted: [W]=WARN
-[21630.910867] Hardware name: QEMU KVM Virtual Machine, BIOS unknown 
-2/2/2022
-[21630.911625] pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS 
-BTYPE=--)
-[21630.912392] pc : __free_slab+0x228/0x250
-[21630.912868] lr : __free_slab+0x18c/0x250[21630.913334] sp : 
-ffff8000a02f73e0
-[21630.913830] x29: ffff8000a02f73e0 x28: fffffdffc43fc800 x27: 
-ffff0000c0011c40
-[21630.914677] x26: ffff0000c000cac0 x25: ffff00010fe5e5f0 x24: 
-ffff000102199b40
-[21630.915469] x23: 0000000000000003 x22: 0000000000000003 x21: 
-ffff0000c0011c40
-[21630.916259] x20: fffffdffc4086600 x19: fffffdffc43fc800 x18: 
-0000000000000000
-[21630.917048] x17: 0000000000000000 x16: 0000000000000000 x15: 
-0000000000000000
-[21630.917837] x14: 0000000000000000 x13: 0000000000000000 x12: 
-ffff70001405ee66
-[21630.918640] x11: 1ffff0001405ee65 x10: ffff70001405ee65 x9 : 
-ffff800080a295dc
-[21630.919442] x8 : ffff8000a02f7330 x7 : 0000000000000000 x6 : 
-0000000000003000
-[21630.920232] x5 : 0000000024924925 x4 : 0000000000000001 x3 : 
-0000000000000007
-[21630.921021] x2 : 0000000000001b40 x1 : 000000000000001f x0 : 
-0000000000000001
-[21630.921810] Call trace:
-[21630.922130]  __free_slab+0x228/0x250 (P)
-[21630.922669]  free_slab+0x38/0x118
-[21630.923079]  free_to_partial_list+0x1d4/0x340
-[21630.923591]  __slab_free+0x24c/0x348
-[21630.924024]  ___cache_free+0xf0/0x110
-[21630.924468]  qlist_free_all+0x78/0x130
-[21630.924922]  kasan_quarantine_reduce+0x114/0x148
-[21630.925525]  __kasan_slab_alloc+0x7c/0xb0
-[21630.926006]  kmem_cache_alloc_noprof+0x164/0x5c8
-[21630.926699]  __alloc_object+0x44/0x1f8
-[21630.927153]  __create_object+0x34/0xc8
-[21630.927604]  kmemleak_alloc+0xb8/0xd8
-[21630.928052]  kmem_cache_alloc_noprof+0x368/0x5c8
-[21630.928606]  getname_flags.part.0+0xa4/0x610
-[21630.929112]  getname_flags+0x80/0xd8
-[21630.929557]  vfs_fstatat+0xc8/0xe0
-[21630.929975]  __do_sys_newfstatat+0xa0/0x100
-[21630.930469]  __arm64_sys_newfstatat+0x90/0xd8
-[21630.931046]  invoke_syscall+0xd4/0x258
-[21630.931685]  el0_svc_common.constprop.0+0xb4/0x240
-[21630.932467]  do_el0_svc+0x48/0x68
-[21630.932972]  el0_svc+0x40/0xe0
-[21630.933472]  el0t_64_sync_handler+0xa0/0xe8
-[21630.934151]  el0t_64_sync+0x1ac/0x1b0
-[21630.934923] Code: aa1803e0 97ffef2b a9446bf9 17ffff9c (d4210000)
-[21630.936461] SMP: stopping secondary CPUs
-[21630.939550] Starting crashdump kernel...
-[21630.940108] Bye!
-
-Link: https://lkml.kernel.org/r/20251029014317.1533488-1-hao.ge@linux.dev
-Fixes: 09c46563ff6d ("codetag: debug: introduce OBJEXTS_ALLOC_FAIL to mark failed slab_ext allocations")
-Signed-off-by: Hao Ge <gehao@kylinos.cn>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: gehao <gehao@kylinos.cn>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251030155537.87972-1-martin@kaiser.cx
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Martin Kaiser <martin@kaiser.cx>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ lib/maple_tree.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
---- a/mm/slub.c~codetag-debug-handle-existing-codetag_empty-in-mark_objexts_empty-for-slabobj_ext
-+++ a/mm/slub.c
-@@ -2046,7 +2046,11 @@ static inline void mark_objexts_empty(st
- 	if (slab_exts) {
- 		unsigned int offs = obj_to_index(obj_exts_slab->slab_cache,
- 						 obj_exts_slab, obj_exts);
--		/* codetag should be NULL */
+--- a/lib/maple_tree.c~maple_tree-fix-tracepoint-string-pointers
++++ a/lib/maple_tree.c
+@@ -64,6 +64,8 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/maple_tree.h>
+ 
++#define TP_FCT tracepoint_string(__func__)
 +
-+		if (unlikely(is_codetag_empty(&slab_exts[offs].ref)))
-+			return;
-+
-+		/* codetag should be NULL here */
- 		WARN_ON(slab_exts[offs].ref.ct);
- 		set_codetag_empty(&slab_exts[offs].ref);
+ /*
+  * Kernel pointer hashing renders much of the maple tree dump useless as tagged
+  * pointers get hashed to arbitrary values.
+@@ -2756,7 +2758,7 @@ static inline void mas_rebalance(struct
+ 	MA_STATE(l_mas, mas->tree, mas->index, mas->last);
+ 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
+ 
+-	trace_ma_op(__func__, mas);
++	trace_ma_op(TP_FCT, mas);
+ 
+ 	/*
+ 	 * Rebalancing occurs if a node is insufficient.  Data is rebalanced
+@@ -2997,7 +2999,7 @@ static void mas_split(struct ma_state *m
+ 	MA_STATE(prev_l_mas, mas->tree, mas->index, mas->last);
+ 	MA_STATE(prev_r_mas, mas->tree, mas->index, mas->last);
+ 
+-	trace_ma_op(__func__, mas);
++	trace_ma_op(TP_FCT, mas);
+ 
+ 	mast.l = &l_mas;
+ 	mast.r = &r_mas;
+@@ -3172,7 +3174,7 @@ static bool mas_is_span_wr(struct ma_wr_
+ 			return false;
  	}
+ 
+-	trace_ma_write(__func__, wr_mas->mas, wr_mas->r_max, entry);
++	trace_ma_write(TP_FCT, wr_mas->mas, wr_mas->r_max, entry);
+ 	return true;
+ }
+ 
+@@ -3416,7 +3418,7 @@ static noinline void mas_wr_spanning_sto
+ 	 * of data may happen.
+ 	 */
+ 	mas = wr_mas->mas;
+-	trace_ma_op(__func__, mas);
++	trace_ma_op(TP_FCT, mas);
+ 
+ 	if (unlikely(!mas->index && mas->last == ULONG_MAX))
+ 		return mas_new_root(mas, wr_mas->entry);
+@@ -3552,7 +3554,7 @@ done:
+ 	} else {
+ 		memcpy(wr_mas->node, newnode, sizeof(struct maple_node));
+ 	}
+-	trace_ma_write(__func__, mas, 0, wr_mas->entry);
++	trace_ma_write(TP_FCT, mas, 0, wr_mas->entry);
+ 	mas_update_gap(mas);
+ 	mas->end = new_end;
+ 	return;
+@@ -3596,7 +3598,7 @@ static inline void mas_wr_slot_store(str
+ 		mas->offset++; /* Keep mas accurate. */
+ 	}
+ 
+-	trace_ma_write(__func__, mas, 0, wr_mas->entry);
++	trace_ma_write(TP_FCT, mas, 0, wr_mas->entry);
+ 	/*
+ 	 * Only update gap when the new entry is empty or there is an empty
+ 	 * entry in the original two ranges.
+@@ -3717,7 +3719,7 @@ static inline void mas_wr_append(struct
+ 		mas_update_gap(mas);
+ 
+ 	mas->end = new_end;
+-	trace_ma_write(__func__, mas, new_end, wr_mas->entry);
++	trace_ma_write(TP_FCT, mas, new_end, wr_mas->entry);
+ 	return;
+ }
+ 
+@@ -3731,7 +3733,7 @@ static void mas_wr_bnode(struct ma_wr_st
+ {
+ 	struct maple_big_node b_node;
+ 
+-	trace_ma_write(__func__, wr_mas->mas, 0, wr_mas->entry);
++	trace_ma_write(TP_FCT, wr_mas->mas, 0, wr_mas->entry);
+ 	memset(&b_node, 0, sizeof(struct maple_big_node));
+ 	mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
+ 	mas_commit_b_node(wr_mas, &b_node);
+@@ -5062,7 +5064,7 @@ void *mas_store(struct ma_state *mas, vo
+ {
+ 	MA_WR_STATE(wr_mas, mas, entry);
+ 
+-	trace_ma_write(__func__, mas, 0, entry);
++	trace_ma_write(TP_FCT, mas, 0, entry);
+ #ifdef CONFIG_DEBUG_MAPLE_TREE
+ 	if (MAS_WARN_ON(mas, mas->index > mas->last))
+ 		pr_err("Error %lX > %lX " PTR_FMT "\n", mas->index, mas->last,
+@@ -5163,7 +5165,7 @@ void mas_store_prealloc(struct ma_state
+ 	}
+ 
+ store:
+-	trace_ma_write(__func__, mas, 0, entry);
++	trace_ma_write(TP_FCT, mas, 0, entry);
+ 	mas_wr_store_entry(&wr_mas);
+ 	MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
+ 	mas_destroy(mas);
+@@ -5882,7 +5884,7 @@ void *mtree_load(struct maple_tree *mt,
+ 	MA_STATE(mas, mt, index, index);
+ 	void *entry;
+ 
+-	trace_ma_read(__func__, &mas);
++	trace_ma_read(TP_FCT, &mas);
+ 	rcu_read_lock();
+ retry:
+ 	entry = mas_start(&mas);
+@@ -5925,7 +5927,7 @@ int mtree_store_range(struct maple_tree
+ 	MA_STATE(mas, mt, index, last);
+ 	int ret = 0;
+ 
+-	trace_ma_write(__func__, &mas, 0, entry);
++	trace_ma_write(TP_FCT, &mas, 0, entry);
+ 	if (WARN_ON_ONCE(xa_is_advanced(entry)))
+ 		return -EINVAL;
+ 
+@@ -6148,7 +6150,7 @@ void *mtree_erase(struct maple_tree *mt,
+ 	void *entry = NULL;
+ 
+ 	MA_STATE(mas, mt, index, index);
+-	trace_ma_op(__func__, &mas);
++	trace_ma_op(TP_FCT, &mas);
+ 
+ 	mtree_lock(mt);
+ 	entry = mas_erase(&mas);
+@@ -6485,7 +6487,7 @@ void *mt_find(struct maple_tree *mt, uns
+ 	unsigned long copy = *index;
+ #endif
+ 
+-	trace_ma_read(__func__, &mas);
++	trace_ma_read(TP_FCT, &mas);
+ 
+ 	if ((*index) > max)
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from gehao@kylinos.cn are
+Patches currently in -mm which might be from martin@kaiser.cx are
 
-mailmap-add-entry-for-hao-ge.patch
 
