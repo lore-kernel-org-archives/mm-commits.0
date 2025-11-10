@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67FE22D4816;
-	Mon, 10 Nov 2025 05:20:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3BD62E8B7D;
+	Mon, 10 Nov 2025 05:20:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762752015; cv=none; b=jBQ1jycEr87AvVloFmIyRZyQCMBY6bcTxeiksUHGR+AbANsGfk6qA633RCIiua9hMR5Q3iOz+xlAc678tZl8SGjRFArbaAUwTKVWqDVj2TQrKZNbFOwJz0U8lKGeUb1ejnbNdCTiriPNnIrkRNyC0iCIAsR+GcD0DGQMQu84cLk=
+	t=1762752017; cv=none; b=FAgYB5TyHH/6N7Xd7iRY9oEo1jS8ok7sHIlvrCOtaw+IYNOwyWzGBUbpgq2yD8x3GnpYqbIWOiw9YJLLopAN59ToRYv+dNG5+j/4yX5bzOuwQqkcqDhBNgvdw69EhZQXFJHXXiWoXEZDrcuRNwylZbRNBAS83x/YTIjpaY71at0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762752015; c=relaxed/simple;
-	bh=a5kSMJk3zU3v7F9DGhSRSE+4JfsFCh7P8r0RxyPcP6w=;
-	h=Date:To:From:Subject:Message-Id; b=B7gxLGGS+AHc86Ynfd70QsfgEsBBQ/F8rr5/ccFegSspB3TBbTWwAWAttP6wMJS97jXr1aoyj6YeRSMQoZvKFUEqdGDzNVypUVhVmnf3EUNM8M79ccD8Zp9K7qfx5BKwphrEQvomcxUlnThvpDPGtsLYo00FyGpk9vHLCVcHa/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w6pV8Lf7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762752017; c=relaxed/simple;
+	bh=OP5XpU/aCm6zwTXIrqh0QBd/RrmBWSVxeEqQf+k5Omw=;
+	h=Date:To:From:Subject:Message-Id; b=jykh1qpe55Y/6sNBoRLpq/pIG386UNAaeT0Pwu7RC2KxflrpMbTB0XFw6feKNtteNk5u4ukTigo5BJ4iaJWR3vDh7Q4NxYUzp0/qD3BxTp1zfqmkuVtm3Xcr8TDfdagpiRtM8iSVqHlj4wPiSqCRRDhei8/bZ3SAJVoAoOWkRmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nVfAuS4u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w6pV8Lf7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00489C4CEF5;
-	Mon, 10 Nov 2025 05:20:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nVfAuS4u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73BEBC19421;
+	Mon, 10 Nov 2025 05:20:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762752015;
-	bh=a5kSMJk3zU3v7F9DGhSRSE+4JfsFCh7P8r0RxyPcP6w=;
+	s=korg; t=1762752016;
+	bh=OP5XpU/aCm6zwTXIrqh0QBd/RrmBWSVxeEqQf+k5Omw=;
 	h=Date:To:From:Subject:From;
-	b=w6pV8Lf7WpSuNh743TKUwBQO6uOT1eqtwZD8ZIJxMvVnLGTylZ+yM8LTwEHD+B9dc
-	 ooNZHMbw+OP3YlH4G0RDwrwmihf8KzpJqgBZf/lqDuD1vsSsDxC+qXjweqCbne2/kA
-	 Q7NAk8+TY5HOI6qos8W2NPTx6dvfK2IGfZBtmP7U=
-Date: Sun, 09 Nov 2025 21:20:14 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,stable@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,rdunlap@infradead.org,pratyush@kernel.org,ojeda@kernel.org,masahiroy@kernel.org,jgg@ziepe.ca,graf@amazon.com,dmatlack@google.com,corbet@lwn.net,brauner@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=nVfAuS4uGyResW6CcAD1PyZs8l19oKL6DFrk/O8lTyoOQLc/9h7byIRrWSwKbAB0p
+	 PmjCigB8CL6Y69blk/Ai8ljXmTA1VDqT4b0IEeKnFogFfz4V5NgoEh2CUyIIX0nNIt
+	 Xh8EO6sBSwNVEiN37WJwyAIhj7eZ6rM/T0UcukGY=
+Date: Sun, 09 Nov 2025 21:20:15 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator.patch removed from -mm tree
-Message-Id: <20251110052015.00489C4CEF5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shmem-fix-thp-allocation-and-fallback-loop.patch removed from -mm tree
+Message-Id: <20251110052016.73BEBC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,126 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: allocate metadata directly from the buddy allocator
+     Subject: mm/shmem: fix THP allocation and fallback loop
 has been removed from the -mm tree.  Its filename was
-     liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator.patch
+     mm-shmem-fix-thp-allocation-and-fallback-loop.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: allocate metadata directly from the buddy allocator
-Date: Mon, 20 Oct 2025 20:08:52 -0400
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/shmem: fix THP allocation and fallback loop
+Date: Wed, 22 Oct 2025 18:57:19 +0800
 
-KHO allocates metadata for its preserved memory map using the slab
-allocator via kzalloc().  This metadata is temporary and is used by the
-next kernel during early boot to find preserved memory.
+The order check and fallback loop is updating the index value on every
+loop.  This will cause the index to be wrongly aligned by a larger value
+while the loop shrinks the order.
 
-A problem arises when KFENCE is enabled.  kzalloc() calls can be randomly
-intercepted by kfence_alloc(), which services the allocation from a
-dedicated KFENCE memory pool.  This pool is allocated early in boot via
-memblock.
+This may result in inserting and returning a folio of the wrong index and
+cause data corruption with some userspace workloads [1].
 
-When booting via KHO, the memblock allocator is restricted to a "scratch
-area", forcing the KFENCE pool to be allocated within it.  This creates a
-conflict, as the scratch area is expected to be ephemeral and
-overwriteable by a subsequent kexec.  If KHO metadata is placed in this
-KFENCE pool, it leads to memory corruption when the next kernel is loaded.
-
-To fix this, modify KHO to allocate its metadata directly from the buddy
-allocator instead of slab.
-
-Link: https://lkml.kernel.org/r/20251021000852.2924827-4-pasha.tatashin@soleen.com
-Fixes: fc33e4b44b27 ("kexec: enable KHO support for memory preservation")
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: David Matlack <dmatlack@google.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Samiullah Khawaja <skhawaja@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+[kasong@tencent.com: introduce a temporary variable to improve code]
+  Link: https://lkml.kernel.org/r/20251023065913.36925-1-ryncsn@gmail.com
+  Link: https://lore.kernel.org/linux-mm/CAMgjq7DqgAmj25nDUwwu1U2cSGSn8n4-Hqpgottedy0S6YYeUw@mail.gmail.com/ [1]
+Link: https://lkml.kernel.org/r/20251022105719.18321-1-ryncsn@gmail.com
+Link: https://lore.kernel.org/linux-mm/CAMgjq7DqgAmj25nDUwwu1U2cSGSn8n4-Hqpgottedy0S6YYeUw@mail.gmail.com/ [1]
+Fixes: e7a2ab7b3bb5 ("mm: shmem: add mTHP support for anonymous shmem")
+Closes: https://lore.kernel.org/linux-mm/CAMgjq7DqgAmj25nDUwwu1U2cSGSn8n4-Hqpgottedy0S6YYeUw@mail.gmail.com/
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h     |    3 +++
- kernel/kexec_handover.c |    6 +++---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ mm/shmem.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/include/linux/gfp.h~liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator
-+++ a/include/linux/gfp.h
-@@ -7,6 +7,7 @@
- #include <linux/mmzone.h>
- #include <linux/topology.h>
- #include <linux/alloc_tag.h>
-+#include <linux/cleanup.h>
- #include <linux/sched.h>
+--- a/mm/shmem.c~mm-shmem-fix-thp-allocation-and-fallback-loop
++++ a/mm/shmem.c
+@@ -1882,6 +1882,7 @@ static struct folio *shmem_alloc_and_add
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	unsigned long suitable_orders = 0;
+ 	struct folio *folio = NULL;
++	pgoff_t aligned_index;
+ 	long pages;
+ 	int error, order;
  
- struct vm_area_struct;
-@@ -463,4 +464,6 @@ static inline struct folio *folio_alloc_
- /* This should be paired with folio_put() rather than free_contig_range(). */
- #define folio_alloc_gigantic(...) alloc_hooks(folio_alloc_gigantic_noprof(__VA_ARGS__))
+@@ -1895,10 +1896,12 @@ static struct folio *shmem_alloc_and_add
+ 		order = highest_order(suitable_orders);
+ 		while (suitable_orders) {
+ 			pages = 1UL << order;
+-			index = round_down(index, pages);
+-			folio = shmem_alloc_folio(gfp, order, info, index);
+-			if (folio)
++			aligned_index = round_down(index, pages);
++			folio = shmem_alloc_folio(gfp, order, info, aligned_index);
++			if (folio) {
++				index = aligned_index;
+ 				goto allocated;
++			}
  
-+DEFINE_FREE(free_page, void *, free_page((unsigned long)_T))
-+
- #endif /* __LINUX_GFP_H */
---- a/kernel/kexec_handover.c~liveupdate-kho-allocate-metadata-directly-from-the-buddy-allocator
-+++ a/kernel/kexec_handover.c
-@@ -142,7 +142,7 @@ static void *xa_load_or_alloc(struct xar
- 	if (res)
- 		return res;
- 
--	void *elm __free(kfree) = kzalloc(PAGE_SIZE, GFP_KERNEL);
-+	void *elm __free(free_page) = (void *)get_zeroed_page(GFP_KERNEL);
- 
- 	if (!elm)
- 		return ERR_PTR(-ENOMEM);
-@@ -348,9 +348,9 @@ static_assert(sizeof(struct khoser_mem_c
- static struct khoser_mem_chunk *new_chunk(struct khoser_mem_chunk *cur_chunk,
- 					  unsigned long order)
- {
--	struct khoser_mem_chunk *chunk __free(kfree) = NULL;
-+	struct khoser_mem_chunk *chunk __free(free_page) = NULL;
- 
--	chunk = kzalloc(PAGE_SIZE, GFP_KERNEL);
-+	chunk = (void *)get_zeroed_page(GFP_KERNEL);
- 	if (!chunk)
- 		return ERR_PTR(-ENOMEM);
- 
+ 			if (pages == HPAGE_PMD_NR)
+ 				count_vm_event(THP_FILE_FALLBACK);
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-lib-test_kho-check-if-kho-is-enabled.patch
-kho-make-debugfs-interface-optional.patch
-kho-add-interfaces-to-unpreserve-folios-page-ranges-and-vmalloc.patch
-memblock-unpreserve-memory-in-case-of-error.patch
-test_kho-unpreserve-memory-in-case-of-error.patch
-kho-dont-unpreserve-memory-during-abort.patch
-liveupdate-kho-move-to-kernel-liveupdate.patch
-liveupdate-kho-move-to-kernel-liveupdate-fix.patch
-maintainers-update-kho-maintainers.patch
-liveupdate-luo_core-luo_ioctl-live-update-orchestrator.patch
-liveupdate-luo_core-integrate-with-kho.patch
-reboot-call-liveupdate_reboot-before-kexec.patch
-liveupdate-kconfig-make-debugfs-optional.patch
-liveupdate-kho-when-live-update-add-kho-image-during-kexec-load.patch
-liveupdate-luo_session-add-sessions-support.patch
-liveupdate-luo_ioctl-add-user-interface.patch
-liveupdate-luo_file-implement-file-systems-callbacks.patch
-liveupdate-luo_session-add-ioctls-for-file-preservation-and-state-management.patch
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-docs-add-luo-documentation.patch
-maintainers-add-liveupdate-entry.patch
-selftests-liveupdate-add-userspace-api-selftests.patch
-selftests-liveupdate-add-kexec-based-selftest-for-session-lifecycle.patch
-selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
+mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
+mm-swap-rename-helper-for-setup-bad-slots.patch
+mm-swap-cleanup-swap-entry-allocation-parameter.patch
+mm-migrate-swap-drop-usage-of-folio_index.patch
+mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch
+revert-mm-swap-avoid-redundant-swap-device-pinning.patch
 
