@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D09622D77E2;
-	Mon, 10 Nov 2025 05:20:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2770E2E8B80;
+	Mon, 10 Nov 2025 05:20:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762752027; cv=none; b=sEtQtwysBMGgsZNqBjjITNxEX43rZrof6/UldjyMsGG7SlyvEL1vTYxpGlt76PB4xhC7L3vC5PKImQpJ79rLGdklIFHzYRd4bIGn4QIi2z8DmslTtwARPFgPkiTWVHWQpEBRNTGGXdcINmvx2aYJui+RTfoLvXFvsyvt4vQh4zI=
+	t=1762752029; cv=none; b=uAs/FmsSPue31UqPbYchtIMTzLsGy60dVYokJv998VGnualWMcApHDRo7mh/iRalzsUpTHve2wHZSVPmqgmcDI3mY+hHO+pE62XYjYG8/AWRHSLzVOE6fDTXXYItuFkDk1bu4FAw59U2V/Piss3Gwj1kuyaOpGdjR3swkXGzlfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762752027; c=relaxed/simple;
-	bh=tRmDNEe95J00oECXbDdgGYqzjh9DrZSzS/WVd884pfs=;
-	h=Date:To:From:Subject:Message-Id; b=IRfGJuR9zFtXSunOe1zpgv91jiBdAmyTHzb4d+PvL6FmZxkWfBX4kRr4spUu3ImjZOhmSGvLOBilsPYfeCtsRDrTV+XfReDwSLtpT9xXEPBu6+4tLldbQawxXFaDx1zVNXO2IygMs/UK7BcRZY77kuJLgGXN2LEPHSXiaJ5nYGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2VAvaXFN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762752029; c=relaxed/simple;
+	bh=SSAi5UzpyTxOmTOSlSdbsQ7rZRRE+kNGF4Jlx0gm8WI=;
+	h=Date:To:From:Subject:Message-Id; b=YygHcD3/tOyseRsyXzIdUu7ysh+ERYrqOaQUzlSb1CS+UhLpFCe2oiztB+kR5CLMWrCX/YlZgwxyFfWavV7KZnIZqPnWu3VdtXZW+xXrelj4F533ntAIuY4Bif43HffGal/Aj/5uz9/0NpSjR0wzPWfDyjyEIwyhod4zCR3UETc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZW+20b/s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2VAvaXFN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6986BC19425;
-	Mon, 10 Nov 2025 05:20:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZW+20b/s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A36FBC4CEF5;
+	Mon, 10 Nov 2025 05:20:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762752027;
-	bh=tRmDNEe95J00oECXbDdgGYqzjh9DrZSzS/WVd884pfs=;
+	s=korg; t=1762752028;
+	bh=SSAi5UzpyTxOmTOSlSdbsQ7rZRRE+kNGF4Jlx0gm8WI=;
 	h=Date:To:From:Subject:From;
-	b=2VAvaXFNE8tF7VEYDj5W8maSsP++0k5oP9Pq6aJdJFmx94QERebTAUjY39Yj1Pa3g
-	 rY4cvOtXvMN6B2fwPR4HnpuQltyo5ocCOY8cx1OEL+ZpIx8Q/tlsKd2jN49xI3Yd9v
-	 vuA7gkMVtAK51AHMsAppCxwpo7ERbkYm/f5EtvyE=
-Date: Sun, 09 Nov 2025 21:20:26 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,david@redhat.com,isaacmanjarres@google.com,akpm@linux-foundation.org
+	b=ZW+20b/soE7fg4IP85SkBM9AY449fSzPRjO6tsG5jXcMULNpSkT9+eFESln2spHm7
+	 JuqSSWc1VDIY6fG4nR3FU/lMZ0xTZyEVipSJ5F7DncbJ+qsnLrBOtCV3bOlQBZwHv7
+	 psDXTxLGh3F3FWPYmHQHFXZrK9aHi6eeoHVQ2bqo=
+Date: Sun, 09 Nov 2025 21:20:28 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,matttbe@kernel.org,oberpar@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch removed from -mm tree
-Message-Id: <20251110052027.6986BC19425@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] gcov-add-support-for-gcc-15.patch removed from -mm tree
+Message-Id: <20251110052028.A36FBC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mm_init: fix hash table order logging in alloc_large_system_hash()
+     Subject: gcov: add support for GCC 15
 has been removed from the -mm tree.  Its filename was
-     mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash.patch
+     gcov-add-support-for-gcc-15.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Isaac J. Manjarres" <isaacmanjarres@google.com>
-Subject: mm/mm_init: fix hash table order logging in alloc_large_system_hash()
-Date: Tue, 28 Oct 2025 12:10:12 -0700
+From: Peter Oberparleiter <oberpar@linux.ibm.com>
+Subject: gcov: add support for GCC 15
+Date: Tue, 28 Oct 2025 12:51:25 +0100
 
-When emitting the order of the allocation for a hash table,
-alloc_large_system_hash() unconditionally subtracts PAGE_SHIFT from log
-base 2 of the allocation size.  This is not correct if the allocation size
-is smaller than a page, and yields a negative value for the order as seen
-below:
+Using gcov on kernels compiled with GCC 15 results in truncated 16-byte
+long .gcda files with no usable data.  To fix this, update GCOV_COUNTERS
+to match the value defined by GCC 15.
 
-TCP established hash table entries: 32 (order: -4, 256 bytes, linear) TCP
-bind hash table entries: 32 (order: -2, 1024 bytes, linear)
+Tested with GCC 14.3.0 and GCC 15.2.0.
 
-Use get_order() to compute the order when emitting the hash table
-information to correctly handle cases where the allocation size is smaller
-than a page:
-
-TCP established hash table entries: 32 (order: 0, 256 bytes, linear) TCP
-bind hash table entries: 32 (order: 0, 1024 bytes, linear)
-
-Link: https://lkml.kernel.org/r/20251028191020.413002-1-isaacmanjarres@google.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Isaac J. Manjarres <isaacmanjarres@google.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20251028115125.1319410-1-oberpar@linux.ibm.com
+Signed-off-by: Peter Oberparleiter <oberpar@linux.ibm.com>
+Reported-by: Matthieu Baerts <matttbe@kernel.org>
+Closes: https://github.com/linux-test-project/lcov/issues/445
+Tested-by: Matthieu Baerts <matttbe@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/gcov/gcc_4_7.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/mm_init.c~mm-mm_init-fix-hash-table-order-logging-in-alloc_large_system_hash
-+++ a/mm/mm_init.c
-@@ -2469,7 +2469,7 @@ void *__init alloc_large_system_hash(con
- 		panic("Failed to allocate %s hash table\n", tablename);
+--- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-15
++++ a/kernel/gcov/gcc_4_7.c
+@@ -18,7 +18,9 @@
+ #include <linux/mm.h>
+ #include "gcov.h"
  
- 	pr_info("%s hash table entries: %ld (order: %d, %lu bytes, %s)\n",
--		tablename, 1UL << log2qty, ilog2(size) - PAGE_SHIFT, size,
-+		tablename, 1UL << log2qty, get_order(size), size,
- 		virt ? (huge ? "vmalloc hugepage" : "vmalloc") : "linear");
- 
- 	if (_hash_shift)
+-#if (__GNUC__ >= 14)
++#if (__GNUC__ >= 15)
++#define GCOV_COUNTERS			10
++#elif (__GNUC__ >= 14)
+ #define GCOV_COUNTERS			9
+ #elif (__GNUC__ >= 10)
+ #define GCOV_COUNTERS			8
 _
 
-Patches currently in -mm which might be from isaacmanjarres@google.com are
+Patches currently in -mm which might be from oberpar@linux.ibm.com are
 
 
