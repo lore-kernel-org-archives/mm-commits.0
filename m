@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDA1F27B345
-	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2025 18:39:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CB6931B138
+	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2025 18:39:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762799975; cv=none; b=OfQC4C8Jq4W2UfEpHKtDzh2Y2j3Jo7gzF7IJuRPyMw8EI9XDZHJ0D1M+iU2ESjGX/VfXLstaOa9lgXE1jsW3fHrrOPmikv86WkZ9ZjOjTPU6BYhZy4PzmI3N8ExMH1AaTuGk5SI6RIEncdGHZWTele0RGe48ZmvvdNnkE/5VyhM=
+	t=1762799977; cv=none; b=FpxsKc7qe2Yuyp6DTyba2ocJx/HJeIXaK5rGFNHxXSSqcCj+vdu6p7V0cohHUfqwoSYz64C+Z43rzL4Ko7+YtjLaKEBa1vaIYX0bTbxCb6EWgNEdOqHLv/NboH3P8kcwZ3B0wUlc60agLg9SaOj5mEp7sxSmpm5jhdgfxEAtDF0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762799975; c=relaxed/simple;
-	bh=tbRUScvHNTopValTZGLp0I/dNYzj22Y1Zu3TPyBZoxE=;
-	h=Date:To:From:Subject:Message-Id; b=WDkgV7L6vENZc2QoT17RDSg0rnt8dbtGj5ctffAJnhab+BRjK/UMA4LfeRvk1u61muxIlp4anAYW5atnIgdPREviYeyJHToi+KKTpBAp3jRyJvIjLwLOKxRE5UbFUSRRt0clzm5JoBZDPpWOBH/hZl+BHv97KHc47nmWiDNRZBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tj87QlCN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762799977; c=relaxed/simple;
+	bh=hDbKyaN4zII/v0rYm+zkYNBne60gGmTEsHjQZGRFTKI=;
+	h=Date:To:From:Subject:Message-Id; b=tHj+XfW3g1uaVtJpAwME1xuwDm3RoIfJktVyhHjtV44zJau1JYGK+jYyPgefAnmXk84F919/8YpjQsLSrrZeb29b0G58krkYOg24/3ZW9uvly7ckQoQfsiiLDzHVNGPqdRH++ddOI/cw1Naq8PjaQZiHkCKOk2GTU3DUxZokO1I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qIUWewBD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tj87QlCN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62675C116D0;
-	Mon, 10 Nov 2025 18:39:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qIUWewBD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89740C116D0;
+	Mon, 10 Nov 2025 18:39:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762799974;
-	bh=tbRUScvHNTopValTZGLp0I/dNYzj22Y1Zu3TPyBZoxE=;
+	s=korg; t=1762799976;
+	bh=hDbKyaN4zII/v0rYm+zkYNBne60gGmTEsHjQZGRFTKI=;
 	h=Date:To:From:Subject:From;
-	b=Tj87QlCN9cmrIGBgCLzef+5DJ2mfcAf97mWO8/yNIEhgcRB9aEejyTMjGm6/hH5fO
-	 YUl2tVADFE4pSXI740nbzywI/aj3k3ZG1FQZTvCC0nTS7wgq5Symrcf5NsaVp8nQXi
-	 9R/uraLIp1d1rat3FuU6eX9UXoZcLHMwLbRQMb8Y=
-Date: Mon, 10 Nov 2025 10:39:33 -0800
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=qIUWewBD1yfQ1dFXDmTUa/U/V+NJJ2hIbtfTGU8yAzltyR9/uBxJdJaM9icWhpTC1
+	 tHOjJmp7eM+R/5an9YcO1ZY/a3P5T8/klO4g7o/Uvb6pw01loCmwVUgNGYzdNdeYJ5
+	 dfAPenVADdat0gUv0gT+AX8jkbI3LvjJ2sIX1Qyk=
+Date: Mon, 10 Nov 2025 10:39:35 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch added to mm-new branch
-Message-Id: <20251110183934.62675C116D0@smtp.kernel.org>
+Subject: + mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix.patch added to mm-new branch
+Message-Id: <20251110183936.89740C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix
+     Subject: mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
+     mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,78 +64,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix
-Date: Mon, 10 Nov 2025 17:41:15 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix
+Date: Mon Nov 10 10:38:51 AM PST 2025
 
-trivial comment fixup
+fix whitespace oddity
 
-Link: https://lkml.kernel.org/r/0de18722-d638-48b5-8649-7b621f6f7648@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/khugepaged.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/khugepaged.c~mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix
+--- a/mm/khugepaged.c~mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix
 +++ a/mm/khugepaged.c
-@@ -1806,9 +1806,8 @@ static void retract_page_tables(struct a
+@@ -1806,8 +1806,8 @@ static void retract_page_tables(struct a
  		 * userfaultfd_wp() vmas.  But since the mmap_lock is not held,
  		 * it is still possible for a racing userfaultfd_ioctl() or
  		 * madvise() to have inserted ptes or markers.  Now that we hold
--		 * ptlock, repeating the anon_vma check protects from one
--		 * category, and repeating the userfaultfd_wp() check from
--		 * another.
-+		* ptlock, repeating the retractable checks protects us from
-+		* races against the prior checks.
+-		* ptlock, repeating the retractable checks protects us from
+-		* races against the prior checks.
++		 * ptlock, repeating the retractable checks protects us from
++		 * races against the prior checks.
  		 */
  		if (likely(file_backed_vma_is_retractable(vma))) {
  			pgt_pmd = pmdp_collapse_flush(vma, addr, pmd);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-shmem-update-shmem-to-use-mmap_prepare.patch
-device-dax-update-devdax-to-use-mmap_prepare.patch
-mm-vma-remove-unused-function-make-internal-functions-static.patch
-mm-add-vma_desc_size-vma_desc_pages-helpers.patch
-relay-update-relay-to-use-mmap_prepare.patch
-mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
-mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
-mm-abstract-io_remap_pfn_range-based-on-pfn.patch
-mm-introduce-io_remap_pfn_range_.patch
-mm-add-ability-to-take-further-action-in-vm_area_desc.patch
-doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
-mm-add-shmem_zero_setup_desc.patch
-mm-update-mem-char-driver-to-use-mmap_prepare.patch
-mm-update-resctl-to-use-mmap_prepare.patch
-mm-vma-small-vma-lock-cleanups.patch
-mm-correctly-handle-uffd-pte-markers.patch
-mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
-mm-avoid-unnecessary-uses-of-is_swap_pte.patch
-mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
-mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
-fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
-mm-avoid-unnecessary-use-of-is_swap_pmd.patch
-mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
-mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
-mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
-mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
-mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
-mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
-mm-remove-is_hugetlb_entry_.patch
-mm-eliminate-further-swapops-predicates.patch
-mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
-mm-introduce-vm_maybe_guard-and-make-visible-in-proc-pid-smaps.patch
-mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such.patch
-mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch
-mm-implement-sticky-vma-flags.patch
-mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
-mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
-mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
-tools-testing-vma-add-vma-sticky-userland-tests.patch
-tools-testing-selftests-mm-add-madv_collapse-test-case.patch
-tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+drivers-base-node-fold-register_node-into-register_one_node-fix.patch
+mm-vmstat-fix-indentation-in-fold_diff-function-fix.patch
+memcg-manually-uninline-__memcg_memory_event-fix.patch
+mm-change-type-of-state-in-struct-memory_block-fix.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix.patch
+init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix.patch
+panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
+mm-shmem-use-shmem_f_-flags-instead-of-vm_-flags-fix.patch
 
