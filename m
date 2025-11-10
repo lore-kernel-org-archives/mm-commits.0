@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCE61A2C25;
-	Mon, 10 Nov 2025 05:20:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC861A2C25;
+	Mon, 10 Nov 2025 05:20:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762752020; cv=none; b=PoiHLbn1SaXXYFqsCp0r5aS19KsRGVIZDIpZKHUFvfs2ZHIFYpH44QymhT0wP1wrx9cc6XZh8jRk8iA+UNCFPz6PR4Zwbw7zfGtr/GGA9RSQlVSH4+BfOgAytmPI/dH54zA6EX4xa24OquTv0rdfDE6GviJ3C7cvwr4SrZ5dQPk=
+	t=1762752021; cv=none; b=T9ijdZVwb1x4g18gJ8FknQ1LnV3JiZr/Vx5ZPNCvTrSRMueCDoXE2VfpZ57/XRikrmRlxTiiJHNHNnZgFdlG3NtV6lRj1Yz7pT1XKixyPf+2l3DdR1Ttovm3TLUmzrHjahurJrrCCm+GkL4bFT/dCuFYz/DzwwjNuqQUej+eOd0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762752020; c=relaxed/simple;
-	bh=ZsjUpAkzJnt/nrlUih6j/+TXjjMO1vRCKaGqAftOBag=;
-	h=Date:To:From:Subject:Message-Id; b=DA+aQeOCk5Z3WMfu8qCEw0FgR1ncYeb1BMIFaAnGTUp2WoIKKA9jKSGRVjtVd1Xe22OCCtmpCXLMjQf8NHhvpHquBiBhlK3+o2jTBr8hzWoPFbVhkODTpFsO72IPr78Fu1e5e8RDXywGhBJkJdm1pol8l1K/HihzrQcylya3YKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C1Lxdo1p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762752021; c=relaxed/simple;
+	bh=YYkPGQsj9vuaz9BW84ofolrqsMqLDOwBlm1TI6/kSJQ=;
+	h=Date:To:From:Subject:Message-Id; b=qDwQFYlbVuNKan2MM+tDfWy3wnC/aOgbmfKXcX0rwOotN59VXt/IpkY/yZsd8immBcnrsw43PaJnjni3xcAABdaOvEvmCpOYOwsZC6292IiIcJ5XaxnXUoNoGdV3o4QmtjJAnl0+NqFip6meIWvBjaCFzq0V4KlA7fRRB1XpUgA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fr40KWvx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C1Lxdo1p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CC00C116D0;
-	Mon, 10 Nov 2025 05:20:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fr40KWvx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41D24C4CEF5;
+	Mon, 10 Nov 2025 05:20:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762752019;
-	bh=ZsjUpAkzJnt/nrlUih6j/+TXjjMO1vRCKaGqAftOBag=;
+	s=korg; t=1762752021;
+	bh=YYkPGQsj9vuaz9BW84ofolrqsMqLDOwBlm1TI6/kSJQ=;
 	h=Date:To:From:Subject:From;
-	b=C1Lxdo1pzzIJzmBDLM8fPTQc4wpgX7ismUyQl1n+dhjceUyWaw+091+6f3NWdxPAM
-	 VF4/5pU29jb5gpRdmhRBrSdh3dGpGXOz3aH5e2fyZPRup1qKIAk9qxwFtXUb0MIIuR
-	 xaMbpxu3VpDk2nXdhOM/5MU1gv0dKdLjnLLCwfYY=
-Date: Sun, 09 Nov 2025 21:20:18 -0800
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,stable@vger.kernel.org,david@redhat.com,craftfever@airmail.cc,chengming.zhou@linux.dev,pedrodemargomes@gmail.com,akpm@linux-foundation.org
+	b=Fr40KWvxPcmOalvcspP/evMc8aeQb+nDySBBOsUj2IHX1Q1jEuQQh9ERf7GXgL773
+	 x2dndmHCL0BAOrB5iq/jqDD9EXnalugoXnJvjXHZcw/vW2x0h4X8d8EplLkDauxNRG
+	 MsVICHQFZKD5UpWm9q675GhVXbt94zi9yBx4LzsU=
+Date: Sun, 09 Nov 2025 21:20:20 -0800
+To: mm-commits@vger.kernel.org,yang@os.amperecomputing.com,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lance.yang@linux.dev,kernel@pankajraghav.com,jane.chu@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch removed from -mm tree
-Message-Id: <20251110052019.5CC00C116D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order.patch removed from -mm tree
+Message-Id: <20251110052021.41D24C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,226 +35,139 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
+     Subject: mm/huge_memory: preserve PG_has_hwpoisoned if a folio is split to >0 order
 has been removed from the -mm tree.  Its filename was
-     ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
+     mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Subject: ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
-Date: Wed, 22 Oct 2025 12:30:59 -0300
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: preserve PG_has_hwpoisoned if a folio is split to >0 order
+Date: Wed, 22 Oct 2025 23:05:21 -0400
 
-Currently, scan_get_next_rmap_item() walks every page address in a VMA to
-locate mergeable pages.  This becomes highly inefficient when scanning
-large virtual memory areas that contain mostly unmapped regions, causing
-ksmd to use large amount of cpu without deduplicating much pages.
+folio split clears PG_has_hwpoisoned, but the flag should be preserved in
+after-split folios containing pages with PG_hwpoisoned flag if the folio
+is split to >0 order folios.  Scan all pages in a to-be-split folio to
+determine which after-split folios need the flag.
 
-This patch replaces the per-address lookup with a range walk using
-walk_page_range().  The range walker allows KSM to skip over entire
-unmapped holes in a VMA, avoiding unnecessary lookups.  This problem was
-previously discussed in [1].
+An alternatives is to change PG_has_hwpoisoned to PG_maybe_hwpoisoned to
+avoid the scan and set it on all after-split folios, but resulting false
+positive has undesirable negative impact.  To remove false positive,
+caller of folio_test_has_hwpoisoned() and folio_contain_hwpoisoned_page()
+needs to do the scan.  That might be causing a hassle for current and
+future callers and more costly than doing the scan in the split code. 
+More details are discussed in [1].
 
-Consider the following test program which creates a 32 TiB mapping in the
-virtual address space but only populates a single page:
+This issue can be exposed via:
+1. splitting a has_hwpoisoned folio to >0 order from debugfs interface;
+2. truncating part of a has_hwpoisoned folio in
+   truncate_inode_partial_folio().
 
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/mman.h>
+And later accesses to a hwpoisoned page could be possible due to the
+missing has_hwpoisoned folio flag.  This will lead to MCE errors.
 
-/* 32 TiB */
-const size_t size = 32ul * 1024 * 1024 * 1024 * 1024;
-
-int main() {
-        char *area = mmap(NULL, size, PROT_READ | PROT_WRITE,
-                          MAP_NORESERVE | MAP_PRIVATE | MAP_ANON, -1, 0);
-
-        if (area == MAP_FAILED) {
-                perror("mmap() failed\n");
-                return -1;
-        }
-
-        /* Populate a single page such that we get an anon_vma. */
-        *area = 0;
-
-        /* Enable KSM. */
-        madvise(area, size, MADV_MERGEABLE);
-        pause();
-        return 0;
-}
-
-$ ./ksm-sparse  &
-$ echo 1 > /sys/kernel/mm/ksm/run 
-
-Without this patch ksmd uses 100% of the cpu for a long time (more then 1
-hour in my test machine) scanning all the 32 TiB virtual address space
-that contain only one mapped page.  This makes ksmd essentially deadlocked
-not able to deduplicate anything of value.  With this patch ksmd walks
-only the one mapped page and skips the rest of the 32 TiB virtual address
-space, making the scan fast using little cpu.
-
-Link: https://lkml.kernel.org/r/20251023035841.41406-1-pedrodemargomes@gmail.com
-Link: https://lkml.kernel.org/r/20251022153059.22763-1-pedrodemargomes@gmail.com
-Link: https://lore.kernel.org/linux-mm/423de7a3-1c62-4e72-8e79-19a6413e420c@redhat.com/ [1]
-Fixes: 31dbd01f3143 ("ksm: Kernel SamePage Merging")
-Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Co-developed-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: craftfever <craftfever@airmail.cc>
-Closes: https://lkml.kernel.org/r/020cf8de6e773bb78ba7614ef250129f11a63781@murena.io
-Suggested-by: David Hildenbrand <david@redhat.com>
+Link: https://lore.kernel.org/all/CAHbLzkoOZm0PXxE9qwtF4gKR=cpRXrSrJ9V9Pm2DJexs985q4g@mail.gmail.com/ [1]
+Link: https://lkml.kernel.org/r/20251023030521.473097-1-ziy@nvidia.com
+Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: xu xin <xu.xin16@zte.com.cn>
+Reviewed-by: Yang Shi <yang@os.amperecomputing.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Pankaj Raghav <kernel@pankajraghav.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |  113 ++++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 104 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |   23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
---- a/mm/ksm.c~ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item
-+++ a/mm/ksm.c
-@@ -2455,6 +2455,95 @@ static bool should_skip_rmap_item(struct
- 	return true;
+--- a/mm/huge_memory.c~mm-huge_memory-preserve-pg_has_hwpoisoned-if-a-folio-is-split-to-0-order
++++ a/mm/huge_memory.c
+@@ -3263,6 +3263,14 @@ bool can_split_folio(struct folio *folio
+ 					caller_pins;
  }
  
-+struct ksm_next_page_arg {
-+	struct folio *folio;
-+	struct page *page;
-+	unsigned long addr;
-+};
-+
-+static int ksm_next_page_pmd_entry(pmd_t *pmdp, unsigned long addr, unsigned long end,
-+		struct mm_walk *walk)
++static bool page_range_has_hwpoisoned(struct page *page, long nr_pages)
 +{
-+	struct ksm_next_page_arg *private = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
-+	pte_t *start_ptep = NULL, *ptep, pte;
-+	struct mm_struct *mm = walk->mm;
-+	struct folio *folio;
-+	struct page *page;
-+	spinlock_t *ptl;
-+	pmd_t pmd;
-+
-+	if (ksm_test_exit(mm))
-+		return 0;
-+
-+	cond_resched();
-+
-+	pmd = pmdp_get_lockless(pmdp);
-+	if (!pmd_present(pmd))
-+		return 0;
-+
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && pmd_leaf(pmd)) {
-+		ptl = pmd_lock(mm, pmdp);
-+		pmd = pmdp_get(pmdp);
-+
-+		if (!pmd_present(pmd)) {
-+			goto not_found_unlock;
-+		} else if (pmd_leaf(pmd)) {
-+			page = vm_normal_page_pmd(vma, addr, pmd);
-+			if (!page)
-+				goto not_found_unlock;
-+			folio = page_folio(page);
-+
-+			if (folio_is_zone_device(folio) || !folio_test_anon(folio))
-+				goto not_found_unlock;
-+
-+			page += ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
-+			goto found_unlock;
-+		}
-+		spin_unlock(ptl);
-+	}
-+
-+	start_ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
-+	if (!start_ptep)
-+		return 0;
-+
-+	for (ptep = start_ptep; addr < end; ptep++, addr += PAGE_SIZE) {
-+		pte = ptep_get(ptep);
-+
-+		if (!pte_present(pte))
-+			continue;
-+
-+		page = vm_normal_page(vma, addr, pte);
-+		if (!page)
-+			continue;
-+		folio = page_folio(page);
-+
-+		if (folio_is_zone_device(folio) || !folio_test_anon(folio))
-+			continue;
-+		goto found_unlock;
-+	}
-+
-+not_found_unlock:
-+	spin_unlock(ptl);
-+	if (start_ptep)
-+		pte_unmap(start_ptep);
-+	return 0;
-+found_unlock:
-+	folio_get(folio);
-+	spin_unlock(ptl);
-+	if (start_ptep)
-+		pte_unmap(start_ptep);
-+	private->page = page;
-+	private->folio = folio;
-+	private->addr = addr;
-+	return 1;
++	for (; nr_pages; page++, nr_pages--)
++		if (PageHWPoison(page))
++			return true;
++	return false;
 +}
 +
-+static struct mm_walk_ops ksm_next_page_ops = {
-+	.pmd_entry = ksm_next_page_pmd_entry,
-+	.walk_lock = PGWALK_RDLOCK,
-+};
-+
- static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+ /*
+  * It splits @folio into @new_order folios and copies the @folio metadata to
+  * all the resulting folios.
+@@ -3270,17 +3278,24 @@ bool can_split_folio(struct folio *folio
+ static void __split_folio_to_order(struct folio *folio, int old_order,
+ 		int new_order)
  {
- 	struct mm_struct *mm;
-@@ -2542,21 +2631,27 @@ next_mm:
- 			ksm_scan.address = vma->vm_end;
++	/* Scan poisoned pages when split a poisoned folio to large folios */
++	const bool handle_hwpoison = folio_test_has_hwpoisoned(folio) && new_order;
+ 	long new_nr_pages = 1 << new_order;
+ 	long nr_pages = 1 << old_order;
+ 	long i;
  
- 		while (ksm_scan.address < vma->vm_end) {
-+			struct ksm_next_page_arg ksm_next_page_arg;
- 			struct page *tmp_page = NULL;
--			struct folio_walk fw;
- 			struct folio *folio;
- 
- 			if (ksm_test_exit(mm))
- 				break;
- 
--			folio = folio_walk_start(&fw, vma, ksm_scan.address, 0);
--			if (folio) {
--				if (!folio_is_zone_device(folio) &&
--				     folio_test_anon(folio)) {
--					folio_get(folio);
--					tmp_page = fw.page;
--				}
--				folio_walk_end(&fw, vma);
-+			int found;
++	folio_clear_has_hwpoisoned(folio);
 +
-+			found = walk_page_range_vma(vma, ksm_scan.address,
-+						    vma->vm_end,
-+						    &ksm_next_page_ops,
-+						    &ksm_next_page_arg);
-+
-+			if (found > 0) {
-+				folio = ksm_next_page_arg.folio;
-+				tmp_page = ksm_next_page_arg.page;
-+				ksm_scan.address = ksm_next_page_arg.addr;
-+			} else {
-+				VM_WARN_ON_ONCE(found < 0);
-+				ksm_scan.address = vma->vm_end - PAGE_SIZE;
- 			}
++	/* Check first new_nr_pages since the loop below skips them */
++	if (handle_hwpoison &&
++	    page_range_has_hwpoisoned(folio_page(folio, 0), new_nr_pages))
++		folio_set_has_hwpoisoned(folio);
+ 	/*
+ 	 * Skip the first new_nr_pages, since the new folio from them have all
+ 	 * the flags from the original folio.
+ 	 */
+ 	for (i = new_nr_pages; i < nr_pages; i += new_nr_pages) {
+ 		struct page *new_head = &folio->page + i;
+-
+ 		/*
+ 		 * Careful: new_folio is not a "real" folio before we cleared PageTail.
+ 		 * Don't pass it around before clear_compound_head().
+@@ -3322,6 +3337,10 @@ static void __split_folio_to_order(struc
+ 				 (1L << PG_dirty) |
+ 				 LRU_GEN_MASK | LRU_REFS_MASK));
  
- 			if (tmp_page) {
++		if (handle_hwpoison &&
++		    page_range_has_hwpoisoned(new_head, new_nr_pages))
++			folio_set_has_hwpoisoned(new_folio);
++
+ 		new_folio->mapping = folio->mapping;
+ 		new_folio->index = folio->index + i;
+ 
+@@ -3422,8 +3441,6 @@ static int __split_unmapped_folio(struct
+ 	if (folio_test_anon(folio))
+ 		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
+ 
+-	folio_clear_has_hwpoisoned(folio);
+-
+ 	/*
+ 	 * split to new_order one order at a time. For uniform split,
+ 	 * folio is split to new_order directly.
 _
 
-Patches currently in -mm which might be from pedrodemargomes@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
-ksm-perform-a-range-walk-in-break_ksm.patch
-ksm-replace-function-unmerge_ksm_pages-with-break_ksm.patch
+mm-huge_memory-fix-folio-split-check-for-anon-folios-in-swapcache.patch
+mm-huge_memory-add-split_huge_page_to_order.patch
+mm-memory-failure-improve-large-block-size-folio-handling.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch
+migrate-optimise-alloc_migration_target-fix.patch
 
