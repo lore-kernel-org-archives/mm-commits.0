@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3BD62E8B7D;
-	Mon, 10 Nov 2025 05:20:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F1622E8DE3;
+	Mon, 10 Nov 2025 05:20:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762752017; cv=none; b=FAgYB5TyHH/6N7Xd7iRY9oEo1jS8ok7sHIlvrCOtaw+IYNOwyWzGBUbpgq2yD8x3GnpYqbIWOiw9YJLLopAN59ToRYv+dNG5+j/4yX5bzOuwQqkcqDhBNgvdw69EhZQXFJHXXiWoXEZDrcuRNwylZbRNBAS83x/YTIjpaY71at0=
+	t=1762752018; cv=none; b=lds4vqZx5lHar5g0GbPz/ZxTYi5g6AvY9TNf8OVfavm7oZOAu0wP/05lzjmTntWR205kT+AcSpuFTg35uodEAnzTrIymHpE6y9+XHYM/07b3lkvnCJQ05ikpaMVkoeJI+7z/RQR6snoO8Rq4Fyrydp7IBodQLcnmHMng2asF0+U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762752017; c=relaxed/simple;
-	bh=OP5XpU/aCm6zwTXIrqh0QBd/RrmBWSVxeEqQf+k5Omw=;
-	h=Date:To:From:Subject:Message-Id; b=jykh1qpe55Y/6sNBoRLpq/pIG386UNAaeT0Pwu7RC2KxflrpMbTB0XFw6feKNtteNk5u4ukTigo5BJ4iaJWR3vDh7Q4NxYUzp0/qD3BxTp1zfqmkuVtm3Xcr8TDfdagpiRtM8iSVqHlj4wPiSqCRRDhei8/bZ3SAJVoAoOWkRmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nVfAuS4u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762752018; c=relaxed/simple;
+	bh=JOLdOnkdqDObZYl0egZnAJ1dB29mHZixKPqrbEmOzZE=;
+	h=Date:To:From:Subject:Message-Id; b=M5LdPbj9q+xC+BjBMA/PJSLfSkaLlKk/bXByg1YDhVadcfbGu+mEfR6BxwIYuESXo5I7awAVR9B9wn7EzWFMFPMSShdeqxpficekBt4wA7eGVLLw+Ng2ICcbTUZVU/u55NDjau6LdQLL13DEAliq33TI2c6soA1Cds9Wgx+fBV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zyzdz6M6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nVfAuS4u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73BEBC19421;
-	Mon, 10 Nov 2025 05:20:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zyzdz6M6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04AB7C116B1;
+	Mon, 10 Nov 2025 05:20:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762752016;
-	bh=OP5XpU/aCm6zwTXIrqh0QBd/RrmBWSVxeEqQf+k5Omw=;
+	s=korg; t=1762752018;
+	bh=JOLdOnkdqDObZYl0egZnAJ1dB29mHZixKPqrbEmOzZE=;
 	h=Date:To:From:Subject:From;
-	b=nVfAuS4uGyResW6CcAD1PyZs8l19oKL6DFrk/O8lTyoOQLc/9h7byIRrWSwKbAB0p
-	 PmjCigB8CL6Y69blk/Ai8ljXmTA1VDqT4b0IEeKnFogFfz4V5NgoEh2CUyIIX0nNIt
-	 Xh8EO6sBSwNVEiN37WJwyAIhj7eZ6rM/T0UcukGY=
-Date: Sun, 09 Nov 2025 21:20:15 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=Zyzdz6M69Sw2nFQnrTf/vHSzW7BbBqikffpVEG3M1ltTsX/6B6qnuOy7y7OMsMQSc
+	 sBdyvkm2dgiPleKdmcKTL6/bxQEbbkvPbcRsrFl/ZklS/FNeAT0BjHLg79kGfIpKRY
+	 9lFIr+fSvJtZLRqWwfr7s8luwhVQ3IsSDG+sZCfM=
+Date: Sun, 09 Nov 2025 21:20:17 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,iii@linux.ibm.com,glider@google.com,elver@google.com,ebiggers@kernel.org,dvyukov@google.com,ast@kernel.org,aleksei.nikiforov@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-shmem-fix-thp-allocation-and-fallback-loop.patch removed from -mm tree
-Message-Id: <20251110052016.73BEBC19421@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet.patch removed from -mm tree
+Message-Id: <20251110052018.04AB7C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem: fix THP allocation and fallback loop
+     Subject: mm/kmsan: fix kmsan kmalloc hook when no stack depots are allocated yet
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-fix-thp-allocation-and-fallback-loop.patch
+     mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/shmem: fix THP allocation and fallback loop
-Date: Wed, 22 Oct 2025 18:57:19 +0800
+From: Aleksei Nikiforov <aleksei.nikiforov@linux.ibm.com>
+Subject: mm/kmsan: fix kmsan kmalloc hook when no stack depots are allocated yet
+Date: Tue, 30 Sep 2025 13:56:01 +0200
 
-The order check and fallback loop is updating the index value on every
-loop.  This will cause the index to be wrongly aligned by a larger value
-while the loop shrinks the order.
+If no stack depot is allocated yet, due to masking out __GFP_RECLAIM flags
+kmsan called from kmalloc cannot allocate stack depot.  kmsan fails to
+record origin and report issues.  This may result in KMSAN failing to
+report issues.
 
-This may result in inserting and returning a folio of the wrong index and
-cause data corruption with some userspace workloads [1].
+Reusing flags from kmalloc without modifying them should be safe for kmsan.
+For example, such chain of calls is possible:
+test_uninit_kmalloc -> kmalloc -> __kmalloc_cache_noprof ->
+slab_alloc_node -> slab_post_alloc_hook ->
+kmsan_slab_alloc -> kmsan_internal_poison_memory.
 
-[kasong@tencent.com: introduce a temporary variable to improve code]
-  Link: https://lkml.kernel.org/r/20251023065913.36925-1-ryncsn@gmail.com
-  Link: https://lore.kernel.org/linux-mm/CAMgjq7DqgAmj25nDUwwu1U2cSGSn8n4-Hqpgottedy0S6YYeUw@mail.gmail.com/ [1]
-Link: https://lkml.kernel.org/r/20251022105719.18321-1-ryncsn@gmail.com
-Link: https://lore.kernel.org/linux-mm/CAMgjq7DqgAmj25nDUwwu1U2cSGSn8n4-Hqpgottedy0S6YYeUw@mail.gmail.com/ [1]
-Fixes: e7a2ab7b3bb5 ("mm: shmem: add mTHP support for anonymous shmem")
-Closes: https://lore.kernel.org/linux-mm/CAMgjq7DqgAmj25nDUwwu1U2cSGSn8n4-Hqpgottedy0S6YYeUw@mail.gmail.com/
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Only when it is called in a context without flags present should
+__GFP_RECLAIM flags be masked.
+
+With this change all kmsan tests start working reliably.
+
+Eric reported:
+
+: Yes, KMSAN seems to be at least partially broken currently.  Besides the
+: fact that the kmsan KUnit test is currently failing (which I reported at
+: https://lore.kernel.org/r/20250911175145.GA1376@sol), I've confirmed that
+: the poly1305 KUnit test causes a KMSAN warning with Aleksei's patch
+: applied but does not cause a warning without it.  The warning did get
+: reached via syzbot somehow
+: (https://lore.kernel.org/r/751b3d80293a6f599bb07770afcef24f623c7da0.1761026343.git.xiaopei01@kylinos.cn/),
+: so KMSAN must still work in some cases.  But it didn't work for me.
+
+Link: https://lkml.kernel.org/r/20250930115600.709776-2-aleksei.nikiforov@linux.ibm.com
+Link: https://lkml.kernel.org/r/20251022030213.GA35717@sol
+Fixes: 97769a53f117 ("mm, bpf: Introduce try_alloc_pages() for opportunistic page allocation")
+Signed-off-by: Aleksei Nikiforov <aleksei.nikiforov@linux.ibm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Tested-by: Eric Biggers <ebiggers@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Marco Elver <elver@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/kmsan/core.c   |    3 ---
+ mm/kmsan/hooks.c  |    6 ++++--
+ mm/kmsan/shadow.c |    2 +-
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-fix-thp-allocation-and-fallback-loop
-+++ a/mm/shmem.c
-@@ -1882,6 +1882,7 @@ static struct folio *shmem_alloc_and_add
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	unsigned long suitable_orders = 0;
- 	struct folio *folio = NULL;
-+	pgoff_t aligned_index;
- 	long pages;
- 	int error, order;
+--- a/mm/kmsan/core.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
++++ a/mm/kmsan/core.c
+@@ -72,9 +72,6 @@ depot_stack_handle_t kmsan_save_stack_wi
  
-@@ -1895,10 +1896,12 @@ static struct folio *shmem_alloc_and_add
- 		order = highest_order(suitable_orders);
- 		while (suitable_orders) {
- 			pages = 1UL << order;
--			index = round_down(index, pages);
--			folio = shmem_alloc_folio(gfp, order, info, index);
--			if (folio)
-+			aligned_index = round_down(index, pages);
-+			folio = shmem_alloc_folio(gfp, order, info, aligned_index);
-+			if (folio) {
-+				index = aligned_index;
- 				goto allocated;
-+			}
+ 	nr_entries = stack_trace_save(entries, KMSAN_STACK_DEPTH, 0);
  
- 			if (pages == HPAGE_PMD_NR)
- 				count_vm_event(THP_FILE_FALLBACK);
+-	/* Don't sleep. */
+-	flags &= ~(__GFP_DIRECT_RECLAIM | __GFP_KSWAPD_RECLAIM);
+-
+ 	handle = stack_depot_save(entries, nr_entries, flags);
+ 	return stack_depot_set_extra_bits(handle, extra);
+ }
+--- a/mm/kmsan/hooks.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
++++ a/mm/kmsan/hooks.c
+@@ -84,7 +84,8 @@ void kmsan_slab_free(struct kmem_cache *
+ 	if (s->ctor)
+ 		return;
+ 	kmsan_enter_runtime();
+-	kmsan_internal_poison_memory(object, s->object_size, GFP_KERNEL,
++	kmsan_internal_poison_memory(object, s->object_size,
++				     GFP_KERNEL & ~(__GFP_RECLAIM),
+ 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
+ 	kmsan_leave_runtime();
+ }
+@@ -114,7 +115,8 @@ void kmsan_kfree_large(const void *ptr)
+ 	kmsan_enter_runtime();
+ 	page = virt_to_head_page((void *)ptr);
+ 	KMSAN_WARN_ON(ptr != page_address(page));
+-	kmsan_internal_poison_memory((void *)ptr, page_size(page), GFP_KERNEL,
++	kmsan_internal_poison_memory((void *)ptr, page_size(page),
++				     GFP_KERNEL & ~(__GFP_RECLAIM),
+ 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
+ 	kmsan_leave_runtime();
+ }
+--- a/mm/kmsan/shadow.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
++++ a/mm/kmsan/shadow.c
+@@ -208,7 +208,7 @@ void kmsan_free_page(struct page *page,
+ 		return;
+ 	kmsan_enter_runtime();
+ 	kmsan_internal_poison_memory(page_address(page), page_size(page),
+-				     GFP_KERNEL,
++				     GFP_KERNEL & ~(__GFP_RECLAIM),
+ 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
+ 	kmsan_leave_runtime();
+ }
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from aleksei.nikiforov@linux.ibm.com are
 
-mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
-mm-swap-rename-helper-for-setup-bad-slots.patch
-mm-swap-cleanup-swap-entry-allocation-parameter.patch
-mm-migrate-swap-drop-usage-of-folio_index.patch
-mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch
-revert-mm-swap-avoid-redundant-swap-device-pinning.patch
 
