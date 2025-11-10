@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CBA11E5B68
-	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2025 23:37:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 832521E5B68
+	for <mm-commits@vger.kernel.org>; Mon, 10 Nov 2025 23:37:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762817823; cv=none; b=sDd9j4rHfZ8RQa/7uetVDLWvoCgLn1d4IXumJhqBOP4CDvOT6rHXrkpWMHEu+QpH3fIaR67rUW4kK+s9EjS1aWx5n/vEVcVZ/9j286/iZ+ZaHrXGRU9ANjSVTfexcp7FXtD7tldyou0ymMu4bwWNughcn4I9ZdmmZVs1/uU1A4w=
+	t=1762817829; cv=none; b=Hmi8CFFLVQWZ7MB1H3N+d0UQ6tWP25ZCQW0rMLoHZHhiJYKit/r7w9kYVdt+lLSCdPo2rKWeSP9sS3A4GVS3+uF5itZyV6ifoASIb4XchbY8gd1GASnp8mzDhfmMxyRNOVo5Q+M5J4fAb26ERkW+U5DTiRcyZ4LX5tSdotr9g5A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762817823; c=relaxed/simple;
-	bh=vyL0kXpXAFskwwAugp6lyO0iih2yJYf3HaIbxDvN5yI=;
-	h=Date:To:From:Subject:Message-Id; b=Me+g5PG4Pgl+H3CAz+LRfjBLxVgxJRqqEBLuD03bk9AFtWb/NoqCxFOp2XZpNdUUbZ0CcgySkoUpuk15vn2N45IRjDaWel0vOOPE4R+roiXeYu9wbGDx5LJcW5ts9IFK28RBfjU2IDFibSxn7Mrdww3l/cpNTz1cxpgBEBSnYxw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zzT9shu3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762817829; c=relaxed/simple;
+	bh=ix8Q8FDiQjSchEdjnrrmsbhbU/ab8hfwqwXQ2sTcZ90=;
+	h=Date:To:From:Subject:Message-Id; b=CpM8YoLvp/t0O234MWTNPi95ecJdgQDhF9HTdEoXaCtG0BWe4JKW9t9Xu1SFfVoMNF5Ua6kqiZjBj3NswH4+jaa/aQOsjgAUgLoFj5krxvDsaqzuKm7pRMOQG/OVsmUtmSs+n9PNPsBLuA116aeqDsU7btIo8xPmbdF9WigqYIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z5lcICjP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zzT9shu3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FD88C4CEFB;
-	Mon, 10 Nov 2025 23:37:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z5lcICjP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED136C19424;
+	Mon, 10 Nov 2025 23:37:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762817822;
-	bh=vyL0kXpXAFskwwAugp6lyO0iih2yJYf3HaIbxDvN5yI=;
+	s=korg; t=1762817826;
+	bh=ix8Q8FDiQjSchEdjnrrmsbhbU/ab8hfwqwXQ2sTcZ90=;
 	h=Date:To:From:Subject:From;
-	b=zzT9shu3WsN/29WLLJLCHlZtgLNtkK3WPRwIZTZ9CrZJb/eIvJCnCsIDY/caPRghf
-	 VPq2iINTU+xGs+qPQFSpwmS2IBl9zdPSsM6bmsDl3rVSCixSJKX7Kl5DZ14pSFg6AD
-	 wiNnnufFOb+j85i9oo0yEJzuuFR3le+ICztxnPFI=
-Date: Mon, 10 Nov 2025 15:37:01 -0800
+	b=z5lcICjPMNBhkhnOBi5+Y132XRzifJx2VYX89H1F8v7XJA+XfaHUg9qeT9E2mF69e
+	 pg7Te7sxoPhRcgToiWlkc4TXtolUXRM+3eP1CfMYtjZuUdfBIykkx9HxPGftZTcs/y
+	 envd1IPn45GYHBBmpZYnSzBkfxGJopcozw8UqT2s=
+Date: Mon, 10 Nov 2025 15:37:05 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,chriscli@google.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-vma_start_write_killable.patch added to mm-new branch
-Message-Id: <20251110233702.7FD88C4CEFB@smtp.kernel.org>
+Subject: + mm-use-vma_start_write_killable-in-dup_mmap.patch added to mm-new branch
+Message-Id: <20251110233705.ED136C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add vma_start_write_killable()
+     Subject: mm: use vma_start_write_killable() in dup_mmap()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-vma_start_write_killable.patch
+     mm-use-vma_start_write_killable-in-dup_mmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-vma_start_write_killable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-vma_start_write_killable-in-dup_mmap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,228 +65,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add vma_start_write_killable()
-Date: Mon, 10 Nov 2025 20:32:01 +0000
+Subject: mm: use vma_start_write_killable() in dup_mmap()
+Date: Mon, 10 Nov 2025 20:32:02 +0000
 
-Patch series "vma_start_write_killable"", v2.
+Allow waiting for the VMA write lock to be interrupted by fatal signals. 
+The explicit check for fatal_signal_pending() can be removed as it is
+checked during vma_start_write_killable().  Improves the latency of
+killing the task as we do not wait for the reader to finish before
+checking for signals.
 
-When we added the VMA lock, we made a major oversight in not adding a
-killable variant.  That can run us into trouble where a thread takes the
-VMA lock for read (eg handling a page fault) and then goes out to lunch
-for an hour (eg doing reclaim).  Another thread tries to modify the VMA,
-taking the mmap_lock for write, then attempts to lock the VMA for write. 
-That blocks on the first thread, and ensures that every other page fault
-now tries to take the mmap_lock for read.  Because everything's in an
-uninterruptible sleep, we can't kill the task, which makes me angry.
-
-This patchset just adds vma_start_write_killable() and converts one caller
-to use it.  Most users are somewhat tricky to convert, so expect follow-up
-individual patches per call-site which need careful analysis to make sure
-we've done proper cleanup.
-
-
-This patch (of 2):
-
-The vma can be held read-locked for a substantial period of time, eg if
-memory allocation needs to go into reclaim.  It's useful to be able to
-send fatal signals to threads which are waiting for the write lock.
-
-Link: https://lkml.kernel.org/r/20251110203204.1454057-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20251110203204.1454057-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20251110203204.1454057-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Chris Li <chriscli@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/process_addrs.rst |    9 ++++++-
- include/linux/mmap_lock.h          |   30 ++++++++++++++++++++++-
- mm/mmap_lock.c                     |   34 +++++++++++++++++++--------
- tools/testing/vma/vma_internal.h   |    8 ++++++
- 4 files changed, 69 insertions(+), 12 deletions(-)
+ mm/mmap.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
---- a/Documentation/mm/process_addrs.rst~mm-add-vma_start_write_killable
-+++ a/Documentation/mm/process_addrs.rst
-@@ -48,7 +48,8 @@ Terminology
- * **VMA locks** - The VMA lock is at VMA granularity (of course) which behaves
-   as a read/write semaphore in practice. A VMA read lock is obtained via
-   :c:func:`!lock_vma_under_rcu` (and unlocked via :c:func:`!vma_end_read`) and a
--  write lock via :c:func:`!vma_start_write` (all VMA write locks are unlocked
-+  write lock via vma_start_write() or vma_start_write_killable()
-+  (all VMA write locks are unlocked
-   automatically when the mmap write lock is released). To take a VMA write lock
-   you **must** have already acquired an :c:func:`!mmap_write_lock`.
- * **rmap locks** - When trying to access VMAs through the reverse mapping via a
-@@ -907,3 +908,9 @@ Stack expansion
- Stack expansion throws up additional complexities in that we cannot permit there
- to be racing page faults, as a result we invoke :c:func:`!vma_start_write` to
- prevent this in :c:func:`!expand_downwards` or :c:func:`!expand_upwards`.
-+
-+------------------------
-+Functions and structures
-+------------------------
-+
-+.. kernel-doc:: include/linux/mmap_lock.h
---- a/include/linux/mmap_lock.h~mm-add-vma_start_write_killable
-+++ a/include/linux/mmap_lock.h
-@@ -195,7 +195,8 @@ static inline bool __is_vma_write_locked
- 	return (vma->vm_lock_seq == *mm_lock_seq);
- }
+--- a/mm/mmap.c~mm-use-vma_start_write_killable-in-dup_mmap
++++ a/mm/mmap.c
+@@ -1747,7 +1747,9 @@ __latent_entropy int dup_mmap(struct mm_
+ 	for_each_vma(vmi, mpnt) {
+ 		struct file *file;
  
--void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq);
-+int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
-+		int state);
+-		vma_start_write(mpnt);
++		retval = vma_start_write_killable(mpnt);
++		if (retval < 0)
++			goto loop_out;
+ 		if (mpnt->vm_flags & VM_DONTCOPY) {
+ 			retval = vma_iter_clear_gfp(&vmi, mpnt->vm_start,
+ 						    mpnt->vm_end, GFP_KERNEL);
+@@ -1758,14 +1760,6 @@ __latent_entropy int dup_mmap(struct mm_
+ 			continue;
+ 		}
+ 		charge = 0;
+-		/*
+-		 * Don't duplicate many vmas if we've been oom-killed (for
+-		 * example)
+-		 */
+-		if (fatal_signal_pending(current)) {
+-			retval = -EINTR;
+-			goto loop_out;
+-		}
+ 		if (mpnt->vm_flags & VM_ACCOUNT) {
+ 			unsigned long len = vma_pages(mpnt);
  
- /*
-  * Begin writing to a VMA.
-@@ -209,7 +210,30 @@ static inline void vma_start_write(struc
- 	if (__is_vma_write_locked(vma, &mm_lock_seq))
- 		return;
- 
--	__vma_start_write(vma, mm_lock_seq);
-+	__vma_start_write(vma, mm_lock_seq, TASK_UNINTERRUPTIBLE);
-+}
-+
-+/**
-+ * vma_start_write_killable - Begin writing to a VMA.
-+ * @vma: The VMA we are going to modify.
-+ *
-+ * Exclude concurrent readers under the per-VMA lock until the currently
-+ * write-locked mmap_lock is dropped or downgraded.
-+ *
-+ * Context: May sleep while waiting for readers to drop the vma read lock.
-+ * Caller must already hold the mmap_lock for write.
-+ *
-+ * Return: 0 for a successful acquisition.  -EINTR if a fatal signal was
-+ * received.
-+ */
-+static inline __must_check
-+int vma_start_write_killable(struct vm_area_struct *vma)
-+{
-+	unsigned int mm_lock_seq;
-+
-+	if (__is_vma_write_locked(vma, &mm_lock_seq))
-+		return 0;
-+	return __vma_start_write(vma, mm_lock_seq, TASK_KILLABLE);
- }
- 
- static inline void vma_assert_write_locked(struct vm_area_struct *vma)
-@@ -283,6 +307,8 @@ static inline bool mmap_lock_speculate_r
- static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt) {}
- static inline void vma_end_read(struct vm_area_struct *vma) {}
- static inline void vma_start_write(struct vm_area_struct *vma) {}
-+static inline __must_check
-+int vma_start_write_killable(struct vm_area_struct *vma) { return 0; }
- static inline void vma_assert_write_locked(struct vm_area_struct *vma)
- 		{ mmap_assert_write_locked(vma->vm_mm); }
- static inline void vma_assert_attached(struct vm_area_struct *vma) {}
---- a/mm/mmap_lock.c~mm-add-vma_start_write_killable
-+++ a/mm/mmap_lock.c
-@@ -45,8 +45,15 @@ EXPORT_SYMBOL(__mmap_lock_do_trace_relea
- 
- #ifdef CONFIG_MMU
- #ifdef CONFIG_PER_VMA_LOCK
--static inline bool __vma_enter_locked(struct vm_area_struct *vma, bool detaching)
-+/*
-+ * Return value: 0 if vma detached,
-+ * 1 if vma attached with no readers,
-+ * -EINTR if signal received,
-+ */
-+static inline int __vma_enter_locked(struct vm_area_struct *vma,
-+		bool detaching, int state)
- {
-+	int err;
- 	unsigned int tgt_refcnt = VMA_LOCK_OFFSET;
- 
- 	/* Additional refcnt if the vma is attached. */
-@@ -58,15 +65,19 @@ static inline bool __vma_enter_locked(st
- 	 * vm_refcnt. mmap_write_lock prevents racing with vma_mark_attached().
- 	 */
- 	if (!refcount_add_not_zero(VMA_LOCK_OFFSET, &vma->vm_refcnt))
--		return false;
-+		return 0;
- 
- 	rwsem_acquire(&vma->vmlock_dep_map, 0, 0, _RET_IP_);
--	rcuwait_wait_event(&vma->vm_mm->vma_writer_wait,
-+	err = rcuwait_wait_event(&vma->vm_mm->vma_writer_wait,
- 		   refcount_read(&vma->vm_refcnt) == tgt_refcnt,
--		   TASK_UNINTERRUPTIBLE);
-+		   state);
-+	if (err) {
-+		rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
-+		return err;
-+	}
- 	lock_acquired(&vma->vmlock_dep_map, _RET_IP_);
- 
--	return true;
-+	return 1;
- }
- 
- static inline void __vma_exit_locked(struct vm_area_struct *vma, bool *detached)
-@@ -75,16 +86,19 @@ static inline void __vma_exit_locked(str
- 	rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
- }
- 
--void __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq)
-+int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
-+		int state)
- {
--	bool locked;
-+	int locked;
- 
- 	/*
- 	 * __vma_enter_locked() returns false immediately if the vma is not
- 	 * attached, otherwise it waits until refcnt is indicating that vma
- 	 * is attached with no readers.
- 	 */
--	locked = __vma_enter_locked(vma, false);
-+	locked = __vma_enter_locked(vma, false, state);
-+	if (locked < 0)
-+		return locked;
- 
- 	/*
- 	 * We should use WRITE_ONCE() here because we can have concurrent reads
-@@ -100,6 +114,8 @@ void __vma_start_write(struct vm_area_st
- 		__vma_exit_locked(vma, &detached);
- 		WARN_ON_ONCE(detached); /* vma should remain attached */
- 	}
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(__vma_start_write);
- 
-@@ -118,7 +134,7 @@ void vma_mark_detached(struct vm_area_st
- 	 */
- 	if (unlikely(!refcount_dec_and_test(&vma->vm_refcnt))) {
- 		/* Wait until vma is detached with no readers. */
--		if (__vma_enter_locked(vma, true)) {
-+		if (__vma_enter_locked(vma, true, TASK_UNINTERRUPTIBLE)) {
- 			bool detached;
- 
- 			__vma_exit_locked(vma, &detached);
---- a/tools/testing/vma/vma_internal.h~mm-add-vma_start_write_killable
-+++ a/tools/testing/vma/vma_internal.h
-@@ -953,6 +953,14 @@ static inline void vma_start_write(struc
- 	vma->vm_lock_seq++;
- }
- 
-+static inline __must_check
-+int vma_start_write_killable(struct vm_area_struct *vma)
-+{
-+	/* Used to indicate to tests that a write operation has begun. */
-+	vma->vm_lock_seq++;
-+	return 0;
-+}
-+
- static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
- 					 unsigned long start,
- 					 unsigned long end,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
