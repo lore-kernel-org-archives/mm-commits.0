@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431332D77E2;
-	Mon, 10 Nov 2025 05:20:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E79C52D77E2;
+	Mon, 10 Nov 2025 05:20:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762752033; cv=none; b=bEHSyNxMMbGVf9KGOG4Orcp5IxwAsBg57EqeU7RlafO2Zhpg92Hk3wAalryqHY27e89hkBOfP3cvuhYi/9TJlR2FOeTVv3nExJ7aemL+1xQwikH6yBL8IYGtC4fOR9Qdr0RTLgZ05kJyH6JXKcXXZ0/uZsEG2vcxs3Xrplgl7FE=
+	t=1762752035; cv=none; b=Z1l5ZOPRKD2ZTNOT3+tV1gsWLHpqFwJQr5SkpyKOdrjo2RnHK5MqT6SJdVWNzCApiRqO8SNdcviAUWcU9NCD8yMsomGxYLpvTKM714nFB14s5mqGL0r880RmU7D77hhFPHvb/Ba5vKWpIB9cNtTcI/302WmeyowX1AmPxW5CANo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762752033; c=relaxed/simple;
-	bh=DBEfTkQm+hy3fCYMvSaqQ9zss0ath99Vs2sp7EkV8j4=;
-	h=Date:To:From:Subject:Message-Id; b=M5B83XHRn59rHjow1NB5p9sNpw/LfO/cX3JZpGZcc7N8HuMwIISeATApSeGa42qPggpAXdi5OyQGe8kKP4QMxT+OeVNkZvykqKUG4gi/g7fJ4UwyA3La4m4guEHmPt6bWf4DWTUH2MceiBVPuhyCXMru9WpC6AXVRjSgD/yH6Cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GHeIPF2V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762752035; c=relaxed/simple;
+	bh=o1jtJAveZ8L3cpYUjlG554fwK/NldTW0zQ/jVXMdW7c=;
+	h=Date:To:From:Subject:Message-Id; b=KVZw/NWrI/8L9g2oJpBHfLlRkl1gBRTMe68VKH+rVeq/qoO4PU7KYGJwSyTxzbmsgK0YyMrB+L6X3bJmgg+5cZqFxE/hs/DxH4y0E4BIc7V7RdCNqeJ3qi1UNSK51v/Vo8z8ZVUi3ZGt+qEsuPvIUXHhDXaHwnduUUu/+ULJ/5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aZOKeMTn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GHeIPF2V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 178BFC116B1;
-	Mon, 10 Nov 2025 05:20:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aZOKeMTn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BCEDC19424;
+	Mon, 10 Nov 2025 05:20:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762752033;
-	bh=DBEfTkQm+hy3fCYMvSaqQ9zss0ath99Vs2sp7EkV8j4=;
+	s=korg; t=1762752034;
+	bh=o1jtJAveZ8L3cpYUjlG554fwK/NldTW0zQ/jVXMdW7c=;
 	h=Date:To:From:Subject:From;
-	b=GHeIPF2V7Wrur6DSCyIOY5zM/tZtivfWMiz5ne/KE3Q1qBcGpIV+Kh4PZPFcfoRuW
-	 l6Av/S9UcTmhKT49eOCz9fEPHdOA1MIoTPAbn0gB8KxBKjAr/fMacS3l2O1EoEdjCh
-	 UosrU52TpqYMWeDS5KIvwVMRR6q37GXNlAwe2x+M=
-Date: Sun, 09 Nov 2025 21:20:32 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@oracle.com,martin@kaiser.cx,akpm@linux-foundation.org
+	b=aZOKeMTnEvLzbicU7O5AI/iM03C7OmwxSi2OiCkOtKwLFzgyTGI1/Q7lG3ddv25MC
+	 57ALiGAaqUkkNb2qnfDAcATvlRayNN1rYS5bFClW1t9V9/o7kzyvY/LNJ1FhvSwn+w
+	 pDjTCIxLu5B/wYNifusDRbeOJ8GQ6AltE/5xTJ3M=
+Date: Sun, 09 Nov 2025 21:20:33 -0800
+To: mm-commits@vger.kernel.org,zuoze1@huawei.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,sj@kernel.org,yanquanmin1@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-fix-tracepoint-string-pointers.patch removed from -mm tree
-Message-Id: <20251110052033.178BFC116B1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-stat-change-last_refresh_jiffies-to-a-global-variable.patch removed from -mm tree
+Message-Id: <20251110052034.6BCEDC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,185 +35,108 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: fix tracepoint string pointers
+     Subject: mm/damon/stat: change last_refresh_jiffies to a global variable
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-tracepoint-string-pointers.patch
+     mm-damon-stat-change-last_refresh_jiffies-to-a-global-variable.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Martin Kaiser <martin@kaiser.cx>
-Subject: maple_tree: fix tracepoint string pointers
-Date: Thu, 30 Oct 2025 16:55:05 +0100
+From: Quanmin Yan <yanquanmin1@huawei.com>
+Subject: mm/damon/stat: change last_refresh_jiffies to a global variable
+Date: Thu, 30 Oct 2025 10:07:45 +0800
 
-maple_tree tracepoints contain pointers to function names. Such a pointer
-is saved when a tracepoint logs an event. There's no guarantee that it's
-still valid when the event is parsed later and the pointer is dereferenced.
+Patch series "mm/damon: fixes for the jiffies-related issues", v2.
 
-The kernel warns about these unsafe pointers.
+On 32-bit systems, the kernel initializes jiffies to "-5 minutes" to make
+jiffies wrap bugs appear earlier.  However, this may cause the
+time_before() series of functions to return unexpected values, resulting
+in DAMON not functioning as intended.  Meanwhile, similar issues exist in
+some specific user operation scenarios.
 
-	event 'ma_read' has unsafe pointer field 'fn'
-	WARNING: kernel/trace/trace.c:3779 at ignore_event+0x1da/0x1e4
+This patchset addresses these issues.  The first patch is about the
+DAMON_STAT module, and the second patch is about the core layer's sysfs.
 
-Mark the function names as tracepoint_string() to fix the events.
 
-One case that doesn't work without my patch would be trace-cmd record
-to save the binary ringbuffer and trace-cmd report to parse it in
-userspace.  The address of __func__ can't be dereferenced from
-userspace but tracepoint_string will add an entry to
-/sys/kernel/tracing/printk_formats
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20251030155537.87972-1-martin@kaiser.cx
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Martin Kaiser <martin@kaiser.cx>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+In DAMON_STAT's damon_stat_damon_call_fn(), time_before_eq() is used to
+avoid unnecessarily frequent stat update.
+
+On 32-bit systems, the kernel initializes jiffies to "-5 minutes" to make
+jiffies wrap bugs appear earlier.  However, this causes time_before_eq()
+in DAMON_STAT to unexpectedly return true during the first 5 minutes after
+boot on 32-bit systems (see [1] for more explanation, which fixes another
+jiffies-related issue before).  As a result, DAMON_STAT does not update
+any monitoring results during that period, which becomes more confusing
+when DAMON_STAT_ENABLED_DEFAULT is enabled.
+
+There is also an issue unrelated to the system's word size[2]: if the user
+stops DAMON_STAT just after last_refresh_jiffies is updated and restarts
+it after 5 seconds or a longer delay, last_refresh_jiffies will retain an
+older value, causing time_before_eq() to return false and the update to
+happen earlier than expected.
+
+Fix these issues by making last_refresh_jiffies a global variable and
+initializing it each time DAMON_STAT is started.
+
+Link: https://lkml.kernel.org/r/20251030020746.967174-2-yanquanmin1@huawei.com
+Link: https://lkml.kernel.org/r/20250822025057.1740854-1-ekffu200098@gmail.com [1]
+Link: https://lore.kernel.org/all/20251028143250.50144-1-sj@kernel.org/ [2]
+Fixes: fabdd1e911da ("mm/damon/stat: calculate and expose estimated memory bandwidth")
+Signed-off-by: Quanmin Yan <yanquanmin1@huawei.com>
+Suggested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: ze zuo <zuoze1@huawei.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ mm/damon/stat.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-tracepoint-string-pointers
-+++ a/lib/maple_tree.c
-@@ -64,6 +64,8 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/maple_tree.h>
+--- a/mm/damon/stat.c~mm-damon-stat-change-last_refresh_jiffies-to-a-global-variable
++++ a/mm/damon/stat.c
+@@ -46,6 +46,8 @@ MODULE_PARM_DESC(aggr_interval_us,
  
-+#define TP_FCT tracepoint_string(__func__)
+ static struct damon_ctx *damon_stat_context;
+ 
++static unsigned long damon_stat_last_refresh_jiffies;
 +
- /*
-  * Kernel pointer hashing renders much of the maple tree dump useless as tagged
-  * pointers get hashed to arbitrary values.
-@@ -2756,7 +2758,7 @@ static inline void mas_rebalance(struct
- 	MA_STATE(l_mas, mas->tree, mas->index, mas->last);
- 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
- 
--	trace_ma_op(__func__, mas);
-+	trace_ma_op(TP_FCT, mas);
- 
- 	/*
- 	 * Rebalancing occurs if a node is insufficient.  Data is rebalanced
-@@ -2997,7 +2999,7 @@ static void mas_split(struct ma_state *m
- 	MA_STATE(prev_l_mas, mas->tree, mas->index, mas->last);
- 	MA_STATE(prev_r_mas, mas->tree, mas->index, mas->last);
- 
--	trace_ma_op(__func__, mas);
-+	trace_ma_op(TP_FCT, mas);
- 
- 	mast.l = &l_mas;
- 	mast.r = &r_mas;
-@@ -3172,7 +3174,7 @@ static bool mas_is_span_wr(struct ma_wr_
- 			return false;
- 	}
- 
--	trace_ma_write(__func__, wr_mas->mas, wr_mas->r_max, entry);
-+	trace_ma_write(TP_FCT, wr_mas->mas, wr_mas->r_max, entry);
- 	return true;
- }
- 
-@@ -3416,7 +3418,7 @@ static noinline void mas_wr_spanning_sto
- 	 * of data may happen.
- 	 */
- 	mas = wr_mas->mas;
--	trace_ma_op(__func__, mas);
-+	trace_ma_op(TP_FCT, mas);
- 
- 	if (unlikely(!mas->index && mas->last == ULONG_MAX))
- 		return mas_new_root(mas, wr_mas->entry);
-@@ -3552,7 +3554,7 @@ done:
- 	} else {
- 		memcpy(wr_mas->node, newnode, sizeof(struct maple_node));
- 	}
--	trace_ma_write(__func__, mas, 0, wr_mas->entry);
-+	trace_ma_write(TP_FCT, mas, 0, wr_mas->entry);
- 	mas_update_gap(mas);
- 	mas->end = new_end;
- 	return;
-@@ -3596,7 +3598,7 @@ static inline void mas_wr_slot_store(str
- 		mas->offset++; /* Keep mas accurate. */
- 	}
- 
--	trace_ma_write(__func__, mas, 0, wr_mas->entry);
-+	trace_ma_write(TP_FCT, mas, 0, wr_mas->entry);
- 	/*
- 	 * Only update gap when the new entry is empty or there is an empty
- 	 * entry in the original two ranges.
-@@ -3717,7 +3719,7 @@ static inline void mas_wr_append(struct
- 		mas_update_gap(mas);
- 
- 	mas->end = new_end;
--	trace_ma_write(__func__, mas, new_end, wr_mas->entry);
-+	trace_ma_write(TP_FCT, mas, new_end, wr_mas->entry);
- 	return;
- }
- 
-@@ -3731,7 +3733,7 @@ static void mas_wr_bnode(struct ma_wr_st
+ static void damon_stat_set_estimated_memory_bandwidth(struct damon_ctx *c)
  {
- 	struct maple_big_node b_node;
- 
--	trace_ma_write(__func__, wr_mas->mas, 0, wr_mas->entry);
-+	trace_ma_write(TP_FCT, wr_mas->mas, 0, wr_mas->entry);
- 	memset(&b_node, 0, sizeof(struct maple_big_node));
- 	mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
- 	mas_commit_b_node(wr_mas, &b_node);
-@@ -5062,7 +5064,7 @@ void *mas_store(struct ma_state *mas, vo
+ 	struct damon_target *t;
+@@ -130,13 +132,12 @@ static void damon_stat_set_idletime_perc
+ static int damon_stat_damon_call_fn(void *data)
  {
- 	MA_WR_STATE(wr_mas, mas, entry);
+ 	struct damon_ctx *c = data;
+-	static unsigned long last_refresh_jiffies;
  
--	trace_ma_write(__func__, mas, 0, entry);
-+	trace_ma_write(TP_FCT, mas, 0, entry);
- #ifdef CONFIG_DEBUG_MAPLE_TREE
- 	if (MAS_WARN_ON(mas, mas->index > mas->last))
- 		pr_err("Error %lX > %lX " PTR_FMT "\n", mas->index, mas->last,
-@@ -5163,7 +5165,7 @@ void mas_store_prealloc(struct ma_state
- 	}
+ 	/* avoid unnecessarily frequent stat update */
+-	if (time_before_eq(jiffies, last_refresh_jiffies +
++	if (time_before_eq(jiffies, damon_stat_last_refresh_jiffies +
+ 				msecs_to_jiffies(5 * MSEC_PER_SEC)))
+ 		return 0;
+-	last_refresh_jiffies = jiffies;
++	damon_stat_last_refresh_jiffies = jiffies;
  
- store:
--	trace_ma_write(__func__, mas, 0, entry);
-+	trace_ma_write(TP_FCT, mas, 0, entry);
- 	mas_wr_store_entry(&wr_mas);
- 	MAS_WR_BUG_ON(&wr_mas, mas_is_err(mas));
- 	mas_destroy(mas);
-@@ -5882,7 +5884,7 @@ void *mtree_load(struct maple_tree *mt,
- 	MA_STATE(mas, mt, index, index);
- 	void *entry;
- 
--	trace_ma_read(__func__, &mas);
-+	trace_ma_read(TP_FCT, &mas);
- 	rcu_read_lock();
- retry:
- 	entry = mas_start(&mas);
-@@ -5925,7 +5927,7 @@ int mtree_store_range(struct maple_tree
- 	MA_STATE(mas, mt, index, last);
- 	int ret = 0;
- 
--	trace_ma_write(__func__, &mas, 0, entry);
-+	trace_ma_write(TP_FCT, &mas, 0, entry);
- 	if (WARN_ON_ONCE(xa_is_advanced(entry)))
- 		return -EINVAL;
- 
-@@ -6148,7 +6150,7 @@ void *mtree_erase(struct maple_tree *mt,
- 	void *entry = NULL;
- 
- 	MA_STATE(mas, mt, index, index);
--	trace_ma_op(__func__, &mas);
-+	trace_ma_op(TP_FCT, &mas);
- 
- 	mtree_lock(mt);
- 	entry = mas_erase(&mas);
-@@ -6485,7 +6487,7 @@ void *mt_find(struct maple_tree *mt, uns
- 	unsigned long copy = *index;
- #endif
- 
--	trace_ma_read(__func__, &mas);
-+	trace_ma_read(TP_FCT, &mas);
- 
- 	if ((*index) > max)
- 		return NULL;
+ 	aggr_interval_us = c->attrs.aggr_interval;
+ 	damon_stat_set_estimated_memory_bandwidth(c);
+@@ -210,6 +211,8 @@ static int damon_stat_start(void)
+ 	err = damon_start(&damon_stat_context, 1, true);
+ 	if (err)
+ 		return err;
++
++	damon_stat_last_refresh_jiffies = jiffies;
+ 	call_control.data = damon_stat_context;
+ 	return damon_call(damon_stat_context, &call_control);
+ }
 _
 
-Patches currently in -mm which might be from martin@kaiser.cx are
+Patches currently in -mm which might be from yanquanmin1@huawei.com are
 
+mm-damon-add-a-min_sz_region-parameter-to-damon_set_region_biggest_system_ram_default.patch
+mm-damon-reclaim-use-min_sz_region-for-core-address-alignment-when-setting-regions.patch
 
