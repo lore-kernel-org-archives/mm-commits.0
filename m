@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F1622E8DE3;
-	Mon, 10 Nov 2025 05:20:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCE61A2C25;
+	Mon, 10 Nov 2025 05:20:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762752018; cv=none; b=lds4vqZx5lHar5g0GbPz/ZxTYi5g6AvY9TNf8OVfavm7oZOAu0wP/05lzjmTntWR205kT+AcSpuFTg35uodEAnzTrIymHpE6y9+XHYM/07b3lkvnCJQ05ikpaMVkoeJI+7z/RQR6snoO8Rq4Fyrydp7IBodQLcnmHMng2asF0+U=
+	t=1762752020; cv=none; b=PoiHLbn1SaXXYFqsCp0r5aS19KsRGVIZDIpZKHUFvfs2ZHIFYpH44QymhT0wP1wrx9cc6XZh8jRk8iA+UNCFPz6PR4Zwbw7zfGtr/GGA9RSQlVSH4+BfOgAytmPI/dH54zA6EX4xa24OquTv0rdfDE6GviJ3C7cvwr4SrZ5dQPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762752018; c=relaxed/simple;
-	bh=JOLdOnkdqDObZYl0egZnAJ1dB29mHZixKPqrbEmOzZE=;
-	h=Date:To:From:Subject:Message-Id; b=M5LdPbj9q+xC+BjBMA/PJSLfSkaLlKk/bXByg1YDhVadcfbGu+mEfR6BxwIYuESXo5I7awAVR9B9wn7EzWFMFPMSShdeqxpficekBt4wA7eGVLLw+Ng2ICcbTUZVU/u55NDjau6LdQLL13DEAliq33TI2c6soA1Cds9Wgx+fBV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zyzdz6M6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762752020; c=relaxed/simple;
+	bh=ZsjUpAkzJnt/nrlUih6j/+TXjjMO1vRCKaGqAftOBag=;
+	h=Date:To:From:Subject:Message-Id; b=DA+aQeOCk5Z3WMfu8qCEw0FgR1ncYeb1BMIFaAnGTUp2WoIKKA9jKSGRVjtVd1Xe22OCCtmpCXLMjQf8NHhvpHquBiBhlK3+o2jTBr8hzWoPFbVhkODTpFsO72IPr78Fu1e5e8RDXywGhBJkJdm1pol8l1K/HihzrQcylya3YKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C1Lxdo1p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zyzdz6M6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04AB7C116B1;
-	Mon, 10 Nov 2025 05:20:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C1Lxdo1p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CC00C116D0;
+	Mon, 10 Nov 2025 05:20:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762752018;
-	bh=JOLdOnkdqDObZYl0egZnAJ1dB29mHZixKPqrbEmOzZE=;
+	s=korg; t=1762752019;
+	bh=ZsjUpAkzJnt/nrlUih6j/+TXjjMO1vRCKaGqAftOBag=;
 	h=Date:To:From:Subject:From;
-	b=Zyzdz6M69Sw2nFQnrTf/vHSzW7BbBqikffpVEG3M1ltTsX/6B6qnuOy7y7OMsMQSc
-	 sBdyvkm2dgiPleKdmcKTL6/bxQEbbkvPbcRsrFl/ZklS/FNeAT0BjHLg79kGfIpKRY
-	 9lFIr+fSvJtZLRqWwfr7s8luwhVQ3IsSDG+sZCfM=
-Date: Sun, 09 Nov 2025 21:20:17 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,iii@linux.ibm.com,glider@google.com,elver@google.com,ebiggers@kernel.org,dvyukov@google.com,ast@kernel.org,aleksei.nikiforov@linux.ibm.com,akpm@linux-foundation.org
+	b=C1Lxdo1pzzIJzmBDLM8fPTQc4wpgX7ismUyQl1n+dhjceUyWaw+091+6f3NWdxPAM
+	 VF4/5pU29jb5gpRdmhRBrSdh3dGpGXOz3aH5e2fyZPRup1qKIAk9qxwFtXUb0MIIuR
+	 xaMbpxu3VpDk2nXdhOM/5MU1gv0dKdLjnLLCwfYY=
+Date: Sun, 09 Nov 2025 21:20:18 -0800
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,stable@vger.kernel.org,david@redhat.com,craftfever@airmail.cc,chengming.zhou@linux.dev,pedrodemargomes@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet.patch removed from -mm tree
-Message-Id: <20251110052018.04AB7C116B1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch removed from -mm tree
+Message-Id: <20251110052019.5CC00C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,226 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/kmsan: fix kmsan kmalloc hook when no stack depots are allocated yet
+     Subject: ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
 has been removed from the -mm tree.  Its filename was
-     mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet.patch
+     ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Aleksei Nikiforov <aleksei.nikiforov@linux.ibm.com>
-Subject: mm/kmsan: fix kmsan kmalloc hook when no stack depots are allocated yet
-Date: Tue, 30 Sep 2025 13:56:01 +0200
+From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Subject: ksm: use range-walk function to jump over holes in scan_get_next_rmap_item
+Date: Wed, 22 Oct 2025 12:30:59 -0300
 
-If no stack depot is allocated yet, due to masking out __GFP_RECLAIM flags
-kmsan called from kmalloc cannot allocate stack depot.  kmsan fails to
-record origin and report issues.  This may result in KMSAN failing to
-report issues.
+Currently, scan_get_next_rmap_item() walks every page address in a VMA to
+locate mergeable pages.  This becomes highly inefficient when scanning
+large virtual memory areas that contain mostly unmapped regions, causing
+ksmd to use large amount of cpu without deduplicating much pages.
 
-Reusing flags from kmalloc without modifying them should be safe for kmsan.
-For example, such chain of calls is possible:
-test_uninit_kmalloc -> kmalloc -> __kmalloc_cache_noprof ->
-slab_alloc_node -> slab_post_alloc_hook ->
-kmsan_slab_alloc -> kmsan_internal_poison_memory.
+This patch replaces the per-address lookup with a range walk using
+walk_page_range().  The range walker allows KSM to skip over entire
+unmapped holes in a VMA, avoiding unnecessary lookups.  This problem was
+previously discussed in [1].
 
-Only when it is called in a context without flags present should
-__GFP_RECLAIM flags be masked.
+Consider the following test program which creates a 32 TiB mapping in the
+virtual address space but only populates a single page:
 
-With this change all kmsan tests start working reliably.
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/mman.h>
 
-Eric reported:
+/* 32 TiB */
+const size_t size = 32ul * 1024 * 1024 * 1024 * 1024;
 
-: Yes, KMSAN seems to be at least partially broken currently.  Besides the
-: fact that the kmsan KUnit test is currently failing (which I reported at
-: https://lore.kernel.org/r/20250911175145.GA1376@sol), I've confirmed that
-: the poly1305 KUnit test causes a KMSAN warning with Aleksei's patch
-: applied but does not cause a warning without it.  The warning did get
-: reached via syzbot somehow
-: (https://lore.kernel.org/r/751b3d80293a6f599bb07770afcef24f623c7da0.1761026343.git.xiaopei01@kylinos.cn/),
-: so KMSAN must still work in some cases.  But it didn't work for me.
+int main() {
+        char *area = mmap(NULL, size, PROT_READ | PROT_WRITE,
+                          MAP_NORESERVE | MAP_PRIVATE | MAP_ANON, -1, 0);
 
-Link: https://lkml.kernel.org/r/20250930115600.709776-2-aleksei.nikiforov@linux.ibm.com
-Link: https://lkml.kernel.org/r/20251022030213.GA35717@sol
-Fixes: 97769a53f117 ("mm, bpf: Introduce try_alloc_pages() for opportunistic page allocation")
-Signed-off-by: Aleksei Nikiforov <aleksei.nikiforov@linux.ibm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Tested-by: Eric Biggers <ebiggers@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Marco Elver <elver@google.com>
+        if (area == MAP_FAILED) {
+                perror("mmap() failed\n");
+                return -1;
+        }
+
+        /* Populate a single page such that we get an anon_vma. */
+        *area = 0;
+
+        /* Enable KSM. */
+        madvise(area, size, MADV_MERGEABLE);
+        pause();
+        return 0;
+}
+
+$ ./ksm-sparse  &
+$ echo 1 > /sys/kernel/mm/ksm/run 
+
+Without this patch ksmd uses 100% of the cpu for a long time (more then 1
+hour in my test machine) scanning all the 32 TiB virtual address space
+that contain only one mapped page.  This makes ksmd essentially deadlocked
+not able to deduplicate anything of value.  With this patch ksmd walks
+only the one mapped page and skips the rest of the 32 TiB virtual address
+space, making the scan fast using little cpu.
+
+Link: https://lkml.kernel.org/r/20251023035841.41406-1-pedrodemargomes@gmail.com
+Link: https://lkml.kernel.org/r/20251022153059.22763-1-pedrodemargomes@gmail.com
+Link: https://lore.kernel.org/linux-mm/423de7a3-1c62-4e72-8e79-19a6413e420c@redhat.com/ [1]
+Fixes: 31dbd01f3143 ("ksm: Kernel SamePage Merging")
+Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Co-developed-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: craftfever <craftfever@airmail.cc>
+Closes: https://lkml.kernel.org/r/020cf8de6e773bb78ba7614ef250129f11a63781@murena.io
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c   |    3 ---
- mm/kmsan/hooks.c  |    6 ++++--
- mm/kmsan/shadow.c |    2 +-
- 3 files changed, 5 insertions(+), 6 deletions(-)
+ mm/ksm.c |  113 ++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 104 insertions(+), 9 deletions(-)
 
---- a/mm/kmsan/core.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
-+++ a/mm/kmsan/core.c
-@@ -72,9 +72,6 @@ depot_stack_handle_t kmsan_save_stack_wi
+--- a/mm/ksm.c~ksm-use-range-walk-function-to-jump-over-holes-in-scan_get_next_rmap_item
++++ a/mm/ksm.c
+@@ -2455,6 +2455,95 @@ static bool should_skip_rmap_item(struct
+ 	return true;
+ }
  
- 	nr_entries = stack_trace_save(entries, KMSAN_STACK_DEPTH, 0);
++struct ksm_next_page_arg {
++	struct folio *folio;
++	struct page *page;
++	unsigned long addr;
++};
++
++static int ksm_next_page_pmd_entry(pmd_t *pmdp, unsigned long addr, unsigned long end,
++		struct mm_walk *walk)
++{
++	struct ksm_next_page_arg *private = walk->private;
++	struct vm_area_struct *vma = walk->vma;
++	pte_t *start_ptep = NULL, *ptep, pte;
++	struct mm_struct *mm = walk->mm;
++	struct folio *folio;
++	struct page *page;
++	spinlock_t *ptl;
++	pmd_t pmd;
++
++	if (ksm_test_exit(mm))
++		return 0;
++
++	cond_resched();
++
++	pmd = pmdp_get_lockless(pmdp);
++	if (!pmd_present(pmd))
++		return 0;
++
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && pmd_leaf(pmd)) {
++		ptl = pmd_lock(mm, pmdp);
++		pmd = pmdp_get(pmdp);
++
++		if (!pmd_present(pmd)) {
++			goto not_found_unlock;
++		} else if (pmd_leaf(pmd)) {
++			page = vm_normal_page_pmd(vma, addr, pmd);
++			if (!page)
++				goto not_found_unlock;
++			folio = page_folio(page);
++
++			if (folio_is_zone_device(folio) || !folio_test_anon(folio))
++				goto not_found_unlock;
++
++			page += ((addr & (PMD_SIZE - 1)) >> PAGE_SHIFT);
++			goto found_unlock;
++		}
++		spin_unlock(ptl);
++	}
++
++	start_ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	if (!start_ptep)
++		return 0;
++
++	for (ptep = start_ptep; addr < end; ptep++, addr += PAGE_SIZE) {
++		pte = ptep_get(ptep);
++
++		if (!pte_present(pte))
++			continue;
++
++		page = vm_normal_page(vma, addr, pte);
++		if (!page)
++			continue;
++		folio = page_folio(page);
++
++		if (folio_is_zone_device(folio) || !folio_test_anon(folio))
++			continue;
++		goto found_unlock;
++	}
++
++not_found_unlock:
++	spin_unlock(ptl);
++	if (start_ptep)
++		pte_unmap(start_ptep);
++	return 0;
++found_unlock:
++	folio_get(folio);
++	spin_unlock(ptl);
++	if (start_ptep)
++		pte_unmap(start_ptep);
++	private->page = page;
++	private->folio = folio;
++	private->addr = addr;
++	return 1;
++}
++
++static struct mm_walk_ops ksm_next_page_ops = {
++	.pmd_entry = ksm_next_page_pmd_entry,
++	.walk_lock = PGWALK_RDLOCK,
++};
++
+ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+ {
+ 	struct mm_struct *mm;
+@@ -2542,21 +2631,27 @@ next_mm:
+ 			ksm_scan.address = vma->vm_end;
  
--	/* Don't sleep. */
--	flags &= ~(__GFP_DIRECT_RECLAIM | __GFP_KSWAPD_RECLAIM);
--
- 	handle = stack_depot_save(entries, nr_entries, flags);
- 	return stack_depot_set_extra_bits(handle, extra);
- }
---- a/mm/kmsan/hooks.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
-+++ a/mm/kmsan/hooks.c
-@@ -84,7 +84,8 @@ void kmsan_slab_free(struct kmem_cache *
- 	if (s->ctor)
- 		return;
- 	kmsan_enter_runtime();
--	kmsan_internal_poison_memory(object, s->object_size, GFP_KERNEL,
-+	kmsan_internal_poison_memory(object, s->object_size,
-+				     GFP_KERNEL & ~(__GFP_RECLAIM),
- 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
- 	kmsan_leave_runtime();
- }
-@@ -114,7 +115,8 @@ void kmsan_kfree_large(const void *ptr)
- 	kmsan_enter_runtime();
- 	page = virt_to_head_page((void *)ptr);
- 	KMSAN_WARN_ON(ptr != page_address(page));
--	kmsan_internal_poison_memory((void *)ptr, page_size(page), GFP_KERNEL,
-+	kmsan_internal_poison_memory((void *)ptr, page_size(page),
-+				     GFP_KERNEL & ~(__GFP_RECLAIM),
- 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
- 	kmsan_leave_runtime();
- }
---- a/mm/kmsan/shadow.c~mm-kmsan-fix-kmsan-kmalloc-hook-when-no-stack-depots-are-allocated-yet
-+++ a/mm/kmsan/shadow.c
-@@ -208,7 +208,7 @@ void kmsan_free_page(struct page *page,
- 		return;
- 	kmsan_enter_runtime();
- 	kmsan_internal_poison_memory(page_address(page), page_size(page),
--				     GFP_KERNEL,
-+				     GFP_KERNEL & ~(__GFP_RECLAIM),
- 				     KMSAN_POISON_CHECK | KMSAN_POISON_FREE);
- 	kmsan_leave_runtime();
- }
+ 		while (ksm_scan.address < vma->vm_end) {
++			struct ksm_next_page_arg ksm_next_page_arg;
+ 			struct page *tmp_page = NULL;
+-			struct folio_walk fw;
+ 			struct folio *folio;
+ 
+ 			if (ksm_test_exit(mm))
+ 				break;
+ 
+-			folio = folio_walk_start(&fw, vma, ksm_scan.address, 0);
+-			if (folio) {
+-				if (!folio_is_zone_device(folio) &&
+-				     folio_test_anon(folio)) {
+-					folio_get(folio);
+-					tmp_page = fw.page;
+-				}
+-				folio_walk_end(&fw, vma);
++			int found;
++
++			found = walk_page_range_vma(vma, ksm_scan.address,
++						    vma->vm_end,
++						    &ksm_next_page_ops,
++						    &ksm_next_page_arg);
++
++			if (found > 0) {
++				folio = ksm_next_page_arg.folio;
++				tmp_page = ksm_next_page_arg.page;
++				ksm_scan.address = ksm_next_page_arg.addr;
++			} else {
++				VM_WARN_ON_ONCE(found < 0);
++				ksm_scan.address = vma->vm_end - PAGE_SIZE;
+ 			}
+ 
+ 			if (tmp_page) {
 _
 
-Patches currently in -mm which might be from aleksei.nikiforov@linux.ibm.com are
+Patches currently in -mm which might be from pedrodemargomes@gmail.com are
 
+revert-mm-ksm-convert-break_ksm-from-walk_page_range_vma-to-folio_walk.patch
+ksm-perform-a-range-walk-in-break_ksm.patch
+ksm-replace-function-unmerge_ksm_pages-with-break_ksm.patch
 
