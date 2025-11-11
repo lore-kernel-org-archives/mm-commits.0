@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AC152D0610
-	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 18:59:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E608E2D1F69
+	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 18:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762887593; cv=none; b=WdCg38BURJI0wVhztXFxyyD8WwbI6EzC1P3DtiEmpjmb53NJpap6QaFixiQm27iGFKfBxQUU1KCWo5j6BlsGUHNI74dexmL0eof3D5V7W6ta8hx5CyXsFtjyW8Zw1qbxY8mUOr3oKOSNkA+aw7SnF2nnERlIjs3pBMjM2gGIvRQ=
+	t=1762887595; cv=none; b=qMlLDT0MaC9k21dVSj++pXkwxzOsLmyoElIihKUxd5RwyTJJlq9PGKjShc/xVrbXZZkSs563Dqmm0DAvwYsdzwhImhviG+bz4Mhuxp+w3ei5gVsAYX1nXjQe3cTbXpzeE0csJ/iVpE7Or0cplj8eEbGk5VJ4hBua802IWuEuNfQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762887593; c=relaxed/simple;
-	bh=jbW8lOxALxwxSsQcf5TB8uuoQK0q6CV+HjlCk72ALgY=;
-	h=Date:To:From:Subject:Message-Id; b=bD6UA84m5ITkMuXLkx7eNmBnxNMI/ZZ1c5hR9enXs2aAKqwqKQnv76GMVrdRXsAu0tVQgbR8Eg/mhY9LZ8viTbFfzw2DG2oG6Sfro3wZhq+dLV/z5TXywj/i7eGb8j4vFX7lefAGgDhRdeH37noyksVND75hFMcy4HaYMg19mO8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZCmIRXpd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762887595; c=relaxed/simple;
+	bh=yBFSCZ035JNYVr+lBJ5EXvhD2S2QD/oYN1CveZMU2lQ=;
+	h=Date:To:From:Subject:Message-Id; b=XYHDr+QLApQZxQ30exn3JxUYJWsSKH4qrll6fbKmMhXrMlTXWZysHuy17X90f3B0VfZsvj64juaoz1/AcWcP4QC1wa5uBIMgk6jM0n9DgfeUoN8c6uzHYEruCKE2UzioEUWAvM9aAHUA5EkbIokY3t92ijdss5NhMT0GQHgSMc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VfqGJvCv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZCmIRXpd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DF59C113D0;
-	Tue, 11 Nov 2025 18:59:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VfqGJvCv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBEE6C19424;
+	Tue, 11 Nov 2025 18:59:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762887592;
-	bh=jbW8lOxALxwxSsQcf5TB8uuoQK0q6CV+HjlCk72ALgY=;
+	s=korg; t=1762887594;
+	bh=yBFSCZ035JNYVr+lBJ5EXvhD2S2QD/oYN1CveZMU2lQ=;
 	h=Date:To:From:Subject:From;
-	b=ZCmIRXpdOAt+AWL2DsauNZ3QdpMt7+xNZ0ztz9ka2cEC/646m1t5EgBaxHEi0+aET
-	 zfEapusxfaLIwuMQwENmDatKjeQztRXZ1NUopTExLzZu+JP1RAeZnMXApulMj5qPJM
-	 bWtCzXwS8ZkM6ofcG5qFycepST840koTAPt2R5v0=
-Date: Tue, 11 Nov 2025 10:59:52 -0800
+	b=VfqGJvCv2vhhAmfMatOmPaS3nMNfbuyCTSRRVpxOZswKCVI1t/vGY0GBuD8rOdXRM
+	 B6wM3/c6MxV9MEPp7YZi6PXROFkUUKbjzoBO/9jLuZaT2yj6356sz+te+UViQqaIiN
+	 zwSEpJNYlPsU9f6+wj+faVcxJyoURXRQegptFem4=
+Date: Tue, 11 Nov 2025 10:59:54 -0800
 To: mm-commits@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-add-damos_commit-test.patch added to mm-new branch
-Message-Id: <20251111185952.9DF59C113D0@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch added to mm-new branch
+Message-Id: <20251111185954.BBEE6C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: add damos_commit() test
+     Subject: mm/damon/tests/core-kunit: add damon_commit_target_regions() test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-add-damos_commit-test.patch
+     mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damos_commit-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,126 +65,99 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: add damos_commit() test
-Date: Tue, 11 Nov 2025 10:44:09 -0800
+Subject: mm/damon/tests/core-kunit: add damon_commit_target_regions() test
+Date: Tue, 11 Nov 2025 10:44:10 -0800
 
-Add a new unit test for damos_commit().
+Add a new test for damon_commit_target_regions().
 
-Link: https://lkml.kernel.org/r/20251111184415.141757-11-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251111184415.141757-12-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   92 ++++++++++++++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
+ mm/damon/tests/core-kunit.h |   65 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damos_commit-test
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damon_commit_target_regions-test
 +++ a/mm/damon/tests/core-kunit.h
-@@ -873,6 +873,97 @@ static void damos_test_commit_filter(str
+@@ -964,6 +964,70 @@ static void damos_test_commit(struct kun
  			});
  }
  
-+static void damos_test_help_initailize_scheme(struct damos *scheme)
++static struct damon_target *damon_test_help_setup_target(
++		unsigned long region_start_end[][2], int nr_regions)
 +{
-+	INIT_LIST_HEAD(&scheme->quota.goals);
-+	INIT_LIST_HEAD(&scheme->filters);
-+	INIT_LIST_HEAD(&scheme->ops_filters);
-+}
++	struct damon_target *t;
++	struct damon_region *r;
++	int i;
 +
-+static void damos_test_commit_for(struct kunit *test, struct damos *dst,
-+		struct damos *src)
-+{
-+	int err;
-+
-+	damos_test_help_initailize_scheme(dst);
-+	damos_test_help_initailize_scheme(src);
-+
-+	err = damos_commit(dst, src);
-+	if (err)
-+		kunit_skip(test, "damos_commit fail");
-+
-+	KUNIT_EXPECT_EQ(test, dst->pattern.min_sz_region,
-+			src->pattern.min_sz_region);
-+	KUNIT_EXPECT_EQ(test, dst->pattern.max_sz_region,
-+			src->pattern.max_sz_region);
-+	KUNIT_EXPECT_EQ(test, dst->pattern.min_nr_accesses,
-+			src->pattern.min_nr_accesses);
-+	KUNIT_EXPECT_EQ(test, dst->pattern.max_nr_accesses,
-+			src->pattern.max_nr_accesses);
-+	KUNIT_EXPECT_EQ(test, dst->pattern.min_age_region,
-+			src->pattern.min_age_region);
-+	KUNIT_EXPECT_EQ(test, dst->pattern.max_age_region,
-+			src->pattern.max_age_region);
-+
-+	KUNIT_EXPECT_EQ(test, dst->action, src->action);
-+	KUNIT_EXPECT_EQ(test, dst->apply_interval_us, src->apply_interval_us);
-+
-+	KUNIT_EXPECT_EQ(test, dst->wmarks.metric, src->wmarks.metric);
-+	KUNIT_EXPECT_EQ(test, dst->wmarks.interval, src->wmarks.interval);
-+	KUNIT_EXPECT_EQ(test, dst->wmarks.high, src->wmarks.high);
-+	KUNIT_EXPECT_EQ(test, dst->wmarks.mid, src->wmarks.mid);
-+	KUNIT_EXPECT_EQ(test, dst->wmarks.low, src->wmarks.low);
-+
-+	switch (src->action) {
-+	case DAMOS_MIGRATE_COLD:
-+	case DAMOS_MIGRATE_HOT:
-+		KUNIT_EXPECT_EQ(test, dst->target_nid, src->target_nid);
-+		break;
-+	default:
-+		break;
++	t = damon_new_target();
++	if (!t)
++		return NULL;
++	for (i = 0; i < nr_regions; i++) {
++		r = damon_new_region(region_start_end[i][0],
++				region_start_end[i][1]);
++		if (!r) {
++			damon_free_target(t);
++			return NULL;
++		}
++		damon_add_region(r, t);
 +	}
++	return t;
 +}
 +
-+static void damos_test_commit(struct kunit *test)
++static void damon_test_commit_target_regions_for(struct kunit *test,
++		unsigned long dst_start_end[][2], int nr_dst_regions,
++		unsigned long src_start_end[][2], int nr_src_regions,
++		unsigned long expect_start_end[][2], int nr_expect_regions)
 +{
-+	damos_test_commit_for(test,
-+			&(struct damos){
-+				.pattern = (struct damos_access_pattern){
-+					1, 2, 3, 4, 5, 6},
-+				.action = DAMOS_PAGEOUT,
-+				.apply_interval_us = 1000000,
-+				.wmarks = (struct damos_watermarks){
-+					DAMOS_WMARK_FREE_MEM_RATE,
-+					900, 100, 50},
-+			},
-+			&(struct damos){
-+				.pattern = (struct damos_access_pattern){
-+					2, 3, 4, 5, 6, 7},
-+				.action = DAMOS_PAGEOUT,
-+				.apply_interval_us = 2000000,
-+				.wmarks = (struct damos_watermarks){
-+					DAMOS_WMARK_FREE_MEM_RATE,
-+					800, 50, 30},
-+			});
-+	damos_test_commit_for(test,
-+			&(struct damos){
-+				.pattern = (struct damos_access_pattern){
-+					1, 2, 3, 4, 5, 6},
-+				.action = DAMOS_PAGEOUT,
-+				.apply_interval_us = 1000000,
-+				.wmarks = (struct damos_watermarks){
-+					DAMOS_WMARK_FREE_MEM_RATE,
-+					900, 100, 50},
-+			},
-+			&(struct damos){
-+				.pattern = (struct damos_access_pattern){
-+					2, 3, 4, 5, 6, 7},
-+				.action = DAMOS_MIGRATE_HOT,
-+				.apply_interval_us = 2000000,
-+				.target_nid = 5,
-+			});
++	struct damon_target *dst_target, *src_target;
++	struct damon_region *r;
++	int i;
++
++	dst_target = damon_test_help_setup_target(dst_start_end, nr_dst_regions);
++	if (!dst_target)
++		kunit_skip(test, "dst target setup fail");
++	src_target = damon_test_help_setup_target(src_start_end, nr_src_regions);
++	if (!src_target) {
++		damon_free_target(dst_target);
++		kunit_skip(test, "src target setup fail");
++	}
++	damon_commit_target_regions(dst_target, src_target, 1);
++	i = 0;
++	damon_for_each_region(r, dst_target) {
++		KUNIT_EXPECT_EQ(test, r->ar.start, expect_start_end[i][0]);
++		KUNIT_EXPECT_EQ(test, r->ar.end, expect_start_end[i][1]);
++		i++;
++	}
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(dst_target), nr_expect_regions);
++	KUNIT_EXPECT_EQ(test, i, nr_expect_regions);
++	damon_free_target(dst_target);
++	damon_free_target(src_target);
++}
++
++static void damon_test_commit_target_regions(struct kunit *test)
++{
++	damon_test_commit_target_regions_for(test,
++			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2,
++			(unsigned long[][2]) {{4, 6}}, 1,
++			(unsigned long[][2]) {{4, 6}}, 1);
++	damon_test_commit_target_regions_for(test,
++			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2,
++			(unsigned long[][2]) {}, 0,
++			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2);
 +}
 +
  static void damos_test_filter_out(struct kunit *test)
  {
  	struct damon_target *t;
-@@ -1078,6 +1169,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damos_test_commit_quota),
+@@ -1170,6 +1234,7 @@ static struct kunit_case damon_test_case
  	KUNIT_CASE(damos_test_commit_dests),
  	KUNIT_CASE(damos_test_commit_filter),
-+	KUNIT_CASE(damos_test_commit),
+ 	KUNIT_CASE(damos_test_commit),
++	KUNIT_CASE(damon_test_commit_target_regions),
  	KUNIT_CASE(damos_test_filter_out),
  	KUNIT_CASE(damon_test_feed_loop_next_input),
  	KUNIT_CASE(damon_test_set_filters_default_reject),
