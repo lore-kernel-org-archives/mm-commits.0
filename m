@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5F3D2E7167
-	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 23:18:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 863F32F39C5
+	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 23:24:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762903099; cv=none; b=GunHBQxgtBYSqFE2GUClyoYdkJzxVDqhmBzHXVWyDg9qckFqLZlXuo7H/O/RvGC4jv22YR5cRTOJx7mNXEY4b0a8hH3YU5ksi0cmOwVZkExN6agbwhhkdBp51wsiU//Ta2L+tAZVt/mqFH1topvurSoHXihFTxE5fRriw/ePKo4=
+	t=1762903496; cv=none; b=l+sinJZkopdaNTrUtrxyANRXfKNAieZcduRopBj9dhLXzsD33UihIOg5d/RFCYYzMttHdHdVesfbODD3Z+CwFfJfMEjtDXMLlZs+pbuvLMVs4RAqllaJG5wB2hckJP0OjtK1DCuXrycxLq+tY30egC49IpeFF7ReRn2N3nIggC8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762903099; c=relaxed/simple;
-	bh=xJXzrF2I+xHjDZUnEG4u+8dVmoPoKUEUY1S9318sqXo=;
-	h=Date:To:From:Subject:Message-Id; b=YN5gkyb5HeVSY+tw7YNeUTN//6MRIyRSkwhWb2Diw+Vx3HHhzMudON6w1rc5wzy7x3Jo4+NpkfextDfhxl/QQMUxwdfVfzw+QTZS9yrukkzAkVfU2v3MmtEVVkBACwB1Iue0+xpCvAkdQktmLwrm9Ga8H/9f7vFRICEZXg37PqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PNp8RY4F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762903496; c=relaxed/simple;
+	bh=LEJDcffSG9rllOadv9vSGKqXsDgHgIm+turdGNyUgH0=;
+	h=Date:To:From:Subject:Message-Id; b=IeCckUI87Nn+8YctAB//iOrrSgqd/wayBQV8rm1gtZmQqS2zVfwxSUUntr2kpG8s/C1fGDUi92yml///4nmqidI3hvEAMERRwLBwafDeE0sErFErjtq1a8e9xxHmvKF0mefsCidVr6Dzj0UJIMJngDX0bW7CgZZb8J4DLGeS1WU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1gn/Fqc6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PNp8RY4F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A60C16AAE;
-	Tue, 11 Nov 2025 23:18:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1gn/Fqc6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE518C16AAE;
+	Tue, 11 Nov 2025 23:24:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762903098;
-	bh=xJXzrF2I+xHjDZUnEG4u+8dVmoPoKUEUY1S9318sqXo=;
+	s=korg; t=1762903496;
+	bh=LEJDcffSG9rllOadv9vSGKqXsDgHgIm+turdGNyUgH0=;
 	h=Date:To:From:Subject:From;
-	b=PNp8RY4F36fH2sJDxPXhQ1cu42/jYXlrI7DKTW0AtWqIztyuhiwtuQyEPhtNUDJ+a
-	 v8wgGqhbyj3PvCwMwP3/bp6vo2ZKpMLb4uucNgEQElfZPq606rDynZBl8go7Go2Ctf
-	 BjE6S0ui2uuNhkNn3bmikB3rkEnasCkPGVh/XBF0=
-Date: Tue, 11 Nov 2025 15:18:17 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,tony.luck@intel.com,surenb@google.com,shuah@kernel.org,shawn.fan@intel.com,russ.anderson@hpe.com,rppt@kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,mhocko@suse.com,mclapinski@google.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,laoar.shao@gmail.com,joel.granados@kernel.org,jiaqiyan@google.com,jane.chu@oracle.com,jack@suse.cz,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,bp@alien8.de,kyle.meyer@hpe.com,akpm@linux-foundation.org
+	b=1gn/Fqc6kyLyD5i0F9OcvQeFfgYxPkGQF/A8BxG2siBmK5kFQFoESWl75CCyQA5Z4
+	 No1GJEIRbgPwrbkn/onSvBeMb6F56VTn5nKRBYmHzsvYqLJW/aEI9TvwKlvhl7lb0R
+	 68X+wU2kKc8okWfW+Nv9u+ldauXBoi9jftcUHsog=
+Date: Tue, 11 Nov 2025 15:24:55 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory-failure-support-disabling-soft-offline-for-hugetlb-pages.patch removed from -mm tree
-Message-Id: <20251111231818.52A60C16AAE@smtp.kernel.org>
+Subject: + mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2.patch added to mm-unstable branch
+Message-Id: <20251111232455.DE518C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,300 +34,80 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/memory-failure: support disabling soft offline for HugeTLB pages
-has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-support-disabling-soft-offline-for-hugetlb-pages.patch
+The patch titled
+     Subject: mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kyle Meyer <kyle.meyer@hpe.com>
-Subject: mm/memory-failure: support disabling soft offline for HugeTLB pages
-Date: Mon, 15 Sep 2025 19:27:41 -0500
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2
+Date: Mon, 22 Sep 2025 14:02:28 +0800
 
-Some BIOS suppress ("cloak") corrected memory errors until a threshold
-is reached.  Once that threshold is reached, BIOS reports a CPER with
-the "error threshold exceeded" bit set via GHES and the corresponding
-page is soft offlined.
+remove comment and WARNing, per Hugh and others
 
-BIOS does not know the page type of the corresponding page.  If the
-corresponding page happens to be a HugeTLB page, it will be dissolved,
-permanently reducing the HugeTLB page pool.  This can be problematic
-for workloads that depend on a fixed number of HugeTLB pages.
-
-Currently, soft offline must be disabled to prevent HugeTLB pages from
-being soft offlined.
-
-This patch provides a middle ground. Soft offline can be disabled for
-HugeTLB pages while remaining enabled for non-HugeTLB pages, preserving
-the benefits of soft offline without the risk of BIOS soft offlining
-HugeTLB pages.
-
-Commit 56374430c5dfc ("mm/memory-failure: userspace controls
-soft-offlining pages") introduced the following sysctl interface to
-control soft offline:
-
-/proc/sys/vm/enable_soft_offline
-
-The interface does not distinguish between page types:
-
-    0 - Soft offline is disabled
-    1 - Soft offline is enabled
-
-Convert enable_soft_offline to a bitmask and support disabling soft
-offline for HugeTLB pages:
-
-Bits:
-
-    0 - Enable soft offline
-    1 - Disable soft offline for HugeTLB pages
-
-Supported values:
-
-    0 - Soft offline is disabled
-    1 - Soft offline is enabled
-    3 - Soft offline is enabled (disabled for HugeTLB pages)
-
-Existing behavior is preserved.
-
-Update documentation and HugeTLB soft offline self tests.
-
-Tony said:
-
-: Recap of original problem is that some BIOS keep track of error
-: threshold per-rank and use this GHES mechanism to report threshold
-: exceeded on the rank.
-: 
-: Systems that stay up a long time can accumulate enough soft errors to
-: trigger this threshold.  But the action of taking a page offline isn't
-: going to help.  For a 4K page this is merely annoying.  For 1G page it
-: can mess things up badly.
-: 
-: My original patch for this just skipped the GHES->offline process for
-: huge pages.  But I wasn't aware of the sysctl control.  That provides a
-: better solution.
-
-Link: https://lkml.kernel.org/r/aMiu_Uku6Y5ZbuhM@hpe.com
-Signed-off-by: Kyle Meyer <kyle.meyer@hpe.com>
-Reported-by: Shawn Fan <shawn.fan@intel.com>
-Suggested-by: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Betkov <bp@alien8.de>
+Link: https://lkml.kernel.org/r/392a9ca3-31ac-4447-bd44-3c656d63e4ca@linux.alibaba.com
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Clapinski <mclapinski@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Russ Anderson <russ.anderson@hpe.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yafang <laoar.shao@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-memory-page-offline |    3 +
- Documentation/admin-guide/sysctl/vm.rst             |   28 ++++++++--
- mm/memory-failure.c                                 |   17 +++++-
- tools/testing/selftests/mm/hugetlb-soft-offline.c   |   19 +++++-
- 4 files changed, 56 insertions(+), 11 deletions(-)
+ mm/vmscan.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-memory-page-offline~mm-memory-failure-support-disabling-soft-offline-for-hugetlb-pages
-+++ a/Documentation/ABI/testing/sysfs-memory-page-offline
-@@ -20,6 +20,9 @@ Description:
- 		number, or a error when the offlining failed.  Reading
- 		the file is not allowed.
- 
-+		Soft-offline can be controlled via sysctl, see:
-+		Documentation/admin-guide/sysctl/vm.rst
-+
- What:		/sys/devices/system/memory/hard_offline_page
- Date:		Sep 2009
- KernelVersion:	2.6.33
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-memory-failure-support-disabling-soft-offline-for-hugetlb-pages
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -309,19 +309,39 @@ physical memory) vs performance / capaci
- HugeTLB cases.
- 
- For all architectures, enable_soft_offline controls whether to soft offline
--memory pages.  When set to 1, kernel attempts to soft offline the pages
--whenever it thinks needed.  When set to 0, kernel returns EOPNOTSUPP to
--the request to soft offline the pages.  Its default value is 1.
-+memory pages.
-+
-+enable_soft_offline is a bitmask:
-+
-+Bits::
-+
-+	0 - Enable soft offline
-+	1 - Disable soft offline for HugeTLB pages
-+
-+Supported values::
-+
-+	0 - Soft offline is disabled
-+	1 - Soft offline is enabled
-+	3 - Soft offline is enabled (disabled for HugeTLB pages)
-+
-+The default value is 1.
-+
-+If soft offline is disabled for the requested page type, EOPNOTSUPP is returned.
- 
- It is worth mentioning that after setting enable_soft_offline to 0, the
- following requests to soft offline pages will not be performed:
- 
-+- Request to soft offline from sysfs (soft_offline_page).
-+
- - Request to soft offline pages from RAS Correctable Errors Collector.
- 
--- On ARM, the request to soft offline pages from GHES driver.
-+- On ARM and X86, the request to soft offline pages from GHES driver.
- 
- - On PARISC, the request to soft offline pages from Page Deallocation Table.
- 
-+Note:
-+	Soft offlining a HugeTLB page reduces the HugeTLB page pool.
-+
- extfrag_threshold
- =================
- 
---- a/mm/memory-failure.c~mm-memory-failure-support-disabling-soft-offline-for-hugetlb-pages
-+++ a/mm/memory-failure.c
-@@ -64,11 +64,14 @@
- #include "internal.h"
- #include "ras/ras_event.h"
- 
-+#define SOFT_OFFLINE_ENABLED		BIT(0)
-+#define SOFT_OFFLINE_SKIP_HUGETLB	BIT(1)
-+
- static int sysctl_memory_failure_early_kill __read_mostly;
- 
- static int sysctl_memory_failure_recovery __read_mostly = 1;
- 
--static int sysctl_enable_soft_offline __read_mostly = 1;
-+static int sysctl_enable_soft_offline __read_mostly = SOFT_OFFLINE_ENABLED;
- 
- atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
- 
-@@ -150,7 +153,7 @@ static const struct ctl_table memory_fai
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
-+		.extra2		= SYSCTL_THREE,
- 	}
- };
- 
-@@ -2725,12 +2728,20 @@ int soft_offline_page(unsigned long pfn,
- 		return -EIO;
- 	}
- 
--	if (!sysctl_enable_soft_offline) {
-+	if (!(sysctl_enable_soft_offline & SOFT_OFFLINE_ENABLED)) {
- 		pr_info_once("disabled by /proc/sys/vm/enable_soft_offline\n");
- 		put_ref_page(pfn, flags);
- 		return -EOPNOTSUPP;
- 	}
- 
-+	if (sysctl_enable_soft_offline & SOFT_OFFLINE_SKIP_HUGETLB) {
-+		if (folio_test_hugetlb(pfn_folio(pfn))) {
-+			pr_info_once("disabled for HugeTLB pages by /proc/sys/vm/enable_soft_offline\n");
-+			put_ref_page(pfn, flags);
-+			return -EOPNOTSUPP;
-+		}
-+	}
-+
- 	mutex_lock(&mf_mutex);
- 
- 	if (PageHWPoison(page)) {
---- a/tools/testing/selftests/mm/hugetlb-soft-offline.c~mm-memory-failure-support-disabling-soft-offline-for-hugetlb-pages
-+++ a/tools/testing/selftests/mm/hugetlb-soft-offline.c
-@@ -5,6 +5,8 @@
-  *   offlining failed with EOPNOTSUPP.
-  * - if enable_soft_offline = 1, a hugepage should be dissolved and
-  *   nr_hugepages/free_hugepages should be reduced by 1.
-+ * - if enable_soft_offline = 3, hugepages should stay intact and soft
-+ *   offlining failed with EOPNOTSUPP.
-  *
-  * Before running, make sure more than 2 hugepages of default_hugepagesz
-  * are allocated. For example, if /proc/meminfo/Hugepagesize is 2048kB:
-@@ -32,6 +34,9 @@
- 
- #define EPREFIX " !!! "
- 
-+#define SOFT_OFFLINE_ENABLED		(1 << 0)
-+#define SOFT_OFFLINE_SKIP_HUGETLB	(1 << 1)
-+
- static int do_soft_offline(int fd, size_t len, int expect_errno)
- {
- 	char *filemap = NULL;
-@@ -56,6 +61,7 @@ static int do_soft_offline(int fd, size_
- 	ksft_print_msg("Allocated %#lx bytes of hugetlb pages\n", len);
- 
- 	hwp_addr = filemap + len / 2;
-+	errno = 0;
- 	ret = madvise(hwp_addr, pagesize, MADV_SOFT_OFFLINE);
- 	ksft_print_msg("MADV_SOFT_OFFLINE %p ret=%d, errno=%d\n",
- 		       hwp_addr, ret, errno);
-@@ -83,7 +89,7 @@ static int set_enable_soft_offline(int v
- 	char cmd[256] = {0};
- 	FILE *cmdfile = NULL;
- 
--	if (value != 0 && value != 1)
-+	if (value < 0 || value > 3)
- 		return -EINVAL;
- 
- 	sprintf(cmd, "echo %d > /proc/sys/vm/enable_soft_offline", value);
-@@ -155,13 +161,17 @@ close:
- static void test_soft_offline_common(int enable_soft_offline)
- {
- 	int fd;
--	int expect_errno = enable_soft_offline ? 0 : EOPNOTSUPP;
-+	int expect_errno = 0;
- 	struct statfs file_stat;
- 	unsigned long hugepagesize_kb = 0;
- 	unsigned long nr_hugepages_before = 0;
- 	unsigned long nr_hugepages_after = 0;
- 	int ret;
- 
-+	if (!(enable_soft_offline & SOFT_OFFLINE_ENABLED) ||
-+	     (enable_soft_offline & SOFT_OFFLINE_SKIP_HUGETLB))
-+		expect_errno = EOPNOTSUPP;
-+
- 	ksft_print_msg("Test soft-offline when enabled_soft_offline=%d\n",
- 		       enable_soft_offline);
- 
-@@ -198,7 +208,7 @@ static void test_soft_offline_common(int
- 	// No need for the hugetlbfs file from now on.
- 	close(fd);
- 
--	if (enable_soft_offline) {
-+	if (expect_errno == 0) {
- 		if (nr_hugepages_before != nr_hugepages_after + 1) {
- 			ksft_test_result_fail("MADV_SOFT_OFFLINE should reduced 1 hugepage\n");
- 			return;
-@@ -219,8 +229,9 @@ static void test_soft_offline_common(int
- int main(int argc, char **argv)
- {
- 	ksft_print_header();
--	ksft_set_plan(2);
-+	ksft_set_plan(3);
- 
-+	test_soft_offline_common(3);
- 	test_soft_offline_common(1);
- 	test_soft_offline_common(0);
- 
+--- a/mm/vmscan.c~mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2
++++ a/mm/vmscan.c
+@@ -697,17 +697,8 @@ static pageout_t pageout(struct folio *f
+ 	 * swap_backing_dev_info is bust: it doesn't reflect the
+ 	 * congestion state of the swapdevs.  Easy to fix, if needed.
+ 	 */
+-	if (!is_page_cache_freeable(folio))
++	if (!is_page_cache_freeable(folio) || !mapping)
+ 		return PAGE_KEEP;
+-	if (!mapping) {
+-		/*
+-		 * We should no longer have dirty folios with clean buffers and
+-		 * a NULL mapping. However, let's be careful for now.
+-		 */
+-		VM_WARN_ON_FOLIO(true, folio);
+-		return PAGE_KEEP;
+-	}
+-
+ 	if (!shmem_mapping(mapping) && !folio_test_anon(folio))
+ 		return PAGE_ACTIVATE;
+ 	if (!folio_clear_dirty_for_io(folio))
 _
 
-Patches currently in -mm which might be from kyle.meyer@hpe.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-vmscan-remove-folio_test_private-check-in-pageout.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2.patch
+mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
+mm-vmscan-simplify-the-folio-refcount-check-in-pageout-fix.patch
+mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim.patch
+mm-vmscan-simplify-the-logic-for-activating-dirty-file-folios.patch
 
