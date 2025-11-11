@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0E732D0628
-	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 18:59:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5A1C2D0C9A
+	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 18:59:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762887575; cv=none; b=jyKD/o7XmbWe4PAzn+KASBvET2Jmg253yGD6KgpqA3bVpyQS4FnOpvLRfaHY1Gd15MQitIEBDwicnoLnXcCCl9PXISJBgH3TC1v4U83w6juHEfIunqQZ/3WZcJr2ypznQWJIjwXoF7wjDlIaLdqhDShnCJ4cKcRTf0LUqDQk0+A=
+	t=1762887577; cv=none; b=ZlIzu7Pv/BO7O7vKSsGmgsiG2X+G/K0hk65ZFh6B/zdhoSH0ft3XYdCdW1y5GRVwMB6pXqN/Gk4dMpsLjU+pEwKupXpgtnAwztbnvKmjfcbwKwbohgIxyNh590yUfZTBiESC/B1LPGKTb8jXRsO66tmNR8/1PPQ0Mmwow77bml0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762887575; c=relaxed/simple;
-	bh=ZESjTKHHhXdRpkah2D89UvnIeiHjIPERu6cdr+8IXtA=;
-	h=Date:To:From:Subject:Message-Id; b=Oh83VFy92q8LQ9dymTUbklQ5gp/sYbT4qdtqH7ehMmDSjecAwkr4MKAZGH78UjeYQ1qAlexnRBYSupyR9pKb3Sjnm1yRIb1QQnBGx0obPP2jE/Nl926W6KRkEVFoNtn67kSfLTJE+wfhQz3mot834KFECv4/F1f5C+21pBP1b+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JyuRXALY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762887577; c=relaxed/simple;
+	bh=6vIaTr3j3isHcm/BWlmtX8AqOT/C4gjraNCIAm6G+dk=;
+	h=Date:To:From:Subject:Message-Id; b=R5RQ/PoHd+c05t5ZBOIAERu2y4yqs5Yx9XgkfO3aFGhvmgC0CXmmtivw/sIFGtIw/g0k9FgtG7ereDspu75qGpAOvkYTbIrlrfGejG+gPG35LJsi5zlO97KyDftiKG1z24j+OGdtZ9x+5gBaoEuQIt1Az3+YuHd9lGNt+cY4/Ms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HNTxqz4O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JyuRXALY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D293C19425;
-	Tue, 11 Nov 2025 18:59:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HNTxqz4O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83489C4CEFB;
+	Tue, 11 Nov 2025 18:59:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762887575;
-	bh=ZESjTKHHhXdRpkah2D89UvnIeiHjIPERu6cdr+8IXtA=;
+	s=korg; t=1762887577;
+	bh=6vIaTr3j3isHcm/BWlmtX8AqOT/C4gjraNCIAm6G+dk=;
 	h=Date:To:From:Subject:From;
-	b=JyuRXALYQk4TkacaJl2p06/CPJR5MpJjo0fVzPVyknxA3Pf/WpLn9Rq2rwzbPZZFk
-	 prt7goBEf3YP+2KQoROyw34kkJhmrKNQJ2JTi1IW3QlHd6wkaEuvLew/XOCWfNENsi
-	 7nf5jqwXokqmuTjHmDI6/hr71lUHYNNgk5cavHgg=
-Date: Tue, 11 Nov 2025 10:59:34 -0800
+	b=HNTxqz4O0r+Am+vwExAPR5rqt/ANaJ9d6M8Zh4eaEDUBbTVHHSNBtfeX85UDFUxMI
+	 RP3tbTb4rrWb/VAXCBwwqGLhHzOmrvSHB0ZD06+g6Zs62b5wm3RgYFK7Z+aPlaM9Hg
+	 HAwdZbEZm+m3SYIFj7AR60432s68g0xjYI0WUFUo=
+Date: Tue, 11 Nov 2025 10:59:36 -0800
 To: mm-commits@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch added to mm-new branch
-Message-Id: <20251111185935.5D293C19425@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch added to mm-new branch
+Message-Id: <20251111185937.83489C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: split out damos_test_commit_filter() core logic
+     Subject: mm/damon/tests/core-kunit: extend damos_test_commit_filter_for() for union fields
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch
+     mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,53 +65,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: split out damos_test_commit_filter() core logic
-Date: Tue, 11 Nov 2025 10:44:01 -0800
+Subject: mm/damon/tests/core-kunit: extend damos_test_commit_filter_for() for union fields
+Date: Tue, 11 Nov 2025 10:44:02 -0800
 
-damos_test_commit_filter() is written for only a single test case.  Split
-out the core logic of damos_test_commit_filter() as a general one so that
-it can be reused for multiple test cases.
+damos_commit_filter() also updates union fields of 'struct damos_filter'. 
+Extend damos_test_commit_filter_for() to cover the expectations of the
+union fields.
 
-Link: https://lkml.kernel.org/r/20251111184415.141757-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251111184415.141757-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/damon/tests/core-kunit.h |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields
 +++ a/mm/damon/tests/core-kunit.h
-@@ -497,6 +497,15 @@ static void damos_test_new_filter(struct
- 	damos_destroy_filter(filter);
+@@ -504,6 +504,26 @@ static void damos_test_commit_filter_for
+ 	KUNIT_EXPECT_EQ(test, dst->type, src->type);
+ 	KUNIT_EXPECT_EQ(test, dst->matching, src->matching);
+ 	KUNIT_EXPECT_EQ(test, dst->allow, src->allow);
++	switch (src->type) {
++	case DAMOS_FILTER_TYPE_MEMCG:
++		KUNIT_EXPECT_EQ(test, dst->memcg_id, src->memcg_id);
++		break;
++	case DAMOS_FILTER_TYPE_ADDR:
++		KUNIT_EXPECT_EQ(test, dst->addr_range.start,
++				src->addr_range.start);
++		KUNIT_EXPECT_EQ(test, dst->addr_range.end,
++				src->addr_range.end);
++		break;
++	case DAMOS_FILTER_TYPE_TARGET:
++		KUNIT_EXPECT_EQ(test, dst->target_idx, src->target_idx);
++		break;
++	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
++		KUNIT_EXPECT_EQ(test, dst->sz_range.min, src->sz_range.min);
++		KUNIT_EXPECT_EQ(test, dst->sz_range.max, src->sz_range.max);
++		break;
++	default:
++		break;
++	}
  }
  
-+static void damos_test_commit_filter_for(struct kunit *test,
-+		struct damos_filter *dst, struct damos_filter *src)
-+{
-+	damos_commit_filter(dst, src);
-+	KUNIT_EXPECT_EQ(test, dst->type, src->type);
-+	KUNIT_EXPECT_EQ(test, dst->matching, src->matching);
-+	KUNIT_EXPECT_EQ(test, dst->allow, src->allow);
-+}
-+
  static void damos_test_commit_filter(struct kunit *test)
- {
- 	struct damos_filter src_filter = {
-@@ -509,10 +518,7 @@ static void damos_test_commit_filter(str
- 		.allow = false,
- 	};
- 
--	damos_commit_filter(&dst_filter, &src_filter);
--	KUNIT_EXPECT_EQ(test, dst_filter.type, src_filter.type);
--	KUNIT_EXPECT_EQ(test, dst_filter.matching, src_filter.matching);
--	KUNIT_EXPECT_EQ(test, dst_filter.allow, src_filter.allow);
-+	damos_test_commit_filter_for(test, &dst_filter, &src_filter);
- }
- 
- static void damos_test_filter_out(struct kunit *test)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
