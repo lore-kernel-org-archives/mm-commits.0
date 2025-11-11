@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E608E2D1F69
-	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 18:59:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD574299928
+	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 19:10:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762887595; cv=none; b=qMlLDT0MaC9k21dVSj++pXkwxzOsLmyoElIihKUxd5RwyTJJlq9PGKjShc/xVrbXZZkSs563Dqmm0DAvwYsdzwhImhviG+bz4Mhuxp+w3ei5gVsAYX1nXjQe3cTbXpzeE0csJ/iVpE7Or0cplj8eEbGk5VJ4hBua802IWuEuNfQ=
+	t=1762888219; cv=none; b=e0+BRzIitlVbYTPVEW95Oi05lLSThaXyALOdhM9qxL9NXAKhnWY3PWKjK+NlyKpj1kZE5XV2LrKa4Di3+JHoY81Yo/jXhcs3evDtlslHgDvTAN+e4GAAXzbpVT5reC16Tn+9dMOHvOMC7fEY4vpOC7j070mcSLsO5R5rfg4/qwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762887595; c=relaxed/simple;
-	bh=yBFSCZ035JNYVr+lBJ5EXvhD2S2QD/oYN1CveZMU2lQ=;
-	h=Date:To:From:Subject:Message-Id; b=XYHDr+QLApQZxQ30exn3JxUYJWsSKH4qrll6fbKmMhXrMlTXWZysHuy17X90f3B0VfZsvj64juaoz1/AcWcP4QC1wa5uBIMgk6jM0n9DgfeUoN8c6uzHYEruCKE2UzioEUWAvM9aAHUA5EkbIokY3t92ijdss5NhMT0GQHgSMc8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VfqGJvCv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762888219; c=relaxed/simple;
+	bh=T6Z7qr+nbqdkAtrWlGMk3tzJGY/hIgkQKXypD2Jh13A=;
+	h=Date:To:From:Subject:Message-Id; b=RietsweRDKg4IpnJ5HoqmWCIWueZuUmDUXD0MKj6hD1H4HbWINWwI2pyT3w85w06gqD6gEhA+biZ2OOdE8A0MBXuHSUp7EyPJKZadfS/Oah4UrZY1g8fyznPi7lEJDDARd4vNkUliUfh7GU/ww29faUl9uWLW6XqBct98ltOPIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PmmKbPjJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VfqGJvCv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBEE6C19424;
-	Tue, 11 Nov 2025 18:59:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PmmKbPjJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4227AC4CEF5;
+	Tue, 11 Nov 2025 19:10:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762887594;
-	bh=yBFSCZ035JNYVr+lBJ5EXvhD2S2QD/oYN1CveZMU2lQ=;
+	s=korg; t=1762888219;
+	bh=T6Z7qr+nbqdkAtrWlGMk3tzJGY/hIgkQKXypD2Jh13A=;
 	h=Date:To:From:Subject:From;
-	b=VfqGJvCv2vhhAmfMatOmPaS3nMNfbuyCTSRRVpxOZswKCVI1t/vGY0GBuD8rOdXRM
-	 B6wM3/c6MxV9MEPp7YZi6PXROFkUUKbjzoBO/9jLuZaT2yj6356sz+te+UViQqaIiN
-	 zwSEpJNYlPsU9f6+wj+faVcxJyoURXRQegptFem4=
-Date: Tue, 11 Nov 2025 10:59:54 -0800
-To: mm-commits@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=PmmKbPjJF+z0bRwogq66Eb0yAIdfP2VeTgXo70H44Gpxxyj5aU+ziguzCou7K96VS
+	 LxU8haa//OZEaKwb/j2j9XRgZOSpzBpptwUgyWaV8knOLs8fKJP4NgsAWs+IHcztKW
+	 SknJhw/l9UhDA/RF3f1LtgalX0rMxmMJVwmK5138=
+Date: Tue, 11 Nov 2025 11:10:18 -0800
+To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch added to mm-new branch
-Message-Id: <20251111185954.BBEE6C19424@smtp.kernel.org>
+Subject: + liveupdate-luo_file-implement-file-systems-callbacks-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251111191019.4227AC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: add damon_commit_target_regions() test
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
+     Subject: liveupdate-luo_file-implement-file-systems-callbacks-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     liveupdate-luo_file-implement-file-systems-callbacks-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_file-implement-file-systems-callbacks-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,169 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: add damon_commit_target_regions() test
-Date: Tue, 11 Nov 2025 10:44:10 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: liveupdate-luo_file-implement-file-systems-callbacks-fix
+Date: Tue Nov 11 11:07:32 AM PST 2025
 
-Add a new test for damon_commit_target_regions().
+luo_file.c needs linux/fs.h
 
-Link: https://lkml.kernel.org/r/20251111184415.141757-12-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202511120222.vMZm9rD4-lkp@intel.com/
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   65 ++++++++++++++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+ kernel/liveupdate/luo_file.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damon_commit_target_regions-test
-+++ a/mm/damon/tests/core-kunit.h
-@@ -964,6 +964,70 @@ static void damos_test_commit(struct kun
- 			});
- }
- 
-+static struct damon_target *damon_test_help_setup_target(
-+		unsigned long region_start_end[][2], int nr_regions)
-+{
-+	struct damon_target *t;
-+	struct damon_region *r;
-+	int i;
-+
-+	t = damon_new_target();
-+	if (!t)
-+		return NULL;
-+	for (i = 0; i < nr_regions; i++) {
-+		r = damon_new_region(region_start_end[i][0],
-+				region_start_end[i][1]);
-+		if (!r) {
-+			damon_free_target(t);
-+			return NULL;
-+		}
-+		damon_add_region(r, t);
-+	}
-+	return t;
-+}
-+
-+static void damon_test_commit_target_regions_for(struct kunit *test,
-+		unsigned long dst_start_end[][2], int nr_dst_regions,
-+		unsigned long src_start_end[][2], int nr_src_regions,
-+		unsigned long expect_start_end[][2], int nr_expect_regions)
-+{
-+	struct damon_target *dst_target, *src_target;
-+	struct damon_region *r;
-+	int i;
-+
-+	dst_target = damon_test_help_setup_target(dst_start_end, nr_dst_regions);
-+	if (!dst_target)
-+		kunit_skip(test, "dst target setup fail");
-+	src_target = damon_test_help_setup_target(src_start_end, nr_src_regions);
-+	if (!src_target) {
-+		damon_free_target(dst_target);
-+		kunit_skip(test, "src target setup fail");
-+	}
-+	damon_commit_target_regions(dst_target, src_target, 1);
-+	i = 0;
-+	damon_for_each_region(r, dst_target) {
-+		KUNIT_EXPECT_EQ(test, r->ar.start, expect_start_end[i][0]);
-+		KUNIT_EXPECT_EQ(test, r->ar.end, expect_start_end[i][1]);
-+		i++;
-+	}
-+	KUNIT_EXPECT_EQ(test, damon_nr_regions(dst_target), nr_expect_regions);
-+	KUNIT_EXPECT_EQ(test, i, nr_expect_regions);
-+	damon_free_target(dst_target);
-+	damon_free_target(src_target);
-+}
-+
-+static void damon_test_commit_target_regions(struct kunit *test)
-+{
-+	damon_test_commit_target_regions_for(test,
-+			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2,
-+			(unsigned long[][2]) {{4, 6}}, 1,
-+			(unsigned long[][2]) {{4, 6}}, 1);
-+	damon_test_commit_target_regions_for(test,
-+			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2,
-+			(unsigned long[][2]) {}, 0,
-+			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2);
-+}
-+
- static void damos_test_filter_out(struct kunit *test)
- {
- 	struct damon_target *t;
-@@ -1170,6 +1234,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damos_test_commit_dests),
- 	KUNIT_CASE(damos_test_commit_filter),
- 	KUNIT_CASE(damos_test_commit),
-+	KUNIT_CASE(damon_test_commit_target_regions),
- 	KUNIT_CASE(damos_test_filter_out),
- 	KUNIT_CASE(damon_test_feed_loop_next_input),
- 	KUNIT_CASE(damon_test_set_filters_default_reject),
+--- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-implement-file-systems-callbacks-fix
++++ a/kernel/liveupdate/luo_file.c
+@@ -102,6 +102,7 @@
+ #include <linux/liveupdate/abi/luo.h>
+ #include <linux/module.h>
+ #include <linux/rwsem.h>
++#include <linux/fs.h>
+ #include <linux/sizes.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
-mm-zswap-fix-typos-s-zwap-zswap.patch
-mm-zswap-s-red-black-tree-xarray.patch
-docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
-mm-damon-document-damos_quota_goal-nid-use-case.patch
-mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
-mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
-mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
-mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
-mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
-docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
-docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
-docs-abi-damon-document-damos-quota-goal-path-file.patch
-mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch
-docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section.patch
-docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
-docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
-docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter.patch
-docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter.patch
-docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch
-docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
-mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
-mm-damon-sysfs-test-commit-input-against-realistic-destination.patch
-mm-damon-sysfs-implement-obsolete_target-file.patch
-docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
-docs-abi-damon-document-obsolete_target-sysfs-file.patch
-selftests-damon-_damon_sysfs-support-obsolete_target-file.patch
-drgn_dump_damon_status-dump-damon_target-obsolete.patch
-sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
-selftests-damon-sysfs-add-obsolete_target-test.patch
-mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
-mm-damon-tests-core-kunit-handle-allocation-failures-in-damon_test_regions.patch
-mm-damon-tests-core-kunit-handle-memory-failure-from-damon_test_target.patch
-mm-damon-tests-core-kunit-handle-memory-alloc-failure-from-damon_test_aggregate.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_split_at.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_merge_two.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-dasmon_test_merge_regions_of.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_split_regions_of.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_ops_registration.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_set_regions.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_update_monitoring_result.patch
-mm-damon-tests-core-kunit-handle-alloc-failure-on-damon_test_set_attrs.patch
-mm-damon-tests-core-kunit-handle-alloc-failres-in-damon_test_new_filter.patch
-mm-damon-tests-core-kunit-handle-alloc-failure-on-damos_test_commit_filter.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damos_test_filter_out.patch
-mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch
-mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch
-mm-damon-tests-vaddr-kunit-handle-alloc-failures-in-damon_test_split_evenly_fail.patch
-mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_test_split_evenly_succ.patch
-mm-damon-tests-sysfs-kunit-handle-alloc-failures-on-damon_sysfs_test_add_targets.patch
-mm-damon-tests-core-kunit-remove-unnecessary-damon_ctx-variable-on-damon_test_split_at.patch
-mm-damon-tests-core-kunit-remove-unused-ctx-in-damon_test_split_regions_of.patch
-mm-damon-tests-core-kunit-remove-dynamic-allocs-on-damos_test_commit_filter.patch
-mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch
-mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch
-mm-damon-tests-core-kunit-add-test-cases-to-damos_test_commit_filter.patch
-mm-damon-tests-core-kunit-add-damos_commit_quota_goal-test.patch
-mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch
-mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch
-mm-damon-core-pass-migrate_dests-to-damos_commit_dests.patch
-mm-damon-tests-core-kunit-add-damos_commit_dests-test.patch
-mm-damon-tests-core-kunit-add-damos_commit-test.patch
-mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+drivers-base-node-fold-register_node-into-register_one_node-fix.patch
+mm-vmstat-fix-indentation-in-fold_diff-function-fix.patch
+memcg-manually-uninline-__memcg_memory_event-fix.patch
+mm-change-type-of-state-in-struct-memory_block-fix.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix.patch
+init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs-fix.patch
+panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
+liveupdate-luo_file-implement-file-systems-callbacks-fix.patch
+mm-shmem-use-shmem_f_-flags-instead-of-vm_-flags-fix.patch
 
