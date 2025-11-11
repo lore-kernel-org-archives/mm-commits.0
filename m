@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32B062F5A19
-	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 23:32:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 832421C6FEC
+	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 23:48:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762903950; cv=none; b=qsA8CH1IttjUOi6S48z2jAL5S/Ts9HfKgzauUJfA/rjkUgjtebOehVN46orSiRGGQ7x/NKSfr6qeBdeMIrn2LYEhm6EsmyUjFcNCGbnXITUlf+KCHUggbIYLKd3epnTmfFgYxts2epQ4+mvHkD/hvNo32bwJGAbLolcAJcUrGFE=
+	t=1762904931; cv=none; b=ZttSBLMOpm/qnYeQfh1DTnEbu8fsk8JL7kPynoEUi+Glm3kC6+7uRgO6cRB5ED41Fo66MC4gCa1mMEONNXXGEVgESgkbLq1rQNaKn5PogdHjhNrt6K/ZMF2LU19hDYkJ9iR1k7vbi3HJvdmbm7XFZF7n2eSd8rlCF00hgdsJscQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762903950; c=relaxed/simple;
-	bh=5bFQdLS3aVuMzB5X7yqfUIeQgPQbCDM88s8gGB+jCoU=;
-	h=Date:To:From:Subject:Message-Id; b=iDzF1uuDBxAn3fJdVzGvmsIQJCLv0UJSqB85GJ/6UWV2IQYyHE8Skm8RKqKz94v8GN6wzuRUpDlLEsebuGZ2ySEYKA4lBnZxmD41y6Q6XJ+akPmBRCXWbAwnOSBsxhaXVpnUkVbC1FuGA7riNkAaOKifSIrbXngxb7vGEkhsc0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yiZUJhhM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762904931; c=relaxed/simple;
+	bh=JfLLTGcVkZFuj38mOdG0pF+nTYM3KOjRhuzPEyzuYjU=;
+	h=Date:To:From:Subject:Message-Id; b=hRvYQuFLRpnvygfsN0Mjao8Y8/0Qw5wReGEu11e/0M6v8MQrG09PxVG3Rn62cMtPKZ6MlPox92ZHdMDDeejAbOiDs71nXzAGeSk8UQmjOSLHbpvw+LF5Re5OOmwYRp2B2rroSwPaNaEeCe2qJyuZc5l4DutVfHZWtYbTW4p0VFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zU13BglA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yiZUJhhM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5984C2BC87;
-	Tue, 11 Nov 2025 23:32:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zU13BglA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 014D3C116B1;
+	Tue, 11 Nov 2025 23:48:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762903949;
-	bh=5bFQdLS3aVuMzB5X7yqfUIeQgPQbCDM88s8gGB+jCoU=;
+	s=korg; t=1762904930;
+	bh=JfLLTGcVkZFuj38mOdG0pF+nTYM3KOjRhuzPEyzuYjU=;
 	h=Date:To:From:Subject:From;
-	b=yiZUJhhM/JdQw7A6XVqhM7vebO0OGmk1nE/y9JTYnkuhITuownTpQxFBF95QowaGY
-	 Kdp37EPv+pyjPAIDnvGRoBALf4xZhUT6e/fQC+LkPLuvkAI6hTewK5G/749Pv8lxT5
-	 ZBTlaiYzvczSEMDkvpAjTZz5MJ7m/7eOlvkbfSmA=
-Date: Tue, 11 Nov 2025 15:32:29 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jackmanb@google.com,iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,david@redhat.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=zU13BglATHO3s1KbIg4as22MtQ1YtHo4RaWD+D/f3AXSaR98h8t3mA8LXIS5+MAup
+	 CebOZ4Clnskv49F6GC8KqXxJ1DWhQ6knJGTKUULQmZ7M6EYjHNHItl/Vt9b4Zs2gGL
+	 FcaTMGsDIYITpSLZ7vvjNrwbSgc2xjmbAOjKQDMI=
+Date: Tue, 11 Nov 2025 15:48:49 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,manish1588@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch removed from -mm tree
-Message-Id: <20251111233229.A5984C2BC87@smtp.kernel.org>
+Subject: [obsolete] mm-page_isolation-clarify-fixme-around-shrink_slab-in-memory-hotplug.patch removed from -mm tree
+Message-Id: <20251111234850.014D3C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,186 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/compaction: fix the range to pageblock_pfn_to_page()
+     Subject: mm/page_isolation: clarify FIXME around shrink_slab() in memory hotplug
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-fix-the-range-to-pageblock_pfn_to_page.patch
+     mm-page_isolation-clarify-fixme-around-shrink_slab-in-memory-hotplug.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/compaction: fix the range to pageblock_pfn_to_page()
-Date: Thu, 2 Oct 2025 03:31:40 +0000
+From: Manish Kumar <manish1588@gmail.com>
+Subject: mm/page_isolation: clarify FIXME around shrink_slab() in memory hotplug
+Date: Wed, 15 Oct 2025 23:20:41 +0530
 
-The function pageblock_pfn_to_page() must confirm that the target range is
-contained entirely within the current zone.
+The existing FIXME comment notes that memory hotplug doesn't invoke
+shrink_slab() directly.  This patch adds context explaining that this is
+an intentional design choice to avoid recursion or deadlocks in the memory
+reclaim path, as slab shrinking is handled by vmscan.
 
-Originally, when pageblock_pfn_to_page() was introduced by commit
-7d49d8868336, it operated on a single range, [pfn, block_end_pfn], for
-both range checking and isolation.
-
-However, commit e1409c325fdc ("mm/compaction: pass only pageblock aligned
-range to pageblock_pfn_to_page") changed this behavior, causing the
-function to operate on two different ranges:
-
-[block_start_pfn, block_end_pfn] is used to check if the range is in the
-same zone.
-
-[pfn, block_end_pfn] is used for page isolation.
-
-This split logic fails when start_pfn < zone_start_pfn, even if both are
-within the same pageblock.  In this scenario, the checking range
-[block_start_pfn, block_end_pfn] is used, which incorrectly misses the
-pages before zone_start_pfn.
-
-         start_pfn     zone_start_pfn
-    +----+-------------+-------------------+
-    block_start_pfn                        block_end_pfn
-
-This oversight allows the range check to pass, even though the isolation
-step ([pfn, block_end_pfn]) may attempt to isolate pages belonging to two
-different zones.
-
-To fix this, we should revert to using the same range ([block_start_pfn,
-block_end_pfn]) for both checking and isolation in each iteration.
-
-Link: https://lkml.kernel.org/r/20251002033140.24462-3-richard.weiyang@gmail.com
-Fixes: e1409c325fdc ("mm/compaction: pass only pageblock aligned range to pageblock_pfn_to_page")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lkml.kernel.org/r/20251015175041.40408-1-manish1588@gmail.com
+Signed-off-by: Manish Kumar <manish1588@gmail.com>
 Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   37 ++++++++++++++-----------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+ mm/page_isolation.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-fix-the-range-to-pageblock_pfn_to_page
-+++ a/mm/compaction.c
-@@ -1320,27 +1320,22 @@ int
- isolate_migratepages_range(struct compact_control *cc, unsigned long start_pfn,
- 							unsigned long end_pfn)
- {
--	unsigned long pfn, block_start_pfn, block_end_pfn;
-+	unsigned long block_start_pfn, block_end_pfn;
- 	int ret = 0;
- 
- 	/* Scan block by block. First and last block may be incomplete */
--	pfn = start_pfn;
--	block_start_pfn = pageblock_start_pfn(pfn);
--	if (block_start_pfn < cc->zone->zone_start_pfn)
--		block_start_pfn = cc->zone->zone_start_pfn;
--	block_end_pfn = pageblock_end_pfn(pfn);
-+	block_start_pfn = start_pfn;
-+	block_end_pfn = pageblock_end_pfn(start_pfn);
- 
--	for (; pfn < end_pfn; pfn = block_end_pfn,
--				block_start_pfn = block_end_pfn,
-+	for (; block_start_pfn < end_pfn; block_start_pfn = block_end_pfn,
- 				block_end_pfn += pageblock_nr_pages) {
- 
- 		block_end_pfn = min(block_end_pfn, end_pfn);
- 
--		if (!pageblock_pfn_to_page(block_start_pfn,
--					block_end_pfn, cc->zone))
-+		if (!pageblock_pfn_to_page(block_start_pfn, block_end_pfn, cc->zone))
- 			continue;
- 
--		ret = isolate_migratepages_block(cc, pfn, block_end_pfn,
-+		ret = isolate_migratepages_block(cc, block_start_pfn, block_end_pfn,
- 						 ISOLATE_UNEVICTABLE);
- 
- 		if (ret)
-@@ -2046,7 +2041,6 @@ static isolate_migrate_t isolate_migrate
- {
- 	unsigned long block_start_pfn;
- 	unsigned long block_end_pfn;
--	unsigned long low_pfn;
- 	struct page *page;
- 	const isolate_mode_t isolate_mode =
- 		(sysctl_compact_unevictable_allowed ? ISOLATE_UNEVICTABLE : 0) |
-@@ -2058,20 +2052,17 @@ static isolate_migrate_t isolate_migrate
- 	 * initialized by compact_zone(). The first failure will use
- 	 * the lowest PFN as the starting point for linear scanning.
- 	 */
--	low_pfn = fast_find_migrateblock(cc);
--	block_start_pfn = pageblock_start_pfn(low_pfn);
--	if (block_start_pfn < cc->zone->zone_start_pfn)
--		block_start_pfn = cc->zone->zone_start_pfn;
-+	block_start_pfn = fast_find_migrateblock(cc);
+--- a/mm/page_isolation.c~mm-page_isolation-clarify-fixme-around-shrink_slab-in-memory-hotplug
++++ a/mm/page_isolation.c
+@@ -176,10 +176,16 @@ static int set_migratetype_isolate(struc
  
  	/*
- 	 * fast_find_migrateblock() has already ensured the pageblock is not
- 	 * set with a skipped flag, so to avoid the isolation_suitable check
- 	 * below again, check whether the fast search was successful.
+ 	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
+-	 * We just check MOVABLE pages.
++	 *
++	 * This is an intentional limitation: invoking shrink_slab() from a
++	 * hotplug path can cause reclaim recursion or deadlock if the normal
++	 * memory reclaim (vmscan) path is already active. Slab shrinking is
++	 * handled by the vmscan reclaim code under normal operation, so hotplug
++	 * avoids direct calls into shrink_slab() to prevent reentrancy issues.
++	 *
++	 * We therefore only check MOVABLE pages here.
+ 	 *
+ 	 * Pass the intersection of [start_pfn, end_pfn) and the page's pageblock
+-	 * to avoid redundant checks.
  	 */
--	fast_find_block = low_pfn != cc->migrate_pfn && !cc->fast_search_fail;
-+	fast_find_block = block_start_pfn != cc->migrate_pfn && !cc->fast_search_fail;
- 
- 	/* Only scan within a pageblock boundary */
--	block_end_pfn = pageblock_end_pfn(low_pfn);
-+	block_end_pfn = pageblock_end_pfn(block_start_pfn);
- 
- 	/*
- 	 * Iterate over whole pageblocks until we find the first suitable.
-@@ -2079,7 +2070,7 @@ static isolate_migrate_t isolate_migrate
- 	 */
- 	for (; block_end_pfn <= cc->free_pfn;
- 			fast_find_block = false,
--			cc->migrate_pfn = low_pfn = block_end_pfn,
-+			cc->migrate_pfn = block_end_pfn,
- 			block_start_pfn = block_end_pfn,
- 			block_end_pfn += pageblock_nr_pages) {
- 
-@@ -2088,7 +2079,7 @@ static isolate_migrate_t isolate_migrate
- 		 * many pageblocks unsuitable, so periodically check if we
- 		 * need to schedule.
- 		 */
--		if (!(low_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
-+		if (!(block_start_pfn % (COMPACT_CLUSTER_MAX * pageblock_nr_pages)))
- 			cond_resched();
- 
- 		page = pageblock_pfn_to_page(block_start_pfn,
-@@ -2109,8 +2100,8 @@ static isolate_migrate_t isolate_migrate
- 		 * before making it "skip" so other compaction instances do
- 		 * not scan the same block.
- 		 */
--		if ((pageblock_aligned(low_pfn) ||
--		     low_pfn == cc->zone->zone_start_pfn) &&
-+		if ((pageblock_aligned(block_start_pfn) ||
-+		     block_start_pfn == cc->zone->zone_start_pfn) &&
- 		    !fast_find_block && !isolation_suitable(cc, page))
- 			continue;
- 
-@@ -2128,7 +2119,7 @@ static isolate_migrate_t isolate_migrate
- 		}
- 
- 		/* Perform the isolation */
--		if (isolate_migratepages_block(cc, low_pfn, block_end_pfn,
-+		if (isolate_migratepages_block(cc, block_start_pfn, block_end_pfn,
- 						isolate_mode))
- 			return ISOLATE_ABORT;
- 
+ 	check_unmovable_start = max(page_to_pfn(page), start_pfn);
+ 	check_unmovable_end = min(pageblock_end_pfn(page_to_pfn(page)),
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from manish1588@gmail.com are
 
-mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
-mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch
-mm-huge_memory-avoid-reinvoking-folio_test_anon.patch
-mm-huge_memory-update-folio-stat-after-successful-split.patch
-mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split.patch
-mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch
-mm-huge_memory-introduce-enum-split_type-for-clarity.patch
-mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported.patch
 
