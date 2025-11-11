@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 742CF2C3770
-	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 18:59:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B13F22D0267
+	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 18:59:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762887584; cv=none; b=HI3sSJtCI/8dVfv+hxZGQLXxKayWuhY7oVV8iSQZ/Btx7vbqhWs/84WF3ym3GbzdfqYi9ScD4ePhubCPzJ1+6oooWoVYMA/f6+Q61FNtcFo1STBdmzFnt3k83KBqIv14Ln+2aLYd8UZ530zCMONLuGFQ6OuJUuqF2d2rDaf0ygw=
+	t=1762887587; cv=none; b=BnwgozPkOCm96Ieo3sQAdzus6vSJfE3AyQ9Bj+bKrdHMEDccNdLKeYCziM3k14eKDOzTEqQNFMoHXHi2wI58wBFQx838uh0c2s6kH0DHr5ogC8nHaGz1b1ZdJzlVt52Dt0BkXXUyTbzSNT4ioXJIEOPOzqS+bObDDBbLplmrCjE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762887584; c=relaxed/simple;
-	bh=LAe10Q2mx/WFbo8LB2ooGBqrVABERuGDbJMFksng2fw=;
-	h=Date:To:From:Subject:Message-Id; b=fmQamQ81AoRsn65MOlvR+/Tf8sASPdeQtasw2IpRi3L0l++n4/AwDt+dKbzgnouMoYEtj+TUadLT67vQNHSJkExymwD22m7+1/S9Lxsol0QuGc/sG3dINS+HRPRb09MbMPQf+n38zPO9nwTA6O+NXXE69z+SHWOCCcF+JrXRoIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dFl8gnsh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762887587; c=relaxed/simple;
+	bh=KhACKGRjqykGFU9rPS6UNuDPzjrByDkRGCntL55aviQ=;
+	h=Date:To:From:Subject:Message-Id; b=qaJkoHHzipIz0xLDW0Oj7GuJ0u5ST9SzBdURpVQqP6MIV9WDjmPBaYXgoCi1S7l/yv1OBeLbyc/6PWQ8DIFMkNwIwBZYAO788jaqyxreA5D0s/Gt0+SLzdtcx9mprkKE82y9PV7uiKG6Cen30pLvK/s3/5d0YYA+YjJFDtdpWmU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z0Qc+F7d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dFl8gnsh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3943DC4CEF7;
-	Tue, 11 Nov 2025 18:59:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z0Qc+F7d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48F4BC4CEFB;
+	Tue, 11 Nov 2025 18:59:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762887584;
-	bh=LAe10Q2mx/WFbo8LB2ooGBqrVABERuGDbJMFksng2fw=;
+	s=korg; t=1762887586;
+	bh=KhACKGRjqykGFU9rPS6UNuDPzjrByDkRGCntL55aviQ=;
 	h=Date:To:From:Subject:From;
-	b=dFl8gnshd9LeWawyU4cq49YOmmydzN4+C7VtaAg+wHjNa4SyNbO30gl3F8sPAdAUk
-	 KYzlSFJ5anoQXjwnvVJaK5Zf5BXpUKbN1YKM0a9CsooNkDhtTcLA61RVculLe8uh+3
-	 SBBDpdUc8MJ0tqERHIX91Ap1VXPaouAZX761diEg=
-Date: Tue, 11 Nov 2025 10:59:43 -0800
+	b=Z0Qc+F7dQq6Tr1K4kdA5ExV1gOAZhFpiXc11fYNRWjxaOIX0foH48O/4Btxyw63a5
+	 tNKD2/7mpnJMhLgRLARNeFeq9sYLhX5gsv3E2PTn+r01vCwRfPMXWmRV4ggvi6YYUy
+	 ckPIsaWV8N+bCjAYImm+IY3prrO2DR593QjKSUoQ=
+Date: Tue, 11 Nov 2025 10:59:45 -0800
 To: mm-commits@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch added to mm-new branch
-Message-Id: <20251111185944.3943DC4CEF7@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch added to mm-new branch
+Message-Id: <20251111185946.48F4BC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: add damos_commit_quota_goals() test
+     Subject: mm/damon/tests/core-kunit: add damos_commit_quota() test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch
+     mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,115 +65,67 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: add damos_commit_quota_goals() test
-Date: Tue, 11 Nov 2025 10:44:05 -0800
+Subject: mm/damon/tests/core-kunit: add damos_commit_quota() test
+Date: Tue, 11 Nov 2025 10:44:06 -0800
 
-Add a new unit test for damos_commit_quota_goals().
+Add a new unit test for damos_commit_quota().
 
-Link: https://lkml.kernel.org/r/20251111184415.141757-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251111184415.141757-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   81 ++++++++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+ mm/damon/tests/core-kunit.h |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damos_commit_quota-test
 +++ a/mm/damon/tests/core-kunit.h
-@@ -580,6 +580,86 @@ static void damos_test_commit_quota_goal
- 			});
+@@ -660,6 +660,38 @@ static void damos_test_commit_quota_goal
+ 			(struct damos_quota_goal[]){}, 0);
  }
  
-+static void damos_test_commit_quota_goals_for(struct kunit *test,
-+		struct damos_quota_goal *dst_goals, int nr_dst_goals,
-+		struct damos_quota_goal *src_goals, int nr_src_goals)
++static void damos_test_commit_quota(struct kunit *test)
 +{
-+	struct damos_quota dst, src;
-+	struct damos_quota_goal *goal, *next;
-+	bool skip = true;
-+	int i;
++	struct damos_quota dst = {
++		.reset_interval = 1,
++		.ms = 2,
++		.sz = 3,
++		.weight_sz = 4,
++		.weight_nr_accesses = 5,
++		.weight_age = 6,
++	};
++	struct damos_quota src = {
++		.reset_interval = 7,
++		.ms = 8,
++		.sz = 9,
++		.weight_sz = 10,
++		.weight_nr_accesses = 11,
++		.weight_age = 12,
++	};
 +
 +	INIT_LIST_HEAD(&dst.goals);
 +	INIT_LIST_HEAD(&src.goals);
 +
-+	for (i = 0; i < nr_dst_goals; i++) {
-+		/*
-+		 * When nr_src_goals is smaller than dst_goals,
-+		 * damos_commit_quota_goals() will kfree() the dst goals.
-+		 * Make it kfree()-able.
-+		 */
-+		goal = damos_new_quota_goal(dst_goals[i].metric,
-+				dst_goals[i].target_value);
-+		if (!goal)
-+			goto out;
-+		damos_add_quota_goal(&dst, goal);
-+	}
-+	skip = false;
-+	for (i = 0; i < nr_src_goals; i++)
-+		damos_add_quota_goal(&src, &src_goals[i]);
++	damos_commit_quota(&dst, &src);
 +
-+	damos_commit_quota_goals(&dst, &src);
-+
-+	i = 0;
-+	damos_for_each_quota_goal(goal, (&dst)) {
-+		KUNIT_EXPECT_EQ(test, goal->metric, src_goals[i].metric);
-+		KUNIT_EXPECT_EQ(test, goal->target_value,
-+				src_goals[i++].target_value);
-+	}
-+	KUNIT_EXPECT_EQ(test, i, nr_src_goals);
-+
-+out:
-+	damos_for_each_quota_goal_safe(goal, next, (&dst))
-+		damos_destroy_quota_goal(goal);
-+	if (skip)
-+		kunit_skip(test, "goal alloc fail");
-+}
-+
-+static void damos_test_commit_quota_goals(struct kunit *test)
-+{
-+	damos_test_commit_quota_goals_for(test,
-+			(struct damos_quota_goal[]){}, 0,
-+			(struct damos_quota_goal[]){
-+				{
-+				.metric = DAMOS_QUOTA_USER_INPUT,
-+				.target_value = 123,
-+				},
-+			}, 1);
-+	damos_test_commit_quota_goals_for(test,
-+			(struct damos_quota_goal[]){
-+				{
-+				.metric = DAMOS_QUOTA_USER_INPUT,
-+				.target_value = 234,
-+				},
-+
-+			}, 1,
-+			(struct damos_quota_goal[]){
-+				{
-+				.metric = DAMOS_QUOTA_USER_INPUT,
-+				.target_value = 345,
-+				},
-+			}, 1);
-+	damos_test_commit_quota_goals_for(test,
-+			(struct damos_quota_goal[]){
-+				{
-+				.metric = DAMOS_QUOTA_USER_INPUT,
-+				.target_value = 456,
-+				},
-+
-+			}, 1,
-+			(struct damos_quota_goal[]){}, 0);
++	KUNIT_EXPECT_EQ(test, dst.reset_interval, src.reset_interval);
++	KUNIT_EXPECT_EQ(test, dst.ms, src.ms);
++	KUNIT_EXPECT_EQ(test, dst.sz, src.sz);
++	KUNIT_EXPECT_EQ(test, dst.weight_sz, src.weight_sz);
++	KUNIT_EXPECT_EQ(test, dst.weight_nr_accesses, src.weight_nr_accesses);
++	KUNIT_EXPECT_EQ(test, dst.weight_age, src.weight_age);
 +}
 +
  static void damos_test_commit_filter_for(struct kunit *test,
  		struct damos_filter *dst, struct damos_filter *src)
  {
-@@ -866,6 +946,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_moving_sum),
+@@ -947,6 +979,7 @@ static struct kunit_case damon_test_case
  	KUNIT_CASE(damos_test_new_filter),
  	KUNIT_CASE(damos_test_commit_quota_goal),
-+	KUNIT_CASE(damos_test_commit_quota_goals),
+ 	KUNIT_CASE(damos_test_commit_quota_goals),
++	KUNIT_CASE(damos_test_commit_quota),
  	KUNIT_CASE(damos_test_commit_filter),
  	KUNIT_CASE(damos_test_filter_out),
  	KUNIT_CASE(damon_test_feed_loop_next_input),
