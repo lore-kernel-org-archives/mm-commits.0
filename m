@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E420933D6F9;
-	Tue, 11 Nov 2025 20:46:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAE7035CBD5
+	for <mm-commits@vger.kernel.org>; Tue, 11 Nov 2025 21:10:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762893964; cv=none; b=uUVbBtzePYX/EntNhROxTQPwRyvPPOSaLT3SRulrtzVr5gZ4SGgiX0CvABXUM+1K59GmzTP6J8BZZyBiMz+j5VXMNzPiHtlGwhiJclZpmRKB2uUgw4ugguDAYlawp2wEPH2l5067D5trU7IvoPl37DrqxFesvf0vWhUEHmem10Q=
+	t=1762895420; cv=none; b=XH2/Ofvzs3W0EimQhBgb4N7+OSv0OaZBVs2NimUdS0oB9EWURw/zVo6Mtkr9GWNLZXrVLujrKLeHVZOwu0CKchSfS6tY2tJZ9n60C06Ibz8uiVK3q7hpJrIp0JbUvNgSjdpNe1RuItglCnU9pRnNrkajoocHGeBeoEfb8J8IbTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762893964; c=relaxed/simple;
-	bh=NIWTxMQS9jFvAervRzPIb4HAcewHjt9dt19VCk6IElU=;
-	h=Date:To:From:Subject:Message-Id; b=GY09/d6bkcjqyV4vrXgzo7Grz499ITI0yLVSmkZpvixPNftb5Ecjn1au4MAuIqmiJmHJzlkjvb5QeCHBel+QUna/FdzOoi7zrXbQsozqp/KOSto3Oa6fwQMy1LBRNp9MEpkUj95DzXdAAmM0Qnhm2xfLG6Dlut/4E04LNtX6GaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MdZZoZF0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762895420; c=relaxed/simple;
+	bh=WiwW1H5hMnkHHfxGEHT6BykdRQGgWtqKQCC6pHiJv44=;
+	h=Date:To:From:Subject:Message-Id; b=EpgJ6C8VZvb+NNwt8cjNdvLERp+PVIsqSsjwDFooi7svl3gaMOFKHeUM7+PA5N8voQIgxlaXn4VpuDPddYX9q7P5+KJWjBIm5v+aWG2oYECf9HsiI8xndEXU/Dxh2p1R0fQSpnlWFn96+O9FfoEvIOHynCOawuX8mNldYlfe7xU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IY8ox6tc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MdZZoZF0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56B14C4CEF5;
-	Tue, 11 Nov 2025 20:46:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IY8ox6tc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55FF3C4CEF7;
+	Tue, 11 Nov 2025 21:10:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762893963;
-	bh=NIWTxMQS9jFvAervRzPIb4HAcewHjt9dt19VCk6IElU=;
+	s=korg; t=1762895420;
+	bh=WiwW1H5hMnkHHfxGEHT6BykdRQGgWtqKQCC6pHiJv44=;
 	h=Date:To:From:Subject:From;
-	b=MdZZoZF0141ew0S6GCvQn7Nk4EcHgi98pLGdsuE5NVmO0Efqjgx3fwNJ7J8HhZOwH
-	 qREpoLlVkqSr+eO2IK+7SnhrlsNLqtxdO6UO8wjiw3geLVEdHcfFGPDWWmguOqhh4T
-	 Z7fIxizOl9f2KPjlDa8VPgr6dsqtvH5K7LR+cwZY=
-Date: Tue, 11 Nov 2025 12:46:02 -0800
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=IY8ox6tcxnFo8ZKSQ25XFVC1eBTafpCV/tOzvJcsi4m1+xHR+LDD+TEZnlVmM7V3F
+	 FRtGFiX7ztEbX1MKs3FI9PluxeyBHDDmu8y7XyuAdlZBLcEZxpi0QD6fXS2zn9T5o9
+	 ZUb2xTYz4vytD43coEJGiu7GXI8j1dntTCGYG150=
+Date: Tue, 11 Nov 2025 13:10:19 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,david.hunter.linux@gmail.com,mehdi.benhadjkhelifa@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-potential-uaf-issue-for-vma-readahead.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251111204603.56B14C4CEF5@smtp.kernel.org>
+Subject: + selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch added to mm-new branch
+Message-Id: <20251111211020.55FF3C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: fix potential UAF issue for VMA readahead
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swap-fix-potential-uaf-issue-for-vma-readahead.patch
+     Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-potential-uaf-issue-for-vma-readahead.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,86 +64,108 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: fix potential UAF issue for VMA readahead
-Date: Tue, 11 Nov 2025 21:36:08 +0800
+From: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
+Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
+Date: Tue, 11 Nov 2025 21:54:27 +0100
 
-Since commit 78524b05f1a3 ("mm, swap: avoid redundant swap device
-pinning"), the common helper for allocating and preparing a folio in the
-swap cache layer no longer tries to get a swap device reference
-internally, because all callers of __read_swap_cache_async are already
-holding a swap entry reference.  The repeated swap device pinning isn't
-needed on the same swap device.
+The current shmem_allocate_area() implementation uses a hardcoded virtual
+base address(BASE_PMD_ADDR) as a hint for mmap() when creating
+shmem-backed test areas.  This approach is fragile and may fail on systems
+with ASLR or different virtual memory layouts, where the chosen address is
+unavailable.
 
-Caller of VMA readahead is also holding a reference to the target entry's
-swap device, but VMA readahead walks the page table, so it might encounter
-swap entries from other devices, and call __read_swap_cache_async on
-another device without holding a reference to it.
+Replace the static base address with a dynamically reserved address range
+obtained via mmap(NULL, ..., PROT_NONE).  The memfd-backed areas and their
+alias are then mapped into that reserved region using MAP_FIXED,
+preserving the original layout and aliasing semantics while avoiding
+collisions with unrelated mappings.
 
-So it is possible to cause a UAF when swapoff of device A raced with
-swapin on device B, and VMA readahead tries to read swap entries from
-device A.  It's not easy to trigger, but in theory, it could cause real
-issues.
+This change improves robustness and portability of the test suite without
+altering its behavior or coverage.
 
-Make VMA readahead try to get the device reference first if the swap
-device is a different one from the target entry.
-
-Link: https://lkml.kernel.org/r/20251111-swap-fix-vma-uaf-v1-1-41c660e58562@tencent.com
-Fixes: 78524b05f1a3 ("mm, swap: avoid redundant swap device pinning")
-Suggested-by: Huang Ying <ying.huang@linux.alibaba.com>
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251111205739.420009-1-mehdi.benhadjkhelifa@gmail.com
+Signed-off-by: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Hunter <david.hunter.linux@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ tools/testing/selftests/mm/uffd-common.c |   25 +++++++++++++--------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-fix-potential-uaf-issue-for-vma-readahead
-+++ a/mm/swap_state.c
-@@ -748,6 +748,8 @@ static struct folio *swap_vma_readahead(
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -6,11 +6,11 @@
+  */
  
- 	blk_start_plug(&plug);
- 	for (addr = start; addr < end; ilx++, addr += PAGE_SIZE) {
-+		struct swap_info_struct *si = NULL;
+ #include "uffd-common.h"
++#include "asm-generic/mman-common.h"
+ 
+ uffd_test_ops_t *uffd_test_ops;
+ uffd_test_case_ops_t *uffd_test_case_ops;
+ 
+-#define BASE_PMD_ADDR ((void *)(1UL << 30))
+ 
+ /* pthread_mutex_t starts at page offset 0 */
+ pthread_mutex_t *area_mutex(char *area, unsigned long nr, uffd_global_test_opts_t *gopts)
+@@ -142,30 +142,37 @@ static int shmem_allocate_area(uffd_glob
+ 	unsigned long offset = is_src ? 0 : bytes;
+ 	char *p = NULL, *p_alias = NULL;
+ 	int mem_fd = uffd_mem_fd_create(bytes * 2, false);
++	size_t region_size = bytes * 2 + hpage_size;
+ 
+-	/* TODO: clean this up.  Use a static addr is ugly */
+-	p = BASE_PMD_ADDR;
+-	if (!is_src)
+-		/* src map + alias + interleaved hpages */
+-		p += 2 * (bytes + hpage_size);
++	void *reserve = mmap(NULL, region_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS,
++			-1, 0);
++	if (reserve == MAP_FAILED) {
++		close(mem_fd);
++		return -errno;
++	}
 +
- 		if (!pte++) {
- 			pte = pte_offset_map(vmf->pmd, addr);
- 			if (!pte)
-@@ -761,8 +763,19 @@ static struct folio *swap_vma_readahead(
- 			continue;
- 		pte_unmap(pte);
- 		pte = NULL;
-+		/*
-+		 * Readahead entry may come from a device that we are not
-+		 * holding a reference to, try to grab a reference, or skip.
-+		 */
-+		if (swp_type(entry) != swp_type(targ_entry)) {
-+			si = get_swap_device(entry);
-+			if (!si)
-+				continue;
-+		}
- 		folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
- 						&page_allocated, false);
-+		if (si)
-+			put_swap_device(si);
- 		if (!folio)
- 			continue;
- 		if (page_allocated) {
++	p = (char *)reserve;
+ 	p_alias = p;
+ 	p_alias += bytes;
+ 	p_alias += hpage_size;  /* Prevent src/dst VMA merge */
+ 
+-	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
++	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
+ 			   mem_fd, offset);
+ 	if (*alloc_area == MAP_FAILED) {
++		munmap(reserve, region_size);
+ 		*alloc_area = NULL;
++		close(mem_fd);
+ 		return -errno;
+ 	}
+ 	if (*alloc_area != p)
+ 		err("mmap of memfd failed at %p", p);
+ 
+-	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
++	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
+ 			  mem_fd, offset);
+ 	if (area_alias == MAP_FAILED) {
+-		munmap(*alloc_area, bytes);
++		munmap(reserve, region_size);
+ 		*alloc_area = NULL;
++		close(mem_fd);
+ 		return -errno;
+ 	}
+ 	if (area_alias != p_alias)
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from mehdi.benhadjkhelifa@gmail.com are
 
-mm-swap-fix-potential-uaf-issue-for-vma-readahead.patch
-mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
-mm-swap-rename-helper-for-setup-bad-slots.patch
-mm-swap-cleanup-swap-entry-allocation-parameter.patch
-mm-migrate-swap-drop-usage-of-folio_index.patch
-mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch
-revert-mm-swap-avoid-redundant-swap-device-pinning.patch
+mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch
+selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
 
