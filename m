@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 852FF14B96E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:50:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A0D2045AD
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:50:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908603; cv=none; b=Ahj6OG0LgCDXo4n7d2jIJVdyNzWm1CKDZUFNt/Kq2kXDlcnQn2ltIN7/AUWZV35km/DiI7FeMA1BoIzbKNge5EFSLMcjmkDEvuOyGdeR8hfpgvrEVHo40NqdTkpAXqfQFZH6dMX7W3C4NLPo2n3FtrEnqyXleCOqokTlUYmT0FI=
+	t=1762908603; cv=none; b=mGSIt/UxJf04EqCh915gt7kRDqmpemyrCbnHJZC95O7o86ytrvWUGUta+1b1dbPGr/eA07DXSyo+3LEqy3gUaU+jfr3OWvb7tVDiBV4RgPg2oc+WuPUM5AqSUy2gzQr8/E5dk325825lc++Nv5dxcJNbqImiasubpUMHHJLqTpI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1762908603; c=relaxed/simple;
-	bh=NYHtrcGgKy3JK/xXVH99X7NvaV8VqASc91w3v66AAS0=;
-	h=Date:To:From:Subject:Message-Id; b=Hnr0iIZkE1RIdHnix8bnH5rSDEIfI1TBPyt7E4ONJ40BVT2aqbBojo2mjw9v6U+48xwf4UX8wIWT0sJnvjgB7nD43/4Hu2QopPeW6gxbvlceQLMvQ4c3hAL2e5UDnuXutZDcXlYBNbIvmxDdlCfC13t8Ps966Dc5E/x5ofQKMfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wnOMsDup; arc=none smtp.client-ip=10.30.226.201
+	bh=2OrBxRHn0V0SCDx9e8gBzsF76EcM/n0cP1tE93eqFaU=;
+	h=Date:To:From:Subject:Message-Id; b=SZdRATxMpY6dWeRg6a2NhdBO5c8TykBRUd4VrhGFaw4NWhadHAszMZOTv1yn866VQTMCupHEsWoHlhna2ZCTnEQcUcVJI/tMK7oBcodxg2za4rExIMtxPSQIQr5Oc3I52WdUohiEK0ZaRv9HHHpBbyP1Cvbkp76K665+ay98ibE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eUerwqi3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wnOMsDup"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C1BDC4CEFB;
-	Wed, 12 Nov 2025 00:50:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eUerwqi3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 480B3C116D0;
+	Wed, 12 Nov 2025 00:50:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908602;
-	bh=NYHtrcGgKy3JK/xXVH99X7NvaV8VqASc91w3v66AAS0=;
+	s=korg; t=1762908603;
+	bh=2OrBxRHn0V0SCDx9e8gBzsF76EcM/n0cP1tE93eqFaU=;
 	h=Date:To:From:Subject:From;
-	b=wnOMsDupizixjvY0sj7a7IjKXgObY0KZlq7G1rhBr70ncLkVKsevzRJiqU/bEaX9n
-	 H7gOjmZDiOh8RD6hFTCmAntqxu7+3T+pF6Qp9M59krfdbwkuRf25EW0H0o+hDtmXSK
-	 bBeky2jNDPQF9Ay2EDwcUxurcJ2fTnWbhcZrHbbQ=
-Date: Tue, 11 Nov 2025 16:50:01 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=eUerwqi39R2pGSDinheOS76wjQt5YhWpfThonVcSmsb9uXy7rzpS09LQDyr8+5bIn
+	 Fr/l3VCyt8qrC934v4UQWGtx90IXzX3+0dEQ5pl8TfRev/RPHXYAc2/SjgjLz0lxQi
+	 2z0AoeVsmI3Y1yzq5OqzjIjJvlu3Cy81p8JNaWHI=
+Date: Tue, 11 Nov 2025 16:50:02 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-add-boundary-check-to-ocfs2_check_dir_entry.patch removed from -mm tree
-Message-Id: <20251112005002.1C1BDC4CEFB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-use-correct-endian-in-ocfs2_dinode_has_extents.patch removed from -mm tree
+Message-Id: <20251112005003.480B3C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: add boundary check to ocfs2_check_dir_entry()
+     Subject: ocfs2: use correct endian in ocfs2_dinode_has_extents
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-boundary-check-to-ocfs2_check_dir_entry.patch
+     ocfs2-use-correct-endian-in-ocfs2_dinode_has_extents.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: ocfs2: add boundary check to ocfs2_check_dir_entry()
-Date: Mon, 13 Oct 2025 09:28:26 +0300
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: use correct endian in ocfs2_dinode_has_extents
+Date: Sat, 25 Oct 2025 20:32:17 +0800
 
-In 'ocfs2_check_dir_entry()', add extra check whether at least the
-smallest possible dirent may be located at the specified offset within
-bh's data, thus preventing an out-of-bounds accesses below.
+Fields in ocfs2_dinode is little endian, covert to host endian when
+checking those contents.
 
-Link: https://lkml.kernel.org/r/20251013062826.122586-1-dmantipov@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: syzbot+b20bbf680bb0f2ecedae@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=b20bbf680bb0f2ecedae
+Link: https://lkml.kernel.org/r/20251025123218.3997866-1-joseph.qi@linux.alibaba.com
+Fixes: fdbb6cd96ed5 ("ocfs2: correct l_next_free_rec in online check")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -65,38 +62,33 @@ Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ fs/ocfs2/inode.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-add-boundary-check-to-ocfs2_check_dir_entry
-+++ a/fs/ocfs2/dir.c
-@@ -302,8 +302,21 @@ static int ocfs2_check_dir_entry(struct
- 				 unsigned long offset)
+--- a/fs/ocfs2/inode.c~ocfs2-use-correct-endian-in-ocfs2_dinode_has_extents
++++ a/fs/ocfs2/inode.c
+@@ -201,13 +201,15 @@ bail:
+ static int ocfs2_dinode_has_extents(struct ocfs2_dinode *di)
  {
- 	const char *error_msg = NULL;
--	const int rlen = le16_to_cpu(de->rec_len);
--	const unsigned long next_offset = ((char *) de - buf) + rlen;
-+	unsigned long next_offset;
-+	int rlen;
-+
-+	if (offset > size - OCFS2_DIR_REC_LEN(1)) {
-+		/* Dirent is (maybe partially) beyond the buffer
-+		 * boundaries so touching 'de' members is unsafe.
-+		 */
-+		mlog(ML_ERROR, "directory entry (#%llu: offset=%lu) "
-+		     "too close to end or out-of-bounds",
-+		     (unsigned long long)OCFS2_I(dir)->ip_blkno, offset);
-+		return 0;
-+	}
-+
-+	rlen = le16_to_cpu(de->rec_len);
-+	next_offset = ((char *) de - buf) + rlen;
+ 	/* inodes flagged with other stuff in id2 */
+-	if (di->i_flags & (OCFS2_SUPER_BLOCK_FL | OCFS2_LOCAL_ALLOC_FL |
+-			   OCFS2_CHAIN_FL | OCFS2_DEALLOC_FL))
++	if (le32_to_cpu(di->i_flags) &
++	    (OCFS2_SUPER_BLOCK_FL | OCFS2_LOCAL_ALLOC_FL | OCFS2_CHAIN_FL |
++	     OCFS2_DEALLOC_FL))
+ 		return 0;
+ 	/* i_flags doesn't indicate when id2 is a fast symlink */
+-	if (S_ISLNK(di->i_mode) && di->i_size && di->i_clusters == 0)
++	if (S_ISLNK(le16_to_cpu(di->i_mode)) && le64_to_cpu(di->i_size) &&
++	    !le32_to_cpu(di->i_clusters))
+ 		return 0;
+-	if (di->i_dyn_features & OCFS2_INLINE_DATA_FL)
++	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL)
+ 		return 0;
  
- 	if (unlikely(rlen < OCFS2_DIR_REC_LEN(1)))
- 		error_msg = "rec_len is smaller than minimal";
+ 	return 1;
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-ocfs2-add-extra-consistency-checks-for-chain-allocator-dinodes.patch
 
