@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D055B34AB13
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB8F4343D6A
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762972388; cv=none; b=ILzXEPDCkbvSM6o6qiSAcnNJ5L9iYD+9yQPULDL6KGDi1W05ytLzp7258Imf4pILpwDRiKTL40NGNiXY3V9lfY9lSlh3zp/mN0pw5SSMz9OADIf/r5+81EYSV8Bzky+y8taR2NaPZWdHBxgNPAj2GZ7Hp8639yd7NJjEk+c1cH8=
+	t=1762972392; cv=none; b=t5NUaJ7nNvpBxktR7OwT+OR9Hmp46hYh5hhBbX/wxtX+8vVdcGqb0B6HvLR5m5ZRO3N+NWuA0dO9sPsxkA9e8QMbTv6E3MtQxeQHdoInSDYWn163t4aTEzzW/lO85lC2dW2UC5EoPjLfpIs3sdex1RqmEcbdj6iGH04wVmm6r4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762972388; c=relaxed/simple;
-	bh=GXhgKAvwdgp8z34nhT8dkKOmfFs4Vqiw314bOxOfz6Q=;
-	h=Date:To:From:Subject:Message-Id; b=E1C1tGBYraIupV4VPQQIJIQkQJm7/sbXgYaF7edx5N7pMQH0hQFVkaP3nJj6DPgnGjATqQp755ogmNPlwyunL8i4BLhOrq3KJSlI/cU/ZGbZpZCGRfpvq8AVdnCE+cjyx9b3FpmqmGWDHl8R/P5/HXVK0L+1UDjtgmz0FlDeVz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2PrSBuUe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762972392; c=relaxed/simple;
+	bh=AYE5OSN6vzdSlLqocB+WvzEiLxFWKm6nnw5uVYwvLnI=;
+	h=Date:To:From:Subject:Message-Id; b=Ls3teKRRg0+HMzPnuRQwcJKc48HP9S2mKgvFqJHMMnLencuYwgjXi5x5P2EGDCN6fZ1HpDPVjBQU7lYLAZ3mHGkM9yACDNQ6rYmCyHDXyIfwNGC9DSFwzXi1pTcEnGXl+Syks2bvTALBmDruRSlJkP3nf5sc7DskpINBSR4nPZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iJI8eoV0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2PrSBuUe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F785C4CEF5;
-	Wed, 12 Nov 2025 18:33:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iJI8eoV0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55BB8C4CEF7;
+	Wed, 12 Nov 2025 18:33:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762972388;
-	bh=GXhgKAvwdgp8z34nhT8dkKOmfFs4Vqiw314bOxOfz6Q=;
+	s=korg; t=1762972391;
+	bh=AYE5OSN6vzdSlLqocB+WvzEiLxFWKm6nnw5uVYwvLnI=;
 	h=Date:To:From:Subject:From;
-	b=2PrSBuUemQXsDeaCcRWEWM9/9d1JTMRG9IJjviuidFgebVB7mR6KF14xcMKKPrHd2
-	 TeO8OuPM+fb3aSshcfvkhfkQu8GcQgq4im9ehn83x79f1tnOCDuku6BAmGHjacarWy
-	 lEqGPoKPakL+8gblMEuJahboDaP6v8gPIz5KXQaM=
-Date: Wed, 12 Nov 2025 10:33:07 -0800
+	b=iJI8eoV0Jr6hBFEFNwes+8t5MkxEQuP0OlkMEfvL8SJFjmLF1UUD0Zr5U6d2/K4+c
+	 yYk27oarxVJSDQJ3kkgHWyHyWHQYKHxcF3PZ7oA+RpawaWEhXhMP2fNg4/AaL70yKy
+	 Zeme82zfBBeoMt/AXgLbMR5le7UiRN89QDy93U1Y=
+Date: Wed, 12 Nov 2025 10:33:10 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,ojeda@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,hughd@google.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch added to mm-new branch
-Message-Id: <20251112183308.2F785C4CEF5@smtp.kernel.org>
+Subject: + mm-damon-rename-damos-filters-to-damos-core_filters.patch added to mm-new branch
+Message-Id: <20251112183311.55BB8C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: rename damos core filter helpers to have word core
+     Subject: mm/damon: rename damos->filters to damos->core_filters
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
+     mm-damon-rename-damos-filters-to-damos-core_filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-rename-damos-filters-to-damos-core_filters.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,50 +65,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: rename damos core filter helpers to have word core
-Date: Wed, 12 Nov 2025 07:41:04 -0800
+Subject: mm/damon: rename damos->filters to damos->core_filters
+Date: Wed, 12 Nov 2025 07:41:05 -0800
 
-Patch series "mm/damon: misc cleanups".
+DAMOS filters that are handled by the ops layer are linked to
+damos->ops_filters.  Owing to the ops_ prefix on the name, it is easy to
+understand it is for ops layer handled filters.  The other types of
+filters, which are handled by the core layer, are linked to
+damos->filters.  Because of the name, it is easy to confuse the list is
+there for not only core layer handled ones but all filters.  Avoid such
+confusions by renaming the field to core_filters.
 
-Yet another batch of misc cleanups and refactoring for DAMON code, tests,
-and documents.
-
-First two patches (1and 2) rename DAMOS core filters related code for
-readability.
-
-Three following patches (3-5) refactor page table walk callback functions
-in DAMON, as suggested by Hugh and David, and I promised.
-
-Next two patches (6 and 7) refactor DAMON core layer kunit test and sysfs
-interface selftest to be simple and deduplicated.
-
-Final two patches (8 and 9) fix up sphinx and grammatical errors on
-documents.
-
-
-This patch (of 9):
-
-DAMOS filters handled by the core layer are called core filters, while
-those handled by the ops layer are called ops filters.  They share the
-same type but are managed in different places since core filters are
-evaluated before the ops filters.  They also have different helper
-functions that depend on their managed places.
-
-The helper functions for ops filters have '_ops_' keyword on their name,
-so it is easy to know they are for ops filters.  Meanwhile, the helper
-functions for core filters are not having the 'core' keyword on their
-name.  This makes it easy to be mistakenly used for ops filters.  Actually
-there was such a bug.
-
-To avoid future mistakes from similar confusions, rename DAMOS core
-filters helper functions to have a keyword 'core' on their names.
-
-Link: https://lkml.kernel.org/r/20251112154114.66053-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20251112154114.66053-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251112154114.66053-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Bill Wendling <morbo@google.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Justin Stitt <justinstitt@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -120,98 +94,136 @@ Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .clang-format         |    4 ++--
- include/linux/damon.h |    4 ++--
- mm/damon/core.c       |   14 +++++++-------
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ include/linux/damon.h                                   |   10 +++++-----
+ mm/damon/core.c                                         |    6 +++---
+ mm/damon/tests/core-kunit.h                             |    4 ++--
+ tools/testing/selftests/damon/drgn_dump_damon_status.py |    8 ++++----
+ tools/testing/selftests/damon/sysfs.py                  |    2 +-
+ 5 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/.clang-format~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
-+++ a/.clang-format
-@@ -140,8 +140,8 @@ ForEachMacros:
-   - 'damon_for_each_scheme_safe'
-   - 'damon_for_each_target'
-   - 'damon_for_each_target_safe'
--  - 'damos_for_each_filter'
--  - 'damos_for_each_filter_safe'
-+  - 'damos_for_each_core_filter'
-+  - 'damos_for_each_core_filter_safe'
-   - 'damos_for_each_ops_filter'
-   - 'damos_for_each_ops_filter_safe'
-   - 'damos_for_each_quota_goal'
---- a/include/linux/damon.h~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
+--- a/include/linux/damon.h~mm-damon-rename-damos-filters-to-damos-core_filters
 +++ a/include/linux/damon.h
-@@ -871,10 +871,10 @@ static inline unsigned long damon_sz_reg
- #define damos_for_each_quota_goal_safe(goal, next, quota) \
+@@ -492,7 +492,7 @@ struct damos_migrate_dests {
+  * @wmarks:		Watermarks for automated (in)activation of this scheme.
+  * @migrate_dests:	Destination nodes if @action is "migrate_{hot,cold}".
+  * @target_nid:		Destination node if @action is "migrate_{hot,cold}".
+- * @filters:		Additional set of &struct damos_filter for &action.
++ * @core_filters:	Additional set of &struct damos_filter for &action.
+  * @ops_filters:	ops layer handling &struct damos_filter objects list.
+  * @last_applied:	Last @action applied ops-managing entity.
+  * @stat:		Statistics of this scheme.
+@@ -518,7 +518,7 @@ struct damos_migrate_dests {
+  *
+  * Before applying the &action to a memory region, &struct damon_operations
+  * implementation could check pages of the region and skip &action to respect
+- * &filters
++ * &core_filters
+  *
+  * The minimum entity that @action can be applied depends on the underlying
+  * &struct damon_operations.  Since it may not be aligned with the core layer
+@@ -562,7 +562,7 @@ struct damos {
+ 			struct damos_migrate_dests migrate_dests;
+ 		};
+ 	};
+-	struct list_head filters;
++	struct list_head core_filters;
+ 	struct list_head ops_filters;
+ 	void *last_applied;
+ 	struct damos_stat stat;
+@@ -872,10 +872,10 @@ static inline unsigned long damon_sz_reg
  	list_for_each_entry_safe(goal, next, &(quota)->goals, list)
  
--#define damos_for_each_filter(f, scheme) \
-+#define damos_for_each_core_filter(f, scheme) \
- 	list_for_each_entry(f, &(scheme)->filters, list)
+ #define damos_for_each_core_filter(f, scheme) \
+-	list_for_each_entry(f, &(scheme)->filters, list)
++	list_for_each_entry(f, &(scheme)->core_filters, list)
  
--#define damos_for_each_filter_safe(f, next, scheme) \
-+#define damos_for_each_core_filter_safe(f, next, scheme) \
- 	list_for_each_entry_safe(f, next, &(scheme)->filters, list)
+ #define damos_for_each_core_filter_safe(f, next, scheme) \
+-	list_for_each_entry_safe(f, next, &(scheme)->filters, list)
++	list_for_each_entry_safe(f, next, &(scheme)->core_filters, list)
  
  #define damos_for_each_ops_filter(f, scheme) \
---- a/mm/damon/core.c~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
+ 	list_for_each_entry(f, &(scheme)->ops_filters, list)
+--- a/mm/damon/core.c~mm-damon-rename-damos-filters-to-damos-core_filters
 +++ a/mm/damon/core.c
-@@ -450,7 +450,7 @@ void damon_destroy_scheme(struct damos *
- 	damos_for_each_quota_goal_safe(g, g_next, &s->quota)
- 		damos_destroy_quota_goal(g);
- 
--	damos_for_each_filter_safe(f, next, s)
-+	damos_for_each_core_filter_safe(f, next, s)
- 		damos_destroy_filter(f);
- 
- 	damos_for_each_ops_filter_safe(f, next, s)
-@@ -864,12 +864,12 @@ static int damos_commit_quota(struct dam
- 	return 0;
+@@ -306,7 +306,7 @@ void damos_add_filter(struct damos *s, s
+ 	if (damos_filter_for_ops(f->type))
+ 		list_add_tail(&f->list, &s->ops_filters);
+ 	else
+-		list_add_tail(&f->list, &s->filters);
++		list_add_tail(&f->list, &s->core_filters);
  }
  
--static struct damos_filter *damos_nth_filter(int n, struct damos *s)
-+static struct damos_filter *damos_nth_core_filter(int n, struct damos *s)
+ static void damos_del_filter(struct damos_filter *f)
+@@ -397,7 +397,7 @@ struct damos *damon_new_scheme(struct da
+ 	 */
+ 	scheme->next_apply_sis = 0;
+ 	scheme->walk_completed = false;
+-	INIT_LIST_HEAD(&scheme->filters);
++	INIT_LIST_HEAD(&scheme->core_filters);
+ 	INIT_LIST_HEAD(&scheme->ops_filters);
+ 	scheme->stat = (struct damos_stat){};
+ 	INIT_LIST_HEAD(&scheme->list);
+@@ -995,7 +995,7 @@ static void damos_set_filters_default_re
+ 		s->core_filters_default_reject = false;
+ 	else
+ 		s->core_filters_default_reject =
+-			damos_filters_default_reject(&s->filters);
++			damos_filters_default_reject(&s->core_filters);
+ 	s->ops_filters_default_reject =
+ 		damos_filters_default_reject(&s->ops_filters);
+ }
+--- a/mm/damon/tests/core-kunit.h~mm-damon-rename-damos-filters-to-damos-core_filters
++++ a/mm/damon/tests/core-kunit.h
+@@ -876,7 +876,7 @@ static void damos_test_commit_filter(str
+ static void damos_test_help_initailize_scheme(struct damos *scheme)
  {
- 	struct damos_filter *filter;
- 	int i = 0;
+ 	INIT_LIST_HEAD(&scheme->quota.goals);
+-	INIT_LIST_HEAD(&scheme->filters);
++	INIT_LIST_HEAD(&scheme->core_filters);
+ 	INIT_LIST_HEAD(&scheme->ops_filters);
+ }
  
--	damos_for_each_filter(filter, s) {
-+	damos_for_each_core_filter(filter, s) {
- 		if (i++ == n)
- 			return filter;
- 	}
-@@ -923,15 +923,15 @@ static int damos_commit_core_filters(str
- 	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
- 	int i = 0, j = 0;
+@@ -1140,7 +1140,7 @@ static void damon_test_set_filters_defau
+ 	struct damos scheme;
+ 	struct damos_filter *target_filter, *anon_filter;
  
--	damos_for_each_filter_safe(dst_filter, next, dst) {
--		src_filter = damos_nth_filter(i++, src);
-+	damos_for_each_core_filter_safe(dst_filter, next, dst) {
-+		src_filter = damos_nth_core_filter(i++, src);
- 		if (src_filter)
- 			damos_commit_filter(dst_filter, src_filter);
- 		else
- 			damos_destroy_filter(dst_filter);
- 	}
+-	INIT_LIST_HEAD(&scheme.filters);
++	INIT_LIST_HEAD(&scheme.core_filters);
+ 	INIT_LIST_HEAD(&scheme.ops_filters);
  
--	damos_for_each_filter_safe(src_filter, next, src) {
-+	damos_for_each_core_filter_safe(src_filter, next, src) {
- 		if (j++ < i)
- 			continue;
+ 	damos_set_filters_default_reject(&scheme);
+--- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~mm-damon-rename-damos-filters-to-damos-core_filters
++++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
+@@ -175,11 +175,11 @@ def scheme_to_dict(scheme):
+         ['target_nid', int],
+         ['migrate_dests', damos_migrate_dests_to_dict],
+         ])
+-    filters = []
++    core_filters = []
+     for f in list_for_each_entry(
+-            'struct damos_filter', scheme.filters.address_of_(), 'list'):
+-        filters.append(damos_filter_to_dict(f))
+-    dict_['filters'] = filters
++            'struct damos_filter', scheme.core_filters.address_of_(), 'list'):
++        core_filters.append(damos_filter_to_dict(f))
++    dict_['core_filters'] = core_filters
+     ops_filters = []
+     for f in list_for_each_entry(
+             'struct damos_filter', scheme.ops_filters.address_of_(), 'list'):
+--- a/tools/testing/selftests/damon/sysfs.py~mm-damon-rename-damos-filters-to-damos-core_filters
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -132,7 +132,7 @@ def assert_scheme_committed(scheme, dump
+     assert_watermarks_committed(scheme.watermarks, dump['wmarks'])
+     # TODO: test filters directory
+     for idx, f in enumerate(scheme.core_filters.filters):
+-        assert_filter_committed(f, dump['filters'][idx])
++        assert_filter_committed(f, dump['core_filters'][idx])
+     for idx, f in enumerate(scheme.ops_filters.filters):
+         assert_filter_committed(f, dump['ops_filters'][idx])
  
-@@ -1767,7 +1767,7 @@ static bool damos_filter_out(struct damo
- 	struct damos_filter *filter;
- 
- 	s->core_filters_allowed = false;
--	damos_for_each_filter(filter, s) {
-+	damos_for_each_core_filter(filter, s) {
- 		if (damos_filter_match(ctx, t, r, filter, ctx->min_sz_region)) {
- 			if (filter->allow)
- 				s->core_filters_allowed = true;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
