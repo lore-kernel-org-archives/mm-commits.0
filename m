@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90FB6343D6A
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24037350A24
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762972409; cv=none; b=gAqBNk3c04inbuNxpXRVVlBKbEIBhosZVr3aTpF/DU6hsW5F3+TNunJHvykv0deaY6kouRDil3t6+vuSt+DK7RfNhyQba+lACO5Pnm7ABBTuxujSu1ek+GWJ823OQCUo/IbhwUl7bo/RD3RhSgQkYJZHs/hQMGWIfOjiH4FFTNQ=
+	t=1762972412; cv=none; b=aSc8V21DYrAZ5WTZHigI2s/Jj0Sghtjz0kECA/0vkTIQX6J+WpPhcousikazBP4E0tTphnhTuOEpFkd4TCX9eEt/OyJT9ZG3BI7E6cwp+lFU2DIX2Z6a85gZAywzjpV7tpxIXD2SkJ8S63dQKBD4L1j0LvtRD/F+zP1iX8xSE8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762972409; c=relaxed/simple;
-	bh=kYtfdHLrud9+3BAu8bUZFDt3apBYCaAzmjY2kyohZ4I=;
-	h=Date:To:From:Subject:Message-Id; b=OT5e51Y/JQ7orDWoH4xs5Azyooul8DMqx0H2UUexaKFuvh0k6kdITuV7vv3R01hqb3tKQDyzWi4Wh/a1YkogoZuftquO+iSqjEp1nRJkejSNwgI1ShfpfAbQE+KT7lGtwEThxbS1aDfVCw4WdL5Wl8neHcT7CTU5f+mmYS/xX7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2kfqd/+I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762972412; c=relaxed/simple;
+	bh=Km15xBzw86TXlOIb9G3La7jOOIVWFRzx6wr9o0016XU=;
+	h=Date:To:From:Subject:Message-Id; b=OWUP9MdQUH2KqSKAaAPhbWIWvbp/VbPeeYioCJJWNw2bGt2Ik0oG6SaOB5unpcZI3tRyFxYN7inQQw0jOD0tDOQBfoWwWCltjDbJ5ZaMV05OR1dsGSPaauKVyXm2fJ5idhI8F5QUcYBl3Kp5o0sx9w6wh+3HqYA9spwRGgcJNu8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oCHhseEo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2kfqd/+I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55BB1C4CEF5;
-	Wed, 12 Nov 2025 18:33:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oCHhseEo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E555C4CEF8;
+	Wed, 12 Nov 2025 18:33:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762972409;
-	bh=kYtfdHLrud9+3BAu8bUZFDt3apBYCaAzmjY2kyohZ4I=;
+	s=korg; t=1762972411;
+	bh=Km15xBzw86TXlOIb9G3La7jOOIVWFRzx6wr9o0016XU=;
 	h=Date:To:From:Subject:From;
-	b=2kfqd/+I8PRHupgfVFWzDalzIz3A+kUOrg0+RLSWFwDhi3caJkpnHMPHdz9PmWwd2
-	 oIoQaqiEyWgP5Yo7AmZe0F34tGpZnL38yFju9axJ3UabGzyjef8hUee7RvYPRRSGCM
-	 +qzKXr8oWBhlhDq03QBm5buajz8Uj4gD6UD1DUs0=
-Date: Wed, 12 Nov 2025 10:33:28 -0800
+	b=oCHhseEoLMdh6vFSar1+oHfYvsXfv2ZqXF1p8SlPhc3vc8Q62XkN6Ah8etjxqqT9O
+	 Rdf8Z97xKbVW1FdyFprqEH3ha1TGLrkd5oy+Bu839+8owBDnpS4cImV2jEewdjs0Pd
+	 aO9cEKM+4pu+8Pg8jCQTuwNaf3Pvj/hpghZOQDuk=
+Date: Wed, 12 Nov 2025 10:33:30 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,ojeda@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,hughd@google.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch added to mm-new branch
-Message-Id: <20251112183329.55BB1C4CEF5@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-fix-grammartical-errors.patch added to mm-new branch
+Message-Id: <20251112183331.6E555C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/maintainer-profile: fix a typo on mm-untable link
+     Subject: Docs/mm/damon/maintainer-profile: fix grammatical errors
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
+     docs-mm-damon-maintainer-profile-fix-grammartical-errors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-fix-grammartical-errors.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,14 +65,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/maintainer-profile: fix a typo on mm-untable link
-Date: Wed, 12 Nov 2025 07:41:11 -0800
+Subject: Docs/mm/damon/maintainer-profile: fix grammatical errors
+Date: Wed, 12 Nov 2025 07:41:12 -0800
 
-Commit 0b473f9e6eac ("Docs/mm/damon/maintainer-profile: update for mm-new
-tree") mistakenly forgot putting a space between a link and the next word.
-Fix it.
+Fix a few grammatical errors on DAMON maintainer-profile.
 
-Link: https://lkml.kernel.org/r/20251112154114.66053-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251112154114.66053-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Bill Wendling <morbo@google.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -93,20 +91,30 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/maintainer-profile.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/mm/damon/maintainer-profile.rst |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-grammartical-errors
 +++ a/Documentation/mm/damon/maintainer-profile.rst
-@@ -57,7 +57,7 @@ Key cycle dates
+@@ -27,8 +27,8 @@ maintainer.
  
- Patches can be sent anytime.  Key cycle dates of the `mm-new
- <https://git.kernel.org/akpm/mm/h/mm-new>`_, `mm-unstable
--<https://git.kernel.org/akpm/mm/h/mm-unstable>`_and `mm-stable
-+<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ and `mm-stable
- <https://git.kernel.org/akpm/mm/h/mm-stable>`_ trees depend on the memory
- management subsystem maintainer.
+ Note again the patches for `mm-new tree
+ <https://git.kernel.org/akpm/mm/h/mm-new>`_ are queued by the memory management
+-subsystem maintainer.  If the patches requires some patches in `damon/next tree
+-<https://git.kernel.org/sj/h/damon/next>`_ which not yet merged in mm-new,
++subsystem maintainer.  If the patches require some patches in `damon/next tree
++<https://git.kernel.org/sj/h/damon/next>`_ which have not yet merged in mm-new,
+ please make sure the requirement is clearly specified.
  
+ Submit checklist addendum
+@@ -99,5 +99,5 @@ Schedules and reservation status are ava
+ <https://docs.google.com/document/d/1v43Kcj3ly4CYqmAkMaZzLiM2GEnWfgdGbZAH3mi2vpM/edit?usp=sharing>`_.
+ There is also a public Google `calendar
+ <https://calendar.google.com/calendar/u/0?cid=ZDIwOTA4YTMxNjc2MDQ3NTIyMmUzYTM5ZmQyM2U4NDA0ZGIwZjBiYmJlZGQxNDM0MmY4ZTRjOTE0NjdhZDRiY0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t>`_
+-that has the events.  Anyone can subscribe it.  DAMON maintainer will also
+-provide periodic reminder to the mailing list (damon@lists.linux.dev).
++that has the events.  Anyone can subscribe to it.  DAMON maintainer will also
++provide periodic reminders to the mailing list (damon@lists.linux.dev).
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
