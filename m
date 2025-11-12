@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB8F4343D6A
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B14EB343D6A
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762972392; cv=none; b=t5NUaJ7nNvpBxktR7OwT+OR9Hmp46hYh5hhBbX/wxtX+8vVdcGqb0B6HvLR5m5ZRO3N+NWuA0dO9sPsxkA9e8QMbTv6E3MtQxeQHdoInSDYWn163t4aTEzzW/lO85lC2dW2UC5EoPjLfpIs3sdex1RqmEcbdj6iGH04wVmm6r4c=
+	t=1762972395; cv=none; b=lbknq30EjRGy67nA5MmvJQUlP+QmY/j+nORdR94s8HGAN5BqkHEYFIRwfNgWBsowUX0MEBjtUYFEpleiYi53G+ZANoxzcck6tSqi+cLIJxRhcbssDHnZTh78SKzRZz//CDDc9q0qI/p/lCw2CMd9TwpfzQLo5BctkIl450gQGsg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762972392; c=relaxed/simple;
-	bh=AYE5OSN6vzdSlLqocB+WvzEiLxFWKm6nnw5uVYwvLnI=;
-	h=Date:To:From:Subject:Message-Id; b=Ls3teKRRg0+HMzPnuRQwcJKc48HP9S2mKgvFqJHMMnLencuYwgjXi5x5P2EGDCN6fZ1HpDPVjBQU7lYLAZ3mHGkM9yACDNQ6rYmCyHDXyIfwNGC9DSFwzXi1pTcEnGXl+Syks2bvTALBmDruRSlJkP3nf5sc7DskpINBSR4nPZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iJI8eoV0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762972395; c=relaxed/simple;
+	bh=otZs0Fh7EI/Laa/M5TOt9m2JkYS9ZjPFxcChBt/dUXM=;
+	h=Date:To:From:Subject:Message-Id; b=Daw+if5dPsHphH0d0TAr1bgPp04X8b1XE21/47sHS84LjyEwrlqXpPyFrfupM/g7koFOAtKIk9+tmK7A8ls3g2Ts0ECRJobW9cXGnWuTggjpBZJOk69SeWL6tq8S5sPO08n9BxkkJ2652g1kIeECECKqI1hdYeNjt7oxCiEgvAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hm2eApco; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iJI8eoV0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55BB8C4CEF7;
-	Wed, 12 Nov 2025 18:33:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hm2eApco"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 352E9C113D0;
+	Wed, 12 Nov 2025 18:33:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762972391;
-	bh=AYE5OSN6vzdSlLqocB+WvzEiLxFWKm6nnw5uVYwvLnI=;
+	s=korg; t=1762972395;
+	bh=otZs0Fh7EI/Laa/M5TOt9m2JkYS9ZjPFxcChBt/dUXM=;
 	h=Date:To:From:Subject:From;
-	b=iJI8eoV0Jr6hBFEFNwes+8t5MkxEQuP0OlkMEfvL8SJFjmLF1UUD0Zr5U6d2/K4+c
-	 yYk27oarxVJSDQJ3kkgHWyHyWHQYKHxcF3PZ7oA+RpawaWEhXhMP2fNg4/AaL70yKy
-	 Zeme82zfBBeoMt/AXgLbMR5le7UiRN89QDy93U1Y=
-Date: Wed, 12 Nov 2025 10:33:10 -0800
+	b=hm2eApco4ChjM4ypyHd6Bxa2/7K3ABxR7qY4zQV70N5qPvlQFXS4dmJGe+uaI2yuu
+	 q7fbenb2VKxVVTTpXqPWLzQBTHctxm+jjKxrj/9469ucRC7GGKLOsuXNq+CQ5vB/by
+	 rlpru6srNo1LtxFQMUg8WucCH0USRRKNfHWUP8fs=
+Date: Wed, 12 Nov 2025 10:33:14 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,ojeda@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,hughd@google.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-rename-damos-filters-to-damos-core_filters.patch added to mm-new branch
-Message-Id: <20251112183311.55BB8C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch added to mm-new branch
+Message-Id: <20251112183315.352E9C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: rename damos->filters to damos->core_filters
+     Subject: mm/damon/vaddr: cleanup using pmd_trans_huge_lock()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-rename-damos-filters-to-damos-core_filters.patch
+     mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-rename-damos-filters-to-damos-core_filters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,24 +65,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: rename damos->filters to damos->core_filters
-Date: Wed, 12 Nov 2025 07:41:05 -0800
+Subject: mm/damon/vaddr: cleanup using pmd_trans_huge_lock()
+Date: Wed, 12 Nov 2025 07:41:06 -0800
 
-DAMOS filters that are handled by the ops layer are linked to
-damos->ops_filters.  Owing to the ops_ prefix on the name, it is easy to
-understand it is for ops layer handled filters.  The other types of
-filters, which are handled by the core layer, are linked to
-damos->filters.  Because of the name, it is easy to confuse the list is
-there for not only core layer handled ones but all filters.  Avoid such
-confusions by renaming the field to core_filters.
+Three pmd walk functions in vaddr.c are using pmd_trans_huge() and
+pmd_lock() to handle THPs.  Simplify the code by replacing the two
+function calls with a single pmd_trans_huge_lock() call.
 
-Link: https://lkml.kernel.org/r/20251112154114.66053-3-sj@kernel.org
+Note that this cleanup is not only reducing the lines of code, but also
+simplifies code execution flows for migration entries case, as kindly
+explained [1] by Hugh, who suggested this cleanup.
+
+Link: https://lkml.kernel.org/r/20251112154114.66053-4-sj@kernel.org
+Link: https://lore.kernel.org/296c2b3f-6748-158f-b85d-2952165c0588@google.com [1]
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Suggested-by: Hugh Dickins <hughd@google.com>
 Cc: Bill Wendling <morbo@google.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Justin Stitt <justinstitt@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -97,132 +98,92 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h                                   |   10 +++++-----
- mm/damon/core.c                                         |    6 +++---
- mm/damon/tests/core-kunit.h                             |    4 ++--
- tools/testing/selftests/damon/drgn_dump_damon_status.py |    8 ++++----
- tools/testing/selftests/damon/sysfs.py                  |    2 +-
- 5 files changed, 15 insertions(+), 15 deletions(-)
+ mm/damon/vaddr.c |   48 +++++++++++----------------------------------
+ 1 file changed, 12 insertions(+), 36 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-rename-damos-filters-to-damos-core_filters
-+++ a/include/linux/damon.h
-@@ -492,7 +492,7 @@ struct damos_migrate_dests {
-  * @wmarks:		Watermarks for automated (in)activation of this scheme.
-  * @migrate_dests:	Destination nodes if @action is "migrate_{hot,cold}".
-  * @target_nid:		Destination node if @action is "migrate_{hot,cold}".
-- * @filters:		Additional set of &struct damos_filter for &action.
-+ * @core_filters:	Additional set of &struct damos_filter for &action.
-  * @ops_filters:	ops layer handling &struct damos_filter objects list.
-  * @last_applied:	Last @action applied ops-managing entity.
-  * @stat:		Statistics of this scheme.
-@@ -518,7 +518,7 @@ struct damos_migrate_dests {
-  *
-  * Before applying the &action to a memory region, &struct damon_operations
-  * implementation could check pages of the region and skip &action to respect
-- * &filters
-+ * &core_filters
-  *
-  * The minimum entity that @action can be applied depends on the underlying
-  * &struct damon_operations.  Since it may not be aligned with the core layer
-@@ -562,7 +562,7 @@ struct damos {
- 			struct damos_migrate_dests migrate_dests;
- 		};
- 	};
--	struct list_head filters;
-+	struct list_head core_filters;
- 	struct list_head ops_filters;
- 	void *last_applied;
- 	struct damos_stat stat;
-@@ -872,10 +872,10 @@ static inline unsigned long damon_sz_reg
- 	list_for_each_entry_safe(goal, next, &(quota)->goals, list)
- 
- #define damos_for_each_core_filter(f, scheme) \
--	list_for_each_entry(f, &(scheme)->filters, list)
-+	list_for_each_entry(f, &(scheme)->core_filters, list)
- 
- #define damos_for_each_core_filter_safe(f, next, scheme) \
--	list_for_each_entry_safe(f, next, &(scheme)->filters, list)
-+	list_for_each_entry_safe(f, next, &(scheme)->core_filters, list)
- 
- #define damos_for_each_ops_filter(f, scheme) \
- 	list_for_each_entry(f, &(scheme)->ops_filters, list)
---- a/mm/damon/core.c~mm-damon-rename-damos-filters-to-damos-core_filters
-+++ a/mm/damon/core.c
-@@ -306,7 +306,7 @@ void damos_add_filter(struct damos *s, s
- 	if (damos_filter_for_ops(f->type))
- 		list_add_tail(&f->list, &s->ops_filters);
- 	else
--		list_add_tail(&f->list, &s->filters);
-+		list_add_tail(&f->list, &s->core_filters);
- }
- 
- static void damos_del_filter(struct damos_filter *f)
-@@ -397,7 +397,7 @@ struct damos *damon_new_scheme(struct da
- 	 */
- 	scheme->next_apply_sis = 0;
- 	scheme->walk_completed = false;
--	INIT_LIST_HEAD(&scheme->filters);
-+	INIT_LIST_HEAD(&scheme->core_filters);
- 	INIT_LIST_HEAD(&scheme->ops_filters);
- 	scheme->stat = (struct damos_stat){};
- 	INIT_LIST_HEAD(&scheme->list);
-@@ -995,7 +995,7 @@ static void damos_set_filters_default_re
- 		s->core_filters_default_reject = false;
- 	else
- 		s->core_filters_default_reject =
--			damos_filters_default_reject(&s->filters);
-+			damos_filters_default_reject(&s->core_filters);
- 	s->ops_filters_default_reject =
- 		damos_filters_default_reject(&s->ops_filters);
- }
---- a/mm/damon/tests/core-kunit.h~mm-damon-rename-damos-filters-to-damos-core_filters
-+++ a/mm/damon/tests/core-kunit.h
-@@ -876,7 +876,7 @@ static void damos_test_commit_filter(str
- static void damos_test_help_initailize_scheme(struct damos *scheme)
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock
++++ a/mm/damon/vaddr.c
+@@ -307,24 +307,14 @@ static int damon_mkold_pmd_entry(pmd_t *
+ 		unsigned long next, struct mm_walk *walk)
  {
- 	INIT_LIST_HEAD(&scheme->quota.goals);
--	INIT_LIST_HEAD(&scheme->filters);
-+	INIT_LIST_HEAD(&scheme->core_filters);
- 	INIT_LIST_HEAD(&scheme->ops_filters);
- }
+ 	pte_t *pte;
+-	pmd_t pmde;
+ 	spinlock_t *ptl;
  
-@@ -1140,7 +1140,7 @@ static void damon_test_set_filters_defau
- 	struct damos scheme;
- 	struct damos_filter *target_filter, *anon_filter;
+-	if (pmd_trans_huge(pmdp_get(pmd))) {
+-		ptl = pmd_lock(walk->mm, pmd);
+-		pmde = pmdp_get(pmd);
+-
+-		if (!pmd_present(pmde)) {
+-			spin_unlock(ptl);
+-			return 0;
+-		}
+-
+-		if (pmd_trans_huge(pmde)) {
++	ptl = pmd_trans_huge_lock(pmd, walk->vma);
++	if (ptl) {
++		if (pmd_present(pmdp_get(pmd)))
+ 			damon_pmdp_mkold(pmd, walk->vma, addr);
+-			spin_unlock(ptl);
+-			return 0;
+-		}
+ 		spin_unlock(ptl);
++		return 0;
+ 	}
  
--	INIT_LIST_HEAD(&scheme.filters);
-+	INIT_LIST_HEAD(&scheme.core_filters);
- 	INIT_LIST_HEAD(&scheme.ops_filters);
+ 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+@@ -446,21 +436,12 @@ static int damon_young_pmd_entry(pmd_t *
+ 	struct damon_young_walk_private *priv = walk->private;
  
- 	damos_set_filters_default_reject(&scheme);
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~mm-damon-rename-damos-filters-to-damos-core_filters
-+++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -175,11 +175,11 @@ def scheme_to_dict(scheme):
-         ['target_nid', int],
-         ['migrate_dests', damos_migrate_dests_to_dict],
-         ])
--    filters = []
-+    core_filters = []
-     for f in list_for_each_entry(
--            'struct damos_filter', scheme.filters.address_of_(), 'list'):
--        filters.append(damos_filter_to_dict(f))
--    dict_['filters'] = filters
-+            'struct damos_filter', scheme.core_filters.address_of_(), 'list'):
-+        core_filters.append(damos_filter_to_dict(f))
-+    dict_['core_filters'] = core_filters
-     ops_filters = []
-     for f in list_for_each_entry(
-             'struct damos_filter', scheme.ops_filters.address_of_(), 'list'):
---- a/tools/testing/selftests/damon/sysfs.py~mm-damon-rename-damos-filters-to-damos-core_filters
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -132,7 +132,7 @@ def assert_scheme_committed(scheme, dump
-     assert_watermarks_committed(scheme.watermarks, dump['wmarks'])
-     # TODO: test filters directory
-     for idx, f in enumerate(scheme.core_filters.filters):
--        assert_filter_committed(f, dump['filters'][idx])
-+        assert_filter_committed(f, dump['core_filters'][idx])
-     for idx, f in enumerate(scheme.ops_filters.filters):
-         assert_filter_committed(f, dump['ops_filters'][idx])
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (pmd_trans_huge(pmdp_get(pmd))) {
+-		pmd_t pmde;
+-
+-		ptl = pmd_lock(walk->mm, pmd);
+-		pmde = pmdp_get(pmd);
++	ptl = pmd_trans_huge_lock(pmd, walk->vma);
++	if (ptl) {
++		pmd_t pmde = pmdp_get(pmd);
+ 
+-		if (!pmd_present(pmde)) {
+-			spin_unlock(ptl);
+-			return 0;
+-		}
+-
+-		if (!pmd_trans_huge(pmde)) {
+-			spin_unlock(ptl);
+-			goto regular_page;
+-		}
++		if (!pmd_present(pmde))
++			goto huge_out;
+ 		folio = damon_get_folio(pmd_pfn(pmde));
+ 		if (!folio)
+ 			goto huge_out;
+@@ -474,8 +455,6 @@ huge_out:
+ 		spin_unlock(ptl);
+ 		return 0;
+ 	}
+-
+-regular_page:
+ #endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+@@ -910,13 +889,10 @@ static int damos_va_stat_pmd_entry(pmd_t
+ 	int nr;
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	if (pmd_trans_huge(*pmd)) {
+-		pmd_t pmde;
++	ptl = pmd_trans_huge_lock(pmd, vma);
++	if (ptl) {
++		pmd_t pmde = pmdp_get(pmd);
+ 
+-		ptl = pmd_trans_huge_lock(pmd, vma);
+-		if (!ptl)
+-			return 0;
+-		pmde = pmdp_get(pmd);
+ 		if (!pmd_present(pmde))
+ 			goto huge_unlock;
  
 _
 
