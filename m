@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8B4714B96E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 810FE14B96E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908593; cv=none; b=ZNttgglAI46xft2efwwMNntMaB4hMXhC1/fouN7lwwh0X/YPNK/TnTxZMcOQqFYjL9MfpLD0c4L1iFk12atuAyWhpdr0W/FsTfZOhV2sahZGmvqcNOMc8cEJCIp2+ybnj8ZPPIYFdtVHxlMp/B54WYdMY4jMqgCTPD0R46VuW6w=
+	t=1762908594; cv=none; b=ErL+dN2w1S8v/rbsRyPV10XZEZMVWb7Pxl8E5/ys92kbbNnIkBUNSofAZoHK7YPq3/7n6mjV8crtO59OO6DpftDOGgW4rMyaQF20EB8SdCfOTnhMxXVavuxakdKzQovVMq717TEpkASOAYmvXD+Xda2vR2x9xXbCx1cFoOMUPGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762908593; c=relaxed/simple;
-	bh=WptmHO+PilLvMG/DwEUdUk/TCHbD1vI6Q7D01GlXMbY=;
-	h=Date:To:From:Subject:Message-Id; b=byWMfdVk2Bp/omRpKeAiBzTT22QvuSrCAs+A987Kw8g67mtsN91DR0W1PYwtY4FfF/1KUGNUfCpnZvbkCQQjaV3bIIGwOfppmtncMGtZC+9GHVf6BPNq0z0iw8WSwCq9iFnSfbg2yzcLc56rcgrRbrEk4gzR5FiMBFFaSKSlFUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B1htzLmo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762908594; c=relaxed/simple;
+	bh=nGyFCxUrzDImjC5eUggEW+Ib3V12J9l9wbxMvJIcAVE=;
+	h=Date:To:From:Subject:Message-Id; b=CsYhZNaCfABUwyEtCK6ApH9lTLqHid4mD0JI2snn+qU/Qfteau9V+5WOSFERlzAu8GYqqmvuQBjnowEgWPUWpKTYECV0retMac4MQRM2OHJLPJkgmy29NTkxvt0PfjsoRhvVPBBpHsLyJWzXQ2+qZa9bgTrrgPwAZMJKqdu1www=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MLTrMz5e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B1htzLmo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD067C116D0;
-	Wed, 12 Nov 2025 00:49:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MLTrMz5e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E45FC4CEF5;
+	Wed, 12 Nov 2025 00:49:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908592;
-	bh=WptmHO+PilLvMG/DwEUdUk/TCHbD1vI6Q7D01GlXMbY=;
+	s=korg; t=1762908594;
+	bh=nGyFCxUrzDImjC5eUggEW+Ib3V12J9l9wbxMvJIcAVE=;
 	h=Date:To:From:Subject:From;
-	b=B1htzLmo72wkMnjULVUKW2n5ZwuN7U9y0vVVna2Qc3Q0AX566YugiDvZyt3Lmokxl
-	 f3tqMC+BBDem1uY8ljCKEvI79qxZt4yH8XtMBSeqKsYcZi50BryiH/4+JOXlLzYezI
-	 UiB0uaI6KOYTtaDC9USPUQfr6JRPMa0ypaZmAWJQ=
-Date: Tue, 11 Nov 2025 16:49:52 -0800
-To: mm-commits@vger.kernel.org,vlad_kulikov_c@pm.me,mawupeng1@huawei.com,jack@suse.cz,david@redhat.com,cyphar@cyphar.com,brauner@kernel.org,vlad.kulikov.c@gmail.com,akpm@linux-foundation.org
+	b=MLTrMz5ehiw7CSJ0G+NT91Vs2wu67qhtifB+YogX+iTpKofKXf3Z6RXTu9JiLg0wi
+	 sRII0JKtPjsB2/eEpdFWzcP47gWyJnW1754yGCz7hJNm8QAkbNdEsHnddOr3WYLrlj
+	 WJFpn9cpkYjJywjHaW2ebeuqvXnvFcSFvo9YL8dg=
+Date: Tue, 11 Nov 2025 16:49:53 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,tglx@linutronix.de,svens@linux.ibm.com,shakeel.butt@linux.dev,rppt@kernel.org,rdunlap@infradead.org,peterz@infradead.org,paulmck@kernel.org,ojeda@kernel.org,nathan@kernel.org,mkoutny@suse.com,mingo@kernel.org,masahiroy@kernel.org,kernel@jfarr.cc,kees@kernel.org,jeffxu@chromium.org,hca@linux.ibm.com,guoweikang.kernel@gmail.com,geert@linux-m68k.org,francesco@valla.it,chenhuacai@kernel.org,brgerst@gmail.com,brauner@kernel.org,alexander.shishkin@linux.intel.com,achant@google.com,dianders@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ipc-create_ipc_ns-drop-mqueue-mount-on-sysctl-setup-failure.patch removed from -mm tree
-Message-Id: <20251112004952.BD067C116D0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs.patch removed from -mm tree
+Message-Id: <20251112004954.4E45FC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,266 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ipc: create_ipc_ns: drop mqueue mount on sysctl setup failure
+     Subject: init/main.c: wrap long kernel cmdline when printing to logs
 has been removed from the -mm tree.  Its filename was
-     ipc-create_ipc_ns-drop-mqueue-mount-on-sysctl-setup-failure.patch
+     init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlad Kulikov <vlad.kulikov.c@gmail.com>
-Subject: ipc: create_ipc_ns: drop mqueue mount on sysctl setup failure
-Date: Tue, 21 Oct 2025 21:13:39 +0300
+From: Douglas Anderson <dianders@chromium.org>
+Subject: init/main.c: wrap long kernel cmdline when printing to logs
+Date: Thu, 23 Oct 2025 11:33:05 -0700
 
-If setup_mq_sysctls(ns) fails after mq_init_ns(ns) succeeds, the error
-path skipped releasing the internal kernel mqueue mount kept in
-ns->mq_mnt. That leaves the vfsmount/superblock referenced until final
-namespace teardown, i.e. a resource leak on this rare failure edge.
+The kernel cmdline length is allowed to be longer than what printk can
+handle.  When this happens the cmdline that's printed to the kernel ring
+buffer at bootup is cutoff and some kernel cmdline options are "hidden"
+from the logs.  This undercuts the usefulness of the log message.
 
-Unwind it by calling mntput(ns->mq_mnt) before dropping user_ns and
-freeing the IPC namespace. This mirrors the normal ordering used in
-free_ipc_ns().
+Specifically, grepping for COMMAND_LINE_SIZE shows that 2048 is common and
+some architectures even define it as 4096.  s390 allows a CONFIG-based
+maximum up to 1MB (though it's not expected that anyone will go over the
+default max of 4096 [1]).
 
-Link: https://lkml.kernel.org/r/20251021181341.670297-1-vlad_kulikov_c@pm.me
-Signed-off-by: Vlad Kulikov <vlad_kulikov_c@pm.me>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Aleksa Sarai <cyphar@cyphar.com>
+The maximum message pr_notice() seems to be able to handle (based on
+experiment) is 1021 characters.  This appears to be based on the current
+value of PRINTKRB_RECORD_MAX as 1024 and the fact that pr_notice() spends
+2 characters on the loglevel prefix and we have a '\n' at the end.
+
+While it would be possible to increase the limits of printk() (and
+therefore pr_notice()) somewhat, it doesn't appear possible to increase it
+enough to fully include a 2048-character cmdline without breaking
+userspace.  Specifically on at least two tested userspaces (ChromeOS plus
+the Debian-based distro I'm typing this message on) the `dmesg` tool reads
+lines from `/dev/kmsg` in 2047-byte chunks.  As per
+`Documentation/ABI/testing/dev-kmsg`:
+
+  Every read() from the opened device node receives one record
+  of the kernel's printk buffer.
+  ...
+  Messages in the record ring buffer get overwritten as whole,
+  there are never partial messages received by read().
+
+We simply can't fit a 2048-byte cmdline plus the "Kernel command line:"
+prefix plus info about time/log_level/etc in a 2047-byte read.
+
+The above means that if we want to avoid the truncation we need to do some
+type of wrapping of the cmdline when printing.
+
+Add wrapping to the printout of the kernel command line.  By default, the
+wrapping is set to 1021 characters to avoid breaking anyone, but allow
+wrapping to be set lower by a Kconfig knob
+"CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN".  Any tools that are correctly parsing
+the cmdline today (because it is less than 1021 characters) will see no
+difference in their behavior.  The format of wrapped output is designed to
+be matched by anyone using "grep" to search for the cmdline and also to be
+easy for tools to handle.  Anyone who is sure their tools (if any) handle
+the wrapped format can choose a lower wrapping value and have prettier
+output.
+
+Setting CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN to 0 fully disables the wrapping
+logic.  This means that long command lines will be truncated again, but
+this config could be set if command lines are expected to be long and
+userspace is known not to handle parsing logs with the wrapping.
+
+Wrapping is based on spaces, ignoring quotes.  All lines are prefixed with
+"Kernel command line: " and lines that are not the last line have a " \"
+suffix added to them.  The prefix and suffix count towards the line length
+for wrapping purposes.  The ideal length will be exceeded if no
+appropriate place to wrap is found.
+
+The wrapping function added here is fairly generic and could be made a
+library function (somewhat like print_hex_dump()) if it's needed elsewhere
+in the kernel.  However, having printk() directly incorporate this
+wrapping would be unlikely to be a good idea since it would break
+printouts into more than one record without any obvious common line prefix
+to tie lines together.  It would also be extra overhead when, in general,
+kernel log message should simply be kept smaller than 1021 bytes.  For
+some discussion on this topic, see responses to the v1 posting of this
+patch [2].
+
+[akpm@linux-foundation.org: make print_kernel_cmdline __init]
+[dianders@chromium.org: v4]
+  Link: https://lkml.kernel.org/r/20251027082204.v4.1.I095f1e2c6c27f9f4de0b4841f725f356c643a13f@changeid
+Link: https://lkml.kernel.org/r/20251023113257.v3.1.I095f1e2c6c27f9f4de0b4841f725f356c643a13f@changeid
+Link: https://lore.kernel.org/r/20251021131633.26700Dd6-hca@linux.ibm.com [1]
+Link: https://lore.kernel.org/r/CAD=FV=VNyt1zG_8pS64wgV8VkZWiWJymnZ-XCfkrfaAhhFSKcA@mail.gmail.com [2]
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Tested-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Andrew Chant <achant@google.com>
+Cc: Brian Gerst <brgerst@gmail.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: Francesco Valla <francesco@valla.it>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: guoweikang <guoweikang.kernel@gmail.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jan Hendrik Farr <kernel@jfarr.cc>
+Cc: Jeff Xu <jeffxu@chromium.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/namespace.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ init/Kconfig |   18 +++++++++
+ init/main.c  |   97 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 114 insertions(+), 1 deletion(-)
 
---- a/ipc/namespace.c~ipc-create_ipc_ns-drop-mqueue-mount-on-sysctl-setup-failure
-+++ a/ipc/namespace.c
-@@ -75,10 +75,10 @@ static struct ipc_namespace *create_ipc_
+--- a/init/Kconfig~init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs
++++ a/init/Kconfig
+@@ -1512,6 +1512,24 @@ config BOOT_CONFIG_EMBED_FILE
+ 	  This bootconfig will be used if there is no initrd or no other
+ 	  bootconfig in the initrd.
  
- 	err = -ENOMEM;
- 	if (!setup_mq_sysctls(ns))
--		goto fail_put;
-+		goto fail_mq_mount;
++config CMDLINE_LOG_WRAP_IDEAL_LEN
++	int "Length to try to wrap the cmdline when logged at boot"
++	default 1021
++	range 0 1021
++	help
++	  At boot time, the kernel command line is logged to the console.
++	  The log message will start with the prefix "Kernel command line: ".
++	  The log message will attempt to be wrapped (split into multiple log
++	  messages) at spaces based on CMDLINE_LOG_WRAP_IDEAL_LEN characters.
++	  If wrapping happens, each log message will start with the prefix and
++	  all but the last message will end with " \". Messages may exceed the
++	  ideal length if a place to wrap isn't found before the specified
++	  number of characters.
++
++	  A value of 0 disables wrapping, though be warned that the maximum
++	  length of a log message (1021 characters) may cause the cmdline to
++	  be truncated.
++
+ config INITRAMFS_PRESERVE_MTIME
+ 	bool "Preserve cpio archive mtimes in initramfs"
+ 	depends on BLK_DEV_INITRD
+--- a/init/main.c~init-mainc-wrap-long-kernel-cmdline-when-printing-to-logs
++++ a/init/main.c
+@@ -906,6 +906,101 @@ static void __init early_numa_node_init(
+ #endif
+ }
  
- 	if (!setup_ipc_sysctls(ns))
--		goto fail_mq;
-+		goto fail_mq_sysctls;
++#define KERNEL_CMDLINE_PREFIX		"Kernel command line: "
++#define KERNEL_CMDLINE_PREFIX_LEN	(sizeof(KERNEL_CMDLINE_PREFIX) - 1)
++#define KERNEL_CMDLINE_CONTINUATION	" \\"
++#define KERNEL_CMDLINE_CONTINUATION_LEN	(sizeof(KERNEL_CMDLINE_CONTINUATION) - 1)
++
++#define MIN_CMDLINE_LOG_WRAP_IDEAL_LEN	(KERNEL_CMDLINE_PREFIX_LEN + \
++					 KERNEL_CMDLINE_CONTINUATION_LEN)
++#define CMDLINE_LOG_WRAP_IDEAL_LEN	(CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN > \
++					 MIN_CMDLINE_LOG_WRAP_IDEAL_LEN ? \
++					 CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN : \
++					 MIN_CMDLINE_LOG_WRAP_IDEAL_LEN)
++
++#define IDEAL_CMDLINE_LEN		(CMDLINE_LOG_WRAP_IDEAL_LEN - KERNEL_CMDLINE_PREFIX_LEN)
++#define IDEAL_CMDLINE_SPLIT_LEN		(IDEAL_CMDLINE_LEN - KERNEL_CMDLINE_CONTINUATION_LEN)
++
++/**
++ * print_kernel_cmdline() - Print the kernel cmdline with wrapping.
++ * @cmdline: The cmdline to print.
++ *
++ * Print the kernel command line, trying to wrap based on the Kconfig knob
++ * CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN.
++ *
++ * Wrapping is based on spaces, ignoring quotes. All lines are prefixed
++ * with "Kernel command line: " and lines that are not the last line have
++ * a " \" suffix added to them. The prefix and suffix count towards the
++ * line length for wrapping purposes. The ideal length will be exceeded
++ * if no appropriate place to wrap is found.
++ *
++ * Example output if CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN is 40:
++ *   Kernel command line: loglevel=7 \
++ *   Kernel command line: init=/sbin/init \
++ *   Kernel command line: root=PARTUUID=8c3efc1a-768b-6642-8d0c-89eb782f19f0/PARTNROFF=1 \
++ *   Kernel command line: rootwait ro \
++ *   Kernel command line: my_quoted_arg="The \
++ *   Kernel command line: quick brown fox \
++ *   Kernel command line: jumps over the \
++ *   Kernel command line: lazy dog."
++ */
++static void __init print_kernel_cmdline(const char *cmdline)
++{
++	size_t len;
++
++	/* Config option of 0 or anything longer than the max disables wrapping */
++	if (CONFIG_CMDLINE_LOG_WRAP_IDEAL_LEN == 0 ||
++	    IDEAL_CMDLINE_LEN >= COMMAND_LINE_SIZE - 1) {
++		pr_notice("%s%s\n", KERNEL_CMDLINE_PREFIX, cmdline);
++		return;
++	}
++
++	len = strlen(cmdline);
++	while (len > IDEAL_CMDLINE_LEN) {
++		const char *first_space;
++		const char *prev_cutoff;
++		const char *cutoff;
++		int to_print;
++		size_t used;
++
++		/* Find the last ' ' that wouldn't make the line too long */
++		prev_cutoff = NULL;
++		cutoff = cmdline;
++		while (true) {
++			cutoff = strchr(cutoff + 1, ' ');
++			if (!cutoff || cutoff - cmdline > IDEAL_CMDLINE_SPLIT_LEN)
++				break;
++			prev_cutoff = cutoff;
++		}
++		if (prev_cutoff)
++			cutoff = prev_cutoff;
++		else if (!cutoff)
++			break;
++
++		/* Find the beginning and end of the string of spaces */
++		first_space = cutoff;
++		while (first_space > cmdline && first_space[-1] == ' ')
++			first_space--;
++		to_print = first_space - cmdline;
++		while (*cutoff == ' ')
++			cutoff++;
++		used = cutoff - cmdline;
++
++		/* If the whole string is used, break and do the final printout */
++		if (len == used)
++			break;
++
++		if (to_print)
++			pr_notice("%s%.*s%s\n", KERNEL_CMDLINE_PREFIX,
++				  to_print, cmdline, KERNEL_CMDLINE_CONTINUATION);
++
++		len -= used;
++		cmdline += used;
++	}
++	if (len)
++		pr_notice("%s%s\n", KERNEL_CMDLINE_PREFIX, cmdline);
++}
++
+ asmlinkage __visible __init __no_sanitize_address __noreturn __no_stack_protector
+ void start_kernel(void)
+ {
+@@ -942,7 +1037,7 @@ void start_kernel(void)
+ 	early_numa_node_init();
+ 	boot_cpu_hotplug_init();
  
- 	err = msg_init_ns(ns);
- 	if (err)
-@@ -92,9 +92,10 @@ static struct ipc_namespace *create_ipc_
- 
- fail_ipc:
- 	retire_ipc_sysctls(ns);
--fail_mq:
-+fail_mq_sysctls:
- 	retire_mq_sysctls(ns);
--
-+fail_mq_mount:
-+	mntput(ns->mq_mnt);
- fail_put:
- 	put_user_ns(ns->user_ns);
- 	ns_common_free(ns);
+-	pr_notice("Kernel command line: %s\n", saved_command_line);
++	print_kernel_cmdline(saved_command_line);
+ 	/* parameters may set static keys */
+ 	parse_early_param();
+ 	after_dashes = parse_args("Booting kernel",
 _
 
-Patches currently in -mm which might be from vlad.kulikov.c@gmail.com are
+Patches currently in -mm which might be from dianders@chromium.org are
 
 
