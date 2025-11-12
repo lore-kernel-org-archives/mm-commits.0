@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89F35353885
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90FB6343D6A
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762972407; cv=none; b=A2GWg6Eir59hL+oMvGv2d6SLh1O862rcyeXEv+CxUlyKPJVrwqpSpAGL/pNqMFOPZ6M5Cbo1sjTC7/WSEQ3ZKDSMtn4FbWKuXuSbJlMM3jxzHbiLbOBMna0R0T7u2+DjCJNKC5ZVn1hfB5Nk7N418SAFejGoSrP1FVC29Jhp3ZQ=
+	t=1762972409; cv=none; b=gAqBNk3c04inbuNxpXRVVlBKbEIBhosZVr3aTpF/DU6hsW5F3+TNunJHvykv0deaY6kouRDil3t6+vuSt+DK7RfNhyQba+lACO5Pnm7ABBTuxujSu1ek+GWJ823OQCUo/IbhwUl7bo/RD3RhSgQkYJZHs/hQMGWIfOjiH4FFTNQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762972407; c=relaxed/simple;
-	bh=pBxxr19m2SKxYmQpoTacs6RIw7A7JAByloUYRLIZQCU=;
-	h=Date:To:From:Subject:Message-Id; b=o+pXPHjohYnsBDZ5Pl3ecb9Kk2j8hD7oHhj6fhM5Qw8qy4s1P1imxWU/bQQsVa3TynL97fGHVg/bgH6nCRGIpy9NlsAw523fLhitvl+kyOSon0/bgryLw3+k1MNxnDa1DIYaMFoqc2JJJ33I+ivsF9tAbCNEqhdwJbaeZFBVJPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R1uK472/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762972409; c=relaxed/simple;
+	bh=kYtfdHLrud9+3BAu8bUZFDt3apBYCaAzmjY2kyohZ4I=;
+	h=Date:To:From:Subject:Message-Id; b=OT5e51Y/JQ7orDWoH4xs5Azyooul8DMqx0H2UUexaKFuvh0k6kdITuV7vv3R01hqb3tKQDyzWi4Wh/a1YkogoZuftquO+iSqjEp1nRJkejSNwgI1ShfpfAbQE+KT7lGtwEThxbS1aDfVCw4WdL5Wl8neHcT7CTU5f+mmYS/xX7o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2kfqd/+I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R1uK472/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 505D6C4CEF1;
-	Wed, 12 Nov 2025 18:33:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2kfqd/+I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55BB1C4CEF5;
+	Wed, 12 Nov 2025 18:33:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762972407;
-	bh=pBxxr19m2SKxYmQpoTacs6RIw7A7JAByloUYRLIZQCU=;
+	s=korg; t=1762972409;
+	bh=kYtfdHLrud9+3BAu8bUZFDt3apBYCaAzmjY2kyohZ4I=;
 	h=Date:To:From:Subject:From;
-	b=R1uK472/hxncHGtx7CIDzASmiPd4bsiWxOD+OUwjNN3zvAJaAQtjTKRXzSToE33vc
-	 P9g1mPro7/MzlSi6MdjlNHI+nSQgnYvDSBeJddKFxCzCWt4H3Zwu4Smg2CjJNbI3X7
-	 CsW7ypEarrn16hDfm1wk6BBs6GW5M77CWIiBRcUc=
-Date: Wed, 12 Nov 2025 10:33:26 -0800
+	b=2kfqd/+I8PRHupgfVFWzDalzIz3A+kUOrg0+RLSWFwDhi3caJkpnHMPHdz9PmWwd2
+	 oIoQaqiEyWgP5Yo7AmZe0F34tGpZnL38yFju9axJ3UabGzyjef8hUee7RvYPRRSGCM
+	 +qzKXr8oWBhlhDq03QBm5buajz8Uj4gD6UD1DUs0=
+Date: Wed, 12 Nov 2025 10:33:28 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,ojeda@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,hughd@google.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch added to mm-new branch
-Message-Id: <20251112183327.505D6C4CEF1@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch added to mm-new branch
+Message-Id: <20251112183329.55BB1C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.py: merge DAMON status dumping into commitment assertion
+     Subject: Docs/mm/damon/maintainer-profile: fix a typo on mm-untable link
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
+     docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,19 +65,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: merge DAMON status dumping into commitment assertion
-Date: Wed, 12 Nov 2025 07:41:10 -0800
+Subject: Docs/mm/damon/maintainer-profile: fix a typo on mm-untable link
+Date: Wed, 12 Nov 2025 07:41:11 -0800
 
-For each test case, sysfs.py makes changes to DAMON, dumps DAMON internal
-status and asserts the expectation is met.  The dumping part should be the
-same for all cases, so it is duplicated for each test case.  Which means
-it is easy to make mistakes.  Actually a few of those duplicates are not
-turning DAMON off in case of the dumping failure.  It makes following
-selftests that need to turn DAMON on fails with -EBUSY.  Merge the status
-dumping into commitment assertion with proper dumping failure handling, to
-deduplicate and avoid the unnecessary following tests failures.
+Commit 0b473f9e6eac ("Docs/mm/damon/maintainer-profile: update for mm-new
+tree") mistakenly forgot putting a space between a link and the next word.
+Fix it.
 
-Link: https://lkml.kernel.org/r/20251112154114.66053-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251112154114.66053-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Bill Wendling <morbo@google.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -98,90 +93,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |   43 ++++++-----------------
- 1 file changed, 13 insertions(+), 30 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -185,7 +185,15 @@ def assert_ctx_committed(ctx, dump):
-     assert_monitoring_targets_committed(ctx.targets, dump['adaptive_targets'])
-     assert_schemes_committed(ctx.schemes, dump['schemes'])
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -57,7 +57,7 @@ Key cycle dates
  
--def assert_ctxs_committed(ctxs, dump):
-+def assert_ctxs_committed(kdamonds):
-+    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-+    if err is not None:
-+        print(err)
-+        kdamonds.stop()
-+        exit(1)
-+
-+    ctxs = kdamonds.kdamonds[0].contexts
-+    dump = status['contexts']
-     assert_true(len(ctxs) == len(dump), 'ctxs length', dump)
-     for idx, ctx in enumerate(ctxs):
-         assert_ctx_committed(ctx, dump[idx])
-@@ -202,13 +210,7 @@ def main():
-         print('kdamond start failed: %s' % err)
-         exit(1)
+ Patches can be sent anytime.  Key cycle dates of the `mm-new
+ <https://git.kernel.org/akpm/mm/h/mm-new>`_, `mm-unstable
+-<https://git.kernel.org/akpm/mm/h/mm-unstable>`_and `mm-stable
++<https://git.kernel.org/akpm/mm/h/mm-unstable>`_ and `mm-stable
+ <https://git.kernel.org/akpm/mm/h/mm-stable>`_ trees depend on the memory
+ management subsystem maintainer.
  
--    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
--    if err is not None:
--        print(err)
--        kdamonds.stop()
--        exit(1)
--
--    assert_ctxs_committed(kdamonds.kdamonds[0].contexts, status['contexts'])
-+    assert_ctxs_committed(kdamonds)
- 
-     context = _damon_sysfs.DamonCtx(
-             monitoring_attrs=_damon_sysfs.DamonAttrs(
-@@ -256,12 +258,7 @@ def main():
-     kdamonds.kdamonds[0].contexts = [context]
-     kdamonds.kdamonds[0].commit()
- 
--    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
--    if err is not None:
--        print(err)
--        exit(1)
--
--    assert_ctxs_committed(kdamonds.kdamonds[0].contexts, status['contexts'])
-+    assert_ctxs_committed(kdamonds)
- 
-     # test online commitment of minimum context.
-     context = _damon_sysfs.DamonCtx()
-@@ -270,12 +267,7 @@ def main():
-     kdamonds.kdamonds[0].contexts = [context]
-     kdamonds.kdamonds[0].commit()
- 
--    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
--    if err is not None:
--        print(err)
--        exit(1)
--
--    assert_ctxs_committed(kdamonds.kdamonds[0].contexts, status['contexts'])
-+    assert_ctxs_committed(kdamonds)
- 
-     kdamonds.stop()
- 
-@@ -303,17 +295,8 @@ def main():
-         exit(1)
-     kdamonds.kdamonds[0].contexts[0].targets[1].obsolete = True
-     kdamonds.kdamonds[0].commit()
--
--    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
--    if err is not None:
--        print(err)
--        kdamonds.stop()
--        exit(1)
--
-     del kdamonds.kdamonds[0].contexts[0].targets[1]
--
--    assert_ctxs_committed(kdamonds.kdamonds[0].contexts, status['contexts'])
--
-+    assert_ctxs_committed(kdamonds)
-     kdamonds.stop()
- 
- if __name__ == '__main__':
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
