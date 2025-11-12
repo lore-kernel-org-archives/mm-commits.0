@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F7CF14B96E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:50:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D055B34AB13
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908614; cv=none; b=HBT8yUbDf0jyLN0Ru4XePUxcEHWM3VgF7wh0XNmr8oMymv32XayorDWAH4ohaKCBBJA4XV7UFJwgJI0ZzJoq0fQmLxcijNya8HYueiomPdUe0cOagLBX9VIW1s1vyKISUjvX1GlzrmC6OzXT90agyp01U3gh+e+RN7PnQiNqvuQ=
+	t=1762972388; cv=none; b=ILzXEPDCkbvSM6o6qiSAcnNJ5L9iYD+9yQPULDL6KGDi1W05ytLzp7258Imf4pILpwDRiKTL40NGNiXY3V9lfY9lSlh3zp/mN0pw5SSMz9OADIf/r5+81EYSV8Bzky+y8taR2NaPZWdHBxgNPAj2GZ7Hp8639yd7NJjEk+c1cH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762908614; c=relaxed/simple;
-	bh=jYrafEdybpfRnbyLxLqeRL097XHF0Ff3mzDOO5eXHVw=;
-	h=Date:To:From:Subject:Message-Id; b=klwOD0/mRh4Ss0wKldvLRijavvIIcvMOq8FtytQj0HfuFbTEAFbxEYpvNa6/KeZv44/Gl8SSsKmmcIa7oCdi8ffE0lvY03AIHUTH83t33d9uYlijwOppz5g513zscbY3b9I2dS5Yt+peuTEyyOvNbA9BtoHKfDHC/zfUvhEhvKg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W7s4NEw3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762972388; c=relaxed/simple;
+	bh=GXhgKAvwdgp8z34nhT8dkKOmfFs4Vqiw314bOxOfz6Q=;
+	h=Date:To:From:Subject:Message-Id; b=E1C1tGBYraIupV4VPQQIJIQkQJm7/sbXgYaF7edx5N7pMQH0hQFVkaP3nJj6DPgnGjATqQp755ogmNPlwyunL8i4BLhOrq3KJSlI/cU/ZGbZpZCGRfpvq8AVdnCE+cjyx9b3FpmqmGWDHl8R/P5/HXVK0L+1UDjtgmz0FlDeVz4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2PrSBuUe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W7s4NEw3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 773A8C113D0;
-	Wed, 12 Nov 2025 00:50:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2PrSBuUe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F785C4CEF5;
+	Wed, 12 Nov 2025 18:33:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908614;
-	bh=jYrafEdybpfRnbyLxLqeRL097XHF0Ff3mzDOO5eXHVw=;
+	s=korg; t=1762972388;
+	bh=GXhgKAvwdgp8z34nhT8dkKOmfFs4Vqiw314bOxOfz6Q=;
 	h=Date:To:From:Subject:From;
-	b=W7s4NEw3HKl9d+D/euXlilQ/i7UgMDt87ATjT/dB270A6NDTEzsjlpc/g0gf0J1tQ
-	 TLvsubfa968m5y6a8PWHaDr6422iwwBnrKBTztngt+1uYSYmsLCSupMeLoQgdWIKsj
-	 +FkqbTJSXhzxybs5xgG16MBVdrq2RIF4zaV7S/Lc=
-Date: Tue, 11 Nov 2025 16:50:13 -0800
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=2PrSBuUemQXsDeaCcRWEWM9/9d1JTMRG9IJjviuidFgebVB7mR6KF14xcMKKPrHd2
+	 TeO8OuPM+fb3aSshcfvkhfkQu8GcQgq4im9ehn83x79f1tnOCDuku6BAmGHjacarWy
+	 lEqGPoKPakL+8gblMEuJahboDaP6v8gPIz5KXQaM=
+Date: Wed, 12 Nov 2025 10:33:07 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,ojeda@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,hughd@google.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-replace-vmalloc-copy_from_user-with-vmemdup_user.patch removed from -mm tree
-Message-Id: <20251112005014.773A8C113D0@smtp.kernel.org>
+Subject: + mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch added to mm-new branch
+Message-Id: <20251112183308.2F785C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,140 +34,259 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: nilfs2: replace vmalloc + copy_from_user with vmemdup_user
-has been removed from the -mm tree.  Its filename was
-     nilfs2-replace-vmalloc-copy_from_user-with-vmemdup_user.patch
+The patch titled
+     Subject: mm/damon: rename damos core filter helpers to have word core
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: nilfs2: replace vmalloc + copy_from_user with vmemdup_user
-Date: Fri, 31 Oct 2025 00:46:43 +0900
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: rename damos core filter helpers to have word core
+Date: Wed, 12 Nov 2025 07:41:04 -0800
 
-Replace vmalloc() followed by copy_from_user() with vmemdup_user() to
-improve nilfs_ioctl_clean_segments() and nilfs_ioctl_set_suinfo().  Use
-kvfree() to free the buffers created by vmemdup_user().
+Patch series "mm/damon: misc cleanups".
 
-Use u64_to_user_ptr() instead of manually casting the pointers and
-remove the obsolete 'out_free' label.
+Yet another batch of misc cleanups and refactoring for DAMON code, tests,
+and documents.
 
-No functional changes intended.
+First two patches (1and 2) rename DAMOS core filters related code for
+readability.
 
-Link: https://lkml.kernel.org/r/20251030154700.7444-1-konishi.ryusuke@gmail.com
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Three following patches (3-5) refactor page table walk callback functions
+in DAMON, as suggested by Hugh and David, and I promised.
+
+Next two patches (6 and 7) refactor DAMON core layer kunit test and sysfs
+interface selftest to be simple and deduplicated.
+
+Final two patches (8 and 9) fix up sphinx and grammatical errors on
+documents.
+
+
+This patch (of 9):
+
+DAMOS filters handled by the core layer are called core filters, while
+those handled by the ops layer are called ops filters.  They share the
+same type but are managed in different places since core filters are
+evaluated before the ops filters.  They also have different helper
+functions that depend on their managed places.
+
+The helper functions for ops filters have '_ops_' keyword on their name,
+so it is easy to know they are for ops filters.  Meanwhile, the helper
+functions for core filters are not having the 'core' keyword on their
+name.  This makes it easy to be mistakenly used for ops filters.  Actually
+there was such a bug.
+
+To avoid future mistakes from similar confusions, rename DAMOS core
+filters helper functions to have a keyword 'core' on their names.
+
+Link: https://lkml.kernel.org/r/20251112154114.66053-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251112154114.66053-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |   35 ++++++++++-------------------------
- 1 file changed, 10 insertions(+), 25 deletions(-)
+ .clang-format         |    4 ++--
+ include/linux/damon.h |    4 ++--
+ mm/damon/core.c       |   14 +++++++-------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/fs/nilfs2/ioctl.c~nilfs2-replace-vmalloc-copy_from_user-with-vmemdup_user
-+++ a/fs/nilfs2/ioctl.c
-@@ -49,7 +49,7 @@ static int nilfs_ioctl_wrap_copy(struct
- 						   void *, size_t, size_t))
+--- a/.clang-format~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
++++ a/.clang-format
+@@ -140,8 +140,8 @@ ForEachMacros:
+   - 'damon_for_each_scheme_safe'
+   - 'damon_for_each_target'
+   - 'damon_for_each_target_safe'
+-  - 'damos_for_each_filter'
+-  - 'damos_for_each_filter_safe'
++  - 'damos_for_each_core_filter'
++  - 'damos_for_each_core_filter_safe'
+   - 'damos_for_each_ops_filter'
+   - 'damos_for_each_ops_filter_safe'
+   - 'damos_for_each_quota_goal'
+--- a/include/linux/damon.h~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
++++ a/include/linux/damon.h
+@@ -871,10 +871,10 @@ static inline unsigned long damon_sz_reg
+ #define damos_for_each_quota_goal_safe(goal, next, quota) \
+ 	list_for_each_entry_safe(goal, next, &(quota)->goals, list)
+ 
+-#define damos_for_each_filter(f, scheme) \
++#define damos_for_each_core_filter(f, scheme) \
+ 	list_for_each_entry(f, &(scheme)->filters, list)
+ 
+-#define damos_for_each_filter_safe(f, next, scheme) \
++#define damos_for_each_core_filter_safe(f, next, scheme) \
+ 	list_for_each_entry_safe(f, next, &(scheme)->filters, list)
+ 
+ #define damos_for_each_ops_filter(f, scheme) \
+--- a/mm/damon/core.c~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
++++ a/mm/damon/core.c
+@@ -450,7 +450,7 @@ void damon_destroy_scheme(struct damos *
+ 	damos_for_each_quota_goal_safe(g, g_next, &s->quota)
+ 		damos_destroy_quota_goal(g);
+ 
+-	damos_for_each_filter_safe(f, next, s)
++	damos_for_each_core_filter_safe(f, next, s)
+ 		damos_destroy_filter(f);
+ 
+ 	damos_for_each_ops_filter_safe(f, next, s)
+@@ -864,12 +864,12 @@ static int damos_commit_quota(struct dam
+ 	return 0;
+ }
+ 
+-static struct damos_filter *damos_nth_filter(int n, struct damos *s)
++static struct damos_filter *damos_nth_core_filter(int n, struct damos *s)
  {
- 	void *buf;
--	void __user *base = (void __user *)(unsigned long)argv->v_base;
-+	void __user *base = u64_to_user_ptr(argv->v_base);
- 	size_t maxmembs, total, n;
- 	ssize_t nr;
- 	int ret, i;
-@@ -836,7 +836,6 @@ static int nilfs_ioctl_clean_segments(st
- 		sizeof(struct nilfs_bdesc),
- 		sizeof(__u64),
- 	};
--	void __user *base;
- 	void *kbufs[5];
- 	struct the_nilfs *nilfs;
- 	size_t len, nsegs;
-@@ -863,7 +862,7 @@ static int nilfs_ioctl_clean_segments(st
- 	 * use kmalloc() for its buffer because the memory used for the
- 	 * segment numbers is small enough.
- 	 */
--	kbufs[4] = memdup_array_user((void __user *)(unsigned long)argv[4].v_base,
-+	kbufs[4] = memdup_array_user(u64_to_user_ptr(argv[4].v_base),
- 				     nsegs, sizeof(__u64));
- 	if (IS_ERR(kbufs[4])) {
- 		ret = PTR_ERR(kbufs[4]);
-@@ -883,20 +882,14 @@ static int nilfs_ioctl_clean_segments(st
- 			goto out_free;
+ 	struct damos_filter *filter;
+ 	int i = 0;
  
- 		len = argv[n].v_size * argv[n].v_nmembs;
--		base = (void __user *)(unsigned long)argv[n].v_base;
- 		if (len == 0) {
- 			kbufs[n] = NULL;
+-	damos_for_each_filter(filter, s) {
++	damos_for_each_core_filter(filter, s) {
+ 		if (i++ == n)
+ 			return filter;
+ 	}
+@@ -923,15 +923,15 @@ static int damos_commit_core_filters(str
+ 	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
+ 	int i = 0, j = 0;
+ 
+-	damos_for_each_filter_safe(dst_filter, next, dst) {
+-		src_filter = damos_nth_filter(i++, src);
++	damos_for_each_core_filter_safe(dst_filter, next, dst) {
++		src_filter = damos_nth_core_filter(i++, src);
+ 		if (src_filter)
+ 			damos_commit_filter(dst_filter, src_filter);
+ 		else
+ 			damos_destroy_filter(dst_filter);
+ 	}
+ 
+-	damos_for_each_filter_safe(src_filter, next, src) {
++	damos_for_each_core_filter_safe(src_filter, next, src) {
+ 		if (j++ < i)
  			continue;
- 		}
  
--		kbufs[n] = vmalloc(len);
--		if (!kbufs[n]) {
--			ret = -ENOMEM;
--			goto out_free;
--		}
--		if (copy_from_user(kbufs[n], base, len)) {
--			ret = -EFAULT;
--			vfree(kbufs[n]);
-+		kbufs[n] = vmemdup_user(u64_to_user_ptr(argv[n].v_base), len);
-+		if (IS_ERR(kbufs[n])) {
-+			ret = PTR_ERR(kbufs[n]);
- 			goto out_free;
- 		}
- 	}
-@@ -928,7 +921,7 @@ static int nilfs_ioctl_clean_segments(st
+@@ -1767,7 +1767,7 @@ static bool damos_filter_out(struct damo
+ 	struct damos_filter *filter;
  
- out_free:
- 	while (--n >= 0)
--		vfree(kbufs[n]);
-+		kvfree(kbufs[n]);
- 	kfree(kbufs[4]);
- out:
- 	mnt_drop_write_file(filp);
-@@ -1181,7 +1174,6 @@ static int nilfs_ioctl_set_suinfo(struct
- 	struct nilfs_transaction_info ti;
- 	struct nilfs_argv argv;
- 	size_t len;
--	void __user *base;
- 	void *kbuf;
- 	int ret;
- 
-@@ -1212,18 +1204,12 @@ static int nilfs_ioctl_set_suinfo(struct
- 		goto out;
- 	}
- 
--	base = (void __user *)(unsigned long)argv.v_base;
--	kbuf = vmalloc(len);
--	if (!kbuf) {
--		ret = -ENOMEM;
-+	kbuf = vmemdup_user(u64_to_user_ptr(argv.v_base), len);
-+	if (IS_ERR(kbuf)) {
-+		ret = PTR_ERR(kbuf);
- 		goto out;
- 	}
- 
--	if (copy_from_user(kbuf, base, len)) {
--		ret = -EFAULT;
--		goto out_free;
--	}
--
- 	nilfs_transaction_begin(inode->i_sb, &ti, 0);
- 	ret = nilfs_sufile_set_suinfo(nilfs->ns_sufile, kbuf, argv.v_size,
- 			argv.v_nmembs);
-@@ -1232,8 +1218,7 @@ static int nilfs_ioctl_set_suinfo(struct
- 	else
- 		nilfs_transaction_commit(inode->i_sb); /* never fails */
- 
--out_free:
--	vfree(kbuf);
-+	kvfree(kbuf);
- out:
- 	mnt_drop_write_file(filp);
- 	return ret;
+ 	s->core_filters_allowed = false;
+-	damos_for_each_filter(filter, s) {
++	damos_for_each_core_filter(filter, s) {
+ 		if (damos_filter_match(ctx, t, r, filter, ctx->min_sz_region)) {
+ 			if (filter->allow)
+ 				s->core_filters_allowed = true;
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
+mm-zswap-fix-typos-s-zwap-zswap.patch
+mm-zswap-s-red-black-tree-xarray.patch
+docs-admin-guide-mm-zswap-s-red-black-tree-xarray.patch
+mm-damon-document-damos_quota_goal-nid-use-case.patch
+mm-damon-add-damos-quota-goal-type-for-per-memcg-per-node-memory-usage.patch
+mm-damon-core-implement-damos_quota_node_memcg_used_bp.patch
+mm-damon-sysfs-schemes-implement-path-file-under-quota-goal-directory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_used_bp.patch
+mm-damon-core-add-damos-quota-gaol-metric-for-per-memcg-per-numa-free-memory.patch
+mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
+docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
+docs-admin-guide-mm-damon-usage-document-damos-quota-goal-path-file.patch
+docs-abi-damon-document-damos-quota-goal-path-file.patch
+mm-damon-core-fix-wrong-comment-of-damon_call-return-timing.patch
+docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section.patch
+docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
+docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
+docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter.patch
+docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter.patch
+docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch
+docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
+mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
+mm-damon-sysfs-test-commit-input-against-realistic-destination.patch
+mm-damon-sysfs-implement-obsolete_target-file.patch
+docs-admin-guide-mm-damon-usage-document-obsolete_target-file.patch
+docs-abi-damon-document-obsolete_target-sysfs-file.patch
+selftests-damon-_damon_sysfs-support-obsolete_target-file.patch
+drgn_dump_damon_status-dump-damon_target-obsolete.patch
+sysfspy-extend-assert_ctx_committed-for-monitoring-targets.patch
+selftests-damon-sysfs-add-obsolete_target-test.patch
+mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
+mm-damon-tests-core-kunit-handle-allocation-failures-in-damon_test_regions.patch
+mm-damon-tests-core-kunit-handle-memory-failure-from-damon_test_target.patch
+mm-damon-tests-core-kunit-handle-memory-alloc-failure-from-damon_test_aggregate.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_split_at.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_merge_two.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-dasmon_test_merge_regions_of.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_split_regions_of.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_ops_registration.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_set_regions.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-in-damon_test_update_monitoring_result.patch
+mm-damon-tests-core-kunit-handle-alloc-failure-on-damon_test_set_attrs.patch
+mm-damon-tests-core-kunit-handle-alloc-failres-in-damon_test_new_filter.patch
+mm-damon-tests-core-kunit-handle-alloc-failure-on-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damos_test_filter_out.patch
+mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch
+mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_do_test_apply_three_regions.patch
+mm-damon-tests-vaddr-kunit-handle-alloc-failures-in-damon_test_split_evenly_fail.patch
+mm-damon-tests-vaddr-kunit-handle-alloc-failures-on-damon_test_split_evenly_succ.patch
+mm-damon-tests-sysfs-kunit-handle-alloc-failures-on-damon_sysfs_test_add_targets.patch
+mm-damon-tests-core-kunit-remove-unnecessary-damon_ctx-variable-on-damon_test_split_at.patch
+mm-damon-tests-core-kunit-remove-unused-ctx-in-damon_test_split_regions_of.patch
+mm-damon-tests-core-kunit-remove-dynamic-allocs-on-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch
+mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch
+mm-damon-tests-core-kunit-add-test-cases-to-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota_goal-test.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch
+mm-damon-core-pass-migrate_dests-to-damos_commit_dests.patch
+mm-damon-tests-core-kunit-add-damos_commit_dests-test.patch
+mm-damon-tests-core-kunit-add-damos_commit-test.patch
+mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
+mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
+mm-damon-rename-damos-filters-to-damos-core_filters.patch
+mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
+mm-damon-vaddr-use-vm_normal_folio_pmd-instead-of-damon_get_folio.patch
+mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate.patch
+mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
+selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
+docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
+docs-mm-damon-maintainer-profile-fix-grammartical-errors.patch
 
