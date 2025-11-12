@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6782D26CE04
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 22:20:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BF132EB874
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 22:20:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762986036; cv=none; b=rKLHsweMS7plYGFLuc+g+HM/x4ol1I5+Uw68jkt3rVVDWdR6LZoLpHSWQRm4b+zXVuiCLm9QgCekvXgyNzgO8gpOqyHyyLux9BX/JvbiCr6HUX+KmVgdp1cs+9jujcZfxhO4lXqnvhPDL+ruAVOdpozxEfcZBcIIy2kuRf7iDkE=
+	t=1762986037; cv=none; b=Ne/lqR4NTUkj6sZ4hzTuNhfqqSSZ2aYiq9uS2y7L9/Jr9aoKaXOwhRbTsVSaLVEhOX1rc2fmfnRZjCQ5xI8rUMjri5686Ok4k0aWVs0roLaTQQ1QgmxwVVEMSCOcplnhPDPWypc1vO69gdIkg2kH3QqzjpdG6lljnNSjtXM9etc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762986036; c=relaxed/simple;
-	bh=gebJp6YewlFqif5ca680ldz8VntQAICjzqxG4BXhDuc=;
-	h=Date:To:From:Subject:Message-Id; b=VZ76iuve9cNcHnfQqJZKVp/5heL2Q0k0W0rc/4O0L80j37YGAzwHAT7hJNjj+Y5y/M4OaNUSxY9LgjGMbzmOlBnl7y1EylgAZPeB9du0nOroMPOn9UMeqOJZmuv4MlxYbq/pkqAs7GsCvpAbUzyTh1z4/nbZ68ruj0PaAEo3RNo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m60C/ezK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762986037; c=relaxed/simple;
+	bh=Haxlrj4+vJMW6z69rOjU6sQxrzFNPmwfTAuW+/G50jU=;
+	h=Date:To:From:Subject:Message-Id; b=O5xLpWyNT+BMbU2E/stXziu63JRxD9/AEdt847KW8uBk0ehq8Z7M43SEZXgHykXU/ViNTioIaWwuVt2D9hDYvG/e41u5zYhGOjL6+IYU9rH+G6Bwsw61lKmDStXB3oCnfgFJRcZboqmBzIO5+RyiSg0lDQgHxm4AfJxY9poI8hI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0krxk0GF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m60C/ezK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBF20C116B1;
-	Wed, 12 Nov 2025 22:20:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0krxk0GF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06666C4CEF8;
+	Wed, 12 Nov 2025 22:20:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762986035;
-	bh=gebJp6YewlFqif5ca680ldz8VntQAICjzqxG4BXhDuc=;
+	s=korg; t=1762986037;
+	bh=Haxlrj4+vJMW6z69rOjU6sQxrzFNPmwfTAuW+/G50jU=;
 	h=Date:To:From:Subject:From;
-	b=m60C/ezKAS3hTaiytz+fckeEJzt9eaxNi6dHGq1ZAEwefv2CXXVteUGu42ZN/m6l+
-	 ttucn+2U/rgl/XPdbbEu1xCWRQh7AluJ0fBpmNlCLJR80FEGSUalRZOpnprKocxnpN
-	 pqdYxpBiO5fK6F1t9DpEmbOjrohpEM0aLgaQxX7U=
-Date: Wed, 12 Nov 2025 14:20:35 -0800
+	b=0krxk0GFmnbpj82/Eww9wPllysb5iJm5G42Xe13J2Es8PyiCb2bF0WkXDZVREciXF
+	 gl5JJABxb7qe+urg6yc7o0vI7z1aYCfKgg0M18WYFWX6xtfkhVbYvTaB2+4L3my1/U
+	 NZWJMiyZPY0Etyx1RweAH0ZlBzJfGhKmebG5EvUs=
+Date: Wed, 12 Nov 2025 14:20:36 -0800
 To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@lst.de,hch@infradead.org,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-add-a-helper-to-optimize-vmalloc-allocation-gfps.patch added to mm-new branch
-Message-Id: <20251112222035.DBF20C116B1@smtp.kernel.org>
+Subject: + mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages.patch added to mm-new branch
+Message-Id: <20251112222037.06666C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: add a helper to optimize vmalloc allocation gfps
+     Subject: mm/vmalloc: cleanup large_gfp in vm_area_alloc_pages()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-add-a-helper-to-optimize-vmalloc-allocation-gfps.patch
+     mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-add-a-helper-to-optimize-vmalloc-allocation-gfps.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,16 +65,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/vmalloc: add a helper to optimize vmalloc allocation gfps
-Date: Wed, 12 Nov 2025 10:58:31 -0800
+Subject: mm/vmalloc: cleanup large_gfp in vm_area_alloc_pages()
+Date: Wed, 12 Nov 2025 10:58:32 -0800
 
-vm_area_alloc_pages() attempts to use different gfp flags as a way to
-optimize allocations.  This has been done inline which makes things harder
-to read.
+Now that we have already checked for unsupported flags, we can use the
+helper function to set the necessary gfp flags for the large order
+allocation optimization.
 
-Add a helper function to make the code more readable.
-
-Link: https://lkml.kernel.org/r/20251112185834.32487-3-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20251112185834.32487-4-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -82,42 +80,23 @@ Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-add-a-helper-to-optimize-vmalloc-allocation-gfps
+--- a/mm/vmalloc.c~mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages
 +++ a/mm/vmalloc.c
-@@ -3614,6 +3614,17 @@ void *vmap_pfn(unsigned long *pfns, unsi
- EXPORT_SYMBOL_GPL(vmap_pfn);
- #endif /* CONFIG_VMAP_PFN */
+@@ -3634,10 +3634,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 	unsigned int max_attempt_order = MAX_PAGE_ORDER;
+ 	struct page *page;
+ 	int i;
+-	gfp_t large_gfp = (gfp &
+-		~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL | __GFP_COMP))
+-		| __GFP_NOWARN;
+ 	unsigned int large_order = ilog2(nr_remaining);
++	gfp_t large_gfp = vmalloc_gfp_adjust(gfp, large_order) & ~__GFP_DIRECT_RECLAIM;
  
-+/*
-+ * Helper for vmalloc to adjust the gfp flags for certain allocations.
-+ */
-+static inline gfp_t vmalloc_gfp_adjust(gfp_t flags, const bool large)
-+{
-+	flags |= __GFP_NOWARN;
-+	if (large)
-+		flags &= ~__GFP_NOFAIL;
-+	return flags;
-+}
-+
- static inline unsigned int
- vm_area_alloc_pages(gfp_t gfp, int nid,
- 		unsigned int order, unsigned int nr_pages, struct page **pages)
-@@ -3852,9 +3863,9 @@ static void *__vmalloc_area_node(struct
- 	 * Please note, the __vmalloc_node_range_noprof() falls-back
- 	 * to order-0 pages if high-order attempt is unsuccessful.
- 	 */
--	area->nr_pages = vm_area_alloc_pages((page_order ?
--		gfp_mask & ~__GFP_NOFAIL : gfp_mask) | __GFP_NOWARN,
--		node, page_order, nr_small_pages, area->pages);
-+	area->nr_pages = vm_area_alloc_pages(
-+			vmalloc_gfp_adjust(gfp_mask, page_order), node,
-+			page_order, nr_small_pages, area->pages);
+ 	large_order = min(max_attempt_order, large_order);
  
- 	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
- 	/* All pages of vm should be charged to same memcg, so use first one. */
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
