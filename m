@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A0D2045AD
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:50:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5BEB2045AD
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:50:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908603; cv=none; b=mGSIt/UxJf04EqCh915gt7kRDqmpemyrCbnHJZC95O7o86ytrvWUGUta+1b1dbPGr/eA07DXSyo+3LEqy3gUaU+jfr3OWvb7tVDiBV4RgPg2oc+WuPUM5AqSUy2gzQr8/E5dk325825lc++Nv5dxcJNbqImiasubpUMHHJLqTpI=
+	t=1762908605; cv=none; b=Ez6/tEeHn4UOsZy9ECGeep1+2DCcUJ9dMPFt+V3mxpoxCHOyUFvyJsp+d8PLx3mDTpLAzodaQBu1ve0e0W5s1xdov08se4xw8ONIkgk/D7NQQhS2IX9d24QYGX5LI45Zl7sePsUo+E+/3TYlEv8Ek9DP7N0fKPJB/A1Ns4xaS94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762908603; c=relaxed/simple;
-	bh=2OrBxRHn0V0SCDx9e8gBzsF76EcM/n0cP1tE93eqFaU=;
-	h=Date:To:From:Subject:Message-Id; b=SZdRATxMpY6dWeRg6a2NhdBO5c8TykBRUd4VrhGFaw4NWhadHAszMZOTv1yn866VQTMCupHEsWoHlhna2ZCTnEQcUcVJI/tMK7oBcodxg2za4rExIMtxPSQIQr5Oc3I52WdUohiEK0ZaRv9HHHpBbyP1Cvbkp76K665+ay98ibE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eUerwqi3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762908605; c=relaxed/simple;
+	bh=DWwuF57MolwbM5i8eNBjm/jHuuvrzQNXijS70lKRAgE=;
+	h=Date:To:From:Subject:Message-Id; b=byRtQ7+nlP9Lv+UvUJf/x2av1ubisvS8EWaACYfktQcQvu7jKgDJTO15wmZpO8Zan0dsHsWokKG9yenoOUFAlJottSXX4ryO0CzzwyyV/cdlZEBxacBN38EeJEeJUeO0pI7M19QMnHTtE4diTaF0y/kNCSkpS2DpHgun6+oMabU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=04/of75G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eUerwqi3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 480B3C116D0;
-	Wed, 12 Nov 2025 00:50:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="04/of75G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA104C4CEF5;
+	Wed, 12 Nov 2025 00:50:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908603;
-	bh=2OrBxRHn0V0SCDx9e8gBzsF76EcM/n0cP1tE93eqFaU=;
+	s=korg; t=1762908605;
+	bh=DWwuF57MolwbM5i8eNBjm/jHuuvrzQNXijS70lKRAgE=;
 	h=Date:To:From:Subject:From;
-	b=eUerwqi39R2pGSDinheOS76wjQt5YhWpfThonVcSmsb9uXy7rzpS09LQDyr8+5bIn
-	 Fr/l3VCyt8qrC934v4UQWGtx90IXzX3+0dEQ5pl8TfRev/RPHXYAc2/SjgjLz0lxQi
-	 2z0AoeVsmI3Y1yzq5OqzjIjJvlu3Cy81p8JNaWHI=
-Date: Tue, 11 Nov 2025 16:50:02 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=04/of75GEtlP0YXOKwSTiXsQ3ha0ZBPfIo4d3ZgsckxZ/hzeCFd9dPT6eNQeqEN92
+	 ionE39YUhbubcQ0MlHtU/wocP4AwwD+vgUM2YsaAI1Q1iUU770+DM2PIBBV3jP5/il
+	 nEgfYl3tLB2rwBxTDktnrJJsDElr9wEOuXgCrtdw=
+Date: Tue, 11 Nov 2025 16:50:05 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-use-correct-endian-in-ocfs2_dinode_has_extents.patch removed from -mm tree
-Message-Id: <20251112005003.480B3C116D0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-add-inline-inode-consistency-check-to-ocfs2_validate_inode_block.patch removed from -mm tree
+Message-Id: <20251112005005.AA104C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: use correct endian in ocfs2_dinode_has_extents
+     Subject: ocfs2: add inline inode consistency check to ocfs2_validate_inode_block()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-correct-endian-in-ocfs2_dinode_has_extents.patch
+     ocfs2-add-inline-inode-consistency-check-to-ocfs2_validate_inode_block.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: use correct endian in ocfs2_dinode_has_extents
-Date: Sat, 25 Oct 2025 20:32:17 +0800
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: add inline inode consistency check to ocfs2_validate_inode_block()
+Date: Thu, 23 Oct 2025 17:16:50 +0300
 
-Fields in ocfs2_dinode is little endian, covert to host endian when
-checking those contents.
+In 'ocfs2_validate_inode_block()', add an extra check whether an inode
+with inline data (i.e.  self-contained) has no clusters, thus preventing
+an invalid inode from being passed to 'ocfs2_evict_inode()' and below.
 
-Link: https://lkml.kernel.org/r/20251025123218.3997866-1-joseph.qi@linux.alibaba.com
-Fixes: fdbb6cd96ed5 ("ocfs2: correct l_next_free_rec in online check")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Link: https://lkml.kernel.org/r/20251023141650.417129-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reported-by: syzbot+c16daba279a1161acfb0@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=c16daba279a1161acfb0
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/ocfs2/inode.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/fs/ocfs2/inode.c~ocfs2-use-correct-endian-in-ocfs2_dinode_has_extents
+--- a/fs/ocfs2/inode.c~ocfs2-add-inline-inode-consistency-check-to-ocfs2_validate_inode_block
 +++ a/fs/ocfs2/inode.c
-@@ -201,13 +201,15 @@ bail:
- static int ocfs2_dinode_has_extents(struct ocfs2_dinode *di)
- {
- 	/* inodes flagged with other stuff in id2 */
--	if (di->i_flags & (OCFS2_SUPER_BLOCK_FL | OCFS2_LOCAL_ALLOC_FL |
--			   OCFS2_CHAIN_FL | OCFS2_DEALLOC_FL))
-+	if (le32_to_cpu(di->i_flags) &
-+	    (OCFS2_SUPER_BLOCK_FL | OCFS2_LOCAL_ALLOC_FL | OCFS2_CHAIN_FL |
-+	     OCFS2_DEALLOC_FL))
- 		return 0;
- 	/* i_flags doesn't indicate when id2 is a fast symlink */
--	if (S_ISLNK(di->i_mode) && di->i_size && di->i_clusters == 0)
-+	if (S_ISLNK(le16_to_cpu(di->i_mode)) && le64_to_cpu(di->i_size) &&
-+	    !le32_to_cpu(di->i_clusters))
- 		return 0;
--	if (di->i_dyn_features & OCFS2_INLINE_DATA_FL)
-+	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL)
- 		return 0;
+@@ -1505,6 +1505,14 @@ int ocfs2_validate_inode_block(struct su
+ 		goto bail;
+ 	}
  
- 	return 1;
++	if ((le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) &&
++	    le32_to_cpu(di->i_clusters)) {
++		rc = ocfs2_error(sb, "Invalid dinode %llu: %u clusters\n",
++				 (unsigned long long)bh->b_blocknr,
++				 le32_to_cpu(di->i_clusters));
++		goto bail;
++	}
++
+ 	rc = 0;
+ 
+ bail:
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
+ocfs2-add-extra-consistency-checks-for-chain-allocator-dinodes.patch
 
