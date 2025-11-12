@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 307F435028E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89F35353885
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762972405; cv=none; b=azpC8ggi2bQf6QH6ZE8yUMo9W2rWyRBA4vTfyFJUpWWa2tbJyIIdnMWhWyY8AtE7dge4/vhGHHB8F5W9ph8HRJpFNxiXaYTf7D2yz0C+rgZa30KF8GIsR+gVYP8FUF3nollzhrEysEK+hihGa6lDts4JrZ4o3OQiOpYnGDM3t1I=
+	t=1762972407; cv=none; b=A2GWg6Eir59hL+oMvGv2d6SLh1O862rcyeXEv+CxUlyKPJVrwqpSpAGL/pNqMFOPZ6M5Cbo1sjTC7/WSEQ3ZKDSMtn4FbWKuXuSbJlMM3jxzHbiLbOBMna0R0T7u2+DjCJNKC5ZVn1hfB5Nk7N418SAFejGoSrP1FVC29Jhp3ZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762972405; c=relaxed/simple;
-	bh=hQFKV/DxifeRu6tU3wKs4CGc0YtlX/AiG5OmKT+iPMc=;
-	h=Date:To:From:Subject:Message-Id; b=QsileF0R5/kMAtM/fU++4GpJjW9QDd6f8WyireTr8sol6A1wTnyzxkS/VDX2hUL5AdLB3fBi1z6BjWTCwZ8VRywCC1RY1ldk9jkf0yXtTD6DcobS0vfOjiijaUMuu9kqanrWHbAl3gqTCUHEDA8/VFM2iwrB8r+CIZ1qldsUb+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2oz2mToY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762972407; c=relaxed/simple;
+	bh=pBxxr19m2SKxYmQpoTacs6RIw7A7JAByloUYRLIZQCU=;
+	h=Date:To:From:Subject:Message-Id; b=o+pXPHjohYnsBDZ5Pl3ecb9Kk2j8hD7oHhj6fhM5Qw8qy4s1P1imxWU/bQQsVa3TynL97fGHVg/bgH6nCRGIpy9NlsAw523fLhitvl+kyOSon0/bgryLw3+k1MNxnDa1DIYaMFoqc2JJJ33I+ivsF9tAbCNEqhdwJbaeZFBVJPA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R1uK472/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2oz2mToY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97128C19421;
-	Wed, 12 Nov 2025 18:33:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R1uK472/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 505D6C4CEF1;
+	Wed, 12 Nov 2025 18:33:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762972404;
-	bh=hQFKV/DxifeRu6tU3wKs4CGc0YtlX/AiG5OmKT+iPMc=;
+	s=korg; t=1762972407;
+	bh=pBxxr19m2SKxYmQpoTacs6RIw7A7JAByloUYRLIZQCU=;
 	h=Date:To:From:Subject:From;
-	b=2oz2mToYLOziqtrBm0FIVNfkYpBQkc6ZJPonHJbMKDru5s2Raf4EXLlaep0xhruid
-	 mpZ8NhQE83bdqXtq49akjfC6qlHmfCKs6WeYhfFdh180603440c/qrUV4gTHNdP8ab
-	 peLgQYEcTul6aTLwiKanSwtJLTswgrfgrh8E3KjI=
-Date: Wed, 12 Nov 2025 10:33:24 -0800
+	b=R1uK472/hxncHGtx7CIDzASmiPd4bsiWxOD+OUwjNN3zvAJaAQtjTKRXzSToE33vc
+	 P9g1mPro7/MzlSi6MdjlNHI+nSQgnYvDSBeJddKFxCzCWt4H3Zwu4Smg2CjJNbI3X7
+	 CsW7ypEarrn16hDfm1wk6BBs6GW5M77CWIiBRcUc=
+Date: Wed, 12 Nov 2025 10:33:26 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,ojeda@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,hughd@google.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch added to mm-new branch
-Message-Id: <20251112183324.97128C19421@smtp.kernel.org>
+Subject: + selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch added to mm-new branch
+Message-Id: <20251112183327.505D6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: remove DAMON_MIN_REGION redefinition
+     Subject: selftests/damon/sysfs.py: merge DAMON status dumping into commitment assertion
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
+     selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,22 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: remove DAMON_MIN_REGION redefinition
-Date: Wed, 12 Nov 2025 07:41:09 -0800
+Subject: selftests/damon/sysfs.py: merge DAMON status dumping into commitment assertion
+Date: Wed, 12 Nov 2025 07:41:10 -0800
 
-A few DAMON core functions including damon_set_regions() were hard-coded
-to use DAMON_MIN_REGION as their regions management granularity.  For
-simple and human-readable unit tests' expectations, DAMON core layer kunit
-test re-defines DAMON_MIN_REGION to '1'.
+For each test case, sysfs.py makes changes to DAMON, dumps DAMON internal
+status and asserts the expectation is met.  The dumping part should be the
+same for all cases, so it is duplicated for each test case.  Which means
+it is easy to make mistakes.  Actually a few of those duplicates are not
+turning DAMON off in case of the dumping failure.  It makes following
+selftests that need to turn DAMON on fails with -EBUSY.  Merge the status
+dumping into commitment assertion with proper dumping failure handling, to
+deduplicate and avoid the unnecessary following tests failures.
 
-A previous patch series [1] has removed the hard-coded part but kept the
-redefinition and updated related function calls to explicitly use
-DAMON_MIN_REGION.  Remove the unnecessary redefinition and update relevant
-function calls to pass literals (number '1') instead of the
-DAMON_MIN_REGION.
-
-Link: https://lkml.kernel.org/r/20251112154114.66053-7-sj@kernel.org
-Link: https://lore.kernel.org/20250828171242.59810-1-sj@kernel.org [1]
+Link: https://lkml.kernel.org/r/20251112154114.66053-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Bill Wendling <morbo@google.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -101,143 +98,90 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c             |    5 ---
- mm/damon/tests/core-kunit.h |   55 ++++++++++++++++------------------
- 2 files changed, 26 insertions(+), 34 deletions(-)
+ tools/testing/selftests/damon/sysfs.py |   43 ++++++-----------------
+ 1 file changed, 13 insertions(+), 30 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-tests-core-kunit-remove-damon_min_region-redefinition
-+++ a/mm/damon/core.c
-@@ -20,11 +20,6 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/damon.h>
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -185,7 +185,15 @@ def assert_ctx_committed(ctx, dump):
+     assert_monitoring_targets_committed(ctx.targets, dump['adaptive_targets'])
+     assert_schemes_committed(ctx.schemes, dump['schemes'])
  
--#ifdef CONFIG_DAMON_KUNIT_TEST
--#undef DAMON_MIN_REGION
--#define DAMON_MIN_REGION 1
--#endif
+-def assert_ctxs_committed(ctxs, dump):
++def assert_ctxs_committed(kdamonds):
++    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
++    if err is not None:
++        print(err)
++        kdamonds.stop()
++        exit(1)
++
++    ctxs = kdamonds.kdamonds[0].contexts
++    dump = status['contexts']
+     assert_true(len(ctxs) == len(dump), 'ctxs length', dump)
+     for idx, ctx in enumerate(ctxs):
+         assert_ctx_committed(ctx, dump[idx])
+@@ -202,13 +210,7 @@ def main():
+         print('kdamond start failed: %s' % err)
+         exit(1)
+ 
+-    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
+-    if err is not None:
+-        print(err)
+-        kdamonds.stop()
+-        exit(1)
 -
- static DEFINE_MUTEX(damon_lock);
- static int nr_running_ctxs;
- static bool running_exclusive_ctxs;
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-remove-damon_min_region-redefinition
-+++ a/mm/damon/tests/core-kunit.h
-@@ -279,7 +279,7 @@ static void damon_test_split_regions_of(
- 		kunit_skip(test, "region alloc fail");
- 	}
- 	damon_add_region(r, t);
--	damon_split_regions_of(t, 2, DAMON_MIN_REGION);
-+	damon_split_regions_of(t, 2, 1);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
- 	damon_free_target(t);
+-    assert_ctxs_committed(kdamonds.kdamonds[0].contexts, status['contexts'])
++    assert_ctxs_committed(kdamonds)
  
-@@ -292,7 +292,7 @@ static void damon_test_split_regions_of(
- 		kunit_skip(test, "second region alloc fail");
- 	}
- 	damon_add_region(r, t);
--	damon_split_regions_of(t, 4, DAMON_MIN_REGION);
-+	damon_split_regions_of(t, 4, 1);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
- 	damon_free_target(t);
- }
-@@ -373,7 +373,7 @@ static void damon_test_set_regions(struc
+     context = _damon_sysfs.DamonCtx(
+             monitoring_attrs=_damon_sysfs.DamonAttrs(
+@@ -256,12 +258,7 @@ def main():
+     kdamonds.kdamonds[0].contexts = [context]
+     kdamonds.kdamonds[0].commit()
  
- 	damon_add_region(r1, t);
- 	damon_add_region(r2, t);
--	damon_set_regions(t, &range, 1, DAMON_MIN_REGION);
-+	damon_set_regions(t, &range, 1, 1);
+-    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
+-    if err is not None:
+-        print(err)
+-        exit(1)
+-
+-    assert_ctxs_committed(kdamonds.kdamonds[0].contexts, status['contexts'])
++    assert_ctxs_committed(kdamonds)
  
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 3);
- 	damon_for_each_region(r, t) {
-@@ -1037,15 +1037,14 @@ static void damos_test_filter_out(struct
- 	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
- 	if (!f)
- 		kunit_skip(test, "filter alloc fail");
--	f->addr_range = (struct damon_addr_range){
--		.start = DAMON_MIN_REGION * 2, .end = DAMON_MIN_REGION * 6};
-+	f->addr_range = (struct damon_addr_range){.start = 2, .end = 6};
+     # test online commitment of minimum context.
+     context = _damon_sysfs.DamonCtx()
+@@ -270,12 +267,7 @@ def main():
+     kdamonds.kdamonds[0].contexts = [context]
+     kdamonds.kdamonds[0].commit()
  
- 	t = damon_new_target();
- 	if (!t) {
- 		damos_destroy_filter(f);
- 		kunit_skip(test, "target alloc fail");
- 	}
--	r = damon_new_region(DAMON_MIN_REGION * 3, DAMON_MIN_REGION * 5);
-+	r = damon_new_region(3, 5);
- 	if (!r) {
- 		damos_destroy_filter(f);
- 		damon_free_target(t);
-@@ -1054,50 +1053,48 @@ static void damos_test_filter_out(struct
- 	damon_add_region(r, t);
+-    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
+-    if err is not None:
+-        print(err)
+-        exit(1)
+-
+-    assert_ctxs_committed(kdamonds.kdamonds[0].contexts, status['contexts'])
++    assert_ctxs_committed(kdamonds)
  
- 	/* region in the range */
--	KUNIT_EXPECT_TRUE(test,
--			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
-+	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f, 1));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+     kdamonds.stop()
  
- 	/* region before the range */
--	r->ar.start = DAMON_MIN_REGION * 1;
--	r->ar.end = DAMON_MIN_REGION * 2;
-+	r->ar.start = 1;
-+	r->ar.end = 2;
- 	KUNIT_EXPECT_FALSE(test,
--			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
-+			damos_filter_match(NULL, t, r, f, 1));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+@@ -303,17 +295,8 @@ def main():
+         exit(1)
+     kdamonds.kdamonds[0].contexts[0].targets[1].obsolete = True
+     kdamonds.kdamonds[0].commit()
+-
+-    status, err = dump_damon_status_dict(kdamonds.kdamonds[0].pid)
+-    if err is not None:
+-        print(err)
+-        kdamonds.stop()
+-        exit(1)
+-
+     del kdamonds.kdamonds[0].contexts[0].targets[1]
+-
+-    assert_ctxs_committed(kdamonds.kdamonds[0].contexts, status['contexts'])
+-
++    assert_ctxs_committed(kdamonds)
+     kdamonds.stop()
  
- 	/* region after the range */
--	r->ar.start = DAMON_MIN_REGION * 6;
--	r->ar.end = DAMON_MIN_REGION * 8;
-+	r->ar.start = 6;
-+	r->ar.end = 8;
- 	KUNIT_EXPECT_FALSE(test,
--			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
-+			damos_filter_match(NULL, t, r, f, 1));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
- 
- 	/* region started before the range */
--	r->ar.start = DAMON_MIN_REGION * 1;
--	r->ar.end = DAMON_MIN_REGION * 4;
--	KUNIT_EXPECT_FALSE(test,
--			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
-+	r->ar.start = 1;
-+	r->ar.end = 4;
-+	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f, 1));
- 	/* filter should have split the region */
--	KUNIT_EXPECT_EQ(test, r->ar.start, DAMON_MIN_REGION * 1);
--	KUNIT_EXPECT_EQ(test, r->ar.end, DAMON_MIN_REGION * 2);
-+	KUNIT_EXPECT_EQ(test, r->ar.start, 1);
-+	KUNIT_EXPECT_EQ(test, r->ar.end, 2);
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
- 	r2 = damon_next_region(r);
--	KUNIT_EXPECT_EQ(test, r2->ar.start, DAMON_MIN_REGION * 2);
--	KUNIT_EXPECT_EQ(test, r2->ar.end, DAMON_MIN_REGION * 4);
-+	KUNIT_EXPECT_EQ(test, r2->ar.start, 2);
-+	KUNIT_EXPECT_EQ(test, r2->ar.end, 4);
- 	damon_destroy_region(r2, t);
- 
- 	/* region started in the range */
--	r->ar.start = DAMON_MIN_REGION * 2;
--	r->ar.end = DAMON_MIN_REGION * 8;
-+	r->ar.start = 2;
-+	r->ar.end = 8;
- 	KUNIT_EXPECT_TRUE(test,
--			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
-+			damos_filter_match(NULL, t, r, f, 1));
- 	/* filter should have split the region */
--	KUNIT_EXPECT_EQ(test, r->ar.start, DAMON_MIN_REGION * 2);
--	KUNIT_EXPECT_EQ(test, r->ar.end, DAMON_MIN_REGION * 6);
-+	KUNIT_EXPECT_EQ(test, r->ar.start, 2);
-+	KUNIT_EXPECT_EQ(test, r->ar.end, 6);
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
- 	r2 = damon_next_region(r);
--	KUNIT_EXPECT_EQ(test, r2->ar.start, DAMON_MIN_REGION * 6);
--	KUNIT_EXPECT_EQ(test, r2->ar.end, DAMON_MIN_REGION * 8);
-+	KUNIT_EXPECT_EQ(test, r2->ar.start, 6);
-+	KUNIT_EXPECT_EQ(test, r2->ar.end, 8);
- 	damon_destroy_region(r2, t);
- 
- 	damon_free_target(t);
+ if __name__ == '__main__':
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
