@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BFDF14B96E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99E8D14B96E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908561; cv=none; b=RQyagK+CVB7yconqSPd7d2Hc4F/LwG7C8TXmYvprG8jxESFkUpFmbeZrtVGWJr92GXIBHUHDIsuTeeCtpdlnDGe/p4x0eHZNHGb5hIX0Wf6fEgnK7P4Ys5izvhcCwP0cBTRd8Hyk7BLBd8Hx+hmqedWJ6Yjn3xet4UlZPjLNPGQ=
+	t=1762908562; cv=none; b=tOyHCRi4WPYhKyBfggr7x0vnFBiUT3ZzRGOiIf1U69kLiCekV7wqukfCbcfHYLr8Ca/oNAGPw2vcep6Ob44PNe7GmGKn8D6dalzip04z9qCbdPxTJ2jSZaJ9zjnuS+v1vThrIxHVEp74D5FLdTjZchAV9ZR6S4Z/qEhOqkSMRCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762908561; c=relaxed/simple;
-	bh=FVXYvkk7gdtKViGIEPo5Kf+SeKhN/f4INeH3gGND48s=;
-	h=Date:To:From:Subject:Message-Id; b=ayTIPJGHarvFTLfPayvaVMGtb5C7xB0LRapJJOodQXjn/I/cD/9xSdWcaeR4WjQkqt68mW/ecFchXpghdHH6jV5PFo+NP6O4Yec23skPTeVoC1yoXDlCgNoj1D2tcWzuuwtjnM7He6QdwLlJCHxpomj5SMN/7/NQp+RnDFBOPAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mHdC22ZL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762908562; c=relaxed/simple;
+	bh=upYp1EP8EoZQ24qMSOVuh2A993ul8LpXOdr2AmvZHx4=;
+	h=Date:To:From:Subject:Message-Id; b=KWewHrqocTo0iHy+zRRXz8U1Jxh2yQcXPGKkaZSwH9EqqOnf8J0SmYsTA6tRbzihAKVaptsWf2ZZRnIOYa+V785hf2NEiSR3tAlCRGweyVngXQGXTDQGqL/MEl3wfYoFVXiSLl2JQzDG4baU7ghJsPPY0yNfv9AjpW1dkFi0AMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VE+Bx2Dp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mHdC22ZL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2832C4CEF5;
-	Wed, 12 Nov 2025 00:49:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VE+Bx2Dp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E848C4CEFB;
+	Wed, 12 Nov 2025 00:49:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908560;
-	bh=FVXYvkk7gdtKViGIEPo5Kf+SeKhN/f4INeH3gGND48s=;
+	s=korg; t=1762908562;
+	bh=upYp1EP8EoZQ24qMSOVuh2A993ul8LpXOdr2AmvZHx4=;
 	h=Date:To:From:Subject:From;
-	b=mHdC22ZLsHb4PBay3MVnitUNHNQ5+21anz6AJzSF4gwJyXaz+8LrBDFBWs7zbaHRy
-	 6dAoiBMRljQDJ0Lpb2nWFc06qepYAt/uoum6pVSNzcqRax4Qxsxa2ySwllLSxSg0R4
-	 MNJeKrkQktcSWBtmJmxsGUq3u9jQshgndPRgmAiI=
-Date: Tue, 11 Nov 2025 16:49:20 -0800
-To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,corbet@lwn.net,apw@canonical.com,work@onurozkan.dev,akpm@linux-foundation.org
+	b=VE+Bx2DpeuIEHFmWAX6yGAY46eQ91sANWmo4uvdVUwSpBDVNay3gQAIbk0yJZvhvk
+	 ltSAJULBIl6iXxImxfIRHfwYaxTuZfjE0WQuxnqPm+QK1L6uaQuvhyhnGCH26gL8KL
+	 pyyuCV+Z/dkfCM6THx78yT5lmoKApf9qzL1pJujI=
+Date: Tue, 11 Nov 2025 16:49:21 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-document-new-check-placeholder_use.patch removed from -mm tree
-Message-Id: <20251112004920.B2832C4CEF5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch removed from -mm tree
+Message-Id: <20251112004922.1E848C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkpatch: document new check PLACEHOLDER_USE
+     Subject: ocfs2: add extra flags check in ocfs2_ioctl_move_extents()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-document-new-check-placeholder_use.patch
+     ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Onur Özkan <work@onurozkan.dev>
-Subject: checkpatch: document new check PLACEHOLDER_USE
-Date: Wed, 17 Sep 2025 20:37:25 +0300
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: add extra flags check in ocfs2_ioctl_move_extents()
+Date: Thu, 9 Oct 2025 13:23:48 +0300
 
-Adds documentation for the new check PLACEHOLDER_USE in checkpatch.
+In 'ocfs2_ioctl_move_extents()', add extra check whether only actually
+supported flags are passed via 'ioctl(..., OCFS2_IOC_MOVE_EXT, ...)',
+and reject anything beyond OCFS2_MOVE_EXT_FL_AUTO_DEFRAG and
+OCFS2_MOVE_EXT_FL_PART_DEFRAG with -EINVAL. In particular,
+OCFS2_MOVE_EXT_FL_COMPLETE may be set by the kernel only and
+should never be passed from userspace.
 
-Link: https://lkml.kernel.org/r/20250917173725.22547-3-work@onurozkan.dev
-Signed-off-by: Onur Özkan <work@onurozkan.dev>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Link: https://lkml.kernel.org/r/20251009102349.181126-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/checkpatch.rst |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/ocfs2/move_extents.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/Documentation/dev-tools/checkpatch.rst~checkpatch-document-new-check-placeholder_use
-+++ a/Documentation/dev-tools/checkpatch.rst
-@@ -1245,6 +1245,16 @@ Others
-     The patch file does not appear to be in unified-diff format.  Please
-     regenerate the patch file before sending it to the maintainer.
+--- a/fs/ocfs2/move_extents.c~ocfs2-add-extra-flags-check-in-ocfs2_ioctl_move_extents
++++ a/fs/ocfs2/move_extents.c
+@@ -1036,6 +1036,12 @@ int ocfs2_ioctl_move_extents(struct file
+ 	if (range.me_threshold > i_size_read(inode))
+ 		range.me_threshold = i_size_read(inode);
  
-+  **PLACEHOLDER_USE**
-+    Detects unhandled placeholder text left in cover letters or commit headers/logs.
-+    Common placeholders include lines like::
++	if (range.me_flags & ~(OCFS2_MOVE_EXT_FL_AUTO_DEFRAG |
++			       OCFS2_MOVE_EXT_FL_PART_DEFRAG)) {
++		status = -EINVAL;
++		goto out_free;
++	}
 +
-+      *** SUBJECT HERE ***
-+      *** BLURB HERE ***
-+
-+    These typically come from autogenerated templates. Replace them with a proper
-+    subject and description before sending.
-+
-   **PRINTF_0XDECIMAL**
-     Prefixing 0x with decimal output is defective and should be corrected.
+ 	if (range.me_flags & OCFS2_MOVE_EXT_FL_AUTO_DEFRAG) {
+ 		context->auto_defrag = 1;
  
 _
 
-Patches currently in -mm which might be from work@onurozkan.dev are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
+ocfs2-add-extra-consistency-checks-for-chain-allocator-dinodes.patch
 
