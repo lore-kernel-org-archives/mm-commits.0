@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1949C14B96E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BFDF14B96E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908560; cv=none; b=MFYfMTWIos+cBaKQvG3oIORb3xESxfsUvROrPl6Jrja/pSdZYqAwYAJBJ+GplE0O/FCl10FWzbXefq4j4ypL48/8LCW99Civ/c78/LjpG2GioTvyH3sAMVqigHpWBuo0CPlQE2Br/1AlIla1IqOqpiIXzFOCJSxVRUCWjiCCdqA=
+	t=1762908561; cv=none; b=RQyagK+CVB7yconqSPd7d2Hc4F/LwG7C8TXmYvprG8jxESFkUpFmbeZrtVGWJr92GXIBHUHDIsuTeeCtpdlnDGe/p4x0eHZNHGb5hIX0Wf6fEgnK7P4Ys5izvhcCwP0cBTRd8Hyk7BLBd8Hx+hmqedWJ6Yjn3xet4UlZPjLNPGQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762908560; c=relaxed/simple;
-	bh=1qVkOygYGd5BKrNv+DzmAgc9+jS5gKs5YPQ+BPwwcmk=;
-	h=Date:To:From:Subject:Message-Id; b=iPBZ9YoGh7zqedLxDc0xxoDkE8N77OeaDYNx4V6U3Z0SfnuRsiNvtgDGSiNKHpGNyQsdQc1ByGoEBlSimAUJNKqJOlXSoK7EjO+eucXciKGVYxx3JMGpAAVjBZ1GyxHJsoVVuLp8PZoQ7NXy3Y0XdfTxKIS9Fx/Wd3C6oqEh9ww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1K/K1Qt8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762908561; c=relaxed/simple;
+	bh=FVXYvkk7gdtKViGIEPo5Kf+SeKhN/f4INeH3gGND48s=;
+	h=Date:To:From:Subject:Message-Id; b=ayTIPJGHarvFTLfPayvaVMGtb5C7xB0LRapJJOodQXjn/I/cD/9xSdWcaeR4WjQkqt68mW/ecFchXpghdHH6jV5PFo+NP6O4Yec23skPTeVoC1yoXDlCgNoj1D2tcWzuuwtjnM7He6QdwLlJCHxpomj5SMN/7/NQp+RnDFBOPAg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mHdC22ZL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1K/K1Qt8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 837C4C116B1;
-	Wed, 12 Nov 2025 00:49:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mHdC22ZL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2832C4CEF5;
+	Wed, 12 Nov 2025 00:49:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908559;
-	bh=1qVkOygYGd5BKrNv+DzmAgc9+jS5gKs5YPQ+BPwwcmk=;
+	s=korg; t=1762908560;
+	bh=FVXYvkk7gdtKViGIEPo5Kf+SeKhN/f4INeH3gGND48s=;
 	h=Date:To:From:Subject:From;
-	b=1K/K1Qt8mVeJz5F7Bwh35vvzIikut5HPS6LP59zQAnGaGQW/vnuK/na+cEwyMEimy
-	 OpUTvuCUk1MUgHJjwi+AEXW6vLUBOnwQAFt8SHPzyffWRfnQye3jPQCNcNfM+bMb52
-	 dXqy8eQ/yMJNoFZolOV/2AJOtAb3t5VWDlRxUv1s=
-Date: Tue, 11 Nov 2025 16:49:19 -0800
+	b=mHdC22ZLsHb4PBay3MVnitUNHNQ5+21anz6AJzSF4gwJyXaz+8LrBDFBWs7zbaHRy
+	 6dAoiBMRljQDJ0Lpb2nWFc06qepYAt/uoum6pVSNzcqRax4Qxsxa2ySwllLSxSg0R4
+	 MNJeKrkQktcSWBtmJmxsGUq3u9jQshgndPRgmAiI=
+Date: Tue, 11 Nov 2025 16:49:20 -0800
 To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,corbet@lwn.net,apw@canonical.com,work@onurozkan.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-detect-unhandled-placeholders-in-cover-letters.patch removed from -mm tree
-Message-Id: <20251112004919.837C4C116B1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] checkpatch-document-new-check-placeholder_use.patch removed from -mm tree
+Message-Id: <20251112004920.B2832C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkpatch: detect unhandled placeholders in cover letters
+     Subject: checkpatch: document new check PLACEHOLDER_USE
 has been removed from the -mm tree.  Its filename was
-     checkpatch-detect-unhandled-placeholders-in-cover-letters.patch
+     checkpatch-document-new-check-placeholder_use.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Onur Özkan <work@onurozkan.dev>
-Subject: checkpatch: detect unhandled placeholders in cover letters
-Date: Wed, 17 Sep 2025 20:37:24 +0300
+Subject: checkpatch: document new check PLACEHOLDER_USE
+Date: Wed, 17 Sep 2025 20:37:25 +0300
 
-Add a new check PLACEHOLDER_USE to detect unhandled placeholders.  This
-prevents sending patch series with incomplete patches (mostly in cover
-letters) containing auto generated subject or blurb lines.
+Adds documentation for the new check PLACEHOLDER_USE in checkpatch.
 
-These placeholders can be seen on mailing lists.  With this change,
-checkpatch will emit an error when such text is found.
-
-Link: https://lkml.kernel.org/r/20250917173725.22547-2-work@onurozkan.dev
+Link: https://lkml.kernel.org/r/20250917173725.22547-3-work@onurozkan.dev
 Signed-off-by: Onur Özkan <work@onurozkan.dev>
 Acked-by: Joe Perches <joe@perches.com>
 Cc: Andy Whitcroft <apw@canonical.com>
@@ -64,25 +59,28 @@ Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/dev-tools/checkpatch.rst |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-detect-unhandled-placeholders-in-cover-letters
-+++ a/scripts/checkpatch.pl
-@@ -3345,6 +3345,13 @@ sub process {
- 			}
- 		}
+--- a/Documentation/dev-tools/checkpatch.rst~checkpatch-document-new-check-placeholder_use
++++ a/Documentation/dev-tools/checkpatch.rst
+@@ -1245,6 +1245,16 @@ Others
+     The patch file does not appear to be in unified-diff format.  Please
+     regenerate the patch file before sending it to the maintainer.
  
-+# Check for auto-generated unhandled placeholder text (mostly for cover letters)
-+		if (($in_commit_log || $in_header_lines) &&
-+		    $rawline =~ /(?:SUBJECT|BLURB) HERE/) {
-+			ERROR("PLACEHOLDER_USE",
-+			      "Placeholder text detected\n" . $herecurr);
-+		}
++  **PLACEHOLDER_USE**
++    Detects unhandled placeholder text left in cover letters or commit headers/logs.
++    Common placeholders include lines like::
 +
- # Check for git id commit length and improperly formed commit descriptions
- # A correctly formed commit description is:
- #    commit <SHA-1 hash length 12+ chars> ("Complete commit subject")
++      *** SUBJECT HERE ***
++      *** BLURB HERE ***
++
++    These typically come from autogenerated templates. Replace them with a proper
++    subject and description before sending.
++
+   **PRINTF_0XDECIMAL**
+     Prefixing 0x with decimal output is defective and should be corrected.
+ 
 _
 
 Patches currently in -mm which might be from work@onurozkan.dev are
