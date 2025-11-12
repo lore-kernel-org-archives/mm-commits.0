@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F26FF34AAE0
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 307F435028E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 18:33:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762972403; cv=none; b=Zl9sEHmV2TYESuNW7n1ZDvPWy3+2VghZRf14XVD8moDokQs5C+1w7g0H27DeyvCVR5WhGazQoTd3tgH2pbMgZdxt57zdCaowd+NPt7ftkHh4k+wJQT8bD4RT8BsASmw6NE7jU8b5RWjaYkPt3IRD6Mg3yaK8XFxA+SSHwcARbrk=
+	t=1762972405; cv=none; b=azpC8ggi2bQf6QH6ZE8yUMo9W2rWyRBA4vTfyFJUpWWa2tbJyIIdnMWhWyY8AtE7dge4/vhGHHB8F5W9ph8HRJpFNxiXaYTf7D2yz0C+rgZa30KF8GIsR+gVYP8FUF3nollzhrEysEK+hihGa6lDts4JrZ4o3OQiOpYnGDM3t1I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762972403; c=relaxed/simple;
-	bh=38U5QGUFN1ED9qYncw8l28t0kO/op7tgRe2gMWq1Jt4=;
-	h=Date:To:From:Subject:Message-Id; b=iwqKYy7wNOLpTjCDOuQf48mOw2AXr1eBisdTvtlmEjk6APh6YjIx1Efr15TgQs8Hbkk0rU5wsHNkiGSODQQ/2J7fSJqOpbYUIcIVxwcgtWgeMXUZQX1RDstbEmgRqGKBlhFrdhVcXPv0HelZj12e6FIIZy1NU8R8EhDhIe74JCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KXmc7XNR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762972405; c=relaxed/simple;
+	bh=hQFKV/DxifeRu6tU3wKs4CGc0YtlX/AiG5OmKT+iPMc=;
+	h=Date:To:From:Subject:Message-Id; b=QsileF0R5/kMAtM/fU++4GpJjW9QDd6f8WyireTr8sol6A1wTnyzxkS/VDX2hUL5AdLB3fBi1z6BjWTCwZ8VRywCC1RY1ldk9jkf0yXtTD6DcobS0vfOjiijaUMuu9kqanrWHbAl3gqTCUHEDA8/VFM2iwrB8r+CIZ1qldsUb+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2oz2mToY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KXmc7XNR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58843C2BC86;
-	Wed, 12 Nov 2025 18:33:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2oz2mToY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97128C19421;
+	Wed, 12 Nov 2025 18:33:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762972402;
-	bh=38U5QGUFN1ED9qYncw8l28t0kO/op7tgRe2gMWq1Jt4=;
+	s=korg; t=1762972404;
+	bh=hQFKV/DxifeRu6tU3wKs4CGc0YtlX/AiG5OmKT+iPMc=;
 	h=Date:To:From:Subject:From;
-	b=KXmc7XNRh4GbBffxfGTvJWAiGZ2uxO0H03++/1gS4iJaUHm80m95oUnQ1CndxXhhF
-	 u33Dq02sP+ytPHYQYcHKHKYuo4MBTi5RfVIUNB48mn9GYRo22TeAPDMi4eNH8NNDWl
-	 sOcxkTLYqtah5YwyTLkJ9k3MeeREg8NFDOPc2tFM=
-Date: Wed, 12 Nov 2025 10:33:21 -0800
+	b=2oz2mToYLOziqtrBm0FIVNfkYpBQkc6ZJPonHJbMKDru5s2Raf4EXLlaep0xhruid
+	 mpZ8NhQE83bdqXtq49akjfC6qlHmfCKs6WeYhfFdh180603440c/qrUV4gTHNdP8ab
+	 peLgQYEcTul6aTLwiKanSwtJLTswgrfgrh8E3KjI=
+Date: Wed, 12 Nov 2025 10:33:24 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,ojeda@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,hughd@google.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate.patch added to mm-new branch
-Message-Id: <20251112183322.58843C2BC86@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch added to mm-new branch
+Message-Id: <20251112183324.97128C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/vaddr: consistently use only pmd_entry for damos_migrate
+     Subject: mm/damon/tests/core-kunit: remove DAMON_MIN_REGION redefinition
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate.patch
+     mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,21 +65,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/vaddr: consistently use only pmd_entry for damos_migrate
-Date: Wed, 12 Nov 2025 07:41:08 -0800
+Subject: mm/damon/tests/core-kunit: remove DAMON_MIN_REGION redefinition
+Date: Wed, 12 Nov 2025 07:41:09 -0800
 
-For page table walks, it is usual [1] to have only one pmd entry function.
-The vaddr.c code for DAMOS_MIGRATE_{HOT,COLD} is not following the
-pattern.  Instead, it uses both pmd and pte entry functions without a
-special reason.  Refactor it to use only the pmd entry function, to make
-the code under mm/ more consistent.
+A few DAMON core functions including damon_set_regions() were hard-coded
+to use DAMON_MIN_REGION as their regions management granularity.  For
+simple and human-readable unit tests' expectations, DAMON core layer kunit
+test re-defines DAMON_MIN_REGION to '1'.
 
-Link: https://lkml.kernel.org/r/20251112154114.66053-6-sj@kernel.org
+A previous patch series [1] has removed the hard-coded part but kept the
+redefinition and updated related function calls to explicitly use
+DAMON_MIN_REGION.  Remove the unnecessary redefinition and update relevant
+function calls to pass literals (number '1') instead of the
+DAMON_MIN_REGION.
+
+Link: https://lkml.kernel.org/r/20251112154114.66053-7-sj@kernel.org
+Link: https://lore.kernel.org/20250828171242.59810-1-sj@kernel.org [1]
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Suggested-by: David Hildenbrand <david@kernel.org>
 Cc: Bill Wendling <morbo@google.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Justin Stitt <justinstitt@google.com>
@@ -95,125 +101,143 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   88 +++++++++++++++++++--------------------------
- 1 file changed, 39 insertions(+), 49 deletions(-)
+ mm/damon/core.c             |    5 ---
+ mm/damon/tests/core-kunit.h |   55 ++++++++++++++++------------------
+ 2 files changed, 26 insertions(+), 34 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate
-+++ a/mm/damon/vaddr.c
-@@ -695,7 +695,6 @@ isolate:
- 	list_add(&folio->lru, &migration_lists[i]);
+--- a/mm/damon/core.c~mm-damon-tests-core-kunit-remove-damon_min_region-redefinition
++++ a/mm/damon/core.c
+@@ -20,11 +20,6 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/damon.h>
+ 
+-#ifdef CONFIG_DAMON_KUNIT_TEST
+-#undef DAMON_MIN_REGION
+-#define DAMON_MIN_REGION 1
+-#endif
+-
+ static DEFINE_MUTEX(damon_lock);
+ static int nr_running_ctxs;
+ static bool running_exclusive_ctxs;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-remove-damon_min_region-redefinition
++++ a/mm/damon/tests/core-kunit.h
+@@ -279,7 +279,7 @@ static void damon_test_split_regions_of(
+ 		kunit_skip(test, "region alloc fail");
+ 	}
+ 	damon_add_region(r, t);
+-	damon_split_regions_of(t, 2, DAMON_MIN_REGION);
++	damon_split_regions_of(t, 2, 1);
+ 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
+ 	damon_free_target(t);
+ 
+@@ -292,7 +292,7 @@ static void damon_test_split_regions_of(
+ 		kunit_skip(test, "second region alloc fail");
+ 	}
+ 	damon_add_region(r, t);
+-	damon_split_regions_of(t, 4, DAMON_MIN_REGION);
++	damon_split_regions_of(t, 4, 1);
+ 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
+ 	damon_free_target(t);
  }
+@@ -373,7 +373,7 @@ static void damon_test_set_regions(struc
  
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static int damos_va_migrate_pmd_entry(pmd_t *pmd, unsigned long addr,
- 		unsigned long next, struct mm_walk *walk)
- {
-@@ -705,58 +704,49 @@ static int damos_va_migrate_pmd_entry(pm
- 	struct damos_migrate_dests *dests = &s->migrate_dests;
- 	struct folio *folio;
- 	spinlock_t *ptl;
--	pmd_t pmde;
--
--	ptl = pmd_lock(walk->mm, pmd);
--	pmde = pmdp_get(pmd);
--
--	if (!pmd_present(pmde) || !pmd_trans_huge(pmde))
--		goto unlock;
--
--	/* Tell page walk code to not split the PMD */
--	walk->action = ACTION_CONTINUE;
--
--	folio = vm_normal_folio_pmd(walk->vma, addr, pmde);
--	if (!folio)
--		goto unlock;
--
--	if (damos_va_filter_out(s, folio, walk->vma, addr, NULL, pmd))
--		goto unlock;
--
--	damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
--		migration_lists);
--
--unlock:
--	spin_unlock(ptl);
--	return 0;
--}
--#else
--#define damos_va_migrate_pmd_entry NULL
--#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
--
--static int damos_va_migrate_pte_entry(pte_t *pte, unsigned long addr,
--		unsigned long next, struct mm_walk *walk)
--{
--	struct damos_va_migrate_private *priv = walk->private;
--	struct list_head *migration_lists = priv->migration_lists;
--	struct damos *s = priv->scheme;
--	struct damos_migrate_dests *dests = &s->migrate_dests;
--	struct folio *folio;
--	pte_t ptent;
--
--	ptent = ptep_get(pte);
--	if (pte_none(ptent) || !pte_present(ptent))
--		return 0;
-+	pte_t *start_pte, *pte, ptent;
-+	int nr;
+ 	damon_add_region(r1, t);
+ 	damon_add_region(r2, t);
+-	damon_set_regions(t, &range, 1, DAMON_MIN_REGION);
++	damon_set_regions(t, &range, 1, 1);
  
--	folio = vm_normal_folio(walk->vma, addr, ptent);
--	if (!folio)
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	ptl = pmd_trans_huge_lock(pmd, walk->vma);
-+	if (ptl) {
-+		pmd_t pmde = pmdp_get(pmd);
-+
-+		if (!pmd_present(pmde))
-+			goto huge_out;
-+		folio = vm_normal_folio_pmd(walk->vma, addr, pmde);
-+		if (!folio)
-+			goto huge_out;
-+		if (damos_va_filter_out(s, folio, walk->vma, addr, NULL, pmd))
-+			goto huge_out;
-+		damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
-+				migration_lists);
-+huge_out:
-+		spin_unlock(ptl);
- 		return 0;
-+	}
-+#endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 3);
+ 	damon_for_each_region(r, t) {
+@@ -1037,15 +1037,14 @@ static void damos_test_filter_out(struct
+ 	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
+ 	if (!f)
+ 		kunit_skip(test, "filter alloc fail");
+-	f->addr_range = (struct damon_addr_range){
+-		.start = DAMON_MIN_REGION * 2, .end = DAMON_MIN_REGION * 6};
++	f->addr_range = (struct damon_addr_range){.start = 2, .end = 6};
  
--	if (damos_va_filter_out(s, folio, walk->vma, addr, pte, NULL))
-+	start_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte)
- 		return 0;
+ 	t = damon_new_target();
+ 	if (!t) {
+ 		damos_destroy_filter(f);
+ 		kunit_skip(test, "target alloc fail");
+ 	}
+-	r = damon_new_region(DAMON_MIN_REGION * 3, DAMON_MIN_REGION * 5);
++	r = damon_new_region(3, 5);
+ 	if (!r) {
+ 		damos_destroy_filter(f);
+ 		damon_free_target(t);
+@@ -1054,50 +1053,48 @@ static void damos_test_filter_out(struct
+ 	damon_add_region(r, t);
  
--	damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
--		migration_lists);
-+	for (; addr < next; pte += nr, addr += nr * PAGE_SIZE) {
-+		nr = 1;
-+		ptent = ptep_get(pte);
-+
-+		if (pte_none(ptent) || !pte_present(ptent))
-+			continue;
-+		folio = vm_normal_folio(walk->vma, addr, ptent);
-+		if (!folio)
-+			continue;
-+		if (damos_va_filter_out(s, folio, walk->vma, addr, pte, NULL))
-+			return 0;
-+		damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
-+				migration_lists);
-+		nr = folio_nr_pages(folio);
-+	}
-+	pte_unmap_unlock(start_pte, ptl);
- 	return 0;
- }
+ 	/* region in the range */
+-	KUNIT_EXPECT_TRUE(test,
+-			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
++	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f, 1));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
  
-@@ -822,7 +812,7 @@ static unsigned long damos_va_migrate(st
- 	struct damos_migrate_dests *dests = &s->migrate_dests;
- 	struct mm_walk_ops walk_ops = {
- 		.pmd_entry = damos_va_migrate_pmd_entry,
--		.pte_entry = damos_va_migrate_pte_entry,
-+		.pte_entry = NULL,
- 		.walk_lock = PGWALK_RDLOCK,
- 	};
+ 	/* region before the range */
+-	r->ar.start = DAMON_MIN_REGION * 1;
+-	r->ar.end = DAMON_MIN_REGION * 2;
++	r->ar.start = 1;
++	r->ar.end = 2;
+ 	KUNIT_EXPECT_FALSE(test,
+-			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
++			damos_filter_match(NULL, t, r, f, 1));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
  
+ 	/* region after the range */
+-	r->ar.start = DAMON_MIN_REGION * 6;
+-	r->ar.end = DAMON_MIN_REGION * 8;
++	r->ar.start = 6;
++	r->ar.end = 8;
+ 	KUNIT_EXPECT_FALSE(test,
+-			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
++			damos_filter_match(NULL, t, r, f, 1));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+ 
+ 	/* region started before the range */
+-	r->ar.start = DAMON_MIN_REGION * 1;
+-	r->ar.end = DAMON_MIN_REGION * 4;
+-	KUNIT_EXPECT_FALSE(test,
+-			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
++	r->ar.start = 1;
++	r->ar.end = 4;
++	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f, 1));
+ 	/* filter should have split the region */
+-	KUNIT_EXPECT_EQ(test, r->ar.start, DAMON_MIN_REGION * 1);
+-	KUNIT_EXPECT_EQ(test, r->ar.end, DAMON_MIN_REGION * 2);
++	KUNIT_EXPECT_EQ(test, r->ar.start, 1);
++	KUNIT_EXPECT_EQ(test, r->ar.end, 2);
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
+ 	r2 = damon_next_region(r);
+-	KUNIT_EXPECT_EQ(test, r2->ar.start, DAMON_MIN_REGION * 2);
+-	KUNIT_EXPECT_EQ(test, r2->ar.end, DAMON_MIN_REGION * 4);
++	KUNIT_EXPECT_EQ(test, r2->ar.start, 2);
++	KUNIT_EXPECT_EQ(test, r2->ar.end, 4);
+ 	damon_destroy_region(r2, t);
+ 
+ 	/* region started in the range */
+-	r->ar.start = DAMON_MIN_REGION * 2;
+-	r->ar.end = DAMON_MIN_REGION * 8;
++	r->ar.start = 2;
++	r->ar.end = 8;
+ 	KUNIT_EXPECT_TRUE(test,
+-			damos_filter_match(NULL, t, r, f, DAMON_MIN_REGION));
++			damos_filter_match(NULL, t, r, f, 1));
+ 	/* filter should have split the region */
+-	KUNIT_EXPECT_EQ(test, r->ar.start, DAMON_MIN_REGION * 2);
+-	KUNIT_EXPECT_EQ(test, r->ar.end, DAMON_MIN_REGION * 6);
++	KUNIT_EXPECT_EQ(test, r->ar.start, 2);
++	KUNIT_EXPECT_EQ(test, r->ar.end, 6);
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
+ 	r2 = damon_next_region(r);
+-	KUNIT_EXPECT_EQ(test, r2->ar.start, DAMON_MIN_REGION * 6);
+-	KUNIT_EXPECT_EQ(test, r2->ar.end, DAMON_MIN_REGION * 8);
++	KUNIT_EXPECT_EQ(test, r2->ar.start, 6);
++	KUNIT_EXPECT_EQ(test, r2->ar.end, 8);
+ 	damon_destroy_region(r2, t);
+ 
+ 	damon_free_target(t);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
