@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 916E614B96E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E5BD14B96E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908589; cv=none; b=sSsPO3QPXE7iBeOuM2gKzEQzrKmADs+sX360pGC7KnS4CezPWfQWK1ABsA6BF4++NeIdLRPBBpmvfBMpbs3H3mIO5GYIWFEeaan05aDPSERf1pXaCibpeSIEwTjT4cBMa9u+lHFB9Zcc0E5NxbNh6PqScipbvAMJNkTfP+ie1wo=
+	t=1762908590; cv=none; b=TQodrpsgba8UX4kD7nJvLYMzIe/L8kc0Cr/9zRIhVhL3tgEhQ4bl30A6ZLKAJX6pdbuXowLH8oMaJ5TY7DxhT541GbHpCfZvVErqwYUQfJUBgKxjLJWtWvqAXNbF4TSjdJneT8lDaa32Sw2QFWmyAj4ftHpPQ4zRsiykzrosBI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762908589; c=relaxed/simple;
-	bh=PpJxOcn2AEj3u7O11ep75gI4JLpEqQcvMNjg1XmlyK4=;
-	h=Date:To:From:Subject:Message-Id; b=uEU+6FrdbKxXN42qzBfumnNtU+0PLQvr290oY+6aZ6w9wW65J6E1v2/eNqJ5hNVNJWXR0SIwlOsCAeakDkVOUrgo/fvnGp4MtoFAQffY4SobE/SdInlBGFJ3DN59Ou+vCOWaazj9zQDfztPANIJCxQ4xY3YvFb4m7WQOuggxtFE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m6pXc/XE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762908590; c=relaxed/simple;
+	bh=82eLJqif0LTcQbzbbpce2ZbW6u+QzZ1Pez6LGB8KB5I=;
+	h=Date:To:From:Subject:Message-Id; b=O125Nc8m226G++N0NIFpJ4Z0PEc6noAGycBzcB9wVgrVNkGtsu1mNC0dg6gfnMT+aXcGg/1MGPrUsQIxLTFzZE6fJnF3qccJkiECPpbMSbAD2pLLhT2QsKtRamkXZ+w6DcTJENGrc38UX21s47ICti4Xq/Kdx4kmEIWe8W3Gzhs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XUa25gEz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m6pXc/XE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D205C4CEFB;
-	Wed, 12 Nov 2025 00:49:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XUa25gEz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 570CBC4CEF5;
+	Wed, 12 Nov 2025 00:49:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908589;
-	bh=PpJxOcn2AEj3u7O11ep75gI4JLpEqQcvMNjg1XmlyK4=;
+	s=korg; t=1762908590;
+	bh=82eLJqif0LTcQbzbbpce2ZbW6u+QzZ1Pez6LGB8KB5I=;
 	h=Date:To:From:Subject:From;
-	b=m6pXc/XE2HdyiHtVz7vF3tJua4xtN9CaQBXHPd0nwLH5clkY15tZrpCAcrRtDNQ7h
-	 hp6YM80iO3dUo1LGD+3iu8pkVJAFdV1urjnD6lf9iRA5MJvNm2FuREpYVNaOCYXvDf
-	 FET5SOfB+/soIlFcE7rYxVDYUBjbPjpKgNhcSD44=
-Date: Tue, 11 Nov 2025 16:49:48 -0800
-To: mm-commits@vger.kernel.org,jgg@nvidia.com,davidgow@google.com,corbet@lwn.net,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=XUa25gEz8Ej3AmZJLHHRuh9rpV9HFM+spPOL26z/jzcXlCjJhypQwbziJ+AkOjYd1
+	 d0PfwUXHb9E7HzB2ztUsALh6Bl/IEDz8Y91Z0qovFNUn2Q3I8MRDrDNvu+8VYtQUKc
+	 ePHpK2IlVNHoQgape+rwKTXrnnxstQ52HiMssIgs=
+Date: Tue, 11 Nov 2025 16:49:49 -0800
+To: mm-commits@vger.kernel.org,samitolvanen@google.com,rdunlap@infradead.org,pmladek@suse.com,mcgrof@kernel.org,atomlin@atomlin.com,petr.pavlu@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] taint-add-reminder-about-updating-docs-and-scripts.patch removed from -mm tree
-Message-Id: <20251112004949.1D205C4CEFB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] taint-module-remove-unnecessary-taint_flagmodule-field.patch removed from -mm tree
+Message-Id: <20251112004950.570CBC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,138 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: taint: add reminder about updating docs and scripts
+     Subject: taint/module: remove unnecessary taint_flag.module field
 has been removed from the -mm tree.  Its filename was
-     taint-add-reminder-about-updating-docs-and-scripts.patch
+     taint-module-remove-unnecessary-taint_flagmodule-field.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: taint: add reminder about updating docs and scripts
-Date: Wed, 15 Oct 2025 15:16:26 -0700
+From: Petr Pavlu <petr.pavlu@suse.com>
+Subject: taint/module: remove unnecessary taint_flag.module field
+Date: Wed, 22 Oct 2025 10:28:04 +0200
 
-Sometimes people update taint-related pieces of the kernel without
-updating the supporting documentation or scripts.  Add a reminder to do
-this.
+The TAINT_RANDSTRUCT and TAINT_FWCTL flags are mistakenly set in the
+taint_flags table as per-module flags.  While this can be trivially
+corrected, the issue can be avoided altogether by removing the
+taint_flag.module field.
 
-Link: https://lkml.kernel.org/r/20251015221626.1126156-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+This is possible because, since commit 7fd8329ba502 ("taint/module: Clean
+up global and module taint flags handling") in 2016, the handling of
+module taint flags has been fully generic.  Specifically,
+module_flags_taint() can print all flags, and the required output buffer
+size is properly defined in terms of TAINT_FLAGS_COUNT.  The actual
+per-module flags are always those added to module.taints by calls to
+add_taint_module().
+
+Link: https://lkml.kernel.org/r/20251022082938.26670-1-petr.pavlu@suse.com
+Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
+Acked-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Aaron Tomlin <atomlin@atomlin.com>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
+Cc: Petr Pavlu <petr.pavlu@suse.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/panic.h |    1 
+ kernel/module/main.c  |    2 -
+ kernel/panic.c        |   46 ++++++++++++++++++----------------------
+ 3 files changed, 22 insertions(+), 27 deletions(-)
 
---- a/kernel/panic.c~taint-add-reminder-about-updating-docs-and-scripts
+--- a/include/linux/panic.h~taint-module-remove-unnecessary-taint_flagmodule-field
++++ a/include/linux/panic.h
+@@ -86,7 +86,6 @@ static inline void set_arch_panic_timeou
+ struct taint_flag {
+ 	char c_true;		/* character printed when tainted */
+ 	char c_false;		/* character printed when not tainted */
+-	bool module;		/* also show as a per-module taint flag */
+ 	const char *desc;	/* verbose description of the set taint flag */
+ };
+ 
+--- a/kernel/module/main.c~taint-module-remove-unnecessary-taint_flagmodule-field
++++ a/kernel/module/main.c
+@@ -954,7 +954,7 @@ size_t module_flags_taint(unsigned long
+ 	int i;
+ 
+ 	for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
+-		if (taint_flags[i].module && test_bit(i, &taints))
++		if (test_bit(i, &taints))
+ 			buf[l++] = taint_flags[i].c_true;
+ 	}
+ 
+--- a/kernel/panic.c~taint-module-remove-unnecessary-taint_flagmodule-field
 +++ a/kernel/panic.c
-@@ -638,6 +638,12 @@ EXPORT_SYMBOL(panic);
+@@ -628,17 +628,13 @@ void panic(const char *fmt, ...)
+ }
+ EXPORT_SYMBOL(panic);
+ 
+-#define TAINT_FLAG(taint, _c_true, _c_false, _module)			\
++#define TAINT_FLAG(taint, _c_true, _c_false)				\
+ 	[ TAINT_##taint ] = {						\
+ 		.c_true = _c_true, .c_false = _c_false,			\
+-		.module = _module,					\
+ 		.desc = #taint,						\
+ 	}
+ 
  /*
-  * TAINT_FORCED_RMMOD could be a per-module flag but the module
-  * is being removed anyway.
-+ *
-+ * NOTE: if you modify the taint_flags or TAINT_FLAGS_COUNT,
-+ * please also modify tools/debugging/kernel-chktaint and
-+ * Documentation/admin-guide/tainted-kernels.rst, including its
-+ * small shell script that prints the TAINT_FLAGS_COUNT bits of
-+ * /proc/sys/kernel/tainted.
+- * TAINT_FORCED_RMMOD could be a per-module flag but the module
+- * is being removed anyway.
+- *
+  * NOTE: if you modify the taint_flags or TAINT_FLAGS_COUNT,
+  * please also modify tools/debugging/kernel-chktaint and
+  * Documentation/admin-guide/tainted-kernels.rst, including its
+@@ -646,26 +642,26 @@ EXPORT_SYMBOL(panic);
+  * /proc/sys/kernel/tainted.
   */
  const struct taint_flag taint_flags[TAINT_FLAGS_COUNT] = {
- 	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G', true),
+-	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G', true),
+-	TAINT_FLAG(FORCED_MODULE,		'F', ' ', true),
+-	TAINT_FLAG(CPU_OUT_OF_SPEC,		'S', ' ', false),
+-	TAINT_FLAG(FORCED_RMMOD,		'R', ' ', false),
+-	TAINT_FLAG(MACHINE_CHECK,		'M', ' ', false),
+-	TAINT_FLAG(BAD_PAGE,			'B', ' ', false),
+-	TAINT_FLAG(USER,			'U', ' ', false),
+-	TAINT_FLAG(DIE,				'D', ' ', false),
+-	TAINT_FLAG(OVERRIDDEN_ACPI_TABLE,	'A', ' ', false),
+-	TAINT_FLAG(WARN,			'W', ' ', false),
+-	TAINT_FLAG(CRAP,			'C', ' ', true),
+-	TAINT_FLAG(FIRMWARE_WORKAROUND,		'I', ' ', false),
+-	TAINT_FLAG(OOT_MODULE,			'O', ' ', true),
+-	TAINT_FLAG(UNSIGNED_MODULE,		'E', ' ', true),
+-	TAINT_FLAG(SOFTLOCKUP,			'L', ' ', false),
+-	TAINT_FLAG(LIVEPATCH,			'K', ' ', true),
+-	TAINT_FLAG(AUX,				'X', ' ', true),
+-	TAINT_FLAG(RANDSTRUCT,			'T', ' ', true),
+-	TAINT_FLAG(TEST,			'N', ' ', true),
+-	TAINT_FLAG(FWCTL,			'J', ' ', true),
++	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G'),
++	TAINT_FLAG(FORCED_MODULE,		'F', ' '),
++	TAINT_FLAG(CPU_OUT_OF_SPEC,		'S', ' '),
++	TAINT_FLAG(FORCED_RMMOD,		'R', ' '),
++	TAINT_FLAG(MACHINE_CHECK,		'M', ' '),
++	TAINT_FLAG(BAD_PAGE,			'B', ' '),
++	TAINT_FLAG(USER,			'U', ' '),
++	TAINT_FLAG(DIE,				'D', ' '),
++	TAINT_FLAG(OVERRIDDEN_ACPI_TABLE,	'A', ' '),
++	TAINT_FLAG(WARN,			'W', ' '),
++	TAINT_FLAG(CRAP,			'C', ' '),
++	TAINT_FLAG(FIRMWARE_WORKAROUND,		'I', ' '),
++	TAINT_FLAG(OOT_MODULE,			'O', ' '),
++	TAINT_FLAG(UNSIGNED_MODULE,		'E', ' '),
++	TAINT_FLAG(SOFTLOCKUP,			'L', ' '),
++	TAINT_FLAG(LIVEPATCH,			'K', ' '),
++	TAINT_FLAG(AUX,				'X', ' '),
++	TAINT_FLAG(RANDSTRUCT,			'T', ' '),
++	TAINT_FLAG(TEST,			'N', ' '),
++	TAINT_FLAG(FWCTL,			'J', ' '),
+ };
+ 
+ #undef TAINT_FLAG
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from petr.pavlu@suse.com are
 
 
