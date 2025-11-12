@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C13914B96E
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 299A714B96E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908581; cv=none; b=HHrcSbaRn4wlvCWypc4zvHOBwapmKU+pANuILYD5EWWbzrUdIEm2DiJCaQW+X7ASVa3ODV7/OxsUf/Y+ClM0wI8X1wBMdaM2zUmAOsUyTEd/LrHVxsBkXvuZsJYfxW7eWgJZO9/bsz1N/jwMSId8xQBfG7R1DH/3lD6HCl8LKnU=
+	t=1762908582; cv=none; b=iW/dCVI6nZ0DzgKGLgBlLG+tbuJBuEBi2nNVmuFwTtUZUi1OoDr7k6pGv6S85r+zzm1dVXPQKbQHg9EY/lCc3iOxlzmAhX+0ZnHlXtA7jns61KOt/DbzX5ZEsBgm3qyvePozDelh9RZOCR+9TkZs8K128PSuNnKyP/R9H1eIeWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762908581; c=relaxed/simple;
-	bh=+FJ9kc2vnPm/CuzYvRV5PhKdEqnDQiO2/TxbPRPy44c=;
-	h=Date:To:From:Subject:Message-Id; b=lUNdKW/Cuhi8gfULXJTQBpuhw6Cp5KKr9X7Tq9a5Y97rtZNJt8qz4vOAKfp3wO4ATq/zw+OqIpd2BjnNQyAs1GamHLL/eDXzmEEflUJocpTJZR9EYLdSMmqorxYpplMOq5EOpLJP5zRotjqTi8OAf6Kg0FTJx0R4WGK2O2e37BI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LokyV5ct; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762908582; c=relaxed/simple;
+	bh=XfeN3haK29U8+9jzPSn6ez0KEvDshu7bXtYY5uhAytQ=;
+	h=Date:To:From:Subject:Message-Id; b=ebQIU78xMx2nPBZN2IRxaAXIeUjh+YLSJapktDhdVUGu70PthUq3Vr1c0llVX+LHp8aCfdW3Zo0o5ewJ48RqjiDGHGXthKWFPScwkxdvVCJnCyiaSewAq4jzHTFWnebRXLTDI6UMff4Ei4VQuDVwqHyjGG+aUjkOtoq5zrq9Fhs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PHfvQo14; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LokyV5ct"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90A7EC4CEF5;
-	Wed, 12 Nov 2025 00:49:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PHfvQo14"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9294C19423;
+	Wed, 12 Nov 2025 00:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908580;
-	bh=+FJ9kc2vnPm/CuzYvRV5PhKdEqnDQiO2/TxbPRPy44c=;
+	s=korg; t=1762908581;
+	bh=XfeN3haK29U8+9jzPSn6ez0KEvDshu7bXtYY5uhAytQ=;
 	h=Date:To:From:Subject:From;
-	b=LokyV5ct6QM7DTAg1mE6h2KNJOiskE5VItQMzybhiC8PtFEdk0hl4qBcDJpR16Qq/
-	 O4JAySxar+Q++5mMp3RF0l7XmrHgKTRlyTPTHCLHy2EC/MOUnjn2RFgacRqSezaewO
-	 KK8Hq79RL2OqA6SLtC2QzpGGKS+AIAtCGux/di4A=
-Date: Tue, 11 Nov 2025 16:49:40 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=PHfvQo14+HTIq5Z4T7w4+pCGyAN4e4ehCqPn/ifIJolivd3cNwpMM3Njv/oA//xWo
+	 gfdP8raR2NLQAiM/fTA+KsIFpLBONuYkwpH7htWP5OV0IUNbl3hVKw9JZC8essh9sG
+	 fgmWAMBuoiFIonKLGfO8vJSuljZ7xAvpVWg7S8x4=
+Date: Tue, 11 Nov 2025 16:49:41 -0800
+To: mm-commits@vger.kernel.org,luc.vanoostenryck@gmail.com,thomas.weissschuh@linutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-add-extra-consistency-check-to-ocfs2_dx_dir_lookup_rec.patch removed from -mm tree
-Message-Id: <20251112004940.90A7EC4CEF5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] compiler-remove-arch_sel.patch removed from -mm tree
+Message-Id: <20251112004941.A9294C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: add extra consistency check to ocfs2_dx_dir_lookup_rec()
+     Subject: compiler.h: remove ARCH_SEL()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-extra-consistency-check-to-ocfs2_dx_dir_lookup_rec.patch
+     compiler-remove-arch_sel.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: ocfs2: add extra consistency check to ocfs2_dx_dir_lookup_rec()
-Date: Tue, 7 Oct 2025 12:46:26 +0300
+From: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Subject: compiler.h: remove ARCH_SEL()
+Date: Mon, 13 Oct 2025 11:12:02 +0200
 
-In 'ocfs2_dx_dir_lookup_rec()', check whether an extent list length of the
-directory indexing block matches the one configured via the superblock
-parameters established at mount, thus preventing an out-of-bounds accesses
-while iterating over the extent records below.
+Its last user was removed in commit 8ea815399c3f ("compiler: remove
+__ADDRESSABLE_ASM{_STR,}() again").
 
-Link: https://lkml.kernel.org/r/20251007094626.196143-1-dmantipov@yandex.ru
-Reported-by: syzbot+30b53487d00b4f7f0922@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=30b53487d00b4f7f0922
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>> 
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20251013-arch-sel-v1-1-7eef9b22ceb0@linutronix.de
+Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/compiler.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-add-extra-consistency-check-to-ocfs2_dx_dir_lookup_rec
-+++ a/fs/ocfs2/dir.c
-@@ -778,6 +778,14 @@ static int ocfs2_dx_dir_lookup_rec(struc
- 	struct ocfs2_extent_block *eb;
- 	struct ocfs2_extent_rec *rec = NULL;
+--- a/include/linux/compiler.h~compiler-remove-arch_sel
++++ a/include/linux/compiler.h
+@@ -269,12 +269,6 @@ static inline void *offset_to_ptr(const
  
-+	if (le16_to_cpu(el->l_count) !=
-+	    ocfs2_extent_recs_per_dx_root(inode->i_sb)) {
-+		ret = ocfs2_error(inode->i_sb,
-+				  "Inode %lu has invalid extent list length %u\n",
-+				  inode->i_ino, le16_to_cpu(el->l_count));
-+		goto out;
-+	}
-+
- 	if (el->l_tree_depth) {
- 		ret = ocfs2_find_leaf(INODE_CACHE(inode), el, major_hash,
- 				      &eb_bh);
+ #endif /* __ASSEMBLY__ */
+ 
+-#ifdef CONFIG_64BIT
+-#define ARCH_SEL(a,b) a
+-#else
+-#define ARCH_SEL(a,b) b
+-#endif
+-
+ /*
+  * Force the compiler to emit 'sym' as a symbol, so that we can reference
+  * it from inline assembler. Necessary in case 'sym' could be inlined
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from thomas.weissschuh@linutronix.de are
 
-ocfs2-add-extra-consistency-checks-for-chain-allocator-dinodes.patch
+mempool-clarify-behavior-of-mempool_alloc_preallocated.patch
 
