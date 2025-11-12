@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A564A33
-	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:45:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE28614B96E
+	for <mm-commits@vger.kernel.org>; Wed, 12 Nov 2025 00:49:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762908357; cv=none; b=eeLUR5fuXd9FEfOjjjeJhNm5dGLC0HIbb4YYPaUmD2Xrw/Cn92C3MmeUxGaj4oMH+pevB15PLy/8kdGb4vVmxcaRLFpzMNv0Mz+wQGL0X1ISLWjZrrlkMXrdItSzzW3Rx+hHgGxZWi58p2VBmXMJVaJA59tWh8Bg4JBrjZED4xg=
+	t=1762908558; cv=none; b=fFXsd3vF2RASpYi+cMn7+KdOvP/BfLe4GsxHoulXVuD2QZ0hZaczNzQ52UPG/vWYak/60zQGFa8QN8LbrKYD/GB/EzNW+MsnPwBCsUtEgKzfiX4W/5QZi81yGYCYew2GVPBDdt+jTdIyUqFlo/1/QQz4bVwS4VDTBY+dIT5mXWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762908357; c=relaxed/simple;
-	bh=EC4AWIlT5ujKdeibiiqEmxF9Cvl9W6Cc/57YmxTGVEg=;
-	h=Date:To:From:Subject:Message-Id; b=tdlaTFUlHylayyu5UxbDL25kQDBSPGenyTzBcK2xOGP7TRqk4PjzDPJV6/sMe5WTcvBaEywW3yMSng53JYhyOM7fJnFKdLBjCXnkmdkcFCYxQNRcbCqmyg7zH+Vay16CyDgfmOprYskqvIz2Qha5c5H3mM0M4hq8aL2WT/9v1lM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IryTHTO+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1762908558; c=relaxed/simple;
+	bh=oySGlIIemeCYu6LZxMlBe4ZgCiyclQ0Xrc7oWuVxtC0=;
+	h=Date:To:From:Subject:Message-Id; b=NrQYpV5pMwAX+kSKGAbUaSpsnfnfoWpmaeCyFuhXkWdnVsDCueyXe8QzwdfeQVmgM2ExB09dYkBDz9jXb9NS8ady5WJ1Z3DYHbXsi+RmzK5MTsG15z42ThMbXnEXyEMMcFlQIYl97aiQg8MPDxkbdCIn8aKzguXUIr5uwWQ80aM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L43oV9ZR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IryTHTO+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 741BCC19424;
-	Wed, 12 Nov 2025 00:45:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L43oV9ZR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47710C4CEFB;
+	Wed, 12 Nov 2025 00:49:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1762908356;
-	bh=EC4AWIlT5ujKdeibiiqEmxF9Cvl9W6Cc/57YmxTGVEg=;
+	s=korg; t=1762908558;
+	bh=oySGlIIemeCYu6LZxMlBe4ZgCiyclQ0Xrc7oWuVxtC0=;
 	h=Date:To:From:Subject:From;
-	b=IryTHTO+0nM+z+3k+oPa/sxgCF54HEXuVIS6Z/flt6XlpqKhCC353YXBEgluRe+uU
-	 hwWLwCDGoKrhnrSmEHzWJMi+BqwEG1SlqNYq9pjWojBPaC4u24wR+MV2sZ8MbbsDsg
-	 9WmIZhX0nfNQijAp7OHtbbMAALHO/wE3Q+k5NDq8=
-Date: Tue, 11 Nov 2025 16:45:55 -0800
-To: mm-commits@vger.kernel.org,tmgross@umich.edu,ojeda@kernel.org,jhubbard@nvidia.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,arnd@arndb.de,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,yury.norov@gmail.com,akpm@linux-foundation.org
+	b=L43oV9ZR63NEtEucSMOPipKJpZhzcTQDH9Kgd9xRiNxLXbN5m8YEIaHw0Je4gPK0e
+	 E2RbO+xh4FD5dxfPqJ930KXQkyZu6FOhEATTxJzfSguYKue2Ig87mNZDOCujInhlFX
+	 +/ceiXrPDKmo3AMEAkp5WICR9LC8u/e0IA5UQbCw=
+Date: Tue, 11 Nov 2025 16:49:17 -0800
+To: mm-commits@vger.kernel.org,zhouyuhang@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] uaccess-decouple-inline_copy_from_user-and-config_rust-v2.patch removed from -mm tree
-Message-Id: <20251112004556.741BCC19424@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] samples-fix-coding-style-issues-in-kconfig.patch removed from -mm tree
+Message-Id: <20251112004918.47710C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST
+     Subject: samples: fix coding style issues in Kconfig
 has been removed from the -mm tree.  Its filename was
-     uaccess-decouple-inline_copy_from_user-and-config_rust-v2.patch
+     samples-fix-coding-style-issues-in-kconfig.patch
 
-This patch was dropped because it was folded into uaccess-decouple-inline_copy_from_user-and-config_rust.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Yury Norov (NVIDIA)" <yury.norov@gmail.com>
-Subject: uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST
-Date: Fri, 24 Oct 2025 11:47:53 -0400
+From: Zhou Yuhang <zhouyuhang@kylinos.cn>
+Subject: samples: fix coding style issues in Kconfig
+Date: Mon, 29 Sep 2025 14:24:34 +0800
 
-drop rust part of comment for _copy_from_user(), per Alice
+Fix some coding style issues in Kconfig: use one tab to indent lines under
+a config definition, and use an additional two spaces to indent help text.
 
-Link: https://lkml.kernel.org/r/20251024154754.99768-1-yury.norov@gmail.com
-Signed-off-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Miguel Ojeda <ojeda@kernel.org>
-Reviewed-by: Alice Ryhl <aliceryhl@google.com>
-Tested-by: Alice Ryhl <aliceryhl@google.com>
-Cc: Alex Gaynor <alex.gaynor@gmail.com>
-Cc: Andreas Hindborg <a.hindborg@kernel.org>
-Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Trevor Gross <tmgross@umich.edu>
+Link: https://lkml.kernel.org/r/20250929062434.4114607-1-zhouyuhang1010@163.com
+Signed-off-by: Zhou Yuhang <zhouyuhang@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |    2 --
- 1 file changed, 2 deletions(-)
+ samples/Kconfig |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/include/linux/uaccess.h~uaccess-decouple-inline_copy_from_user-and-config_rust-v2
-+++ a/include/linux/uaccess.h
-@@ -152,8 +152,6 @@ __copy_to_user(void __user *to, const vo
-  * directly in the normal copy_to/from_user(), the other ones go
-  * through an extern _copy_to/from_user(), which expands the same code
-  * here.
-- *
-- * Rust code always uses the extern definition.
-  */
- static inline __must_check unsigned long
- _inline_copy_from_user(void *to, const void __user *from, unsigned long n)
+--- a/samples/Kconfig~samples-fix-coding-style-issues-in-kconfig
++++ a/samples/Kconfig
+@@ -23,11 +23,11 @@ config SAMPLE_TRACE_CUSTOM_EVENTS
+ 	  This builds the custom trace event example module.
+ 
+ config SAMPLE_TRACE_PRINTK
+-        tristate "Build trace_printk module - tests various trace_printk formats"
++	tristate "Build trace_printk module - tests various trace_printk formats"
+ 	depends on EVENT_TRACING && m
+ 	help
+-	 This builds a module that calls trace_printk() and can be used to
+-	 test various trace_printk() calls from a module.
++	  This builds a module that calls trace_printk() and can be used to
++	  test various trace_printk() calls from a module.
+ 
+ config SAMPLE_FTRACE_DIRECT
+ 	tristate "Build register_ftrace_direct() example"
+@@ -54,11 +54,11 @@ config SAMPLE_FTRACE_OPS
+ 	  measures the time taken to invoke one function a number of times.
+ 
+ config SAMPLE_TRACE_ARRAY
+-        tristate "Build sample module for kernel access to Ftrace instances"
++	tristate "Build sample module for kernel access to Ftrace instances"
+ 	depends on EVENT_TRACING && m
+ 	help
+-	 This builds a module that demonstrates the use of various APIs to
+-	 access Ftrace instances from within the kernel.
++	  This builds a module that demonstrates the use of various APIs to
++	  access Ftrace instances from within the kernel.
+ 
+ config SAMPLE_KOBJECT
+ 	tristate "Build kobject examples"
+@@ -290,11 +290,11 @@ config SAMPLE_CORESIGHT_SYSCFG
+ 	  configurations and easily load them into the system at runtime.
+ 
+ config SAMPLE_KMEMLEAK
+-        tristate "Simple test for the kernel memory leak detector"
+-        depends on DEBUG_KMEMLEAK && m
+-        help
+-          Build a sample program which have explicitly leaks memory to test
+-          kmemleak
++	tristate "Simple test for the kernel memory leak detector"
++	depends on DEBUG_KMEMLEAK && m
++	help
++	  Build a sample program which have explicitly leaks memory to test
++	  kmemleak.
+ 
+ config SAMPLE_CGROUP
+ 	bool "Build cgroup sample code"
 _
 
-Patches currently in -mm which might be from yury.norov@gmail.com are
+Patches currently in -mm which might be from zhouyuhang@kylinos.cn are
 
-uaccess-decouple-inline_copy_from_user-and-config_rust.patch
 
