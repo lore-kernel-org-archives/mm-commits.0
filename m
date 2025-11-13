@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA3A223BD1B
-	for <mm-commits@vger.kernel.org>; Thu, 13 Nov 2025 22:37:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C3122D7D47
+	for <mm-commits@vger.kernel.org>; Thu, 13 Nov 2025 22:48:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763073454; cv=none; b=lSrdZr1ThHBwUHauKYdxD2QwfMOuPnbq2hDA88hGdkg8gExBmXigKuFiXwll7vh/HldmTWbXAVWl1hZTpNsAptWs0lemHlvRDmtK8hxMclVgyJ7I4BzUNX3YWfUI8EpHAa7MTOPaV1Tytb+7buzMnzw3Qe6PdIY/9UZ+ONHkUaA=
+	t=1763074113; cv=none; b=DjA4MbkC0xkAYZTCLwyQIdUcSDxqCpJwf9DRgpNNgro4/Mq0ZJ11vchPh0Zucy/paNkEofr0i9ehxzATRTLuCXi2YhzvwCEFD40rejgFNs3anpUARMUJNbptBon7fuGMxaMaYo59Uh/hLdnvNVk0EzP4noZFqAjxQIZ4iV28C1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763073454; c=relaxed/simple;
-	bh=7EpAs+u4HSpV6jl6mJIo2Rmm+RcAigC/VpllAmxOI1g=;
-	h=Date:To:From:Subject:Message-Id; b=jxaxRYn8Uq0fshveuwERc+h99i4XEOvYg2u2mcW978GiW4AJxQr8RZi3as5z8lzP5Pv8QxCYbQ+4i+RhLIKPa0mNgBWTYREtNcoKEXcIyXxvonYmODfmazr8K0w2E1xe3rHf40iAsgfP1Kakfod0/ZDFTQU6WI6y6lSDZ5wVbMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lkOhU+XB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763074113; c=relaxed/simple;
+	bh=YhliZoiubxoOYESSmmK2Z6greaqsOAU7KmKOoOlInCI=;
+	h=Date:To:From:Subject:Message-Id; b=GaEtnBeguVeaTvnb0XJfk+Zra9fB66QXdUOUNHeFpaRNplAqqofa8K8e/kImiFOFpoy1u/nC/F8jKGuF+v3e4o0QdHc2uaW1d+cMnVfW2eZPiKJKrfQNLK/aoTHGuAbenn0/N2B2F0Zk8JgeAGaKiJ4FtShQyJMOzOmLKo6L2O4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fC5I3xGx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lkOhU+XB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12CF3C4CEFB;
-	Thu, 13 Nov 2025 22:37:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fC5I3xGx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 885C1C4CEF7;
+	Thu, 13 Nov 2025 22:48:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763073453;
-	bh=7EpAs+u4HSpV6jl6mJIo2Rmm+RcAigC/VpllAmxOI1g=;
+	s=korg; t=1763074112;
+	bh=YhliZoiubxoOYESSmmK2Z6greaqsOAU7KmKOoOlInCI=;
 	h=Date:To:From:Subject:From;
-	b=lkOhU+XBIZ5PC1wqL9oE6GrrsnKfq5ILpik0H1N2OEfWTdvao1AgME7+OBuBqkeWm
-	 di2ROcflyOXDYz4ymvePWfgXpakSdHiCSuwnUG2bjaWNiBhSTYQVIEzVzZz1jrbNfz
-	 BB5qsRhh7TkfHu3HqG06YSQ6YMPyf5YnX4EE5wzU=
-Date: Thu, 13 Nov 2025 14:37:32 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,david.hunter.linux@gmail.com,mehdi.benhadjkhelifa@gmail.com,akpm@linux-foundation.org
+	b=fC5I3xGx/QoT0/m+tCf7CmGC4RG+VqAE8+an0lJ1M0GzJ1iNS137gvojtwkXk0O7c
+	 mhfTOTOCha78JfK7UdNdlolqgHALkV1ncpBQuphJ+S/kr3JSbLu87bAv7NFnb28Uox
+	 2JA6d2313R9Eku4eoAhrShO0eCLDOnNoDquZMBKU=
+Date: Thu, 13 Nov 2025 14:48:31 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,ioworker0@gmail.com,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2.patch added to mm-unstable branch
-Message-Id: <20251113223733.12CF3C4CEFB@smtp.kernel.org>
+Subject: + docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch added to mm-nonmm-unstable branch
+Message-Id: <20251113224832.885C1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2.patch
+     Subject: docs: panic: correct some sys_ifo names in sysctl doc
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,75 +58,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
-Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
-Date: Thu, 13 Nov 2025 15:20:33 +0100
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: docs: panic: correct some sys_ifo names in sysctl doc
+Date: Thu, 13 Nov 2025 19:10:36 +0800
 
-make cleanup code more clear, per Mike
+Patch series "Enable hung_task and lockup cases to dump system info on
+demand", v2.
 
-Link: https://lkml.kernel.org/r/20251113142050.108638-1-mehdi.benhadjkhelifa@gmail.com
-Signed-off-by: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Hunter <david.hunter.linux@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+When working on kernel stability issues: panic, task-hung and soft/hard
+lockup are frequently met.  And to debug them, user may need lots of
+system information at that time, like task call stacks, lock info, memory
+info, ftrace dump, etc.
+
+panic case already uses sys_info() for this purpose, and has a
+'panic_sys_info' sysctl(also support cmdline setup) interface to take
+human readable string like "tasks,mem,timers,locks,ftrace,..." to control
+what kinds of information is needed.  Which is also helpful to debug
+task-hung and lockup cases.
+
+So this patchset introduces the similar sys_info sysctl interface for
+task-hung and lockup cases.
+
+his is mainly for debugging and the info dumping could be intrusive, like
+dumping call stack for all tasks when system has huge number of tasks,
+similarly for ftrace dump (we may add tracing_stop() and tracing_start()
+around it)
+
+Locally these have been used in our bug chasing for stability issues and
+were helpful.
+
+As Andrew suggested, add a configurable global 'kernel_sys_info' knob. 
+When error scenarios like panic/hung-task/lockup etc doesn't setup their
+own sys_info knob and calls sys_info() with parameter "0", this global
+knob will take effect.  It could be used for other kernel cases like OOM,
+which may not need one dedicated sys_info knob.
+
+
+This patch (of 4):
+
+Some sys_info names wered forgotten to change in patch iterations, while
+the right names are defined in kernel/sys_info.c.
+
+Link: https://lkml.kernel.org/r/20251113111039.22701-1-feng.tang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20251113111039.22701-2-feng.tang@linux.alibaba.com
+Fixes: d747755917bf ("panic: add 'panic_sys_info' sysctl to take human readable string parameter")
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-common.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/sysctl/kernel.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -6,7 +6,6 @@
-  */
- 
- #include "uffd-common.h"
--#include "asm-generic/mman-common.h"
- 
- uffd_test_ops_t *uffd_test_ops;
- uffd_test_case_ops_t *uffd_test_case_ops;
-@@ -151,7 +150,7 @@ static int shmem_allocate_area(uffd_glob
- 		return -errno;
- 	}
- 
--	p = (char *)reserve;
-+	p = reserve;
- 	p_alias = p;
- 	p_alias += bytes;
- 	p_alias += hpage_size;  /* Prevent src/dst VMA merge */
-@@ -159,8 +158,8 @@ static int shmem_allocate_area(uffd_glob
- 	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
- 			   mem_fd, offset);
- 	if (*alloc_area == MAP_FAILED) {
--		munmap(reserve, region_size);
- 		*alloc_area = NULL;
-+		munmap(reserve, region_size);
- 		close(mem_fd);
- 		return -errno;
- 	}
-@@ -170,8 +169,8 @@ static int shmem_allocate_area(uffd_glob
- 	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
- 			  mem_fd, offset);
- 	if (area_alias == MAP_FAILED) {
--		munmap(reserve, region_size);
- 		*alloc_area = NULL;
-+		munmap(reserve, region_size);
- 		close(mem_fd);
- 		return -errno;
- 	}
+--- a/Documentation/admin-guide/sysctl/kernel.rst~docs-panic-correct-some-sys_ifo-names-in-sysctl-doc
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -911,8 +911,8 @@ to 'panic_print'. Possible values are:
+ =============   ===================================================
+ tasks           print all tasks info
+ mem             print system memory info
+-timer           print timers info
+-lock            print locks info if CONFIG_LOCKDEP is on
++timers          print timers info
++locks           print locks info if CONFIG_LOCKDEP is on
+ ftrace          print ftrace buffer
+ all_bt          print all CPUs backtrace (if available in the arch)
+ blocked_tasks   print only tasks in uninterruptible (blocked) state
 _
 
-Patches currently in -mm which might be from mehdi.benhadjkhelifa@gmail.com are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-mm-vmalloc-use-kmalloc_array-instead-of-kmalloc.patch
-selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
-selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2.patch
+docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch
+hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
+watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup.patch
+sys_info-add-a-default-kernel-sys_info-mask.patch
 
