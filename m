@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C3122D7D47
-	for <mm-commits@vger.kernel.org>; Thu, 13 Nov 2025 22:48:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FF60326947
+	for <mm-commits@vger.kernel.org>; Thu, 13 Nov 2025 22:48:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763074113; cv=none; b=DjA4MbkC0xkAYZTCLwyQIdUcSDxqCpJwf9DRgpNNgro4/Mq0ZJ11vchPh0Zucy/paNkEofr0i9ehxzATRTLuCXi2YhzvwCEFD40rejgFNs3anpUARMUJNbptBon7fuGMxaMaYo59Uh/hLdnvNVk0EzP4noZFqAjxQIZ4iV28C1s=
+	t=1763074114; cv=none; b=amz5oLuyxVzU4I0hPM8o3gq8PEX7/plmitJC3QFwW43keRENF4k3LL7oqcDnuckPQ9lrv0vqS581Fo+ZBnc3pJKBK0Na0KSrMubkMSUXqiFmnBcyap/d3mRe1k+0z8UQASk+y0JSiACPa9s1KaAcLZ3MBAIZSKB4Uxu7HSpIy0A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763074113; c=relaxed/simple;
-	bh=YhliZoiubxoOYESSmmK2Z6greaqsOAU7KmKOoOlInCI=;
-	h=Date:To:From:Subject:Message-Id; b=GaEtnBeguVeaTvnb0XJfk+Zra9fB66QXdUOUNHeFpaRNplAqqofa8K8e/kImiFOFpoy1u/nC/F8jKGuF+v3e4o0QdHc2uaW1d+cMnVfW2eZPiKJKrfQNLK/aoTHGuAbenn0/N2B2F0Zk8JgeAGaKiJ4FtShQyJMOzOmLKo6L2O4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fC5I3xGx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763074114; c=relaxed/simple;
+	bh=zUTjr5RdNJb76BVh+XFjl3WL0JetunuH+xFwMiCEwpY=;
+	h=Date:To:From:Subject:Message-Id; b=DuiJqCiikzJF1TTjgfWktwuJWLmsWpBD/TSIPjgsY7s2YHyz3IvhwW5r0RL88/vYyQAeAYWGtnrDFIVkDXrUpsDoU9u00GbuPwIcofBRzhE60j+S1mDYYhHU2IHk1YFsVaM+DoOPIYbqUufMazYVJyZycLmcmEYS5piBmEk1xmE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=coJ12oMR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fC5I3xGx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 885C1C4CEF7;
-	Thu, 13 Nov 2025 22:48:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="coJ12oMR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC38AC4CEF7;
+	Thu, 13 Nov 2025 22:48:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763074112;
-	bh=YhliZoiubxoOYESSmmK2Z6greaqsOAU7KmKOoOlInCI=;
+	s=korg; t=1763074114;
+	bh=zUTjr5RdNJb76BVh+XFjl3WL0JetunuH+xFwMiCEwpY=;
 	h=Date:To:From:Subject:From;
-	b=fC5I3xGx/QoT0/m+tCf7CmGC4RG+VqAE8+an0lJ1M0GzJ1iNS137gvojtwkXk0O7c
-	 mhfTOTOCha78JfK7UdNdlolqgHALkV1ncpBQuphJ+S/kr3JSbLu87bAv7NFnb28Uox
-	 2JA6d2313R9Eku4eoAhrShO0eCLDOnNoDquZMBKU=
-Date: Thu, 13 Nov 2025 14:48:31 -0800
+	b=coJ12oMRil+92JhX2dl0LpoSVrkvn8GR0BmrcbIv1bQDGSJao+lFCPD+LRq39Oafk
+	 egwVHJPpIdsJc5TmINC1nwNboGncmLZfPApEVU5ARj8/UkPpyJD4jppOh4DWQxuH3J
+	 3wN2D1RZ/YFhtotfE9v4Q278xdlk5VKs+BprEOEQ=
+Date: Thu, 13 Nov 2025 14:48:33 -0800
 To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,ioworker0@gmail.com,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch added to mm-nonmm-unstable branch
-Message-Id: <20251113224832.885C1C4CEF7@smtp.kernel.org>
+Subject: + hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch added to mm-nonmm-unstable branch
+Message-Id: <20251113224833.EC38AC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: panic: correct some sys_ifo names in sysctl doc
+     Subject: hung_task: add hung_task_sys_info sysctl to dump sys info on task-hung
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch
+     hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,51 +59,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: docs: panic: correct some sys_ifo names in sysctl doc
-Date: Thu, 13 Nov 2025 19:10:36 +0800
+Subject: hung_task: add hung_task_sys_info sysctl to dump sys info on task-hung
+Date: Thu, 13 Nov 2025 19:10:37 +0800
 
-Patch series "Enable hung_task and lockup cases to dump system info on
-demand", v2.
+When task-hung happens, developers may need different kinds of system
+information (call-stacks, memory info, locks, etc.) to help debugging.
 
-When working on kernel stability issues: panic, task-hung and soft/hard
-lockup are frequently met.  And to debug them, user may need lots of
-system information at that time, like task call stacks, lock info, memory
-info, ftrace dump, etc.
+Add 'hung_task_sys_info' sysctl knob to take human readable string like
+"tasks,mem,timers,locks,ftrace,...", and when task-hung happens, all
+requested information will be dumped.  (refer kernel/sys_info.c for more
+details).
 
-panic case already uses sys_info() for this purpose, and has a
-'panic_sys_info' sysctl(also support cmdline setup) interface to take
-human readable string like "tasks,mem,timers,locks,ftrace,..." to control
-what kinds of information is needed.  Which is also helpful to debug
-task-hung and lockup cases.
+Meanwhile, the newly introduced sys_info() call is used to unify some
+existing info-dumping knobs.
 
-So this patchset introduces the similar sys_info sysctl interface for
-task-hung and lockup cases.
-
-his is mainly for debugging and the info dumping could be intrusive, like
-dumping call stack for all tasks when system has huge number of tasks,
-similarly for ftrace dump (we may add tracing_stop() and tracing_start()
-around it)
-
-Locally these have been used in our bug chasing for stability issues and
-were helpful.
-
-As Andrew suggested, add a configurable global 'kernel_sys_info' knob. 
-When error scenarios like panic/hung-task/lockup etc doesn't setup their
-own sys_info knob and calls sys_info() with parameter "0", this global
-knob will take effect.  It could be used for other kernel cases like OOM,
-which may not need one dedicated sys_info knob.
-
-
-This patch (of 4):
-
-Some sys_info names wered forgotten to change in patch iterations, while
-the right names are defined in kernel/sys_info.c.
-
-Link: https://lkml.kernel.org/r/20251113111039.22701-1-feng.tang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/20251113111039.22701-2-feng.tang@linux.alibaba.com
-Fixes: d747755917bf ("panic: add 'panic_sys_info' sysctl to take human readable string parameter")
+Link: https://lkml.kernel.org/r/20251113111039.22701-3-feng.tang@linux.alibaba.com
 Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+Suggested-by: Petr Mladek <pmladek@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lance Yang <ioworker0@gmail.com>
 Cc: "Paul E . McKenney" <paulmck@kernel.org>
@@ -111,22 +83,171 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/sysctl/kernel.rst |    5 +
+ kernel/hung_task.c                          |   62 +++++++++++-------
+ 2 files changed, 43 insertions(+), 24 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~docs-panic-correct-some-sys_ifo-names-in-sysctl-doc
+--- a/Documentation/admin-guide/sysctl/kernel.rst~hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung
 +++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -911,8 +911,8 @@ to 'panic_print'. Possible values are:
- =============   ===================================================
- tasks           print all tasks info
- mem             print system memory info
--timer           print timers info
--lock            print locks info if CONFIG_LOCKDEP is on
-+timers          print timers info
-+locks           print locks info if CONFIG_LOCKDEP is on
- ftrace          print ftrace buffer
- all_bt          print all CPUs backtrace (if available in the arch)
- blocked_tasks   print only tasks in uninterruptible (blocked) state
+@@ -422,6 +422,11 @@ the system boot.
+ 
+ This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
+ 
++hung_task_sys_info
++==================
++A comma separated list of extra system information to be dumped when
++hung task is detected, for example, "tasks,mem,timers,locks,...".
++Refer 'panic_sys_info' section below for more details.
+ 
+ hung_task_timeout_secs
+ ======================
+--- a/kernel/hung_task.c~hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung
++++ a/kernel/hung_task.c
+@@ -24,6 +24,7 @@
+ #include <linux/sched/sysctl.h>
+ #include <linux/hung_task.h>
+ #include <linux/rwsem.h>
++#include <linux/sys_info.h>
+ 
+ #include <trace/events/sched.h>
+ 
+@@ -59,12 +60,17 @@ static unsigned long __read_mostly sysct
+ static int __read_mostly sysctl_hung_task_warnings = 10;
+ 
+ static int __read_mostly did_panic;
+-static bool hung_task_show_lock;
+ static bool hung_task_call_panic;
+-static bool hung_task_show_all_bt;
+ 
+ static struct task_struct *watchdog_task;
+ 
++/*
++ * A bitmask to control what kinds of system info to be printed when
++ * a hung task is detected, it could be task, memory, lock etc. Refer
++ * include/linux/sys_info.h for detailed bit definition.
++ */
++static unsigned long hung_task_si_mask;
++
+ #ifdef CONFIG_SMP
+ /*
+  * Should we dump all CPUs backtraces in a hung task event?
+@@ -217,11 +223,8 @@ static inline void debug_show_blocker(st
+ }
+ #endif
+ 
+-static void check_hung_task(struct task_struct *t, unsigned long timeout,
+-		unsigned long prev_detect_count)
++static void check_hung_task(struct task_struct *t, unsigned long timeout)
+ {
+-	unsigned long total_hung_task;
+-
+ 	if (!task_is_hung(t, timeout))
+ 		return;
+ 
+@@ -231,20 +234,13 @@ static void check_hung_task(struct task_
+ 	 */
+ 	sysctl_hung_task_detect_count++;
+ 
+-	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
+ 	trace_sched_process_hang(t);
+ 
+-	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
+-		console_verbose();
+-		hung_task_show_lock = true;
+-		hung_task_call_panic = true;
+-	}
+-
+ 	/*
+ 	 * Ok, the task did not get scheduled for more than 2 minutes,
+ 	 * complain:
+ 	 */
+-	if (sysctl_hung_task_warnings || hung_task_call_panic) {
++	if (sysctl_hung_task_warnings) {
+ 		if (sysctl_hung_task_warnings > 0)
+ 			sysctl_hung_task_warnings--;
+ 		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
+@@ -259,10 +255,7 @@ static void check_hung_task(struct task_
+ 			" disables this message.\n");
+ 		sched_show_task(t);
+ 		debug_show_blocker(t, timeout);
+-		hung_task_show_lock = true;
+ 
+-		if (sysctl_hung_task_all_cpu_backtrace)
+-			hung_task_show_all_bt = true;
+ 		if (!sysctl_hung_task_warnings)
+ 			pr_info("Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings\n");
+ 	}
+@@ -302,8 +295,11 @@ static void check_hung_uninterruptible_t
+ {
+ 	int max_count = sysctl_hung_task_check_count;
+ 	unsigned long last_break = jiffies;
++	unsigned long total_hung_task;
+ 	struct task_struct *g, *t;
+ 	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
++	int need_warning = sysctl_hung_task_warnings;
++	unsigned long si_mask = hung_task_si_mask;
+ 
+ 	/*
+ 	 * If the system crashed already then all bets are off,
+@@ -312,7 +308,7 @@ static void check_hung_uninterruptible_t
+ 	if (test_taint(TAINT_DIE) || did_panic)
+ 		return;
+ 
+-	hung_task_show_lock = false;
++
+ 	rcu_read_lock();
+ 	for_each_process_thread(g, t) {
+ 
+@@ -324,18 +320,29 @@ static void check_hung_uninterruptible_t
+ 			last_break = jiffies;
+ 		}
+ 
+-		check_hung_task(t, timeout, prev_detect_count);
++		check_hung_task(t, timeout);
+ 	}
+  unlock:
+ 	rcu_read_unlock();
+-	if (hung_task_show_lock)
+-		debug_show_all_locks();
+ 
+-	if (hung_task_show_all_bt) {
+-		hung_task_show_all_bt = false;
+-		trigger_all_cpu_backtrace();
++	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
++	if (!total_hung_task)
++		return;
++
++	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
++		console_verbose();
++		hung_task_call_panic = true;
++	}
++
++	if (need_warning || hung_task_call_panic) {
++		si_mask |= SYS_INFO_LOCKS;
++
++		if (sysctl_hung_task_all_cpu_backtrace)
++			si_mask |= SYS_INFO_ALL_BT;
+ 	}
+ 
++	sys_info(si_mask);
++
+ 	if (hung_task_call_panic)
+ 		panic("hung_task: blocked tasks");
+ }
+@@ -434,6 +441,13 @@ static const struct ctl_table hung_task_
+ 		.mode		= 0444,
+ 		.proc_handler	= proc_doulongvec_minmax,
+ 	},
++	{
++		.procname	= "hung_task_sys_info",
++		.data		= &hung_task_si_mask,
++		.maxlen         = sizeof(hung_task_si_mask),
++		.mode		= 0644,
++		.proc_handler	= sysctl_sys_info_handler,
++	},
+ };
+ 
+ static void __init hung_task_sysctl_init(void)
 _
 
 Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
