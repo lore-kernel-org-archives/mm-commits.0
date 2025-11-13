@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FF60326947
-	for <mm-commits@vger.kernel.org>; Thu, 13 Nov 2025 22:48:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02A102D7D47
+	for <mm-commits@vger.kernel.org>; Thu, 13 Nov 2025 22:48:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763074114; cv=none; b=amz5oLuyxVzU4I0hPM8o3gq8PEX7/plmitJC3QFwW43keRENF4k3LL7oqcDnuckPQ9lrv0vqS581Fo+ZBnc3pJKBK0Na0KSrMubkMSUXqiFmnBcyap/d3mRe1k+0z8UQASk+y0JSiACPa9s1KaAcLZ3MBAIZSKB4Uxu7HSpIy0A=
+	t=1763074116; cv=none; b=J9nwIRdgT8QmeO+fByztqdo8XjcGgURU87Zv1KvZAaJmfacbdp2N1sc+JSxJJZuwCi58yFZF8gR15koMAC8QIldSkMfTd3P0LlQBzECg+q2kHrxYPuxaEl1jOEcXs/v6XbjsNkLAS4FZgy5xNUlwzZnYCO86EdFZDLY83yr+ni0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763074114; c=relaxed/simple;
-	bh=zUTjr5RdNJb76BVh+XFjl3WL0JetunuH+xFwMiCEwpY=;
-	h=Date:To:From:Subject:Message-Id; b=DuiJqCiikzJF1TTjgfWktwuJWLmsWpBD/TSIPjgsY7s2YHyz3IvhwW5r0RL88/vYyQAeAYWGtnrDFIVkDXrUpsDoU9u00GbuPwIcofBRzhE60j+S1mDYYhHU2IHk1YFsVaM+DoOPIYbqUufMazYVJyZycLmcmEYS5piBmEk1xmE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=coJ12oMR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763074116; c=relaxed/simple;
+	bh=ZdOhoP22a0m9swVXaNMeiWZYpqlkbj5+SWAbvmh22Ng=;
+	h=Date:To:From:Subject:Message-Id; b=aUSM7FyIGepiWB6Cs37+U8bQkOIC0OSwV0fvLnkTRT6+GbWBcYbPxZ4UG4cVMShPlo7BYawezqueZjMM9+/HSSKIVsXnvu4fAx0QO2Pvhrp9jPCAOt6au+LLin0rOsntMomdW9haLIReBC7oETzaVkfr9TpAo3cfJqUsqvH2xtI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WOEGataa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="coJ12oMR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC38AC4CEF7;
-	Thu, 13 Nov 2025 22:48:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WOEGataa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F851C4CEF7;
+	Thu, 13 Nov 2025 22:48:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763074114;
-	bh=zUTjr5RdNJb76BVh+XFjl3WL0JetunuH+xFwMiCEwpY=;
+	s=korg; t=1763074115;
+	bh=ZdOhoP22a0m9swVXaNMeiWZYpqlkbj5+SWAbvmh22Ng=;
 	h=Date:To:From:Subject:From;
-	b=coJ12oMRil+92JhX2dl0LpoSVrkvn8GR0BmrcbIv1bQDGSJao+lFCPD+LRq39Oafk
-	 egwVHJPpIdsJc5TmINC1nwNboGncmLZfPApEVU5ARj8/UkPpyJD4jppOh4DWQxuH3J
-	 3wN2D1RZ/YFhtotfE9v4Q278xdlk5VKs+BprEOEQ=
-Date: Thu, 13 Nov 2025 14:48:33 -0800
+	b=WOEGataaPLeL1cmJqko8EuP9sHRYLbQcleUFWAeV3CeKrYXDsIMn9pOK+89WcJQvM
+	 4CfSYNtAj0/QFR683Oi9Fe31vkxQBNGbWDwO4tmArPhYsb0S23zHrgPo3CJ/h6f0fr
+	 N/ubWICi4Gc1v06yGqv2qSH4R8z7GjUx5/kv6uKc=
+Date: Thu, 13 Nov 2025 14:48:34 -0800
 To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,ioworker0@gmail.com,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch added to mm-nonmm-unstable branch
-Message-Id: <20251113224833.EC38AC4CEF7@smtp.kernel.org>
+Subject: + watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup.patch added to mm-nonmm-unstable branch
+Message-Id: <20251113224835.5F851C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: add hung_task_sys_info sysctl to dump sys info on task-hung
+     Subject: watchdog: add sys_info sysctls to dump sys info on system lockup
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
+     watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,195 +59,179 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: hung_task: add hung_task_sys_info sysctl to dump sys info on task-hung
-Date: Thu, 13 Nov 2025 19:10:37 +0800
+Subject: watchdog: add sys_info sysctls to dump sys info on system lockup
+Date: Thu, 13 Nov 2025 19:10:38 +0800
 
-When task-hung happens, developers may need different kinds of system
-information (call-stacks, memory info, locks, etc.) to help debugging.
+When soft/hard lockup happens, developers may need different kinds of
+system information (call-stacks, memory info, locks, etc.) to help
+debugging.
 
-Add 'hung_task_sys_info' sysctl knob to take human readable string like
-"tasks,mem,timers,locks,ftrace,...", and when task-hung happens, all
-requested information will be dumped.  (refer kernel/sys_info.c for more
-details).
+Add 'softlockup_sys_info' and 'hardlockup_sys_info' sysctl knobs to take
+human readable string like "tasks,mem,timers,locks,ftrace,...", and when
+system lockup happens, all requested information will be printed out. 
+(refer kernel/sys_info.c for more details).
 
-Meanwhile, the newly introduced sys_info() call is used to unify some
-existing info-dumping knobs.
-
-Link: https://lkml.kernel.org/r/20251113111039.22701-3-feng.tang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20251113111039.22701-4-feng.tang@linux.alibaba.com
 Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Suggested-by: Petr Mladek <pmladek@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lance Yang <ioworker0@gmail.com>
 Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    5 +
- kernel/hung_task.c                          |   62 +++++++++++-------
- 2 files changed, 43 insertions(+), 24 deletions(-)
+ Documentation/admin-guide/sysctl/kernel.rst |    5 ++
+ kernel/watchdog.c                           |   44 ++++++++++++++++--
+ 2 files changed, 46 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung
+--- a/Documentation/admin-guide/sysctl/kernel.rst~watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup
 +++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -422,6 +422,11 @@ the system boot.
+@@ -582,6 +582,11 @@ if leaking kernel pointer values to unpr
+ When ``kptr_restrict`` is set to 2, kernel pointers printed using
+ %pK will be replaced with 0s regardless of privileges.
  
- This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
- 
-+hung_task_sys_info
-+==================
++softlockup_sys_info & hardlockup_sys_info
++=========================================
 +A comma separated list of extra system information to be dumped when
-+hung task is detected, for example, "tasks,mem,timers,locks,...".
++soft/hard lockup is detected, for example, "tasks,mem,timers,locks,...".
 +Refer 'panic_sys_info' section below for more details.
  
- hung_task_timeout_secs
- ======================
---- a/kernel/hung_task.c~hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung
-+++ a/kernel/hung_task.c
-@@ -24,6 +24,7 @@
- #include <linux/sched/sysctl.h>
- #include <linux/hung_task.h>
- #include <linux/rwsem.h>
+ modprobe
+ ========
+--- a/kernel/watchdog.c~watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup
++++ a/kernel/watchdog.c
+@@ -25,6 +25,7 @@
+ #include <linux/stop_machine.h>
+ #include <linux/sysctl.h>
+ #include <linux/tick.h>
 +#include <linux/sys_info.h>
  
- #include <trace/events/sched.h>
- 
-@@ -59,12 +60,17 @@ static unsigned long __read_mostly sysct
- static int __read_mostly sysctl_hung_task_warnings = 10;
- 
- static int __read_mostly did_panic;
--static bool hung_task_show_lock;
- static bool hung_task_call_panic;
--static bool hung_task_show_all_bt;
- 
- static struct task_struct *watchdog_task;
+ #include <linux/sched/clock.h>
+ #include <linux/sched/debug.h>
+@@ -65,6 +66,13 @@ int __read_mostly sysctl_hardlockup_all_
+ unsigned int __read_mostly hardlockup_panic =
+ 			IS_ENABLED(CONFIG_BOOTPARAM_HARDLOCKUP_PANIC);
  
 +/*
-+ * A bitmask to control what kinds of system info to be printed when
-+ * a hung task is detected, it could be task, memory, lock etc. Refer
-+ * include/linux/sys_info.h for detailed bit definition.
++ * bitmasks to control what kinds of system info to be printed when
++ * hard lockup is detected, it could be task, memory, lock etc.
++ * Refer include/linux/sys_info.h for detailed bit definition.
 + */
-+static unsigned long hung_task_si_mask;
++static unsigned long hardlockup_si_mask;
 +
- #ifdef CONFIG_SMP
- /*
-  * Should we dump all CPUs backtraces in a hung task event?
-@@ -217,11 +223,8 @@ static inline void debug_show_blocker(st
- }
- #endif
+ #ifdef CONFIG_SYSFS
  
--static void check_hung_task(struct task_struct *t, unsigned long timeout,
--		unsigned long prev_detect_count)
-+static void check_hung_task(struct task_struct *t, unsigned long timeout)
+ static unsigned int hardlockup_count;
+@@ -178,11 +186,15 @@ static void watchdog_hardlockup_kick(voi
+ 
+ void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
  {
--	unsigned long total_hung_task;
--
- 	if (!task_is_hung(t, timeout))
++	int hardlockup_all_cpu_backtrace;
++
+ 	if (per_cpu(watchdog_hardlockup_touched, cpu)) {
+ 		per_cpu(watchdog_hardlockup_touched, cpu) = false;
  		return;
- 
-@@ -231,20 +234,13 @@ static void check_hung_task(struct task_
- 	 */
- 	sysctl_hung_task_detect_count++;
- 
--	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
- 	trace_sched_process_hang(t);
- 
--	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
--		console_verbose();
--		hung_task_show_lock = true;
--		hung_task_call_panic = true;
--	}
--
- 	/*
- 	 * Ok, the task did not get scheduled for more than 2 minutes,
- 	 * complain:
- 	 */
--	if (sysctl_hung_task_warnings || hung_task_call_panic) {
-+	if (sysctl_hung_task_warnings) {
- 		if (sysctl_hung_task_warnings > 0)
- 			sysctl_hung_task_warnings--;
- 		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
-@@ -259,10 +255,7 @@ static void check_hung_task(struct task_
- 			" disables this message.\n");
- 		sched_show_task(t);
- 		debug_show_blocker(t, timeout);
--		hung_task_show_lock = true;
- 
--		if (sysctl_hung_task_all_cpu_backtrace)
--			hung_task_show_all_bt = true;
- 		if (!sysctl_hung_task_warnings)
- 			pr_info("Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings\n");
  	}
-@@ -302,8 +295,11 @@ static void check_hung_uninterruptible_t
- {
- 	int max_count = sysctl_hung_task_check_count;
- 	unsigned long last_break = jiffies;
-+	unsigned long total_hung_task;
- 	struct task_struct *g, *t;
- 	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
-+	int need_warning = sysctl_hung_task_warnings;
-+	unsigned long si_mask = hung_task_si_mask;
  
++	hardlockup_all_cpu_backtrace = (hardlockup_si_mask & SYS_INFO_ALL_BT) ?
++					1 : sysctl_hardlockup_all_cpu_backtrace;
  	/*
- 	 * If the system crashed already then all bets are off,
-@@ -312,7 +308,7 @@ static void check_hung_uninterruptible_t
- 	if (test_taint(TAINT_DIE) || did_panic)
- 		return;
- 
--	hung_task_show_lock = false;
-+
- 	rcu_read_lock();
- 	for_each_process_thread(g, t) {
- 
-@@ -324,18 +320,29 @@ static void check_hung_uninterruptible_t
- 			last_break = jiffies;
+ 	 * Check for a hardlockup by making sure the CPU's timer
+ 	 * interrupt is incrementing. The timer interrupt should have
+@@ -205,7 +217,7 @@ void watchdog_hardlockup_check(unsigned
+ 		 * Prevent multiple hard-lockup reports if one cpu is already
+ 		 * engaged in dumping all cpu back traces.
+ 		 */
+-		if (sysctl_hardlockup_all_cpu_backtrace) {
++		if (hardlockup_all_cpu_backtrace) {
+ 			if (test_and_set_bit_lock(0, &hard_lockup_nmi_warn))
+ 				return;
+ 		}
+@@ -234,12 +246,13 @@ void watchdog_hardlockup_check(unsigned
+ 			trigger_single_cpu_backtrace(cpu);
  		}
  
--		check_hung_task(t, timeout, prev_detect_count);
-+		check_hung_task(t, timeout);
- 	}
-  unlock:
- 	rcu_read_unlock();
--	if (hung_task_show_lock)
--		debug_show_all_locks();
+-		if (sysctl_hardlockup_all_cpu_backtrace) {
++		if (hardlockup_all_cpu_backtrace) {
+ 			trigger_allbutcpu_cpu_backtrace(cpu);
+ 			if (!hardlockup_panic)
+ 				clear_bit_unlock(0, &hard_lockup_nmi_warn);
+ 		}
  
--	if (hung_task_show_all_bt) {
--		hung_task_show_all_bt = false;
--		trigger_all_cpu_backtrace();
-+	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
-+	if (!total_hung_task)
-+		return;
-+
-+	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
-+		console_verbose();
-+		hung_task_call_panic = true;
-+	}
-+
-+	if (need_warning || hung_task_call_panic) {
-+		si_mask |= SYS_INFO_LOCKS;
-+
-+		if (sysctl_hung_task_all_cpu_backtrace)
-+			si_mask |= SYS_INFO_ALL_BT;
- 	}
++		sys_info(hardlockup_si_mask & ~SYS_INFO_ALL_BT);
+ 		if (hardlockup_panic)
+ 			nmi_panic(regs, "Hard LOCKUP");
  
-+	sys_info(si_mask);
+@@ -330,6 +343,13 @@ static void lockup_detector_update_enabl
+ int __read_mostly sysctl_softlockup_all_cpu_backtrace;
+ #endif
+ 
++/*
++ * bitmasks to control what kinds of system info to be printed when
++ * soft lockup is detected, it could be task, memory, lock etc.
++ * Refer include/linux/sys_info.h for detailed bit definition.
++ */
++static unsigned long softlockup_si_mask;
 +
- 	if (hung_task_call_panic)
- 		panic("hung_task: blocked tasks");
- }
-@@ -434,6 +441,13 @@ static const struct ctl_table hung_task_
- 		.mode		= 0444,
- 		.proc_handler	= proc_doulongvec_minmax,
+ static struct cpumask watchdog_allowed_mask __read_mostly;
+ 
+ /* Global variables, exported for sysctl */
+@@ -746,7 +766,7 @@ static enum hrtimer_restart watchdog_tim
+ 	unsigned long touch_ts, period_ts, now;
+ 	struct pt_regs *regs = get_irq_regs();
+ 	int duration;
+-	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
++	int softlockup_all_cpu_backtrace;
+ 	unsigned long flags;
+ 
+ 	if (!watchdog_enabled)
+@@ -758,6 +778,9 @@ static enum hrtimer_restart watchdog_tim
+ 	if (panic_in_progress())
+ 		return HRTIMER_NORESTART;
+ 
++	softlockup_all_cpu_backtrace = (softlockup_si_mask & SYS_INFO_ALL_BT) ?
++					1 : sysctl_softlockup_all_cpu_backtrace;
++
+ 	watchdog_hardlockup_kick();
+ 
+ 	/* kick the softlockup detector */
+@@ -846,6 +869,7 @@ static enum hrtimer_restart watchdog_tim
+ 		}
+ 
+ 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
++		sys_info(softlockup_si_mask & ~SYS_INFO_ALL_BT);
+ 		if (softlockup_panic)
+ 			panic("softlockup: hung tasks");
+ 	}
+@@ -1197,6 +1221,13 @@ static const struct ctl_table watchdog_s
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
  	},
 +	{
-+		.procname	= "hung_task_sys_info",
-+		.data		= &hung_task_si_mask,
-+		.maxlen         = sizeof(hung_task_si_mask),
++		.procname	= "softlockup_sys_info",
++		.data		= &softlockup_si_mask,
++		.maxlen         = sizeof(softlockup_si_mask),
 +		.mode		= 0644,
 +		.proc_handler	= sysctl_sys_info_handler,
 +	},
- };
- 
- static void __init hung_task_sysctl_init(void)
+ #ifdef CONFIG_SMP
+ 	{
+ 		.procname	= "softlockup_all_cpu_backtrace",
+@@ -1219,6 +1250,13 @@ static const struct ctl_table watchdog_s
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
++	{
++		.procname	= "hardlockup_sys_info",
++		.data		= &hardlockup_si_mask,
++		.maxlen         = sizeof(hardlockup_si_mask),
++		.mode		= 0644,
++		.proc_handler	= sysctl_sys_info_handler,
++	},
+ #ifdef CONFIG_SMP
+ 	{
+ 		.procname	= "hardlockup_all_cpu_backtrace",
 _
 
 Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
