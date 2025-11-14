@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9192535B12B
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:35:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F9EF2C327E
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:35:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763156116; cv=none; b=luLinqtxmCz9kjvrxCqQrd50RAJQulNaFPH42U80GVhSsRl8O/Uz/4+zoKZen5BEgkq+vPq3bnpbFcLjOsPmETWps5VAEof8AO+5/Z2pjK+QrPdr63YYUFCvjk41feWGfLmpoGPHxRMt1ajXew1iOEBMm+SVvaqe1Y4b86kSHfw=
+	t=1763156119; cv=none; b=R28Mgpd3sKBPUQEJpoZMJgsDophnkhrcF1a5edSYOIPM21FfDHpkUT+mxhRXfBLPPy+wN4KIwTd6hQPlOll1tmcFtNcOLzosU1zFQGCZMc31WHoho1Qm3iWwMKaDsZ91AS1GKDTaLfJ39D37BfqwrXCmSI7IB0qUXNKyNHCLsn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763156116; c=relaxed/simple;
-	bh=SqJB08PfmipHfIRde7r+8L/1t2pWJQwt0NrUGYBWTgU=;
-	h=Date:To:From:Subject:Message-Id; b=losxeEd/JPUaNuk3+RgBPy5sIHxUhbgZKSumJzrSVCmv0hZiRy4g5T62w5BI4OtZgD4+skeMrGImiJK3n8/rLUo4A4oCvO3CncthccV1w8gMnbvU9Z74hhZ52BTxv07GCphGRCNooh700jU7VaN9VddUHpjH2QhpO/lwcKaezdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aIGWuKj9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763156119; c=relaxed/simple;
+	bh=reZny+rVhXVu6iuyp84XnFfdpBkQZiuLc+BgXkfknHc=;
+	h=Date:To:From:Subject:Message-Id; b=bmNg/FIk+wZhIYGy2/Lt24hQzhbFfsvZ2CzMM59nuX2DVdqjrbRambxpZxrpFJZv2ENdLnTLfKl3PQrZx7gBuAH5/CL3kGWc76rxOPIzIkXKak79HewQxZB2hc6UCln06Z69denQlWnHuSLALCJw0IWvi3miSyeFL+1XDvhGf38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q7oaHp/a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aIGWuKj9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C50DC4CEF1;
-	Fri, 14 Nov 2025 21:35:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q7oaHp/a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10AE9C2BC9E;
+	Fri, 14 Nov 2025 21:35:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763156116;
-	bh=SqJB08PfmipHfIRde7r+8L/1t2pWJQwt0NrUGYBWTgU=;
+	s=korg; t=1763156119;
+	bh=reZny+rVhXVu6iuyp84XnFfdpBkQZiuLc+BgXkfknHc=;
 	h=Date:To:From:Subject:From;
-	b=aIGWuKj9kAQMvtY7REABXq8FYYc5IC4+OfGpHogOd2kW7STkp3hP2ScczR+VV4GOp
-	 uw55DuyRa67AfwEDJLVowpclMuWAaTSqJENeg0oUcJYT6MMEbaSR6BjrOfbEpCAboe
-	 mvOIsKAcd3qKuQLZuEIMy7UN8PlBIWis2V/QzQf0=
-Date: Fri, 14 Nov 2025 13:35:14 -0800
+	b=Q7oaHp/aCrjDBSNtG3VdvBerHPrMZNT8dp1xNw+OJoUnz/G13GgqPFgNea6l+n1jr
+	 W639Uh4VKl+ti16ke5do2FmWLZlO3M0d4qzcMhWKXks6/VSpYd12DpSGXQqHRUdiL1
+	 pIpzXt9V4rZwrjsA1Jpmo6Lke9QmHu55cGP4oR5Q=
+Date: Fri, 14 Nov 2025 13:35:17 -0800
 To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,kees@kernel.org,graf@amazon.com,ebiggers@google.com,dave@vasilevsky.ca,coxu@redhat.com,bhe@redhat.com,arnd@arndb.de,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-preserve-fdt-folio-only-once-during-initialization.patch added to mm-nonmm-unstable branch
-Message-Id: <20251114213516.1C50DC4CEF1@smtp.kernel.org>
+Subject: + kho-verify-deserialization-status-and-fix-fdt-alignment-access.patch added to mm-nonmm-unstable branch
+Message-Id: <20251114213519.10AE9C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: preserve FDT folio only once during initialization
+     Subject: kho: verify deserialization status and fix FDT alignment access
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-preserve-fdt-folio-only-once-during-initialization.patch
+     kho-verify-deserialization-status-and-fix-fdt-alignment-access.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-preserve-fdt-folio-only-once-during-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-verify-deserialization-status-and-fix-fdt-alignment-access.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: preserve FDT folio only once during initialization
-Date: Fri, 14 Nov 2025 13:59:53 -0500
+Subject: kho: verify deserialization status and fix FDT alignment access
+Date: Fri, 14 Nov 2025 13:59:54 -0500
 
-Currently, the FDT folio is preserved inside __kho_finalize().  If the
-user performs multiple finalize/abort cycles, kho_preserve_folio() is
-called repeatedly for the same FDT folio.
+During boot, kho_restore_folio() relies on the memory map having been
+successfully deserialized.  If deserialization fails or no map is present,
+attempting to restore the FDT folio is unsafe.
 
-Since the FDT folio is allocated once during kho_init(), it should be
-marked for preservation at the same time.  Move the preservation call to
-kho_init() to align the preservation state with the object's lifecycle and
-simplify the finalize path.
+Update kho_mem_deserialize() to return a boolean indicating success.  Use
+this return value in kho_memory_init() to disable KHO if deserialization
+fails.  Also, the incoming FDT folio is never used, there is no reason to
+restore it.
 
-Also, pre-zero the FDT tree so we do not expose random bits to the user
-and to the next kernel by using the new kho_alloc_preserve() api.
+Additionally, use get_unaligned() to retrieve the memory map pointer from
+the FDT.  FDT properties are not guaranteed to be naturally aligned, and
+accessing a 64-bit value via a pointer that is only 32-bit aligned can
+cause faults.
 
-Link: https://lkml.kernel.org/r/20251114190002.3311679-5-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20251114190002.3311679-6-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
@@ -88,58 +90,82 @@ Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ kernel/liveupdate/kexec_handover.c |   32 ++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 13 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-preserve-fdt-folio-only-once-during-initialization
+--- a/kernel/liveupdate/kexec_handover.c~kho-verify-deserialization-status-and-fix-fdt-alignment-access
 +++ a/kernel/liveupdate/kexec_handover.c
-@@ -1251,10 +1251,6 @@ static int __kho_finalize(void)
- 	if (err)
- 		goto abort;
+@@ -18,6 +18,7 @@
+ #include <linux/list.h>
+ #include <linux/memblock.h>
+ #include <linux/page-isolation.h>
++#include <linux/unaligned.h>
+ #include <linux/vmalloc.h>
  
--	err = kho_preserve_folio(virt_to_folio(kho_out.fdt));
--	if (err)
--		goto abort;
--
- 	err = kho_mem_serialize(&kho_out);
- 	if (err)
- 		goto abort;
-@@ -1384,19 +1380,17 @@ EXPORT_SYMBOL_GPL(kho_retrieve_subtree);
- 
- static __init int kho_init(void)
- {
--	int err = 0;
- 	const void *fdt = kho_get_fdt();
--	struct page *fdt_page;
-+	int err = 0;
- 
- 	if (!kho_enable)
- 		return 0;
- 
--	fdt_page = alloc_page(GFP_KERNEL);
--	if (!fdt_page) {
--		err = -ENOMEM;
-+	kho_out.fdt = kho_alloc_preserve(PAGE_SIZE);
-+	if (IS_ERR(kho_out.fdt)) {
-+		err = PTR_ERR(kho_out.fdt);
- 		goto err_free_scratch;
+ #include <asm/early_ioremap.h>
+@@ -451,20 +452,27 @@ static void __init deserialize_bitmap(un
  	}
--	kho_out.fdt = page_to_virt(fdt_page);
+ }
  
- 	err = kho_debugfs_init();
- 	if (err)
-@@ -1424,9 +1418,9 @@ static __init int kho_init(void)
- 	return 0;
+-static void __init kho_mem_deserialize(const void *fdt)
++/* Return true if memory was deserizlied */
++static bool __init kho_mem_deserialize(const void *fdt)
+ {
+ 	struct khoser_mem_chunk *chunk;
+-	const phys_addr_t *mem;
++	const void *mem_ptr;
++	u64 mem;
+ 	int len;
  
- err_free_fdt:
--	put_page(fdt_page);
--	kho_out.fdt = NULL;
-+	kho_unpreserve_free(kho_out.fdt);
- err_free_scratch:
-+	kho_out.fdt = NULL;
- 	for (int i = 0; i < kho_scratch_cnt; i++) {
- 		void *start = __va(kho_scratch[i].addr);
- 		void *end = start + kho_scratch[i].size;
+-	mem = fdt_getprop(fdt, 0, PROP_PRESERVED_MEMORY_MAP, &len);
+-
+-	if (!mem || len != sizeof(*mem)) {
++	mem_ptr = fdt_getprop(fdt, 0, PROP_PRESERVED_MEMORY_MAP, &len);
++	if (!mem_ptr || len != sizeof(u64)) {
+ 		pr_err("failed to get preserved memory bitmaps\n");
+-		return;
++		return false;
+ 	}
+ 
+-	chunk = *mem ? phys_to_virt(*mem) : NULL;
++	mem = get_unaligned((const u64 *)mem_ptr);
++	chunk = mem ? phys_to_virt(mem) : NULL;
++
++	/* No preserved physical pages were passed, no deserialization */
++	if (!chunk)
++		return false;
++
+ 	while (chunk) {
+ 		unsigned int i;
+ 
+@@ -473,6 +481,8 @@ static void __init kho_mem_deserialize(c
+ 					   &chunk->bitmaps[i]);
+ 		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
+ 	}
++
++	return true;
+ }
+ 
+ /*
+@@ -1458,16 +1468,12 @@ static void __init kho_release_scratch(v
+ 
+ void __init kho_memory_init(void)
+ {
+-	struct folio *folio;
+-
+ 	if (kho_in.scratch_phys) {
+ 		kho_scratch = phys_to_virt(kho_in.scratch_phys);
+ 		kho_release_scratch();
+ 
+-		kho_mem_deserialize(kho_get_fdt());
+-		folio = kho_restore_folio(kho_in.fdt_phys);
+-		if (!folio)
+-			pr_warn("failed to restore folio for KHO fdt\n");
++		if (!kho_mem_deserialize(kho_get_fdt()))
++			kho_in.fdt_phys = 0;
+ 	} else {
+ 		kho_reserve_scratch();
+ 	}
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
