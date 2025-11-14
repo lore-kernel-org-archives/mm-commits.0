@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536B32FC017
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:35:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9192535B12B
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:35:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763156113; cv=none; b=F53xw2VzBTT6SMG8dZ7byfxPYHnnCghaxF4hLAzHRZ0idiDBd+RSbghNAuifPqWdqUWgKaW41fQ8XpxigXRNBzRvMYdv9SXz+d+gW673roc3D5cfeuvFaqquLggIHkewSIO+XXpm4NS4LZktMp0yT0AZVG+EKOf85c9Rtc82PKE=
+	t=1763156116; cv=none; b=luLinqtxmCz9kjvrxCqQrd50RAJQulNaFPH42U80GVhSsRl8O/Uz/4+zoKZen5BEgkq+vPq3bnpbFcLjOsPmETWps5VAEof8AO+5/Z2pjK+QrPdr63YYUFCvjk41feWGfLmpoGPHxRMt1ajXew1iOEBMm+SVvaqe1Y4b86kSHfw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763156113; c=relaxed/simple;
-	bh=wNsZcfxlbP0J1zY4zJJuADRZcqx9a32bc6izN+smDmk=;
-	h=Date:To:From:Subject:Message-Id; b=iWIP213rXM/kV88SD/r08Kt+BoKO0eqhuqrizFq505MtwoSKLI1I4Y7HIVhh6Wg8WZXZhw9D1s3DWAM++dEw45+1+PiXylw+wNoWrmIH0ZUtcsousDCan7HeurGnuKdf+Zk9cHiC0vhjS8H4/SF8mheTrNZMbFTxX0z//daU7Vs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ut9j9UpS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763156116; c=relaxed/simple;
+	bh=SqJB08PfmipHfIRde7r+8L/1t2pWJQwt0NrUGYBWTgU=;
+	h=Date:To:From:Subject:Message-Id; b=losxeEd/JPUaNuk3+RgBPy5sIHxUhbgZKSumJzrSVCmv0hZiRy4g5T62w5BI4OtZgD4+skeMrGImiJK3n8/rLUo4A4oCvO3CncthccV1w8gMnbvU9Z74hhZ52BTxv07GCphGRCNooh700jU7VaN9VddUHpjH2QhpO/lwcKaezdc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aIGWuKj9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ut9j9UpS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBF28C4CEF1;
-	Fri, 14 Nov 2025 21:35:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aIGWuKj9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C50DC4CEF1;
+	Fri, 14 Nov 2025 21:35:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763156112;
-	bh=wNsZcfxlbP0J1zY4zJJuADRZcqx9a32bc6izN+smDmk=;
+	s=korg; t=1763156116;
+	bh=SqJB08PfmipHfIRde7r+8L/1t2pWJQwt0NrUGYBWTgU=;
 	h=Date:To:From:Subject:From;
-	b=Ut9j9UpSRekKZzk6f1YsxM5PEVNXuS7djLqX8x/rjfm+eoftmaMFTYR3VW6kRVQrB
-	 NZsKN53VxE8NMWPoKo2BsNBGA+bSJZmWym8n2oPRSU33WG7RVeU527B0dkU0i+jpxH
-	 PREtU1n7IHoyX4rImZsW9KqOH/GPmj4JYOsuwyQo=
-Date: Fri, 14 Nov 2025 13:35:11 -0800
+	b=aIGWuKj9kAQMvtY7REABXq8FYYc5IC4+OfGpHogOd2kW7STkp3hP2ScczR+VV4GOp
+	 uw55DuyRa67AfwEDJLVowpclMuWAaTSqJENeg0oUcJYT6MMEbaSR6BjrOfbEpCAboe
+	 mvOIsKAcd3qKuQLZuEIMy7UN8PlBIWis2V/QzQf0=
+Date: Fri, 14 Nov 2025 13:35:14 -0800
 To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,kees@kernel.org,graf@amazon.com,ebiggers@google.com,dave@vasilevsky.ca,coxu@redhat.com,bhe@redhat.com,arnd@arndb.de,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-introduce-high-level-memory-allocation-api.patch added to mm-nonmm-unstable branch
-Message-Id: <20251114213512.CBF28C4CEF1@smtp.kernel.org>
+Subject: + kho-preserve-fdt-folio-only-once-during-initialization.patch added to mm-nonmm-unstable branch
+Message-Id: <20251114213516.1C50DC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: introduce high-level memory allocation API
+     Subject: kho: preserve FDT folio only once during initialization
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-introduce-high-level-memory-allocation-api.patch
+     kho-preserve-fdt-folio-only-once-during-initialization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-introduce-high-level-memory-allocation-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-preserve-fdt-folio-only-once-during-initialization.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: introduce high-level memory allocation API
-Date: Fri, 14 Nov 2025 13:59:52 -0500
+Subject: kho: preserve FDT folio only once during initialization
+Date: Fri, 14 Nov 2025 13:59:53 -0500
 
-Currently, clients of KHO must manually allocate memory (e.g., via
-alloc_pages), calculate the page order, and explicitly call
-kho_preserve_folio().  Similarly, cleanup requires separate calls to
-unpreserve and free the memory.
+Currently, the FDT folio is preserved inside __kho_finalize().  If the
+user performs multiple finalize/abort cycles, kho_preserve_folio() is
+called repeatedly for the same FDT folio.
 
-Introduce a high-level API to streamline this common pattern:
+Since the FDT folio is allocated once during kho_init(), it should be
+marked for preservation at the same time.  Move the preservation call to
+kho_init() to align the preservation state with the object's lifecycle and
+simplify the finalize path.
 
-- kho_alloc_preserve(size): Allocates physically contiguous, zeroed
-  memory and immediately marks it for preservation.
-- kho_unpreserve_free(ptr): Unpreserves and frees the memory
-  in the current kernel.
-- kho_restore_free(ptr): Restores the struct page state of
-  preserved memory in the new kernel and immediately frees it to the
-  page allocator.
+Also, pre-zero the FDT tree so we do not expose random bits to the user
+and to the next kernel by using the new kho_alloc_preserve() api.
 
-Link: https://lkml.kernel.org/r/20251114190002.3311679-4-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20251114190002.3311679-5-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
@@ -91,172 +88,58 @@ Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec_handover.h     |   22 ++++--
- kernel/liveupdate/kexec_handover.c |   87 +++++++++++++++++++++++++++
- 2 files changed, 102 insertions(+), 7 deletions(-)
+ kernel/liveupdate/kexec_handover.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
---- a/include/linux/kexec_handover.h~kho-introduce-high-level-memory-allocation-api
-+++ a/include/linux/kexec_handover.h
-@@ -2,8 +2,9 @@
- #ifndef LINUX_KEXEC_HANDOVER_H
- #define LINUX_KEXEC_HANDOVER_H
- 
--#include <linux/types.h>
-+#include <linux/err.h>
- #include <linux/errno.h>
-+#include <linux/types.h>
- 
- struct kho_scratch {
- 	phys_addr_t addr;
-@@ -48,6 +49,9 @@ int kho_preserve_pages(struct page *page
- int kho_unpreserve_pages(struct page *page, unsigned int nr_pages);
- int kho_preserve_vmalloc(void *ptr, struct kho_vmalloc *preservation);
- int kho_unpreserve_vmalloc(struct kho_vmalloc *preservation);
-+void *kho_alloc_preserve(size_t size);
-+void kho_unpreserve_free(void *mem);
-+void kho_restore_free(void *mem);
- struct folio *kho_restore_folio(phys_addr_t phys);
- struct page *kho_restore_pages(phys_addr_t phys, unsigned int nr_pages);
- void *kho_restore_vmalloc(const struct kho_vmalloc *preservation);
-@@ -101,6 +105,14 @@ static inline int kho_unpreserve_vmalloc
- 	return -EOPNOTSUPP;
- }
- 
-+void *kho_alloc_preserve(size_t size)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+void kho_unpreserve_free(void *mem) { }
-+void kho_restore_free(void *mem) { }
-+
- static inline struct folio *kho_restore_folio(phys_addr_t phys)
- {
- 	return NULL;
-@@ -122,18 +134,14 @@ static inline int kho_add_subtree(const
- 	return -EOPNOTSUPP;
- }
- 
--static inline void kho_remove_subtree(void *fdt)
--{
--}
-+static inline void kho_remove_subtree(void *fdt) { }
- 
- static inline int kho_retrieve_subtree(const char *name, phys_addr_t *phys)
- {
- 	return -EOPNOTSUPP;
- }
- 
--static inline void kho_memory_init(void)
--{
--}
-+static inline void kho_memory_init(void) { }
- 
- static inline void kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
- 				phys_addr_t scratch_phys, u64 scratch_len)
---- a/kernel/liveupdate/kexec_handover.c~kho-introduce-high-level-memory-allocation-api
+--- a/kernel/liveupdate/kexec_handover.c~kho-preserve-fdt-folio-only-once-during-initialization
 +++ a/kernel/liveupdate/kexec_handover.c
-@@ -4,6 +4,7 @@
-  * Copyright (C) 2023 Alexander Graf <graf@amazon.com>
-  * Copyright (C) 2025 Microsoft Corporation, Mike Rapoport <rppt@kernel.org>
-  * Copyright (C) 2025 Google LLC, Changyuan Lyu <changyuanl@google.com>
-+ * Copyright (C) 2025 Pasha Tatashin <pasha.tatashin@soleen.com>
-  */
+@@ -1251,10 +1251,6 @@ static int __kho_finalize(void)
+ 	if (err)
+ 		goto abort;
  
- #define pr_fmt(fmt) "KHO: " fmt
-@@ -1117,6 +1118,92 @@ err_free_pages_array:
- }
- EXPORT_SYMBOL_GPL(kho_restore_vmalloc);
+-	err = kho_preserve_folio(virt_to_folio(kho_out.fdt));
+-	if (err)
+-		goto abort;
+-
+ 	err = kho_mem_serialize(&kho_out);
+ 	if (err)
+ 		goto abort;
+@@ -1384,19 +1380,17 @@ EXPORT_SYMBOL_GPL(kho_retrieve_subtree);
  
-+/**
-+ * kho_alloc_preserve - Allocate, zero, and preserve memory.
-+ * @size: The number of bytes to allocate.
-+ *
-+ * Allocates a physically contiguous block of zeroed pages that is large
-+ * enough to hold @size bytes. The allocated memory is then registered with
-+ * KHO for preservation across a kexec.
-+ *
-+ * Note: The actual allocated size will be rounded up to the nearest
-+ * power-of-two page boundary.
-+ *
-+ * @return A virtual pointer to the allocated and preserved memory on success,
-+ * or an ERR_PTR() encoded error on failure.
-+ */
-+void *kho_alloc_preserve(size_t size)
-+{
-+	struct folio *folio;
-+	int order, ret;
-+
-+	if (!size)
-+		return ERR_PTR(-EINVAL);
-+
-+	order = get_order(size);
-+	if (order > MAX_PAGE_ORDER)
-+		return ERR_PTR(-E2BIG);
-+
-+	folio = folio_alloc(GFP_KERNEL | __GFP_ZERO, order);
-+	if (!folio)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = kho_preserve_folio(folio);
-+	if (ret) {
-+		folio_put(folio);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return folio_address(folio);
-+}
-+EXPORT_SYMBOL_GPL(kho_alloc_preserve);
-+
-+/**
-+ * kho_unpreserve_free - Unpreserve and free memory.
-+ * @mem:  Pointer to the memory allocated by kho_alloc_preserve().
-+ *
-+ * Unregisters the memory from KHO preservation and frees the underlying
-+ * pages back to the system. This function should be called to clean up
-+ * memory allocated with kho_alloc_preserve().
-+ */
-+void kho_unpreserve_free(void *mem)
-+{
-+	struct folio *folio;
-+
-+	if (!mem)
-+		return;
-+
-+	folio = virt_to_folio(mem);
-+	WARN_ON_ONCE(kho_unpreserve_folio(folio));
-+	folio_put(folio);
-+}
-+EXPORT_SYMBOL_GPL(kho_unpreserve_free);
-+
-+/**
-+ * kho_restore_free - Restore and free memory after kexec.
-+ * @mem:  Pointer to the memory (in the new kernel's address space)
-+ * that was allocated by the old kernel.
-+ *
-+ * This function is intended to be called in the new kernel (post-kexec)
-+ * to take ownership of and free a memory region that was preserved by the
-+ * old kernel using kho_alloc_preserve().
-+ *
-+ * It first restores the pages from KHO (using their physical address)
-+ * and then frees the pages back to the new kernel's page allocator.
-+ */
-+void kho_restore_free(void *mem)
-+{
-+	struct folio *folio;
-+
-+	if (!mem)
-+		return;
-+
-+	folio = kho_restore_folio(__pa(mem));
-+	if (!WARN_ON(!folio))
-+		folio_put(folio);
-+}
-+EXPORT_SYMBOL_GPL(kho_restore_free);
-+
- static void __kho_abort(void)
+ static __init int kho_init(void)
  {
- 	if (kho_out.preserved_mem_map) {
+-	int err = 0;
+ 	const void *fdt = kho_get_fdt();
+-	struct page *fdt_page;
++	int err = 0;
+ 
+ 	if (!kho_enable)
+ 		return 0;
+ 
+-	fdt_page = alloc_page(GFP_KERNEL);
+-	if (!fdt_page) {
+-		err = -ENOMEM;
++	kho_out.fdt = kho_alloc_preserve(PAGE_SIZE);
++	if (IS_ERR(kho_out.fdt)) {
++		err = PTR_ERR(kho_out.fdt);
+ 		goto err_free_scratch;
+ 	}
+-	kho_out.fdt = page_to_virt(fdt_page);
+ 
+ 	err = kho_debugfs_init();
+ 	if (err)
+@@ -1424,9 +1418,9 @@ static __init int kho_init(void)
+ 	return 0;
+ 
+ err_free_fdt:
+-	put_page(fdt_page);
+-	kho_out.fdt = NULL;
++	kho_unpreserve_free(kho_out.fdt);
+ err_free_scratch:
++	kho_out.fdt = NULL;
+ 	for (int i = 0; i < kho_scratch_cnt; i++) {
+ 		void *start = __va(kho_scratch[i].addr);
+ 		void *end = start + kho_scratch[i].size;
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
