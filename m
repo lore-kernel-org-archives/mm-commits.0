@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF402221FB2
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:25:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9FA619F127
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:58:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763159145; cv=none; b=C9JdQc89c0vyuJfvpq5EWmv5NwdRX2AMsu68AIoQJGiYOS0raDVX6imS9rHbrppHahLcH0vKvd8B/CQKhjJtBxgjc2VVMA1MRi3OkhoyYetGReJPGHuwYYS2IYr+PjQOsJ9hLPVUm8j+ubmrvR7iLttuoh3Yw+j+nM190+sq39I=
+	t=1763161123; cv=none; b=Na6jEbikveVoOLLB0Vzx9RdpWdhvaDf+YaTdB/HSwpxjwMSRsywOouEYzS+DlCE5Cw9SrZRnuzzyhFL8DUhgdeT3DkCfP+wrwjwEPWzeIP3QhzjJj3eUYhhrBYQIq4M9SJEzMwDtEWyOLS4D13FCsbto+kMcd3r9Q32amXChoYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763159145; c=relaxed/simple;
-	bh=6l0+DOopB0V2p7C3kJfkKFHv1l/Q3oJvIl4Pq8uBCTo=;
-	h=Date:To:From:Subject:Message-Id; b=fL6dim1OTsMHYte6Pqe6zR0pRIKQcLvEgDzNE6ANzpxgACwpOzG8zKznNAZ1snD1/zWLDecUVBG2lb8bMzpKvN9qC2wZpLuIo1XvTfoAYYNy+zADi8tcYTs7D8J7FbhbJLER6grlM2tKBjUycQkhRjQVno+gB7eXjWdxgwc7nwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OoW7VUEw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763161123; c=relaxed/simple;
+	bh=pIAFC/eiwpG4b3L9Mj+Qnx4RyPoyeUKpCWFV7e3kcFI=;
+	h=Date:To:From:Subject:Message-Id; b=f/5zApD0HWXxNWNvU+SPBRq1gErEkBfz9gWOatiivX7sLi639TUBAy0Cq81rw7fbLDDSfHapbCdT0Ie5HWTabBvv3oKihAIIpumWHe2AL1Cnb6erI6xhFenpLFZGlaLoR/k7lYvYXEc5RM7cj8AK6Cb9SHD5nFVE4VRx6CSUoPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tIpAkw0v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OoW7VUEw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6A06C4CEF8;
-	Fri, 14 Nov 2025 22:25:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tIpAkw0v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63C9AC16AAE;
+	Fri, 14 Nov 2025 22:58:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763159144;
-	bh=6l0+DOopB0V2p7C3kJfkKFHv1l/Q3oJvIl4Pq8uBCTo=;
+	s=korg; t=1763161122;
+	bh=pIAFC/eiwpG4b3L9Mj+Qnx4RyPoyeUKpCWFV7e3kcFI=;
 	h=Date:To:From:Subject:From;
-	b=OoW7VUEwlrTcJUcYdx/hgcLa3+IAWoP8A+1jVj3euYXHbP88vIvzkat+QciGdFEaU
-	 dN+H1r9JFgprH2fBSnQbZnZS7fHCuyt9jJeVPLHsiyKniD4TbbNzy57jMT6j3LfTxd
-	 ChA4p67e0es4tyx5/FtGPeTGo/1rj4U1mDtDwN4Q=
-Date: Fri, 14 Nov 2025 14:25:44 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,tmgross@umich.edu,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,riel@surriel.com,rakie.kim@sk.com,peterz@infradead.org,peterx@redhat.com,osalvador@suse.de,ojeda@kernel.org,nphamcs@gmail.com,npache@redhat.com,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,matthew.brost@intel.com,lkp@intel.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kees@kernel.org,kasong@tencent.com,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,gary@garyguo.net,dietmar.eggemann@arm.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,bsegall@google.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=tIpAkw0vmqXabUez7wgTXzqv723FwFooMeToPPnDfGS6jT15hLS/wnBFhvL6LIYcP
+	 ytuDRyGHpBnUi7N/PFR34RlpCtyThMyz4v2uFVJKpU+KcXC1Jxh1gjSGgEoa5Foj1M
+	 9oQTUWfoBvRVaMA6tHVgNBI8VHwoJqoSaE5SPCHs=
+Date: Fri, 14 Nov 2025 14:58:41 -0800
+To: mm-commits@vger.kernel.org,xiubli@redhat.com,tytso@mit.edu,Slava.Dubeyko@ibm.com,sagi@grimberg.me,kbusch@kernel.org,jaegeuk@kernel.org,idryomov@gmail.com,home7438072@gmail.com,hch@lst.de,ebiggers@kernel.org,david.laight.linux@gmail.com,axboe@kernel.dk,409411716@gms.tku.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-vma-flags-bitmap-type.patch added to mm-new branch
-Message-Id: <20251114222544.A6A06C4CEF8@smtp.kernel.org>
+Subject: + lib-base64-add-support-for-multiple-variants.patch added to mm-nonmm-unstable branch
+Message-Id: <20251114225842.63C9AC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce VMA flags bitmap type
-has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-vma-flags-bitmap-type.patch
+     Subject: lib/base64: add support for multiple variants
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-base64-add-support-for-multiple-variants.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vma-flags-bitmap-type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-base64-add-support-for-multiple-variants.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,539 +58,235 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: introduce VMA flags bitmap type
-Date: Fri, 14 Nov 2025 13:26:11 +0000
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: lib/base64: add support for multiple variants
+Date: Fri, 14 Nov 2025 14:00:45 +0800
 
-It is useful to transition to using a bitmap for VMA flags so we can avoid
-running out of flags, especially for 32-bit kernels which are constrained
-to 32 flags, necessitating some features to be limited to 64-bit kernels
-only.
+Patch series " lib/base64: add generic encoder/decoder, migrate users", v5.
 
-By doing so, we remove any constraint on the number of VMA flags moving
-forwards no matter the platform and can decide in future to extend beyond
-64 if required.
+This series introduces a generic Base64 encoder/decoder to the kernel
+library, eliminating duplicated implementations and delivering significant
+performance improvements.
 
-We start by declaring an opaque types, vma_flags_t (which resembles
-mm_struct flags of type mm_flags_t), setting it to precisely the same size
-as vm_flags_t, and place it in union with vm_flags in the VMA declaration.
+The Base64 API has been extended to support multiple variants (Standard,
+URL-safe, and IMAP) as defined in RFC 4648 and RFC 3501.  The API now
+takes a variant parameter and an option to control padding.  As part of
+this series, users are migrated to the new interface while preserving
+their specific formats: fscrypt now uses BASE64_URLSAFE, Ceph uses
+BASE64_IMAP, and NVMe is updated to BASE64_STD.
 
-We additionally update struct vm_area_desc equivalently placing the new
-opaque type in union with vm_flags.
+On the encoder side, the implementation processes input in 3-byte blocks,
+mapping 24 bits directly to 4 output symbols.  This avoids bit-by-bit
+streaming and reduces loop overhead, achieving about a 2.7x speedup
+compared to previous implementations.
 
-This change therefore does not impact the size of struct vm_area_struct or
-struct vm_area_desc.
+On the decoder side, replace strchr() lookups with per-variant reverse
+tables and process input in 4-character groups.  Each group is mapped to
+numeric values and combined into 3 bytes.  Padded and unpadded forms are
+validated explicitly, rejecting invalid '=' usage and enforcing tail
+rules.  This improves throughput by ~43-52x.
 
-In order for the change to be iterative and to avoid impacting
-performance, we designate VM_xxx declared bitmap flag values as those
-which must exist in the first system word of the VMA flags bitmap.
 
-We therefore declare vma_flags_clear_all(), vma_flags_overwrite_word(),
-vma_flags_overwrite_word(), vma_flags_overwrite_word_once(),
-vma_flags_set_word() and vma_flags_clear_word() in order to allow us to
-update the existing vm_flags_*() functions to utilise these helpers.
+This patch (of 6):
 
-This is a stepping stone towards converting users to the VMA flags bitmap
-and behaves precisely as before.
+Extend the base64 API to support multiple variants (standard, URL-safe,
+and IMAP) as defined in RFC 4648 and RFC 3501.  The API now takes a
+variant parameter and an option to control padding.  Update NVMe auth code
+to use the new interface with BASE64_STD.
 
-By doing this, we can eliminate the existing private vma->__vm_flags field
-in the vma->vm_flags union and replace it with the newly introduced opaque
-type vma_flags, which we call flags so we refer to the new bitmap field as
-vma->flags.
-
-We update vma_flag_[test, set]_atomic() to account for the change also.
-
-We additionally update the VMA userland test declarations to implement the
-same changes there.
-
-Finally, we update the rust code to reference vma->vm_flags on update
-rather than vma->__vm_flags which has been removed.  This is safe for now,
-albeit it is implicitly performing a const cast.
-
-Once we introduce flag helpers we can improve this more.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/195625e7d1a8ff9156cb9bb294eb128b6a4e9294.1763126447.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Alex Gaynor <alex.gaynor@gmail.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andreas Hindborg <a.hindborg@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Trevor Gross <tmgross@umich.edu>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20251114055829.87814-1-409411716@gms.tku.edu.tw
+Link: https://lkml.kernel.org/r/20251114060045.88792-1-409411716@gms.tku.edu.tw
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Co-developed-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
+Signed-off-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
+Reviewed-by: David Laight <david.laight.linux@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Keith Busch <kbusch@kernel.org>
+Cc: Sagi Grimberg <sagi@grimberg.me>
+Cc: "Theodore Y. Ts'o" <tytso@mit.edu>
+Cc: Viacheslav Dubeyko <Slava.Dubeyko@ibm.com>
+Cc: Xiubo Li <xiubli@redhat.com>
+Cc: Yu-Sheng Huang <home7438072@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |   18 ++-
- include/linux/mm_types.h         |   64 ++++++++++++
- rust/kernel/mm/virt.rs           |    2 
- tools/testing/vma/vma_internal.h |  143 ++++++++++++++++++++++++-----
- 4 files changed, 196 insertions(+), 31 deletions(-)
+ drivers/nvme/common/auth.c |    4 +-
+ include/linux/base64.h     |   10 ++++-
+ lib/base64.c               |   62 ++++++++++++++++++++---------------
+ 3 files changed, 46 insertions(+), 30 deletions(-)
 
---- a/include/linux/mm.h~mm-introduce-vma-flags-bitmap-type
-+++ a/include/linux/mm.h
-@@ -919,7 +919,8 @@ static inline void vma_init(struct vm_ar
- static inline void vm_flags_init(struct vm_area_struct *vma,
- 				 vm_flags_t flags)
- {
--	ACCESS_PRIVATE(vma, __vm_flags) = flags;
-+	vma_flags_clear_all(&vma->flags);
-+	vma_flags_overwrite_word(&vma->flags, flags);
- }
+--- a/drivers/nvme/common/auth.c~lib-base64-add-support-for-multiple-variants
++++ a/drivers/nvme/common/auth.c
+@@ -178,7 +178,7 @@ struct nvme_dhchap_key *nvme_auth_extrac
+ 	if (!key)
+ 		return ERR_PTR(-ENOMEM);
  
+-	key_len = base64_decode(secret, allocated_len, key->key);
++	key_len = base64_decode(secret, allocated_len, key->key, true, BASE64_STD);
+ 	if (key_len < 0) {
+ 		pr_debug("base64 key decoding error %d\n",
+ 			 key_len);
+@@ -663,7 +663,7 @@ int nvme_auth_generate_digest(u8 hmac_id
+ 	if (ret)
+ 		goto out_free_digest;
+ 
+-	ret = base64_encode(digest, digest_len, enc);
++	ret = base64_encode(digest, digest_len, enc, true, BASE64_STD);
+ 	if (ret < hmac_len) {
+ 		ret = -ENOKEY;
+ 		goto out_free_digest;
+--- a/include/linux/base64.h~lib-base64-add-support-for-multiple-variants
++++ a/include/linux/base64.h
+@@ -8,9 +8,15 @@
+ 
+ #include <linux/types.h>
+ 
++enum base64_variant {
++	BASE64_STD,       /* RFC 4648 (standard) */
++	BASE64_URLSAFE,   /* RFC 4648 (base64url) */
++	BASE64_IMAP,      /* RFC 3501 */
++};
++
+ #define BASE64_CHARS(nbytes)   DIV_ROUND_UP((nbytes) * 4, 3)
+ 
+-int base64_encode(const u8 *src, int len, char *dst);
+-int base64_decode(const char *src, int len, u8 *dst);
++int base64_encode(const u8 *src, int len, char *dst, bool padding, enum base64_variant variant);
++int base64_decode(const char *src, int len, u8 *dst, bool padding, enum base64_variant variant);
+ 
+ #endif /* _LINUX_BASE64_H */
+--- a/lib/base64.c~lib-base64-add-support-for-multiple-variants
++++ a/lib/base64.c
+@@ -1,12 +1,12 @@
+ // SPDX-License-Identifier: GPL-2.0
  /*
-@@ -938,21 +939,26 @@ static inline void vm_flags_reset_once(s
- 				       vm_flags_t flags)
- {
- 	vma_assert_write_locked(vma);
--	WRITE_ONCE(ACCESS_PRIVATE(vma, __vm_flags), flags);
-+	/*
-+	 * The user should only be interested in avoiding reordering of
-+	 * assignment to the first word.
-+	 */
-+	vma_flags_clear_all(&vma->flags);
-+	vma_flags_overwrite_word_once(&vma->flags, flags);
- }
- 
- static inline void vm_flags_set(struct vm_area_struct *vma,
- 				vm_flags_t flags)
- {
- 	vma_start_write(vma);
--	ACCESS_PRIVATE(vma, __vm_flags) |= flags;
-+	vma_flags_set_word(&vma->flags, flags);
- }
- 
- static inline void vm_flags_clear(struct vm_area_struct *vma,
- 				  vm_flags_t flags)
- {
- 	vma_start_write(vma);
--	ACCESS_PRIVATE(vma, __vm_flags) &= ~flags;
-+	vma_flags_clear_word(&vma->flags, flags);
- }
- 
- /*
-@@ -995,12 +1001,14 @@ static inline bool __vma_flag_atomic_val
- static inline void vma_flag_set_atomic(struct vm_area_struct *vma,
- 				       vma_flag_t bit)
- {
-+	unsigned long *bitmap = ACCESS_PRIVATE(&vma->flags, __vma_flags);
-+
- 	/* mmap read lock/VMA read lock must be held. */
- 	if (!rwsem_is_locked(&vma->vm_mm->mmap_lock))
- 		vma_assert_locked(vma);
- 
- 	if (__vma_flag_atomic_valid(vma, bit))
--		set_bit((__force int)bit, &ACCESS_PRIVATE(vma, __vm_flags));
-+		set_bit((__force int)bit, bitmap);
- }
- 
- /*
---- a/include/linux/mm_types.h~mm-introduce-vma-flags-bitmap-type
-+++ a/include/linux/mm_types.h
-@@ -849,6 +849,15 @@ struct mmap_action {
- };
- 
- /*
-+ * Opaque type representing current VMA (vm_area_struct) flag state. Must be
-+ * accessed via vma_flags_xxx() helper functions.
-+ */
-+#define NUM_VMA_FLAG_BITS BITS_PER_LONG
-+typedef struct {
-+	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
-+} __private vma_flags_t;
-+
-+/*
-  * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
-  * manipulate mutable fields which will cause those fields to be updated in the
-  * resultant VMA.
-@@ -865,7 +874,10 @@ struct vm_area_desc {
- 	/* Mutable fields. Populated with initial state. */
- 	pgoff_t pgoff;
- 	struct file *vm_file;
--	vm_flags_t vm_flags;
-+	union {
-+		vm_flags_t vm_flags;
-+		vma_flags_t vma_flags;
-+	};
- 	pgprot_t page_prot;
- 
- 	/* Write-only fields. */
-@@ -910,10 +922,12 @@ struct vm_area_struct {
- 	/*
- 	 * Flags, see mm.h.
- 	 * To modify use vm_flags_{init|reset|set|clear|mod} functions.
-+	 * Preferably, use vma_flags_xxx() functions.
- 	 */
- 	union {
-+		/* Temporary while VMA flags are being converted. */
- 		const vm_flags_t vm_flags;
--		vm_flags_t __private __vm_flags;
-+		vma_flags_t flags;
- 	};
- 
- #ifdef CONFIG_PER_VMA_LOCK
-@@ -994,6 +1008,52 @@ struct vm_area_struct {
- #endif
- } __randomize_layout;
- 
-+/* Clears all bits in the VMA flags bitmap, non-atomically. */
-+static inline void vma_flags_clear_all(vma_flags_t *flags)
-+{
-+	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
-+}
-+
-+/*
-+ * Copy value to the first system word of VMA flags, non-atomically.
-+ *
-+ * IMPORTANT: This does not overwrite bytes past the first system word. The
-+ * caller must account for this.
-+ */
-+static inline void vma_flags_overwrite_word(vma_flags_t *flags, unsigned long value)
-+{
-+	*ACCESS_PRIVATE(flags, __vma_flags) = value;
-+}
-+
-+/*
-+ * Copy value to the first system word of VMA flags ONCE, non-atomically.
-+ *
-+ * IMPORTANT: This does not overwrite bytes past the first system word. The
-+ * caller must account for this.
-+ */
-+static inline void vma_flags_overwrite_word_once(vma_flags_t *flags, unsigned long value)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+
-+	WRITE_ONCE(*bitmap, value);
-+}
-+
-+/* Update the first system word of VMA flags setting bits, non-atomically. */
-+static inline void vma_flags_set_word(vma_flags_t *flags, unsigned long value)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+
-+	*bitmap |= value;
-+}
-+
-+/* Update the first system word of VMA flags clearing bits, non-atomically. */
-+static inline void vma_flags_clear_word(vma_flags_t *flags, unsigned long value)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+
-+	*bitmap &= ~value;
-+}
-+
- #ifdef CONFIG_NUMA
- #define vma_policy(vma) ((vma)->vm_policy)
- #else
---- a/rust/kernel/mm/virt.rs~mm-introduce-vma-flags-bitmap-type
-+++ a/rust/kernel/mm/virt.rs
-@@ -250,7 +250,7 @@ impl VmaNew {
-         // SAFETY: This is not a data race: the vma is undergoing initial setup, so it's not yet
-         // shared. Additionally, `VmaNew` is `!Sync`, so it cannot be used to write in parallel.
-         // The caller promises that this does not set the flags to an invalid value.
--        unsafe { (*self.as_ptr()).__bindgen_anon_2.__vm_flags = flags };
-+        unsafe { (*self.as_ptr()).__bindgen_anon_2.vm_flags = flags };
-     }
- 
-     /// Set the `VM_MIXEDMAP` flag on this vma.
---- a/tools/testing/vma/vma_internal.h~mm-introduce-vma-flags-bitmap-type
-+++ a/tools/testing/vma/vma_internal.h
-@@ -527,6 +527,15 @@ typedef struct {
- 	__private DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
- } mm_flags_t;
- 
-+/*
-+ * Opaque type representing current VMA (vm_area_struct) flag state. Must be
-+ * accessed via vma_flags_xxx() helper functions.
-+ */
-+#define NUM_VMA_FLAG_BITS BITS_PER_LONG
-+typedef struct {
-+	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
-+} __private vma_flags_t;
-+
- struct mm_struct {
- 	struct maple_tree mm_mt;
- 	int map_count;			/* number of VMAs */
-@@ -611,7 +620,10 @@ struct vm_area_desc {
- 	/* Mutable fields. Populated with initial state. */
- 	pgoff_t pgoff;
- 	struct file *vm_file;
--	vm_flags_t vm_flags;
-+	union {
-+		vm_flags_t vm_flags;
-+		vma_flags_t vma_flags;
-+	};
- 	pgprot_t page_prot;
- 
- 	/* Write-only fields. */
-@@ -657,7 +669,7 @@ struct vm_area_struct {
- 	 */
- 	union {
- 		const vm_flags_t vm_flags;
--		vm_flags_t __private __vm_flags;
-+		vma_flags_t flags;
- 	};
- 
- #ifdef CONFIG_PER_VMA_LOCK
-@@ -1371,26 +1383,6 @@ static inline bool may_expand_vm(struct
- 	return true;
- }
- 
--static inline void vm_flags_init(struct vm_area_struct *vma,
--				 vm_flags_t flags)
--{
--	vma->__vm_flags = flags;
--}
--
--static inline void vm_flags_set(struct vm_area_struct *vma,
--				vm_flags_t flags)
--{
--	vma_start_write(vma);
--	vma->__vm_flags |= flags;
--}
--
--static inline void vm_flags_clear(struct vm_area_struct *vma,
--				  vm_flags_t flags)
--{
--	vma_start_write(vma);
--	vma->__vm_flags &= ~flags;
--}
--
- static inline int shmem_zero_setup(struct vm_area_struct *vma)
- {
- 	return 0;
-@@ -1547,13 +1539,118 @@ static inline void userfaultfd_unmap_com
- {
- }
- 
--# define ACCESS_PRIVATE(p, member) ((p)->member)
-+#define ACCESS_PRIVATE(p, member) ((p)->member)
-+
-+#define bitmap_size(nbits)	(ALIGN(nbits, BITS_PER_LONG) / BITS_PER_BYTE)
-+
-+static __always_inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
-+{
-+	unsigned int len = bitmap_size(nbits);
-+
-+	if (small_const_nbits(nbits))
-+		*dst = 0;
-+	else
-+		memset(dst, 0, len);
-+}
- 
- static inline bool mm_flags_test(int flag, const struct mm_struct *mm)
- {
- 	return test_bit(flag, ACCESS_PRIVATE(&mm->flags, __mm_flags));
- }
- 
-+/* Clears all bits in the VMA flags bitmap, non-atomically. */
-+static inline void vma_flags_clear_all(vma_flags_t *flags)
-+{
-+	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
-+}
-+
-+/*
-+ * Copy value to the first system word of VMA flags, non-atomically.
-+ *
-+ * IMPORTANT: This does not overwrite bytes past the first system word. The
-+ * caller must account for this.
-+ */
-+static inline void vma_flags_overwrite_word(vma_flags_t *flags, unsigned long value)
-+{
-+	*ACCESS_PRIVATE(flags, __vma_flags) = value;
-+}
-+
-+/*
-+ * Copy value to the first system word of VMA flags ONCE, non-atomically.
-+ *
-+ * IMPORTANT: This does not overwrite bytes past the first system word. The
-+ * caller must account for this.
-+ */
-+static inline void vma_flags_overwrite_word_once(vma_flags_t *flags, unsigned long value)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+
-+	WRITE_ONCE(*bitmap, value);
-+}
-+
-+/* Update the first system word of VMA flags setting bits, non-atomically. */
-+static inline void vma_flags_set_word(vma_flags_t *flags, unsigned long value)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+
-+	*bitmap |= value;
-+}
-+
-+/* Update the first system word of VMA flags clearing bits, non-atomically. */
-+static inline void vma_flags_clear_word(vma_flags_t *flags, unsigned long value)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+
-+	*bitmap &= ~value;
-+}
-+
-+
-+/* Use when VMA is not part of the VMA tree and needs no locking */
-+static inline void vm_flags_init(struct vm_area_struct *vma,
-+				 vm_flags_t flags)
-+{
-+	vma_flags_clear_all(&vma->flags);
-+	vma_flags_overwrite_word(&vma->flags, flags);
-+}
-+
-+/*
-+ * Use when VMA is part of the VMA tree and modifications need coordination
-+ * Note: vm_flags_reset and vm_flags_reset_once do not lock the vma and
-+ * it should be locked explicitly beforehand.
-+ */
-+static inline void vm_flags_reset(struct vm_area_struct *vma,
-+				  vm_flags_t flags)
-+{
-+	vma_assert_write_locked(vma);
-+	vm_flags_init(vma, flags);
-+}
-+
-+static inline void vm_flags_reset_once(struct vm_area_struct *vma,
-+				       vm_flags_t flags)
-+{
-+	vma_assert_write_locked(vma);
-+	/*
-+	 * The user should only be interested in avoiding reordering of
-+	 * assignment to the first word.
-+	 */
-+	vma_flags_clear_all(&vma->flags);
-+	vma_flags_overwrite_word_once(&vma->flags, flags);
-+}
-+
-+static inline void vm_flags_set(struct vm_area_struct *vma,
-+				vm_flags_t flags)
-+{
-+	vma_start_write(vma);
-+	vma_flags_set_word(&vma->flags, flags);
-+}
-+
-+static inline void vm_flags_clear(struct vm_area_struct *vma,
-+				  vm_flags_t flags)
-+{
-+	vma_start_write(vma);
-+	vma_flags_clear_word(&vma->flags, flags);
-+}
-+
- /*
-  * Denies creating a writable executable mapping or gaining executable permissions.
+- * base64.c - RFC4648-compliant base64 encoding
++ * base64.c - Base64 with support for multiple variants
   *
+  * Copyright (c) 2020 Hannes Reinecke, SUSE
+  *
+  * Based on the base64url routines from fs/crypto/fname.c
+- * (which are using the URL-safe base64 encoding),
+- * modified to use the standard coding table from RFC4648 section 4.
++ * (which are using the URL-safe Base64 encoding),
++ * modified to support multiple Base64 variants.
+  */
+ 
+ #include <linux/kernel.h>
+@@ -15,26 +15,31 @@
+ #include <linux/string.h>
+ #include <linux/base64.h>
+ 
+-static const char base64_table[65] =
+-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
++static const char base64_tables[][65] = {
++	[BASE64_STD] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
++	[BASE64_URLSAFE] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
++	[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",
++};
+ 
+ /**
+- * base64_encode() - base64-encode some binary data
++ * base64_encode() - Base64-encode some binary data
+  * @src: the binary data to encode
+  * @srclen: the length of @src in bytes
+- * @dst: (output) the base64-encoded string.  Not NUL-terminated.
++ * @dst: (output) the Base64-encoded string.  Not NUL-terminated.
++ * @padding: whether to append '=' padding characters
++ * @variant: which base64 variant to use
+  *
+- * Encodes data using base64 encoding, i.e. the "Base 64 Encoding" specified
+- * by RFC 4648, including the  '='-padding.
++ * Encodes data using the selected Base64 variant.
+  *
+- * Return: the length of the resulting base64-encoded string in bytes.
++ * Return: the length of the resulting Base64-encoded string in bytes.
+  */
+-int base64_encode(const u8 *src, int srclen, char *dst)
++int base64_encode(const u8 *src, int srclen, char *dst, bool padding, enum base64_variant variant)
+ {
+ 	u32 ac = 0;
+ 	int bits = 0;
+ 	int i;
+ 	char *cp = dst;
++	const char *base64_table = base64_tables[variant];
+ 
+ 	for (i = 0; i < srclen; i++) {
+ 		ac = (ac << 8) | src[i];
+@@ -48,44 +53,49 @@ int base64_encode(const u8 *src, int src
+ 		*cp++ = base64_table[(ac << (6 - bits)) & 0x3f];
+ 		bits -= 6;
+ 	}
+-	while (bits < 0) {
+-		*cp++ = '=';
+-		bits += 2;
++	if (padding) {
++		while (bits < 0) {
++			*cp++ = '=';
++			bits += 2;
++		}
+ 	}
+ 	return cp - dst;
+ }
+ EXPORT_SYMBOL_GPL(base64_encode);
+ 
+ /**
+- * base64_decode() - base64-decode a string
++ * base64_decode() - Base64-decode a string
+  * @src: the string to decode.  Doesn't need to be NUL-terminated.
+  * @srclen: the length of @src in bytes
+  * @dst: (output) the decoded binary data
++ * @padding: whether to append '=' padding characters
++ * @variant: which base64 variant to use
+  *
+- * Decodes a string using base64 encoding, i.e. the "Base 64 Encoding"
+- * specified by RFC 4648, including the  '='-padding.
++ * Decodes a string using the selected Base64 variant.
+  *
+  * This implementation hasn't been optimized for performance.
+  *
+  * Return: the length of the resulting decoded binary data in bytes,
+- *	   or -1 if the string isn't a valid base64 string.
++ *	   or -1 if the string isn't a valid Base64 string.
+  */
+-int base64_decode(const char *src, int srclen, u8 *dst)
++int base64_decode(const char *src, int srclen, u8 *dst, bool padding, enum base64_variant variant)
+ {
+ 	u32 ac = 0;
+ 	int bits = 0;
+ 	int i;
+ 	u8 *bp = dst;
++	const char *base64_table = base64_tables[variant];
+ 
+ 	for (i = 0; i < srclen; i++) {
+ 		const char *p = strchr(base64_table, src[i]);
+-
+-		if (src[i] == '=') {
+-			ac = (ac << 6);
+-			bits += 6;
+-			if (bits >= 8)
+-				bits -= 8;
+-			continue;
++		if (padding) {
++			if (src[i] == '=') {
++				ac = (ac << 6);
++				bits += 6;
++				if (bits >= 8)
++					bits -= 8;
++				continue;
++			}
+ 		}
+ 		if (p == NULL || src[i] == 0)
+ 			return -1;
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-mm-shmem-update-shmem-to-use-mmap_prepare.patch
-device-dax-update-devdax-to-use-mmap_prepare.patch
-mm-vma-remove-unused-function-make-internal-functions-static.patch
-mm-add-vma_desc_size-vma_desc_pages-helpers.patch
-relay-update-relay-to-use-mmap_prepare.patch
-mm-vma-rename-__mmap_prepare-function-to-avoid-confusion.patch
-mm-add-remap_pfn_range_prepare-remap_pfn_range_complete.patch
-mm-abstract-io_remap_pfn_range-based-on-pfn.patch
-mm-introduce-io_remap_pfn_range_.patch
-mm-add-ability-to-take-further-action-in-vm_area_desc.patch
-doc-update-porting-vfs-documentation-for-mmap_prepare-actions.patch
-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
-mm-add-shmem_zero_setup_desc.patch
-mm-update-mem-char-driver-to-use-mmap_prepare.patch
-mm-update-resctl-to-use-mmap_prepare.patch
-mm-vma-small-vma-lock-cleanups.patch
-mm-introduce-vm_maybe_guard-and-make-visible-in-proc-pid-smaps.patch
-mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such.patch
-mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch
-mm-implement-sticky-vma-flags.patch
-mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
-mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
-mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
-tools-testing-vma-add-vma-sticky-userland-tests.patch
-tools-testing-selftests-mm-add-madv_collapse-test-case.patch
-tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
-mm-correctly-handle-uffd-pte-markers.patch
-mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
-mm-avoid-unnecessary-uses-of-is_swap_pte.patch
-mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
-mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
-fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
-mm-avoid-unnecessary-use-of-is_swap_pmd.patch
-mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
-mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
-mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
-mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
-mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
-mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
-mm-remove-is_hugetlb_entry_.patch
-mm-eliminate-further-swapops-predicates.patch
-mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
-mm-rename-walk_page_range_mm.patch
-mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
-mm-propagate-vm_softdirty-on-merge.patch
-testing-selftests-mm-add-soft-dirty-merge-self-test.patch
-mm-declare-vma-flags-by-bit.patch
-mm-declare-vma-flags-by-bit-fix.patch
-mm-declare-vma-flags-by-bit-fix-2.patch
-mm-simplify-and-rename-mm-flags-function-for-clarity.patch
-tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
-mm-introduce-vma-flags-bitmap-type.patch
+revert-lib-plistc-enforce-memory-ordering-in-plist_check_list.patch
+lib-base64-add-support-for-multiple-variants.patch
+lib-base64-optimize-base64_decode-with-reverse-lookup-tables.patch
 
