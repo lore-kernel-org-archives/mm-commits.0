@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C6392D323D
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 20:24:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58AB435505C
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:23:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763151870; cv=none; b=rO0zLQmuq1olWPU/NMmNZAGP5oyaT6yD9bZV0OEjOBR8JbmkBAUg09oQKKsPyfSlRZ6ii/t/qALnU8M8ijYK8jlkGtnxs5xUpnXDPjlqmi2WV2d1thASq7i45ZZHZFT3Y7zmSsZT7h1puwASbTfJFr8O29erUava0mKKhreRBbA=
+	t=1763155403; cv=none; b=ekNAo/F9112w1XC48rc+DY0XXQ652k4T964XXTGKCklqMEp7xogNQBElQe1gUzztJG4smAgS/FyqQJYDO/uxwIP82ZWkYproCzes/rTMZIh0ZDoksDNbk6bnQofyE0HJR75tsDuLTKrBZPEytgQgGocP5uO5wq+lbZw9VC7zJtg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763151870; c=relaxed/simple;
-	bh=XLgg8RnJo+rPfLhMJgjwEXKaaBbIaYhsozwvsd6M6sQ=;
-	h=Date:To:From:Subject:Message-Id; b=dc1Aq9XK/NU2u/e3CJiLKS2dnQJX0pGWo05zh1YE3wSoyv/HQX1r6SW0nQZOiVUiAgkhWA76VkT8JuLWuLJ7n7VTtNxZZHoG0yg276Tw8z9JcP3IHNu2gfhUa39PfEd+/Oqz36/ss1hUvW5qA89Fznku0FJr9dXzCM+qGfdPZW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p8+kBT5w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763155403; c=relaxed/simple;
+	bh=Kvq9PSQZjXh0eiinNWMXhgFU6qWq3bWJn/HIDvX8u7c=;
+	h=Date:To:From:Subject:Message-Id; b=FkBSHCnAIyuPUzAb8TS/D3a7lnVB1shuQH4uiuOuK8f7M/13YfU5PEc6JLDKa/E73L6CQ9L5ljyr/JV55AQbluKlJvi1S8bgOVmS3Ev1K80TnDIaUXaBQl7QgsNmqrqjKFYaMhIhSDsg8EDo7FnZoQtMLKOFThQIfCydWIyrSfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WVc1CKg6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p8+kBT5w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3918C4CEF1;
-	Fri, 14 Nov 2025 20:24:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WVc1CKg6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 564BBC4CEF1;
+	Fri, 14 Nov 2025 21:23:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763151869;
-	bh=XLgg8RnJo+rPfLhMJgjwEXKaaBbIaYhsozwvsd6M6sQ=;
+	s=korg; t=1763155401;
+	bh=Kvq9PSQZjXh0eiinNWMXhgFU6qWq3bWJn/HIDvX8u7c=;
 	h=Date:To:From:Subject:From;
-	b=p8+kBT5wJzGJoEMPfutfNPF8cXNKr1ABgjsaJU68OGLhOHAOpfDh6ojgeXmr8JG4A
-	 +bmFWRbi2IEnOk3k+k0WA4S+iy2bV9gWTRsAADqaL67Du5S0447ED+YR5GX/zbS5b+
-	 5BH9LzTwL1VNHoT0VXifzOqr22UyYIRErgR4RVEc=
-Date: Fri, 14 Nov 2025 12:24:28 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,v-songbaohua@oppo.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,kaleshsingh@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,bhe@redhat.com,baolin.wang@linux.alibaba.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=WVc1CKg6E2K0t1X64ZMlpXI0Y/MCmi7IKYvvsSmnI2j5VJAfN/63UB/qGRIZMh/m+
+	 3mzxmM8SbvweOWRBvFiL2BJuxNxXvNwqyJBGX7HZ5bmSnvXcqcBHGLs9gG8qYxZq62
+	 YCu896wiIU8vhVjMh6Eqoj5LtuSJF9xwM9aPw4KE=
+Date: Fri, 14 Nov 2025 13:23:20 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sourabhjain@linux.ibm.com,rppt@kernel.org,ritesh.list@gmail.com,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,donettom@linux.ibm.com,christophe.leroy@csgroup.eu,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] revert-mm-swap-avoid-redundant-swap-device-pinning.patch removed from -mm tree
-Message-Id: <20251114202429.A3918C4CEF1@smtp.kernel.org>
+Subject: [to-be-updated] mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch removed from -mm tree
+Message-Id: <20251114212321.564BBC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,149 +35,151 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Revert "mm, swap: avoid redundant swap device pinning"
+     Subject: mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb
 has been removed from the -mm tree.  Its filename was
-     revert-mm-swap-avoid-redundant-swap-device-pinning.patch
+     mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: Revert "mm, swap: avoid redundant swap device pinning"
-Date: Mon, 10 Nov 2025 02:06:03 +0800
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb
+Date: Wed, 12 Nov 2025 15:56:32 +0100
 
-This reverts commit 78524b05f1a3e16a5d00cc9c6259c41a9d6003ce.
+In the past, CONFIG_ARCH_HAS_GIGANTIC_PAGE indicated that we support
+runtime allocation of gigantic hugetlb folios.  In the meantime it evolved
+into a generic way for the architecture to state that it supports gigantic
+hugetlb folios.
 
-While reviewing recent leaf entry changes, I noticed that commit
-78524b05f1a3 ("mm, swap: avoid redundant swap device pinning") isn't
-correct.  It's true that most all callers of __read_swap_cache_async are
-already holding a swap entry reference, so the repeated swap device
-pinning isn't needed on the same swap device, but it is possible that VMA
-readahead (swap_vma_readahead()) may encounter swap entries from a
-different swap device when there are multiple swap devices, and call
-__read_swap_cache_async without holding a reference to that swap device.
+In commit fae7d834c43c ("mm: add __dump_folio()") we started using
+CONFIG_ARCH_HAS_GIGANTIC_PAGE to decide MAX_FOLIO_ORDER: whether we could
+have folios larger than what the buddy can handle.  In the context of that
+commit, we started using MAX_FOLIO_ORDER to detect page corruptions when
+dumping tail pages of folios.  Before that commit, we assumed that we
+cannot have folios larger than the highest buddy order, which was
+obviously wrong.
 
-So it is possible to cause a UAF if swapoff of device A raced with swapin
-on device B, and VMA readahead tries to read swap entries from device A. 
-It's not easy to trigger but in theory possible to cause real issues.  And
-besides, that commit made swap more vulnerable to issues like corrupted
-page tables.
+In commit 7b4f21f5e038 ("mm/hugetlb: check for unreasonable folio sizes
+when registering hstate"), we used MAX_FOLIO_ORDER to detect
+inconsistencies, and in fact, we found some now.
 
-Just revert it.  __read_swap_cache_async isn't that sensitive to
-performance after all, as it's mostly used for SSD/HDD swap devices with
-readahead.  SYNCHRONOUS_IO devices may fallback onto it for swap count > 1
-entries, but very soon we will have a new helper and routine for such
-devices, so they will never touch this helper or have redundant swap
-device reference overhead.
+Powerpc allows for configs that can allocate gigantic folio during boot
+(not at runtime), that do not set CONFIG_ARCH_HAS_GIGANTIC_PAGE and can
+exceed PUD_ORDER.
 
-Link: https://lkml.kernel.org/r/20251110-revert-78524b05f1a3-v1-1-88313f2b9b20@tencent.com
-Fixes: 78524b05f1a3 ("mm, swap: avoid redundant swap device pinning")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+To fix it, let's make powerpc select CONFIG_ARCH_HAS_GIGANTIC_PAGE with
+hugetlb on powerpc, and increase the maximum folio size with hugetlb to 16
+GiB (possible on arm64 and powerpc).  Note that on some powerpc
+configurations, whether we actually have gigantic pages depends on the
+setting of CONFIG_ARCH_FORCE_MAX_ORDER, but there is nothing really
+problematic about setting it unconditionally: we just try to keep the
+value small so we can better detect problems in __dump_folio() and
+inconsistencies around the expected largest folio in the system.
+
+Ideally, we'd have a better way to obtain the maximum hugetlb folio size
+and detect ourselves whether we really end up with gigantic folios.  Let's
+defer bigger changes and fix the warnings first.
+
+While at it, handle gigantic DAX folios more clearly: DAX can only end up
+creating gigantic folios with HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD.
+
+Add a new Kconfig option HAVE_GIGANTIC_FOLIOS to make both cases clearer. 
+In particular, worry about ARCH_HAS_GIGANTIC_PAGE only with HUGETLB_PAGE.
+
+Note: with enabling CONFIG_ARCH_HAS_GIGANTIC_PAGE on powerpc, we will now
+also allow for runtime allocations of folios in some more powerpc configs.
+I don't think this is a problem, but if it is we could handle it through
+__HAVE_ARCH_GIGANTIC_PAGE_RUNTIME_SUPPORTED.
+
+While __dump_page()/__dump_folio was also problematic (not handling
+dumping of tail pages of such gigantic folios correctly), it doesn't
+seem critical enough to mark it as a fix.
+
+Link: https://lkml.kernel.org/r/20251112145632.508687-1-david@kernel.org
+Fixes: 7b4f21f5e038 ("mm/hugetlb: check for unreasonable folio sizes when registering hstate")
+Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Closes: https://lore.kernel.org/r/3e043453-3f27-48ad-b987-cc39f523060a@csgroup.eu/
+Reported-by: Sourabh Jain <sourabhjain@linux.ibm.com>
+Closes: https://lore.kernel.org/r/94377f5c-d4f0-4c0f-b0f6-5bf1cd7305b1@linux.ibm.com/
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   14 ++++++--------
- mm/zswap.c      |    8 +-------
- 2 files changed, 7 insertions(+), 15 deletions(-)
+ arch/powerpc/Kconfig |    1 +
+ include/linux/mm.h   |   12 +++++++++---
+ mm/Kconfig           |    7 +++++++
+ 3 files changed, 17 insertions(+), 3 deletions(-)
 
---- a/mm/swap_state.c~revert-mm-swap-avoid-redundant-swap-device-pinning
-+++ a/mm/swap_state.c
-@@ -406,13 +406,17 @@ struct folio *__read_swap_cache_async(sw
- 		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
- 		bool skip_if_exists)
- {
--	struct swap_info_struct *si = __swap_entry_to_info(entry);
-+	struct swap_info_struct *si;
- 	struct folio *folio;
- 	struct folio *new_folio = NULL;
- 	struct folio *result = NULL;
- 	void *shadow = NULL;
- 
- 	*new_page_allocated = false;
-+	si = get_swap_device(entry);
-+	if (!si)
-+		return NULL;
-+
- 	for (;;) {
- 		int err;
- 
-@@ -499,6 +503,7 @@ fail_unlock:
- 	put_swap_folio(new_folio, entry);
- 	folio_unlock(new_folio);
- put_and_return:
-+	put_swap_device(si);
- 	if (!(*new_page_allocated) && new_folio)
- 		folio_put(new_folio);
- 	return result;
-@@ -518,16 +523,11 @@ struct folio *read_swap_cache_async(swp_
- 		struct vm_area_struct *vma, unsigned long addr,
- 		struct swap_iocb **plug)
- {
--	struct swap_info_struct *si;
- 	bool page_allocated;
- 	struct mempolicy *mpol;
- 	pgoff_t ilx;
- 	struct folio *folio;
- 
--	si = get_swap_device(entry);
--	if (!si)
--		return NULL;
--
- 	mpol = get_vma_policy(vma, addr, 0, &ilx);
- 	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
- 					&page_allocated, false);
-@@ -535,8 +535,6 @@ struct folio *read_swap_cache_async(swp_
- 
- 	if (page_allocated)
- 		swap_read_folio(folio, plug);
--
--	put_swap_device(si);
- 	return folio;
+--- a/arch/powerpc/Kconfig~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
++++ a/arch/powerpc/Kconfig
+@@ -137,6 +137,7 @@ config PPC
+ 	select ARCH_HAS_DMA_OPS			if PPC64
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
++	select ARCH_HAS_GIGANTIC_PAGE		if ARCH_SUPPORTS_HUGETLBFS
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_KERNEL_FPU_SUPPORT	if PPC64 && PPC_FPU
+ 	select ARCH_HAS_MEMBARRIER_CALLBACKS
+--- a/include/linux/mm.h~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
++++ a/include/linux/mm.h
+@@ -2074,7 +2074,7 @@ static inline unsigned long folio_nr_pag
+ 	return folio_large_nr_pages(folio);
  }
  
---- a/mm/zswap.c~revert-mm-swap-avoid-redundant-swap-device-pinning
-+++ a/mm/zswap.c
-@@ -1005,18 +1005,12 @@ static int zswap_writeback_entry(struct
- 	struct folio *folio;
- 	struct mempolicy *mpol;
- 	bool folio_was_allocated;
--	struct swap_info_struct *si;
- 	int ret = 0;
+-#if !defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE)
++#if !defined(CONFIG_HAVE_GIGANTIC_FOLIOS)
+ /*
+  * We don't expect any folios that exceed buddy sizes (and consequently
+  * memory sections).
+@@ -2087,10 +2087,16 @@ static inline unsigned long folio_nr_pag
+  * pages are guaranteed to be contiguous.
+  */
+ #define MAX_FOLIO_ORDER		PFN_SECTION_SHIFT
+-#else
++#elif defined(CONFIG_HUGETLB_PAGE)
+ /*
+  * There is no real limit on the folio size. We limit them to the maximum we
+- * currently expect (e.g., hugetlb, dax).
++ * currently expect: with hugetlb, we expect no folios larger than 16 GiB.
++ */
++#define MAX_FOLIO_ORDER		get_order(SZ_16G)
++#else
++/*
++ * Without hugetlb, gigantic folios that are bigger than a single PUD are
++ * currently impossible.
+  */
+ #define MAX_FOLIO_ORDER		PUD_ORDER
+ #endif
+--- a/mm/Kconfig~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
++++ a/mm/Kconfig
+@@ -908,6 +908,13 @@ config PAGE_MAPCOUNT
+ config PGTABLE_HAS_HUGE_LEAVES
+ 	def_bool TRANSPARENT_HUGEPAGE || HUGETLB_PAGE
  
- 	/* try to allocate swap cache folio */
--	si = get_swap_device(swpentry);
--	if (!si)
--		return -EEXIST;
--
- 	mpol = get_task_policy(current);
- 	folio = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
--			NO_INTERLEAVE_INDEX, &folio_was_allocated, true);
--	put_swap_device(si);
-+				NO_INTERLEAVE_INDEX, &folio_was_allocated, true);
- 	if (!folio)
- 		return -ENOMEM;
- 
++#
++# We can end up creating gigantic folio.
++#
++config HAVE_GIGANTIC_FOLIOS
++	def_bool (HUGETLB_PAGE && ARCH_HAS_GIGANTIC_PAGE) || \
++		 (ZONE_DEVICE && HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
++
+ # TODO: Allow to be enabled without THP
+ config ARCH_SUPPORTS_HUGE_PFNMAP
+ 	def_bool n
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-swap-fix-potential-uaf-issue-for-vma-readahead.patch
-mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
-mm-swap-rename-helper-for-setup-bad-slots.patch
-mm-swap-cleanup-swap-entry-allocation-parameter.patch
-mm-migrate-swap-drop-usage-of-folio_index.patch
-mm-swap-remove-redundant-argument-for-isolating-a-cluster.patch
+maintainers-update-david-hildenbrands-email-address.patch
 
