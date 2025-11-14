@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CF2018EFD1
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 23:42:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1D8018EFD1
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 23:42:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763163754; cv=none; b=Z7ndg0B1q4RwMvipI+L4ikfd7kHQPZvlujBTgl0V6auFHdcob4FM0m/HF7p74N/mj9f2zyv1h30qnVSP0Ow5Fw0p8jcYUPc9QfzLia4i1kAepRJYdmyhPxZzeSoJ3YAFTJB+vFu0NIc1gusQ61VhGIS61USTnp1pUz9/6l6pHBA=
+	t=1763163756; cv=none; b=lvM8jOJOfHi+wfWOZLO13YPum5ZjtzbhOmt+fiq4z60iQ3KABT1I6EvCOn4SEKM19qN6XxymQN2+I/5/sgBZG/tw4mq/J6Xi0d7ZWNt/bnVj2MurlCwvLFp2JY1T9Kk6BnLo4tKePLRpL5w42n1oogvPh0cbGNC+CE7XqTs8h8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763163754; c=relaxed/simple;
-	bh=DrGnGtpFRKiDr0camXC7WrKXOfGy8cbB+RNRAdyvRFk=;
-	h=Date:To:From:Subject:Message-Id; b=KNh6S7HOG3eiaaX/2i2DqaBLDevMVgsuwBNdqZ3D3Dp3IgsyQIEXpcHcKWs8e8ajbuwddo8UMBtZuloAntmK89m7tHTDs4De0ym9ywlzOHKVW23ro9lRn0kVHOK308WoUfBSSb9bEAKEBt6qlk/WGcCTtmsTRuVMyNFfFaIJj3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ircdx8GI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763163756; c=relaxed/simple;
+	bh=8dwH+x2HfjcIWmY0VWK16fHo+T7mtUs2f/O93WwzI7o=;
+	h=Date:To:From:Subject:Message-Id; b=q7DkhN2jJCQhslJst88tJ8GqN6vrhYdp5WX0Zd4NMjLw8lIel5xiMw0lzPhMi94jd2RX3clyZvFhxWNEZHqLtBH/THRUIB12QvS31sxuTHQF+jG5D61pF+RQbR4/2cjYNMt5wSh8M3RaYT9ISwkY7BuPRwyQyBLi7/0++H/WTww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N1LKlpSw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ircdx8GI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 931EDC4AF09;
-	Fri, 14 Nov 2025 23:42:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N1LKlpSw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1589C19421;
+	Fri, 14 Nov 2025 23:42:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763163753;
-	bh=DrGnGtpFRKiDr0camXC7WrKXOfGy8cbB+RNRAdyvRFk=;
+	s=korg; t=1763163755;
+	bh=8dwH+x2HfjcIWmY0VWK16fHo+T7mtUs2f/O93WwzI7o=;
 	h=Date:To:From:Subject:From;
-	b=Ircdx8GIDjJaJ6mMUQoTI4aOQH1sqY1WWfC5lArVQC1wcJFAVaJ7eojzl71xPmzU+
-	 LNu9RR2XBMwd4/zDH/4TKE+Xhv/wnoAb0rK1oYgW+kRunGrLDPT8+moiNirArWbJyj
-	 GToAND7X9kzII90bracyGUx0gWrV4u7HIpXr1KGw=
-Date: Fri, 14 Nov 2025 15:42:32 -0800
+	b=N1LKlpSwXZDLpzU1Y52rLZxGnOmQC4XRlSR5kxfgC1yvG2mVzVcSFOAVJheXEjlt/
+	 EPQolPGaSHM6nBUG/9QGZlZbfXHbX7v8fX/LsW/WCGWu+7pFwgugjdQDcbZU6vyMMB
+	 6wPe8lX2LWYCg0Qn85RaE03AsRw+b1cUw3FY0cKY=
+Date: Fri, 14 Nov 2025 15:42:35 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch added to mm-new branch
-Message-Id: <20251114234233.931EDC4AF09@smtp.kernel.org>
+Subject: + mm-khugepaged-continue-to-collapse-on-scan_pmd_none.patch added to mm-new branch
+Message-Id: <20251114234235.B1589C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: remove redundant clearing of struct collapse_control
+     Subject: mm/khugepaged: continue to collapse on SCAN_PMD_NONE
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch
+     mm-khugepaged-continue-to-collapse-on-scan_pmd_none.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-continue-to-collapse-on-scan_pmd_none.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,45 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/khugepaged: remove redundant clearing of struct collapse_control
-Date: Fri, 14 Nov 2025 03:00:26 +0000
+Subject: mm/khugepaged: continue to collapse on SCAN_PMD_NONE
+Date: Fri, 14 Nov 2025 03:00:27 +0000
 
-Patch series "unify PMD scan results and remove redundant cleanup", v2.
+SCAN_PMD_NONE means current pmd is empty, but we can still continue
+collapse next pmd range.
 
-This small series addresses two minor cleanup opportunities in the
-hugepage collapse logic.
-
-The initial motivation arose during a code review of madvise_collapse(),
-where it was noted that the function was missing a handler for
-SCAN_PMD_NONE.  This oversight exposed the inconsistent handling of
-SCAN_PMD_NULL and SCAN_PMD_NONE.
-
-Since both scan results are functionally identical (they indicate the
-absence of a PTE table), the primary patch unifies them into a single,
-clearer identifier, SCAN_NO_PTE_TABLE.
-
-The series also takes the opportunity to remove a redundant clearing of
-the struct collapse_control.
-
-
-This patch (of 3):
-
-The structure struct collapse_control is being unnecessarily cleared twice
-during the huge page collapse process.
-
-Both hpage_collapse_scan_file() and hpage_collapse_scan_pmd() currently
-perform a clear operation on this structure.
-
-Remove the redundant clear operation.
-
-Link: https://lkml.kernel.org/r/20251114030028.7035-1-richard.weiyang@gmail.com
-Link: https://lkml.kernel.org/r/20251114030028.7035-2-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20251114030028.7035-3-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -115,20 +89,19 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/khugepaged.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control
+--- a/mm/khugepaged.c~mm-khugepaged-continue-to-collapse-on-scan_pmd_none
 +++ a/mm/khugepaged.c
-@@ -2803,8 +2803,6 @@ int madvise_collapse(struct vm_area_stru
- 			hend = min(hend, vma->vm_end & HPAGE_PMD_MASK);
- 		}
- 		mmap_assert_locked(mm);
--		memset(cc->node_load, 0, sizeof(cc->node_load));
--		nodes_clear(cc->alloc_nmask);
- 		if (!vma_is_anonymous(vma)) {
- 			struct file *file = get_file(vma->vm_file);
- 			pgoff_t pgoff = linear_page_index(vma, addr);
+@@ -2833,6 +2833,7 @@ handle_result:
+ 			goto handle_result;
+ 		/* Whitelisted set of results where continuing OK */
+ 		case SCAN_PMD_NULL:
++		case SCAN_PMD_NONE:
+ 		case SCAN_PTE_NON_PRESENT:
+ 		case SCAN_PTE_UFFD_WP:
+ 		case SCAN_LACK_REFERENCED_PAGE:
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
