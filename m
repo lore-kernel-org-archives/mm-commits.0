@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A534309EEB
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:25:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2313730B529
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:25:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763159133; cv=none; b=aah8gI64lJY3TkOaM4++qJdRrV+F1Ntd7Zm8tEWKE9EciouWjRrgXXTHccyYosUIIdPUFDji50t89eQapAP+4hmnNwlK2tsW6sDfIsVWDUhiQ7V7Sk7dFBJXKTIaE4WitevWBpMuWnAGdxhH9uAYLY6b5/Q7lJ6bgwuOR7K1GpA=
+	t=1763159136; cv=none; b=RYeJOktXFeeinAEeBanYQP1eoZJFY6qUs/MRE4NRKhlkmNtTZvNWSnWI8QmSoygbCS9IUgsuDiVtLIoyUq+iXv3fjeyJ4kB0ylx60aCSFhp6voUfAMb9vBGDKet84k0Pie6UWnZdUOqJv6nVgWZsxoPBOVEElO8++9PP7BS4SKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763159133; c=relaxed/simple;
-	bh=MUx+HKP44DC+e6YTfn+VnYrEigTZ3dGVMMfURT0rbW0=;
-	h=Date:To:From:Subject:Message-Id; b=CFz6MzlWtzpt5CuZrgx4VUODe8il1NUW6nvOP70CDy8FZkc7Xin3g/1uAyI3zbUQyuRxdP1XzkZan6ybNa/+YW124DJjQBDz/LYtOcTxsBjlZiwaxwlO/b6/a4A5Bxxxu5xymIIizfkisPQc9YHZerPvw7yVFABAKsS/6U/RwGc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0dkJdWmb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763159136; c=relaxed/simple;
+	bh=g+JXf6oH7WwbOgAQOQfqVTwPgarM+tK14q0RpHnz/b0=;
+	h=Date:To:From:Subject:Message-Id; b=arDRjBczgRTwMuVz58c5kFZceXdCEGYwL3ntfVX/O1EPoDfoVaesfw2Fett4ySok7upikTqSMG9QsxYQmW/zu3XQCKWv0jFpcVdLmQ2T5Vd4cbQqM+cJGHQ7m/TsC7Bq434lH75PyPrxQ+gAcKOitWevZJpR+kBX+a7POWBsecY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FAd6Mglv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0dkJdWmb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFB6AC4CEF1;
-	Fri, 14 Nov 2025 22:25:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FAd6Mglv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B9C4C113D0;
+	Fri, 14 Nov 2025 22:25:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763159133;
-	bh=MUx+HKP44DC+e6YTfn+VnYrEigTZ3dGVMMfURT0rbW0=;
+	s=korg; t=1763159135;
+	bh=g+JXf6oH7WwbOgAQOQfqVTwPgarM+tK14q0RpHnz/b0=;
 	h=Date:To:From:Subject:From;
-	b=0dkJdWmbYtDWheUDRkgj8suzY2xbGqMYGXPA1BBnsNktbJhaDLjOCUjBtjGD3Jx7p
-	 zG7Bt8xgW8TeD97qbCn1ISJecbIJfmJsdXJNIcAdWj8ukmhrKExLbNWyRxtiretcRB
-	 AS6CS7sGTNPbnTVfh32U5035g7Im+jmdM07JDpDM=
-Date: Fri, 14 Nov 2025 14:25:32 -0800
+	b=FAd6MglvBcNEdAVFmtfzOsuiaV0jqlvfoUmZRmSQ0BFZ+VtG1CrzDlolagAUDrF5H
+	 0vzFLNvrB75+tPgHEYZ+ctZrbAPFeytqShAqZK/KuuSqipd85eL7bmW5jFPg2kb68N
+	 xIRdpOiRszYd30flB1YYnUX52dZZZ3y2PGU5/FL0=
+Date: Fri, 14 Nov 2025 14:25:35 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,tmgross@umich.edu,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,riel@surriel.com,rakie.kim@sk.com,peterz@infradead.org,peterx@redhat.com,osalvador@suse.de,ojeda@kernel.org,nphamcs@gmail.com,npache@redhat.com,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,matthew.brost@intel.com,lkp@intel.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kees@kernel.org,kasong@tencent.com,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,gary@garyguo.net,dietmar.eggemann@arm.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,bsegall@google.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-declare-vma-flags-by-bit-fix.patch added to mm-new branch
-Message-Id: <20251114222532.EFB6AC4CEF1@smtp.kernel.org>
+Subject: + mm-declare-vma-flags-by-bit-fix-2.patch added to mm-new branch
+Message-Id: <20251114222535.9B9C4C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-declare-vma-flags-by-bit-fix
+     Subject: mm-declare-vma-flags-by-bit-fix-2
 has been added to the -mm mm-new branch.  Its filename is
-     mm-declare-vma-flags-by-bit-fix.patch
+     mm-declare-vma-flags-by-bit-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-declare-vma-flags-by-bit-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-declare-vma-flags-by-bit-fix-2.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,13 +65,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-declare-vma-flags-by-bit-fix
-Date: Fri, 14 Nov 2025 14:19:04 +0000
+Subject: mm-declare-vma-flags-by-bit-fix-2
+Date: Fri, 14 Nov 2025 15:32:14 +0000
 
-fix RUST bindgen, per Alice
+fix nommu
 
-Link: https://lkml.kernel.org/r/536f483b-ea10-4190-ab22-c2ad2cf8cc78@lucifer.local
+Link: https://lkml.kernel.org/r/b0418f22-5d35-400d-9285-eeea9e34d3ae@lucifer.local
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202511142237.yj4hppoj-lkp@intel.com/
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -134,47 +136,22 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: xu xin <xu.xin16@zte.com.cn>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/bindgen_parameters |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ include/linux/mm.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/rust/bindgen_parameters~mm-declare-vma-flags-by-bit-fix
-+++ a/rust/bindgen_parameters
-@@ -35,6 +35,31 @@
- # recognized, block generation of the non-helper constants.
- --blocklist-item ARCH_SLAB_MINALIGN
- --blocklist-item ARCH_KMALLOC_MINALIGN
-+--blocklist-item VM_MERGEABLE
-+--blocklist-item VM_READ
-+--blocklist-item VM_WRITE
-+--blocklist-item VM_EXEC
-+--blocklist-item VM_SHARED
-+--blocklist-item VM_MAYREAD
-+--blocklist-item VM_MAYWRITE
-+--blocklist-item VM_MAYEXEC
-+--blocklist-item VM_MAYEXEC
-+--blocklist-item VM_PFNMAP
-+--blocklist-item VM_IO
-+--blocklist-item VM_DONTCOPY
-+--blocklist-item VM_DONTEXPAND
-+--blocklist-item VM_LOCKONFAULT
-+--blocklist-item VM_ACCOUNT
-+--blocklist-item VM_NORESERVE
-+--blocklist-item VM_HUGETLB
-+--blocklist-item VM_SYNC
-+--blocklist-item VM_ARCH_1
-+--blocklist-item VM_WIPEONFORK
-+--blocklist-item VM_DONTDUMP
-+--blocklist-item VM_SOFTDIRTY
-+--blocklist-item VM_MIXEDMAP
-+--blocklist-item VM_HUGEPAGE
-+--blocklist-item VM_NOHUGEPAGE
- 
- # Structs should implement `Zeroable` when all of their fields do.
- --with-derive-custom-struct .*=MaybeZeroable
+--- a/include/linux/mm.h~mm-declare-vma-flags-by-bit-fix-2
++++ a/include/linux/mm.h
+@@ -409,6 +409,7 @@ enum {
+ #define VM_UFFD_MISSING	INIT_VM_FLAG(UFFD_MISSING)
+ #else
+ #define VM_UFFD_MISSING	VM_NONE
++#define VM_MAYOVERLAY	INIT_VM_FLAG(MAYOVERLAY)
+ #endif
+ #define VM_PFNMAP	INIT_VM_FLAG(PFNMAP)
+ #define VM_MAYBE_GUARD	INIT_VM_FLAG(MAYBE_GUARD)
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
