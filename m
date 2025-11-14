@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED82C30B529
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:25:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39C5630F923
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:25:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763159139; cv=none; b=F5TjJAYX8cIo/gPfEYbKQnjpni5ZpgvkAsEVnpFGfaXnWt0vFHcqpzjmoyetqBFzKF4zq6Mrn/dSGKm/M4Kt81Vy1+H4Ep58VTfCzW6QVMVQPpvkuaGlJKFb+2Em5apKfpOEh01vaJ0RyVQMIKZKm/Zs+fxgrvFPpZWJDvHYBoM=
+	t=1763159142; cv=none; b=Kbyp9XsuAOHfl/FgEaMDvvWDri2mSXD5pmQ42qcyFjq4UU7UVmyvcqkgtM4KVxSOm269Z3oZ5v26bi68mRcNBzBVdjPj9bd4eMU56wUe8blESd7hY6XJxoNQERygzWpc3XY5wjcgG76tAlmTJkegE/XKZuR84yz5jBo0HGsIl8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763159139; c=relaxed/simple;
-	bh=4RKCerTL1JNokR6CNhVbfLRcYvyO7ZUzTeTZiRc/icM=;
-	h=Date:To:From:Subject:Message-Id; b=kk8ewFGB21TBXlmpKEtr0sSlLvUKvKR/4kRmVW3SdgpUfPzowcnlWPSzk4vyqeQjO8ussp9EoWDdIXP26mEgZA08hCJMEEqKaVimlsRRmb95BbcQ0RR5u6O7tuLlzBL4U4/IgJJSnZHk2k79x788mFPLOZ05YOV1kBPLqZJ9DQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fonmxAHq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763159142; c=relaxed/simple;
+	bh=+qvfpoRa75UJ4eUo6wVnU2zQAlBlnUgw1ze/csiLS1s=;
+	h=Date:To:From:Subject:Message-Id; b=gwkuS4zwcxnZF9FnMzy4ZG9SpWe0H91ycwO2VcQRNthno7bK689VrLaquft/RiEzT0tR9kVwjFc3Crfx9kkU7zhxrLDjyD1hrfWKUbPF3ysJNG1Zl3mlc0d+DCp5+ZUI3OKQaA5+N4NfXxRaVk469CD3Abewexh4+iqz2aKT2wY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nm/2xAdN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fonmxAHq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AAEEC4CEF8;
-	Fri, 14 Nov 2025 22:25:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nm/2xAdN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B146CC4CEF1;
+	Fri, 14 Nov 2025 22:25:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763159138;
-	bh=4RKCerTL1JNokR6CNhVbfLRcYvyO7ZUzTeTZiRc/icM=;
+	s=korg; t=1763159141;
+	bh=+qvfpoRa75UJ4eUo6wVnU2zQAlBlnUgw1ze/csiLS1s=;
 	h=Date:To:From:Subject:From;
-	b=fonmxAHqqbmXV7+IZy1yToxgwezNiCZ1FNDnCOqv3DAFjX3V04e4r5l+tfUMbabVQ
-	 G3L7fHkx1MAqHtDhEDQSzrdD3BkC1X5Z/MZq8EehE46g4N4x/ZfwM4cA/vOhuyLSdd
-	 TFFgnUPRsCsOCZ07K2hbkk5wCb5QonXSjI0dKywI=
-Date: Fri, 14 Nov 2025 14:25:37 -0800
+	b=nm/2xAdNd4U1bGLP60U4/VGxWho9vY5JZN/+usygsstxoeu8Bb6DIKBStJ5nm2Msg
+	 AbKF6bsPojA8SUKWzLc+X+VynPtLnLjQ0cTi9C7I/wzi+z/VTNdVCdqAISGsg+Aqhb
+	 90G1NkRUidluk7k+w16uKYF++7m+Suj2yjs2Q+VE=
+Date: Fri, 14 Nov 2025 14:25:41 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,tmgross@umich.edu,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,riel@surriel.com,rakie.kim@sk.com,peterz@infradead.org,peterx@redhat.com,osalvador@suse.de,ojeda@kernel.org,nphamcs@gmail.com,npache@redhat.com,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,matthew.brost@intel.com,lkp@intel.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kees@kernel.org,kasong@tencent.com,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,gary@garyguo.net,dietmar.eggemann@arm.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,bsegall@google.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-simplify-and-rename-mm-flags-function-for-clarity.patch added to mm-new branch
-Message-Id: <20251114222538.6AAEEC4CEF8@smtp.kernel.org>
+Subject: + tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch added to mm-new branch
+Message-Id: <20251114222541.B146CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: simplify and rename mm flags function for clarity
+     Subject: tools/testing/vma: eliminate dependency on vma->__vm_flags
 has been added to the -mm mm-new branch.  Its filename is
-     mm-simplify-and-rename-mm-flags-function-for-clarity.patch
+     tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-simplify-and-rename-mm-flags-function-for-clarity.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,20 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: simplify and rename mm flags function for clarity
-Date: Fri, 14 Nov 2025 13:26:09 +0000
+Subject: tools/testing/vma: eliminate dependency on vma->__vm_flags
+Date: Fri, 14 Nov 2025 13:26:10 +0000
 
-The __mm_flags_set_word() function is slightly ambiguous - we use 'set' to
-refer to setting individual bits (such as in mm_flags_set()) but here we
-use it to refer to overwriting the value altogether.
+The userland VMA test code relied on an internal implementation detail -
+the existence of vma->__vm_flags to directly access VMA flags. There is no
+need to do so when we have the vm_flags_*() helper functions available.
 
-Rename it to __mm_flags_overwrite_word() to eliminate this ambiguity.
+This is both ugly, but also a subsequent commit will eliminate this field
+altogether so this will shortly become broken.
 
-We additionally simplify the functions, eliminating unnecessary
-bitmap_xxx() operations (the compiler would have optimised these out but
-it's worth being as clear as we can be here).
+This patch has us utilise the helper functions instead.
 
-Link: https://lkml.kernel.org/r/a319a71d57a2af3930051c46dad954d03d55857d.1763126447.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/fb709773edcaf13d7a2c4cede046e454b4e88b1e.1763126447.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
@@ -146,58 +145,56 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   14 +++++---------
- kernel/fork.c            |    4 ++--
- 2 files changed, 7 insertions(+), 11 deletions(-)
+ tools/testing/vma/vma.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/include/linux/mm_types.h~mm-simplify-and-rename-mm-flags-function-for-clarity
-+++ a/include/linux/mm_types.h
-@@ -1314,15 +1314,13 @@ struct mm_struct {
- 	unsigned long cpu_bitmap[];
- };
- 
--/* Set the first system word of mm flags, non-atomically. */
--static inline void __mm_flags_set_word(struct mm_struct *mm, unsigned long value)
-+/* Copy value to the first system word of mm flags, non-atomically. */
-+static inline void __mm_flags_overwrite_word(struct mm_struct *mm, unsigned long value)
+--- a/tools/testing/vma/vma.c~tools-testing-vma-eliminate-dependency-on-vma-__vm_flags
++++ a/tools/testing/vma/vma.c
+@@ -69,18 +69,18 @@ static struct vm_area_struct *alloc_vma(
+ 					pgoff_t pgoff,
+ 					vm_flags_t vm_flags)
  {
--	unsigned long *bitmap = ACCESS_PRIVATE(&mm->flags, __mm_flags);
--
--	bitmap_copy(bitmap, &value, BITS_PER_LONG);
-+	*ACCESS_PRIVATE(&mm->flags, __mm_flags) = value;
+-	struct vm_area_struct *ret = vm_area_alloc(mm);
++	struct vm_area_struct *vma = vm_area_alloc(mm);
+ 
+-	if (ret == NULL)
++	if (vma == NULL)
+ 		return NULL;
+ 
+-	ret->vm_start = start;
+-	ret->vm_end = end;
+-	ret->vm_pgoff = pgoff;
+-	ret->__vm_flags = vm_flags;
+-	vma_assert_detached(ret);
++	vma->vm_start = start;
++	vma->vm_end = end;
++	vma->vm_pgoff = pgoff;
++	vm_flags_reset(vma, vm_flags);
++	vma_assert_detached(vma);
+ 
+-	return ret;
++	return vma;
  }
  
--/* Obtain a read-only view of the bitmap. */
-+/* Obtain a read-only view of the mm flags bitmap. */
- static inline const unsigned long *__mm_flags_get_bitmap(const struct mm_struct *mm)
- {
- 	return (const unsigned long *)ACCESS_PRIVATE(&mm->flags, __mm_flags);
-@@ -1331,9 +1329,7 @@ static inline const unsigned long *__mm_
- /* Read the first system word of mm flags, non-atomically. */
- static inline unsigned long __mm_flags_get_word(const struct mm_struct *mm)
- {
--	const unsigned long *bitmap = __mm_flags_get_bitmap(mm);
--
--	return bitmap_read(bitmap, 0, BITS_PER_LONG);
-+	return *__mm_flags_get_bitmap(mm);
- }
+ /* Helper function to allocate a VMA and link it to the tree. */
+@@ -713,7 +713,7 @@ static bool test_vma_merge_special_flags
+ 	for (i = 0; i < ARRAY_SIZE(special_flags); i++) {
+ 		vm_flags_t special_flag = special_flags[i];
  
- /*
---- a/kernel/fork.c~mm-simplify-and-rename-mm-flags-function-for-clarity
-+++ a/kernel/fork.c
-@@ -1061,10 +1061,10 @@ static struct mm_struct *mm_init(struct
- 	if (current->mm) {
- 		unsigned long flags = __mm_flags_get_word(current->mm);
+-		vma_left->__vm_flags = vm_flags | special_flag;
++		vm_flags_reset(vma_left, vm_flags | special_flag);
+ 		vmg.vm_flags = vm_flags | special_flag;
+ 		vma = merge_new(&vmg);
+ 		ASSERT_EQ(vma, NULL);
+@@ -735,7 +735,7 @@ static bool test_vma_merge_special_flags
+ 	for (i = 0; i < ARRAY_SIZE(special_flags); i++) {
+ 		vm_flags_t special_flag = special_flags[i];
  
--		__mm_flags_set_word(mm, mmf_init_legacy_flags(flags));
-+		__mm_flags_overwrite_word(mm, mmf_init_legacy_flags(flags));
- 		mm->def_flags = current->mm->def_flags & VM_INIT_DEF_MASK;
- 	} else {
--		__mm_flags_set_word(mm, default_dump_filter);
-+		__mm_flags_overwrite_word(mm, default_dump_filter);
- 		mm->def_flags = 0;
- 	}
- 
+-		vma_left->__vm_flags = vm_flags | special_flag;
++		vm_flags_reset(vma_left, vm_flags | special_flag);
+ 		vmg.vm_flags = vm_flags | special_flag;
+ 		vma = merge_existing(&vmg);
+ 		ASSERT_EQ(vma, NULL);
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
