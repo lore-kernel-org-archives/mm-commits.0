@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39180359707
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:38:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B346235C183
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:38:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763156283; cv=none; b=M2gaB+QzhQaI5BdT8DArWs0sbiiuT7t7Aso5hpvehxvkCFQnwv/5cIk0kHryScsEUFP5/jb0NC1eU8QnzULvXxaXKo9wIZ6eOEuEkjXiinvaGrGOdFc2H0mHAYT/SnK90K1hKizdTFxgmIXFm2Uu5HX5wWcmVVxM4MZCJUFWsAQ=
+	t=1763156309; cv=none; b=tlEhCfJQewTBY0+Bgn6OzxMrHnXUxWy595CVfonJ+CGUZFWgopG0i7zTjVw48b1l4b6fD0Re6fX4/nxB6I+cLbAZgvtHX26wgv3+IObfoUSz40DB/TbA4+DrnpBdErBm6rU9paIcRCTHGl2MLcLS4Bj99xLHA8TcKy/UiT//3qk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763156283; c=relaxed/simple;
-	bh=axzO+TNdSN59BYq2HpCQt6ZyP2HZ91lcgmot0ffwMuw=;
-	h=Date:To:From:Subject:Message-Id; b=FmGaW6iTeEDUoS+kzelraH9gRITTOKMoYcxWqauzeuvnmZuogVV2kulEUSO8t6j/Lu7UcLS2BJCvgnyBEwrYFNGXEDGBNEUtUXTpXaPFO+FAUcDFuEgirSPoc6tzpY2iS1LmnQ+Mhlr/qwGakUxs4W909aZmtrI8iUaqLGPrI4g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KHQUIk9s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763156309; c=relaxed/simple;
+	bh=Qtbh36UvDFk6mOaSaM+PsrOmQr/L4f+xGnAFIRyMmPk=;
+	h=Date:To:From:Subject:Message-Id; b=ctJ1lReZWrW4kzcZvskIntvBPYe0i/iI/ZRSbKDGXFkDEXl3PWfi9mm7sHA+3/rY/+qLKTR0cIRUyTcm0xCTKd65Izql9DGw9WgiIQeNvPS59NHm/aJNnRd8tDJsLkjNiTsf35td0N4+dkRLfIVAgZ5YmNlnIemgZGDOHPfpfQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0A91XJ5B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KHQUIk9s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D853FC116D0;
-	Fri, 14 Nov 2025 21:38:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0A91XJ5B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05E13C4CEF8;
+	Fri, 14 Nov 2025 21:38:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763156283;
-	bh=axzO+TNdSN59BYq2HpCQt6ZyP2HZ91lcgmot0ffwMuw=;
+	s=korg; t=1763156309;
+	bh=Qtbh36UvDFk6mOaSaM+PsrOmQr/L4f+xGnAFIRyMmPk=;
 	h=Date:To:From:Subject:From;
-	b=KHQUIk9s4jd2ZQ9avWfVZvh/10nB4F2B1lvNN1h3mJKQ2LYCF1wLu3yhOxJgs++h0
-	 O3n1F/s+RZrZFoFDonv/kXQWfsa7PQ1nuubcIs/8JcPNhtenCyx0iMwiPNxs8V72Iy
-	 US7phc7xagSVhOgpwC2rrJpC5LTiRJKSA9G4zGbE=
-Date: Fri, 14 Nov 2025 13:38:02 -0800
+	b=0A91XJ5BccCxs2o9aZmDUIHEwRb67n7fpJ9kjNGxrq/NVDrUhg0qZhj46sy0a9l7E
+	 GSNQsZj7LrB8IaIT9jUdB/p2proiDZK8RJP7h4mTkWpBX/un8ViregHKXAxr+/9QCa
+	 C/mnTcyxSl3tc7tNDmAYO+SJS/IRHOhkfHKSPwds=
+Date: Fri, 14 Nov 2025 13:38:27 -0800
 To: mm-commits@vger.kernel.org,zhangguopeng@kylinos.cn,yoann.congal@smile.fr,yesanishhere@gmail.com,witu@nvidia.com,wagi@kernel.org,vincent.guittot@linaro.org,tj@kernel.org,tglx@linutronix.de,stuart.w.hayes@gmail.com,song@kernel.org,skhawaja@google.com,saeedm@nvidia.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,rdunlap@infradead.org,quic_zijuhu@quicinc.com,ptyadav@amazon.de,pratyush@kernel.org,parav@nvidia.com,pahsa.tatashin@soleen.com,ojeda@kernel.org,myungjoo.ham@samsung.com,mmaurer@google.com,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,lukas@wunner.de,linux@weissschuh.net,leonro@nvidia.com,leon@kernel.org,lennart@poettering.net,kanie@linux.alibaba.com,Jonathan.Cameron@huawei.com,joel.granados@kernel.org,jgg@nvidia.com,jannh@google.com,ira.weiny@intel.com,ilpo.jarvinen@linux.intel.com,hughd@google.com,hpa@zytor.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,graf@amazon.com,dmatlack@google.com,djeffery@redhat.com,david@redhat.com,dan.j.williams@intel.com,dakr@kernel.org,cw00.choi@samsung.com,corbet@lwn.net,chrisl@kernel.org,chenridong@huawei.com,brauner@kernel.org,bp@alien8.de,bhelgaas@google.com,bartosz.golaszewski@linaro.org,axboe@kernel.dk,anna.schumaker@oracle.com,andriy.shevchenko@linux.intel.com,aliceryhl@google.com,aleksander.lobakin@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] liveupdate-kho-when-live-update-add-kho-image-during-kexec-load.patch removed from -mm tree
-Message-Id: <20251114213802.D853FC116D0@smtp.kernel.org>
+Subject: [alternative-merged] liveupdate-kconfig-make-debugfs-optional.patch removed from -mm tree
+Message-Id: <20251114213829.05E13C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: liveupdate: kho: when live update add KHO image during kexec load
+     Subject: liveupdate: Kconfig: make debugfs optional
 has been removed from the -mm tree.  Its filename was
-     liveupdate-kho-when-live-update-add-kho-image-during-kexec-load.patch
+     liveupdate-kconfig-make-debugfs-optional.patch
 
 This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: liveupdate: kho: when live update add KHO image during kexec load
-Date: Fri, 7 Nov 2025 16:03:03 -0500
+Subject: liveupdate: Kconfig: make debugfs optional
+Date: Fri, 7 Nov 2025 16:03:02 -0500
 
-In case KHO is driven from within kernel via live update, finalize will
-always happen during reboot, so add the KHO image unconditionally.
+Now, that LUO can drive KHO state internally, the debugfs API became
+optional, so remove the default config.
 
-Link: https://lkml.kernel.org/r/20251107210526.257742-6-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20251107210526.257742-5-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Aleksander Lobakin <aleksander.lobakin@intel.com>
 Cc: Alexander Graf <graf@amazon.com>
@@ -117,28 +117,19 @@ Cc: Zijun Hu <quic_zijuhu@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/liveupdate/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/kernel/liveupdate/kexec_handover.c~liveupdate-kho-when-live-update-add-kho-image-during-kexec-load
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -15,6 +15,7 @@
- #include <linux/kexec_handover.h>
- #include <linux/libfdt.h>
- #include <linux/list.h>
-+#include <linux/liveupdate.h>
- #include <linux/memblock.h>
- #include <linux/page-isolation.h>
- #include <linux/vmalloc.h>
-@@ -1489,7 +1490,7 @@ int kho_fill_kimage(struct kimage *image
- 	int err = 0;
- 	struct kexec_buf scratch;
+--- a/kernel/liveupdate/Kconfig~liveupdate-kconfig-make-debugfs-optional
++++ a/kernel/liveupdate/Kconfig
+@@ -55,7 +55,6 @@ config KEXEC_HANDOVER_DEBUG
  
--	if (!kho_out.finalized)
-+	if (!kho_out.finalized && !liveupdate_enabled())
- 		return 0;
- 
- 	image->kho.fdt = virt_to_phys(kho_out.fdt);
+ config KEXEC_HANDOVER_DEBUGFS
+ 	bool "kexec handover debugfs interface"
+-	default KEXEC_HANDOVER
+ 	depends on KEXEC_HANDOVER
+ 	select DEBUG_FS
+ 	help
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
