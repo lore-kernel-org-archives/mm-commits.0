@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B6223054E3
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:58:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 971A7304BC4
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:58:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763161134; cv=none; b=c/ttvTD47pii/RA0l97x7fS84mOvveZ7+iKKT7ltynFHIO1cUOI4nIZhUwX+vPfHFcBLEVOoLXmmyXre92le4bROrIRZSTQKZr2peJkDyFIhBTR8RcjuCGRpYJuxct2YJwZ4AVzzpAlkouJ/ZQbIKVGSSF9dBndOREYeR+e/45o=
+	t=1763161136; cv=none; b=U1PBSBnFmGxwefu7i9twVGestp6CF04lmxeefS/hGCyKqrw7Jmjxfyuxno/5UfupEnKnzLTZchKE334LMzUOeiqzkNhfWABY3nh45m0Ud3Fq48iarZNJYAWJbHXuoCT3ocHjMkIoT2zzOuED0UghJhVNHJrCfiVGCLVzUiqVJVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763161134; c=relaxed/simple;
-	bh=nAAOjVGvR3YHqMsMfevvzFdzOJyRhG7ciwvS0yO3TFk=;
-	h=Date:To:From:Subject:Message-Id; b=gny7vlbanlgOXsjeO+7gzC6yboyfbSTz0oidDFhmxPG5XVx0/VPmCZdVH5JXsZvA0TOe9f48c2KByog4Fg7uYwjflOJX8i3SosJNOxhsiqWeh+bchCRN542e0Ajc0TT3AsqZ5my17uJFLBniOoLLKSXN5XuuhQ5uDotplywowDA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RGPrj6+Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763161136; c=relaxed/simple;
+	bh=ipkw7gDXNKw457zzrFhf/wCTkh2JVz3fmqAqqHA0Khg=;
+	h=Date:To:From:Subject:Message-Id; b=lprOx2hMIf8gP6S28wCDVSUfFd+0iEvBR3CwIN8tfJ418eSBVjfV6drEbWDWy+mc2n6eOO54nwYKN7+2empYo/KBWT/m4f6YtARquxHGkInbITzCF5laopNcIOTkmNfuYTEl9IXv3Kab5cZFsAZRBUG1Ql3iEm/v295Sm16hdII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yfhbnp7V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RGPrj6+Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF3B6C4CEF8;
-	Fri, 14 Nov 2025 22:58:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yfhbnp7V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 200F4C4CEF1;
+	Fri, 14 Nov 2025 22:58:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763161134;
-	bh=nAAOjVGvR3YHqMsMfevvzFdzOJyRhG7ciwvS0yO3TFk=;
+	s=korg; t=1763161136;
+	bh=ipkw7gDXNKw457zzrFhf/wCTkh2JVz3fmqAqqHA0Khg=;
 	h=Date:To:From:Subject:From;
-	b=RGPrj6+QHort42yypqK/sxSKnXB7f/yZo1xtnozdlfWurULfZcwhngynkWma0CZ6k
-	 h4/rweNwIg6Gok8Di/hRa677PYXrWdVAjYhz8BPJ7rpU9PGihwdWZLDxyn2Wan2WpS
-	 aCyRdlLgt0c1TFsomRubQxZLztAJzt91Q0aqi3b4=
-Date: Fri, 14 Nov 2025 14:58:53 -0800
+	b=Yfhbnp7VYXFOD+gRsJxU+U+XngdFjGSf2tfZ1WC4o2xsAy332wy3sl8KuHtS7/9OX
+	 ELFuFOv+T4Ki1ZUWZI1oTmD2oOnTvNwcvU5COz02uVjqjH6sRjKEMQvQHqR3hoq7BL
+	 4d/zeRB828ELus0BO5snvVpIvOESE/C7wdOfKhzk=
+Date: Fri, 14 Nov 2025 14:58:55 -0800
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,visitorckw@gmail.com,tytso@mit.edu,Slava.Dubeyko@ibm.com,sagi@grimberg.me,kbusch@kernel.org,jaegeuk@kernel.org,idryomov@gmail.com,home7438072@gmail.com,hch@lst.de,ebiggers@kernel.org,david.laight.linux@gmail.com,axboe@kernel.dk,409411716@gms.tku.edu.tw,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fscrypt-replace-local-base64url-helpers-with-lib-base64.patch added to mm-nonmm-unstable branch
-Message-Id: <20251114225853.EF3B6C4CEF8@smtp.kernel.org>
+Subject: + ceph-replace-local-base64-helpers-with-lib-base64.patch added to mm-nonmm-unstable branch
+Message-Id: <20251114225856.200F4C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fscrypt: replace local base64url helpers with lib/base64
+     Subject: ceph: replace local base64 helpers with lib/base64
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fscrypt-replace-local-base64url-helpers-with-lib-base64.patch
+     ceph-replace-local-base64-helpers-with-lib-base64.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fscrypt-replace-local-base64url-helpers-with-lib-base64.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ceph-replace-local-base64-helpers-with-lib-base64.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,84 +59,62 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Guan-Chun Wu <409411716@gms.tku.edu.tw>
-Subject: fscrypt: replace local base64url helpers with lib/base64
-Date: Fri, 14 Nov 2025 14:02:21 +0800
+Subject: ceph: replace local base64 helpers with lib/base64
+Date: Fri, 14 Nov 2025 14:02:40 +0800
 
-Replace the base64url encoding and decoding functions in fscrypt with the
-generic base64_encode() and base64_decode() helpers from lib/base64.
+Remove the ceph_base64_encode() and ceph_base64_decode() functions and
+replace their usage with the generic base64_encode() and base64_decode()
+helpers from lib/base64.
 
-This removes the custom implementation in fscrypt, reduces code
-duplication, and relies on the shared Base64 implementation in lib.  The
-helpers preserve RFC 4648-compliant URL-safe Base64 encoding without
-padding, so there are no functional changes.
+This eliminates the custom implementation in Ceph, reduces code
+duplication, and relies on the shared Base64 code in lib.  The helpers
+preserve RFC 3501-compliant Base64 encoding without padding, so there are
+no functional changes.
 
 This change also improves performance: encoding is about 2.7x faster and
-decoding achieves 43-52x speedups compared to the previous implementation.
+decoding achieves 43-52x speedups compared to the previous local
+implementation.
 
-Link: https://lkml.kernel.org/r/20251114060221.89734-1-409411716@gms.tku.edu.tw
-Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Link: https://lkml.kernel.org/r/20251114060240.89965-1-409411716@gms.tku.edu.tw
 Signed-off-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Eric Biggers <ebiggers@kernel.org>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Reviewed-by: Viacheslav Dubeyko <Slava.Dubeyko@ibm.com>
 Cc: Keith Busch <kbusch@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Sagi Grimberg <sagi@grimberg.me>
-Cc: "Theodore Y. Ts'o" <tytso@mit.edu>
-Cc: Viacheslav Dubeyko <Slava.Dubeyko@ibm.com>
 Cc: Xiubo Li <xiubli@redhat.com>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: "Theodore Y. Ts'o" <tytso@mit.edu>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: David Laight <david.laight.linux@gmail.com>
 Cc: Yu-Sheng Huang <home7438072@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/crypto/fname.c |   89 ++------------------------------------------
- 1 file changed, 6 insertions(+), 83 deletions(-)
+ fs/ceph/crypto.c |   60 +++------------------------------------------
+ fs/ceph/crypto.h |    6 ----
+ fs/ceph/dir.c    |    5 ++-
+ fs/ceph/inode.c  |    2 -
+ 4 files changed, 9 insertions(+), 64 deletions(-)
 
---- a/fs/crypto/fname.c~fscrypt-replace-local-base64url-helpers-with-lib-base64
-+++ a/fs/crypto/fname.c
-@@ -16,6 +16,7 @@
- #include <linux/export.h>
- #include <linux/namei.h>
- #include <linux/scatterlist.h>
-+#include <linux/base64.h>
+--- a/fs/ceph/crypto.c~ceph-replace-local-base64-helpers-with-lib-base64
++++ a/fs/ceph/crypto.c
+@@ -15,59 +15,6 @@
+ #include "mds_client.h"
+ #include "crypto.h"
  
- #include "fscrypt_private.h"
- 
-@@ -71,7 +72,7 @@ struct fscrypt_nokey_name {
- 
- /* Encoded size of max-size no-key name */
- #define FSCRYPT_NOKEY_NAME_MAX_ENCODED \
--		FSCRYPT_BASE64URL_CHARS(FSCRYPT_NOKEY_NAME_MAX)
-+		BASE64_CHARS(FSCRYPT_NOKEY_NAME_MAX)
- 
- static inline bool fscrypt_is_dot_dotdot(const struct qstr *str)
- {
-@@ -162,84 +163,6 @@ static int fname_decrypt(const struct in
- 	return 0;
- }
- 
--static const char base64url_table[65] =
--	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
--
--#define FSCRYPT_BASE64URL_CHARS(nbytes)	DIV_ROUND_UP((nbytes) * 4, 3)
--
--/**
-- * fscrypt_base64url_encode() - base64url-encode some binary data
-- * @src: the binary data to encode
-- * @srclen: the length of @src in bytes
-- * @dst: (output) the base64url-encoded string.  Not NUL-terminated.
-- *
-- * Encodes data using base64url encoding, i.e. the "Base 64 Encoding with URL
-- * and Filename Safe Alphabet" specified by RFC 4648.  '='-padding isn't used,
-- * as it's unneeded and not required by the RFC.  base64url is used instead of
-- * base64 to avoid the '/' character, which isn't allowed in filenames.
-- *
-- * Return: the length of the resulting base64url-encoded string in bytes.
-- *	   This will be equal to FSCRYPT_BASE64URL_CHARS(srclen).
+-/*
+- * The base64url encoding used by fscrypt includes the '_' character, which may
+- * cause problems in snapshot names (which can not start with '_').  Thus, we
+- * used the base64 encoding defined for IMAP mailbox names (RFC 3501) instead,
+- * which replaces '-' and '_' by '+' and ','.
 - */
--static int fscrypt_base64url_encode(const u8 *src, int srclen, char *dst)
+-static const char base64_table[65] =
+-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
+-
+-int ceph_base64_encode(const u8 *src, int srclen, char *dst)
 -{
 -	u32 ac = 0;
 -	int bits = 0;
@@ -148,30 +126,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -		bits += 8;
 -		do {
 -			bits -= 6;
--			*cp++ = base64url_table[(ac >> bits) & 0x3f];
+-			*cp++ = base64_table[(ac >> bits) & 0x3f];
 -		} while (bits >= 6);
 -	}
 -	if (bits)
--		*cp++ = base64url_table[(ac << (6 - bits)) & 0x3f];
+-		*cp++ = base64_table[(ac << (6 - bits)) & 0x3f];
 -	return cp - dst;
 -}
 -
--/**
-- * fscrypt_base64url_decode() - base64url-decode a string
-- * @src: the string to decode.  Doesn't need to be NUL-terminated.
-- * @srclen: the length of @src in bytes
-- * @dst: (output) the decoded binary data
-- *
-- * Decodes a string using base64url encoding, i.e. the "Base 64 Encoding with
-- * URL and Filename Safe Alphabet" specified by RFC 4648.  '='-padding isn't
-- * accepted, nor are non-encoding characters such as whitespace.
-- *
-- * This implementation hasn't been optimized for performance.
-- *
-- * Return: the length of the resulting decoded binary data in bytes,
-- *	   or -1 if the string isn't a valid base64url string.
-- */
--static int fscrypt_base64url_decode(const char *src, int srclen, u8 *dst)
+-int ceph_base64_decode(const char *src, int srclen, u8 *dst)
 -{
 -	u32 ac = 0;
 -	int bits = 0;
@@ -179,11 +142,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	u8 *bp = dst;
 -
 -	for (i = 0; i < srclen; i++) {
--		const char *p = strchr(base64url_table, src[i]);
+-		const char *p = strchr(base64_table, src[i]);
 -
 -		if (p == NULL || src[i] == 0)
 -			return -1;
--		ac = (ac << 6) | (p - base64url_table);
+-		ac = (ac << 6) | (p - base64_table);
 -		bits += 6;
 -		if (bits >= 8) {
 -			bits -= 8;
@@ -195,31 +158,89 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	return bp - dst;
 -}
 -
- bool __fscrypt_fname_encrypted_size(const union fscrypt_policy *policy,
- 				    u32 orig_len, u32 max_len,
- 				    u32 *encrypted_len_ret)
-@@ -387,8 +310,8 @@ int fscrypt_fname_disk_to_usr(const stru
- 		       nokey_name.sha256);
- 		size = FSCRYPT_NOKEY_NAME_MAX;
+ static int ceph_crypt_get_context(struct inode *inode, void *ctx, size_t len)
+ {
+ 	struct ceph_inode_info *ci = ceph_inode(inode);
+@@ -318,7 +265,7 @@ int ceph_encode_encrypted_dname(struct i
  	}
--	oname->len = fscrypt_base64url_encode((const u8 *)&nokey_name, size,
--					      oname->name);
-+	oname->len = base64_encode((const u8 *)&nokey_name, size,
-+				   oname->name, false, BASE64_URLSAFE);
- 	return 0;
- }
- EXPORT_SYMBOL(fscrypt_fname_disk_to_usr);
-@@ -467,8 +390,8 @@ int fscrypt_setup_filename(struct inode
- 	if (fname->crypto_buf.name == NULL)
+ 
+ 	/* base64 encode the encrypted name */
+-	elen = ceph_base64_encode(cryptbuf, len, p);
++	elen = base64_encode(cryptbuf, len, p, false, BASE64_IMAP);
+ 	doutc(cl, "base64-encoded ciphertext name = %.*s\n", elen, p);
+ 
+ 	/* To understand the 240 limit, see CEPH_NOHASH_NAME_MAX comments */
+@@ -412,7 +359,8 @@ int ceph_fname_to_usr(const struct ceph_
+ 			tname = &_tname;
+ 		}
+ 
+-		declen = ceph_base64_decode(name, name_len, tname->name);
++		declen = base64_decode(name, name_len,
++				       tname->name, false, BASE64_IMAP);
+ 		if (declen <= 0) {
+ 			ret = -EIO;
+ 			goto out;
+@@ -426,7 +374,7 @@ int ceph_fname_to_usr(const struct ceph_
+ 
+ 	ret = fscrypt_fname_disk_to_usr(dir, 0, 0, &iname, oname);
+ 	if (!ret && (dir != fname->dir)) {
+-		char tmp_buf[CEPH_BASE64_CHARS(NAME_MAX)];
++		char tmp_buf[BASE64_CHARS(NAME_MAX)];
+ 
+ 		name_len = snprintf(tmp_buf, sizeof(tmp_buf), "_%.*s_%ld",
+ 				    oname->len, oname->name, dir->i_ino);
+--- a/fs/ceph/crypto.h~ceph-replace-local-base64-helpers-with-lib-base64
++++ a/fs/ceph/crypto.h
+@@ -8,6 +8,7 @@
+ 
+ #include <crypto/sha2.h>
+ #include <linux/fscrypt.h>
++#include <linux/base64.h>
+ 
+ #define CEPH_FSCRYPT_BLOCK_SHIFT   12
+ #define CEPH_FSCRYPT_BLOCK_SIZE    (_AC(1, UL) << CEPH_FSCRYPT_BLOCK_SHIFT)
+@@ -89,11 +90,6 @@ static inline u32 ceph_fscrypt_auth_len(
+  */
+ #define CEPH_NOHASH_NAME_MAX (180 - SHA256_DIGEST_SIZE)
+ 
+-#define CEPH_BASE64_CHARS(nbytes) DIV_ROUND_UP((nbytes) * 4, 3)
+-
+-int ceph_base64_encode(const u8 *src, int srclen, char *dst);
+-int ceph_base64_decode(const char *src, int srclen, u8 *dst);
+-
+ void ceph_fscrypt_set_ops(struct super_block *sb);
+ 
+ void ceph_fscrypt_free_dummy_policy(struct ceph_fs_client *fsc);
+--- a/fs/ceph/dir.c~ceph-replace-local-base64-helpers-with-lib-base64
++++ a/fs/ceph/dir.c
+@@ -998,13 +998,14 @@ static int prep_encrypted_symlink_target
+ 	if (err)
+ 		goto out;
+ 
+-	req->r_path2 = kmalloc(CEPH_BASE64_CHARS(osd_link.len) + 1, GFP_KERNEL);
++	req->r_path2 = kmalloc(BASE64_CHARS(osd_link.len) + 1, GFP_KERNEL);
+ 	if (!req->r_path2) {
+ 		err = -ENOMEM;
+ 		goto out;
+ 	}
+ 
+-	len = ceph_base64_encode(osd_link.name, osd_link.len, req->r_path2);
++	len = base64_encode(osd_link.name, osd_link.len,
++			    req->r_path2, false, BASE64_IMAP);
+ 	req->r_path2[len] = '\0';
+ out:
+ 	fscrypt_fname_free_buffer(&osd_link);
+--- a/fs/ceph/inode.c~ceph-replace-local-base64-helpers-with-lib-base64
++++ a/fs/ceph/inode.c
+@@ -958,7 +958,7 @@ static int decode_encrypted_symlink(stru
+ 	if (!sym)
  		return -ENOMEM;
  
--	ret = fscrypt_base64url_decode(iname->name, iname->len,
--				       fname->crypto_buf.name);
-+	ret = base64_decode(iname->name, iname->len,
-+			    fname->crypto_buf.name, false, BASE64_URLSAFE);
- 	if (ret < (int)offsetof(struct fscrypt_nokey_name, bytes[1]) ||
- 	    (ret > offsetof(struct fscrypt_nokey_name, sha256) &&
- 	     ret != FSCRYPT_NOKEY_NAME_MAX)) {
+-	declen = ceph_base64_decode(encsym, enclen, sym);
++	declen = base64_decode(encsym, enclen, sym, false, BASE64_IMAP);
+ 	if (declen < 0) {
+ 		pr_err_client(cl,
+ 			"can't decode symlink (%d). Content: %.*s\n",
 _
 
 Patches currently in -mm which might be from 409411716@gms.tku.edu.tw are
