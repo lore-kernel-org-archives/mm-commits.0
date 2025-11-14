@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 490772868A9
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:53:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC5B12868A9
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 21:54:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763157238; cv=none; b=Y05TwsSQCrGeI+DjLrghWxRU0RFaIm+ZCQYPQdtiN314EuSxXEyeWTNrAtYh83fvqd8d4jdLCuyeqgLeNi1uc7cbL/b2WFszZ/IiIX1TV104KRkcBm0QX+iyyECLu6cit5YNBLqFYeq9JllEICBvYbesjJzWVl3BC6yClsuGPPQ=
+	t=1763157240; cv=none; b=UfPu4Xc8VXNyj1fTMc/o9e7HqdQ50VjqvU/ZOvDwAeBCFm9Ss4Rq6wTJXloxFAz3D+sVH/TOB77GX6DK3obuZTDxIOkYuwbP0a3EOuvqOIgc4SM7E3lJFuoUlruNRDJuQ0Opfy/UZ/bJC75mK4j8j7nA8CQIrOaGIprKfxegNyg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763157238; c=relaxed/simple;
-	bh=lox+fiv7dWmXgKk/Y0ugL99pqQOP+wSmWn4gxckgTCU=;
-	h=Date:To:From:Subject:Message-Id; b=uoWyefrebT1p2F/79KtQ4xINDqKpQSjWH8XGfmIIPlzehMGS20RYS6UDT/M7LUZ8/OfUQ6k0ZsxFUbTkX0ahLBm7HNoYNGUfxqNW5otzhPPnJ7nrzW9t5tfICJCJcX67rNgeV1df2dMKAqwMqebqbVg+s72qE3TkVRO5LnP1/KI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vRmIhH+D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763157240; c=relaxed/simple;
+	bh=n4jEpFOOpKxzFhK7BR/uY22nDsRnM0RLFnJ76fbsPgc=;
+	h=Date:To:From:Subject:Message-Id; b=RS5copTTnFnSTgqyYlXkUrnMCfKIhikK/0sldqwIXZ5B06r/y9l7weQAEmV2lgIaOIrOw93WI3SNmcAIs3DbTjgrs3QNTgyk01vIiOtebF2aLKHhDwLcJH2FSy8HwzJBCZIckSLDPMHdgYsuWBfAw7PtpG9IYglmBl2krCM4eh4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iVVmSGtu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vRmIhH+D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2A69C4CEF5;
-	Fri, 14 Nov 2025 21:53:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iVVmSGtu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68364C4CEF5;
+	Fri, 14 Nov 2025 21:54:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763157238;
-	bh=lox+fiv7dWmXgKk/Y0ugL99pqQOP+wSmWn4gxckgTCU=;
+	s=korg; t=1763157240;
+	bh=n4jEpFOOpKxzFhK7BR/uY22nDsRnM0RLFnJ76fbsPgc=;
 	h=Date:To:From:Subject:From;
-	b=vRmIhH+D0NtegXTYcW3K5NDNnQ79qLoY+uSBNZf7XL3s19uPIaYl5219O7tM1ppTq
-	 A8zabhikBA49yEEVkOZZKNqniWhj+nQqqtADqHBu6nhcMWq9oYuC1a2ohd3CFZ9/fl
-	 mYJZY/XceRD/1XxEClBVPSypXqaVDHnu36HlD2PM=
-Date: Fri, 14 Nov 2025 13:53:57 -0800
+	b=iVVmSGtuFJxQt8yXWB+8ya6CPhS1OCuht9e0Av0PXG/+sbKrNrNzzhWguNd7WAgv4
+	 nFLcKaBsZLhKAP5WYyrdVkraj8BhiSG/GfrzZODwjJQFqn6U61FDO17IxWgcZPslWF
+	 4xvzR3P4dN+z9EjQeGBs+EF3pa0uauz/RJULFVfE=
+Date: Fri, 14 Nov 2025 13:53:59 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-propagate-vm_softdirty-on-merge.patch added to mm-new branch
-Message-Id: <20251114215357.F2A69C4CEF5@smtp.kernel.org>
+Subject: + testing-selftests-mm-add-soft-dirty-merge-self-test.patch added to mm-new branch
+Message-Id: <20251114215400.68364C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: propagate VM_SOFTDIRTY on merge
+     Subject: testing/selftests/mm: add soft-dirty merge self-test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-propagate-vm_softdirty-on-merge.patch
+     testing-selftests-mm-add-soft-dirty-merge-self-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-propagate-vm_softdirty-on-merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/testing-selftests-mm-add-soft-dirty-merge-self-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,140 +65,108 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: propagate VM_SOFTDIRTY on merge
-Date: Fri, 14 Nov 2025 17:53:18 +0000
+Subject: testing/selftests/mm: add soft-dirty merge self-test
+Date: Fri, 14 Nov 2025 17:53:19 +0000
 
-Patch series "make VM_SOFTDIRTY a sticky VMA flag".
+Assert that we correctly merge VMAs containing VM_SOFTDIRTY flags now that
+we correctly handle these as sticky.
 
-Currently we set VM_SOFTDIRTY when a new mapping is set up (whether by
-establishing a new VMA, or via merge) as implemented in __mmap_complete()
-and do_brk_flags().
+In order to do so, we have to account for the fact the pagemap interface
+checks soft dirty PTEs and additionally that newly merged VMAs are marked
+VM_SOFTDIRTY.
 
-However, when performing a merge of existing mappings such as when
-performing mprotect(), we may lose the VM_SOFTDIRTY flag.
+To account for this we use unfaulted anon VMAs, mapping one VMA in and
+clearing soft-dirty, then another separate from the first which will be
+marked soft-dirty which we then mremap() into place.
 
-
-This patch (of 2):
-
-Currently we set VM_SOFTDIRTY when a new mapping is set up (whether by
-establishing a new VMA, or via merge) as implemented in __mmap_complete()
-and do_brk_flags().
-
-However, when performing a merge of existing mappings such as when
-performing mprotect(), we may lose the VM_SOFTDIRTY flag.
-
-This is because currently we simply ignore VM_SOFTDIRTY for the purposes
-of merge, so one VMA may possess the flag and another not, and whichever
-happens to be the target VMA will be the one upon which the merge is
-performed which may or may not have VM_SOFTDIRTY set.
-
-Now we have the concept of 'sticky' VMA flags, let's make VM_SOFTDIRTY one
-which solves this issue.
-
-Additionally update VMA userland tests to propagate changes.
-
-Link: https://lkml.kernel.org/r/cover.1763142412.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/addc338c8b33aea3c31202180448ea32ef37956b.1763142412.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/0db6aeb73d42876756ba73163cc0cc6e7e8c6100.1763142412.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |   23 +++++++++++------------
- tools/testing/vma/vma_internal.h |   23 +++++++++++------------
- 2 files changed, 22 insertions(+), 24 deletions(-)
+ tools/testing/selftests/mm/soft-dirty.c |   51 +++++++++++++++++++++-
+ 1 file changed, 50 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-propagate-vm_softdirty-on-merge
-+++ a/include/linux/mm.h
-@@ -532,29 +532,28 @@ extern unsigned int kobjsize(const void
-  * possesses it but the other does not, the merged VMA should nonetheless have
-  * applied to it:
-  *
-+ *   VM_SOFTDIRTY - if a VMA is marked soft-dirty, that is has not had its
-+ *                  references cleared via /proc/$pid/clear_refs, any merged VMA
-+ *                  should be considered soft-dirty also as it operates at a VMA
-+ *                  granularity.
-+ *
-  * VM_MAYBE_GUARD - If a VMA may have guard regions in place it implies that
-  *                  mapped page tables may contain metadata not described by the
-  *                  VMA and thus any merged VMA may also contain this metadata,
-  *                  and thus we must make this flag sticky.
-  */
--#define VM_STICKY VM_MAYBE_GUARD
-+#define VM_STICKY (VM_SOFTDIRTY | VM_MAYBE_GUARD)
+--- a/tools/testing/selftests/mm/soft-dirty.c~testing-selftests-mm-add-soft-dirty-merge-self-test
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -184,6 +184,54 @@ static void test_mprotect(int pagemap_fd
+ 		close(test_fd);
+ }
  
- /*
-  * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
-  * of these flags and the other not does not preclude a merge.
-  *
-- * VM_SOFTDIRTY - Should not prevent from VMA merging, if we match the flags but
-- *                dirty bit -- the caller should mark merged VMA as dirty. If
-- *                dirty bit won't be excluded from comparison, we increase
-- *                pressure on the memory system forcing the kernel to generate
-- *                new VMAs when old one could be extended instead.
-- *
-- *    VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
-- *                which should propagate to all VMAs, but the other does not,
-- *                the merge should still proceed with the merge logic applying
-- *                sticky flags to the final VMA.
-+ * VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
-+ *             which should propagate to all VMAs, but the other does not,
-+ *             the merge should still proceed with the merge logic applying
-+ *             sticky flags to the final VMA.
-  */
--#define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
-+#define VM_IGNORE_MERGE VM_STICKY
++static void test_merge(int pagemap_fd, int pagesize)
++{
++	char *reserved, *map, *map2;
++
++	/* Reserve space. */
++	reserved = mmap(NULL, 4 * pagesize, PROT_NONE,
++			MAP_ANON | MAP_PRIVATE, -1, 0);
++	if (reserved == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++	munmap(reserved, 4 * pagesize);
++
++	/* Map a page. */
++	map = mmap(&reserved[pagesize], pagesize, PROT_READ | PROT_WRITE,
++		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	if (map == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	/* This will clear VM_SOFTDIRTY too. */
++	clear_softdirty();
++
++	/*
++	 * Now place a new mapping which will be marked VM_SOFTDIRTY. Away from
++	 * map.
++	 */
++	map2 = mmap(&reserved[3 * pagesize], pagesize, PROT_READ | PROT_WRITE,
++		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
++	if (map2 == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed\n");
++
++	/*
++	 * Now remap it immediately adjacent to map, if the merge correctly
++	 * propagates VM_SOFTDIRTY, we should then observe the VMA as a whole
++	 * being marked soft-dirty.
++	 */
++	map2 = mremap(map2, pagesize, pagesize, MREMAP_FIXED | MREMAP_MAYMOVE,
++		      &reserved[2 * pagesize]);
++	if (map2 == MAP_FAILED)
++		ksft_exit_fail_msg("mremap failed\n");
++	ksft_test_result(pagemap_is_softdirty(pagemap_fd, map) == 1,
++			 "Test %s-anon soft-dirty after merge 1st pg\n",
++			 __func__);
++	ksft_test_result(pagemap_is_softdirty(pagemap_fd, map2) == 1,
++			 "Test %s-anon soft-dirty after merge 2nd pg\n",
++			 __func__);
++
++	munmap(map, 2 * pagesize);
++}
++
+ static void test_mprotect_anon(int pagemap_fd, int pagesize)
+ {
+ 	test_mprotect(pagemap_fd, pagesize, true);
+@@ -204,7 +252,7 @@ int main(int argc, char **argv)
+ 	if (!softdirty_supported())
+ 		ksft_exit_skip("soft-dirty is not support\n");
  
- /*
-  * Flags which should result in page tables being copied on fork. These are
---- a/tools/testing/vma/vma_internal.h~mm-propagate-vm_softdirty-on-merge
-+++ a/tools/testing/vma/vma_internal.h
-@@ -122,29 +122,28 @@ extern unsigned long dac_mmap_min_addr;
-  * possesses it but the other does not, the merged VMA should nonetheless have
-  * applied to it:
-  *
-+ *   VM_SOFTDIRTY - if a VMA is marked soft-dirty, that is has not had its
-+ *                  references cleared via /proc/$pid/clear_refs, any merged VMA
-+ *                  should be considered soft-dirty also as it operates at a VMA
-+ *                  granularity.
-+ *
-  * VM_MAYBE_GUARD - If a VMA may have guard regions in place it implies that
-  *                  mapped page tables may contain metadata not described by the
-  *                  VMA and thus any merged VMA may also contain this metadata,
-  *                  and thus we must make this flag sticky.
-  */
--#define VM_STICKY VM_MAYBE_GUARD
-+#define VM_STICKY (VM_SOFTDIRTY | VM_MAYBE_GUARD)
+-	ksft_set_plan(15);
++	ksft_set_plan(17);
+ 	pagemap_fd = open(PAGEMAP_FILE_PATH, O_RDONLY);
+ 	if (pagemap_fd < 0)
+ 		ksft_exit_fail_msg("Failed to open %s\n", PAGEMAP_FILE_PATH);
+@@ -216,6 +264,7 @@ int main(int argc, char **argv)
+ 	test_hugepage(pagemap_fd, pagesize);
+ 	test_mprotect_anon(pagemap_fd, pagesize);
+ 	test_mprotect_file(pagemap_fd, pagesize);
++	test_merge(pagemap_fd, pagesize);
  
- /*
-  * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
-  * of these flags and the other not does not preclude a merge.
-  *
-- * VM_SOFTDIRTY - Should not prevent from VMA merging, if we match the flags but
-- *                dirty bit -- the caller should mark merged VMA as dirty. If
-- *                dirty bit won't be excluded from comparison, we increase
-- *                pressure on the memory system forcing the kernel to generate
-- *                new VMAs when old one could be extended instead.
-- *
-- *    VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
-- *                which should propagate to all VMAs, but the other does not,
-- *                the merge should still proceed with the merge logic applying
-- *                sticky flags to the final VMA.
-+ * VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
-+ *             which should propagate to all VMAs, but the other does not,
-+ *             the merge should still proceed with the merge logic applying
-+ *             sticky flags to the final VMA.
-  */
--#define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
-+#define VM_IGNORE_MERGE VM_STICKY
+ 	close(pagemap_fd);
  
- /*
-  * Flags which should result in page tables being copied on fork. These are
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
