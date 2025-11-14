@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 971A7304BC4
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 22:58:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CF2018EFD1
+	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 23:42:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763161136; cv=none; b=U1PBSBnFmGxwefu7i9twVGestp6CF04lmxeefS/hGCyKqrw7Jmjxfyuxno/5UfupEnKnzLTZchKE334LMzUOeiqzkNhfWABY3nh45m0Ud3Fq48iarZNJYAWJbHXuoCT3ocHjMkIoT2zzOuED0UghJhVNHJrCfiVGCLVzUiqVJVk=
+	t=1763163754; cv=none; b=Z7ndg0B1q4RwMvipI+L4ikfd7kHQPZvlujBTgl0V6auFHdcob4FM0m/HF7p74N/mj9f2zyv1h30qnVSP0Ow5Fw0p8jcYUPc9QfzLia4i1kAepRJYdmyhPxZzeSoJ3YAFTJB+vFu0NIc1gusQ61VhGIS61USTnp1pUz9/6l6pHBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763161136; c=relaxed/simple;
-	bh=ipkw7gDXNKw457zzrFhf/wCTkh2JVz3fmqAqqHA0Khg=;
-	h=Date:To:From:Subject:Message-Id; b=lprOx2hMIf8gP6S28wCDVSUfFd+0iEvBR3CwIN8tfJ418eSBVjfV6drEbWDWy+mc2n6eOO54nwYKN7+2empYo/KBWT/m4f6YtARquxHGkInbITzCF5laopNcIOTkmNfuYTEl9IXv3Kab5cZFsAZRBUG1Ql3iEm/v295Sm16hdII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yfhbnp7V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763163754; c=relaxed/simple;
+	bh=DrGnGtpFRKiDr0camXC7WrKXOfGy8cbB+RNRAdyvRFk=;
+	h=Date:To:From:Subject:Message-Id; b=KNh6S7HOG3eiaaX/2i2DqaBLDevMVgsuwBNdqZ3D3Dp3IgsyQIEXpcHcKWs8e8ajbuwddo8UMBtZuloAntmK89m7tHTDs4De0ym9ywlzOHKVW23ro9lRn0kVHOK308WoUfBSSb9bEAKEBt6qlk/WGcCTtmsTRuVMyNFfFaIJj3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ircdx8GI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yfhbnp7V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 200F4C4CEF1;
-	Fri, 14 Nov 2025 22:58:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ircdx8GI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 931EDC4AF09;
+	Fri, 14 Nov 2025 23:42:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763161136;
-	bh=ipkw7gDXNKw457zzrFhf/wCTkh2JVz3fmqAqqHA0Khg=;
+	s=korg; t=1763163753;
+	bh=DrGnGtpFRKiDr0camXC7WrKXOfGy8cbB+RNRAdyvRFk=;
 	h=Date:To:From:Subject:From;
-	b=Yfhbnp7VYXFOD+gRsJxU+U+XngdFjGSf2tfZ1WC4o2xsAy332wy3sl8KuHtS7/9OX
-	 ELFuFOv+T4Ki1ZUWZI1oTmD2oOnTvNwcvU5COz02uVjqjH6sRjKEMQvQHqR3hoq7BL
-	 4d/zeRB828ELus0BO5snvVpIvOESE/C7wdOfKhzk=
-Date: Fri, 14 Nov 2025 14:58:55 -0800
-To: mm-commits@vger.kernel.org,xiubli@redhat.com,visitorckw@gmail.com,tytso@mit.edu,Slava.Dubeyko@ibm.com,sagi@grimberg.me,kbusch@kernel.org,jaegeuk@kernel.org,idryomov@gmail.com,home7438072@gmail.com,hch@lst.de,ebiggers@kernel.org,david.laight.linux@gmail.com,axboe@kernel.dk,409411716@gms.tku.edu.tw,akpm@linux-foundation.org
+	b=Ircdx8GIDjJaJ6mMUQoTI4aOQH1sqY1WWfC5lArVQC1wcJFAVaJ7eojzl71xPmzU+
+	 LNu9RR2XBMwd4/zDH/4TKE+Xhv/wnoAb0rK1oYgW+kRunGrLDPT8+moiNirArWbJyj
+	 GToAND7X9kzII90bracyGUx0gWrV4u7HIpXr1KGw=
+Date: Fri, 14 Nov 2025 15:42:32 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ceph-replace-local-base64-helpers-with-lib-base64.patch added to mm-nonmm-unstable branch
-Message-Id: <20251114225856.200F4C4CEF1@smtp.kernel.org>
+Subject: + mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch added to mm-new branch
+Message-Id: <20251114234233.931EDC4AF09@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ceph: replace local base64 helpers with lib/base64
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ceph-replace-local-base64-helpers-with-lib-base64.patch
+     Subject: mm/khugepaged: remove redundant clearing of struct collapse_control
+has been added to the -mm mm-new branch.  Its filename is
+     mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ceph-replace-local-base64-helpers-with-lib-base64.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,195 +64,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Guan-Chun Wu <409411716@gms.tku.edu.tw>
-Subject: ceph: replace local base64 helpers with lib/base64
-Date: Fri, 14 Nov 2025 14:02:40 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/khugepaged: remove redundant clearing of struct collapse_control
+Date: Fri, 14 Nov 2025 03:00:26 +0000
 
-Remove the ceph_base64_encode() and ceph_base64_decode() functions and
-replace their usage with the generic base64_encode() and base64_decode()
-helpers from lib/base64.
+Patch series "unify PMD scan results and remove redundant cleanup", v2.
 
-This eliminates the custom implementation in Ceph, reduces code
-duplication, and relies on the shared Base64 code in lib.  The helpers
-preserve RFC 3501-compliant Base64 encoding without padding, so there are
-no functional changes.
+This small series addresses two minor cleanup opportunities in the
+hugepage collapse logic.
 
-This change also improves performance: encoding is about 2.7x faster and
-decoding achieves 43-52x speedups compared to the previous local
-implementation.
+The initial motivation arose during a code review of madvise_collapse(),
+where it was noted that the function was missing a handler for
+SCAN_PMD_NONE.  This oversight exposed the inconsistent handling of
+SCAN_PMD_NULL and SCAN_PMD_NONE.
 
-Link: https://lkml.kernel.org/r/20251114060240.89965-1-409411716@gms.tku.edu.tw
-Signed-off-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
-Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Reviewed-by: Viacheslav Dubeyko <Slava.Dubeyko@ibm.com>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Sagi Grimberg <sagi@grimberg.me>
-Cc: Xiubo Li <xiubli@redhat.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Eric Biggers <ebiggers@kernel.org>
-Cc: "Theodore Y. Ts'o" <tytso@mit.edu>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Yu-Sheng Huang <home7438072@gmail.com>
+Since both scan results are functionally identical (they indicate the
+absence of a PTE table), the primary patch unifies them into a single,
+clearer identifier, SCAN_NO_PTE_TABLE.
+
+The series also takes the opportunity to remove a redundant clearing of
+the struct collapse_control.
+
+
+This patch (of 3):
+
+The structure struct collapse_control is being unnecessarily cleared twice
+during the huge page collapse process.
+
+Both hpage_collapse_scan_file() and hpage_collapse_scan_pmd() currently
+perform a clear operation on this structure.
+
+Remove the redundant clear operation.
+
+Link: https://lkml.kernel.org/r/20251114030028.7035-1-richard.weiyang@gmail.com
+Link: https://lkml.kernel.org/r/20251114030028.7035-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ceph/crypto.c |   60 +++------------------------------------------
- fs/ceph/crypto.h |    6 ----
- fs/ceph/dir.c    |    5 ++-
- fs/ceph/inode.c  |    2 -
- 4 files changed, 9 insertions(+), 64 deletions(-)
+ mm/khugepaged.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/fs/ceph/crypto.c~ceph-replace-local-base64-helpers-with-lib-base64
-+++ a/fs/ceph/crypto.c
-@@ -15,59 +15,6 @@
- #include "mds_client.h"
- #include "crypto.h"
- 
--/*
-- * The base64url encoding used by fscrypt includes the '_' character, which may
-- * cause problems in snapshot names (which can not start with '_').  Thus, we
-- * used the base64 encoding defined for IMAP mailbox names (RFC 3501) instead,
-- * which replaces '-' and '_' by '+' and ','.
-- */
--static const char base64_table[65] =
--	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
--
--int ceph_base64_encode(const u8 *src, int srclen, char *dst)
--{
--	u32 ac = 0;
--	int bits = 0;
--	int i;
--	char *cp = dst;
--
--	for (i = 0; i < srclen; i++) {
--		ac = (ac << 8) | src[i];
--		bits += 8;
--		do {
--			bits -= 6;
--			*cp++ = base64_table[(ac >> bits) & 0x3f];
--		} while (bits >= 6);
--	}
--	if (bits)
--		*cp++ = base64_table[(ac << (6 - bits)) & 0x3f];
--	return cp - dst;
--}
--
--int ceph_base64_decode(const char *src, int srclen, u8 *dst)
--{
--	u32 ac = 0;
--	int bits = 0;
--	int i;
--	u8 *bp = dst;
--
--	for (i = 0; i < srclen; i++) {
--		const char *p = strchr(base64_table, src[i]);
--
--		if (p == NULL || src[i] == 0)
--			return -1;
--		ac = (ac << 6) | (p - base64_table);
--		bits += 6;
--		if (bits >= 8) {
--			bits -= 8;
--			*bp++ = (u8)(ac >> bits);
--		}
--	}
--	if (ac & ((1 << bits) - 1))
--		return -1;
--	return bp - dst;
--}
--
- static int ceph_crypt_get_context(struct inode *inode, void *ctx, size_t len)
- {
- 	struct ceph_inode_info *ci = ceph_inode(inode);
-@@ -318,7 +265,7 @@ int ceph_encode_encrypted_dname(struct i
- 	}
- 
- 	/* base64 encode the encrypted name */
--	elen = ceph_base64_encode(cryptbuf, len, p);
-+	elen = base64_encode(cryptbuf, len, p, false, BASE64_IMAP);
- 	doutc(cl, "base64-encoded ciphertext name = %.*s\n", elen, p);
- 
- 	/* To understand the 240 limit, see CEPH_NOHASH_NAME_MAX comments */
-@@ -412,7 +359,8 @@ int ceph_fname_to_usr(const struct ceph_
- 			tname = &_tname;
+--- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control
++++ a/mm/khugepaged.c
+@@ -2803,8 +2803,6 @@ int madvise_collapse(struct vm_area_stru
+ 			hend = min(hend, vma->vm_end & HPAGE_PMD_MASK);
  		}
- 
--		declen = ceph_base64_decode(name, name_len, tname->name);
-+		declen = base64_decode(name, name_len,
-+				       tname->name, false, BASE64_IMAP);
- 		if (declen <= 0) {
- 			ret = -EIO;
- 			goto out;
-@@ -426,7 +374,7 @@ int ceph_fname_to_usr(const struct ceph_
- 
- 	ret = fscrypt_fname_disk_to_usr(dir, 0, 0, &iname, oname);
- 	if (!ret && (dir != fname->dir)) {
--		char tmp_buf[CEPH_BASE64_CHARS(NAME_MAX)];
-+		char tmp_buf[BASE64_CHARS(NAME_MAX)];
- 
- 		name_len = snprintf(tmp_buf, sizeof(tmp_buf), "_%.*s_%ld",
- 				    oname->len, oname->name, dir->i_ino);
---- a/fs/ceph/crypto.h~ceph-replace-local-base64-helpers-with-lib-base64
-+++ a/fs/ceph/crypto.h
-@@ -8,6 +8,7 @@
- 
- #include <crypto/sha2.h>
- #include <linux/fscrypt.h>
-+#include <linux/base64.h>
- 
- #define CEPH_FSCRYPT_BLOCK_SHIFT   12
- #define CEPH_FSCRYPT_BLOCK_SIZE    (_AC(1, UL) << CEPH_FSCRYPT_BLOCK_SHIFT)
-@@ -89,11 +90,6 @@ static inline u32 ceph_fscrypt_auth_len(
-  */
- #define CEPH_NOHASH_NAME_MAX (180 - SHA256_DIGEST_SIZE)
- 
--#define CEPH_BASE64_CHARS(nbytes) DIV_ROUND_UP((nbytes) * 4, 3)
--
--int ceph_base64_encode(const u8 *src, int srclen, char *dst);
--int ceph_base64_decode(const char *src, int srclen, u8 *dst);
--
- void ceph_fscrypt_set_ops(struct super_block *sb);
- 
- void ceph_fscrypt_free_dummy_policy(struct ceph_fs_client *fsc);
---- a/fs/ceph/dir.c~ceph-replace-local-base64-helpers-with-lib-base64
-+++ a/fs/ceph/dir.c
-@@ -998,13 +998,14 @@ static int prep_encrypted_symlink_target
- 	if (err)
- 		goto out;
- 
--	req->r_path2 = kmalloc(CEPH_BASE64_CHARS(osd_link.len) + 1, GFP_KERNEL);
-+	req->r_path2 = kmalloc(BASE64_CHARS(osd_link.len) + 1, GFP_KERNEL);
- 	if (!req->r_path2) {
- 		err = -ENOMEM;
- 		goto out;
- 	}
- 
--	len = ceph_base64_encode(osd_link.name, osd_link.len, req->r_path2);
-+	len = base64_encode(osd_link.name, osd_link.len,
-+			    req->r_path2, false, BASE64_IMAP);
- 	req->r_path2[len] = '\0';
- out:
- 	fscrypt_fname_free_buffer(&osd_link);
---- a/fs/ceph/inode.c~ceph-replace-local-base64-helpers-with-lib-base64
-+++ a/fs/ceph/inode.c
-@@ -958,7 +958,7 @@ static int decode_encrypted_symlink(stru
- 	if (!sym)
- 		return -ENOMEM;
- 
--	declen = ceph_base64_decode(encsym, enclen, sym);
-+	declen = base64_decode(encsym, enclen, sym, false, BASE64_IMAP);
- 	if (declen < 0) {
- 		pr_err_client(cl,
- 			"can't decode symlink (%d). Content: %.*s\n",
+ 		mmap_assert_locked(mm);
+-		memset(cc->node_load, 0, sizeof(cc->node_load));
+-		nodes_clear(cc->alloc_nmask);
+ 		if (!vma_is_anonymous(vma)) {
+ 			struct file *file = get_file(vma->vm_file);
+ 			pgoff_t pgoff = linear_page_index(vma, addr);
 _
 
-Patches currently in -mm which might be from 409411716@gms.tku.edu.tw are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-lib-base64-rework-encode-decode-for-speed-and-stricter-validation.patch
-lib-add-kunit-tests-for-base64-encoding-decoding.patch
-fscrypt-replace-local-base64url-helpers-with-lib-base64.patch
-ceph-replace-local-base64-helpers-with-lib-base64.patch
+mm-huge_memory-avoid-reinvoking-folio_test_anon.patch
+mm-huge_memory-update-folio-stat-after-successful-split.patch
+mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split.patch
+mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch
+mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
+mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity.patch
+mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported.patch
+mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch
+mm-khugepaged-continue-to-collapse-on-scan_pmd_none.patch
+mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch
 
