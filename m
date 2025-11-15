@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2971A1DE4E1
-	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 18:52:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09DD31DE4E1;
+	Sat, 15 Nov 2025 18:52:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763232755; cv=none; b=ugLBYTI1ycPofUVDen8Kd6bDkidV5liF6NJhKZTKZsG38VDcaF8UxogMNmJbqAKTOebtdMo6iDUbpBsg1QUNz+rkh2PsgrJzQIRRhFJa2H1ustXV0cs2eMimdAthVHSryuVrOZ4T+3GooMb/S6+3x1PNXWfbIoAJGFDK10yBBsg=
+	t=1763232757; cv=none; b=djzHFk+TgQXn8fsTMJoa9BeYjk6eHCRDGWxBdV24+1ALjMHyBMD7TFa15UfiilVeVHW6Iqt+dEjwA1zc917v99UtUAgYe6KiJ7NiWfCNI38ysOagjo2w+qOTUk6jOPgyp2wABsfbCUfWpAn3f8TBDLcHu1VMEhgb3yzXUs0rleY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763232755; c=relaxed/simple;
-	bh=aW3hCdsLxts+epWoCGEI2YX4SF+9Cg3tq08FjF59+z4=;
-	h=Date:To:From:Subject:Message-Id; b=F7QMUCuRDOwDkLDJaOg1Dki3k9yJlB8Zo/RN+6IhImF+cTdyVgOYPc+1xhqAG9tSjs1kEh2xbLt6q6BRonHYbN0kWPCOq4kxd0pcjfb7m3MU/9sdO23pZJaMOglg1SxrbH1AF21gofNQrKxNExAomDPdAi5MC6BuEUEBTv6NQ7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KkRHS1la; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763232757; c=relaxed/simple;
+	bh=EclQu3LspR/U/FR3XM5fTE1OZ5FQxdaHwm65y0qz6kw=;
+	h=Date:To:From:Subject:Message-Id; b=YNNr94FKi//evU+cAdfOXj4CD1lQmekFLldKnWpDrRyYUfQm3bACiIeJAJtfjlH79XF7d0xhZgdNJ0SOsq5bWaHq12O1ZzxBv3ARilKmpj5yeLrIFSEr8wNv/jFN806arnFf8wHWIqKvWBEzdesjHbmaFkrJ0p6PeCNM8C2J7Wo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XRt61UAT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KkRHS1la"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D91EAC113D0;
-	Sat, 15 Nov 2025 18:52:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XRt61UAT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CCB4C113D0;
+	Sat, 15 Nov 2025 18:52:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763232754;
-	bh=aW3hCdsLxts+epWoCGEI2YX4SF+9Cg3tq08FjF59+z4=;
+	s=korg; t=1763232756;
+	bh=EclQu3LspR/U/FR3XM5fTE1OZ5FQxdaHwm65y0qz6kw=;
 	h=Date:To:From:Subject:From;
-	b=KkRHS1laAlMLdH/MKRK7kA57uXIIEh9ITncV/Q4p/Q/n0wxt7hByIldUonrnovIPQ
-	 NfgFYu4VwImRCoegpNyAQyvJaeAMFVUOwyNbuQU5kJe1Ak2AxsPJhznnjtIluzNO0U
-	 dC/yZINv/IWVyxn6h9wZNbs7q2+rmGN4bbs37lxA=
-Date: Sat, 15 Nov 2025 10:52:34 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sourabhjain@linux.ibm.com,rppt@kernel.org,ritesh.list@gmail.com,npiggin@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,donettom@linux.ibm.com,christophe.leroy@csgroup.eu,david@kernel.org,akpm@linux-foundation.org
+	b=XRt61UATwzsKXPgDdZFlSgrsG8ojPBDaTwFQ5UySLdzUVaCzaY2roc0cfs8cnnnst
+	 9GM9a5Gp2474o077vHVMDaE8sBNbztXCZV0KXcu86hsZ3StUfaoKNAdxNGlQAKd3M9
+	 vy/fZcLD02f+Yi4aMOVcw7L02mh4uFLx8C3JZ/as=
+Date: Sat, 15 Nov 2025 10:52:35 -0800
+To: mm-commits@vger.kernel.org,thunder.leizhen@huawei.com,stable@vger.kernel.org,bhe@redhat.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch removed from -mm tree
-Message-Id: <20251115185234.D91EAC113D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] crash-fix-crashkernel-resource-shrink.patch removed from -mm tree
+Message-Id: <20251115185236.8CCB4C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,166 +35,95 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb
+     Subject: crash: fix crashkernel resource shrink
 has been removed from the -mm tree.  Its filename was
-     mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch
+     crash-fix-crashkernel-resource-shrink.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb
-Date: Fri, 14 Nov 2025 22:49:20 +0100
+From: Sourabh Jain <sourabhjain@linux.ibm.com>
+Subject: crash: fix crashkernel resource shrink
+Date: Sun, 2 Nov 2025 01:07:41 +0530
 
-In the past, CONFIG_ARCH_HAS_GIGANTIC_PAGE indicated that we support
-runtime allocation of gigantic hugetlb folios.  In the meantime it evolved
-into a generic way for the architecture to state that it supports gigantic
-hugetlb folios.
+When crashkernel is configured with a high reservation, shrinking its
+value below the low crashkernel reservation causes two issues:
 
-In commit fae7d834c43c ("mm: add __dump_folio()") we started using
-CONFIG_ARCH_HAS_GIGANTIC_PAGE to decide MAX_FOLIO_ORDER: whether we could
-have folios larger than what the buddy can handle.  In the context of that
-commit, we started using MAX_FOLIO_ORDER to detect page corruptions when
-dumping tail pages of folios.  Before that commit, we assumed that we
-cannot have folios larger than the highest buddy order, which was
-obviously wrong.
+1. Invalid crashkernel resource objects
+2. Kernel crash if crashkernel shrinking is done twice
 
-In commit 7b4f21f5e038 ("mm/hugetlb: check for unreasonable folio sizes
-when registering hstate"), we used MAX_FOLIO_ORDER to detect
-inconsistencies, and in fact, we found some now.
+For example, with crashkernel=200M,high, the kernel reserves 200MB of high
+memory and some default low memory (say 256MB).  The reservation appears
+as:
 
-Powerpc allows for configs that can allocate gigantic folio during boot
-(not at runtime), that do not set CONFIG_ARCH_HAS_GIGANTIC_PAGE and can
-exceed PUD_ORDER.
+cat /proc/iomem | grep -i crash
+af000000-beffffff : Crash kernel
+433000000-43f7fffff : Crash kernel
 
-To fix it, let's make powerpc select CONFIG_ARCH_HAS_GIGANTIC_PAGE with
-hugetlb on powerpc, and increase the maximum folio size with hugetlb to 16
-GiB on 64bit (possible on arm64 and powerpc) and 1 GiB on 32 bit
-(powerpc).  Note that on some powerpc configurations, whether we actually
-have gigantic pages depends on the setting of CONFIG_ARCH_FORCE_MAX_ORDER,
-but there is nothing really problematic about setting it unconditionally:
-we just try to keep the value small so we can better detect problems in
-__dump_folio() and inconsistencies around the expected largest folio in
-the system.
+If crashkernel is then shrunk to 50MB (echo 52428800 >
+/sys/kernel/kexec_crash_size), /proc/iomem still shows 256MB reserved:
+af000000-beffffff : Crash kernel
 
-Ideally, we'd have a better way to obtain the maximum hugetlb folio size
-and detect ourselves whether we really end up with gigantic folios.  Let's
-defer bigger changes and fix the warnings first.
+Instead, it should show 50MB:
+af000000-b21fffff : Crash kernel
 
-While at it, handle gigantic DAX folios more clearly: DAX can only end up
-creating gigantic folios with HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD.
+Further shrinking crashkernel to 40MB causes a kernel crash with the
+following trace (x86):
 
-Add a new Kconfig option HAVE_GIGANTIC_FOLIOS to make both cases clearer. 
-In particular, worry about ARCH_HAS_GIGANTIC_PAGE only with HUGETLB_PAGE.
+BUG: kernel NULL pointer dereference, address: 0000000000000038
+PGD 0 P4D 0
+Oops: 0000 [#1] PREEMPT SMP NOPTI
+<snip...>
+Call Trace: <TASK>
+? __die_body.cold+0x19/0x27
+? page_fault_oops+0x15a/0x2f0
+? search_module_extables+0x19/0x60
+? search_bpf_extables+0x5f/0x80
+? exc_page_fault+0x7e/0x180
+? asm_exc_page_fault+0x26/0x30
+? __release_resource+0xd/0xb0
+release_resource+0x26/0x40
+__crash_shrink_memory+0xe5/0x110
+crash_shrink_memory+0x12a/0x190
+kexec_crash_size_store+0x41/0x80
+kernfs_fop_write_iter+0x141/0x1f0
+vfs_write+0x294/0x460
+ksys_write+0x6d/0xf0
+<snip...>
 
-Note: with enabling CONFIG_ARCH_HAS_GIGANTIC_PAGE on powerpc, we will now
-also allow for runtime allocations of folios in some more powerpc configs.
-I don't think this is a problem, but if it is we could handle it through
-__HAVE_ARCH_GIGANTIC_PAGE_RUNTIME_SUPPORTED.
+This happens because __crash_shrink_memory()/kernel/crash_core.c
+incorrectly updates the crashk_res resource object even when
+crashk_low_res should be updated.
 
-While __dump_page()/__dump_folio was also problematic (not handling
-dumping of tail pages of such gigantic folios correctly), it doesn't seem
-critical enough to mark it as a fix.
+Fix this by ensuring the correct crashkernel resource object is updated
+when shrinking crashkernel memory.
 
-Link: https://lkml.kernel.org/r/20251114214920.2550676-1-david@kernel.org
-Fixes: 7b4f21f5e038 ("mm/hugetlb: check for unreasonable folio sizes when registering hstate")
-Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Closes: https://lore.kernel.org/r/3e043453-3f27-48ad-b987-cc39f523060a@csgroup.eu/
-Reported-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Closes: https://lore.kernel.org/r/94377f5c-d4f0-4c0f-b0f6-5bf1cd7305b1@linux.ibm.com/
-Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Link: https://lkml.kernel.org/r/20251101193741.289252-1-sourabhjain@linux.ibm.com
+Fixes: 16c6006af4d4 ("kexec: enable kexec_crash_size to support two crash kernel regions")
+Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig                   |    1 +
- arch/powerpc/platforms/Kconfig.cputype |    1 -
- include/linux/mm.h                     |   13 ++++++++++---
- mm/Kconfig                             |    7 +++++++
- 4 files changed, 18 insertions(+), 4 deletions(-)
+ kernel/crash_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/Kconfig~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
-+++ a/arch/powerpc/Kconfig
-@@ -137,6 +137,7 @@ config PPC
- 	select ARCH_HAS_DMA_OPS			if PPC64
- 	select ARCH_HAS_FORTIFY_SOURCE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-+	select ARCH_HAS_GIGANTIC_PAGE		if ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_HAS_KCOV
- 	select ARCH_HAS_KERNEL_FPU_SUPPORT	if PPC64 && PPC_FPU
- 	select ARCH_HAS_MEMBARRIER_CALLBACKS
---- a/arch/powerpc/platforms/Kconfig.cputype~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -423,7 +423,6 @@ config PPC_64S_HASH_MMU
- config PPC_RADIX_MMU
- 	bool "Radix MMU Support"
- 	depends on PPC_BOOK3S_64
--	select ARCH_HAS_GIGANTIC_PAGE
- 	default y
- 	help
- 	  Enable support for the Power ISA 3.0 Radix style MMU. Currently this
---- a/include/linux/mm.h~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
-+++ a/include/linux/mm.h
-@@ -2074,7 +2074,7 @@ static inline unsigned long folio_nr_pag
- 	return folio_large_nr_pages(folio);
- }
+--- a/kernel/crash_core.c~crash-fix-crashkernel-resource-shrink
++++ a/kernel/crash_core.c
+@@ -373,7 +373,7 @@ static int __crash_shrink_memory(struct
+ 		old_res->start = 0;
+ 		old_res->end   = 0;
+ 	} else {
+-		crashk_res.end = ram_res->start - 1;
++		old_res->end = ram_res->start - 1;
+ 	}
  
--#if !defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE)
-+#if !defined(CONFIG_HAVE_GIGANTIC_FOLIOS)
- /*
-  * We don't expect any folios that exceed buddy sizes (and consequently
-  * memory sections).
-@@ -2087,10 +2087,17 @@ static inline unsigned long folio_nr_pag
-  * pages are guaranteed to be contiguous.
-  */
- #define MAX_FOLIO_ORDER		PFN_SECTION_SHIFT
--#else
-+#elif defined(CONFIG_HUGETLB_PAGE)
- /*
-  * There is no real limit on the folio size. We limit them to the maximum we
-- * currently expect (e.g., hugetlb, dax).
-+ * currently expect (see CONFIG_HAVE_GIGANTIC_FOLIOS): with hugetlb, we expect
-+ * no folios larger than 16 GiB on 64bit and 1 GiB on 32bit.
-+ */
-+#define MAX_FOLIO_ORDER		get_order(IS_ENABLED(CONFIG_64BIT) ? SZ_16G : SZ_1G)
-+#else
-+/*
-+ * Without hugetlb, gigantic folios that are bigger than a single PUD are
-+ * currently impossible.
-  */
- #define MAX_FOLIO_ORDER		PUD_ORDER
- #endif
---- a/mm/Kconfig~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
-+++ a/mm/Kconfig
-@@ -908,6 +908,13 @@ config PAGE_MAPCOUNT
- config PGTABLE_HAS_HUGE_LEAVES
- 	def_bool TRANSPARENT_HUGEPAGE || HUGETLB_PAGE
- 
-+#
-+# We can end up creating gigantic folio.
-+#
-+config HAVE_GIGANTIC_FOLIOS
-+	def_bool (HUGETLB_PAGE && ARCH_HAS_GIGANTIC_PAGE) || \
-+		 (ZONE_DEVICE && HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
-+
- # TODO: Allow to be enabled without THP
- config ARCH_SUPPORTS_HUGE_PFNMAP
- 	def_bool n
+ 	crash_free_reserved_phys_range(ram_res->start, ram_res->end);
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
 
 
