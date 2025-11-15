@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09DD31DE4E1;
-	Sat, 15 Nov 2025 18:52:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EB601DE4E1
+	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 18:52:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763232757; cv=none; b=djzHFk+TgQXn8fsTMJoa9BeYjk6eHCRDGWxBdV24+1ALjMHyBMD7TFa15UfiilVeVHW6Iqt+dEjwA1zc917v99UtUAgYe6KiJ7NiWfCNI38ysOagjo2w+qOTUk6jOPgyp2wABsfbCUfWpAn3f8TBDLcHu1VMEhgb3yzXUs0rleY=
+	t=1763232758; cv=none; b=f5p2ih0J6XS0o42kloribeDCou9Q9wOWj9FoYXlijf6o5NTEa8d7teJCQih6Ajhmu+sTmC+MoODgjO3gfy3YOLg//n9T9iuWwFCKFA1jXT2oRIPOERqyha8CnqgtiCcghJUi7UsL00mFxO6vEsCK5FQNeQVAseqeUJ+iZZgjVcI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763232757; c=relaxed/simple;
-	bh=EclQu3LspR/U/FR3XM5fTE1OZ5FQxdaHwm65y0qz6kw=;
-	h=Date:To:From:Subject:Message-Id; b=YNNr94FKi//evU+cAdfOXj4CD1lQmekFLldKnWpDrRyYUfQm3bACiIeJAJtfjlH79XF7d0xhZgdNJ0SOsq5bWaHq12O1ZzxBv3ARilKmpj5yeLrIFSEr8wNv/jFN806arnFf8wHWIqKvWBEzdesjHbmaFkrJ0p6PeCNM8C2J7Wo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XRt61UAT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763232758; c=relaxed/simple;
+	bh=AQJogMLJYyiTIQVf83hekTV5X2oRytlBKq4IbQchCFQ=;
+	h=Date:To:From:Subject:Message-Id; b=TEGib5RJzwHDSZ/keWXM/6/Ifs+t2gYtHqA66p5R05wG3kEx+kfK47g6NJyU4dJl5U6ibFe9X4GpcotoiBDI2lT3Ae8phs0CHxlFpV3Oslgh6C3wq1N8R7SyIhL3pF8PrsfYopbElQ6qBY64JPeTA04fo0ifet8tOIgQr77ynXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aVvi2YjM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XRt61UAT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CCB4C113D0;
-	Sat, 15 Nov 2025 18:52:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aVvi2YjM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA88FC2BC86;
+	Sat, 15 Nov 2025 18:52:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763232756;
-	bh=EclQu3LspR/U/FR3XM5fTE1OZ5FQxdaHwm65y0qz6kw=;
+	s=korg; t=1763232757;
+	bh=AQJogMLJYyiTIQVf83hekTV5X2oRytlBKq4IbQchCFQ=;
 	h=Date:To:From:Subject:From;
-	b=XRt61UATwzsKXPgDdZFlSgrsG8ojPBDaTwFQ5UySLdzUVaCzaY2roc0cfs8cnnnst
-	 9GM9a5Gp2474o077vHVMDaE8sBNbztXCZV0KXcu86hsZ3StUfaoKNAdxNGlQAKd3M9
-	 vy/fZcLD02f+Yi4aMOVcw7L02mh4uFLx8C3JZ/as=
-Date: Sat, 15 Nov 2025 10:52:35 -0800
-To: mm-commits@vger.kernel.org,thunder.leizhen@huawei.com,stable@vger.kernel.org,bhe@redhat.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
+	b=aVvi2YjMX8q9p5kVQNvZQ4Fkwy9lOhzBfoXfZz5VilG/F2L4hPo+qDazuk9CaKxRu
+	 EF6fEWBysDjfpD1+qpZLXE4yZJg7VNfzAAqqMd87Ww9Nw7WOHxkPB4qHNfSvnBCn1u
+	 wDBJSjtZxVaBKWkbIBeQ9ODbXUrc/O1qzJct8I8I=
+Date: Sat, 15 Nov 2025 10:52:37 -0800
+To: mm-commits@vger.kernel.org,david@redhat.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] crash-fix-crashkernel-resource-shrink.patch removed from -mm tree
-Message-Id: <20251115185236.8CCB4C113D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-david-hildenbrands-email-address.patch removed from -mm tree
+Message-Id: <20251115185237.CA88FC2BC86@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,172 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: crash: fix crashkernel resource shrink
+     Subject: MAINTAINERS: update David Hildenbrand's email address
 has been removed from the -mm tree.  Its filename was
-     crash-fix-crashkernel-resource-shrink.patch
+     maintainers-update-david-hildenbrands-email-address.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: crash: fix crashkernel resource shrink
-Date: Sun, 2 Nov 2025 01:07:41 +0530
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: MAINTAINERS: update David Hildenbrand's email address
+Date: Mon, 3 Nov 2025 11:36:59 +0100
 
-When crashkernel is configured with a high reservation, shrinking its
-value below the low crashkernel reservation causes two issues:
+Switch to kernel.org email address as I will be leaving Red Hat.  The old
+address will remain active until end of January 2026, so performing the
+change now should make sure that most mails will reach me.
 
-1. Invalid crashkernel resource objects
-2. Kernel crash if crashkernel shrinking is done twice
-
-For example, with crashkernel=200M,high, the kernel reserves 200MB of high
-memory and some default low memory (say 256MB).  The reservation appears
-as:
-
-cat /proc/iomem | grep -i crash
-af000000-beffffff : Crash kernel
-433000000-43f7fffff : Crash kernel
-
-If crashkernel is then shrunk to 50MB (echo 52428800 >
-/sys/kernel/kexec_crash_size), /proc/iomem still shows 256MB reserved:
-af000000-beffffff : Crash kernel
-
-Instead, it should show 50MB:
-af000000-b21fffff : Crash kernel
-
-Further shrinking crashkernel to 40MB causes a kernel crash with the
-following trace (x86):
-
-BUG: kernel NULL pointer dereference, address: 0000000000000038
-PGD 0 P4D 0
-Oops: 0000 [#1] PREEMPT SMP NOPTI
-<snip...>
-Call Trace: <TASK>
-? __die_body.cold+0x19/0x27
-? page_fault_oops+0x15a/0x2f0
-? search_module_extables+0x19/0x60
-? search_bpf_extables+0x5f/0x80
-? exc_page_fault+0x7e/0x180
-? asm_exc_page_fault+0x26/0x30
-? __release_resource+0xd/0xb0
-release_resource+0x26/0x40
-__crash_shrink_memory+0xe5/0x110
-crash_shrink_memory+0x12a/0x190
-kexec_crash_size_store+0x41/0x80
-kernfs_fop_write_iter+0x141/0x1f0
-vfs_write+0x294/0x460
-ksys_write+0x6d/0xf0
-<snip...>
-
-This happens because __crash_shrink_memory()/kernel/crash_core.c
-incorrectly updates the crashk_res resource object even when
-crashk_low_res should be updated.
-
-Fix this by ensuring the correct crashkernel resource object is updated
-when shrinking crashkernel memory.
-
-Link: https://lkml.kernel.org/r/20251101193741.289252-1-sourabhjain@linux.ibm.com
-Fixes: 16c6006af4d4 ("kexec: enable kexec_crash_size to support two crash kernel regions")
-Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251103103659.379335-1-david@kernel.org
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap    |    1 +
+ MAINTAINERS |   28 ++++++++++++++--------------
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
---- a/kernel/crash_core.c~crash-fix-crashkernel-resource-shrink
-+++ a/kernel/crash_core.c
-@@ -373,7 +373,7 @@ static int __crash_shrink_memory(struct
- 		old_res->start = 0;
- 		old_res->end   = 0;
- 	} else {
--		crashk_res.end = ram_res->start - 1;
-+		old_res->end = ram_res->start - 1;
- 	}
+--- a/.mailmap~maintainers-update-david-hildenbrands-email-address
++++ a/.mailmap
+@@ -206,6 +206,7 @@ Danilo Krummrich <dakr@kernel.org> <dakr
+ David Brownell <david-b@pacbell.net>
+ David Collins <quic_collinsd@quicinc.com> <collinsd@codeaurora.org>
+ David Heidelberg <david@ixit.cz> <d.okias@gmail.com>
++David Hildenbrand <david@kernel.org> <david@redhat.com>
+ David Rheinsberg <david@readahead.eu> <dh.herrmann@gmail.com>
+ David Rheinsberg <david@readahead.eu> <dh.herrmann@googlemail.com>
+ David Rheinsberg <david@readahead.eu> <david.rheinsberg@gmail.com>
+--- a/MAINTAINERS~maintainers-update-david-hildenbrands-email-address
++++ a/MAINTAINERS
+@@ -11526,7 +11526,7 @@ F:	include/linux/platform_data/huawei-ga
+ HUGETLB SUBSYSTEM
+ M:	Muchun Song <muchun.song@linux.dev>
+ M:	Oscar Salvador <osalvador@suse.de>
+-R:	David Hildenbrand <david@redhat.com>
++R:	David Hildenbrand <david@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-hugepages
+@@ -13733,7 +13733,7 @@ KERNEL VIRTUAL MACHINE for s390 (KVM/s39
+ M:	Christian Borntraeger <borntraeger@linux.ibm.com>
+ M:	Janosch Frank <frankja@linux.ibm.com>
+ M:	Claudio Imbrenda <imbrenda@linux.ibm.com>
+-R:	David Hildenbrand <david@redhat.com>
++R:	David Hildenbrand <david@kernel.org>
+ L:	kvm@vger.kernel.org
+ S:	Supported
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvms390/linux.git
+@@ -16220,7 +16220,7 @@ T:	git git://git.kernel.org/pub/scm/linu
+ F:	drivers/devfreq/tegra30-devfreq.c
  
- 	crash_free_reserved_phys_range(ram_res->start, ram_res->end);
+ MEMORY HOT(UN)PLUG
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ M:	Oscar Salvador <osalvador@suse.de>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+@@ -16245,7 +16245,7 @@ F:	tools/mm/
+ 
+ MEMORY MANAGEMENT - CORE
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ R:	Vlastimil Babka <vbabka@suse.cz>
+@@ -16301,7 +16301,7 @@ F:	mm/execmem.c
+ 
+ MEMORY MANAGEMENT - GUP (GET USER PAGES)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ R:	Jason Gunthorpe <jgg@nvidia.com>
+ R:	John Hubbard <jhubbard@nvidia.com>
+ R:	Peter Xu <peterx@redhat.com>
+@@ -16317,7 +16317,7 @@ F:	tools/testing/selftests/mm/gup_test.c
+ 
+ MEMORY MANAGEMENT - KSM (Kernel Samepage Merging)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ R:	Xu Xin <xu.xin16@zte.com.cn>
+ R:	Chengming Zhou <chengming.zhou@linux.dev>
+ L:	linux-mm@kvack.org
+@@ -16333,7 +16333,7 @@ F:	mm/mm_slot.h
+ 
+ MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ R:	Zi Yan <ziy@nvidia.com>
+ R:	Matthew Brost <matthew.brost@intel.com>
+ R:	Joshua Hahn <joshua.hahnjy@gmail.com>
+@@ -16373,7 +16373,7 @@ F:	mm/workingset.c
+ 
+ MEMORY MANAGEMENT - MISC
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ R:	Vlastimil Babka <vbabka@suse.cz>
+@@ -16461,7 +16461,7 @@ F:	mm/shuffle.h
+ MEMORY MANAGEMENT - RECLAIM
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Johannes Weiner <hannes@cmpxchg.org>
+-R:	David Hildenbrand <david@redhat.com>
++R:	David Hildenbrand <david@kernel.org>
+ R:	Michal Hocko <mhocko@kernel.org>
+ R:	Qi Zheng <zhengqi.arch@bytedance.com>
+ R:	Shakeel Butt <shakeel.butt@linux.dev>
+@@ -16474,7 +16474,7 @@ F:	mm/workingset.c
+ 
+ MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Rik van Riel <riel@surriel.com>
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+@@ -16519,7 +16519,7 @@ F:	mm/swapfile.c
+ 
+ MEMORY MANAGEMENT - THP (TRANSPARENT HUGE PAGE)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Zi Yan <ziy@nvidia.com>
+ R:	Baolin Wang <baolin.wang@linux.alibaba.com>
+@@ -16621,7 +16621,7 @@ MEMORY MAPPING - MADVISE (MEMORY ADVICE)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ R:	Vlastimil Babka <vbabka@suse.cz>
+ R:	Jann Horn <jannh@google.com>
+ L:	linux-mm@kvack.org
+@@ -27088,7 +27088,7 @@ F:	net/vmw_vsock/virtio_transport_common
+ 
+ VIRTIO BALLOON
+ M:	"Michael S. Tsirkin" <mst@redhat.com>
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ L:	virtualization@lists.linux.dev
+ S:	Maintained
+ F:	drivers/virtio/virtio_balloon.c
+@@ -27243,7 +27243,7 @@ F:	drivers/iommu/virtio-iommu.c
+ F:	include/uapi/linux/virtio_iommu.h
+ 
+ VIRTIO MEM DRIVER
+-M:	David Hildenbrand <david@redhat.com>
++M:	David Hildenbrand <david@kernel.org>
+ L:	virtualization@lists.linux.dev
+ S:	Maintained
+ W:	https://virtio-mem.gitlab.io/
 _
 
-Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
+Patches currently in -mm which might be from david@kernel.org are
 
 
