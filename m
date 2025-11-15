@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF7818EFD1
-	for <mm-commits@vger.kernel.org>; Fri, 14 Nov 2025 23:42:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69E023C1F
+	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:07:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763163758; cv=none; b=kkDyLGC95tmUYmifQiBZO+ldRZXVGQwpMtF/YVIrZ2DFEk45pKxO94RIQ6JTz/7LHtP/KpFBOpXgORpwyrUKll6a2+vStIn5kVEVJvVbhL8c3mVetKi8E5LCm+WPmQiF1OMSG3fbhUCbI6CDrH4kBuQyrp/LTmH7WiyW4xwhBJk=
+	t=1763165232; cv=none; b=TvHT8MeQfEvJMRAI3MqU2HgpSjKQJ9rHGtJQnDhuWn82Lx0Jwifz7/tftSdq0klAHZGFeVgafqopGPYJ07d2QQdQQbYfw6yEpilQk9eUNJFedCOjgpweliqAZjaJonjYVTKX/Mx/+fgGRkRKUBFAsVV5EaUQQNGqPxDy8pDNsOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763163758; c=relaxed/simple;
-	bh=RZ+q5H95ZCrMQ68tKBZAa81Tj6Cu2JI69Hc8UNyR4ps=;
-	h=Date:To:From:Subject:Message-Id; b=CAbSCdLqsY1ZUyUQ9+0NgcTSgkg1BmcKDL3zuvyNZs4a/JPuwdWD9+Rv45Dg3eDe3O1o21FQKF5jYAzTHqPH0rrzQX1TjKq57owj0OTXTC6CjiIVnCpNeY8nf9tj05ZQrfoHogDGgutu4VzP3G9UQlsL7/GMxJQub5HjOCcDQEU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RaiP2neI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763165232; c=relaxed/simple;
+	bh=aFuWnsVekl7U6YhExjdnuVO2kQX7ktdpbzwux1JZVks=;
+	h=Date:To:From:Subject:Message-Id; b=vDQwxaf1qHh2uzw3wS2Vu2/KXSXBVzvD+2xR9Fg3s4JS1F+BZz3PBC5YW86YkP3mLdQVY+RLKXGVQlWNdsxKPG4ds8ccgNOZHXahVtN2Z06+qrIHOIiAnSIsbAytd2nWiZGSyFrjsYgmcDj2H7h0tAZIdV/gnHM4oXLLXullgRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vAs7nDak; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RaiP2neI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE84C4CEF5;
-	Fri, 14 Nov 2025 23:42:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vAs7nDak"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D433EC4CEF5;
+	Sat, 15 Nov 2025 00:07:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763163758;
-	bh=RZ+q5H95ZCrMQ68tKBZAa81Tj6Cu2JI69Hc8UNyR4ps=;
+	s=korg; t=1763165231;
+	bh=aFuWnsVekl7U6YhExjdnuVO2kQX7ktdpbzwux1JZVks=;
 	h=Date:To:From:Subject:From;
-	b=RaiP2neIjDPRSkj5O9uN60roP1oP/6KsULuDOjZEb8j4rYvdvku6ZFglzknflS4jZ
-	 hDS/gb8hfUaFPu/O8msnaVSql+fby82NwGRRmnWDe0cB3IOy2Pv0EHA1OBybBJw6UO
-	 hBaHOy3UkZ3OYhaVH1eyk9i1yAbGtrhzXF8VZS6U=
-Date: Fri, 14 Nov 2025 15:42:37 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=vAs7nDakbkPc0sZW9f2C0lANKWJA0IJ22f6QFnZheUAkXlA6B6a77gJvGZlf2XDdt
+	 FkokSHgsnbPP/Y/2e08WblkUzSDXrcckNmFM9DYdd0fqk++X3T8SOvrnvVUXa3jQm7
+	 q6UGAalSpYfJbU0F0ZE4CQAtedOk5PiFEgLYn1co=
+Date: Fri, 14 Nov 2025 16:07:11 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,lorenzo.stoakes@oracle.com,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch added to mm-new branch
-Message-Id: <20251114234237.EBE84C4CEF5@smtp.kernel.org>
+Subject: + mm-shmem-allow-fallback-to-smaller-large-orders-for-tmpfs-mmap-access.patch added to mm-new branch
+Message-Id: <20251115000711.D433EC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: unify SCAN_PMD_NONE and SCAN_PMD_NULL into SCAN_NO_PTE_TABLE
+     Subject: mm: shmem: allow fallback to smaller large orders for tmpfs mmap() access
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch
+     mm-shmem-allow-fallback-to-smaller-large-orders-for-tmpfs-mmap-access.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-allow-fallback-to-smaller-large-orders-for-tmpfs-mmap-access.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,158 +64,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/khugepaged: unify SCAN_PMD_NONE and SCAN_PMD_NULL into SCAN_NO_PTE_TABLE
-Date: Fri, 14 Nov 2025 03:00:28 +0000
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: allow fallback to smaller large orders for tmpfs mmap() access
+Date: Fri, 14 Nov 2025 08:46:32 +0800
 
-The current hugepage collapse scan results include two separate values,
-SCAN_PMD_NONE and SCAN_PMD_NULL, which are handled identically by the
-consuming code.
+After commit 69e0a3b49003 ("mm: shmem: fix the strategy for the tmpfs
+'huge=' options"), we have fixed the large order allocation strategy for
+tmpfs, which always tries PMD-sized large folios first, and if that fails,
+falls back to smaller large folios.  For tmpfs large folio allocation via
+mmap(), we should maintain the same strategy as well.  Let's unify the
+large order allocation strategy for tmpfs.
 
-To reduce confusion and improve long-term maintenance, this commit merges
-these two functionally equivalent states into a single, clearer
-identifier: SCAN_NO_PTE_TABLE
+There is no functional change for large folio allocation of anonymous shmem.
 
-Link: https://lkml.kernel.org/r/20251114030028.7035-4-richard.weiyang@gmail.com
-Suggested-by: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Link: https://lkml.kernel.org/r/283a0bdfd6ac7aa334a491422bcae70919c572bd.1763008453.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    3 +--
- mm/khugepaged.c                    |   23 ++++++++++-------------
- 2 files changed, 11 insertions(+), 15 deletions(-)
+ mm/shmem.c |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table
-+++ a/include/trace/events/huge_memory.h
-@@ -10,8 +10,7 @@
- #define SCAN_STATUS							\
- 	EM( SCAN_FAIL,			"failed")			\
- 	EM( SCAN_SUCCEED,		"succeeded")			\
--	EM( SCAN_PMD_NULL,		"pmd_null")			\
--	EM( SCAN_PMD_NONE,		"pmd_none")			\
-+	EM( SCAN_NO_PTE_TABLE,		"no_pte_table")			\
- 	EM( SCAN_PMD_MAPPED,		"page_pmd_mapped")		\
- 	EM( SCAN_EXCEED_NONE_PTE,	"exceed_none_pte")		\
- 	EM( SCAN_EXCEED_SWAP_PTE,	"exceed_swap_pte")		\
---- a/mm/khugepaged.c~mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table
-+++ a/mm/khugepaged.c
-@@ -30,8 +30,7 @@
- enum scan_result {
- 	SCAN_FAIL,
- 	SCAN_SUCCEED,
--	SCAN_PMD_NULL,
--	SCAN_PMD_NONE,
-+	SCAN_NO_PTE_TABLE,
- 	SCAN_PMD_MAPPED,
- 	SCAN_EXCEED_NONE_PTE,
- 	SCAN_EXCEED_SWAP_PTE,
-@@ -934,7 +933,7 @@ static inline int check_pmd_state(pmd_t
- 	pmd_t pmde = pmdp_get_lockless(pmd);
+--- a/mm/shmem.c~mm-shmem-allow-fallback-to-smaller-large-orders-for-tmpfs-mmap-access
++++ a/mm/shmem.c
+@@ -645,34 +645,23 @@ static unsigned int shmem_huge_global_en
+ 	 * the mTHP interface, so we still use PMD-sized huge order to
+ 	 * check whether global control is enabled.
+ 	 *
+-	 * For tmpfs mmap()'s huge order, we still use PMD-sized order to
+-	 * allocate huge pages due to lack of a write size hint.
+-	 *
+ 	 * For tmpfs with 'huge=always' or 'huge=within_size' mount option,
+ 	 * we will always try PMD-sized order first. If that failed, it will
+ 	 * fall back to small large folios.
+ 	 */
+ 	switch (SHMEM_SB(inode->i_sb)->huge) {
+ 	case SHMEM_HUGE_ALWAYS:
+-		if (vma)
+-			return maybe_pmd_order;
+-
+ 		return THP_ORDERS_ALL_FILE_DEFAULT;
+ 	case SHMEM_HUGE_WITHIN_SIZE:
+-		if (vma)
+-			within_size_orders = maybe_pmd_order;
+-		else
+-			within_size_orders = THP_ORDERS_ALL_FILE_DEFAULT;
+-
+-		within_size_orders = shmem_get_orders_within_size(inode, within_size_orders,
+-								  index, write_end);
++		within_size_orders = shmem_get_orders_within_size(inode,
++				THP_ORDERS_ALL_FILE_DEFAULT, index, write_end);
+ 		if (within_size_orders > 0)
+ 			return within_size_orders;
  
- 	if (pmd_none(pmde))
--		return SCAN_PMD_NONE;
-+		return SCAN_NO_PTE_TABLE;
- 
- 	/*
- 	 * The folio may be under migration when khugepaged is trying to
-@@ -944,11 +943,11 @@ static inline int check_pmd_state(pmd_t
- 	if (pmd_is_migration_entry(pmde))
- 		return SCAN_PMD_MAPPED;
- 	if (!pmd_present(pmde))
--		return SCAN_PMD_NULL;
-+		return SCAN_NO_PTE_TABLE;
- 	if (pmd_trans_huge(pmde))
- 		return SCAN_PMD_MAPPED;
- 	if (pmd_bad(pmde))
--		return SCAN_PMD_NULL;
-+		return SCAN_NO_PTE_TABLE;
- 	return SCAN_SUCCEED;
- }
- 
-@@ -958,7 +957,7 @@ static int find_pmd_or_thp_or_none(struc
- {
- 	*pmd = mm_find_pmd(mm, address);
- 	if (!*pmd)
--		return SCAN_PMD_NULL;
-+		return SCAN_NO_PTE_TABLE;
- 
- 	return check_pmd_state(*pmd);
- }
-@@ -1013,7 +1012,7 @@ static int __collapse_huge_page_swapin(s
- 			pte = pte_offset_map_ro_nolock(mm, pmd, addr, &ptl);
- 			if (!pte) {
- 				mmap_read_unlock(mm);
--				result = SCAN_PMD_NULL;
-+				result = SCAN_NO_PTE_TABLE;
- 				goto out;
- 			}
- 		}
-@@ -1187,7 +1186,7 @@ static int collapse_huge_page(struct mm_
- 						      &compound_pagelist);
- 		spin_unlock(pte_ptl);
- 	} else {
--		result = SCAN_PMD_NULL;
-+		result = SCAN_NO_PTE_TABLE;
- 	}
- 
- 	if (unlikely(result != SCAN_SUCCEED)) {
-@@ -1270,7 +1269,7 @@ static int hpage_collapse_scan_pmd(struc
- 	nodes_clear(cc->alloc_nmask);
- 	pte = pte_offset_map_lock(mm, pmd, start_addr, &ptl);
- 	if (!pte) {
--		result = SCAN_PMD_NULL;
-+		result = SCAN_NO_PTE_TABLE;
- 		goto out;
- 	}
- 
-@@ -1544,8 +1543,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 	switch (result) {
- 	case SCAN_SUCCEED:
- 		break;
--	case SCAN_PMD_NULL:
--	case SCAN_PMD_NONE:
-+	case SCAN_NO_PTE_TABLE:
- 		/*
- 		 * All pte entries have been removed and pmd cleared.
- 		 * Skip all the pte checks and just update the pmd mapping.
-@@ -2832,8 +2830,7 @@ handle_result:
- 			mmap_read_unlock(mm);
- 			goto handle_result;
- 		/* Whitelisted set of results where continuing OK */
--		case SCAN_PMD_NULL:
--		case SCAN_PMD_NONE:
-+		case SCAN_NO_PTE_TABLE:
- 		case SCAN_PTE_NON_PRESENT:
- 		case SCAN_PTE_UFFD_WP:
- 		case SCAN_LACK_REFERENCED_PAGE:
+ 		fallthrough;
+ 	case SHMEM_HUGE_ADVISE:
+ 		if (vm_flags & VM_HUGEPAGE)
+-			return maybe_pmd_order;
++			return THP_ORDERS_ALL_FILE_DEFAULT;
+ 		fallthrough;
+ 	default:
+ 		return 0;
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-huge_memory-avoid-reinvoking-folio_test_anon.patch
-mm-huge_memory-update-folio-stat-after-successful-split.patch
-mm-huge_memory-optimize-and-simplify-folio-stat-update-after-split.patch
-mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch
-mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
-mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch
-mm-huge_memory-introduce-enum-split_type-for-clarity.patch
-mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported.patch
-mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch
-mm-khugepaged-continue-to-collapse-on-scan_pmd_none.patch
-mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch
+mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim.patch
+mm-vmscan-simplify-the-logic-for-activating-dirty-file-folios.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2.patch
+mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
+mm-shmem-allow-fallback-to-smaller-large-orders-for-tmpfs-mmap-access.patch
 
