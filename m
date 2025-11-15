@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B56BB10FD
-	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:33:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B71749463
+	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:34:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763166825; cv=none; b=ZNBKUsW7gGK8HOVJ8SBpbW2WLDsCTLwR9Av1XYzpJVtrlEacbiDEBlKRABPHBmFMixe2dJBdNosVTQ0zUMGonGoQy0sEYa1IVnW3fUPERhIwwyvG44BBAg5+9TPBIMSVpm5ODKAvDWiqCUPloHRoDVRw/odprRB7KBAzEXeaPkc=
+	t=1763166878; cv=none; b=Yrh7jkp8E6MLT8xIS82IZAEwNr0BR5bfa3eFUpdP5ijYu7rANionvhoaCUMZAiONPsRVTD4+Mtw9y33noR4XriNCjkJrMrXBrMtaIK3TDn9JZESSjJOMZ3cPaQskgfkk0ZffChYGW9dTb3somx5zCLOGBlxDF8cL9XU2K+myltg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763166825; c=relaxed/simple;
-	bh=FGe8ibpONyqnXQpq9zWyN7CD2/REL+E6DmHW5cL87EM=;
-	h=Date:To:From:Subject:Message-Id; b=NxptxhZcE1aKrLSMT+Hy1b+DY/3pNgsah+Mm42+jX8myibAAic8vHk39tF5ewLoIlP+/cP8vZHbMJ4odg1jVx1Ou9TfucydWEoEf4iCuPoGa2r4G9JcayTMai8U7BTwXjZ2FaemcSQypCO7K1TxlnGkohOJSu909ltD7JunnWbs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yelZ1yTK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763166878; c=relaxed/simple;
+	bh=msSUl13NrpwoCxcTLIfccw/64lv+GSXvr2m9Qd4IAJs=;
+	h=Date:To:From:Subject:Message-Id; b=m4HDeLoow+l0OoVcXHEgg/81qVfnkiTwy6IagWUXYM2CoFKBiL/T5OFWBg16ihp+xxgjeLEihtr3hjvKv1fQoxNy+hl9ghC1adqWc9EnbAdAh8gsFu1I80W3J4WnEi5x9NUlAYzTbcHMwdrfc2WTriErCHF9jv1NOM2g0YVgEGo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qVAcim75; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yelZ1yTK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D2D4C19421;
-	Sat, 15 Nov 2025 00:33:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qVAcim75"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 273ACC4CEFB;
+	Sat, 15 Nov 2025 00:34:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763166825;
-	bh=FGe8ibpONyqnXQpq9zWyN7CD2/REL+E6DmHW5cL87EM=;
+	s=korg; t=1763166878;
+	bh=msSUl13NrpwoCxcTLIfccw/64lv+GSXvr2m9Qd4IAJs=;
 	h=Date:To:From:Subject:From;
-	b=yelZ1yTKPjwGXv6fZIsG3gNQxyLhR/DaAoiQiGaQMb3zHQnTcxLhlwNPs5nWdoLQq
-	 r+HTyH7t3dfsjBVshXsgBciKqcR/Fb2KvB3H1FQUGjn+feqQd9t3pSRKUFIIRPRtWn
-	 pxd6kN34dIwyKzlY4ZZOAyFqdbvNmo79eLqJceOo=
-Date: Fri, 14 Nov 2025 16:33:44 -0800
+	b=qVAcim75GaI54NSTwmHjzAQxakTrTPXhB2OaF930rm4D4uyJn8uvc8Ag+9KLgmJTz
+	 JJzd9086ODqlJCSLg2ksYI3HwROOn0ZFE2kgovO5xgrKNWI/PK+7jRDctrqkJN5fXC
+	 bxaVFqEDqWt9U3mYAlnwmZltUk4+SOOBF0X/00jk=
+Date: Fri, 14 Nov 2025 16:34:37 -0800
 To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd_luo-allow-preserving-memfd-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251115003345.1D2D4C19421@smtp.kernel.org>
+Subject: + liveupdate-luo_core-integrate-with-kho-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251115003438.273ACC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memfd_luo-allow-preserving-memfd-fix
+     Subject: liveupdate-luo_core-integrate-with-kho-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-memfd_luo-allow-preserving-memfd-fix.patch
+     liveupdate-luo_core-integrate-with-kho-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-allow-preserving-memfd-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_core-integrate-with-kho-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,7 +59,7 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm-memfd_luo-allow-preserving-memfd-fix
+Subject: liveupdate-luo_core-integrate-with-kho-fix
 Date: Fri, 14 Nov 2025 17:06:42 -0500
 
 Link: https://lkml.kernel.org/r/CA+CK2bD4vr2tZpKaGqOZBhP+DMZYYm3EB_0ToyFDduZDMWhXxw@mail.gmail.com
@@ -67,29 +67,22 @@ Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd_luo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/liveupdate/luo_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memfd_luo.c~mm-memfd_luo-allow-preserving-memfd-fix
-+++ a/mm/memfd_luo.c
-@@ -138,7 +138,7 @@ static struct memfd_luo_folio_ser *memfd
- err_unpreserve:
- 	i--;
- 	for (; i >= 0; i--)
--		WARN_ON_ONCE(kho_unpreserve_folio(folios[i]));
-+		kho_unpreserve_folio(folios[i]);
- 	vfree(pfolios);
- err_unpin:
- 	unpin_folios(folios, nr_folios);
-@@ -170,7 +170,7 @@ static void memfd_luo_unpreserve_folios(
+--- a/kernel/liveupdate/luo_core.c~liveupdate-luo_core-integrate-with-kho-fix
++++ a/kernel/liveupdate/luo_core.c
+@@ -291,7 +291,7 @@ void luo_free_unpreserve(void *mem, size
+ 		return;
  
- 		folio = pfn_folio(PRESERVED_FOLIO_PFN(pfolio->foliodesc));
+ 	folio = virt_to_folio(mem);
+-	WARN_ON_ONCE(kho_unpreserve_folio(folio));
++	kho_unpreserve_folio(folio);
+ 	folio_put(folio);
+ }
  
--		WARN_ON_ONCE(kho_unpreserve_folio(folio));
-+		kho_unpreserve_folio(folio);
- 		unpin_folio(folio);
- 	}
- 
+diff --git /dev/null /dev/null
+new file mode 100644
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
@@ -118,6 +111,7 @@ kho-allow-memory-preservation-state-updates-after-finalization.patch
 kho-add-kconfig-option-to-enable-kho-by-default.patch
 liveupdate-luo_core-luo_ioctl-live-update-orchestrator.patch
 liveupdate-luo_core-integrate-with-kho.patch
+liveupdate-luo_core-integrate-with-kho-fix.patch
 reboot-call-liveupdate_reboot-before-kexec.patch
 liveupdate-luo_session-add-sessions-support.patch
 liveupdate-luo_session-add-sessions-support-fix.patch
