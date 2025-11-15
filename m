@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E517463B9
-	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:26:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B56BB10FD
+	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:33:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763166410; cv=none; b=CkHKvHwGH/yN9WcIRXP/3YuS8jdifIHye+hWIqk85bAJQACJvm39aQlMpo6/EGWFbCJvTkc+CcHPckspg3IX/BtySfT6zwVbD73HhbGAjAH47bWhnWpbsROoOzHSwOMdPfEAXgjxETnOcrqRfBmKEnCbWOjtkQ42CIVgT8DqTMM=
+	t=1763166825; cv=none; b=ZNBKUsW7gGK8HOVJ8SBpbW2WLDsCTLwR9Av1XYzpJVtrlEacbiDEBlKRABPHBmFMixe2dJBdNosVTQ0zUMGonGoQy0sEYa1IVnW3fUPERhIwwyvG44BBAg5+9TPBIMSVpm5ODKAvDWiqCUPloHRoDVRw/odprRB7KBAzEXeaPkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763166410; c=relaxed/simple;
-	bh=fUJ33rSmlTiqmPihny1b++GtqGcNbrm+RmPQXquGIkA=;
-	h=Date:To:From:Subject:Message-Id; b=ji2dcRgkksuYza6Ou2Ebvwtmt1mXtkWnw05k8JKyyRRW/kmG7KSXqZ02HBhl5i7RdpHIlCL96uA0cVfxZDXZZ48NrCffrRxLoACSyw1B01HzQhCCmXF7XMKRQq52f2LdQItIwjEDPGtCGYlEKrp4jydoTfxmJg/WkuAzqJvZQA4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lEabV194; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763166825; c=relaxed/simple;
+	bh=FGe8ibpONyqnXQpq9zWyN7CD2/REL+E6DmHW5cL87EM=;
+	h=Date:To:From:Subject:Message-Id; b=NxptxhZcE1aKrLSMT+Hy1b+DY/3pNgsah+Mm42+jX8myibAAic8vHk39tF5ewLoIlP+/cP8vZHbMJ4odg1jVx1Ou9TfucydWEoEf4iCuPoGa2r4G9JcayTMai8U7BTwXjZ2FaemcSQypCO7K1TxlnGkohOJSu909ltD7JunnWbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yelZ1yTK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lEabV194"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55DBBC16AAE;
-	Sat, 15 Nov 2025 00:26:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yelZ1yTK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D2D4C19421;
+	Sat, 15 Nov 2025 00:33:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763166407;
-	bh=fUJ33rSmlTiqmPihny1b++GtqGcNbrm+RmPQXquGIkA=;
+	s=korg; t=1763166825;
+	bh=FGe8ibpONyqnXQpq9zWyN7CD2/REL+E6DmHW5cL87EM=;
 	h=Date:To:From:Subject:From;
-	b=lEabV194IFbRHvh8hnev6MAQxECgnvskkkvZhAtqm4b7q2A+PgEEkdEr5kROMksPP
-	 7xjoEOz2p/o49dXa5VaMk7qVctOjuDgwET2rmD3taU2uHvlLL+VtoU68KwTXidr10X
-	 QTzJG0bFUVJFLz1EvqbU7c942UZmSFOQWRY5G9Wg=
-Date: Fri, 14 Nov 2025 16:26:46 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=yelZ1yTKPjwGXv6fZIsG3gNQxyLhR/DaAoiQiGaQMb3zHQnTcxLhlwNPs5nWdoLQq
+	 r+HTyH7t3dfsjBVshXsgBciKqcR/Fb2KvB3H1FQUGjn+feqQd9t3pSRKUFIIRPRtWn
+	 pxd6kN34dIwyKzlY4ZZOAyFqdbvNmo79eLqJceOo=
+Date: Fri, 14 Nov 2025 16:33:44 -0800
+To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-luo_session-add-sessions-support-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251115002647.55DBBC16AAE@smtp.kernel.org>
+Subject: + mm-memfd_luo-allow-preserving-memfd-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251115003345.1D2D4C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: liveupdate-luo_session-add-sessions-support-fix
+     Subject: mm-memfd_luo-allow-preserving-memfd-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     liveupdate-luo_session-add-sessions-support-fix.patch
+     mm-memfd_luo-allow-preserving-memfd-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_session-add-sessions-support-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-allow-preserving-memfd-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,34 +59,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: liveupdate-luo_session-add-sessions-support-fix
-Date: Thu, 13 Nov 2025 23:29:18 -0500
+Subject: mm-memfd_luo-allow-preserving-memfd-fix
+Date: Fri, 14 Nov 2025 17:06:42 -0500
 
-fix sparse warning
-
-Link: https://lkml.kernel.org/r/CA+CK2bBR5qqRMNKVYezCn3RsHx4=YLGsPaCb5DhveEQi3k6N+Q@mail.gmail.com
+Link: https://lkml.kernel.org/r/CA+CK2bD4vr2tZpKaGqOZBhP+DMZYYm3EB_0ToyFDduZDMWhXxw@mail.gmail.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202511140809.4JN2GCxV-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/luo_session.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memfd_luo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/liveupdate/luo_session.c~liveupdate-luo_session-add-sessions-support-fix
-+++ a/kernel/liveupdate/luo_session.c
-@@ -98,7 +98,9 @@ struct luo_session_global {
- 	struct luo_session_head incoming;
- 	struct luo_session_head outgoing;
- 	bool deserialized;
--} luo_session_global;
-+};
-+
-+static struct luo_session_global luo_session_global;
+--- a/mm/memfd_luo.c~mm-memfd_luo-allow-preserving-memfd-fix
++++ a/mm/memfd_luo.c
+@@ -138,7 +138,7 @@ static struct memfd_luo_folio_ser *memfd
+ err_unpreserve:
+ 	i--;
+ 	for (; i >= 0; i--)
+-		WARN_ON_ONCE(kho_unpreserve_folio(folios[i]));
++		kho_unpreserve_folio(folios[i]);
+ 	vfree(pfolios);
+ err_unpin:
+ 	unpin_folios(folios, nr_folios);
+@@ -170,7 +170,7 @@ static void memfd_luo_unpreserve_folios(
  
- static struct luo_session *luo_session_alloc(const char *name)
- {
+ 		folio = pfn_folio(PRESERVED_FOLIO_PFN(pfolio->foliodesc));
+ 
+-		WARN_ON_ONCE(kho_unpreserve_folio(folio));
++		kho_unpreserve_folio(folio);
+ 		unpin_folio(folio);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
@@ -124,6 +127,7 @@ liveupdate-luo_session-add-ioctls-for-file-preservation-and-state-management.pat
 liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
 docs-add-luo-documentation.patch
 maintainers-add-liveupdate-entry.patch
+mm-memfd_luo-allow-preserving-memfd-fix.patch
 selftests-liveupdate-add-userspace-api-selftests.patch
 selftests-liveupdate-add-kexec-based-selftest-for-session-lifecycle.patch
 selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
