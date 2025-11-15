@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B71749463
-	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:34:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C61C1799F
+	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:52:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763166878; cv=none; b=Yrh7jkp8E6MLT8xIS82IZAEwNr0BR5bfa3eFUpdP5ijYu7rANionvhoaCUMZAiONPsRVTD4+Mtw9y33noR4XriNCjkJrMrXBrMtaIK3TDn9JZESSjJOMZ3cPaQskgfkk0ZffChYGW9dTb3somx5zCLOGBlxDF8cL9XU2K+myltg=
+	t=1763167967; cv=none; b=jPofwsxku7KbODuXb/4DgyCEma336U5fFzCPpHL4U2gpD5kVNwM45Vy60FlZOiPWR3EcdvW9iIh/wlEZaINS1NJFLEH5iT3vg/7B19tgqrq2jTUBKsMihD+/EPNiwOhlgPXf61kXNl91r8yusXgPemznOo9BNlEg35JsRgcObYo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763166878; c=relaxed/simple;
-	bh=msSUl13NrpwoCxcTLIfccw/64lv+GSXvr2m9Qd4IAJs=;
-	h=Date:To:From:Subject:Message-Id; b=m4HDeLoow+l0OoVcXHEgg/81qVfnkiTwy6IagWUXYM2CoFKBiL/T5OFWBg16ihp+xxgjeLEihtr3hjvKv1fQoxNy+hl9ghC1adqWc9EnbAdAh8gsFu1I80W3J4WnEi5x9NUlAYzTbcHMwdrfc2WTriErCHF9jv1NOM2g0YVgEGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qVAcim75; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763167967; c=relaxed/simple;
+	bh=yXIgxqVBOZ/De4NL7EutyvELQc1fxobGF1gzAmTkJdU=;
+	h=Date:To:From:Subject:Message-Id; b=mVVGyNwy5EBzvW+Q3GQXThlLfr78SSgRiSPOGGD5CWzSlJ1BHxj95Ndp+FiMte3gyyAvrcPcvKlTvkji/D75D8vsg6eEYa25AQlGoUS67MSFkSCdrlmDGDSZ3sYIby0vLMqB1YhG9BJUV6hpSTt1g5CziZ0C4kb9DfiNcQBUMtk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lFX0IMSU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qVAcim75"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 273ACC4CEFB;
-	Sat, 15 Nov 2025 00:34:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lFX0IMSU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E172C19421;
+	Sat, 15 Nov 2025 00:52:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763166878;
-	bh=msSUl13NrpwoCxcTLIfccw/64lv+GSXvr2m9Qd4IAJs=;
+	s=korg; t=1763167967;
+	bh=yXIgxqVBOZ/De4NL7EutyvELQc1fxobGF1gzAmTkJdU=;
 	h=Date:To:From:Subject:From;
-	b=qVAcim75GaI54NSTwmHjzAQxakTrTPXhB2OaF930rm4D4uyJn8uvc8Ag+9KLgmJTz
-	 JJzd9086ODqlJCSLg2ksYI3HwROOn0ZFE2kgovO5xgrKNWI/PK+7jRDctrqkJN5fXC
-	 bxaVFqEDqWt9U3mYAlnwmZltUk4+SOOBF0X/00jk=
-Date: Fri, 14 Nov 2025 16:34:37 -0800
-To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=lFX0IMSU2ScpqIGyHIn5hMPMSmL/Je4Non5xzuegJT9oU9J/OEdq7muvbH662Tm6b
+	 aY+EYW+jZs8uf2/BLDY16wJeaSxQNWgjZhm6hcxCC5JURE6oMSrU1W+gFHnCx+AVzP
+	 WM8cwFKr5iBtjJuhwGsOv4C2YL4kt2q/RRA+S3w0=
+Date: Fri, 14 Nov 2025 16:52:46 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-luo_core-integrate-with-kho-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251115003438.273ACC4CEFB@smtp.kernel.org>
+Subject: + gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch added to mm-unstable branch
+Message-Id: <20251115005247.0E172C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: liveupdate-luo_core-integrate-with-kho-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     liveupdate-luo_core-integrate-with-kho-fix.patch
+     Subject: fixup: gpu/drm/nouveau: enable THP support for GPU memory migration
+has been added to the -mm mm-unstable branch.  Its filename is
+     gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_core-integrate-with-kho-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,72 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: liveupdate-luo_core-integrate-with-kho-fix
-Date: Fri, 14 Nov 2025 17:06:42 -0500
+From: Balbir Singh <balbirs@nvidia.com>
+Subject: fixup: gpu/drm/nouveau: enable THP support for GPU memory migration
+Date: Sat, 15 Nov 2025 11:33:33 +1100
 
-Link: https://lkml.kernel.org/r/CA+CK2bD4vr2tZpKaGqOZBhP+DMZYYm3EB_0ToyFDduZDMWhXxw@mail.gmail.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Kernel test robot, reported a sparse error with the patch
+
+The sparse report states:
+
+>> drivers/gpu/drm/nouveau/nouveau_dmem.c:259:13: sparse: sparse: incorrect type in assignment (different base types) @@     expected restricted vm_fault_t [assigned] [usertype] ret @@     got int @@
+   drivers/gpu/drm/nouveau/nouveau_dmem.c:259:13: sparse:     expected restricted vm_fault_t [assigned] [usertype] ret
+   drivers/gpu/drm/nouveau/nouveau_dmem.c:259:13: sparse:     got int
+
+ret of type vm_fault_t is reused to capture the return value of
+nouveau_dmem_copy_folio(), which returns an int. Use a new variable
+err (of type int) to get the return value from the function to fix
+the reported issue.
+
+The reported issue is not new, prior to this, the function called
+nouveau_dmem_copy_folio() was called nouveau_dmem_copy_one() and
+ret was used to capture it's return value.
+
+The reported issue also does not cause any runtime errors. The
+return value from the function is used as a boolean value, to check if
+nouveau_dmem_copy_folio() succeeded or failed.
+
+Link: https://lkml.kernel.org/r/20251115003333.3516870-1-balbirs@nvidia.com
+Signed-off-by: Balbir Singh <balbirs@nvidia.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202511121922.oP20Lzb8-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/luo_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/nouveau/nouveau_dmem.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/kernel/liveupdate/luo_core.c~liveupdate-luo_core-integrate-with-kho-fix
-+++ a/kernel/liveupdate/luo_core.c
-@@ -291,7 +291,7 @@ void luo_free_unpreserve(void *mem, size
- 		return;
- 
- 	folio = virt_to_folio(mem);
--	WARN_ON_ONCE(kho_unpreserve_folio(folio));
-+	kho_unpreserve_folio(folio);
- 	folio_put(folio);
- }
- 
-diff --git /dev/null /dev/null
-new file mode 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix
++++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -188,6 +188,7 @@ static vm_fault_t nouveau_dmem_migrate_t
+ 	struct nouveau_svmm *svmm;
+ 	struct page *dpage;
+ 	vm_fault_t ret = 0;
++	int err;
+ 	struct migrate_vma args = {
+ 		.vma		= vmf->vma,
+ 		.pgmap_owner	= drm->dev,
+@@ -256,9 +257,9 @@ static vm_fault_t nouveau_dmem_migrate_t
+ 	svmm = folio_zone_device_data(sfolio);
+ 	mutex_lock(&svmm->mutex);
+ 	nouveau_svmm_invalidate(svmm, args.start, args.end);
+-	ret = nouveau_dmem_copy_folio(drm, sfolio, dfolio, &dma_info);
++	err = nouveau_dmem_copy_folio(drm, sfolio, dfolio, &dma_info);
+ 	mutex_unlock(&svmm->mutex);
+-	if (ret) {
++	if (err) {
+ 		ret = VM_FAULT_SIGBUS;
+ 		goto done;
+ 	}
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from balbirs@nvidia.com are
 
-lib-test_kho-check-if-kho-is-enabled.patch
-kho-make-debugfs-interface-optional.patch
-kho-add-interfaces-to-unpreserve-folios-page-ranges-and-vmalloc.patch
-memblock-unpreserve-memory-in-case-of-error.patch
-test_kho-unpreserve-memory-in-case-of-error.patch
-kho-dont-unpreserve-memory-during-abort.patch
-liveupdate-kho-move-to-kernel-liveupdate.patch
-liveupdate-kho-move-to-kernel-liveupdate-fix.patch
-maintainers-update-kho-maintainers.patch
-kho-fix-misleading-log-message-in-kho_populate.patch
-kho-convert-__kho_abort-to-return-void.patch
-kho-introduce-high-level-memory-allocation-api.patch
-kho-preserve-fdt-folio-only-once-during-initialization.patch
-kho-verify-deserialization-status-and-fix-fdt-alignment-access.patch
-kho-always-expose-output-fdt-in-debugfs.patch
-kho-simplify-serialization-and-remove-__kho_abort.patch
-kho-remove-global-preserved_mem_map-and-store-state-in-fdt.patch
-kho-remove-abort-functionality-and-support-state-refresh.patch
-kho-update-fdt-dynamically-for-subtree-addition-removal.patch
-kho-allow-kexec-load-before-kho-finalization.patch
-kho-allow-memory-preservation-state-updates-after-finalization.patch
-kho-add-kconfig-option-to-enable-kho-by-default.patch
-liveupdate-luo_core-luo_ioctl-live-update-orchestrator.patch
-liveupdate-luo_core-integrate-with-kho.patch
-liveupdate-luo_core-integrate-with-kho-fix.patch
-reboot-call-liveupdate_reboot-before-kexec.patch
-liveupdate-luo_session-add-sessions-support.patch
-liveupdate-luo_session-add-sessions-support-fix.patch
-liveupdate-luo_ioctl-add-user-interface.patch
-liveupdate-luo_file-implement-file-systems-callbacks.patch
-liveupdate-luo_session-add-ioctls-for-file-preservation-and-state-management.patch
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-docs-add-luo-documentation.patch
-maintainers-add-liveupdate-entry.patch
-mm-memfd_luo-allow-preserving-memfd-fix.patch
-selftests-liveupdate-add-userspace-api-selftests.patch
-selftests-liveupdate-add-kexec-based-selftest-for-session-lifecycle.patch
-selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
+mm-zone_device-support-large-zone-device-private-folios.patch
+mm-zone_device-rename-page_free-callback-to-folio_free.patch
+mm-huge_memory-add-device-private-thp-support-to-pmd-operations.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
+mm-huge_memory-implement-device-private-thp-splitting.patch
+mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
+mm-migrate_device-implement-thp-migration-of-zone-device-pages.patch
+mm-memory-fault-add-thp-fault-handling-for-zone-device-private-pages.patch
+lib-test_hmm-add-zone-device-private-thp-test-infrastructure.patch
+mm-memremap-add-driver-callback-support-for-folio-splitting.patch
+mm-migrate_device-add-thp-splitting-during-migration.patch
+lib-test_hmm-add-large-page-allocation-failure-testing.patch
+selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
+selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
+gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
+gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
+mm-huge_memoryc-introduce-folio_split_unmapped.patch
 
