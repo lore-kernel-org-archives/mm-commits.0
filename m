@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EAAA86337
-	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:53:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2971A1DE4E1
+	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 18:52:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763167988; cv=none; b=RUq+urj30SDYSGWL6Sux39Ookku7J2J0xkOYgWdIJJ/aFP22qpm9NqdkYNPtgDvG7RM0a1CL1EMbR1j1Mx3Emo2B104XncBMPpxcZa+w/jSp31Fh79DSUu0WH85jpD9Faq/aRum0mRv2NtKCGnZmpil50BfBMsQj6hLfpi00Jp4=
+	t=1763232755; cv=none; b=ugLBYTI1ycPofUVDen8Kd6bDkidV5liF6NJhKZTKZsG38VDcaF8UxogMNmJbqAKTOebtdMo6iDUbpBsg1QUNz+rkh2PsgrJzQIRRhFJa2H1ustXV0cs2eMimdAthVHSryuVrOZ4T+3GooMb/S6+3x1PNXWfbIoAJGFDK10yBBsg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763167988; c=relaxed/simple;
-	bh=DsEUTXitd3DyfoVFGuJzcuQUXF+bBc8xPyc4JVL+Gb4=;
-	h=Date:To:From:Subject:Message-Id; b=F2lLpnlxywaMBEbyCwJYvJ9xRSR1zvrehb+Zn/DL8KOzdaTmnL9J6pvi1GFWlCy0h55anANdt3dKV6gak+QXUwtpIS8+sOFlP7HmEaI+H7VuDnVSbjav47CdHFlvmdsz9qGYWEYfwocHo8z/v90EupU0BpAhp3xNwHhioxZo5XM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ih+sEW2Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763232755; c=relaxed/simple;
+	bh=aW3hCdsLxts+epWoCGEI2YX4SF+9Cg3tq08FjF59+z4=;
+	h=Date:To:From:Subject:Message-Id; b=F7QMUCuRDOwDkLDJaOg1Dki3k9yJlB8Zo/RN+6IhImF+cTdyVgOYPc+1xhqAG9tSjs1kEh2xbLt6q6BRonHYbN0kWPCOq4kxd0pcjfb7m3MU/9sdO23pZJaMOglg1SxrbH1AF21gofNQrKxNExAomDPdAi5MC6BuEUEBTv6NQ7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KkRHS1la; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ih+sEW2Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B38F4C16AAE;
-	Sat, 15 Nov 2025 00:53:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KkRHS1la"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D91EAC113D0;
+	Sat, 15 Nov 2025 18:52:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763167987;
-	bh=DsEUTXitd3DyfoVFGuJzcuQUXF+bBc8xPyc4JVL+Gb4=;
+	s=korg; t=1763232754;
+	bh=aW3hCdsLxts+epWoCGEI2YX4SF+9Cg3tq08FjF59+z4=;
 	h=Date:To:From:Subject:From;
-	b=ih+sEW2ZS+5vfwz5nro96zI9L+MDHVXzpMV9OhEEjzYXFpp6T2CYdX1DR6OXtTnk1
-	 uf8QpEf0DTvc81bHq6byVV3/z3Np7Ox0mjZxp5wavZljxJ7PyADFuopgRyjGQpySZB
-	 MA2lyDOlMvGT/z9J29gzxCfiml2VEKS7jdyRyZpI=
-Date: Fri, 14 Nov 2025 16:53:07 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
+	b=KkRHS1laAlMLdH/MKRK7kA57uXIIEh9ITncV/Q4p/Q/n0wxt7hByIldUonrnovIPQ
+	 NfgFYu4VwImRCoegpNyAQyvJaeAMFVUOwyNbuQU5kJe1Ak2AxsPJhznnjtIluzNO0U
+	 dC/yZINv/IWVyxn6h9wZNbs7q2+rmGN4bbs37lxA=
+Date: Sat, 15 Nov 2025 10:52:34 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sourabhjain@linux.ibm.com,rppt@kernel.org,ritesh.list@gmail.com,npiggin@gmail.com,nathan@kernel.org,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,donettom@linux.ibm.com,christophe.leroy@csgroup.eu,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch added to mm-unstable branch
-Message-Id: <20251115005307.B38F4C16AAE@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch removed from -mm tree
+Message-Id: <20251115185234.D91EAC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,137 +34,167 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
+The quilt patch titled
+     Subject: mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb
+has been removed from the -mm tree.  Its filename was
+     mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Balbir Singh <balbirs@nvidia.com>
-Subject: mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2
-Date: Sat, 15 Nov 2025 11:28:35 +1100
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb
+Date: Fri, 14 Nov 2025 22:49:20 +0100
 
-Follow the pattern used in remove_migration_pte() in
-remove_migration_pmd(). Process the migration entries and if the entry
-type is device private, override the pmde with a device private entry
-and set the soft dirty and uffd_wp bits with the pmd_swp_mksoft_dirty
-and pmd_swp_mkuffd_wp
+In the past, CONFIG_ARCH_HAS_GIGANTIC_PAGE indicated that we support
+runtime allocation of gigantic hugetlb folios.  In the meantime it evolved
+into a generic way for the architecture to state that it supports gigantic
+hugetlb folios.
 
-Link: https://lkml.kernel.org/r/20251115002835.3515194-1-balbirs@nvidia.com
-Signed-off-by: Balbir Singh <balbirs@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+In commit fae7d834c43c ("mm: add __dump_folio()") we started using
+CONFIG_ARCH_HAS_GIGANTIC_PAGE to decide MAX_FOLIO_ORDER: whether we could
+have folios larger than what the buddy can handle.  In the context of that
+commit, we started using MAX_FOLIO_ORDER to detect page corruptions when
+dumping tail pages of folios.  Before that commit, we assumed that we
+cannot have folios larger than the highest buddy order, which was
+obviously wrong.
+
+In commit 7b4f21f5e038 ("mm/hugetlb: check for unreasonable folio sizes
+when registering hstate"), we used MAX_FOLIO_ORDER to detect
+inconsistencies, and in fact, we found some now.
+
+Powerpc allows for configs that can allocate gigantic folio during boot
+(not at runtime), that do not set CONFIG_ARCH_HAS_GIGANTIC_PAGE and can
+exceed PUD_ORDER.
+
+To fix it, let's make powerpc select CONFIG_ARCH_HAS_GIGANTIC_PAGE with
+hugetlb on powerpc, and increase the maximum folio size with hugetlb to 16
+GiB on 64bit (possible on arm64 and powerpc) and 1 GiB on 32 bit
+(powerpc).  Note that on some powerpc configurations, whether we actually
+have gigantic pages depends on the setting of CONFIG_ARCH_FORCE_MAX_ORDER,
+but there is nothing really problematic about setting it unconditionally:
+we just try to keep the value small so we can better detect problems in
+__dump_folio() and inconsistencies around the expected largest folio in
+the system.
+
+Ideally, we'd have a better way to obtain the maximum hugetlb folio size
+and detect ourselves whether we really end up with gigantic folios.  Let's
+defer bigger changes and fix the warnings first.
+
+While at it, handle gigantic DAX folios more clearly: DAX can only end up
+creating gigantic folios with HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD.
+
+Add a new Kconfig option HAVE_GIGANTIC_FOLIOS to make both cases clearer. 
+In particular, worry about ARCH_HAS_GIGANTIC_PAGE only with HUGETLB_PAGE.
+
+Note: with enabling CONFIG_ARCH_HAS_GIGANTIC_PAGE on powerpc, we will now
+also allow for runtime allocations of folios in some more powerpc configs.
+I don't think this is a problem, but if it is we could handle it through
+__HAVE_ARCH_GIGANTIC_PAGE_RUNTIME_SUPPORTED.
+
+While __dump_page()/__dump_folio was also problematic (not handling
+dumping of tail pages of such gigantic folios correctly), it doesn't seem
+critical enough to mark it as a fix.
+
+Link: https://lkml.kernel.org/r/20251114214920.2550676-1-david@kernel.org
+Fixes: 7b4f21f5e038 ("mm/hugetlb: check for unreasonable folio sizes when registering hstate")
+Reported-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Closes: https://lore.kernel.org/r/3e043453-3f27-48ad-b987-cc39f523060a@csgroup.eu/
+Reported-by: Sourabh Jain <sourabhjain@linux.ibm.com>
+Closes: https://lore.kernel.org/r/94377f5c-d4f0-4c0f-b0f6-5bf1cd7305b1@linux.ibm.com/
+Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Francois Dugast <francois.dugast@intel.com>
-
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ arch/powerpc/Kconfig                   |    1 +
+ arch/powerpc/platforms/Kconfig.cputype |    1 -
+ include/linux/mm.h                     |   13 ++++++++++---
+ mm/Kconfig                             |    7 +++++++
+ 4 files changed, 18 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2
-+++ a/mm/huge_memory.c
-@@ -4639,8 +4639,17 @@ void remove_migration_pmd(struct page_vm
- 	folio_get(folio);
- 	pmde = folio_mk_pmd(folio, READ_ONCE(vma->vm_page_prot));
+--- a/arch/powerpc/Kconfig~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
++++ a/arch/powerpc/Kconfig
+@@ -137,6 +137,7 @@ config PPC
+ 	select ARCH_HAS_DMA_OPS			if PPC64
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
++	select ARCH_HAS_GIGANTIC_PAGE		if ARCH_SUPPORTS_HUGETLBFS
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_KERNEL_FPU_SUPPORT	if PPC64 && PPC_FPU
+ 	select ARCH_HAS_MEMBARRIER_CALLBACKS
+--- a/arch/powerpc/platforms/Kconfig.cputype~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
++++ a/arch/powerpc/platforms/Kconfig.cputype
+@@ -423,7 +423,6 @@ config PPC_64S_HASH_MMU
+ config PPC_RADIX_MMU
+ 	bool "Radix MMU Support"
+ 	depends on PPC_BOOK3S_64
+-	select ARCH_HAS_GIGANTIC_PAGE
+ 	default y
+ 	help
+ 	  Enable support for the Power ISA 3.0 Radix style MMU. Currently this
+--- a/include/linux/mm.h~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
++++ a/include/linux/mm.h
+@@ -2074,7 +2074,7 @@ static inline unsigned long folio_nr_pag
+ 	return folio_large_nr_pages(folio);
+ }
  
-+	if (pmd_swp_soft_dirty(*pvmw->pmd))
-+		pmde = pmd_mksoft_dirty(pmde);
- 	if (is_writable_migration_entry(entry))
- 		pmde = pmd_mkwrite(pmde, vma);
-+	if (pmd_swp_uffd_wp(*pvmw->pmd))
-+		pmde = pmd_mkuffd_wp(pmde);
-+	if (!is_migration_entry_young(entry))
-+		pmde = pmd_mkold(pmde);
-+	/* NOTE: this may contain setting soft-dirty on some archs */
-+	if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
-+		pmde = pmd_mkdirty(pmde);
+-#if !defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE)
++#if !defined(CONFIG_HAVE_GIGANTIC_FOLIOS)
+ /*
+  * We don't expect any folios that exceed buddy sizes (and consequently
+  * memory sections).
+@@ -2087,10 +2087,17 @@ static inline unsigned long folio_nr_pag
+  * pages are guaranteed to be contiguous.
+  */
+ #define MAX_FOLIO_ORDER		PFN_SECTION_SHIFT
+-#else
++#elif defined(CONFIG_HUGETLB_PAGE)
+ /*
+  * There is no real limit on the folio size. We limit them to the maximum we
+- * currently expect (e.g., hugetlb, dax).
++ * currently expect (see CONFIG_HAVE_GIGANTIC_FOLIOS): with hugetlb, we expect
++ * no folios larger than 16 GiB on 64bit and 1 GiB on 32bit.
++ */
++#define MAX_FOLIO_ORDER		get_order(IS_ENABLED(CONFIG_64BIT) ? SZ_16G : SZ_1G)
++#else
++/*
++ * Without hugetlb, gigantic folios that are bigger than a single PUD are
++ * currently impossible.
+  */
+ #define MAX_FOLIO_ORDER		PUD_ORDER
+ #endif
+--- a/mm/Kconfig~mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
++++ a/mm/Kconfig
+@@ -908,6 +908,13 @@ config PAGE_MAPCOUNT
+ config PGTABLE_HAS_HUGE_LEAVES
+ 	def_bool TRANSPARENT_HUGEPAGE || HUGETLB_PAGE
  
- 	if (folio_is_device_private(folio)) {
- 		swp_entry_t entry;
-@@ -4652,17 +4661,12 @@ void remove_migration_pmd(struct page_vm
- 			entry = make_readable_device_private_entry(
- 							page_to_pfn(new));
- 		pmde = swp_entry_to_pmd(entry);
--	}
- 
--	if (pmd_swp_soft_dirty(*pvmw->pmd))
--		pmde = pmd_mksoft_dirty(pmde);
--	if (pmd_swp_uffd_wp(*pvmw->pmd))
--		pmde = pmd_mkuffd_wp(pmde);
--	if (!is_migration_entry_young(entry))
--		pmde = pmd_mkold(pmde);
--	/* NOTE: this may contain setting soft-dirty on some archs */
--	if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
--		pmde = pmd_mkdirty(pmde);
-+		if (pmd_swp_soft_dirty(*pvmw->pmd))
-+			pmde = pmd_swp_mksoft_dirty(pmde);
-+		if (pmd_swp_uffd_wp(*pvmw->pmd))
-+			pmde = pmd_swp_mkuffd_wp(pmde);
-+	}
- 
- 	if (folio_test_anon(folio)) {
- 		rmap_t rmap_flags = RMAP_NONE;
++#
++# We can end up creating gigantic folio.
++#
++config HAVE_GIGANTIC_FOLIOS
++	def_bool (HUGETLB_PAGE && ARCH_HAS_GIGANTIC_PAGE) || \
++		 (ZONE_DEVICE && HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
++
+ # TODO: Allow to be enabled without THP
+ config ARCH_SUPPORTS_HUGE_PFNMAP
+ 	def_bool n
 _
 
-Patches currently in -mm which might be from balbirs@nvidia.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-zone_device-support-large-zone-device-private-folios.patch
-mm-zone_device-rename-page_free-callback-to-folio_free.patch
-mm-huge_memory-add-device-private-thp-support-to-pmd-operations.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
-mm-huge_memory-implement-device-private-thp-splitting.patch
-mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
-mm-migrate_device-implement-thp-migration-of-zone-device-pages.patch
-mm-memory-fault-add-thp-fault-handling-for-zone-device-private-pages.patch
-lib-test_hmm-add-zone-device-private-thp-test-infrastructure.patch
-mm-memremap-add-driver-callback-support-for-folio-splitting.patch
-mm-migrate_device-add-thp-splitting-during-migration.patch
-lib-test_hmm-add-large-page-allocation-failure-testing.patch
-selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
-selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
-gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
-gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
-mm-huge_memoryc-introduce-folio_split_unmapped.patch
 
