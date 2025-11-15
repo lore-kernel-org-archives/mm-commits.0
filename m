@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C61C1799F
-	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:52:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EAAA86337
+	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:53:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763167967; cv=none; b=jPofwsxku7KbODuXb/4DgyCEma336U5fFzCPpHL4U2gpD5kVNwM45Vy60FlZOiPWR3EcdvW9iIh/wlEZaINS1NJFLEH5iT3vg/7B19tgqrq2jTUBKsMihD+/EPNiwOhlgPXf61kXNl91r8yusXgPemznOo9BNlEg35JsRgcObYo=
+	t=1763167988; cv=none; b=RUq+urj30SDYSGWL6Sux39Ookku7J2J0xkOYgWdIJJ/aFP22qpm9NqdkYNPtgDvG7RM0a1CL1EMbR1j1Mx3Emo2B104XncBMPpxcZa+w/jSp31Fh79DSUu0WH85jpD9Faq/aRum0mRv2NtKCGnZmpil50BfBMsQj6hLfpi00Jp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763167967; c=relaxed/simple;
-	bh=yXIgxqVBOZ/De4NL7EutyvELQc1fxobGF1gzAmTkJdU=;
-	h=Date:To:From:Subject:Message-Id; b=mVVGyNwy5EBzvW+Q3GQXThlLfr78SSgRiSPOGGD5CWzSlJ1BHxj95Ndp+FiMte3gyyAvrcPcvKlTvkji/D75D8vsg6eEYa25AQlGoUS67MSFkSCdrlmDGDSZ3sYIby0vLMqB1YhG9BJUV6hpSTt1g5CziZ0C4kb9DfiNcQBUMtk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lFX0IMSU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763167988; c=relaxed/simple;
+	bh=DsEUTXitd3DyfoVFGuJzcuQUXF+bBc8xPyc4JVL+Gb4=;
+	h=Date:To:From:Subject:Message-Id; b=F2lLpnlxywaMBEbyCwJYvJ9xRSR1zvrehb+Zn/DL8KOzdaTmnL9J6pvi1GFWlCy0h55anANdt3dKV6gak+QXUwtpIS8+sOFlP7HmEaI+H7VuDnVSbjav47CdHFlvmdsz9qGYWEYfwocHo8z/v90EupU0BpAhp3xNwHhioxZo5XM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ih+sEW2Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lFX0IMSU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E172C19421;
-	Sat, 15 Nov 2025 00:52:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ih+sEW2Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B38F4C16AAE;
+	Sat, 15 Nov 2025 00:53:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763167967;
-	bh=yXIgxqVBOZ/De4NL7EutyvELQc1fxobGF1gzAmTkJdU=;
+	s=korg; t=1763167987;
+	bh=DsEUTXitd3DyfoVFGuJzcuQUXF+bBc8xPyc4JVL+Gb4=;
 	h=Date:To:From:Subject:From;
-	b=lFX0IMSU2ScpqIGyHIn5hMPMSmL/Je4Non5xzuegJT9oU9J/OEdq7muvbH662Tm6b
-	 aY+EYW+jZs8uf2/BLDY16wJeaSxQNWgjZhm6hcxCC5JURE6oMSrU1W+gFHnCx+AVzP
-	 WM8cwFKr5iBtjJuhwGsOv4C2YL4kt2q/RRA+S3w0=
-Date: Fri, 14 Nov 2025 16:52:46 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,balbirs@nvidia.com,akpm@linux-foundation.org
+	b=ih+sEW2ZS+5vfwz5nro96zI9L+MDHVXzpMV9OhEEjzYXFpp6T2CYdX1DR6OXtTnk1
+	 uf8QpEf0DTvc81bHq6byVV3/z3Np7Ox0mjZxp5wavZljxJ7PyADFuopgRyjGQpySZB
+	 MA2lyDOlMvGT/z9J29gzxCfiml2VEKS7jdyRyZpI=
+Date: Fri, 14 Nov 2025 16:53:07 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch added to mm-unstable branch
-Message-Id: <20251115005247.0E172C19421@smtp.kernel.org>
+Subject: + mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch added to mm-unstable branch
+Message-Id: <20251115005307.B38F4C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fixup: gpu/drm/nouveau: enable THP support for GPU memory migration
+     Subject: mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2
 has been added to the -mm mm-unstable branch.  Its filename is
-     gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
+     mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,62 +59,91 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Balbir Singh <balbirs@nvidia.com>
-Subject: fixup: gpu/drm/nouveau: enable THP support for GPU memory migration
-Date: Sat, 15 Nov 2025 11:33:33 +1100
+Subject: mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2
+Date: Sat, 15 Nov 2025 11:28:35 +1100
 
-Kernel test robot, reported a sparse error with the patch
+Follow the pattern used in remove_migration_pte() in
+remove_migration_pmd(). Process the migration entries and if the entry
+type is device private, override the pmde with a device private entry
+and set the soft dirty and uffd_wp bits with the pmd_swp_mksoft_dirty
+and pmd_swp_mkuffd_wp
 
-The sparse report states:
-
->> drivers/gpu/drm/nouveau/nouveau_dmem.c:259:13: sparse: sparse: incorrect type in assignment (different base types) @@     expected restricted vm_fault_t [assigned] [usertype] ret @@     got int @@
-   drivers/gpu/drm/nouveau/nouveau_dmem.c:259:13: sparse:     expected restricted vm_fault_t [assigned] [usertype] ret
-   drivers/gpu/drm/nouveau/nouveau_dmem.c:259:13: sparse:     got int
-
-ret of type vm_fault_t is reused to capture the return value of
-nouveau_dmem_copy_folio(), which returns an int. Use a new variable
-err (of type int) to get the return value from the function to fix
-the reported issue.
-
-The reported issue is not new, prior to this, the function called
-nouveau_dmem_copy_folio() was called nouveau_dmem_copy_one() and
-ret was used to capture it's return value.
-
-The reported issue also does not cause any runtime errors. The
-return value from the function is used as a boolean value, to check if
-nouveau_dmem_copy_folio() succeeded or failed.
-
-Link: https://lkml.kernel.org/r/20251115003333.3516870-1-balbirs@nvidia.com
+Link: https://lkml.kernel.org/r/20251115002835.3515194-1-balbirs@nvidia.com
 Signed-off-by: Balbir Singh <balbirs@nvidia.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202511121922.oP20Lzb8-lkp@intel.com/
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Francois Dugast <francois.dugast@intel.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_dmem.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -188,6 +188,7 @@ static vm_fault_t nouveau_dmem_migrate_t
- 	struct nouveau_svmm *svmm;
- 	struct page *dpage;
- 	vm_fault_t ret = 0;
-+	int err;
- 	struct migrate_vma args = {
- 		.vma		= vmf->vma,
- 		.pgmap_owner	= drm->dev,
-@@ -256,9 +257,9 @@ static vm_fault_t nouveau_dmem_migrate_t
- 	svmm = folio_zone_device_data(sfolio);
- 	mutex_lock(&svmm->mutex);
- 	nouveau_svmm_invalidate(svmm, args.start, args.end);
--	ret = nouveau_dmem_copy_folio(drm, sfolio, dfolio, &dma_info);
-+	err = nouveau_dmem_copy_folio(drm, sfolio, dfolio, &dma_info);
- 	mutex_unlock(&svmm->mutex);
--	if (ret) {
-+	if (err) {
- 		ret = VM_FAULT_SIGBUS;
- 		goto done;
- 	}
+--- a/mm/huge_memory.c~mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2
++++ a/mm/huge_memory.c
+@@ -4639,8 +4639,17 @@ void remove_migration_pmd(struct page_vm
+ 	folio_get(folio);
+ 	pmde = folio_mk_pmd(folio, READ_ONCE(vma->vm_page_prot));
+ 
++	if (pmd_swp_soft_dirty(*pvmw->pmd))
++		pmde = pmd_mksoft_dirty(pmde);
+ 	if (is_writable_migration_entry(entry))
+ 		pmde = pmd_mkwrite(pmde, vma);
++	if (pmd_swp_uffd_wp(*pvmw->pmd))
++		pmde = pmd_mkuffd_wp(pmde);
++	if (!is_migration_entry_young(entry))
++		pmde = pmd_mkold(pmde);
++	/* NOTE: this may contain setting soft-dirty on some archs */
++	if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
++		pmde = pmd_mkdirty(pmde);
+ 
+ 	if (folio_is_device_private(folio)) {
+ 		swp_entry_t entry;
+@@ -4652,17 +4661,12 @@ void remove_migration_pmd(struct page_vm
+ 			entry = make_readable_device_private_entry(
+ 							page_to_pfn(new));
+ 		pmde = swp_entry_to_pmd(entry);
+-	}
+ 
+-	if (pmd_swp_soft_dirty(*pvmw->pmd))
+-		pmde = pmd_mksoft_dirty(pmde);
+-	if (pmd_swp_uffd_wp(*pvmw->pmd))
+-		pmde = pmd_mkuffd_wp(pmde);
+-	if (!is_migration_entry_young(entry))
+-		pmde = pmd_mkold(pmde);
+-	/* NOTE: this may contain setting soft-dirty on some archs */
+-	if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
+-		pmde = pmd_mkdirty(pmde);
++		if (pmd_swp_soft_dirty(*pvmw->pmd))
++			pmde = pmd_swp_mksoft_dirty(pmde);
++		if (pmd_swp_uffd_wp(*pvmw->pmd))
++			pmde = pmd_swp_mkuffd_wp(pmde);
++	}
+ 
+ 	if (folio_test_anon(folio)) {
+ 		rmap_t rmap_flags = RMAP_NONE;
 _
 
 Patches currently in -mm which might be from balbirs@nvidia.com are
