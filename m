@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 261CC63B9
-	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:19:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E517463B9
+	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 00:26:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763165990; cv=none; b=aQsJYBO4wZkLs4OIOysFtrKaEUFurYwFN2N7Afz+A7Xkk41P4cuqHzuSuhMHgYAiENMDDicDgZJoKtc2EfW9Ga1YIKZJz0bkOjIN4kroImVdE3u+51d7cv5lC9af5BR10MqxS8LAHhH0e2CDf5wM83OdBPOrwVrwfL83ZS8yy+4=
+	t=1763166410; cv=none; b=CkHKvHwGH/yN9WcIRXP/3YuS8jdifIHye+hWIqk85bAJQACJvm39aQlMpo6/EGWFbCJvTkc+CcHPckspg3IX/BtySfT6zwVbD73HhbGAjAH47bWhnWpbsROoOzHSwOMdPfEAXgjxETnOcrqRfBmKEnCbWOjtkQ42CIVgT8DqTMM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763165990; c=relaxed/simple;
-	bh=uJxbL7db2mNHq4KLmBvk0F03uWuKbyTD0twx4yRaMd8=;
-	h=Date:To:From:Subject:Message-Id; b=pzIg1sYXgSfGpT2ZBCXz2Gx9IgJRFzUoKarjHIwea5Hy99bcKqwrxNdHxbS3E1AjccBBdYYX3pfHteoMz337SGf7mwGsxSTCD6WCLcymbgVEoXXVb41XFoPAP9qZtb3SUxP9r2O6pMDW7qmV2L+2KVBruMSEOjR8qjjLr5AtWXE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UwTw02hl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763166410; c=relaxed/simple;
+	bh=fUJ33rSmlTiqmPihny1b++GtqGcNbrm+RmPQXquGIkA=;
+	h=Date:To:From:Subject:Message-Id; b=ji2dcRgkksuYza6Ou2Ebvwtmt1mXtkWnw05k8JKyyRRW/kmG7KSXqZ02HBhl5i7RdpHIlCL96uA0cVfxZDXZZ48NrCffrRxLoACSyw1B01HzQhCCmXF7XMKRQq52f2LdQItIwjEDPGtCGYlEKrp4jydoTfxmJg/WkuAzqJvZQA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lEabV194; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UwTw02hl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9098DC4CEF1;
-	Sat, 15 Nov 2025 00:19:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lEabV194"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55DBBC16AAE;
+	Sat, 15 Nov 2025 00:26:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763165988;
-	bh=uJxbL7db2mNHq4KLmBvk0F03uWuKbyTD0twx4yRaMd8=;
+	s=korg; t=1763166407;
+	bh=fUJ33rSmlTiqmPihny1b++GtqGcNbrm+RmPQXquGIkA=;
 	h=Date:To:From:Subject:From;
-	b=UwTw02hlci/rA7lp8dfqhNC4PRucvaOOhb/bWUnbKRHSxiIWykPhk6NyT51oIBA3E
-	 n+BLRIkH+KMgoeIhi72KpPeLkdeBqZkY8Fggqz5yS7/GU2YcS6GIGtqSDVp8jlveir
-	 taFxKU7SFzhsyhTM1jFDGj0vobGwjjN0vb3C7Lg0=
-Date: Fri, 14 Nov 2025 16:19:48 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
+	b=lEabV194IFbRHvh8hnev6MAQxECgnvskkkvZhAtqm4b7q2A+PgEEkdEr5kROMksPP
+	 7xjoEOz2p/o49dXa5VaMk7qVctOjuDgwET2rmD3taU2uHvlLL+VtoU68KwTXidr10X
+	 QTzJG0bFUVJFLz1EvqbU7c942UZmSFOQWRY5G9Wg=
+Date: Fri, 14 Nov 2025 16:26:46 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memoryc-introduce-folio_split_unmapped.patch added to mm-new branch
-Message-Id: <20251115001948.9098DC4CEF1@smtp.kernel.org>
+Subject: + liveupdate-luo_session-add-sessions-support-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251115002647.55DBBC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory.c: introduce folio_split_unmapped
-has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memoryc-introduce-folio_split_unmapped.patch
+     Subject: liveupdate-luo_session-add-sessions-support-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     liveupdate-luo_session-add-sessions-support-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memoryc-introduce-folio_split_unmapped.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_session-add-sessions-support-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,519 +58,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Balbir Singh <balbirs@nvidia.com>
-Subject: mm/huge_memory.c: introduce folio_split_unmapped
-Date: Fri, 14 Nov 2025 12:22:28 +1100
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: liveupdate-luo_session-add-sessions-support-fix
+Date: Thu, 13 Nov 2025 23:29:18 -0500
 
-Unmapped was added as a parameter to __folio_split() and related call
-sites to support splitting of folios already in the midst of a migration. 
-This special case arose for device private folio migration since during
-migration there could be a disconnect between source and destination on
-the folio size.
+fix sparse warning
 
-Introduce folio_split_unmapped() to handle this special case.  Also
-refactor code and add __folio_freeze_and_split_unmapped() helper that is
-common to both __folio_split() and folio_split_unmapped().
-
-This in turn removes the special casing introduced by the unmapped
-parameter in __folio_split().
-
-Link: https://lkml.kernel.org/r/20251114012228.2634882-1-balbirs@nvidia.com
-Signed-off-by: Balbir Singh <balbirs@nvidia.com>
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Francois Dugast <francois.dugast@intel.com>
+Link: https://lkml.kernel.org/r/CA+CK2bBR5qqRMNKVYezCn3RsHx4=YLGsPaCb5DhveEQi3k6N+Q@mail.gmail.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202511140809.4JN2GCxV-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    5 
- mm/huge_memory.c        |  332 +++++++++++++++++++++-----------------
- mm/migrate_device.c     |    3 
- 3 files changed, 191 insertions(+), 149 deletions(-)
+ kernel/liveupdate/luo_session.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memoryc-introduce-folio_split_unmapped
-+++ a/include/linux/huge_mm.h
-@@ -371,7 +371,8 @@ enum split_type {
+--- a/kernel/liveupdate/luo_session.c~liveupdate-luo_session-add-sessions-support-fix
++++ a/kernel/liveupdate/luo_session.c
+@@ -98,7 +98,9 @@ struct luo_session_global {
+ 	struct luo_session_head incoming;
+ 	struct luo_session_head outgoing;
+ 	bool deserialized;
+-} luo_session_global;
++};
++
++static struct luo_session_global luo_session_global;
  
- bool can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins);
- int __split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
--		unsigned int new_order, bool unmapped);
-+		unsigned int new_order);
-+int folio_split_unmapped(struct folio *folio, unsigned int new_order);
- int min_order_for_split(struct folio *folio);
- int split_folio_to_list(struct folio *folio, struct list_head *list);
- bool folio_split_supported(struct folio *folio, unsigned int new_order,
-@@ -382,7 +383,7 @@ int folio_split(struct folio *folio, uns
- static inline int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
- 		unsigned int new_order)
+ static struct luo_session *luo_session_alloc(const char *name)
  {
--	return __split_huge_page_to_list_to_order(page, list, new_order, false);
-+	return __split_huge_page_to_list_to_order(page, list, new_order);
- }
- static inline int split_huge_page_to_order(struct page *page, unsigned int new_order)
- {
---- a/mm/huge_memory.c~mm-huge_memoryc-introduce-folio_split_unmapped
-+++ a/mm/huge_memory.c
-@@ -3739,6 +3739,151 @@ bool folio_split_supported(struct folio
- 	return true;
- }
- 
-+static int __folio_freeze_and_split_unmapped(struct folio *folio, unsigned int new_order,
-+					     struct page *split_at, struct xa_state *xas,
-+					     struct address_space *mapping, bool do_lru,
-+					     struct list_head *list, enum split_type split_type,
-+					     pgoff_t end, int extra_pins)
-+{
-+	struct folio *end_folio = folio_next(folio);
-+	struct folio *new_folio, *next;
-+	int old_order = folio_order(folio);
-+	int nr_shmem_dropped = 0;
-+	int ret = 0;
-+	struct deferred_split *ds_queue;
-+
-+	/* Prevent deferred_split_scan() touching ->_refcount */
-+	ds_queue = folio_split_queue_lock(folio);
-+	if (folio_ref_freeze(folio, 1 + extra_pins)) {
-+		struct swap_cluster_info *ci = NULL;
-+		struct lruvec *lruvec;
-+		int expected_refs;
-+
-+		if (old_order > 1) {
-+			if (!list_empty(&folio->_deferred_list)) {
-+				ds_queue->split_queue_len--;
-+				/*
-+				 * Reinitialize page_deferred_list after removing the
-+				 * page from the split_queue, otherwise a subsequent
-+				 * split will see list corruption when checking the
-+				 * page_deferred_list.
-+				 */
-+				list_del_init(&folio->_deferred_list);
-+			}
-+			if (folio_test_partially_mapped(folio)) {
-+				folio_clear_partially_mapped(folio);
-+				mod_mthp_stat(old_order,
-+					MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
-+			}
-+		}
-+		split_queue_unlock(ds_queue);
-+		if (mapping) {
-+			int nr = folio_nr_pages(folio);
-+
-+			if (folio_test_pmd_mappable(folio) &&
-+			    new_order < HPAGE_PMD_ORDER) {
-+				if (folio_test_swapbacked(folio)) {
-+					__lruvec_stat_mod_folio(folio,
-+							NR_SHMEM_THPS, -nr);
-+				} else {
-+					__lruvec_stat_mod_folio(folio,
-+							NR_FILE_THPS, -nr);
-+					filemap_nr_thps_dec(mapping);
-+				}
-+			}
-+		}
-+
-+		if (folio_test_swapcache(folio)) {
-+			if (mapping) {
-+				VM_WARN_ON_ONCE_FOLIO(mapping, folio);
-+				return -EINVAL;
-+			}
-+
-+			ci = swap_cluster_get_and_lock(folio);
-+		}
-+
-+		/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
-+		if (do_lru)
-+			lruvec = folio_lruvec_lock(folio);
-+
-+		ret = __split_unmapped_folio(folio, new_order, split_at, xas,
-+					     mapping, split_type);
-+
-+		/*
-+		 * Unfreeze after-split folios and put them back to the right
-+		 * list. @folio should be kept frozon until page cache
-+		 * entries are updated with all the other after-split folios
-+		 * to prevent others seeing stale page cache entries.
-+		 * As a result, new_folio starts from the next folio of
-+		 * @folio.
-+		 */
-+		for (new_folio = folio_next(folio); new_folio != end_folio;
-+		     new_folio = next) {
-+			unsigned long nr_pages = folio_nr_pages(new_folio);
-+
-+			next = folio_next(new_folio);
-+
-+			zone_device_private_split_cb(folio, new_folio);
-+
-+			expected_refs = folio_expected_ref_count(new_folio) + 1;
-+			folio_ref_unfreeze(new_folio, expected_refs);
-+
-+			if (do_lru)
-+				lru_add_split_folio(folio, new_folio, lruvec, list);
-+
-+			/*
-+			 * Anonymous folio with swap cache.
-+			 * NOTE: shmem in swap cache is not supported yet.
-+			 */
-+			if (ci) {
-+				__swap_cache_replace_folio(ci, folio, new_folio);
-+				continue;
-+			}
-+
-+			/* Anonymous folio without swap cache */
-+			if (!mapping)
-+				continue;
-+
-+			/* Add the new folio to the page cache. */
-+			if (new_folio->index < end) {
-+				__xa_store(&mapping->i_pages, new_folio->index,
-+					   new_folio, 0);
-+				continue;
-+			}
-+
-+			/* Drop folio beyond EOF: ->index >= end */
-+			if (shmem_mapping(mapping))
-+				nr_shmem_dropped += nr_pages;
-+			else if (folio_test_clear_dirty(new_folio))
-+				folio_account_cleaned(
-+					new_folio, inode_to_wb(mapping->host));
-+			__filemap_remove_folio(new_folio, NULL);
-+			folio_put_refs(new_folio, nr_pages);
-+		}
-+
-+		zone_device_private_split_cb(folio, NULL);
-+		/*
-+		 * Unfreeze @folio only after all page cache entries, which
-+		 * used to point to it, have been updated with new folios.
-+		 * Otherwise, a parallel folio_try_get() can grab @folio
-+		 * and its caller can see stale page cache entries.
-+		 */
-+		expected_refs = folio_expected_ref_count(folio) + 1;
-+		folio_ref_unfreeze(folio, expected_refs);
-+
-+		if (do_lru)
-+			unlock_page_lruvec(lruvec);
-+
-+		if (ci)
-+			swap_cluster_unlock(ci);
-+	} else {
-+		split_queue_unlock(ds_queue);
-+		return -EAGAIN;
-+	}
-+
-+	return ret;
-+}
-+
- /**
-  * __folio_split() - split a folio at @split_at to a @new_order folio
-  * @folio: folio to split
-@@ -3747,7 +3892,6 @@ bool folio_split_supported(struct folio
-  * @lock_at: a page within @folio to be left locked to caller
-  * @list: after-split folios will be put on it if non NULL
-  * @split_type: perform uniform split or not (non-uniform split)
-- * @unmapped: The pages are already unmapped, they are migration entries.
-  *
-  * It calls __split_unmapped_folio() to perform uniform and non-uniform split.
-  * It is in charge of checking whether the split is supported or not and
-@@ -3763,9 +3907,8 @@ bool folio_split_supported(struct folio
-  */
- static int __folio_split(struct folio *folio, unsigned int new_order,
- 		struct page *split_at, struct page *lock_at,
--		struct list_head *list, enum split_type split_type, bool unmapped)
-+		struct list_head *list, enum split_type split_type)
- {
--	struct deferred_split *ds_queue;
- 	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
- 	struct folio *end_folio = folio_next(folio);
- 	bool is_anon = folio_test_anon(folio);
-@@ -3809,14 +3952,12 @@ static int __folio_split(struct folio *f
- 		 * is taken to serialise against parallel split or collapse
- 		 * operations.
- 		 */
--		if (!unmapped) {
--			anon_vma = folio_get_anon_vma(folio);
--			if (!anon_vma) {
--				ret = -EBUSY;
--				goto out;
--			}
--			anon_vma_lock_write(anon_vma);
-+		anon_vma = folio_get_anon_vma(folio);
-+		if (!anon_vma) {
-+			ret = -EBUSY;
-+			goto out;
- 		}
-+		anon_vma_lock_write(anon_vma);
- 		mapping = NULL;
- 	} else {
- 		unsigned int min_order;
-@@ -3882,8 +4023,7 @@ static int __folio_split(struct folio *f
- 		goto out_unlock;
- 	}
- 
--	if (!unmapped)
--		unmap_folio(folio);
-+	unmap_folio(folio);
- 
- 	/* block interrupt reentry in xa_lock and spinlock */
- 	local_irq_disable();
-@@ -3900,142 +4040,14 @@ static int __folio_split(struct folio *f
- 		}
- 	}
- 
--	/* Prevent deferred_split_scan() touching ->_refcount */
--	ds_queue = folio_split_queue_lock(folio);
--	if (folio_ref_freeze(folio, 1 + extra_pins)) {
--		struct swap_cluster_info *ci = NULL;
--		struct lruvec *lruvec;
--		int expected_refs;
--
--		if (old_order > 1) {
--			if (!list_empty(&folio->_deferred_list)) {
--				ds_queue->split_queue_len--;
--				/*
--				 * Reinitialize page_deferred_list after removing the
--				 * page from the split_queue, otherwise a subsequent
--				 * split will see list corruption when checking the
--				 * page_deferred_list.
--				 */
--				list_del_init(&folio->_deferred_list);
--			}
--			if (folio_test_partially_mapped(folio)) {
--				folio_clear_partially_mapped(folio);
--				mod_mthp_stat(old_order,
--					MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
--			}
--		}
--		split_queue_unlock(ds_queue);
--		if (mapping) {
--			int nr = folio_nr_pages(folio);
--
--			if (folio_test_pmd_mappable(folio) &&
--			    new_order < HPAGE_PMD_ORDER) {
--				if (folio_test_swapbacked(folio)) {
--					__lruvec_stat_mod_folio(folio,
--							NR_SHMEM_THPS, -nr);
--				} else {
--					__lruvec_stat_mod_folio(folio,
--							NR_FILE_THPS, -nr);
--					filemap_nr_thps_dec(mapping);
--				}
--			}
--		}
--
--		if (folio_test_swapcache(folio)) {
--			if (mapping) {
--				VM_WARN_ON_ONCE_FOLIO(mapping, folio);
--				ret = -EINVAL;
--				goto fail;
--			}
--
--			ci = swap_cluster_get_and_lock(folio);
--		}
--
--		/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
--		lruvec = folio_lruvec_lock(folio);
--
--		ret = __split_unmapped_folio(folio, new_order, split_at, &xas,
--					     mapping, split_type);
--
--		/*
--		 * Unfreeze after-split folios and put them back to the right
--		 * list. @folio should be kept frozon until page cache
--		 * entries are updated with all the other after-split folios
--		 * to prevent others seeing stale page cache entries.
--		 * As a result, new_folio starts from the next folio of
--		 * @folio.
--		 */
--		for (new_folio = folio_next(folio); new_folio != end_folio;
--		     new_folio = next) {
--			unsigned long nr_pages = folio_nr_pages(new_folio);
--
--			next = folio_next(new_folio);
--
--			zone_device_private_split_cb(folio, new_folio);
--
--			expected_refs = folio_expected_ref_count(new_folio) + 1;
--			folio_ref_unfreeze(new_folio, expected_refs);
--
--			if (!unmapped)
--				lru_add_split_folio(folio, new_folio, lruvec, list);
--
--			/*
--			 * Anonymous folio with swap cache.
--			 * NOTE: shmem in swap cache is not supported yet.
--			 */
--			if (ci) {
--				__swap_cache_replace_folio(ci, folio, new_folio);
--				continue;
--			}
--
--			/* Anonymous folio without swap cache */
--			if (!mapping)
--				continue;
--
--			/* Add the new folio to the page cache. */
--			if (new_folio->index < end) {
--				__xa_store(&mapping->i_pages, new_folio->index,
--					   new_folio, 0);
--				continue;
--			}
--
--			/* Drop folio beyond EOF: ->index >= end */
--			if (shmem_mapping(mapping))
--				nr_shmem_dropped += nr_pages;
--			else if (folio_test_clear_dirty(new_folio))
--				folio_account_cleaned(
--					new_folio, inode_to_wb(mapping->host));
--			__filemap_remove_folio(new_folio, NULL);
--			folio_put_refs(new_folio, nr_pages);
--		}
--
--		zone_device_private_split_cb(folio, NULL);
--		/*
--		 * Unfreeze @folio only after all page cache entries, which
--		 * used to point to it, have been updated with new folios.
--		 * Otherwise, a parallel folio_try_get() can grab @folio
--		 * and its caller can see stale page cache entries.
--		 */
--		expected_refs = folio_expected_ref_count(folio) + 1;
--		folio_ref_unfreeze(folio, expected_refs);
--
--		unlock_page_lruvec(lruvec);
--
--		if (ci)
--			swap_cluster_unlock(ci);
--	} else {
--		split_queue_unlock(ds_queue);
--		ret = -EAGAIN;
--	}
-+	ret = __folio_freeze_and_split_unmapped(folio, new_order, split_at, &xas, mapping,
-+						true, list, split_type, end, extra_pins);
- fail:
- 	if (mapping)
- 		xas_unlock(&xas);
- 
- 	local_irq_enable();
- 
--	if (unmapped)
--		return ret;
--
- 	if (nr_shmem_dropped)
- 		shmem_uncharge(mapping->host, nr_shmem_dropped);
- 
-@@ -4080,6 +4092,36 @@ out:
- }
- 
- /*
-+ * This function is a helper for splitting folios that have already been unmapped.
-+ * The use case is that the device or the CPU can refuse to migrate THP pages in
-+ * the middle of migration, due to allocation issues on either side
-+ *
-+ * The high level code is copied from __folio_split, since the pages are anonymous
-+ * and are already isolated from the LRU, the code has been simplified to not
-+ * burden __folio_split with unmapped sprinkled into the code.
-+ *
-+ * None of the split folios are unlocked
-+ */
-+int folio_split_unmapped(struct folio *folio, unsigned int new_order)
-+{
-+	int extra_pins, ret = 0;
-+
-+	VM_WARN_ON_FOLIO(folio_mapped(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
-+
-+	if (!can_split_folio(folio, 1, &extra_pins))
-+		return -EAGAIN;
-+
-+	local_irq_disable();
-+	ret = __folio_freeze_and_split_unmapped(folio, new_order, &folio->page, NULL,
-+						NULL, false, NULL, SPLIT_TYPE_UNIFORM,
-+						0, extra_pins);
-+	local_irq_enable();
-+	return ret;
-+}
-+
-+/*
-  * This function splits a large folio into smaller folios of order @new_order.
-  * @page can point to any page of the large folio to split. The split operation
-  * does not change the position of @page.
-@@ -4127,12 +4169,12 @@ out:
-  * with the folio. Splitting to order 0 is compatible with all folios.
-  */
- int __split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
--				     unsigned int new_order, bool unmapped)
-+				     unsigned int new_order)
- {
- 	struct folio *folio = page_folio(page);
- 
- 	return __folio_split(folio, new_order, &folio->page, page, list,
--			     SPLIT_TYPE_UNIFORM, unmapped);
-+			     SPLIT_TYPE_UNIFORM);
- }
- 
- /**
-@@ -4163,7 +4205,7 @@ int folio_split(struct folio *folio, uns
- 		struct page *split_at, struct list_head *list)
- {
- 	return __folio_split(folio, new_order, split_at, &folio->page, list,
--			     SPLIT_TYPE_NON_UNIFORM, false);
-+			     SPLIT_TYPE_NON_UNIFORM);
- }
- 
- int min_order_for_split(struct folio *folio)
---- a/mm/migrate_device.c~mm-huge_memoryc-introduce-folio_split_unmapped
-+++ a/mm/migrate_device.c
-@@ -909,8 +909,7 @@ static int migrate_vma_split_unmapped_fo
- 
- 	folio_get(folio);
- 	split_huge_pmd_address(migrate->vma, addr, true);
--	ret = __split_huge_page_to_list_to_order(folio_page(folio, 0), NULL,
--							0, true);
-+	ret = folio_split_unmapped(folio, 0);
- 	if (ret)
- 		return ret;
- 	migrate->src[idx] &= ~MIGRATE_PFN_COMPOUND;
 _
 
-Patches currently in -mm which might be from balbirs@nvidia.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-zone_device-support-large-zone-device-private-folios.patch
-mm-zone_device-rename-page_free-callback-to-folio_free.patch
-mm-huge_memory-add-device-private-thp-support-to-pmd-operations.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix.patch
-mm-huge_memory-implement-device-private-thp-splitting.patch
-mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
-mm-migrate_device-implement-thp-migration-of-zone-device-pages.patch
-mm-memory-fault-add-thp-fault-handling-for-zone-device-private-pages.patch
-lib-test_hmm-add-zone-device-private-thp-test-infrastructure.patch
-mm-memremap-add-driver-callback-support-for-folio-splitting.patch
-mm-migrate_device-add-thp-splitting-during-migration.patch
-lib-test_hmm-add-large-page-allocation-failure-testing.patch
-selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
-selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
-gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
-mm-huge_memoryc-introduce-folio_split_unmapped.patch
+lib-test_kho-check-if-kho-is-enabled.patch
+kho-make-debugfs-interface-optional.patch
+kho-add-interfaces-to-unpreserve-folios-page-ranges-and-vmalloc.patch
+memblock-unpreserve-memory-in-case-of-error.patch
+test_kho-unpreserve-memory-in-case-of-error.patch
+kho-dont-unpreserve-memory-during-abort.patch
+liveupdate-kho-move-to-kernel-liveupdate.patch
+liveupdate-kho-move-to-kernel-liveupdate-fix.patch
+maintainers-update-kho-maintainers.patch
+kho-fix-misleading-log-message-in-kho_populate.patch
+kho-convert-__kho_abort-to-return-void.patch
+kho-introduce-high-level-memory-allocation-api.patch
+kho-preserve-fdt-folio-only-once-during-initialization.patch
+kho-verify-deserialization-status-and-fix-fdt-alignment-access.patch
+kho-always-expose-output-fdt-in-debugfs.patch
+kho-simplify-serialization-and-remove-__kho_abort.patch
+kho-remove-global-preserved_mem_map-and-store-state-in-fdt.patch
+kho-remove-abort-functionality-and-support-state-refresh.patch
+kho-update-fdt-dynamically-for-subtree-addition-removal.patch
+kho-allow-kexec-load-before-kho-finalization.patch
+kho-allow-memory-preservation-state-updates-after-finalization.patch
+kho-add-kconfig-option-to-enable-kho-by-default.patch
+liveupdate-luo_core-luo_ioctl-live-update-orchestrator.patch
+liveupdate-luo_core-integrate-with-kho.patch
+reboot-call-liveupdate_reboot-before-kexec.patch
+liveupdate-luo_session-add-sessions-support.patch
+liveupdate-luo_session-add-sessions-support-fix.patch
+liveupdate-luo_ioctl-add-user-interface.patch
+liveupdate-luo_file-implement-file-systems-callbacks.patch
+liveupdate-luo_session-add-ioctls-for-file-preservation-and-state-management.patch
+liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
+docs-add-luo-documentation.patch
+maintainers-add-liveupdate-entry.patch
+selftests-liveupdate-add-userspace-api-selftests.patch
+selftests-liveupdate-add-kexec-based-selftest-for-session-lifecycle.patch
+selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
+tests-liveupdate-add-in-kernel-liveupdate-test.patch
 
