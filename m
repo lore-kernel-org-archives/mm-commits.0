@@ -1,139 +1,96 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8220E22A4CC
-	for <mm-commits@vger.kernel.org>; Sat, 15 Nov 2025 23:45:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9166121FF2E;
+	Sun, 16 Nov 2025 18:43:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763250338; cv=none; b=ugFTdQY34E6u7My2tYDRluplzlKoWiMByke6wmHd/n6n+hLdRUqEu4e/OQbP4rBAoP+aAg4preMW1yCSNbOuXJCzy459+3KZCO/PW0LPuHiNz7f/GR6MBOIRoh9dDSd/60PaUVb+GsFtIUb2oxCxhoJFAbod2+HFxJ9tBWFgbLA=
+	t=1763318595; cv=none; b=iako1Mz/g3whL6T3K1ie+eBuUTMuV9BhV3USA625WAg3TMJNx95OPAWfOsBG3g1UkTLmze0BRwsJ7kKIVsB6Q0lGkSVI5FMiYaLxSuGmuKjz0ot/IIv5vLPoZuTMDkiG22gvnD2J+Wxs2EnmxhIROtUPHCboCL40+q4Towp6FFg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763250338; c=relaxed/simple;
-	bh=xxYKAW7DmCbBoOZkXhyahdAnGCfLmQ6vP3sR6C4/EaQ=;
-	h=Date:To:From:Subject:Message-Id; b=sTMRZb7Oji8ZP31g3ZsIsRm8sIk1Emiu8QXFHrZixu3pKktSNwDjdJm13ZuPc935ru+71Do1vwEDQmggmXpY1ZeERKoGntvtpKFPKfoIMISL3IaQRjVq6hQGfzoVNQoNaFAhA1gfEzrKZNBdbZ2xAnqSvotiXKjSjG1CCSjK0bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ixsqkMAm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763318595; c=relaxed/simple;
+	bh=mlz8XZ5Zk1VrLETXio4E2rnvuua3hukDKbQJ9q2Ss9Y=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=VBsKOPyJKLcxuiJ3k3Lng9DKB+vtf9cuTy3mNHjrgiV1UDWaO0UYoFl6/ESBuOCDmZCh40t6kdj/7EI2IEk03X/zj7ZXQmQ3mJIgZwDZ9NP4osby9NsvV5+FD3CjyuHxRVdo/1dGodV35dFNrkyk1gUPDal750GbVerzgAaoXC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SaYb1Xl9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ixsqkMAm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC4C3C4CEF5;
-	Sat, 15 Nov 2025 23:45:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SaYb1Xl9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01BD1C116B1;
+	Sun, 16 Nov 2025 18:43:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763250337;
-	bh=xxYKAW7DmCbBoOZkXhyahdAnGCfLmQ6vP3sR6C4/EaQ=;
-	h=Date:To:From:Subject:From;
-	b=ixsqkMAmgJCdWHfZ0k8A4QyAouA47gysLiqRRfx7PmGIFuCyhMJU8689b1plOKYrZ
-	 +ImcjUyAy3Ob3WwDbMTvnjAYLlhOHJ/TblLuQkw97sJFEHnHT9h1pA5h+H1cFmF3qg
-	 Ibf+go8/2KsElNShPRej/d77FC9g3a8EUja2beEM=
-Date: Sat, 15 Nov 2025 15:45:36 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	s=korg; t=1763318595;
+	bh=mlz8XZ5Zk1VrLETXio4E2rnvuua3hukDKbQJ9q2Ss9Y=;
+	h=Date:From:To:Cc:Subject:From;
+	b=SaYb1Xl9buvWv1y1g+OBuDNjTe5Hd7EZ/z82xsMK6QYsoAmART/6uGP+vx+ypof9d
+	 W7/rxllPP0cBmb3b+RjU1Xx07yRVR6YmdyDTIAQL3IMrVoph+WeYzX68FrwTDrKkG3
+	 2dRLst8ZLraOkpx8lNrEysEZeGLUdQVOe0JlCNHg=
+Date: Sun, 16 Nov 2025 10:43:14 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-introduce-high-level-memory-allocation-api-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251115234537.AC4C3C4CEF5@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] more hotfixes for 6.18-rc6
+Message-Id: <20251116104314.af398baa1fafa06daee19ce3@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: kho-introduce-high-level-memory-allocation-api-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-introduce-high-level-memory-allocation-api-fix.patch
+Linus, please merge this small batch of hotfixes for this -rc cyele,
+thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-introduce-high-level-memory-allocation-api-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit b05addf6f0596edb1f82ab4059438c7ef2d2686d:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  kho: warn and exit when unpreserved page wasn't preserved (2025-11-09 21:19:47 -0800)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2025-11-16-10-40
 
-------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho-introduce-high-level-memory-allocation-api-fix
-Date: Sat, 15 Nov 2025 18:19:41 -0500
+for you to fetch changes up to 1c2a936edd71e133f2806e68324ec81a4eb07588:
 
-build fixes
+  mm, swap: fix potential UAF issue for VMA readahead (2025-11-15 10:52:02 -0800)
 
-Link: https://lkml.kernel.org/r/CA+CK2bBgXDhrHwTVgxrw7YTQ-0=LgW0t66CwPCgG=C85ftz4zw@mail.gmail.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202511160314.OK0OGRXl-lkp=
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+7 hotfixes.  5 are cc:stable, 4 are against mm/.
 
- include/linux/kexec_handover.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+All are singletons - please see the respective changelogs for details.
 
---- a/include/linux/kexec_handover.h~kho-introduce-high-level-memory-allocation-api-fix
-+++ a/include/linux/kexec_handover.h
-@@ -105,13 +105,13 @@ static inline int kho_unpreserve_vmalloc
- 	return -EOPNOTSUPP;
- }
- 
--void *kho_alloc_preserve(size_t size)
-+static inline void *kho_alloc_preserve(size_t size)
- {
- 	return ERR_PTR(-EOPNOTSUPP);
- }
- 
--void kho_unpreserve_free(void *mem) { }
--void kho_restore_free(void *mem) { }
-+static inline void kho_unpreserve_free(void *mem) { }
-+static inline void kho_restore_free(void *mem) { }
- 
- static inline struct folio *kho_restore_folio(phys_addr_t phys)
- {
-_
+----------------------------------------------------------------
+Ankit Khushwaha (1):
+      selftests/user_events: fix type cast for write_index packed member in perf_test
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+David Hildenbrand (Red Hat) (2):
+      mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb
+      MAINTAINERS: update David Hildenbrand's email address
 
-kho-make-debugfs-interface-optional.patch
-kho-add-interfaces-to-unpreserve-folios-page-ranges-and-vmalloc.patch
-memblock-unpreserve-memory-in-case-of-error.patch
-test_kho-unpreserve-memory-in-case-of-error.patch
-kho-dont-unpreserve-memory-during-abort.patch
-liveupdate-kho-move-to-kernel-liveupdate.patch
-liveupdate-kho-move-to-kernel-liveupdate-fix.patch
-maintainers-update-kho-maintainers.patch
-kho-fix-misleading-log-message-in-kho_populate.patch
-kho-convert-__kho_abort-to-return-void.patch
-kho-introduce-high-level-memory-allocation-api.patch
-kho-introduce-high-level-memory-allocation-api-fix.patch
-kho-preserve-fdt-folio-only-once-during-initialization.patch
-kho-verify-deserialization-status-and-fix-fdt-alignment-access.patch
-kho-always-expose-output-fdt-in-debugfs.patch
-kho-simplify-serialization-and-remove-__kho_abort.patch
-kho-remove-global-preserved_mem_map-and-store-state-in-fdt.patch
-kho-remove-abort-functionality-and-support-state-refresh.patch
-kho-update-fdt-dynamically-for-subtree-addition-removal.patch
-kho-allow-kexec-load-before-kho-finalization.patch
-kho-allow-memory-preservation-state-updates-after-finalization.patch
-kho-add-kconfig-option-to-enable-kho-by-default.patch
-liveupdate-luo_core-luo_ioctl-live-update-orchestrator.patch
-liveupdate-luo_core-integrate-with-kho.patch
-liveupdate-luo_core-integrate-with-kho-fix.patch
-reboot-call-liveupdate_reboot-before-kexec.patch
-liveupdate-luo_session-add-sessions-support.patch
-liveupdate-luo_session-add-sessions-support-fix.patch
-liveupdate-luo_ioctl-add-user-interface.patch
-liveupdate-luo_file-implement-file-systems-callbacks.patch
-liveupdate-luo_session-add-ioctls-for-file-preservation-and-state-management.patch
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-docs-add-luo-documentation.patch
-maintainers-add-liveupdate-entry.patch
-mm-memfd_luo-allow-preserving-memfd-fix.patch
-selftests-liveupdate-add-userspace-api-selftests.patch
-selftests-liveupdate-add-kexec-based-selftest-for-session-lifecycle.patch
-selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
+Kairui Song (1):
+      mm, swap: fix potential UAF issue for VMA readahead
+
+Pasha Tatashin (1):
+      lib/test_kho: check if KHO is enabled
+
+Sourabh Jain (1):
+      crash: fix crashkernel resource shrink
+
+Zi Yan (1):
+      mm/huge_memory: fix folio split check for anon folios in swapcache
+
+ .mailmap                                        |  1 +
+ MAINTAINERS                                     | 28 ++++++++++++-------------
+ arch/powerpc/Kconfig                            |  1 +
+ arch/powerpc/platforms/Kconfig.cputype          |  1 -
+ include/linux/mm.h                              | 13 +++++++++---
+ kernel/crash_core.c                             |  2 +-
+ lib/test_kho.c                                  |  3 +++
+ mm/Kconfig                                      |  7 +++++++
+ mm/huge_memory.c                                |  6 ++++--
+ mm/swap_state.c                                 | 13 ++++++++++++
+ tools/testing/selftests/user_events/perf_test.c |  2 +-
+ 11 files changed, 55 insertions(+), 22 deletions(-)
 
