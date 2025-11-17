@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EA30233134
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2FD62367B5
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343243; cv=none; b=KzGrYYsLrudfDEUhiG5hMUhbWo/WNiMQGcewiAYqb9ygNgqCUtWM8+IrtJ4bPR3Dq1j8aZKiEnXhWImz6wZVJhqKeF+78HMW6PVbJl6Irg7UIt09xXDyyN/iYuEj5TqfWgW8JvSpBiCHxqmv3fKluCZv6LnWhlnzK3vQM4Cv8j4=
+	t=1763343244; cv=none; b=Oz1tZak1RkcPp3P6VrphEs63Zc6DTw4/jnw2NLOorzvCqMTRXApvyRUFoiHj0tWYL4wnVXNTu0Ky5UJwv2ntfyNvfi4/oO7djSh8VGO/w7f0eewiEAHUWMbL0QcsiljCXB/cBjDvEeFVFFB0KUrgbVhHReHI41yVsa/2R1A0Kpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343243; c=relaxed/simple;
-	bh=BUisCeVKztwsaccrWHY0GKHq7ZEXHevaDOnGzBu4AA8=;
-	h=Date:To:From:Subject:Message-Id; b=qFJDirustaSwQxyO/Dhf7gzfo6/e4bwOik1NOE7z5LmSen/Kdk2/A7/DeCRbYPAohhB5Mjrg0UdiVO6l0q7d5qLgb4PKuw5I0jqv4/InQgymzLdTmr8n+7SRadTb302r5UdcMesq8PltkZFMtX93eOr2VEo4x45nPWE2r59dCe8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=spqhmbY7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343244; c=relaxed/simple;
+	bh=++DN1FkdWdJaWuvSUW/u+NPB+UT7Iz21uX7rgau+z84=;
+	h=Date:To:From:Subject:Message-Id; b=qxsvJ/AmEfgBzsUymafYKbdifOCM+MMal6FV5HMFRabjUpl+cJFYKpBwAnbUcibZIhz+fb06KE3kRFb6twhK0PaCoV7tpnBpAkGMrMdXfRaVfodDQ9S1n6JDgZ8RrBUVYFpNLO0v7ganP0FbfBn7cUD4TXVFF4ZaYEHbr3d5uVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N8MHaSRJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="spqhmbY7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42AB1C19421;
-	Mon, 17 Nov 2025 01:34:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N8MHaSRJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A052EC4CEF1;
+	Mon, 17 Nov 2025 01:34:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343243;
-	bh=BUisCeVKztwsaccrWHY0GKHq7ZEXHevaDOnGzBu4AA8=;
+	s=korg; t=1763343244;
+	bh=++DN1FkdWdJaWuvSUW/u+NPB+UT7Iz21uX7rgau+z84=;
 	h=Date:To:From:Subject:From;
-	b=spqhmbY7cQwAksUZG/GUD7SpFGlQmiQPTzxizbyxG2HNuf71bYjszEhSRrqzPhKBx
-	 9YOGWdz1MN0Hp4LTMNbKTRl1F44y9x3JiflDVQ7o6rk84c2Pyp+dSTJsEzTFw++8HG
-	 8GMpAZ2uLbHYc7l62Ddx05zj6GoFHT1hIN3XO0oI=
-Date: Sun, 16 Nov 2025 17:34:02 -0800
+	b=N8MHaSRJAqlOpwmKX0mkmKGHObZvo2dG2fdEcc2/jzxoGkdV/VBF0iavASQHpPcB+
+	 LObt9aC9anQeFTIXfgA6kdmJV7GEqsy27i3GiDY8O1zNBa7THYFGAJ5EfBDxEU8ROO
+	 7h2JQ97vQQn5QZLEjNNDnO1tXkOs2KR5LkzSyK8E=
+Date: Sun, 16 Nov 2025 17:34:03 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section.patch removed from -mm tree
-Message-Id: <20251117013403.42AB1C19421@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch removed from -mm tree
+Message-Id: <20251117013404.A052EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/design: fix wrong link to intervals goal section
+     Subject: Docs/admin-guide/mm/damon/stat: fix a typo: s/sampling events/sampling interval/
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section.patch
+     docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: fix wrong link to intervals goal section
-Date: Sun, 26 Oct 2025 11:22:07 -0700
+Subject: Docs/admin-guide/mm/damon/stat: fix a typo: s/sampling events/sampling interval/
+Date: Sun, 26 Oct 2025 11:22:08 -0700
 
-Commit b243d666d107 ("Docs/admin-guide/mm/damon/usage: add intervals_goal
-directory on the hierarchy") mistakenly added a wrong reference for
-intervals goal usage documentation on the design document.  Fix it.
+It is a contextual typo.  Fix it.
 
-Link: https://lkml.kernel.org/r/20251026182216.118200-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251026182216.118200-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -64,22 +62,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/mm/damon/stat.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-fix-wrong-link-to-intervals-goal-section
-+++ a/Documentation/mm/damon/design.rst
-@@ -381,8 +381,8 @@ That is, assumes 4% (20% of 20%) DAMON-o
- to capture 64% (80% multipled by 80%) real access events (outcomes).
+--- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-stat-fix-a-typo-s-sampling-events-sampling-interval
++++ a/Documentation/admin-guide/mm/damon/stat.rst
+@@ -17,7 +17,7 @@ DAMON_STAT uses monitoring intervals :re
+ <damon_design_monitoring_intervals_autotuning>` to make its accuracy high and
+ overhead minimum.  It auto-tunes the intervals aiming 4 % of observable access
+ events to be captured in each snapshot, while limiting the resulting sampling
+-events to be 5 milliseconds in minimum and 10 seconds in maximum.  On a few
++interval to be 5 milliseconds in minimum and 10 seconds in maximum.  On a few
+ production server systems, it resulted in consuming only 0.x % single CPU time,
+ while capturing reasonable quality of access patterns.
  
- To know how user-space can use this feature via :ref:`DAMON sysfs interface
--<sysfs_interface>`, refer to :ref:`intervals_goal <sysfs_scheme>` part of
--the documentation.
-+<sysfs_interface>`, refer to :ref:`intervals_goal
-+<damon_usage_sysfs_monitoring_intervals_goal>` part of the documentation.
- 
- 
- .. _damon_design_damos:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
