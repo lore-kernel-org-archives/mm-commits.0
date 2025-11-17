@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E3C423C8A0;
-	Mon, 17 Nov 2025 01:35:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FC6D25B687;
+	Mon, 17 Nov 2025 01:35:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343308; cv=none; b=cF8goIAtC9FdifIFbnodBRrAge33v4l0EhH1I5bRChbVXX1kUWMRSPSwKyjJMS2MyC8QPVSpnlg6qJQA7uItkTswEQ6exH6PzCDeuwvKdeNpRoJaR/VI+RnXjSRswnWLcoozCTmPLifxppGRRpbOvTPpM47RSfTqgmTJ9/P/5No=
+	t=1763343309; cv=none; b=ZgsSSZLz8xWagX7hGOITomG5bQyVMqJs2GUu59/VZG41P8U5aRBeXZgYjXUVOz1d1y56Rm8oN8Q49LiNIQBWdgkMz5qcSr9flal/NlRoip/ElS9fFMuQbpgJyVj4vGV8cdlSbvZW9EK/rXaDqULnxP030t9mK6MKQ4WdfBCZb88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343308; c=relaxed/simple;
-	bh=mbaZS8IB+QQmfaN9lkdRGmniJY0SONWus2ihuLnqVlM=;
-	h=Date:To:From:Subject:Message-Id; b=g4En7yBJuooJCD8vm/UKv+/xUvSwdofpmZurc/Bu86Qs7RjWCt65BI9ImSZ3QIBV1JuZxTIbUb3p7YFLelojQHRYp1W2auPtbiOUvQftEDlCmZqTcDwlXFqaiNJIwH/fY7EXecBMdDuEPEkaj1oSsDCnxZNxJDPkzkHj2uw3Jgw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LOYmNZQ2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343309; c=relaxed/simple;
+	bh=w32szzMnf0x64oCIpqCXsz8cLmkxbnJMTK39uk0SpII=;
+	h=Date:To:From:Subject:Message-Id; b=TgdMXRPB5Gv+iBgj+FJTVZ6c8sf8WA/eq8qplsC1U+6GqbxwXd8pL1IVgTzyr9DL6Gui8WVvmgjNVKJwXkutpkDC+3V+jtLn6d7YxFVdVW6/gnm2uxwmAEaqTjEZIpnBH7WiqNON3ORr+uX7JUcy19YDGVMSE5T93fRZ3GOM+o0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b4Ty53kD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LOYmNZQ2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B436AC113D0;
-	Mon, 17 Nov 2025 01:35:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b4Ty53kD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E185AC19422;
+	Mon, 17 Nov 2025 01:35:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343307;
-	bh=mbaZS8IB+QQmfaN9lkdRGmniJY0SONWus2ihuLnqVlM=;
+	s=korg; t=1763343309;
+	bh=w32szzMnf0x64oCIpqCXsz8cLmkxbnJMTK39uk0SpII=;
 	h=Date:To:From:Subject:From;
-	b=LOYmNZQ2oP60ZuQhtUir2yCj1AOZM7v7J8OYpOoQ/yd+0aRmxT2nmnkcioNLVV+BT
-	 EnKsVLPSqkOLk1SU0V/f1fsIdKjbsZ960Xm8dcPi+unUkGO7AnNTtGYROyXBLHNikW
-	 eoCahPU8Cld+81HJcXRFu6VxLiGdbSSlD69XO7mQ=
-Date: Sun, 16 Nov 2025 17:35:07 -0800
+	b=b4Ty53kDazGEZcW0ZRPkFFJsCanXh0ZDSRjRAqyKlO4KFGjg1jgdlMLelKBIcDwnt
+	 BJQfL3oMFyFKunBfNMz0WPzbg8o/B4JI53oK40rxcwXON8363GIGyEv3YP4t0AmdFD
+	 pPTHAPerB0qUgwd+Q4U/Hx/t2qRBYNpPjzDaiGNs=
+Date: Sun, 16 Nov 2025 17:35:08 -0800
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-tests-core-kunit-handle-alloc-failures-on-damos_test_filter_out.patch removed from -mm tree
-Message-Id: <20251117013507.B436AC113D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch removed from -mm tree
+Message-Id: <20251117013508.E185AC19422@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/tests/core-kunit: handle alloc failures on damos_test_filter_out()
+     Subject: mm/damon/tests/core-kunit: handle alloc failures on damon_test_set_filters_default_reject()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-tests-core-kunit-handle-alloc-failures-on-damos_test_filter_out.patch
+     mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: handle alloc failures on damos_test_filter_out()
-Date: Sat, 1 Nov 2025 11:20:09 -0700
+Subject: mm/damon/tests/core-kunit: handle alloc failures on damon_test_set_filters_default_reject()
+Date: Sat, 1 Nov 2025 11:20:10 -0700
 
-damon_test_filter_out() is assuming all dynamic memory allocation in it
-will succeed.  Those are indeed likely in the real use cases since those
-allocations are too small to fail, but theoretically those could fail.  In
-the case, inappropriate memory access can happen.  Fix it by appropriately
-cleanup pre-allocated memory and skip the execution of the remaining tests
-in the failure cases.
+damon_test_set_filters_default_reject() is assuming all dynamic memory
+allocation in it will succeed.  Those are indeed likely in the real use
+cases since those allocations are too small to fail, but theoretically
+those could fail.  In the case, inappropriate memory access can happen. 
+Fix it by appropriately cleanup pre-allocated memory and skip the
+execution of the remaining tests in the failure cases.
 
-Link: https://lkml.kernel.org/r/20251101182021.74868-16-sj@kernel.org
-Fixes: 26713c890875 ("mm/damon/core-test: add a unit test for __damos_filter_out()")
+Link: https://lkml.kernel.org/r/20251101182021.74868-17-sj@kernel.org
+Fixes: 094fb14913c7 ("mm/damon/tests/core-kunit: add a test for damos_set_filters_default_reject()")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <stable@vger.kernel.org>	[6.6+]
+Cc: <stable@vger.kernel.org>	[6.16+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/damon/tests/core-kunit.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-handle-alloc-failures-on-damos_test_filter_out
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-handle-alloc-failures-on-damon_test_set_filters_default_reject
 +++ a/mm/damon/tests/core-kunit.h
-@@ -542,11 +542,22 @@ static void damos_test_filter_out(struct
- 	struct damos_filter *f;
+@@ -659,6 +659,8 @@ static void damon_test_set_filters_defau
+ 	KUNIT_EXPECT_EQ(test, scheme.ops_filters_default_reject, false);
  
- 	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
-+	if (!f)
+ 	target_filter = damos_new_filter(DAMOS_FILTER_TYPE_TARGET, true, true);
++	if (!target_filter)
 +		kunit_skip(test, "filter alloc fail");
- 	f->addr_range = (struct damon_addr_range){
- 		.start = DAMON_MIN_REGION * 2, .end = DAMON_MIN_REGION * 6};
+ 	damos_add_filter(&scheme, target_filter);
+ 	damos_set_filters_default_reject(&scheme);
+ 	/*
+@@ -684,6 +686,10 @@ static void damon_test_set_filters_defau
+ 	KUNIT_EXPECT_EQ(test, scheme.ops_filters_default_reject, false);
  
- 	t = damon_new_target();
-+	if (!t) {
-+		damos_destroy_filter(f);
-+		kunit_skip(test, "target alloc fail");
+ 	anon_filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true, true);
++	if (!anon_filter) {
++		damos_free_filter(target_filter);
++		kunit_skip(test, "anon_filter alloc fail");
 +	}
- 	r = damon_new_region(DAMON_MIN_REGION * 3, DAMON_MIN_REGION * 5);
-+	if (!r) {
-+		damos_destroy_filter(f);
-+		damon_free_target(t);
-+		kunit_skip(test, "region alloc fail");
-+	}
- 	damon_add_region(r, t);
+ 	damos_add_filter(&scheme, anon_filter);
  
- 	/* region in the range */
+ 	damos_set_filters_default_reject(&scheme);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
