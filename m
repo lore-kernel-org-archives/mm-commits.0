@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 203261D63E4
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 291A42135B8
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343099; cv=none; b=hmMybmqmVFTC5E+H9Y8cx5Pt+WxM2ceh4YWseKOhHmFYWFAAa1WFOtocWqmf0JojtBU2BrxLdtPC9Npe1SNrU/6f6q+Y1XYJQ2JZQGlkMiBfrD+PFj4fHDv6ggfm+wjWiiiop2GBugryfnPXCulPTp3SBV2g90Q2t3nmynjgMGc=
+	t=1763343100; cv=none; b=nYcENR+oKse6VRp27Dmpd3x/yInQ95yY7UljjHTulgQ8X/cgJIdOhva0kfIpZVfXG88VErNViyv5AGhdyreMmJEjYnsAUUn44EbXdR1ltJ0RD+xPYD3KkFGqs1yygylhS3w0QJ6I/kaPuzHAuGoALJ927MpIc3JiQVxHbfX/5WQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343099; c=relaxed/simple;
-	bh=oGIkwWEWLsvOFyddZBjeF51f8m6G/WQ9HRtEbx63+lU=;
-	h=Date:To:From:Subject:Message-Id; b=Zquyz7IyLwZYdfC+ODOHpXpEYY4eixbnB9Z786we8xV/FtHhX6pvukOUswbh0joGccl95WL2YZDIlx3a2/DdTFW77uHeGZWo8bjk34gW7+cF0KV8xr+BDGXVXW95XAcq40IYdKMAkN4NMLTXnWGAXrc5aGQ5Hf18VY6f6gzh0Zs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bYFF6Dv3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343100; c=relaxed/simple;
+	bh=9GeLQzdKjt5KaDRwZY3JQM9fmQqsmHCjpbBV7/qjgeA=;
+	h=Date:To:From:Subject:Message-Id; b=BeKpiQxKNy1EiI0dq4Ysa/y+prcuItIUSxKhc8S0s+puJunO1qU9PpyTexLjpyldqQOQYCvhFpzcdHYMvSuXcgfwQLZeP5cS7xdNiG5NwaY+7JIM386r7fCbUOxSXJ8QTFtjnePrKirkc0xwiMeeGVErM1bXL43AFuhyWzViVKs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a6mHGq5L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bYFF6Dv3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C8AAC4CEF5;
-	Mon, 17 Nov 2025 01:31:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a6mHGq5L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC058C19421;
+	Mon, 17 Nov 2025 01:31:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343098;
-	bh=oGIkwWEWLsvOFyddZBjeF51f8m6G/WQ9HRtEbx63+lU=;
+	s=korg; t=1763343100;
+	bh=9GeLQzdKjt5KaDRwZY3JQM9fmQqsmHCjpbBV7/qjgeA=;
 	h=Date:To:From:Subject:From;
-	b=bYFF6Dv3SBSUyTM3NZy4qCkOn92SJa+x4ODf3pAMPIQcJEHE3cKWTYsnoGCrSkErN
-	 GpkBVKG6ZhCV694HNY/hSVM5cZW1I44MBG6SZJeVPGeD9d+Ypx6vJovquJXXbdt5AW
-	 6wg6dDEyxHUuRxjgyc1vovYrG4Gs8ztfOapF2iRg=
-Date: Sun, 16 Nov 2025 17:31:38 -0800
+	b=a6mHGq5L6vpPZJyRFuKW94kvgKbw2+VtPKpeSv1dC1ug6flXMCdeo71kRvnmP5iHa
+	 LXuiDaPDXet0MfqwqgDPwLk6NBAOqEhxaHbXdeN4jCPluE9X8hgq5T6ExfpaxeogZY
+	 HqQGKFN0DbCiNwCMuyFmMU05VEDP2IQrIUSVJYCk=
+Date: Sun, 16 Nov 2025 17:31:39 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch removed from -mm tree
-Message-Id: <20251117013138.8C8AAC4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-fix-typos-s-zwap-zswap.patch removed from -mm tree
+Message-Id: <20251117013139.EC058C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,40 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: remove unnecessary dlen writes for incompressible pages
+     Subject: mm/zswap: fix typos: s/zwap/zswap/
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages.patch
+     mm-zswap-fix-typos-s-zwap-zswap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/zswap: remove unnecessary dlen writes for incompressible pages
-Date: Fri, 3 Oct 2025 13:38:48 -0700
+Subject: mm/zswap: fix typos: s/zwap/zswap/
+Date: Fri, 3 Oct 2025 13:38:49 -0700
 
-Patch series "mm/zswap: misc cleanup of code and documentations".
+As the subject says.
 
-Clean up an unnecessary local variable write in incompressible pages
-handling, typos (s/zwap/zswap/) and outdated comments/documentations about
-the zswap's red-black tree, which is replaced by xarray.
-
-
-This patch (of 4):
-
-Incompressible pages handling logic in zswap_compress() is setting 'dlen'
-as PAGE_SIZE twice.  Once before deciding whether to save the content as
-is, and once again after it is decided to save it as is.  But the value of
-'dlen' is used only if it is decided to save the content as is, so the
-first write is unnecessary.  It is not causing real user issues, but
-making code confusing to read.  Remove the unnecessary write operation.
-
-Link: https://lkml.kernel.org/r/20251003203851.43128-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20251003203851.43128-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251003203851.43128-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
 Acked-by: Nhat Pham <nphamcs@gmail.com>
 Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -81,23 +67,44 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Chris Li <chrisl@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |    2 +-
+ mm/zswap.c      |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-remove-unnecessary-dlen-writes-for-incompressible-pages
+--- a/mm/memcontrol.c~mm-zswap-fix-typos-s-zwap-zswap
++++ a/mm/memcontrol.c
+@@ -5443,7 +5443,7 @@ bool obj_cgroup_may_zswap(struct obj_cgr
+  * @size: size of compressed object
+  *
+  * This forces the charge after obj_cgroup_may_zswap() allowed
+- * compression and storage in zwap for this cgroup to go ahead.
++ * compression and storage in zswap for this cgroup to go ahead.
+  */
+ void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size)
+ {
+--- a/mm/zswap.c~mm-zswap-fix-typos-s-zwap-zswap
 +++ a/mm/zswap.c
-@@ -894,7 +894,6 @@ static bool zswap_compress(struct page *
- 	 * to the active LRU list in the case.
+@@ -879,7 +879,7 @@ static bool zswap_compress(struct page *
+ 	 * acomp instance, then get those requests done simultaneously. but in this
+ 	 * case, zswap actually does store and load page by page, there is no
+ 	 * existing method to send the second page before the first page is done
+-	 * in one thread doing zwap.
++	 * in one thread doing zswap.
+ 	 * but in different threads running on different cpu, we have different
+ 	 * acomp instance, so multiple threads can do (de)compression in parallel.
  	 */
- 	if (comp_ret || !dlen || dlen >= PAGE_SIZE) {
--		dlen = PAGE_SIZE;
- 		if (!mem_cgroup_zswap_writeback_enabled(
- 					folio_memcg(page_folio(page)))) {
- 			comp_ret = comp_ret ? comp_ret : -EINVAL;
+@@ -1128,7 +1128,7 @@ static enum lru_status shrink_memcg_cb(s
+ 	 *
+ 	 * 1. We extract the swp_entry_t to the stack, allowing
+ 	 *    zswap_writeback_entry() to pin the swap entry and
+-	 *    then validate the zwap entry against that swap entry's
++	 *    then validate the zswap entry against that swap entry's
+ 	 *    tree using pointer value comparison. Only when that
+ 	 *    is successful can the entry be dereferenced.
+ 	 *
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
