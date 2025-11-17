@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A64022D4F6
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F72E22E004
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343247; cv=none; b=LcdbgcWtfNcbdpIQMHAFMRq49hZmJpm9OHgW/iDnx7g/t2ff3EVNUWvJy1R9PCGm0DlxT06xPYmMSZiPej4upE7jzkMpKa2U9FJDhhNmWWP10W4AuJVOb4awDmE51Ff/qYFuTzsG1lzTprFjq2Ns5gcVKpVmb+nIQyTcIcIiirs=
+	t=1763343248; cv=none; b=UpKFk9RONQvV0xiFSGwKFI6gdjGqwnMrqugNegttEp+wk/g12uTZUJRMb0I0JoXy+1UqcpGEKyfbl+P1EKpGcU+CG9Tg2dWyfuKUnUhpmw33FO7zTBkGwKvRX820tnH+/QO8kJ+SO1XKkY8VsDwDnij55bgmZpAGnaoA94gzT4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343247; c=relaxed/simple;
-	bh=nSnnCX0OR2ZK8dEEdG61QoK5JYOPiF5WYYOCiAs83aE=;
-	h=Date:To:From:Subject:Message-Id; b=ZAzK22+0IRE7/OKnK3Ktvv8QxPA3yf4JOfJKUUzEEPu1kB9wh0vPZcqqFT3JE1GBeTm84WcqQRkDPC7b6jAOHUetzVpGV6PxDZzWk17Ki2k9hM90We4jhI6HBJTONLNramRhHffVugU7srM9x/MFyFbR5hh/Br10zgjr/grJll4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cff45D4F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343248; c=relaxed/simple;
+	bh=/QRrt2GGMxoZBcgv1xJvLfjCKZQ2j6OeqaU0Cj1mkk0=;
+	h=Date:To:From:Subject:Message-Id; b=l+JgM8GM+oxrKi89FYur1EwAlnY6lWMeuhMV3sORNIMDbEMjQNZhs4VD877eqL4gdrKb55Pur96aBDWHtPSkmtYOQk9JR8xQtPlQAnLNVAJrq3m+3syTRZYs7Xy+RQwIuxfTRWde+mN/Our7HScN4893XMeHKINAKzhi+jQ/xhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=baGugy3Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cff45D4F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EC65C2BC9E;
-	Mon, 17 Nov 2025 01:34:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="baGugy3Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE685C116D0;
+	Mon, 17 Nov 2025 01:34:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343247;
-	bh=nSnnCX0OR2ZK8dEEdG61QoK5JYOPiF5WYYOCiAs83aE=;
+	s=korg; t=1763343245;
+	bh=/QRrt2GGMxoZBcgv1xJvLfjCKZQ2j6OeqaU0Cj1mkk0=;
 	h=Date:To:From:Subject:From;
-	b=cff45D4Fw+ilwNK3tQ1kPq96AqX96a2n0uMw7ORjdwJW0YNExVkhgTwnoLK+PFcog
-	 MMJJgtIYbTxjGrhCOWQmjvQ8ePlD1SYFmdqIjXP0s6x+JD1Kn/b+21PzJyUxp6sge9
-	 EZFJf396Q4eLvezx2c5FANOTwJnl3zv5lDz5UI6g=
-Date: Sun, 16 Nov 2025 17:34:06 -0800
+	b=baGugy3YfHXkiGX+tynJJX9tRBeXRsrJWYplWO5zViMHWwIikiDFjA3k/4ICWYm/W
+	 NbDWJJIpakdGpy5G5r5nvrlzbIqcq9zIRLeO4uzoCBSbsa8uqTPRv9qZLiDNsO0Ugf
+	 4gfb1AvE/CAlcoft9/O/9ELs0gYmzUh+ZgpC8ZYM=
+Date: Sun, 16 Nov 2025 17:34:05 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter.patch removed from -mm tree
-Message-Id: <20251117013407.0EC65C2BC9E@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch removed from -mm tree
+Message-Id: <20251117013405.CE685C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/reclaim: document addr_unit parameter
+     Subject: Docs/admin-guide/mm/damon/usage: document empty target regions commit behavior
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter.patch
+     docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/reclaim: document addr_unit parameter
-Date: Sun, 26 Oct 2025 11:22:10 -0700
+Subject: Docs/admin-guide/mm/damon/usage: document empty target regions commit behavior
+Date: Sun, 26 Oct 2025 11:22:09 -0700
 
-Commit 7db551fcfb2a ("mm/damon/reclaim: support addr_unit for
-DAMON_RECLAIM") introduced the 'addr_unit' parameter for DAMON_RECLAIM. 
-But the usage document is not updated for that.  Update the document.
+Committing a monitoring target with empty target regions is for keeping
+the current monitoring results.  This behavior was introduced by commit
+973233600676 ("mm/damon/sysfs: update monitoring target regions for online
+input commit").  The behavior is not documented, though.  Update the usage
+document for clarifying this behavior.
 
-Link: https://lkml.kernel.org/r/20251026182216.118200-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251026182216.118200-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -64,40 +66,33 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/reclaim.rst |   22 +++++++++++++++
- 1 file changed, 22 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-document-addr_unit-parameter
-+++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -232,6 +232,28 @@ The end physical address of memory regio
- against.  That is, DAMON_RECLAIM will find cold memory regions in this region
- and reclaims.  By default, biggest System RAM is used as the region.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-empty-target-regions-commit-behavior
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -134,7 +134,8 @@ Users can write below commands for the k
+ - ``on``: Start running.
+ - ``off``: Stop running.
+ - ``commit``: Read the user inputs in the sysfs files except ``state`` file
+-  again.
++  again.  Monitoring :ref:`target region <sysfs_regions>` inputs are also be
++  ignored if no target region is specified.
+ - ``update_tuned_intervals``: Update the contents of ``sample_us`` and
+   ``aggr_us`` files of the kdamond with the auto-tuning applied ``sampling
+   interval`` and ``aggregation interval`` for the files.  Please refer to
+@@ -289,6 +290,11 @@ In the beginning, this directory has onl
+ number (``N``) to the file creates the number of child directories named ``0``
+ to ``N-1``.  Each directory represents each initial monitoring target region.
  
-+addr_unit
-+---------
++If ``nr_regions`` is zero when committing new DAMON parameters online (writing
++``commit`` to ``state`` file of :ref:`kdamond <sysfs_kdamond>`), the commit
++logic ignores the target regions.  In other words, the current monitoring
++results for the target are preserved.
 +
-+A scale factor for memory addresses and bytes.
-+
-+This parameter is for setting and getting the :ref:`address unit
-+<damon_design_addr_unit>` parameter of the DAMON instance for DAMON_RECLAIM.
-+
-+``monitor_region_start`` and ``monitor_region_end`` should be provided in this
-+unit.  For example, let's suppose ``addr_unit``, ``monitor_region_start`` and
-+``monitor_region_end`` are set as ``1024``, ``0`` and ``10``, respectively.
-+Then DAMON_RECLAIM will work for 10 KiB length of physical address range that
-+starts from address zero (``[0 * 1024, 10 * 1024)`` in bytes).
-+
-+``bytes_reclaim_tried_regions`` and ``bytes_reclaimed_regions`` are also in
-+this unit.  For example, let's suppose values of ``addr_unit``,
-+``bytes_reclaim_tried_regions`` and ``bytes_reclaimed_regions`` are ``1024``,
-+``42``, and ``32``, respectively.  Then it means DAMON_RECLAIM tried to reclaim
-+42 KiB memory and successfully reclaimed 32 KiB memory in total.
-+
-+If unsure, use only the default value (``1``) and forget about this.
-+
- skip_anon
- ---------
+ .. _sysfs_region:
  
+ regions/<N>/
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
