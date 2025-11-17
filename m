@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 674521E1DE9
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6877321CC51
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343111; cv=none; b=lvHlbhgX28Bke84MB8Qi7ZtAJZNWi71ScrZJjcFVOm9sMg1PVgGnqE20/j6w6waUPQdcs3VcIPEGllIQ5WrWhplKDDkxvOqLRJfkG1oKF0XFjx7wrKWOh8o0L+FnOtIU8CAvJRUz8CIhwz7xs5Tlta0YHwpliOFIwIENwcz1Wag=
+	t=1763343112; cv=none; b=IT4/TP9iMcqJcqGvTamsbU5x2w10w3GW2dT+Usoqw51v3lpbgFPdtLCNb4ouwWQ91IOLxEhqh7neOkRQdDDm+X7W5jDy8w2g+MBvQgMDrBYmHfD6pHLtWCaIhpDY1l8weib/vx/M7owZDzZzeMBmNL9CEDZO66VvhsWz4nncE3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343111; c=relaxed/simple;
-	bh=MaOoUwaBAQOvGXYm32irKGkFHuNkZRoCASh+aDpvyLo=;
-	h=Date:To:From:Subject:Message-Id; b=ao8DN+u5aXcpUAT9a4jH+6FIbXW24LsOfuyTsbW+yFhcv1VTpkm5eV4oIjKtn++VztB6o0AW3WIwE1Xv23mV/oKiJcUJt8aXBN+BmTSPskqU+zAVXsGhxZK5Etl+veFkwidlGSXXuQ0PMvARuek+I4OQkDRYWo10dP1Hf8K6wrg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U/jpUODM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343112; c=relaxed/simple;
+	bh=3YUm7nkbITNuaC3P6H6XWkGUIECVsgq/xa81+UfNU2Y=;
+	h=Date:To:From:Subject:Message-Id; b=Alb1SSTECb5doSQflJumf1XT/bveHvGZEO5/YsjR2vVyU4y7uDDgkUA7SZbK3OHDv5UiAvRdVBEGevk86oki3/51tBzIwB1DbVkfTarCaiw/J1bj4Y8rpaWZ+gbWlbUscY9DHqNhc+qZhWZcqxI2HlYDGigzE2w4aR7uWygb/sI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TGTUOTfp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U/jpUODM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F01B4C4CEF1;
-	Mon, 17 Nov 2025 01:31:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TGTUOTfp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DC93C4CEF1;
+	Mon, 17 Nov 2025 01:31:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343111;
-	bh=MaOoUwaBAQOvGXYm32irKGkFHuNkZRoCASh+aDpvyLo=;
+	s=korg; t=1763343112;
+	bh=3YUm7nkbITNuaC3P6H6XWkGUIECVsgq/xa81+UfNU2Y=;
 	h=Date:To:From:Subject:From;
-	b=U/jpUODMnKu8VPRMNmJLKU3liDBf08RsEa5I8CsdPKg5CSBVa0gZw6N1xqhvZ9Fvw
-	 IdaAU/DixPCD5X3XWcBE0i2OfhoM0V11931G2FV11ZQUUt4xIGM2ApTngymuPWme5D
-	 3CpT/F4gAaAMrXA786sMx/kdnCiOWFaGrAK9TH20=
-Date: Sun, 16 Nov 2025 17:31:50 -0800
+	b=TGTUOTfpg1RwNfxWBcT00ZleBSssQbJNrBPbfAxf7z9MV9exMMW2ogLyGAN/zVZ5z
+	 vd1unFO20SM7c0RZ3ekZK2Bk9IUnius/J6Vt/KCeY8Sgj84kox693fQs7GrhM+ZKcv
+	 xblgSZLAZ3S4ayFC2kDwH/M7vh8DsyUPgtJD7VVU=
+Date: Sun, 16 Nov 2025 17:31:51 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,mfo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_owner-add-debugfs-file-show_stacks_handles.patch removed from -mm tree
-Message-Id: <20251117013150.F01B4C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_owner-update-documentation-with-show_handles-and-show_stacks_handles.patch removed from -mm tree
+Message-Id: <20251117013152.3DC93C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: add debugfs file 'show_stacks_handles'
+     Subject: mm/page_owner: update Documentation with 'show_handles' and 'show_stacks_handles'
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-add-debugfs-file-show_stacks_handles.patch
+     mm-page_owner-update-documentation-with-show_handles-and-show_stacks_handles.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mauricio Faria de Oliveira <mfo@igalia.com>
-Subject: mm/page_owner: add debugfs file 'show_stacks_handles'
-Date: Wed, 1 Oct 2025 14:56:10 -0300
+Subject: mm/page_owner: update Documentation with 'show_handles' and 'show_stacks_handles'
+Date: Wed, 1 Oct 2025 14:56:11 -0300
 
-Add the file 'show_stacks_handles' to show just stack traces and their
-handles, in order to resolve stack traces and handles (i.e., to identify
-the stack traces for handles in previous reads from 'show_handles').
+Describe and provide examples for 'show_handles' and 'show_stacks_handles'.
 
-All stacks/handles must show up, regardless of their number of pages, that
-might have become zero or no longer make 'count_threshold', but made it in
-previous reads from 'show_handles' -- and need to be resolved later.
-
-P.S.: now, print the extra newline independently of the number of pages.
-
-Link: https://lkml.kernel.org/r/20251001175611.575861-5-mfo@igalia.com
+Link: https://lkml.kernel.org/r/20251001175611.575861-6-mfo@igalia.com
 Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -69,41 +61,56 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ Documentation/mm/page_owner.rst |   32 +++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-debugfs-file-show_stacks_handles
-+++ a/mm/page_owner.c
-@@ -916,7 +916,8 @@ static int stack_print(struct seq_file *
+--- a/Documentation/mm/page_owner.rst~mm-page_owner-update-documentation-with-show_handles-and-show_stacks_handles
++++ a/Documentation/mm/page_owner.rst
+@@ -27,7 +27,10 @@ enabled. Other usages are more than welc
+ It can also be used to show all the stacks and their current number of
+ allocated base pages, which gives us a quick overview of where the memory
+ is going without the need to screen through all the pages and match the
+-allocation and free operation.
++allocation and free operation. It's also possible to show only a numeric
++identifier of all the stacks (without stack traces) and their number of
++allocated base pages (faster to read and parse, eg, for monitoring) that
++can be matched with stacks later (show_handles and show_stacks_handles).
  
- 	nr_base_pages = refcount_read(&stack_record->count) - 1;
+ page owner is disabled by default. So, if you'd like to use it, you need
+ to add "page_owner=on" to your boot cmdline. If the kernel is built
+@@ -116,6 +119,33 @@ Usage
+ 	nr_base_pages: 20824
+ 	...
  
--	if (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold)
-+	if (ctx->flags & STACK_PRINT_FLAG_PAGES &&
-+	    (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold))
- 		return 0;
- 
- 	if (ctx->flags & STACK_PRINT_FLAG_STACK) {
-@@ -928,7 +929,8 @@ static int stack_print(struct seq_file *
- 	if (ctx->flags & STACK_PRINT_FLAG_HANDLE)
- 		seq_printf(m, "handle: %d\n", stack_record->handle.handle);
- 	if (ctx->flags & STACK_PRINT_FLAG_PAGES)
--		seq_printf(m, "nr_base_pages: %d\n\n", nr_base_pages);
-+		seq_printf(m, "nr_base_pages: %d\n", nr_base_pages);
-+	seq_putc(m, '\n');
- 
- 	return 0;
- }
-@@ -1002,6 +1004,10 @@ static int __init pageowner_init(void)
- 			    (void *)(STACK_PRINT_FLAG_HANDLE |
- 				     STACK_PRINT_FLAG_PAGES),
- 			    &page_owner_stack_operations);
-+	debugfs_create_file("show_stacks_handles", 0400, dir,
-+			    (void *)(STACK_PRINT_FLAG_STACK |
-+				     STACK_PRINT_FLAG_HANDLE),
-+			    &page_owner_stack_operations);
- 	debugfs_create_file("count_threshold", 0600, dir, NULL,
- 			    &proc_page_owner_threshold);
++	cat /sys/kernel/debug/page_owner_stacks/show_handles > handles_7000.txt
++	cat handles_7000.txt
++	handle: 42
++	nr_base_pages: 20824
++	...
++
++	cat /sys/kernel/debug/page_owner_stacks/show_stacks_handles > stacks_handles.txt
++	cat stacks_handles.txt
++	 post_alloc_hook+0x177/0x1a0
++	 get_page_from_freelist+0xd01/0xd80
++	 __alloc_pages+0x39e/0x7e0
++	 alloc_pages_mpol+0x22e/0x490
++	 folio_alloc+0xd5/0x110
++	 filemap_alloc_folio+0x78/0x230
++	 page_cache_ra_order+0x287/0x6f0
++	 filemap_get_pages+0x517/0x1160
++	 filemap_read+0x304/0x9f0
++	 xfs_file_buffered_read+0xe6/0x1d0 [xfs]
++	 xfs_file_read_iter+0x1f0/0x380 [xfs]
++	 __kernel_read+0x3b9/0x730
++	 kernel_read_file+0x309/0x4d0
++	 __do_sys_finit_module+0x381/0x730
++	 do_syscall_64+0x8d/0x150
++	 entry_SYSCALL_64_after_hwframe+0x62/0x6a
++	handle: 42
++	...
++
+ 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
+ 	./page_owner_sort page_owner_full.txt sorted_page_owner.txt
  
 _
 
