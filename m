@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FA15212557
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAA5621C173
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343150; cv=none; b=PQe0RsRm6w+PYiuzK7a1D+OPjQuEQeaSu7aAQP9mgCt/EVoCy3QByXln0jVGlQKKOc0zAAtNC2hgbqT1XVz9oeaBfT9ROcp+V4VbWi95akQFpV0Xx0Kq3qhEJdU37c6K1zIZ091g6q9DwpiQmV8KH4zoq8FtafXiOl0vNreA3NQ=
+	t=1763343151; cv=none; b=hGxVOvxUqgrgUB/rXJxPwePJ8kksjIJeUhbyJ8J+kESPptb38UkJt+M86YE7blOsQT8dJUzywlhTpgy3XFkKrXNB26Tk/Z9CwHdI2oXurh1cM4B+HPrB8FCuh1+jjsS9Hqd+IVNqtXeXpkHG3TG6VroJvhYn4PMLwIbsckd++Mg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343150; c=relaxed/simple;
-	bh=AndMmSGoiqsv3q2YFBmMW47VqkT3xS9pYpNH44BWsKc=;
-	h=Date:To:From:Subject:Message-Id; b=lZJUQcDoV+R1Pi9WWuqjNrX0Zk7/eVEIybG3Qb5VlybSp+Ew/lDbQiUEs/YLcVkv8YGg5+uRrygt83/D7ztQWetKqQB6jpnNFg/bxF7RE0t2SAzOxrNmifyRvBo/8KPhHwIW8G83kZlk8Fj6//4Mvb7Tw2X4QJz5Ir/AzLDSSn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v9FrvBbO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343151; c=relaxed/simple;
+	bh=luHUslKgp49w7JxURR+a2loikhHsN2LrABQgjDNyNA4=;
+	h=Date:To:From:Subject:Message-Id; b=cmEXOP1R7dal2QkvvOCo4t1jgQ3IyS6Tr9al3pc0odQZwx5KCqIbmHg7dSTuDYucMTs8HuUXGs/+mgniM7hrYL3f4SZw4kFzJqAA388fv8r1TEC/hZQbQSzxi/CY9jt6fTbjFwpOsl9jAmSF/ych8nJKE3XdunaJenz91PNIxvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PSrUMyXy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v9FrvBbO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34348C19423;
-	Mon, 17 Nov 2025 01:32:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PSrUMyXy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C21AC113D0;
+	Mon, 17 Nov 2025 01:32:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343150;
-	bh=AndMmSGoiqsv3q2YFBmMW47VqkT3xS9pYpNH44BWsKc=;
+	s=korg; t=1763343151;
+	bh=luHUslKgp49w7JxURR+a2loikhHsN2LrABQgjDNyNA4=;
 	h=Date:To:From:Subject:From;
-	b=v9FrvBbOh0tjJEjyudtItDFK/PU9PXWgZ0jv+sPGA7eDUp8ijDIuAD8KRKb5JYPKF
-	 IThq7fcSMGCyci/z9/QLzov3HF2W3TwIqe9M8q8jsPNK38vJcBG/QJg/65hnoA2Hae
-	 itEaugI39XpXothk2quUAguiRCJTvaaOfviLWxpU=
-Date: Sun, 16 Nov 2025 17:32:29 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=PSrUMyXyQkOpKk1s2YCgpiZV2N20/ApcbKTWXDyWKKMhHKfyqGk8HfKZ7b/Akgfhd
+	 mq+BHw8adqJYrGSCzBRoAulsHTFre5phuc3b9XNPwsuhlrXR5V79hn1sPmbBi1JoC9
+	 h4pRKA1Thp4Jl9zNT2KJ7Swg5uskFrDX+1//djEM=
+Date: Sun, 16 Nov 2025 17:32:30 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-page_owner_sort-add-help-option-support.patch removed from -mm tree
-Message-Id: <20251117013230.34348C19423@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim.patch removed from -mm tree
+Message-Id: <20251117013231.7C21AC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/mm/page_owner_sort: add help option support
+     Subject: mm: vmscan: filter out the dirty file folios for node_reclaim()
 has been removed from the -mm tree.  Its filename was
-     tools-mm-page_owner_sort-add-help-option-support.patch
+     mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ye Liu <liuye@kylinos.cn>
-Subject: tools/mm/page_owner_sort: add help option support
-Date: Thu, 16 Oct 2025 13:49:25 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: vmscan: filter out the dirty file folios for node_reclaim()
+Date: Fri, 17 Oct 2025 15:53:06 +0800
 
-Add -h/--help option to display usage information and improve code style.
+Patch series "optimize the logic for handling dirty file folios during
+reclaim", v2.
 
-Link: https://lkml.kernel.org/r/20251016054927.138510-1-ye.liu@linux.dev
-Signed-off-by: Ye Liu <liuye@kylinos.cn>
-Cc: SeongJae Park <sj@kernel.org>
+Since we no longer attempt to write back filesystem folios during reclaim,
+some logic for handling dirty file folios in the reclaim process also
+needs to be updated.  Please check the details in each patch.  
+
+
+This patch (of 2):
+
+After commit 6b0dfabb3555 ("fs: Remove aops->writepage"), we no longer
+attempt to write back filesystem folios in pageout(), and only tmpfs/shmem
+folios and anonymous swapcache folios can be written back.  Therefore, we
+should also filter out the dirty filesystem folios for node_reclaim() to
+avoid unnecessary LRU scans.
+
+Link: https://lkml.kernel.org/r/cover.1760687075.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/c91f5ecc5152b647904c7503618a01885d913928.1760687075.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-add-help-option-support
-+++ a/tools/mm/page_owner_sort.c
-@@ -667,14 +667,15 @@ int main(int argc, char **argv)
- 		{ "pid", required_argument, NULL, 1 },
- 		{ "tgid", required_argument, NULL, 2 },
- 		{ "name", required_argument, NULL, 3 },
--		{ "cull",  required_argument, NULL, 4 },
--		{ "sort",  required_argument, NULL, 5 },
-+		{ "cull", required_argument, NULL, 4 },
-+		{ "sort", required_argument, NULL, 5 },
-+		{ "help", no_argument, NULL, 'h' },
- 		{ 0, 0, 0, 0},
- 	};
+--- a/mm/vmscan.c~mm-vmscan-filter-out-the-dirty-file-folios-for-node_reclaim
++++ a/mm/vmscan.c
+@@ -7623,9 +7623,11 @@ static unsigned long node_pagecache_recl
+ 	else
+ 		nr_pagecache_reclaimable = node_unmapped_file_pages(pgdat);
  
- 	compare_flag = COMP_NO_FLAG;
+-	/* If we can't clean pages, remove dirty pages from consideration */
+-	if (!(node_reclaim_mode & RECLAIM_WRITE))
+-		delta += node_page_state(pgdat, NR_FILE_DIRTY);
++	/*
++	 * Since we can't clean folios through reclaim, remove dirty file
++	 * folios from consideration.
++	 */
++	delta += node_page_state(pgdat, NR_FILE_DIRTY);
  
--	while ((opt = getopt_long(argc, argv, "admnpstP", longopts, NULL)) != -1)
-+	while ((opt = getopt_long(argc, argv, "admnpstPh", longopts, NULL)) != -1)
- 		switch (opt) {
- 		case 'a':
- 			compare_flag |= COMP_ALLOC;
-@@ -700,6 +701,9 @@ int main(int argc, char **argv)
- 		case 'n':
- 			compare_flag |= COMP_COMM;
- 			break;
-+		case 'h':
-+			usage();
-+			exit(0);
- 		case 1:
- 			filter = filter | FILTER_PID;
- 			fc.pids = parse_nums_list(optarg, &fc.pids_size);
+ 	/* Watch for any possible underflows due to delta */
+ 	if (unlikely(delta > nr_pagecache_reclaimable))
 _
 
-Patches currently in -mm which might be from liuye@kylinos.cn are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-vmscan-remove-folio_test_private-check-in-pageout.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix-2.patch
+mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
+mm-shmem-allow-fallback-to-smaller-large-orders-for-tmpfs-mmap-access.patch
 
