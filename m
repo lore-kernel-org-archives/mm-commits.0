@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F8891A3179
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C6E62264CA
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343186; cv=none; b=RyCtKfC5dVPSb5JwO0hxGi4wdimYEBEziezi4HP8qT229rX4qXVVMmqZZddMicPrvkzyUwqIqMSSUnuh8LM8dhL0IfkndZk+2oGRsyK/CTUdcQysyRLCi3oHA0VbHRUOOFFixnRSYyFjTnsiMTlK2CoVSyxsWJeascmiURioBis=
+	t=1763343188; cv=none; b=PPe2Tj8Hr1NLzoYJSOjy/wrR9fjK4vr08sSf+JN5vx0EimbXrytHFVgmVQ5cK7l9sLqVtNdpB9bl8wVGBAPZ6/LGt0EyQ81/4sv2YWixXCtFV+3NJGKdRn9aVAVdwSmMsmYW06rlzbYWvwcA6CR50GFe10/LKhrk2LrKFaAIurU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343186; c=relaxed/simple;
-	bh=Y1EXGfUXMb0QBtCXHxDLi83tMpGHqX+3OGna3DbHv8o=;
-	h=Date:To:From:Subject:Message-Id; b=nzcing3F44qBMNWP4UM5CKP5mho7Mu/606AJvk49ju4kGjekWOkUTJw+louf2ispGmPZvb/S2qUHxsqSAckxXyeDyW2r3OPVb9aOk54IHKmUg4mU0mt4ZOTM4ymN+nyfwtojyd+9Yhl7BUxeO7pzHxq84VrFjZVkmbKMfNZFyog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IMlgN2oO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343188; c=relaxed/simple;
+	bh=8QqfdWiKQmaWA3ffoOC9ygne7gZDnDvOuMiAjCaAAm0=;
+	h=Date:To:From:Subject:Message-Id; b=jJZGIp+ef6FuKG26hn++QsVjhiEXBt5VjyyjrHSOsStzBR3EeHepyAAVFenQ53UTjYzwpe2KoCkoPSqySZ8woTxE9FSC03fLmw9VCt0R051rB2ssPZzwt2jmWEP5qWk/4zyvr2srKnJrHXWKHk9XvymIC+1rQqivShLwmBUXjFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y9A8qXhY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IMlgN2oO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E4D1C4CEF1;
-	Mon, 17 Nov 2025 01:33:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y9A8qXhY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CB5DC113D0;
+	Mon, 17 Nov 2025 01:33:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343186;
-	bh=Y1EXGfUXMb0QBtCXHxDLi83tMpGHqX+3OGna3DbHv8o=;
+	s=korg; t=1763343188;
+	bh=8QqfdWiKQmaWA3ffoOC9ygne7gZDnDvOuMiAjCaAAm0=;
 	h=Date:To:From:Subject:From;
-	b=IMlgN2oOa9E1WisMGXBIxfyapbUolRHIqrXGAE3C88fHAaPBqqx3LFdjIkdvYOUoT
-	 6edTVJ4dN/lHwbg4dRRPkw2gd4SaUW6xBGHzrsYztdvBtwRaJwbVYykYJqmC5ufMsD
-	 /DKyuja5+Gb6S59pGoJ2Bv2Q5t3GZYG8ImKi5b0w=
-Date: Sun, 16 Nov 2025 17:33:05 -0800
+	b=y9A8qXhYMmwlTFbuLnttCn+9GBbJW0h5epbMOtQmSASuEPCUAltxrGk8vCelm9/t7
+	 zQoAZsUEc4SnJUDVfuxMwm4DWfKLTrL2ZNeceXpOTicEt4qXEFySf0osImskuG/nb1
+	 5j38qQ3R1tigK8fqmQRIlH07kfEgFV1Qu2Ksts8w=
+Date: Sun, 16 Nov 2025 17:33:07 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,viro@zeniv.linux.org.uk,vgoyal@redhat.com,vbabka@suse.cz,urezki@gmail.com,tsbogend@alpha.franken.de,tony.luck@intel.com,svens@linux.ibm.com,surenb@google.com,sumanthk@linux.ibm.com,rppt@kernel.org,robin.murphy@arm.com,reinette.chatre@intel.com,pfalcato@suse.de,osalvador@suse.de,nico@fluxnic.net,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kevin.tian@intel.com,jgg@nvidia.com,jannh@google.com,james.morse@arm.com,jack@suse.cz,hughd@google.com,hca@linux.ibm.com,guoren@kernel.org,gregkh@linuxfoundation.org,gor@linux.ibm.com,dyoung@redhat.com,dvyukov@google.com,david@redhat.com,davem@davemloft.net,dave.martin@arm.com,dave.jiang@intel.com,dan.j.williams@intel.com,corbet@lwn.net,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,arnd@arndb.de,andreyknvl@gmail.com,andreas@gaisler.com,almaz.alexandrovich@paragon-software.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-abstract-io_remap_pfn_range-based-on-pfn.patch removed from -mm tree
-Message-Id: <20251117013306.0E4D1C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-io_remap_pfn_range_.patch removed from -mm tree
+Message-Id: <20251117013308.1CB5DC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: abstract io_remap_pfn_range() based on PFN
+     Subject: mm: introduce io_remap_pfn_range_[prepare, complete]()
 has been removed from the -mm tree.  Its filename was
-     mm-abstract-io_remap_pfn_range-based-on-pfn.patch
+     mm-introduce-io_remap_pfn_range_.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: abstract io_remap_pfn_range() based on PFN
-Date: Mon, 20 Oct 2025 13:11:25 +0100
+Subject: mm: introduce io_remap_pfn_range_[prepare, complete]()
+Date: Mon, 20 Oct 2025 13:11:26 +0100
 
-The only instances in which we customise this function are ones in which we
-customise the PFN used.
+We introduce the io_remap*() equivalents of remap_pfn_range_prepare() and
+remap_pfn_range_complete() to allow for I/O remapping via mmap_prepare.
 
-Instances where architectures were not passing the pgprot value through
-pgprot_decrypted() are ones where pgprot_decrypted() was a no-op anyway, so
-we can simply always pass pgprot through this function.
+Make these internal to mm, as they should only be used by internal helpers.
 
-Use this fact to simplify the use of io_remap_pfn_range(), by abstracting
-the PFN via io_remap_pfn_range_pfn() and using this instead of providing a
-general io_remap_pfn_range() function per-architecture.
-
-Link: https://lkml.kernel.org/r/d086191bf431b58ce3b231b4f4f555d080f60327.1760959442.git.lorenzo.stoakes@oracle.com
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+Link: https://lkml.kernel.org/r/4065134f13a24a3e14691b7443bcee7490b18a5c.1760959442.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -112,155 +105,34 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/include/asm/pgtable.h     |    3 ---
- arch/mips/alchemy/common/setup.c    |    9 +++++----
- arch/mips/include/asm/pgtable.h     |    5 ++---
- arch/sparc/include/asm/pgtable_32.h |   12 ++++--------
- arch/sparc/include/asm/pgtable_64.h |   12 ++++--------
- include/linux/mm.h                  |   19 ++++++++++++++-----
- 6 files changed, 29 insertions(+), 31 deletions(-)
+ mm/internal.h |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/arch/csky/include/asm/pgtable.h~mm-abstract-io_remap_pfn_range-based-on-pfn
-+++ a/arch/csky/include/asm/pgtable.h
-@@ -263,7 +263,4 @@ void update_mmu_cache_range(struct vm_fa
- #define update_mmu_cache(vma, addr, ptep) \
- 	update_mmu_cache_range(NULL, vma, addr, ptep, 1)
+--- a/mm/internal.h~mm-introduce-io_remap_pfn_range_
++++ a/mm/internal.h
+@@ -1681,4 +1681,22 @@ void remap_pfn_range_prepare(struct vm_a
+ int remap_pfn_range_complete(struct vm_area_struct *vma, unsigned long addr,
+ 		unsigned long pfn, unsigned long size, pgprot_t pgprot);
  
--#define io_remap_pfn_range(vma, vaddr, pfn, size, prot) \
--	remap_pfn_range(vma, vaddr, pfn, size, prot)
--
- #endif /* __ASM_CSKY_PGTABLE_H */
---- a/arch/mips/alchemy/common/setup.c~mm-abstract-io_remap_pfn_range-based-on-pfn
-+++ a/arch/mips/alchemy/common/setup.c
-@@ -94,12 +94,13 @@ phys_addr_t fixup_bigphys_addr(phys_addr
- 	return phys_addr;
- }
- 
--int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long vaddr,
--		unsigned long pfn, unsigned long size, pgprot_t prot)
-+static inline unsigned long io_remap_pfn_range_pfn(unsigned long pfn,
-+		unsigned long size)
- {
- 	phys_addr_t phys_addr = fixup_bigphys_addr(pfn << PAGE_SHIFT, size);
- 
--	return remap_pfn_range(vma, vaddr, phys_addr >> PAGE_SHIFT, size, prot);
-+	return phys_addr >> PAGE_SHIFT;
- }
--EXPORT_SYMBOL(io_remap_pfn_range);
-+EXPORT_SYMBOL(io_remap_pfn_range_pfn);
++static inline void io_remap_pfn_range_prepare(struct vm_area_desc *desc,
++		unsigned long orig_pfn, unsigned long size)
++{
++	const unsigned long pfn = io_remap_pfn_range_pfn(orig_pfn, size);
 +
- #endif /* CONFIG_MIPS_FIXUP_BIGPHYS_ADDR */
---- a/arch/mips/include/asm/pgtable.h~mm-abstract-io_remap_pfn_range-based-on-pfn
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -604,9 +604,8 @@ static inline void update_mmu_cache_pmd(
-  */
- #ifdef CONFIG_MIPS_FIXUP_BIGPHYS_ADDR
- phys_addr_t fixup_bigphys_addr(phys_addr_t addr, phys_addr_t size);
--int io_remap_pfn_range(struct vm_area_struct *vma, unsigned long vaddr,
--		unsigned long pfn, unsigned long size, pgprot_t prot);
--#define io_remap_pfn_range io_remap_pfn_range
-+unsigned long io_remap_pfn_range_pfn(unsigned long pfn, unsigned long size);
-+#define io_remap_pfn_range_pfn io_remap_pfn_range_pfn
- #else
- #define fixup_bigphys_addr(addr, size)	(addr)
- #endif /* CONFIG_MIPS_FIXUP_BIGPHYS_ADDR */
---- a/arch/sparc/include/asm/pgtable_32.h~mm-abstract-io_remap_pfn_range-based-on-pfn
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -395,12 +395,8 @@ __get_iospace (unsigned long addr)
- #define GET_IOSPACE(pfn)		(pfn >> (BITS_PER_LONG - 4))
- #define GET_PFN(pfn)			(pfn & 0x0fffffffUL)
- 
--int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
--		    unsigned long, pgprot_t);
--
--static inline int io_remap_pfn_range(struct vm_area_struct *vma,
--				     unsigned long from, unsigned long pfn,
--				     unsigned long size, pgprot_t prot)
-+static inline unsigned long io_remap_pfn_range_pfn(unsigned long pfn,
-+		unsigned long size)
- {
- 	unsigned long long offset, space, phys_base;
- 
-@@ -408,9 +404,9 @@ static inline int io_remap_pfn_range(str
- 	space = GET_IOSPACE(pfn);
- 	phys_base = offset | (space << 32ULL);
- 
--	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
-+	return phys_base >> PAGE_SHIFT;
- }
--#define io_remap_pfn_range io_remap_pfn_range
-+#define io_remap_pfn_range_pfn io_remap_pfn_range_pfn
- 
- #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
---- a/arch/sparc/include/asm/pgtable_64.h~mm-abstract-io_remap_pfn_range-based-on-pfn
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -1048,9 +1048,6 @@ int page_in_phys_avail(unsigned long pad
- #define GET_IOSPACE(pfn)		(pfn >> (BITS_PER_LONG - 4))
- #define GET_PFN(pfn)			(pfn & 0x0fffffffffffffffUL)
- 
--int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
--		    unsigned long, pgprot_t);
--
- void adi_restore_tags(struct mm_struct *mm, struct vm_area_struct *vma,
- 		      unsigned long addr, pte_t pte);
- 
-@@ -1084,9 +1081,8 @@ static inline int arch_unmap_one(struct
- 	return 0;
- }
- 
--static inline int io_remap_pfn_range(struct vm_area_struct *vma,
--				     unsigned long from, unsigned long pfn,
--				     unsigned long size, pgprot_t prot)
-+static inline unsigned long io_remap_pfn_range_pfn(unsigned long pfn,
-+		unsigned long size)
- {
- 	unsigned long offset = GET_PFN(pfn) << PAGE_SHIFT;
- 	int space = GET_IOSPACE(pfn);
-@@ -1094,9 +1090,9 @@ static inline int io_remap_pfn_range(str
- 
- 	phys_base = offset | (((unsigned long) space) << 32UL);
- 
--	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
-+	return phys_base >> PAGE_SHIFT;
- }
--#define io_remap_pfn_range io_remap_pfn_range
-+#define io_remap_pfn_range_pfn io_remap_pfn_range_pfn
- 
- static inline unsigned long __untagged_addr(unsigned long start)
- {
---- a/include/linux/mm.h~mm-abstract-io_remap_pfn_range-based-on-pfn
-+++ a/include/linux/mm.h
-@@ -3684,15 +3684,24 @@ static inline vm_fault_t vmf_insert_page
- 	return VM_FAULT_NOPAGE;
- }
- 
--#ifndef io_remap_pfn_range
--static inline int io_remap_pfn_range(struct vm_area_struct *vma,
--				     unsigned long addr, unsigned long pfn,
--				     unsigned long size, pgprot_t prot)
-+#ifndef io_remap_pfn_range_pfn
-+static inline unsigned long io_remap_pfn_range_pfn(unsigned long pfn,
-+		unsigned long size)
- {
--	return remap_pfn_range(vma, addr, pfn, size, pgprot_decrypted(prot));
-+	return pfn;
- }
- #endif
- 
-+static inline int io_remap_pfn_range(struct vm_area_struct *vma,
-+				     unsigned long addr, unsigned long orig_pfn,
-+				     unsigned long size, pgprot_t orig_prot)
++	return remap_pfn_range_prepare(desc, pfn);
++}
++
++static inline int io_remap_pfn_range_complete(struct vm_area_struct *vma,
++		unsigned long addr, unsigned long orig_pfn, unsigned long size,
++		pgprot_t orig_prot)
 +{
 +	const unsigned long pfn = io_remap_pfn_range_pfn(orig_pfn, size);
 +	const pgprot_t prot = pgprot_decrypted(orig_prot);
 +
-+	return remap_pfn_range(vma, addr, pfn, size, prot);
++	return remap_pfn_range_complete(vma, addr, pfn, size, prot);
 +}
 +
- static inline vm_fault_t vmf_error(int err)
- {
- 	if (err == -ENOMEM)
+ #endif	/* __MM_INTERNAL_H */
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
