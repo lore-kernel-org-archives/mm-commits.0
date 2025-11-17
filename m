@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26F1E23BD1F
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66FEE23ABA7
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343268; cv=none; b=FR3QInUvZoKkO/habp7IXyslMcOtYGd0dsf+o70RpZZrchTPHb+z2eugIr1lbLXsC8HbHEFjDqy6iV2cYnsn17EHzkCUnJeF11KHqO6W4jUuCvxx2Ys7o4KHnN+oe8zF+JBINICBWqUpasiUkXVmkJ1ddeUoXxQgmQWxFUzruLY=
+	t=1763343269; cv=none; b=fxTEifafHX8fIoCX1cxkVKpEi5Nc6V/T/QyEYNxnLkhBnBG6IyBKVNnnsem5cC1Clio41G6ZfemvRdHZP5C8hB/40yjx5s+fd8v60bJbr/4v5mgTyyy1L/WCTeQadXpZj2gN4KLW4W+2NShcZtwtxQ+TNUhG8MkFgZ+mbV4gfz8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343268; c=relaxed/simple;
-	bh=OQJ0MFrM09+7wVTb9Af2Ap1tU3DcD5KoldT/XcpTOZ0=;
-	h=Date:To:From:Subject:Message-Id; b=F1heM3HXb4G8CXs6uQtW5kaT8LT3WXz8723WS9JQkO97LGbxX0l78W6KeI7/f9dPte+Xrsali9HDwqWBg3ZrigMko1Fmx0DUg/4EnXk/uC2LxoS4yqPiDBX40sXr6sRDy27mCOp4d8pOgPRhNbGf6aIMQaksMz/Cegp5RwvppCU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EjngIV3g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343269; c=relaxed/simple;
+	bh=4CyfAiInsTiEQcVRRNEVDTgNacUxbHERKwgP0OhvcxI=;
+	h=Date:To:From:Subject:Message-Id; b=JsNYnoYqVy0KmephszUQFcOLMjjtQ6+H5+hhI9uyFhIQT1wypnoOQnygD7kluuOqvPFzgvQbe3bKeQSO3BOItmFarsQEUbSVhluchefOrqA4MiFjS2Suv4rzJ0a98rlemHzRtvYMqd6mA0PIQ4DShgVP2qAxjTt0Wlg6pTTc2D0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GoTh/Nn2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EjngIV3g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDF13C113D0;
-	Mon, 17 Nov 2025 01:34:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GoTh/Nn2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A5E9C4CEF1;
+	Mon, 17 Nov 2025 01:34:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343268;
-	bh=OQJ0MFrM09+7wVTb9Af2Ap1tU3DcD5KoldT/XcpTOZ0=;
+	s=korg; t=1763343269;
+	bh=4CyfAiInsTiEQcVRRNEVDTgNacUxbHERKwgP0OhvcxI=;
 	h=Date:To:From:Subject:From;
-	b=EjngIV3gpWyhDuBnY5l2svLQ/TQ0KAzzZYWt1JNFQ/HQuoceOYbHgbbU5lyw8emFa
-	 TBQzXek9CJpuKrp3/ky8BtZO/o/giwOcXtIMJ8KNom7W0vxHs+sBXpJqQqKEIi+ce/
-	 UOk6AbVkmXi7ZDRJGrELcwRWlbb67tg/1+zjtjws=
-Date: Sun, 16 Nov 2025 17:34:27 -0800
-To: mm-commits@vger.kernel.org,agordeev@linux.ibm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=GoTh/Nn2tsqgtxfk9nMHboAaKyTZsNxS7um44TojvOsPIxOfyhM1itZLOkp839BpB
+	 IOVLfZjt4KUAj1vQsMuRADJFtNrmgggqrBjtK/uMvxFGkkJMhi/29v0aMTqeTx4RHC
+	 LaRQyQUsgRxlQsDLsjjUm0IRSHiRjTvce9G2vubg=
+Date: Sun, 16 Nov 2025 17:34:28 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,jiayuan.chen@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-invalid_phys_addr-a-generic-macro.patch removed from -mm tree
-Message-Id: <20251117013427.EDF13C113D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmstat-output-reserved_highatomic-and-free_highatomic-in-zoneinfo.patch removed from -mm tree
+Message-Id: <20251117013429.3A5E9C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make INVALID_PHYS_ADDR a generic macro
+     Subject: mm: vmstat: output reserved_highatomic and free_highatomic in zoneinfo
 has been removed from the -mm tree.  Its filename was
-     mm-make-invalid_phys_addr-a-generic-macro.patch
+     mm-vmstat-output-reserved_highatomic-and-free_highatomic-in-zoneinfo.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: make INVALID_PHYS_ADDR a generic macro
-Date: Tue, 21 Oct 2025 03:56:38 +0100
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+Subject: mm: vmstat: output reserved_highatomic and free_highatomic in zoneinfo
+Date: Mon, 27 Oct 2025 22:18:17 +0800
 
-INVALID_PHYS_ADDR has very similar definitions across the code base. 
-Hence just move that inside header <liux/mm.h> for more generic usage. 
-Also drop the now redundant ones which are no longer required.
+The nr_free_highatomic is a key factor in calculating watermarks as it
+affects the free pages count.  Adding this metric, along with
+nr_reserved_highatomic, to /proc/zoneinfo facilitates easier diagnosis
+memory watermark calculations and memory pressure states.
 
-Link: https://lkml.kernel.org/r/20251021025638.2420216-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>	[s390]
+Sample output:
+cat /proc/zoneinfo
+......
+pagesets
+cpu: 0
+		  count:    52069
+		  high:     52675
+		  batch:    63
+		  high_min: 13971
+		  high_max: 62284
+vm stats threshold: 10
+node_unreclaimable:  0
+start_pfn:           4096
+reserved_highatomic: 5120
+free_highatomic:     2081
+
+Link: https://lkml.kernel.org/r/20251027141818.283587-1-jiayuan.chen@linux.dev
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c                  |    2 --
- arch/s390/boot/vmem.c                |    1 -
- drivers/vdpa/vdpa_user/iova_domain.h |    2 --
- include/linux/mm.h                   |    2 ++
- kernel/dma/swiotlb.c                 |    2 --
- 5 files changed, 2 insertions(+), 7 deletions(-)
+ mm/vmstat.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/arch/arm64/mm/mmu.c
-@@ -470,8 +470,6 @@ static void __create_pgd_mapping(pgd_t *
- 	mutex_unlock(&fixmap_lock);
+--- a/mm/vmstat.c~mm-vmstat-output-reserved_highatomic-and-free_highatomic-in-zoneinfo
++++ a/mm/vmstat.c
+@@ -1852,9 +1852,13 @@ static void zoneinfo_show_print(struct s
+ 	}
+ 	seq_printf(m,
+ 		   "\n  node_unreclaimable:  %u"
+-		   "\n  start_pfn:           %lu",
++		   "\n  start_pfn:           %lu"
++		   "\n  reserved_highatomic: %lu"
++		   "\n  free_highatomic:     %lu",
+ 		   atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES,
+-		   zone->zone_start_pfn);
++		   zone->zone_start_pfn,
++		   zone->nr_reserved_highatomic,
++		   zone->nr_free_highatomic);
+ 	seq_putc(m, '\n');
  }
  
--#define INVALID_PHYS_ADDR	(-1ULL)
--
- static phys_addr_t __pgd_pgtable_alloc(struct mm_struct *mm, gfp_t gfp,
- 				       enum pgtable_type pgtable_type)
- {
---- a/arch/s390/boot/vmem.c~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/arch/s390/boot/vmem.c
-@@ -16,7 +16,6 @@
- #include "decompressor.h"
- #include "boot.h"
- 
--#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
- struct ctlreg __bootdata_preserved(s390_invalid_asce);
- 
- #ifdef CONFIG_PROC_FS
---- a/drivers/vdpa/vdpa_user/iova_domain.h~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/drivers/vdpa/vdpa_user/iova_domain.h
-@@ -17,8 +17,6 @@
- 
- #define IOVA_START_PFN 1
- 
--#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
--
- #define BOUNCE_MAP_SHIFT	12
- #define BOUNCE_MAP_SIZE	(1 << BOUNCE_MAP_SHIFT)
- #define BOUNCE_MAP_MASK	(~(BOUNCE_MAP_SIZE - 1))
---- a/include/linux/mm.h~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/include/linux/mm.h
-@@ -105,6 +105,8 @@ extern int mmap_rnd_compat_bits __read_m
- # endif
- #endif
- 
-+#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
-+
- #include <asm/page.h>
- #include <asm/processor.h>
- 
---- a/kernel/dma/swiotlb.c~mm-make-invalid_phys_addr-a-generic-macro
-+++ a/kernel/dma/swiotlb.c
-@@ -61,8 +61,6 @@
-  */
- #define IO_TLB_MIN_SLABS ((1<<20) >> IO_TLB_SHIFT)
- 
--#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
--
- /**
-  * struct io_tlb_slot - IO TLB slot descriptor
-  * @orig_addr:	The original address corresponding to a mapped entry.
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from jiayuan.chen@linux.dev are
 
+mm-vmscan-skip-increasing-kswapd_failures-when-reclaim-was-boosted.patch
 
