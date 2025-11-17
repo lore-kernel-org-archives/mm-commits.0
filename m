@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA2FF61FCE
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66677211499
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343113; cv=none; b=qYbbhFWkDXKmzItK2zI7afP+O9UrCQ2SHaox8LtC1d/Jb1Tp8/NJdRJw8ppdyRChF7j4abphl6itShJIePq/jthvjugEIHTZzI0HL2KfK5K/Ud8X4oDM8dp3nZGjpsRvCRC6GsNaadJTnghotzxYGzCkOxkdpAULz6oNzbcKhHw=
+	t=1763343115; cv=none; b=Yu1y8Ju0F2o1KFMTNoL//f76it27WHDw2cR0roENbOnF4ew61jxGPJIX+/Ps0hE8Pg13ugFiq10hCZfTlU8R1UR8C51qduvpVWEPqnVgxRGNS2qNbFGnk0jPAJc/lF8mUujzpPm8CSVkG0XbTS4/Gx3tx+Drsf2WTmDlbpBOrig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343113; c=relaxed/simple;
-	bh=gXxbfoWvZ/ZR9jX+grWi4xLetT5wdoEMswnaY6JYriY=;
-	h=Date:To:From:Subject:Message-Id; b=lv7acBB+M8P0AecEDXeydrUuKB3/vyx2YnkN4XGDL9FCzHnus6bPSEPThKIeRP9lDVIa0CuWCJ8ZvUF1DShLHWnK7mggD0q3vrq+wC9/mW3Tw4JO2RDUd4RtUxr58TBs44T67GCnCaJjmDmrWgO4fNQaNPVl0U++NZisV+s+m7I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OQDx19Bk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343115; c=relaxed/simple;
+	bh=hRxaFhY6Gxe0iYeV4K6HPTqrU8nG3pCI7ynlLPULAQg=;
+	h=Date:To:From:Subject:Message-Id; b=kY8eRLyoCtKHIGrVqACTkJ9xiLv10C7PyfNMQr03Lfox4hoB0E4cM1WH6H4/2IgA2HUWB4lMwBTK/N8OkYm8n59xOvmes+rGc8CWEgfslB3NKE23EjIz42U8Az8Jq5Gtvi78AsIxl3iw1BUzONbTgpYTRFRJ4PyDpt3GCwe2RT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uq5Jmf52; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OQDx19Bk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E43BC113D0;
-	Mon, 17 Nov 2025 01:31:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uq5Jmf52"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0710C16AAE;
+	Mon, 17 Nov 2025 01:31:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343113;
-	bh=gXxbfoWvZ/ZR9jX+grWi4xLetT5wdoEMswnaY6JYriY=;
+	s=korg; t=1763343115;
+	bh=hRxaFhY6Gxe0iYeV4K6HPTqrU8nG3pCI7ynlLPULAQg=;
 	h=Date:To:From:Subject:From;
-	b=OQDx19Bko6e6Uf8OgN9d2uU+L+MWHPRiidpct4Xjf7FSoMUT07G6KZCn1tL1oqAYC
-	 AT0+hQ+hab2NUudZaxUH/aQc4aTdCoYK4SPyAGMiEQzAEbdb2zSoMntXsYNcxAiIgA
-	 cwPVupDOYdbYWtlMcPQlj+X7AJ2tj8NhjxxXjX+8=
-Date: Sun, 16 Nov 2025 17:31:53 -0800
+	b=uq5Jmf5271RxJK1Q3XQYJjYAWJGpmym1xCteeje0A9kTLWFN7Eaka20vuSNJ2dSbJ
+	 yRsJIg9G1jJDnTYHXekIHMBelyOo4lSbN04pqSFj5hfPABnrsegVHMUVVIOEpMARF5
+	 5s9aKgUttMpW3NexSTq+0yT6DGjtj3QHKCoZcNxU=
+Date: Sun, 16 Nov 2025 17:31:54 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,dave.hansen@intel.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch removed from -mm tree
-Message-Id: <20251117013153.8E43BC113D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch removed from -mm tree
+Message-Id: <20251117013154.E0710C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: clarify batch tuning in zone_batchsize
+     Subject: mm/page_alloc: prevent reporting pcp->batch = 0
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch
+     mm-page_alloc-prevent-reporting-pcp-batch-=-0.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/page_alloc: clarify batch tuning in zone_batchsize
-Date: Thu, 9 Oct 2025 12:29:30 -0700
+Subject: mm/page_alloc: prevent reporting pcp->batch = 0
+Date: Thu, 9 Oct 2025 12:29:31 -0700
 
-Patch series "mm/page_alloc: pcp->batch cleanups", v2.
+zone_batchsize returns the appropriate value that should be used for
+pcp->batch. If it finds a zone with less than 4096 pages or PAGE_SIZE >
+1M, however, it leads to some incorrect math.
 
-Two small cleanups for mm/page_alloc.
+In the above case, we will get an intermediary value of 1, which is then
+rounded down to the nearest power of two, and 1 is subtracted from it.
+Since 1 is already a power of two, we will get batch = 1-1 = 0:
 
-Patch 1 cleans up a misleading comment about how pcp->batch is calculated,
-and folds in the calculation to increase clarity. No functional change
-intended.
+	batch = rounddown_pow_of_two(batch + batch/2) - 1;
 
-Patch 2 corrects zones from reporting that their pcp->batch is 0 when it
-is actually 1. Namely, corrects ZONE_DMA from reporting that its batch
-size is 0.
+A pcp->batch value of 0 is nonsensical. If this were actually set, then
+functions like drain_zone_pages would become no-ops, since they could
+only free 0 pages at a time.
 
+Of the two callers of zone_batchsize, the one that is actually used to
+set pcp->batch works around this by setting pcp->batch to the maximum
+of 1 and zone_batchsize. However, the other caller, zone_pcp_init,
+incorrectly prints out the batch size of the zone to be 0.
 
-This patch (of 2):
+This is probably rare in a typical zone, but the DMA zone can often have
+less than 4096 pages, which means it will print out "LIFO batch:0".
 
-Recently while working on another patch about batching free_pcppages_bulk
-[1], I was curious why pcp->batch was always 63 on my machine.  This led
-me to zone_batchsize(), where I found this set of lines to determine what
-the batch size should be for the host:
+Before: [    0.001216]   DMA zone: 3998 pages, LIFO batch:0
+After:  [    0.001210]   DMA zone: 3998 pages, LIFO batch:1
 
-	batch = min(zone_managed_pages(zone) >> 10, SZ_1M / PAGE_SIZE);
-	batch /= 4;		/* We effectively *= 4 below */
-	if (batch < 1)
-		batch = 1;
+Instead of dealing with the error handling and the mismatch between the
+reported and actual zone batchsize, just return 1 if the zone_batchsize
+is 1 page or less before the rounding.
 
-All of this is good, except the comment above which says "We effectively
-*= 4 below".  Nowhere else in the function zone_batchsize(), is there a
-corresponding multipliation by 4.  Looking into the history of this, it
-seems like Dave Hansen had also noticed this back in 2013 [1].  Turns out
-there *used* to be a corresponding *= 4, which was turned into a *= 6
-later on to be used in pageset_setup_from_batch_size(), which no longer
-exists.
-
-Despite this mismatch not being corrected in the comments, it seems that
-getting rid of the /= 4 leads to a performance regression on machines with
-less than 250G memory and 176 processors.  As such, let us preserve the
-functionality but clean up the comments.
-
-Fold the /= 4 into the calculation above: bitshift by 10+2=12, and instead
-of dividing 1MB, divide 256KB and adjust the comments accordingly.  No
-functional change intended.
-
-Link: https://lkml.kernel.org/r/20251009192933.3756712-1-joshua.hahnjy@gmail.com
-Link: https://lkml.kernel.org/r/20251009192933.3756712-2-joshua.hahnjy@gmail.com
-Link: https://lore.kernel.org/all/20251002204636.4016712-1-joshua.hahnjy@gmail.com/ [1]
+Link: https://lkml.kernel.org/r/20251009192933.3756712-3-joshua.hahnjy@gmail.com
 Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Suggested-by: Dave Hansen <dave.hansen@intel.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -103,28 +88,31 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clarify-batch-tuning-in-zone_batchsize
+--- a/mm/page_alloc.c~mm-page_alloc-prevent-reporting-pcp-batch-=-0
 +++ a/mm/page_alloc.c
-@@ -5860,13 +5860,12 @@ static int zone_batchsize(struct zone *z
- 	int batch;
- 
- 	/*
--	 * The number of pages to batch allocate is either ~0.1%
--	 * of the zone or 1MB, whichever is smaller. The batch
-+	 * The number of pages to batch allocate is either ~0.025%
-+	 * of the zone or 256KB, whichever is smaller. The batch
- 	 * size is striking a balance between allocation latency
+@@ -5866,8 +5866,8 @@ static int zone_batchsize(struct zone *z
  	 * and zone lock contention.
  	 */
--	batch = min(zone_managed_pages(zone) >> 10, SZ_1M / PAGE_SIZE);
--	batch /= 4;		/* We effectively *= 4 below */
-+	batch = min(zone_managed_pages(zone) >> 12, SZ_256K / PAGE_SIZE);
- 	if (batch < 1)
- 		batch = 1;
+ 	batch = min(zone_managed_pages(zone) >> 12, SZ_256K / PAGE_SIZE);
+-	if (batch < 1)
+-		batch = 1;
++	if (batch <= 1)
++		return 1;
  
+ 	/*
+ 	 * Clamp the batch to a 2^n - 1 value. Having a power
+@@ -6018,7 +6018,7 @@ static void zone_set_pageset_high_and_ba
+ {
+ 	int new_high_min, new_high_max, new_batch;
+ 
+-	new_batch = max(1, zone_batchsize(zone));
++	new_batch = zone_batchsize(zone);
+ 	if (percpu_pagelist_high_fraction) {
+ 		new_high_min = zone_highsize(zone, new_batch, cpu_online,
+ 					     percpu_pagelist_high_fraction);
 _
 
 Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
