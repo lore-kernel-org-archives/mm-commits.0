@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8BFB218EB1
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45278218EB1
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343121; cv=none; b=ROHGXlg0e3tSRwoLnI+0X8LfnpxC/S625seSDGheMips6KXVg89dH97pPfWQPaCY2nohTiUtnmBzzH+Wh37kLu4qvfplXKXzsTa//ADRlDZh0E9B8IhzUfR45oFSaa2DroBprl7oCPI5h5/yzYSokM/5RTV7A0VUMTqZFiPoV08=
+	t=1763343122; cv=none; b=tbtA+/J5uAAM46p6khXr2I1zfh+acnXqJfjh5Wg1LlZTMCXJOXlFgb1VkHR1TZc36xwxZ0S3gpUvK2rFWkhe0G+jiFGEx/YRyiUQxd1H95Zg7V/Ue0XYURfnRdEaJvnkNzsWSF0YS1jxXJEW5gFSwbGXVdi80fUDwmycE5a0ic0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343121; c=relaxed/simple;
-	bh=m2aAmzZw0T8ska3aMlDUu6Oy9zgYKfuCnW07AdKghfo=;
-	h=Date:To:From:Subject:Message-Id; b=a8GEWoAqbBcIHAStrHCl7IPcCBVocdWDL7GoNkrsxAioVb1+Gy/GZt4gNmiq6ZyAH1MNAkB5y+5y2tJ0IHQxIbyYsNO/Fgazio+QLa0Do2jnr0FOXssu3X65ZA4skMOyLCV2DvpQC+QjJuU52SeHjHtjaPTcDy06noEVMddRQaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pEW4cp5E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343122; c=relaxed/simple;
+	bh=e05zBUU64ZJv6jl1YJyu4bfzRifvYfdzD5rAu4tw8Tk=;
+	h=Date:To:From:Subject:Message-Id; b=RO/UsFOEMFTc0BM8GSFca7fLjVGihHAHjj2Rs8Zh11LfecMLzIMpJlbpPjpYC8bD9mYp7noRI4LpAKvUgkZgLL5BktpCwDiGvmlOM6fDDmFM8633Q8Z0N41AROoXZdR2sjQyJygUEN+Kl0JqSu0AgiFbnsLTJJABTUb7GOCGVDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lWzPC5/g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pEW4cp5E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8DA9C19421;
-	Mon, 17 Nov 2025 01:32:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lWzPC5/g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10FD7C19422;
+	Mon, 17 Nov 2025 01:32:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343120;
-	bh=m2aAmzZw0T8ska3aMlDUu6Oy9zgYKfuCnW07AdKghfo=;
+	s=korg; t=1763343122;
+	bh=e05zBUU64ZJv6jl1YJyu4bfzRifvYfdzD5rAu4tw8Tk=;
 	h=Date:To:From:Subject:From;
-	b=pEW4cp5E/H44a/r+J7w0FW7RUVE7+q5pEw1rMSuH9AbfcPdY/R3nCUKhbZI77PwQl
-	 JDkH1/5W/QOzYePK/qlm9Bo1hCi6I7mWwDVf2J+o31uqWxNwcIXAObNFSG6FQac5Vm
-	 tvtiUphdUZ/SVkfsuFqIWByw5m9H9niy2MmnN8so=
-Date: Sun, 16 Nov 2025 17:32:00 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,peterx@redhat.com,ngeoffray@google.com,lorenzo.stoakes@oracle.com,kaleshsingh@google.com,jannh@google.com,harry.yoo@oracle.com,david@redhat.com,baohua@kernel.org,lokeshgidra@google.com,akpm@linux-foundation.org
+	b=lWzPC5/gL4iNUjeSe6zCRi+EbhmdUSvz/kTLz7q2l6dvagtDFIzDfwjEF0BxjBtZK
+	 r4JOKw8VVgHrfR36oPzZRuCtBTr+lptcRXNuQXPcQUZKjHtgY4p+2nGSckt/pquf5A
+	 2HRi+4+om2YvTjbgRfMXc4heVb2yQCAQ024MW/+Y=
+Date: Sun, 16 Nov 2025 17:32:01 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,ritesh.list@gmail.com,glider@google.com,dvyukov@google.com,christophe.leroy@csgroup.eu,bhe@redhat.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-userfaultfd-dont-lock-anon_vma-when-performing-uffdio_move.patch removed from -mm tree
-Message-Id: <20251117013200.B8DA9C19421@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-remove-__kasan_save_free_info-wrapper.patch removed from -mm tree
+Message-Id: <20251117013202.10FD7C19422@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,254 +35,96 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/userfaultfd: don't lock anon_vma when performing UFFDIO_MOVE
+     Subject: kasan: remove __kasan_save_free_info wrapper
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-dont-lock-anon_vma-when-performing-uffdio_move.patch
+     kasan-remove-__kasan_save_free_info-wrapper.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lokesh Gidra <lokeshgidra@google.com>
-Subject: mm/userfaultfd: don't lock anon_vma when performing UFFDIO_MOVE
-Date: Tue, 23 Sep 2025 00:10:19 -0700
+From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Subject: kasan: remove __kasan_save_free_info wrapper
+Date: Thu, 9 Oct 2025 20:54:02 +0500
 
-Now that rmap_walk() is guaranteed to be called with the folio lock held,
-we can stop serializing on the src VMA anon_vma lock when moving an
-exclusive folio from a src VMA to a dst VMA in UFFDIO_MOVE ioctl.
+Patch series "kasan: cleanups for kasan_enabled() checks".
 
-When moving a folio, we modify folio->mapping through
-folio_move_anon_rmap() and adjust folio->index accordingly.  Doing that
-while we could have concurrent RMAP walks would be dangerous.  Therefore,
-to avoid that, we had to acquire anon_vma of src VMA in write-mode.  That
-meant that when multiple threads called UFFDIO_MOVE concurrently on
-distinct pages of the same src VMA, they would serialize on it, hurting
-scalability.
+This patch series is the continuation of [1] the previous discussion
+related to the KASAN internal refactoring.
 
-In addition to avoiding the scalability bottleneck, this patch also
-simplifies the complicated lock dance that UFFDIO_MOVE has to go through
-between RCU, folio-lock, ptl, and anon_vma.
+Here we remove kasan_enabled() checks which are duplicated by higher
+callers.  These checks deduplication are also related to the separate
+patch series [2].
 
-folio_move_anon_rmap() already enforces that the folio is locked.  So when
-we have the folio locked we can no longer race with concurrent rmap_walk()
-as used by folio_referenced() and others who call it on unlocked non-KSM
-anon folios, and therefore the anon_vma lock is no longer required.
 
-Note that this handling is now the same as for other
-folio_move_anon_rmap() users that also do not hold the anon_vma lock --
-namely COW reuse handling (do_wp_page()->wp_can_reuse_anon_folio(),
-do_huge_pmd_wp_page(), and hugetlb_wp()).  These users never required the
-anon_vma lock as they are only moving the anon VMA closer to the anon_vma
-leaf of the VMA, for example, from an anon_vma root to a leaf of that
-root.  rmap walks were always able to tolerate that scenario.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20250923071019.775806-3-lokeshgidra@google.com
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Nicolas Geoffray <ngeoffray@google.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: SeongJae Park <sj@kernel.org>
+We don't need a kasan_enabled() check in kasan_save_free_info() at all. 
+Both the higher level paths (kasan_slab_free and
+kasan_mempool_poison_object) already contain this check.  Therefore,
+remove the __wrapper.
+
+Link: https://lkml.kernel.org/r/20251009155403.1379150-1-snovitoll@gmail.com
+Link: https://lkml.kernel.org/r/20251009155403.1379150-2-snovitoll@gmail.com
+Link: https://lore.kernel.org/all/CA+fCnZce3AR+pUesbDkKMtMJ+iR8eDrcjFTbVpAcwjBoZ=gJnQ@mail.gmail.com/ [1]
+Link: https://lore.kernel.org/all/aNTfPjS2buXMI46D@MiWiFi-R3L-srv/ [2]
+Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   22 ---------------
- mm/userfaultfd.c |   62 +++++++--------------------------------------
- 2 files changed, 12 insertions(+), 72 deletions(-)
+ mm/kasan/generic.c |    2 +-
+ mm/kasan/kasan.h   |    7 +------
+ mm/kasan/tags.c    |    2 +-
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
---- a/mm/huge_memory.c~mm-userfaultfd-dont-lock-anon_vma-when-performing-uffdio_move
-+++ a/mm/huge_memory.c
-@@ -2534,7 +2534,6 @@ int move_pages_huge_pmd(struct mm_struct
- 	pmd_t _dst_pmd, src_pmdval;
- 	struct page *src_page;
- 	struct folio *src_folio;
--	struct anon_vma *src_anon_vma;
- 	spinlock_t *src_ptl, *dst_ptl;
- 	pgtable_t src_pgtable;
- 	struct mmu_notifier_range range;
-@@ -2583,23 +2582,9 @@ int move_pages_huge_pmd(struct mm_struct
- 				src_addr + HPAGE_PMD_SIZE);
- 	mmu_notifier_invalidate_range_start(&range);
- 
--	if (src_folio) {
-+	if (src_folio)
- 		folio_lock(src_folio);
- 
--		/*
--		 * split_huge_page walks the anon_vma chain without the page
--		 * lock. Serialize against it with the anon_vma lock, the page
--		 * lock is not enough.
--		 */
--		src_anon_vma = folio_get_anon_vma(src_folio);
--		if (!src_anon_vma) {
--			err = -EAGAIN;
--			goto unlock_folio;
--		}
--		anon_vma_lock_write(src_anon_vma);
--	} else
--		src_anon_vma = NULL;
--
- 	dst_ptl = pmd_lockptr(mm, dst_pmd);
- 	double_pt_lock(src_ptl, dst_ptl);
- 	if (unlikely(!pmd_same(*src_pmd, src_pmdval) ||
-@@ -2644,11 +2629,6 @@ int move_pages_huge_pmd(struct mm_struct
- 	pgtable_trans_huge_deposit(mm, dst_pmd, src_pgtable);
- unlock_ptls:
- 	double_pt_unlock(src_ptl, dst_ptl);
--	if (src_anon_vma) {
--		anon_vma_unlock_write(src_anon_vma);
--		put_anon_vma(src_anon_vma);
--	}
--unlock_folio:
- 	/* unblock rmap walks */
- 	if (src_folio)
- 		folio_unlock(src_folio);
---- a/mm/userfaultfd.c~mm-userfaultfd-dont-lock-anon_vma-when-performing-uffdio_move
-+++ a/mm/userfaultfd.c
-@@ -1035,8 +1035,7 @@ static inline bool is_pte_pages_stable(p
-  */
- static struct folio *check_ptes_for_batched_move(struct vm_area_struct *src_vma,
- 						 unsigned long src_addr,
--						 pte_t *src_pte, pte_t *dst_pte,
--						 struct anon_vma *src_anon_vma)
-+						 pte_t *src_pte, pte_t *dst_pte)
- {
- 	pte_t orig_dst_pte, orig_src_pte;
- 	struct folio *folio;
-@@ -1052,8 +1051,7 @@ static struct folio *check_ptes_for_batc
- 	folio = vm_normal_folio(src_vma, src_addr, orig_src_pte);
- 	if (!folio || !folio_trylock(folio))
- 		return NULL;
--	if (!PageAnonExclusive(&folio->page) || folio_test_large(folio) ||
--	    folio_anon_vma(folio) != src_anon_vma) {
-+	if (!PageAnonExclusive(&folio->page) || folio_test_large(folio)) {
- 		folio_unlock(folio);
- 		return NULL;
- 	}
-@@ -1061,9 +1059,8 @@ static struct folio *check_ptes_for_batc
+--- a/mm/kasan/generic.c~kasan-remove-__kasan_save_free_info-wrapper
++++ a/mm/kasan/generic.c
+@@ -573,7 +573,7 @@ void kasan_save_alloc_info(struct kmem_c
+ 	kasan_save_track(&alloc_meta->alloc_track, flags);
  }
  
- /*
-- * Moves src folios to dst in a batch as long as they share the same
-- * anon_vma as the first folio, are not large, and can successfully
-- * take the lock via folio_trylock().
-+ * Moves src folios to dst in a batch as long as they are not large, and can
-+ * successfully take the lock via folio_trylock().
-  */
- static long move_present_ptes(struct mm_struct *mm,
- 			      struct vm_area_struct *dst_vma,
-@@ -1073,8 +1070,7 @@ static long move_present_ptes(struct mm_
- 			      pte_t orig_dst_pte, pte_t orig_src_pte,
- 			      pmd_t *dst_pmd, pmd_t dst_pmdval,
- 			      spinlock_t *dst_ptl, spinlock_t *src_ptl,
--			      struct folio **first_src_folio, unsigned long len,
--			      struct anon_vma *src_anon_vma)
-+			      struct folio **first_src_folio, unsigned long len)
+-void __kasan_save_free_info(struct kmem_cache *cache, void *object)
++void kasan_save_free_info(struct kmem_cache *cache, void *object)
  {
- 	int err = 0;
- 	struct folio *src_folio = *first_src_folio;
-@@ -1132,8 +1128,8 @@ static long move_present_ptes(struct mm_
- 		src_pte++;
+ 	struct kasan_free_meta *free_meta;
  
- 		folio_unlock(src_folio);
--		src_folio = check_ptes_for_batched_move(src_vma, src_addr, src_pte,
--							dst_pte, src_anon_vma);
-+		src_folio = check_ptes_for_batched_move(src_vma, src_addr,
-+							src_pte, dst_pte);
- 		if (!src_folio)
- 			break;
- 	}
-@@ -1263,7 +1259,6 @@ static long move_pages_ptes(struct mm_st
- 	pmd_t dummy_pmdval;
- 	pmd_t dst_pmdval;
- 	struct folio *src_folio = NULL;
--	struct anon_vma *src_anon_vma = NULL;
- 	struct mmu_notifier_range range;
- 	long ret = 0;
+--- a/mm/kasan/kasan.h~kasan-remove-__kasan_save_free_info-wrapper
++++ a/mm/kasan/kasan.h
+@@ -399,12 +399,7 @@ void kasan_set_track(struct kasan_track
+ void kasan_save_track(struct kasan_track *track, gfp_t flags);
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
  
-@@ -1347,9 +1342,9 @@ retry:
- 		}
+-void __kasan_save_free_info(struct kmem_cache *cache, void *object);
+-static inline void kasan_save_free_info(struct kmem_cache *cache, void *object)
+-{
+-	if (kasan_enabled())
+-		__kasan_save_free_info(cache, object);
+-}
++void kasan_save_free_info(struct kmem_cache *cache, void *object);
  
- 		/*
--		 * Pin and lock both source folio and anon_vma. Since we are in
--		 * RCU read section, we can't block, so on contention have to
--		 * unmap the ptes, obtain the lock and retry.
-+		 * Pin and lock source folio. Since we are in RCU read section,
-+		 * we can't block, so on contention have to unmap the ptes,
-+		 * obtain the lock and retry.
- 		 */
- 		if (!src_folio) {
- 			struct folio *folio;
-@@ -1423,33 +1418,11 @@ retry:
- 			goto retry;
- 		}
+ #ifdef CONFIG_KASAN_GENERIC
+ bool kasan_quarantine_put(struct kmem_cache *cache, void *object);
+--- a/mm/kasan/tags.c~kasan-remove-__kasan_save_free_info-wrapper
++++ a/mm/kasan/tags.c
+@@ -142,7 +142,7 @@ void kasan_save_alloc_info(struct kmem_c
+ 	save_stack_info(cache, object, flags, false);
+ }
  
--		if (!src_anon_vma) {
--			/*
--			 * folio_referenced walks the anon_vma chain
--			 * without the folio lock. Serialize against it with
--			 * the anon_vma lock, the folio lock is not enough.
--			 */
--			src_anon_vma = folio_get_anon_vma(src_folio);
--			if (!src_anon_vma) {
--				/* page was unmapped from under us */
--				ret = -EAGAIN;
--				goto out;
--			}
--			if (!anon_vma_trylock_write(src_anon_vma)) {
--				pte_unmap(src_pte);
--				pte_unmap(dst_pte);
--				src_pte = dst_pte = NULL;
--				/* now we can block and wait */
--				anon_vma_lock_write(src_anon_vma);
--				goto retry;
--			}
--		}
--
- 		ret = move_present_ptes(mm, dst_vma, src_vma,
- 					dst_addr, src_addr, dst_pte, src_pte,
- 					orig_dst_pte, orig_src_pte, dst_pmd,
- 					dst_pmdval, dst_ptl, src_ptl, &src_folio,
--					len, src_anon_vma);
-+					len);
- 	} else {
- 		struct folio *folio = NULL;
- 
-@@ -1515,10 +1488,6 @@ retry:
- 	}
- 
- out:
--	if (src_anon_vma) {
--		anon_vma_unlock_write(src_anon_vma);
--		put_anon_vma(src_anon_vma);
--	}
- 	if (src_folio) {
- 		folio_unlock(src_folio);
- 		folio_put(src_folio);
-@@ -1792,15 +1761,6 @@ static void uffd_move_unlock(struct vm_a
-  * virtual regions without knowing if there are transparent hugepage
-  * in the regions or not, but preventing the risk of having to split
-  * the hugepmd during the remap.
-- *
-- * If there's any rmap walk that is taking the anon_vma locks without
-- * first obtaining the folio lock (the only current instance is
-- * folio_referenced), they will have to verify if the folio->mapping
-- * has changed after taking the anon_vma lock. If it changed they
-- * should release the lock and retry obtaining a new anon_vma, because
-- * it means the anon_vma was changed by move_pages() before the lock
-- * could be obtained. This is the only additional complexity added to
-- * the rmap code to provide this anonymous page remapping functionality.
-  */
- ssize_t move_pages(struct userfaultfd_ctx *ctx, unsigned long dst_start,
- 		   unsigned long src_start, unsigned long len, __u64 mode)
+-void __kasan_save_free_info(struct kmem_cache *cache, void *object)
++void kasan_save_free_info(struct kmem_cache *cache, void *object)
+ {
+ 	save_stack_info(cache, object, 0, true);
+ }
 _
 
-Patches currently in -mm which might be from lokeshgidra@google.com are
+Patches currently in -mm which might be from snovitoll@gmail.com are
 
 
