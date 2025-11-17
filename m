@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61B2223507E
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 955EB22E004
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343253; cv=none; b=mCBQF8EEKPiK19x8TiuItgCBWcpkVbokue2PjcLDQgOXeabbwBEbh3hBiK8meDJMjp1zMEhlEIEhQIoTGwR/3PVC0ZJUyXvrex3QJ+CtpcFTOKTseNmSXh4rdzRDaUDjrOCMgjGBJvXY4UOJqgk5BSy3BTB0VM48kwg7SqylAbU=
+	t=1763343254; cv=none; b=aQZJ/l+Jqu5MdKhGE+zny9bTn5XzuIq4LNlW+KQH5P6TyWm5YOK//IdPIy5JvJJNnM7UQ36KaQQ2voP/pNO+YA3IPAyoLbaX2/dyRy2TVB+DR4Mj5Gy251ScuZUKEADQjXXxcfc+JCUcUloFEmUfc9FdRjslSu7A+j9aV08Knuc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343253; c=relaxed/simple;
-	bh=06Dlnpx4Kp8VT7ZhlmbtamTMVsnONh4Hb8h1fXLolVU=;
-	h=Date:To:From:Subject:Message-Id; b=E6hRMXaNciAFeaHlORmFIFZR7LAIwlh/uKiMUtFlkkUmFM+6MKJgyyTohwRDk5s6NwbcB2BhqZpVj1YOpPRHyN1Ww9MUANAtrWQCv7Ke7e3GuPGQMP8HHeYi6QdhW0J5GIPm+FVG/M65RB/q1+QsUSr3G+TcOIDbYSbGCZopqc8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pgZelJAy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343254; c=relaxed/simple;
+	bh=PQ99GzS3nNbs/IXCe8SawMvmMcDabD7GiPbKO1L74O8=;
+	h=Date:To:From:Subject:Message-Id; b=nDBx3CFFGFE0Ncj1AOrhY8tKiK7KjVl9h9Kfa1GTHL0JQML+5vXF4AUaof5viQNUhy1ZBz07OFhVXCDsazHtg167pg/co3BFqUP5bB/66bv9xx4t+jqdSVS5MRDddiaK5SlFuVnuoniVh93Eqh7tIgf4QYwVTDfVGjmlIoN3Ucg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bwSsMsu/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pgZelJAy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33F8AC113D0;
-	Mon, 17 Nov 2025 01:34:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bwSsMsu/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 690C2C116D0;
+	Mon, 17 Nov 2025 01:34:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343253;
-	bh=06Dlnpx4Kp8VT7ZhlmbtamTMVsnONh4Hb8h1fXLolVU=;
+	s=korg; t=1763343254;
+	bh=PQ99GzS3nNbs/IXCe8SawMvmMcDabD7GiPbKO1L74O8=;
 	h=Date:To:From:Subject:From;
-	b=pgZelJAyGlPf6v5DDAjCyJqOz5n7cVAoTizRzPZsMMh1vJnKEiAIeowwWD9VITaGD
-	 l+pJLtkRIGAqpph+RbBy2z0S9ju0c7nuRS35QlIa2WQwWl0mGfGZ7IWCKorB/Vg/1y
-	 nzjgvrfzKyO0ccPbzVgB7jVy24y9lh0y2k7cgJQk=
-Date: Sun, 16 Nov 2025 17:34:12 -0800
+	b=bwSsMsu/Y5aKsLQaFecVH6n8ecL2Xis5CIGRnS9XcXRbQlacRxh6djN7nqeoeZtuZ
+	 VrY3uWEcCtdLXtFcH68q680ubUT4fF6edrNMK+fkkJ8JankNzfbPYpSUAESE92WtSe
+	 VNCdhp3DVcXvG0UNljsvCga27ez3WEOat9OBvXRs=
+Date: Sun, 16 Nov 2025 17:34:13 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,bijan311@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch removed from -mm tree
-Message-Id: <20251117013413.33F8AC113D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-test-commit-input-against-realistic-destination.patch removed from -mm tree
+Message-Id: <20251117013414.690C2C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: add damon_target->obsolete for pin-point removal
+     Subject: mm/damon/sysfs: test commit input against realistic destination
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
+     mm-damon-sysfs-test-commit-input-against-realistic-destination.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: add damon_target->obsolete for pin-point removal
-Date: Wed, 22 Oct 2025 18:25:25 -0700
+Subject: mm/damon/sysfs: test commit input against realistic destination
+Date: Wed, 22 Oct 2025 18:25:26 -0700
 
-Patch series "mm/damon: support pin-point targets removal".
+DAMON sysfs interface tests if given online parameters update request is
+valid, by committing those using the DAMON kernel API, to a test-purpose
+destination context.  The test-purpose destination context is constructed
+using damon_new_ctx(), so it has no target, no scheme.
 
-DAMON maintains the targets in a list, and allows committing only an
-entire list of targets having the new parameters.  Targets having same
-index on the lists are treated as matching source and destination
-targets.  If an existing target cannot find a matching one in the
-sources list, the target is removed.  This means that there is no way to
-remove only a specific monitoring target in the middle of the current
-targets list.
+If a source target has the obsolete field set, the test-purpose commit
+will fail because damon_commit_targets() fails when there is a source
+obsolete target that cannot find its matching destination target.  DAMON
+sysfs interface is not letting users set the field for now, so there is no
+problem.  However, the following commit will support that.  Also there
+could be similar future changes that making commit fails based on current
+context structure.
 
-Such pin-point target removal is really needed in some use cases,
-though.  Monitoring access patterns on virtual address spaces of
-processes that spawned from the same ancestor is one example.  If a
-process of the group is terminated, the user may want to remove the
-matching DAMON target as soon as possible, to save in-kernel memory
-usage for the unnecessary target data.  The user may also want to do
-that without turning DAMON off or removing unnecessary targets, to keep
-the current monitoring results for other active processes.
+Make the test purpose commit destination context similar to the current
+running one, by committing the running one to the test purpose context,
+before doing the real test-purpose commit.
 
-Extend DAMON kernel API and sysfs ABI to support the pin-point removal
-in the following way.  For API, add a new damon_target field, namely
-'obsolete'.  If the field on parameters commit source target is set, it
-means the matching destination target is obsolete.  Then the parameters
-commit logic removes the destination target from the existing targets
-list.  For sysfs ABI, add a new file under the target directory, namely
-'obsolete_target'.  It is connected with the 'obsolete' field of the
-commit source targets, so internally using the new API.
-
-Also add a selftest for the new feature.  The related helper scripts for
-manipulating the sysfs interface and dumping in-kernel DAMON status are
-also extended for this.  Note that the selftest part was initially
-posted as an individual RFC series [1], but now merged into this one.
-
-Bijan Tabatabai has originally reported this issue, and participated in
-this solution design on a GitHub issue [1] for DAMON user-space tool.
-
-
-This patch (of 9):
-
-DAMON's monitoring targets parameters update function,
-damon_commit_targets(), is not providing a way to remove a target in the
-middle of the existing targets list.  Extend the API by adding a field to
-struct damon_target.  If the field of a damon_commit_targets() source
-target is set, it indicates the matching target on the existing targets
-list is obsolete.  damon_commit_targets() understands that and removes
-those from the list, while respecting the index based matching for other
-non-obsolete targets.
-
-Link: https://lkml.kernel.org/r/20251023012535.69625-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20251023012535.69625-2-sj@kernel.org
-Link: https://github.com/damonitor/damo/issues/36 [1]
+Link: https://lkml.kernel.org/r/20251023012535.69625-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Bijan Tabatabai <bijan311@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -112,69 +79,47 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    6 ++++++
- mm/damon/core.c       |   10 +++++++++-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-core-add-damon_target-obsolete-for-pin-point-removal
-+++ a/include/linux/damon.h
-@@ -91,17 +91,23 @@ struct damon_region {
-  * @nr_regions:		Number of monitoring target regions of this target.
-  * @regions_list:	Head of the monitoring target regions of this target.
-  * @list:		List head for siblings.
-+ * @obsolete:		Whether the commit destination target is obsolete.
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-test-commit-input-against-realistic-destination
++++ a/mm/damon/sysfs.c
+@@ -1452,6 +1452,26 @@ static struct damon_ctx *damon_sysfs_bui
+ 		struct damon_sysfs_context *sys_ctx);
+ 
+ /*
++ * Return a new damon_ctx for testing new parameters to commit.
++ */
++static struct damon_ctx *damon_sysfs_new_test_ctx(
++		struct damon_ctx *running_ctx)
++{
++	struct damon_ctx *test_ctx;
++	int err;
++
++	test_ctx = damon_new_ctx();
++	if (!test_ctx)
++		return NULL;
++	err = damon_commit_ctx(test_ctx, running_ctx);
++	if (err) {
++		damon_destroy_ctx(test_ctx);
++		return NULL;
++	}
++	return test_ctx;
++}
++
++/*
+  * damon_sysfs_commit_input() - Commit user inputs to a running kdamond.
+  * @kdamond:	The kobject wrapper for the associated kdamond.
   *
-  * Each monitoring context could have multiple targets.  For example, a context
-  * for virtual memory address spaces could have multiple target processes.  The
-  * @pid should be set for appropriate &struct damon_operations including the
-  * virtual address spaces monitoring operations.
-+ *
-+ * @obsolete is used only for damon_commit_targets() source targets, to specify
-+ * the matching destination targets are obsolete.  Read damon_commit_targets()
-+ * to see how it is handled.
-  */
- struct damon_target {
- 	struct pid *pid;
- 	unsigned int nr_regions;
- 	struct list_head regions_list;
- 	struct list_head list;
-+	bool obsolete;
- };
- 
- /**
---- a/mm/damon/core.c~mm-damon-core-add-damon_target-obsolete-for-pin-point-removal
-+++ a/mm/damon/core.c
-@@ -479,6 +479,7 @@ struct damon_target *damon_new_target(vo
- 	t->nr_regions = 0;
- 	INIT_LIST_HEAD(&t->regions_list);
- 	INIT_LIST_HEAD(&t->list);
-+	t->obsolete = false;
- 
- 	return t;
- }
-@@ -1187,7 +1188,11 @@ static int damon_commit_targets(
- 
- 	damon_for_each_target_safe(dst_target, next, dst) {
- 		src_target = damon_nth_target(i++, src);
--		if (src_target) {
-+		/*
-+		 * If src target is obsolete, do not commit the parameters to
-+		 * the dst target, and further remove the dst target.
-+		 */
-+		if (src_target && !src_target->obsolete) {
- 			err = damon_commit_target(
- 					dst_target, damon_target_has_pid(dst),
- 					src_target, damon_target_has_pid(src),
-@@ -1210,6 +1215,9 @@ static int damon_commit_targets(
- 	damon_for_each_target_safe(src_target, next, src) {
- 		if (j++ < i)
- 			continue;
-+		/* target to remove has no matching dst */
-+		if (src_target->obsolete)
-+			return -EINVAL;
- 		new_target = damon_new_target();
- 		if (!new_target)
- 			return -ENOMEM;
+@@ -1472,7 +1492,7 @@ static int damon_sysfs_commit_input(void
+ 	param_ctx = damon_sysfs_build_ctx(kdamond->contexts->contexts_arr[0]);
+ 	if (IS_ERR(param_ctx))
+ 		return PTR_ERR(param_ctx);
+-	test_ctx = damon_new_ctx();
++	test_ctx = damon_sysfs_new_test_ctx(kdamond->damon_ctx);
+ 	if (!test_ctx)
+ 		return -ENOMEM;
+ 	err = damon_commit_ctx(test_ctx, param_ctx);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
