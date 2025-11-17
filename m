@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 543301C84A0
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 17:47:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91FC230F522
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 17:52:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763401646; cv=none; b=DSmULZy+FE70Sjcapqu3xBiZSKQYbawFPl7ZYDCo8R+7bjTM0KB4e0wuKnZijBuzECL4NfaSU0miu2UVq5t/wK9uInzKof51oiWwgSn17RS/6Oml82mBE10sGdo8r4oDwC22O8m37Q881Q7gztVLfy3r/QbF9JBNq0vDiPoiurI=
+	t=1763401971; cv=none; b=tGjtcXcNCB07o12FN1EfxHDjYIkMnekeqARY/aabjT1bENeYr5p5XcvX+6saNLUfPTkmGTJzNHXtrZ7OgGWF4+rAdy/5Zk/+IvjlpRM70AdQ+hj5LXbCwmzhzK53YPl360bbp0KjzckUACpe3NRJeoIvM8vRd50G6Wfui4GHw0A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763401646; c=relaxed/simple;
-	bh=oI12/xYxalDvI6KnyiGfnVzYt750NSzNU8TnCM3BGCc=;
-	h=Date:To:From:Subject:Message-Id; b=U9Kj1l1LmaKGSHcIyGhLygD+KXsJll44btzEG37xF+/c/fiWzwdlRPDa0iy0PMpOr242oBU8A0VUYki6ZII8zgEQHg7MVPV4jI/fOvbFJboDJGvUf7uDka/c3g0RizU1qCgiqe5JpCpWbrIt6v2aSR2vzVr3/Bv60Z37O350NaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nC4WX49E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763401971; c=relaxed/simple;
+	bh=M0l0pkIqeqIFoSnuJumHydQtRDayqHepxxVqiDQkPN8=;
+	h=Date:To:From:Subject:Message-Id; b=ugbGc8znndoRMOCWQc5KujQwMbWimDb4nJyd8Gi+88vpxRHcK9/vb1pZEqLicsyvSruJ5Vxy38/z6TT3WFHFDp9ZYdcOlfHZx7xSRLwZjq2ohTkZkjYjmT1g29KvjAqWTxocP39SHiTlHE5AWTuDSyNvBBINVnEqnsTUiJat2h4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wUrikv6+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nC4WX49E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C671C19423;
-	Mon, 17 Nov 2025 17:47:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wUrikv6+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00562C2BCB8;
+	Mon, 17 Nov 2025 17:52:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763401645;
-	bh=oI12/xYxalDvI6KnyiGfnVzYt750NSzNU8TnCM3BGCc=;
+	s=korg; t=1763401971;
+	bh=M0l0pkIqeqIFoSnuJumHydQtRDayqHepxxVqiDQkPN8=;
 	h=Date:To:From:Subject:From;
-	b=nC4WX49EHz/Q17kmv4c/yoMyvb5kV0/2kfJfa8UYQFOB6+d0ouWB+teqTCecAsQdO
-	 WNWI5da2Vx7f0zTsR2KtzaFAyjj2drB/s1IZMhwwZkP/u0D/opN8ZhSzWBm35P+vZT
-	 zfRp66plXJqXtvTXjU0joqvlrT40tSsM653hC8bU=
-Date: Mon, 17 Nov 2025 09:47:24 -0800
-To: mm-commits@vger.kernel.org,david.laight.linux@gmail.com,409411716@gms.tku.edu.tw,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=wUrikv6+BJ0cBg7hR9pu36M19SnqRFYwy/aOSFWoPxp6kXbrA4Nbq83fP6B/9IACW
+	 79Bdc6uhan8rg2wfH8uFAHsrQCkFoCdyBx3BvY7BCf5lEQcnFLWMAR4IeuDBS14VWZ
+	 HGKDB5OXdzNYAf6xtPi4R8NCAtB1IdNDg0Z1nP9o=
+Date: Mon, 17 Nov 2025 09:52:49 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,ioworker0@gmail.com,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251117174725.9C671C19423@smtp.kernel.org>
+Subject: + hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251117175251.00562C2BCB8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
+     Subject: hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
+     hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,58 +58,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
-Date: Mon Nov 17 09:44:57 AM PST 2025
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
+Date: Wed, 5 Nov 2025 19:30:36 +0800
 
-remove u32 casts, per David and Guan-Chun
+maintain consistecy established behavior, per Lance and Petr
 
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Guan-Chun Wu <409411716@gms.tku.edu.tw>
+Link: https://lkml.kernel.org/r/aRncJo1mA5Zk77Hr@U-2FWC9VHC-2323.local
+Suggested-by: Petr Mladek <pmladek@suse.com>
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/base64.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/hung_task.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
---- a/lib/base64.c~lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
-+++ a/lib/base64.c
-@@ -83,7 +83,7 @@ int base64_encode(const u8 *src, int src
- 	const char *base64_table = base64_tables[variant];
+--- a/kernel/hung_task.c~hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
++++ a/kernel/hung_task.c
+@@ -223,8 +223,11 @@ static inline void debug_show_blocker(st
+ }
+ #endif
  
- 	while (srclen >= 3) {
--		ac = (u32)src[0] << 16 | (u32)src[1] << 8 | (u32)src[2];
-+		ac = src[0] << 16 | src[1] << 8 | src[2];
- 		*cp++ = base64_table[ac >> 18];
- 		*cp++ = base64_table[(ac >> 12) & 0x3f];
- 		*cp++ = base64_table[(ac >> 6) & 0x3f];
-@@ -95,7 +95,7 @@ int base64_encode(const u8 *src, int src
+-static void check_hung_task(struct task_struct *t, unsigned long timeout)
++static void check_hung_task(struct task_struct *t, unsigned long timeout,
++		unsigned long prev_detect_count)
+ {
++	unsigned long total_hung_task;
++
+ 	if (!task_is_hung(t, timeout))
+ 		return;
  
- 	switch (srclen) {
- 	case 2:
--		ac = (u32)src[0] << 16 | (u32)src[1] << 8;
-+		ac = src[0] << 16 | src[1] << 8;
- 		*cp++ = base64_table[ac >> 18];
- 		*cp++ = base64_table[(ac >> 12) & 0x3f];
- 		*cp++ = base64_table[(ac >> 6) & 0x3f];
-@@ -103,7 +103,7 @@ int base64_encode(const u8 *src, int src
- 			*cp++ = '=';
- 		break;
- 	case 1:
--		ac = (u32)src[0] << 16;
-+		ac = src[0] << 16;
- 		*cp++ = base64_table[ac >> 18];
- 		*cp++ = base64_table[(ac >> 12) & 0x3f];
- 		if (padding) {
+@@ -234,13 +237,19 @@ static void check_hung_task(struct task_
+ 	 */
+ 	sysctl_hung_task_detect_count++;
+ 
++	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
+ 	trace_sched_process_hang(t);
+ 
++	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
++		console_verbose();
++		hung_task_call_panic = true;
++	}
++
+ 	/*
+ 	 * Ok, the task did not get scheduled for more than 2 minutes,
+ 	 * complain:
+ 	 */
+-	if (sysctl_hung_task_warnings) {
++	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+ 		if (sysctl_hung_task_warnings > 0)
+ 			sysctl_hung_task_warnings--;
+ 		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
+@@ -295,7 +304,6 @@ static void check_hung_uninterruptible_t
+ {
+ 	int max_count = sysctl_hung_task_check_count;
+ 	unsigned long last_break = jiffies;
+-	unsigned long total_hung_task;
+ 	struct task_struct *g, *t;
+ 	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
+ 	int need_warning = sysctl_hung_task_warnings;
+@@ -320,20 +328,14 @@ static void check_hung_uninterruptible_t
+ 			last_break = jiffies;
+ 		}
+ 
+-		check_hung_task(t, timeout);
++		check_hung_task(t, timeout, prev_detect_count);
+ 	}
+  unlock:
+ 	rcu_read_unlock();
+ 
+-	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
+-	if (!total_hung_task)
++	if (!(sysctl_hung_task_detect_count - prev_detect_count))
+ 		return;
+ 
+-	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
+-		console_verbose();
+-		hung_task_call_panic = true;
+-	}
+-
+ 	if (need_warning || hung_task_call_panic) {
+ 		si_mask |= SYS_INFO_LOCKS;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
-mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
-mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix.patch
-panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
-memblock-unpreserve-memory-in-case-of-error-fix.patch
-lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
+docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch
+hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
+hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix.patch
+watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup.patch
+sys_info-add-a-default-kernel-sys_info-mask.patch
 
