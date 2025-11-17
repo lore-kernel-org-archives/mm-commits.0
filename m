@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 891A9227599
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD80227599
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343206; cv=none; b=Jp35sWtWbL7jEF/OC8d0qfm5DeehZ2w4hmhcg6lA0Ig0iNPxin5sGlicFe4y+USEaTuRKHSuwIsr9U7ewfhfdxT1Ae4Adqa4o6eQlMNPtetxDweyw8BFLM54OHTRqxLMlQYPUZTNg5gKfPT5r73G0txRa6d4bYeboHKkF/91PrE=
+	t=1763343208; cv=none; b=Sri98/A9c2O7z305CzQEMb19rPZCeCHKOiL/shN2Q94ahLqRi8GQkxL8IBA+u7ZrLR5XJl2Zgpmxqf8UQGHnc4hvutjewinXy6u4l2V/T24HrpKLC5Bj1GZCWUL7zoqlqjbe7SjpXhi8NGZIb7/W40xaUaatskWovmLHcH5R20I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343206; c=relaxed/simple;
-	bh=+MpBwpph1MHc/xmqX/E3eybnO/o3ENJjXTNMoBBehfQ=;
-	h=Date:To:From:Subject:Message-Id; b=C/VoFgR2RwdMuCdnUjKvjYbqHGuyVkYpwfLnQhX9iwXFHsY0zbu87tdG6xMzGcrmuvxSfh/SAawfhw06hBGdSQpVgwFkzNihuDv55x6WBf8j53RWtZpOxxh360nhVQlLBuJVSyWrbM8w0W5AOxNIa49J15tmmoxKnAJ5lWrzjFs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GGprKEWX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343208; c=relaxed/simple;
+	bh=2enqN90wc9LTvShoqLaI5vPuQZRA8tSu1wc9hXGuu+I=;
+	h=Date:To:From:Subject:Message-Id; b=nXM4w6mao55uB2oi6xcFLxGOAMNJXl1BBwpU0+ZPN69ZuloMfeKSYzUwYuSwAD16GgLZqUO9e6214PVI99P9JYHsVh34U1n0VktC+lcNpNwg5ItrLjJ0TbGCp4j5+VXqwqPRb4PhamvkPmQLQxIWI6Y+PhRIAu2lmgek00SMEZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ukXZ1EYx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GGprKEWX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57782C116D0;
-	Mon, 17 Nov 2025 01:33:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ukXZ1EYx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B55F8C116D0;
+	Mon, 17 Nov 2025 01:33:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343206;
-	bh=+MpBwpph1MHc/xmqX/E3eybnO/o3ENJjXTNMoBBehfQ=;
+	s=korg; t=1763343207;
+	bh=2enqN90wc9LTvShoqLaI5vPuQZRA8tSu1wc9hXGuu+I=;
 	h=Date:To:From:Subject:From;
-	b=GGprKEWXt26j4CP5Zx5IN79UzyOLBICoe4gmJYEMyeEPK5aVqz2NSASTV2Ec2pVmk
-	 PlSf8i5pJ7fMMLr1uRsfOI8d8Ofyy6cNwmG+JxYevJJyF3lW+yQgruQSqXyldflnqD
-	 xvSE7cl40351k8LUtgKY4L4aGthpITHOcGw2H0Fs=
-Date: Sun, 16 Nov 2025 17:33:25 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,leon.hwang@linux.dev,akpm@linux-foundation.org
+	b=ukXZ1EYx5w+D3YrHRZWBL57GMapuN5LhKExgenGmDO1Cjxx4fl8i0wWcrv1LUTfw5
+	 vbQY+YJU36oupGW3RVh0kHviUbIUDvn807DfdA/ZsYKhTtW3SExLO+cYhCVMEt3IdA
+	 /0e+X9LHAvuvoIa6l3oTniFV1pJO85ZIh0JJpER8=
+Date: Sun, 16 Nov 2025 17:33:27 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,roman.gushchin@linux.dev,rientjes@google.com,lethal@linux-sh.org,harry.yoo@oracle.com,cl@gentwo.org,william.kucharski@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-factor-out-common-logic-in-_sleep_millisecs_store.patch removed from -mm tree
-Message-Id: <20251117013326.57782C116D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-reference-to-destructor-in-comment-in-calculate_sizes.patch removed from -mm tree
+Message-Id: <20251117013327.B55F8C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: factor out common logic in [scan,alloc]_sleep_millisecs_store()
+     Subject: mm: remove reference to destructor in comment in calculate_sizes()
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-factor-out-common-logic-in-_sleep_millisecs_store.patch
+     mm-remove-reference-to-destructor-in-comment-in-calculate_sizes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Leon Hwang <leon.hwang@linux.dev>
-Subject: mm/khugepaged: factor out common logic in [scan,alloc]_sleep_millisecs_store()
-Date: Tue, 21 Oct 2025 21:44:31 +0800
+From: William Kucharski <william.kucharski@oracle.com>
+Subject: mm: remove reference to destructor in comment in calculate_sizes()
+Date: Tue, 21 Oct 2025 05:00:04 -0600
 
-Both scan_sleep_millisecs_store() and alloc_sleep_millisecs_store()
-perform the same operations: parse the input value, update their
-respective sleep interval, reset khugepaged_sleep_expire, and wake up the
-khugepaged thread.
+The commit that removed support for destructors from kmem_cache_alloc()
+never removed the comment regarding destructors in the explanation of the
+possible relocation of the free pointer in calculate_sizes().
 
-Factor out this duplicated logic into a helper function
-__sleep_millisecs_store(), and simplify both store functions.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20251021134431.26488-1-leon.hwang@linux.dev
-Signed-off-by: Leon Hwang <leon.hwang@linux.dev>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20251021110004.2209008-1-william.kucharski@oracle.com
+Fixes: 20c2df83d25c ("mm: Remove slab destructors from kmem_cache_create().")
+Signed-off-by: William Kucharski <william.kucharski@oracle.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Christoph Lameter (Ampere) <cl@gentwo.org>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ mm/slub.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-factor-out-common-logic-in-_sleep_millisecs_store
-+++ a/mm/khugepaged.c
-@@ -129,9 +129,8 @@ static ssize_t scan_sleep_millisecs_show
- 	return sysfs_emit(buf, "%u\n", khugepaged_scan_sleep_millisecs);
- }
- 
--static ssize_t scan_sleep_millisecs_store(struct kobject *kobj,
--					  struct kobj_attribute *attr,
--					  const char *buf, size_t count)
-+static ssize_t __sleep_millisecs_store(const char *buf, size_t count,
-+				       unsigned int *millisecs)
- {
- 	unsigned int msecs;
- 	int err;
-@@ -140,12 +139,19 @@ static ssize_t scan_sleep_millisecs_stor
- 	if (err)
- 		return -EINVAL;
- 
--	khugepaged_scan_sleep_millisecs = msecs;
-+	*millisecs = msecs;
- 	khugepaged_sleep_expire = 0;
- 	wake_up_interruptible(&khugepaged_wait);
- 
- 	return count;
- }
-+
-+static ssize_t scan_sleep_millisecs_store(struct kobject *kobj,
-+					  struct kobj_attribute *attr,
-+					  const char *buf, size_t count)
-+{
-+	return __sleep_millisecs_store(buf, count, &khugepaged_scan_sleep_millisecs);
-+}
- static struct kobj_attribute scan_sleep_millisecs_attr =
- 	__ATTR_RW(scan_sleep_millisecs);
- 
-@@ -160,18 +166,7 @@ static ssize_t alloc_sleep_millisecs_sto
- 					   struct kobj_attribute *attr,
- 					   const char *buf, size_t count)
- {
--	unsigned int msecs;
--	int err;
--
--	err = kstrtouint(buf, 10, &msecs);
--	if (err)
--		return -EINVAL;
--
--	khugepaged_alloc_sleep_millisecs = msecs;
--	khugepaged_sleep_expire = 0;
--	wake_up_interruptible(&khugepaged_wait);
--
--	return count;
-+	return __sleep_millisecs_store(buf, count, &khugepaged_alloc_sleep_millisecs);
- }
- static struct kobj_attribute alloc_sleep_millisecs_attr =
- 	__ATTR_RW(alloc_sleep_millisecs);
+--- a/mm/slub.c~mm-remove-reference-to-destructor-in-comment-in-calculate_sizes
++++ a/mm/slub.c
+@@ -7901,11 +7901,11 @@ static int calculate_sizes(struct kmem_c
+ 		 * permitted to overwrite the first word of the object on
+ 		 * kmem_cache_free.
+ 		 *
+-		 * This is the case if we do RCU, have a constructor or
+-		 * destructor, are poisoning the objects, or are
+-		 * redzoning an object smaller than sizeof(void *) or are
+-		 * redzoning an object with slub_debug_orig_size() enabled,
+-		 * in which case the right redzone may be extended.
++		 * This is the case if we do RCU, have a constructor, are
++		 * poisoning the objects, or are redzoning an object smaller
++		 * than sizeof(void *) or are redzoning an object with
++		 * slub_debug_orig_size() enabled, in which case the right
++		 * redzone may be extended.
+ 		 *
+ 		 * The assumption that s->offset >= s->inuse means free
+ 		 * pointer is outside of the object is used in the
 _
 
-Patches currently in -mm which might be from leon.hwang@linux.dev are
+Patches currently in -mm which might be from william.kucharski@oracle.com are
 
 
