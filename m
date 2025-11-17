@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 942AA1FF5E3
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79D271FE46D
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343088; cv=none; b=QaP/mV7u2ZtgZvaykxCOTg1FmU8HaHpeJ+3IbYOydVRiH313ayA0mLTa8OC4sw0JDFL5EPzlNksXJZ37oX7p1wPDhchXmHIlDe2FbItKvynQSIKJGLBuLp6CR/DwGniUFwlC8wcwGItSxNUPkA/geIdn+VwF0QTbhFPzkgHrHaA=
+	t=1763343089; cv=none; b=lu4F3rrVU6YTNj4TA0EH0mFitPn/8hsvQoSak1SVTJyFy1ffh8ZN59WY9Wvw4AJ11ZRBR+NlkCKj9n2XSDMDR1GGGdiUr3cMw2YQBVT6fkr4C7FF2uQzeeNaZz54ZkHSkyC2J04pciAe1aYsxrMqxC3kCCRTaIYT6H++rZIOjJc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343088; c=relaxed/simple;
-	bh=6lyoa4UllpFmd4pi/Z9m92r5VCuE/6jpRFWbtLgR1CA=;
-	h=Date:To:From:Subject:Message-Id; b=DvtyzaNTu5+IdC+OkpZRxdGkyVRlEWxB4vpeFkfHZ1OtJ+Qb4Ro7IckMeIWKQuJKXjcejpBZ079zdJO3Sz8tU94mUtLxs8vNtlrhNHLktwzy547g6+kAKUdyirzbN52qD22+cPOtRQrFt+tzSsszGxKx30BCBiMIdZ0vu1QTBvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PRyaayKZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343089; c=relaxed/simple;
+	bh=5pM7qnUQjRtBXBdTWOSiCw0abwdk2Puu0NZWXC2n7Ic=;
+	h=Date:To:From:Subject:Message-Id; b=jU+eoHPPh9ZYvoFowrtOboU7ZI28hLMUmhXLfXAP0Pu5ynmoGB87AecHMLnxjHwbcbcKAZObRstlAdW2sdjYOjJMiBv+oGhpjTZ+c9iRKk3LYW7sSCAhmETVMDSmjkATcYs/ASn51GEw1BEXh68I1i0BxEm+8f/F1PMoDQjti1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sw3+5e9S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PRyaayKZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1608BC116D0;
-	Mon, 17 Nov 2025 01:31:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sw3+5e9S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DCDBC116D0;
+	Mon, 17 Nov 2025 01:31:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343088;
-	bh=6lyoa4UllpFmd4pi/Z9m92r5VCuE/6jpRFWbtLgR1CA=;
+	s=korg; t=1763343089;
+	bh=5pM7qnUQjRtBXBdTWOSiCw0abwdk2Puu0NZWXC2n7Ic=;
 	h=Date:To:From:Subject:From;
-	b=PRyaayKZdqD3dUOT+6GIBJLm7M0Kpw0dI5CFJ0zcjIoYwKzgz423FTCnZYG3LFEIi
-	 O/SgmEoSP8OxPIiQxo/rhj/jB9wEMA5H0Mm6EYZa1UzymCj/k3lCyKMA3sQGZsvbJh
-	 KpVsamdqbjN2ByDhYNdonWj2xvfRsDpn3v9Hv7BY=
-Date: Sun, 16 Nov 2025 17:31:27 -0800
+	b=sw3+5e9Sfp/xHnOSfSYWo4dTqySAq5PiHQN9zL2GX2Fq79bcsHr2w7jOSEMeHAuFe
+	 QkFBJzQupojqK8p+YDIIyMOqlMLNnieWZ57wDWGCck0h59vFz5kYlofCuYGC6IIjti
+	 eyIF4chFJq27hA7H9xCI6ZxTysK4DGvunBEDRKr8=
+Date: Sun, 16 Nov 2025 17:31:28 -0800
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,mhocko@suse.com,mhocko@kernel.org,glider@google.com,elver@google.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-skip-might_alloc-warnings-when-pf_memalloc-is-set.patch removed from -mm tree
-Message-Id: <20251117013128.1608BC116D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-update-__vmalloc_node_range-documentation.patch removed from -mm tree
+Message-Id: <20251117013129.4DCDBC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: skip might_alloc() warnings when PF_MEMALLOC is set
+     Subject: mm/vmalloc: update __vmalloc_node_range() documentation
 has been removed from the -mm tree.  Its filename was
-     mm-skip-might_alloc-warnings-when-pf_memalloc-is-set.patch
+     mm-vmalloc-update-__vmalloc_node_range-documentation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: skip might_alloc() warnings when PF_MEMALLOC is set
-Date: Tue, 7 Oct 2025 14:20:33 +0200
+Subject: mm/vmalloc: update __vmalloc_node_range() documentation
+Date: Tue, 7 Oct 2025 14:20:34 +0200
 
-might_alloc() catches invalid blocking allocations in contexts where
-sleeping is not allowed.
+__vmalloc() now supports non-blocking flags such as GFP_ATOMIC and
+GFP_NOWAIT.  Update the documentation accordingly.
 
-However when PF_MEMALLOC is set, the page allocator already skips reclaim
-and other blocking paths.  In such cases, a blocking gfp_mask does not
-actually lead to blocking, so triggering might_alloc() splats is
-misleading.
-
-Adjust might_alloc() to skip warnings when the current task has
-PF_MEMALLOC set, matching the allocator's actual blocking behaviour.
-
-Link: https://lkml.kernel.org/r/20251007122035.56347-9-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20251007122035.56347-10-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmalloc.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/include/linux/sched/mm.h~mm-skip-might_alloc-warnings-when-pf_memalloc-is-set
-+++ a/include/linux/sched/mm.h
-@@ -318,6 +318,9 @@ static inline void might_alloc(gfp_t gfp
- 	fs_reclaim_acquire(gfp_mask);
- 	fs_reclaim_release(gfp_mask);
- 
-+	if (current->flags & PF_MEMALLOC)
-+		return;
-+
- 	might_sleep_if(gfpflags_allow_blocking(gfp_mask));
- }
- 
+--- a/mm/vmalloc.c~mm-vmalloc-update-__vmalloc_node_range-documentation
++++ a/mm/vmalloc.c
+@@ -3881,19 +3881,20 @@ fail:
+  * @caller:		  caller's return address
+  *
+  * Allocate enough pages to cover @size from the page level
+- * allocator with @gfp_mask flags. Please note that the full set of gfp
+- * flags are not supported. GFP_KERNEL, GFP_NOFS and GFP_NOIO are all
+- * supported.
+- * Zone modifiers are not supported. From the reclaim modifiers
+- * __GFP_DIRECT_RECLAIM is required (aka GFP_NOWAIT is not supported)
+- * and only __GFP_NOFAIL is supported (i.e. __GFP_NORETRY and
+- * __GFP_RETRY_MAYFAIL are not supported).
++ * allocator with @gfp_mask flags and map them into contiguous
++ * virtual range with protection @prot.
+  *
+- * __GFP_NOWARN can be used to suppress failures messages.
++ * Supported GFP classes: %GFP_KERNEL, %GFP_ATOMIC, %GFP_NOWAIT,
++ * %GFP_NOFS and %GFP_NOIO. Zone modifiers are not supported.
++ * Please note %GFP_ATOMIC and %GFP_NOWAIT are supported only
++ * by __vmalloc().
+  *
+- * Map them into contiguous kernel virtual space, using a pagetable
+- * protection of @prot.
++ * Retry modifiers: only %__GFP_NOFAIL is supported; %__GFP_NORETRY
++ * and %__GFP_RETRY_MAYFAIL are not supported.
+  *
++ * %__GFP_NOWARN can be used to suppress failure messages.
++ *
++ * Can not be called from interrupt nor NMI contexts.
+  * Return: the address of the area or %NULL on failure
+  */
+ void *__vmalloc_node_range_noprof(unsigned long size, unsigned long align,
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
