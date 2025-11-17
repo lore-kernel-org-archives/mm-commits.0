@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1574D2264CA;
-	Mon, 17 Nov 2025 01:33:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11A56231845
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343233; cv=none; b=GjTuDLv4N7sH2da0WvpEvf2lhGcqbr3vTnoW8+AxM+q3JohUFEEVvP7ue/kASdlwp7l/Ved/wfFmb1VEnjbNUh6U+Q0rQ7kpNJ4nX64NdmjZT+K7azCMnRAiQinKHmsNnCEtYFAlM4htfw3LoU2ae0U0lbKkgah4f6xZIpSJr2g=
+	t=1763343235; cv=none; b=XZ1hAVtyScw4PJ7HusdwHgxgDeNjkqvme80vUCCvETod20/1FYgMttqn/OiqSLXaM4euY2phNJxy+ABFN23o/u6loIPCQeTw/FNN/nojzYwBkpiP/JhsCaq6ojdEimTdbwQhKFeoPHF8qEGUjBPR6i23mRGKIqFJbNe02ix8gxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343233; c=relaxed/simple;
-	bh=evuTg8UmkyEwqfbuUJoHjj/jq+1Fpnt1XbCb9ESh1h8=;
-	h=Date:To:From:Subject:Message-Id; b=J1x1b3BWeh9CGiUcZ6SJ5IkqwjtSaM1VUlZZ3+4ZDp7s9mfMdIMY49YNrzvz8La6tLgO8BbGUdrsVfmzhQgI51uWaFoSw57CJ0RGUm1pwRybgZvWk/DMW/ZH5x1FoMYdzBxUzyh6k4JdDCayssgy7W8Huww/V88JpFjd/LKR7bU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CRzhCdZC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343235; c=relaxed/simple;
+	bh=nyzBryBP1774imdPOfnFQlphrgk32A0s2YblMlAL9Dg=;
+	h=Date:To:From:Subject:Message-Id; b=U5yGksNvAUpFh1rEdiBNAfUgqNGogeJabaTIjsBvbkhenFD2DI+XGlRKe8MVk2HZHfkaBk4GxZy6OJ1HAJCLt9zjDeIULuDv2l2Z8fBMoWETBFPf4kdEh/y5DbLc6MB05qX3pF9Cb4MfvJEwrrTAg4P/bqJroTVNHG0WvGgh5aA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xaF/C5/k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CRzhCdZC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD345C4CEF5;
-	Mon, 17 Nov 2025 01:33:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xaF/C5/k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BA3CC4CEF1;
+	Mon, 17 Nov 2025 01:33:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343233;
-	bh=evuTg8UmkyEwqfbuUJoHjj/jq+1Fpnt1XbCb9ESh1h8=;
+	s=korg; t=1763343234;
+	bh=nyzBryBP1774imdPOfnFQlphrgk32A0s2YblMlAL9Dg=;
 	h=Date:To:From:Subject:From;
-	b=CRzhCdZCoEnJsIcPEHv8tKlZLSELO9c/EioRWBbk8cVxPqppCaSKktGIJ7NPpYDAQ
-	 vYIR8Pm3nokaElPycjnEK/iMgi0mFVAEYr46d5+0N2HhPJcJR+OG+RZF/8Aekxdhmy
-	 Qtn09LuUALjLSTMFdffZ+gFmFcrZMuUlqhKIq2bA=
-Date: Sun, 16 Nov 2025 17:33:52 -0800
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=xaF/C5/kqZ43KnSRH9AL+ykI5BApYxg1stECFz91tOePuh7SrJfmRWsWJBamrV0N/
+	 RfO54K1ZNcAcqdaiONu/F+MJRdlgGgjyZgHRaj1xI/m5oENMVlG94sbRd3ITdzTndy
+	 abxxhtHYTFDaR9+YOwpXVFFCuEyzUHcljdJfPTQs=
+Date: Sun, 16 Nov 2025 17:33:53 -0800
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-do-not-perform-synchronous-discard-during-allocation.patch removed from -mm tree
-Message-Id: <20251117013352.DD345C4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-rename-helper-for-setup-bad-slots.patch removed from -mm tree
+Message-Id: <20251117013354.7BA3CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,151 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: do not perform synchronous discard during allocation
+     Subject: mm, swap: rename helper for setup bad slots
 has been removed from the -mm tree.  Its filename was
-     mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
+     mm-swap-rename-helper-for-setup-bad-slots.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: do not perform synchronous discard during allocation
-Date: Fri, 24 Oct 2025 02:34:11 +0800
+Subject: mm, swap: rename helper for setup bad slots
+Date: Fri, 24 Oct 2025 02:00:40 +0800
 
-Patch series "mm, swap: misc cleanup and bugfix", v2.
+The name inc_cluster_info_page is very confusing, as this helper is only
+used during swapon to mark bad slots.  Rename it properly and turn the
+VM_BUG_ON in it into WARN_ON to expose more potential issues.  Swapon is a
+cold path, so adding more checks should be a good idea.
 
-A few cleanups and a bugfix that are either suitable after the swap table
-phase I or found during code review.
+No feature change except new WARN_ON.
 
-Patch 1 is a bugfix and needs to be included in the stable branch, the
-rest have no behavioral change.
-
-
-This patch (of 5):
-
-Since commit 1b7e90020eb77 ("mm, swap: use percpu cluster as allocation
-fast path"), swap allocation is protected by a local lock, which means we
-can't do any sleeping calls during allocation.
-
-However, the discard routine is not taken well care of.  When the swap
-allocator failed to find any usable cluster, it would look at the pending
-discard cluster and try to issue some blocking discards.  It may not
-necessarily sleep, but the cond_resched at the bio layer indicates this is
-wrong when combined with a local lock.  And the bio GFP flag used for
-discard bio is also wrong (not atomic).
-
-It's arguable whether this synchronous discard is helpful at all.  In most
-cases, the async discard is good enough.  And the swap allocator is doing
-very differently at organizing the clusters since the recent change, so it
-is very rare to see discard clusters piling up.
-
-So far, no issues have been observed or reported with typical SSD setups
-under months of high pressure.  This issue was found during my code
-review.  But by hacking the kernel a bit: adding a mdelay(500) in the
-async discard path, this issue will be observable with WARNING triggered
-by the wrong GFP and cond_resched in the bio layer for debug builds.
-
-So now let's apply a hotfix for this issue: remove the synchronous discard
-in the swap allocation path.  And when order 0 is failing with all cluster
-list drained on all swap devices, try to do a discard following the swap
-device priority list.  If any discards released some cluster, try the
-allocation again.  This way, we can still avoid OOM due to swap failure if
-the hardware is very slow and memory pressure is extremely high.
-
-This may cause more fragmentation issues if the discarding hardware is
-really slow.  Ideally, we want to discard pending clusters before
-continuing to iterate the fragment cluster lists.  This can be implemented
-in a cleaner way if we clean up the device list iteration part first.
-
-Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-0-a709469052e7@tencent.com
-Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-1-c5b0e1092927@tencent.com
-Fixes: 1b7e90020eb7 ("mm, swap: use percpu cluster as allocation fast path")
+Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-2-a709469052e7@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
 Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   40 +++++++++++++++++++++++++++++++++-------
- 1 file changed, 33 insertions(+), 7 deletions(-)
+ mm/swapfile.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-do-not-perform-synchronous-discard-during-allocation
+--- a/mm/swapfile.c~mm-swap-rename-helper-for-setup-bad-slots
 +++ a/mm/swapfile.c
-@@ -1101,13 +1101,6 @@ new_cluster:
- 			goto done;
- 	}
- 
--	/*
--	 * We don't have free cluster but have some clusters in discarding,
--	 * do discard now and reclaim them.
--	 */
--	if ((si->flags & SWP_PAGE_DISCARD) && swap_do_scheduled_discard(si))
--		goto new_cluster;
--
- 	if (order)
- 		goto done;
- 
-@@ -1394,6 +1387,33 @@ start_over:
- 	return false;
+@@ -751,14 +751,14 @@ static void relocate_cluster(struct swap
  }
  
-+/*
-+ * Discard pending clusters in a synchronized way when under high pressure.
-+ * Return: true if any cluster is discarded.
-+ */
-+static bool swap_sync_discard(void)
-+{
-+	bool ret = false;
-+	int nid = numa_node_id();
-+	struct swap_info_struct *si, *next;
-+
-+	spin_lock(&swap_avail_lock);
-+	plist_for_each_entry_safe(si, next, &swap_avail_heads[nid], avail_lists[nid]) {
-+		spin_unlock(&swap_avail_lock);
-+		if (get_swap_device_info(si)) {
-+			if (si->flags & SWP_PAGE_DISCARD)
-+				ret = swap_do_scheduled_discard(si);
-+			put_swap_device(si);
-+		}
-+		if (ret)
-+			return true;
-+		spin_lock(&swap_avail_lock);
-+	}
-+	spin_unlock(&swap_avail_lock);
-+
-+	return false;
-+}
-+
- /**
-  * folio_alloc_swap - allocate swap space for a folio
-  * @folio: folio we want to move to swap
-@@ -1432,11 +1452,17 @@ int folio_alloc_swap(struct folio *folio
- 		}
+ /*
+- * The cluster corresponding to page_nr will be used. The cluster will not be
+- * added to free cluster list and its usage counter will be increased by 1.
+- * Only used for initialization.
++ * The cluster corresponding to @offset will be accounted as having one bad
++ * slot. The cluster will not be added to the free cluster list, and its
++ * usage counter will be increased by 1. Only used for initialization.
+  */
+-static int inc_cluster_info_page(struct swap_info_struct *si,
+-	struct swap_cluster_info *cluster_info, unsigned long page_nr)
++static int swap_cluster_setup_bad_slot(struct swap_cluster_info *cluster_info,
++				       unsigned long offset)
+ {
+-	unsigned long idx = page_nr / SWAPFILE_CLUSTER;
++	unsigned long idx = offset / SWAPFILE_CLUSTER;
+ 	struct swap_table *table;
+ 	struct swap_cluster_info *ci;
+ 
+@@ -772,8 +772,8 @@ static int inc_cluster_info_page(struct
+ 
+ 	ci->count++;
+ 
+-	VM_BUG_ON(ci->count > SWAPFILE_CLUSTER);
+-	VM_BUG_ON(ci->flags);
++	WARN_ON(ci->count > SWAPFILE_CLUSTER);
++	WARN_ON(ci->flags);
+ 
+ 	return 0;
+ }
+@@ -3396,7 +3396,7 @@ static struct swap_cluster_info *setup_c
+ 	 * See setup_swap_map(): header page, bad pages,
+ 	 * and the EOF part of the last cluster.
+ 	 */
+-	err = inc_cluster_info_page(si, cluster_info, 0);
++	err = swap_cluster_setup_bad_slot(cluster_info, 0);
+ 	if (err)
+ 		goto err;
+ 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
+@@ -3404,12 +3404,12 @@ static struct swap_cluster_info *setup_c
+ 
+ 		if (page_nr >= maxpages)
+ 			continue;
+-		err = inc_cluster_info_page(si, cluster_info, page_nr);
++		err = swap_cluster_setup_bad_slot(cluster_info, page_nr);
+ 		if (err)
+ 			goto err;
  	}
- 
-+again:
- 	local_lock(&percpu_swap_cluster.lock);
- 	if (!swap_alloc_fast(&entry, order))
- 		swap_alloc_slow(&entry, order);
- 	local_unlock(&percpu_swap_cluster.lock);
- 
-+	if (unlikely(!order && !entry.val)) {
-+		if (swap_sync_discard())
-+			goto again;
-+	}
-+
- 	/* Need to call this even if allocation failed, for MEMCG_SWAP_FAIL. */
- 	if (mem_cgroup_try_charge_swap(folio, entry))
- 		goto out_free;
+ 	for (i = maxpages; i < round_up(maxpages, SWAPFILE_CLUSTER); i++) {
+-		err = inc_cluster_info_page(si, cluster_info, i);
++		err = swap_cluster_setup_bad_slot(cluster_info, i);
+ 		if (err)
+ 			goto err;
+ 	}
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
