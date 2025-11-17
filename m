@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A482531577B
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 17:01:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BC19313544
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 17:13:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763398910; cv=none; b=ZGO3NQ+bqwbk7UALFydhnxOZvbk8bU6CLB10S2JRcq+Y/g6seV42grSV+UsHUg6+kOlMxOqMl5JVYM6wBIIb8rosPPbz8uB0a8tvDN3E1m8up1JI6rj0g5KlePkmWOKJy8ArTLNVqPJYz07A3ogtLjB5BkS0Ro1xFXJx/icnuBU=
+	t=1763399582; cv=none; b=S9u21KotBa09f1KkXSjNl58lvrK8Q+0lMHisgMOle+yB3iWg/GD0l26IKNawOFDf7XD5JIFWJtfm+TrkBuN9bxphUHW6PbMwVenoTxIZu38+JpnuAYxtjK+2Qvkr6gJyl9yNXv3kI7b423Y8gZMywhR6RXt4WXFSoX+LYMz+qtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763398910; c=relaxed/simple;
-	bh=ZNFfFG4rQvWzcfiIqCbQ1R1VZ9Q1UI9hjo76dHtyBBQ=;
-	h=Date:To:From:Subject:Message-Id; b=cb7iaoxgMl0T8YykDqPkY1sWcC4l2AbDQxCU16kzi5tF3Cx9TtyeeF057V66xZY+7rRCwOdw1Z4+QRscVR3uiWnhLAFqEqV5vfrQCk7EzVnZPBrJ0t5NEgZJ3UjJzFQUKxMMs8VqWFBTdOkhen48NLLgG15T+lZfvz6ZtMYOTzQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iFQI3bMU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763399582; c=relaxed/simple;
+	bh=axxCwj3+EHKHSd7fXLRRbJu7vWLmwIVpFdNLEWT76BU=;
+	h=Date:To:From:Subject:Message-Id; b=AqkoQjwZJKpmwLwFAN9Xw/t6RAJH4Yne+jIRLN2Bwvrn4Qfe5trSQ7PUtmth+GACD25Wnhp/cFi22SO/Y5ulKQln9KtnRCCkfmEoR9G9J/bjpiT0hfM8fXo2l18aXws31AI7uEeA8w2F2sbrcofXeK9mPZpKLy42/qaQRkvDMIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XwbMh+5I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iFQI3bMU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D989C19424;
-	Mon, 17 Nov 2025 17:01:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XwbMh+5I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10432C19422;
+	Mon, 17 Nov 2025 17:13:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763398910;
-	bh=ZNFfFG4rQvWzcfiIqCbQ1R1VZ9Q1UI9hjo76dHtyBBQ=;
+	s=korg; t=1763399581;
+	bh=axxCwj3+EHKHSd7fXLRRbJu7vWLmwIVpFdNLEWT76BU=;
 	h=Date:To:From:Subject:From;
-	b=iFQI3bMUujxr4DHF3o7ozCIlG1T37NY3qjA/pxUjEMBDXDOL88UwHIXYsUesnjqP2
-	 m/hT5XXSmqCo1TRiYxrwCOwtsWe19lNHThUvkuQyIkySfxd6Ks/rWiGWpn/FbXtz76
-	 qWNj8PcY25X/oPXvUGT3lLU80s2sxNbP1ya7V2wc=
-Date: Mon, 17 Nov 2025 09:01:48 -0800
-To: mm-commits@vger.kernel.org,peterx@redhat.com,osalvador@suse.de,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,dan.j.williams@intel.com,peng8420.li@gmail.com,akpm@linux-foundation.org
+	b=XwbMh+5IAGfvy2WLlgvKZihK/JWbd6oBiirS74/u4eT93gGCL3tkfYEupGq1ccR1K
+	 QZ5K5E2vzsaX6EAyUoJa6ijy7xizEkbkevEkyPTcc0dmIW8y9oCAY8Ds6Xd0LpNc3R
+	 kbve+OLOoLh1ondDSJCWT2FZR7KXAddXv01YiSKY=
+Date: Mon, 17 Nov 2025 09:13:00 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,pfalcato@suse.de,npache@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,liam.howlett@oracle.com,lance.yang@linux.dev,jannh@google.com,dev.jain@arm.com,david@redhat.com,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,avagin@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-gup_test-fix-comment-regarding-origin-of-foll_write.patch added to mm-new branch
-Message-Id: <20251117170150.0D989C19424@smtp.kernel.org>
+Subject: + mm-implement-sticky-vma-flags-fix.patch added to mm-unstable branch
+Message-Id: <20251117171301.10432C19422@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: gup_test: fix comment regarding origin of FOLL_WRITE
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-gup_test-fix-comment-regarding-origin-of-foll_write.patch
+     Subject: mm-implement-sticky-vma-flags-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-implement-sticky-vma-flags-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-gup_test-fix-comment-regarding-origin-of-foll_write.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-implement-sticky-vma-flags-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,42 +58,117 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peng Li <peng8420.li@gmail.com>
-Subject: selftests/mm: gup_test: fix comment regarding origin of FOLL_WRITE
-Date: Mon, 17 Nov 2025 23:40:12 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm-implement-sticky-vma-flags-fix
+Date: Mon, 17 Nov 2025 13:24:37 +0000
 
-The 'FOLL_WRITE' of the copied source is located in mm_types.h of mm, not
-mm.h, so fix it.
+account for sticky flags
 
-Link: https://lkml.kernel.org/r/20251117154012.197499-2-peng8420.li@gmail.com
-Signed-off-by: Peng Li <peng8420.li@gmail.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/13ae542f-5c47-4511-b0ad-6d1e9dcbdc9d@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/gup_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/madvise.c  |    3 +++
+ mm/mlock.c    |    3 +++
+ mm/mprotect.c |    3 +++
+ 3 files changed, 9 insertions(+)
 
---- a/tools/testing/selftests/mm/gup_test.c~selftests-mm-gup_test-fix-comment-regarding-origin-of-foll_write
-+++ a/tools/testing/selftests/mm/gup_test.c
-@@ -17,7 +17,7 @@
+--- a/mm/madvise.c~mm-implement-sticky-vma-flags-fix
++++ a/mm/madvise.c
+@@ -172,6 +172,9 @@ static int madvise_update_vma(vm_flags_t
+ 	if (IS_ERR(vma))
+ 		return PTR_ERR(vma);
  
- #define MB (1UL << 20)
++	/* Account for sticky flags. */
++	new_flags |= vma->vm_flags;
++
+ 	madv_behavior->vma = vma;
  
--/* Just the flags we need, copied from mm.h: */
-+/* Just the flags we need, copied from the kernel internals. */
- #define FOLL_WRITE	0x01	/* check pte is writable */
+ 	/* vm_flags is protected by the mmap_lock held in write mode. */
+--- a/mm/mlock.c~mm-implement-sticky-vma-flags-fix
++++ a/mm/mlock.c
+@@ -484,6 +484,9 @@ static int mlock_fixup(struct vma_iterat
+ 		goto out;
+ 	}
  
- #define GUP_TEST_FILE "/sys/kernel/debug/gup_test"
++	/* Account for sticky flags. */
++	newflags |= vma->vm_flags;
++
+ 	/*
+ 	 * Keep track of amount of locked VM.
+ 	 */
+--- a/mm/mprotect.c~mm-implement-sticky-vma-flags-fix
++++ a/mm/mprotect.c
+@@ -762,6 +762,9 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 		goto fail;
+ 	}
+ 
++	/* Account for sticky flags. */
++	newflags |= vma->vm_flags;
++
+ 	*pprev = vma;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from peng8420.li@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-selftests-mm-gup_test-stop-testing-foll_touch.patch
-selftests-mm-gup_test-fix-comment-regarding-origin-of-foll_write.patch
+mm-introduce-vm_maybe_guard-and-make-visible-in-proc-pid-smaps.patch
+mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such.patch
+mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch
+mm-implement-sticky-vma-flags.patch
+mm-implement-sticky-vma-flags-fix.patch
+mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
+tools-testing-vma-add-vma-sticky-userland-tests.patch
+tools-testing-selftests-mm-add-madv_collapse-test-case.patch
+tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
+mm-correctly-handle-uffd-pte-markers.patch
+mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
+mm-avoid-unnecessary-uses-of-is_swap_pte.patch
+mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
+mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
+fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
+mm-avoid-unnecessary-use-of-is_swap_pmd.patch
+mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
+mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
+mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
+mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
+mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
+mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
+mm-remove-is_hugetlb_entry_.patch
+mm-eliminate-further-swapops-predicates.patch
+mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
+mm-rename-walk_page_range_mm.patch
+mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
+mm-propagate-vm_softdirty-on-merge.patch
+testing-selftests-mm-add-soft-dirty-merge-self-test.patch
+mm-declare-vma-flags-by-bit.patch
+mm-declare-vma-flags-by-bit-fix.patch
+mm-declare-vma-flags-by-bit-fix-2.patch
+mm-simplify-and-rename-mm-flags-function-for-clarity.patch
+tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
+mm-introduce-vma-flags-bitmap-type.patch
 
