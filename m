@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AAC321CC58
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32CB81C1F02
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343143; cv=none; b=Mpb2Bru39lCYJOqMeYcxzd90o3zxhvfSCnHIyz3nKXClw8mQyryrnDpi8+knj+3m1i8nD5IQjjolnXLe4IaombkCaSHAhrBCPg5fa6VrNlc+yEW2RUF0xlkfYuPyiRqJZBGO2mRciJp6CI5a72g7emrGWUuxt/988G2+WbMfQmg=
+	t=1763343145; cv=none; b=fnSJDLrOPNTJxvrMPHXr7wG8xVPUZQTmYmYCq3bQWYxSOX3woLY2TRo03KMQgbTI067lcepVSYi/DtVCuKGgZn9tDYn1Z0QTL14DxE8GlWqtfGEgRtnjMTzH0aUWp1rgy8ZDOpemWdJbWvvts0lxxk9t898OrrL9BjrQOyqfEF4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343143; c=relaxed/simple;
-	bh=7iMd9ZvCwrWhLWU4HrNxvHJrlhHl1ldcud9C7w5Ij6A=;
-	h=Date:To:From:Subject:Message-Id; b=a4cHmgiUyPZbouuc78cJmLJYuUYFqfdNWT8C/9AswEFnFu2M02E0XI5yMqpqgCAXO3HNlAOqsPIjZOMTIYBqjVpYgkIla1+KKrSlYsyfhR0LOWRbt1tEppQ/nnn0G3kT9QsyGuDjWz3QjbQMOtMnlu7mzYOH3LjVNH67/PvBklA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GtctnREm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343145; c=relaxed/simple;
+	bh=ith1dKD82WiS7OugX3EyUarylg7S7cUf4jUsC9DhG/M=;
+	h=Date:To:From:Subject:Message-Id; b=etptepMt7xMBk7+E/sgL0eR+u78GYmDUBh+eaULuL781JI17FYMQJnqfZ6xrPi+6r6lcs6KdS1bSZstCax6d0u1dL724XXLyyTURL3nwrl2/qpVVG1WiOWUETH+akCBD+U5aXQwazCjtmGvJnKg41bM5jB19CwwhWcdXxFBVsMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JHQLam3+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GtctnREm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FB21C116D0;
-	Mon, 17 Nov 2025 01:32:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JHQLam3+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05228C19421;
+	Mon, 17 Nov 2025 01:32:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343143;
-	bh=7iMd9ZvCwrWhLWU4HrNxvHJrlhHl1ldcud9C7w5Ij6A=;
+	s=korg; t=1763343145;
+	bh=ith1dKD82WiS7OugX3EyUarylg7S7cUf4jUsC9DhG/M=;
 	h=Date:To:From:Subject:From;
-	b=GtctnREmKsIdG3hJRvm8xfAkSobNoSj8nC9cNumPOlQRNgTg+vm+peBBQfU7pudl/
-	 saFKNSGdsri4LDaKPu1JZ6NlqJu/64WjTRIjlq6Ggt37T3Ko7B00FAIybQ2LywsLLo
-	 1MPlnE2k8KhfBfPp14t+5EpkSe2xjfAYLyL7varU=
-Date: Sun, 16 Nov 2025 17:32:22 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,mhocko@suse.com,kirill@shutemov.name,jackmanb@google.com,hannes@cmpxchg.org,clm@fb.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=JHQLam3+ltC+NePsnXnlI08DJvOV1RABCVyGhRaGUBsRfvzuMy/e2pmVzY+ODFS1E
+	 uaXhMsCpe1iUE1CY25NAHYggJO0I7FObS1imnNFaA3RP1ET6m+8h6STH3z5HJkEdgG
+	 OiRjhmKIIksDqJBalMXt5ZU73Jm6upTJ7xeaL8LU=
+Date: Sun, 16 Nov 2025 17:32:24 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,mhocko@suse.com,mgorman@techsingularity.net,joshua.hahnjy@gmail.com,jackmanb@google.com,hannes@cmpxchg.org,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch removed from -mm tree
-Message-Id: <20251117013223.6FB21C116D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-simplify-and-cleanup-pcp-locking.patch removed from -mm tree
+Message-Id: <20251117013225.05228C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,215 +35,296 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: batch page freeing in free_frozen_page_commit
+     Subject: mm/page_alloc: simplify and cleanup pcp locking
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit.patch
+     mm-page_alloc-simplify-and-cleanup-pcp-locking.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/page_alloc: batch page freeing in free_frozen_page_commit
-Date: Tue, 14 Oct 2025 07:50:10 -0700
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm/page_alloc: simplify and cleanup pcp locking
+Date: Wed, 15 Oct 2025 19:50:38 +0200
 
-Before returning, free_frozen_page_commit calls free_pcppages_bulk using
-nr_pcp_free to determine how many pages can appropritately be freed, based
-on the tunable parameters stored in pcp.  While this number is an accurate
-representation of how many pages should be freed in total, it is not an
-appropriate number of pages to free at once using free_pcppages_bulk,
-since we have seen the value consistently go above 2000 in the Meta fleet
-on larger machines.
+The pcp locking relies on pcp_spin_trylock() which has to be used together
+with pcp_trylock_prepare()/pcp_trylock_finish() to work properly on !SMP
+!RT configs.  This is tedious and error-prone.
 
-As such, perform batched page freeing in free_pcppages_bulk by using
-pcp->batch.  In order to ensure that other processes are not starved of
-the zone lock, free both the zone lock and pcp lock to yield to other
-threads.
+We can remove pcp_spin_lock() and underlying pcpu_spin_lock() because we
+don't use it.  Afterwards pcp_spin_unlock() is only used together with
+pcp_spin_trylock().  Therefore we can add the UP_flags parameter to them
+both and handle pcp_trylock_prepare()/finish() within.
 
-Note that because free_frozen_page_commit now performs a spinlock inside
-the function (and can fail), the function may now return with a freed pcp.
-To handle this, return true if the pcp is locked on exit and false
-otherwise.
+Additionally for the configs where pcp_trylock_prepare()/finish() are
+no-op (SMP || RT) make them pass &UP_flags to a no-op inline function. 
+This ensures typechecking and makes the local variable "used" so we can
+remove the __maybe_unused attributes.
 
-In addition, since free_frozen_page_commit must now be aware of what UP
-flags were stored at the time of the spin lock, and because we must be
-able to report new UP flags to the callers, add a new unsigned long*
-parameter UP_flags to keep track of this.
+In my compile testing, bloat-o-meter reported no change on SMP config, so
+the compiler is capable of optimizing away the no-ops same as before, and
+we have simplified the code using pcp_spin_trylock().
 
-The following are a few synthetic benchmarks, made on three machines.  The
-first is a large machine with 754GiB memory and 316 processors.  The
-second is a relatively smaller machine with 251GiB memory and 176
-processors.  The third and final is the smallest of the three, which has
-62GiB memory and 36 processors.
-
-On all machines, I kick off a kernel build with -j$(nproc).  Negative
-delta is better (faster compilation)
-
-Large machine (754GiB memory, 316 processors)
-make -j$(nproc)
-+------------+---------------+-----------+
-| Metric (s) | Variation (%) | Delta(%)  |
-+------------+---------------+-----------+
-| real       |        0.8070 |  - 1.4865 |
-| user       |        0.2823 |  + 0.4081 |
-| sys        |        5.0267 |  -11.8737 |
-+------------+---------------+-----------+
-
-Medium machine (251GiB memory, 176 processors)
-make -j$(nproc)
-+------------+---------------+----------+
-| Metric (s) | Variation (%) | Delta(%) |
-+------------+---------------+----------+
-| real       |        0.2806 |  +0.0351 |
-| user       |        0.0994 |  +0.3170 |
-| sys        |        0.6229 |  -0.6277 |
-+------------+---------------+----------+
-
-Small machine (62GiB memory, 36 processors)
-make -j$(nproc)
-+------------+---------------+----------+
-| Metric (s) | Variation (%) | Delta(%) |
-+------------+---------------+----------+
-| real       |        0.1503 |  -2.6585 |
-| user       |        0.0431 |  -2.2984 |
-| sys        |        0.1870 |  -3.2013 |
-+------------+---------------+----------+
-
-Here, variation is the coefficient of variation, i.e.  standard deviation
-/ mean.
-
-[joshua.hahnjy@gmail.com: simplify checks]
-  Link: https://lkml.kernel.org/r/20251014192827.851389-1-joshua.hahnjy@gmail.com
-Link: https://lkml.kernel.org/r/20251014145011.3427205-4-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Suggested-by: Chris Mason <clm@fb.com>
-Co-developed-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251015-b4-pcp-lock-cleanup-v2-1-740d999595d5@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Brendan Jackman <jackmanb@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   65 +++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 56 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   99 ++++++++++++++++++----------------------------
+ 1 file changed, 40 insertions(+), 59 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-batch-page-freeing-in-free_frozen_page_commit
+--- a/mm/page_alloc.c~mm-page_alloc-simplify-and-cleanup-pcp-locking
 +++ a/mm/page_alloc.c
-@@ -2818,12 +2818,22 @@ static int nr_pcp_high(struct per_cpu_pa
- 	return high;
- }
- 
--static void free_frozen_page_commit(struct zone *zone,
-+/*
-+ * Tune pcp alloc factor and adjust count & free_count. Free pages to bring the
-+ * pcp's watermarks below high.
-+ *
-+ * May return a freed pcp, if during page freeing the pcp spinlock cannot be
-+ * reacquired. Return true if pcp is locked, false otherwise.
-+ */
-+static bool free_frozen_page_commit(struct zone *zone,
- 		struct per_cpu_pages *pcp, struct page *page, int migratetype,
--		unsigned int order, fpi_t fpi_flags)
-+		unsigned int order, fpi_t fpi_flags, unsigned long *UP_flags)
- {
- 	int high, batch;
-+	int to_free, to_free_batched;
- 	int pindex;
-+	int cpu = smp_processor_id();
-+	int ret = true;
- 	bool free_high = false;
- 
- 	/*
-@@ -2861,15 +2871,46 @@ static void free_frozen_page_commit(stru
- 		 * Do not attempt to take a zone lock. Let pcp->count get
- 		 * over high mark temporarily.
- 		 */
--		return;
-+		return true;
- 	}
- 
- 	high = nr_pcp_high(pcp, zone, batch, free_high);
- 	if (pcp->count < high)
--		return;
-+		return true;
-+
-+	to_free = nr_pcp_free(pcp, batch, high, free_high);
-+	while (to_free > 0 && pcp->count > 0) {
-+		to_free_batched = min(to_free, batch);
-+		free_pcppages_bulk(zone, to_free_batched, pcp, pindex);
-+		to_free -= to_free_batched;
-+
-+		if (to_free == 0 || pcp->count == 0)
-+			break;
-+
-+		pcp_spin_unlock(pcp);
-+		pcp_trylock_finish(*UP_flags);
-+
-+		pcp_trylock_prepare(*UP_flags);
-+		pcp = pcp_spin_trylock(zone->per_cpu_pageset);
-+		if (!pcp) {
-+			pcp_trylock_finish(*UP_flags);
-+			ret = false;
-+			break;
-+		}
-+
-+		/*
-+		 * Check if this thread has been migrated to a different CPU.
-+		 * If that is the case, give up and indicate that the pcp is
-+		 * returned in an unlocked state.
-+		 */
-+		if (smp_processor_id() != cpu) {
-+			pcp_spin_unlock(pcp);
-+			pcp_trylock_finish(*UP_flags);
-+			ret = false;
-+			break;
-+		}
-+	}
- 
--	free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
--			   pcp, pindex);
- 	if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
- 	    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
- 			      ZONE_MOVABLE, 0)) {
-@@ -2887,6 +2928,7 @@ static void free_frozen_page_commit(stru
- 		    next_memory_node(pgdat->node_id) < MAX_NUMNODES)
- 			atomic_set(&pgdat->kswapd_failures, 0);
- 	}
-+	return ret;
- }
- 
+@@ -99,9 +99,12 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
  /*
-@@ -2934,7 +2976,9 @@ static void __free_frozen_pages(struct p
- 	pcp_trylock_prepare(UP_flags);
- 	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
+  * On SMP, spin_trylock is sufficient protection.
+  * On PREEMPT_RT, spin_trylock is equivalent on both SMP and UP.
++ * Pass flags to a no-op inline function to typecheck and silence the unused
++ * variable warning.
+  */
+-#define pcp_trylock_prepare(flags)	do { } while (0)
+-#define pcp_trylock_finish(flag)	do { } while (0)
++static inline void __pcp_trylock_noop(unsigned long *flags) { }
++#define pcp_trylock_prepare(flags)	__pcp_trylock_noop(&(flags))
++#define pcp_trylock_finish(flags)	__pcp_trylock_noop(&(flags))
+ #else
+ 
+ /* UP spin_trylock always succeeds so disable IRQs to prevent re-entrancy. */
+@@ -129,15 +132,6 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+  * Generic helper to lookup and a per-cpu variable with an embedded spinlock.
+  * Return value should be used with equivalent unlock helper.
+  */
+-#define pcpu_spin_lock(type, member, ptr)				\
+-({									\
+-	type *_ret;							\
+-	pcpu_task_pin();						\
+-	_ret = this_cpu_ptr(ptr);					\
+-	spin_lock(&_ret->member);					\
+-	_ret;								\
+-})
+-
+ #define pcpu_spin_trylock(type, member, ptr)				\
+ ({									\
+ 	type *_ret;							\
+@@ -157,14 +151,21 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+ })
+ 
+ /* struct per_cpu_pages specific helpers. */
+-#define pcp_spin_lock(ptr)						\
+-	pcpu_spin_lock(struct per_cpu_pages, lock, ptr)
+-
+-#define pcp_spin_trylock(ptr)						\
+-	pcpu_spin_trylock(struct per_cpu_pages, lock, ptr)
++#define pcp_spin_trylock(ptr, UP_flags)					\
++({									\
++	struct per_cpu_pages *__ret;					\
++	pcp_trylock_prepare(UP_flags);					\
++	__ret = pcpu_spin_trylock(struct per_cpu_pages, lock, ptr);	\
++	if (!__ret)							\
++		pcp_trylock_finish(UP_flags);				\
++	__ret;								\
++})
+ 
+-#define pcp_spin_unlock(ptr)						\
+-	pcpu_spin_unlock(lock, ptr)
++#define pcp_spin_unlock(ptr, UP_flags)					\
++({									\
++	pcpu_spin_unlock(lock, ptr);					\
++	pcp_trylock_finish(UP_flags);					\
++})
+ 
+ #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
+ DEFINE_PER_CPU(int, numa_node);
+@@ -2887,13 +2888,10 @@ static bool free_frozen_page_commit(stru
+ 		if (to_free == 0 || pcp->count == 0)
+ 			break;
+ 
+-		pcp_spin_unlock(pcp);
+-		pcp_trylock_finish(*UP_flags);
++		pcp_spin_unlock(pcp, *UP_flags);
+ 
+-		pcp_trylock_prepare(*UP_flags);
+-		pcp = pcp_spin_trylock(zone->per_cpu_pageset);
++		pcp = pcp_spin_trylock(zone->per_cpu_pageset, *UP_flags);
+ 		if (!pcp) {
+-			pcp_trylock_finish(*UP_flags);
+ 			ret = false;
+ 			break;
+ 		}
+@@ -2904,8 +2902,7 @@ static bool free_frozen_page_commit(stru
+ 		 * returned in an unlocked state.
+ 		 */
+ 		if (smp_processor_id() != cpu) {
+-			pcp_spin_unlock(pcp);
+-			pcp_trylock_finish(*UP_flags);
++			pcp_spin_unlock(pcp, *UP_flags);
+ 			ret = false;
+ 			break;
+ 		}
+@@ -2937,7 +2934,7 @@ static bool free_frozen_page_commit(stru
+ static void __free_frozen_pages(struct page *page, unsigned int order,
+ 				fpi_t fpi_flags)
+ {
+-	unsigned long __maybe_unused UP_flags;
++	unsigned long UP_flags;
+ 	struct per_cpu_pages *pcp;
+ 	struct zone *zone;
+ 	unsigned long pfn = page_to_pfn(page);
+@@ -2973,17 +2970,15 @@ static void __free_frozen_pages(struct p
+ 		add_page_to_zone_llist(zone, page, order);
+ 		return;
+ 	}
+-	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset, UP_flags);
  	if (pcp) {
--		free_frozen_page_commit(zone, pcp, page, migratetype, order, fpi_flags);
-+		if (!free_frozen_page_commit(zone, pcp, page, migratetype,
-+						order, fpi_flags, &UP_flags))
-+			return;
- 		pcp_spin_unlock(pcp);
+ 		if (!free_frozen_page_commit(zone, pcp, page, migratetype,
+ 						order, fpi_flags, &UP_flags))
+ 			return;
+-		pcp_spin_unlock(pcp);
++		pcp_spin_unlock(pcp, UP_flags);
  	} else {
  		free_one_page(zone, page, pfn, order, fpi_flags);
-@@ -3034,8 +3078,11 @@ void free_unref_folios(struct folio_batc
- 			migratetype = MIGRATE_MOVABLE;
+ 	}
+-	pcp_trylock_finish(UP_flags);
+ }
  
- 		trace_mm_page_free_batched(&folio->page);
--		free_frozen_page_commit(zone, pcp, &folio->page, migratetype,
--					order, FPI_NONE);
-+		if (!free_frozen_page_commit(zone, pcp, &folio->page,
-+				migratetype, order, FPI_NONE, &UP_flags)) {
-+			pcp = NULL;
-+			locked_zone = NULL;
-+		}
+ void free_frozen_pages(struct page *page, unsigned int order)
+@@ -2996,7 +2991,7 @@ void free_frozen_pages(struct page *page
+  */
+ void free_unref_folios(struct folio_batch *folios)
+ {
+-	unsigned long __maybe_unused UP_flags;
++	unsigned long UP_flags;
+ 	struct per_cpu_pages *pcp = NULL;
+ 	struct zone *locked_zone = NULL;
+ 	int i, j;
+@@ -3039,8 +3034,7 @@ void free_unref_folios(struct folio_batc
+ 		if (zone != locked_zone ||
+ 		    is_migrate_isolate(migratetype)) {
+ 			if (pcp) {
+-				pcp_spin_unlock(pcp);
+-				pcp_trylock_finish(UP_flags);
++				pcp_spin_unlock(pcp, UP_flags);
+ 				locked_zone = NULL;
+ 				pcp = NULL;
+ 			}
+@@ -3059,10 +3053,8 @@ void free_unref_folios(struct folio_batc
+ 			 * trylock is necessary as folios may be getting freed
+ 			 * from IRQ or SoftIRQ context after an IO completion.
+ 			 */
+-			pcp_trylock_prepare(UP_flags);
+-			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
++			pcp = pcp_spin_trylock(zone->per_cpu_pageset, UP_flags);
+ 			if (unlikely(!pcp)) {
+-				pcp_trylock_finish(UP_flags);
+ 				free_one_page(zone, &folio->page, pfn,
+ 					      order, FPI_NONE);
+ 				continue;
+@@ -3085,10 +3077,8 @@ void free_unref_folios(struct folio_batc
+ 		}
  	}
  
- 	if (pcp) {
+-	if (pcp) {
+-		pcp_spin_unlock(pcp);
+-		pcp_trylock_finish(UP_flags);
+-	}
++	if (pcp)
++		pcp_spin_unlock(pcp, UP_flags);
+ 	folio_batch_reinit(folios);
+ }
+ 
+@@ -3339,15 +3329,12 @@ static struct page *rmqueue_pcplist(stru
+ 	struct per_cpu_pages *pcp;
+ 	struct list_head *list;
+ 	struct page *page;
+-	unsigned long __maybe_unused UP_flags;
++	unsigned long UP_flags;
+ 
+ 	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
+-	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
+-	if (!pcp) {
+-		pcp_trylock_finish(UP_flags);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset, UP_flags);
++	if (!pcp)
+ 		return NULL;
+-	}
+ 
+ 	/*
+ 	 * On allocation, reduce the number of pages that are batch freed.
+@@ -3357,8 +3344,7 @@ static struct page *rmqueue_pcplist(stru
+ 	pcp->free_count >>= 1;
+ 	list = &pcp->lists[order_to_pindex(migratetype, order)];
+ 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
+-	pcp_spin_unlock(pcp);
+-	pcp_trylock_finish(UP_flags);
++	pcp_spin_unlock(pcp, UP_flags);
+ 	if (page) {
+ 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
+ 		zone_statistics(preferred_zone, zone, 1);
+@@ -5045,7 +5031,7 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 			struct page **page_array)
+ {
+ 	struct page *page;
+-	unsigned long __maybe_unused UP_flags;
++	unsigned long UP_flags;
+ 	struct zone *zone;
+ 	struct zoneref *z;
+ 	struct per_cpu_pages *pcp;
+@@ -5139,10 +5125,9 @@ retry_this_zone:
+ 		goto failed;
+ 
+ 	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
+-	pcp_trylock_prepare(UP_flags);
+-	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
++	pcp = pcp_spin_trylock(zone->per_cpu_pageset, UP_flags);
+ 	if (!pcp)
+-		goto failed_irq;
++		goto failed;
+ 
+ 	/* Attempt the batch allocation */
+ 	pcp_list = &pcp->lists[order_to_pindex(ac.migratetype, 0)];
+@@ -5159,8 +5144,8 @@ retry_this_zone:
+ 		if (unlikely(!page)) {
+ 			/* Try and allocate at least one page */
+ 			if (!nr_account) {
+-				pcp_spin_unlock(pcp);
+-				goto failed_irq;
++				pcp_spin_unlock(pcp, UP_flags);
++				goto failed;
+ 			}
+ 			break;
+ 		}
+@@ -5171,8 +5156,7 @@ retry_this_zone:
+ 		page_array[nr_populated++] = page;
+ 	}
+ 
+-	pcp_spin_unlock(pcp);
+-	pcp_trylock_finish(UP_flags);
++	pcp_spin_unlock(pcp, UP_flags);
+ 
+ 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
+ 	zone_statistics(zonelist_zone(ac.preferred_zoneref), zone, nr_account);
+@@ -5180,9 +5164,6 @@ retry_this_zone:
+ out:
+ 	return nr_populated;
+ 
+-failed_irq:
+-	pcp_trylock_finish(UP_flags);
+-
+ failed:
+ 	page = __alloc_pages_noprof(gfp, 0, preferred_nid, nodemask);
+ 	if (page)
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
