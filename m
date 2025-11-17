@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45278218EB1
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D27AA21FF23
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343122; cv=none; b=tbtA+/J5uAAM46p6khXr2I1zfh+acnXqJfjh5Wg1LlZTMCXJOXlFgb1VkHR1TZc36xwxZ0S3gpUvK2rFWkhe0G+jiFGEx/YRyiUQxd1H95Zg7V/Ue0XYURfnRdEaJvnkNzsWSF0YS1jxXJEW5gFSwbGXVdi80fUDwmycE5a0ic0=
+	t=1763343123; cv=none; b=N1n88qS2mEp+F05Vi3xoyW2Wz9gBZ787T9vbl6p7A+ELWkX4YXBn1yT2vVOWKfUTBfoJA57wDL0Da0P7nI1KKGILwibIpDcA8WuilZVrSBgtbkI0g7kECATow+6uhl4p4Lg5+SfT0bKz32ive2UVi4oKzcKvuQiTnjoSwicWbN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343122; c=relaxed/simple;
-	bh=e05zBUU64ZJv6jl1YJyu4bfzRifvYfdzD5rAu4tw8Tk=;
-	h=Date:To:From:Subject:Message-Id; b=RO/UsFOEMFTc0BM8GSFca7fLjVGihHAHjj2Rs8Zh11LfecMLzIMpJlbpPjpYC8bD9mYp7noRI4LpAKvUgkZgLL5BktpCwDiGvmlOM6fDDmFM8633Q8Z0N41AROoXZdR2sjQyJygUEN+Kl0JqSu0AgiFbnsLTJJABTUb7GOCGVDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lWzPC5/g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343123; c=relaxed/simple;
+	bh=pZD/gYOQlhLpRA6QtVc/vhvheXpyrzB1QioZkf8BnKU=;
+	h=Date:To:From:Subject:Message-Id; b=AsytyWlnK9coWeCzvRWnHhA6NsxrW8kNHY+4J6Ozui2J4H67BVzyRlR7X1grXqh1WKPuacWV1pyrkabysAlmXeEO7ad0hLR+jjZ7b2eVUax7bD5K3wzbSAhty48Y2KZouoXG210kLIQFOxM2WERaTeOX9I3GfBiLWwt3GY4VBGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XVqx2uZ1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lWzPC5/g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10FD7C19422;
-	Mon, 17 Nov 2025 01:32:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XVqx2uZ1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60EB7C2BC86;
+	Mon, 17 Nov 2025 01:32:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343122;
-	bh=e05zBUU64ZJv6jl1YJyu4bfzRifvYfdzD5rAu4tw8Tk=;
+	s=korg; t=1763343123;
+	bh=pZD/gYOQlhLpRA6QtVc/vhvheXpyrzB1QioZkf8BnKU=;
 	h=Date:To:From:Subject:From;
-	b=lWzPC5/gL4iNUjeSe6zCRi+EbhmdUSvz/kTLz7q2l6dvagtDFIzDfwjEF0BxjBtZK
-	 r4JOKw8VVgHrfR36oPzZRuCtBTr+lptcRXNuQXPcQUZKjHtgY4p+2nGSckt/pquf5A
-	 2HRi+4+om2YvTjbgRfMXc4heVb2yQCAQ024MW/+Y=
-Date: Sun, 16 Nov 2025 17:32:01 -0800
+	b=XVqx2uZ1Zn6lWgSILrxyOY1973Xf4o5iuCl1E3wBdNrLWuKusKY8sBWRoPvW9/+i3
+	 rU834gmcCRXYNliuKyxwyxC1Zlzkyx+kyOVBwoE4WHYDZbosZJ5F5Pcu0KY18vokNe
+	 OLPa9OHRd7fa4f/1PrcRsbiOS3bxk0Ft41MObVj8=
+Date: Sun, 16 Nov 2025 17:32:02 -0800
 To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,ritesh.list@gmail.com,glider@google.com,dvyukov@google.com,christophe.leroy@csgroup.eu,bhe@redhat.com,andreyknvl@gmail.com,snovitoll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-remove-__kasan_save_free_info-wrapper.patch removed from -mm tree
-Message-Id: <20251117013202.10FD7C19422@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-cleanup-of-kasan_enabled-checks.patch removed from -mm tree
+Message-Id: <20251117013203.60EB7C2BC86@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: remove __kasan_save_free_info wrapper
+     Subject: kasan: cleanup of kasan_enabled() checks
 has been removed from the -mm tree.  Its filename was
-     kasan-remove-__kasan_save_free_info-wrapper.patch
+     kasan-cleanup-of-kasan_enabled-checks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
-Subject: kasan: remove __kasan_save_free_info wrapper
-Date: Thu, 9 Oct 2025 20:54:02 +0500
+Subject: kasan: cleanup of kasan_enabled() checks
+Date: Thu, 9 Oct 2025 20:54:03 +0500
 
-Patch series "kasan: cleanups for kasan_enabled() checks".
+Deduplication of kasan_enabled() checks which are already used by callers.
 
-This patch series is the continuation of [1] the previous discussion
-related to the KASAN internal refactoring.
+* Altered functions:
 
-Here we remove kasan_enabled() checks which are duplicated by higher
-callers.  These checks deduplication are also related to the separate
-patch series [2].
+check_page_allocation
+	Delete the check because callers have it already in __wrappers in
+	include/linux/kasan.h:
+		__kasan_kfree_large
+		__kasan_mempool_poison_pages
+		__kasan_mempool_poison_object
 
+kasan_populate_vmalloc, kasan_release_vmalloc
+	Add __wrappers in include/linux/kasan.h.
+	They are called externally in mm/vmalloc.c.
 
-This patch (of 2):
+__kasan_unpoison_vmalloc, __kasan_poison_vmalloc
+	Delete checks because there're already kasan_enabled() checks
+	in respective __wrappers in include/linux/kasan.h.
 
-We don't need a kasan_enabled() check in kasan_save_free_info() at all. 
-Both the higher level paths (kasan_slab_free and
-kasan_mempool_poison_object) already contain this check.  Therefore,
-remove the __wrapper.
+release_free_meta -- Delete the check because the higher caller path
+	has it already. See the stack trace:
 
-Link: https://lkml.kernel.org/r/20251009155403.1379150-1-snovitoll@gmail.com
-Link: https://lkml.kernel.org/r/20251009155403.1379150-2-snovitoll@gmail.com
-Link: https://lore.kernel.org/all/CA+fCnZce3AR+pUesbDkKMtMJ+iR8eDrcjFTbVpAcwjBoZ=gJnQ@mail.gmail.com/ [1]
-Link: https://lore.kernel.org/all/aNTfPjS2buXMI46D@MiWiFi-R3L-srv/ [2]
+	__kasan_slab_free -- has the check already
+	__kasan_mempool_poison_object -- has the check already
+		poison_slab_object
+			kasan_save_free_info
+				release_free_meta
+					kasan_enabled() -- Delete here
+
+Link: https://lkml.kernel.org/r/20251009155403.1379150-3-snovitoll@gmail.com
 Signed-off-by: Sabyrzhan Tasbolatov <snovitoll@gmail.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -80,49 +89,143 @@ Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/generic.c |    2 +-
- mm/kasan/kasan.h   |    7 +------
- mm/kasan/tags.c    |    2 +-
- 3 files changed, 3 insertions(+), 8 deletions(-)
+ include/linux/kasan.h |   20 ++++++++++++++++++--
+ mm/kasan/common.c     |    3 ---
+ mm/kasan/generic.c    |    3 ---
+ mm/kasan/shadow.c     |   20 ++++----------------
+ 4 files changed, 22 insertions(+), 24 deletions(-)
 
---- a/mm/kasan/generic.c~kasan-remove-__kasan_save_free_info-wrapper
+--- a/include/linux/kasan.h~kasan-cleanup-of-kasan_enabled-checks
++++ a/include/linux/kasan.h
+@@ -571,11 +571,27 @@ static inline void kasan_init_hw_tags(vo
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ 
+ void kasan_populate_early_vm_area_shadow(void *start, unsigned long size);
+-int kasan_populate_vmalloc(unsigned long addr, unsigned long size, gfp_t gfp_mask);
+-void kasan_release_vmalloc(unsigned long start, unsigned long end,
++int __kasan_populate_vmalloc(unsigned long addr, unsigned long size, gfp_t gfp_mask);
++static inline int kasan_populate_vmalloc(unsigned long addr,
++					 unsigned long size, gfp_t gfp_mask)
++{
++	if (kasan_enabled())
++		return __kasan_populate_vmalloc(addr, size, gfp_mask);
++	return 0;
++}
++void __kasan_release_vmalloc(unsigned long start, unsigned long end,
+ 			   unsigned long free_region_start,
+ 			   unsigned long free_region_end,
+ 			   unsigned long flags);
++static inline void kasan_release_vmalloc(unsigned long start, unsigned long end,
++			   unsigned long free_region_start,
++			   unsigned long free_region_end,
++			   unsigned long flags)
++{
++	if (kasan_enabled())
++		return __kasan_release_vmalloc(start, end, free_region_start,
++					 free_region_end, flags);
++}
+ 
+ #else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+ 
+--- a/mm/kasan/common.c~kasan-cleanup-of-kasan_enabled-checks
++++ a/mm/kasan/common.c
+@@ -305,9 +305,6 @@ bool __kasan_slab_free(struct kmem_cache
+ 
+ static inline bool check_page_allocation(void *ptr, unsigned long ip)
+ {
+-	if (!kasan_enabled())
+-		return false;
+-
+ 	if (ptr != page_address(virt_to_head_page(ptr))) {
+ 		kasan_report_invalid_free(ptr, ip, KASAN_REPORT_INVALID_FREE);
+ 		return true;
+--- a/mm/kasan/generic.c~kasan-cleanup-of-kasan_enabled-checks
 +++ a/mm/kasan/generic.c
-@@ -573,7 +573,7 @@ void kasan_save_alloc_info(struct kmem_c
- 	kasan_save_track(&alloc_meta->alloc_track, flags);
- }
+@@ -506,9 +506,6 @@ static void release_alloc_meta(struct ka
  
--void __kasan_save_free_info(struct kmem_cache *cache, void *object)
-+void kasan_save_free_info(struct kmem_cache *cache, void *object)
+ static void release_free_meta(const void *object, struct kasan_free_meta *meta)
  {
- 	struct kasan_free_meta *free_meta;
- 
---- a/mm/kasan/kasan.h~kasan-remove-__kasan_save_free_info-wrapper
-+++ a/mm/kasan/kasan.h
-@@ -399,12 +399,7 @@ void kasan_set_track(struct kasan_track
- void kasan_save_track(struct kasan_track *track, gfp_t flags);
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
- 
--void __kasan_save_free_info(struct kmem_cache *cache, void *object);
--static inline void kasan_save_free_info(struct kmem_cache *cache, void *object)
--{
--	if (kasan_enabled())
--		__kasan_save_free_info(cache, object);
--}
-+void kasan_save_free_info(struct kmem_cache *cache, void *object);
- 
- #ifdef CONFIG_KASAN_GENERIC
- bool kasan_quarantine_put(struct kmem_cache *cache, void *object);
---- a/mm/kasan/tags.c~kasan-remove-__kasan_save_free_info-wrapper
-+++ a/mm/kasan/tags.c
-@@ -142,7 +142,7 @@ void kasan_save_alloc_info(struct kmem_c
- 	save_stack_info(cache, object, flags, false);
+-	if (!kasan_enabled())
+-		return;
+-
+ 	/* Check if free meta is valid. */
+ 	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_SLAB_FREE_META)
+ 		return;
+--- a/mm/kasan/shadow.c~kasan-cleanup-of-kasan_enabled-checks
++++ a/mm/kasan/shadow.c
+@@ -354,7 +354,7 @@ static int ___alloc_pages_bulk(struct pa
+ 	return 0;
  }
  
--void __kasan_save_free_info(struct kmem_cache *cache, void *object)
-+void kasan_save_free_info(struct kmem_cache *cache, void *object)
+-static int __kasan_populate_vmalloc(unsigned long start, unsigned long end, gfp_t gfp_mask)
++static int __kasan_populate_vmalloc_do(unsigned long start, unsigned long end, gfp_t gfp_mask)
  {
- 	save_stack_info(cache, object, 0, true);
+ 	unsigned long nr_pages, nr_total = PFN_UP(end - start);
+ 	struct vmalloc_populate_data data;
+@@ -395,14 +395,11 @@ static int __kasan_populate_vmalloc(unsi
+ 	return ret;
  }
+ 
+-int kasan_populate_vmalloc(unsigned long addr, unsigned long size, gfp_t gfp_mask)
++int __kasan_populate_vmalloc(unsigned long addr, unsigned long size, gfp_t gfp_mask)
+ {
+ 	unsigned long shadow_start, shadow_end;
+ 	int ret;
+ 
+-	if (!kasan_enabled())
+-		return 0;
+-
+ 	if (!is_vmalloc_or_module_addr((void *)addr))
+ 		return 0;
+ 
+@@ -424,7 +421,7 @@ int kasan_populate_vmalloc(unsigned long
+ 	shadow_start = PAGE_ALIGN_DOWN(shadow_start);
+ 	shadow_end = PAGE_ALIGN(shadow_end);
+ 
+-	ret = __kasan_populate_vmalloc(shadow_start, shadow_end, gfp_mask);
++	ret = __kasan_populate_vmalloc_do(shadow_start, shadow_end, gfp_mask);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -566,7 +563,7 @@ static int kasan_depopulate_vmalloc_pte(
+  * pages entirely covered by the free region, we will not run in to any
+  * trouble - any simultaneous allocations will be for disjoint regions.
+  */
+-void kasan_release_vmalloc(unsigned long start, unsigned long end,
++void __kasan_release_vmalloc(unsigned long start, unsigned long end,
+ 			   unsigned long free_region_start,
+ 			   unsigned long free_region_end,
+ 			   unsigned long flags)
+@@ -575,9 +572,6 @@ void kasan_release_vmalloc(unsigned long
+ 	unsigned long region_start, region_end;
+ 	unsigned long size;
+ 
+-	if (!kasan_enabled())
+-		return;
+-
+ 	region_start = ALIGN(start, KASAN_MEMORY_PER_SHADOW_PAGE);
+ 	region_end = ALIGN_DOWN(end, KASAN_MEMORY_PER_SHADOW_PAGE);
+ 
+@@ -626,9 +620,6 @@ void *__kasan_unpoison_vmalloc(const voi
+ 	 * with setting memory tags, so the KASAN_VMALLOC_INIT flag is ignored.
+ 	 */
+ 
+-	if (!kasan_enabled())
+-		return (void *)start;
+-
+ 	if (!is_vmalloc_or_module_addr(start))
+ 		return (void *)start;
+ 
+@@ -651,9 +642,6 @@ void *__kasan_unpoison_vmalloc(const voi
+  */
+ void __kasan_poison_vmalloc(const void *start, unsigned long size)
+ {
+-	if (!kasan_enabled())
+-		return;
+-
+ 	if (!is_vmalloc_or_module_addr(start))
+ 		return;
+ 
 _
 
 Patches currently in -mm which might be from snovitoll@gmail.com are
