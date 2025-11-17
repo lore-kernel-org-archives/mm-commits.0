@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B0D91E1DE9
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B7131AF0BB
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343077; cv=none; b=TlEIfomnpSUMpv53R3ThfhmbtGNESj09Oh0GS90wNu7YNDjoNBg/MtEflETZ0FcclxFSQlMp7oQ7PGjODu/GNXCJMJacEqlPm530KV3pt+XefRzIsHeaGWyIMXVIxJZKzNOe4iAcyOg/VHv6Xmeh94wZYp0QJWYB9rQguL9mjsI=
+	t=1763343078; cv=none; b=ECaFYsS5Pbe2uXCl9QBf9M2DWKj25Eh2612uw7lWggG5aCUq1+TNDB5kAk/hMwMnTq8VBu2IETd+MPjlz0HowqsIaqlGZui+rXlCGqUi06AZ9G1oIzECmlYTMCZJs7Di5E4zIqgRw5pSikrYLn5fCVN5Mfscbe2H+090XzPKjGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343077; c=relaxed/simple;
-	bh=Q5YYIdWtJR46/I26aX9tiQuhjw3MHjNHRsSHfO36Xv4=;
-	h=Date:To:From:Subject:Message-Id; b=ipsFrzFTm2bvfrayWOF0xjoL+9k6kK3CjeBz0XC86PutMLxFPPqawmFx0G34U8FNeicI2plr0Dn0jNNarHKss17QKTqPX06s0GK0GwaD+pyQOiRqpUb7x9e5a0b0PxbEX9g3GZr0dg1d4BjBaLwI/iGqE1/H7HvvLRJUFhGz0W4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DT4LjTPL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343078; c=relaxed/simple;
+	bh=Y9VDwQMIhwY5pB8AuslZ4ROy+wY75ph0zUu5hpEnOdg=;
+	h=Date:To:From:Subject:Message-Id; b=L+IKF3HjoHE3TW7iyEti7BSSIN6cfHR5JCO9AzQakmmeB4ucZ7XahGVNTO2ptySXwBRhwkVSeTX44iN8pqaX8lDyM8pm7gfNrVlWg5/Omblrg0r5JaiIakvVNwtwmntln30+t4oxQODXTYmcMk5jhW7GTkHtid5U7qmVZZ0cXDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dQMfbaSy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DT4LjTPL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 547CBC4CEF5;
-	Mon, 17 Nov 2025 01:31:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dQMfbaSy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5AA0C19421;
+	Mon, 17 Nov 2025 01:31:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343076;
-	bh=Q5YYIdWtJR46/I26aX9tiQuhjw3MHjNHRsSHfO36Xv4=;
+	s=korg; t=1763343077;
+	bh=Y9VDwQMIhwY5pB8AuslZ4ROy+wY75ph0zUu5hpEnOdg=;
 	h=Date:To:From:Subject:From;
-	b=DT4LjTPLsAnDFa7QvRAp+id0qUhB5UGhXkAmxrq0gGV2fxj1c37gmhpSQLgiwUc0Y
-	 Vqh+5fVqf5owdE8ZlfLo2TU/4N9YT2uUGZcgUavNB51w31QASHgACEPg3mMSrLczUg
-	 QJj1D7l15z0L9FLcB/8Au6gRKXbCWpu5I0TRNeGQ=
-Date: Sun, 16 Nov 2025 17:31:15 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,richard.weiyang@gmail.com,Liam.Howlett@oracle.com,dev.jain@arm.com,chrisl@kernel.org,jianyungao89@gmail.com,akpm@linux-foundation.org
+	b=dQMfbaSy19lpVEDNKOtvsaJnSzerSQJNmKMOFVosV2iwMtWqln0K1ek/Xn33UAth5
+	 kReuAAROkUY2T+o3TNvCG1htXtxIvP9rIHKNxGfF/JwCwz4sOwcu1N+psjYTKQ0QE4
+	 0B3ojsLtB1ROL1CNtVtUAA9StcRzMyf8fUFptOhc=
+Date: Sun, 16 Nov 2025 17:31:17 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-some-typos-in-mm-module.patch removed from -mm tree
-Message-Id: <20251117013116.547CBC4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch removed from -mm tree
+Message-Id: <20251117013117.A5AA0C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,278 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix some typos in mm module
+     Subject: mm/ptdump: replace READ_ONCE() with standard page table accessors
 has been removed from the -mm tree.  Its filename was
-     mm-fix-some-typos-in-mm-module.patch
+     mm-ptdump-replace-read_once-with-standard-page-table-accessors.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "jianyun.gao" <jianyungao89@gmail.com>
-Subject: mm: fix some typos in mm module
-Date: Mon, 29 Sep 2025 08:26:08 +0800
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/ptdump: replace READ_ONCE() with standard page table accessors
+Date: Wed, 1 Oct 2025 05:25:02 +0100
 
-Below are some typos in the code comments:
+Replace READ_ONCE() with standard page table accessors i.e pxdp_get()
+which anyways default into READ_ONCE() in cases where platform does not
+override.  Also convert ptep_get_lockless() into ptep_get() as well.
 
-  intevals ==> intervals
-  addesses ==> addresses
-  unavaliable ==> unavailable
-  facor ==> factor
-  droping ==> dropping
-  exlusive ==> exclusive
-  decription ==> description
-  confict ==> conflict
-  desriptions ==> descriptions
-  otherwize ==> otherwise
-  vlaue ==> value
-  cheching ==> checking
-  exisitng ==> existing
-  modifed ==> modified
-  differenciate ==> differentiate
-  refernece ==> reference
-  permissons ==> permissions
-  indepdenent ==> independent
-  spliting ==> splitting
-
-Just fix it.
-
-Link: https://lkml.kernel.org/r/20250929002608.1633825-1-jianyungao89@gmail.com
-Signed-off-by: jianyun.gao <jianyungao89@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Link: https://lkml.kernel.org/r/20251001042502.1400726-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: SeongJae Park <sj@kernel.org>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c     |    2 +-
- mm/gup.c             |    2 +-
- mm/hugetlb.c         |    6 +++---
- mm/hugetlb_vmemmap.c |    6 +++---
- mm/kmsan/core.c      |    2 +-
- mm/ksm.c             |    2 +-
- mm/memory-tiers.c    |    2 +-
- mm/memory.c          |    4 ++--
- mm/secretmem.c       |    2 +-
- mm/slab_common.c     |    2 +-
- mm/slub.c            |    2 +-
- mm/swapfile.c        |    2 +-
- mm/userfaultfd.c     |    2 +-
- mm/vma.c             |    4 ++--
- 14 files changed, 20 insertions(+), 20 deletions(-)
+ mm/ptdump.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/damon/sysfs.c
-@@ -1264,7 +1264,7 @@ enum damon_sysfs_cmd {
- 	DAMON_SYSFS_CMD_UPDATE_SCHEMES_EFFECTIVE_QUOTAS,
- 	/*
- 	 * @DAMON_SYSFS_CMD_UPDATE_TUNED_INTERVALS: Update the tuned monitoring
--	 * intevals.
-+	 * intervals.
- 	 */
- 	DAMON_SYSFS_CMD_UPDATE_TUNED_INTERVALS,
- 	/*
---- a/mm/gup.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/gup.c
-@@ -2710,7 +2710,7 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
-  *
-  *  *) ptes can be read atomically by the architecture.
-  *
-- *  *) valid user addesses are below TASK_MAX_SIZE
-+ *  *) valid user addresses are below TASK_MAX_SIZE
-  *
-  * The last two assumptions can be relaxed by the addition of helper functions.
-  *
---- a/mm/hugetlb.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/hugetlb.c
-@@ -2934,7 +2934,7 @@ typedef enum {
- 	 * NOTE: This is mostly identical to MAP_CHG_NEEDED, except
- 	 * that currently vma_needs_reservation() has an unwanted side
- 	 * effect to either use end() or commit() to complete the
--	 * transaction.	 Hence it needs to differenciate from NEEDED.
-+	 * transaction. Hence it needs to differentiate from NEEDED.
- 	 */
- 	MAP_CHG_ENFORCED = 2,
- } map_chg_state;
-@@ -6007,7 +6007,7 @@ void __unmap_hugepage_range(struct mmu_g
- 	/*
- 	 * If we unshared PMDs, the TLB flush was not recorded in mmu_gather. We
- 	 * could defer the flush until now, since by holding i_mmap_rwsem we
--	 * guaranteed that the last refernece would not be dropped. But we must
-+	 * guaranteed that the last reference would not be dropped. But we must
- 	 * do the flushing before we return, as otherwise i_mmap_rwsem will be
- 	 * dropped and the last reference to the shared PMDs page might be
- 	 * dropped as well.
-@@ -7193,7 +7193,7 @@ long hugetlb_change_protection(struct vm
- 		} else if (unlikely(is_pte_marker(pte))) {
- 			/*
- 			 * Do nothing on a poison marker; page is
--			 * corrupted, permissons do not apply.  Here
-+			 * corrupted, permissions do not apply. Here
- 			 * pte_marker_uffd_wp()==true implies !poison
- 			 * because they're mutual exclusive.
- 			 */
---- a/mm/hugetlb_vmemmap.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/hugetlb_vmemmap.c
-@@ -75,7 +75,7 @@ static int vmemmap_split_pmd(pmd_t *pmd,
- 	if (likely(pmd_leaf(*pmd))) {
- 		/*
- 		 * Higher order allocations from buddy allocator must be able to
--		 * be treated as indepdenent small pages (as they can be freed
-+		 * be treated as independent small pages (as they can be freed
- 		 * individually).
- 		 */
- 		if (!PageReserved(head))
-@@ -684,7 +684,7 @@ static void __hugetlb_vmemmap_optimize_f
- 		ret = hugetlb_vmemmap_split_folio(h, folio);
- 
- 		/*
--		 * Spliting the PMD requires allocating a page, thus lets fail
-+		 * Splitting the PMD requires allocating a page, thus let's fail
- 		 * early once we encounter the first OOM. No point in retrying
- 		 * as it can be dynamically done on remap with the memory
- 		 * we get back from the vmemmap deduplication.
-@@ -715,7 +715,7 @@ static void __hugetlb_vmemmap_optimize_f
- 		/*
- 		 * Pages to be freed may have been accumulated.  If we
- 		 * encounter an ENOMEM,  free what we have and try again.
--		 * This can occur in the case that both spliting fails
-+		 * This can occur in the case that both splitting fails
- 		 * halfway and head page allocation also failed. In this
- 		 * case __hugetlb_vmemmap_optimize_folio() would free memory
- 		 * allowing more vmemmap remaps to occur.
---- a/mm/kmsan/core.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/kmsan/core.c
-@@ -33,7 +33,7 @@ bool kmsan_enabled __read_mostly;
- 
- /*
-  * Per-CPU KMSAN context to be used in interrupts, where current->kmsan is
-- * unavaliable.
-+ * unavailable.
-  */
- DEFINE_PER_CPU(struct kmsan_ctx, kmsan_percpu_ctx);
- 
---- a/mm/ksm.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/ksm.c
-@@ -389,7 +389,7 @@ static unsigned long ewma(unsigned long
-  * exponentially weighted moving average. The new pages_to_scan value is
-  * multiplied with that change factor:
-  *
-- *      new_pages_to_scan *= change facor
-+ *      new_pages_to_scan *= change factor
-  *
-  * The new_pages_to_scan value is limited by the cpu min and max values. It
-  * calculates the cpu percent for the last scan and calculates the new
---- a/mm/memory.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/memory.c
-@@ -4328,7 +4328,7 @@ static inline bool should_try_to_free_sw
- 	 * If we want to map a page that's in the swapcache writable, we
- 	 * have to detect via the refcount if we're really the exclusive
- 	 * user. Try freeing the swapcache to get rid of the swapcache
--	 * reference only in case it's likely that we'll be the exlusive user.
-+	 * reference only in case it's likely that we'll be the exclusive user.
- 	 */
- 	return (fault_flags & FAULT_FLAG_WRITE) && !folio_test_ksm(folio) &&
- 		folio_ref_count(folio) == (1 + folio_nr_pages(folio));
-@@ -5405,7 +5405,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 
- /**
-  * set_pte_range - Set a range of PTEs to point to pages in a folio.
-- * @vmf: Fault decription.
-+ * @vmf: Fault description.
-  * @folio: The folio that contains @page.
-  * @page: The first page to create a PTE for.
-  * @nr: The number of PTEs to create.
---- a/mm/memory-tiers.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/memory-tiers.c
-@@ -519,7 +519,7 @@ static inline void __init_node_memory_ty
- 	 * for each device getting added in the same NUMA node
- 	 * with this specific memtype, bump the map count. We
- 	 * Only take memtype device reference once, so that
--	 * changing a node memtype can be done by droping the
-+	 * changing a node memtype can be done by dropping the
- 	 * only reference count taken here.
- 	 */
- 
---- a/mm/secretmem.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/secretmem.c
-@@ -227,7 +227,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
- 	struct file *file;
- 	int fd, err;
- 
--	/* make sure local flags do not confict with global fcntl.h */
-+	/* make sure local flags do not conflict with global fcntl.h */
- 	BUILD_BUG_ON(SECRETMEM_FLAGS_MASK & O_CLOEXEC);
- 
- 	if (!secretmem_enable || !can_set_direct_map())
---- a/mm/slab_common.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/slab_common.c
-@@ -259,7 +259,7 @@ out:
-  * @object_size: The size of objects to be created in this cache.
-  * @args: Additional arguments for the cache creation (see
-  *        &struct kmem_cache_args).
-- * @flags: See the desriptions of individual flags. The common ones are listed
-+ * @flags: See the descriptions of individual flags. The common ones are listed
-  *         in the description below.
-  *
-  * Not to be called directly, use the kmem_cache_create() wrapper with the same
---- a/mm/slub.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/slub.c
-@@ -2533,7 +2533,7 @@ bool slab_free_hook(struct kmem_cache *s
- 		memset((char *)kasan_reset_tag(x) + inuse, 0,
- 		       s->size - inuse - rsize);
- 		/*
--		 * Restore orig_size, otherwize kmalloc redzone overwritten
-+		 * Restore orig_size, otherwise kmalloc redzone overwritten
- 		 * would be reported
- 		 */
- 		set_orig_size(s, x, orig_size);
---- a/mm/swapfile.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/swapfile.c
-@@ -1677,7 +1677,7 @@ static bool swap_entries_put_map_nr(stru
- 
- /*
-  * Check if it's the last ref of swap entry in the freeing path.
-- * Qualified vlaue includes 1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM.
-+ * Qualified value includes 1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM.
-  */
- static inline bool __maybe_unused swap_is_last_ref(unsigned char count)
+--- a/mm/ptdump.c~mm-ptdump-replace-read_once-with-standard-page-table-accessors
++++ a/mm/ptdump.c
+@@ -31,7 +31,7 @@ static int ptdump_pgd_entry(pgd_t *pgd,
+ 			    unsigned long next, struct mm_walk *walk)
  {
---- a/mm/userfaultfd.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/userfaultfd.c
-@@ -1578,7 +1578,7 @@ static int validate_move_areas(struct us
+ 	struct ptdump_state *st = walk->private;
+-	pgd_t val = READ_ONCE(*pgd);
++	pgd_t val = pgdp_get(pgd);
  
- 	/*
- 	 * For now, we keep it simple and only move between writable VMAs.
--	 * Access flags are equal, therefore cheching only the source is enough.
-+	 * Access flags are equal, therefore checking only the source is enough.
- 	 */
- 	if (!(src_vma->vm_flags & VM_WRITE))
- 		return -EINVAL;
---- a/mm/vma.c~mm-fix-some-typos-in-mm-module
-+++ a/mm/vma.c
-@@ -109,7 +109,7 @@ static inline bool is_mergeable_vma(stru
- static bool is_mergeable_anon_vma(struct vma_merge_struct *vmg, bool merge_next)
+ #if CONFIG_PGTABLE_LEVELS > 4 && \
+ 		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+@@ -54,7 +54,7 @@ static int ptdump_p4d_entry(p4d_t *p4d,
+ 			    unsigned long next, struct mm_walk *walk)
  {
- 	struct vm_area_struct *tgt = merge_next ? vmg->next : vmg->prev;
--	struct vm_area_struct *src = vmg->middle; /* exisitng merge case. */
-+	struct vm_area_struct *src = vmg->middle; /* existing merge case. */
- 	struct anon_vma *tgt_anon = tgt->anon_vma;
- 	struct anon_vma *src_anon = vmg->anon_vma;
+ 	struct ptdump_state *st = walk->private;
+-	p4d_t val = READ_ONCE(*p4d);
++	p4d_t val = p4dp_get(p4d);
  
-@@ -798,7 +798,7 @@ static bool can_merge_remove_vma(struct
-  * Returns: The merged VMA if merge succeeds, or NULL otherwise.
-  *
-  * ASSUMPTIONS:
-- * - The caller must assign the VMA to be modifed to @vmg->middle.
-+ * - The caller must assign the VMA to be modified to @vmg->middle.
-  * - The caller must have set @vmg->prev to the previous VMA, if there is one.
-  * - The caller must not set @vmg->next, as we determine this.
-  * - The caller must hold a WRITE lock on the mm_struct->mmap_lock.
+ #if CONFIG_PGTABLE_LEVELS > 3 && \
+ 		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+@@ -77,7 +77,7 @@ static int ptdump_pud_entry(pud_t *pud,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pud_t val = READ_ONCE(*pud);
++	pud_t val = pudp_get(pud);
+ 
+ #if CONFIG_PGTABLE_LEVELS > 2 && \
+ 		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+@@ -100,7 +100,7 @@ static int ptdump_pmd_entry(pmd_t *pmd,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pmd_t val = READ_ONCE(*pmd);
++	pmd_t val = pmdp_get(pmd);
+ 
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ 	if (pmd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pte)))
+@@ -121,7 +121,7 @@ static int ptdump_pte_entry(pte_t *pte,
+ 			    unsigned long next, struct mm_walk *walk)
+ {
+ 	struct ptdump_state *st = walk->private;
+-	pte_t val = ptep_get_lockless(pte);
++	pte_t val = ptep_get(pte);
+ 
+ 	if (st->effective_prot_pte)
+ 		st->effective_prot_pte(st, val);
 _
 
-Patches currently in -mm which might be from jianyungao89@gmail.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 
