@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F3E5231845
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1574D2264CA;
+	Mon, 17 Nov 2025 01:33:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343231; cv=none; b=NOFnrEF8sFRQsTa9egxDDMUhEvJeJOD3oa+fLLfSbsOFcp5HscjjjnyeT+BMyd7NASvYD1fojHVMKP+7pOOpxfvGuqHSD1iK3kiTLsB29JbLZh5krSwh4Qd4LW8gNio8w+jwjz0MQ9d0tZS6pYlzvqpQ+XPEVdXcgUGGnp78W7s=
+	t=1763343233; cv=none; b=GjTuDLv4N7sH2da0WvpEvf2lhGcqbr3vTnoW8+AxM+q3JohUFEEVvP7ue/kASdlwp7l/Ved/wfFmb1VEnjbNUh6U+Q0rQ7kpNJ4nX64NdmjZT+K7azCMnRAiQinKHmsNnCEtYFAlM4htfw3LoU2ae0U0lbKkgah4f6xZIpSJr2g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343231; c=relaxed/simple;
-	bh=ICG8IH12e5EZ5OliOMfvAKpYnZSEtRGFTepKnrgk+ck=;
-	h=Date:To:From:Subject:Message-Id; b=CylrsVsv8zHYIrZOwJlj0zC1ZtEEWJCPqoP21HasqRlRNVcBsUbDKWIivHg2YwQ9L8tXK/hWzRhVeN7FaVjsMirmFJ2tPtASQ2u+O79xoU/UIc50TT77pRvsSEkHCHX2AM0hI4mxdi9Zu474XEYleQHEPiRc4qcT1v4qksYNyds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sLf/Vve8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343233; c=relaxed/simple;
+	bh=evuTg8UmkyEwqfbuUJoHjj/jq+1Fpnt1XbCb9ESh1h8=;
+	h=Date:To:From:Subject:Message-Id; b=J1x1b3BWeh9CGiUcZ6SJ5IkqwjtSaM1VUlZZ3+4ZDp7s9mfMdIMY49YNrzvz8La6tLgO8BbGUdrsVfmzhQgI51uWaFoSw57CJ0RGUm1pwRybgZvWk/DMW/ZH5x1FoMYdzBxUzyh6k4JdDCayssgy7W8Huww/V88JpFjd/LKR7bU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CRzhCdZC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sLf/Vve8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37E53C19423;
-	Mon, 17 Nov 2025 01:33:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CRzhCdZC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD345C4CEF5;
+	Mon, 17 Nov 2025 01:33:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343231;
-	bh=ICG8IH12e5EZ5OliOMfvAKpYnZSEtRGFTepKnrgk+ck=;
+	s=korg; t=1763343233;
+	bh=evuTg8UmkyEwqfbuUJoHjj/jq+1Fpnt1XbCb9ESh1h8=;
 	h=Date:To:From:Subject:From;
-	b=sLf/Vve8pKZI7Nn3MQd/4rDDMNZ/ikIp/J0Q5fmyFxd+OfLvihu2A/fNhCCaJDMbp
-	 Enhfqziyg6H00MTkh+dkP3E9lNtQh8WZtND6PNUxHFgMqMgMxWYdsUQOptyUgX1iVg
-	 4oE6CV7b92Kvu9QdTGPm7nb0Jmb8Lft57Mx6fV2o=
-Date: Sun, 16 Nov 2025 17:33:50 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=CRzhCdZCoEnJsIcPEHv8tKlZLSELO9c/EioRWBbk8cVxPqppCaSKktGIJ7NPpYDAQ
+	 vYIR8Pm3nokaElPycjnEK/iMgi0mFVAEYr46d5+0N2HhPJcJR+OG+RZF/8Aekxdhmy
+	 Qtn09LuUALjLSTMFdffZ+gFmFcrZMuUlqhKIq2bA=
+Date: Sun, 16 Nov 2025 17:33:52 -0800
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,david@redhat.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch removed from -mm tree
-Message-Id: <20251117013351.37E53C19423@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-do-not-perform-synchronous-discard-during-allocation.patch removed from -mm tree
+Message-Id: <20251117013352.DD345C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,110 +35,153 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: optimize old_order derivation during folio splitting
+     Subject: mm, swap: do not perform synchronous discard during allocation
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-optimize-old_order-derivation-during-folio-splitting.patch
+     mm-swap-do-not-perform-synchronous-discard-during-allocation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/huge_memory: optimize old_order derivation during folio splitting
-Date: Tue, 21 Oct 2025 21:21:42 +0000
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: do not perform synchronous discard during allocation
+Date: Fri, 24 Oct 2025 02:34:11 +0800
 
-Folio splitting requires both the folio's original order (@old_order) and
-the new target order (@split_order).
+Patch series "mm, swap: misc cleanup and bugfix", v2.
 
-In the current implementation, @old_order is repeatedly retrieved using
-folio_order().
+A few cleanups and a bugfix that are either suitable after the swap table
+phase I or found during code review.
 
-However, for every iteration after the first, the folio being split is the
-result of the previous split, meaning its order is already known to be
-equal to the previous iteration's @split_order.
+Patch 1 is a bugfix and needs to be included in the stable branch, the
+rest have no behavioral change.
 
-This commit optimizes the logic:
 
-  * Instead of calling folio_order(), we now set @old_order directly to
-    the value of @split_order from the previous iteration.
+This patch (of 5):
 
-This change avoids unnecessary function calls and simplifies the loop
-setup.
+Since commit 1b7e90020eb77 ("mm, swap: use percpu cluster as allocation
+fast path"), swap allocation is protected by a local lock, which means we
+can't do any sleeping calls during allocation.
 
-Also it removes a check for non-existent case, since for uniform splitting
-we only do split when @split_order == @new_order.
+However, the discard routine is not taken well care of.  When the swap
+allocator failed to find any usable cluster, it would look at the pending
+discard cluster and try to issue some blocking discards.  It may not
+necessarily sleep, but the cond_resched at the bio layer indicates this is
+wrong when combined with a local lock.  And the bio GFP flag used for
+discard bio is also wrong (not atomic).
 
-Link: https://lkml.kernel.org/r/20251021212142.25766-5-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: wang lian <lianux.mm@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Zi Yan <ziy@nvidia.com>
+It's arguable whether this synchronous discard is helpful at all.  In most
+cases, the async discard is good enough.  And the swap allocator is doing
+very differently at organizing the clusters since the recent change, so it
+is very rare to see discard clusters piling up.
+
+So far, no issues have been observed or reported with typical SSD setups
+under months of high pressure.  This issue was found during my code
+review.  But by hacking the kernel a bit: adding a mdelay(500) in the
+async discard path, this issue will be observable with WARNING triggered
+by the wrong GFP and cond_resched in the bio layer for debug builds.
+
+So now let's apply a hotfix for this issue: remove the synchronous discard
+in the swap allocation path.  And when order 0 is failing with all cluster
+list drained on all swap devices, try to do a discard following the swap
+device priority list.  If any discards released some cluster, try the
+allocation again.  This way, we can still avoid OOM due to swap failure if
+the hardware is very slow and memory pressure is extremely high.
+
+This may cause more fragmentation issues if the discarding hardware is
+really slow.  Ideally, we want to discard pending clusters before
+continuing to iterate the fragment cluster lists.  This can be implemented
+in a cleaner way if we clean up the device list iteration part first.
+
+Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-0-a709469052e7@tencent.com
+Link: https://lkml.kernel.org/r/20251024-swap-clean-after-swap-table-p1-v2-1-c5b0e1092927@tencent.com
+Fixes: 1b7e90020eb7 ("mm, swap: use percpu cluster as allocation fast path")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Chris Li <chrisl@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mariano Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/swapfile.c |   40 +++++++++++++++++++++++++++++++++-------
+ 1 file changed, 33 insertions(+), 7 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-optimize-old_order-derivation-during-folio-splitting
-+++ a/mm/huge_memory.c
-@@ -3402,8 +3402,8 @@ static int __split_unmapped_folio(struct
- 		struct address_space *mapping, bool uniform_split)
- {
- 	const bool is_anon = folio_test_anon(folio);
--	int order = folio_order(folio);
--	int start_order = uniform_split ? new_order : order - 1;
-+	int old_order = folio_order(folio);
-+	int start_order = uniform_split ? new_order : old_order - 1;
- 	int split_order;
- 
- 	/*
-@@ -3413,14 +3413,11 @@ static int __split_unmapped_folio(struct
- 	for (split_order = start_order;
- 	     split_order >= new_order;
- 	     split_order--) {
--		int old_order = folio_order(folio);
- 		int nr_new_folios = 1UL << (old_order - split_order);
- 
- 		/* order-1 anonymous folio is not supported */
- 		if (is_anon && split_order == 1)
- 			continue;
--		if (uniform_split && split_order != new_order)
--			continue;
- 
- 		if (mapping) {
- 			/*
-@@ -3447,7 +3444,13 @@ static int __split_unmapped_folio(struct
- 			mod_mthp_stat(old_order, MTHP_STAT_NR_ANON, -1);
- 			mod_mthp_stat(split_order, MTHP_STAT_NR_ANON, nr_new_folios);
- 		}
-+		/*
-+		 * If uniform split, the process is complete.
-+		 * If non-uniform, continue splitting the folio at @split_at
-+		 * as long as the next @split_order is >= @new_order.
-+		 */
- 		folio = page_folio(split_at);
-+		old_order = split_order;
+--- a/mm/swapfile.c~mm-swap-do-not-perform-synchronous-discard-during-allocation
++++ a/mm/swapfile.c
+@@ -1101,13 +1101,6 @@ new_cluster:
+ 			goto done;
  	}
  
- 	return 0;
+-	/*
+-	 * We don't have free cluster but have some clusters in discarding,
+-	 * do discard now and reclaim them.
+-	 */
+-	if ((si->flags & SWP_PAGE_DISCARD) && swap_do_scheduled_discard(si))
+-		goto new_cluster;
+-
+ 	if (order)
+ 		goto done;
+ 
+@@ -1394,6 +1387,33 @@ start_over:
+ 	return false;
+ }
+ 
++/*
++ * Discard pending clusters in a synchronized way when under high pressure.
++ * Return: true if any cluster is discarded.
++ */
++static bool swap_sync_discard(void)
++{
++	bool ret = false;
++	int nid = numa_node_id();
++	struct swap_info_struct *si, *next;
++
++	spin_lock(&swap_avail_lock);
++	plist_for_each_entry_safe(si, next, &swap_avail_heads[nid], avail_lists[nid]) {
++		spin_unlock(&swap_avail_lock);
++		if (get_swap_device_info(si)) {
++			if (si->flags & SWP_PAGE_DISCARD)
++				ret = swap_do_scheduled_discard(si);
++			put_swap_device(si);
++		}
++		if (ret)
++			return true;
++		spin_lock(&swap_avail_lock);
++	}
++	spin_unlock(&swap_avail_lock);
++
++	return false;
++}
++
+ /**
+  * folio_alloc_swap - allocate swap space for a folio
+  * @folio: folio we want to move to swap
+@@ -1432,11 +1452,17 @@ int folio_alloc_swap(struct folio *folio
+ 		}
+ 	}
+ 
++again:
+ 	local_lock(&percpu_swap_cluster.lock);
+ 	if (!swap_alloc_fast(&entry, order))
+ 		swap_alloc_slow(&entry, order);
+ 	local_unlock(&percpu_swap_cluster.lock);
+ 
++	if (unlikely(!order && !entry.val)) {
++		if (swap_sync_discard())
++			goto again;
++	}
++
+ 	/* Need to call this even if allocation failed, for MEMCG_SWAP_FAIL. */
+ 	if (mem_cgroup_try_charge_swap(folio, entry))
+ 		goto out_free;
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
-mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch
-mm-huge_memory-introduce-enum-split_type-for-clarity.patch
-mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported.patch
-mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch
-mm-khugepaged-continue-to-collapse-on-scan_pmd_none.patch
-mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch
 
