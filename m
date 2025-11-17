@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68F523EAAB
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1090D23771E;
+	Mon, 17 Nov 2025 01:34:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343289; cv=none; b=Bwc4QlqKLohBbsGllcd/PKqAYj4y9ebONYmG8KoUrdeFvXfULM/8q4hD48MqDyd/EiWTK0OImDg3glrL21nME3ja5pGDxWVimDTgsf7RE1k0Vq0cDSGay8dO3zZJhzerO5h/072q4Pe2pestBym2EeJHtY4j5vu2/T7bO2e/H/Q=
+	t=1763343291; cv=none; b=ccbhROvXwb7WWZJ9+i+WqrNZGdcH2aUQF9c/9xkpjE5BP/6EWuIo1z3FBVxn4v0B1RpYgFzio8WoMWYiqjivS51PW9s4WhMUee3jkogltV78XkAmIn9fvtf/pkT0Y0poy+cLt704bWmdIv/AJkTMyxnak/UD4FLKjw8MXIAxUAE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343289; c=relaxed/simple;
-	bh=LvpcwnGYFFo/me21pmcRLWSK330QwKbL1YDS1bKSd8U=;
-	h=Date:To:From:Subject:Message-Id; b=FIk6ZiuQGropcsJWerSeEHng5anSbaZg+HVQA8VTdh4orpQL5OTscC1nN7ZEmxML9xidZqp4MHjWf4bmMtsqMRyHgg0VZJS1pnA3r4bdlafE6Ox006MlFINUIZC6oVSQXJU3aakRzeIL8FmshTGFFwCO5ZhRRQZ9arJgxmR+sl0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T2PIn/W6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343291; c=relaxed/simple;
+	bh=UDWzA6wRTteBDoRpr3lD2mdIMNjjlKeYxXYWGgGrBA4=;
+	h=Date:To:From:Subject:Message-Id; b=mRIw7ddXgIO6kEJ4Z+1znd0RMNbmYPhZKcRaE3KpJXwHg6z9VZzTfR0CNh9VwonBY1akNRaoHS/AAgprsJ6sYvPsRraTAkK6qnbY9oHX/cY8KtHX+FIXtmuRlOeevu170n9jo4HqNWv4YQnGadac4vz7eDBDDc9kYHtjpq/YezE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M8HOsodR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T2PIn/W6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A459BC19421;
-	Mon, 17 Nov 2025 01:34:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M8HOsodR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCA21C4CEF1;
+	Mon, 17 Nov 2025 01:34:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343289;
-	bh=LvpcwnGYFFo/me21pmcRLWSK330QwKbL1YDS1bKSd8U=;
+	s=korg; t=1763343290;
+	bh=UDWzA6wRTteBDoRpr3lD2mdIMNjjlKeYxXYWGgGrBA4=;
 	h=Date:To:From:Subject:From;
-	b=T2PIn/W6MTbf55l4qxWq78G2Jf8Dvd+23nxA3JvYALCUWMYdVrgVCdxTeb7GoURw5
-	 IuGwMa79FpOG76nVA8TThBdePC9Vi3I+2Ky+21uGoR0ZaASpBq2zqasysYCe6fnRiZ
-	 bVbrshmPxa0kD35CvSvh6SzbmbQUZR0qbtYfvrtk=
-Date: Sun, 16 Nov 2025 17:34:49 -0800
-To: mm-commits@vger.kernel.org,zhiw@nvidia.com,xueshuai@linux.alibaba.com,vsethi@nvidia.com,vbabka@suse.cz,u.kleine-koenig@baylibre.com,tony.luck@intel.com,targupta@nvidia.com,surenb@google.com,smita.koralahallichannabasappa@amd.com,rppt@kernel.org,peterz@infradead.org,nao.horiguchi@gmail.com,mochs@nvidia.com,mhocko@suse.com,mchehab@kernel.org,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lenb@kernel.org,kwankhede@nvidia.com,kevin.tian@intel.com,Jonathan.Cameron@huawei.com,jgg@nvidia.com,ira.weiny@intel.com,guohanjun@huawei.com,david@redhat.com,cjia@nvidia.com,bp@alien8.de,aniketa@nvidia.com,alex@shazbot.org,ankita@nvidia.com,akpm@linux-foundation.org
+	b=M8HOsodRfwRi85ydiEGPMpNRwgLdWLu8xEiPm2Zl04dGH7TR9scWUYyPnl9dNwgBV
+	 aiYiayPIceRnKvnkS83jbErbZsCGKKvrmcH/pnT/M+pSLFHbKGq5A5Z1Y1fzIZTR+d
+	 61Duzo4+pkwnDKUClChCyOL7FfWbz6+dZRHzs4yY=
+Date: Sun, 16 Nov 2025 17:34:50 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,stable@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] vfio-nvgrace-gpu-register-device-memory-for-poison-handling.patch removed from -mm tree
-Message-Id: <20251117013449.A459BC19421@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch removed from -mm tree
+Message-Id: <20251117013450.DCA21C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,151 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vfio/nvgrace-gpu: register device memory for poison handling
+     Subject: mm/damon/tests/core-kunit: fix memory leak in damon_test_set_filters_default_reject()
 has been removed from the -mm tree.  Its filename was
-     vfio-nvgrace-gpu-register-device-memory-for-poison-handling.patch
+     mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ankit Agrawal <ankita@nvidia.com>
-Subject: vfio/nvgrace-gpu: register device memory for poison handling
-Date: Sun, 2 Nov 2025 18:44:34 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/tests/core-kunit: fix memory leak in damon_test_set_filters_default_reject()
+Date: Sat, 1 Nov 2025 11:19:55 -0700
 
-The nvgrace-gpu-vfio-pci module [1] maps the device memory to the user VA
-(Qemu) using remap_pfn_range() without adding the memory to the kernel. 
-The device memory pages are not backed by struct page.  The previous patch
-implements the mechanism to handle ECC/poison on memory page without
-struct page.  This new mechanism is being used here.
+Patch series "mm/damon/tests: fix memory bugs in kunit tests".
 
-The module registers its memory region and the address_space with the
-kernel MM for ECC handling using the register_pfn_address_space()
-registration API exposed by the kernel.
+DAMON kunit tests were initially written assuming those will be run on
+environments that are well controlled and therefore tolerant to transient
+test failures and bugs in the test code itself.  The user-mode linux based
+manual run of the tests is one example of such an environment.  And the
+test code was written for adding more test coverage as fast as possible,
+over making those safe and reliable.
 
-Link: https://lore.kernel.org/all/20240220115055.23546-1-ankita@nvidia.com/ [1]
-Link: https://lkml.kernel.org/r/20251102184434.2406-4-ankita@nvidia.com
-Signed-off-by: Ankit Agrawal <ankita@nvidia.com>
-Acked-by: Alex Williamson <alex@shazbot.org>
-Cc: Aniket Agashe <aniketa@nvidia.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Kevin Tian <kevin.tian@intel.com>
-Cc: Kirti Wankhede <kwankhede@nvidia.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Matthew R. Ochs <mochs@nvidia.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Neo Jia <cjia@nvidia.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Shuai Xue <xueshuai@linux.alibaba.com>
-Cc: Smita Koralahalli Channabasappa <smita.koralahallichannabasappa@amd.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tarun Gupta <targupta@nvidia.com>
-Cc: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
-Cc: Vikram Sethi <vsethi@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhi Wang <zhiw@nvidia.com>
+As a result, the tests resulted in having a number of bugs including real
+memory leaks, theoretical unhandled memory allocation failures, and unused
+memory allocations.  The allocation failures that are not handled well are
+unlikely in the real world, since those allocations are too small to fail.
+But in theory, it can happen and cause inappropriate memory access.
+
+It is arguable if bugs in test code can really harm users.  But, anyway
+bugs are bugs that need to be fixed.  Fix the bugs one by one.  Also Cc
+stable@ for the fixes of memory leak and unhandled memory allocation
+failures.  The unused memory allocations are only a matter of memory
+efficiency, so not Cc-ing stable@.
+
+The first patch fixes memory leaks in the test code for the DAMON core
+layer.
+
+Following fifteen, three, and one patches respectively fix unhandled
+memory allocation failures in the test code for DAMON core layer, virtual
+address space DAMON operation set, and DAMON sysfs interface, one by one
+per test function.
+
+Final two patches remove memory allocations that are correctly deallocated
+at the end, but not really being used by any code.
+
+
+This patch (of 22):
+
+Kunit test function for damos_set_filters_default_reject() allocates two
+'struct damos_filter' objects and not deallocates those, so that the
+memory for the two objects are leaked for every time the test runs.  Fix
+this by deallocating those objects at the end of the test code.
+
+Link: https://lkml.kernel.org/r/20251101182021.74868-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251101182021.74868-2-sj@kernel.org
+Fixes: 094fb14913c7 ("mm/damon/tests/core-kunit: add a test for damos_set_filters_default_reject()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: <stable@vger.kernel.org>	[6.16+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/pci/nvgrace-gpu/main.c |   45 +++++++++++++++++++++++++-
- 1 file changed, 44 insertions(+), 1 deletion(-)
+ mm/damon/tests/core-kunit.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/drivers/vfio/pci/nvgrace-gpu/main.c~vfio-nvgrace-gpu-register-device-memory-for-poison-handling
-+++ a/drivers/vfio/pci/nvgrace-gpu/main.c
-@@ -8,6 +8,10 @@
- #include <linux/delay.h>
- #include <linux/jiffies.h>
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+#include <linux/memory-failure.h>
-+#endif
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-fix-memory-leak-in-damon_test_set_filters_default_reject
++++ a/mm/damon/tests/core-kunit.h
+@@ -598,6 +598,9 @@ static void damon_test_set_filters_defau
+ 	 */
+ 	KUNIT_EXPECT_EQ(test, scheme.core_filters_default_reject, false);
+ 	KUNIT_EXPECT_EQ(test, scheme.ops_filters_default_reject, true);
 +
- /*
-  * The device memory usable to the workloads running in the VM is cached
-  * and showcased as a 64b device BAR (comprising of BAR4 and BAR5 region)
-@@ -47,6 +51,9 @@ struct mem_region {
- 		void *memaddr;
- 		void __iomem *ioaddr;
- 	};                      /* Base virtual address of the region */
-+#ifdef CONFIG_MEMORY_FAILURE
-+	struct pfn_address_space pfn_address_space;
-+#endif
- };
- 
- struct nvgrace_gpu_pci_core_device {
-@@ -60,6 +67,28 @@ struct nvgrace_gpu_pci_core_device {
- 	bool has_mig_hw_bug;
- };
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+
-+static int
-+nvgrace_gpu_vfio_pci_register_pfn_range(struct mem_region *region,
-+					struct vm_area_struct *vma)
-+{
-+	unsigned long nr_pages;
-+	int ret = 0;
-+
-+	nr_pages = region->memlength >> PAGE_SHIFT;
-+
-+	region->pfn_address_space.node.start = vma->vm_pgoff;
-+	region->pfn_address_space.node.last = vma->vm_pgoff + nr_pages - 1;
-+	region->pfn_address_space.mapping = vma->vm_file->f_mapping;
-+
-+	ret = register_pfn_address_space(&region->pfn_address_space);
-+
-+	return ret;
-+}
-+
-+#endif
-+
- static void nvgrace_gpu_init_fake_bar_emu_regs(struct vfio_device *core_vdev)
- {
- 	struct nvgrace_gpu_pci_core_device *nvdev =
-@@ -127,6 +156,13 @@ static void nvgrace_gpu_close_device(str
- 
- 	mutex_destroy(&nvdev->remap_lock);
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+	if (nvdev->resmem.memlength)
-+		unregister_pfn_address_space(&nvdev->resmem.pfn_address_space);
-+
-+	unregister_pfn_address_space(&nvdev->usemem.pfn_address_space);
-+#endif
-+
- 	vfio_pci_core_close_device(core_vdev);
++	damos_free_filter(anon_filter);
++	damos_free_filter(target_filter);
  }
  
-@@ -202,7 +238,14 @@ static int nvgrace_gpu_mmap(struct vfio_
- 
- 	vma->vm_pgoff = start_pfn;
- 
--	return 0;
-+#ifdef CONFIG_MEMORY_FAILURE
-+	if (nvdev->resmem.memlength && index == VFIO_PCI_BAR2_REGION_INDEX)
-+		ret = nvgrace_gpu_vfio_pci_register_pfn_range(&nvdev->resmem, vma);
-+	else if (index == VFIO_PCI_BAR4_REGION_INDEX)
-+		ret = nvgrace_gpu_vfio_pci_register_pfn_range(&nvdev->usemem, vma);
-+#endif
-+
-+	return ret;
- }
- 
- static long
+ static struct kunit_case damon_test_cases[] = {
 _
 
-Patches currently in -mm which might be from ankita@nvidia.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-tests-core-kunit-remove-dynamic-allocs-on-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch
+mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch
+mm-damon-tests-core-kunit-add-test-cases-to-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota_goal-test.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch
+mm-damon-core-pass-migrate_dests-to-damos_commit_dests.patch
+mm-damon-tests-core-kunit-add-damos_commit_dests-test.patch
+mm-damon-tests-core-kunit-add-damos_commit-test.patch
+mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
+mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
+mm-damon-rename-damos-filters-to-damos-core_filters.patch
+mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
+mm-damon-vaddr-use-vm_normal_folio_pmd-instead-of-damon_get_folio.patch
+mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate.patch
+mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
+selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
+docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
+docs-mm-damon-maintainer-profile-fix-grammartical-errors.patch
 
