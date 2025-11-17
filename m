@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3DCDF9E8
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 18:07:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A7C330FC13
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 18:16:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763402869; cv=none; b=nqHB1q6HCbwBOTvYJcIuU+7xD/mfToMza3DIaGHqVnxzn6mMTf4ASvqEah05AvbwC6bmw7EMvUcwjO2s7CMvgRjAkVmU5vj1Gdm0ktRmHsfz9afk2wz70tJz4AQSU/plvRrYw4GaZ5eMPBFBLAa6YcdJcpsH8iN7bzlYSpcZEEs=
+	t=1763403373; cv=none; b=hqi7/PuvxYgoPpd4vh/MDbi5k8wFMIFWGf6zXR2s+14tJ7ft0xc0yIzgyRqhKmLA314UYZ5UAQr79F3vDvdWhaZO75AynZhA+hZMRnEqtwpU77yDDlOo0CJlpHuHQUN+VhyS9eRALhHtteuem9PyRi4AIJoYOulSIPqIgTpGuxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763402869; c=relaxed/simple;
-	bh=7sCHvRFTPxiNqihDN9+Esv37YukzLyK8CdTanFsZaqU=;
-	h=Date:To:From:Subject:Message-Id; b=Ku00IkVNnWKGfjJuv5hvB5IWGHmBkzuW00z0kaY8wmn+XqxrtwgjkQcbiXgfOYjwbbJ1OcEjsaLM+h2dwviZPkfHI4jp7hkdYHDcWvBeAFaRE+Xjq4GhQFyOlYwKOeJpF6u6Hfa7tGoBCrnNIhTw5JB98H/3XTIJwzCKYV02qc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pBeKDjBf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763403373; c=relaxed/simple;
+	bh=TSOz+RoGSSUcMO+PM0I9rFC7JkwnmRWPyui4kNG9xHQ=;
+	h=Date:To:From:Subject:Message-Id; b=Gx2pc/EYnHX5GgeFap8gE9huzpbhyY3VitgB8juGXRh6G8w2IlwvCGHlvid1co12z9OkEa4bFjD4lIPULUbgzdBw1HuIGy6xgMyC+fxS/i9Pn3UgLUbQEqQLpaguPcdXJ+NOY9LmYeTjOP2zuinZ2iyNcEAANBsPTuWyHvnrmsk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v3tjiaKg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pBeKDjBf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA623C113D0;
-	Mon, 17 Nov 2025 18:07:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v3tjiaKg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CB29C113D0;
+	Mon, 17 Nov 2025 18:16:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763402869;
-	bh=7sCHvRFTPxiNqihDN9+Esv37YukzLyK8CdTanFsZaqU=;
+	s=korg; t=1763403372;
+	bh=TSOz+RoGSSUcMO+PM0I9rFC7JkwnmRWPyui4kNG9xHQ=;
 	h=Date:To:From:Subject:From;
-	b=pBeKDjBfgFooAbmXbBrHrQHb/2/jKdY7SBugDakJbCi6/1U69qiZ5woS4UCawzkFa
-	 m2fkHRk6Nzn0Jx/rhUS9Dc6x7RXAaT8iOPHvMLRWKrtgzC8tppvo5jEzOf9GjLFddW
-	 0vV9g5jeOdU7smfO0jq9f/qDC+W86zE5fr7ySV+w=
-Date: Mon, 17 Nov 2025 10:07:47 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,harry.yoo@oracle.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=v3tjiaKgJmyatK6JkOHGXyOGwKCSq9h6Z/96M5Izejs3J4aZ17dmhKbVyrmCxHgHq
+	 iPvyBX5fxAI3GiGxGMRzoRKzLdbKxYdz/9eW2UDsMMeeIMm2yXtaz1ZM3okeSeN0fw
+	 hZTfC56aVl1CmIZBJNc3ckv/f0/vMMZTESwv4RvY=
+Date: Mon, 17 Nov 2025 10:16:10 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-remove-__lruvec_stat_mod_folio.patch added to mm-new branch
-Message-Id: <20251117180748.BA623C113D0@smtp.kernel.org>
+Subject: + mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch added to mm-new branch
+Message-Id: <20251117181612.1CB29C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: remove __lruvec_stat_mod_folio
+     Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-remove-__lruvec_stat_mod_folio.patch
+     mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-remove-__lruvec_stat_mod_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,248 +64,131 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: remove __lruvec_stat_mod_folio
-Date: Mon, 10 Nov 2025 15:20:08 -0800
+From: Balbir Singh <balbirs@nvidia.com>
+Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2
+Date: Sat, 15 Nov 2025 19:40:41 +1100
 
-__lruvec_stat_mod_folio() is already safe against irqs, so there is no
-need to have a separate interface (i.e.  lruvec_stat_mod_folio) which
-wraps calls to it with irq disabling and reenabling.  Let's rename
-__lruvec_stat_mod_folio() to lruvec_stat_mod_folio().
+- Fix a bug reported by kernel-test-robot, nr_shmem_dropped needs to
+  be updated and returned from the helper function
 
-Link: https://lkml.kernel.org/r/20251110232008.1352063-5-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+- Add a debug warning folio_split_unmapped() should be called only on
+  anonymous folios
+
+Link: https://lkml.kernel.org/r/20251115084041.3914728-1-balbirs@nvidia.com
+Signed-off-by: Balbir Singh <balbirs@nvidia.com>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |   30 +-----------------------------
- mm/filemap.c           |   20 ++++++++++----------
- mm/huge_memory.c       |    4 ++--
- mm/khugepaged.c        |    8 ++++----
- mm/memcontrol.c        |    4 ++--
- mm/page-writeback.c    |    2 +-
- mm/rmap.c              |    4 ++--
- mm/shmem.c             |    6 +++---
- 8 files changed, 25 insertions(+), 53 deletions(-)
+ mm/huge_memory.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/include/linux/vmstat.h~memcg-remove-__lruvec_stat_mod_folio
-+++ a/include/linux/vmstat.h
-@@ -523,19 +523,9 @@ static inline const char *vm_event_name(
- void mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
- 			int val);
- 
--void __lruvec_stat_mod_folio(struct folio *folio,
-+void lruvec_stat_mod_folio(struct folio *folio,
- 			     enum node_stat_item idx, int val);
- 
--static inline void lruvec_stat_mod_folio(struct folio *folio,
--					 enum node_stat_item idx, int val)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__lruvec_stat_mod_folio(folio, idx, val);
--	local_irq_restore(flags);
--}
--
- static inline void mod_lruvec_page_state(struct page *page,
- 					 enum node_stat_item idx, int val)
- {
-@@ -550,12 +540,6 @@ static inline void mod_lruvec_state(stru
- 	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
- }
- 
--static inline void __lruvec_stat_mod_folio(struct folio *folio,
--					 enum node_stat_item idx, int val)
--{
--	mod_node_page_state(folio_pgdat(folio), idx, val);
--}
--
- static inline void lruvec_stat_mod_folio(struct folio *folio,
- 					 enum node_stat_item idx, int val)
- {
-@@ -570,18 +554,6 @@ static inline void mod_lruvec_page_state
- 
- #endif /* CONFIG_MEMCG */
- 
--static inline void __lruvec_stat_add_folio(struct folio *folio,
--					   enum node_stat_item idx)
--{
--	__lruvec_stat_mod_folio(folio, idx, folio_nr_pages(folio));
--}
--
--static inline void __lruvec_stat_sub_folio(struct folio *folio,
--					   enum node_stat_item idx)
--{
--	__lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
--}
--
- static inline void lruvec_stat_add_folio(struct folio *folio,
- 					 enum node_stat_item idx)
- {
---- a/mm/filemap.c~memcg-remove-__lruvec_stat_mod_folio
-+++ a/mm/filemap.c
-@@ -182,13 +182,13 @@ static void filemap_unaccount_folio(stru
- 
- 	nr = folio_nr_pages(folio);
- 
--	__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, -nr);
-+	lruvec_stat_mod_folio(folio, NR_FILE_PAGES, -nr);
- 	if (folio_test_swapbacked(folio)) {
--		__lruvec_stat_mod_folio(folio, NR_SHMEM, -nr);
-+		lruvec_stat_mod_folio(folio, NR_SHMEM, -nr);
- 		if (folio_test_pmd_mappable(folio))
--			__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, -nr);
-+			lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, -nr);
- 	} else if (folio_test_pmd_mappable(folio)) {
--		__lruvec_stat_mod_folio(folio, NR_FILE_THPS, -nr);
-+		lruvec_stat_mod_folio(folio, NR_FILE_THPS, -nr);
- 		filemap_nr_thps_dec(mapping);
- 	}
- 	if (test_bit(AS_KERNEL_FILE, &folio->mapping->flags))
-@@ -844,13 +844,13 @@ void replace_page_cache_folio(struct fol
- 	old->mapping = NULL;
- 	/* hugetlb pages do not participate in page cache accounting. */
- 	if (!folio_test_hugetlb(old))
--		__lruvec_stat_sub_folio(old, NR_FILE_PAGES);
-+		lruvec_stat_sub_folio(old, NR_FILE_PAGES);
- 	if (!folio_test_hugetlb(new))
--		__lruvec_stat_add_folio(new, NR_FILE_PAGES);
-+		lruvec_stat_add_folio(new, NR_FILE_PAGES);
- 	if (folio_test_swapbacked(old))
--		__lruvec_stat_sub_folio(old, NR_SHMEM);
-+		lruvec_stat_sub_folio(old, NR_SHMEM);
- 	if (folio_test_swapbacked(new))
--		__lruvec_stat_add_folio(new, NR_SHMEM);
-+		lruvec_stat_add_folio(new, NR_SHMEM);
- 	xas_unlock_irq(&xas);
- 	if (free_folio)
- 		free_folio(old);
-@@ -933,9 +933,9 @@ noinline int __filemap_add_folio(struct
- 
- 		/* hugetlb pages do not participate in page cache accounting */
- 		if (!huge) {
--			__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
-+			lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
- 			if (folio_test_pmd_mappable(folio))
--				__lruvec_stat_mod_folio(folio,
-+				lruvec_stat_mod_folio(folio,
- 						NR_FILE_THPS, nr);
- 		}
- 
---- a/mm/huge_memory.c~memcg-remove-__lruvec_stat_mod_folio
+--- a/mm/huge_memory.c~mm-huge_memoryc-introduce-folio_split_unmapped-v2
 +++ a/mm/huge_memory.c
-@@ -3783,10 +3783,10 @@ static int __folio_freeze_and_split_unma
- 			if (folio_test_pmd_mappable(folio) &&
- 			    new_order < HPAGE_PMD_ORDER) {
- 				if (folio_test_swapbacked(folio)) {
--					__lruvec_stat_mod_folio(folio,
-+					lruvec_stat_mod_folio(folio,
- 							NR_SHMEM_THPS, -nr);
- 				} else {
--					__lruvec_stat_mod_folio(folio,
-+					lruvec_stat_mod_folio(folio,
- 							NR_FILE_THPS, -nr);
- 					filemap_nr_thps_dec(mapping);
- 				}
---- a/mm/khugepaged.c~memcg-remove-__lruvec_stat_mod_folio
-+++ a/mm/khugepaged.c
-@@ -2195,14 +2195,14 @@ immap_locked:
+@@ -3743,12 +3743,11 @@ static int __folio_freeze_and_split_unma
+ 					     struct page *split_at, struct xa_state *xas,
+ 					     struct address_space *mapping, bool do_lru,
+ 					     struct list_head *list, enum split_type split_type,
+-					     pgoff_t end, int extra_pins)
++					     pgoff_t end, int *nr_shmem_dropped, int extra_pins)
+ {
+ 	struct folio *end_folio = folio_next(folio);
+ 	struct folio *new_folio, *next;
+ 	int old_order = folio_order(folio);
+-	int nr_shmem_dropped = 0;
+ 	int ret = 0;
+ 	struct deferred_split *ds_queue;
+ 
+@@ -3851,9 +3850,10 @@ static int __folio_freeze_and_split_unma
+ 				continue;
+ 			}
+ 
++			VM_WARN_ON_ONCE(!nr_shmem_dropped);
+ 			/* Drop folio beyond EOF: ->index >= end */
+-			if (shmem_mapping(mapping))
+-				nr_shmem_dropped += nr_pages;
++			if (shmem_mapping(mapping) && nr_shmem_dropped)
++				*nr_shmem_dropped += nr_pages;
+ 			else if (folio_test_clear_dirty(new_folio))
+ 				folio_account_cleaned(
+ 					new_folio, inode_to_wb(mapping->host));
+@@ -4041,7 +4041,8 @@ static int __folio_split(struct folio *f
  	}
  
- 	if (is_shmem)
--		__lruvec_stat_mod_folio(new_folio, NR_SHMEM_THPS, HPAGE_PMD_NR);
-+		lruvec_stat_mod_folio(new_folio, NR_SHMEM_THPS, HPAGE_PMD_NR);
- 	else
--		__lruvec_stat_mod_folio(new_folio, NR_FILE_THPS, HPAGE_PMD_NR);
-+		lruvec_stat_mod_folio(new_folio, NR_FILE_THPS, HPAGE_PMD_NR);
- 
- 	if (nr_none) {
--		__lruvec_stat_mod_folio(new_folio, NR_FILE_PAGES, nr_none);
-+		lruvec_stat_mod_folio(new_folio, NR_FILE_PAGES, nr_none);
- 		/* nr_none is always 0 for non-shmem. */
--		__lruvec_stat_mod_folio(new_folio, NR_SHMEM, nr_none);
-+		lruvec_stat_mod_folio(new_folio, NR_SHMEM, nr_none);
- 	}
- 
- 	/*
---- a/mm/memcontrol.c~memcg-remove-__lruvec_stat_mod_folio
-+++ a/mm/memcontrol.c
-@@ -777,7 +777,7 @@ void mod_lruvec_state(struct lruvec *lru
- 		mod_memcg_lruvec_state(lruvec, idx, val);
- }
- 
--void __lruvec_stat_mod_folio(struct folio *folio, enum node_stat_item idx,
-+void lruvec_stat_mod_folio(struct folio *folio, enum node_stat_item idx,
- 			     int val)
+ 	ret = __folio_freeze_and_split_unmapped(folio, new_order, split_at, &xas, mapping,
+-						true, list, split_type, end, extra_pins);
++						true, list, split_type, end, &nr_shmem_dropped,
++						extra_pins);
+ fail:
+ 	if (mapping)
+ 		xas_unlock(&xas);
+@@ -4106,9 +4107,10 @@ int folio_split_unmapped(struct folio *f
  {
- 	struct mem_cgroup *memcg;
-@@ -797,7 +797,7 @@ void __lruvec_stat_mod_folio(struct foli
- 	mod_lruvec_state(lruvec, idx, val);
- 	rcu_read_unlock();
+ 	int extra_pins, ret = 0;
+ 
+-	VM_WARN_ON_FOLIO(folio_mapped(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(folio_mapped(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(!folio_test_anon(folio), folio);
+ 
+ 	if (!can_split_folio(folio, 1, &extra_pins))
+ 		return -EAGAIN;
+@@ -4116,7 +4118,7 @@ int folio_split_unmapped(struct folio *f
+ 	local_irq_disable();
+ 	ret = __folio_freeze_and_split_unmapped(folio, new_order, &folio->page, NULL,
+ 						NULL, false, NULL, SPLIT_TYPE_UNIFORM,
+-						0, extra_pins);
++						0, NULL, extra_pins);
+ 	local_irq_enable();
+ 	return ret;
  }
--EXPORT_SYMBOL(__lruvec_stat_mod_folio);
-+EXPORT_SYMBOL(lruvec_stat_mod_folio);
- 
- void mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val)
- {
---- a/mm/page-writeback.c~memcg-remove-__lruvec_stat_mod_folio
-+++ a/mm/page-writeback.c
-@@ -2658,7 +2658,7 @@ static void folio_account_dirtied(struct
- 		inode_attach_wb(inode, folio);
- 		wb = inode_to_wb(inode);
- 
--		__lruvec_stat_mod_folio(folio, NR_FILE_DIRTY, nr);
-+		lruvec_stat_mod_folio(folio, NR_FILE_DIRTY, nr);
- 		__zone_stat_mod_folio(folio, NR_ZONE_WRITE_PENDING, nr);
- 		__node_stat_mod_folio(folio, NR_DIRTIED, nr);
- 		wb_stat_mod(wb, WB_RECLAIMABLE, nr);
---- a/mm/rmap.c~memcg-remove-__lruvec_stat_mod_folio
-+++ a/mm/rmap.c
-@@ -1212,12 +1212,12 @@ static void __folio_mod_stat(struct foli
- 
- 	if (nr) {
- 		idx = folio_test_anon(folio) ? NR_ANON_MAPPED : NR_FILE_MAPPED;
--		__lruvec_stat_mod_folio(folio, idx, nr);
-+		lruvec_stat_mod_folio(folio, idx, nr);
- 	}
- 	if (nr_pmdmapped) {
- 		if (folio_test_anon(folio)) {
- 			idx = NR_ANON_THPS;
--			__lruvec_stat_mod_folio(folio, idx, nr_pmdmapped);
-+			lruvec_stat_mod_folio(folio, idx, nr_pmdmapped);
- 		} else {
- 			/* NR_*_PMDMAPPED are not maintained per-memcg */
- 			idx = folio_test_swapbacked(folio) ?
---- a/mm/shmem.c~memcg-remove-__lruvec_stat_mod_folio
-+++ a/mm/shmem.c
-@@ -871,9 +871,9 @@ static unsigned int shmem_huge_global_en
- static void shmem_update_stats(struct folio *folio, int nr_pages)
- {
- 	if (folio_test_pmd_mappable(folio))
--		__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr_pages);
--	__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr_pages);
--	__lruvec_stat_mod_folio(folio, NR_SHMEM, nr_pages);
-+		lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr_pages);
-+	lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr_pages);
-+	lruvec_stat_mod_folio(folio, NR_SHMEM, nr_pages);
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from balbirs@nvidia.com are
 
-mm-memcg-dump-memcg-protection-info-on-oom-or-alloc-failures.patch
-memcg-use-mod_node_page_state-to-update-stats.patch
-memcg-remove-__mod_lruvec_kmem_state.patch
-memcg-remove-__mod_lruvec_state.patch
-memcg-remove-__lruvec_stat_mod_folio.patch
+mm-zone_device-support-large-zone-device-private-folios.patch
+mm-zone_device-rename-page_free-callback-to-folio_free.patch
+mm-huge_memory-add-device-private-thp-support-to-pmd-operations.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
+mm-huge_memory-implement-device-private-thp-splitting.patch
+mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
+mm-migrate_device-implement-thp-migration-of-zone-device-pages.patch
+mm-memory-fault-add-thp-fault-handling-for-zone-device-private-pages.patch
+lib-test_hmm-add-zone-device-private-thp-test-infrastructure.patch
+mm-memremap-add-driver-callback-support-for-folio-splitting.patch
+mm-migrate_device-add-thp-splitting-during-migration.patch
+lib-test_hmm-add-large-page-allocation-failure-testing.patch
+selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
+selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
+gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
+gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
+mm-huge_memoryc-introduce-folio_split_unmapped.patch
+mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch
 
