@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DEE9211499
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4FD20FAAB
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343126; cv=none; b=ur4dGcSRchON1atkSDe2Rh4nXpg+IGdNa9R1zsUdh+VdHWe7zBLJxezlUgH3HqPNCfSWBFIXUdN1olTyleWPBJ/Rjs3icAPiAs+IyQZl7NKrzEjc+H5nY1/ueIi7Qj13Qk0aOl819gf510o+RNu6IAvuiT0236eYQ++0c6//NAk=
+	t=1763343127; cv=none; b=Txi3ROtVs1iJ1jTwpX9PKz3hE9w1fgkSu38Iyn+B1VVTVGFDo08Yf1wjlOgNXqDUiwsxcd7AK9Tt4SaCPbzYBTAYUK/rarpF2yKfhtDTM/0M7liAihPTGeZnZBCMMWNzvmcgmZoSorHaJcnBtVZyHgRZf4LTVMFcEYcePVOqy1A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343126; c=relaxed/simple;
-	bh=u48qomYS6BJx7VEwz8l1Y4oEuA83bNVZ/9HenNA1UCA=;
-	h=Date:To:From:Subject:Message-Id; b=tLOIk2jDRQT3AIepLDWxtpjdPgGecJ/p7iPgHLSolvpzmjtKvZIlB7Sbwo6/NEWOKaluUeSC221m2QpCCv+KNGEUrv6XGw+FmjFtDNthbV0M2/8K0+W4e72re+0ZdLkZM0dztSnKOUAkOhRYkA5QKNWf/2yHGzdmTOxnIwgjlb0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=COKwgWMh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343127; c=relaxed/simple;
+	bh=GIyF8c+XabW3xnjUE761N65r5zs/93MznGMLcydNqxI=;
+	h=Date:To:From:Subject:Message-Id; b=GfGXy0g8XyY+h3MfbZ8AaPgjZDUKhw+uOrufyhaKTgTNzbznqyChn99JjXA/uPBt8G5frLeZRZ99KwcxykZzpnVoWRIuA/wEydXiNpEYrADEqRsik2CYNcVr6LlFWbjgmhyKnLKxTmhXdH7UDiRxcC8fo8VDUjBTAZHLMUs0dWY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q55sv9TX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="COKwgWMh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E419DC19423;
-	Mon, 17 Nov 2025 01:32:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q55sv9TX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30EF0C116D0;
+	Mon, 17 Nov 2025 01:32:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343126;
-	bh=u48qomYS6BJx7VEwz8l1Y4oEuA83bNVZ/9HenNA1UCA=;
+	s=korg; t=1763343127;
+	bh=GIyF8c+XabW3xnjUE761N65r5zs/93MznGMLcydNqxI=;
 	h=Date:To:From:Subject:From;
-	b=COKwgWMh8rZRkasQUxV3N8WtCSDOfNLnMzFhhNlobLAxOtkf1iH2wX0tw7ElsBuX4
-	 80us8esByerBTGLDgbJFAPttTLIXWLwaBXo21FxuJ2JX8tQuVJaLGos/z1x40QF5A1
-	 Y6pH/iMm8nL+badnGR6ooVmUqNmLgrfM0WtrfKAc=
-Date: Sun, 16 Nov 2025 17:32:05 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,liuye@kylinos.cn,jackmanb@google.com,hannes@cmpxchg.org,husong@kylinos.cn,akpm@linux-foundation.org
+	b=q55sv9TXhWj2Kx9itEUD5MA5977U3RwAxa86FP5ovmLTyrat94JcGhC4cKHGLKk1z
+	 JYQiryg2si4qFyKT0vpkvSf8lc1U5NuoZyTA1vAXsz4C3nKcW0gAYvyOkJi7vInRh0
+	 DIKL45OeW5r0lsIVqmmvP7fhGYTjKu/sB9zW7Xxs=
+Date: Sun, 16 Nov 2025 17:32:06 -0800
+To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,urezki@gmail.com,dev.jain@arm.com,yadong.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_owner-simplify-zone-iteration-logic-in-init_early_allocated_pages.patch removed from -mm tree
-Message-Id: <20251117013205.E419DC19423@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-warn_on-if-mapping-size-is-not-page_size-aligned.patch removed from -mm tree
+Message-Id: <20251117013207.30EF0C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,94 +35,127 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: simplify zone iteration logic in init_early_allocated_pages()
+     Subject: mm: vmalloc: WARN_ON if mapping size is not PAGE_SIZE aligned
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-simplify-zone-iteration-logic-in-init_early_allocated_pages.patch
+     mm-vmalloc-warn_on-if-mapping-size-is-not-page_size-aligned.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Song Hu <husong@kylinos.cn>
-Subject: mm/page_owner: simplify zone iteration logic in init_early_allocated_pages()
-Date: Tue, 30 Sep 2025 17:21:52 +0800
+From: Yadong Qi <yadong.qi@linux.alibaba.com>
+Subject: mm: vmalloc: WARN_ON if mapping size is not PAGE_SIZE aligned
+Date: Fri, 10 Oct 2025 09:43:11 +0800
 
-The current implementation uses nested loops: first iterating over all
-online nodes, then over zones within each node.  This can be simplified by
-using the for_each_populated_zone() macro which directly iterates through
-all populated zones.
+In mm/vmalloc.c, the function vmap_pte_range() assumes that the mapping
+size is aligned to PAGE_SIZE.  If this assumption is violated, the loop
+will become infinite because the termination condition (`addr != end`)
+will never be met.  This can lead to overwriting other VA ranges and/or
+random pages physically follow the page table.
 
-This change:
-1. Removes the intermediate init_zones_in_node() function
-2. Simplifies init_early_allocated_pages() to use direct zone iteration
-3. Updates init_pages_in_zone() to take only zone parameter and access
-   node_id via zone->zone_pgdat
+It's the caller's responsibility to ensure that the mapping size is
+aligned to PAGE_SIZE.  However, the memory corruption is hard to root
+cause.  To identify the programming error in the caller easier, check
+whether the mapping size is PAGE_SIZE aligned with WARN_ON_ONCE().
 
-The functionality remains identical, but the code is cleaner and more
-maintainable.
-
-Link: https://lkml.kernel.org/r/20250930092153.843109-2-husong@kylinos.cn
-Signed-off-by: Song Hu <husong@kylinos.cn>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Ye Liu <liuye@kylinos.cn>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+[yadong.qi@linux.alibaba.com: fix uninitialized value issue]
+  Closes: https://lore.kernel.org/r/202510110050.VG9YKMRK-lkp@intel.com/
+Link: https://lkml.kernel.org/r/20251010014311.1689-1-yadong.qi@linux.alibaba.com
+Signed-off-by: Yadong Qi <yadong.qi@linux.alibaba.com>
+Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
+ mm/vmalloc.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-simplify-zone-iteration-logic-in-init_early_allocated_pages
-+++ a/mm/page_owner.c
-@@ -769,7 +769,7 @@ static loff_t lseek_page_owner(struct fi
- 	return file->f_pos;
- }
+--- a/mm/vmalloc.c~mm-vmalloc-warn_on-if-mapping-size-is-not-page_size-aligned
++++ a/mm/vmalloc.c
+@@ -100,6 +100,9 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 	struct page *page;
+ 	unsigned long size = PAGE_SIZE;
  
--static void init_pages_in_zone(pg_data_t *pgdat, struct zone *zone)
-+static void init_pages_in_zone(struct zone *zone)
++	if (WARN_ON_ONCE(!PAGE_ALIGNED(end - addr)))
++		return -EINVAL;
++
+ 	pfn = phys_addr >> PAGE_SHIFT;
+ 	pte = pte_alloc_kernel_track(pmd, addr, mask);
+ 	if (!pte)
+@@ -167,6 +170,7 @@ static int vmap_pmd_range(pud_t *pud, un
  {
- 	unsigned long pfn = zone->zone_start_pfn;
- 	unsigned long end_pfn = zone_end_pfn(zone);
-@@ -836,28 +836,15 @@ ext_put_continue:
- 	}
+ 	pmd_t *pmd;
+ 	unsigned long next;
++	int err = 0;
  
- 	pr_info("Node %d, zone %8s: page owner found early allocated %lu pages\n",
--		pgdat->node_id, zone->name, count);
--}
--
--static void init_zones_in_node(pg_data_t *pgdat)
--{
--	struct zone *zone;
--	struct zone *node_zones = pgdat->node_zones;
--
--	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
--		if (!populated_zone(zone))
--			continue;
--
--		init_pages_in_zone(pgdat, zone);
--	}
-+		zone->zone_pgdat->node_id, zone->name, count);
+ 	pmd = pmd_alloc_track(&init_mm, pud, addr, mask);
+ 	if (!pmd)
+@@ -180,10 +184,11 @@ static int vmap_pmd_range(pud_t *pud, un
+ 			continue;
+ 		}
+ 
+-		if (vmap_pte_range(pmd, addr, next, phys_addr, prot, max_page_shift, mask))
+-			return -ENOMEM;
++		err = vmap_pte_range(pmd, addr, next, phys_addr, prot, max_page_shift, mask);
++		if (err)
++			break;
+ 	} while (pmd++, phys_addr += (next - addr), addr = next, addr != end);
+-	return 0;
++	return err;
  }
  
- static void init_early_allocated_pages(void)
+ static int vmap_try_huge_pud(pud_t *pud, unsigned long addr, unsigned long end,
+@@ -217,6 +222,7 @@ static int vmap_pud_range(p4d_t *p4d, un
  {
--	pg_data_t *pgdat;
-+	struct zone *zone;
+ 	pud_t *pud;
+ 	unsigned long next;
++	int err = 0;
  
--	for_each_online_pgdat(pgdat)
--		init_zones_in_node(pgdat);
-+	for_each_populated_zone(zone)
-+		init_pages_in_zone(zone);
+ 	pud = pud_alloc_track(&init_mm, p4d, addr, mask);
+ 	if (!pud)
+@@ -230,11 +236,11 @@ static int vmap_pud_range(p4d_t *p4d, un
+ 			continue;
+ 		}
+ 
+-		if (vmap_pmd_range(pud, addr, next, phys_addr, prot,
+-					max_page_shift, mask))
+-			return -ENOMEM;
++		err = vmap_pmd_range(pud, addr, next, phys_addr, prot, max_page_shift, mask);
++		if (err)
++			break;
+ 	} while (pud++, phys_addr += (next - addr), addr = next, addr != end);
+-	return 0;
++	return err;
  }
  
- static const struct file_operations page_owner_fops = {
+ static int vmap_try_huge_p4d(p4d_t *p4d, unsigned long addr, unsigned long end,
+@@ -268,6 +274,7 @@ static int vmap_p4d_range(pgd_t *pgd, un
+ {
+ 	p4d_t *p4d;
+ 	unsigned long next;
++	int err = 0;
+ 
+ 	p4d = p4d_alloc_track(&init_mm, pgd, addr, mask);
+ 	if (!p4d)
+@@ -281,11 +288,11 @@ static int vmap_p4d_range(pgd_t *pgd, un
+ 			continue;
+ 		}
+ 
+-		if (vmap_pud_range(p4d, addr, next, phys_addr, prot,
+-					max_page_shift, mask))
+-			return -ENOMEM;
++		err = vmap_pud_range(p4d, addr, next, phys_addr, prot, max_page_shift, mask);
++		if (err)
++			break;
+ 	} while (p4d++, phys_addr += (next - addr), addr = next, addr != end);
+-	return 0;
++	return err;
+ }
+ 
+ static int vmap_range_noflush(unsigned long addr, unsigned long end,
 _
 
-Patches currently in -mm which might be from husong@kylinos.cn are
+Patches currently in -mm which might be from yadong.qi@linux.alibaba.com are
 
 
