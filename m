@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6877321CC51
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA2FF61FCE
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343112; cv=none; b=IT4/TP9iMcqJcqGvTamsbU5x2w10w3GW2dT+Usoqw51v3lpbgFPdtLCNb4ouwWQ91IOLxEhqh7neOkRQdDDm+X7W5jDy8w2g+MBvQgMDrBYmHfD6pHLtWCaIhpDY1l8weib/vx/M7owZDzZzeMBmNL9CEDZO66VvhsWz4nncE3c=
+	t=1763343113; cv=none; b=qYbbhFWkDXKmzItK2zI7afP+O9UrCQ2SHaox8LtC1d/Jb1Tp8/NJdRJw8ppdyRChF7j4abphl6itShJIePq/jthvjugEIHTZzI0HL2KfK5K/Ud8X4oDM8dp3nZGjpsRvCRC6GsNaadJTnghotzxYGzCkOxkdpAULz6oNzbcKhHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343112; c=relaxed/simple;
-	bh=3YUm7nkbITNuaC3P6H6XWkGUIECVsgq/xa81+UfNU2Y=;
-	h=Date:To:From:Subject:Message-Id; b=Alb1SSTECb5doSQflJumf1XT/bveHvGZEO5/YsjR2vVyU4y7uDDgkUA7SZbK3OHDv5UiAvRdVBEGevk86oki3/51tBzIwB1DbVkfTarCaiw/J1bj4Y8rpaWZ+gbWlbUscY9DHqNhc+qZhWZcqxI2HlYDGigzE2w4aR7uWygb/sI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TGTUOTfp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343113; c=relaxed/simple;
+	bh=gXxbfoWvZ/ZR9jX+grWi4xLetT5wdoEMswnaY6JYriY=;
+	h=Date:To:From:Subject:Message-Id; b=lv7acBB+M8P0AecEDXeydrUuKB3/vyx2YnkN4XGDL9FCzHnus6bPSEPThKIeRP9lDVIa0CuWCJ8ZvUF1DShLHWnK7mggD0q3vrq+wC9/mW3Tw4JO2RDUd4RtUxr58TBs44T67GCnCaJjmDmrWgO4fNQaNPVl0U++NZisV+s+m7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OQDx19Bk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TGTUOTfp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DC93C4CEF1;
-	Mon, 17 Nov 2025 01:31:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OQDx19Bk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E43BC113D0;
+	Mon, 17 Nov 2025 01:31:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343112;
-	bh=3YUm7nkbITNuaC3P6H6XWkGUIECVsgq/xa81+UfNU2Y=;
+	s=korg; t=1763343113;
+	bh=gXxbfoWvZ/ZR9jX+grWi4xLetT5wdoEMswnaY6JYriY=;
 	h=Date:To:From:Subject:From;
-	b=TGTUOTfpg1RwNfxWBcT00ZleBSssQbJNrBPbfAxf7z9MV9exMMW2ogLyGAN/zVZ5z
-	 vd1unFO20SM7c0RZ3ekZK2Bk9IUnius/J6Vt/KCeY8Sgj84kox693fQs7GrhM+ZKcv
-	 xblgSZLAZ3S4ayFC2kDwH/M7vh8DsyUPgtJD7VVU=
-Date: Sun, 16 Nov 2025 17:31:51 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,mfo@igalia.com,akpm@linux-foundation.org
+	b=OQDx19Bko6e6Uf8OgN9d2uU+L+MWHPRiidpct4Xjf7FSoMUT07G6KZCn1tL1oqAYC
+	 AT0+hQ+hab2NUudZaxUH/aQc4aTdCoYK4SPyAGMiEQzAEbdb2zSoMntXsYNcxAiIgA
+	 cwPVupDOYdbYWtlMcPQlj+X7AJ2tj8NhjxxXjX+8=
+Date: Sun, 16 Nov 2025 17:31:53 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,dave.hansen@intel.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_owner-update-documentation-with-show_handles-and-show_stacks_handles.patch removed from -mm tree
-Message-Id: <20251117013152.3DC93C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch removed from -mm tree
+Message-Id: <20251117013153.8E43BC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,98 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: update Documentation with 'show_handles' and 'show_stacks_handles'
+     Subject: mm/page_alloc: clarify batch tuning in zone_batchsize
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-update-documentation-with-show_handles-and-show_stacks_handles.patch
+     mm-page_alloc-clarify-batch-tuning-in-zone_batchsize.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mauricio Faria de Oliveira <mfo@igalia.com>
-Subject: mm/page_owner: update Documentation with 'show_handles' and 'show_stacks_handles'
-Date: Wed, 1 Oct 2025 14:56:11 -0300
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/page_alloc: clarify batch tuning in zone_batchsize
+Date: Thu, 9 Oct 2025 12:29:30 -0700
 
-Describe and provide examples for 'show_handles' and 'show_stacks_handles'.
+Patch series "mm/page_alloc: pcp->batch cleanups", v2.
 
-Link: https://lkml.kernel.org/r/20251001175611.575861-6-mfo@igalia.com
-Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
+Two small cleanups for mm/page_alloc.
+
+Patch 1 cleans up a misleading comment about how pcp->batch is calculated,
+and folds in the calculation to increase clarity. No functional change
+intended.
+
+Patch 2 corrects zones from reporting that their pcp->batch is 0 when it
+is actually 1. Namely, corrects ZONE_DMA from reporting that its batch
+size is 0.
+
+
+This patch (of 2):
+
+Recently while working on another patch about batching free_pcppages_bulk
+[1], I was curious why pcp->batch was always 63 on my machine.  This led
+me to zone_batchsize(), where I found this set of lines to determine what
+the batch size should be for the host:
+
+	batch = min(zone_managed_pages(zone) >> 10, SZ_1M / PAGE_SIZE);
+	batch /= 4;		/* We effectively *= 4 below */
+	if (batch < 1)
+		batch = 1;
+
+All of this is good, except the comment above which says "We effectively
+*= 4 below".  Nowhere else in the function zone_batchsize(), is there a
+corresponding multipliation by 4.  Looking into the history of this, it
+seems like Dave Hansen had also noticed this back in 2013 [1].  Turns out
+there *used* to be a corresponding *= 4, which was turned into a *= 6
+later on to be used in pageset_setup_from_batch_size(), which no longer
+exists.
+
+Despite this mismatch not being corrected in the comments, it seems that
+getting rid of the /= 4 leads to a performance regression on machines with
+less than 250G memory and 176 processors.  As such, let us preserve the
+functionality but clean up the comments.
+
+Fold the /= 4 into the calculation above: bitshift by 10+2=12, and instead
+of dividing 1MB, divide 256KB and adjust the comments accordingly.  No
+functional change intended.
+
+Link: https://lkml.kernel.org/r/20251009192933.3756712-1-joshua.hahnjy@gmail.com
+Link: https://lkml.kernel.org/r/20251009192933.3756712-2-joshua.hahnjy@gmail.com
+Link: https://lore.kernel.org/all/20251002204636.4016712-1-joshua.hahnjy@gmail.com/ [1]
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Suggested-by: Dave Hansen <dave.hansen@intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/page_owner.rst |   32 +++++++++++++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/Documentation/mm/page_owner.rst~mm-page_owner-update-documentation-with-show_handles-and-show_stacks_handles
-+++ a/Documentation/mm/page_owner.rst
-@@ -27,7 +27,10 @@ enabled. Other usages are more than welc
- It can also be used to show all the stacks and their current number of
- allocated base pages, which gives us a quick overview of where the memory
- is going without the need to screen through all the pages and match the
--allocation and free operation.
-+allocation and free operation. It's also possible to show only a numeric
-+identifier of all the stacks (without stack traces) and their number of
-+allocated base pages (faster to read and parse, eg, for monitoring) that
-+can be matched with stacks later (show_handles and show_stacks_handles).
+--- a/mm/page_alloc.c~mm-page_alloc-clarify-batch-tuning-in-zone_batchsize
++++ a/mm/page_alloc.c
+@@ -5860,13 +5860,12 @@ static int zone_batchsize(struct zone *z
+ 	int batch;
  
- page owner is disabled by default. So, if you'd like to use it, you need
- to add "page_owner=on" to your boot cmdline. If the kernel is built
-@@ -116,6 +119,33 @@ Usage
- 	nr_base_pages: 20824
- 	...
- 
-+	cat /sys/kernel/debug/page_owner_stacks/show_handles > handles_7000.txt
-+	cat handles_7000.txt
-+	handle: 42
-+	nr_base_pages: 20824
-+	...
-+
-+	cat /sys/kernel/debug/page_owner_stacks/show_stacks_handles > stacks_handles.txt
-+	cat stacks_handles.txt
-+	 post_alloc_hook+0x177/0x1a0
-+	 get_page_from_freelist+0xd01/0xd80
-+	 __alloc_pages+0x39e/0x7e0
-+	 alloc_pages_mpol+0x22e/0x490
-+	 folio_alloc+0xd5/0x110
-+	 filemap_alloc_folio+0x78/0x230
-+	 page_cache_ra_order+0x287/0x6f0
-+	 filemap_get_pages+0x517/0x1160
-+	 filemap_read+0x304/0x9f0
-+	 xfs_file_buffered_read+0xe6/0x1d0 [xfs]
-+	 xfs_file_read_iter+0x1f0/0x380 [xfs]
-+	 __kernel_read+0x3b9/0x730
-+	 kernel_read_file+0x309/0x4d0
-+	 __do_sys_finit_module+0x381/0x730
-+	 do_syscall_64+0x8d/0x150
-+	 entry_SYSCALL_64_after_hwframe+0x62/0x6a
-+	handle: 42
-+	...
-+
- 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
- 	./page_owner_sort page_owner_full.txt sorted_page_owner.txt
+ 	/*
+-	 * The number of pages to batch allocate is either ~0.1%
+-	 * of the zone or 1MB, whichever is smaller. The batch
++	 * The number of pages to batch allocate is either ~0.025%
++	 * of the zone or 256KB, whichever is smaller. The batch
+ 	 * size is striking a balance between allocation latency
+ 	 * and zone lock contention.
+ 	 */
+-	batch = min(zone_managed_pages(zone) >> 10, SZ_1M / PAGE_SIZE);
+-	batch /= 4;		/* We effectively *= 4 below */
++	batch = min(zone_managed_pages(zone) >> 12, SZ_256K / PAGE_SIZE);
+ 	if (batch < 1)
+ 		batch = 1;
  
 _
 
-Patches currently in -mm which might be from mfo@igalia.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
 
