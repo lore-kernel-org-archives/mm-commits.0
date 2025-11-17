@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1853E31BCAA
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 18:44:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D48531A55E
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 18:44:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763405063; cv=none; b=EYkKnPCfED7Hz/2/q7siaIb90YmAmG8yPC6IBmdagYbflGQZ3GVdKdpclSc1ei4MXcaFvhFXr/d+Y1fR1wf0+KtbrlOppCzgyKbQx1YNzNVPsMbZPDeJoGV5qMBuKBy+anTREzpONRq7KM71a41w3j2NNtXoLiY897UWJlsIr9E=
+	t=1763405066; cv=none; b=diRx6kkHWiaG75gtpna0/up0COZZQgJWY7I1A4oAWy07JdT1jHoBPpOvoxLaDmCHSHKVQftthZkIRjtc8iCiesmM9GTvtjENTq5+Zs05gRDGCL80tqZon+bfkNhbxAV2/f7LClcTS1eHOar8rhGYJTqNn2+I8HeQXGcrSAACoZk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763405063; c=relaxed/simple;
-	bh=66+3z9K/2WdtKLkaQjhSOSj5DV1FaUYopFenUBrVrCc=;
-	h=Date:To:From:Subject:Message-Id; b=GEYTfT4iLorN0ds7vTWgIaahMPiILy9M9uner1IPz+JcQXVeUUk5i2ckuoxJQy3EBtpDzHwcfmKqYhGohCKTVtTEyxmDboLyo0Br+FUf7Q7TSXGiHyTtSPpS6So7IiKfSV1TI69NyL5JlEr3nLZNJtP8lfaZnW1uzzE+1N31nuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zq6LBBng; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763405066; c=relaxed/simple;
+	bh=FlVZxy3Kv2HYHHqCEpzYOXdr7m0jRNavWEAzHKWy0y8=;
+	h=Date:To:From:Subject:Message-Id; b=cjfNDT2jYAUfN6wYDhINht1PFSJelCuzxveCM0XMh4Wwl0udSTqvLAKnwfKxewKeCdol5z9LZ2Fg8ZIuyxi5oUNO1w4ZcVfjueRZxYk8NZ3uKVxGF6BZNhYzjRs50dgyknI6tQIj6k6nV+7dLKkCZhEyhyJBMYzTcD7sXXiQEwI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TKKcQlX2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zq6LBBng"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4957CC19421;
-	Mon, 17 Nov 2025 18:44:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TKKcQlX2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 905B6C19423;
+	Mon, 17 Nov 2025 18:44:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763405062;
-	bh=66+3z9K/2WdtKLkaQjhSOSj5DV1FaUYopFenUBrVrCc=;
+	s=korg; t=1763405065;
+	bh=FlVZxy3Kv2HYHHqCEpzYOXdr7m0jRNavWEAzHKWy0y8=;
 	h=Date:To:From:Subject:From;
-	b=Zq6LBBngvKK/U1rQ5avdM1N2oDM4a0nIdycNVF96vroomAlVe6b/ZQ2dq5HWcufWG
-	 sf7I6BEBJxPKPqyCmSLMNw2vmA8Hs09U2jsEBiV8odwEqVKTetNRVXjXjGICVnbgfA
-	 WNA5+2nvCSg6zqJoDBNBOmOlM7X9HfDH/QFM1quc=
-Date: Mon, 17 Nov 2025 10:44:20 -0800
+	b=TKKcQlX2I9J2w4kKdKEtH1vMgfJbbCup44WuAWBYOKJW9JT/MUmi1P+L+kdmPDNMY
+	 gQqLrYySqGRJw5vrHsh1XEEIqHfnGSzWbmP2K9LQOnAByYwecgOrHIJNw07UfLMl6r
+	 TOTxpqoVNpchknVxrW7tHaTRXMRpBYtYPU2dKYWI=
+Date: Mon, 17 Nov 2025 10:44:24 -0800
 To: mm-commits@vger.kernel.org,ywen.chen@foxmail.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-take-write-lock-in-wb-limit-store-handlers.patch added to mm-unstable branch
-Message-Id: <20251117184422.4957CC19421@smtp.kernel.org>
+Subject: + zram-drop-wb_limit_lock.patch added to mm-unstable branch
+Message-Id: <20251117184425.905B6C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: take write lock in wb limit store handlers
+     Subject: zram: drop wb_limit_lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-take-write-lock-in-wb-limit-store-handlers.patch
+     zram-drop-wb_limit_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-take-write-lock-in-wb-limit-store-handlers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-drop-wb_limit_lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: take write lock in wb limit store handlers
-Date: Sat, 15 Nov 2025 11:34:46 +0900
+Subject: zram: drop wb_limit_lock
+Date: Sat, 15 Nov 2025 11:34:47 +0900
 
-Write device attrs handlers should take write zram init_lock.  While at
-it, fixup coding styles.
+We don't need wb_limit_lock.  Writeback limit setters take an exclusive
+write zram init_lock, while wb_limit modifications happen only from a
+single task and under zram read init_lock.  No concurrent wb_limit
+modifications are possible (we permit only one post-processing task at a
+time).  Add lockdep assertions to wb_limit mutators.
 
-Link: https://lkml.kernel.org/r/20251115023447.495417-4-senozhatsky@chromium.org
+While at it, fixup coding styles.
+
+Link: https://lkml.kernel.org/r/20251115023447.495417-5-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: Minchan Kim <minchan@google.com>
@@ -74,68 +79,114 @@ Cc: Yuwen Chen <ywen.chen@foxmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/block/zram/zram_drv.c |   22 +++++-----------------
+ drivers/block/zram/zram_drv.h |    1 -
+ 2 files changed, 5 insertions(+), 18 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-take-write-lock-in-wb-limit-store-handlers
+--- a/drivers/block/zram/zram_drv.c~zram-drop-wb_limit_lock
 +++ a/drivers/block/zram/zram_drv.c
-@@ -519,7 +519,8 @@ struct zram_wb_req {
- };
- 
- static ssize_t writeback_limit_enable_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+					    struct device_attribute *attr,
-+					    const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
- 	u64 val;
-@@ -528,18 +529,19 @@ static ssize_t writeback_limit_enable_st
- 	if (kstrtoull(buf, 10, &val))
+@@ -530,9 +530,7 @@ static ssize_t writeback_limit_enable_st
  		return ret;
  
--	down_read(&zram->init_lock);
-+	down_write(&zram->init_lock);
- 	spin_lock(&zram->wb_limit_lock);
+ 	down_write(&zram->init_lock);
+-	spin_lock(&zram->wb_limit_lock);
  	zram->wb_limit_enable = val;
- 	spin_unlock(&zram->wb_limit_lock);
--	up_read(&zram->init_lock);
-+	up_write(&zram->init_lock);
+-	spin_unlock(&zram->wb_limit_lock);
+ 	up_write(&zram->init_lock);
  	ret = len;
  
- 	return ret;
- }
- 
- static ssize_t writeback_limit_enable_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+					   struct device_attribute *attr,
-+					   char *buf)
- {
- 	bool val;
+@@ -547,9 +545,7 @@ static ssize_t writeback_limit_enable_sh
  	struct zram *zram = dev_to_zram(dev);
-@@ -554,7 +556,8 @@ static ssize_t writeback_limit_enable_sh
- }
  
- static ssize_t writeback_limit_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
- 	u64 val;
-@@ -563,11 +566,11 @@ static ssize_t writeback_limit_store(str
- 	if (kstrtoull(buf, 10, &val))
+ 	down_read(&zram->init_lock);
+-	spin_lock(&zram->wb_limit_lock);
+ 	val = zram->wb_limit_enable;
+-	spin_unlock(&zram->wb_limit_lock);
+ 	up_read(&zram->init_lock);
+ 
+ 	return sysfs_emit(buf, "%d\n", val);
+@@ -567,9 +563,7 @@ static ssize_t writeback_limit_store(str
  		return ret;
  
--	down_read(&zram->init_lock);
-+	down_write(&zram->init_lock);
- 	spin_lock(&zram->wb_limit_lock);
+ 	down_write(&zram->init_lock);
+-	spin_lock(&zram->wb_limit_lock);
  	zram->bd_wb_limit = val;
- 	spin_unlock(&zram->wb_limit_lock);
--	up_read(&zram->init_lock);
-+	up_write(&zram->init_lock);
+-	spin_unlock(&zram->wb_limit_lock);
+ 	up_write(&zram->init_lock);
  	ret = len;
  
- 	return ret;
+@@ -577,15 +571,13 @@ static ssize_t writeback_limit_store(str
+ }
+ 
+ static ssize_t writeback_limit_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
++				    struct device_attribute *attr, char *buf)
+ {
+ 	u64 val;
+ 	struct zram *zram = dev_to_zram(dev);
+ 
+ 	down_read(&zram->init_lock);
+-	spin_lock(&zram->wb_limit_lock);
+ 	val = zram->bd_wb_limit;
+-	spin_unlock(&zram->wb_limit_lock);
+ 	up_read(&zram->init_lock);
+ 
+ 	return sysfs_emit(buf, "%llu\n", val);
+@@ -864,18 +856,18 @@ release_wb_ctl:
+ 
+ static void zram_account_writeback_rollback(struct zram *zram)
+ {
+-	spin_lock(&zram->wb_limit_lock);
++	lockdep_assert_held_read(&zram->init_lock);
++
+ 	if (zram->wb_limit_enable)
+ 		zram->bd_wb_limit +=  1UL << (PAGE_SHIFT - 12);
+-	spin_unlock(&zram->wb_limit_lock);
+ }
+ 
+ static void zram_account_writeback_submit(struct zram *zram)
+ {
+-	spin_lock(&zram->wb_limit_lock);
++	lockdep_assert_held_read(&zram->init_lock);
++
+ 	if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
+ 		zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
+-	spin_unlock(&zram->wb_limit_lock);
+ }
+ 
+ static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
+@@ -990,13 +982,10 @@ static int zram_writeback_slots(struct z
+ 
+ 	blk_start_plug(&io_plug);
+ 	while ((pps = select_pp_slot(ctl))) {
+-		spin_lock(&zram->wb_limit_lock);
+ 		if (zram->wb_limit_enable && !zram->bd_wb_limit) {
+-			spin_unlock(&zram->wb_limit_lock);
+ 			ret = -EIO;
+ 			break;
+ 		}
+-		spin_unlock(&zram->wb_limit_lock);
+ 
+ 		while (!req) {
+ 			req = select_idle_req(wb_ctl);
+@@ -2942,7 +2931,6 @@ static int zram_add(void)
+ 	init_rwsem(&zram->init_lock);
+ #ifdef CONFIG_ZRAM_WRITEBACK
+ 	zram->wb_batch_size = 32;
+-	spin_lock_init(&zram->wb_limit_lock);
+ #endif
+ 
+ 	/* gendisk structure */
+--- a/drivers/block/zram/zram_drv.h~zram-drop-wb_limit_lock
++++ a/drivers/block/zram/zram_drv.h
+@@ -127,7 +127,6 @@ struct zram {
+ 	bool claim; /* Protected by disk->open_mutex */
+ #ifdef CONFIG_ZRAM_WRITEBACK
+ 	struct file *backing_dev;
+-	spinlock_t wb_limit_lock;
+ 	bool wb_limit_enable;
+ 	u32 wb_batch_size;
+ 	u64 bd_wb_limit;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
