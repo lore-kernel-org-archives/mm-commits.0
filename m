@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DA2422129F
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D72F8212554
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343176; cv=none; b=az92fLrJF7bbLPxTkEyRV+NSLFto0FtgCdPaQNEa+Fk96L5wJWcJ/Cx9f4EGb7J9MNJgSndEM4etMcQhQQlxS1CDM+uXDUW2rw+XhrY/Ed2ba1kRNQyl5LlvZIze6ogdmq0RpFNxHL6Jsa72Pr3aPhY6+wx3tpmskhPjAgquBqE=
+	t=1763343177; cv=none; b=XAk4xm4DmIVHCO/Jj4Yo7rqR4KVry4gLT5vFMMaURaVk4IXpQmmA/J7sJU0Go6k5+uru1u/fRRKkW1xfyoUgmNLFf8l+aFcLM6P3PgV61xoCO5ilrx9/miK813TzZkY+qhSdJa2G+FHnNITXn7vn97rR8A13Tqt+hRcP2Vine7A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343176; c=relaxed/simple;
-	bh=bvhWS1XL27oEPYvSw7Iy25tZmqKr7U1wAJpJyKUPZLk=;
-	h=Date:To:From:Subject:Message-Id; b=Q2CCvOfb8SjJ32PBfWY9pF5C+JqQYw5fEgLvA7UeDFTIwHUVEJjoUEj3AuAdYYum0Z7khZcMyGR+tvKo13oEblZkvuYUkxjeg9qJlWmw15s8A23uhGigSxSzSgjw1Eh124GGt5xpKtU+AdKz/+5L4LPQqlhCGW8zxTtX8X9xI9s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oRYsnkfA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343177; c=relaxed/simple;
+	bh=1p1Fyj/6RAm6c5MsJvbbTySTONhgff/lfbr/H6z1HvY=;
+	h=Date:To:From:Subject:Message-Id; b=rb1Em+3/63rX8lJrWjliPYkqGI8pntfitfWvHGkcNd67bXO6lIn/rzogq+tMkRMtGzvBzDFGu1Y3t2AtQZykQCHVRZAq3mbhKEU6yTTK+XFiC0pjmsKCnhB4WiCBG2mFcCLAIzxqYElam9AVMJnTi6+4eTfKDVOOVucoMWhJGnY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KfvNychK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oRYsnkfA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF9D5C113D0;
-	Mon, 17 Nov 2025 01:32:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KfvNychK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A802EC116D0;
+	Mon, 17 Nov 2025 01:32:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343176;
-	bh=bvhWS1XL27oEPYvSw7Iy25tZmqKr7U1wAJpJyKUPZLk=;
+	s=korg; t=1763343177;
+	bh=1p1Fyj/6RAm6c5MsJvbbTySTONhgff/lfbr/H6z1HvY=;
 	h=Date:To:From:Subject:From;
-	b=oRYsnkfAq08K0a35S17QHbqtz5mbebAnZS4rLaGg57VM0hgpPLtS19vB/4H6pu5rE
-	 r8BHh4LBl1iWCJR+AeRsz6CnYFPJ0Iq20v74fSsPHCxkFr2d5M4LTKUFEpdKsD7Yl6
-	 shogPHbBovQnqsdToKbmWeoROK+Kre8cZV7x2ldQ=
-Date: Sun, 16 Nov 2025 17:32:55 -0800
+	b=KfvNychKRsN7VSneTAoG6l2rpybYbz7qywARPKCm17GKbXfVhwgrrQKGOy+R7OidE
+	 mna6Dxn1VA8ERCU5SEYczxytBLA1Fa5PcWb0arr1xR/T5aNynyyqQPxnXKNtosli8B
+	 Y9WtTr+u56UWIJ1MwZoiMe/oz5+oWBOAgPGbGqlI=
+Date: Sun, 16 Nov 2025 17:32:57 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,viro@zeniv.linux.org.uk,vgoyal@redhat.com,vbabka@suse.cz,urezki@gmail.com,tsbogend@alpha.franken.de,tony.luck@intel.com,svens@linux.ibm.com,surenb@google.com,sumanthk@linux.ibm.com,rppt@kernel.org,robin.murphy@arm.com,reinette.chatre@intel.com,pfalcato@suse.de,osalvador@suse.de,nico@fluxnic.net,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kevin.tian@intel.com,jgg@nvidia.com,jannh@google.com,james.morse@arm.com,jack@suse.cz,hughd@google.com,hca@linux.ibm.com,guoren@kernel.org,gregkh@linuxfoundation.org,gor@linux.ibm.com,dyoung@redhat.com,dvyukov@google.com,david@redhat.com,davem@davemloft.net,dave.martin@arm.com,dave.jiang@intel.com,dan.j.williams@intel.com,corbet@lwn.net,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,arnd@arndb.de,andreyknvl@gmail.com,andreas@gaisler.com,almaz.alexandrovich@paragon-software.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-remove-unused-function-make-internal-functions-static.patch removed from -mm tree
-Message-Id: <20251117013255.DF9D5C113D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-vma_desc_size-vma_desc_pages-helpers.patch removed from -mm tree
+Message-Id: <20251117013257.A802EC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: remove unused function, make internal functions static
+     Subject: mm: add vma_desc_size(), vma_desc_pages() helpers
 has been removed from the -mm tree.  Its filename was
-     mm-vma-remove-unused-function-make-internal-functions-static.patch
+     mm-add-vma_desc_size-vma_desc_pages-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: remove unused function, make internal functions static
-Date: Mon, 20 Oct 2025 13:11:20 +0100
+Subject: mm: add vma_desc_size(), vma_desc_pages() helpers
+Date: Mon, 20 Oct 2025 13:11:21 +0100
 
-unlink_file_vma() is not used by anything, so remove it.
+It's useful to be able to determine the size of a VMA descriptor range
+used on f_op->mmap_prepare, expressed both in bytes and pages, so add
+helpers for both and update code that could make use of it to do so.
 
-vma_link() and vma_link_file() are only used within mm/vma.c, so make them
-static.
-
-Link: https://lkml.kernel.org/r/f2ab9ea051225a02e6d1d45a7608f4e149220117.1760959442.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/74ef338203c9ff08a9ace73a8f1f6116a79112a0.1760959442.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Larsson <andreas@gaisler.com>
@@ -69,7 +71,6 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Dave Martin <dave.martin@arm.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Dmitriy Vyukov <dvyukov@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -77,7 +78,6 @@ Cc: Guo Ren <guoren@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: James Morse <james.morse@arm.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kevin Tian <kevin.tian@intel.com>
@@ -90,7 +90,6 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nicolas Pitre <nico@fluxnic.net>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Robin Murohy <robin.murphy@arm.com>
 Cc: Sumanth Korikkar <sumanthk@linux.ibm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -105,62 +104,52 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   21 ++-------------------
- mm/vma.h |    6 ------
- 2 files changed, 2 insertions(+), 25 deletions(-)
+ fs/ntfs3/file.c    |    2 +-
+ include/linux/mm.h |   10 ++++++++++
+ mm/secretmem.c     |    2 +-
+ 3 files changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/vma.c~mm-vma-remove-unused-function-make-internal-functions-static
-+++ a/mm/vma.c
-@@ -1754,24 +1754,7 @@ void unlink_file_vma_batch_final(struct
- 		unlink_file_vma_batch_process(vb);
+--- a/fs/ntfs3/file.c~mm-add-vma_desc_size-vma_desc_pages-helpers
++++ a/fs/ntfs3/file.c
+@@ -332,7 +332,7 @@ static int ntfs_file_mmap_prepare(struct
+ 
+ 	if (rw) {
+ 		u64 to = min_t(loff_t, i_size_read(inode),
+-			       from + desc->end - desc->start);
++			       from + vma_desc_size(desc));
+ 
+ 		if (is_sparsed(ni)) {
+ 			/* Allocate clusters for rw map. */
+--- a/include/linux/mm.h~mm-add-vma_desc_size-vma_desc_pages-helpers
++++ a/include/linux/mm.h
+@@ -3583,6 +3583,16 @@ static inline unsigned long vma_pages(co
+ 	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
  }
  
--/*
-- * Unlink a file-based vm structure from its interval tree, to hide
-- * vma from rmap and vmtruncate before freeing its page tables.
-- */
--void unlink_file_vma(struct vm_area_struct *vma)
--{
--	struct file *file = vma->vm_file;
--
--	if (file) {
--		struct address_space *mapping = file->f_mapping;
--
--		i_mmap_lock_write(mapping);
--		__remove_shared_vm_struct(vma, mapping);
--		i_mmap_unlock_write(mapping);
--	}
--}
--
--void vma_link_file(struct vm_area_struct *vma)
-+static void vma_link_file(struct vm_area_struct *vma)
++static inline unsigned long vma_desc_size(const struct vm_area_desc *desc)
++{
++	return desc->end - desc->start;
++}
++
++static inline unsigned long vma_desc_pages(const struct vm_area_desc *desc)
++{
++	return vma_desc_size(desc) >> PAGE_SHIFT;
++}
++
+ /* Look up the first VMA which exactly match the interval vm_start ... vm_end */
+ static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
+ 				unsigned long vm_start, unsigned long vm_end)
+--- a/mm/secretmem.c~mm-add-vma_desc_size-vma_desc_pages-helpers
++++ a/mm/secretmem.c
+@@ -120,7 +120,7 @@ static int secretmem_release(struct inod
+ 
+ static int secretmem_mmap_prepare(struct vm_area_desc *desc)
  {
- 	struct file *file = vma->vm_file;
- 	struct address_space *mapping;
-@@ -1784,7 +1767,7 @@ void vma_link_file(struct vm_area_struct
- 	}
- }
+-	const unsigned long len = desc->end - desc->start;
++	const unsigned long len = vma_desc_size(desc);
  
--int vma_link(struct mm_struct *mm, struct vm_area_struct *vma)
-+static int vma_link(struct mm_struct *mm, struct vm_area_struct *vma)
- {
- 	VMA_ITERATOR(vmi, mm, 0);
- 
---- a/mm/vma.h~mm-vma-remove-unused-function-make-internal-functions-static
-+++ a/mm/vma.h
-@@ -312,12 +312,6 @@ void unlink_file_vma_batch_final(struct
- void unlink_file_vma_batch_add(struct unlink_vma_file_batch *vb,
- 			       struct vm_area_struct *vma);
- 
--void unlink_file_vma(struct vm_area_struct *vma);
--
--void vma_link_file(struct vm_area_struct *vma);
--
--int vma_link(struct mm_struct *mm, struct vm_area_struct *vma);
--
- struct vm_area_struct *copy_vma(struct vm_area_struct **vmap,
- 	unsigned long addr, unsigned long len, pgoff_t pgoff,
- 	bool *need_rmap_locks);
+ 	if ((desc->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
