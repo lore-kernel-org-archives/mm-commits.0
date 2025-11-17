@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C34482D5A01
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 17:42:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 543301C84A0
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 17:47:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763401376; cv=none; b=Z6BKy9wMKVLT+9EsyZ3utuj4oBEfM8uuOMROAU+ZWggDQIjXUJQbHPdVsQKX+ZjLsJzcMWejmXEOcamZF2tGe8/3F90voZt9xaHYFafWUABIpySGxDNNSocFrj+HWaQos7U6pKgK8BjsZ0IW+yxorr1v3874tDg2glJs47GiGOk=
+	t=1763401646; cv=none; b=DSmULZy+FE70Sjcapqu3xBiZSKQYbawFPl7ZYDCo8R+7bjTM0KB4e0wuKnZijBuzECL4NfaSU0miu2UVq5t/wK9uInzKof51oiWwgSn17RS/6Oml82mBE10sGdo8r4oDwC22O8m37Q881Q7gztVLfy3r/QbF9JBNq0vDiPoiurI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763401376; c=relaxed/simple;
-	bh=frNqQmJCfH9XWVBDsL8Lmm/lMIo5MwB+ikmgxEPVK9U=;
-	h=Date:To:From:Subject:Message-Id; b=DViOKyZTbXGDWsnNbacKT73vOLT7zsGWaZCmlFa8l5BboAEZE2ZFgIfa9sTQlwtRkW6tSssgKplLanjc5hJZ8tQ8ceLuBQfQm1vkKnR/k4OaDqKznNKQy8n7dDsSL1Qtx+E69jQtf1mEDae0/vo2o/mwZSRoXOC1Qqu3DUJ7yQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l1qTbWHy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763401646; c=relaxed/simple;
+	bh=oI12/xYxalDvI6KnyiGfnVzYt750NSzNU8TnCM3BGCc=;
+	h=Date:To:From:Subject:Message-Id; b=U9Kj1l1LmaKGSHcIyGhLygD+KXsJll44btzEG37xF+/c/fiWzwdlRPDa0iy0PMpOr242oBU8A0VUYki6ZII8zgEQHg7MVPV4jI/fOvbFJboDJGvUf7uDka/c3g0RizU1qCgiqe5JpCpWbrIt6v2aSR2vzVr3/Bv60Z37O350NaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nC4WX49E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l1qTbWHy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EBB9C113D0;
-	Mon, 17 Nov 2025 17:42:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nC4WX49E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C671C19423;
+	Mon, 17 Nov 2025 17:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763401376;
-	bh=frNqQmJCfH9XWVBDsL8Lmm/lMIo5MwB+ikmgxEPVK9U=;
+	s=korg; t=1763401645;
+	bh=oI12/xYxalDvI6KnyiGfnVzYt750NSzNU8TnCM3BGCc=;
 	h=Date:To:From:Subject:From;
-	b=l1qTbWHy6jG/damLJJXCBellSLTLVN3PJKwMJB10C9NKEKNfBj5jWs12mtrphdEs6
-	 krkCjdib/VvCNxOmladaOysROVHQHub7gBqOR88pEFfKgjLPBbrX0AY6RuHFYMvHH7
-	 Yf3iqXHdMewhosJH/tXqVwrLPyhRJoHClngt9lvI=
-Date: Mon, 17 Nov 2025 09:42:54 -0800
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,shivangu@linux.ibm.com,ritesh.list@gmail.com,piliu@redhat.com,mahesh@linux.ibm.com,maddy@linux.ibm.com,jbohac@suse.cz,hbathini@linux.ibm.com,dyoung@redhat.com,bhe@redhat.com,adityag@linux.ibm.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
+	b=nC4WX49EHz/Q17kmv4c/yoMyvb5kV0/2kfJfa8UYQFOB6+d0ouWB+teqTCecAsQdO
+	 WNWI5da2Vx7f0zTsR2KtzaFAyjj2drB/s1IZMhwwZkP/u0D/opN8ZhSzWBm35P+vZT
+	 zfRp66plXJqXtvTXjU0joqvlrT40tSsM653hC8bU=
+Date: Mon, 17 Nov 2025 09:47:24 -0800
+To: mm-commits@vger.kernel.org,david.laight.linux@gmail.com,409411716@gms.tku.edu.tw,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-abi-add-kexec-and-kdump-sysfs-interface.patch added to mm-nonmm-unstable branch
-Message-Id: <20251117174256.0EBB9C113D0@smtp.kernel.org>
+Subject: + lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251117174725.9C671C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/ABI: add kexec and kdump sysfs interface
+     Subject: lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     documentation-abi-add-kexec-and-kdump-sysfs-interface.patch
+     lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-abi-add-kexec-and-kdump-sysfs-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,86 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: Documentation/ABI: add kexec and kdump sysfs interface
-Date: Mon, 17 Nov 2025 09:21:53 +0530
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
+Date: Mon Nov 17 09:44:57 AM PST 2025
 
-Add an ABI document for following kexec and kdump sysfs interface:
-- /sys/kernel/kexec_loaded
-- /sys/kernel/kexec_crash_loaded
-- /sys/kernel/kexec_crash_size
-- /sys/kernel/crash_elfcorehdr_size
+remove u32 casts, per David and Guan-Chun
 
-Link: https://lkml.kernel.org/r/20251117035153.1199665-1-sourabhjain@linux.ibm.com
-Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Aditya Gupta <adityag@linux.ibm.com>
-Cc: Baoquan he <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mahesh J Salgaonkar <mahesh@linux.ibm.com>
-Cc: Pingfan Liu <piliu@redhat.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shivang Upadhyay <shivangu@linux.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: David Laight <david.laight.linux@gmail.com>
+Cc: Guan-Chun Wu <409411716@gms.tku.edu.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-kexec-kdump |   43 +++++++++++
- 1 file changed, 43 insertions(+)
+ lib/base64.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
-new file mode 100644
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
-@@ -0,0 +1,43 @@
-+What:		/sys/kernel/kexec_loaded
-+Date:		Jun 2006
-+Contact:	kexec@lists.infradead.org
-+Description:	read only
-+		Indicates whether a new kernel image has been loaded
-+		into memory using the kexec system call. It shows 1 if
-+		a kexec image is present and ready to boot, or 0 if none
-+		is loaded.
-+User:		kexec tools, kdump service
-+
-+What:		/sys/kernel/kexec_crash_loaded
-+Date:		Jun 2006
-+Contact:	kexec@lists.infradead.org
-+Description:	read only
-+		Indicates whether a crash (kdump) kernel is currently
-+		loaded into memory. It shows 1 if a crash kernel has been
-+		successfully loaded for panic handling, or 0 if no crash
-+		kernel is present.
-+User:		Kexec tools, Kdump service
-+
-+What:		/sys/kernel/kexec_crash_size
-+Date:		Dec 2009
-+Contact:	kexec@lists.infradead.org
-+Description:	read/write
-+		Shows the amount of memory reserved for loading the crash
-+		(kdump) kernel. It reports the size, in bytes, of the
-+		crash kernel area defined by the crashkernel= parameter.
-+		This interface also allows reducing the crashkernel
-+		reservation by writing a smaller value, and the reclaimed
-+		space is added back to the system RAM.
-+User:		Kdump service
-+
-+What:		/sys/kernel/crash_elfcorehdr_size
-+Date:		Aug 2023
-+Contact:	kexec@lists.infradead.org
-+Description:	read only
-+		Indicates the preferred size of the memory buffer for the
-+		ELF core header used by the crash (kdump) kernel. It defines
-+		how much space is needed to hold metadata about the crashed
-+		system, including CPU and memory information. This information
-+		is used by the user space utility kexec to support updating the
-+		in-kernel kdump image during hotplug operations.
-+User:		Kexec tools
+--- a/lib/base64.c~lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
++++ a/lib/base64.c
+@@ -83,7 +83,7 @@ int base64_encode(const u8 *src, int src
+ 	const char *base64_table = base64_tables[variant];
+ 
+ 	while (srclen >= 3) {
+-		ac = (u32)src[0] << 16 | (u32)src[1] << 8 | (u32)src[2];
++		ac = src[0] << 16 | src[1] << 8 | src[2];
+ 		*cp++ = base64_table[ac >> 18];
+ 		*cp++ = base64_table[(ac >> 12) & 0x3f];
+ 		*cp++ = base64_table[(ac >> 6) & 0x3f];
+@@ -95,7 +95,7 @@ int base64_encode(const u8 *src, int src
+ 
+ 	switch (srclen) {
+ 	case 2:
+-		ac = (u32)src[0] << 16 | (u32)src[1] << 8;
++		ac = src[0] << 16 | src[1] << 8;
+ 		*cp++ = base64_table[ac >> 18];
+ 		*cp++ = base64_table[(ac >> 12) & 0x3f];
+ 		*cp++ = base64_table[(ac >> 6) & 0x3f];
+@@ -103,7 +103,7 @@ int base64_encode(const u8 *src, int src
+ 			*cp++ = '=';
+ 		break;
+ 	case 1:
+-		ac = (u32)src[0] << 16;
++		ac = src[0] << 16;
+ 		*cp++ = base64_table[ac >> 18];
+ 		*cp++ = base64_table[(ac >> 12) & 0x3f];
+ 		if (padding) {
 _
 
-Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-documentation-abi-add-kexec-and-kdump-sysfs-interface.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix.patch
+panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
+lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
 
