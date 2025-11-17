@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 932C922E004
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCA7F22D4F6
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343249; cv=none; b=jCTk8JX+BQWdHIac44pYNbw3Hsq0FkpF4LLds1V7hiwkS3xU3ABg0KX1vGwxajX23FnnQEiJ17WdZw1VFe7SpUknTEKtSYgRML/L6L3kf9KNe4MKlLiElnfZIYVjNWxdMWV3N3ZHlOVQSG6sN6HigTc39l5XwyzLeANlnMVr7UU=
+	t=1763343250; cv=none; b=TrWiZ9kWlvReKLb1BPfGXFhosKCPP48joyZggrLEyeH2/nuxL9y8etpjr49AxdmStJ21znIRP28puVeUCkcaIn9+ra3NOymzIrXtJ7+T+4FbX7mdyp+iZQlik4xm2OKdgre6EVgUNZYZZ2a738JGZtf8GVcAOXo8WZDz7bP/shU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343249; c=relaxed/simple;
-	bh=BsPioa5kPuvr3Gd+BDizOQxyLBumJC8AuF99Rw8hEzE=;
-	h=Date:To:From:Subject:Message-Id; b=GwsyGz4dcijD+lg/9aatOqDncqQLDlvQwjaViPCiWI7o5T9mOfAhs2rzXd8pPAz5MO44TCjWa4QKiUTd63NSy6yBXlZ8m7pmH/zTq46pi7i65yDHSl6FYZYdGRaT9cFKhrDyJSHbMWYHFnloqCv9q9H6zo/L07E3/R0mRai+ZHk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qIvHrSzA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343250; c=relaxed/simple;
+	bh=5BIyzXRIj//wmcGcN+p/JAbtyTZWY0wpRbuo1aLA2rE=;
+	h=Date:To:From:Subject:Message-Id; b=XzHXJhihjolQtN3dNagPVHt27SdgrmxMZEArtmUDM8UwMGIqrk2RbJzUXafKok4nhjOe8U91NXCmRhiYw9eR5oDA5RGh04r5GrrOIF3jpFHmb7a1YgDe66t6rmATRNU8jeHuKbsCoc6W5K9mUjimetSu/JKa3GgSncX2bQlfEa8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ysNw4OED; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qIvHrSzA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6926FC116D0;
-	Mon, 17 Nov 2025 01:34:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ysNw4OED"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 981C2C116D0;
+	Mon, 17 Nov 2025 01:34:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343249;
-	bh=BsPioa5kPuvr3Gd+BDizOQxyLBumJC8AuF99Rw8hEzE=;
+	s=korg; t=1763343250;
+	bh=5BIyzXRIj//wmcGcN+p/JAbtyTZWY0wpRbuo1aLA2rE=;
 	h=Date:To:From:Subject:From;
-	b=qIvHrSzAhAVnNCmWAprkPITmTIb0gPcFtUffxUMTgYDry0yX8fMsSIxgOmUV4yH3F
-	 9UVn/nU1cTBILK3waov8MmCiMwX4pFjcT12YnP+QFOTnl4tvnOpTG7hn+H17RfSASt
-	 LmBEIq5CouCkoTi8/XPQPpRyKFNj2sT0VvrNlva0=
-Date: Sun, 16 Nov 2025 17:34:08 -0800
+	b=ysNw4OEDtsj562FtpxYt+NzCtr4GqlSwEwLRvDKFmEDkU8TJ5rV2temk3dY08CuS3
+	 feOOU4xMtWSwz2xAXDN6Liy/z+T8/nhNrnQgMOg4KEAc4P/qDvsQnbBIHAnEf17e2g
+	 2KLmb/zwoNP9SSyA24tioRuJajvHbh1pkt5Q3uAw=
+Date: Sun, 16 Nov 2025 17:34:10 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch removed from -mm tree
-Message-Id: <20251117013409.6926FC116D0@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch removed from -mm tree
+Message-Id: <20251117013410.981C2C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/stat: document aggr_interval_us parameter
+     Subject: Docs/admin-guide/mm/damon/stat: document negative idle time
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch
+     docs-admin-guide-mm-damon-stat-document-negative-idle-time.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/stat: document aggr_interval_us parameter
-Date: Sun, 26 Oct 2025 11:22:12 -0700
+Subject: Docs/admin-guide/mm/damon/stat: document negative idle time
+Date: Sun, 26 Oct 2025 11:22:13 -0700
 
-Commit cc7ceb1d14b0 ("mm/damon/stat: expose the current tuned aggregation
-interval"), has introduced 'aggr_interval_us' parameter for DAMON_STAT. 
-But the new parameter is not yet documented.  Document it on the usage
-document for the module.
+Commit a983a26d5298 ("mm/damon/stat: expose negative idle time")
+introduced the negative idle time feature for DAMON_STAT.  But it is not
+documented.  Document it on the usage document.
 
-Link: https://lkml.kernel.org/r/20251026182216.118200-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251026182216.118200-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -65,50 +64,32 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/stat.rst |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/damon/stat.rst |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter
+--- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-stat-document-negative-idle-time
 +++ a/Documentation/admin-guide/mm/damon/stat.rst
-@@ -10,6 +10,8 @@ on the system's entire physical memory u
- access monitoring results statistics, namely idle time percentiles and
- estimated memory bandwidth.
+@@ -74,12 +74,13 @@ memory_idle_ms_percentiles
+ Per-byte idle time (milliseconds) percentiles of the system.
  
-+.. _damon_stat_monitoring_accuracy_overhead:
-+
- Monitoring Accuracy and Overhead
- ================================
- 
-@@ -19,7 +21,9 @@ overhead minimum.  It auto-tunes the int
- events to be captured in each snapshot, while limiting the resulting sampling
- interval to be 5 milliseconds in minimum and 10 seconds in maximum.  On a few
- production server systems, it resulted in consuming only 0.x % single CPU time,
--while capturing reasonable quality of access patterns.
-+while capturing reasonable quality of access patterns.  The tuning-resulting
-+intervals can be retrieved via ``aggr_interval_us`` :ref:`parameter
-+<damon_stat_aggr_interval_us>`.
- 
- Interface: Module Parameters
- ============================
-@@ -41,6 +45,18 @@ You can enable DAMON_STAT by setting the
- Setting it as ``N`` disables DAMON_STAT.  The default value is set by
- ``CONFIG_DAMON_STAT_ENABLED_DEFAULT`` build config option.
- 
-+.. _damon_stat_aggr_interval_us:
-+
-+aggr_interval_us
-+----------------
-+
-+Auto-tuned aggregation time interval in microseconds.
-+
-+Users can read the aggregation interval of DAMON that is being used by the
-+DAMON instance for DAMON_STAT.  It is :ref:`auto-tuned
-+<damon_stat_monitoring_accuracy_overhead>` and therefore the value is
-+dynamically changed.
-+
- estimated_memory_bandwidth
- --------------------------
- 
+ DAMON_STAT calculates how long each byte of the memory was not accessed until
+-now (idle time), based on the current DAMON results snapshot.  If DAMON found a
+-region of access frequency (nr_accesses) larger than zero, every byte of the
+-region gets zero idle time.  If a region has zero access frequency
+-(nr_accesses), how long the region was keeping the zero access frequency (age)
+-becomes the idle time of every byte of the region.  Then, DAMON_STAT exposes
+-the percentiles of the idle time values via this read-only parameter.  Reading
+-the parameter returns 101 idle time values in milliseconds, separated by comma.
++now (idle time), based on the current DAMON results snapshot.  For regions
++having access frequency (nr_accesses) larger than zero, how long the current
++access frequency level was kept multiplied by ``-1`` becomes the idlee time of
++every byte of the region.  If a region has zero access frequency (nr_accesses),
++how long the region was keeping the zero access frequency (age) becomes the
++idle time of every byte of the region.  Then, DAMON_STAT exposes the
++percentiles of the idle time values via this read-only parameter.  Reading the
++parameter returns 101 idle time values in milliseconds, separated by comma.
+ Each value represents 0-th, 1st, 2nd, 3rd, ..., 99th and 100th percentile idle
+ times.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
