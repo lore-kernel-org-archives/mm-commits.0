@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48B6721D3CC
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9B2223BD17
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343285; cv=none; b=bZSpIES3h05Ac4DPvOrVnXNzKc8Zdju7KjeQLl+Dwl4A1YDhqkZE6Lb6PiM0EKojVgXiOpEVfY8hG6+4sUFtNrJjBBNddKx+i3UIDOxQR2dM2ezMf5X/4s8qh5Tl9ATxqR7xIFHunWMrO4qcdtqGkE9IP0muZ3JuLRe61SBhojo=
+	t=1763343286; cv=none; b=k7uXHjLs4rTkPv2XpI2pYpj0fpxoq/HoOoHaVNPD9qIHhF7W6ksk+nt3p0LB4DLdoLzVgARY2IASnDSoQKMunnu1yFPrDtIbZGM2dpSo716LieCWSURk8zmS/NosrK3pmrrGg4JQkQ50CRzXH86exeC126KxwEQA36NmsO7f9X0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343285; c=relaxed/simple;
-	bh=e0NaZ5s0vw+TcfA9xGmiEcBkUhJ0kd2puC5WEsfgSXs=;
-	h=Date:To:From:Subject:Message-Id; b=PYaiMDcMYMoVEyLAhu+JAICu18NoRyX/axVWn8I5eup0LTPDwMkFeyIWPicLAOAdrL3kjHAmLLBDBN7+WW1OXzcMRpeGdhcbpYDC30qhXIKo7Skv9vDRzEVVuFRPdYBuWQ4E7v+e4bVoWexkVgQf1uOGYS0fNPr+RtTRJrnwyMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qQkI/O23; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343286; c=relaxed/simple;
+	bh=LL8Bg0TEkCeRV5q+CqpH42hLW/F9MLvhww+zRRFUlv8=;
+	h=Date:To:From:Subject:Message-Id; b=i1UeREw30BJ7luSitaVI7Sq1uYx4IoY9ee7Z38R90yc+iqpbFAIUiXpV+8SbNasrJjSGrHgsPAjD+DwFptIsTHRcpxQBOZD6KNpJmTnZ0IqDd3xGHbI4+YkuyeHdTWW8WNKkYjnLF8MRQb+4Z0Kevuti/aJWFCejgwqx/9QNrBM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q4T3p2MM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qQkI/O23"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DED1C116D0;
-	Mon, 17 Nov 2025 01:34:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q4T3p2MM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97AFDC4CEF5;
+	Mon, 17 Nov 2025 01:34:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343285;
-	bh=e0NaZ5s0vw+TcfA9xGmiEcBkUhJ0kd2puC5WEsfgSXs=;
+	s=korg; t=1763343286;
+	bh=LL8Bg0TEkCeRV5q+CqpH42hLW/F9MLvhww+zRRFUlv8=;
 	h=Date:To:From:Subject:From;
-	b=qQkI/O238iLL/Trs8/7nC4Pg8FvG0XTI2dlnvGljxriMbYjJiVfYQ83Lf1xUqcZKA
-	 IAGwtaE3AvTooZ8kwDQftE+hir+vilecRL8+xdgpMMcBJDPh6gPNqH4olQMQUDr8UU
-	 KGeRSFBhsq55tc2Sy3SlobuWysrxUtR1Ftp1Z69U=
-Date: Sun, 16 Nov 2025 17:34:44 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yi.zhang@huawei.com,yangerkun@huawei.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,jack@suse.cz,jackmanb@google.com,hannes@cmpxchg.org,libaokun1@huawei.com,akpm@linux-foundation.org
+	b=q4T3p2MMegVplq6UtlmsLpRP0pqd0uGHr6IBf10QI2SvuWGphiFdPl2fPPdX4QT61
+	 Khf4y6zJOkwTiA1OHeDRtkbDt3d14p8YhF04T0fXAFMwzyB0usCuaMvaMcfrxyaRaA
+	 z2AnfWYk3qPp1Km/96I8/ba8z6BgS220FhONZu6E=
+Date: Sun, 16 Nov 2025 17:34:46 -0800
+To: mm-commits@vger.kernel.org,zhiw@nvidia.com,xueshuai@linux.alibaba.com,vsethi@nvidia.com,vbabka@suse.cz,u.kleine-koenig@baylibre.com,tony.luck@intel.com,targupta@nvidia.com,surenb@google.com,smita.koralahallichannabasappa@amd.com,rppt@kernel.org,peterz@infradead.org,nao.horiguchi@gmail.com,mochs@nvidia.com,mhocko@suse.com,mchehab@kernel.org,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lenb@kernel.org,kwankhede@nvidia.com,kevin.tian@intel.com,Jonathan.Cameron@huawei.com,jgg@nvidia.com,ira.weiny@intel.com,guohanjun@huawei.com,david@redhat.com,cjia@nvidia.com,bp@alien8.de,aniketa@nvidia.com,ankita@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-dont-warn-about-large-allocations-with-__gfp_nofail.patch removed from -mm tree
-Message-Id: <20251117013445.1DED1C116D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-change-ghes-code-to-allow-poison-of-non-struct-pfn.patch removed from -mm tree
+Message-Id: <20251117013446.97AFDC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: don't warn about large allocations with __GFP_NOFAIL
+     Subject: mm: change ghes code to allow poison of non-struct pfn
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-dont-warn-about-large-allocations-with-__gfp_nofail.patch
+     mm-change-ghes-code-to-allow-poison-of-non-struct-pfn.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baokun Li <libaokun1@huawei.com>
-Subject: mm/page_alloc: don't warn about large allocations with __GFP_NOFAIL
-Date: Wed, 5 Nov 2025 16:56:52 +0800
+From: Ankit Agrawal <ankita@nvidia.com>
+Subject: mm: change ghes code to allow poison of non-struct pfn
+Date: Sun, 2 Nov 2025 18:44:32 +0000
 
-Filesystems use __GFP_NOFAIL to allocate block-sized folios for metadata
-reads at critical points, since they cannot afford to go read-only, shut
-down, or enter an inconsistent state due to memory pressure.
+Poison (or ECC) errors can be very common on a large size cluster.  The
+kernel MM currently handles ECC errors / poison only on memory page backed
+by struct page.  The handling is currently missing for the PFNMAP memory
+that does not have struct pages.  The series adds such support.
 
-Currently, attempting to allocate page units greater than order-1 with the
-__GFP_NOFAIL flag triggers a WARN_ON() in __alloc_pages_slowpath(). 
-However, filesystems supporting large block sizes (blocksize > PAGE_SIZE)
-can easily require allocations larger than order-1.
+Implement a new ECC handling for memory without struct pages.  Kernel MM
+expose registration APIs to allow modules that are managing the device to
+register its device memory region.  MM then tracks such regions using
+interval tree.
 
-As Matthew Wilcox noted in [1], if we have a filesystem with 64KiB
-sectors, there will be many clean folios in the page cache that are 64KiB
-or larger.  He also explained in [2] why kvmalloc isn't a valid approach
-here.
+The mechanism is largely similar to that of ECC on pfn with struct pages. 
+If there is an ECC error on a pfn, all the mapping to it are identified
+and a SIGBUS is sent to the user space processes owning those mappings. 
+Note that there is one primary difference versus the handling of the
+poison on struct pages, which is to skip unmapping to the faulty PFN. 
+This is done to handle the huge PFNMAP support added recently [1] that
+enables VM_PFNMAP vmas to map at PMD or PUD level.  A poison to a PFN
+mapped in such as way would need breaking the PMD/PUD mapping into PTEs
+that will get mirrored into the S2.  This can greatly increase the cost of
+table walks and have a major performance impact.
 
-With gfp flags and order already included in the OOM report, both
-Vlastimil Babka and Michal Hocko suggested that we can take the risk of
-removing this warning first and then observe whether a large number of
-related OOM reports appear.
+nvgrace-gpu-vfio-pci module maps the device memory to user VA (Qemu) using
+remap_pfn_range without being added to the kernel [2].  These device
+memory PFNs are not backed by struct page.  So make nvgrace-gpu-vfio-pci
+module make use of the mechanism to get poison handling support on the
+device memory.
 
-If that happens, we can consider adding special handling in other places.
 
-Link: https://lkml.kernel.org/r/20251105085652.4081123-1-libaokun@huaweicloud.com
-Signed-off-by: Baokun Li <libaokun1@huawei.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Link: https://lore.kernel.org/all/aQPX1-XWQjKaMTZB@casper.infradead.org [1]
-Link: https://lore.kernel.org/all/aQTHMI3t5mNXp0M1@casper.infradead.org [2]
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Link: https://lore.kernel.org/all/188a95ba-6384-4319-bb74-c0d9ec6c4079@suse.cz
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Link: https://lore.kernel.org/all/aQotQBjnDDeL_wHx@tiehlicka
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: ErKun Yang <yangerkun@huawei.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+This patch (of 3):
+
+The GHES code allows calling of memory_failure() on the PFNs that pass the
+pfn_valid() check.  This contract is broken for the remapped PFNs which
+fails the check and ghes_do_memory_failure() returns without triggering
+memory_failure().
+
+Update code to allow memory_failure() call on PFNs failing pfn_valid().
+
+Link: https://lkml.kernel.org/r/20251102184434.2406-1-ankita@nvidia.com
+Link: https://lkml.kernel.org/r/20251102184434.2406-2-ankita@nvidia.com
+Signed-off-by: Ankit Agrawal <ankita@nvidia.com>
+Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
+Cc: Aniket Agashe <aniketa@nvidia.com>
+Cc: Ankit Agrawal <ankita@nvidia.com>
+Cc: Borislav Betkov <bp@alien8.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Kevin Tian <kevin.tian@intel.com>
+Cc: Kirti Wankhede <kwankhede@nvidia.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Matthew R. Ochs <mochs@nvidia.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Neo Jia <cjia@nvidia.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Smita Koralahalli Channabasappa <smita.koralahallichannabasappa@amd.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "zhangyi (F)" <yi.zhang@huawei.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Tarun Gupta <targupta@nvidia.com>
+Cc: Uwe Kleine-König <u.kleine-koenig@baylibre.com>
+Cc: Vikram Sethi <vsethi@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zhi Wang <zhiw@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/acpi/apei/ghes.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-dont-warn-about-large-allocations-with-__gfp_nofail
-+++ a/mm/page_alloc.c
-@@ -4684,11 +4684,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+--- a/drivers/acpi/apei/ghes.c~mm-change-ghes-code-to-allow-poison-of-non-struct-pfn
++++ a/drivers/acpi/apei/ghes.c
+@@ -505,12 +505,6 @@ static bool ghes_do_memory_failure(u64 p
+ 		return false;
  
- 	if (unlikely(nofail)) {
- 		/*
--		 * We most definitely don't want callers attempting to
--		 * allocate greater than order-1 page units with __GFP_NOFAIL.
--		 */
--		WARN_ON_ONCE(order > 1);
--		/*
- 		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
- 		 * otherwise, we may result in lockup.
- 		 */
+ 	pfn = PHYS_PFN(physical_addr);
+-	if (!pfn_valid(pfn) && !arch_is_platform_page(physical_addr)) {
+-		pr_warn_ratelimited(FW_WARN GHES_PFX
+-		"Invalid address in generic error data: %#llx\n",
+-		physical_addr);
+-		return false;
+-	}
+ 
+ 	if (flags == MF_ACTION_REQUIRED && current->mm) {
+ 		twcb = (void *)gen_pool_alloc(ghes_estatus_pool, sizeof(*twcb));
 _
 
-Patches currently in -mm which might be from libaokun1@huawei.com are
+Patches currently in -mm which might be from ankita@nvidia.com are
 
 
