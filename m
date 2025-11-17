@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D08F1F4262
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56E41212554
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343106; cv=none; b=hdDjM9XbiHQuItgnzyJfS+6QJpg3oR09NnxQsevYsTFI5Nv/TrmzAQtwgXrDF2EUsmClfwnqa5flBify/uly0lzUip0+lE3MXpPLeuuO0k+DnFzeAN1qRuokhFEjep/v/q62rgzpWL+D5hXr8hUqyEsWlEaH2Bo7telc/MJJlk4=
+	t=1763343107; cv=none; b=atm1h+IH0HqOqHt+2G1DzhgX1rhJjIP+16o37pDqe0Qy3hpOjyVb+NLmMD6SGQHtw+Tc0gx47JafYryO7Ges9SJNmsLFyaI/c1FZVb20xREC0q62dulTmBV1NJOFwKIgR0b22TRcCZaLiEwPHd7WrlkwZBURk2VGdIQkNRiqDO0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343106; c=relaxed/simple;
-	bh=DF7AhPgfOVsxHRnjdGZyNFwSz5gJZdEQJ9dBdkf1RFo=;
-	h=Date:To:From:Subject:Message-Id; b=cKf0B098uur1nbXh8FgmVBqRolDObG/X5LU16+NPLld93qYwa0oSUYZvIM5FIL2xZ5+EtAxf/pT0IME9RliuSZ4Lt+99s8Px7OqBA7byeoHVEtVv4wE/q5ns0CZcMxlOwMydg3IKteGHecpQInBec0yG5qVyXYFzJ8SASumjaMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P1KWl9hx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343107; c=relaxed/simple;
+	bh=yy0bh4j1Z14ghyeuJY7EcZvHWBEqdtVSyto0L5Kw79U=;
+	h=Date:To:From:Subject:Message-Id; b=GN8HbyQgn2U7k8Wz8Il377IsjfYZIUHbhamrWDc6BAYIYs/7ZEE0ZAOvvJp4JBJuyd1NR56Nd78nVQeh8IEfElleVDMw1VQscigeBBF2bv0pFiTuANwIl2XwzK6AaGX/VGDs4Xb3Wu/Bc/W26TPbvQ9c6FLYT2ZT9Q2s9TX3KA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KFAQWQ1F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P1KWl9hx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD634C4CEF5;
-	Mon, 17 Nov 2025 01:31:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KFAQWQ1F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29F80C116D0;
+	Mon, 17 Nov 2025 01:31:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343105;
-	bh=DF7AhPgfOVsxHRnjdGZyNFwSz5gJZdEQJ9dBdkf1RFo=;
+	s=korg; t=1763343107;
+	bh=yy0bh4j1Z14ghyeuJY7EcZvHWBEqdtVSyto0L5Kw79U=;
 	h=Date:To:From:Subject:From;
-	b=P1KWl9hxHXTYq0ZbD8P2IeDaF/qH70HIJ73aer4pTZA3Pk4f/eTwpaxuBlgRNkhz3
-	 j1TwnvcOsyZ2hl3XN5Ds1+xUr+D1ewkhruI3o/tlihUnPJVrbW6YtP3eL1dAwowXdN
-	 eRYwDVYlrpCcgeTs2Zoep8HZuYfGcE1aTazX6M6U=
-Date: Sun, 16 Nov 2025 17:31:45 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=KFAQWQ1FlkUJ6cR/ebAWDSB8v4A9T33wiEEq2odI0SF2/4NeeGV04N5Wr7hbpkUpj
+	 YWy1cMhCHxGPUabbR5HWi7akKDYwichP0Cq6OIkE5PfDeGsNEEnyx4SOG6f2kwlhZU
+	 +T2W1nYjbfySqDwsMzquorZFqv9513Qfva6/n8LM=
+Date: Sun, 16 Nov 2025 17:31:46 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,mfo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-dirty-replace-read_once-with-pudp_get.patch removed from -mm tree
-Message-Id: <20251117013145.AD634C4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_owner-introduce-struct-stack_print_ctx.patch removed from -mm tree
+Message-Id: <20251117013147.29F80C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,214 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/dirty: replace READ_ONCE() with pudp_get()
+     Subject: mm/page_owner: introduce struct stack_print_ctx
 has been removed from the -mm tree.  Its filename was
-     mm-dirty-replace-read_once-with-pudp_get.patch
+     mm-page_owner-introduce-struct-stack_print_ctx.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/dirty: replace READ_ONCE() with pudp_get()
-Date: Mon, 6 Oct 2025 06:52:14 +0100
+From: Mauricio Faria de Oliveira <mfo@igalia.com>
+Subject: mm/page_owner: introduce struct stack_print_ctx
+Date: Wed, 1 Oct 2025 14:56:07 -0300
 
-Replace READ_ONCE() with a standard page table accessor i.e pudp_get() that
-anyways defaults into READ_ONCE() in cases where platform does not override
+Patch series "mm/page_owner: add debugfs files 'show_handles' and
+'show_stacks_handles'", v2.
 
-Link: https://lkml.kernel.org/r/20251006055214.1845342-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
+Context:
+
+The page_owner debug feature can help understand a particular situation in
+in a point in time (e.g., identify biggest memory consumers; verify memory
+counters that do not add up).
+
+Another useful usecase is to collect data repeatedly over time, and use it
+for profiling, monitoring, and even comparing different kernel versions,
+at the stack trace level (e.g., watch for trends, leaks, correlations, and
+regressions).
+
+For this usecase, userspace periorically collects the data from page_owner
+and organizes it in data structures appropriate for access per-stack
+trace.
+
+Problem:
+
+The usecase of tracking memory usage per stack trace (or tracking it for a
+particular stack trace) requires uniquely identifying each stack trace
+(i.e., keys to store their memory usage over periodic data collections).
+
+This has to be done for every stack trace in every sample/data collection,
+even if tracking only one stack trace (to identify it among all others).
+
+Therefore, an approach like hashing the stack traces in userspace to
+create unique keys/identifiers for them during post-processing can quickly
+become expensive, considering the repetition and a growing number of stack
+traces.
+
+Solution:
+
+Fortunately, the kernel can provide a unique identifier for stack traces
+in page_owner, which is the handle number in stackdepot.  This eliminates
+the need for creating keys (hashing) in userspace during post-processing.
+
+Additionally, with that information, the stack traces themselves are not
+needed until the memory usage should be resolved from a handle to a stack
+trace (say, to look at the stack traces of a few top consumers).  This can
+reduce the amount of text emitted/copied by the kernel to userspace, and
+save userspace from matching and discarding stack traces when not needed.
+
+Changes:
+
+This patchset adds 2 files to provide information, like 'show_stacks':
+ - show_handles: print handle number and number of pages (no stack traces)
+ - show_stacks_handles: print handle numbers and stack traces (no pages)
+
+Now, it's possible to periodically collect data with handle numbers (keys)
+and without stack traces (lower overhead) from 'show_handles', and later
+do a final collection with handles and stack traces from
+'show_stacks_handles' to resolve the handles to their stack traces.
+
+The output format follows the existing 'show_stacks' file, for simplicity,
+but it can certainly be changed if a different format is more convenient.
+
+Example:
+
+The number of base pages collected can be stored per-handle number over
+the periodic data collections, and finally resolved to stack traces
+per-handle number as well with a final collection.
+
+Later, one can, for example, identify the biggest consumers and watch
+their trends or correlate increases/decreases with other events in the
+system, or watch a particular stack trace(s) of interest during
+development.
+
+Testing:
+
+Tested on next-20250929.
+
+ - show_stacks:
+	
+	 register_dummy_stack+0x32/0x70
+	 init_page_owner+0x29/0x2f0
+	 page_ext_init+0x27c/0x2b0
+	 mm_core_init+0xdc/0x110
+	nr_base_pages: 47
+		
+ - show_handles:
+
+	handle: 1
+	nr_base_pages: 47
+
+ - show_stacks_handles:
+
+	 register_dummy_stack+0x32/0x70
+	 init_page_owner+0x29/0x2f0
+	 page_ext_init+0x27c/0x2b0
+	 mm_core_init+0xdc/0x110
+	handle: 1
+	
+ - count_threshold:
+
+	# echo 100 >/sys/kernel/debug/page_owner_stacks/count_threshold
+	# grep register_dummy_stack show_stacks		# not present
+	# grep -B4 '^handle: 1$' show_handles  		# not present 
+	# grep -B4 '^handle: 1$' show_stacks_handles	# present
+	 register_dummy_stack+0x32/0x70
+	 init_page_owner+0x29/0x2f0
+	 page_ext_init+0x27c/0x2b0
+	 mm_core_init+0xdc/0x110
+	handle: 1
+
+
+This patch (of 5):
+
+Currently, struct seq_file.private is used as an iterator in stack_list by
+stack_start|next(), for stack_print().
+
+Create a context struct for this, in order to add another field next.
+
+No behavior change intended.
+
+P.S.: page_owner_stack_open() is expanded with separate statements for
+variable definition and return just in preparation for the next patch.
+
+Link: https://lkml.kernel.org/r/20251001175611.575861-1-mfo@igalia.com
+Link: https://lkml.kernel.org/r/20251001175611.575861-2-mfo@igalia.com
+Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mapping_dirty_helpers.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_owner.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/mm/mapping_dirty_helpers.c~mm-dirty-replace-read_once-with-pudp_get
-+++ a/mm/mapping_dirty_helpers.c
-@@ -149,7 +149,7 @@ static int wp_clean_pud_entry(pud_t *pud
- 			      struct mm_walk *walk)
- {
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--	pud_t pudval = READ_ONCE(*pud);
-+	pud_t pudval = pudp_get(pud);
+--- a/mm/page_owner.c~mm-page_owner-introduce-struct-stack_print_ctx
++++ a/mm/page_owner.c
+@@ -45,6 +45,10 @@ static struct stack failure_stack;
+ static struct stack *stack_list;
+ static DEFINE_SPINLOCK(stack_list_lock);
  
- 	/* Do not split a huge pud */
- 	if (pud_trans_huge(pudval)) {
++struct stack_print_ctx {
++	struct stack *stack;
++};
++
+ static bool page_owner_enabled __initdata;
+ DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+ 
+@@ -859,6 +863,7 @@ static const struct file_operations proc
+ static void *stack_start(struct seq_file *m, loff_t *ppos)
+ {
+ 	struct stack *stack;
++	struct stack_print_ctx *ctx = m->private;
+ 
+ 	if (*ppos == -1UL)
+ 		return NULL;
+@@ -870,9 +875,9 @@ static void *stack_start(struct seq_file
+ 		 * value of stack_list.
+ 		 */
+ 		stack = smp_load_acquire(&stack_list);
+-		m->private = stack;
++		ctx->stack = stack;
+ 	} else {
+-		stack = m->private;
++		stack = ctx->stack;
+ 	}
+ 
+ 	return stack;
+@@ -881,10 +886,11 @@ static void *stack_start(struct seq_file
+ static void *stack_next(struct seq_file *m, void *v, loff_t *ppos)
+ {
+ 	struct stack *stack = v;
++	struct stack_print_ctx *ctx = m->private;
+ 
+ 	stack = stack->next;
+ 	*ppos = stack ? *ppos + 1 : -1UL;
+-	m->private = stack;
++	ctx->stack = stack;
+ 
+ 	return stack;
+ }
+@@ -929,7 +935,10 @@ static const struct seq_operations page_
+ 
+ static int page_owner_stack_open(struct inode *inode, struct file *file)
+ {
+-	return seq_open_private(file, &page_owner_stack_op, 0);
++	int ret = seq_open_private(file, &page_owner_stack_op,
++				   sizeof(struct stack_print_ctx));
++
++	return ret;
+ }
+ 
+ static const struct file_operations page_owner_stack_operations = {
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from mfo@igalia.com are
 
 
