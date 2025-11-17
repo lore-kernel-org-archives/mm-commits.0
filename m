@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9B2223BD17
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7FD923BD1F
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343286; cv=none; b=k7uXHjLs4rTkPv2XpI2pYpj0fpxoq/HoOoHaVNPD9qIHhF7W6ksk+nt3p0LB4DLdoLzVgARY2IASnDSoQKMunnu1yFPrDtIbZGM2dpSo716LieCWSURk8zmS/NosrK3pmrrGg4JQkQ50CRzXH86exeC126KxwEQA36NmsO7f9X0=
+	t=1763343289; cv=none; b=pRqDaePT9f6u7cfXkSJMdZ+aS50xZ6IrIuQbB3L9MuwA/oTj3vRYv6NeP9Oumazfn5ubdcaenyuz2fs+WRgOCACTAdn/50NnQbLfjENjQ+ViQNNFbxueHE7qyAt+nix9tiTIBOGT9S5LZ9Hqxm/VRyTqBMSi/HXhnI92wVF/qbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343286; c=relaxed/simple;
-	bh=LL8Bg0TEkCeRV5q+CqpH42hLW/F9MLvhww+zRRFUlv8=;
-	h=Date:To:From:Subject:Message-Id; b=i1UeREw30BJ7luSitaVI7Sq1uYx4IoY9ee7Z38R90yc+iqpbFAIUiXpV+8SbNasrJjSGrHgsPAjD+DwFptIsTHRcpxQBOZD6KNpJmTnZ0IqDd3xGHbI4+YkuyeHdTWW8WNKkYjnLF8MRQb+4Z0Kevuti/aJWFCejgwqx/9QNrBM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q4T3p2MM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343289; c=relaxed/simple;
+	bh=c/yuq2m+8VZz8mCwbybSb4YVLLKysqmJ6ZZT6j/PXfk=;
+	h=Date:To:From:Subject:Message-Id; b=trWahDRNZb9kJi5ymcRGP+/Jil1D17x7KRbiu2gpq1HhMjSfofnpe8gFZgudVTIoOldyqCNIY3dCrnDx/b+eHXNHSgqewlVz35RkKwhDfA9BfwtLB+qgdfNINtCD8972p4vstjYyhHlXbF7WzlbHm/hNO5aERBYqOzRAYo1DPyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=abp4SPAN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q4T3p2MM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97AFDC4CEF5;
-	Mon, 17 Nov 2025 01:34:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="abp4SPAN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F691C4CEF5;
+	Mon, 17 Nov 2025 01:34:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343286;
-	bh=LL8Bg0TEkCeRV5q+CqpH42hLW/F9MLvhww+zRRFUlv8=;
+	s=korg; t=1763343288;
+	bh=c/yuq2m+8VZz8mCwbybSb4YVLLKysqmJ6ZZT6j/PXfk=;
 	h=Date:To:From:Subject:From;
-	b=q4T3p2MMegVplq6UtlmsLpRP0pqd0uGHr6IBf10QI2SvuWGphiFdPl2fPPdX4QT61
-	 Khf4y6zJOkwTiA1OHeDRtkbDt3d14p8YhF04T0fXAFMwzyB0usCuaMvaMcfrxyaRaA
-	 z2AnfWYk3qPp1Km/96I8/ba8z6BgS220FhONZu6E=
-Date: Sun, 16 Nov 2025 17:34:46 -0800
+	b=abp4SPAN5S79ormKRAvLuyYOTjoCrh5s9JiUAWF8Nd8Mfnp5mS2uycR8SM4eVAWOT
+	 RZPZpIZhOKUfsB3ZcRpbVBKG2ilogv7HwMskZGIhjQnyzgXW5EBqM0NhuY+VqGijTB
+	 O+f2CDCOznNdyTmiMQNJQmORits3ly1cJA7nctSU=
+Date: Sun, 16 Nov 2025 17:34:47 -0800
 To: mm-commits@vger.kernel.org,zhiw@nvidia.com,xueshuai@linux.alibaba.com,vsethi@nvidia.com,vbabka@suse.cz,u.kleine-koenig@baylibre.com,tony.luck@intel.com,targupta@nvidia.com,surenb@google.com,smita.koralahallichannabasappa@amd.com,rppt@kernel.org,peterz@infradead.org,nao.horiguchi@gmail.com,mochs@nvidia.com,mhocko@suse.com,mchehab@kernel.org,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lenb@kernel.org,kwankhede@nvidia.com,kevin.tian@intel.com,Jonathan.Cameron@huawei.com,jgg@nvidia.com,ira.weiny@intel.com,guohanjun@huawei.com,david@redhat.com,cjia@nvidia.com,bp@alien8.de,aniketa@nvidia.com,ankita@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-change-ghes-code-to-allow-poison-of-non-struct-pfn.patch removed from -mm tree
-Message-Id: <20251117013446.97AFDC4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-handle-poisoning-of-pfn-without-struct-pages.patch removed from -mm tree
+Message-Id: <20251117013448.2F691C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: change ghes code to allow poison of non-struct pfn
+     Subject: mm: handle poisoning of pfn without struct pages
 has been removed from the -mm tree.  Its filename was
-     mm-change-ghes-code-to-allow-poison-of-non-struct-pfn.patch
+     mm-handle-poisoning-of-pfn-without-struct-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ankit Agrawal <ankita@nvidia.com>
-Subject: mm: change ghes code to allow poison of non-struct pfn
-Date: Sun, 2 Nov 2025 18:44:32 +0000
+Subject: mm: handle poisoning of pfn without struct pages
+Date: Sun, 2 Nov 2025 18:44:33 +0000
 
 Poison (or ECC) errors can be very common on a large size cluster.  The
-kernel MM currently handles ECC errors / poison only on memory page backed
-by struct page.  The handling is currently missing for the PFNMAP memory
-that does not have struct pages.  The series adds such support.
+kernel MM currently does not handle ECC errors / poison on a memory region
+that is not backed by struct pages.  If a memory region mapped using
+remap_pfn_range() for example, but not added to the kernel, MM will not
+have associated struct pages.  Add a new mechanism to handle memory
+failure on such memory.
 
-Implement a new ECC handling for memory without struct pages.  Kernel MM
-expose registration APIs to allow modules that are managing the device to
-register its device memory region.  MM then tracks such regions using
-interval tree.
+Make kernel MM expose a function to allow modules managing the device
+memory to register the device memory SPA and the address space associated
+it.  MM maintains this information as an interval tree.  On poison, MM can
+search for the range that the poisoned PFN belong and use the
+address_space to determine the mapping VMA.
 
-The mechanism is largely similar to that of ECC on pfn with struct pages. 
-If there is an ECC error on a pfn, all the mapping to it are identified
-and a SIGBUS is sent to the user space processes owning those mappings. 
+In this implementation, kernel MM follows the following sequence that is
+largely similar to the memory_failure() handler for struct page backed
+memory:
+
+1. memory_failure() is triggered on reception of a poison error.  An
+   absence of struct page is detected and consequently
+   memory_failure_pfn() is executed.
+
+2. memory_failure_pfn() collects the processes mapped to the PFN.
+
+3. memory_failure_pfn() sends SIGBUS to all the processes mapping the
+   faulty PFN using kill_procs().
+
 Note that there is one primary difference versus the handling of the
 poison on struct pages, which is to skip unmapping to the faulty PFN. 
 This is done to handle the huge PFNMAP support added recently [1] that
@@ -68,28 +81,10 @@ mapped in such as way would need breaking the PMD/PUD mapping into PTEs
 that will get mirrored into the S2.  This can greatly increase the cost of
 table walks and have a major performance impact.
 
-nvgrace-gpu-vfio-pci module maps the device memory to user VA (Qemu) using
-remap_pfn_range without being added to the kernel [2].  These device
-memory PFNs are not backed by struct page.  So make nvgrace-gpu-vfio-pci
-module make use of the mechanism to get poison handling support on the
-device memory.
-
-
-This patch (of 3):
-
-The GHES code allows calling of memory_failure() on the PFNs that pass the
-pfn_valid() check.  This contract is broken for the remapped PFNs which
-fails the check and ghes_do_memory_failure() returns without triggering
-memory_failure().
-
-Update code to allow memory_failure() call on PFNs failing pfn_valid().
-
-Link: https://lkml.kernel.org/r/20251102184434.2406-1-ankita@nvidia.com
-Link: https://lkml.kernel.org/r/20251102184434.2406-2-ankita@nvidia.com
+Link: https://lore.kernel.org/all/20240826204353.2228736-1-peterx@redhat.com/ [1]
+Link: https://lkml.kernel.org/r/20251102184434.2406-3-ankita@nvidia.com
 Signed-off-by: Ankit Agrawal <ankita@nvidia.com>
-Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
 Cc: Aniket Agashe <aniketa@nvidia.com>
-Cc: Ankit Agrawal <ankita@nvidia.com>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Hanjun Guo <guohanjun@huawei.com>
@@ -110,6 +105,7 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Neo Jia <cjia@nvidia.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shuai Xue <xueshuai@linux.alibaba.com>
 Cc: Smita Koralahalli Channabasappa <smita.koralahallichannabasappa@amd.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tarun Gupta <targupta@nvidia.com>
@@ -120,24 +116,265 @@ Cc: Zhi Wang <zhiw@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/apei/ghes.c |    6 ------
- 1 file changed, 6 deletions(-)
+ MAINTAINERS                    |    1 
+ include/linux/memory-failure.h |   17 +++
+ include/linux/mm.h             |    1 
+ include/ras/ras_event.h        |    1 
+ mm/Kconfig                     |    1 
+ mm/memory-failure.c            |  145 ++++++++++++++++++++++++++++++-
+ 6 files changed, 165 insertions(+), 1 deletion(-)
 
---- a/drivers/acpi/apei/ghes.c~mm-change-ghes-code-to-allow-poison-of-non-struct-pfn
-+++ a/drivers/acpi/apei/ghes.c
-@@ -505,12 +505,6 @@ static bool ghes_do_memory_failure(u64 p
- 		return false;
+diff --git a/include/linux/memory-failure.h a/include/linux/memory-failure.h
+new file mode 100644
+--- /dev/null
++++ a/include/linux/memory-failure.h
+@@ -0,0 +1,17 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_MEMORY_FAILURE_H
++#define _LINUX_MEMORY_FAILURE_H
++
++#include <linux/interval_tree.h>
++
++struct pfn_address_space;
++
++struct pfn_address_space {
++	struct interval_tree_node node;
++	struct address_space *mapping;
++};
++
++int register_pfn_address_space(struct pfn_address_space *pfn_space);
++void unregister_pfn_address_space(struct pfn_address_space *pfn_space);
++
++#endif /* _LINUX_MEMORY_FAILURE_H */
+--- a/include/linux/mm.h~mm-handle-poisoning-of-pfn-without-struct-pages
++++ a/include/linux/mm.h
+@@ -4285,6 +4285,7 @@ enum mf_action_page_type {
+ 	MF_MSG_DAX,
+ 	MF_MSG_UNSPLIT_THP,
+ 	MF_MSG_ALREADY_POISONED,
++	MF_MSG_PFN_MAP,
+ 	MF_MSG_UNKNOWN,
+ };
  
- 	pfn = PHYS_PFN(physical_addr);
--	if (!pfn_valid(pfn) && !arch_is_platform_page(physical_addr)) {
--		pr_warn_ratelimited(FW_WARN GHES_PFX
--		"Invalid address in generic error data: %#llx\n",
--		physical_addr);
--		return false;
--	}
+--- a/include/ras/ras_event.h~mm-handle-poisoning-of-pfn-without-struct-pages
++++ a/include/ras/ras_event.h
+@@ -375,6 +375,7 @@ TRACE_EVENT(aer_event,
+ 	EM ( MF_MSG_DAX, "dax page" )					\
+ 	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
+ 	EM ( MF_MSG_ALREADY_POISONED, "already poisoned" )		\
++	EM ( MF_MSG_PFN_MAP, "non struct page pfn" )                    \
+ 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
  
- 	if (flags == MF_ACTION_REQUIRED && current->mm) {
- 		twcb = (void *)gen_pool_alloc(ghes_estatus_pool, sizeof(*twcb));
+ /*
+--- a/MAINTAINERS~mm-handle-poisoning-of-pfn-without-struct-pages
++++ a/MAINTAINERS
+@@ -11557,6 +11557,7 @@ M:	Miaohe Lin <linmiaohe@huawei.com>
+ R:	Naoya Horiguchi <nao.horiguchi@gmail.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++F:	include/linux/memory-failure.h
+ F:	mm/hwpoison-inject.c
+ F:	mm/memory-failure.c
+ 
+--- a/mm/Kconfig~mm-handle-poisoning-of-pfn-without-struct-pages
++++ a/mm/Kconfig
+@@ -741,6 +741,7 @@ config MEMORY_FAILURE
+ 	depends on ARCH_SUPPORTS_MEMORY_FAILURE
+ 	bool "Enable recovery from hardware memory errors"
+ 	select RAS
++	select INTERVAL_TREE
+ 	help
+ 	  Enables code to recover from some memory failures on systems
+ 	  with MCA recovery. This allows a system to continue running
+--- a/mm/memory-failure.c~mm-handle-poisoning-of-pfn-without-struct-pages
++++ a/mm/memory-failure.c
+@@ -38,6 +38,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
++#include <linux/memory-failure.h>
+ #include <linux/page-flags.h>
+ #include <linux/sched/signal.h>
+ #include <linux/sched/task.h>
+@@ -154,6 +155,10 @@ static const struct ctl_table memory_fai
+ 	}
+ };
+ 
++static struct rb_root_cached pfn_space_itree = RB_ROOT_CACHED;
++
++static DEFINE_MUTEX(pfn_space_lock);
++
+ /*
+  * Return values:
+  *   1:   the page is dissolved (if needed) and taken off from buddy,
+@@ -885,6 +890,7 @@ static const char * const action_page_ty
+ 	[MF_MSG_DAX]			= "dax page",
+ 	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
+ 	[MF_MSG_ALREADY_POISONED]	= "already poisoned page",
++	[MF_MSG_PFN_MAP]                = "non struct page pfn",
+ 	[MF_MSG_UNKNOWN]		= "unknown page",
+ };
+ 
+@@ -1277,7 +1283,7 @@ static int action_result(unsigned long p
+ {
+ 	trace_memory_failure_event(pfn, type, result);
+ 
+-	if (type != MF_MSG_ALREADY_POISONED) {
++	if (type != MF_MSG_ALREADY_POISONED && type != MF_MSG_PFN_MAP) {
+ 		num_poisoned_pages_inc(pfn);
+ 		update_per_node_mf_stats(pfn, result);
+ 	}
+@@ -2147,6 +2153,135 @@ static void kill_procs_now(struct page *
+ 	kill_procs(&tokill, true, pfn, flags);
+ }
+ 
++int register_pfn_address_space(struct pfn_address_space *pfn_space)
++{
++	guard(mutex)(&pfn_space_lock);
++
++	if (interval_tree_iter_first(&pfn_space_itree,
++				     pfn_space->node.start,
++				     pfn_space->node.last))
++		return -EBUSY;
++
++	interval_tree_insert(&pfn_space->node, &pfn_space_itree);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(register_pfn_address_space);
++
++void unregister_pfn_address_space(struct pfn_address_space *pfn_space)
++{
++	guard(mutex)(&pfn_space_lock);
++
++	if (interval_tree_iter_first(&pfn_space_itree,
++				     pfn_space->node.start,
++				     pfn_space->node.last))
++		interval_tree_remove(&pfn_space->node, &pfn_space_itree);
++}
++EXPORT_SYMBOL_GPL(unregister_pfn_address_space);
++
++static void add_to_kill_pfn(struct task_struct *tsk,
++			    struct vm_area_struct *vma,
++			    struct list_head *to_kill,
++			    unsigned long pfn)
++{
++	struct to_kill *tk;
++
++	tk = kmalloc(sizeof(*tk), GFP_ATOMIC);
++	if (!tk) {
++		pr_info("Unable to kill proc %d\n", tsk->pid);
++		return;
++	}
++
++	/* Check for pgoff not backed by struct page */
++	tk->addr = vma_address(vma, pfn, 1);
++	tk->size_shift = PAGE_SHIFT;
++
++	if (tk->addr == -EFAULT)
++		pr_info("Unable to find address %lx in %s\n",
++			pfn, tsk->comm);
++
++	get_task_struct(tsk);
++	tk->tsk = tsk;
++	list_add_tail(&tk->nd, to_kill);
++}
++
++/*
++ * Collect processes when the error hit a PFN not backed by struct page.
++ */
++static void collect_procs_pfn(struct address_space *mapping,
++			      unsigned long pfn, struct list_head *to_kill)
++{
++	struct vm_area_struct *vma;
++	struct task_struct *tsk;
++
++	i_mmap_lock_read(mapping);
++	rcu_read_lock();
++	for_each_process(tsk) {
++		struct task_struct *t = tsk;
++
++		t = task_early_kill(tsk, true);
++		if (!t)
++			continue;
++		vma_interval_tree_foreach(vma, &mapping->i_mmap, pfn, pfn) {
++			if (vma->vm_mm == t->mm)
++				add_to_kill_pfn(t, vma, to_kill, pfn);
++		}
++	}
++	rcu_read_unlock();
++	i_mmap_unlock_read(mapping);
++}
++
++/**
++ * memory_failure_pfn - Handle memory failure on a page not backed by
++ *                      struct page.
++ * @pfn: Page Number of the corrupted page
++ * @flags: fine tune action taken
++ *
++ * Return:
++ *   0             - success,
++ *   -EBUSY        - Page PFN does not belong to any address space mapping.
++ */
++static int memory_failure_pfn(unsigned long pfn, int flags)
++{
++	struct interval_tree_node *node;
++	LIST_HEAD(tokill);
++
++	scoped_guard(mutex, &pfn_space_lock) {
++		bool mf_handled = false;
++
++		/*
++		 * Modules registers with MM the address space mapping to
++		 * the device memory they manage. Iterate to identify
++		 * exactly which address space has mapped to this failing
++		 * PFN.
++		 */
++		for (node = interval_tree_iter_first(&pfn_space_itree, pfn, pfn); node;
++		     node = interval_tree_iter_next(node, pfn, pfn)) {
++			struct pfn_address_space *pfn_space =
++				container_of(node, struct pfn_address_space, node);
++
++			collect_procs_pfn(pfn_space->mapping, pfn, &tokill);
++
++			mf_handled = true;
++		}
++
++		if (!mf_handled)
++			return action_result(pfn, MF_MSG_PFN_MAP, MF_IGNORED);
++	}
++
++	/*
++	 * Unlike System-RAM there is no possibility to swap in a different
++	 * physical page at a given virtual address, so all userspace
++	 * consumption of direct PFN memory necessitates SIGBUS (i.e.
++	 * MF_MUST_KILL)
++	 */
++	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
++
++	kill_procs(&tokill, true, pfn, flags);
++
++	return action_result(pfn, MF_MSG_PFN_MAP, MF_RECOVERED);
++}
++
+ /**
+  * memory_failure - Handle memory failure of a page.
+  * @pfn: Page Number of the corrupted page
+@@ -2196,6 +2331,14 @@ int memory_failure(unsigned long pfn, in
+ 		if (res == 0)
+ 			goto unlock_mutex;
+ 
++		if (!pfn_valid(pfn) && !arch_is_platform_page(PFN_PHYS(pfn))) {
++			/*
++			 * The PFN is not backed by struct page.
++			 */
++			res = memory_failure_pfn(pfn, flags);
++			goto unlock_mutex;
++		}
++
+ 		if (pfn_valid(pfn)) {
+ 			pgmap = get_dev_pagemap(pfn);
+ 			put_ref_page(pfn, flags);
 _
 
 Patches currently in -mm which might be from ankita@nvidia.com are
