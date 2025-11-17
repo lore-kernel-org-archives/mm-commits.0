@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD17621D3CC
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8F5B20B212
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343196; cv=none; b=DXPOJte8IhkCN9GEH+V24fW4lwEncqcG0KXMcp82xOZgUY7ds/GKxaAsHyQuPVWiFYfZvd/RyMk7ZPIeKAe/OD8gH+1HSkEntj+mqsEbhMAL4mxmrwgGG4AX2T328kI/Kw++Pv2trjW++/pzQNRcDf18wVf6/BHCJ85jI+S5bsc=
+	t=1763343198; cv=none; b=r+HHp9LFlxUtXk1GT2XMLzDT2sCHeETrQOj6dRMBNUwD0ZwTYmqq9fCWU8tAqMAUV7WS/5/jN5P0snGGV/8zCK5GzHq4XPKBjBu4kdxRG4C2m56vJTrREpfb0KzMVBNfIwRO46eJYLAFmJx/ggPL8Zgm4NZu0s2kC3Y3OHtP1HM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343196; c=relaxed/simple;
-	bh=DVU61mw1ZEe3tTW6vO2xCVjC8m9wFVbsU9M61YbaFYU=;
-	h=Date:To:From:Subject:Message-Id; b=GvJiCn1JjQZFj01fka4Hu2qoHCZeyh+3g0RgG7oJUNi8tJGannr6ADcqIMQtusquM5ZxWz4751df1Yit4UCY2H3r7ilBbDmeXq0ap6v1J7cRa7GoZTwn4B0aijlSPAY4vzyKDZvQSh0dcYcpI7ZOsYf/SqmJcQofMZ6EcqNc1wU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1wImb9Bb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343198; c=relaxed/simple;
+	bh=/clRNUwv0T1C6h0JvGLKqWydbmbnxE+U6XR4VTlSjRY=;
+	h=Date:To:From:Subject:Message-Id; b=f8vFML+uU2h9EXjSXtIztNbv4Wx9slw6Tilsc2Ph5WQ904JblSNL4Ge6kpVRfMmGPTvGXWiO2xwWTpU3WeOMdqJsMOIcyYGloGWTPA0dmXU/UW6SynRIZGR+rv89im5thXQY406nvujDZzDV6GJuYBo+O/XBMtwCgeoHCbJoE9g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tcXoluvW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1wImb9Bb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D27DC4CEF5;
-	Mon, 17 Nov 2025 01:33:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tcXoluvW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 963A3C16AAE;
+	Mon, 17 Nov 2025 01:33:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343196;
-	bh=DVU61mw1ZEe3tTW6vO2xCVjC8m9wFVbsU9M61YbaFYU=;
+	s=korg; t=1763343198;
+	bh=/clRNUwv0T1C6h0JvGLKqWydbmbnxE+U6XR4VTlSjRY=;
 	h=Date:To:From:Subject:From;
-	b=1wImb9BbBSqFPEra16PuTheePWSSCMtrmtqGXEsN3PoMk/Bm5xNkvFSL4wOhoGoxd
-	 t3fSSg0EPL9OP+ZjSxvQBRGTCilVaGf8fityBOWEMK3RfoLqzDyJ1bVINJxv6quhbv
-	 Hj6c4KhxAQhimnFyyAI/bTKRWPqW7nlwi8DgtLeI=
-Date: Sun, 16 Nov 2025 17:33:16 -0800
+	b=tcXoluvWWQHhYoflQn2jMue6x/7aQ3hSceHXe4LmSHGWY2UzC5FFdljoLJS/QHNMe
+	 BSvYB/LEclHpUYgV4LnPax9O6WuwZngRP5sKKZGrEGYjWOKGvZ7+BC66ackRoMgu8F
+	 EXxCKYnWMHzxFUazmgqsccwDIuccAbHDdCfmMe+U=
+Date: Sun, 16 Nov 2025 17:33:18 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,viro@zeniv.linux.org.uk,vgoyal@redhat.com,vbabka@suse.cz,urezki@gmail.com,tsbogend@alpha.franken.de,tony.luck@intel.com,svens@linux.ibm.com,surenb@google.com,sumanthk@linux.ibm.com,rppt@kernel.org,robin.murphy@arm.com,reinette.chatre@intel.com,pfalcato@suse.de,osalvador@suse.de,nico@fluxnic.net,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kevin.tian@intel.com,jgg@nvidia.com,jannh@google.com,james.morse@arm.com,jack@suse.cz,hughd@google.com,hca@linux.ibm.com,guoren@kernel.org,gregkh@linuxfoundation.org,gor@linux.ibm.com,dyoung@redhat.com,dvyukov@google.com,david@redhat.com,davem@davemloft.net,dave.martin@arm.com,dave.jiang@intel.com,dan.j.williams@intel.com,corbet@lwn.net,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,arnd@arndb.de,andreyknvl@gmail.com,andreas@gaisler.com,almaz.alexandrovich@paragon-software.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-shmem_zero_setup_desc.patch removed from -mm tree
-Message-Id: <20251117013316.7D27DC4CEF5@smtp.kernel.org>
+Subject: [merged mm-stable] mm-update-mem-char-driver-to-use-mmap_prepare.patch removed from -mm tree
+Message-Id: <20251117013318.963A3C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add shmem_zero_setup_desc()
+     Subject: mm: update mem char driver to use mmap_prepare
 has been removed from the -mm tree.  Its filename was
-     mm-add-shmem_zero_setup_desc.patch
+     mm-update-mem-char-driver-to-use-mmap_prepare.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: add shmem_zero_setup_desc()
-Date: Mon, 20 Oct 2025 13:11:30 +0100
+Subject: mm: update mem char driver to use mmap_prepare
+Date: Mon, 20 Oct 2025 13:11:31 +0100
 
-Add the ability to set up a shared anonymous mapping based on a VMA
-descriptor rather than a VMA.
+Update the mem char driver (backing /dev/mem and /dev/zero) to use
+f_op->mmap_prepare hook rather than the deprecated f_op->mmap.
 
-This is a prerequisite for converting to the char mm driver to use the
-mmap_prepare hook.
+The /dev/zero implementation has a very unique and rather concerning
+characteristic in that it converts MAP_PRIVATE mmap() mappings anonymous
+when they are, in fact, not.
 
-Link: https://lkml.kernel.org/r/d9181517a7e3d6b014a5697c6990d3722c2c9fcd.1760959442.git.lorenzo.stoakes@oracle.com
+The new f_op->mmap_prepare() can support this, but rather than introducing
+a helper function to perform this hack (and risk introducing other users),
+utilise the success hook to do so.
+
+We utilise the newly introduced shmem_zero_setup_desc() to allow for the
+shared mapping case via an f_op->mmap_prepare() hook.
+
+We also use the desc->action_error_hook to filter the remap error to
+-EAGAIN to keep behaviour consistent.
+
+Link: https://lkml.kernel.org/r/48f60764d7a6901819d1af778fa33b775d2e8c77.1760959442.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -106,87 +117,166 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    3 +-
- mm/shmem.c               |   41 +++++++++++++++++++++++++++++--------
- 2 files changed, 35 insertions(+), 9 deletions(-)
+ drivers/char/mem.c |   88 +++++++++++++++++++++++++------------------
+ 1 file changed, 52 insertions(+), 36 deletions(-)
 
---- a/include/linux/shmem_fs.h~mm-add-shmem_zero_setup_desc
-+++ a/include/linux/shmem_fs.h
-@@ -94,7 +94,8 @@ extern struct file *shmem_kernel_file_se
- 					    unsigned long flags);
- extern struct file *shmem_file_setup_with_mnt(struct vfsmount *mnt,
- 		const char *name, loff_t size, unsigned long flags);
--extern int shmem_zero_setup(struct vm_area_struct *);
-+int shmem_zero_setup(struct vm_area_struct *vma);
-+int shmem_zero_setup_desc(struct vm_area_desc *desc);
- extern unsigned long shmem_get_unmapped_area(struct file *, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags);
- extern int shmem_lock(struct file *file, int lock, struct ucounts *ucounts);
---- a/mm/shmem.c~mm-add-shmem_zero_setup_desc
-+++ a/mm/shmem.c
-@@ -5880,14 +5880,9 @@ struct file *shmem_file_setup_with_mnt(s
+--- a/drivers/char/mem.c~mm-update-mem-char-driver-to-use-mmap_prepare
++++ a/drivers/char/mem.c
+@@ -304,13 +304,13 @@ static unsigned zero_mmap_capabilities(s
  }
- EXPORT_SYMBOL_GPL(shmem_file_setup_with_mnt);
  
--/**
-- * shmem_zero_setup - setup a shared anonymous mapping
-- * @vma: the vma to be mmapped is prepared by do_mmap
-- */
--int shmem_zero_setup(struct vm_area_struct *vma)
-+static struct file *__shmem_zero_setup(unsigned long start, unsigned long end, vm_flags_t vm_flags)
+ /* can't do an in-place private mapping if there's no MMU */
+-static inline int private_mapping_ok(struct vm_area_struct *vma)
++static inline int private_mapping_ok(struct vm_area_desc *desc)
  {
--	struct file *file;
--	loff_t size = vma->vm_end - vma->vm_start;
-+	loff_t size = end - start;
+-	return is_nommu_shared_mapping(vma->vm_flags);
++	return is_nommu_shared_mapping(desc->vm_flags);
+ }
+ #else
  
- 	/*
- 	 * Cloning a new file under mmap_lock leads to a lock ordering conflict
-@@ -5895,7 +5890,18 @@ int shmem_zero_setup(struct vm_area_stru
- 	 * accessible to the user through its mapping, use S_PRIVATE flag to
- 	 * bypass file security, in the same way as shmem_kernel_file_setup().
- 	 */
--	file = shmem_kernel_file_setup("dev/zero", size, vma->vm_flags);
-+	return shmem_kernel_file_setup("dev/zero", size, vm_flags);
+-static inline int private_mapping_ok(struct vm_area_struct *vma)
++static inline int private_mapping_ok(struct vm_area_desc *desc)
+ {
+ 	return 1;
+ }
+@@ -322,46 +322,49 @@ static const struct vm_operations_struct
+ #endif
+ };
+ 
+-static int mmap_mem(struct file *file, struct vm_area_struct *vma)
++static int mmap_filter_error(int err)
+ {
+-	size_t size = vma->vm_end - vma->vm_start;
+-	phys_addr_t offset = (phys_addr_t)vma->vm_pgoff << PAGE_SHIFT;
++	return -EAGAIN;
 +}
 +
-+/**
-+ * shmem_zero_setup - setup a shared anonymous mapping
-+ * @vma: the vma to be mmapped is prepared by do_mmap
-+ * Returns: 0 on success, or error
-+ */
-+int shmem_zero_setup(struct vm_area_struct *vma)
++static int mmap_mem_prepare(struct vm_area_desc *desc)
 +{
-+	struct file *file = __shmem_zero_setup(vma->vm_start, vma->vm_end, vma->vm_flags);
++	struct file *file = desc->file;
++	const size_t size = vma_desc_size(desc);
++	const phys_addr_t offset = (phys_addr_t)desc->pgoff << PAGE_SHIFT;
+ 
+ 	/* Does it even fit in phys_addr_t? */
+-	if (offset >> PAGE_SHIFT != vma->vm_pgoff)
++	if (offset >> PAGE_SHIFT != desc->pgoff)
+ 		return -EINVAL;
+ 
+ 	/* It's illegal to wrap around the end of the physical address space. */
+ 	if (offset + (phys_addr_t)size - 1 < offset)
+ 		return -EINVAL;
+ 
+-	if (!valid_mmap_phys_addr_range(vma->vm_pgoff, size))
++	if (!valid_mmap_phys_addr_range(desc->pgoff, size))
+ 		return -EINVAL;
+ 
+-	if (!private_mapping_ok(vma))
++	if (!private_mapping_ok(desc))
+ 		return -ENOSYS;
+ 
+-	if (!range_is_allowed(vma->vm_pgoff, size))
++	if (!range_is_allowed(desc->pgoff, size))
+ 		return -EPERM;
+ 
+-	if (!phys_mem_access_prot_allowed(file, vma->vm_pgoff, size,
+-						&vma->vm_page_prot))
++	if (!phys_mem_access_prot_allowed(file, desc->pgoff, size,
++					  &desc->page_prot))
+ 		return -EINVAL;
+ 
+-	vma->vm_page_prot = phys_mem_access_prot(file, vma->vm_pgoff,
+-						 size,
+-						 vma->vm_page_prot);
+-
+-	vma->vm_ops = &mmap_mem_ops;
+-
+-	/* Remap-pfn-range will mark the range VM_IO */
+-	if (remap_pfn_range(vma,
+-			    vma->vm_start,
+-			    vma->vm_pgoff,
+-			    size,
+-			    vma->vm_page_prot)) {
+-		return -EAGAIN;
+-	}
++	desc->page_prot = phys_mem_access_prot(file, desc->pgoff,
++					       size,
++					       desc->page_prot);
 +
- 	if (IS_ERR(file))
- 		return PTR_ERR(file);
- 
-@@ -5906,6 +5912,25 @@ int shmem_zero_setup(struct vm_area_stru
- 
++	desc->vm_ops = &mmap_mem_ops;
++
++	/* Remap-pfn-range will mark the range VM_IO. */
++	mmap_action_remap_full(desc, desc->pgoff);
++	/* We filter remap errors to -EAGAIN. */
++	desc->action.error_hook = mmap_filter_error;
++
  	return 0;
  }
-+
-+/**
-+ * shmem_zero_setup_desc - same as shmem_zero_setup, but determined by VMA
-+ * descriptor for convenience.
-+ * @desc: Describes VMA
-+ * Returns: 0 on success, or error
-+ */
-+int shmem_zero_setup_desc(struct vm_area_desc *desc)
+ 
+@@ -501,14 +504,26 @@ static ssize_t read_zero(struct file *fi
+ 	return cleared;
+ }
+ 
+-static int mmap_zero(struct file *file, struct vm_area_struct *vma)
++static int mmap_zero_private_success(const struct vm_area_struct *vma)
 +{
-+	struct file *file = __shmem_zero_setup(desc->start, desc->end, desc->vm_flags);
-+
-+	if (IS_ERR(file))
-+		return PTR_ERR(file);
-+
-+	desc->vm_file = file;
-+	desc->vm_ops = &shmem_anon_vm_ops;
++	/*
++	 * This is a highly unique situation where we mark a MAP_PRIVATE mapping
++	 * of /dev/zero anonymous, despite it not being.
++	 */
++	vma_set_anonymous((struct vm_area_struct *)vma);
 +
 +	return 0;
 +}
++
++static int mmap_zero_prepare(struct vm_area_desc *desc)
+ {
+ #ifndef CONFIG_MMU
+ 	return -ENOSYS;
+ #endif
+-	if (vma->vm_flags & VM_SHARED)
+-		return shmem_zero_setup(vma);
+-	vma_set_anonymous(vma);
++	if (desc->vm_flags & VM_SHARED)
++		return shmem_zero_setup_desc(desc);
++
++	desc->action.success_hook = mmap_zero_private_success;
+ 	return 0;
+ }
  
- /**
-  * shmem_read_folio_gfp - read into page cache, using specified page allocation flags.
+@@ -526,10 +541,11 @@ static unsigned long get_unmapped_area_z
+ {
+ 	if (flags & MAP_SHARED) {
+ 		/*
+-		 * mmap_zero() will call shmem_zero_setup() to create a file,
+-		 * so use shmem's get_unmapped_area in case it can be huge;
+-		 * and pass NULL for file as in mmap.c's get_unmapped_area(),
+-		 * so as not to confuse shmem with our handle on "/dev/zero".
++		 * mmap_zero_prepare() will call shmem_zero_setup() to create a
++		 * file, so use shmem's get_unmapped_area in case it can be
++		 * huge; and pass NULL for file as in mmap.c's
++		 * get_unmapped_area(), so as not to confuse shmem with our
++		 * handle on "/dev/zero".
+ 		 */
+ 		return shmem_get_unmapped_area(NULL, addr, len, pgoff, flags);
+ 	}
+@@ -632,7 +648,7 @@ static const struct file_operations __ma
+ 	.llseek		= memory_lseek,
+ 	.read		= read_mem,
+ 	.write		= write_mem,
+-	.mmap		= mmap_mem,
++	.mmap_prepare	= mmap_mem_prepare,
+ 	.open		= open_mem,
+ #ifndef CONFIG_MMU
+ 	.get_unmapped_area = get_unmapped_area_mem,
+@@ -668,7 +684,7 @@ static const struct file_operations zero
+ 	.write_iter	= write_iter_zero,
+ 	.splice_read	= copy_splice_read,
+ 	.splice_write	= splice_write_zero,
+-	.mmap		= mmap_zero,
++	.mmap_prepare	= mmap_zero_prepare,
+ 	.get_unmapped_area = get_unmapped_area_zero,
+ #ifndef CONFIG_MMU
+ 	.mmap_capabilities = zero_mmap_capabilities,
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
