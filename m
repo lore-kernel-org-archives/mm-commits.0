@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D48531A55E
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 18:44:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E540B32ED5B
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 18:59:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763405066; cv=none; b=diRx6kkHWiaG75gtpna0/up0COZZQgJWY7I1A4oAWy07JdT1jHoBPpOvoxLaDmCHSHKVQftthZkIRjtc8iCiesmM9GTvtjENTq5+Zs05gRDGCL80tqZon+bfkNhbxAV2/f7LClcTS1eHOar8rhGYJTqNn2+I8HeQXGcrSAACoZk=
+	t=1763405998; cv=none; b=LzHVMykU3RIIJEGBpqh2cs7nQ+7w5O6Vl3nize+OQCOPnqMhoXl/1yL8RLV2lAJiJ34+oK0MvH5uY1wRd+M/gAodPskNKIla0QcSGDQ3ypEo2ESjZVg6pWWrS0+r26+LBpW3LH50zYFB7LXCXHNpSZs6bdwF8w7at7uUz6XFrAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763405066; c=relaxed/simple;
-	bh=FlVZxy3Kv2HYHHqCEpzYOXdr7m0jRNavWEAzHKWy0y8=;
-	h=Date:To:From:Subject:Message-Id; b=cjfNDT2jYAUfN6wYDhINht1PFSJelCuzxveCM0XMh4Wwl0udSTqvLAKnwfKxewKeCdol5z9LZ2Fg8ZIuyxi5oUNO1w4ZcVfjueRZxYk8NZ3uKVxGF6BZNhYzjRs50dgyknI6tQIj6k6nV+7dLKkCZhEyhyJBMYzTcD7sXXiQEwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TKKcQlX2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763405998; c=relaxed/simple;
+	bh=vL2jytDEDWWxcWv1uIy7MdZ4FWJJ3o4zndAC6rPiRVg=;
+	h=Date:To:From:Subject:Message-Id; b=fZV44f/juOgQItD1QF3mqcwDw3U6cEYiGxNjAPCgbxczBuwcIk4XqtRxeTsP0JvAhAPUY6s0U+F/irSJu6BGnN0BCs2G8ueLjYdiS8XnfTQhuA2jw+1PJ8dyKI8iKP6bugPSqniUoF6y0GuUC3OpbEe6AK2yvdBQTmHhsNeHSL4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0cey8sKd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TKKcQlX2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 905B6C19423;
-	Mon, 17 Nov 2025 18:44:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0cey8sKd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2A70C2BCB9;
+	Mon, 17 Nov 2025 18:59:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763405065;
-	bh=FlVZxy3Kv2HYHHqCEpzYOXdr7m0jRNavWEAzHKWy0y8=;
+	s=korg; t=1763405997;
+	bh=vL2jytDEDWWxcWv1uIy7MdZ4FWJJ3o4zndAC6rPiRVg=;
 	h=Date:To:From:Subject:From;
-	b=TKKcQlX2I9J2w4kKdKEtH1vMgfJbbCup44WuAWBYOKJW9JT/MUmi1P+L+kdmPDNMY
-	 gQqLrYySqGRJw5vrHsh1XEEIqHfnGSzWbmP2K9LQOnAByYwecgOrHIJNw07UfLMl6r
-	 TOTxpqoVNpchknVxrW7tHaTRXMRpBYtYPU2dKYWI=
-Date: Mon, 17 Nov 2025 10:44:24 -0800
-To: mm-commits@vger.kernel.org,ywen.chen@foxmail.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=0cey8sKdy2/pstUAGRhRGFRRD8WgcmOKxOJUcIXTfQQYCQIT+/SkAFnL25nIxvkNO
+	 tKVcZ4BBymjmcfMayfHPZgTdKnpD32yDYuBTAyZG2QH5cmG4PsZMXw+ICJe3a7lqJw
+	 ZDl9Ba78LcVWhwejyrN42lUnnikbOjMsP9BcYOB0=
+Date: Mon, 17 Nov 2025 10:59:54 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,avagin@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-drop-wb_limit_lock.patch added to mm-unstable branch
-Message-Id: <20251117184425.905B6C19423@smtp.kernel.org>
+Subject: + mm-propagate-vm_softdirty-on-merge.patch added to mm-unstable branch
+Message-Id: <20251117185956.E2A70C2BCB9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: drop wb_limit_lock
+     Subject: mm: propagate VM_SOFTDIRTY on merge
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-drop-wb_limit_lock.patch
+     mm-propagate-vm_softdirty-on-merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-drop-wb_limit_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-propagate-vm_softdirty-on-merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,140 +58,191 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: drop wb_limit_lock
-Date: Sat, 15 Nov 2025 11:34:47 +0900
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: propagate VM_SOFTDIRTY on merge
+Date: Mon, 17 Nov 2025 17:33:38 +0000
 
-We don't need wb_limit_lock.  Writeback limit setters take an exclusive
-write zram init_lock, while wb_limit modifications happen only from a
-single task and under zram read init_lock.  No concurrent wb_limit
-modifications are possible (we permit only one post-processing task at a
-time).  Add lockdep assertions to wb_limit mutators.
+Patch series "make VM_SOFTDIRTY a sticky VMA flag", v2.
 
-While at it, fixup coding styles.
+Currently we set VM_SOFTDIRTY when a new mapping is set up (whether by
+establishing a new VMA, or via merge) as implemented in __mmap_complete()
+and do_brk_flags().
 
-Link: https://lkml.kernel.org/r/20251115023447.495417-5-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Richard Chang <richardycc@google.com>
-Cc: Yuwen Chen <ywen.chen@foxmail.com>
+However, when performing a merge of existing mappings such as when
+performing mprotect(), we may lose the VM_SOFTDIRTY flag.
+
+Now we have the concept of making VMA flags 'sticky', that is that they
+both don't prevent merge and, importantly, are propagated to merged VMAs,
+this seems a sensible alternative to the existing special-casing of
+VM_SOFTDIRTY.
+
+We additionally add a self-test that demonstrates that this logic behaves
+as expected.
+
+
+This patch (of 2):
+
+Currently we set VM_SOFTDIRTY when a new mapping is set up (whether by
+establishing a new VMA, or via merge) as implemented in __mmap_complete()
+and do_brk_flags().
+
+However, when performing a merge of existing mappings such as when
+performing mprotect(), we may lose the VM_SOFTDIRTY flag.
+
+This is because currently we simply ignore VM_SOFTDIRTY for the purposes
+of merge, so one VMA may possess the flag and another not, and whichever
+happens to be the target VMA will be the one upon which the merge is
+performed which may or may not have VM_SOFTDIRTY set.
+
+Now we have the concept of 'sticky' VMA flags, let's make VM_SOFTDIRTY one
+which solves this issue.
+
+Additionally update VMA userland tests to propagate changes.
+
+Link: https://lkml.kernel.org/r/cover.1763399675.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/955478b5170715c895d1ef3b7f68e0cd77f76868.1763399675.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Andrey Vagin <avagin@gmail.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   22 +++++-----------------
- drivers/block/zram/zram_drv.h |    1 -
- 2 files changed, 5 insertions(+), 18 deletions(-)
+ include/linux/mm.h               |   23 +++++++++++------------
+ tools/testing/vma/vma_internal.h |   23 +++++++++++------------
+ 2 files changed, 22 insertions(+), 24 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-drop-wb_limit_lock
-+++ a/drivers/block/zram/zram_drv.c
-@@ -530,9 +530,7 @@ static ssize_t writeback_limit_enable_st
- 		return ret;
+--- a/include/linux/mm.h~mm-propagate-vm_softdirty-on-merge
++++ a/include/linux/mm.h
+@@ -532,29 +532,28 @@ extern unsigned int kobjsize(const void
+  * possesses it but the other does not, the merged VMA should nonetheless have
+  * applied to it:
+  *
++ *   VM_SOFTDIRTY - if a VMA is marked soft-dirty, that is has not had its
++ *                  references cleared via /proc/$pid/clear_refs, any merged VMA
++ *                  should be considered soft-dirty also as it operates at a VMA
++ *                  granularity.
++ *
+  * VM_MAYBE_GUARD - If a VMA may have guard regions in place it implies that
+  *                  mapped page tables may contain metadata not described by the
+  *                  VMA and thus any merged VMA may also contain this metadata,
+  *                  and thus we must make this flag sticky.
+  */
+-#define VM_STICKY VM_MAYBE_GUARD
++#define VM_STICKY (VM_SOFTDIRTY | VM_MAYBE_GUARD)
  
- 	down_write(&zram->init_lock);
--	spin_lock(&zram->wb_limit_lock);
- 	zram->wb_limit_enable = val;
--	spin_unlock(&zram->wb_limit_lock);
- 	up_write(&zram->init_lock);
- 	ret = len;
+ /*
+  * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
+  * of these flags and the other not does not preclude a merge.
+  *
+- * VM_SOFTDIRTY - Should not prevent from VMA merging, if we match the flags but
+- *                dirty bit -- the caller should mark merged VMA as dirty. If
+- *                dirty bit won't be excluded from comparison, we increase
+- *                pressure on the memory system forcing the kernel to generate
+- *                new VMAs when old one could be extended instead.
+- *
+- *    VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
+- *                which should propagate to all VMAs, but the other does not,
+- *                the merge should still proceed with the merge logic applying
+- *                sticky flags to the final VMA.
++ * VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
++ *             which should propagate to all VMAs, but the other does not,
++ *             the merge should still proceed with the merge logic applying
++ *             sticky flags to the final VMA.
+  */
+-#define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
++#define VM_IGNORE_MERGE VM_STICKY
  
-@@ -547,9 +545,7 @@ static ssize_t writeback_limit_enable_sh
- 	struct zram *zram = dev_to_zram(dev);
+ /*
+  * Flags which should result in page tables being copied on fork. These are
+--- a/tools/testing/vma/vma_internal.h~mm-propagate-vm_softdirty-on-merge
++++ a/tools/testing/vma/vma_internal.h
+@@ -122,29 +122,28 @@ extern unsigned long dac_mmap_min_addr;
+  * possesses it but the other does not, the merged VMA should nonetheless have
+  * applied to it:
+  *
++ *   VM_SOFTDIRTY - if a VMA is marked soft-dirty, that is has not had its
++ *                  references cleared via /proc/$pid/clear_refs, any merged VMA
++ *                  should be considered soft-dirty also as it operates at a VMA
++ *                  granularity.
++ *
+  * VM_MAYBE_GUARD - If a VMA may have guard regions in place it implies that
+  *                  mapped page tables may contain metadata not described by the
+  *                  VMA and thus any merged VMA may also contain this metadata,
+  *                  and thus we must make this flag sticky.
+  */
+-#define VM_STICKY VM_MAYBE_GUARD
++#define VM_STICKY (VM_SOFTDIRTY | VM_MAYBE_GUARD)
  
- 	down_read(&zram->init_lock);
--	spin_lock(&zram->wb_limit_lock);
- 	val = zram->wb_limit_enable;
--	spin_unlock(&zram->wb_limit_lock);
- 	up_read(&zram->init_lock);
+ /*
+  * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
+  * of these flags and the other not does not preclude a merge.
+  *
+- * VM_SOFTDIRTY - Should not prevent from VMA merging, if we match the flags but
+- *                dirty bit -- the caller should mark merged VMA as dirty. If
+- *                dirty bit won't be excluded from comparison, we increase
+- *                pressure on the memory system forcing the kernel to generate
+- *                new VMAs when old one could be extended instead.
+- *
+- *    VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
+- *                which should propagate to all VMAs, but the other does not,
+- *                the merge should still proceed with the merge logic applying
+- *                sticky flags to the final VMA.
++ * VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
++ *             which should propagate to all VMAs, but the other does not,
++ *             the merge should still proceed with the merge logic applying
++ *             sticky flags to the final VMA.
+  */
+-#define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
++#define VM_IGNORE_MERGE VM_STICKY
  
- 	return sysfs_emit(buf, "%d\n", val);
-@@ -567,9 +563,7 @@ static ssize_t writeback_limit_store(str
- 		return ret;
- 
- 	down_write(&zram->init_lock);
--	spin_lock(&zram->wb_limit_lock);
- 	zram->bd_wb_limit = val;
--	spin_unlock(&zram->wb_limit_lock);
- 	up_write(&zram->init_lock);
- 	ret = len;
- 
-@@ -577,15 +571,13 @@ static ssize_t writeback_limit_store(str
- }
- 
- static ssize_t writeback_limit_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+				    struct device_attribute *attr, char *buf)
- {
- 	u64 val;
- 	struct zram *zram = dev_to_zram(dev);
- 
- 	down_read(&zram->init_lock);
--	spin_lock(&zram->wb_limit_lock);
- 	val = zram->bd_wb_limit;
--	spin_unlock(&zram->wb_limit_lock);
- 	up_read(&zram->init_lock);
- 
- 	return sysfs_emit(buf, "%llu\n", val);
-@@ -864,18 +856,18 @@ release_wb_ctl:
- 
- static void zram_account_writeback_rollback(struct zram *zram)
- {
--	spin_lock(&zram->wb_limit_lock);
-+	lockdep_assert_held_read(&zram->init_lock);
-+
- 	if (zram->wb_limit_enable)
- 		zram->bd_wb_limit +=  1UL << (PAGE_SHIFT - 12);
--	spin_unlock(&zram->wb_limit_lock);
- }
- 
- static void zram_account_writeback_submit(struct zram *zram)
- {
--	spin_lock(&zram->wb_limit_lock);
-+	lockdep_assert_held_read(&zram->init_lock);
-+
- 	if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
- 		zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
--	spin_unlock(&zram->wb_limit_lock);
- }
- 
- static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
-@@ -990,13 +982,10 @@ static int zram_writeback_slots(struct z
- 
- 	blk_start_plug(&io_plug);
- 	while ((pps = select_pp_slot(ctl))) {
--		spin_lock(&zram->wb_limit_lock);
- 		if (zram->wb_limit_enable && !zram->bd_wb_limit) {
--			spin_unlock(&zram->wb_limit_lock);
- 			ret = -EIO;
- 			break;
- 		}
--		spin_unlock(&zram->wb_limit_lock);
- 
- 		while (!req) {
- 			req = select_idle_req(wb_ctl);
-@@ -2942,7 +2931,6 @@ static int zram_add(void)
- 	init_rwsem(&zram->init_lock);
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	zram->wb_batch_size = 32;
--	spin_lock_init(&zram->wb_limit_lock);
- #endif
- 
- 	/* gendisk structure */
---- a/drivers/block/zram/zram_drv.h~zram-drop-wb_limit_lock
-+++ a/drivers/block/zram/zram_drv.h
-@@ -127,7 +127,6 @@ struct zram {
- 	bool claim; /* Protected by disk->open_mutex */
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	struct file *backing_dev;
--	spinlock_t wb_limit_lock;
- 	bool wb_limit_enable;
- 	u32 wb_batch_size;
- 	u64 bd_wb_limit;
+ /*
+  * Flags which should result in page tables being copied on fork. These are
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-zram-add-writeback-batch-size-device-attr.patch
-zram-take-write-lock-in-wb-limit-store-handlers.patch
-zram-drop-wb_limit_lock.patch
+mm-introduce-vm_maybe_guard-and-make-visible-in-proc-pid-smaps.patch
+mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such.patch
+mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch
+mm-implement-sticky-vma-flags.patch
+mm-implement-sticky-vma-flags-fix.patch
+mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
+tools-testing-vma-add-vma-sticky-userland-tests.patch
+tools-testing-selftests-mm-add-madv_collapse-test-case.patch
+tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
+mm-correctly-handle-uffd-pte-markers.patch
+mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
+mm-avoid-unnecessary-uses-of-is_swap_pte.patch
+mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
+mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
+fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
+mm-avoid-unnecessary-use-of-is_swap_pmd.patch
+mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
+mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
+mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
+mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
+mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
+mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
+mm-remove-is_hugetlb_entry_.patch
+mm-eliminate-further-swapops-predicates.patch
+mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
+mm-rename-walk_page_range_mm.patch
+mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
+mm-propagate-vm_softdirty-on-merge.patch
+testing-selftests-mm-add-soft-dirty-merge-self-test.patch
+mm-declare-vma-flags-by-bit.patch
+mm-declare-vma-flags-by-bit-fix.patch
+mm-declare-vma-flags-by-bit-fix-2.patch
+mm-simplify-and-rename-mm-flags-function-for-clarity.patch
+tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
+mm-introduce-vma-flags-bitmap-type.patch
 
