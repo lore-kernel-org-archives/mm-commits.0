@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68199231A23
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 932C922E004
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343248; cv=none; b=Em0ZSAlo82413fWSAJ0fx30G2cJmP9IzWAHke0sjk1dnoVnYnFxKNQEp2scM6jxkOu+N0WsWLBnjecI2PdJbVRzdjoYJjeI9tmk1IN/kKiclXNneO4S8slV/EX7pSHQqBiz7DnlE7WO5GKaM/waOLuNGxizL4DV/ElDojJO+5B0=
+	t=1763343249; cv=none; b=jCTk8JX+BQWdHIac44pYNbw3Hsq0FkpF4LLds1V7hiwkS3xU3ABg0KX1vGwxajX23FnnQEiJ17WdZw1VFe7SpUknTEKtSYgRML/L6L3kf9KNe4MKlLiElnfZIYVjNWxdMWV3N3ZHlOVQSG6sN6HigTc39l5XwyzLeANlnMVr7UU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343248; c=relaxed/simple;
-	bh=8MGtWO4yGudrpCrYEmDdn/5n+Xj5rvbAibTctM9nG3I=;
-	h=Date:To:From:Subject:Message-Id; b=hBVThaX62ypKk9vYUa+2iZgEXKQSZV9RPyLhpnACGsqZ9+pu93HJTrvpMEOcEm7qMnlPxOUh6HuqkIILXFf/mpaXaAFxmjX7G69QCB0kFRQ49OCM3Xi5fdWVSZZfIIyP4kf3d6jU8Xm0223GUa46WnI78JX0zLU+e3cG5wBdj+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KXpxWbQj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343249; c=relaxed/simple;
+	bh=BsPioa5kPuvr3Gd+BDizOQxyLBumJC8AuF99Rw8hEzE=;
+	h=Date:To:From:Subject:Message-Id; b=GwsyGz4dcijD+lg/9aatOqDncqQLDlvQwjaViPCiWI7o5T9mOfAhs2rzXd8pPAz5MO44TCjWa4QKiUTd63NSy6yBXlZ8m7pmH/zTq46pi7i65yDHSl6FYZYdGRaT9cFKhrDyJSHbMWYHFnloqCv9q9H6zo/L07E3/R0mRai+ZHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qIvHrSzA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KXpxWbQj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BE82C4CEF1;
-	Mon, 17 Nov 2025 01:34:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qIvHrSzA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6926FC116D0;
+	Mon, 17 Nov 2025 01:34:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343248;
-	bh=8MGtWO4yGudrpCrYEmDdn/5n+Xj5rvbAibTctM9nG3I=;
+	s=korg; t=1763343249;
+	bh=BsPioa5kPuvr3Gd+BDizOQxyLBumJC8AuF99Rw8hEzE=;
 	h=Date:To:From:Subject:From;
-	b=KXpxWbQjVuD++0lSeoiCyrbXM4pbvakgayhetXHGcFNpAoGyuIZF3O7H+ngwfg2Zr
-	 5R54v/+MUwycl6Oall5pOz/QwtftsBPJ8irwQk7QZr6E31dwx5KZqiv60QzAGpYVEn
-	 9my3u2IUd31R1yF2yL77UctDi42jkXwULyzz4HRU=
-Date: Sun, 16 Nov 2025 17:34:07 -0800
+	b=qIvHrSzAhAVnNCmWAprkPITmTIb0gPcFtUffxUMTgYDry0yX8fMsSIxgOmUV4yH3F
+	 9UVn/nU1cTBILK3waov8MmCiMwX4pFjcT12YnP+QFOTnl4tvnOpTG7hn+H17RfSASt
+	 LmBEIq5CouCkoTi8/XPQPpRyKFNj2sT0VvrNlva0=
+Date: Sun, 16 Nov 2025 17:34:08 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter.patch removed from -mm tree
-Message-Id: <20251117013408.3BE82C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch removed from -mm tree
+Message-Id: <20251117013409.6926FC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/lru_sort: document addr_unit parameter
+     Subject: Docs/admin-guide/mm/damon/stat: document aggr_interval_us parameter
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter.patch
+     docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/lru_sort: document addr_unit parameter
-Date: Sun, 26 Oct 2025 11:22:11 -0700
+Subject: Docs/admin-guide/mm/damon/stat: document aggr_interval_us parameter
+Date: Sun, 26 Oct 2025 11:22:12 -0700
 
-Commit 2e0fe9245d6b ("mm/damon/lru_sort: support addr_unit for
-DAMON_LRU_SORT") introduced the 'addr_unit' parameter for DAMON_LRU_SORT. 
-But the usage document is not updated for that.  Update the document.
+Commit cc7ceb1d14b0 ("mm/damon/stat: expose the current tuned aggregation
+interval"), has introduced 'aggr_interval_us' parameter for DAMON_STAT. 
+But the new parameter is not yet documented.  Document it on the usage
+document for the module.
 
-Link: https://lkml.kernel.org/r/20251026182216.118200-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251026182216.118200-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -64,39 +65,49 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |   22 ++++++++++++++
- 1 file changed, 22 insertions(+)
+ Documentation/admin-guide/mm/damon/stat.rst |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-document-addr_unit-parameter
-+++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -211,6 +211,28 @@ End of target memory region in physical
- The end physical address of memory region that DAMON_LRU_SORT will do work
- against.  By default, biggest System RAM is used as the region.
+--- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-stat-document-aggr_interval_us-parameter
++++ a/Documentation/admin-guide/mm/damon/stat.rst
+@@ -10,6 +10,8 @@ on the system's entire physical memory u
+ access monitoring results statistics, namely idle time percentiles and
+ estimated memory bandwidth.
  
-+addr_unit
-+---------
++.. _damon_stat_monitoring_accuracy_overhead:
 +
-+A scale factor for memory addresses and bytes.
+ Monitoring Accuracy and Overhead
+ ================================
+ 
+@@ -19,7 +21,9 @@ overhead minimum.  It auto-tunes the int
+ events to be captured in each snapshot, while limiting the resulting sampling
+ interval to be 5 milliseconds in minimum and 10 seconds in maximum.  On a few
+ production server systems, it resulted in consuming only 0.x % single CPU time,
+-while capturing reasonable quality of access patterns.
++while capturing reasonable quality of access patterns.  The tuning-resulting
++intervals can be retrieved via ``aggr_interval_us`` :ref:`parameter
++<damon_stat_aggr_interval_us>`.
+ 
+ Interface: Module Parameters
+ ============================
+@@ -41,6 +45,18 @@ You can enable DAMON_STAT by setting the
+ Setting it as ``N`` disables DAMON_STAT.  The default value is set by
+ ``CONFIG_DAMON_STAT_ENABLED_DEFAULT`` build config option.
+ 
++.. _damon_stat_aggr_interval_us:
 +
-+This parameter is for setting and getting the :ref:`address unit
-+<damon_design_addr_unit>` parameter of the DAMON instance for DAMON_RECLAIM.
++aggr_interval_us
++----------------
 +
-+``monitor_region_start`` and ``monitor_region_end`` should be provided in this
-+unit.  For example, let's suppose ``addr_unit``, ``monitor_region_start`` and
-+``monitor_region_end`` are set as ``1024``, ``0`` and ``10``, respectively.
-+Then DAMON_LRU_SORT will work for 10 KiB length of physical address range that
-+starts from address zero (``[0 * 1024, 10 * 1024)`` in bytes).
++Auto-tuned aggregation time interval in microseconds.
 +
-+Stat parameters having ``bytes_`` prefix are also in this unit.  For example,
-+let's suppose values of ``addr_unit``, ``bytes_lru_sort_tried_hot_regions`` and
-+``bytes_lru_sorted_hot_regions`` are ``1024``, ``42``, and ``32``,
-+respectively.  Then it means DAMON_LRU_SORT tried to LRU-sort 42 KiB of hot
-+memory and successfully LRU-sorted 32 KiB of the memory in total.
++Users can read the aggregation interval of DAMON that is being used by the
++DAMON instance for DAMON_STAT.  It is :ref:`auto-tuned
++<damon_stat_monitoring_accuracy_overhead>` and therefore the value is
++dynamically changed.
 +
-+If unsure, use only the default value (``1``) and forget about this.
-+
- kdamond_pid
- -----------
+ estimated_memory_bandwidth
+ --------------------------
  
 _
 
