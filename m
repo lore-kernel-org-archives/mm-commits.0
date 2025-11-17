@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C122A21A447
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F237B2222C4
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343161; cv=none; b=OWjVcP3T7XAKrGQsTAiCY70aI4ifEi96QqrSLrXV9/7wbnBQ1c38zFCnTcWWRM4LG0ecAYS8KahmLMJIgkWzqHEtu7fpt1i5FI+yUyhW70iepOhL7oluWbVd18OB4qZ4uimq4jpaz1wzIZ2pBwkd4F9suOcUzuMFS7SkCtOExrc=
+	t=1763343163; cv=none; b=eFqi9pRGvFkPDQxxyXuF+dxjVKTuscGw6bbk0WUXGQ1+yyCQd6WOh3YhZZnDRe1ROLNpJnij+ClsNyo5I5nAm7HGtcTb3HhyJcnye5WQgkBgYIDEPM6N7pAg5Mez9Ws1deqvv3vd59ZVxBFi6AmdwyQpNa8R8+33POUfTZipdug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343161; c=relaxed/simple;
-	bh=cqr/scysWOius5hl1y/aDmmAtbWhv2eZQ5AjAWCwrQ8=;
-	h=Date:To:From:Subject:Message-Id; b=RFfowYxkJPX49OIkGNuM7w4SdDfYMwaRBYUwJFedFKHJAv1rDSV/kGVK0dmVcrP/AKktADPWTlpoUojgvWhH9WT5kxH+pVzzKszNJzAoKROG5X2bRFvcIbW/22tzprKOxG8tiR+/iU+gyCGVwRFrX7db5s08NMn5yjSd6P0xsik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cI0mK5Sr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343163; c=relaxed/simple;
+	bh=kXSr0PZYwlYv3XclBYWaSCEl+mz6UCDP3wjZ7GVnPSo=;
+	h=Date:To:From:Subject:Message-Id; b=F4/09G3lMKIoZnO6/2iyMSfDh2exlUzhR/0EBWHXPK09wg1J0x4wsO5rL1fBo8Y9vxS5S4CHm83ZX7jHhDbaOg9dUS+vGXITTx9ZJxaTpOyFLcPolNu3CadlAYERBsJdknEcAot8ADIYnN9S5BODqZzVGYf2SMWpVfvO0fDQ7Uc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Him2GOKI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cI0mK5Sr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94782C16AAE;
-	Mon, 17 Nov 2025 01:32:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Him2GOKI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C445EC4CEF5;
+	Mon, 17 Nov 2025 01:32:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343161;
-	bh=cqr/scysWOius5hl1y/aDmmAtbWhv2eZQ5AjAWCwrQ8=;
+	s=korg; t=1763343162;
+	bh=kXSr0PZYwlYv3XclBYWaSCEl+mz6UCDP3wjZ7GVnPSo=;
 	h=Date:To:From:Subject:From;
-	b=cI0mK5Sre6MR4C/zGXFnoFxXKC6o4MCtrlHC/QK2FHbh0ialJo4mGRgWGG/vtOeYj
-	 E0EA3qX3rH42u1M4IUPzE8Thr7m2GRUvSzE+pGU1gklICFIg5PWm0X46tbmuVA/WiW
-	 x4I9Eul/CHVRxOe87XKB8nJ7qvm7M89qecc2Grmo=
-Date: Sun, 16 Nov 2025 17:32:41 -0800
+	b=Him2GOKIsT/mZl5/RJqV6mJvrkDybWVIq4Lq0EWp4samwshLA10OxnWhbT7Oo/FAl
+	 vXZJCvEL7yemUGniKEiyAceOk0XEnhDVYZcUICOh8966L4acgVmrqvr7ZpEm+GAZgv
+	 zYF6r8R7SufbSkjfxP4Gupn4ykRhKa6U+Gi0mKVc=
+Date: Sun, 16 Nov 2025 17:32:42 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch removed from -mm tree
-Message-Id: <20251117013241.94782C16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch removed from -mm tree
+Message-Id: <20251117013242.C445EC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: support DAMOS_QUOTA_NODE_MEMCG_FREE_BP
+     Subject: Docs/mm/damon/design: document DAMOS_QUOTA_NODE_MEMCG_{USED,FREE}_BP
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp.patch
+     docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: support DAMOS_QUOTA_NODE_MEMCG_FREE_BP
-Date: Fri, 17 Oct 2025 14:26:59 -0700
+Subject: Docs/mm/damon/design: document DAMOS_QUOTA_NODE_MEMCG_{USED,FREE}_BP
+Date: Fri, 17 Oct 2025 14:27:00 -0700
 
-Extend DAMON sysfs to support DAMOS_QUOTA_NODE_MEMCG_FREE_BP.
+Update design doc for the newly added two DAMOS quota auto-tuning target
+goal metrics, DAMOS_QUOTA_NODE_MEMCG_{USED,FREE}_BP.
 
-Link: https://lkml.kernel.org/r/20251017212706.183502-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251017212706.183502-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/mm/damon/design.rst |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-support-damos_quota_node_memcg_free_bp
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1034,6 +1034,10 @@ struct damos_sysfs_qgoal_metric_name dam
- 		.metric = DAMOS_QUOTA_NODE_MEMCG_USED_BP,
- 		.name = "node_memcg_used_bp",
- 	},
-+	{
-+		.metric = DAMOS_QUOTA_NODE_MEMCG_FREE_BP,
-+		.name = "node_memcg_free_bp",
-+	},
- };
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-damos_quota_node_memcg_usedfree_bp
++++ a/Documentation/mm/damon/design.rst
+@@ -564,9 +564,9 @@ aggressiveness (the quota) of the corres
+ is under achieving the goal, DAMOS automatically increases the quota.  If DAMOS
+ is over achieving the goal, it decreases the quota.
  
- static ssize_t target_metric_show(struct kobject *kobj,
-@@ -2552,6 +2556,7 @@ static int damos_sysfs_add_quota_score(
- 			goal->nid = sysfs_goal->nid;
- 			break;
- 		case DAMOS_QUOTA_NODE_MEMCG_USED_BP:
-+		case DAMOS_QUOTA_NODE_MEMCG_FREE_BP:
- 			err = damon_sysfs_memcg_path_to_id(
- 					sysfs_goal->path, &goal->memcg_id);
- 			if (err) {
+-The goal can be specified with four parameters, namely ``target_metric``,
+-``target_value``, ``current_value`` and ``nid``.  The auto-tuning mechanism
+-tries to make ``current_value`` of ``target_metric`` be same to
++The goal can be specified with five parameters, namely ``target_metric``,
++``target_value``, ``current_value``, ``nid`` and ``path``.  The auto-tuning
++mechanism tries to make ``current_value`` of ``target_metric`` be same to
+ ``target_value``.
+ 
+ - ``user_input``: User-provided value.  Users could use any metric that they
+@@ -581,9 +581,18 @@ tries to make ``current_value`` of ``tar
+   set by users at the initial time.  In other words, DAMOS does self-feedback.
+ - ``node_mem_used_bp``: Specific NUMA node's used memory ratio in bp (1/10,000).
+ - ``node_mem_free_bp``: Specific NUMA node's free memory ratio in bp (1/10,000).
++- ``node_memcg_used_bp``: Specific cgroup's node used memory ratio for a
++  specific NUMA node, in bp (1/10,000).
++- ``node_memcg_free_bp``: Specific cgroup's node unused memory ratio for a
++  specific NUMA node, in bp (1/10,000).
+ 
+-``nid`` is optionally required for only ``node_mem_used_bp`` and
+-``node_mem_free_bp`` to point the specific NUMA node.
++``nid`` is optionally required for only ``node_mem_used_bp``,
++``node_mem_free_bp``, ``node_memcg_used_bp`` and ``node_memcg_free_bp`` to
++point the specific NUMA node.
++
++``path`` is optionally required for only ``node_memcg_used_bp`` and
++``node_memcg_free_bp`` to point the path to the cgroup.  The value should be
++the path of the memory cgroup from the cgroups mount point.
+ 
+ To know how user-space can set the tuning goal metric, the target value, and/or
+ the current value via :ref:`DAMON sysfs interface <sysfs_interface>`, refer to
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
