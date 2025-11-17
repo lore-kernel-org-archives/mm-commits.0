@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FBA3226D1D
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 140B8221545
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343172; cv=none; b=P1/PPfFx/gDPQ6Gs+mOlHrQ+EOyJ3tl4Qhar/d8kefIpJP5WosnB7xcWlwnus+f5cN6+/n/7RGmEWSDVVuyYxLb8S5UsNNcSrdZ17eCuFgPyKUBAZQ8L7syIqhGNyQ02rT/8VBxCcfnup+Ujfop5Sbyf0dg3YVyB1OcZQnj9s28=
+	t=1763343174; cv=none; b=tW/19T2aVSzbtCK2IjZnOIurGJw9B5DzEwnQlV93PbO/BXLIM6jxZSJo+0k8s2qR/2KCLCosUNyiI6PRLigGb/ydpOvBUwziW38vi4LB7q+Qu7bkrNls7yzH32XGBEBcSneZsmggmK5u02IznCx+QitSepyC2rXxoyMOh9FkaVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343172; c=relaxed/simple;
-	bh=gQS1MsDzWl1JvuzqnOeB/IWzqWWLkLCWp/YL6kjGXvg=;
-	h=Date:To:From:Subject:Message-Id; b=LsfxnaqG6XdWAjIcM3f2U12Gj1gl2wcrBTAKoEcUJfq5WbPIrmWCPYhQ3dl7ZUzZEKmP4+NwVjFlE/a3PXisFDEB7xpca3SJopXGi14BkC5obJlRazq7ZoNsu3UV2y5GKYrnpfb+H6kebfZERYqH0Zwj7DiU22aTDzX4+OUNALM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e73P0cJ8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343174; c=relaxed/simple;
+	bh=ZfUp/PVdYVdbDNLPGTTgkC1kwsdGMdIWuZiwA0sbp2s=;
+	h=Date:To:From:Subject:Message-Id; b=b+9FacUs3bSwlGS3dJe+hN0fArZuGQNLbp1zLq4ZXUGrhVYpoBlcy+TSm+FaE1WV7LFU0qb+VaWebbRyM8b04EAczukE967KGWxcds3RIputUWQtKt93V93G636taxNhGu4PmsA2p5K5nzRIFK9OKIELGXQS8VWvh8JNTYPM2Zs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0HdGNKkS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e73P0cJ8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7694C19423;
-	Mon, 17 Nov 2025 01:32:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0HdGNKkS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6745C4CEF1;
+	Mon, 17 Nov 2025 01:32:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343171;
-	bh=gQS1MsDzWl1JvuzqnOeB/IWzqWWLkLCWp/YL6kjGXvg=;
+	s=korg; t=1763343173;
+	bh=ZfUp/PVdYVdbDNLPGTTgkC1kwsdGMdIWuZiwA0sbp2s=;
 	h=Date:To:From:Subject:From;
-	b=e73P0cJ8UXJdg0Dl9trbH8wjiuHrlHaYteiPfPTD4DWJmxtgyIlvvEVOgQHBNRGYC
-	 yF7WmvNztjdY6JI9v51q9xcKo74gmtdNxkqHrnD18VcEC1M4OaTvrO8dG4q0OooIVZ
-	 4hkblT95YOpTgp/6sIfn286/ncAIOrOQdVtQqfp4=
-Date: Sun, 16 Nov 2025 17:32:51 -0800
+	b=0HdGNKkST8am1F+oJrh8fEq+CulMfXEbxZsedGCQK8vgWhYiYn5Bjag/2MJr/rSfk
+	 C8d1cNajI8mYYrgsHalbC2OBjeagvMUA8sA08OslKxslYzhxYAPee5hLEsQGKQxWBd
+	 Zfed4TdUyOIuJd8ymVd6pxAd67E+xzv53z6Vb9MY=
+Date: Sun, 16 Nov 2025 17:32:53 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vishal.l.verma@intel.com,viro@zeniv.linux.org.uk,vgoyal@redhat.com,vbabka@suse.cz,urezki@gmail.com,tsbogend@alpha.franken.de,tony.luck@intel.com,svens@linux.ibm.com,surenb@google.com,sumanthk@linux.ibm.com,rppt@kernel.org,robin.murphy@arm.com,reinette.chatre@intel.com,pfalcato@suse.de,osalvador@suse.de,nico@fluxnic.net,muchun.song@linux.dev,mhocko@suse.com,liam.howlett@oracle.com,kevin.tian@intel.com,jgg@nvidia.com,jannh@google.com,james.morse@arm.com,jack@suse.cz,hughd@google.com,hca@linux.ibm.com,guoren@kernel.org,gregkh@linuxfoundation.org,gor@linux.ibm.com,dyoung@redhat.com,dvyukov@google.com,david@redhat.com,davem@davemloft.net,dave.martin@arm.com,dave.jiang@intel.com,dan.j.williams@intel.com,corbet@lwn.net,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,arnd@arndb.de,andreyknvl@gmail.com,andreas@gaisler.com,almaz.alexandrovich@paragon-software.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-update-shmem-to-use-mmap_prepare.patch removed from -mm tree
-Message-Id: <20251117013251.B7694C19423@smtp.kernel.org>
+Subject: [merged mm-stable] device-dax-update-devdax-to-use-mmap_prepare.patch removed from -mm tree
+Message-Id: <20251117013253.D6745C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,87 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem: update shmem to use mmap_prepare
+     Subject: device/dax: update devdax to use mmap_prepare
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-update-shmem-to-use-mmap_prepare.patch
+     device-dax-update-devdax-to-use-mmap_prepare.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/shmem: update shmem to use mmap_prepare
-Date: Mon, 20 Oct 2025 13:11:18 +0100
+Subject: device/dax: update devdax to use mmap_prepare
+Date: Mon, 20 Oct 2025 13:11:19 +0100
 
-Patch series "expand mmap_prepare functionality, port more users", v5.
+The devdax driver does nothing special in its f_op->mmap hook, so
+straightforwardly update it to use the mmap_prepare hook instead.
 
-Since commit c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file
-callback"), The f_op->mmap hook has been deprecated in favour of
-f_op->mmap_prepare.
-
-This was introduced in order to make it possible for us to eventually
-eliminate the f_op->mmap hook which is highly problematic as it allows
-drivers and filesystems raw access to a VMA which is not yet correctly
-initialised.
-
-This hook also introduced complexity for the memory mapping operation, as
-we must correctly unwind what we do should an error arises.
-
-Overall this interface being so open has caused significant problems for
-us, including security issues, it is important for us to simply eliminate
-this as a source of problems.
-
-Therefore this series continues what was established by extending the
-functionality further to permit more drivers and filesystems to use
-mmap_prepare.
-
-We start by udpating some existing users who can use the mmap_prepare
-functionality as-is.
-
-We then introduce the concept of an mmap 'action', which a user, on
-mmap_prepare, can request to be performed upon the VMA:
-
-* Nothing - default, we're done
-* Remap PFN - perform PFN remap with specified parameters
-* I/O remap PFN - perform I/O PFN remap with specified parameters
-
-By setting the action in mmap_prepare, this allows us to dynamically
-decide what to do next, so if a driver/filesystem needs to determine
-whether to e.g.  remap or use a mixed map, it can do so then change which
-is done.
-
-This significantly expands the capabilities of the mmap_prepare hook,
-while maintaining as much control as possible in the mm logic.
-
-We split [io_]remap_pfn_range*() functions which allow for PFN remap (a
-typical mapping prepopulation operation) split between a prepare/complete
-step, as well as io_mremap_pfn_range_prepare, complete for a similar
-purpose.
-
-From there we update various mm-adjacent logic to use this functionality
-as a first set of changes.
-
-We also add success and error hooks for post-action processing for e.g. 
-output debug log on success and filtering error codes.
-
-
-This patch (of 15):
-
-This simply assigns the vm_ops so is easily updated - do so.
-
-Link: https://lkml.kernel.org/r/cover.1760959441.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/7b93b1e89028e39507dac5ca01991e1374d5bbe8.1760959442.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/1e8665d052ac8cf2f7ff92b6c7862614f7fd306c.1760959442.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Chatre, Reinette <reinette.chatre@intel.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -157,41 +103,103 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/dax/device.c |   32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-update-shmem-to-use-mmap_prepare
-+++ a/mm/shmem.c
-@@ -2925,16 +2925,17 @@ out_nomem:
- 	return retval;
- }
+--- a/drivers/dax/device.c~device-dax-update-devdax-to-use-mmap_prepare
++++ a/drivers/dax/device.c
+@@ -13,8 +13,9 @@
+ #include "dax-private.h"
+ #include "bus.h"
  
--static int shmem_mmap(struct file *file, struct vm_area_struct *vma)
-+static int shmem_mmap_prepare(struct vm_area_desc *desc)
+-static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+-		const char *func)
++static int __check_vma(struct dev_dax *dev_dax, vm_flags_t vm_flags,
++		       unsigned long start, unsigned long end, struct file *file,
++		       const char *func)
  {
-+	struct file *file = desc->file;
- 	struct inode *inode = file_inode(file);
+ 	struct device *dev = &dev_dax->dev;
+ 	unsigned long mask;
+@@ -23,7 +24,7 @@ static int check_vma(struct dev_dax *dev
+ 		return -ENXIO;
  
- 	file_accessed(file);
- 	/* This is anonymous shared memory if it is unlinked at the time of mmap */
- 	if (inode->i_nlink)
--		vma->vm_ops = &shmem_vm_ops;
-+		desc->vm_ops = &shmem_vm_ops;
- 	else
--		vma->vm_ops = &shmem_anon_vm_ops;
-+		desc->vm_ops = &shmem_anon_vm_ops;
+ 	/* prevent private mappings from being established */
+-	if ((vma->vm_flags & VM_MAYSHARE) != VM_MAYSHARE) {
++	if ((vm_flags & VM_MAYSHARE) != VM_MAYSHARE) {
+ 		dev_info_ratelimited(dev,
+ 				"%s: %s: fail, attempted private mapping\n",
+ 				current->comm, func);
+@@ -31,15 +32,15 @@ static int check_vma(struct dev_dax *dev
+ 	}
+ 
+ 	mask = dev_dax->align - 1;
+-	if (vma->vm_start & mask || vma->vm_end & mask) {
++	if (start & mask || end & mask) {
+ 		dev_info_ratelimited(dev,
+ 				"%s: %s: fail, unaligned vma (%#lx - %#lx, %#lx)\n",
+-				current->comm, func, vma->vm_start, vma->vm_end,
++				current->comm, func, start, end,
+ 				mask);
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!vma_is_dax(vma)) {
++	if (!file_is_dax(file)) {
+ 		dev_info_ratelimited(dev,
+ 				"%s: %s: fail, vma is not DAX capable\n",
+ 				current->comm, func);
+@@ -49,6 +50,13 @@ static int check_vma(struct dev_dax *dev
  	return 0;
  }
  
-@@ -5204,7 +5205,7 @@ static const struct address_space_operat
++static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
++		     const char *func)
++{
++	return __check_vma(dev_dax, vma->vm_flags, vma->vm_start, vma->vm_end,
++			   vma->vm_file, func);
++}
++
+ /* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
+ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ 		unsigned long size)
+@@ -285,8 +293,9 @@ static const struct vm_operations_struct
+ 	.pagesize = dev_dax_pagesize,
  };
  
- static const struct file_operations shmem_file_operations = {
--	.mmap		= shmem_mmap,
-+	.mmap_prepare	= shmem_mmap_prepare,
- 	.open		= shmem_file_open,
- 	.get_unmapped_area = shmem_get_unmapped_area,
- #ifdef CONFIG_TMPFS
+-static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
++static int dax_mmap_prepare(struct vm_area_desc *desc)
+ {
++	struct file *filp = desc->file;
+ 	struct dev_dax *dev_dax = filp->private_data;
+ 	int rc, id;
+ 
+@@ -297,13 +306,14 @@ static int dax_mmap(struct file *filp, s
+ 	 * fault time.
+ 	 */
+ 	id = dax_read_lock();
+-	rc = check_vma(dev_dax, vma, __func__);
++	rc = __check_vma(dev_dax, desc->vm_flags, desc->start, desc->end, filp,
++			 __func__);
+ 	dax_read_unlock(id);
+ 	if (rc)
+ 		return rc;
+ 
+-	vma->vm_ops = &dax_vm_ops;
+-	vm_flags_set(vma, VM_HUGEPAGE);
++	desc->vm_ops = &dax_vm_ops;
++	desc->vm_flags |= VM_HUGEPAGE;
+ 	return 0;
+ }
+ 
+@@ -376,7 +386,7 @@ static const struct file_operations dax_
+ 	.open = dax_open,
+ 	.release = dax_release,
+ 	.get_unmapped_area = dax_get_unmapped_area,
+-	.mmap = dax_mmap,
++	.mmap_prepare = dax_mmap_prepare,
+ 	.fop_flags = FOP_MMAP_SYNC,
+ };
+ 
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
