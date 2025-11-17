@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D99DD277011
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 19:10:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA295258CE2
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 19:10:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763406612; cv=none; b=VY9nHult04naiJXw4jnxyNggsqjpOQ38O9kFmIHLMoz2U3miuRt/FdWYlmSBq2wD1TslRUsGcbScYbcN9ZNADe63w+LPrw7uTZjI1q/1VcSQjz5lh9A1e9t95G5HtDDaFA4CmKWikdDB4jYRUUnO4jD/w4pdHfU8cLSdj3AzQhI=
+	t=1763406615; cv=none; b=XGQYPKE9m4w99XxNAGV1SfYj0/6Hc7yvHAwWjbXQ43hqkCx+0ahoGs1GnDHBFWbuI/kHSwPUhPm328UivroBNQwusE8z3hkMxIxSkXEusWaHYkavyXeZo+hHdBVJ/Cx82X8gdWt7t3to4MKaS6rj6RiW8WZohZg+cGda8LXQneY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763406612; c=relaxed/simple;
-	bh=5sKUlnZ1ZWwwc1tgbzizQGhrtyCku2/FBQNwDxbqBNo=;
-	h=Date:To:From:Subject:Message-Id; b=EP3FjFE6OjB6dANqjJP2OOu8XvjfePAELv2+wVjzB6i/vc4qtaba5zTXqNst+F3gTxDG82YxTpEgCQf6y+Nwopio9nCAX5INCnsSNWS2tCaaCJfoSBV0lfzZ8VwFPAQU9TRbDumm7G0qVc1eVP9fzCT3jAUMMvAgUfYoDvyGRSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kDEJT9a5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763406615; c=relaxed/simple;
+	bh=L5yfEWt8fCf21vM9oWXrx4+5iAoOW+VahizpjAaMkgM=;
+	h=Date:To:From:Subject:Message-Id; b=VI7kYtGr8RYWf0jPeiPoSB7rRZCn0ROpv61TbTs39Ic9wXHeZR9yAY4UGR4NJFD5jHjKNtgIZ59HUhe2H3zeqYhSmSx6+VNaVuWCyo1a8ryhBAUY0zx9tEkEY7sFGXxWLvrXjBcft7143PACoHdRy1zotYFeqADjlBJ5B+a6cgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GHvLAipU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kDEJT9a5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECF3EC19424;
-	Mon, 17 Nov 2025 19:10:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GHvLAipU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0C60C19421;
+	Mon, 17 Nov 2025 19:10:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763406612;
-	bh=5sKUlnZ1ZWwwc1tgbzizQGhrtyCku2/FBQNwDxbqBNo=;
+	s=korg; t=1763406615;
+	bh=L5yfEWt8fCf21vM9oWXrx4+5iAoOW+VahizpjAaMkgM=;
 	h=Date:To:From:Subject:From;
-	b=kDEJT9a5zX2zpGnxXGAgZK4d2wMKtfUgXdtgV1OO9AupYKUXj6oYp2zU3vIwNku49
-	 z0TYYs13h/nlFF8GayTVWRlX9aX/GNFDLb7lvsDusKH7Mt7ZAS0sfLSscda382IUpS
-	 8/N93Ju0mz8pqxZptZIgEPkijdoJKU6+bPxBxNPU=
-Date: Mon, 17 Nov 2025 11:10:10 -0800
+	b=GHvLAipUbUMqmBNao6dvpWKG7Z/QweRcP1e1ZDhLhOJay4e+ML/2ELznnhxVdwOak
+	 A9r0SJsQE02KqReXO/E3X870FO0wSUPXkRomTqzxCmn22Myta0pkEt+ByCdW6AX3NJ
+	 tDw15Kpj75rdC2Gxdha8q2Th38fQYl1fdFoIWcUo=
+Date: Mon, 17 Nov 2025 11:10:13 -0800
 To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@lst.de,hch@infradead.org,vishal.moola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages.patch added to mm-unstable branch
-Message-Id: <20251117191011.ECF3EC19424@smtp.kernel.org>
+Subject: + mm-vmalloc-cleanup-gfp-flag-use-in-new_vmap_block.patch added to mm-unstable branch
+Message-Id: <20251117191014.E0C60C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: cleanup large_gfp in vm_area_alloc_pages()
+     Subject: mm/vmalloc: cleanup gfp flag use in new_vmap_block()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages.patch
+     mm-vmalloc-cleanup-gfp-flag-use-in-new_vmap_block.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-cleanup-gfp-flag-use-in-new_vmap_block.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,37 +59,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/vmalloc: cleanup large_gfp in vm_area_alloc_pages()
-Date: Mon, 17 Nov 2025 09:35:29 -0800
+Subject: mm/vmalloc: cleanup gfp flag use in new_vmap_block()
+Date: Mon, 17 Nov 2025 09:35:30 -0800
 
-Now that we have already checked for unsupported flags, we can use the
-helper function to set the necessary gfp flags for the large order
-allocation optimization.
+The only caller, vb_alloc(), passes GFP_KERNEL into new_vmap_block() which
+is a subset of GFP_RECLAIM_MASK.  Since there's no reason to use this mask
+here, remove it.
 
-Link: https://lkml.kernel.org/r/20251117173530.43293-4-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20251117173530.43293-5-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/vmalloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages
+--- a/mm/vmalloc.c~mm-vmalloc-cleanup-gfp-flag-use-in-new_vmap_block
 +++ a/mm/vmalloc.c
-@@ -3634,10 +3634,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 	unsigned int max_attempt_order = MAX_PAGE_ORDER;
- 	struct page *page;
- 	int i;
--	gfp_t large_gfp = (gfp &
--		~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL | __GFP_COMP))
--		| __GFP_NOWARN;
- 	unsigned int large_order = ilog2(nr_remaining);
-+	gfp_t large_gfp = vmalloc_gfp_adjust(gfp, large_order) & ~__GFP_DIRECT_RECLAIM;
+@@ -2699,8 +2699,7 @@ static void *new_vmap_block(unsigned int
  
- 	large_order = min(max_attempt_order, large_order);
+ 	node = numa_node_id();
+ 
+-	vb = kmalloc_node(sizeof(struct vmap_block),
+-			gfp_mask & GFP_RECLAIM_MASK, node);
++	vb = kmalloc_node(sizeof(struct vmap_block), gfp_mask, node);
+ 	if (unlikely(!vb))
+ 		return ERR_PTR(-ENOMEM);
  
 _
 
