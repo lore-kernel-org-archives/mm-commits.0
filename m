@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56E41212554
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC97212548
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:31:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343107; cv=none; b=atm1h+IH0HqOqHt+2G1DzhgX1rhJjIP+16o37pDqe0Qy3hpOjyVb+NLmMD6SGQHtw+Tc0gx47JafYryO7Ges9SJNmsLFyaI/c1FZVb20xREC0q62dulTmBV1NJOFwKIgR0b22TRcCZaLiEwPHd7WrlkwZBURk2VGdIQkNRiqDO0=
+	t=1763343108; cv=none; b=rsscxk/9lY3Aljqg6UQlrVyu8xXHCkDCAjksYEZTXZV123KATV8887koFCfeWhWyC8D/ZOMSO0J5CQaeQhYMBjyazfRaQaeU7F2TykT3b7plDrwkH5h/gs8dHPKgSXJXNgyYoMjBvZwbWCHPbpujlk2t66rjNU2sxzuxS7e1xPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343107; c=relaxed/simple;
-	bh=yy0bh4j1Z14ghyeuJY7EcZvHWBEqdtVSyto0L5Kw79U=;
-	h=Date:To:From:Subject:Message-Id; b=GN8HbyQgn2U7k8Wz8Il377IsjfYZIUHbhamrWDc6BAYIYs/7ZEE0ZAOvvJp4JBJuyd1NR56Nd78nVQeh8IEfElleVDMw1VQscigeBBF2bv0pFiTuANwIl2XwzK6AaGX/VGDs4Xb3Wu/Bc/W26TPbvQ9c6FLYT2ZT9Q2s9TX3KA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KFAQWQ1F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343108; c=relaxed/simple;
+	bh=UT/90H6i0KpV7kL4d4NGNqFNmTNWPWMhwQiRX7IQGIg=;
+	h=Date:To:From:Subject:Message-Id; b=cLF5o8xSWg8ZhHpC/x/aK266BtpNgQGKB5Gg+C+CxI8+0vDvnnwOCJgz4YJzNybE8RDzEfR2LbTmtWtZ7RNPSV3225Ornr7yN0G0NGkuyyPHiqckH7tcYZOLXpWNEWZF5kwX64ziCmoDI+8qv55L475nf/IiblPpGqZiN8G193o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i48QwT8+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KFAQWQ1F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29F80C116D0;
-	Mon, 17 Nov 2025 01:31:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i48QwT8+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6384EC4CEF5;
+	Mon, 17 Nov 2025 01:31:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343107;
-	bh=yy0bh4j1Z14ghyeuJY7EcZvHWBEqdtVSyto0L5Kw79U=;
+	s=korg; t=1763343108;
+	bh=UT/90H6i0KpV7kL4d4NGNqFNmTNWPWMhwQiRX7IQGIg=;
 	h=Date:To:From:Subject:From;
-	b=KFAQWQ1FlkUJ6cR/ebAWDSB8v4A9T33wiEEq2odI0SF2/4NeeGV04N5Wr7hbpkUpj
-	 YWy1cMhCHxGPUabbR5HWi7akKDYwichP0Cq6OIkE5PfDeGsNEEnyx4SOG6f2kwlhZU
-	 +T2W1nYjbfySqDwsMzquorZFqv9513Qfva6/n8LM=
-Date: Sun, 16 Nov 2025 17:31:46 -0800
+	b=i48QwT8+TjEpG2YAYr6Q+pKitIZYqbT1exPRUDxPLk/QFM+mMvVp8/6DE8syiCjq+
+	 i3SNoYhR0MO8yjyaRQLQ92j8d87gwyRLsssQgJCUuArgVSdqNyyZXOtcNJ6/+PkKn3
+	 6mjz1jqUL4EZ3eXsfjOry1Yq/M0V0AlD0DAk4FBs=
+Date: Sun, 16 Nov 2025 17:31:47 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,osalvador@suse.de,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,mfo@igalia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_owner-introduce-struct-stack_print_ctx.patch removed from -mm tree
-Message-Id: <20251117013147.29F80C116D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_owner-add-struct-stack_print_ctxflags.patch removed from -mm tree
+Message-Id: <20251117013148.6384EC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,212 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: introduce struct stack_print_ctx
+     Subject: mm/page_owner: add struct stack_print_ctx.flags
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-introduce-struct-stack_print_ctx.patch
+     mm-page_owner-add-struct-stack_print_ctxflags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mauricio Faria de Oliveira <mfo@igalia.com>
-Subject: mm/page_owner: introduce struct stack_print_ctx
-Date: Wed, 1 Oct 2025 14:56:07 -0300
+Subject: mm/page_owner: add struct stack_print_ctx.flags
+Date: Wed, 1 Oct 2025 14:56:08 -0300
 
-Patch series "mm/page_owner: add debugfs files 'show_handles' and
-'show_stacks_handles'", v2.
+Add the flags field to stack_print_ctx, and define two flags for current
+behavior (printing stack traces and their number of base pages).
 
-Context:
-
-The page_owner debug feature can help understand a particular situation in
-in a point in time (e.g., identify biggest memory consumers; verify memory
-counters that do not add up).
-
-Another useful usecase is to collect data repeatedly over time, and use it
-for profiling, monitoring, and even comparing different kernel versions,
-at the stack trace level (e.g., watch for trends, leaks, correlations, and
-regressions).
-
-For this usecase, userspace periorically collects the data from page_owner
-and organizes it in data structures appropriate for access per-stack
-trace.
-
-Problem:
-
-The usecase of tracking memory usage per stack trace (or tracking it for a
-particular stack trace) requires uniquely identifying each stack trace
-(i.e., keys to store their memory usage over periodic data collections).
-
-This has to be done for every stack trace in every sample/data collection,
-even if tracking only one stack trace (to identify it among all others).
-
-Therefore, an approach like hashing the stack traces in userspace to
-create unique keys/identifiers for them during post-processing can quickly
-become expensive, considering the repetition and a growing number of stack
-traces.
-
-Solution:
-
-Fortunately, the kernel can provide a unique identifier for stack traces
-in page_owner, which is the handle number in stackdepot.  This eliminates
-the need for creating keys (hashing) in userspace during post-processing.
-
-Additionally, with that information, the stack traces themselves are not
-needed until the memory usage should be resolved from a handle to a stack
-trace (say, to look at the stack traces of a few top consumers).  This can
-reduce the amount of text emitted/copied by the kernel to userspace, and
-save userspace from matching and discarding stack traces when not needed.
-
-Changes:
-
-This patchset adds 2 files to provide information, like 'show_stacks':
- - show_handles: print handle number and number of pages (no stack traces)
- - show_stacks_handles: print handle numbers and stack traces (no pages)
-
-Now, it's possible to periodically collect data with handle numbers (keys)
-and without stack traces (lower overhead) from 'show_handles', and later
-do a final collection with handles and stack traces from
-'show_stacks_handles' to resolve the handles to their stack traces.
-
-The output format follows the existing 'show_stacks' file, for simplicity,
-but it can certainly be changed if a different format is more convenient.
-
-Example:
-
-The number of base pages collected can be stored per-handle number over
-the periodic data collections, and finally resolved to stack traces
-per-handle number as well with a final collection.
-
-Later, one can, for example, identify the biggest consumers and watch
-their trends or correlate increases/decreases with other events in the
-system, or watch a particular stack trace(s) of interest during
-development.
-
-Testing:
-
-Tested on next-20250929.
-
- - show_stacks:
-	
-	 register_dummy_stack+0x32/0x70
-	 init_page_owner+0x29/0x2f0
-	 page_ext_init+0x27c/0x2b0
-	 mm_core_init+0xdc/0x110
-	nr_base_pages: 47
-		
- - show_handles:
-
-	handle: 1
-	nr_base_pages: 47
-
- - show_stacks_handles:
-
-	 register_dummy_stack+0x32/0x70
-	 init_page_owner+0x29/0x2f0
-	 page_ext_init+0x27c/0x2b0
-	 mm_core_init+0xdc/0x110
-	handle: 1
-	
- - count_threshold:
-
-	# echo 100 >/sys/kernel/debug/page_owner_stacks/count_threshold
-	# grep register_dummy_stack show_stacks		# not present
-	# grep -B4 '^handle: 1$' show_handles  		# not present 
-	# grep -B4 '^handle: 1$' show_stacks_handles	# present
-	 register_dummy_stack+0x32/0x70
-	 init_page_owner+0x29/0x2f0
-	 page_ext_init+0x27c/0x2b0
-	 mm_core_init+0xdc/0x110
-	handle: 1
-
-
-This patch (of 5):
-
-Currently, struct seq_file.private is used as an iterator in stack_list by
-stack_start|next(), for stack_print().
-
-Create a context struct for this, in order to add another field next.
+The plumbing of flags is debugfs_create_file(data) -> inode.i_private ->
+page_owner_stack_open() -> stack_print_ctx.flags -> stack_print().
 
 No behavior change intended.
 
-P.S.: page_owner_stack_open() is expanded with separate statements for
-variable definition and return just in preparation for the next patch.
-
-Link: https://lkml.kernel.org/r/20251001175611.575861-1-mfo@igalia.com
-Link: https://lkml.kernel.org/r/20251001175611.575861-2-mfo@igalia.com
+Link: https://lkml.kernel.org/r/20251001175611.575861-3-mfo@igalia.com
 Signed-off-by: Mauricio Faria de Oliveira <mfo@igalia.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ mm/page_owner.c |   29 +++++++++++++++++++++++------
+ 1 file changed, 23 insertions(+), 6 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-introduce-struct-stack_print_ctx
+--- a/mm/page_owner.c~mm-page_owner-add-struct-stack_print_ctxflags
 +++ a/mm/page_owner.c
-@@ -45,6 +45,10 @@ static struct stack failure_stack;
+@@ -45,8 +45,12 @@ static struct stack failure_stack;
  static struct stack *stack_list;
  static DEFINE_SPINLOCK(stack_list_lock);
  
-+struct stack_print_ctx {
-+	struct stack *stack;
-+};
++#define STACK_PRINT_FLAG_STACK		0x1
++#define STACK_PRINT_FLAG_PAGES		0x2
 +
- static bool page_owner_enabled __initdata;
- DEFINE_STATIC_KEY_FALSE(page_owner_inited);
- 
-@@ -859,6 +863,7 @@ static const struct file_operations proc
- static void *stack_start(struct seq_file *m, loff_t *ppos)
- {
+ struct stack_print_ctx {
  	struct stack *stack;
++	u8 flags;
+ };
+ 
+ static bool page_owner_enabled __initdata;
+@@ -904,20 +908,24 @@ static int stack_print(struct seq_file *
+ 	unsigned long *entries;
+ 	unsigned long nr_entries;
+ 	struct stack_record *stack_record = stack->stack_record;
 +	struct stack_print_ctx *ctx = m->private;
  
- 	if (*ppos == -1UL)
- 		return NULL;
-@@ -870,9 +875,9 @@ static void *stack_start(struct seq_file
- 		 * value of stack_list.
- 		 */
- 		stack = smp_load_acquire(&stack_list);
--		m->private = stack;
-+		ctx->stack = stack;
- 	} else {
--		stack = m->private;
-+		stack = ctx->stack;
- 	}
+ 	if (!stack->stack_record)
+ 		return 0;
  
- 	return stack;
-@@ -881,10 +886,11 @@ static void *stack_start(struct seq_file
- static void *stack_next(struct seq_file *m, void *v, loff_t *ppos)
- {
- 	struct stack *stack = v;
-+	struct stack_print_ctx *ctx = m->private;
+-	nr_entries = stack_record->size;
+-	entries = stack_record->entries;
+ 	nr_base_pages = refcount_read(&stack_record->count) - 1;
  
- 	stack = stack->next;
- 	*ppos = stack ? *ppos + 1 : -1UL;
--	m->private = stack;
-+	ctx->stack = stack;
+ 	if (nr_base_pages < 1 || nr_base_pages < page_owner_pages_threshold)
+ 		return 0;
  
- 	return stack;
+-	for (i = 0; i < nr_entries; i++)
+-		seq_printf(m, " %pS\n", (void *)entries[i]);
+-	seq_printf(m, "nr_base_pages: %d\n\n", nr_base_pages);
++	if (ctx->flags & STACK_PRINT_FLAG_STACK) {
++		nr_entries = stack_record->size;
++		entries = stack_record->entries;
++		for (i = 0; i < nr_entries; i++)
++			seq_printf(m, " %pS\n", (void *)entries[i]);
++	}
++	if (ctx->flags & STACK_PRINT_FLAG_PAGES)
++		seq_printf(m, "nr_base_pages: %d\n\n", nr_base_pages);
+ 
+ 	return 0;
  }
-@@ -929,7 +935,10 @@ static const struct seq_operations page_
+@@ -938,6 +946,13 @@ static int page_owner_stack_open(struct
+ 	int ret = seq_open_private(file, &page_owner_stack_op,
+ 				   sizeof(struct stack_print_ctx));
  
- static int page_owner_stack_open(struct inode *inode, struct file *file)
- {
--	return seq_open_private(file, &page_owner_stack_op, 0);
-+	int ret = seq_open_private(file, &page_owner_stack_op,
-+				   sizeof(struct stack_print_ctx));
++	if (!ret) {
++		struct seq_file *m = file->private_data;
++		struct stack_print_ctx *ctx = m->private;
 +
-+	return ret;
++		ctx->flags = (uintptr_t) inode->i_private;
++	}
++
+ 	return ret;
  }
  
- static const struct file_operations page_owner_stack_operations = {
+@@ -976,7 +991,9 @@ static int __init pageowner_init(void)
+ 	debugfs_create_file("page_owner", 0400, NULL, NULL,
+ 			    &proc_page_owner_operations);
+ 	dir = debugfs_create_dir("page_owner_stacks", NULL);
+-	debugfs_create_file("show_stacks", 0400, dir, NULL,
++	debugfs_create_file("show_stacks", 0400, dir,
++			    (void *)(STACK_PRINT_FLAG_STACK |
++				     STACK_PRINT_FLAG_PAGES),
+ 			    &page_owner_stack_operations);
+ 	debugfs_create_file("count_threshold", 0600, dir, NULL,
+ 			    &proc_page_owner_threshold);
 _
 
 Patches currently in -mm which might be from mfo@igalia.com are
