@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58FA523BD1F
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26F1E23BD1F
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343267; cv=none; b=lYk+zxgiuZjJ+ZqCrU51k4VsznY80+YDULyX0I9h8saq4oI0aUFC08T2dlOnVxSYf+JCpmQrVy48+by03id2lavJbn0kAfyBS0zD94Df1Y6IUUv08miDZpoPJdUqKzV3flM6oeFk6+2uYcL5a0GlMDoCQPMctZw7U6clbS7hjpI=
+	t=1763343268; cv=none; b=FR3QInUvZoKkO/habp7IXyslMcOtYGd0dsf+o70RpZZrchTPHb+z2eugIr1lbLXsC8HbHEFjDqy6iV2cYnsn17EHzkCUnJeF11KHqO6W4jUuCvxx2Ys7o4KHnN+oe8zF+JBINICBWqUpasiUkXVmkJ1ddeUoXxQgmQWxFUzruLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343267; c=relaxed/simple;
-	bh=+3cGFUAjVszftHNCcTvrUUq4tO1Sq1xWqcxrEhJHyTE=;
-	h=Date:To:From:Subject:Message-Id; b=r3sqs+JCUhVO3VQ85vSH0d8A8enD5JSpT5DHXl7qcKuF6ixmnlNsNSu59372OpXF4TKHNNPQD9KIsI+AxQo349jlU0XGuraqqyk2LYDGHebebGXurfRg6JQHu/FmIYJH6Mih9xQ1ldgToKka6jmNDY71++tGhi0rFiBYH6VOGoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sfr2aH0N; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343268; c=relaxed/simple;
+	bh=OQJ0MFrM09+7wVTb9Af2Ap1tU3DcD5KoldT/XcpTOZ0=;
+	h=Date:To:From:Subject:Message-Id; b=F1heM3HXb4G8CXs6uQtW5kaT8LT3WXz8723WS9JQkO97LGbxX0l78W6KeI7/f9dPte+Xrsali9HDwqWBg3ZrigMko1Fmx0DUg/4EnXk/uC2LxoS4yqPiDBX40sXr6sRDy27mCOp4d8pOgPRhNbGf6aIMQaksMz/Cegp5RwvppCU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EjngIV3g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sfr2aH0N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD0A1C4CEF1;
-	Mon, 17 Nov 2025 01:34:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EjngIV3g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDF13C113D0;
+	Mon, 17 Nov 2025 01:34:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343266;
-	bh=+3cGFUAjVszftHNCcTvrUUq4tO1Sq1xWqcxrEhJHyTE=;
+	s=korg; t=1763343268;
+	bh=OQJ0MFrM09+7wVTb9Af2Ap1tU3DcD5KoldT/XcpTOZ0=;
 	h=Date:To:From:Subject:From;
-	b=Sfr2aH0NxiyHnuZE9K47A6/od0F10gjLmby/MgfVH2anhuBpoNXe6kQlYBFo+Pp4p
-	 vXSj3pALxOQrZUajAmkNVHb/Bh2G2GypeK/NcNv/uom1bk4AxBVOVsZiWj/G+RNWwQ
-	 G15NCz5BSs144ZFIerMiCw/aP+HMzsq+kZerjhrk=
-Date: Sun, 16 Nov 2025 17:34:26 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,liam.howlett@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=EjngIV3gpWyhDuBnY5l2svLQ/TQ0KAzzZYWt1JNFQ/HQuoceOYbHgbbU5lyw8emFa
+	 TBQzXek9CJpuKrp3/ky8BtZO/o/giwOcXtIMJ8KNom7W0vxHs+sBXpJqQqKEIi+ce/
+	 UOk6AbVkmXi7ZDRJGrELcwRWlbb67tg/1+zjtjws=
+Date: Sun, 16 Nov 2025 17:34:27 -0800
+To: mm-commits@vger.kernel.org,agordeev@linux.ibm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-small-vma-lock-cleanups.patch removed from -mm tree
-Message-Id: <20251117013426.DD0A1C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-invalid_phys_addr-a-generic-macro.patch removed from -mm tree
+Message-Id: <20251117013427.EDF13C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,107 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: small VMA lock cleanups
+     Subject: mm: make INVALID_PHYS_ADDR a generic macro
 has been removed from the -mm tree.  Its filename was
-     mm-vma-small-vma-lock-cleanups.patch
+     mm-make-invalid_phys_addr-a-generic-macro.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: small VMA lock cleanups
-Date: Fri, 24 Oct 2025 10:09:02 +0100
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm: make INVALID_PHYS_ADDR a generic macro
+Date: Tue, 21 Oct 2025 03:56:38 +0100
 
-We declare vma_start_read() as a static function in mm/mmap_lock.c, so
-there is no need to provide a stub for !CONFIG_PER_VMA_LOCK.
+INVALID_PHYS_ADDR has very similar definitions across the code base. 
+Hence just move that inside header <liux/mm.h> for more generic usage. 
+Also drop the now redundant ones which are no longer required.
 
-__is_vma_write_locked() is declared in a header and should therefore be
-static inline.
-
-Put parens around (refcnt & VMA_LOCK_OFFSET) in is_vma_writer_only() to
-make precedence clear.
-
-Link: https://lkml.kernel.org/r/20251024090902.1118174-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Link: https://lkml.kernel.org/r/20251021025638.2420216-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>	[s390]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/arm64/mm/mmu.c                  |    2 --
+ arch/s390/boot/vmem.c                |    1 -
+ drivers/vdpa/vdpa_user/iova_domain.h |    2 --
+ include/linux/mm.h                   |    2 ++
+ kernel/dma/swiotlb.c                 |    2 --
+ 5 files changed, 2 insertions(+), 7 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-vma-small-vma-lock-cleanups
-+++ a/include/linux/mmap_lock.h
-@@ -130,7 +130,7 @@ static inline bool is_vma_writer_only(in
- 	 * a detached vma happens only in vma_mark_detached() and is a rare
- 	 * case, therefore most of the time there will be no unnecessary wakeup.
- 	 */
--	return refcnt & VMA_LOCK_OFFSET && refcnt <= VMA_LOCK_OFFSET + 1;
-+	return (refcnt & VMA_LOCK_OFFSET) && refcnt <= VMA_LOCK_OFFSET + 1;
+--- a/arch/arm64/mm/mmu.c~mm-make-invalid_phys_addr-a-generic-macro
++++ a/arch/arm64/mm/mmu.c
+@@ -470,8 +470,6 @@ static void __create_pgd_mapping(pgd_t *
+ 	mutex_unlock(&fixmap_lock);
  }
  
- static inline void vma_refcount_put(struct vm_area_struct *vma)
-@@ -183,7 +183,7 @@ static inline void vma_end_read(struct v
- }
- 
- /* WARNING! Can only be used if mmap_lock is expected to be write-locked */
--static bool __is_vma_write_locked(struct vm_area_struct *vma, unsigned int *mm_lock_seq)
-+static inline bool __is_vma_write_locked(struct vm_area_struct *vma, unsigned int *mm_lock_seq)
+-#define INVALID_PHYS_ADDR	(-1ULL)
+-
+ static phys_addr_t __pgd_pgtable_alloc(struct mm_struct *mm, gfp_t gfp,
+ 				       enum pgtable_type pgtable_type)
  {
- 	mmap_assert_write_locked(vma->vm_mm);
+--- a/arch/s390/boot/vmem.c~mm-make-invalid_phys_addr-a-generic-macro
++++ a/arch/s390/boot/vmem.c
+@@ -16,7 +16,6 @@
+ #include "decompressor.h"
+ #include "boot.h"
  
-@@ -281,9 +281,6 @@ static inline bool mmap_lock_speculate_r
- 	return true;
- }
- static inline void vma_lock_init(struct vm_area_struct *vma, bool reset_refcnt) {}
--static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
--						    struct vm_area_struct *vma)
--		{ return NULL; }
- static inline void vma_end_read(struct vm_area_struct *vma) {}
- static inline void vma_start_write(struct vm_area_struct *vma) {}
- static inline void vma_assert_write_locked(struct vm_area_struct *vma)
+-#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
+ struct ctlreg __bootdata_preserved(s390_invalid_asce);
+ 
+ #ifdef CONFIG_PROC_FS
+--- a/drivers/vdpa/vdpa_user/iova_domain.h~mm-make-invalid_phys_addr-a-generic-macro
++++ a/drivers/vdpa/vdpa_user/iova_domain.h
+@@ -17,8 +17,6 @@
+ 
+ #define IOVA_START_PFN 1
+ 
+-#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
+-
+ #define BOUNCE_MAP_SHIFT	12
+ #define BOUNCE_MAP_SIZE	(1 << BOUNCE_MAP_SHIFT)
+ #define BOUNCE_MAP_MASK	(~(BOUNCE_MAP_SIZE - 1))
+--- a/include/linux/mm.h~mm-make-invalid_phys_addr-a-generic-macro
++++ a/include/linux/mm.h
+@@ -105,6 +105,8 @@ extern int mmap_rnd_compat_bits __read_m
+ # endif
+ #endif
+ 
++#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
++
+ #include <asm/page.h>
+ #include <asm/processor.h>
+ 
+--- a/kernel/dma/swiotlb.c~mm-make-invalid_phys_addr-a-generic-macro
++++ a/kernel/dma/swiotlb.c
+@@ -61,8 +61,6 @@
+  */
+ #define IO_TLB_MIN_SLABS ((1<<20) >> IO_TLB_SHIFT)
+ 
+-#define INVALID_PHYS_ADDR (~(phys_addr_t)0)
+-
+ /**
+  * struct io_tlb_slot - IO TLB slot descriptor
+  * @orig_addr:	The original address corresponding to a mapped entry.
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-introduce-vm_maybe_guard-and-make-visible-in-proc-pid-smaps.patch
-mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such.patch
-mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such-fix.patch
-mm-implement-sticky-vma-flags.patch
-mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
-mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
-mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix.patch
-tools-testing-vma-add-vma-sticky-userland-tests.patch
-tools-testing-selftests-mm-add-madv_collapse-test-case.patch
-tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
-mm-correctly-handle-uffd-pte-markers.patch
-mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
-mm-avoid-unnecessary-uses-of-is_swap_pte.patch
-mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
-mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
-fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
-mm-avoid-unnecessary-use-of-is_swap_pmd.patch
-mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
-mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
-mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
-mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
-mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
-mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
-mm-remove-is_hugetlb_entry_.patch
-mm-eliminate-further-swapops-predicates.patch
-mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
-mm-rename-walk_page_range_mm.patch
-mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
-mm-propagate-vm_softdirty-on-merge.patch
-testing-selftests-mm-add-soft-dirty-merge-self-test.patch
-mm-declare-vma-flags-by-bit.patch
-mm-declare-vma-flags-by-bit-fix.patch
-mm-declare-vma-flags-by-bit-fix-2.patch
-mm-simplify-and-rename-mm-flags-function-for-clarity.patch
-tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
-mm-introduce-vma-flags-bitmap-type.patch
 
