@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 914E121A447
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9A421E1DE9
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:32:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343132; cv=none; b=H8fiG8nh+xPDS7DvINas//CTtaE2DrCoblMf/VzMRvjYxxQkUOHeFDY8WdAd4LgfFBBtarCX9aiIdlaqy3vt38d5G6gJN78DRsUVubGm+3qwwSdDgjmSwMRYzdlUyyYmcYE4WkAerPjp1yU7G0yLMKXyrh2hgfdTBab46pYYHxs=
+	t=1763343133; cv=none; b=CrSDVgGPWZXXnKsMjndaCs4VYz11Pok9fH6sqmrlXURaivA5RFM82fmKhwo2aIfTcGY/Yhkh/kiNeJZ1bAfZ4VU8C2z4DZTVL+FPeJ0TrAnFteJlD8/jPpQw6kUADc41vnVr99tO6pt2m82VBRWsxfCNDv42PyJip8tmNmbosFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343132; c=relaxed/simple;
-	bh=IthbYaYU/bx9emZj6e9ujMypW1j5qLskWYlx8FPthf4=;
-	h=Date:To:From:Subject:Message-Id; b=g73OjjAm2ynCsY+DJeprAIVNjCOLbPBe3I83OlWCTvJc17uvHqUxzLNvfbtshNk9fDWoFlJ5B45STgme0OWj8dMhtn8E7RMU10AAyH96mT0lYY3A7TPz+eeaJb8UgzU9q99OtNHlXB1S5LQ/bOKhKhWjV+wqPjWKUkGelBC1L+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XfzSJZDG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343133; c=relaxed/simple;
+	bh=wzFT4MA9MvUsJ9sAMMu4X7A36LTwEyI0o6vxrpuu9j4=;
+	h=Date:To:From:Subject:Message-Id; b=X8lobEy+lmHydxbssMkM1oCU8+Zg0Qk4eeHLtgb5SehO3dyDDsIcXNybLpwRUunGlLKGoLutLn6NvbT9KmF87bUYfvNkIVrbtVaJXF7KbX1DAD7pRiq6e4P5L88ixEy0fgRZ21H7VUaW9AM62uoCTnjS73y3pcy+VUSs2AxoSOw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VWz4ICSj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XfzSJZDG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68D3EC19423;
-	Mon, 17 Nov 2025 01:32:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VWz4ICSj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD6D6C113D0;
+	Mon, 17 Nov 2025 01:32:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343132;
-	bh=IthbYaYU/bx9emZj6e9ujMypW1j5qLskWYlx8FPthf4=;
+	s=korg; t=1763343133;
+	bh=wzFT4MA9MvUsJ9sAMMu4X7A36LTwEyI0o6vxrpuu9j4=;
 	h=Date:To:From:Subject:From;
-	b=XfzSJZDGhJ9n37e/Jab99s0Lv7IIdgSPc7uj4PkIKxDKW/Yc/tCPkmYkz4uqhhn8C
-	 J8ZeuvlNMACbJCuv/jDInz5nHTYP2VEO4VPRGubx6WkvA9sWlt8g3sGxF1PU7kAmTX
-	 lQkZb4S0vKG/nc3OlvNRsV4VvpFsKcWLA+0IWPoQ=
-Date: Sun, 16 Nov 2025 17:32:11 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,rppt@kernel.org,ritesh.list@gmail.com,peterz@infradead.org,osalvador@suse.de,mingo@redhat.com,maddy@linux.ibm.com,gregkh@linuxfoundation.org,david@redhat.com,dave.jiang@intel.com,dakr@kernel.org,christophe.leroy@csgroup.eu,aboorvad@linux.ibm.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=VWz4ICSjzR2VH2I2pTRvS9X3jHIVznQfn7fLoEGhlVs2qZZepdsnnrcdu0PI/xSqK
+	 WIQNYwjh5pUyVIjrN8YIPrfjZa7NjkhTYhsGg7cXeSCQpYdNFvUG2RFbs7u3kA7gKw
+	 eh+a/tL6HbV39EzY4/L/hXOPzEJ9xXZOqO/oUFsQ=
+Date: Sun, 16 Nov 2025 17:32:13 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] drivers-base-node-fold-unregister_node-into-unregister_one_node.patch removed from -mm tree
-Message-Id: <20251117013212.68D3EC19423@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch removed from -mm tree
+Message-Id: <20251117013213.AD6D6C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,158 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: drivers/base/node: fold unregister_node() into unregister_one_node()
+     Subject: mm: mprotect: always skip dma pinned folio in prot_numa_skip()
 has been removed from the -mm tree.  Its filename was
-     drivers-base-node-fold-unregister_node-into-unregister_one_node.patch
+     mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: drivers/base/node: fold unregister_node() into unregister_one_node()
-Date: Tue, 14 Oct 2025 21:09:17 +0530
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: mprotect: always skip dma pinned folio in prot_numa_skip()
+Date: Thu, 23 Oct 2025 19:37:34 +0800
 
-unregister_node() is only called from unregister_one_node().  This patch
-folds unregister_node() into its only caller and renames
-unregister_one_node() to unregister_node().
+Patch series "mm: some optimizations for prot numa", v5.
 
-This reduces unnecessary indirection and simplifies the code structure. 
-No functional changes are introduced.
 
-[donettom@linux.ibm.com: remove extra spaces before @nid and "All"]
-  Link: https://lkml.kernel.org/r/cff01514-9074-4c97-bcf1-d4e3594e48b0@linux.ibm.com
-Link: https://lkml.kernel.org/r/32b7d5d8f0f30d313c3e1d8798f591459c8746f9.1760097208.git.donettom@linux.ibm.com
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+This patch (of 4):
+
+If the folio (even not CoW folio) is dma pinned, it can't be migrated due
+to the elevated reference count.  So always skip a pinned folio to avoid
+wasting cycles when folios are migrated.
+
+Link: https://lkml.kernel.org/r/20251023113737.3572790-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20251023113737.3572790-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c  |   38 +++++++++++++++++---------------------
- include/linux/node.h |    6 ++----
- mm/memory_hotplug.c  |    4 ++--
- 3 files changed, 21 insertions(+), 27 deletions(-)
+ mm/mprotect.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/drivers/base/node.c~drivers-base-node-fold-unregister_node-into-unregister_one_node
-+++ a/drivers/base/node.c
-@@ -676,23 +676,6 @@ static void node_device_release(struct d
- 	kfree(to_node(dev));
- }
+--- a/mm/mprotect.c~mm-mprotect-always-skip-dma-pinned-folio-in-prot_numa_skip
++++ a/mm/mprotect.c
+@@ -136,9 +136,12 @@ static bool prot_numa_skip(struct vm_are
+ 	if (folio_is_zone_device(folio) || folio_test_ksm(folio))
+ 		goto skip;
  
--/**
-- * unregister_node - unregister a node device
-- * @node: node going away
-- *
-- * Unregisters a node device @node.  All the devices on the node must be
-- * unregistered before calling this function.
-- */
--void unregister_node(struct node *node)
--{
--	hugetlb_unregister_node(node);
--	compaction_unregister_node(node);
--	reclaim_unregister_node(node);
--	node_remove_accesses(node);
--	node_remove_caches(node);
--	device_unregister(&node->dev);
--}
--
- struct node *node_devices[MAX_NUMNODES];
- 
- /*
-@@ -924,13 +907,26 @@ int register_node(int nid)
- 
- 	return error;
- }
--
--void unregister_one_node(int nid)
-+/**
-+ * unregister_node - unregister a node device
-+ * @nid: nid of the node going away
-+ *
-+ * Unregisters the node device at node id @nid. All the devices on the
-+ * node must be unregistered before calling this function.
-+ */
-+void unregister_node(int nid)
- {
--	if (!node_devices[nid])
-+	struct node *node = node_devices[nid];
+-	/* Also skip shared copy-on-write pages */
+-	if (is_cow_mapping(vma->vm_flags) &&
+-	    (folio_maybe_dma_pinned(folio) || folio_maybe_mapped_shared(folio)))
++	/* Also skip shared copy-on-write folios */
++	if (is_cow_mapping(vma->vm_flags) && folio_maybe_mapped_shared(folio))
++		goto skip;
 +
-+	if (!node)
- 		return;
++	/* Folios are pinned and can't be migrated */
++	if (folio_maybe_dma_pinned(folio))
+ 		goto skip;
  
--	unregister_node(node_devices[nid]);
-+	hugetlb_unregister_node(node);
-+	compaction_unregister_node(node);
-+	reclaim_unregister_node(node);
-+	node_remove_accesses(node);
-+	node_remove_caches(node);
-+	device_unregister(&node->dev);
- 	node_devices[nid] = NULL;
- }
- 
---- a/include/linux/node.h~drivers-base-node-fold-unregister_node-into-unregister_one_node
-+++ a/include/linux/node.h
-@@ -132,8 +132,6 @@ static inline void register_memory_block
- }
- #endif
- 
--extern void unregister_node(struct node *node);
--
- struct node_notify {
- 	int nid;
- };
-@@ -177,7 +175,7 @@ static inline int hotplug_node_notifier(
- extern void node_dev_init(void);
- /* Core of the node registration - only memory hotplug should use this */
- int register_node(int nid);
--extern void unregister_one_node(int nid);
-+void unregister_node(int nid);
- extern int register_cpu_under_node(unsigned int cpu, unsigned int nid);
- extern int unregister_cpu_under_node(unsigned int cpu, unsigned int nid);
- extern void unregister_memory_block_under_nodes(struct memory_block *mem_blk);
-@@ -193,7 +191,7 @@ static inline int register_node(int nid)
- {
- 	return 0;
- }
--static inline int unregister_one_node(int nid)
-+static inline int unregister_node(int nid)
- {
- 	return 0;
- }
---- a/mm/memory_hotplug.c~drivers-base-node-fold-unregister_node-into-unregister_one_node
-+++ a/mm/memory_hotplug.c
-@@ -1596,7 +1596,7 @@ int add_memory_resource(int nid, struct
- error:
- 	if (new_node) {
- 		node_set_offline(nid);
--		unregister_one_node(nid);
-+		unregister_node(nid);
- 	}
- error_memblock_remove:
- 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
-@@ -2201,7 +2201,7 @@ void try_offline_node(int nid)
- 	 * node now.
- 	 */
- 	node_set_offline(nid);
--	unregister_one_node(nid);
-+	unregister_node(nid);
- }
- EXPORT_SYMBOL(try_offline_node);
- 
+ 	/*
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
+mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma.patch
 
