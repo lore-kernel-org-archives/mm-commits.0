@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18DFB235360
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61B2223507E
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:34:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343252; cv=none; b=Q6SwJC76NDUImkxGxU/niiSILeibQPOc22AD7buih8kk5Z2tVyclGIhVtdXmO54LIafy92thReC/VIE1JmnROy4yem9S1tTn1eQhVwPHxJHc6ZNbygJH4A6AYtmrsUrRSSMwZ3xj08Xh3EEOHx/F1PfsYrJmtsAPP8uKtrRW+VE=
+	t=1763343253; cv=none; b=mCBQF8EEKPiK19x8TiuItgCBWcpkVbokue2PjcLDQgOXeabbwBEbh3hBiK8meDJMjp1zMEhlEIEhQIoTGwR/3PVC0ZJUyXvrex3QJ+CtpcFTOKTseNmSXh4rdzRDaUDjrOCMgjGBJvXY4UOJqgk5BSy3BTB0VM48kwg7SqylAbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343252; c=relaxed/simple;
-	bh=AbsFvwSdDvV/PPPno8RoZJDutvAp9NdZ8qSyUFGpC70=;
-	h=Date:To:From:Subject:Message-Id; b=YfOsaF8ikAXJcnUUQ2+ODusaneHG2VnHTjw3bUKeotkRQ0kGP/g/KotEXPEfQKeMMBVrEDcwnkDlUIK+WqhrAZMdX5iBoKPD970ywcb4xnwkw7CBsIdhtG92fgcKocsNS5ocwa4pRdU06u7Njg6TUXhUUd8jfPSNFqKc8dmHSIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w+26XVQz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343253; c=relaxed/simple;
+	bh=06Dlnpx4Kp8VT7ZhlmbtamTMVsnONh4Hb8h1fXLolVU=;
+	h=Date:To:From:Subject:Message-Id; b=E6hRMXaNciAFeaHlORmFIFZR7LAIwlh/uKiMUtFlkkUmFM+6MKJgyyTohwRDk5s6NwbcB2BhqZpVj1YOpPRHyN1Ww9MUANAtrWQCv7Ke7e3GuPGQMP8HHeYi6QdhW0J5GIPm+FVG/M65RB/q1+QsUSr3G+TcOIDbYSbGCZopqc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pgZelJAy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w+26XVQz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9D2FC19422;
-	Mon, 17 Nov 2025 01:34:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pgZelJAy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33F8AC113D0;
+	Mon, 17 Nov 2025 01:34:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343251;
-	bh=AbsFvwSdDvV/PPPno8RoZJDutvAp9NdZ8qSyUFGpC70=;
+	s=korg; t=1763343253;
+	bh=06Dlnpx4Kp8VT7ZhlmbtamTMVsnONh4Hb8h1fXLolVU=;
 	h=Date:To:From:Subject:From;
-	b=w+26XVQzfDeoerp0im5J8jNq1BjlIQ25Jbf2gXoR19mLJtWXBrXu3zBwMYqcDcBJ9
-	 geUH9xHGzg8AgJekb+dLPUZfeqHJPa8La8eilWaovGpK+nA4Z4YO0nCwKT6jNnXZQi
-	 VqyB9HXZKkNc9+5Fa42F4Cq0AxkCUCT91XEPjJxo=
-Date: Sun, 16 Nov 2025 17:34:11 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kas@kernel.org,hughd@google.com,david@redhat.com,baolin.wang@linux.alibaba.com,d@ilvokhin.com,akpm@linux-foundation.org
+	b=pgZelJAyGlPf6v5DDAjCyJqOz5n7cVAoTizRzPZsMMh1vJnKEiAIeowwWD9VITaGD
+	 l+pJLtkRIGAqpph+RbBy2z0S9ju0c7nuRS35QlIa2WQwWl0mGfGZ7IWCKorB/Vg/1y
+	 nzjgvrfzKyO0ccPbzVgB7jVy24y9lh0y2k7cgJQk=
+Date: Sun, 16 Nov 2025 17:34:12 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,corbet@lwn.net,bijan311@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-tmpfs-hugepage-defaults-config-choice.patch removed from -mm tree
-Message-Id: <20251117013411.D9D2FC19422@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch removed from -mm tree
+Message-Id: <20251117013413.33F8AC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,230 +35,168 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem/tmpfs hugepage defaults config choice
+     Subject: mm/damon/core: add damon_target->obsolete for pin-point removal
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-tmpfs-hugepage-defaults-config-choice.patch
+     mm-damon-core-add-damon_target-obsolete-for-pin-point-removal.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm: shmem/tmpfs hugepage defaults config choice
-Date: Thu, 23 Oct 2025 18:12:02 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: add damon_target->obsolete for pin-point removal
+Date: Wed, 22 Oct 2025 18:25:25 -0700
 
-Allow to override defaults for shemem and tmpfs at config time.  This is
-consistent with how transparent hugepages can be configured.
+Patch series "mm/damon: support pin-point targets removal".
 
-Same results can be achieved with the existing
-'transparent_hugepage_shmem' and 'transparent_hugepage_tmpfs' settings in
-the kernel command line, but it is more convenient to define basic
-settings at config time instead of changing kernel command line later.
+DAMON maintains the targets in a list, and allows committing only an
+entire list of targets having the new parameters.  Targets having same
+index on the lists are treated as matching source and destination
+targets.  If an existing target cannot find a matching one in the
+sources list, the target is removed.  This means that there is no way to
+remove only a specific monitoring target in the middle of the current
+targets list.
 
-Defaults for shmem and tmpfs were not changed.  They are remained the same
-as before: 'never' for both cases.  Options 'deny' and 'force' are omitted
-intentionally since these are special values and supposed to be used for
-emergencies or testing and are not expected to be permanent ones.
+Such pin-point target removal is really needed in some use cases,
+though.  Monitoring access patterns on virtual address spaces of
+processes that spawned from the same ancestor is one example.  If a
+process of the group is terminated, the user may want to remove the
+matching DAMON target as soon as possible, to save in-kernel memory
+usage for the unnecessary target data.  The user may also want to do
+that without turning DAMON off or removing unnecessary targets, to keep
+the current monitoring results for other active processes.
 
-Primary motivation for adding config option is to enable policy
-enforcement at build time.  In large-scale production environments (Meta's
-for example), the kernel configuration is often maintained centrally close
-to the kernel code itself and owned by the kernel engineers, while boot
-parameters are managed independently (e.g.  by provisioning systems).  In
-such setups, the kernel build defines the supported and expected behavior
-in a single place, but there is no reliable or uniform control over the
-kernel command line options.
+Extend DAMON kernel API and sysfs ABI to support the pin-point removal
+in the following way.  For API, add a new damon_target field, namely
+'obsolete'.  If the field on parameters commit source target is set, it
+means the matching destination target is obsolete.  Then the parameters
+commit logic removes the destination target from the existing targets
+list.  For sysfs ABI, add a new file under the target directory, namely
+'obsolete_target'.  It is connected with the 'obsolete' field of the
+commit source targets, so internally using the new API.
 
-A build-time default allows kernel integrators to enforce a predictable
-hugepage policy for shmem/tmpfs on a base layer, ensuring reproducible
-behavior and avoiding configuration drift caused by possible boot-time
-differences.
+Also add a selftest for the new feature.  The related helper scripts for
+manipulating the sysfs interface and dumping in-kernel DAMON status are
+also extended for this.  Note that the selftest part was initially
+posted as an individual RFC series [1], but now merged into this one.
 
-In short, primary benefit is mostly operational: it provides a way to
-codify preferred policy in the kernel configuration, which is versioned,
-reviewed, and tested as part of the kernel build process, rather than
-depending on potentially variable boot parameters.
+Bijan Tabatabai has originally reported this issue, and participated in
+this solution design on a GitHub issue [1] for DAMON user-space tool.
 
-[d@ilvokhin.com: v2]
-  Link: https://lkml.kernel.org/r/aQECPpjd-fU_TC79@shell.ilvokhin.com
-Link: https://lkml.kernel.org/r/aPpv8sAa2sYgNu3L@shell.ilvokhin.com
-Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Kiryl Shutsemau <kas@kernel.org>
+
+This patch (of 9):
+
+DAMON's monitoring targets parameters update function,
+damon_commit_targets(), is not providing a way to remove a target in the
+middle of the existing targets list.  Extend the API by adding a field to
+struct damon_target.  If the field of a damon_commit_targets() source
+target is set, it indicates the matching target on the existing targets
+list is obsolete.  damon_commit_targets() understands that and removes
+those from the list, while respecting the index based matching for other
+non-obsolete targets.
+
+Link: https://lkml.kernel.org/r/20251023012535.69625-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251023012535.69625-2-sj@kernel.org
+Link: https://github.com/damonitor/damo/issues/36 [1]
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Bijan Tabatabai <bijan311@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    5 +
- mm/Kconfig                                 |   91 +++++++++++++++++++
- mm/shmem.c                                 |   33 ++++++
- 3 files changed, 127 insertions(+), 2 deletions(-)
+ include/linux/damon.h |    6 ++++++
+ mm/damon/core.c       |   10 +++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-tmpfs-hugepage-defaults-config-choice
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -381,6 +381,11 @@ hugepage allocation policy for the tmpfs
- four valid policies for tmpfs (``always``, ``within_size``, ``advise``,
- ``never``). The tmpfs mount default policy is ``never``.
+--- a/include/linux/damon.h~mm-damon-core-add-damon_target-obsolete-for-pin-point-removal
++++ a/include/linux/damon.h
+@@ -91,17 +91,23 @@ struct damon_region {
+  * @nr_regions:		Number of monitoring target regions of this target.
+  * @regions_list:	Head of the monitoring target regions of this target.
+  * @list:		List head for siblings.
++ * @obsolete:		Whether the commit destination target is obsolete.
+  *
+  * Each monitoring context could have multiple targets.  For example, a context
+  * for virtual memory address spaces could have multiple target processes.  The
+  * @pid should be set for appropriate &struct damon_operations including the
+  * virtual address spaces monitoring operations.
++ *
++ * @obsolete is used only for damon_commit_targets() source targets, to specify
++ * the matching destination targets are obsolete.  Read damon_commit_targets()
++ * to see how it is handled.
+  */
+ struct damon_target {
+ 	struct pid *pid;
+ 	unsigned int nr_regions;
+ 	struct list_head regions_list;
+ 	struct list_head list;
++	bool obsolete;
+ };
  
-+Additionally, Kconfig options are available to set the default hugepage
-+policies for shmem (``CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_*``) and tmpfs
-+(``CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_*``) at build time. Refer to the
-+Kconfig help for more details.
-+
- In the same manner as ``thp_anon`` controls each supported anonymous THP
- size, ``thp_shmem`` controls each supported shmem THP size. ``thp_shmem``
- has the same format as ``thp_anon``, but also supports the policy
---- a/mm/Kconfig~mm-shmem-tmpfs-hugepage-defaults-config-choice
-+++ a/mm/Kconfig
-@@ -853,6 +853,97 @@ choice
- 	  enabled at runtime via sysfs.
- endchoice
+ /**
+--- a/mm/damon/core.c~mm-damon-core-add-damon_target-obsolete-for-pin-point-removal
++++ a/mm/damon/core.c
+@@ -479,6 +479,7 @@ struct damon_target *damon_new_target(vo
+ 	t->nr_regions = 0;
+ 	INIT_LIST_HEAD(&t->regions_list);
+ 	INIT_LIST_HEAD(&t->list);
++	t->obsolete = false;
  
-+choice
-+	prompt "Shmem hugepage allocation defaults"
-+	depends on TRANSPARENT_HUGEPAGE
-+	default TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER
-+	help
-+	  Selects the hugepage allocation policy defaults for
-+	  the internal shmem mount.
-+
-+	  The selection made here can be overridden by using the kernel
-+	  command line 'transparent_hugepage_shmem=' option.
-+
-+	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER
-+		bool "never"
-+	help
-+	  Disable hugepage allocation for shmem mount by default. It can
-+	  still be enabled with the kernel command line
-+	  'transparent_hugepage_shmem=' option or at runtime via sysfs
-+	  knob. Note that madvise(MADV_COLLAPSE) can still cause
-+	  transparent huge pages to be obtained even if this mode is
-+	  specified.
-+
-+	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ALWAYS
-+		bool "always"
-+	help
-+	  Always attempt to allocate hugepage for shmem mount, can
-+	  increase the memory footprint of applications without a
-+	  guaranteed benefit but it will work automatically for all
-+	  applications.
-+
-+	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_WITHIN_SIZE
-+		bool "within_size"
-+	help
-+	  Enable hugepage allocation for shmem mount if the allocation
-+	  will be fully within the i_size. This configuration also takes
-+	  into account any madvise(MADV_HUGEPAGE) hints that may be
-+	  provided by the applications.
-+
-+	config TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ADVISE
-+		bool "advise"
-+	help
-+	  Enable hugepage allocation for the shmem mount exclusively when
-+	  applications supply the madvise(MADV_HUGEPAGE) hint.
-+	  This ensures that hugepages are used only in response to explicit
-+	  requests from applications.
-+endchoice
-+
-+choice
-+	prompt "Tmpfs hugepage allocation defaults"
-+	depends on TRANSPARENT_HUGEPAGE
-+	default TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER
-+	help
-+	  Selects the hugepage allocation policy defaults for
-+	  the tmpfs mount.
-+
-+	  The selection made here can be overridden by using the kernel
-+	  command line 'transparent_hugepage_tmpfs=' option.
-+
-+	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER
-+		bool "never"
-+	help
-+	  Disable hugepage allocation for tmpfs mount by default. It can
-+	  still be enabled with the kernel command line
-+	  'transparent_hugepage_tmpfs=' option. Note that
-+	  madvise(MADV_COLLAPSE) can still cause transparent huge pages
-+	  to be obtained even if this mode is specified.
-+
-+	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ALWAYS
-+		bool "always"
-+	help
-+	  Always attempt to allocate hugepage for tmpfs mount, can
-+	  increase the memory footprint of applications without a
-+	  guaranteed benefit but it will work automatically for all
-+	  applications.
-+
-+	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_WITHIN_SIZE
-+		bool "within_size"
-+	help
-+	  Enable hugepage allocation for tmpfs mount if the allocation
-+	  will be fully within the i_size. This configuration also takes
-+	  into account any madvise(MADV_HUGEPAGE) hints that may be
-+	  provided by the applications.
-+
-+	config TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ADVISE
-+		bool "advise"
-+	help
-+	  Enable hugepage allocation for the tmpfs mount exclusively when
-+	  applications supply the madvise(MADV_HUGEPAGE) hint.
-+	  This ensures that hugepages are used only in response to explicit
-+	  requests from applications.
-+endchoice
-+
- config THP_SWAP
- 	def_bool y
- 	depends on TRANSPARENT_HUGEPAGE && ARCH_WANTS_THP_SWAP && SWAP && 64BIT
---- a/mm/shmem.c~mm-shmem-tmpfs-hugepage-defaults-config-choice
-+++ a/mm/shmem.c
-@@ -570,8 +570,37 @@ static int shmem_confirm_swap(struct add
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /* ifdef here to avoid bloating shmem.o when not necessary */
+ 	return t;
+ }
+@@ -1187,7 +1188,11 @@ static int damon_commit_targets(
  
--static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
--static int tmpfs_huge __read_mostly = SHMEM_HUGE_NEVER;
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_NEVER)
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_NEVER
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ALWAYS)
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_ALWAYS
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_WITHIN_SIZE)
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_WITHIN_SIZE
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_SHMEM_HUGE_ADVISE)
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_ADVISE
-+#else
-+#define SHMEM_HUGE_DEFAULT SHMEM_HUGE_NEVER
-+#endif
-+
-+static int shmem_huge __read_mostly = SHMEM_HUGE_DEFAULT;
-+
-+#undef SHMEM_HUGE_DEFAULT
-+
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_NEVER)
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_NEVER
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ALWAYS)
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_ALWAYS
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_WITHIN_SIZE)
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_WITHIN_SIZE
-+#elif defined(CONFIG_TRANSPARENT_HUGEPAGE_TMPFS_HUGE_ADVISE)
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_ADVISE
-+#else
-+#define TMPFS_HUGE_DEFAULT SHMEM_HUGE_NEVER
-+#endif
-+
-+static int tmpfs_huge __read_mostly = TMPFS_HUGE_DEFAULT;
-+
-+#undef TMPFS_HUGE_DEFAULT
- 
- static unsigned int shmem_get_orders_within_size(struct inode *inode,
- 		unsigned long within_size_orders, pgoff_t index,
+ 	damon_for_each_target_safe(dst_target, next, dst) {
+ 		src_target = damon_nth_target(i++, src);
+-		if (src_target) {
++		/*
++		 * If src target is obsolete, do not commit the parameters to
++		 * the dst target, and further remove the dst target.
++		 */
++		if (src_target && !src_target->obsolete) {
+ 			err = damon_commit_target(
+ 					dst_target, damon_target_has_pid(dst),
+ 					src_target, damon_target_has_pid(src),
+@@ -1210,6 +1215,9 @@ static int damon_commit_targets(
+ 	damon_for_each_target_safe(src_target, next, src) {
+ 		if (j++ < i)
+ 			continue;
++		/* target to remove has no matching dst */
++		if (src_target->obsolete)
++			return -EINVAL;
+ 		new_target = damon_new_target();
+ 		if (!new_target)
+ 			return -ENOMEM;
 _
 
-Patches currently in -mm which might be from d@ilvokhin.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-tests-core-kunit-remove-dynamic-allocs-on-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch
+mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch
+mm-damon-tests-core-kunit-add-test-cases-to-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota_goal-test.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch
+mm-damon-core-pass-migrate_dests-to-damos_commit_dests.patch
+mm-damon-tests-core-kunit-add-damos_commit_dests-test.patch
+mm-damon-tests-core-kunit-add-damos_commit-test.patch
+mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
+mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
+mm-damon-rename-damos-filters-to-damos-core_filters.patch
+mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
+mm-damon-vaddr-use-vm_normal_folio_pmd-instead-of-damon_get_folio.patch
+mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate.patch
+mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
+selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
+docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
+docs-mm-damon-maintainer-profile-fix-grammartical-errors.patch
 
