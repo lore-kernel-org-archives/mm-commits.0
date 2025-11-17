@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FB5229D282
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 18:22:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA8F2BDC2F
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 18:44:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763403748; cv=none; b=jjaYtrUatsOOmV1Kk5SXjOIQ75/sy15+bSOQx8k39/QXjmLQvQbYsHWn5g7h1RZGaqIyZ0ctObaRQF5SXRuo5paeBsLy9BdRaEkxNmVZAtOf9NIirj2/IDh8QDcyZRdNGBQsSHWnnwSxvbP0ZTMK0WYEyXWK0ckl8rrEwjYASgo=
+	t=1763405056; cv=none; b=SBNvVwFsKb441cFSoo2xPF/k+OCLuTM1z/30PRlIe4Q5M25w5WpmVzsErr5ROA6ktipa2ffiRwBPdnEGEoIehmjHPO+rVaffCOwW+7hTy/aOqvxyS7Kxif9ULo8PsOxHzxhGTPJlar3RIx9lAJcB9djtFMbEZBMv7NVP/4jQhHk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763403748; c=relaxed/simple;
-	bh=qj1BSix+e6VQBDaxSSPaSgciTagsKXTOPf01y635CiM=;
-	h=Date:To:From:Subject:Message-Id; b=aeOT3oww7xdHZBCaEwz9JosgXnJHdS9ZpNP2KFCoHubRwQt/kMeO827yg31cSh/dn3DnUARvS4kEhDG1a6/pce4MyReAgVT84vVBQoYrOgxIeMdGRMJNLz8V0irCrw/WA0bF47Ov7UnKLXkgA5iuXndnFS6LcAVw/NVANdeqijQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O7wniZmv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763405056; c=relaxed/simple;
+	bh=Cz4suL9f+B9ZTBgOOZ7biejI8Gkl2XaYgeukYTCA4CI=;
+	h=Date:To:From:Subject:Message-Id; b=Uwp5tVvP/cviJ6E2XZGRcnb4dw9Cb6NNcvi072sZap13goa+Zrq2dq6udB1YqEWP0ompiKBrdKd+Z/Ms91UlmEnFuYkyJi9UFZCsb+I+3U3qs/TqkTQu1trWY2MdusJ9vx/iBewwg0U9+li3o3FD2OU3W1CjKqxs32w8F7wXruU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SXJHGiY4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O7wniZmv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEAACC2BCB3;
-	Mon, 17 Nov 2025 18:22:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SXJHGiY4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDFE9C19423;
+	Mon, 17 Nov 2025 18:44:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763403748;
-	bh=qj1BSix+e6VQBDaxSSPaSgciTagsKXTOPf01y635CiM=;
+	s=korg; t=1763405055;
+	bh=Cz4suL9f+B9ZTBgOOZ7biejI8Gkl2XaYgeukYTCA4CI=;
 	h=Date:To:From:Subject:From;
-	b=O7wniZmvgoTKG1JjUpW11StHVfcBUkoygty5D4pUkr7JPj64qjk2smAX2nkMnMJ7w
-	 Xgzf98HCzK1V4EWxRridSzrt3lhqeGATU+yCHDAulIIAjYkVvX/HrwtfzbKADCdt8T
-	 1fW+nYsFCSyofyKK9JUsEEqwnPxJ+BLndoox/m/8=
-Date: Mon, 17 Nov 2025 10:22:26 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,fujunjie1@qq.com,akpm@linux-foundation.org
+	b=SXJHGiY4FjlFXAHGQbTfnnSL4emCplDI67B26ubuUA6j5AbE4bxrsxUxwJM5vAJqB
+	 Vb9G9Qk8ajcMaD1yE9mQdMAUm7G7YvH2hJpl3u0smgSbhqq2DM3cvZKTCl0fMV7Mg+
+	 NKpSSEPd3aUVJ8xdV6bEsCYiT4o0HCat31iXGvp8=
+Date: Mon, 17 Nov 2025 10:44:13 -0800
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,richardycc@google.com,minchan@google.com,bgeffon@google.com,ywen.chen@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-optimize-lowmem_reserve-max-lookup-using-its-semantic-monotonicity.patch added to mm-new branch
-Message-Id: <20251117182227.EEAACC2BCB3@smtp.kernel.org>
+Subject: + zram-introduce-writeback-bio-batching-support.patch added to mm-unstable branch
+Message-Id: <20251117184414.CDFE9C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: optimize lowmem_reserve max lookup using its semantic monotonicity
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-optimize-lowmem_reserve-max-lookup-using-its-semantic-monotonicity.patch
+     Subject: zram: introduce writeback bio batching support
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-introduce-writeback-bio-batching-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-optimize-lowmem_reserve-max-lookup-using-its-semantic-monotonicity.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-writeback-bio-batching-support.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,116 +58,541 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: fujunjie <fujunjie1@qq.com>
-Subject: mm/page_alloc: optimize lowmem_reserve max lookup using its semantic monotonicity
-Date: Sat, 15 Nov 2025 03:02:55 +0000
+From: Yuwen Chen <ywen.chen@foxmail.com>
+Subject: zram: introduce writeback bio batching support
+Date: Sat, 15 Nov 2025 11:34:44 +0900
 
-calculate_totalreserve_pages() currently finds the maximum
-lowmem_reserve[j] for a zone by scanning the full forward range [j =
-zone_idx ..  MAX_NR_ZONES).  However, for a given zone i, the
-lowmem_reserve[j] array (for j > i) is naturally expected to form a
-monotonically non-decreasing sequence in j, not as an implementation
-detail, but as a consequence that naturally arises from the semantics of
-lowmem_reserve[].
+Patch series "zram: introduce writeback bio batching", v3.
 
-For zone "i", lowmem_reserve[j] expresses how many pages in zone i must
-effectively be kept in reserve when deciding whether an allocation class
-that may allocate from zones up to j is allowed to fall back into i.  It
-protects less flexible allocation classes (which cannot use higher zones)
-from being starved by more flexible ones.
+This is a rework of Yuwen's patch [1] that adds writeback bio
+batching support to zram, which can improve throughput of
+writeback operation.
 
-Viewed from this semantics, it is natural to expect a partial ordering in
-j: as j increases, the allocation class gains access to a strictly larger
-set of fallback zones.  Therefore lowmem_reserve[j] is expected to be
-monotonically non-decreasing in j: more flexible allocation classes must
-not be allowed to deplete low zones more aggressively than less flexible
-ones.
 
-In other words, if lowmem_reserve[j] were ever observed to *decrease* as j
-grows, that would be unexpected from the reserve semantics' point of view
-and would likely indicate a semantic change or a misconfiguration.
+This patch (of 4):
 
-The current implementation in setup_per_zone_lowmem_reserve() reflects
-this policy by accumulating managed pages from higher zones and applying
-the configured ratio, which results in a non-decreasing sequence.  This
-patch makes calculate_totalreserve_pages() rely on that monotonicity
-explicitly and finds the maximum reserve value by scanning backward and
-stopping at the first non-zero entry.  This avoids unnecessary iteration
-and reflects the conceptual model more directly.  No functional behavior
-changes.
+Currently, zram writeback supports only a single bio writeback operation,
+waiting for bio completion before post-processing next pp-slot.  This
+works, in general, but has certain throughput limitations.  Implement
+batched (multiple) bio writeback support to take advantage of parallel
+requests processing and better requests scheduling.
 
-To maintain this assumption explicitly, a comment is added next to
-setup_per_zone_lowmem_reserve() documenting the monotonicity expectation
-and noting that calculate_totalreserve_pages() relies on it.
+For the time being the writeback batch size (maximum number of in-flight
+bio requests) is set to 32 for all devices.  A follow up patch adds a
+writeback_batch_size device attribute, so the batch size becomes run-time
+configurable.
 
-Link: https://lkml.kernel.org/r/tencent_EB0FED91B01B1F8B6DAEE96719C5F5797F07@qq.com
-Signed-off-by: fujunjie <fujunjie1@qq.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Please refer to [2] and [3] for benchmarks:
+
+: After applying this patch, a large number of pages being merged
+: into batch write operations can be observed via the following test
+: code, which effectively improves write-back performance.
+: 
+: We used the following instructions to conduct a performance test
+: on the write-back function of zram in the QEMU environment.
+: $ echo "/dev/sdb" > /sys/block/zram0/backing_dev
+: $ echo "1024000000" > /sys/block/zram0/disksize
+: $ dd if=/dev/random of=/dev/zram0
+: $ time echo "page_indexes=1-100000" > /sys/block/zram0/writeback
+: 
+: before modification:
+: real	0m 16.62s
+: user	0m 0.00s
+: sys	0m 5.98s
+: 
+: real	0m 15.38s
+: user	0m 0.00s
+: sys	0m 5.31s
+: 
+: real	0m 15.58s
+: user	0m 0.00s
+: sys	0m 5.49s
+: 
+: after modification:
+: real	0m 1.36s
+: user	0m 0.00s
+: sys	0m 1.13s
+: 
+: real	0m 1.36s
+: user	0m 0.00s
+: sys	0m 1.11s
+: 
+: real	0m 1.39s
+: user	0m 0.00s
+: sys	0m 1.16s
+
+[senozhatsky: significantly reworked the initial patch so that the
+approach and implementation resemble current zram post-processing
+code]
+
+Link: https://lkml.kernel.org/r/20251115023447.495417-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20251115023447.495417-2-senozhatsky@chromium.org
+Link: https://lore.kernel.org/linux-block/tencent_0FBBFC8AE0B97BC63B5D47CE1FF2BABFDA09@qq.com/ [1]
+Link: https://lore.kernel.org/linux-block/tencent_B2DC37E3A2AED0E7F179365FCB5D82455B08@qq.com [2]
+Link: https://lore.kernel.org/linux-block/tencent_0FBBFC8AE0B97BC63B5D47CE1FF2BABFDA09@qq.com [3]
+Signed-off-by: Yuwen Chen <ywen.chen@foxmail.com>
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Co-developed-by: Richard Chang <richardycc@google.com>
+Suggested-by: Minchan Kim <minchan@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   35 ++++++++++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 5 deletions(-)
+ drivers/block/zram/zram_drv.c |  343 +++++++++++++++++++++++++-------
+ 1 file changed, 277 insertions(+), 66 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-optimize-lowmem_reserve-max-lookup-using-its-semantic-monotonicity
-+++ a/mm/page_alloc.c
-@@ -6311,10 +6311,21 @@ static void calculate_totalreserve_pages
- 			long max = 0;
- 			unsigned long managed_pages = zone_managed_pages(zone);
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-writeback-bio-batching-support
++++ a/drivers/block/zram/zram_drv.c
+@@ -500,6 +500,24 @@ out:
+ }
  
--			/* Find valid and maximum lowmem_reserve in the zone */
--			for (j = i; j < MAX_NR_ZONES; j++)
--				max = max(max, zone->lowmem_reserve[j]);
--
-+			/*
-+			 * lowmem_reserve[j] is monotonically non-decreasing
-+			 * in j for a given zone (see
-+			 * setup_per_zone_lowmem_reserve()). The maximum
-+			 * valid reserve lives at the highest index with a
-+			 * non-zero value, so scan backwards and stop at the
-+			 * first hit.
-+			 */
-+			for (j = MAX_NR_ZONES - 1; j > i; j--) {
-+				if (!zone->lowmem_reserve[j])
-+					continue;
+ #ifdef CONFIG_ZRAM_WRITEBACK
++struct zram_wb_ctl {
++	struct list_head idle_reqs;
++	struct list_head inflight_reqs;
 +
-+				max = zone->lowmem_reserve[j];
-+				break;
-+			}
- 			/* we treat the high watermark as reserved pages. */
- 			max += high_wmark_pages(zone);
- 
-@@ -6339,7 +6350,21 @@ static void setup_per_zone_lowmem_reserv
++	atomic_t num_inflight;
++	struct completion done;
++};
++
++struct zram_wb_req {
++	unsigned long blk_idx;
++	struct page *page;
++	struct zram_pp_slot *pps;
++	struct bio_vec bio_vec;
++	struct bio bio;
++
++	struct list_head entry;
++};
++
+ static ssize_t writeback_limit_enable_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
  {
- 	struct pglist_data *pgdat;
- 	enum zone_type i, j;
--
+@@ -734,20 +752,207 @@ static void read_from_bdev_async(struct
+ 	submit_bio(bio);
+ }
+ 
+-static int zram_writeback_slots(struct zram *zram, struct zram_pp_ctl *ctl)
++static void release_wb_req(struct zram_wb_req *req)
++{
++	__free_page(req->page);
++	kfree(req);
++}
++
++static void release_wb_ctl(struct zram_wb_ctl *wb_ctl)
++{
++	/* We should never have inflight requests at this point */
++	WARN_ON(!list_empty(&wb_ctl->inflight_reqs));
++
++	while (!list_empty(&wb_ctl->idle_reqs)) {
++		struct zram_wb_req *req;
++
++		req = list_first_entry(&wb_ctl->idle_reqs,
++				       struct zram_wb_req, entry);
++		list_del(&req->entry);
++		release_wb_req(req);
++	}
++
++	kfree(wb_ctl);
++}
++
++/* XXX: should be a per-device sysfs attr */
++#define ZRAM_WB_REQ_CNT 32
++
++static struct zram_wb_ctl *init_wb_ctl(void)
++{
++	struct zram_wb_ctl *wb_ctl;
++	int i;
++
++	wb_ctl = kmalloc(sizeof(*wb_ctl), GFP_KERNEL);
++	if (!wb_ctl)
++		return NULL;
++
++	INIT_LIST_HEAD(&wb_ctl->idle_reqs);
++	INIT_LIST_HEAD(&wb_ctl->inflight_reqs);
++	atomic_set(&wb_ctl->num_inflight, 0);
++	init_completion(&wb_ctl->done);
++
++	for (i = 0; i < ZRAM_WB_REQ_CNT; i++) {
++		struct zram_wb_req *req;
++
++		/*
++		 * This is fatal condition only if we couldn't allocate
++		 * any requests at all.  Otherwise we just work with the
++		 * requests that we have successfully allocated, so that
++		 * writeback can still proceed, even if there is only one
++		 * request on the idle list.
++		 */
++		req = kzalloc(sizeof(*req), GFP_KERNEL | __GFP_NOWARN);
++		if (!req)
++			break;
++
++		req->page = alloc_page(GFP_KERNEL | __GFP_NOWARN);
++		if (!req->page) {
++			kfree(req);
++			break;
++		}
++
++		list_add(&req->entry, &wb_ctl->idle_reqs);
++	}
++
++	/* We couldn't allocate any requests, so writeabck is not possible */
++	if (list_empty(&wb_ctl->idle_reqs))
++		goto release_wb_ctl;
++
++	return wb_ctl;
++
++release_wb_ctl:
++	release_wb_ctl(wb_ctl);
++	return NULL;
++}
++
++static void zram_account_writeback_rollback(struct zram *zram)
++{
++	spin_lock(&zram->wb_limit_lock);
++	if (zram->wb_limit_enable)
++		zram->bd_wb_limit +=  1UL << (PAGE_SHIFT - 12);
++	spin_unlock(&zram->wb_limit_lock);
++}
++
++static void zram_account_writeback_submit(struct zram *zram)
++{
++	spin_lock(&zram->wb_limit_lock);
++	if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
++		zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
++	spin_unlock(&zram->wb_limit_lock);
++}
++
++static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
++{
++	u32 index;
++	int err;
++
++	index = req->pps->index;
++	release_pp_slot(zram, req->pps);
++	req->pps = NULL;
++
++	err = blk_status_to_errno(req->bio.bi_status);
++	if (err) {
++		/*
++		 * Failed wb requests should not be accounted in wb_limit
++		 * (if enabled).
++		 */
++		zram_account_writeback_rollback(zram);
++		return err;
++	}
++
++	atomic64_inc(&zram->stats.bd_writes);
++	zram_slot_lock(zram, index);
 +	/*
-+	 * For a given zone node_zones[i], lowmem_reserve[j] (j > i)
-+	 * represents how many pages in zone i must effectively be kept
-+	 * in reserve when deciding whether an allocation class that is
-+	 * allowed to allocate from zones up to j may fall back into
-+	 * zone i.
-+	 *
-+	 * As j increases, the allocation class can use a strictly larger
-+	 * set of fallback zones and therefore must not be allowed to
-+	 * deplete low zones more aggressively than a less flexible one.
-+	 * As a result, lowmem_reserve[j] is required to be monotonically
-+	 * non-decreasing in j for each zone i. Callers such as
-+	 * calculate_totalreserve_pages() rely on this monotonicity when
-+	 * selecting the maximum reserve entry.
++	 * We release slot lock during writeback so slot can change under us:
++	 * slot_free() or slot_free() and zram_write_page(). In both cases
++	 * slot loses ZRAM_PP_SLOT flag. No concurrent post-processing can
++	 * set ZRAM_PP_SLOT on such slots until current post-processing
++	 * finishes.
 +	 */
- 	for_each_online_pgdat(pgdat) {
- 		for (i = 0; i < MAX_NR_ZONES - 1; i++) {
- 			struct zone *zone = &pgdat->node_zones[i];
++	if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
++		goto out;
++
++	zram_free_page(zram, index);
++	zram_set_flag(zram, index, ZRAM_WB);
++	zram_set_handle(zram, index, req->blk_idx);
++	atomic64_inc(&zram->stats.pages_stored);
++
++out:
++	zram_slot_unlock(zram, index);
++	return 0;
++}
++
++static void zram_writeback_endio(struct bio *bio)
++{
++	struct zram_wb_ctl *wb_ctl = bio->bi_private;
++
++	if (atomic_dec_return(&wb_ctl->num_inflight) == 0)
++		complete(&wb_ctl->done);
++}
++
++static void zram_submit_wb_request(struct zram *zram,
++				   struct zram_wb_ctl *wb_ctl,
++				   struct zram_wb_req *req)
+ {
++	/*
++	 * wb_limit (if enabled) should be adjusted before submission,
++	 * so that we don't over-submit.
++	 */
++	zram_account_writeback_submit(zram);
++	atomic_inc(&wb_ctl->num_inflight);
++	list_add_tail(&req->entry, &wb_ctl->inflight_reqs);
++	submit_bio(&req->bio);
++}
++
++static struct zram_wb_req *select_idle_req(struct zram_wb_ctl *wb_ctl)
++{
++	struct zram_wb_req *req;
++
++	req = list_first_entry_or_null(&wb_ctl->idle_reqs,
++				       struct zram_wb_req, entry);
++	if (req)
++		list_del(&req->entry);
++	return req;
++}
++
++static int zram_wb_wait_for_completion(struct zram *zram,
++				       struct zram_wb_ctl *wb_ctl)
++{
++	int ret = 0;
++
++	if (atomic_read(&wb_ctl->num_inflight))
++		wait_for_completion_io(&wb_ctl->done);
++
++	reinit_completion(&wb_ctl->done);
++	while (!list_empty(&wb_ctl->inflight_reqs)) {
++		struct zram_wb_req *req;
++		int err;
++
++		req = list_first_entry(&wb_ctl->inflight_reqs,
++				       struct zram_wb_req, entry);
++		list_move(&req->entry, &wb_ctl->idle_reqs);
++
++		err = zram_writeback_complete(zram, req);
++		if (err)
++			ret = err;
++	}
++
++	return ret;
++}
++
++static int zram_writeback_slots(struct zram *zram,
++				struct zram_pp_ctl *ctl,
++				struct zram_wb_ctl *wb_ctl)
++{
++	struct zram_wb_req *req = NULL;
+ 	unsigned long blk_idx = 0;
+-	struct page *page = NULL;
+ 	struct zram_pp_slot *pps;
+-	struct bio_vec bio_vec;
+-	struct bio bio;
++	struct blk_plug io_plug;
+ 	int ret = 0, err;
+-	u32 index;
+-
+-	page = alloc_page(GFP_KERNEL);
+-	if (!page)
+-		return -ENOMEM;
++	u32 index = 0;
+ 
++	blk_start_plug(&io_plug);
+ 	while ((pps = select_pp_slot(ctl))) {
+ 		spin_lock(&zram->wb_limit_lock);
+ 		if (zram->wb_limit_enable && !zram->bd_wb_limit) {
+@@ -757,6 +962,26 @@ static int zram_writeback_slots(struct z
+ 		}
+ 		spin_unlock(&zram->wb_limit_lock);
+ 
++		while (!req) {
++			req = select_idle_req(wb_ctl);
++			if (req)
++				break;
++
++			blk_finish_plug(&io_plug);
++			err = zram_wb_wait_for_completion(zram, wb_ctl);
++			blk_start_plug(&io_plug);
++			/*
++			 * BIO errors are not fatal, we continue and simply
++			 * attempt to writeback the remaining objects (pages).
++			 * At the same time we need to signal user-space that
++			 * some writes (at least one, but also could be all of
++			 * them) were not successful and we do so by returning
++			 * the most recent BIO error.
++			 */
++			if (err)
++				ret = err;
++		}
++
+ 		if (!blk_idx) {
+ 			blk_idx = alloc_block_bdev(zram);
+ 			if (!blk_idx) {
+@@ -765,7 +990,6 @@ static int zram_writeback_slots(struct z
+ 			}
+ 		}
+ 
+-		index = pps->index;
+ 		zram_slot_lock(zram, index);
+ 		/*
+ 		 * scan_slots() sets ZRAM_PP_SLOT and relases slot lock, so
+@@ -775,67 +999,46 @@ static int zram_writeback_slots(struct z
+ 		 */
+ 		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
+ 			goto next;
+-		if (zram_read_from_zspool(zram, page, index))
++		if (zram_read_from_zspool(zram, req->page, index))
+ 			goto next;
+ 		zram_slot_unlock(zram, index);
+ 
+-		bio_init(&bio, zram->bdev, &bio_vec, 1,
+-			 REQ_OP_WRITE | REQ_SYNC);
+-		bio.bi_iter.bi_sector = blk_idx * (PAGE_SIZE >> 9);
+-		__bio_add_page(&bio, page, PAGE_SIZE, 0);
+-
+ 		/*
+-		 * XXX: A single page IO would be inefficient for write
+-		 * but it would be not bad as starter.
++		 * From now on pp-slot is owned by the req, remove it from
++		 * its pp bucket.
+ 		 */
+-		err = submit_bio_wait(&bio);
+-		if (err) {
+-			release_pp_slot(zram, pps);
+-			/*
+-			 * BIO errors are not fatal, we continue and simply
+-			 * attempt to writeback the remaining objects (pages).
+-			 * At the same time we need to signal user-space that
+-			 * some writes (at least one, but also could be all of
+-			 * them) were not successful and we do so by returning
+-			 * the most recent BIO error.
+-			 */
+-			ret = err;
+-			continue;
+-		}
++		list_del_init(&pps->entry);
+ 
+-		atomic64_inc(&zram->stats.bd_writes);
+-		zram_slot_lock(zram, index);
+-		/*
+-		 * Same as above, we release slot lock during writeback so
+-		 * slot can change under us: slot_free() or slot_free() and
+-		 * reallocation (zram_write_page()). In both cases slot loses
+-		 * ZRAM_PP_SLOT flag. No concurrent post-processing can set
+-		 * ZRAM_PP_SLOT on such slots until current post-processing
+-		 * finishes.
+-		 */
+-		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
+-			goto next;
++		req->blk_idx = blk_idx;
++		req->pps = pps;
++		bio_init(&req->bio, zram->bdev, &req->bio_vec, 1, REQ_OP_WRITE);
++		req->bio.bi_iter.bi_sector = req->blk_idx * (PAGE_SIZE >> 9);
++		req->bio.bi_end_io = zram_writeback_endio;
++		req->bio.bi_private = wb_ctl;
++		__bio_add_page(&req->bio, req->page, PAGE_SIZE, 0);
+ 
+-		zram_free_page(zram, index);
+-		zram_set_flag(zram, index, ZRAM_WB);
+-		zram_set_handle(zram, index, blk_idx);
++		zram_submit_wb_request(zram, wb_ctl, req);
+ 		blk_idx = 0;
+-		atomic64_inc(&zram->stats.pages_stored);
+-		spin_lock(&zram->wb_limit_lock);
+-		if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
+-			zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
+-		spin_unlock(&zram->wb_limit_lock);
++		req = NULL;
++		continue;
++
+ next:
+ 		zram_slot_unlock(zram, index);
+ 		release_pp_slot(zram, pps);
+-
+ 		cond_resched();
+ 	}
+ 
+-	if (blk_idx)
+-		free_block_bdev(zram, blk_idx);
+-	if (page)
+-		__free_page(page);
++	/*
++	 * Selected idle req, but never submitted it due to some error or
++	 * wb limit.
++	 */
++	if (req)
++		release_wb_req(req);
++
++	blk_finish_plug(&io_plug);
++	err = zram_wb_wait_for_completion(zram, wb_ctl);
++	if (err)
++		ret = err;
+ 
+ 	return ret;
+ }
+@@ -948,7 +1151,8 @@ static ssize_t writeback_store(struct de
+ 	struct zram *zram = dev_to_zram(dev);
+ 	u64 nr_pages = zram->disksize >> PAGE_SHIFT;
+ 	unsigned long lo = 0, hi = nr_pages;
+-	struct zram_pp_ctl *ctl = NULL;
++	struct zram_pp_ctl *pp_ctl = NULL;
++	struct zram_wb_ctl *wb_ctl = NULL;
+ 	char *args, *param, *val;
+ 	ssize_t ret = len;
+ 	int err, mode = 0;
+@@ -970,8 +1174,14 @@ static ssize_t writeback_store(struct de
+ 		goto release_init_lock;
+ 	}
+ 
+-	ctl = init_pp_ctl();
+-	if (!ctl) {
++	pp_ctl = init_pp_ctl();
++	if (!pp_ctl) {
++		ret = -ENOMEM;
++		goto release_init_lock;
++	}
++
++	wb_ctl = init_wb_ctl();
++	if (!wb_ctl) {
+ 		ret = -ENOMEM;
+ 		goto release_init_lock;
+ 	}
+@@ -1000,7 +1210,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			break;
+ 		}
+ 
+@@ -1011,7 +1221,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			break;
+ 		}
+ 
+@@ -1022,7 +1232,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			continue;
+ 		}
+ 
+@@ -1033,17 +1243,18 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			continue;
+ 		}
+ 	}
+ 
+-	err = zram_writeback_slots(zram, ctl);
++	err = zram_writeback_slots(zram, pp_ctl, wb_ctl);
+ 	if (err)
+ 		ret = err;
+ 
+ release_init_lock:
+-	release_pp_ctl(zram, ctl);
++	release_pp_ctl(zram, pp_ctl);
++	release_wb_ctl(wb_ctl);
+ 	atomic_set(&zram->pp_in_progress, 0);
+ 	up_read(&zram->init_lock);
+ 
 _
 
-Patches currently in -mm which might be from fujunjie1@qq.com are
+Patches currently in -mm which might be from ywen.chen@foxmail.com are
 
-mm-page_alloc-optimize-lowmem_reserve-max-lookup-using-its-semantic-monotonicity.patch
+zram-introduce-writeback-bio-batching-support.patch
 
