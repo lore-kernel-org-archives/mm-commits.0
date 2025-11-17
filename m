@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F0F8224B06
-	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B86DE22D7B0
+	for <mm-commits@vger.kernel.org>; Mon, 17 Nov 2025 01:33:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763343210; cv=none; b=o1L44fkbG0JCPG5sDmrYLNw+Rnnzs4hMQgCZpx8rhClR6lKh1JGiGSTlUnBVXmtxA7vFtIMcnhXHRNqJiyK/OsjE2DKkoRdjYDzWEH0swxtM9YNMypqcIhAoUtV8RgQgBIh6Ajves26kkty2ZZe5OsaNBCSmiGKxbf3rVlT/dq8=
+	t=1763343211; cv=none; b=djgbU4AGBqzD5BssYiYOI0Sk3Ea8PwGvLprEeSS1fNMUKptmDjqp7wxzDG09V3akvVbuOwtNyO6iV/xRnAMEAsaxmI1YDmyVmkRg7PMILR2/XfUO0/Sgd+Ac1P/8Wb6yTNv4833wsQtwIVjSYHxj5DqiL4yKSLaP0vRSeY4nnc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763343210; c=relaxed/simple;
-	bh=n5nv0RjL78R8s0ncf/iUChBhEc3xFUuT8S077I1Uyzc=;
-	h=Date:To:From:Subject:Message-Id; b=bNgTaDCGtqZQAQs9LIfC/5OJBt12d2db688thczGEVpUTL0xhcjEa/aT6nzklWvrFUyGyNc5KMopMDavBV8sl1NgRUOqZSWn6WqSCRttodteeXn3+fIF2peO0haQVfN6nCCSzwe3RQ/OJ4cJce4GWOwewrMJMFJqcM92VlSvzG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A7Yrwy5x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763343211; c=relaxed/simple;
+	bh=mksBsfuDzKu/jg08wrFwUOzhNGddShRecBrNWZVUcgY=;
+	h=Date:To:From:Subject:Message-Id; b=fy0exOde8vmNWWMlSfPMhc37FznLRa2EDzMGtSspeYnzbIMOIx+HjLuQMgMGl/y0SofpMLv9HYB2l+4fXEfOeWQqf4UiAdqYvQZkEPhAjlvay8ATIsiNTYMU6Zw/XtIk8OXoYjkA/ChQzo7Hjuzug9K1lEqNeyy3PoRsTQdLTa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MjTOi3S2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A7Yrwy5x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 447F9C4CEF1;
-	Mon, 17 Nov 2025 01:33:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MjTOi3S2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AAEAC4CEF1;
+	Mon, 17 Nov 2025 01:33:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763343210;
-	bh=n5nv0RjL78R8s0ncf/iUChBhEc3xFUuT8S077I1Uyzc=;
+	s=korg; t=1763343211;
+	bh=mksBsfuDzKu/jg08wrFwUOzhNGddShRecBrNWZVUcgY=;
 	h=Date:To:From:Subject:From;
-	b=A7Yrwy5x4JrIIpNW8+fV4B7gBGREPrrvjPtVTznuMSZspxYTRWVywnLjwO8f9wS2L
-	 z5fbQ+qighP4MUNtCrIaBnrDVrNIdqgQFZl5LzLYH36czepm7IZEW3c2464m/Pz1D9
-	 8TxofS76O7XP37SiyIvRczx85fYd1NYIMDgqfTOg=
-Date: Sun, 16 Nov 2025 17:33:29 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,vishal.moola@gmail.com,akpm@linux-foundation.org
+	b=MjTOi3S2uSJDQN6i/g17vut8jlF6w+BrdkKnJw9d3ihxYKE/S0a1edgEDZIVlGI4F
+	 v+gRiTO7X7m5Xeqi+Rx7h3wFzbQWoNE3x9wpAsYoCwpr0SqGjAPygkKZvvy80QoDjn
+	 tI4oaiFVKM1bAg5zgrdhq3cxbPiC4saLVcx+wgs0=
+Date: Sun, 16 Nov 2025 17:33:31 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hch@infradead.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-request-large-order-pages-from-buddy-allocator.patch removed from -mm tree
-Message-Id: <20251117013330.447F9C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-manually-uninline-__memcg_memory_event.patch removed from -mm tree
+Message-Id: <20251117013331.8AAEAC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,137 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: request large order pages from buddy allocator
+     Subject: memcg: manually uninline __memcg_memory_event
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-request-large-order-pages-from-buddy-allocator.patch
+     memcg-manually-uninline-__memcg_memory_event.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/vmalloc: request large order pages from buddy allocator
-Date: Tue, 21 Oct 2025 12:44:56 -0700
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: manually uninline __memcg_memory_event
+Date: Tue, 21 Oct 2025 16:44:25 -0700
 
-Sometimes, vm_area_alloc_pages() will want many pages from the buddy
-allocator.  Rather than making requests to the buddy allocator for at most
-100 pages at a time, we can eagerly request large order pages a smaller
-number of times.
+__memcg_memory_event() has been unnecessarily marked inline even when it
+is not really performance critical.  It is usually called to track extreme
+conditions.  Over the time, it has evolved to include more functionality
+and inlining it is causing more harm.
 
-We still split the large order pages down to order-0 as the rest of the
-vmalloc code (and some callers) depend on it.  We still defer to the bulk
-allocator and fallback path in case of order-0 pages or failure.
+Before the patch:
+$ size mm/memcontrol.o net/ipv4/tcp_input.o net/ipv4/tcp_output.o
+   text    data     bss     dec     hex filename
+  35645   10574    4192   50411    c4eb mm/memcontrol.o
+  54738    1658       0   56396    dc4c net/ipv4/tcp_input.o
+  34644    1065       0   35709    8b7d net/ipv4/tcp_output.o
 
-Running 1000 iterations of allocations on a small 4GB system finds:
+After the patch:
+$ size mm/memcontrol.o net/ipv4/tcp_input.o net/ipv4/tcp_output.o
+   text    data     bss     dec     hex filename
+  35137   10446    4192   49775    c26f mm/memcontrol.o
+  54322    1562       0   55884    da4c net/ipv4/tcp_input.o
+  34492    1017       0   35509    8ab5 net/ipv4/tcp_output.o
 
-1000 2mb allocations:
-	[Baseline]			[This patch]
-	real    46.310s			real    0m34.582
-	user    0.001s			user    0.006s
-	sys     46.058s			sys     0m34.365s
-
-10000 200kb allocations:
-	[Baseline]			[This patch]
-	real    56.104s			real    0m43.696
-	user    0.001s			user    0.003s
-	sys     55.375s			sys     0m42.995s
-
-Link: https://lkml.kernel.org/r/20251021194455.33351-2-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+[akpm@linux-foundation.org: use EXPORT_SYMBOL_GPL for __memcg_memory_event, per Michal and Christoph]
+Link: https://lkml.kernel.org/r/20251021234425.1885471-1-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: SeongJae Park <sj@kernel.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ include/linux/memcontrol.h |   32 ++------------------------------
+ mm/memcontrol.c            |   31 +++++++++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+), 30 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-request-large-order-pages-from-buddy-allocator
-+++ a/mm/vmalloc.c
-@@ -3619,8 +3619,44 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		unsigned int order, unsigned int nr_pages, struct page **pages)
- {
- 	unsigned int nr_allocated = 0;
-+	unsigned int nr_remaining = nr_pages;
-+	unsigned int max_attempt_order = MAX_PAGE_ORDER;
- 	struct page *page;
- 	int i;
-+	gfp_t large_gfp = (gfp &
-+		~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL | __GFP_COMP))
-+		| __GFP_NOWARN;
-+	unsigned int large_order = ilog2(nr_remaining);
+--- a/include/linux/memcontrol.h~memcg-manually-uninline-__memcg_memory_event
++++ a/include/linux/memcontrol.h
+@@ -1002,36 +1002,8 @@ static inline void count_memcg_event_mm(
+ 	count_memcg_events_mm(mm, idx, 1);
+ }
+ 
+-static inline void __memcg_memory_event(struct mem_cgroup *memcg,
+-					enum memcg_memory_event event,
+-					bool allow_spinning)
+-{
+-	bool swap_event = event == MEMCG_SWAP_HIGH || event == MEMCG_SWAP_MAX ||
+-			  event == MEMCG_SWAP_FAIL;
+-
+-	/* For now only MEMCG_MAX can happen with !allow_spinning context. */
+-	VM_WARN_ON_ONCE(!allow_spinning && event != MEMCG_MAX);
+-
+-	atomic_long_inc(&memcg->memory_events_local[event]);
+-	if (!swap_event && allow_spinning)
+-		cgroup_file_notify(&memcg->events_local_file);
+-
+-	do {
+-		atomic_long_inc(&memcg->memory_events[event]);
+-		if (allow_spinning) {
+-			if (swap_event)
+-				cgroup_file_notify(&memcg->swap_events_file);
+-			else
+-				cgroup_file_notify(&memcg->events_file);
+-		}
+-
+-		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
+-			break;
+-		if (cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_LOCAL_EVENTS)
+-			break;
+-	} while ((memcg = parent_mem_cgroup(memcg)) &&
+-		 !mem_cgroup_is_root(memcg));
+-}
++void __memcg_memory_event(struct mem_cgroup *memcg,
++			  enum memcg_memory_event event, bool allow_spinning);
+ 
+ static inline void memcg_memory_event(struct mem_cgroup *memcg,
+ 				      enum memcg_memory_event event)
+--- a/mm/memcontrol.c~memcg-manually-uninline-__memcg_memory_event
++++ a/mm/memcontrol.c
+@@ -1626,6 +1626,37 @@ unsigned long mem_cgroup_size(struct mem
+ 	return page_counter_read(&memcg->memory);
+ }
+ 
++void __memcg_memory_event(struct mem_cgroup *memcg,
++			  enum memcg_memory_event event, bool allow_spinning)
++{
++	bool swap_event = event == MEMCG_SWAP_HIGH || event == MEMCG_SWAP_MAX ||
++			  event == MEMCG_SWAP_FAIL;
 +
-+	large_order = min(max_attempt_order, large_order);
++	/* For now only MEMCG_MAX can happen with !allow_spinning context. */
++	VM_WARN_ON_ONCE(!allow_spinning && event != MEMCG_MAX);
 +
-+	/*
-+	 * Initially, attempt to have the page allocator give us large order
-+	 * pages. Do not attempt allocating smaller than order chunks since
-+	 * __vmap_pages_range() expects physically contigous pages of exactly
-+	 * order long chunks.
-+	 */
-+	while (large_order > order && nr_remaining) {
-+		if (nid == NUMA_NO_NODE)
-+			page = alloc_pages_noprof(large_gfp, large_order);
-+		else
-+			page = alloc_pages_node_noprof(nid, large_gfp, large_order);
++	atomic_long_inc(&memcg->memory_events_local[event]);
++	if (!swap_event && allow_spinning)
++		cgroup_file_notify(&memcg->events_local_file);
 +
-+		if (unlikely(!page)) {
-+			max_attempt_order = --large_order;
-+			continue;
++	do {
++		atomic_long_inc(&memcg->memory_events[event]);
++		if (allow_spinning) {
++			if (swap_event)
++				cgroup_file_notify(&memcg->swap_events_file);
++			else
++				cgroup_file_notify(&memcg->events_file);
 +		}
 +
-+		split_page(page, large_order);
-+		for (i = 0; i < (1U << large_order); i++)
-+			pages[nr_allocated + i] = page + i;
++		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++			break;
++		if (cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_LOCAL_EVENTS)
++			break;
++	} while ((memcg = parent_mem_cgroup(memcg)) &&
++		 !mem_cgroup_is_root(memcg));
++}
++EXPORT_SYMBOL_GPL(__memcg_memory_event);
 +
-+		nr_allocated += 1U << large_order;
-+		nr_remaining = nr_pages - nr_allocated;
-+
-+		large_order = ilog2(nr_remaining);
-+		large_order = min(max_attempt_order, large_order);
-+	}
- 
- 	/*
- 	 * For order-0 pages we make use of bulk allocator, if
+ static bool mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+ 				     int order)
+ {
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
-mm-vmalloc-warn-on-invalid-vmalloc-gfp-flags.patch
-mm-vmalloc-add-a-helper-to-optimize-vmalloc-allocation-gfps.patch
-mm-vmalloc-cleanup-large_gfp-in-vm_area_alloc_pages.patch
-mm-vmalloc-cleanup-gfp-flag-use-in-new_vmap_block.patch
+mm-memcg-dump-memcg-protection-info-on-oom-or-alloc-failures.patch
 
