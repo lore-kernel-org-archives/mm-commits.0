@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9417C349AE0
-	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 17:51:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 555783074B3
+	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 18:12:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763488318; cv=none; b=K7KoMMGPdQ7x7xWi2bLjtWUrO4u1EW+PAHEBLL9jh6YzQ7UupqpiftA9wXgRZCV2sbbhOeJK4ZJEaWh3CeAPdNv5BpLBk8BDgTsYWNi+e39XOwKDzxAce7GopTVwFe2uic8S7MFCGXixL/jrJcI3ocKJhNWsyOaBXYanca/K4is=
+	t=1763489556; cv=none; b=SKSuZLiOQ3wmtk4vofkLkssALgEjLJOptkD1X2YN7TiClJib+qhTmZaX90xAvKrNTnCbFtjjVl2RRKkencx2MMBOURB6wfGncULYV75CGr2hD7cMK633iEsqTN32yfcIQW0LoT81/zz67MH5bMKhfOlX88/WG+lxTkmVfhem4Ew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763488318; c=relaxed/simple;
-	bh=kE0f7Dz7p0YK820f6QKRqoh6QsWUVqYPCVGzhNVowt4=;
-	h=Date:To:From:Subject:Message-Id; b=ptwRC4ZaOnGTosyNHvJgrfQQ/+QDOX14j6pKVlGp4h9SkGGd0xXcSGb91VQY4PDHIR1vGhFNIACyyRLLA+O6ElMu8JAOnBvI//+Lft3E8Ke2kx1JJS0v9YuDfzqYC8SeOf4DDMbPLxXXzQtK+ni8TQ4lYm7SMMBCFSYJZAyENAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UARz6E/F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763489556; c=relaxed/simple;
+	bh=/vH884vJkRwlp2JGXjew3c9I+6VNh56gXZ+A1Zw76RI=;
+	h=Date:To:From:Subject:Message-Id; b=CVqPcdrONfiPTCek4KCPLvn4Wt8/CimP/3QWii9oTPL01A4RBx6nwgfHEwSGLXOxWwemtd1/R9UY4JRW+GVJM9Rxu5Hwe6kLvBQ3GZu9gWQkvM67ilD2Akcbt950C9nY9dkkLOxPCxhRV36LtyObwJquU9jKm1EgaBQvcoEFmVI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=phOqeiXl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UARz6E/F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C8F0C19424;
-	Tue, 18 Nov 2025 17:51:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="phOqeiXl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F5C4C2BCB5;
+	Tue, 18 Nov 2025 18:12:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763488318;
-	bh=kE0f7Dz7p0YK820f6QKRqoh6QsWUVqYPCVGzhNVowt4=;
+	s=korg; t=1763489555;
+	bh=/vH884vJkRwlp2JGXjew3c9I+6VNh56gXZ+A1Zw76RI=;
 	h=Date:To:From:Subject:From;
-	b=UARz6E/FFAfxpxS6raMV5R9MfBWanReL2qFa9u7lnNWE/ESKXhr0u0zlEqQ4os+pQ
-	 u+EZWtyloz3Tld0NPK3KaLrInY3MKe+GJe22bu620lrlTpEVsHxMVPG8VWqrlHL8Lw
-	 GFJ4LAvQNMnyQ6pKYVI/qI6qHSvgKcjzN+3UAyUQ=
-Date: Tue, 18 Nov 2025 09:51:56 -0800
-To: mm-commits@vger.kernel.org,yuanchu@google.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,robh@kernel.org,peterx@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jack@suse.cz,debug@rivosinc.com,david@redhat.com,conor@kernel.org,conor.dooley@microchip.com,brauner@kernel.org,axelrasmussen@google.com,arnd@arndb.de,aou@eecs.berkeley.edu,alexghiti@rivosinc.com,alex@ghiti.fr,ajones@ventanamicro.com,zhangchunyan@iscas.ac.cn,akpm@linux-foundation.org
+	b=phOqeiXliCuCedRO140y9Lv/tHj4vwW3m0utuBqRCAaFwqVp69vs6AtJdey0+9vVJ
+	 2271GsP+Yu8j6soTHKLg/ECvb8zWU1+b29Nqi6GhhrLb0mdbdyQtlEsj7pSX7gJfBx
+	 YB3eyAq/uCZdf/yGFIq01a0YC+jKIzMDFjZ9NbaE=
+Date: Tue, 18 Nov 2025 10:12:33 -0800
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,richardycc@google.com,minchan@google.com,bgeffon@google.com,ywen.chen@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dt-bindings-riscv-add-svrsw60t59b-extension-description.patch added to mm-new branch
-Message-Id: <20251118175158.0C8F0C19424@smtp.kernel.org>
+Subject: + zram-introduce-writeback-bio-batching-support.patch added to mm-unstable branch
+Message-Id: <20251118181235.4F5C4C2BCB5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dt-bindings: riscv: Add Svrsw60t59b extension description
-has been added to the -mm mm-new branch.  Its filename is
-     dt-bindings-riscv-add-svrsw60t59b-extension-description.patch
+     Subject: zram: introduce writeback bio batching support
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-introduce-writeback-bio-batching-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dt-bindings-riscv-add-svrsw60t59b-extension-description.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-writeback-bio-batching-support.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,69 +58,544 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
-Subject: dt-bindings: riscv: Add Svrsw60t59b extension description
-Date: Thu, 13 Nov 2025 15:28:06 +0800
+From: Yuwen Chen <ywen.chen@foxmail.com>
+Subject: zram: introduce writeback bio batching support
+Date: Tue, 18 Nov 2025 16:29:55 +0900
 
-Add description for the Svrsw60t59b extension (PTE Reserved for SW
-bits 60:59) extension which was ratified recently in
-riscv-non-isa/riscv-iommu.
+Patch series "zram: introduce writeback bio batching", v4.
 
-Link: https://lkml.kernel.org/r/20251113072806.795029-7-zhangchunyan@iscas.ac.cn
-Acked-by: Conor Dooley <conor.dooley@microchip.com>
-Signed-off-by: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrew Jones <ajones@ventanamicro.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Conor Dooley <conor@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Deepak Gupta <debug@rivosinc.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yuanchu Xie <yuanchu@google.com>
+This is a rework of Yuwen's patch [1] that adds writeback bio batching
+support to zram, which can improve throughput of writeback operation.
+
+
+This patch (of 6):
+
+Currently, zram writeback supports only a single bio writeback operation,
+waiting for bio completion before post-processing next pp-slot.  This
+works, in general, but has certain throughput limitations.  Implement
+batched (multiple) bio writeback support to take advantage of parallel
+requests processing and better requests scheduling.
+
+For the time being the writeback batch size (maximum number of in-flight
+bio requests) is set to 32 for all devices.  A follow up patch adds a
+writeback_batch_size device attribute, so the batch size becomes run-time
+configurable.
+
+Please refer to [2] and [3] for benchmarks:
+
+: After applying this patch, a large number of pages being merged
+: into batch write operations can be observed via the following test
+: code, which effectively improves write-back performance.
+: 
+: We used the following instructions to conduct a performance test
+: on the write-back function of zram in the QEMU environment.
+: $ echo "/dev/sdb" > /sys/block/zram0/backing_dev
+: $ echo "1024000000" > /sys/block/zram0/disksize
+: $ dd if=/dev/random of=/dev/zram0
+: $ time echo "page_indexes=1-100000" > /sys/block/zram0/writeback
+: 
+: before modification:
+: real	0m 16.62s
+: user	0m 0.00s
+: sys	0m 5.98s
+: 
+: real	0m 15.38s
+: user	0m 0.00s
+: sys	0m 5.31s
+: 
+: real	0m 15.58s
+: user	0m 0.00s
+: sys	0m 5.49s
+: 
+: after modification:
+: real	0m 1.36s
+: user	0m 0.00s
+: sys	0m 1.13s
+: 
+: real	0m 1.36s
+: user	0m 0.00s
+: sys	0m 1.11s
+: 
+: real	0m 1.39s
+: user	0m 0.00s
+: sys	0m 1.16s
+
+[senozhatsky: significantly reworked the initial patch so that the
+approach and implementation resemble current zram post-processing
+code]
+
+Link: https://lkml.kernel.org/r/20251118073000.1928107-2-senozhatsky@chromium.org
+Link: https://lore.kernel.org/linux-block/tencent_0FBBFC8AE0B97BC63B5D47CE1FF2BABFDA09@qq.com/ [1]
+Link: https://lore.kernel.org/linux-block/tencent_B2DC37E3A2AED0E7F179365FCB5D82455B08@qq.com [2]
+Link: https://lore.kernel.org/linux-block/tencent_0FBBFC8AE0B97BC63B5D47CE1FF2BABFDA09@qq.com [3]
+Signed-off-by: Yuwen Chen <ywen.chen@foxmail.com>
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Co-developed-by: Richard Chang <richardycc@google.com>
+Suggested-by: Minchan Kim <minchan@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/riscv/extensions.yaml |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/block/zram/zram_drv.c |  348 +++++++++++++++++++++++++-------
+ 1 file changed, 282 insertions(+), 66 deletions(-)
 
---- a/Documentation/devicetree/bindings/riscv/extensions.yaml~dt-bindings-riscv-add-svrsw60t59b-extension-description
-+++ a/Documentation/devicetree/bindings/riscv/extensions.yaml
-@@ -217,6 +217,12 @@ properties:
-             memory types as ratified in the 20191213 version of the privileged
-             ISA specification.
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-writeback-bio-batching-support
++++ a/drivers/block/zram/zram_drv.c
+@@ -500,6 +500,24 @@ out:
+ }
  
-+        - const: svrsw60t59b
-+          description:
-+            The Svrsw60t59b extension for providing two more bits[60:59] to
-+            PTE/PMD entry as ratified at commit 28bde925e7a7 ("PTE Reserved
-+            for SW bits 60:59") of riscv-non-isa/riscv-iommu.
+ #ifdef CONFIG_ZRAM_WRITEBACK
++struct zram_wb_ctl {
++	struct list_head idle_reqs;
++	struct list_head inflight_reqs;
 +
-         - const: svvptc
-           description:
-             The standard Svvptc supervisor-level extension for
++	atomic_t num_inflight;
++	struct completion done;
++};
++
++struct zram_wb_req {
++	unsigned long blk_idx;
++	struct page *page;
++	struct zram_pp_slot *pps;
++	struct bio_vec bio_vec;
++	struct bio bio;
++
++	struct list_head entry;
++};
++
+ static ssize_t writeback_limit_enable_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+@@ -734,20 +752,209 @@ static void read_from_bdev_async(struct
+ 	submit_bio(bio);
+ }
+ 
+-static int zram_writeback_slots(struct zram *zram, struct zram_pp_ctl *ctl)
++static void release_wb_req(struct zram_wb_req *req)
++{
++	__free_page(req->page);
++	kfree(req);
++}
++
++static void release_wb_ctl(struct zram_wb_ctl *wb_ctl)
++{
++	/* We should never have inflight requests at this point */
++	WARN_ON(!list_empty(&wb_ctl->inflight_reqs));
++
++	while (!list_empty(&wb_ctl->idle_reqs)) {
++		struct zram_wb_req *req;
++
++		req = list_first_entry(&wb_ctl->idle_reqs,
++				       struct zram_wb_req, entry);
++		list_del(&req->entry);
++		release_wb_req(req);
++	}
++
++	kfree(wb_ctl);
++}
++
++/* XXX: should be a per-device sysfs attr */
++#define ZRAM_WB_REQ_CNT 32
++
++static struct zram_wb_ctl *init_wb_ctl(void)
+ {
++	struct zram_wb_ctl *wb_ctl;
++	int i;
++
++	wb_ctl = kmalloc(sizeof(*wb_ctl), GFP_KERNEL);
++	if (!wb_ctl)
++		return NULL;
++
++	INIT_LIST_HEAD(&wb_ctl->idle_reqs);
++	INIT_LIST_HEAD(&wb_ctl->inflight_reqs);
++	atomic_set(&wb_ctl->num_inflight, 0);
++	init_completion(&wb_ctl->done);
++
++	for (i = 0; i < ZRAM_WB_REQ_CNT; i++) {
++		struct zram_wb_req *req;
++
++		/*
++		 * This is fatal condition only if we couldn't allocate
++		 * any requests at all.  Otherwise we just work with the
++		 * requests that we have successfully allocated, so that
++		 * writeback can still proceed, even if there is only one
++		 * request on the idle list.
++		 */
++		req = kzalloc(sizeof(*req), GFP_KERNEL | __GFP_NOWARN);
++		if (!req)
++			break;
++
++		req->page = alloc_page(GFP_KERNEL | __GFP_NOWARN);
++		if (!req->page) {
++			kfree(req);
++			break;
++		}
++
++		list_add(&req->entry, &wb_ctl->idle_reqs);
++	}
++
++	/* We couldn't allocate any requests, so writeabck is not possible */
++	if (list_empty(&wb_ctl->idle_reqs))
++		goto release_wb_ctl;
++
++	return wb_ctl;
++
++release_wb_ctl:
++	release_wb_ctl(wb_ctl);
++	return NULL;
++}
++
++static void zram_account_writeback_rollback(struct zram *zram)
++{
++	spin_lock(&zram->wb_limit_lock);
++	if (zram->wb_limit_enable)
++		zram->bd_wb_limit +=  1UL << (PAGE_SHIFT - 12);
++	spin_unlock(&zram->wb_limit_lock);
++}
++
++static void zram_account_writeback_submit(struct zram *zram)
++{
++	spin_lock(&zram->wb_limit_lock);
++	if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
++		zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
++	spin_unlock(&zram->wb_limit_lock);
++}
++
++static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
++{
++	u32 index = req->pps->index;
++	int err;
++
++	err = blk_status_to_errno(req->bio.bi_status);
++	if (err) {
++		/*
++		 * Failed wb requests should not be accounted in wb_limit
++		 * (if enabled).
++		 */
++		zram_account_writeback_rollback(zram);
++		free_block_bdev(zram, req->blk_idx);
++		return err;
++	}
++
++	atomic64_inc(&zram->stats.bd_writes);
++	zram_slot_lock(zram, index);
++	/*
++	 * We release slot lock during writeback so slot can change under us:
++	 * slot_free() or slot_free() and zram_write_page(). In both cases
++	 * slot loses ZRAM_PP_SLOT flag. No concurrent post-processing can
++	 * set ZRAM_PP_SLOT on such slots until current post-processing
++	 * finishes.
++	 */
++	if (!zram_test_flag(zram, index, ZRAM_PP_SLOT)) {
++		free_block_bdev(zram, req->blk_idx);
++		goto out;
++	}
++
++	zram_free_page(zram, index);
++	zram_set_flag(zram, index, ZRAM_WB);
++	zram_set_handle(zram, index, req->blk_idx);
++	atomic64_inc(&zram->stats.pages_stored);
++
++out:
++	zram_slot_unlock(zram, index);
++	return 0;
++}
++
++static void zram_writeback_endio(struct bio *bio)
++{
++	struct zram_wb_ctl *wb_ctl = bio->bi_private;
++
++	if (atomic_dec_return(&wb_ctl->num_inflight) == 0)
++		complete(&wb_ctl->done);
++}
++
++static void zram_submit_wb_request(struct zram *zram,
++				   struct zram_wb_ctl *wb_ctl,
++				   struct zram_wb_req *req)
++{
++	/*
++	 * wb_limit (if enabled) should be adjusted before submission,
++	 * so that we don't over-submit.
++	 */
++	zram_account_writeback_submit(zram);
++	atomic_inc(&wb_ctl->num_inflight);
++	list_add_tail(&req->entry, &wb_ctl->inflight_reqs);
++	submit_bio(&req->bio);
++}
++
++static struct zram_wb_req *select_idle_req(struct zram_wb_ctl *wb_ctl)
++{
++	struct zram_wb_req *req;
++
++	req = list_first_entry_or_null(&wb_ctl->idle_reqs,
++				       struct zram_wb_req, entry);
++	if (req)
++		list_del(&req->entry);
++	return req;
++}
++
++static int zram_wb_wait_for_completion(struct zram *zram,
++				       struct zram_wb_ctl *wb_ctl)
++{
++	int ret = 0;
++
++	if (atomic_read(&wb_ctl->num_inflight))
++		wait_for_completion_io(&wb_ctl->done);
++
++	reinit_completion(&wb_ctl->done);
++	while (!list_empty(&wb_ctl->inflight_reqs)) {
++		struct zram_wb_req *req;
++		int err;
++
++		req = list_first_entry(&wb_ctl->inflight_reqs,
++				       struct zram_wb_req, entry);
++		list_move(&req->entry, &wb_ctl->idle_reqs);
++
++		err = zram_writeback_complete(zram, req);
++		if (err)
++			ret = err;
++
++		release_pp_slot(zram, req->pps);
++		req->pps = NULL;
++	}
++
++	return ret;
++}
++
++static int zram_writeback_slots(struct zram *zram,
++				struct zram_pp_ctl *ctl,
++				struct zram_wb_ctl *wb_ctl)
++{
++	struct zram_wb_req *req = NULL;
+ 	unsigned long blk_idx = 0;
+-	struct page *page = NULL;
+ 	struct zram_pp_slot *pps;
+-	struct bio_vec bio_vec;
+-	struct bio bio;
++	struct blk_plug io_plug;
+ 	int ret = 0, err;
+-	u32 index;
+-
+-	page = alloc_page(GFP_KERNEL);
+-	if (!page)
+-		return -ENOMEM;
++	u32 index = 0;
+ 
++	blk_start_plug(&io_plug);
+ 	while ((pps = select_pp_slot(ctl))) {
+ 		spin_lock(&zram->wb_limit_lock);
+ 		if (zram->wb_limit_enable && !zram->bd_wb_limit) {
+@@ -757,6 +964,26 @@ static int zram_writeback_slots(struct z
+ 		}
+ 		spin_unlock(&zram->wb_limit_lock);
+ 
++		while (!req) {
++			req = select_idle_req(wb_ctl);
++			if (req)
++				break;
++
++			blk_finish_plug(&io_plug);
++			err = zram_wb_wait_for_completion(zram, wb_ctl);
++			blk_start_plug(&io_plug);
++			/*
++			 * BIO errors are not fatal, we continue and simply
++			 * attempt to writeback the remaining objects (pages).
++			 * At the same time we need to signal user-space that
++			 * some writes (at least one, but also could be all of
++			 * them) were not successful and we do so by returning
++			 * the most recent BIO error.
++			 */
++			if (err)
++				ret = err;
++		}
++
+ 		if (!blk_idx) {
+ 			blk_idx = alloc_block_bdev(zram);
+ 			if (!blk_idx) {
+@@ -775,67 +1002,46 @@ static int zram_writeback_slots(struct z
+ 		 */
+ 		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
+ 			goto next;
+-		if (zram_read_from_zspool(zram, page, index))
++		if (zram_read_from_zspool(zram, req->page, index))
+ 			goto next;
+ 		zram_slot_unlock(zram, index);
+ 
+-		bio_init(&bio, zram->bdev, &bio_vec, 1,
+-			 REQ_OP_WRITE | REQ_SYNC);
+-		bio.bi_iter.bi_sector = blk_idx * (PAGE_SIZE >> 9);
+-		__bio_add_page(&bio, page, PAGE_SIZE, 0);
+-
+ 		/*
+-		 * XXX: A single page IO would be inefficient for write
+-		 * but it would be not bad as starter.
++		 * From now on pp-slot is owned by the req, remove it from
++		 * its pp bucket.
+ 		 */
+-		err = submit_bio_wait(&bio);
+-		if (err) {
+-			release_pp_slot(zram, pps);
+-			/*
+-			 * BIO errors are not fatal, we continue and simply
+-			 * attempt to writeback the remaining objects (pages).
+-			 * At the same time we need to signal user-space that
+-			 * some writes (at least one, but also could be all of
+-			 * them) were not successful and we do so by returning
+-			 * the most recent BIO error.
+-			 */
+-			ret = err;
+-			continue;
+-		}
++		list_del_init(&pps->entry);
+ 
+-		atomic64_inc(&zram->stats.bd_writes);
+-		zram_slot_lock(zram, index);
+-		/*
+-		 * Same as above, we release slot lock during writeback so
+-		 * slot can change under us: slot_free() or slot_free() and
+-		 * reallocation (zram_write_page()). In both cases slot loses
+-		 * ZRAM_PP_SLOT flag. No concurrent post-processing can set
+-		 * ZRAM_PP_SLOT on such slots until current post-processing
+-		 * finishes.
+-		 */
+-		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
+-			goto next;
++		req->blk_idx = blk_idx;
++		req->pps = pps;
++		bio_init(&req->bio, zram->bdev, &req->bio_vec, 1, REQ_OP_WRITE);
++		req->bio.bi_iter.bi_sector = req->blk_idx * (PAGE_SIZE >> 9);
++		req->bio.bi_end_io = zram_writeback_endio;
++		req->bio.bi_private = wb_ctl;
++		__bio_add_page(&req->bio, req->page, PAGE_SIZE, 0);
+ 
+-		zram_free_page(zram, index);
+-		zram_set_flag(zram, index, ZRAM_WB);
+-		zram_set_handle(zram, index, blk_idx);
++		zram_submit_wb_request(zram, wb_ctl, req);
+ 		blk_idx = 0;
+-		atomic64_inc(&zram->stats.pages_stored);
+-		spin_lock(&zram->wb_limit_lock);
+-		if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
+-			zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
+-		spin_unlock(&zram->wb_limit_lock);
++		req = NULL;
++		continue;
++
+ next:
+ 		zram_slot_unlock(zram, index);
+ 		release_pp_slot(zram, pps);
+-
+ 		cond_resched();
+ 	}
+ 
+-	if (blk_idx)
+-		free_block_bdev(zram, blk_idx);
+-	if (page)
+-		__free_page(page);
++	/*
++	 * Selected idle req, but never submitted it due to some error or
++	 * wb limit.
++	 */
++	if (req)
++		release_wb_req(req);
++
++	blk_finish_plug(&io_plug);
++	err = zram_wb_wait_for_completion(zram, wb_ctl);
++	if (err)
++		ret = err;
+ 
+ 	return ret;
+ }
+@@ -948,7 +1154,8 @@ static ssize_t writeback_store(struct de
+ 	struct zram *zram = dev_to_zram(dev);
+ 	u64 nr_pages = zram->disksize >> PAGE_SHIFT;
+ 	unsigned long lo = 0, hi = nr_pages;
+-	struct zram_pp_ctl *ctl = NULL;
++	struct zram_pp_ctl *pp_ctl = NULL;
++	struct zram_wb_ctl *wb_ctl = NULL;
+ 	char *args, *param, *val;
+ 	ssize_t ret = len;
+ 	int err, mode = 0;
+@@ -970,8 +1177,14 @@ static ssize_t writeback_store(struct de
+ 		goto release_init_lock;
+ 	}
+ 
+-	ctl = init_pp_ctl();
+-	if (!ctl) {
++	pp_ctl = init_pp_ctl();
++	if (!pp_ctl) {
++		ret = -ENOMEM;
++		goto release_init_lock;
++	}
++
++	wb_ctl = init_wb_ctl();
++	if (!wb_ctl) {
+ 		ret = -ENOMEM;
+ 		goto release_init_lock;
+ 	}
+@@ -1000,7 +1213,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			break;
+ 		}
+ 
+@@ -1011,7 +1224,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			break;
+ 		}
+ 
+@@ -1022,7 +1235,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			continue;
+ 		}
+ 
+@@ -1033,17 +1246,18 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			continue;
+ 		}
+ 	}
+ 
+-	err = zram_writeback_slots(zram, ctl);
++	err = zram_writeback_slots(zram, pp_ctl, wb_ctl);
+ 	if (err)
+ 		ret = err;
+ 
+ release_init_lock:
+-	release_pp_ctl(zram, ctl);
++	release_pp_ctl(zram, pp_ctl);
++	release_wb_ctl(wb_ctl);
+ 	atomic_set(&zram->pp_in_progress, 0);
+ 	up_read(&zram->init_lock);
+ 
+@@ -1112,7 +1326,9 @@ static int read_from_bdev(struct zram *z
+ 	return -EIO;
+ }
+ 
+-static void free_block_bdev(struct zram *zram, unsigned long blk_idx) {};
++static void free_block_bdev(struct zram *zram, unsigned long blk_idx)
++{
++}
+ #endif
+ 
+ #ifdef CONFIG_ZRAM_MEMORY_TRACKING
 _
 
-Patches currently in -mm which might be from zhangchunyan@iscas.ac.cn are
+Patches currently in -mm which might be from ywen.chen@foxmail.com are
 
-mm-softdirty-add-pgtable_supports_soft_dirty.patch
-mm-userfaultfd-add-pgtable_supports_uffd_wp.patch
-riscv-add-risc-v-svrsw60t59b-extension-support.patch
-riscv-mm-add-soft-dirty-page-tracking-support.patch
-riscv-mm-add-userfaultfd-write-protect-support.patch
-dt-bindings-riscv-add-svrsw60t59b-extension-description.patch
+zram-introduce-writeback-bio-batching-support.patch
 
