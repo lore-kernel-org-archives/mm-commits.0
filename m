@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C42726FD9D
-	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 00:26:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98A0A1F463E
+	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 03:43:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763425610; cv=none; b=aWyTZlZaS6VFtpyDgLvzzEAnQLUC+XiqE+G0VTyJy4QzT6YBkWjx0ifPd83nG7KlBYe3r4n8LHknCG+IWkj9fJsIeVw98T7Br0hYg2xmtrpCAoOqek1+1zUIMTN+vdlQT3GrNquB3Yz0ssyfpM2B7rl+21OibhC9+6Y1FC0nFzc=
+	t=1763437434; cv=none; b=cX1/yudqls5vhwoYlSeYVqJpoWYhubx/k3SJPh8KNBcyFJ6udIGQsPUqbUofUeVYzLyS8jasCuncM51/Fkh6RUNERPPt66PaYcaLZXX+/Jce4t5ruGO5Ig1a3aYvodX+Q2iBKNOtLdL5OoW9yuPxHu4ddfUIfZ6NQDM27YO4k8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763425610; c=relaxed/simple;
-	bh=UCUvtdKrp+ORiPvjkvYBMtEfN7n4uD5/toEMgB6Ws6o=;
-	h=Date:To:From:Subject:Message-Id; b=B4leJgVvlzJxTVCNJpgejEcGhtleEOZvghMDxba+ji05ZmpaDZ0lQGeFlqoWRt6GnoZAI8spOO7tleD5+Yib2GOKFOJeWou9c2dzhBk4IeGgnCB2bkIxxkMyzpGKy1on0RUxr5ubDu18A9t86Be5yPdsJJK0jXJ2sq0quQLRttg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lJEZkTC7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763437434; c=relaxed/simple;
+	bh=q8kDAz4n8aEhqJeOps6awqt2PJ+1o+LqY7Q2tUcroYU=;
+	h=Date:To:From:Subject:Message-Id; b=KM4c+q4/jQt5gio7r8B4PHdejoORbMht7mzd1/JbJuw51V5h4+84vzWCM5D30wwD8OHaXqKAUMetvmZ6ytOAAN1BxQ9gVyQaN+CGIGa3YrCoQNqy6jjsgBDpTYoKK4pHiX8kxqyJ+1yiME3RZvMHOdkthId8QcLIlwsOBCdtGX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hl3CTj+A; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lJEZkTC7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 756F2C19425;
-	Tue, 18 Nov 2025 00:26:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hl3CTj+A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D694EC19423;
+	Tue, 18 Nov 2025 03:43:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763425609;
-	bh=UCUvtdKrp+ORiPvjkvYBMtEfN7n4uD5/toEMgB6Ws6o=;
+	s=korg; t=1763437434;
+	bh=q8kDAz4n8aEhqJeOps6awqt2PJ+1o+LqY7Q2tUcroYU=;
 	h=Date:To:From:Subject:From;
-	b=lJEZkTC7pQTtgBxiN+0NC3sLY8MQLd3GlWvKswkvyBN2Q+d91hg76zs1SYgPa+jDW
-	 5AXv7B1FgdwqR5O0VTyIwXxUputSwViP4hUrIqwsA6nMv3Jdof16VLjE78TDsfhB+M
-	 0t5wvx7QULPJ7XTU/qdVdB6u4Anm/zJeR+n/5Psw=
-Date: Mon, 17 Nov 2025 16:26:48 -0800
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,david@ixit.cz,akpm@linux-foundation.org
+	b=hl3CTj+A+cF4DZw7YgOqdCPt42ja08rPBQlwDF1sclE4BwDdASJ7THYPpVEaFFLKD
+	 4TW5mPe5rw7gZXK3DkujWbZlDzKpqt0AC8WynB7x+SrRaPGPf2ukNEh0q6b80mDpBu
+	 c1lztIoFxQ5iqIquw0xc1r5d/FyOpWgh1OYWGlMg=
+Date: Mon, 17 Nov 2025 19:43:52 -0800
+To: mm-commits@vger.kernel.org,ywen.chen@foxmail.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags.patch added to mm-new branch
-Message-Id: <20251118002649.756F2C19425@smtp.kernel.org>
+Subject: + zram-introduce-writeback-bio-batching-support-fix.patch added to mm-unstable branch
+Message-Id: <20251118034353.D694EC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: warn only once when vmalloc detect invalid gfp flags
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags.patch
+     Subject: zram-introduce-writeback-bio-batching-support-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-introduce-writeback-bio-batching-support-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-writeback-bio-batching-support-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,40 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Heidelberg <david@ixit.cz>
-Subject: mm/vmalloc: warn only once when vmalloc detect invalid gfp flags
-Date: Tue, 18 Nov 2025 01:05:57 +0100
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram-introduce-writeback-bio-batching-support-fix
+Date: Tue, 18 Nov 2025 11:19:23 +0900
 
-Without WARN_ONCE, the logs get spammed immediately after the boot, on
-devices as OnePlus 6T (Snapdragon 845).
+set slot index to current post-processing slot index
 
-Link: https://lkml.kernel.org/r/20251118-only-one-vmalloc-v1-1-29f8eacb4605@ixit.cz
-Fixes: 7179b2256315 ("mm/vmalloc: warn on invalid vmalloc gfp flags")
-Signed-off-by: David Heidelberg <david@ixit.cz>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20251118021953.1794503-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Minchan Kim <minchan@google.com>
+Cc: Richard Chang <richardycc@google.com>
+Cc: Yuwen Chen <ywen.chen@foxmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags
-+++ a/mm/vmalloc.c
-@@ -3936,8 +3936,8 @@ static gfp_t vmalloc_fix_flags(gfp_t fla
- 	gfp_t invalid_mask = flags & ~GFP_VMALLOC_SUPPORTED;
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-writeback-bio-batching-support-fix
++++ a/drivers/block/zram/zram_drv.c
+@@ -990,6 +990,7 @@ static int zram_writeback_slots(struct z
+ 			}
+ 		}
  
- 	flags &= GFP_VMALLOC_SUPPORTED;
--	WARN(1, "Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
--			invalid_mask, &invalid_mask, flags, &flags);
-+	WARN_ONCE(1, "Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n"
-+		  invalid_mask, &invalid_mask, flags, &flags);
- 	return flags;
- }
- 
++		index = pps->index;
+ 		zram_slot_lock(zram, index);
+ 		/*
+ 		 * scan_slots() sets ZRAM_PP_SLOT and relases slot lock, so
 _
 
-Patches currently in -mm which might be from david@ixit.cz are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags.patch
+zram-introduce-writeback-bio-batching-support-fix.patch
+zram-add-writeback-batch-size-device-attr.patch
+zram-take-write-lock-in-wb-limit-store-handlers.patch
+zram-drop-wb_limit_lock.patch
 
