@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06C11FA859
-	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 22:22:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 157241FA859
+	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 22:22:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763504534; cv=none; b=nAKerBgvsUbKU03SWeveZYqf1DqClduKCXAFc01KAM9E9tJmniZZZfzbIICgGhOdO6M+QcO875/QCGMbWVtk5fMbgA7r8j/OQUK9Wc7rqUNZ7/UPZo1nePvRy6E66DGU3f03Bc2C7h/XB31lH0HGC/DAl0QpZqVCMy0fhUllfjk=
+	t=1763504537; cv=none; b=i3z8O7iOcYhvY73ko81sXYVO8dgcRV8NzsEUi2GQgoZdO6O8xDR+SCQn5mXQ/OkjGOaLivBfJTRyV/NN8E/MNB2wPp7GFFNHp3/0tQTeRGpPSU0aorBujaLptE/NfV9EUapUACYzkd/bqdJmEmNndCUpuFtO/2lW7Q0knp7Fm/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763504534; c=relaxed/simple;
-	bh=/YQydsdIe0NtYBnzVYBkwFV5aCU11vzJwrEAJpRYMps=;
-	h=Date:To:From:Subject:Message-Id; b=dc3+tUAl/qmoCqtDMmGA4kxKfjPt6A0koHD0MfZO4gLwN5/DQ8M5cz+RvZLmTgKGxFfYbUzfUHNQqkgNjRBsLmDfJF90s4pKXlbcdSE9MBCEjL4gJ8vOhqptofx7rwYHjpZUlgrrX7ZoHy4IHXyMs+Rl/pazqMLC2AzzoayCE+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ebss9+4g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763504537; c=relaxed/simple;
+	bh=UmubAxw8zF5y3JAUcOf3myMJjIHljLE5Vnulo8kWBDQ=;
+	h=Date:To:From:Subject:Message-Id; b=tOu0tspXnTI6KgCbz5Ii7EuoKO6ZlEBgOuZFmjLr2I9buqfFx2M1+nv3ZnJCgAtQRW2oOJozq5aWA6M1Q9oU/ltHT7tQ0MLmz41P/hl75XtsyIVv57aigJcEw+9PEbAnIfpKyhuLbxjdrQWtYPMi60z+9W7Pt/DKgV+YCmoARE8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YNKeGC9D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ebss9+4g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13025C4CEFB;
-	Tue, 18 Nov 2025 22:22:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YNKeGC9D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22F9DC4AF0B;
+	Tue, 18 Nov 2025 22:22:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763504533;
-	bh=/YQydsdIe0NtYBnzVYBkwFV5aCU11vzJwrEAJpRYMps=;
+	s=korg; t=1763504536;
+	bh=UmubAxw8zF5y3JAUcOf3myMJjIHljLE5Vnulo8kWBDQ=;
 	h=Date:To:From:Subject:From;
-	b=ebss9+4ghGvqyrpdZ/kQHO2bGEEb3GBNz088nlHvpISJpUBFjg9FwNyxBa7ZPGXJM
-	 ofwD/KoHB5gyjY9izm2CM9u7ybLZMYGBNd1YyROs3jKoum+Yq6bQi49UHvrAsIEjTA
-	 UYiRCmuBKxWLsGoiu/bKA10RsdvNLz9m7CaJcQZM=
-Date: Tue, 18 Nov 2025 14:22:11 -0800
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,tmgross@umich.edu,ojeda@kernel.org,jhubbard@nvidia.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,arnd@arndb.de,alex.gaynor@gmail.com,a.hindborg@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
+	b=YNKeGC9DlH/VNa+ifVGKfD604YSNh6HnEIo/bil5avDnwsF0iE+9YEDG4edQ2j/OO
+	 A8S+Wr15ZM/CzVkW/dIpcAO0v2tQqoshfqwookX2Jc8WUrD+wDQf7+gIt600MX5I4Y
+	 FpHHuJtzgrGjw+a7Ec5JMvDr3G4lfnezi1tSn/ik=
+Date: Tue, 18 Nov 2025 14:22:14 -0800
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,tmgross@umich.edu,ojeda@kernel.org,jhubbard@nvidia.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,arnd@arndb.de,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + uaccess-gate-_copy__user-on-inline_copy_from_user.patch added to mm-nonmm-unstable branch
-Message-Id: <20251118222213.13025C4CEFB@smtp.kernel.org>
+Subject: + uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251118222216.22F9DC4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: uaccess: gate _copy_[to|from]_user on !INLINE_COPY_FROM_USER
+     Subject: uaccess-gate-_copy__user-on-inline_copy_from_user-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     uaccess-gate-_copy__user-on-inline_copy_from_user.patch
+     uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uaccess-gate-_copy__user-on-inline_copy_from_user.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,26 +58,14 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alice Ryhl <aliceryhl@google.com>
-Subject: uaccess: gate _copy_[to|from]_user on !INLINE_COPY_FROM_USER
-Date: Tue, 18 Nov 2025 17:32:50 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uaccess-gate-_copy__user-on-inline_copy_from_user-fix
+Date: Tue Nov 18 02:20:00 PM PST 2025
 
-These methods only exist when INLINE_COPY_FROM_USER is disabled, so update
-the header file to reflect that.
+s/INLINE_COPY_FROM_USER/INLINE_COPY_TO_USER/, per Alice
 
-This fixes the following error on builds that enable both RUST and
-INLINE_COPY_FROM_USER.
-
-ERROR: modpost: "_copy_from_user" [samples/rust/rust_misc_device.ko] undefined!
-ERROR: modpost: "_copy_to_user" [samples/rust/rust_misc_device.ko] undefined!
-
-This error is triggered because when a method is available both as a
-rust_helper_* and normal method, Rust will call the normal method.
-
-Link: https://lkml.kernel.org/r/20251118173250.2821388-1-aliceryhl@google.com
-Fixes: d99dc586ca7c ("uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST")
-Signed-off-by: Alice Ryhl <aliceryhl@google.com>
 Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Andreas Hindborg <a.hindborg@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
@@ -91,36 +79,30 @@ Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/uaccess.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/uaccess.h~uaccess-gate-_copy__user-on-inline_copy_from_user
+--- a/include/linux/uaccess.h~uaccess-gate-_copy__user-on-inline_copy_from_user-fix
 +++ a/include/linux/uaccess.h
-@@ -181,8 +181,10 @@ fail:
- 	memset(to + (n - res), 0, res);
- 	return res;
- }
-+#ifndef INLINE_COPY_FROM_USER
- extern __must_check unsigned long
- _copy_from_user(void *, const void __user *, unsigned long);
-+#endif
- 
- static inline __must_check unsigned long
- _inline_copy_to_user(void __user *to, const void *from, unsigned long n)
-@@ -196,8 +198,10 @@ _inline_copy_to_user(void __user *to, co
+@@ -198,7 +198,7 @@ _inline_copy_to_user(void __user *to, co
  	}
  	return n;
  }
-+#ifndef INLINE_COPY_FROM_USER
+-#ifndef INLINE_COPY_FROM_USER
++#ifndef INLINE_COPY_TO_USER
  extern __must_check unsigned long
  _copy_to_user(void __user *, const void *, unsigned long);
-+#endif
- 
- static __always_inline unsigned long __must_check
- copy_from_user(void *to, const void __user *from, unsigned long n)
+ #endif
 _
 
-Patches currently in -mm which might be from aliceryhl@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-uaccess-gate-_copy__user-on-inline_copy_from_user.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
+lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch
+lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
+uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
 
