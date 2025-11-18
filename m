@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 875B23587AB
-	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 18:12:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C9BB35FF4A
+	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 18:12:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763489570; cv=none; b=Ptk4uUxpBkpmldoDBX9rJy5ICDOayFWxJ4fr/YJpWBdK28IxHgAfZC0EaN8tiGZqnRZVvFLqcJu74jNVioDhDHqqwte3FFx/oQHah2cauLck1B/AgTM3X0vvrFehGO6ESFQ6gi/XEsWXWpOgtJ7iV4HiyAjPu7ONRIqqtbJO5h4=
+	t=1763489573; cv=none; b=qKHM795+sKWlPw8IgPWZ+P4e6+YWhLmuR9ryfmLU2dBQewstP085bz0uGLeH0OJhtoMcyUIPDAlHJ+LsfsdVF6Umzo34dwkvXRCTFLswcvPj2g8Cpky+eg31JqN0+O55M9VaAyaKvy6DMyliis3FNetkEBL115NLM9CQX7eN9d8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763489570; c=relaxed/simple;
-	bh=iWTCX8ln45P7WA9hC16y2IDMbUaoBe5hVSRAQ73KRvQ=;
-	h=Date:To:From:Subject:Message-Id; b=OdM9YoO0fc4RL+yhZHyGfZrz1AazicFDxXW22Nzq/UavQ/9vnpMdIquKrYhOAsfnR2h991jcDHGe5TLOurKWQkWm5uAa6K26k/X94CvLgCXKTUyqqQx5s9yWQRwBL0sDX1h6sVBDDbgWZkPG9Tg57Q0ySwmYKpx0eGEy9uB6wqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=picfhJXl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763489573; c=relaxed/simple;
+	bh=EZwc9Q4FDRc8iIaILtWaJtOO6sPPQUQNopKPU9Jhwq8=;
+	h=Date:To:From:Subject:Message-Id; b=dIu5xoQMzHot9ylioc+xrMzDRxr2TO2ETRvA/kbaDIO2QXg8rcoHXVGXL1Cung2QYIa0stVlW4tpZJFgx1T4sLbIAUGwor0ph2FCEZ96Jhw8eY8jM8D3MNyggMjh55sh/KHHCjQ0shJQctHljNk1RkXU5eUqhsA64AD+Kujn1H8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FWqnS2qy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="picfhJXl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6573C4CEF5;
-	Tue, 18 Nov 2025 18:12:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FWqnS2qy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BF14C19423;
+	Tue, 18 Nov 2025 18:12:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763489569;
-	bh=iWTCX8ln45P7WA9hC16y2IDMbUaoBe5hVSRAQ73KRvQ=;
+	s=korg; t=1763489572;
+	bh=EZwc9Q4FDRc8iIaILtWaJtOO6sPPQUQNopKPU9Jhwq8=;
 	h=Date:To:From:Subject:From;
-	b=picfhJXlXSucCTaSjvTmD6K/1gSzgShyhLJT46ynz2suiWiZM3cNMj65INxTlTzv7
-	 /P8B6D8rYzn47oNnr/gkXm399MCm5gmdcTZwAm/cxS/3aPrqZWaK7KbwM0L6XawvEk
-	 71Fz7heQ1QeoRFHVkO/uhxHq6IlSL9rBg2kiRaI4=
-Date: Tue, 18 Nov 2025 10:12:47 -0800
+	b=FWqnS2qy98nWv9xV5ik1s38qU+sUq02sJcOZjyudrCW9YvK9z28w4yJ5d6X+IzYym
+	 CsXkAK26VftS1UO1AAtHmwfm/avyBQSxfkK2J4qmx6XnpbU9i2q8fRossRkNs+ZIwP
+	 jqbWjI8fvlN4coz1pb606h29u8EQ54IsSq4nD4uM=
+Date: Tue, 18 Nov 2025 10:12:50 -0800
 To: mm-commits@vger.kernel.org,ywen.chen@foxmail.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-rework-bdev-block-allocation.patch added to mm-unstable branch
-Message-Id: <20251118181248.E6573C4CEF5@smtp.kernel.org>
+Subject: + zram-read-slot-block-idx-under-slot-lock.patch added to mm-unstable branch
+Message-Id: <20251118181252.6BF14C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: rework bdev block allocation
+     Subject: zram: read slot block idx under slot lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-rework-bdev-block-allocation.patch
+     zram-read-slot-block-idx-under-slot-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-rework-bdev-block-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-read-slot-block-idx-under-slot-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: rework bdev block allocation
-Date: Tue, 18 Nov 2025 16:29:59 +0900
+Subject: zram: read slot block idx under slot lock
+Date: Tue, 18 Nov 2025 16:30:00 +0900
 
-First, writeback bdev ->bitmap bits are set only from one context, as we
-can have only one single task performing writeback, so we cannot race with
-anything else.  Remove retry path.
+Read slot's block id under slot-lock.  We release the slot-lock for bdev
+read so, technically, slot still can get freed in the meantime, but at
+least we will read bdev block (page) that holds previous know slot data,
+not from slot->handle bdev block, which can be anything at that point.
 
-Second, we always check ZRAM_WB flag to distinguish writtenback slots, so
-we should not confuse 0 bdev block index and 0 handle.  We can use first
-bdev block (0 bit) for writeback as well.
-
-While at it, give functions slightly more accurate names, as we don't
-alloc/free anything there, we reserve a block for async writeback or
-release the block.
-
-Link: https://lkml.kernel.org/r/20251118073000.1928107-6-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20251118073000.1928107-7-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: Minchan Kim <minchan@google.com>
@@ -83,119 +76,29 @@ Cc: Yuwen Chen <ywen.chen@foxmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   37 +++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 19 deletions(-)
+ drivers/block/zram/zram_drv.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-rework-bdev-block-allocation
+--- a/drivers/block/zram/zram_drv.c~zram-read-slot-block-idx-under-slot-lock
 +++ a/drivers/block/zram/zram_drv.c
-@@ -500,6 +500,8 @@ out:
- }
- 
- #ifdef CONFIG_ZRAM_WRITEBACK
-+#define INVALID_BDEV_BLOCK		(~0UL)
+@@ -1980,14 +1980,14 @@ static int zram_read_page(struct zram *z
+ 		ret = zram_read_from_zspool(zram, page, index);
+ 		zram_slot_unlock(zram, index);
+ 	} else {
++		unsigned long blk_idx = zram_get_handle(zram, index);
 +
- struct zram_wb_ctl {
- 	struct list_head idle_reqs;
- 	struct list_head inflight_reqs;
-@@ -746,23 +748,20 @@ out:
- 	return err;
- }
- 
--static unsigned long alloc_block_bdev(struct zram *zram)
-+static unsigned long zram_reserve_bdev_block(struct zram *zram)
- {
--	unsigned long blk_idx = 1;
--retry:
--	/* skip 0 bit to confuse zram.handle = 0 */
--	blk_idx = find_next_zero_bit(zram->bitmap, zram->nr_pages, blk_idx);
--	if (blk_idx == zram->nr_pages)
--		return 0;
-+	unsigned long blk_idx;
- 
--	if (test_and_set_bit(blk_idx, zram->bitmap))
--		goto retry;
-+	blk_idx = find_next_zero_bit(zram->bitmap, zram->nr_pages, 0);
-+	if (blk_idx == zram->nr_pages)
-+		return INVALID_BDEV_BLOCK;
- 
-+	set_bit(blk_idx, zram->bitmap);
- 	atomic64_inc(&zram->stats.bd_count);
- 	return blk_idx;
- }
- 
--static void free_block_bdev(struct zram *zram, unsigned long blk_idx)
-+static void zram_release_bdev_block(struct zram *zram, unsigned long blk_idx)
- {
- 	int was_set;
- 
-@@ -882,7 +881,7 @@ static int zram_writeback_complete(struc
- 		 * (if enabled).
+ 		/*
+ 		 * The slot should be unlocked before reading from the backing
+ 		 * device.
  		 */
- 		zram_account_writeback_rollback(zram);
--		free_block_bdev(zram, req->blk_idx);
-+		zram_release_bdev_block(zram, req->blk_idx);
- 		return err;
+ 		zram_slot_unlock(zram, index);
+-
+-		ret = read_from_bdev(zram, page, zram_get_handle(zram, index),
+-				     parent);
++		ret = read_from_bdev(zram, page, blk_idx, parent);
  	}
  
-@@ -896,7 +895,7 @@ static int zram_writeback_complete(struc
- 	 * finishes.
- 	 */
- 	if (!zram_test_flag(zram, index, ZRAM_PP_SLOT)) {
--		free_block_bdev(zram, req->blk_idx);
-+		zram_release_bdev_block(zram, req->blk_idx);
- 		goto out;
- 	}
- 
-@@ -975,8 +974,8 @@ static int zram_writeback_slots(struct z
- 				struct zram_pp_ctl *ctl,
- 				struct zram_wb_ctl *wb_ctl)
- {
-+	unsigned long blk_idx = INVALID_BDEV_BLOCK;
- 	struct zram_wb_req *req = NULL;
--	unsigned long blk_idx = 0;
- 	struct zram_pp_slot *pps;
- 	struct blk_plug io_plug;
- 	int ret = 0, err;
-@@ -1009,9 +1008,9 @@ static int zram_writeback_slots(struct z
- 				ret = err;
- 		}
- 
--		if (!blk_idx) {
--			blk_idx = alloc_block_bdev(zram);
--			if (!blk_idx) {
-+		if (blk_idx == INVALID_BDEV_BLOCK) {
-+			blk_idx = zram_reserve_bdev_block(zram);
-+			if (blk_idx == INVALID_BDEV_BLOCK) {
- 				ret = -ENOSPC;
- 				break;
- 			}
-@@ -1046,7 +1045,7 @@ static int zram_writeback_slots(struct z
- 		__bio_add_page(&req->bio, req->page, PAGE_SIZE, 0);
- 
- 		zram_submit_wb_request(zram, wb_ctl, req);
--		blk_idx = 0;
-+		blk_idx = INVALID_BDEV_BLOCK;
- 		req = NULL;
- 		continue;
- 
-@@ -1351,7 +1350,7 @@ static int read_from_bdev(struct zram *z
- 	return -EIO;
- }
- 
--static void free_block_bdev(struct zram *zram, unsigned long blk_idx)
-+static void zram_release_bdev_block(struct zram *zram, unsigned long blk_idx)
- {
- }
- #endif
-@@ -1875,7 +1874,7 @@ static void zram_free_page(struct zram *
- 
- 	if (zram_test_flag(zram, index, ZRAM_WB)) {
- 		zram_clear_flag(zram, index, ZRAM_WB);
--		free_block_bdev(zram, zram_get_handle(zram, index));
-+		zram_release_bdev_block(zram, zram_get_handle(zram, index));
- 		goto out;
- 	}
- 
+ 	/* Should NEVER happen. Return bio error if it does. */
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
