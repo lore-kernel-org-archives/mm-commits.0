@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C65B2F7AA3
-	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 22:10:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92FF437031D
+	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 22:15:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763503836; cv=none; b=srv51gRK1sTxrYt6FGP2+9qd5e6q/CgSnHVFj6Yx9qw4k9KQUH6xDFG7Px+KSeLJCKxT8zGE+nfA9LV98ZgXRXCutKbIewc0TpIDluOMPKjmL8vMQUL8uee+AqTsyfdoxhWV6RsrR2eLC0Be53Cv9Fu5df7KOf7jx7bC8wfeuBY=
+	t=1763504137; cv=none; b=dUEgFYRTKM2eLIbjJ9havy9KhSaApxLsEnfxyJNP2kE0DEy9s6BrPni5QS3/HRseDKNFJUZ/2owRKM+9c0seD8xJN3oGNGm08l8QHPhUYkJXsjFqmmiObv9c6PiWNQAqmSA0Thx6lHXzVfqpmBxC7RxpRWqykdANDJKEg9J9dg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763503836; c=relaxed/simple;
-	bh=y7w9RUz4vLl8VXHqESw/q9cnKrgYXG30xoz9nZkuRMI=;
-	h=Date:To:From:Subject:Message-Id; b=DIPumYObGuc7GJXeQt2utbWUs/ggOWpzDooF1wGg8NI/1xK9adWDqxcaGqpM1cOuhNk7namExKLAAQjx3202aLGzWCsaNhFgpUhVZItNoflg6EjR2UFYR6scVyEzfiCz0jhOL93/uWo/N1nD5HWnpmpMfX1yQ1m8ZNiJLWD3lKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ynl0znHq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763504137; c=relaxed/simple;
+	bh=I3wTwL88wNYnRR22kBc6yOdRDtLsJlkSWr2qFeKNxc4=;
+	h=Date:To:From:Subject:Message-Id; b=Qf7MEQyhhEuYCoBUv8jacC01C7s8LGIuWvxxkpBP5jEfzLKtqa2z2ib/W6/gIhYTzlZOeXMYXzKgg96sIHzfKv7XajCb9ScD1KKO/Rs/pFW6FLkuWYUkB7Fe+gxhWMGmkfBR8w03dvjXRL8g9moGSi4hLjBbkd8X12xktIKf4Ac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J3eujxU+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ynl0znHq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6E7DC2BCB1;
-	Tue, 18 Nov 2025 22:10:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J3eujxU+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0ADF3C4CEF1;
+	Tue, 18 Nov 2025 22:15:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763503835;
-	bh=y7w9RUz4vLl8VXHqESw/q9cnKrgYXG30xoz9nZkuRMI=;
+	s=korg; t=1763504136;
+	bh=I3wTwL88wNYnRR22kBc6yOdRDtLsJlkSWr2qFeKNxc4=;
 	h=Date:To:From:Subject:From;
-	b=ynl0znHqub7JlJc1QCgpKYODiHUIDdK1GFfN2KpV8fh3oNOU3YLbQdBuAWUAW38o4
-	 sy3WIDFGlMwjM4PHRDowl4370g+L0yulTJnXRtc5djNne+njZAfTlH5FzewMkpzC4O
-	 oJzNRWiQ/jIDy4/r5UUIjDjB6CKg1BiC+c4/I/5w=
-Date: Tue, 18 Nov 2025 14:10:35 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=J3eujxU+Z1uijBRmVwAosJNr29SWd7V8ZXkfWtpKWCv/5SJoriowUr5HPqaS2+yV6
+	 2UmluZROsNdfoNp6jT5mAL0fAh9/3wIgalUm02+XNy6ysmNtPJvXCoMEe2jSOKvB6F
+	 V0Ss7Isve/hxwuTQ+ihSM3NrWw9AhSWdKWEVD18E=
+Date: Tue, 18 Nov 2025 14:15:34 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,dmatlack@google.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-test_kho-to-khos-entry.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251118221035.C6E7DC2BCB1@smtp.kernel.org>
+Subject: + kho-free-chunks-using-free_page-instead-of-kfree.patch added to mm-nonmm-unstable branch
+Message-Id: <20251118221536.0ADF3C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add test_kho to KHO's entry
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-test_kho-to-khos-entry.patch
+     Subject: kho: free chunks using free_page() instead of kfree()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kho-free-chunks-using-free_page-instead-of-kfree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-test_kho-to-khos-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-free-chunks-using-free_page-instead-of-kfree.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,35 +59,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pratyush Yadav <pratyush@kernel.org>
-Subject: MAINTAINERS: add test_kho to KHO's entry
-Date: Tue, 18 Nov 2025 19:24:15 +0100
+Subject: kho: free chunks using free_page() instead of kfree()
+Date: Tue, 18 Nov 2025 19:22:16 +0100
 
-Commit b753522bed0b7 ("kho: add test for kexec handover") introduced the
-KHO test but missed adding it to KHO's MAINTAINERS entry.  Add it so the
-KHO maintainers can get patches for its test.
+Before commit fa759cd75bce5 ("kho: allocate metadata directly from the
+buddy allocator"), the chunks were allocated from the slab allocator using
+kzalloc().  Those were rightly freed using kfree().
 
-Link: https://lkml.kernel.org/r/20251118182416.70660-1-pratyush@kernel.org
-Fixes: b753522bed0b7 ("kho: add test for kexec handover")
+When the commit switched to using the buddy allocator directly, it missed
+updating kho_mem_ser_free() to use free_page() instead of kfree().
+
+Link: https://lkml.kernel.org/r/20251118182218.63044-1-pratyush@kernel.org
+Fixes: fa759cd75bce5 ("kho: allocate metadata directly from the buddy allocator")
 Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Alexander Graf <graf@amazon.com>
+Cc: David Matlack <dmatlack@google.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/liveupdate/kexec_handover.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-test_kho-to-khos-entry
-+++ a/MAINTAINERS
-@@ -13798,6 +13798,7 @@ F:	Documentation/admin-guide/mm/kho.rst
- F:	Documentation/core-api/kho/*
- F:	include/linux/kexec_handover.h
- F:	kernel/kexec_handover.c
-+F:	lib/test_kho.c
- F:	tools/testing/selftests/kho/
+--- a/kernel/liveupdate/kexec_handover.c~kho-free-chunks-using-free_page-instead-of-kfree
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -360,7 +360,7 @@ static void kho_mem_ser_free(struct khos
+ 		struct khoser_mem_chunk *tmp = chunk;
  
- KEYS-ENCRYPTED
+ 		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
+-		kfree(tmp);
++		free_page((unsigned long)tmp);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from pratyush@kernel.org are
@@ -95,4 +100,5 @@ Patches currently in -mm which might be from pratyush@kernel.org are
 maintainers-add-test_kho-to-khos-entry.patch
 maintainers-add-myself-as-a-reviewer-for-kho.patch
 liveupdate-luo_file-add-private-argument-to-store-runtime-state.patch
+kho-free-chunks-using-free_page-instead-of-kfree.patch
 
