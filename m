@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95C32262FED
-	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 16:46:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 807A331ED71
+	for <mm-commits@vger.kernel.org>; Tue, 18 Nov 2025 17:24:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763484391; cv=none; b=XlrdUqBadD1KY3tTbMYLplWgGUy9u7JZ4gX23wyTXSz0V2G/dOH69clPy9rOFnij47VaE/3dyIbH6yIiKcbguYw+j3XtM9JJDLtucyE9Q2O1RENdsK4Af3cP6dfV5vfB87dJos6pulXrUK026/nBF0mFb4Y20FBheWpnc0xLVSM=
+	t=1763486667; cv=none; b=fJ/yVp7EX0BoWHDja9R0x7Qmtk1Mhh0RAWyVdlsDx3MBixcl5ZMhR2huEAWvKT+l9db7DPjawKPwUq7yinO6ma7tfMWpUM1Qy85z/SdxKvIZKJEwosgrT4P3PHU5O6SdPjB8FrMxiWdW7wXKS/yfuWoTD9W+AmGXzqU42CeFlvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763484391; c=relaxed/simple;
-	bh=WNW0c/XptHm5KZY4VXfPGmHY9iRt1H8ZmuSm/j2iE9Q=;
-	h=Date:To:From:Subject:Message-Id; b=ueKfaZwp3wFP4eCLcFsvKXFLoK5P+KnkEaifnlMM3J/ViXmUaigHrgxcMIFXwjj918Yk4VhzRwrQ0b3wEKD7Zo3eo1TA/PyayDm9QKyuVSQAX2KQCsoIv4XBjNsEHbtNfOR7qFH3WRrWdZmSbhY47EOenR7U6o8XMsf6y1QpF6A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WES90ZI3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763486667; c=relaxed/simple;
+	bh=iD3iUPtBTG2mATfoqnLhzlxgg2wNn8X5oTTsycFj8XM=;
+	h=Date:To:From:Subject:Message-Id; b=Qt+31/DLeyFPTw89I6Wwjb12+Kp6MMrLb8Uempb0jQQNelUamNdSqTMwd3EiwTPpsuNkhXwKVwP2yRq7xUjJd57F+pIcQybFTrpb2SbsNK3Aaf9A+TxSSH6zriRyZY7NsvE7qLlw36yi66ynU6WPAy7R7S7oLljqHUBV1FXUO0I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k8CftbhE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WES90ZI3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CC2DC116B1;
-	Tue, 18 Nov 2025 16:46:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k8CftbhE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3115C4AF0B;
+	Tue, 18 Nov 2025 17:24:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763484390;
-	bh=WNW0c/XptHm5KZY4VXfPGmHY9iRt1H8ZmuSm/j2iE9Q=;
+	s=korg; t=1763486667;
+	bh=iD3iUPtBTG2mATfoqnLhzlxgg2wNn8X5oTTsycFj8XM=;
 	h=Date:To:From:Subject:From;
-	b=WES90ZI3X+AJvgu6gFdYJJVGpKQUCbb5m822AMkVXgy0EjHWODgTqQhYYgH076hGD
-	 ziN9XInSQWzNyv9XFty2Kw89aRGWr7imKt856zE4Y+wTlfdmuEl70LQJ01DvNcxBoa
-	 DGEeVQJKbRutfuW2Y/MYhMCuJPhrOEmNzt9gAYP4=
-Date: Tue, 18 Nov 2025 08:46:28 -0800
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,david@ixit.cz,peng8420.li@gmail.com,akpm@linux-foundation.org
+	b=k8CftbhEuo6PPiAamipZlcAQR4319qPOfDmGAymK6Va83FgF8OWIXKFSu4ukjHPe8
+	 r9aZm6AanxC91NcD94GbXuU1L4YD+LhmTzsdWU3sENZOpWRg1I4AcfHeCrxc6/y6Vh
+	 ltWIai5ZNkYS14F+iR0HYjwedOtZdbzhe7s0NuV8=
+Date: Tue, 18 Nov 2025 09:24:25 -0800
+To: mm-commits@vger.kernel.org,andriy.shevchenko@intel.com,409411716@gms.tku.edu.tw,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags-fix.patch added to mm-new branch
-Message-Id: <20251118164630.6CC2DC116B1@smtp.kernel.org>
+Subject: + lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251118172426.D3115C4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: fix build error
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags-fix.patch
+     Subject: lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,48 +58,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peng Li <peng8420.li@gmail.com>
-Subject: mm/vmalloc: fix build error
-Date: Tue, 18 Nov 2025 23:50:34 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix
+Date: Tue Nov 18 09:22:32 AM PST 2025
 
-commit 056b93566a35 ("mm/vmalloc: warn only once when vmalloc
-detect invalid gfp flags") modify the function call from WARN to WARN_ONCE.
+fix kernedoc
 
-WARN_ONCE input parameter format error, missing ',' tag.
-Resulting in the following compilation errors:
-
-mm/vmalloc.c:3940:19: error: expected `)' before `invalid_mask'
- 3940 |                   invalid_mask, &invalid_mask, flags, &flags);
-
-After adding the "," tag, the compilation passed.
-
-Link: https://lkml.kernel.org/r/20251118155034.273696-1-peng8420.li@gmail.com
-Signed-off-by: Peng Li <peng8420.li@gmail.com>
-Cc: David Heidelberg <david@ixit.cz>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reported-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Closes: https://lkml.kernel.org/r/aRxMtmatG7wbqJKL@black.igk.intel.com
+Cc: Guan-Chun Wu <409411716@gms.tku.edu.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/base64.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags-fix
-+++ a/mm/vmalloc.c
-@@ -3936,7 +3936,7 @@ static gfp_t vmalloc_fix_flags(gfp_t fla
- 	gfp_t invalid_mask = flags & ~GFP_VMALLOC_SUPPORTED;
+--- a/lib/base64.c~lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix
++++ a/lib/base64.c
+@@ -21,7 +21,7 @@ static const char base64_tables[][65] =
+ 	[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",
+ };
  
- 	flags &= GFP_VMALLOC_SUPPORTED;
--	WARN_ONCE(1, "Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n"
-+	WARN_ONCE(1, "Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
- 		  invalid_mask, &invalid_mask, flags, &flags);
- 	return flags;
- }
+-/**
++/*
+  * Initialize the base64 reverse mapping for a single character
+  * This macro maps a character to its corresponding base64 value,
+  * returning -1 if the character is invalid.
+@@ -33,7 +33,8 @@ static const char base64_tables[][65] =
+ 		: (v) >= 'a' && (v) <= 'z' ? (v) - 'a' + 26 \
+ 		: (v) >= '0' && (v) <= '9' ? (v) - '0' + 52 \
+ 		: (v) == (ch_62) ? 62 : (v) == (ch_63) ? 63 : -1
+-/**
++
++/*
+  * Recursive macros to generate multiple Base64 reverse mapping table entries.
+  * Each macro generates a sequence of entries in the lookup table:
+  * INIT_2 generates 2 entries, INIT_4 generates 4, INIT_8 generates 8, and so on up to INIT_32.
 _
 
-Patches currently in -mm which might be from peng8420.li@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-selftests-mm-gup_test-stop-testing-foll_touch.patch
-selftests-mm-gup_test-fix-comment-regarding-origin-of-foll_write.patch
-mm-vmalloc-warn-only-once-when-vmalloc-detect-invalid-gfp-flags-fix.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+mm-implement-sticky-vma-flags-fix-2.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install-fix-fix.patch
+panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
+lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch
+lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
 
