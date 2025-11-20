@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C46348468
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C360535FF72
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763676287; cv=none; b=bWkBAByihsS2XPHR4oL08OYe5OmN13uVXYjfjZGG1R4irIvVaqpK9HprqZgRs/d/e5ZzmQbF7eu/4N0Q4EI5PwriLVeZU2FDKI0oLVd3R5FgRuGSQ2LYv+9Upl6ilnlsKDZRA+GjyvcixOrrFqF055xyyR1KUDuebZb9jwH1ehI=
+	t=1763676287; cv=none; b=lKy7mwcD0dE47byS6Rk6XD69+kGEwRLPp+mPotEzRaMv/8MnyfC/Y6XC/RmqMlnqz9AY+uf5iRtIDD+N0R1fARnCDh1gm5CukLTFnD72EJ3QzFilYeVQzY3L44zwB7/+jtSv/lxs5RNEfg+rtDkKlQTM8K7dMJwtjEfyNAe5Tbk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1763676287; c=relaxed/simple;
-	bh=ClX1TFupdeOsD5djPb+2bpaaMykt83lSQmeXvmTVbv8=;
-	h=Date:To:From:Subject:Message-Id; b=IDbOhJAsJmU7sga6Qnkt/swM0wX+bSwSBGp9oKGIHCoPm33BDTma80ZLFSMUzQwRbGE4ZKUGUVP/p5lAw3rShgvl5IHsaIgn0VHTOSJFm4gXJ6Z0SdQ70yffnBqsR3Ngssxz3dNX2D2UDVTBurjaj9wL1k55h2FLhlc9gIIuP0s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hw9K0Bie; arc=none smtp.client-ip=10.30.226.201
+	bh=zoyqcgy/Mky1JaTlm0/SXltL1nxziZsXn2KYHKDbhYI=;
+	h=Date:To:From:Subject:Message-Id; b=NDgBPU094WkBtDD1x/t972SzGAV0rY0MXbsVOF5IfSF8qSrl4nInIh0lCl0Dg23fPYBZO99hkputmIrYOZifKFTDwtFFsajyLJMW4r1BeanZUhD2VLL6Ova6RdeIa1JRwoLsorRVc5c1b6bpXScqTpmaO73KEg9dF58aNQnwYsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x70XjT31; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hw9K0Bie"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7ED3BC113D0;
-	Thu, 20 Nov 2025 22:04:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x70XjT31"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B7ACC113D0;
+	Thu, 20 Nov 2025 22:04:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763676286;
-	bh=ClX1TFupdeOsD5djPb+2bpaaMykt83lSQmeXvmTVbv8=;
+	s=korg; t=1763676287;
+	bh=zoyqcgy/Mky1JaTlm0/SXltL1nxziZsXn2KYHKDbhYI=;
 	h=Date:To:From:Subject:From;
-	b=Hw9K0BieiwWuARtw1+VebTLRFf0wn9BqMLtaDt/Ac1+aI2FNGBM2H78iAxMIVLGBt
-	 rwOwNFeJFnk70bnU/aTaMmgztBvYiSt8E236tqiz86AXBgQIaeHlqBGmH+VnaS6g/9
-	 zIkzAen9p0l4GOub0/w/wohHqFUQPNLcYL2puUy0=
-Date: Thu, 20 Nov 2025 14:04:45 -0800
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,ioworker0@gmail.com,corbet@lwn.net,akpm@linux-foundation.org,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
+	b=x70XjT31TVcB0bwbmcLYeNfwg+LOcJ0bM5KdcGO7EcT42FoRsURqDhxbzM9DBdy9i
+	 CMrgQVfiu0Z+2xy4uvb3BRPsb5C0ryp9wnb5NHGGs6971C/HZpiAkOePMTpMEEch2G
+	 km6po0Y4qbZuBKu/z8D39XwKGkOUU6FeH+tp7Waw=
+Date: Thu, 20 Nov 2025 14:04:46 -0800
+To: mm-commits@vger.kernel.org,xiubli@redhat.com,tytso@mit.edu,Slava.Dubeyko@ibm.com,sagi@grimberg.me,kbusch@kernel.org,jaegeuk@kernel.org,idryomov@gmail.com,home7438072@gmail.com,hch@lst.de,ebiggers@kernel.org,david.laight.linux@gmail.com,axboe@kernel.dk,409411716@gms.tku.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] sys_info-add-a-default-kernel-sys_info-mask.patch removed from -mm tree
-Message-Id: <20251120220446.7ED3BC113D0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-base64-add-support-for-multiple-variants.patch removed from -mm tree
+Message-Id: <20251120220447.7B7ACC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,114 +35,240 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: sys_info: add a default kernel sys_info mask
+     Subject: lib/base64: add support for multiple variants
 has been removed from the -mm tree.  Its filename was
-     sys_info-add-a-default-kernel-sys_info-mask.patch
+     lib-base64-add-support-for-multiple-variants.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: sys_info: add a default kernel sys_info mask
-Date: Thu, 13 Nov 2025 19:10:39 +0800
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: lib/base64: add support for multiple variants
+Date: Fri, 14 Nov 2025 14:00:45 +0800
 
-Which serves as a global default sys_info mask.  When users want the same
-system information for many error cases (panic, hung, lockup ...), they
-can chose to set this global knob only once, while not setting up each
-individual sys_info knobs.
+Patch series " lib/base64: add generic encoder/decoder, migrate users", v5.
 
-This just adds a 'lazy' option, and doesn't change existing kernel
-behavior as the mask is 0 by default.
+This series introduces a generic Base64 encoder/decoder to the kernel
+library, eliminating duplicated implementations and delivering significant
+performance improvements.
 
-Link: https://lkml.kernel.org/r/20251113111039.22701-5-feng.tang@linux.alibaba.com
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+The Base64 API has been extended to support multiple variants (Standard,
+URL-safe, and IMAP) as defined in RFC 4648 and RFC 3501.  The API now
+takes a variant parameter and an option to control padding.  As part of
+this series, users are migrated to the new interface while preserving
+their specific formats: fscrypt now uses BASE64_URLSAFE, Ceph uses
+BASE64_IMAP, and NVMe is updated to BASE64_STD.
+
+On the encoder side, the implementation processes input in 3-byte blocks,
+mapping 24 bits directly to 4 output symbols.  This avoids bit-by-bit
+streaming and reduces loop overhead, achieving about a 2.7x speedup
+compared to previous implementations.
+
+On the decoder side, replace strchr() lookups with per-variant reverse
+tables and process input in 4-character groups.  Each group is mapped to
+numeric values and combined into 3 bytes.  Padded and unpadded forms are
+validated explicitly, rejecting invalid '=' usage and enforcing tail
+rules.  This improves throughput by ~43-52x.
+
+
+This patch (of 6):
+
+Extend the base64 API to support multiple variants (standard, URL-safe,
+and IMAP) as defined in RFC 4648 and RFC 3501.  The API now takes a
+variant parameter and an option to control padding.  Update NVMe auth code
+to use the new interface with BASE64_STD.
+
+Link: https://lkml.kernel.org/r/20251114055829.87814-1-409411716@gms.tku.edu.tw
+Link: https://lkml.kernel.org/r/20251114060045.88792-1-409411716@gms.tku.edu.tw
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Co-developed-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
+Signed-off-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
+Reviewed-by: David Laight <david.laight.linux@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Keith Busch <kbusch@kernel.org>
+Cc: Sagi Grimberg <sagi@grimberg.me>
+Cc: "Theodore Y. Ts'o" <tytso@mit.edu>
+Cc: Viacheslav Dubeyko <Slava.Dubeyko@ibm.com>
+Cc: Xiubo Li <xiubli@redhat.com>
+Cc: Yu-Sheng Huang <home7438072@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    9 +++++
- lib/sys_info.c                              |   31 +++++++++++++++++-
- 2 files changed, 39 insertions(+), 1 deletion(-)
+ drivers/nvme/common/auth.c |    4 +-
+ include/linux/base64.h     |   10 ++++-
+ lib/base64.c               |   62 ++++++++++++++++++++---------------
+ 3 files changed, 46 insertions(+), 30 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~sys_info-add-a-default-kernel-sys_info-mask
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -521,6 +521,15 @@ default), only processes with the CAP_SY
- io_uring instances.
+--- a/drivers/nvme/common/auth.c~lib-base64-add-support-for-multiple-variants
++++ a/drivers/nvme/common/auth.c
+@@ -178,7 +178,7 @@ struct nvme_dhchap_key *nvme_auth_extrac
+ 	if (!key)
+ 		return ERR_PTR(-ENOMEM);
  
+-	key_len = base64_decode(secret, allocated_len, key->key);
++	key_len = base64_decode(secret, allocated_len, key->key, true, BASE64_STD);
+ 	if (key_len < 0) {
+ 		pr_debug("base64 key decoding error %d\n",
+ 			 key_len);
+@@ -663,7 +663,7 @@ int nvme_auth_generate_digest(u8 hmac_id
+ 	if (ret)
+ 		goto out_free_digest;
  
-+kernel_sys_info
-+===============
-+A comma separated list of extra system information to be dumped when
-+soft/hard lockup is detected, for example, "tasks,mem,timers,locks,...".
-+Refer 'panic_sys_info' section below for more details.
-+
-+It serves as the default kernel control knob, which will take effect
-+when a kernel module calls sys_info() with parameter==0.
-+
- kexec_load_disabled
- ===================
+-	ret = base64_encode(digest, digest_len, enc);
++	ret = base64_encode(digest, digest_len, enc, true, BASE64_STD);
+ 	if (ret < hmac_len) {
+ 		ret = -ENOKEY;
+ 		goto out_free_digest;
+--- a/include/linux/base64.h~lib-base64-add-support-for-multiple-variants
++++ a/include/linux/base64.h
+@@ -8,9 +8,15 @@
  
---- a/lib/sys_info.c~sys_info-add-a-default-kernel-sys_info-mask
-+++ a/lib/sys_info.c
-@@ -24,6 +24,13 @@ static const char * const si_names[] = {
- 	[ilog2(SYS_INFO_BLOCKED_TASKS)]		= "blocked_tasks",
- };
+ #include <linux/types.h>
  
-+/*
-+ * Default kernel sys_info mask.
-+ * If a kernel module calls sys_info() with "parameter == 0", then
-+ * this mask will be used.
-+ */
-+static unsigned long kernel_si_mask;
-+
- /* Expecting string like "xxx_sys_info=tasks,mem,timers,locks,ftrace,..." */
- unsigned long sys_info_parse_param(char *str)
- {
-@@ -110,9 +117,26 @@ int sysctl_sys_info_handler(const struct
- 	else
- 		return sys_info_read_handler(&table, buffer, lenp, ppos, ro_table->data);
- }
-+
-+static const struct ctl_table sys_info_sysctls[] = {
-+	{
-+		.procname	= "kernel_sys_info",
-+		.data		= &kernel_si_mask,
-+		.maxlen         = sizeof(kernel_si_mask),
-+		.mode		= 0644,
-+		.proc_handler	= sysctl_sys_info_handler,
-+	},
++enum base64_variant {
++	BASE64_STD,       /* RFC 4648 (standard) */
++	BASE64_URLSAFE,   /* RFC 4648 (base64url) */
++	BASE64_IMAP,      /* RFC 3501 */
 +};
 +
-+static int __init sys_info_sysctl_init(void)
-+{
-+	register_sysctl_init("kernel", sys_info_sysctls);
-+	return 0;
-+}
-+subsys_initcall(sys_info_sysctl_init);
- #endif
+ #define BASE64_CHARS(nbytes)   DIV_ROUND_UP((nbytes) * 4, 3)
  
--void sys_info(unsigned long si_mask)
-+static void __sys_info(unsigned long si_mask)
+-int base64_encode(const u8 *src, int len, char *dst);
+-int base64_decode(const char *src, int len, u8 *dst);
++int base64_encode(const u8 *src, int len, char *dst, bool padding, enum base64_variant variant);
++int base64_decode(const char *src, int len, u8 *dst, bool padding, enum base64_variant variant);
+ 
+ #endif /* _LINUX_BASE64_H */
+--- a/lib/base64.c~lib-base64-add-support-for-multiple-variants
++++ a/lib/base64.c
+@@ -1,12 +1,12 @@
+ // SPDX-License-Identifier: GPL-2.0
+ /*
+- * base64.c - RFC4648-compliant base64 encoding
++ * base64.c - Base64 with support for multiple variants
+  *
+  * Copyright (c) 2020 Hannes Reinecke, SUSE
+  *
+  * Based on the base64url routines from fs/crypto/fname.c
+- * (which are using the URL-safe base64 encoding),
+- * modified to use the standard coding table from RFC4648 section 4.
++ * (which are using the URL-safe Base64 encoding),
++ * modified to support multiple Base64 variants.
+  */
+ 
+ #include <linux/kernel.h>
+@@ -15,26 +15,31 @@
+ #include <linux/string.h>
+ #include <linux/base64.h>
+ 
+-static const char base64_table[65] =
+-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
++static const char base64_tables[][65] = {
++	[BASE64_STD] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
++	[BASE64_URLSAFE] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
++	[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",
++};
+ 
+ /**
+- * base64_encode() - base64-encode some binary data
++ * base64_encode() - Base64-encode some binary data
+  * @src: the binary data to encode
+  * @srclen: the length of @src in bytes
+- * @dst: (output) the base64-encoded string.  Not NUL-terminated.
++ * @dst: (output) the Base64-encoded string.  Not NUL-terminated.
++ * @padding: whether to append '=' padding characters
++ * @variant: which base64 variant to use
+  *
+- * Encodes data using base64 encoding, i.e. the "Base 64 Encoding" specified
+- * by RFC 4648, including the  '='-padding.
++ * Encodes data using the selected Base64 variant.
+  *
+- * Return: the length of the resulting base64-encoded string in bytes.
++ * Return: the length of the resulting Base64-encoded string in bytes.
+  */
+-int base64_encode(const u8 *src, int srclen, char *dst)
++int base64_encode(const u8 *src, int srclen, char *dst, bool padding, enum base64_variant variant)
  {
- 	if (si_mask & SYS_INFO_TASKS)
- 		show_state();
-@@ -135,3 +159,8 @@ void sys_info(unsigned long si_mask)
- 	if (si_mask & SYS_INFO_BLOCKED_TASKS)
- 		show_state_filter(TASK_UNINTERRUPTIBLE);
+ 	u32 ac = 0;
+ 	int bits = 0;
+ 	int i;
+ 	char *cp = dst;
++	const char *base64_table = base64_tables[variant];
+ 
+ 	for (i = 0; i < srclen; i++) {
+ 		ac = (ac << 8) | src[i];
+@@ -48,44 +53,49 @@ int base64_encode(const u8 *src, int src
+ 		*cp++ = base64_table[(ac << (6 - bits)) & 0x3f];
+ 		bits -= 6;
+ 	}
+-	while (bits < 0) {
+-		*cp++ = '=';
+-		bits += 2;
++	if (padding) {
++		while (bits < 0) {
++			*cp++ = '=';
++			bits += 2;
++		}
+ 	}
+ 	return cp - dst;
  }
-+
-+void sys_info(unsigned long si_mask)
-+{
-+	__sys_info(si_mask ? : kernel_si_mask);
-+}
+ EXPORT_SYMBOL_GPL(base64_encode);
+ 
+ /**
+- * base64_decode() - base64-decode a string
++ * base64_decode() - Base64-decode a string
+  * @src: the string to decode.  Doesn't need to be NUL-terminated.
+  * @srclen: the length of @src in bytes
+  * @dst: (output) the decoded binary data
++ * @padding: whether to append '=' padding characters
++ * @variant: which base64 variant to use
+  *
+- * Decodes a string using base64 encoding, i.e. the "Base 64 Encoding"
+- * specified by RFC 4648, including the  '='-padding.
++ * Decodes a string using the selected Base64 variant.
+  *
+  * This implementation hasn't been optimized for performance.
+  *
+  * Return: the length of the resulting decoded binary data in bytes,
+- *	   or -1 if the string isn't a valid base64 string.
++ *	   or -1 if the string isn't a valid Base64 string.
+  */
+-int base64_decode(const char *src, int srclen, u8 *dst)
++int base64_decode(const char *src, int srclen, u8 *dst, bool padding, enum base64_variant variant)
+ {
+ 	u32 ac = 0;
+ 	int bits = 0;
+ 	int i;
+ 	u8 *bp = dst;
++	const char *base64_table = base64_tables[variant];
+ 
+ 	for (i = 0; i < srclen; i++) {
+ 		const char *p = strchr(base64_table, src[i]);
+-
+-		if (src[i] == '=') {
+-			ac = (ac << 6);
+-			bits += 6;
+-			if (bits >= 8)
+-				bits -= 8;
+-			continue;
++		if (padding) {
++			if (src[i] == '=') {
++				ac = (ac << 6);
++				bits += 6;
++				if (bits >= 8)
++					bits -= 8;
++				continue;
++			}
+ 		}
+ 		if (p == NULL || src[i] == 0)
+ 			return -1;
 _
 
-Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
 
