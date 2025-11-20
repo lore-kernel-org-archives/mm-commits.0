@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D2C12E2F1F
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9A5F2512DE
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675117; cv=none; b=rHmyFOxBmZ5WkAGuoOLz6fMKv2keP1CW76rcNU12IJoGoTOHQIY5uAKWeDezMP0dlXsJd0inzkBrtAns1OcP4OpgkYKu60WgsuuaOFWVkAL/GIm6OuXMtFOI8z8wety4sQ1KRVteZgco6QGWR2UyE3Srg1n5t+GthZTVc233dTM=
+	t=1763675118; cv=none; b=aAZAwFCipiQlgnB9RdLChE2AcgzoASOfvHdBwVnXWVop5LmK45mkC66ElqkmqCSo1Hgm/9PhAOwgLZxHJ0hepAKVJ0x6+YfggdEWmw8HBMDZYrCRVbykzWG/VZeB8r2m8ldICNOSSr+YsZPyacsLAEOKD/MjCnh2X/aCTzAsz1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675117; c=relaxed/simple;
-	bh=iDK4tRoYRezOsPhQJXsyW1vP05tIRb/Po+RQBfi0ao8=;
-	h=Date:To:From:Subject:Message-Id; b=aciShn7dwxRA7IZh2LajR3pZR/KfZuWKz5Xy73G3U7j8ShfBB3dDVKSNu80UUzcGXOGJUVtc4dg+f9c3ZiEOgkfRDROmx4fFCJ9TL6f2+J+9p55rnU+YgTwotQV/+t1NZlzr2SlD8U5XzDc1hdRMtp18xdFrZGrSfpYMLYMaAjQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mPovaGxp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675118; c=relaxed/simple;
+	bh=8HULPA5ROmTOZuQWqACR/TPg1PEv/4Xr2DISzaDoUg0=;
+	h=Date:To:From:Subject:Message-Id; b=pgR63LwNHX+kEcCiGirqMuS0KaKdFOJM3SdPoPxS4pR0BEBwzJHgZhLWGZrzNR5ST4/a2FmCLL9JSudRJzSGNTGt09WmOXTpzDZT19QkYlSkEL6lh6142doZneIOxFOna9rLQ4VrnGxaT/RxhSebxy9unU49b0K9L7ifgZQ3Dhc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uMvuTCIh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mPovaGxp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0EF4C4CEF1;
-	Thu, 20 Nov 2025 21:45:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uMvuTCIh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACE2DC4CEF1;
+	Thu, 20 Nov 2025 21:45:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675117;
-	bh=iDK4tRoYRezOsPhQJXsyW1vP05tIRb/Po+RQBfi0ao8=;
+	s=korg; t=1763675118;
+	bh=8HULPA5ROmTOZuQWqACR/TPg1PEv/4Xr2DISzaDoUg0=;
 	h=Date:To:From:Subject:From;
-	b=mPovaGxpVEghoQqQBX/T2wcJroBp/RCjr2ilKKh/G16k6uaJmnMsYcT3KzukFGwh/
-	 CxfveSIu/s/wcgnkxCI7Nmee81AifI/MM2+3S5YF6hjA5qhNKmKqKUuNo1iVrTrRxL
-	 D6/wex1Ws0f0/xHsAj5dklvvLsr+PrhQqFPSuZZ0=
-Date: Thu, 20 Nov 2025 13:45:16 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,david.hunter.linux@gmail.com,mehdi.benhadjkhelifa@gmail.com,akpm@linux-foundation.org
+	b=uMvuTCIhJSyHJYpn1cn24n5GMJDu5asHfzzh0JT4viC2Jh9hsGjyH4A8AvoCIOYun
+	 tnelI8Rfev1TtXH6H3Fs0TryAF+O6x9Y9r8yjCxGIiOI8/fD3IvmbPvAK+dF2s6UYl
+	 xcEYbaDtTynuSkcCMpJ1VKKcF7lCyX4gg3Y8F8KM=
+Date: Thu, 20 Nov 2025 13:45:18 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,ojeda@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,hughd@google.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch removed from -mm tree
-Message-Id: <20251120214516.E0EF4C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch removed from -mm tree
+Message-Id: <20251120214518.ACE2DC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,112 +35,164 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
+     Subject: mm/damon: rename damos core filter helpers to have word core
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
+     mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
-Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
-Date: Tue, 11 Nov 2025 21:54:27 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: rename damos core filter helpers to have word core
+Date: Wed, 12 Nov 2025 07:41:04 -0800
 
-The current shmem_allocate_area() implementation uses a hardcoded virtual
-base address (BASE_PMD_ADDR) as a hint for mmap() when creating
-shmem-backed test areas.  This approach is fragile and may fail on systems
-with ASLR or different virtual memory layouts, where the chosen address is
-unavailable.
+Patch series "mm/damon: misc cleanups".
 
-Replace the static base address with a dynamically reserved address range
-obtained via mmap(NULL, ..., PROT_NONE).  The memfd-backed areas and their
-alias are then mapped into that reserved region using MAP_FIXED,
-preserving the original layout and aliasing semantics while avoiding
-collisions with unrelated mappings.
+Yet another batch of misc cleanups and refactoring for DAMON code, tests,
+and documents.
 
-This change improves robustness and portability of the test suite without
-altering its behavior or coverage.
+First two patches (1and 2) rename DAMOS core filters related code for
+readability.
 
-[mehdi.benhadjkhelifa@gmail.com: make cleanup code more clear, per Mike]
-  Link: https://lkml.kernel.org/r/20251113142050.108638-1-mehdi.benhadjkhelifa@gmail.com
-Link: https://lkml.kernel.org/r/20251111205739.420009-1-mehdi.benhadjkhelifa@gmail.com
-Signed-off-by: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Hunter <david.hunter.linux@gmail.com>
+Three following patches (3-5) refactor page table walk callback functions
+in DAMON, as suggested by Hugh and David, and I promised.
+
+Next two patches (6 and 7) refactor DAMON core layer kunit test and sysfs
+interface selftest to be simple and deduplicated.
+
+Final two patches (8 and 9) fix up sphinx and grammatical errors on
+documents.
+
+
+This patch (of 9):
+
+DAMOS filters handled by the core layer are called core filters, while
+those handled by the ops layer are called ops filters.  They share the
+same type but are managed in different places since core filters are
+evaluated before the ops filters.  They also have different helper
+functions that depend on their managed places.
+
+The helper functions for ops filters have '_ops_' keyword on their name,
+so it is easy to know they are for ops filters.  Meanwhile, the helper
+functions for core filters are not having the 'core' keyword on their
+name.  This makes it easy to be mistakenly used for ops filters.  Actually
+there was such a bug.
+
+To avoid future mistakes from similar confusions, rename DAMOS core
+filters helper functions to have a keyword 'core' on their names.
+
+Link: https://lkml.kernel.org/r/20251112154114.66053-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251112154114.66053-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Justin Stitt <justinstitt@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-common.c |   24 +++++++++++++--------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ .clang-format         |    4 ++--
+ include/linux/damon.h |    4 ++--
+ mm/damon/core.c       |   14 +++++++-------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -10,7 +10,6 @@
- uffd_test_ops_t *uffd_test_ops;
- uffd_test_case_ops_t *uffd_test_case_ops;
+--- a/.clang-format~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
++++ a/.clang-format
+@@ -140,8 +140,8 @@ ForEachMacros:
+   - 'damon_for_each_scheme_safe'
+   - 'damon_for_each_target'
+   - 'damon_for_each_target_safe'
+-  - 'damos_for_each_filter'
+-  - 'damos_for_each_filter_safe'
++  - 'damos_for_each_core_filter'
++  - 'damos_for_each_core_filter_safe'
+   - 'damos_for_each_ops_filter'
+   - 'damos_for_each_ops_filter_safe'
+   - 'damos_for_each_quota_goal'
+--- a/include/linux/damon.h~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
++++ a/include/linux/damon.h
+@@ -871,10 +871,10 @@ static inline unsigned long damon_sz_reg
+ #define damos_for_each_quota_goal_safe(goal, next, quota) \
+ 	list_for_each_entry_safe(goal, next, &(quota)->goals, list)
  
--#define BASE_PMD_ADDR ((void *)(1UL << 30))
+-#define damos_for_each_filter(f, scheme) \
++#define damos_for_each_core_filter(f, scheme) \
+ 	list_for_each_entry(f, &(scheme)->filters, list)
  
- /* pthread_mutex_t starts at page offset 0 */
- pthread_mutex_t *area_mutex(char *area, unsigned long nr, uffd_global_test_opts_t *gopts)
-@@ -142,30 +141,37 @@ static int shmem_allocate_area(uffd_glob
- 	unsigned long offset = is_src ? 0 : bytes;
- 	char *p = NULL, *p_alias = NULL;
- 	int mem_fd = uffd_mem_fd_create(bytes * 2, false);
-+	size_t region_size = bytes * 2 + hpage_size;
+-#define damos_for_each_filter_safe(f, next, scheme) \
++#define damos_for_each_core_filter_safe(f, next, scheme) \
+ 	list_for_each_entry_safe(f, next, &(scheme)->filters, list)
  
--	/* TODO: clean this up.  Use a static addr is ugly */
--	p = BASE_PMD_ADDR;
--	if (!is_src)
--		/* src map + alias + interleaved hpages */
--		p += 2 * (bytes + hpage_size);
-+	void *reserve = mmap(NULL, region_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS,
-+			-1, 0);
-+	if (reserve == MAP_FAILED) {
-+		close(mem_fd);
-+		return -errno;
-+	}
-+
-+	p = reserve;
- 	p_alias = p;
- 	p_alias += bytes;
- 	p_alias += hpage_size;  /* Prevent src/dst VMA merge */
+ #define damos_for_each_ops_filter(f, scheme) \
+--- a/mm/damon/core.c~mm-damon-rename-damos-core-filter-helpers-to-have-word-core
++++ a/mm/damon/core.c
+@@ -450,7 +450,7 @@ void damon_destroy_scheme(struct damos *
+ 	damos_for_each_quota_goal_safe(g, g_next, &s->quota)
+ 		damos_destroy_quota_goal(g);
  
--	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
-+	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
- 			   mem_fd, offset);
- 	if (*alloc_area == MAP_FAILED) {
- 		*alloc_area = NULL;
-+		munmap(reserve, region_size);
-+		close(mem_fd);
- 		return -errno;
+-	damos_for_each_filter_safe(f, next, s)
++	damos_for_each_core_filter_safe(f, next, s)
+ 		damos_destroy_filter(f);
+ 
+ 	damos_for_each_ops_filter_safe(f, next, s)
+@@ -864,12 +864,12 @@ static int damos_commit_quota(struct dam
+ 	return 0;
+ }
+ 
+-static struct damos_filter *damos_nth_filter(int n, struct damos *s)
++static struct damos_filter *damos_nth_core_filter(int n, struct damos *s)
+ {
+ 	struct damos_filter *filter;
+ 	int i = 0;
+ 
+-	damos_for_each_filter(filter, s) {
++	damos_for_each_core_filter(filter, s) {
+ 		if (i++ == n)
+ 			return filter;
  	}
- 	if (*alloc_area != p)
- 		err("mmap of memfd failed at %p", p);
+@@ -923,15 +923,15 @@ static int damos_commit_core_filters(str
+ 	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
+ 	int i = 0, j = 0;
  
--	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
-+	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
- 			  mem_fd, offset);
- 	if (area_alias == MAP_FAILED) {
--		munmap(*alloc_area, bytes);
- 		*alloc_area = NULL;
-+		munmap(reserve, region_size);
-+		close(mem_fd);
- 		return -errno;
+-	damos_for_each_filter_safe(dst_filter, next, dst) {
+-		src_filter = damos_nth_filter(i++, src);
++	damos_for_each_core_filter_safe(dst_filter, next, dst) {
++		src_filter = damos_nth_core_filter(i++, src);
+ 		if (src_filter)
+ 			damos_commit_filter(dst_filter, src_filter);
+ 		else
+ 			damos_destroy_filter(dst_filter);
  	}
- 	if (area_alias != p_alias)
+ 
+-	damos_for_each_filter_safe(src_filter, next, src) {
++	damos_for_each_core_filter_safe(src_filter, next, src) {
+ 		if (j++ < i)
+ 			continue;
+ 
+@@ -1767,7 +1767,7 @@ static bool damos_filter_out(struct damo
+ 	struct damos_filter *filter;
+ 
+ 	s->core_filters_allowed = false;
+-	damos_for_each_filter(filter, s) {
++	damos_for_each_core_filter(filter, s) {
+ 		if (damos_filter_match(ctx, t, r, filter, ctx->min_sz_region)) {
+ 			if (filter->allow)
+ 				s->core_filters_allowed = true;
 _
 
-Patches currently in -mm which might be from mehdi.benhadjkhelifa@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
