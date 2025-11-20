@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 190CA34D3AA
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5DF22D063A
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675078; cv=none; b=JDMda9FhOWCBPSKTNGoYTg/r9tnZ69xg/ZT0hgAFYuBs6VRVBNFdSVj47bO3ewcQ7ADKdzxUoayevcukrIlK4zW8WWZLF2e1Vn3OUUKMbZw9vMufCCvhsR+3swwKmxzU9bRU4tGKSx2Z8i0aKrnWD/25gbjPA+hGNTUT55ICttU=
+	t=1763675079; cv=none; b=M/CxHUXWDlsqniDImhY3iKFy2wKCvzEr8xrFQUT8w4G+7OnW4ZH1Z5efNbotPA8rWvFqfCy6hhp0dft0wYI77gIiAy6CS4xRJuJXrjIkAwItQpa6qo2tp9ddu1y9eJrkrm+S81Lsi2zcgAQ+XrRBMJ5dtW66tQLmgvM5jUZ7z9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675078; c=relaxed/simple;
-	bh=+HvLsrSRBNfFcrr3JQ8RynhWi83AnzDytMN1+BM/h8M=;
-	h=Date:To:From:Subject:Message-Id; b=mk9gVfxhwUV3PPZK56SuzzZjQd1lGIkXQDAi5YbR1P65cp6NkXJSkK1LmxEjgXYcSxI4XB9by8DGn9WXb3tDtpApf8uRyMiAWcLzA5fUdUv8dyeFFUY75FceAy6CjldOHSq1nUkFy30KO+UWJxn6c2hr7Un8+EwnSS5i2WAQTVg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zPZWboCy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675079; c=relaxed/simple;
+	bh=lhUkFjD2y14oTbkdkNil+8/0eAP42ycE8FSZsKfLRYQ=;
+	h=Date:To:From:Subject:Message-Id; b=akYhg1bSfEG/0PERKANd99z7LkHKn2GhwYxwLNJWIaOklzDN9cUdl78hPxi0/XyDceVWedc5aXb4IcDpz4mCFn9aoPHy1HsUhZRpHixvXadQ7NKntM1PzbiUbCRwtZ9U25ZmeMfFcwb5YtFqsFeLFq+ZNwFRwppm148QMes7oBc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vzxnzOXd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zPZWboCy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A89FDC4CEF1;
-	Thu, 20 Nov 2025 21:44:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vzxnzOXd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 915FDC4CEF1;
+	Thu, 20 Nov 2025 21:44:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675077;
-	bh=+HvLsrSRBNfFcrr3JQ8RynhWi83AnzDytMN1+BM/h8M=;
+	s=korg; t=1763675078;
+	bh=lhUkFjD2y14oTbkdkNil+8/0eAP42ycE8FSZsKfLRYQ=;
 	h=Date:To:From:Subject:From;
-	b=zPZWboCyGJxyecq1iy+cyX4wwNrPCBTxZM+3TJQDKzSo2Mag3Mr4WCCg87CvPfcPl
-	 HE+x0tYCReMGQH37DcacaoutfgjPDMHVkE3B/ToVFeV2cJTp7o+sJ7vejwmuSpUJ53
-	 HihJywDk88EUYrVTdqSaEiJssp1PwelCwMuonE9M=
-Date: Thu, 20 Nov 2025 13:44:37 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,kent.overstreet@linux.dev,zengchi@kylinos.cn,akpm@linux-foundation.org
+	b=vzxnzOXddjwGV52eqT116GXvcH4Phw0D1ZpA2XPkeuD3MSWo4BBLNkCyLSEggSJRt
+	 K00i34Qz+gRHlE4qbS1GO5b66J+bxxJik/3edy3agEYqNIMZGWCH294scXpaEffqr7
+	 uYhsGqWK3gRKyXlYg4QqixGg1bM7kK2U3F3ELLr0=
+Date: Thu, 20 Nov 2025 13:44:38 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] alloc_tag-use-%pe-format-specifier.patch removed from -mm tree
-Message-Id: <20251120214437.A89FDC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-optimise-hugetlb_folio_init_tail_vmemmap.patch removed from -mm tree
+Message-Id: <20251120214438.915FDC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/alloc_tag: use %pe format specifier
+     Subject: hugetlb: optimise hugetlb_folio_init_tail_vmemmap()
 has been removed from the -mm tree.  Its filename was
-     alloc_tag-use-%pe-format-specifier.patch
+     hugetlb-optimise-hugetlb_folio_init_tail_vmemmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zeng Chi <zengchi@kylinos.cn>
-Subject: lib/alloc_tag: use %pe format specifier
-Date: Wed, 5 Nov 2025 10:39:25 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: hugetlb: optimise hugetlb_folio_init_tail_vmemmap()
+Date: Thu, 6 Nov 2025 20:14:48 +0000
 
-The %pe format specifier is designed to print error pointers.  It prints a
-symbolic error name (eg.  -EINVAL) and it makes the code simpler by
-omitting PTR_ERR();
+Extract the zone number directly from the folio instead of using the
+folio's zone number to look up the zone and asking the zone what its
+number is.
 
-This patch fixes this cocci report:
-lib/alloc_tag.c:776:63-70: WARNING: Consider using %pe to print PTR_ERR()
+Also we should use &folio->page instead of casting from folio to page
 
-Link: https://lkml.kernel.org/r/20251105023925.1447482-1-zeng_chi911@163.com
-Signed-off-by: Zeng Chi <zengchi@kylinos.cn>
-Acked-by: SeongJae Park <sj@kernel.org>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Link: https://lkml.kernel.org/r/20251106201452.2292631-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/alloc_tag.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/alloc_tag.c~alloc_tag-use-%pe-format-specifier
-+++ a/lib/alloc_tag.c
-@@ -845,7 +845,7 @@ static int __init alloc_tag_init(void)
+--- a/mm/hugetlb.c~hugetlb-optimise-hugetlb_folio_init_tail_vmemmap
++++ a/mm/hugetlb.c
+@@ -3246,7 +3246,7 @@ static void __init hugetlb_folio_init_ta
+ 					unsigned long start_page_number,
+ 					unsigned long end_page_number)
+ {
+-	enum zone_type zone = zone_idx(folio_zone(folio));
++	enum zone_type zone = folio_zonenum(folio);
+ 	int nid = folio_nid(folio);
+ 	struct page *page = folio_page(folio, start_page_number);
+ 	unsigned long head_pfn = folio_pfn(folio);
+@@ -3279,7 +3279,7 @@ static void __init hugetlb_folio_init_vm
+ 	ret = folio_ref_freeze(folio, 1);
+ 	VM_BUG_ON(!ret);
+ 	hugetlb_folio_init_tail_vmemmap(folio, 1, nr_pages);
+-	prep_compound_head((struct page *)folio, huge_page_order(h));
++	prep_compound_head(&folio->page, huge_page_order(h));
+ }
  
- 	alloc_tag_cttype = codetag_register_type(&desc);
- 	if (IS_ERR(alloc_tag_cttype)) {
--		pr_err("Allocation tags registration failed, errno = %ld\n", PTR_ERR(alloc_tag_cttype));
-+		pr_err("Allocation tags registration failed, errno = %pe\n", alloc_tag_cttype);
- 		free_mod_tags_mem();
- 		shutdown_mem_profiling(true);
- 		return PTR_ERR(alloc_tag_cttype);
+ static bool __init hugetlb_bootmem_page_prehvo(struct huge_bootmem_page *m)
 _
 
-Patches currently in -mm which might be from zengchi@kylinos.cn are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-tweak-__vma_enter_locked.patch
 
