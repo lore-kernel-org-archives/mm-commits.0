@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 033882D6E55
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 23:14:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B3412AF1D
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 23:14:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763680449; cv=none; b=rxUX0KftxfZS3+Bg9xtAasoH2aWXV8ZMKbufKgBtCly5GNG/FovkbicNFPJrkXC4slWoHzWN2KVAVijq6AQoMf2ofEAdpqoZwwiqwpuWNoa7dyXnfK5qIToRndmnS2GWnW7bH0uDyCz1PUnrVCJqxWbVeAK/udmtHvhFkA/h6ZQ=
+	t=1763680473; cv=none; b=P4WmHg1r8dvnpKOZmbGXoKwxeqKe3sBjeKhGG9QKMUaqcV7krT3OZpTtJiySZUtZV9snjevmy10l6mIxNL3zmlqrEQ8GXFeAy98xuuVNO4uW0LTeraIB1xnoV86oZZ5Xs3lE6ruOh6XsQSKuVQDXqW72DcoOw/mkXmbGTCawviM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763680449; c=relaxed/simple;
-	bh=QzyLZ/0m5eyxSdcxxrj3g/iAM30fRFpPmfGOnE9d/rQ=;
-	h=Date:To:From:Subject:Message-Id; b=Y/PJ/Nyc2qBsbe+QYfm9rGMMEFBoMUlpoxI5/l1a79Je1vGV7LU6kyWhATPZf21yf2nImQuZQ7obWYLbzdZqSUlktdxkpLAxgirz+UqkjVzlR7065L1JwxtqaMshRF5XqQSpi/KzT2ycZnoEirvUVpvIdmYfuYzFG3pv8hTtwyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z8XPtylU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763680473; c=relaxed/simple;
+	bh=wTOb1IXic9YdCFXbuf+PbpCjqRJu68tWyGWhnHXxJzg=;
+	h=Date:To:From:Subject:Message-Id; b=b4+b5Wcunh+VdlRTw6pa6lADBpsqAZAklf1xK8JRCcbra4CiPqo6L3njtsWhRBuuspe1M61BfLdXm7YZBR48TQ38j9nlKB/NSEtJ4o6vUeVagiacnsHjyL6V3hcorD0UpMGaKOstRVVL1vp0Z68QlAlg5K7ssx7dEKmquTzIVSI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lx3XAbf0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z8XPtylU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B97BC4CEF1;
-	Thu, 20 Nov 2025 23:14:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lx3XAbf0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ADB6C4CEF1;
+	Thu, 20 Nov 2025 23:14:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763680446;
-	bh=QzyLZ/0m5eyxSdcxxrj3g/iAM30fRFpPmfGOnE9d/rQ=;
+	s=korg; t=1763680472;
+	bh=wTOb1IXic9YdCFXbuf+PbpCjqRJu68tWyGWhnHXxJzg=;
 	h=Date:To:From:Subject:From;
-	b=Z8XPtylUtizx6NdBnSpyTY830285zqqHPPUTXaO7YcHgc8S3xjqJfA9zm3VNEXKDo
-	 tT8qXiSEbzWibmDHqNMy6ZBWPzm4Q5ZH4FOkVQjDUrz5PeeQkvXRt4/S27V6S7h5rc
-	 oH5LtTzVlTxqDoVTqdHI7s2pzfPsEvbAdTotDnP8=
-Date: Thu, 20 Nov 2025 15:14:05 -0800
+	b=lx3XAbf0leUrqnZpnD2Cs0EUfytRXMMBCmTJMaau24Ktoec5PzJhT/BpWs0E009PW
+	 y5syJPM+SH9FxfP+fCB1Pub0pc9hxIRdjXDitC2ma7J1Yj1BWrZKNNh3U4fo68gb33
+	 ciYjpU4WDBSV90PslZB/QRUNGHW4glM+dOg28m40=
+Date: Thu, 20 Nov 2025 15:14:32 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,airlied@gmail.com,matthew.brost@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate_device-add-thp-splitting-during-migration-fix.patch added to mm-unstable branch
-Message-Id: <20251120231406.5B97BC4CEF1@smtp.kernel.org>
+Subject: + mm-migrate_device-handle-partially-mapped-folios-during-collection-fix.patch added to mm-unstable branch
+Message-Id: <20251120231432.9ADB6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fixup: mm/migrate_device: add THP splitting during migration
+     Subject: fixup: mm/migrate_device: handle partially mapped folios during
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate_device-add-thp-splitting-during-migration-fix.patch
+     mm-migrate_device-handle-partially-mapped-folios-during-collection-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-add-thp-splitting-during-migration-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-handle-partially-mapped-folios-during-collection-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Matthew Brost <matthew.brost@intel.com>
-Subject: fixup: mm/migrate_device: add THP splitting during migration
-Date: Thu, 20 Nov 2025 15:08:25 -0800
+Subject: fixup: mm/migrate_device: handle partially mapped folios during
+Date: Thu, 20 Nov 2025 15:08:24 -0800
 
-Fix splitting a folio in PMD collection to collect a skip on folio split
-failure and continue the loop at the current position on success.  This
-fixes an issue where migration entries that had already been collected
-could accidentally be left behind.
+Splitting a partially mapped folio caused a regression in the Intel Xe
+SVM test suite in the mremap section, resulting in the following stack
+trace:
 
-Link: https://lkml.kernel.org/r/20251120230825.181072-2-matthew.brost@intel.com
+ NFO: task kworker/u65:2:1642 blocked for more than 30 seconds.
+[  212.624286]       Tainted: G S      W           6.18.0-rc6-xe+ #1719
+[  212.638288] Workqueue: xe_page_fault_work_queue xe_pagefault_queue_work [xe]
+[  212.638323] Call Trace:
+[  212.638324]  <TASK>
+[  212.638325]  __schedule+0x4b0/0x990
+[  212.638330]  schedule+0x22/0xd0
+[  212.638331]  io_schedule+0x41/0x60
+[  212.638333]  migration_entry_wait_on_locked+0x1d8/0x2d0
+[  212.638336]  ? __pfx_wake_page_function+0x10/0x10
+[  212.638339]  migration_entry_wait+0xd2/0xe0
+[  212.638341]  hmm_vma_walk_pmd+0x7c9/0x8d0
+[  212.638343]  walk_pgd_range+0x51d/0xa40
+[  212.638345]  __walk_page_range+0x75/0x1e0
+[  212.638347]  walk_page_range_mm+0x138/0x1f0
+[  212.638349]  hmm_range_fault+0x59/0xa0
+[  212.638351]  drm_gpusvm_get_pages+0x194/0x7b0 [drm_gpusvm_helper]
+[  212.638354]  drm_gpusvm_range_get_pages+0x2d/0x40 [drm_gpusvm_helper]
+[  212.638355]  __xe_svm_handle_pagefault+0x259/0x900 [xe]
+[  212.638375]  ? update_load_avg+0x7f/0x6c0
+[  212.638377]  ? update_curr+0x13d/0x170
+[  212.638379]  xe_svm_handle_pagefault+0x37/0x90 [xe]
+[  212.638396]  xe_pagefault_queue_work+0x2da/0x3c0 [xe]
+[  212.638420]  process_one_work+0x16e/0x2e0
+[  212.638422]  worker_thread+0x284/0x410
+[  212.638423]  ? __pfx_worker_thread+0x10/0x10
+[  212.638425]  kthread+0xec/0x210
+[  212.638427]  ? __pfx_kthread+0x10/0x10
+[  212.638428]  ? __pfx_kthread+0x10/0x10
+[  212.638430]  ret_from_fork+0xbd/0x100
+[  212.638433]  ? __pfx_kthread+0x10/0x10
+[  212.638434]  ret_from_fork_asm+0x1a/0x30
+[  212.638436]  </TASK>
+
+The issue appears to be that migration PTEs are not properly removed
+after a split due to incorrect retry handling after a split failure or
+success. Upon failure, collect a skip, and upon success, continue the
+collection from the current position in the sequence.
+
+Also, while here, fix migrate_vma_split_folio to only lock the new fault
+folio if it is different from the original fault folio (i.e., it's
+possible the original fault folio is not the same as the one being
+split).
+
+Link: https://lkml.kernel.org/r/20251120230825.181072-1-matthew.brost@intel.com
 Signed-off-by: Matthew Brost <matthew.brost@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Zi Yan <ziy@nvidia.com>
@@ -80,7 +123,7 @@ Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -96,13 +139,39 @@ Cc: Balbir Singh <balbirs@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/migrate_device.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-add-thp-splitting-during-migration-fix
+--- a/mm/migrate_device.c~mm-migrate_device-handle-partially-mapped-folios-during-collection-fix
 +++ a/mm/migrate_device.c
-@@ -313,16 +313,18 @@ again:
- 			if (folio_test_large(folio)) {
+@@ -92,8 +92,10 @@ static int migrate_vma_split_folio(struc
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 	} else if (folio != new_fault_folio) {
+-		folio_get(new_fault_folio);
+-		folio_lock(new_fault_folio);
++		if (new_fault_folio != fault_folio) {
++			folio_get(new_fault_folio);
++			folio_lock(new_fault_folio);
++		}
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 	}
+@@ -154,10 +156,11 @@ again:
+ 		}
+ 	}
+ 
+-	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	ptep = pte_offset_map_lock(mm, pmdp, start, &ptl);
+ 	if (!ptep)
+ 		goto again;
+ 	arch_enter_lazy_mmu_mode();
++	ptep += (addr - start) / PAGE_SIZE;
+ 
+ 	for (; addr < end; addr += PAGE_SIZE, ptep++) {
+ 		struct dev_pagemap *pgmap;
+@@ -222,16 +225,18 @@ again:
+ 			if (folio && folio_test_large(folio)) {
  				int ret;
  
 +				arch_leave_lazy_mmu_mode();
@@ -122,7 +191,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -				addr = start;
  				goto again;
  			}
- 
+ 			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
 _
 
 Patches currently in -mm which might be from matthew.brost@intel.com are
