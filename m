@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 043132FB96A
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:05:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15A092FB96A
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:05:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763676301; cv=none; b=Q566gv4vdtlaikfwRSvRv+BlZp2XoWdsUEtOjuRQIJ1oZnaNybW6ZI2YRWroTncqDyCfFoiBWos3aeTMKP+k30X25m7AsaL7RJLDxxnNhiREQVoa+ezvgVSwQnBKhgiaD190hhPsiDn3J2+c2W26htyjDnDHj2BVDHyc7U/0uPg=
+	t=1763676302; cv=none; b=uffgt992Fx6GLxNuUTde0XwlAp5OLNsvXLY7jYw7xnLmjn1EbYBWkwxX/HEiBIwLIop01yuQJI41w3p0NEr8saQHOZAD9Bbd/Jb4mkfHXzi+xgK0ic0hsB3UBVIKJ6LRtQ5jshKjqrPN8fNGvw6gkMGuB60GRb/GT1ypeG98/4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763676301; c=relaxed/simple;
-	bh=D9+lsp4E5tam5LSNxDrkHKekIyoNGE8cZu11+h/sEZo=;
-	h=Date:To:From:Subject:Message-Id; b=Ht2hxBA3vq6d0vysnA2Npan2MkhmWjyzM3k1WOn3hVIVjPyxqEFwlWYSpaWE6M17yFDfsX10G6qfazWUvUZgTBDojkQgWaP/obj+xlXXVedVi7mx9wNCcjqA7VRgYeskCelF1bv9n352nlJdiBppkIy/qIJTYpU7rxbM8iv/Do8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E1yz179I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763676302; c=relaxed/simple;
+	bh=mjBYAVHuMOf5xd+RlWslUIE5NTPLr57Abk1NTB9XnBI=;
+	h=Date:To:From:Subject:Message-Id; b=MhvifnwfbMMliMDw5EbvFz5dqlTtyipKTRN/UvmJrnhA5kZb3r69QLJGzIAQ7M+Yj4cQRpeFPJnaFCNb/CqRoQzSK4pnjWI9tOoMshrV/N9CSDnBA47iF4qZeRvJ/xDVc+QuRqvzM0vJaCOyCUovMKMsCUZUXMeiMDxk5waeTuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ezZv2iw6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E1yz179I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C87D2C4CEF1;
-	Thu, 20 Nov 2025 22:05:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ezZv2iw6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE177C4CEF1;
+	Thu, 20 Nov 2025 22:05:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763676300;
-	bh=D9+lsp4E5tam5LSNxDrkHKekIyoNGE8cZu11+h/sEZo=;
+	s=korg; t=1763676302;
+	bh=mjBYAVHuMOf5xd+RlWslUIE5NTPLr57Abk1NTB9XnBI=;
 	h=Date:To:From:Subject:From;
-	b=E1yz179ImTnnFCDBFyKbvjR7lvnVbHu4hF61Ob1iOoMv/roNt3PzfulcpMXgv3+Sk
-	 Hw9jd9I1PYm5t3zFbk1HX9aOy9DgZQTOVFp4mUjpS/oWGQUQt/QYsm/3aJXlg13QIi
-	 cAsLEBYaL0Vq9RHrlxRSiwRRRAcyzSVuvcZn24k8=
-Date: Thu, 20 Nov 2025 14:05:00 -0800
-To: mm-commits@vger.kernel.org,a0979652527@icloud.com,akpm@linux-foundation.org
+	b=ezZv2iw6FfmiQP5EKsHO007zejwffaArGudlP7IkmxbCN+kxTo4zJwjOAbEjgIGcQ
+	 LCCSS3lvUTg5iXtvuEA5qgzgGxdthegcxv6mwtkWfW0ZZ26j2QFxF7flh+K0EDMiG9
+	 mGsptCByID9/Ofe7rj1uZ4hU+MPTJKvW5Y8uZmO4=
+Date: Thu, 20 Nov 2025 14:05:01 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-ratelimit-fix-spelling-mistake-seperately.patch removed from -mm tree
-Message-Id: <20251120220500.C87D2C4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-replace-deprecated-strcpy-in-ocfs2_create_xattr_block.patch removed from -mm tree
+Message-Id: <20251120220501.DE177C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: ratelimit: fix spelling mistake 'seperately'
+     Subject: ocfs2: replace deprecated strcpy in ocfs2_create_xattr_block
 has been removed from the -mm tree.  Its filename was
-     lib-ratelimit-fix-spelling-mistake-seperately.patch
+     ocfs2-replace-deprecated-strcpy-in-ocfs2_create_xattr_block.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chia-Liang Wang <a0979652527@icloud.com>
-Subject: lib: ratelimit: fix spelling mistake 'seperately'
-Date: Wed, 19 Nov 2025 18:11:44 +0800
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: ocfs2: replace deprecated strcpy in ocfs2_create_xattr_block
+Date: Tue, 18 Nov 2025 19:53:44 +0100
 
-Corrects a spelling mistake in a comment in ratelimit.c where 'seperately'
-was used instead of 'separately'.
+strcpy() has been deprecated [1] because it performs no bounds checking on
+the destination buffer, which can lead to buffer overflows.  Replace it
+with the safer strscpy(), and copy directly into '->xb_signature' instead
+of using the start of the struct as the destination buffer.
 
-Link: https://lkml.kernel.org/r/20251119101144.3175-1-a0979625527@icloud.com
-Signed-off-by: Chia-Liang Wang <a0979652527@icloud.com>
+Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strcpy [1]
+Link: https://lkml.kernel.org/r/20251118185345.132411-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ratelimit.c |    2 +-
+ fs/ocfs2/xattr.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/ratelimit.c~lib-ratelimit-fix-spelling-mistake-seperately
-+++ a/lib/ratelimit.c
-@@ -27,7 +27,7 @@
- int ___ratelimit(struct ratelimit_state *rs, const char *func)
- {
- 	/* Paired with WRITE_ONCE() in .proc_handler().
--	 * Changing two values seperately could be inconsistent
-+	 * Changing two values separately could be inconsistent
- 	 * and some message could be lost.  (See: net_ratelimit_state).
- 	 */
- 	int interval = READ_ONCE(rs->interval);
+--- a/fs/ocfs2/xattr.c~ocfs2-replace-deprecated-strcpy-in-ocfs2_create_xattr_block
++++ a/fs/ocfs2/xattr.c
+@@ -2908,7 +2908,7 @@ static int ocfs2_create_xattr_block(stru
+ 	/* Initialize ocfs2_xattr_block */
+ 	xblk = (struct ocfs2_xattr_block *)new_bh->b_data;
+ 	memset(xblk, 0, inode->i_sb->s_blocksize);
+-	strcpy((void *)xblk, OCFS2_XATTR_BLOCK_SIGNATURE);
++	strscpy(xblk->xb_signature, OCFS2_XATTR_BLOCK_SIGNATURE);
+ 	xblk->xb_suballoc_slot = cpu_to_le16(ctxt->meta_ac->ac_alloc_slot);
+ 	xblk->xb_suballoc_loc = cpu_to_le64(suballoc_loc);
+ 	xblk->xb_suballoc_bit = cpu_to_le16(suballoc_bit_start);
 _
 
-Patches currently in -mm which might be from a0979652527@icloud.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
 
