@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73A1F3002C5
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:29:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B3E2D5425
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:37:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763674170; cv=none; b=csYvZPPFoWHLLqN8bs90A5e6TU5NpQ3W2QOjq84cMHrc9fJkpjeB/pmV2Gw9/qKJRIEUg8MQGCsLvTWPHvW9vZkqe5+cHsG2bMnvO8640OzAZiZPuZtcJwMOERnW6wXrvFyFzKMNAAcWasHF9/0M6JB3QY5VvNjnoTXWsu/E470=
+	t=1763674665; cv=none; b=h4z33E016KuOmPUWv19MqSxadmPPXVHwsYgw/QzkED8r3D48cXPZtI1V2wJcp2IwT6NWVpK201y455VlUCGxm/VV5YYof6aMJhVL1jCWtNZC0oXdaiOWypFAZApanVsE630l0RKqHTz8HWgSn64dY3q1di0RL4dl6akw8yOBC0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763674170; c=relaxed/simple;
-	bh=nnfsx20G6kNPArs8oYPAFxyiXrAZn/aGmIq+lTxnnZc=;
-	h=Date:To:From:Subject:Message-Id; b=oZbJT/KVfgkn9n4OFvKG+Km9BLC8JgfSUgIlirIlXOb2JTT1cmfi56obielEcXT7DFt4//8/pi2zukGJ1z0K1KbHB3wqExa0wwuYYwS4BBew3AXCq5s6o8QMDDN5hpiX/1tEqHI7Zz5FrBKMvOADfJ3dUMz/vtg4xyT1AcOvYVI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nwm1ujDz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763674665; c=relaxed/simple;
+	bh=l0mIhC66aUkZtddtoeFo9jy71TYittfncjxyrngdpRA=;
+	h=Date:To:From:Subject:Message-Id; b=UVTjAJISRwcpfbgowI8+ZXqBB1tr4TqN0TfeXTJXwbz3PtQ335c4hs3ZIOlZKwrImvP1VUU2jniG1aZoWybfoI3AgkBXQMUYJH7Y90usSuFVmIChf9xkHMNiJtElIVQ3cJPQxA5j8B1SOxZEd2riA24FpWn7cu4P02UsbwNghb4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cDgSZv8E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nwm1ujDz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE596C4CEF1;
-	Thu, 20 Nov 2025 21:29:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cDgSZv8E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23269C4CEF1;
+	Thu, 20 Nov 2025 21:37:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763674170;
-	bh=nnfsx20G6kNPArs8oYPAFxyiXrAZn/aGmIq+lTxnnZc=;
+	s=korg; t=1763674665;
+	bh=l0mIhC66aUkZtddtoeFo9jy71TYittfncjxyrngdpRA=;
 	h=Date:To:From:Subject:From;
-	b=Nwm1ujDz5TBJArGD0o4TqKUGa41YtGTrLPZxS8bEvlulXu1BztxnpMZOYP2ojNLWT
-	 cnkz+ATfraUnCYISjKTTNg1v6LNsBm/rSc75DyCQgSBclSB0rgWtZ2K+uYgquaJNiz
-	 aEBEKyT4j64UuRRdEzHMUXcHBqhNn75GpzGcAcmM=
-Date: Thu, 20 Nov 2025 13:29:29 -0800
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=cDgSZv8EbNE049xBr+7MnVi8/1Vv/FpHp8HXVDmH5x5y2p8UQl2N+3BLAqDQwQttp
+	 LPcAibGZzJMlzEPqn0pUL8prxeoOF5ZwvZVnQv4gSAfYzc9+eucvt3rco3rQetC6c9
+	 JA6jEBrdRSkm3dtreTt6eCRCEnbFrG70RXBQtmSs=
+Date: Thu, 20 Nov 2025 13:37:44 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,david.hunter.linux@gmail.com,mehdi.benhadjkhelifa@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] migrate-optimise-alloc_migration_target-fix.patch removed from -mm tree
-Message-Id: <20251120212929.DE596C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2.patch removed from -mm tree
+Message-Id: <20251120213745.23269C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/migrate: fix zidx type
+     Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
 has been removed from the -mm tree.  Its filename was
-     migrate-optimise-alloc_migration_target-fix.patch
+     selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2.patch
 
-This patch was dropped because it was folded into migrate-optimise-alloc_migration_target.patch
+This patch was dropped because it was folded into selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/migrate: fix zidx type
-Date: Thu, 6 Nov 2025 19:41:13 -0500
+From: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
+Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
+Date: Thu, 13 Nov 2025 15:20:33 +0100
 
-folio_zonenum() returns enum zone_type. It would be better to also
-fix zidx's type.
+make cleanup code more clear, per Mike
 
-Link: https://lkml.kernel.org/r/26E8FF35-503E-4F14-98F7-7B4FA25FBD37@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20251113142050.108638-1-mehdi.benhadjkhelifa@gmail.com
+Signed-off-by: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Hunter <david.hunter.linux@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/uffd-common.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/migrate.c~migrate-optimise-alloc_migration_target-fix
-+++ a/mm/migrate.c
-@@ -2165,7 +2165,7 @@ struct folio *alloc_migration_target(str
- 	gfp_t gfp_mask;
- 	unsigned int order = 0;
- 	int nid;
--	int zidx;
-+	enum zone_type zidx;
+--- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -6,7 +6,6 @@
+  */
  
- 	mtc = (struct migration_target_control *)private;
- 	gfp_mask = mtc->gfp_mask;
+ #include "uffd-common.h"
+-#include "asm-generic/mman-common.h"
+ 
+ uffd_test_ops_t *uffd_test_ops;
+ uffd_test_case_ops_t *uffd_test_case_ops;
+@@ -151,7 +150,7 @@ static int shmem_allocate_area(uffd_glob
+ 		return -errno;
+ 	}
+ 
+-	p = (char *)reserve;
++	p = reserve;
+ 	p_alias = p;
+ 	p_alias += bytes;
+ 	p_alias += hpage_size;  /* Prevent src/dst VMA merge */
+@@ -159,8 +158,8 @@ static int shmem_allocate_area(uffd_glob
+ 	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
+ 			   mem_fd, offset);
+ 	if (*alloc_area == MAP_FAILED) {
+-		munmap(reserve, region_size);
+ 		*alloc_area = NULL;
++		munmap(reserve, region_size);
+ 		close(mem_fd);
+ 		return -errno;
+ 	}
+@@ -170,8 +169,8 @@ static int shmem_allocate_area(uffd_glob
+ 	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
+ 			  mem_fd, offset);
+ 	if (area_alias == MAP_FAILED) {
+-		munmap(reserve, region_size);
+ 		*alloc_area = NULL;
++		munmap(reserve, region_size);
+ 		close(mem_fd);
+ 		return -errno;
+ 	}
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from mehdi.benhadjkhelifa@gmail.com are
 
-migrate-optimise-alloc_migration_target.patch
-mm-huge_memory-add-split_huge_page_to_order.patch
-mm-memory-failure-improve-large-block-size-folio-handling.patch
-mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
-mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch
-mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch
+selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
 
