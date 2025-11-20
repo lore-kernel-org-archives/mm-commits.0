@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B46E19FA93
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:52:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 254DD275844
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675548; cv=none; b=ZOeND5HD12/3nJpmYzECXRCc5Q1Wz2mrpv/muqMhAyve3zSqomHodSVxWyIs4UUIy2nVVRZwEcFAopEJjIGKjE9Kx3WR6MI/g4melzYdIazL/QTAkhoTDXHfvLPrsaJHE/5WF8XEL0t/nNbzhqjDRAn3chSW1xaUKG9ydiox2/k=
+	t=1763675580; cv=none; b=XijCc3No+A/iALeDry2baIxo2UrlwHka/knpBUk1uJa8sUe69VgKmh3mEcxqFhNiVuuR8K3s27gsUUkExNLIexf88KNy1jf/dX5YXHlUQxoBc1JiNhTl9veBhViBzJ2kz12OFm8s0y7WLNdp0N4QBJD1n+23mSactSuBM2Df4YY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675548; c=relaxed/simple;
-	bh=HJkFawL+UiHSCq9guTYIdbobC+tYqoHU2ufhymiXhxw=;
-	h=Date:To:From:Subject:Message-Id; b=U/zqUZGmG1Exmu3KalW9TADUMeOnT7SOm9vRox1QvrpH3ZJRlLY4b8VGrvcC3X4RV0N7Dv+Q7M3mlKSJou75jC/9+ohQGJxu1VpxIPsGYPmbhH7jLrn63zsbOso+zp3FvkU2iECqBxl6k34krVXAawGAEa4xclDLoZcoxTDq7Ss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kmzl1q+7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675580; c=relaxed/simple;
+	bh=uBir9EDO8H7xkzrgbqhWAtnFEV4FYdrhp5lTK+LWVME=;
+	h=Date:To:From:Subject:Message-Id; b=r0l21LzQZoLUjStt2q9zgh9ddsFMX8Fqs498+zcA8dh5znYNCUtujwDF2LRsa+kDdTJEv468M3xjIrlTU+L5YH/SOm73bsV7Go3Rcwb7+4nZSr8/OSnz82TN1bLYjna4HT2xTqsCr6Fk9bze2O39FeEBEOSMibXtvizLj1tGHVc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SnI1B260; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kmzl1q+7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10852C4CEF1;
-	Thu, 20 Nov 2025 21:52:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SnI1B260"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C306C4CEF1;
+	Thu, 20 Nov 2025 21:52:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675548;
-	bh=HJkFawL+UiHSCq9guTYIdbobC+tYqoHU2ufhymiXhxw=;
+	s=korg; t=1763675579;
+	bh=uBir9EDO8H7xkzrgbqhWAtnFEV4FYdrhp5lTK+LWVME=;
 	h=Date:To:From:Subject:From;
-	b=kmzl1q+7BzVq82llfntjz3HKs3PPLhcady7L/at6vzrMA7QqDcjqcsWPt21qJVVy1
-	 L1tE0+YnJCCuSS+O0I3kY45LCry3GaSgNkSTprHtDeRiC6ktYH3zvHA1XMOi3VYtwT
-	 Q2dcqrMmg8n+8dHlg6O4rOro0ipBn6HjzmywA5c0=
-Date: Thu, 20 Nov 2025 13:52:27 -0800
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,ioworker0@gmail.com,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
+	b=SnI1B260RJmfttdp74HEBdUltd82VGk1ReXH3mhdEnHdtvaIKkI+YGaRGxt3cTpJz
+	 4Ah2We3Aqe5IhkPnL3oNjpJLPwt+MVZoR/+Ro4Se4Q4V5jKEVH8J/xRQ8ccZ2Xp64y
+	 meMsmwwXF2xL5wmeH0g8DFmFErBUcouHFcL3GAIM=
+Date: Thu, 20 Nov 2025 13:52:59 -0800
+To: mm-commits@vger.kernel.org,andriy.shevchenko@intel.com,409411716@gms.tku.edu.tw,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix.patch removed from -mm tree
-Message-Id: <20251120215228.10852C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch removed from -mm tree
+Message-Id: <20251120215259.9C306C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
+     Subject: lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix
 has been removed from the -mm tree.  Its filename was
-     hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix.patch
+     lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch
 
-This patch was dropped because it was folded into hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
+This patch was dropped because it was folded into lib-base64-optimize-base64_decode-with-reverse-lookup-tables.patch
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
-Date: Wed, 5 Nov 2025 19:30:36 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix
+Date: Tue Nov 18 09:22:32 AM PST 2025
 
-maintain consistecy established behavior, per Lance and Petr
+fix kernedoc
 
-Link: https://lkml.kernel.org/r/aRncJo1mA5Zk77Hr@U-2FWC9VHC-2323.local
-Suggested-by: Petr Mladek <pmladek@suse.com>
-Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Reported-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Closes: https://lkml.kernel.org/r/aRxMtmatG7wbqJKL@black.igk.intel.com
+Cc: Guan-Chun Wu <409411716@gms.tku.edu.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ lib/base64.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/kernel/hung_task.c~hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
-+++ a/kernel/hung_task.c
-@@ -223,8 +223,11 @@ static inline void debug_show_blocker(st
- }
- #endif
+--- a/lib/base64.c~lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix
++++ a/lib/base64.c
+@@ -21,7 +21,7 @@ static const char base64_tables[][65] =
+ 	[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",
+ };
  
--static void check_hung_task(struct task_struct *t, unsigned long timeout)
-+static void check_hung_task(struct task_struct *t, unsigned long timeout,
-+		unsigned long prev_detect_count)
- {
-+	unsigned long total_hung_task;
+-/**
++/*
+  * Initialize the base64 reverse mapping for a single character
+  * This macro maps a character to its corresponding base64 value,
+  * returning -1 if the character is invalid.
+@@ -33,7 +33,8 @@ static const char base64_tables[][65] =
+ 		: (v) >= 'a' && (v) <= 'z' ? (v) - 'a' + 26 \
+ 		: (v) >= '0' && (v) <= '9' ? (v) - '0' + 52 \
+ 		: (v) == (ch_62) ? 62 : (v) == (ch_63) ? 63 : -1
+-/**
 +
- 	if (!task_is_hung(t, timeout))
- 		return;
- 
-@@ -234,13 +237,19 @@ static void check_hung_task(struct task_
- 	 */
- 	sysctl_hung_task_detect_count++;
- 
-+	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
- 	trace_sched_process_hang(t);
- 
-+	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
-+		console_verbose();
-+		hung_task_call_panic = true;
-+	}
-+
- 	/*
- 	 * Ok, the task did not get scheduled for more than 2 minutes,
- 	 * complain:
- 	 */
--	if (sysctl_hung_task_warnings) {
-+	if (sysctl_hung_task_warnings || hung_task_call_panic) {
- 		if (sysctl_hung_task_warnings > 0)
- 			sysctl_hung_task_warnings--;
- 		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
-@@ -295,7 +304,6 @@ static void check_hung_uninterruptible_t
- {
- 	int max_count = sysctl_hung_task_check_count;
- 	unsigned long last_break = jiffies;
--	unsigned long total_hung_task;
- 	struct task_struct *g, *t;
- 	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
- 	int need_warning = sysctl_hung_task_warnings;
-@@ -320,20 +328,14 @@ static void check_hung_uninterruptible_t
- 			last_break = jiffies;
- 		}
- 
--		check_hung_task(t, timeout);
-+		check_hung_task(t, timeout, prev_detect_count);
- 	}
-  unlock:
- 	rcu_read_unlock();
- 
--	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
--	if (!total_hung_task)
-+	if (!(sysctl_hung_task_detect_count - prev_detect_count))
- 		return;
- 
--	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
--		console_verbose();
--		hung_task_call_panic = true;
--	}
--
- 	if (need_warning || hung_task_call_panic) {
- 		si_mask |= SYS_INFO_LOCKS;
- 
++/*
+  * Recursive macros to generate multiple Base64 reverse mapping table entries.
+  * Each macro generates a sequence of entries in the lookup table:
+  * INIT_2 generates 2 entries, INIT_4 generates 4, INIT_8 generates 8, and so on up to INIT_32.
 _
 
-Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch
-hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
-watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup.patch
-sys_info-add-a-default-kernel-sys_info-mask.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+mm-correctly-handle-uffd-pte-markers-fix.patch
+mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix-fix.patch
+lib-base64-optimize-base64_decode-with-reverse-lookup-tables.patch
+lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
+uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
 
