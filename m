@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD062F60A4
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4FC62F60A4
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675099; cv=none; b=efxuCuDm974RzF+ursxJaEXCKgYf9gD3LhTyQsWJfQyeggTjalvLK4rZbEg1VFVCRhNZWApj+mQKDR9b9hYKzyBkx6jmPr4cfBc34EUeynz3i3JXmg1TIMmr0cCJdwhduCz0nVrMq+cXqqk7jLg0PNvDgU5W7bblUqzgQBy1uG8=
+	t=1763675099; cv=none; b=LHAF4SZNUwi0ZK3XTI3B0GJIRfT3+Axn0+BJyD2PrbnXyU9mFJbDD3ELo5Ct3QT5HjR9a1OM69X5m51GNzldUZay2NfxyqBoEjKmYkprA13wJhpOkSqwF5u7UqUYxGBUY2Q45VU/LYxs5l7bqIAUkW30tFcPWv9zm0toBeN4tOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1763675099; c=relaxed/simple;
-	bh=HNeHgrd3Lav2YGsKeGHoLZzpqGMAkU97eGevpf9hd78=;
-	h=Date:To:From:Subject:Message-Id; b=NI1SJVaqMJeKmsy4aNI9T5jXXZkOSzMgKvHY9hxZLshh/MmvKY6V5iJ6d+yOrzH46YF1/JrSxlXjPptd74p8qRcNFfw7JTMqUnHw8KjxgHZ8wPdJ4XsMN4Jl32UAMQsPDP4tAf++iihCVIrHQTFq5+1Yp/OQH1QTu12AMYJUdTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s6TrDye9; arc=none smtp.client-ip=10.30.226.201
+	bh=tFAE4PWDJHrvJbPTxabUEQob6VKJv242um9LjgkPFx0=;
+	h=Date:To:From:Subject:Message-Id; b=QR47tvR0q76ME/wznqC1zuEsbnL3b5FCVVx3ZoBrKm6R/NFDHhn+XBjUrmi6x7UVNQt3zlg89YxxvUtCAMddh393fuLZqM4YQ1fTtU83sPP0zt7A1kegYINT7F8TEyUaZMkosnwuOw4rOrTq5eDtx+hMtIKfLuin1lKH5wJDFJw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uS9R58dB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s6TrDye9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A80FCC4CEF1;
-	Thu, 20 Nov 2025 21:44:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uS9R58dB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8B6FC4CEF1;
+	Thu, 20 Nov 2025 21:44:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675098;
-	bh=HNeHgrd3Lav2YGsKeGHoLZzpqGMAkU97eGevpf9hd78=;
+	s=korg; t=1763675099;
+	bh=tFAE4PWDJHrvJbPTxabUEQob6VKJv242um9LjgkPFx0=;
 	h=Date:To:From:Subject:From;
-	b=s6TrDye94TG2DmVx5ZLP8lSjmGK7HaT7dDANUhhUzeMjgyNV0A1fPEmfUcNH/tKSR
-	 ivAHiU3KJpRXmMmYuIr9U7O3h7H3mQRfbmqODJymml1AUZE64se8dvzikaWTvmksld
-	 UedxDGi+MpqaZPK/OZqGzJHlw8wKCnUoLhWjsfyc=
-Date: Thu, 20 Nov 2025 13:44:58 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,songmuchun@bytedance.com,roman.gushchin@linux.dev,rientjes@google.com,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=uS9R58dBZ3MBnJF6cS4YJ1eTyYi76QiEuw42nCoJ8tT96wNq3L6NJG/R2KoH900Bo
+	 n/+mhQnHmQZsi4dOfpYFf0Bl1D0bmYgF7GhzXvzIdLWZWY5sJjeiCPlC8PctR4Hlu4
+	 sKITkVDtbtX93R9Vr88HKYcNk2P7IWULM3emXqFw=
+Date: Thu, 20 Nov 2025 13:44:59 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,dave@stgolabs.net,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-dump-memcg-protection-info-on-oom-or-alloc-failures.patch removed from -mm tree
-Message-Id: <20251120214458.A80FCC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rename-walk_page_range_mm.patch removed from -mm tree
+Message-Id: <20251120214459.A8B6FC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,196 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: dump memcg protection info on oom or alloc failures
+     Subject: mm: rename walk_page_range_mm()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-dump-memcg-protection-info-on-oom-or-alloc-failures.patch
+     mm-rename-walk_page_range_mm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm: memcg: dump memcg protection info on oom or alloc failures
-Date: Fri, 7 Nov 2025 15:40:41 -0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: rename walk_page_range_mm()
+Date: Mon, 10 Nov 2025 17:22:57 +0000
 
-Currently kernel dumps memory state on oom and allocation failures.  One
-of the question usually raised on those dumps is why the kernel has not
-reclaimed the reclaimable memory instead of triggering oom.  One potential
-reason is the usage of memory protection provided by memcg.  So, let's
-also dump the memory protected by the memcg in such reports to ease the
-debugging.
+Patch series "mm: perform guard region install/remove under VMA lock", v2.
 
-Link: https://lkml.kernel.org/r/20251107234041.3632644-1-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: David Rientjes <rientjes@google.com>
+There is no reason why can't perform guard region operations under the VMA
+lock, as long we take proper precautions to ensure that we do so in a safe
+manner.
+
+This is fine, as VMA lock acquisition is always best-effort, so if we are
+unable to do so, we can simply fall back to using the mmap read lock.
+
+Doing so will reduce mmap lock contention for callers performing guard
+region operations and help establish a precedent of trying to use the VMA
+lock where possible.
+
+As part of this change we perform a trivial rename of page walk functions
+which bypass safety checks (i.e.  whether or not mm_walk_ops->install_pte
+is specified) in order that we can keep naming consistent with the mm
+walk.
+
+This is because we need to expose a VMA-specific walk that still allows us
+to install PTE entries.
+
+
+This patch (of 2):
+
+Make it clear we're referencing an unsafe variant of this function
+explicitly.
+
+This is laying the foundation for exposing more such functions and
+maintaining a consistent naming scheme.
+
+As a part of this change, rename check_ops_valid() to check_ops_safe() for
+consistency.
+
+Link: https://lkml.kernel.org/r/cover.1762795245.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/c684d91464a438d6e31172c9450416a373f10649.1762795245.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 +++++
- mm/memcontrol.c            |   13 +++++++++++++
- mm/oom_kill.c              |    1 +
- mm/page_alloc.c            |    1 +
- 4 files changed, 20 insertions(+)
+ mm/internal.h |    2 +-
+ mm/madvise.c  |    4 ++--
+ mm/pagewalk.c |   22 +++++++++++-----------
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-dump-memcg-protection-info-on-oom-or-alloc-failures
-+++ a/include/linux/memcontrol.h
-@@ -1764,6 +1764,7 @@ static inline void count_objcg_events(st
+--- a/mm/internal.h~mm-rename-walk_page_range_mm
++++ a/mm/internal.h
+@@ -1649,7 +1649,7 @@ static inline void accept_page(struct pa
+ #endif /* CONFIG_UNACCEPTED_MEMORY */
  
- bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid);
+ /* pagewalk.c */
+-int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
++int walk_page_range_mm_unsafe(struct mm_struct *mm, unsigned long start,
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private);
+ int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
+--- a/mm/madvise.c~mm-rename-walk_page_range_mm
++++ a/mm/madvise.c
+@@ -1173,8 +1173,8 @@ static long madvise_guard_install(struct
+ 		unsigned long nr_pages = 0;
  
-+void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg);
- #else
- static inline bool mem_cgroup_kmem_disabled(void)
+ 		/* Returns < 0 on error, == 0 if success, > 0 if zap needed. */
+-		err = walk_page_range_mm(vma->vm_mm, range->start, range->end,
+-					 &guard_install_walk_ops, &nr_pages);
++		err = walk_page_range_mm_unsafe(vma->vm_mm, range->start,
++				range->end, &guard_install_walk_ops, &nr_pages);
+ 		if (err < 0)
+ 			return err;
+ 
+--- a/mm/pagewalk.c~mm-rename-walk_page_range_mm
++++ a/mm/pagewalk.c
+@@ -452,7 +452,7 @@ static inline void process_vma_walk_lock
+  * We usually restrict the ability to install PTEs, but this functionality is
+  * available to internal memory management code and provided in mm/internal.h.
+  */
+-int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
++int walk_page_range_mm_unsafe(struct mm_struct *mm, unsigned long start,
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private)
  {
-@@ -1830,6 +1831,10 @@ static inline bool mem_cgroup_node_allow
+@@ -518,10 +518,10 @@ int walk_page_range_mm(struct mm_struct
+  * This check is performed on all functions which are parameterised by walk
+  * operations and exposed in include/linux/pagewalk.h.
+  *
+- * Internal memory management code can use the walk_page_range_mm() function to
+- * be able to use all page walking operations.
++ * Internal memory management code can use *_unsafe() functions to be able to
++ * use all page walking operations.
+  */
+-static bool check_ops_valid(const struct mm_walk_ops *ops)
++static bool check_ops_safe(const struct mm_walk_ops *ops)
  {
- 	return true;
- }
-+
-+static inline void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
-+{
-+}
- #endif /* CONFIG_MEMCG */
- 
- #if defined(CONFIG_MEMCG) && defined(CONFIG_ZSWAP)
---- a/mm/memcontrol.c~mm-memcg-dump-memcg-protection-info-on-oom-or-alloc-failures
-+++ a/mm/memcontrol.c
-@@ -5635,3 +5635,16 @@ bool mem_cgroup_node_allowed(struct mem_
+ 	/*
+ 	 * The installation of PTEs is solely under the control of memory
+@@ -579,10 +579,10 @@ int walk_page_range(struct mm_struct *mm
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private)
  {
- 	return memcg ? cpuset_node_allowed(memcg->css.cgroup, nid) : true;
- }
-+
-+void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
-+{
-+	if (mem_cgroup_disabled() || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return;
-+
-+	if (!memcg)
-+		memcg = root_mem_cgroup;
-+
-+	pr_warn("Memory cgroup min protection %lukB -- low protection %lukB",
-+		K(atomic_long_read(&memcg->memory.children_min_usage)*PAGE_SIZE),
-+		K(atomic_long_read(&memcg->memory.children_low_usage)*PAGE_SIZE));
-+}
---- a/mm/oom_kill.c~mm-memcg-dump-memcg-protection-info-on-oom-or-alloc-failures
-+++ a/mm/oom_kill.c
-@@ -472,6 +472,7 @@ static void dump_header(struct oom_contr
- 		if (should_dump_unreclaim_slab())
- 			dump_unreclaimable_slab();
- 	}
-+	mem_cgroup_show_protected_memory(oc->memcg);
- 	if (sysctl_oom_dump_tasks)
- 		dump_tasks(oc);
- }
---- a/mm/page_alloc.c~mm-memcg-dump-memcg-protection-info-on-oom-or-alloc-failures
-+++ a/mm/page_alloc.c
-@@ -3977,6 +3977,7 @@ static void warn_alloc_show_mem(gfp_t gf
- 		filter &= ~SHOW_MEM_FILTER_NODES;
+-	if (!check_ops_valid(ops))
++	if (!check_ops_safe(ops))
+ 		return -EINVAL;
  
- 	__show_mem(filter, nodemask, gfp_zone(gfp_mask));
-+	mem_cgroup_show_protected_memory(NULL);
+-	return walk_page_range_mm(mm, start, end, ops, private);
++	return walk_page_range_mm_unsafe(mm, start, end, ops, private);
  }
  
- void warn_alloc(gfp_t gfp_mask, nodemask_t *nodemask, const char *fmt, ...)
+ /**
+@@ -639,7 +639,7 @@ int walk_kernel_page_table_range_lockles
+ 
+ 	if (start >= end)
+ 		return -EINVAL;
+-	if (!check_ops_valid(ops))
++	if (!check_ops_safe(ops))
+ 		return -EINVAL;
+ 
+ 	return walk_pgd_range(start, end, &walk);
+@@ -678,7 +678,7 @@ int walk_page_range_debug(struct mm_stru
+ 						    pgd, private);
+ 	if (start >= end || !walk.mm)
+ 		return -EINVAL;
+-	if (!check_ops_valid(ops))
++	if (!check_ops_safe(ops))
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -709,7 +709,7 @@ int walk_page_range_vma(struct vm_area_s
+ 		return -EINVAL;
+ 	if (start < vma->vm_start || end > vma->vm_end)
+ 		return -EINVAL;
+-	if (!check_ops_valid(ops))
++	if (!check_ops_safe(ops))
+ 		return -EINVAL;
+ 
+ 	process_mm_walk_lock(walk.mm, ops->walk_lock);
+@@ -729,7 +729,7 @@ int walk_page_vma(struct vm_area_struct
+ 
+ 	if (!walk.mm)
+ 		return -EINVAL;
+-	if (!check_ops_valid(ops))
++	if (!check_ops_safe(ops))
+ 		return -EINVAL;
+ 
+ 	process_mm_walk_lock(walk.mm, ops->walk_lock);
+@@ -780,7 +780,7 @@ int walk_page_mapping(struct address_spa
+ 	unsigned long start_addr, end_addr;
+ 	int err = 0;
+ 
+-	if (!check_ops_valid(ops))
++	if (!check_ops_safe(ops))
+ 		return -EINVAL;
+ 
+ 	lockdep_assert_held(&mapping->i_mmap_rwsem);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-memcg-use-mod_node_page_state-to-update-stats.patch
-memcg-remove-__mod_lruvec_kmem_state.patch
-memcg-remove-__mod_lruvec_state.patch
-memcg-remove-__lruvec_stat_mod_folio.patch
+mm-correctly-handle-uffd-pte-markers.patch
+mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
+mm-avoid-unnecessary-uses-of-is_swap_pte.patch
+mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
+mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
+fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
+mm-avoid-unnecessary-use-of-is_swap_pmd.patch
+mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
+mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
+mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
+mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
+mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
+mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
+mm-remove-is_hugetlb_entry_.patch
+mm-eliminate-further-swapops-predicates.patch
+mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
 
