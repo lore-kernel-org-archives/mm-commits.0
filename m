@@ -1,81 +1,80 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEC20322A
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 00:36:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAF71156CA
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 00:44:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763599001; cv=none; b=QmzxG8JF3EiJevrm+cm1fXQSiMRm5CQtgDK7go2TS1s4eSA1ZxlM+GPJkjC6jffkig+D3eaCIzwp6YIGin2gYWSE+EQw3rXNS/TTdOyQBuT3uTKN4hbLfZTW9h7XGqihTqei5PEL4swYfduY6HG4eYmKMEhO/cJWEQq5kiV8oZ4=
+	t=1763599493; cv=none; b=fv9PpsqYA3HyXw++bjIFbfCyYAWQoCF+R9Pl5NS9fj5Y2iAa2IggNL69mJ4W9ujLkApvJ0xWhpz/8c4bFtqML0pbSfY5kpck9fAw8P4XKV08TQxhU4oBK24Vdx2KSEIwGgayzYqkOpjGx2ixOfRguQ+tMeDesi4v9P+sp8NhgYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763599001; c=relaxed/simple;
-	bh=60aS4BJBcevWhD9jyBchts96xJeyi8oWXFa8lAaVU/k=;
-	h=Date:To:From:Subject:Message-Id; b=PQoH5ulf7Y0p643d+0e1Am5AIVsp139wEuDCwzQiCJJ4d8Nqkvls4u/D34J2VqYHeG6F9rRkpyTGrtmBgUCemGHG1zBQwEoFSokxiNjRzxkq5PIlHFNYcVx+ugxzw4MF7WqPmDTM5BLIc8sHXkFLrEAP6iuo2cDFi5JUXElHlDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CGQQxHIW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763599493; c=relaxed/simple;
+	bh=5tEwjzs/NOXSCmtN8bRPhVS1rc6pMXRDKVs5VMQXpqg=;
+	h=Date:From:To:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=FgyjZ1w3KXmeYINhVOq8eA12CHUeioNNKfHHoiRWQPMt5DU6NxnBhLjRy7h4lv1+qMy1KA+7OwThTHPywQ59asNvXOQ1JUfw+q7jiSzkd/+t196Hxq6lRpp9h1NzrLj3krtnRbhUWOsWUTx1GEYbpAQ2ukEi7DOiEtU1Cr7jS0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DoDrTA/J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CGQQxHIW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C6E6C116D0;
-	Thu, 20 Nov 2025 00:36:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DoDrTA/J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0295BC4CEF5;
+	Thu, 20 Nov 2025 00:44:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763599000;
-	bh=60aS4BJBcevWhD9jyBchts96xJeyi8oWXFa8lAaVU/k=;
-	h=Date:To:From:Subject:From;
-	b=CGQQxHIWVrBKgncrsPzYdF48LWIR15HGZ/pDu+tOMu1Fn1rmiLfneKBfFQlfu5eLG
-	 jESpve/QHEmFPv7x0ZD0sVuS/tTB9IAQBNu6KUbiHaDDKacyVKUjL9/3Kmr9DJDRp+
-	 UMrlKZ2t6h6aYC6kDtdmPgfNTBM62wOjetGy+Ys0=
-Date: Wed, 19 Nov 2025 16:36:39 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,hch@lst.de,hch@infradead.org,vishal.moola@gmail.com,akpm@linux-foundation.org
+	s=korg; t=1763599493;
+	bh=5tEwjzs/NOXSCmtN8bRPhVS1rc6pMXRDKVs5VMQXpqg=;
+	h=Date:From:To:Subject:In-Reply-To:References:From;
+	b=DoDrTA/JV4He20LOd+NzA69zRdBTXpLDDJUZb+OEbo4Km1rbBYmowfIOn35FPqVKb
+	 zICg9V/TvpGHsa3Uupv5BRNrQzZyST50m+sRV+sXCdOFjBwJhOCVXhaI77EkvW5sDO
+	 oGsCbsILISVd6LtbA0x3c2tb0bT8WZVU563yXzEE=
+Date: Wed, 19 Nov 2025 16:44:52 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-cleanup-gfp-flag-use-in-new_vmap_block.patch removed from -mm tree
-Message-Id: <20251120003640.7C6E6C116D0@smtp.kernel.org>
+To: mm-commits@vger.kernel.org, urezki@gmail.com, hch@lst.de,
+ hch@infradead.org, vishal.moola@gmail.com
+Subject: Re: [to-be-updated]
+ mm-vmalloc-warn-on-invalid-vmalloc-gfp-flags.patch removed from -mm tree
+Message-Id: <20251119164452.0f763efbb282f71438a2964a@linux-foundation.org>
+In-Reply-To: <20251120003637.41AB2C4CEF5@smtp.kernel.org>
+References: <20251120003637.41AB2C4CEF5@smtp.kernel.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Wed, 19 Nov 2025 16:36:36 -0800 Andrew Morton <akpm@linux-foundation.org> wrote:
 
-The quilt patch titled
-     Subject: mm/vmalloc: cleanup gfp flag use in new_vmap_block()
-has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-cleanup-gfp-flag-use-in-new_vmap_block.patch
+> 
+> The quilt patch titled
+>      Subject: mm/vmalloc: warn on invalid vmalloc gfp flags
+> has been removed from the -mm tree.  Its filename was
+>      mm-vmalloc-warn-on-invalid-vmalloc-gfp-flags.patch
+> 
+> This patch was dropped because an updated version will be issued
+> 
+> ------------------------------------------------------
+> From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+> Subject: mm/vmalloc: warn on invalid vmalloc gfp flags
+> Date: Mon, 17 Nov 2025 09:35:27 -0800
+> 
+> Patch series "make vmalloc gfp flags usage more apparent", v3.
+> 
+> We should do a better job at enforcing gfp flags for vmalloc.  Right now,
+> we have a kernel-doc for __vmalloc_node_range(), and hope callers pass in
+> supported flags.  If a caller were to pass in an unsupported flag, we may
+> BUG, silently clear it, or completely ignore it.
+> 
+> If we are more proactive about enforcing gfp flags, we can making sure
+> callers know when they may be asking for unsupported behavior.
+> 
+> This patchset lets vmalloc control the incoming gfp flags, and cleans up
+> some hard to read gfp code.
+> 
 
-This patch was dropped because an updated version will be issued
+It turns out that this patch had a fix which I didn't notice was
+addressing this patch:
 
-------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/vmalloc: cleanup gfp flag use in new_vmap_block()
-Date: Mon, 17 Nov 2025 09:35:30 -0800
+https://lkml.kernel.org/r/20251118-only-one-vmalloc-v2-1-fe702aa68d8b@ixit.cz
 
-The only caller, vb_alloc(), passes GFP_KERNEL into new_vmap_block() which
-is a subset of GFP_RECLAIM_MASK.  Since there's no reason to use this mask
-here, remove it.
-
-Link: https://lkml.kernel.org/r/20251117173530.43293-5-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/vmalloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
---- a/mm/vmalloc.c~mm-vmalloc-cleanup-gfp-flag-use-in-new_vmap_block
-+++ a/mm/vmalloc.c
-@@ -2699,8 +2699,7 @@ static void *new_vmap_block(unsigned int
- 
- 	node = numa_node_id();
- 
--	vb = kmalloc_node(sizeof(struct vmap_block),
--			gfp_mask & GFP_RECLAIM_MASK, node);
-+	vb = kmalloc_node(sizeof(struct vmap_block), gfp_mask, node);
- 	if (unlikely(!vb))
- 		return ERR_PTR(-ENOMEM);
- 
-_
-
-Patches currently in -mm which might be from vishal.moola@gmail.com are
-
-mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
+so please incorporate that when redoing this series.
 
