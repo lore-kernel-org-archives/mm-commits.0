@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 669BE1C84A6
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E8962DE6EF
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675113; cv=none; b=jn0qsQeyzhE7tILOy2jbBH8bJQl8Qm/OVg/tmFHmhiI4SJRVrI8YDjOQrnM9uSijeaSAmvnCl6C9yj76tZTlT1wt1YhTk+8Ub3IitdLeXsCe3h0o5jhTUFsFyK9v7l9vK28K5B9scr14I4XX95srWq/PJevcoYzjDthlcE6hnqU=
+	t=1763675114; cv=none; b=nW3hNc8AhfahgtoL1zNIu2ky7PnqZtAyhy+tVFgwoExcs0UTkDk5dzTxTx83Eso1bboQ1EhpIWhjjxAFd/FFTSEx/FxeF8ZTdwp1b4ifCoKiDW9BrlBwkTfNySaGpknBRq8FKZFZ7oeHPgy4d8+nuJpOC98z5bNwOowFuQSqCc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675113; c=relaxed/simple;
-	bh=RLS2hZQAbX42Pag6uoaHs5wweFYzs5Y2Rqtc0CBDq6I=;
-	h=Date:To:From:Subject:Message-Id; b=u4y3apoANJDUJnR0SU97Muk9DOMX7JFHqzmrBXwW0rJfOrkFxJF6H5EWrb7Yr/vZ34Wbt57mRJ9t8UHRVKiWgDECGlSHUfrjwUhGA5lQs0n8E7lxqiuKPEGGYJ2xC1389iORnV1vWGmL74YgND8RJTeVJo9Hefd1xCjTAqshfGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hz3dCzWg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675114; c=relaxed/simple;
+	bh=X0iCglYvx1+cr6k+UjRXs+LtP5wUD3s2PfVcqT+CKDk=;
+	h=Date:To:From:Subject:Message-Id; b=FIzBe+LHM3y5UHsqFlQJo1kvW4tNkTWgtufgqWOcskJ6Ovrm/xXvwyhPHV5fWoH/YuGjkrxcewWNneq5av+AsbW7CzOjTHjAOq5LHSvr/qNJPbu7szmXMbVRuTQWxG+xp9QsjF5AA8YmzvArRYXCyH6RdF4U8oRQtVQqzAb/riA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DpPWFIif; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hz3dCzWg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B2C9C4CEF1;
-	Thu, 20 Nov 2025 21:45:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DpPWFIif"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 318BEC4CEF1;
+	Thu, 20 Nov 2025 21:45:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675113;
-	bh=RLS2hZQAbX42Pag6uoaHs5wweFYzs5Y2Rqtc0CBDq6I=;
+	s=korg; t=1763675114;
+	bh=X0iCglYvx1+cr6k+UjRXs+LtP5wUD3s2PfVcqT+CKDk=;
 	h=Date:To:From:Subject:From;
-	b=Hz3dCzWgjR++baZGRewJRXBzbWjpSMOhZ8Inu17pc//gQi3ToGT69fc5ZA0XXcY89
-	 lrY/ZuvM9alhVlfUds8PADmvxVCjfC1KV0K0C1xam3R2Cu6CUs6BjT8vTVL4EPptH3
-	 peY2/kh+XZp8mdAslVsBAhhRseMP6byB6S2Ul7ME=
-Date: Thu, 20 Nov 2025 13:45:12 -0800
+	b=DpPWFIifsbM4CUnUk3jgdtM19ztZMsrEdONU59Mfng/y4e+zJ2NwpdR+Q6Y3fYkRo
+	 /l8EFnriixmurpiajz8B+uaWLvnsp3pOxST1L9C0SpJRV2GX5PcHwIIgibkVRRkTTj
+	 HHbqUO0byJyqz5NeIVV4HLiIXZn52Gk4Nm2Ezuj8=
+Date: Thu, 20 Nov 2025 13:45:13 -0800
 To: mm-commits@vger.kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-pass-migrate_dests-to-damos_commit_dests.patch removed from -mm tree
-Message-Id: <20251120214513.3B2C9C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-add-damos_commit_dests-test.patch removed from -mm tree
+Message-Id: <20251120214514.318BEC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,143 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: pass migrate_dests to damos_commit_dests()
+     Subject: mm/damon/tests/core-kunit: add damos_commit_dests() test
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-pass-migrate_dests-to-damos_commit_dests.patch
+     mm-damon-tests-core-kunit-add-damos_commit_dests-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: pass migrate_dests to damos_commit_dests()
-Date: Tue, 11 Nov 2025 10:44:07 -0800
+Subject: mm/damon/tests/core-kunit: add damos_commit_dests() test
+Date: Tue, 11 Nov 2025 10:44:08 -0800
 
-damos_commit_dests() receives 'struct damos' pointers, while it uses only
-their ->migrate_dests fields.  This makes code unnecessarily difficult to
-read.  It also makes unit tests writing complicated.  Refactor the
-function to receive pointers to the ->migrate_dests fields.
+Add a new unit test for damos_commit_dests().
 
-Link: https://lkml.kernel.org/r/20251111184415.141757-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251111184415.141757-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   40 ++++++++++++++++++----------------------
- 1 file changed, 18 insertions(+), 22 deletions(-)
+ mm/damon/tests/core-kunit.h |   97 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 97 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-pass-migrate_dests-to-damos_commit_dests
-+++ a/mm/damon/core.c
-@@ -1000,36 +1000,32 @@ static void damos_set_filters_default_re
- 		damos_filters_default_reject(&s->ops_filters);
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damos_commit_dests-test
++++ a/mm/damon/tests/core-kunit.h
+@@ -692,6 +692,102 @@ static void damos_test_commit_quota(stru
+ 	KUNIT_EXPECT_EQ(test, dst.weight_age, src.weight_age);
  }
  
--static int damos_commit_dests(struct damos *dst, struct damos *src)
-+static int damos_commit_dests(struct damos_migrate_dests *dst,
-+		struct damos_migrate_dests *src)
- {
--	struct damos_migrate_dests *dst_dests, *src_dests;
--
--	dst_dests = &dst->migrate_dests;
--	src_dests = &src->migrate_dests;
--
--	if (dst_dests->nr_dests != src_dests->nr_dests) {
--		kfree(dst_dests->node_id_arr);
--		kfree(dst_dests->weight_arr);
--
--		dst_dests->node_id_arr = kmalloc_array(src_dests->nr_dests,
--			sizeof(*dst_dests->node_id_arr), GFP_KERNEL);
--		if (!dst_dests->node_id_arr) {
--			dst_dests->weight_arr = NULL;
-+	if (dst->nr_dests != src->nr_dests) {
-+		kfree(dst->node_id_arr);
-+		kfree(dst->weight_arr);
++static int damos_test_help_dests_setup(struct damos_migrate_dests *dests,
++		unsigned int *node_id_arr, unsigned int *weight_arr,
++		size_t nr_dests)
++{
++	size_t i;
 +
-+		dst->node_id_arr = kmalloc_array(src->nr_dests,
-+			sizeof(*dst->node_id_arr), GFP_KERNEL);
-+		if (!dst->node_id_arr) {
-+			dst->weight_arr = NULL;
- 			return -ENOMEM;
- 		}
- 
--		dst_dests->weight_arr = kmalloc_array(src_dests->nr_dests,
--			sizeof(*dst_dests->weight_arr), GFP_KERNEL);
--		if (!dst_dests->weight_arr) {
-+		dst->weight_arr = kmalloc_array(src->nr_dests,
-+			sizeof(*dst->weight_arr), GFP_KERNEL);
-+		if (!dst->weight_arr) {
- 			/* ->node_id_arr will be freed by scheme destruction */
- 			return -ENOMEM;
- 		}
- 	}
- 
--	dst_dests->nr_dests = src_dests->nr_dests;
--	for (int i = 0; i < src_dests->nr_dests; i++) {
--		dst_dests->node_id_arr[i] = src_dests->node_id_arr[i];
--		dst_dests->weight_arr[i] = src_dests->weight_arr[i];
-+	dst->nr_dests = src->nr_dests;
-+	for (int i = 0; i < src->nr_dests; i++) {
-+		dst->node_id_arr[i] = src->node_id_arr[i];
-+		dst->weight_arr[i] = src->weight_arr[i];
- 	}
- 
- 	return 0;
-@@ -1076,7 +1072,7 @@ static int damos_commit(struct damos *ds
- 	dst->wmarks = src->wmarks;
- 	dst->target_nid = src->target_nid;
- 
--	err = damos_commit_dests(dst, src);
-+	err = damos_commit_dests(&dst->migrate_dests, &src->migrate_dests);
- 	if (err)
- 		return err;
- 
++	dests->node_id_arr = kmalloc_array(nr_dests,
++			sizeof(*dests->node_id_arr), GFP_KERNEL);
++	if (!dests->node_id_arr)
++		return -ENOMEM;
++	dests->weight_arr = kmalloc_array(nr_dests,
++			sizeof(*dests->weight_arr), GFP_KERNEL);
++	if (!dests->weight_arr) {
++		kfree(dests->node_id_arr);
++		dests->node_id_arr = NULL;
++		return -ENOMEM;
++	}
++
++	for (i = 0; i < nr_dests; i++) {
++		dests->node_id_arr[i] = node_id_arr[i];
++		dests->weight_arr[i] = weight_arr[i];
++	}
++	dests->nr_dests = nr_dests;
++	return 0;
++}
++
++static void damos_test_help_dests_free(struct damos_migrate_dests *dests)
++{
++	kfree(dests->node_id_arr);
++	kfree(dests->weight_arr);
++}
++
++static void damos_test_commit_dests_for(struct kunit *test,
++		unsigned int *dst_node_id_arr, unsigned int *dst_weight_arr,
++		size_t dst_nr_dests,
++		unsigned int *src_node_id_arr, unsigned int *src_weight_arr,
++		size_t src_nr_dests)
++{
++	struct damos_migrate_dests dst = {}, src = {};
++	int i, err;
++	bool skip = true;
++
++	err = damos_test_help_dests_setup(&dst, dst_node_id_arr,
++			dst_weight_arr, dst_nr_dests);
++	if (err)
++		kunit_skip(test, "dests setup fail");
++	err = damos_test_help_dests_setup(&src, src_node_id_arr,
++			src_weight_arr, src_nr_dests);
++	if (err) {
++		damos_test_help_dests_free(&dst);
++		kunit_skip(test, "src setup fail");
++	}
++	err = damos_commit_dests(&dst, &src);
++	if (err)
++		goto out;
++	skip = false;
++
++	KUNIT_EXPECT_EQ(test, dst.nr_dests, src_nr_dests);
++	for (i = 0; i < dst.nr_dests; i++) {
++		KUNIT_EXPECT_EQ(test, dst.node_id_arr[i], src_node_id_arr[i]);
++		KUNIT_EXPECT_EQ(test, dst.weight_arr[i], src_weight_arr[i]);
++	}
++
++out:
++	damos_test_help_dests_free(&dst);
++	damos_test_help_dests_free(&src);
++	if (skip)
++		kunit_skip(test, "skip");
++}
++
++static void damos_test_commit_dests(struct kunit *test)
++{
++	damos_test_commit_dests_for(test,
++			(unsigned int[]){1, 2, 3}, (unsigned int[]){2, 3, 4},
++			3,
++			(unsigned int[]){4, 5, 6}, (unsigned int[]){5, 6, 7},
++			3);
++	damos_test_commit_dests_for(test,
++			(unsigned int[]){1, 2}, (unsigned int[]){2, 3},
++			2,
++			(unsigned int[]){4, 5, 6}, (unsigned int[]){5, 6, 7},
++			3);
++	damos_test_commit_dests_for(test,
++			NULL, NULL, 0,
++			(unsigned int[]){4, 5, 6}, (unsigned int[]){5, 6, 7},
++			3);
++	damos_test_commit_dests_for(test,
++			(unsigned int[]){1, 2, 3}, (unsigned int[]){2, 3, 4},
++			3,
++			(unsigned int[]){4, 5}, (unsigned int[]){5, 6}, 2);
++	damos_test_commit_dests_for(test,
++			(unsigned int[]){1, 2, 3}, (unsigned int[]){2, 3, 4},
++			3,
++			NULL, NULL, 0);
++}
++
+ static void damos_test_commit_filter_for(struct kunit *test,
+ 		struct damos_filter *dst, struct damos_filter *src)
+ {
+@@ -980,6 +1076,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damos_test_commit_quota_goal),
+ 	KUNIT_CASE(damos_test_commit_quota_goals),
+ 	KUNIT_CASE(damos_test_commit_quota),
++	KUNIT_CASE(damos_test_commit_dests),
+ 	KUNIT_CASE(damos_test_commit_filter),
+ 	KUNIT_CASE(damos_test_filter_out),
+ 	KUNIT_CASE(damon_test_feed_loop_next_input),
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
