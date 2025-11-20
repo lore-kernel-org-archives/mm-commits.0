@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35CE5348457
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2E130BF77
 	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675075; cv=none; b=CUUZJ4v6CTdp/teJ922uy8zcOqxy+XkXbD5LnFJtN2cV8O7EtQpLa6LJPvPJouGGbyC/VnlL1N+41fCZZZ/G5IGZwKdgP8uc9dkF2I1RhL0gJx9onFQzv4nPqiDmAuU96rNXCneJ1DvyByUC85w9xFSllqaGACryFOf5Zyn73kY=
+	t=1763675076; cv=none; b=a72J2WCOwWLrCAQwN1sufBd9xNIwxYZVFm5F40bKtV1y4JKhmddooYukzQkoW0C0CV6MJUypukyjbIuDLOhoJeg+P/O6pSK9KQpMTUp+1rYtUuXRG5SeriSzGy76S87TsiRRUFz9HTMOGOsZThi+7rW4e9Uxrx8DOk4zXEZgTeA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675075; c=relaxed/simple;
-	bh=BtslTS7xHKPD7ipOMLr+Aba9sqAeVjKEmK1zX2ZuWNQ=;
-	h=Date:To:From:Subject:Message-Id; b=CCWyy1/w3BapNNkAONnwhjG7zC2uQ0xAmZoha1A3oTqrFWlW3oZftXNjoBrMrvEYrl4ouS+Do2+3+2yg7yo1HYt7skcL0y8PzkRy1HbDp2jqb+HSyCwJWGj+H/ZistSlyoskW9KZXyXeaDpvKmglMgnY13k0rJLuhJ2f2d2IqmY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kqwl4Pjl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675076; c=relaxed/simple;
+	bh=QDR+9SqpPj1m6rE/VjU2U8vBXtm2dthHHi4Y3iYZdJk=;
+	h=Date:To:From:Subject:Message-Id; b=CSi+UfjmSpVZ2kGQusxoe9tNQ+5nLNDkGtnV1vqiLcok0AcVq39nL2CJhKl5mLUnEZoyyPcd6eEIiR0r6EGTHDctLVAX6tj+AtN5DWTlyaaTBxJ8/YAafR12q9DxNqRcQGhYjPuSbVa9VtMydRfy40DIHWaQDYaZ2JdjrakbLhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nVIsBwr/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kqwl4Pjl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1DE8C116C6;
-	Thu, 20 Nov 2025 21:44:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nVIsBwr/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C50C2C4CEF1;
+	Thu, 20 Nov 2025 21:44:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675074;
-	bh=BtslTS7xHKPD7ipOMLr+Aba9sqAeVjKEmK1zX2ZuWNQ=;
+	s=korg; t=1763675075;
+	bh=QDR+9SqpPj1m6rE/VjU2U8vBXtm2dthHHi4Y3iYZdJk=;
 	h=Date:To:From:Subject:From;
-	b=kqwl4PjlsxKePQXmFuPdSboNZ+tCVGS+oCINgZ+eeXCwchkzYhu7u5jFHXwhuoAAu
-	 t7C7ZZLTRSfAALTLiZTLqUfvP4vUV60TdO0Zidu7K7dBpFCnmfieIqkTRC1A7/drvX
-	 +b9fygGI+zb0jR6Baym5aJN/PWUSAi/AbOjgTSnM=
-Date: Thu, 20 Nov 2025 13:44:34 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=nVIsBwr/ZG9n1TRockN+tlMDaVNbfZUZe8nG4rzs7ZPfHL8nTWMZcAmvdNQkmYJcS
+	 PZ6xwfd1FqTW4glFCzb/xLmF20SCWOdtHpAq1PnRreattBotnR4TOniim5FJnoVzf/
+	 l3L8RMaBLf3ETyUKu3NbtD+E6PaSukDB2VMBsbNM=
+Date: Thu, 20 Nov 2025 13:44:35 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,ankitkhushwaha.linux@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch removed from -mm tree
-Message-Id: <20251120214434.D1DE8C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] selftest-mm-fix-pointer-comparison-in-mremap_test.patch removed from -mm tree
+Message-Id: <20251120214435.C50C2C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: simplify the folio refcount check in pageout()
+     Subject: selftest/mm: fix pointer comparison in mremap_test
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
+     selftest-mm-fix-pointer-comparison-in-mremap_test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: vmscan: simplify the folio refcount check in pageout()
-Date: Thu, 18 Sep 2025 11:46:54 +0800
+From: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
+Subject: selftest/mm: fix pointer comparison in mremap_test
+Date: Sat, 8 Nov 2025 21:48:29 +0530
 
-Since we no longer attempt to write back filesystem folios in pageout()
-(they will be filtered out by the following check in pageout()), and only
-tmpfs/shmem folios and anonymous swapcache folios can be written back, we
-can remove the redundant folio_test_private() when checking the folio's
-refcount, as tmpfs/shmem and swapcache folios do not use the PG_private
-flag.
+Pointer arthemitic with 'void * addr' and 'ulong dest_alignment' triggers
+following warning:
 
-While we're at it, we can open-code the folio refcount check instead of
-adding a simple helper that has only one user.
+mremap_test.c:1035:31: warning: pointer comparison always evaluates to
+false [-Wtautological-compare]
+ 1035 |                 if (addr + c.dest_alignment < addr) {
+      |                                             ^
 
-Link: https://lkml.kernel.org/r/4cbbec5bb92397aa4597105f1f499aabf7a1901c.1758166683.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+this warning is raised from clang version 20.1.8 (Fedora 20.1.8-4.fc42).
+
+use 'void *tmp_addr' to do the pointer arthemitic.
+
+Link: https://lkml.kernel.org/r/20251108161829.25105-1-ankitkhushwaha.linux@gmail.com
+Signed-off-by: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/mremap_test.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-simplify-the-folio-refcount-check-in-pageout
-+++ a/mm/vmscan.c
-@@ -477,17 +477,6 @@ static int reclaimer_offset(struct scan_
- 	return PGSTEAL_DIRECT - PGSTEAL_KSWAPD;
- }
- 
--static inline int is_page_cache_freeable(struct folio *folio)
--{
--	/*
--	 * A freeable page cache folio is referenced only by the caller
--	 * that isolated the folio, the page cache and optional filesystem
--	 * private data at folio->private.
--	 */
--	return folio_ref_count(folio) - folio_test_private(folio) ==
--		1 + folio_nr_pages(folio);
--}
--
- /*
-  * We detected a synchronous write error writing a folio out.  Probably
-  * -ENOSPC.  We need to propagate that into the address_space for a subsequent
-@@ -696,8 +685,11 @@ static pageout_t pageout(struct folio *f
- 	 * block, for some throttling. This happens by accident, because
- 	 * swap_backing_dev_info is bust: it doesn't reflect the
- 	 * congestion state of the swapdevs.  Easy to fix, if needed.
-+	 *
-+	 * A freeable shmem or swapcache folio is referenced only by the
-+	 * caller that isolated the folio and the page cache.
- 	 */
--	if (!is_page_cache_freeable(folio) || !mapping)
-+	if (folio_ref_count(folio) != 1 + folio_nr_pages(folio) || !mapping)
- 		return PAGE_KEEP;
- 	if (!shmem_mapping(mapping) && !folio_test_anon(folio))
- 		return PAGE_ACTIVATE;
+--- a/tools/testing/selftests/mm/mremap_test.c~selftest-mm-fix-pointer-comparison-in-mremap_test
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -994,7 +994,7 @@ static void mremap_move_multi_invalid_vm
+ static long long remap_region(struct config c, unsigned int threshold_mb,
+ 			      char *rand_addr)
+ {
+-	void *addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
++	void *addr, *tmp_addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
+ 	unsigned long long t, d;
+ 	struct timespec t_start = {0, 0}, t_end = {0, 0};
+ 	long long  start_ns, end_ns, align_mask, ret, offset;
+@@ -1032,7 +1032,8 @@ static long long remap_region(struct con
+ 	/* Don't destroy existing mappings unless expected to overlap */
+ 	while (!is_remap_region_valid(addr, c.region_size) && !c.overlapping) {
+ 		/* Check for unsigned overflow */
+-		if (addr + c.dest_alignment < addr) {
++		tmp_addr = addr + c.dest_alignment;
++		if (tmp_addr < addr) {
+ 			ksft_print_msg("Couldn't find a valid region to remap to\n");
+ 			ret = -1;
+ 			goto clean_up_src;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from ankitkhushwaha.linux@gmail.com are
 
-mm-shmem-allow-fallback-to-smaller-large-orders-for-tmpfs-mmap-access.patch
 
