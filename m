@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C360535FF72
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBB3A35FF72
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763676287; cv=none; b=lKy7mwcD0dE47byS6Rk6XD69+kGEwRLPp+mPotEzRaMv/8MnyfC/Y6XC/RmqMlnqz9AY+uf5iRtIDD+N0R1fARnCDh1gm5CukLTFnD72EJ3QzFilYeVQzY3L44zwB7/+jtSv/lxs5RNEfg+rtDkKlQTM8K7dMJwtjEfyNAe5Tbk=
+	t=1763676288; cv=none; b=Us3APdL2W30S8iImKZeKF6Tmp4N4GaaBCq/NLMgtumFuc+DCB7HVN0m458kwVU/dNw83C3iZpndzeR+kliOzPvIITRjEBTcOsm+g2VX01XjdhfVt94JbpF88GQzAlid1KZ2+Hq3K+BX0r3bnjipwJYVQ0BjSZStBmxCSwCrAYQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763676287; c=relaxed/simple;
-	bh=zoyqcgy/Mky1JaTlm0/SXltL1nxziZsXn2KYHKDbhYI=;
-	h=Date:To:From:Subject:Message-Id; b=NDgBPU094WkBtDD1x/t972SzGAV0rY0MXbsVOF5IfSF8qSrl4nInIh0lCl0Dg23fPYBZO99hkputmIrYOZifKFTDwtFFsajyLJMW4r1BeanZUhD2VLL6Ova6RdeIa1JRwoLsorRVc5c1b6bpXScqTpmaO73KEg9dF58aNQnwYsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x70XjT31; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763676288; c=relaxed/simple;
+	bh=FLb8QavcwdCyGWVeMZn8Y+a2biG96ZMxW7LyRKf9k2Y=;
+	h=Date:To:From:Subject:Message-Id; b=NvtO6kjBiefU38AL79VpQ3cpo6S7+inIWjQ1wI8uCflA6Z51qauPXJhyVnzwPtop5+POEWNV8Cm5/x5PAzccjt7sAYbAWfGhFAG77b/QRr7dBjGVOvv7N3VnYnyTE8Y0E6uXNFe3rorzFBg6rytzhVUADqXZV/+FFwahmbEQ5E8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lZ27s5Fw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x70XjT31"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B7ACC113D0;
-	Thu, 20 Nov 2025 22:04:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lZ27s5Fw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96BFFC4CEF1;
+	Thu, 20 Nov 2025 22:04:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763676287;
-	bh=zoyqcgy/Mky1JaTlm0/SXltL1nxziZsXn2KYHKDbhYI=;
+	s=korg; t=1763676288;
+	bh=FLb8QavcwdCyGWVeMZn8Y+a2biG96ZMxW7LyRKf9k2Y=;
 	h=Date:To:From:Subject:From;
-	b=x70XjT31TVcB0bwbmcLYeNfwg+LOcJ0bM5KdcGO7EcT42FoRsURqDhxbzM9DBdy9i
-	 CMrgQVfiu0Z+2xy4uvb3BRPsb5C0ryp9wnb5NHGGs6971C/HZpiAkOePMTpMEEch2G
-	 km6po0Y4qbZuBKu/z8D39XwKGkOUU6FeH+tp7Waw=
-Date: Thu, 20 Nov 2025 14:04:46 -0800
+	b=lZ27s5FweQlwN8sVH8b8QrFOKdyoE/bav1RQlQryFPRg+XYr3Y+YNDQtGlVuC2dF4
+	 dyuLK0j88TyNIMlqfgQii1uFnL86OtGNGjPORldyoiaopAwSFekHOXn1Okht/VBA0H
+	 v7WVCBp/9NofE7P7bLOI9Gh3pUNzh4ddCQo/NzRo=
+Date: Thu, 20 Nov 2025 14:04:48 -0800
 To: mm-commits@vger.kernel.org,xiubli@redhat.com,tytso@mit.edu,Slava.Dubeyko@ibm.com,sagi@grimberg.me,kbusch@kernel.org,jaegeuk@kernel.org,idryomov@gmail.com,home7438072@gmail.com,hch@lst.de,ebiggers@kernel.org,david.laight.linux@gmail.com,axboe@kernel.dk,409411716@gms.tku.edu.tw,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-base64-add-support-for-multiple-variants.patch removed from -mm tree
-Message-Id: <20251120220447.7B7ACC113D0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-base64-optimize-base64_decode-with-reverse-lookup-tables.patch removed from -mm tree
+Message-Id: <20251120220448.96BFFC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/base64: add support for multiple variants
+     Subject: lib/base64: optimize base64_decode() with reverse lookup tables
 has been removed from the -mm tree.  Its filename was
-     lib-base64-add-support-for-multiple-variants.patch
+     lib-base64-optimize-base64_decode-with-reverse-lookup-tables.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/base64: add support for multiple variants
-Date: Fri, 14 Nov 2025 14:00:45 +0800
+Subject: lib/base64: optimize base64_decode() with reverse lookup tables
+Date: Fri, 14 Nov 2025 14:01:07 +0800
 
-Patch series " lib/base64: add generic encoder/decoder, migrate users", v5.
+Replace the use of strchr() in base64_decode() with precomputed reverse
+lookup tables for each variant. This avoids repeated string scans and
+improves performance. Use -1 in the tables to mark invalid characters.
 
-This series introduces a generic Base64 encoder/decoder to the kernel
-library, eliminating duplicated implementations and delivering significant
-performance improvements.
+Decode:
+  64B   ~1530ns  ->  ~80ns    (~19.1x)
+  1KB  ~27726ns  -> ~1239ns   (~22.4x)
 
-The Base64 API has been extended to support multiple variants (Standard,
-URL-safe, and IMAP) as defined in RFC 4648 and RFC 3501.  The API now
-takes a variant parameter and an option to control padding.  As part of
-this series, users are migrated to the new interface while preserving
-their specific formats: fscrypt now uses BASE64_URLSAFE, Ceph uses
-BASE64_IMAP, and NVMe is updated to BASE64_STD.
-
-On the encoder side, the implementation processes input in 3-byte blocks,
-mapping 24 bits directly to 4 output symbols.  This avoids bit-by-bit
-streaming and reduces loop overhead, achieving about a 2.7x speedup
-compared to previous implementations.
-
-On the decoder side, replace strchr() lookups with per-variant reverse
-tables and process input in 4-character groups.  Each group is mapped to
-numeric values and combined into 3 bytes.  Padded and unpadded forms are
-validated explicitly, rejecting invalid '=' usage and enforcing tail
-rules.  This improves throughput by ~43-52x.
-
-
-This patch (of 6):
-
-Extend the base64 API to support multiple variants (standard, URL-safe,
-and IMAP) as defined in RFC 4648 and RFC 3501.  The API now takes a
-variant parameter and an option to control padding.  Update NVMe auth code
-to use the new interface with BASE64_STD.
-
-Link: https://lkml.kernel.org/r/20251114055829.87814-1-409411716@gms.tku.edu.tw
-Link: https://lkml.kernel.org/r/20251114060045.88792-1-409411716@gms.tku.edu.tw
+[akpm@linux-foundation.org: fix kernedoc]
+Link: https://lkml.kernel.org/r/20251114060107.89026-1-409411716@gms.tku.edu.tw
 Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Co-developed-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
 Signed-off-by: Guan-Chun Wu <409411716@gms.tku.edu.tw>
@@ -99,174 +75,87 @@ Cc: Yu-Sheng Huang <home7438072@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvme/common/auth.c |    4 +-
- include/linux/base64.h     |   10 ++++-
- lib/base64.c               |   62 ++++++++++++++++++++---------------
- 3 files changed, 46 insertions(+), 30 deletions(-)
+ lib/base64.c |   52 +++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 48 insertions(+), 4 deletions(-)
 
---- a/drivers/nvme/common/auth.c~lib-base64-add-support-for-multiple-variants
-+++ a/drivers/nvme/common/auth.c
-@@ -178,7 +178,7 @@ struct nvme_dhchap_key *nvme_auth_extrac
- 	if (!key)
- 		return ERR_PTR(-ENOMEM);
+--- a/lib/base64.c~lib-base64-optimize-base64_decode-with-reverse-lookup-tables
++++ a/lib/base64.c
+@@ -21,6 +21,50 @@ static const char base64_tables[][65] =
+ 	[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",
+ };
  
--	key_len = base64_decode(secret, allocated_len, key->key);
-+	key_len = base64_decode(secret, allocated_len, key->key, true, BASE64_STD);
- 	if (key_len < 0) {
- 		pr_debug("base64 key decoding error %d\n",
- 			 key_len);
-@@ -663,7 +663,7 @@ int nvme_auth_generate_digest(u8 hmac_id
- 	if (ret)
- 		goto out_free_digest;
- 
--	ret = base64_encode(digest, digest_len, enc);
-+	ret = base64_encode(digest, digest_len, enc, true, BASE64_STD);
- 	if (ret < hmac_len) {
- 		ret = -ENOKEY;
- 		goto out_free_digest;
---- a/include/linux/base64.h~lib-base64-add-support-for-multiple-variants
-+++ a/include/linux/base64.h
-@@ -8,9 +8,15 @@
- 
- #include <linux/types.h>
- 
-+enum base64_variant {
-+	BASE64_STD,       /* RFC 4648 (standard) */
-+	BASE64_URLSAFE,   /* RFC 4648 (base64url) */
-+	BASE64_IMAP,      /* RFC 3501 */
++/*
++ * Initialize the base64 reverse mapping for a single character
++ * This macro maps a character to its corresponding base64 value,
++ * returning -1 if the character is invalid.
++ * char 'A'-'Z' maps to 0-25, 'a'-'z' maps to 26-51, '0'-'9' maps to 52-61,
++ * ch_62 maps to 62, ch_63 maps to 63, and other characters return -1
++ */
++#define INIT_1(v, ch_62, ch_63) \
++	[v] = (v) >= 'A' && (v) <= 'Z' ? (v) - 'A' \
++		: (v) >= 'a' && (v) <= 'z' ? (v) - 'a' + 26 \
++		: (v) >= '0' && (v) <= '9' ? (v) - '0' + 52 \
++		: (v) == (ch_62) ? 62 : (v) == (ch_63) ? 63 : -1
++
++/*
++ * Recursive macros to generate multiple Base64 reverse mapping table entries.
++ * Each macro generates a sequence of entries in the lookup table:
++ * INIT_2 generates 2 entries, INIT_4 generates 4, INIT_8 generates 8, and so on up to INIT_32.
++ */
++#define INIT_2(v, ...) INIT_1(v, __VA_ARGS__), INIT_1((v) + 1, __VA_ARGS__)
++#define INIT_4(v, ...) INIT_2(v, __VA_ARGS__), INIT_2((v) + 2, __VA_ARGS__)
++#define INIT_8(v, ...) INIT_4(v, __VA_ARGS__), INIT_4((v) + 4, __VA_ARGS__)
++#define INIT_16(v, ...) INIT_8(v, __VA_ARGS__), INIT_8((v) + 8, __VA_ARGS__)
++#define INIT_32(v, ...) INIT_16(v, __VA_ARGS__), INIT_16((v) + 16, __VA_ARGS__)
++
++#define BASE64_REV_INIT(ch_62, ch_63) { \
++	[0 ... 0x1f] = -1, \
++	INIT_32(0x20, ch_62, ch_63), \
++	INIT_32(0x40, ch_62, ch_63), \
++	INIT_32(0x60, ch_62, ch_63), \
++	[0x80 ... 0xff] = -1 }
++
++static const s8 base64_rev_maps[][256] = {
++	[BASE64_STD] = BASE64_REV_INIT('+', '/'),
++	[BASE64_URLSAFE] = BASE64_REV_INIT('-', '_'),
++	[BASE64_IMAP] = BASE64_REV_INIT('+', ',')
 +};
 +
- #define BASE64_CHARS(nbytes)   DIV_ROUND_UP((nbytes) * 4, 3)
- 
--int base64_encode(const u8 *src, int len, char *dst);
--int base64_decode(const char *src, int len, u8 *dst);
-+int base64_encode(const u8 *src, int len, char *dst, bool padding, enum base64_variant variant);
-+int base64_decode(const char *src, int len, u8 *dst, bool padding, enum base64_variant variant);
- 
- #endif /* _LINUX_BASE64_H */
---- a/lib/base64.c~lib-base64-add-support-for-multiple-variants
-+++ a/lib/base64.c
-@@ -1,12 +1,12 @@
- // SPDX-License-Identifier: GPL-2.0
- /*
-- * base64.c - RFC4648-compliant base64 encoding
-+ * base64.c - Base64 with support for multiple variants
-  *
-  * Copyright (c) 2020 Hannes Reinecke, SUSE
-  *
-  * Based on the base64url routines from fs/crypto/fname.c
-- * (which are using the URL-safe base64 encoding),
-- * modified to use the standard coding table from RFC4648 section 4.
-+ * (which are using the URL-safe Base64 encoding),
-+ * modified to support multiple Base64 variants.
-  */
- 
- #include <linux/kernel.h>
-@@ -15,26 +15,31 @@
- #include <linux/string.h>
- #include <linux/base64.h>
- 
--static const char base64_table[65] =
--	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-+static const char base64_tables[][65] = {
-+	[BASE64_STD] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-+	[BASE64_URLSAFE] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
-+	[BASE64_IMAP] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,",
-+};
- 
++#undef BASE64_REV_INIT
++#undef INIT_32
++#undef INIT_16
++#undef INIT_8
++#undef INIT_4
++#undef INIT_2
++#undef INIT_1
  /**
-- * base64_encode() - base64-encode some binary data
-+ * base64_encode() - Base64-encode some binary data
+  * base64_encode() - Base64-encode some binary data
   * @src: the binary data to encode
-  * @srclen: the length of @src in bytes
-- * @dst: (output) the base64-encoded string.  Not NUL-terminated.
-+ * @dst: (output) the Base64-encoded string.  Not NUL-terminated.
-+ * @padding: whether to append '=' padding characters
-+ * @variant: which base64 variant to use
-  *
-- * Encodes data using base64 encoding, i.e. the "Base 64 Encoding" specified
-- * by RFC 4648, including the  '='-padding.
-+ * Encodes data using the selected Base64 variant.
-  *
-- * Return: the length of the resulting base64-encoded string in bytes.
-+ * Return: the length of the resulting Base64-encoded string in bytes.
-  */
--int base64_encode(const u8 *src, int srclen, char *dst)
-+int base64_encode(const u8 *src, int srclen, char *dst, bool padding, enum base64_variant variant)
- {
- 	u32 ac = 0;
- 	int bits = 0;
- 	int i;
- 	char *cp = dst;
-+	const char *base64_table = base64_tables[variant];
- 
- 	for (i = 0; i < srclen; i++) {
- 		ac = (ac << 8) | src[i];
-@@ -48,44 +53,49 @@ int base64_encode(const u8 *src, int src
- 		*cp++ = base64_table[(ac << (6 - bits)) & 0x3f];
- 		bits -= 6;
- 	}
--	while (bits < 0) {
--		*cp++ = '=';
--		bits += 2;
-+	if (padding) {
-+		while (bits < 0) {
-+			*cp++ = '=';
-+			bits += 2;
-+		}
- 	}
- 	return cp - dst;
- }
- EXPORT_SYMBOL_GPL(base64_encode);
- 
- /**
-- * base64_decode() - base64-decode a string
-+ * base64_decode() - Base64-decode a string
-  * @src: the string to decode.  Doesn't need to be NUL-terminated.
-  * @srclen: the length of @src in bytes
-  * @dst: (output) the decoded binary data
-+ * @padding: whether to append '=' padding characters
-+ * @variant: which base64 variant to use
-  *
-- * Decodes a string using base64 encoding, i.e. the "Base 64 Encoding"
-- * specified by RFC 4648, including the  '='-padding.
-+ * Decodes a string using the selected Base64 variant.
-  *
-  * This implementation hasn't been optimized for performance.
-  *
-  * Return: the length of the resulting decoded binary data in bytes,
-- *	   or -1 if the string isn't a valid base64 string.
-+ *	   or -1 if the string isn't a valid Base64 string.
-  */
--int base64_decode(const char *src, int srclen, u8 *dst)
-+int base64_decode(const char *src, int srclen, u8 *dst, bool padding, enum base64_variant variant)
- {
- 	u32 ac = 0;
+@@ -84,10 +128,9 @@ int base64_decode(const char *src, int s
  	int bits = 0;
  	int i;
  	u8 *bp = dst;
-+	const char *base64_table = base64_tables[variant];
+-	const char *base64_table = base64_tables[variant];
++	s8 ch;
  
  	for (i = 0; i < srclen; i++) {
- 		const char *p = strchr(base64_table, src[i]);
--
--		if (src[i] == '=') {
--			ac = (ac << 6);
--			bits += 6;
--			if (bits >= 8)
--				bits -= 8;
--			continue;
-+		if (padding) {
-+			if (src[i] == '=') {
-+				ac = (ac << 6);
-+				bits += 6;
-+				if (bits >= 8)
-+					bits -= 8;
-+				continue;
-+			}
+-		const char *p = strchr(base64_table, src[i]);
+ 		if (padding) {
+ 			if (src[i] == '=') {
+ 				ac = (ac << 6);
+@@ -97,9 +140,10 @@ int base64_decode(const char *src, int s
+ 				continue;
+ 			}
  		}
- 		if (p == NULL || src[i] == 0)
+-		if (p == NULL || src[i] == 0)
++		ch = base64_rev_maps[variant][(u8)src[i]];
++		if (ch == -1)
  			return -1;
+-		ac = (ac << 6) | (p - base64_table);
++		ac = (ac << 6) | ch;
+ 		bits += 6;
+ 		if (bits >= 8) {
+ 			bits -= 8;
 _
 
 Patches currently in -mm which might be from visitorckw@gmail.com are
