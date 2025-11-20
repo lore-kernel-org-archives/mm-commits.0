@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3C453054E8
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:38:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BB0B32C952
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:39:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763674699; cv=none; b=nStzofC4A6Miub6/M54oRzMnxlJFM7I3sZN34uYittzP1TaxJnSDTnHmEwL7OkiQUNVYwEp9WhXYObFPmywr+xb46QROiGvn8NoVAI69PetSs1DruNl570lVuY4/LxYYhEmfx49Pm33UXthVGJmXulOKXj65mWXY7UHeb62zLhc=
+	t=1763674744; cv=none; b=ju17b9QBKczvWrC5WKbVxpfPogdDn1iP1cU4vl+Xvz1N4aVKCHer8nQoK3f4sY4yJYQURhLcPZ5C1StN6vqSmSOX3z09BsbNQT4nijlEVm5y8L1mNXUs5rn6346zFc6zoWxMflWiMYd7Xmb01JygRKk1VzbcMV2FSxqwLGMd9ZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763674699; c=relaxed/simple;
-	bh=0CLaI1sZP7k4WWfYhwL1jNXSlQ4bqR1A95UQTdYaw1E=;
-	h=Date:To:From:Subject:Message-Id; b=kHVC564mX8rCV4wRWSfm/kKUzz4HtQNsJWFTjwlt7R7m0oknvnRO+4M0YEXCp2ESh9iIereXcQq4UHXDAQ4g4zbujmR3MIjKGGAVh/QR1a+6O6HyV9SwYE2++GV3QzhXpa+ZFFeeZnBUsBHu0J+RxgoBabiSQXE3BpMwkhAHEVE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQ/QMDoC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763674744; c=relaxed/simple;
+	bh=PM5UWAWbZYoqjNYajbqnYjli6geFk879WjZxVyWIEG0=;
+	h=Date:To:From:Subject:Message-Id; b=RiTMR8QmAS5JCApwWcOGlVuPirRbGnkYAdOK7bJpunpyejKRHWLfBo4GehG221D3vfwOBFM/PCiEo2e665+5LfjqLw0mRBxQ2wLKJlaGwZc4TOfe2t2DdPGl4ADfCHNnKUVr9L8OKbky9gFtvDKDLQj7w3e7s5u7x5mdrRjjC30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IoaHgsjv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQ/QMDoC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3533EC4CEF1;
-	Thu, 20 Nov 2025 21:38:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IoaHgsjv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6703BC116B1;
+	Thu, 20 Nov 2025 21:39:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763674699;
-	bh=0CLaI1sZP7k4WWfYhwL1jNXSlQ4bqR1A95UQTdYaw1E=;
+	s=korg; t=1763674743;
+	bh=PM5UWAWbZYoqjNYajbqnYjli6geFk879WjZxVyWIEG0=;
 	h=Date:To:From:Subject:From;
-	b=aQ/QMDoCLS0oKPLIcUVP8oBp0pheToiYx4g8ip6jBpdRE5DaE96/ZKDDoJw6/dRmd
-	 B6Qhnd7+6SikxbBVXjk8ketJVteOTW9NrjG4kmoHk61j42sSVtWax3PMOxtMB9nQPj
-	 tsd5WgxkZbalz08PVnVOKqwuv/OcguJ1A+qt6Zso=
-Date: Thu, 20 Nov 2025 13:38:18 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,sj@kernel.org,akpm@linux-foundation.org
+	b=IoaHgsjv/okU+D3faScBgwOedSy0567sFoG/S8JKQ8pfEOxxkG9WXbYMpsDhxtAnu
+	 urk/skU2bZ3g7xc5ngCPAZHbtr6g+NSWvsgsJWd1DlK7KPGmccwgQnzUtYMmJSR/q+
+	 NxZ5L0bBJoXacuVtG7/kZ/FhfQzNc6plgRzyH8KQ=
+Date: Thu, 20 Nov 2025 13:39:02 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,gorcunov@gmail.com,david@kernel.org,avagin@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock-fix.patch removed from -mm tree
-Message-Id: <20251120213819.3533EC4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-propagate-vm_softdirty-on-merge-fix.patch removed from -mm tree
+Message-Id: <20251120213903.6703BC116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: provide lvalue to pmd_present()
+     Subject: mm-propagate-vm_softdirty-on-merge-fix
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock-fix.patch
+     mm-propagate-vm_softdirty-on-merge-fix.patch
 
-This patch was dropped because it was folded into mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
+This patch was dropped because it was folded into mm-propagate-vm_softdirty-on-merge.patch
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/vaddr: provide lvalue to pmd_present()
-Date: Mon, 17 Nov 2025 07:36:43 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-propagate-vm_softdirty-on-merge-fix
+Date: Wed Nov 19 02:22:57 PM PST 2025
 
-On m68k, vaddr.c build fails since pmd_present() requires lvalue while
-vaddr.c is passing pmdp_get().  Fix it.
+update comments, per Lorenzo
 
-Link: https://lkml.kernel.org/r/20251117154415.11041-1-sj@kernel.org
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202511172257.CjElDcRX-lkp@intel.com/
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/0019e0b8-ee1e-4359-b5ee-94225cbe5588@lucifer.local
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrey Vagin <avagin@gmail.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/mm.h               |    7 +++----
+ tools/testing/vma/vma_internal.h |    7 +++----
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock-fix
-+++ a/mm/damon/vaddr.c
-@@ -311,7 +311,9 @@ static int damon_mkold_pmd_entry(pmd_t *
+--- a/include/linux/mm.h~mm-propagate-vm_softdirty-on-merge-fix
++++ a/include/linux/mm.h
+@@ -548,10 +548,9 @@ extern unsigned int kobjsize(const void
+  * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
+  * of these flags and the other not does not preclude a merge.
+  *
+- * VM_STICKY - If one VMA has flags which must be 'sticky', that is ones
+- *             which should propagate to all VMAs, but the other does not,
+- *             the merge should still proceed with the merge logic applying
+- *             sticky flags to the final VMA.
++ *    VM_STICKY - When merging VMAs, VMA flags must match, unless they are
++ *                'sticky'. If any sticky flags exist in either VMA, we simply
++ *                set all of them on the merged VMA.
+  */
+ #define VM_IGNORE_MERGE VM_STICKY
  
- 	ptl = pmd_trans_huge_lock(pmd, walk->vma);
- 	if (ptl) {
--		if (pmd_present(pmdp_get(pmd)))
-+		pmd_t pmde = pmdp_get(pmd);
-+
-+		if (pmd_present(pmde))
- 			damon_pmdp_mkold(pmd, walk->vma, addr);
- 		spin_unlock(ptl);
- 		return 0;
+--- a/tools/testing/vma/vma_internal.h~mm-propagate-vm_softdirty-on-merge-fix
++++ a/tools/testing/vma/vma_internal.h
+@@ -133,10 +133,9 @@ extern unsigned long dac_mmap_min_addr;
+  * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
+  * of these flags and the other not does not preclude a merge.
+  *
+- * VM_STICKY - If one VMA has flags which most be 'sticky', that is ones
+- *             which should propagate to all VMAs, but the other does not,
+- *             the merge should still proceed with the merge logic applying
+- *             sticky flags to the final VMA.
++ *    VM_STICKY - When merging VMAs, VMA flags must match, unless they are
++ *                'sticky'. If any sticky flags exist in either VMA, we simply
++ *                set all of them on the merged VMA.
+  */
+ #define VM_IGNORE_MERGE VM_STICKY
+ 
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-damon-tests-core-kunit-remove-dynamic-allocs-on-damos_test_commit_filter.patch
-mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch
-mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch
-mm-damon-tests-core-kunit-add-test-cases-to-damos_test_commit_filter.patch
-mm-damon-tests-core-kunit-add-damos_commit_quota_goal-test.patch
-mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch
-mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch
-mm-damon-core-pass-migrate_dests-to-damos_commit_dests.patch
-mm-damon-tests-core-kunit-add-damos_commit_dests-test.patch
-mm-damon-tests-core-kunit-add-damos_commit-test.patch
-mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
-mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
-mm-damon-rename-damos-filters-to-damos-core_filters.patch
-mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
-mm-damon-vaddr-use-vm_normal_folio_pmd-instead-of-damon_get_folio.patch
-mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate.patch
-mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
-selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
-docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
-docs-mm-damon-maintainer-profile-fix-grammartical-errors.patch
+mm-propagate-vm_softdirty-on-merge.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+mm-correctly-handle-uffd-pte-markers-fix.patch
+mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix-fix.patch
+panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
+lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch
+lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
+uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
 
