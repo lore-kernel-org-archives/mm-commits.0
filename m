@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2E130BF77
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 406AC34D3AA
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675076; cv=none; b=a72J2WCOwWLrCAQwN1sufBd9xNIwxYZVFm5F40bKtV1y4JKhmddooYukzQkoW0C0CV6MJUypukyjbIuDLOhoJeg+P/O6pSK9KQpMTUp+1rYtUuXRG5SeriSzGy76S87TsiRRUFz9HTMOGOsZThi+7rW4e9Uxrx8DOk4zXEZgTeA=
+	t=1763675077; cv=none; b=GCU/iNJlWy4H4BKWj/hZCXtxEt8n48JxpyllRHZ1ORvWw+wapJA54uvjtVSElfbJVEm3dOriuDBzzyBRRc3N+WM2Bp9UwekXxgrcE8ksr9ZogHou20P6W04UxY8TnqaDB1aLxZDMMpIpFX4qdlW2p8N65ZO73H9ZMOFYiq0bTA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675076; c=relaxed/simple;
-	bh=QDR+9SqpPj1m6rE/VjU2U8vBXtm2dthHHi4Y3iYZdJk=;
-	h=Date:To:From:Subject:Message-Id; b=CSi+UfjmSpVZ2kGQusxoe9tNQ+5nLNDkGtnV1vqiLcok0AcVq39nL2CJhKl5mLUnEZoyyPcd6eEIiR0r6EGTHDctLVAX6tj+AtN5DWTlyaaTBxJ8/YAafR12q9DxNqRcQGhYjPuSbVa9VtMydRfy40DIHWaQDYaZ2JdjrakbLhg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nVIsBwr/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675077; c=relaxed/simple;
+	bh=D9dHp2n2I3mrlLDyvfbv1pwpNOU0E+DuMVTPPMOLNzg=;
+	h=Date:To:From:Subject:Message-Id; b=o6YwEc+JvDrPxzeL8X2q9DFSdnRWa9OGEV3UopL2rgcwlILbQIZrcNPdeFkgDFUdvmrriS6NatRpWKEv/1n/7ljhAdATEUaQlqgNxrfhLTiq8Urlv5PbUCcPS1ulpFPikEjJxsrR5OSf4dfgqKy2zZFIxs/bQ1dyW7ILHF+j1g0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+dQG//b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nVIsBwr/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C50C2C4CEF1;
-	Thu, 20 Nov 2025 21:44:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+dQG//b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA9D1C4CEF1;
+	Thu, 20 Nov 2025 21:44:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675075;
-	bh=QDR+9SqpPj1m6rE/VjU2U8vBXtm2dthHHi4Y3iYZdJk=;
+	s=korg; t=1763675076;
+	bh=D9dHp2n2I3mrlLDyvfbv1pwpNOU0E+DuMVTPPMOLNzg=;
 	h=Date:To:From:Subject:From;
-	b=nVIsBwr/ZG9n1TRockN+tlMDaVNbfZUZe8nG4rzs7ZPfHL8nTWMZcAmvdNQkmYJcS
-	 PZ6xwfd1FqTW4glFCzb/xLmF20SCWOdtHpAq1PnRreattBotnR4TOniim5FJnoVzf/
-	 l3L8RMaBLf3ETyUKu3NbtD+E6PaSukDB2VMBsbNM=
-Date: Thu, 20 Nov 2025 13:44:35 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,ankitkhushwaha.linux@gmail.com,akpm@linux-foundation.org
+	b=j+dQG//bmm2mK35/3kL8AEYfr+2gJIstFN3crqQuCycYxOmk2KO8HP/1bmOASYHQz
+	 mmrg9hrikUst59VKyvDlxZlxMkuGNXfSrVl/sXwOi3ergC6zYg8WmWxqpK/Ji3KcJG
+	 EJBHfTRS8e4QgQKmR5ELitYaMXirAQ2Zp+fzxzJ4=
+Date: Thu, 20 Nov 2025 13:44:36 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftest-mm-fix-pointer-comparison-in-mremap_test.patch removed from -mm tree
-Message-Id: <20251120214435.C50C2C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma.patch removed from -mm tree
+Message-Id: <20251120214436.BA9D1C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,142 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftest/mm: fix pointer comparison in mremap_test
+     Subject: mm: kill mm_wr_locked from unmap_vmas() and unmap_single_vma()
 has been removed from the -mm tree.  Its filename was
-     selftest-mm-fix-pointer-comparison-in-mremap_test.patch
+     mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
-Subject: selftest/mm: fix pointer comparison in mremap_test
-Date: Sat, 8 Nov 2025 21:48:29 +0530
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: kill mm_wr_locked from unmap_vmas() and unmap_single_vma()
+Date: Tue, 4 Nov 2025 16:57:09 +0800
 
-Pointer arthemitic with 'void * addr' and 'ulong dest_alignment' triggers
-following warning:
+Kill mm_wr_locked since commit f8e97613fed2 ("mm: convert VM_PFNMAP
+tracking to pfnmap_track() + pfnmap_untrack()") remove the user.
 
-mremap_test.c:1035:31: warning: pointer comparison always evaluates to
-false [-Wtautological-compare]
- 1035 |                 if (addr + c.dest_alignment < addr) {
-      |                                             ^
-
-this warning is raised from clang version 20.1.8 (Fedora 20.1.8-4.fc42).
-
-use 'void *tmp_addr' to do the pointer arthemitic.
-
-Link: https://lkml.kernel.org/r/20251108161829.25105-1-ankitkhushwaha.linux@gmail.com
-Signed-off-by: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251104085709.2688433-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/mm.h               |    2 +-
+ mm/memory.c                      |   12 ++++--------
+ mm/mmap.c                        |    2 +-
+ mm/vma.c                         |    5 ++---
+ tools/testing/vma/vma_internal.h |    3 +--
+ 5 files changed, 9 insertions(+), 15 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftest-mm-fix-pointer-comparison-in-mremap_test
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -994,7 +994,7 @@ static void mremap_move_multi_invalid_vm
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char *rand_addr)
+--- a/include/linux/mm.h~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
++++ a/include/linux/mm.h
+@@ -2480,7 +2480,7 @@ static inline void zap_vma_pages(struct
+ }
+ void unmap_vmas(struct mmu_gather *tlb, struct ma_state *mas,
+ 		struct vm_area_struct *start_vma, unsigned long start,
+-		unsigned long end, unsigned long tree_end, bool mm_wr_locked);
++		unsigned long end, unsigned long tree_end);
+ 
+ struct mmu_notifier_range;
+ 
+--- a/mm/memory.c~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
++++ a/mm/memory.c
+@@ -2023,8 +2023,7 @@ void unmap_page_range(struct mmu_gather
+ 
+ static void unmap_single_vma(struct mmu_gather *tlb,
+ 		struct vm_area_struct *vma, unsigned long start_addr,
+-		unsigned long end_addr,
+-		struct zap_details *details, bool mm_wr_locked)
++		unsigned long end_addr, struct zap_details *details)
  {
--	void *addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
-+	void *addr, *tmp_addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
- 	unsigned long long t, d;
- 	struct timespec t_start = {0, 0}, t_end = {0, 0};
- 	long long  start_ns, end_ns, align_mask, ret, offset;
-@@ -1032,7 +1032,8 @@ static long long remap_region(struct con
- 	/* Don't destroy existing mappings unless expected to overlap */
- 	while (!is_remap_region_valid(addr, c.region_size) && !c.overlapping) {
- 		/* Check for unsigned overflow */
--		if (addr + c.dest_alignment < addr) {
-+		tmp_addr = addr + c.dest_alignment;
-+		if (tmp_addr < addr) {
- 			ksft_print_msg("Couldn't find a valid region to remap to\n");
- 			ret = -1;
- 			goto clean_up_src;
+ 	unsigned long start = max(vma->vm_start, start_addr);
+ 	unsigned long end;
+@@ -2070,7 +2069,6 @@ static void unmap_single_vma(struct mmu_
+  * @start_addr: virtual address at which to start unmapping
+  * @end_addr: virtual address at which to end unmapping
+  * @tree_end: The maximum index to check
+- * @mm_wr_locked: lock flag
+  *
+  * Unmap all pages in the vma list.
+  *
+@@ -2085,8 +2083,7 @@ static void unmap_single_vma(struct mmu_
+  */
+ void unmap_vmas(struct mmu_gather *tlb, struct ma_state *mas,
+ 		struct vm_area_struct *vma, unsigned long start_addr,
+-		unsigned long end_addr, unsigned long tree_end,
+-		bool mm_wr_locked)
++		unsigned long end_addr, unsigned long tree_end)
+ {
+ 	struct mmu_notifier_range range;
+ 	struct zap_details details = {
+@@ -2102,8 +2099,7 @@ void unmap_vmas(struct mmu_gather *tlb,
+ 		unsigned long start = start_addr;
+ 		unsigned long end = end_addr;
+ 		hugetlb_zap_begin(vma, &start, &end);
+-		unmap_single_vma(tlb, vma, start, end, &details,
+-				 mm_wr_locked);
++		unmap_single_vma(tlb, vma, start, end, &details);
+ 		hugetlb_zap_end(vma, &details);
+ 		vma = mas_find(mas, tree_end - 1);
+ 	} while (vma && likely(!xa_is_zero(vma)));
+@@ -2139,7 +2135,7 @@ void zap_page_range_single_batched(struc
+ 	 * unmap 'address-end' not 'range.start-range.end' as range
+ 	 * could have been expanded for hugetlb pmd sharing.
+ 	 */
+-	unmap_single_vma(tlb, vma, address, end, details, false);
++	unmap_single_vma(tlb, vma, address, end, details);
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	if (is_vm_hugetlb_page(vma)) {
+ 		/*
+--- a/mm/mmap.c~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
++++ a/mm/mmap.c
+@@ -1274,7 +1274,7 @@ void exit_mmap(struct mm_struct *mm)
+ 	tlb_gather_mmu_fullmm(&tlb, mm);
+ 	/* update_hiwater_rss(mm) here? but nobody should be looking */
+ 	/* Use ULONG_MAX here to ensure all VMAs in the mm are unmapped */
+-	unmap_vmas(&tlb, &vmi.mas, vma, 0, ULONG_MAX, ULONG_MAX, false);
++	unmap_vmas(&tlb, &vmi.mas, vma, 0, ULONG_MAX, ULONG_MAX);
+ 	mmap_read_unlock(mm);
+ 
+ 	/*
+--- a/mm/vma.c~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
++++ a/mm/vma.c
+@@ -483,8 +483,7 @@ void unmap_region(struct ma_state *mas,
+ 
+ 	tlb_gather_mmu(&tlb, mm);
+ 	update_hiwater_rss(mm);
+-	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end,
+-		   /* mm_wr_locked = */ true);
++	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end);
+ 	mas_set(mas, vma->vm_end);
+ 	free_pgtables(&tlb, mas, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
+ 		      next ? next->vm_start : USER_PGTABLES_CEILING,
+@@ -1228,7 +1227,7 @@ static inline void vms_clear_ptes(struct
+ 	tlb_gather_mmu(&tlb, vms->vma->vm_mm);
+ 	update_hiwater_rss(vms->vma->vm_mm);
+ 	unmap_vmas(&tlb, mas_detach, vms->vma, vms->start, vms->end,
+-		   vms->vma_count, mm_wr_locked);
++		   vms->vma_count);
+ 
+ 	mas_set(mas_detach, 1);
+ 	/* start and end may be different if there is no prev or next vma. */
+--- a/tools/testing/vma/vma_internal.h~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
++++ a/tools/testing/vma/vma_internal.h
+@@ -848,8 +848,7 @@ static inline void update_hiwater_vm(str
+ 
+ static inline void unmap_vmas(struct mmu_gather *tlb, struct ma_state *mas,
+ 		      struct vm_area_struct *vma, unsigned long start_addr,
+-		      unsigned long end_addr, unsigned long tree_end,
+-		      bool mm_wr_locked)
++		      unsigned long end_addr, unsigned long tree_end)
+ {
+ }
+ 
 _
 
-Patches currently in -mm which might be from ankitkhushwaha.linux@gmail.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
