@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99CA1368E09
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 19:00:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7037D2D9EEC
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:22:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763665256; cv=none; b=Jc6vAXHZjvPjYdrbrfp3vQho7nu9lOp9IeExN4tpS9y6taS4Edn8QrTsIvbMeAASQZtpX8w2xW3M4HE+824kZAy27RO0PqunsICq8VW6dG/AEFriW42ASX3QBo+7DCXvgpnVe8l9ogUXOcOl90+Mbzxnf4pIvf2twXboVNPMWFo=
+	t=1763673759; cv=none; b=QWRLj8/jJUohtgiSV+p8I2BjRLCrvhCJGlGjgc+4HbevVfinD0ryFqklClzHOPUmf02Xm1WMk3TeCoT5qWCAKfHBuHcOzEWqVtsFXrZqutw9N0b/ydWdBzaY7ddbFPVsDrzC8rJ/LaP0xXFkIst7HZltH2Dlc+Xy88blO1UBjDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763665256; c=relaxed/simple;
-	bh=HT6R70bOEAtC+QWtPr8xx9cRjhr7Lsdr+KHqjQDIxQQ=;
-	h=Date:To:From:Subject:Message-Id; b=D4ZD2mN88A57pFTWRkNoiJ1EhbxlVmtwiVgZMlCF3QvSmpk1HyjJVOZ5+9LWIXcxm6vywVOE++2CrJMHfUTibBEhrf5ow7mEt2RFrHtuisCUboDshpMRI9JcxBLI59auHWPhizt0Bjd1obNjhwluJoSJYSidKQNWVWFFU7qEHPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iTvg3JPT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763673759; c=relaxed/simple;
+	bh=efJiLxI9I+RURUOBIefOPJ+c/Yf34UyZaRQxrCykPfo=;
+	h=Date:To:From:Subject:Message-Id; b=Y78S8xObMftNn/HY/qcTVxs0oyxdya+PdfYOhdIozgTBLwr+fCq19CF3ZXBiWTsmlDnC1EglIvXNpY0dzUFw28EC9b3KVAW7f/301g9HHorOfb9Z22At7mMsO4G4aIJDNvVVN1u4Dmep87afUs5Q9Rl3gaVr+QvdJyZ03Ej+p5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oU2Je/vC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iTvg3JPT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C8C3C16AAE;
-	Thu, 20 Nov 2025 19:00:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oU2Je/vC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4F42C4CEF1;
+	Thu, 20 Nov 2025 21:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763665256;
-	bh=HT6R70bOEAtC+QWtPr8xx9cRjhr7Lsdr+KHqjQDIxQQ=;
+	s=korg; t=1763673758;
+	bh=efJiLxI9I+RURUOBIefOPJ+c/Yf34UyZaRQxrCykPfo=;
 	h=Date:To:From:Subject:From;
-	b=iTvg3JPTsqb9WUovV0xp7B2IrloJMCgAyKjhEnErC+KFy0xq4myEJ5Qb4nLUus8Oq
-	 fXLTaOxglQY1YVzRnZUSI8M2ykEkZ8RoY6G2g+JsYjcEYFNyCMB4WNHYxGBS+1/sGu
-	 EqNejfUtOTsBJARtYku0NARRgqnUzpiNOGMvn7RM=
-Date: Thu, 20 Nov 2025 11:00:55 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,hannes@cmpxchg.org,djwong@kernel.org,david@redhat.com,david@fromorbit.com,clm@meta.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
+	b=oU2Je/vC//if9PDpDurSpOBXAozcaSR5Hfuwbm7kinpS2ai5jYKJ2SaZezAxHiHmx
+	 GFQ4uHR5UyPrKq8eJNOrxVOZA8N9OjDD8VbB61Jr+9couo7Yfl7PDMKwm5ja+9ztEf
+	 /E3TO2Q8Tm3cI7USNojvVhyDmKvBCS85rLGXF+mo=
+Date: Thu, 20 Nov 2025 13:22:38 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251120190056.2C8C3C16AAE@smtp.kernel.org>
+Subject: + mm-correctly-handle-uffd-pte-markers-fix.patch added to mm-unstable branch
+Message-Id: <20251120212238.C4F42C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: fix logic around SIGBUS in filemap_map_pages()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch
+     Subject: mm-correctly-handle-uffd-pte-markers-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-correctly-handle-uffd-pte-markers-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-correctly-handle-uffd-pte-markers-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,121 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kiryl Shutsemau <kas@kernel.org>
-Subject: mm/filemap: fix logic around SIGBUS in filemap_map_pages()
-Date: Thu, 20 Nov 2025 16:14:11 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-correctly-handle-uffd-pte-markers-fix
+Date: Thu Nov 20 01:21:44 PM PST 2025
 
-Chris noticed that filemap_map_pages() calculates can_map_large only once
-for the first page in the fault around range.  The value is not valid for
-the following pages in the range and must be recalculated.
+fix comment typo, per Mike
 
-Instead of recalculating can_map_large on each iteration, pass down
-file_end to filemap_map_folio_range() and let it make the decision on what
-can be mapped.
-
-Link: https://lkml.kernel.org/r/20251120161411.859078-1-kirill@shutemov.name
-Fixes: 74207de2ba10 ("mm/memory: do not populate page table entries beyond i_size")h
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Reported-by: Chris Mason <clm@meta.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Mason <clm@meta.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ fs/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages
-+++ a/mm/filemap.c
-@@ -3682,8 +3682,9 @@ static vm_fault_t filemap_map_folio_rang
- 			struct folio *folio, unsigned long start,
- 			unsigned long addr, unsigned int nr_pages,
- 			unsigned long *rss, unsigned short *mmap_miss,
--			bool can_map_large)
-+			pgoff_t file_end)
- {
-+	struct address_space *mapping = folio->mapping;
- 	unsigned int ref_from_caller = 1;
- 	vm_fault_t ret = 0;
- 	struct page *page = folio_page(folio, start);
-@@ -3692,12 +3693,16 @@ static vm_fault_t filemap_map_folio_rang
- 	unsigned long addr0;
+--- a/fs/userfaultfd.c~mm-correctly-handle-uffd-pte-markers-fix
++++ a/fs/userfaultfd.c
+@@ -312,7 +312,7 @@ again:
+ 		return true;
  
  	/*
--	 * Map the large folio fully where possible.
-+	 * Map the large folio fully where possible:
- 	 *
--	 * The folio must not cross VMA or page table boundary.
-+	 *  - The folio is fully within size of the file or belong
-+	 *    to shmem/tmpfs;
-+	 *  - The folio doesn't cross VMA boundary;
-+	 *  - The folio doesn't cross page table boundary;
+-	 * A race could arise which would result in a softleaf entry such a
++	 * A race could arise which would result in a softleaf entry such as
+ 	 * migration entry unexpectedly being present in the PMD, so explicitly
+ 	 * check for this and bail out if so.
  	 */
- 	addr0 = addr - start * PAGE_SIZE;
--	if (can_map_large && folio_within_vma(folio, vmf->vma) &&
-+	if ((file_end >= folio_next_index(folio) || shmem_mapping(mapping)) &&
-+	    folio_within_vma(folio, vmf->vma) &&
- 	    (addr0 & PMD_MASK) == ((addr0 + folio_size(folio) - 1) & PMD_MASK)) {
- 		vmf->pte -= start;
- 		page -= start;
-@@ -3812,7 +3817,6 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	unsigned long rss = 0;
- 	unsigned int nr_pages = 0, folio_type;
- 	unsigned short mmap_miss = 0, mmap_miss_saved;
--	bool can_map_large;
- 
- 	rcu_read_lock();
- 	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
-@@ -3823,16 +3827,14 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	end_pgoff = min(end_pgoff, file_end);
- 
- 	/*
--	 * Do not allow to map with PTEs beyond i_size and with PMD
--	 * across i_size to preserve SIGBUS semantics.
-+	 * Do not allow to map with PMD across i_size to preserve
-+	 * SIGBUS semantics.
- 	 *
- 	 * Make an exception for shmem/tmpfs that for long time
- 	 * intentionally mapped with PMDs across i_size.
- 	 */
--	can_map_large = shmem_mapping(mapping) ||
--		file_end >= folio_next_index(folio);
--
--	if (can_map_large && filemap_map_pmd(vmf, folio, start_pgoff)) {
-+	if ((file_end >= folio_next_index(folio) || shmem_mapping(mapping)) &&
-+	    filemap_map_pmd(vmf, folio, start_pgoff)) {
- 		ret = VM_FAULT_NOPAGE;
- 		goto out;
- 	}
-@@ -3861,8 +3863,7 @@ vm_fault_t filemap_map_pages(struct vm_f
- 		else
- 			ret |= filemap_map_folio_range(vmf, folio,
- 					xas.xa_index - folio->index, addr,
--					nr_pages, &rss, &mmap_miss,
--					can_map_large);
-+					nr_pages, &rss, &mmap_miss, file_end);
- 
- 		folio_unlock(folio);
- 	} while ((folio = next_uptodate_folio(&xas, mapping, end_pgoff)) != NULL);
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch
+mm-vmscan-remove-folio_test_private-check-in-pageout-fix.patch
+mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+mm-correctly-handle-uffd-pte-markers-fix.patch
+mm-propagate-vm_softdirty-on-merge-fix.patch
+mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix-fix.patch
+panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
+lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch
+lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
+uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
 
