@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87EAA32FA11
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D58161EF091
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763676273; cv=none; b=mmGlH8obzGV/Z6YNsbwkR7QDnXHxyQHErudula840EsiTXoBxXkUIRIrnz6/31k2DzAT0Wp92YG8qIanWMmKFP6ARIVzAddNYkanc86HacPiCKIeOrba8ztvD0KAk4TrWCUn+rgU2GSoSh/wY2RtLhOiIrcR1UegnF2og0llkxQ=
+	t=1763676274; cv=none; b=ebDi4UlhNFgYaX2Fa24vPiQvCsKLLah1CbSgRGYHY90pMzuHVokYQkk+GkB3qpclpwb1n2Bjs6diAgv67nZuKFE0XVXlowTP23NABeEDIyIMEXni6eMlXpatKyexlvMe78e15nFW7dhxS4/KW2iH4EZ3KaxWD+D0JcsaPfLEEsY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763676273; c=relaxed/simple;
-	bh=npd2dzCdnjGh4h7bBHsYJw980xAQYI5jsOfcVPSd5jE=;
-	h=Date:To:From:Subject:Message-Id; b=B5wG8S0HRdkSVaGM/2AEicgfrBxZ6SdVceZmrV+lFybPK7V0kCZJdEtTU+D/fob+7wIFslvstkrI13iSbs5XSU/VsTNlDp1Pkl7xjRnMghMJXzKJ4jHU1QC0oS00ID6fP1Y9z/TRh/xRzlmurUr1+MMemu78bQ4RIRVyWQpF3gA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vr6JcidS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763676274; c=relaxed/simple;
+	bh=x+i0z3g1Mp7x3bNMKqInn9ens8aylolQgCLCN52odiE=;
+	h=Date:To:From:Subject:Message-Id; b=fcKnq26xnSrV/rPUwhMB7ue4vuGFqpqzTTT6sZZajvznkdlcHG2I3FcvzU3CFFZ36qg8SsCt+SFry3degAKF/26hlHdktrtF6yfE0eGHX933PClTXSvxwZOVK1D73ZVgTqfroFeAkb6Fbw9uXg/1fqApTfBXX4CK5H8W66ZuxvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qjwkBMRt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vr6JcidS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E171C4CEF1;
-	Thu, 20 Nov 2025 22:04:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qjwkBMRt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54A5FC4CEF1;
+	Thu, 20 Nov 2025 22:04:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763676273;
-	bh=npd2dzCdnjGh4h7bBHsYJw980xAQYI5jsOfcVPSd5jE=;
+	s=korg; t=1763676274;
+	bh=x+i0z3g1Mp7x3bNMKqInn9ens8aylolQgCLCN52odiE=;
 	h=Date:To:From:Subject:From;
-	b=vr6JcidS5S/2rj/Hgj1wFz8L1/Ebm5ZebGbmOlAGKp5SkJOMeaNQJWTJqMjJVZv8u
-	 CzqOezZ2SqkdeVTGiM/S1OHsXiv7i6TC7XMueDW3kfAL4NAUS924y0i/oz4E3W0XES
-	 OUpFZj50CUKT63wTLIA9dNUdK2QgZEpeDYe7E8FA=
-Date: Thu, 20 Nov 2025 14:04:32 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,bhe@redhat.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=qjwkBMRtM7liBAE9idKAkgb0DHmDpgQJ5mK6KeNLAVDoUGgsIItBjFxyKltHjgiyO
+	 AtC0UsI7lZvpkrxU/bUgUSaEJ0bm0BmWzfsX9lhHdMPRSzFIgnHT25yCkU9h0qFexL
+	 nUer1Dplpvec6bVaWCYwU5nGdXAD3XG5PlQPwUOE=
+Date: Thu, 20 Nov 2025 14:04:33 -0800
+To: mm-commits@vger.kernel.org,kbingham@kernel.org,jan.kiszka@siemens.com,hca@linux.ibm.com,gor@linux.ibm.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,agordeev@linux.ibm.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] maintainers-add-myself-as-a-reviewer-for-kho.patch removed from -mm tree
-Message-Id: <20251120220433.5E171C4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-radix-tree-add-lx-radix-tree-command.patch removed from -mm tree
+Message-Id: <20251120220434.54A5FC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,221 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add Pratyush as a reviewer for KHO
+     Subject: scripts/gdb/radix-tree: add lx-radix-tree-command
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-myself-as-a-reviewer-for-kho.patch
+     scripts-gdb-radix-tree-add-lx-radix-tree-command.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pratyush Yadav <pratyush@kernel.org>
-Subject: MAINTAINERS: add Pratyush as a reviewer for KHO
-Date: Wed, 5 Nov 2025 11:20:19 +0100
+From: Ilya Leoshkevich <iii@linux.ibm.com>
+Subject: scripts/gdb/radix-tree: add lx-radix-tree-command
+Date: Thu, 6 Nov 2025 13:43:41 +0100
 
-I have been reviewing most patches for KHO already, and it is easier to
-spot them if I am directly in Cc.
+Patch series "scripts/gdb/symbols: make BPF debug info available to GDB",
+v2.
 
-Link: https://lkml.kernel.org/r/20251105102022.18798-1-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+This series greatly simplifies debugging BPF progs when using QEMU gdbstub
+by providing symbol names, sizes, and line numbers to GDB.
+
+Patch 1 adds radix tree iteration, which is necessary for parsing
+prog_idr.  Patch 2 is the actual implementation; its description contains
+some details on how to use this.
+
+
+This patch (of 2):
+
+Add a function and a command to iterate over radix tree contents. 
+Duplicate the C implementation in Python, but drop support for tagging.
+
+Link: https://lkml.kernel.org/r/20251106124600.86736-1-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20251106124600.86736-2-iii@linux.ibm.com
+Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Daniel Borkman <daniel@iogearbox.net>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/gdb/linux/radixtree.py |  139 +++++++++++++++++++++++++++++--
+ 1 file changed, 132 insertions(+), 7 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-myself-as-a-reviewer-for-kho
-+++ a/MAINTAINERS
-@@ -13791,6 +13791,7 @@ KEXEC HANDOVER (KHO)
- M:	Alexander Graf <graf@amazon.com>
- M:	Mike Rapoport <rppt@kernel.org>
- M:	Changyuan Lyu <changyuanl@google.com>
-+R:	Pratyush Yadav <pratyush@kernel.org>
- L:	kexec@lists.infradead.org
- L:	linux-mm@kvack.org
- S:	Maintained
+--- a/scripts/gdb/linux/radixtree.py~scripts-gdb-radix-tree-add-lx-radix-tree-command
++++ a/scripts/gdb/linux/radixtree.py
+@@ -30,13 +30,16 @@ def entry_to_node(node):
+ def node_maxindex(node):
+     return (constants.LX_RADIX_TREE_MAP_SIZE << node['shift']) - 1
+ 
+-def lookup(root, index):
++def resolve_root(root):
++    if root.type == radix_tree_root_type.get_type():
++        return root
+     if root.type == radix_tree_root_type.get_type().pointer():
+-        node = root.dereference()
+-    elif root.type != radix_tree_root_type.get_type():
+-        raise gdb.GdbError("must be {} not {}"
+-                           .format(radix_tree_root_type.get_type(), root.type))
++        return root.dereference()
++    raise gdb.GdbError("must be {} not {}"
++                       .format(radix_tree_root_type.get_type(), root.type))
+ 
++def lookup(root, index):
++    root = resolve_root(root)
+     node = root['xa_head']
+     if node == 0:
+         return None
+@@ -71,14 +74,120 @@ def lookup(root, index):
+ 
+     return node
+ 
+-class LxRadixTree(gdb.Function):
++def descend(parent, index):
++    offset = (index >> int(parent["shift"])) & constants.LX_RADIX_TREE_MAP_MASK
++    return offset, parent["slots"][offset]
++
++def load_root(root):
++    node = root["xa_head"]
++    nodep = node
++
++    if is_internal_node(node):
++        node = entry_to_node(node)
++        maxindex = node_maxindex(node)
++        return int(node["shift"]) + constants.LX_RADIX_TREE_MAP_SHIFT, \
++               nodep, maxindex
++
++    return 0, nodep, 0
++
++class RadixTreeIter:
++    def __init__(self, start):
++        self.index = 0
++        self.next_index = start
++        self.node = None
++
++def xa_mk_internal(v):
++    return (v << 2) | 2
++
++LX_XA_RETRY_ENTRY = xa_mk_internal(256)
++LX_RADIX_TREE_RETRY = LX_XA_RETRY_ENTRY
++
++def next_chunk(root, iter):
++    mask = (1 << (utils.get_ulong_type().sizeof * 8)) - 1
++
++    index = iter.next_index
++    if index == 0 and iter.index != 0:
++        return None
++
++    restart = True
++    while restart:
++        restart = False
++
++        _, child, maxindex = load_root(root)
++        if index > maxindex:
++            return None
++        if not child:
++            return None
++
++        if not is_internal_node(child):
++            iter.index = index
++            iter.next_index = (maxindex + 1) & mask
++            iter.node = None
++            return root["xa_head"].address
++
++        while True:
++            node = entry_to_node(child)
++            offset, child = descend(node, index)
++
++            if not child:
++                while True:
++                    offset += 1
++                    if offset >= constants.LX_RADIX_TREE_MAP_SIZE:
++                        break
++                    slot = node["slots"][offset]
++                    if slot:
++                        break
++                index &= ~node_maxindex(node)
++                index = (index + (offset << int(node["shift"]))) & mask
++                if index == 0:
++                    return None
++                if offset == constants.LX_RADIX_TREE_MAP_SIZE:
++                    restart = True
++                    break
++                child = node["slots"][offset]
++
++            if not child:
++                restart = True
++                break
++            if child == LX_XA_RETRY_ENTRY:
++                break
++            if not node["shift"] or not is_internal_node(child):
++                break
++
++    iter.index = (index & ~node_maxindex(node)) | offset
++    iter.next_index = ((index | node_maxindex(node)) + 1) & mask
++    iter.node = node
++
++    return node["slots"][offset].address
++
++def next_slot(slot, iter):
++    mask = (1 << (utils.get_ulong_type().sizeof * 8)) - 1
++    for _ in range(iter.next_index - iter.index - 1):
++        slot += 1
++        iter.index = (iter.index + 1) & mask
++        if slot.dereference():
++            return slot
++    return None
++
++def for_each_slot(root, start=0):
++    iter = RadixTreeIter(start)
++    slot = None
++    while True:
++        if not slot:
++            slot = next_chunk(root, iter)
++            if not slot:
++                break
++        yield iter.index, slot
++        slot = next_slot(slot, iter)
++
++class LxRadixTreeLookup(gdb.Function):
+     """ Lookup and return a node from a RadixTree.
+ 
+ $lx_radix_tree_lookup(root_node [, index]): Return the node at the given index.
+ If index is omitted, the root node is dereference and returned."""
+ 
+     def __init__(self):
+-        super(LxRadixTree, self).__init__("lx_radix_tree_lookup")
++        super(LxRadixTreeLookup, self).__init__("lx_radix_tree_lookup")
+ 
+     def invoke(self, root, index=0):
+         result = lookup(root, index)
+@@ -87,4 +196,20 @@ If index is omitted, the root node is de
+ 
+         return result
+ 
++class LxRadixTree(gdb.Command):
++    """Show all values stored in a RadixTree."""
++
++    def __init__(self):
++        super(LxRadixTree, self).__init__("lx-radix-tree", gdb.COMMAND_DATA,
++                                          gdb.COMPLETE_NONE)
++
++    def invoke(self, argument, from_tty):
++        args = gdb.string_to_argv(argument)
++        if len(args) != 1:
++            raise gdb.GdbError("Usage: lx-radix-tree ROOT")
++        root = gdb.parse_and_eval(args[0])
++        for index, slot in for_each_slot(root):
++            gdb.write("[{}] = {}\n".format(index, slot.dereference()))
++
+ LxRadixTree()
++LxRadixTreeLookup()
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from iii@linux.ibm.com are
 
-maintainers-add-test_kho-to-khos-entry.patch
-liveupdate-luo_file-add-private-argument-to-store-runtime-state.patch
-kho-free-chunks-using-free_page-instead-of-kfree.patch
-test_kho-always-print-restore-status.patch
 
