@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37B662E11C5
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:51:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B46E19FA93
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:52:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675495; cv=none; b=nT4cOyYQ6JFMlDm2AgTIwlosq/JunvVaoZ3N9M49PapP0Peq+L4YjBJ0vGvINuT7qUozRy1YZynUT1usgqq1fM58azswXYBaSiocp7qR5Of2U/nrdDtlx7cqY2/NoEaRJYpXIYA1ozp6T7V/v9XBlBrW4rhT0j3tB+0tVu+gBIc=
+	t=1763675548; cv=none; b=ZOeND5HD12/3nJpmYzECXRCc5Q1Wz2mrpv/muqMhAyve3zSqomHodSVxWyIs4UUIy2nVVRZwEcFAopEJjIGKjE9Kx3WR6MI/g4melzYdIazL/QTAkhoTDXHfvLPrsaJHE/5WF8XEL0t/nNbzhqjDRAn3chSW1xaUKG9ydiox2/k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675495; c=relaxed/simple;
-	bh=TbNrCbClR2zopTaNCZHzdgwfmAWwl1OyrBgqElJ7Fb8=;
-	h=Date:To:From:Subject:Message-Id; b=cBh9prcjzOEJODBxRI3Wkpw180R5BTxDEG/ULBqymLyj5IIWQ9QF8PHaw1Jnfpbz9pdJ6bfykbhlp15O/iZ/9/0gQp+hSFx8wBTMKKt2/SdhxbHzsAMdhHUZomXU4HMsUN3EgBsr7pcOzLPvIaeF2d41COxHmdH+0znHiCLYnNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t8mNILjo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675548; c=relaxed/simple;
+	bh=HJkFawL+UiHSCq9guTYIdbobC+tYqoHU2ufhymiXhxw=;
+	h=Date:To:From:Subject:Message-Id; b=U/zqUZGmG1Exmu3KalW9TADUMeOnT7SOm9vRox1QvrpH3ZJRlLY4b8VGrvcC3X4RV0N7Dv+Q7M3mlKSJou75jC/9+ohQGJxu1VpxIPsGYPmbhH7jLrn63zsbOso+zp3FvkU2iECqBxl6k34krVXAawGAEa4xclDLoZcoxTDq7Ss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kmzl1q+7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t8mNILjo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BE28C4CEF1;
-	Thu, 20 Nov 2025 21:51:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kmzl1q+7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10852C4CEF1;
+	Thu, 20 Nov 2025 21:52:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675494;
-	bh=TbNrCbClR2zopTaNCZHzdgwfmAWwl1OyrBgqElJ7Fb8=;
+	s=korg; t=1763675548;
+	bh=HJkFawL+UiHSCq9guTYIdbobC+tYqoHU2ufhymiXhxw=;
 	h=Date:To:From:Subject:From;
-	b=t8mNILjoS2euzsOvgncvVRFhcX66jvesTm5WFLxCFBsicTcLBl7vRcRERB19waYUs
-	 csiVn4vcPiYMNbhq3WltHyM47jiTi1SwOSv+SrgvYgB1gkfpDw4WeWYGKKkb1vmFeT
-	 xpfgyYuotQ1BHMX9reGJErqItUmwSkojEA9kVJMQ=
-Date: Thu, 20 Nov 2025 13:51:33 -0800
-To: mm-commits@vger.kernel.org,pmladek@suse.com,feng.tang@linux.alibaba.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=kmzl1q+7BzVq82llfntjz3HKs3PPLhcady7L/at6vzrMA7QqDcjqcsWPt21qJVVy1
+	 L1tE0+YnJCCuSS+O0I3kY45LCry3GaSgNkSTprHtDeRiC6ktYH3zvHA1XMOi3VYtwT
+	 Q2dcqrMmg8n+8dHlg6O4rOro0ipBn6HjzmywA5c0=
+Date: Thu, 20 Nov 2025 13:52:27 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,pmladek@suse.com,paulmck@kernel.org,ioworker0@gmail.com,corbet@lwn.net,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20251120215134.9BE28C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix.patch removed from -mm tree
+Message-Id: <20251120215228.10852C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,105 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes
+     Subject: hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
 has been removed from the -mm tree.  Its filename was
-     panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes.patch
+     hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix.patch
 
-This patch was dropped because it was folded into panic-sys_info-factor-out-read-and-write-handlers.patch
+This patch was dropped because it was folded into hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes
-Date: Thu Oct 30 08:14:21 PM PDT 2025
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
+Date: Wed, 5 Nov 2025 19:30:36 +0800
 
-WARNING: struct ctl_table should normally be const
-#24: FILE: lib/sys_info.c:46:
-+static int sys_info_write_handler(struct ctl_table *table,
+maintain consistecy established behavior, per Lance and Petr
 
-WARNING: struct ctl_table should normally be const
-#43: FILE: lib/sys_info.c:65:
-+static int sys_info_read_handler(struct ctl_table *table,
-
-total: 0 errors, 2 warnings, 99 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/panic-sys_info-factor-out-read-and-write-handlers.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Petr Mladek <pmladek@suse.com>
+Link: https://lkml.kernel.org/r/aRncJo1mA5Zk77Hr@U-2FWC9VHC-2323.local
+Suggested-by: Petr Mladek <pmladek@suse.com>
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sys_info.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/hung_task.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
---- a/lib/sys_info.c~panic-sys_info-factor-out-read-and-write-handlers-checkpatch-fixes
-+++ a/lib/sys_info.c
-@@ -43,7 +43,7 @@ unsigned long sys_info_parse_param(char
- 
- #ifdef CONFIG_SYSCTL
- 
--static int sys_info_write_handler(struct ctl_table *table,
-+static int sys_info_write_handler(const struct ctl_table *table,
- 				  void *buffer, size_t *lenp, loff_t *ppos,
- 				  unsigned long *si_bits_global)
- {
-@@ -62,7 +62,7 @@ static int sys_info_write_handler(struct
- 	return 0;
+--- a/kernel/hung_task.c~hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung-fix
++++ a/kernel/hung_task.c
+@@ -223,8 +223,11 @@ static inline void debug_show_blocker(st
  }
+ #endif
  
--static int sys_info_read_handler(struct ctl_table *table,
-+static int sys_info_read_handler(const struct ctl_table *table,
- 				 void *buffer, size_t *lenp, loff_t *ppos,
- 				 unsigned long *si_bits_global)
+-static void check_hung_task(struct task_struct *t, unsigned long timeout)
++static void check_hung_task(struct task_struct *t, unsigned long timeout,
++		unsigned long prev_detect_count)
  {
++	unsigned long total_hung_task;
++
+ 	if (!task_is_hung(t, timeout))
+ 		return;
+ 
+@@ -234,13 +237,19 @@ static void check_hung_task(struct task_
+ 	 */
+ 	sysctl_hung_task_detect_count++;
+ 
++	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
+ 	trace_sched_process_hang(t);
+ 
++	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
++		console_verbose();
++		hung_task_call_panic = true;
++	}
++
+ 	/*
+ 	 * Ok, the task did not get scheduled for more than 2 minutes,
+ 	 * complain:
+ 	 */
+-	if (sysctl_hung_task_warnings) {
++	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+ 		if (sysctl_hung_task_warnings > 0)
+ 			sysctl_hung_task_warnings--;
+ 		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
+@@ -295,7 +304,6 @@ static void check_hung_uninterruptible_t
+ {
+ 	int max_count = sysctl_hung_task_check_count;
+ 	unsigned long last_break = jiffies;
+-	unsigned long total_hung_task;
+ 	struct task_struct *g, *t;
+ 	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
+ 	int need_warning = sysctl_hung_task_warnings;
+@@ -320,20 +328,14 @@ static void check_hung_uninterruptible_t
+ 			last_break = jiffies;
+ 		}
+ 
+-		check_hung_task(t, timeout);
++		check_hung_task(t, timeout, prev_detect_count);
+ 	}
+  unlock:
+ 	rcu_read_unlock();
+ 
+-	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
+-	if (!total_hung_task)
++	if (!(sysctl_hung_task_detect_count - prev_detect_count))
+ 		return;
+ 
+-	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
+-		console_verbose();
+-		hung_task_call_panic = true;
+-	}
+-
+ 	if (need_warning || hung_task_call_panic) {
+ 		si_mask |= SYS_INFO_LOCKS;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
-mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
-mm-correctly-handle-uffd-pte-markers-fix.patch
-mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix-fix.patch
-panic-sys_info-factor-out-read-and-write-handlers.patch
-lib-base64-optimize-base64_decode-with-reverse-lookup-tables-fix.patch
-lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
-uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
-memblock-unpreserve-memory-in-case-of-error-fix.patch
+docs-panic-correct-some-sys_ifo-names-in-sysctl-doc.patch
+hung_task-add-hung_task_sys_info-sysctl-to-dump-sys-info-on-task-hung.patch
+watchdog-add-sys_info-sysctls-to-dump-sys-info-on-system-lockup.patch
+sys_info-add-a-default-kernel-sys_info-mask.patch
 
