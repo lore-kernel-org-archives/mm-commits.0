@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60C7F1A00F0
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 00:22:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F10E379F2
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 00:24:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763598133; cv=none; b=iFtOrogID76yWo/bnlRoh5OmSWTtJBmYnHm/TzLuVRWMiMMR0n/YY0r8xdvMqxxdocafHMt78/HsC8OB8FFNZNW+eZKEAkkJ7d5ZBb1ug6WeD92mFWgzK0aIVxfyM3ip2lieSdY/Gu+1sa0rNI+6BifaU33Pa2yfsxksu862rW8=
+	t=1763598250; cv=none; b=aI+DOVC1sc1GR1JklU1oA/o45lBo0XwBnxICSz2BtcbHAuXfHvrUWLCsmlazkJ7GiRsKc/u2cyACUxIu9qI9uo6//SfvFxgepr5Bh5GZMxLNiVfZiFZE8RVB1IcRf0OsXe9Gbt6tuaKy6XoE7oWMyJBGkfx6RAvCOwVc860n7KE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763598133; c=relaxed/simple;
-	bh=XzuayzDsIc9ZKqDs0KueumAXnJKIxUr3wIsBoJ6S0TY=;
-	h=Date:To:From:Subject:Message-Id; b=Wd6U3y/SAKEdv8oyBRT0bJTk+w+yqPA3HrrNhizW/TOiI3ut713QPL+WK0ltLf5qVnM8gzNEzLxxfZmOKR8rihlJImJvOQog8ERlkAma5lrb/jpX0Hn51kzCHsDSjoSM0YCbvp6rpIrXAeX1dXMgo/Q2jaK83HkXli78RE3R4qQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MVpaX3AE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763598250; c=relaxed/simple;
+	bh=fpdSyguQgL+S5WGfjR7zYWi8caHvll5WhoucEaoJ+eU=;
+	h=Date:To:From:Subject:Message-Id; b=AhGidIjNxVadgS7Fki7rpt86DUfV1OQ8CeRD6V/HDqIOsJXwhQqPcwhyRinhql98X8gotSoQVsZEJUFU9+SJlUruIorSiHXyw4neYpv6wb0/PCmw5yqdE1P4gtHf9ZC4yOLf1WgmQu37nW3iEu2OxKXlnrnfsvwN6v/sebalojk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fNn3q0GJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MVpaX3AE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6731C4CEF5;
-	Thu, 20 Nov 2025 00:22:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fNn3q0GJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 557DFC4CEF5;
+	Thu, 20 Nov 2025 00:24:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763598132;
-	bh=XzuayzDsIc9ZKqDs0KueumAXnJKIxUr3wIsBoJ6S0TY=;
+	s=korg; t=1763598247;
+	bh=fpdSyguQgL+S5WGfjR7zYWi8caHvll5WhoucEaoJ+eU=;
 	h=Date:To:From:Subject:From;
-	b=MVpaX3AEbsDeCYfDDc4hwwsl89qzgwrd66zspi7hPO4KH8Ohv3t2rH4Rd1QN9IOTG
-	 g9rkk8lpdeCdzxcRycqwXtF+8MC6aFjV0vaU+vDTFHkHfN9Rl/s4pL8lWgVHp2njua
-	 f313ClniTCMRus39l8XccqPSDN7hXLCJz0bhbq1g=
-Date: Wed, 19 Nov 2025 16:22:12 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,lorenzo.stoakes@oracle.com,willy@infradead.org,akpm@linux-foundation.org
+	b=fNn3q0GJLeEVGgTPnhu5IG07p36v13NIfjteu5uHSXN91euVAKToP//6oV4Nbecye
+	 W3uxOXZtTYNgbtH13xN1/olWPSrs2xZjmuaxLZPGFwUTlLv3AVAkX0kECIe7tMxkw4
+	 /8gZLb4yEe/YMypNvzKUzisZw8sCh5OjlPHDMDXQ=
+Date: Wed, 19 Nov 2025 16:24:06 -0800
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,ywen.chen@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-tweak-__vma_enter_locked.patch added to mm-new branch
-Message-Id: <20251120002212.C6731C4CEF5@smtp.kernel.org>
+Subject: + zram-fix-the-issue-that-the-write-back-limits-might-overflow.patch added to mm-new branch
+Message-Id: <20251120002407.557DFC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: tweak __vma_enter_locked()
+     Subject: zram: fix the issue that the write - back limits might overflow
 has been added to the -mm mm-new branch.  Its filename is
-     mm-tweak-__vma_enter_locked.patch
+     zram-fix-the-issue-that-the-write-back-limits-might-overflow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tweak-__vma_enter_locked.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-the-issue-that-the-write-back-limits-might-overflow.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,70 +64,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: tweak __vma_enter_locked()
-Date: Wed, 19 Nov 2025 04:26:35 +0000
+From: Yuwen Chen <ywen.chen@foxmail.com>
+Subject: zram: fix the issue that the write - back limits might overflow
+Date: Wed, 19 Nov 2025 12:13:45 +0800
 
-Move the commentary on how __vma_enter_locked() behaves from the body of
-__vma_start_write() to the head of __vma_enter_locked() and merge it with
-the existing documentation.  Also add a call to
-mmap_assert_write_locked().
+When the page size exceeds 4KB, if bd_wb_limit is set to a value that is
+not aligned with the page size, it will cause a numerical wrap-around
+issue for bd_wb_limit.  For example, when the page size is set to 16KB and
+bd_wb_limit is set to 3, after one write-back operation, the value of
+bd_wb_limit will become -1.  More seriously, since bd_wb_limit is an
+unsigned number, its value may become as large as 2^64 - 1.
 
-Link: https://lkml.kernel.org/r/20251119042639.3937024-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+The core reason for this problem is that the unit of bd_wb_limit is 4KB. 
+For example, when a write-back occurs on a system with a page size of
+16KB, 4 needs to be subtracted from bd_wb_limit.  This operation takes
+place in the zram_account_writeback_submit function.
+
+This patch fixes the issue by limiting bd_wb_limit to be an integer
+multiple of PAGE_SIZE / 4096.
+
+Link: https://lkml.kernel.org/r/tencent_5936CFE72BAB2BA76887BB69DCC1B5E67C05@qq.com
+Fixes: 1d69a3f8ae77e ("zram: idle writeback fixes and cleanup")
+Signed-off-by: Yuwen Chen <ywen.chen@foxmail.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Richard Chang <richardycc@google.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap_lock.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/mmap_lock.c~mm-tweak-__vma_enter_locked
-+++ a/mm/mmap_lock.c
-@@ -46,9 +46,9 @@ EXPORT_SYMBOL(__mmap_lock_do_trace_relea
- #ifdef CONFIG_MMU
- #ifdef CONFIG_PER_VMA_LOCK
- /*
-- * Return value: 0 if vma detached,
-- * 1 if vma attached with no readers,
-- * -EINTR if signal received,
-+ * __vma_enter_locked() returns 0 immediately if the vma is not
-+ * attached, otherwise it waits for any current readers to finish and
-+ * returns 1.  Returns -EINTR if a signal is received while waiting.
-  */
- static inline int __vma_enter_locked(struct vm_area_struct *vma,
- 		bool detaching, int state)
-@@ -56,6 +56,8 @@ static inline int __vma_enter_locked(str
- 	int err;
- 	unsigned int tgt_refcnt = VMA_LOCK_OFFSET;
+--- a/drivers/block/zram/zram_drv.c~zram-fix-the-issue-that-the-write-back-limits-might-overflow
++++ a/drivers/block/zram/zram_drv.c
+@@ -564,6 +564,16 @@ static ssize_t writeback_limit_store(str
+ 	if (kstrtoull(buf, 10, &val))
+ 		return ret;
  
-+	mmap_assert_write_locked(vma->vm_mm);
++	/*
++	 * When the page size is greater than 4KB, if bd_wb_limit is set to
++	 * a value that is not page - size aligned, it will cause value
++	 * wrapping. For example, when the page size is set to 16KB and
++	 * bd_wb_limit is set to 3, a single write - back operation will
++	 * cause bd_wb_limit to become -1. Even more terrifying is that
++	 * bd_wb_limit is an unsigned number.
++	 */
++	val = rounddown(val, PAGE_SIZE / 4096);
 +
- 	/* Additional refcnt if the vma is attached. */
- 	if (!detaching)
- 		tgt_refcnt++;
-@@ -91,11 +93,6 @@ int __vma_start_write(struct vm_area_str
- {
- 	int locked;
- 
--	/*
--	 * __vma_enter_locked() returns false immediately if the vma is not
--	 * attached, otherwise it waits until refcnt is indicating that vma
--	 * is attached with no readers.
--	 */
- 	locked = __vma_enter_locked(vma, false, state);
- 	if (locked < 0)
- 		return locked;
+ 	down_write(&zram->init_lock);
+ 	zram->bd_wb_limit = val;
+ 	up_write(&zram->init_lock);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ywen.chen@foxmail.com are
 
-hugetlb-optimise-hugetlb_folio_init_tail_vmemmap.patch
-migrate-optimise-alloc_migration_target.patch
-memory_hotplug-optimise-try_offline_memory_block.patch
-mm-constify-__dump_folio-arguments.patch
-mm-add-vma_start_write_killable.patch
-mm-use-vma_start_write_killable-in-dup_mmap.patch
-mm-tweak-__vma_enter_locked.patch
+zram-introduce-writeback-bio-batching-support.patch
+zram-fix-the-issue-that-the-write-back-limits-might-overflow.patch
 
