@@ -1,80 +1,102 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAF71156CA
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 00:44:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DFAE136E3F;
+	Thu, 20 Nov 2025 00:50:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763599493; cv=none; b=fv9PpsqYA3HyXw++bjIFbfCyYAWQoCF+R9Pl5NS9fj5Y2iAa2IggNL69mJ4W9ujLkApvJ0xWhpz/8c4bFtqML0pbSfY5kpck9fAw8P4XKV08TQxhU4oBK24Vdx2KSEIwGgayzYqkOpjGx2ixOfRguQ+tMeDesi4v9P+sp8NhgYk=
+	t=1763599833; cv=none; b=VWEMJoKiLLKqivJKQlGd3fzpL4stk0mL/OoBd889yC+4bVSjFA5MybLWJ679jp0qrpao7Fny3/Edq1XephjQIjEVNYHRJoozrv9dojCexAMgvII3ormIFu5zBLOys2KJTx7rKOhlSYGhz5k2Rh6ZucVnvgbbsU3goRWxxVbXwYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763599493; c=relaxed/simple;
-	bh=5tEwjzs/NOXSCmtN8bRPhVS1rc6pMXRDKVs5VMQXpqg=;
-	h=Date:From:To:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=FgyjZ1w3KXmeYINhVOq8eA12CHUeioNNKfHHoiRWQPMt5DU6NxnBhLjRy7h4lv1+qMy1KA+7OwThTHPywQ59asNvXOQ1JUfw+q7jiSzkd/+t196Hxq6lRpp9h1NzrLj3krtnRbhUWOsWUTx1GEYbpAQ2ukEi7DOiEtU1Cr7jS0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DoDrTA/J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763599833; c=relaxed/simple;
+	bh=lXRXJlvVqgIXdaPCnQBIW5mBZezdkXEccYsE3MSM1g4=;
+	h=Date:To:From:Subject:Message-Id; b=QiMeEFsJrrxgOjt6nLm0B/l10j7IEJ1imb6AyB43UMhmOVzFfKM7mEGUVKe6CaU/EuatnKZMiuUhkQwQHoDAxUc5Xprm2jMvC6GQ2sChkuCFrfEZ8416Gl1T0GdRm5TV8peU0fWe3BzRIlMzP6OZ+u+7BLEc6vkVBRv4l5vr820=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wuGsV9EC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DoDrTA/J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0295BC4CEF5;
-	Thu, 20 Nov 2025 00:44:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wuGsV9EC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D2D8C4CEF5;
+	Thu, 20 Nov 2025 00:50:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763599493;
-	bh=5tEwjzs/NOXSCmtN8bRPhVS1rc6pMXRDKVs5VMQXpqg=;
-	h=Date:From:To:Subject:In-Reply-To:References:From;
-	b=DoDrTA/JV4He20LOd+NzA69zRdBTXpLDDJUZb+OEbo4Km1rbBYmowfIOn35FPqVKb
-	 zICg9V/TvpGHsa3Uupv5BRNrQzZyST50m+sRV+sXCdOFjBwJhOCVXhaI77EkvW5sDO
-	 oGsCbsILISVd6LtbA0x3c2tb0bT8WZVU563yXzEE=
-Date: Wed, 19 Nov 2025 16:44:52 -0800
+	s=korg; t=1763599832;
+	bh=lXRXJlvVqgIXdaPCnQBIW5mBZezdkXEccYsE3MSM1g4=;
+	h=Date:To:From:Subject:From;
+	b=wuGsV9ECVKAeHpc2ElSZDyliIU+JFShh0MJSHi0RDU/6O4qha1MKO41UV0dQyh63R
+	 6ZUw+Kq9oxpcv1O2zaYiZ8E4JcQoQl/Erbfafreq2kj+e8ol2pxnGzFs7KYsOGsAgL
+	 d76S6wWspmJ1Sa4BqXzCqY61dMzMvAdzzs2FcE5c=
+Date: Wed, 19 Nov 2025 16:50:31 -0800
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,legion@kernel.org,kees@kernel.org,juri.lelli@redhat.com,ebiederm@xmission.com,dietmar.eggemann@arm.com,bsegall@google.com,brauner@kernel.org,ptikhomirov@virtuozzo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: mm-commits@vger.kernel.org, urezki@gmail.com, hch@lst.de,
- hch@infradead.org, vishal.moola@gmail.com
-Subject: Re: [to-be-updated]
- mm-vmalloc-warn-on-invalid-vmalloc-gfp-flags.patch removed from -mm tree
-Message-Id: <20251119164452.0f763efbb282f71438a2964a@linux-foundation.org>
-In-Reply-To: <20251120003637.41AB2C4CEF5@smtp.kernel.org>
-References: <20251120003637.41AB2C4CEF5@smtp.kernel.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [merged] unshare-fix-nsproxy-leak-on-set_cred_ucounts-error-path.patch removed from -mm tree
+Message-Id: <20251120005032.7D2D8C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Wed, 19 Nov 2025 16:36:36 -0800 Andrew Morton <akpm@linux-foundation.org> wrote:
 
-> 
-> The quilt patch titled
->      Subject: mm/vmalloc: warn on invalid vmalloc gfp flags
-> has been removed from the -mm tree.  Its filename was
->      mm-vmalloc-warn-on-invalid-vmalloc-gfp-flags.patch
-> 
-> This patch was dropped because an updated version will be issued
-> 
-> ------------------------------------------------------
-> From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-> Subject: mm/vmalloc: warn on invalid vmalloc gfp flags
-> Date: Mon, 17 Nov 2025 09:35:27 -0800
-> 
-> Patch series "make vmalloc gfp flags usage more apparent", v3.
-> 
-> We should do a better job at enforcing gfp flags for vmalloc.  Right now,
-> we have a kernel-doc for __vmalloc_node_range(), and hope callers pass in
-> supported flags.  If a caller were to pass in an unsupported flag, we may
-> BUG, silently clear it, or completely ignore it.
-> 
-> If we are more proactive about enforcing gfp flags, we can making sure
-> callers know when they may be asking for unsupported behavior.
-> 
-> This patchset lets vmalloc control the incoming gfp flags, and cleans up
-> some hard to read gfp code.
-> 
+The quilt patch titled
+     Subject: unshare: fix nsproxy leak on set_cred_ucounts() error path
+has been removed from the -mm tree.  Its filename was
+     unshare-fix-nsproxy-leak-on-set_cred_ucounts-error-path.patch
 
-It turns out that this patch had a fix which I didn't notice was
-addressing this patch:
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-https://lkml.kernel.org/r/20251118-only-one-vmalloc-v2-1-fe702aa68d8b@ixit.cz
+------------------------------------------------------
+From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Subject: unshare: fix nsproxy leak on set_cred_ucounts() error path
+Date: Tue, 18 Nov 2025 14:45:50 +0800
 
-so please incorporate that when redoing this series.
+If unshare_nsproxy_namespaces() successfully creates the new_nsproxy, but
+then set_cred_ucounts() fails, on its error path there is no cleanup for
+new_nsproxy, so it is leaked.  Let's fix that by freeing new_nsproxy if
+it's not NULL on this error path.
+
+Link: https://lkml.kernel.org/r/20251118064552.936962-1-ptikhomirov@virtuozzo.com
+Fixes: 905ae01c4ae2 ("Add a reference to ucounts for each cred")
+Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Acked-by: Alexey Gladkov <legion@kernel.org>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ kernel/fork.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/kernel/fork.c~unshare-fix-nsproxy-leak-on-set_cred_ucounts-error-path
++++ a/kernel/fork.c
+@@ -3133,8 +3133,11 @@ int ksys_unshare(unsigned long unshare_f
+ 
+ 	if (new_cred) {
+ 		err = set_cred_ucounts(new_cred);
+-		if (err)
++		if (err) {
++			if (new_nsproxy)
++				free_nsproxy(new_nsproxy);
+ 			goto bad_unshare_cleanup_cred;
++		}
+ 	}
+ 
+ 	if (new_fs || new_fd || do_sysvsem || new_cred || new_nsproxy) {
+_
+
+Patches currently in -mm which might be from ptikhomirov@virtuozzo.com are
+
 
