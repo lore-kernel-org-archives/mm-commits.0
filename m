@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB3EE3396F1
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35CE5348457
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675073; cv=none; b=h8AePHVPCRnpWuLKpbOB4BK5byySqPLvFM0SvxNbU3mlDg7CF8GPNTk7tMYt1cE8I2V3RA5I+WEsfDghAIz5kjETPafjAmHqFwN5RJZjEDzR/5piK5cDrEu7Pe4ob357NZ8kk6v9v5xi1QmuHZeZSS9WslipzYcx3h6ihLsP4GE=
+	t=1763675075; cv=none; b=CUUZJ4v6CTdp/teJ922uy8zcOqxy+XkXbD5LnFJtN2cV8O7EtQpLa6LJPvPJouGGbyC/VnlL1N+41fCZZZ/G5IGZwKdgP8uc9dkF2I1RhL0gJx9onFQzv4nPqiDmAuU96rNXCneJ1DvyByUC85w9xFSllqaGACryFOf5Zyn73kY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675073; c=relaxed/simple;
-	bh=dC2KDsTkVtqaiCZsw8avvs/zRmSbvS3UMQXirwj2foA=;
-	h=Date:To:From:Subject:Message-Id; b=Rgmc45uHL4vOdVXIsHNprWNzXUd+ex8Q34w6So0Ccn4FOFjCa7E5b4+dhWg0aWlfBV9lyDolYcrbVX0TbBCsWQ/hEKVHdFqpoK1+wLokyKw/VdGBez/YCrxGnxFVeZMJ5FYWzJ4RcGqOvJXed/3L7JZiwVfLxkoS6mSiZqUrOFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MzlootFM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675075; c=relaxed/simple;
+	bh=BtslTS7xHKPD7ipOMLr+Aba9sqAeVjKEmK1zX2ZuWNQ=;
+	h=Date:To:From:Subject:Message-Id; b=CCWyy1/w3BapNNkAONnwhjG7zC2uQ0xAmZoha1A3oTqrFWlW3oZftXNjoBrMrvEYrl4ouS+Do2+3+2yg7yo1HYt7skcL0y8PzkRy1HbDp2jqb+HSyCwJWGj+H/ZistSlyoskW9KZXyXeaDpvKmglMgnY13k0rJLuhJ2f2d2IqmY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kqwl4Pjl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MzlootFM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C3ACC4CEF1;
-	Thu, 20 Nov 2025 21:44:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kqwl4Pjl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1DE8C116C6;
+	Thu, 20 Nov 2025 21:44:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675073;
-	bh=dC2KDsTkVtqaiCZsw8avvs/zRmSbvS3UMQXirwj2foA=;
+	s=korg; t=1763675074;
+	bh=BtslTS7xHKPD7ipOMLr+Aba9sqAeVjKEmK1zX2ZuWNQ=;
 	h=Date:To:From:Subject:From;
-	b=MzlootFMJMGAmU7GIPA3UroQGcgqnqt4aUTbcxRnJPNAx5umSjnj/1wTh+GPK6l/o
-	 cBqjFY+s5mSIfxDE8HaWQDcQijaqH1EE7oLDQCVdmQuV85Yf0Ch/DM6mHfzP2UBtXw
-	 wY+daz/DF6oIcw+IXPC9Yw+ymQg2tzrRBTzKvS8Y=
-Date: Thu, 20 Nov 2025 13:44:32 -0800
+	b=kqwl4PjlsxKePQXmFuPdSboNZ+tCVGS+oCINgZ+eeXCwchkzYhu7u5jFHXwhuoAAu
+	 t7C7ZZLTRSfAALTLiZTLqUfvP4vUV60TdO0Zidu7K7dBpFCnmfieIqkTRC1A7/drvX
+	 +b9fygGI+zb0jR6Baym5aJN/PWUSAi/AbOjgTSnM=
+Date: Thu, 20 Nov 2025 13:44:34 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,willy@infradead.org,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-remove-folio_test_private-check-in-pageout.patch removed from -mm tree
-Message-Id: <20251120214433.5C3ACC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch removed from -mm tree
+Message-Id: <20251120214434.D1DE8C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: remove folio_test_private() check in pageout()
+     Subject: mm: vmscan: simplify the folio refcount check in pageout()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-folio_test_private-check-in-pageout.patch
+     mm-vmscan-simplify-the-folio-refcount-check-in-pageout.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: vmscan: remove folio_test_private() check in pageout()
-Date: Thu, 18 Sep 2025 11:46:53 +0800
+Subject: mm: vmscan: simplify the folio refcount check in pageout()
+Date: Thu, 18 Sep 2025 11:46:54 +0800
 
-Patch series "some cleanups for pageout()", v2.
+Since we no longer attempt to write back filesystem folios in pageout()
+(they will be filtered out by the following check in pageout()), and only
+tmpfs/shmem folios and anonymous swapcache folios can be written back, we
+can remove the redundant folio_test_private() when checking the folio's
+refcount, as tmpfs/shmem and swapcache folios do not use the PG_private
+flag.
 
-Since we no longer attempt to write back filesystem folios in pageout(),
-and only tmpfs/shmem folios and anonymous swapcache folios can be written
-back, we can remove the redundant folio_test_private() related logic to
-simplify the logic of pageout(), as tmpfs/shmem and swapcache folios do
-not use the PG_private flag.
+While we're at it, we can open-code the folio refcount check instead of
+adding a simple helper that has only one user.
 
-
-This patch (of 2):
-
-The folio_test_private() check in pageout() was introduced by commit
-ce91b575332b ("orphaned pagecache memleak fix") in 2005 (checked from a
-history tree[1]).  As the commit message mentioned, it was to address the
-issue where reiserfs pagecache may be truncated while still pinned.  To
-further explain, the truncation removes the page->mapping, but the page is
-still listed in the VM queues because it still has buffers.
-
-In 2008, commit a2b345642f530 ("Fix dirty page accounting leak with ext3
-data=journal") seems to be dealing with a similar issue, where the page
-becomes dirty after truncation, and it provides a very useful call stack:
-
-truncate_complete_page()
-      cancel_dirty_page() // PG_dirty cleared, decr. dirty pages
-      do_invalidatepage()
-        ext3_invalidatepage()
-          journal_invalidatepage()
-            journal_unmap_buffer()
-              __dispose_buffer()
-                __journal_unfile_buffer()
-                  __journal_temp_unlink_buffer()
-                    mark_buffer_dirty(); // PG_dirty set, incr. dirty pages
-
-In this commit a2b345642f530, we forcefully clear the page's dirty flag
-during truncation (in truncate_complete_page()).
-
-Now it seems this was just a peculiar usage specific to reiserfs.  Maybe
-reiserfs had some extra refcount on these pages, which caused them to pass
-the is_page_cache_freeable() check.
-
-With the fix provided by commit a2b345642f530 and reiserfs being removed
-in 2024 by commit fb6f20ecb121 ("reiserfs: The last commit"), such a case
-is unlikely to occur again.  So let's remove the redundant
-folio_test_private() checks and related buffer_head release logic, and
-just leave a warning here to catch such a bug.
-
-[akpm@linux-foundation.org: redo comment, per David]
-  Link: https://lkml.kernel.org/r/17d1b293-e393-4989-a357-7eea74b3c805@redhat.com
-[baolin.wang@linux.alibaba.com: remove comment and WARNing, per Hugh and others]
-  Link: https://lkml.kernel.org/r/392a9ca3-31ac-4447-bd44-3c656d63e4ca@linux.alibaba.com
-Link: https://lkml.kernel.org/r/cover.1758166683.git.baolin.wang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/9ef0e560dc83650bc538eb5dcd1594e112c1369f.1758166683.git.baolin.wang@linux.alibaba.com
-Link: https://git.kernel.org/pub/scm/linux/kernel/git/tglx/history.git [1]
+Link: https://lkml.kernel.org/r/4cbbec5bb92397aa4597105f1f499aabf7a1901c.1758166683.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
@@ -112,36 +70,42 @@ Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ mm/vmscan.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-folio_test_private-check-in-pageout
+--- a/mm/vmscan.c~mm-vmscan-simplify-the-folio-refcount-check-in-pageout
 +++ a/mm/vmscan.c
-@@ -697,23 +697,8 @@ static pageout_t pageout(struct folio *f
+@@ -477,17 +477,6 @@ static int reclaimer_offset(struct scan_
+ 	return PGSTEAL_DIRECT - PGSTEAL_KSWAPD;
+ }
+ 
+-static inline int is_page_cache_freeable(struct folio *folio)
+-{
+-	/*
+-	 * A freeable page cache folio is referenced only by the caller
+-	 * that isolated the folio, the page cache and optional filesystem
+-	 * private data at folio->private.
+-	 */
+-	return folio_ref_count(folio) - folio_test_private(folio) ==
+-		1 + folio_nr_pages(folio);
+-}
+-
+ /*
+  * We detected a synchronous write error writing a folio out.  Probably
+  * -ENOSPC.  We need to propagate that into the address_space for a subsequent
+@@ -696,8 +685,11 @@ static pageout_t pageout(struct folio *f
+ 	 * block, for some throttling. This happens by accident, because
  	 * swap_backing_dev_info is bust: it doesn't reflect the
  	 * congestion state of the swapdevs.  Easy to fix, if needed.
++	 *
++	 * A freeable shmem or swapcache folio is referenced only by the
++	 * caller that isolated the folio and the page cache.
  	 */
--	if (!is_page_cache_freeable(folio))
-+	if (!is_page_cache_freeable(folio) || !mapping)
+-	if (!is_page_cache_freeable(folio) || !mapping)
++	if (folio_ref_count(folio) != 1 + folio_nr_pages(folio) || !mapping)
  		return PAGE_KEEP;
--	if (!mapping) {
--		/*
--		 * Some data journaling orphaned folios can have
--		 * folio->mapping == NULL while being dirty with clean buffers.
--		 */
--		if (folio_test_private(folio)) {
--			if (try_to_free_buffers(folio)) {
--				folio_clear_dirty(folio);
--				pr_info("%s: orphaned folio\n", __func__);
--				return PAGE_CLEAN;
--			}
--		}
--		return PAGE_KEEP;
--	}
--
  	if (!shmem_mapping(mapping) && !folio_test_anon(folio))
  		return PAGE_ACTIVATE;
- 	if (!folio_clear_dirty_for_io(folio))
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
