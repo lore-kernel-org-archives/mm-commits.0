@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BBDA19F13F
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 17:02:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99CA1368E09
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 19:00:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763658133; cv=none; b=byBhSwvyl7RO+yiHyPmpEwDpGgVENeWurDvuLNc2QD7GYbRtxnwaQAYnubBYrI/PWWVrU14JuFuWxH0nyyxedDQMH52cRjdnXknckhL31RaialUoyoUOQlGuaZWcP7WkYd4yn42mdUByYCU55iv0k4NmSIKBQyZWRMgXW0oJV9Q=
+	t=1763665256; cv=none; b=Jc6vAXHZjvPjYdrbrfp3vQho7nu9lOp9IeExN4tpS9y6taS4Edn8QrTsIvbMeAASQZtpX8w2xW3M4HE+824kZAy27RO0PqunsICq8VW6dG/AEFriW42ASX3QBo+7DCXvgpnVe8l9ogUXOcOl90+Mbzxnf4pIvf2twXboVNPMWFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763658133; c=relaxed/simple;
-	bh=QgpB8EdyEExCC0J9qjc/ej4dqvdftIEQL5xqn96M+8I=;
-	h=Date:To:From:Subject:Message-Id; b=ayebGrBpWDSRvKteAJ/ZDxQHyI0oTJywlLkvsZbQNYGuzcphMjQKTCzZJVauOWhlo6VKUseh17OwBqdGqZ1iHl4ov4l6dehMY2ykRoGtOs8LOnT+7jfAzhpw72SMZZrhSRtBiG5CvUmMSwIPLynj3a/Xirkizgs/Co//86SY2bE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k5NxK+7V; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763665256; c=relaxed/simple;
+	bh=HT6R70bOEAtC+QWtPr8xx9cRjhr7Lsdr+KHqjQDIxQQ=;
+	h=Date:To:From:Subject:Message-Id; b=D4ZD2mN88A57pFTWRkNoiJ1EhbxlVmtwiVgZMlCF3QvSmpk1HyjJVOZ5+9LWIXcxm6vywVOE++2CrJMHfUTibBEhrf5ow7mEt2RFrHtuisCUboDshpMRI9JcxBLI59auHWPhizt0Bjd1obNjhwluJoSJYSidKQNWVWFFU7qEHPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iTvg3JPT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k5NxK+7V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 710B6C4CEF1;
-	Thu, 20 Nov 2025 17:02:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iTvg3JPT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C8C3C16AAE;
+	Thu, 20 Nov 2025 19:00:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763658132;
-	bh=QgpB8EdyEExCC0J9qjc/ej4dqvdftIEQL5xqn96M+8I=;
+	s=korg; t=1763665256;
+	bh=HT6R70bOEAtC+QWtPr8xx9cRjhr7Lsdr+KHqjQDIxQQ=;
 	h=Date:To:From:Subject:From;
-	b=k5NxK+7VEkwjCOH6NQwUrQgbqlG93Ei83x4IAPq7Om6tA5JYlJ0Q7iOVflXfeSLxI
-	 Q3aTWJ9ir7NmEi/NNrI88tESv80g3z8fqAxoR2TyXv14YwltCRDYpadUtWwUggrKoI
-	 4+pJfXdMY6Wr/tbGqSvKxwNv77eNNOl7BIkoxRn0=
-Date: Thu, 20 Nov 2025 09:02:11 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
+	b=iTvg3JPTsqb9WUovV0xp7B2IrloJMCgAyKjhEnErC+KFy0xq4myEJ5Qb4nLUus8Oq
+	 fXLTaOxglQY1YVzRnZUSI8M2ykEkZ8RoY6G2g+JsYjcEYFNyCMB4WNHYxGBS+1/sGu
+	 EqNejfUtOTsBJARtYku0NARRgqnUzpiNOGMvn7RM=
+Date: Thu, 20 Nov 2025 11:00:55 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,hannes@cmpxchg.org,djwong@kernel.org,david@redhat.com,david@fromorbit.com,clm@meta.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch added to mm-unstable branch
-Message-Id: <20251120170212.710B6C4CEF1@smtp.kernel.org>
+Subject: + mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251120190056.2C8C3C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch
+     Subject: mm/filemap: fix logic around SIGBUS in filemap_map_pages()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,162 +58,121 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Balbir Singh <balbirs@nvidia.com>
-Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix
-Date: Fri, 21 Nov 2025 00:42:32 +1100
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: mm/filemap: fix logic around SIGBUS in filemap_map_pages()
+Date: Thu, 20 Nov 2025 16:14:11 +0000
 
-Code refactoring of __folio_split() via helper
-__folio_freeze_and_split_unmapped() caused a regression with clang-20 with
-CONFIG_SHMEM=n, the compiler was not able to optimize away the call to
-shmem_uncharge() due to changes in nr_shmem_dropped.  Fix this by adding a
-stub function for shmem_uncharge when CONFIG_SHMEM is not defined.
+Chris noticed that filemap_map_pages() calculates can_map_large only once
+for the first page in the fault around range.  The value is not valid for
+the following pages in the range and must be recalculated.
 
-smatch also complained about parameter end being used without
-initialization, which is a false positive, but keep the tool happy
-by sending in initialized parameters. end is initialized to 0.
-smatch still complains about mapping being NULL and nr_shmem_dropped
-may not be 0, but that is not true prior to or after the changes.
+Instead of recalculating can_map_large on each iteration, pass down
+file_end to filemap_map_folio_range() and let it make the decision on what
+can be mapped.
 
-Add detailed documentation comments for folio_split_unmapped()
-
-Link: https://lkml.kernel.org/r/20251120134232.3588203-1-balbirs@nvidia.com
-Signed-off-by: Balbir Singh <balbirs@nvidia.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Link: https://lkml.kernel.org/r/20251120161411.859078-1-kirill@shutemov.name
+Fixes: 74207de2ba10 ("mm/memory: do not populate page table entries beyond i_size")h
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+Reported-by: Chris Mason <clm@meta.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Francois Dugast <francois.dugast@intel.com>
+Cc: Chris Mason <clm@meta.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    6 +++++-
- mm/huge_memory.c         |   30 +++++++++++++++++++++---------
- 2 files changed, 26 insertions(+), 10 deletions(-)
+ mm/filemap.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
---- a/include/linux/shmem_fs.h~mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix
-+++ a/include/linux/shmem_fs.h
-@@ -136,11 +136,16 @@ static inline bool shmem_hpage_pmd_enabl
- 
- #ifdef CONFIG_SHMEM
- extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
-+extern void shmem_uncharge(struct inode *inode, long pages);
- #else
- static inline unsigned long shmem_swap_usage(struct vm_area_struct *vma)
+--- a/mm/filemap.c~mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages
++++ a/mm/filemap.c
+@@ -3682,8 +3682,9 @@ static vm_fault_t filemap_map_folio_rang
+ 			struct folio *folio, unsigned long start,
+ 			unsigned long addr, unsigned int nr_pages,
+ 			unsigned long *rss, unsigned short *mmap_miss,
+-			bool can_map_large)
++			pgoff_t file_end)
  {
- 	return 0;
- }
-+
-+static void shmem_uncharge(struct inode *inode, long pages)
-+{
-+}
- #endif
- extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
- 						pgoff_t start, pgoff_t end);
-@@ -194,7 +199,6 @@ static inline pgoff_t shmem_fallocend(st
- }
++	struct address_space *mapping = folio->mapping;
+ 	unsigned int ref_from_caller = 1;
+ 	vm_fault_t ret = 0;
+ 	struct page *page = folio_page(folio, start);
+@@ -3692,12 +3693,16 @@ static vm_fault_t filemap_map_folio_rang
+ 	unsigned long addr0;
  
- extern bool shmem_charge(struct inode *inode, long pages);
--extern void shmem_uncharge(struct inode *inode, long pages);
+ 	/*
+-	 * Map the large folio fully where possible.
++	 * Map the large folio fully where possible:
+ 	 *
+-	 * The folio must not cross VMA or page table boundary.
++	 *  - The folio is fully within size of the file or belong
++	 *    to shmem/tmpfs;
++	 *  - The folio doesn't cross VMA boundary;
++	 *  - The folio doesn't cross page table boundary;
+ 	 */
+ 	addr0 = addr - start * PAGE_SIZE;
+-	if (can_map_large && folio_within_vma(folio, vmf->vma) &&
++	if ((file_end >= folio_next_index(folio) || shmem_mapping(mapping)) &&
++	    folio_within_vma(folio, vmf->vma) &&
+ 	    (addr0 & PMD_MASK) == ((addr0 + folio_size(folio) - 1) & PMD_MASK)) {
+ 		vmf->pte -= start;
+ 		page -= start;
+@@ -3812,7 +3817,6 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 	unsigned long rss = 0;
+ 	unsigned int nr_pages = 0, folio_type;
+ 	unsigned short mmap_miss = 0, mmap_miss_saved;
+-	bool can_map_large;
  
- #ifdef CONFIG_USERFAULTFD
- #ifdef CONFIG_SHMEM
---- a/mm/huge_memory.c~mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix
-+++ a/mm/huge_memory.c
-@@ -3751,6 +3751,7 @@ static int __folio_freeze_and_split_unma
- 	int ret = 0;
- 	struct deferred_split *ds_queue;
+ 	rcu_read_lock();
+ 	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
+@@ -3823,16 +3827,14 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 	end_pgoff = min(end_pgoff, file_end);
  
-+	VM_WARN_ON_ONCE(!mapping && end);
- 	/* Prevent deferred_split_scan() touching ->_refcount */
- 	ds_queue = folio_split_queue_lock(folio);
- 	if (folio_ref_freeze(folio, 1 + extra_pins)) {
-@@ -3919,7 +3920,7 @@ static int __folio_split(struct folio *f
- 	int nr_shmem_dropped = 0;
- 	int remap_flags = 0;
- 	int extra_pins, ret;
--	pgoff_t end;
-+	pgoff_t end = 0;
- 	bool is_hzp;
+ 	/*
+-	 * Do not allow to map with PTEs beyond i_size and with PMD
+-	 * across i_size to preserve SIGBUS semantics.
++	 * Do not allow to map with PMD across i_size to preserve
++	 * SIGBUS semantics.
+ 	 *
+ 	 * Make an exception for shmem/tmpfs that for long time
+ 	 * intentionally mapped with PMDs across i_size.
+ 	 */
+-	can_map_large = shmem_mapping(mapping) ||
+-		file_end >= folio_next_index(folio);
+-
+-	if (can_map_large && filemap_map_pmd(vmf, folio, start_pgoff)) {
++	if ((file_end >= folio_next_index(folio) || shmem_mapping(mapping)) &&
++	    filemap_map_pmd(vmf, folio, start_pgoff)) {
+ 		ret = VM_FAULT_NOPAGE;
+ 		goto out;
+ 	}
+@@ -3861,8 +3863,7 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 		else
+ 			ret |= filemap_map_folio_range(vmf, folio,
+ 					xas.xa_index - folio->index, addr,
+-					nr_pages, &rss, &mmap_miss,
+-					can_map_large);
++					nr_pages, &rss, &mmap_miss, file_end);
  
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-@@ -4090,16 +4091,27 @@ out:
- 	return ret;
- }
- 
--/*
-- * This function is a helper for splitting folios that have already been unmapped.
-- * The use case is that the device or the CPU can refuse to migrate THP pages in
-- * the middle of migration, due to allocation issues on either side
-+/**
-+ * folio_split_unmapped() - split a large anon folio that is already unmapped
-+ * @folio: folio to split
-+ * @new_order: the order of folios after split
-+ *
-+ * This function is a helper for splitting folios that have already been
-+ * unmapped. The use case is that the device or the CPU can refuse to migrate
-+ * THP pages in the middle of migration, due to allocation issues on either
-+ * side.
-+ *
-+ * anon_vma_lock is not required to be held, mmap_read_lock() or
-+ * mmap_write_lock() should be held. @folio is expected to be locked by the
-+ * caller. device-private and non device-private folios are supported along
-+ * with folios that are in the swapcache. @folio should also be unmapped and
-+ * isolated from LRU (if applicable)
-  *
-- * The high level code is copied from __folio_split, since the pages are anonymous
-- * and are already isolated from the LRU, the code has been simplified to not
-- * burden __folio_split with unmapped sprinkled into the code.
-+ * Upon return, the folio is not remapped, split folios are not added to LRU,
-+ * free_folio_and_swap_cache() is not called, and new folios remain locked.
-  *
-- * None of the split folios are unlocked
-+ * Return: 0 on success, -EAGAIN if the folio cannot be split (e.g., due to
-+ *         insufficient reference count or extra pins).
-  */
- int folio_split_unmapped(struct folio *folio, unsigned int new_order)
- {
+ 		folio_unlock(folio);
+ 	} while ((folio = next_uptodate_folio(&xas, mapping, end_pgoff)) != NULL);
 _
 
-Patches currently in -mm which might be from balbirs@nvidia.com are
+Patches currently in -mm which might be from kas@kernel.org are
 
-mm-zone_device-support-large-zone-device-private-folios.patch
-mm-zone_device-rename-page_free-callback-to-folio_free.patch
-mm-huge_memory-add-device-private-thp-support-to-pmd-operations.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix.patch
-mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
-mm-huge_memory-implement-device-private-thp-splitting.patch
-mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
-mm-migrate_device-implement-thp-migration-of-zone-device-pages.patch
-mm-memory-fault-add-thp-fault-handling-for-zone-device-private-pages.patch
-lib-test_hmm-add-zone-device-private-thp-test-infrastructure.patch
-mm-memremap-add-driver-callback-support-for-folio-splitting.patch
-mm-migrate_device-add-thp-splitting-during-migration.patch
-lib-test_hmm-add-large-page-allocation-failure-testing.patch
-selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
-selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
-gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
-gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
-mm-huge_memoryc-introduce-folio_split_unmapped.patch
-mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch
-mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch
+mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch
 
