@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BCC22E92B3
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73FD92E92B3
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675089; cv=none; b=IMZ+w57tjF9R8OSeUd0dtMR5g0czhtvJbsrEBoIBVx1ALD05GHmF+vd6IsCvTbai7qzSxnDtHjtEjVsvrqXVQpOELZTUl0TbJ4vtPBgh6mTU4sel9xU/+VXQsz08kKdEyrlcDsuyEk7Mz1cJpWKqMLCn3E39K+6QmZVfrEH4Q0Q=
+	t=1763675090; cv=none; b=rBy8Uv5/OvlAwgF08gmID1eE2aIT+ILArt386ajpJGOI8qluwmx8qN/3aNC+XX7pArDF454tvOQAWH9184fQUnY5a4IqnUgPbqGkAMPHOBuQb4J6qyGYowbn/nwq0XK3w9BM3kkbl2vfFwlsU+ynrckpzGUshTU7P8xOpNf+tp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675089; c=relaxed/simple;
-	bh=Ds0bh5KO5SLQh7Jk3C6Qyg2fQQf4Bio5x2qYi4LtNEo=;
-	h=Date:To:From:Subject:Message-Id; b=kIJmM7DAzcH8qCxscb0J+iToUxyR5GV3z1uw4v47D20P0td7MZwAba5SxV0Iry12/0/Yv9EdJJTO8LCXFMhRfzRSnIWEUdbLAhFEwpI5FdBwNk0Rk1nI7pAzrAA3iA9BqDhHVUVEc+jExpwDTLol011FvHZqLi4PFiws3diJ4EM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wjIN4fDg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675090; c=relaxed/simple;
+	bh=aKpS3eyRHmDxcG3/QrudK6hm8+wy41zK2J9Ff6Rq8KI=;
+	h=Date:To:From:Subject:Message-Id; b=VDbZrGuUCltM6k/TS+Qy0Zr1Xq1FaYDO3mFJRUiRZ35h99d0g9RX88RiiYnc90HaQNELYAaC0v8A5KJAddxXRamofc4voEU59oocfAIb8oZbByYD9wXeVfVmHqPQzNwk8V3Vcgqi6sA/lebvnvftYoGNBJMP0M3PdAff02uCncs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=omLOB5WN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wjIN4fDg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27C6DC4CEF1;
-	Thu, 20 Nov 2025 21:44:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="omLOB5WN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30B5EC4CEF1;
+	Thu, 20 Nov 2025 21:44:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675089;
-	bh=Ds0bh5KO5SLQh7Jk3C6Qyg2fQQf4Bio5x2qYi4LtNEo=;
+	s=korg; t=1763675090;
+	bh=aKpS3eyRHmDxcG3/QrudK6hm8+wy41zK2J9Ff6Rq8KI=;
 	h=Date:To:From:Subject:From;
-	b=wjIN4fDgKuHMq6g40snE/4+VMQY1ZbhNY/EnAzi546pnB/bxnrwZpNMb1Vamf+cXK
-	 WVrXymkUP/Y6wY8Trh8LRs+cH/BTq+Ro3icpSsABXh77p0MG/b1BNY5o+Vuyug4WLB
-	 5za/hGfPzyaH4XauhgYJT/E7JFo9wEO++Uyea8e0=
-Date: Thu, 20 Nov 2025 13:44:48 -0800
+	b=omLOB5WNLqBlNvU73LEbPR3Y9ITrPwTLubXKYc0E5CxOSEQFc9N4SQ621QAmjHL5z
+	 vA2DnH6b5tuKy3g0Cf+8xOKL5jOKTesosWw7jKU+bidXYbIlYFqh5u19PN408QXyCD
+	 31vWcAmRowBqcgxXlanxmP63n7gAuvDXiCFQETUk=
+Date: Thu, 20 Nov 2025 13:44:49 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,pfalcato@suse.de,npache@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,liam.howlett@oracle.com,lance.yang@linux.dev,jannh@google.com,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,avagin@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-update-vma_modify_flags-to-handle-residual-flags-document.patch removed from -mm tree
-Message-Id: <20251120214449.27C6DC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-implement-sticky-vma-flags.patch removed from -mm tree
+Message-Id: <20251120214450.30B5EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,40 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: update vma_modify_flags() to handle residual flags, document
+     Subject: mm: implement sticky VMA flags
 has been removed from the -mm tree.  Its filename was
-     mm-update-vma_modify_flags-to-handle-residual-flags-document.patch
+     mm-implement-sticky-vma-flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: update vma_modify_flags() to handle residual flags, document
-Date: Tue, 18 Nov 2025 10:17:45 +0000
+Subject: mm: implement sticky VMA flags
+Date: Tue, 18 Nov 2025 10:17:46 +0000
 
-The vma_modify_*() family of functions each either perform splits, a merge
-or no changes at all in preparation for the requested modification to
-occur.
+It is useful to be able to designate that certain flags are 'sticky', that
+is, if two VMAs are merged one with a flag of this nature and one without,
+the merged VMA sets this flag.
 
-When doing so for a VMA flags change, we currently don't account for any
-flags which may remain (for instance, VM_SOFTDIRTY) despite the requested
-change in the case that a merge succeeded.
+As a result we ignore these flags for the purposes of determining VMA flag
+differences between VMAs being considered for merge.
 
-This is made more important by subsequent patches which will introduce the
-concept of sticky VMA flags which rely on this behaviour.
+This patch therefore updates the VMA merge logic to perform this action,
+with flags possessing this property being described in the VM_STICKY
+bitmap.
 
-This patch fixes this by passing the VMA flags parameter as a pointer and
-updating it accordingly on merge and updating callers to accommodate for
-this.
+Those flags which ought to be ignored for the purposes of VMA merge are
+described in the VM_IGNORE_MERGE bitmap, which the VMA merge logic is also
+updated to use.
 
-Additionally, while we are here, we add kdocs for each of the
-vma_modify_*() functions, as the fact that the requested modification is
-not performed is confusing so it is useful to make this abundantly clear.
+As part of this change we place VM_SOFTDIRTY in VM_IGNORE_MERGE as it
+already had this behaviour, alongside VM_STICKY as sticky flags by
+implication must not disallow merge.
 
-We also update the VMA userland tests to account for this change.
+Ultimately it seems that we should make VM_SOFTDIRTY a sticky flag in its
+own right, but this change is out of scope for this series.
 
-Link: https://lkml.kernel.org/r/23b5b549b0eaefb2922625626e58c2a352f3e93c.1763460113.git.lorenzo.stoakes@oracle.com
+The only sticky flag designated as such is VM_MAYBE_GUARD, so as a result
+of this change, once the VMA flag is set upon guard region installation,
+VMAs with guard ranges will now not have their merge behaviour impacted as
+a result and can be freely merged with other VMAs without VM_MAYBE_GUARD
+set.
+
+Also update the comments for vma_modify_flags() to directly reference
+sticky flags now we have established the concept.
+
+We also update the VMA userland tests to account for the changes.
+
+Link: https://lkml.kernel.org/r/22ad5269f7669d62afb42ce0c79bad70b994c58d.1763460113.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
@@ -93,326 +105,208 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c            |    2 
- mm/mlock.c              |    2 
- mm/mprotect.c           |    2 
- mm/mseal.c              |    9 +-
- mm/vma.c                |   56 ++++++++-------
- mm/vma.h                |  138 ++++++++++++++++++++++++++++----------
- tools/testing/vma/vma.c |    3 
- 7 files changed, 143 insertions(+), 69 deletions(-)
+ include/linux/mm.h               |   28 ++++++++++++++++++++++++++++
+ mm/vma.c                         |   28 +++++++++++++++-------------
+ mm/vma.h                         |   10 ++++------
+ tools/testing/vma/vma_internal.h |   28 ++++++++++++++++++++++++++++
+ 4 files changed, 75 insertions(+), 19 deletions(-)
 
---- a/mm/madvise.c~mm-update-vma_modify_flags-to-handle-residual-flags-document
-+++ a/mm/madvise.c
-@@ -167,7 +167,7 @@ static int madvise_update_vma(vm_flags_t
- 			range->start, range->end, anon_name);
- 	else
- 		vma = vma_modify_flags(&vmi, madv_behavior->prev, vma,
--			range->start, range->end, new_flags);
-+			range->start, range->end, &new_flags);
+--- a/include/linux/mm.h~mm-implement-sticky-vma-flags
++++ a/include/linux/mm.h
+@@ -528,6 +528,34 @@ extern unsigned int kobjsize(const void
+ #define VM_FLAGS_CLEAR	(ARCH_VM_PKEY_FLAGS | VM_ARCH_CLEAR)
  
- 	if (IS_ERR(vma))
- 		return PTR_ERR(vma);
---- a/mm/mlock.c~mm-update-vma_modify_flags-to-handle-residual-flags-document
-+++ a/mm/mlock.c
-@@ -478,7 +478,7 @@ static int mlock_fixup(struct vma_iterat
- 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
- 		goto out;
+ /*
++ * Flags which should be 'sticky' on merge - that is, flags which, when one VMA
++ * possesses it but the other does not, the merged VMA should nonetheless have
++ * applied to it:
++ *
++ * VM_MAYBE_GUARD - If a VMA may have guard regions in place it implies that
++ *                  mapped page tables may contain metadata not described by the
++ *                  VMA and thus any merged VMA may also contain this metadata,
++ *                  and thus we must make this flag sticky.
++ */
++#define VM_STICKY VM_MAYBE_GUARD
++
++/*
++ * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
++ * of these flags and the other not does not preclude a merge.
++ *
++ * VM_SOFTDIRTY - Should not prevent from VMA merging, if we match the flags but
++ *                dirty bit -- the caller should mark merged VMA as dirty. If
++ *                dirty bit won't be excluded from comparison, we increase
++ *                pressure on the memory system forcing the kernel to generate
++ *                new VMAs when old one could be extended instead.
++ *
++ *    VM_STICKY - When merging VMAs, VMA flags must match, unless they are
++ *                'sticky'. If any sticky flags exist in either VMA, we simply
++ *                set all of them on the merged VMA.
++ */
++#define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
++
++/*
+  * mapping from the currently active vm_flags protection bits (the
+  * low four bits) to a page protection mask..
+  */
+--- a/mm/vma.c~mm-implement-sticky-vma-flags
++++ a/mm/vma.c
+@@ -89,15 +89,7 @@ static inline bool is_mergeable_vma(stru
  
--	vma = vma_modify_flags(vmi, *prev, vma, start, end, newflags);
-+	vma = vma_modify_flags(vmi, *prev, vma, start, end, &newflags);
- 	if (IS_ERR(vma)) {
- 		ret = PTR_ERR(vma);
- 		goto out;
---- a/mm/mprotect.c~mm-update-vma_modify_flags-to-handle-residual-flags-document
-+++ a/mm/mprotect.c
-@@ -756,7 +756,7 @@ mprotect_fixup(struct vma_iterator *vmi,
- 		newflags &= ~VM_ACCOUNT;
+ 	if (!mpol_equal(vmg->policy, vma_policy(vma)))
+ 		return false;
+-	/*
+-	 * VM_SOFTDIRTY should not prevent from VMA merging, if we
+-	 * match the flags but dirty bit -- the caller should mark
+-	 * merged VMA as dirty. If dirty bit won't be excluded from
+-	 * comparison, we increase pressure on the memory system forcing
+-	 * the kernel to generate new VMAs when old one could be
+-	 * extended instead.
+-	 */
+-	if ((vma->vm_flags ^ vmg->vm_flags) & ~VM_SOFTDIRTY)
++	if ((vma->vm_flags ^ vmg->vm_flags) & ~VM_IGNORE_MERGE)
+ 		return false;
+ 	if (vma->vm_file != vmg->file)
+ 		return false;
+@@ -808,6 +800,7 @@ static bool can_merge_remove_vma(struct
+ static __must_check struct vm_area_struct *vma_merge_existing_range(
+ 		struct vma_merge_struct *vmg)
+ {
++	vm_flags_t sticky_flags = vmg->vm_flags & VM_STICKY;
+ 	struct vm_area_struct *middle = vmg->middle;
+ 	struct vm_area_struct *prev = vmg->prev;
+ 	struct vm_area_struct *next;
+@@ -900,11 +893,13 @@ static __must_check struct vm_area_struc
+ 	if (merge_right) {
+ 		vma_start_write(next);
+ 		vmg->target = next;
++		sticky_flags |= (next->vm_flags & VM_STICKY);
  	}
  
--	vma = vma_modify_flags(vmi, *pprev, vma, start, end, newflags);
-+	vma = vma_modify_flags(vmi, *pprev, vma, start, end, &newflags);
- 	if (IS_ERR(vma)) {
- 		error = PTR_ERR(vma);
- 		goto fail;
---- a/mm/mseal.c~mm-update-vma_modify_flags-to-handle-residual-flags-document
-+++ a/mm/mseal.c
-@@ -66,12 +66,13 @@ static int mseal_apply(struct mm_struct
- 		prev = vma;
+ 	if (merge_left) {
+ 		vma_start_write(prev);
+ 		vmg->target = prev;
++		sticky_flags |= (prev->vm_flags & VM_STICKY);
+ 	}
  
- 	for_each_vma_range(vmi, vma, end) {
--		unsigned long curr_end = MIN(vma->vm_end, end);
-+		const unsigned long curr_end = MIN(vma->vm_end, end);
+ 	if (merge_both) {
+@@ -974,6 +969,7 @@ static __must_check struct vm_area_struc
+ 	if (err || commit_merge(vmg))
+ 		goto abort;
  
- 		if (!(vma->vm_flags & VM_SEALED)) {
--			vma = vma_modify_flags(&vmi, prev, vma,
--					curr_start, curr_end,
--					vma->vm_flags | VM_SEALED);
-+			vm_flags_t vm_flags = vma->vm_flags | VM_SEALED;
++	vm_flags_set(vmg->target, sticky_flags);
+ 	khugepaged_enter_vma(vmg->target, vmg->vm_flags);
+ 	vmg->state = VMA_MERGE_SUCCESS;
+ 	return vmg->target;
+@@ -1124,6 +1120,10 @@ int vma_expand(struct vma_merge_struct *
+ 	bool remove_next = false;
+ 	struct vm_area_struct *target = vmg->target;
+ 	struct vm_area_struct *next = vmg->next;
++	vm_flags_t sticky_flags;
 +
-+			vma = vma_modify_flags(&vmi, prev, vma, curr_start,
-+					       curr_end, &vm_flags);
- 			if (IS_ERR(vma))
- 				return PTR_ERR(vma);
- 			vm_flags_set(vma, VM_SEALED);
---- a/mm/vma.c~mm-update-vma_modify_flags-to-handle-residual-flags-document
-+++ a/mm/vma.c
-@@ -1638,25 +1638,35 @@ static struct vm_area_struct *vma_modify
- 	return vma;
- }
++	sticky_flags = vmg->vm_flags & VM_STICKY;
++	sticky_flags |= target->vm_flags & VM_STICKY;
  
--struct vm_area_struct *vma_modify_flags(
--	struct vma_iterator *vmi, struct vm_area_struct *prev,
--	struct vm_area_struct *vma, unsigned long start, unsigned long end,
--	vm_flags_t vm_flags)
-+struct vm_area_struct *vma_modify_flags(struct vma_iterator *vmi,
-+		struct vm_area_struct *prev, struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end,
-+		vm_flags_t *vm_flags_ptr)
- {
- 	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
-+	const vm_flags_t vm_flags = *vm_flags_ptr;
-+	struct vm_area_struct *ret;
+ 	VM_WARN_ON_VMG(!target, vmg);
  
- 	vmg.vm_flags = vm_flags;
+@@ -1133,6 +1133,7 @@ int vma_expand(struct vma_merge_struct *
+ 	if (next && (target != next) && (vmg->end == next->vm_end)) {
+ 		int ret;
  
--	return vma_modify(&vmg);
-+	ret = vma_modify(&vmg);
-+	if (IS_ERR(ret))
-+		return ret;
-+
-+	/*
-+	 * For a merge to succeed, the flags must match those requested. For
-+	 * flags which do not obey typical merge rules (i.e. do not need to
-+	 * match), we must let the caller know about them.
-+	 */
-+	if (vmg.state == VMA_MERGE_SUCCESS)
-+		*vm_flags_ptr = ret->vm_flags;
-+	return ret;
- }
++		sticky_flags |= next->vm_flags & VM_STICKY;
+ 		remove_next = true;
+ 		/* This should already have been checked by this point. */
+ 		VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
+@@ -1159,6 +1160,7 @@ int vma_expand(struct vma_merge_struct *
+ 	if (commit_merge(vmg))
+ 		goto nomem;
  
--struct vm_area_struct
--*vma_modify_name(struct vma_iterator *vmi,
--		       struct vm_area_struct *prev,
--		       struct vm_area_struct *vma,
--		       unsigned long start,
--		       unsigned long end,
--		       struct anon_vma_name *new_name)
-+struct vm_area_struct *vma_modify_name(struct vma_iterator *vmi,
-+		struct vm_area_struct *prev, struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end,
-+		struct anon_vma_name *new_name)
- {
- 	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
++	vm_flags_set(target, sticky_flags);
+ 	return 0;
  
-@@ -1665,12 +1675,10 @@ struct vm_area_struct
- 	return vma_modify(&vmg);
- }
+ nomem:
+@@ -1654,9 +1656,9 @@ struct vm_area_struct *vma_modify_flags(
+ 		return ret;
  
--struct vm_area_struct
--*vma_modify_policy(struct vma_iterator *vmi,
--		   struct vm_area_struct *prev,
--		   struct vm_area_struct *vma,
--		   unsigned long start, unsigned long end,
--		   struct mempolicy *new_pol)
-+struct vm_area_struct *vma_modify_policy(struct vma_iterator *vmi,
-+		struct vm_area_struct *prev, struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end,
-+		struct mempolicy *new_pol)
- {
- 	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
- 
-@@ -1679,14 +1687,10 @@ struct vm_area_struct
- 	return vma_modify(&vmg);
- }
- 
--struct vm_area_struct
--*vma_modify_flags_uffd(struct vma_iterator *vmi,
--		       struct vm_area_struct *prev,
--		       struct vm_area_struct *vma,
--		       unsigned long start, unsigned long end,
--		       vm_flags_t vm_flags,
--		       struct vm_userfaultfd_ctx new_ctx,
--		       bool give_up_on_oom)
-+struct vm_area_struct *vma_modify_flags_uffd(struct vma_iterator *vmi,
-+		struct vm_area_struct *prev, struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end, vm_flags_t vm_flags,
-+		struct vm_userfaultfd_ctx new_ctx, bool give_up_on_oom)
- {
- 	VMG_VMA_STATE(vmg, vmi, prev, vma, start, end);
- 
---- a/mm/vma.h~mm-update-vma_modify_flags-to-handle-residual-flags-document
-+++ a/mm/vma.h
-@@ -263,47 +263,115 @@ void remove_vma(struct vm_area_struct *v
- void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
- 		struct vm_area_struct *prev, struct vm_area_struct *next);
- 
--/* We are about to modify the VMA's flags. */
--__must_check struct vm_area_struct
--*vma_modify_flags(struct vma_iterator *vmi,
-+/**
-+ * vma_modify_flags() - Peform any necessary split/merge in preparation for
-+ * setting VMA flags to *@vm_flags in the range @start to @end contained within
-+ * @vma.
-+ * @vmi: Valid VMA iterator positioned at @vma.
-+ * @prev: The VMA immediately prior to @vma or NULL if @vma is the first.
-+ * @vma: The VMA containing the range @start to @end to be updated.
-+ * @start: The start of the range to update. May be offset within @vma.
-+ * @end: The exclusive end of the range to update, may be offset within @vma.
-+ * @vm_flags_ptr: A pointer to the VMA flags that the @start to @end range is
-+ * about to be set to. On merge, this will be updated to include any additional
-+ * flags which remain in place.
-+ *
-+ * IMPORTANT: The actual modification being requested here is NOT applied,
-+ * rather the VMA is perhaps split, perhaps merged to accommodate the change,
-+ * and the caller is expected to perform the actual modification.
-+ *
-+ * In order to account for VMA flags which may persist (e.g. soft-dirty), the
-+ * @vm_flags_ptr parameter points to the requested flags which are then updated
-+ * so the caller, should they overwrite any existing flags, correctly retains
-+ * these.
-+ *
-+ * Returns: A VMA which contains the range @start to @end ready to have its
-+ * flags altered to *@vm_flags.
-+ */
-+__must_check struct vm_area_struct *vma_modify_flags(struct vma_iterator *vmi,
- 		struct vm_area_struct *prev, struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end,
--		vm_flags_t vm_flags);
-+		vm_flags_t *vm_flags_ptr);
- 
--/* We are about to modify the VMA's anon_name. */
--__must_check struct vm_area_struct
--*vma_modify_name(struct vma_iterator *vmi,
--		 struct vm_area_struct *prev,
--		 struct vm_area_struct *vma,
--		 unsigned long start,
--		 unsigned long end,
--		 struct anon_vma_name *new_name);
--
--/* We are about to modify the VMA's memory policy. */
--__must_check struct vm_area_struct
--*vma_modify_policy(struct vma_iterator *vmi,
--		   struct vm_area_struct *prev,
--		   struct vm_area_struct *vma,
-+/**
-+ * vma_modify_name() - Peform any necessary split/merge in preparation for
-+ * setting anonymous VMA name to @new_name in the range @start to @end contained
-+ * within @vma.
-+ * @vmi: Valid VMA iterator positioned at @vma.
-+ * @prev: The VMA immediately prior to @vma or NULL if @vma is the first.
-+ * @vma: The VMA containing the range @start to @end to be updated.
-+ * @start: The start of the range to update. May be offset within @vma.
-+ * @end: The exclusive end of the range to update, may be offset within @vma.
-+ * @new_name: The anonymous VMA name that the @start to @end range is about to
-+ * be set to.
-+ *
-+ * IMPORTANT: The actual modification being requested here is NOT applied,
-+ * rather the VMA is perhaps split, perhaps merged to accommodate the change,
-+ * and the caller is expected to perform the actual modification.
-+ *
-+ * Returns: A VMA which contains the range @start to @end ready to have its
-+ * anonymous VMA name changed to @new_name.
-+ */
-+__must_check struct vm_area_struct *vma_modify_name(struct vma_iterator *vmi,
-+		struct vm_area_struct *prev, struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end,
-+		struct anon_vma_name *new_name);
-+
-+/**
-+ * vma_modify_policy() - Peform any necessary split/merge in preparation for
-+ * setting NUMA policy to @new_pol in the range @start to @end contained
-+ * within @vma.
-+ * @vmi: Valid VMA iterator positioned at @vma.
-+ * @prev: The VMA immediately prior to @vma or NULL if @vma is the first.
-+ * @vma: The VMA containing the range @start to @end to be updated.
-+ * @start: The start of the range to update. May be offset within @vma.
-+ * @end: The exclusive end of the range to update, may be offset within @vma.
-+ * @new_pol: The NUMA policy that the @start to @end range is about to be set
-+ * to.
-+ *
-+ * IMPORTANT: The actual modification being requested here is NOT applied,
-+ * rather the VMA is perhaps split, perhaps merged to accommodate the change,
-+ * and the caller is expected to perform the actual modification.
-+ *
-+ * Returns: A VMA which contains the range @start to @end ready to have its
-+ * NUMA policy changed to @new_pol.
-+ */
-+__must_check struct vm_area_struct *vma_modify_policy(struct vma_iterator *vmi,
-+		   struct vm_area_struct *prev, struct vm_area_struct *vma,
- 		   unsigned long start, unsigned long end,
- 		   struct mempolicy *new_pol);
- 
--/* We are about to modify the VMA's flags and/or uffd context. */
--__must_check struct vm_area_struct
--*vma_modify_flags_uffd(struct vma_iterator *vmi,
--		       struct vm_area_struct *prev,
--		       struct vm_area_struct *vma,
--		       unsigned long start, unsigned long end,
--		       vm_flags_t vm_flags,
--		       struct vm_userfaultfd_ctx new_ctx,
--		       bool give_up_on_oom);
--
--__must_check struct vm_area_struct
--*vma_merge_new_range(struct vma_merge_struct *vmg);
--
--__must_check struct vm_area_struct
--*vma_merge_extend(struct vma_iterator *vmi,
--		  struct vm_area_struct *vma,
--		  unsigned long delta);
-+/**
-+ * vma_modify_flags_uffd() - Peform any necessary split/merge in preparation for
-+ * setting VMA flags to @vm_flags and UFFD context to @new_ctx in the range
-+ * @start to @end contained within @vma.
-+ * @vmi: Valid VMA iterator positioned at @vma.
-+ * @prev: The VMA immediately prior to @vma or NULL if @vma is the first.
-+ * @vma: The VMA containing the range @start to @end to be updated.
-+ * @start: The start of the range to update. May be offset within @vma.
-+ * @end: The exclusive end of the range to update, may be offset within @vma.
-+ * @vm_flags: The VMA flags that the @start to @end range is about to be set to.
-+ * @new_ctx: The userfaultfd context that the @start to @end range is about to
-+ * be set to.
-+ * @give_up_on_oom: If an out of memory condition occurs on merge, simply give
-+ * up on it and treat the merge as best-effort.
-+ *
-+ * IMPORTANT: The actual modification being requested here is NOT applied,
-+ * rather the VMA is perhaps split, perhaps merged to accommodate the change,
-+ * and the caller is expected to perform the actual modification.
-+ *
-+ * Returns: A VMA which contains the range @start to @end ready to have its VMA
-+ * flags changed to @vm_flags and its userfaultfd context changed to @new_ctx.
-+ */
-+__must_check struct vm_area_struct *vma_modify_flags_uffd(struct vma_iterator *vmi,
-+		struct vm_area_struct *prev, struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end, vm_flags_t vm_flags,
-+		struct vm_userfaultfd_ctx new_ctx, bool give_up_on_oom);
-+
-+__must_check struct vm_area_struct *vma_merge_new_range(struct vma_merge_struct *vmg);
-+
-+__must_check struct vm_area_struct *vma_merge_extend(struct vma_iterator *vmi,
-+		  struct vm_area_struct *vma, unsigned long delta);
- 
- void unlink_file_vma_batch_init(struct unlink_vma_file_batch *vb);
- 
---- a/tools/testing/vma/vma.c~mm-update-vma_modify_flags-to-handle-residual-flags-document
-+++ a/tools/testing/vma/vma.c
-@@ -339,6 +339,7 @@ static bool test_simple_modify(void)
- 	struct mm_struct mm = {};
- 	struct vm_area_struct *init_vma = alloc_vma(&mm, 0, 0x3000, 0, vm_flags);
- 	VMA_ITERATOR(vmi, &mm, 0x1000);
-+	vm_flags_t flags = VM_READ | VM_MAYREAD;
- 
- 	ASSERT_FALSE(attach_vma(&mm, init_vma));
- 
-@@ -347,7 +348,7 @@ static bool test_simple_modify(void)
- 	 * performs the merge/split only.
+ 	/*
+-	 * For a merge to succeed, the flags must match those requested. For
+-	 * flags which do not obey typical merge rules (i.e. do not need to
+-	 * match), we must let the caller know about them.
++	 * For a merge to succeed, the flags must match those
++	 * requested. However, sticky flags may have been retained, so propagate
++	 * them to the caller.
  	 */
- 	vma = vma_modify_flags(&vmi, init_vma, init_vma,
--			       0x1000, 0x2000, VM_READ | VM_MAYREAD);
-+			       0x1000, 0x2000, &flags);
- 	ASSERT_NE(vma, NULL);
- 	/* We modify the provided VMA, and on split allocate new VMAs. */
- 	ASSERT_EQ(vma, init_vma);
+ 	if (vmg.state == VMA_MERGE_SUCCESS)
+ 		*vm_flags_ptr = ret->vm_flags;
+@@ -1906,7 +1908,7 @@ static int anon_vma_compatible(struct vm
+ 	return a->vm_end == b->vm_start &&
+ 		mpol_equal(vma_policy(a), vma_policy(b)) &&
+ 		a->vm_file == b->vm_file &&
+-		!((a->vm_flags ^ b->vm_flags) & ~(VM_ACCESS_FLAGS | VM_SOFTDIRTY)) &&
++		!((a->vm_flags ^ b->vm_flags) & ~(VM_ACCESS_FLAGS | VM_IGNORE_MERGE)) &&
+ 		b->vm_pgoff == a->vm_pgoff + ((b->vm_start - a->vm_start) >> PAGE_SHIFT);
+ }
+ 
+--- a/mm/vma.h~mm-implement-sticky-vma-flags
++++ a/mm/vma.h
+@@ -273,17 +273,15 @@ void unmap_region(struct ma_state *mas,
+  * @start: The start of the range to update. May be offset within @vma.
+  * @end: The exclusive end of the range to update, may be offset within @vma.
+  * @vm_flags_ptr: A pointer to the VMA flags that the @start to @end range is
+- * about to be set to. On merge, this will be updated to include any additional
+- * flags which remain in place.
++ * about to be set to. On merge, this will be updated to include sticky flags.
+  *
+  * IMPORTANT: The actual modification being requested here is NOT applied,
+  * rather the VMA is perhaps split, perhaps merged to accommodate the change,
+  * and the caller is expected to perform the actual modification.
+  *
+- * In order to account for VMA flags which may persist (e.g. soft-dirty), the
+- * @vm_flags_ptr parameter points to the requested flags which are then updated
+- * so the caller, should they overwrite any existing flags, correctly retains
+- * these.
++ * In order to account for sticky VMA flags, the @vm_flags_ptr parameter points
++ * to the requested flags which are then updated so the caller, should they
++ * overwrite any existing flags, correctly retains these.
+  *
+  * Returns: A VMA which contains the range @start to @end ready to have its
+  * flags altered to *@vm_flags.
+--- a/tools/testing/vma/vma_internal.h~mm-implement-sticky-vma-flags
++++ a/tools/testing/vma/vma_internal.h
+@@ -117,6 +117,34 @@ extern unsigned long dac_mmap_min_addr;
+ #define VM_SEALED	VM_NONE
+ #endif
+ 
++/*
++ * Flags which should be 'sticky' on merge - that is, flags which, when one VMA
++ * possesses it but the other does not, the merged VMA should nonetheless have
++ * applied to it:
++ *
++ * VM_MAYBE_GUARD - If a VMA may have guard regions in place it implies that
++ *                  mapped page tables may contain metadata not described by the
++ *                  VMA and thus any merged VMA may also contain this metadata,
++ *                  and thus we must make this flag sticky.
++ */
++#define VM_STICKY VM_MAYBE_GUARD
++
++/*
++ * VMA flags we ignore for the purposes of merge, i.e. one VMA possessing one
++ * of these flags and the other not does not preclude a merge.
++ *
++ * VM_SOFTDIRTY - Should not prevent from VMA merging, if we match the flags but
++ *                dirty bit -- the caller should mark merged VMA as dirty. If
++ *                dirty bit won't be excluded from comparison, we increase
++ *                pressure on the memory system forcing the kernel to generate
++ *                new VMAs when old one could be extended instead.
++ *
++ *    VM_STICKY - When merging VMAs, VMA flags must match, unless they are
++ *                'sticky'. If any sticky flags exist in either VMA, we simply
++ *                set all of them on the merged VMA.
++ */
++#define VM_IGNORE_MERGE (VM_SOFTDIRTY | VM_STICKY)
++
+ #define FIRST_USER_ADDRESS	0UL
+ #define USER_PGTABLES_CEILING	0UL
+ 
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
