@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B3E2D5425
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:37:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3C453054E8
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:38:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763674665; cv=none; b=h4z33E016KuOmPUWv19MqSxadmPPXVHwsYgw/QzkED8r3D48cXPZtI1V2wJcp2IwT6NWVpK201y455VlUCGxm/VV5YYof6aMJhVL1jCWtNZC0oXdaiOWypFAZApanVsE630l0RKqHTz8HWgSn64dY3q1di0RL4dl6akw8yOBC0I=
+	t=1763674699; cv=none; b=nStzofC4A6Miub6/M54oRzMnxlJFM7I3sZN34uYittzP1TaxJnSDTnHmEwL7OkiQUNVYwEp9WhXYObFPmywr+xb46QROiGvn8NoVAI69PetSs1DruNl570lVuY4/LxYYhEmfx49Pm33UXthVGJmXulOKXj65mWXY7UHeb62zLhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763674665; c=relaxed/simple;
-	bh=l0mIhC66aUkZtddtoeFo9jy71TYittfncjxyrngdpRA=;
-	h=Date:To:From:Subject:Message-Id; b=UVTjAJISRwcpfbgowI8+ZXqBB1tr4TqN0TfeXTJXwbz3PtQ335c4hs3ZIOlZKwrImvP1VUU2jniG1aZoWybfoI3AgkBXQMUYJH7Y90usSuFVmIChf9xkHMNiJtElIVQ3cJPQxA5j8B1SOxZEd2riA24FpWn7cu4P02UsbwNghb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cDgSZv8E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763674699; c=relaxed/simple;
+	bh=0CLaI1sZP7k4WWfYhwL1jNXSlQ4bqR1A95UQTdYaw1E=;
+	h=Date:To:From:Subject:Message-Id; b=kHVC564mX8rCV4wRWSfm/kKUzz4HtQNsJWFTjwlt7R7m0oknvnRO+4M0YEXCp2ESh9iIereXcQq4UHXDAQ4g4zbujmR3MIjKGGAVh/QR1a+6O6HyV9SwYE2++GV3QzhXpa+ZFFeeZnBUsBHu0J+RxgoBabiSQXE3BpMwkhAHEVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQ/QMDoC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cDgSZv8E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23269C4CEF1;
-	Thu, 20 Nov 2025 21:37:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQ/QMDoC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3533EC4CEF1;
+	Thu, 20 Nov 2025 21:38:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763674665;
-	bh=l0mIhC66aUkZtddtoeFo9jy71TYittfncjxyrngdpRA=;
+	s=korg; t=1763674699;
+	bh=0CLaI1sZP7k4WWfYhwL1jNXSlQ4bqR1A95UQTdYaw1E=;
 	h=Date:To:From:Subject:From;
-	b=cDgSZv8EbNE049xBr+7MnVi8/1Vv/FpHp8HXVDmH5x5y2p8UQl2N+3BLAqDQwQttp
-	 LPcAibGZzJMlzEPqn0pUL8prxeoOF5ZwvZVnQv4gSAfYzc9+eucvt3rco3rQetC6c9
-	 JA6jEBrdRSkm3dtreTt6eCRCEnbFrG70RXBQtmSs=
-Date: Thu, 20 Nov 2025 13:37:44 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@redhat.com,david.hunter.linux@gmail.com,mehdi.benhadjkhelifa@gmail.com,akpm@linux-foundation.org
+	b=aQ/QMDoCLS0oKPLIcUVP8oBp0pheToiYx4g8ip6jBpdRE5DaE96/ZKDDoJw6/dRmd
+	 B6Qhnd7+6SikxbBVXjk8ketJVteOTW9NrjG4kmoHk61j42sSVtWax3PMOxtMB9nQPj
+	 tsd5WgxkZbalz08PVnVOKqwuv/OcguJ1A+qt6Zso=
+Date: Thu, 20 Nov 2025 13:38:18 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2.patch removed from -mm tree
-Message-Id: <20251120213745.23269C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock-fix.patch removed from -mm tree
+Message-Id: <20251120213819.3533EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
+     Subject: mm/damon/vaddr: provide lvalue to pmd_present()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2.patch
+     mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock-fix.patch
 
-This patch was dropped because it was folded into selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
+This patch was dropped because it was folded into mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
 
 ------------------------------------------------------
-From: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
-Subject: selftests/mm/uffd: remove static address usage in shmem_allocate_area()
-Date: Thu, 13 Nov 2025 15:20:33 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/vaddr: provide lvalue to pmd_present()
+Date: Mon, 17 Nov 2025 07:36:43 -0800
 
-make cleanup code more clear, per Mike
+On m68k, vaddr.c build fails since pmd_present() requires lvalue while
+vaddr.c is passing pmdp_get().  Fix it.
 
-Link: https://lkml.kernel.org/r/20251113142050.108638-1-mehdi.benhadjkhelifa@gmail.com
-Signed-off-by: Mehdi Ben Hadj Khelifa <mehdi.benhadjkhelifa@gmail.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Hunter <david.hunter.linux@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251117154415.11041-1-sj@kernel.org
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202511172257.CjElDcRX-lkp@intel.com/
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-common.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/damon/vaddr.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area-v2
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -6,7 +6,6 @@
-  */
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock-fix
++++ a/mm/damon/vaddr.c
+@@ -311,7 +311,9 @@ static int damon_mkold_pmd_entry(pmd_t *
  
- #include "uffd-common.h"
--#include "asm-generic/mman-common.h"
- 
- uffd_test_ops_t *uffd_test_ops;
- uffd_test_case_ops_t *uffd_test_case_ops;
-@@ -151,7 +150,7 @@ static int shmem_allocate_area(uffd_glob
- 		return -errno;
- 	}
- 
--	p = (char *)reserve;
-+	p = reserve;
- 	p_alias = p;
- 	p_alias += bytes;
- 	p_alias += hpage_size;  /* Prevent src/dst VMA merge */
-@@ -159,8 +158,8 @@ static int shmem_allocate_area(uffd_glob
- 	*alloc_area = mmap(p, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
- 			   mem_fd, offset);
- 	if (*alloc_area == MAP_FAILED) {
--		munmap(reserve, region_size);
- 		*alloc_area = NULL;
-+		munmap(reserve, region_size);
- 		close(mem_fd);
- 		return -errno;
- 	}
-@@ -170,8 +169,8 @@ static int shmem_allocate_area(uffd_glob
- 	area_alias = mmap(p_alias, bytes, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
- 			  mem_fd, offset);
- 	if (area_alias == MAP_FAILED) {
--		munmap(reserve, region_size);
- 		*alloc_area = NULL;
-+		munmap(reserve, region_size);
- 		close(mem_fd);
- 		return -errno;
- 	}
+ 	ptl = pmd_trans_huge_lock(pmd, walk->vma);
+ 	if (ptl) {
+-		if (pmd_present(pmdp_get(pmd)))
++		pmd_t pmde = pmdp_get(pmd);
++
++		if (pmd_present(pmde))
+ 			damon_pmdp_mkold(pmd, walk->vma, addr);
+ 		spin_unlock(ptl);
+ 		return 0;
 _
 
-Patches currently in -mm which might be from mehdi.benhadjkhelifa@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-selftests-mm-uffd-remove-static-address-usage-in-shmem_allocate_area.patch
+mm-damon-tests-core-kunit-remove-dynamic-allocs-on-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-split-out-damos_test_commit_filter-core-logic.patch
+mm-damon-tests-core-kunit-extend-damos_test_commit_filter_for-for-union-fields.patch
+mm-damon-tests-core-kunit-add-test-cases-to-damos_test_commit_filter.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota_goal-test.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota_goals-test.patch
+mm-damon-tests-core-kunit-add-damos_commit_quota-test.patch
+mm-damon-core-pass-migrate_dests-to-damos_commit_dests.patch
+mm-damon-tests-core-kunit-add-damos_commit_dests-test.patch
+mm-damon-tests-core-kunit-add-damos_commit-test.patch
+mm-damon-tests-core-kunit-add-damon_commit_target_regions-test.patch
+mm-damon-rename-damos-core-filter-helpers-to-have-word-core.patch
+mm-damon-rename-damos-filters-to-damos-core_filters.patch
+mm-damon-vaddr-cleanup-using-pmd_trans_huge_lock.patch
+mm-damon-vaddr-use-vm_normal_folio_pmd-instead-of-damon_get_folio.patch
+mm-damon-vaddr-consistently-use-only-pmd_entry-for-damos_migrate.patch
+mm-damon-tests-core-kunit-remove-damon_min_region-redefinition.patch
+selftests-damon-sysfspy-merge-damon-status-dumping-into-commitment-assertion.patch
+docs-mm-damon-maintainer-profile-fix-a-typo-on-mm-untable-link.patch
+docs-mm-damon-maintainer-profile-fix-grammartical-errors.patch
 
