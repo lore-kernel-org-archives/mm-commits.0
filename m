@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3AA02673AA
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7523723A9B3
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763676255; cv=none; b=TVNv//FCdKQZ4IAdvxjAkBXLvetIsscfPaV4gRxhsL+1CKl8q5FaZssZi7qybPXveNJ1xSMGnciKAjbsn6prQnvAftQUYqz8OGhsHUyQtgKglpHJZ19HsFb3+jCYQF8x//LgiA9/cqQSoxFYO/WrVoBP8gxVyRqareHrCFi0UsE=
+	t=1763676257; cv=none; b=hmxmWKJGk33FUN9NHIcocXSgnwADSf7dF7ewC07uNRxKGU78ltMJcm0OHUiC2woWPGV779+LQnvF7yet2zYeg9+gIYJ56CuIP5hwa874LCQT78ePBc45ccEOYVeNpcUNSj8yxrFyWEClx+d/TS2BMkjSUxR4XCVGaXyyCMqjl1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763676255; c=relaxed/simple;
-	bh=xMVe6KpNKqU8FZP8DhKyskA+MYsWE4Av6eHya8bxlag=;
-	h=Date:To:From:Subject:Message-Id; b=DfHUDUBnw4hrB0UgkCNcV1bBPPXyXNgmrgE/FoUOk+ZzkqkhrxCFuO0S1ePSsubdLLCToOx40tWw/FqyOD7F5Qxffpz8tXGKRFWwL7qVpSdabKd8zT4QdFkNkv1b9b8ks7njxWlaWkTDxTGZilGvjqg3BX0dUrUFGgGLs7yLTgs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kVXjTrip; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763676257; c=relaxed/simple;
+	bh=1t+t/IGd5/Sj+uzYszlrN76RPWyryL9v6XUktTvMqq4=;
+	h=Date:To:From:Subject:Message-Id; b=FMKvMVN7OIwyZxvpOLdjHUbEwHbK6USCYTXos1YG7ACE+miEJUwm3H/trMeliBMX+36Wb1WpuxwGqJbiElOoXv0hzYsHLOzqkQGgHnl63IXOZbQwAsoQe97dpn9dOpEP5qPPxD6sY6YzZZXuWx7p8GdXSbuZcTh16rqK37evrxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jSpb/EuB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kVXjTrip"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30414C4CEF1;
-	Thu, 20 Nov 2025 22:04:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jSpb/EuB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0B56C4CEF1;
+	Thu, 20 Nov 2025 22:04:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763676255;
-	bh=xMVe6KpNKqU8FZP8DhKyskA+MYsWE4Av6eHya8bxlag=;
+	s=korg; t=1763676256;
+	bh=1t+t/IGd5/Sj+uzYszlrN76RPWyryL9v6XUktTvMqq4=;
 	h=Date:To:From:Subject:From;
-	b=kVXjTripMdNif78lJ/HnCUWUNllOA2IEVB7yxqRjIBxs7YEl/E6Tqz5virYXci90h
-	 mclByGT0lkOOyKLtSWgJGjroKT3c2y+hGLwi+dwC4LzqNHBV9oayDPCZ4llDRAeIAK
-	 BE6tUfhh2PJYqp1+LAth9fHk7rZbWIcZhTv+H7sQ=
-Date: Thu, 20 Nov 2025 14:04:14 -0800
-To: mm-commits@vger.kernel.org,pmladek@suse.com,feng.tang@linux.alibaba.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=jSpb/EuBTM+RApihnPzI3lYddsKREHzcqH2SMsiWJdUyErF8ltLPgVkx3FQcgQ/23
+	 v9TA56hZVZ4EOhrMU1JwziXP2MzoK4I7k0GsRpXFh3f4I6XpYEA/aDeFsu3J/kn4Vn
+	 SMVYk1dIl+Fm+LnTllV625PLxjA4VtOaac+z7yuY=
+Date: Thu, 20 Nov 2025 14:04:16 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,kartikey406@gmail.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] panic-sys_info-factor-out-read-and-write-handlers.patch removed from -mm tree
-Message-Id: <20251120220415.30414C4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-add-extra-consistency-checks-for-chain-allocator-dinodes.patch removed from -mm tree
+Message-Id: <20251120220416.D0B56C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,137 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: panic: sys_info: factor out read and write handlers
+     Subject: ocfs2: add extra consistency checks for chain allocator dinodes
 has been removed from the -mm tree.  Its filename was
-     panic-sys_info-factor-out-read-and-write-handlers.patch
+     ocfs2-add-extra-consistency-checks-for-chain-allocator-dinodes.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: panic: sys_info: factor out read and write handlers
-Date: Thu, 30 Oct 2025 12:44:22 +0100
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: add extra consistency checks for chain allocator dinodes
+Date: Thu, 30 Oct 2025 18:30:02 +0300
 
-For the sake of the code readability and easier maintenance factor out
-read and write sys_info handlers.
+When validating chain allocator dinode in 'ocfs2_validate_inode_block()',
+add an extra checks whether a) the maximum amount of chain records in
+'struct ocfs2_chain_list' matches the value calculated based on the
+filesystem block size, and b) the next free slot index is within the valid
+range.
 
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/20251030132007.3742368-7-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20251030153003.1934585-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reported-by: syzbot+77026564530dbc29b854@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=77026564530dbc29b854
+Reported-by: syzbot+5054473a31f78f735416@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=5054473a31f78f735416
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Deepanshu Kartikey <kartikey406@gmail.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sys_info.c |   79 +++++++++++++++++++++++++++--------------------
- 1 file changed, 46 insertions(+), 33 deletions(-)
+ fs/ocfs2/inode.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/lib/sys_info.c~panic-sys_info-factor-out-read-and-write-handlers
-+++ a/lib/sys_info.c
-@@ -43,18 +43,56 @@ unsigned long sys_info_parse_param(char
+--- a/fs/ocfs2/inode.c~ocfs2-add-extra-consistency-checks-for-chain-allocator-dinodes
++++ a/fs/ocfs2/inode.c
+@@ -1513,6 +1513,23 @@ int ocfs2_validate_inode_block(struct su
+ 		goto bail;
+ 	}
  
- #ifdef CONFIG_SYSCTL
- 
-+static int sys_info_write_handler(const struct ctl_table *table,
-+				  void *buffer, size_t *lenp, loff_t *ppos,
-+				  unsigned long *si_bits_global)
-+{
-+	unsigned long si_bits;
-+	int ret;
++	if (le32_to_cpu(di->i_flags) & OCFS2_CHAIN_FL) {
++		struct ocfs2_chain_list *cl = &di->id2.i_chain;
 +
-+	ret = proc_dostring(table, 1, buffer, lenp, ppos);
-+	if (ret)
-+		return ret;
-+
-+	si_bits = sys_info_parse_param(table->data);
-+
-+	/* The access to the global value is not synchronized. */
-+	WRITE_ONCE(*si_bits_global, si_bits);
-+
-+	return 0;
-+}
-+
-+static int sys_info_read_handler(const struct ctl_table *table,
-+				 void *buffer, size_t *lenp, loff_t *ppos,
-+				 unsigned long *si_bits_global)
-+{
-+	unsigned long si_bits;
-+	unsigned int len = 0;
-+	char *delim = "";
-+	unsigned int i;
-+
-+	/* The access to the global value is not synchronized. */
-+	si_bits = READ_ONCE(*si_bits_global);
-+
-+	for_each_set_bit(i, &si_bits, ARRAY_SIZE(si_names)) {
-+		if (*si_names[i]) {
-+			len += scnprintf(table->data + len, table->maxlen - len,
-+					 "%s%s", delim, si_names[i]);
-+			delim = ",";
++		if (le16_to_cpu(cl->cl_count) != ocfs2_chain_recs_per_inode(sb)) {
++			rc = ocfs2_error(sb, "Invalid dinode %llu: chain list count %u\n",
++					 (unsigned long long)bh->b_blocknr,
++					 le16_to_cpu(cl->cl_count));
++			goto bail;
++		}
++		if (le16_to_cpu(cl->cl_next_free_rec) > le16_to_cpu(cl->cl_count)) {
++			rc = ocfs2_error(sb, "Invalid dinode %llu: chain list index %u\n",
++					 (unsigned long long)bh->b_blocknr,
++					 le16_to_cpu(cl->cl_next_free_rec));
++			goto bail;
 +		}
 +	}
 +
-+	return proc_dostring(table, 0, buffer, lenp, ppos);
-+}
-+
- int sysctl_sys_info_handler(const struct ctl_table *ro_table, int write,
- 					  void *buffer, size_t *lenp,
- 					  loff_t *ppos)
- {
- 	struct ctl_table table;
--	unsigned long *si_bits_global;
--	unsigned long si_bits;
- 	unsigned int i;
- 	size_t maxlen;
+ 	rc = 0;
  
--	si_bits_global = ro_table->data;
--
- 	maxlen = 0;
- 	for (i = 0; i < ARRAY_SIZE(si_names); i++)
- 		maxlen += strlen(si_names[i]) + 1;
-@@ -67,35 +105,10 @@ int sysctl_sys_info_handler(const struct
- 	table.data = names;
- 	table.maxlen = maxlen;
- 
--	if (write) {
--		int ret;
--
--		ret = proc_dostring(&table, write, buffer, lenp, ppos);
--		if (ret)
--			return ret;
--
--		si_bits = sys_info_parse_param(names);
--		/* The access to the global value is not synchronized. */
--		WRITE_ONCE(*si_bits_global, si_bits);
--		return 0;
--	} else {
--		/* for 'read' operation */
--		unsigned int len = 0;
--		char *delim = "";
--
--		/* The access to the global value is not synchronized. */
--		si_bits = READ_ONCE(*si_bits_global);
--
--		for_each_set_bit(i, &si_bits, ARRAY_SIZE(si_names)) {
--			if (*si_names[i]) {
--				len += scnprintf(names + len, maxlen - len,
--						 "%s%s", delim, si_names[i]);
--				delim = ",";
--			}
--		}
--
--		return proc_dostring(&table, write, buffer, lenp, ppos);
--	}
-+	if (write)
-+		return sys_info_write_handler(&table, buffer, lenp, ppos, ro_table->data);
-+	else
-+		return sys_info_read_handler(&table, buffer, lenp, ppos, ro_table->data);
- }
- #endif
- 
+ bail:
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
 
