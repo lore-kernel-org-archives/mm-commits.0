@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C10333D6CC
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6149A2FB96A
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 22:04:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763676297; cv=none; b=TWud3tuSbFLFWZnoTA3mKIOFSj5Fjn9wH8pNGRlk2r5GfHWFWrY4y97cN2griP177aX3GWAOmDf/HnnNWGvaS397ndh0fP5ob3dd52zkOGvUN6r1Hl4zf+CcMFxulLuMSSZODRSPM/RMMDGGWZuqyQkHWHADjT+3eRIWj03MW5Q=
+	t=1763676298; cv=none; b=VmgE/RQyuYLBy+sdC+P7XrVMhWgZdZSMriwVMAQ64lyXaO5jFtizdGyrXP7aRYdeFJ3VbfhEF04RRo82KiXqRn+XFSOrXzqg6BLGYY+UuVvCftdFiy/PcRLMqCOMxn99GOO9hIDlnwvIFzqV9R4LSAOVAXZiIZaFoiuxlVbRLqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763676297; c=relaxed/simple;
-	bh=n6n15O1JJgYpOjGWrMt2BdohTKBTmcM952Q4tEuTuUo=;
-	h=Date:To:From:Subject:Message-Id; b=Dgpjw44REcwlM7n7HdMi3VjU/k4njfA2K6PvGua/I68cODSRlBjUlCslnebsu7KVVug6FQNRnvyFBiXLpKSN4zZKIMH8drcFOmWr5BFw7sWrZlTpHo869A/LeGosUMGyvz8MNyW8pEpxg0VDEF6YadypC/oEIxydN97rxWas0Zk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MdYFya7l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763676298; c=relaxed/simple;
+	bh=mAabK+g9HZcjLH9w3H8G3W2Wk0619+Yw/d8aetW4Nag=;
+	h=Date:To:From:Subject:Message-Id; b=twjKkfaQxp4ZzMWUz8OzOa4TLWcNFLJM48C3pqNocB09UO9yynmUQZyiIhuK3n/00e1joMSnNvg31n3Q3cMLsDs79EmgSfEM6q8Pzm2EP568KWGU7KAZWGvQv+khJLSmgTiO4enIrA6eRJh12OBsR+CwW1fqOyMRVPdkfyGgEtk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LpK0VI6s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MdYFya7l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30A43C4CEF1;
-	Thu, 20 Nov 2025 22:04:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LpK0VI6s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34F57C4CEF1;
+	Thu, 20 Nov 2025 22:04:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763676297;
-	bh=n6n15O1JJgYpOjGWrMt2BdohTKBTmcM952Q4tEuTuUo=;
+	s=korg; t=1763676298;
+	bh=mAabK+g9HZcjLH9w3H8G3W2Wk0619+Yw/d8aetW4Nag=;
 	h=Date:To:From:Subject:From;
-	b=MdYFya7lR4FEQoujbMj3aQF2/3Y+gkJUOcfS96vAKmWLDCKqMPqDIw6cYxj/fCMS2
-	 t0LQBLThSKpnpXB0UqOpYY8C5O34/PH7xfWmAjrbcMWQORF331qfIwHJWJNmyDHrlV
-	 /bOJr72BCZAPuQmqME4mBRRLQH69Qji6ec2S5Qu4=
-Date: Thu, 20 Nov 2025 14:04:56 -0800
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,shivangu@linux.ibm.com,ritesh.list@gmail.com,piliu@redhat.com,mahesh@linux.ibm.com,maddy@linux.ibm.com,jbohac@suse.cz,hbathini@linux.ibm.com,dyoung@redhat.com,bhe@redhat.com,adityag@linux.ibm.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
+	b=LpK0VI6ssZNEyf20E8NLVgWVAMErJdsL9VOFHRwlsJHpdErOhq2Wu9sbPps8RapRP
+	 f3STyOBPk763l/jbsi3KEcPOpNgTZiOj4ITT662B2arXqGdgD3hGbtcQQedyR2d3cq
+	 QXd66TxV37duoMm+8vIOcgcPLuooV5LNe60PWyMY=
+Date: Thu, 20 Nov 2025 14:04:57 -0800
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,tmgross@umich.edu,ojeda@kernel.org,jhubbard@nvidia.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,arnd@arndb.de,alex.gaynor@gmail.com,a.hindborg@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] crash-export-crashkernel-cma-reservation-to-userspace.patch removed from -mm tree
-Message-Id: <20251120220457.30A43C4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] uaccess-gate-_copy__user-on-inline_copy_from_user.patch removed from -mm tree
+Message-Id: <20251120220458.34F57C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: crash: export crashkernel CMA reservation to userspace
+     Subject: uaccess: gate _copy_[to|from]_user on !INLINE_COPY_FROM_USER
 has been removed from the -mm tree.  Its filename was
-     crash-export-crashkernel-cma-reservation-to-userspace.patch
+     uaccess-gate-_copy__user-on-inline_copy_from_user.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: crash: export crashkernel CMA reservation to userspace
-Date: Tue, 18 Nov 2025 12:40:23 +0530
+From: Alice Ryhl <aliceryhl@google.com>
+Subject: uaccess: gate _copy_[to|from]_user on !INLINE_COPY_FROM_USER
+Date: Tue, 18 Nov 2025 17:32:50 +0000
 
-Add a sysfs entry /sys/kernel/kexec_crash_cma_ranges to expose all CMA
-crashkernel ranges.
+These methods only exist when INLINE_COPY_FROM_USER is disabled, so update
+the header file to reflect that.
 
-This allows userspace tools configuring kdump to determine how much memory
-is reserved for crashkernel.  If CMA is used, tools can warn users when
-attempting to capture user pages with CMA reservation.
+This fixes the following error on builds that enable both RUST and
+INLINE_COPY_FROM_USER.
 
-The new sysfs hold the CMA ranges in below format:
+ERROR: modpost: "_copy_from_user" [samples/rust/rust_misc_device.ko] undefined!
+ERROR: modpost: "_copy_to_user" [samples/rust/rust_misc_device.ko] undefined!
 
-cat /sys/kernel/kexec_crash_cma_ranges
-100000000-10c7fffff
+This error is triggered because when a method is available both as a
+rust_helper_* and normal method, Rust will call the normal method.
 
-The reason for not including Crash CMA Ranges in /proc/iomem is to avoid
-conflicts.  It has been observed that contiguous memory ranges are
-sometimes shown as two separate System RAM entries in /proc/iomem.  If a
-CMA range overlaps two System RAM ranges, adding crashk_res to /proc/iomem
-can create a conflict.  Reference [1] describes one such instance on the
-PowerPC architecture.
-
-Link: https://lkml.kernel.org/r/20251118071023.1673329-1-sourabhjain@linux.ibm.com
-Link: https://lore.kernel.org/all/20251016142831.144515-1-sourabhjain@linux.ibm.com/ [1]
-Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Aditya Gupta <adityag@linux.ibm.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mahesh J Salgaonkar <mahesh@linux.ibm.com>
-Cc: Pingfan Liu <piliu@redhat.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shivang Upadhyay <shivangu@linux.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+[akpm@linux-foundation.org: s/INLINE_COPY_FROM_USER/INLINE_COPY_TO_USER/, per Alice]
+Link: https://lkml.kernel.org/r/20251118173250.2821388-1-aliceryhl@google.com
+Fixes: d99dc586ca7c ("uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST")
+Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
+Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-kexec-kdump |   10 +++++
- kernel/ksysfs.c                                    |   21 +++++++++++
- 2 files changed, 31 insertions(+)
+ include/linux/uaccess.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump~crash-export-crashkernel-cma-reservation-to-userspace
-+++ a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
-@@ -41,3 +41,13 @@ Description:	read only
- 		is used by the user space utility kexec to support updating the
- 		in-kernel kdump image during hotplug operations.
- User:		Kexec tools
-+
-+What:		/sys/kernel/kexec_crash_cma_ranges
-+Date:		Nov 2025
-+Contact:	kexec@lists.infradead.org
-+Description:	read only
-+		Provides information about the memory ranges reserved from
-+		the Contiguous Memory Allocator (CMA) area that are allocated
-+		to the crash (kdump) kernel. It lists the start and end physical
-+		addresses of CMA regions assigned for crashkernel use.
-+User:		kdump service
---- a/kernel/ksysfs.c~crash-export-crashkernel-cma-reservation-to-userspace
-+++ a/kernel/ksysfs.c
-@@ -135,6 +135,24 @@ static ssize_t kexec_crash_loaded_show(s
+--- a/include/linux/uaccess.h~uaccess-gate-_copy__user-on-inline_copy_from_user
++++ a/include/linux/uaccess.h
+@@ -181,8 +181,10 @@ fail:
+ 	memset(to + (n - res), 0, res);
+ 	return res;
  }
- KERNEL_ATTR_RO(kexec_crash_loaded);
- 
-+#ifdef CONFIG_CRASH_RESERVE
-+static ssize_t kexec_crash_cma_ranges_show(struct kobject *kobj,
-+				    struct kobj_attribute *attr, char *buf)
-+{
-+
-+	ssize_t len = 0;
-+	int i;
-+
-+	for (i = 0; i < crashk_cma_cnt; ++i) {
-+		len += sysfs_emit_at(buf, len, "%08llx-%08llx\n",
-+				     crashk_cma_ranges[i].start,
-+				     crashk_cma_ranges[i].end);
-+	}
-+	return len;
-+}
-+KERNEL_ATTR_RO(kexec_crash_cma_ranges);
-+#endif /* CONFIG_CRASH_RESERVE */
-+
- static ssize_t kexec_crash_size_show(struct kobject *kobj,
- 				       struct kobj_attribute *attr, char *buf)
- {
-@@ -260,6 +278,9 @@ static struct attribute * kernel_attrs[]
- #ifdef CONFIG_CRASH_DUMP
- 	&kexec_crash_loaded_attr.attr,
- 	&kexec_crash_size_attr.attr,
-+#ifdef CONFIG_CRASH_RESERVE
-+	&kexec_crash_cma_ranges_attr.attr,
++#ifndef INLINE_COPY_FROM_USER
+ extern __must_check unsigned long
+ _copy_from_user(void *, const void __user *, unsigned long);
 +#endif
- #endif
- #endif
- #ifdef CONFIG_VMCORE_INFO
+ 
+ static inline __must_check unsigned long
+ _inline_copy_to_user(void __user *to, const void *from, unsigned long n)
+@@ -196,8 +198,10 @@ _inline_copy_to_user(void __user *to, co
+ 	}
+ 	return n;
+ }
++#ifndef INLINE_COPY_TO_USER
+ extern __must_check unsigned long
+ _copy_to_user(void __user *, const void *, unsigned long);
++#endif
+ 
+ static __always_inline unsigned long __must_check
+ copy_from_user(void *to, const void __user *from, unsigned long n)
 _
 
-Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
+Patches currently in -mm which might be from aliceryhl@google.com are
 
 
