@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89E3C2F83CF
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 038432512DE
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675130; cv=none; b=mvMwYy9XDVqNuBlZ6sJ7LhE7yZRMoE/f5DUMWUoramEHsQQW7UtF7eJfEsEWnMTooTihupDHIlknkq82sP6jldEpgrTp/VBHQfD9/TIDRnpoUBHYhk3Mp50aMm2/JVyAAfttUIToYMUXc2JmtVn0ENe/QuYVIN6+qH0bB0M1yHc=
+	t=1763675132; cv=none; b=L2qxgyEa339ZqzknZ7EEbj5chqt+ts5J1pZ0bKUFXSI87YXqMia6Ju0q0JYKA1iHVOc1AdvbXOsd1Bp98B5zFX3cflrsWcHqGXFoFJcDD0e944HJIa3EH2bWMPDWdmT+vwJujPwf6gSnrgF7XpKji49y/n59MxCLoecD7FtjE7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675130; c=relaxed/simple;
-	bh=/C1/QFkt2AbaZXPJVRjZ4Rdu+5YBloG4a39Sv7cxt7Q=;
-	h=Date:To:From:Subject:Message-Id; b=Y+6DoWd3BlJ6IFrKvktL0DSTR2hTT5+sE6UjhHUwZ35BWhZ8JYog7guSS0YGYLrYdXMyP9qELJhRVxawb71kpI15lbeaCMx9eN2QSW1T/bBXYpxXe7Y8i4JPufCN2P5tppwZIxIz6oJU1umhDxirQCGecnRCy+uxkzIRphcbQTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Myk5Zsp/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675132; c=relaxed/simple;
+	bh=zYntNbHRSObVsAFbIPi/eIOow+7NVmAyvBALY5w9Nfo=;
+	h=Date:To:From:Subject:Message-Id; b=RSjSpoOME468HkwCzENKB3KZMWHNOaTbwmpa1/E+PSBMndimLtPUbHbzArIELfaP3Tl49jm6kuEfBvdyfHw7Pkw/mWuSupc9MB1/X/60EhJvQUVi7JB7n3fSSi7zXkfmZgGxyRXbIUkGb/hkOvVzhpjB8nR7twJ4Zld36lXSHT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DE96k+H7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Myk5Zsp/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F981C113D0;
-	Thu, 20 Nov 2025 21:45:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DE96k+H7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2049C113D0;
+	Thu, 20 Nov 2025 21:45:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675130;
-	bh=/C1/QFkt2AbaZXPJVRjZ4Rdu+5YBloG4a39Sv7cxt7Q=;
+	s=korg; t=1763675131;
+	bh=zYntNbHRSObVsAFbIPi/eIOow+7NVmAyvBALY5w9Nfo=;
 	h=Date:To:From:Subject:From;
-	b=Myk5Zsp/MnDa2ovLODY3S2YJqjjbTL1oB2YuKIimp9KHLNSc6zC5MudClEv5uwteS
-	 4sdG8L0I5m67I47J9EksIdC2dQXpt1zvRl3hsJtDo8EJBbcqmiquVR43thERfSknPY
-	 q8dRIzHbZRrA21tgRarwUQsC2iUR4yDv0JUNO6kM=
-Date: Thu, 20 Nov 2025 13:45:29 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,gorcunov@gmail.com,david@kernel.org,avagin@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=DE96k+H7puBs1o9x2bKA78kYyFR2NehpX7YkbFEFKfKOPVlPBf6h/9s8PSV6XxE8I
+	 4ZLiF/UtfRsSe8PSJj8U6R+CEy5bjfH3Y94f1Bux+CtYTqD4hipqW7/6/hTAXEHJcq
+	 L6eeJ0muJt20Te1q8BMvIqHsNKhkl2OkskD5VsJ0=
+Date: Thu, 20 Nov 2025 13:45:31 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,tmgross@umich.edu,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,riel@surriel.com,rakie.kim@sk.com,peterz@infradead.org,peterx@redhat.com,osalvador@suse.de,ojeda@kernel.org,nphamcs@gmail.com,npache@redhat.com,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,matthew.brost@intel.com,lkp@intel.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kees@kernel.org,kasong@tencent.com,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,gary@garyguo.net,dietmar.eggemann@arm.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,bsegall@google.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] testing-selftests-mm-add-soft-dirty-merge-self-test.patch removed from -mm tree
-Message-Id: <20251120214530.5F981C113D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-declare-vma-flags-by-bit.patch removed from -mm tree
+Message-Id: <20251120214531.C2049C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,203 +35,1109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: testing/selftests/mm: add soft-dirty merge self-test
+     Subject: mm: declare VMA flags by bit
 has been removed from the -mm tree.  Its filename was
-     testing-selftests-mm-add-soft-dirty-merge-self-test.patch
+     mm-declare-vma-flags-by-bit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: testing/selftests/mm: add soft-dirty merge self-test
-Date: Mon, 17 Nov 2025 17:33:39 +0000
+Subject: mm: declare VMA flags by bit
+Date: Fri, 14 Nov 2025 13:26:08 +0000
 
-Assert that we correctly merge VMAs containing VM_SOFTDIRTY flags now that
-we correctly handle these as sticky.
+Patch series "initial work on making VMA flags a bitmap".
 
-In order to do so, we have to account for the fact the pagemap interface
-checks soft dirty PTEs and additionally that newly merged VMAs are marked
-VM_SOFTDIRTY.
+We are in the rather silly situation that we are running out of VMA flags
+as they are currently limited to a system word in size.
 
-We do this by using use unfaulted anon VMAs, establishing one and clearing
-references on that one, before establishing another and merging the two
-before checking that soft-dirty is propagated as expected.
+This leads to absurd situations where we limit features to 64-bit
+architectures only because we simply do not have the ability to add a flag
+for 32-bit ones.
 
-We check that this functions correctly with mremap() and mprotect() as
-sample cases, because VMA merge of adjacent newly mapped VMAs will
-automatically be made soft-dirty due to existing logic which does so.
+This is very constraining and leads to hacks or, in the worst case, simply
+an inability to implement features we want for entirely arbitrary reasons.
 
-We are therefore exercising other means of merging VMAs.
+This also of course gives us something of a Y2K type situation in mm where
+we might eventually exhaust all of the VMA flags even on 64-bit systems.
 
-Link: https://lkml.kernel.org/r/d5a0f735783fb4f30a604f570ede02ccc5e29be9.1763399675.git.lorenzo.stoakes@oracle.com
+This series lays the groundwork for getting away from this limitation by
+establishing VMA flags as a bitmap whose size we can increase in future
+beyond 64 bits if required.
+
+This is necessarily a highly iterative process given the extensive use of
+VMA flags throughout the kernel, so we start by performing basic steps.
+
+Firstly, we declare VMA flags by bit number rather than by value,
+retaining the VM_xxx fields but in terms of these newly introduced
+VMA_xxx_BIT fields.
+
+While we are here, we use sparse annotations to ensure that, when dealing
+with VMA bit number parameters, we cannot be passed values which are not
+declared as such - providing some useful type safety.
+
+We then introduce an opaque VMA flag type, much like the opaque mm_struct
+flag type introduced in commit bb6525f2f8c4 ("mm: add bitmap mm->flags
+field"), which we establish in union with vma->vm_flags (but still set at
+system word size meaning there is no functional or data type size change).
+
+We update the vm_flags_xxx() helpers to use this new bitmap, introducing
+sensible helpers to do so.
+
+This series lays the foundation for further work to expand the use of
+bitmap VMA flags and eventually eliminate these arbitrary restrictions.
+
+
+This patch (of 4):
+
+In order to lay the groundwork for VMA flags being a bitmap rather than a
+system word in size, we need to be able to consistently refer to VMA flags
+by bit number rather than value.
+
+Take this opportunity to do so in an enum which we which is additionally
+useful for tooling to extract metadata from.
+
+This additionally makes it very clear which bits are being used for what
+at a glance.
+
+We use the VMA_ prefix for the bit values as it is logical to do so since
+these reference VMAs.  We consistently suffix with _BIT to make it clear
+what the values refer to.
+
+We declare bit values even when the flags that use them would not be
+enabled by config options as this is simply clearer and clearly defines
+what bit numbers are used for what, at no additional cost.
+
+We declare a sparse-bitwise type vma_flag_t which ensures that users can't
+pass around invalid VMA flags by accident and prepares for future work
+towards VMA flags being a bitmap where we want to ensure bit values are
+type safe.
+
+To make life easier, we declare some macro helpers - DECLARE_VMA_BIT()
+allows us to avoid duplication in the enum bit number declarations (and
+maintaining the sparse __bitwise attribute), and INIT_VM_FLAG() is used to
+assist with declaration of flags.
+
+Unfortunately we can't declare both in the enum, as we run into issue with
+logic in the kernel requiring that flags are preprocessor definitions, and
+additionally we cannot have a macro which declares another macro so we
+must define each flag macro directly.
+
+Additionally, update the VMA userland testing vma_internal.h header to
+include these changes.
+
+We also have to fix the parameters to the vma_flag_*_atomic() functions
+since VMA_MAYBE_GUARD_BIT is now of type vma_flag_t and sparse will
+complain otherwise.
+
+We have to update some rather silly if-deffery found in mm/task_mmu.c
+which would otherwise break.
+
+Finally, we update the rust binding helper as now it cannot auto-detect
+the flags at all.
+
+[lorenzo.stoakes@oracle.com: fix RUST bindgen, per Alice]
+  Link: https://lkml.kernel.org/r/536f483b-ea10-4190-ab22-c2ad2cf8cc78@lucifer.local
+[lorenzo.stoakes@oracle.com: fix nommu]
+  Link: https://lkml.kernel.org/r/b0418f22-5d35-400d-9285-eeea9e34d3ae@lucifer.local
+[lorenzo.stoakes@oracle.com: fix parisc build]
+  Link: https://lkml.kernel.org/r/ad8ce21f-7be8-4d9b-be49-d71010e92055@lucifer.local
+Link: https://lkml.kernel.org/r/cover.1763126447.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/6289d60b6731ea7a111c87c87fb8486881151c25.1763126447.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Andrey Vagin <avagin@gmail.com>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Trevor Gross <tmgross@umich.edu>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/soft-dirty.c |  127 +++++++++++++++++++++-
- 1 file changed, 126 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c               |    4 
+ include/linux/mm.h               |  377 ++++++++++++++++-------------
+ mm/khugepaged.c                  |    2 
+ mm/madvise.c                     |    2 
+ rust/bindgen_parameters          |   25 +
+ rust/bindings/bindings_helper.h  |   25 +
+ tools/testing/vma/vma_internal.h |  303 +++++++++++++++++++----
+ 7 files changed, 522 insertions(+), 216 deletions(-)
 
---- a/tools/testing/selftests/mm/soft-dirty.c~testing-selftests-mm-add-soft-dirty-merge-self-test
-+++ a/tools/testing/selftests/mm/soft-dirty.c
-@@ -184,6 +184,130 @@ static void test_mprotect(int pagemap_fd
- 		close(test_fd);
+--- a/fs/proc/task_mmu.c~mm-declare-vma-flags-by-bit
++++ a/fs/proc/task_mmu.c
+@@ -1182,10 +1182,10 @@ static void show_smap_vma_flags(struct s
+ 		[ilog2(VM_PKEY_BIT0)]	= "",
+ 		[ilog2(VM_PKEY_BIT1)]	= "",
+ 		[ilog2(VM_PKEY_BIT2)]	= "",
+-#if VM_PKEY_BIT3
++#if CONFIG_ARCH_PKEY_BITS > 3
+ 		[ilog2(VM_PKEY_BIT3)]	= "",
+ #endif
+-#if VM_PKEY_BIT4
++#if CONFIG_ARCH_PKEY_BITS > 4
+ 		[ilog2(VM_PKEY_BIT4)]	= "",
+ #endif
+ #endif /* CONFIG_ARCH_HAS_PKEYS */
+--- a/include/linux/mm.h~mm-declare-vma-flags-by-bit
++++ a/include/linux/mm.h
+@@ -271,185 +271,239 @@ extern struct rw_semaphore nommu_region_
+ extern unsigned int kobjsize(const void *objp);
+ #endif
+ 
+-#define VM_MAYBE_GUARD_BIT 11
+-
+ /*
+  * vm_flags in vm_area_struct, see mm_types.h.
+  * When changing, update also include/trace/events/mmflags.h
+  */
++
+ #define VM_NONE		0x00000000
+ 
+-#define VM_READ		0x00000001	/* currently active flags */
+-#define VM_WRITE	0x00000002
+-#define VM_EXEC		0x00000004
+-#define VM_SHARED	0x00000008
+-
+-/* mprotect() hardcodes VM_MAYREAD >> 4 == VM_READ, and so for r/w/x bits. */
+-#define VM_MAYREAD	0x00000010	/* limits for mprotect() etc */
+-#define VM_MAYWRITE	0x00000020
+-#define VM_MAYEXEC	0x00000040
+-#define VM_MAYSHARE	0x00000080
++/**
++ * typedef vma_flag_t - specifies an individual VMA flag by bit number.
++ *
++ * This value is made type safe by sparse to avoid passing invalid flag values
++ * around.
++ */
++typedef int __bitwise vma_flag_t;
+ 
+-#define VM_GROWSDOWN	0x00000100	/* general info on the segment */
++#define DECLARE_VMA_BIT(name, bitnum) \
++	VMA_ ## name ## _BIT = ((__force vma_flag_t)bitnum)
++#define DECLARE_VMA_BIT_ALIAS(name, aliased) \
++	VMA_ ## name ## _BIT = (VMA_ ## aliased ## _BIT)
++enum {
++	DECLARE_VMA_BIT(READ, 0),
++	DECLARE_VMA_BIT(WRITE, 1),
++	DECLARE_VMA_BIT(EXEC, 2),
++	DECLARE_VMA_BIT(SHARED, 3),
++	/* mprotect() hardcodes VM_MAYREAD >> 4 == VM_READ, and so for r/w/x bits. */
++	DECLARE_VMA_BIT(MAYREAD, 4),	/* limits for mprotect() etc. */
++	DECLARE_VMA_BIT(MAYWRITE, 5),
++	DECLARE_VMA_BIT(MAYEXEC, 6),
++	DECLARE_VMA_BIT(MAYSHARE, 7),
++	DECLARE_VMA_BIT(GROWSDOWN, 8),	/* general info on the segment */
+ #ifdef CONFIG_MMU
+-#define VM_UFFD_MISSING	0x00000200	/* missing pages tracking */
+-#else /* CONFIG_MMU */
+-#define VM_MAYOVERLAY	0x00000200	/* nommu: R/O MAP_PRIVATE mapping that might overlay a file mapping */
+-#define VM_UFFD_MISSING	0
++	DECLARE_VMA_BIT(UFFD_MISSING, 9),/* missing pages tracking */
++#else
++	/* nommu: R/O MAP_PRIVATE mapping that might overlay a file mapping */
++	DECLARE_VMA_BIT(MAYOVERLAY, 9),
+ #endif /* CONFIG_MMU */
+-#define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
+-#define VM_MAYBE_GUARD	BIT(VM_MAYBE_GUARD_BIT)	/* The VMA maybe contains guard regions. */
+-#define VM_UFFD_WP	0x00001000	/* wrprotect pages tracking */
+-
+-#define VM_LOCKED	0x00002000
+-#define VM_IO           0x00004000	/* Memory mapped I/O or similar */
+-
+-					/* Used by sys_madvise() */
+-#define VM_SEQ_READ	0x00008000	/* App will access data sequentially */
+-#define VM_RAND_READ	0x00010000	/* App will not benefit from clustered reads */
+-
+-#define VM_DONTCOPY	0x00020000      /* Do not copy this vma on fork */
+-#define VM_DONTEXPAND	0x00040000	/* Cannot expand with mremap() */
+-#define VM_LOCKONFAULT	0x00080000	/* Lock the pages covered when they are faulted in */
+-#define VM_ACCOUNT	0x00100000	/* Is a VM accounted object */
+-#define VM_NORESERVE	0x00200000	/* should the VM suppress accounting */
+-#define VM_HUGETLB	0x00400000	/* Huge TLB Page VM */
+-#define VM_SYNC		0x00800000	/* Synchronous page faults */
+-#define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
+-#define VM_WIPEONFORK	0x02000000	/* Wipe VMA contents in child. */
+-#define VM_DONTDUMP	0x04000000	/* Do not include in the core dump */
++	/* Page-ranges managed without "struct page", just pure PFN */
++	DECLARE_VMA_BIT(PFNMAP, 10),
++	DECLARE_VMA_BIT(MAYBE_GUARD, 11),
++	DECLARE_VMA_BIT(UFFD_WP, 12),	/* wrprotect pages tracking */
++	DECLARE_VMA_BIT(LOCKED, 13),
++	DECLARE_VMA_BIT(IO, 14),	/* Memory mapped I/O or similar */
++	DECLARE_VMA_BIT(SEQ_READ, 15),	/* App will access data sequentially */
++	DECLARE_VMA_BIT(RAND_READ, 16),	/* App will not benefit from clustered reads */
++	DECLARE_VMA_BIT(DONTCOPY, 17),	/* Do not copy this vma on fork */
++	DECLARE_VMA_BIT(DONTEXPAND, 18),/* Cannot expand with mremap() */
++	DECLARE_VMA_BIT(LOCKONFAULT, 19),/* Lock pages covered when faulted in */
++	DECLARE_VMA_BIT(ACCOUNT, 20),	/* Is a VM accounted object */
++	DECLARE_VMA_BIT(NORESERVE, 21),	/* should the VM suppress accounting */
++	DECLARE_VMA_BIT(HUGETLB, 22),	/* Huge TLB Page VM */
++	DECLARE_VMA_BIT(SYNC, 23),	/* Synchronous page faults */
++	DECLARE_VMA_BIT(ARCH_1, 24),	/* Architecture-specific flag */
++	DECLARE_VMA_BIT(WIPEONFORK, 25),/* Wipe VMA contents in child. */
++	DECLARE_VMA_BIT(DONTDUMP, 26),	/* Do not include in the core dump */
++	DECLARE_VMA_BIT(SOFTDIRTY, 27),	/* NOT soft dirty clean area */
++	DECLARE_VMA_BIT(MIXEDMAP, 28),	/* Can contain struct page and pure PFN pages */
++	DECLARE_VMA_BIT(HUGEPAGE, 29),	/* MADV_HUGEPAGE marked this vma */
++	DECLARE_VMA_BIT(NOHUGEPAGE, 30),/* MADV_NOHUGEPAGE marked this vma */
++	DECLARE_VMA_BIT(MERGEABLE, 31),	/* KSM may merge identical pages */
++	/* These bits are reused, we define specific uses below. */
++	DECLARE_VMA_BIT(HIGH_ARCH_0, 32),
++	DECLARE_VMA_BIT(HIGH_ARCH_1, 33),
++	DECLARE_VMA_BIT(HIGH_ARCH_2, 34),
++	DECLARE_VMA_BIT(HIGH_ARCH_3, 35),
++	DECLARE_VMA_BIT(HIGH_ARCH_4, 36),
++	DECLARE_VMA_BIT(HIGH_ARCH_5, 37),
++	DECLARE_VMA_BIT(HIGH_ARCH_6, 38),
++	/*
++	 * This flag is used to connect VFIO to arch specific KVM code. It
++	 * indicates that the memory under this VMA is safe for use with any
++	 * non-cachable memory type inside KVM. Some VFIO devices, on some
++	 * platforms, are thought to be unsafe and can cause machine crashes
++	 * if KVM does not lock down the memory type.
++	 */
++	DECLARE_VMA_BIT(ALLOW_ANY_UNCACHED, 39),
++#ifdef CONFIG_PPC32
++	DECLARE_VMA_BIT_ALIAS(DROPPABLE, ARCH_1),
++#else
++	DECLARE_VMA_BIT(DROPPABLE, 40),
++#endif
++	DECLARE_VMA_BIT(UFFD_MINOR, 41),
++	DECLARE_VMA_BIT(SEALED, 42),
++	/* Flags that reuse flags above. */
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT0, HIGH_ARCH_0),
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT1, HIGH_ARCH_1),
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT2, HIGH_ARCH_2),
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT3, HIGH_ARCH_3),
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT4, HIGH_ARCH_4),
++#if defined(CONFIG_X86_USER_SHADOW_STACK)
++	/*
++	 * VM_SHADOW_STACK should not be set with VM_SHARED because of lack of
++	 * support core mm.
++	 *
++	 * These VMAs will get a single end guard page. This helps userspace
++	 * protect itself from attacks. A single page is enough for current
++	 * shadow stack archs (x86). See the comments near alloc_shstk() in
++	 * arch/x86/kernel/shstk.c for more details on the guard size.
++	 */
++	DECLARE_VMA_BIT_ALIAS(SHADOW_STACK, HIGH_ARCH_5),
++#elif defined(CONFIG_ARM64_GCS)
++	/*
++	 * arm64's Guarded Control Stack implements similar functionality and
++	 * has similar constraints to shadow stacks.
++	 */
++	DECLARE_VMA_BIT_ALIAS(SHADOW_STACK, HIGH_ARCH_6),
++#endif
++	DECLARE_VMA_BIT_ALIAS(SAO, ARCH_1),		/* Strong Access Ordering (powerpc) */
++	DECLARE_VMA_BIT_ALIAS(GROWSUP, ARCH_1),		/* parisc */
++	DECLARE_VMA_BIT_ALIAS(SPARC_ADI, ARCH_1),	/* sparc64 */
++	DECLARE_VMA_BIT_ALIAS(ARM64_BTI, ARCH_1),	/* arm64 */
++	DECLARE_VMA_BIT_ALIAS(ARCH_CLEAR, ARCH_1),	/* sparc64, arm64 */
++	DECLARE_VMA_BIT_ALIAS(MAPPED_COPY, ARCH_1),	/* !CONFIG_MMU */
++	DECLARE_VMA_BIT_ALIAS(MTE, HIGH_ARCH_4),	/* arm64 */
++	DECLARE_VMA_BIT_ALIAS(MTE_ALLOWED, HIGH_ARCH_5),/* arm64 */
++#ifdef CONFIG_STACK_GROWSUP
++	DECLARE_VMA_BIT_ALIAS(STACK, GROWSUP),
++	DECLARE_VMA_BIT_ALIAS(STACK_EARLY, GROWSDOWN),
++#else
++	DECLARE_VMA_BIT_ALIAS(STACK, GROWSDOWN),
++#endif
++};
++#undef DECLARE_VMA_BIT
++#undef DECLARE_VMA_BIT_ALIAS
+ 
++#define INIT_VM_FLAG(name) BIT((__force int) VMA_ ## name ## _BIT)
++#define VM_READ		INIT_VM_FLAG(READ)
++#define VM_WRITE	INIT_VM_FLAG(WRITE)
++#define VM_EXEC		INIT_VM_FLAG(EXEC)
++#define VM_SHARED	INIT_VM_FLAG(SHARED)
++#define VM_MAYREAD	INIT_VM_FLAG(MAYREAD)
++#define VM_MAYWRITE	INIT_VM_FLAG(MAYWRITE)
++#define VM_MAYEXEC	INIT_VM_FLAG(MAYEXEC)
++#define VM_MAYSHARE	INIT_VM_FLAG(MAYSHARE)
++#define VM_GROWSDOWN	INIT_VM_FLAG(GROWSDOWN)
++#ifdef CONFIG_MMU
++#define VM_UFFD_MISSING	INIT_VM_FLAG(UFFD_MISSING)
++#else
++#define VM_UFFD_MISSING	VM_NONE
++#define VM_MAYOVERLAY	INIT_VM_FLAG(MAYOVERLAY)
++#endif
++#define VM_PFNMAP	INIT_VM_FLAG(PFNMAP)
++#define VM_MAYBE_GUARD	INIT_VM_FLAG(MAYBE_GUARD)
++#define VM_UFFD_WP	INIT_VM_FLAG(UFFD_WP)
++#define VM_LOCKED	INIT_VM_FLAG(LOCKED)
++#define VM_IO		INIT_VM_FLAG(IO)
++#define VM_SEQ_READ	INIT_VM_FLAG(SEQ_READ)
++#define VM_RAND_READ	INIT_VM_FLAG(RAND_READ)
++#define VM_DONTCOPY	INIT_VM_FLAG(DONTCOPY)
++#define VM_DONTEXPAND	INIT_VM_FLAG(DONTEXPAND)
++#define VM_LOCKONFAULT	INIT_VM_FLAG(LOCKONFAULT)
++#define VM_ACCOUNT	INIT_VM_FLAG(ACCOUNT)
++#define VM_NORESERVE	INIT_VM_FLAG(NORESERVE)
++#define VM_HUGETLB	INIT_VM_FLAG(HUGETLB)
++#define VM_SYNC		INIT_VM_FLAG(SYNC)
++#define VM_ARCH_1	INIT_VM_FLAG(ARCH_1)
++#define VM_WIPEONFORK	INIT_VM_FLAG(WIPEONFORK)
++#define VM_DONTDUMP	INIT_VM_FLAG(DONTDUMP)
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+-# define VM_SOFTDIRTY	0x08000000	/* Not soft dirty clean area */
++#define VM_SOFTDIRTY	INIT_VM_FLAG(SOFTDIRTY)
+ #else
+-# define VM_SOFTDIRTY	0
++#define VM_SOFTDIRTY	VM_NONE
++#endif
++#define VM_MIXEDMAP	INIT_VM_FLAG(MIXEDMAP)
++#define VM_HUGEPAGE	INIT_VM_FLAG(HUGEPAGE)
++#define VM_NOHUGEPAGE	INIT_VM_FLAG(NOHUGEPAGE)
++#define VM_MERGEABLE	INIT_VM_FLAG(MERGEABLE)
++#define VM_STACK	INIT_VM_FLAG(STACK)
++#ifdef CONFIG_STACK_GROWS_UP
++#define VM_STACK_EARLY	INIT_VM_FLAG(STACK_EARLY)
++#else
++#define VM_STACK_EARLY	VM_NONE
+ #endif
+-
+-#define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
+-#define VM_HUGEPAGE	0x20000000	/* MADV_HUGEPAGE marked this vma */
+-#define VM_NOHUGEPAGE	0x40000000	/* MADV_NOHUGEPAGE marked this vma */
+-#define VM_MERGEABLE	BIT(31)		/* KSM may merge identical pages */
+-
+-#ifdef CONFIG_ARCH_USES_HIGH_VMA_FLAGS
+-#define VM_HIGH_ARCH_BIT_0	32	/* bit only usable on 64-bit architectures */
+-#define VM_HIGH_ARCH_BIT_1	33	/* bit only usable on 64-bit architectures */
+-#define VM_HIGH_ARCH_BIT_2	34	/* bit only usable on 64-bit architectures */
+-#define VM_HIGH_ARCH_BIT_3	35	/* bit only usable on 64-bit architectures */
+-#define VM_HIGH_ARCH_BIT_4	36	/* bit only usable on 64-bit architectures */
+-#define VM_HIGH_ARCH_BIT_5	37	/* bit only usable on 64-bit architectures */
+-#define VM_HIGH_ARCH_BIT_6	38	/* bit only usable on 64-bit architectures */
+-#define VM_HIGH_ARCH_0	BIT(VM_HIGH_ARCH_BIT_0)
+-#define VM_HIGH_ARCH_1	BIT(VM_HIGH_ARCH_BIT_1)
+-#define VM_HIGH_ARCH_2	BIT(VM_HIGH_ARCH_BIT_2)
+-#define VM_HIGH_ARCH_3	BIT(VM_HIGH_ARCH_BIT_3)
+-#define VM_HIGH_ARCH_4	BIT(VM_HIGH_ARCH_BIT_4)
+-#define VM_HIGH_ARCH_5	BIT(VM_HIGH_ARCH_BIT_5)
+-#define VM_HIGH_ARCH_6	BIT(VM_HIGH_ARCH_BIT_6)
+-#endif /* CONFIG_ARCH_USES_HIGH_VMA_FLAGS */
+-
+ #ifdef CONFIG_ARCH_HAS_PKEYS
+-# define VM_PKEY_SHIFT VM_HIGH_ARCH_BIT_0
+-# define VM_PKEY_BIT0  VM_HIGH_ARCH_0
+-# define VM_PKEY_BIT1  VM_HIGH_ARCH_1
+-# define VM_PKEY_BIT2  VM_HIGH_ARCH_2
++#define VM_PKEY_SHIFT ((__force int)VMA_HIGH_ARCH_0_BIT)
++/* Despite the naming, these are FLAGS not bits. */
++#define VM_PKEY_BIT0 INIT_VM_FLAG(PKEY_BIT0)
++#define VM_PKEY_BIT1 INIT_VM_FLAG(PKEY_BIT1)
++#define VM_PKEY_BIT2 INIT_VM_FLAG(PKEY_BIT2)
+ #if CONFIG_ARCH_PKEY_BITS > 3
+-# define VM_PKEY_BIT3  VM_HIGH_ARCH_3
++#define VM_PKEY_BIT3 INIT_VM_FLAG(PKEY_BIT3)
+ #else
+-# define VM_PKEY_BIT3  0
+-#endif
++#define VM_PKEY_BIT3  VM_NONE
++#endif /* CONFIG_ARCH_PKEY_BITS > 3 */
+ #if CONFIG_ARCH_PKEY_BITS > 4
+-# define VM_PKEY_BIT4  VM_HIGH_ARCH_4
++#define VM_PKEY_BIT4 INIT_VM_FLAG(PKEY_BIT4)
+ #else
+-# define VM_PKEY_BIT4  0
+-#endif
++#define VM_PKEY_BIT4  VM_NONE
++#endif /* CONFIG_ARCH_PKEY_BITS > 4 */
+ #endif /* CONFIG_ARCH_HAS_PKEYS */
+-
+-#ifdef CONFIG_X86_USER_SHADOW_STACK
+-/*
+- * VM_SHADOW_STACK should not be set with VM_SHARED because of lack of
+- * support core mm.
+- *
+- * These VMAs will get a single end guard page. This helps userspace protect
+- * itself from attacks. A single page is enough for current shadow stack archs
+- * (x86). See the comments near alloc_shstk() in arch/x86/kernel/shstk.c
+- * for more details on the guard size.
+- */
+-# define VM_SHADOW_STACK	VM_HIGH_ARCH_5
+-#endif
+-
+-#if defined(CONFIG_ARM64_GCS)
+-/*
+- * arm64's Guarded Control Stack implements similar functionality and
+- * has similar constraints to shadow stacks.
+- */
+-# define VM_SHADOW_STACK	VM_HIGH_ARCH_6
+-#endif
+-
+-#ifndef VM_SHADOW_STACK
+-# define VM_SHADOW_STACK	VM_NONE
++#if defined(CONFIG_X86_USER_SHADOW_STACK) || defined(CONFIG_ARM64_GCS)
++#define VM_SHADOW_STACK	INIT_VM_FLAG(SHADOW_STACK)
++#else
++#define VM_SHADOW_STACK	VM_NONE
+ #endif
+-
+ #if defined(CONFIG_PPC64)
+-# define VM_SAO		VM_ARCH_1	/* Strong Access Ordering (powerpc) */
++#define VM_SAO		INIT_VM_FLAG(SAO)
+ #elif defined(CONFIG_PARISC)
+-# define VM_GROWSUP	VM_ARCH_1
++#define VM_GROWSUP	INIT_VM_FLAG(GROWSUP)
+ #elif defined(CONFIG_SPARC64)
+-# define VM_SPARC_ADI	VM_ARCH_1	/* Uses ADI tag for access control */
+-# define VM_ARCH_CLEAR	VM_SPARC_ADI
++#define VM_SPARC_ADI	INIT_VM_FLAG(SPARC_ADI)
++#define VM_ARCH_CLEAR	INIT_VM_FLAG(ARCH_CLEAR)
+ #elif defined(CONFIG_ARM64)
+-# define VM_ARM64_BTI	VM_ARCH_1	/* BTI guarded page, a.k.a. GP bit */
+-# define VM_ARCH_CLEAR	VM_ARM64_BTI
++#define VM_ARM64_BTI	INIT_VM_FLAG(ARM64_BTI)
++#define VM_ARCH_CLEAR	INIT_VM_FLAG(ARCH_CLEAR)
+ #elif !defined(CONFIG_MMU)
+-# define VM_MAPPED_COPY	VM_ARCH_1	/* T if mapped copy of data (nommu mmap) */
++#define VM_MAPPED_COPY	INIT_VM_FLAG(MAPPED_COPY)
+ #endif
+-
+-#if defined(CONFIG_ARM64_MTE)
+-# define VM_MTE		VM_HIGH_ARCH_4	/* Use Tagged memory for access control */
+-# define VM_MTE_ALLOWED	VM_HIGH_ARCH_5	/* Tagged memory permitted */
+-#else
+-# define VM_MTE		VM_NONE
+-# define VM_MTE_ALLOWED	VM_NONE
+-#endif
+-
+ #ifndef VM_GROWSUP
+-# define VM_GROWSUP	VM_NONE
++#define VM_GROWSUP	VM_NONE
++#endif
++#ifdef CONFIG_ARM64_MTE
++#define VM_MTE		INIT_VM_FLAG(MTE)
++#define VM_MTE_ALLOWED	INIT_VM_FLAG(MTE_ALLOWED)
++#else
++#define VM_MTE		VM_NONE
++#define VM_MTE_ALLOWED	VM_NONE
+ #endif
+-
+ #ifdef CONFIG_HAVE_ARCH_USERFAULTFD_MINOR
+-# define VM_UFFD_MINOR_BIT	41
+-# define VM_UFFD_MINOR		BIT(VM_UFFD_MINOR_BIT)	/* UFFD minor faults */
+-#else /* !CONFIG_HAVE_ARCH_USERFAULTFD_MINOR */
+-# define VM_UFFD_MINOR		VM_NONE
+-#endif /* CONFIG_HAVE_ARCH_USERFAULTFD_MINOR */
+-
+-/*
+- * This flag is used to connect VFIO to arch specific KVM code. It
+- * indicates that the memory under this VMA is safe for use with any
+- * non-cachable memory type inside KVM. Some VFIO devices, on some
+- * platforms, are thought to be unsafe and can cause machine crashes
+- * if KVM does not lock down the memory type.
+- */
+-#ifdef CONFIG_64BIT
+-#define VM_ALLOW_ANY_UNCACHED_BIT	39
+-#define VM_ALLOW_ANY_UNCACHED		BIT(VM_ALLOW_ANY_UNCACHED_BIT)
++#define VM_UFFD_MINOR	INIT_VM_FLAG(UFFD_MINOR)
+ #else
+-#define VM_ALLOW_ANY_UNCACHED		VM_NONE
++#define VM_UFFD_MINOR	VM_NONE
+ #endif
+-
+ #ifdef CONFIG_64BIT
+-#define VM_DROPPABLE_BIT	40
+-#define VM_DROPPABLE		BIT(VM_DROPPABLE_BIT)
+-#elif defined(CONFIG_PPC32)
+-#define VM_DROPPABLE		VM_ARCH_1
++#define VM_ALLOW_ANY_UNCACHED	INIT_VM_FLAG(ALLOW_ANY_UNCACHED)
++#define VM_SEALED		INIT_VM_FLAG(SEALED)
+ #else
+-#define VM_DROPPABLE		VM_NONE
++#define VM_ALLOW_ANY_UNCACHED	VM_NONE
++#define VM_SEALED		VM_NONE
+ #endif
+-
+-#ifdef CONFIG_64BIT
+-#define VM_SEALED_BIT	42
+-#define VM_SEALED	BIT(VM_SEALED_BIT)
++#if defined(CONFIG_64BIT) || defined(CONFIG_PPC32)
++#define VM_DROPPABLE		INIT_VM_FLAG(DROPPABLE)
+ #else
+-#define VM_SEALED	VM_NONE
++#define VM_DROPPABLE		VM_NONE
+ #endif
+ 
+ /* Bits set in the VMA until the stack is in its final location */
+@@ -475,12 +529,10 @@ extern unsigned int kobjsize(const void
+ 
+ #define VM_STARTGAP_FLAGS (VM_GROWSDOWN | VM_SHADOW_STACK)
+ 
+-#ifdef CONFIG_STACK_GROWSUP
+-#define VM_STACK	VM_GROWSUP
+-#define VM_STACK_EARLY	VM_GROWSDOWN
++#ifdef CONFIG_MSEAL_SYSTEM_MAPPINGS
++#define VM_SEALED_SYSMAP	VM_SEALED
+ #else
+-#define VM_STACK	VM_GROWSDOWN
+-#define VM_STACK_EARLY	0
++#define VM_SEALED_SYSMAP	VM_NONE
+ #endif
+ 
+ #define VM_STACK_FLAGS	(VM_STACK | VM_STACK_DEFAULT_FLAGS | VM_ACCOUNT)
+@@ -488,7 +540,6 @@ extern unsigned int kobjsize(const void
+ /* VMA basic access permission flags */
+ #define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
+ 
+-
+ /*
+  * Special vmas that are non-mergable, non-mlock()able.
+  */
+@@ -523,7 +574,7 @@ extern unsigned int kobjsize(const void
+ 
+ /* Arch-specific flags to clear when updating VM flags on protection change */
+ #ifndef VM_ARCH_CLEAR
+-# define VM_ARCH_CLEAR	VM_NONE
++#define VM_ARCH_CLEAR	VM_NONE
+ #endif
+ #define VM_FLAGS_CLEAR	(ARCH_VM_PKEY_FLAGS | VM_ARCH_CLEAR)
+ 
+@@ -917,9 +968,9 @@ static inline void vm_flags_mod(struct v
  }
  
-+static void test_merge(int pagemap_fd, int pagesize)
-+{
-+	char *reserved, *map, *map2;
-+
-+	/*
-+	 * Reserve space for tests:
-+	 *
-+	 *   ---padding to ---
-+	 *   |   avoid adj.  |
-+	 *   v     merge     v
-+	 * |---|---|---|---|---|
-+	 * |   | 1 | 2 | 3 |   |
-+	 * |---|---|---|---|---|
-+	 */
-+	reserved = mmap(NULL, 5 * pagesize, PROT_NONE,
-+			MAP_ANON | MAP_PRIVATE, -1, 0);
-+	if (reserved == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed\n");
-+	munmap(reserved, 4 * pagesize);
-+
-+	/*
-+	 * Establish initial VMA:
-+	 *
-+	 *      S/D
-+	 * |---|---|---|---|---|
-+	 * |   | 1 |   |   |   |
-+	 * |---|---|---|---|---|
-+	 */
-+	map = mmap(&reserved[pagesize], pagesize, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	if (map == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed\n");
-+
-+	/* This will clear VM_SOFTDIRTY too. */
-+	clear_softdirty();
-+
-+	/*
-+	 * Now place a new mapping which will be marked VM_SOFTDIRTY. Away from
-+	 * map:
-+	 *
-+	 *       -      S/D
-+	 * |---|---|---|---|---|
-+	 * |   | 1 |   | 2 |   |
-+	 * |---|---|---|---|---|
-+	 */
-+	map2 = mmap(&reserved[3 * pagesize], pagesize, PROT_READ | PROT_WRITE,
-+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	if (map2 == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed\n");
-+
-+	/*
-+	 * Now remap it immediately adjacent to map, if the merge correctly
-+	 * propagates VM_SOFTDIRTY, we should then observe the VMA as a whole
-+	 * being marked soft-dirty:
-+	 *
-+	 *       merge
-+	 *        S/D
-+	 * |---|-------|---|---|
-+	 * |   |   1   |   |   |
-+	 * |---|-------|---|---|
-+	 */
-+	map2 = mremap(map2, pagesize, pagesize, MREMAP_FIXED | MREMAP_MAYMOVE,
-+		      &reserved[2 * pagesize]);
-+	if (map2 == MAP_FAILED)
-+		ksft_exit_fail_msg("mremap failed\n");
-+	ksft_test_result(pagemap_is_softdirty(pagemap_fd, map) == 1,
-+			 "Test %s-anon soft-dirty after remap merge 1st pg\n",
-+			 __func__);
-+	ksft_test_result(pagemap_is_softdirty(pagemap_fd, map2) == 1,
-+			 "Test %s-anon soft-dirty after remap merge 2nd pg\n",
-+			 __func__);
-+
-+	munmap(map, 2 * pagesize);
-+
-+	/*
-+	 * Now establish another VMA:
-+	 *
-+	 *      S/D
-+	 * |---|---|---|---|---|
-+	 * |   | 1 |   |   |   |
-+	 * |---|---|---|---|---|
-+	 */
-+	map = mmap(&reserved[pagesize], pagesize, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	if (map == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed\n");
-+
-+	/* Clear VM_SOFTDIRTY... */
-+	clear_softdirty();
-+	/* ...and establish incompatible adjacent VMA:
-+	 *
-+	 *       -  S/D
-+	 * |---|---|---|---|---|
-+	 * |   | 1 | 2 |   |   |
-+	 * |---|---|---|---|---|
-+	 */
-+	map2 = mmap(&reserved[2 * pagesize], pagesize,
-+	PROT_READ | PROT_WRITE | PROT_EXEC,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	if (map2 == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed\n");
-+
-+	/*
-+	 * Now mprotect() VMA 1 so it's compatible with 2 and therefore merges:
-+	 *
-+	 *       merge
-+	 *        S/D
-+	 * |---|-------|---|---|
-+	 * |   |   1   |   |   |
-+	 * |---|-------|---|---|
-+	 */
-+	if (mprotect(map, pagesize, PROT_READ | PROT_WRITE | PROT_EXEC))
-+		ksft_exit_fail_msg("mprotect failed\n");
-+
-+	ksft_test_result(pagemap_is_softdirty(pagemap_fd, map) == 1,
-+			 "Test %s-anon soft-dirty after mprotect merge 1st pg\n",
-+			 __func__);
-+	ksft_test_result(pagemap_is_softdirty(pagemap_fd, map2) == 1,
-+			 "Test %s-anon soft-dirty after mprotect merge 2nd pg\n",
-+			 __func__);
-+
-+	munmap(map, 2 * pagesize);
-+}
-+
- static void test_mprotect_anon(int pagemap_fd, int pagesize)
+ static inline bool __vma_flag_atomic_valid(struct vm_area_struct *vma,
+-				       int bit)
++					   vma_flag_t bit)
  {
- 	test_mprotect(pagemap_fd, pagesize, true);
-@@ -204,7 +328,7 @@ int main(int argc, char **argv)
- 	if (!softdirty_supported())
- 		ksft_exit_skip("soft-dirty is not support\n");
+-	const vm_flags_t mask = BIT(bit);
++	const vm_flags_t mask = BIT((__force int)bit);
  
--	ksft_set_plan(15);
-+	ksft_set_plan(19);
- 	pagemap_fd = open(PAGEMAP_FILE_PATH, O_RDONLY);
- 	if (pagemap_fd < 0)
- 		ksft_exit_fail_msg("Failed to open %s\n", PAGEMAP_FILE_PATH);
-@@ -216,6 +340,7 @@ int main(int argc, char **argv)
- 	test_hugepage(pagemap_fd, pagesize);
- 	test_mprotect_anon(pagemap_fd, pagesize);
- 	test_mprotect_file(pagemap_fd, pagesize);
-+	test_merge(pagemap_fd, pagesize);
+ 	/* Only specific flags are permitted */
+ 	if (WARN_ON_ONCE(!(mask & VM_ATOMIC_SET_ALLOWED)))
+@@ -932,14 +983,15 @@ static inline bool __vma_flag_atomic_val
+  * Set VMA flag atomically. Requires only VMA/mmap read lock. Only specific
+  * valid flags are allowed to do this.
+  */
+-static inline void vma_flag_set_atomic(struct vm_area_struct *vma, int bit)
++static inline void vma_flag_set_atomic(struct vm_area_struct *vma,
++				       vma_flag_t bit)
+ {
+ 	/* mmap read lock/VMA read lock must be held. */
+ 	if (!rwsem_is_locked(&vma->vm_mm->mmap_lock))
+ 		vma_assert_locked(vma);
  
- 	close(pagemap_fd);
+ 	if (__vma_flag_atomic_valid(vma, bit))
+-		set_bit(bit, &ACCESS_PRIVATE(vma, __vm_flags));
++		set_bit((__force int)bit, &ACCESS_PRIVATE(vma, __vm_flags));
+ }
  
+ /*
+@@ -949,10 +1001,11 @@ static inline void vma_flag_set_atomic(s
+  * This is necessarily racey, so callers must ensure that serialisation is
+  * achieved through some other means, or that races are permissible.
+  */
+-static inline bool vma_flag_test_atomic(struct vm_area_struct *vma, int bit)
++static inline bool vma_flag_test_atomic(struct vm_area_struct *vma,
++					vma_flag_t bit)
+ {
+ 	if (__vma_flag_atomic_valid(vma, bit))
+-		return test_bit(bit, &vma->vm_flags);
++		return test_bit((__force int)bit, &vma->vm_flags);
+ 
+ 	return false;
+ }
+@@ -4514,16 +4567,6 @@ int arch_get_shadow_stack_status(struct
+ int arch_set_shadow_stack_status(struct task_struct *t, unsigned long status);
+ int arch_lock_shadow_stack_status(struct task_struct *t, unsigned long status);
+ 
+-
+-/*
+- * mseal of userspace process's system mappings.
+- */
+-#ifdef CONFIG_MSEAL_SYSTEM_MAPPINGS
+-#define VM_SEALED_SYSMAP	VM_SEALED
+-#else
+-#define VM_SEALED_SYSMAP	VM_NONE
+-#endif
+-
+ /*
+  * DMA mapping IDs for page_pool
+  *
+--- a/mm/khugepaged.c~mm-declare-vma-flags-by-bit
++++ a/mm/khugepaged.c
+@@ -1748,7 +1748,7 @@ static bool file_backed_vma_is_retractab
+ 	 * obtained on guard region installation after the flag is set, so this
+ 	 * check being performed under this lock excludes races.
+ 	 */
+-	if (vma_flag_test_atomic(vma, VM_MAYBE_GUARD_BIT))
++	if (vma_flag_test_atomic(vma, VMA_MAYBE_GUARD_BIT))
+ 		return false;
+ 
+ 	return true;
+--- a/mm/madvise.c~mm-declare-vma-flags-by-bit
++++ a/mm/madvise.c
+@@ -1144,7 +1144,7 @@ static long madvise_guard_install(struct
+ 	 * acquire an mmap/VMA write lock to read it. All remaining readers may
+ 	 * or may not see the flag set, but we don't care.
+ 	 */
+-	vma_flag_set_atomic(vma, VM_MAYBE_GUARD_BIT);
++	vma_flag_set_atomic(vma, VMA_MAYBE_GUARD_BIT);
+ 
+ 	/*
+ 	 * If anonymous and we are establishing page tables the VMA ought to
+--- a/rust/bindgen_parameters~mm-declare-vma-flags-by-bit
++++ a/rust/bindgen_parameters
+@@ -35,6 +35,31 @@
+ # recognized, block generation of the non-helper constants.
+ --blocklist-item ARCH_SLAB_MINALIGN
+ --blocklist-item ARCH_KMALLOC_MINALIGN
++--blocklist-item VM_MERGEABLE
++--blocklist-item VM_READ
++--blocklist-item VM_WRITE
++--blocklist-item VM_EXEC
++--blocklist-item VM_SHARED
++--blocklist-item VM_MAYREAD
++--blocklist-item VM_MAYWRITE
++--blocklist-item VM_MAYEXEC
++--blocklist-item VM_MAYEXEC
++--blocklist-item VM_PFNMAP
++--blocklist-item VM_IO
++--blocklist-item VM_DONTCOPY
++--blocklist-item VM_DONTEXPAND
++--blocklist-item VM_LOCKONFAULT
++--blocklist-item VM_ACCOUNT
++--blocklist-item VM_NORESERVE
++--blocklist-item VM_HUGETLB
++--blocklist-item VM_SYNC
++--blocklist-item VM_ARCH_1
++--blocklist-item VM_WIPEONFORK
++--blocklist-item VM_DONTDUMP
++--blocklist-item VM_SOFTDIRTY
++--blocklist-item VM_MIXEDMAP
++--blocklist-item VM_HUGEPAGE
++--blocklist-item VM_NOHUGEPAGE
+ 
+ # Structs should implement `Zeroable` when all of their fields do.
+ --with-derive-custom-struct .*=MaybeZeroable
+--- a/rust/bindings/bindings_helper.h~mm-declare-vma-flags-by-bit
++++ a/rust/bindings/bindings_helper.h
+@@ -108,7 +108,32 @@ const xa_mark_t RUST_CONST_HELPER_XA_PRE
+ 
+ const gfp_t RUST_CONST_HELPER_XA_FLAGS_ALLOC = XA_FLAGS_ALLOC;
+ const gfp_t RUST_CONST_HELPER_XA_FLAGS_ALLOC1 = XA_FLAGS_ALLOC1;
++
+ const vm_flags_t RUST_CONST_HELPER_VM_MERGEABLE = VM_MERGEABLE;
++const vm_flags_t RUST_CONST_HELPER_VM_READ = VM_READ;
++const vm_flags_t RUST_CONST_HELPER_VM_WRITE = VM_WRITE;
++const vm_flags_t RUST_CONST_HELPER_VM_EXEC = VM_EXEC;
++const vm_flags_t RUST_CONST_HELPER_VM_SHARED = VM_SHARED;
++const vm_flags_t RUST_CONST_HELPER_VM_MAYREAD = VM_MAYREAD;
++const vm_flags_t RUST_CONST_HELPER_VM_MAYWRITE = VM_MAYWRITE;
++const vm_flags_t RUST_CONST_HELPER_VM_MAYEXEC = VM_MAYEXEC;
++const vm_flags_t RUST_CONST_HELPER_VM_MAYSHARE = VM_MAYEXEC;
++const vm_flags_t RUST_CONST_HELPER_VM_PFNMAP = VM_PFNMAP;
++const vm_flags_t RUST_CONST_HELPER_VM_IO = VM_IO;
++const vm_flags_t RUST_CONST_HELPER_VM_DONTCOPY = VM_DONTCOPY;
++const vm_flags_t RUST_CONST_HELPER_VM_DONTEXPAND = VM_DONTEXPAND;
++const vm_flags_t RUST_CONST_HELPER_VM_LOCKONFAULT = VM_LOCKONFAULT;
++const vm_flags_t RUST_CONST_HELPER_VM_ACCOUNT = VM_ACCOUNT;
++const vm_flags_t RUST_CONST_HELPER_VM_NORESERVE = VM_NORESERVE;
++const vm_flags_t RUST_CONST_HELPER_VM_HUGETLB = VM_HUGETLB;
++const vm_flags_t RUST_CONST_HELPER_VM_SYNC = VM_SYNC;
++const vm_flags_t RUST_CONST_HELPER_VM_ARCH_1 = VM_ARCH_1;
++const vm_flags_t RUST_CONST_HELPER_VM_WIPEONFORK = VM_WIPEONFORK;
++const vm_flags_t RUST_CONST_HELPER_VM_DONTDUMP = VM_DONTDUMP;
++const vm_flags_t RUST_CONST_HELPER_VM_SOFTDIRTY = VM_SOFTDIRTY;
++const vm_flags_t RUST_CONST_HELPER_VM_MIXEDMAP = VM_MIXEDMAP;
++const vm_flags_t RUST_CONST_HELPER_VM_HUGEPAGE = VM_HUGEPAGE;
++const vm_flags_t RUST_CONST_HELPER_VM_NOHUGEPAGE = VM_NOHUGEPAGE;
+ 
+ #if IS_ENABLED(CONFIG_ANDROID_BINDER_IPC_RUST)
+ #include "../../drivers/android/binder/rust_binder.h"
+--- a/tools/testing/vma/vma_internal.h~mm-declare-vma-flags-by-bit
++++ a/tools/testing/vma/vma_internal.h
+@@ -46,43 +46,271 @@ extern unsigned long dac_mmap_min_addr;
+ 
+ #define MMF_HAS_MDWE	28
+ 
++/*
++ * vm_flags in vm_area_struct, see mm_types.h.
++ * When changing, update also include/trace/events/mmflags.h
++ */
++
+ #define VM_NONE		0x00000000
+-#define VM_READ		0x00000001
+-#define VM_WRITE	0x00000002
+-#define VM_EXEC		0x00000004
+-#define VM_SHARED	0x00000008
+-#define VM_MAYREAD	0x00000010
+-#define VM_MAYWRITE	0x00000020
+-#define VM_MAYEXEC	0x00000040
+-#define VM_GROWSDOWN	0x00000100
+-#define VM_PFNMAP	0x00000400
+-#define VM_MAYBE_GUARD	0x00000800
+-#define VM_LOCKED	0x00002000
+-#define VM_IO           0x00004000
+-#define VM_SEQ_READ	0x00008000	/* App will access data sequentially */
+-#define VM_RAND_READ	0x00010000	/* App will not benefit from clustered reads */
+-#define VM_DONTEXPAND	0x00040000
+-#define VM_LOCKONFAULT	0x00080000
+-#define VM_ACCOUNT	0x00100000
+-#define VM_NORESERVE	0x00200000
+-#define VM_MIXEDMAP	0x10000000
+-#define VM_STACK	VM_GROWSDOWN
++
++/**
++ * typedef vma_flag_t - specifies an individual VMA flag by bit number.
++ *
++ * This value is made type safe by sparse to avoid passing invalid flag values
++ * around.
++ */
++typedef int __bitwise vma_flag_t;
++
++#define DECLARE_VMA_BIT(name, bitnum) \
++	VMA_ ## name ## _BIT = ((__force vma_flag_t)bitnum)
++#define DECLARE_VMA_BIT_ALIAS(name, aliased) \
++	VMA_ ## name ## _BIT = VMA_ ## aliased ## _BIT
++enum {
++	DECLARE_VMA_BIT(READ, 0),
++	DECLARE_VMA_BIT(WRITE, 1),
++	DECLARE_VMA_BIT(EXEC, 2),
++	DECLARE_VMA_BIT(SHARED, 3),
++	/* mprotect() hardcodes VM_MAYREAD >> 4 == VM_READ, and so for r/w/x bits. */
++	DECLARE_VMA_BIT(MAYREAD, 4),	/* limits for mprotect() etc. */
++	DECLARE_VMA_BIT(MAYWRITE, 5),
++	DECLARE_VMA_BIT(MAYEXEC, 6),
++	DECLARE_VMA_BIT(MAYSHARE, 7),
++	DECLARE_VMA_BIT(GROWSDOWN, 8),	/* general info on the segment */
++#ifdef CONFIG_MMU
++	DECLARE_VMA_BIT(UFFD_MISSING, 9),/* missing pages tracking */
++#else
++	/* nommu: R/O MAP_PRIVATE mapping that might overlay a file mapping */
++	DECLARE_VMA_BIT(MAYOVERLAY, 9),
++#endif /* CONFIG_MMU */
++	/* Page-ranges managed without "struct page", just pure PFN */
++	DECLARE_VMA_BIT(PFNMAP, 10),
++	DECLARE_VMA_BIT(MAYBE_GUARD, 11),
++	DECLARE_VMA_BIT(UFFD_WP, 12),	/* wrprotect pages tracking */
++	DECLARE_VMA_BIT(LOCKED, 13),
++	DECLARE_VMA_BIT(IO, 14),	/* Memory mapped I/O or similar */
++	DECLARE_VMA_BIT(SEQ_READ, 15),	/* App will access data sequentially */
++	DECLARE_VMA_BIT(RAND_READ, 16),	/* App will not benefit from clustered reads */
++	DECLARE_VMA_BIT(DONTCOPY, 17),	/* Do not copy this vma on fork */
++	DECLARE_VMA_BIT(DONTEXPAND, 18),/* Cannot expand with mremap() */
++	DECLARE_VMA_BIT(LOCKONFAULT, 19),/* Lock pages covered when faulted in */
++	DECLARE_VMA_BIT(ACCOUNT, 20),	/* Is a VM accounted object */
++	DECLARE_VMA_BIT(NORESERVE, 21),	/* should the VM suppress accounting */
++	DECLARE_VMA_BIT(HUGETLB, 22),	/* Huge TLB Page VM */
++	DECLARE_VMA_BIT(SYNC, 23),	/* Synchronous page faults */
++	DECLARE_VMA_BIT(ARCH_1, 24),	/* Architecture-specific flag */
++	DECLARE_VMA_BIT(WIPEONFORK, 25),/* Wipe VMA contents in child. */
++	DECLARE_VMA_BIT(DONTDUMP, 26),	/* Do not include in the core dump */
++	DECLARE_VMA_BIT(SOFTDIRTY, 27),	/* NOT soft dirty clean area */
++	DECLARE_VMA_BIT(MIXEDMAP, 28),	/* Can contain struct page and pure PFN pages */
++	DECLARE_VMA_BIT(HUGEPAGE, 29),	/* MADV_HUGEPAGE marked this vma */
++	DECLARE_VMA_BIT(NOHUGEPAGE, 30),/* MADV_NOHUGEPAGE marked this vma */
++	DECLARE_VMA_BIT(MERGEABLE, 31),	/* KSM may merge identical pages */
++	/* These bits are reused, we define specific uses below. */
++	DECLARE_VMA_BIT(HIGH_ARCH_0, 32),
++	DECLARE_VMA_BIT(HIGH_ARCH_1, 33),
++	DECLARE_VMA_BIT(HIGH_ARCH_2, 34),
++	DECLARE_VMA_BIT(HIGH_ARCH_3, 35),
++	DECLARE_VMA_BIT(HIGH_ARCH_4, 36),
++	DECLARE_VMA_BIT(HIGH_ARCH_5, 37),
++	DECLARE_VMA_BIT(HIGH_ARCH_6, 38),
++	/*
++	 * This flag is used to connect VFIO to arch specific KVM code. It
++	 * indicates that the memory under this VMA is safe for use with any
++	 * non-cachable memory type inside KVM. Some VFIO devices, on some
++	 * platforms, are thought to be unsafe and can cause machine crashes
++	 * if KVM does not lock down the memory type.
++	 */
++	DECLARE_VMA_BIT(ALLOW_ANY_UNCACHED, 39),
++#ifdef CONFIG_PPC32
++	DECLARE_VMA_BIT_ALIAS(DROPPABLE, ARCH_1),
++#else
++	DECLARE_VMA_BIT(DROPPABLE, 40),
++#endif
++	DECLARE_VMA_BIT(UFFD_MINOR, 41),
++	DECLARE_VMA_BIT(SEALED, 42),
++	/* Flags that reuse flags above. */
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT0, HIGH_ARCH_0),
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT1, HIGH_ARCH_1),
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT2, HIGH_ARCH_2),
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT3, HIGH_ARCH_3),
++	DECLARE_VMA_BIT_ALIAS(PKEY_BIT4, HIGH_ARCH_4),
++#if defined(CONFIG_X86_USER_SHADOW_STACK)
++	/*
++	 * VM_SHADOW_STACK should not be set with VM_SHARED because of lack of
++	 * support core mm.
++	 *
++	 * These VMAs will get a single end guard page. This helps userspace
++	 * protect itself from attacks. A single page is enough for current
++	 * shadow stack archs (x86). See the comments near alloc_shstk() in
++	 * arch/x86/kernel/shstk.c for more details on the guard size.
++	 */
++	DECLARE_VMA_BIT_ALIAS(SHADOW_STACK, HIGH_ARCH_5),
++#elif defined(CONFIG_ARM64_GCS)
++	/*
++	 * arm64's Guarded Control Stack implements similar functionality and
++	 * has similar constraints to shadow stacks.
++	 */
++	DECLARE_VMA_BIT_ALIAS(SHADOW_STACK, HIGH_ARCH_6),
++#endif
++	DECLARE_VMA_BIT_ALIAS(SAO, ARCH_1),		/* Strong Access Ordering (powerpc) */
++	DECLARE_VMA_BIT_ALIAS(GROWSUP, ARCH_1),		/* parisc */
++	DECLARE_VMA_BIT_ALIAS(SPARC_ADI, ARCH_1),	/* sparc64 */
++	DECLARE_VMA_BIT_ALIAS(ARM64_BTI, ARCH_1),	/* arm64 */
++	DECLARE_VMA_BIT_ALIAS(ARCH_CLEAR, ARCH_1),	/* sparc64, arm64 */
++	DECLARE_VMA_BIT_ALIAS(MAPPED_COPY, ARCH_1),	/* !CONFIG_MMU */
++	DECLARE_VMA_BIT_ALIAS(MTE, HIGH_ARCH_4),	/* arm64 */
++	DECLARE_VMA_BIT_ALIAS(MTE_ALLOWED, HIGH_ARCH_5),/* arm64 */
++#ifdef CONFIG_STACK_GROWSUP
++	DECLARE_VMA_BIT_ALIAS(STACK, GROWSUP),
++	DECLARE_VMA_BIT_ALIAS(STACK_EARLY, GROWSDOWN),
++#else
++	DECLARE_VMA_BIT_ALIAS(STACK, GROWSDOWN),
++#endif
++};
++
++#define INIT_VM_FLAG(name) BIT((__force int) VMA_ ## name ## _BIT)
++#define VM_READ		INIT_VM_FLAG(READ)
++#define VM_WRITE	INIT_VM_FLAG(WRITE)
++#define VM_EXEC		INIT_VM_FLAG(EXEC)
++#define VM_SHARED	INIT_VM_FLAG(SHARED)
++#define VM_MAYREAD	INIT_VM_FLAG(MAYREAD)
++#define VM_MAYWRITE	INIT_VM_FLAG(MAYWRITE)
++#define VM_MAYEXEC	INIT_VM_FLAG(MAYEXEC)
++#define VM_MAYSHARE	INIT_VM_FLAG(MAYSHARE)
++#define VM_GROWSDOWN	INIT_VM_FLAG(GROWSDOWN)
++#ifdef CONFIG_MMU
++#define VM_UFFD_MISSING	INIT_VM_FLAG(UFFD_MISSING)
++#else
++#define VM_UFFD_MISSING	VM_NONE
++#endif
++#define VM_PFNMAP	INIT_VM_FLAG(PFNMAP)
++#define VM_MAYBE_GUARD	INIT_VM_FLAG(MAYBE_GUARD)
++#define VM_UFFD_WP	INIT_VM_FLAG(UFFD_WP)
++#define VM_LOCKED	INIT_VM_FLAG(LOCKED)
++#define VM_IO		INIT_VM_FLAG(IO)
++#define VM_SEQ_READ	INIT_VM_FLAG(SEQ_READ)
++#define VM_RAND_READ	INIT_VM_FLAG(RAND_READ)
++#define VM_DONTCOPY	INIT_VM_FLAG(DONTCOPY)
++#define VM_DONTEXPAND	INIT_VM_FLAG(DONTEXPAND)
++#define VM_LOCKONFAULT	INIT_VM_FLAG(LOCKONFAULT)
++#define VM_ACCOUNT	INIT_VM_FLAG(ACCOUNT)
++#define VM_NORESERVE	INIT_VM_FLAG(NORESERVE)
++#define VM_HUGETLB	INIT_VM_FLAG(HUGETLB)
++#define VM_SYNC		INIT_VM_FLAG(SYNC)
++#define VM_ARCH_1	INIT_VM_FLAG(ARCH_1)
++#define VM_WIPEONFORK	INIT_VM_FLAG(WIPEONFORK)
++#define VM_DONTDUMP	INIT_VM_FLAG(DONTDUMP)
++#ifdef CONFIG_MEM_SOFT_DIRTY
++#define VM_SOFTDIRTY	INIT_VM_FLAG(SOFTDIRTY)
++#else
++#define VM_SOFTDIRTY	VM_NONE
++#endif
++#define VM_MIXEDMAP	INIT_VM_FLAG(MIXEDMAP)
++#define VM_HUGEPAGE	INIT_VM_FLAG(HUGEPAGE)
++#define VM_NOHUGEPAGE	INIT_VM_FLAG(NOHUGEPAGE)
++#define VM_MERGEABLE	INIT_VM_FLAG(MERGEABLE)
++#define VM_STACK	INIT_VM_FLAG(STACK)
++#ifdef CONFIG_STACK_GROWS_UP
++#define VM_STACK_EARLY	INIT_VM_FLAG(STACK_EARLY)
++#else
++#define VM_STACK_EARLY	VM_NONE
++#endif
++#ifdef CONFIG_ARCH_HAS_PKEYS
++#define VM_PKEY_SHIFT ((__force int)VMA_HIGH_ARCH_0_BIT)
++/* Despite the naming, these are FLAGS not bits. */
++#define VM_PKEY_BIT0 INIT_VM_FLAG(PKEY_BIT0)
++#define VM_PKEY_BIT1 INIT_VM_FLAG(PKEY_BIT1)
++#define VM_PKEY_BIT2 INIT_VM_FLAG(PKEY_BIT2)
++#if CONFIG_ARCH_PKEY_BITS > 3
++#define VM_PKEY_BIT3 INIT_VM_FLAG(PKEY_BIT3)
++#else
++#define VM_PKEY_BIT3  VM_NONE
++#endif /* CONFIG_ARCH_PKEY_BITS > 3 */
++#if CONFIG_ARCH_PKEY_BITS > 4
++#define VM_PKEY_BIT4 INIT_VM_FLAG(PKEY_BIT4)
++#else
++#define VM_PKEY_BIT4  VM_NONE
++#endif /* CONFIG_ARCH_PKEY_BITS > 4 */
++#endif /* CONFIG_ARCH_HAS_PKEYS */
++#if defined(CONFIG_X86_USER_SHADOW_STACK) || defined(CONFIG_ARM64_GCS)
++#define VM_SHADOW_STACK	INIT_VM_FLAG(SHADOW_STACK)
++#else
+ #define VM_SHADOW_STACK	VM_NONE
+-#define VM_SOFTDIRTY	0
+-#define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
++#endif
++#if defined(CONFIG_PPC64)
++#define VM_SAO		INIT_VM_FLAG(SAO)
++#elif defined(CONFIG_PARISC)
++#define VM_GROWSUP	INIT_VM_FLAG(GROWSUP)
++#elif defined(CONFIG_SPARC64)
++#define VM_SPARC_ADI	INIT_VM_FLAG(SPARC_ADI)
++#define VM_ARCH_CLEAR	INIT_VM_FLAG(ARCH_CLEAR)
++#elif defined(CONFIG_ARM64)
++#define VM_ARM64_BTI	INIT_VM_FLAG(ARM64_BTI)
++#define VM_ARCH_CLEAR	INIT_VM_FLAG(ARCH_CLEAR)
++#elif !defined(CONFIG_MMU)
++#define VM_MAPPED_COPY	INIT_VM_FLAG(MAPPED_COPY)
++#endif
++#ifndef VM_GROWSUP
+ #define VM_GROWSUP	VM_NONE
++#endif
++#ifdef CONFIG_ARM64_MTE
++#define VM_MTE		INIT_VM_FLAG(MTE)
++#define VM_MTE_ALLOWED	INIT_VM_FLAG(MTE_ALLOWED)
++#else
++#define VM_MTE		VM_NONE
++#define VM_MTE_ALLOWED	VM_NONE
++#endif
++#ifdef CONFIG_HAVE_ARCH_USERFAULTFD_MINOR
++#define VM_UFFD_MINOR	INIT_VM_FLAG(UFFD_MINOR)
++#else
++#define VM_UFFD_MINOR	VM_NONE
++#endif
++#ifdef CONFIG_64BIT
++#define VM_ALLOW_ANY_UNCACHED	INIT_VM_FLAG(ALLOW_ANY_UNCACHED)
++#define VM_SEALED		INIT_VM_FLAG(SEALED)
++#else
++#define VM_ALLOW_ANY_UNCACHED	VM_NONE
++#define VM_SEALED		VM_NONE
++#endif
++#if defined(CONFIG_64BIT) || defined(CONFIG_PPC32)
++#define VM_DROPPABLE		INIT_VM_FLAG(DROPPABLE)
++#else
++#define VM_DROPPABLE		VM_NONE
++#endif
+ 
+-#define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
+-#define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
++/* Bits set in the VMA until the stack is in its final location */
++#define VM_STACK_INCOMPLETE_SETUP (VM_RAND_READ | VM_SEQ_READ | VM_STACK_EARLY)
+ 
+-#ifdef CONFIG_STACK_GROWSUP
+-#define VM_STACK	VM_GROWSUP
+-#define VM_STACK_EARLY	VM_GROWSDOWN
+-#else
+-#define VM_STACK	VM_GROWSDOWN
+-#define VM_STACK_EARLY	0
++#define TASK_EXEC ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0)
++
++/* Common data flag combinations */
++#define VM_DATA_FLAGS_TSK_EXEC	(VM_READ | VM_WRITE | TASK_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_FLAGS_NON_EXEC	(VM_READ | VM_WRITE | VM_MAYREAD | \
++				 VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_FLAGS_EXEC	(VM_READ | VM_WRITE | VM_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++
++#ifndef VM_DATA_DEFAULT_FLAGS		/* arch can override this */
++#define VM_DATA_DEFAULT_FLAGS  VM_DATA_FLAGS_EXEC
++#endif
++
++#ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
++#define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
+ #endif
+ 
++#define VM_STARTGAP_FLAGS (VM_GROWSDOWN | VM_SHADOW_STACK)
++
++#define VM_STACK_FLAGS	(VM_STACK | VM_STACK_DEFAULT_FLAGS | VM_ACCOUNT)
++
++/* VMA basic access permission flags */
++#define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
++
++/*
++ * Special vmas that are non-mergable, non-mlock()able.
++ */
++#define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
++
+ #define DEFAULT_MAP_WINDOW	((1UL << 47) - PAGE_SIZE)
+ #define TASK_SIZE_LOW		DEFAULT_MAP_WINDOW
+ #define TASK_SIZE_MAX		DEFAULT_MAP_WINDOW
+@@ -97,26 +325,11 @@ extern unsigned long dac_mmap_min_addr;
+ #define VM_DATA_FLAGS_TSK_EXEC	(VM_READ | VM_WRITE | TASK_EXEC | \
+ 				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+-
+-#define VM_STARTGAP_FLAGS (VM_GROWSDOWN | VM_SHADOW_STACK)
+-
+-#define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
+-#define VM_STACK_FLAGS	(VM_STACK | VM_STACK_DEFAULT_FLAGS | VM_ACCOUNT)
+-#define VM_STACK_INCOMPLETE_SETUP (VM_RAND_READ | VM_SEQ_READ | VM_STACK_EARLY)
+-
+ #define RLIMIT_STACK		3	/* max stack size */
+ #define RLIMIT_MEMLOCK		8	/* max locked-in-memory address space */
+ 
+ #define CAP_IPC_LOCK         14
+ 
+-#ifdef CONFIG_64BIT
+-#define VM_SEALED_BIT	42
+-#define VM_SEALED	BIT(VM_SEALED_BIT)
+-#else
+-#define VM_SEALED	VM_NONE
+-#endif
+-
+ /*
+  * Flags which should be 'sticky' on merge - that is, flags which, when one VMA
+  * possesses it but the other does not, the merged VMA should nonetheless have
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
