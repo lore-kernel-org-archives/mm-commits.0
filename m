@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C95792E2F1F
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:53:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D6F5182B7
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:53:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675601; cv=none; b=WK9j/1/61HU4IRD4ZvsRV/m5BRf8iy2a2fYmf/0bkUtdWiNk7pm5vgCrSvT8W6QAPMAqZ94oaTUYOZgYNQAF/Sil414jIruT5mhMESo7KmDueB+EtxAZ+YMYp5tpL8vXFGGzz7J4oGBs6NSfAHzYZpOMqGxgqE1eRbX1x2rXtio=
+	t=1763675630; cv=none; b=aHVv5X5UqDT0L0TFw/Wh4gisolYZWgCR6hVgnue5g67hXWEmsOCR3QEiqqVxMyu9NeE3b8LX8Vqgeu6ReL7rnLGdEyMyxjkoF9aMnLObrf4O/l4BHzxeLoZpox12IdQ68gdzLbSGv7aCTPUiAJbPpYfzN6giGuPAqRgVDZTlBK0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675601; c=relaxed/simple;
-	bh=cATPqZlM085DFTfZcpNTFsDW+3hJhcKQWZpEV32nJ80=;
-	h=Date:To:From:Subject:Message-Id; b=oNTW06Up9fEWtkAT/Oj3hHRtNJ6xfdt/3JyxWZWi75gZxyhKFQc8TIm6uwnbRAiuikTun8ikx6YGAZZrs9x+VXT3/20K5LchO1nDtUPRIe5Fpcds2CLZvAgZmgQRmx0c/KB3hslCCMpVzAnZeY9vJ+5i2oRusLdYV5Zf69JfZ+I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MgdBHo55; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675630; c=relaxed/simple;
+	bh=TraM49d0PwspKnVDTZCHXPkiM3rTe4o/Dnsdgr8urng=;
+	h=Date:To:From:Subject:Message-Id; b=R1hKBmeGYfN1l8elQ1z8vy4puR/a+kgY31rp2giih0/FuVKpbSxWWivQa0GLYbZBeZKM6ziIrVvo/IGHrmCosWNgm3zPGK16oK18A40v/4aDKOvlTW5wacLkXuladKKNzQP+nAXB/dg4i7127VPu7d/JEw97N54YJEw4sShmlQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A+TGMwuh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MgdBHo55"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D64BC4CEF1;
-	Thu, 20 Nov 2025 21:53:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A+TGMwuh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC16BC4CEF1;
+	Thu, 20 Nov 2025 21:53:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675601;
-	bh=cATPqZlM085DFTfZcpNTFsDW+3hJhcKQWZpEV32nJ80=;
+	s=korg; t=1763675629;
+	bh=TraM49d0PwspKnVDTZCHXPkiM3rTe4o/Dnsdgr8urng=;
 	h=Date:To:From:Subject:From;
-	b=MgdBHo55+F26Q06ohpXcEbIinK83Weu4534tFgouyRkHcSwT2FDVAd/iVVoLs0N7t
-	 HnanXKgPvWmx2ItDoudAihKfzaD1um/33h+VsKrGqKPprcOV0Q9+r0vEKLK2PeMYmt
-	 o7lFgb3AaqFX1BtBBJGGquRi8bXnjmWt6t6XTwnQ=
-Date: Thu, 20 Nov 2025 13:53:20 -0800
-To: mm-commits@vger.kernel.org,david.laight.linux@gmail.com,409411716@gms.tku.edu.tw,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=A+TGMwuh6zqxQCwsNhOenWdX392jERwIl4XurXwNA/0vLRd/6d6HuJtJIafFZQe7Z
+	 HMk+kFx209xiP0Kk+A5ubmXIFygwav+r92nxS9PWy3Me/MB1sAlKVxU1AVqPH5xSau
+	 EWtUjDkVCH0mCcL6TKqqSB6eCDniUb/6HKUfXL/s=
+Date: Thu, 20 Nov 2025 13:53:49 -0800
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,tmgross@umich.edu,ojeda@kernel.org,jhubbard@nvidia.com,gary@garyguo.net,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,arnd@arndb.de,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch removed from -mm tree
-Message-Id: <20251120215321.4D64BC4CEF1@smtp.kernel.org>
+Subject: [folded-merged] uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch removed from -mm tree
+Message-Id: <20251120215349.CC16BC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
+     Subject: uaccess-gate-_copy__user-on-inline_copy_from_user-fix
 has been removed from the -mm tree.  Its filename was
-     lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix.patch
+     uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
 
-This patch was dropped because it was folded into lib-base64-rework-encode-decode-for-speed-and-stricter-validation.patch
+This patch was dropped because it was folded into uaccess-gate-_copy__user-on-inline_copy_from_user.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
-Date: Mon Nov 17 09:44:57 AM PST 2025
+Subject: uaccess-gate-_copy__user-on-inline_copy_from_user-fix
+Date: Tue Nov 18 02:20:00 PM PST 2025
 
-remove u32 casts, per David and Guan-Chun
+s/INLINE_COPY_FROM_USER/INLINE_COPY_TO_USER/, per Alice
 
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Guan-Chun Wu <409411716@gms.tku.edu.tw>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
+Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/base64.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/uaccess.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/base64.c~lib-base64-rework-encode-decode-for-speed-and-stricter-validation-fix
-+++ a/lib/base64.c
-@@ -84,7 +84,7 @@ int base64_encode(const u8 *src, int src
- 	const char *base64_table = base64_tables[variant];
- 
- 	while (srclen >= 3) {
--		ac = (u32)src[0] << 16 | (u32)src[1] << 8 | (u32)src[2];
-+		ac = src[0] << 16 | src[1] << 8 | src[2];
- 		*cp++ = base64_table[ac >> 18];
- 		*cp++ = base64_table[(ac >> 12) & 0x3f];
- 		*cp++ = base64_table[(ac >> 6) & 0x3f];
-@@ -96,7 +96,7 @@ int base64_encode(const u8 *src, int src
- 
- 	switch (srclen) {
- 	case 2:
--		ac = (u32)src[0] << 16 | (u32)src[1] << 8;
-+		ac = src[0] << 16 | src[1] << 8;
- 		*cp++ = base64_table[ac >> 18];
- 		*cp++ = base64_table[(ac >> 12) & 0x3f];
- 		*cp++ = base64_table[(ac >> 6) & 0x3f];
-@@ -104,7 +104,7 @@ int base64_encode(const u8 *src, int src
- 			*cp++ = '=';
- 		break;
- 	case 1:
--		ac = (u32)src[0] << 16;
-+		ac = src[0] << 16;
- 		*cp++ = base64_table[ac >> 18];
- 		*cp++ = base64_table[(ac >> 12) & 0x3f];
- 		if (padding) {
+--- a/include/linux/uaccess.h~uaccess-gate-_copy__user-on-inline_copy_from_user-fix
++++ a/include/linux/uaccess.h
+@@ -198,7 +198,7 @@ _inline_copy_to_user(void __user *to, co
+ 	}
+ 	return n;
+ }
+-#ifndef INLINE_COPY_FROM_USER
++#ifndef INLINE_COPY_TO_USER
+ extern __must_check unsigned long
+ _copy_to_user(void __user *, const void *, unsigned long);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +85,6 @@ mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
 mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
 mm-correctly-handle-uffd-pte-markers-fix.patch
 mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix-fix.patch
-lib-base64-rework-encode-decode-for-speed-and-stricter-validation.patch
-uaccess-gate-_copy__user-on-inline_copy_from_user-fix.patch
+uaccess-gate-_copy__user-on-inline_copy_from_user.patch
 memblock-unpreserve-memory-in-case-of-error-fix.patch
 
