@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 806EC73451
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 00:16:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E29F214B08A
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 00:18:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763597776; cv=none; b=n5H8VCgugEjgbyea4xUDpKw/d+sXKUqHgUg5AGQOxGq3tFVnI+UQd4xPayV1KqbrWcDiubWDkS0/6Ieb2N3y98irFZE1WT8pGgQZfX+8ylwY36hrwa0X00qymCYCigbJnQt/A41pgth15NxQIt0mzja3pLPssGnHXAEC1o0lasc=
+	t=1763597939; cv=none; b=Yxaha1oNl6h+iEE0NqqdSK6YoZHzVHjcrvSML9OxmmXIfagy7vZMYT9AbEcu0qqnGfSgwqGvdQxUieu9ZSts9XzqQrETJA3SjvBULLSKmDfjWORNPjz1sMJ3+Nzafn6PEjyXwi8N/NmufCV6WrSU76ecpO9FFjXqGg0n5te8+yU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763597776; c=relaxed/simple;
-	bh=s7GFmz3hbHkd+mrsJz6CdClhKtf1EI7Gvys5WJj9QSY=;
-	h=Date:To:From:Subject:Message-Id; b=c6dHFKjGEgPeooqKtfeDftLgjEmIxlrOm5Pe0tdrjqg03AdTEemWT4FduKF+brbeVkml7iRYzo7yOmcBTF482BZmdf8PI/Qz1MLwatlQV9cdelFQREffvecHbEPIx5IzUxQ6zwhtTUw3weh68re5ffiLSO6zYNoHXpLYB6k0Fxo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ircZbqDt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763597939; c=relaxed/simple;
+	bh=yHys2EyghBVm+iwc9oSZaMWXQ0hTIrf378wYe7aE6wY=;
+	h=Date:To:From:Subject:Message-Id; b=Xh1gxusRKXduI/vRprKtPLjsdNLL0hHTEhloTAhQJx3Om6aWiwp5+i4XNJhsJCPe992AQvKJL9yzT19hPlex0TZC1jHLfX1GGUGG3yhMjynIG7u5KVlxoC2DmmLCK4KUG2yviBMSd74j83MT/52V9oqq4zCGmknEcYikEObZQtk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KId8DrQ6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ircZbqDt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1961BC4CEF5;
-	Thu, 20 Nov 2025 00:16:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KId8DrQ6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7217AC4CEF5;
+	Thu, 20 Nov 2025 00:18:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763597775;
-	bh=s7GFmz3hbHkd+mrsJz6CdClhKtf1EI7Gvys5WJj9QSY=;
+	s=korg; t=1763597938;
+	bh=yHys2EyghBVm+iwc9oSZaMWXQ0hTIrf378wYe7aE6wY=;
 	h=Date:To:From:Subject:From;
-	b=ircZbqDtRBbVQBqKMwqwRBOdtCh/fCtd+95OnztyZyMaqGN+B+/1Kg6OYo/Z0qPxp
-	 2w75YqfATIOkzQr4+qolAh+snDR8NDMIUR8tBuhHDcuyMuF64aMlf/ZwLN2oH//YRK
-	 HG3uBtXAaTJPVgmvdzhLsdIUXYkm6UxzXU/f6Oto=
-Date: Wed, 19 Nov 2025 16:16:14 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=KId8DrQ6XsKIX7mgiv/vvBp8oATKPGvWXvtgeN8jMmG2FO5lnkeKs5hjHbUX3cBrT
+	 PZ2rimMqQDGHpEQTZET9Zgj3y5qTt7ZHVfujenTPKp5uhtnWAqeHt47xbV/6JIBFeu
+	 qCovb6nPh6EGia3z0ey4Nz54GAtkHlDnN6fShCV0=
+Date: Wed, 19 Nov 2025 16:18:57 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,david.hunter.linux@gmail.com,albinbabuvarghese20@gmail.com,eraykrdg1@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-replace-deprecated-strcpy-with-strscpy.patch added to mm-nonmm-unstable branch
-Message-Id: <20251120001615.1961BC4CEF5@smtp.kernel.org>
+Subject: + ocfs2-mark-inode-bad-upon-validation-failure-during-read.patch added to mm-nonmm-unstable branch
+Message-Id: <20251120001858.7217AC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: replace deprecated strcpy with strscpy
+     Subject: ocfs2: mark inode bad upon validation failure during read
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-replace-deprecated-strcpy-with-strscpy.patch
+     ocfs2-mark-inode-bad-upon-validation-failure-during-read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-replace-deprecated-strcpy-with-strscpy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-mark-inode-bad-upon-validation-failure-during-read.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,19 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: ocfs2: replace deprecated strcpy with strscpy
-Date: Tue, 18 Nov 2025 19:53:45 +0100
+From: Ahmet Eray Karadag <eraykrdg1@gmail.com>
+Subject: ocfs2: mark inode bad upon validation failure during read
+Date: Tue, 18 Nov 2025 03:18:34 +0300
 
-strcpy() has been deprecated [1] because it performs no bounds checking on
-the destination buffer, which can lead to buffer overflows.  Replace it
-with the safer strscpy(), and copy directly into '->rf_signature' instead
-of using the start of the struct as the destination buffer.
+A VFS cache inconsistency, potentially triggered by sequences like
+buffered writes followed by open(O_DIRECT), can result in an invalid
+on-disk inode block (e.g., bad signature).  OCFS2 detects this corruption
+when reading the inode block via ocfs2_validate_inode_block(), logs
+"Invalid dinode", and often switches the filesystem to read-only mode.
 
-Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strcpy [1]
-Link: https://lkml.kernel.org/r/20251118185345.132411-3-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+The VFS open(O_DIRECT) operation appears to incorrectly clear the inode's
+I_DIRTY flag without ensuring the dirty metadata (reflecting the earlier
+buffered write, e.g., an updated i_size) is flushed to disk.  This leaves
+the in-memory VFS inode object "in limbo" with an updated size (e.g.,
+38639 from the write) but marked clean, while its on-disk counterpart
+remains stale (e.g., size 0) or invalid.
+
+Currently, the function reading the inode block
+(ocfs2_read_inode_block_full()) fails to call make_bad_inode() upon
+detecting the validation error.  Because the in-memory inode is not marked
+bad, subsequent operations (like ftruncate) proceed erroneously.  They
+eventually reach code (e.g., ocfs2_truncate_file()) that compares the
+inconsistent in-memory size (38639) against the invalid/stale on-disk size
+(0), leading to kernel crashes via BUG_ON.
+
+Fix this by calling make_bad_inode(inode) within the error handling path
+of ocfs2_read_inode_block_full() immediately after a block read or
+validation error occurs.  This ensures VFS is properly notified about the
+corrupt inode at the point of detection.  Marking the inode bad allows VFS
+to correctly fail subsequent operations targeting this inode early,
+preventing kernel panics caused by operating on known inconsistent inode
+states.
+
+Link: https://lkml.kernel.org/r/20251118001833.423470-2-eraykrdg1@gmail.com
+Link: https://lore.kernel.org/all/20251029225748.11361-2-eraykrdg1@gmail.com/T/
+Signed-off-by: Albin Babu Varghese <albinbabuvarghese20@gmail.com>
+Signed-off-by: Ahmet Eray Karadag <eraykrdg1@gmail.com>
+Reported-by: syzbot+b93b65ee321c97861072@syzkaller.appspotmail.com
+Link: https://syzkaller.appspot.com/bug?extid=b93b65ee321c97861072
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Co-developed-by: Albin Babu Varghese <albinbabuvarghese20@gmail.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: David Hunter <david.hunter.linux@gmail.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -79,41 +109,23 @@ Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/ocfs2/refcounttree.c~ocfs2-replace-deprecated-strcpy-with-strscpy
-+++ a/fs/ocfs2/refcounttree.c
-@@ -34,6 +34,7 @@
- #include <linux/pagevec.h>
- #include <linux/swap.h>
- #include <linux/security.h>
-+#include <linux/string.h>
- #include <linux/fsnotify.h>
- #include <linux/quotaops.h>
- #include <linux/namei.h>
-@@ -621,7 +622,7 @@ static int ocfs2_create_refcount_tree(st
- 	/* Initialize ocfs2_refcount_block. */
- 	rb = (struct ocfs2_refcount_block *)new_bh->b_data;
- 	memset(rb, 0, inode->i_sb->s_blocksize);
--	strcpy((void *)rb, OCFS2_REFCOUNT_BLOCK_SIGNATURE);
-+	strscpy(rb->rf_signature, OCFS2_REFCOUNT_BLOCK_SIGNATURE);
- 	rb->rf_suballoc_slot = cpu_to_le16(meta_ac->ac_alloc_slot);
- 	rb->rf_suballoc_loc = cpu_to_le64(suballoc_loc);
- 	rb->rf_suballoc_bit = cpu_to_le16(suballoc_bit_start);
-@@ -1562,7 +1563,7 @@ static int ocfs2_new_leaf_refcount_block
- 	/* Initialize ocfs2_refcount_block. */
- 	new_rb = (struct ocfs2_refcount_block *)new_bh->b_data;
- 	memset(new_rb, 0, sb->s_blocksize);
--	strcpy((void *)new_rb, OCFS2_REFCOUNT_BLOCK_SIGNATURE);
-+	strscpy(new_rb->rf_signature, OCFS2_REFCOUNT_BLOCK_SIGNATURE);
- 	new_rb->rf_suballoc_slot = cpu_to_le16(meta_ac->ac_alloc_slot);
- 	new_rb->rf_suballoc_loc = cpu_to_le64(suballoc_loc);
- 	new_rb->rf_suballoc_bit = cpu_to_le16(suballoc_bit_start);
+--- a/fs/ocfs2/inode.c~ocfs2-mark-inode-bad-upon-validation-failure-during-read
++++ a/fs/ocfs2/inode.c
+@@ -1727,6 +1727,8 @@ int ocfs2_read_inode_block_full(struct i
+ 	rc = ocfs2_read_blocks(INODE_CACHE(inode), OCFS2_I(inode)->ip_blkno,
+ 			       1, &tmp, flags, ocfs2_validate_inode_block);
+ 
++	if (rc < 0)
++		make_bad_inode(inode);
+ 	/* If ocfs2_read_blocks() got us a new bh, pass it up. */
+ 	if (!rc && !*bh)
+ 		*bh = tmp;
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from eraykrdg1@gmail.com are
 
-ocfs2-replace-deprecated-strcpy-in-ocfs2_create_xattr_block.patch
-ocfs2-replace-deprecated-strcpy-with-strscpy.patch
+ocfs2-mark-inode-bad-upon-validation-failure-during-read.patch
 
