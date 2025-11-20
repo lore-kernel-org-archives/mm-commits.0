@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 406AC34D3AA
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 190CA34D3AA
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675077; cv=none; b=GCU/iNJlWy4H4BKWj/hZCXtxEt8n48JxpyllRHZ1ORvWw+wapJA54uvjtVSElfbJVEm3dOriuDBzzyBRRc3N+WM2Bp9UwekXxgrcE8ksr9ZogHou20P6W04UxY8TnqaDB1aLxZDMMpIpFX4qdlW2p8N65ZO73H9ZMOFYiq0bTA8=
+	t=1763675078; cv=none; b=JDMda9FhOWCBPSKTNGoYTg/r9tnZ69xg/ZT0hgAFYuBs6VRVBNFdSVj47bO3ewcQ7ADKdzxUoayevcukrIlK4zW8WWZLF2e1Vn3OUUKMbZw9vMufCCvhsR+3swwKmxzU9bRU4tGKSx2Z8i0aKrnWD/25gbjPA+hGNTUT55ICttU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675077; c=relaxed/simple;
-	bh=D9dHp2n2I3mrlLDyvfbv1pwpNOU0E+DuMVTPPMOLNzg=;
-	h=Date:To:From:Subject:Message-Id; b=o6YwEc+JvDrPxzeL8X2q9DFSdnRWa9OGEV3UopL2rgcwlILbQIZrcNPdeFkgDFUdvmrriS6NatRpWKEv/1n/7ljhAdATEUaQlqgNxrfhLTiq8Urlv5PbUCcPS1ulpFPikEjJxsrR5OSf4dfgqKy2zZFIxs/bQ1dyW7ILHF+j1g0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+dQG//b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675078; c=relaxed/simple;
+	bh=+HvLsrSRBNfFcrr3JQ8RynhWi83AnzDytMN1+BM/h8M=;
+	h=Date:To:From:Subject:Message-Id; b=mk9gVfxhwUV3PPZK56SuzzZjQd1lGIkXQDAi5YbR1P65cp6NkXJSkK1LmxEjgXYcSxI4XB9by8DGn9WXb3tDtpApf8uRyMiAWcLzA5fUdUv8dyeFFUY75FceAy6CjldOHSq1nUkFy30KO+UWJxn6c2hr7Un8+EwnSS5i2WAQTVg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zPZWboCy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+dQG//b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA9D1C4CEF1;
-	Thu, 20 Nov 2025 21:44:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zPZWboCy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A89FDC4CEF1;
+	Thu, 20 Nov 2025 21:44:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675076;
-	bh=D9dHp2n2I3mrlLDyvfbv1pwpNOU0E+DuMVTPPMOLNzg=;
+	s=korg; t=1763675077;
+	bh=+HvLsrSRBNfFcrr3JQ8RynhWi83AnzDytMN1+BM/h8M=;
 	h=Date:To:From:Subject:From;
-	b=j+dQG//bmm2mK35/3kL8AEYfr+2gJIstFN3crqQuCycYxOmk2KO8HP/1bmOASYHQz
-	 mmrg9hrikUst59VKyvDlxZlxMkuGNXfSrVl/sXwOi3ergC6zYg8WmWxqpK/Ji3KcJG
-	 EJBHfTRS8e4QgQKmR5ELitYaMXirAQ2Zp+fzxzJ4=
-Date: Thu, 20 Nov 2025 13:44:36 -0800
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=zPZWboCyGJxyecq1iy+cyX4wwNrPCBTxZM+3TJQDKzSo2Mag3Mr4WCCg87CvPfcPl
+	 HE+x0tYCReMGQH37DcacaoutfgjPDMHVkE3B/ToVFeV2cJTp7o+sJ7vejwmuSpUJ53
+	 HihJywDk88EUYrVTdqSaEiJssp1PwelCwMuonE9M=
+Date: Thu, 20 Nov 2025 13:44:37 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,kent.overstreet@linux.dev,zengchi@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma.patch removed from -mm tree
-Message-Id: <20251120214436.BA9D1C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] alloc_tag-use-%pe-format-specifier.patch removed from -mm tree
+Message-Id: <20251120214437.A89FDC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,142 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: kill mm_wr_locked from unmap_vmas() and unmap_single_vma()
+     Subject: lib/alloc_tag: use %pe format specifier
 has been removed from the -mm tree.  Its filename was
-     mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma.patch
+     alloc_tag-use-%pe-format-specifier.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: kill mm_wr_locked from unmap_vmas() and unmap_single_vma()
-Date: Tue, 4 Nov 2025 16:57:09 +0800
+From: Zeng Chi <zengchi@kylinos.cn>
+Subject: lib/alloc_tag: use %pe format specifier
+Date: Wed, 5 Nov 2025 10:39:25 +0800
 
-Kill mm_wr_locked since commit f8e97613fed2 ("mm: convert VM_PFNMAP
-tracking to pfnmap_track() + pfnmap_untrack()") remove the user.
+The %pe format specifier is designed to print error pointers.  It prints a
+symbolic error name (eg.  -EINVAL) and it makes the code simpler by
+omitting PTR_ERR();
 
-Link: https://lkml.kernel.org/r/20251104085709.2688433-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+This patch fixes this cocci report:
+lib/alloc_tag.c:776:63-70: WARNING: Consider using %pe to print PTR_ERR()
+
+Link: https://lkml.kernel.org/r/20251105023925.1447482-1-zeng_chi911@163.com
+Signed-off-by: Zeng Chi <zengchi@kylinos.cn>
+Acked-by: SeongJae Park <sj@kernel.org>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |    2 +-
- mm/memory.c                      |   12 ++++--------
- mm/mmap.c                        |    2 +-
- mm/vma.c                         |    5 ++---
- tools/testing/vma/vma_internal.h |    3 +--
- 5 files changed, 9 insertions(+), 15 deletions(-)
+ lib/alloc_tag.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
-+++ a/include/linux/mm.h
-@@ -2480,7 +2480,7 @@ static inline void zap_vma_pages(struct
- }
- void unmap_vmas(struct mmu_gather *tlb, struct ma_state *mas,
- 		struct vm_area_struct *start_vma, unsigned long start,
--		unsigned long end, unsigned long tree_end, bool mm_wr_locked);
-+		unsigned long end, unsigned long tree_end);
+--- a/lib/alloc_tag.c~alloc_tag-use-%pe-format-specifier
++++ a/lib/alloc_tag.c
+@@ -845,7 +845,7 @@ static int __init alloc_tag_init(void)
  
- struct mmu_notifier_range;
- 
---- a/mm/memory.c~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
-+++ a/mm/memory.c
-@@ -2023,8 +2023,7 @@ void unmap_page_range(struct mmu_gather
- 
- static void unmap_single_vma(struct mmu_gather *tlb,
- 		struct vm_area_struct *vma, unsigned long start_addr,
--		unsigned long end_addr,
--		struct zap_details *details, bool mm_wr_locked)
-+		unsigned long end_addr, struct zap_details *details)
- {
- 	unsigned long start = max(vma->vm_start, start_addr);
- 	unsigned long end;
-@@ -2070,7 +2069,6 @@ static void unmap_single_vma(struct mmu_
-  * @start_addr: virtual address at which to start unmapping
-  * @end_addr: virtual address at which to end unmapping
-  * @tree_end: The maximum index to check
-- * @mm_wr_locked: lock flag
-  *
-  * Unmap all pages in the vma list.
-  *
-@@ -2085,8 +2083,7 @@ static void unmap_single_vma(struct mmu_
-  */
- void unmap_vmas(struct mmu_gather *tlb, struct ma_state *mas,
- 		struct vm_area_struct *vma, unsigned long start_addr,
--		unsigned long end_addr, unsigned long tree_end,
--		bool mm_wr_locked)
-+		unsigned long end_addr, unsigned long tree_end)
- {
- 	struct mmu_notifier_range range;
- 	struct zap_details details = {
-@@ -2102,8 +2099,7 @@ void unmap_vmas(struct mmu_gather *tlb,
- 		unsigned long start = start_addr;
- 		unsigned long end = end_addr;
- 		hugetlb_zap_begin(vma, &start, &end);
--		unmap_single_vma(tlb, vma, start, end, &details,
--				 mm_wr_locked);
-+		unmap_single_vma(tlb, vma, start, end, &details);
- 		hugetlb_zap_end(vma, &details);
- 		vma = mas_find(mas, tree_end - 1);
- 	} while (vma && likely(!xa_is_zero(vma)));
-@@ -2139,7 +2135,7 @@ void zap_page_range_single_batched(struc
- 	 * unmap 'address-end' not 'range.start-range.end' as range
- 	 * could have been expanded for hugetlb pmd sharing.
- 	 */
--	unmap_single_vma(tlb, vma, address, end, details, false);
-+	unmap_single_vma(tlb, vma, address, end, details);
- 	mmu_notifier_invalidate_range_end(&range);
- 	if (is_vm_hugetlb_page(vma)) {
- 		/*
---- a/mm/mmap.c~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
-+++ a/mm/mmap.c
-@@ -1274,7 +1274,7 @@ void exit_mmap(struct mm_struct *mm)
- 	tlb_gather_mmu_fullmm(&tlb, mm);
- 	/* update_hiwater_rss(mm) here? but nobody should be looking */
- 	/* Use ULONG_MAX here to ensure all VMAs in the mm are unmapped */
--	unmap_vmas(&tlb, &vmi.mas, vma, 0, ULONG_MAX, ULONG_MAX, false);
-+	unmap_vmas(&tlb, &vmi.mas, vma, 0, ULONG_MAX, ULONG_MAX);
- 	mmap_read_unlock(mm);
- 
- 	/*
---- a/mm/vma.c~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
-+++ a/mm/vma.c
-@@ -483,8 +483,7 @@ void unmap_region(struct ma_state *mas,
- 
- 	tlb_gather_mmu(&tlb, mm);
- 	update_hiwater_rss(mm);
--	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end,
--		   /* mm_wr_locked = */ true);
-+	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end);
- 	mas_set(mas, vma->vm_end);
- 	free_pgtables(&tlb, mas, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
- 		      next ? next->vm_start : USER_PGTABLES_CEILING,
-@@ -1228,7 +1227,7 @@ static inline void vms_clear_ptes(struct
- 	tlb_gather_mmu(&tlb, vms->vma->vm_mm);
- 	update_hiwater_rss(vms->vma->vm_mm);
- 	unmap_vmas(&tlb, mas_detach, vms->vma, vms->start, vms->end,
--		   vms->vma_count, mm_wr_locked);
-+		   vms->vma_count);
- 
- 	mas_set(mas_detach, 1);
- 	/* start and end may be different if there is no prev or next vma. */
---- a/tools/testing/vma/vma_internal.h~mm-kill-mm_wr_locked-from-unmap_vmas-and-unmap_single_vma
-+++ a/tools/testing/vma/vma_internal.h
-@@ -848,8 +848,7 @@ static inline void update_hiwater_vm(str
- 
- static inline void unmap_vmas(struct mmu_gather *tlb, struct ma_state *mas,
- 		      struct vm_area_struct *vma, unsigned long start_addr,
--		      unsigned long end_addr, unsigned long tree_end,
--		      bool mm_wr_locked)
-+		      unsigned long end_addr, unsigned long tree_end)
- {
- }
- 
+ 	alloc_tag_cttype = codetag_register_type(&desc);
+ 	if (IS_ERR(alloc_tag_cttype)) {
+-		pr_err("Allocation tags registration failed, errno = %ld\n", PTR_ERR(alloc_tag_cttype));
++		pr_err("Allocation tags registration failed, errno = %pe\n", alloc_tag_cttype);
+ 		free_mod_tags_mem();
+ 		shutdown_mem_profiling(true);
+ 		return PTR_ERR(alloc_tag_cttype);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from zengchi@kylinos.cn are
 
 
