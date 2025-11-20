@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB4002E92B3
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60FDD35CB72
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675092; cv=none; b=OKMW6zoQxbRhy9aYwy+8yXsOhbVmmR+GuqVWl4/0cSl6Lrvx8T+G5RqE++LQuKlwAqSYxU50Ly8J+eBHrle7xlA9+kzv5qz2YASI7bYhkvkSm/rgFOm4PvSL++ek9EQHovelnYPkhenagzr+CZdc7YfU15Se6aq/SjQtH02YHwY=
+	t=1763675094; cv=none; b=M0Kouf73Z7TywxYE7cqM67Yd0rP77j9UatD6syJ5XXdXxi+/3ZXsU2JPKHJ/aSKkbrJmse6OZZctgzK7UYShOieL70Zb75DV1YWZqLctD7c9z/5zs7ZXkSwljtjFthsk3iCwoFhalE6JuEBRRRdGJ9uqnucrQXUHpVkdViWz368=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675092; c=relaxed/simple;
-	bh=5Ap+JBKKiMrzLblkVYGbPXBYqa94Qxe6GoeVseUhF9o=;
-	h=Date:To:From:Subject:Message-Id; b=BNg/ydNwmesPghD9mQ7YuBlGbD+7wBnYx1sRIJnjEUnS+lpc6FVhQZHZqj/vCmnwrE0WCTNT8akajNDPE6EV9TQht50ziixoBOmh2pupGXEHEPMEyxqYYoaQ9rDhwlqi4zBOBBFyLMQAmJNb6S6/uijlpWVNFEa1DUhloNfriP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dd9zA6jG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675094; c=relaxed/simple;
+	bh=bjwF2pvzNxka77zd1aYOv0iCtyBmsp5fc/tK624a7xw=;
+	h=Date:To:From:Subject:Message-Id; b=R6S36+zPSuzZFHYC25Mix+PAN1PWeqsL/7syMBluS2fqGDHqIEBLU3MkUM+WyQdIiK+lwHiP7+1FSdwV1v1Cft5GuMXWSswT7kYSE9FvDCR/psWfzeJwdB/btEI8t9yKjmg635nZWlLXA4z6RY0tbWlLG+HnXpNDZeSr+xNwb6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AWIBdXzu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dd9zA6jG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ECFDC4CEF1;
-	Thu, 20 Nov 2025 21:44:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AWIBdXzu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33519C4CEF1;
+	Thu, 20 Nov 2025 21:44:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675092;
-	bh=5Ap+JBKKiMrzLblkVYGbPXBYqa94Qxe6GoeVseUhF9o=;
+	s=korg; t=1763675094;
+	bh=bjwF2pvzNxka77zd1aYOv0iCtyBmsp5fc/tK624a7xw=;
 	h=Date:To:From:Subject:From;
-	b=dd9zA6jGFDo7prYdmNmfFf+FgOfnJCH2Jsu8BvRsqXWiM4EzoO4ZlJp6CMpZk07Oi
-	 GpVOfZL3AWuLiR1i0i4vlL15+hY0XDlmRCOGTGaxdV4vYd6nxxFzfwEQEF4IVPlRu0
-	 n4whVMhlmMC1qIn57qQFSd6VU4O9XosaBi7o+gek=
-Date: Thu, 20 Nov 2025 13:44:52 -0800
+	b=AWIBdXzuKQ277IRdiMd8Xm25Z/j5r+6oT918hFPv0sVoWu2Xdj/snAFF93JjRNMqz
+	 u2EiGEVO1cjdUUKav9KnILgdsFEkNvFsn+BSYEPa7eH0vVrPICgjbInOhK+oWWQYl0
+	 UuE0xo5tGSqzvPDQ3SHWFeYn+VNJoZnT60ECtKa4=
+Date: Thu, 20 Nov 2025 13:44:53 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,pfalcato@suse.de,npache@redhat.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,liam.howlett@oracle.com,lance.yang@linux.dev,jannh@google.com,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,avagin@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch removed from -mm tree
-Message-Id: <20251120214452.8ECFDC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-vma-add-vma-sticky-userland-tests.patch removed from -mm tree
+Message-Id: <20251120214454.33519C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: set the VM_MAYBE_GUARD flag on guard region install
+     Subject: tools/testing/vma: add VMA sticky userland tests
 has been removed from the -mm tree.  Its filename was
-     mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
+     tools-testing-vma-add-vma-sticky-userland-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: set the VM_MAYBE_GUARD flag on guard region install
-Date: Tue, 18 Nov 2025 10:17:48 +0000
+Subject: tools/testing/vma: add VMA sticky userland tests
+Date: Tue, 18 Nov 2025 10:17:49 +0000
 
-Now we have established the VM_MAYBE_GUARD flag and added the capacity to
-set it atomically, do so upon MADV_GUARD_INSTALL.
+Modify existing merge new/existing userland VMA tests to assert that
+sticky VMA flags behave as expected.
 
-The places where this flag is used currently and matter are:
+We do so by generating every possible permutation of VMAs being
+manipulated being sticky/not sticky and asserting that VMA flags with this
+property retain are retained upon merge.
 
-* VMA merge - performed under mmap/VMA write lock, therefore excluding
-  racing writes.
-
-* /proc/$pid/smaps - can race the write, however this isn't meaningful
-  as the flag write is performed at the point of the guard region being
-  established, and thus an smaps reader can't reasonably expect to avoid
-  races.  Due to atomicity, a reader will observe either the flag being
-  set or not.  Therefore consistency will be maintained.
-
-In all other cases the flag being set is irrelevant and atomicity
-guarantees other flags will be read correctly.
-
-Note that non-atomic updates of unrelated flags do not cause an issue with
-this flag being set atomically, as writes of other flags are performed
-under mmap/VMA write lock, and these atomic writes are performed under
-mmap/VMA read lock, which excludes the write, avoiding RMW races.
-
-Note that we do not encounter issues with KCSAN by adjusting this flag
-atomically, as we are only updating a single bit in the flag bitmap and
-therefore we do not need to annotate these changes.
-
-We intentionally set this flag in advance of actually updating the page
-tables, to ensure that any racing atomic read of this flag will only
-return false prior to page tables being updated, to allow for
-serialisation via page table locks.
-
-Note that we set vma->anon_vma for anonymous mappings.  This is because
-the expectation for anonymous mappings is that an anon_vma is established
-should they possess any page table mappings.  This is also consistent with
-what we were doing prior to this patch (unconditionally setting anon_vma
-on guard region installation).
-
-We also need to update retract_page_tables() to ensure that madvise(...,
-MADV_COLLAPSE) doesn't incorrectly collapse file-backed ranges contain
-guard regions.
-
-This was previously guarded by anon_vma being set to catch MAP_PRIVATE
-cases, but the introduction of VM_MAYBE_GUARD necessitates that we check
-this flag instead.
-
-We utilise vma_flag_test_atomic() to do so - we first perform an
-optimistic check, then after the PTE page table lock is held, we can check
-again safely, as upon guard marker install the flag is set atomically
-prior to the page table lock being taken to actually apply it.
-
-So if the initial check fails either:
-
-* Page table retraction acquires page table lock prior to VM_MAYBE_GUARD
-  being set - guard marker installation will be blocked until page table
-  retraction is complete.
-
-OR:
-
-* Guard marker installation acquires page table lock after setting
-  VM_MAYBE_GUARD, which raced and didn't pick this up in the initial
-  optimistic check, blocking page table retraction until the guard regions
-  are installed - the second VM_MAYBE_GUARD check will prevent page table
-  retraction.
-
-Either way we're safe.
-
-We refactor the retraction checks into a single
-file_backed_vma_is_retractable(), there doesn't seem to be any reason that
-the checks were separated as before.
-
-Note that VM_MAYBE_GUARD being set atomically remains correct as
-vma_needs_copy() is invoked with the mmap and VMA write locks held,
-excluding any race with madvise_guard_install().
-
-Link: https://lkml.kernel.org/r/e9e9ce95b6ac17497de7f60fc110c7dd9e489e8d.1763460113.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/5e2c7244485867befd052f8afc8188be6a4be670.1763460113.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrei Vagin <avagin@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -142,148 +74,295 @@ Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   71 ++++++++++++++++++++++++++++++----------------
- mm/madvise.c    |   22 +++++++++-----
- 2 files changed, 61 insertions(+), 32 deletions(-)
+ tools/testing/vma/vma.c |   89 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 79 insertions(+), 10 deletions(-)
 
---- a/mm/khugepaged.c~mm-set-the-vm_maybe_guard-flag-on-guard-region-install
-+++ a/mm/khugepaged.c
-@@ -1717,6 +1717,43 @@ drop_folio:
- 	return result;
+--- a/tools/testing/vma/vma.c~tools-testing-vma-add-vma-sticky-userland-tests
++++ a/tools/testing/vma/vma.c
+@@ -48,6 +48,8 @@ static struct anon_vma dummy_anon_vma;
+ #define ASSERT_EQ(_val1, _val2) ASSERT_TRUE((_val1) == (_val2))
+ #define ASSERT_NE(_val1, _val2) ASSERT_TRUE((_val1) != (_val2))
+ 
++#define IS_SET(_val, _flags) ((_val & _flags) == _flags)
++
+ static struct task_struct __current;
+ 
+ struct task_struct *get_current(void)
+@@ -442,7 +444,7 @@ static bool test_simple_shrink(void)
+ 	return true;
  }
  
-+/* Can we retract page tables for this file-backed VMA? */
-+static bool file_backed_vma_is_retractable(struct vm_area_struct *vma)
+-static bool test_merge_new(void)
++static bool __test_merge_new(bool is_sticky, bool a_is_sticky, bool b_is_sticky, bool c_is_sticky)
+ {
+ 	vm_flags_t vm_flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
+ 	struct mm_struct mm = {};
+@@ -470,23 +472,32 @@ static bool test_merge_new(void)
+ 	struct vm_area_struct *vma, *vma_a, *vma_b, *vma_c, *vma_d;
+ 	bool merged;
+ 
++	if (is_sticky)
++		vm_flags |= VM_STICKY;
++
+ 	/*
+ 	 * 0123456789abc
+ 	 * AA B       CC
+ 	 */
+ 	vma_a = alloc_and_link_vma(&mm, 0, 0x2000, 0, vm_flags);
+ 	ASSERT_NE(vma_a, NULL);
++	if (a_is_sticky)
++		vm_flags_set(vma_a, VM_STICKY);
+ 	/* We give each VMA a single avc so we can test anon_vma duplication. */
+ 	INIT_LIST_HEAD(&vma_a->anon_vma_chain);
+ 	list_add(&dummy_anon_vma_chain_a.same_vma, &vma_a->anon_vma_chain);
+ 
+ 	vma_b = alloc_and_link_vma(&mm, 0x3000, 0x4000, 3, vm_flags);
+ 	ASSERT_NE(vma_b, NULL);
++	if (b_is_sticky)
++		vm_flags_set(vma_b, VM_STICKY);
+ 	INIT_LIST_HEAD(&vma_b->anon_vma_chain);
+ 	list_add(&dummy_anon_vma_chain_b.same_vma, &vma_b->anon_vma_chain);
+ 
+ 	vma_c = alloc_and_link_vma(&mm, 0xb000, 0xc000, 0xb, vm_flags);
+ 	ASSERT_NE(vma_c, NULL);
++	if (c_is_sticky)
++		vm_flags_set(vma_c, VM_STICKY);
+ 	INIT_LIST_HEAD(&vma_c->anon_vma_chain);
+ 	list_add(&dummy_anon_vma_chain_c.same_vma, &vma_c->anon_vma_chain);
+ 
+@@ -521,6 +532,8 @@ static bool test_merge_new(void)
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 3);
++	if (is_sticky || a_is_sticky || b_is_sticky)
++		ASSERT_TRUE(IS_SET(vma->vm_flags, VM_STICKY));
+ 
+ 	/*
+ 	 * Merge to PREVIOUS VMA.
+@@ -538,6 +551,8 @@ static bool test_merge_new(void)
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 3);
++	if (is_sticky || a_is_sticky)
++		ASSERT_TRUE(IS_SET(vma->vm_flags, VM_STICKY));
+ 
+ 	/*
+ 	 * Merge to NEXT VMA.
+@@ -557,6 +572,8 @@ static bool test_merge_new(void)
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 3);
++	if (is_sticky) /* D uses is_sticky. */
++		ASSERT_TRUE(IS_SET(vma->vm_flags, VM_STICKY));
+ 
+ 	/*
+ 	 * Merge BOTH sides.
+@@ -575,6 +592,8 @@ static bool test_merge_new(void)
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 2);
++	if (is_sticky || a_is_sticky)
++		ASSERT_TRUE(IS_SET(vma->vm_flags, VM_STICKY));
+ 
+ 	/*
+ 	 * Merge to NEXT VMA.
+@@ -593,6 +612,8 @@ static bool test_merge_new(void)
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 2);
++	if (is_sticky || c_is_sticky)
++		ASSERT_TRUE(IS_SET(vma->vm_flags, VM_STICKY));
+ 
+ 	/*
+ 	 * Merge BOTH sides.
+@@ -610,6 +631,8 @@ static bool test_merge_new(void)
+ 	ASSERT_EQ(vma->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 1);
++	if (is_sticky || a_is_sticky || c_is_sticky)
++		ASSERT_TRUE(IS_SET(vma->vm_flags, VM_STICKY));
+ 
+ 	/*
+ 	 * Final state.
+@@ -638,6 +661,20 @@ static bool test_merge_new(void)
+ 	return true;
+ }
+ 
++static bool test_merge_new(void)
 +{
-+	/*
-+	 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
-+	 * got written to. These VMAs are likely not worth removing
-+	 * page tables from, as PMD-mapping is likely to be split later.
-+	 */
-+	if (READ_ONCE(vma->anon_vma))
-+		return false;
++	int i, j, k, l;
 +
-+	/*
-+	 * When a vma is registered with uffd-wp, we cannot recycle
-+	 * the page table because there may be pte markers installed.
-+	 * Other vmas can still have the same file mapped hugely, but
-+	 * skip this one: it will always be mapped in small page size
-+	 * for uffd-wp registered ranges.
-+	 */
-+	if (userfaultfd_wp(vma))
-+		return false;
-+
-+	/*
-+	 * If the VMA contains guard regions then we can't collapse it.
-+	 *
-+	 * This is set atomically on guard marker installation under mmap/VMA
-+	 * read lock, and here we may not hold any VMA or mmap lock at all.
-+	 *
-+	 * This is therefore serialised on the PTE page table lock, which is
-+	 * obtained on guard region installation after the flag is set, so this
-+	 * check being performed under this lock excludes races.
-+	 */
-+	if (vma_flag_test_atomic(vma, VM_MAYBE_GUARD_BIT))
-+		return false;
++	/* Generate every possible permutation of sticky flags. */
++	for (i = 0; i < 2; i++)
++		for (j = 0; j < 2; j++)
++			for (k = 0; k < 2; k++)
++				for (l = 0; l < 2; l++)
++					ASSERT_TRUE(__test_merge_new(i, j, k, l));
 +
 +	return true;
 +}
 +
- static void retract_page_tables(struct address_space *mapping, pgoff_t pgoff)
+ static bool test_vma_merge_special_flags(void)
  {
- 	struct vm_area_struct *vma;
-@@ -1731,14 +1768,6 @@ static void retract_page_tables(struct a
- 		spinlock_t *ptl;
- 		bool success = false;
+ 	vm_flags_t vm_flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
+@@ -974,9 +1011,11 @@ static bool test_vma_merge_new_with_clos
+ 	return true;
+ }
  
--		/*
--		 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
--		 * got written to. These VMAs are likely not worth removing
--		 * page tables from, as PMD-mapping is likely to be split later.
--		 */
--		if (READ_ONCE(vma->anon_vma))
--			continue;
--
- 		addr = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
- 		if (addr & ~HPAGE_PMD_MASK ||
- 		    vma->vm_end < addr + HPAGE_PMD_SIZE)
-@@ -1750,14 +1779,8 @@ static void retract_page_tables(struct a
+-static bool test_merge_existing(void)
++static bool __test_merge_existing(bool prev_is_sticky, bool middle_is_sticky, bool next_is_sticky)
+ {
+ 	vm_flags_t vm_flags = VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE;
++	vm_flags_t prev_flags = vm_flags;
++	vm_flags_t next_flags = vm_flags;
+ 	struct mm_struct mm = {};
+ 	VMA_ITERATOR(vmi, &mm, 0);
+ 	struct vm_area_struct *vma, *vma_prev, *vma_next;
+@@ -989,6 +1028,13 @@ static bool test_merge_existing(void)
+ 	};
+ 	struct anon_vma_chain avc = {};
  
- 		if (hpage_collapse_test_exit(mm))
- 			continue;
--		/*
--		 * When a vma is registered with uffd-wp, we cannot recycle
--		 * the page table because there may be pte markers installed.
--		 * Other vmas can still have the same file mapped hugely, but
--		 * skip this one: it will always be mapped in small page size
--		 * for uffd-wp registered ranges.
--		 */
--		if (userfaultfd_wp(vma))
++	if (prev_is_sticky)
++		prev_flags |= VM_STICKY;
++	if (middle_is_sticky)
++		vm_flags |= VM_STICKY;
++	if (next_is_sticky)
++		next_flags |= VM_STICKY;
 +
-+		if (!file_backed_vma_is_retractable(vma))
- 			continue;
- 
- 		/* PTEs were notified when unmapped; but now for the PMD? */
-@@ -1784,15 +1807,15 @@ static void retract_page_tables(struct a
- 			spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
- 
- 		/*
--		 * Huge page lock is still held, so normally the page table
--		 * must remain empty; and we have already skipped anon_vma
--		 * and userfaultfd_wp() vmas.  But since the mmap_lock is not
--		 * held, it is still possible for a racing userfaultfd_ioctl()
--		 * to have inserted ptes or markers.  Now that we hold ptlock,
--		 * repeating the anon_vma check protects from one category,
--		 * and repeating the userfaultfd_wp() check from another.
-+		 * Huge page lock is still held, so normally the page table must
-+		 * remain empty; and we have already skipped anon_vma and
-+		 * userfaultfd_wp() vmas.  But since the mmap_lock is not held,
-+		 * it is still possible for a racing userfaultfd_ioctl() or
-+		 * madvise() to have inserted ptes or markers.  Now that we hold
-+		 * ptlock, repeating the retractable checks protects us from
-+		 * races against the prior checks.
- 		 */
--		if (likely(!vma->anon_vma && !userfaultfd_wp(vma))) {
-+		if (likely(file_backed_vma_is_retractable(vma))) {
- 			pgt_pmd = pmdp_collapse_flush(vma, addr, pmd);
- 			pmdp_get_lockless_sync();
- 			success = true;
---- a/mm/madvise.c~mm-set-the-vm_maybe_guard-flag-on-guard-region-install
-+++ a/mm/madvise.c
-@@ -1141,15 +1141,21 @@ static long madvise_guard_install(struct
- 		return -EINVAL;
- 
  	/*
--	 * If we install guard markers, then the range is no longer
--	 * empty from a page table perspective and therefore it's
--	 * appropriate to have an anon_vma.
--	 *
--	 * This ensures that on fork, we copy page tables correctly.
-+	 * Set atomically under read lock. All pertinent readers will need to
-+	 * acquire an mmap/VMA write lock to read it. All remaining readers may
-+	 * or may not see the flag set, but we don't care.
+ 	 * Merge right case - partial span.
+ 	 *
+@@ -1001,7 +1047,7 @@ static bool test_merge_existing(void)
  	 */
--	err = anon_vma_prepare(vma);
--	if (err)
--		return err;
-+	vma_flag_set_atomic(vma, VM_MAYBE_GUARD_BIT);
-+
-+	/*
-+	 * If anonymous and we are establishing page tables the VMA ought to
-+	 * have an anon_vma associated with it.
-+	 */
-+	if (vma_is_anonymous(vma)) {
-+		err = anon_vma_prepare(vma);
-+		if (err)
-+			return err;
-+	}
+ 	vma = alloc_and_link_vma(&mm, 0x2000, 0x6000, 2, vm_flags);
+ 	vma->vm_ops = &vm_ops; /* This should have no impact. */
+-	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, vm_flags);
++	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, next_flags);
+ 	vma_next->vm_ops = &vm_ops; /* This should have no impact. */
+ 	vmg_set_range_anon_vma(&vmg, 0x3000, 0x6000, 3, vm_flags, &dummy_anon_vma);
+ 	vmg.middle = vma;
+@@ -1019,6 +1065,8 @@ static bool test_merge_existing(void)
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_TRUE(vma_write_started(vma_next));
+ 	ASSERT_EQ(mm.map_count, 2);
++	if (middle_is_sticky || next_is_sticky)
++		ASSERT_TRUE(IS_SET(vma_next->vm_flags, VM_STICKY));
  
- 	/*
- 	 * Optimistically try to install the guard marker pages first. If any
+ 	/* Clear down and reset. */
+ 	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
+@@ -1034,7 +1082,7 @@ static bool test_merge_existing(void)
+ 	 *   NNNNNNN
+ 	 */
+ 	vma = alloc_and_link_vma(&mm, 0x2000, 0x6000, 2, vm_flags);
+-	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, vm_flags);
++	vma_next = alloc_and_link_vma(&mm, 0x6000, 0x9000, 6, next_flags);
+ 	vma_next->vm_ops = &vm_ops; /* This should have no impact. */
+ 	vmg_set_range_anon_vma(&vmg, 0x2000, 0x6000, 2, vm_flags, &dummy_anon_vma);
+ 	vmg.middle = vma;
+@@ -1047,6 +1095,8 @@ static bool test_merge_existing(void)
+ 	ASSERT_EQ(vma_next->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma_next));
+ 	ASSERT_EQ(mm.map_count, 1);
++	if (middle_is_sticky || next_is_sticky)
++		ASSERT_TRUE(IS_SET(vma_next->vm_flags, VM_STICKY));
+ 
+ 	/* Clear down and reset. We should have deleted vma. */
+ 	ASSERT_EQ(cleanup_mm(&mm, &vmi), 1);
+@@ -1061,7 +1111,7 @@ static bool test_merge_existing(void)
+ 	 * 0123456789
+ 	 * PPPPPPV
+ 	 */
+-	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, vm_flags);
++	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, prev_flags);
+ 	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
+ 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, vm_flags);
+ 	vma->vm_ops = &vm_ops; /* This should have no impact. */
+@@ -1081,6 +1131,8 @@ static bool test_merge_existing(void)
+ 	ASSERT_TRUE(vma_write_started(vma_prev));
+ 	ASSERT_TRUE(vma_write_started(vma));
+ 	ASSERT_EQ(mm.map_count, 2);
++	if (prev_is_sticky || middle_is_sticky)
++		ASSERT_TRUE(IS_SET(vma_prev->vm_flags, VM_STICKY));
+ 
+ 	/* Clear down and reset. */
+ 	ASSERT_EQ(cleanup_mm(&mm, &vmi), 2);
+@@ -1095,7 +1147,7 @@ static bool test_merge_existing(void)
+ 	 * 0123456789
+ 	 * PPPPPPP
+ 	 */
+-	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, vm_flags);
++	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, prev_flags);
+ 	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
+ 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, vm_flags);
+ 	vmg_set_range_anon_vma(&vmg, 0x3000, 0x7000, 3, vm_flags, &dummy_anon_vma);
+@@ -1110,6 +1162,8 @@ static bool test_merge_existing(void)
+ 	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma_prev));
+ 	ASSERT_EQ(mm.map_count, 1);
++	if (prev_is_sticky || middle_is_sticky)
++		ASSERT_TRUE(IS_SET(vma_prev->vm_flags, VM_STICKY));
+ 
+ 	/* Clear down and reset. We should have deleted vma. */
+ 	ASSERT_EQ(cleanup_mm(&mm, &vmi), 1);
+@@ -1124,10 +1178,10 @@ static bool test_merge_existing(void)
+ 	 * 0123456789
+ 	 * PPPPPPPPPP
+ 	 */
+-	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, vm_flags);
++	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, prev_flags);
+ 	vma_prev->vm_ops = &vm_ops; /* This should have no impact. */
+ 	vma = alloc_and_link_vma(&mm, 0x3000, 0x7000, 3, vm_flags);
+-	vma_next = alloc_and_link_vma(&mm, 0x7000, 0x9000, 7, vm_flags);
++	vma_next = alloc_and_link_vma(&mm, 0x7000, 0x9000, 7, next_flags);
+ 	vmg_set_range_anon_vma(&vmg, 0x3000, 0x7000, 3, vm_flags, &dummy_anon_vma);
+ 	vmg.prev = vma_prev;
+ 	vmg.middle = vma;
+@@ -1140,6 +1194,8 @@ static bool test_merge_existing(void)
+ 	ASSERT_EQ(vma_prev->anon_vma, &dummy_anon_vma);
+ 	ASSERT_TRUE(vma_write_started(vma_prev));
+ 	ASSERT_EQ(mm.map_count, 1);
++	if (prev_is_sticky || middle_is_sticky || next_is_sticky)
++		ASSERT_TRUE(IS_SET(vma_prev->vm_flags, VM_STICKY));
+ 
+ 	/* Clear down and reset. We should have deleted prev and next. */
+ 	ASSERT_EQ(cleanup_mm(&mm, &vmi), 1);
+@@ -1159,9 +1215,9 @@ static bool test_merge_existing(void)
+ 	 * PPPVVVVVNNN
+ 	 */
+ 
+-	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, vm_flags);
++	vma_prev = alloc_and_link_vma(&mm, 0, 0x3000, 0, prev_flags);
+ 	vma = alloc_and_link_vma(&mm, 0x3000, 0x8000, 3, vm_flags);
+-	vma_next = alloc_and_link_vma(&mm, 0x8000, 0xa000, 8, vm_flags);
++	vma_next = alloc_and_link_vma(&mm, 0x8000, 0xa000, 8, next_flags);
+ 
+ 	vmg_set_range(&vmg, 0x4000, 0x5000, 4, vm_flags);
+ 	vmg.prev = vma;
+@@ -1203,6 +1259,19 @@ static bool test_merge_existing(void)
+ 
+ 	return true;
+ }
++
++static bool test_merge_existing(void)
++{
++	int i, j, k;
++
++	/* Generate every possible permutation of sticky flags. */
++	for (i = 0; i < 2; i++)
++		for (j = 0; j < 2; j++)
++			for (k = 0; k < 2; k++)
++				ASSERT_TRUE(__test_merge_existing(i, j, k));
++
++	return true;
++}
+ 
+ static bool test_anon_vma_non_mergeable(void)
+ {
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
