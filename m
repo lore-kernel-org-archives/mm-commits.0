@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01CF8328611
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 15:41:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0AB22DC765
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 15:54:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763653276; cv=none; b=LXRc0MBSAvkVmJ+w+58WL/xt0BwK15gD5H2ur1IzYwIesTbHvedxcrPE60GyjtHkoHlEI8C2psprxMFK8xSw30781bStft3XCjEiyGTOmMzLj95dL3wdFQIhPS3J9xyV6h9BDTZMg3Lr1XWWKAOWQrG76UeTKj1eGc9WjZBwc7E=
+	t=1763654045; cv=none; b=QQFgzD23hakrkahJZvcPGKjL4SII/yOdmobNeRZ9FY3HWcOwA5bKpbHucrKBBPPi1XwSM6wMsXTWSyn1ZDS7dDOBqZ7cG9TgDAxlzBe2hPAVJ3tCAv9AlvCX1mJn2V9EdwpDPH7yO9/3Abn3Va1hvdHivVLgDI50zY2eRKnPcgc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763653276; c=relaxed/simple;
-	bh=3Cy+auwEU89JUqnbKwHYxyfo6/vUj7vx2S+/PIpI4oQ=;
-	h=Date:To:From:Subject:Message-Id; b=jAZL4O6ctdDkeoBlB4Yx8uIQz0qVL/8PaOzBjCpMeVtYXa2QLhjMwT1YakjJ6gNUtfsN6YNOWb5B/SWDNYnioakFVPUGSEEO8gMyb7FHaf1j5D9B/gRnYETjGNt34jQyGAQPXL5QS3MBH2yU5TzqCxAaACkN7oCioK3vhDH8H7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1vcoZ4MQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763654045; c=relaxed/simple;
+	bh=qqH30mOgqHhs9f66ZdG13WKAXxDNUqdKaTcbwhVpmDw=;
+	h=Date:To:From:Subject:Message-Id; b=RoDlM2rLnS3zFGGbBfzVu/sH6/h4KfOBuKs+u1XCuBSXZs0Dm7lysv9Wk+6kr4N7EMtkF7FMuN0nU7PoPdb+uHg5iMefw0b5as/geB7fcNyGjxayzl5Re4pTARZlZmFQxMS2/OuikBZZ1HFFAY1Yznt2ytaMNS7kt60xXl019mY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ABgn7R1o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1vcoZ4MQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE3A5C116C6;
-	Thu, 20 Nov 2025 15:41:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ABgn7R1o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14348C4CEF1;
+	Thu, 20 Nov 2025 15:54:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763653275;
-	bh=3Cy+auwEU89JUqnbKwHYxyfo6/vUj7vx2S+/PIpI4oQ=;
+	s=korg; t=1763654045;
+	bh=qqH30mOgqHhs9f66ZdG13WKAXxDNUqdKaTcbwhVpmDw=;
 	h=Date:To:From:Subject:From;
-	b=1vcoZ4MQnqQ2mnLej+hjG1IkA3wjWbgGLmjAutckbDRVlujyeHM3yTVDpj0YDotWD
-	 N7OkMcY6Z/+iQDYUqMgN1uFayOgOxPFHHUNdn4Jsvacq+0kEr/a2eGHQdw853Ht9q+
-	 QKadxLoWZFEg++27VhPipo7AoqWKdiL0ryORx0vI=
-Date: Thu, 20 Nov 2025 07:41:14 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,changyuanl@google.com,catalin.marinas@arm.com,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
+	b=ABgn7R1ovG6dqp79uiMykVBq70HYEXs+wYeZUfIafKx3UOZpzwicTOCkDKNvB3xPZ
+	 p14VC9JJhR+5VGWHp8zH6iOF+ZrRyo8pPlzaMWPItKCwtdU8XhdqnNPiw7+rwV8Fvb
+	 +lu932tYN9yk1tn/vbu1+sfloeEN17LovAjwpsoA=
+Date: Thu, 20 Nov 2025 07:54:04 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-fix-boot-failure-due-to-kmemleak-access-to-unmapped-pages.patch added to mm-nonmm-unstable branch
-Message-Id: <20251120154114.EE3A5C116C6@smtp.kernel.org>
+Subject: + mm-declare-vma-flags-by-bit-fix-3.patch added to mm-unstable branch
+Message-Id: <20251120155405.14348C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: liveupdate: fix boot failure due to kmemleak access to unmapped pages
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     liveupdate-fix-boot-failure-due-to-kmemleak-access-to-unmapped-pages.patch
+     Subject: mm-declare-vma-flags-by-bit-fix-3
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-declare-vma-flags-by-bit-fix-3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-fix-boot-failure-due-to-kmemleak-access-to-unmapped-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-declare-vma-flags-by-bit-fix-3.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Subject: liveupdate: fix boot failure due to kmemleak access to unmapped pages
-Date: Thu, 20 Nov 2025 14:41:47 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm-declare-vma-flags-by-bit-fix-3
+Date: Thu, 20 Nov 2025 14:23:13 +0000
 
-When booting with debug_pagealloc=on while having:
-CONFIG_KEXEC_HANDOVER_ENABLE_DEFAULT=y
-CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF=n
-the system fails to boot due to page faults during kmemleak scanning.
+fix parisc build
 
-This occurs because:
-With debug_pagealloc enabled, __free_pages() invokes
-debug_pagealloc_unmap_pages(), clearing the _PAGE_PRESENT bit for freed
-pages in the direct mapping.  Commit 3dc92c311498 ("kexec: add Kexec
-HandOver (KHO) generation helpers") releases the KHO scratch region via
-init_cma_reserved_pageblock(), unmapping its physical pages.  Subsequent
-kmemleak scanning accesses these unmapped pages, triggering fatal page
-faults.
-
-Call kmemleak_no_scan_phys() from kho_reserve_scratch() to exclude the
-reserved region from scanning before it is released to the buddy
-allocator.
-
-Link: https://lkml.kernel.org/r/20251120144147.90508-3-ranxiaokai627@163.com
-Fixes: 3dc92c311498 ("kexec: add Kexec HandOver (KHO) generation helpers")
-Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Changyuan Lyu <changyuanl@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Link: https://lkml.kernel.org/r/ad8ce21f-7be8-4d9b-be49-d71010e92055@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/mm.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~liveupdate-fix-boot-failure-due-to-kmemleak-access-to-unmapped-pages
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -11,6 +11,7 @@
+--- a/include/linux/mm.h~mm-declare-vma-flags-by-bit-fix-3
++++ a/include/linux/mm.h
+@@ -529,14 +529,6 @@ enum {
  
- #include <linux/cleanup.h>
- #include <linux/cma.h>
-+#include <linux/kmemleak.h>
- #include <linux/count_zeros.h>
- #include <linux/kexec.h>
- #include <linux/kexec_handover.h>
-@@ -654,6 +655,7 @@ static void __init kho_reserve_scratch(v
- 	if (!addr)
- 		goto err_free_scratch_desc;
+ #define VM_STARTGAP_FLAGS (VM_GROWSDOWN | VM_SHADOW_STACK)
  
-+	kmemleak_no_scan_phys(addr);
- 	kho_scratch[i].addr = addr;
- 	kho_scratch[i].size = size;
- 	i++;
-@@ -664,6 +666,7 @@ static void __init kho_reserve_scratch(v
- 	if (!addr)
- 		goto err_free_scratch_areas;
- 
-+	kmemleak_no_scan_phys(addr);
- 	kho_scratch[i].addr = addr;
- 	kho_scratch[i].size = size;
- 	i++;
-@@ -676,6 +679,7 @@ static void __init kho_reserve_scratch(v
- 		if (!addr)
- 			goto err_free_scratch_areas;
- 
-+		kmemleak_no_scan_phys(addr);
- 		kho_scratch[i].addr = addr;
- 		kho_scratch[i].size = size;
- 		i++;
+-
+-
+-#ifdef CONFIG_STACK_GROWSUP
+-#define VM_STACK_EARLY	VMA_BIT(VMA_STACK_EARLY_BIT)
+-#else
+-#define VM_STACK_EARLY	VM_NONE
+-#endif
+-
+ #ifdef CONFIG_MSEAL_SYSTEM_MAPPINGS
+ #define VM_SEALED_SYSMAP	VM_SEALED
+ #else
 _
 
-Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-kmemleak-introduce-kmemleak_no_scan_phys-helper.patch
-liveupdate-fix-boot-failure-due-to-kmemleak-access-to-unmapped-pages.patch
+mm-introduce-vm_maybe_guard-and-make-visible-in-proc-pid-smaps.patch
+mm-add-atomic-vma-flags-and-set-vm_maybe_guard-as-such.patch
+mm-update-vma_modify_flags-to-handle-residual-flags-document.patch
+mm-implement-sticky-vma-flags.patch
+mm-introduce-copy-on-fork-vmas-and-make-vm_maybe_guard-one.patch
+mm-set-the-vm_maybe_guard-flag-on-guard-region-install.patch
+tools-testing-vma-add-vma-sticky-userland-tests.patch
+tools-testing-selftests-mm-add-madv_collapse-test-case.patch
+tools-testing-selftests-mm-add-smaps-visibility-guard-region-test.patch
+mm-correctly-handle-uffd-pte-markers.patch
+mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
+mm-avoid-unnecessary-uses-of-is_swap_pte.patch
+mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
+mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
+fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
+mm-avoid-unnecessary-use-of-is_swap_pmd.patch
+mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
+mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
+mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
+mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
+mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
+mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
+mm-remove-is_hugetlb_entry_.patch
+mm-eliminate-further-swapops-predicates.patch
+mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
+mm-rename-walk_page_range_mm.patch
+mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
+mm-propagate-vm_softdirty-on-merge.patch
+testing-selftests-mm-add-soft-dirty-merge-self-test.patch
+mm-declare-vma-flags-by-bit.patch
+mm-declare-vma-flags-by-bit-fix.patch
+mm-declare-vma-flags-by-bit-fix-2.patch
+mm-declare-vma-flags-by-bit-fix-3.patch
+mm-simplify-and-rename-mm-flags-function-for-clarity.patch
+tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
+mm-introduce-vma-flags-bitmap-type.patch
 
