@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C7742F60A4
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89FF7313261
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675101; cv=none; b=vE0OC4NYi0XWgy2RVXdxMf2OPBoslXMAkE+i4h1kqfCqHSRcSDzPA1gBHnc3z/rEJeM0xaimrFcTDASaR/fH+yzC28ThVf47hCH1VXzYSk4UNC6jy5s8KpwoHYEwun10h3ZW4LE5LRV16aZ1c+MAZ3VbfM+635R+mS8HBJaxfUE=
+	t=1763675102; cv=none; b=Md67whBOaZhVVerQdF47l6jlPW5kkZbcw6OmLmJKKdl+YwN9ipPBnIuPcyE4vmtFlmqt7XkvrvQEU3wz8gTxugTEEReUnOgT7nb+SIuG4C5yOqU1H8683KtzCsDgYJgWBy27JVEtU94G5knSO0iA1jjwa+nIUq4GNpMP3ztdhmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675101; c=relaxed/simple;
-	bh=NGcB9lq4O6jmfyy9dkP62PI2r8oeUIxXrXg+erzA0s8=;
-	h=Date:To:From:Subject:Message-Id; b=XsS8/jolXSSqTVr1KvDRRZLSzV6wk/YcBNQOYb6iYZbvnZ22YPQh74vzdZN7kEV4Jpz8qnlg3D8LRPWErWZzoWL666YrF56MMdaBl8EIymcOiT+GONsmvdfac0idusozVS/v/CiFUxqjB0XxqwYMfyU2XbYZhS6Nru4x1A/98+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=INpoigDt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675102; c=relaxed/simple;
+	bh=Ln11PtNZBZNbsSwA+duO92YyT4IvTo6LZcRmydqrvH4=;
+	h=Date:To:From:Subject:Message-Id; b=DtO7ASts1/FLXA+hss7H4hsf5IxRc4lJzydGToYyoHr1co1s4Iqb1eYCu6Mg3jN5aR4ai6mtFKsoYsKRDQp204cKFVRlYkW9rBDiRihd2MGSHcnJMXmviNlIh4Oj7bxLq9g7qyQEIDRj8j18yTHu4gA2Un0BhE42sz+eBPcVnAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1zGrEKhx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="INpoigDt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 110FEC4CEF1;
-	Thu, 20 Nov 2025 21:45:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1zGrEKhx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E315C4CEF1;
+	Thu, 20 Nov 2025 21:45:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675101;
-	bh=NGcB9lq4O6jmfyy9dkP62PI2r8oeUIxXrXg+erzA0s8=;
+	s=korg; t=1763675102;
+	bh=Ln11PtNZBZNbsSwA+duO92YyT4IvTo6LZcRmydqrvH4=;
 	h=Date:To:From:Subject:From;
-	b=INpoigDt2gu80Z7fkfHja146mXKCENyOuvFA6e79lp4Tsgo8T6ZRAGddJEXHxJbAJ
-	 cjW3Y6kTuNGP4N42yi+G/MrvQKV0NcLyN0o9O9hm+B4ePF2Y4EBcBMi5KSAS8dp7ZC
-	 z/gzjLz1w52Mql/vbr4SzsmKy6ituAkWq895mv30=
-Date: Thu, 20 Nov 2025 13:45:00 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,dave@stgolabs.net,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=1zGrEKhxDwa0fTg3RVL/bsRsbU8XjWFnD7RpYxqjRz9qSzg/7zljjePSDT9de/vyd
+	 ZXEtIcF8KAnM+lfxyzHyiErImY4SH7l0Ne7wsd9sZH2LfYA1pSLW1CJ2fiAIWu7HuV
+	 NjZc2orWrMs1chukFblA2KT5n4STU0tOVpTPtZjE=
+Date: Thu, 20 Nov 2025 13:45:01 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,harry.yoo@oracle.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch removed from -mm tree
-Message-Id: <20251120214501.110FEC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmstat-correct-the-comment-above-preempt_disable_nested.patch removed from -mm tree
+Message-Id: <20251120214502.5E315C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,331 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: allow guard page install/remove under VMA lock
+     Subject: mm: vmstat: correct the comment above preempt_disable_nested()
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
+     mm-vmstat-correct-the-comment-above-preempt_disable_nested.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/madvise: allow guard page install/remove under VMA lock
-Date: Mon, 10 Nov 2025 17:22:58 +0000
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: vmstat: correct the comment above preempt_disable_nested()
+Date: Mon, 10 Nov 2025 16:44:37 +0800
 
-We only need to keep the page table stable so we can perform this
-operation under the VMA lock.  PTE installation is stabilised via the PTE
-lock.
+The comment explaining why these parts use preempt_disable_nested() is in
+__mod_zone_page_state(), not in __mod_node_page_state(), so we should see
+__mod_zone_page_state(). Just correct it.
 
-One caveat is that, if we prepare vma->anon_vma we must hold the mmap read
-lock.  We can account for this by adapting the VMA locking logic to
-explicitly check for this case and prevent a VMA lock from being acquired
-should it be the case.
-
-This check is safe, as while we might be raced on anon_vma installation,
-this would simply make the check conservative, there's no way for us to
-see an anon_vma and then for it to be cleared, as doing so requires the
-mmap/VMA write lock.
-
-We abstract the VMA lock validity logic to is_vma_lock_sufficient() for
-this purpose, and add prepares_anon_vma() to abstract the anon_vma logic.
-
-In order to do this we need to have a way of installing page tables
-explicitly for an identified VMA, so we export walk_page_range_vma() in an
-unsafe variant - walk_page_range_vma_unsafe() and use this should the VMA
-read lock be taken.
-
-We additionally update the comments in madvise_guard_install() to more
-accurately reflect the cases in which the logic may be reattempted,
-specifically THP huge pages being present.
-
-Link: https://lkml.kernel.org/r/cca1edbd99cd1386ad20556d08ebdb356c45ef91.1762795245.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20251110084437.46701-1-qi.zheng@linux.dev
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Harry Yoo <harry.yoo@oracle.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 +
- mm/madvise.c  |  110 ++++++++++++++++++++++++++++++++++--------------
- mm/pagewalk.c |   17 +++++--
- 3 files changed, 94 insertions(+), 36 deletions(-)
+ mm/vmstat.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/internal.h~mm-madvise-allow-guard-page-install-remove-under-vma-lock
-+++ a/mm/internal.h
-@@ -1652,6 +1652,9 @@ static inline void accept_page(struct pa
- int walk_page_range_mm_unsafe(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private);
-+int walk_page_range_vma_unsafe(struct vm_area_struct *vma, unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops,
-+		void *private);
- int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
- 			  pgd_t *pgd, void *private);
---- a/mm/madvise.c~mm-madvise-allow-guard-page-install-remove-under-vma-lock
-+++ a/mm/madvise.c
-@@ -1122,18 +1122,17 @@ static int guard_install_set_pte(unsigne
- 	return 0;
- }
- 
--static const struct mm_walk_ops guard_install_walk_ops = {
--	.pud_entry		= guard_install_pud_entry,
--	.pmd_entry		= guard_install_pmd_entry,
--	.pte_entry		= guard_install_pte_entry,
--	.install_pte		= guard_install_set_pte,
--	.walk_lock		= PGWALK_RDLOCK,
--};
--
- static long madvise_guard_install(struct madvise_behavior *madv_behavior)
- {
- 	struct vm_area_struct *vma = madv_behavior->vma;
- 	struct madvise_behavior_range *range = &madv_behavior->range;
-+	struct mm_walk_ops walk_ops = {
-+		.pud_entry	= guard_install_pud_entry,
-+		.pmd_entry	= guard_install_pmd_entry,
-+		.pte_entry	= guard_install_pte_entry,
-+		.install_pte	= guard_install_set_pte,
-+		.walk_lock	= get_walk_lock(madv_behavior->lock_mode),
-+	};
- 	long err;
- 	int i;
- 
-@@ -1150,8 +1149,14 @@ static long madvise_guard_install(struct
- 	/*
- 	 * If anonymous and we are establishing page tables the VMA ought to
- 	 * have an anon_vma associated with it.
-+	 *
-+	 * We will hold an mmap read lock if this is necessary, this is checked
-+	 * as part of the VMA lock logic.
- 	 */
- 	if (vma_is_anonymous(vma)) {
-+		VM_WARN_ON_ONCE(!vma->anon_vma &&
-+				madv_behavior->lock_mode != MADVISE_MMAP_READ_LOCK);
-+
- 		err = anon_vma_prepare(vma);
- 		if (err)
- 			return err;
-@@ -1159,12 +1164,14 @@ static long madvise_guard_install(struct
- 
- 	/*
- 	 * Optimistically try to install the guard marker pages first. If any
--	 * non-guard pages are encountered, give up and zap the range before
--	 * trying again.
-+	 * non-guard pages or THP huge pages are encountered, give up and zap
-+	 * the range before trying again.
- 	 *
- 	 * We try a few times before giving up and releasing back to userland to
--	 * loop around, releasing locks in the process to avoid contention. This
--	 * would only happen if there was a great many racing page faults.
-+	 * loop around, releasing locks in the process to avoid contention.
-+	 *
-+	 * This would only happen due to races with e.g. page faults or
-+	 * khugepaged.
- 	 *
- 	 * In most cases we should simply install the guard markers immediately
- 	 * with no zap or looping.
-@@ -1173,8 +1180,13 @@ static long madvise_guard_install(struct
- 		unsigned long nr_pages = 0;
- 
- 		/* Returns < 0 on error, == 0 if success, > 0 if zap needed. */
--		err = walk_page_range_mm_unsafe(vma->vm_mm, range->start,
--				range->end, &guard_install_walk_ops, &nr_pages);
-+		if (madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK)
-+			err = walk_page_range_vma_unsafe(madv_behavior->vma,
-+					range->start, range->end, &walk_ops,
-+					&nr_pages);
-+		else
-+			err = walk_page_range_mm_unsafe(vma->vm_mm, range->start,
-+					range->end, &walk_ops, &nr_pages);
- 		if (err < 0)
- 			return err;
- 
-@@ -1195,8 +1207,7 @@ static long madvise_guard_install(struct
+--- a/mm/vmstat.c~mm-vmstat-correct-the-comment-above-preempt_disable_nested
++++ a/mm/vmstat.c
+@@ -392,7 +392,7 @@ void __mod_node_page_state(struct pglist
+ 		delta >>= PAGE_SHIFT;
  	}
  
- 	/*
--	 * We were unable to install the guard pages due to being raced by page
--	 * faults. This should not happen ordinarily. We return to userspace and
-+	 * We were unable to install the guard pages, return to userspace and
- 	 * immediately retry, relieving lock contention.
- 	 */
- 	return restart_syscall();
-@@ -1240,17 +1251,16 @@ static int guard_remove_pte_entry(pte_t
- 	return 0;
- }
+-	/* See __mod_node_page_state */
++	/* See __mod_zone_page_state() */
+ 	preempt_disable_nested();
  
--static const struct mm_walk_ops guard_remove_walk_ops = {
--	.pud_entry		= guard_remove_pud_entry,
--	.pmd_entry		= guard_remove_pmd_entry,
--	.pte_entry		= guard_remove_pte_entry,
--	.walk_lock		= PGWALK_RDLOCK,
--};
--
- static long madvise_guard_remove(struct madvise_behavior *madv_behavior)
- {
- 	struct vm_area_struct *vma = madv_behavior->vma;
- 	struct madvise_behavior_range *range = &madv_behavior->range;
-+	struct mm_walk_ops wallk_ops = {
-+		.pud_entry = guard_remove_pud_entry,
-+		.pmd_entry = guard_remove_pmd_entry,
-+		.pte_entry = guard_remove_pte_entry,
-+		.walk_lock = get_walk_lock(madv_behavior->lock_mode),
-+	};
+ 	x = delta + __this_cpu_read(*p);
+@@ -438,7 +438,7 @@ void __inc_zone_state(struct zone *zone,
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+ 	s8 v, t;
  
- 	/*
- 	 * We're ok with removing guards in mlock()'d ranges, as this is a
-@@ -1260,7 +1270,7 @@ static long madvise_guard_remove(struct
- 		return -EINVAL;
+-	/* See __mod_node_page_state */
++	/* See __mod_zone_page_state() */
+ 	preempt_disable_nested();
  
- 	return walk_page_range_vma(vma, range->start, range->end,
--			       &guard_remove_walk_ops, NULL);
-+				   &wallk_ops, NULL);
- }
+ 	v = __this_cpu_inc_return(*p);
+@@ -461,7 +461,7 @@ void __inc_node_state(struct pglist_data
  
- #ifdef CONFIG_64BIT
-@@ -1573,6 +1583,47 @@ static bool process_madvise_remote_valid
- 	}
- }
+ 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
  
-+/* Does this operation invoke anon_vma_prepare()? */
-+static bool prepares_anon_vma(int behavior)
-+{
-+	switch (behavior) {
-+	case MADV_GUARD_INSTALL:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+/*
-+ * We have acquired a VMA read lock, is the VMA valid to be madvise'd under VMA
-+ * read lock only now we have a VMA to examine?
-+ */
-+static bool is_vma_lock_sufficient(struct vm_area_struct *vma,
-+		struct madvise_behavior *madv_behavior)
-+{
-+	/* Must span only a single VMA.*/
-+	if (madv_behavior->range.end > vma->vm_end)
-+		return false;
-+	/* Remote processes unsupported. */
-+	if (current->mm != vma->vm_mm)
-+		return false;
-+	/* Userfaultfd unsupported. */
-+	if (userfaultfd_armed(vma))
-+		return false;
-+	/*
-+	 * anon_vma_prepare() explicitly requires an mmap lock for
-+	 * serialisation, so we cannot use a VMA lock in this case.
-+	 *
-+	 * Note we might race with anon_vma being set, however this makes this
-+	 * check overly paranoid which is safe.
-+	 */
-+	if (vma_is_anonymous(vma) &&
-+	    prepares_anon_vma(madv_behavior->behavior) && !vma->anon_vma)
-+		return false;
-+
-+	return true;
-+}
-+
- /*
-  * Try to acquire a VMA read lock if possible.
-  *
-@@ -1594,15 +1645,12 @@ static bool try_vma_read_lock(struct mad
- 	vma = lock_vma_under_rcu(mm, madv_behavior->range.start);
- 	if (!vma)
- 		goto take_mmap_read_lock;
--	/*
--	 * Must span only a single VMA; uffd and remote processes are
--	 * unsupported.
--	 */
--	if (madv_behavior->range.end > vma->vm_end || current->mm != mm ||
--	    userfaultfd_armed(vma)) {
-+
-+	if (!is_vma_lock_sufficient(vma, madv_behavior)) {
- 		vma_end_read(vma);
- 		goto take_mmap_read_lock;
- 	}
-+
- 	madv_behavior->vma = vma;
- 	return true;
+-	/* See __mod_node_page_state */
++	/* See __mod_zone_page_state() */
+ 	preempt_disable_nested();
  
-@@ -1715,9 +1763,9 @@ static enum madvise_lock_mode get_lock_m
- 	case MADV_POPULATE_READ:
- 	case MADV_POPULATE_WRITE:
- 	case MADV_COLLAPSE:
-+		return MADVISE_MMAP_READ_LOCK;
- 	case MADV_GUARD_INSTALL:
- 	case MADV_GUARD_REMOVE:
--		return MADVISE_MMAP_READ_LOCK;
- 	case MADV_DONTNEED:
- 	case MADV_DONTNEED_LOCKED:
- 	case MADV_FREE:
---- a/mm/pagewalk.c~mm-madvise-allow-guard-page-install-remove-under-vma-lock
-+++ a/mm/pagewalk.c
-@@ -694,9 +694,8 @@ int walk_page_range_debug(struct mm_stru
- 	return walk_pgd_range(start, end, &walk);
- }
+ 	v = __this_cpu_inc_return(*p);
+@@ -494,7 +494,7 @@ void __dec_zone_state(struct zone *zone,
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+ 	s8 v, t;
  
--int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
--			unsigned long end, const struct mm_walk_ops *ops,
--			void *private)
-+int walk_page_range_vma_unsafe(struct vm_area_struct *vma, unsigned long start,
-+		unsigned long end, const struct mm_walk_ops *ops, void *private)
- {
- 	struct mm_walk walk = {
- 		.ops		= ops,
-@@ -709,14 +708,22 @@ int walk_page_range_vma(struct vm_area_s
- 		return -EINVAL;
- 	if (start < vma->vm_start || end > vma->vm_end)
- 		return -EINVAL;
--	if (!check_ops_safe(ops))
--		return -EINVAL;
+-	/* See __mod_node_page_state */
++	/* See __mod_zone_page_state() */
+ 	preempt_disable_nested();
  
- 	process_mm_walk_lock(walk.mm, ops->walk_lock);
- 	process_vma_walk_lock(vma, ops->walk_lock);
- 	return __walk_page_range(start, end, &walk);
- }
+ 	v = __this_cpu_dec_return(*p);
+@@ -517,7 +517,7 @@ void __dec_node_state(struct pglist_data
  
-+int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
-+			unsigned long end, const struct mm_walk_ops *ops,
-+			void *private)
-+{
-+	if (!check_ops_safe(ops))
-+		return -EINVAL;
-+
-+	return walk_page_range_vma_unsafe(vma, start, end, ops, private);
-+}
-+
- int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
- 		void *private)
- {
+ 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
+ 
+-	/* See __mod_node_page_state */
++	/* See __mod_zone_page_state() */
+ 	preempt_disable_nested();
+ 
+ 	v = __this_cpu_dec_return(*p);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-correctly-handle-uffd-pte-markers.patch
-mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
-mm-avoid-unnecessary-uses-of-is_swap_pte.patch
-mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
-mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
-fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
-mm-avoid-unnecessary-use-of-is_swap_pmd.patch
-mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
-mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
-mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
-mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
-mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
-mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
-mm-remove-is_hugetlb_entry_.patch
-mm-eliminate-further-swapops-predicates.patch
-mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
+mm-thp-reparent-the-split-queue-during-memcg-offline.patch
 
