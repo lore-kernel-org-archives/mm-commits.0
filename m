@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4FC62F60A4
-	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:44:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C7742F60A4
+	for <mm-commits@vger.kernel.org>; Thu, 20 Nov 2025 21:45:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763675099; cv=none; b=LHAF4SZNUwi0ZK3XTI3B0GJIRfT3+Axn0+BJyD2PrbnXyU9mFJbDD3ELo5Ct3QT5HjR9a1OM69X5m51GNzldUZay2NfxyqBoEjKmYkprA13wJhpOkSqwF5u7UqUYxGBUY2Q45VU/LYxs5l7bqIAUkW30tFcPWv9zm0toBeN4tOw=
+	t=1763675101; cv=none; b=vE0OC4NYi0XWgy2RVXdxMf2OPBoslXMAkE+i4h1kqfCqHSRcSDzPA1gBHnc3z/rEJeM0xaimrFcTDASaR/fH+yzC28ThVf47hCH1VXzYSk4UNC6jy5s8KpwoHYEwun10h3ZW4LE5LRV16aZ1c+MAZ3VbfM+635R+mS8HBJaxfUE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763675099; c=relaxed/simple;
-	bh=tFAE4PWDJHrvJbPTxabUEQob6VKJv242um9LjgkPFx0=;
-	h=Date:To:From:Subject:Message-Id; b=QR47tvR0q76ME/wznqC1zuEsbnL3b5FCVVx3ZoBrKm6R/NFDHhn+XBjUrmi6x7UVNQt3zlg89YxxvUtCAMddh393fuLZqM4YQ1fTtU83sPP0zt7A1kegYINT7F8TEyUaZMkosnwuOw4rOrTq5eDtx+hMtIKfLuin1lKH5wJDFJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uS9R58dB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763675101; c=relaxed/simple;
+	bh=NGcB9lq4O6jmfyy9dkP62PI2r8oeUIxXrXg+erzA0s8=;
+	h=Date:To:From:Subject:Message-Id; b=XsS8/jolXSSqTVr1KvDRRZLSzV6wk/YcBNQOYb6iYZbvnZ22YPQh74vzdZN7kEV4Jpz8qnlg3D8LRPWErWZzoWL666YrF56MMdaBl8EIymcOiT+GONsmvdfac0idusozVS/v/CiFUxqjB0XxqwYMfyU2XbYZhS6Nru4x1A/98+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=INpoigDt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uS9R58dB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8B6FC4CEF1;
-	Thu, 20 Nov 2025 21:44:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="INpoigDt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 110FEC4CEF1;
+	Thu, 20 Nov 2025 21:45:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763675099;
-	bh=tFAE4PWDJHrvJbPTxabUEQob6VKJv242um9LjgkPFx0=;
+	s=korg; t=1763675101;
+	bh=NGcB9lq4O6jmfyy9dkP62PI2r8oeUIxXrXg+erzA0s8=;
 	h=Date:To:From:Subject:From;
-	b=uS9R58dBZ3MBnJF6cS4YJ1eTyYi76QiEuw42nCoJ8tT96wNq3L6NJG/R2KoH900Bo
-	 n/+mhQnHmQZsi4dOfpYFf0Bl1D0bmYgF7GhzXvzIdLWZWY5sJjeiCPlC8PctR4Hlu4
-	 sKITkVDtbtX93R9Vr88HKYcNk2P7IWULM3emXqFw=
-Date: Thu, 20 Nov 2025 13:44:59 -0800
+	b=INpoigDt2gu80Z7fkfHja146mXKCENyOuvFA6e79lp4Tsgo8T6ZRAGddJEXHxJbAJ
+	 cjW3Y6kTuNGP4N42yi+G/MrvQKV0NcLyN0o9O9hm+B4ePF2Y4EBcBMi5KSAS8dp7ZC
+	 z/gzjLz1w52Mql/vbr4SzsmKy6ituAkWq895mv30=
+Date: Thu, 20 Nov 2025 13:45:00 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,dave@stgolabs.net,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rename-walk_page_range_mm.patch removed from -mm tree
-Message-Id: <20251120214459.A8B6FC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch removed from -mm tree
+Message-Id: <20251120214501.110FEC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: rename walk_page_range_mm()
+     Subject: mm/madvise: allow guard page install/remove under VMA lock
 has been removed from the -mm tree.  Its filename was
-     mm-rename-walk_page_range_mm.patch
+     mm-madvise-allow-guard-page-install-remove-under-vma-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: rename walk_page_range_mm()
-Date: Mon, 10 Nov 2025 17:22:57 +0000
+Subject: mm/madvise: allow guard page install/remove under VMA lock
+Date: Mon, 10 Nov 2025 17:22:58 +0000
 
-Patch series "mm: perform guard region install/remove under VMA lock", v2.
+We only need to keep the page table stable so we can perform this
+operation under the VMA lock.  PTE installation is stabilised via the PTE
+lock.
 
-There is no reason why can't perform guard region operations under the VMA
-lock, as long we take proper precautions to ensure that we do so in a safe
-manner.
+One caveat is that, if we prepare vma->anon_vma we must hold the mmap read
+lock.  We can account for this by adapting the VMA locking logic to
+explicitly check for this case and prevent a VMA lock from being acquired
+should it be the case.
 
-This is fine, as VMA lock acquisition is always best-effort, so if we are
-unable to do so, we can simply fall back to using the mmap read lock.
+This check is safe, as while we might be raced on anon_vma installation,
+this would simply make the check conservative, there's no way for us to
+see an anon_vma and then for it to be cleared, as doing so requires the
+mmap/VMA write lock.
 
-Doing so will reduce mmap lock contention for callers performing guard
-region operations and help establish a precedent of trying to use the VMA
-lock where possible.
+We abstract the VMA lock validity logic to is_vma_lock_sufficient() for
+this purpose, and add prepares_anon_vma() to abstract the anon_vma logic.
 
-As part of this change we perform a trivial rename of page walk functions
-which bypass safety checks (i.e.  whether or not mm_walk_ops->install_pte
-is specified) in order that we can keep naming consistent with the mm
-walk.
+In order to do this we need to have a way of installing page tables
+explicitly for an identified VMA, so we export walk_page_range_vma() in an
+unsafe variant - walk_page_range_vma_unsafe() and use this should the VMA
+read lock be taken.
 
-This is because we need to expose a VMA-specific walk that still allows us
-to install PTE entries.
+We additionally update the comments in madvise_guard_install() to more
+accurately reflect the cases in which the logic may be reattempted,
+specifically THP huge pages being present.
 
-
-This patch (of 2):
-
-Make it clear we're referencing an unsafe variant of this function
-explicitly.
-
-This is laying the foundation for exposing more such functions and
-maintaining a consistent naming scheme.
-
-As a part of this change, rename check_ops_valid() to check_ops_safe() for
-consistency.
-
-Link: https://lkml.kernel.org/r/cover.1762795245.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/c684d91464a438d6e31172c9450416a373f10649.1762795245.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/cca1edbd99cd1386ad20556d08ebdb356c45ef91.1762795245.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
@@ -95,118 +87,261 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- mm/madvise.c  |    4 ++--
- mm/pagewalk.c |   22 +++++++++++-----------
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ mm/internal.h |    3 +
+ mm/madvise.c  |  110 ++++++++++++++++++++++++++++++++++--------------
+ mm/pagewalk.c |   17 +++++--
+ 3 files changed, 94 insertions(+), 36 deletions(-)
 
---- a/mm/internal.h~mm-rename-walk_page_range_mm
+--- a/mm/internal.h~mm-madvise-allow-guard-page-install-remove-under-vma-lock
 +++ a/mm/internal.h
-@@ -1649,7 +1649,7 @@ static inline void accept_page(struct pa
- #endif /* CONFIG_UNACCEPTED_MEMORY */
- 
- /* pagewalk.c */
--int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
-+int walk_page_range_mm_unsafe(struct mm_struct *mm, unsigned long start,
+@@ -1652,6 +1652,9 @@ static inline void accept_page(struct pa
+ int walk_page_range_mm_unsafe(struct mm_struct *mm, unsigned long start,
  		unsigned long end, const struct mm_walk_ops *ops,
  		void *private);
++int walk_page_range_vma_unsafe(struct vm_area_struct *vma, unsigned long start,
++		unsigned long end, const struct mm_walk_ops *ops,
++		void *private);
  int walk_page_range_debug(struct mm_struct *mm, unsigned long start,
---- a/mm/madvise.c~mm-rename-walk_page_range_mm
+ 			  unsigned long end, const struct mm_walk_ops *ops,
+ 			  pgd_t *pgd, void *private);
+--- a/mm/madvise.c~mm-madvise-allow-guard-page-install-remove-under-vma-lock
 +++ a/mm/madvise.c
-@@ -1173,8 +1173,8 @@ static long madvise_guard_install(struct
+@@ -1122,18 +1122,17 @@ static int guard_install_set_pte(unsigne
+ 	return 0;
+ }
+ 
+-static const struct mm_walk_ops guard_install_walk_ops = {
+-	.pud_entry		= guard_install_pud_entry,
+-	.pmd_entry		= guard_install_pmd_entry,
+-	.pte_entry		= guard_install_pte_entry,
+-	.install_pte		= guard_install_set_pte,
+-	.walk_lock		= PGWALK_RDLOCK,
+-};
+-
+ static long madvise_guard_install(struct madvise_behavior *madv_behavior)
+ {
+ 	struct vm_area_struct *vma = madv_behavior->vma;
+ 	struct madvise_behavior_range *range = &madv_behavior->range;
++	struct mm_walk_ops walk_ops = {
++		.pud_entry	= guard_install_pud_entry,
++		.pmd_entry	= guard_install_pmd_entry,
++		.pte_entry	= guard_install_pte_entry,
++		.install_pte	= guard_install_set_pte,
++		.walk_lock	= get_walk_lock(madv_behavior->lock_mode),
++	};
+ 	long err;
+ 	int i;
+ 
+@@ -1150,8 +1149,14 @@ static long madvise_guard_install(struct
+ 	/*
+ 	 * If anonymous and we are establishing page tables the VMA ought to
+ 	 * have an anon_vma associated with it.
++	 *
++	 * We will hold an mmap read lock if this is necessary, this is checked
++	 * as part of the VMA lock logic.
+ 	 */
+ 	if (vma_is_anonymous(vma)) {
++		VM_WARN_ON_ONCE(!vma->anon_vma &&
++				madv_behavior->lock_mode != MADVISE_MMAP_READ_LOCK);
++
+ 		err = anon_vma_prepare(vma);
+ 		if (err)
+ 			return err;
+@@ -1159,12 +1164,14 @@ static long madvise_guard_install(struct
+ 
+ 	/*
+ 	 * Optimistically try to install the guard marker pages first. If any
+-	 * non-guard pages are encountered, give up and zap the range before
+-	 * trying again.
++	 * non-guard pages or THP huge pages are encountered, give up and zap
++	 * the range before trying again.
+ 	 *
+ 	 * We try a few times before giving up and releasing back to userland to
+-	 * loop around, releasing locks in the process to avoid contention. This
+-	 * would only happen if there was a great many racing page faults.
++	 * loop around, releasing locks in the process to avoid contention.
++	 *
++	 * This would only happen due to races with e.g. page faults or
++	 * khugepaged.
+ 	 *
+ 	 * In most cases we should simply install the guard markers immediately
+ 	 * with no zap or looping.
+@@ -1173,8 +1180,13 @@ static long madvise_guard_install(struct
  		unsigned long nr_pages = 0;
  
  		/* Returns < 0 on error, == 0 if success, > 0 if zap needed. */
--		err = walk_page_range_mm(vma->vm_mm, range->start, range->end,
--					 &guard_install_walk_ops, &nr_pages);
-+		err = walk_page_range_mm_unsafe(vma->vm_mm, range->start,
-+				range->end, &guard_install_walk_ops, &nr_pages);
+-		err = walk_page_range_mm_unsafe(vma->vm_mm, range->start,
+-				range->end, &guard_install_walk_ops, &nr_pages);
++		if (madv_behavior->lock_mode == MADVISE_VMA_READ_LOCK)
++			err = walk_page_range_vma_unsafe(madv_behavior->vma,
++					range->start, range->end, &walk_ops,
++					&nr_pages);
++		else
++			err = walk_page_range_mm_unsafe(vma->vm_mm, range->start,
++					range->end, &walk_ops, &nr_pages);
  		if (err < 0)
  			return err;
  
---- a/mm/pagewalk.c~mm-rename-walk_page_range_mm
-+++ a/mm/pagewalk.c
-@@ -452,7 +452,7 @@ static inline void process_vma_walk_lock
-  * We usually restrict the ability to install PTEs, but this functionality is
-  * available to internal memory management code and provided in mm/internal.h.
-  */
--int walk_page_range_mm(struct mm_struct *mm, unsigned long start,
-+int walk_page_range_mm_unsafe(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private)
- {
-@@ -518,10 +518,10 @@ int walk_page_range_mm(struct mm_struct
-  * This check is performed on all functions which are parameterised by walk
-  * operations and exposed in include/linux/pagewalk.h.
-  *
-- * Internal memory management code can use the walk_page_range_mm() function to
-- * be able to use all page walking operations.
-+ * Internal memory management code can use *_unsafe() functions to be able to
-+ * use all page walking operations.
-  */
--static bool check_ops_valid(const struct mm_walk_ops *ops)
-+static bool check_ops_safe(const struct mm_walk_ops *ops)
- {
- 	/*
- 	 * The installation of PTEs is solely under the control of memory
-@@ -579,10 +579,10 @@ int walk_page_range(struct mm_struct *mm
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private)
- {
--	if (!check_ops_valid(ops))
-+	if (!check_ops_safe(ops))
- 		return -EINVAL;
+@@ -1195,8 +1207,7 @@ static long madvise_guard_install(struct
+ 	}
  
--	return walk_page_range_mm(mm, start, end, ops, private);
-+	return walk_page_range_mm_unsafe(mm, start, end, ops, private);
+ 	/*
+-	 * We were unable to install the guard pages due to being raced by page
+-	 * faults. This should not happen ordinarily. We return to userspace and
++	 * We were unable to install the guard pages, return to userspace and
+ 	 * immediately retry, relieving lock contention.
+ 	 */
+ 	return restart_syscall();
+@@ -1240,17 +1251,16 @@ static int guard_remove_pte_entry(pte_t
+ 	return 0;
  }
  
- /**
-@@ -639,7 +639,7 @@ int walk_kernel_page_table_range_lockles
- 
- 	if (start >= end)
- 		return -EINVAL;
--	if (!check_ops_valid(ops))
-+	if (!check_ops_safe(ops))
- 		return -EINVAL;
- 
- 	return walk_pgd_range(start, end, &walk);
-@@ -678,7 +678,7 @@ int walk_page_range_debug(struct mm_stru
- 						    pgd, private);
- 	if (start >= end || !walk.mm)
- 		return -EINVAL;
--	if (!check_ops_valid(ops))
-+	if (!check_ops_safe(ops))
- 		return -EINVAL;
+-static const struct mm_walk_ops guard_remove_walk_ops = {
+-	.pud_entry		= guard_remove_pud_entry,
+-	.pmd_entry		= guard_remove_pmd_entry,
+-	.pte_entry		= guard_remove_pte_entry,
+-	.walk_lock		= PGWALK_RDLOCK,
+-};
+-
+ static long madvise_guard_remove(struct madvise_behavior *madv_behavior)
+ {
+ 	struct vm_area_struct *vma = madv_behavior->vma;
+ 	struct madvise_behavior_range *range = &madv_behavior->range;
++	struct mm_walk_ops wallk_ops = {
++		.pud_entry = guard_remove_pud_entry,
++		.pmd_entry = guard_remove_pmd_entry,
++		.pte_entry = guard_remove_pte_entry,
++		.walk_lock = get_walk_lock(madv_behavior->lock_mode),
++	};
  
  	/*
-@@ -709,7 +709,7 @@ int walk_page_range_vma(struct vm_area_s
+ 	 * We're ok with removing guards in mlock()'d ranges, as this is a
+@@ -1260,7 +1270,7 @@ static long madvise_guard_remove(struct
+ 		return -EINVAL;
+ 
+ 	return walk_page_range_vma(vma, range->start, range->end,
+-			       &guard_remove_walk_ops, NULL);
++				   &wallk_ops, NULL);
+ }
+ 
+ #ifdef CONFIG_64BIT
+@@ -1573,6 +1583,47 @@ static bool process_madvise_remote_valid
+ 	}
+ }
+ 
++/* Does this operation invoke anon_vma_prepare()? */
++static bool prepares_anon_vma(int behavior)
++{
++	switch (behavior) {
++	case MADV_GUARD_INSTALL:
++		return true;
++	default:
++		return false;
++	}
++}
++
++/*
++ * We have acquired a VMA read lock, is the VMA valid to be madvise'd under VMA
++ * read lock only now we have a VMA to examine?
++ */
++static bool is_vma_lock_sufficient(struct vm_area_struct *vma,
++		struct madvise_behavior *madv_behavior)
++{
++	/* Must span only a single VMA.*/
++	if (madv_behavior->range.end > vma->vm_end)
++		return false;
++	/* Remote processes unsupported. */
++	if (current->mm != vma->vm_mm)
++		return false;
++	/* Userfaultfd unsupported. */
++	if (userfaultfd_armed(vma))
++		return false;
++	/*
++	 * anon_vma_prepare() explicitly requires an mmap lock for
++	 * serialisation, so we cannot use a VMA lock in this case.
++	 *
++	 * Note we might race with anon_vma being set, however this makes this
++	 * check overly paranoid which is safe.
++	 */
++	if (vma_is_anonymous(vma) &&
++	    prepares_anon_vma(madv_behavior->behavior) && !vma->anon_vma)
++		return false;
++
++	return true;
++}
++
+ /*
+  * Try to acquire a VMA read lock if possible.
+  *
+@@ -1594,15 +1645,12 @@ static bool try_vma_read_lock(struct mad
+ 	vma = lock_vma_under_rcu(mm, madv_behavior->range.start);
+ 	if (!vma)
+ 		goto take_mmap_read_lock;
+-	/*
+-	 * Must span only a single VMA; uffd and remote processes are
+-	 * unsupported.
+-	 */
+-	if (madv_behavior->range.end > vma->vm_end || current->mm != mm ||
+-	    userfaultfd_armed(vma)) {
++
++	if (!is_vma_lock_sufficient(vma, madv_behavior)) {
+ 		vma_end_read(vma);
+ 		goto take_mmap_read_lock;
+ 	}
++
+ 	madv_behavior->vma = vma;
+ 	return true;
+ 
+@@ -1715,9 +1763,9 @@ static enum madvise_lock_mode get_lock_m
+ 	case MADV_POPULATE_READ:
+ 	case MADV_POPULATE_WRITE:
+ 	case MADV_COLLAPSE:
++		return MADVISE_MMAP_READ_LOCK;
+ 	case MADV_GUARD_INSTALL:
+ 	case MADV_GUARD_REMOVE:
+-		return MADVISE_MMAP_READ_LOCK;
+ 	case MADV_DONTNEED:
+ 	case MADV_DONTNEED_LOCKED:
+ 	case MADV_FREE:
+--- a/mm/pagewalk.c~mm-madvise-allow-guard-page-install-remove-under-vma-lock
++++ a/mm/pagewalk.c
+@@ -694,9 +694,8 @@ int walk_page_range_debug(struct mm_stru
+ 	return walk_pgd_range(start, end, &walk);
+ }
+ 
+-int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
+-			unsigned long end, const struct mm_walk_ops *ops,
+-			void *private)
++int walk_page_range_vma_unsafe(struct vm_area_struct *vma, unsigned long start,
++		unsigned long end, const struct mm_walk_ops *ops, void *private)
+ {
+ 	struct mm_walk walk = {
+ 		.ops		= ops,
+@@ -709,14 +708,22 @@ int walk_page_range_vma(struct vm_area_s
  		return -EINVAL;
  	if (start < vma->vm_start || end > vma->vm_end)
  		return -EINVAL;
--	if (!check_ops_valid(ops))
-+	if (!check_ops_safe(ops))
- 		return -EINVAL;
+-	if (!check_ops_safe(ops))
+-		return -EINVAL;
  
  	process_mm_walk_lock(walk.mm, ops->walk_lock);
-@@ -729,7 +729,7 @@ int walk_page_vma(struct vm_area_struct
+ 	process_vma_walk_lock(vma, ops->walk_lock);
+ 	return __walk_page_range(start, end, &walk);
+ }
  
- 	if (!walk.mm)
- 		return -EINVAL;
--	if (!check_ops_valid(ops))
++int walk_page_range_vma(struct vm_area_struct *vma, unsigned long start,
++			unsigned long end, const struct mm_walk_ops *ops,
++			void *private)
++{
 +	if (!check_ops_safe(ops))
- 		return -EINVAL;
- 
- 	process_mm_walk_lock(walk.mm, ops->walk_lock);
-@@ -780,7 +780,7 @@ int walk_page_mapping(struct address_spa
- 	unsigned long start_addr, end_addr;
- 	int err = 0;
- 
--	if (!check_ops_valid(ops))
-+	if (!check_ops_safe(ops))
- 		return -EINVAL;
- 
- 	lockdep_assert_held(&mapping->i_mmap_rwsem);
++		return -EINVAL;
++
++	return walk_page_range_vma_unsafe(vma, start, end, ops, private);
++}
++
+ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
+ 		void *private)
+ {
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
