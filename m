@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 137233446AF
-	for <mm-commits@vger.kernel.org>; Fri, 21 Nov 2025 17:09:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66CE52882DB
+	for <mm-commits@vger.kernel.org>; Fri, 21 Nov 2025 18:35:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763744997; cv=none; b=h+AphNramjxC6BoVLqD5pAp0BgfRYUNbpTAjKS9ZgEFTak+u+KYud+FKI06pm9yXGz+BJX4njq5WM7SyLaRocNh7iRQ8JEENbbUNPku11FD1XfZcOMZyQC30j+tGB1pTV6kLsg1flX5vS3fTNX+4nVEgWJkuSmVoDrq0HR+Tt40=
+	t=1763750159; cv=none; b=VBxDXLczR011WXzt+CF9SsAzIGGxeNiHcJ3wZcqWb2GdtTrCMUsQrgTs1yWTaXzT6GeOOawiUB1qIXIDoeiTH8NFUXqeRmlDT4laWcEffMpEdROpiCMJLaGXnBtYF32pfXx0qsmQ7TIzIXCEJsuVE9WVKt0ldL1VJWXGixJA9BQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763744997; c=relaxed/simple;
-	bh=yu1HvhxzQ1+/Tz5fYgL1GRk3s8hrsEVQCGK4rfX49ls=;
-	h=Date:To:From:Subject:Message-Id; b=YAcN+apD9jr4y1HTXVyEdZ8x0JGqia5X/3f/DXFOY/HAZBOR3D5GEmsuO3546c4IyoEB6XtM8hPHwvy2qV8bV7ygQbSI+E0X7ruGIGWKyzZzupr8fuv2r6z5CWxBvcNa9mEGNGPq9CyVHE0qbkBfjiPnpjNQPfvUUu0Vykyvcyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rXsyGY5o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763750159; c=relaxed/simple;
+	bh=PvOBmSQX2BeNFXhyFhb4vLoJl9ZaoALn4THNlVFEdjU=;
+	h=Date:To:From:Subject:Message-Id; b=GZCyIsCZlwIRVXEcl9P0/ofDmysROA0uJN1UNSYe8Qp8Uk4ENlxintjFjUUe48NFrbFAoYdqW9SIYbF2Lnsp48Ep6DTy2k4W9MoYIR47DiKyj2BYVDV+KpQHn3BWkIaujIvMbl2wxrC+cha7V7/adTz/j7XWFsMh7dKU1+FkuQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bmB9sWW5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rXsyGY5o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DF72C4CEF1;
-	Fri, 21 Nov 2025 17:09:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bmB9sWW5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB902C4CEF1;
+	Fri, 21 Nov 2025 18:35:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763744996;
-	bh=yu1HvhxzQ1+/Tz5fYgL1GRk3s8hrsEVQCGK4rfX49ls=;
+	s=korg; t=1763750159;
+	bh=PvOBmSQX2BeNFXhyFhb4vLoJl9ZaoALn4THNlVFEdjU=;
 	h=Date:To:From:Subject:From;
-	b=rXsyGY5ovjAgVjVFgyoPZisNblllLtE1XxcSPg5PMwaOrruxxV2AdOpHpkaWuMFc5
-	 jvw5f8k0FvaPv/shYdz3qoUKWshCjeQJep96vyB+UZNow1E/dCtRoV/7sZpo11M473
-	 06J7+uL1O/u1CVTUQjPikE2iiJ9x/TdwRdpLZGCY=
-Date: Fri, 21 Nov 2025 09:09:55 -0800
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,shivangu@linux.ibm.com,ritesh.list@gmail.com,piliu@redhat.com,mahesh@linux.ibm.com,maddy@linux.ibm.com,jbohac@suse.cz,hbathini@linux.ibm.com,dyoung@redhat.com,bhe@redhat.com,adityag@linux.ibm.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
+	b=bmB9sWW5FZpZ9Zb5dsD1CmN0qXOictUL4CIe3ZEMGS1GmjhvYVmD+98FN8L5L/Vsy
+	 3G1ubLYguu9RMCkZUMRNR5U2vqLFAnQcIwqCeur9NX34x8BNMuQ1KZX99h7nPVB3OT
+	 C/9HHzET9dWNArETS75VrNQUkqnSkrf5q9y98sGQ=
+Date: Fri, 21 Nov 2025 10:35:58 -0800
+To: mm-commits@vger.kernel.org,zhangchunyan@iscas.ac.cn,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-abi-new-kexec-and-kdump-sysfs-interface.patch added to mm-nonmm-unstable branch
-Message-Id: <20251121170956.8DF72C4CEF1@smtp.kernel.org>
+Subject: + mm-softdirty-add-pgtable_supports_soft_dirty-fix.patch added to mm-unstable branch
+Message-Id: <20251121183558.EB902C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/ABI: new kexec and kdump sysfs interface
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     documentation-abi-new-kexec-and-kdump-sysfs-interface.patch
+     Subject: mm-softdirty-add-pgtable_supports_soft_dirty-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-softdirty-add-pgtable_supports_soft_dirty-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-abi-new-kexec-and-kdump-sysfs-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-softdirty-add-pgtable_supports_soft_dirty-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,108 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: Documentation/ABI: new kexec and kdump sysfs interface
-Date: Tue, 18 Nov 2025 17:15:07 +0530
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm-softdirty-add-pgtable_supports_soft_dirty-fix
+Date: Fri, 21 Nov 2025 16:55:37 +0000
 
-Add an ABI document for following kexec and kdump sysfs interface:
+fix VMA selftests
 
-- /sys/kernel/kexec/loaded
-- /sys/kernel/kexec/crash_loaded
-- /sys/kernel/kexec/crash_size
-- /sys/kernel/kexec/crash_elfcorehdr_size
-- /sys/kernel/kexec/crash_cma_ranges
-
-Link: https://lkml.kernel.org/r/20251118114507.1769455-4-sourabhjain@linux.ibm.com
-Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Aditya Gupta <adityag@linux.ibm.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mahesh J Salgaonkar <mahesh@linux.ibm.com>
-Cc: Pingfan Liu <piliu@redhat.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shivang Upadhyay <shivangu@linux.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/dac6ddfe-773a-43d5-8f69-021b9ca4d24b@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-kexec-kdump |   61 +++++++++++
- 1 file changed, 61 insertions(+)
+ tools/testing/vma/vma_internal.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
-new file mode 100644
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
-@@ -0,0 +1,61 @@
-+What:		/sys/kernel/kexec/*
-+Date:		Nov 2025
-+Contact:	kexec@lists.infradead.org
-+Description:
-+		The /sys/kernel/kexec/* directory contains sysfs files
-+		that provide information about the configuration status
-+		of kexec and kdump.
+--- a/tools/testing/vma/vma_internal.h~mm-softdirty-add-pgtable_supports_soft_dirty-fix
++++ a/tools/testing/vma/vma_internal.h
+@@ -212,6 +212,8 @@ typedef __bitwise unsigned int vm_fault_
+ 
+ #define ASSERT_EXCLUSIVE_WRITER(x)
+ 
++#define pgtable_supports_soft_dirty() 1
 +
-+What:		/sys/kernel/kexec/loaded
-+Date:		Nov 2025
-+Contact:	kexec@lists.infradead.org
-+Description:	read only
-+		Indicates whether a new kernel image has been loaded
-+		into memory using the kexec system call. It shows 1 if
-+		a kexec image is present and ready to boot, or 0 if none
-+		is loaded.
-+User:		kexec tools, kdump service
-+
-+What:		/sys/kernel/kexec/crash_loaded
-+Date:		Nov 2025
-+Contact:	kexec@lists.infradead.org
-+Description:	read only
-+		Indicates whether a crash (kdump) kernel is currently
-+		loaded into memory. It shows 1 if a crash kernel has been
-+		successfully loaded for panic handling, or 0 if no crash
-+		kernel is present.
-+User:		Kexec tools, Kdump service
-+
-+What:		/sys/kernel/kexec/crash_size
-+Date:		Nov 2025
-+Contact:	kexec@lists.infradead.org
-+Description:	read/write
-+		Shows the amount of memory reserved for loading the crash
-+		(kdump) kernel. It reports the size, in bytes, of the
-+		crash kernel area defined by the crashkernel= parameter.
-+		This interface also allows reducing the crashkernel
-+		reservation by writing a smaller value, and the reclaimed
-+		space is added back to the system RAM.
-+User:		Kdump service
-+
-+What:		/sys/kernel/kexec/crash_elfcorehdr_size
-+Date:		Nov 2025
-+Contact:	kexec@lists.infradead.org
-+Description:	read only
-+		Indicates the preferred size of the memory buffer for the
-+		ELF core header used by the crash (kdump) kernel. It defines
-+		how much space is needed to hold metadata about the crashed
-+		system, including CPU and memory information. This information
-+		is used by the user space utility kexec to support updating the
-+		in-kernel kdump image during hotplug operations.
-+User:		Kexec tools
-+
-+What:		/sys/kernel/kexec/crash_cma_ranges
-+Date:		Nov 2025
-+Contact:	kexec@lists.infradead.org
-+Description:	read only
-+		Provides information about the memory ranges reserved from
-+		the Contiguous Memory Allocator (CMA) area that are allocated
-+		to the crash (kdump) kernel. It lists the start and end physical
-+		addresses of CMA regions assigned for crashkernel use.
-+User:		kdump service
+ /**
+  * swap - swap values of @a and @b
+  * @a: first value
 _
 
-Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-kexec-move-sysfs-entries-to-sys-kernel-kexec.patch
-documentation-abi-mark-old-kexec-sysfs-deprecated.patch
-documentation-abi-new-kexec-and-kdump-sysfs-interface.patch
+mm-correctly-handle-uffd-pte-markers.patch
+mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
+mm-avoid-unnecessary-uses-of-is_swap_pte.patch
+mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
+mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
+fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
+mm-avoid-unnecessary-use-of-is_swap_pmd.patch
+mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
+mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
+mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
+mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
+mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
+mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
+mm-remove-is_hugetlb_entry_.patch
+mm-eliminate-further-swapops-predicates.patch
+mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
+mm-softdirty-add-pgtable_supports_soft_dirty-fix.patch
 
