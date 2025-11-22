@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84A1B30102F
-	for <mm-commits@vger.kernel.org>; Fri, 21 Nov 2025 20:00:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5704327702D
+	for <mm-commits@vger.kernel.org>; Sat, 22 Nov 2025 21:37:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763755201; cv=none; b=osKBA4UsTGpwLsqfj5uijxjx38XmXfCsJkn4xpIkegPiWlx+gqKYgFLJ9+Iucn4ON5wc7i68DQ3ud76cq1WDUetrnGDwxYr8m6BORlWdwiiXmj9vM3RRodBm2i9WQZQkEzrhAIZYw4X/E2Nv1zRqQUOLXsrSna+j+R8Ly2nnmJY=
+	t=1763847476; cv=none; b=AUnA0s9JSe39unYomLbCZoeirl4E4sxDrRKq0oJbFsuLxvXNOA3408tEW3aj+BdGcpmBxJaw+LqkMkShCZFapqZjmLU4rmApl2f0guMDBunHorzImew4p3qWLjrYqDe+m3Lupc2RcLnAst+FjTVWtnSD2cNZ8Qo3kigiryl9xZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763755201; c=relaxed/simple;
-	bh=Wqp7Yfsab5DnblR/7+iTW8wPcnGv5AFbJe6yV/lFZLQ=;
-	h=Date:To:From:Subject:Message-Id; b=VOakJr5Qp/PTuNjz174AEe4G/8WpMM6Lf0C0ejPr5tiwU5d61V0MMsFM1lFH4QwcTm8lZzcmpRxnKtj3Wvlg4KvrJHvsswglIB/rbzzmwuZuaueQsLqU8W1XxViyTPrcAEZFfiGF/WaZAzAdipGx3jebJOEYmYz31+J8dVgeiAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BfaObwf6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763847476; c=relaxed/simple;
+	bh=lz3mRdJIpuNzFbXuiuj2be6WcULq4MV88b3i+FRHcxQ=;
+	h=Date:To:From:Subject:Message-Id; b=i+XxwTsTxNJ2vR08vYp4UaskHsT0PfqNWD6P3vMwCAMFh4n9oUORTv8AbeZcL8ejuk3iKJ3lGpxOqghbHkfobBLdWSCAu+FF6aC3Kn6uA+aQp9Rm1eaZSetZaCsDq00+OOcQQ/6ENQ9ODI6GDod4ps4eVGVJwudWD0Nlw9MdDHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GgOe3nAS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BfaObwf6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 384FDC4CEF1;
-	Fri, 21 Nov 2025 20:00:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GgOe3nAS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BED0AC4CEF5;
+	Sat, 22 Nov 2025 21:37:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763755201;
-	bh=Wqp7Yfsab5DnblR/7+iTW8wPcnGv5AFbJe6yV/lFZLQ=;
+	s=korg; t=1763847475;
+	bh=lz3mRdJIpuNzFbXuiuj2be6WcULq4MV88b3i+FRHcxQ=;
 	h=Date:To:From:Subject:From;
-	b=BfaObwf6YRgFpaZe9QEpwSb3y9GXEoShDWtTdXPTp0J90zguKhU2zkv6kVCCmGmB3
-	 TEjE+AMMi1k5VCci+gxKbqMjPTcOFDl3f3cM2furpZABxpNcV00cSZA00jrhpMgi5R
-	 TbDdJJCHlUNeyXKHJ76bx1xTy9O4pVkyUjdtz/0E=
-Date: Fri, 21 Nov 2025 12:00:00 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,akpm@linux-foundation.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=GgOe3nASAiQTm6zcbd5XTElfDHN+pqfLaoMrsgjlt4z5rdFw6MkAwJQjlLJAPyFaA
+	 uv4E388A3ow0jJ1BlrQ2UBhqqeNjU/RSDZ97yo30i0mximsyRg3AI1d0YZg7rxz4DT
+	 4xCoip4w7KmYQi22vqxKRYiB622d7u2ZvpM7+3tQ=
+Date: Sat, 22 Nov 2025 13:37:55 -0800
+To: mm-commits@vger.kernel.org,vdavydov@virtuozzo.com,n-horiguchi@ah.jp.nec.com,koct9i@gmail.com,richard@nod.at,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-add-__read_mostly-to-sysctl_hugetlb_shm_group.patch added to mm-unstable branch
-Message-Id: <20251121200001.384FDC4CEF1@smtp.kernel.org>
+Subject: + pagemap-update-buddy-flag-documentation.patch added to mm-new branch
+Message-Id: <20251122213755.BED0AC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: add __read_mostly to sysctl_hugetlb_shm_group
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-add-__read_mostly-to-sysctl_hugetlb_shm_group.patch
+     Subject: pagemap: update BUDDY flag documentation
+has been added to the -mm mm-new branch.  Its filename is
+     pagemap-update-buddy-flag-documentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-add-__read_mostly-to-sysctl_hugetlb_shm_group.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pagemap-update-buddy-flag-documentation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,36 +64,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: hugetlb: add __read_mostly to sysctl_hugetlb_shm_group
-Date: Fri, 21 Nov 2025 14:48:59 -0500
+From: Richard Weinberger <richard@nod.at>
+Subject: pagemap: update BUDDY flag documentation
+Date: Sat, 22 Nov 2025 22:19:20 +0100
 
-sysctl bits are mostly-read values.
+Since v4.6 the BUDDY flag is set for _all_ pages in the block
+and no longer just for the first one.
+This change was introduced by:
+commit 832fc1de01ae ("/proc/kpageflags: return KPF_BUDDY for "tail" buddy pages")
 
-Link: https://lkml.kernel.org/r/20251121194859.265259-2-gourry@gourry.net
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Oscar Salvador <osalvador@suse.de>
+Strictly speaking, this was an ABI change, but as nobody has noticed
+since 2016, let's just update the documentation.
+
+Link: https://lkml.kernel.org/r/20251122211920.3410371-1-richard@nod.at
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/pagemap.rst |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/hugetlb.h~hugetlb-add-__read_mostly-to-sysctl_hugetlb_shm_group
-+++ a/include/linux/hugetlb.h
-@@ -171,7 +171,7 @@ bool hugetlbfs_pagecache_present(struct
- 
- struct address_space *hugetlb_folio_mapping_lock_write(struct folio *folio);
- 
--extern int sysctl_hugetlb_shm_group;
-+extern int sysctl_hugetlb_shm_group __read_mostly;
- extern struct list_head huge_boot_pages[MAX_NUMNODES];
- 
- void hugetlb_bootmem_alloc(void);
+--- a/Documentation/admin-guide/mm/pagemap.rst~pagemap-update-buddy-flag-documentation
++++ a/Documentation/admin-guide/mm/pagemap.rst
+@@ -115,7 +115,8 @@ Short descriptions to the page flags
+     A free memory block managed by the buddy system allocator.
+     The buddy system organizes free memory in blocks of various orders.
+     An order N block has 2^N physically contiguous pages, with the BUDDY flag
+-    set for and _only_ for the first page.
++    set for all pages.
++    Before 4.6 only the first page of the block had the flag set.
+ 15 - COMPOUND_HEAD
+     A compound page with order N consists of 2^N physically contiguous pages.
+     A compound page with order 2 takes the form of "HTTT", where H donates its
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from richard@nod.at are
 
-hugetlb-add-__read_mostly-to-sysctl_hugetlb_shm_group.patch
+pagemap-update-buddy-flag-documentation.patch
 
