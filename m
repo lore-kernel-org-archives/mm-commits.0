@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EBF11D555
-	for <mm-commits@vger.kernel.org>; Sat, 22 Nov 2025 22:02:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 171EE1D555
+	for <mm-commits@vger.kernel.org>; Sat, 22 Nov 2025 22:02:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763848932; cv=none; b=SySF8elks+9+euYw1MRBcdY9x+Sutyf/m4SP4oRJmQXNowWy8OH7dScFkiyJVwnJ9PRXOdUBWBj6N30aGQCoDqpstHAcpuS9R1iQXhLtkerYKyHtjxZriNg6vOpdNsexBRR09Gd+Tr0MaqpJWLffTw6X3MkLZ00+YL0s6OZZEjw=
+	t=1763848935; cv=none; b=VT7h1eY/bVqfccBtOg47KGOHLYl0XKj8tGeEGQqp7ku2GKQi4MLv3/5yI7aMqUevXyZsAAFbnQb8f09u3Om+t8y6JTJU1XYiJ1sowZF+rCSpNHQIALUjHqSowG6euCQWvrqTmrvIIvswKvfGTroZgTk58KDxSu5x8Ml3BW4NiPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763848932; c=relaxed/simple;
-	bh=IFRbx+zDfmDQitNvl6v2wbA3/iO6d+EqAF70uCaPjrI=;
-	h=Date:To:From:Subject:Message-Id; b=oL7Y6P4L9roAmEZJMOheFzniQnFXH2D7dRyoMmyRhycS1nN2PhUwbF05KO6ZPjBkRTsEjfv4zaH2dx3BrSMDVUeREOiRiG4gUlq6tRKxz4vKihQRvx42fHusRYalQPgSjPS+AtnHkEGPidnSaJom6iKVGLW0o25lopytD9uty7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0pbJAqvz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763848935; c=relaxed/simple;
+	bh=z2hL41KvibxxGngzUwjUgJ7/7L2OEdOCK7UmoP9KsqQ=;
+	h=Date:To:From:Subject:Message-Id; b=AOpnsgno/8SFgb4BELnC6zM07ak3aFMjtynyRo9SpOnEGBDfN85HwDkwrCfGQsBPBhuw+Ij9urBYcNgFSCnijVNf2KpLsal26rMQo1lUMsjOyKUOpEvzeUM2/cIPIv2ePMTELdK8lWazM9NIACCj/G3I4W1Puw+6AcCKOyTA5G0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0C4pMi70; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0pbJAqvz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CADD1C4CEF5;
-	Sat, 22 Nov 2025 22:02:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0C4pMi70"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85654C4CEF5;
+	Sat, 22 Nov 2025 22:02:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763848931;
-	bh=IFRbx+zDfmDQitNvl6v2wbA3/iO6d+EqAF70uCaPjrI=;
+	s=korg; t=1763848934;
+	bh=z2hL41KvibxxGngzUwjUgJ7/7L2OEdOCK7UmoP9KsqQ=;
 	h=Date:To:From:Subject:From;
-	b=0pbJAqvzVb+BeUyjSBdIDF+Wrt/CMjYgxaai+Qnovhmso5oa2bMfOccIpiib2mBD6
-	 yUUh5aDx+gKqqsOT+8jLoNKtQNw3OnDU3pyfg+lQSFiEnXFXzq97rrSX2dFL6exQ+f
-	 0trrEwClU5tBbMuNQ8V7FdA6wqwzaslonU2No8QY=
-Date: Sat, 22 Nov 2025 14:02:11 -0800
+	b=0C4pMi70T8CrwPbT5KbX4SPO6TolhttRT9FvNRKmU3kjD7RvItBbF0+oKuAW1u5sI
+	 A0QD0rasBMB12CID5eqk8frNbkI2MNt37nh3RBn0VVYki+A+JjAP1FVK2PWyqUC+E3
+	 YaZeYC2xleifvI8O0GMdbeSu0P97Sa3TXDv0jSRc=
+Date: Sat, 22 Nov 2025 14:02:14 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-change-folio_split_supported-to-folio_check_splittable.patch added to mm-new branch
-Message-Id: <20251122220211.CADD1C4CEF5@smtp.kernel.org>
+Subject: + mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation.patch added to mm-new branch
+Message-Id: <20251122220214.85654C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: change folio_split_supported() to folio_check_splittable()
+     Subject: mm/huge_memory: replace can_split_folio() with direct refcount calculation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-change-folio_split_supported-to-folio_check_splittable.patch
+     mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-change-folio_split_supported-to-folio_check_splittable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,60 +65,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: change folio_split_supported() to folio_check_splittable()
-Date: Fri, 21 Nov 2025 21:55:26 -0500
+Subject: mm/huge_memory: replace can_split_folio() with direct refcount calculation
+Date: Fri, 21 Nov 2025 21:55:27 -0500
 
-Patch series "Improve folio split related functions", v2.
+can_split_folio() is just a refcount comparison, making sure only the
+split caller holds an extra pin.  Open code it with
+folio_expected_ref_count() != folio_ref_count() - 1.  For the extra_pins
+used by folio_ref_freeze(), add folio_cache_references() to calculate it.
 
-This patchset improves several folio split related functions to avoid
-future misuse.  The changes are:
-
-1. Consolidated folio splittable checks by moving truncated folio check,
-   huge zero folio check, and writeback folio check into
-   folio_split_supported(). Changed the function return type. Renamed it
-   to folio_check_splittable() for clarification.
-
-2. Replaced can_split_folio() with open coded folio_expected_ref_count()
-   and folio_ref_count().
-
-3. Changed min_order_for_split() to always return an order.
-
-4. Fixed folio split stats counting.
-
-Motivation
-==========
-
-This is based on Wei's observation[1] and solves several potential
-issues:
-1. Dereferencing NULL folio->mapping in try_folio_split_to_order() if it
-   is called on truncated folios.
-2. Not handling of negative return value of min_order_for_split() in
-   mm/memory-failure.c
-
-There is no bug in the current code.
-
-
-This patch (of 4):
-
-folio_split_supported() used in try_folio_split_to_order() requires
-folio->mapping to be non NULL, but current try_folio_split_to_order() does
-not check it.  There is no issue in the current code, since
-try_folio_split_to_order() is only used in truncate_inode_partial_folio(),
-where folio->mapping is not NULL.
-
-To prevent future misuse, move folio->mapping NULL check (i.e., folio is
-truncated) into folio_split_supported().  Since folio->mapping NULL check
-returns -EBUSY and folio_split_supported() == false means -EINVAL, change
-folio_split_supported() return type from bool to int and return error
-numbers accordingly.  Rename folio_split_supported() to
-folio_check_splittable() to match the return type change.
-
-While at it, move is_huge_zero_folio() check and folio_test_writeback()
-check into folio_check_splittable() and add kernel-doc.
-
-Link: https://lkml.kernel.org/r/20251122025529.1562592-1-ziy@nvidia.com
-Link: https://lkml.kernel.org/r/20251122025529.1562592-2-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20251122025529.1562592-3-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -131,162 +88,151 @@ Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   10 +++--
- mm/huge_memory.c        |   74 +++++++++++++++++++++++---------------
- 2 files changed, 53 insertions(+), 31 deletions(-)
+ include/linux/huge_mm.h |    1 
+ mm/huge_memory.c        |   43 +++++++++++++++-----------------------
+ mm/vmscan.c             |    3 +-
+ 3 files changed, 19 insertions(+), 28 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-change-folio_split_supported-to-folio_check_splittable
+--- a/include/linux/huge_mm.h~mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation
 +++ a/include/linux/huge_mm.h
-@@ -375,8 +375,8 @@ int __split_huge_page_to_list_to_order(s
- int folio_split_unmapped(struct folio *folio, unsigned int new_order);
- int min_order_for_split(struct folio *folio);
- int split_folio_to_list(struct folio *folio, struct list_head *list);
--bool folio_split_supported(struct folio *folio, unsigned int new_order,
--		enum split_type split_type, bool warns);
-+int folio_check_splittable(struct folio *folio, unsigned int new_order,
-+			   enum split_type split_type, bool warns);
- int folio_split(struct folio *folio, unsigned int new_order, struct page *page,
- 		struct list_head *list);
+@@ -369,7 +369,6 @@ enum split_type {
+ 	SPLIT_TYPE_NON_UNIFORM,
+ };
  
-@@ -407,7 +407,11 @@ static inline int split_huge_page_to_ord
- static inline int try_folio_split_to_order(struct folio *folio,
- 		struct page *page, unsigned int new_order)
- {
--	if (!folio_split_supported(folio, new_order, SPLIT_TYPE_NON_UNIFORM, /* warns= */ false))
-+	int ret;
-+
-+	ret = folio_check_splittable(folio, new_order, SPLIT_TYPE_NON_UNIFORM,
-+				     /* warns= */ false);
-+	if (ret)
- 		return split_huge_page_to_order(&folio->page, new_order);
- 	return folio_split(folio, new_order, page, NULL);
- }
---- a/mm/huge_memory.c~mm-huge_memory-change-folio_split_supported-to-folio_check_splittable
+-bool can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins);
+ int __split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+ 		unsigned int new_order);
+ int folio_split_unmapped(struct folio *folio, unsigned int new_order);
+--- a/mm/huge_memory.c~mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation
 +++ a/mm/huge_memory.c
-@@ -3688,15 +3688,43 @@ static int __split_unmapped_folio(struct
+@@ -3455,23 +3455,6 @@ static void lru_add_split_folio(struct f
+ 	}
+ }
+ 
+-/* Racy check whether the huge page can be split */
+-bool can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins)
+-{
+-	int extra_pins;
+-
+-	/* Additional pins from page cache */
+-	if (folio_test_anon(folio))
+-		extra_pins = folio_test_swapcache(folio) ?
+-				folio_nr_pages(folio) : 0;
+-	else
+-		extra_pins = folio_nr_pages(folio);
+-	if (pextra_pins)
+-		*pextra_pins = extra_pins;
+-	return folio_mapcount(folio) == folio_ref_count(folio) - extra_pins -
+-					caller_pins;
+-}
+-
+ static bool page_range_has_hwpoisoned(struct page *page, long nr_pages)
+ {
+ 	for (; nr_pages; page++, nr_pages--)
+@@ -3776,17 +3759,26 @@ int folio_check_splittable(struct folio
  	return 0;
  }
  
--bool folio_split_supported(struct folio *folio, unsigned int new_order,
--		enum split_type split_type, bool warns)
-+/**
-+ * folio_check_splittable() - check if a folio can be split to a given order
-+ * @folio: folio to be split
-+ * @new_order: the smallest order of the after split folios (since buddy
-+ *             allocator like split generates folios with orders from @folio's
-+ *             order - 1 to new_order).
-+ * @split_type: uniform or non-uniform split
-+ * @warns: whether gives warnings or not for the checks in the function
-+ *
-+ * folio_check_splittable() checks if @folio can be split to @new_order using
-+ * @split_type method. The truncated folio check must come first.
-+ *
-+ * Context: folio must be locked.
-+ *
-+ * Return: 0 - @folio can be split to @new_order, otherwise an error number is
-+ * returned.
-+ */
-+int folio_check_splittable(struct folio *folio, unsigned int new_order,
-+			   enum split_type split_type, bool warns)
- {
-+	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
-+	/*
-+	 * Folios that just got truncated cannot get split. Signal to the
-+	 * caller that there was a race.
-+	 *
-+	 * TODO: this will also currently refuse shmem folios that are in the
-+	 * swapcache.
-+	 */
-+	if (!folio_test_anon(folio) && !folio->mapping)
-+		return -EBUSY;
++/* Number of folio references from the pagecache or the swapcache. */
++static unsigned int folio_cache_references(const struct folio *folio)
++{
++	if (folio_test_anon(folio) && !folio_test_swapcache(folio))
++		return 0;
++	return folio_nr_pages(folio);
++}
 +
- 	if (folio_test_anon(folio)) {
- 		/* order-1 is not supported for anonymous THP. */
- 		VM_WARN_ONCE(warns && new_order == 1,
- 				"Cannot split to order-1 folio");
- 		if (new_order == 1)
--			return false;
-+			return -EINVAL;
- 	} else if (split_type == SPLIT_TYPE_NON_UNIFORM || new_order) {
- 		if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
- 		    !mapping_large_folio_support(folio->mapping)) {
-@@ -3719,7 +3747,7 @@ bool folio_split_supported(struct folio
- 			 */
- 			VM_WARN_ONCE(warns,
- 				"Cannot split file folio to non-0 order");
--			return false;
-+			return -EINVAL;
- 		}
- 	}
- 
-@@ -3734,10 +3762,18 @@ bool folio_split_supported(struct folio
- 	if ((split_type == SPLIT_TYPE_NON_UNIFORM || new_order) && folio_test_swapcache(folio)) {
- 		VM_WARN_ONCE(warns,
- 			"Cannot split swapcache folio to non-0 order");
--		return false;
-+		return -EINVAL;
- 	}
- 
--	return true;
-+	if (is_huge_zero_folio(folio)) {
-+		pr_warn_ratelimited("Called split_huge_page for huge zero page\n");
-+		return -EINVAL;
-+	}
-+
-+	if (folio_test_writeback(folio))
-+		return -EBUSY;
-+
-+	return 0;
- }
- 
  static int __folio_freeze_and_split_unmapped(struct folio *folio, unsigned int new_order,
-@@ -3922,7 +3958,6 @@ static int __folio_split(struct folio *f
+ 					     struct page *split_at, struct xa_state *xas,
+ 					     struct address_space *mapping, bool do_lru,
+ 					     struct list_head *list, enum split_type split_type,
+-					     pgoff_t end, int *nr_shmem_dropped, int extra_pins)
++					     pgoff_t end, int *nr_shmem_dropped)
+ {
+ 	struct folio *end_folio = folio_next(folio);
+ 	struct folio *new_folio, *next;
+ 	int old_order = folio_order(folio);
+ 	int ret = 0;
+ 	struct deferred_split *ds_queue;
++	int extra_pins = folio_cache_references(folio);
+ 
+ 	VM_WARN_ON_ONCE(!mapping && end);
+ 	/* Prevent deferred_split_scan() touching ->_refcount */
+@@ -3956,7 +3948,7 @@ static int __folio_split(struct folio *f
+ 	struct folio *new_folio, *next;
+ 	int nr_shmem_dropped = 0;
  	int remap_flags = 0;
- 	int extra_pins, ret;
+-	int extra_pins, ret;
++	int ret;
  	pgoff_t end = 0;
--	bool is_hzp;
  
  	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
+@@ -4036,7 +4028,7 @@ static int __folio_split(struct folio *f
+ 	 * Racy check if we can split the page, before unmap_folio() will
+ 	 * split PMDs
+ 	 */
+-	if (!can_split_folio(folio, 1, &extra_pins)) {
++	if (folio_expected_ref_count(folio) != folio_ref_count(folio) - 1) {
+ 		ret = -EAGAIN;
+ 		goto out_unlock;
+ 	}
+@@ -4059,8 +4051,7 @@ static int __folio_split(struct folio *f
+ 	}
+ 
+ 	ret = __folio_freeze_and_split_unmapped(folio, new_order, split_at, &xas, mapping,
+-						true, list, split_type, end, &nr_shmem_dropped,
+-						extra_pins);
++						true, list, split_type, end, &nr_shmem_dropped);
+ fail:
+ 	if (mapping)
+ 		xas_unlock(&xas);
+@@ -4134,20 +4125,20 @@ out:
+  */
+ int folio_split_unmapped(struct folio *folio, unsigned int new_order)
+ {
+-	int extra_pins, ret = 0;
++	int ret = 0;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(folio_mapped(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
  	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
-@@ -3930,30 +3965,13 @@ static int __folio_split(struct folio *f
- 	if (folio != page_folio(split_at) || folio != page_folio(lock_at))
- 		return -EINVAL;
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_anon(folio), folio);
  
--	/*
--	 * Folios that just got truncated cannot get split. Signal to the
--	 * caller that there was a race.
--	 *
--	 * TODO: this will also currently refuse shmem folios that are in the
--	 * swapcache.
--	 */
--	if (!is_anon && !folio->mapping)
--		return -EBUSY;
--
- 	if (new_order >= old_order)
- 		return -EINVAL;
+-	if (!can_split_folio(folio, 1, &extra_pins))
++	if (folio_expected_ref_count(folio) != folio_ref_count(folio) - 1)
+ 		return -EAGAIN;
  
--	if (!folio_split_supported(folio, new_order, split_type, /* warn = */ true))
--		return -EINVAL;
--
--	is_hzp = is_huge_zero_folio(folio);
--	if (is_hzp) {
--		pr_warn_ratelimited("Called split_huge_page for huge zero page\n");
--		return -EBUSY;
--	}
--
--	if (folio_test_writeback(folio))
--		return -EBUSY;
-+	ret = folio_check_splittable(folio, new_order, split_type,
-+				     /* warn = */ true);
-+	if (ret)
-+		return ret;
+ 	local_irq_disable();
+ 	ret = __folio_freeze_and_split_unmapped(folio, new_order, &folio->page, NULL,
+ 						NULL, false, NULL, SPLIT_TYPE_UNIFORM,
+-						0, NULL, extra_pins);
++						0, NULL);
+ 	local_irq_enable();
+ 	return ret;
+ }
+@@ -4640,7 +4631,7 @@ static int split_huge_pages_pid(int pid,
+ 		 * can be split or not. So skip the check here.
+ 		 */
+ 		if (!folio_test_private(folio) &&
+-		    !can_split_folio(folio, 0, NULL))
++		    folio_expected_ref_count(folio) != folio_ref_count(folio))
+ 			goto next;
  
- 	if (is_anon) {
- 		/*
+ 		if (!folio_trylock(folio))
+--- a/mm/vmscan.c~mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation
++++ a/mm/vmscan.c
+@@ -1284,7 +1284,8 @@ retry:
+ 					goto keep_locked;
+ 				if (folio_test_large(folio)) {
+ 					/* cannot split folio, skip it */
+-					if (!can_split_folio(folio, 1, NULL))
++					if (folio_expected_ref_count(folio) !=
++					    folio_ref_count(folio) - 1)
+ 						goto activate_locked;
+ 					/*
+ 					 * Split partially mapped folios right away.
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
