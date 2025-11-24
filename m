@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD74938D;
-	Mon, 24 Nov 2025 22:26:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AE472F6916
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:26:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764023166; cv=none; b=G9sn/zF3PDjKT9nWhr+oHkj4Rjiuf1tIaq9X2887kFhpjQ6Bqr9MArVQLHZbxxtVr57Z2ym+tNx3Qxds1nI4wdCYtE2HblUSSj1KV9U7qTU4FE/euOkvGjdQBI5954mr1xYrhHsxDRuBWy1jw9HJS+h9Mq0V24+z2knbNOfhAwM=
+	t=1764023167; cv=none; b=oQjR7QT2rkcxYlJoj2ZRXWzRbvoJ+tJdXiZIF8Bcn+6Ef2eVD33k5PG3uqB9RHqS2bu11IP59dnWhLEvTguKX6R/ze+uh/12NxIsdgOrjWiJcr4Z7w8r2WghgCfVm80GH9Rr4HP2PpcZ4N8XDZWxoZICb9qZUWn7JRf3xyoS6BQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764023166; c=relaxed/simple;
-	bh=To/vzHh+1qqeWteYZ2ek7LMdf07fu3XalIcDP4wGZs0=;
-	h=Date:To:From:Subject:Message-Id; b=hneZ/ASynRhlAcpH9imoSqn6LRwx+iPyduFbTSyJjhS3D5D5zzZM/RDuBiIQc4kdv+ZtTzUPabhWi4mjL0Q1rKKEEpX0EMdFiq1GGlbfTBvX2DTrSrxFcGrZhQhCqTc46qOTNwDQ8rOcTM3kQQ8ACpr/uKxAa+zsgWI+feawhgs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BTVvDtMA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764023167; c=relaxed/simple;
+	bh=wOhfAo6ckZ0teHMIIYR1C+AFWxzOwV/dywXAGCO8W9E=;
+	h=Date:To:From:Subject:Message-Id; b=S46alZ/HLanSLcH28lh1yMVVcOqNKdv2VtSdqkJZ5COIzVDchK9Ci5fVJPzP+88dzB6RgcTfRcITmZoNC6JoJ0/tg4gKeGw3TqMFJFThprDM+2NDPQHFo1nh2jiftI9XfvGcggWqxZ9pmwbK+bTVlS1M+IkbnRJOf3VfLkCc9wk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W26AIEzT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BTVvDtMA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A089EC16AAE;
-	Mon, 24 Nov 2025 22:26:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W26AIEzT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DA40C4CEF1;
+	Mon, 24 Nov 2025 22:26:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764023166;
-	bh=To/vzHh+1qqeWteYZ2ek7LMdf07fu3XalIcDP4wGZs0=;
+	s=korg; t=1764023165;
+	bh=wOhfAo6ckZ0teHMIIYR1C+AFWxzOwV/dywXAGCO8W9E=;
 	h=Date:To:From:Subject:From;
-	b=BTVvDtMAgDY5yslP4usSWa1l0QEday3A5IWuPHBkxUNFx3XAKgDTBAYJt2yvxK6OB
-	 4V/SgWHiLcXlbxHnN5S+gp0h7SgdWCLMC3nUBrME0kuwFHBxRgxi3mX8A+Ky+ahhZ+
-	 gi4cgyQub+aCFuta35taeSwIpan+GJYLI2562m2Y=
-Date: Mon, 24 Nov 2025 14:26:06 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=W26AIEzT0vCFtRz58EnepKAS5sMgTKGIAJajK2dq7f5QlpxZqeHfJGD5FbUvhuWAZ
+	 KOoGgeO0QIP8a9BMspkiMY4TdbZxm+DXuvtKxJ9wADqe6+gLZU5O7mVcEHDHpzgBht
+	 Is9f7Npow/QDLM/3zUtBXBIk6/l/l0R+c92kr8+Y=
+Date: Mon, 24 Nov 2025 14:26:05 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-huge_memory-fix-null-pointer-deference-when-splitting-folio.patch removed from -mm tree
-Message-Id: <20251124222606.A089EC16AAE@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-test_kho-to-khos-entry.patch removed from -mm tree
+Message-Id: <20251124222605.9DA40C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: fix NULL pointer deference when splitting folio
+     Subject: MAINTAINERS: add test_kho to KHO's entry
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-fix-null-pointer-deference-when-splitting-folio.patch
+     maintainers-add-test_kho-to-khos-entry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/huge_memory: fix NULL pointer deference when splitting folio
-Date: Wed, 19 Nov 2025 23:53:02 +0000
+From: Pratyush Yadav <pratyush@kernel.org>
+Subject: MAINTAINERS: add test_kho to KHO's entry
+Date: Tue, 18 Nov 2025 19:24:15 +0100
 
-Commit c010d47f107f ("mm: thp: split huge page to any lower order pages")
-introduced an early check on the folio's order via mapping->flags before
-proceeding with the split work.
+Commit b753522bed0b7 ("kho: add test for kexec handover") introduced the
+KHO test but missed adding it to KHO's MAINTAINERS entry.  Add it so the
+KHO maintainers can get patches for its test.
 
-This check introduced a bug: for shmem folios in the swap cache and
-truncated folios, the mapping pointer can be NULL.  Accessing
-mapping->flags in this state leads directly to a NULL pointer dereference.
-
-This commit fixes the issue by moving the check for mapping != NULL before
-any attempt to access mapping->flags.
-
-Link: https://lkml.kernel.org/r/20251119235302.24773-1-richard.weiyang@gmail.com
-Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251118182416.70660-1-pratyush@kernel.org
+Fixes: b753522bed0b7 ("kho: add test for kexec handover")
+Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-null-pointer-deference-when-splitting-folio
-+++ a/mm/huge_memory.c
-@@ -3619,6 +3619,16 @@ static int __folio_split(struct folio *f
- 	if (folio != page_folio(split_at) || folio != page_folio(lock_at))
- 		return -EINVAL;
+--- a/MAINTAINERS~maintainers-add-test_kho-to-khos-entry
++++ a/MAINTAINERS
+@@ -13798,6 +13798,7 @@ F:	Documentation/admin-guide/mm/kho.rst
+ F:	Documentation/core-api/kho/*
+ F:	include/linux/kexec_handover.h
+ F:	kernel/kexec_handover.c
++F:	lib/test_kho.c
+ F:	tools/testing/selftests/kho/
  
-+	/*
-+	 * Folios that just got truncated cannot get split. Signal to the
-+	 * caller that there was a race.
-+	 *
-+	 * TODO: this will also currently refuse shmem folios that are in the
-+	 * swapcache.
-+	 */
-+	if (!is_anon && !folio->mapping)
-+		return -EBUSY;
-+
- 	if (new_order >= folio_order(folio))
- 		return -EINVAL;
- 
-@@ -3659,18 +3669,6 @@ static int __folio_split(struct folio *f
- 		gfp_t gfp;
- 
- 		mapping = folio->mapping;
--
--		/* Truncated ? */
--		/*
--		 * TODO: add support for large shmem folio in swap cache.
--		 * When shmem is in swap cache, mapping is NULL and
--		 * folio_test_swapcache() is true.
--		 */
--		if (!mapping) {
--			ret = -EBUSY;
--			goto out;
--		}
--
- 		min_order = mapping_min_folio_order(folio->mapping);
- 		if (new_order < min_order) {
- 			ret = -EINVAL;
+ KEYS-ENCRYPTED
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
-mm-huge_memory-add-pmd-folio-to-ds_queue-in-do_huge_zero_wp_pmd.patch
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
-mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch
-mm-huge_memory-introduce-enum-split_type-for-clarity.patch
-mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported.patch
-mm-khugepaged-remove-redundant-clearing-of-struct-collapse_control.patch
-mm-khugepaged-continue-to-collapse-on-scan_pmd_none.patch
-mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch
+kho-free-chunks-using-free_page-instead-of-kfree.patch
+test_kho-always-print-restore-status.patch
 
