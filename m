@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1027341046
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:32:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 043BF342C88
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:33:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764023543; cv=none; b=ngbdOIdM4FFDzTh/coyioePbtmMiBNm665eJNMejN/Ac5WhxtAmJp6PU+Y56N+L5bY9xRJAnFMKmJ5G+uzWJEGR9ZolNTlV5+mZsrB4WYNny4VxQsdSa/8RvxyrjsL0Z92JFCOsGQyEE4EKG7gaotV9IaLidam6cnuLiNT0H+cc=
+	t=1764023636; cv=none; b=l/vuVW9oCxH9QvYRQdMU2d6o+oJfuzRwq6YFVA05/ocenkcGgUQgsdiEgsLSAnJtAbXZ/ZWpPNJorHiEm0Zozqrmjw3mwzBgZUd3QEWh6lPo+GMiY6UybdZLOxbbUmzZ8S93ZGDfkza089thZGs+CrI90fXRASfLpgYrFSTQVIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764023543; c=relaxed/simple;
-	bh=3+//UCjUpI8rHJ7yuyq3fev15aqxR2GTKltpkmpKDKo=;
-	h=Date:To:From:Subject:Message-Id; b=MQN9xCMPFW47ZfpL4qOLivA9k439gPOStpeHP2DaWjiHFIuO8v0Un72GQ6JsYw/++S0IDdreAKY0ImgAEVNqc+c0C7qLmDJGO37b8SB3ZlkeVsj9OoS7adilHr6d1zzXf8ooDbqNm+MDnCVPV0dIwKUNyJht4kW0BYWC7mkZpFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JLG6pzFH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764023636; c=relaxed/simple;
+	bh=F0BHylOa0O6bhyighsuC3BH8DCBT1tBfHkM9ysE8/Sw=;
+	h=Date:To:From:Subject:Message-Id; b=V2KO3u1xzqLNF7uiM6aJmV6zv8YYnzua3CJnSYxabnaGBG/K/wc46UMSc3gspt8QysL/YrIBit4VyRLw1stxc1QgLjFRj0t9ERz3G4XPPUOSkfeV7/uRM0zABso2S+ro4ku/GMqyFyxwlOngTPzkzZlirbawfYllV7QdWEnglII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SXFJK15A; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JLG6pzFH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BE44C4CEF1;
-	Mon, 24 Nov 2025 22:32:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SXFJK15A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D7A6C4CEF1;
+	Mon, 24 Nov 2025 22:33:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764023542;
-	bh=3+//UCjUpI8rHJ7yuyq3fev15aqxR2GTKltpkmpKDKo=;
+	s=korg; t=1764023635;
+	bh=F0BHylOa0O6bhyighsuC3BH8DCBT1tBfHkM9ysE8/Sw=;
 	h=Date:To:From:Subject:From;
-	b=JLG6pzFHfmnBmAKokJH1XT7q1E97HEXSArTB42FYSyGt+GRXL69r61K9CfPHToL8f
-	 R178pAvtNkS98r6BEt8eCtlVl78Q8B7q28ddsygg4UWnm06Qsacpa13B3E9rNljK9p
-	 wCEyOWyW9AMiyntXXA70v3ocJ0rh88YH77cjeeTw=
-Date: Mon, 24 Nov 2025 14:32:21 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,usamaarif642@gmail.com,richard.weiyang@gmail.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=SXFJK15AO1mUEIy1SOPON16Ah1VLBLrlc/Qq+dmVN1cJupV/jJMwZAPNDzv4TkwBF
+	 66mhxhMIKB+opXXmSJqGPQ9VsPZea8Cjc7hBjztYzgChcz02rtzwieuBdi65n1qQGv
+	 GhrtnT0ReJdpVwrWUKv2e+cLeMlBeqcwz9zfCstY=
+Date: Mon, 24 Nov 2025 14:33:54 -0800
+To: mm-commits@vger.kernel.org,richard.weiyang@gmail.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch removed from -mm tree
-Message-Id: <20251124223222.7BE44C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch removed from -mm tree
+Message-Id: <20251124223355.9D7A6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix
+     Subject: mm/huge_memory: kernel-doc fixup
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix.patch
+     mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch
 
-This patch was dropped because it was folded into mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
+This patch was dropped because it was folded into mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix
-Date: Wed Oct  8 09:10:01 PM PDT 2025
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: kernel-doc fixup
+Date: Fri, 31 Oct 2025 19:50:55 -0400
 
-remove unneeded map_anon_folio_pmd_nopf() stub, per Wei & David
-
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/BE7AC5F3-9E64-4923-861D-C2C4E0CB91EB@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/huge_memory.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd-fix
-+++ a/include/linux/huge_mm.h
-@@ -631,11 +631,6 @@ static inline bool unmap_huge_pmd_locked
- 	return false;
- }
- 
--static inline void map_anon_folio_pmd_nopf(struct folio *folio, pmd_t *pmd,
--		struct vm_area_struct *vma, unsigned long haddr)
--{
--}
--
- #define split_huge_pud(__vma, __pmd, __address)	\
- 	do { } while (0)
- 
+--- a/mm/huge_memory.c~mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix
++++ a/mm/huge_memory.c
+@@ -3512,7 +3512,7 @@ static void __split_folio_to_order(struc
+  *    uniform_split is true.
+  * 2. buddy allocator like (non-uniform) split: the given @folio is split into
+  *    half and one of the half (containing the given page) is split into half
+- *    until the given @page's order becomes @new_order. This is done when
++ *    until the given @folio's order becomes @new_order. This is done when
+  *    uniform_split is false.
+  *
+  * The high level flow for these two methods are:
+@@ -3521,14 +3521,14 @@ static void __split_folio_to_order(struc
+  *    along with stats update.
+  * 2. non-uniform split: folio_order - @new_order calls to
+  *    __split_folio_to_order() are expected to be made in a for loop to split
+- *    the @folio to one lower order at a time. The folio containing @page is
+- *    split in each iteration. @xas is split into half in each iteration and
++ *    the @folio to one lower order at a time. The folio containing @split_at
++ *    is split in each iteration. @xas is split into half in each iteration and
+  *    can fail. A failed @xas split leaves split folios as is without merging
+  *    them back.
+  *
+  * After splitting, the caller's folio reference will be transferred to the
+- * folio containing @page. The caller needs to unlock and/or free after-split
+- * folios if necessary.
++ * folio containing @split_at. The caller needs to unlock and/or free
++ * after-split folios if necessary.
+  *
+  * Return: 0 - successful, <0 - failed (if -ENOMEM is returned, @folio might be
+  * split but not to @new_order, the caller needs to check)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-khugepaged-unify-pmd-folio-installation-with-map_anon_folio_pmd.patch
-mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
-mm-correctly-handle-uffd-pte-markers-fix.patch
-mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix-fix.patch
-memblock-unpreserve-memory-in-case-of-error-fix.patch
+mm-huge_memory-add-split_huge_page_to_order.patch
+mm-memory-failure-improve-large-block-size-folio-handling.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
+mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch
+mm-huge_memory-change-folio_split_supported-to-folio_check_splittable.patch
+mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation.patch
+mm-huge_memory-make-min_order_for_split-always-return-an-order.patch
+mm-huge_memory-fix-folio-split-stats-counting.patch
 
