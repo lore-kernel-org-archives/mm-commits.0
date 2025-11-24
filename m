@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E85138D;
-	Mon, 24 Nov 2025 22:26:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2842338D
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:26:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764023162; cv=none; b=McjKKQ3lQI6s9rvLChIq40ylbfhmx+Pu7tkiuQzH84HQvbWYlOZsv9Q0tn53fMtwdGuqT27v5X8As79UE1gUeMaukTTVD1N7vJxhSF7ipFC4HX487B8lqPaR0XeAGQ9o26jlVrsqgjlQ2NUnGWGsI9Gl/L4XNYenwbtJhi6xT0k=
+	t=1764023163; cv=none; b=dvtGXA9tZZRZWiMUPY7UTZDY69tNrnMeSkeUuPI8zIUOk1yF3fmwPhXMwH4/mjMGthxMJy99qNRlG/yOsCwJHLh7qFuwzcU0NZ13jbdKvgQ2cB22n4UA3CdkhVQtIln/wBRyLt2vWjPTXf9jGwV8FfvD4/fq3wm6ueBw7xSXeDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764023162; c=relaxed/simple;
-	bh=J0wQVM5lahOTehgc2QNxq+Hs9yS6Pubq22HXtX0inkE=;
-	h=Date:To:From:Subject:Message-Id; b=p+jrS/q2HZNz6HEvFZNPtSBEgd1FdkYaYD7yUE6gBI3l2SZK1xteNq1GaPTgJMsSMcN7N9hJcxRTKi3NaRK01X6S2X6vdIwCiO6fbCUCJ2OrXuwKSPsRpnjHmb4EmcqVyuNuf/2DyftaEgL98cVxZ3Urei+Tnkdw6COcgqmdlHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NbBNYaBl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764023163; c=relaxed/simple;
+	bh=0kZDRo4bVfsb89D0o4PcqbOsmug2qnikUl/pC5z6xQw=;
+	h=Date:To:From:Subject:Message-Id; b=J58IKYd6FFx0Ns+2h72s+nV55O6P2H93HZ49r64agK6gW7uBHZvind3t5iFV7ad1dkig+rFBtsSr4fxyLSx7cxqAKLjwe6+EQrRCwA++QAKtd6zDY70v5OfNWexRYxBlb2ROPKasFdZZ5T7x4+TBCKmDZHy2/GyPpdTUOdjIU5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lVsj7sXo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NbBNYaBl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EF5BC4CEF1;
-	Mon, 24 Nov 2025 22:26:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lVsj7sXo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC7FBC4CEF1;
+	Mon, 24 Nov 2025 22:26:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764023161;
-	bh=J0wQVM5lahOTehgc2QNxq+Hs9yS6Pubq22HXtX0inkE=;
+	s=korg; t=1764023162;
+	bh=0kZDRo4bVfsb89D0o4PcqbOsmug2qnikUl/pC5z6xQw=;
 	h=Date:To:From:Subject:From;
-	b=NbBNYaBl6a0Bco+XOc7XgHqUJWii1sA6/ytELv4v84F9IYbSMa3zUaPAj3XS91yw9
-	 V0yjrZLRK2E691/b34xxsHiIyVOLCdOVBmURai5VkDQ8i6+B0zsXgcaOPSD+RHSqBP
-	 6p3bfWc9YFkzdsnBhT4vTjg70yLYlUdRH4AUR2P0=
-Date: Mon, 24 Nov 2025 14:26:00 -0800
-To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,osalvador@suse.de,kraxel@redhat.com,jgg@nvidia.com,hughd@google.com,hch@lst.de,david@redhat.com,david@kernel.org,airlied@redhat.com,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=lVsj7sXoUx7YlUR8uDhqw/x0G5xBkubO3xBCeixhuoWZAXzSBwtBQvME6Ar6rDWS5
+	 DzV5XbQiVO0wEG0FKkWRHRd/DnZwnbLiQhe4+0lfnCJwR/2qUf0X7g2YFM3ndECXpd
+	 bk7cDlY8g7hf7dgzEm6axSkSfhCE7JNR/RsdKWe8=
+Date: Mon, 24 Nov 2025 14:26:02 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,lorenzo.stoakes@oracle.com,jannh@google.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memfd-fix-information-leak-in-hugetlb-folios.patch removed from -mm tree
-Message-Id: <20251124222601.8EF5BC4CEF1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mmap_lock-reset-maple-state-on-lock_vma_under_rcu-retry.patch removed from -mm tree
+Message-Id: <20251124222602.AC7FBC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memfd: fix information leak in hugetlb folios
+     Subject: mm/mmap_lock: reset maple state on lock_vma_under_rcu() retry
 has been removed from the -mm tree.  Its filename was
-     mm-memfd-fix-information-leak-in-hugetlb-folios.patch
+     mm-mmap_lock-reset-maple-state-on-lock_vma_under_rcu-retry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: mm/memfd: fix information leak in hugetlb folios
-Date: Wed, 12 Nov 2025 20:20:34 +0530
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: mm/mmap_lock: reset maple state on lock_vma_under_rcu() retry
+Date: Tue, 11 Nov 2025 16:56:05 -0500
 
-When allocating hugetlb folios for memfd, three initialization steps are
-missing:
+The retry in lock_vma_under_rcu() drops the rcu read lock before
+reacquiring the lock and trying again.  This may cause a use-after-free if
+the maple node the maple state was using was freed.
 
-1. Folios are not zeroed, leading to kernel memory disclosure to userspace
-2. Folios are not marked uptodate before adding to page cache
-3. hugetlb_fault_mutex is not taken before hugetlb_add_to_page_cache()
+The maple state is protected by the rcu read lock.  When the lock is
+dropped, the state cannot be reused as it tracks pointers to objects that
+may be freed during the time where the lock was not held.
 
-The memfd allocation path bypasses the normal page fault handler
-(hugetlb_no_page) which would handle all of these initialization steps. 
-This is problematic especially for udmabuf use cases where folios are
-pinned and directly accessed by userspace via DMA.
+Any time the rcu read lock is dropped, the maple state must be
+invalidated.  Resetting the address and state to MA_START is the safest
+course of action, which will result in the next operation starting from
+the top of the tree.
 
-Fix by matching the initialization pattern used in hugetlb_no_page():
-- Zero the folio using folio_zero_user() which is optimized for huge pages
-- Mark it uptodate with folio_mark_uptodate()
-- Take hugetlb_fault_mutex before adding to page cache to prevent races
+Prior to commit 0b16f8bed19c ("mm: change vma_start_read() to drop RCU
+lock on failure"), vma_start_read() would drop rcu read lock and return
+NULL, so the retry would not have happened.  However, now that
+vma_start_read() drops rcu read lock on failure followed by a retry, we
+may end up using a freed maple tree node cached in the maple state.
 
-The folio_zero_user() change also fixes a potential security issue where
-uninitialized kernel memory could be disclosed to userspace through read()
-or mmap() operations on the memfd.
-
-Link: https://lkml.kernel.org/r/20251112145034.2320452-1-kartikey406@gmail.com
-Fixes: 89c1905d9c14 ("mm/gup: introduce memfd_pin_folios() for pinning memfd folios")
-Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
-Reported-by: syzbot+f64019ba229e3a5c411b@syzkaller.appspotmail.com
-Link: https://lore.kernel.org/all/20251112031631.2315651-1-kartikey406@gmail.com/ [v1]
-Closes: https://syzkaller.appspot.com/bug?extid=f64019ba229e3a5c411b
-Suggested-by: Oscar Salvador <osalvador@suse.de>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Tested-by: syzbot+f64019ba229e3a5c411b@syzkaller.appspotmail.com
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com> (v2)
-Cc: Christoph Hellwig <hch@lst.de> (v6)
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>
-Cc: <stable@vger.kernel.org>
+[surenb@google.com: changelog alteration]
+  Link: https://lkml.kernel.org/r/CAJuCfpEWMD-Z1j=nPYHcQW4F7E2Wka09KTXzGv7VE7oW1S8hcw@mail.gmail.com
+Link: https://lkml.kernel.org/r/20251111215605.1721380-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Fixes: 0b16f8bed19c ("mm: change vma_start_read() to drop RCU lock on failure")
+Reported-by: syzbot+131f9eb2b5807573275c@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=131f9eb2b5807573275c
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ mm/mmap_lock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memfd.c~mm-memfd-fix-information-leak-in-hugetlb-folios
-+++ a/mm/memfd.c
-@@ -96,9 +96,36 @@ struct folio *memfd_alloc_folio(struct f
- 						    NULL,
- 						    gfp_mask);
- 		if (folio) {
-+			u32 hash;
-+
-+			/*
-+			 * Zero the folio to prevent information leaks to userspace.
-+			 * Use folio_zero_user() which is optimized for huge/gigantic
-+			 * pages. Pass 0 as addr_hint since this is not a faulting path
-+			 *  and we don't have a user virtual address yet.
-+			 */
-+			folio_zero_user(folio, 0);
-+
-+			/*
-+			 * Mark the folio uptodate before adding to page cache,
-+			 * as required by filemap.c and other hugetlb paths.
-+			 */
-+			__folio_mark_uptodate(folio);
-+
-+			/*
-+			 * Serialize hugepage allocation and instantiation to prevent
-+			 * races with concurrent allocations, as required by all other
-+			 * callers of hugetlb_add_to_page_cache().
-+			 */
-+			hash = hugetlb_fault_mutex_hash(memfd->f_mapping, idx);
-+			mutex_lock(&hugetlb_fault_mutex_table[hash]);
-+
- 			err = hugetlb_add_to_page_cache(folio,
- 							memfd->f_mapping,
- 							idx);
-+
-+			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+
- 			if (err) {
- 				folio_put(folio);
- 				goto err_unresv;
+--- a/mm/mmap_lock.c~mm-mmap_lock-reset-maple-state-on-lock_vma_under_rcu-retry
++++ a/mm/mmap_lock.c
+@@ -241,6 +241,7 @@ retry:
+ 		if (PTR_ERR(vma) == -EAGAIN) {
+ 			count_vm_vma_lock_event(VMA_LOCK_MISS);
+ 			/* The area was replaced with another one */
++			mas_set(&mas, address);
+ 			goto retry;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
 
