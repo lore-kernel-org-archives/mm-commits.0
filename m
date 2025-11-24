@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C3F2315D36
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:09:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9062A2F6567
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:09:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025776; cv=none; b=PU6fRVz0Hk+WBEzXcUH25DjOCP+f3XXpnTmcEDE3tjdDtv8e/WGJLMOALfq1BTNnKpIDsjVZwJF+XswqYKdG71h8Ivi7Sz/a+3XvhO8982EZzy5PFtLBQ61Vq+iRmcVN1ZkBRpVGzIcaUflgt9EDuF0DodIrE8j5fJ2a9fOupO0=
+	t=1764025777; cv=none; b=kUKaxHj53tcDM54nWlsn59jx/m+DFMXoJfuruxZExJRvck369czT32CAuAgrEmQwT/degk5DVyR6g7aQ7X9gHSlZCkoyLTQ5XFuiBN6Mn5GkO1iqxnjqPNkbLxAIHt17kJ8R7wZQCLEahSUajn71gtWI+1JYUtitKf0qUDYkGwE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025776; c=relaxed/simple;
-	bh=FLqzazmUJj7zRO2kt05F8qJIUd6oGqmLlfCZEYR7jTY=;
-	h=Date:To:From:Subject:Message-Id; b=Cq2Xaarl1HKUZNgMK5Qnz4n8Ks3YyAoYfYqiTVZ6EaWiFIFph0PvklQ8FmHRTMex8a5IN3tRc4ceBFeUcdoiyJKiQJdT/9lke2boILKANgZ6DZDzYKzfUjtFXjylBrMRAcF3E+d1tiuS4Z5aBQtZ4Ah3LyIPD3dRH3m/HzibGPQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VWRlEBZD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025777; c=relaxed/simple;
+	bh=ncjhiDYeECuHU+Zk1W2yEvvqIzTlWm1G6BSl+p9WJSc=;
+	h=Date:To:From:Subject:Message-Id; b=SDXjtXEqkjhgKeWOBGh09PFfvI3fLeIYx9hOuQKu0piyofU3OPXfSIM0MFXAJDw9/pMMWaWfXkWgbNzMeR6wngpTnS0smKGxJJuL/Xle6rf768DKYIMMPnOBNw0cIHBnplkB9A/wRBa+n8QHSFbVatThGxAJpUZqb3Xg7MENqy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bBajX0dA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VWRlEBZD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0220C4CEF1;
-	Mon, 24 Nov 2025 23:09:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bBajX0dA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09711C4CEF1;
+	Mon, 24 Nov 2025 23:09:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025775;
-	bh=FLqzazmUJj7zRO2kt05F8qJIUd6oGqmLlfCZEYR7jTY=;
+	s=korg; t=1764025777;
+	bh=ncjhiDYeECuHU+Zk1W2yEvvqIzTlWm1G6BSl+p9WJSc=;
 	h=Date:To:From:Subject:From;
-	b=VWRlEBZDRQkU79m511+/h3IUcJP74giZRom/8t0HkYwxGeGlLBLXeyJtxav5xSh49
-	 CHOpSxsOPNVuUcslwyghmDGeRcaeU854hd1fOlN2KqmsN7KeBGYuv1iAuLcd2Q6V1X
-	 vj/laXFR5X8T8uZ2idCTIhQFN+7pPQr6nFl6NIuA=
-Date: Mon, 24 Nov 2025 15:09:35 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,hca@linux.ibm.com,gourry@gourry.net,gor@linux.ibm.com,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,borntraeger@linux.ibm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,airlied@gmail.com,agordeev@linux.ibm.com,imbrenda@linux.ibm.com,akpm@linux-foundation.org
+	b=bBajX0dAj0+SOL/aUcA9oBJxy9HEK8cZyXQQWuAnTBNtbNfIEmQ+ZQUKGMSh9ubCO
+	 DiuuDrE8ZzBfDNgrrqys1E+vtLzdtIsHn6dRwyKUyBF21y8eSXUxvr9ifJleNvxzHR
+	 ClXKvoJrxnahc2gZOYOAvj/MK3TcfcXevguxsVW0=
+Date: Mon, 24 Nov 2025 15:09:36 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,maddy@linux.ibm.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,Felix.Kuehling@amd.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,christophe.leroy@csgroup.eu,christian.koenig@amd.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,alexander.deucher@amd.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kvm-s390-fix-missing-present-bit-for-gmap-puds.patch removed from -mm tree
-Message-Id: <20251124230935.C0220C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zone_device-support-large-zone-device-private-folios.patch removed from -mm tree
+Message-Id: <20251124230937.09711C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,313 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: KVM: s390: fix missing present bit for gmap puds
+     Subject: mm/zone_device: support large zone device private folios
 has been removed from the -mm tree.  Its filename was
-     kvm-s390-fix-missing-present-bit-for-gmap-puds.patch
+     mm-zone_device-support-large-zone-device-private-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Subject: KVM: s390: fix missing present bit for gmap puds
-Date: Tue, 28 Oct 2025 14:01:50 +0100
+From: Balbir Singh <balbirs@nvidia.com>
+Subject: mm/zone_device: support large zone device private folios
+Date: Wed, 1 Oct 2025 16:56:52 +1000
 
-For hugetlbs, gmap puds have the present bit set.  For normal puds (which
-point to ptes), the bit is not set.  This is in contrast to the normal
-userspace puds, which always have the bit set for present pmds.
+Patch series "mm: support device-private THP", v7.
 
-This causes issues when ___pte_offset_map() is modified to only check for
-the present bit.
+This patch series introduces support for Transparent Huge Page (THP)
+migration in zone device-private memory.  The implementation enables
+efficient migration of large folios between system memory and
+device-private memory
 
-The solution to the problem is simply to always set the present bit for
-present gmap pmds.
+Background
 
-Link: https://lkml.kernel.org/r/20251028130150.57379-2-imbrenda@linux.ibm.com
-Signed-off-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Link: https://lore.kernel.org/lkml/20251017144924.10034-1-borntraeger@linux.ibm.com/
-Tested-by: Christian Borntraeger <borntraeger@linux.ibm.com>
-Acked-by: Christian Borntraeger <borntraeger@linux.ibm.com>
-Acked-by: Balbir Singh <balbirs@nvidia.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dave Airlie <airlied@gmail.com>
+Current zone device-private memory implementation only supports PAGE_SIZE
+granularity, leading to:
+- Increased TLB pressure
+- Inefficient migration between CPU and device memory
+
+This series extends the existing zone device-private infrastructure to
+support THP, leading to:
+- Reduced page table overhead
+- Improved memory bandwidth utilization
+- Seamless fallback to base pages when needed
+
+In my local testing (using lib/test_hmm) and a throughput test, the series
+shows a 350% improvement in data transfer throughput and a 80% improvement
+in latency
+
+These patches build on the earlier posts by Ralph Campbell [1]
+
+Two new flags are added in vma_migration to select and mark compound
+pages.  migrate_vma_setup(), migrate_vma_pages() and
+migrate_vma_finalize() support migration of these pages when
+MIGRATE_VMA_SELECT_COMPOUND is passed in as arguments.
+
+The series also adds zone device awareness to (m)THP pages along with
+fault handling of large zone device private pages.  page vma walk and the
+rmap code is also zone device aware.  Support has also been added for
+folios that might need to be split in the middle of migration (when the
+src and dst do not agree on MIGRATE_PFN_COMPOUND), that occurs when src
+side of the migration can migrate large pages, but the destination has not
+been able to allocate large pages.  The code supported and used
+folio_split() when migrating THP pages, this is used when
+MIGRATE_VMA_SELECT_COMPOUND is not passed as an argument to
+migrate_vma_setup().
+
+The test infrastructure lib/test_hmm.c has been enhanced to support THP
+migration.  A new ioctl to emulate failure of large page allocations has
+been added to test the folio split code path.  hmm-tests.c has new test
+cases for huge page migration and to test the folio split path.  A new
+throughput test has been added as well.
+
+The nouveau dmem code has been enhanced to use the new THP migration
+capability.  
+
+mTHP support:
+
+The patches hard code, HPAGE_PMD_NR in a few places, but the code has been
+kept generic to support various order sizes.  With additional refactoring
+of the code support of different order sizes should be possible.
+
+The future plan is to post enhancements to support mTHP with a rough
+design as follows:
+
+1. Add the notion of allowable thp orders to the HMM based test driver
+2. For non PMD based THP paths in migrate_device.c, check to see if
+   a suitable order is found and supported by the driver
+3. Iterate across orders to check the highest supported order for migration
+4. Migrate and finalize
+
+The mTHP patches can be built on top of this series, the key design
+elements that need to be worked out are infrastructure and driver support
+for multiple ordered pages and their migration.
+
+HMM support for large folios was added in 10b9feee2d0d ("mm/hmm:
+populate PFNs from PMD swap entry").
+
+
+This patch (of 16)
+
+Add routines to support allocation of large order zone device folios and
+helper functions for zone device folios, to check if a folio is device
+private and helpers for setting zone device data.
+
+When large folios are used, the existing page_free() callback in pgmap is
+called when the folio is freed, this is true for both PAGE_SIZE and higher
+order pages.
+
+Zone device private large folios do not support deferred split and scan
+like normal THP folios.
+
+Link: https://lkml.kernel.org/r/20251001065707.920170-1-balbirs@nvidia.com
+Link: https://lkml.kernel.org/r/20251001065707.920170-2-balbirs@nvidia.com
+Link: https://lore.kernel.org/linux-mm/20201106005147.20113-1-rcampbell@nvidia.com/ [1]
+Signed-off-by: Balbir Singh <balbirs@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Francois Dugast <francois.dugast@intel.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Lyude <lyude@redhat.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Francois Dugast <francois.dugast@intel.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Christian König" <christian.koenig@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/gmap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/powerpc/kvm/book3s_hv_uvmem.c       |    2 -
+ drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |    2 -
+ drivers/gpu/drm/drm_pagemap.c            |    2 -
+ drivers/gpu/drm/nouveau/nouveau_dmem.c   |    2 -
+ include/linux/memremap.h                 |   10 +++++++-
+ lib/test_hmm.c                           |    2 -
+ mm/memremap.c                            |   26 ++++++++++++---------
+ mm/rmap.c                                |    6 ++++
+ 8 files changed, 34 insertions(+), 18 deletions(-)
 
---- a/arch/s390/mm/gmap.c~kvm-s390-fix-missing-present-bit-for-gmap-puds
-+++ a/arch/s390/mm/gmap.c
-@@ -599,8 +599,9 @@ int __gmap_link(struct gmap *gmap, unsig
- 					| _SEGMENT_ENTRY_GMAP_UC
- 					| _SEGMENT_ENTRY;
- 			} else
--				*table = pmd_val(*pmd) &
--					_SEGMENT_ENTRY_HARDWARE_BITS;
-+				*table = (pmd_val(*pmd) &
-+					_SEGMENT_ENTRY_HARDWARE_BITS)
-+					| _SEGMENT_ENTRY;
- 		}
- 	} else if (*table & _SEGMENT_ENTRY_PROTECT &&
- 		   !(pmd_val(*pmd) & _SEGMENT_ENTRY_PROTECT)) {
+--- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-zone_device-support-large-zone-device-private-folios
++++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
+@@ -723,7 +723,7 @@ static struct page *kvmppc_uvmem_get_pag
+ 
+ 	dpage = pfn_to_page(uvmem_pfn);
+ 	dpage->zone_device_data = pvt;
+-	zone_device_page_init(dpage);
++	zone_device_page_init(dpage, 0);
+ 	return dpage;
+ out_clear:
+ 	spin_lock(&kvmppc_uvmem_bitmap_lock);
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c~mm-zone_device-support-large-zone-device-private-folios
++++ a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
+@@ -218,7 +218,7 @@ svm_migrate_get_vram_page(struct svm_ran
+ 	page = pfn_to_page(pfn);
+ 	svm_range_bo_ref(prange->svm_bo);
+ 	page->zone_device_data = prange->svm_bo;
+-	zone_device_page_init(page);
++	zone_device_page_init(page, 0);
+ }
+ 
+ static void
+--- a/drivers/gpu/drm/drm_pagemap.c~mm-zone_device-support-large-zone-device-private-folios
++++ a/drivers/gpu/drm/drm_pagemap.c
+@@ -196,7 +196,7 @@ static void drm_pagemap_get_devmem_page(
+ 					struct drm_pagemap_zdd *zdd)
+ {
+ 	page->zone_device_data = drm_pagemap_zdd_get(zdd);
+-	zone_device_page_init(page);
++	zone_device_page_init(page, 0);
+ }
+ 
+ /**
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-zone_device-support-large-zone-device-private-folios
++++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -318,7 +318,7 @@ nouveau_dmem_page_alloc_locked(struct no
+ 			return NULL;
+ 	}
+ 
+-	zone_device_page_init(page);
++	zone_device_page_init(page, 0);
+ 	return page;
+ }
+ 
+--- a/include/linux/memremap.h~mm-zone_device-support-large-zone-device-private-folios
++++ a/include/linux/memremap.h
+@@ -206,7 +206,7 @@ static inline bool is_fsdax_page(const s
+ }
+ 
+ #ifdef CONFIG_ZONE_DEVICE
+-void zone_device_page_init(struct page *page);
++void zone_device_page_init(struct page *page, unsigned int order);
+ void *memremap_pages(struct dev_pagemap *pgmap, int nid);
+ void memunmap_pages(struct dev_pagemap *pgmap);
+ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
+@@ -215,6 +215,14 @@ struct dev_pagemap *get_dev_pagemap(unsi
+ bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
+ 
+ unsigned long memremap_compat_align(void);
++
++static inline void zone_device_folio_init(struct folio *folio, unsigned int order)
++{
++	zone_device_page_init(&folio->page, order);
++	if (order)
++		folio_set_large_rmappable(folio);
++}
++
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+ 		struct dev_pagemap *pgmap)
+--- a/lib/test_hmm.c~mm-zone_device-support-large-zone-device-private-folios
++++ a/lib/test_hmm.c
+@@ -627,7 +627,7 @@ static struct page *dmirror_devmem_alloc
+ 			goto error;
+ 	}
+ 
+-	zone_device_page_init(dpage);
++	zone_device_page_init(dpage, 0);
+ 	dpage->zone_device_data = rpage;
+ 	return dpage;
+ 
+--- a/mm/memremap.c~mm-zone_device-support-large-zone-device-private-folios
++++ a/mm/memremap.c
+@@ -416,20 +416,19 @@ EXPORT_SYMBOL_GPL(get_dev_pagemap);
+ void free_zone_device_folio(struct folio *folio)
+ {
+ 	struct dev_pagemap *pgmap = folio->pgmap;
++	unsigned long nr = folio_nr_pages(folio);
++	int i;
+ 
+ 	if (WARN_ON_ONCE(!pgmap))
+ 		return;
+ 
+ 	mem_cgroup_uncharge(folio);
+ 
+-	/*
+-	 * Note: we don't expect anonymous compound pages yet. Once supported
+-	 * and we could PTE-map them similar to THP, we'd have to clear
+-	 * PG_anon_exclusive on all tail pages.
+-	 */
+ 	if (folio_test_anon(folio)) {
+-		VM_BUG_ON_FOLIO(folio_test_large(folio), folio);
+-		__ClearPageAnonExclusive(folio_page(folio, 0));
++		for (i = 0; i < nr; i++)
++			__ClearPageAnonExclusive(folio_page(folio, i));
++	} else {
++		VM_WARN_ON_ONCE(folio_test_large(folio));
+ 	}
+ 
+ 	/*
+@@ -456,8 +455,8 @@ void free_zone_device_folio(struct folio
+ 	case MEMORY_DEVICE_COHERENT:
+ 		if (WARN_ON_ONCE(!pgmap->ops || !pgmap->ops->page_free))
+ 			break;
+-		pgmap->ops->page_free(folio_page(folio, 0));
+-		put_dev_pagemap(pgmap);
++		pgmap->ops->page_free(&folio->page);
++		percpu_ref_put_many(&folio->pgmap->ref, nr);
+ 		break;
+ 
+ 	case MEMORY_DEVICE_GENERIC:
+@@ -480,14 +479,19 @@ void free_zone_device_folio(struct folio
+ 	}
+ }
+ 
+-void zone_device_page_init(struct page *page)
++void zone_device_page_init(struct page *page, unsigned int order)
+ {
++	VM_WARN_ON_ONCE(order > MAX_ORDER_NR_PAGES);
++
+ 	/*
+ 	 * Drivers shouldn't be allocating pages after calling
+ 	 * memunmap_pages().
+ 	 */
+-	WARN_ON_ONCE(!percpu_ref_tryget_live(&page_pgmap(page)->ref));
++	WARN_ON_ONCE(!percpu_ref_tryget_many(&page_pgmap(page)->ref, 1 << order));
+ 	set_page_count(page, 1);
+ 	lock_page(page);
++
++	if (order)
++		prep_compound_page(page, order);
+ }
+ EXPORT_SYMBOL_GPL(zone_device_page_init);
+--- a/mm/rmap.c~mm-zone_device-support-large-zone-device-private-folios
++++ a/mm/rmap.c
+@@ -1733,9 +1733,13 @@ static __always_inline void __folio_remo
+ 	 * the folio is unmapped and at least one page is still mapped.
+ 	 *
+ 	 * Check partially_mapped first to ensure it is a large folio.
++	 *
++	 * Device private folios do not support deferred splitting and
++	 * shrinker based scanning of the folios to free.
+ 	 */
+ 	if (partially_mapped && folio_test_anon(folio) &&
+-	    !folio_test_partially_mapped(folio))
++	    !folio_test_partially_mapped(folio) &&
++	    !folio_is_device_private(folio))
+ 		deferred_split_folio(folio, true);
+ 
+ 	__folio_mod_stat(folio, -nr, -nr_pmdmapped);
 _
 
-Patches currently in -mm which might be from imbrenda@linux.ibm.com are
+Patches currently in -mm which might be from balbirs@nvidia.com are
 
 
