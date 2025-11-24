@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07D56337115
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 666C52F6198
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025850; cv=none; b=jJzfgRAi+1+kE9gN6KUwLBvvHcYBYvFuCoJPu+6I1bM0F6S5bGGMBw+hZcDoWOmkSCcuhPN0UkRQ5PavXbSy90tu1E1kOL6zIMs5Nr3QEDKV2Qwee1RCiMtDMJDJAppfpsjihmOQ18xjJrZldiAvLJk3tZesuaSWaGgRHkRGxOo=
+	t=1764025851; cv=none; b=cNPk0DPzJ9BCiaDx2OKr/RkxL50FbcbTZ/hQwjQh9qmaZxrVdgcKxTP7wF3RGDpQdhEX3ewV7DTCqWD3MKshdAbJVc8SEWKxevPXwYcr29hlUrxkiQDE8N55BfEQo59/BQN4K69xYFHIXQPh7Pgp6uapio29/2i0dDhZew/VSqA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025850; c=relaxed/simple;
-	bh=kUVpRJBH9sThd3yL95IYs3J/q5ehIX5Divjsu+q4Dps=;
-	h=Date:To:From:Subject:Message-Id; b=urH21su1QVWYgTga1F00XQmHVzcBzYqSjyQ9VGcwt/GcO4QufEpkfS6m7MFYt1BiYmYBLWbizu4wCj3rEZ7apC6LCyrF12CH3sPx3qtzzuJXN683i8O0jScFLpkUm2ROhFpUoqUtJ7qiBO8wNgU24O4c4OAEvgKWjd4o44QHZxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zgnizLx5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025851; c=relaxed/simple;
+	bh=z4QRSD0On4uGJliW1JQlqGbPRxHWOngXSb/5zddc7h0=;
+	h=Date:To:From:Subject:Message-Id; b=pwBRKl7fOhj6W0JR6ySTJhqkGntAok7/cAf6u0fWyD8eWpCy1KOjD/a5tO6o02vPqLMp6CwaRaRoTYC4iwhcBNo+sKiKsUq/7SHyYCW7bAm5Gi5qlB6FVWaraQvz0isY+V4Mb17pW5/uYLEckUL9Mt/3OhyRjqE2Cr7qyG2XZQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ghdxg2HB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zgnizLx5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D5F2C4CEF1;
-	Mon, 24 Nov 2025 23:10:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ghdxg2HB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5499C4CEF1;
+	Mon, 24 Nov 2025 23:10:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025848;
-	bh=kUVpRJBH9sThd3yL95IYs3J/q5ehIX5Divjsu+q4Dps=;
+	s=korg; t=1764025851;
+	bh=z4QRSD0On4uGJliW1JQlqGbPRxHWOngXSb/5zddc7h0=;
 	h=Date:To:From:Subject:From;
-	b=zgnizLx5Ys8GXwA46CPpbC8ugR3qbaT8Shsc0h4rP+G6c+GSys3K4UhimEcB2TYqX
-	 Lr+dVkGEK4vjjuEpoLii5dKCEfa2/fLt4tnryPlVQk7xCTWMiUwa/XmpYiaeAjL0va
-	 pc3TBciQre8k2nkSNV4jyIuqQKUwRTYVkCqkpXFk=
-Date: Mon, 24 Nov 2025 15:10:47 -0800
-To: mm-commits@vger.kernel.org,ywen.chen@foxmail.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=Ghdxg2HBg3veEQ6M78tU/De3qlPKomMfA5I13OYkkp6pwzf475jBv1Y0HDs2B9g0+
+	 4a5JctGKUxZoGvVIzlo5xjAaGZv/LcsKphO7xjvIBSvlwr6I/PPjQ8q0Q15uRps3nI
+	 b1f9t/f2gAAn2eue+BpcKao/3bdS7r7AtbgpSoV0=
+Date: Mon, 24 Nov 2025 15:10:50 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-read-slot-block-idx-under-slot-lock.patch removed from -mm tree
-Message-Id: <20251124231048.7D5F2C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memoryc-introduce-folio_split_unmapped.patch removed from -mm tree
+Message-Id: <20251124231050.D5499C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,566 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: read slot block idx under slot lock
+     Subject: mm/huge_memory.c: introduce folio_split_unmapped
 has been removed from the -mm tree.  Its filename was
-     zram-read-slot-block-idx-under-slot-lock.patch
+     mm-huge_memoryc-introduce-folio_split_unmapped.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: read slot block idx under slot lock
-Date: Sat, 22 Nov 2025 16:40:29 +0900
+From: Balbir Singh <balbirs@nvidia.com>
+Subject: mm/huge_memory.c: introduce folio_split_unmapped
+Date: Fri, 14 Nov 2025 12:22:28 +1100
 
-Read slot's block id under slot-lock.  We release the slot-lock for bdev
-read so, technically, slot still can get freed in the meantime, but at
-least we will read bdev block (page) that holds previous know slot data,
-not from slot->handle bdev block, which can be anything at that point.
+Unmapped was added as a parameter to __folio_split() and related call
+sites to support splitting of folios already in the midst of a migration. 
+This special case arose for device private folio migration since during
+migration there could be a disconnect between source and destination on
+the folio size.
 
-Link: https://lkml.kernel.org/r/20251122074029.3948921-7-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Minchan Kim <minchan@google.com>
-Cc: Richard Chang <richardycc@google.com>
-Cc: Yuwen Chen <ywen.chen@foxmail.com>
+Introduce folio_split_unmapped() to handle this special case.  Also
+refactor code and add __folio_freeze_and_split_unmapped() helper that is
+common to both __folio_split() and folio_split_unmapped().
+
+This in turn removes the special casing introduced by the unmapped
+parameter in __folio_split().
+
+[balbirs@nvidia.com: v2]
+  Link: https://lkml.kernel.org/r/20251115084041.3914728-1-balbirs@nvidia.com
+[balbirs@nvidia.com: fix clang-20 build]
+  Link: https://lkml.kernel.org/r/20251120134232.3588203-1-balbirs@nvidia.com
+[akpm@linux-foundation.org: add `inline' to shmem_uncharge() stub, per Balbir]
+Link: https://lkml.kernel.org/r/20251114012228.2634882-1-balbirs@nvidia.com
+Signed-off-by: Balbir Singh <balbirs@nvidia.com>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/huge_mm.h  |    5 
+ include/linux/shmem_fs.h |    6 
+ mm/huge_memory.c         |  348 +++++++++++++++++++++----------------
+ mm/migrate_device.c      |    3 
+ 4 files changed, 211 insertions(+), 151 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-read-slot-block-idx-under-slot-lock
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1995,14 +1995,14 @@ static int zram_read_page(struct zram *z
- 		ret = zram_read_from_zspool(zram, page, index);
- 		zram_slot_unlock(zram, index);
- 	} else {
-+		unsigned long blk_idx = zram_get_handle(zram, index);
+--- a/include/linux/huge_mm.h~mm-huge_memoryc-introduce-folio_split_unmapped
++++ a/include/linux/huge_mm.h
+@@ -371,7 +371,8 @@ enum split_type {
+ 
+ bool can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins);
+ int __split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+-		unsigned int new_order, bool unmapped);
++		unsigned int new_order);
++int folio_split_unmapped(struct folio *folio, unsigned int new_order);
+ int min_order_for_split(struct folio *folio);
+ int split_folio_to_list(struct folio *folio, struct list_head *list);
+ bool folio_split_supported(struct folio *folio, unsigned int new_order,
+@@ -382,7 +383,7 @@ int folio_split(struct folio *folio, uns
+ static inline int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+ 		unsigned int new_order)
+ {
+-	return __split_huge_page_to_list_to_order(page, list, new_order, false);
++	return __split_huge_page_to_list_to_order(page, list, new_order);
+ }
+ static inline int split_huge_page_to_order(struct page *page, unsigned int new_order)
+ {
+--- a/include/linux/shmem_fs.h~mm-huge_memoryc-introduce-folio_split_unmapped
++++ a/include/linux/shmem_fs.h
+@@ -136,11 +136,16 @@ static inline bool shmem_hpage_pmd_enabl
+ 
+ #ifdef CONFIG_SHMEM
+ extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
++extern void shmem_uncharge(struct inode *inode, long pages);
+ #else
+ static inline unsigned long shmem_swap_usage(struct vm_area_struct *vma)
+ {
+ 	return 0;
+ }
 +
- 		/*
- 		 * The slot should be unlocked before reading from the backing
- 		 * device.
++static inline void shmem_uncharge(struct inode *inode, long pages)
++{
++}
+ #endif
+ extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
+ 						pgoff_t start, pgoff_t end);
+@@ -194,7 +199,6 @@ static inline pgoff_t shmem_fallocend(st
+ }
+ 
+ extern bool shmem_charge(struct inode *inode, long pages);
+-extern void shmem_uncharge(struct inode *inode, long pages);
+ 
+ #ifdef CONFIG_USERFAULTFD
+ #ifdef CONFIG_SHMEM
+--- a/mm/huge_memory.c~mm-huge_memoryc-introduce-folio_split_unmapped
++++ a/mm/huge_memory.c
+@@ -3739,6 +3739,152 @@ bool folio_split_supported(struct folio
+ 	return true;
+ }
+ 
++static int __folio_freeze_and_split_unmapped(struct folio *folio, unsigned int new_order,
++					     struct page *split_at, struct xa_state *xas,
++					     struct address_space *mapping, bool do_lru,
++					     struct list_head *list, enum split_type split_type,
++					     pgoff_t end, int *nr_shmem_dropped, int extra_pins)
++{
++	struct folio *end_folio = folio_next(folio);
++	struct folio *new_folio, *next;
++	int old_order = folio_order(folio);
++	int ret = 0;
++	struct deferred_split *ds_queue;
++
++	VM_WARN_ON_ONCE(!mapping && end);
++	/* Prevent deferred_split_scan() touching ->_refcount */
++	ds_queue = folio_split_queue_lock(folio);
++	if (folio_ref_freeze(folio, 1 + extra_pins)) {
++		struct swap_cluster_info *ci = NULL;
++		struct lruvec *lruvec;
++		int expected_refs;
++
++		if (old_order > 1) {
++			if (!list_empty(&folio->_deferred_list)) {
++				ds_queue->split_queue_len--;
++				/*
++				 * Reinitialize page_deferred_list after removing the
++				 * page from the split_queue, otherwise a subsequent
++				 * split will see list corruption when checking the
++				 * page_deferred_list.
++				 */
++				list_del_init(&folio->_deferred_list);
++			}
++			if (folio_test_partially_mapped(folio)) {
++				folio_clear_partially_mapped(folio);
++				mod_mthp_stat(old_order,
++					MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
++			}
++		}
++		split_queue_unlock(ds_queue);
++		if (mapping) {
++			int nr = folio_nr_pages(folio);
++
++			if (folio_test_pmd_mappable(folio) &&
++			    new_order < HPAGE_PMD_ORDER) {
++				if (folio_test_swapbacked(folio)) {
++					__lruvec_stat_mod_folio(folio,
++							NR_SHMEM_THPS, -nr);
++				} else {
++					__lruvec_stat_mod_folio(folio,
++							NR_FILE_THPS, -nr);
++					filemap_nr_thps_dec(mapping);
++				}
++			}
++		}
++
++		if (folio_test_swapcache(folio)) {
++			if (mapping) {
++				VM_WARN_ON_ONCE_FOLIO(mapping, folio);
++				return -EINVAL;
++			}
++
++			ci = swap_cluster_get_and_lock(folio);
++		}
++
++		/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
++		if (do_lru)
++			lruvec = folio_lruvec_lock(folio);
++
++		ret = __split_unmapped_folio(folio, new_order, split_at, xas,
++					     mapping, split_type);
++
++		/*
++		 * Unfreeze after-split folios and put them back to the right
++		 * list. @folio should be kept frozon until page cache
++		 * entries are updated with all the other after-split folios
++		 * to prevent others seeing stale page cache entries.
++		 * As a result, new_folio starts from the next folio of
++		 * @folio.
++		 */
++		for (new_folio = folio_next(folio); new_folio != end_folio;
++		     new_folio = next) {
++			unsigned long nr_pages = folio_nr_pages(new_folio);
++
++			next = folio_next(new_folio);
++
++			zone_device_private_split_cb(folio, new_folio);
++
++			expected_refs = folio_expected_ref_count(new_folio) + 1;
++			folio_ref_unfreeze(new_folio, expected_refs);
++
++			if (do_lru)
++				lru_add_split_folio(folio, new_folio, lruvec, list);
++
++			/*
++			 * Anonymous folio with swap cache.
++			 * NOTE: shmem in swap cache is not supported yet.
++			 */
++			if (ci) {
++				__swap_cache_replace_folio(ci, folio, new_folio);
++				continue;
++			}
++
++			/* Anonymous folio without swap cache */
++			if (!mapping)
++				continue;
++
++			/* Add the new folio to the page cache. */
++			if (new_folio->index < end) {
++				__xa_store(&mapping->i_pages, new_folio->index,
++					   new_folio, 0);
++				continue;
++			}
++
++			VM_WARN_ON_ONCE(!nr_shmem_dropped);
++			/* Drop folio beyond EOF: ->index >= end */
++			if (shmem_mapping(mapping) && nr_shmem_dropped)
++				*nr_shmem_dropped += nr_pages;
++			else if (folio_test_clear_dirty(new_folio))
++				folio_account_cleaned(
++					new_folio, inode_to_wb(mapping->host));
++			__filemap_remove_folio(new_folio, NULL);
++			folio_put_refs(new_folio, nr_pages);
++		}
++
++		zone_device_private_split_cb(folio, NULL);
++		/*
++		 * Unfreeze @folio only after all page cache entries, which
++		 * used to point to it, have been updated with new folios.
++		 * Otherwise, a parallel folio_try_get() can grab @folio
++		 * and its caller can see stale page cache entries.
++		 */
++		expected_refs = folio_expected_ref_count(folio) + 1;
++		folio_ref_unfreeze(folio, expected_refs);
++
++		if (do_lru)
++			unlock_page_lruvec(lruvec);
++
++		if (ci)
++			swap_cluster_unlock(ci);
++	} else {
++		split_queue_unlock(ds_queue);
++		return -EAGAIN;
++	}
++
++	return ret;
++}
++
+ /**
+  * __folio_split() - split a folio at @split_at to a @new_order folio
+  * @folio: folio to split
+@@ -3747,7 +3893,6 @@ bool folio_split_supported(struct folio
+  * @lock_at: a page within @folio to be left locked to caller
+  * @list: after-split folios will be put on it if non NULL
+  * @split_type: perform uniform split or not (non-uniform split)
+- * @unmapped: The pages are already unmapped, they are migration entries.
+  *
+  * It calls __split_unmapped_folio() to perform uniform and non-uniform split.
+  * It is in charge of checking whether the split is supported or not and
+@@ -3763,9 +3908,8 @@ bool folio_split_supported(struct folio
+  */
+ static int __folio_split(struct folio *folio, unsigned int new_order,
+ 		struct page *split_at, struct page *lock_at,
+-		struct list_head *list, enum split_type split_type, bool unmapped)
++		struct list_head *list, enum split_type split_type)
+ {
+-	struct deferred_split *ds_queue;
+ 	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
+ 	struct folio *end_folio = folio_next(folio);
+ 	bool is_anon = folio_test_anon(folio);
+@@ -3776,7 +3920,7 @@ static int __folio_split(struct folio *f
+ 	int nr_shmem_dropped = 0;
+ 	int remap_flags = 0;
+ 	int extra_pins, ret;
+-	pgoff_t end;
++	pgoff_t end = 0;
+ 	bool is_hzp;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
+@@ -3819,14 +3963,12 @@ static int __folio_split(struct folio *f
+ 		 * is taken to serialise against parallel split or collapse
+ 		 * operations.
  		 */
- 		zram_slot_unlock(zram, index);
--
--		ret = read_from_bdev(zram, page, zram_get_handle(zram, index),
--				     parent);
-+		ret = read_from_bdev(zram, page, blk_idx, parent);
+-		if (!unmapped) {
+-			anon_vma = folio_get_anon_vma(folio);
+-			if (!anon_vma) {
+-				ret = -EBUSY;
+-				goto out;
+-			}
+-			anon_vma_lock_write(anon_vma);
++		anon_vma = folio_get_anon_vma(folio);
++		if (!anon_vma) {
++			ret = -EBUSY;
++			goto out;
+ 		}
++		anon_vma_lock_write(anon_vma);
+ 		mapping = NULL;
+ 	} else {
+ 		unsigned int min_order;
+@@ -3880,8 +4022,7 @@ static int __folio_split(struct folio *f
+ 		goto out_unlock;
  	}
  
- 	/* Should NEVER happen. Return bio error if it does. */
+-	if (!unmapped)
+-		unmap_folio(folio);
++	unmap_folio(folio);
+ 
+ 	/* block interrupt reentry in xa_lock and spinlock */
+ 	local_irq_disable();
+@@ -3898,142 +4039,15 @@ static int __folio_split(struct folio *f
+ 		}
+ 	}
+ 
+-	/* Prevent deferred_split_scan() touching ->_refcount */
+-	ds_queue = folio_split_queue_lock(folio);
+-	if (folio_ref_freeze(folio, 1 + extra_pins)) {
+-		struct swap_cluster_info *ci = NULL;
+-		struct lruvec *lruvec;
+-		int expected_refs;
+-
+-		if (old_order > 1) {
+-			if (!list_empty(&folio->_deferred_list)) {
+-				ds_queue->split_queue_len--;
+-				/*
+-				 * Reinitialize page_deferred_list after removing the
+-				 * page from the split_queue, otherwise a subsequent
+-				 * split will see list corruption when checking the
+-				 * page_deferred_list.
+-				 */
+-				list_del_init(&folio->_deferred_list);
+-			}
+-			if (folio_test_partially_mapped(folio)) {
+-				folio_clear_partially_mapped(folio);
+-				mod_mthp_stat(old_order,
+-					MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+-			}
+-		}
+-		split_queue_unlock(ds_queue);
+-		if (mapping) {
+-			int nr = folio_nr_pages(folio);
+-
+-			if (folio_test_pmd_mappable(folio) &&
+-			    new_order < HPAGE_PMD_ORDER) {
+-				if (folio_test_swapbacked(folio)) {
+-					__lruvec_stat_mod_folio(folio,
+-							NR_SHMEM_THPS, -nr);
+-				} else {
+-					__lruvec_stat_mod_folio(folio,
+-							NR_FILE_THPS, -nr);
+-					filemap_nr_thps_dec(mapping);
+-				}
+-			}
+-		}
+-
+-		if (folio_test_swapcache(folio)) {
+-			if (mapping) {
+-				VM_WARN_ON_ONCE_FOLIO(mapping, folio);
+-				ret = -EINVAL;
+-				goto fail;
+-			}
+-
+-			ci = swap_cluster_get_and_lock(folio);
+-		}
+-
+-		/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
+-		lruvec = folio_lruvec_lock(folio);
+-
+-		ret = __split_unmapped_folio(folio, new_order, split_at, &xas,
+-					     mapping, split_type);
+-
+-		/*
+-		 * Unfreeze after-split folios and put them back to the right
+-		 * list. @folio should be kept frozon until page cache
+-		 * entries are updated with all the other after-split folios
+-		 * to prevent others seeing stale page cache entries.
+-		 * As a result, new_folio starts from the next folio of
+-		 * @folio.
+-		 */
+-		for (new_folio = folio_next(folio); new_folio != end_folio;
+-		     new_folio = next) {
+-			unsigned long nr_pages = folio_nr_pages(new_folio);
+-
+-			next = folio_next(new_folio);
+-
+-			zone_device_private_split_cb(folio, new_folio);
+-
+-			expected_refs = folio_expected_ref_count(new_folio) + 1;
+-			folio_ref_unfreeze(new_folio, expected_refs);
+-
+-			if (!unmapped)
+-				lru_add_split_folio(folio, new_folio, lruvec, list);
+-
+-			/*
+-			 * Anonymous folio with swap cache.
+-			 * NOTE: shmem in swap cache is not supported yet.
+-			 */
+-			if (ci) {
+-				__swap_cache_replace_folio(ci, folio, new_folio);
+-				continue;
+-			}
+-
+-			/* Anonymous folio without swap cache */
+-			if (!mapping)
+-				continue;
+-
+-			/* Add the new folio to the page cache. */
+-			if (new_folio->index < end) {
+-				__xa_store(&mapping->i_pages, new_folio->index,
+-					   new_folio, 0);
+-				continue;
+-			}
+-
+-			/* Drop folio beyond EOF: ->index >= end */
+-			if (shmem_mapping(mapping))
+-				nr_shmem_dropped += nr_pages;
+-			else if (folio_test_clear_dirty(new_folio))
+-				folio_account_cleaned(
+-					new_folio, inode_to_wb(mapping->host));
+-			__filemap_remove_folio(new_folio, NULL);
+-			folio_put_refs(new_folio, nr_pages);
+-		}
+-
+-		zone_device_private_split_cb(folio, NULL);
+-		/*
+-		 * Unfreeze @folio only after all page cache entries, which
+-		 * used to point to it, have been updated with new folios.
+-		 * Otherwise, a parallel folio_try_get() can grab @folio
+-		 * and its caller can see stale page cache entries.
+-		 */
+-		expected_refs = folio_expected_ref_count(folio) + 1;
+-		folio_ref_unfreeze(folio, expected_refs);
+-
+-		unlock_page_lruvec(lruvec);
+-
+-		if (ci)
+-			swap_cluster_unlock(ci);
+-	} else {
+-		split_queue_unlock(ds_queue);
+-		ret = -EAGAIN;
+-	}
++	ret = __folio_freeze_and_split_unmapped(folio, new_order, split_at, &xas, mapping,
++						true, list, split_type, end, &nr_shmem_dropped,
++						extra_pins);
+ fail:
+ 	if (mapping)
+ 		xas_unlock(&xas);
+ 
+ 	local_irq_enable();
+ 
+-	if (unmapped)
+-		return ret;
+-
+ 	if (nr_shmem_dropped)
+ 		shmem_uncharge(mapping->host, nr_shmem_dropped);
+ 
+@@ -4077,6 +4091,48 @@ out:
+ 	return ret;
+ }
+ 
++/**
++ * folio_split_unmapped() - split a large anon folio that is already unmapped
++ * @folio: folio to split
++ * @new_order: the order of folios after split
++ *
++ * This function is a helper for splitting folios that have already been
++ * unmapped. The use case is that the device or the CPU can refuse to migrate
++ * THP pages in the middle of migration, due to allocation issues on either
++ * side.
++ *
++ * anon_vma_lock is not required to be held, mmap_read_lock() or
++ * mmap_write_lock() should be held. @folio is expected to be locked by the
++ * caller. device-private and non device-private folios are supported along
++ * with folios that are in the swapcache. @folio should also be unmapped and
++ * isolated from LRU (if applicable)
++ *
++ * Upon return, the folio is not remapped, split folios are not added to LRU,
++ * free_folio_and_swap_cache() is not called, and new folios remain locked.
++ *
++ * Return: 0 on success, -EAGAIN if the folio cannot be split (e.g., due to
++ *         insufficient reference count or extra pins).
++ */
++int folio_split_unmapped(struct folio *folio, unsigned int new_order)
++{
++	int extra_pins, ret = 0;
++
++	VM_WARN_ON_ONCE_FOLIO(folio_mapped(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(!folio_test_anon(folio), folio);
++
++	if (!can_split_folio(folio, 1, &extra_pins))
++		return -EAGAIN;
++
++	local_irq_disable();
++	ret = __folio_freeze_and_split_unmapped(folio, new_order, &folio->page, NULL,
++						NULL, false, NULL, SPLIT_TYPE_UNIFORM,
++						0, NULL, extra_pins);
++	local_irq_enable();
++	return ret;
++}
++
+ /*
+  * This function splits a large folio into smaller folios of order @new_order.
+  * @page can point to any page of the large folio to split. The split operation
+@@ -4125,12 +4181,12 @@ out:
+  * with the folio. Splitting to order 0 is compatible with all folios.
+  */
+ int __split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+-				     unsigned int new_order, bool unmapped)
++				     unsigned int new_order)
+ {
+ 	struct folio *folio = page_folio(page);
+ 
+ 	return __folio_split(folio, new_order, &folio->page, page, list,
+-			     SPLIT_TYPE_UNIFORM, unmapped);
++			     SPLIT_TYPE_UNIFORM);
+ }
+ 
+ /**
+@@ -4161,7 +4217,7 @@ int folio_split(struct folio *folio, uns
+ 		struct page *split_at, struct list_head *list)
+ {
+ 	return __folio_split(folio, new_order, split_at, &folio->page, list,
+-			     SPLIT_TYPE_NON_UNIFORM, false);
++			     SPLIT_TYPE_NON_UNIFORM);
+ }
+ 
+ int min_order_for_split(struct folio *folio)
+--- a/mm/migrate_device.c~mm-huge_memoryc-introduce-folio_split_unmapped
++++ a/mm/migrate_device.c
+@@ -916,8 +916,7 @@ static int migrate_vma_split_unmapped_fo
+ 
+ 	folio_get(folio);
+ 	split_huge_pmd_address(migrate->vma, addr, true);
+-	ret = __split_huge_page_to_list_to_order(folio_page(folio, 0), NULL,
+-							0, true);
++	ret = folio_split_unmapped(folio, 0);
+ 	if (ret)
+ 		return ret;
+ 	migrate->src[idx] &= ~MIGRATE_PFN_COMPOUND;
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from balbirs@nvidia.com are
 
 
