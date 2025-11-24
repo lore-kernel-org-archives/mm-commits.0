@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0D7C33554F
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 493EC2FD1D5
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025814; cv=none; b=Wsj/bA1d3yMhiMF+8RKSae+zMVj4/rzvuy5iuh6ScqHPgxnweBA2OycVIcpHIJtOoPVPwEo8zd7+pSNpeHa/iH0pUgCKVqhHrWDsgKFuuP63dKbIyl5/4w6fH0k83pK5YmDdgDMA4XwSdu0as8efQhXD7BMrTucWdf/1X8ED80o=
+	t=1764025816; cv=none; b=npncRR9bOs9ShGVr6llWQTDSv3xWagrRP21m+mX6Udf6xuzATjVsUeAB/ra+8nRERpwThnRw0wx60z4ZeylRjsG9lWQoOWn1aE0q36mhvrIwosXxOAnZc39Hwe85sg0XzIqEal5pRi59R4Dd2QgOcvBhI/2i10AWWH1Zp2gwH+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025814; c=relaxed/simple;
-	bh=1FK6dYTyMtShHTWBsJLc/a9+9YIm/bTJHwKfv8MUwDY=;
-	h=Date:To:From:Subject:Message-Id; b=rq10+P8ZaI918MgJyo6aJeTfSCLu8TlT1yLcIXrR4XWitRTIVgZFECG+jeFiy+5t7N4gVTtMgBxOLIPEmRoRBlYN51QFlyj+72Qz1L8+93XLfMk5udkr0sxNga1O8HSrZxF6YvAsUZ0nQOH+tYc2XVDfKSE8zdOVCNkww9mYF5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vaEQBbUa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025816; c=relaxed/simple;
+	bh=+5iFcN3UR3KyNpPrTMFDD3P/6duB9vcmbMqh6T62qbQ=;
+	h=Date:To:From:Subject:Message-Id; b=hJsbKFcE1y6iI/QFwj6HOzcLwfF0yp5pNLuzq+VUqPeOL0BU0lLVzxkSx7dZodH47ThdBKL45diSTZZOhnNzQIAaUn2vf7YaVZ5mdFS2mwrH48LbXnyxJSs6r2xus9veB7HP3Nf5JJAOE1LZmDP60hyXu5uM7iqJZpH8fJ6pTeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L3xf82Us; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vaEQBbUa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C2F5C4CEFB;
-	Mon, 24 Nov 2025 23:10:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L3xf82Us"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C045BC4CEF1;
+	Mon, 24 Nov 2025 23:10:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025814;
-	bh=1FK6dYTyMtShHTWBsJLc/a9+9YIm/bTJHwKfv8MUwDY=;
+	s=korg; t=1764025815;
+	bh=+5iFcN3UR3KyNpPrTMFDD3P/6duB9vcmbMqh6T62qbQ=;
 	h=Date:To:From:Subject:From;
-	b=vaEQBbUaVlZensaNSLY/Zomx7LBkGEKUN6MwbbD62XFnROUyJ6kciSwpBSZPyZBFq
-	 3AUKhi4lzOkjxAKbE9HPQdhWY0/sRV5lVnSqB524GaSFx8pXi/9J9wvgXHYJElKkNz
-	 18Hyff7Za5vT+oJoN0cc3sdU36rpxQvV65P7GohI=
-Date: Mon, 24 Nov 2025 15:10:13 -0800
+	b=L3xf82UslKWta9r9evpWagwZ3ym9fBy0IOEpt71IZ0/3AYlWb/aT9ekYCMhTomry0
+	 8P0kXhmnPRAL8GKHka1ARf2V0aHtoNjXXf5rxSeqXLhVY5joFybJLUkoai3UcSFX1x
+	 xmPZUnCqXvwZY4yq1UrGk+L1QBK6nU6Z8aN5wSJg=
+Date: Mon, 24 Nov 2025 15:10:15 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,svens@linux.ibm.com,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,nphamcs@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,matthew.brost@intel.com,linmiaohe@huawei.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,imbrenda@linux.ibm.com,hughd@google.com,hca@linux.ibm.com,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,apopple@nvidia.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-avoid-unnecessary-uses-of-is_swap_pte.patch removed from -mm tree
-Message-Id: <20251124231014.6C2F5C4CEFB@smtp.kernel.org>
+Subject: [merged mm-stable] mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch removed from -mm tree
+Message-Id: <20251124231015.C045BC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: avoid unnecessary uses of is_swap_pte()
+     Subject: mm: eliminate is_swap_pte() when softleaf_from_pte() suffices
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-unnecessary-uses-of-is_swap_pte.patch
+     mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: avoid unnecessary uses of is_swap_pte()
-Date: Mon, 10 Nov 2025 22:21:21 +0000
+Subject: mm: eliminate is_swap_pte() when softleaf_from_pte() suffices
+Date: Mon, 10 Nov 2025 22:21:22 +0000
 
-There's an established convention in the kernel that we treat PTEs as
-containing swap entries (and the unfortunately named non-swap swap
-entries) should they be neither empty (i.e.  pte_none() evaluating true)
-nor present (i.e.  pte_present() evaluating true).
-
-However, there is some inconsistency in how this is applied, as we also
-have the is_swap_pte() helper which explicitly performs this check:
-
-	/* check whether a pte points to a swap entry */
-	static inline int is_swap_pte(pte_t pte)
-	{
-		return !pte_none(pte) && !pte_present(pte);
-	}
-
-As this represents a predicate, and it's logical to assume that in order
-to establish that a PTE entry can correctly be manipulated as a
-swap/non-swap entry, this predicate seems as if it must first be checked.
-
-But we instead, we far more often utilise the established convention of
-checking pte_none() / pte_present() before operating on entries as if they
-were swap/non-swap.
-
-This patch works towards correcting this inconsistency by removing all
-uses of is_swap_pte() where we are already in a position where we perform
-pte_none()/pte_present() checks anyway or otherwise it is clearly logical
-to do so.
-
-We also take advantage of the fact that pte_swp_uffd_wp() is only set on
-swap entries.
-
-Additionally, update comments referencing to is_swap_pte() and
-non_swap_entry().
+In cases where we can simply utilise the fact that softleaf_from_pte()
+treats present entries as if they were none entries and thus eliminate
+spurious uses of is_swap_pte(), do so.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/17fd6d7f46a846517fd455fadd640af47fcd7c55.1762812360.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/92ebab9567978155116804c67babc3c64636c403.1762812360.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -139,483 +109,142 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: xu xin <xu.xin16@zte.com.cn>
 Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c            |   49 ++++++++++++++++++++++----------
- include/linux/userfaultfd_k.h |    3 -
- mm/hugetlb.c                  |    6 +--
- mm/internal.h                 |    6 +--
- mm/khugepaged.c               |   29 +++++++++---------
- mm/migrate.c                  |    2 -
- mm/mprotect.c                 |   43 +++++++++++++---------------
- mm/mremap.c                   |    7 +++-
- mm/page_table_check.c         |   13 +++++---
- mm/page_vma_mapped.c          |   31 +++++++++-----------
- 10 files changed, 104 insertions(+), 85 deletions(-)
+ mm/internal.h   |    7 +++----
+ mm/madvise.c    |    8 +++-----
+ mm/swap_state.c |   11 +++++------
+ mm/swapfile.c   |    9 ++++-----
+ 4 files changed, 15 insertions(+), 20 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/fs/proc/task_mmu.c
-@@ -1017,7 +1017,9 @@ static void smaps_pte_entry(pte_t *pte,
- 		young = pte_young(ptent);
- 		dirty = pte_dirty(ptent);
- 		present = true;
--	} else if (is_swap_pte(ptent)) {
-+	} else if (pte_none(ptent)) {
-+		smaps_pte_hole_lookup(addr, walk);
-+	} else {
- 		swp_entry_t swpent = pte_to_swp_entry(ptent);
- 
- 		if (!non_swap_entry(swpent)) {
-@@ -1038,9 +1040,6 @@ static void smaps_pte_entry(pte_t *pte,
- 				present = true;
- 			page = pfn_swap_entry_to_page(swpent);
- 		}
--	} else {
--		smaps_pte_hole_lookup(addr, walk);
--		return;
- 	}
- 
- 	if (!page)
-@@ -1612,6 +1611,9 @@ static inline void clear_soft_dirty(stru
- 	 */
- 	pte_t ptent = ptep_get(pte);
- 
-+	if (pte_none(ptent))
-+		return;
-+
- 	if (pte_present(ptent)) {
- 		pte_t old_pte;
- 
-@@ -1621,7 +1623,7 @@ static inline void clear_soft_dirty(stru
- 		ptent = pte_wrprotect(old_pte);
- 		ptent = pte_clear_soft_dirty(ptent);
- 		ptep_modify_prot_commit(vma, addr, pte, old_pte, ptent);
--	} else if (is_swap_pte(ptent)) {
-+	} else {
- 		ptent = pte_swp_clear_soft_dirty(ptent);
- 		set_pte_at(vma->vm_mm, addr, pte, ptent);
- 	}
-@@ -1924,6 +1926,9 @@ static pagemap_entry_t pte_to_pagemap_en
- 	struct page *page = NULL;
- 	struct folio *folio;
- 
-+	if (pte_none(pte))
-+		goto out;
-+
- 	if (pte_present(pte)) {
- 		if (pm->show_pfn)
- 			frame = pte_pfn(pte);
-@@ -1933,8 +1938,9 @@ static pagemap_entry_t pte_to_pagemap_en
- 			flags |= PM_SOFT_DIRTY;
- 		if (pte_uffd_wp(pte))
- 			flags |= PM_UFFD_WP;
--	} else if (is_swap_pte(pte)) {
-+	} else {
- 		swp_entry_t entry;
-+
- 		if (pte_swp_soft_dirty(pte))
- 			flags |= PM_SOFT_DIRTY;
- 		if (pte_swp_uffd_wp(pte))
-@@ -1942,6 +1948,7 @@ static pagemap_entry_t pte_to_pagemap_en
- 		entry = pte_to_swp_entry(pte);
- 		if (pm->show_pfn) {
- 			pgoff_t offset;
-+
- 			/*
- 			 * For PFN swap offsets, keeping the offset field
- 			 * to be PFN only to be compatible with old smaps.
-@@ -1970,6 +1977,8 @@ static pagemap_entry_t pte_to_pagemap_en
- 		    __folio_page_mapped_exclusively(folio, page))
- 			flags |= PM_MMAP_EXCLUSIVE;
- 	}
-+
-+out:
- 	if (vma->vm_flags & VM_SOFTDIRTY)
- 		flags |= PM_SOFT_DIRTY;
- 
-@@ -2311,12 +2320,16 @@ static unsigned long pagemap_page_catego
- 					   struct vm_area_struct *vma,
- 					   unsigned long addr, pte_t pte)
- {
--	unsigned long categories = 0;
-+	unsigned long categories;
-+
-+	if (pte_none(pte))
-+		return 0;
- 
- 	if (pte_present(pte)) {
- 		struct page *page;
- 
--		categories |= PAGE_IS_PRESENT;
-+		categories = PAGE_IS_PRESENT;
-+
- 		if (!pte_uffd_wp(pte))
- 			categories |= PAGE_IS_WRITTEN;
- 
-@@ -2330,10 +2343,11 @@ static unsigned long pagemap_page_catego
- 			categories |= PAGE_IS_PFNZERO;
- 		if (pte_soft_dirty(pte))
- 			categories |= PAGE_IS_SOFT_DIRTY;
--	} else if (is_swap_pte(pte)) {
-+	} else {
- 		softleaf_t entry;
- 
--		categories |= PAGE_IS_SWAPPED;
-+		categories = PAGE_IS_SWAPPED;
-+
- 		if (!pte_swp_uffd_wp_any(pte))
- 			categories |= PAGE_IS_WRITTEN;
- 
-@@ -2361,12 +2375,12 @@ static void make_uffd_wp_pte(struct vm_a
- 		old_pte = ptep_modify_prot_start(vma, addr, pte);
- 		ptent = pte_mkuffd_wp(old_pte);
- 		ptep_modify_prot_commit(vma, addr, pte, old_pte, ptent);
--	} else if (is_swap_pte(ptent)) {
--		ptent = pte_swp_mkuffd_wp(ptent);
--		set_pte_at(vma->vm_mm, addr, pte, ptent);
--	} else {
-+	} else if (pte_none(ptent)) {
- 		set_pte_at(vma->vm_mm, addr, pte,
- 			   make_pte_marker(PTE_MARKER_UFFD_WP));
-+	} else {
-+		ptent = pte_swp_mkuffd_wp(ptent);
-+		set_pte_at(vma->vm_mm, addr, pte, ptent);
- 	}
- }
- 
-@@ -2435,6 +2449,9 @@ static unsigned long pagemap_hugetlb_cat
- {
- 	unsigned long categories = PAGE_IS_HUGE;
- 
-+	if (pte_none(pte))
-+		return categories;
-+
- 	/*
- 	 * According to pagemap_hugetlb_range(), file-backed HugeTLB
- 	 * page cannot be swapped. So PAGE_IS_FILE is not checked for
-@@ -2442,6 +2459,7 @@ static unsigned long pagemap_hugetlb_cat
- 	 */
- 	if (pte_present(pte)) {
- 		categories |= PAGE_IS_PRESENT;
-+
- 		if (!huge_pte_uffd_wp(pte))
- 			categories |= PAGE_IS_WRITTEN;
- 		if (!PageAnon(pte_page(pte)))
-@@ -2450,8 +2468,9 @@ static unsigned long pagemap_hugetlb_cat
- 			categories |= PAGE_IS_PFNZERO;
- 		if (pte_soft_dirty(pte))
- 			categories |= PAGE_IS_SOFT_DIRTY;
--	} else if (is_swap_pte(pte)) {
-+	} else {
- 		categories |= PAGE_IS_SWAPPED;
-+
- 		if (!pte_swp_uffd_wp_any(pte))
- 			categories |= PAGE_IS_WRITTEN;
- 		if (pte_swp_soft_dirty(pte))
---- a/include/linux/userfaultfd_k.h~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/include/linux/userfaultfd_k.h
-@@ -441,9 +441,8 @@ static inline bool userfaultfd_wp_use_ma
- static inline bool pte_swp_uffd_wp_any(pte_t pte)
- {
- #ifdef CONFIG_PTE_MARKER_UFFD_WP
--	if (!is_swap_pte(pte))
-+	if (pte_present(pte))
- 		return false;
--
- 	if (pte_swp_uffd_wp(pte))
- 		return true;
- 
---- a/mm/hugetlb.c~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/mm/hugetlb.c
-@@ -5092,13 +5092,13 @@ static void move_huge_pte(struct vm_area
- 
- 	pte = huge_ptep_get_and_clear(mm, old_addr, src_pte, sz);
- 
--	if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte))
-+	if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte)) {
- 		huge_pte_clear(mm, new_addr, dst_pte, sz);
--	else {
-+	} else {
- 		if (need_clear_uffd_wp) {
- 			if (pte_present(pte))
- 				pte = huge_pte_clear_uffd_wp(pte);
--			else if (is_swap_pte(pte))
-+			else
- 				pte = pte_swp_clear_uffd_wp(pte);
- 		}
- 		set_huge_pte_at(mm, new_addr, dst_pte, pte, sz);
---- a/mm/internal.h~mm-avoid-unnecessary-uses-of-is_swap_pte
+--- a/mm/internal.h~mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices
 +++ a/mm/internal.h
-@@ -325,8 +325,7 @@ unsigned int folio_pte_batch(struct foli
- /**
-  * pte_move_swp_offset - Move the swap entry offset field of a swap pte
-  *	 forward or backward by delta
-- * @pte: The initial pte state; is_swap_pte(pte) must be true and
-- *	 non_swap_entry() must be false.
-+ * @pte: The initial pte state; must be a swap entry
-  * @delta: The direction and the offset we are moving; forward if delta
-  *	 is positive; backward if delta is negative
-  *
-@@ -352,8 +351,7 @@ static inline pte_t pte_move_swp_offset(
+@@ -15,7 +15,7 @@
+ #include <linux/pagewalk.h>
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+-#include <linux/swapops.h>
++#include <linux/leafops.h>
+ #include <linux/swap_cgroup.h>
+ #include <linux/tracepoint-defs.h>
  
- /**
-  * pte_next_swp_offset - Increment the swap entry offset field of a swap pte.
-- * @pte: The initial pte state; is_swap_pte(pte) must be true and
-- *	 non_swap_entry() must be false.
-+ * @pte: The initial pte state; must be a swap entry.
-  *
-  * Increments the swap offset, while maintaining all other fields, including
-  * swap type, and any swp pte bits. The resulting pte is returned.
---- a/mm/khugepaged.c~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/mm/khugepaged.c
-@@ -1019,7 +1019,8 @@ static int __collapse_huge_page_swapin(s
+@@ -380,13 +380,12 @@ static inline int swap_pte_batch(pte_t *
+ {
+ 	pte_t expected_pte = pte_next_swp_offset(pte);
+ 	const pte_t *end_ptep = start_ptep + max_nr;
+-	swp_entry_t entry = pte_to_swp_entry(pte);
++	const softleaf_t entry = softleaf_from_pte(pte);
+ 	pte_t *ptep = start_ptep + 1;
+ 	unsigned short cgroup_id;
+ 
+ 	VM_WARN_ON(max_nr < 1);
+-	VM_WARN_ON(!is_swap_pte(pte));
+-	VM_WARN_ON(non_swap_entry(entry));
++	VM_WARN_ON(!softleaf_is_swap(entry));
+ 
+ 	cgroup_id = lookup_swap_cgroup_id(entry);
+ 	while (ptep < end_ptep) {
+--- a/mm/madvise.c~mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices
++++ a/mm/madvise.c
+@@ -195,7 +195,7 @@ static int swapin_walk_pmd_entry(pmd_t *
+ 
+ 	for (addr = start; addr < end; addr += PAGE_SIZE) {
+ 		pte_t pte;
+-		swp_entry_t entry;
++		softleaf_t entry;
+ 		struct folio *folio;
+ 
+ 		if (!ptep++) {
+@@ -205,10 +205,8 @@ static int swapin_walk_pmd_entry(pmd_t *
  		}
  
- 		vmf.orig_pte = ptep_get_lockless(pte);
--		if (!is_swap_pte(vmf.orig_pte))
-+		if (pte_none(vmf.orig_pte) ||
-+		    pte_present(vmf.orig_pte))
+ 		pte = ptep_get(ptep);
+-		if (!is_swap_pte(pte))
+-			continue;
+-		entry = pte_to_swp_entry(pte);
+-		if (unlikely(non_swap_entry(entry)))
++		entry = softleaf_from_pte(pte);
++		if (unlikely(!softleaf_is_swap(entry)))
  			continue;
  
- 		vmf.pte = pte;
-@@ -1276,7 +1277,19 @@ static int hpage_collapse_scan_pmd(struc
- 	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
- 	     _pte++, addr += PAGE_SIZE) {
- 		pte_t pteval = ptep_get(_pte);
--		if (is_swap_pte(pteval)) {
-+		if (pte_none_or_zero(pteval)) {
-+			++none_or_zero;
-+			if (!userfaultfd_armed(vma) &&
-+			    (!cc->is_khugepaged ||
-+			     none_or_zero <= khugepaged_max_ptes_none)) {
-+				continue;
-+			} else {
-+				result = SCAN_EXCEED_NONE_PTE;
-+				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
-+				goto out_unmap;
-+			}
-+		}
-+		if (!pte_present(pteval)) {
- 			++unmapped;
- 			if (!cc->is_khugepaged ||
- 			    unmapped <= khugepaged_max_ptes_swap) {
-@@ -1296,18 +1309,6 @@ static int hpage_collapse_scan_pmd(struc
- 				goto out_unmap;
- 			}
- 		}
--		if (pte_none_or_zero(pteval)) {
--			++none_or_zero;
--			if (!userfaultfd_armed(vma) &&
--			    (!cc->is_khugepaged ||
--			     none_or_zero <= khugepaged_max_ptes_none)) {
--				continue;
--			} else {
--				result = SCAN_EXCEED_NONE_PTE;
--				count_vm_event(THP_SCAN_EXCEED_NONE_PTE);
--				goto out_unmap;
--			}
--		}
- 		if (pte_uffd_wp(pteval)) {
- 			/*
- 			 * Don't collapse the page if any of the small
---- a/mm/migrate.c~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/mm/migrate.c
-@@ -492,7 +492,7 @@ void migration_entry_wait(struct mm_stru
- 	pte = ptep_get(ptep);
- 	pte_unmap(ptep);
+ 		pte_unmap_unlock(ptep, ptl);
+--- a/mm/swapfile.c~mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices
++++ a/mm/swapfile.c
+@@ -44,7 +44,7 @@
+ #include <linux/plist.h>
  
--	if (!is_swap_pte(pte))
-+	if (pte_none(pte) || pte_present(pte))
- 		goto out;
- 
- 	entry = pte_to_swp_entry(pte);
---- a/mm/mprotect.c~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/mm/mprotect.c
-@@ -297,7 +297,26 @@ static long change_pte_range(struct mmu_
- 				prot_commit_flush_ptes(vma, addr, pte, oldpte, ptent,
- 					nr_ptes, /* idx = */ 0, /* set_write = */ false, tlb);
- 			pages += nr_ptes;
--		} else if (is_swap_pte(oldpte)) {
-+		} else if (pte_none(oldpte)) {
-+			/*
-+			 * Nobody plays with any none ptes besides
-+			 * userfaultfd when applying the protections.
-+			 */
-+			if (likely(!uffd_wp))
-+				continue;
-+
-+			if (userfaultfd_wp_use_markers(vma)) {
-+				/*
-+				 * For file-backed mem, we need to be able to
-+				 * wr-protect a none pte, because even if the
-+				 * pte is none, the page/swap cache could
-+				 * exist.  Doing that by install a marker.
-+				 */
-+				set_pte_at(vma->vm_mm, addr, pte,
-+					   make_pte_marker(PTE_MARKER_UFFD_WP));
-+				pages++;
-+			}
-+		} else  {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
- 			pte_t newpte;
- 
-@@ -358,28 +377,6 @@ static long change_pte_range(struct mmu_
- 				set_pte_at(vma->vm_mm, addr, pte, newpte);
- 				pages++;
- 			}
--		} else {
--			/* It must be an none page, or what else?.. */
--			WARN_ON_ONCE(!pte_none(oldpte));
--
--			/*
--			 * Nobody plays with any none ptes besides
--			 * userfaultfd when applying the protections.
--			 */
--			if (likely(!uffd_wp))
--				continue;
--
--			if (userfaultfd_wp_use_markers(vma)) {
--				/*
--				 * For file-backed mem, we need to be able to
--				 * wr-protect a none pte, because even if the
--				 * pte is none, the page/swap cache could
--				 * exist.  Doing that by install a marker.
--				 */
--				set_pte_at(vma->vm_mm, addr, pte,
--					   make_pte_marker(PTE_MARKER_UFFD_WP));
--				pages++;
--			}
- 		}
- 	} while (pte += nr_ptes, addr += nr_ptes * PAGE_SIZE, addr != end);
- 	arch_leave_lazy_mmu_mode();
---- a/mm/mremap.c~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/mm/mremap.c
-@@ -158,6 +158,9 @@ static void drop_rmap_locks(struct vm_ar
- 
- static pte_t move_soft_dirty_pte(pte_t pte)
- {
-+	if (pte_none(pte))
-+		return pte;
-+
- 	/*
- 	 * Set soft dirty bit so we can notice
- 	 * in userspace the ptes were moved.
-@@ -165,7 +168,7 @@ static pte_t move_soft_dirty_pte(pte_t p
- #ifdef CONFIG_MEM_SOFT_DIRTY
- 	if (pte_present(pte))
- 		pte = pte_mksoft_dirty(pte);
--	else if (is_swap_pte(pte))
-+	else
- 		pte = pte_swp_mksoft_dirty(pte);
- #endif
- 	return pte;
-@@ -294,7 +297,7 @@ static int move_ptes(struct pagetable_mo
- 			if (need_clear_uffd_wp) {
- 				if (pte_present(pte))
- 					pte = pte_clear_uffd_wp(pte);
--				else if (is_swap_pte(pte))
-+				else
- 					pte = pte_swp_clear_uffd_wp(pte);
- 			}
- 			set_ptes(mm, new_addr, new_ptep, pte, nr_ptes);
---- a/mm/page_table_check.c~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/mm/page_table_check.c
-@@ -185,12 +185,15 @@ static inline bool swap_cached_writable(
- 	       is_writable_migration_entry(entry);
- }
- 
--static inline void page_table_check_pte_flags(pte_t pte)
-+static void page_table_check_pte_flags(pte_t pte)
- {
--	if (pte_present(pte) && pte_uffd_wp(pte))
--		WARN_ON_ONCE(pte_write(pte));
--	else if (is_swap_pte(pte) && pte_swp_uffd_wp(pte))
--		WARN_ON_ONCE(swap_cached_writable(pte_to_swp_entry(pte)));
-+	if (pte_present(pte)) {
-+		WARN_ON_ONCE(pte_uffd_wp(pte) && pte_write(pte));
-+	} else if (pte_swp_uffd_wp(pte)) {
-+		const swp_entry_t entry = pte_to_swp_entry(pte);
-+
-+		WARN_ON_ONCE(swap_cached_writable(entry));
-+	}
- }
- 
- void __page_table_check_ptes_set(struct mm_struct *mm, pte_t *ptep, pte_t pte,
---- a/mm/page_vma_mapped.c~mm-avoid-unnecessary-uses-of-is_swap_pte
-+++ a/mm/page_vma_mapped.c
-@@ -16,6 +16,7 @@ static inline bool not_found(struct page
- static bool map_pte(struct page_vma_mapped_walk *pvmw, pmd_t *pmdvalp,
- 		    spinlock_t **ptlp)
- {
-+	bool is_migration;
- 	pte_t ptent;
- 
- 	if (pvmw->flags & PVMW_SYNC) {
-@@ -26,6 +27,7 @@ static bool map_pte(struct page_vma_mapp
- 		return !!pvmw->pte;
- 	}
- 
-+	is_migration = pvmw->flags & PVMW_MIGRATION;
- again:
- 	/*
- 	 * It is important to return the ptl corresponding to pte,
-@@ -41,11 +43,14 @@ again:
- 
- 	ptent = ptep_get(pvmw->pte);
- 
--	if (pvmw->flags & PVMW_MIGRATION) {
--		if (!is_swap_pte(ptent))
-+	if (pte_none(ptent)) {
-+		return false;
-+	} else if (pte_present(ptent)) {
-+		if (is_migration)
- 			return false;
--	} else if (is_swap_pte(ptent)) {
-+	} else if (!is_migration) {
- 		swp_entry_t entry;
-+
- 		/*
- 		 * Handle un-addressable ZONE_DEVICE memory.
- 		 *
-@@ -66,8 +71,6 @@ again:
- 		if (!is_device_private_entry(entry) &&
- 		    !is_device_exclusive_entry(entry))
- 			return false;
--	} else if (!pte_present(ptent)) {
--		return false;
- 	}
- 	spin_lock(*ptlp);
- 	if (unlikely(!pmd_same(*pmdvalp, pmdp_get_lockless(pvmw->pmd)))) {
-@@ -113,21 +116,17 @@ static bool check_pte(struct page_vma_ma
- 			return false;
- 
- 		pfn = softleaf_to_pfn(entry);
--	} else if (is_swap_pte(ptent)) {
+ #include <asm/tlbflush.h>
+-#include <linux/swapops.h>
++#include <linux/leafops.h>
+ #include <linux/swap_cgroup.h>
+ #include "swap_table.h"
+ #include "internal.h"
+@@ -2257,7 +2257,7 @@ static int unuse_pte_range(struct vm_are
+ 		struct folio *folio;
+ 		unsigned long offset;
+ 		unsigned char swp_count;
 -		swp_entry_t entry;
-+	} else if (pte_present(ptent)) {
-+		pfn = pte_pfn(ptent);
-+	} else {
-+		const softleaf_t entry = softleaf_from_pte(ptent);
++		softleaf_t entry;
+ 		int ret;
+ 		pte_t ptent;
  
- 		/* Handle un-addressable ZONE_DEVICE memory */
--		entry = pte_to_swp_entry(ptent);
--		if (!is_device_private_entry(entry) &&
--		    !is_device_exclusive_entry(entry))
--			return false;
+@@ -2268,11 +2268,10 @@ static int unuse_pte_range(struct vm_are
+ 		}
+ 
+ 		ptent = ptep_get_lockless(pte);
++		entry = softleaf_from_pte(ptent);
+ 
+-		if (!is_swap_pte(ptent))
++		if (!softleaf_is_swap(entry))
+ 			continue;
 -
--		pfn = swp_offset_pfn(entry);
--	} else {
--		if (!pte_present(ptent))
-+		if (!softleaf_is_device_private(entry) &&
-+		    !softleaf_is_device_exclusive(entry))
- 			return false;
+-		entry = pte_to_swp_entry(ptent);
+ 		if (swp_type(entry) != type)
+ 			continue;
  
--		pfn = pte_pfn(ptent);
-+		pfn = softleaf_to_pfn(entry);
- 	}
+--- a/mm/swap_state.c~mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices
++++ a/mm/swap_state.c
+@@ -12,7 +12,7 @@
+ #include <linux/kernel_stat.h>
+ #include <linux/mempolicy.h>
+ #include <linux/swap.h>
+-#include <linux/swapops.h>
++#include <linux/leafops.h>
+ #include <linux/init.h>
+ #include <linux/pagemap.h>
+ #include <linux/pagevec.h>
+@@ -736,7 +736,6 @@ static struct folio *swap_vma_readahead(
+ 	pte_t *pte = NULL, pentry;
+ 	int win;
+ 	unsigned long start, end, addr;
+-	swp_entry_t entry;
+ 	pgoff_t ilx;
+ 	bool page_allocated;
  
- 	if ((pfn + pte_nr - 1) < pvmw->pfn)
+@@ -749,6 +748,7 @@ static struct folio *swap_vma_readahead(
+ 	blk_start_plug(&plug);
+ 	for (addr = start; addr < end; ilx++, addr += PAGE_SIZE) {
+ 		struct swap_info_struct *si = NULL;
++		softleaf_t entry;
+ 
+ 		if (!pte++) {
+ 			pte = pte_offset_map(vmf->pmd, addr);
+@@ -756,10 +756,9 @@ static struct folio *swap_vma_readahead(
+ 				break;
+ 		}
+ 		pentry = ptep_get_lockless(pte);
+-		if (!is_swap_pte(pentry))
+-			continue;
+-		entry = pte_to_swp_entry(pentry);
+-		if (unlikely(non_swap_entry(entry)))
++		entry = softleaf_from_pte(pentry);
++
++		if (!softleaf_is_swap(entry))
+ 			continue;
+ 		pte_unmap(pte);
+ 		pte = NULL;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
