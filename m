@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A265C1D555
-	for <mm-commits@vger.kernel.org>; Sat, 22 Nov 2025 22:02:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51B5A8F49
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 18:04:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763848940; cv=none; b=ONlTsVd2BTqIb/IWm4lYm5GzOcSPMV1YGuWJTljRgNSnLso/lAFvr66m2cah3Y+vzHj0s4HL9jtVwbEEkPJOKths5Qmte0wMud8WQMCAmWQQwzPAmF0SXoByGYpqhz/LQTCimgCq9RVH4N6Jtno5qWOw5EDWtnoyPPwRbWvYFmg=
+	t=1764007440; cv=none; b=BtoOes7xLQZbki8NrwGArkZ9b9vdf05ozrcOvxSsAylmUDeg5mo4mwAAqMHj5RRjt7xLKOdtey1u39w6eXXM3RyyzdupmZutKjdYwRl+p0NN5hr3fnVgaGl5107chLss0wL7W+qs03k6UyI6mxcRd+YFvYBDHR7eYrzJnEBB6es=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763848940; c=relaxed/simple;
-	bh=U5STrxWaygmIztIgN59BJv39LoK9FTXunsE6Kxu4+l4=;
-	h=Date:To:From:Subject:Message-Id; b=ixwGuBjEFRczJ4WtvKJw3tIVPXV0ZF0Rj7TZLTUyYrBiVwppxYsJxX/xqLSu9mEOufAYMy6K1OKgU1qmm0M+pUuoD6hLFaaEsHf4QXUD3AdWeY4CTp8I8u4CJtoUNlFGKeSowHF8UYxUWSl5XuNLAh5OpmsJCGMZBzaYZQ5gN2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FmMrGuU5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764007440; c=relaxed/simple;
+	bh=8fKj4X1dmaN8nXq+h4JBP9gyK/ZJK4JtpuaZa10RMgI=;
+	h=Date:To:From:Subject:Message-Id; b=dSSXMBRNj/t9GFRgrR2p+auXrCqAFeFwMEkKRrmXsLWjTTQB4L+JnbYqM/wZ9n4f2v9AO394cj7+T4Bc1TVkffOymtlHXU3DqJRMmpDOV02mB628EG3EPGAyiVpVyv4YK9OBS1bU/BPqsB/NG/RhD5EoEy3xwz+QQXPjh9DMbqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A2TDowKz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FmMrGuU5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20278C4CEF5;
-	Sat, 22 Nov 2025 22:02:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A2TDowKz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C75C8C4CEF1;
+	Mon, 24 Nov 2025 18:03:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1763848940;
-	bh=U5STrxWaygmIztIgN59BJv39LoK9FTXunsE6Kxu4+l4=;
+	s=korg; t=1764007439;
+	bh=8fKj4X1dmaN8nXq+h4JBP9gyK/ZJK4JtpuaZa10RMgI=;
 	h=Date:To:From:Subject:From;
-	b=FmMrGuU5nFqV9puEV2w3K04997ZwtPW7G11whNNxrUQeklNGIWjWGSRk/0Tp7lWuI
-	 x5QEo1nfFdy318sVU1gPFA1re7IGMjPJ192pQ6khJrp86DMnSqiwif5UjRPeAZ0qEQ
-	 hvLcAPLImzYBI/g3QEmYPoPxqblfAqPX9zAZngiM=
-Date: Sat, 22 Nov 2025 14:02:19 -0800
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=A2TDowKzXNyEsTe6DqPgj3zjW69mWEI5HKxqD4kBlR8msAQY9+h99GlsCct04R09O
+	 1xd+e4tFUSx1nEf90Cb+KHXgb7ZwX+GRbC/yTPOZmxuYgDiLyAOMobN8t1zCZToU/W
+	 fEKghIZQUNLavn9oQTm9OkMucTBtb5qwXXgaNxnk=
+Date: Mon, 24 Nov 2025 10:03:58 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,tmgross@umich.edu,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,riel@surriel.com,rakie.kim@sk.com,peterz@infradead.org,peterx@redhat.com,osalvador@suse.de,ojeda@kernel.org,nphamcs@gmail.com,npache@redhat.com,muchun.song@linux.dev,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,matthew.brost@intel.com,lkp@intel.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kees@kernel.org,kasong@tencent.com,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,gary@garyguo.net,dietmar.eggemann@arm.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,bsegall@google.com,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,aliceryhl@google.com,alex.gaynor@gmail.com,a.hindborg@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-folio-split-stats-counting.patch added to mm-new branch
-Message-Id: <20251122220220.20278C4CEF5@smtp.kernel.org>
+Subject: [to-be-updated] mm-introduce-vma-flags-bitmap-type.patch removed from -mm tree
+Message-Id: <20251124180359.C75C8C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,105 +34,514 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/huge_memory: fix folio split stats counting
-has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-fix-folio-split-stats-counting.patch
+The quilt patch titled
+     Subject: mm: introduce VMA flags bitmap type
+has been removed from the -mm tree.  Its filename was
+     mm-introduce-vma-flags-bitmap-type.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-folio-split-stats-counting.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: fix folio split stats counting
-Date: Fri, 21 Nov 2025 21:55:29 -0500
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: introduce VMA flags bitmap type
+Date: Fri, 14 Nov 2025 13:26:11 +0000
 
-The "return <error code>" statements for error checks at the beginning of
-__folio_split() skip necessary count_vm_event() and count_mthp_stat() at
-the end of the function.  Fix these by replacing them with "ret = <error
-code>; goto out;".
+It is useful to transition to using a bitmap for VMA flags so we can avoid
+running out of flags, especially for 32-bit kernels which are constrained
+to 32 flags, necessitating some features to be limited to 64-bit kernels
+only.
 
-Link: https://lkml.kernel.org/r/20251122025529.1562592-5-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Balbir Singh <balbirs@nvidia.com>
+By doing so, we remove any constraint on the number of VMA flags moving
+forwards no matter the platform and can decide in future to extend beyond
+64 if required.
+
+We start by declaring an opaque types, vma_flags_t (which resembles
+mm_struct flags of type mm_flags_t), setting it to precisely the same size
+as vm_flags_t, and place it in union with vm_flags in the VMA declaration.
+
+We additionally update struct vm_area_desc equivalently placing the new
+opaque type in union with vm_flags.
+
+This change therefore does not impact the size of struct vm_area_struct or
+struct vm_area_desc.
+
+In order for the change to be iterative and to avoid impacting
+performance, we designate VM_xxx declared bitmap flag values as those
+which must exist in the first system word of the VMA flags bitmap.
+
+We therefore declare vma_flags_clear_all(), vma_flags_overwrite_word(),
+vma_flags_overwrite_word(), vma_flags_overwrite_word_once(),
+vma_flags_set_word() and vma_flags_clear_word() in order to allow us to
+update the existing vm_flags_*() functions to utilise these helpers.
+
+This is a stepping stone towards converting users to the VMA flags bitmap
+and behaves precisely as before.
+
+By doing this, we can eliminate the existing private vma->__vm_flags field
+in the vma->vm_flags union and replace it with the newly introduced opaque
+type vma_flags, which we call flags so we refer to the new bitmap field as
+vma->flags.
+
+We update vma_flag_[test, set]_atomic() to account for the change also.
+
+We additionally update the VMA userland test declarations to implement the
+same changes there.
+
+Finally, we update the rust code to reference vma->vm_flags on update
+rather than vma->__vm_flags which has been removed.  This is safe for now,
+albeit it is implicitly performing a const cast.
+
+Once we introduce flag helpers we can improve this more.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/195625e7d1a8ff9156cb9bb294eb128b6a4e9294.1763126447.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Alex Gaynor <alex.gaynor@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Dev Jain <dev.jain@arm.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Nico Pache <npache@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Trevor Gross <tmgross@umich.edu>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ include/linux/mm.h               |   18 ++-
+ include/linux/mm_types.h         |   64 ++++++++++++
+ rust/kernel/mm/virt.rs           |    2 
+ tools/testing/vma/vma_internal.h |  143 ++++++++++++++++++++++++-----
+ 4 files changed, 196 insertions(+), 31 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-folio-split-stats-counting
-+++ a/mm/huge_memory.c
-@@ -3954,16 +3954,20 @@ static int __folio_split(struct folio *f
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
+--- a/include/linux/mm.h~mm-introduce-vma-flags-bitmap-type
++++ a/include/linux/mm.h
+@@ -910,7 +910,8 @@ static inline void vma_init(struct vm_ar
+ static inline void vm_flags_init(struct vm_area_struct *vma,
+ 				 vm_flags_t flags)
+ {
+-	ACCESS_PRIVATE(vma, __vm_flags) = flags;
++	vma_flags_clear_all(&vma->flags);
++	vma_flags_overwrite_word(&vma->flags, flags);
+ }
  
--	if (folio != page_folio(split_at) || folio != page_folio(lock_at))
--		return -EINVAL;
-+	if (folio != page_folio(split_at) || folio != page_folio(lock_at)) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
+ /*
+@@ -929,21 +930,26 @@ static inline void vm_flags_reset_once(s
+ 				       vm_flags_t flags)
+ {
+ 	vma_assert_write_locked(vma);
+-	WRITE_ONCE(ACCESS_PRIVATE(vma, __vm_flags), flags);
++	/*
++	 * The user should only be interested in avoiding reordering of
++	 * assignment to the first word.
++	 */
++	vma_flags_clear_all(&vma->flags);
++	vma_flags_overwrite_word_once(&vma->flags, flags);
+ }
  
--	if (new_order >= old_order)
--		return -EINVAL;
-+	if (new_order >= old_order) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
+ static inline void vm_flags_set(struct vm_area_struct *vma,
+ 				vm_flags_t flags)
+ {
+ 	vma_start_write(vma);
+-	ACCESS_PRIVATE(vma, __vm_flags) |= flags;
++	vma_flags_set_word(&vma->flags, flags);
+ }
  
- 	ret = folio_check_splittable(folio, new_order, split_type,
- 				     /* warn = */ true);
- 	if (ret)
--		return ret;
-+		goto out;
+ static inline void vm_flags_clear(struct vm_area_struct *vma,
+ 				  vm_flags_t flags)
+ {
+ 	vma_start_write(vma);
+-	ACCESS_PRIVATE(vma, __vm_flags) &= ~flags;
++	vma_flags_clear_word(&vma->flags, flags);
+ }
  
- 	if (is_anon) {
- 		/*
+ /*
+@@ -986,12 +992,14 @@ static inline bool __vma_flag_atomic_val
+ static inline void vma_flag_set_atomic(struct vm_area_struct *vma,
+ 				       vma_flag_t bit)
+ {
++	unsigned long *bitmap = ACCESS_PRIVATE(&vma->flags, __vma_flags);
++
+ 	/* mmap read lock/VMA read lock must be held. */
+ 	if (!rwsem_is_locked(&vma->vm_mm->mmap_lock))
+ 		vma_assert_locked(vma);
+ 
+ 	if (__vma_flag_atomic_valid(vma, bit))
+-		set_bit((__force int)bit, &ACCESS_PRIVATE(vma, __vm_flags));
++		set_bit((__force int)bit, bitmap);
+ }
+ 
+ /*
+--- a/include/linux/mm_types.h~mm-introduce-vma-flags-bitmap-type
++++ a/include/linux/mm_types.h
+@@ -824,6 +824,15 @@ struct mmap_action {
+ };
+ 
+ /*
++ * Opaque type representing current VMA (vm_area_struct) flag state. Must be
++ * accessed via vma_flags_xxx() helper functions.
++ */
++#define NUM_VMA_FLAG_BITS BITS_PER_LONG
++typedef struct {
++	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
++} __private vma_flags_t;
++
++/*
+  * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
+  * manipulate mutable fields which will cause those fields to be updated in the
+  * resultant VMA.
+@@ -840,7 +849,10 @@ struct vm_area_desc {
+ 	/* Mutable fields. Populated with initial state. */
+ 	pgoff_t pgoff;
+ 	struct file *vm_file;
+-	vm_flags_t vm_flags;
++	union {
++		vm_flags_t vm_flags;
++		vma_flags_t vma_flags;
++	};
+ 	pgprot_t page_prot;
+ 
+ 	/* Write-only fields. */
+@@ -885,10 +897,12 @@ struct vm_area_struct {
+ 	/*
+ 	 * Flags, see mm.h.
+ 	 * To modify use vm_flags_{init|reset|set|clear|mod} functions.
++	 * Preferably, use vma_flags_xxx() functions.
+ 	 */
+ 	union {
++		/* Temporary while VMA flags are being converted. */
+ 		const vm_flags_t vm_flags;
+-		vm_flags_t __private __vm_flags;
++		vma_flags_t flags;
+ 	};
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
+@@ -969,6 +983,52 @@ struct vm_area_struct {
+ #endif
+ } __randomize_layout;
+ 
++/* Clears all bits in the VMA flags bitmap, non-atomically. */
++static inline void vma_flags_clear_all(vma_flags_t *flags)
++{
++	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
++}
++
++/*
++ * Copy value to the first system word of VMA flags, non-atomically.
++ *
++ * IMPORTANT: This does not overwrite bytes past the first system word. The
++ * caller must account for this.
++ */
++static inline void vma_flags_overwrite_word(vma_flags_t *flags, unsigned long value)
++{
++	*ACCESS_PRIVATE(flags, __vma_flags) = value;
++}
++
++/*
++ * Copy value to the first system word of VMA flags ONCE, non-atomically.
++ *
++ * IMPORTANT: This does not overwrite bytes past the first system word. The
++ * caller must account for this.
++ */
++static inline void vma_flags_overwrite_word_once(vma_flags_t *flags, unsigned long value)
++{
++	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++
++	WRITE_ONCE(*bitmap, value);
++}
++
++/* Update the first system word of VMA flags setting bits, non-atomically. */
++static inline void vma_flags_set_word(vma_flags_t *flags, unsigned long value)
++{
++	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++
++	*bitmap |= value;
++}
++
++/* Update the first system word of VMA flags clearing bits, non-atomically. */
++static inline void vma_flags_clear_word(vma_flags_t *flags, unsigned long value)
++{
++	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++
++	*bitmap &= ~value;
++}
++
+ #ifdef CONFIG_NUMA
+ #define vma_policy(vma) ((vma)->vm_policy)
+ #else
+--- a/rust/kernel/mm/virt.rs~mm-introduce-vma-flags-bitmap-type
++++ a/rust/kernel/mm/virt.rs
+@@ -250,7 +250,7 @@ impl VmaNew {
+         // SAFETY: This is not a data race: the vma is undergoing initial setup, so it's not yet
+         // shared. Additionally, `VmaNew` is `!Sync`, so it cannot be used to write in parallel.
+         // The caller promises that this does not set the flags to an invalid value.
+-        unsafe { (*self.as_ptr()).__bindgen_anon_2.__vm_flags = flags };
++        unsafe { (*self.as_ptr()).__bindgen_anon_2.vm_flags = flags };
+     }
+ 
+     /// Set the `VM_MIXEDMAP` flag on this vma.
+--- a/tools/testing/vma/vma_internal.h~mm-introduce-vma-flags-bitmap-type
++++ a/tools/testing/vma/vma_internal.h
+@@ -521,6 +521,15 @@ typedef struct {
+ 	__private DECLARE_BITMAP(__mm_flags, NUM_MM_FLAG_BITS);
+ } mm_flags_t;
+ 
++/*
++ * Opaque type representing current VMA (vm_area_struct) flag state. Must be
++ * accessed via vma_flags_xxx() helper functions.
++ */
++#define NUM_VMA_FLAG_BITS BITS_PER_LONG
++typedef struct {
++	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
++} __private vma_flags_t;
++
+ struct mm_struct {
+ 	struct maple_tree mm_mt;
+ 	int map_count;			/* number of VMAs */
+@@ -605,7 +614,10 @@ struct vm_area_desc {
+ 	/* Mutable fields. Populated with initial state. */
+ 	pgoff_t pgoff;
+ 	struct file *vm_file;
+-	vm_flags_t vm_flags;
++	union {
++		vm_flags_t vm_flags;
++		vma_flags_t vma_flags;
++	};
+ 	pgprot_t page_prot;
+ 
+ 	/* Write-only fields. */
+@@ -651,7 +663,7 @@ struct vm_area_struct {
+ 	 */
+ 	union {
+ 		const vm_flags_t vm_flags;
+-		vm_flags_t __private __vm_flags;
++		vma_flags_t flags;
+ 	};
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
+@@ -1365,26 +1377,6 @@ static inline bool may_expand_vm(struct
+ 	return true;
+ }
+ 
+-static inline void vm_flags_init(struct vm_area_struct *vma,
+-				 vm_flags_t flags)
+-{
+-	vma->__vm_flags = flags;
+-}
+-
+-static inline void vm_flags_set(struct vm_area_struct *vma,
+-				vm_flags_t flags)
+-{
+-	vma_start_write(vma);
+-	vma->__vm_flags |= flags;
+-}
+-
+-static inline void vm_flags_clear(struct vm_area_struct *vma,
+-				  vm_flags_t flags)
+-{
+-	vma_start_write(vma);
+-	vma->__vm_flags &= ~flags;
+-}
+-
+ static inline int shmem_zero_setup(struct vm_area_struct *vma)
+ {
+ 	return 0;
+@@ -1541,13 +1533,118 @@ static inline void userfaultfd_unmap_com
+ {
+ }
+ 
+-# define ACCESS_PRIVATE(p, member) ((p)->member)
++#define ACCESS_PRIVATE(p, member) ((p)->member)
++
++#define bitmap_size(nbits)	(ALIGN(nbits, BITS_PER_LONG) / BITS_PER_BYTE)
++
++static __always_inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
++{
++	unsigned int len = bitmap_size(nbits);
++
++	if (small_const_nbits(nbits))
++		*dst = 0;
++	else
++		memset(dst, 0, len);
++}
+ 
+ static inline bool mm_flags_test(int flag, const struct mm_struct *mm)
+ {
+ 	return test_bit(flag, ACCESS_PRIVATE(&mm->flags, __mm_flags));
+ }
+ 
++/* Clears all bits in the VMA flags bitmap, non-atomically. */
++static inline void vma_flags_clear_all(vma_flags_t *flags)
++{
++	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
++}
++
++/*
++ * Copy value to the first system word of VMA flags, non-atomically.
++ *
++ * IMPORTANT: This does not overwrite bytes past the first system word. The
++ * caller must account for this.
++ */
++static inline void vma_flags_overwrite_word(vma_flags_t *flags, unsigned long value)
++{
++	*ACCESS_PRIVATE(flags, __vma_flags) = value;
++}
++
++/*
++ * Copy value to the first system word of VMA flags ONCE, non-atomically.
++ *
++ * IMPORTANT: This does not overwrite bytes past the first system word. The
++ * caller must account for this.
++ */
++static inline void vma_flags_overwrite_word_once(vma_flags_t *flags, unsigned long value)
++{
++	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++
++	WRITE_ONCE(*bitmap, value);
++}
++
++/* Update the first system word of VMA flags setting bits, non-atomically. */
++static inline void vma_flags_set_word(vma_flags_t *flags, unsigned long value)
++{
++	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++
++	*bitmap |= value;
++}
++
++/* Update the first system word of VMA flags clearing bits, non-atomically. */
++static inline void vma_flags_clear_word(vma_flags_t *flags, unsigned long value)
++{
++	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++
++	*bitmap &= ~value;
++}
++
++
++/* Use when VMA is not part of the VMA tree and needs no locking */
++static inline void vm_flags_init(struct vm_area_struct *vma,
++				 vm_flags_t flags)
++{
++	vma_flags_clear_all(&vma->flags);
++	vma_flags_overwrite_word(&vma->flags, flags);
++}
++
++/*
++ * Use when VMA is part of the VMA tree and modifications need coordination
++ * Note: vm_flags_reset and vm_flags_reset_once do not lock the vma and
++ * it should be locked explicitly beforehand.
++ */
++static inline void vm_flags_reset(struct vm_area_struct *vma,
++				  vm_flags_t flags)
++{
++	vma_assert_write_locked(vma);
++	vm_flags_init(vma, flags);
++}
++
++static inline void vm_flags_reset_once(struct vm_area_struct *vma,
++				       vm_flags_t flags)
++{
++	vma_assert_write_locked(vma);
++	/*
++	 * The user should only be interested in avoiding reordering of
++	 * assignment to the first word.
++	 */
++	vma_flags_clear_all(&vma->flags);
++	vma_flags_overwrite_word_once(&vma->flags, flags);
++}
++
++static inline void vm_flags_set(struct vm_area_struct *vma,
++				vm_flags_t flags)
++{
++	vma_start_write(vma);
++	vma_flags_set_word(&vma->flags, flags);
++}
++
++static inline void vm_flags_clear(struct vm_area_struct *vma,
++				  vm_flags_t flags)
++{
++	vma_start_write(vma);
++	vma_flags_clear_word(&vma->flags, flags);
++}
++
+ /*
+  * Denies creating a writable executable mapping or gaining executable permissions.
+  *
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-mm-huge_memory-add-split_huge_page_to_order.patch
-mm-memory-failure-improve-large-block-size-folio-handling.patch
-mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
-mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix.patch
-mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch
-mm-huge_memory-change-folio_split_supported-to-folio_check_splittable.patch
-mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation.patch
-mm-huge_memory-make-min_order_for_split-always-return-an-order.patch
-mm-huge_memory-fix-folio-split-stats-counting.patch
+mm-correctly-handle-uffd-pte-markers.patch
+mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
+mm-avoid-unnecessary-uses-of-is_swap_pte.patch
+mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
+mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
+fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
+mm-avoid-unnecessary-use-of-is_swap_pmd.patch
+mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
+mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
+mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
+mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd-fix.patch
+mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
+mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
+mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
+mm-remove-is_hugetlb_entry_.patch
+mm-eliminate-further-swapops-predicates.patch
+mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
+mm-softdirty-add-pgtable_supports_soft_dirty-fix.patch
+tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
 
