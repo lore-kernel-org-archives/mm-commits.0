@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E5F335082
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:11:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B68A335083
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:11:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025870; cv=none; b=BFJFLAXD8kgeSbz7F9FzdhANsuduhOjxzk4TSokajX+9dGJB1sUmj7ATT9lc1CyF946wn5QxhPP4mG/q/w1PUcx3oT1vGqnS6Qd35PQORO9bmpiyk8vz+yZU1FPIibuIAS5gC3JpjU21Gg2qxipbUMtuGhFK9ydDhpnxzG5gdJU=
+	t=1764025871; cv=none; b=H5wDk+FHvWiyHu8q9wZgAY20PjMBo8YPH4SBG6G9uUTjPlE3grSHrDoZu6ziW4ix3Nhyw1l6uc063hAX3EyTLlcP3JptxA6I1NJFItlS9VG5s+FwyZb6+3ZCwpUucYsgLnK5nU1x+WYx5/F18giKf+LEh1i/yyPZYHD/TMQWaDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025870; c=relaxed/simple;
-	bh=0xmM2DLel9Fldz8ZHxH03Q/78saKhO8jn4ALNQGq/ys=;
-	h=Date:To:From:Subject:Message-Id; b=GtiOFr55AnvBrrxRIsaS6wjAmkUCZ4VubqvLYl+jQcKZE7W/+r3ItTsPFpCQZmTiQFSuoIGjZD0CuOYDu3ZEG4Na/b+KpLAg2ZBALbIQfHTgGcZkMV/qYQA6KGl6Tz4q7HGKRJLdE/c8UzApUNmxMW8tciuEv/rbXu+XvTGcH0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EzEj5Snh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025871; c=relaxed/simple;
+	bh=EHXm/RqJwkP9EiJVoulW0QaGKgQSM4ZAeoHt4PXi9bk=;
+	h=Date:To:From:Subject:Message-Id; b=mtoGCqu/Y1PBuY6KaXA1FQeZuFFbHJM4phCHBDMG2DmFBneFiMLmFS+hd1Mn59XkyAVirio89AaNa6uRIVPfgTY5kX+Pk7QlmgRRd43qCbGmasr4ulx+IXcFYvjxx1xBeKaN2WqTJBa5V+4sGjRzAUZtXa95cnNo4A+iOgPhKMc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MzwhdWGX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EzEj5Snh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1781C4CEF1;
-	Mon, 24 Nov 2025 23:11:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MzwhdWGX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0E3BC4CEF1;
+	Mon, 24 Nov 2025 23:11:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025869;
-	bh=0xmM2DLel9Fldz8ZHxH03Q/78saKhO8jn4ALNQGq/ys=;
+	s=korg; t=1764025870;
+	bh=EHXm/RqJwkP9EiJVoulW0QaGKgQSM4ZAeoHt4PXi9bk=;
 	h=Date:To:From:Subject:From;
-	b=EzEj5SnhMuWmMUzpzcHtWlHYjGMklu6JC46RlcUjEru5aR5cTAjaJHSQ3sMuCiK84
-	 jixESDDzM2GogCAdAEdRDRM9tywmEVv2rSWXogj+k11gAlFVIXu1bWgi9pSzrxxhHV
-	 K6vsRbEpTacLo7NOVc3Y0seP9gCQLRyz2p5KklO0=
-Date: Mon, 24 Nov 2025 15:11:09 -0800
-To: mm-commits@vger.kernel.org,yuanchu@google.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,robh@kernel.org,peterx@redhat.com,paul.walmsley@sifive.com,palmer@dabbelt.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jack@suse.cz,debug@rivosinc.com,david@redhat.com,conor@kernel.org,conor.dooley@microchip.com,brauner@kernel.org,axelrasmussen@google.com,arnd@arndb.de,aou@eecs.berkeley.edu,alexghiti@rivosinc.com,alex@ghiti.fr,ajones@ventanamicro.com,zhangchunyan@iscas.ac.cn,akpm@linux-foundation.org
+	b=MzwhdWGX2XCC2gTFAXCyLh4ViuiH42al0XRpQqCKZ2Dx2vHMYYXVCyMzbAOyzU/Of
+	 +ZOmw6Sp36/IE4vXFu+ww3mU4trYTjiP7/UGyQiowWvSrCfm4crBwoIUPWdT+p0XiW
+	 6gTCVf2NX26Lg/XaObJAwFlqQuSVpW53wVK5LQ9o=
+Date: Mon, 24 Nov 2025 15:11:10 -0800
+To: mm-commits@vger.kernel.org,linmiaohe@huawei.com,david@kernel.org,bp@alien8.de,xieyuanbin1@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] dt-bindings-riscv-add-svrsw60t59b-extension-description.patch removed from -mm tree
-Message-Id: <20251124231109.B1781C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-failure-remove-the-selection-of-ras.patch removed from -mm tree
+Message-Id: <20251124231110.D0E3BC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,286 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: dt-bindings: riscv: Add Svrsw60t59b extension description
+     Subject: mm/memory-failure: remove the selection of RAS
 has been removed from the -mm tree.  Its filename was
-     dt-bindings-riscv-add-svrsw60t59b-extension-description.patch
+     mm-memory-failure-remove-the-selection-of-ras.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
-Subject: dt-bindings: riscv: Add Svrsw60t59b extension description
-Date: Thu, 13 Nov 2025 15:28:06 +0800
+From: Xie Yuanbin <xieyuanbin1@huawei.com>
+Subject: mm/memory-failure: remove the selection of RAS
+Date: Wed, 19 Nov 2025 17:59:43 +0800
 
-Add description for the Svrsw60t59b extension (PTE Reserved for SW
-bits 60:59) extension which was ratified recently in
-riscv-non-isa/riscv-iommu.
+commit 97f0b13452198290799f ("tracing: add trace event for
+memory-failure") introduces the selection of RAS in memory-failure.  This
+commit is just a tracing feature; in reality, there is no dependency
+between memory-failure and RAS.  RAS increases the size of the bzImage
+image by 8k, which is very valuable for embedded devices.
 
-Link: https://lkml.kernel.org/r/20251113072806.795029-7-zhangchunyan@iscas.ac.cn
-Acked-by: Conor Dooley <conor.dooley@microchip.com>
-Signed-off-by: Chunyan Zhang <zhangchunyan@iscas.ac.cn>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrew Jones <ajones@ventanamicro.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Conor Dooley <conor@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Deepak Gupta <debug@rivosinc.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Move the memory-failure traceing code from ras_event.h to
+memory-failure.h and remove the selection of RAS.
+
+Link: https://lkml.kernel.org/r/20251119095943.67125-1-xieyuanbin1@huawei.com
+Signed-off-by: Xie Yuanbin <xieyuanbin1@huawei.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Borislav Petkov <bp@alien8.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/riscv/extensions.yaml |    6 ++++++
- 1 file changed, 6 insertions(+)
+ MAINTAINERS                           |    1 
+ include/ras/ras_event.h               |   87 ---------------------
+ include/trace/events/memory-failure.h |   98 ++++++++++++++++++++++++
+ mm/Kconfig                            |    1 
+ mm/memory-failure.c                   |    5 -
+ 5 files changed, 103 insertions(+), 89 deletions(-)
 
---- a/Documentation/devicetree/bindings/riscv/extensions.yaml~dt-bindings-riscv-add-svrsw60t59b-extension-description
-+++ a/Documentation/devicetree/bindings/riscv/extensions.yaml
-@@ -217,6 +217,12 @@ properties:
-             memory types as ratified in the 20191213 version of the privileged
-             ISA specification.
+--- a/include/ras/ras_event.h~mm-memory-failure-remove-the-selection-of-ras
++++ a/include/ras/ras_event.h
+@@ -12,7 +12,6 @@
+ #include <linux/pci.h>
+ #include <linux/aer.h>
+ #include <linux/cper.h>
+-#include <linux/mm.h>
  
-+        - const: svrsw60t59b
-+          description:
-+            The Svrsw60t59b extension for providing two more bits[60:59] to
-+            PTE/PMD entry as ratified at commit 28bde925e7a7 ("PTE Reserved
-+            for SW bits 60:59") of riscv-non-isa/riscv-iommu.
+ /*
+  * MCE Extended Error Log trace event
+@@ -339,92 +338,6 @@ TRACE_EVENT(aer_event,
+ 			"Not available")
+ );
+ #endif /* CONFIG_PCIEAER */
+-
+-/*
+- * memory-failure recovery action result event
+- *
+- * unsigned long pfn -	Page Frame Number of the corrupted page
+- * int type	-	Page types of the corrupted page
+- * int result	-	Result of recovery action
+- */
+-
+-#ifdef CONFIG_MEMORY_FAILURE
+-#define MF_ACTION_RESULT	\
+-	EM ( MF_IGNORED, "Ignored" )	\
+-	EM ( MF_FAILED,  "Failed" )	\
+-	EM ( MF_DELAYED, "Delayed" )	\
+-	EMe ( MF_RECOVERED, "Recovered" )
+-
+-#define MF_PAGE_TYPE		\
+-	EM ( MF_MSG_KERNEL, "reserved kernel page" )			\
+-	EM ( MF_MSG_KERNEL_HIGH_ORDER, "high-order kernel page" )	\
+-	EM ( MF_MSG_HUGE, "huge page" )					\
+-	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
+-	EM ( MF_MSG_GET_HWPOISON, "get hwpoison page" )			\
+-	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
+-	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
+-	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
+-	EM ( MF_MSG_DIRTY_MLOCKED_LRU, "dirty mlocked LRU page" )	\
+-	EM ( MF_MSG_CLEAN_MLOCKED_LRU, "clean mlocked LRU page" )	\
+-	EM ( MF_MSG_DIRTY_UNEVICTABLE_LRU, "dirty unevictable LRU page" )	\
+-	EM ( MF_MSG_CLEAN_UNEVICTABLE_LRU, "clean unevictable LRU page" )	\
+-	EM ( MF_MSG_DIRTY_LRU, "dirty LRU page" )			\
+-	EM ( MF_MSG_CLEAN_LRU, "clean LRU page" )			\
+-	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
+-	EM ( MF_MSG_BUDDY, "free buddy page" )				\
+-	EM ( MF_MSG_DAX, "dax page" )					\
+-	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
+-	EM ( MF_MSG_ALREADY_POISONED, "already poisoned" )		\
+-	EM ( MF_MSG_PFN_MAP, "non struct page pfn" )                    \
+-	EMe ( MF_MSG_UNKNOWN, "unknown page" )
+-
+-/*
+- * First define the enums in MM_ACTION_RESULT to be exported to userspace
+- * via TRACE_DEFINE_ENUM().
+- */
+-#undef EM
+-#undef EMe
+-#define EM(a, b) TRACE_DEFINE_ENUM(a);
+-#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
+-
+-MF_ACTION_RESULT
+-MF_PAGE_TYPE
+-
+-/*
+- * Now redefine the EM() and EMe() macros to map the enums to the strings
+- * that will be printed in the output.
+- */
+-#undef EM
+-#undef EMe
+-#define EM(a, b)		{ a, b },
+-#define EMe(a, b)	{ a, b }
+-
+-TRACE_EVENT(memory_failure_event,
+-	TP_PROTO(unsigned long pfn,
+-		 int type,
+-		 int result),
+-
+-	TP_ARGS(pfn, type, result),
+-
+-	TP_STRUCT__entry(
+-		__field(unsigned long, pfn)
+-		__field(int, type)
+-		__field(int, result)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->pfn	= pfn;
+-		__entry->type	= type;
+-		__entry->result	= result;
+-	),
+-
+-	TP_printk("pfn %#lx: recovery action for %s: %s",
+-		__entry->pfn,
+-		__print_symbolic(__entry->type, MF_PAGE_TYPE),
+-		__print_symbolic(__entry->result, MF_ACTION_RESULT)
+-	)
+-);
+-#endif /* CONFIG_MEMORY_FAILURE */
+ #endif /* _TRACE_HW_EVENT_MC_H */
+ 
+ /* This part must be outside protection */
+diff --git a/include/trace/events/memory-failure.h a/include/trace/events/memory-failure.h
+new file mode 100644
+--- /dev/null
++++ a/include/trace/events/memory-failure.h
+@@ -0,0 +1,98 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM memory_failure
++#define TRACE_INCLUDE_FILE memory-failure
 +
-         - const: svvptc
-           description:
-             The standard Svvptc supervisor-level extension for
++#if !defined(_TRACE_MEMORY_FAILURE_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_MEMORY_FAILURE_H
++
++#include <linux/tracepoint.h>
++#include <linux/mm.h>
++
++/*
++ * memory-failure recovery action result event
++ *
++ * unsigned long pfn -	Page Frame Number of the corrupted page
++ * int type	-	Page types of the corrupted page
++ * int result	-	Result of recovery action
++ */
++
++#define MF_ACTION_RESULT	\
++	EM ( MF_IGNORED, "Ignored" )	\
++	EM ( MF_FAILED,  "Failed" )	\
++	EM ( MF_DELAYED, "Delayed" )	\
++	EMe ( MF_RECOVERED, "Recovered" )
++
++#define MF_PAGE_TYPE		\
++	EM ( MF_MSG_KERNEL, "reserved kernel page" )			\
++	EM ( MF_MSG_KERNEL_HIGH_ORDER, "high-order kernel page" )	\
++	EM ( MF_MSG_HUGE, "huge page" )					\
++	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
++	EM ( MF_MSG_GET_HWPOISON, "get hwpoison page" )			\
++	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
++	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
++	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
++	EM ( MF_MSG_DIRTY_MLOCKED_LRU, "dirty mlocked LRU page" )	\
++	EM ( MF_MSG_CLEAN_MLOCKED_LRU, "clean mlocked LRU page" )	\
++	EM ( MF_MSG_DIRTY_UNEVICTABLE_LRU, "dirty unevictable LRU page" )	\
++	EM ( MF_MSG_CLEAN_UNEVICTABLE_LRU, "clean unevictable LRU page" )	\
++	EM ( MF_MSG_DIRTY_LRU, "dirty LRU page" )			\
++	EM ( MF_MSG_CLEAN_LRU, "clean LRU page" )			\
++	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
++	EM ( MF_MSG_BUDDY, "free buddy page" )				\
++	EM ( MF_MSG_DAX, "dax page" )					\
++	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
++	EM ( MF_MSG_ALREADY_POISONED, "already poisoned" )		\
++	EM ( MF_MSG_PFN_MAP, "non struct page pfn" )                    \
++	EMe ( MF_MSG_UNKNOWN, "unknown page" )
++
++/*
++ * First define the enums in MM_ACTION_RESULT to be exported to userspace
++ * via TRACE_DEFINE_ENUM().
++ */
++#undef EM
++#undef EMe
++#define EM(a, b) TRACE_DEFINE_ENUM(a);
++#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
++
++MF_ACTION_RESULT
++MF_PAGE_TYPE
++
++/*
++ * Now redefine the EM() and EMe() macros to map the enums to the strings
++ * that will be printed in the output.
++ */
++#undef EM
++#undef EMe
++#define EM(a, b)		{ a, b },
++#define EMe(a, b)	{ a, b }
++
++TRACE_EVENT(memory_failure_event,
++	TP_PROTO(unsigned long pfn,
++		 int type,
++		 int result),
++
++	TP_ARGS(pfn, type, result),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, pfn)
++		__field(int, type)
++		__field(int, result)
++	),
++
++	TP_fast_assign(
++		__entry->pfn	= pfn;
++		__entry->type	= type;
++		__entry->result	= result;
++	),
++
++	TP_printk("pfn %#lx: recovery action for %s: %s",
++		__entry->pfn,
++		__print_symbolic(__entry->type, MF_PAGE_TYPE),
++		__print_symbolic(__entry->result, MF_ACTION_RESULT)
++	)
++);
++#endif /* _TRACE_MEMORY_FAILURE_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
+--- a/MAINTAINERS~mm-memory-failure-remove-the-selection-of-ras
++++ a/MAINTAINERS
+@@ -11560,6 +11560,7 @@ R:	Naoya Horiguchi <nao.horiguchi@gmail.
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	include/linux/memory-failure.h
++F:	include/trace/events/memory-failure.h
+ F:	mm/hwpoison-inject.c
+ F:	mm/memory-failure.c
+ 
+--- a/mm/Kconfig~mm-memory-failure-remove-the-selection-of-ras
++++ a/mm/Kconfig
+@@ -740,7 +740,6 @@ config MEMORY_FAILURE
+ 	depends on MMU
+ 	depends on ARCH_SUPPORTS_MEMORY_FAILURE
+ 	bool "Enable recovery from hardware memory errors"
+-	select RAS
+ 	select INTERVAL_TREE
+ 	help
+ 	  Enables code to recover from some memory failures on systems
+--- a/mm/memory-failure.c~mm-memory-failure-remove-the-selection-of-ras
++++ a/mm/memory-failure.c
+@@ -61,9 +61,12 @@
+ #include <linux/pagewalk.h>
+ #include <linux/shmem_fs.h>
+ #include <linux/sysctl.h>
++
++#define CREATE_TRACE_POINTS
++#include <trace/events/memory-failure.h>
++
+ #include "swap.h"
+ #include "internal.h"
+-#include "ras/ras_event.h"
+ 
+ static int sysctl_memory_failure_early_kill __read_mostly;
+ 
 _
 
-Patches currently in -mm which might be from zhangchunyan@iscas.ac.cn are
+Patches currently in -mm which might be from xieyuanbin1@huawei.com are
 
 
