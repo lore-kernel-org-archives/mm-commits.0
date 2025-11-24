@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9341F23D7E3
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:50:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C53C623D7E3
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:51:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764024641; cv=none; b=FBaa8E8jCR8mcFVO8taRMgqXZ0SuQNYgdJ5uWwckXmzJmGslQS4iIiUqIcvhzWFo6nWsvKIgh2aDTQz2MMB1ca56f/ywZ7J0bAlb6V6l6s7Z0jb6HACKeXK8dxjIyC62hDPd5ng3LXIpUhqFpXtxDDlIshpiDGm7juSDyU+l66g=
+	t=1764024673; cv=none; b=OkKJsLlCoTFdkfCZDvJFX6ZI6Bekf6Em3vrzJQq4vbnA9k2hbT7SVkTqx4IsDmFdb3PmBGv0JWTKWyOvmswKptzWbhTPnydwNcTyg2MR6scakva4iGMZAZqPhYCfOL0RAzRpmwgPC8FQOBDmv9TVUzddibYafndgGq+V8km1a+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764024641; c=relaxed/simple;
-	bh=8vyQOyXO4Ksx0ABKF/gutBepsZgLaPWaU12XEcEmHnA=;
-	h=Date:To:From:Subject:Message-Id; b=WCpwk07SdVk6sgGFEnuDEnV9MfbhI42+x2IPburTsWFEzJSczixtSmEQxsk4KTcmcdONEVm/psG4jdJ7CmLCs6ZHxVhbZdDMkcddlgxuPvZzyQQa0LWq9WorjzFb4896EdXMtglHWpgmxyMSzi/GXKv4pCf+ojIAjQk4GIRL5nE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c8xvu6iT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764024673; c=relaxed/simple;
+	bh=bKautC7J/3unFoEGeoTEUMitce2oCE50vsY2PVtfksw=;
+	h=Date:To:From:Subject:Message-Id; b=f2J+l8SairLHQjWSKUpgnvk+vYPH3tC5bL005xjMOG64gRR25BiVV4ZtiF9u7KN0/owBKEGdPGl+D14oWAGN07RrznXaygyWU9BzoYujnTOfxtoyN1LJpQOF/HU2e/njVANNXAPvtORiJTjgTz/+C7XpeSQ/4bSEjHO5ytiCseg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BvwxOr/I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c8xvu6iT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 254B1C4CEF1;
-	Mon, 24 Nov 2025 22:50:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BvwxOr/I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46147C4CEF1;
+	Mon, 24 Nov 2025 22:51:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764024641;
-	bh=8vyQOyXO4Ksx0ABKF/gutBepsZgLaPWaU12XEcEmHnA=;
+	s=korg; t=1764024671;
+	bh=bKautC7J/3unFoEGeoTEUMitce2oCE50vsY2PVtfksw=;
 	h=Date:To:From:Subject:From;
-	b=c8xvu6iTSAz7+gMk2lLFPgjzAdNpKfDYFjRqbRs5sn7yEGyGEeE2GvXwwEZhHpLB3
-	 g8bGe+FlOOXEgdcIFYeVQUjzklX1IYnCyWM0Sz22kzgo5SR8He7hbb0E6yOsI10XbN
-	 fhjsrzC7+wi10o1Ptf2L52Nzf5kC77ETwmHroPBo=
-Date: Mon, 24 Nov 2025 14:50:40 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=BvwxOr/I8hdoay+DxnTGD1Nc/acogEVukuL+dlXv9kkBvf7qQ9x8zZlWEH3relM82
+	 YbEEhhCVs/sGOAO+hsEY8T+KTtbpqTFWnWrFxglqk449mvOOipILEq1Rl2YBQXGU9m
+	 u+bHLocJpoxbRV0h68oqrfxv9sulP9YugK5hzqNw=
+Date: Mon, 24 Nov 2025 14:51:10 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch removed from -mm tree
-Message-Id: <20251124225041.254B1C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-correctly-handle-uffd-pte-markers-fix.patch removed from -mm tree
+Message-Id: <20251124225111.46147C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-huge_memory-introduce-enum-split_type-for-clarity-fix
+     Subject: mm-correctly-handle-uffd-pte-markers-fix
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
+     mm-correctly-handle-uffd-pte-markers-fix.patch
 
-This patch was dropped because it was folded into mm-huge_memory-introduce-enum-split_type-for-clarity.patch
+This patch was dropped because it was folded into mm-correctly-handle-uffd-pte-markers.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-huge_memory-introduce-enum-split_type-for-clarity-fix
-Date: Thu Nov  6 04:39:51 PM PST 2025
+Subject: mm-correctly-handle-uffd-pte-markers-fix
+Date: Thu Nov 20 01:21:44 PM PST 2025
 
-tweak layout, per David
+fix comment typo, per Mike
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-introduce-enum-split_type-for-clarity-fix
-+++ a/mm/huge_memory.c
-@@ -4046,7 +4046,7 @@ int __split_huge_page_to_list_to_order(s
- 	struct folio *folio = page_folio(page);
+--- a/fs/userfaultfd.c~mm-correctly-handle-uffd-pte-markers-fix
++++ a/fs/userfaultfd.c
+@@ -312,7 +312,7 @@ again:
+ 		return true;
  
- 	return __folio_split(folio, new_order, &folio->page, page, list,
--				SPLIT_TYPE_UNIFORM, unmapped);
-+			     SPLIT_TYPE_UNIFORM, unmapped);
- }
- 
- /**
-@@ -4077,7 +4077,7 @@ int folio_split(struct folio *folio, uns
- 		struct page *split_at, struct list_head *list)
- {
- 	return __folio_split(folio, new_order, split_at, &folio->page, list,
--				SPLIT_TYPE_NON_UNIFORM, false);
-+			     SPLIT_TYPE_NON_UNIFORM, false);
- }
- 
- int min_order_for_split(struct folio *folio)
+ 	/*
+-	 * A race could arise which would result in a softleaf entry such a
++	 * A race could arise which would result in a softleaf entry such as
+ 	 * migration entry unexpectedly being present in the PMD, so explicitly
+ 	 * check for this and bail out if so.
+ 	 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-huge_memory-introduce-enum-split_type-for-clarity.patch
-mm-correctly-handle-uffd-pte-markers-fix.patch
+mm-correctly-handle-uffd-pte-markers.patch
 mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix-fix.patch
 memblock-unpreserve-memory-in-case-of-error-fix.patch
 
