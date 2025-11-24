@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0D0E335092
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95C26335092
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025814; cv=none; b=Jx5oqsrhEMlNbMWIFS9uJJB0qddwpWn4/fsSANjFdtANeEKSiHcr9f5TalKlQekJKk1tJPydAiCNTi3elmTCk9lyP3rwty6E+egChpCk2fR9JTPpcEa30DOLqs1HYy3i6rybEr5gTyWlqxTo7X3uXds85Wq6Rik2OEqMFXIWdVg=
+	t=1764025817; cv=none; b=YByB3KtMwTS2x9d2hD1Mk92Nb2uy0rUJmo5JIqqI4XDBUnx2vq9dChINlJF1UFPtCHqwmxO/JVIGZMLyqZ2ygN8QJ3Fwdm3DZ0LG3InHdpsgRxWujlbCB4GYuvEhmlRzRaDLIUsCOcPC9jB4+lilaPfck7G7jdQEBbHfiRdse1g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025814; c=relaxed/simple;
-	bh=hhdV6uZ9yxC3HzP18+HxVbSPKpRJ5nhG4IQfjH+IOEo=;
-	h=Date:To:From:Subject:Message-Id; b=pVH+3cfpiSdXnkc7xNkpnoNcggb1AvAjM2Qu4ofv59HZc9BOAFl61EMSEAcoNJoND5hU+67koGngvVCvwwqDAgJtF3uxtt/pULE35gP0AhriSVlaz5qv6ILMw1kRD1WUZ01395V+tm7z9niX11pTUqBORX+kioDMVmCcLilOIoQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mLgVnwO6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025817; c=relaxed/simple;
+	bh=7BGV11H2AznfkGkqSQAmth+ZVS8715amIDwffofYxL4=;
+	h=Date:To:From:Subject:Message-Id; b=YLXtzIaXNboNUik9kO3yx4RqvtJnUEshuN7M5Thx1AhU3fJoLG5JFSTKqduJIoxsMSm/BJHQszcGgH+zm6qisCavVcSGV1Dj5dWOBRO3PZgSFcNpIsxiorqAn+tSTUhgm6yPeRsOlXhuSJt97fxLPeGwwXIEdH0lhSuIOL5VQ6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hzBYsLsK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mLgVnwO6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01A5DC4CEF1;
-	Mon, 24 Nov 2025 23:10:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hzBYsLsK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67E3EC4CEF1;
+	Mon, 24 Nov 2025 23:10:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025813;
-	bh=hhdV6uZ9yxC3HzP18+HxVbSPKpRJ5nhG4IQfjH+IOEo=;
+	s=korg; t=1764025817;
+	bh=7BGV11H2AznfkGkqSQAmth+ZVS8715amIDwffofYxL4=;
 	h=Date:To:From:Subject:From;
-	b=mLgVnwO6H25seT1XXJVC+DXAFc0dNvZIrnIJzzvX/jVN+F96CA1qS+HcyMxig/iS+
-	 5sGK1a+qR5gmGJ3KKwFa8FvE2sWWbbvdV5vvdSKWiz5wB9M6p/zJMk2CtxGGTq1Ptx
-	 LtRBc5Ab2eMCt7Hl0bBCDsBXGZhf8PldOLQHE5EM=
-Date: Mon, 24 Nov 2025 15:10:12 -0800
+	b=hzBYsLsKQkS46xe5UpcgMZvi7yZS2Yix8v5r6DazPauw25uziRoynUpQE5EwScwdV
+	 aYs0QNRdgd7WddP+mmWUATJGwCdKT/JdEpOOwrc72jg9VGCv/Ifqyqsk/3R0Oae8dx
+	 oOSmMPHrF42UwOgJhTsvLB1J3nu5/y3wK9wKHqyA=
+Date: Mon, 24 Nov 2025 15:10:16 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,svens@linux.ibm.com,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,nphamcs@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,matthew.brost@intel.com,linmiaohe@huawei.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,imbrenda@linux.ibm.com,hughd@google.com,hca@linux.ibm.com,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,apopple@nvidia.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch removed from -mm tree
-Message-Id: <20251124231013.01A5DC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch removed from -mm tree
+Message-Id: <20251124231017.67E3EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: introduce leaf entry type and use to simplify leaf entry logic
+     Subject: mm: use leaf entries in debug pgtable + remove is_swap_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
+     mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: introduce leaf entry type and use to simplify leaf entry logic
-Date: Mon, 10 Nov 2025 22:21:20 +0000
+Subject: mm: use leaf entries in debug pgtable + remove is_swap_pte()
+Date: Mon, 10 Nov 2025 22:21:23 +0000
 
-The kernel maintains leaf page table entries which contain either:
+Remove invocations of is_swap_pte() in mm/debug_vm_pgtable.c and use
+softleaf_from_pte() and softleaf_is_swap() as necessary to replace this
+usage.
 
-The kernel maintains leaf page table entries which contain either:
+We update the test code to use a 'true' swap entry throughout so we are
+guaranteed this is not a non-swap entry, so all asserts continue to
+operate correctly.
 
- - Nothing ('none' entries)
- - Present entries*
- - Everything else that will cause a fault which the kernel handles
+With this change in place, we no longer use is_swap_pte() anywhere, so
+remove it.
 
-* Present entries are either entries the hardware can navigate without page
-  fault or special cases like NUMA hint protnone or PMD with cleared
-  present bit which contain hardware-valid entries modulo the present bit.
-
-In the 'everything else' group we include swap entries, but we also
-include a number of other things such as migration entries, device private
-entries and marker entries.
-
-Unfortunately this 'everything else' group expresses everything through a
-swp_entry_t type, and these entries are referred to swap entries even
-though they may well not contain a...  swap entry.
-
-This is compounded by the rather mind-boggling concept of a non-swap swap
-entry (checked via non_swap_entry()) and the means by which we twist and
-turn to satisfy this.
-
-This patch lays the foundation for reducing this confusion.
-
-We refer to 'everything else' as a 'software-define leaf entry' or
-'softleaf'.  for short And in fact we scoop up the 'none' entries into
-this concept also so we are left with:
-
-- Present entries.
-- Softleaf entries (which may be empty).
-
-This allows for radical simplification across the board - one can simply
-convert any leaf page table entry to a leaf entry via softleaf_from_pte().
-
-If the entry is present, we return an empty leaf entry, so it is assumed
-the caller is aware that they must differentiate between the two
-categories of page table entries, checking for the former via
-pte_present().
-
-As a result, we can eliminate a number of places where we would otherwise
-need to use predicates to see if we can proceed with leaf page table entry
-conversion and instead just go ahead and do it unconditionally.
-
-We do so where we can, adjusting surrounding logic as necessary to
-integrate the new softleaf_t logic as far as seems reasonable at this
-stage.
-
-We typedef swp_entry_t to softleaf_t for the time being until the
-conversion can be complete, meaning everything remains compatible
-regardless of which type is used.  We will eventually remove swp_entry_t
-when the conversion is complete.
-
-We introduce a new header file to keep things clear - leafops.h - this
-imports swapops.h so can direct replace swapops imports without issue, and
-we do so in all the files that require it.
-
-Additionally, add new leafops.h file to core mm maintainers entry.
-
-Link: https://lkml.kernel.org/r/c879383aac77d96a03e4d38f7daba893cd35fc76.1762812360.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/222f352e7a99191b4bdfa77e835f2fc0dd83fa72.1762812360.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -164,1187 +114,128 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: xu xin <xu.xin16@zte.com.cn>
 Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                   |    1 
- fs/proc/task_mmu.c            |   26 +-
- fs/userfaultfd.c              |    6 
- include/linux/leafops.h       |  387 ++++++++++++++++++++++++++++++++
- include/linux/mm_inline.h     |    6 
- include/linux/mm_types.h      |   25 ++
- include/linux/swapops.h       |   28 --
- include/linux/userfaultfd_k.h |   51 ----
- mm/hmm.c                      |    2 
- mm/hugetlb.c                  |   37 +--
- mm/madvise.c                  |   16 -
- mm/memory.c                   |   41 +--
- mm/mincore.c                  |    6 
- mm/mprotect.c                 |    6 
- mm/mremap.c                   |    4 
- mm/page_vma_mapped.c          |   11 
- mm/shmem.c                    |    7 
- mm/userfaultfd.c              |    6 
- 18 files changed, 502 insertions(+), 164 deletions(-)
+ include/linux/swapops.h |    6 -----
+ mm/debug_vm_pgtable.c   |   39 +++++++++++++++++++++++---------------
+ 2 files changed, 24 insertions(+), 21 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/fs/proc/task_mmu.c
-@@ -14,7 +14,7 @@
- #include <linux/rmap.h>
+--- a/include/linux/swapops.h~mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte
++++ a/include/linux/swapops.h
+@@ -120,12 +120,6 @@ static inline unsigned long swp_offset_p
+ 	return swp_offset(entry) & SWP_PFN_MASK;
+ }
+ 
+-/* check whether a pte points to a swap entry */
+-static inline int is_swap_pte(pte_t pte)
+-{
+-	return !pte_none(pte) && !pte_present(pte);
+-}
+-
+ /*
+  * Convert the arch-dependent pte representation of a swp_entry_t into an
+  * arch-independent swp_entry_t.
+--- a/mm/debug_vm_pgtable.c~mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte
++++ a/mm/debug_vm_pgtable.c
+@@ -25,7 +25,7 @@
+ #include <linux/random.h>
+ #include <linux/spinlock.h>
  #include <linux/swap.h>
- #include <linux/sched/mm.h>
 -#include <linux/swapops.h>
 +#include <linux/leafops.h>
- #include <linux/mmu_notifier.h>
- #include <linux/page_idle.h>
- #include <linux/shmem_fs.h>
-@@ -1231,11 +1231,11 @@ static int smaps_hugetlb_range(pte_t *pt
- 	if (pte_present(ptent)) {
- 		folio = page_folio(pte_page(ptent));
- 		present = true;
--	} else if (is_swap_pte(ptent)) {
--		swp_entry_t swpent = pte_to_swp_entry(ptent);
-+	} else {
-+		const softleaf_t entry = softleaf_from_pte(ptent);
- 
--		if (is_pfn_swap_entry(swpent))
--			folio = pfn_swap_entry_folio(swpent);
-+		if (softleaf_has_pfn(entry))
-+			folio = softleaf_to_folio(entry);
- 	}
- 
- 	if (folio) {
-@@ -1956,9 +1956,9 @@ static pagemap_entry_t pte_to_pagemap_en
- 		flags |= PM_SWAP;
- 		if (is_pfn_swap_entry(entry))
- 			page = pfn_swap_entry_to_page(entry);
--		if (pte_marker_entry_uffd_wp(entry))
-+		if (softleaf_is_uffd_wp_marker(entry))
- 			flags |= PM_UFFD_WP;
--		if (is_guard_swp_entry(entry))
-+		if (softleaf_is_guard_marker(entry))
- 			flags |=  PM_GUARD_REGION;
- 	}
- 
-@@ -2331,18 +2331,18 @@ static unsigned long pagemap_page_catego
- 		if (pte_soft_dirty(pte))
- 			categories |= PAGE_IS_SOFT_DIRTY;
- 	} else if (is_swap_pte(pte)) {
--		swp_entry_t swp;
-+		softleaf_t entry;
- 
- 		categories |= PAGE_IS_SWAPPED;
- 		if (!pte_swp_uffd_wp_any(pte))
- 			categories |= PAGE_IS_WRITTEN;
- 
--		swp = pte_to_swp_entry(pte);
--		if (is_guard_swp_entry(swp))
-+		entry = softleaf_from_pte(pte);
-+		if (softleaf_is_guard_marker(entry))
- 			categories |= PAGE_IS_GUARD;
- 		else if ((p->masks_of_interest & PAGE_IS_FILE) &&
--			 is_pfn_swap_entry(swp) &&
--			 !folio_test_anon(pfn_swap_entry_folio(swp)))
-+			 softleaf_has_pfn(entry) &&
-+			 !folio_test_anon(softleaf_to_folio(entry)))
- 			categories |= PAGE_IS_FILE;
- 
- 		if (pte_swp_soft_dirty(pte))
-@@ -2467,7 +2467,7 @@ static void make_uffd_wp_huge_pte(struct
+ #include <linux/start_kernel.h>
+ #include <linux/sched/mm.h>
+ #include <linux/io.h>
+@@ -714,14 +714,16 @@ static void __init pte_soft_dirty_tests(
+ static void __init pte_swap_soft_dirty_tests(struct pgtable_debug_args *args)
  {
- 	unsigned long psize;
+ 	pte_t pte;
++	softleaf_t entry;
  
--	if (is_hugetlb_entry_hwpoisoned(ptent) || is_pte_marker(ptent))
-+	if (is_hugetlb_entry_hwpoisoned(ptent) || pte_is_marker(ptent))
+ 	if (!IS_ENABLED(CONFIG_MEM_SOFT_DIRTY))
  		return;
  
- 	psize = huge_page_size(hstate_vma(vma));
---- a/fs/userfaultfd.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/fs/userfaultfd.c
-@@ -29,7 +29,7 @@
- #include <linux/ioctl.h>
- #include <linux/security.h>
- #include <linux/hugetlb.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/miscdevice.h>
- #include <linux/uio.h>
+ 	pr_debug("Validating PTE swap soft dirty\n");
+ 	pte = swp_entry_to_pte(args->swp_entry);
+-	WARN_ON(!is_swap_pte(pte));
++	entry = softleaf_from_pte(pte);
  
-@@ -251,7 +251,7 @@ static inline bool userfaultfd_huge_must
- 	if (huge_pte_none(pte))
- 		return true;
- 	/* UFFD PTE markers require userspace to resolve the fault. */
--	if (is_uffd_pte_marker(pte))
-+	if (pte_is_uffd_marker(pte))
- 		return true;
- 	/*
- 	 * If VMA has UFFD WP faults enabled and WP fault, wait for userspace to
-@@ -337,7 +337,7 @@ again:
- 	if (pte_none(ptent))
- 		goto out;
- 	/* UFFD PTE markers require userspace to resolve the fault. */
--	if (is_uffd_pte_marker(ptent))
-+	if (pte_is_uffd_marker(ptent))
- 		goto out;
- 	/*
- 	 * If VMA has UFFD WP faults enabled and WP fault, wait for userspace to
-diff --git a/include/linux/leafops.h a/include/linux/leafops.h
-new file mode 100644
---- /dev/null
-+++ a/include/linux/leafops.h
-@@ -0,0 +1,387 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Describes operations that can be performed on software-defined page table
-+ * leaf entries. These are abstracted from the hardware page table entries
-+ * themselves by the softleaf_t type, see mm_types.h.
-+ */
-+#ifndef _LINUX_LEAFOPS_H
-+#define _LINUX_LEAFOPS_H
-+
-+#include <linux/mm_types.h>
-+#include <linux/swapops.h>
-+#include <linux/swap.h>
-+
-+#ifdef CONFIG_MMU
-+
-+/* Temporary until swp_entry_t eliminated. */
-+#define LEAF_TYPE_SHIFT SWP_TYPE_SHIFT
-+
-+enum softleaf_type {
-+	/* Fundamental types. */
-+	SOFTLEAF_NONE,
-+	SOFTLEAF_SWAP,
-+	/* Migration types. */
-+	SOFTLEAF_MIGRATION_READ,
-+	SOFTLEAF_MIGRATION_READ_EXCLUSIVE,
-+	SOFTLEAF_MIGRATION_WRITE,
-+	/* Device types. */
-+	SOFTLEAF_DEVICE_PRIVATE_READ,
-+	SOFTLEAF_DEVICE_PRIVATE_WRITE,
-+	SOFTLEAF_DEVICE_EXCLUSIVE,
-+	/* H/W posion types. */
-+	SOFTLEAF_HWPOISON,
-+	/* Marker types. */
-+	SOFTLEAF_MARKER,
-+};
-+
-+/**
-+ * softleaf_mk_none() - Create an empty ('none') leaf entry.
-+ * Returns: empty leaf entry.
-+ */
-+static inline softleaf_t softleaf_mk_none(void)
-+{
-+	return ((softleaf_t) { 0 });
-+}
-+
-+/**
-+ * softleaf_from_pte() - Obtain a leaf entry from a PTE entry.
-+ * @pte: PTE entry.
-+ *
-+ * If @pte is present (therefore not a leaf entry) the function returns an empty
-+ * leaf entry. Otherwise, it returns a leaf entry.
-+ *
-+ * Returns: Leaf entry.
-+ */
-+static inline softleaf_t softleaf_from_pte(pte_t pte)
-+{
-+	if (pte_present(pte) || pte_none(pte))
-+		return softleaf_mk_none();
-+
-+	/* Temporary until swp_entry_t eliminated. */
-+	return pte_to_swp_entry(pte);
-+}
-+
-+/**
-+ * softleaf_is_none() - Is the leaf entry empty?
-+ * @entry: Leaf entry.
-+ *
-+ * Empty entries are typically the result of a 'none' page table leaf entry
-+ * being converted to a leaf entry.
-+ *
-+ * Returns: true if the entry is empty, false otherwise.
-+ */
-+static inline bool softleaf_is_none(softleaf_t entry)
-+{
-+	return entry.val == 0;
-+}
-+
-+/**
-+ * softleaf_type() - Identify the type of leaf entry.
-+ * @enntry: Leaf entry.
-+ *
-+ * Returns: the leaf entry type associated with @entry.
-+ */
-+static inline enum softleaf_type softleaf_type(softleaf_t entry)
-+{
-+	unsigned int type_num;
-+
-+	if (softleaf_is_none(entry))
-+		return SOFTLEAF_NONE;
-+
-+	type_num = entry.val >> LEAF_TYPE_SHIFT;
-+
-+	if (type_num < MAX_SWAPFILES)
-+		return SOFTLEAF_SWAP;
-+
-+	switch (type_num) {
-+#ifdef CONFIG_MIGRATION
-+	case SWP_MIGRATION_READ:
-+		return SOFTLEAF_MIGRATION_READ;
-+	case SWP_MIGRATION_READ_EXCLUSIVE:
-+		return SOFTLEAF_MIGRATION_READ_EXCLUSIVE;
-+	case SWP_MIGRATION_WRITE:
-+		return SOFTLEAF_MIGRATION_WRITE;
-+#endif
-+#ifdef CONFIG_DEVICE_PRIVATE
-+	case SWP_DEVICE_WRITE:
-+		return SOFTLEAF_DEVICE_PRIVATE_WRITE;
-+	case SWP_DEVICE_READ:
-+		return SOFTLEAF_DEVICE_PRIVATE_READ;
-+	case SWP_DEVICE_EXCLUSIVE:
-+		return SOFTLEAF_DEVICE_EXCLUSIVE;
-+#endif
-+#ifdef CONFIG_MEMORY_FAILURE
-+	case SWP_HWPOISON:
-+		return SOFTLEAF_HWPOISON;
-+#endif
-+	case SWP_PTE_MARKER:
-+		return SOFTLEAF_MARKER;
-+	}
-+
-+	/* Unknown entry type. */
-+	VM_WARN_ON_ONCE(1);
-+	return SOFTLEAF_NONE;
-+}
-+
-+/**
-+ * softleaf_is_swap() - Is this leaf entry a swap entry?
-+ * @entry: Leaf entry.
-+ *
-+ * Returns: true if the leaf entry is a swap entry, otherwise false.
-+ */
-+static inline bool softleaf_is_swap(softleaf_t entry)
-+{
-+	return softleaf_type(entry) == SOFTLEAF_SWAP;
-+}
-+
-+/**
-+ * softleaf_is_migration() - Is this leaf entry a migration entry?
-+ * @entry: Leaf entry.
-+ *
-+ * Returns: true if the leaf entry is a migration entry, otherwise false.
-+ */
-+static inline bool softleaf_is_migration(softleaf_t entry)
-+{
-+	switch (softleaf_type(entry)) {
-+	case SOFTLEAF_MIGRATION_READ:
-+	case SOFTLEAF_MIGRATION_READ_EXCLUSIVE:
-+	case SOFTLEAF_MIGRATION_WRITE:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+/**
-+ * softleaf_is_device_private() - Is this leaf entry a device private entry?
-+ * @entry: Leaf entry.
-+ *
-+ * Returns: true if the leaf entry is a device private entry, otherwise false.
-+ */
-+static inline bool softleaf_is_device_private(softleaf_t entry)
-+{
-+	switch (softleaf_type(entry)) {
-+	case SOFTLEAF_DEVICE_PRIVATE_WRITE:
-+	case SOFTLEAF_DEVICE_PRIVATE_READ:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+/**
-+ * softleaf_is_device_exclusive() - Is this leaf entry a device exclusive entry?
-+ * @entry: Leaf entry.
-+ *
-+ * Returns: true if the leaf entry is a device exclusive entry, otherwise false.
-+ */
-+static inline bool softleaf_is_device_exclusive(softleaf_t entry)
-+{
-+	return softleaf_type(entry) == SOFTLEAF_DEVICE_EXCLUSIVE;
-+}
-+
-+/**
-+ * softleaf_is_hwpoison() - Is this leaf entry a hardware poison entry?
-+ * @entry: Leaf entry.
-+ *
-+ * Returns: true if the leaf entry is a hardware poison entry, otherwise false.
-+ */
-+static inline bool softleaf_is_hwpoison(softleaf_t entry)
-+{
-+	return softleaf_type(entry) == SOFTLEAF_HWPOISON;
-+}
-+
-+/**
-+ * softleaf_is_marker() - Is this leaf entry a marker?
-+ * @entry: Leaf entry.
-+ *
-+ * Returns: true if the leaf entry is a marker entry, otherwise false.
-+ */
-+static inline bool softleaf_is_marker(softleaf_t entry)
-+{
-+	return softleaf_type(entry) == SOFTLEAF_MARKER;
-+}
-+
-+/**
-+ * softleaf_to_marker() - Obtain marker associated with leaf entry.
-+ * @entry: Leaf entry, softleaf_is_marker(@entry) must return true.
-+ *
-+ * Returns: Marker associated with the leaf entry.
-+ */
-+static inline pte_marker softleaf_to_marker(softleaf_t entry)
-+{
-+	VM_WARN_ON_ONCE(!softleaf_is_marker(entry));
-+
-+	return swp_offset(entry) & PTE_MARKER_MASK;
-+}
-+
-+/**
-+ * softleaf_has_pfn() - Does this leaf entry encode a valid PFN number?
-+ * @entry: Leaf entry.
-+ *
-+ * A pfn swap entry is a special type of swap entry that always has a pfn stored
-+ * in the swap offset. They can either be used to represent unaddressable device
-+ * memory, to restrict access to a page undergoing migration or to represent a
-+ * pfn which has been hwpoisoned and unmapped.
-+ *
-+ * Returns: true if the leaf entry encodes a PFN, otherwise false.
-+ */
-+static inline bool softleaf_has_pfn(softleaf_t entry)
-+{
-+	/* Make sure the swp offset can always store the needed fields. */
-+	BUILD_BUG_ON(SWP_TYPE_SHIFT < SWP_PFN_BITS);
-+
-+	if (softleaf_is_migration(entry))
-+		return true;
-+	if (softleaf_is_device_private(entry))
-+		return true;
-+	if (softleaf_is_device_exclusive(entry))
-+		return true;
-+	if (softleaf_is_hwpoison(entry))
-+		return true;
-+
-+	return false;
-+}
-+
-+/**
-+ * softleaf_to_pfn() - Obtain PFN encoded within leaf entry.
-+ * @entry: Leaf entry, softleaf_has_pfn(@entry) must return true.
-+ *
-+ * Returns: The PFN associated with the leaf entry.
-+ */
-+static inline unsigned long softleaf_to_pfn(softleaf_t entry)
-+{
-+	VM_WARN_ON_ONCE(!softleaf_has_pfn(entry));
-+
-+	/* Temporary until swp_entry_t eliminated. */
-+	return swp_offset_pfn(entry);
-+}
-+
-+/**
-+ * softleaf_to_page() - Obtains struct page for PFN encoded within leaf entry.
-+ * @entry: Leaf entry, softleaf_has_pfn(@entry) must return true.
-+ *
-+ * Returns: Pointer to the struct page associated with the leaf entry's PFN.
-+ */
-+static inline struct page *softleaf_to_page(softleaf_t entry)
-+{
-+	VM_WARN_ON_ONCE(!softleaf_has_pfn(entry));
-+
-+	/* Temporary until swp_entry_t eliminated. */
-+	return pfn_swap_entry_to_page(entry);
-+}
-+
-+/**
-+ * softleaf_to_folio() - Obtains struct folio for PFN encoded within leaf entry.
-+ * @entry: Leaf entry, softleaf_has_pfn(@entry) must return true.
-+ *
-+ * Returns: Pointer to the struct folio associated with the leaf entry's PFN.
-+ */
-+static inline struct folio *softleaf_to_folio(softleaf_t entry)
-+{
-+	VM_WARN_ON_ONCE(!softleaf_has_pfn(entry));
-+
-+	/* Temporary until swp_entry_t eliminated. */
-+	return pfn_swap_entry_folio(entry);
-+}
-+
-+/**
-+ * softleaf_is_poison_marker() - Is this leaf entry a poison marker?
-+ * @entry: Leaf entry.
-+ *
-+ * The poison marker is set via UFFDIO_POISON. Userfaultfd-specific.
-+ *
-+ * Returns: true if the leaf entry is a poison marker, otherwise false.
-+ */
-+static inline bool softleaf_is_poison_marker(softleaf_t entry)
-+{
-+	if (!softleaf_is_marker(entry))
-+		return false;
-+
-+	return softleaf_to_marker(entry) & PTE_MARKER_POISONED;
-+}
-+
-+/**
-+ * softleaf_is_guard_marker() - Is this leaf entry a guard region marker?
-+ * @entry: Leaf entry.
-+ *
-+ * Returns: true if the leaf entry is a guard marker, otherwise false.
-+ */
-+static inline bool softleaf_is_guard_marker(softleaf_t entry)
-+{
-+	if (!softleaf_is_marker(entry))
-+		return false;
-+
-+	return softleaf_to_marker(entry) & PTE_MARKER_GUARD;
-+}
-+
-+/**
-+ * softleaf_is_uffd_wp_marker() - Is this leaf entry a userfautlfd write protect
-+ * marker?
-+ * @entry: Leaf entry.
-+ *
-+ * Userfaultfd-specific.
-+ *
-+ * Returns: true if the leaf entry is a UFFD WP marker, otherwise false.
-+ */
-+static inline bool softleaf_is_uffd_wp_marker(softleaf_t entry)
-+{
-+	if (!softleaf_is_marker(entry))
-+		return false;
-+
-+	return softleaf_to_marker(entry) & PTE_MARKER_UFFD_WP;
-+}
-+
-+/**
-+ * pte_is_marker() - Does the PTE entry encode a marker leaf entry?
-+ * @pte: PTE entry.
-+ *
-+ * Returns: true if this PTE is a marker leaf entry, otherwise false.
-+ */
-+static inline bool pte_is_marker(pte_t pte)
-+{
-+	return softleaf_is_marker(softleaf_from_pte(pte));
-+}
-+
-+/**
-+ * pte_is_uffd_wp_marker() - Does this PTE entry encode a userfaultfd write
-+ * protect marker leaf entry?
-+ * @pte: PTE entry.
-+ *
-+ * Returns: true if this PTE is a UFFD WP marker leaf entry, otherwise false.
-+ */
-+static inline bool pte_is_uffd_wp_marker(pte_t pte)
-+{
-+	const softleaf_t entry = softleaf_from_pte(pte);
-+
-+	return softleaf_is_uffd_wp_marker(entry);
-+}
-+
-+/**
-+ * pte_is_uffd_marker() - Does this PTE entry encode a userfault-specific marker
-+ * leaf entry?
-+ * @entry: Leaf entry.
-+ *
-+ * It's useful to be able to determine which leaf entries encode UFFD-specific
-+ * markers so we can handle these correctly.
-+ *
-+ * Returns: true if this PTE entry is a UFFD-specific marker, otherwise false.
-+ */
-+static inline bool pte_is_uffd_marker(pte_t pte)
-+{
-+	const softleaf_t entry = softleaf_from_pte(pte);
-+
-+	if (!softleaf_is_marker(entry))
-+		return false;
-+
-+	/* UFFD WP, poisoned swap entries are UFFD-handled. */
-+	if (softleaf_is_uffd_wp_marker(entry))
-+		return true;
-+	if (softleaf_is_poison_marker(entry))
-+		return true;
-+
-+	return false;
-+}
-+
-+#endif  /* CONFIG_MMU */
-+#endif  /* _LINUX_LEAFOPS_H */
---- a/include/linux/mm_inline.h~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/include/linux/mm_inline.h
-@@ -8,7 +8,7 @@
- #include <linux/swap.h>
- #include <linux/string.h>
- #include <linux/userfaultfd_k.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
++	WARN_ON(!softleaf_is_swap(entry));
+ 	WARN_ON(!pte_swp_soft_dirty(pte_swp_mksoft_dirty(pte)));
+ 	WARN_ON(pte_swp_soft_dirty(pte_swp_clear_soft_dirty(pte)));
+ }
+@@ -768,40 +770,47 @@ static void __init pmd_swap_soft_dirty_t
  
- /**
-  * folio_is_file_lru - Should the folio be on a file LRU or anon LRU?
-@@ -541,9 +541,9 @@ static inline bool mm_tlb_flush_nested(c
-  * The caller should insert a new pte created with make_pte_marker().
-  */
- static inline pte_marker copy_pte_marker(
--		swp_entry_t entry, struct vm_area_struct *dst_vma)
-+		softleaf_t entry, struct vm_area_struct *dst_vma)
+ static void __init pte_swap_exclusive_tests(struct pgtable_debug_args *args)
  {
--	pte_marker srcm = pte_marker_get(entry);
-+	const pte_marker srcm = softleaf_to_marker(entry);
- 	/* Always copy error entries. */
- 	pte_marker dstm = srcm & (PTE_MARKER_POISONED | PTE_MARKER_GUARD);
+-	swp_entry_t entry, entry2;
++	swp_entry_t entry;
++	softleaf_t softleaf;
+ 	pte_t pte;
  
---- a/include/linux/mm_types.h~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/include/linux/mm_types.h
-@@ -285,6 +285,31 @@ typedef struct {
- 	unsigned long val;
- } swp_entry_t;
+ 	pr_debug("Validating PTE swap exclusive\n");
+ 	entry = args->swp_entry;
  
-+/**
-+ * typedef softleaf_t - Describes a page table software leaf entry, abstracted
-+ * from its architecture-specific encoding.
-+ *
-+ * Page table leaf entries are those which do not reference any descendent page
-+ * tables but rather either reference a data page, are an empty (or 'none'
-+ * entry), or contain a non-present entry.
-+ *
-+ * If referencing another page table or a data page then the page table entry is
-+ * pertinent to hardware - that is it tells the hardware how to decode the page
-+ * table entry.
-+ *
-+ * Otherwise it is a software-defined leaf page table entry, which this type
-+ * describes. See leafops.h and specifically @softleaf_type for a list of all
-+ * possible kinds of software leaf entry.
-+ *
-+ * A softleaf_t entry is abstracted from the hardware page table entry, so is
-+ * not architecture-specific.
-+ *
-+ * NOTE: While we transition from the confusing swp_entry_t type used for this
-+ *       purpose, we simply alias this type. This will be removed once the
-+ *       transition is complete.
-+ */
-+typedef swp_entry_t softleaf_t;
+ 	pte = swp_entry_to_pte(entry);
++	softleaf = softleaf_from_pte(pte);
 +
- #if defined(CONFIG_MEMCG) || defined(CONFIG_SLAB_OBJ_EXT)
- /* We have some extra room after the refcount in tail pages. */
- #define NR_PAGES_IN_LARGE_FOLIO
---- a/include/linux/swapops.h~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/include/linux/swapops.h
-@@ -426,21 +426,6 @@ static inline swp_entry_t make_pte_marke
- 	return swp_entry(SWP_PTE_MARKER, marker);
+ 	WARN_ON(pte_swp_exclusive(pte));
+-	WARN_ON(!is_swap_pte(pte));
+-	entry2 = pte_to_swp_entry(pte);
+-	WARN_ON(memcmp(&entry, &entry2, sizeof(entry)));
++	WARN_ON(!softleaf_is_swap(softleaf));
++	WARN_ON(memcmp(&entry, &softleaf, sizeof(entry)));
+ 
+ 	pte = pte_swp_mkexclusive(pte);
++	softleaf = softleaf_from_pte(pte);
++
+ 	WARN_ON(!pte_swp_exclusive(pte));
+-	WARN_ON(!is_swap_pte(pte));
++	WARN_ON(!softleaf_is_swap(softleaf));
+ 	WARN_ON(pte_swp_soft_dirty(pte));
+-	entry2 = pte_to_swp_entry(pte);
+-	WARN_ON(memcmp(&entry, &entry2, sizeof(entry)));
++	WARN_ON(memcmp(&entry, &softleaf, sizeof(entry)));
+ 
+ 	pte = pte_swp_clear_exclusive(pte);
++	softleaf = softleaf_from_pte(pte);
++
+ 	WARN_ON(pte_swp_exclusive(pte));
+-	WARN_ON(!is_swap_pte(pte));
+-	entry2 = pte_to_swp_entry(pte);
+-	WARN_ON(memcmp(&entry, &entry2, sizeof(entry)));
++	WARN_ON(!softleaf_is_swap(softleaf));
++	WARN_ON(memcmp(&entry, &softleaf, sizeof(entry)));
  }
  
--static inline bool is_pte_marker_entry(swp_entry_t entry)
--{
--	return swp_type(entry) == SWP_PTE_MARKER;
--}
--
--static inline pte_marker pte_marker_get(swp_entry_t entry)
--{
--	return swp_offset(entry) & PTE_MARKER_MASK;
--}
--
--static inline bool is_pte_marker(pte_t pte)
--{
--	return is_swap_pte(pte) && is_pte_marker_entry(pte_to_swp_entry(pte));
--}
--
- static inline pte_t make_pte_marker(pte_marker marker)
+ static void __init pte_swap_tests(struct pgtable_debug_args *args)
  {
- 	return swp_entry_to_pte(make_pte_marker_entry(marker));
-@@ -451,24 +436,11 @@ static inline swp_entry_t make_poisoned_
- 	return make_pte_marker_entry(PTE_MARKER_POISONED);
- }
- 
--static inline int is_poisoned_swp_entry(swp_entry_t entry)
--{
--	return is_pte_marker_entry(entry) &&
--	    (pte_marker_get(entry) & PTE_MARKER_POISONED);
--
--}
--
- static inline swp_entry_t make_guard_swp_entry(void)
- {
- 	return make_pte_marker_entry(PTE_MARKER_GUARD);
- }
- 
--static inline int is_guard_swp_entry(swp_entry_t entry)
--{
--	return is_pte_marker_entry(entry) &&
--		(pte_marker_get(entry) & PTE_MARKER_GUARD);
--}
--
- static inline struct page *pfn_swap_entry_to_page(swp_entry_t entry)
- {
- 	struct page *p = pfn_to_page(swp_offset_pfn(entry));
---- a/include/linux/userfaultfd_k.h~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/include/linux/userfaultfd_k.h
-@@ -16,7 +16,7 @@
- #include <linux/fcntl.h>
- #include <linux/mm.h>
- #include <linux/swap.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <asm-generic/pgtable_uffd.h>
- #include <linux/hugetlb_inline.h>
- 
-@@ -434,32 +434,6 @@ static inline bool userfaultfd_wp_use_ma
- 	return userfaultfd_wp_unpopulated(vma);
- }
- 
--static inline bool pte_marker_entry_uffd_wp(swp_entry_t entry)
--{
--#ifdef CONFIG_PTE_MARKER_UFFD_WP
--	return is_pte_marker_entry(entry) &&
--	    (pte_marker_get(entry) & PTE_MARKER_UFFD_WP);
--#else
--	return false;
--#endif
--}
--
--static inline bool pte_marker_uffd_wp(pte_t pte)
--{
--#ifdef CONFIG_PTE_MARKER_UFFD_WP
--	swp_entry_t entry;
--
--	if (!is_swap_pte(pte))
--		return false;
--
--	entry = pte_to_swp_entry(pte);
--
--	return pte_marker_entry_uffd_wp(entry);
--#else
--	return false;
--#endif
--}
--
- /*
-  * Returns true if this is a swap pte and was uffd-wp wr-protected in either
-  * forms (pte marker or a normal swap pte), false otherwise.
-@@ -473,31 +447,10 @@ static inline bool pte_swp_uffd_wp_any(p
- 	if (pte_swp_uffd_wp(pte))
- 		return true;
- 
--	if (pte_marker_uffd_wp(pte))
-+	if (pte_is_uffd_wp_marker(pte))
- 		return true;
- #endif
- 	return false;
- }
- 
--
--static inline bool is_uffd_pte_marker(pte_t pte)
--{
--	swp_entry_t entry;
--
--	if (pte_present(pte))
--		return false;
--
--	entry = pte_to_swp_entry(pte);
--	if (!is_pte_marker_entry(entry))
--		return false;
--
--	/* UFFD WP, poisoned swap entries are UFFD handled. */
--	if (pte_marker_entry_uffd_wp(entry))
--		return true;
--	if (is_poisoned_swp_entry(entry))
--		return true;
--
--	return false;
--}
--
- #endif /* _LINUX_USERFAULTFD_K_H */
---- a/MAINTAINERS~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/MAINTAINERS
-@@ -16263,6 +16263,7 @@ T:	git git://git.kernel.org/pub/scm/linu
- F:	include/linux/gfp.h
- F:	include/linux/gfp_types.h
- F:	include/linux/highmem.h
-+F:	include/linux/leafops.h
- F:	include/linux/memory.h
- F:	include/linux/mm.h
- F:	include/linux/mm_*.h
---- a/mm/hmm.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/hmm.c
-@@ -249,7 +249,7 @@ static int hmm_vma_handle_pte(struct mm_
- 	 * that will be correctly handled, so we need only check for UFFD WP
- 	 * here.
- 	 */
--	if (pte_none(pte) || pte_marker_uffd_wp(pte)) {
-+	if (pte_none(pte) || pte_is_uffd_wp_marker(pte)) {
- 		required_fault =
- 			hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0);
- 		if (required_fault)
---- a/mm/hugetlb.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/hugetlb.c
-@@ -26,7 +26,7 @@
- #include <linux/string_choices.h>
- #include <linux/string_helpers.h>
- #include <linux/swap.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/jhash.h>
- #include <linux/numa.h>
- #include <linux/llist.h>
-@@ -4956,17 +4956,17 @@ again:
- 				entry = huge_pte_clear_uffd_wp(entry);
- 			set_huge_pte_at(dst, addr, dst_pte, entry, sz);
- 		} else if (unlikely(is_hugetlb_entry_migration(entry))) {
--			swp_entry_t swp_entry = pte_to_swp_entry(entry);
-+			softleaf_t softleaf = softleaf_from_pte(entry);
- 			bool uffd_wp = pte_swp_uffd_wp(entry);
- 
--			if (!is_readable_migration_entry(swp_entry) && cow) {
-+			if (!is_readable_migration_entry(softleaf) && cow) {
- 				/*
- 				 * COW mappings require pages in both
- 				 * parent and child to be set to read.
- 				 */
--				swp_entry = make_readable_migration_entry(
--							swp_offset(swp_entry));
--				entry = swp_entry_to_pte(swp_entry);
-+				softleaf = make_readable_migration_entry(
-+							swp_offset(softleaf));
-+				entry = swp_entry_to_pte(softleaf);
- 				if (userfaultfd_wp(src_vma) && uffd_wp)
- 					entry = pte_swp_mkuffd_wp(entry);
- 				set_huge_pte_at(src, addr, src_pte, entry, sz);
-@@ -4974,9 +4974,9 @@ again:
- 			if (!userfaultfd_wp(dst_vma))
- 				entry = huge_pte_clear_uffd_wp(entry);
- 			set_huge_pte_at(dst, addr, dst_pte, entry, sz);
--		} else if (unlikely(is_pte_marker(entry))) {
--			pte_marker marker = copy_pte_marker(
--				pte_to_swp_entry(entry), dst_vma);
-+		} else if (unlikely(pte_is_marker(entry))) {
-+			const softleaf_t softleaf = softleaf_from_pte(entry);
-+			const pte_marker marker = copy_pte_marker(softleaf, dst_vma);
- 
- 			if (marker)
- 				set_huge_pte_at(dst, addr, dst_pte,
-@@ -5092,7 +5092,7 @@ static void move_huge_pte(struct vm_area
- 
- 	pte = huge_ptep_get_and_clear(mm, old_addr, src_pte, sz);
- 
--	if (need_clear_uffd_wp && pte_marker_uffd_wp(pte))
-+	if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte))
- 		huge_pte_clear(mm, new_addr, dst_pte, sz);
- 	else {
- 		if (need_clear_uffd_wp) {
-@@ -5911,7 +5911,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	 * If this pte was previously wr-protected, keep it wr-protected even
- 	 * if populated.
- 	 */
--	if (unlikely(pte_marker_uffd_wp(vmf->orig_pte)))
-+	if (unlikely(pte_is_uffd_wp_marker(vmf->orig_pte)))
- 		new_pte = huge_pte_mkuffd_wp(new_pte);
- 	set_huge_pte_at(mm, vmf->address, vmf->pte, new_pte, huge_page_size(h));
- 
-@@ -6044,9 +6044,9 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		 */
- 		return hugetlb_no_page(mapping, &vmf);
- 
--	if (is_pte_marker(vmf.orig_pte)) {
-+	if (pte_is_marker(vmf.orig_pte)) {
- 		const pte_marker marker =
--			pte_marker_get(pte_to_swp_entry(vmf.orig_pte));
-+			softleaf_to_marker(softleaf_from_pte(vmf.orig_pte));
- 
- 		if (marker & PTE_MARKER_POISONED) {
- 			ret = VM_FAULT_HWPOISON_LARGE |
-@@ -6374,7 +6374,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	 * See comment about UFFD marker overwriting in
- 	 * mfill_atomic_install_pte().
- 	 */
--	if (!huge_pte_none(dst_ptep) && !is_uffd_pte_marker(dst_ptep))
-+	if (!huge_pte_none(dst_ptep) && !pte_is_uffd_marker(dst_ptep))
- 		goto out_release_unlock;
- 
- 	if (folio_in_pagecache)
-@@ -6495,8 +6495,9 @@ long hugetlb_change_protection(struct vm
- 		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
- 			/* Nothing to do. */
- 		} else if (unlikely(is_hugetlb_entry_migration(pte))) {
--			swp_entry_t entry = pte_to_swp_entry(pte);
--			struct folio *folio = pfn_swap_entry_folio(entry);
-+			softleaf_t entry = softleaf_from_pte(pte);
-+
-+			struct folio *folio = softleaf_to_folio(entry);
- 			pte_t newpte = pte;
- 
- 			if (is_writable_migration_entry(entry)) {
-@@ -6516,14 +6517,14 @@ long hugetlb_change_protection(struct vm
- 				newpte = pte_swp_clear_uffd_wp(newpte);
- 			if (!pte_same(pte, newpte))
- 				set_huge_pte_at(mm, address, ptep, newpte, psize);
--		} else if (unlikely(is_pte_marker(pte))) {
-+		} else if (unlikely(pte_is_marker(pte))) {
- 			/*
- 			 * Do nothing on a poison marker; page is
- 			 * corrupted, permissions do not apply. Here
- 			 * pte_marker_uffd_wp()==true implies !poison
- 			 * because they're mutual exclusive.
- 			 */
--			if (pte_marker_uffd_wp(pte) && uffd_wp_resolve)
-+			if (pte_is_uffd_wp_marker(pte) && uffd_wp_resolve)
- 				/* Safe to modify directly (non-present->none). */
- 				huge_pte_clear(mm, address, ptep, psize);
- 		} else if (!huge_pte_none(pte)) {
---- a/mm/madvise.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/madvise.c
-@@ -29,7 +29,7 @@
- #include <linux/backing-dev.h>
- #include <linux/pagewalk.h>
- #include <linux/swap.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/shmem_fs.h>
- #include <linux/mmu_notifier.h>
- 
-@@ -690,17 +690,16 @@ static int madvise_free_pte_range(pmd_t
- 		 * (page allocation + zeroing).
- 		 */
- 		if (!pte_present(ptent)) {
--			swp_entry_t entry;
-+			softleaf_t entry = softleaf_from_pte(ptent);
- 
--			entry = pte_to_swp_entry(ptent);
--			if (!non_swap_entry(entry)) {
-+			if (softleaf_is_swap(entry)) {
- 				max_nr = (end - addr) / PAGE_SIZE;
- 				nr = swap_pte_batch(pte, max_nr, ptent);
- 				nr_swap -= nr;
- 				free_swap_and_cache_nr(entry, nr);
- 				clear_not_present_full_ptes(mm, addr, pte, nr, tlb->fullmm);
--			} else if (is_hwpoison_entry(entry) ||
--				   is_poisoned_swp_entry(entry)) {
-+			} else if (softleaf_is_hwpoison(entry) ||
-+				   softleaf_is_poison_marker(entry)) {
- 				pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
- 			}
- 			continue;
-@@ -1071,8 +1070,9 @@ static bool is_valid_guard_vma(struct vm
- 
- static bool is_guard_pte_marker(pte_t ptent)
- {
--	return is_swap_pte(ptent) &&
--	       is_guard_swp_entry(pte_to_swp_entry(ptent));
-+	const softleaf_t entry = softleaf_from_pte(ptent);
-+
-+	return softleaf_is_guard_marker(entry);
- }
- 
- static int guard_install_pud_entry(pud_t *pud, unsigned long addr,
---- a/mm/memory.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/memory.c
-@@ -60,7 +60,7 @@
- #include <linux/writeback.h>
- #include <linux/memcontrol.h>
- #include <linux/mmu_notifier.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/elf.h>
- #include <linux/gfp.h>
- #include <linux/migrate.h>
-@@ -109,7 +109,7 @@ static __always_inline bool vmf_orig_pte
- 	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
- 		return false;
- 
--	return pte_marker_uffd_wp(vmf->orig_pte);
-+	return pte_is_uffd_wp_marker(vmf->orig_pte);
- }
- 
- /*
-@@ -927,10 +927,10 @@ copy_nonpresent_pte(struct mm_struct *ds
- {
- 	vm_flags_t vm_flags = dst_vma->vm_flags;
- 	pte_t orig_pte = ptep_get(src_pte);
-+	softleaf_t entry = softleaf_from_pte(orig_pte);
- 	pte_t pte = orig_pte;
- 	struct folio *folio;
- 	struct page *page;
--	swp_entry_t entry = pte_to_swp_entry(orig_pte);
- 
- 	if (likely(!non_swap_entry(entry))) {
- 		if (swap_duplicate(entry) < 0)
-@@ -1016,7 +1016,7 @@ copy_nonpresent_pte(struct mm_struct *ds
- 		if (try_restore_exclusive_pte(src_vma, addr, src_pte, orig_pte))
- 			return -EBUSY;
- 		return -ENOENT;
--	} else if (is_pte_marker_entry(entry)) {
-+	} else if (softleaf_is_marker(entry)) {
- 		pte_marker marker = copy_pte_marker(entry, dst_vma);
- 
- 		if (marker)
-@@ -1711,14 +1711,14 @@ static inline int zap_nonpresent_ptes(st
- 		unsigned int max_nr, unsigned long addr,
- 		struct zap_details *details, int *rss, bool *any_skipped)
- {
--	swp_entry_t entry;
+ 	swp_entry_t arch_entry;
 +	softleaf_t entry;
- 	int nr = 1;
+ 	pte_t pte1, pte2;
  
- 	*any_skipped = true;
--	entry = pte_to_swp_entry(ptent);
--	if (is_device_private_entry(entry) ||
--		is_device_exclusive_entry(entry)) {
--		struct page *page = pfn_swap_entry_to_page(entry);
-+	entry = softleaf_from_pte(ptent);
-+	if (softleaf_is_device_private(entry) ||
-+	    softleaf_is_device_exclusive(entry)) {
-+		struct page *page = softleaf_to_page(entry);
- 		struct folio *folio = page_folio(page);
+ 	pr_debug("Validating PTE swap\n");
+ 	pte1 = swp_entry_to_pte(args->swp_entry);
+-	WARN_ON(!is_swap_pte(pte1));
++	entry = softleaf_from_pte(pte1);
++
++	WARN_ON(!softleaf_is_swap(entry));
  
- 		if (unlikely(!should_zap_folio(details, folio)))
-@@ -1733,7 +1733,7 @@ static inline int zap_nonpresent_ptes(st
- 		rss[mm_counter(folio)]--;
- 		folio_remove_rmap_pte(folio, page, vma);
- 		folio_put(folio);
--	} else if (!non_swap_entry(entry)) {
-+	} else if (softleaf_is_swap(entry)) {
- 		/* Genuine swap entries, hence a private anon pages */
- 		if (!should_zap_cows(details))
- 			return 1;
-@@ -1741,20 +1741,20 @@ static inline int zap_nonpresent_ptes(st
- 		nr = swap_pte_batch(pte, max_nr, ptent);
- 		rss[MM_SWAPENTS] -= nr;
- 		free_swap_and_cache_nr(entry, nr);
--	} else if (is_migration_entry(entry)) {
--		struct folio *folio = pfn_swap_entry_folio(entry);
-+	} else if (softleaf_is_migration(entry)) {
-+		struct folio *folio = softleaf_to_folio(entry);
+ 	arch_entry = __pte_to_swp_entry(pte1);
+ 	pte2 = __swp_entry_to_pte(arch_entry);
+@@ -1218,8 +1227,8 @@ static int __init init_args(struct pgtab
  
- 		if (!should_zap_folio(details, folio))
- 			return 1;
- 		rss[mm_counter(folio)]--;
--	} else if (pte_marker_entry_uffd_wp(entry)) {
-+	} else if (softleaf_is_uffd_wp_marker(entry)) {
- 		/*
- 		 * For anon: always drop the marker; for file: only
- 		 * drop the marker if explicitly requested.
- 		 */
- 		if (!vma_is_anonymous(vma) && !zap_drop_markers(details))
- 			return 1;
--	} else if (is_guard_swp_entry(entry)) {
-+	} else if (softleaf_is_guard_marker(entry)) {
- 		/*
- 		 * Ordinary zapping should not remove guard PTE
- 		 * markers. Only do so if we should remove PTE markers
-@@ -1762,7 +1762,8 @@ static inline int zap_nonpresent_ptes(st
- 		 */
- 		if (!zap_drop_markers(details))
- 			return 1;
--	} else if (is_hwpoison_entry(entry) || is_poisoned_swp_entry(entry)) {
-+	} else if (softleaf_is_hwpoison(entry) ||
-+		   softleaf_is_poison_marker(entry)) {
- 		if (!should_zap_cows(details))
- 			return 1;
- 	} else {
-@@ -4380,7 +4381,7 @@ static vm_fault_t pte_marker_clear(struc
- 	 *
- 	 * This should also cover the case where e.g. the pte changed
- 	 * quickly from a PTE_MARKER_UFFD_WP into PTE_MARKER_POISONED.
--	 * So is_pte_marker() check is not enough to safely drop the pte.
-+	 * So pte_is_marker() check is not enough to safely drop the pte.
- 	 */
- 	if (pte_same(vmf->orig_pte, ptep_get(vmf->pte)))
- 		pte_clear(vmf->vma->vm_mm, vmf->address, vmf->pte);
-@@ -4414,8 +4415,8 @@ static vm_fault_t pte_marker_handle_uffd
- 
- static vm_fault_t handle_pte_marker(struct vm_fault *vmf)
- {
--	swp_entry_t entry = pte_to_swp_entry(vmf->orig_pte);
--	unsigned long marker = pte_marker_get(entry);
-+	const softleaf_t entry = softleaf_from_pte(vmf->orig_pte);
-+	const pte_marker marker = softleaf_to_marker(entry);
+ 	/* See generic_max_swapfile_size(): probe the maximum offset */
+ 	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
+-	/* Create a swp entry with all possible bits set */
+-	args->swp_entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1, max_swap_offset);
++	/* Create a swp entry with all possible bits set while still being swap. */
++	args->swp_entry = swp_entry(MAX_SWAPFILES - 1, max_swap_offset);
  
  	/*
- 	 * PTE markers should never be empty.  If anything weird happened,
-@@ -4432,7 +4433,7 @@ static vm_fault_t handle_pte_marker(stru
- 	if (marker & PTE_MARKER_GUARD)
- 		return VM_FAULT_SIGSEGV;
- 
--	if (pte_marker_entry_uffd_wp(entry))
-+	if (softleaf_is_uffd_wp_marker(entry))
- 		return pte_marker_handle_uffd_wp(vmf);
- 
- 	/* This is an unknown pte marker */
-@@ -4680,7 +4681,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 			}
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
--		} else if (is_pte_marker_entry(entry)) {
-+		} else if (softleaf_is_marker(entry)) {
- 			ret = handle_pte_marker(vmf);
- 		} else {
- 			print_bad_pte(vma, vmf->address, vmf->orig_pte, NULL);
---- a/mm/mincore.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/mincore.c
-@@ -14,7 +14,7 @@
- #include <linux/mman.h>
- #include <linux/syscalls.h>
- #include <linux/swap.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/shmem_fs.h>
- #include <linux/hugetlb.h>
- #include <linux/pgtable.h>
-@@ -42,7 +42,7 @@ static int mincore_hugetlb(pte_t *pte, u
- 	} else {
- 		const pte_t ptep = huge_ptep_get(walk->mm, addr, pte);
- 
--		if (huge_pte_none(ptep) || is_pte_marker(ptep))
-+		if (huge_pte_none(ptep) || pte_is_marker(ptep))
- 			present = 0;
- 		else
- 			present = 1;
-@@ -187,7 +187,7 @@ static int mincore_pte_range(pmd_t *pmd,
- 
- 		step = 1;
- 		/* We need to do cache lookup too for markers */
--		if (pte_none(pte) || is_pte_marker(pte))
-+		if (pte_none(pte) || pte_is_marker(pte))
- 			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
- 						 vma, vec);
- 		else if (pte_present(pte)) {
---- a/mm/mprotect.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/mprotect.c
-@@ -326,14 +326,14 @@ static long change_pte_range(struct mmu_
- 				newpte = swp_entry_to_pte(entry);
- 				if (pte_swp_uffd_wp(oldpte))
- 					newpte = pte_swp_mkuffd_wp(newpte);
--			} else if (is_pte_marker_entry(entry)) {
-+			} else if (softleaf_is_marker(entry)) {
- 				/*
- 				 * Ignore error swap entries unconditionally,
- 				 * because any access should sigbus/sigsegv
- 				 * anyway.
- 				 */
--				if (is_poisoned_swp_entry(entry) ||
--				    is_guard_swp_entry(entry))
-+				if (softleaf_is_poison_marker(entry) ||
-+				    softleaf_is_guard_marker(entry))
- 					continue;
- 				/*
- 				 * If this is uffd-wp pte marker and we'd like
---- a/mm/mremap.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/mremap.c
-@@ -17,7 +17,7 @@
- #include <linux/swap.h>
- #include <linux/capability.h>
- #include <linux/fs.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/highmem.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
-@@ -288,7 +288,7 @@ static int move_ptes(struct pagetable_mo
- 		pte = move_pte(pte, old_addr, new_addr);
- 		pte = move_soft_dirty_pte(pte);
- 
--		if (need_clear_uffd_wp && pte_marker_uffd_wp(pte))
-+		if (need_clear_uffd_wp && pte_is_uffd_wp_marker(pte))
- 			pte_clear(mm, new_addr, new_ptep);
- 		else {
- 			if (need_clear_uffd_wp) {
---- a/mm/page_vma_mapped.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/page_vma_mapped.c
-@@ -3,7 +3,7 @@
- #include <linux/rmap.h>
- #include <linux/hugetlb.h>
- #include <linux/swap.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- 
- #include "internal.h"
- 
-@@ -107,15 +107,12 @@ static bool check_pte(struct page_vma_ma
- 	pte_t ptent = ptep_get(pvmw->pte);
- 
- 	if (pvmw->flags & PVMW_MIGRATION) {
--		swp_entry_t entry;
--		if (!is_swap_pte(ptent))
--			return false;
--		entry = pte_to_swp_entry(ptent);
-+		const softleaf_t entry = softleaf_from_pte(ptent);
- 
--		if (!is_migration_entry(entry))
-+		if (!softleaf_is_migration(entry))
- 			return false;
- 
--		pfn = swp_offset_pfn(entry);
-+		pfn = softleaf_to_pfn(entry);
- 	} else if (is_swap_pte(ptent)) {
- 		swp_entry_t entry;
- 
---- a/mm/shmem.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/shmem.c
-@@ -66,7 +66,7 @@ static struct vfsmount *shm_mnt __ro_aft
- #include <linux/falloc.h>
- #include <linux/splice.h>
- #include <linux/security.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/mempolicy.h>
- #include <linux/namei.h>
- #include <linux/ctype.h>
-@@ -2286,7 +2286,8 @@ static int shmem_swapin_folio(struct ino
- 	struct address_space *mapping = inode->i_mapping;
- 	struct mm_struct *fault_mm = vma ? vma->vm_mm : NULL;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	swp_entry_t swap, index_entry;
-+	swp_entry_t swap;
-+	softleaf_t index_entry;
- 	struct swap_info_struct *si;
- 	struct folio *folio = NULL;
- 	bool skip_swapcache = false;
-@@ -2298,7 +2299,7 @@ static int shmem_swapin_folio(struct ino
- 	swap = index_entry;
- 	*foliop = NULL;
- 
--	if (is_poisoned_swp_entry(index_entry))
-+	if (softleaf_is_poison_marker(index_entry))
- 		return -EIO;
- 
- 	si = get_swap_device(index_entry);
---- a/mm/userfaultfd.c~mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic
-+++ a/mm/userfaultfd.c
-@@ -10,7 +10,7 @@
- #include <linux/pagemap.h>
- #include <linux/rmap.h>
- #include <linux/swap.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/userfaultfd_k.h>
- #include <linux/mmu_notifier.h>
- #include <linux/hugetlb.h>
-@@ -208,7 +208,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
- 	 * MISSING|WP registered, we firstly wr-protect a none pte which has no
- 	 * page cache page backing it, then access the page.
- 	 */
--	if (!pte_none(dst_ptep) && !is_uffd_pte_marker(dst_ptep))
-+	if (!pte_none(dst_ptep) && !pte_is_uffd_marker(dst_ptep))
- 		goto out_unlock;
- 
- 	if (page_in_cache) {
-@@ -590,7 +590,7 @@ retry:
- 		if (!uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE)) {
- 			const pte_t ptep = huge_ptep_get(dst_mm, dst_addr, dst_pte);
- 
--			if (!huge_pte_none(ptep) && !is_uffd_pte_marker(ptep)) {
-+			if (!huge_pte_none(ptep) && !pte_is_uffd_marker(ptep)) {
- 				err = -EEXIST;
- 				hugetlb_vma_unlock_read(dst_vma);
- 				mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 	 * Allocate (huge) pages because some of the tests need to access
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
