@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DCDC2F7456
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 368083358B6
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025842; cv=none; b=Q6PxbUy8oYGEN7Xt4SAVMHWwQHmQopXBKO6FFsowb7zUBuXGn2AiWebEHe96ZdlOR/cIFqT64d2I7j++jFO182rg17jE8WVHgXgCWQeGCMrE1DWsxac51eFUwOIKTFQypiqsaQi+gXKexxXWenx9oRYdn1QDeF0nuMczXLans7A=
+	t=1764025843; cv=none; b=Lush6V7oUC4uZ/h4xCLI0bN7mktAKU1546djI0Hk+XZevrorl9ddDT4bREXJghDEFTTwrx2h2oJTwLyZsRyjRUmhElanLpEBrTWOkqjjYk2JVQVqjuO922QCBxK4CBTx3NL80S8pq+RA3X0Scio6lOkgcHaB1A5URC+NNxKGJxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025842; c=relaxed/simple;
-	bh=upE1I0Ql8ncTwP49jNwvVwWERa5YCFcNfPF9mvY1WD4=;
-	h=Date:To:From:Subject:Message-Id; b=rGli3z03seYoW5XIoreEDzNY35/K+5MM0v3XC8XRHDUzZgyqDxqryjdVeahtBwND3kB5fy/PugKDD6zDjAsW9wkrfd6A1l8obnUGb3lDNNEEKMxCHLpFA8vpZ7NY8td611CLOfIYn1oE7cA4nlPNlPEjwzDufuGfyffvysQVLBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GPwfMPZ4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025843; c=relaxed/simple;
+	bh=sLyxT3ObOjs6NXEEmRB7BM9vnX2aup8tNcPAWLduXos=;
+	h=Date:To:From:Subject:Message-Id; b=PSf/x1rfqrnSsUI0RQ7OxJ3nAlY6F4KcFoY9xtfnGbBX6ccgnxzAvk6QTrazai+zLq3zOpySLCpsQ2oiKlFaI+OIlZL3n8tKYuEsPkYOk4+ToK3Dv1KLqCyj8d2gmnRO9k+UDJCJhGccycOIEBqp1GwR9hOJhY2gJLuYQSbYVHQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tWXf1aGP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GPwfMPZ4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5D67C4CEF1;
-	Mon, 24 Nov 2025 23:10:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tWXf1aGP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06CB8C4CEF1;
+	Mon, 24 Nov 2025 23:10:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025842;
-	bh=upE1I0Ql8ncTwP49jNwvVwWERa5YCFcNfPF9mvY1WD4=;
+	s=korg; t=1764025843;
+	bh=sLyxT3ObOjs6NXEEmRB7BM9vnX2aup8tNcPAWLduXos=;
 	h=Date:To:From:Subject:From;
-	b=GPwfMPZ4ExzMl0uDcZvgHolwlFmVbOpKmupegE++yNIlrDwZcd0ffzCxnLbldnuYe
-	 PgQwGP4RZve7Vp4yy/aIbJ2FH2h0wqdJCJ0/7oB8TtqS6E1tXyEyTaaIfcAxcQU0NJ
-	 0kB7+nrIhyU7L8cPzZ1w29PsmeDT3IRY+3r+sIYA=
-Date: Mon, 24 Nov 2025 15:10:41 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=tWXf1aGP3NIO40XlE0yN9u3gerPClvdOD3SujZ7txGJkxi9h5gHavAPxwl/nEGNzA
+	 zBepXBt7aT9M+zdbI5QNu+4W23EGkwSID7drOC0F/vM4sI2aQXU94XBx1J1rO8I7As
+	 QsGpLI+CDSDzhaCnBggr7G4YbRC5kpfMqfixr3xk=
+Date: Mon, 24 Nov 2025 15:10:42 -0800
+To: mm-commits@vger.kernel.org,ywen.chen@foxmail.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch removed from -mm tree
-Message-Id: <20251124231041.E5D67C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] zram-introduce-writeback-bio-batching.patch removed from -mm tree
+Message-Id: <20251124231043.06CB8C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,154 +35,545 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: unify SCAN_PMD_NONE and SCAN_PMD_NULL into SCAN_NO_PTE_TABLE
+     Subject: zram: introduce writeback bio batching
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table.patch
+     zram-introduce-writeback-bio-batching.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/khugepaged: unify SCAN_PMD_NONE and SCAN_PMD_NULL into SCAN_NO_PTE_TABLE
-Date: Fri, 14 Nov 2025 03:00:28 +0000
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: introduce writeback bio batching
+Date: Sat, 22 Nov 2025 16:40:24 +0900
 
-The current hugepage collapse scan results include two separate values,
-SCAN_PMD_NONE and SCAN_PMD_NULL, which are handled identically by the
-consuming code.
+Patch series "zram: introduce writeback bio batching", v6.
 
-To reduce confusion and improve long-term maintenance, this commit merges
-these two functionally equivalent states into a single, clearer
-identifier: SCAN_NO_PTE_TABLE
+As writeback is becoming more and more common the longstanding limitations
+of zram writeback throughput are becoming more visible.  Introduce
+writeback bio batching so that multiple writeback bios can be processed
+simultaneously.
 
-Link: https://lkml.kernel.org/r/20251114030028.7035-4-richard.weiyang@gmail.com
-Suggested-by: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Nico Pache <npache@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Zi Yan <ziy@nvidia.com>
+
+This patch (of 6):
+
+As was stated in a comment [1] a single page writeback IO is not
+efficient, but it works.  It's time to address this throughput limitation
+as writeback becomes used more often.  Introduce batched (multiple) bio
+writeback support to take advantage of parallel requests processing and
+better requests scheduling.
+
+Approach used in this patch doesn't use a dedicated kthread like in [2],
+or blk-plug like in [3].  Dedicated kthread adds complexity, which can be
+avoided.  Apart from that not all zram setups use writeback, so having
+numerous per-device kthreads (on systems that create multiple zram
+devices) hanging around is not the most optimal thing to do.  blk-plug, on
+the other hand, works best when request are sequential, which doesn't
+particularly fit zram writebck IO patterns: zram writeback IO patterns are
+expected to be random, due to how bdev block reservation/release are
+handled.  blk-plug approach also works in cycles: idle IO, when zram sets
+up requests in a batch, is followed by bursts of IO, when zram submits the
+entire batch.
+
+Instead we use a batch of requests and submit new bio as soon as one of
+the in-flight requests completes.
+
+For the time being the writeback batch size (maximum number of in-flight
+bio requests) is set to 32 for all devices.  A follow up patch adds a
+writeback_batch_size device attribute, so the batch size becomes run-time
+configurable.
+
+Link: https://lkml.kernel.org/r/20251122074029.3948921-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20251122074029.3948921-2-senozhatsky@chromium.org
+Link: https://lore.kernel.org/all/20181203024045.153534-6-minchan@kernel.org/ [1]
+Link: https://lore.kernel.org/all/20250731064949.1690732-1-richardycc@google.com/ [2]
+Link: https://lore.kernel.org/all/tencent_78FC2C4FE16BA1EBAF0897DB60FCD675ED05@qq.com/ [3]
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Co-developed-by: Yuwen Chen <ywen.chen@foxmail.com>
+Co-developed-by: Richard Chang <richardycc@google.com>
+Suggested-by: Minchan Kim <minchan@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Richard Chang <richardycc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    3 +--
- mm/khugepaged.c                    |   23 ++++++++++-------------
- 2 files changed, 11 insertions(+), 15 deletions(-)
+ drivers/block/zram/zram_drv.c |  369 ++++++++++++++++++++++++++------
+ 1 file changed, 301 insertions(+), 68 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table
-+++ a/include/trace/events/huge_memory.h
-@@ -10,8 +10,7 @@
- #define SCAN_STATUS							\
- 	EM( SCAN_FAIL,			"failed")			\
- 	EM( SCAN_SUCCEED,		"succeeded")			\
--	EM( SCAN_PMD_NULL,		"pmd_null")			\
--	EM( SCAN_PMD_NONE,		"pmd_none")			\
-+	EM( SCAN_NO_PTE_TABLE,		"no_pte_table")			\
- 	EM( SCAN_PMD_MAPPED,		"page_pmd_mapped")		\
- 	EM( SCAN_EXCEED_NONE_PTE,	"exceed_none_pte")		\
- 	EM( SCAN_EXCEED_SWAP_PTE,	"exceed_swap_pte")		\
---- a/mm/khugepaged.c~mm-khugepaged-unify-scan_pmd_none-and-scan_pmd_null-into-scan_no_pte_table
-+++ a/mm/khugepaged.c
-@@ -30,8 +30,7 @@
- enum scan_result {
- 	SCAN_FAIL,
- 	SCAN_SUCCEED,
--	SCAN_PMD_NULL,
--	SCAN_PMD_NONE,
-+	SCAN_NO_PTE_TABLE,
- 	SCAN_PMD_MAPPED,
- 	SCAN_EXCEED_NONE_PTE,
- 	SCAN_EXCEED_SWAP_PTE,
-@@ -934,7 +933,7 @@ static inline int check_pmd_state(pmd_t
- 	pmd_t pmde = pmdp_get_lockless(pmd);
- 
- 	if (pmd_none(pmde))
--		return SCAN_PMD_NONE;
-+		return SCAN_NO_PTE_TABLE;
- 
- 	/*
- 	 * The folio may be under migration when khugepaged is trying to
-@@ -944,11 +943,11 @@ static inline int check_pmd_state(pmd_t
- 	if (pmd_is_migration_entry(pmde))
- 		return SCAN_PMD_MAPPED;
- 	if (!pmd_present(pmde))
--		return SCAN_PMD_NULL;
-+		return SCAN_NO_PTE_TABLE;
- 	if (pmd_trans_huge(pmde))
- 		return SCAN_PMD_MAPPED;
- 	if (pmd_bad(pmde))
--		return SCAN_PMD_NULL;
-+		return SCAN_NO_PTE_TABLE;
- 	return SCAN_SUCCEED;
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-writeback-bio-batching
++++ a/drivers/block/zram/zram_drv.c
+@@ -500,6 +500,26 @@ out:
  }
  
-@@ -958,7 +957,7 @@ static int find_pmd_or_thp_or_none(struc
+ #ifdef CONFIG_ZRAM_WRITEBACK
++struct zram_wb_ctl {
++	/* idle list is accessed only by the writeback task, no concurency */
++	struct list_head idle_reqs;
++	/* done list is accessed concurrently, protect by done_lock */
++	struct list_head done_reqs;
++	wait_queue_head_t done_wait;
++	spinlock_t done_lock;
++	atomic_t num_inflight;
++};
++
++struct zram_wb_req {
++	unsigned long blk_idx;
++	struct page *page;
++	struct zram_pp_slot *pps;
++	struct bio_vec bio_vec;
++	struct bio bio;
++
++	struct list_head entry;
++};
++
+ static ssize_t writeback_limit_enable_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
  {
- 	*pmd = mm_find_pmd(mm, address);
- 	if (!*pmd)
--		return SCAN_PMD_NULL;
-+		return SCAN_NO_PTE_TABLE;
- 
- 	return check_pmd_state(*pmd);
+@@ -734,19 +754,221 @@ static void read_from_bdev_async(struct
+ 	submit_bio(bio);
  }
-@@ -1013,7 +1012,7 @@ static int __collapse_huge_page_swapin(s
- 			pte = pte_offset_map_ro_nolock(mm, pmd, addr, &ptl);
- 			if (!pte) {
- 				mmap_read_unlock(mm);
--				result = SCAN_PMD_NULL;
-+				result = SCAN_NO_PTE_TABLE;
- 				goto out;
- 			}
+ 
+-static int zram_writeback_slots(struct zram *zram, struct zram_pp_ctl *ctl)
++static void release_wb_req(struct zram_wb_req *req)
+ {
+-	unsigned long blk_idx = 0;
+-	struct page *page = NULL;
+-	struct zram_pp_slot *pps;
+-	struct bio_vec bio_vec;
+-	struct bio bio;
++	__free_page(req->page);
++	kfree(req);
++}
++
++static void release_wb_ctl(struct zram_wb_ctl *wb_ctl)
++{
++	if (!wb_ctl)
++		return;
++
++	/* We should never have inflight requests at this point */
++	WARN_ON(atomic_read(&wb_ctl->num_inflight));
++	WARN_ON(!list_empty(&wb_ctl->done_reqs));
++
++	while (!list_empty(&wb_ctl->idle_reqs)) {
++		struct zram_wb_req *req;
++
++		req = list_first_entry(&wb_ctl->idle_reqs,
++				       struct zram_wb_req, entry);
++		list_del(&req->entry);
++		release_wb_req(req);
++	}
++
++	kfree(wb_ctl);
++}
++
++/* XXX: should be a per-device sysfs attr */
++#define ZRAM_WB_REQ_CNT 32
++
++static struct zram_wb_ctl *init_wb_ctl(void)
++{
++	struct zram_wb_ctl *wb_ctl;
++	int i;
++
++	wb_ctl = kmalloc(sizeof(*wb_ctl), GFP_KERNEL);
++	if (!wb_ctl)
++		return NULL;
++
++	INIT_LIST_HEAD(&wb_ctl->idle_reqs);
++	INIT_LIST_HEAD(&wb_ctl->done_reqs);
++	atomic_set(&wb_ctl->num_inflight, 0);
++	init_waitqueue_head(&wb_ctl->done_wait);
++	spin_lock_init(&wb_ctl->done_lock);
++
++	for (i = 0; i < ZRAM_WB_REQ_CNT; i++) {
++		struct zram_wb_req *req;
++
++		/*
++		 * This is fatal condition only if we couldn't allocate
++		 * any requests at all.  Otherwise we just work with the
++		 * requests that we have successfully allocated, so that
++		 * writeback can still proceed, even if there is only one
++		 * request on the idle list.
++		 */
++		req = kzalloc(sizeof(*req), GFP_KERNEL | __GFP_NOWARN);
++		if (!req)
++			break;
++
++		req->page = alloc_page(GFP_KERNEL | __GFP_NOWARN);
++		if (!req->page) {
++			kfree(req);
++			break;
++		}
++
++		list_add(&req->entry, &wb_ctl->idle_reqs);
++	}
++
++	/* We couldn't allocate any requests, so writeabck is not possible */
++	if (list_empty(&wb_ctl->idle_reqs))
++		goto release_wb_ctl;
++
++	return wb_ctl;
++
++release_wb_ctl:
++	release_wb_ctl(wb_ctl);
++	return NULL;
++}
++
++static void zram_account_writeback_rollback(struct zram *zram)
++{
++	spin_lock(&zram->wb_limit_lock);
++	if (zram->wb_limit_enable)
++		zram->bd_wb_limit +=  1UL << (PAGE_SHIFT - 12);
++	spin_unlock(&zram->wb_limit_lock);
++}
++
++static void zram_account_writeback_submit(struct zram *zram)
++{
++	spin_lock(&zram->wb_limit_lock);
++	if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
++		zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
++	spin_unlock(&zram->wb_limit_lock);
++}
++
++static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
++{
++	u32 index = req->pps->index;
++	int err;
++
++	err = blk_status_to_errno(req->bio.bi_status);
++	if (err) {
++		/*
++		 * Failed wb requests should not be accounted in wb_limit
++		 * (if enabled).
++		 */
++		zram_account_writeback_rollback(zram);
++		free_block_bdev(zram, req->blk_idx);
++		return err;
++	}
++
++	atomic64_inc(&zram->stats.bd_writes);
++	zram_slot_lock(zram, index);
++	/*
++	 * We release slot lock during writeback so slot can change under us:
++	 * slot_free() or slot_free() and zram_write_page(). In both cases
++	 * slot loses ZRAM_PP_SLOT flag. No concurrent post-processing can
++	 * set ZRAM_PP_SLOT on such slots until current post-processing
++	 * finishes.
++	 */
++	if (!zram_test_flag(zram, index, ZRAM_PP_SLOT)) {
++		free_block_bdev(zram, req->blk_idx);
++		goto out;
++	}
++
++	zram_free_page(zram, index);
++	zram_set_flag(zram, index, ZRAM_WB);
++	zram_set_handle(zram, index, req->blk_idx);
++	atomic64_inc(&zram->stats.pages_stored);
++
++out:
++	zram_slot_unlock(zram, index);
++	return 0;
++}
++
++static void zram_writeback_endio(struct bio *bio)
++{
++	struct zram_wb_req *req = container_of(bio, struct zram_wb_req, bio);
++	struct zram_wb_ctl *wb_ctl = bio->bi_private;
++	unsigned long flags;
++
++	spin_lock_irqsave(&wb_ctl->done_lock, flags);
++	list_add(&req->entry, &wb_ctl->done_reqs);
++	spin_unlock_irqrestore(&wb_ctl->done_lock, flags);
++
++	wake_up(&wb_ctl->done_wait);
++}
++
++static void zram_submit_wb_request(struct zram *zram,
++				   struct zram_wb_ctl *wb_ctl,
++				   struct zram_wb_req *req)
++{
++	/*
++	 * wb_limit (if enabled) should be adjusted before submission,
++	 * so that we don't over-submit.
++	 */
++	zram_account_writeback_submit(zram);
++	atomic_inc(&wb_ctl->num_inflight);
++	req->bio.bi_private = wb_ctl;
++	submit_bio(&req->bio);
++}
++
++static int zram_complete_done_reqs(struct zram *zram,
++				   struct zram_wb_ctl *wb_ctl)
++{
++	struct zram_wb_req *req;
++	unsigned long flags;
+ 	int ret = 0, err;
+-	u32 index;
+ 
+-	page = alloc_page(GFP_KERNEL);
+-	if (!page)
+-		return -ENOMEM;
++	while (atomic_read(&wb_ctl->num_inflight) > 0) {
++		spin_lock_irqsave(&wb_ctl->done_lock, flags);
++		req = list_first_entry_or_null(&wb_ctl->done_reqs,
++					       struct zram_wb_req, entry);
++		if (req)
++			list_del(&req->entry);
++		spin_unlock_irqrestore(&wb_ctl->done_lock, flags);
++
++		/* ->num_inflight > 0 doesn't mean we have done requests */
++		if (!req)
++			break;
++
++		err = zram_writeback_complete(zram, req);
++		if (err)
++			ret = err;
++
++		atomic_dec(&wb_ctl->num_inflight);
++		release_pp_slot(zram, req->pps);
++		req->pps = NULL;
++
++		list_add(&req->entry, &wb_ctl->idle_reqs);
++	}
++
++	return ret;
++}
++
++static struct zram_wb_req *zram_select_idle_req(struct zram_wb_ctl *wb_ctl)
++{
++	struct zram_wb_req *req;
++
++	req = list_first_entry_or_null(&wb_ctl->idle_reqs,
++				       struct zram_wb_req, entry);
++	if (req)
++		list_del(&req->entry);
++	return req;
++}
++
++static int zram_writeback_slots(struct zram *zram,
++				struct zram_pp_ctl *ctl,
++				struct zram_wb_ctl *wb_ctl)
++{
++	struct zram_wb_req *req = NULL;
++	unsigned long blk_idx = 0;
++	struct zram_pp_slot *pps;
++	int ret = 0, err = 0;
++	u32 index = 0;
+ 
+ 	while ((pps = select_pp_slot(ctl))) {
+ 		spin_lock(&zram->wb_limit_lock);
+@@ -757,6 +979,27 @@ static int zram_writeback_slots(struct z
  		}
-@@ -1187,7 +1186,7 @@ static int collapse_huge_page(struct mm_
- 						      &compound_pagelist);
- 		spin_unlock(pte_ptl);
- 	} else {
--		result = SCAN_PMD_NULL;
-+		result = SCAN_NO_PTE_TABLE;
- 	}
+ 		spin_unlock(&zram->wb_limit_lock);
  
- 	if (unlikely(result != SCAN_SUCCEED)) {
-@@ -1270,7 +1269,7 @@ static int hpage_collapse_scan_pmd(struc
- 	nodes_clear(cc->alloc_nmask);
- 	pte = pte_offset_map_lock(mm, pmd, start_addr, &ptl);
- 	if (!pte) {
--		result = SCAN_PMD_NULL;
-+		result = SCAN_NO_PTE_TABLE;
- 		goto out;
- 	}
++		while (!req) {
++			req = zram_select_idle_req(wb_ctl);
++			if (req)
++				break;
++
++			wait_event(wb_ctl->done_wait,
++				   !list_empty(&wb_ctl->done_reqs));
++
++			err = zram_complete_done_reqs(zram, wb_ctl);
++			/*
++			 * BIO errors are not fatal, we continue and simply
++			 * attempt to writeback the remaining objects (pages).
++			 * At the same time we need to signal user-space that
++			 * some writes (at least one, but also could be all of
++			 * them) were not successful and we do so by returning
++			 * the most recent BIO error.
++			 */
++			if (err)
++				ret = err;
++		}
++
+ 		if (!blk_idx) {
+ 			blk_idx = alloc_block_bdev(zram);
+ 			if (!blk_idx) {
+@@ -775,67 +1018,47 @@ static int zram_writeback_slots(struct z
+ 		 */
+ 		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
+ 			goto next;
+-		if (zram_read_from_zspool(zram, page, index))
++		if (zram_read_from_zspool(zram, req->page, index))
+ 			goto next;
+ 		zram_slot_unlock(zram, index);
  
-@@ -1544,8 +1543,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 	switch (result) {
- 	case SCAN_SUCCEED:
- 		break;
--	case SCAN_PMD_NULL:
--	case SCAN_PMD_NONE:
-+	case SCAN_NO_PTE_TABLE:
+-		bio_init(&bio, zram->bdev, &bio_vec, 1,
+-			 REQ_OP_WRITE | REQ_SYNC);
+-		bio.bi_iter.bi_sector = blk_idx * (PAGE_SIZE >> 9);
+-		__bio_add_page(&bio, page, PAGE_SIZE, 0);
+-
  		/*
- 		 * All pte entries have been removed and pmd cleared.
- 		 * Skip all the pte checks and just update the pmd mapping.
-@@ -2832,8 +2830,7 @@ handle_result:
- 			mmap_read_unlock(mm);
- 			goto handle_result;
- 		/* Whitelisted set of results where continuing OK */
--		case SCAN_PMD_NULL:
--		case SCAN_PMD_NONE:
-+		case SCAN_NO_PTE_TABLE:
- 		case SCAN_PTE_NON_PRESENT:
- 		case SCAN_PTE_UFFD_WP:
- 		case SCAN_LACK_REFERENCED_PAGE:
+-		 * XXX: A single page IO would be inefficient for write
+-		 * but it would be not bad as starter.
++		 * From now on pp-slot is owned by the req, remove it from
++		 * its pp bucket.
+ 		 */
+-		err = submit_bio_wait(&bio);
+-		if (err) {
+-			release_pp_slot(zram, pps);
+-			/*
+-			 * BIO errors are not fatal, we continue and simply
+-			 * attempt to writeback the remaining objects (pages).
+-			 * At the same time we need to signal user-space that
+-			 * some writes (at least one, but also could be all of
+-			 * them) were not successful and we do so by returning
+-			 * the most recent BIO error.
+-			 */
+-			ret = err;
+-			continue;
+-		}
++		list_del_init(&pps->entry);
+ 
+-		atomic64_inc(&zram->stats.bd_writes);
+-		zram_slot_lock(zram, index);
+-		/*
+-		 * Same as above, we release slot lock during writeback so
+-		 * slot can change under us: slot_free() or slot_free() and
+-		 * reallocation (zram_write_page()). In both cases slot loses
+-		 * ZRAM_PP_SLOT flag. No concurrent post-processing can set
+-		 * ZRAM_PP_SLOT on such slots until current post-processing
+-		 * finishes.
+-		 */
+-		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
+-			goto next;
++		req->blk_idx = blk_idx;
++		req->pps = pps;
++		bio_init(&req->bio, zram->bdev, &req->bio_vec, 1, REQ_OP_WRITE);
++		req->bio.bi_iter.bi_sector = req->blk_idx * (PAGE_SIZE >> 9);
++		req->bio.bi_end_io = zram_writeback_endio;
++		__bio_add_page(&req->bio, req->page, PAGE_SIZE, 0);
+ 
+-		zram_free_page(zram, index);
+-		zram_set_flag(zram, index, ZRAM_WB);
+-		zram_set_handle(zram, index, blk_idx);
++		zram_submit_wb_request(zram, wb_ctl, req);
+ 		blk_idx = 0;
+-		atomic64_inc(&zram->stats.pages_stored);
+-		spin_lock(&zram->wb_limit_lock);
+-		if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
+-			zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
+-		spin_unlock(&zram->wb_limit_lock);
++		req = NULL;
++		cond_resched();
++		continue;
++
+ next:
+ 		zram_slot_unlock(zram, index);
+ 		release_pp_slot(zram, pps);
+-
+-		cond_resched();
+ 	}
+ 
+-	if (blk_idx)
+-		free_block_bdev(zram, blk_idx);
+-	if (page)
+-		__free_page(page);
++	/*
++	 * Selected idle req, but never submitted it due to some error or
++	 * wb limit.
++	 */
++	if (req)
++		release_wb_req(req);
++
++	while (atomic_read(&wb_ctl->num_inflight) > 0) {
++		wait_event(wb_ctl->done_wait, !list_empty(&wb_ctl->done_reqs));
++		err = zram_complete_done_reqs(zram, wb_ctl);
++		if (err)
++			ret = err;
++	}
+ 
+ 	return ret;
+ }
+@@ -948,7 +1171,8 @@ static ssize_t writeback_store(struct de
+ 	struct zram *zram = dev_to_zram(dev);
+ 	u64 nr_pages = zram->disksize >> PAGE_SHIFT;
+ 	unsigned long lo = 0, hi = nr_pages;
+-	struct zram_pp_ctl *ctl = NULL;
++	struct zram_pp_ctl *pp_ctl = NULL;
++	struct zram_wb_ctl *wb_ctl = NULL;
+ 	char *args, *param, *val;
+ 	ssize_t ret = len;
+ 	int err, mode = 0;
+@@ -970,8 +1194,14 @@ static ssize_t writeback_store(struct de
+ 		goto release_init_lock;
+ 	}
+ 
+-	ctl = init_pp_ctl();
+-	if (!ctl) {
++	pp_ctl = init_pp_ctl();
++	if (!pp_ctl) {
++		ret = -ENOMEM;
++		goto release_init_lock;
++	}
++
++	wb_ctl = init_wb_ctl();
++	if (!wb_ctl) {
+ 		ret = -ENOMEM;
+ 		goto release_init_lock;
+ 	}
+@@ -1000,7 +1230,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			break;
+ 		}
+ 
+@@ -1011,7 +1241,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			break;
+ 		}
+ 
+@@ -1022,7 +1252,7 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			continue;
+ 		}
+ 
+@@ -1033,17 +1263,18 @@ static ssize_t writeback_store(struct de
+ 				goto release_init_lock;
+ 			}
+ 
+-			scan_slots_for_writeback(zram, mode, lo, hi, ctl);
++			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
+ 			continue;
+ 		}
+ 	}
+ 
+-	err = zram_writeback_slots(zram, ctl);
++	err = zram_writeback_slots(zram, pp_ctl, wb_ctl);
+ 	if (err)
+ 		ret = err;
+ 
+ release_init_lock:
+-	release_pp_ctl(zram, ctl);
++	release_pp_ctl(zram, pp_ctl);
++	release_wb_ctl(wb_ctl);
+ 	atomic_set(&zram->pp_in_progress, 0);
+ 	up_read(&zram->init_lock);
+ 
+@@ -1112,7 +1343,9 @@ static int read_from_bdev(struct zram *z
+ 	return -EIO;
+ }
+ 
+-static void free_block_bdev(struct zram *zram, unsigned long blk_idx) {};
++static void free_block_bdev(struct zram *zram, unsigned long blk_idx)
++{
++}
+ #endif
+ 
+ #ifdef CONFIG_ZRAM_MEMORY_TRACKING
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 
