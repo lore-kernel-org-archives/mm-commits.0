@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CA2CA944
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:51:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22804A944
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:52:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764024705; cv=none; b=Nj2yOdX/Oo5RPvW6Pp0vZbnPOQi1TXTzyQdF05m8yr68rVg8zwM8GfbLvBWDBOPKsKGyrP7g6WBLR7513McYmxjtmV+vQsreBpHyEAaS9eafhYsgiBwxC7EE2P1qh8W5chI5vFt3ASkG0kIVMWPLkKbTWZrD45ob0qw+T+qMmiQ=
+	t=1764024765; cv=none; b=TWxg6cuCPnXu90Dc7hkLGnZFhj3ki8ZtCVaxegR6SMfmDKAm9mBKQjYWbR0D4PLt46zpR2G29wOde9IySmCM+sHqTDLxK45dv6C8va3WyfLJyDWgqHYqvhhqTAIhjKrMFbfdIHWsQNZVBhYVotf04+/7HKSA58uhXFlAB4OVuQI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764024705; c=relaxed/simple;
-	bh=UTuVpYup8XmqBT1FwT6QIEM61+FuhpMZ+sEsfzPEwnc=;
-	h=Date:To:From:Subject:Message-Id; b=iU/3oErq1ltinx7OTX6tKRJfke+KQfpCusDabvEL118kZ5xaU8jc99nwSipgQKagpWZJiLwIcZ9nrjF6tANl9oMQVpsSxwTXglnm9NH6/pcmk68E1vnhAmRs7xkWGdnglJcT+wJn6nj/Bcs5zCS0M309yiCH/7TQahjysIU/Axo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GlEfXp1q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764024765; c=relaxed/simple;
+	bh=tDmLkueZ/6OuN2rsICbQPuVvoTP7MkQZem8Lss3MIZc=;
+	h=Date:To:From:Subject:Message-Id; b=K3IBMT8RXnLzQAMXinIrl7aWnMglTIhx9KOFYMOdbemSX3DFg5gfeuXQUFzBq4oInED+qTiCEr8wQYkqTKUBsuxXPd3hX0EtgrmhM6uFz5hwxQTMV9+iQLuAq7MV0Of4v7IkuGJi88eGeMAYkl4vOc9s6gEzU+YQ2aj2DiFsg+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YyY/dDCY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GlEfXp1q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0923AC4CEF1;
-	Mon, 24 Nov 2025 22:51:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YyY/dDCY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A041C4CEFB;
+	Mon, 24 Nov 2025 22:52:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764024705;
-	bh=UTuVpYup8XmqBT1FwT6QIEM61+FuhpMZ+sEsfzPEwnc=;
+	s=korg; t=1764024764;
+	bh=tDmLkueZ/6OuN2rsICbQPuVvoTP7MkQZem8Lss3MIZc=;
 	h=Date:To:From:Subject:From;
-	b=GlEfXp1qPp+RutCquJ0r/wSxiBF+v4qm6JbxQFloaiPB14KFi1PRfZhHiMjynpYmL
-	 4X1twg4iin5ZDUvx3NYGM0ObHWMZMASp2PJA0cR90KbrZ2NF3yALKp+RJuaT2o7kUl
-	 OJIjWWs2/4XIg1JGBI9vQTEoaw1QCOF7uBZEeVnw=
-Date: Mon, 24 Nov 2025 14:51:44 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=YyY/dDCYKbVW8LT32ZhDeNhSD+BphOQBWmbOQjDH+/itWzyloYJa432xON8u/xiri
+	 TfeNmnhTpxggOhUIrL2lQ8xhLoVwjeDf4fZfS+JncXiGWOguiZJlQOP0IndCdqw3XE
+	 JNJ4gTB7HEy77apxsW2O9iq9KRBRy8Zv1ZUYPwd4=
+Date: Mon, 24 Nov 2025 14:52:43 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd-fix.patch removed from -mm tree
-Message-Id: <20251124225145.0923AC4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch removed from -mm tree
+Message-Id: <20251124225244.8A041C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,135 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_table_check: fix device private check
+     Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2
 has been removed from the -mm tree.  Its filename was
-     mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd-fix.patch
+     mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch
 
-This patch was dropped because it was folded into mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
+This patch was dropped because it was folded into mm-huge_memoryc-introduce-folio_split_unmapped.patch
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/page_table_check: fix device private check
-Date: Fri, 21 Nov 2025 19:20:57 +0000
+From: Balbir Singh <balbirs@nvidia.com>
+Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2
+Date: Sat, 15 Nov 2025 19:40:41 +1100
 
-check writable, not readable/writable, per Vlastimil
+- Fix a bug reported by kernel-test-robot, nr_shmem_dropped needs to
+  be updated and returned from the helper function
 
-Link: https://lkml.kernel.org/r/cd97b6ec-00f9-45a4-9ae0-8f009c212a94@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+- Add a debug warning folio_split_unmapped() should be called only on
+  anonymous folios
+
+Link: https://lkml.kernel.org/r/20251115084041.3914728-1-balbirs@nvidia.com
+Signed-off-by: Balbir Singh <balbirs@nvidia.com>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_table_check.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/mm/page_table_check.c~mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd-fix
-+++ a/mm/page_table_check.c
-@@ -181,7 +181,7 @@ EXPORT_SYMBOL(__page_table_check_pud_cle
- /* Whether the swap entry cached writable information */
- static inline bool softleaf_cached_writable(softleaf_t entry)
+--- a/mm/huge_memory.c~mm-huge_memoryc-introduce-folio_split_unmapped-v2
++++ a/mm/huge_memory.c
+@@ -3743,12 +3743,11 @@ static int __folio_freeze_and_split_unma
+ 					     struct page *split_at, struct xa_state *xas,
+ 					     struct address_space *mapping, bool do_lru,
+ 					     struct list_head *list, enum split_type split_type,
+-					     pgoff_t end, int extra_pins)
++					     pgoff_t end, int *nr_shmem_dropped, int extra_pins)
  {
--	return softleaf_is_device_private(entry) ||
-+	return softleaf_is_device_private_write(entry) ||
- 		softleaf_is_migration_write(entry);
- }
+ 	struct folio *end_folio = folio_next(folio);
+ 	struct folio *new_folio, *next;
+ 	int old_order = folio_order(folio);
+-	int nr_shmem_dropped = 0;
+ 	int ret = 0;
+ 	struct deferred_split *ds_queue;
  
+@@ -3851,9 +3850,10 @@ static int __folio_freeze_and_split_unma
+ 				continue;
+ 			}
+ 
++			VM_WARN_ON_ONCE(!nr_shmem_dropped);
+ 			/* Drop folio beyond EOF: ->index >= end */
+-			if (shmem_mapping(mapping))
+-				nr_shmem_dropped += nr_pages;
++			if (shmem_mapping(mapping) && nr_shmem_dropped)
++				*nr_shmem_dropped += nr_pages;
+ 			else if (folio_test_clear_dirty(new_folio))
+ 				folio_account_cleaned(
+ 					new_folio, inode_to_wb(mapping->host));
+@@ -4039,7 +4039,8 @@ static int __folio_split(struct folio *f
+ 	}
+ 
+ 	ret = __folio_freeze_and_split_unmapped(folio, new_order, split_at, &xas, mapping,
+-						true, list, split_type, end, extra_pins);
++						true, list, split_type, end, &nr_shmem_dropped,
++						extra_pins);
+ fail:
+ 	if (mapping)
+ 		xas_unlock(&xas);
+@@ -4104,9 +4105,10 @@ int folio_split_unmapped(struct folio *f
+ {
+ 	int extra_pins, ret = 0;
+ 
+-	VM_WARN_ON_FOLIO(folio_mapped(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(folio_mapped(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
++	VM_WARN_ON_ONCE_FOLIO(!folio_test_anon(folio), folio);
+ 
+ 	if (!can_split_folio(folio, 1, &extra_pins))
+ 		return -EAGAIN;
+@@ -4114,7 +4116,7 @@ int folio_split_unmapped(struct folio *f
+ 	local_irq_disable();
+ 	ret = __folio_freeze_and_split_unmapped(folio, new_order, &folio->page, NULL,
+ 						NULL, false, NULL, SPLIT_TYPE_UNIFORM,
+-						0, extra_pins);
++						0, NULL, extra_pins);
+ 	local_irq_enable();
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from balbirs@nvidia.com are
 
-mm-correctly-handle-uffd-pte-markers.patch
-mm-introduce-leaf-entry-type-and-use-to-simplify-leaf-entry-logic.patch
-mm-avoid-unnecessary-uses-of-is_swap_pte.patch
-mm-eliminate-is_swap_pte-when-softleaf_from_pte-suffices.patch
-mm-use-leaf-entries-in-debug-pgtable-remove-is_swap_pte.patch
-fs-proc-task_mmu-refactor-pagemap_pmd_range.patch
-mm-avoid-unnecessary-use-of-is_swap_pmd.patch
-mm-huge_memory-refactor-copy_huge_pmd-non-present-logic.patch
-mm-huge_memory-refactor-change_huge_pmd-non-present-logic.patch
-mm-replace-pmd_to_swp_entry-with-softleaf_from_pmd.patch
-mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
-mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
-mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
-mm-remove-is_hugetlb_entry_.patch
-mm-eliminate-further-swapops-predicates.patch
-mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
-mm-softdirty-add-pgtable_supports_soft_dirty-fix.patch
-tools-testing-vma-eliminate-dependency-on-vma-__vm_flags.patch
+mm-zone_device-support-large-zone-device-private-folios.patch
+mm-zone_device-rename-page_free-callback-to-folio_free.patch
+mm-huge_memory-add-device-private-thp-support-to-pmd-operations.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
+mm-huge_memory-implement-device-private-thp-splitting.patch
+mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
+mm-migrate_device-implement-thp-migration-of-zone-device-pages.patch
+mm-memory-fault-add-thp-fault-handling-for-zone-device-private-pages.patch
+lib-test_hmm-add-zone-device-private-thp-test-infrastructure.patch
+mm-memremap-add-driver-callback-support-for-folio-splitting.patch
+mm-migrate_device-add-thp-splitting-during-migration.patch
+lib-test_hmm-add-large-page-allocation-failure-testing.patch
+selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
+selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
+gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
+mm-huge_memoryc-introduce-folio_split_unmapped.patch
+mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch
 
