@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E7CC330326
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:09:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E3A2F5321
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:09:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025783; cv=none; b=Tbs9kkUPRer+0y6TNHT47sq5/78K6gzL6snwZRAWrLOWH7pdbu41HmevGoAa5vWKHHCMwSsnGz6HpF63hwHodepNgFzctB1S4EczpKEnXdd67EIfZ/vm7Cp1eJTDnCzqsH0IutEqnyoF7sz+nnsSPrTUk4ny4B0o5oAEOQWx88U=
+	t=1764025784; cv=none; b=CPdqm0vLR0VKHO2TK/K0X1BfNfHV7qFRdQYdNwyTTi9TN17ntptwz07KKNuZDthJXsRvpBgu8HgcQY+bUqIA764Y60MqcfVKYAm0wsYZ+q958G7jnAlsKOnNw+El8YMQ45DvV3X1OMJayaq1G7TZPzSzycHDz5vUEdWNtW5rC6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025783; c=relaxed/simple;
-	bh=9+ZG6OVX/pRW37xH+W3F9bsf719PtvIJUB4afwvsg5w=;
-	h=Date:To:From:Subject:Message-Id; b=hwY5y/JSisFhyVYBNIcoNmJase99NXpLKFWmG8daxh6F3bErCGjo64qXjI518QoXia+u5ptgrtZUEq7+kIGp5huM5vz7TaBlY3w/K0jFCj7A4NJkMs49Pqo4ItUjsmTr1njewM6XrQl2FArRbNxGEyMKa/PD5HtTsIaefg89HMQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DjwK65sI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025784; c=relaxed/simple;
+	bh=mmOlsGDlmhX8d1KzfIkEIcSKYfGn0NGTUI+8qE2xsA4=;
+	h=Date:To:From:Subject:Message-Id; b=dpqm+Gw+Gb3rImzVKxHggW6e4r/+VStxXBRg5wBc4/0LOFlUzknSH9XILFg4rZa1sfWN4/kV3LN94bzryaeCwL3nnNaG3VUi5aqpdtx4lB128tZSTF78ArovD/KyyVjb0pXHEZB++8c3YPCzCuWEfroB2DkHaIvuT0pNS0sQ2NQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mFi/Mr4I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DjwK65sI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A51DDC4CEF1;
-	Mon, 24 Nov 2025 23:09:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mFi/Mr4I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD771C4CEF1;
+	Mon, 24 Nov 2025 23:09:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025782;
-	bh=9+ZG6OVX/pRW37xH+W3F9bsf719PtvIJUB4afwvsg5w=;
+	s=korg; t=1764025784;
+	bh=mmOlsGDlmhX8d1KzfIkEIcSKYfGn0NGTUI+8qE2xsA4=;
 	h=Date:To:From:Subject:From;
-	b=DjwK65sIyThUAD+rUb1klDy9L3TsBIDS8htHN2yXsMHyR76tj+bI0y9sIKFbfo9Qt
-	 I5wsFDk3qKXJFUpqYJlpVSxe0n//mo6o9g6qvDhaYUOvG1LkWyZTFi8N9i6Em0qIgS
-	 jW7m4Zt2LePLEBQU+psYp/PUyJd4ZdmTkWyH8Sk8=
-Date: Mon, 24 Nov 2025 15:09:42 -0800
+	b=mFi/Mr4IzsCtMTgaUDKseH7dD87Hn+d4524sGpp3DVNiZbQpvUGO8YCxaWRkAhppz
+	 muv6Lkrv9aaxiumJk5IBcwk6+aGcAnVMuEfI65XRprDlfK56uDwQW+CsyvKr2DrNC6
+	 7dBQ0z60c3toI1LS1NP9TmTnUYeql4xXrm0i4tzM=
+Date: Mon, 24 Nov 2025 15:09:43 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-implement-device-private-thp-splitting.patch removed from -mm tree
-Message-Id: <20251124230942.A51DDC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate_device-handle-partially-mapped-folios-during-collection.patch removed from -mm tree
+Message-Id: <20251124230943.DD771C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: implement device-private THP splitting
+     Subject: mm/migrate_device: handle partially mapped folios during collection
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-implement-device-private-thp-splitting.patch
+     mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Balbir Singh <balbirs@nvidia.com>
-Subject: mm/huge_memory: implement device-private THP splitting
-Date: Wed, 1 Oct 2025 16:56:56 +1000
+Subject: mm/migrate_device: handle partially mapped folios during collection
+Date: Wed, 1 Oct 2025 16:56:57 +1000
 
-Add support for splitting device-private THP folios, enabling fallback
-to smaller page sizes when large page allocation or migration fails.
+Extend migrate_vma_collect_pmd() to handle partially mapped large folios
+that require splitting before migration can proceed.
 
-Key changes:
-- split_huge_pmd(): Handle device-private PMD entries during splitting
-- Preserve RMAP_EXCLUSIVE semantics for anonymous exclusive folios
-- Skip RMP_USE_SHARED_ZEROPAGE for device-private entries as they
-  don't support shared zero page semantics
+During PTE walk in the collection phase, if a large folio is only
+partially mapped in the migration range, it must be split to ensure the
+folio is correctly migrated.
 
-Link: https://lkml.kernel.org/r/20251001065707.920170-6-balbirs@nvidia.com
+[matthew.brost@intel.com: handle partially mapped folios during split]
+  Link: https://lkml.kernel.org/r/20251120230825.181072-1-matthew.brost@intel.com
+Link: https://lkml.kernel.org/r/20251001065707.920170-7-balbirs@nvidia.com
 Signed-off-by: Balbir Singh <balbirs@nvidia.com>
+Signed-off-by: Matthew Brost <matthew.brost@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
@@ -80,192 +81,109 @@ Cc: David Airlie <airlied@gmail.com>
 Cc: Simona Vetter <simona@ffwll.ch>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
 Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   87 ++++++++++++++++++++++++++++++++++++++-------
- mm/migrate.c     |    1 
- 2 files changed, 76 insertions(+), 12 deletions(-)
+ mm/migrate_device.c |   70 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 69 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-implement-device-private-thp-splitting
-+++ a/mm/huge_memory.c
-@@ -2842,16 +2842,18 @@ static void __split_huge_pmd_locked(stru
- 	struct page *page;
- 	pgtable_t pgtable;
- 	pmd_t old_pmd, _pmd;
--	bool young, write, soft_dirty, pmd_migration = false, uffd_wp = false;
-+	bool soft_dirty, uffd_wp = false, young = false, write = false;
- 	bool anon_exclusive = false, dirty = false;
- 	unsigned long addr;
- 	pte_t *pte;
- 	int i;
-+	swp_entry_t entry;
- 
- 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
- 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PMD_SIZE, vma);
--	VM_BUG_ON(!is_pmd_migration_entry(*pmd) && !pmd_trans_huge(*pmd));
-+
-+	VM_WARN_ON(!is_pmd_non_present_folio_entry(*pmd) && !pmd_trans_huge(*pmd));
- 
- 	count_vm_event(THP_SPLIT_PMD);
- 
-@@ -2899,20 +2901,51 @@ static void __split_huge_pmd_locked(stru
- 		return __split_huge_zero_page_pmd(vma, haddr, pmd);
- 	}
- 
--	pmd_migration = is_pmd_migration_entry(*pmd);
--	if (unlikely(pmd_migration)) {
--		swp_entry_t entry;
- 
-+	if (is_pmd_migration_entry(*pmd)) {
- 		old_pmd = *pmd;
- 		entry = pmd_to_swp_entry(old_pmd);
- 		page = pfn_swap_entry_to_page(entry);
-+		folio = page_folio(page);
-+
-+		soft_dirty = pmd_swp_soft_dirty(old_pmd);
-+		uffd_wp = pmd_swp_uffd_wp(old_pmd);
-+
- 		write = is_writable_migration_entry(entry);
- 		if (PageAnon(page))
- 			anon_exclusive = is_readable_exclusive_migration_entry(entry);
- 		young = is_migration_entry_young(entry);
- 		dirty = is_migration_entry_dirty(entry);
-+	} else if (is_pmd_device_private_entry(*pmd)) {
-+		old_pmd = *pmd;
-+		entry = pmd_to_swp_entry(old_pmd);
-+		page = pfn_swap_entry_to_page(entry);
-+		folio = page_folio(page);
-+
- 		soft_dirty = pmd_swp_soft_dirty(old_pmd);
- 		uffd_wp = pmd_swp_uffd_wp(old_pmd);
-+
-+		write = is_writable_device_private_entry(entry);
-+		anon_exclusive = PageAnonExclusive(page);
-+
-+		/*
-+		 * Device private THP should be treated the same as regular
-+		 * folios w.r.t anon exclusive handling. See the comments for
-+		 * folio handling and anon_exclusive below.
-+		 */
-+		if (freeze && anon_exclusive &&
-+		    folio_try_share_anon_rmap_pmd(folio, page))
-+			freeze = false;
-+		if (!freeze) {
-+			rmap_t rmap_flags = RMAP_NONE;
-+
-+			folio_ref_add(folio, HPAGE_PMD_NR - 1);
-+			if (anon_exclusive)
-+				rmap_flags |= RMAP_EXCLUSIVE;
-+
-+			folio_add_anon_rmap_ptes(folio, page, HPAGE_PMD_NR,
-+						 vma, haddr, rmap_flags);
-+		}
- 	} else {
- 		/*
- 		 * Up to this point the pmd is present and huge and userland has
-@@ -2996,11 +3029,11 @@ static void __split_huge_pmd_locked(stru
- 	 * Note that NUMA hinting access restrictions are not transferred to
- 	 * avoid any possibility of altering permissions across VMAs.
- 	 */
--	if (freeze || pmd_migration) {
--		for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
--			pte_t entry;
--			swp_entry_t swp_entry;
-+	if (freeze || is_pmd_migration_entry(old_pmd)) {
-+		pte_t entry;
-+		swp_entry_t swp_entry;
- 
-+		for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
- 			if (write)
- 				swp_entry = make_writable_migration_entry(
- 							page_to_pfn(page + i));
-@@ -3019,7 +3052,33 @@ static void __split_huge_pmd_locked(stru
- 				entry = pte_swp_mksoft_dirty(entry);
- 			if (uffd_wp)
- 				entry = pte_swp_mkuffd_wp(entry);
-+			VM_WARN_ON(!pte_none(ptep_get(pte + i)));
-+			set_pte_at(mm, addr, pte + i, entry);
-+		}
-+	} else if (is_pmd_device_private_entry(old_pmd)) {
-+		pte_t entry;
-+		swp_entry_t swp_entry;
- 
-+		for (i = 0, addr = haddr; i < HPAGE_PMD_NR; i++, addr += PAGE_SIZE) {
-+			/*
-+			 * anon_exclusive was already propagated to the relevant
-+			 * pages corresponding to the pte entries when freeze
-+			 * is false.
-+			 */
-+			if (write)
-+				swp_entry = make_writable_device_private_entry(
-+							page_to_pfn(page + i));
-+			else
-+				swp_entry = make_readable_device_private_entry(
-+							page_to_pfn(page + i));
-+			/*
-+			 * Young and dirty bits are not progated via swp_entry
-+			 */
-+			entry = swp_entry_to_pte(swp_entry);
-+			if (soft_dirty)
-+				entry = pte_swp_mksoft_dirty(entry);
-+			if (uffd_wp)
-+				entry = pte_swp_mkuffd_wp(entry);
- 			VM_WARN_ON(!pte_none(ptep_get(pte + i)));
- 			set_pte_at(mm, addr, pte + i, entry);
- 		}
-@@ -3046,7 +3105,7 @@ static void __split_huge_pmd_locked(stru
- 	}
- 	pte_unmap(pte);
- 
--	if (!pmd_migration)
-+	if (!is_pmd_migration_entry(*pmd))
- 		folio_remove_rmap_pmd(folio, page, vma);
- 	if (freeze)
- 		put_page(page);
-@@ -3059,7 +3118,7 @@ void split_huge_pmd_locked(struct vm_are
- 			   pmd_t *pmd, bool freeze)
- {
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(address, HPAGE_PMD_SIZE));
--	if (pmd_trans_huge(*pmd) || is_pmd_migration_entry(*pmd))
-+	if (pmd_trans_huge(*pmd) || is_pmd_non_present_folio_entry(*pmd))
- 		__split_huge_pmd_locked(vma, pmd, address, freeze);
+--- a/mm/migrate_device.c~mm-migrate_device-handle-partially-mapped-folios-during-collection
++++ a/mm/migrate_device.c
+@@ -54,6 +54,55 @@ static int migrate_vma_collect_hole(unsi
+ 	return 0;
  }
  
-@@ -3238,6 +3297,9 @@ static void lru_add_split_folio(struct f
- 	VM_BUG_ON_FOLIO(folio_test_lru(new_folio), folio);
- 	lockdep_assert_held(&lruvec->lru_lock);
- 
-+	if (folio_is_device_private(folio))
-+		return;
++/**
++ * migrate_vma_split_folio() - Helper function to split a THP folio
++ * @folio: the folio to split
++ * @fault_page: struct page associated with the fault if any
++ *
++ * Returns 0 on success
++ */
++static int migrate_vma_split_folio(struct folio *folio,
++				   struct page *fault_page)
++{
++	int ret;
++	struct folio *fault_folio = fault_page ? page_folio(fault_page) : NULL;
++	struct folio *new_fault_folio = NULL;
 +
- 	if (list) {
- 		/* page reclaim is reclaiming a huge page */
- 		VM_WARN_ON(folio_test_lru(folio));
-@@ -3842,8 +3904,9 @@ fail:
- 	if (nr_shmem_dropped)
- 		shmem_uncharge(mapping->host, nr_shmem_dropped);
- 
--	if (!ret && is_anon)
-+	if (!ret && is_anon && !folio_is_device_private(folio))
- 		remap_flags = RMP_USE_SHARED_ZEROPAGE;
++	if (folio != fault_folio) {
++		folio_get(folio);
++		folio_lock(folio);
++	}
 +
- 	remap_page(folio, 1 << order, remap_flags);
++	ret = split_folio(folio);
++	if (ret) {
++		if (folio != fault_folio) {
++			folio_unlock(folio);
++			folio_put(folio);
++		}
++		return ret;
++	}
++
++	new_fault_folio = fault_page ? page_folio(fault_page) : NULL;
++
++	/*
++	 * Ensure the lock is held on the correct
++	 * folio after the split
++	 */
++	if (!new_fault_folio) {
++		folio_unlock(folio);
++		folio_put(folio);
++	} else if (folio != new_fault_folio) {
++		if (new_fault_folio != fault_folio) {
++			folio_get(new_fault_folio);
++			folio_lock(new_fault_folio);
++		}
++		folio_unlock(folio);
++		folio_put(folio);
++	}
++
++	return 0;
++}
++
+ static int migrate_vma_collect_pmd(pmd_t *pmdp,
+ 				   unsigned long start,
+ 				   unsigned long end,
+@@ -107,10 +156,11 @@ again:
+ 		}
+ 	}
  
- 	/*
---- a/mm/migrate.c~mm-huge_memory-implement-device-private-thp-splitting
-+++ a/mm/migrate.c
-@@ -307,6 +307,7 @@ static bool try_to_map_unused_to_zeropag
- 	VM_BUG_ON_PAGE(!PageAnon(page), page);
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(pte_present(old_pte), page);
-+	VM_WARN_ON_ONCE_FOLIO(folio_is_device_private(folio), folio);
+-	ptep = pte_offset_map_lock(mm, pmdp, addr, &ptl);
++	ptep = pte_offset_map_lock(mm, pmdp, start, &ptl);
+ 	if (!ptep)
+ 		goto again;
+ 	arch_enter_lazy_mmu_mode();
++	ptep += (addr - start) / PAGE_SIZE;
  
- 	if (folio_test_mlocked(folio) || (pvmw->vma->vm_flags & VM_LOCKED) ||
- 	    mm_forbids_zeropage(pvmw->vma->vm_mm))
+ 	for (; addr < end; addr += PAGE_SIZE, ptep++) {
+ 		struct dev_pagemap *pgmap;
+@@ -171,6 +221,24 @@ again:
+ 					pgmap->owner != migrate->pgmap_owner)
+ 					goto next;
+ 			}
++			folio = page ? page_folio(page) : NULL;
++			if (folio && folio_test_large(folio)) {
++				int ret;
++
++				arch_leave_lazy_mmu_mode();
++				pte_unmap_unlock(ptep, ptl);
++				ret = migrate_vma_split_folio(folio,
++							  migrate->fault_page);
++
++				if (ret) {
++					if (unmapped)
++						flush_tlb_range(walk->vma, start, end);
++
++					return migrate_vma_collect_skip(addr, end, walk);
++				}
++
++				goto again;
++			}
+ 			mpfn = migrate_pfn(pfn) | MIGRATE_PFN_MIGRATE;
+ 			mpfn |= pte_write(pte) ? MIGRATE_PFN_WRITE : 0;
+ 		}
 _
 
 Patches currently in -mm which might be from balbirs@nvidia.com are
