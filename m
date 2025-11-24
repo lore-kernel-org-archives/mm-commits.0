@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCACC343D91
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:33:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9341F23D7E3
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:50:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764023638; cv=none; b=SMUJWzcDysaGclwb43mzVEiizER0U/56MZ9FMOv3142NkYbvaT1ysbw8tzKiY4S+S22IsqZHJMKg6UUhbrJyn+M9sQaabFoircHAyMP+Ox+70FRb7IOiY0yChuvXJ/0xWmY26La4fyrR8Mz4nyCtUKdHPXdz3t4tUK7hcv86+bY=
+	t=1764024641; cv=none; b=FBaa8E8jCR8mcFVO8taRMgqXZ0SuQNYgdJ5uWwckXmzJmGslQS4iIiUqIcvhzWFo6nWsvKIgh2aDTQz2MMB1ca56f/ywZ7J0bAlb6V6l6s7Z0jb6HACKeXK8dxjIyC62hDPd5ng3LXIpUhqFpXtxDDlIshpiDGm7juSDyU+l66g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764023638; c=relaxed/simple;
-	bh=7hCvAkSNSnVXw2ng7k4Vp9ieYfS2G+atQFiyuEwMRs0=;
-	h=Date:To:From:Subject:Message-Id; b=H757BLnl1ykcB+YACRwUTlZ+NLpBvZjgNPjhJaHlF1q7RpwrheDRcS4e1kgZ/COndVUQg/U049z+GhM+GzrYeyBGjYIUipiV5t010/gnAlTnmObrAnrjAqqJs/BdZncuKPPqTMNtUXd/bz5oZVQhPHTeWWED4SCJ7DXRn9044lk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HEltMee4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764024641; c=relaxed/simple;
+	bh=8vyQOyXO4Ksx0ABKF/gutBepsZgLaPWaU12XEcEmHnA=;
+	h=Date:To:From:Subject:Message-Id; b=WCpwk07SdVk6sgGFEnuDEnV9MfbhI42+x2IPburTsWFEzJSczixtSmEQxsk4KTcmcdONEVm/psG4jdJ7CmLCs6ZHxVhbZdDMkcddlgxuPvZzyQQa0LWq9WorjzFb4896EdXMtglHWpgmxyMSzi/GXKv4pCf+ojIAjQk4GIRL5nE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c8xvu6iT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HEltMee4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A373FC4CEF1;
-	Mon, 24 Nov 2025 22:33:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c8xvu6iT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 254B1C4CEF1;
+	Mon, 24 Nov 2025 22:50:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764023636;
-	bh=7hCvAkSNSnVXw2ng7k4Vp9ieYfS2G+atQFiyuEwMRs0=;
+	s=korg; t=1764024641;
+	bh=8vyQOyXO4Ksx0ABKF/gutBepsZgLaPWaU12XEcEmHnA=;
 	h=Date:To:From:Subject:From;
-	b=HEltMee4j2mZe4tptHmXASrkqhCNoeYzculabUCU4KudUvcmFEhBzjg9rqj9bStog
-	 ckcuqppJNXLThAEO0hRI9RHj+Lv7ikkfoyuTNwCkZJPzL5p2iAFOBkSbODoa92nyBE
-	 kzvSlJJNAavlDySDc3P5A14BYT94MWXid0u2zbm0=
-Date: Mon, 24 Nov 2025 14:33:56 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=c8xvu6iTSAz7+gMk2lLFPgjzAdNpKfDYFjRqbRs5sn7yEGyGEeE2GvXwwEZhHpLB3
+	 g8bGe+FlOOXEgdcIFYeVQUjzklX1IYnCyWM0Sz22kzgo5SR8He7hbb0E6yOsI10XbN
+	 fhjsrzC7+wi10o1Ptf2L52Nzf5kC77ETwmHroPBo=
+Date: Mon, 24 Nov 2025 14:50:40 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch removed from -mm tree
-Message-Id: <20251124223356.A373FC4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch removed from -mm tree
+Message-Id: <20251124225041.254B1C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2
+     Subject: mm-huge_memory-introduce-enum-split_type-for-clarity-fix
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2.patch
+     mm-huge_memory-introduce-enum-split_type-for-clarity-fix.patch
 
-This patch was dropped because it was folded into mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
+This patch was dropped because it was folded into mm-huge_memory-introduce-enum-split_type-for-clarity.patch
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2
-Date: Wed, 5 Nov 2025 11:01:09 -0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-huge_memory-introduce-enum-split_type-for-clarity-fix
+Date: Thu Nov  6 04:39:51 PM PST 2025
 
-add newline to fix an error and a warning from docutils
+tweak layout, per David
 
-Documentation/core-api/mm-api:134: mm/huge_memory.c:3593: ERROR: Unexpected indentation. [docutils]
-Documentation/core-api/mm-api:134: mm/huge_memory.c:3595: WARNING: Block quote ends without a blank line; unexpected unindent. [docutils]
-
-Link: https://lkml.kernel.org/r/040B38C0-23C6-4AEA-B069-69AE6DAA828B@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related-fix-2
+--- a/mm/huge_memory.c~mm-huge_memory-introduce-enum-split_type-for-clarity-fix
 +++ a/mm/huge_memory.c
-@@ -3516,6 +3516,7 @@ static void __split_folio_to_order(struc
-  *    uniform_split is false.
-  *
-  * The high level flow for these two methods are:
-+ *
-  * 1. uniform split: @xas is split with no expectation of failure and a single
-  *    __split_folio_to_order() is called to split the @folio into @new_order
-  *    along with stats update.
+@@ -4046,7 +4046,7 @@ int __split_huge_page_to_list_to_order(s
+ 	struct folio *folio = page_folio(page);
+ 
+ 	return __folio_split(folio, new_order, &folio->page, page, list,
+-				SPLIT_TYPE_UNIFORM, unmapped);
++			     SPLIT_TYPE_UNIFORM, unmapped);
+ }
+ 
+ /**
+@@ -4077,7 +4077,7 @@ int folio_split(struct folio *folio, uns
+ 		struct page *split_at, struct list_head *list)
+ {
+ 	return __folio_split(folio, new_order, split_at, &folio->page, list,
+-				SPLIT_TYPE_NON_UNIFORM, false);
++			     SPLIT_TYPE_NON_UNIFORM, false);
+ }
+ 
+ int min_order_for_split(struct folio *folio)
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-huge_memory-add-split_huge_page_to_order.patch
-mm-memory-failure-improve-large-block-size-folio-handling.patch
-mm-huge_memory-fix-kernel-doc-comments-for-folio_split-and-related.patch
-mm-huge_memory-change-folio_split_supported-to-folio_check_splittable.patch
-mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation.patch
-mm-huge_memory-make-min_order_for_split-always-return-an-order.patch
-mm-huge_memory-fix-folio-split-stats-counting.patch
+mm-huge_memory-introduce-enum-split_type-for-clarity.patch
+mm-correctly-handle-uffd-pte-markers-fix.patch
+mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix-fix.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
 
