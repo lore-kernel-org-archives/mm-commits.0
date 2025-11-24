@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D7383191AD
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A29F72FA0ED
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025829; cv=none; b=SnTeQ54M9iprAnuFt8RVcUCcYOq5WeGQefs2hUsVDr238K7Kzc6jaz5Tnt3FmMNhF4h5ZjDMjrUJBs1PeBgxTvQ5uxHXQxnd+trW8Lp3DhlgNYY7GyM6SLInCo1ttZvZZ6pYIqqzgrpD5kV7hi0+QvTgw7LXU1NWhUGQMNyWInA=
+	t=1764025830; cv=none; b=SJ3ZNqD8UoVi0sUzxf2d+BpkOya1OjOkRMCbfgpvUg4afaswVQUyxVZK4M6m6pTcSq3orkeK4zMwoHEfOibr9nXHIQe8Qzghb/C9/ireIs7N3AKp4AcNsUPMyEg5G1IAahAOWVW8LvTfTyFVeEi0dXbA79kCmxY+6Bgz3QhgapI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025829; c=relaxed/simple;
-	bh=3mik6MwbGwm9PQQetzEMKo2c2Xw5lxYYbUa9pkjLRmQ=;
-	h=Date:To:From:Subject:Message-Id; b=T7gW8FO6Wx+mwI/WVRpMqRVRv8xBrXq6crEowGl4Y5dPhwcdlf+r4+A2dpiwubG/GV9d8DFFauYBuVLmBEIj/W+mvRDxmzBPT2FkWYfuTpq8YflUxO4jwV6JAJVssIAIcCScu+6GMXiOXZdvlrQroy9xyYo+gIPXXdLultWqk14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dMUvSggQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025830; c=relaxed/simple;
+	bh=n04A6oluimJXvNKZ2nAC/VFnHbKWojerErQ65y04C4w=;
+	h=Date:To:From:Subject:Message-Id; b=Jnt3wlJSoESjD3NI54q/7ZGu64bIqozR5eeZwHaK0/lz7dgNNCczyWtK9O1SJkWnwhDgyK6CLAb6on1qBgD2prQC5OApcwEakYePjqBgzaXfQZGi3MAcJR9jwBnnWC/gOC9MLaCLeA12E2r1EKh9FMAS1BA+vLwre5uTvr5w3Mc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TcOX4YXa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dMUvSggQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A7E5C4CEF1;
-	Mon, 24 Nov 2025 23:10:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TcOX4YXa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75940C4CEF1;
+	Mon, 24 Nov 2025 23:10:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025829;
-	bh=3mik6MwbGwm9PQQetzEMKo2c2Xw5lxYYbUa9pkjLRmQ=;
+	s=korg; t=1764025830;
+	bh=n04A6oluimJXvNKZ2nAC/VFnHbKWojerErQ65y04C4w=;
 	h=Date:To:From:Subject:From;
-	b=dMUvSggQ0AHmyU+BOOlf8oOC5sdnZW6NrjQThwYo2f9A5z6oRJ/AjqAH9Rh+LOdwy
-	 fE5Zvp4ZrV1et8vt9NkrptYxaAjkTiT3M1RC/aUBq7yLkIeQR6p9u8AynGCoUOpqg6
-	 yKJ8q3QTyTGdTdgilsmQOcn2nSev5Nxdhf1a4Dmw=
-Date: Mon, 24 Nov 2025 15:10:28 -0800
+	b=TcOX4YXaQPzGyMGV71RD3XQRdlcv0RRJNnWOPEQVa6V7Bbgmdng8KiC1/YLw28zzx
+	 nQfL0qMCVwTr1wxVTrY9FEzN0s5V/+2/SPu8DdICTTLa11kdw7IkiZ0hPgTPV13b4O
+	 dPsVrCvHPHKz7sOtqij2jQnWcGetQ0x67RnpAKVg=
+Date: Mon, 24 Nov 2025 15:10:29 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,svens@linux.ibm.com,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,nphamcs@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,matthew.brost@intel.com,linmiaohe@huawei.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,imbrenda@linux.ibm.com,hughd@google.com,hca@linux.ibm.com,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,apopple@nvidia.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch removed from -mm tree
-Message-Id: <20251124231029.2A7E5C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-is_hugetlb_entry_.patch removed from -mm tree
+Message-Id: <20251124231030.75940C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove non_swap_entry() and use softleaf helpers instead
+     Subject: mm: remove is_hugetlb_entry_[migration, hwpoisoned]()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-non_swap_entry-and-use-softleaf-helpers-instead.patch
+     mm-remove-is_hugetlb_entry_.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: remove non_swap_entry() and use softleaf helpers instead
-Date: Mon, 10 Nov 2025 22:21:31 +0000
+Subject: mm: remove is_hugetlb_entry_[migration, hwpoisoned]()
+Date: Mon, 10 Nov 2025 22:21:32 +0000
 
-There is simply no need for the hugely confusing concept of 'non-swap'
-swap entries now we have the concept of softleaf entries and relevant
-softleaf_xxx() helpers.
-
-Adjust all callers to use these instead and remove non_swap_entry()
-altogether.
+We do not need to have explicit helper functions for these, it adds a
+level of confusion and indirection when we can simply use software leaf
+entry logic here instead and spell out the special huge_pte_none() case we
+must consider.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/2562093f37f4a9cffea0447058014485eb50aaaf.1762812360.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/0e92d6924d3de88cd014ce1c53e20edc08fc152e.1762812360.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -116,381 +114,315 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/gmap_helpers.c |   20 +++++++++---------
- arch/s390/mm/pgtable.c      |   12 +++++------
- fs/proc/task_mmu.c          |   12 +++++------
- include/linux/swapops.h     |    5 ----
- mm/filemap.c                |    2 -
- mm/hmm.c                    |   16 +++++++--------
- mm/madvise.c                |    2 -
- mm/memory.c                 |   36 +++++++++++++++++-----------------
- mm/mincore.c                |    2 -
- mm/userfaultfd.c            |   24 +++++++++++-----------
- 10 files changed, 63 insertions(+), 68 deletions(-)
+ fs/proc/task_mmu.c      |   19 ++++---
+ include/linux/hugetlb.h |    2 
+ mm/hugetlb.c            |   91 +++++++++++++++-----------------------
+ mm/mempolicy.c          |   17 ++++---
+ mm/migrate.c            |   15 ++++--
+ 5 files changed, 69 insertions(+), 75 deletions(-)
 
---- a/arch/s390/mm/gmap_helpers.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/arch/s390/mm/gmap_helpers.c
-@@ -11,27 +11,27 @@
- #include <linux/mm.h>
- #include <linux/hugetlb.h>
- #include <linux/swap.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/pagewalk.h>
- #include <linux/ksm.h>
- #include <asm/gmap_helpers.h>
- #include <asm/pgtable.h>
- 
- /**
-- * ptep_zap_swap_entry() - discard a swap entry.
-+ * ptep_zap_softleaf_entry() - discard a software leaf entry.
-  * @mm: the mm
-- * @entry: the swap entry that needs to be zapped
-+ * @entry: the software leaf entry that needs to be zapped
-  *
-- * Discards the given swap entry. If the swap entry was an actual swap
-- * entry (and not a migration entry, for example), the actual swapped
-+ * Discards the given software leaf entry. If the leaf entry was an actual
-+ * swap entry (and not a migration entry, for example), the actual swapped
-  * page is also discarded from swap.
-  */
--static void ptep_zap_swap_entry(struct mm_struct *mm, swp_entry_t entry)
-+static void ptep_zap_softleaf_entry(struct mm_struct *mm, softleaf_t entry)
- {
--	if (!non_swap_entry(entry))
-+	if (softleaf_is_swap(entry))
- 		dec_mm_counter(mm, MM_SWAPENTS);
--	else if (is_migration_entry(entry))
--		dec_mm_counter(mm, mm_counter(pfn_swap_entry_folio(entry)));
-+	else if (softleaf_is_migration(entry))
-+		dec_mm_counter(mm, mm_counter(softleaf_to_folio(entry)));
- 	free_swap_and_cache(entry);
- }
- 
-@@ -66,7 +66,7 @@ void gmap_helper_zap_one_page(struct mm_
- 		preempt_disable();
- 		pgste = pgste_get_lock(ptep);
- 
--		ptep_zap_swap_entry(mm, pte_to_swp_entry(*ptep));
-+		ptep_zap_softleaf_entry(mm, softleaf_from_pte(*ptep));
- 		pte_clear(mm, vmaddr, ptep);
- 
- 		pgste_set_unlock(ptep, pgste);
---- a/arch/s390/mm/pgtable.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/arch/s390/mm/pgtable.c
-@@ -16,7 +16,7 @@
- #include <linux/spinlock.h>
- #include <linux/rcupdate.h>
- #include <linux/slab.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/sysctl.h>
- #include <linux/ksm.h>
- #include <linux/mman.h>
-@@ -683,12 +683,12 @@ void ptep_unshadow_pte(struct mm_struct
- 	pgste_set_unlock(ptep, pgste);
- }
- 
--static void ptep_zap_swap_entry(struct mm_struct *mm, swp_entry_t entry)
-+static void ptep_zap_softleaf_entry(struct mm_struct *mm, softleaf_t entry)
- {
--	if (!non_swap_entry(entry))
-+	if (softleaf_is_swap(entry))
- 		dec_mm_counter(mm, MM_SWAPENTS);
--	else if (is_migration_entry(entry)) {
--		struct folio *folio = pfn_swap_entry_folio(entry);
-+	else if (softleaf_is_migration(entry)) {
-+		struct folio *folio = softleaf_to_folio(entry);
- 
- 		dec_mm_counter(mm, mm_counter(folio));
- 	}
-@@ -710,7 +710,7 @@ void ptep_zap_unused(struct mm_struct *m
- 	if (!reset && pte_swap(pte) &&
- 	    ((pgstev & _PGSTE_GPS_USAGE_MASK) == _PGSTE_GPS_USAGE_UNUSED ||
- 	     (pgstev & _PGSTE_GPS_ZERO))) {
--		ptep_zap_swap_entry(mm, pte_to_swp_entry(pte));
-+		ptep_zap_softleaf_entry(mm, softleaf_from_pte(pte));
- 		pte_clear(mm, addr, ptep);
- 	}
- 	if (reset)
---- a/fs/proc/task_mmu.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
+--- a/fs/proc/task_mmu.c~mm-remove-is_hugetlb_entry_
 +++ a/fs/proc/task_mmu.c
-@@ -1020,13 +1020,13 @@ static void smaps_pte_entry(pte_t *pte,
- 	} else if (pte_none(ptent)) {
- 		smaps_pte_hole_lookup(addr, walk);
- 	} else {
--		swp_entry_t swpent = pte_to_swp_entry(ptent);
-+		const softleaf_t entry = softleaf_from_pte(ptent);
+@@ -2500,22 +2500,23 @@ static void make_uffd_wp_huge_pte(struct
+ 				  unsigned long addr, pte_t *ptep,
+ 				  pte_t ptent)
+ {
+-	unsigned long psize;
++	const unsigned long psize = huge_page_size(hstate_vma(vma));
++	softleaf_t entry;
  
--		if (!non_swap_entry(swpent)) {
-+		if (softleaf_is_swap(entry)) {
- 			int mapcount;
+-	if (is_hugetlb_entry_hwpoisoned(ptent) || pte_is_marker(ptent))
+-		return;
++	if (huge_pte_none(ptent))
++		set_huge_pte_at(vma->vm_mm, addr, ptep,
++				make_pte_marker(PTE_MARKER_UFFD_WP), psize);
  
- 			mss->swap += PAGE_SIZE;
--			mapcount = swp_swapcount(swpent);
-+			mapcount = swp_swapcount(entry);
- 			if (mapcount >= 2) {
- 				u64 pss_delta = (u64)PAGE_SIZE << PSS_SHIFT;
+-	psize = huge_page_size(hstate_vma(vma));
++	entry = softleaf_from_pte(ptent);
++	if (softleaf_is_hwpoison(entry) || softleaf_is_marker(entry))
++		return;
  
-@@ -1035,10 +1035,10 @@ static void smaps_pte_entry(pte_t *pte,
- 			} else {
- 				mss->swap_pss += (u64)PAGE_SIZE << PSS_SHIFT;
- 			}
--		} else if (is_pfn_swap_entry(swpent)) {
--			if (is_device_private_entry(swpent))
-+		} else if (softleaf_has_pfn(entry)) {
-+			if (softleaf_is_device_private(entry))
- 				present = true;
--			page = pfn_swap_entry_to_page(swpent);
-+			page = softleaf_to_page(entry);
- 		}
- 	}
+-	if (is_hugetlb_entry_migration(ptent))
++	if (softleaf_is_migration(entry))
+ 		set_huge_pte_at(vma->vm_mm, addr, ptep,
+ 				pte_swp_mkuffd_wp(ptent), psize);
+-	else if (!huge_pte_none(ptent))
++	else
+ 		huge_ptep_modify_prot_commit(vma, addr, ptep, ptent,
+ 					     huge_pte_mkuffd_wp(ptent));
+-	else
+-		set_huge_pte_at(vma->vm_mm, addr, ptep,
+-				make_pte_marker(PTE_MARKER_UFFD_WP), psize);
+ }
+ #endif /* CONFIG_HUGETLB_PAGE */
  
---- a/include/linux/swapops.h~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/include/linux/swapops.h
-@@ -492,10 +492,5 @@ static inline pmd_t swp_entry_to_pmd(swp
+--- a/include/linux/hugetlb.h~mm-remove-is_hugetlb_entry_
++++ a/include/linux/hugetlb.h
+@@ -274,8 +274,6 @@ void hugetlb_vma_lock_release(struct kre
+ long hugetlb_change_protection(struct vm_area_struct *vma,
+ 		unsigned long address, unsigned long end, pgprot_t newprot,
+ 		unsigned long cp_flags);
+-bool is_hugetlb_entry_migration(pte_t pte);
+-bool is_hugetlb_entry_hwpoisoned(pte_t pte);
+ void hugetlb_unshare_all_pmds(struct vm_area_struct *vma);
+ void fixup_hugetlb_reservations(struct vm_area_struct *vma);
+ void hugetlb_split(struct vm_area_struct *vma, unsigned long addr);
+--- a/mm/hugetlb.c~mm-remove-is_hugetlb_entry_
++++ a/mm/hugetlb.c
+@@ -4846,32 +4846,6 @@ static void set_huge_ptep_maybe_writable
+ 		set_huge_ptep_writable(vma, address, ptep);
+ }
  
- #endif  /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
- 
--static inline int non_swap_entry(swp_entry_t entry)
+-bool is_hugetlb_entry_migration(pte_t pte)
 -{
--	return swp_type(entry) >= MAX_SWAPFILES;
+-	swp_entry_t swp;
+-
+-	if (huge_pte_none(pte) || pte_present(pte))
+-		return false;
+-	swp = pte_to_swp_entry(pte);
+-	if (is_migration_entry(swp))
+-		return true;
+-	else
+-		return false;
 -}
 -
- #endif /* CONFIG_MMU */
- #endif /* _LINUX_SWAPOPS_H */
---- a/mm/filemap.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/mm/filemap.c
-@@ -4567,7 +4567,7 @@ static void filemap_cachestat(struct add
- 				swp_entry_t swp = radix_to_swp_entry(folio);
+-bool is_hugetlb_entry_hwpoisoned(pte_t pte)
+-{
+-	swp_entry_t swp;
+-
+-	if (huge_pte_none(pte) || pte_present(pte))
+-		return false;
+-	swp = pte_to_swp_entry(pte);
+-	if (is_hwpoison_entry(swp))
+-		return true;
+-	else
+-		return false;
+-}
+-
+ static void
+ hugetlb_install_folio(struct vm_area_struct *vma, pte_t *ptep, unsigned long addr,
+ 		      struct folio *new_folio, pte_t old, unsigned long sz)
+@@ -4900,6 +4874,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 	unsigned long npages = pages_per_huge_page(h);
+ 	struct mmu_notifier_range range;
+ 	unsigned long last_addr_mask;
++	softleaf_t softleaf;
+ 	int ret = 0;
  
- 				/* swapin error results in poisoned entry */
--				if (non_swap_entry(swp))
-+				if (!softleaf_is_swap(swp))
- 					goto resched;
+ 	if (cow) {
+@@ -4947,16 +4922,16 @@ int copy_hugetlb_page_range(struct mm_st
+ 		entry = huge_ptep_get(src_vma->vm_mm, addr, src_pte);
+ again:
+ 		if (huge_pte_none(entry)) {
+-			/*
+-			 * Skip if src entry none.
+-			 */
+-			;
+-		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry))) {
++			/* Skip if src entry none. */
++			goto next;
++		}
++
++		softleaf = softleaf_from_pte(entry);
++		if (unlikely(softleaf_is_hwpoison(softleaf))) {
+ 			if (!userfaultfd_wp(dst_vma))
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry, sz);
+-		} else if (unlikely(is_hugetlb_entry_migration(entry))) {
+-			softleaf_t softleaf = softleaf_from_pte(entry);
++		} else if (unlikely(softleaf_is_migration(softleaf))) {
+ 			bool uffd_wp = pte_swp_uffd_wp(entry);
  
- 				/*
---- a/mm/hmm.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/mm/hmm.c
-@@ -258,17 +258,17 @@ static int hmm_vma_handle_pte(struct mm_
+ 			if (!is_readable_migration_entry(softleaf) && cow) {
+@@ -4975,7 +4950,6 @@ again:
+ 				entry = huge_pte_clear_uffd_wp(entry);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry, sz);
+ 		} else if (unlikely(pte_is_marker(entry))) {
+-			const softleaf_t softleaf = softleaf_from_pte(entry);
+ 			const pte_marker marker = copy_pte_marker(softleaf, dst_vma);
+ 
+ 			if (marker)
+@@ -5033,9 +5007,7 @@ again:
+ 				}
+ 				hugetlb_install_folio(dst_vma, dst_pte, addr,
+ 						      new_folio, src_pte_old, sz);
+-				spin_unlock(src_ptl);
+-				spin_unlock(dst_ptl);
+-				continue;
++				goto next;
+ 			}
+ 
+ 			if (cow) {
+@@ -5056,6 +5028,8 @@ again:
+ 			set_huge_pte_at(dst, addr, dst_pte, entry, sz);
+ 			hugetlb_count_add(npages, dst);
+ 		}
++
++next:
+ 		spin_unlock(src_ptl);
+ 		spin_unlock(dst_ptl);
+ 	}
+@@ -6064,8 +6038,10 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	ret = 0;
+ 
+ 	/* Not present, either a migration or a hwpoisoned entry */
+-	if (!pte_present(vmf.orig_pte)) {
+-		if (is_hugetlb_entry_migration(vmf.orig_pte)) {
++	if (!pte_present(vmf.orig_pte) && !huge_pte_none(vmf.orig_pte)) {
++		const softleaf_t softleaf = softleaf_from_pte(vmf.orig_pte);
++
++		if (softleaf_is_migration(softleaf)) {
+ 			/*
+ 			 * Release the hugetlb fault lock now, but retain
+ 			 * the vma lock, because it is needed to guard the
+@@ -6076,9 +6052,12 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			migration_entry_wait_huge(vma, vmf.address, vmf.pte);
+ 			return 0;
+-		} else if (is_hugetlb_entry_hwpoisoned(vmf.orig_pte))
++		}
++		if (softleaf_is_hwpoison(softleaf)) {
+ 			ret = VM_FAULT_HWPOISON_LARGE |
+ 			    VM_FAULT_SET_HINDEX(hstate_index(h));
++		}
++
+ 		goto out_mutex;
  	}
  
- 	if (!pte_present(pte)) {
--		swp_entry_t entry = pte_to_swp_entry(pte);
-+		const softleaf_t entry = softleaf_from_pte(pte);
- 
- 		/*
- 		 * Don't fault in device private pages owned by the caller,
- 		 * just report the PFN.
- 		 */
--		if (is_device_private_entry(entry) &&
--		    page_pgmap(pfn_swap_entry_to_page(entry))->owner ==
-+		if (softleaf_is_device_private(entry) &&
-+		    page_pgmap(softleaf_to_page(entry))->owner ==
- 		    range->dev_private_owner) {
- 			cpu_flags = HMM_PFN_VALID;
--			if (is_writable_device_private_entry(entry))
-+			if (softleaf_is_device_private_write(entry))
- 				cpu_flags |= HMM_PFN_WRITE;
- 			new_pfn_flags = swp_offset_pfn(entry) | cpu_flags;
- 			goto out;
-@@ -279,16 +279,16 @@ static int hmm_vma_handle_pte(struct mm_
- 		if (!required_fault)
- 			goto out;
- 
--		if (!non_swap_entry(entry))
-+		if (softleaf_is_swap(entry))
- 			goto fault;
- 
--		if (is_device_private_entry(entry))
-+		if (softleaf_is_device_private(entry))
- 			goto fault;
- 
--		if (is_device_exclusive_entry(entry))
-+		if (softleaf_is_device_exclusive(entry))
- 			goto fault;
- 
--		if (is_migration_entry(entry)) {
-+		if (softleaf_is_migration(entry)) {
- 			pte_unmap(ptep);
- 			hmm_vma_walk->last = addr;
- 			migration_entry_wait(walk->mm, pmdp, addr);
---- a/mm/madvise.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/mm/madvise.c
-@@ -249,7 +249,7 @@ static void shmem_swapin_range(struct vm
+@@ -6460,7 +6439,9 @@ long hugetlb_change_protection(struct vm
+ 	i_mmap_lock_write(vma->vm_file->f_mapping);
+ 	last_addr_mask = hugetlb_mask_last_page(h);
+ 	for (; address < end; address += psize) {
++		softleaf_t entry;
+ 		spinlock_t *ptl;
++
+ 		ptep = hugetlb_walk(vma, address, psize);
+ 		if (!ptep) {
+ 			if (!uffd_wp) {
+@@ -6492,15 +6473,23 @@ long hugetlb_change_protection(struct vm
  			continue;
- 		entry = radix_to_swp_entry(folio);
- 		/* There might be swapin error entries in shmem mapping. */
--		if (non_swap_entry(entry))
-+		if (!softleaf_is_swap(entry))
- 			continue;
+ 		}
+ 		pte = huge_ptep_get(mm, address, ptep);
+-		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
+-			/* Nothing to do. */
+-		} else if (unlikely(is_hugetlb_entry_migration(pte))) {
+-			softleaf_t entry = softleaf_from_pte(pte);
++		if (huge_pte_none(pte)) {
++			if (unlikely(uffd_wp))
++				/* Safe to modify directly (none->non-present). */
++				set_huge_pte_at(mm, address, ptep,
++						make_pte_marker(PTE_MARKER_UFFD_WP),
++						psize);
++			goto next;
++		}
  
- 		addr = vma->vm_start +
---- a/mm/memory.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/mm/memory.c
-@@ -932,7 +932,7 @@ copy_nonpresent_pte(struct mm_struct *ds
++		entry = softleaf_from_pte(pte);
++		if (unlikely(softleaf_is_hwpoison(entry))) {
++			/* Nothing to do. */
++		} else if (unlikely(softleaf_is_migration(entry))) {
+ 			struct folio *folio = softleaf_to_folio(entry);
+ 			pte_t newpte = pte;
+ 
+-			if (is_writable_migration_entry(entry)) {
++			if (softleaf_is_migration_write(entry)) {
+ 				if (folio_test_anon(folio))
+ 					entry = make_readable_exclusive_migration_entry(
+ 								swp_offset(entry));
+@@ -6527,7 +6516,7 @@ long hugetlb_change_protection(struct vm
+ 			if (pte_is_uffd_wp_marker(pte) && uffd_wp_resolve)
+ 				/* Safe to modify directly (non-present->none). */
+ 				huge_pte_clear(mm, address, ptep, psize);
+-		} else if (!huge_pte_none(pte)) {
++		} else {
+ 			pte_t old_pte;
+ 			unsigned int shift = huge_page_shift(hstate_vma(vma));
+ 
+@@ -6540,16 +6529,10 @@ long hugetlb_change_protection(struct vm
+ 				pte = huge_pte_clear_uffd_wp(pte);
+ 			huge_ptep_modify_prot_commit(vma, address, ptep, old_pte, pte);
+ 			pages++;
+-		} else {
+-			/* None pte */
+-			if (unlikely(uffd_wp))
+-				/* Safe to modify directly (none->non-present). */
+-				set_huge_pte_at(mm, address, ptep,
+-						make_pte_marker(PTE_MARKER_UFFD_WP),
+-						psize);
+ 		}
+-		spin_unlock(ptl);
+ 
++next:
++		spin_unlock(ptl);
+ 		cond_resched();
+ 	}
+ 	/*
+--- a/mm/mempolicy.c~mm-remove-is_hugetlb_entry_
++++ a/mm/mempolicy.c
+@@ -768,16 +768,21 @@ static int queue_folios_hugetlb(pte_t *p
+ 	unsigned long flags = qp->flags;
  	struct folio *folio;
- 	struct page *page;
+ 	spinlock_t *ptl;
+-	pte_t entry;
++	pte_t ptep;
  
--	if (likely(!non_swap_entry(entry))) {
-+	if (likely(softleaf_is_swap(entry))) {
- 		if (swap_duplicate(entry) < 0)
- 			return -EIO;
- 
-@@ -950,12 +950,12 @@ copy_nonpresent_pte(struct mm_struct *ds
- 			set_pte_at(src_mm, addr, src_pte, pte);
- 		}
- 		rss[MM_SWAPENTS]++;
--	} else if (is_migration_entry(entry)) {
--		folio = pfn_swap_entry_folio(entry);
-+	} else if (softleaf_is_migration(entry)) {
-+		folio = softleaf_to_folio(entry);
- 
- 		rss[mm_counter(folio)]++;
- 
--		if (!is_readable_migration_entry(entry) &&
-+		if (!softleaf_is_migration_read(entry) &&
- 				is_cow_mapping(vm_flags)) {
- 			/*
- 			 * COW mappings require pages in both parent and child
-@@ -964,15 +964,15 @@ copy_nonpresent_pte(struct mm_struct *ds
- 			 */
- 			entry = make_readable_migration_entry(
- 							swp_offset(entry));
--			pte = swp_entry_to_pte(entry);
-+			pte = softleaf_to_pte(entry);
- 			if (pte_swp_soft_dirty(orig_pte))
- 				pte = pte_swp_mksoft_dirty(pte);
- 			if (pte_swp_uffd_wp(orig_pte))
- 				pte = pte_swp_mkuffd_wp(pte);
- 			set_pte_at(src_mm, addr, src_pte, pte);
- 		}
--	} else if (is_device_private_entry(entry)) {
--		page = pfn_swap_entry_to_page(entry);
-+	} else if (softleaf_is_device_private(entry)) {
-+		page = softleaf_to_page(entry);
- 		folio = page_folio(page);
- 
- 		/*
-@@ -996,7 +996,7 @@ copy_nonpresent_pte(struct mm_struct *ds
- 		 * when a device driver is involved (you cannot easily
- 		 * save and restore device driver state).
- 		 */
--		if (is_writable_device_private_entry(entry) &&
-+		if (softleaf_is_device_private_write(entry) &&
- 		    is_cow_mapping(vm_flags)) {
- 			entry = make_readable_device_private_entry(
- 							swp_offset(entry));
-@@ -1005,7 +1005,7 @@ copy_nonpresent_pte(struct mm_struct *ds
- 				pte = pte_swp_mkuffd_wp(pte);
- 			set_pte_at(src_mm, addr, src_pte, pte);
- 		}
--	} else if (is_device_exclusive_entry(entry)) {
-+	} else if (softleaf_is_device_exclusive(entry)) {
- 		/*
- 		 * Make device exclusive entries present by restoring the
- 		 * original entry then copying as for a present pte. Device
-@@ -4625,7 +4625,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 	rmap_t rmap_flags = RMAP_NONE;
- 	bool need_clear_cache = false;
- 	bool exclusive = false;
--	swp_entry_t entry;
+ 	ptl = huge_pte_lock(hstate_vma(walk->vma), walk->mm, pte);
+-	entry = huge_ptep_get(walk->mm, addr, pte);
+-	if (!pte_present(entry)) {
+-		if (unlikely(is_hugetlb_entry_migration(entry)))
+-			qp->nr_failed++;
++	ptep = huge_ptep_get(walk->mm, addr, pte);
++	if (!pte_present(ptep)) {
++		if (!huge_pte_none(ptep)) {
++			const softleaf_t entry = softleaf_from_pte(ptep);
++
++			if (unlikely(softleaf_is_migration(entry)))
++				qp->nr_failed++;
++		}
++
+ 		goto unlock;
+ 	}
+-	folio = pfn_folio(pte_pfn(entry));
++	folio = pfn_folio(pte_pfn(ptep));
+ 	if (!queue_folio_required(folio, qp))
+ 		goto unlock;
+ 	if (!(flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) ||
+--- a/mm/migrate.c~mm-remove-is_hugetlb_entry_
++++ a/mm/migrate.c
+@@ -515,16 +515,18 @@ out:
+ void migration_entry_wait_huge(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
+ {
+ 	spinlock_t *ptl = huge_pte_lockptr(hstate_vma(vma), vma->vm_mm, ptep);
 +	softleaf_t entry;
  	pte_t pte;
- 	vm_fault_t ret = 0;
- 	void *shadow = NULL;
-@@ -4637,15 +4637,15 @@ vm_fault_t do_swap_page(struct vm_fault
- 	if (!pte_unmap_same(vmf))
- 		goto out;
  
--	entry = pte_to_swp_entry(vmf->orig_pte);
--	if (unlikely(non_swap_entry(entry))) {
--		if (is_migration_entry(entry)) {
-+	entry = softleaf_from_pte(vmf->orig_pte);
-+	if (unlikely(!softleaf_is_swap(entry))) {
-+		if (softleaf_is_migration(entry)) {
- 			migration_entry_wait(vma->vm_mm, vmf->pmd,
- 					     vmf->address);
--		} else if (is_device_exclusive_entry(entry)) {
--			vmf->page = pfn_swap_entry_to_page(entry);
-+		} else if (softleaf_is_device_exclusive(entry)) {
-+			vmf->page = softleaf_to_page(entry);
- 			ret = remove_device_exclusive_entry(vmf);
--		} else if (is_device_private_entry(entry)) {
-+		} else if (softleaf_is_device_private(entry)) {
- 			if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
- 				/*
- 				 * migrate_to_ram is not yet ready to operate
-@@ -4656,7 +4656,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 				goto out;
- 			}
+ 	hugetlb_vma_assert_locked(vma);
+ 	spin_lock(ptl);
+ 	pte = huge_ptep_get(vma->vm_mm, addr, ptep);
  
--			vmf->page = pfn_swap_entry_to_page(entry);
-+			vmf->page = softleaf_to_page(entry);
- 			vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd,
- 					vmf->address, &vmf->ptl);
- 			if (unlikely(!vmf->pte ||
-@@ -4680,7 +4680,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 			} else {
- 				pte_unmap_unlock(vmf->pte, vmf->ptl);
- 			}
--		} else if (is_hwpoison_entry(entry)) {
-+		} else if (softleaf_is_hwpoison(entry)) {
- 			ret = VM_FAULT_HWPOISON;
- 		} else if (softleaf_is_marker(entry)) {
- 			ret = handle_pte_marker(vmf);
---- a/mm/mincore.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/mm/mincore.c
-@@ -74,7 +74,7 @@ static unsigned char mincore_swap(swp_en
- 	 * absent. Page table may contain migration or hwpoison
- 	 * entries which are always uptodate.
- 	 */
--	if (non_swap_entry(entry))
-+	if (!softleaf_is_swap(entry))
- 		return !shmem;
- 
- 	/*
---- a/mm/userfaultfd.c~mm-remove-non_swap_entry-and-use-softleaf-helpers-instead
-+++ a/mm/userfaultfd.c
-@@ -1256,7 +1256,6 @@ static long move_pages_ptes(struct mm_st
- 			    unsigned long dst_addr, unsigned long src_addr,
- 			    unsigned long len, __u64 mode)
- {
--	swp_entry_t entry;
- 	struct swap_info_struct *si = NULL;
- 	pte_t orig_src_pte, orig_dst_pte;
- 	pte_t src_folio_pte;
-@@ -1430,19 +1429,20 @@ retry:
- 					orig_dst_pte, orig_src_pte, dst_pmd,
- 					dst_pmdval, dst_ptl, src_ptl, &src_folio,
- 					len);
+-	if (unlikely(!is_hugetlb_entry_migration(pte))) {
+-		spin_unlock(ptl);
+-		hugetlb_vma_unlock_read(vma);
 -	} else {
-+	} else { /* !pte_present() */
- 		struct folio *folio = NULL;
-+		const softleaf_t entry = softleaf_from_pte(orig_src_pte);
- 
--		entry = pte_to_swp_entry(orig_src_pte);
--		if (non_swap_entry(entry)) {
--			if (is_migration_entry(entry)) {
--				pte_unmap(src_pte);
--				pte_unmap(dst_pte);
--				src_pte = dst_pte = NULL;
--				migration_entry_wait(mm, src_pmd, src_addr);
--				ret = -EAGAIN;
--			} else
--				ret = -EFAULT;
-+		if (softleaf_is_migration(entry)) {
-+			pte_unmap(src_pte);
-+			pte_unmap(dst_pte);
-+			src_pte = dst_pte = NULL;
-+			migration_entry_wait(mm, src_pmd, src_addr);
++	if (huge_pte_none(pte))
++		goto fail;
 +
-+			ret = -EAGAIN;
-+			goto out;
-+		} else if (!softleaf_is_swap(entry)) {
-+			ret = -EFAULT;
- 			goto out;
- 		}
++	entry = softleaf_from_pte(pte);
++	if (softleaf_is_migration(entry)) {
+ 		/*
+ 		 * If migration entry existed, safe to release vma lock
+ 		 * here because the pgtable page won't be freed without the
+@@ -533,7 +535,12 @@ void migration_entry_wait_huge(struct vm
+ 		 */
+ 		hugetlb_vma_unlock_read(vma);
+ 		migration_entry_wait_on_locked(pte_to_swp_entry(pte), ptl);
++		return;
+ 	}
++
++fail:
++	spin_unlock(ptl);
++	hugetlb_vma_unlock_read(vma);
+ }
+ #endif
  
 _
 
