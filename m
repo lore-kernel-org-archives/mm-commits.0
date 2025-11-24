@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22804A944
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:52:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C3DCA944
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:52:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764024765; cv=none; b=TWxg6cuCPnXu90Dc7hkLGnZFhj3ki8ZtCVaxegR6SMfmDKAm9mBKQjYWbR0D4PLt46zpR2G29wOde9IySmCM+sHqTDLxK45dv6C8va3WyfLJyDWgqHYqvhhqTAIhjKrMFbfdIHWsQNZVBhYVotf04+/7HKSA58uhXFlAB4OVuQI=
+	t=1764024767; cv=none; b=QDNhrNPejzwxiCqiCcITmU8p0iO1OmECBD0EJN3/GcF+s82EWnqT3HBd3oNQXhvrAIoy6oEvSwfzAFkl+IlMaxqZG1Fl5Bj45zlx69A3lMFu5c9nnoVS+ktHZI05YRYSB5Za70VRDahvo4/z5hLL+Vf+t27NJEjjkKasMCwiGak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764024765; c=relaxed/simple;
-	bh=tDmLkueZ/6OuN2rsICbQPuVvoTP7MkQZem8Lss3MIZc=;
-	h=Date:To:From:Subject:Message-Id; b=K3IBMT8RXnLzQAMXinIrl7aWnMglTIhx9KOFYMOdbemSX3DFg5gfeuXQUFzBq4oInED+qTiCEr8wQYkqTKUBsuxXPd3hX0EtgrmhM6uFz5hwxQTMV9+iQLuAq7MV0Of4v7IkuGJi88eGeMAYkl4vOc9s6gEzU+YQ2aj2DiFsg+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YyY/dDCY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764024767; c=relaxed/simple;
+	bh=r3SEG4oOeE8x/N1Ea5UTP2Yq326A6mjqrkXc/xyANfU=;
+	h=Date:To:From:Subject:Message-Id; b=PaEPDRnnQlt51+WOJUjmJ9AXzE5zIchCtaKMFlwtl/zeIXwSVwqnf4Pe5oRq7k5xgGPMk1z/BOMd9VPdd3UjOm0D+Rx4xtQbi/lJC7qbBJ4Fd8BBu2+oBwYLOsaDq4z2gfzw6x5wVw1urqgC2dTyELsZS5Wwx/nFEGU/74CH8rs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yUSQD0BM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YyY/dDCY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A041C4CEFB;
-	Mon, 24 Nov 2025 22:52:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yUSQD0BM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B18B6C4CEF1;
+	Mon, 24 Nov 2025 22:52:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764024764;
-	bh=tDmLkueZ/6OuN2rsICbQPuVvoTP7MkQZem8Lss3MIZc=;
+	s=korg; t=1764024766;
+	bh=r3SEG4oOeE8x/N1Ea5UTP2Yq326A6mjqrkXc/xyANfU=;
 	h=Date:To:From:Subject:From;
-	b=YyY/dDCYKbVW8LT32ZhDeNhSD+BphOQBWmbOQjDH+/itWzyloYJa432xON8u/xiri
-	 TfeNmnhTpxggOhUIrL2lQ8xhLoVwjeDf4fZfS+JncXiGWOguiZJlQOP0IndCdqw3XE
-	 JNJ4gTB7HEy77apxsW2O9iq9KRBRy8Zv1ZUYPwd4=
-Date: Mon, 24 Nov 2025 14:52:43 -0800
+	b=yUSQD0BMh0WW3OPqSAb4fN8wtVmXjWsv3vDan54UPVU9R7mjgAPZ+j9750PcOzUdL
+	 wUVLQ79Nr42VVMhOIo8ShdQfnd/EWxML6KT/LpReyPsfRpWqq045WOmWEwfzZW5olV
+	 CjztXg8TGZKKfPycP1e7Gb5KSn+USY1cidRix+R8=
+Date: Mon, 24 Nov 2025 14:52:46 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch removed from -mm tree
-Message-Id: <20251124225244.8A041C4CEFB@smtp.kernel.org>
+Subject: [folded-merged] mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch removed from -mm tree
+Message-Id: <20251124225246.B18B6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2
+     Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch
+     mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch
 
 This patch was dropped because it was folded into mm-huge_memoryc-introduce-folio_split_unmapped.patch
 
 ------------------------------------------------------
 From: Balbir Singh <balbirs@nvidia.com>
-Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2
-Date: Sat, 15 Nov 2025 19:40:41 +1100
+Subject: mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix
+Date: Fri, 21 Nov 2025 00:42:32 +1100
 
-- Fix a bug reported by kernel-test-robot, nr_shmem_dropped needs to
-  be updated and returned from the helper function
+Code refactoring of __folio_split() via helper
+__folio_freeze_and_split_unmapped() caused a regression with clang-20 with
+CONFIG_SHMEM=n, the compiler was not able to optimize away the call to
+shmem_uncharge() due to changes in nr_shmem_dropped.  Fix this by adding a
+stub function for shmem_uncharge when CONFIG_SHMEM is not defined.
 
-- Add a debug warning folio_split_unmapped() should be called only on
-  anonymous folios
+smatch also complained about parameter end being used without
+initialization, which is a false positive, but keep the tool happy
+by sending in initialized parameters. end is initialized to 0.
+smatch still complains about mapping being NULL and nr_shmem_dropped
+may not be 0, but that is not true prior to or after the changes.
 
-Link: https://lkml.kernel.org/r/20251115084041.3914728-1-balbirs@nvidia.com
+Add detailed documentation comments for folio_split_unmapped()
+
+Link: https://lkml.kernel.org/r/20251120134232.3588203-1-balbirs@nvidia.com
 Signed-off-by: Balbir Singh <balbirs@nvidia.com>
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Byungchul Park <byungchul@sk.com>
@@ -82,69 +89,92 @@ Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/linux/shmem_fs.h |    6 +++++-
+ mm/huge_memory.c         |   30 +++++++++++++++++++++---------
+ 2 files changed, 26 insertions(+), 10 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memoryc-introduce-folio_split_unmapped-v2
-+++ a/mm/huge_memory.c
-@@ -3743,12 +3743,11 @@ static int __folio_freeze_and_split_unma
- 					     struct page *split_at, struct xa_state *xas,
- 					     struct address_space *mapping, bool do_lru,
- 					     struct list_head *list, enum split_type split_type,
--					     pgoff_t end, int extra_pins)
-+					     pgoff_t end, int *nr_shmem_dropped, int extra_pins)
+--- a/include/linux/shmem_fs.h~mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix
++++ a/include/linux/shmem_fs.h
+@@ -136,11 +136,16 @@ static inline bool shmem_hpage_pmd_enabl
+ 
+ #ifdef CONFIG_SHMEM
+ extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
++extern void shmem_uncharge(struct inode *inode, long pages);
+ #else
+ static inline unsigned long shmem_swap_usage(struct vm_area_struct *vma)
  {
- 	struct folio *end_folio = folio_next(folio);
- 	struct folio *new_folio, *next;
- 	int old_order = folio_order(folio);
--	int nr_shmem_dropped = 0;
+ 	return 0;
+ }
++
++static void shmem_uncharge(struct inode *inode, long pages)
++{
++}
+ #endif
+ extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
+ 						pgoff_t start, pgoff_t end);
+@@ -194,7 +199,6 @@ static inline pgoff_t shmem_fallocend(st
+ }
+ 
+ extern bool shmem_charge(struct inode *inode, long pages);
+-extern void shmem_uncharge(struct inode *inode, long pages);
+ 
+ #ifdef CONFIG_USERFAULTFD
+ #ifdef CONFIG_SHMEM
+--- a/mm/huge_memory.c~mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix
++++ a/mm/huge_memory.c
+@@ -3751,6 +3751,7 @@ static int __folio_freeze_and_split_unma
  	int ret = 0;
  	struct deferred_split *ds_queue;
  
-@@ -3851,9 +3850,10 @@ static int __folio_freeze_and_split_unma
- 				continue;
- 			}
++	VM_WARN_ON_ONCE(!mapping && end);
+ 	/* Prevent deferred_split_scan() touching ->_refcount */
+ 	ds_queue = folio_split_queue_lock(folio);
+ 	if (folio_ref_freeze(folio, 1 + extra_pins)) {
+@@ -3919,7 +3920,7 @@ static int __folio_split(struct folio *f
+ 	int nr_shmem_dropped = 0;
+ 	int remap_flags = 0;
+ 	int extra_pins, ret;
+-	pgoff_t end;
++	pgoff_t end = 0;
+ 	bool is_hzp;
  
-+			VM_WARN_ON_ONCE(!nr_shmem_dropped);
- 			/* Drop folio beyond EOF: ->index >= end */
--			if (shmem_mapping(mapping))
--				nr_shmem_dropped += nr_pages;
-+			if (shmem_mapping(mapping) && nr_shmem_dropped)
-+				*nr_shmem_dropped += nr_pages;
- 			else if (folio_test_clear_dirty(new_folio))
- 				folio_account_cleaned(
- 					new_folio, inode_to_wb(mapping->host));
-@@ -4039,7 +4039,8 @@ static int __folio_split(struct folio *f
- 	}
- 
- 	ret = __folio_freeze_and_split_unmapped(folio, new_order, split_at, &xas, mapping,
--						true, list, split_type, end, extra_pins);
-+						true, list, split_type, end, &nr_shmem_dropped,
-+						extra_pins);
- fail:
- 	if (mapping)
- 		xas_unlock(&xas);
-@@ -4104,9 +4105,10 @@ int folio_split_unmapped(struct folio *f
- {
- 	int extra_pins, ret = 0;
- 
--	VM_WARN_ON_FOLIO(folio_mapped(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(folio_mapped(folio), folio);
  	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_anon(folio), folio);
- 
- 	if (!can_split_folio(folio, 1, &extra_pins))
- 		return -EAGAIN;
-@@ -4114,7 +4116,7 @@ int folio_split_unmapped(struct folio *f
- 	local_irq_disable();
- 	ret = __folio_freeze_and_split_unmapped(folio, new_order, &folio->page, NULL,
- 						NULL, false, NULL, SPLIT_TYPE_UNIFORM,
--						0, extra_pins);
-+						0, NULL, extra_pins);
- 	local_irq_enable();
+@@ -4090,16 +4091,27 @@ out:
  	return ret;
  }
+ 
+-/*
+- * This function is a helper for splitting folios that have already been unmapped.
+- * The use case is that the device or the CPU can refuse to migrate THP pages in
+- * the middle of migration, due to allocation issues on either side
++/**
++ * folio_split_unmapped() - split a large anon folio that is already unmapped
++ * @folio: folio to split
++ * @new_order: the order of folios after split
++ *
++ * This function is a helper for splitting folios that have already been
++ * unmapped. The use case is that the device or the CPU can refuse to migrate
++ * THP pages in the middle of migration, due to allocation issues on either
++ * side.
++ *
++ * anon_vma_lock is not required to be held, mmap_read_lock() or
++ * mmap_write_lock() should be held. @folio is expected to be locked by the
++ * caller. device-private and non device-private folios are supported along
++ * with folios that are in the swapcache. @folio should also be unmapped and
++ * isolated from LRU (if applicable)
+  *
+- * The high level code is copied from __folio_split, since the pages are anonymous
+- * and are already isolated from the LRU, the code has been simplified to not
+- * burden __folio_split with unmapped sprinkled into the code.
++ * Upon return, the folio is not remapped, split folios are not added to LRU,
++ * free_folio_and_swap_cache() is not called, and new folios remain locked.
+  *
+- * None of the split folios are unlocked
++ * Return: 0 on success, -EAGAIN if the folio cannot be split (e.g., due to
++ *         insufficient reference count or extra pins).
+  */
+ int folio_split_unmapped(struct folio *folio, unsigned int new_order)
+ {
 _
 
 Patches currently in -mm which might be from balbirs@nvidia.com are
@@ -165,5 +195,4 @@ selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
 selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
 gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
 mm-huge_memoryc-introduce-folio_split_unmapped.patch
-mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch
 
