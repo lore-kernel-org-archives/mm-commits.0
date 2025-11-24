@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC55733509F
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3DCA33509F
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025802; cv=none; b=l8ugCz/l33JEE35/XfP3DX6xC4HC8uW9YmdOrN0Zeg/BzhEr5f7fVzSp/eCleQRk/Tdsp3P4u3Koj/z+FVy7X6hcGkbp5w5gcWm+fbZVwwrOA1Vju9791hi3hVIReZ25szsRwj8p+gNTlr55IWaYTeP8NMtE8R0gS+LxXaZOUYs=
+	t=1764025803; cv=none; b=NM3Glwum+wF7ARX7Z3DRu4awUn2ESJy1H1iCyM8YSeYTDTP2zrawC3oXoOnbDs84XcDlAkRpr2PVc079LIJHvgfK0iKc+iJwG6VQN56T0aodq/VJXJMRe3TkmbupVwyVuwAy4aSpCuY+oKntQUKmzRXTy6VcjNXHzvZ/qeuc1Dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025802; c=relaxed/simple;
-	bh=vF33abEQ/AOeuprNOSO3lq5jfaxsukGnwlF6bmg4jtA=;
-	h=Date:To:From:Subject:Message-Id; b=JXSXJamBr9x71+g2xZR7CyLSRX1uGSTN80o8o0yU/Sk2LVZid1Vq7e8jsHVwoilbAkP2glNkB7zKCwplqI6JsF2T9ADK21tLb3QK61IGeMrnpx4c8stG5+HYZzv8QP3TNrL+/JqfU5wkZMKQjH8uVMiOJetK0QKT72TknMERhbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gXiSnGpe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025803; c=relaxed/simple;
+	bh=sSz+luW/5Xbljfne5wEPW6RVvNHEtoROg2mV0rpe634=;
+	h=Date:To:From:Subject:Message-Id; b=qGQwBtdVnVmvmZNroGsuTDwDJOGAxWOzGDqdoBfC0um7qiZyE3SAJHb4EuBU3TW5Mon+hNZK8QWqFtA9kqJ6+FMQTRB1yVCps/zcphP7TQZUslsbPjzzYCkZq0cc109RdOaGVF3k+4IS5IY/J+xPnEsEele4A0HZkreIkb7f+sk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hVwx0p8N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gXiSnGpe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B87B3C4CEF1;
-	Mon, 24 Nov 2025 23:10:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hVwx0p8N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5B43C4CEF1;
+	Mon, 24 Nov 2025 23:10:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025801;
-	bh=vF33abEQ/AOeuprNOSO3lq5jfaxsukGnwlF6bmg4jtA=;
+	s=korg; t=1764025802;
+	bh=sSz+luW/5Xbljfne5wEPW6RVvNHEtoROg2mV0rpe634=;
 	h=Date:To:From:Subject:From;
-	b=gXiSnGpeqigBNB8gBHuVRM0nGVox0JCbCxquoSvr+jgM7OhZZAP7sQEan7VnTXzmU
-	 jhy6JGEMlI8H+Nlm9m2ZcwIRbQ+buNLV9c1IciN0hgzuwT+W8twdw4U17mBT6PRX3+
-	 79AWfHYmSPg0syiBu4471hicMLMfS5TsLOLMDokY=
-Date: Mon, 24 Nov 2025 15:10:01 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=hVwx0p8NkQgtN8xZ3Y2+2j/AC63kC3CvvFZfVeEaHEgC6+AQnW3mSQEIJYKPXndsM
+	 JpCjDtwxPPK8FC38iGY56uHEZx89toc1MlnrSC1ki0Q8+4rHOtsfuDWR1O0wHeFqat
+	 mkekYLe0wnv+QCf6HQt2xEl1EcUFi+cvO/20FHmg=
+Date: Mon, 24 Nov 2025 15:10:02 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,shy828301@gmail.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lance.yang@linux.dev,kernel@pankajraghav.com,jane.chu@oracle.com,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch removed from -mm tree
-Message-Id: <20251124231001.B87B3C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-add-split_huge_page_to_order.patch removed from -mm tree
+Message-Id: <20251124231002.C5B43C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,133 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: only get folio_order() once during __folio_split()
+     Subject: mm/huge_memory: add split_huge_page_to_order()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-only-get-folio_order-once-during-__folio_split.patch
+     mm-huge_memory-add-split_huge_page_to_order.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/huge_memory: only get folio_order() once during __folio_split()
-Date: Fri, 10 Oct 2025 14:11:42 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: add split_huge_page_to_order()
+Date: Fri, 31 Oct 2025 12:19:59 -0400
 
-Before splitting folio, its order keeps the same.
+Patch series "Optimize folio split in memory failure", v5.
 
-It is only necessary to get folio_order() once.
+This patchset optimizes folio split operations in memory failure code by
+always splitting a folio to min_order_for_split() to minimize unusable
+pages, even if min_order_for_split() is non zero and memory failure code
+would take the failed path eventually for a successfully split folio. 
 
-Also rename order to old_order to represent the original folio order.
+This means instead of making the entire original folio unusable memory
+failure code would only make its after-split folio, which has order of
+min_order_for_split() and contains HWPoison page, unusable.
 
-Link: https://lkml.kernel.org/r/20251010141142.1349-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Lance Yang <lance.yang@linux.dev>
+For soft offline case, since the original folio is still accessible, no
+split is performed if the folio cannot be split to order-0 to prevent
+potential performance loss.
+
+In addition, add split_huge_page_to_order() to improve code readability
+and fix kernel-doc comment format for folio_split() and other related
+functions.
+
+Background
+==========
+
+This patchset is a follow-up of "[PATCH v3] mm/huge_memory: do not change
+split_huge_page*() target order silently."[1] and [PATCH v4]
+mm/huge_memory: preserve PG_has_hwpoisoned if a folio is split to >0
+order[2], since both are separated out as hotfixes.  It improves how
+memory failure code handles large block size(LBS) folios with
+min_order_for_split() > 0.  By splitting a large folio containing HW
+poisoned pages to min_order_for_split(), the after-split folios without HW
+poisoned pages could be freed for reuse.  To achieve this, folio split
+code needs to set has_hwpoisoned on after-split folios containing HW
+poisoned pages and it is done in the hotfix in [2].
+
+This patchset includes:
+1. A patch adds split_huge_page_to_order(),
+2. Patch 2 and Patch 3 of "[PATCH v2 0/3] Do not change split folio target
+   order"[3],
+
+
+This patch (of 3):
+
+When the caller does not supply a list to
+split_huge_page_to_list_to_order(), use split_huge_page_to_order()
+instead.
+
+Link: https://lkml.kernel.org/r/20251031162001.670503-1-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20251031162001.670503-2-ziy@nvidia.com
+Link: https://lore.kernel.org/all/20251017013630.139907-1-ziy@nvidia.com/ [1]
+Link: https://lore.kernel.org/all/20251023030521.473097-1-ziy@nvidia.com/ [2]
+Link: https://lore.kernel.org/all/20251016033452.125479-1-ziy@nvidia.com/ [3]
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Nico Pache <npache@redhat.com>
+Cc: Pankaj Raghav <kernel@pankajraghav.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Barry Song <baohua@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/huge_mm.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-only-get-folio_order-once-during-__folio_split
-+++ a/mm/huge_memory.c
-@@ -3682,7 +3682,7 @@ static int __folio_split(struct folio *f
- 	bool is_anon = folio_test_anon(folio);
- 	struct address_space *mapping = NULL;
- 	struct anon_vma *anon_vma = NULL;
--	int order = folio_order(folio);
-+	int old_order = folio_order(folio);
- 	struct folio *new_folio, *next;
- 	int nr_shmem_dropped = 0;
- 	int remap_flags = 0;
-@@ -3706,7 +3706,7 @@ static int __folio_split(struct folio *f
- 	if (!is_anon && !folio->mapping)
- 		return -EBUSY;
- 
--	if (new_order >= folio_order(folio))
-+	if (new_order >= old_order)
- 		return -EINVAL;
- 
- 	if (uniform_split && !uniform_split_supported(folio, new_order, true))
-@@ -3764,7 +3764,7 @@ static int __folio_split(struct folio *f
- 
- 		if (uniform_split) {
- 			xas_set_order(&xas, folio->index, new_order);
--			xas_split_alloc(&xas, folio, folio_order(folio), gfp);
-+			xas_split_alloc(&xas, folio, old_order, gfp);
- 			if (xas_error(&xas)) {
- 				ret = xas_error(&xas);
- 				goto out;
-@@ -3820,13 +3820,13 @@ static int __folio_split(struct folio *f
- 		struct lruvec *lruvec;
- 		int expected_refs;
- 
--		if (folio_order(folio) > 1 &&
-+		if (old_order > 1 &&
- 		    !list_empty(&folio->_deferred_list)) {
- 			ds_queue->split_queue_len--;
- 			if (folio_test_partially_mapped(folio)) {
- 				folio_clear_partially_mapped(folio);
--				mod_mthp_stat(folio_order(folio),
--					      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
-+				mod_mthp_stat(old_order,
-+					MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
- 			}
- 			/*
- 			 * Reinitialize page_deferred_list after removing the
-@@ -3954,7 +3954,7 @@ fail:
- 	if (!ret && is_anon && !folio_is_device_private(folio))
- 		remap_flags = RMP_USE_SHARED_ZEROPAGE;
- 
--	remap_page(folio, 1 << order, remap_flags);
-+	remap_page(folio, 1 << old_order, remap_flags);
- 
- 	/*
- 	 * Unlock all after-split folios except the one containing
-@@ -3985,9 +3985,9 @@ out_unlock:
- 		i_mmap_unlock_read(mapping);
- out:
- 	xas_destroy(&xas);
--	if (order == HPAGE_PMD_ORDER)
-+	if (old_order == HPAGE_PMD_ORDER)
- 		count_vm_event(!ret ? THP_SPLIT_PAGE : THP_SPLIT_PAGE_FAILED);
--	count_mthp_stat(order, !ret ? MTHP_STAT_SPLIT : MTHP_STAT_SPLIT_FAILED);
-+	count_mthp_stat(old_order, !ret ? MTHP_STAT_SPLIT : MTHP_STAT_SPLIT_FAILED);
- 	return ret;
+--- a/include/linux/huge_mm.h~mm-huge_memory-add-split_huge_page_to_order
++++ a/include/linux/huge_mm.h
+@@ -381,6 +381,10 @@ static inline int split_huge_page_to_lis
+ {
+ 	return __split_huge_page_to_list_to_order(page, list, new_order, false);
  }
++static inline int split_huge_page_to_order(struct page *page, unsigned int new_order)
++{
++	return split_huge_page_to_list_to_order(page, NULL, new_order);
++}
  
+ /*
+  * try_folio_split_to_order - try to split a @folio at @page to @new_order using
+@@ -400,8 +404,7 @@ static inline int try_folio_split_to_ord
+ 		struct page *page, unsigned int new_order)
+ {
+ 	if (!non_uniform_split_supported(folio, new_order, /* warns= */ false))
+-		return split_huge_page_to_list_to_order(&folio->page, NULL,
+-				new_order);
++		return split_huge_page_to_order(&folio->page, new_order);
+ 	return folio_split(folio, new_order, page, NULL);
+ }
+ static inline int split_huge_page(struct page *page)
+@@ -586,6 +589,11 @@ split_huge_page_to_list_to_order(struct
+ {
+ 	VM_WARN_ON_ONCE_PAGE(1, page);
+ 	return -EINVAL;
++}
++static inline int split_huge_page_to_order(struct page *page, unsigned int new_order)
++{
++	VM_WARN_ON_ONCE_PAGE(1, page);
++	return -EINVAL;
+ }
+ static inline int split_huge_page(struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
+mm-huge_memory-change-folio_split_supported-to-folio_check_splittable.patch
+mm-huge_memory-replace-can_split_folio-with-direct-refcount-calculation.patch
+mm-huge_memory-make-min_order_for_split-always-return-an-order.patch
+mm-huge_memory-fix-folio-split-stats-counting.patch
 
