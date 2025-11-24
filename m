@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1F4A2F7AD4
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:09:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C641335BA1
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:09:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025791; cv=none; b=hTtrl9rKYb2zOi2A999q8X9I0wcy/a37SniGAhEpWqvaoHbJpkUWSO8OjJHfDtiUBFDvTIUCrzog20/YZKm7fp7Tt89uRoKapcGhEW6g+y0IuL3KbsE8coDcpXrpIq/8FPoSePc3gfRs4rL2mwbP+pL6HxySAk83iWi/aatke0o=
+	t=1764025792; cv=none; b=WUdE36Hi46IwQ3CoMGVe3+oOV+lMRfOKEwGyfWVuVZUvmTCfXKxqBN3iCNxjEYjzM5K+WsM+KcLsTYsNsbD79eZj7P1l2F8te/Fj+BlW4rSHHe4I2QbmMKknqu5fQG4+Qx8o1J9vvIzv7rCaJHJ3TuMmen6oySy6lVsDuNzpryE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025791; c=relaxed/simple;
-	bh=riFrNKiDRAe26lyi83qBQMSfnRHZ747PtnfvQP6qZPw=;
-	h=Date:To:From:Subject:Message-Id; b=uUKhDJmYLEc8GLwIpZfAsuM2ySpPsT6bNQDRtNZAZjgxdhlLWLkwIaKmdPAqy6mP0PDrT6xennRkU1qqz21aUGmlwvpUi+oHq7v191tZnpgLXic2xoQLOrq/825WWfBEAKiXaBAkVP4DY8cMaVQ7W6PkVs7JwIxcnmQQyosfRUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g5YrRwdf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025792; c=relaxed/simple;
+	bh=jfsHXdq5sgM6cVWUyeFzGZFUUNCo8/+wg149G0wZtuA=;
+	h=Date:To:From:Subject:Message-Id; b=NieUMiHvH3aMDvN56yd47AwhjSfyC3jnWbw21olsS79sFANeFB3o4S+sN2KSb9HParxW25cyUBt6dx+hxNH2+TDNPNKHzBor5oe9jVxcQOZOHJKC0abKuydwo4XpBDiyz23dtc9+4iOp4nixTtS7esPM628Yz6McHLZDUm0+Ds0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0HixAfiX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g5YrRwdf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69AE8C4CEFB;
-	Mon, 24 Nov 2025 23:09:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0HixAfiX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FC19C4CEF1;
+	Mon, 24 Nov 2025 23:09:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025789;
-	bh=riFrNKiDRAe26lyi83qBQMSfnRHZ747PtnfvQP6qZPw=;
+	s=korg; t=1764025790;
+	bh=jfsHXdq5sgM6cVWUyeFzGZFUUNCo8/+wg149G0wZtuA=;
 	h=Date:To:From:Subject:From;
-	b=g5YrRwdfwlFLot4BbFjijvL8M0ZlEtfb1ldaCOkliwwgP2Hee5k7oWKZW/5/rlb+P
-	 XKlbKnkstFbG4eu5GpS7AZhQAZT7STVJlEorLL71tXOIF/iMoqPivdQSvGoODVE5LD
-	 HoqiBdQC/N5L072DRZG2Umu6B1z0AMmtVflajFqk=
-Date: Mon, 24 Nov 2025 15:09:48 -0800
+	b=0HixAfiX1jbS80vpAFThXBS7qzRLYSQ2H/nag0JNhHoGZQoEJ1Q38e8yM6nZ0bpLN
+	 n3Uc082OynDl4ttPsCGvdmhzlExgahssAohBayEzyarf2gsF7WcBQ0dGz+77IL+jiy
+	 uv7rAvE6RKOMAiJKYh+xMSu+bAtcjauajMPU4HSI=
+Date: Mon, 24 Nov 2025 15:09:50 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memremap-add-driver-callback-support-for-folio-splitting.patch removed from -mm tree
-Message-Id: <20251124230949.69AE8C4CEFB@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate_device-add-thp-splitting-during-migration.patch removed from -mm tree
+Message-Id: <20251124230950.9FC19C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memremap: add driver callback support for folio splitting
+     Subject: mm/migrate_device: add THP splitting during migration
 has been removed from the -mm tree.  Its filename was
-     mm-memremap-add-driver-callback-support-for-folio-splitting.patch
+     mm-migrate_device-add-thp-splitting-during-migration.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Balbir Singh <balbirs@nvidia.com>
-Subject: mm/memremap: add driver callback support for folio splitting
-Date: Wed, 1 Oct 2025 16:57:01 +1000
+Subject: mm/migrate_device: add THP splitting during migration
+Date: Wed, 1 Oct 2025 16:57:02 +1000
 
-When a zone device page is split (via huge pmd folio split).  The driver
-callback for folio_split is invoked to let the device driver know that the
-folio size has been split into a smaller order.
+Implement migrate_vma_split_pages() to handle THP splitting during the
+migration process when destination cannot allocate compound pages.
 
-Provide a default implementation for drivers that do not provide this
-callback that copies the pgmap and mapping fields for the split folios.
+This addresses the common scenario where migrate_vma_setup() succeeds with
+MIGRATE_PFN_COMPOUND pages, but the destination device cannot allocate
+large pages during the migration phase.
 
-Update the HMM test driver to handle the split.
+Key changes:
+- migrate_vma_split_pages(): Split already-isolated pages during migration
+- Enhanced folio_split() and __split_unmapped_folio() with isolated
+  parameter to avoid redundant unmap/remap operations
 
-Link: https://lkml.kernel.org/r/20251001065707.920170-11-balbirs@nvidia.com
+This provides a fallback mechansim to ensure migration succeeds even when
+large page allocation fails at the destination.
+
+[matthew.brost@intel.com: add THP splitting during migration]
+  Link: https://lkml.kernel.org/r/20251120230825.181072-2-matthew.brost@intel.com
+Link: https://lkml.kernel.org/r/20251001065707.920170-12-balbirs@nvidia.com
 Signed-off-by: Balbir Singh <balbirs@nvidia.com>
+Signed-off-by: Matthew Brost <matthew.brost@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
@@ -80,114 +89,328 @@ Cc: David Airlie <airlied@gmail.com>
 Cc: Simona Vetter <simona@ffwll.ch>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
 Cc: Mika Penttilä <mpenttil@redhat.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |   29 +++++++++++++++++++++++++++++
- lib/test_hmm.c           |   35 +++++++++++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ include/linux/huge_mm.h |   11 +++-
+ lib/test_hmm.c          |    9 +++
+ mm/huge_memory.c        |   46 ++++++++++----------
+ mm/migrate_device.c     |   87 +++++++++++++++++++++++++++++++++-----
+ 4 files changed, 119 insertions(+), 34 deletions(-)
 
---- a/include/linux/memremap.h~mm-memremap-add-driver-callback-support-for-folio-splitting
-+++ a/include/linux/memremap.h
-@@ -100,6 +100,13 @@ struct dev_pagemap_ops {
- 	 */
- 	int (*memory_failure)(struct dev_pagemap *pgmap, unsigned long pfn,
- 			      unsigned long nr_pages, int mf_flags);
+--- a/include/linux/huge_mm.h~mm-migrate_device-add-thp-splitting-during-migration
++++ a/include/linux/huge_mm.h
+@@ -365,8 +365,8 @@ unsigned long thp_get_unmapped_area_vmfl
+ 		vm_flags_t vm_flags);
+ 
+ bool can_split_folio(struct folio *folio, int caller_pins, int *pextra_pins);
+-int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+-		unsigned int new_order);
++int __split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
++		unsigned int new_order, bool unmapped);
+ int min_order_for_split(struct folio *folio);
+ int split_folio_to_list(struct folio *folio, struct list_head *list);
+ bool uniform_split_supported(struct folio *folio, unsigned int new_order,
+@@ -375,6 +375,13 @@ bool non_uniform_split_supported(struct
+ 		bool warns);
+ int folio_split(struct folio *folio, unsigned int new_order, struct page *page,
+ 		struct list_head *list);
++
++static inline int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
++		unsigned int new_order)
++{
++	return __split_huge_page_to_list_to_order(page, list, new_order, false);
++}
++
+ /*
+  * try_folio_split_to_order - try to split a @folio at @page to @new_order using
+  * non uniform split.
+--- a/lib/test_hmm.c~mm-migrate_device-add-thp-splitting-during-migration
++++ a/lib/test_hmm.c
+@@ -1613,6 +1613,15 @@ static vm_fault_t dmirror_devmem_fault(s
+ 	nr = 1 << order;
+ 
+ 	/*
++	 * When folios are partially mapped, we can't rely on the folio
++	 * order of vmf->page as the folio might not be fully split yet
++	 */
++	if (vmf->pte) {
++		order = 0;
++		nr = 1;
++	}
 +
 +	/*
-+	 * Used for private (un-addressable) device memory only.
-+	 * This callback is used when a folio is split into
-+	 * a smaller folio
-+	 */
-+	void (*folio_split)(struct folio *head, struct folio *tail);
- };
+ 	 * Consider a per-cpu cache of src and dst pfns, but with
+ 	 * large number of cpus that might not scale well.
+ 	 */
+--- a/mm/huge_memory.c~mm-migrate_device-add-thp-splitting-during-migration
++++ a/mm/huge_memory.c
+@@ -3452,15 +3452,6 @@ static void __split_folio_to_order(struc
+ 		new_folio->mapping = folio->mapping;
+ 		new_folio->index = folio->index + i;
  
- #define PGMAP_ALTMAP_VALID	(1 << 0)
-@@ -235,6 +242,23 @@ static inline void zone_device_folio_ini
- 		folio_set_large_rmappable(folio);
- }
+-		/*
+-		 * page->private should not be set in tail pages. Fix up and warn once
+-		 * if private is unexpectedly set.
+-		 */
+-		if (unlikely(new_folio->private)) {
+-			VM_WARN_ON_ONCE_PAGE(true, new_head);
+-			new_folio->private = NULL;
+-		}
+-
+ 		if (folio_test_swapcache(folio))
+ 			new_folio->swap.val = folio->swap.val + i;
  
-+static inline void zone_device_private_split_cb(struct folio *original_folio,
-+						struct folio *new_folio)
-+{
-+	if (folio_is_device_private(original_folio)) {
-+		if (!original_folio->pgmap->ops->folio_split) {
-+			if (new_folio) {
-+				new_folio->pgmap = original_folio->pgmap;
-+				new_folio->page.mapping =
-+					original_folio->page.mapping;
-+			}
-+		} else {
-+			original_folio->pgmap->ops->folio_split(original_folio,
-+								 new_folio);
-+		}
-+	}
-+}
-+
- #else
- static inline void *devm_memremap_pages(struct device *dev,
- 		struct dev_pagemap *pgmap)
-@@ -268,6 +292,11 @@ static inline unsigned long memremap_com
+@@ -3661,6 +3652,7 @@ bool uniform_split_supported(struct foli
+  * @lock_at: a page within @folio to be left locked to caller
+  * @list: after-split folios will be put on it if non NULL
+  * @uniform_split: perform uniform split or not (non-uniform split)
++ * @unmapped: The pages are already unmapped, they are migration entries.
+  *
+  * It calls __split_unmapped_folio() to perform uniform and non-uniform split.
+  * It is in charge of checking whether the split is supported or not and
+@@ -3676,7 +3668,7 @@ bool uniform_split_supported(struct foli
+  */
+ static int __folio_split(struct folio *folio, unsigned int new_order,
+ 		struct page *split_at, struct page *lock_at,
+-		struct list_head *list, bool uniform_split)
++		struct list_head *list, bool uniform_split, bool unmapped)
  {
- 	return PAGE_SIZE;
+ 	struct deferred_split *ds_queue = get_deferred_split_queue(folio);
+ 	XA_STATE(xas, &folio->mapping->i_pages, folio->index);
+@@ -3736,13 +3728,15 @@ static int __folio_split(struct folio *f
+ 		 * is taken to serialise against parallel split or collapse
+ 		 * operations.
+ 		 */
+-		anon_vma = folio_get_anon_vma(folio);
+-		if (!anon_vma) {
+-			ret = -EBUSY;
+-			goto out;
++		if (!unmapped) {
++			anon_vma = folio_get_anon_vma(folio);
++			if (!anon_vma) {
++				ret = -EBUSY;
++				goto out;
++			}
++			anon_vma_lock_write(anon_vma);
+ 		}
+ 		mapping = NULL;
+-		anon_vma_lock_write(anon_vma);
+ 	} else {
+ 		unsigned int min_order;
+ 		gfp_t gfp;
+@@ -3795,7 +3789,8 @@ static int __folio_split(struct folio *f
+ 		goto out_unlock;
+ 	}
+ 
+-	unmap_folio(folio);
++	if (!unmapped)
++		unmap_folio(folio);
+ 
+ 	/* block interrupt reentry in xa_lock and spinlock */
+ 	local_irq_disable();
+@@ -3882,10 +3877,13 @@ static int __folio_split(struct folio *f
+ 
+ 			next = folio_next(new_folio);
+ 
++			zone_device_private_split_cb(folio, new_folio);
++
+ 			expected_refs = folio_expected_ref_count(new_folio) + 1;
+ 			folio_ref_unfreeze(new_folio, expected_refs);
+ 
+-			lru_add_split_folio(folio, new_folio, lruvec, list);
++			if (!unmapped)
++				lru_add_split_folio(folio, new_folio, lruvec, list);
+ 
+ 			/*
+ 			 * Anonymous folio with swap cache.
+@@ -3916,6 +3914,8 @@ static int __folio_split(struct folio *f
+ 			__filemap_remove_folio(new_folio, NULL);
+ 			folio_put_refs(new_folio, nr_pages);
+ 		}
++
++		zone_device_private_split_cb(folio, NULL);
+ 		/*
+ 		 * Unfreeze @folio only after all page cache entries, which
+ 		 * used to point to it, have been updated with new folios.
+@@ -3939,6 +3939,9 @@ fail:
+ 
+ 	local_irq_enable();
+ 
++	if (unmapped)
++		return ret;
++
+ 	if (nr_shmem_dropped)
+ 		shmem_uncharge(mapping->host, nr_shmem_dropped);
+ 
+@@ -4029,12 +4032,13 @@ out:
+  * Returns -EINVAL when trying to split to an order that is incompatible
+  * with the folio. Splitting to order 0 is compatible with all folios.
+  */
+-int split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
+-				     unsigned int new_order)
++int __split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
++				     unsigned int new_order, bool unmapped)
+ {
+ 	struct folio *folio = page_folio(page);
+ 
+-	return __folio_split(folio, new_order, &folio->page, page, list, true);
++	return __folio_split(folio, new_order, &folio->page, page, list, true,
++				unmapped);
+ }
+ 
+ /*
+@@ -4063,7 +4067,7 @@ int folio_split(struct folio *folio, uns
+ 		struct page *split_at, struct list_head *list)
+ {
+ 	return __folio_split(folio, new_order, split_at, &folio->page, list,
+-			false);
++			false, false);
+ }
+ 
+ int min_order_for_split(struct folio *folio)
+--- a/mm/migrate_device.c~mm-migrate_device-add-thp-splitting-during-migration
++++ a/mm/migrate_device.c
+@@ -309,6 +309,25 @@ again:
+ 			    pgmap->owner != migrate->pgmap_owner)
+ 				goto next;
+ 
++			folio = page_folio(page);
++			if (folio_test_large(folio)) {
++				int ret;
++
++				arch_leave_lazy_mmu_mode();
++				pte_unmap_unlock(ptep, ptl);
++				ret = migrate_vma_split_folio(folio,
++							  migrate->fault_page);
++
++				if (ret) {
++					if (unmapped)
++						flush_tlb_range(walk->vma, start, end);
++
++					return migrate_vma_collect_skip(addr, end, walk);
++				}
++
++				goto again;
++			}
++
+ 			mpfn = migrate_pfn(page_to_pfn(page)) |
+ 					MIGRATE_PFN_MIGRATE;
+ 			if (is_writable_device_private_entry(entry))
+@@ -885,6 +904,29 @@ abort:
+ 		src[i] &= ~MIGRATE_PFN_MIGRATE;
+ 	return 0;
  }
 +
-+static inline void zone_device_private_split_cb(struct folio *original_folio,
-+						struct folio *new_folio)
++static int migrate_vma_split_unmapped_folio(struct migrate_vma *migrate,
++					    unsigned long idx, unsigned long addr,
++					    struct folio *folio)
 +{
++	unsigned long i;
++	unsigned long pfn;
++	unsigned long flags;
++	int ret = 0;
++
++	folio_get(folio);
++	split_huge_pmd_address(migrate->vma, addr, true);
++	ret = __split_huge_page_to_list_to_order(folio_page(folio, 0), NULL,
++							0, true);
++	if (ret)
++		return ret;
++	migrate->src[idx] &= ~MIGRATE_PFN_COMPOUND;
++	flags = migrate->src[idx] & ((1UL << MIGRATE_PFN_SHIFT) - 1);
++	pfn = migrate->src[idx] >> MIGRATE_PFN_SHIFT;
++	for (i = 1; i < HPAGE_PMD_NR; i++)
++		migrate->src[i+idx] = migrate_pfn(pfn + i) | flags;
++	return ret;
 +}
- #endif /* CONFIG_ZONE_DEVICE */
- 
- static inline void put_dev_pagemap(struct dev_pagemap *pgmap)
---- a/lib/test_hmm.c~mm-memremap-add-driver-callback-support-for-folio-splitting
-+++ a/lib/test_hmm.c
-@@ -1654,9 +1654,44 @@ err:
- 	return ret;
+ #else /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
+ static int migrate_vma_insert_huge_pmd_page(struct migrate_vma *migrate,
+ 					 unsigned long addr,
+@@ -894,6 +936,13 @@ static int migrate_vma_insert_huge_pmd_p
+ {
+ 	return 0;
  }
- 
-+static void dmirror_devmem_folio_split(struct folio *head, struct folio *tail)
++
++static int migrate_vma_split_unmapped_folio(struct migrate_vma *migrate,
++					    unsigned long idx, unsigned long addr,
++					    struct folio *folio)
 +{
-+	struct page *rpage = BACKING_PAGE(folio_page(head, 0));
-+	struct page *rpage_tail;
-+	struct folio *rfolio;
-+	unsigned long offset = 0;
-+
-+	if (!rpage) {
-+		tail->page.zone_device_data = NULL;
-+		return;
-+	}
-+
-+	rfolio = page_folio(rpage);
-+
-+	if (tail == NULL) {
-+		folio_reset_order(rfolio);
-+		rfolio->mapping = NULL;
-+		folio_set_count(rfolio, 1);
-+		return;
-+	}
-+
-+	offset = folio_pfn(tail) - folio_pfn(head);
-+
-+	rpage_tail = folio_page(rfolio, offset);
-+	tail->page.zone_device_data = rpage_tail;
-+	rpage_tail->zone_device_data = rpage->zone_device_data;
-+	clear_compound_head(rpage_tail);
-+	rpage_tail->mapping = NULL;
-+
-+	folio_page(tail, 0)->mapping = folio_page(head, 0)->mapping;
-+	tail->pgmap = head->pgmap;
-+	folio_set_count(page_folio(rpage_tail), 1);
++	return 0;
 +}
-+
- static const struct dev_pagemap_ops dmirror_devmem_ops = {
- 	.folio_free	= dmirror_devmem_free,
- 	.migrate_to_ram	= dmirror_devmem_fault,
-+	.folio_split	= dmirror_devmem_folio_split,
- };
+ #endif
  
- static int dmirror_device_init(struct dmirror_device *mdevice, int id)
+ static unsigned long migrate_vma_nr_pages(unsigned long *src)
+@@ -1055,8 +1104,9 @@ static void __migrate_device_pages(unsig
+ 				struct migrate_vma *migrate)
+ {
+ 	struct mmu_notifier_range range;
+-	unsigned long i;
++	unsigned long i, j;
+ 	bool notified = false;
++	unsigned long addr;
+ 
+ 	for (i = 0; i < npages; ) {
+ 		struct page *newpage = migrate_pfn_to_page(dst_pfns[i]);
+@@ -1098,12 +1148,16 @@ static void __migrate_device_pages(unsig
+ 				(!(dst_pfns[i] & MIGRATE_PFN_COMPOUND))) {
+ 				nr = migrate_vma_nr_pages(&src_pfns[i]);
+ 				src_pfns[i] &= ~MIGRATE_PFN_COMPOUND;
+-				src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+-				goto next;
++			} else {
++				nr = 1;
+ 			}
+ 
+-			migrate_vma_insert_page(migrate, addr, &dst_pfns[i],
+-						&src_pfns[i]);
++			for (j = 0; j < nr && i + j < npages; j++) {
++				src_pfns[i+j] |= MIGRATE_PFN_MIGRATE;
++				migrate_vma_insert_page(migrate,
++					addr + j * PAGE_SIZE,
++					&dst_pfns[i+j], &src_pfns[i+j]);
++			}
+ 			goto next;
+ 		}
+ 
+@@ -1125,7 +1179,13 @@ static void __migrate_device_pages(unsig
+ 							 MIGRATE_PFN_COMPOUND);
+ 					goto next;
+ 				}
+-				src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
++				nr = 1 << folio_order(folio);
++				addr = migrate->start + i * PAGE_SIZE;
++				if (migrate_vma_split_unmapped_folio(migrate, i, addr, folio)) {
++					src_pfns[i] &= ~(MIGRATE_PFN_MIGRATE |
++							 MIGRATE_PFN_COMPOUND);
++					goto next;
++				}
+ 			} else if ((src_pfns[i] & MIGRATE_PFN_MIGRATE) &&
+ 				(dst_pfns[i] & MIGRATE_PFN_COMPOUND) &&
+ 				!(src_pfns[i] & MIGRATE_PFN_COMPOUND)) {
+@@ -1161,11 +1221,16 @@ static void __migrate_device_pages(unsig
+ 
+ 		if (migrate && migrate->fault_page == page)
+ 			extra_cnt = 1;
+-		r = folio_migrate_mapping(mapping, newfolio, folio, extra_cnt);
+-		if (r)
+-			src_pfns[i] &= ~MIGRATE_PFN_MIGRATE;
+-		else
+-			folio_migrate_flags(newfolio, folio);
++		for (j = 0; j < nr && i + j < npages; j++) {
++			folio = page_folio(migrate_pfn_to_page(src_pfns[i+j]));
++			newfolio = page_folio(migrate_pfn_to_page(dst_pfns[i+j]));
++
++			r = folio_migrate_mapping(mapping, newfolio, folio, extra_cnt);
++			if (r)
++				src_pfns[i+j] &= ~MIGRATE_PFN_MIGRATE;
++			else
++				folio_migrate_flags(newfolio, folio);
++		}
+ next:
+ 		i += nr;
+ 	}
 _
 
 Patches currently in -mm which might be from balbirs@nvidia.com are
