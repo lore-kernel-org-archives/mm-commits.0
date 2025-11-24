@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4367F2FD1D5;
-	Mon, 24 Nov 2025 23:10:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32E212FD1D5
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025810; cv=none; b=IGeVnjF6hHtHZujHtxmWRXxDsWoACcSQuv0mRaVYE0w2BOmGhj/j6leIQZCD0OQSRH9v3z5NJV8BGeOSHSuUhR6UPE2t8ias1WpTIuQLoMFAjZDUebLBTwX0r2TAEXyvtRMdIc03LKt3yl7ILAL3++YjKc3n6fYdJMfPzXNNQN8=
+	t=1764025811; cv=none; b=m6V7TotRht6eY69XnFEqWVwqywB01d4JETsa5iNltn8Ux6a4lZFQ2DNs2jKTWAQIhUhWJkyKRedpcL0I8/sGbtnmTroQVKbucZkc08hTRv07+YpopM+mUaCtscvadlxQK6sZ+f2pvyWmZkSnAMqE+23wSAdw8JEAIn+o6CqOT7g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025810; c=relaxed/simple;
-	bh=vwUGrbnLwzrS4LRve4fWZSddR/D/sPnwGQ+MQ3Pg490=;
-	h=Date:To:From:Subject:Message-Id; b=F4RGrD0YwhuYOPVySzHAGldJ+5mvZvY10fZum9HKRyVUR138ju5oKatKUoMlYXJGSGKNjBfrMzDIsg91AVpOKN0RjNc/X6aAj0H6Gcp5/tvdb4oSkmVAfaAVnA9XzhpbPw5ojM0UgQP7K++zTrrNnhiQYxn+HGcBoBvYkx+lRzU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QhYrPITn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025811; c=relaxed/simple;
+	bh=Hp3+z3d573w/lCuxp6CgfcaPE0Dbh9hOxVKMg40/lKw=;
+	h=Date:To:From:Subject:Message-Id; b=Vt9T5aC3JdHGvCqCEbOAlNgBoZNR8jkCwdzezUoW1ZUIGYeSAcOVqyRJxtZPVcZR+2RhjamcwChJFl4Cl5yn68rXB+lleAbfVYMQEFDnyL4vwj57xeTBeIcwUBj5ROt9L7s2BbIni9V+L9jOGXzlwbtlGkKGPTTeOJRWOAANg/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nLkerBY/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QhYrPITn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA455C4CEF1;
-	Mon, 24 Nov 2025 23:10:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nLkerBY/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3F61C4CEF1;
+	Mon, 24 Nov 2025 23:10:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025809;
-	bh=vwUGrbnLwzrS4LRve4fWZSddR/D/sPnwGQ+MQ3Pg490=;
+	s=korg; t=1764025811;
+	bh=Hp3+z3d573w/lCuxp6CgfcaPE0Dbh9hOxVKMg40/lKw=;
 	h=Date:To:From:Subject:From;
-	b=QhYrPITn7dLFdkhLf4Cqi7SLpLjVxfdL/lXXawXlZb6Pbt7IoLISDxf+UdtIGfA/o
-	 tAPprD8/I8FlM+zOodMPNnzA9RRNllDi07ORa7Jtah9jMPGdADYUjdQSHJRrtFrhCv
-	 qYrTiRdzS6iUJJ5DNljOIDXpbSzhOzjV8xeEnqD4=
-Date: Mon, 24 Nov 2025 15:10:09 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=nLkerBY/771c+9F67iiNE9ivIF2twhmHakvew9GarsVd4W4R7AGbjGrHgK/QbewVV
+	 VXiwAWr6KC+gwOZZmXku1xKrd1grWQmLwaBl9EzTaoTio/jV7E/6U/1BKOWlOpKuH+
+	 M/7ESJrAeV9ZvZvKeEZOkDruRdCUngacJlgKe+zs=
+Date: Mon, 24 Nov 2025 15:10:10 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,svens@linux.ibm.com,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,nphamcs@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,matthew.brost@intel.com,linmiaohe@huawei.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,imbrenda@linux.ibm.com,hughd@google.com,hca@linux.ibm.com,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,apopple@nvidia.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported.patch removed from -mm tree
-Message-Id: <20251124231009.BA455C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-correctly-handle-uffd-pte-markers.patch removed from -mm tree
+Message-Id: <20251124231010.F3F61C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,192 +35,600 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: merge uniform_split_supported() and non_uniform_split_supported()
+     Subject: mm: correctly handle UFFD PTE markers
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported.patch
+     mm-correctly-handle-uffd-pte-markers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/huge_memory: merge uniform_split_supported() and non_uniform_split_supported()
-Date: Thu, 6 Nov 2025 03:41:55 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: correctly handle UFFD PTE markers
+Date: Mon, 10 Nov 2025 22:21:19 +0000
 
-uniform_split_supported() and non_uniform_split_supported() share
-significantly similar logic.
+Patch series "mm: remove is_swap_[pte, pmd]() + non-swap entries,
+introduce leaf entries", v3.
 
-The only functional difference is that uniform_split_supported() includes
-an additional check on the requested @new_order.
+There's an established convention in the kernel that we treat leaf page
+tables (so far at the PTE, PMD level) as containing 'swap entries' should
+they be neither empty (i.e.  p**_none() evaluating true) nor present (i.e.
+p**_present() evaluating true).
 
-The reason for this check comes from the following two aspects:
+However, at the same time we also have helper predicates - is_swap_pte(),
+is_swap_pmd() - which are inconsistently used.
 
-  * some file system or swap cache just supports order-0 folio
-  * the behavioral difference between uniform/non-uniform split
+This is problematic, as it is logical to assume that should somebody wish
+to operate upon a page table swap entry they should first check to see if
+it is in fact one.
 
-The behavioral difference between uniform split and non-uniform:
+It also implies that perhaps, in future, we might introduce a non-present,
+none page table entry that is not a swap entry.
 
-  * uniform split splits folio directly to @new_order
-  * non-uniform split creates after-split folios with orders from
-    folio_order(folio) - 1 to new_order.
+This series resolves this issue by systematically eliminating all use of
+the is_swap_pte() and is swap_pmd() predicates so we retain only the
+convention that should a leaf page table entry be neither none nor present
+it is a swap entry.
 
-This means for non-uniform split or !new_order split we should check the
-file system and swap cache respectively.
+We also have the further issue that 'swap entry' is unfortunately a really
+rather overloaded term and in fact refers to both entries for swap and for
+other information such as migration entries, page table markers, and
+device private entries.
 
-This commit unifies the logic and merge the two functions into a single
-combined helper, removing redundant code and simplifying the split
-support checking mechanism.
+We therefore have the rather 'unique' concept of a 'non-swap' swap entry.
 
-Link: https://lkml.kernel.org/r/20251106034155.21398-3-richard.weiyang@gmail.com
-Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+This series therefore introduces the concept of 'software leaf entries',
+of type softleaf_t, to eliminate this confusion.
+
+A software leaf entry in this sense is any page table entry which is
+non-present, and represented by the softleaf_t type.  That is - page table
+leaf entries which are software-controlled by the kernel.
+
+This includes 'none' or empty entries, which are simply represented by an
+zero leaf entry value.
+
+In order to maintain compatibility as we transition the kernel to this new
+type, we simply typedef swp_entry_t to softleaf_t.
+
+We introduce a number of predicates and helpers to interact with software
+leaf entries in include/linux/leafops.h which, as it imports swapops.h,
+can be treated as a drop-in replacement for swapops.h wherever leaf entry
+helpers are used.
+
+Since softleaf_from_[pte, pmd]() treats present entries as they were
+empty/none leaf entries, this allows for a great deal of simplification of
+code throughout the code base, which this series utilises a great deal.
+
+We additionally change from swap entry to software leaf entry handling
+where it makes sense to and eliminate functions from swapops.h where
+software leaf entries obviate the need for the functions.
+
+
+This patch (of 16):
+
+PTE markers were previously only concerned with UFFD-specific logic - that
+is, PTE entries with the UFFD WP marker set or those marked via
+UFFDIO_POISON.
+
+However since the introduction of guard markers in commit 7c53dfbdb024
+("mm: add PTE_MARKER_GUARD PTE marker"), this has no longer been the case.
+
+Issues have been avoided as guard regions are not permitted in conjunction
+with UFFD, but it still leaves very confusing logic in place, most notably
+the misleading and poorly named pte_none_mostly() and
+huge_pte_none_mostly().
+
+This predicate returns true for PTE entries that ought to be treated as
+none, but only in certain circumstances, and on the assumption we are
+dealing with H/W poison markers or UFFD WP markers.
+
+This patch removes these functions and makes each invocation of these
+functions instead explicitly check what it needs to check.
+
+As part of this effort it introduces is_uffd_pte_marker() to explicitly
+determine if a marker in fact is used as part of UFFD or not.
+
+In the HMM logic we note that the only time we would need to check for a
+fault is in the case of a UFFD WP marker, otherwise we simply encounter a
+fault error (VM_FAULT_HWPOISON for H/W poisoned marker, VM_FAULT_SIGSEGV
+for a guard marker), so only check for the UFFD WP case.
+
+While we're here we also refactor code to make it easier to understand.
+
+[akpm@linux-foundation.org: fix comment typo, per Mike]
+Link: https://lkml.kernel.org/r/cover.1762812360.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/c38625fd9a1c1f1cf64ae8a248858e45b3dcdf11.1762812360.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Nico Pache <npache@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: <stable@vger.kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    8 +---
- mm/huge_memory.c        |   71 ++++++++++++++++----------------------
- 2 files changed, 33 insertions(+), 46 deletions(-)
+ fs/userfaultfd.c              |   93 +++++++++++++++++++-------------
+ include/asm-generic/hugetlb.h |    8 --
+ include/linux/swapops.h       |   18 ------
+ include/linux/userfaultfd_k.h |   21 +++++++
+ mm/hmm.c                      |    7 ++
+ mm/hugetlb.c                  |   47 ++++++++--------
+ mm/mincore.c                  |   17 ++++-
+ mm/userfaultfd.c              |   27 +++++----
+ 8 files changed, 138 insertions(+), 100 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported
-+++ a/include/linux/huge_mm.h
-@@ -374,10 +374,8 @@ int __split_huge_page_to_list_to_order(s
- 		unsigned int new_order, bool unmapped);
- int min_order_for_split(struct folio *folio);
- int split_folio_to_list(struct folio *folio, struct list_head *list);
--bool uniform_split_supported(struct folio *folio, unsigned int new_order,
--		bool warns);
--bool non_uniform_split_supported(struct folio *folio, unsigned int new_order,
--		bool warns);
-+bool folio_split_supported(struct folio *folio, unsigned int new_order,
-+		enum split_type split_type, bool warns);
- int folio_split(struct folio *folio, unsigned int new_order, struct page *page,
- 		struct list_head *list);
- 
-@@ -408,7 +406,7 @@ static inline int split_huge_page_to_ord
- static inline int try_folio_split_to_order(struct folio *folio,
- 		struct page *page, unsigned int new_order)
+--- a/fs/userfaultfd.c~mm-correctly-handle-uffd-pte-markers
++++ a/fs/userfaultfd.c
+@@ -233,40 +233,48 @@ static inline bool userfaultfd_huge_must
  {
--	if (!non_uniform_split_supported(folio, new_order, /* warns= */ false))
-+	if (!folio_split_supported(folio, new_order, SPLIT_TYPE_NON_UNIFORM, /* warns= */ false))
- 		return split_huge_page_to_order(&folio->page, new_order);
- 	return folio_split(folio, new_order, page, NULL);
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	pte_t *ptep, pte;
+-	bool ret = true;
+ 
+ 	assert_fault_locked(vmf);
+ 
+ 	ptep = hugetlb_walk(vma, vmf->address, vma_mmu_pagesize(vma));
+ 	if (!ptep)
+-		goto out;
++		return true;
+ 
+-	ret = false;
+ 	pte = huge_ptep_get(vma->vm_mm, vmf->address, ptep);
+ 
+ 	/*
+ 	 * Lockless access: we're in a wait_event so it's ok if it
+-	 * changes under us.  PTE markers should be handled the same as none
+-	 * ptes here.
++	 * changes under us.
++	 */
++
++	/* Entry is still missing, wait for userspace to resolve the fault. */
++	if (huge_pte_none(pte))
++		return true;
++	/* UFFD PTE markers require userspace to resolve the fault. */
++	if (is_uffd_pte_marker(pte))
++		return true;
++	/*
++	 * If VMA has UFFD WP faults enabled and WP fault, wait for userspace to
++	 * resolve the fault.
+ 	 */
+-	if (huge_pte_none_mostly(pte))
+-		ret = true;
+ 	if (!huge_pte_write(pte) && (reason & VM_UFFD_WP))
+-		ret = true;
+-out:
+-	return ret;
++		return true;
++
++	return false;
  }
---- a/mm/huge_memory.c~mm-huge_memory-merge-uniform_split_supported-and-non_uniform_split_supported
-+++ a/mm/huge_memory.c
-@@ -3593,8 +3593,8 @@ static int __split_unmapped_folio(struct
- 	return 0;
+ #else
+ static inline bool userfaultfd_huge_must_wait(struct userfaultfd_ctx *ctx,
+ 					      struct vm_fault *vmf,
+ 					      unsigned long reason)
+ {
+-	return false;	/* should never get here */
++	/* Should never get here. */
++	VM_WARN_ON_ONCE(1);
++	return false;
+ }
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+ /*
+- * Verify the pagetables are still not ok after having reigstered into
++ * Verify the pagetables are still not ok after having registered into
+  * the fault_pending_wqh to avoid userland having to UFFDIO_WAKE any
+  * userfault that has already been resolved, if userfaultfd_read_iter and
+  * UFFDIO_COPY|ZEROPAGE are being run simultaneously on two different
+@@ -284,53 +292,63 @@ static inline bool userfaultfd_must_wait
+ 	pmd_t *pmd, _pmd;
+ 	pte_t *pte;
+ 	pte_t ptent;
+-	bool ret = true;
++	bool ret;
+ 
+ 	assert_fault_locked(vmf);
+ 
+ 	pgd = pgd_offset(mm, address);
+ 	if (!pgd_present(*pgd))
+-		goto out;
++		return true;
+ 	p4d = p4d_offset(pgd, address);
+ 	if (!p4d_present(*p4d))
+-		goto out;
++		return true;
+ 	pud = pud_offset(p4d, address);
+ 	if (!pud_present(*pud))
+-		goto out;
++		return true;
+ 	pmd = pmd_offset(pud, address);
+ again:
+ 	_pmd = pmdp_get_lockless(pmd);
+ 	if (pmd_none(_pmd))
+-		goto out;
++		return true;
+ 
+-	ret = false;
++	/*
++	 * A race could arise which would result in a softleaf entry such as
++	 * migration entry unexpectedly being present in the PMD, so explicitly
++	 * check for this and bail out if so.
++	 */
+ 	if (!pmd_present(_pmd))
+-		goto out;
++		return false;
+ 
+-	if (pmd_trans_huge(_pmd)) {
+-		if (!pmd_write(_pmd) && (reason & VM_UFFD_WP))
+-			ret = true;
+-		goto out;
+-	}
++	if (pmd_trans_huge(_pmd))
++		return !pmd_write(_pmd) && (reason & VM_UFFD_WP);
+ 
+ 	pte = pte_offset_map(pmd, address);
+-	if (!pte) {
+-		ret = true;
++	if (!pte)
+ 		goto again;
+-	}
++
+ 	/*
+ 	 * Lockless access: we're in a wait_event so it's ok if it
+-	 * changes under us.  PTE markers should be handled the same as none
+-	 * ptes here.
++	 * changes under us.
+ 	 */
+ 	ptent = ptep_get(pte);
+-	if (pte_none_mostly(ptent))
+-		ret = true;
++
++	ret = true;
++	/* Entry is still missing, wait for userspace to resolve the fault. */
++	if (pte_none(ptent))
++		goto out;
++	/* UFFD PTE markers require userspace to resolve the fault. */
++	if (is_uffd_pte_marker(ptent))
++		goto out;
++	/*
++	 * If VMA has UFFD WP faults enabled and WP fault, wait for userspace to
++	 * resolve the fault.
++	 */
+ 	if (!pte_write(ptent) && (reason & VM_UFFD_WP))
+-		ret = true;
+-	pte_unmap(pte);
++		goto out;
+ 
++	ret = false;
+ out:
++	pte_unmap(pte);
+ 	return ret;
  }
  
--bool non_uniform_split_supported(struct folio *folio, unsigned int new_order,
--		bool warns)
-+bool folio_split_supported(struct folio *folio, unsigned int new_order,
-+		enum split_type split_type, bool warns)
- {
- 	if (folio_test_anon(folio)) {
- 		/* order-1 is not supported for anonymous THP. */
-@@ -3602,48 +3602,41 @@ bool non_uniform_split_supported(struct
- 				"Cannot split to order-1 folio");
- 		if (new_order == 1)
- 			return false;
--	} else if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
--	    !mapping_large_folio_support(folio->mapping)) {
--		/*
--		 * No split if the file system does not support large folio.
--		 * Note that we might still have THPs in such mappings due to
--		 * CONFIG_READ_ONLY_THP_FOR_FS. But in that case, the mapping
--		 * does not actually support large folios properly.
--		 */
--		VM_WARN_ONCE(warns,
--			"Cannot split file folio to non-0 order");
--		return false;
--	}
+@@ -490,12 +508,13 @@ vm_fault_t handle_userfault(struct vm_fa
+ 	set_current_state(blocking_state);
+ 	spin_unlock_irq(&ctx->fault_pending_wqh.lock);
+ 
+-	if (!is_vm_hugetlb_page(vma))
+-		must_wait = userfaultfd_must_wait(ctx, vmf, reason);
+-	else
++	if (is_vm_hugetlb_page(vma)) {
+ 		must_wait = userfaultfd_huge_must_wait(ctx, vmf, reason);
+-	if (is_vm_hugetlb_page(vma))
+ 		hugetlb_vma_unlock_read(vma);
++	} else {
++		must_wait = userfaultfd_must_wait(ctx, vmf, reason);
++	}
++
+ 	release_fault_lock(vmf);
+ 
+ 	if (likely(must_wait && !READ_ONCE(ctx->released))) {
+--- a/include/asm-generic/hugetlb.h~mm-correctly-handle-uffd-pte-markers
++++ a/include/asm-generic/hugetlb.h
+@@ -97,14 +97,6 @@ static inline int huge_pte_none(pte_t pt
+ }
+ #endif
+ 
+-/* Please refer to comments above pte_none_mostly() for the usage */
+-#ifndef __HAVE_ARCH_HUGE_PTE_NONE_MOSTLY
+-static inline int huge_pte_none_mostly(pte_t pte)
+-{
+-	return huge_pte_none(pte) || is_pte_marker(pte);
+-}
+-#endif
 -
--	/* Only swapping a whole PMD-mapped folio is supported */
--	if (folio_test_swapcache(folio)) {
--		VM_WARN_ONCE(warns,
--			"Cannot split swapcache folio to non-0 order");
--		return false;
--	}
--
--	return true;
+ #ifndef __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
+ static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
+ 		unsigned long addr, pte_t *ptep)
+--- a/include/linux/swapops.h~mm-correctly-handle-uffd-pte-markers
++++ a/include/linux/swapops.h
+@@ -469,24 +469,6 @@ static inline int is_guard_swp_entry(swp
+ 		(pte_marker_get(entry) & PTE_MARKER_GUARD);
+ }
+ 
+-/*
+- * This is a special version to check pte_none() just to cover the case when
+- * the pte is a pte marker.  It existed because in many cases the pte marker
+- * should be seen as a none pte; it's just that we have stored some information
+- * onto the none pte so it becomes not-none any more.
+- *
+- * It should be used when the pte is file-backed, ram-based and backing
+- * userspace pages, like shmem.  It is not needed upon pgtables that do not
+- * support pte markers at all.  For example, it's not needed on anonymous
+- * memory, kernel-only memory (including when the system is during-boot),
+- * non-ram based generic file-system.  It's fine to be used even there, but the
+- * extra pte marker check will be pure overhead.
+- */
+-static inline int pte_none_mostly(pte_t pte)
+-{
+-	return pte_none(pte) || is_pte_marker(pte);
 -}
 -
--/* See comments in non_uniform_split_supported() */
--bool uniform_split_supported(struct folio *folio, unsigned int new_order,
--		bool warns)
--{
--	if (folio_test_anon(folio)) {
--		VM_WARN_ONCE(warns && new_order == 1,
--				"Cannot split to order-1 folio");
--		if (new_order == 1)
--			return false;
--	} else  if (new_order) {
-+	} else if (split_type == SPLIT_TYPE_NON_UNIFORM || new_order) {
- 		if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
- 		    !mapping_large_folio_support(folio->mapping)) {
-+			/*
-+			 * We can always split a folio down to a single page
-+			 * (new_order == 0) uniformly.
-+			 *
-+			 * For any other scenario
-+			 *   a) uniform split targeting a large folio
-+			 *      (new_order > 0)
-+			 *   b) any non-uniform split
-+			 * we must confirm that the file system supports large
-+			 * folios.
-+			 *
-+			 * Note that we might still have THPs in such
-+			 * mappings, which is created from khugepaged when
-+			 * CONFIG_READ_ONLY_THP_FOR_FS is enabled. But in that
-+			 * case, the mapping does not actually support large
-+			 * folios properly.
-+			 */
- 			VM_WARN_ONCE(warns,
- 				"Cannot split file folio to non-0 order");
- 			return false;
- 		}
- 	}
+ static inline struct page *pfn_swap_entry_to_page(swp_entry_t entry)
+ {
+ 	struct page *p = pfn_to_page(swp_offset_pfn(entry));
+--- a/include/linux/userfaultfd_k.h~mm-correctly-handle-uffd-pte-markers
++++ a/include/linux/userfaultfd_k.h
+@@ -479,4 +479,25 @@ static inline bool pte_swp_uffd_wp_any(p
+ 	return false;
+ }
  
--	if (new_order && folio_test_swapcache(folio)) {
++
++static inline bool is_uffd_pte_marker(pte_t pte)
++{
++	swp_entry_t entry;
++
++	if (pte_present(pte))
++		return false;
++
++	entry = pte_to_swp_entry(pte);
++	if (!is_pte_marker_entry(entry))
++		return false;
++
++	/* UFFD WP, poisoned swap entries are UFFD handled. */
++	if (pte_marker_entry_uffd_wp(entry))
++		return true;
++	if (is_poisoned_swp_entry(entry))
++		return true;
++
++	return false;
++}
++
+ #endif /* _LINUX_USERFAULTFD_K_H */
+--- a/mm/hmm.c~mm-correctly-handle-uffd-pte-markers
++++ a/mm/hmm.c
+@@ -244,7 +244,12 @@ static int hmm_vma_handle_pte(struct mm_
+ 	uint64_t pfn_req_flags = *hmm_pfn;
+ 	uint64_t new_pfn_flags = 0;
+ 
+-	if (pte_none_mostly(pte)) {
 +	/*
-+	 * swapcache folio could only be split to order 0
-+	 *
-+	 * non-uniform split creates after-split folios with orders from
-+	 * folio_order(folio) - 1 to new_order, making it not suitable for any
-+	 * swapcache folio split. Only uniform split to order-0 can be used
++	 * Any other marker than a UFFD WP marker will result in a fault error
++	 * that will be correctly handled, so we need only check for UFFD WP
 +	 * here.
 +	 */
-+	if ((split_type == SPLIT_TYPE_NON_UNIFORM || new_order) && folio_test_swapcache(folio)) {
- 		VM_WARN_ONCE(warns,
- 			"Cannot split swapcache folio to non-0 order");
- 		return false;
-@@ -3711,11 +3704,7 @@ static int __folio_split(struct folio *f
- 	if (new_order >= old_order)
- 		return -EINVAL;
++	if (pte_none(pte) || pte_marker_uffd_wp(pte)) {
+ 		required_fault =
+ 			hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0);
+ 		if (required_fault)
+--- a/mm/hugetlb.c~mm-correctly-handle-uffd-pte-markers
++++ a/mm/hugetlb.c
+@@ -6037,29 +6037,28 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	}
  
--	if (split_type == SPLIT_TYPE_UNIFORM && !uniform_split_supported(folio, new_order, true))
--		return -EINVAL;
+ 	vmf.orig_pte = huge_ptep_get(mm, vmf.address, vmf.pte);
+-	if (huge_pte_none_mostly(vmf.orig_pte)) {
+-		if (is_pte_marker(vmf.orig_pte)) {
+-			pte_marker marker =
+-				pte_marker_get(pte_to_swp_entry(vmf.orig_pte));
 -
--	if (split_type == SPLIT_TYPE_NON_UNIFORM &&
--	    !non_uniform_split_supported(folio, new_order, true))
-+	if (!folio_split_supported(folio, new_order, split_type, /* warn = */ true))
- 		return -EINVAL;
+-			if (marker & PTE_MARKER_POISONED) {
+-				ret = VM_FAULT_HWPOISON_LARGE |
+-				      VM_FAULT_SET_HINDEX(hstate_index(h));
+-				goto out_mutex;
+-			} else if (WARN_ON_ONCE(marker & PTE_MARKER_GUARD)) {
+-				/* This isn't supported in hugetlb. */
+-				ret = VM_FAULT_SIGSEGV;
+-				goto out_mutex;
+-			}
+-		}
+-
++	if (huge_pte_none(vmf.orig_pte))
+ 		/*
+-		 * Other PTE markers should be handled the same way as none PTE.
+-		 *
+ 		 * hugetlb_no_page will drop vma lock and hugetlb fault
+ 		 * mutex internally, which make us return immediately.
+ 		 */
+ 		return hugetlb_no_page(mapping, &vmf);
++
++	if (is_pte_marker(vmf.orig_pte)) {
++		const pte_marker marker =
++			pte_marker_get(pte_to_swp_entry(vmf.orig_pte));
++
++		if (marker & PTE_MARKER_POISONED) {
++			ret = VM_FAULT_HWPOISON_LARGE |
++				VM_FAULT_SET_HINDEX(hstate_index(h));
++			goto out_mutex;
++		} else if (WARN_ON_ONCE(marker & PTE_MARKER_GUARD)) {
++			/* This isn't supported in hugetlb. */
++			ret = VM_FAULT_SIGSEGV;
++			goto out_mutex;
++		}
++
++		return hugetlb_no_page(mapping, &vmf);
+ 	}
  
- 	is_hzp = is_huge_zero_folio(folio);
+ 	ret = 0;
+@@ -6228,6 +6227,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 	int ret = -ENOMEM;
+ 	struct folio *folio;
+ 	bool folio_in_pagecache = false;
++	pte_t dst_ptep;
+ 
+ 	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_POISON)) {
+ 		ptl = huge_pte_lock(h, dst_mm, dst_pte);
+@@ -6367,13 +6367,14 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 	if (folio_test_hwpoison(folio))
+ 		goto out_release_unlock;
+ 
++	ret = -EEXIST;
++
++	dst_ptep = huge_ptep_get(dst_mm, dst_addr, dst_pte);
+ 	/*
+-	 * We allow to overwrite a pte marker: consider when both MISSING|WP
+-	 * registered, we firstly wr-protect a none pte which has no page cache
+-	 * page backing it, then access the page.
++	 * See comment about UFFD marker overwriting in
++	 * mfill_atomic_install_pte().
+ 	 */
+-	ret = -EEXIST;
+-	if (!huge_pte_none_mostly(huge_ptep_get(dst_mm, dst_addr, dst_pte)))
++	if (!huge_pte_none(dst_ptep) && !is_uffd_pte_marker(dst_ptep))
+ 		goto out_release_unlock;
+ 
+ 	if (folio_in_pagecache)
+--- a/mm/mincore.c~mm-correctly-handle-uffd-pte-markers
++++ a/mm/mincore.c
+@@ -32,11 +32,22 @@ static int mincore_hugetlb(pte_t *pte, u
+ 	spinlock_t *ptl;
+ 
+ 	ptl = huge_pte_lock(hstate_vma(walk->vma), walk->mm, pte);
++
+ 	/*
+ 	 * Hugepages under user process are always in RAM and never
+ 	 * swapped out, but theoretically it needs to be checked.
+ 	 */
+-	present = pte && !huge_pte_none_mostly(huge_ptep_get(walk->mm, addr, pte));
++	if (!pte) {
++		present = 0;
++	} else {
++		const pte_t ptep = huge_ptep_get(walk->mm, addr, pte);
++
++		if (huge_pte_none(ptep) || is_pte_marker(ptep))
++			present = 0;
++		else
++			present = 1;
++	}
++
+ 	for (; addr != end; vec++, addr += PAGE_SIZE)
+ 		*vec = present;
+ 	walk->private = vec;
+@@ -175,8 +186,8 @@ static int mincore_pte_range(pmd_t *pmd,
+ 		pte_t pte = ptep_get(ptep);
+ 
+ 		step = 1;
+-		/* We need to do cache lookup too for pte markers */
+-		if (pte_none_mostly(pte))
++		/* We need to do cache lookup too for markers */
++		if (pte_none(pte) || is_pte_marker(pte))
+ 			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
+ 						 vma, vec);
+ 		else if (pte_present(pte)) {
+--- a/mm/userfaultfd.c~mm-correctly-handle-uffd-pte-markers
++++ a/mm/userfaultfd.c
+@@ -178,6 +178,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 	spinlock_t *ptl;
+ 	struct folio *folio = page_folio(page);
+ 	bool page_in_cache = folio_mapping(folio);
++	pte_t dst_ptep;
+ 
+ 	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
+ 	_dst_pte = pte_mkdirty(_dst_pte);
+@@ -199,12 +200,15 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 	}
+ 
+ 	ret = -EEXIST;
++
++	dst_ptep = ptep_get(dst_pte);
++
+ 	/*
+-	 * We allow to overwrite a pte marker: consider when both MISSING|WP
+-	 * registered, we firstly wr-protect a none pte which has no page cache
+-	 * page backing it, then access the page.
++	 * We are allowed to overwrite a UFFD pte marker: consider when both
++	 * MISSING|WP registered, we firstly wr-protect a none pte which has no
++	 * page cache page backing it, then access the page.
+ 	 */
+-	if (!pte_none_mostly(ptep_get(dst_pte)))
++	if (!pte_none(dst_ptep) && !is_uffd_pte_marker(dst_ptep))
+ 		goto out_unlock;
+ 
+ 	if (page_in_cache) {
+@@ -583,12 +587,15 @@ retry:
+ 			goto out_unlock;
+ 		}
+ 
+-		if (!uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE) &&
+-		    !huge_pte_none_mostly(huge_ptep_get(dst_mm, dst_addr, dst_pte))) {
+-			err = -EEXIST;
+-			hugetlb_vma_unlock_read(dst_vma);
+-			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+-			goto out_unlock;
++		if (!uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE)) {
++			const pte_t ptep = huge_ptep_get(dst_mm, dst_addr, dst_pte);
++
++			if (!huge_pte_none(ptep) && !is_uffd_pte_marker(ptep)) {
++				err = -EEXIST;
++				hugetlb_vma_unlock_read(dst_vma);
++				mutex_unlock(&hugetlb_fault_mutex_table[hash]);
++				goto out_unlock;
++			}
+ 		}
+ 
+ 		err = hugetlb_mfill_atomic_pte(dst_pte, dst_vma, dst_addr,
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
 
