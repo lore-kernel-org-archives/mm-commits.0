@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD82F2FA0ED
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E606A2FA0ED
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025833; cv=none; b=J8hlr2KMSNzC5gjnPgicCypmV4NQnTbn5z3REAA0WyvHVuttNA2Tz7jE7YAwArFZFrloVor5CCGbFlipGlf5eZvllGc1dF1knZ6W2RjrsCP26n/TqBxUTVjmf5J6uLpB8fiYcqud+KtCMjEvARj1tc21NLvDKwSZItIvqlxJydU=
+	t=1764025835; cv=none; b=N35/ocB8cymt8Qyv7qeD/aOemjFzKJkHJbVgCd8DgN6jVP4gar5WhVs4+e5P5PjnUdtduFmXPkZrIQu1PVp5TPHXv7iHiHrqfuNKlWQYsgZDNabAMPg2j3MSAax6fGTc5nOd8k9Cx3JVxo2muPeH7mWmG7y7Ks97FruupENcVss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025833; c=relaxed/simple;
-	bh=d6JptkJg37I7Cn/MqgdIWfqrR61CKTVWPO45tB43enA=;
-	h=Date:To:From:Subject:Message-Id; b=NprewUBWjCyBT8glV7rApg9K1hWW+botWPNmiV0HMYabcMza7km2OUM1Cf8Y3A/PdmywD4SeS7/++/Gm2iA7FrC42ES5H5WnXSaU0sFUl7aXu6Zbbufv1ZePAlbvnz0ixMm7TSueeVSZ/QKlxf0Z2WbExfQFroWT+D5Z6ItZtAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P8AHXyf+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025835; c=relaxed/simple;
+	bh=bBJuUzRZhEDhvlfRZN3Z/KxR7aEtptwOs+8Rn56vIkc=;
+	h=Date:To:From:Subject:Message-Id; b=SzXcxxp5OcPtxUpbPZm/fr61lr73u6z9gTxR/AAFrEt/nfmOpNvR3QOQfDm/DB9+1Of+OLQup/MmiME6zUVROHDEwSrd5GiWDoKaKVnYYfA/KwGyGUB3WvyDaB4KCPEAYN4fxSntYlW/eJ4fYbNHD703u5di8iPzZOiTJHB8Loc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ti//syC6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P8AHXyf+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D59AC4CEF1;
-	Mon, 24 Nov 2025 23:10:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ti//syC6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B576EC4CEF1;
+	Mon, 24 Nov 2025 23:10:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025833;
-	bh=d6JptkJg37I7Cn/MqgdIWfqrR61CKTVWPO45tB43enA=;
+	s=korg; t=1764025834;
+	bh=bBJuUzRZhEDhvlfRZN3Z/KxR7aEtptwOs+8Rn56vIkc=;
 	h=Date:To:From:Subject:From;
-	b=P8AHXyf+Hf3KkuJnIjKVOC8/iVXNOUh7DkTGpc7x0QN5e8H8NC/LTAJ8j6tkI9Hh3
-	 39rF9eivbw0RFOiog86Ul9UKDnZHGQDPzGI8D1BrO/zJQvNsUpEZJJDaAsn/hqXGXz
-	 dFri8ISw+5Xuz+7VuS1U8RWKvxHhP5QBoVyF2Z4Y=
-Date: Mon, 24 Nov 2025 15:10:32 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,svens@linux.ibm.com,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,nphamcs@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,matthew.brost@intel.com,linmiaohe@huawei.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,imbrenda@linux.ibm.com,hughd@google.com,hca@linux.ibm.com,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,apopple@nvidia.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=ti//syC6FAeQyUS/m8A5Tbn3EOXRSdRRtT6/EmSedkVBxYPR2Po7v4DGcioPjA3oP
+	 s2BzGpJa5ycXcyRElccrOna4UOxEh1U1R5sCEHr1n955hf45at2plwsZVaIJI+9HxH
+	 Er0CeM9Y6NXa44rShU1q2R9RfcqFBoUmNGHB8+JQ=
+Date: Mon, 24 Nov 2025 15:10:34 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,roman.gushchin@linux.dev,richard.weiyang@gmail.com,npache@redhat.com,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,dev.jain@arm.com,david@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch removed from -mm tree
-Message-Id: <20251124231033.7D59AC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-thp-replace-folio_memcg-with-folio_memcg_charged.patch removed from -mm tree
+Message-Id: <20251124231034.B576EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,333 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: replace remaining pte_to_swp_entry() with softleaf_from_pte()
+     Subject: mm: thp: replace folio_memcg() with folio_memcg_charged()
 has been removed from the -mm tree.  Its filename was
-     mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte.patch
+     mm-thp-replace-folio_memcg-with-folio_memcg_charged.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: replace remaining pte_to_swp_entry() with softleaf_from_pte()
-Date: Mon, 10 Nov 2025 22:21:34 +0000
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: thp: replace folio_memcg() with folio_memcg_charged()
+Date: Mon, 10 Nov 2025 16:17:55 +0800
 
-There are straggler invocations of pte_to_swp_entry() lying around,
-replace all of these with the software leaf entry equivalent -
-softleaf_from_pte().
+Patch series "reparent the THP split queue", v6.
 
-With those removed, eliminate pte_to_swp_entry() altogether.
+In the future, we will reparent LRU folios during memcg offline to
+eliminate dying memory cgroups, which requires reparenting the THP split
+queue to its parent memcg.
 
-No functional change intended.
+Similar to list_lru, the split queue is relatively independent and does
+not need to be reparented along with objcg and LRU folios (holding objcg
+lock and lru lock).  Therefore, we can apply the same mechanism as
+list_lru to reparent the split queue first when memcg is offine.
 
-Link: https://lkml.kernel.org/r/d8ee5ccefe4c42d7c4fe1a2e46f285ac40421cd3.1762812360.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+The first three patches in this series are separated from the series
+"Eliminate Dying Memory Cgroup" [1], mainly to do some cleanup and
+preparatory work.
+
+The last patch reparents the THP split queue to its parent memcg during
+memcg offline.
+
+
+This patch (of 4):
+
+folio_memcg_charged() is intended for use when the user is unconcerned
+about the returned memcg pointer.  It is more efficient than
+folio_memcg().  Therefore, replace folio_memcg() with
+folio_memcg_charged().
+
+Link: https://lkml.kernel.org/r/56624d537520e33e5a6b3755238b3dfb959a52ee.1762762324.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/all/20250415024532.26632-1-songmuchun@bytedance.com/ [1]
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Nico Pache <npache@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rik van Riel <riel@surriel.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/leafops.h |    7 ++++++-
- include/linux/swapops.h |   13 -------------
- mm/debug_vm_pgtable.c   |    2 +-
- mm/internal.h           |    7 +++++--
- mm/memory-failure.c     |    2 +-
- mm/memory.c             |   16 ++++++++--------
- mm/migrate.c            |    2 +-
- mm/mincore.c            |    4 +++-
- mm/rmap.c               |    8 ++++++--
- mm/swapfile.c           |   13 +++++++++++--
- 10 files changed, 42 insertions(+), 32 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/leafops.h~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/include/linux/leafops.h
-@@ -54,11 +54,16 @@ static inline softleaf_t softleaf_mk_non
-  */
- static inline softleaf_t softleaf_from_pte(pte_t pte)
- {
-+	softleaf_t arch_entry;
-+
- 	if (pte_present(pte) || pte_none(pte))
- 		return softleaf_mk_none();
+--- a/mm/huge_memory.c~mm-thp-replace-folio_memcg-with-folio_memcg_charged
++++ a/mm/huge_memory.c
+@@ -4127,7 +4127,7 @@ bool __folio_unqueue_deferred_split(stru
+ 	bool unqueued = false;
  
-+	pte = pte_swp_clear_flags(pte);
-+	arch_entry = __pte_to_swp_entry(pte);
-+
- 	/* Temporary until swp_entry_t eliminated. */
--	return pte_to_swp_entry(pte);
-+	return swp_entry(__swp_type(arch_entry), __swp_offset(arch_entry));
- }
+ 	WARN_ON_ONCE(folio_ref_count(folio));
+-	WARN_ON_ONCE(!mem_cgroup_disabled() && !folio_memcg(folio));
++	WARN_ON_ONCE(!mem_cgroup_disabled() && !folio_memcg_charged(folio));
  
- /**
---- a/include/linux/swapops.h~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/include/linux/swapops.h
-@@ -108,19 +108,6 @@ static inline pgoff_t swp_offset(swp_ent
- }
- 
- /*
-- * Convert the arch-dependent pte representation of a swp_entry_t into an
-- * arch-independent swp_entry_t.
-- */
--static inline swp_entry_t pte_to_swp_entry(pte_t pte)
--{
--	swp_entry_t arch_entry;
--
--	pte = pte_swp_clear_flags(pte);
--	arch_entry = __pte_to_swp_entry(pte);
--	return swp_entry(__swp_type(arch_entry), __swp_offset(arch_entry));
--}
--
--/*
-  * Convert the arch-independent representation of a swp_entry_t into the
-  * arch-dependent pte representation.
-  */
---- a/mm/debug_vm_pgtable.c~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/mm/debug_vm_pgtable.c
-@@ -1229,7 +1229,7 @@ static int __init init_args(struct pgtab
- 	init_fixed_pfns(args);
- 
- 	/* See generic_max_swapfile_size(): probe the maximum offset */
--	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
-+	max_swap_offset = swp_offset(softleaf_from_pte(softleaf_to_pte(swp_entry(0, ~0UL))));
- 	/* Create a swp entry with all possible bits set while still being swap. */
- 	args->swp_entry = swp_entry(MAX_SWAPFILES - 1, max_swap_offset);
- 	/* Create a non-present migration entry. */
---- a/mm/internal.h~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/mm/internal.h
-@@ -334,7 +334,7 @@ unsigned int folio_pte_batch(struct foli
-  */
- static inline pte_t pte_move_swp_offset(pte_t pte, long delta)
- {
--	swp_entry_t entry = pte_to_swp_entry(pte);
-+	const softleaf_t entry = softleaf_from_pte(pte);
- 	pte_t new = __swp_entry_to_pte(__swp_entry(swp_type(entry),
- 						   (swp_offset(entry) + delta)));
- 
-@@ -389,11 +389,14 @@ static inline int swap_pte_batch(pte_t *
- 
- 	cgroup_id = lookup_swap_cgroup_id(entry);
- 	while (ptep < end_ptep) {
-+		softleaf_t entry;
-+
- 		pte = ptep_get(ptep);
- 
- 		if (!pte_same(pte, expected_pte))
- 			break;
--		if (lookup_swap_cgroup_id(pte_to_swp_entry(pte)) != cgroup_id)
-+		entry = softleaf_from_pte(pte);
-+		if (lookup_swap_cgroup_id(entry) != cgroup_id)
- 			break;
- 		expected_pte = pte_next_swp_offset(expected_pte);
- 		ptep++;
---- a/mm/memory.c~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/mm/memory.c
-@@ -1218,7 +1218,7 @@ copy_pte_range(struct vm_area_struct *ds
- 	spinlock_t *src_ptl, *dst_ptl;
- 	int progress, max_nr, ret = 0;
- 	int rss[NR_MM_COUNTERS];
--	swp_entry_t entry = (swp_entry_t){0};
-+	softleaf_t entry = softleaf_mk_none();
- 	struct folio *prealloc = NULL;
- 	int nr;
- 
-@@ -1282,7 +1282,7 @@ again:
- 						  dst_vma, src_vma,
- 						  addr, rss);
- 			if (ret == -EIO) {
--				entry = pte_to_swp_entry(ptep_get(src_pte));
-+				entry = softleaf_from_pte(ptep_get(src_pte));
- 				break;
- 			} else if (ret == -EBUSY) {
- 				break;
-@@ -4446,13 +4446,13 @@ static struct folio *__alloc_swap_folio(
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	struct folio *folio;
--	swp_entry_t entry;
-+	softleaf_t entry;
- 
- 	folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma, vmf->address);
- 	if (!folio)
- 		return NULL;
- 
--	entry = pte_to_swp_entry(vmf->orig_pte);
-+	entry = softleaf_from_pte(vmf->orig_pte);
- 	if (mem_cgroup_swapin_charge_folio(folio, vma->vm_mm,
- 					   GFP_KERNEL, entry)) {
- 		folio_put(folio);
-@@ -4470,7 +4470,7 @@ static struct folio *__alloc_swap_folio(
- static bool can_swapin_thp(struct vm_fault *vmf, pte_t *ptep, int nr_pages)
- {
- 	unsigned long addr;
--	swp_entry_t entry;
-+	softleaf_t entry;
- 	int idx;
- 	pte_t pte;
- 
-@@ -4480,7 +4480,7 @@ static bool can_swapin_thp(struct vm_fau
- 
- 	if (!pte_same(pte, pte_move_swp_offset(vmf->orig_pte, -idx)))
- 		return false;
--	entry = pte_to_swp_entry(pte);
-+	entry = softleaf_from_pte(pte);
- 	if (swap_pte_batch(ptep, nr_pages, pte) != nr_pages)
- 		return false;
- 
-@@ -4526,7 +4526,7 @@ static struct folio *alloc_swap_folio(st
- 	unsigned long orders;
- 	struct folio *folio;
- 	unsigned long addr;
--	swp_entry_t entry;
-+	softleaf_t entry;
- 	spinlock_t *ptl;
- 	pte_t *pte;
- 	gfp_t gfp;
-@@ -4547,7 +4547,7 @@ static struct folio *alloc_swap_folio(st
- 	if (!zswap_never_enabled())
- 		goto fallback;
- 
--	entry = pte_to_swp_entry(vmf->orig_pte);
-+	entry = softleaf_from_pte(vmf->orig_pte);
- 	/*
- 	 * Get a list of all the (large) orders below PMD_ORDER that are enabled
- 	 * and suitable for swapping THP.
---- a/mm/memory-failure.c~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/mm/memory-failure.c
-@@ -51,7 +51,7 @@
- #include <linux/backing-dev.h>
- #include <linux/migrate.h>
- #include <linux/slab.h>
--#include <linux/swapops.h>
-+#include <linux/leafops.h>
- #include <linux/hugetlb.h>
- #include <linux/memory_hotplug.h>
- #include <linux/mm_inline.h>
---- a/mm/migrate.c~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/mm/migrate.c
-@@ -534,7 +534,7 @@ void migration_entry_wait_huge(struct vm
- 		 * lock release in migration_entry_wait_on_locked().
- 		 */
- 		hugetlb_vma_unlock_read(vma);
--		migration_entry_wait_on_locked(pte_to_swp_entry(pte), ptl);
-+		migration_entry_wait_on_locked(entry, ptl);
- 		return;
- 	}
- 
---- a/mm/mincore.c~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/mm/mincore.c
-@@ -202,7 +202,9 @@ static int mincore_pte_range(pmd_t *pmd,
- 			for (i = 0; i < step; i++)
- 				vec[i] = 1;
- 		} else { /* pte is a swap entry */
--			*vec = mincore_swap(pte_to_swp_entry(pte), false);
-+			const softleaf_t entry = softleaf_from_pte(pte);
-+
-+			*vec = mincore_swap(entry, false);
- 		}
- 		vec += step;
- 	}
---- a/mm/rmap.c~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/mm/rmap.c
-@@ -1969,7 +1969,9 @@ static bool try_to_unmap_one(struct foli
- 		if (likely(pte_present(pteval))) {
- 			pfn = pte_pfn(pteval);
- 		} else {
--			pfn = softleaf_to_pfn(pte_to_swp_entry(pteval));
-+			const softleaf_t entry = softleaf_from_pte(pteval);
-+
-+			pfn = softleaf_to_pfn(entry);
- 			VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
- 		}
- 
-@@ -2368,7 +2370,9 @@ static bool try_to_migrate_one(struct fo
- 		if (likely(pte_present(pteval))) {
- 			pfn = pte_pfn(pteval);
- 		} else {
--			pfn = softleaf_to_pfn(pte_to_swp_entry(pteval));
-+			const softleaf_t entry = softleaf_from_pte(pteval);
-+
-+			pfn = softleaf_to_pfn(entry);
- 			VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
- 		}
- 
---- a/mm/swapfile.c~mm-replace-remaining-pte_to_swp_entry-with-softleaf_from_pte
-+++ a/mm/swapfile.c
-@@ -3202,8 +3202,17 @@ static int claim_swapfile(struct swap_in
-  */
- unsigned long generic_max_swapfile_size(void)
- {
--	return swp_offset(pte_to_swp_entry(
--			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
-+	swp_entry_t entry = swp_entry(0, ~0UL);
-+	const pte_t pte = softleaf_to_pte(entry);
-+
-+	/*
-+	 * Since the PTE can be an invalid softleaf entry (e.g. the none PTE),
-+	 * we need to do this manually.
-+	 */
-+	entry = __pte_to_swp_entry(pte);
-+	entry = swp_entry(__swp_type(entry), __swp_offset(entry));
-+
-+	return swp_offset(entry) + 1;
- }
- 
- /* Can be overridden by an architecture for additional checks. */
+ 	ds_queue = get_deferred_split_queue(folio);
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
