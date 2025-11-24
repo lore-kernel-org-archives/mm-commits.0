@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 801F72F6164
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 817C0335577
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025846; cv=none; b=ja1qDuzLHwbhcqlhog2C491GbYgkSSCTYBB8G95XRp+FCnoa3w37iVngdzKuIMetkqKNjbhCbCZKU/0NkXqw7o6+eUjGQE1TGfklLaBsc5NJICKuy156QJcU4jhJJdCwWRCLl4NrhwZRh2XfynUlmT+dWRwT40tvhcPlLIcGq8M=
+	t=1764025847; cv=none; b=h5mU6irwj0z/ilLCyxDOs84vHczTX4FpWl1HkO8sFWCZ6h+KyBBfxGuSN+ip6wAXRZQ8BVbSp9XJM3J9eaeAQygnwKTBZ157aVTkvGk5fiOeh9/4to9gS6tnAYcnJVUy5vpAG2q2UeD5PjF7DMSCik+yeqkeNAGSzJTAvifyPeg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025846; c=relaxed/simple;
-	bh=znbh610DMPhmbLhclKakniGAa7n7d8DTKuEp/zG6ZTM=;
-	h=Date:To:From:Subject:Message-Id; b=q93I3xQSuRg6RHxOiu2GpKuDLNWk/408dP8YDq3rQaBlA0GpH6peKvRU0wVH+n3oB5z31Vz6YcDZ6IYe8BYJLx8p4VXXvj6AH8py3gEvBjr95QusuinpdmUl24NqaAcbz6oHmfXujHldFPpgH5MAWFqTbGU0210SvDwdOIByEKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UoadA5si; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025847; c=relaxed/simple;
+	bh=6pKC44i16kpXDCsjDbew5a2jfcjffYPFihZGpJyFwFc=;
+	h=Date:To:From:Subject:Message-Id; b=jNN5L+mfpHSGywi/Lg1P/VC1cMNHZg8LGeb+kobiS0QR7/ozawlO7DMGFjHZi1LjSXAa3IVtMzNfMv/5+czaJiwUYD6dBQu5hmOuFAggeiZM+UpoiNxcd/YKUkogRKxHO+XWNW+Sw4xBWpgXAEoniquCRyCww6ZC0gOlaZj2Xcw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DH8Hm0z2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UoadA5si"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3797AC4CEF1;
-	Mon, 24 Nov 2025 23:10:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DH8Hm0z2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57B45C4CEF1;
+	Mon, 24 Nov 2025 23:10:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025846;
-	bh=znbh610DMPhmbLhclKakniGAa7n7d8DTKuEp/zG6ZTM=;
+	s=korg; t=1764025847;
+	bh=6pKC44i16kpXDCsjDbew5a2jfcjffYPFihZGpJyFwFc=;
 	h=Date:To:From:Subject:From;
-	b=UoadA5siy7jSvlwLp1yUL4aMWnmRcXuwt4pR4hm5HtJ7WofFa9Hv5Z75pdoMW37h1
-	 5crYmSZWap4t/XmspUDjykFHoXv9mXNzdc6uQDBcgznKw2sgHx5CG4fL6qwr5wMMZB
-	 qU7Szm3pOoc8xzwLV/o78FUe7cR+6b/8e/b9vTWQ=
-Date: Mon, 24 Nov 2025 15:10:45 -0800
+	b=DH8Hm0z2hvfj7gnLthxvUv24rTS+ckMHPXr2l39QMPION5nZsxD5o59NGWS3XV3I0
+	 xeK2n0NO4z0xNbVKe1EG6iINzmW4JDEdGO8wN1VGo9tgMLGtoRSpaXcUfsd1zBTJ/L
+	 ASULCLYiY2zgKzZ9DsK+y4SFwY3UWe/KCufwR6/0=
+Date: Mon, 24 Nov 2025 15:10:46 -0800
 To: mm-commits@vger.kernel.org,ywen.chen@foxmail.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-drop-wb_limit_lock.patch removed from -mm tree
-Message-Id: <20251124231046.3797AC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] zram-rework-bdev-block-allocation.patch removed from -mm tree
+Message-Id: <20251124231047.57B45C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: drop wb_limit_lock
+     Subject: zram: rework bdev block allocation
 has been removed from the -mm tree.  Its filename was
-     zram-drop-wb_limit_lock.patch
+     zram-rework-bdev-block-allocation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: drop wb_limit_lock
-Date: Sat, 22 Nov 2025 16:40:27 +0900
+Subject: zram: rework bdev block allocation
+Date: Sat, 22 Nov 2025 16:40:28 +0900
 
-We don't need wb_limit_lock.  Writeback limit setters take an exclusive
-write zram init_lock, while wb_limit modifications happen only from a
-single task and under zram read init_lock.  No concurrent wb_limit
-modifications are possible (we permit only one post-processing task at a
-time).  Add lockdep assertions to wb_limit mutators.
+First, writeback bdev ->bitmap bits are set only from one context, as we
+can have only one single task performing writeback, so we cannot race with
+anything else.  Remove retry path.
 
-While at it, fixup coding styles.
+Second, we always check ZRAM_WB flag to distinguish writtenback slots, so
+we should not confuse 0 bdev block index and 0 handle.  We can use first
+bdev block (0 bit) for writeback as well.
 
-Link: https://lkml.kernel.org/r/20251122074029.3948921-5-senozhatsky@chromium.org
+While at it, give functions slightly more accurate names, as we don't
+alloc/free anything there, we reserve a block for async writeback or
+release the block.
+
+Link: https://lkml.kernel.org/r/20251122074029.3948921-6-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Reviewed-by: Brian Geffon <bgeffon@google.com>
 Cc: Minchan Kim <minchan@google.com>
@@ -64,114 +68,119 @@ Cc: Yuwen Chen <ywen.chen@foxmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   22 +++++-----------------
- drivers/block/zram/zram_drv.h |    1 -
- 2 files changed, 5 insertions(+), 18 deletions(-)
+ drivers/block/zram/zram_drv.c |   37 +++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 19 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-drop-wb_limit_lock
+--- a/drivers/block/zram/zram_drv.c~zram-rework-bdev-block-allocation
 +++ a/drivers/block/zram/zram_drv.c
-@@ -532,9 +532,7 @@ static ssize_t writeback_limit_enable_st
- 		return ret;
- 
- 	down_write(&zram->init_lock);
--	spin_lock(&zram->wb_limit_lock);
- 	zram->wb_limit_enable = val;
--	spin_unlock(&zram->wb_limit_lock);
- 	up_write(&zram->init_lock);
- 	ret = len;
- 
-@@ -549,9 +547,7 @@ static ssize_t writeback_limit_enable_sh
- 	struct zram *zram = dev_to_zram(dev);
- 
- 	down_read(&zram->init_lock);
--	spin_lock(&zram->wb_limit_lock);
- 	val = zram->wb_limit_enable;
--	spin_unlock(&zram->wb_limit_lock);
- 	up_read(&zram->init_lock);
- 
- 	return sysfs_emit(buf, "%d\n", val);
-@@ -569,9 +565,7 @@ static ssize_t writeback_limit_store(str
- 		return ret;
- 
- 	down_write(&zram->init_lock);
--	spin_lock(&zram->wb_limit_lock);
- 	zram->bd_wb_limit = val;
--	spin_unlock(&zram->wb_limit_lock);
- 	up_write(&zram->init_lock);
- 	ret = len;
- 
-@@ -579,15 +573,13 @@ static ssize_t writeback_limit_store(str
+@@ -500,6 +500,8 @@ out:
  }
  
- static ssize_t writeback_limit_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+				    struct device_attribute *attr, char *buf)
- {
- 	u64 val;
- 	struct zram *zram = dev_to_zram(dev);
- 
- 	down_read(&zram->init_lock);
--	spin_lock(&zram->wb_limit_lock);
- 	val = zram->bd_wb_limit;
--	spin_unlock(&zram->wb_limit_lock);
- 	up_read(&zram->init_lock);
- 
- 	return sysfs_emit(buf, "%llu\n", val);
-@@ -869,18 +861,18 @@ release_wb_ctl:
- 
- static void zram_account_writeback_rollback(struct zram *zram)
- {
--	spin_lock(&zram->wb_limit_lock);
-+	lockdep_assert_held_read(&zram->init_lock);
+ #ifdef CONFIG_ZRAM_WRITEBACK
++#define INVALID_BDEV_BLOCK		(~0UL)
 +
- 	if (zram->wb_limit_enable)
- 		zram->bd_wb_limit +=  1UL << (PAGE_SHIFT - 12);
--	spin_unlock(&zram->wb_limit_lock);
+ struct zram_wb_ctl {
+ 	/* idle list is accessed only by the writeback task, no concurency */
+ 	struct list_head idle_reqs;
+@@ -746,23 +748,20 @@ out:
+ 	return err;
  }
  
- static void zram_account_writeback_submit(struct zram *zram)
+-static unsigned long alloc_block_bdev(struct zram *zram)
++static unsigned long zram_reserve_bdev_block(struct zram *zram)
  {
--	spin_lock(&zram->wb_limit_lock);
-+	lockdep_assert_held_read(&zram->init_lock);
-+
- 	if (zram->wb_limit_enable && zram->bd_wb_limit > 0)
- 		zram->bd_wb_limit -=  1UL << (PAGE_SHIFT - 12);
--	spin_unlock(&zram->wb_limit_lock);
+-	unsigned long blk_idx = 1;
+-retry:
+-	/* skip 0 bit to confuse zram.handle = 0 */
+-	blk_idx = find_next_zero_bit(zram->bitmap, zram->nr_pages, blk_idx);
+-	if (blk_idx == zram->nr_pages)
+-		return 0;
++	unsigned long blk_idx;
+ 
+-	if (test_and_set_bit(blk_idx, zram->bitmap))
+-		goto retry;
++	blk_idx = find_next_zero_bit(zram->bitmap, zram->nr_pages, 0);
++	if (blk_idx == zram->nr_pages)
++		return INVALID_BDEV_BLOCK;
+ 
++	set_bit(blk_idx, zram->bitmap);
+ 	atomic64_inc(&zram->stats.bd_count);
+ 	return blk_idx;
  }
  
- static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
-@@ -1005,13 +997,10 @@ static int zram_writeback_slots(struct z
+-static void free_block_bdev(struct zram *zram, unsigned long blk_idx)
++static void zram_release_bdev_block(struct zram *zram, unsigned long blk_idx)
+ {
+ 	int was_set;
+ 
+@@ -887,7 +886,7 @@ static int zram_writeback_complete(struc
+ 		 * (if enabled).
+ 		 */
+ 		zram_account_writeback_rollback(zram);
+-		free_block_bdev(zram, req->blk_idx);
++		zram_release_bdev_block(zram, req->blk_idx);
+ 		return err;
+ 	}
+ 
+@@ -901,7 +900,7 @@ static int zram_writeback_complete(struc
+ 	 * finishes.
+ 	 */
+ 	if (!zram_test_flag(zram, index, ZRAM_PP_SLOT)) {
+-		free_block_bdev(zram, req->blk_idx);
++		zram_release_bdev_block(zram, req->blk_idx);
+ 		goto out;
+ 	}
+ 
+@@ -990,8 +989,8 @@ static int zram_writeback_slots(struct z
+ 				struct zram_pp_ctl *ctl,
+ 				struct zram_wb_ctl *wb_ctl)
+ {
++	unsigned long blk_idx = INVALID_BDEV_BLOCK;
+ 	struct zram_wb_req *req = NULL;
+-	unsigned long blk_idx = 0;
+ 	struct zram_pp_slot *pps;
+ 	int ret = 0, err = 0;
  	u32 index = 0;
- 
- 	while ((pps = select_pp_slot(ctl))) {
--		spin_lock(&zram->wb_limit_lock);
- 		if (zram->wb_limit_enable && !zram->bd_wb_limit) {
--			spin_unlock(&zram->wb_limit_lock);
- 			ret = -EIO;
- 			break;
+@@ -1023,9 +1022,9 @@ static int zram_writeback_slots(struct z
+ 				ret = err;
  		}
--		spin_unlock(&zram->wb_limit_lock);
  
- 		while (!req) {
- 			req = zram_select_idle_req(wb_ctl);
-@@ -2962,7 +2951,6 @@ static int zram_add(void)
- 	init_rwsem(&zram->init_lock);
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	zram->wb_batch_size = 32;
--	spin_lock_init(&zram->wb_limit_lock);
+-		if (!blk_idx) {
+-			blk_idx = alloc_block_bdev(zram);
+-			if (!blk_idx) {
++		if (blk_idx == INVALID_BDEV_BLOCK) {
++			blk_idx = zram_reserve_bdev_block(zram);
++			if (blk_idx == INVALID_BDEV_BLOCK) {
+ 				ret = -ENOSPC;
+ 				break;
+ 			}
+@@ -1059,7 +1058,7 @@ static int zram_writeback_slots(struct z
+ 		__bio_add_page(&req->bio, req->page, PAGE_SIZE, 0);
+ 
+ 		zram_submit_wb_request(zram, wb_ctl, req);
+-		blk_idx = 0;
++		blk_idx = INVALID_BDEV_BLOCK;
+ 		req = NULL;
+ 		cond_resched();
+ 		continue;
+@@ -1366,7 +1365,7 @@ static int read_from_bdev(struct zram *z
+ 	return -EIO;
+ }
+ 
+-static void free_block_bdev(struct zram *zram, unsigned long blk_idx)
++static void zram_release_bdev_block(struct zram *zram, unsigned long blk_idx)
+ {
+ }
  #endif
+@@ -1890,7 +1889,7 @@ static void zram_free_page(struct zram *
  
- 	/* gendisk structure */
---- a/drivers/block/zram/zram_drv.h~zram-drop-wb_limit_lock
-+++ a/drivers/block/zram/zram_drv.h
-@@ -127,7 +127,6 @@ struct zram {
- 	bool claim; /* Protected by disk->open_mutex */
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	struct file *backing_dev;
--	spinlock_t wb_limit_lock;
- 	bool wb_limit_enable;
- 	u32 wb_batch_size;
- 	u64 bd_wb_limit;
+ 	if (zram_test_flag(zram, index, ZRAM_WB)) {
+ 		zram_clear_flag(zram, index, ZRAM_WB);
+-		free_block_bdev(zram, zram_get_handle(zram, index));
++		zram_release_bdev_block(zram, zram_get_handle(zram, index));
+ 		goto out;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
