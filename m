@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4A74335546
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51C88336EED
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 23:10:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764025826; cv=none; b=u5nUAvmOZ+Go2oaBxuXKcqIjlmM3chc970/Bn/2M1QaNm/he9/B20R/XrkzjR2gUIAC0NdtZ4WAIsddgCI0t7oqhnxoMIzrS9rrkVhwl3cNXbbhOJ/iYeb/LGX0v0kCyglC2FdI2pVLmvfPiSt8ylYVQIFQWYPnFQszHWWXSQOo=
+	t=1764025828; cv=none; b=FZ+jyVfRVozFvv6mZpGrmCbXbHkSYW8efuIG8NNf83zWlqbgBzUG1x/QYjGGE8lj5E4ldlAmXQWGJxqgXK8fYgN+OytQklDu0u6DqluEqnnLxf5XF6AxYgOWd1kt3wN33BXPQk/UIn6mPd5ST+MPrYJJJKiVXi7OC0tC/b0rfoI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764025826; c=relaxed/simple;
-	bh=BZj143/y9OldPVoPOh4+tJQUM8b8+BRw3vSlm9voeXM=;
-	h=Date:To:From:Subject:Message-Id; b=q7vEFq4nMF9W7gN2OAdtBUqVndf+P0psENjEpVyyB8G+MAz5itGWT18e8AHbyHL7BsezGSzuRWKC37tFO+hGkv+mE9GQPW/GPlYxujHcbI051kUmVZoT/1OMZa4Gc0mbcrPGAtmBcsQM2NGnJ+ETLdcQ7fVnA3BQ88nGO3uDjbI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NerDSwOY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764025828; c=relaxed/simple;
+	bh=UG8fhbF16NHr/ljB3WYBnyp6g5riQJIxf7ftboS/nAc=;
+	h=Date:To:From:Subject:Message-Id; b=F5PxRium8rZ10YEmLUUO5Sw8HcOpL6cs9nH/o6Yofviu/TqIwkqDZJSky7MDgG6qGSuGOnR6hwdIh8hbXVtdASWMj1nyTtAOOmo/ckFOkdkUT9ptCJNtWAOW3ZCwNnUPz3NWv1REE8fRBb4SL/i4R5XPAZDNY4q95mjefF7VuR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L68x20Bj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NerDSwOY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CA4FC4CEF1;
-	Mon, 24 Nov 2025 23:10:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L68x20Bj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3ABFC4CEF1;
+	Mon, 24 Nov 2025 23:10:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764025826;
-	bh=BZj143/y9OldPVoPOh4+tJQUM8b8+BRw3vSlm9voeXM=;
+	s=korg; t=1764025827;
+	bh=UG8fhbF16NHr/ljB3WYBnyp6g5riQJIxf7ftboS/nAc=;
 	h=Date:To:From:Subject:From;
-	b=NerDSwOYXbQ6ebzaX30jJkGJxlSYNOM5yqJACSTnOlKn31yLb1F9QULt/d7rzM8lR
-	 iQAeZh5n1KLb5jIuPRgCf13CQmTKJTyWClA3ZyqrPPqUQzuey4TiCZP0TtVlTi3wbT
-	 1Ykg2x6/08yFlmjRaisADkBvSECkpxN3/G9RxU2c=
-Date: Mon, 24 Nov 2025 15:10:25 -0800
+	b=L68x20BjxrHmqKd8aA6tySepQTu74CvKhlZIIKWXtoJDp6/w/4ISdIfvaIcY5+ZXY
+	 CwFsnc0KsliZ867iJhTnNI/4WLpsw/RwDRaHtTfOBgzR0KQHSxbuUpo+qZX4LkR6Xq
+	 hlJyB17pwVGLD61lLsHoT4nLd8hWkT0CiVlq4pBc=
+Date: Mon, 24 Nov 2025 15:10:27 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,willy@infradead.org,weixugc@google.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,svens@linux.ibm.com,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,peterx@redhat.com,pasha.tatashin@soleen.com,osalvador@suse.de,nphamcs@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,matthew.brost@intel.com,linmiaohe@huawei.com,liam.howlett@oracle.com,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,imbrenda@linux.ibm.com,hughd@google.com,hca@linux.ibm.com,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,dev.jain@arm.com,david@redhat.com,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,brauner@kernel.org,borntraeger@linux.ibm.com,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,apopple@nvidia.com,agordeev@linux.ibm.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-introduce-pmd_is_huge-and-use-where-appropriate.patch removed from -mm tree
-Message-Id: <20251124231026.7CA4FC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch removed from -mm tree
+Message-Id: <20251124231027.C3ABFC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,40 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: introduce pmd_is_huge() and use where appropriate
+     Subject: mm: remove remaining is_swap_pmd() users and is_swap_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-pmd_is_huge-and-use-where-appropriate.patch
+     mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: introduce pmd_is_huge() and use where appropriate
-Date: Mon, 10 Nov 2025 22:21:29 +0000
+Subject: mm: remove remaining is_swap_pmd() users and is_swap_pmd()
+Date: Mon, 10 Nov 2025 22:21:30 +0000
 
-The leaf entry PMD case is confusing as only migration entries and device
-private entries are valid at PMD level, not true swap entries.
+Update copy_huge_pmd() and change_huge_pmd() to use
+pmd_is_valid_softleaf() - as this checks for the only valid non-present
+huge PMD states.
 
-We repeatedly perform checks of the form is_swap_pmd() || pmd_trans_huge()
-which is itself confusing - it implies that leaf entries at PMD level
-exist and are different from huge entries.
+Also update mm/debug_vm_pgtable.c to explicitly test for a valid leaf PMD
+entry (which it was not before, which was incorrect), and have it test
+against pmd_is_huge() and pmd_is_valid_softleaf() rather than
+is_swap_pmd().
 
-Address this confusion by introduced pmd_is_huge() which checks for either
-case.  Sadly due to header dependency issues (huge_mm.h is included very
-early on in headers and cannot really rely on much else) we cannot use
-pmd_is_valid_softleaf() here.
+With these changes done there are no further users of is_swap_pmd(), so
+remove it.
 
-However since these are the only valid, handled cases the function is
-still achieving what it intends to do.
-
-We then replace all instances of is_swap_pmd() || pmd_trans_huge() with
-pmd_is_huge() invocations and adjust logic accordingly to accommodate
-this.
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/00f79db3b15293cac8f7040a48d69c52d00117e4.1762812360.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/1628b00b00c8498bbd2c20b82117ee87845fb738.1762812360.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -128,150 +119,149 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   39 ++++++++++++++++++++++++++++++++++----
- include/linux/swapops.h |    6 +++++
- mm/huge_memory.c        |    3 +-
- mm/memory.c             |    4 +--
- mm/mprotect.c           |    2 -
- mm/mremap.c             |    2 -
- 6 files changed, 47 insertions(+), 9 deletions(-)
+ include/linux/huge_mm.h |    9 ---------
+ mm/debug_vm_pgtable.c   |   25 +++++++++++++++----------
+ mm/huge_memory.c        |    5 +++--
+ 3 files changed, 18 insertions(+), 21 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-introduce-pmd_is_huge-and-use-where-appropriate
+--- a/include/linux/huge_mm.h~mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd
 +++ a/include/linux/huge_mm.h
-@@ -419,10 +419,36 @@ void deferred_split_folio(struct folio *
- void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long address, bool freeze);
+@@ -486,11 +486,6 @@ void vma_adjust_trans_huge(struct vm_are
+ spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma);
+ spinlock_t *__pud_trans_huge_lock(pud_t *pud, struct vm_area_struct *vma);
  
-+/**
-+ * pmd_is_huge() - Is this PMD either a huge PMD entry or a software leaf entry?
-+ * @pmd: The PMD to check.
-+ *
-+ * A huge PMD entry is a non-empty entry which is present and marked huge or a
-+ * software leaf entry. This check be performed without the appropriate locks
-+ * held, in which case the condition should be rechecked after they are
-+ * acquired.
-+ *
-+ * Returns: true if this PMD is huge, false otherwise.
-+ */
-+static inline bool pmd_is_huge(pmd_t pmd)
-+{
-+	if (pmd_present(pmd)) {
-+		return pmd_trans_huge(pmd);
-+	} else if (!pmd_none(pmd)) {
-+		/*
-+		 * Non-present PMDs must be valid huge non-present entries. We
-+		 * cannot assert that here due to header dependency issues.
-+		 */
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
- #define split_huge_pmd(__vma, __pmd, __address)				\
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
--		if (is_swap_pmd(*____pmd) || pmd_trans_huge(*____pmd))	\
-+		if (pmd_is_huge(*____pmd))				\
- 			__split_huge_pmd(__vma, __pmd, __address,	\
- 					 false);			\
- 	}  while (0)
-@@ -469,10 +495,10 @@ static inline int is_swap_pmd(pmd_t pmd)
+-static inline int is_swap_pmd(pmd_t pmd)
+-{
+-	return !pmd_none(pmd) && !pmd_present(pmd);
+-}
+-
+ /* mmap_lock must be held on entry */
+ static inline spinlock_t *pmd_trans_huge_lock(pmd_t *pmd,
+ 		struct vm_area_struct *vma)
+@@ -692,10 +687,6 @@ static inline void vma_adjust_trans_huge
+ 					 struct vm_area_struct *next)
+ {
+ }
+-static inline int is_swap_pmd(pmd_t pmd)
+-{
+-	return 0;
+-}
  static inline spinlock_t *pmd_trans_huge_lock(pmd_t *pmd,
  		struct vm_area_struct *vma)
  {
--	if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd))
-+	if (pmd_is_huge(*pmd))
- 		return __pmd_trans_huge_lock(pmd, vma);
--	else
--		return NULL;
-+
-+	return NULL;
+--- a/mm/debug_vm_pgtable.c~mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd
++++ a/mm/debug_vm_pgtable.c
+@@ -74,6 +74,7 @@ struct pgtable_debug_args {
+ 	unsigned long		fixed_pte_pfn;
+ 
+ 	swp_entry_t		swp_entry;
++	swp_entry_t		leaf_entry;
+ };
+ 
+ static void __init pte_basic_tests(struct pgtable_debug_args *args, int idx)
+@@ -745,7 +746,7 @@ static void __init pmd_soft_dirty_tests(
+ 	WARN_ON(pmd_soft_dirty(pmd_clear_soft_dirty(pmd)));
  }
- static inline spinlock_t *pud_trans_huge_lock(pud_t *pud,
- 		struct vm_area_struct *vma)
-@@ -743,6 +769,11 @@ static inline struct folio *get_persiste
+ 
+-static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args)
++static void __init pmd_leaf_soft_dirty_tests(struct pgtable_debug_args *args)
  {
- 	return NULL;
+ 	pmd_t pmd;
+ 
+@@ -757,15 +758,16 @@ static void __init pmd_swap_soft_dirty_t
+ 		return;
+ 
+ 	pr_debug("Validating PMD swap soft dirty\n");
+-	pmd = swp_entry_to_pmd(args->swp_entry);
+-	WARN_ON(!is_swap_pmd(pmd));
++	pmd = swp_entry_to_pmd(args->leaf_entry);
++	WARN_ON(!pmd_is_huge(pmd));
++	WARN_ON(!pmd_is_valid_softleaf(pmd));
+ 
+ 	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
+ 	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
  }
-+
-+static inline bool pmd_is_huge(pmd_t pmd)
-+{
-+	return false;
-+}
+ #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+ static void __init pmd_soft_dirty_tests(struct pgtable_debug_args *args) { }
+-static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args) { }
++static void __init pmd_leaf_soft_dirty_tests(struct pgtable_debug_args *args) { }
  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- static inline int split_folio_to_list_to_order(struct folio *folio,
---- a/include/linux/swapops.h~mm-introduce-pmd_is_huge-and-use-where-appropriate
-+++ a/include/linux/swapops.h
-@@ -471,6 +471,12 @@ static inline pmd_t swp_entry_to_pmd(swp
+ static void __init pte_swap_exclusive_tests(struct pgtable_debug_args *args)
+@@ -818,7 +820,7 @@ static void __init pte_swap_tests(struct
  }
  
- #else  /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
-+static inline int set_pmd_migration_entry(struct page_vma_mapped_walk *pvmw,
-+		struct page *page)
-+{
-+	BUILD_BUG();
-+}
-+
- static inline void remove_migration_pmd(struct page_vma_mapped_walk *pvmw,
- 		struct page *new)
+ #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+-static void __init pmd_swap_tests(struct pgtable_debug_args *args)
++static void __init pmd_softleaf_tests(struct pgtable_debug_args *args)
  {
---- a/mm/huge_memory.c~mm-introduce-pmd_is_huge-and-use-where-appropriate
+ 	swp_entry_t arch_entry;
+ 	pmd_t pmd1, pmd2;
+@@ -827,15 +829,16 @@ static void __init pmd_swap_tests(struct
+ 		return;
+ 
+ 	pr_debug("Validating PMD swap\n");
+-	pmd1 = swp_entry_to_pmd(args->swp_entry);
+-	WARN_ON(!is_swap_pmd(pmd1));
++	pmd1 = swp_entry_to_pmd(args->leaf_entry);
++	WARN_ON(!pmd_is_huge(pmd1));
++	WARN_ON(!pmd_is_valid_softleaf(pmd1));
+ 
+ 	arch_entry = __pmd_to_swp_entry(pmd1);
+ 	pmd2 = __swp_entry_to_pmd(arch_entry);
+ 	WARN_ON(memcmp(&pmd1, &pmd2, sizeof(pmd1)));
+ }
+ #else  /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
+-static void __init pmd_swap_tests(struct pgtable_debug_args *args) { }
++static void __init pmd_softleaf_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
+ 
+ static void __init swap_migration_tests(struct pgtable_debug_args *args)
+@@ -1229,6 +1232,8 @@ static int __init init_args(struct pgtab
+ 	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
+ 	/* Create a swp entry with all possible bits set while still being swap. */
+ 	args->swp_entry = swp_entry(MAX_SWAPFILES - 1, max_swap_offset);
++	/* Create a non-present migration entry. */
++	args->leaf_entry = make_writable_migration_entry(~0UL);
+ 
+ 	/*
+ 	 * Allocate (huge) pages because some of the tests need to access
+@@ -1318,12 +1323,12 @@ static int __init debug_vm_pgtable(void)
+ 	pte_soft_dirty_tests(&args);
+ 	pmd_soft_dirty_tests(&args);
+ 	pte_swap_soft_dirty_tests(&args);
+-	pmd_swap_soft_dirty_tests(&args);
++	pmd_leaf_soft_dirty_tests(&args);
+ 
+ 	pte_swap_exclusive_tests(&args);
+ 
+ 	pte_swap_tests(&args);
+-	pmd_swap_tests(&args);
++	pmd_softleaf_tests(&args);
+ 
+ 	swap_migration_tests(&args);
+ 
+--- a/mm/huge_memory.c~mm-remove-remaining-is_swap_pmd-users-and-is_swap_pmd
 +++ a/mm/huge_memory.c
-@@ -2735,8 +2735,9 @@ unlock_ptls:
- spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma)
- {
- 	spinlock_t *ptl;
-+
- 	ptl = pmd_lock(vma->vm_mm, pmd);
--	if (likely(is_swap_pmd(*pmd) || pmd_trans_huge(*pmd)))
-+	if (likely(pmd_is_huge(*pmd)))
- 		return ptl;
- 	spin_unlock(ptl);
- 	return NULL;
---- a/mm/memory.c~mm-introduce-pmd_is_huge-and-use-where-appropriate
-+++ a/mm/memory.c
-@@ -1374,7 +1374,7 @@ copy_pmd_range(struct vm_area_struct *ds
- 	src_pmd = pmd_offset(src_pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (is_swap_pmd(*src_pmd) || pmd_trans_huge(*src_pmd)) {
-+		if (pmd_is_huge(*src_pmd)) {
- 			int err;
+@@ -1800,7 +1800,8 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	ret = -EAGAIN;
+ 	pmd = *src_pmd;
  
- 			VM_BUG_ON_VMA(next-addr != HPAGE_PMD_SIZE, src_vma);
-@@ -1917,7 +1917,7 @@ static inline unsigned long zap_pmd_rang
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
--		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd)) {
-+		if (pmd_is_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				__split_huge_pmd(vma, pmd, addr, false);
- 			else if (zap_huge_pmd(tlb, vma, pmd, addr)) {
---- a/mm/mprotect.c~mm-introduce-pmd_is_huge-and-use-where-appropriate
-+++ a/mm/mprotect.c
-@@ -474,7 +474,7 @@ again:
- 			goto next;
+-	if (unlikely(thp_migration_supported() && is_swap_pmd(pmd))) {
++	if (unlikely(thp_migration_supported() &&
++		     pmd_is_valid_softleaf(pmd))) {
+ 		copy_huge_non_present_pmd(dst_mm, src_mm, dst_pmd, src_pmd, addr,
+ 					  dst_vma, src_vma, pmd, pgtable);
+ 		ret = 0;
+@@ -2487,7 +2488,7 @@ int change_huge_pmd(struct mmu_gather *t
+ 	if (!ptl)
+ 		return 0;
  
- 		_pmd = pmdp_get_lockless(pmd);
--		if (is_swap_pmd(_pmd) || pmd_trans_huge(_pmd)) {
-+		if (pmd_is_huge(_pmd)) {
- 			if ((next - addr != HPAGE_PMD_SIZE) ||
- 			    pgtable_split_needed(vma, cp_flags)) {
- 				__split_huge_pmd(vma, pmd, addr, false);
---- a/mm/mremap.c~mm-introduce-pmd_is_huge-and-use-where-appropriate
-+++ a/mm/mremap.c
-@@ -850,7 +850,7 @@ unsigned long move_page_tables(struct pa
- 		if (!new_pmd)
- 			break;
- again:
--		if (is_swap_pmd(*old_pmd) || pmd_trans_huge(*old_pmd)) {
-+		if (pmd_is_huge(*old_pmd)) {
- 			if (extent == HPAGE_PMD_SIZE &&
- 			    move_pgt_entry(pmc, HPAGE_PMD, old_pmd, new_pmd))
- 				continue;
+-	if (thp_migration_supported() && is_swap_pmd(*pmd)) {
++	if (thp_migration_supported() && pmd_is_valid_softleaf(*pmd)) {
+ 		change_non_present_huge_pmd(mm, addr, pmd, uffd_wp,
+ 					    uffd_wp_resolve);
+ 		goto unlock;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
