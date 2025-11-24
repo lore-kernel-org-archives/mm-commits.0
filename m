@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB86C257AFB
-	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:26:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F71626980F
+	for <mm-commits@vger.kernel.org>; Mon, 24 Nov 2025 22:28:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764023168; cv=none; b=Ek5XrEk4Hvl46bxUAFqi624nu71R2047PV/B2GmsGL93n0zQtnuz+PbHVujdHisDklx7cs6CxoeBZHUuN5c1x2SyycgAuEax6G5S6qH6S6qTlmLz7xAQmde1s5QOpLIDqRL0pjtNYLtRI+rAmZpfhQ4a+MuUuByB0YfsAVbenZY=
+	t=1764023284; cv=none; b=JMPM/O68Z1R/vSr4KarESDHMAzxoXkT3ePCiD2Ka85FyF2ksXJcILMXijVy6lO4nm5gvrOh0M3IcdnFEVlC6gPq8XDBQU59NYxpdjW2LjxWCzA+lUEeXlGmL0jP4po5OU0wk4+39O5TUNgVEWEJQlFgVlDyq7DzfZKMipfFJmy0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764023168; c=relaxed/simple;
-	bh=HDT6wvFHab7MgTxuQHulzkuyQs0EVeQN3YrZWUMtgME=;
-	h=Date:To:From:Subject:Message-Id; b=T9Y9XSrRH4+Bfit8zdYt5pP/WGl4A5D27hEv9d0VHwJYu1Rrn1C/OlHHYzGoO6Sh8oGtxlbw0XeaUNmUtqwM7aVrqavC4PPTWG8aSpZP+LbX0MOwYgT4fckoV6Rv8tXffFqUAODsu+a8biYftACoAl+Yc2AlfHPcYgtV+yNZpAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IMDs4l0m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764023284; c=relaxed/simple;
+	bh=nQgOlOCOqScKY0CM03yN/dI1M7o5R7pI10944+bhCxE=;
+	h=Date:To:From:Subject:Message-Id; b=nZbtAUedGccVcvDZRE5MZ4+VtQb5+JG/Lp59WAFfCEhm/suw0cFoTpDi1KdWI6e6B6B7jOcuCryeYYcH4OOZmuZ0o919YZBgnALcZP2nJn0vJNrUx/5r409yJeCHHkvicHsHp0hW9EAnAo/8oivTBXNkeAVOV2cURMTC3+Tb09M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QEfIWPuV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IMDs4l0m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7071C16AAE;
-	Mon, 24 Nov 2025 22:26:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QEfIWPuV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB2F2C4CEF1;
+	Mon, 24 Nov 2025 22:28:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764023167;
-	bh=HDT6wvFHab7MgTxuQHulzkuyQs0EVeQN3YrZWUMtgME=;
+	s=korg; t=1764023283;
+	bh=nQgOlOCOqScKY0CM03yN/dI1M7o5R7pI10944+bhCxE=;
 	h=Date:To:From:Subject:From;
-	b=IMDs4l0mctR25IdcRwlr0Ky3/u2NQI2fm0xRFtojiSGq7yUc7PbsM05fcANHCCr/o
-	 dJUqLMz117AWbu03Nnade4IGhoO34AFU73F13SHU1M2rNgIoRE6BTKFamAiup7vlUj
-	 obQ24PJbgw8qOKve0lM3EoBrZ+BbaRt1fwzKOQog=
-Date: Mon, 24 Nov 2025 14:26:07 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hughd@google.com,hannes@cmpxchg.org,djwong@kernel.org,david@redhat.com,david@fromorbit.com,clm@meta.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,kas@kernel.org,akpm@linux-foundation.org
+	b=QEfIWPuVRuO+MkGVzY6v/gKK7ef4hkpsyMm3XJ7Vn274QpX1Nv2XRtiMQnnTgTj/x
+	 iR2S7ZSdsjHNY2A/azqmuB3Q/WsSqAcbe26zF4L19rOrC89G9TYypVRwucDbV5Gaf8
+	 Vnplzn8kVi02pCQrLEWUtCC5boTGKDU5E6RPqpPw=
+Date: Mon, 24 Nov 2025 14:28:03 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,simona@ffwll.ch,ryan.roberts@arm.com,rcampbell@nvidia.com,rakie.kim@sk.com,osalvador@suse.de,npache@redhat.com,mpenttil@redhat.com,matthew.brost@intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,joshua.hahnjy@gmail.com,gourry@gourry.net,francois.dugast@intel.com,dev.jain@arm.com,david@redhat.com,dakr@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,airlied@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch removed from -mm tree
-Message-Id: <20251124222607.B7071C16AAE@smtp.kernel.org>
+Subject: [folded-merged] mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix.patch removed from -mm tree
+Message-Id: <20251124222803.CB2F2C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,128 +35,102 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/filemap: fix logic around SIGBUS in filemap_map_pages()
+     Subject: mm/huge_memory: fix override of entry in remove_migration_pmd
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages.patch
+     mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
 
 ------------------------------------------------------
-From: Kiryl Shutsemau <kas@kernel.org>
-Subject: mm/filemap: fix logic around SIGBUS in filemap_map_pages()
-Date: Thu, 20 Nov 2025 16:14:11 +0000
+From: Balbir Singh <balbirs@nvidia.com>
+Subject: mm/huge_memory: fix override of entry in remove_migration_pmd
+Date: Fri, 14 Nov 2025 12:21:53 +1100
 
-Chris noticed that filemap_map_pages() calculates can_map_large only once
-for the first page in the fault around range.  The value is not valid for
-the following pages in the range and must be recalculated.
+Recent changes exposed a BUG in remove_migration_pmd() where the
+migration entry was being overridden when the folio is device private.
 
-Instead of recalculating can_map_large on each iteration, pass down
-file_end to filemap_map_folio_range() and let it make the decision on what
-can be mapped.
+Use scope local entry for creating the device private pmde. Make the
+pmde writable if the migration entry is writable by moving the check
+is_migration_write() prior to creating the device private entry.
 
-Link: https://lkml.kernel.org/r/20251120161411.859078-1-kirill@shutemov.name
-Fixes: 74207de2ba10 ("mm/memory: do not populate page table entries beyond i_size")h
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Reported-by: Chris Mason <clm@meta.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chris Mason <clm@meta.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
+Link: https://lkml.kernel.org/r/20251114012153.2634497-2-balbirs@nvidia.com
+Signed-off-by: Balbir Singh <balbirs@nvidia.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Mika Penttilä <mpenttil@redhat.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Francois Dugast <francois.dugast@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ mm/huge_memory.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-logic-around-sigbus-in-filemap_map_pages
-+++ a/mm/filemap.c
-@@ -3682,8 +3682,9 @@ static vm_fault_t filemap_map_folio_rang
- 			struct folio *folio, unsigned long start,
- 			unsigned long addr, unsigned int nr_pages,
- 			unsigned long *rss, unsigned short *mmap_miss,
--			bool can_map_large)
-+			pgoff_t file_end)
- {
-+	struct address_space *mapping = folio->mapping;
- 	unsigned int ref_from_caller = 1;
- 	vm_fault_t ret = 0;
- 	struct page *page = folio_page(folio, start);
-@@ -3692,12 +3693,16 @@ static vm_fault_t filemap_map_folio_rang
- 	unsigned long addr0;
+--- a/mm/huge_memory.c~mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix
++++ a/mm/huge_memory.c
+@@ -4637,7 +4637,12 @@ void remove_migration_pmd(struct page_vm
+ 	folio_get(folio);
+ 	pmde = folio_mk_pmd(folio, READ_ONCE(vma->vm_page_prot));
  
- 	/*
--	 * Map the large folio fully where possible.
-+	 * Map the large folio fully where possible:
- 	 *
--	 * The folio must not cross VMA or page table boundary.
-+	 *  - The folio is fully within size of the file or belong
-+	 *    to shmem/tmpfs;
-+	 *  - The folio doesn't cross VMA boundary;
-+	 *  - The folio doesn't cross page table boundary;
- 	 */
- 	addr0 = addr - start * PAGE_SIZE;
--	if (can_map_large && folio_within_vma(folio, vmf->vma) &&
-+	if ((file_end >= folio_next_index(folio) || shmem_mapping(mapping)) &&
-+	    folio_within_vma(folio, vmf->vma) &&
- 	    (addr0 & PMD_MASK) == ((addr0 + folio_size(folio) - 1) & PMD_MASK)) {
- 		vmf->pte -= start;
- 		page -= start;
-@@ -3812,7 +3817,6 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	unsigned long rss = 0;
- 	unsigned int nr_pages = 0, folio_type;
- 	unsigned short mmap_miss = 0, mmap_miss_saved;
--	bool can_map_large;
++	if (is_writable_migration_entry(entry))
++		pmde = pmd_mkwrite(pmde, vma);
++
+ 	if (folio_is_device_private(folio)) {
++		swp_entry_t entry;
++
+ 		if (pmd_write(pmde))
+ 			entry = make_writable_device_private_entry(
+ 							page_to_pfn(new));
+@@ -4649,8 +4654,6 @@ void remove_migration_pmd(struct page_vm
  
- 	rcu_read_lock();
- 	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
-@@ -3823,16 +3827,14 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	end_pgoff = min(end_pgoff, file_end);
- 
- 	/*
--	 * Do not allow to map with PTEs beyond i_size and with PMD
--	 * across i_size to preserve SIGBUS semantics.
-+	 * Do not allow to map with PMD across i_size to preserve
-+	 * SIGBUS semantics.
- 	 *
- 	 * Make an exception for shmem/tmpfs that for long time
- 	 * intentionally mapped with PMDs across i_size.
- 	 */
--	can_map_large = shmem_mapping(mapping) ||
--		file_end >= folio_next_index(folio);
--
--	if (can_map_large && filemap_map_pmd(vmf, folio, start_pgoff)) {
-+	if ((file_end >= folio_next_index(folio) || shmem_mapping(mapping)) &&
-+	    filemap_map_pmd(vmf, folio, start_pgoff)) {
- 		ret = VM_FAULT_NOPAGE;
- 		goto out;
- 	}
-@@ -3861,8 +3863,7 @@ vm_fault_t filemap_map_pages(struct vm_f
- 		else
- 			ret |= filemap_map_folio_range(vmf, folio,
- 					xas.xa_index - folio->index, addr,
--					nr_pages, &rss, &mmap_miss,
--					can_map_large);
-+					nr_pages, &rss, &mmap_miss, file_end);
- 
- 		folio_unlock(folio);
- 	} while ((folio = next_uptodate_folio(&xas, mapping, end_pgoff)) != NULL);
+ 	if (pmd_swp_soft_dirty(*pvmw->pmd))
+ 		pmde = pmd_mksoft_dirty(pmde);
+-	if (is_writable_migration_entry(entry))
+-		pmde = pmd_mkwrite(pmde, vma);
+ 	if (pmd_swp_uffd_wp(*pvmw->pmd))
+ 		pmde = pmd_mkuffd_wp(pmde);
+ 	if (!is_migration_entry_young(entry))
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from balbirs@nvidia.com are
 
+mm-zone_device-support-large-zone-device-private-folios.patch
+mm-zone_device-rename-page_free-callback-to-folio_free.patch
+mm-huge_memory-add-device-private-thp-support-to-pmd-operations.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries.patch
+mm-rmap-extend-rmap-and-migration-support-device-private-entries-fix-2.patch
+mm-huge_memory-implement-device-private-thp-splitting.patch
+mm-migrate_device-handle-partially-mapped-folios-during-collection.patch
+mm-migrate_device-implement-thp-migration-of-zone-device-pages.patch
+mm-memory-fault-add-thp-fault-handling-for-zone-device-private-pages.patch
+lib-test_hmm-add-zone-device-private-thp-test-infrastructure.patch
+mm-memremap-add-driver-callback-support-for-folio-splitting.patch
+mm-migrate_device-add-thp-splitting-during-migration.patch
+lib-test_hmm-add-large-page-allocation-failure-testing.patch
+selftests-mm-hmm-tests-new-tests-for-zone-device-thp-migration.patch
+selftests-mm-hmm-tests-new-throughput-tests-including-thp.patch
+gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration.patch
+gpu-drm-nouveau-enable-thp-support-for-gpu-memory-migration-fix.patch
+mm-huge_memoryc-introduce-folio_split_unmapped.patch
+mm-huge_memoryc-introduce-folio_split_unmapped-v2.patch
+mm-huge_memoryc-introduce-folio_split_unmapped-v2-fix.patch
 
