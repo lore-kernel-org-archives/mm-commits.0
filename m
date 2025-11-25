@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C419329E68
-	for <mm-commits@vger.kernel.org>; Tue, 25 Nov 2025 17:32:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABCC632B990
+	for <mm-commits@vger.kernel.org>; Tue, 25 Nov 2025 17:45:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764091960; cv=none; b=rDXwJ8B52Xk8lxI7u7FDZoppCiGc3c4noPO2ymNlCsA7MgpfrOWg2cZnT/yTGDgVoyAQL0SStanQm4iQzvgbiAxQOvaDhWJqqtDSiTKY2j3f3NExqr44BlsqcbUpor7T+hvC9npL8PS7r0G8AvBEkNUY6rxyWAzqp9nMaTq0oiA=
+	t=1764092737; cv=none; b=JUzIISegPMEQO7GK4x9a0wh72p62bzftaJVezac8RDMQvEeILEZO6KdEGbXrYn/OBuMY3mk4skNfF3vkpOekbVja8S8ROPHWiyHZ99cMxAA33e9VdYfXUdN+2M5Mepy65lJQsREh/wIcYB6n3t7BefFXTdpzVSmZZizgZXZa6rI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764091960; c=relaxed/simple;
-	bh=mjQZQlGilEmu2wLO15GGk+eh3cUuTrhsHt7WSWwinwc=;
-	h=Date:To:From:Subject:Message-Id; b=W9l3FK2oKLhm0cMmYheL4MlqqVhha6meJ2xSmVDNq+eHGgWkEbWPnaIa+FriofZlbgm0/TVc1Ez2mfWBPG8Nyh6QEQuJwtFaOTH1/NvD7B7o+e4m9HEVuJ3S2Q7I3n2YvVkGSPVWFqwGqmlj2/pF+IwrC4JdDvM2kVhHVISIwEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=er2aElN3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764092737; c=relaxed/simple;
+	bh=hy6okQFUesb9HdbrjrGP8+wjTa6GPDk6P5yJ6LlnHdM=;
+	h=Date:To:From:Subject:Message-Id; b=i1aAWdrvDCJ0KiuZrCtsTZOJbVkbBoK23iLkpnp+fMKCMn7FCK9ahJUaUcX0SPhOGFWc3prvRBpMCFK2b/R7W4mAeCqybX0HjS1RqnsqbB5V2drvvdZXUkalp4Sq0NoMVqMvbwTcmNE4Zn2tM9A1VLLx1LQgr59lx4XO398KhhQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UC6nZPwE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="er2aElN3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D38AC4CEF1;
-	Tue, 25 Nov 2025 17:32:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UC6nZPwE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3692EC4CEF1;
+	Tue, 25 Nov 2025 17:45:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764091959;
-	bh=mjQZQlGilEmu2wLO15GGk+eh3cUuTrhsHt7WSWwinwc=;
+	s=korg; t=1764092737;
+	bh=hy6okQFUesb9HdbrjrGP8+wjTa6GPDk6P5yJ6LlnHdM=;
 	h=Date:To:From:Subject:From;
-	b=er2aElN3tlUTBvJnctojJUz9kjcLQqLRxYaPUSI+s79U89EB+DT7k9IXskObSU+RJ
-	 UHZJHAn7SMee6i5N2N9C7UDzvohjzhMMkvEjPFLX4GOo25NoGVq4FlV2gi5/W+cjXt
-	 IC2Pa3mCr/kXEWzRYs/e+HY8JxYKX104ouXsXLwk=
-Date: Tue, 25 Nov 2025 09:32:38 -0800
-To: mm-commits@vger.kernel.org,xueshuai@linux.alibaba.com,tony.luck@intel.com,tglx@linutronix.de,robert.moore@intel.com,osandov@osandov.com,oohall@gmail.com,mingo@redhat.com,mchehab@kernel.org,mahesh@linux.ibm.com,lenb@kernel.org,konrad.wilk@oracle.com,james.morse@arm.com,hpa@zytor.com,guohanjun@huawei.com,bp@alien8.de,bhelgaas@google.com,leitao@debian.org,akpm@linux-foundation.org
+	b=UC6nZPwEFGMzdHifgp6q4pbRBwNwuISkf8Pa6k1F+WHkn8+/goszUoEL4cUW43C66
+	 D1UGNJWJJVccIn1x1ydQXJPrwbDzDeQER2XR0yo6YNghTuLbLdFJvUloOzeuggA/3r
+	 Mj2SnyA7KdGzZK2NH7tDI5yymj3prmYsHYircaFc=
+Date: Tue, 25 Nov 2025 09:45:36 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmcoreinfo-track-and-log-recoverable-hardware-errors.patch added to mm-nonmm-unstable branch
-Message-Id: <20251125173239.6D38AC4CEF1@smtp.kernel.org>
+Subject: + mm-huge_memory-change-folio_split_supported-to-folio_check_splittable-fix.patch added to mm-unstable branch
+Message-Id: <20251125174537.3692EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmcoreinfo: track and log recoverable hardware errors
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
+     Subject: mm-huge_memory-change-folio_split_supported-to-folio_check_splittable-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-huge_memory-change-folio_split_supported-to-folio_check_splittable-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-change-folio_split_supported-to-folio_check_splittable-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,314 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: vmcoreinfo: track and log recoverable hardware errors
-Date: Fri, 10 Oct 2025 03:36:50 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-huge_memory-change-folio_split_supported-to-folio_check_splittable-fix
+Date: Tue Nov 25 09:43:05 AM PST 2025
 
-Introduce a generic infrastructure for tracking recoverable hardware
-errors (HW errors that are visible to the OS but does not cause a panic)
-and record them for vmcore consumption.  This aids post-mortem crash
-analysis tools by preserving a count and timestamp for the last occurrence
-of such errors.  On the other side, correctable errors, which the OS
-typically remains unaware of because the underlying hardware handles them
-transparently, are less relevant for crash dump and therefore are NOT
-tracked in this infrastructure.
+enhance comment, per David
 
-Add centralized logging for sources of recoverable hardware errors based
-on the subsystem it has been notified.
-
-hwerror_data is write-only at kernel runtime, and it is meant to be read
-from vmcore using tools like crash/drgn.  For example, this is how it
-looks like when opening the crashdump from drgn.
-
-	>>> prog['hwerror_data']
-	(struct hwerror_info[1]){
-		{
-			.count = (int)844,
-			.timestamp = (time64_t)1752852018,
-		},
-		...
-
-This helps fleet operators quickly triage whether a crash may be
-influenced by hardware recoverable errors (which executes a uncommon code
-path in the kernel), especially when recoverable errors occurred shortly
-before a panic, such as the bug fixed by commit ee62ce7a1d90 ("page_pool:
-Track DMA-mapped pages and unmap them when destroying the pool")
-
-This is not intended to replace full hardware diagnostics but provides a
-fast way to correlate hardware events with kernel panics quickly.
-
-Rare machine check exceptions—like those indicated by mce_flags.p5 or
-mce_flags.winchip—are not accounted for in this method, as they fall
-outside the intended usage scope for this feature's user base.
-
-Link: https://lkml.kernel.org/r/20251010-vmcore_hw_error-v5-1-636ede3efe44@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Suggested-by: Tony Luck <tony.luck@intel.com>
-Suggested-by: Shuai Xue <xueshuai@linux.alibaba.com>
-Reviewed-by: Shuai Xue <xueshuai@linux.alibaba.com>
-Reviewed-by: Hanjun Guo <guohanjun@huawei.com>	[APEI]
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Morse <james.morse@arm.com>
-Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Mahesh Salgaonkar <mahesh@linux.ibm.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: "Oliver O'Halloran" <oohall@gmail.com>
-Cc: Omar Sandoval <osandov@osandov.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/e5118fe1-7963-4f09-a80b-e6185ffcb366@kernel.org
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/driver-api/hw-recoverable-errors.rst |   60 +++++++++++
- arch/x86/kernel/cpu/mce/core.c                     |    4 
- drivers/acpi/apei/ghes.c                           |   36 ++++++
- drivers/pci/pcie/aer.c                             |    2 
- include/linux/vmcore_info.h                        |    8 +
- include/uapi/linux/vmcore.h                        |    9 +
- kernel/vmcore_info.c                               |   17 +++
- 7 files changed, 136 insertions(+)
+ mm/huge_memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/x86/kernel/cpu/mce/core.c~vmcoreinfo-track-and-log-recoverable-hardware-errors
-+++ a/arch/x86/kernel/cpu/mce/core.c
-@@ -45,6 +45,7 @@
- #include <linux/task_work.h>
- #include <linux/hardirq.h>
- #include <linux/kexec.h>
-+#include <linux/vmcore_info.h>
- 
- #include <asm/fred.h>
- #include <asm/cpu_device_id.h>
-@@ -1700,6 +1701,9 @@ noinstr void do_machine_check(struct pt_
- 	}
- 
- out:
-+	/* Given it didn't panic, mark it as recoverable */
-+	hwerr_log_error_type(HWERR_RECOV_OTHERS);
-+
- 	instrumentation_end();
- 
- clear:
-diff --git a/Documentation/driver-api/hw-recoverable-errors.rst a/Documentation/driver-api/hw-recoverable-errors.rst
-new file mode 100644
---- /dev/null
-+++ a/Documentation/driver-api/hw-recoverable-errors.rst
-@@ -0,0 +1,60 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+=================================================
-+Recoverable Hardware Error Tracking in vmcoreinfo
-+=================================================
-+
-+Overview
-+--------
-+
-+This feature provides a generic infrastructure within the Linux kernel to track
-+and log recoverable hardware errors. These are hardware recoverable errors
-+visible that might not cause immediate panics but may influence health, mainly
-+because new code path will be executed in the kernel.
-+
-+By recording counts and timestamps of recoverable errors into the vmcoreinfo
-+crash dump notes, this infrastructure aids post-mortem crash analysis tools in
-+correlating hardware events with kernel failures. This enables faster triage
-+and better understanding of root causes, especially in large-scale cloud
-+environments where hardware issues are common.
-+
-+Benefits
-+--------
-+
-+- Facilitates correlation of hardware recoverable errors with kernel panics or
-+  unusual code paths that lead to system crashes.
-+- Provides operators and cloud providers quick insights, improving reliability
-+  and reducing troubleshooting time.
-+- Complements existing full hardware diagnostics without replacing them.
-+
-+Data Exposure and Consumption
-+-----------------------------
-+
-+- The tracked error data consists of per-error-type counts and timestamps of
-+  last occurrence.
-+- This data is stored in the `hwerror_data` array, categorized by error source
-+  types like CPU, memory, PCI, CXL, and others.
-+- It is exposed via vmcoreinfo crash dump notes and can be read using tools
-+  like `crash`, `drgn`, or other kernel crash analysis utilities.
-+- There is no other way to read these data other than from crash dumps.
-+- These errors are divided by area, which includes CPU, Memory, PCI, CXL and
-+  others.
-+
-+Typical usage example (in drgn REPL):
-+
-+.. code-block:: python
-+
-+    >>> prog['hwerror_data']
-+    (struct hwerror_info[HWERR_RECOV_MAX]){
-+        {
-+            .count = (int)844,
-+            .timestamp = (time64_t)1752852018,
-+        },
-+        ...
-+    }
-+
-+Enabling
-+--------
-+
-+- This feature is enabled when CONFIG_VMCORE_INFO is set.
-+
---- a/drivers/acpi/apei/ghes.c~vmcoreinfo-track-and-log-recoverable-hardware-errors
-+++ a/drivers/acpi/apei/ghes.c
-@@ -43,6 +43,7 @@
- #include <linux/uuid.h>
- #include <linux/ras.h>
- #include <linux/task_work.h>
-+#include <linux/vmcore_info.h>
- 
- #include <acpi/actbl1.h>
- #include <acpi/ghes.h>
-@@ -861,6 +862,40 @@ int cxl_cper_kfifo_get(struct cxl_cper_w
- }
- EXPORT_SYMBOL_NS_GPL(cxl_cper_kfifo_get, "CXL");
- 
-+static void ghes_log_hwerr(int sev, guid_t *sec_type)
-+{
-+	if (sev != CPER_SEV_RECOVERABLE)
-+		return;
-+
-+	if (guid_equal(sec_type, &CPER_SEC_PROC_ARM) ||
-+	    guid_equal(sec_type, &CPER_SEC_PROC_GENERIC) ||
-+	    guid_equal(sec_type, &CPER_SEC_PROC_IA)) {
-+		hwerr_log_error_type(HWERR_RECOV_CPU);
-+		return;
-+	}
-+
-+	if (guid_equal(sec_type, &CPER_SEC_CXL_PROT_ERR) ||
-+	    guid_equal(sec_type, &CPER_SEC_CXL_GEN_MEDIA_GUID) ||
-+	    guid_equal(sec_type, &CPER_SEC_CXL_DRAM_GUID) ||
-+	    guid_equal(sec_type, &CPER_SEC_CXL_MEM_MODULE_GUID)) {
-+		hwerr_log_error_type(HWERR_RECOV_CXL);
-+		return;
-+	}
-+
-+	if (guid_equal(sec_type, &CPER_SEC_PCIE) ||
-+	    guid_equal(sec_type, &CPER_SEC_PCI_X_BUS)) {
-+		hwerr_log_error_type(HWERR_RECOV_PCI);
-+		return;
-+	}
-+
-+	if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
-+		hwerr_log_error_type(HWERR_RECOV_MEMORY);
-+		return;
-+	}
-+
-+	hwerr_log_error_type(HWERR_RECOV_OTHERS);
-+}
-+
- static void ghes_do_proc(struct ghes *ghes,
- 			 const struct acpi_hest_generic_status *estatus)
- {
-@@ -882,6 +917,7 @@ static void ghes_do_proc(struct ghes *gh
- 		if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
- 			fru_text = gdata->fru_text;
- 
-+		ghes_log_hwerr(sev, sec_type);
- 		if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
- 			struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
- 
---- a/drivers/pci/pcie/aer.c~vmcoreinfo-track-and-log-recoverable-hardware-errors
-+++ a/drivers/pci/pcie/aer.c
-@@ -30,6 +30,7 @@
- #include <linux/kfifo.h>
- #include <linux/ratelimit.h>
- #include <linux/slab.h>
-+#include <linux/vmcore_info.h>
- #include <acpi/apei.h>
- #include <acpi/ghes.h>
- #include <ras/ras_event.h>
-@@ -765,6 +766,7 @@ static void pci_dev_aer_stats_incr(struc
- 		break;
- 	case AER_NONFATAL:
- 		aer_info->dev_total_nonfatal_errs++;
-+		hwerr_log_error_type(HWERR_RECOV_PCI);
- 		counter = &aer_info->dev_nonfatal_errs[0];
- 		max = AER_MAX_TYPEOF_UNCOR_ERRS;
- 		break;
---- a/include/linux/vmcore_info.h~vmcoreinfo-track-and-log-recoverable-hardware-errors
-+++ a/include/linux/vmcore_info.h
-@@ -5,6 +5,7 @@
- #include <linux/linkage.h>
- #include <linux/elfcore.h>
- #include <linux/elf.h>
-+#include <uapi/linux/vmcore.h>
- 
- #define CRASH_CORE_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
- #define CRASH_CORE_NOTE_NAME_BYTES ALIGN(sizeof(NN_PRSTATUS), 4)
-@@ -77,4 +78,11 @@ extern u32 *vmcoreinfo_note;
- Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len);
- void final_note(Elf_Word *buf);
-+
-+#ifdef CONFIG_VMCORE_INFO
-+void hwerr_log_error_type(enum hwerr_error_type src);
-+#else
-+static inline void hwerr_log_error_type(enum hwerr_error_type src) {};
-+#endif
-+
- #endif /* LINUX_VMCORE_INFO_H */
---- a/include/uapi/linux/vmcore.h~vmcoreinfo-track-and-log-recoverable-hardware-errors
-+++ a/include/uapi/linux/vmcore.h
-@@ -15,4 +15,13 @@ struct vmcoredd_header {
- 	__u8 dump_name[VMCOREDD_MAX_NAME_BYTES]; /* Device dump's name */
- };
- 
-+enum hwerr_error_type {
-+	HWERR_RECOV_CPU,
-+	HWERR_RECOV_MEMORY,
-+	HWERR_RECOV_PCI,
-+	HWERR_RECOV_CXL,
-+	HWERR_RECOV_OTHERS,
-+	HWERR_RECOV_MAX,
-+};
-+
- #endif /* _UAPI_VMCORE_H */
---- a/kernel/vmcore_info.c~vmcoreinfo-track-and-log-recoverable-hardware-errors
-+++ a/kernel/vmcore_info.c
-@@ -31,6 +31,13 @@ u32 *vmcoreinfo_note;
- /* trusted vmcoreinfo, e.g. we can make a copy in the crash memory */
- static unsigned char *vmcoreinfo_data_safecopy;
- 
-+struct hwerr_info {
-+	atomic_t count;
-+	time64_t timestamp;
-+};
-+
-+static struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
-+
- Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len)
- {
-@@ -118,6 +125,16 @@ phys_addr_t __weak paddr_vmcoreinfo_note
- }
- EXPORT_SYMBOL(paddr_vmcoreinfo_note);
- 
-+void hwerr_log_error_type(enum hwerr_error_type src)
-+{
-+	if (src < 0 || src >= HWERR_RECOV_MAX)
-+		return;
-+
-+	atomic_inc(&hwerr_data[src].count);
-+	WRITE_ONCE(hwerr_data[src].timestamp, ktime_get_real_seconds());
-+}
-+EXPORT_SYMBOL_GPL(hwerr_log_error_type);
-+
- static int __init crash_save_vmcoreinfo_init(void)
- {
- 	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
+--- a/mm/huge_memory.c~mm-huge_memory-change-folio_split_supported-to-folio_check_splittable-fix
++++ a/mm/huge_memory.c
+@@ -3714,7 +3714,8 @@ int folio_check_splittable(struct folio
+ 	 * caller that there was a race.
+ 	 *
+ 	 * TODO: this will also currently refuse shmem folios that are in the
+-	 * swapcache.
++	 * swapcache.  Currently it will also refuse folios without a mapping
++	 * in the swapcache (shmem or to-be-anon folios).
+ 	 */
+ 	if (!folio_test_anon(folio) && !folio->mapping)
+ 		return -EBUSY;
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
+mm-huge_memory-change-folio_split_supported-to-folio_check_splittable-fix.patch
+memblock-unpreserve-memory-in-case-of-error-fix.patch
 
