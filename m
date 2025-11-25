@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B57EB328B6C
-	for <mm-commits@vger.kernel.org>; Tue, 25 Nov 2025 16:55:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19D5F1F30A9
+	for <mm-commits@vger.kernel.org>; Tue, 25 Nov 2025 17:04:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764089723; cv=none; b=ZsZngEXAUDisCVEZ09K6zZC6wu/S3Nm7qMfILYpTjIXGYe+cY4LQLHLL6eH1G8f4XUovVU9k5z/br2hIRxa4Jm+1uNonsV18IFBk/CWvaqZIueqwGPaoozAU843MPtkumPbyYvcH5vc5msQITl3omUEiqcEcp4QdISQzX4D7GY8=
+	t=1764090258; cv=none; b=ByAFViBQPIOxR7r5rMFQxf4dvvgTQgF9soDD+2E4tYziavQLfoLbHAEuVU2YVLcKqgFapwniloXI+jxSWTPBnyXyx4aW//8zOZWWxV221DzHe1mkTVYHd/gQG0g0rZBbvXl91GN9F4kp1TnTX23FgpVT8G339UcqKgBst2ufZnU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764089723; c=relaxed/simple;
-	bh=yztd6rkdoxcA4R64Zd4OBj8Ba4CRgp494hC6/f2E8N0=;
-	h=Date:To:From:Subject:Message-Id; b=ePNLYKLW4+JsrsLNhf/vVLjo8acD7aEHWz1PUiAqdeo35W+vB65Lvv/0BD9K2pTEZ8QS4/KpJRlJx3l5KAZUlv4CxQ35LMKsR3aoQgsmzOqyHxo6BGZJFiwq0IdS7PIVsQ0yhpapO6r0MRPaiAzODsoe426qHg3KrIlkylExt1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZE/v4W7J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764090258; c=relaxed/simple;
+	bh=DYNfu6TMSP4vsZLomevrnpRduUTTeuEYVrLl2gq5qoI=;
+	h=Date:To:From:Subject:Message-Id; b=BpP2CB26j5QVfYJwxszxESlvwxOARedOv+mD+vub9r9r30c4uHjKIj2vsP277a7cz/661n4qGx4haPOnFH2AqGRB7lZKat/FHwaAl32WkJUmHLSrpltDYGiTvbhWcDfqfUCuBS2jY1H0zEv+dnuLnyinXT2xMKFIAFIhBADdeeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HyKLaKgp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZE/v4W7J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DADDC4CEF1;
-	Tue, 25 Nov 2025 16:55:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HyKLaKgp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30DADC4CEF1;
+	Tue, 25 Nov 2025 17:04:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764089723;
-	bh=yztd6rkdoxcA4R64Zd4OBj8Ba4CRgp494hC6/f2E8N0=;
+	s=korg; t=1764090257;
+	bh=DYNfu6TMSP4vsZLomevrnpRduUTTeuEYVrLl2gq5qoI=;
 	h=Date:To:From:Subject:From;
-	b=ZE/v4W7J72Uyzv04MhUKEgYYuep0bXprPrey3nVl0UiSpByHrauQjuTjwhtmXrpy2
-	 2GWKUOWaO8rguK29px4z1By/mPKZ2vQ44ub39rEO33fSYbmlvhQjRGKLDrkhqTq0ln
-	 ah7e6V8IX4RWGUrHYyZsN//VdY3rFRdJxV9bYVLg=
-Date: Tue, 25 Nov 2025 08:55:22 -0800
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
+	b=HyKLaKgpMK7W9fNhAzkcTVZaUhPWTSs++bCbm/QJTJZEMuXuMw8/VkoOheVc1R1KI
+	 tZMGagHC+JJJNliF6TsfPlyNyxn9dcyuhC84PIL+kVD0ttnTdNSEU3zVfqqNZXWo4R
+	 zaA/8OxkAzO6BXZeyMDSiooNC+qiu3szZy2Qd6TQ=
+Date: Tue, 25 Nov 2025 09:04:16 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch added to mm-new branch
-Message-Id: <20251125165523.6DADDC4CEF1@smtp.kernel.org>
+Subject: + maintainers-add-mike-rapoport-as-maintainer-for-userfaultfd.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251125170417.30DADC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swapfile: use plist_for_each_entry in __folio_throttle_swaprate
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch
+     Subject: MAINTAINERS: add Mike Rapoport as maintainer for userfaultfd
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-mike-rapoport-as-maintainer-for-userfaultfd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-mike-rapoport-as-maintainer-for-userfaultfd.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,53 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm/swapfile: use plist_for_each_entry in __folio_throttle_swaprate
-Date: Wed, 26 Nov 2025 01:30:27 +0900
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: MAINTAINERS: add Mike Rapoport as maintainer for userfaultfd
+Date: Tue, 25 Nov 2025 15:29:08 +0200
 
-The loop breaks immediately after finding the first swap device and never
-modifies the list.  Replace plist_for_each_entry_safe() with
-plist_for_each_entry() and remove the unused next variable.
-
-Link: https://lkml.kernel.org/r/20251125163027.4165450-3-youngjun.park@lge.com
-Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20251125132908.847055-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Peter Xu <peterx@redhat.com>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/swapfile.c~mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate
-+++ a/mm/swapfile.c
-@@ -4023,7 +4023,7 @@ static bool __has_usable_swap(void)
+--- a/MAINTAINERS~maintainers-add-mike-rapoport-as-maintainer-for-userfaultfd
++++ a/MAINTAINERS
+@@ -16547,6 +16547,7 @@ F:	tools/testing/selftests/mm/transhuge-
  
- void __folio_throttle_swaprate(struct folio *folio, gfp_t gfp)
- {
--	struct swap_info_struct *si, *next;
-+	struct swap_info_struct *si;
- 
- 	if (!(gfp & __GFP_IO))
- 		return;
-@@ -4042,8 +4042,7 @@ void __folio_throttle_swaprate(struct fo
- 		return;
- 
- 	spin_lock(&swap_avail_lock);
--	plist_for_each_entry_safe(si, next, &swap_avail_head,
--				  avail_list) {
-+	plist_for_each_entry(si, &swap_avail_head, avail_list) {
- 		if (si->bdev) {
- 			blkcg_schedule_throttle(si->bdev->bd_disk, true);
- 			break;
+ MEMORY MANAGEMENT - USERFAULTFD
+ M:	Andrew Morton <akpm@linux-foundation.org>
++M:	Mike Rapoport <rppt@kernel.org>
+ R:	Peter Xu <peterx@redhat.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from youngjun.park@lge.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-swapfile-fix-list-iteration-in-swap_sync_discard.patch
-mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch
+maintainers-add-mike-rapoport-as-maintainer-for-userfaultfd.patch
+kho-drop-notifiers.patch
 
