@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25AEB343207;
-	Wed, 26 Nov 2025 17:41:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6571C343D69;
+	Wed, 26 Nov 2025 17:41:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764178871; cv=none; b=d61tb1zdiJ0GzAMCVy+iZqTvos7eijmzK9m9jNa9Af35ztG3oz0azqkvTxoC7yeCabUy9h9s/UuxqKjZZSz0Ye+XByYZRTWqlryESOS8yPdKCYCZ6MSQ4nOkga+XGh/+AB5XSvUT57qkmP2tdya/mA7OELAjuWopG1VlA1T9QKc=
+	t=1764178873; cv=none; b=IuOkC9y6Zf4hw0svdhcro2Aui43Z0R68B3qujUuVMzaHNL/WFolPqzGcP/fYKDwAal/5osTf79fHpVyR/j2wSuYVE9Za6z63xTXoUdo0eKZLOOJpE9S6QiwkuS22rOelSHc2L/RHDouBnyOT9G364vrpyRGg9daB0ozWXUbGrFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764178871; c=relaxed/simple;
-	bh=WXWUhEIvdbridsqfFqGqok8+I7bhOODXxOKbf3qUHTU=;
-	h=Date:To:From:Subject:Message-Id; b=mrSfXWEpjUqy1u+u+1f97pLm7t5Tqn3URj8R2wFz2EbmW2Q5gsf9EgwGAouNjO7cgJdYcpApSadkHU7ZeTInJQ/LT17C5OI9ZllIi1g7Kur64Kv2DzJNmZ0e988nALned3oAY+Ga+t85pnTqrtg3dj6PZDstWSKBxSse4de3e8Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MhGraYit; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764178873; c=relaxed/simple;
+	bh=B5/NUsS1hRDbA3SQYs7Nk8W86dErGoNGiBq8L60RbMc=;
+	h=Date:To:From:Subject:Message-Id; b=C1jUhJNVU+WZ8XdWpNA0ooFcWP7BxrnXKxkP+U/Zy73SWjD9KPFHd/04jHKddhYpMlJyQChwqWdOsFCyzEywIC9jM5ioT99PHNR2x3LIcK7n6NAouRdPVA5CJm/3cvFYPXgVBwOGAUoMP4r3/9q9urioPAGctBE2MnHSxy8LF+I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JxUQJqf1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MhGraYit"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A1D2C4CEF7;
-	Wed, 26 Nov 2025 17:41:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JxUQJqf1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D53CCC4CEF7;
+	Wed, 26 Nov 2025 17:41:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764178870;
-	bh=WXWUhEIvdbridsqfFqGqok8+I7bhOODXxOKbf3qUHTU=;
+	s=korg; t=1764178872;
+	bh=B5/NUsS1hRDbA3SQYs7Nk8W86dErGoNGiBq8L60RbMc=;
 	h=Date:To:From:Subject:From;
-	b=MhGraYithh75N9uL5uM6tHXooksQjpBVYOngOOSbOv6rT8dA7l1GmIEwGApe+szt9
-	 Nn7N+n0uvQ16I1hKyj8KKwtruGks24XZe2Ob9dFbG5dmYuVUfmS1cEnyeZLHywvkg+
-	 7zGIN9Hn5DtyZTBaRqb39YdALzkcL9Inm8UCehWA=
-Date: Wed, 26 Nov 2025 09:41:10 -0800
+	b=JxUQJqf1/LECd2rWA0Deh/mOTaHaOR21hrathcc44DiHHDCbLPvSsXr+/v/woSwZo
+	 5KSw/NU837cMNnEwqAYbC6/pG7wtQSmxFKqnLUlD5woMllruoBWuqEskFCYMUV9bhN
+	 HNA3OPYM4eYX3a7GW8GGl4yslHsS07McfrMLYvTo=
+Date: Wed, 26 Nov 2025 09:41:12 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,christophe.leroy@csgroup.eu,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction.patch added to mm-new branch
-Message-Id: <20251126174110.9A1D2C4CEF7@smtp.kernel.org>
+Subject: + powerpc-pseries-cmm-adjust-balloon_migrate-when-migrating-pages.patch added to mm-new branch
+Message-Id: <20251126174112.D53CCC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc/pseries/cmm: call balloon_devinfo_init() also without CONFIG_BALLOON_COMPACTION
+     Subject: powerpc/pseries/cmm: adjust BALLOON_MIGRATE when migrating pages
 has been added to the -mm mm-new branch.  Its filename is
-     powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction.patch
+     powerpc-pseries-cmm-adjust-balloon_migrate-when-migrating-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-pseries-cmm-adjust-balloon_migrate-when-migrating-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,27 +65,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: powerpc/pseries/cmm: call balloon_devinfo_init() also without CONFIG_BALLOON_COMPACTION
-Date: Tue, 21 Oct 2025 12:06:05 +0200
+Subject: powerpc/pseries/cmm: adjust BALLOON_MIGRATE when migrating pages
+Date: Tue, 21 Oct 2025 12:06:06 +0200
 
-Patch series "powerpc/pseries/cmm: two smaller fixes".
+Let's properly adjust BALLOON_MIGRATE like the other drivers.
 
-Two smaller fixes identified while doing a bigger rework.
-
-
-This patch (of 2):
-
-We always have to initialize the balloon_dev_info, even when compaction is
-not configured in: otherwise the containing list and the lock are left
-uninitialized.
-
-Likely not many such configs exist in practice, but let's CC stable to
-be sure.
+Note that the INFLATE/DEFLATE events are triggered from the core when
+enqueueing/dequeueing pages.
 
 This was found by code inspection.
 
-Link: https://lkml.kernel.org/r/20251021100606.148294-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20251021100606.148294-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20251021100606.148294-3-david@redhat.com
 Fixes: fe030c9b85e6 ("powerpc/pseries/cmm: Implement balloon compaction")
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -96,27 +86,19 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/cmm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/platforms/pseries/cmm.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/powerpc/platforms/pseries/cmm.c~powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction
+--- a/arch/powerpc/platforms/pseries/cmm.c~powerpc-pseries-cmm-adjust-balloon_migrate-when-migrating-pages
 +++ a/arch/powerpc/platforms/pseries/cmm.c
-@@ -550,7 +550,6 @@ static int cmm_migratepage(struct balloo
+@@ -532,6 +532,7 @@ static int cmm_migratepage(struct balloo
  
- static void cmm_balloon_compaction_init(void)
- {
--	balloon_devinfo_init(&b_dev_info);
- 	b_dev_info.migratepage = cmm_migratepage;
- }
- #else /* CONFIG_BALLOON_COMPACTION */
-@@ -572,6 +571,7 @@ static int cmm_init(void)
- 	if (!firmware_has_feature(FW_FEATURE_CMO) && !simulate)
- 		return -EOPNOTSUPP;
+ 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+ 	balloon_page_insert(b_dev_info, newpage);
++	__count_vm_event(BALLOON_MIGRATE);
+ 	b_dev_info->isolated_pages--;
+ 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
  
-+	balloon_devinfo_init(&b_dev_info);
- 	cmm_balloon_compaction_init();
- 
- 	rc = register_oom_notifier(&cmm_oom_nb);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
