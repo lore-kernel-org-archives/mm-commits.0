@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56DB2C327E
-	for <mm-commits@vger.kernel.org>; Tue, 25 Nov 2025 23:14:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CDDA348899
+	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 17:38:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764112456; cv=none; b=ofifXNR6iuPUBRMpW0LbJYwKarvnRGCh1kPV9uCgXmyv9b/GR+Zo7MrlKyhNv07tFz6tzXdGdbVPNfciUYtgFaxkUrmgtnCWFCq3HLE5A8JyJSSHinKPKJV90OTbFbe9X6TECxzgc6ryOQBTLhppSSqheWF/QaX85f4l/vwtrIw=
+	t=1764178682; cv=none; b=WZ7pTlYGJYrOJiOeDs5rTeosEUrL6HpWySSwAte8YaAXCmhC15GyoVpjSn46y7Nj6gz/0ni4aG1UCoaLZ6M5E1l7uWXfAaZQo8VmGyQJwUZhGPR9FUud4TZXVVxJFVQs6rEOzfPaNkd/iX+uVy7KJt2LQ6jXYiCWkRMtYWLTBfc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764112456; c=relaxed/simple;
-	bh=El5E96Uusj4B6HfhKL/aay4QclhtshfAOB3E2CyXPjQ=;
-	h=Date:To:From:Subject:Message-Id; b=BKVDePzsjBVPbq5LbI3yVVAekD0n4uTfkkgxn4CR/meLwla615sRz8HDC6zUCXpR1lbHW7qi4nQ81OrNm4xjztXUebPjMmVoVshzYEAPH6cSOnDGB7xMB6snBO07jqQPWp71CRx9fRKcBndV45zohUPU+JrKBBxGNegsXohNbHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NXMkCRfC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764178682; c=relaxed/simple;
+	bh=sXqXSDEteBWyFQzhDHnczrnTwyQM92s0rPksBqTVQx4=;
+	h=Date:To:From:Subject:Message-Id; b=kl0rYHm53wbM0eu4DG/Hug/gULS44qTXRZTzazDuHxrS4KlMq2XxDvFAVfGsRjSZ4uQ+L2aIVhKSqT8fa/ZRGZ08zimIsHs3pYLCyjAgFqSUh/ZwwvIjHIK7/FCJ/qTml5amZjwZnGy3J3YM341eLlQi2tl2rCT+pu1xBnR4HU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=szuIN9oa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NXMkCRfC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D355C4CEF1;
-	Tue, 25 Nov 2025 23:14:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="szuIN9oa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67A57C4CEF8;
+	Wed, 26 Nov 2025 17:38:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764112456;
-	bh=El5E96Uusj4B6HfhKL/aay4QclhtshfAOB3E2CyXPjQ=;
+	s=korg; t=1764178681;
+	bh=sXqXSDEteBWyFQzhDHnczrnTwyQM92s0rPksBqTVQx4=;
 	h=Date:To:From:Subject:From;
-	b=NXMkCRfCpnYozRPLg8zLor74qqHUijYrdjHaY0ShKJwNwrGVC6z6HU0Fp6cfQOl1S
-	 RYByNWVCT3xvkk2o4/genkgVGDfYoUsWqLd5+p6ZD0yGAEFGSxqTwAnjopACl9rvNv
-	 pnLKGgJFOIw0NUgNbgXbT4na4Fy3LWUv0HUXUklc=
-Date: Tue, 25 Nov 2025 15:14:15 -0800
-To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,rientjes@google.com,pratyush@kernel.org,pmladek@suse.com,kees@kernel.org,dmatlack@google.com,davidgow@google.com,corbet@lwn.net,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=szuIN9oakeZz6HEZsQLR2tvhGv6hHZ8hJOdadt9jjZxKcVptZhBW5RJ2nfU0zsl+g
+	 whSM4uHwOdbsNWJM35YoAgNcWbstj2K9SQZyf70VmAzATv3mjc5IVNxqB6sU1OxbYm
+	 8NSVo9tlNatuqDxJ0OBIEnTVzl8rLs5LuTLzVs98=
+Date: Wed, 26 Nov 2025 09:38:00 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,ankitkhushwaha.linux@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tests-liveupdate-add-in-kernel-liveupdate-test.patch added to mm-nonmm-unstable branch
-Message-Id: <20251125231416.3D355C4CEF1@smtp.kernel.org>
+Subject: + selftests-mm-uffd-initialize-char-variable-to-null.patch added to mm-unstable branch
+Message-Id: <20251126173801.67A57C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tests/liveupdate: add in-kernel liveupdate test
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tests-liveupdate-add-in-kernel-liveupdate-test.patch
+     Subject: selftests/mm/uffd: initialize char variable to Null
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-uffd-initialize-char-variable-to-null.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tests-liveupdate-add-in-kernel-liveupdate-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-initialize-char-variable-to-null.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,352 +58,97 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: tests/liveupdate: add in-kernel liveupdate test
-Date: Tue, 25 Nov 2025 17:50:06 -0500
+From: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
+Subject: selftests/mm/uffd: initialize char variable to Null
+Date: Wed, 26 Nov 2025 21:38:30 +0530
 
-Introduce an in-kernel test module to validate the core logic of the Live
-Update Orchestrator's File-Lifecycle-Bound feature.  This provides a
-low-level, controlled environment to test FLB registration and callback
-invocation without requiring userspace interaction or actual kexec
-reboots.
+In "uffd-stress.c" & "uffd-unit-tests.c". address of char variable having
+garbage value (uninitialized) is passed to 'write' syscall triggers
+warning.
 
-The test is enabled by the CONFIG_LIVEUPDATE_TEST Kconfig option.
+	uffd-stress.c:246:39: warning: variable 'c' is uninitialized when
+	passed  as a const pointer argument here
+	[-Wuninitialized-const-pointer]
 
-Link: https://lkml.kernel.org/r/20251125225006.3722394-3-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: David Gow <davidgow@google.com>
-Cc: David Matlack <dmatlack@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <kees@kernel.org>
+	uffd-unit-tests.c:581:31: warning: variable 'c' is uninitialized
+	when passed as a const pointer argument here
+	[-Wuninitialized-const-pointer]
+
+so the fix is to assign char variable to '\0' to prevent writing of
+garbage value.
+
+Link: https://lkml.kernel.org/r/20251126160830.52124-1-ankitkhushwaha.linux@gmail.com
+Signed-off-by: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Samiullah Khawaja <skhawaja@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                      |    1 
- include/linux/kho/abi/luo.h      |    5 
- kernel/liveupdate/luo_file.c     |    8 +
- kernel/liveupdate/luo_internal.h |    8 +
- lib/Kconfig.debug                |   23 ++++
- lib/tests/Makefile               |    1 
- lib/tests/liveupdate.c           |  158 +++++++++++++++++++++++++++++
- 7 files changed, 203 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/uffd-stress.c     |    2 +-
+ tools/testing/selftests/mm/uffd-unit-tests.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/kho/abi/luo.h~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/include/linux/kho/abi/luo.h
-@@ -239,4 +239,9 @@ struct luo_flb_ser {
- 	u64 count;
- } __packed;
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-uffd-initialize-char-variable-to-null
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -241,7 +241,7 @@ static int stress(struct uffd_args *args
+ 			return 1;
  
-+/* Kernel Live Update Test ABI */
-+#ifdef CONFIG_LIVEUPDATE_TEST
-+#define LIVEUPDATE_TEST_FLB_COMPATIBLE(i)	"liveupdate-test-flb-v" #i
-+#endif
-+
- #endif /* _LINUX_KHO_ABI_LUO_H */
---- a/kernel/liveupdate/luo_file.c~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/kernel/liveupdate/luo_file.c
-@@ -860,6 +860,8 @@ int liveupdate_register_file_handler(str
- 	list_add_tail(&ACCESS_PRIVATE(fh, list), &luo_file_handler_list);
- 	luo_session_resume();
+ 	for (cpu = 0; cpu < gopts->nr_parallel; cpu++) {
+-		char c;
++		char c = '\0';
+ 		if (bounces & BOUNCE_POLL) {
+ 			if (write(gopts->pipefd[cpu*2+1], &c, 1) != 1)
+ 				err("pipefd write error");
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffd-initialize-char-variable-to-null
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -543,7 +543,7 @@ static void uffd_minor_test_common(uffd_
+ {
+ 	unsigned long p;
+ 	pthread_t uffd_mon;
+-	char c;
++	char c = '\0';
+ 	struct uffd_args args = { 0 };
+ 	args.gopts = gopts;
  
-+	liveupdate_test_register(fh);
-+
- 	return 0;
+@@ -759,7 +759,7 @@ static void uffd_sigbus_test_common(uffd
+ 	pthread_t uffd_mon;
+ 	pid_t pid;
+ 	int err;
+-	char c;
++	char c = '\0';
+ 	struct uffd_args args = { 0 };
+ 	args.gopts = gopts;
  
- err_resume:
-@@ -891,8 +893,10 @@ int liveupdate_unregister_file_handler(s
- 	if (!liveupdate_enabled())
- 		return -EOPNOTSUPP;
+@@ -819,7 +819,7 @@ static void uffd_events_test_common(uffd
+ 	pthread_t uffd_mon;
+ 	pid_t pid;
+ 	int err;
+-	char c;
++	char c = '\0';
+ 	struct uffd_args args = { 0 };
+ 	args.gopts = gopts;
  
-+	liveupdate_test_unregister(fh);
-+
- 	if (!luo_session_quiesce())
--		return -EBUSY;
-+		goto err_register;
- 
- 	if (!list_empty(&ACCESS_PRIVATE(fh, flb_list)))
- 		goto err_resume;
-@@ -905,5 +909,7 @@ int liveupdate_unregister_file_handler(s
- 
- err_resume:
- 	luo_session_resume();
-+err_register:
-+	liveupdate_test_register(fh);
- 	return err;
- }
---- a/kernel/liveupdate/luo_internal.h~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/kernel/liveupdate/luo_internal.h
-@@ -114,4 +114,12 @@ int __init luo_flb_setup_outgoing(void *
- int __init luo_flb_setup_incoming(void *fdt);
- void luo_flb_serialize(void);
- 
-+#ifdef CONFIG_LIVEUPDATE_TEST
-+void liveupdate_test_register(struct liveupdate_file_handler *fh);
-+void liveupdate_test_unregister(struct liveupdate_file_handler *fh);
-+#else
-+static inline void liveupdate_test_register(struct liveupdate_file_handler *fh) { }
-+static inline void liveupdate_test_unregister(struct liveupdate_file_handler *fh) { }
-+#endif
-+
- #endif /* _LINUX_LUO_INTERNAL_H */
---- a/lib/Kconfig.debug~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/lib/Kconfig.debug
-@@ -2803,6 +2803,29 @@ config LINEAR_RANGES_TEST
- 
- 	  If unsure, say N.
- 
-+config LIVEUPDATE_TEST
-+	bool "Live Update Kernel Test"
-+	default n
-+	depends on LIVEUPDATE
-+	help
-+	  Enable a built-in kernel test module for the Live Update
-+	  Orchestrator.
-+
-+	  This module validates the File-Lifecycle-Bound subsystem by
-+	  registering a set of mock FLB objects with any real file handlers
-+	  that support live update (such as the memfd handler).
-+
-+	  When live update operations are performed, this test module will
-+	  output messages to the kernel log (dmesg), confirming that its
-+	  registration and various callback functions (preserve, retrieve,
-+	  finish, etc.) are being invoked correctly.
-+
-+	  This is a debugging and regression testing tool for developers
-+	  working on the Live Update subsystem. It should not be enabled in
-+	  production kernels.
-+
-+	  If unsure, say N
-+
- config CMDLINE_KUNIT_TEST
- 	tristate "KUnit test for cmdline API" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
-diff --git a/lib/tests/liveupdate.c a/lib/tests/liveupdate.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/liveupdate.c
-@@ -0,0 +1,158 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME " test: " fmt
-+
-+#include <linux/cleanup.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/liveupdate.h>
-+#include <linux/module.h>
-+#include "../../kernel/liveupdate/luo_internal.h"
-+
-+static const struct liveupdate_flb_ops test_flb_ops;
-+#define DEFINE_TEST_FLB(i) {						\
-+	.ops = &test_flb_ops,						\
-+	.compatible = LIVEUPDATE_TEST_FLB_COMPATIBLE(i),		\
-+}
-+
-+/* Number of Test FLBs to register with every file handler */
-+#define TEST_NFLBS 3
-+static struct liveupdate_flb test_flbs[TEST_NFLBS] = {
-+	DEFINE_TEST_FLB(0),
-+	DEFINE_TEST_FLB(1),
-+	DEFINE_TEST_FLB(2),
-+};
-+
-+#define TEST_FLB_MAGIC_BASE 0xFEEDF00DCAFEBEE0ULL
-+
-+static int test_flb_preserve(struct liveupdate_flb_op_args *argp)
-+{
-+	ptrdiff_t index = argp->flb - test_flbs;
-+
-+	pr_info("%s: preserve was triggered\n", argp->flb->compatible);
-+	argp->data = TEST_FLB_MAGIC_BASE + index;
-+
-+	return 0;
-+}
-+
-+static void test_flb_unpreserve(struct liveupdate_flb_op_args *argp)
-+{
-+	pr_info("%s: unpreserve was triggered\n", argp->flb->compatible);
-+}
-+
-+static int test_flb_retrieve(struct liveupdate_flb_op_args *argp)
-+{
-+	ptrdiff_t index = argp->flb - test_flbs;
-+	u64 expected_data = TEST_FLB_MAGIC_BASE + index;
-+
-+	if (argp->data == expected_data) {
-+		pr_info("%s: found flb data from the previous boot\n",
-+			argp->flb->compatible);
-+		argp->obj = (void *)argp->data;
-+	} else {
-+		pr_err("%s: ERROR - incorrect data handle: %llx, expected %llx\n",
-+		       argp->flb->compatible, argp->data, expected_data);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static void test_flb_finish(struct liveupdate_flb_op_args *argp)
-+{
-+	ptrdiff_t index = argp->flb - test_flbs;
-+	void *expected_obj = (void *)(TEST_FLB_MAGIC_BASE + index);
-+
-+	if (argp->obj == expected_obj) {
-+		pr_info("%s: finish was triggered\n", argp->flb->compatible);
-+	} else {
-+		pr_err("%s: ERROR - finish called with invalid object\n",
-+		       argp->flb->compatible);
-+	}
-+}
-+
-+static const struct liveupdate_flb_ops test_flb_ops = {
-+	.preserve	= test_flb_preserve,
-+	.unpreserve	= test_flb_unpreserve,
-+	.retrieve	= test_flb_retrieve,
-+	.finish		= test_flb_finish,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static void liveupdate_test_init(void)
-+{
-+	static DEFINE_MUTEX(init_lock);
-+	static bool initialized;
-+	int i;
-+
-+	guard(mutex)(&init_lock);
-+
-+	if (initialized)
-+		return;
-+
-+	for (i = 0; i < TEST_NFLBS; i++) {
-+		struct liveupdate_flb *flb = &test_flbs[i];
-+		void *obj;
-+		int err;
-+
-+		err = liveupdate_flb_get_incoming(flb, &obj);
-+		if (err && err != -ENODATA && err != -ENOENT) {
-+			pr_err("liveupdate_flb_get_incoming for %s failed: %pe\n",
-+			       flb->compatible, ERR_PTR(err));
-+		}
-+	}
-+	initialized = true;
-+}
-+
-+void liveupdate_test_register(struct liveupdate_file_handler *fh)
-+{
-+	int err, i;
-+
-+	liveupdate_test_init();
-+
-+	for (i = 0; i < TEST_NFLBS; i++) {
-+		struct liveupdate_flb *flb = &test_flbs[i];
-+
-+		err = liveupdate_register_flb(fh, flb);
-+		if (err) {
-+			pr_err("Failed to register %s %pe\n",
-+			       flb->compatible, ERR_PTR(err));
-+		}
-+	}
-+
-+	err = liveupdate_register_flb(fh, &test_flbs[0]);
-+	if (!err || err != -EEXIST) {
-+		pr_err("Failed: %s should be already registered, but got err: %pe\n",
-+		       test_flbs[0].compatible, ERR_PTR(err));
-+	}
-+
-+	pr_info("Registered %d FLBs with file handler: [%s]\n",
-+		TEST_NFLBS, fh->compatible);
-+}
-+
-+void liveupdate_test_unregister(struct liveupdate_file_handler *fh)
-+{
-+	int err, i;
-+
-+	for (i = 0; i < TEST_NFLBS; i++) {
-+		struct liveupdate_flb *flb = &test_flbs[i];
-+
-+		err = liveupdate_unregister_flb(fh, flb);
-+		if (err) {
-+			pr_err("Failed to unregister %s %pe\n",
-+			       flb->compatible, ERR_PTR(err));
-+		}
-+	}
-+
-+	pr_info("Unregistered %d FLBs from file handler: [%s]\n",
-+		TEST_NFLBS, fh->compatible);
-+}
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pasha Tatashin <pasha.tatashin@soleen.com>");
-+MODULE_DESCRIPTION("In-kernel test for LUO mechanism");
---- a/lib/tests/Makefile~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/lib/tests/Makefile
-@@ -28,6 +28,7 @@ obj-$(CONFIG_LIST_KUNIT_TEST) += list-te
- obj-$(CONFIG_KFIFO_KUNIT_TEST) += kfifo_kunit.o
- obj-$(CONFIG_TEST_LIST_SORT) += test_list_sort.o
- obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
-+obj-$(CONFIG_LIVEUPDATE_TEST) += liveupdate.o
- 
- CFLAGS_longest_symbol_kunit.o += $(call cc-disable-warning, missing-prototypes)
- obj-$(CONFIG_LONGEST_SYM_KUNIT_TEST) += longest_symbol_kunit.o
---- a/MAINTAINERS~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/MAINTAINERS
-@@ -14483,6 +14483,7 @@ F:	include/linux/liveupdate.h
- F:	include/linux/liveupdate/
- F:	include/uapi/linux/liveupdate.h
- F:	kernel/liveupdate/
-+F:	lib/tests/liveupdate.c
- F:	mm/memfd_luo.c
- F:	tools/testing/selftests/liveupdate/
- 
+@@ -1125,7 +1125,7 @@ uffd_move_test_common(uffd_global_test_o
+ {
+ 	unsigned long nr;
+ 	pthread_t uffd_mon;
+-	char c;
++	char c = '\0';
+ 	unsigned long long count;
+ 	struct uffd_args args = { 0 };
+ 	char *orig_area_src = NULL, *orig_area_dst = NULL;
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from ankitkhushwaha.linux@gmail.com are
 
-kho-make-debugfs-interface-optional.patch
-kho-add-interfaces-to-unpreserve-folios-page-ranges-and-vmalloc.patch
-memblock-unpreserve-memory-in-case-of-error.patch
-test_kho-unpreserve-memory-in-case-of-error.patch
-kho-dont-unpreserve-memory-during-abort.patch
-liveupdate-kho-move-to-kernel-liveupdate.patch
-liveupdate-kho-move-to-kernel-liveupdate-fix.patch
-maintainers-update-kho-maintainers.patch
-kho-fix-misleading-log-message-in-kho_populate.patch
-kho-convert-__kho_abort-to-return-void.patch
-kho-introduce-high-level-memory-allocation-api.patch
-kho-introduce-high-level-memory-allocation-api-fix.patch
-kho-preserve-fdt-folio-only-once-during-initialization.patch
-kho-verify-deserialization-status-and-fix-fdt-alignment-access.patch
-kho-always-expose-output-fdt-in-debugfs.patch
-kho-simplify-serialization-and-remove-__kho_abort.patch
-kho-remove-global-preserved_mem_map-and-store-state-in-fdt.patch
-kho-remove-abort-functionality-and-support-state-refresh.patch
-kho-update-fdt-dynamically-for-subtree-addition-removal.patch
-kho-allow-kexec-load-before-kho-finalization.patch
-kho-allow-memory-preservation-state-updates-after-finalization.patch
-kho-add-kconfig-option-to-enable-kho-by-default.patch
-liveupdate-luo_core-live-update-orchestrato.patch
-liveupdate-luo_core-integrate-with-kho.patch
-kexec-call-liveupdate_reboot-before-kexec.patch
-liveupdate-luo_session-add-sessions-support.patch
-liveupdate-luo_core-add-user-interface.patch
-liveupdate-luo_file-implement-file-systems-callbacks.patch
-liveupdate-luo_session-add-ioctls-for-file-preservation.patch
-docs-add-luo-documentation.patch
-maintainers-add-liveupdate-entry.patch
-selftests-liveupdate-add-userspace-api-selftests.patch
-selftests-liveupdate-add-simple-kexec-based-selftest-for-luo.patch
-selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
+selftests-mm-uffd-initialize-char-variable-to-null.patch
 
