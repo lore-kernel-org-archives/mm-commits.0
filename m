@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3773223E25B
-	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 17:54:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7C8426ED48
+	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 18:10:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764179686; cv=none; b=iTZY2NszRLX1v8gz/Vs9bqjg+cJdEBudH/5yiaiyRlzS8kgUfdqYhkWycP6B+X8ZP7nUe1Tl0rkkmYqztEW+HJsAJNZ8fN2uItw/lWQ68fDGJzwP9jrNkFiOI23Fkkcy62oslkA3PirsvVx/dQe9cG0GAEUF/L/86ZWfqTg7teQ=
+	t=1764180612; cv=none; b=q9gerZyMEPchJSiwNqD5EfXwMhCb0fop7XNB9hvPUt6XJG0kaVddgKeGE0ZtFfoKaUEn95hicm7JG/WxkHFnR7NfGohzdDf6DGdOm1T4zJcfcjcipKuup5fiN1bSIx5AW3muUd9Uu8UbstRrP4BGZ+dAYzMwm9GLPrBHPTjILiI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764179686; c=relaxed/simple;
-	bh=z35V8epzw0nKXCJ3VCVn2F/qt5wCy/UgUt26XCUOPPU=;
-	h=Date:To:From:Subject:Message-Id; b=nCdZDhXnknsMbbIn0mPT1pF+Vb3IY6er8QI4kjnp232PMldCBcexZGv5baejEPkDJqR6tvLdkKLUzCItfia0po0ErJvAiYegNL5vs2hCOLF6ymoEgRcJ2QDhQMXjn+hns5rglMKu5iarZokzR78he8NDIMEHQ24LGUS6mDM5wrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kierkpsd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764180612; c=relaxed/simple;
+	bh=X6ipl/YpZgTn1HQmN5vCe+RPAG0ZRmJOR8caOe9TAnM=;
+	h=Date:To:From:Subject:Message-Id; b=Qk7a3fbwMVwpRsC4of7yzHvbFDh01L9MeG0Tv2eYsYVm/IDwExqkhY0RO36sBM8CdgMKnAGmw4zsihUAOroNIttET72oMV/0sMfZtRff5CJinTPK2w8X02YzEaL0oAH4IMaVJ1IpuYmb+1hvtr1U3QJw6VdY+J4FUswKu93hR1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PRkAEeJZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kierkpsd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6932C4CEF7;
-	Wed, 26 Nov 2025 17:54:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PRkAEeJZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 586A9C4CEF7;
+	Wed, 26 Nov 2025 18:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764179685;
-	bh=z35V8epzw0nKXCJ3VCVn2F/qt5wCy/UgUt26XCUOPPU=;
+	s=korg; t=1764180611;
+	bh=X6ipl/YpZgTn1HQmN5vCe+RPAG0ZRmJOR8caOe9TAnM=;
 	h=Date:To:From:Subject:From;
-	b=kierkpsdLp23k2jFzembKOk3oRaXleQwJY8Xf/un5C1ENfsz1PsuCbfjpIQ69ERV0
-	 baFLcnaEaF7faFESKg4lmekccIazuyEjMLPgBvGRkxlE4S6n3n8yg6cr0LR2njcIv4
-	 Gw4WsP/GBrIF7bzEGTRjvePL6uYphl71hTcsFZ1g=
-Date: Wed, 26 Nov 2025 09:54:45 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,bhe@redhat.com,maqianga@uniontech.com,akpm@linux-foundation.org
+	b=PRkAEeJZImexDJzYwtJw6pNX9al2/luMYP4HNlXw78Wl+NsVklXPokfTFdFvJrZyD
+	 zJlcepqpgl4n5S66a8mSw33S47iPcmp/639KNrqv/zW6sbMlwky+AfUiHRZB6k2NyZ
+	 zqywyYRWDcXeeFWBhc5bMcvfUTyRyW7IhBV/OdnY=
+Date: Wed, 26 Nov 2025 10:10:10 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,lujialin4@huawei.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,axelrasmussen@google.com,chenridong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-print-out-debugging-message-if-required-for-kexec_load.patch added to mm-nonmm-unstable branch
-Message-Id: <20251126175445.A6932C4CEF7@smtp.kernel.org>
+Subject: + memcg-remove-inc-dec_lruvec_kmem_state-helpers.patch added to mm-unstable branch
+Message-Id: <20251126181011.586A9C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec: print out debugging message if required for kexec_load
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-print-out-debugging-message-if-required-for-kexec_load.patch
+     Subject: memcg: remove inc/dec_lruvec_kmem_state helpers
+has been added to the -mm mm-unstable branch.  Its filename is
+     memcg-remove-inc-dec_lruvec_kmem_state-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-print-out-debugging-message-if-required-for-kexec_load.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-remove-inc-dec_lruvec_kmem_state-helpers.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,47 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qiang Ma <maqianga@uniontech.com>
-Subject: kexec: print out debugging message if required for kexec_load
-Date: Wed, 26 Nov 2025 16:44:27 +0800
+From: Chen Ridong <chenridong@huawei.com>
+Subject: memcg: remove inc/dec_lruvec_kmem_state helpers
+Date: Wed, 26 Nov 2025 02:04:35 +0000
 
-commit a85ee18c7900 ("kexec_file: print out debugging message if
-required") has added general code printing in kexec_file_load(), but not
-in kexec_load().
+The dec_lruvec_kmem_state helper is unused by any caller and can be safely
+removed.  Meanwhile, the inc_lruvec_kmem_state helper is only referenced
+by shadow_lru_isolate, retaining these two helpers is unnecessary.  This
+patch removes both helper functions to eliminate redundant code.
 
-As a result, when using '-d' for the kexec_load interface, print nothing
-in the kernel space.
-
-And print out type/start/head of kimage and flags to help debug.
-
-Link: https://lkml.kernel.org/r/20251126084427.3222212-4-maqianga@uniontech.com
-Signed-off-by: Qiang Ma <maqianga@uniontech.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202510310332.6XrLe70K-lkp@intel.com/
-Cc: Baoquan He <bhe@redhat.com>
+Link: https://lkml.kernel.org/r/20251126020435.1511637-1-chenridong@huaweicloud.com
+Signed-off-by: Chen Ridong <chenridong@huawei.com>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Lu Jialin <lujialin4@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/memcontrol.h |   10 ----------
+ mm/workingset.c            |    2 +-
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
---- a/kernel/kexec.c~kexec-print-out-debugging-message-if-required-for-kexec_load
-+++ a/kernel/kexec.c
-@@ -166,6 +166,9 @@ static int do_kexec_load(unsigned long e
- 	if (ret)
- 		goto out;
+--- a/include/linux/memcontrol.h~memcg-remove-inc-dec_lruvec_kmem_state-helpers
++++ a/include/linux/memcontrol.h
+@@ -1452,16 +1452,6 @@ struct slabobj_ext {
+ #endif
+ } __aligned(8);
  
-+	kexec_dprintk("kexec_load: type:%u, start:0x%lx head:0x%lx flags:0x%lx\n",
-+		      image->type, image->start, image->head, flags);
-+
- 	/* Install the new kernel and uninstall the old */
- 	image = xchg(dest_image, image);
+-static inline void inc_lruvec_kmem_state(void *p, enum node_stat_item idx)
+-{
+-	mod_lruvec_kmem_state(p, idx, 1);
+-}
+-
+-static inline void dec_lruvec_kmem_state(void *p, enum node_stat_item idx)
+-{
+-	mod_lruvec_kmem_state(p, idx, -1);
+-}
+-
+ static inline struct lruvec *parent_lruvec(struct lruvec *lruvec)
+ {
+ 	struct mem_cgroup *memcg;
+--- a/mm/workingset.c~memcg-remove-inc-dec_lruvec_kmem_state-helpers
++++ a/mm/workingset.c
+@@ -749,7 +749,7 @@ static enum lru_status shadow_lru_isolat
+ 	if (WARN_ON_ONCE(node->count != node->nr_values))
+ 		goto out_invalid;
+ 	xa_delete_node(node, workingset_update_node);
+-	inc_lruvec_kmem_state(node, WORKINGSET_NODERECLAIM);
++	mod_lruvec_kmem_state(node, WORKINGSET_NODERECLAIM, 1);
  
+ out_invalid:
+ 	xa_unlock_irq(&mapping->i_pages);
 _
 
-Patches currently in -mm which might be from maqianga@uniontech.com are
+Patches currently in -mm which might be from chenridong@huawei.com are
 
-kexec-fix-uninitialized-struct-kimage-image-pointer.patch
-kexec-add-kexec-flag-to-control-debug-printing.patch
-kexec-print-out-debugging-message-if-required-for-kexec_load.patch
+memcg-remove-inc-dec_lruvec_kmem_state-helpers.patch
 
