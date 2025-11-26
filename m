@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CDDA348899
-	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 17:38:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25AEB343207;
+	Wed, 26 Nov 2025 17:41:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764178682; cv=none; b=WZ7pTlYGJYrOJiOeDs5rTeosEUrL6HpWySSwAte8YaAXCmhC15GyoVpjSn46y7Nj6gz/0ni4aG1UCoaLZ6M5E1l7uWXfAaZQo8VmGyQJwUZhGPR9FUud4TZXVVxJFVQs6rEOzfPaNkd/iX+uVy7KJt2LQ6jXYiCWkRMtYWLTBfc=
+	t=1764178871; cv=none; b=d61tb1zdiJ0GzAMCVy+iZqTvos7eijmzK9m9jNa9Af35ztG3oz0azqkvTxoC7yeCabUy9h9s/UuxqKjZZSz0Ye+XByYZRTWqlryESOS8yPdKCYCZ6MSQ4nOkga+XGh/+AB5XSvUT57qkmP2tdya/mA7OELAjuWopG1VlA1T9QKc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764178682; c=relaxed/simple;
-	bh=sXqXSDEteBWyFQzhDHnczrnTwyQM92s0rPksBqTVQx4=;
-	h=Date:To:From:Subject:Message-Id; b=kl0rYHm53wbM0eu4DG/Hug/gULS44qTXRZTzazDuHxrS4KlMq2XxDvFAVfGsRjSZ4uQ+L2aIVhKSqT8fa/ZRGZ08zimIsHs3pYLCyjAgFqSUh/ZwwvIjHIK7/FCJ/qTml5amZjwZnGy3J3YM341eLlQi2tl2rCT+pu1xBnR4HU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=szuIN9oa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764178871; c=relaxed/simple;
+	bh=WXWUhEIvdbridsqfFqGqok8+I7bhOODXxOKbf3qUHTU=;
+	h=Date:To:From:Subject:Message-Id; b=mrSfXWEpjUqy1u+u+1f97pLm7t5Tqn3URj8R2wFz2EbmW2Q5gsf9EgwGAouNjO7cgJdYcpApSadkHU7ZeTInJQ/LT17C5OI9ZllIi1g7Kur64Kv2DzJNmZ0e988nALned3oAY+Ga+t85pnTqrtg3dj6PZDstWSKBxSse4de3e8Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MhGraYit; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="szuIN9oa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67A57C4CEF8;
-	Wed, 26 Nov 2025 17:38:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MhGraYit"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A1D2C4CEF7;
+	Wed, 26 Nov 2025 17:41:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764178681;
-	bh=sXqXSDEteBWyFQzhDHnczrnTwyQM92s0rPksBqTVQx4=;
+	s=korg; t=1764178870;
+	bh=WXWUhEIvdbridsqfFqGqok8+I7bhOODXxOKbf3qUHTU=;
 	h=Date:To:From:Subject:From;
-	b=szuIN9oakeZz6HEZsQLR2tvhGv6hHZ8hJOdadt9jjZxKcVptZhBW5RJ2nfU0zsl+g
-	 whSM4uHwOdbsNWJM35YoAgNcWbstj2K9SQZyf70VmAzATv3mjc5IVNxqB6sU1OxbYm
-	 8NSVo9tlNatuqDxJ0OBIEnTVzl8rLs5LuTLzVs98=
-Date: Wed, 26 Nov 2025 09:38:00 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,ankitkhushwaha.linux@gmail.com,akpm@linux-foundation.org
+	b=MhGraYithh75N9uL5uM6tHXooksQjpBVYOngOOSbOv6rT8dA7l1GmIEwGApe+szt9
+	 Nn7N+n0uvQ16I1hKyj8KKwtruGks24XZe2Ob9dFbG5dmYuVUfmS1cEnyeZLHywvkg+
+	 7zGIN9Hn5DtyZTBaRqb39YdALzkcL9Inm8UCehWA=
+Date: Wed, 26 Nov 2025 09:41:10 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,christophe.leroy@csgroup.eu,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffd-initialize-char-variable-to-null.patch added to mm-unstable branch
-Message-Id: <20251126173801.67A57C4CEF8@smtp.kernel.org>
+Subject: + powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction.patch added to mm-new branch
+Message-Id: <20251126174110.9A1D2C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm/uffd: initialize char variable to Null
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-uffd-initialize-char-variable-to-null.patch
+     Subject: powerpc/pseries/cmm: call balloon_devinfo_init() also without CONFIG_BALLOON_COMPACTION
+has been added to the -mm mm-new branch.  Its filename is
+     powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-initialize-char-variable-to-null.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,97 +64,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
-Subject: selftests/mm/uffd: initialize char variable to Null
-Date: Wed, 26 Nov 2025 21:38:30 +0530
+From: David Hildenbrand <david@redhat.com>
+Subject: powerpc/pseries/cmm: call balloon_devinfo_init() also without CONFIG_BALLOON_COMPACTION
+Date: Tue, 21 Oct 2025 12:06:05 +0200
 
-In "uffd-stress.c" & "uffd-unit-tests.c". address of char variable having
-garbage value (uninitialized) is passed to 'write' syscall triggers
-warning.
+Patch series "powerpc/pseries/cmm: two smaller fixes".
 
-	uffd-stress.c:246:39: warning: variable 'c' is uninitialized when
-	passed  as a const pointer argument here
-	[-Wuninitialized-const-pointer]
+Two smaller fixes identified while doing a bigger rework.
 
-	uffd-unit-tests.c:581:31: warning: variable 'c' is uninitialized
-	when passed as a const pointer argument here
-	[-Wuninitialized-const-pointer]
 
-so the fix is to assign char variable to '\0' to prevent writing of
-garbage value.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20251126160830.52124-1-ankitkhushwaha.linux@gmail.com
-Signed-off-by: Ankit Khushwaha <ankitkhushwaha.linux@gmail.com>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+We always have to initialize the balloon_dev_info, even when compaction is
+not configured in: otherwise the containing list and the lock are left
+uninitialized.
+
+Likely not many such configs exist in practice, but let's CC stable to
+be sure.
+
+This was found by code inspection.
+
+Link: https://lkml.kernel.org/r/20251021100606.148294-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20251021100606.148294-2-david@redhat.com
+Fixes: fe030c9b85e6 ("powerpc/pseries/cmm: Implement balloon compaction")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-stress.c     |    2 +-
- tools/testing/selftests/mm/uffd-unit-tests.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/powerpc/platforms/pseries/cmm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-uffd-initialize-char-variable-to-null
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -241,7 +241,7 @@ static int stress(struct uffd_args *args
- 			return 1;
+--- a/arch/powerpc/platforms/pseries/cmm.c~powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction
++++ a/arch/powerpc/platforms/pseries/cmm.c
+@@ -550,7 +550,6 @@ static int cmm_migratepage(struct balloo
  
- 	for (cpu = 0; cpu < gopts->nr_parallel; cpu++) {
--		char c;
-+		char c = '\0';
- 		if (bounces & BOUNCE_POLL) {
- 			if (write(gopts->pipefd[cpu*2+1], &c, 1) != 1)
- 				err("pipefd write error");
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffd-initialize-char-variable-to-null
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -543,7 +543,7 @@ static void uffd_minor_test_common(uffd_
+ static void cmm_balloon_compaction_init(void)
  {
- 	unsigned long p;
- 	pthread_t uffd_mon;
--	char c;
-+	char c = '\0';
- 	struct uffd_args args = { 0 };
- 	args.gopts = gopts;
+-	balloon_devinfo_init(&b_dev_info);
+ 	b_dev_info.migratepage = cmm_migratepage;
+ }
+ #else /* CONFIG_BALLOON_COMPACTION */
+@@ -572,6 +571,7 @@ static int cmm_init(void)
+ 	if (!firmware_has_feature(FW_FEATURE_CMO) && !simulate)
+ 		return -EOPNOTSUPP;
  
-@@ -759,7 +759,7 @@ static void uffd_sigbus_test_common(uffd
- 	pthread_t uffd_mon;
- 	pid_t pid;
- 	int err;
--	char c;
-+	char c = '\0';
- 	struct uffd_args args = { 0 };
- 	args.gopts = gopts;
++	balloon_devinfo_init(&b_dev_info);
+ 	cmm_balloon_compaction_init();
  
-@@ -819,7 +819,7 @@ static void uffd_events_test_common(uffd
- 	pthread_t uffd_mon;
- 	pid_t pid;
- 	int err;
--	char c;
-+	char c = '\0';
- 	struct uffd_args args = { 0 };
- 	args.gopts = gopts;
- 
-@@ -1125,7 +1125,7 @@ uffd_move_test_common(uffd_global_test_o
- {
- 	unsigned long nr;
- 	pthread_t uffd_mon;
--	char c;
-+	char c = '\0';
- 	unsigned long long count;
- 	struct uffd_args args = { 0 };
- 	char *orig_area_src = NULL, *orig_area_dst = NULL;
+ 	rc = register_oom_notifier(&cmm_oom_nb);
 _
 
-Patches currently in -mm which might be from ankitkhushwaha.linux@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-selftests-mm-uffd-initialize-char-variable-to-null.patch
+powerpc-pseries-cmm-call-balloon_devinfo_init-also-without-config_balloon_compaction.patch
+powerpc-pseries-cmm-adjust-balloon_migrate-when-migrating-pages.patch
 
