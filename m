@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7C8426ED48
-	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 18:10:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B221821CC51
+	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 18:15:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764180612; cv=none; b=q9gerZyMEPchJSiwNqD5EfXwMhCb0fop7XNB9hvPUt6XJG0kaVddgKeGE0ZtFfoKaUEn95hicm7JG/WxkHFnR7NfGohzdDf6DGdOm1T4zJcfcjcipKuup5fiN1bSIx5AW3muUd9Uu8UbstRrP4BGZ+dAYzMwm9GLPrBHPTjILiI=
+	t=1764180943; cv=none; b=dpHQ7tp/AnCeh9FxxTE/FLryYQpxdztoIn1urWNgPTiVFalOWy4MUlB+5cOxRNkdfenteDQClXMbWfmlpfQjZhIquU8WDarcQ+w1TrV5TQpWRs8TBgmeAUUYsrDRhKLwSzwD7KzFemwQ3Z26GmbbkcMpOD3cf4tIYPcqLkvc4rY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764180612; c=relaxed/simple;
-	bh=X6ipl/YpZgTn1HQmN5vCe+RPAG0ZRmJOR8caOe9TAnM=;
-	h=Date:To:From:Subject:Message-Id; b=Qk7a3fbwMVwpRsC4of7yzHvbFDh01L9MeG0Tv2eYsYVm/IDwExqkhY0RO36sBM8CdgMKnAGmw4zsihUAOroNIttET72oMV/0sMfZtRff5CJinTPK2w8X02YzEaL0oAH4IMaVJ1IpuYmb+1hvtr1U3QJw6VdY+J4FUswKu93hR1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PRkAEeJZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764180943; c=relaxed/simple;
+	bh=5NlB3qXmK0FiJLrja9HIY9RXNT1zAJvxj1NnRzHldeM=;
+	h=Date:To:From:Subject:Message-Id; b=Y8uzOJo5lJJmZhElIKPM+wni/BVKQQ5vGH4/MiP9RHZ3SEwboOToPUzKOOYDa/1NI49UOX0V/FIKdhwEq8Dfyyafvaj95itCnYOjTv97xr2m05eUOc1CA1klwqJhiI4PXEf1+zDBoEFkz22gS7l+gPoFMpHCTm/IbIuWSw38p2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PMQDpBcm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PRkAEeJZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 586A9C4CEF7;
-	Wed, 26 Nov 2025 18:10:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PMQDpBcm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ED65C4CEF7;
+	Wed, 26 Nov 2025 18:15:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764180611;
-	bh=X6ipl/YpZgTn1HQmN5vCe+RPAG0ZRmJOR8caOe9TAnM=;
+	s=korg; t=1764180943;
+	bh=5NlB3qXmK0FiJLrja9HIY9RXNT1zAJvxj1NnRzHldeM=;
 	h=Date:To:From:Subject:From;
-	b=PRkAEeJZImexDJzYwtJw6pNX9al2/luMYP4HNlXw78Wl+NsVklXPokfTFdFvJrZyD
-	 zJlcepqpgl4n5S66a8mSw33S47iPcmp/639KNrqv/zW6sbMlwky+AfUiHRZB6k2NyZ
-	 zqywyYRWDcXeeFWBhc5bMcvfUTyRyW7IhBV/OdnY=
-Date: Wed, 26 Nov 2025 10:10:10 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,lujialin4@huawei.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,axelrasmussen@google.com,chenridong@huawei.com,akpm@linux-foundation.org
+	b=PMQDpBcmg8AQeFKUQ7lOzKT7XEDhc7Ke1sg47rNaTzBdFzvcQ9fdWDR6RbVEylD2I
+	 H6BqYA+Eim0Q86VyYYP3uY03rBQl9YGybkfF8h9Lk684wqo87/K3/0iGErtJt6X/T9
+	 5gUvCeGoXFkzx0tDr58PvbJr8sMyY4+RdgK1/5Iw=
+Date: Wed, 26 Nov 2025 10:15:42 -0800
+To: mm-commits@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-remove-inc-dec_lruvec_kmem_state-helpers.patch added to mm-unstable branch
-Message-Id: <20251126181011.586A9C4CEF7@smtp.kernel.org>
+Subject: + mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch added to mm-unstable branch
+Message-Id: <20251126181543.3ED65C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: remove inc/dec_lruvec_kmem_state helpers
+     Subject: mm/kfence: add reboot notifier to disable KFENCE on shutdown
 has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-remove-inc-dec_lruvec_kmem_state-helpers.patch
+     mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-remove-inc-dec_lruvec_kmem_state-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,68 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chen Ridong <chenridong@huawei.com>
-Subject: memcg: remove inc/dec_lruvec_kmem_state helpers
-Date: Wed, 26 Nov 2025 02:04:35 +0000
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/kfence: add reboot notifier to disable KFENCE on shutdown
+Date: Wed, 26 Nov 2025 09:46:18 -0800
 
-The dec_lruvec_kmem_state helper is unused by any caller and can be safely
-removed.  Meanwhile, the inc_lruvec_kmem_state helper is only referenced
-by shadow_lru_isolate, retaining these two helpers is unnecessary.  This
-patch removes both helper functions to eliminate redundant code.
+During system shutdown, KFENCE can cause IPI synchronization issues if it
+remains active through the reboot process.  To prevent this, register a
+reboot notifier that disables KFENCE and cancels any pending timer work
+early in the shutdown sequence.
 
-Link: https://lkml.kernel.org/r/20251126020435.1511637-1-chenridong@huaweicloud.com
-Signed-off-by: Chen Ridong <chenridong@huawei.com>
-Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Lu Jialin <lujialin4@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+This is only necessary when CONFIG_KFENCE_STATIC_KEYS is enabled, as this
+configuration sends IPIs that can interfere with shutdown.  Without static
+keys, no IPIs are generated and KFENCE can safely remain active.
+
+The notifier uses maximum priority (INT_MAX) to ensure KFENCE shuts down
+before other subsystems that might still depend on stable memory
+allocation behavior.
+
+This fixes a late kexec CSD lockup[1] when kfence is trying to IPI a CPU
+that is busy in a IRQ-disabled context printing characters to the console.
+
+Link: https://lkml.kernel.org/r/20251126-kfence-v1-1-5a6e1d7c681c@debian.org
+Link: https://lore.kernel.org/all/sqwajvt7utnt463tzxgwu2yctyn5m6bjwrslsnupfexeml6hkd@v6sqmpbu3vvu/ [1]
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 ----------
- mm/workingset.c            |    2 +-
- 2 files changed, 1 insertion(+), 11 deletions(-)
+ mm/kfence/core.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/include/linux/memcontrol.h~memcg-remove-inc-dec_lruvec_kmem_state-helpers
-+++ a/include/linux/memcontrol.h
-@@ -1452,16 +1452,6 @@ struct slabobj_ext {
- #endif
- } __aligned(8);
+--- a/mm/kfence/core.c~mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown
++++ a/mm/kfence/core.c
+@@ -26,6 +26,7 @@
+ #include <linux/panic_notifier.h>
+ #include <linux/random.h>
+ #include <linux/rcupdate.h>
++#include <linux/reboot.h>
+ #include <linux/sched/clock.h>
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+@@ -820,6 +821,25 @@ static struct notifier_block kfence_chec
+ static struct delayed_work kfence_timer;
  
--static inline void inc_lruvec_kmem_state(void *p, enum node_stat_item idx)
--{
--	mod_lruvec_kmem_state(p, idx, 1);
--}
--
--static inline void dec_lruvec_kmem_state(void *p, enum node_stat_item idx)
--{
--	mod_lruvec_kmem_state(p, idx, -1);
--}
--
- static inline struct lruvec *parent_lruvec(struct lruvec *lruvec)
- {
- 	struct mem_cgroup *memcg;
---- a/mm/workingset.c~memcg-remove-inc-dec_lruvec_kmem_state-helpers
-+++ a/mm/workingset.c
-@@ -749,7 +749,7 @@ static enum lru_status shadow_lru_isolat
- 	if (WARN_ON_ONCE(node->count != node->nr_values))
- 		goto out_invalid;
- 	xa_delete_node(node, workingset_update_node);
--	inc_lruvec_kmem_state(node, WORKINGSET_NODERECLAIM);
-+	mod_lruvec_kmem_state(node, WORKINGSET_NODERECLAIM, 1);
+ #ifdef CONFIG_KFENCE_STATIC_KEYS
++static int kfence_reboot_callback(struct notifier_block *nb,
++				  unsigned long action, void *data)
++{
++	/*
++	 * Disable kfence to avoid static keys IPI synchronization during
++	 * late shutdown/kexec
++	 */
++	WRITE_ONCE(kfence_enabled, false);
++	/* Cancel any pending timer work */
++	cancel_delayed_work_sync(&kfence_timer);
++
++	return NOTIFY_OK;
++}
++
++static struct notifier_block kfence_reboot_notifier = {
++	.notifier_call = kfence_reboot_callback,
++	.priority = INT_MAX, /* Run early to stop timers ASAP */
++};
++
+ /* Wait queue to wake up allocation-gate timer task. */
+ static DECLARE_WAIT_QUEUE_HEAD(allocation_wait);
  
- out_invalid:
- 	xa_unlock_irq(&mapping->i_pages);
+@@ -901,6 +921,10 @@ static void kfence_init_enable(void)
+ 	if (kfence_check_on_panic)
+ 		atomic_notifier_chain_register(&panic_notifier_list, &kfence_check_canary_notifier);
+ 
++#ifdef CONFIG_KFENCE_STATIC_KEYS
++	register_reboot_notifier(&kfence_reboot_notifier);
++#endif
++
+ 	WRITE_ONCE(kfence_enabled, true);
+ 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
+ 
 _
 
-Patches currently in -mm which might be from chenridong@huawei.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-memcg-remove-inc-dec_lruvec_kmem_state-helpers.patch
+mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
+vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
 
