@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B221821CC51
-	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 18:15:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A7521CD15
+	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 19:26:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764180943; cv=none; b=dpHQ7tp/AnCeh9FxxTE/FLryYQpxdztoIn1urWNgPTiVFalOWy4MUlB+5cOxRNkdfenteDQClXMbWfmlpfQjZhIquU8WDarcQ+w1TrV5TQpWRs8TBgmeAUUYsrDRhKLwSzwD7KzFemwQ3Z26GmbbkcMpOD3cf4tIYPcqLkvc4rY=
+	t=1764185212; cv=none; b=psb1sbLZp6YRNmFd5mo3uYN8IhXZZV5YNxk//9+EftAAe8zR2lcfDCg5lchOGgmpmbbW8fVm1yYI++boh592n85UjBsb0GxTit0qdBndcN1bYBczHleAcYMVs/liXpxeEcHJtJUQs9UMjaQw6RWp9/Eua8XMmmFdG5w57CRy7nI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764180943; c=relaxed/simple;
-	bh=5NlB3qXmK0FiJLrja9HIY9RXNT1zAJvxj1NnRzHldeM=;
-	h=Date:To:From:Subject:Message-Id; b=Y8uzOJo5lJJmZhElIKPM+wni/BVKQQ5vGH4/MiP9RHZ3SEwboOToPUzKOOYDa/1NI49UOX0V/FIKdhwEq8Dfyyafvaj95itCnYOjTv97xr2m05eUOc1CA1klwqJhiI4PXEf1+zDBoEFkz22gS7l+gPoFMpHCTm/IbIuWSw38p2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PMQDpBcm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764185212; c=relaxed/simple;
+	bh=40QAGtnJnN1hXR+l+oJINozbSzAkcONu8nVLn7ghpww=;
+	h=Date:To:From:Subject:Message-Id; b=APw74Rf79lEPZIC4UO4n4z3+9+lr2wxVqKYxHYmNrc/Ga9olyKqJS5YyA0FnhYY34PX4B/YfghPwVxU9320USOsvHSlZbHfwB+hhWbRUZcua/Ll1ZbQzQP3/3qo2PpBF/oTkUd2rw+rgeY02nGqC7vC8x/bHhn+kuSvM2ia3T1Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RCOlNEmF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PMQDpBcm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ED65C4CEF7;
-	Wed, 26 Nov 2025 18:15:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RCOlNEmF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D88F4C113D0;
+	Wed, 26 Nov 2025 19:26:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764180943;
-	bh=5NlB3qXmK0FiJLrja9HIY9RXNT1zAJvxj1NnRzHldeM=;
+	s=korg; t=1764185211;
+	bh=40QAGtnJnN1hXR+l+oJINozbSzAkcONu8nVLn7ghpww=;
 	h=Date:To:From:Subject:From;
-	b=PMQDpBcmg8AQeFKUQ7lOzKT7XEDhc7Ke1sg47rNaTzBdFzvcQ9fdWDR6RbVEylD2I
-	 H6BqYA+Eim0Q86VyYYP3uY03rBQl9YGybkfF8h9Lk684wqo87/K3/0iGErtJt6X/T9
-	 5gUvCeGoXFkzx0tDr58PvbJr8sMyY4+RdgK1/5Iw=
-Date: Wed, 26 Nov 2025 10:15:42 -0800
-To: mm-commits@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,leitao@debian.org,akpm@linux-foundation.org
+	b=RCOlNEmFE2JkL+7qMXItaKUu9qKLm5XfCEA40VwyNH+kuRQuE3oD+L5HmJ/LR0xlP
+	 AAldD68tlD3DYF9U6jpPAXymHMYrHUSCyxDaWe9uwE5xlMnZoTA1hJ6FOJiuVJUwR2
+	 tX9q4HOpG+HK9tiC88R/vBXAqSqLcc/r5RGv8wZ0=
+Date: Wed, 26 Nov 2025 11:26:51 -0800
+To: mm-commits@vger.kernel.org,dhowells@redhat.com,bboscaccy@linux.microsoft.com,James.Bottomley@HansenPartnership.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch added to mm-unstable branch
-Message-Id: <20251126181543.3ED65C4CEF7@smtp.kernel.org>
+Subject: + oid_registry-allow-arbitrary-size-oids-v2.patch added to mm-nonmm-unstable branch
+Message-Id: <20251126192651.D88F4C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kfence: add reboot notifier to disable KFENCE on shutdown
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
+     Subject: oid_registry: allow arbitrary size OIDs
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     oid_registry-allow-arbitrary-size-oids-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/oid_registry-allow-arbitrary-size-oids-v2.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,89 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm/kfence: add reboot notifier to disable KFENCE on shutdown
-Date: Wed, 26 Nov 2025 09:46:18 -0800
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: oid_registry: allow arbitrary size OIDs
+Date: Wed, 26 Nov 2025 14:22:33 -0500
 
-During system shutdown, KFENCE can cause IPI synchronization issues if it
-remains active through the reboot process.  To prevent this, register a
-reboot notifier that disables KFENCE and cancels any pending timer work
-early in the shutdown sequence.
+tidy up perl with better my placement also set bc to arbitrary size
 
-This is only necessary when CONFIG_KFENCE_STATIC_KEYS is enabled, as this
-configuration sends IPIs that can interfere with shutdown.  Without static
-keys, no IPIs are generated and KFENCE can safely remain active.
-
-The notifier uses maximum priority (INT_MAX) to ensure KFENCE shuts down
-before other subsystems that might still depend on stable memory
-allocation behavior.
-
-This fixes a late kexec CSD lockup[1] when kfence is trying to IPI a CPU
-that is busy in a IRQ-disabled context printing characters to the console.
-
-Link: https://lkml.kernel.org/r/20251126-kfence-v1-1-5a6e1d7c681c@debian.org
-Link: https://lore.kernel.org/all/sqwajvt7utnt463tzxgwu2yctyn5m6bjwrslsnupfexeml6hkd@v6sqmpbu3vvu/ [1]
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/dbc90c344c691ed988640a28367ff895b5ef2604.camel@HansenPartnership.com
+Signed-off-by: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Blaise Boscaccy <bboscaccy@linux.microsoft.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ lib/build_OID_registry |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown
-+++ a/mm/kfence/core.c
-@@ -26,6 +26,7 @@
- #include <linux/panic_notifier.h>
- #include <linux/random.h>
- #include <linux/rcupdate.h>
-+#include <linux/reboot.h>
- #include <linux/sched/clock.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
-@@ -820,6 +821,25 @@ static struct notifier_block kfence_chec
- static struct delayed_work kfence_timer;
+--- a/lib/build_OID_registry~oid_registry-allow-arbitrary-size-oids-v2
++++ a/lib/build_OID_registry
+@@ -60,7 +60,7 @@ for (my $i = 0; $i <= $#names; $i++) {
+     # Determine the encoded length of this OID
+     my $size = $#components;
+     for (my $loop = 2; $loop <= $#components; $loop++) {
+-	$ENV{'BC_LINE_LENGTH'} = "200";
++	$ENV{'BC_LINE_LENGTH'} = "0";
+ 	my $c = `echo "ibase=10; obase=2; $components[$loop]" | bc`;
+ 	chomp($c);
  
- #ifdef CONFIG_KFENCE_STATIC_KEYS
-+static int kfence_reboot_callback(struct notifier_block *nb,
-+				  unsigned long action, void *data)
-+{
-+	/*
-+	 * Disable kfence to avoid static keys IPI synchronization during
-+	 * late shutdown/kexec
-+	 */
-+	WRITE_ONCE(kfence_enabled, false);
-+	/* Cancel any pending timer work */
-+	cancel_delayed_work_sync(&kfence_timer);
-+
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block kfence_reboot_notifier = {
-+	.notifier_call = kfence_reboot_callback,
-+	.priority = INT_MAX, /* Run early to stop timers ASAP */
-+};
-+
- /* Wait queue to wake up allocation-gate timer task. */
- static DECLARE_WAIT_QUEUE_HEAD(allocation_wait);
+@@ -103,7 +103,7 @@ for (my $i = 0; $i <= $#names; $i++) {
  
-@@ -901,6 +921,10 @@ static void kfence_init_enable(void)
- 	if (kfence_check_on_panic)
- 		atomic_notifier_chain_register(&panic_notifier_list, &kfence_check_canary_notifier);
+     for (my $loop = 2; $loop <= $#components; $loop++) {
+ 	# get the base 2 representation of the component
+-	$ENV{'BC_LINE_LENGTH'} = "200";
++	$ENV{'BC_LINE_LENGTH'} = "0";
+ 	my $c = `echo "ibase=10; obase=2; $components[$loop]" | bc`;
+ 	chomp($c);
  
-+#ifdef CONFIG_KFENCE_STATIC_KEYS
-+	register_reboot_notifier(&kfence_reboot_notifier);
-+#endif
-+
- 	WRITE_ONCE(kfence_enabled, true);
- 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
+@@ -114,15 +114,12 @@ for (my $i = 0; $i <= $#names; $i++) {
+ 	$c = substr("0000000", 0, ($tmp + 1) * 7 - length($c)).$c;
  
+ 	# Base128 encode the number
+-	my $j;
+-	my $b;
+-	for ($j = 0; $j < $tmp; $j++) {
+-	    $b = oct("0b".substr($c, $j * 7, 7));
++	for (my $j = 0; $j < $tmp; $j++) {
++	    my $b = oct("0b".substr($c, $j * 7, 7));
+ 
+ 	    push @octets, $b | 0x80;
+ 	}
+-	$b = oct("0b".substr($c, $j * 7, 7));
+-	push @octets, $b;
++	push @octets, oct("0b".substr($c, $tmp * 7, 7));
+     }
+ 
+     push @encoded_oids, \@octets;
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from James.Bottomley@HansenPartnership.com are
 
-mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
-vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
+oid_registry-allow-arbitrary-size-oids.patch
+oid_registry-allow-arbitrary-size-oids-v2.patch
 
