@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAFD633E354
-	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 17:43:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 347A223E25B
+	for <mm-commits@vger.kernel.org>; Wed, 26 Nov 2025 17:54:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764179015; cv=none; b=uMGjkn7GI8lpK58vroKNHLgMjmjIQKXAKdhRXcbkVsI5W6rWYRmHA+QXeycC/EoMuvMD+MYPSRc9XuLbyUAJIKtczFzqPhIeIWPC06N5ZPE9m3jptumQcQHVG2rosbI5JS3zd2ehrTRO+L+3l5KqgUS19y46UChce6FtAvNVgdU=
+	t=1764179680; cv=none; b=dkBCcJUgHXSI5uTSb3zqhF7Z8zc3nTHE4XvE4UjdvmXbAUi4dqHtuAW6Q7YkgR/nTLebboJ8MkhdE26aAGW4vqYqCbn95JtOQvMAA3PwzyPTiMOyp2ks23m5ifcjNN8WY9trPt/HVbIEga2X0lGY6J5e5yYh0vz/4o/huHlLLCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764179015; c=relaxed/simple;
-	bh=liwECvWh2UMUD6E9jkfBWebpW8rK0ERu+r7sfYkuKLg=;
-	h=Date:To:From:Subject:Message-Id; b=UZ589Nx5PM2eUmgdJXnhdME3uSOYVcT3kwOmowbP8QaEq1xZessx6a6XhomO2RBnS41UVI9P/p3KY24MThtbjDW+P42hrIC/sAhL84k49UthlPUMOQtZjgQZZEb6jE1CDehkgiekMmn9CGjf6mKjDyBUf+BWhlpFZX06421WTwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jd/2CDin; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764179680; c=relaxed/simple;
+	bh=IE4DLP6jFYSDNcblXyRm34dJO0EhAFaJ0mFdfkYPFfo=;
+	h=Date:To:From:Subject:Message-Id; b=qwG71uhhgumO9abyZNzkMfyakraSU11UmL1649xANundWk6igEO/IVI6kG1HORkS6Wb5RzrAjIDCtkfDgrWRJ2qT+IUiK0GT677DXXFaxb7A+O0DMKsUvlQMzhZVI+rGZBPLwbfo6f2kAiXWvHF/e3lAKtGqHIEhn0cEyrBDa9w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SjBCRK1E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jd/2CDin"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4128DC4CEF7;
-	Wed, 26 Nov 2025 17:43:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SjBCRK1E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF178C4CEF7;
+	Wed, 26 Nov 2025 17:54:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764179015;
-	bh=liwECvWh2UMUD6E9jkfBWebpW8rK0ERu+r7sfYkuKLg=;
+	s=korg; t=1764179679;
+	bh=IE4DLP6jFYSDNcblXyRm34dJO0EhAFaJ0mFdfkYPFfo=;
 	h=Date:To:From:Subject:From;
-	b=jd/2CDinL7o/WqDvhcYRd5lBgLxM9zTajzkfaabOJT2Mndo1UimP308UnZh2MY0vT
-	 HWmOTVE9FMi9SwQ4O0E0chVlXqK3fQwu2ch58pLtSLvlyx/81dSv49CLNYzHUEZDef
-	 ihF7gDWuJa9VZsEANx974CV/5XRPBjkRz/Ode+g4=
-Date: Wed, 26 Nov 2025 09:43:34 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,dan.carpenter@linaro.org,akpm@linux-foundation.org
+	b=SjBCRK1Ebpa/SRBlqZpmsdAXOJizbJ/FSDPKluyEBlhZ6bmcLD5h4zbNthDebhJoc
+	 hna2k+XOTaL3vmAF9g3nj0hOlVbXQ8AP401m+pa1ImiKNHqEjZKvVZsjNf/ShOnP06
+	 Y3SSrmQ5HiMCP8xfIXJ3Ast+MGdz8ES5ml6NoAKw=
+Date: Wed, 26 Nov 2025 09:54:39 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,bhe@redhat.com,maqianga@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-luo_session-add-sessions-support-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251126174335.4128DC4CEF7@smtp.kernel.org>
+Subject: + kexec-fix-uninitialized-struct-kimage-image-pointer.patch added to mm-nonmm-unstable branch
+Message-Id: <20251126175439.AF178C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: liveupdate: luo_session: fix use after free in luo_session_deserialize()
+     Subject: kexec: fix uninitialized struct kimage *image pointer
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     liveupdate-luo_session-add-sessions-support-fix.patch
+     kexec-fix-uninitialized-struct-kimage-image-pointer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_session-add-sessions-support-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-fix-uninitialized-struct-kimage-image-pointer.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,39 +58,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@linaro.org>
-Subject: liveupdate: luo_session: fix use after free in luo_session_deserialize()
-Date: Wed, 26 Nov 2025 17:51:40 +0300
+From: Qiang Ma <maqianga@uniontech.com>
+Subject: kexec: fix uninitialized struct kimage *image pointer
+Date: Wed, 26 Nov 2025 16:44:25 +0800
 
-The debug output frees "session" but it was freed on the previous line. 
-Move the free after the printk().
+Patch series "kexec: print out debugging message if required for
+kexec_load", v3.
 
-Link: https://lkml.kernel.org/r/c5dd637d7eed3a3be48c5e9fedb881596a3b1f5a.1764163896.git.dan.carpenter@linaro.org
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Overview:
+=========
+commit a85ee18c7900 ("kexec_file: print out debugging message if
+required") has added general code printing in kexec_file_load(), but not
+in kexec_load().
+
+Since kexec_load and kexec_file_load are not triggered simultaneously, we
+can unify the debug flag of kexec and kexec_file as kexec_dbg_print.
+
+Next, we need to do some things in this patchset:
+
+1. rename kexec_file_dbg_print to kexec_dbg_print
+2. Add KEXEC_DEBUG
+3. Initialize kexec_dbg_print for kexec
+4. Fix uninitialized struct kimage *image pointer 
+5. Set the reset of kexec_dbg_print to kimage_free
+
+Testing:
+=========
+I did testing on x86_64, arm64 and loongarch.  On x86_64, the printed
+messages look like below:
+
+unset CONFIG_KEXEC_FILE:
+[   81.502374] kexec: kexec_load: type:0, start:0x23fff7700 head:0x10a4b9002 flags:0x3e0010
+
+set CONFIG_KEXEC_FILE
+[   36.774228] kexec_file: kernel: 0000000066c386c8 kernel_size: 0xd78400
+[   36.821814] kexec-bzImage64: Loaded purgatory at 0x23fffb000
+[   36.821826] kexec-bzImage64: Loaded boot_param, command line and misc at 0x23fff9000 bufsz=0x12d0 memsz=0x2000
+[   36.821829] kexec-bzImage64: Loaded 64bit kernel at 0x23d400000 bufsz=0xd73400 memsz=0x2ab7000
+[   36.821918] kexec-bzImage64: Loaded initrd at 0x23bd0b000 bufsz=0x16f40a8 memsz=0x16f40a8
+[   36.821920] kexec-bzImage64: Final command line is: root=/dev/mapper/test-root crashkernel=auto rd.lvm.lv=test/root
+[   36.821925] kexec-bzImage64: E820 memmap:
+[   36.821926] kexec-bzImage64: 0000000000000000-000000000009ffff (1)
+[   36.821928] kexec-bzImage64: 0000000000100000-0000000000811fff (1)
+[   36.821930] kexec-bzImage64: 0000000000812000-0000000000812fff (2)
+[   36.821931] kexec-bzImage64: 0000000000813000-00000000bee38fff (1)
+[   36.821933] kexec-bzImage64: 00000000bee39000-00000000beec2fff (2)
+[   36.821934] kexec-bzImage64: 00000000beec3000-00000000bf8ecfff (1)
+[   36.821935] kexec-bzImage64: 00000000bf8ed000-00000000bfb6cfff (2)
+[   36.821936] kexec-bzImage64: 00000000bfb6d000-00000000bfb7efff (3)
+[   36.821937] kexec-bzImage64: 00000000bfb7f000-00000000bfbfefff (4)
+[   36.821938] kexec-bzImage64: 00000000bfbff000-00000000bff7bfff (1)
+[   36.821939] kexec-bzImage64: 00000000bff7c000-00000000bfffffff (2)
+[   36.821940] kexec-bzImage64: 00000000feffc000-00000000feffffff (2)
+[   36.821941] kexec-bzImage64: 00000000ffc00000-00000000ffffffff (2)
+[   36.821942] kexec-bzImage64: 0000000100000000-000000023fffffff (1)
+[   36.872348] kexec_file: nr_segments = 4
+[   36.872356] kexec_file: segment[0]: buf=0x000000005314ece7 bufsz=0x4000 mem=0x23fffb000 memsz=0x5000
+[   36.872370] kexec_file: segment[1]: buf=0x000000006e59b143 bufsz=0x12d0 mem=0x23fff9000 memsz=0x2000
+[   36.872374] kexec_file: segment[2]: buf=0x00000000eb7b1fc3 bufsz=0xd73400 mem=0x23d400000 memsz=0x2ab7000
+[   36.882172] kexec_file: segment[3]: buf=0x000000006af76441 bufsz=0x16f40a8 mem=0x23bd0b000 memsz=0x16f5000
+[   36.889113] kexec_file: kexec_file_load: type:0, start:0x23fffb150 head:0x101a2e002 flags:0x8
+
+
+This patch (of 3):
+
+The image is initialized to NULL.  Then, after calling kimage_alloc_init,
+we can directly goto 'out' because at this time, the kimage_free will
+determine whether image is a NULL pointer.
+
+This can also prepare for the subsequent patch's kexec_core_dbg_print to
+be reset to zero in kimage_free.
+
+Link: https://lkml.kernel.org/r/20251126084427.3222212-1-maqianga@uniontech.com
+Link: https://lkml.kernel.org/r/20251126084427.3222212-2-maqianga@uniontech.com
+Signed-off-by: Qiang Ma <maqianga@uniontech.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: maqiang <maqianga@uniontech.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/luo_session.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/kernel/liveupdate/luo_session.c~liveupdate-luo_session-add-sessions-support-fix
-+++ a/kernel/liveupdate/luo_session.c
-@@ -387,9 +387,9 @@ int luo_session_deserialize(void)
+--- a/kernel/kexec.c~kexec-fix-uninitialized-struct-kimage-image-pointer
++++ a/kernel/kexec.c
+@@ -95,6 +95,8 @@ static int do_kexec_load(unsigned long e
+ 	unsigned long i;
+ 	int ret;
  
- 		err = luo_session_insert(sh, session);
- 		if (err) {
--			luo_session_free(session);
- 			pr_warn("Failed to insert session [%s] %pe\n",
- 				session->name, ERR_PTR(err));
-+			luo_session_free(session);
- 			return err;
- 		}
- 	}
++	image = NULL;
++
+ 	/*
+ 	 * Because we write directly to the reserved memory region when loading
+ 	 * crash kernels we need a serialization here to prevent multiple crash
+@@ -129,7 +131,7 @@ static int do_kexec_load(unsigned long e
+ 
+ 	ret = kimage_alloc_init(&image, entry, nr_segments, segments, flags);
+ 	if (ret)
+-		goto out_unlock;
++		goto out;
+ 
+ 	if (flags & KEXEC_PRESERVE_CONTEXT)
+ 		image->preserve_context = 1;
 _
 
-Patches currently in -mm which might be from dan.carpenter@linaro.org are
+Patches currently in -mm which might be from maqianga@uniontech.com are
 
-liveupdate-luo_session-add-sessions-support-fix.patch
+kexec-fix-uninitialized-struct-kimage-image-pointer.patch
+kexec-add-kexec-flag-to-control-debug-printing.patch
+kexec-print-out-debugging-message-if-required-for-kexec_load.patch
 
