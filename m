@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A56E7082D
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:25:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77CEF7082D
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:25:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282351; cv=none; b=X/We28qAWluf9ePsB4kX1ZeLasHbTfQSXmPSWbgA8USrO8D+TcLEyQjdiEC8ZyMS6+vTeM0MTgXO96EQUxPIfF69zZaGTqAuoKD2KXzHapZqI6N+epw+2cBywfc0lkMbs4B+dKejoVBUv6BubxKrRXYYXWw79MLKjkps/Ti4P0g=
+	t=1764282352; cv=none; b=p6Me9fFLO+brlTTzjYRpZDhyazEfblKc2V5v2vCzxPt7B2+WUoG6UOzxMbz/bA3Vn8YAlFhOcwv3kmZ8FjVNMS6Lwg60Qj/ZmoYbxLIq/n3hjGgRxlSSDx/FnnvfipAsCmMcwXTVApvieEOMVxd6dEKueKfqprPcrvPnlfQcFoE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282351; c=relaxed/simple;
-	bh=GUXbic6Sxz0ze/+lAcFuurttq0gKcHo0McUWQqv7jbU=;
-	h=Date:To:From:Subject:Message-Id; b=TVjL1PnqFWMgEMh5Zp3VwEFUXWpZfmsfyeleuy0CEUvLUz22xD9NexLyymKZPsKkKqa2UXCQ/BcjK4x2gZN5uH0vv+2v9k0zrJkk5HQdFm3WJEOi1AMk4RPBwEXWX365atatgv1rgztdQk6PWZBNnaYhUfv/xHDItOM3J1/QnT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QZ2zI+gJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282352; c=relaxed/simple;
+	bh=o5UWKXR8ZOloeRTYGeccGU+73k8+werOSeabfb36RNc=;
+	h=Date:To:From:Subject:Message-Id; b=IRqPHkqvzESg9DpUKz4IJO3VBwgc1XMyOoG1ATeUdBlhoLsGK390VtoCHIQPs27XgjnbnLeLrmXeAQn29N7l2Ks/HsC+XBwfLP05z084x0b8SGnbiRu9GdAzHZ3sw5D4kH6M/pbWI1aMYCKyMyitBIYCKEK/719OXBJJF0vfjzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u3ITQVih; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QZ2zI+gJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EFCCC4CEF8;
-	Thu, 27 Nov 2025 22:25:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u3ITQVih"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1453C4CEFB;
+	Thu, 27 Nov 2025 22:25:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282349;
-	bh=GUXbic6Sxz0ze/+lAcFuurttq0gKcHo0McUWQqv7jbU=;
+	s=korg; t=1764282351;
+	bh=o5UWKXR8ZOloeRTYGeccGU+73k8+werOSeabfb36RNc=;
 	h=Date:To:From:Subject:From;
-	b=QZ2zI+gJTIlT5rqkBlcoipUb9uZNpMA1gbZSZaSg1tP/S7855a56NuP5mPTXP/A2o
-	 a0kDfepWDj7eY/+2FpSvozL7bS2Gj5gtRkNuQqJYeM1zlnCnuYOZQ9cO3pIXajvnai
-	 x//EIpnVT+rYZ7L42cs/VSnNlEQ3bWO7j2w4nK50=
-Date: Thu, 27 Nov 2025 14:25:49 -0800
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,sfr@canb.auug.org.au,pabeni@redhat.com,ojeda@kernel.org,ncardwell@google.com,kuba@kernel.org,aliceryhl@google.com,edumazet@google.com,akpm@linux-foundation.org
+	b=u3ITQVih1ds7vI98FzYsOu47ZryC5Y90jDjGjcGFwO17kazswCyB76BjD68GsDfTS
+	 9Nj8aBLEt8KMySOOzF4cyYdtb8c10LPuxi76Ljc/Z6YstIzItPV3ZG72V/LJJB5K4c
+	 uWTR8MODkCo++JmZZ1atkhc7b+HdPNQsc0x5IxpM=
+Date: Thu, 27 Nov 2025 14:25:50 -0800
+To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,oleg@redhat.com,lorenzo.stoakes@oracle.com,linus.walleij@linaro.org,liam.howlett@oracle.com,kees@kernel.org,mjguzik@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] rbtree-inline-rb_last.patch removed from -mm tree
-Message-Id: <20251127222549.9EFCCC4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fork-stop-ignoring-numa-while-handling-cached-thread-stacks.patch removed from -mm tree
+Message-Id: <20251127222550.F1453C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,114 +35,145 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: rbtree: inline rb_last()
+     Subject: fork: stop ignoring NUMA while handling cached thread stacks
 has been removed from the -mm tree.  Its filename was
-     rbtree-inline-rb_last.patch
+     fork-stop-ignoring-numa-while-handling-cached-thread-stacks.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: rbtree: inline rb_last()
-Date: Fri, 14 Nov 2025 14:06:46 +0000
+From: Mateusz Guzik <mjguzik@gmail.com>
+Subject: fork: stop ignoring NUMA while handling cached thread stacks
+Date: Thu, 20 Nov 2025 06:40:15 +0100
 
-This is a very small function, inlining it saves cpu cycles in TCP by
-reducing register pressure and removing call/ret overhead.
+1. the numa parameter was straight up ignored.
+2. nothing was done to check if the to-be-cached/allocated stack matches
+   the local node
 
-It also reduces vmlinux text size by 122 bytes on a typical x86_64 build.
+The id remains ignored on free in case of memoryless nodes.
 
-Before:
+Note the current caching is already bad as the cache keeps overflowing
+and a different solution is needed for the long run, to be worked
+out(tm).
 
-size vmlinux
-   text    data     bss     dec     hex filename
-34811781        22177365        5685248 62674394        3bc55da vmlinux
+Stats collected over a kernel build with the patch with the following
+topology:
+  NUMA node(s):              2
+  NUMA node0 CPU(s):         0-11
+  NUMA node1 CPU(s):         12-23
 
-After:
+caller's node vs stack backing pages on free:
+matching:	50083 (70%)
+mismatched:	21492 (30%)
 
-size vmlinux
-   text	   data	    bss	    dec	    hex	filename
-34811659	22177365	5685248	62674272	3bc5560	vmlinux
+caching efficiency:
+cached:		32651 (65.2%)
+dropped:	17432 (34.8%)
 
-[ojeda@kernel.org: fix rust build]
-  Link: https://lkml.kernel.org/r/20251120085518.1463498-1-ojeda@kernel.org
-Link: https://lkml.kernel.org/r/20251114140646.3817319-3-edumazet@google.com
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
-Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Neal Cardwell <ncardwell@google.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Stehen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20251120054015.3019419-1-mjguzik@gmail.com
+Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Linus Waleij <linus.walleij@linaro.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rbtree.h |   16 +++++++++++++++-
- lib/rbtree.c           |   13 -------------
- rust/helpers/rbtree.c  |    5 +++++
- 3 files changed, 20 insertions(+), 14 deletions(-)
+ kernel/fork.c |   65 +++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 54 insertions(+), 11 deletions(-)
 
---- a/include/linux/rbtree.h~rbtree-inline-rb_last
-+++ a/include/linux/rbtree.h
-@@ -58,7 +58,21 @@ static inline struct rb_node *rb_first(c
- 		n = n->rb_left;
- 	return n;
- }
--extern struct rb_node *rb_last(const struct rb_root *);
-+
-+/*
-+ * This function returns the last node (in sort order) of the tree.
-+ */
-+static inline struct rb_node *rb_last(const struct rb_root *root)
-+{
-+	struct rb_node	*n;
-+
-+	n = root->rb_node;
-+	if (!n)
-+		return NULL;
-+	while (n->rb_right)
-+		n = n->rb_right;
-+	return n;
-+}
+--- a/kernel/fork.c~fork-stop-ignoring-numa-while-handling-cached-thread-stacks
++++ a/kernel/fork.c
+@@ -208,15 +208,62 @@ struct vm_stack {
+ 	struct vm_struct *stack_vm_area;
+ };
  
- /* Postorder iteration - always visit the parent after its children */
- extern struct rb_node *rb_first_postorder(const struct rb_root *);
---- a/lib/rbtree.c~rbtree-inline-rb_last
-+++ a/lib/rbtree.c
-@@ -460,19 +460,6 @@ void __rb_insert_augmented(struct rb_nod
- }
- EXPORT_SYMBOL(__rb_insert_augmented);
+-static bool try_release_thread_stack_to_cache(struct vm_struct *vm_area)
++static struct vm_struct *alloc_thread_stack_node_from_cache(struct task_struct *tsk, int node)
+ {
++	struct vm_struct *vm_area;
+ 	unsigned int i;
  
--struct rb_node *rb_last(const struct rb_root *root)
--{
--	struct rb_node	*n;
--
--	n = root->rb_node;
--	if (!n)
--		return NULL;
--	while (n->rb_right)
--		n = n->rb_right;
--	return n;
--}
--EXPORT_SYMBOL(rb_last);
--
- struct rb_node *rb_next(const struct rb_node *node)
- {
- 	struct rb_node *parent;
---- a/rust/helpers/rbtree.c~rbtree-inline-rb_last
-+++ a/rust/helpers/rbtree.c
-@@ -12,3 +12,8 @@ struct rb_node *rust_helper_rb_first(con
- {
- 	return rb_first(root);
- }
+-	for (i = 0; i < NR_CACHED_STACKS; i++) {
+-		struct vm_struct *tmp = NULL;
++	/*
++	 * If the node has memory, we are guaranteed the stacks are backed by local pages.
++	 * Otherwise the pages are arbitrary.
++	 *
++	 * Note that depending on cpuset it is possible we will get migrated to a different
++	 * node immediately after allocating here, so this does *not* guarantee locality for
++	 * arbitrary callers.
++	 */
++	scoped_guard(preempt) {
++		if (node != NUMA_NO_NODE && numa_node_id() != node)
++			return NULL;
 +
-+struct rb_node *rust_helper_rb_last(const struct rb_root *root)
-+{
-+	return rb_last(root);
++		for (i = 0; i < NR_CACHED_STACKS; i++) {
++			vm_area = this_cpu_xchg(cached_stacks[i], NULL);
++			if (vm_area)
++				return vm_area;
++		}
++	}
+ 
+-		if (this_cpu_try_cmpxchg(cached_stacks[i], &tmp, vm_area))
+-			return true;
++	return NULL;
 +}
++
++static bool try_release_thread_stack_to_cache(struct vm_struct *vm_area)
++{
++	unsigned int i;
++	int nid;
++
++	/*
++	 * Don't cache stacks if any of the pages don't match the local domain, unless
++	 * there is no local memory to begin with.
++	 *
++	 * Note that lack of local memory does not automatically mean it makes no difference
++	 * performance-wise which other domain backs the stack. In this case we are merely
++	 * trying to avoid constantly going to vmalloc.
++	 */
++	scoped_guard(preempt) {
++		nid = numa_node_id();
++		if (node_state(nid, N_MEMORY)) {
++			for (i = 0; i < vm_area->nr_pages; i++) {
++				struct page *page = vm_area->pages[i];
++				if (page_to_nid(page) != nid)
++					return false;
++			}
++		}
++
++		for (i = 0; i < NR_CACHED_STACKS; i++) {
++			struct vm_struct *tmp = NULL;
++
++			if (this_cpu_try_cmpxchg(cached_stacks[i], &tmp, vm_area))
++				return true;
++		}
+ 	}
+ 	return false;
+ }
+@@ -283,13 +330,9 @@ static int alloc_thread_stack_node(struc
+ {
+ 	struct vm_struct *vm_area;
+ 	void *stack;
+-	int i;
+-
+-	for (i = 0; i < NR_CACHED_STACKS; i++) {
+-		vm_area = this_cpu_xchg(cached_stacks[i], NULL);
+-		if (!vm_area)
+-			continue;
+ 
++	vm_area = alloc_thread_stack_node_from_cache(tsk, node);
++	if (vm_area) {
+ 		if (memcg_charge_kernel_stack(vm_area)) {
+ 			vfree(vm_area->addr);
+ 			return -ENOMEM;
 _
 
-Patches currently in -mm which might be from edumazet@google.com are
+Patches currently in -mm which might be from mjguzik@gmail.com are
 
 
