@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A393E31A55B
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D647231D371
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282389; cv=none; b=cTqEIy7sFsypIvE9aIcV2SK4kk8gffv4FlCcJDFt7aNDRn51IqefbdW8l5IKb7shxewOTKOH3CfIoOKTOu3egumqJqaadHldb7+sibj7LcB+spqDhQYvklgymCwKJ6UAocXLLrPH4CZj+Chh0oEnPxIqSFpgxuXuCzvHIg/R9OA=
+	t=1764282391; cv=none; b=eiG8tQz4BRFMTyoSR5chtNAO4FjJM+RYf8+pTVN+lKgsIhKrKbMaia3y0B+VRiFR5KW9oemsTwIFsYUhzOhe+ynBb1QHV09QiB6VydPMlpBemUCeCMTEBKPFVz4LtaHSln7nyYNbSTXPDGMHiHY2mCBZo/VsyEiGVqDHIlPQw5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282389; c=relaxed/simple;
-	bh=NdK2zMSRR40jCHc4AqzSj03cE8ay+OvQ6EAMqPa+oPM=;
-	h=Date:To:From:Subject:Message-Id; b=Ysh7q9A9r8r6hyoTEAgs64LnH7TEo4/mrcJcXsloivthVLHo31NkYPLyQ7K68aL8WgWW8FojjflFWmxHkSp9GUrM+1MpaFj3+ySrS/wOMT/hxc/nK9auEulzCRYY3g45ZDcqPveSyVGD6JjixVgMc5QR+D6YaYzsilIeT9PokD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JEdiYb5O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282391; c=relaxed/simple;
+	bh=hABfO3j/gZZZP9hEtPI9BOdBe5Du+njnY5rwt0V7T7Y=;
+	h=Date:To:From:Subject:Message-Id; b=WNBuAwP5zxZuf8GIp5W+USoa9ROjheezzTgadXdWu3lc8IV+yqQN8tS/KpViykfL1tRe6LzZCjtnQwAIECUu2mnu+SHci7RujWdbQeV81csO20fL0qO+UxCAm7jlLODx20ZdGM/P0XTQ+3HMUwcrZs/YBiBrlipWQcCr/njuVPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u7nQ2FNc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JEdiYb5O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F911C4CEF8;
-	Thu, 27 Nov 2025 22:26:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u7nQ2FNc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52DE0C4CEF8;
+	Thu, 27 Nov 2025 22:26:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282389;
-	bh=NdK2zMSRR40jCHc4AqzSj03cE8ay+OvQ6EAMqPa+oPM=;
+	s=korg; t=1764282391;
+	bh=hABfO3j/gZZZP9hEtPI9BOdBe5Du+njnY5rwt0V7T7Y=;
 	h=Date:To:From:Subject:From;
-	b=JEdiYb5OWXAcTZT177bqeWm0PegafQYMO9HqpCxMqxhy1bwBTqZ8T2n6APd46SvDo
-	 9E78qvzMKV0k307+cy9Zt4UphmO4aG28JPPFwaw20cTrKno/xuPPwnOTw+9SY5d+tD
-	 Wkt6VRyu1rYTymuOEAK1xdlyRJZi1TVmN7fHx5yE=
-Date: Thu, 27 Nov 2025 14:26:28 -0800
+	b=u7nQ2FNc3YK+zfiAzNOcNoataFGCzDHJS7H8pJaXasxg+tLe4Ku3oO6s8YTalnTEg
+	 xKBeOzy+cgFTTEjDi9UfG6WgM2Sn91uyKdTe0uwyfr3eBsZNeAvCy06CZJkPn3M48s
+	 sbo2Cn9EqAjn0aSwfr+WvBhMy45dbrYH4LdNwXRA=
+Date: Thu, 27 Nov 2025 14:26:30 -0800
 To: mm-commits@vger.kernel.org,yoann.congal@smile.fr,yesanishhere@gmail.com,yanjun.zhu@linux.dev,witu@nvidia.com,wagi@kernel.org,vincent.guittot@linaro.org,tj@kernel.org,tglx@linutronix.de,stuart.w.hayes@gmail.com,song@kernel.org,skhawaja@google.com,saeedm@nvidia.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,rdunlap@infradead.org,quic_zijuhu@quicinc.com,ptyadav@amazon.de,pratyush@kernel.org,parav@nvidia.com,ojeda@kernel.org,myungjoo.ham@samsung.com,mmaurer@google.com,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,lukas@wunner.de,linux@weissschuh.net,leonro@nvidia.com,leon@kernel.org,lennart@poettering.net,kanie@linux.alibaba.com,Jonathan.Cameron@huawei.com,joel.granados@kernel.org,jgg@nvidia.com,jannh@google.com,ira.weiny@intel.com,ilpo.jarvinen@linux.intel.com,hughd@google.com,hpa@zytor.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,graf@amazon.com,dmatlack@google.com,djeffery@redhat.com,david@redhat.com,dan.j.williams@intel.com,dakr@kernel.org,cw00.choi@samsung.com,corbet@lwn.net,chrisl@kernel.org,chenridong@huawei.com,brauner@kernel.org,bp@alien8.de,bhelgaas@google.com,bartosz.golaszewski@linaro.org,axboe@kernel.dk,anna.schumaker@oracle.com,andriy.shevchenko@linux.intel.com,aliceryhl@google.com,aleksander.lobakin@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] liveupdate-luo_core-live-update-orchestrato.patch removed from -mm tree
-Message-Id: <20251127222629.6F911C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] liveupdate-luo_core-integrate-with-kho.patch removed from -mm tree
+Message-Id: <20251127222631.52DE0C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,111 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: liveupdate: luo_core: Live Update Orchestrator
+     Subject: liveupdate: luo_core: integrate with KHO
 has been removed from the -mm tree.  Its filename was
-     liveupdate-luo_core-live-update-orchestrato.patch
+     liveupdate-luo_core-integrate-with-kho.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: liveupdate: luo_core: Live Update Orchestrator
-Date: Tue, 25 Nov 2025 11:58:31 -0500
+Subject: liveupdate: luo_core: integrate with KHO
+Date: Tue, 25 Nov 2025 11:58:32 -0500
 
-Patch series "Live Update Orchestrator", v8.
+Integrate the LUO with the KHO framework to enable passing LUO state
+across a kexec reboot.
 
-This series introduces the Live Update Orchestrator, a kernel subsystem
-designed to facilitate live kernel updates using a kexec-based reboot. 
-This capability is critical for cloud environments, allowing hypervisors
-to be updated with minimal downtime for running virtual machines.  LUO
-achieves this by preserving the state of selected resources, such as
-memory, devices and their dependencies, across the kernel transition.
+This patch implements the lifecycle integration with KHO:
 
-As a key feature, this series includes support for preserving memfd file
-descriptors, which allows critical in-memory data, such as guest RAM or
-any other large memory region, to be maintained in RAM across the kexec
-reboot.
+1. Incoming State: During early boot (`early_initcall`), LUO checks if
+   KHO is active. If so, it retrieves the "LUO" subtree, verifies the
+   "luo-v1" compatibility string, and reads the `liveupdate-number` to
+   track the update count.
 
-The other series that use LUO, are VFIO [1], IOMMU [2], and PCI [3]
-preservations.
+2. Outgoing State: During late initialization (`late_initcall`), LUO
+   allocates a new FDT for the next kernel, populates it with the basic
+   header (compatible string and incremented update number), and
+   registers it with KHO (`kho_add_subtree`).
 
-Github repo of this series [4].
+3. Finalization: The `liveupdate_reboot()` notifier is updated to invoke
+   `kho_finalize()`. This ensures that all memory segments marked for
+   preservation are properly serialized before the kexec jump.
 
-The core of LUO is a framework for managing the lifecycle of preserved
-resources through a userspace-driven interface. Key features include:
-
-- Session Management
-  Userspace agent (i.e. luod [5]) creates named sessions, each
-  represented by a file descriptor (via centralized agent that controls
-  /dev/liveupdate). The lifecycle of all preserved resources within a
-  session is tied to this FD, ensuring automatic kernel cleanup if the
-  controlling userspace agent crashes or exits unexpectedly.
-
-- File Preservation
-  A handler-based framework allows specific file types (demonstrated
-  here with memfd) to be preserved. Handlers manage the serialization,
-  restoration, and lifecycle of their specific file types.
-
-- File-Lifecycle-Bound State
-  A new mechanism for managing shared global state whose lifecycle is
-  tied to the preservation of one or more files. This is crucial for
-  subsystems like IOMMU or HugeTLB, where multiple file descriptors may
-  depend on a single, shared underlying resource that must be preserved
-  only once.
-
-- KHO Integration
-  LUO drives the Kexec Handover framework programmatically to pass its
-  serialized metadata to the next kernel. The LUO state is finalized and
-  added to the kexec image just before the reboot is triggered. In the
-  future this step will also be removed once stateless KHO is
-  merged [6].
-
-- Userspace Interface
-  Control is provided via ioctl commands on /dev/liveupdate for creating
-  and retrieving sessions, as well as on session file descriptors for
-  managing individual files.
-
-- Testing
-  The series includes a set of selftests, including userspace API
-  validation, kexec-based lifecycle tests for various session and file
-  scenarios, and a new in-kernel test module to validate the FLB logic.
-
-
-
-
-Introduce LUO, a mechanism intended to facilitate kernel updates while
-keeping designated devices operational across the transition (e.g., via
-kexec).  The primary use case is updating hypervisors with minimal
-disruption to running virtual machines.  For userspace side of hypervisor
-update we have copyless migration.  LUO is for updating the kernel.
-
-This initial patch lays the groundwork for the LUO subsystem.
-
-Further functionality, including the implementation of state transition
-logic, integration with KHO, and hooks for subsystems and file
-descriptors, will be added in subsequent patches.
-
-Create a character device at /dev/liveupdate.
-
-A new uAPI header, <uapi/linux/liveupdate.h>, will define the necessary
-structures.  The magic number for IOCTL is registered in
-Documentation/userspace-api/ioctl/ioctl-number.rst.
-
-Link: https://lkml.kernel.org/r/20251125165850.3389713-1-pasha.tatashin@soleen.com
-Link: https://lkml.kernel.org/r/20251125165850.3389713-2-pasha.tatashin@soleen.com
-Link: https://lore.kernel.org/all/20251018000713.677779-1-vipinsh@google.com/ [1]
-Link: https://lore.kernel.org/linux-iommu/20250928190624.3735830-1-skhawaja@google.com [2]
-Link: https://lore.kernel.org/linux-pci/20250916-luo-pci-v2-0-c494053c3c08@kernel.org [3]
-Link: https://github.com/googleprodkernel/linux-liveupdate/tree/luo/v8 [4]
-Link: https://tinyurl.com/luoddesign [5]
-Link: https://lore.kernel.org/all/20251020100306.2709352-1-jasonmiu@google.com [6]
-Link: https://lore.kernel.org/all/20251115233409.768044-1-pasha.tatashin@soleen.com [7]
-Link: https://github.com/soleen/linux/blob/luo/v8b03/diff.v7.v8 [8]
+Link: https://lkml.kernel.org/r/20251125165850.3389713-3-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: David Matlack <dmatlack@google.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Aleksander Lobakin <aleksander.lobakin@intel.com>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
@@ -183,6 +114,7 @@ Cc: Matthew Maurer <mmaurer@google.com>
 Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Myugnjoo Ham <myungjoo.ham@samsung.com>
 Cc: Parav Pandit <parav@nvidia.com>
+Cc: Pratyush Yadav <ptyadav@amazon.de>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Saeed Mahameed <saeedm@nvidia.com>
@@ -196,279 +128,289 @@ Cc: Thomas Weißschuh <linux@weissschuh.net>
 Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Cc: William Tu <witu@nvidia.com>
 Cc: Yoann Congal <yoann.congal@smile.fr>
-Cc: Zijun Hu <quic_zijuhu@quicinc.com>
-Cc: Pratyush Yadav <ptyadav@amazon.de>
 Cc: Zhu Yanjun <yanjun.zhu@linux.dev>
+Cc: Zijun Hu <quic_zijuhu@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/userspace-api/ioctl/ioctl-number.rst |    2 
- include/linux/liveupdate.h                         |   35 +++
- include/uapi/linux/liveupdate.h                    |   46 ++++
- kernel/liveupdate/Kconfig                          |   21 ++
- kernel/liveupdate/Makefile                         |    5 
- kernel/liveupdate/luo_core.c                       |  111 +++++++++++
- 6 files changed, 220 insertions(+)
+ include/linux/kho/abi/luo.h      |   58 ++++++++++
+ kernel/liveupdate/luo_core.c     |  154 ++++++++++++++++++++++++++++-
+ kernel/liveupdate/luo_internal.h |   22 ++++
+ 3 files changed, 233 insertions(+), 1 deletion(-)
 
---- a/Documentation/userspace-api/ioctl/ioctl-number.rst~liveupdate-luo_core-live-update-orchestrato
-+++ a/Documentation/userspace-api/ioctl/ioctl-number.rst
-@@ -385,6 +385,8 @@ Code  Seq#    Include File
- 0xB8  01-02  uapi/misc/mrvl_cn10k_dpi.h                                Marvell CN10K DPI driver
- 0xB8  all    uapi/linux/mshv.h                                         Microsoft Hyper-V /dev/mshv driver
-                                                                        <mailto:linux-hyperv@vger.kernel.org>
-+0xBA  00-0F  uapi/linux/liveupdate.h                                   Pasha Tatashin
-+                                                                       <mailto:pasha.tatashin@soleen.com>
- 0xC0  00-0F  linux/usb/iowarrior.h
- 0xCA  00-0F  uapi/misc/cxl.h                                           Dead since 6.15
- 0xCA  10-2F  uapi/misc/ocxl.h
-diff --git a/include/linux/liveupdate.h a/include/linux/liveupdate.h
+diff --git a/include/linux/kho/abi/luo.h a/include/linux/kho/abi/luo.h
 new file mode 100644
 --- /dev/null
-+++ a/include/linux/liveupdate.h
-@@ -0,0 +1,35 @@
++++ a/include/linux/kho/abi/luo.h
+@@ -0,0 +1,58 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +
 +/*
 + * Copyright (c) 2025, Google LLC.
 + * Pasha Tatashin <pasha.tatashin@soleen.com>
 + */
-+#ifndef _LINUX_LIVEUPDATE_H
-+#define _LINUX_LIVEUPDATE_H
-+
-+#include <linux/bug.h>
-+#include <linux/list.h>
-+#include <linux/types.h>
-+
-+#ifdef CONFIG_LIVEUPDATE
-+
-+/* Return true if live update orchestrator is enabled */
-+bool liveupdate_enabled(void);
-+
-+/* Called during kexec to tell LUO that entered into reboot */
-+int liveupdate_reboot(void);
-+
-+#else /* CONFIG_LIVEUPDATE */
-+
-+static inline bool liveupdate_enabled(void)
-+{
-+	return false;
-+}
-+
-+static inline int liveupdate_reboot(void)
-+{
-+	return 0;
-+}
-+
-+#endif /* CONFIG_LIVEUPDATE */
-+#endif /* _LINUX_LIVEUPDATE_H */
-diff --git a/include/uapi/linux/liveupdate.h a/include/uapi/linux/liveupdate.h
-new file mode 100644
---- /dev/null
-+++ a/include/uapi/linux/liveupdate.h
-@@ -0,0 +1,46 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+
-+/*
-+ * Userspace interface for /dev/liveupdate
-+ * Live Update Orchestrator
-+ *
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ */
-+
-+#ifndef _UAPI_LIVEUPDATE_H
-+#define _UAPI_LIVEUPDATE_H
-+
-+#include <linux/ioctl.h>
-+#include <linux/types.h>
 +
 +/**
-+ * DOC: General ioctl format
++ * DOC: Live Update Orchestrator ABI
 + *
-+ * The ioctl interface follows a general format to allow for extensibility. Each
-+ * ioctl is passed in a structure pointer as the argument providing the size of
-+ * the structure in the first u32. The kernel checks that any structure space
-+ * beyond what it understands is 0. This allows userspace to use the backward
-+ * compatible portion while consistently using the newer, larger, structures.
++ * This header defines the stable Application Binary Interface used by the
++ * Live Update Orchestrator to pass state from a pre-update kernel to a
++ * post-update kernel. The ABI is built upon the Kexec HandOver framework
++ * and uses a Flattened Device Tree to describe the preserved data.
 + *
-+ * ioctls use a standard meaning for common errnos:
++ * This interface is a contract. Any modification to the FDT structure, node
++ * properties, compatible strings, or the layout of the `__packed` serialization
++ * structures defined here constitutes a breaking change. Such changes require
++ * incrementing the version number in the relevant `_COMPATIBLE` string to
++ * prevent a new kernel from misinterpreting data from an old kernel.
 + *
-+ *  - ENOTTY: The IOCTL number itself is not supported at all
-+ *  - E2BIG: The IOCTL number is supported, but the provided structure has
-+ *    non-zero in a part the kernel does not understand.
-+ *  - EOPNOTSUPP: The IOCTL number is supported, and the structure is
-+ *    understood, however a known field has a value the kernel does not
-+ *    understand or support.
-+ *  - EINVAL: Everything about the IOCTL was understood, but a field is not
-+ *    correct.
-+ *  - ENOENT: A provided token does not exist.
-+ *  - ENOMEM: Out of memory.
-+ *  - EOVERFLOW: Mathematics overflowed.
++ * Changes are allowed provided the compatibility version is incremented;
++ * however, backward/forward compatibility is only guaranteed for kernels
++ * supporting the same ABI version.
 + *
-+ * As well as additional errnos, within specific ioctls.
++ * FDT Structure Overview:
++ *   The entire LUO state is encapsulated within a single KHO entry named "LUO".
++ *   This entry contains an FDT with the following layout:
++ *
++ *   .. code-block:: none
++ *
++ *     / {
++ *         compatible = "luo-v1";
++ *         liveupdate-number = <...>;
++ *     };
++ *
++ * Main LUO Node (/):
++ *
++ *   - compatible: "luo-v1"
++ *     Identifies the overall LUO ABI version.
++ *   - liveupdate-number: u64
++ *     A counter tracking the number of successful live updates performed.
 + */
 +
-+/* The ioctl type, documented in ioctl-number.rst */
-+#define LIVEUPDATE_IOCTL_TYPE		0xBA
++#ifndef _LINUX_KHO_ABI_LUO_H
++#define _LINUX_KHO_ABI_LUO_H
 +
-+#endif /* _UAPI_LIVEUPDATE_H */
---- a/kernel/liveupdate/Kconfig~liveupdate-luo_core-live-update-orchestrato
-+++ a/kernel/liveupdate/Kconfig
-@@ -51,4 +51,25 @@ config KEXEC_HANDOVER_ENABLE_DEFAULT
- 	  The default behavior can still be overridden at boot time by
- 	  passing 'kho=off'.
- 
-+config LIVEUPDATE
-+	bool "Live Update Orchestrator"
-+	depends on KEXEC_HANDOVER
-+	help
-+	  Enable the Live Update Orchestrator. Live Update is a mechanism,
-+	  typically based on kexec, that allows the kernel to be updated
-+	  while keeping selected devices operational across the transition.
-+	  These devices are intended to be reclaimed by the new kernel and
-+	  re-attached to their original workload without requiring a device
-+	  reset.
++/*
++ * The LUO FDT hooks all LUO state for sessions, fds, etc.
++ * In the root it also carries "liveupdate-number" 64-bit property that
++ * corresponds to the number of live-updates performed on this machine.
++ */
++#define LUO_FDT_SIZE		PAGE_SIZE
++#define LUO_FDT_KHO_ENTRY_NAME	"LUO"
++#define LUO_FDT_COMPATIBLE	"luo-v1"
++#define LUO_FDT_LIVEUPDATE_NUM	"liveupdate-number"
 +
-+	  Ability to handover a device from current to the next kernel depends
-+	  on specific support within device drivers and related kernel
-+	  subsystems.
-+
-+	  This feature primarily targets virtual machine hosts to quickly update
-+	  the kernel hypervisor with minimal disruption to the running virtual
-+	  machines.
-+
-+	  If unsure, say N.
-+
- endmenu
-diff --git a/kernel/liveupdate/luo_core.c a/kernel/liveupdate/luo_core.c
-new file mode 100644
---- /dev/null
++#endif /* _LINUX_KHO_ABI_LUO_H */
+--- a/kernel/liveupdate/luo_core.c~liveupdate-luo_core-integrate-with-kho
 +++ a/kernel/liveupdate/luo_core.c
-@@ -0,0 +1,111 @@
-+// SPDX-License-Identifier: GPL-2.0
+@@ -41,12 +41,26 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/io.h>
++#include <linux/kexec_handover.h>
++#include <linux/kho/abi/luo.h>
+ #include <linux/kobject.h>
++#include <linux/libfdt.h>
+ #include <linux/liveupdate.h>
+ #include <linux/miscdevice.h>
++#include <linux/mm.h>
++#include <linux/sizes.h>
++#include <linux/string.h>
++#include <linux/unaligned.h>
 +
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ */
-+
-+/**
-+ * DOC: Live Update Orchestrator (LUO)
-+ *
-+ * Live Update is a specialized, kexec-based reboot process that allows a
-+ * running kernel to be updated from one version to another while preserving
-+ * the state of selected resources and keeping designated hardware devices
-+ * operational. For these devices, DMA activity may continue throughout the
-+ * kernel transition.
-+ *
-+ * While the primary use case driving this work is supporting live updates of
-+ * the Linux kernel when it is used as a hypervisor in cloud environments, the
-+ * LUO framework itself is designed to be workload-agnostic. Live Update
-+ * facilitates a full kernel version upgrade for any type of system.
-+ *
-+ * For example, a non-hypervisor system running an in-memory cache like
-+ * memcached with many gigabytes of data can use LUO. The userspace service
-+ * can place its cache into a memfd, have its state preserved by LUO, and
-+ * restore it immediately after the kernel kexec.
-+ *
-+ * Whether the system is running virtual machines, containers, a
-+ * high-performance database, or networking services, LUO's primary goal is to
-+ * enable a full kernel update by preserving critical userspace state and
-+ * keeping essential devices operational.
-+ *
-+ * The core of LUO is a mechanism that tracks the progress of a live update,
-+ * along with a callback API that allows other kernel subsystems to participate
-+ * in the process. Example subsystems that can hook into LUO include: kvm,
-+ * iommu, interrupts, vfio, participating filesystems, and memory management.
-+ *
-+ * LUO uses Kexec Handover to transfer memory state from the current kernel to
-+ * the next kernel. For more details see
-+ * Documentation/core-api/kho/concepts.rst.
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/kobject.h>
-+#include <linux/liveupdate.h>
-+#include <linux/miscdevice.h>
-+
-+static struct {
-+	bool enabled;
-+} luo_global;
-+
-+static int __init early_liveupdate_param(char *buf)
++#include "kexec_handover_internal.h"
++#include "luo_internal.h"
+ 
+ static struct {
+ 	bool enabled;
++	void *fdt_out;
++	void *fdt_in;
++	u64 liveupdate_num;
+ } luo_global;
+ 
+ static int __init early_liveupdate_param(char *buf)
+@@ -55,6 +69,129 @@ static int __init early_liveupdate_param
+ }
+ early_param("liveupdate", early_liveupdate_param);
+ 
++static int __init luo_early_startup(void)
 +{
-+	return kstrtobool(buf, &luo_global.enabled);
-+}
-+early_param("liveupdate", early_liveupdate_param);
++	phys_addr_t fdt_phys;
++	int err, ln_size;
++	const void *ptr;
 +
-+/* Public Functions */
++	if (!kho_is_enabled()) {
++		if (liveupdate_enabled())
++			pr_warn("Disabling liveupdate because KHO is disabled\n");
++		luo_global.enabled = false;
++		return 0;
++	}
 +
-+/**
-+ * liveupdate_reboot() - Kernel reboot notifier for live update final
-+ * serialization.
-+ *
-+ * This function is invoked directly from the reboot() syscall pathway
-+ * if kexec is in progress.
-+ *
-+ * If any callback fails, this function aborts KHO, undoes the freeze()
-+ * callbacks, and returns an error.
-+ */
-+int liveupdate_reboot(void)
-+{
++	/* Retrieve LUO subtree, and verify its format. */
++	err = kho_retrieve_subtree(LUO_FDT_KHO_ENTRY_NAME, &fdt_phys);
++	if (err) {
++		if (err != -ENOENT) {
++			pr_err("failed to retrieve FDT '%s' from KHO: %pe\n",
++			       LUO_FDT_KHO_ENTRY_NAME, ERR_PTR(err));
++			return err;
++		}
++
++		return 0;
++	}
++
++	luo_global.fdt_in = phys_to_virt(fdt_phys);
++	err = fdt_node_check_compatible(luo_global.fdt_in, 0,
++					LUO_FDT_COMPATIBLE);
++	if (err) {
++		pr_err("FDT '%s' is incompatible with '%s' [%d]\n",
++		       LUO_FDT_KHO_ENTRY_NAME, LUO_FDT_COMPATIBLE, err);
++
++		return -EINVAL;
++	}
++
++	ln_size = 0;
++	ptr = fdt_getprop(luo_global.fdt_in, 0, LUO_FDT_LIVEUPDATE_NUM,
++			  &ln_size);
++	if (!ptr || ln_size != sizeof(luo_global.liveupdate_num)) {
++		pr_err("Unable to get live update number '%s' [%d]\n",
++		       LUO_FDT_LIVEUPDATE_NUM, ln_size);
++
++		return -EINVAL;
++	}
++
++	luo_global.liveupdate_num = get_unaligned((u64 *)ptr);
++	pr_info("Retrieved live update data, liveupdate number: %lld\n",
++		luo_global.liveupdate_num);
++
 +	return 0;
 +}
 +
-+/**
-+ * liveupdate_enabled - Check if the live update feature is enabled.
-+ *
-+ * This function returns the state of the live update feature flag, which
-+ * can be controlled via the ``liveupdate`` kernel command-line parameter.
-+ *
-+ * @return true if live update is enabled, false otherwise.
-+ */
-+bool liveupdate_enabled(void)
++static int __init liveupdate_early_init(void)
 +{
-+	return luo_global.enabled;
++	int err;
++
++	err = luo_early_startup();
++	if (err) {
++		luo_global.enabled = false;
++		luo_restore_fail("The incoming tree failed to initialize properly [%pe], disabling live update\n",
++				 ERR_PTR(err));
++	}
++
++	return err;
++}
++early_initcall(liveupdate_early_init);
++
++/* Called during boot to create outgoing LUO fdt tree */
++static int __init luo_fdt_setup(void)
++{
++	const u64 ln = luo_global.liveupdate_num + 1;
++	void *fdt_out;
++	int err;
++
++	fdt_out = kho_alloc_preserve(LUO_FDT_SIZE);
++	if (IS_ERR(fdt_out)) {
++		pr_err("failed to allocate/preserve FDT memory\n");
++		return PTR_ERR(fdt_out);
++	}
++
++	err = fdt_create(fdt_out, LUO_FDT_SIZE);
++	err |= fdt_finish_reservemap(fdt_out);
++	err |= fdt_begin_node(fdt_out, "");
++	err |= fdt_property_string(fdt_out, "compatible", LUO_FDT_COMPATIBLE);
++	err |= fdt_property(fdt_out, LUO_FDT_LIVEUPDATE_NUM, &ln, sizeof(ln));
++	err |= fdt_end_node(fdt_out);
++	err |= fdt_finish(fdt_out);
++	if (err)
++		goto exit_free;
++
++	err = kho_add_subtree(LUO_FDT_KHO_ENTRY_NAME, fdt_out);
++	if (err)
++		goto exit_free;
++	luo_global.fdt_out = fdt_out;
++
++	return 0;
++
++exit_free:
++	kho_unpreserve_free(fdt_out);
++	pr_err("failed to prepare LUO FDT: %d\n", err);
++
++	return err;
 +}
 +
-+struct luo_device_state {
-+	struct miscdevice miscdev;
-+};
-+
-+static const struct file_operations luo_fops = {
-+	.owner		= THIS_MODULE,
-+};
-+
-+static struct luo_device_state luo_dev = {
-+	.miscdev = {
-+		.minor = MISC_DYNAMIC_MINOR,
-+		.name  = "liveupdate",
-+		.fops  = &luo_fops,
-+	},
-+};
-+
-+static int __init liveupdate_ioctl_init(void)
++/*
++ * late initcall because it initializes the outgoing tree that is needed only
++ * once userspace starts using /dev/liveupdate.
++ */
++static int __init luo_late_startup(void)
 +{
++	int err;
++
 +	if (!liveupdate_enabled())
 +		return 0;
 +
-+	return misc_register(&luo_dev.miscdev);
++	err = luo_fdt_setup();
++	if (err)
++		luo_global.enabled = false;
++
++	return err;
 +}
-+late_initcall(liveupdate_ioctl_init);
---- a/kernel/liveupdate/Makefile~liveupdate-luo_core-live-update-orchestrato
-+++ a/kernel/liveupdate/Makefile
-@@ -1,5 +1,10 @@
- # SPDX-License-Identifier: GPL-2.0
++late_initcall(luo_late_startup);
++
+ /* Public Functions */
  
-+luo-y :=								\
-+		luo_core.o
+ /**
+@@ -69,7 +206,22 @@ early_param("liveupdate", early_liveupda
+  */
+ int liveupdate_reboot(void)
+ {
+-	return 0;
++	int err;
 +
- obj-$(CONFIG_KEXEC_HANDOVER)		+= kexec_handover.o
- obj-$(CONFIG_KEXEC_HANDOVER_DEBUG)	+= kexec_handover_debug.o
- obj-$(CONFIG_KEXEC_HANDOVER_DEBUGFS)	+= kexec_handover_debugfs.o
++	if (!liveupdate_enabled())
++		return 0;
 +
-+obj-$(CONFIG_LIVEUPDATE)		+= luo.o
++	err = kho_finalize();
++	if (err) {
++		pr_err("kho_finalize failed %d\n", err);
++		/*
++		 * kho_finalize() may return libfdt errors, to aboid passing to
++		 * userspace unknown errors, change this to EAGAIN.
++		 */
++		err = -EAGAIN;
++	}
++
++	return err;
+ }
+ 
+ /**
+diff --git a/kernel/liveupdate/luo_internal.h a/kernel/liveupdate/luo_internal.h
+new file mode 100644
+--- /dev/null
++++ a/kernel/liveupdate/luo_internal.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++/*
++ * Copyright (c) 2025, Google LLC.
++ * Pasha Tatashin <pasha.tatashin@soleen.com>
++ */
++
++#ifndef _LINUX_LUO_INTERNAL_H
++#define _LINUX_LUO_INTERNAL_H
++
++#include <linux/liveupdate.h>
++
++/*
++ * Handles a deserialization failure: devices and memory is in unpredictable
++ * state.
++ *
++ * Continuing the boot process after a failure is dangerous because it could
++ * lead to leaks of private data.
++ */
++#define luo_restore_fail(__fmt, ...) panic(__fmt, ##__VA_ARGS__)
++
++#endif /* _LINUX_LUO_INTERNAL_H */
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
