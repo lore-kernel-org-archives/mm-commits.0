@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD343223336
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:12:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F206B223336
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:12:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764274356; cv=none; b=aU1eFsvpPYsJ++vUhQB0ekz7LIzHA7xupbck+QlQSNLhXNm5WcBs4IdkXcWhaXIeR8JHgtUP1vMTPpCj8LtR++p5Xq127drkBobxor9FlApfTwVjIHFqhJ23OPpvYATLDRCwUSyqJ3yyHCxbwNjZ3AlCeeQ8igXAEEX6m2JRJGs=
+	t=1764274359; cv=none; b=PaGZboUNJrONOyWjYjvhYCiypd9Wdt1aiurL4NICrs7qL1zHNDO9rHnTv+LpOprlIuEvYkqZMpI12aVqrJeruVuqhZ1uvIruvLZJ+5p0v0MQBXflp8+LyPrb8Byrm9DHEIMdWd/5B/8muqJYSnEVnOGlw4h0kiYj6FigAZppS9w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764274356; c=relaxed/simple;
-	bh=o45kFhZEB2AsYlZ0UZw5Ub/aOoTnSW01ovnwys2doT4=;
-	h=Date:To:From:Subject:Message-Id; b=C3GT0w+WTdxDNWYRhZjsIVrUggKb9VZycvsJsq5KaWptzlpPHaoiMloYDUvjdpWsvV+ZRIdAi3j1MovkM1WKA87UDAivz9LjjNMbw0895XJ/AK2U/kTOk8C5ITpLvXVyVNe88mdaAuvX0vttfWeueom+lacAMvYUTG6d0tziBwE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOyG3tVE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764274359; c=relaxed/simple;
+	bh=y1nJTxhq8Rr0ZyXsVwmp65NUI/nOxU7XZHvTnuJSpsY=;
+	h=Date:To:From:Subject:Message-Id; b=rn4EDY0x8ml7rb4dMLGSsE1lfDLXlGHEopKCh5IlYcqWPQJ9P3UxI0t1+5zcyFtV98UGnqa5sskxHiCczRinlj9sHkT/zOPYHqbTs6wmhFOCjyqjSTrovyzl5/BUTiJBWNjkdw3nhU6o8HIB0gLd9tOJrpVlkpPI/rnkPkOIuXM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q9a5+udW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOyG3tVE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67AEBC4CEF8;
-	Thu, 27 Nov 2025 20:12:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q9a5+udW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C322C4CEF8;
+	Thu, 27 Nov 2025 20:12:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764274356;
-	bh=o45kFhZEB2AsYlZ0UZw5Ub/aOoTnSW01ovnwys2doT4=;
+	s=korg; t=1764274358;
+	bh=y1nJTxhq8Rr0ZyXsVwmp65NUI/nOxU7XZHvTnuJSpsY=;
 	h=Date:To:From:Subject:From;
-	b=UOyG3tVE8KOpJsFH/CC3CKROHEO9PbTZFyJARZIJ7v7k/BA+Kbmj1PLHwbb0P5mQS
-	 RSdzff5Z8gHwxWg8YJoRIak0WIl/hizMNLLsrBSv4uecxcTojhJsW+78Wkpv5hFHyx
-	 WObYPSXXwmdYnwx6YY/S66xAUuHpm4k2eh7gBcso=
-Date: Thu, 27 Nov 2025 12:12:35 -0800
+	b=Q9a5+udWUqgZxaDb4KUIyaRiLDjTVJmI9J1VXP67HMI3deQOWhnfr3SEQITlg5wWO
+	 jeMTKCpvHSHUOWO8s7SIB9FfsLzc07AhmhKedzGnf6PeLAfl/3Bko2Js5P+dmP8xus
+	 J4a+ZcKGUoxUpHgyLijO7V/ALUlmnEoDPiNe+nC4=
+Date: Thu, 27 Nov 2025 12:12:37 -0800
 To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard.patch added to mm-unstable branch
-Message-Id: <20251127201236.67AEBC4CEF8@smtp.kernel.org>
+Subject: + mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch added to mm-unstable branch
+Message-Id: <20251127201238.7C322C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swapfile: fix list iteration when next node is removed during discard
+     Subject: mm/swapfile: use plist_for_each_entry in __folio_throttle_swaprate
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard.patch
+     mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,79 +59,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm/swapfile: fix list iteration when next node is removed during discard
-Date: Thu, 27 Nov 2025 19:03:02 +0900
+Subject: mm/swapfile: use plist_for_each_entry in __folio_throttle_swaprate
+Date: Thu, 27 Nov 2025 19:03:03 +0900
 
-Patch series "mm/swapfile: fix and cleanup swap list iterations", v2.
+The loop breaks immediately after finding the first swap device and
+never modifies the list. Replace plist_for_each_entry_safe() with
+plist_for_each_entry() and remove the unused next variable.
 
-This series fixes a potential list iteration issue in swap_sync_discard()
-when devices are removed, and includes a cleanup for
-__folio_throttle_swaprate().
-
-
-This patch (of 2):
-
-When the next node is removed from the plist (e.g.  by swapoff),
-plist_del() makes the node point to itself, causing the iteration to loop
-on the same entry indefinitely.
-
-Add a plist_node_empty() check to detect this case and restart iteration,
-allowing swap_sync_discard() to continue processing remaining swap devices
-that still have pending discard entries.
-
-Additionally, switch from swap_avail_lock/swap_avail_head to
-swap_lock/swap_active_head so that iteration is only affected by swapoff
-operations rather than frequent availability changes, reducing exceptional
-condition checks and lock contention.
-
-Link: https://lkml.kernel.org/r/20251127100303.783198-1-youngjun.park@lge.com
-Link: https://lkml.kernel.org/r/20251127100303.783198-2-youngjun.park@lge.com
-Fixes: 686ea517f471 ("mm, swap: do not perform synchronous discard during allocation")
+Link: https://lkml.kernel.org/r/20251127100303.783198-3-youngjun.park@lge.com
 Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Suggested-by: Kairui Song <kasong@tencent.com>
-Acked-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ mm/swapfile.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard
+--- a/mm/swapfile.c~mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate
 +++ a/mm/swapfile.c
-@@ -1387,9 +1387,10 @@ static bool swap_sync_discard(void)
- 	bool ret = false;
- 	struct swap_info_struct *si, *next;
+@@ -4023,7 +4023,7 @@ static bool __has_usable_swap(void)
  
--	spin_lock(&swap_avail_lock);
--	plist_for_each_entry_safe(si, next, &swap_avail_head, avail_list) {
--		spin_unlock(&swap_avail_lock);
-+	spin_lock(&swap_lock);
-+start_over:
-+	plist_for_each_entry_safe(si, next, &swap_active_head, list) {
-+		spin_unlock(&swap_lock);
- 		if (get_swap_device_info(si)) {
- 			if (si->flags & SWP_PAGE_DISCARD)
- 				ret = swap_do_scheduled_discard(si);
-@@ -1397,9 +1398,12 @@ static bool swap_sync_discard(void)
- 		}
- 		if (ret)
- 			return true;
--		spin_lock(&swap_avail_lock);
-+
-+		spin_lock(&swap_lock);
-+		if (plist_node_empty(&next->list))
-+			goto start_over;
- 	}
--	spin_unlock(&swap_avail_lock);
-+	spin_unlock(&swap_lock);
+ void __folio_throttle_swaprate(struct folio *folio, gfp_t gfp)
+ {
+-	struct swap_info_struct *si, *next;
++	struct swap_info_struct *si;
  
- 	return false;
- }
+ 	if (!(gfp & __GFP_IO))
+ 		return;
+@@ -4042,8 +4042,7 @@ void __folio_throttle_swaprate(struct fo
+ 		return;
+ 
+ 	spin_lock(&swap_avail_lock);
+-	plist_for_each_entry_safe(si, next, &swap_avail_head,
+-				  avail_list) {
++	plist_for_each_entry(si, &swap_avail_head, avail_list) {
+ 		if (si->bdev) {
+ 			blkcg_schedule_throttle(si->bdev->bd_disk, true);
+ 			break;
 _
 
 Patches currently in -mm which might be from youngjun.park@lge.com are
