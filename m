@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79366311589
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:27:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EC96321457
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:27:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282430; cv=none; b=fhckJjLSv4+Kta6+azisdnRzw9A70A10ZZAxUBoC2RrKBH7Sb4bQMjeIUTfVHIQ3oaJqJBnc4mi+Eiu8GL8x4R7rcpoPIUIBOeLPLPHretvnrPUokfTAsmh8g6TGfizD9P9Y5iXLmCtUYHAP8SBaMUrzNzOBniB2R3YdmiNf1CA=
+	t=1764282430; cv=none; b=Bge1gyjklCYaG31CHpbaeiEjvhg4FvXSUq8wp96XFzrLxELiyHBIan1UgQ7i7dFHFDf/Z1Ez0nq58fTd6vsjKUjX8hSukLfP0p2mmwfmUTjFXMjkgRPjB3WrGENZn8hZoW1GAMkXyBQWchlfGUUKdkAB5j+a5Z7kUtwgwfx23eQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1764282430; c=relaxed/simple;
-	bh=9qbZPnqFGPYlqibFMqfzcMm+N59N9eq7rVrwZSIjpVQ=;
-	h=Date:To:From:Subject:Message-Id; b=tJm5QOlyy/hyPJ+pXsWugNM1zYGMnD/1NB2LKIqXfJAM+UWYKVdDZvLO3KR5BRl25h4VfRySuA3OH8Ejs2txcoOju2F7SP0/Gmvxz573N+MWlsFYeHTynCZaudAtQr325b155m6FwXKQnj80hqEiNcE/MkKMqG4KdYR/UnMpybA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hnWdP4F6; arc=none smtp.client-ip=10.30.226.201
+	bh=kCUq1K92Rz82CgARLbA0tMKWrDmLSpXAQFOY87BBQ3I=;
+	h=Date:To:From:Subject:Message-Id; b=c/SFNn2DYjFkopvoF+iC/ps/DI4GCIN4FbVvJL9TiBC6PgGQfx+NioJa63zJQlBO4AHGEebtK2c11xhZMbn1LoHoXiqURUiAwEUhHsA6tLiQOvp3U6cAUTVTxBHuTE5VZQXEzwWbOatfM3fI0CBSIZB+GSezPv1N2r4XLKdv2j0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T9M1fOGt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hnWdP4F6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50ED5C4CEFB;
-	Thu, 27 Nov 2025 22:27:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T9M1fOGt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7386EC113D0;
+	Thu, 27 Nov 2025 22:27:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282429;
-	bh=9qbZPnqFGPYlqibFMqfzcMm+N59N9eq7rVrwZSIjpVQ=;
+	s=korg; t=1764282430;
+	bh=kCUq1K92Rz82CgARLbA0tMKWrDmLSpXAQFOY87BBQ3I=;
 	h=Date:To:From:Subject:From;
-	b=hnWdP4F6KyDSGVn2RyBdATrfnqxde/hH94WYtKuN359KRyKUgX0hyZ5QFVTEEKKKa
-	 ER8IPAvDY9du0Fi56h451TjW8gXQF9Q5xbjxtLWXsgeG6qFryfYKGEhthPpNQe4u8x
-	 nW9tGnjLxGa1qoaIgtIEff7z2F0AYS3ManQ58+IA=
-Date: Thu, 27 Nov 2025 14:27:08 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,dmatlack@google.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=T9M1fOGtr4iGCNP0av9QMGEogzaFj4wb+EoVZUZmZpQ6UkZ2gglgZ2E6tRSUEkheW
+	 YPf6ad5VqIXZiSkOZOxcyJCU0mz3XfMsPPeMHxVVaKoXboLeeoRzVJBr0EkbvWgq6b
+	 9hmvsP8TPQomJFeRVLi9ihDPj8IUL63EETlVRdvw=
+Date: Thu, 27 Nov 2025 14:27:09 -0800
+To: mm-commits@vger.kernel.org,sj@kerneel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kho-free-chunks-using-free_page-instead-of-kfree.patch removed from -mm tree
-Message-Id: <20251127222709.50ED5C4CEFB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] test_kho-always-print-restore-status.patch removed from -mm tree
+Message-Id: <20251127222710.7386EC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: free chunks using free_page() instead of kfree()
+     Subject: test_kho: always print restore status
 has been removed from the -mm tree.  Its filename was
-     kho-free-chunks-using-free_page-instead-of-kfree.patch
+     test_kho-always-print-restore-status.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pratyush Yadav <pratyush@kernel.org>
-Subject: kho: free chunks using free_page() instead of kfree()
-Date: Tue, 18 Nov 2025 19:22:16 +0100
+Subject: test_kho: always print restore status
+Date: Tue, 18 Nov 2025 19:10:45 +0100
 
-Before commit fa759cd75bce5 ("kho: allocate metadata directly from the
-buddy allocator"), the chunks were allocated from the slab allocator using
-kzalloc().  Those were rightly freed using kfree().
+Currently the KHO test only prints a message on success, and remains
+silent on failure.  This makes it difficult to notice a failing test.  A
+failing test is usually more interesting than a successful one.
 
-When the commit switched to using the buddy allocator directly, it missed
-updating kho_mem_ser_free() to use free_page() instead of kfree().
+Always print the test status after attempting restore.
 
-Link: https://lkml.kernel.org/r/20251118182218.63044-1-pratyush@kernel.org
-Fixes: fa759cd75bce5 ("kho: allocate metadata directly from the buddy allocator")
+Link: https://lkml.kernel.org/r/20251118181046.23321-1-pratyush@kernel.org
 Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: SeongJae Park <sj@kerneel.org>
 Cc: Alexander Graf <graf@amazon.com>
-Cc: David Matlack <dmatlack@google.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_kho.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-free-chunks-using-free_page-instead-of-kfree
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -360,7 +360,7 @@ static void kho_mem_ser_free(struct khos
- 		struct khoser_mem_chunk *tmp = chunk;
+--- a/lib/test_kho.c~test_kho-always-print-restore-status
++++ a/lib/test_kho.c
+@@ -306,7 +306,6 @@ static int kho_test_restore(phys_addr_t
+ 	if (err)
+ 		return err;
  
- 		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
--		kfree(tmp);
-+		free_page((unsigned long)tmp);
- 	}
+-	pr_info("KHO restore succeeded\n");
+ 	return 0;
  }
  
+@@ -319,8 +318,15 @@ static int __init kho_test_init(void)
+ 		return 0;
+ 
+ 	err = kho_retrieve_subtree(KHO_TEST_FDT, &fdt_phys);
+-	if (!err)
+-		return kho_test_restore(fdt_phys);
++	if (!err) {
++		err = kho_test_restore(fdt_phys);
++		if (err)
++			pr_err("KHO restore failed\n");
++		else
++			pr_info("KHO restore succeeded\n");
++
++		return err;
++	}
+ 
+ 	if (err != -ENOENT) {
+ 		pr_warn("failed to retrieve %s FDT: %d\n", KHO_TEST_FDT, err);
 _
 
 Patches currently in -mm which might be from pratyush@kernel.org are
