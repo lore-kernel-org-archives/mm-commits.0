@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C74292D9780
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:47:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2FD02D9780
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:47:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764276457; cv=none; b=TesOU4q+08fZqxW0Y1g0vbrf+JVSOrPToTJdQjvfo6aOq5TJL7fIc2hMMxbIRaGLs4wbzrEvSJ3/JO3PKuw7CCmQZVVPD06UsbcMIzoCPuh2BDKWj6MXezWM7b85MTrORlr6v8yMMYUiQFZZJmINkfQQKxCSfCBHbKgcuOkM3Mo=
+	t=1764276460; cv=none; b=Bpt4Du4aagWqIGK4+hzHZP0r+g3JpzFO9IAEU8WEpuYpTkctgB4ibl9NbDpRg4zlleXGAdjCxOsGPMgs90zGlR5G5zzwSiQbGqJ+P5uzjRMLPvQDAU1LqLjxL2/TAqIobPFpTGz1dCUwBa6Mfy8wF1Y7gvbnNVOhpP3p/pU6OtA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764276457; c=relaxed/simple;
-	bh=en5GjG+EFnwDU9EpCjxy/zWFxi1otj+y9Hj1lQT9g1Y=;
-	h=Date:To:From:Subject:Message-Id; b=GPPJ0kpj3bEqzoNhXgmEuuJrWxropAoLSCd/mfcYyRsDQcStiYsa4h6a52cXJAFQcIbVVc5WoGDGKHbW7fa5/avBA6Yghm9/utxHPLFqZdn7VVqK730WRtx3qOtvzR9Ju2eKnvbQfGbFD0lfP9A3ebXOUawUzMylhOA3RYXL4J8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KFXJaplG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764276460; c=relaxed/simple;
+	bh=ZWCYM3vTaMzT7dbfyOC2nwoOfJDN0WeJerTgdnCuPmI=;
+	h=Date:To:From:Subject:Message-Id; b=mDRYTZmPE7CBXV5cW9pi0xIgK29AyCRjjtuW2ztOImsmwdStaUp0CX6lqIrQRYVmmhVp7KoypupXPVdnbpk14Bi8n1BrBVIzc/i92AKgrCiJNWAZTdv+FUJiYXNYFwwblpEGPfBqHhSW7KNyNfb6KvpcXm77Y7pZT3iSWQkml3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nGUXWRqZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KFXJaplG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88380C4CEF8;
-	Thu, 27 Nov 2025 20:47:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nGUXWRqZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24878C4CEF8;
+	Thu, 27 Nov 2025 20:47:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764276457;
-	bh=en5GjG+EFnwDU9EpCjxy/zWFxi1otj+y9Hj1lQT9g1Y=;
+	s=korg; t=1764276460;
+	bh=ZWCYM3vTaMzT7dbfyOC2nwoOfJDN0WeJerTgdnCuPmI=;
 	h=Date:To:From:Subject:From;
-	b=KFXJaplGlCQRF5ASAmOa09tNUGJgJ6pfAy5wiQ4FtD7fzO7qnKkbtgWW2SjNNSIjv
-	 YJ0Gv8dQz+OhEmfwZQa5mVIek4exJNM6pF66IILbRKwS3u3VA41Zd5uE1XZVU2FdxL
-	 BBnECZaOj7caXCHwPcTfbrQ7A4Aa5V/rQwKuxwE4=
-Date: Thu, 27 Nov 2025 12:47:36 -0800
+	b=nGUXWRqZksZrgAU9Qh96p/BCIK/NjEo4K5eOoyd95jwxzP4dXUZJyPivqmQhYbpre
+	 YUVR7kcfkUV1drErLkatlX46wfRJaobfRQZ3Z5N8oWc2pXqEYjTULRRTKaMMnhgzv6
+	 p9q5JFMtFY7dDgsBbfhvSzkzGOB2G/uV30t7+Fm4=
+Date: Thu, 27 Nov 2025 12:47:39 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,nao.horiguchi@gmail.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-make-min_order_for_split-always-return-an-order.patch added to mm-new branch
-Message-Id: <20251127204737.88380C4CEF8@smtp.kernel.org>
+Subject: + mm-huge_memory-fix-folio-split-stats-counting.patch added to mm-new branch
+Message-Id: <20251127204740.24878C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: make min_order_for_split() always return an order
+     Subject: mm/huge_memory: fix folio split stats counting
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-make-min_order_for_split-always-return-an-order.patch
+     mm-huge_memory-fix-folio-split-stats-counting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-make-min_order_for_split-always-return-an-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-folio-split-stats-counting.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,30 +65,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: make min_order_for_split() always return an order
-Date: Wed, 26 Nov 2025 16:06:17 -0500
+Subject: mm/huge_memory: fix folio split stats counting
+Date: Wed, 26 Nov 2025 16:06:18 -0500
 
-min_order_for_split() returns -EBUSY when the folio is truncated and
-cannot be split.  In commit 77008e1b2ef7 ("mm/huge_memory: do not change
-split_huge_page*() target order silently"), memory_failure() does not
-handle it and pass -EBUSY to try_to_split_thp_page() directly. 
-try_to_split_thp_page() returns -EINVAL since -EBUSY becomes 0xfffffff0 as
-new_order is unsigned int in __folio_split() and this large new_order is
-rejected as an invalid input.  The code does not cause a bug. 
-soft_offline_in_use_page() also uses min_order_for_split() but it always
-passes 0 as new_order for split.
+The "return <error code>" statements for error checks at the beginning of
+__folio_split() skip necessary count_vm_event() and count_mthp_stat() at
+the end of the function.  Fix these by replacing them with "ret = <error
+code>; goto out;".
 
-Fix it by making min_order_for_split() always return an order.  When the
-given folio is truncated, namely folio->mapping == NULL, return 0 and let
-a subsequent split function handle the situation and return -EBUSY.
-
-Add kernel-doc to min_order_for_split() to clarify its use.
-
-Link: https://lkml.kernel.org/r/20251126210618.1971206-4-ziy@nvidia.com
+Link: https://lkml.kernel.org/r/20251126210618.1971206-5-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -102,72 +91,37 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    6 +++---
- mm/huge_memory.c        |   25 +++++++++++++++++++------
- 2 files changed, 22 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-make-min_order_for_split-always-return-an-order
-+++ a/include/linux/huge_mm.h
-@@ -372,7 +372,7 @@ enum split_type {
- int __split_huge_page_to_list_to_order(struct page *page, struct list_head *list,
- 		unsigned int new_order);
- int folio_split_unmapped(struct folio *folio, unsigned int new_order);
--int min_order_for_split(struct folio *folio);
-+unsigned int min_order_for_split(struct folio *folio);
- int split_folio_to_list(struct folio *folio, struct list_head *list);
- int folio_check_splittable(struct folio *folio, unsigned int new_order,
- 			   enum split_type split_type);
-@@ -630,10 +630,10 @@ static inline int split_huge_page(struct
- 	return -EINVAL;
- }
- 
--static inline int min_order_for_split(struct folio *folio)
-+static inline unsigned int min_order_for_split(struct folio *folio)
- {
- 	VM_WARN_ON_ONCE_FOLIO(1, folio);
--	return -EINVAL;
-+	return 0;
- }
- 
- static inline int split_folio_to_list(struct folio *folio, struct list_head *list)
---- a/mm/huge_memory.c~mm-huge_memory-make-min_order_for_split-always-return-an-order
+--- a/mm/huge_memory.c~mm-huge_memory-fix-folio-split-stats-counting
 +++ a/mm/huge_memory.c
-@@ -4219,16 +4219,29 @@ int folio_split(struct folio *folio, uns
- 			     SPLIT_TYPE_NON_UNIFORM);
- }
+@@ -3942,16 +3942,20 @@ static int __folio_split(struct folio *f
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
  
--int min_order_for_split(struct folio *folio)
-+/**
-+ * min_order_for_split() - get the minimum order @folio can be split to
-+ * @folio: folio to split
-+ *
-+ * min_order_for_split() tells the minimum order @folio can be split to.
-+ * If a file-backed folio is truncated, 0 will be returned. Any subsequent
-+ * split attempt should get -EBUSY from split checking code.
-+ *
-+ * Return: @folio's minimum order for split
-+ */
-+unsigned int min_order_for_split(struct folio *folio)
- {
- 	if (folio_test_anon(folio))
- 		return 0;
+-	if (folio != page_folio(split_at) || folio != page_folio(lock_at))
+-		return -EINVAL;
++	if (folio != page_folio(split_at) || folio != page_folio(lock_at)) {
++		ret = -EINVAL;
++		goto out;
++	}
  
--	if (!folio->mapping) {
--		if (folio_test_pmd_mappable(folio))
--			count_vm_event(THP_SPLIT_PAGE_FAILED);
--		return -EBUSY;
--	}
-+	/*
-+	 * If the folio got truncated, we don't know the previous mapping and
-+	 * consequently the old min order. But it doesn't matter, as any split
-+	 * attempt will immediately fail with -EBUSY as the folio cannot get
-+	 * split until freed.
-+	 */
-+	if (!folio->mapping)
-+		return 0;
+-	if (new_order >= old_order)
+-		return -EINVAL;
++	if (new_order >= old_order) {
++		ret = -EINVAL;
++		goto out;
++	}
  
- 	return mapping_min_folio_order(folio->mapping);
- }
+ 	ret = folio_check_splittable(folio, new_order, split_type);
+ 	if (ret) {
+ 		VM_WARN_ONCE(ret == -EINVAL, "Tried to split an unsplittable folio");
+-		return ret;
++		goto out;
+ 	}
+ 
+ 	if (is_anon) {
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
