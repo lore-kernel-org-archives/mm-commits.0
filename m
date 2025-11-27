@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CE69311C3C
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:22:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9577D7082D
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:25:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282125; cv=none; b=lfYfb/bToP7xgEomlsuusKT034bIT5+kHGZuaVsGftX3yQDGdkxiKCiUvfDtBwkpbyM03sTo4B9u3Z2KmckbWgQ9ORiRJIVFtSz8KOfuULrnn9aqtQlyRe92d/uLda20c3MBXkH1zG3BETMM9AWcGj71+pBkIOhQKlLxxUDUsQ4=
+	t=1764282348; cv=none; b=pnMPAA9asDgCgYC+5F6Tvbw3h4f1ONRlC2BZ0+qutnmn3LxCGZCvv7l+9Nwz+ubhoTr0VbqVRhFu1rtXf2ewU0Bf0azpDGyR7mNB3Tm5vpJiKEJ9CfmcgCH4cfvRLJac/8sHK5pw0Qfen7T9Bz2sRizNOeoS+y/UmjbG73ofbC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282125; c=relaxed/simple;
-	bh=V2dMH0LDUZF3Ia7xTmRVWLBUCA6dXjuJq8oi66CWyRA=;
-	h=Date:To:From:Subject:Message-Id; b=tVh0mgkfWLPq5m3lYk1A/Tw1Xwa2PCYpLmbsSm0rwH1Xvo6TeJlMG2WfWBLgNj+QibN88STWGbZ1ncgICQpNfHPfw8EPvUM8watue2f6XJh/5Pryo43PNdh2wvbcxKogFrqj9PNTcAHH+dHohM1u8+gdnn2yLPVl/9ibynh05lo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=syHDjo0M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282348; c=relaxed/simple;
+	bh=OwJbY6EXb75leTCDntF+Pjktm8jVGeMiEbWfGHBcfiY=;
+	h=Date:To:From:Subject:Message-Id; b=cYgdVQeQBjPgRLRkRE+RIIyM1WNXXZgM8KijVi4N/6t+C0eXC+OgRl6E8S35Jwj0FXJQ1+GC05cAVymrImk42EH/pJrA2njlQKGBaQtYk9LENq49qbR5cg764HkLDtt8Zak2hAhR4/BQyK78TN6pBWwFL/TUMwQ7F3KNObSWmPM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Piyz4M5K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="syHDjo0M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06E55C4CEF8;
-	Thu, 27 Nov 2025 22:22:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Piyz4M5K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59BAAC4CEF8;
+	Thu, 27 Nov 2025 22:25:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282123;
-	bh=V2dMH0LDUZF3Ia7xTmRVWLBUCA6dXjuJq8oi66CWyRA=;
+	s=korg; t=1764282348;
+	bh=OwJbY6EXb75leTCDntF+Pjktm8jVGeMiEbWfGHBcfiY=;
 	h=Date:To:From:Subject:From;
-	b=syHDjo0M0cYaBVh6oDWlREcTHg8xHADMUR7LdX4tHndjWsNV7Vl4+wGVL0Vn1fPDK
-	 1IuLa1OZIwCjuXUxqaCxvw7TQsExYGSf6gW2R8QAg9uEg+FwSgcSNkVDtAU0p6JLqO
-	 XrwIRSaQT2damWde7j8Fz7bU+bJgKWy+tPcBN8tk=
-Date: Thu, 27 Nov 2025 14:22:02 -0800
-To: mm-commits@vger.kernel.org,xueshuai@linux.alibaba.com,sfr@canb.auug.org.au,guohanjun@huawei.com,corbet@lwn.net,leitao@debian.org,akpm@linux-foundation.org
+	b=Piyz4M5KezEgAAjjoM96c/jHvbtOzk22uUrLE0MTu0IzlMT+SVCbGrScs0uIAn92+
+	 Sn8yz8AtKkjDRmEOGEM61vPFMfWkGaBLz/d3tUWz1FhiAO1rBdTelhTOlbctNx6L2K
+	 oaNLHLsYtT7E91rPj+GfSdq3MEECKXzsjtkDEI4Q=
+Date: Thu, 27 Nov 2025 14:25:47 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,sfr@canb.auug.org.au,pabeni@redhat.com,ojeda@kernel.org,ncardwell@google.com,kuba@kernel.org,aliceryhl@google.com,edumazet@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch removed from -mm tree
-Message-Id: <20251127222203.06E55C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] rbtree-inline-rb_first.patch removed from -mm tree
+Message-Id: <20251127222548.59BAAC4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,129 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Documentation/driver-api: add hw-recoverable-errors to toctree
+     Subject: rbtree: inline rb_first()
 has been removed from the -mm tree.  Its filename was
-     vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch
+     rbtree-inline-rb_first.patch
 
-This patch was dropped because it was folded into vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: Documentation/driver-api: add hw-recoverable-errors to toctree
-Date: Thu, 27 Nov 2025 07:34:24 -0800
+From: Eric Dumazet <edumazet@google.com>
+Subject: rbtree: inline rb_first()
+Date: Fri, 14 Nov 2025 14:06:45 +0000
 
-Stephen reported that commit c03fb5253a0341e ("vmcoreinfo: track and log
-recoverable hardware errors") started to warn about "document isn't
-included in any toctree".
+Patch series "rbree: inline rb_first() and rb_last()".
 
-Fix it by adding the new rst in Subsystem-specific APIs section.
+Inline these two small helpers, heavily used in TCP and FQ packet scheduler,
+and in many other places.
 
-Link: https://lkml.kernel.org/r/20251127-vmcoreinfo_fix-v1-1-26f5b1c43da9@debian.org
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Closes: https://lore.kernel.org/all/20250729150042.77832045@canb.auug.org.au/#t
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuai Xue <xueshuai@linux.alibaba.com>
+This reduces kernel text size, and brings an 1.5 % improvement on network
+TCP stress test.
+
+
+This patch (of 2):
+
+This is a very small function, inlining it saves cpu cycles by reducing
+register pressure and removing call/ret overhead.
+
+It also reduces vmlinux text size by 744 bytes on a typical x86_64 build.
+
+Before:
+
+size vmlinux
+   text	   data	    bss	    dec	    hex	filename
+34812525	22177365	5685248	62675138	3bc58c2	vmlinux
+
+After:
+
+size vmlinux
+   text	   data	    bss	    dec	    hex	filename
+34811781	22177365	5685248	62674394	3bc55da	vmlinux
+
+[ojeda@kernel.org: fix rust build]
+  Link: https://lkml.kernel.org/r/20251120085518.1463498-1-ojeda@kernel.org
+Link: https://lkml.kernel.org/r/20251114140646.3817319-1-edumazet@google.com
+Link: https://lkml.kernel.org/r/20251114140646.3817319-2-edumazet@google.com
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Miguel Ojeda <ojeda@kernel.org>
+Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Jakub Kacinski <kuba@kernel.org>
+Cc: Neal Cardwell <ncardwell@google.com>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Stehen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/driver-api/index.rst |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/rbtree.h |   16 +++++++++++++++-
+ lib/rbtree.c           |   16 ----------------
+ rust/helpers/rbtree.c  |    5 +++++
+ 3 files changed, 20 insertions(+), 17 deletions(-)
 
---- a/Documentation/driver-api/index.rst~vmcoreinfo-track-and-log-recoverable-hardware-errors-fix
-+++ a/Documentation/driver-api/index.rst
-@@ -96,6 +96,7 @@ Subsystem-specific APIs
-    gpio/index
-    hsi
-    hte/index
-+   hw-recoverable-errors
-    i2c
-    iio/index
-    infiniband
+--- a/include/linux/rbtree.h~rbtree-inline-rb_first
++++ a/include/linux/rbtree.h
+@@ -43,7 +43,21 @@ extern void rb_erase(struct rb_node *, s
+ /* Find logical next and previous nodes in a tree */
+ extern struct rb_node *rb_next(const struct rb_node *);
+ extern struct rb_node *rb_prev(const struct rb_node *);
+-extern struct rb_node *rb_first(const struct rb_root *);
++
++/*
++ * This function returns the first node (in sort order) of the tree.
++ */
++static inline struct rb_node *rb_first(const struct rb_root *root)
++{
++	struct rb_node	*n;
++
++	n = root->rb_node;
++	if (!n)
++		return NULL;
++	while (n->rb_left)
++		n = n->rb_left;
++	return n;
++}
+ extern struct rb_node *rb_last(const struct rb_root *);
+ 
+ /* Postorder iteration - always visit the parent after its children */
+--- a/lib/rbtree.c~rbtree-inline-rb_first
++++ a/lib/rbtree.c
+@@ -460,22 +460,6 @@ void __rb_insert_augmented(struct rb_nod
+ }
+ EXPORT_SYMBOL(__rb_insert_augmented);
+ 
+-/*
+- * This function returns the first node (in sort order) of the tree.
+- */
+-struct rb_node *rb_first(const struct rb_root *root)
+-{
+-	struct rb_node	*n;
+-
+-	n = root->rb_node;
+-	if (!n)
+-		return NULL;
+-	while (n->rb_left)
+-		n = n->rb_left;
+-	return n;
+-}
+-EXPORT_SYMBOL(rb_first);
+-
+ struct rb_node *rb_last(const struct rb_root *root)
+ {
+ 	struct rb_node	*n;
+--- a/rust/helpers/rbtree.c~rbtree-inline-rb_first
++++ a/rust/helpers/rbtree.c
+@@ -7,3 +7,8 @@ void rust_helper_rb_link_node(struct rb_
+ {
+ 	rb_link_node(node, parent, rb_link);
+ }
++
++struct rb_node *rust_helper_rb_first(const struct rb_root *root)
++{
++	return rb_first(root);
++}
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from edumazet@google.com are
 
-mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
-vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
 
