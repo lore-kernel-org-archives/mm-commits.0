@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D85DE3FBA7
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:20:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2701E3019CF
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:20:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282004; cv=none; b=ePb6gd3sMsmzT9l2HwiwL8n7NovRvJyJ28vCRww/YZMVlI95THbOcw99QWp8SEjwtCWoVtxSljsPpVA5X9X0qd7wXnMYtrgXnue/KdV6hrLeJDHddyrGi8R2Oe/v9MJqD3u3YCuNgTY3ejaWJvxciAyWc3+edu1DxHCqj8DSHa4=
+	t=1764282038; cv=none; b=C0mUjJyKFmFMXZdPwTowwynr2As33qYcRdP57Y5TQ6VxJ2W/cJ/9MJw6cbDtDlwogNcUW7Fbmwl6JzD9hBarKMTg266NrLWjaYIwgPM61O4yFOXKZbWAFd5wdID4Kie8rs7GaR+CXKMnAdUkogbO49eaPSAvOtDBH2g6VMw/44E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282004; c=relaxed/simple;
-	bh=Y+01eapGm0bh/vthwqRD0UEobU65cqHbDJY0fSjAYYw=;
-	h=Date:To:From:Subject:Message-Id; b=oPEYikBRh6qs3sS4iC+7qDXjoHzdJFgWfVtZ1GD/Skco8pwYr+zl/WzPOXy/39y66L6IJx4HaPTwvJ+LiPgreeBPUYyJf1fXoy4bLb144gVrqV9UmNSRep1dJn9X+wTIdtJu/VtSGizh5xXLUW3M69vdp0gLSCprtpKtRqMxMv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PGd/KSg2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282038; c=relaxed/simple;
+	bh=2+zeXgG/MhAy+30WGaUPv3eWY2FN46OjvqrjarRMDG0=;
+	h=Date:To:From:Subject:Message-Id; b=k6xnfMwbgZQ1w69VLy4/nbMZgmu+FMk5G14Q824kell2oXl3+/Z6TFKU2zaHDqSCDMO3BYqseGVsh7toVKNWQ6964Btl37pijbR9sPjZtGXJ5XRKbvhyn3PQgtAJkLmGI1KgfbN1GSN1w55rW/wpdEbAYw/4n/Wl3iA4De789yo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nkjbP6k2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PGd/KSg2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49F2DC4CEF8;
-	Thu, 27 Nov 2025 22:20:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nkjbP6k2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 938FCC4CEF8;
+	Thu, 27 Nov 2025 22:20:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282003;
-	bh=Y+01eapGm0bh/vthwqRD0UEobU65cqHbDJY0fSjAYYw=;
+	s=korg; t=1764282037;
+	bh=2+zeXgG/MhAy+30WGaUPv3eWY2FN46OjvqrjarRMDG0=;
 	h=Date:To:From:Subject:From;
-	b=PGd/KSg2tuumWBBdacwdVoFmz0W4aO7UwIan9DJumKr1dFiL+bFQRZ0TYkCdMchb3
-	 xifZW2QhdpQuR4XPnh8X7q779fAR7sAxRlq087mMbK7UjaMlQPw18t9gSyayH0wtTF
-	 Ilri3fSVub6cZepb4akKfcAwuVmlfdGqCOX4JM9o=
-Date: Thu, 27 Nov 2025 14:20:02 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=nkjbP6k2xaEYZ9OkfarOFx3sF/5P3n6nQ5jcagWti0EtF4h/xdEGxWuzdVdI08CyL
+	 3qI3W1E2zLVlKys1fYoTFCYy8rLe9FsiqXwNfyn4YIAvWt401xlM7S3rkRRckveljQ
+	 ZfeeooRqK7i1M1itLpoNV25iOeiDD1RtG9SneGuI=
+Date: Thu, 27 Nov 2025 14:20:36 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kho-introduce-high-level-memory-allocation-api-fix.patch removed from -mm tree
-Message-Id: <20251127222003.49F2DC4CEF8@smtp.kernel.org>
+Subject: [folded-merged] liveupdate-luo_session-add-sessions-support-fix.patch removed from -mm tree
+Message-Id: <20251127222037.938FCC4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho-introduce-high-level-memory-allocation-api-fix
+     Subject: liveupdate: luo_session: fix use after free in luo_session_deserialize()
 has been removed from the -mm tree.  Its filename was
-     kho-introduce-high-level-memory-allocation-api-fix.patch
+     liveupdate-luo_session-add-sessions-support-fix.patch
 
-This patch was dropped because it was folded into kho-introduce-high-level-memory-allocation-api.patch
+This patch was dropped because it was folded into liveupdate-luo_session-add-sessions-support.patch
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho-introduce-high-level-memory-allocation-api-fix
-Date: Sat, 15 Nov 2025 18:19:41 -0500
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: liveupdate: luo_session: fix use after free in luo_session_deserialize()
+Date: Wed, 26 Nov 2025 17:51:40 +0300
 
-build fixes
+The debug output frees "session" but it was freed on the previous line. 
+Move the free after the printk().
 
-Link: https://lkml.kernel.org/r/CA+CK2bBgXDhrHwTVgxrw7YTQ-0=LgW0t66CwPCgG=C85ftz4zw@mail.gmail.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202511160332.SpHDxf5J-lkp@intel.com/
+Link: https://lkml.kernel.org/r/c5dd637d7eed3a3be48c5e9fedb881596a3b1f5a.1764163896.git.dan.carpenter@linaro.org
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec_handover.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/liveupdate/luo_session.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kexec_handover.h~kho-introduce-high-level-memory-allocation-api-fix
-+++ a/include/linux/kexec_handover.h
-@@ -105,13 +105,13 @@ static inline int kho_unpreserve_vmalloc
- 	return -EOPNOTSUPP;
- }
+--- a/kernel/liveupdate/luo_session.c~liveupdate-luo_session-add-sessions-support-fix
++++ a/kernel/liveupdate/luo_session.c
+@@ -387,9 +387,9 @@ int luo_session_deserialize(void)
  
--void *kho_alloc_preserve(size_t size)
-+static inline void *kho_alloc_preserve(size_t size)
- {
- 	return ERR_PTR(-EOPNOTSUPP);
- }
- 
--void kho_unpreserve_free(void *mem) { }
--void kho_restore_free(void *mem) { }
-+static inline void kho_unpreserve_free(void *mem) { }
-+static inline void kho_restore_free(void *mem) { }
- 
- static inline struct folio *kho_restore_folio(phys_addr_t phys)
- {
+ 		err = luo_session_insert(sh, session);
+ 		if (err) {
+-			luo_session_free(session);
+ 			pr_warn("Failed to insert session [%s] %pe\n",
+ 				session->name, ERR_PTR(err));
++			luo_session_free(session);
+ 			return err;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-kho-make-debugfs-interface-optional.patch
-kho-add-interfaces-to-unpreserve-folios-page-ranges-and-vmalloc.patch
-memblock-unpreserve-memory-in-case-of-error.patch
-test_kho-unpreserve-memory-in-case-of-error.patch
-kho-dont-unpreserve-memory-during-abort.patch
-liveupdate-kho-move-to-kernel-liveupdate.patch
-maintainers-update-kho-maintainers.patch
-kho-fix-misleading-log-message-in-kho_populate.patch
-kho-convert-__kho_abort-to-return-void.patch
-kho-introduce-high-level-memory-allocation-api.patch
-kho-preserve-fdt-folio-only-once-during-initialization.patch
-kho-verify-deserialization-status-and-fix-fdt-alignment-access.patch
-kho-always-expose-output-fdt-in-debugfs.patch
-kho-simplify-serialization-and-remove-__kho_abort.patch
-kho-remove-global-preserved_mem_map-and-store-state-in-fdt.patch
-kho-remove-abort-functionality-and-support-state-refresh.patch
-kho-update-fdt-dynamically-for-subtree-addition-removal.patch
-kho-allow-kexec-load-before-kho-finalization.patch
-kho-allow-memory-preservation-state-updates-after-finalization.patch
-kho-add-kconfig-option-to-enable-kho-by-default.patch
-liveupdate-luo_core-live-update-orchestrato.patch
-liveupdate-luo_core-integrate-with-kho.patch
-kexec-call-liveupdate_reboot-before-kexec.patch
 liveupdate-luo_session-add-sessions-support.patch
-liveupdate-luo_core-add-user-interface.patch
-liveupdate-luo_file-implement-file-systems-callbacks.patch
-liveupdate-luo_session-add-ioctls-for-file-preservation.patch
-docs-add-luo-documentation.patch
-maintainers-add-liveupdate-entry.patch
-selftests-liveupdate-add-userspace-api-selftests.patch
-selftests-liveupdate-add-simple-kexec-based-selftest-for-luo.patch
-selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
 
