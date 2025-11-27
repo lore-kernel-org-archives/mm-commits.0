@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C163D30506A;
-	Thu, 27 Nov 2025 19:37:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A54C30C60A
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:05:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764272230; cv=none; b=qcG7EJ+bde5qavfIGLzXb8jFZAKyZ66NCCySLlgrI/0fzVF7lkr+Yzhv8u2mrjdxFnAuRRjnJG1mkbsn6FE/Kl1TC4dgMcy+HWrDKSRn/VrN0lS/9FtxzLV0hUV/zePALEX9V3+nh3PjPT8tdN1I49eBnFkqh+yab+eB1f53HMs=
+	t=1764273918; cv=none; b=OKr3pRO1i/VQbhSvxKuYyqw6Ip5n23/LW8pgvobabtt5s5XLRRO6hQSKcsxw/J2+4DWPRIEtTqv1kzX/zXvth1o7aJIGFs643J0l9rncMqWB1LLAfvr2q1AXoNcpr6x2WHJUexCYv+7XFJSTZqHLak+YPkH4mF5soazWksUq3O4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764272230; c=relaxed/simple;
-	bh=oFv6rFYosJ9FFGLFKn092gXULUdhZUkpj+COxCMFt9Q=;
-	h=Date:To:From:Subject:Message-Id; b=oBUQ9I8TURKjQOJ9HBdy347OtrYNHxY5ka5FbkBc9phy/YvO9RQg8FsycCefjBG1OqGrvtpvE0qinB8vTmpsvt5D7J3dELxgayjMj/z5KxF2sZ6sJaQBmqYwlzz80Bvi8YJWISAZiyaQch2k2NrsYkfHIvHLPqt5HseybVS5ywg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQqGlVCe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764273918; c=relaxed/simple;
+	bh=0SYGh/DWWAA6yayNwEAGFom1eTRnVTwllX0wP5vvBOg=;
+	h=Date:To:From:Subject:Message-Id; b=CPbWtgDpgec0OiGMM/nYGnLL1xMABHYvoVat4lSKPHynqzkE1S6AuigGcWBWqYtuuCKMkVUDTklpQ39Pg3/Y0rIe/b0ybFnoqP/CCTNRE3EniAsvpTIsWOYh2wGK+H1GohgaCffwA07VYCB+99nslTEUQcuz48suIUF4RSOq5hA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O8fYWBl/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQqGlVCe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 922B9C4CEFB;
-	Thu, 27 Nov 2025 19:37:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O8fYWBl/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DC9AC4CEF8;
+	Thu, 27 Nov 2025 20:05:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764272230;
-	bh=oFv6rFYosJ9FFGLFKn092gXULUdhZUkpj+COxCMFt9Q=;
+	s=korg; t=1764273917;
+	bh=0SYGh/DWWAA6yayNwEAGFom1eTRnVTwllX0wP5vvBOg=;
 	h=Date:To:From:Subject:From;
-	b=CQqGlVCeSq8l0cJzn9iUI27qtZ9R+Y8XtjMLHwy58pshYHoLmjZUh0ggTjRQ+o+vh
-	 2Tk5KdhzsQw2pyHKVo6Y24WQVf1/CsLdgFCO6JSHKUwLNag1LjJMDksOnz39DAZGaT
-	 uWgcFPM5MV9twHag7Tf+Ld6VlP5iJkZSE12UFGWs=
-Date: Thu, 27 Nov 2025 11:37:10 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,leitao@debian.org,jpazdziora@redhat.com,coxu@redhat.com,catalin.marinas@arm.com,bhe@redhat.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
+	b=O8fYWBl/wODkksZ/8DTDg9n48SfVVLkkFi3r4tHqpw8RPBe2S9f0/Xc7vEkb2Jez9
+	 QW8uARhQ/59uqD3wGtoTSpGQo/XYN0Po28Ao/UVvZpsG5S2oEjvZYlscM9GDK2GZxk
+	 ZqElG4WOloNXmatHDk18r0tsB1KUjTpzv9n6FK1g=
+Date: Thu, 27 Nov 2025 12:05:16 -0800
+To: mm-commits@vger.kernel.org,xueshuai@linux.alibaba.com,sfr@canb.auug.org.au,guohanjun@huawei.com,corbet@lwn.net,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-kernel-initialize-missing-kexec_buf-random-field.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251127193710.922B9C4CEFB@smtp.kernel.org>
+Subject: + vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251127200517.6DC9AC4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: kernel: initialize missing kexec_buf->random field
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     arm64-kernel-initialize-missing-kexec_buf-random-field.patch
+     Subject: Documentation/driver-api: add hw-recoverable-errors to toctree
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-kernel-initialize-missing-kexec_buf-random-field.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,91 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yeoreum Yun <yeoreum.yun@arm.com>
-Subject: arm64: kernel: initialize missing kexec_buf->random field
-Date: Thu, 27 Nov 2025 18:26:44 +0000
+From: Breno Leitao <leitao@debian.org>
+Subject: Documentation/driver-api: add hw-recoverable-errors to toctree
+Date: Thu, 27 Nov 2025 07:34:24 -0800
 
-Commit bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
-introduced the kexec_buf->random field to enable random placement of
-kexec_buf.
+Stephen reported that commit c03fb5253a0341e ("vmcoreinfo: track and log
+recoverable hardware errors") started to warn about "document isn't
+included in any toctree".
 
-However, this field was never properly initialized for kexec images that
-do not need to be placed randomly, leading to the following UBSAN warning:
+Fix it by adding the new rst in Subsystem-specific APIs section.
 
-[  +0.364528] ------------[ cut here ]------------
-[  +0.000019] UBSAN: invalid-load in ./include/linux/kexec.h:210:12
-[  +0.000131] load of value 2 is not a valid value for type 'bool' (aka '_Bool')
-[  +0.000003] CPU: 4 UID: 0 PID: 927 Comm: kexec Not tainted 6.18.0-rc7+ #3 PREEMPT(full)
-[  +0.000002] Hardware name: QEMU QEMU Virtual Machine, BIOS 0.0.0 02/06/2015
-[  +0.000000] Call trace:
-[  +0.000001]  show_stack+0x24/0x40 (C)
-[  +0.000006]  __dump_stack+0x28/0x48
-[  +0.000002]  dump_stack_lvl+0x7c/0xb0
-[  +0.000002]  dump_stack+0x18/0x34
-[  +0.000001]  ubsan_epilogue+0x10/0x50
-[  +0.000002]  __ubsan_handle_load_invalid_value+0xc8/0xd0
-[  +0.000003]  locate_mem_hole_callback+0x28c/0x2a0
-[  +0.000003]  kexec_locate_mem_hole+0xf4/0x2f0
-[  +0.000001]  kexec_add_buffer+0xa8/0x178
-[  +0.000002]  image_load+0xf0/0x258
-[  +0.000001]  __arm64_sys_kexec_file_load+0x510/0x718
-[  +0.000002]  invoke_syscall+0x68/0xe8
-[  +0.000001]  el0_svc_common+0xb0/0xf8
-[  +0.000002]  do_el0_svc+0x28/0x48
-[  +0.000001]  el0_svc+0x40/0xe8
-[  +0.000002]  el0t_64_sync_handler+0x84/0x140
-[  +0.000002]  el0t_64_sync+0x1bc/0x1c0
-
-To address this, initialise kexec_buf->random field properly.
-
-Link: https://lkml.kernel.org/r/20251127182644.1577592-1-yeoreum.yun@arm.com
-Fixes: bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
-Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Coiby Xu <coxu@redhat.com>
-Cc: levi.yun <yeoreum.yun@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Jan Pazdziora <jpazdziora@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251127-vmcoreinfo_fix-v1-1-26f5b1c43da9@debian.org
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Closes: https://lore.kernel.org/all/20250729150042.77832045@canb.auug.org.au/#t
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuai Xue <xueshuai@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/kexec_image.c        |    3 +++
- arch/arm64/kernel/machine_kexec_file.c |    6 +++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ Documentation/driver-api/index.rst |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/arm64/kernel/kexec_image.c~arm64-kernel-initialize-missing-kexec_buf-random-field
-+++ a/arch/arm64/kernel/kexec_image.c
-@@ -76,6 +76,9 @@ static void *image_load(struct kimage *i
- 	kbuf.buf_min = 0;
- 	kbuf.buf_max = ULONG_MAX;
- 	kbuf.top_down = false;
-+#ifdef CONFIG_CRASH_DUMP
-+	kbuf.random = false;
-+#endif
- 
- 	kbuf.buffer = kernel;
- 	kbuf.bufsz = kernel_len;
---- a/arch/arm64/kernel/machine_kexec_file.c~arm64-kernel-initialize-missing-kexec_buf-random-field
-+++ a/arch/arm64/kernel/machine_kexec_file.c
-@@ -94,7 +94,11 @@ int load_other_segments(struct kimage *i
- 			char *initrd, unsigned long initrd_len,
- 			char *cmdline)
- {
--	struct kexec_buf kbuf = {};
-+	struct kexec_buf kbuf = {
-+#ifdef CONFIG_CRASH_DUMP
-+		.random = false,
-+#endif
-+	};
- 	void *dtb = NULL;
- 	unsigned long initrd_load_addr = 0, dtb_len,
- 		      orig_segments = image->nr_segments;
+--- a/Documentation/driver-api/index.rst~vmcoreinfo-track-and-log-recoverable-hardware-errors-fix
++++ a/Documentation/driver-api/index.rst
+@@ -96,6 +96,7 @@ Subsystem-specific APIs
+    gpio/index
+    hsi
+    hte/index
++   hw-recoverable-errors
+    i2c
+    iio/index
+    infiniband
 _
 
-Patches currently in -mm which might be from yeoreum.yun@arm.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-arm64-kernel-initialize-missing-kexec_buf-random-field.patch
+mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
+vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
+vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch
 
