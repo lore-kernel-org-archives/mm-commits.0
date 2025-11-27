@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64CAF31D399
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:27:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9A2A31D399
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:27:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282430; cv=none; b=om0gCq3KWbozkqont1O1fJ1RlRK8oQbPm/CfRCYq6x+K3RSVFq3a0f/pf7+w5izsA6NwM/qLneVqJr2n7PYex4OU/QfhT7oxZsCg1DF1Ely68UtD3J5p+Kpjly1JhTbqa/rWFEIJWweRIxxH8YDdsdEk1cXZvG7pC6CK+dMCo0U=
+	t=1764282432; cv=none; b=EXQQen1JLXJL2DJ7ucKsRCkYhTexeJIcXt7CeLoCfQMQCqHhdFwElVW1LQEoFa/Flf+ADhKh1h14pRzxim1gk6DY+UboKk+56yN9puVdMdvcNECAVE4v3zCjs1iOIf7m16uMTmGJ008zCue/L4JkVE7mIyER+HcDK63piePwDE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282430; c=relaxed/simple;
-	bh=iOFizoi+IaSPsUp7jc4NNyyCoLfoVysCX5RtR8pBDA4=;
-	h=Date:To:From:Subject:Message-Id; b=E6ttdaDKZvUIWsQJBnBQR/zUlRr2pyxkRoxIYplPyutG0yfF6gtR19W5c1mcqQp6qN1NLLqWkiZXxbg8KYjwBcn+GBnWH4RoV8MoOqFuBbUpPBY6XYrlIftXkmgOXduyr4w/hGFvIe20TT9yfsAXohnWG9Ty3P1A050jXSnpEZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YRdlEDQw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282432; c=relaxed/simple;
+	bh=onN3EvKPPSY5cIcK1lqjqavAn3KxiYTBs9DuRvt90Fc=;
+	h=Date:To:From:Subject:Message-Id; b=uNtiuSqtYwW5mdMa3KBsYLWMwd2XeGgX1NI+thAJRJaDZDQcqPW/AowY0tcPys+XSd+v3E62mNppBYaHLQR5SNVcrImV6g2xqtNc7J7It5jrmmJ4KUkQyuhv4YV2So6KaLSILoOHe/WOi0JsuIJ3Y3Aqx99LTjkb5bSMTMNrsAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vtIdbr7y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YRdlEDQw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFFD5C4CEF8;
-	Thu, 27 Nov 2025 22:27:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vtIdbr7y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDD40C4CEF8;
+	Thu, 27 Nov 2025 22:27:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282427;
-	bh=iOFizoi+IaSPsUp7jc4NNyyCoLfoVysCX5RtR8pBDA4=;
+	s=korg; t=1764282431;
+	bh=onN3EvKPPSY5cIcK1lqjqavAn3KxiYTBs9DuRvt90Fc=;
 	h=Date:To:From:Subject:From;
-	b=YRdlEDQw6hw7CObmKkqYmPgU+pdncdo+U/pfNr17w8SwyXDY1Y6g5ayY8cJCF+OoU
-	 +kQka2QDtslJvnfcXkMFA5DVDJR60y19Ishlti4l5T2hHz3kNtFFvIB1HmV1lLXxSB
-	 5e5+LlDunPtZTCfQFVhNZLzoD7TiU3QqEEdxqXVY=
-Date: Thu, 27 Nov 2025 14:27:07 -0800
-To: mm-commits@vger.kernel.org,yoann.congal@smile.fr,yesanishhere@gmail.com,yanjun.zhu@linux.dev,witu@nvidia.com,wagi@kernel.org,vincent.guittot@linaro.org,tj@kernel.org,tglx@linutronix.de,stuart.w.hayes@gmail.com,song@kernel.org,skhawaja@google.com,saeedm@nvidia.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,rdunlap@infradead.org,quic_zijuhu@quicinc.com,ptyadav@amazon.de,pratyush@kernel.org,parav@nvidia.com,ojeda@kernel.org,myungjoo.ham@samsung.com,mmaurer@google.com,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,lukas@wunner.de,linux@weissschuh.net,leonro@nvidia.com,leon@kernel.org,lennart@poettering.net,kanie@linux.alibaba.com,Jonathan.Cameron@huawei.com,joel.granados@kernel.org,jgg@nvidia.com,jannh@google.com,ira.weiny@intel.com,ilpo.jarvinen@linux.intel.com,hughd@google.com,hpa@zytor.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,graf@amazon.com,dmatlack@google.com,djeffery@redhat.com,david@redhat.com,dan.j.williams@intel.com,dakr@kernel.org,cw00.choi@samsung.com,corbet@lwn.net,chrisl@kernel.org,chenridong@huawei.com,brauner@kernel.org,bp@alien8.de,bhelgaas@google.com,bartosz.golaszewski@linaro.org,axboe@kernel.dk,anna.schumaker@oracle.com,andriy.shevchenko@linux.intel.com,aliceryhl@google.com,aleksander.lobakin@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=vtIdbr7yAeLgSyRbm4dWwNhwJeqgGKUQHlgS3d5w/b1rog8AMxDpo6GkOu8I2iaje
+	 mJ2tHb4v7BsmLp+87BL8KhQRrqRiENSyET0mWpuA6Io4N/aX9LUdncNiMzKmecLMCh
+	 Ro8St3VaUZUgCbkSsl30ktp5w7jP/w+JjPQebWUQ=
+Date: Thu, 27 Nov 2025 14:27:11 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,shivangu@linux.ibm.com,ritesh.list@gmail.com,piliu@redhat.com,mahesh@linux.ibm.com,maddy@linux.ibm.com,jbohac@suse.cz,hbathini@linux.ibm.com,dyoung@redhat.com,bhe@redhat.com,adityag@linux.ibm.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch removed from -mm tree
-Message-Id: <20251127222707.CFFD5C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec-move-sysfs-entries-to-sys-kernel-kexec.patch removed from -mm tree
+Message-Id: <20251127222711.BDD40C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,309 +35,367 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/liveupdate: add kexec test for multiple and empty sessions
+     Subject: kexec: move sysfs entries to /sys/kernel/kexec
 has been removed from the -mm tree.  Its filename was
-     selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions.patch
+     kexec-move-sysfs-entries-to-sys-kernel-kexec.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: selftests/liveupdate: add kexec test for multiple and empty sessions
-Date: Tue, 25 Nov 2025 11:58:48 -0500
+From: Sourabh Jain <sourabhjain@linux.ibm.com>
+Subject: kexec: move sysfs entries to /sys/kernel/kexec
+Date: Tue, 18 Nov 2025 17:15:05 +0530
 
-Introduce a new kexec-based selftest, luo_kexec_multi_session, to validate
-the end-to-end lifecycle of a more complex LUO scenario.
+Patch series "kexec: reorganize kexec and kdump sysfs", v6.
 
-While the existing luo_kexec_simple test covers the basic end-to-end
-lifecycle, it is limited to a single session with one preserved file. 
-This new test significantly expands coverage by verifying LUO's ability to
-handle a mixed workload involving multiple sessions, some of which are
-intentionally empty.  This ensures that the LUO core correctly preserves
-and restores the state of all session types across a reboot.
+All existing kexec and kdump sysfs entries are moved to a new location,
+/sys/kernel/kexec, to keep /sys/kernel/ clean and better organized.
+Symlinks are created at the old locations for backward compatibility and
+can be removed in the future [01/03].
 
-The test validates the following sequence:
+While doing this cleanup, the old kexec and kdump sysfs entries are
+marked as deprecated in the existing ABI documentation [02/03]. This
+makes it clear that these older interfaces should no longer be used.
+New ABI documentation is added to describe the reorganized interfaces
+[03/03], so users and tools can rely on the updated sysfs interfaces
+going forward.
 
-Stage 1 (Pre-kexec):
 
-  - Creates two empty test sessions (multi-test-empty-1,
-    multi-test-empty-2).
-  - Creates a session with one preserved memfd (multi-test-files-1).
-  - Creates another session with two preserved memfds
-    (multi-test-files-2), each containing unique data.
-  - Creates a state-tracking session to manage the transition to
-    Stage 2.
-  - Executes a kexec reboot via the helper script.
+This patch (of 3):
 
-Stage 2 (Post-kexec):
+Several kexec and kdump sysfs entries are currently placed directly under
+/sys/kernel/, which clutters the directory and makes it harder to identify
+unrelated entries.  To improve organization and readability, these entries
+are now moved under a dedicated directory, /sys/kernel/kexec.
 
-  - Retrieves the state-tracking session to confirm it is in the
-    post-reboot stage.
-  - Retrieves all four test sessions (both the empty and non-empty
-    ones).
-  - For the non-empty sessions, restores the preserved memfds and
-    verifies their contents match the original data patterns.
-  - Finalizes all test sessions and the state session to ensure a clean
-    teardown and that all associated kernel resources are correctly
-    released.
+The following sysfs moved under new kexec sysfs node
++------------------------------------+------------------+
+|    Old sysfs name         |     New sysfs name        |
+|  (under /sys/kernel)      | (under /sys/kernel/kexec) |
++---------------------------+---------------------------+
+| kexec_loaded              | loaded                    |
++---------------------------+---------------------------+
+| kexec_crash_loaded        | crash_loaded              |
++---------------------------+---------------------------+
+| kexec_crash_size          | crash_size                |
++---------------------------+---------------------------+
+| crash_elfcorehdr_size     | crash_elfcorehdr_size     |
++---------------------------+---------------------------+
+| kexec_crash_cma_ranges    | crash_cma_ranges          |
++---------------------------+---------------------------+
 
-This test provides greater confidence in the robustness of the LUO
-framework by validating its behavior in a more realistic, multi-faceted
-scenario.
+For backward compatibility, symlinks are created at the old locations so
+that existing tools and scripts continue to work.  These symlinks can be
+removed in the future once users have switched to the new path.
 
-Link: https://lkml.kernel.org/r/20251125165850.3389713-19-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: David Matlack <dmatlack@google.com>
-Cc: Aleksander Lobakin <aleksander.lobakin@intel.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: anish kumar <yesanishhere@gmail.com>
-Cc: Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Chen Ridong <chenridong@huawei.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Wagner <wagi@kernel.org>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Jeffery <djeffery@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guixin Liu <kanie@linux.alibaba.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lennart Poettering <lennart@poettering.net>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Leon Romanovsky <leonro@nvidia.com>
-Cc: Lukas Wunner <lukas@wunner.de>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Matthew Maurer <mmaurer@google.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Myugnjoo Ham <myungjoo.ham@samsung.com>
-Cc: Parav Pandit <parav@nvidia.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Pratyush Yadav <ptyadav@amazon.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Saeed Mahameed <saeedm@nvidia.com>
-Cc: Samiullah Khawaja <skhawaja@google.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Stuart Hayes <stuart.w.hayes@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: William Tu <witu@nvidia.com>
-Cc: Yoann Congal <yoann.congal@smile.fr>
-Cc: Zhu Yanjun <yanjun.zhu@linux.dev>
-Cc: Zijun Hu <quic_zijuhu@quicinc.com>
+While creating symlinks, entries are added in /sys/kernel/ that point to
+their new locations under /sys/kernel/kexec/.  If an error occurs while
+adding a symlink, it is logged but does not stop initialization of the
+remaining kexec sysfs symlinks.
+
+The /sys/kernel/<crash_elfcorehdr_size | kexec/crash_elfcorehdr_size>
+entry is now controlled by CONFIG_CRASH_DUMP instead of
+CONFIG_VMCORE_INFO, as CONFIG_CRASH_DUMP also enables CONFIG_VMCORE_INFO.
+
+Link: https://lkml.kernel.org/r/20251118114507.1769455-1-sourabhjain@linux.ibm.com
+Link: https://lkml.kernel.org/r/20251118114507.1769455-2-sourabhjain@linux.ibm.com
+Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Aditya Gupta <adityag@linux.ibm.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Jiri Bohac <jbohac@suse.cz>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Mahesh J Salgaonkar <mahesh@linux.ibm.com>
+Cc: Pingfan Liu <piliu@redhat.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Shivang Upadhyay <shivangu@linux.ibm.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/liveupdate/Makefile            |    1 
- tools/testing/selftests/liveupdate/luo_multi_session.c |  162 ++++++++++
- 2 files changed, 163 insertions(+)
+ kernel/kexec_core.c |  141 ++++++++++++++++++++++++++++++++++++++++++
+ kernel/ksysfs.c     |   89 --------------------------
+ 2 files changed, 142 insertions(+), 88 deletions(-)
 
-diff --git a/tools/testing/selftests/liveupdate/luo_multi_session.c a/tools/testing/selftests/liveupdate/luo_multi_session.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/liveupdate/luo_multi_session.c
-@@ -0,0 +1,162 @@
-+// SPDX-License-Identifier: GPL-2.0-only
+--- a/kernel/kexec_core.c~kexec-move-sysfs-entries-to-sys-kernel-kexec
++++ a/kernel/kexec_core.c
+@@ -42,6 +42,7 @@
+ #include <linux/objtool.h>
+ #include <linux/kmsg_dump.h>
+ #include <linux/dma-map-ops.h>
++#include <linux/sysfs.h>
+ 
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -1225,3 +1226,143 @@ int kernel_kexec(void)
+ 	kexec_unlock();
+ 	return error;
+ }
 +
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ *
-+ * A selftest to validate the end-to-end lifecycle of multiple LUO sessions
-+ * across a kexec reboot, including empty sessions and sessions with multiple
-+ * files.
-+ */
-+
-+#include "luo_test_utils.h"
-+
-+#define SESSION_EMPTY_1 "multi-test-empty-1"
-+#define SESSION_EMPTY_2 "multi-test-empty-2"
-+#define SESSION_FILES_1 "multi-test-files-1"
-+#define SESSION_FILES_2 "multi-test-files-2"
-+
-+#define MFD1_TOKEN 0x1001
-+#define MFD2_TOKEN 0x2002
-+#define MFD3_TOKEN 0x3003
-+
-+#define MFD1_DATA "Data for session files 1"
-+#define MFD2_DATA "First file for session files 2"
-+#define MFD3_DATA "Second file for session files 2"
-+
-+#define STATE_SESSION_NAME "kexec_multi_state"
-+#define STATE_MEMFD_TOKEN 998
-+
-+/* Stage 1: Executed before the kexec reboot. */
-+static void run_stage_1(int luo_fd)
++static ssize_t loaded_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *buf)
 +{
-+	int s_empty1_fd, s_empty2_fd, s_files1_fd, s_files2_fd;
++	return sysfs_emit(buf, "%d\n", !!kexec_image);
++}
++static struct kobj_attribute loaded_attr = __ATTR_RO(loaded);
 +
-+	ksft_print_msg("[STAGE 1] Starting pre-kexec setup for multi-session test...\n");
++#ifdef CONFIG_CRASH_DUMP
++static ssize_t crash_loaded_show(struct kobject *kobj,
++				       struct kobj_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "%d\n", kexec_crash_loaded());
++}
++static struct kobj_attribute crash_loaded_attr = __ATTR_RO(crash_loaded);
 +
-+	ksft_print_msg("[STAGE 1] Creating state file for next stage (2)...\n");
-+	create_state_file(luo_fd, STATE_SESSION_NAME, STATE_MEMFD_TOKEN, 2);
++#ifdef CONFIG_CRASH_RESERVE
++static ssize_t crash_cma_ranges_show(struct kobject *kobj,
++				     struct kobj_attribute *attr, char *buf)
++{
 +
-+	ksft_print_msg("[STAGE 1] Creating empty sessions '%s' and '%s'...\n",
-+		       SESSION_EMPTY_1, SESSION_EMPTY_2);
-+	s_empty1_fd = luo_create_session(luo_fd, SESSION_EMPTY_1);
-+	if (s_empty1_fd < 0)
-+		fail_exit("luo_create_session for '%s'", SESSION_EMPTY_1);
++	ssize_t len = 0;
++	int i;
 +
-+	s_empty2_fd = luo_create_session(luo_fd, SESSION_EMPTY_2);
-+	if (s_empty2_fd < 0)
-+		fail_exit("luo_create_session for '%s'", SESSION_EMPTY_2);
++	for (i = 0; i < crashk_cma_cnt; ++i) {
++		len += sysfs_emit_at(buf, len, "%08llx-%08llx\n",
++				     crashk_cma_ranges[i].start,
++				     crashk_cma_ranges[i].end);
++	}
++	return len;
++}
++static struct kobj_attribute crash_cma_ranges_attr = __ATTR_RO(crash_cma_ranges);
++#endif
 +
-+	ksft_print_msg("[STAGE 1] Creating session '%s' with one memfd...\n",
-+		       SESSION_FILES_1);
++static ssize_t crash_size_show(struct kobject *kobj,
++				       struct kobj_attribute *attr, char *buf)
++{
++	ssize_t size = crash_get_memory_size();
 +
-+	s_files1_fd = luo_create_session(luo_fd, SESSION_FILES_1);
-+	if (s_files1_fd < 0)
-+		fail_exit("luo_create_session for '%s'", SESSION_FILES_1);
-+	if (create_and_preserve_memfd(s_files1_fd, MFD1_TOKEN, MFD1_DATA) < 0) {
-+		fail_exit("create_and_preserve_memfd for token %#x",
-+			  MFD1_TOKEN);
++	if (size < 0)
++		return size;
++
++	return sysfs_emit(buf, "%zd\n", size);
++}
++static ssize_t crash_size_store(struct kobject *kobj,
++				struct kobj_attribute *attr,
++				const char *buf, size_t count)
++{
++	unsigned long cnt;
++	int ret;
++
++	if (kstrtoul(buf, 0, &cnt))
++		return -EINVAL;
++
++	ret = crash_shrink_memory(cnt);
++	return ret < 0 ? ret : count;
++}
++static struct kobj_attribute crash_size_attr = __ATTR_RW(crash_size);
++
++#ifdef CONFIG_CRASH_HOTPLUG
++static ssize_t crash_elfcorehdr_size_show(struct kobject *kobj,
++			       struct kobj_attribute *attr, char *buf)
++{
++	unsigned int sz = crash_get_elfcorehdr_size();
++
++	return sysfs_emit(buf, "%u\n", sz);
++}
++static struct kobj_attribute crash_elfcorehdr_size_attr = __ATTR_RO(crash_elfcorehdr_size);
++
++#endif /* CONFIG_CRASH_HOTPLUG */
++#endif /* CONFIG_CRASH_DUMP */
++
++static struct attribute *kexec_attrs[] = {
++	&loaded_attr.attr,
++#ifdef CONFIG_CRASH_DUMP
++	&crash_loaded_attr.attr,
++	&crash_size_attr.attr,
++#ifdef CONFIG_CRASH_RESERVE
++	&crash_cma_ranges_attr.attr,
++#endif
++#ifdef CONFIG_CRASH_HOTPLUG
++	&crash_elfcorehdr_size_attr.attr,
++#endif
++#endif
++	NULL
++};
++
++struct kexec_link_entry {
++	const char *target;
++	const char *name;
++};
++
++static struct kexec_link_entry kexec_links[] = {
++	{ "loaded", "kexec_loaded" },
++#ifdef CONFIG_CRASH_DUMP
++	{ "crash_loaded", "kexec_crash_loaded" },
++	{ "crash_size", "kexec_crash_size" },
++#ifdef CONFIG_CRASH_RESERVE
++	{"crash_cma_ranges", "kexec_crash_cma_ranges"},
++#endif
++#ifdef CONFIG_CRASH_HOTPLUG
++	{ "crash_elfcorehdr_size", "crash_elfcorehdr_size" },
++#endif
++#endif
++};
++
++static struct kobject *kexec_kobj;
++ATTRIBUTE_GROUPS(kexec);
++
++static int __init init_kexec_sysctl(void)
++{
++	int error;
++	int i;
++
++	kexec_kobj = kobject_create_and_add("kexec", kernel_kobj);
++	if (!kexec_kobj) {
++		pr_err("failed to create kexec kobject\n");
++		return -ENOMEM;
 +	}
 +
-+	ksft_print_msg("[STAGE 1] Creating session '%s' with two memfds...\n",
-+		       SESSION_FILES_2);
++	error = sysfs_create_groups(kexec_kobj, kexec_groups);
++	if (error)
++		goto kset_exit;
 +
-+	s_files2_fd = luo_create_session(luo_fd, SESSION_FILES_2);
-+	if (s_files2_fd < 0)
-+		fail_exit("luo_create_session for '%s'", SESSION_FILES_2);
-+	if (create_and_preserve_memfd(s_files2_fd, MFD2_TOKEN, MFD2_DATA) < 0) {
-+		fail_exit("create_and_preserve_memfd for token %#x",
-+			  MFD2_TOKEN);
-+	}
-+	if (create_and_preserve_memfd(s_files2_fd, MFD3_TOKEN, MFD3_DATA) < 0) {
-+		fail_exit("create_and_preserve_memfd for token %#x",
-+			  MFD3_TOKEN);
++	for (i = 0; i < ARRAY_SIZE(kexec_links); i++) {
++		error = compat_only_sysfs_link_entry_to_kobj(kernel_kobj, kexec_kobj,
++							     kexec_links[i].target,
++							     kexec_links[i].name);
++		if (error)
++			pr_err("Unable to create %s symlink (%d)", kexec_links[i].name, error);
 +	}
 +
-+	close(luo_fd);
-+	daemonize_and_wait();
++	return 0;
++
++kset_exit:
++	kobject_put(kexec_kobj);
++	return error;
 +}
 +
-+/* Stage 2: Executed after the kexec reboot. */
-+static void run_stage_2(int luo_fd, int state_session_fd)
-+{
-+	int s_empty1_fd, s_empty2_fd, s_files1_fd, s_files2_fd;
-+	int mfd1, mfd2, mfd3, stage;
-+
-+	ksft_print_msg("[STAGE 2] Starting post-kexec verification...\n");
-+
-+	restore_and_read_stage(state_session_fd, STATE_MEMFD_TOKEN, &stage);
-+	if (stage != 2) {
-+		fail_exit("Expected stage 2, but state file contains %d",
-+			  stage);
-+	}
-+
-+	ksft_print_msg("[STAGE 2] Retrieving all sessions...\n");
-+	s_empty1_fd = luo_retrieve_session(luo_fd, SESSION_EMPTY_1);
-+	if (s_empty1_fd < 0)
-+		fail_exit("luo_retrieve_session for '%s'", SESSION_EMPTY_1);
-+
-+	s_empty2_fd = luo_retrieve_session(luo_fd, SESSION_EMPTY_2);
-+	if (s_empty2_fd < 0)
-+		fail_exit("luo_retrieve_session for '%s'", SESSION_EMPTY_2);
-+
-+	s_files1_fd = luo_retrieve_session(luo_fd, SESSION_FILES_1);
-+	if (s_files1_fd < 0)
-+		fail_exit("luo_retrieve_session for '%s'", SESSION_FILES_1);
-+
-+	s_files2_fd = luo_retrieve_session(luo_fd, SESSION_FILES_2);
-+	if (s_files2_fd < 0)
-+		fail_exit("luo_retrieve_session for '%s'", SESSION_FILES_2);
-+
-+	ksft_print_msg("[STAGE 2] Verifying contents of session '%s'...\n",
-+		       SESSION_FILES_1);
-+	mfd1 = restore_and_verify_memfd(s_files1_fd, MFD1_TOKEN, MFD1_DATA);
-+	if (mfd1 < 0)
-+		fail_exit("restore_and_verify_memfd for token %#x", MFD1_TOKEN);
-+	close(mfd1);
-+
-+	ksft_print_msg("[STAGE 2] Verifying contents of session '%s'...\n",
-+		       SESSION_FILES_2);
-+
-+	mfd2 = restore_and_verify_memfd(s_files2_fd, MFD2_TOKEN, MFD2_DATA);
-+	if (mfd2 < 0)
-+		fail_exit("restore_and_verify_memfd for token %#x", MFD2_TOKEN);
-+	close(mfd2);
-+
-+	mfd3 = restore_and_verify_memfd(s_files2_fd, MFD3_TOKEN, MFD3_DATA);
-+	if (mfd3 < 0)
-+		fail_exit("restore_and_verify_memfd for token %#x", MFD3_TOKEN);
-+	close(mfd3);
-+
-+	ksft_print_msg("[STAGE 2] Test data verified successfully.\n");
-+
-+	ksft_print_msg("[STAGE 2] Finalizing all test sessions...\n");
-+	if (luo_session_finish(s_empty1_fd) < 0)
-+		fail_exit("luo_session_finish for '%s'", SESSION_EMPTY_1);
-+	close(s_empty1_fd);
-+
-+	if (luo_session_finish(s_empty2_fd) < 0)
-+		fail_exit("luo_session_finish for '%s'", SESSION_EMPTY_2);
-+	close(s_empty2_fd);
-+
-+	if (luo_session_finish(s_files1_fd) < 0)
-+		fail_exit("luo_session_finish for '%s'", SESSION_FILES_1);
-+	close(s_files1_fd);
-+
-+	if (luo_session_finish(s_files2_fd) < 0)
-+		fail_exit("luo_session_finish for '%s'", SESSION_FILES_2);
-+	close(s_files2_fd);
-+
-+	ksft_print_msg("[STAGE 2] Finalizing state session...\n");
-+	if (luo_session_finish(state_session_fd) < 0)
-+		fail_exit("luo_session_finish for state session");
-+	close(state_session_fd);
-+
-+	ksft_print_msg("\n--- MULTI-SESSION KEXEC TEST PASSED ---\n");
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	return luo_test(argc, argv, STATE_SESSION_NAME,
-+			run_stage_1, run_stage_2);
-+}
---- a/tools/testing/selftests/liveupdate/Makefile~selftests-liveupdate-add-kexec-test-for-multiple-and-empty-sessions
-+++ a/tools/testing/selftests/liveupdate/Makefile
-@@ -5,6 +5,7 @@ LIB_C += luo_test_utils.c
- TEST_GEN_PROGS += liveupdate
++subsys_initcall(init_kexec_sysctl);
+--- a/kernel/ksysfs.c~kexec-move-sysfs-entries-to-sys-kernel-kexec
++++ a/kernel/ksysfs.c
+@@ -12,7 +12,7 @@
+ #include <linux/sysfs.h>
+ #include <linux/export.h>
+ #include <linux/init.h>
+-#include <linux/kexec.h>
++#include <linux/vmcore_info.h>
+ #include <linux/profile.h>
+ #include <linux/stat.h>
+ #include <linux/sched.h>
+@@ -119,68 +119,6 @@ static ssize_t profiling_store(struct ko
+ KERNEL_ATTR_RW(profiling);
+ #endif
  
- TEST_GEN_PROGS_EXTENDED += luo_kexec_simple
-+TEST_GEN_PROGS_EXTENDED += luo_multi_session
+-#ifdef CONFIG_KEXEC_CORE
+-static ssize_t kexec_loaded_show(struct kobject *kobj,
+-				 struct kobj_attribute *attr, char *buf)
+-{
+-	return sysfs_emit(buf, "%d\n", !!kexec_image);
+-}
+-KERNEL_ATTR_RO(kexec_loaded);
+-
+-#ifdef CONFIG_CRASH_DUMP
+-static ssize_t kexec_crash_loaded_show(struct kobject *kobj,
+-				       struct kobj_attribute *attr, char *buf)
+-{
+-	return sysfs_emit(buf, "%d\n", kexec_crash_loaded());
+-}
+-KERNEL_ATTR_RO(kexec_crash_loaded);
+-
+-#ifdef CONFIG_CRASH_RESERVE
+-static ssize_t kexec_crash_cma_ranges_show(struct kobject *kobj,
+-				    struct kobj_attribute *attr, char *buf)
+-{
+-
+-	ssize_t len = 0;
+-	int i;
+-
+-	for (i = 0; i < crashk_cma_cnt; ++i) {
+-		len += sysfs_emit_at(buf, len, "%08llx-%08llx\n",
+-				     crashk_cma_ranges[i].start,
+-				     crashk_cma_ranges[i].end);
+-	}
+-	return len;
+-}
+-KERNEL_ATTR_RO(kexec_crash_cma_ranges);
+-#endif /* CONFIG_CRASH_RESERVE */
+-
+-static ssize_t kexec_crash_size_show(struct kobject *kobj,
+-				       struct kobj_attribute *attr, char *buf)
+-{
+-	ssize_t size = crash_get_memory_size();
+-
+-	if (size < 0)
+-		return size;
+-
+-	return sysfs_emit(buf, "%zd\n", size);
+-}
+-static ssize_t kexec_crash_size_store(struct kobject *kobj,
+-				   struct kobj_attribute *attr,
+-				   const char *buf, size_t count)
+-{
+-	unsigned long cnt;
+-	int ret;
+-
+-	if (kstrtoul(buf, 0, &cnt))
+-		return -EINVAL;
+-
+-	ret = crash_shrink_memory(cnt);
+-	return ret < 0 ? ret : count;
+-}
+-KERNEL_ATTR_RW(kexec_crash_size);
+-
+-#endif /* CONFIG_CRASH_DUMP*/
+-#endif /* CONFIG_KEXEC_CORE */
+-
+ #ifdef CONFIG_VMCORE_INFO
  
- TEST_FILES += do_kexec.sh
+ static ssize_t vmcoreinfo_show(struct kobject *kobj,
+@@ -192,18 +130,6 @@ static ssize_t vmcoreinfo_show(struct ko
+ }
+ KERNEL_ATTR_RO(vmcoreinfo);
  
+-#ifdef CONFIG_CRASH_HOTPLUG
+-static ssize_t crash_elfcorehdr_size_show(struct kobject *kobj,
+-			       struct kobj_attribute *attr, char *buf)
+-{
+-	unsigned int sz = crash_get_elfcorehdr_size();
+-
+-	return sysfs_emit(buf, "%u\n", sz);
+-}
+-KERNEL_ATTR_RO(crash_elfcorehdr_size);
+-
+-#endif
+-
+ #endif /* CONFIG_VMCORE_INFO */
+ 
+ /* whether file capabilities are enabled */
+@@ -273,21 +199,8 @@ static struct attribute * kernel_attrs[]
+ #ifdef CONFIG_PROFILING
+ 	&profiling_attr.attr,
+ #endif
+-#ifdef CONFIG_KEXEC_CORE
+-	&kexec_loaded_attr.attr,
+-#ifdef CONFIG_CRASH_DUMP
+-	&kexec_crash_loaded_attr.attr,
+-	&kexec_crash_size_attr.attr,
+-#ifdef CONFIG_CRASH_RESERVE
+-	&kexec_crash_cma_ranges_attr.attr,
+-#endif
+-#endif
+-#endif
+ #ifdef CONFIG_VMCORE_INFO
+ 	&vmcoreinfo_attr.attr,
+-#ifdef CONFIG_CRASH_HOTPLUG
+-	&crash_elfcorehdr_size_attr.attr,
+-#endif
+ #endif
+ #ifndef CONFIG_TINY_RCU
+ 	&rcu_expedited_attr.attr,
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
 
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
 
