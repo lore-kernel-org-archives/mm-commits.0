@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D84552DF703
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:35:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F393B2DF703
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:35:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764275759; cv=none; b=FfYZN53PHK9t4DrJC15UyY1VH1+lkj6jVJa/1MIdJ7Yim9FyWZ+F78XR4Xxm/JG1MAn795sQ6a1433Q6qL2sSjS1Pt0+5aOWcxIQXFJxZiZWjJYcko4zTQUBoyd9unZ7oKOwpG58VoaJ4idsCrtVZtU3tcySE/l5xxQF/fz8KUI=
+	t=1764275760; cv=none; b=XbAQatuoAmZb5m1TAGydU953DfQLN1DdXqkvC2tUPwqSOHK6ruoD+ZseVkUWT3aWN32smuve9ez1KnpHO0chDGABN5bQnyfYCKhqRY0fm+hgdiNQQiqzF12BzJ7JQYCClVgh5zoBfAvyAwl4XkxhrEh7YDctgYfSygzJqEIQ20Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764275759; c=relaxed/simple;
-	bh=uPvNQ7DroP4v0n4BXZGugMbHx9nB9I45AW+wgtHVPkY=;
-	h=Date:To:From:Subject:Message-Id; b=Sgc40g75vZ04M9soKTgrNS4MWTkTjBbi8vQ2vUAoGLqurPhsxLQWYI5i1o0BmffkCFvFyLJOcFNchODJD+E1Hjg+kqwyI84P0uxoYcYlt6oJsboMJZ3H3y56sytNZx8RJvnmi4RKwRxjemLbUgnlKf1zOfVl2UCOfHDMK2zDjKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ac9DmP6r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764275760; c=relaxed/simple;
+	bh=MhvFoOZftFcMckzAoWo38AfgWaltUpTLGZLP/8/EQHc=;
+	h=Date:To:From:Subject:Message-Id; b=CbA3y3GO6ttRulFmbGtmojRrN42cksgoqRVzC56YGdDdI3rF+bwQndAPwrQKHcgsJaZ7WjnlaiolEdfuG3DQxLghbieI50njO/S9UCQaGoC9xTNnaG9cK+VqWDzGTahwK4sNVIyl1iKTDy6s3txF7Me/sRwb0kgqmEuxvHB4F2E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s21rcOaE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ac9DmP6r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A5C4C4CEF8;
-	Thu, 27 Nov 2025 20:35:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s21rcOaE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6B2DC4CEF8;
+	Thu, 27 Nov 2025 20:35:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764275758;
-	bh=uPvNQ7DroP4v0n4BXZGugMbHx9nB9I45AW+wgtHVPkY=;
+	s=korg; t=1764275759;
+	bh=MhvFoOZftFcMckzAoWo38AfgWaltUpTLGZLP/8/EQHc=;
 	h=Date:To:From:Subject:From;
-	b=ac9DmP6rCMQ9raGkqjDvOJbAltopaqCtFhbwFbLaKY2BrRteZH+xWb5XiX8Sm4Mx0
-	 lJIC1Bjx/Dw2m2lC7DfgwKNfr/ek2YMCwlfzpA5FLYY2x9CLCbZ13/r5jJt/OBPsTZ
-	 zMucIafIDTjGnYMviTGsl7pR5fSMVput3EuKenZY=
-Date: Thu, 27 Nov 2025 12:35:57 -0800
+	b=s21rcOaE28bzlgcBZdvyyryD+FRrUPvMAgMZ4933RRO3pzTXksIVTa8Jsd3onGBIo
+	 MI8uda5Pe+irW5S8oeM4/qqhAlvyNdr9Q5GATAAPue1zV6FKYFJ+oR9Veh2P05Iy5N
+	 NO4seNSgZIUyfjrjloomBI6U+RFB3y0nQcG8DJMk=
+Date: Thu, 27 Nov 2025 12:35:59 -0800
 To: mm-commits@vger.kernel.org,lkp@intel.com,bhe@redhat.com,maqianga@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kexec-fix-uninitialized-struct-kimage-image-pointer.patch removed from -mm tree
-Message-Id: <20251127203558.5A5C4C4CEF8@smtp.kernel.org>
+Subject: [to-be-updated] kexec-add-kexec-flag-to-control-debug-printing.patch removed from -mm tree
+Message-Id: <20251127203559.B6B2DC4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec: fix uninitialized struct kimage *image pointer
+     Subject: kexec: add kexec flag to control debug printing
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-uninitialized-struct-kimage-image-pointer.patch
+     kexec-add-kexec-flag-to-control-debug-printing.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Qiang Ma <maqianga@uniontech.com>
-Subject: kexec: fix uninitialized struct kimage *image pointer
-Date: Wed, 26 Nov 2025 16:44:25 +0800
+Subject: kexec: add kexec flag to control debug printing
+Date: Wed, 26 Nov 2025 16:44:26 +0800
 
-Patch series "kexec: print out debugging message if required for
-kexec_load", v3.
-
-Overview:
-=========
 commit a85ee18c7900 ("kexec_file: print out debugging message if
 required") has added general code printing in kexec_file_load(), but not
 in kexec_load().
@@ -58,97 +53,119 @@ in kexec_load().
 Since kexec_load and kexec_file_load are not triggered simultaneously, we
 can unify the debug flag of kexec and kexec_file as kexec_dbg_print.
 
-Next, we need to do some things in this patchset:
+Next, we need to do four things:
 
 1. rename kexec_file_dbg_print to kexec_dbg_print
 2. Add KEXEC_DEBUG
 3. Initialize kexec_dbg_print for kexec
-4. Fix uninitialized struct kimage *image pointer 
-5. Set the reset of kexec_dbg_print to kimage_free
+4. Set the reset of kexec_dbg_print to kimage_free
 
-Testing:
-=========
-I did testing on x86_64, arm64 and loongarch.  On x86_64, the printed
-messages look like below:
-
-unset CONFIG_KEXEC_FILE:
-[   81.502374] kexec: kexec_load: type:0, start:0x23fff7700 head:0x10a4b9002 flags:0x3e0010
-
-set CONFIG_KEXEC_FILE
-[   36.774228] kexec_file: kernel: 0000000066c386c8 kernel_size: 0xd78400
-[   36.821814] kexec-bzImage64: Loaded purgatory at 0x23fffb000
-[   36.821826] kexec-bzImage64: Loaded boot_param, command line and misc at 0x23fff9000 bufsz=0x12d0 memsz=0x2000
-[   36.821829] kexec-bzImage64: Loaded 64bit kernel at 0x23d400000 bufsz=0xd73400 memsz=0x2ab7000
-[   36.821918] kexec-bzImage64: Loaded initrd at 0x23bd0b000 bufsz=0x16f40a8 memsz=0x16f40a8
-[   36.821920] kexec-bzImage64: Final command line is: root=/dev/mapper/test-root crashkernel=auto rd.lvm.lv=test/root
-[   36.821925] kexec-bzImage64: E820 memmap:
-[   36.821926] kexec-bzImage64: 0000000000000000-000000000009ffff (1)
-[   36.821928] kexec-bzImage64: 0000000000100000-0000000000811fff (1)
-[   36.821930] kexec-bzImage64: 0000000000812000-0000000000812fff (2)
-[   36.821931] kexec-bzImage64: 0000000000813000-00000000bee38fff (1)
-[   36.821933] kexec-bzImage64: 00000000bee39000-00000000beec2fff (2)
-[   36.821934] kexec-bzImage64: 00000000beec3000-00000000bf8ecfff (1)
-[   36.821935] kexec-bzImage64: 00000000bf8ed000-00000000bfb6cfff (2)
-[   36.821936] kexec-bzImage64: 00000000bfb6d000-00000000bfb7efff (3)
-[   36.821937] kexec-bzImage64: 00000000bfb7f000-00000000bfbfefff (4)
-[   36.821938] kexec-bzImage64: 00000000bfbff000-00000000bff7bfff (1)
-[   36.821939] kexec-bzImage64: 00000000bff7c000-00000000bfffffff (2)
-[   36.821940] kexec-bzImage64: 00000000feffc000-00000000feffffff (2)
-[   36.821941] kexec-bzImage64: 00000000ffc00000-00000000ffffffff (2)
-[   36.821942] kexec-bzImage64: 0000000100000000-000000023fffffff (1)
-[   36.872348] kexec_file: nr_segments = 4
-[   36.872356] kexec_file: segment[0]: buf=0x000000005314ece7 bufsz=0x4000 mem=0x23fffb000 memsz=0x5000
-[   36.872370] kexec_file: segment[1]: buf=0x000000006e59b143 bufsz=0x12d0 mem=0x23fff9000 memsz=0x2000
-[   36.872374] kexec_file: segment[2]: buf=0x00000000eb7b1fc3 bufsz=0xd73400 mem=0x23d400000 memsz=0x2ab7000
-[   36.882172] kexec_file: segment[3]: buf=0x000000006af76441 bufsz=0x16f40a8 mem=0x23bd0b000 memsz=0x16f5000
-[   36.889113] kexec_file: kexec_file_load: type:0, start:0x23fffb150 head:0x101a2e002 flags:0x8
-
-
-This patch (of 3):
-
-The image is initialized to NULL.  Then, after calling kimage_alloc_init,
-we can directly goto 'out' because at this time, the kimage_free will
-determine whether image is a NULL pointer.
-
-This can also prepare for the subsequent patch's kexec_core_dbg_print to
-be reset to zero in kimage_free.
-
-Link: https://lkml.kernel.org/r/20251126084427.3222212-1-maqianga@uniontech.com
-Link: https://lkml.kernel.org/r/20251126084427.3222212-2-maqianga@uniontech.com
+Link: https://lkml.kernel.org/r/20251126084427.3222212-3-maqianga@uniontech.com
 Signed-off-by: Qiang Ma <maqianga@uniontech.com>
 Cc: Baoquan He <bhe@redhat.com>
-Cc: maqiang <maqianga@uniontech.com>
 Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/kexec.h      |    9 +++++----
+ include/uapi/linux/kexec.h |    1 +
+ kernel/kexec.c             |    1 +
+ kernel/kexec_core.c        |    4 +++-
+ kernel/kexec_file.c        |    4 +---
+ 5 files changed, 11 insertions(+), 8 deletions(-)
 
---- a/kernel/kexec.c~kexec-fix-uninitialized-struct-kimage-image-pointer
+--- a/include/linux/kexec.h~kexec-add-kexec-flag-to-control-debug-printing
++++ a/include/linux/kexec.h
+@@ -455,10 +455,11 @@ bool kexec_load_permitted(int kexec_imag
+ 
+ /* List of defined/legal kexec flags */
+ #ifndef CONFIG_KEXEC_JUMP
+-#define KEXEC_FLAGS    (KEXEC_ON_CRASH | KEXEC_UPDATE_ELFCOREHDR | KEXEC_CRASH_HOTPLUG_SUPPORT)
++#define KEXEC_FLAGS    (KEXEC_ON_CRASH | KEXEC_UPDATE_ELFCOREHDR | KEXEC_CRASH_HOTPLUG_SUPPORT | \
++			KEXEC_DEBUG)
+ #else
+ #define KEXEC_FLAGS    (KEXEC_ON_CRASH | KEXEC_PRESERVE_CONTEXT | KEXEC_UPDATE_ELFCOREHDR | \
+-			KEXEC_CRASH_HOTPLUG_SUPPORT)
++			KEXEC_CRASH_HOTPLUG_SUPPORT | KEXEC_DEBUG)
+ #endif
+ 
+ /* List of defined/legal kexec file flags */
+@@ -525,10 +526,10 @@ static inline int arch_kexec_post_alloc_
+ static inline void arch_kexec_pre_free_pages(void *vaddr, unsigned int pages) { }
+ #endif
+ 
+-extern bool kexec_file_dbg_print;
++extern bool kexec_dbg_print;
+ 
+ #define kexec_dprintk(fmt, arg...) \
+-        do { if (kexec_file_dbg_print) pr_info(fmt, ##arg); } while (0)
++	do { if (kexec_dbg_print) pr_info(fmt, ##arg); } while (0)
+ 
+ extern void *kimage_map_segment(struct kimage *image, unsigned long addr, unsigned long size);
+ extern void kimage_unmap_segment(void *buffer);
+--- a/include/uapi/linux/kexec.h~kexec-add-kexec-flag-to-control-debug-printing
++++ a/include/uapi/linux/kexec.h
+@@ -14,6 +14,7 @@
+ #define KEXEC_PRESERVE_CONTEXT	0x00000002
+ #define KEXEC_UPDATE_ELFCOREHDR	0x00000004
+ #define KEXEC_CRASH_HOTPLUG_SUPPORT 0x00000008
++#define KEXEC_DEBUG		0x00000010
+ #define KEXEC_ARCH_MASK		0xffff0000
+ 
+ /*
+--- a/kernel/kexec.c~kexec-add-kexec-flag-to-control-debug-printing
 +++ a/kernel/kexec.c
-@@ -95,6 +95,8 @@ static int do_kexec_load(unsigned long e
- 	unsigned long i;
- 	int ret;
+@@ -42,6 +42,7 @@ static int kimage_alloc_init(struct kima
+ 	if (!image)
+ 		return -ENOMEM;
  
-+	image = NULL;
++	kexec_dbg_print = !!(flags & KEXEC_DEBUG);
+ 	image->start = entry;
+ 	image->nr_segments = nr_segments;
+ 	memcpy(image->segment, segments, nr_segments * sizeof(*segments));
+--- a/kernel/kexec_core.c~kexec-add-kexec-flag-to-control-debug-printing
++++ a/kernel/kexec_core.c
+@@ -55,7 +55,7 @@ atomic_t __kexec_lock = ATOMIC_INIT(0);
+ /* Flag to indicate we are going to kexec a new kernel */
+ bool kexec_in_progress = false;
+ 
+-bool kexec_file_dbg_print;
++bool kexec_dbg_print;
+ 
+ /*
+  * When kexec transitions to the new kernel there is a one-to-one
+@@ -578,6 +578,8 @@ void kimage_free(struct kimage *image)
+ 	kimage_entry_t *ptr, entry;
+ 	kimage_entry_t ind = 0;
+ 
++	kexec_dbg_print = false;
 +
- 	/*
- 	 * Because we write directly to the reserved memory region when loading
- 	 * crash kernels we need a serialization here to prevent multiple crash
-@@ -129,7 +131,7 @@ static int do_kexec_load(unsigned long e
+ 	if (!image)
+ 		return;
  
- 	ret = kimage_alloc_init(&image, entry, nr_segments, segments, flags);
- 	if (ret)
--		goto out_unlock;
-+		goto out;
+--- a/kernel/kexec_file.c~kexec-add-kexec-flag-to-control-debug-printing
++++ a/kernel/kexec_file.c
+@@ -138,8 +138,6 @@ void kimage_file_post_load_cleanup(struc
+ 	 */
+ 	kfree(image->image_loader_data);
+ 	image->image_loader_data = NULL;
+-
+-	kexec_file_dbg_print = false;
+ }
  
- 	if (flags & KEXEC_PRESERVE_CONTEXT)
- 		image->preserve_context = 1;
+ #ifdef CONFIG_KEXEC_SIG
+@@ -314,7 +312,7 @@ kimage_file_alloc_init(struct kimage **r
+ 	if (!image)
+ 		return -ENOMEM;
+ 
+-	kexec_file_dbg_print = !!(flags & KEXEC_FILE_DEBUG);
++	kexec_dbg_print = !!(flags & KEXEC_FILE_DEBUG);
+ 	image->file_mode = 1;
+ 
+ #ifdef CONFIG_CRASH_DUMP
 _
 
 Patches currently in -mm which might be from maqianga@uniontech.com are
 
-kexec-add-kexec-flag-to-control-debug-printing.patch
 kexec-print-out-debugging-message-if-required-for-kexec_load.patch
 
