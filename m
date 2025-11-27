@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27E63311589
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2AE031E10C
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282415; cv=none; b=EndQcKDvxBnvU74HIjw5h1yJPwxlH66FNizgBv2zUS1xZo+8QmpI7Gho+KVvDYoO9INqC+dnOuUM/k7YwwKcilWcfnTgONf2izeNorbf867SRMyrQYlXHLvkgF1dTynYFC+NTDcy1psvGqKf9cx7OohmxK8jsRy3nK/caQne+5c=
+	t=1764282417; cv=none; b=ZBgZEalsstXFnlWPV17DRdM9W5kHyqPr5FLP1osWJKGF9XrcLjrgHp9EMj56HdGT2rHNDzJ6pvIFUau1e5lmNlrhtx+itO01AU8Rs3M+dgvvANYK5pC7bUnJ/JP/4Yr3RrUSZGETngtftvpaqXyIm2ySD4tybqcWX+6onDMFsRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282415; c=relaxed/simple;
-	bh=fTnbwu/htDf/O+NYCkBpuWTMKxS7KLvOs+jPO6i3Tb8=;
-	h=Date:To:From:Subject:Message-Id; b=V7vFn53kK2WDYc4NeMQwiUquRM6c1VSZuYn2eKGAqZ+Wbss9StowWRfV0pvslGDwFxTPcDX/N5w6pVbfHD/4fEfgvK9ZWkGqx3xT0EqcFj4srh8/tyueM1/UUmBuooVEA6xTPN+nkC2eDZ/rj/IdGjGmR7Sn+VKmswHjicL/CwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CM+DdYSP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282417; c=relaxed/simple;
+	bh=jyENzXWDtK7iyhO3nSdlEsFw2BZrlWuoP4fLMIuyTaQ=;
+	h=Date:To:From:Subject:Message-Id; b=Yfyq9ORgdmjBuGyD7CrxpxSsBvUiVsQgTFt8TL0FC/Myir/jISGBFKu5IlnX+/EUT8yroNZFScR7zgcdVN5gHZUeZbDSGFOXpAx9nzYjwH1OGbmS+Nmc78kOnMcNCWigHFgfDz0j3J5W9gHcUlEtZk6FiCaBCvCVVByPTTwxLR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1w4cqc7d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CM+DdYSP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDBD0C4CEF8;
-	Thu, 27 Nov 2025 22:26:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1w4cqc7d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28FA9C4CEF8;
+	Thu, 27 Nov 2025 22:26:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282415;
-	bh=fTnbwu/htDf/O+NYCkBpuWTMKxS7KLvOs+jPO6i3Tb8=;
+	s=korg; t=1764282417;
+	bh=jyENzXWDtK7iyhO3nSdlEsFw2BZrlWuoP4fLMIuyTaQ=;
 	h=Date:To:From:Subject:From;
-	b=CM+DdYSPHrVeDdlGox6ZEndRkJYyB6+XypGYNv0UPRuEQOq6aCZHTzF4IvaTU6Pmr
-	 ZB9rC5XL8uUL19UliXK6+Doy4Fr7mF/xXKKVJ+/MU9I9viFzCuQoxwxI4JJbyod8pY
-	 +PXP3HSct86DgrR1h0r4RblIvPt3qPLQ2ycXlflQ=
-Date: Thu, 27 Nov 2025 14:26:54 -0800
+	b=1w4cqc7dWxLijVHHbUag7AVmARHKq2YOc9C9VES/9yzVw0/wqaiAlBMu7rjXR3Vhq
+	 VB6UH2Jv7+UblhGPaePJzL7lqtIkgUn66vCRQEf/G2Fq/5+8HyUP/fWg/ekUR/lwi2
+	 h+4HJB+Zm+txKVu4+hAMJ8TpFwxPvzVWe8j/JTOM=
+Date: Thu, 27 Nov 2025 14:26:56 -0800
 To: mm-commits@vger.kernel.org,yoann.congal@smile.fr,yesanishhere@gmail.com,yanjun.zhu@linux.dev,witu@nvidia.com,wagi@kernel.org,vincent.guittot@linaro.org,tj@kernel.org,tglx@linutronix.de,stuart.w.hayes@gmail.com,song@kernel.org,skhawaja@google.com,saeedm@nvidia.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,rdunlap@infradead.org,quic_zijuhu@quicinc.com,pratyush@kernel.org,pasha.tatashin@soleen.com,parav@nvidia.com,ojeda@kernel.org,myungjoo.ham@samsung.com,mmaurer@google.com,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,lukas@wunner.de,linux@weissschuh.net,leonro@nvidia.com,leon@kernel.org,lennart@poettering.net,kanie@linux.alibaba.com,Jonathan.Cameron@huawei.com,joel.granados@kernel.org,jgg@nvidia.com,jannh@google.com,ira.weiny@intel.com,ilpo.jarvinen@linux.intel.com,hughd@google.com,hpa@zytor.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,graf@amazon.com,dmatlack@google.com,djeffery@redhat.com,david@redhat.com,dan.j.williams@intel.com,dakr@kernel.org,cw00.choi@samsung.com,corbet@lwn.net,chrisl@kernel.org,chenridong@huawei.com,brauner@kernel.org,bp@alien8.de,bhelgaas@google.com,bartosz.golaszewski@linaro.org,axboe@kernel.dk,anna.schumaker@oracle.com,andriy.shevchenko@linux.intel.com,aliceryhl@google.com,aleksander.lobakin@intel.com,ptyadav@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mm-shmem-export-some-functions-to-internalh.patch removed from -mm tree
-Message-Id: <20251127222654.EDBD0C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] liveupdate-luo_file-add-private-argument-to-store-runtime-state.patch removed from -mm tree
+Message-Id: <20251127222657.28FA9C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: export some functions to internal.h
+     Subject: liveupdate: luo_file: add private argument to store runtime state
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-export-some-functions-to-internalh.patch
+     liveupdate-luo_file-add-private-argument-to-store-runtime-state.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pratyush Yadav <ptyadav@amazon.de>
-Subject: mm: shmem: export some functions to internal.h
-Date: Tue, 25 Nov 2025 11:58:42 -0500
+Subject: liveupdate: luo_file: add private argument to store runtime state
+Date: Tue, 25 Nov 2025 11:58:43 -0500
 
-shmem_inode_acct_blocks(), shmem_recalc_inode(), and
-shmem_add_to_page_cache() are used by shmem_alloc_and_add_folio().  This
-functionality will be used by memfd LUO integration.
+Currently file handlers only get the serialized_data field to store their
+state.  This field has a pointer to the serialized state of the file, and
+it becomes a part of LUO file's serialized state.
 
-Link: https://lkml.kernel.org/r/20251125165850.3389713-13-pasha.tatashin@soleen.com
+File handlers can also need some runtime state to track information that
+shouldn't make it in the serialized data.
+
+One such example is a vmalloc pointer.  While kho_preserve_vmalloc()
+preserves the memory backing a vmalloc allocation, it does not store the
+original vmap pointer, since that has no use being passed to the next
+kernel.  The pointer is needed to free the memory in case the file is
+unpreserved.
+
+Provide a private field in struct luo_file and pass it to all the
+callbacks.  The field's can be set by preserve, and must be freed by
+unpreserve.
+
+Link: https://lkml.kernel.org/r/20251125165850.3389713-14-pasha.tatashin@soleen.com
 Signed-off-by: Pratyush Yadav <ptyadav@amazon.de>
+Co-developed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: David Matlack <dmatlack@google.com>
@@ -118,58 +132,84 @@ Cc: Zijun Hu <quic_zijuhu@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    6 ++++++
- mm/shmem.c    |   10 +++++-----
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ include/linux/liveupdate.h   |    5 +++++
+ kernel/liveupdate/luo_file.c |    9 +++++++++
+ 2 files changed, 14 insertions(+)
 
---- a/mm/internal.h~mm-shmem-export-some-functions-to-internalh
-+++ a/mm/internal.h
-@@ -1562,6 +1562,12 @@ void __meminit __init_page_from_nid(unsi
- unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
- 			  int priority);
- 
-+int shmem_add_to_page_cache(struct folio *folio,
-+			    struct address_space *mapping,
-+			    pgoff_t index, void *expected, gfp_t gfp);
-+int shmem_inode_acct_blocks(struct inode *inode, long pages);
-+bool shmem_recalc_inode(struct inode *inode, long alloced, long swapped);
-+
- #ifdef CONFIG_SHRINKER_DEBUG
- static inline __printf(2, 0) int shrinker_debugfs_name_alloc(
- 			struct shrinker *shrinker, const char *fmt, va_list ap)
---- a/mm/shmem.c~mm-shmem-export-some-functions-to-internalh
-+++ a/mm/shmem.c
-@@ -219,7 +219,7 @@ static inline void shmem_unacct_blocks(u
- 		vm_unacct_memory(pages * VM_ACCT(PAGE_SIZE));
- }
- 
--static int shmem_inode_acct_blocks(struct inode *inode, long pages)
-+int shmem_inode_acct_blocks(struct inode *inode, long pages)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-@@ -435,7 +435,7 @@ static void shmem_free_inode(struct supe
+--- a/include/linux/liveupdate.h~liveupdate-luo_file-add-private-argument-to-store-runtime-state
++++ a/include/linux/liveupdate.h
+@@ -27,6 +27,10 @@ struct file;
+  *                    this to the file being operated on.
+  * @serialized_data:  The opaque u64 handle, preserve/prepare/freeze may update
+  *                    this field.
++ * @private_data:     Private data for the file used to hold runtime state that
++ *                    is not preserved. Set by the handler's .preserve()
++ *                    callback, and must be freed in the handler's
++ *                    .unpreserve() callback.
   *
-  * Return: true if swapped was incremented from 0, for shmem_writeout().
-  */
--static bool shmem_recalc_inode(struct inode *inode, long alloced, long swapped)
-+bool shmem_recalc_inode(struct inode *inode, long alloced, long swapped)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	bool first_swapped = false;
-@@ -861,9 +861,9 @@ static void shmem_update_stats(struct fo
- /*
-  * Somewhat like filemap_add_folio, but error if expected item has gone.
-  */
--static int shmem_add_to_page_cache(struct folio *folio,
--				   struct address_space *mapping,
--				   pgoff_t index, void *expected, gfp_t gfp)
-+int shmem_add_to_page_cache(struct folio *folio,
-+			    struct address_space *mapping,
-+			    pgoff_t index, void *expected, gfp_t gfp)
- {
- 	XA_STATE_ORDER(xas, &mapping->i_pages, index, folio_order(folio));
- 	unsigned long nr = folio_nr_pages(folio);
+  * This structure bundles all parameters for the file operation callbacks.
+  * The 'data' and 'file' fields are used for both input and output.
+@@ -36,6 +40,7 @@ struct liveupdate_file_op_args {
+ 	bool retrieved;
+ 	struct file *file;
+ 	u64 serialized_data;
++	void *private_data;
+ };
+ 
+ /**
+--- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-add-private-argument-to-store-runtime-state
++++ a/kernel/liveupdate/luo_file.c
+@@ -129,6 +129,10 @@ static LIST_HEAD(luo_file_handler_list);
+  *                 This handle is passed back to the handler's .freeze(),
+  *                 .retrieve(), and .finish() callbacks, allowing it to track
+  *                 and update its serialized state across phases.
++ * @private_data:  Pointer to the private data for the file used to hold runtime
++ *                 state that is not preserved. Set by the handler's .preserve()
++ *                 callback, and must be freed in the handler's .unpreserve()
++ *                 callback.
+  * @retrieved:     A flag indicating whether a user/kernel in the new kernel has
+  *                 successfully called retrieve() on this file. This prevents
+  *                 multiple retrieval attempts.
+@@ -155,6 +159,7 @@ struct luo_file {
+ 	struct liveupdate_file_handler *fh;
+ 	struct file *file;
+ 	u64 serialized_data;
++	void *private_data;
+ 	bool retrieved;
+ 	struct mutex mutex;
+ 	struct list_head list;
+@@ -298,6 +303,7 @@ int luo_preserve_file(struct luo_file_se
+ 		goto err_kfree;
+ 
+ 	luo_file->serialized_data = args.serialized_data;
++	luo_file->private_data = args.private_data;
+ 	list_add_tail(&luo_file->list, &file_set->files_list);
+ 	file_set->count++;
+ 
+@@ -344,6 +350,7 @@ void luo_file_unpreserve_files(struct lu
+ 		args.handler = luo_file->fh;
+ 		args.file = luo_file->file;
+ 		args.serialized_data = luo_file->serialized_data;
++		args.private_data = luo_file->private_data;
+ 		luo_file->fh->ops->unpreserve(&args);
+ 
+ 		list_del(&luo_file->list);
+@@ -370,6 +377,7 @@ static int luo_file_freeze_one(struct lu
+ 		args.handler = luo_file->fh;
+ 		args.file = luo_file->file;
+ 		args.serialized_data = luo_file->serialized_data;
++		args.private_data = luo_file->private_data;
+ 
+ 		err = luo_file->fh->ops->freeze(&args);
+ 		if (!err)
+@@ -390,6 +398,7 @@ static void luo_file_unfreeze_one(struct
+ 		args.handler = luo_file->fh;
+ 		args.file = luo_file->file;
+ 		args.serialized_data = luo_file->serialized_data;
++		args.private_data = luo_file->private_data;
+ 
+ 		luo_file->fh->ops->unfreeze(&args);
+ 	}
 _
 
 Patches currently in -mm which might be from ptyadav@amazon.de are
