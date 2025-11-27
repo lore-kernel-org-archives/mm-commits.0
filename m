@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D4AB32142D
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B42C231A55B
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282406; cv=none; b=IVSQqhywshSfarpUkIfu1Jh+NTKZCEa5Uw4EN/lfd6lXhBvKjXbltrVfJyePgfSd2Er92XqjtiXRxwvvFdOHP6gUhRgSbha9S5wwRQPcRwAprWXw7gcN02nHfmoyq6A8xVAAu5hiEm9nBOHKpmPqJTYlITA1N/kSJGID7FHo9UQ=
+	t=1764282408; cv=none; b=lyOHqhSMV+NecCnwzMcqmJXdTf2SsL4eHbND0lAJbZXWR94fw7o+VR97GFJOrGPQRGjdIwQ7mA9Cvji2VYg2PGAn+/mPLuyMElzftxYTgKxE4OwKyjL1bwU52dMf4sdDncb1/uocq84TTAAVKNGgzfOflVzJVFR4/THDAkapzdE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282406; c=relaxed/simple;
-	bh=NcIU6IvwjtcldSaW+OBumc84SfzzfS5INGmB9I075Dk=;
-	h=Date:To:From:Subject:Message-Id; b=rItYbLSyq+gdWrlPxpnDPijCrgUXBWJTS/jfhDxbAZ2ILN6zK347uOTMCSpYKcExNzu7LlnomunExEiQTTObSITgx/9+iLf9HU3cLagVSzvJEXoWk00Bi7ByBV7QlEnThSdUg6ki9+UPz6CPzHqReDcoK5fgC85AYTIsowrpTSI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SUx0EcSB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282408; c=relaxed/simple;
+	bh=u8lEkkiZohJKP4tG8LcIdZJBOHv7mqNloVCTsRvlkj4=;
+	h=Date:To:From:Subject:Message-Id; b=PgPp2ayYvlr7rI6tuzILSOz7X/nBhDW6p+WMs7L65Y48bB1w2BIiBmN6Ib9HPvbuAFqnnXO2qjsdfCbhZM8/K6UeZi3ixjf4Uzho89XMZ7zaaenmMN7T/O11LJgET1N5jZXApBGvbcCeWsKMJ1fjuYqxIDGElel+DgEB7cQc/CQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kptF9WCg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SUx0EcSB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AE65C4CEF8;
-	Thu, 27 Nov 2025 22:26:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kptF9WCg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 712E3C4CEF8;
+	Thu, 27 Nov 2025 22:26:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282406;
-	bh=NcIU6IvwjtcldSaW+OBumc84SfzzfS5INGmB9I075Dk=;
+	s=korg; t=1764282408;
+	bh=u8lEkkiZohJKP4tG8LcIdZJBOHv7mqNloVCTsRvlkj4=;
 	h=Date:To:From:Subject:From;
-	b=SUx0EcSBaqysjAOk51w/kmY/cJBYutQW+sM/SiaAkOmqvNYPRKbcwa+1QpcDUT5Zt
-	 IGsq4kZ96RGkRDriaaeJb2y9djq2+c/TGJljUhaOxMShgl6PYlFMp1aGUSngE9R2s3
-	 QqEQb0wdK59inHS9l5UD9m1Ln8Sam3l91Z+EcI5w=
-Date: Thu, 27 Nov 2025 14:26:45 -0800
+	b=kptF9WCg1WWY9i4Hd2zXYN+PstrqTpxeNP4woygrTI0tKDU/RPXu9Hygr4lq2f1H0
+	 PBW/hv3wDSzOusZAQ4QvEkWWI2dsC0p4pKnyKEDtMgUJ0vT53i/lo3YQZEffnIY96m
+	 GVwoWRy6Oi3jNUxGxOwlQpiYbR5/7mmpHw46POBE=
+Date: Thu, 27 Nov 2025 14:26:47 -0800
 To: mm-commits@vger.kernel.org,yoann.congal@smile.fr,yesanishhere@gmail.com,yanjun.zhu@linux.dev,witu@nvidia.com,wagi@kernel.org,vincent.guittot@linaro.org,tj@kernel.org,tglx@linutronix.de,stuart.w.hayes@gmail.com,song@kernel.org,skhawaja@google.com,saeedm@nvidia.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,rdunlap@infradead.org,quic_zijuhu@quicinc.com,ptyadav@amazon.de,pratyush@kernel.org,parav@nvidia.com,ojeda@kernel.org,myungjoo.ham@samsung.com,mmaurer@google.com,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,lukas@wunner.de,linux@weissschuh.net,leonro@nvidia.com,leon@kernel.org,lennart@poettering.net,kanie@linux.alibaba.com,Jonathan.Cameron@huawei.com,joel.granados@kernel.org,jgg@nvidia.com,jannh@google.com,ira.weiny@intel.com,ilpo.jarvinen@linux.intel.com,hughd@google.com,hpa@zytor.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,graf@amazon.com,dmatlack@google.com,djeffery@redhat.com,david@redhat.com,dan.j.williams@intel.com,dakr@kernel.org,cw00.choi@samsung.com,corbet@lwn.net,chrisl@kernel.org,chenridong@huawei.com,brauner@kernel.org,bp@alien8.de,bhelgaas@google.com,bartosz.golaszewski@linaro.org,axboe@kernel.dk,anna.schumaker@oracle.com,andriy.shevchenko@linux.intel.com,aliceryhl@google.com,aleksander.lobakin@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] docs-add-luo-documentation.patch removed from -mm tree
-Message-Id: <20251127222646.4AE65C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] maintainers-add-liveupdate-entry.patch removed from -mm tree
+Message-Id: <20251127222648.712E3C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs: add luo documentation
+     Subject: MAINTAINERS: add liveupdate entry
 has been removed from the -mm tree.  Its filename was
-     docs-add-luo-documentation.patch
+     maintainers-add-liveupdate-entry.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: docs: add luo documentation
-Date: Tue, 25 Nov 2025 11:58:38 -0500
+Subject: MAINTAINERS: add liveupdate entry
+Date: Tue, 25 Nov 2025 11:58:39 -0500
 
-Add the documentation files for the Live Update Orchestrator
+Add a MAINTAINERS file entry for the new Live Update Orchestrator
+introduced in previous patches.
 
-Link: https://lkml.kernel.org/r/20251125165850.3389713-9-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20251125165850.3389713-10-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
@@ -116,116 +117,30 @@ Cc: Zijun Hu <quic_zijuhu@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/index.rst           |    1 
- Documentation/core-api/liveupdate.rst      |   54 +++++++++++++++++++
- Documentation/userspace-api/index.rst      |    1 
- Documentation/userspace-api/liveupdate.rst |   20 +++++++
- 4 files changed, 76 insertions(+)
+ MAINTAINERS |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/Documentation/core-api/index.rst~docs-add-luo-documentation
-+++ a/Documentation/core-api/index.rst
-@@ -138,6 +138,7 @@ Documents that don't fit elsewhere or wh
-    :maxdepth: 1
+--- a/MAINTAINERS~maintainers-add-liveupdate-entry
++++ a/MAINTAINERS
+@@ -14466,6 +14466,18 @@ F:	kernel/module/livepatch.c
+ F:	samples/livepatch/
+ F:	tools/testing/selftests/livepatch/
  
-    librs
-+   liveupdate
-    netlink
- 
- .. only:: subproject and html
-diff --git a/Documentation/core-api/liveupdate.rst a/Documentation/core-api/liveupdate.rst
-new file mode 100644
---- /dev/null
-+++ a/Documentation/core-api/liveupdate.rst
-@@ -0,0 +1,54 @@
-+.. SPDX-License-Identifier: GPL-2.0
++LIVE UPDATE
++M:	Pasha Tatashin <pasha.tatashin@soleen.com>
++M:	Mike Rapoport <rppt@kernel.org>
++L:	linux-kernel@vger.kernel.org
++S:	Maintained
++F:	Documentation/core-api/liveupdate.rst
++F:	Documentation/userspace-api/liveupdate.rst
++F:	include/linux/liveupdate.h
++F:	include/linux/liveupdate/
++F:	include/uapi/linux/liveupdate.h
++F:	kernel/liveupdate/
 +
-+========================
-+Live Update Orchestrator
-+========================
-+:Author: Pasha Tatashin <pasha.tatashin@soleen.com>
-+
-+.. kernel-doc:: kernel/liveupdate/luo_core.c
-+   :doc: Live Update Orchestrator (LUO)
-+
-+LUO Sessions
-+============
-+.. kernel-doc:: kernel/liveupdate/luo_session.c
-+   :doc: LUO Sessions
-+
-+LUO Preserving File Descriptors
-+===============================
-+.. kernel-doc:: kernel/liveupdate/luo_file.c
-+   :doc: LUO File Descriptors
-+
-+Live Update Orchestrator ABI
-+============================
-+.. kernel-doc:: include/linux/kho/abi/luo.h
-+   :doc: Live Update Orchestrator ABI
-+
-+Public API
-+==========
-+.. kernel-doc:: include/linux/liveupdate.h
-+
-+.. kernel-doc:: include/linux/kho/abi/luo.h
-+   :functions:
-+
-+.. kernel-doc:: kernel/liveupdate/luo_core.c
-+   :export:
-+
-+.. kernel-doc:: kernel/liveupdate/luo_file.c
-+   :export:
-+
-+Internal API
-+============
-+.. kernel-doc:: kernel/liveupdate/luo_core.c
-+   :internal:
-+
-+.. kernel-doc:: kernel/liveupdate/luo_session.c
-+   :internal:
-+
-+.. kernel-doc:: kernel/liveupdate/luo_file.c
-+   :internal:
-+
-+See Also
-+========
-+
-+- :doc:`Live Update uAPI </userspace-api/liveupdate>`
-+- :doc:`/core-api/kho/concepts`
---- a/Documentation/userspace-api/index.rst~docs-add-luo-documentation
-+++ a/Documentation/userspace-api/index.rst
-@@ -61,6 +61,7 @@ Everything else
-    :maxdepth: 1
- 
-    ELF
-+   liveupdate
-    netlink/index
-    sysfs-platform_profile
-    vduse
-diff --git a/Documentation/userspace-api/liveupdate.rst a/Documentation/userspace-api/liveupdate.rst
-new file mode 100644
---- /dev/null
-+++ a/Documentation/userspace-api/liveupdate.rst
-@@ -0,0 +1,20 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+================
-+Live Update uAPI
-+================
-+:Author: Pasha Tatashin <pasha.tatashin@soleen.com>
-+
-+ioctl interface
-+===============
-+.. kernel-doc:: kernel/liveupdate/luo_core.c
-+   :doc: LUO ioctl Interface
-+
-+ioctl uAPI
-+===========
-+.. kernel-doc:: include/uapi/linux/liveupdate.h
-+
-+See Also
-+========
-+
-+- :doc:`Live Update Orchestrator </core-api/liveupdate>`
+ LLC (802.2)
+ L:	netdev@vger.kernel.org
+ S:	Odd fixes
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
