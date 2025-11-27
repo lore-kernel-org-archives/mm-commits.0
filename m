@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D647231D371
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3381313283
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282391; cv=none; b=eiG8tQz4BRFMTyoSR5chtNAO4FjJM+RYf8+pTVN+lKgsIhKrKbMaia3y0B+VRiFR5KW9oemsTwIFsYUhzOhe+ynBb1QHV09QiB6VydPMlpBemUCeCMTEBKPFVz4LtaHSln7nyYNbSTXPDGMHiHY2mCBZo/VsyEiGVqDHIlPQw5E=
+	t=1764282393; cv=none; b=H2X0SESN29qi+TmMNOFVmZj1t5QBvIm9Ax7YayzLwLjw1Q8Z3/cdV0r6d7viG4sMNNeYXKCB9walwApsTUOAa4W3GQewNNywWBI7NRlhXNEWC+m7HBcTv5aKU5vZ47PIW/vQ6+6lk5K3NDaIH1YLo8i4klWiZFmoeywmNo6obq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282391; c=relaxed/simple;
-	bh=hABfO3j/gZZZP9hEtPI9BOdBe5Du+njnY5rwt0V7T7Y=;
-	h=Date:To:From:Subject:Message-Id; b=WNBuAwP5zxZuf8GIp5W+USoa9ROjheezzTgadXdWu3lc8IV+yqQN8tS/KpViykfL1tRe6LzZCjtnQwAIECUu2mnu+SHci7RujWdbQeV81csO20fL0qO+UxCAm7jlLODx20ZdGM/P0XTQ+3HMUwcrZs/YBiBrlipWQcCr/njuVPg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u7nQ2FNc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282393; c=relaxed/simple;
+	bh=f1UbeQqdJ9VCD8yiVbEfyxl6zZcod8AdIvlPvG0r15E=;
+	h=Date:To:From:Subject:Message-Id; b=ot7rgtAfxzXvRtcH6+qucul+HjXTfeg2bYXXU1EtcJ7A8HGCX2/aEL2km5LCQOEmY3NYO8zr+jhsx42/qKBK33GmiSOqb63w/saoNyQLMNq134vH47OVyDz55UaV+QbUJDHpT4xaTBcEP9j5/mIgTHkaXhrSc/zpPt7DSJ1v6YI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Voh9xBJu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u7nQ2FNc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52DE0C4CEF8;
-	Thu, 27 Nov 2025 22:26:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Voh9xBJu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 748F4C4CEF8;
+	Thu, 27 Nov 2025 22:26:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282391;
-	bh=hABfO3j/gZZZP9hEtPI9BOdBe5Du+njnY5rwt0V7T7Y=;
+	s=korg; t=1764282393;
+	bh=f1UbeQqdJ9VCD8yiVbEfyxl6zZcod8AdIvlPvG0r15E=;
 	h=Date:To:From:Subject:From;
-	b=u7nQ2FNc3YK+zfiAzNOcNoataFGCzDHJS7H8pJaXasxg+tLe4Ku3oO6s8YTalnTEg
-	 xKBeOzy+cgFTTEjDi9UfG6WgM2Sn91uyKdTe0uwyfr3eBsZNeAvCy06CZJkPn3M48s
-	 sbo2Cn9EqAjn0aSwfr+WvBhMy45dbrYH4LdNwXRA=
-Date: Thu, 27 Nov 2025 14:26:30 -0800
+	b=Voh9xBJu8qG2b7KhsxY+JIOoojMNJt0UdrC8MhO4/RITaKaT3QcOKnjRjoUG454av
+	 nqLIl8MvZJuqT/K1nmjbTLw7awdktfrFhWbg6Jnqw0SkNOZtubwCvUG6/cG4uQQxAZ
+	 nCO/f2h49P465rjjFTJWnEAzJaGelY1ekaIIrej4=
+Date: Thu, 27 Nov 2025 14:26:33 -0800
 To: mm-commits@vger.kernel.org,yoann.congal@smile.fr,yesanishhere@gmail.com,yanjun.zhu@linux.dev,witu@nvidia.com,wagi@kernel.org,vincent.guittot@linaro.org,tj@kernel.org,tglx@linutronix.de,stuart.w.hayes@gmail.com,song@kernel.org,skhawaja@google.com,saeedm@nvidia.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,rdunlap@infradead.org,quic_zijuhu@quicinc.com,ptyadav@amazon.de,pratyush@kernel.org,parav@nvidia.com,ojeda@kernel.org,myungjoo.ham@samsung.com,mmaurer@google.com,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,lukas@wunner.de,linux@weissschuh.net,leonro@nvidia.com,leon@kernel.org,lennart@poettering.net,kanie@linux.alibaba.com,Jonathan.Cameron@huawei.com,joel.granados@kernel.org,jgg@nvidia.com,jannh@google.com,ira.weiny@intel.com,ilpo.jarvinen@linux.intel.com,hughd@google.com,hpa@zytor.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,graf@amazon.com,dmatlack@google.com,djeffery@redhat.com,david@redhat.com,dan.j.williams@intel.com,dakr@kernel.org,cw00.choi@samsung.com,corbet@lwn.net,chrisl@kernel.org,chenridong@huawei.com,brauner@kernel.org,bp@alien8.de,bhelgaas@google.com,bartosz.golaszewski@linaro.org,axboe@kernel.dk,anna.schumaker@oracle.com,andriy.shevchenko@linux.intel.com,aliceryhl@google.com,aleksander.lobakin@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] liveupdate-luo_core-integrate-with-kho.patch removed from -mm tree
-Message-Id: <20251127222631.52DE0C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kexec-call-liveupdate_reboot-before-kexec.patch removed from -mm tree
+Message-Id: <20251127222633.748F4C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: liveupdate: luo_core: integrate with KHO
+     Subject: kexec: call liveupdate_reboot() before kexec
 has been removed from the -mm tree.  Its filename was
-     liveupdate-luo_core-integrate-with-kho.patch
+     kexec-call-liveupdate_reboot-before-kexec.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: liveupdate: luo_core: integrate with KHO
-Date: Tue, 25 Nov 2025 11:58:32 -0500
+Subject: kexec: call liveupdate_reboot() before kexec
+Date: Tue, 25 Nov 2025 11:58:33 -0500
 
-Integrate the LUO with the KHO framework to enable passing LUO state
-across a kexec reboot.
+Modify the kernel_kexec() to call liveupdate_reboot().
 
-This patch implements the lifecycle integration with KHO:
+This ensures that the Live Update Orchestrator is notified just before the
+kernel executes the kexec jump.  The liveupdate_reboot() function triggers
+the final freeze event, allowing participating FDs perform last-minute
+check or state saving within the blackout window.
 
-1. Incoming State: During early boot (`early_initcall`), LUO checks if
-   KHO is active. If so, it retrieves the "LUO" subtree, verifies the
-   "luo-v1" compatibility string, and reads the `liveupdate-number` to
-   track the update count.
+If liveupdate_reboot() returns an error (indicating a failure during LUO
+finalization), the kexec operation is aborted to prevent proceeding with
+an inconsistent state.  An error is returned to user.
 
-2. Outgoing State: During late initialization (`late_initcall`), LUO
-   allocates a new FDT for the next kernel, populates it with the basic
-   header (compatible string and incremented update number), and
-   registers it with KHO (`kho_add_subtree`).
-
-3. Finalization: The `liveupdate_reboot()` notifier is updated to invoke
-   `kho_finalize()`. This ensures that all memory segments marked for
-   preservation are properly serialized before the kexec jump.
-
-Link: https://lkml.kernel.org/r/20251125165850.3389713-3-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20251125165850.3389713-4-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
 Tested-by: David Matlack <dmatlack@google.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Aleksander Lobakin <aleksander.lobakin@intel.com>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
@@ -133,284 +125,30 @@ Cc: Zijun Hu <quic_zijuhu@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kho/abi/luo.h      |   58 ++++++++++
- kernel/liveupdate/luo_core.c     |  154 ++++++++++++++++++++++++++++-
- kernel/liveupdate/luo_internal.h |   22 ++++
- 3 files changed, 233 insertions(+), 1 deletion(-)
+ kernel/kexec_core.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/include/linux/kho/abi/luo.h a/include/linux/kho/abi/luo.h
-new file mode 100644
---- /dev/null
-+++ a/include/linux/kho/abi/luo.h
-@@ -0,0 +1,58 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ */
-+
-+/**
-+ * DOC: Live Update Orchestrator ABI
-+ *
-+ * This header defines the stable Application Binary Interface used by the
-+ * Live Update Orchestrator to pass state from a pre-update kernel to a
-+ * post-update kernel. The ABI is built upon the Kexec HandOver framework
-+ * and uses a Flattened Device Tree to describe the preserved data.
-+ *
-+ * This interface is a contract. Any modification to the FDT structure, node
-+ * properties, compatible strings, or the layout of the `__packed` serialization
-+ * structures defined here constitutes a breaking change. Such changes require
-+ * incrementing the version number in the relevant `_COMPATIBLE` string to
-+ * prevent a new kernel from misinterpreting data from an old kernel.
-+ *
-+ * Changes are allowed provided the compatibility version is incremented;
-+ * however, backward/forward compatibility is only guaranteed for kernels
-+ * supporting the same ABI version.
-+ *
-+ * FDT Structure Overview:
-+ *   The entire LUO state is encapsulated within a single KHO entry named "LUO".
-+ *   This entry contains an FDT with the following layout:
-+ *
-+ *   .. code-block:: none
-+ *
-+ *     / {
-+ *         compatible = "luo-v1";
-+ *         liveupdate-number = <...>;
-+ *     };
-+ *
-+ * Main LUO Node (/):
-+ *
-+ *   - compatible: "luo-v1"
-+ *     Identifies the overall LUO ABI version.
-+ *   - liveupdate-number: u64
-+ *     A counter tracking the number of successful live updates performed.
-+ */
-+
-+#ifndef _LINUX_KHO_ABI_LUO_H
-+#define _LINUX_KHO_ABI_LUO_H
-+
-+/*
-+ * The LUO FDT hooks all LUO state for sessions, fds, etc.
-+ * In the root it also carries "liveupdate-number" 64-bit property that
-+ * corresponds to the number of live-updates performed on this machine.
-+ */
-+#define LUO_FDT_SIZE		PAGE_SIZE
-+#define LUO_FDT_KHO_ENTRY_NAME	"LUO"
-+#define LUO_FDT_COMPATIBLE	"luo-v1"
-+#define LUO_FDT_LIVEUPDATE_NUM	"liveupdate-number"
-+
-+#endif /* _LINUX_KHO_ABI_LUO_H */
---- a/kernel/liveupdate/luo_core.c~liveupdate-luo_core-integrate-with-kho
-+++ a/kernel/liveupdate/luo_core.c
-@@ -41,12 +41,26 @@
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/io.h>
-+#include <linux/kexec_handover.h>
-+#include <linux/kho/abi/luo.h>
- #include <linux/kobject.h>
-+#include <linux/libfdt.h>
- #include <linux/liveupdate.h>
- #include <linux/miscdevice.h>
-+#include <linux/mm.h>
-+#include <linux/sizes.h>
-+#include <linux/string.h>
-+#include <linux/unaligned.h>
-+
-+#include "kexec_handover_internal.h"
-+#include "luo_internal.h"
- 
- static struct {
- 	bool enabled;
-+	void *fdt_out;
-+	void *fdt_in;
-+	u64 liveupdate_num;
- } luo_global;
- 
- static int __init early_liveupdate_param(char *buf)
-@@ -55,6 +69,129 @@ static int __init early_liveupdate_param
- }
- early_param("liveupdate", early_liveupdate_param);
- 
-+static int __init luo_early_startup(void)
-+{
-+	phys_addr_t fdt_phys;
-+	int err, ln_size;
-+	const void *ptr;
-+
-+	if (!kho_is_enabled()) {
-+		if (liveupdate_enabled())
-+			pr_warn("Disabling liveupdate because KHO is disabled\n");
-+		luo_global.enabled = false;
-+		return 0;
-+	}
-+
-+	/* Retrieve LUO subtree, and verify its format. */
-+	err = kho_retrieve_subtree(LUO_FDT_KHO_ENTRY_NAME, &fdt_phys);
-+	if (err) {
-+		if (err != -ENOENT) {
-+			pr_err("failed to retrieve FDT '%s' from KHO: %pe\n",
-+			       LUO_FDT_KHO_ENTRY_NAME, ERR_PTR(err));
-+			return err;
-+		}
-+
-+		return 0;
-+	}
-+
-+	luo_global.fdt_in = phys_to_virt(fdt_phys);
-+	err = fdt_node_check_compatible(luo_global.fdt_in, 0,
-+					LUO_FDT_COMPATIBLE);
-+	if (err) {
-+		pr_err("FDT '%s' is incompatible with '%s' [%d]\n",
-+		       LUO_FDT_KHO_ENTRY_NAME, LUO_FDT_COMPATIBLE, err);
-+
-+		return -EINVAL;
-+	}
-+
-+	ln_size = 0;
-+	ptr = fdt_getprop(luo_global.fdt_in, 0, LUO_FDT_LIVEUPDATE_NUM,
-+			  &ln_size);
-+	if (!ptr || ln_size != sizeof(luo_global.liveupdate_num)) {
-+		pr_err("Unable to get live update number '%s' [%d]\n",
-+		       LUO_FDT_LIVEUPDATE_NUM, ln_size);
-+
-+		return -EINVAL;
-+	}
-+
-+	luo_global.liveupdate_num = get_unaligned((u64 *)ptr);
-+	pr_info("Retrieved live update data, liveupdate number: %lld\n",
-+		luo_global.liveupdate_num);
-+
-+	return 0;
-+}
-+
-+static int __init liveupdate_early_init(void)
-+{
-+	int err;
-+
-+	err = luo_early_startup();
-+	if (err) {
-+		luo_global.enabled = false;
-+		luo_restore_fail("The incoming tree failed to initialize properly [%pe], disabling live update\n",
-+				 ERR_PTR(err));
-+	}
-+
-+	return err;
-+}
-+early_initcall(liveupdate_early_init);
-+
-+/* Called during boot to create outgoing LUO fdt tree */
-+static int __init luo_fdt_setup(void)
-+{
-+	const u64 ln = luo_global.liveupdate_num + 1;
-+	void *fdt_out;
-+	int err;
-+
-+	fdt_out = kho_alloc_preserve(LUO_FDT_SIZE);
-+	if (IS_ERR(fdt_out)) {
-+		pr_err("failed to allocate/preserve FDT memory\n");
-+		return PTR_ERR(fdt_out);
-+	}
-+
-+	err = fdt_create(fdt_out, LUO_FDT_SIZE);
-+	err |= fdt_finish_reservemap(fdt_out);
-+	err |= fdt_begin_node(fdt_out, "");
-+	err |= fdt_property_string(fdt_out, "compatible", LUO_FDT_COMPATIBLE);
-+	err |= fdt_property(fdt_out, LUO_FDT_LIVEUPDATE_NUM, &ln, sizeof(ln));
-+	err |= fdt_end_node(fdt_out);
-+	err |= fdt_finish(fdt_out);
-+	if (err)
-+		goto exit_free;
-+
-+	err = kho_add_subtree(LUO_FDT_KHO_ENTRY_NAME, fdt_out);
-+	if (err)
-+		goto exit_free;
-+	luo_global.fdt_out = fdt_out;
-+
-+	return 0;
-+
-+exit_free:
-+	kho_unpreserve_free(fdt_out);
-+	pr_err("failed to prepare LUO FDT: %d\n", err);
-+
-+	return err;
-+}
-+
-+/*
-+ * late initcall because it initializes the outgoing tree that is needed only
-+ * once userspace starts using /dev/liveupdate.
-+ */
-+static int __init luo_late_startup(void)
-+{
-+	int err;
-+
-+	if (!liveupdate_enabled())
-+		return 0;
-+
-+	err = luo_fdt_setup();
-+	if (err)
-+		luo_global.enabled = false;
-+
-+	return err;
-+}
-+late_initcall(luo_late_startup);
-+
- /* Public Functions */
- 
- /**
-@@ -69,7 +206,22 @@ early_param("liveupdate", early_liveupda
-  */
- int liveupdate_reboot(void)
- {
--	return 0;
-+	int err;
-+
-+	if (!liveupdate_enabled())
-+		return 0;
-+
-+	err = kho_finalize();
-+	if (err) {
-+		pr_err("kho_finalize failed %d\n", err);
-+		/*
-+		 * kho_finalize() may return libfdt errors, to aboid passing to
-+		 * userspace unknown errors, change this to EAGAIN.
-+		 */
-+		err = -EAGAIN;
-+	}
-+
-+	return err;
- }
- 
- /**
-diff --git a/kernel/liveupdate/luo_internal.h a/kernel/liveupdate/luo_internal.h
-new file mode 100644
---- /dev/null
-+++ a/kernel/liveupdate/luo_internal.h
-@@ -0,0 +1,22 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ */
-+
-+#ifndef _LINUX_LUO_INTERNAL_H
-+#define _LINUX_LUO_INTERNAL_H
-+
+--- a/kernel/kexec_core.c~kexec-call-liveupdate_reboot-before-kexec
++++ a/kernel/kexec_core.c
+@@ -15,6 +15,7 @@
+ #include <linux/kexec.h>
+ #include <linux/mutex.h>
+ #include <linux/list.h>
 +#include <linux/liveupdate.h>
+ #include <linux/highmem.h>
+ #include <linux/syscalls.h>
+ #include <linux/reboot.h>
+@@ -1137,6 +1138,10 @@ int kernel_kexec(void)
+ 		goto Unlock;
+ 	}
+ 
++	error = liveupdate_reboot();
++	if (error)
++		goto Unlock;
 +
-+/*
-+ * Handles a deserialization failure: devices and memory is in unpredictable
-+ * state.
-+ *
-+ * Continuing the boot process after a failure is dangerous because it could
-+ * lead to leaks of private data.
-+ */
-+#define luo_restore_fail(__fmt, ...) panic(__fmt, ##__VA_ARGS__)
-+
-+#endif /* _LINUX_LUO_INTERNAL_H */
+ #ifdef CONFIG_KEXEC_JUMP
+ 	if (kexec_image->preserve_context) {
+ 		/*
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
