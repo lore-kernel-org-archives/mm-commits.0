@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 277C731A551
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:27:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79366311589
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:27:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282426; cv=none; b=CjZgFHRrR9vI5XJaIXKAv+FrTzk9KhwHC7loRR9ZoGOL+MP3m5HKcEAx38oZKsmRIqTsJWLBZFmKYbhZpaCRbF/SceJb+Ai5vx/pBQSKPl2AFb+W/ewlWZBbTmZOLk/RhJqbk9oefuYigJgyBUncVtrnLgYykAGu7K/3oE0kBfA=
+	t=1764282430; cv=none; b=fhckJjLSv4+Kta6+azisdnRzw9A70A10ZZAxUBoC2RrKBH7Sb4bQMjeIUTfVHIQ3oaJqJBnc4mi+Eiu8GL8x4R7rcpoPIUIBOeLPLPHretvnrPUokfTAsmh8g6TGfizD9P9Y5iXLmCtUYHAP8SBaMUrzNzOBniB2R3YdmiNf1CA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282426; c=relaxed/simple;
-	bh=gEH8lclgz3GSKUmXQMjBH3MQdAZCcT2ne4MyLbw959o=;
-	h=Date:To:From:Subject:Message-Id; b=Tvi05r4xiOmRjc560NNnv6xQzOQiwc6nIcV/Hp0joSufu4cRqDwBO0U90XCgQWGWcRvja4FENE2ITX9LD5lP9AIVM07/iQzus1O7pXU6HMZIurzMImXUfLKwPR6Y0//hKHWnLsI2r6a0Kp8o1ipnDZR3Ax7WLzghPN15H+WHpzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yfG4YdfV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282430; c=relaxed/simple;
+	bh=9qbZPnqFGPYlqibFMqfzcMm+N59N9eq7rVrwZSIjpVQ=;
+	h=Date:To:From:Subject:Message-Id; b=tJm5QOlyy/hyPJ+pXsWugNM1zYGMnD/1NB2LKIqXfJAM+UWYKVdDZvLO3KR5BRl25h4VfRySuA3OH8Ejs2txcoOju2F7SP0/Gmvxz573N+MWlsFYeHTynCZaudAtQr325b155m6FwXKQnj80hqEiNcE/MkKMqG4KdYR/UnMpybA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hnWdP4F6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yfG4YdfV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECAD0C4CEF8;
-	Thu, 27 Nov 2025 22:27:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hnWdP4F6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50ED5C4CEFB;
+	Thu, 27 Nov 2025 22:27:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282426;
-	bh=gEH8lclgz3GSKUmXQMjBH3MQdAZCcT2ne4MyLbw959o=;
+	s=korg; t=1764282429;
+	bh=9qbZPnqFGPYlqibFMqfzcMm+N59N9eq7rVrwZSIjpVQ=;
 	h=Date:To:From:Subject:From;
-	b=yfG4YdfVreJFyYf0O2PoBDzomgFBJd9IVGHdIlP2up8sibYaDp+Z/7sZnXrPENVrb
-	 ivkgJEt6ZDnuUb7klcKFDUJQGTlY+BEOetVEs+DPTLhVQNYtRzQROLC80qx4hjDJXP
-	 RndzISRqPeNZbwyq2ZILHOPWw8W+lXoExi6foSVo=
-Date: Thu, 27 Nov 2025 14:27:05 -0800
-To: mm-commits@vger.kernel.org,yoann.congal@smile.fr,yesanishhere@gmail.com,yanjun.zhu@linux.dev,witu@nvidia.com,wagi@kernel.org,vincent.guittot@linaro.org,tj@kernel.org,tglx@linutronix.de,stuart.w.hayes@gmail.com,song@kernel.org,skhawaja@google.com,saeedm@nvidia.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,rdunlap@infradead.org,quic_zijuhu@quicinc.com,ptyadav@amazon.de,pratyush@kernel.org,parav@nvidia.com,ojeda@kernel.org,myungjoo.ham@samsung.com,mmaurer@google.com,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,lukas@wunner.de,linux@weissschuh.net,leonro@nvidia.com,leon@kernel.org,lennart@poettering.net,kanie@linux.alibaba.com,Jonathan.Cameron@huawei.com,joel.granados@kernel.org,jgg@nvidia.com,jannh@google.com,ira.weiny@intel.com,ilpo.jarvinen@linux.intel.com,hughd@google.com,hpa@zytor.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,graf@amazon.com,dmatlack@google.com,djeffery@redhat.com,david@redhat.com,dan.j.williams@intel.com,dakr@kernel.org,cw00.choi@samsung.com,corbet@lwn.net,chrisl@kernel.org,chenridong@huawei.com,brauner@kernel.org,bp@alien8.de,bhelgaas@google.com,bartosz.golaszewski@linaro.org,axboe@kernel.dk,anna.schumaker@oracle.com,andriy.shevchenko@linux.intel.com,aliceryhl@google.com,aleksander.lobakin@intel.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=hnWdP4F6KyDSGVn2RyBdATrfnqxde/hH94WYtKuN359KRyKUgX0hyZ5QFVTEEKKKa
+	 ER8IPAvDY9du0Fi56h451TjW8gXQF9Q5xbjxtLWXsgeG6qFryfYKGEhthPpNQe4u8x
+	 nW9tGnjLxGa1qoaIgtIEff7z2F0AYS3ManQ58+IA=
+Date: Thu, 27 Nov 2025 14:27:08 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,dmatlack@google.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-liveupdate-add-simple-kexec-based-selftest-for-luo.patch removed from -mm tree
-Message-Id: <20251127222705.ECAD0C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kho-free-chunks-using-free_page-instead-of-kfree.patch removed from -mm tree
+Message-Id: <20251127222709.50ED5C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,582 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/liveupdate: add simple kexec-based selftest for LUO
+     Subject: kho: free chunks using free_page() instead of kfree()
 has been removed from the -mm tree.  Its filename was
-     selftests-liveupdate-add-simple-kexec-based-selftest-for-luo.patch
+     kho-free-chunks-using-free_page-instead-of-kfree.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: selftests/liveupdate: add simple kexec-based selftest for LUO
-Date: Tue, 25 Nov 2025 11:58:47 -0500
+From: Pratyush Yadav <pratyush@kernel.org>
+Subject: kho: free chunks using free_page() instead of kfree()
+Date: Tue, 18 Nov 2025 19:22:16 +0100
 
-Introduce a kexec-based selftest, luo_kexec_simple, to validate the
-end-to-end lifecycle of a Live Update Orchestrator session across a
-reboot.
+Before commit fa759cd75bce5 ("kho: allocate metadata directly from the
+buddy allocator"), the chunks were allocated from the slab allocator using
+kzalloc().  Those were rightly freed using kfree().
 
-While existing tests verify the uAPI in a pre-reboot context, this test
-ensures that the core functionality—preserving state via Kexec Handover
-and restoring it in a new kernel—works as expected.
+When the commit switched to using the buddy allocator directly, it missed
+updating kho_mem_ser_free() to use free_page() instead of kfree().
 
-The test operates in two stages, managing its state across the reboot by
-preserving a dedicated "state session" containing a memfd.  This mechanism
-dogfoods the LUO feature itself for state tracking, making the test
-self-contained.
-
-The test validates the following sequence:
-
-Stage 1 (Pre-kexec):
- - Creates a test session (test-session).
- - Creates and preserves a memfd with a known data pattern into the test
-   session.
- - Creates the state-tracking session to signal progression to Stage 2.
- - Executes a kexec reboot via a helper script.
-
-Stage 2 (Post-kexec):
- - Retrieves the state-tracking session to confirm it is in the
-   post-reboot stage.
- - Retrieves the preserved test session.
- - Restores the memfd from the test session and verifies its contents
-   match the original data pattern written in Stage 1.
- - Finalizes both the test and state sessions to ensure a clean
-   teardown.
-
-The test relies on a helper script (do_kexec.sh) to perform the reboot and
-a shared utility library (luo_test_utils.c) for common LUO operations,
-keeping the main test logic clean and focused.
-
-Link: https://lkml.kernel.org/r/20251125165850.3389713-18-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+Link: https://lkml.kernel.org/r/20251118182218.63044-1-pratyush@kernel.org
+Fixes: fa759cd75bce5 ("kho: allocate metadata directly from the buddy allocator")
+Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: David Matlack <dmatlack@google.com>
-Cc: Aleksander Lobakin <aleksander.lobakin@intel.com>
 Cc: Alexander Graf <graf@amazon.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: anish kumar <yesanishhere@gmail.com>
-Cc: Anna Schumaker <anna.schumaker@oracle.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@linaro.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Chen Ridong <chenridong@huawei.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Wagner <wagi@kernel.org>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Jeffery <djeffery@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guixin Liu <kanie@linux.alibaba.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joanthan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lennart Poettering <lennart@poettering.net>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Leon Romanovsky <leonro@nvidia.com>
-Cc: Lukas Wunner <lukas@wunner.de>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Matthew Maurer <mmaurer@google.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Myugnjoo Ham <myungjoo.ham@samsung.com>
-Cc: Parav Pandit <parav@nvidia.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Pratyush Yadav <ptyadav@amazon.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Saeed Mahameed <saeedm@nvidia.com>
-Cc: Samiullah Khawaja <skhawaja@google.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Stuart Hayes <stuart.w.hayes@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: William Tu <witu@nvidia.com>
-Cc: Yoann Congal <yoann.congal@smile.fr>
-Cc: Zijun Hu <quic_zijuhu@quicinc.com>
+Cc: David Matlack <dmatlack@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/liveupdate/Makefile           |    6 
- tools/testing/selftests/liveupdate/do_kexec.sh        |   16 
- tools/testing/selftests/liveupdate/luo_kexec_simple.c |   89 +++
- tools/testing/selftests/liveupdate/luo_test_utils.c   |  266 ++++++++++
- tools/testing/selftests/liveupdate/luo_test_utils.h   |   44 +
- 5 files changed, 421 insertions(+)
+ kernel/liveupdate/kexec_handover.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/liveupdate/do_kexec.sh a/tools/testing/selftests/liveupdate/do_kexec.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/liveupdate/do_kexec.sh
-@@ -0,0 +1,16 @@
-+#!/bin/sh
-+# SPDX-License-Identifier: GPL-2.0
-+set -e
-+
-+# Use $KERNEL and $INITRAMFS to pass custom Kernel and optional initramfs
-+
-+KERNEL="${KERNEL:-/boot/bzImage}"
-+set -- -l -s --reuse-cmdline "$KERNEL"
-+
-+INITRAMFS="${INITRAMFS:-/boot/initramfs}"
-+if [ -f "$INITRAMFS" ]; then
-+    set -- "$@" --initrd="$INITRAMFS"
-+fi
-+
-+kexec "$@"
-+kexec -e
-diff --git a/tools/testing/selftests/liveupdate/luo_kexec_simple.c a/tools/testing/selftests/liveupdate/luo_kexec_simple.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/liveupdate/luo_kexec_simple.c
-@@ -0,0 +1,89 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ *
-+ * A simple selftest to validate the end-to-end lifecycle of a LUO session
-+ * across a single kexec reboot.
-+ */
-+
-+#include "luo_test_utils.h"
-+
-+#define TEST_SESSION_NAME "test-session"
-+#define TEST_MEMFD_TOKEN 0x1A
-+#define TEST_MEMFD_DATA "hello kexec world"
-+
-+/* Constants for the state-tracking mechanism, specific to this test file. */
-+#define STATE_SESSION_NAME "kexec_simple_state"
-+#define STATE_MEMFD_TOKEN 999
-+
-+/* Stage 1: Executed before the kexec reboot. */
-+static void run_stage_1(int luo_fd)
-+{
-+	int session_fd;
-+
-+	ksft_print_msg("[STAGE 1] Starting pre-kexec setup...\n");
-+
-+	ksft_print_msg("[STAGE 1] Creating state file for next stage (2)...\n");
-+	create_state_file(luo_fd, STATE_SESSION_NAME, STATE_MEMFD_TOKEN, 2);
-+
-+	ksft_print_msg("[STAGE 1] Creating session '%s' and preserving memfd...\n",
-+		       TEST_SESSION_NAME);
-+	session_fd = luo_create_session(luo_fd, TEST_SESSION_NAME);
-+	if (session_fd < 0)
-+		fail_exit("luo_create_session for '%s'", TEST_SESSION_NAME);
-+
-+	if (create_and_preserve_memfd(session_fd, TEST_MEMFD_TOKEN,
-+				      TEST_MEMFD_DATA) < 0) {
-+		fail_exit("create_and_preserve_memfd for token %#x",
-+			  TEST_MEMFD_TOKEN);
-+	}
-+
-+	close(luo_fd);
-+	daemonize_and_wait();
-+}
-+
-+/* Stage 2: Executed after the kexec reboot. */
-+static void run_stage_2(int luo_fd, int state_session_fd)
-+{
-+	int session_fd, mfd, stage;
-+
-+	ksft_print_msg("[STAGE 2] Starting post-kexec verification...\n");
-+
-+	restore_and_read_stage(state_session_fd, STATE_MEMFD_TOKEN, &stage);
-+	if (stage != 2)
-+		fail_exit("Expected stage 2, but state file contains %d", stage);
-+
-+	ksft_print_msg("[STAGE 2] Retrieving session '%s'...\n", TEST_SESSION_NAME);
-+	session_fd = luo_retrieve_session(luo_fd, TEST_SESSION_NAME);
-+	if (session_fd < 0)
-+		fail_exit("luo_retrieve_session for '%s'", TEST_SESSION_NAME);
-+
-+	ksft_print_msg("[STAGE 2] Restoring and verifying memfd (token %#x)...\n",
-+		       TEST_MEMFD_TOKEN);
-+	mfd = restore_and_verify_memfd(session_fd, TEST_MEMFD_TOKEN,
-+				       TEST_MEMFD_DATA);
-+	if (mfd < 0)
-+		fail_exit("restore_and_verify_memfd for token %#x", TEST_MEMFD_TOKEN);
-+	close(mfd);
-+
-+	ksft_print_msg("[STAGE 2] Test data verified successfully.\n");
-+	ksft_print_msg("[STAGE 2] Finalizing test session...\n");
-+	if (luo_session_finish(session_fd) < 0)
-+		fail_exit("luo_session_finish for test session");
-+	close(session_fd);
-+
-+	ksft_print_msg("[STAGE 2] Finalizing state session...\n");
-+	if (luo_session_finish(state_session_fd) < 0)
-+		fail_exit("luo_session_finish for state session");
-+	close(state_session_fd);
-+
-+	ksft_print_msg("\n--- SIMPLE KEXEC TEST PASSED ---\n");
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	return luo_test(argc, argv, STATE_SESSION_NAME,
-+			run_stage_1, run_stage_2);
-+}
-diff --git a/tools/testing/selftests/liveupdate/luo_test_utils.c a/tools/testing/selftests/liveupdate/luo_test_utils.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/liveupdate/luo_test_utils.c
-@@ -0,0 +1,266 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ */
-+
-+#define _GNU_SOURCE
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <getopt.h>
-+#include <fcntl.h>
-+#include <unistd.h>
-+#include <sys/ioctl.h>
-+#include <sys/syscall.h>
-+#include <sys/mman.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <errno.h>
-+#include <stdarg.h>
-+
-+#include "luo_test_utils.h"
-+
-+int luo_open_device(void)
-+{
-+	return open(LUO_DEVICE, O_RDWR);
-+}
-+
-+int luo_create_session(int luo_fd, const char *name)
-+{
-+	struct liveupdate_ioctl_create_session arg = { .size = sizeof(arg) };
-+
-+	snprintf((char *)arg.name, LIVEUPDATE_SESSION_NAME_LENGTH, "%.*s",
-+		 LIVEUPDATE_SESSION_NAME_LENGTH - 1, name);
-+
-+	if (ioctl(luo_fd, LIVEUPDATE_IOCTL_CREATE_SESSION, &arg) < 0)
-+		return -errno;
-+
-+	return arg.fd;
-+}
-+
-+int luo_retrieve_session(int luo_fd, const char *name)
-+{
-+	struct liveupdate_ioctl_retrieve_session arg = { .size = sizeof(arg) };
-+
-+	snprintf((char *)arg.name, LIVEUPDATE_SESSION_NAME_LENGTH, "%.*s",
-+		 LIVEUPDATE_SESSION_NAME_LENGTH - 1, name);
-+
-+	if (ioctl(luo_fd, LIVEUPDATE_IOCTL_RETRIEVE_SESSION, &arg) < 0)
-+		return -errno;
-+
-+	return arg.fd;
-+}
-+
-+int create_and_preserve_memfd(int session_fd, int token, const char *data)
-+{
-+	struct liveupdate_session_preserve_fd arg = { .size = sizeof(arg) };
-+	long page_size = sysconf(_SC_PAGE_SIZE);
-+	void *map = MAP_FAILED;
-+	int mfd = -1, ret = -1;
-+
-+	mfd = memfd_create("test_mfd", 0);
-+	if (mfd < 0)
-+		return -errno;
-+
-+	if (ftruncate(mfd, page_size) != 0)
-+		goto out;
-+
-+	map = mmap(NULL, page_size, PROT_WRITE, MAP_SHARED, mfd, 0);
-+	if (map == MAP_FAILED)
-+		goto out;
-+
-+	snprintf(map, page_size, "%s", data);
-+	munmap(map, page_size);
-+
-+	arg.fd = mfd;
-+	arg.token = token;
-+	if (ioctl(session_fd, LIVEUPDATE_SESSION_PRESERVE_FD, &arg) < 0)
-+		goto out;
-+
-+	ret = 0;
-+out:
-+	if (ret != 0 && errno != 0)
-+		ret = -errno;
-+	if (mfd >= 0)
-+		close(mfd);
-+	return ret;
-+}
-+
-+int restore_and_verify_memfd(int session_fd, int token,
-+			     const char *expected_data)
-+{
-+	struct liveupdate_session_retrieve_fd arg = { .size = sizeof(arg) };
-+	long page_size = sysconf(_SC_PAGE_SIZE);
-+	void *map = MAP_FAILED;
-+	int mfd = -1, ret = -1;
-+
-+	arg.token = token;
-+	if (ioctl(session_fd, LIVEUPDATE_SESSION_RETRIEVE_FD, &arg) < 0)
-+		return -errno;
-+	mfd = arg.fd;
-+
-+	map = mmap(NULL, page_size, PROT_READ, MAP_SHARED, mfd, 0);
-+	if (map == MAP_FAILED)
-+		goto out;
-+
-+	if (expected_data && strcmp(expected_data, map) != 0) {
-+		ksft_print_msg("Data mismatch! Expected '%s', Got '%s'\n",
-+			       expected_data, (char *)map);
-+		ret = -EINVAL;
-+		goto out_munmap;
-+	}
-+
-+	ret = mfd;
-+out_munmap:
-+	munmap(map, page_size);
-+out:
-+	if (ret < 0 && errno != 0)
-+		ret = -errno;
-+	if (ret < 0 && mfd >= 0)
-+		close(mfd);
-+	return ret;
-+}
-+
-+int luo_session_finish(int session_fd)
-+{
-+	struct liveupdate_session_finish arg = { .size = sizeof(arg) };
-+
-+	if (ioctl(session_fd, LIVEUPDATE_SESSION_FINISH, &arg) < 0)
-+		return -errno;
-+
-+	return 0;
-+}
-+
-+void create_state_file(int luo_fd, const char *session_name, int token,
-+		       int next_stage)
-+{
-+	char buf[32];
-+	int state_session_fd;
-+
-+	state_session_fd = luo_create_session(luo_fd, session_name);
-+	if (state_session_fd < 0)
-+		fail_exit("luo_create_session for state tracking");
-+
-+	snprintf(buf, sizeof(buf), "%d", next_stage);
-+	if (create_and_preserve_memfd(state_session_fd, token, buf) < 0)
-+		fail_exit("create_and_preserve_memfd for state tracking");
-+
-+	/*
-+	 * DO NOT close session FD, otherwise it is going to be unpreserved
-+	 */
-+}
-+
-+void restore_and_read_stage(int state_session_fd, int token, int *stage)
-+{
-+	char buf[32] = {0};
-+	int mfd;
-+
-+	mfd = restore_and_verify_memfd(state_session_fd, token, NULL);
-+	if (mfd < 0)
-+		fail_exit("failed to restore state memfd");
-+
-+	if (read(mfd, buf, sizeof(buf) - 1) < 0)
-+		fail_exit("failed to read state mfd");
-+
-+	*stage = atoi(buf);
-+
-+	close(mfd);
-+}
-+
-+void daemonize_and_wait(void)
-+{
-+	pid_t pid;
-+
-+	ksft_print_msg("[STAGE 1] Forking persistent child to hold sessions...\n");
-+
-+	pid = fork();
-+	if (pid < 0)
-+		fail_exit("fork failed");
-+
-+	if (pid > 0) {
-+		ksft_print_msg("[STAGE 1] Child PID: %d. Resources are pinned.\n", pid);
-+		ksft_print_msg("[STAGE 1] You may now perform kexec reboot.\n");
-+		exit(EXIT_SUCCESS);
-+	}
-+
-+	/* Detach from terminal so closing the window doesn't kill us */
-+	if (setsid() < 0)
-+		fail_exit("setsid failed");
-+
-+	close(STDIN_FILENO);
-+	close(STDOUT_FILENO);
-+	close(STDERR_FILENO);
-+
-+	/* Change dir to root to avoid locking filesystems */
-+	if (chdir("/") < 0)
-+		exit(EXIT_FAILURE);
-+
-+	while (1)
-+		sleep(60);
-+}
-+
-+static int parse_stage_args(int argc, char *argv[])
-+{
-+	static struct option long_options[] = {
-+		{"stage", required_argument, 0, 's'},
-+		{0, 0, 0, 0}
-+	};
-+	int option_index = 0;
-+	int stage = 1;
-+	int opt;
-+
-+	optind = 1;
-+	while ((opt = getopt_long(argc, argv, "s:", long_options, &option_index)) != -1) {
-+		switch (opt) {
-+		case 's':
-+			stage = atoi(optarg);
-+			if (stage != 1 && stage != 2)
-+				fail_exit("Invalid stage argument");
-+			break;
-+		default:
-+			fail_exit("Unknown argument");
-+		}
-+	}
-+	return stage;
-+}
-+
-+int luo_test(int argc, char *argv[],
-+	     const char *state_session_name,
-+	     luo_test_stage1_fn stage1,
-+	     luo_test_stage2_fn stage2)
-+{
-+	int target_stage = parse_stage_args(argc, argv);
-+	int luo_fd = luo_open_device();
-+	int state_session_fd;
-+	int detected_stage;
-+
-+	if (luo_fd < 0) {
-+		ksft_exit_skip("Failed to open %s. Is the luo module loaded?\n",
-+			       LUO_DEVICE);
-+	}
-+
-+	state_session_fd = luo_retrieve_session(luo_fd, state_session_name);
-+	if (state_session_fd == -ENOENT)
-+		detected_stage = 1;
-+	else if (state_session_fd >= 0)
-+		detected_stage = 2;
-+	else
-+		fail_exit("Failed to check for state session");
-+
-+	if (target_stage != detected_stage) {
-+		ksft_exit_fail_msg("Stage mismatch Requested --stage %d, but system is in stage %d.\n"
-+				   "(State session %s: %s)\n",
-+				   target_stage, detected_stage, state_session_name,
-+				   (detected_stage == 2) ? "EXISTS" : "MISSING");
-+	}
-+
-+	if (target_stage == 1)
-+		stage1(luo_fd);
-+	else
-+		stage2(luo_fd, state_session_fd);
-+
-+	return 0;
-+}
-diff --git a/tools/testing/selftests/liveupdate/luo_test_utils.h a/tools/testing/selftests/liveupdate/luo_test_utils.h
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/liveupdate/luo_test_utils.h
-@@ -0,0 +1,44 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ *
-+ * Utility functions for LUO kselftests.
-+ */
-+
-+#ifndef LUO_TEST_UTILS_H
-+#define LUO_TEST_UTILS_H
-+
-+#include <errno.h>
-+#include <string.h>
-+#include <linux/liveupdate.h>
-+#include "../kselftest.h"
-+
-+#define LUO_DEVICE "/dev/liveupdate"
-+
-+#define fail_exit(fmt, ...)						\
-+	ksft_exit_fail_msg("[%s:%d] " fmt " (errno: %s)\n",	\
-+			   __func__, __LINE__, ##__VA_ARGS__, strerror(errno))
-+
-+int luo_open_device(void);
-+int luo_create_session(int luo_fd, const char *name);
-+int luo_retrieve_session(int luo_fd, const char *name);
-+int luo_session_finish(int session_fd);
-+
-+int create_and_preserve_memfd(int session_fd, int token, const char *data);
-+int restore_and_verify_memfd(int session_fd, int token, const char *expected_data);
-+
-+void create_state_file(int luo_fd, const char *session_name, int token,
-+		       int next_stage);
-+void restore_and_read_stage(int state_session_fd, int token, int *stage);
-+
-+void daemonize_and_wait(void);
-+
-+typedef void (*luo_test_stage1_fn)(int luo_fd);
-+typedef void (*luo_test_stage2_fn)(int luo_fd, int state_session_fd);
-+
-+int luo_test(int argc, char *argv[], const char *state_session_name,
-+	     luo_test_stage1_fn stage1, luo_test_stage2_fn stage2);
-+
-+#endif /* LUO_TEST_UTILS_H */
---- a/tools/testing/selftests/liveupdate/Makefile~selftests-liveupdate-add-simple-kexec-based-selftest-for-luo
-+++ a/tools/testing/selftests/liveupdate/Makefile
-@@ -1,7 +1,13 @@
- # SPDX-License-Identifier: GPL-2.0-only
+--- a/kernel/liveupdate/kexec_handover.c~kho-free-chunks-using-free_page-instead-of-kfree
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -360,7 +360,7 @@ static void kho_mem_ser_free(struct khos
+ 		struct khoser_mem_chunk *tmp = chunk;
  
-+LIB_C += luo_test_utils.c
-+
- TEST_GEN_PROGS += liveupdate
+ 		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
+-		kfree(tmp);
++		free_page((unsigned long)tmp);
+ 	}
+ }
  
-+TEST_GEN_PROGS_EXTENDED += luo_kexec_simple
-+
-+TEST_FILES += do_kexec.sh
-+
- include ../lib.mk
- 
- CFLAGS += $(KHDR_INCLUDES)
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
 
