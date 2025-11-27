@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A54C30C60A
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:05:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD343223336
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 20:12:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764273918; cv=none; b=OKr3pRO1i/VQbhSvxKuYyqw6Ip5n23/LW8pgvobabtt5s5XLRRO6hQSKcsxw/J2+4DWPRIEtTqv1kzX/zXvth1o7aJIGFs643J0l9rncMqWB1LLAfvr2q1AXoNcpr6x2WHJUexCYv+7XFJSTZqHLak+YPkH4mF5soazWksUq3O4=
+	t=1764274356; cv=none; b=aU1eFsvpPYsJ++vUhQB0ekz7LIzHA7xupbck+QlQSNLhXNm5WcBs4IdkXcWhaXIeR8JHgtUP1vMTPpCj8LtR++p5Xq127drkBobxor9FlApfTwVjIHFqhJ23OPpvYATLDRCwUSyqJ3yyHCxbwNjZ3AlCeeQ8igXAEEX6m2JRJGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764273918; c=relaxed/simple;
-	bh=0SYGh/DWWAA6yayNwEAGFom1eTRnVTwllX0wP5vvBOg=;
-	h=Date:To:From:Subject:Message-Id; b=CPbWtgDpgec0OiGMM/nYGnLL1xMABHYvoVat4lSKPHynqzkE1S6AuigGcWBWqYtuuCKMkVUDTklpQ39Pg3/Y0rIe/b0ybFnoqP/CCTNRE3EniAsvpTIsWOYh2wGK+H1GohgaCffwA07VYCB+99nslTEUQcuz48suIUF4RSOq5hA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O8fYWBl/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764274356; c=relaxed/simple;
+	bh=o45kFhZEB2AsYlZ0UZw5Ub/aOoTnSW01ovnwys2doT4=;
+	h=Date:To:From:Subject:Message-Id; b=C3GT0w+WTdxDNWYRhZjsIVrUggKb9VZycvsJsq5KaWptzlpPHaoiMloYDUvjdpWsvV+ZRIdAi3j1MovkM1WKA87UDAivz9LjjNMbw0895XJ/AK2U/kTOk8C5ITpLvXVyVNe88mdaAuvX0vttfWeueom+lacAMvYUTG6d0tziBwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOyG3tVE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O8fYWBl/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DC9AC4CEF8;
-	Thu, 27 Nov 2025 20:05:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOyG3tVE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67AEBC4CEF8;
+	Thu, 27 Nov 2025 20:12:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764273917;
-	bh=0SYGh/DWWAA6yayNwEAGFom1eTRnVTwllX0wP5vvBOg=;
+	s=korg; t=1764274356;
+	bh=o45kFhZEB2AsYlZ0UZw5Ub/aOoTnSW01ovnwys2doT4=;
 	h=Date:To:From:Subject:From;
-	b=O8fYWBl/wODkksZ/8DTDg9n48SfVVLkkFi3r4tHqpw8RPBe2S9f0/Xc7vEkb2Jez9
-	 QW8uARhQ/59uqD3wGtoTSpGQo/XYN0Po28Ao/UVvZpsG5S2oEjvZYlscM9GDK2GZxk
-	 ZqElG4WOloNXmatHDk18r0tsB1KUjTpzv9n6FK1g=
-Date: Thu, 27 Nov 2025 12:05:16 -0800
-To: mm-commits@vger.kernel.org,xueshuai@linux.alibaba.com,sfr@canb.auug.org.au,guohanjun@huawei.com,corbet@lwn.net,leitao@debian.org,akpm@linux-foundation.org
+	b=UOyG3tVE8KOpJsFH/CC3CKROHEO9PbTZFyJARZIJ7v7k/BA+Kbmj1PLHwbb0P5mQS
+	 RSdzff5Z8gHwxWg8YJoRIak0WIl/hizMNLLsrBSv4uecxcTojhJsW+78Wkpv5hFHyx
+	 WObYPSXXwmdYnwx6YY/S66xAUuHpm4k2eh7gBcso=
+Date: Thu, 27 Nov 2025 12:12:35 -0800
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251127200517.6DC9AC4CEF8@smtp.kernel.org>
+Subject: + mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard.patch added to mm-unstable branch
+Message-Id: <20251127201236.67AEBC4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/driver-api: add hw-recoverable-errors to toctree
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch
+     Subject: mm/swapfile: fix list iteration when next node is removed during discard
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: Documentation/driver-api: add hw-recoverable-errors to toctree
-Date: Thu, 27 Nov 2025 07:34:24 -0800
+From: Youngjun Park <youngjun.park@lge.com>
+Subject: mm/swapfile: fix list iteration when next node is removed during discard
+Date: Thu, 27 Nov 2025 19:03:02 +0900
 
-Stephen reported that commit c03fb5253a0341e ("vmcoreinfo: track and log
-recoverable hardware errors") started to warn about "document isn't
-included in any toctree".
+Patch series "mm/swapfile: fix and cleanup swap list iterations", v2.
 
-Fix it by adding the new rst in Subsystem-specific APIs section.
+This series fixes a potential list iteration issue in swap_sync_discard()
+when devices are removed, and includes a cleanup for
+__folio_throttle_swaprate().
 
-Link: https://lkml.kernel.org/r/20251127-vmcoreinfo_fix-v1-1-26f5b1c43da9@debian.org
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Closes: https://lore.kernel.org/all/20250729150042.77832045@canb.auug.org.au/#t
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuai Xue <xueshuai@linux.alibaba.com>
+
+This patch (of 2):
+
+When the next node is removed from the plist (e.g.  by swapoff),
+plist_del() makes the node point to itself, causing the iteration to loop
+on the same entry indefinitely.
+
+Add a plist_node_empty() check to detect this case and restart iteration,
+allowing swap_sync_discard() to continue processing remaining swap devices
+that still have pending discard entries.
+
+Additionally, switch from swap_avail_lock/swap_avail_head to
+swap_lock/swap_active_head so that iteration is only affected by swapoff
+operations rather than frequent availability changes, reducing exceptional
+condition checks and lock contention.
+
+Link: https://lkml.kernel.org/r/20251127100303.783198-1-youngjun.park@lge.com
+Link: https://lkml.kernel.org/r/20251127100303.783198-2-youngjun.park@lge.com
+Fixes: 686ea517f471 ("mm, swap: do not perform synchronous discard during allocation")
+Signed-off-by: Youngjun Park <youngjun.park@lge.com>
+Suggested-by: Kairui Song <kasong@tencent.com>
+Acked-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/driver-api/index.rst |    1 +
- 1 file changed, 1 insertion(+)
+ mm/swapfile.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/Documentation/driver-api/index.rst~vmcoreinfo-track-and-log-recoverable-hardware-errors-fix
-+++ a/Documentation/driver-api/index.rst
-@@ -96,6 +96,7 @@ Subsystem-specific APIs
-    gpio/index
-    hsi
-    hte/index
-+   hw-recoverable-errors
-    i2c
-    iio/index
-    infiniband
+--- a/mm/swapfile.c~mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard
++++ a/mm/swapfile.c
+@@ -1387,9 +1387,10 @@ static bool swap_sync_discard(void)
+ 	bool ret = false;
+ 	struct swap_info_struct *si, *next;
+ 
+-	spin_lock(&swap_avail_lock);
+-	plist_for_each_entry_safe(si, next, &swap_avail_head, avail_list) {
+-		spin_unlock(&swap_avail_lock);
++	spin_lock(&swap_lock);
++start_over:
++	plist_for_each_entry_safe(si, next, &swap_active_head, list) {
++		spin_unlock(&swap_lock);
+ 		if (get_swap_device_info(si)) {
+ 			if (si->flags & SWP_PAGE_DISCARD)
+ 				ret = swap_do_scheduled_discard(si);
+@@ -1397,9 +1398,12 @@ static bool swap_sync_discard(void)
+ 		}
+ 		if (ret)
+ 			return true;
+-		spin_lock(&swap_avail_lock);
++
++		spin_lock(&swap_lock);
++		if (plist_node_empty(&next->list))
++			goto start_over;
+ 	}
+-	spin_unlock(&swap_avail_lock);
++	spin_unlock(&swap_lock);
+ 
+ 	return false;
+ }
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from youngjun.park@lge.com are
 
-mm-kfence-add-reboot-notifier-to-disable-kfence-on-shutdown.patch
-vmcoreinfo-track-and-log-recoverable-hardware-errors.patch
-vmcoreinfo-track-and-log-recoverable-hardware-errors-fix.patch
+mm-swapfile-fix-list-iteration-when-next-node-is-removed-during-discard.patch
+mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch
 
