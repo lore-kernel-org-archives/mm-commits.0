@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCA1B31A551
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 466B831E10C
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:26:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282410; cv=none; b=LrBgy/YFAe2SCE40rDCKvljOCkSRy6TU41uKWt2B/6Q2IfhVi/EZwhHSTBGrifT/QVp4XrtFuhVzvqT3uWobg4DJSJO8rwaFNE7MKiQ+HxsQFvkGo/6LKMfPmN6g7dqcRf5L+1XJ8OHMmwL57Gb4MrjfPBmRgzSmLK/V5bomeZM=
+	t=1764282413; cv=none; b=czhCnMxNQLHal5kur5hpBWq0hw+JKFuSIfC+CAOnBmaZ/xmYwunSFWpmDM4zR1FRZlvO994JqF6IYTstR1k2Clk6dSkgQJk1kxxS5C013xk0hcO/kFyoNGFYZD+43VS/aRpV7/YX9vGdaPZra59KMNFX3gAmnySrv/E87w4TsSo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282410; c=relaxed/simple;
-	bh=0VIJdr6DDLBtSvHmx576ptUHpO844ERqE60g8HLa7cE=;
-	h=Date:To:From:Subject:Message-Id; b=J5AfkOnUhTV9EIi9Nru/hhJr0Jyd87ZRDaIyG7vugtQQmfOAzCHgMN4fR98vIb5b/iad4RXrGEdH+oPk+NnqwsJBUlDhJgKst1OxULUpa1jfkjV4LCP05Th2SbBo5gScIdde+DOnXRWm/7e2THTDMzjqugbDhpME4G8s4LtqCnc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hP1F8NEM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282413; c=relaxed/simple;
+	bh=bbQnft9MyaefC8s0yUAnZxPkD4WIbSBSgqtPWo0vxOY=;
+	h=Date:To:From:Subject:Message-Id; b=ecCvIrw3tc0VUZhXw5hPKhD1d+sM/roKoGigK3UkUkS86gKhN70uBl0JBZ0oohLXAP8rTbv7ApTy+TTwPd3zQER6fxMWvOhDKaTMojkSIHZhmGAfywfbmJglT4gE5eEekYrh7lvFMMjKP9ezXe8shoBCDy4C2TwlTg9iw8AQni8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LkWZ13oa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hP1F8NEM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DED0C4CEF8;
-	Thu, 27 Nov 2025 22:26:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LkWZ13oa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9682C4CEF8;
+	Thu, 27 Nov 2025 22:26:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282410;
-	bh=0VIJdr6DDLBtSvHmx576ptUHpO844ERqE60g8HLa7cE=;
+	s=korg; t=1764282412;
+	bh=bbQnft9MyaefC8s0yUAnZxPkD4WIbSBSgqtPWo0vxOY=;
 	h=Date:To:From:Subject:From;
-	b=hP1F8NEMn/6jAX5rrmXjRjDkorEUdHO7U33ubJWXBGGw3pdTtOYGrD9kgPPVtZ00Z
-	 F+LBL4stSWQqi+93Ua/DJV7oBVCnjRRv/nReKxU8Y1OWJfzNbAcqub9k4aY2qplm19
-	 k6DV8Oj8sa9Y1SxZ8sj1RWxNYPJA61Xyz0Tud/H0=
-Date: Thu, 27 Nov 2025 14:26:50 -0800
+	b=LkWZ13oa2tW8ObDEb9Q7J4OAG+wMom6NdWWBqDUxJFYF2k9zs6igjRUgMZGtE6fUx
+	 tw9xiYOIneiLIIQ8+ai4uzcPQsxnARU/OSCJiHK/wECKeoFl8Zeq+ZRRNjdHR36YpR
+	 llbfZxHATabEUyJMVj3dlyQ6IDUwU9VhZxxdRfTY=
+Date: Thu, 27 Nov 2025 14:26:52 -0800
 To: mm-commits@vger.kernel.org,yoann.congal@smile.fr,yesanishhere@gmail.com,yanjun.zhu@linux.dev,witu@nvidia.com,wagi@kernel.org,vincent.guittot@linaro.org,tj@kernel.org,tglx@linutronix.de,stuart.w.hayes@gmail.com,song@kernel.org,skhawaja@google.com,saeedm@nvidia.com,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,rdunlap@infradead.org,quic_zijuhu@quicinc.com,pratyush@kernel.org,pasha.tatashin@soleen.com,parav@nvidia.com,ojeda@kernel.org,myungjoo.ham@samsung.com,mmaurer@google.com,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,lukas@wunner.de,linux@weissschuh.net,leonro@nvidia.com,leon@kernel.org,lennart@poettering.net,kanie@linux.alibaba.com,Jonathan.Cameron@huawei.com,joel.granados@kernel.org,jgg@nvidia.com,jannh@google.com,ira.weiny@intel.com,ilpo.jarvinen@linux.intel.com,hughd@google.com,hpa@zytor.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,graf@amazon.com,dmatlack@google.com,djeffery@redhat.com,david@redhat.com,dan.j.williams@intel.com,dakr@kernel.org,cw00.choi@samsung.com,corbet@lwn.net,chrisl@kernel.org,chenridong@huawei.com,brauner@kernel.org,bp@alien8.de,bhelgaas@google.com,bartosz.golaszewski@linaro.org,axboe@kernel.dk,anna.schumaker@oracle.com,andriy.shevchenko@linux.intel.com,aliceryhl@google.com,aleksander.lobakin@intel.com,ptyadav@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mm-shmem-use-shmem_f_-flags-instead-of-vm_-flags.patch removed from -mm tree
-Message-Id: <20251127222650.9DED0C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mm-shmem-allow-freezing-inode-mapping.patch removed from -mm tree
+Message-Id: <20251127222652.C9682C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: use SHMEM_F_* flags instead of VM_* flags
+     Subject: mm: shmem: allow freezing inode mapping
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-use-shmem_f_-flags-instead-of-vm_-flags.patch
+     mm-shmem-allow-freezing-inode-mapping.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pratyush Yadav <ptyadav@amazon.de>
-Subject: mm: shmem: use SHMEM_F_* flags instead of VM_* flags
-Date: Tue, 25 Nov 2025 11:58:40 -0500
+Subject: mm: shmem: allow freezing inode mapping
+Date: Tue, 25 Nov 2025 11:58:41 -0500
 
-shmem_inode_info::flags can have the VM flags VM_NORESERVE and VM_LOCKED. 
-These are used to suppress pre-accounting or to lock the pages in the
-inode respectively.  Using the VM flags directly makes it difficult to add
-shmem-specific flags that are unrelated to VM behavior since one would
-need to find a VM flag not used by shmem and re-purpose it.
+To prepare a shmem inode for live update, its index -> folio mappings must
+be serialized.  Once the mappings are serialized, they cannot change since
+it would cause the serialized data to become inconsistent.  This can be
+done by pinning the folios to avoid migration, and by making sure no
+folios can be added to or removed from the inode.
 
-Introduce SHMEM_F_NORESERVE and SHMEM_F_LOCKED which represent the same
-information, but their bits are independent of the VM flags.  Callers can
-still pass VM_NORESERVE to shmem_get_inode(), but it gets transformed to
-the shmem-specific flag internally.
+While mechanisms to pin folios already exist, the only way to stop folios
+being added or removed are the grow and shrink file seals.  But file seals
+come with their own semantics, one of which is that they can't be removed.
+This doesn't work with liveupdate since it can be cancelled or error out,
+which would need the seals to be removed and the file's normal
+functionality to be restored.
 
-No functional changes intended.
+Introduce SHMEM_F_MAPPING_FROZEN to indicate this instead.  It is internal
+to shmem and is not directly exposed to userspace.  It functions similar
+to F_SEAL_GROW | F_SEAL_SHRINK, but additionally disallows hole punching,
+and can be removed.
 
-Link: https://lkml.kernel.org/r/20251125165850.3389713-11-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20251125165850.3389713-12-pasha.tatashin@soleen.com
 Signed-off-by: Pratyush Yadav <ptyadav@amazon.de>
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -127,135 +132,77 @@ Cc: Zijun Hu <quic_zijuhu@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    6 ++++++
- mm/shmem.c               |   28 +++++++++++++++-------------
- 2 files changed, 21 insertions(+), 13 deletions(-)
+ include/linux/shmem_fs.h |   17 +++++++++++++++++
+ mm/shmem.c               |   11 +++++++++++
+ 2 files changed, 28 insertions(+)
 
---- a/include/linux/shmem_fs.h~mm-shmem-use-shmem_f_-flags-instead-of-vm_-flags
+--- a/include/linux/shmem_fs.h~mm-shmem-allow-freezing-inode-mapping
 +++ a/include/linux/shmem_fs.h
-@@ -10,6 +10,7 @@
- #include <linux/xattr.h>
- #include <linux/fs_parser.h>
- #include <linux/userfaultfd_k.h>
-+#include <linux/bits.h>
+@@ -24,6 +24,14 @@ struct swap_iocb;
+ #define SHMEM_F_NORESERVE	BIT(0)
+ /* Disallow swapping. */
+ #define SHMEM_F_LOCKED		BIT(1)
++/*
++ * Disallow growing, shrinking, or hole punching in the inode. Combined with
++ * folio pinning, makes sure the inode's mapping stays fixed.
++ *
++ * In some ways similar to F_SEAL_GROW | F_SEAL_SHRINK, but can be removed and
++ * isn't directly visible to userspace.
++ */
++#define SHMEM_F_MAPPING_FROZEN	BIT(2)
  
- struct swap_iocb;
- 
-@@ -19,6 +20,11 @@ struct swap_iocb;
- #define SHMEM_MAXQUOTAS 2
- #endif
- 
-+/* Suppress pre-accounting of the entire object size. */
-+#define SHMEM_F_NORESERVE	BIT(0)
-+/* Disallow swapping. */
-+#define SHMEM_F_LOCKED		BIT(1)
-+
  struct shmem_inode_info {
  	spinlock_t		lock;
- 	unsigned int		seals;		/* shmem seals */
---- a/mm/shmem.c~mm-shmem-use-shmem_f_-flags-instead-of-vm_-flags
+@@ -186,6 +194,15 @@ static inline bool shmem_file(struct fil
+ 	return shmem_mapping(file->f_mapping);
+ }
+ 
++/* Must be called with inode lock taken exclusive. */
++static inline void shmem_freeze(struct inode *inode, bool freeze)
++{
++	if (freeze)
++		SHMEM_I(inode)->flags |= SHMEM_F_MAPPING_FROZEN;
++	else
++		SHMEM_I(inode)->flags &= ~SHMEM_F_MAPPING_FROZEN;
++}
++
+ /*
+  * If fallocate(FALLOC_FL_KEEP_SIZE) has been used, there may be pages
+  * beyond i_size's notion of EOF, which fallocate has committed to reserving:
+--- a/mm/shmem.c~mm-shmem-allow-freezing-inode-mapping
 +++ a/mm/shmem.c
-@@ -175,20 +175,20 @@ static inline struct shmem_sb_info *SHME
-  */
- static inline int shmem_acct_size(unsigned long flags, loff_t size)
- {
--	return (flags & VM_NORESERVE) ?
-+	return (flags & SHMEM_F_NORESERVE) ?
- 		0 : security_vm_enough_memory_mm(current->mm, VM_ACCT(size));
- }
+@@ -1297,6 +1297,8 @@ static int shmem_setattr(struct mnt_idma
+ 			return -EPERM;
  
- static inline void shmem_unacct_size(unsigned long flags, loff_t size)
- {
--	if (!(flags & VM_NORESERVE))
-+	if (!(flags & SHMEM_F_NORESERVE))
- 		vm_unacct_memory(VM_ACCT(size));
- }
- 
- static inline int shmem_reacct_size(unsigned long flags,
- 		loff_t oldsize, loff_t newsize)
- {
--	if (!(flags & VM_NORESERVE)) {
-+	if (!(flags & SHMEM_F_NORESERVE)) {
- 		if (VM_ACCT(newsize) > VM_ACCT(oldsize))
- 			return security_vm_enough_memory_mm(current->mm,
- 					VM_ACCT(newsize) - VM_ACCT(oldsize));
-@@ -206,7 +206,7 @@ static inline int shmem_reacct_size(unsi
-  */
- static inline int shmem_acct_blocks(unsigned long flags, long pages)
- {
--	if (!(flags & VM_NORESERVE))
-+	if (!(flags & SHMEM_F_NORESERVE))
- 		return 0;
- 
- 	return security_vm_enough_memory_mm(current->mm,
-@@ -215,7 +215,7 @@ static inline int shmem_acct_blocks(unsi
- 
- static inline void shmem_unacct_blocks(unsigned long flags, long pages)
- {
--	if (flags & VM_NORESERVE)
-+	if (flags & SHMEM_F_NORESERVE)
- 		vm_unacct_memory(pages * VM_ACCT(PAGE_SIZE));
- }
- 
-@@ -1551,7 +1551,7 @@ int shmem_writeout(struct folio *folio,
- 	int nr_pages;
- 	bool split = false;
- 
--	if ((info->flags & VM_LOCKED) || sbinfo->noswap)
-+	if ((info->flags & SHMEM_F_LOCKED) || sbinfo->noswap)
- 		goto redirty;
- 
- 	if (!total_swap_pages)
-@@ -2910,15 +2910,15 @@ int shmem_lock(struct file *file, int lo
- 	 * ipc_lock_object() when called from shmctl_do_lock(),
- 	 * no serialization needed when called from shm_destroy().
- 	 */
--	if (lock && !(info->flags & VM_LOCKED)) {
-+	if (lock && !(info->flags & SHMEM_F_LOCKED)) {
- 		if (!user_shm_lock(inode->i_size, ucounts))
- 			goto out_nomem;
--		info->flags |= VM_LOCKED;
-+		info->flags |= SHMEM_F_LOCKED;
- 		mapping_set_unevictable(file->f_mapping);
+ 		if (newsize != oldsize) {
++			if (info->flags & SHMEM_F_MAPPING_FROZEN)
++				return -EPERM;
+ 			error = shmem_reacct_size(SHMEM_I(inode)->flags,
+ 					oldsize, newsize);
+ 			if (error)
+@@ -3289,6 +3291,10 @@ shmem_write_begin(const struct kiocb *io
+ 			return -EPERM;
  	}
--	if (!lock && (info->flags & VM_LOCKED) && ucounts) {
-+	if (!lock && (info->flags & SHMEM_F_LOCKED) && ucounts) {
- 		user_shm_unlock(inode->i_size, ucounts);
--		info->flags &= ~VM_LOCKED;
-+		info->flags &= ~SHMEM_F_LOCKED;
- 		mapping_clear_unevictable(file->f_mapping);
- 	}
- 	retval = 0;
-@@ -3062,7 +3062,7 @@ static struct inode *__shmem_get_inode(s
- 	spin_lock_init(&info->lock);
- 	atomic_set(&info->stop_eviction, 0);
- 	info->seals = F_SEAL_SEAL;
--	info->flags = flags & VM_NORESERVE;
-+	info->flags = (flags & VM_NORESERVE) ? SHMEM_F_NORESERVE : 0;
- 	info->i_crtime = inode_get_mtime(inode);
- 	info->fsflags = (dir == NULL) ? 0 :
- 		SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
-@@ -5804,8 +5804,10 @@ static inline struct inode *shmem_get_in
- /* common code */
  
- static struct file *__shmem_file_setup(struct vfsmount *mnt, const char *name,
--			loff_t size, unsigned long flags, unsigned int i_flags)
-+				       loff_t size, unsigned long vm_flags,
-+				       unsigned int i_flags)
- {
-+	unsigned long flags = (vm_flags & VM_NORESERVE) ? SHMEM_F_NORESERVE : 0;
- 	struct inode *inode;
- 	struct file *res;
++	if (unlikely((info->flags & SHMEM_F_MAPPING_FROZEN) &&
++		     pos + len > inode->i_size))
++		return -EPERM;
++
+ 	ret = shmem_get_folio(inode, index, pos + len, &folio, SGP_WRITE);
+ 	if (ret)
+ 		return ret;
+@@ -3662,6 +3668,11 @@ static long shmem_fallocate(struct file
  
-@@ -5822,7 +5824,7 @@ static struct file *__shmem_file_setup(s
- 		return ERR_PTR(-ENOMEM);
+ 	inode_lock(inode);
  
- 	inode = shmem_get_inode(&nop_mnt_idmap, mnt->mnt_sb, NULL,
--				S_IFREG | S_IRWXUGO, 0, flags);
-+				S_IFREG | S_IRWXUGO, 0, vm_flags);
- 	if (IS_ERR(inode)) {
- 		shmem_unacct_size(flags, size);
- 		return ERR_CAST(inode);
++	if (info->flags & SHMEM_F_MAPPING_FROZEN) {
++		error = -EPERM;
++		goto out;
++	}
++
+ 	if (mode & FALLOC_FL_PUNCH_HOLE) {
+ 		struct address_space *mapping = file->f_mapping;
+ 		loff_t unmap_start = round_up(offset, PAGE_SIZE);
 _
 
 Patches currently in -mm which might be from ptyadav@amazon.de are
