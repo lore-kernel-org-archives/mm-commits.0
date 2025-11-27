@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9A2A31D399
-	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:27:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BB1331D399
+	for <mm-commits@vger.kernel.org>; Thu, 27 Nov 2025 22:27:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764282432; cv=none; b=EXQQen1JLXJL2DJ7ucKsRCkYhTexeJIcXt7CeLoCfQMQCqHhdFwElVW1LQEoFa/Flf+ADhKh1h14pRzxim1gk6DY+UboKk+56yN9puVdMdvcNECAVE4v3zCjs1iOIf7m16uMTmGJ008zCue/L4JkVE7mIyER+HcDK63piePwDE8=
+	t=1764282433; cv=none; b=ip287gqL/j6mMg0C73NXUx3TB//nNk+bAo7jtLnONTZeKiSKxk7xILPBYAFUBEv0wwsM72tE/Y10zKlO+Yr9kJNZ1ySy+zEtvP+3fZc0csU4niAwgQ9HN3FVfZrBJpZjnogr749mcDYtUe6Wh/LMIWCWnOIhDtuoPqp4qzIkFWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764282432; c=relaxed/simple;
-	bh=onN3EvKPPSY5cIcK1lqjqavAn3KxiYTBs9DuRvt90Fc=;
-	h=Date:To:From:Subject:Message-Id; b=uNtiuSqtYwW5mdMa3KBsYLWMwd2XeGgX1NI+thAJRJaDZDQcqPW/AowY0tcPys+XSd+v3E62mNppBYaHLQR5SNVcrImV6g2xqtNc7J7It5jrmmJ4KUkQyuhv4YV2So6KaLSILoOHe/WOi0JsuIJ3Y3Aqx99LTjkb5bSMTMNrsAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vtIdbr7y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764282433; c=relaxed/simple;
+	bh=l1x/ieuz/v/OgbHriVuFSXUUXUxgayvXqE1TBpbaz80=;
+	h=Date:To:From:Subject:Message-Id; b=b/fHbFJnbWthCMXeU0HZfZpBYP4Zz5NSTuoT1yoPTKf/RrEDs9aoJ+ZJ66pqbTkbUuoALtEOB8axuYEOte79bi34DXanUWRyS5F4c1CBx7Lo3VL8yYia0yzrSIsfJYV4UCYuORt8oo9o8eUBWen4RN3S4BjHeHeKi7NUP+8ftmI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qw4YlN7s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vtIdbr7y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDD40C4CEF8;
-	Thu, 27 Nov 2025 22:27:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qw4YlN7s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01FD1C4CEF8;
+	Thu, 27 Nov 2025 22:27:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764282431;
-	bh=onN3EvKPPSY5cIcK1lqjqavAn3KxiYTBs9DuRvt90Fc=;
+	s=korg; t=1764282433;
+	bh=l1x/ieuz/v/OgbHriVuFSXUUXUxgayvXqE1TBpbaz80=;
 	h=Date:To:From:Subject:From;
-	b=vtIdbr7yAeLgSyRbm4dWwNhwJeqgGKUQHlgS3d5w/b1rog8AMxDpo6GkOu8I2iaje
-	 mJ2tHb4v7BsmLp+87BL8KhQRrqRiENSyET0mWpuA6Io4N/aX9LUdncNiMzKmecLMCh
-	 Ro8St3VaUZUgCbkSsl30ktp5w7jP/w+JjPQebWUQ=
-Date: Thu, 27 Nov 2025 14:27:11 -0800
+	b=Qw4YlN7s0cxLIzcwOUgmxEcct0bJDCyGzd08UqUuAuRudEz8rdOCrZe4Jk+mevcB5
+	 aCOqIf87QDMX1ColsH3CDxZtvn9C8kcRDz9R5INheMySBvn0k7zw2Q+90q8ZSjxRro
+	 77AmpmU3XOhfh/TBgm61r3sQX78i1O0Zyy3C6JHk=
+Date: Thu, 27 Nov 2025 14:27:12 -0800
 To: mm-commits@vger.kernel.org,vgoyal@redhat.com,shivangu@linux.ibm.com,ritesh.list@gmail.com,piliu@redhat.com,mahesh@linux.ibm.com,maddy@linux.ibm.com,jbohac@suse.cz,hbathini@linux.ibm.com,dyoung@redhat.com,bhe@redhat.com,adityag@linux.ibm.com,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec-move-sysfs-entries-to-sys-kernel-kexec.patch removed from -mm tree
-Message-Id: <20251127222711.BDD40C4CEF8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] documentation-abi-mark-old-kexec-sysfs-deprecated.patch removed from -mm tree
+Message-Id: <20251127222713.01FD1C4CEF8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec: move sysfs entries to /sys/kernel/kexec
+     Subject: Documentation/ABI: mark old kexec sysfs deprecated
 has been removed from the -mm tree.  Its filename was
-     kexec-move-sysfs-entries-to-sys-kernel-kexec.patch
+     documentation-abi-mark-old-kexec-sysfs-deprecated.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: kexec: move sysfs entries to /sys/kernel/kexec
-Date: Tue, 18 Nov 2025 17:15:05 +0530
+Subject: Documentation/ABI: mark old kexec sysfs deprecated
+Date: Tue, 18 Nov 2025 17:15:06 +0530
 
-Patch series "kexec: reorganize kexec and kdump sysfs", v6.
+The previous commit ("kexec: move sysfs entries to /sys/kernel/kexec")
+moved all existing kexec sysfs entries to a new location. The ABI
+document is updated to include a note about the deprecation of the old
+kexec sysfs entries.
 
-All existing kexec and kdump sysfs entries are moved to a new location,
-/sys/kernel/kexec, to keep /sys/kernel/ clean and better organized.
-Symlinks are created at the old locations for backward compatibility and
-can be removed in the future [01/03].
+The following kexec sysfs entries are deprecated:
+- /sys/kernel/kexec_loaded
+- /sys/kernel/kexec_crash_loaded
+- /sys/kernel/kexec_crash_size
+- /sys/kernel/crash_elfcorehdr_size
+- /sys/kernel/kexec_crash_cma_ranges
 
-While doing this cleanup, the old kexec and kdump sysfs entries are
-marked as deprecated in the existing ABI documentation [02/03]. This
-makes it clear that these older interfaces should no longer be used.
-New ABI documentation is added to describe the reorganized interfaces
-[03/03], so users and tools can rely on the updated sysfs interfaces
-going forward.
-
-
-This patch (of 3):
-
-Several kexec and kdump sysfs entries are currently placed directly under
-/sys/kernel/, which clutters the directory and makes it harder to identify
-unrelated entries.  To improve organization and readability, these entries
-are now moved under a dedicated directory, /sys/kernel/kexec.
-
-The following sysfs moved under new kexec sysfs node
-+------------------------------------+------------------+
-|    Old sysfs name         |     New sysfs name        |
-|  (under /sys/kernel)      | (under /sys/kernel/kexec) |
-+---------------------------+---------------------------+
-| kexec_loaded              | loaded                    |
-+---------------------------+---------------------------+
-| kexec_crash_loaded        | crash_loaded              |
-+---------------------------+---------------------------+
-| kexec_crash_size          | crash_size                |
-+---------------------------+---------------------------+
-| crash_elfcorehdr_size     | crash_elfcorehdr_size     |
-+---------------------------+---------------------------+
-| kexec_crash_cma_ranges    | crash_cma_ranges          |
-+---------------------------+---------------------------+
-
-For backward compatibility, symlinks are created at the old locations so
-that existing tools and scripts continue to work.  These symlinks can be
-removed in the future once users have switched to the new path.
-
-While creating symlinks, entries are added in /sys/kernel/ that point to
-their new locations under /sys/kernel/kexec/.  If an error occurs while
-adding a symlink, it is logged but does not stop initialization of the
-remaining kexec sysfs symlinks.
-
-The /sys/kernel/<crash_elfcorehdr_size | kexec/crash_elfcorehdr_size>
-entry is now controlled by CONFIG_CRASH_DUMP instead of
-CONFIG_VMCORE_INFO, as CONFIG_CRASH_DUMP also enables CONFIG_VMCORE_INFO.
-
-Link: https://lkml.kernel.org/r/20251118114507.1769455-1-sourabhjain@linux.ibm.com
-Link: https://lkml.kernel.org/r/20251118114507.1769455-2-sourabhjain@linux.ibm.com
+Link: https://lkml.kernel.org/r/20251118114507.1769455-3-sourabhjain@linux.ibm.com
 Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
 Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Aditya Gupta <adityag@linux.ibm.com>
@@ -115,285 +75,144 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |  141 ++++++++++++++++++++++++++++++++++++++++++
- kernel/ksysfs.c     |   89 --------------------------
- 2 files changed, 142 insertions(+), 88 deletions(-)
+ Documentation/ABI/obsolete/sysfs-kernel-kexec-kdump |   71 ++++++++++
+ Documentation/ABI/testing/sysfs-kernel-kexec-kdump  |   53 -------
+ 2 files changed, 71 insertions(+), 53 deletions(-)
 
---- a/kernel/kexec_core.c~kexec-move-sysfs-entries-to-sys-kernel-kexec
-+++ a/kernel/kexec_core.c
-@@ -42,6 +42,7 @@
- #include <linux/objtool.h>
- #include <linux/kmsg_dump.h>
- #include <linux/dma-map-ops.h>
-+#include <linux/sysfs.h>
- 
- #include <asm/page.h>
- #include <asm/sections.h>
-@@ -1225,3 +1226,143 @@ int kernel_kexec(void)
- 	kexec_unlock();
- 	return error;
- }
+diff --git a/Documentation/ABI/obsolete/sysfs-kernel-kexec-kdump a/Documentation/ABI/obsolete/sysfs-kernel-kexec-kdump
+new file mode 100644
+--- /dev/null
++++ a/Documentation/ABI/obsolete/sysfs-kernel-kexec-kdump
+@@ -0,0 +1,71 @@
++NOTE: all the ABIs listed in this file are deprecated and will be removed after 2028.
 +
-+static ssize_t loaded_show(struct kobject *kobj,
-+				 struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%d\n", !!kexec_image);
-+}
-+static struct kobj_attribute loaded_attr = __ATTR_RO(loaded);
++Here are the alternative ABIs:
+++------------------------------------+-----------------------------------------+
++| Deprecated                         | Alternative                             |
+++------------------------------------+-----------------------------------------+
++| /sys/kernel/kexec_loaded           | /sys/kernel/kexec/loaded                |
+++------------------------------------+-----------------------------------------+
++| /sys/kernel/kexec_crash_loaded     | /sys/kernel/kexec/crash_loaded          |
+++------------------------------------+-----------------------------------------+
++| /sys/kernel/kexec_crash_size       | /sys/kernel/kexec/crash_size            |
+++------------------------------------+-----------------------------------------+
++| /sys/kernel/crash_elfcorehdr_size  | /sys/kernel/kexec/crash_elfcorehdr_size |
+++------------------------------------+-----------------------------------------+
++| /sys/kernel/kexec_crash_cma_ranges | /sys/kernel/kexec/crash_cma_ranges      |
+++------------------------------------+-----------------------------------------+
 +
-+#ifdef CONFIG_CRASH_DUMP
-+static ssize_t crash_loaded_show(struct kobject *kobj,
-+				       struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%d\n", kexec_crash_loaded());
-+}
-+static struct kobj_attribute crash_loaded_attr = __ATTR_RO(crash_loaded);
 +
-+#ifdef CONFIG_CRASH_RESERVE
-+static ssize_t crash_cma_ranges_show(struct kobject *kobj,
-+				     struct kobj_attribute *attr, char *buf)
-+{
++What:		/sys/kernel/kexec_loaded
++Date:		Jun 2006
++Contact:	kexec@lists.infradead.org
++Description:	read only
++		Indicates whether a new kernel image has been loaded
++		into memory using the kexec system call. It shows 1 if
++		a kexec image is present and ready to boot, or 0 if none
++		is loaded.
++User:		kexec tools, kdump service
 +
-+	ssize_t len = 0;
-+	int i;
++What:		/sys/kernel/kexec_crash_loaded
++Date:		Jun 2006
++Contact:	kexec@lists.infradead.org
++Description:	read only
++		Indicates whether a crash (kdump) kernel is currently
++		loaded into memory. It shows 1 if a crash kernel has been
++		successfully loaded for panic handling, or 0 if no crash
++		kernel is present.
++User:		Kexec tools, Kdump service
 +
-+	for (i = 0; i < crashk_cma_cnt; ++i) {
-+		len += sysfs_emit_at(buf, len, "%08llx-%08llx\n",
-+				     crashk_cma_ranges[i].start,
-+				     crashk_cma_ranges[i].end);
-+	}
-+	return len;
-+}
-+static struct kobj_attribute crash_cma_ranges_attr = __ATTR_RO(crash_cma_ranges);
-+#endif
++What:		/sys/kernel/kexec_crash_size
++Date:		Dec 2009
++Contact:	kexec@lists.infradead.org
++Description:	read/write
++		Shows the amount of memory reserved for loading the crash
++		(kdump) kernel. It reports the size, in bytes, of the
++		crash kernel area defined by the crashkernel= parameter.
++		This interface also allows reducing the crashkernel
++		reservation by writing a smaller value, and the reclaimed
++		space is added back to the system RAM.
++User:		Kdump service
 +
-+static ssize_t crash_size_show(struct kobject *kobj,
-+				       struct kobj_attribute *attr, char *buf)
-+{
-+	ssize_t size = crash_get_memory_size();
++What:		/sys/kernel/crash_elfcorehdr_size
++Date:		Aug 2023
++Contact:	kexec@lists.infradead.org
++Description:	read only
++		Indicates the preferred size of the memory buffer for the
++		ELF core header used by the crash (kdump) kernel. It defines
++		how much space is needed to hold metadata about the crashed
++		system, including CPU and memory information. This information
++		is used by the user space utility kexec to support updating the
++		in-kernel kdump image during hotplug operations.
++User:		Kexec tools
 +
-+	if (size < 0)
-+		return size;
-+
-+	return sysfs_emit(buf, "%zd\n", size);
-+}
-+static ssize_t crash_size_store(struct kobject *kobj,
-+				struct kobj_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	unsigned long cnt;
-+	int ret;
-+
-+	if (kstrtoul(buf, 0, &cnt))
-+		return -EINVAL;
-+
-+	ret = crash_shrink_memory(cnt);
-+	return ret < 0 ? ret : count;
-+}
-+static struct kobj_attribute crash_size_attr = __ATTR_RW(crash_size);
-+
-+#ifdef CONFIG_CRASH_HOTPLUG
-+static ssize_t crash_elfcorehdr_size_show(struct kobject *kobj,
-+			       struct kobj_attribute *attr, char *buf)
-+{
-+	unsigned int sz = crash_get_elfcorehdr_size();
-+
-+	return sysfs_emit(buf, "%u\n", sz);
-+}
-+static struct kobj_attribute crash_elfcorehdr_size_attr = __ATTR_RO(crash_elfcorehdr_size);
-+
-+#endif /* CONFIG_CRASH_HOTPLUG */
-+#endif /* CONFIG_CRASH_DUMP */
-+
-+static struct attribute *kexec_attrs[] = {
-+	&loaded_attr.attr,
-+#ifdef CONFIG_CRASH_DUMP
-+	&crash_loaded_attr.attr,
-+	&crash_size_attr.attr,
-+#ifdef CONFIG_CRASH_RESERVE
-+	&crash_cma_ranges_attr.attr,
-+#endif
-+#ifdef CONFIG_CRASH_HOTPLUG
-+	&crash_elfcorehdr_size_attr.attr,
-+#endif
-+#endif
-+	NULL
-+};
-+
-+struct kexec_link_entry {
-+	const char *target;
-+	const char *name;
-+};
-+
-+static struct kexec_link_entry kexec_links[] = {
-+	{ "loaded", "kexec_loaded" },
-+#ifdef CONFIG_CRASH_DUMP
-+	{ "crash_loaded", "kexec_crash_loaded" },
-+	{ "crash_size", "kexec_crash_size" },
-+#ifdef CONFIG_CRASH_RESERVE
-+	{"crash_cma_ranges", "kexec_crash_cma_ranges"},
-+#endif
-+#ifdef CONFIG_CRASH_HOTPLUG
-+	{ "crash_elfcorehdr_size", "crash_elfcorehdr_size" },
-+#endif
-+#endif
-+};
-+
-+static struct kobject *kexec_kobj;
-+ATTRIBUTE_GROUPS(kexec);
-+
-+static int __init init_kexec_sysctl(void)
-+{
-+	int error;
-+	int i;
-+
-+	kexec_kobj = kobject_create_and_add("kexec", kernel_kobj);
-+	if (!kexec_kobj) {
-+		pr_err("failed to create kexec kobject\n");
-+		return -ENOMEM;
-+	}
-+
-+	error = sysfs_create_groups(kexec_kobj, kexec_groups);
-+	if (error)
-+		goto kset_exit;
-+
-+	for (i = 0; i < ARRAY_SIZE(kexec_links); i++) {
-+		error = compat_only_sysfs_link_entry_to_kobj(kernel_kobj, kexec_kobj,
-+							     kexec_links[i].target,
-+							     kexec_links[i].name);
-+		if (error)
-+			pr_err("Unable to create %s symlink (%d)", kexec_links[i].name, error);
-+	}
-+
-+	return 0;
-+
-+kset_exit:
-+	kobject_put(kexec_kobj);
-+	return error;
-+}
-+
-+subsys_initcall(init_kexec_sysctl);
---- a/kernel/ksysfs.c~kexec-move-sysfs-entries-to-sys-kernel-kexec
-+++ a/kernel/ksysfs.c
-@@ -12,7 +12,7 @@
- #include <linux/sysfs.h>
- #include <linux/export.h>
- #include <linux/init.h>
--#include <linux/kexec.h>
-+#include <linux/vmcore_info.h>
- #include <linux/profile.h>
- #include <linux/stat.h>
- #include <linux/sched.h>
-@@ -119,68 +119,6 @@ static ssize_t profiling_store(struct ko
- KERNEL_ATTR_RW(profiling);
- #endif
- 
--#ifdef CONFIG_KEXEC_CORE
--static ssize_t kexec_loaded_show(struct kobject *kobj,
--				 struct kobj_attribute *attr, char *buf)
--{
--	return sysfs_emit(buf, "%d\n", !!kexec_image);
--}
--KERNEL_ATTR_RO(kexec_loaded);
++What:		/sys/kernel/kexec_crash_cma_ranges
++Date:		Nov 2025
++Contact:	kexec@lists.infradead.org
++Description:	read only
++		Provides information about the memory ranges reserved from
++		the Contiguous Memory Allocator (CMA) area that are allocated
++		to the crash (kdump) kernel. It lists the start and end physical
++		addresses of CMA regions assigned for crashkernel use.
++User:		kdump service
+diff --git a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
+deleted file mode 100644
+--- a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
++++ /dev/null
+@@ -1,53 +0,0 @@
+-What:		/sys/kernel/kexec_loaded
+-Date:		Jun 2006
+-Contact:	kexec@lists.infradead.org
+-Description:	read only
+-		Indicates whether a new kernel image has been loaded
+-		into memory using the kexec system call. It shows 1 if
+-		a kexec image is present and ready to boot, or 0 if none
+-		is loaded.
+-User:		kexec tools, kdump service
 -
--#ifdef CONFIG_CRASH_DUMP
--static ssize_t kexec_crash_loaded_show(struct kobject *kobj,
--				       struct kobj_attribute *attr, char *buf)
--{
--	return sysfs_emit(buf, "%d\n", kexec_crash_loaded());
--}
--KERNEL_ATTR_RO(kexec_crash_loaded);
+-What:		/sys/kernel/kexec_crash_loaded
+-Date:		Jun 2006
+-Contact:	kexec@lists.infradead.org
+-Description:	read only
+-		Indicates whether a crash (kdump) kernel is currently
+-		loaded into memory. It shows 1 if a crash kernel has been
+-		successfully loaded for panic handling, or 0 if no crash
+-		kernel is present.
+-User:		Kexec tools, Kdump service
 -
--#ifdef CONFIG_CRASH_RESERVE
--static ssize_t kexec_crash_cma_ranges_show(struct kobject *kobj,
--				    struct kobj_attribute *attr, char *buf)
--{
+-What:		/sys/kernel/kexec_crash_size
+-Date:		Dec 2009
+-Contact:	kexec@lists.infradead.org
+-Description:	read/write
+-		Shows the amount of memory reserved for loading the crash
+-		(kdump) kernel. It reports the size, in bytes, of the
+-		crash kernel area defined by the crashkernel= parameter.
+-		This interface also allows reducing the crashkernel
+-		reservation by writing a smaller value, and the reclaimed
+-		space is added back to the system RAM.
+-User:		Kdump service
 -
--	ssize_t len = 0;
--	int i;
+-What:		/sys/kernel/crash_elfcorehdr_size
+-Date:		Aug 2023
+-Contact:	kexec@lists.infradead.org
+-Description:	read only
+-		Indicates the preferred size of the memory buffer for the
+-		ELF core header used by the crash (kdump) kernel. It defines
+-		how much space is needed to hold metadata about the crashed
+-		system, including CPU and memory information. This information
+-		is used by the user space utility kexec to support updating the
+-		in-kernel kdump image during hotplug operations.
+-User:		Kexec tools
 -
--	for (i = 0; i < crashk_cma_cnt; ++i) {
--		len += sysfs_emit_at(buf, len, "%08llx-%08llx\n",
--				     crashk_cma_ranges[i].start,
--				     crashk_cma_ranges[i].end);
--	}
--	return len;
--}
--KERNEL_ATTR_RO(kexec_crash_cma_ranges);
--#endif /* CONFIG_CRASH_RESERVE */
--
--static ssize_t kexec_crash_size_show(struct kobject *kobj,
--				       struct kobj_attribute *attr, char *buf)
--{
--	ssize_t size = crash_get_memory_size();
--
--	if (size < 0)
--		return size;
--
--	return sysfs_emit(buf, "%zd\n", size);
--}
--static ssize_t kexec_crash_size_store(struct kobject *kobj,
--				   struct kobj_attribute *attr,
--				   const char *buf, size_t count)
--{
--	unsigned long cnt;
--	int ret;
--
--	if (kstrtoul(buf, 0, &cnt))
--		return -EINVAL;
--
--	ret = crash_shrink_memory(cnt);
--	return ret < 0 ? ret : count;
--}
--KERNEL_ATTR_RW(kexec_crash_size);
--
--#endif /* CONFIG_CRASH_DUMP*/
--#endif /* CONFIG_KEXEC_CORE */
--
- #ifdef CONFIG_VMCORE_INFO
- 
- static ssize_t vmcoreinfo_show(struct kobject *kobj,
-@@ -192,18 +130,6 @@ static ssize_t vmcoreinfo_show(struct ko
- }
- KERNEL_ATTR_RO(vmcoreinfo);
- 
--#ifdef CONFIG_CRASH_HOTPLUG
--static ssize_t crash_elfcorehdr_size_show(struct kobject *kobj,
--			       struct kobj_attribute *attr, char *buf)
--{
--	unsigned int sz = crash_get_elfcorehdr_size();
--
--	return sysfs_emit(buf, "%u\n", sz);
--}
--KERNEL_ATTR_RO(crash_elfcorehdr_size);
--
--#endif
--
- #endif /* CONFIG_VMCORE_INFO */
- 
- /* whether file capabilities are enabled */
-@@ -273,21 +199,8 @@ static struct attribute * kernel_attrs[]
- #ifdef CONFIG_PROFILING
- 	&profiling_attr.attr,
- #endif
--#ifdef CONFIG_KEXEC_CORE
--	&kexec_loaded_attr.attr,
--#ifdef CONFIG_CRASH_DUMP
--	&kexec_crash_loaded_attr.attr,
--	&kexec_crash_size_attr.attr,
--#ifdef CONFIG_CRASH_RESERVE
--	&kexec_crash_cma_ranges_attr.attr,
--#endif
--#endif
--#endif
- #ifdef CONFIG_VMCORE_INFO
- 	&vmcoreinfo_attr.attr,
--#ifdef CONFIG_CRASH_HOTPLUG
--	&crash_elfcorehdr_size_attr.attr,
--#endif
- #endif
- #ifndef CONFIG_TINY_RCU
- 	&rcu_expedited_attr.attr,
+-What:		/sys/kernel/kexec_crash_cma_ranges
+-Date:		Nov 2025
+-Contact:	kexec@lists.infradead.org
+-Description:	read only
+-		Provides information about the memory ranges reserved from
+-		the Contiguous Memory Allocator (CMA) area that are allocated
+-		to the crash (kdump) kernel. It lists the start and end physical
+-		addresses of CMA regions assigned for crashkernel use.
+-User:		kdump service
 _
 
 Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
