@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7411D289367
-	for <mm-commits@vger.kernel.org>; Fri, 28 Nov 2025 18:41:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D40C12C3277
+	for <mm-commits@vger.kernel.org>; Fri, 28 Nov 2025 18:50:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764355301; cv=none; b=S+/bEWl6lyJ1aOHtvBkBmaiHC6+P+SFZ+Dpe9zyENHEjvZUfrgqjeuWT25/hXYShodhWQdozwBPiNoplv8YvPeSepZTVPQ7Zp+4JCwiDqkvF8gjZjWTgeQ+FMsJby5hBU91+V6tvjwdgdTUJkyFp8++7vumlvEPcO6HAos0GgWs=
+	t=1764355818; cv=none; b=n9ZCQphtsxGcFFp1S/OwSq9bBby9o+DtQW5f5NuNorLXnvlIo3934rUWOOIaen0MaemcFR/ORx0AW/dTmV2ujc+pQp2oyBzuYRGD0+4x2VJzByF1FvC2iQLtqJUMijAej4oWyiRwa7pxfiMvKd+IELRyXTJNVH8hWPyCDkIUfWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764355301; c=relaxed/simple;
-	bh=2FeEVaUxOsibaBsYHcrRvbP+q2xUnsqcI9wZYvLoO6Q=;
-	h=Date:To:From:Subject:Message-Id; b=Cw3M7tNYRjRDmf4TkWxyQ8IvT98rbytob1+KY/Y8p2WXLmCH7OeZmV3Tbn8ed00BcL6HGQ6dHA3uprDv/tJeMER+1/iIfbF95FnCzPylqJyTS1dlzO9KaZHQgeGeS+qq2wNc8pUJW2ue+DcYOXGWX4GRrGhUKP6rtCo5BrM3RI4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HOlwxach; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764355818; c=relaxed/simple;
+	bh=xhCmKLkteQD15NVvTjdiIeorkvCPIFeijSbntorpsms=;
+	h=Date:To:From:Subject:Message-Id; b=LNq41oAbnxY7E1WlOuxeOiTfGzTv9CiHqFKC5teBTZoVbpzGjMTOmXhWDHYVWcVuLKUkTr6hhgbn2wSjnUe92DtfexiSorO5mb76EJgSdeij+txp2JifoBvzXKLto3hw+bMEjDe2jezAkzZ3kED3pOYPLzh961cDPJoCyPdCZ1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2aQKQWEg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HOlwxach"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E217CC4CEF1;
-	Fri, 28 Nov 2025 18:41:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2aQKQWEg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47E62C4CEF1;
+	Fri, 28 Nov 2025 18:50:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764355301;
-	bh=2FeEVaUxOsibaBsYHcrRvbP+q2xUnsqcI9wZYvLoO6Q=;
+	s=korg; t=1764355816;
+	bh=xhCmKLkteQD15NVvTjdiIeorkvCPIFeijSbntorpsms=;
 	h=Date:To:From:Subject:From;
-	b=HOlwxachpWGLdv2xom3QPULpowBxLSaP6pGtgYkAdZuDvgcJErzc7ugKOxGzbMVhY
-	 2M0Am2hj4PY4Ez6XdL/TjDeVrZ7kFXD18+Pddf630GO5CZ/hxCSOdhrR6/2d33fw6O
-	 Dl6CrAV1rgXsl8w0/s3YtRHVo0Zs0bpy3nHPyyE0=
-Date: Fri, 28 Nov 2025 10:41:40 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,willy@infradead.org,akpm@linux-foundation.org
+	b=2aQKQWEg6u2u+tIS9zd+cey9ZHZKy1uURf+bY48httijx7yzAebShBo45XEqgl+yR
+	 7ibbE0cQir3WXxFHUjq3a+46l6UgGsobLSIXjgg13jWt2MKs5J7TBUER6/rxaJz7c3
+	 ckkYrEZENP0m4fB3ldxVeAqdQED0CfHEFWUByg7o=
+Date: Fri, 28 Nov 2025 10:50:15 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,lkp@intel.com,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-vma_start_write_killable-signal-handling.patch added to mm-unstable branch
-Message-Id: <20251128184140.E217CC4CEF1@smtp.kernel.org>
+Subject: + liveupdate-luo_file-dont-use-invalid-list-iterator.patch added to mm-nonmm-unstable branch
+Message-Id: <20251128185016.47E62C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix vma_start_write_killable() signal handling
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-vma_start_write_killable-signal-handling.patch
+     Subject: liveupdate: luo_file: don't use invalid list iterator
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     liveupdate-luo_file-dont-use-invalid-list-iterator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-vma_start_write_killable-signal-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_file-dont-use-invalid-list-iterator.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,51 +58,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix vma_start_write_killable() signal handling
-Date: Fri, 28 Nov 2025 04:00:58 +0000
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: liveupdate: luo_file: don't use invalid list iterator
+Date: Fri, 28 Nov 2025 10:17:07 +0300
 
-If we get a signal, we need to restore the vm_refcnt.  We don't think that
-the refcount can actually be decremented to zero here as it requires the
-VMA to be detached, and the vma_mark_detached() uses TASK_UNINTERRUPTIBLE.
-However, that's a bit subtle, so handle it as if the refcount was zero at
-the start of this function.
+If we exit a list_for_each_entry() without hitting a break then the list
+iterator points to an offset from the list_head.  It's a non-NULL but
+invalid pointer and dereferencing it isn't allowed.
 
-Link: https://lkml.kernel.org/r/20251128040100.3022561-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Introduce a new "found" variable to test instead.
 
-Reported-by: syzbot+5b19bad23ac7f44bf8b8@syzkaller.appspotmail.com
-Fixes: 2197bb60f890 ("mm: add vma_start_write_killable()")
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/aSlMc4SS09Re4_xn@stanley.mountain
+Fixes: 3ee1d673194e ("liveupdate: luo_file: implement file systems callbacks")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/r/202511280420.y9O4fyhX-lkp@intel.com/
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap_lock.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ kernel/liveupdate/luo_file.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/mmap_lock.c~mm-fix-vma_start_write_killable-signal-handling
-+++ a/mm/mmap_lock.c
-@@ -74,6 +74,14 @@ static inline int __vma_enter_locked(str
- 		   refcount_read(&vma->vm_refcnt) == tgt_refcnt,
- 		   state);
- 	if (err) {
-+		if (refcount_sub_and_test(VMA_LOCK_OFFSET, &vma->vm_refcnt)) {
-+			/*
-+			 * The wait failed, but the last reader went away
-+			 * as well.  Tell the caller the VMA is detached.
-+			 */
-+			WARN_ON_ONCE(!detaching);
-+			err = 0;
+--- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-dont-use-invalid-list-iterator
++++ a/kernel/liveupdate/luo_file.c
+@@ -561,17 +561,20 @@ int luo_retrieve_file(struct luo_file_se
+ {
+ 	struct liveupdate_file_op_args args = {0};
+ 	struct luo_file *luo_file;
++	bool found = false;
+ 	int err;
+ 
+ 	if (list_empty(&file_set->files_list))
+ 		return -ENOENT;
+ 
+ 	list_for_each_entry(luo_file, &file_set->files_list, list) {
+-		if (luo_file->token == token)
++		if (luo_file->token == token) {
++			found = true;
+ 			break;
 +		}
- 		rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
- 		return err;
  	}
+ 
+-	if (luo_file->token != token)
++	if (!found)
+ 		return -ENOENT;
+ 
+ 	guard(mutex)(&luo_file->mutex);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-mm-fix-vma_start_write_killable-signal-handling.patch
+liveupdate-luo_file-dont-use-invalid-list-iterator.patch
 
