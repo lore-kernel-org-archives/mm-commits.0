@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D40C12C3277
-	for <mm-commits@vger.kernel.org>; Fri, 28 Nov 2025 18:50:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D2732D0622;
+	Fri, 28 Nov 2025 18:55:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764355818; cv=none; b=n9ZCQphtsxGcFFp1S/OwSq9bBby9o+DtQW5f5NuNorLXnvlIo3934rUWOOIaen0MaemcFR/ORx0AW/dTmV2ujc+pQp2oyBzuYRGD0+4x2VJzByF1FvC2iQLtqJUMijAej4oWyiRwa7pxfiMvKd+IELRyXTJNVH8hWPyCDkIUfWg=
+	t=1764356124; cv=none; b=q18Ty5FgEgTaAFLVmqCjF2y2XvwlRhxWoyerg9SFsbHrICsjVMyOImvvhw5FC8MrTiElTcORhDloqrdpdzN29wJjBAnc2jVcnbQRsGF0JvRyfGiAfAH9V0k8kjqp57dSqAQ/D25vu6nIchdZP/fCGbJXq/6f/XP7FNnZmOa7ouM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764355818; c=relaxed/simple;
-	bh=xhCmKLkteQD15NVvTjdiIeorkvCPIFeijSbntorpsms=;
-	h=Date:To:From:Subject:Message-Id; b=LNq41oAbnxY7E1WlOuxeOiTfGzTv9CiHqFKC5teBTZoVbpzGjMTOmXhWDHYVWcVuLKUkTr6hhgbn2wSjnUe92DtfexiSorO5mb76EJgSdeij+txp2JifoBvzXKLto3hw+bMEjDe2jezAkzZ3kED3pOYPLzh961cDPJoCyPdCZ1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2aQKQWEg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764356124; c=relaxed/simple;
+	bh=bIPaIQFsV5dPVv4UUZ6HSMuS+/tihJQmcM7KGPYU09s=;
+	h=Date:To:From:Subject:Message-Id; b=WtBhAbv/722cxsJUrldkE9Ui9Lf/sqfGvV3qqZbXO+6RZqWr3CEBv+LgwlbaPQewHR2PH0h9I2+/bJhAIt6IfYaVbifjrZsiT0cPYt3cp8XFj2VXfyxk+zMkOHoQy/H+XUbzAK27sMc3ftLTdGzSIrPNWW/+Obkasc8xRApmxMQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cR0YtCn3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2aQKQWEg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47E62C4CEF1;
-	Fri, 28 Nov 2025 18:50:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cR0YtCn3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B995CC4CEFB;
+	Fri, 28 Nov 2025 18:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764355816;
-	bh=xhCmKLkteQD15NVvTjdiIeorkvCPIFeijSbntorpsms=;
+	s=korg; t=1764356123;
+	bh=bIPaIQFsV5dPVv4UUZ6HSMuS+/tihJQmcM7KGPYU09s=;
 	h=Date:To:From:Subject:From;
-	b=2aQKQWEg6u2u+tIS9zd+cey9ZHZKy1uURf+bY48httijx7yzAebShBo45XEqgl+yR
-	 7ibbE0cQir3WXxFHUjq3a+46l6UgGsobLSIXjgg13jWt2MKs5J7TBUER6/rxaJz7c3
-	 ckkYrEZENP0m4fB3ldxVeAqdQED0CfHEFWUByg7o=
-Date: Fri, 28 Nov 2025 10:50:15 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,lkp@intel.com,dan.carpenter@linaro.org,akpm@linux-foundation.org
+	b=cR0YtCn39IZ3ttFZ4ZFWjp4ZtHlaOivISCx7OXo1P38xsKjyBFEMWHLDrQ4/vNTJb
+	 BGuGJnA5MSMMfSNdu3ncY/pLw9U0/GhFdGjgqOuZQAA1ffSLhS7P5EOlOx22dn3T1D
+	 CeqIyAWvxVDdtV4ro2jDN5IVLcUach/eK81OyeXc=
+Date: Fri, 28 Nov 2025 10:55:23 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,kees@kernel.org,glider@google.com,dvyukov@google.com,dakr@kernel.org,andreyknvl@gmail.com,jiayuan.chen@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-luo_file-dont-use-invalid-list-iterator.patch added to mm-nonmm-unstable branch
-Message-Id: <20251128185016.47E62C4CEF1@smtp.kernel.org>
+Subject: + mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251128185523.B995CC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: liveupdate: luo_file: don't use invalid list iterator
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     liveupdate-luo_file-dont-use-invalid-list-iterator.patch
+     Subject: mm/kasan: fix incorrect unpoisoning in vrealloc for KASAN
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_file-dont-use-invalid-list-iterator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,58 +58,156 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@linaro.org>
-Subject: liveupdate: luo_file: don't use invalid list iterator
-Date: Fri, 28 Nov 2025 10:17:07 +0300
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+Subject: mm/kasan: fix incorrect unpoisoning in vrealloc for KASAN
+Date: Fri, 28 Nov 2025 19:15:14 +0800
 
-If we exit a list_for_each_entry() without hitting a break then the list
-iterator points to an offset from the list_head.  It's a non-NULL but
-invalid pointer and dereferencing it isn't allowed.
+Syzkaller reported a memory out-of-bounds bug [1]. This patch fixes two
+issues:
 
-Introduce a new "found" variable to test instead.
+1. In vrealloc, we were missing the KASAN_VMALLOC_VM_ALLOC flag when
+   unpoisoning the extended region. This flag is required to correctly
+   associate the allocation with KASAN's vmalloc tracking.
 
-Link: https://lkml.kernel.org/r/aSlMc4SS09Re4_xn@stanley.mountain
-Fixes: 3ee1d673194e ("liveupdate: luo_file: implement file systems callbacks")
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/r/202511280420.y9O4fyhX-lkp@intel.com/
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+   Note: In contrast, vzalloc (via __vmalloc_node_range_noprof) explicitly
+   sets KASAN_VMALLOC_VM_ALLOC and calls kasan_unpoison_vmalloc() with it.
+   vrealloc must behave consistently — especially when reusing existing
+   vmalloc regions — to ensure KASAN can track allocations correctly.
+
+2. When vrealloc reuses an existing vmalloc region (without allocating new
+   pages), KASAN previously generated a new tag, which broke tag-based
+   memory access tracking. We now add a 'reuse_tag' parameter to
+   __kasan_unpoison_vmalloc() to preserve the original tag in such cases.
+
+A new helper kasan_unpoison_vralloc() is introduced to handle this reuse
+scenario, ensuring consistent tag behavior during reallocation.
+
+
+Link: https://lkml.kernel.org/r/20251128111516.244497-1-jiayuan.chen@linux.dev
+Link: https://syzkaller.appspot.com/bug?extid=997752115a851cb0cf36 [1]
+Fixes: a0309faf1cb0 ("mm: vmalloc: support more granular vrealloc() sizing")
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+Reported-by: syzbot+997752115a851cb0cf36@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/68e243a2.050a0220.1696c6.007d.GAE@google.com/T/
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/luo_file.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/kasan.h |   21 +++++++++++++++++++--
+ mm/kasan/hw_tags.c    |    4 ++--
+ mm/kasan/shadow.c     |    6 ++++--
+ mm/vmalloc.c          |    4 ++--
+ 4 files changed, 27 insertions(+), 8 deletions(-)
 
---- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-dont-use-invalid-list-iterator
-+++ a/kernel/liveupdate/luo_file.c
-@@ -561,17 +561,20 @@ int luo_retrieve_file(struct luo_file_se
+--- a/include/linux/kasan.h~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/include/linux/kasan.h
+@@ -596,13 +596,23 @@ static inline void kasan_release_vmalloc
+ #endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+ 
+ void *__kasan_unpoison_vmalloc(const void *start, unsigned long size,
+-			       kasan_vmalloc_flags_t flags);
++			       kasan_vmalloc_flags_t flags, bool reuse_tag);
++
++static __always_inline void *kasan_unpoison_vrealloc(const void *start,
++						     unsigned long size,
++						     kasan_vmalloc_flags_t flags)
++{
++	if (kasan_enabled())
++		return __kasan_unpoison_vmalloc(start, size, flags, true);
++	return (void *)start;
++}
++
+ static __always_inline void *kasan_unpoison_vmalloc(const void *start,
+ 						unsigned long size,
+ 						kasan_vmalloc_flags_t flags)
  {
- 	struct liveupdate_file_op_args args = {0};
- 	struct luo_file *luo_file;
-+	bool found = false;
- 	int err;
+ 	if (kasan_enabled())
+-		return __kasan_unpoison_vmalloc(start, size, flags);
++		return __kasan_unpoison_vmalloc(start, size, flags, false);
+ 	return (void *)start;
+ }
  
- 	if (list_empty(&file_set->files_list))
- 		return -ENOENT;
+@@ -629,6 +639,13 @@ static inline void kasan_release_vmalloc
+ 					 unsigned long free_region_end,
+ 					 unsigned long flags) { }
  
- 	list_for_each_entry(luo_file, &file_set->files_list, list) {
--		if (luo_file->token == token)
-+		if (luo_file->token == token) {
-+			found = true;
- 			break;
-+		}
++static inline void *kasan_unpoison_vrealloc(const void *start,
++					    unsigned long size,
++					    kasan_vmalloc_flags_t flags)
++{
++	return (void *)start;
++}
++
+ static inline void *kasan_unpoison_vmalloc(const void *start,
+ 					   unsigned long size,
+ 					   kasan_vmalloc_flags_t flags)
+--- a/mm/kasan/hw_tags.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/kasan/hw_tags.c
+@@ -317,7 +317,7 @@ static void init_vmalloc_pages(const voi
+ }
+ 
+ void *__kasan_unpoison_vmalloc(const void *start, unsigned long size,
+-				kasan_vmalloc_flags_t flags)
++				kasan_vmalloc_flags_t flags, bool reuse_tag)
+ {
+ 	u8 tag;
+ 	unsigned long redzone_start, redzone_size;
+@@ -361,7 +361,7 @@ void *__kasan_unpoison_vmalloc(const voi
+ 		return (void *)start;
  	}
  
--	if (luo_file->token != token)
-+	if (!found)
- 		return -ENOENT;
+-	tag = kasan_random_tag();
++	tag = reuse_tag ? get_tag(start) : kasan_random_tag();
+ 	start = set_tag(start, tag);
  
- 	guard(mutex)(&luo_file->mutex);
+ 	/* Unpoison and initialize memory up to size. */
+--- a/mm/kasan/shadow.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/kasan/shadow.c
+@@ -625,7 +625,7 @@ void kasan_release_vmalloc(unsigned long
+ }
+ 
+ void *__kasan_unpoison_vmalloc(const void *start, unsigned long size,
+-			       kasan_vmalloc_flags_t flags)
++			       kasan_vmalloc_flags_t flags, bool reuse_tag)
+ {
+ 	/*
+ 	 * Software KASAN modes unpoison both VM_ALLOC and non-VM_ALLOC
+@@ -648,7 +648,9 @@ void *__kasan_unpoison_vmalloc(const voi
+ 	    !(flags & KASAN_VMALLOC_PROT_NORMAL))
+ 		return (void *)start;
+ 
+-	start = set_tag(start, kasan_random_tag());
++	if (!reuse_tag)
++		start = set_tag(start, kasan_random_tag());
++
+ 	kasan_unpoison(start, size, false);
+ 	return (void *)start;
+ }
+--- a/mm/vmalloc.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/vmalloc.c
+@@ -4175,8 +4175,8 @@ void *vrealloc_node_align_noprof(const v
+ 	 * We already have the bytes available in the allocation; use them.
+ 	 */
+ 	if (size <= alloced_size) {
+-		kasan_unpoison_vmalloc(p + old_size, size - old_size,
+-				       KASAN_VMALLOC_PROT_NORMAL);
++		kasan_unpoison_vrealloc(p, size,
++					KASAN_VMALLOC_PROT_NORMAL | KASAN_VMALLOC_VM_ALLOC);
+ 		/*
+ 		 * No need to zero memory here, as unused memory will have
+ 		 * already been zeroed at initial allocation time or during
 _
 
-Patches currently in -mm which might be from dan.carpenter@linaro.org are
+Patches currently in -mm which might be from jiayuan.chen@linux.dev are
 
-liveupdate-luo_file-dont-use-invalid-list-iterator.patch
+mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
+mm-vmscan-skip-increasing-kswapd_failures-when-reclaim-was-boosted.patch
 
