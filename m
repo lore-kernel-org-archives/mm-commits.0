@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 753AE7FBA2
-	for <mm-commits@vger.kernel.org>; Sat, 29 Nov 2025 18:42:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C1C87FBA2
+	for <mm-commits@vger.kernel.org>; Sat, 29 Nov 2025 18:42:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764441720; cv=none; b=YBZt/JYoaQ6jVPFdC9zNsUsWZ6dJP2vhobP6dKpRg3YFQRLKAklCeHfLsJmqUAP3f/75cFPtd6MY31pGA0ZfyX5HWl0z3xHlDBFUMKt3RGBvQWxQTNKqsM01kUV0Q51/97zMikA0gb+R2TA6Oh6pWD6AUVIAzyuvY8NT6cF6448=
+	t=1764441722; cv=none; b=gxHJ9ttcB8Crwyn4IeKFmrW1FBlrQuWFugAcJG5ZM+iRxPulQFZ08EunsaKOJ3b8ZHDkV0x+/wR6W8sFd9fXYtZj4DoynhK+xArdHEu4fIJ+zDoYSDDIvqmAIBdKPVIq3MhWr1sawtppKus3Y6todjyiLLg6LS3dA3FmmQxFvLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764441720; c=relaxed/simple;
-	bh=LV8KEFncdkTLzQ2pJ+RcdoryqdOUQ2iPceiUGyHTUik=;
-	h=Date:To:From:Subject:Message-Id; b=G17NwFuy1Ygrs9aHwWFQkCLu18Bg4abLUVCaHR7zQRDfYqSb9IEN917PcfRT6K4k1S5RH6JfPZu9SiSHUbz5tLOUGyxZNTP99UAfsCtwd0TYbzBAR06Hcubk2el1V3sVuGoCE5ejTzsB3l3wb9Chp/WmDh49if7c/0jgZW/Rimk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=18OnGGiX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764441722; c=relaxed/simple;
+	bh=C0yTX8hDkxXNLEgmvgfE6WOcsBU+ibXXdPgHp7Zh17k=;
+	h=Date:To:From:Subject:Message-Id; b=AOeCjf/OWDRZekL0URWN85gcoxu4jAush/NG7NScva4qlHgkny+KBaD9Fn4IrKnJnWbWSd0Eiob8hR488eGJi5V9jAZfPpozh8mOuaBCE9ddly5Z7Bs5oO/MD6vQCVnt6ddNpcPYCwER24wVsTCkRTiaoEAwO/VXjH/j57ZfZaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PO3DcSbD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="18OnGGiX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BDECC4CEF7;
-	Sat, 29 Nov 2025 18:42:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PO3DcSbD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B71F1C4CEF7;
+	Sat, 29 Nov 2025 18:42:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764441720;
-	bh=LV8KEFncdkTLzQ2pJ+RcdoryqdOUQ2iPceiUGyHTUik=;
+	s=korg; t=1764441721;
+	bh=C0yTX8hDkxXNLEgmvgfE6WOcsBU+ibXXdPgHp7Zh17k=;
 	h=Date:To:From:Subject:From;
-	b=18OnGGiXNyWimYYMkJIzvhaOxk4J6GdvbzFMVRXPHlaIdjdG5sprEBIu1l+0noALX
-	 2VJLO7FDsFlmVAvk9GYqpJOdJXxLWP4VjbVJHSmErIeC7feUjm+O0pfIn5k+RrzRAX
-	 njoxbBE48UQ01tWpbVOF2d3X8m0powIWs39pu99E=
-Date: Sat, 29 Nov 2025 10:41:59 -0800
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
+	b=PO3DcSbD392iuVFCdEpGptafwr6OdKsCz3ezE+lafj8rK1jH5Za1dDzzSEtu1uHJQ
+	 wwhBvvnQn4giv7ftK98dOPIQJNxRUClD48a5C9dJw5xdIAgYCw/aa169uIVr5EYMaL
+	 esUQymZEimOYyb+WwEMQ6YxEaftpA0jUp+ribPts=
+Date: Sat, 29 Nov 2025 10:42:01 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch removed from -mm tree
-Message-Id: <20251129184200.0BDECC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-vma_start_write_killable-signal-handling.patch removed from -mm tree
+Message-Id: <20251129184201.B71F1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swapfile: use plist_for_each_entry in __folio_throttle_swaprate
+     Subject: mm: fix vma_start_write_killable() signal handling
 has been removed from the -mm tree.  Its filename was
-     mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate.patch
+     mm-fix-vma_start_write_killable-signal-handling.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm/swapfile: use plist_for_each_entry in __folio_throttle_swaprate
-Date: Thu, 27 Nov 2025 19:03:03 +0900
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: fix vma_start_write_killable() signal handling
+Date: Fri, 28 Nov 2025 04:00:58 +0000
 
-The loop breaks immediately after finding the first swap device and
-never modifies the list. Replace plist_for_each_entry_safe() with
-plist_for_each_entry() and remove the unused next variable.
+If we get a signal, we need to restore the vm_refcnt.  We don't think that
+the refcount can actually be decremented to zero here as it requires the
+VMA to be detached, and the vma_mark_detached() uses TASK_UNINTERRUPTIBLE.
+However, that's a bit subtle, so handle it as if the refcount was zero at
+the start of this function.
 
-Link: https://lkml.kernel.org/r/20251127100303.783198-3-youngjun.park@lge.com
-Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Kairui Song <kasong@tencent.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20251128040100.3022561-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+
+Reported-by: syzbot+5b19bad23ac7f44bf8b8@syzkaller.appspotmail.com
+Fixes: 2197bb60f890 ("mm: add vma_start_write_killable()")
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/mmap_lock.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/swapfile.c~mm-swapfile-use-plist_for_each_entry-in-__folio_throttle_swaprate
-+++ a/mm/swapfile.c
-@@ -4023,7 +4023,7 @@ static bool __has_usable_swap(void)
- 
- void __folio_throttle_swaprate(struct folio *folio, gfp_t gfp)
- {
--	struct swap_info_struct *si, *next;
-+	struct swap_info_struct *si;
- 
- 	if (!(gfp & __GFP_IO))
- 		return;
-@@ -4042,8 +4042,7 @@ void __folio_throttle_swaprate(struct fo
- 		return;
- 
- 	spin_lock(&swap_avail_lock);
--	plist_for_each_entry_safe(si, next, &swap_avail_head,
--				  avail_list) {
-+	plist_for_each_entry(si, &swap_avail_head, avail_list) {
- 		if (si->bdev) {
- 			blkcg_schedule_throttle(si->bdev->bd_disk, true);
- 			break;
+--- a/mm/mmap_lock.c~mm-fix-vma_start_write_killable-signal-handling
++++ a/mm/mmap_lock.c
+@@ -74,6 +74,14 @@ static inline int __vma_enter_locked(str
+ 		   refcount_read(&vma->vm_refcnt) == tgt_refcnt,
+ 		   state);
+ 	if (err) {
++		if (refcount_sub_and_test(VMA_LOCK_OFFSET, &vma->vm_refcnt)) {
++			/*
++			 * The wait failed, but the last reader went away
++			 * as well.  Tell the caller the VMA is detached.
++			 */
++			WARN_ON_ONCE(!detaching);
++			err = 0;
++		}
+ 		rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
+ 		return err;
+ 	}
 _
 
-Patches currently in -mm which might be from youngjun.park@lge.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+idr-fix-idr_alloc-returning-an-id-out-of-range.patch
 
