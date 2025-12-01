@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C1C87FBA2
-	for <mm-commits@vger.kernel.org>; Sat, 29 Nov 2025 18:42:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE312336ED2
+	for <mm-commits@vger.kernel.org>; Mon,  1 Dec 2025 17:10:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764441722; cv=none; b=gxHJ9ttcB8Crwyn4IeKFmrW1FBlrQuWFugAcJG5ZM+iRxPulQFZ08EunsaKOJ3b8ZHDkV0x+/wR6W8sFd9fXYtZj4DoynhK+xArdHEu4fIJ+zDoYSDDIvqmAIBdKPVIq3MhWr1sawtppKus3Y6todjyiLLg6LS3dA3FmmQxFvLs=
+	t=1764609053; cv=none; b=QGDIgHVYJbSPLGSvkXFcc6MCNbioIl2YnXoJCYBng9tal1El9WcuSFUDAJJrdLhj1JPutNJYwETWqj4gSf+nAguXNhFRk6+UgI+y5F+nAs6EixzRJhwIIgswWf2gsA6KDy3XTjXod2WalG/Gej0r+3Jrra8IIZfY7YtJPSl1J1U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764441722; c=relaxed/simple;
-	bh=C0yTX8hDkxXNLEgmvgfE6WOcsBU+ibXXdPgHp7Zh17k=;
-	h=Date:To:From:Subject:Message-Id; b=AOeCjf/OWDRZekL0URWN85gcoxu4jAush/NG7NScva4qlHgkny+KBaD9Fn4IrKnJnWbWSd0Eiob8hR488eGJi5V9jAZfPpozh8mOuaBCE9ddly5Z7Bs5oO/MD6vQCVnt6ddNpcPYCwER24wVsTCkRTiaoEAwO/VXjH/j57ZfZaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PO3DcSbD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764609053; c=relaxed/simple;
+	bh=4CopsYAQW1YCS03VSQqWaZ7RGf6B6hFAAuvpgCGU8xU=;
+	h=Date:To:From:Subject:Message-Id; b=rp6MA/lEKZqc4FJ7b70svG6EoHosLI82lAK5x1pcbF/L0VpdLnS29axXb/3xY8xFWhFyjoW06KpWQbicFIs0ygAfClA+3rgn3qSk8eru4qWAnKAhiG359EXYHb572m1Zwn06kLUuhWostyuK3eiVjgg4V86xoS/7pjafEj/7cPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VLF89cml; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PO3DcSbD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B71F1C4CEF7;
-	Sat, 29 Nov 2025 18:42:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VLF89cml"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2DE7C4CEF1;
+	Mon,  1 Dec 2025 17:10:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764441721;
-	bh=C0yTX8hDkxXNLEgmvgfE6WOcsBU+ibXXdPgHp7Zh17k=;
+	s=korg; t=1764609052;
+	bh=4CopsYAQW1YCS03VSQqWaZ7RGf6B6hFAAuvpgCGU8xU=;
 	h=Date:To:From:Subject:From;
-	b=PO3DcSbD392iuVFCdEpGptafwr6OdKsCz3ezE+lafj8rK1jH5Za1dDzzSEtu1uHJQ
-	 wwhBvvnQn4giv7ftK98dOPIQJNxRUClD48a5C9dJw5xdIAgYCw/aa169uIVr5EYMaL
-	 esUQymZEimOYyb+WwEMQ6YxEaftpA0jUp+ribPts=
-Date: Sat, 29 Nov 2025 10:42:01 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,willy@infradead.org,akpm@linux-foundation.org
+	b=VLF89cmlsaTDadJqvLxchcR8K+Joajt3uLqaklY2XdzZ7XQgxi4zQUzPrD7Fg3QFS
+	 jEM/cJBrVDGLkRyGiekBQT1wgzejHa3aoEHYRuFjQ6jgjyNuoEkiWtEX+vxUko9tJe
+	 GP2jVKDKOrD6Q7y40pnbJIVGJvEF6+s90Dyn0/VI=
+Date: Mon, 01 Dec 2025 09:10:52 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,aliceryhl@google.com,lukas.bulwahn@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-vma_start_write_killable-signal-handling.patch removed from -mm tree
-Message-Id: <20251129184201.B71F1C4CEF7@smtp.kernel.org>
+Subject: + mm-fix-config-option-typo-in-header-file.patch added to mm-unstable branch
+Message-Id: <20251201171052.A2DE7C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,60 +34,72 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: fix vma_start_write_killable() signal handling
-has been removed from the -mm tree.  Its filename was
-     mm-fix-vma_start_write_killable-signal-handling.patch
+The patch titled
+     Subject: mm: fix CONFIG_STACK_GROWSUP typo in mm.h
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-config-option-typo-in-header-file.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-config-option-typo-in-header-file.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: fix vma_start_write_killable() signal handling
-Date: Fri, 28 Nov 2025 04:00:58 +0000
+From: Lukas Bulwahn <lukas.bulwahn@redhat.com>
+Subject: mm: fix CONFIG_STACK_GROWSUP typo in mm.h
+Date: Mon, 1 Dec 2025 13:29:22 +0100
 
-If we get a signal, we need to restore the vm_refcnt.  We don't think that
-the refcount can actually be decremented to zero here as it requires the
-VMA to be detached, and the vma_mark_detached() uses TASK_UNINTERRUPTIBLE.
-However, that's a bit subtle, so handle it as if the refcount was zero at
-the start of this function.
+Commit 2b6a3f061f11 ("mm: declare VMA flags by bit") significantly
+refactors the header file include/linux/mm.h.  In that step, it introduces
+a typo in an ifdef, referring to a non-existing config option
+STACK_GROWS_UP, whereas the actual config option is called STACK_GROWSUP.
 
-Link: https://lkml.kernel.org/r/20251128040100.3022561-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Fix this typo in the mm header file.
 
-Reported-by: syzbot+5b19bad23ac7f44bf8b8@syzkaller.appspotmail.com
-Fixes: 2197bb60f890 ("mm: add vma_start_write_killable()")
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251201122922.352480-1-lukas.bulwahn@redhat.com
+Fixes: 2b6a3f061f11 ("mm: declare VMA flags by bit")
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap_lock.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mmap_lock.c~mm-fix-vma_start_write_killable-signal-handling
-+++ a/mm/mmap_lock.c
-@@ -74,6 +74,14 @@ static inline int __vma_enter_locked(str
- 		   refcount_read(&vma->vm_refcnt) == tgt_refcnt,
- 		   state);
- 	if (err) {
-+		if (refcount_sub_and_test(VMA_LOCK_OFFSET, &vma->vm_refcnt)) {
-+			/*
-+			 * The wait failed, but the last reader went away
-+			 * as well.  Tell the caller the VMA is detached.
-+			 */
-+			WARN_ON_ONCE(!detaching);
-+			err = 0;
-+		}
- 		rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
- 		return err;
- 	}
+--- a/include/linux/mm.h~mm-fix-config-option-typo-in-header-file
++++ a/include/linux/mm.h
+@@ -438,7 +438,7 @@ enum {
+ #define VM_NOHUGEPAGE	INIT_VM_FLAG(NOHUGEPAGE)
+ #define VM_MERGEABLE	INIT_VM_FLAG(MERGEABLE)
+ #define VM_STACK	INIT_VM_FLAG(STACK)
+-#ifdef CONFIG_STACK_GROWS_UP
++#ifdef CONFIG_STACK_GROWSUP
+ #define VM_STACK_EARLY	INIT_VM_FLAG(STACK_EARLY)
+ #else
+ #define VM_STACK_EARLY	VM_NONE
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from lukas.bulwahn@redhat.com are
 
-idr-fix-idr_alloc-returning-an-id-out-of-range.patch
+mm-fix-config-option-typo-in-header-file.patch
 
