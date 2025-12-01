@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EA4A315D55
-	for <mm-commits@vger.kernel.org>; Mon,  1 Dec 2025 17:21:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD32B3191A2;
+	Mon,  1 Dec 2025 17:41:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764609664; cv=none; b=tw4jKdI727LDT7RUR9UZ/zRCTM2XT8S7EbGtpY85Qwdel53aNEUgIItW+dnluyCRWVQtmBTGfDyY5IkCl+PUGZMQ88lYb/BKzO49gsvXswmmF4I132qP5Ae8I0EHcoOpsX/TdsBtbYjLDFNoSyW6lbrbwwu0FN7zGAk7LsUJlYk=
+	t=1764610893; cv=none; b=No4EhWrW3yaQO95QYvK4wg8E2IrWiSFwsprK96qKesSt/QE++8SSlnObeAbdGhEirqpwRzh4iANkzZ+7WjrPvT47yLhU9yxwUsOPia9w2DiUPvM+b6ZDVPbiJe81X+OWv6ipn+wf5RoNKhP9uBmzgXfUwE6+wzOiqOLs09aLrH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764609664; c=relaxed/simple;
-	bh=LSHfEBKPFwjmLWOjvvjpOzQhK+1tQ//JjEDQNzObAHw=;
-	h=Date:To:From:Subject:Message-Id; b=XAOAlwLx/9h+TqU0fsFTd7+8V8O9a2F3flOhWQYq2PzbQ+nOZsk4IDq+CR5+QyES4YT5b88i3H4WpJ0RHF1IDjprZdVHuKD8JpGlKXrF0ClJD1t0UCn8rj6ozX/+Jl0FC5wcuc1FJTwICaA01yOHLhl62dTFGAn4vOy4GxlEDmY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aNwOiRgG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764610893; c=relaxed/simple;
+	bh=ACTysoEHwztCPkOCIliLNO10BVmxqlVwbaF8x8hyCpY=;
+	h=Date:To:From:Subject:Message-Id; b=TnQWXSVc4a3r2thVjHUcVXrUcHyc0nmqlSrnwnzhx1sF6/PmjAch+GXl2CvAvpTGCT78spT+xaiRqE1Ll2RPQ9UpLBsc5Rtk+xDb1hTLSNOpkKk6UvT0MZ8maXUVxBz11oWPu80eXqHC5U1i89LZdOHaAIFF07I1DLf6scWxoSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RF90PUg5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aNwOiRgG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ECDFC4CEF1;
-	Mon,  1 Dec 2025 17:21:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RF90PUg5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8714FC4CEF1;
+	Mon,  1 Dec 2025 17:41:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764609663;
-	bh=LSHfEBKPFwjmLWOjvvjpOzQhK+1tQ//JjEDQNzObAHw=;
+	s=korg; t=1764610893;
+	bh=ACTysoEHwztCPkOCIliLNO10BVmxqlVwbaF8x8hyCpY=;
 	h=Date:To:From:Subject:From;
-	b=aNwOiRgGL7Lnecq9KVmIKL3Tu+i8xLDEv11OF9AIMAVgHFcHyeTzk5sTOx58YKlcH
-	 rQGG0A+JSbu/FmI/9cuPVghALJpY5uMT33Wo8v/vV7MM7jXxR6sxmOmQL78eoUWZu0
-	 C5kAHIq6i136/bbXwGw9bRyZKAnzGCOyweMiOL9M=
-Date: Mon, 01 Dec 2025 09:21:02 -0800
-To: mm-commits@vger.kernel.org,zohar@linux.ibm.com,yifei.l.liu@oracle.com,tglx@linutronix.de,sourabhjain@linux.ibm.com,sohil.mehta@intel.com,rppt@kernel.org,paul.x.webb@oracle.com,noodles@meta.com,mingo@redhat.com,joel.granados@kernel.org,jbohac@suse.cz,hpa@zytor.com,henry.willard@oracle.com,harshit.m.mogalapalli@oracle.com,guoweikang.kernel@gmail.com,graf@amazon.com,bp@alien8.de,ardb@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=RF90PUg5K1vffHfKUPBq4HjLg+6IuXs/ZY36ZE4DgU6N/Q7aGTB/OCYH1LzIsea99
+	 1x12TbxLY0i/CCb7wLE0L6MGS7QzBrvB0gpO+erWQjOCu6cZQYW7BnjSe98N4M0WAV
+	 pphfdItMSWcOnMBq9ge6F7gTUxTsk35ohM9K3Uls=
+Date: Mon, 01 Dec 2025 09:41:33 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,aboorvad@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251201172103.2ECDFC4CEF1@smtp.kernel.org>
+Subject: + mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251201174133.8714FC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix
+     Subject: mm/page_alloc: make percpu_pagelist_high_fraction reads lock-free
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix.patch
+     mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix
-Date: Mon Dec  1 09:20:28 AM PST 2025
+From: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Subject: mm/page_alloc: make percpu_pagelist_high_fraction reads lock-free
+Date: Mon, 1 Dec 2025 11:30:09 +0530
 
-fix comment typo
+When page isolation loops indefinitely during memory offline, reading
+/proc/sys/vm/percpu_pagelist_high_fraction blocks on pcp_batch_high_lock,
+causing hung task warnings.
 
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: guoweikang <guoweikang.kernel@gmail.com>
-Cc: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
-Cc: Henry Willard <henry.willard@oracle.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Jonathan McDowell <noodles@meta.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Mimi Zohar <zohar@linux.ibm.com>
-Cc: Paul Webb <paul.x.webb@oracle.com>
-Cc: Sohil Mehta <sohil.mehta@intel.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Yifei Liu <yifei.l.liu@oracle.com>
+Make procfs reads lock-free since percpu_pagelist_high_fraction is a
+simple integer with naturally atomic reads, writers still serialize via
+the mutex.
+
+This prevents hung task warnings when reading the procfs file during
+long-running memory offline operations.
+
+Link: https://lkml.kernel.org/r/20251201060009.1420792-1-aboorvad@linux.ibm.com
+Signed-off-by: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/arch/x86/kernel/setup.c~x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix
-+++ a/arch/x86/kernel/setup.c
-@@ -446,7 +446,7 @@ int __init ima_get_kexec_buffer(void **a
+--- a/mm/page_alloc.c~mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free
++++ a/mm/page_alloc.c
+@@ -6611,11 +6611,14 @@ static int percpu_pagelist_high_fraction
+ 	int old_percpu_pagelist_high_fraction;
+ 	int ret;
  
- 	/*
- 	 * Calculate the PFNs for the buffer and ensure
--	 * they are with in addressable memory.
-+	 * they are within addressable memory.
- 	 */
- 	start_pfn = PFN_DOWN(ima_kexec_buffer_phys);
- 	end_pfn = PFN_DOWN(ima_kexec_buffer_phys + ima_kexec_buffer_size - 1);
++	if (!write)
++		return proc_dointvec_minmax(table, write, buffer, length, ppos);
++
+ 	mutex_lock(&pcp_batch_high_lock);
+ 	old_percpu_pagelist_high_fraction = percpu_pagelist_high_fraction;
+ 
+ 	ret = proc_dointvec_minmax(table, write, buffer, length, ppos);
+-	if (!write || ret < 0)
++	if (ret < 0)
+ 		goto out;
+ 
+ 	/* Sanity checking to avoid pcp imbalance */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aboorvad@linux.ibm.com are
 
-genalloch-fix-htmldocs-warning.patch
-x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix.patch
+mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free.patch
 
