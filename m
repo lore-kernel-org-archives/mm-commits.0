@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B099E1F03C5
-	for <mm-commits@vger.kernel.org>; Tue,  2 Dec 2025 16:39:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3454729AAF8;
+	Tue,  2 Dec 2025 16:41:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764693582; cv=none; b=d66RxWP4rfJuJ1LFi7NNVyl12UwSXSwXvZ82PDIth/1q68OdEPb0MZ7eP/1L7ixyz7vaRepF3wNxp4lwwBTbTddy9+nYPUTNrqS9iQWRT7ZihIvmXGyGAnTdCRyptNk7uHKPYa6XPwA0xz+ZTi3iakag3H84/6mvCzv+YfrP79E=
+	t=1764693703; cv=none; b=Dva0ABkE1Cw0SW4cT3Ba2xpo2F/SdxQXBCFBTsUypfOgEsyIVfCkn6RJ3+3PMg3kppPqb4gYywjWz/97i5yaKfjBFiqG4hND78xcj3lqadzNPSwGXvVndrDwAMUPxd1ugN1UevIVWVYajK8r9mhYoh6GqzU/44wPJ3PcrA44lOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764693582; c=relaxed/simple;
-	bh=yHIWSLgqLzC7tbxQTQVa4ayK5c/BEDGDfDzz1F0SH00=;
-	h=Date:To:From:Subject:Message-Id; b=duUQnZ3X9xXOiZYLg4LRVdf7aKFk8T4cvuGMoqCmlIOU11OBbyUJSP+xciMNuSulCWsbW+WygpG/+llANx8b0Y9Wdon2GfZdtsu2Ljjk70EjvEfueF3AHhG63ZIsZWcnx4Roj87XccdikmET+CtuGHdNaE504YMFAntt8xNUPlU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NzAS0Mgt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764693703; c=relaxed/simple;
+	bh=/tDn2+TvpCsV/V+XMJL21Ga2wSku8tb8NvipnVFm1uA=;
+	h=Date:To:From:Subject:Message-Id; b=tinHlXpocFl4OAl0qDTJteJp82fTU9vzFS+VzEN8//MCyXU4kC57nXFD8HisFgWTFOBo480jdTbMDE8Un1amDUqVvN0pss8E+6dzddHhu2dsOKgxmwu67wTOT+biDvivkyb2K6wmd0lMGM75mGr0vEGmMWSO+V4TCs6G3Y0NQlE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HenSbte8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NzAS0Mgt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31F25C4CEF1;
-	Tue,  2 Dec 2025 16:39:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HenSbte8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5463C4CEF1;
+	Tue,  2 Dec 2025 16:41:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764693582;
-	bh=yHIWSLgqLzC7tbxQTQVa4ayK5c/BEDGDfDzz1F0SH00=;
+	s=korg; t=1764693702;
+	bh=/tDn2+TvpCsV/V+XMJL21Ga2wSku8tb8NvipnVFm1uA=;
 	h=Date:To:From:Subject:From;
-	b=NzAS0Mgt8IA0OJ5b3UjoJ4iIaz+cDGZspdCeh1+4dVbeOyaggUSPtSQD5XaYnygbF
-	 /xoPwLqoJPMFCaWrQd7exzzKCDT9hP0KIJlJcaU6Ku+u+LcqSN3jvejRDwsf/vriJS
-	 N+WcfJtpjL2hp0C5D6bNe0QCeT7uytKzTvPph/m0=
-Date: Tue, 02 Dec 2025 08:39:41 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=HenSbte8YN5VpwAEolXgokhW34Tf5uFnJJwCEDKfRc0pObSxIDC5hrY9p22NN/vak
+	 Ru8nN7b52mtRIh5clF4O/B6MHcDBT7/rl4YgOFQhtLXa5cj9B6WxHl+dJ4kZCcsyFv
+	 Q6FxHLSjD51L4zw60vuM93Ez6GfnHQ1DlNqbadNI=
+Date: Tue, 02 Dec 2025 08:41:42 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,activprithvi@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects.patch added to mm-new branch
-Message-Id: <20251202163942.31F25C4CEF1@smtp.kernel.org>
+Subject: + ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain.patch added to mm-nonmm-unstable branch
+Message-Id: <20251202164142.A5463C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: fix memory leak of repeat mode damon_call_control objects
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects.patch
+     Subject: ocfs2: fix kernel BUG in ocfs2_find_victim_chain
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,72 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: mm/damon/core: fix memory leak of repeat mode damon_call_control objects
-Date: Tue, 2 Dec 2025 16:23:40 +0800
+From: Prithvi Tambewagh <activprithvi@gmail.com>
+Subject: ocfs2: fix kernel BUG in ocfs2_find_victim_chain
+Date: Mon, 1 Dec 2025 18:37:11 +0530
 
-A memory leak exists in the handling of repeat mode damon_call_control
-objects by kdamond_call().  While damon_call() correctly allows multiple
-repeat mode objects (with ->repeat set to true) to be added to the
-per-context list, kdamond_call() incorrectly processes them.
+syzbot reported a kernel BUG in ocfs2_find_victim_chain() because the
+`cl_next_free_rec` field of the allocation chain list (next free slot in
+the chain list) is 0, triggring the BUG_ON(!cl->cl_next_free_rec)
+condition in ocfs2_find_victim_chain() and panicking the kernel.
 
-The function moves all repeat mode objects from the context's list to a
-temporary list (repeat_controls).  However, it only moves the first object
-back to the context's list for future calls, leaving the remaining objects
-on the temporary list where they are abandoned and leaked.
+To fix this, an if condition is introduced in ocfs2_claim_suballoc_bits(),
+just before calling ocfs2_find_victim_chain(), the code block in it being
+executed when either of the following conditions is true:
 
-This patch fixes the leak by ensuring all repeat mode objects are properly
-re-added to the context's list.
+1. `cl_next_free_rec` is equal to 0, indicating that there are no free
+chains in the allocation chain list
+2. `cl_next_free_rec` is greater than `cl_count` (the total number of
+chains in the allocation chain list)
 
-Note that the leak is not in the real world, and therefore no user is
-impacted.  It is only potential for imaginaray damon_call() use cases that
-do not exist in the tree for now.  In more detail, the leak happens only
-when the multiple repeat mode objects are assumed to be deallocated by
-kdamond_call() (damon_call_control->dealloc_on_cancel is set).  There is
-no such damon_call() use cases at the moment.
+Either of them being true is indicative of the fact that there are no
+chains left for usage.
 
-Link: https://lkml.kernel.org/r/20251202082340.34178-1-lienze@kylinos.cn
-Fixes: 43df7676e550 ("mm/damon/core: introduce repeat mode damon_call()")
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+This is addressed using ocfs2_error(), which prints
+the error log for debugging purposes, rather than panicking the kernel.
+
+Link: https://lkml.kernel.org/r/20251201130711.143900-1-activprithvi@gmail.com
+Signed-off-by: Prithvi Tambewagh <activprithvi@gmail.com>
+Reported-by: syzbot+96d38c6e1655c1420a72@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=96d38c6e1655c1420a72
+Tested-by: syzbot+96d38c6e1655c1420a72@syzkaller.appspotmail.com
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ fs/ocfs2/suballoc.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects
-+++ a/mm/damon/core.c
-@@ -2573,13 +2573,19 @@ static void kdamond_call(struct damon_ct
- 			list_add(&control->list, &repeat_controls);
- 		}
+--- a/fs/ocfs2/suballoc.c~ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain
++++ a/fs/ocfs2/suballoc.c
+@@ -1993,6 +1993,16 @@ static int ocfs2_claim_suballoc_bits(str
  	}
--	control = list_first_entry_or_null(&repeat_controls,
--			struct damon_call_control, list);
--	if (!control || cancel)
--		return;
--	mutex_lock(&ctx->call_controls_lock);
--	list_add_tail(&control->list, &ctx->call_controls);
--	mutex_unlock(&ctx->call_controls_lock);
-+	while (true) {
-+		control = list_first_entry_or_null(&repeat_controls,
-+				struct damon_call_control, list);
-+		if (!control)
-+			break;
-+		/* Unlink from the repeate_controls list. */
-+		list_del(&control->list);
-+		if (cancel)
-+			continue;
-+		mutex_lock(&ctx->call_controls_lock);
-+		list_add(&control->list, &ctx->call_controls);
-+		mutex_unlock(&ctx->call_controls_lock);
-+	}
- }
  
- /* Returns negative error code if it's not activated but should return */
+ 	cl = (struct ocfs2_chain_list *) &fe->id2.i_chain;
++	if (!le16_to_cpu(cl->cl_next_free_rec) ||
++	    le16_to_cpu(cl->cl_next_free_rec) > le16_to_cpu(cl->cl_count)) {
++		status = ocfs2_error(ac->ac_inode->i_sb,
++				     "Chain allocator dinode %llu has invalid next "
++				     "free chain record %u, but only %u total\n",
++				     (unsigned long long)le64_to_cpu(fe->i_blkno),
++				     le16_to_cpu(cl->cl_next_free_rec),
++				     le16_to_cpu(cl->cl_count));
++		goto bail;
++	}
+ 
+ 	victim = ocfs2_find_victim_chain(cl);
+ 	ac->ac_chain = victim;
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from activprithvi@gmail.com are
 
-mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects.patch
+ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain.patch
 
