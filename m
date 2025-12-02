@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8595F125A0
-	for <mm-commits@vger.kernel.org>; Tue,  2 Dec 2025 16:42:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84DC523EAA5
+	for <mm-commits@vger.kernel.org>; Tue,  2 Dec 2025 16:46:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764693763; cv=none; b=OVDP9FjOz0sAtQ8bQLTxfSSUNkel0baRf5Q6zTsuMS9hnPFiYBExnVCC1nseG+JaqQNIdjzfNC68S9/qc/GST032bTd8aw+a3ud+sJ0X1XiSJtcJ4j5MnXZafYG3YzD/vr2L461Uqkd8D1wJoGHFq7YfZt26pqQcqzVHhAU/HXQ=
+	t=1764693964; cv=none; b=ek6tt12NWpaNDPwgDg/NyyCU8SkO3eEMzmWbigYB8oIQGwNCCtrhon0KCFja5edL56syhCrIK76NT0P3PY/ZmUS2lzCgXtioum7B7DLIVI0ttriNi8s3AEV8xkdHCF16907m+LwKsgsfUzrA/7+MgrDSmEzeQSmNU+OY6J5IttE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764693763; c=relaxed/simple;
-	bh=mQigx/tPIq3+dqkUMxB0O/RGFrGYHgkLbZOoBLp70Bo=;
-	h=Date:To:From:Subject:Message-Id; b=ukG/j8UZRbjb2I4542/qWHtw3vdXc9qrLXwP5Pk4NvgCXDBI7Zui7PKjzP3He+29A+enHQ5hj9mVH59hLbijFj+cNKdPJ6SmbyPD6D2kGRVZeguwz6dt3o6k7/DED1c2QC9bXbbahjJWlWr9sradmiwavpK7Om8Dyv3BUZTFpuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jCiPFnen; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764693964; c=relaxed/simple;
+	bh=iHa3wShM6ppvLhAD8hg40doZqGA050z6Dx5TlBcbikU=;
+	h=Date:To:From:Subject:Message-Id; b=KqQKQ8buDwb0+DUyQY4jJs3+ILnOW+RR1ENL8d201DcH+T7yigcPCoAyhzaIS20qjIbmkhN1E2El+V+uloeJ1zszDMvlt1oM756I+TOqAcik8jpdorPpHI6rgU/dnOzrge8uf21BwOQCsIxMqBL3eOuck9hewDeMw/XtRpVmpQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QniSILtc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jCiPFnen"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 019FCC4CEF1;
-	Tue,  2 Dec 2025 16:42:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QniSILtc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 011A7C4CEF1;
+	Tue,  2 Dec 2025 16:46:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764693763;
-	bh=mQigx/tPIq3+dqkUMxB0O/RGFrGYHgkLbZOoBLp70Bo=;
+	s=korg; t=1764693964;
+	bh=iHa3wShM6ppvLhAD8hg40doZqGA050z6Dx5TlBcbikU=;
 	h=Date:To:From:Subject:From;
-	b=jCiPFnenyI+GLpNFGQ3Dg1N5VS8sJUAtKMYOz/QXZ1zKk3MmNrrzXABNBaRmTp4fP
-	 gyixq4g6QrP3UFQnGBlHaN9smPX+ARQUAuv+kJ6cHDEuAXjwUPQPTGBRRfjGSmF3fo
-	 4YAcX1p3uF10IVOnMh2/0NPGfH85bHlVLL4TZdJo=
-Date: Tue, 02 Dec 2025 08:42:42 -0800
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=QniSILtcRPaQueJCGRQxMPPwBqsKB/qYckFhWn/Wuw0rR+odY42hD9iGIq+Kp4RaO
+	 scqH3PyLyxCW8Q5x10fJv0JUyev+9zs8nzyFwPOOhZzsw48hKI/d/QD765I9I98gpQ
+	 8ETDVKXIhb9SDOg8w4ADzfw7ssZ+jedyQZJtp9y4=
+Date: Tue, 02 Dec 2025 08:46:03 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,lukas.bulwahn@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + args-fix-documentation-to-reflect-the-correct-numbers.patch added to mm-nonmm-unstable branch
-Message-Id: <20251202164243.019FCC4CEF1@smtp.kernel.org>
+Subject: + maintainers-add-idr-core-api-doc-file-to-xarray.patch added to mm-unstable branch
+Message-Id: <20251202164604.011A7C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: args: fix documentation to reflect the correct numbers
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     args-fix-documentation-to-reflect-the-correct-numbers.patch
+     Subject: MAINTAINERS: add idr core-api doc file to XARRAY
+has been added to the -mm mm-unstable branch.  Its filename is
+     maintainers-add-idr-core-api-doc-file-to-xarray.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/args-fix-documentation-to-reflect-the-correct-numbers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-idr-core-api-doc-file-to-xarray.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,39 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: args: fix documentation to reflect the correct numbers
-Date: Mon, 1 Dec 2025 21:10:18 +0100
+From: Lukas Bulwahn <lukas.bulwahn@redhat.com>
+Subject: MAINTAINERS: add idr core-api doc file to XARRAY
+Date: Wed, 5 Nov 2025 11:58:57 +0100
 
-The macro uses up to 15 arguments.  Reflect this in the top level comment.
+The files in Documentation/core-api/ are by virtue of their top-level
+directory part of the Documentation section in MAINTAINERS.  Each file in
+Documentation/core-api/ should however also have a further section in
+MAINTAINERS it belongs to, which fits to the technical area of the
+documented API in that file.
 
-Link: https://lkml.kernel.org/r/20251201201018.765475-1-andriy.shevchenko@linux.intel.com
-Fixes: d51e783c17ba ("lsm: count the LSMs enabled at compile time")
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+idr.rst provides some explanation to the ID allocation API defined in
+lib/idr.c, which itself is part of the XARRAY section.
+
+Add this core-api document to XARRAY.
+
+Link: https://lkml.kernel.org/r/20251105105857.156950-1-lukas.bulwahn@redhat.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/args.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/args.h~args-fix-documentation-to-reflect-the-correct-numbers
-+++ a/include/linux/args.h
-@@ -6,9 +6,9 @@
- /*
-  * How do these macros work?
-  *
-- * In __COUNT_ARGS() _0 to _12 are just placeholders from the start
-+ * In __COUNT_ARGS() _0 to _15 are just placeholders from the start
-  * in order to make sure _n is positioned over the correct number
-- * from 12 to 0 (depending on X, which is a variadic argument list).
-+ * from 15 to 0 (depending on X, which is a variadic argument list).
-  * They serve no purpose other than occupying a position. Since each
-  * macro parameter must have a distinct identifier, those identifiers
-  * are as good as any.
+--- a/MAINTAINERS~maintainers-add-idr-core-api-doc-file-to-xarray
++++ a/MAINTAINERS
+@@ -27880,6 +27880,7 @@ M:	Matthew Wilcox <willy@infradead.org>
+ L:	linux-fsdevel@vger.kernel.org
+ L:	linux-mm@kvack.org
+ S:	Supported
++F:	Documentation/core-api/idr.rst
+ F:	Documentation/core-api/xarray.rst
+ F:	include/linux/idr.h
+ F:	include/linux/xarray.h
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from lukas.bulwahn@redhat.com are
 
-args-fix-documentation-to-reflect-the-correct-numbers.patch
+mm-fix-config-option-typo-in-header-file.patch
+maintainers-add-idr-core-api-doc-file-to-xarray.patch
 
