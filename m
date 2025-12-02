@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3454729AAF8;
-	Tue,  2 Dec 2025 16:41:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8595F125A0
+	for <mm-commits@vger.kernel.org>; Tue,  2 Dec 2025 16:42:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764693703; cv=none; b=Dva0ABkE1Cw0SW4cT3Ba2xpo2F/SdxQXBCFBTsUypfOgEsyIVfCkn6RJ3+3PMg3kppPqb4gYywjWz/97i5yaKfjBFiqG4hND78xcj3lqadzNPSwGXvVndrDwAMUPxd1ugN1UevIVWVYajK8r9mhYoh6GqzU/44wPJ3PcrA44lOY=
+	t=1764693763; cv=none; b=OVDP9FjOz0sAtQ8bQLTxfSSUNkel0baRf5Q6zTsuMS9hnPFiYBExnVCC1nseG+JaqQNIdjzfNC68S9/qc/GST032bTd8aw+a3ud+sJ0X1XiSJtcJ4j5MnXZafYG3YzD/vr2L461Uqkd8D1wJoGHFq7YfZt26pqQcqzVHhAU/HXQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764693703; c=relaxed/simple;
-	bh=/tDn2+TvpCsV/V+XMJL21Ga2wSku8tb8NvipnVFm1uA=;
-	h=Date:To:From:Subject:Message-Id; b=tinHlXpocFl4OAl0qDTJteJp82fTU9vzFS+VzEN8//MCyXU4kC57nXFD8HisFgWTFOBo480jdTbMDE8Un1amDUqVvN0pss8E+6dzddHhu2dsOKgxmwu67wTOT+biDvivkyb2K6wmd0lMGM75mGr0vEGmMWSO+V4TCs6G3Y0NQlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HenSbte8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764693763; c=relaxed/simple;
+	bh=mQigx/tPIq3+dqkUMxB0O/RGFrGYHgkLbZOoBLp70Bo=;
+	h=Date:To:From:Subject:Message-Id; b=ukG/j8UZRbjb2I4542/qWHtw3vdXc9qrLXwP5Pk4NvgCXDBI7Zui7PKjzP3He+29A+enHQ5hj9mVH59hLbijFj+cNKdPJ6SmbyPD6D2kGRVZeguwz6dt3o6k7/DED1c2QC9bXbbahjJWlWr9sradmiwavpK7Om8Dyv3BUZTFpuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jCiPFnen; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HenSbte8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5463C4CEF1;
-	Tue,  2 Dec 2025 16:41:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jCiPFnen"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 019FCC4CEF1;
+	Tue,  2 Dec 2025 16:42:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764693702;
-	bh=/tDn2+TvpCsV/V+XMJL21Ga2wSku8tb8NvipnVFm1uA=;
+	s=korg; t=1764693763;
+	bh=mQigx/tPIq3+dqkUMxB0O/RGFrGYHgkLbZOoBLp70Bo=;
 	h=Date:To:From:Subject:From;
-	b=HenSbte8YN5VpwAEolXgokhW34Tf5uFnJJwCEDKfRc0pObSxIDC5hrY9p22NN/vak
-	 Ru8nN7b52mtRIh5clF4O/B6MHcDBT7/rl4YgOFQhtLXa5cj9B6WxHl+dJ4kZCcsyFv
-	 Q6FxHLSjD51L4zw60vuM93Ez6GfnHQ1DlNqbadNI=
-Date: Tue, 02 Dec 2025 08:41:42 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,activprithvi@gmail.com,akpm@linux-foundation.org
+	b=jCiPFnenyI+GLpNFGQ3Dg1N5VS8sJUAtKMYOz/QXZ1zKk3MmNrrzXABNBaRmTp4fP
+	 gyixq4g6QrP3UFQnGBlHaN9smPX+ARQUAuv+kJ6cHDEuAXjwUPQPTGBRRfjGSmF3fo
+	 4YAcX1p3uF10IVOnMh2/0NPGfH85bHlVLL4TZdJo=
+Date: Tue, 02 Dec 2025 08:42:42 -0800
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain.patch added to mm-nonmm-unstable branch
-Message-Id: <20251202164142.A5463C4CEF1@smtp.kernel.org>
+Subject: + args-fix-documentation-to-reflect-the-correct-numbers.patch added to mm-nonmm-unstable branch
+Message-Id: <20251202164243.019FCC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix kernel BUG in ocfs2_find_victim_chain
+     Subject: args: fix documentation to reflect the correct numbers
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain.patch
+     args-fix-documentation-to-reflect-the-correct-numbers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/args-fix-documentation-to-reflect-the-correct-numbers.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,71 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Prithvi Tambewagh <activprithvi@gmail.com>
-Subject: ocfs2: fix kernel BUG in ocfs2_find_victim_chain
-Date: Mon, 1 Dec 2025 18:37:11 +0530
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: args: fix documentation to reflect the correct numbers
+Date: Mon, 1 Dec 2025 21:10:18 +0100
 
-syzbot reported a kernel BUG in ocfs2_find_victim_chain() because the
-`cl_next_free_rec` field of the allocation chain list (next free slot in
-the chain list) is 0, triggring the BUG_ON(!cl->cl_next_free_rec)
-condition in ocfs2_find_victim_chain() and panicking the kernel.
+The macro uses up to 15 arguments.  Reflect this in the top level comment.
 
-To fix this, an if condition is introduced in ocfs2_claim_suballoc_bits(),
-just before calling ocfs2_find_victim_chain(), the code block in it being
-executed when either of the following conditions is true:
-
-1. `cl_next_free_rec` is equal to 0, indicating that there are no free
-chains in the allocation chain list
-2. `cl_next_free_rec` is greater than `cl_count` (the total number of
-chains in the allocation chain list)
-
-Either of them being true is indicative of the fact that there are no
-chains left for usage.
-
-This is addressed using ocfs2_error(), which prints
-the error log for debugging purposes, rather than panicking the kernel.
-
-Link: https://lkml.kernel.org/r/20251201130711.143900-1-activprithvi@gmail.com
-Signed-off-by: Prithvi Tambewagh <activprithvi@gmail.com>
-Reported-by: syzbot+96d38c6e1655c1420a72@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=96d38c6e1655c1420a72
-Tested-by: syzbot+96d38c6e1655c1420a72@syzkaller.appspotmail.com
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251201201018.765475-1-andriy.shevchenko@linux.intel.com
+Fixes: d51e783c17ba ("lsm: count the LSMs enabled at compile time")
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ include/linux/args.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/suballoc.c~ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain
-+++ a/fs/ocfs2/suballoc.c
-@@ -1993,6 +1993,16 @@ static int ocfs2_claim_suballoc_bits(str
- 	}
- 
- 	cl = (struct ocfs2_chain_list *) &fe->id2.i_chain;
-+	if (!le16_to_cpu(cl->cl_next_free_rec) ||
-+	    le16_to_cpu(cl->cl_next_free_rec) > le16_to_cpu(cl->cl_count)) {
-+		status = ocfs2_error(ac->ac_inode->i_sb,
-+				     "Chain allocator dinode %llu has invalid next "
-+				     "free chain record %u, but only %u total\n",
-+				     (unsigned long long)le64_to_cpu(fe->i_blkno),
-+				     le16_to_cpu(cl->cl_next_free_rec),
-+				     le16_to_cpu(cl->cl_count));
-+		goto bail;
-+	}
- 
- 	victim = ocfs2_find_victim_chain(cl);
- 	ac->ac_chain = victim;
+--- a/include/linux/args.h~args-fix-documentation-to-reflect-the-correct-numbers
++++ a/include/linux/args.h
+@@ -6,9 +6,9 @@
+ /*
+  * How do these macros work?
+  *
+- * In __COUNT_ARGS() _0 to _12 are just placeholders from the start
++ * In __COUNT_ARGS() _0 to _15 are just placeholders from the start
+  * in order to make sure _n is positioned over the correct number
+- * from 12 to 0 (depending on X, which is a variadic argument list).
++ * from 15 to 0 (depending on X, which is a variadic argument list).
+  * They serve no purpose other than occupying a position. Since each
+  * macro parameter must have a distinct identifier, those identifiers
+  * are as good as any.
 _
 
-Patches currently in -mm which might be from activprithvi@gmail.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-ocfs2-fix-kernel-bug-in-ocfs2_find_victim_chain.patch
+args-fix-documentation-to-reflect-the-correct-numbers.patch
 
