@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A53F2D6E53
-	for <mm-commits@vger.kernel.org>; Wed,  3 Dec 2025 22:20:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D0432EB87D
+	for <mm-commits@vger.kernel.org>; Wed,  3 Dec 2025 22:45:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764800445; cv=none; b=URYP3NaZ23N+oBKtRaIZ3SIE1cj1LKrNi8kK486/ha1eWyCwbIYN43qdzM1TlR/p/vkN4G8WHF5T9Ka0xG+tG+6D3YWwQdSEMDozL024o1Ma6KinNE8rljKhL4OYVx4gE22raIZ+NwlZVuoqWjktMO/OBrf4Q1mXRxxhTMKGmwM=
+	t=1764801912; cv=none; b=Oy/Tiq/q7N0UMzjPrfFgabPugRASZTvat8GvMkJ5SKd9nFyiFSf1O6LFoNuADbkBZv6PT9xod7k5EDBZpIFkh0lZCLYJ0/0jYg6TNqCPU6AFZQzhpPT9cADEtsHy+6mtM3DENc18P6B6U/gAEFeQC1O3pvV1LDQhnSKsHfxQkkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764800445; c=relaxed/simple;
-	bh=nGATh+lLr7s6xU+SW4CJcHiPV2cJpFGp0NOGwOtBkp8=;
-	h=Date:To:From:Subject:Message-Id; b=EwZllHbQc/yCOTqjXW0uAHy31AsIb7ItZCvpFnT58lNngyCw/hGTP/JpR17VKkz0e7ANQXayIIOHN2SnJ9+3f1TRAds25g/EtByVB6IZhW7N+K9nt+z5vcEb1UWYwSN0RUc5Dauh7YB0BV38r/2AQYajUS+7hePOygM2MM71Pe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=POxripGz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764801912; c=relaxed/simple;
+	bh=w0xGHcRFNKcUqW4NqPWwdfgNjUqWC7k4sd3+6bcKW1U=;
+	h=Date:To:From:Subject:Message-Id; b=bvhhNYaxBvFlqBAH4E+efyqbSrPXdVGuf48ukrxp4MzWIlozzgqxLXrh7oq88tXnJhp1LkLUw+EOgHTIJrNw1LkP/F3o9BP6gnVtoDl8pKx/CwXgJRA/qfz9LvhM1CK6eToERix0X07UVF++E7pmh1sj/Uv14+IlpRdtEbKHegQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HrEUJ7NK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="POxripGz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 125B2C4CEF5;
-	Wed,  3 Dec 2025 22:20:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HrEUJ7NK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEF93C4CEF5;
+	Wed,  3 Dec 2025 22:45:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764800445;
-	bh=nGATh+lLr7s6xU+SW4CJcHiPV2cJpFGp0NOGwOtBkp8=;
+	s=korg; t=1764801911;
+	bh=w0xGHcRFNKcUqW4NqPWwdfgNjUqWC7k4sd3+6bcKW1U=;
 	h=Date:To:From:Subject:From;
-	b=POxripGzWtX3zKIdkuCHu5ECRyAYR8VBgGR3j/lJyVFECiEzZMTM+ZDGTDLWqX+de
-	 mHHOuuJgu13apikp6nRBPfBRc1r1Cmdez+Csjwo7+dOCai9+N++eCfT/IpCoNr0RlV
-	 V6GxUJuLUeGKhszzqHvGULU1k9xq1BZjZT5GoMSA=
-Date: Wed, 03 Dec 2025 14:20:44 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gustavoars@kernel.org,akpm@linux-foundation.org
+	b=HrEUJ7NKGTdzdquqnEmp/cX71uSj3MSpfAcbwE/uI93pbn9VM94luHdVK2wwrsZsJ
+	 sHNx1r6oNkf4o2OizThDeIlGvsnT7w/PyTJc6vSjU9sI46Yihqq8wGCbPiqPmW9cN3
+	 WDejQDLFqeH6IpQVO82wByTbmZS533hVO3IPD3z8=
+Date: Wed, 03 Dec 2025 14:45:11 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,lkp@intel.com,feng.tang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-avoid-wflex-array-member-not-at-end-warning.patch added to mm-nonmm-unstable branch
-Message-Id: <20251203222045.125B2C4CEF5@smtp.kernel.org>
+Subject: + kernel-watchdogc-fix-unused-var-warning.patch added to mm-nonmm-unstable branch
+Message-Id: <20251203224511.BEF93C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: avoid -Wflex-array-member-not-at-end warning
+     Subject: kernel/watchdog.c: fix unused var warning
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-avoid-wflex-array-member-not-at-end-warning.patch
+     kernel-watchdogc-fix-unused-var-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-avoid-wflex-array-member-not-at-end-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-watchdogc-fix-unused-var-warning.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,63 +58,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Subject: ocfs2: avoid -Wflex-array-member-not-at-end warning
-Date: Tue, 11 Nov 2025 12:01:19 +0900
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/watchdog.c: fix unused var warning
+Date: Wed Dec  3 02:34:40 PM PST 2025
 
--Wflex-array-member-not-at-end was introduced in GCC-14, and we are
-getting ready to enable it, globally.
+>> kernel/watchdog.c:74:22: warning: unused variable 'hardlockup_si_mask' [-Wunused-variable]
+      74 | static unsigned long hardlockup_si_mask;
+         |                      ^~~~~~~~~~~~~~~~~~
+   1 warning generated.
 
-Use the new TRAILING_OVERLAP() helper to fix the following warning:
-
-fs/ocfs2/xattr.c:52:41: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
-
-This helper creates a union between a flexible-array member (FAM) and a
-set of MEMBERS that would otherwise follow it.
-
-This overlays the trailing MEMBER struct ocfs2_extent_rec er; onto the FAM
-struct ocfs2_xattr_value_root::xr_list.l_recs[], while keeping the FAM and
-the start of MEMBER aligned.
-
-The static_assert() ensures this alignment remains, and it's intentionally
-placed inmediately after the related structure --no blank line in between.
-
-Link: https://lkml.kernel.org/r/aRKm_7aN7Smc3J5L@kspp
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Fixes: a9af76a78760 ("watchdog: add sys_info sysctls to dump sys info on system lockup")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202512030920.NFKtekA7-lkp@intel.com/
+Link: https://lkml.kernel.org/r/202512030920.NFKtekA7-lkp@intel.com
+Cc: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ kernel/watchdog.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-avoid-wflex-array-member-not-at-end-warning
-+++ a/fs/ocfs2/xattr.c
-@@ -49,9 +49,13 @@
- #include "ocfs2_trace.h"
+--- a/kernel/watchdog.c~kernel-watchdogc-fix-unused-var-warning
++++ a/kernel/watchdog.c
+@@ -66,13 +66,6 @@ int __read_mostly sysctl_hardlockup_all_
+ unsigned int __read_mostly hardlockup_panic =
+ 			IS_ENABLED(CONFIG_BOOTPARAM_HARDLOCKUP_PANIC);
  
- struct ocfs2_xattr_def_value_root {
--	struct ocfs2_xattr_value_root	xv;
--	struct ocfs2_extent_rec		er;
-+	/* Must be last as it ends in a flexible-array member. */
-+	TRAILING_OVERLAP(struct ocfs2_xattr_value_root, xv, xr_list.l_recs,
-+		struct ocfs2_extent_rec		er;
-+	);
- };
-+static_assert(offsetof(struct ocfs2_xattr_def_value_root, xv.xr_list.l_recs) ==
-+	      offsetof(struct ocfs2_xattr_def_value_root, er));
+-/*
+- * bitmasks to control what kinds of system info to be printed when
+- * hard lockup is detected, it could be task, memory, lock etc.
+- * Refer include/linux/sys_info.h for detailed bit definition.
+- */
+-static unsigned long hardlockup_si_mask;
+-
+ #ifdef CONFIG_SYSFS
  
- struct ocfs2_xattr_bucket {
- 	/* The inode these xattrs are associated with */
+ static unsigned int hardlockup_count;
+@@ -135,6 +128,13 @@ __setup("nmi_watchdog=", hardlockup_pani
+ 
+ #if defined(CONFIG_HARDLOCKUP_DETECTOR_COUNTS_HRTIMER)
+ 
++/*
++ * bitmask to control what kinds of system info to be printed when
++ * hard lockup is detected, it could be task, memory, lock etc.
++ * Refer include/linux/sys_info.h for detailed bit definition.
++ */
++static unsigned long hardlockup_si_mask;
++
+ static DEFINE_PER_CPU(atomic_t, hrtimer_interrupts);
+ static DEFINE_PER_CPU(int, hrtimer_interrupts_saved);
+ static DEFINE_PER_CPU(bool, watchdog_hardlockup_warned);
+@@ -1250,6 +1250,7 @@ static const struct ctl_table watchdog_s
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
++#if defined(CONFIG_HARDLOCKUP_DETECTOR_COUNTS_HRTIMER)
+ 	{
+ 		.procname	= "hardlockup_sys_info",
+ 		.data		= &hardlockup_si_mask,
+@@ -1257,6 +1258,7 @@ static const struct ctl_table watchdog_s
+ 		.mode		= 0644,
+ 		.proc_handler	= sysctl_sys_info_handler,
+ 	},
++#endif
+ #ifdef CONFIG_SMP
+ 	{
+ 		.procname	= "hardlockup_all_cpu_backtrace",
 _
 
-Patches currently in -mm which might be from gustavoars@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-avoid-wflex-array-member-not-at-end-warning.patch
+genalloch-fix-htmldocs-warning.patch
+x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix.patch
+mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free-fix.patch
+kernel-watchdogc-fix-unused-var-warning.patch
 
