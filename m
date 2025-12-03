@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D0432EB87D
-	for <mm-commits@vger.kernel.org>; Wed,  3 Dec 2025 22:45:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF42C482EB
+	for <mm-commits@vger.kernel.org>; Wed,  3 Dec 2025 22:51:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764801912; cv=none; b=Oy/Tiq/q7N0UMzjPrfFgabPugRASZTvat8GvMkJ5SKd9nFyiFSf1O6LFoNuADbkBZv6PT9xod7k5EDBZpIFkh0lZCLYJ0/0jYg6TNqCPU6AFZQzhpPT9cADEtsHy+6mtM3DENc18P6B6U/gAEFeQC1O3pvV1LDQhnSKsHfxQkkc=
+	t=1764802266; cv=none; b=hCWRjjlASrdlFBHwPY+xwqFiDuNza1kbojCPCHHhlRyj978SGQB0VqfvCMdHA4jUwggzbuv0J3xx1yZlkWMJ8zP9fWP/RR7JV5pRW9pVDgbTJS/a9ei53/Th70XwVY10xAr32IK2fIlY88oIT54vJINXl6AbtEMsGH/z/Bq+xpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764801912; c=relaxed/simple;
-	bh=w0xGHcRFNKcUqW4NqPWwdfgNjUqWC7k4sd3+6bcKW1U=;
-	h=Date:To:From:Subject:Message-Id; b=bvhhNYaxBvFlqBAH4E+efyqbSrPXdVGuf48ukrxp4MzWIlozzgqxLXrh7oq88tXnJhp1LkLUw+EOgHTIJrNw1LkP/F3o9BP6gnVtoDl8pKx/CwXgJRA/qfz9LvhM1CK6eToERix0X07UVF++E7pmh1sj/Uv14+IlpRdtEbKHegQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HrEUJ7NK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764802266; c=relaxed/simple;
+	bh=Vx/CITSs1UP4AqPU2M9xDPcYGAQLxLhkagEVv5Vkg54=;
+	h=Date:To:From:Subject:Message-Id; b=FkIloeX0iQ+ft/vPNwhTItabNkvPZW6NL6gF913mbA20tHyluyn0o3NHzP5OkcCVzGRGjpUQiVrZov1T1TpVU2A2apKiKYeP0euQppH7on74vP3chGTTv1c/BzIAZDLm/ALQxc2i86aIKEXy093rgSLBAbXeUwQeVk7lReb6FmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1KrFNri9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HrEUJ7NK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEF93C4CEF5;
-	Wed,  3 Dec 2025 22:45:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1KrFNri9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D682C4CEF5;
+	Wed,  3 Dec 2025 22:51:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764801911;
-	bh=w0xGHcRFNKcUqW4NqPWwdfgNjUqWC7k4sd3+6bcKW1U=;
+	s=korg; t=1764802263;
+	bh=Vx/CITSs1UP4AqPU2M9xDPcYGAQLxLhkagEVv5Vkg54=;
 	h=Date:To:From:Subject:From;
-	b=HrEUJ7NKGTdzdquqnEmp/cX71uSj3MSpfAcbwE/uI93pbn9VM94luHdVK2wwrsZsJ
-	 sHNx1r6oNkf4o2OizThDeIlGvsnT7w/PyTJc6vSjU9sI46Yihqq8wGCbPiqPmW9cN3
-	 WDejQDLFqeH6IpQVO82wByTbmZS533hVO3IPD3z8=
-Date: Wed, 03 Dec 2025 14:45:11 -0800
-To: mm-commits@vger.kernel.org,pmladek@suse.com,lkp@intel.com,feng.tang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=1KrFNri9NfnuSGvsZgYSoI1DvjP7H5bOuvJISnovTgN0w9Vq7+37hs32a12YyP7g2
+	 HVI7TCnQDspdSwQbaekNdBmn5b5wgYC4FOdRGDRG47wGtK3cwxJGxPAudiyz01573g
+	 vnpa2LJ9QW40pfKr7LUvJjIoTwaLCX5Dgw51Q2AE=
+Date: Wed, 03 Dec 2025 14:51:02 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,david.hunter.linux@gmail.com,albinbabuvarghese20@gmail.com,eraykrdg1@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-watchdogc-fix-unused-var-warning.patch added to mm-nonmm-unstable branch
-Message-Id: <20251203224511.BEF93C4CEF5@smtp.kernel.org>
+Subject: + ocfs2-invalidate-inode-if-i_mode-is-zero-after-block-read.patch added to mm-nonmm-unstable branch
+Message-Id: <20251203225103.3D682C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/watchdog.c: fix unused var warning
+     Subject: ocfs2: invalidate inode if i_mode is zero after block read
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-watchdogc-fix-unused-var-warning.patch
+     ocfs2-invalidate-inode-if-i_mode-is-zero-after-block-read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-watchdogc-fix-unused-var-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-invalidate-inode-if-i_mode-is-zero-after-block-read.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,79 +58,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/watchdog.c: fix unused var warning
-Date: Wed Dec  3 02:34:40 PM PST 2025
+From: Ahmet Eray Karadag <eraykrdg1@gmail.com>
+Subject: ocfs2: invalidate inode if i_mode is zero after block read
+Date: Wed, 3 Dec 2025 01:45:08 +0300
 
->> kernel/watchdog.c:74:22: warning: unused variable 'hardlockup_si_mask' [-Wunused-variable]
-      74 | static unsigned long hardlockup_si_mask;
-         |                      ^~~~~~~~~~~~~~~~~~
-   1 warning generated.
+A panic occurs in ocfs2_unlink due to WARN_ON(inode->i_nlink == 0) when
+handling a corrupted inode with i_mode=0 and i_nlink=0 in memory.
 
-Fixes: a9af76a78760 ("watchdog: add sys_info sysctls to dump sys info on system lockup")
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202512030920.NFKtekA7-lkp@intel.com/
-Link: https://lkml.kernel.org/r/202512030920.NFKtekA7-lkp@intel.com
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Petr Mladek <pmladek@suse.com>
+This "zombie" inode is created because ocfs2_read_locked_inode proceeds
+even after ocfs2_validate_inode_block successfully validates a block that
+structurally looks okay (passes checksum, signature etc.) but contains
+semantically invalid data (specifically i_mode=0).  The current validation
+function doesn't check for i_mode being zero.
+
+This results in an in-memory inode with i_mode=0 being added to the VFS
+cache, which later triggers the panic during unlink.
+
+Prevent this by adding an explicit check for (i_mode == 0, i_nlink == 0,
+non-orphan) within ocfs2_validate_inode_block.  If the check is true,
+return -EFSCORRUPTED to signal corruption.  This causes the caller
+(ocfs2_read_locked_inode) to invoke make_bad_inode(), correctly preventing
+the zombie inode from entering the cache.
+
+Link: https://lkml.kernel.org/r/20251202224507.53452-2-eraykrdg1@gmail.com
+Co-developed-by: Albin Babu Varghese <albinbabuvarghese20@gmail.com>
+Signed-off-by: Albin Babu Varghese <albinbabuvarghese20@gmail.com>
+Signed-off-by: Ahmet Eray Karadag <eraykrdg1@gmail.com>
+Reported-by: syzbot+55c40ae8a0e5f3659f2b@syzkaller.appspotmail.com
+Fixes: https://syzkaller.appspot.com/bug?extid=55c40ae8a0e5f3659f2b
+Link: https://lore.kernel.org/all/20251022222752.46758-2-eraykrdg1@gmail.com/T/
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: David Hunter <david.hunter.linux@gmail.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ fs/ocfs2/inode.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/kernel/watchdog.c~kernel-watchdogc-fix-unused-var-warning
-+++ a/kernel/watchdog.c
-@@ -66,13 +66,6 @@ int __read_mostly sysctl_hardlockup_all_
- unsigned int __read_mostly hardlockup_panic =
- 			IS_ENABLED(CONFIG_BOOTPARAM_HARDLOCKUP_PANIC);
+--- a/fs/ocfs2/inode.c~ocfs2-invalidate-inode-if-i_mode-is-zero-after-block-read
++++ a/fs/ocfs2/inode.c
+@@ -1461,6 +1461,14 @@ int ocfs2_validate_inode_block(struct su
+ 		goto bail;
+ 	}
  
--/*
-- * bitmasks to control what kinds of system info to be printed when
-- * hard lockup is detected, it could be task, memory, lock etc.
-- * Refer include/linux/sys_info.h for detailed bit definition.
-- */
--static unsigned long hardlockup_si_mask;
--
- #ifdef CONFIG_SYSFS
- 
- static unsigned int hardlockup_count;
-@@ -135,6 +128,13 @@ __setup("nmi_watchdog=", hardlockup_pani
- 
- #if defined(CONFIG_HARDLOCKUP_DETECTOR_COUNTS_HRTIMER)
- 
-+/*
-+ * bitmask to control what kinds of system info to be printed when
-+ * hard lockup is detected, it could be task, memory, lock etc.
-+ * Refer include/linux/sys_info.h for detailed bit definition.
-+ */
-+static unsigned long hardlockup_si_mask;
-+
- static DEFINE_PER_CPU(atomic_t, hrtimer_interrupts);
- static DEFINE_PER_CPU(int, hrtimer_interrupts_saved);
- static DEFINE_PER_CPU(bool, watchdog_hardlockup_warned);
-@@ -1250,6 +1250,7 @@ static const struct ctl_table watchdog_s
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_ONE,
- 	},
-+#if defined(CONFIG_HARDLOCKUP_DETECTOR_COUNTS_HRTIMER)
- 	{
- 		.procname	= "hardlockup_sys_info",
- 		.data		= &hardlockup_si_mask,
-@@ -1257,6 +1258,7 @@ static const struct ctl_table watchdog_s
- 		.mode		= 0644,
- 		.proc_handler	= sysctl_sys_info_handler,
- 	},
-+#endif
- #ifdef CONFIG_SMP
- 	{
- 		.procname	= "hardlockup_all_cpu_backtrace",
++	if ((!di->i_links_count && !di->i_links_count_hi) || !di->i_mode) {
++		mlog(ML_ERROR, "Invalid dinode #%llu: "
++			"Corrupt state (nlink = %u or mode = %u) detected!\n",
++		        (unsigned long long)bh->b_blocknr,
++			ocfs2_read_links_count(di), le16_to_cpu(di->i_mode));
++		rc = -EFSCORRUPTED;
++		goto bail;
++	}
+ 	/*
+ 	 * Errors after here are fatal.
+ 	 */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from eraykrdg1@gmail.com are
 
-genalloch-fix-htmldocs-warning.patch
-x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix.patch
-mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free-fix.patch
-kernel-watchdogc-fix-unused-var-warning.patch
+ocfs2-add-ocfs2_emergency_state-helper-and-apply-to-setattr.patch
+ocfs2-convert-remaining-read-only-checks-to-ocfs2_emergency_state.patch
+ocfs2-invalidate-inode-if-i_mode-is-zero-after-block-read.patch
 
