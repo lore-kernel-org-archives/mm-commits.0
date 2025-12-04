@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 665D82DCF58;
-	Thu,  4 Dec 2025 22:21:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 560FA2FB607;
+	Thu,  4 Dec 2025 22:21:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764886883; cv=none; b=JU/k1pKmYm0UHVE2bBhSP77SaSVKkC7zeJSDVF5UZcuq3aBEIokX9xCdHhTiTg1ohzl1iCBJ7IbIvG6vk9E73wIiLn8EHaLmxldNr3K8cHKov43qVxZDMnGFvp8WC3ZBRgrNDiVqgcrl9djMzXStqpz1HKo/oZ9umboxJ5+FSaQ=
+	t=1764886885; cv=none; b=NN/9Ieo+8L91514XdZRejbHwyFuOL45ONH3YIk2UnebwSVphKwxvNpdETwG8wU9dugv6sYBoq7UU3wfXcUBfoku0FNnGGS2VlwGcqGxNs9EGfb3TKjxqrKVXtVZ0Jq97o5Bx4WfIxNcTLYEx4wvVQtP5p+eK4awg2aUkXaIFWio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764886883; c=relaxed/simple;
-	bh=ZvHGgqwv55TuhpbqKh66QjNCoT4GuQ3nSokBRBm7H0s=;
-	h=Date:To:From:Subject:Message-Id; b=pTTfDdc5pr92caCyFpOSWGOIvuRszXyxnAd/y5eH3FyRTg05RLoCMFoZ271cqR/VJPRcLrIO0g4De5jf1qpj+na1AdSJOlVjQ/9q6uHK3JIfTMhWNNFs29bU8av7iUWzABlyv4qgMFSKSrTwbhcDha553TPPSuq6uxJEkLvJ9WI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dwHwSoHa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764886885; c=relaxed/simple;
+	bh=RzJyYzOci/HEGHiLwCpPl+uOqCAbpAZ+Be6sfe1lkQ4=;
+	h=Date:To:From:Subject:Message-Id; b=hbKEbgdTSMoYbaKmNq3MJgo25N56AZFaQwpLJw4ebiAULFGNBJWVz4ra+kPxvNMVVw++jKB4BtkCoKpKWM8yvqTGJLtwK4mXEQZ5cWuWJf+SmWWgbJhUeiYGl9CfmDsrwtuVMTlkzUFaUrV8K2IdpJQW+ARrQUBLBAfw+3dGz5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yMkg5/DV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dwHwSoHa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44F1C4CEFB;
-	Thu,  4 Dec 2025 22:21:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yMkg5/DV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E98BC4CEFB;
+	Thu,  4 Dec 2025 22:21:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764886882;
-	bh=ZvHGgqwv55TuhpbqKh66QjNCoT4GuQ3nSokBRBm7H0s=;
+	s=korg; t=1764886884;
+	bh=RzJyYzOci/HEGHiLwCpPl+uOqCAbpAZ+Be6sfe1lkQ4=;
 	h=Date:To:From:Subject:From;
-	b=dwHwSoHaJ0vO9rje1pN4l0DQM4EG6NytUC9hhtYnIGBqZcRKdHVvFQIuHIrgGBEZX
-	 HxQlHoTN/HMFMurjcYybI1syHTxvygpReP1oTu4jIuoZv0PSyxHYV8GpJgnfLVcyor
-	 TRlUgFw8Yr3aw3kDNLepWUjsTONm6wYpsSFwq8SY=
-Date: Thu, 04 Dec 2025 14:21:22 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,maciej.wieczor-retman@intel.com,kees@kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,dakr@kernel.org,andreyknvl@gmail.com,jiayuan.chen@linux.dev,akpm@linux-foundation.org
+	b=yMkg5/DVT4IuJKxXQvO6emEQZbRgeVpJzQQBDSCuS1SMxw1RApUoAoC1CXNc0AGcw
+	 WCBdm3D3g1K9ljur8OaaM9EMPGF1D6WR8InyU9480MtHGr/YO+bmR+CFBHwgOFqQJj
+	 POm3pBLVfEoMVBu2hT2Rk9kRNtdxfTC7cZtrxmVw=
+Date: Thu, 04 Dec 2025 14:21:23 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,kees@kernel.org,jiayuan.chen@linux.dev,glider@google.com,elver@google.com,dvyukov@google.com,dakr@kernel.org,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251204222122.B44F1C4CEFB@smtp.kernel.org>
+Subject: + kasan-refactor-pcpu-kasan-vmalloc-unpoison.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251204222124.5E98BC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kasan: fix incorrect unpoisoning in vrealloc for KASAN
+     Subject: kasan: refactor pcpu kasan vmalloc unpoison
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
+     kasan-refactor-pcpu-kasan-vmalloc-unpoison.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-refactor-pcpu-kasan-vmalloc-unpoison.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,156 +58,127 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiayuan Chen <jiayuan.chen@linux.dev>
-Subject: mm/kasan: fix incorrect unpoisoning in vrealloc for KASAN
-Date: Thu, 04 Dec 2025 18:59:55 +0000
+From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Subject: kasan: refactor pcpu kasan vmalloc unpoison
+Date: Thu, 04 Dec 2025 19:00:04 +0000
 
-Patch series "kasan: vmalloc: Fixes for the percpu allocator and
-vrealloc", v3.
+A KASAN tag mismatch, possibly causing a kernel panic, can be observed
+on systems with a tag-based KASAN enabled and with multiple NUMA nodes.
+It was reported on arm64 and reproduced on x86. It can be explained in
+the following points:
 
-Patches fix two issues related to KASAN and vmalloc.
+1. There can be more than one virtual memory chunk.
+2. Chunk's base address has a tag.
+3. The base address points at the first chunk and thus inherits
+   the tag of the first chunk.
+4. The subsequent chunks will be accessed with the tag from the
+   first chunk.
+5. Thus, the subsequent chunks need to have their tag set to
+   match that of the first chunk.
 
-The first one, a KASAN tag mismatch, possibly resulting in a kernel panic,
-can be observed on systems with a tag-based KASAN enabled and with
-multiple NUMA nodes.  Initially it was only noticed on x86 [1] but later a
-similar issue was also reported on arm64 [2].
+Refactor code by reusing __kasan_unpoison_vmalloc in a new helper in
+preparation for the actual fix.
 
-Specifically the problem is related to how vm_structs interact with
-pcpu_chunks - both when they are allocated, assigned and when pcpu_chunk
-addresses are derived.
-
-When vm_structs are allocated they are unpoisoned, each with a different
-random tag, if vmalloc support is enabled along the KASAN mode.  Later
-when first pcpu chunk is allocated it gets its 'base_addr' field set to
-the first allocated vm_struct.  With that it inherits that vm_struct's
-tag.
-
-When pcpu_chunk addresses are later derived (by pcpu_chunk_addr(), for
-example in pcpu_alloc_noprof()) the base_addr field is used and offsets
-are added to it.  If the initial conditions are satisfied then some of the
-offsets will point into memory allocated with a different vm_struct.  So
-while the lower bits will get accurately derived the tag bits in the top
-of the pointer won't match the shadow memory contents.
-
-The solution (proposed at v2 of the x86 KASAN series [3]) is to unpoison
-the vm_structs with the same tag when allocating them for the per cpu
-allocator (in pcpu_get_vm_areas()).
-
-The second one reported by syzkaller [4] is related to vrealloc and
-happens because of random tag generation when unpoisoning memory without
-allocating new pages.  This breaks shadow memory tracking and needs to
-reuse the existing tag instead of generating a new one.  At the same time
-an inconsistency in used flags is corrected.
-
-
-This patch (of 3):
-
-Syzkaller reported a memory out-of-bounds bug [4].  This patch fixes two
-issues:
-
-1. In vrealloc the KASAN_VMALLOC_VM_ALLOC flag is missing when
-   unpoisoning the extended region. This flag is required to correctly
-   associate the allocation with KASAN's vmalloc tracking.
-
-   Note: In contrast, vzalloc (via __vmalloc_node_range_noprof)
-   explicitly sets KASAN_VMALLOC_VM_ALLOC and calls
-   kasan_unpoison_vmalloc() with it.  vrealloc must behave consistently --
-   especially when reusing existing vmalloc regions -- to ensure KASAN can
-   track allocations correctly.
-
-2. When vrealloc reuses an existing vmalloc region (without allocating
-   new pages) KASAN generates a new tag, which breaks tag-based memory
-   access tracking.
-
-Introduce KASAN_VMALLOC_KEEP_TAG, a new KASAN flag that allows reusing the
-tag already attached to the pointer, ensuring consistent tag behavior
-during reallocation.
-
-Pass KASAN_VMALLOC_KEEP_TAG and KASAN_VMALLOC_VM_ALLOC to the
-kasan_unpoison_vmalloc inside vrealloc_node_align_noprof().
-
-Link: https://lkml.kernel.org/r/38dece0a4074c43e48150d1e242f8242c73bf1a5.1764874575.git.m.wieczorretman@pm.me
-
-Link: https://lore.kernel.org/all/e7e04692866d02e6d3b32bb43b998e5d17092ba4.1738686764.git.maciej.wieczor-retman@intel.com/ [1]
-Link: https://lore.kernel.org/all/aMUrW1Znp1GEj7St@MiWiFi-R3L-srv/ [2]
-Link: https://lore.kernel.org/all/CAPAsAGxDRv_uFeMYu9TwhBVWHCCtkSxoWY4xmFB_vowMbi8raw@mail.gmail.com/ [3]
-Link: https://syzkaller.appspot.com/bug?extid=3D997752115a851cb0cf36 [4]
-Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
-Co-developed-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Link: https://lkml.kernel.org/r/eb61d93b907e262eefcaa130261a08bcb6c5ce51.1764874575.git.m.wieczorretman@pm.me
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Fixes: a0309faf1cb0 ("mm: vmalloc: support more granular vrealloc() sizing"
-)
-Reported-by: syzbot+997752115a851cb0cf36@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/68e243a2.050a0220.1696c6.007d.GAE@google.com/T/
+Fixes: 1d96320f8d53 ("kasan, vmalloc: add vmalloc tagging for SW_TAGS")
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Danilo Krummrich <dakr@kernel.org>
 Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Jiayuan Chen <jiayuan.chen@linux.dev>
 Cc: Kees Cook <kees@kernel.org>
 Cc: Marco Elver <elver@google.com>
 Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: <stable@vger.kernel.org>
+Cc: <stable@vger.kernel.org>	[6.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    1 +
- mm/kasan/hw_tags.c    |    2 +-
- mm/kasan/shadow.c     |    4 +++-
- mm/vmalloc.c          |    4 +++-
- 4 files changed, 8 insertions(+), 3 deletions(-)
+ include/linux/kasan.h |   15 +++++++++++++++
+ mm/kasan/common.c     |   17 +++++++++++++++++
+ mm/vmalloc.c          |    4 +---
+ 3 files changed, 33 insertions(+), 3 deletions(-)
 
---- a/include/linux/kasan.h~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
+--- a/include/linux/kasan.h~kasan-refactor-pcpu-kasan-vmalloc-unpoison
 +++ a/include/linux/kasan.h
-@@ -28,6 +28,7 @@ typedef unsigned int __bitwise kasan_vma
- #define KASAN_VMALLOC_INIT		((__force kasan_vmalloc_flags_t)0x01u)
- #define KASAN_VMALLOC_VM_ALLOC		((__force kasan_vmalloc_flags_t)0x02u)
- #define KASAN_VMALLOC_PROT_NORMAL	((__force kasan_vmalloc_flags_t)0x04u)
-+#define KASAN_VMALLOC_KEEP_TAG		((__force kasan_vmalloc_flags_t)0x08u)
- 
- #define KASAN_VMALLOC_PAGE_RANGE 0x1 /* Apply exsiting page range */
- #define KASAN_VMALLOC_TLB_FLUSH  0x2 /* TLB flush */
---- a/mm/kasan/hw_tags.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
-+++ a/mm/kasan/hw_tags.c
-@@ -361,7 +361,7 @@ void *__kasan_unpoison_vmalloc(const voi
- 		return (void *)start;
- 	}
- 
--	tag = kasan_random_tag();
-+	tag = (flags & KASAN_VMALLOC_KEEP_TAG) ? get_tag(start) : kasan_random_tag();
- 	start = set_tag(start, tag);
- 
- 	/* Unpoison and initialize memory up to size. */
---- a/mm/kasan/shadow.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
-+++ a/mm/kasan/shadow.c
-@@ -648,7 +648,9 @@ void *__kasan_unpoison_vmalloc(const voi
- 	    !(flags & KASAN_VMALLOC_PROT_NORMAL))
- 		return (void *)start;
- 
--	start = set_tag(start, kasan_random_tag());
-+	if (unlikely(!(flags & KASAN_VMALLOC_KEEP_TAG)))
-+		start = set_tag(start, kasan_random_tag());
-+
- 	kasan_unpoison(start, size, false);
- 	return (void *)start;
+@@ -615,6 +615,16 @@ static __always_inline void kasan_poison
+ 		__kasan_poison_vmalloc(start, size);
  }
---- a/mm/vmalloc.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
+ 
++void __kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms,
++				 kasan_vmalloc_flags_t flags);
++static __always_inline void
++kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms,
++			  kasan_vmalloc_flags_t flags)
++{
++	if (kasan_enabled())
++		__kasan_unpoison_vmap_areas(vms, nr_vms, flags);
++}
++
+ #else /* CONFIG_KASAN_VMALLOC */
+ 
+ static inline void kasan_populate_early_vm_area_shadow(void *start,
+@@ -639,6 +649,11 @@ static inline void *kasan_unpoison_vmall
+ static inline void kasan_poison_vmalloc(const void *start, unsigned long size)
+ { }
+ 
++static __always_inline void
++kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms,
++			  kasan_vmalloc_flags_t flags)
++{ }
++
+ #endif /* CONFIG_KASAN_VMALLOC */
+ 
+ #if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
+--- a/mm/kasan/common.c~kasan-refactor-pcpu-kasan-vmalloc-unpoison
++++ a/mm/kasan/common.c
+@@ -28,6 +28,7 @@
+ #include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/bug.h>
++#include <linux/vmalloc.h>
+ 
+ #include "kasan.h"
+ #include "../slab.h"
+@@ -582,3 +583,19 @@ bool __kasan_check_byte(const void *addr
+ 	}
+ 	return true;
+ }
++
++#ifdef CONFIG_KASAN_VMALLOC
++void __kasan_unpoison_vmap_areas(struct vm_struct **vms, int nr_vms,
++				 kasan_vmalloc_flags_t flags)
++{
++	unsigned long size;
++	void *addr;
++	int area;
++
++	for (area = 0 ; area < nr_vms ; area++) {
++		size = vms[area]->size;
++		addr = vms[area]->addr;
++		vms[area]->addr = __kasan_unpoison_vmalloc(addr, size, flags);
++	}
++}
++#endif
+--- a/mm/vmalloc.c~kasan-refactor-pcpu-kasan-vmalloc-unpoison
 +++ a/mm/vmalloc.c
-@@ -4176,7 +4176,9 @@ void *vrealloc_node_align_noprof(const v
+@@ -4872,9 +4872,7 @@ retry:
+ 	 * With hardware tag-based KASAN, marking is skipped for
+ 	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
  	 */
- 	if (size <= alloced_size) {
- 		kasan_unpoison_vmalloc(p + old_size, size - old_size,
--				       KASAN_VMALLOC_PROT_NORMAL);
-+				       KASAN_VMALLOC_PROT_NORMAL |
-+				       KASAN_VMALLOC_VM_ALLOC |
-+				       KASAN_VMALLOC_KEEP_TAG);
- 		/*
- 		 * No need to zero memory here, as unused memory will have
- 		 * already been zeroed at initial allocation time or during
+-	for (area = 0; area < nr_vms; area++)
+-		vms[area]->addr = kasan_unpoison_vmalloc(vms[area]->addr,
+-				vms[area]->size, KASAN_VMALLOC_PROT_NORMAL);
++	kasan_unpoison_vmap_areas(vms, nr_vms, KASAN_VMALLOC_PROT_NORMAL);
+ 
+ 	kfree(vas);
+ 	return vms;
 _
 
-Patches currently in -mm which might be from jiayuan.chen@linux.dev are
+Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
 
-mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
+kasan-refactor-pcpu-kasan-vmalloc-unpoison.patch
+kasan-unpoison-vms-addresses-with-a-common-tag.patch
 
