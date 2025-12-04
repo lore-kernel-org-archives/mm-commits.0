@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF7B27CB35;
-	Thu,  4 Dec 2025 21:59:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 665D82DCF58;
+	Thu,  4 Dec 2025 22:21:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764885579; cv=none; b=pruFtvBbHSrsqqkmx+is1RpAiJsbedsk5+Hh91ayljtBONxpISsIUR3gW3YbVvP7eAz48B0F+hLm92+8Fc6t14OsDg0g+0zn2dE60SHP7iQTrD41Rp1rdffzg//MUb0S3DOd3+YJbS6j2kgWmBEtOXny+43D3XR2SKFh+e5ZgT4=
+	t=1764886883; cv=none; b=JU/k1pKmYm0UHVE2bBhSP77SaSVKkC7zeJSDVF5UZcuq3aBEIokX9xCdHhTiTg1ohzl1iCBJ7IbIvG6vk9E73wIiLn8EHaLmxldNr3K8cHKov43qVxZDMnGFvp8WC3ZBRgrNDiVqgcrl9djMzXStqpz1HKo/oZ9umboxJ5+FSaQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764885579; c=relaxed/simple;
-	bh=zoYG0yRVSPL0YEgb8/GpcZlSckKNZ+ksq2fCX+Ste9I=;
-	h=Date:To:From:Subject:Message-Id; b=sAuJyaOFu8FKg/9VBcytYnHv/KBLYHazkj03KaWSeZxllv2NgR5gyyJwwoPkc1yDgUzZjQyCwS3/i39J8ZW+GKrllmlNHms4ulrxosxlyBXXq7uvVNykvyOD2Xdf+jWAOLDx6qtUjtYs0DcYM1nuO/IhEJRIZ4hmiJpPPKMPkeI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VJJrflVW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764886883; c=relaxed/simple;
+	bh=ZvHGgqwv55TuhpbqKh66QjNCoT4GuQ3nSokBRBm7H0s=;
+	h=Date:To:From:Subject:Message-Id; b=pTTfDdc5pr92caCyFpOSWGOIvuRszXyxnAd/y5eH3FyRTg05RLoCMFoZ271cqR/VJPRcLrIO0g4De5jf1qpj+na1AdSJOlVjQ/9q6uHK3JIfTMhWNNFs29bU8av7iUWzABlyv4qgMFSKSrTwbhcDha553TPPSuq6uxJEkLvJ9WI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dwHwSoHa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VJJrflVW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 750D3C4CEFB;
-	Thu,  4 Dec 2025 21:59:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dwHwSoHa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44F1C4CEFB;
+	Thu,  4 Dec 2025 22:21:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1764885578;
-	bh=zoYG0yRVSPL0YEgb8/GpcZlSckKNZ+ksq2fCX+Ste9I=;
+	s=korg; t=1764886882;
+	bh=ZvHGgqwv55TuhpbqKh66QjNCoT4GuQ3nSokBRBm7H0s=;
 	h=Date:To:From:Subject:From;
-	b=VJJrflVWIVUAgDwzv9JilEpXrk2Ze8Tjt5NCHFDpjGzOiZ4fLTRLMj1FkXf1/ry7H
-	 FuM0MX8Dc2qe7Bxth00I5ZJPmZc8ZiVNLhgd15e88z1ihu93vzFpYSfBgzsM9UTQIf
-	 m0deI5jTNH1IypeWm+u3K3lf815q55EnQ89Y3WAM=
-Date: Thu, 04 Dec 2025 13:59:37 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,torvalds@linuxfoundation.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,masahiroy@kernel.org,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,christophe.leroy@csgroup.eu,skhan@linuxfoundation.org,akpm@linux-foundation.org
+	b=dwHwSoHaJ0vO9rje1pN4l0DQM4EG6NytUC9hhtYnIGBqZcRKdHVvFQIuHIrgGBEZX
+	 HxQlHoTN/HMFMurjcYybI1syHTxvygpReP1oTu4jIuoZv0PSyxHYV8GpJgnfLVcyor
+	 TRlUgFw8Yr3aw3kDNLepWUjsTONm6wYpsSFwq8SY=
+Date: Thu, 04 Dec 2025 14:21:22 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,maciej.wieczor-retman@intel.com,kees@kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,dakr@kernel.org,andreyknvl@gmail.com,jiayuan.chen@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251204215938.750D3C4CEFB@smtp.kernel.org>
+Subject: + mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251204222122.B44F1C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb"
+     Subject: mm/kasan: fix incorrect unpoisoning in vrealloc for KASAN
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch
+     mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,129 +58,156 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shuah Khan <skhan@linuxfoundation.org>
-Subject: Revert "mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb"
-Date: Wed, 3 Dec 2025 19:33:56 -0700
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+Subject: mm/kasan: fix incorrect unpoisoning in vrealloc for KASAN
+Date: Thu, 04 Dec 2025 18:59:55 +0000
 
-This reverts commit 39231e8d6ba7f794b566fd91ebd88c0834a23b98.
+Patch series "kasan: vmalloc: Fixes for the percpu allocator and
+vrealloc", v3.
 
-Enabling HAVE_GIGANTIC_FOLIOS broke kernel build and git clone on two
-systems.  git fetch-pack fails when cloning large repos and make hangs or
-errors out of Makefile.build with Error: 139.  These failures are random
-with git clone failing after fetching 1% of the objects, and make hangs
-while compiling random files.
+Patches fix two issues related to KASAN and vmalloc.
 
-Below is is one of the git clone failures:
+The first one, a KASAN tag mismatch, possibly resulting in a kernel panic,
+can be observed on systems with a tag-based KASAN enabled and with
+multiple NUMA nodes.  Initially it was only noticed on x86 [1] but later a
+similar issue was also reported on arm64 [2].
 
-git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git linux_6.19
-Cloning into 'linux_6.19'...
-remote: Enumerating objects: 11173575, done.
-remote: Counting objects: 100% (785/785), done.
-remote: Compressing objects: 100% (373/373), done.
-remote: Total 11173575 (delta 534), reused 505 (delta 411), pack-reused 11172790 (from 1)
-Receiving objects: 100% (11173575/11173575), 3.00 GiB | 7.08 MiB/s, done.
-Resolving deltas: 100% (9195212/9195212), done.
-fatal: did not receive expected object 0002003e951b5057c16de5a39140abcbf6e44e50
-fatal: fetch-pack: invalid index-pack output
+Specifically the problem is related to how vm_structs interact with
+pcpu_chunks - both when they are allocated, assigned and when pcpu_chunk
+addresses are derived.
 
-(akpm: reverting this probably just hides a bug, but let's do that for now
-while the bug is being worked on).
+When vm_structs are allocated they are unpoisoned, each with a different
+random tag, if vmalloc support is enabled along the KASAN mode.  Later
+when first pcpu chunk is allocated it gets its 'base_addr' field set to
+the first allocated vm_struct.  With that it inherits that vm_struct's
+tag.
 
-Link: https://lkml.kernel.org/r/20251204023358.54107-1-skhan@linuxfoundation.org
-Fixes: 39231e8d6ba7 ("mm: fix MAX_FOLIO_ORDER on powerpc configs with hugetlb")
-Signed-off-by: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Linus Torvalds <torvalds@linuxfoundation.org>
+When pcpu_chunk addresses are later derived (by pcpu_chunk_addr(), for
+example in pcpu_alloc_noprof()) the base_addr field is used and offsets
+are added to it.  If the initial conditions are satisfied then some of the
+offsets will point into memory allocated with a different vm_struct.  So
+while the lower bits will get accurately derived the tag bits in the top
+of the pointer won't match the shadow memory contents.
+
+The solution (proposed at v2 of the x86 KASAN series [3]) is to unpoison
+the vm_structs with the same tag when allocating them for the per cpu
+allocator (in pcpu_get_vm_areas()).
+
+The second one reported by syzkaller [4] is related to vrealloc and
+happens because of random tag generation when unpoisoning memory without
+allocating new pages.  This breaks shadow memory tracking and needs to
+reuse the existing tag instead of generating a new one.  At the same time
+an inconsistency in used flags is corrected.
+
+
+This patch (of 3):
+
+Syzkaller reported a memory out-of-bounds bug [4].  This patch fixes two
+issues:
+
+1. In vrealloc the KASAN_VMALLOC_VM_ALLOC flag is missing when
+   unpoisoning the extended region. This flag is required to correctly
+   associate the allocation with KASAN's vmalloc tracking.
+
+   Note: In contrast, vzalloc (via __vmalloc_node_range_noprof)
+   explicitly sets KASAN_VMALLOC_VM_ALLOC and calls
+   kasan_unpoison_vmalloc() with it.  vrealloc must behave consistently --
+   especially when reusing existing vmalloc regions -- to ensure KASAN can
+   track allocations correctly.
+
+2. When vrealloc reuses an existing vmalloc region (without allocating
+   new pages) KASAN generates a new tag, which breaks tag-based memory
+   access tracking.
+
+Introduce KASAN_VMALLOC_KEEP_TAG, a new KASAN flag that allows reusing the
+tag already attached to the pointer, ensuring consistent tag behavior
+during reallocation.
+
+Pass KASAN_VMALLOC_KEEP_TAG and KASAN_VMALLOC_VM_ALLOC to the
+kasan_unpoison_vmalloc inside vrealloc_node_align_noprof().
+
+Link: https://lkml.kernel.org/r/38dece0a4074c43e48150d1e242f8242c73bf1a5.1764874575.git.m.wieczorretman@pm.me
+
+Link: https://lore.kernel.org/all/e7e04692866d02e6d3b32bb43b998e5d17092ba4.1738686764.git.maciej.wieczor-retman@intel.com/ [1]
+Link: https://lore.kernel.org/all/aMUrW1Znp1GEj7St@MiWiFi-R3L-srv/ [2]
+Link: https://lore.kernel.org/all/CAPAsAGxDRv_uFeMYu9TwhBVWHCCtkSxoWY4xmFB_vowMbi8raw@mail.gmail.com/ [3]
+Link: https://syzkaller.appspot.com/bug?extid=3D997752115a851cb0cf36 [4]
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+Co-developed-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Fixes: a0309faf1cb0 ("mm: vmalloc: support more granular vrealloc() sizing"
+)
+Reported-by: syzbot+997752115a851cb0cf36@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/68e243a2.050a0220.1696c6.007d.GAE@google.com/T/
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig                   |    1 -
- arch/powerpc/platforms/Kconfig.cputype |    1 +
- include/linux/mm.h                     |   13 +++----------
- mm/Kconfig                             |    7 -------
- 4 files changed, 4 insertions(+), 18 deletions(-)
+ include/linux/kasan.h |    1 +
+ mm/kasan/hw_tags.c    |    2 +-
+ mm/kasan/shadow.c     |    4 +++-
+ mm/vmalloc.c          |    4 +++-
+ 4 files changed, 8 insertions(+), 3 deletions(-)
 
---- a/arch/powerpc/Kconfig~revert-mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
-+++ a/arch/powerpc/Kconfig
-@@ -137,7 +137,6 @@ config PPC
- 	select ARCH_HAS_DMA_OPS			if PPC64
- 	select ARCH_HAS_FORTIFY_SOURCE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
--	select ARCH_HAS_GIGANTIC_PAGE		if ARCH_SUPPORTS_HUGETLBFS
- 	select ARCH_HAS_KCOV
- 	select ARCH_HAS_KERNEL_FPU_SUPPORT	if PPC64 && PPC_FPU
- 	select ARCH_HAS_MEMBARRIER_CALLBACKS
---- a/arch/powerpc/platforms/Kconfig.cputype~revert-mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -423,6 +423,7 @@ config PPC_64S_HASH_MMU
- config PPC_RADIX_MMU
- 	bool "Radix MMU Support"
- 	depends on PPC_BOOK3S_64
-+	select ARCH_HAS_GIGANTIC_PAGE
- 	default y
- 	help
- 	  Enable support for the Power ISA 3.0 Radix style MMU. Currently this
---- a/include/linux/mm.h~revert-mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
-+++ a/include/linux/mm.h
-@@ -2074,7 +2074,7 @@ static inline unsigned long folio_nr_pag
- 	return folio_large_nr_pages(folio);
+--- a/include/linux/kasan.h~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/include/linux/kasan.h
+@@ -28,6 +28,7 @@ typedef unsigned int __bitwise kasan_vma
+ #define KASAN_VMALLOC_INIT		((__force kasan_vmalloc_flags_t)0x01u)
+ #define KASAN_VMALLOC_VM_ALLOC		((__force kasan_vmalloc_flags_t)0x02u)
+ #define KASAN_VMALLOC_PROT_NORMAL	((__force kasan_vmalloc_flags_t)0x04u)
++#define KASAN_VMALLOC_KEEP_TAG		((__force kasan_vmalloc_flags_t)0x08u)
+ 
+ #define KASAN_VMALLOC_PAGE_RANGE 0x1 /* Apply exsiting page range */
+ #define KASAN_VMALLOC_TLB_FLUSH  0x2 /* TLB flush */
+--- a/mm/kasan/hw_tags.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/kasan/hw_tags.c
+@@ -361,7 +361,7 @@ void *__kasan_unpoison_vmalloc(const voi
+ 		return (void *)start;
+ 	}
+ 
+-	tag = kasan_random_tag();
++	tag = (flags & KASAN_VMALLOC_KEEP_TAG) ? get_tag(start) : kasan_random_tag();
+ 	start = set_tag(start, tag);
+ 
+ 	/* Unpoison and initialize memory up to size. */
+--- a/mm/kasan/shadow.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/kasan/shadow.c
+@@ -648,7 +648,9 @@ void *__kasan_unpoison_vmalloc(const voi
+ 	    !(flags & KASAN_VMALLOC_PROT_NORMAL))
+ 		return (void *)start;
+ 
+-	start = set_tag(start, kasan_random_tag());
++	if (unlikely(!(flags & KASAN_VMALLOC_KEEP_TAG)))
++		start = set_tag(start, kasan_random_tag());
++
+ 	kasan_unpoison(start, size, false);
+ 	return (void *)start;
  }
- 
--#if !defined(CONFIG_HAVE_GIGANTIC_FOLIOS)
-+#if !defined(CONFIG_ARCH_HAS_GIGANTIC_PAGE)
- /*
-  * We don't expect any folios that exceed buddy sizes (and consequently
-  * memory sections).
-@@ -2087,17 +2087,10 @@ static inline unsigned long folio_nr_pag
-  * pages are guaranteed to be contiguous.
-  */
- #define MAX_FOLIO_ORDER		PFN_SECTION_SHIFT
--#elif defined(CONFIG_HUGETLB_PAGE)
--/*
-- * There is no real limit on the folio size. We limit them to the maximum we
-- * currently expect (see CONFIG_HAVE_GIGANTIC_FOLIOS): with hugetlb, we expect
-- * no folios larger than 16 GiB on 64bit and 1 GiB on 32bit.
-- */
--#define MAX_FOLIO_ORDER		get_order(IS_ENABLED(CONFIG_64BIT) ? SZ_16G : SZ_1G)
- #else
- /*
-- * Without hugetlb, gigantic folios that are bigger than a single PUD are
-- * currently impossible.
-+ * There is no real limit on the folio size. We limit them to the maximum we
-+ * currently expect (e.g., hugetlb, dax).
-  */
- #define MAX_FOLIO_ORDER		PUD_ORDER
- #endif
---- a/mm/Kconfig~revert-mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb
-+++ a/mm/Kconfig
-@@ -908,13 +908,6 @@ config PAGE_MAPCOUNT
- config PGTABLE_HAS_HUGE_LEAVES
- 	def_bool TRANSPARENT_HUGEPAGE || HUGETLB_PAGE
- 
--#
--# We can end up creating gigantic folio.
--#
--config HAVE_GIGANTIC_FOLIOS
--	def_bool (HUGETLB_PAGE && ARCH_HAS_GIGANTIC_PAGE) || \
--		 (ZONE_DEVICE && HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
--
- # TODO: Allow to be enabled without THP
- config ARCH_SUPPORTS_HUGE_PFNMAP
- 	def_bool n
+--- a/mm/vmalloc.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/vmalloc.c
+@@ -4176,7 +4176,9 @@ void *vrealloc_node_align_noprof(const v
+ 	 */
+ 	if (size <= alloced_size) {
+ 		kasan_unpoison_vmalloc(p + old_size, size - old_size,
+-				       KASAN_VMALLOC_PROT_NORMAL);
++				       KASAN_VMALLOC_PROT_NORMAL |
++				       KASAN_VMALLOC_VM_ALLOC |
++				       KASAN_VMALLOC_KEEP_TAG);
+ 		/*
+ 		 * No need to zero memory here, as unused memory will have
+ 		 * already been zeroed at initial allocation time or during
 _
 
-Patches currently in -mm which might be from skhan@linuxfoundation.org are
+Patches currently in -mm which might be from jiayuan.chen@linux.dev are
 
-revert-mm-fix-max_folio_order-on-powerpc-configs-with-hugetlb.patch
+mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
 
