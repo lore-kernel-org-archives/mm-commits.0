@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 410772192F9
-	for <mm-commits@vger.kernel.org>; Sat,  6 Dec 2025 21:55:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 148B924397A
+	for <mm-commits@vger.kernel.org>; Sat,  6 Dec 2025 22:03:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765058101; cv=none; b=NJhfS0wK88NclEKYCBiZpR4PQvLoTcvJgljbeNmVkLEYZsvLkf8F3ZnrtQ5w3DIA1q2KlSCYao05uvRvaU7rUVFcS9OB7KUSBjZdywLCdy8ZFlKrkKxD+DaWpnfwVYjB6nXecesUmTAs2Gj+1q/oR0JBnp/owP9cPQWcSs8SH4I=
+	t=1765058608; cv=none; b=cCo0AzNQu6BYUBM0UdkWzd84Zs7a8xsUIVpdKr7N2I9wVBBUt84pmM28Oqp/A8BQaUnxrD77BXmRt5Wx9MDIPFMdLF/WNGo9HmfEsDHOK2ng4Y2ij4WKrkroch8+fR7/virnjM8dbx9KYG/BdCNtG2M9Z+mZjHi/104fC1KYDfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765058101; c=relaxed/simple;
-	bh=u5FhVzuDwUaGnsAcToob1HfcyLVE+PyXYapMfvUvswo=;
-	h=Date:To:From:Subject:Message-Id; b=ZYf5fgnmMslo5lXlpzMFBJStne+8gf7jHvg3vcki1seLSsuCzAN48vfzkGyMgY63v7Vudc23iOGG+MLTsL1VQdkio0169qdjZMD0RGRv7yI3l7FBDld6115NrdjKhXAQ2iFl/RkCDzhc2XEpWPSroD3hhUJbv/BuUucUKXnrs+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oS5ROKPw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765058608; c=relaxed/simple;
+	bh=BsZCmWVH93jCYcFegelCrD8WdRXMlCMF4QIuf1MZXJc=;
+	h=Date:To:From:Subject:Message-Id; b=i8X5KfsnTacJGQGYHozrlioMK+OBJUAHusPS+ABL6o7a2ClX7EMi+5clFIOQSKYEE68zoFBY0YsAJq3EMxtGuAk/9UCU8pUQQ1+kK33D9Sf/mVqMmqzgmaeaMEWhxnIM8weKzuekYgBF3bF07QcZAzVFGzXJWt06aE/lS34QoHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kz/HuEaX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oS5ROKPw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E544DC4CEF5;
-	Sat,  6 Dec 2025 21:55:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kz/HuEaX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0E98C4CEF5;
+	Sat,  6 Dec 2025 22:03:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765058101;
-	bh=u5FhVzuDwUaGnsAcToob1HfcyLVE+PyXYapMfvUvswo=;
+	s=korg; t=1765058607;
+	bh=BsZCmWVH93jCYcFegelCrD8WdRXMlCMF4QIuf1MZXJc=;
 	h=Date:To:From:Subject:From;
-	b=oS5ROKPwm7RfqClNqUXebN+sTDCp3Y6II7yfdPl89/akGd19tSKdMGOGfqIVqzN0c
-	 w07ANNHa9qqZgc/g05Z+yv6EWJTxyJHnJEfWmPdhuGlgFsefW5LLcpyY2jz7zqYTT+
-	 nEqjmo19Q5evfN7RCxmW3n4OkxzrpKuA5J1Z6rIE=
-Date: Sat, 06 Dec 2025 13:55:00 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,lujialin4@huawei.com,lorenzo.stoakes@oracle.com,lance.yang@linux.dev,jaewon31.kim@samsung.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,chenridong@huawei.com,akpm@linux-foundation.org
+	b=kz/HuEaX76GGfKTQycxnnBv5LEpRZQoWP6VD+/ais6gm1Wlr+CIeQUDrGY3LfSPVg
+	 y+YZlet9t3mGb8JpQga5ZZM39XGfhy7oO0UUc/7minKKPinC9Q2ekrIkL9vVyWS7i2
+	 0zQhImGTMmd48q6cumF7RSjVy3LIgKDC6iwUm29g=
+Date: Sat, 06 Dec 2025 14:03:27 -0800
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,hughd@google.com,guoweikang.kernel@gmail.com,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-correct-nr_requested-tracing-in-scan_folios.patch added to mm-unstable branch
-Message-Id: <20251206215500.E544DC4CEF5@smtp.kernel.org>
+Subject: + mm-shmem-avoid-build-warning-for-config_shmem=n.patch added to mm-nonmm-unstable branch
+Message-Id: <20251206220327.C0E98C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: correct nr_requested tracing in scan_folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-correct-nr_requested-tracing-in-scan_folios.patch
+     Subject: mm: shmem: avoid build warning for CONFIG_SHMEM=n
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mm-shmem-avoid-build-warning-for-config_shmem=n.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-correct-nr_requested-tracing-in-scan_folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-avoid-build-warning-for-config_shmem=n.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,70 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chen Ridong <chenridong@huawei.com>
-Subject: mm: vmscan: correct nr_requested tracing in scan_folios
-Date: Thu, 4 Dec 2025 12:23:55 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: shmem: avoid build warning for CONFIG_SHMEM=n
+Date: Thu, 4 Dec 2025 11:28:59 +0100
 
-When enabling vmscan tracing, it is observed that nr_requested is always
-4096, which is confusing.
+The newly added 'flags' variable is unused and causes a warning if
+CONFIG_SHMEM is disabled, since the shmem_acct_size() macro it is passed
+into does nothing:
 
-        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
-        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
-        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
-        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
-        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
-        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
-        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
+mm/shmem.c: In function '__shmem_file_setup':
+mm/shmem.c:5816:23: error: unused variable 'flags' [-Werror=unused-variable]
+ 5816 |         unsigned long flags = (vm_flags & VM_NORESERVE) ? SHMEM_F_NORESERVE : 0;
+      |                       ^~~~~
 
-This is because it prints MAX_LRU_BATCH, which is meaningless as it's a
-constant.  To fix this, modify it to print capped valued.
+Replace the two macros with equivalent inline functions to get the
+argument checking.
 
-Link: https://lkml.kernel.org/r/20251204122355.1822919-1-chenridong@huaweicloud.com
-Fixes: 8c2214fc9a47 ("mm: multi-gen LRU: reuse some legacy trace events")
-Signed-off-by: Chen Ridong <chenridong@huawei.com>
+Link: https://lkml.kernel.org/r/20251204102905.1048000-1-arnd@kernel.org
+Fixes: 6ff1610ced56 ("mm: shmem: use SHMEM_F_* flags instead of VM_* flags")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Jaewon Kim <jaewon31.kim@samsung.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: guoweikang <guoweikang.kernel@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Lu Jialin <lujialin4@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/shmem.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-correct-nr_requested-tracing-in-scan_folios
-+++ a/mm/vmscan.c
-@@ -4541,7 +4541,8 @@ static int scan_folios(unsigned long nr_
- 	int scanned = 0;
- 	int isolated = 0;
- 	int skipped = 0;
--	int remaining = min(nr_to_scan, MAX_LRU_BATCH);
-+	int scan_batch = min(nr_to_scan, MAX_LRU_BATCH);
-+	int remaining = scan_batch;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+--- a/mm/shmem.c~mm-shmem-avoid-build-warning-for-config_shmem=n
++++ a/mm/shmem.c
+@@ -5817,8 +5817,15 @@ EXPORT_SYMBOL_GPL(shmem_truncate_range);
+ #define shmem_vm_ops				generic_file_vm_ops
+ #define shmem_anon_vm_ops			generic_file_vm_ops
+ #define shmem_file_operations			ramfs_file_operations
+-#define shmem_acct_size(flags, size)		0
+-#define shmem_unacct_size(flags, size)		do {} while (0)
++
++static inline int shmem_acct_size(unsigned long flags, loff_t size)
++{
++	return 0;
++}
++
++static inline void shmem_unacct_size(unsigned long flags, loff_t size)
++{
++}
  
-@@ -4601,7 +4602,7 @@ static int scan_folios(unsigned long nr_
- 	count_memcg_events(memcg, item, isolated);
- 	count_memcg_events(memcg, PGREFILL, sorted);
- 	__count_vm_events(PGSCAN_ANON + type, isolated);
--	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, MAX_LRU_BATCH,
-+	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, scan_batch,
- 				scanned, skipped, isolated,
- 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 	if (type == LRU_GEN_FILE)
+ static inline struct inode *shmem_get_inode(struct mnt_idmap *idmap,
+ 				struct super_block *sb, struct inode *dir,
 _
 
-Patches currently in -mm which might be from chenridong@huawei.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-vmscan-correct-nr_requested-tracing-in-scan_folios.patch
+mm-shmem-avoid-build-warning-for-config_shmem=n.patch
 
