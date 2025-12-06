@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8AD11C84D7
-	for <mm-commits@vger.kernel.org>; Sat,  6 Dec 2025 21:46:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 410772192F9
+	for <mm-commits@vger.kernel.org>; Sat,  6 Dec 2025 21:55:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765057584; cv=none; b=TZe2Fwe4s//3R0LRf6TSiMKPvrk5PDbETd710hBMCNrWZUmPmd9vxYh3XamgFFfSySaSjxekqb8OKjipM3PzwrM3MgJeyX3Oer6BXAB04HezjfYkQL7IwQWmZ1KqABMQBsyP6FrmUgIfT85La/2s3iz++DGMxNdWVok6g5SChfA=
+	t=1765058101; cv=none; b=NJhfS0wK88NclEKYCBiZpR4PQvLoTcvJgljbeNmVkLEYZsvLkf8F3ZnrtQ5w3DIA1q2KlSCYao05uvRvaU7rUVFcS9OB7KUSBjZdywLCdy8ZFlKrkKxD+DaWpnfwVYjB6nXecesUmTAs2Gj+1q/oR0JBnp/owP9cPQWcSs8SH4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765057584; c=relaxed/simple;
-	bh=+oGzzZLHbM+1ovvXKN8ul+1vTAFPDqvNb6DZdH0+HNc=;
-	h=Date:To:From:Subject:Message-Id; b=nu657WXF4Po7x4ysKgmmG8PR+BAuAVhnfvCnkZmWXq2MKMuHsdjb0GKiqaq1wZI9J2okXgSeFdAoaiBn28IEj/re5drb9tw2tJ4eOJ9VK5Oqc57i5O9UrO3JdXEYbnX0faQQg8YNqFuLXxWBTjfFy5jyeHqdPYV30BvSDqyFXG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bCS8J2DT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765058101; c=relaxed/simple;
+	bh=u5FhVzuDwUaGnsAcToob1HfcyLVE+PyXYapMfvUvswo=;
+	h=Date:To:From:Subject:Message-Id; b=ZYf5fgnmMslo5lXlpzMFBJStne+8gf7jHvg3vcki1seLSsuCzAN48vfzkGyMgY63v7Vudc23iOGG+MLTsL1VQdkio0169qdjZMD0RGRv7yI3l7FBDld6115NrdjKhXAQ2iFl/RkCDzhc2XEpWPSroD3hhUJbv/BuUucUKXnrs+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oS5ROKPw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bCS8J2DT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44AF6C4CEF5;
-	Sat,  6 Dec 2025 21:46:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oS5ROKPw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E544DC4CEF5;
+	Sat,  6 Dec 2025 21:55:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765057584;
-	bh=+oGzzZLHbM+1ovvXKN8ul+1vTAFPDqvNb6DZdH0+HNc=;
+	s=korg; t=1765058101;
+	bh=u5FhVzuDwUaGnsAcToob1HfcyLVE+PyXYapMfvUvswo=;
 	h=Date:To:From:Subject:From;
-	b=bCS8J2DTChVW4aohMRG7jmjTzrMelIzi9nzRpljCHH4X8powBese89loFxYaj3MDB
-	 58d7Z6C1vSS6q7DDCExTlV/3DE+NCzo0EGMYKR9VS6zp51X/HCOqEpCMduQCt7p7Z6
-	 dMaPEsvGnr/X1dRh40HXl8xnPqOVA3/vqMQXCL8o=
-Date: Sat, 06 Dec 2025 13:46:23 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=oS5ROKPwm7RfqClNqUXebN+sTDCp3Y6II7yfdPl89/akGd19tSKdMGOGfqIVqzN0c
+	 w07ANNHa9qqZgc/g05Z+yv6EWJTxyJHnJEfWmPdhuGlgFsefW5LLcpyY2jz7zqYTT+
+	 nEqjmo19Q5evfN7RCxmW3n4OkxzrpKuA5J1Z6rIE=
+Date: Sat, 06 Dec 2025 13:55:00 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,lujialin4@huawei.com,lorenzo.stoakes@oracle.com,lance.yang@linux.dev,jaewon31.kim@samsung.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,chenridong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-memory-leak-in-ocfs2_merge_rec_left.patch added to mm-nonmm-unstable branch
-Message-Id: <20251206214624.44AF6C4CEF5@smtp.kernel.org>
+Subject: + mm-vmscan-correct-nr_requested-tracing-in-scan_folios.patch added to mm-unstable branch
+Message-Id: <20251206215500.E544DC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix memory leak in ocfs2_merge_rec_left()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-memory-leak-in-ocfs2_merge_rec_left.patch
+     Subject: mm: vmscan: correct nr_requested tracing in scan_folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmscan-correct-nr_requested-tracing-in-scan_folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-memory-leak-in-ocfs2_merge_rec_left.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-correct-nr_requested-tracing-in-scan_folios.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: ocfs2: fix memory leak in ocfs2_merge_rec_left()
-Date: Fri, 5 Dec 2025 09:51:59 +0300
+From: Chen Ridong <chenridong@huawei.com>
+Subject: mm: vmscan: correct nr_requested tracing in scan_folios
+Date: Thu, 4 Dec 2025 12:23:55 +0000
 
-In 'ocfs2_merge_rec_left()', do not reset 'left_path' to NULL after
-move, thus allowing 'ocfs2_free_path()' to free it before return.
+When enabling vmscan tracing, it is observed that nr_requested is always
+4096, which is confusing.
 
-Link: https://lkml.kernel.org/r/20251205065159.392749-1-dmantipov@yandex.ru
-Fixes: 677b975282e4 ("ocfs2: Add support for cross extent block")
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: syzbot+cfc7cab3bb6eaa7c4de2@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=cfc7cab3bb6eaa7c4de2
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
+        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
+        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
+        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
+        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
+        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
+        mm_vmscan_lru_isolate: classzone=3 order=0 nr_requested=4096 ...
+
+This is because it prints MAX_LRU_BATCH, which is meaningless as it's a
+constant.  To fix this, modify it to print capped valued.
+
+Link: https://lkml.kernel.org/r/20251204122355.1822919-1-chenridong@huaweicloud.com
+Fixes: 8c2214fc9a47 ("mm: multi-gen LRU: reuse some legacy trace events")
+Signed-off-by: Chen Ridong <chenridong@huawei.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Jaewon Kim <jaewon31.kim@samsung.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Lu Jialin <lujialin4@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmscan.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-fix-memory-leak-in-ocfs2_merge_rec_left
-+++ a/fs/ocfs2/alloc.c
-@@ -3655,7 +3655,6 @@ static int ocfs2_merge_rec_left(struct o
- 			 * So we use the new rightmost path.
- 			 */
- 			ocfs2_mv_path(right_path, left_path);
--			left_path = NULL;
- 		} else
- 			ocfs2_complete_edge_insert(handle, left_path,
- 						   right_path, subtree_index);
+--- a/mm/vmscan.c~mm-vmscan-correct-nr_requested-tracing-in-scan_folios
++++ a/mm/vmscan.c
+@@ -4541,7 +4541,8 @@ static int scan_folios(unsigned long nr_
+ 	int scanned = 0;
+ 	int isolated = 0;
+ 	int skipped = 0;
+-	int remaining = min(nr_to_scan, MAX_LRU_BATCH);
++	int scan_batch = min(nr_to_scan, MAX_LRU_BATCH);
++	int remaining = scan_batch;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 
+@@ -4601,7 +4602,7 @@ static int scan_folios(unsigned long nr_
+ 	count_memcg_events(memcg, item, isolated);
+ 	count_memcg_events(memcg, PGREFILL, sorted);
+ 	__count_vm_events(PGSCAN_ANON + type, isolated);
+-	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, MAX_LRU_BATCH,
++	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, scan_batch,
+ 				scanned, skipped, isolated,
+ 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+ 	if (type == LRU_GEN_FILE)
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from chenridong@huawei.com are
 
-ocfs2-fix-memory-leak-in-ocfs2_merge_rec_left.patch
+mm-vmscan-correct-nr_requested-tracing-in-scan_folios.patch
 
