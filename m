@@ -1,103 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65D0027FB3A
-	for <mm-commits@vger.kernel.org>; Sat,  6 Dec 2025 22:06:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC5D52D97B9;
+	Sat,  6 Dec 2025 23:36:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765058814; cv=none; b=aqMg+m5yFOyzi8vkj8bxbU/c8JZMVeXmBXCJvr5VE9ZIOXxQDCVJkxAJGadWH8Z7c+ddzFnqRDZoRpaoaAGnV/p1dqtGaL8FFYckJItbIulCWae8f9P5EXX+ZvHvIxqMYE52L2TG5cGRMA4ZSXOCloPTdFHbyfHk+gUZSChLdBw=
+	t=1765064204; cv=none; b=RXpMzrGO/MMW9jAinJzYZ56vf04px8hl4Rk1gcylnl2knnyNJtq28i+hJgYykE5XRysAcRhuBBXzzSq7btY/SxXDGDx+T0l7mJrbCd2bTYOB5fSC2xq/s8EUjGRyZycszJDilYiHBg/RtiN/WTtxuFuIpBPk1AlA/XIGCNW2g/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765058814; c=relaxed/simple;
-	bh=nJgqAm8mJRGrSjuG4X2Wxg1TY6mVG3POz0EqyEdme04=;
-	h=Date:To:From:Subject:Message-Id; b=adjrZauiYCmo4D5mpjXL4hWz1StJIZFOAcIsNufiOyQzrWANXLITeOdAUt4xz06joWQdLtV7QH9rddSlokzAUZe75ooSDIeO3O75IP6wHaPWxpnwEBHap5hY+Wa/5JVrdR/gDD3VuranbZMdvwGmKyW/M6OshaWBzUlCq39jyb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cZEnYMV1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765064204; c=relaxed/simple;
+	bh=Xy490bYBXRCIaVdEKOF3H87YYhykbLI6BBVU7qxvw8w=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=QOgslxCZ5o39a1oZ+KqSo2X5kxEWKR7vKTZzEzkBMiq2YGcPFVroUDLxmDEMuQncHZTbkqMbdB0DJNWPLk2EA5JA+Wcrw3IbpdDlc/bNdlmbrmzu8SOuJq2ug0SU+lYiqX3XiaZPV5gj84JeSLRi3MAUh+aFkeHsOsWvlw3RdOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k2klsx0L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cZEnYMV1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7961C4CEF5;
-	Sat,  6 Dec 2025 22:06:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765058813;
-	bh=nJgqAm8mJRGrSjuG4X2Wxg1TY6mVG3POz0EqyEdme04=;
-	h=Date:To:From:Subject:From;
-	b=cZEnYMV14K3QzLXAPTMu7yOFwC6Xi/HMu5dDY4TN+PSkRnz05TXFWDFMoAZWRtHru
-	 jLaaMEjuC7cMHCIR7SlRhLxLGnTtQtz04cPv4iuz9WJRLQBx/i1PtkCS5ALhdjcTu9
-	 2mWozYN2brg/sDbxf/C5UlOSGw/DSjqqqkVS12u8=
-Date: Sat, 06 Dec 2025 14:06:53 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,arnd@arndb.de,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd_luo-add-config_shmem-dependency.patch added to mm-nonmm-unstable branch
-Message-Id: <20251206220653.D7961C4CEF5@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k2klsx0L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF859C4CEF5;
+	Sat,  6 Dec 2025 23:36:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1765064204;
+	bh=Xy490bYBXRCIaVdEKOF3H87YYhykbLI6BBVU7qxvw8w=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=k2klsx0Lyr/CRmhIoWDzB2CeQa9otxOJLF+ctidxe21AX9WupLN8nJTraZqfi0zUG
+	 ryGJgwbCq82cy6kTDHgdMkYETXqEB45kX+tenLEoP9nJ/vi0dMwhP+PxzCUZ6VrSyO
+	 9yVg2D8gwV67GQpV4Q6nyu3akzef6QnUt/MqTS+sa1HWiN2WoxUbI8aKgcuJG2YczR
+	 lRsK1chsLJy7qlrELB4lMfVzqUrfPUFuQe9PsKnFQ+x+QdxNvUr6VVPNyMHNFOy55r
+	 kBnwR+JuwGYJqdAlHF5j+9YirP/D4pdjJiR5/62ydvQMH4w6SHECW272pXqdAqwDji
+	 iIu4E77DmQcFg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B59B63808200;
+	Sat,  6 Dec 2025 23:33:42 +0000 (UTC)
+Subject: Re: [GIT PULL] non-MM updates for 6.19-rc1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20251206111533.f1b18ce84d0854b5f6d86a8f@linux-foundation.org>
+References: <20251206111533.f1b18ce84d0854b5f6d86a8f@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20251206111533.f1b18ce84d0854b5f6d86a8f@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2025-12-06-11-14
+X-PR-Tracked-Commit-Id: aa514a297a0c175239f24a2e582ebd37f0727494
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 509d3f45847627f4c5cdce004c3ec79262b5239c
+Message-Id: <176506402140.2232960.14577174906108791705.pr-tracker-bot@kernel.org>
+Date: Sat, 06 Dec 2025 23:33:41 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, Pasha Tatashin <pasha.tatashin@soleen.com>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Sat, 6 Dec 2025 11:15:33 -0800:
 
-The patch titled
-     Subject: mm: memfd_luo: add CONFIG_SHMEM dependency
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-memfd_luo-add-config_shmem-dependency.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2025-12-06-11-14
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-add-config_shmem-dependency.patch
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/509d3f45847627f4c5cdce004c3ec79262b5239c
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thank you!
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: memfd_luo: add CONFIG_SHMEM dependency
-Date: Thu, 4 Dec 2025 11:01:58 +0100
-
-The new memfd code fails to link without SHMEM:
-
-aarch64-linux-ld: mm/memfd_luo.o: in function `memfd_luo_retrieve_folios':
-memfd_luo.c:(.text.memfd_luo_retrieve_folios+0xdc): undefined reference to `shmem_add_to_page_cache'
-memfd_luo.c:(.text.memfd_luo_retrieve_folios+0x11c): undefined reference to `shmem_inode_acct_blocks'
-memfd_luo.c:(.text.memfd_luo_retrieve_folios+0x134): undefined reference to `shmem_recalc_inode'
-
-Add a Kconfig dependency to disallow that configuration.
-
-Link: https://lkml.kernel.org/r/20251204100203.1034394-1-arnd@kernel.org
-Fixes: b3749f174d68 ("mm: memfd_luo: allow preserving memfd")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/liveupdate/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
-
---- a/kernel/liveupdate/Kconfig~mm-memfd_luo-add-config_shmem-dependency
-+++ a/kernel/liveupdate/Kconfig
-@@ -54,6 +54,7 @@ config KEXEC_HANDOVER_ENABLE_DEFAULT
- config LIVEUPDATE
- 	bool "Live Update Orchestrator"
- 	depends on KEXEC_HANDOVER
-+	depends on SHMEM
- 	help
- 	  Enable the Live Update Orchestrator. Live Update is a mechanism,
- 	  typically based on kexec, that allows the kernel to be updated
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-mm-damon-tests-core-kunit-avoid-damos_test_commit-stack-warning.patch
-mm-shmem-avoid-build-warning-for-config_shmem=n.patch
-mm-memfd_luo-add-config_shmem-dependency.patch
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
