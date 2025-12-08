@@ -1,149 +1,246 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6666A26F46F
-	for <mm-commits@vger.kernel.org>; Mon,  8 Dec 2025 07:58:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 498412686A0
+	for <mm-commits@vger.kernel.org>; Mon,  8 Dec 2025 16:09:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765180731; cv=none; b=Tgl4Se6iApl6a8ro6GwNYOcF82BKr6YyDU1PuLmPcMSTymIKXks2Ef0yTGU4918FO1ZlsbpeBymD+rErY+k0zqSC8T8Jp0/kCL8tXeo5NQfK8ck2LRZXENIZQIw637lgYHSntYzeU/BIqEQ+yat4nAD8PODZS7TVuoW40zAgm4g=
+	t=1765210152; cv=none; b=Iy0LrDDs/DQpGAUsKkTq2UUOzjd1sG2dZ+nYf1M1+xOpATlWN5u7AgucUezQVps61gbxEZaDCeVUDZE1/fGXk94NbPrBSSvjK0phXjLWx+DXJ0zFz5jqVBDXLZNjj/HwLac/OqOCe8TkaMmB64wJyK2A0hf//bQXl4ozIH1bu2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765180731; c=relaxed/simple;
-	bh=P1/6NKONxXTd/6oQjGQUU6TOUM+Smx6QyaIIHBvY38o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ak4EU8LYM8wFwFNqLOJcDdkl/2QJ/9rCNs0cCtid2IYKI/diRq6x6QcXDjvMsLn37IAlDJpqy9mB5GpTkRCmcyHneFjQFr/BkEpud6IdPLgC4A1iQ/JC+le7Hkj4yQLvWtxBLxO0la0keAgzB6T9fT6l5HVv9C85moueQdyjfmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=SY8d9uDZ; arc=none smtp.client-ip=209.85.128.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1765210152; c=relaxed/simple;
+	bh=Ut+WIWiN1K3JfZoubouFXn0scqcoyk3Xf54WUJ5N4i4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=OoDGsOth/hWW9oaO86iY1omaUQxwvlQggk036lO1txuH5DOGuqd7UzJ4tVNW5dRNBG8kw8CxQIMqkOtqWi3q52KslFUUIWx0XoUOUmM4rdbvRrE+AAeEJTD8UYsNYO9giVnsm3Kf9k85z9fBV/vCMQGQWPqwsR1Bb9jxUhHBP/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=s2+MNnSx; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=c1OUa3wm; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=s2+MNnSx; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=c1OUa3wm; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="SY8d9uDZ"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-4779fd615a3so3799465e9.0
-        for <mm-commits@vger.kernel.org>; Sun, 07 Dec 2025 23:58:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1765180728; x=1765785528; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=1ZZgm3oSeHU0QU+gl2ilJ5MHbkqFnJ8nXr5Y2ViBPGg=;
-        b=SY8d9uDZZJ/EAEh54G46tTU0q+H6j7Fl3E8gQV2EewnJQzL8PbF+oz+sJlCt2Pk/uX
-         PTbBcER7sJbV2eACuvFuKhSpot5vp65MbeB0lMKpI90VNhYENfB58LWucj9FkIXnwluN
-         T+qUwrnaAUA/VArhpT8v2DtWL6p4qEQ83jaZjzI6SFcOeFLbenWth3L14efD5+JRupuT
-         JtEreXIoAGANqOE2P2s9lCLIdo+t+PFP6/5i+8dE1Rm4jDTuqdqL7E1TSaG2gPsRgLEP
-         97M4unNtz8foy2tyhLGU9LweGbDb8biY57HmECk/ZlSraK1JuD73b6+AmkVnUwMiAK1E
-         biDA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765180728; x=1765785528;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=1ZZgm3oSeHU0QU+gl2ilJ5MHbkqFnJ8nXr5Y2ViBPGg=;
-        b=UO7hikvyDyMH3pDUnKOl0LQlm1vxRHm5+wldjIINk/D44LnohkzySl/QAxy6i/lhyB
-         pX7ZQ3Lx5ZA5xkPzMYz6cnq3bSE9LQD+nOD7LhZhst3FmW46KKc1tQvpwa4IjpP69Kqi
-         ZXcuCva4OQCXnPsLkD2QxMhnEpF5rgw5lqPofm+iMawd17SStAmPyflIhSvvZ/77k9gk
-         GDkM/JLqASssjUUVGbJKdq8o8x7sWYTAUBRocgz4Gje+MNeAXytBAhevvr48uJNxG42H
-         SHGo06bm+bT4WAkIU0AQHLHRrrM3ByJjbwDHFyYqYMya0i2b9dqPpEIhv/OLnXbg/ZEH
-         kw+Q==
-X-Forwarded-Encrypted: i=1; AJvYcCXdsQE7Sb88NfPXyQ3jns6YVnj2ZNqV6l/3g9uhGmU/lbl211MWlfKj34mEXXNkWfKvg5EIPP1fQszQ@vger.kernel.org
-X-Gm-Message-State: AOJu0YwL2RIHzJLNNk5tQL4IU0tJm6Hdi3hMieou8vA3KiD3vu/JafTz
-	YKe3SctmIqsOnTqUtrb638qOPOB/YzDgsz1k4vbwZX8+u0RFbL0Aj96VUFIZk6Rc0Ec=
-X-Gm-Gg: ASbGncuPD/52nCndp/+yFsUgi09ww0T05DwYIL0rxf4hmus0JMISpxxNpjjm05fdrfb
-	kJSlzEfbovy8NjfUZ7zy4f/Ft18gHQTS7v9XECkTyx20UmSHNgBQLLH0LNrijR8ouJaBy2C+MKJ
-	T/U95k+v44M7ZRxD1xFA8sh0KzigOmBRt331KV4wkRtWeBeATMB1gr4fBpjGzMvtlzknQ2TddK4
-	VA0b24z0dEj0sr7r/FAgy5hkcmuuYP33JH9G9SYXqt2gtywMhnGIw5g9HTZxEqrzrpCRoJZtnrj
-	ob1VTXs04guQsebJUS/d64Y++8gh6D3KswoMjTxKWSiRQSScLQaAB0foR9jko7q1cvaRKrrwEwu
-	7d4aFdyl5mw1zR/6PWJq6C833BBzxYDJGz6+mw2KUeHbMj1/4Msh5csQx8dzefceDz5/v5a87Vj
-	B0BPJemJObwg==
-X-Google-Smtp-Source: AGHT+IFiE6r8sOKdpr/PzomB+sS+fM2rhbxC9kfkfyW0JiKMdyTzkMS5gaIPaG2/bO3ewHWaTbl4rA==
-X-Received: by 2002:a05:600c:35d1:b0:477:aed0:f402 with SMTP id 5b1f17b1804b1-47939e882c3mr39326995e9.8.1765180727657;
-        Sun, 07 Dec 2025 23:58:47 -0800 (PST)
-Received: from localhost ([202.127.77.110])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-bf686b3bad4sm11393921a12.10.2025.12.07.23.58.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 07 Dec 2025 23:58:46 -0800 (PST)
-Date: Mon, 8 Dec 2025 15:58:44 +0800
-From: Heming Zhao <heming.zhao@suse.com>
-To: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Linus Torvalds <torvalds@linuxfoundation.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, Dmitry Antipov <dmantipov@yandex.ru>, 
-	Mark Fasheh <mark@fasheh.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
-	mm-commits@vger.kernel.org, Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: Re: [GIT PULL] non-MM updates for 6.19-rc1
-Message-ID: <nrgonfemkkz2bnwfkpzycfbz3luspjm65dakyjt4e4nuawklbw@cw3jqnedbyjf>
-References: <20251206111533.f1b18ce84d0854b5f6d86a8f@linux-foundation.org>
- <CAHk-=wgG3xqJn1=SVw-npsdwCRtyY=sYbLa7HFkmj_Q0U=vdHQ@mail.gmail.com>
- <5e5e24eb-6af9-464c-ab1e-f9ee55a05a24@linux.alibaba.com>
- <CAHk-=wgvMBRrcR=DzsRKcLdZpmg-kJz49D1CzafjrWj+BzAGiQ@mail.gmail.com>
- <f72b8316-ddae-466e-a72d-0df9960d6c82@linux.alibaba.com>
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="s2+MNnSx";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="c1OUa3wm";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="s2+MNnSx";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="c1OUa3wm"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 1A15F336B8;
+	Mon,  8 Dec 2025 16:09:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1765210146; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=h9rWVrvCe0rra4LNjd3nAOXqprDOLFA8+LIc6jeeu10=;
+	b=s2+MNnSxwCZeQHoWJkDEtFCb69wom7+foAKB7JuKeWJvrv5omZsyJo6EDB9Kw0C/Q2mR9b
+	5BvTU7o4YT+w6t1l/7Vcmu57ddkf0d1mRQc3br9R/VJePX3s3qgRY+02oTx5fc5miF9+qM
+	QMNiNwSYABm248TOzFGknA6nhBlBFkg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1765210146;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=h9rWVrvCe0rra4LNjd3nAOXqprDOLFA8+LIc6jeeu10=;
+	b=c1OUa3wmHKBCoU4PXeApz9Z7hYRRkFjeQUvEHkCPpKG6S5QxtOhu+Ze3jvgGI4CRhlflHq
+	xDz+/SHlVquA8eCg==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1765210146; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=h9rWVrvCe0rra4LNjd3nAOXqprDOLFA8+LIc6jeeu10=;
+	b=s2+MNnSxwCZeQHoWJkDEtFCb69wom7+foAKB7JuKeWJvrv5omZsyJo6EDB9Kw0C/Q2mR9b
+	5BvTU7o4YT+w6t1l/7Vcmu57ddkf0d1mRQc3br9R/VJePX3s3qgRY+02oTx5fc5miF9+qM
+	QMNiNwSYABm248TOzFGknA6nhBlBFkg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1765210146;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=h9rWVrvCe0rra4LNjd3nAOXqprDOLFA8+LIc6jeeu10=;
+	b=c1OUa3wmHKBCoU4PXeApz9Z7hYRRkFjeQUvEHkCPpKG6S5QxtOhu+Ze3jvgGI4CRhlflHq
+	xDz+/SHlVquA8eCg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 01C003EA63;
+	Mon,  8 Dec 2025 16:09:06 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id ZT8IACL4NmnvFQAAD6G6ig
+	(envelope-from <vbabka@suse.cz>); Mon, 08 Dec 2025 16:09:05 +0000
+Message-ID: <95d18dbe-9055-43b8-bb4b-da40da670c10@suse.cz>
+Date: Mon, 8 Dec 2025 17:09:05 +0100
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f72b8316-ddae-466e-a72d-0df9960d6c82@linux.alibaba.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: + mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
+ added to mm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ surenb@google.com, rppt@kernel.org, oliver.sang@intel.com, mhocko@suse.com,
+ liam.howlett@oracle.com, jhubbard@nvidia.com, david.laight.linux@gmail.com,
+ lorenzo.stoakes@oracle.com
+References: <20251205201510.3D83EC4CEF1@smtp.kernel.org>
+Content-Language: en-US
+From: Vlastimil Babka <vbabka@suse.cz>
+Autocrypt: addr=vbabka@suse.cz; keydata=
+ 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
+ m6M14QORSWTLRg==
+In-Reply-To: <20251205201510.3D83EC4CEF1@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Spam-Flag: NO
+X-Spam-Score: -2.80
+X-Spam-Level: 
+X-Spamd-Result: default: False [-2.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	RCPT_COUNT_SEVEN(0.00)[10];
+	FREEMAIL_TO(0.00)[linux-foundation.org,vger.kernel.org,google.com,kernel.org,intel.com,suse.com,oracle.com,nvidia.com,gmail.com];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	TAGGED_RCPT(0.00)[];
+	ARC_NA(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	URIBL_BLOCKED(0.00)[suse.cz:email,suse.cz:mid,imap1.dmz-prg2.suse.org:helo,oracle.com:email,nvidia.com:email,intel.com:email,linux-foundation.org:email,suse.com:email];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_TLS_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	TO_DN_SOME(0.00)[]
 
-On Mon, Dec 08, 2025 at 12:01:09PM +0800, Joseph Qi wrote:
-> 
-> 
-> On 2025/12/8 10:21, Linus Torvalds wrote:
-> > On Mon, 8 Dec 2025 at 10:11, Joseph Qi <joseph.qi@linux.alibaba.com> wrote:
-> >>
-> >> On 2025/12/7 07:40, Linus Torvalds wrote:
-> >>>
-> >>> See commit c06c303832ec ("ocfs2: fix xattr array entry __counted_by
-> >>> error") which simply makes the 'last' pointer point to the actual last
-> >>> entry, rather than point to one _past_ the last entry.
-> >>
-> >> It looks fine to me.
-> >> Sorry for the noise and thank you for pointing out my mistake.
-> > 
-> > Note that if my fix is correct, the mistake is most certainly not
-> > yours and goes all the way back to 2009, and commit 0fe9b66c65f3
-> > ("ocfs2: Add preserve to reflink").
-> > 
-> > But I would really love to have somebody who knows that code go
-> > through it, and see if my fix actually is the right thing to do.
-> > 
-> 
-> Go through the code logic again, maybe I'm wrong before.
-> 
-> Take the following flow for example:
-> 
-> ocfs2_reflink_xattr_in_block
->   ocfs2_create_empty_xattr_block
->     ocfs2_create_xattr_block
->       memset(xblk, 0, inode->i_sb->s_blocksize);
->   ocfs2_reflink_xattr_block
->     ocfs2_reflink_xattr_header
+On 12/5/25 21:15, Andrew Morton wrote:
+> The patch titled
+>      Subject: mm: avoid use of BIT() macro for initialising VMA flags
+> has been added to the -mm mm-unstable branch.  Its filename is
 
-In ocfs2_reflink_xattr_block(), the call to memcpy(new_blk_bh->.., blk_bh->.., ...)
-occurs before ocfs2_reflink_xattr_header(). Therefore, the new_xh->xh_count is
-very likely not ZERO.
+Can we move it to mm-hotfixes-unstable please, to have this resolved within
+6.19 itself.
 
+>      mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
 > 
-> It seems now new_xh->xh_count is 0. That's means, it is trying to add a
-> new entry and here 'last' is pointing the next free entry.
-> If so, the original code seems right.
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
 > 
-> Heming, could you please verify this? I'm not familiar with this logic...
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 > 
-> Thanks,
-> Joseph
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> Subject: mm: avoid use of BIT() macro for initialising VMA flags
+> Date: Fri, 5 Dec 2025 17:50:37 +0000
+> 
+> Commit 2b6a3f061f11 ("mm: declare VMA flags by bit") significantly changed
+> how VMA flags are declared, utilising an enum of VMA bit values and
+> ifdef-fery VM_xxx flag declarations via macro.
+> 
+> As part of this change, it uses INIT_VM_FLAG() to define VM_xxx flags from
+> the newly introduced VMA bit numbers.
+> 
+> However, use of this macro results in apparently unfortunate macro
+> expansion and resulted in a performance degradation.This appears to be due
+> to the (__force int), which is required for the sparse typechecking to
+> work.
+> 
+> Avoid macro expansion issues by simply using 1UL << bitnum.
+> 
+> Link: https://lkml.kernel.org/r/20251205175037.1287366-1-lorenzo.stoakes@oracle.com
+> Fixes: 2b6a3f061f11 ("mm: declare VMA flags by bit")
+> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+> Reported-by: kernel test robot <oliver.sang@intel.com>
+> Closes: https://lore.kernel.org/oe-lkp/202512041634.150c7e4f-lkp@intel.com
+> Cc: Liam Howlett <liam.howlett@oracle.com>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Mike Rapoport <rppt@kernel.org>
+> Cc: Suren Baghdasaryan <surenb@google.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: David Laight <david.laight.linux@gmail.com>
+> Cc: John Hubbard <jhubbard@nvidia.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  include/linux/mm.h |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> --- a/include/linux/mm.h~mm-avoid-use-of-bit-macro-for-initialising-vma-flags
+> +++ a/include/linux/mm.h
+> @@ -395,7 +395,8 @@ enum {
+>  #undef DECLARE_VMA_BIT
+>  #undef DECLARE_VMA_BIT_ALIAS
+>  
+> -#define INIT_VM_FLAG(name) BIT((__force int) VMA_ ## name ## _BIT)
+> +#define INIT_VM_FLAG(name) (1UL << (__force int)(VMA_ ## name ## _BIT))
+> +
+>  #define VM_READ		INIT_VM_FLAG(READ)
+>  #define VM_WRITE	INIT_VM_FLAG(WRITE)
+>  #define VM_EXEC		INIT_VM_FLAG(EXEC)
+> _
+> 
+> Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+> 
+> mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
+> 
 
-In ocfs2_reflink_xattrs(), when preserve_security is false, the function sets
-'args.xattr_reflinked'. IMUC, it means that if users want to preserve security
-xattr items, the args.xattr_reflinked is NULL, this then results in
-ocfs2_reflink_xattr_header() not executing the cleanup jobs, (in the code area
-defined by "if (args->xattr_reflinked && !args->xattr_reflinked(xe))").
-
-Regarding the clean jobs:
-- by default, it only handles three types:
-  OCFS2_XATTR_INDEX_[SECURITY|POSIX_ACL_ACCESS|POSIX_ACL_DEFAULT]
-- it cleans the first item and shifts forward the remaining items.
-
-It seems Linus' patch does not handle all cases. If new_xh->xh_count is 1,
-le16_add_cpu(&new_xh->xh_count, -1) makes it to 0, and it will miss the cleanup
-job.
-
-Thanks,
-Heming
