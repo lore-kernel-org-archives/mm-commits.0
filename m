@@ -1,105 +1,106 @@
-Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2608F15A85A;
-	Mon,  8 Dec 2025 01:11:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.113
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1343211706
+	for <mm-commits@vger.kernel.org>; Mon,  8 Dec 2025 02:21:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765156307; cv=none; b=SWtHnCqUQ6hb88YuPSnE1UX8xyfLox49w8KbzVY6x/xw+xHJYhtGBNgxsxqeqC+cXSPtOPHOq2wDKhLwuIH7mWPcMlNYkCHDZw75mZtTPbjAbkBZzyAvuFqF77c0rK8h8yLETrqW0EP91z8EQvKkdOzfQHWMMgvSrOwtX3EQn1g=
+	t=1765160522; cv=none; b=k2nbAgrP03pmqC8qCPFlrT5l899QJSYlA+U+13gYEsh8LlyTzP7HscSux6C2+/F6AVphWI4YNIMFL+/CR2Vrm+OTgLT0YEsWdLA9LxtFWrWQ924UqVWqbgI4WeyXik2tF3tTeu/2vIf7Rb1xpN93Mx9vdGFz/d91uznlFmDLRrs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765156307; c=relaxed/simple;
-	bh=CwkFlzNPxLg8v7gy9rlKCeLwbavgiyjgtlOMH1k7on4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=a5fW4oR7IvpR5PoUaK2JFXH7q3tXWKneRUs8IMsygU+N9aFDem76LC+wxvwj/pkWG+97mty1HyD9wUqRTSr3wQI/4gdPygGZKQwHAH08qOxYWHjMnzQotfm15wct86gzkChpZq0QgkxK1rtGHge9E2Unt/pZyss18iPPyBJIxhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=m4b1SK1W; arc=none smtp.client-ip=115.124.30.113
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1765160522; c=relaxed/simple;
+	bh=7KoahCFrJTJx0rn/vNeg6cICXpKndXlRPxqRx3/jMsg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=VTEQdtksg4wnGkiZUVYLyPKvOwacnDoTUUJYavsUh77MNgE12PdMMkQEjAeXMOTQpR/mzL7NR8Su9vASL80Swd1lWVjmnB3yF2HKJdAM657OwMuvjE+YcKYYVWq2njdgJF1EO9RTDtD8eKIu0F/kKZJtAPJ7HR8/nfeNJ4ZgmBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=d04pUiIh; arc=none smtp.client-ip=209.85.218.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linuxfoundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="m4b1SK1W"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1765156295; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=6rVqmSkxnEapCQZcc1eYuT2scz6BrFpy/qXEqATvDEE=;
-	b=m4b1SK1WZYL7feucXMWsVwY8xRiOoBDdEC9MZ70YptgGH0IMaHsqRUg7eg0ce6T3lecOFc0gJMVMUlGLLywUwmGh0nw4dGhB6C6oj6XTaIfQBF3xnk+9AiadQNu4f5r22aE0Nl13+e5NVC9BLqWf9VCXLxIYV9yK1O9vbk2LQkE=
-Received: from 30.221.145.74(mailfrom:joseph.qi@linux.alibaba.com fp:SMTPD_---0WuElbFK_1765156294 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Mon, 08 Dec 2025 09:11:35 +0800
-Message-ID: <5e5e24eb-6af9-464c-ab1e-f9ee55a05a24@linux.alibaba.com>
-Date: Mon, 8 Dec 2025 09:11:34 +0800
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="d04pUiIh"
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-b72bf7e703fso658757466b.2
+        for <mm-commits@vger.kernel.org>; Sun, 07 Dec 2025 18:21:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linuxfoundation.org; s=google; t=1765160518; x=1765765318; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=W7Ny34kX+7pV2gTBJmZNlkjdHSh/Hj+/uXXhNu/zf30=;
+        b=d04pUiIh+Qz3tVwdm91MgMMhRJ1fJZphvtqx5OOAZDFbTWvfbqqsZLSVoj4jqOSNup
+         J1ryCElwPJK0fP+EVuGvqpLzGnm5dDL2veCvQLk6QdIaWBeWPJNxp4HY1lzhqqZI3e20
+         eHmRDSRxaf0sPBAjhI3cJuqKVz1ZbrLnnSPHo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1765160518; x=1765765318;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=W7Ny34kX+7pV2gTBJmZNlkjdHSh/Hj+/uXXhNu/zf30=;
+        b=uZbzTxSie5z0bI1cUUC9E8kPmQCVmeiiKr7sUOfMY3N8vEVgjNMb8zYi4RXsrLsGPm
+         6jYGfM5tdX1xOkb1M0nfVxIk/v8QGbq+Aoo/4FFZ/eKEooMmkk0hJU4f/OM9oJ4IRJrA
+         HyHo89nw4IxuTRLECI2su9Y86BDahA5+FhqgPyUkTcRDAyPM9luZiNb2kng5Am2mtJem
+         8txZRWHQoYZ1MUIWpj4je4+q71cAvE8Xh1uVodu4SCi6DHNie/iphYHkbL5lyjfwzytA
+         3jKP80VuFaiQo4dCSHkB3b6OTBb3sUSHmESiVcLBNAd/v88pjuvEfLB4349eECRoM0Lp
+         QreQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWeAci4yenGsoMhcwHV1mPAUd1deomtrDu3Sg1fLtG1vP6A455xyJk8ChRqkVGS7yT+mRErKXV3l2HB@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxqlbtd3QiPRfx9ttvlgprnIKW0iNPzl0P2QjkI3v1CUe/e3Zxi
+	YHV8gHfxAlrAxzT1nIqT1XbyToUf3avnEYOzUAtCA/x8NtV5tQ/xbHVOK2tzR/aFBOo2AHXIxyh
+	4h5CWv48=
+X-Gm-Gg: ASbGncvTz/ENTbi3pXj0fon9/kLz2pRj6LqwuEe9kbNXLxXjop4jE8hV3rs4ZOcJ3mm
+	DcLhcxFCCmGwgls+cgT9YTRh6LQIH0MHBGG01qyoO4NVkluqM32wrfMeb4SgE37wSGaROGxMr+g
+	/QLSMxvlOBf5Kj8mY4D3tQ3PtJVnhHZRqFAZ30AC9dLJ30WgOPURGqu4IiDH/RQgDW3RkUnPwKO
+	9ovZ/7cxf4JeyoYsLHZiCYYAgQAV0y2Au2kkCrMZ2kGunEm9Ar5YTXxa3eMaj3gO/xUUqdqDHh0
+	6IBjdFpI/W7LlOBFWNezPRm2kXhkUpLI3qRoAA+ilyhCLucG5uASwCLsYHLR0rZWb4hFA5sswJG
+	VVnjv0kY34wah8hO4ONr9Eq9wiPtYitI5WJ+DCECWfmoCgGV1iCY4sOia/FMzWwFLA1SHbDv4FD
+	dfuFmPea8Krq/HkP3d63I2iCsCUkJPKsm56UhaFkZskVEKqL2738RfRKCCZuI=
+X-Google-Smtp-Source: AGHT+IFZNiBuvrWqZHW+fMVI110guNsSAxA+xVntZyYHhY3yTD593Kbr5BQtWZMwxhL49JqY83pIGg==
+X-Received: by 2002:a17:907:7291:b0:b72:eaba:aac2 with SMTP id a640c23a62f3a-b7a24304344mr690732466b.26.1765160518012;
+        Sun, 07 Dec 2025 18:21:58 -0800 (PST)
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com. [209.85.208.54])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b79fab22ae8sm913492066b.4.2025.12.07.18.21.56
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 07 Dec 2025 18:21:56 -0800 (PST)
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-640d0ec9651so7105658a12.3
+        for <mm-commits@vger.kernel.org>; Sun, 07 Dec 2025 18:21:56 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCWxt8dx3L9D4/KeeIu1Pv1TKtqb2TTQ8rn+UUevTCrGXh2d/wdwzv/1MkoNdcg+5ehdQFeOhX3/plxd@vger.kernel.org
+X-Received: by 2002:a05:6402:90d:b0:640:a9b1:870b with SMTP id
+ 4fb4d7f45d1cf-6491a3fefffmr4880149a12.14.1765160516078; Sun, 07 Dec 2025
+ 18:21:56 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [GIT PULL] non-MM updates for 6.19-rc1
-To: Linus Torvalds <torvalds@linuxfoundation.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Dmitry Antipov <dmantipov@yandex.ru>, Heming Zhao <heming.zhao@suse.com>,
- Mark Fasheh <mark@fasheh.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
- mm-commits@vger.kernel.org, Pasha Tatashin <pasha.tatashin@soleen.com>
 References: <20251206111533.f1b18ce84d0854b5f6d86a8f@linux-foundation.org>
- <CAHk-=wgG3xqJn1=SVw-npsdwCRtyY=sYbLa7HFkmj_Q0U=vdHQ@mail.gmail.com>
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-In-Reply-To: <CAHk-=wgG3xqJn1=SVw-npsdwCRtyY=sYbLa7HFkmj_Q0U=vdHQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+ <CAHk-=wgG3xqJn1=SVw-npsdwCRtyY=sYbLa7HFkmj_Q0U=vdHQ@mail.gmail.com> <5e5e24eb-6af9-464c-ab1e-f9ee55a05a24@linux.alibaba.com>
+In-Reply-To: <5e5e24eb-6af9-464c-ab1e-f9ee55a05a24@linux.alibaba.com>
+From: Linus Torvalds <torvalds@linuxfoundation.org>
+Date: Mon, 8 Dec 2025 11:21:39 +0900
+X-Gmail-Original-Message-ID: <CAHk-=wgvMBRrcR=DzsRKcLdZpmg-kJz49D1CzafjrWj+BzAGiQ@mail.gmail.com>
+X-Gm-Features: AQt7F2pA7YIn5OZVITJ1bBw8kF53abcL2dtB4SE1NWrGI8hCS8MOKvzfGAZKktE
+Message-ID: <CAHk-=wgvMBRrcR=DzsRKcLdZpmg-kJz49D1CzafjrWj+BzAGiQ@mail.gmail.com>
+Subject: Re: [GIT PULL] non-MM updates for 6.19-rc1
+To: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Dmitry Antipov <dmantipov@yandex.ru>, 
+	Heming Zhao <heming.zhao@suse.com>, Mark Fasheh <mark@fasheh.com>, linux-kernel@vger.kernel.org, 
+	linux-mm@kvack.org, mm-commits@vger.kernel.org, 
+	Pasha Tatashin <pasha.tatashin@soleen.com>
+Content-Type: text/plain; charset="UTF-8"
 
+On Mon, 8 Dec 2025 at 10:11, Joseph Qi <joseph.qi@linux.alibaba.com> wrote:
+>
+> On 2025/12/7 07:40, Linus Torvalds wrote:
+> >
+> > See commit c06c303832ec ("ocfs2: fix xattr array entry __counted_by
+> > error") which simply makes the 'last' pointer point to the actual last
+> > entry, rather than point to one _past_ the last entry.
+>
+> It looks fine to me.
+> Sorry for the noise and thank you for pointing out my mistake.
 
+Note that if my fix is correct, the mistake is most certainly not
+yours and goes all the way back to 2009, and commit 0fe9b66c65f3
+("ocfs2: Add preserve to reflink").
 
-On 2025/12/7 07:40, Linus Torvalds wrote:
-> On Sat, 6 Dec 2025 at 11:15, Andrew Morton <akpm@linux-foundation.org> wrote:
->>
->> Dmitry Antipov (8):
->>       ocfs2: annotate flexible array members with __counted_by_le()
-> 
-> This causes the build to fail for me with gcc 15.2.1:
-> 
->   In function ‘fortify_memset_chk’,
->       inlined from ‘ocfs2_reflink_xattr_header’ at fs/ocfs2/xattr.c:6365:5:
->   include/linux/fortify-string.h:480:25: error: call to
-> ‘__write_overflow_field’ declared with attribute warning: detected
-> write beyond size of field (1st parameter); maybe use struct_group()?
-> [-Werror=attribute-warning]
-> 
-> And the reason appears to likely be a bug this exposes, rather than a
-> bug in the annotation. But I really don't know the ocfs2 code at all,
-> so I'm going by "the error message is horrendous, but I can follow the
-> logic in the code, and I think the code was actually wrong".
-> 
-> I have "fixed" things.
-> 
-> And I put that "fixed' in quotes, because my fix looks sane to me, and
-> makes the array counting logic happy, and my fix may well be the
-> RightThing(tm), but somebody who actually knows the ocfs2 code needs
-> to check it out.
-> 
-> See commit c06c303832ec ("ocfs2: fix xattr array entry __counted_by
-> error") which simply makes the 'last' pointer point to the actual last
-> entry, rather than point to one _past_ the last entry.  So now the
-> memmove() and memset() in the "possibly remove entry" loop below might
-> actually work right, in addition to building cleanly.
-> 
-> But again: I did this without knowing anything about the code, just by
-> looking at the logic.
-> 
-> I _think_ the code used to copy one entry too much, and cleared an
-> entry past the end. It probably worked fine, because the code also
-> decrements xh_count, so even if it cleared the wrong entry, it was
-> past the counted end.
-> 
-> I'm a bit unhappy that this didn't show up in linux-next and that I
-> had to chase this down. I don't think my gcc version is that odd.
-> 
-> Anyway, it's building for me, but I really really want some ocfs2
-> person to take a look. Please?
-> 
+But I would really love to have somebody who knows that code go
+through it, and see if my fix actually is the right thing to do.
 
-It looks fine to me.
-Sorry for the noise and thank you for pointing out my mistake.
-
-Thanks,
-Joseph
-
+               Linus
