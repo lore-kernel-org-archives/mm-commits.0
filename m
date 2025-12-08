@@ -1,246 +1,127 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 498412686A0
-	for <mm-commits@vger.kernel.org>; Mon,  8 Dec 2025 16:09:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C3832D781E
+	for <mm-commits@vger.kernel.org>; Mon,  8 Dec 2025 19:08:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765210152; cv=none; b=Iy0LrDDs/DQpGAUsKkTq2UUOzjd1sG2dZ+nYf1M1+xOpATlWN5u7AgucUezQVps61gbxEZaDCeVUDZE1/fGXk94NbPrBSSvjK0phXjLWx+DXJ0zFz5jqVBDXLZNjj/HwLac/OqOCe8TkaMmB64wJyK2A0hf//bQXl4ozIH1bu2w=
+	t=1765220885; cv=none; b=kH5hsf1vttGPBUopaxrevsKv7fbKNYKd0wYxUuN8cJa+5NnHna3AtuMNSciTG77s13uIRnPFe8ornmgKviKRR8HFxupZBIx+3Z96dtt08vXigt6Juk9652FLM763rduwmjPtwgFWvxlvHmsyls44j1rI+vDS/6fLpzUwebb3R6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765210152; c=relaxed/simple;
-	bh=Ut+WIWiN1K3JfZoubouFXn0scqcoyk3Xf54WUJ5N4i4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=OoDGsOth/hWW9oaO86iY1omaUQxwvlQggk036lO1txuH5DOGuqd7UzJ4tVNW5dRNBG8kw8CxQIMqkOtqWi3q52KslFUUIWx0XoUOUmM4rdbvRrE+AAeEJTD8UYsNYO9giVnsm3Kf9k85z9fBV/vCMQGQWPqwsR1Bb9jxUhHBP/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=s2+MNnSx; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=c1OUa3wm; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=s2+MNnSx; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=c1OUa3wm; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	s=arc-20240116; t=1765220885; c=relaxed/simple;
+	bh=kKYXRUbrumnXW2PR0/tHpdw7DwQx/a9r4iGjW7qlEm8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=YYJ4sSDE4V0h/o6wO+yJqdnsSUzyKi5WjiTDHsc6J48wUkPQz0oKDb5RIgIqlTb/LVbjLf0n8EgBGHnIz8JG2UkP83X/XarQBjrBUO+DAMzM2xtMJhGeZQqozcjlN6MJTADkepZKYMPS5aBojYRRGW5kEcDb/jvl/3REVNrHj74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fasheh.com; spf=none smtp.mailfrom=fasheh.com; dkim=pass (2048-bit key) header.d=fasheh.com header.i=@fasheh.com header.b=PVNEfjQz; arc=none smtp.client-ip=209.85.222.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fasheh.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=fasheh.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="s2+MNnSx";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="c1OUa3wm";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="s2+MNnSx";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="c1OUa3wm"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 1A15F336B8;
-	Mon,  8 Dec 2025 16:09:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1765210146; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=h9rWVrvCe0rra4LNjd3nAOXqprDOLFA8+LIc6jeeu10=;
-	b=s2+MNnSxwCZeQHoWJkDEtFCb69wom7+foAKB7JuKeWJvrv5omZsyJo6EDB9Kw0C/Q2mR9b
-	5BvTU7o4YT+w6t1l/7Vcmu57ddkf0d1mRQc3br9R/VJePX3s3qgRY+02oTx5fc5miF9+qM
-	QMNiNwSYABm248TOzFGknA6nhBlBFkg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1765210146;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=h9rWVrvCe0rra4LNjd3nAOXqprDOLFA8+LIc6jeeu10=;
-	b=c1OUa3wmHKBCoU4PXeApz9Z7hYRRkFjeQUvEHkCPpKG6S5QxtOhu+Ze3jvgGI4CRhlflHq
-	xDz+/SHlVquA8eCg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1765210146; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=h9rWVrvCe0rra4LNjd3nAOXqprDOLFA8+LIc6jeeu10=;
-	b=s2+MNnSxwCZeQHoWJkDEtFCb69wom7+foAKB7JuKeWJvrv5omZsyJo6EDB9Kw0C/Q2mR9b
-	5BvTU7o4YT+w6t1l/7Vcmu57ddkf0d1mRQc3br9R/VJePX3s3qgRY+02oTx5fc5miF9+qM
-	QMNiNwSYABm248TOzFGknA6nhBlBFkg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1765210146;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=h9rWVrvCe0rra4LNjd3nAOXqprDOLFA8+LIc6jeeu10=;
-	b=c1OUa3wmHKBCoU4PXeApz9Z7hYRRkFjeQUvEHkCPpKG6S5QxtOhu+Ze3jvgGI4CRhlflHq
-	xDz+/SHlVquA8eCg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 01C003EA63;
-	Mon,  8 Dec 2025 16:09:06 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id ZT8IACL4NmnvFQAAD6G6ig
-	(envelope-from <vbabka@suse.cz>); Mon, 08 Dec 2025 16:09:05 +0000
-Message-ID: <95d18dbe-9055-43b8-bb4b-da40da670c10@suse.cz>
-Date: Mon, 8 Dec 2025 17:09:05 +0100
+	dkim=pass (2048-bit key) header.d=fasheh.com header.i=@fasheh.com header.b="PVNEfjQz"
+Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-8b2a4b6876fso741469385a.3
+        for <mm-commits@vger.kernel.org>; Mon, 08 Dec 2025 11:08:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fasheh.com; s=google; t=1765220883; x=1765825683; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4yPID28DpX/lRAgXOsnJ1NIPQsZ48K9MGkXMnfljxvE=;
+        b=PVNEfjQzmbRuzlmplJ4m23rfRaisgIVcTPNDBqvUiwJBAEsJjuFwD6W4VfZ6hSq8qu
+         pzxwIu+RJPEv6MhxbSRDWnLMdKvCqOztrQC6Ut/7n1ao3pvsRlZ2eHdtdWhHsupmUS4o
+         wYVDPLSrXT25nLLye+M03lX5EE+NOAdUj984n/opl1R6TBtmR5V/q/vLjcJC0NaGZVUg
+         Q0OuVOCpDnFs/ANffcNZm8s/0gSP6gsiCo89TPOdL4jLFmOUi3NjoTNiGW6NHv1WKCjq
+         XJawF8y1u2NpmIew3k3a1VYIMpm/hKR98KNKYTegjEmQvHaF0vX1DqxeHJGtVMQEZS+D
+         ie4A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1765220883; x=1765825683;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=4yPID28DpX/lRAgXOsnJ1NIPQsZ48K9MGkXMnfljxvE=;
+        b=vb49NrirM1uX0QW9Y1aqIZp4pVfUuX/DabbuKmIjgITDmxUT1Y/IxgrxJYWnh6fLir
+         v1qeRl3/WH/xbbSXlW3sabfKrvUN60gqMXLtc9jffhG82JTkvmRUFxhg6spBIsqaDlah
+         lkmOHCcxNWeWjjLAwl7A+Wdf9rVdFFUbBlKV/20diM6Y9ScN654Ox17HBW8m9KVtoQGG
+         Be1HNMsyzlzOgwosmM+3kLfNdRKmPlvy7ILAjFm81RVDJJCrtf5jtWspzaKfTnwV773f
+         ReHajW10f5ay02ytfj2JQPZxljDS1WklHidvra2sF6mbyUpaIkeUMODUZFz6NTaMdvlf
+         fLzA==
+X-Forwarded-Encrypted: i=1; AJvYcCV4Yl56Bc6FYB7wYo0skg0s59BdWBs8YFItS4dYWzLiiu9e1BccR6/2QXgf2HFz0g4vNH7XiRV01gdN@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz8PO2vhMcKGzpaylJlJriXqiOlvKQVddw4RFYPZ/oSqL4VW4Zr
+	oZaiswFGx+2ra3YSrXzmcJRtwYA82igLpa5UrTKU5RtB4g6H6a3+SK8ZoAEGmD1AEguiV4vg0wI
+	7k7LGS5EY64Q8ZminO/kFHoBegyw3cwH6w8KGcmIOCA==
+X-Gm-Gg: ASbGnctHRJW2Uhhe8gT8jJ73HaOBVRytAu0bjAiCfGJmMGKAR8MrkVUxa5GjakE/Ymy
+	0lxyu7vhwYCjSeNS+LOjDx1YK3GlffCxqofr6PLzL4QOYzcKgngBlYeYtFM2PuLWwWI2GwmMHMM
+	+HqYq4NJQAV+Ttoo6fs+mMlh0R56d5Q2BWwo6P0SuWlzlJ/dQcX5UFiAeNS8ToPmv7b0yNBxYZ0
+	0dhPUecbEMxQEQCD335CEaaoW+c454tOUZoViY+qbYYF66ZqNaXFGG4BSqJ2fn6nO1kz5xljM9O
+	9Duilv+GA18ophMfJjsl4HNLkts=
+X-Google-Smtp-Source: AGHT+IF1FXVD37QbUsQ0Ik7oXHDWD0jOrlfrEIfFomFdjurHr8pgoEPacv+H7BJz2eBcQ5cFiqmqRanY3KfCqKHA/R8=
+X-Received: by 2002:a05:622a:4d91:b0:4ee:56c0:712f with SMTP id
+ d75a77b69052e-4f03ff60e91mr134665501cf.76.1765220882981; Mon, 08 Dec 2025
+ 11:08:02 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
- added to mm-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- surenb@google.com, rppt@kernel.org, oliver.sang@intel.com, mhocko@suse.com,
- liam.howlett@oracle.com, jhubbard@nvidia.com, david.laight.linux@gmail.com,
- lorenzo.stoakes@oracle.com
-References: <20251205201510.3D83EC4CEF1@smtp.kernel.org>
-Content-Language: en-US
-From: Vlastimil Babka <vbabka@suse.cz>
-Autocrypt: addr=vbabka@suse.cz; keydata=
- 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
- m6M14QORSWTLRg==
-In-Reply-To: <20251205201510.3D83EC4CEF1@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
-X-Spam-Level: 
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	RCPT_COUNT_SEVEN(0.00)[10];
-	FREEMAIL_TO(0.00)[linux-foundation.org,vger.kernel.org,google.com,kernel.org,intel.com,suse.com,oracle.com,nvidia.com,gmail.com];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TAGGED_RCPT(0.00)[];
-	ARC_NA(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	URIBL_BLOCKED(0.00)[suse.cz:email,suse.cz:mid,imap1.dmz-prg2.suse.org:helo,oracle.com:email,nvidia.com:email,intel.com:email,linux-foundation.org:email,suse.com:email];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	TO_DN_SOME(0.00)[]
+References: <20251206111533.f1b18ce84d0854b5f6d86a8f@linux-foundation.org>
+ <CAHk-=wgG3xqJn1=SVw-npsdwCRtyY=sYbLa7HFkmj_Q0U=vdHQ@mail.gmail.com>
+ <5e5e24eb-6af9-464c-ab1e-f9ee55a05a24@linux.alibaba.com> <CAHk-=wgvMBRrcR=DzsRKcLdZpmg-kJz49D1CzafjrWj+BzAGiQ@mail.gmail.com>
+ <f72b8316-ddae-466e-a72d-0df9960d6c82@linux.alibaba.com> <nrgonfemkkz2bnwfkpzycfbz3luspjm65dakyjt4e4nuawklbw@cw3jqnedbyjf>
+In-Reply-To: <nrgonfemkkz2bnwfkpzycfbz3luspjm65dakyjt4e4nuawklbw@cw3jqnedbyjf>
+From: Mark Fasheh <mark@fasheh.com>
+Date: Mon, 8 Dec 2025 11:07:52 -0800
+X-Gm-Features: AQt7F2q3dlmMzj7bH-szN3EmMIipF57sJYb2u4-9z5qtFRDR9mlHljT3ULZgYkg
+Message-ID: <CAGe7X7kDBqTn_G458pAvDMJPw6GUjrZAow1DEkzZJiry+kNH1A@mail.gmail.com>
+Subject: Re: [GIT PULL] non-MM updates for 6.19-rc1
+To: Heming Zhao <heming.zhao@suse.com>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>, 
+	Linus Torvalds <torvalds@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, 
+	Dmitry Antipov <dmantipov@yandex.ru>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
+	mm-commits@vger.kernel.org, Pasha Tatashin <pasha.tatashin@soleen.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 12/5/25 21:15, Andrew Morton wrote:
-> The patch titled
->      Subject: mm: avoid use of BIT() macro for initialising VMA flags
-> has been added to the -mm mm-unstable branch.  Its filename is
+On Sun, Dec 7, 2025 at 11:58=E2=80=AFPM Heming Zhao <heming.zhao@suse.com> =
+wrote:
+>
+> On Mon, Dec 08, 2025 at 12:01:09PM +0800, Joseph Qi wrote:
+> > It seems now new_xh->xh_count is 0. That's means, it is trying to add a
+> > new entry and here 'last' is pointing the next free entry.
+> > If so, the original code seems right.
+> >
+> > Heming, could you please verify this? I'm not familiar with this logic.=
+..
+> >
+> > Thanks,
+> > Joseph
 
-Can we move it to mm-hotfixes-unstable please, to have this resolved within
-6.19 itself.
+Thanks Joseph and Heming for looking into this.
 
->      mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
-> 
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-> Subject: mm: avoid use of BIT() macro for initialising VMA flags
-> Date: Fri, 5 Dec 2025 17:50:37 +0000
-> 
-> Commit 2b6a3f061f11 ("mm: declare VMA flags by bit") significantly changed
-> how VMA flags are declared, utilising an enum of VMA bit values and
-> ifdef-fery VM_xxx flag declarations via macro.
-> 
-> As part of this change, it uses INIT_VM_FLAG() to define VM_xxx flags from
-> the newly introduced VMA bit numbers.
-> 
-> However, use of this macro results in apparently unfortunate macro
-> expansion and resulted in a performance degradation.This appears to be due
-> to the (__force int), which is required for the sparse typechecking to
-> work.
-> 
-> Avoid macro expansion issues by simply using 1UL << bitnum.
-> 
-> Link: https://lkml.kernel.org/r/20251205175037.1287366-1-lorenzo.stoakes@oracle.com
-> Fixes: 2b6a3f061f11 ("mm: declare VMA flags by bit")
-> Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-> Reported-by: kernel test robot <oliver.sang@intel.com>
-> Closes: https://lore.kernel.org/oe-lkp/202512041634.150c7e4f-lkp@intel.com
-> Cc: Liam Howlett <liam.howlett@oracle.com>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Mike Rapoport <rppt@kernel.org>
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Cc: Vlastimil Babka <vbabka@suse.cz>
-> Cc: David Laight <david.laight.linux@gmail.com>
-> Cc: John Hubbard <jhubbard@nvidia.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  include/linux/mm.h |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> --- a/include/linux/mm.h~mm-avoid-use-of-bit-macro-for-initialising-vma-flags
-> +++ a/include/linux/mm.h
-> @@ -395,7 +395,8 @@ enum {
->  #undef DECLARE_VMA_BIT
->  #undef DECLARE_VMA_BIT_ALIAS
->  
-> -#define INIT_VM_FLAG(name) BIT((__force int) VMA_ ## name ## _BIT)
-> +#define INIT_VM_FLAG(name) (1UL << (__force int)(VMA_ ## name ## _BIT))
-> +
->  #define VM_READ		INIT_VM_FLAG(READ)
->  #define VM_WRITE	INIT_VM_FLAG(WRITE)
->  #define VM_EXEC		INIT_VM_FLAG(EXEC)
-> _
-> 
-> Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
-> 
-> mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
-> 
 
+> In ocfs2_reflink_xattrs(), when preserve_security is false, the function =
+sets
+> 'args.xattr_reflinked'. IMUC, it means that if users want to preserve sec=
+urity
+> xattr items, the args.xattr_reflinked is NULL, this then results in
+> ocfs2_reflink_xattr_header() not executing the cleanup jobs, (in the code=
+ area
+> defined by "if (args->xattr_reflinked && !args->xattr_reflinked(xe))").
+>
+> Regarding the clean jobs:
+> - by default, it only handles three types:
+>   OCFS2_XATTR_INDEX_[SECURITY|POSIX_ACL_ACCESS|POSIX_ACL_DEFAULT]
+> - it cleans the first item and shifts forward the remaining items.
+>
+> It seems Linus' patch does not handle all cases. If new_xh->xh_count is 1=
+,
+> le16_add_cpu(&new_xh->xh_count, -1) makes it to 0, and it will miss the c=
+leanup
+> job.
+
+It's been a while since I've look at Ocfs2 xattr so take what I say
+with a grain of salt :)
+
+That said, I agree that the cleanup code looks suspect. I think the
+answer is to always memset the entry that we just removed even when
+xh_count becomes zero.
+
+Thanks,
+  --Mark
