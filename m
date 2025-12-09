@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F4332D2391
-	for <mm-commits@vger.kernel.org>; Tue,  9 Dec 2025 19:33:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6CF627E076
+	for <mm-commits@vger.kernel.org>; Tue,  9 Dec 2025 19:33:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765308797; cv=none; b=bsAME1FBBJuMKqmtAUS9624P9isl4hrJQ/5fyPkAMWkWtctxtKk7KwKiBSmPRCkkniLkwx7WpA9CCXleoaCFBFgc7bsUXKGqyeMpTAJyFQ1OYRkDrDhXwiGZqV96sISpofof9vYcqI+/TxpFhzmIbQoFg4xLCt1WHpr1he7Vh1Y=
+	t=1765308798; cv=none; b=JdVIWdWFwiJ9f3qXZpWl/EilN/3P7Eoa4jFChEnzYYPK2OoESwiyi3uVPse7Saz+kfMed/89oVO6pipFNwAUh+Yf/5/aaelZxVFwb8QpcglzEtdMZ2DRYO4kwZ6qUntRyhwV6GJbiGQP1OECyAp1qWr8sHE+G7525Y6dQ3Eoypo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765308797; c=relaxed/simple;
-	bh=gR4SPOJZQkMThOCg9fsBG/WlTltQO1T7hcaB1F6BaEA=;
-	h=Date:To:From:Subject:Message-Id; b=A2bArnsF7ml8fHteFF3qi2JDA6g7XufbdoiKNdPk955P2F0X1vTE4RoJlxtySsKT5seDOXDrhyLgtoWZpz3LHUICK9TGzomxC3pKjP2ahLbIYtp8uPbzivnWO/AlLs8rXuBWBJsCABwIRzQp8zc/0bRZvzJ2KNv7GwZCNpKLtyk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=glXAro4S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765308798; c=relaxed/simple;
+	bh=PuCp9boD74c0PEJx+6b6usom3k1+UMo1/UkQBMXaUkw=;
+	h=Date:To:From:Subject:Message-Id; b=I1SIPyNU2hq1rWK/SpnGMuYpFG+CnF76odjR7rB2AuMITCbzP/q+sKCmqWoMcQrX+OhNYxo/vXOj0Dg7NCUMDBetHgndQjBKijc3y8n64+aV6RS+wYxjdfSC8XsQLYwqW0qE1ecmBB7T3DRvgCAb5sUuGmEjZoxYwcotsgOmyDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jdfZbZtL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="glXAro4S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED7D5C4CEF5;
-	Tue,  9 Dec 2025 19:33:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jdfZbZtL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3582DC4CEF5;
+	Tue,  9 Dec 2025 19:33:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765308797;
-	bh=gR4SPOJZQkMThOCg9fsBG/WlTltQO1T7hcaB1F6BaEA=;
+	s=korg; t=1765308798;
+	bh=PuCp9boD74c0PEJx+6b6usom3k1+UMo1/UkQBMXaUkw=;
 	h=Date:To:From:Subject:From;
-	b=glXAro4S4QqsENKVhS4uVougaDVy6OCGE9mIxozsboyiOEmdlKHhNug+3sC6fyTz2
-	 43K4jSDezvJVvhNIyV4/p1/OjKRjwR/s7/nZnNikJznvIrjValcd9ugdYHX8vmc/KH
-	 F0234ExbjiCFN+ZQpQyOpOTpAaaCCV7jQP2jxLxQ=
-Date: Tue, 09 Dec 2025 11:33:16 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,eadavis@qq.com,akpm@linux-foundation.org
+	b=jdfZbZtLvs8/Pc9x31uTHDtdg/ENl5p5Pzx61Q3tX0vmnLyS5lGphuYxFYp3cbN5F
+	 352fx98PsH2J8LZzOole7jtrtOocsPqdk0GMo+2OQytsxOOeIc4YQFXfyTVcAK+fqd
+	 7QBMr7qu+oRNSDbtBSHkuvq3VCShY2f4tds2sX9s=
+Date: Tue, 09 Dec 2025 11:33:17 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-check-tl_used-after-reading-it-from-trancate-log-inode.patch removed from -mm tree
-Message-Id: <20251209193316.ED7D5C4CEF5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-replace-deprecated-strcpy-with-strscpy.patch removed from -mm tree
+Message-Id: <20251209193318.3582DC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: check tl_used after reading it from trancate log inode
+     Subject: ocfs2: replace deprecated strcpy with strscpy
 has been removed from the -mm tree.  Its filename was
-     ocfs2-check-tl_used-after-reading-it-from-trancate-log-inode.patch
+     ocfs2-replace-deprecated-strcpy-with-strscpy.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Edward Adam Davis <eadavis@qq.com>
-Subject: ocfs2: check tl_used after reading it from trancate log inode
-Date: Thu, 27 Nov 2025 11:26:40 +0800
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: ocfs2: replace deprecated strcpy with strscpy
+Date: Wed, 26 Nov 2025 12:44:15 +0100
 
-The fuzz image has a truncate log inode whose tl_used is bigger than
-tl_count so it triggers the BUG in ocfs2_truncate_log_needs_flush() [1].
+strcpy() has been deprecated [1] because it performs no bounds checking on
+the destination buffer, which can lead to buffer overflows.  Replace it
+with the safer strscpy().  No functional changes.
 
-As what the check in ocfs2_truncate_log_needs_flush() does, just do same
-check into ocfs2_get_truncate_log_info() when truncate log inode is
-reading in so we can bail out earlier.
-
-[1]
-(syz.0.17,5491,0):ocfs2_truncate_log_needs_flush:5830 ERROR: bug expression: le16_to_cpu(tl->tl_used) > le16_to_cpu(tl->tl_count)
-kernel BUG at fs/ocfs2/alloc.c:5830!
-RIP: 0010:ocfs2_truncate_log_needs_flush fs/ocfs2/alloc.c:5827 [inline]
-Call Trace:
- ocfs2_commit_truncate+0xb64/0x21d0 fs/ocfs2/alloc.c:7372
- ocfs2_truncate_file+0xca2/0x1420 fs/ocfs2/file.c:509
- ocfs2_setattr+0x1520/0x1b40 fs/ocfs2/file.c:1212
- notify_change+0xc1a/0xf40 fs/attr.c:546
- do_truncate+0x1a4/0x220 fs/open.c:68
-
-Link: https://lkml.kernel.org/r/tencent_B24B1C1BE225DCBA44BB6933AB9E1B1B0708@qq.com
-Reported-by: syzbot+f82afc4d4e74d0ef7a89@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=f82afc4d4e74d0ef7a89
-Tested-by: syzbot+f82afc4d4e74d0ef7a89@syzkaller.appspotmail.com
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
+Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strcpy [1]
+Link: https://lkml.kernel.org/r/20251126114419.92539-1-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -79,34 +63,166 @@ Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ocfs2/alloc.c               |    5 +++--
+ fs/ocfs2/cluster/nodemanager.c |    3 ++-
+ fs/ocfs2/dir.c                 |   10 +++++-----
+ fs/ocfs2/namei.c               |    3 ++-
+ fs/ocfs2/stackglue.c           |    3 ++-
+ fs/ocfs2/suballoc.c            |    3 ++-
+ 6 files changed, 16 insertions(+), 11 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-check-tl_used-after-reading-it-from-trancate-log-inode
+--- a/fs/ocfs2/alloc.c~ocfs2-replace-deprecated-strcpy-with-strscpy
 +++ a/fs/ocfs2/alloc.c
-@@ -6164,7 +6164,7 @@ static int ocfs2_get_truncate_log_info(s
- 	struct buffer_head *bh = NULL;
- 	struct ocfs2_dinode *di;
- 	struct ocfs2_truncate_log *tl;
--	unsigned int tl_count;
-+	unsigned int tl_count, tl_used;
+@@ -10,6 +10,7 @@
+ #include <linux/fs.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/highmem.h>
+ #include <linux/swap.h>
+ #include <linux/quotaops.h>
+@@ -1037,7 +1038,7 @@ static int ocfs2_create_new_meta_bhs(han
+ 			memset(bhs[i]->b_data, 0, osb->sb->s_blocksize);
+ 			eb = (struct ocfs2_extent_block *) bhs[i]->b_data;
+ 			/* Ok, setup the minimal stuff here. */
+-			strcpy(eb->h_signature, OCFS2_EXTENT_BLOCK_SIGNATURE);
++			strscpy(eb->h_signature, OCFS2_EXTENT_BLOCK_SIGNATURE);
+ 			eb->h_blkno = cpu_to_le64(first_blkno);
+ 			eb->h_fs_generation = cpu_to_le32(osb->fs_generation);
+ 			eb->h_suballoc_slot =
+@@ -6746,7 +6747,7 @@ static int ocfs2_reuse_blk_from_dealloc(
+ 		/* We can't guarantee that buffer head is still cached, so
+ 		 * polutlate the extent block again.
+ 		 */
+-		strcpy(eb->h_signature, OCFS2_EXTENT_BLOCK_SIGNATURE);
++		strscpy(eb->h_signature, OCFS2_EXTENT_BLOCK_SIGNATURE);
+ 		eb->h_blkno = cpu_to_le64(bf->free_blk);
+ 		eb->h_fs_generation = cpu_to_le32(osb->fs_generation);
+ 		eb->h_suballoc_slot = cpu_to_le16(real_slot);
+--- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-replace-deprecated-strcpy-with-strscpy
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -4,6 +4,7 @@
+  */
  
- 	inode = ocfs2_get_system_file_inode(osb,
- 					   TRUNCATE_LOG_SYSTEM_INODE,
-@@ -6185,8 +6185,10 @@ static int ocfs2_get_truncate_log_info(s
- 	di = (struct ocfs2_dinode *)bh->b_data;
- 	tl = &di->id2.i_dealloc;
- 	tl_count = le16_to_cpu(tl->tl_count);
-+	tl_used = le16_to_cpu(tl->tl_used);
- 	if (unlikely(tl_count > ocfs2_truncate_recs_per_inode(osb->sb) ||
--		     tl_count == 0)) {
-+		     tl_count == 0 ||
-+		     tl_used > tl_count)) {
- 		status = -EFSCORRUPTED;
- 		iput(inode);
- 		brelse(bh);
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/configfs.h>
+@@ -590,7 +591,7 @@ static struct config_item *o2nm_node_gro
+ 	if (node == NULL)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	strcpy(node->nd_name, name); /* use item.ci_namebuf instead? */
++	strscpy(node->nd_name, name); /* use item.ci_namebuf instead? */
+ 	config_item_init_type_name(&node->nd_item, name, &o2nm_node_type);
+ 	spin_lock_init(&node->nd_lock);
+ 
+--- a/fs/ocfs2/dir.c~ocfs2-replace-deprecated-strcpy-with-strscpy
++++ a/fs/ocfs2/dir.c
+@@ -136,7 +136,7 @@ static void ocfs2_init_dir_trailer(struc
+ 	struct ocfs2_dir_block_trailer *trailer;
+ 
+ 	trailer = ocfs2_trailer_from_bh(bh, inode->i_sb);
+-	strcpy(trailer->db_signature, OCFS2_DIR_TRAILER_SIGNATURE);
++	strscpy(trailer->db_signature, OCFS2_DIR_TRAILER_SIGNATURE);
+ 	trailer->db_compat_rec_len =
+ 			cpu_to_le16(sizeof(struct ocfs2_dir_block_trailer));
+ 	trailer->db_parent_dinode = cpu_to_le64(OCFS2_I(inode)->ip_blkno);
+@@ -2213,14 +2213,14 @@ static struct ocfs2_dir_entry *ocfs2_fil
+ 	de->name_len = 1;
+ 	de->rec_len =
+ 		cpu_to_le16(OCFS2_DIR_REC_LEN(de->name_len));
+-	strcpy(de->name, ".");
++	strscpy(de->name, ".");
+ 	ocfs2_set_de_type(de, S_IFDIR);
+ 
+ 	de = (struct ocfs2_dir_entry *) ((char *)de + le16_to_cpu(de->rec_len));
+ 	de->inode = cpu_to_le64(OCFS2_I(parent)->ip_blkno);
+ 	de->rec_len = cpu_to_le16(size - OCFS2_DIR_REC_LEN(1));
+ 	de->name_len = 2;
+-	strcpy(de->name, "..");
++	strscpy(de->name, "..");
+ 	ocfs2_set_de_type(de, S_IFDIR);
+ 
+ 	return de;
+@@ -2378,7 +2378,7 @@ static int ocfs2_dx_dir_attach_index(str
+ 
+ 	dx_root = (struct ocfs2_dx_root_block *)dx_root_bh->b_data;
+ 	memset(dx_root, 0, osb->sb->s_blocksize);
+-	strcpy(dx_root->dr_signature, OCFS2_DX_ROOT_SIGNATURE);
++	strscpy(dx_root->dr_signature, OCFS2_DX_ROOT_SIGNATURE);
+ 	dx_root->dr_suballoc_slot = cpu_to_le16(meta_ac->ac_alloc_slot);
+ 	dx_root->dr_suballoc_loc = cpu_to_le64(suballoc_loc);
+ 	dx_root->dr_suballoc_bit = cpu_to_le16(dr_suballoc_bit);
+@@ -2454,7 +2454,7 @@ static int ocfs2_dx_dir_format_cluster(s
+ 		dx_leaf = (struct ocfs2_dx_leaf *) bh->b_data;
+ 
+ 		memset(dx_leaf, 0, osb->sb->s_blocksize);
+-		strcpy(dx_leaf->dl_signature, OCFS2_DX_LEAF_SIGNATURE);
++		strscpy(dx_leaf->dl_signature, OCFS2_DX_LEAF_SIGNATURE);
+ 		dx_leaf->dl_fs_generation = cpu_to_le32(osb->fs_generation);
+ 		dx_leaf->dl_blkno = cpu_to_le64(bh->b_blocknr);
+ 		dx_leaf->dl_list.de_count =
+--- a/fs/ocfs2/namei.c~ocfs2-replace-deprecated-strcpy-with-strscpy
++++ a/fs/ocfs2/namei.c
+@@ -23,6 +23,7 @@
+ #include <linux/fs.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/highmem.h>
+ #include <linux/quotaops.h>
+ #include <linux/iversion.h>
+@@ -568,7 +569,7 @@ static int __ocfs2_mknod_locked(struct i
+ 	ocfs2_set_links_count(fe, inode->i_nlink);
+ 
+ 	fe->i_last_eb_blk = 0;
+-	strcpy(fe->i_signature, OCFS2_INODE_SIGNATURE);
++	strscpy(fe->i_signature, OCFS2_INODE_SIGNATURE);
+ 	fe->i_flags |= cpu_to_le32(OCFS2_VALID_FL);
+ 	ktime_get_coarse_real_ts64(&ts);
+ 	fe->i_atime = fe->i_ctime = fe->i_mtime =
+--- a/fs/ocfs2/stackglue.c~ocfs2-replace-deprecated-strcpy-with-strscpy
++++ a/fs/ocfs2/stackglue.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
++#include <linux/string.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/kmod.h>
+@@ -670,7 +671,7 @@ static int __init ocfs2_stack_glue_init(
+ {
+ 	int ret;
+ 
+-	strcpy(cluster_stack_name, OCFS2_STACK_PLUGIN_O2CB);
++	strscpy(cluster_stack_name, OCFS2_STACK_PLUGIN_O2CB);
+ 
+ 	ocfs2_table_header = register_sysctl("fs/ocfs2/nm", ocfs2_nm_table);
+ 	if (!ocfs2_table_header) {
+--- a/fs/ocfs2/suballoc.c~ocfs2-replace-deprecated-strcpy-with-strscpy
++++ a/fs/ocfs2/suballoc.c
+@@ -11,6 +11,7 @@
+ #include <linux/fs.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
++#include <linux/string.h>
+ #include <linux/highmem.h>
+ 
+ #include <cluster/masklog.h>
+@@ -372,7 +373,7 @@ static int ocfs2_block_group_fill(handle
+ 	}
+ 
+ 	memset(bg, 0, sb->s_blocksize);
+-	strcpy(bg->bg_signature, OCFS2_GROUP_DESC_SIGNATURE);
++	strscpy(bg->bg_signature, OCFS2_GROUP_DESC_SIGNATURE);
+ 	bg->bg_generation = cpu_to_le32(osb->fs_generation);
+ 	bg->bg_size = cpu_to_le16(ocfs2_group_bitmap_size(sb, 1,
+ 						osb->s_feature_incompat));
 _
 
-Patches currently in -mm which might be from eadavis@qq.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
 
