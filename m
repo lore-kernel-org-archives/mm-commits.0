@@ -1,68 +1,84 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1591E16CD33
-	for <mm-commits@vger.kernel.org>; Wed, 10 Dec 2025 17:46:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 044DB25524C
+	for <mm-commits@vger.kernel.org>; Wed, 10 Dec 2025 23:09:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765388804; cv=none; b=fUhyWBBEPBvuLkpZ0cNAguuwWLN8jYwDen8nUgkUypOgLAXI8A/rXB3n/qNNo0DP1eIZ+1rkm/rEd1gAq9hC2pv3sQSmCrv6XEjmwJy5Id5DO//2KNwHT0bWIBuVN+FaOxjBnm0A2jECKA8h3Py3QPYYawAmxivnqaaBNVGAgEQ=
+	t=1765408149; cv=none; b=bVUwm4M85fDAecDxbd4ir5m+n+8JGE4OvAheOfZ6lshk0mlQMWPkKt2/K2Mw6RUpMuYhx8dxbeKtStusJRU0nvw1e8/I+rH4sugOhB5IRosG0WlxNGFeM8AHNiOe+DIlKs0WDvrGtYsuxVtPW396v8F1BhUPZ2JFWOa81By52V8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765388804; c=relaxed/simple;
-	bh=azDKAvO99X/fdVNEbI9QIQzaClWjZn1FlwFCH2wv7JE=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=pjqi/FPsfYuXUYlnUETT9BtFVV3/FIxJZINkdqfuRwb1aem8qJYgPeisjN3d09whGvYOHQ04i/Jg5iD83PhjSJpxe2OLgp1TWZjrzltIHulvDEm6f36IoK3oj2beMpvKKoHLA2l5VPwjaA4bZPl1p1cZddxgawWeC5t9tOIyw/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i24nFR2d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765408149; c=relaxed/simple;
+	bh=FP0QBcKZLXjVyr3oYiAZ6989QR1zqMbIdvUZ7ikl6eo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=sieumm5gWuHPoIrAI87doPhwp3cuIEmua70qg9CnUHBYr8Cs0PoKBuvj1lv1YObOJ0CufYfPc32nyzBO5/9V5igZFwMruil8Wq/8i8Vainc7PYWJlsVqjn8biT+v/4QXk7crPwC/Way4VJ2DkaPHX7JC/zdCMWdr/pYgMrnTEJ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mWKuOwvd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i24nFR2d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2705AC4CEF1;
-	Wed, 10 Dec 2025 17:46:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765388803;
-	bh=azDKAvO99X/fdVNEbI9QIQzaClWjZn1FlwFCH2wv7JE=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=i24nFR2dLQzhZZlFKnVloQv8WohsK1+e+iWBwXbgJL6qRrhoR+ahFhZUwOZSrA3ak
-	 Hhf4sxEgAD+fKsSy36hJqYwuVXtawFsyRf0LG6/gxjFnCJYEorg4w4Ke+gm0kD9as9
-	 6hdUhaGhe784ZTfRTAy7wJ10SBYQtcGSJeIRy2do=
-Date: Wed, 10 Dec 2025 09:46:42 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>, mm-commits@vger.kernel.org,
- surenb@google.com, rppt@kernel.org, oliver.sang@intel.com, mhocko@suse.com,
- liam.howlett@oracle.com, jhubbard@nvidia.com, david.laight.linux@gmail.com,
- Mateusz Guzik <mjguzik@gmail.com>
-Subject: Re: + mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
- added to mm-unstable branch
-Message-Id: <20251210094642.113c6cc9006ffe4da771f6b0@linux-foundation.org>
-In-Reply-To: <5a479ed5-3cce-42fc-a572-771244108dee@lucifer.local>
-References: <20251205201510.3D83EC4CEF1@smtp.kernel.org>
-	<95d18dbe-9055-43b8-bb4b-da40da670c10@suse.cz>
-	<20251208174009.f982210c3a12ecd2459f59ce@linux-foundation.org>
-	<20251209112943.6f5e405590671076f55bf4a3@linux-foundation.org>
-	<5a479ed5-3cce-42fc-a572-771244108dee@lucifer.local>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mWKuOwvd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 222FAC4CEF1;
+	Wed, 10 Dec 2025 23:09:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1765408148;
+	bh=FP0QBcKZLXjVyr3oYiAZ6989QR1zqMbIdvUZ7ikl6eo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=mWKuOwvdSD6LARD0vXgyxrf8gWM9NGZaL+17EaEuc7JjNCRY5kWMU/8k2juC+8mHw
+	 Pt7vQZtusGbVyvfEDGysbht8Uhe76OfeqoxXJhBJVFaQkc8TfNohm1QgI+rAR5cfV0
+	 pCnsNGVFONQC1BJdRwUGRGMKtaXneSJpqJ9dTEoP8v5Jcs6dKTXJK3+LojhsZpY+Ev
+	 bRLAODYnx1lhMs5cAz8fFkYVYOqxZDhzMk0KxKyUXknjmxqZCI7FjZrVmrT7Y4QpcF
+	 nvpUS2zrXlJZTJk3jw+GGlhB6hLfkm0sy0awTJlfC6Ha8CgbkRmIKNCQ5ceoiH32LX
+	 SC7Q4GCSk4EVA==
+Date: Thu, 11 Dec 2025 08:09:03 +0900
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, skhawaja@google.com, rientjes@google.com,
+	pratyush@kernel.org, pmladek@suse.com, kees@kernel.org,
+	dmatlack@google.com, davidgow@google.com, corbet@lwn.net,
+	pasha.tatashin@soleen.com
+Subject: Re: [merged mm-nonmm-stable]
+ liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch removed
+ from -mm tree
+Message-ID: <aTn9jyHeIR_AidS-@kernel.org>
+References: <20251209193312.7CF12C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251209193312.7CF12C4CEF5@smtp.kernel.org>
 
-On Wed, 10 Dec 2025 09:36:19 +0000 Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
+Hi Andrew,
 
-> >
-> > So I'm holding it in want-and-see mode - we can add it later as a
-> > hotfix.
+On Tue, Dec 09, 2025 at 11:33:11AM -0800, Andrew Morton wrote:
 > 
-> I mean not sure it's really worth holding back given this is:
+> The quilt patch titled
+>      Subject: liveupdate: luo_flb: introduce File-Lifecycle-Bound global state
+> has been removed from the -mm tree.  Its filename was
+>      liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
 > 
-> BIT(...) vs.
-> 
-> (1UL << ...)
-> 
-> Hardly something that is hugely harmful no?
+> This patch was dropped because it was merged into the mm-nonmm-stable branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Nope.  I'm just giving it some settling time.  Doing it as a hotfix in
-a week or so is fine.
+Didn't we agree to keep this in mm-nonmm-unstable until either LUO support
+for VFIO or hugetlb are ready to merge?
 
+I didn't have time to properly review it yet and I didn't see Pratyush's
+comments on this either.
+ 
+> ------------------------------------------------------
+> From: Pasha Tatashin <pasha.tatashin@soleen.com>
+> Subject: liveupdate: luo_flb: introduce File-Lifecycle-Bound global state
+> Date: Tue, 25 Nov 2025 17:50:05 -0500
+> 
+> Patch series "Live Update: File-Lifecycle-Bound (FLB) State", v8.
+> 
+> This series adds support for FLB state to the Live Update Orchestrator.
+> 
+> This functionality was originally part of the main LUO series [1] but has
+> been split out to serve as a stable dependency for upcoming device
+> preservation series.
+ 
+-- 
+Sincerely yours,
+Mike.
