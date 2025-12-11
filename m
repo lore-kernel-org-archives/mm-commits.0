@@ -1,34 +1,34 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B90670808;
-	Thu, 11 Dec 2025 21:11:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91BD970808;
+	Thu, 11 Dec 2025 21:11:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765487488; cv=none; b=EnsaCgh9LI2rCsrHcjGGFZVNNRosyLlglq69j4v9d8Wefv7KCXfRbiOC+fngkdukTZWwycn8Nl+epLpFvnqwjBRddSyUQjsnwNkbF12IPF0tYeKwMPggmIeGALbkHBLSh+HD6wxGwJaFsCRfoSA19Kq9l4CPzFO9hJYwrsmcGS0=
+	t=1765487506; cv=none; b=f018v5fYaI6YEWK/uL2uJJbNrCyADTN1REKawl6S4NvU5k/lAuTbqDImng4uul1QFe4+mCq653HNmduJemPOt79d54H9Ztcdh7f6NNHeqBj0GgSp67Zh9x6bNbMkCrq5b/zAc1rC+rWIJsfjmdRQrP1IikND4SgwghSGWlY4dlM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765487488; c=relaxed/simple;
-	bh=dKA7DY+h/BTnP4TtIZ2JRJA+YNGIcriYupklfmwGn10=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=mla0JZD2ilrN2nQu4O5EAfIBV9NOIzsanU7egZFcAmH+ymhNj+NEgj1p2F5LzhemsH8vq00HShuiMDs3A85vC1OJ6TEZTD3ZiC2uKdCOYRHI1MDqk+l0U4jpS2XDc05vweXG30KDr95M9WHFHoT1P0UrXXScdUDvtKdp/QiFhUc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WvV9J8K7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765487506; c=relaxed/simple;
+	bh=XfWChLIq0U5zTAEZDWkGgBN6OS3uU0puWnQSlLEXHEU=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=o28DH2W6kaVQKsrsGqEqsDT7Pj2nlYn5X/U1P0pPLLJH8y/CXtN05/asMMVDJ2V6G2r68i/NClBuEZPCsTjSWJzDiudmDJz/qJbSMS0auPAwS+ndMRtnEYzp4E5+XSpu6NSf5ttzQwY039C8zxW4Vrdk+qFM/Tokn+0KOqIQSx8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A7npviBy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WvV9J8K7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0304CC4CEF7;
-	Thu, 11 Dec 2025 21:11:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A7npviBy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1076CC4CEF7;
+	Thu, 11 Dec 2025 21:11:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765487488;
-	bh=dKA7DY+h/BTnP4TtIZ2JRJA+YNGIcriYupklfmwGn10=;
+	s=korg; t=1765487506;
+	bh=XfWChLIq0U5zTAEZDWkGgBN6OS3uU0puWnQSlLEXHEU=;
 	h=Date:From:To:Cc:Subject:From;
-	b=WvV9J8K7ngLHz/soT1XhSqGFbutC+LYJYIlV2Tdi0h/hoNT2XajYOmkhsDf1xxwnb
-	 vBIs2unjQJ2WxWGtx9X8ZMAAX1IPTzl9QQZ53/c5WEjwm6pSG2PCI/C/pc2WU1dDJT
-	 PftPFbwhHMBj1kGHAdzAMikU3avcxxvB/7Eb+kD0=
-Date: Thu, 11 Dec 2025 13:11:27 -0800
+	b=A7npviByx79r+2lwvsaoRYS71wzj04sSvrud/blEramhGNT1WNyNYqfiXjh3Vbae7
+	 kwBLBrsz+1LqJMutFapSLzWLraGQSJjwTlUBrR0QNzLsXcB5upoX2RzBkjvEer/3WW
+	 BsKcwyAfaNgZjlCLItXvzcoWzWnaEXUSeC5sMHN4=
+Date: Thu, 11 Dec 2025 13:11:45 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, linux-mm@kvack.org,
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Subject: [GIT PULL] additional MM updates for 6.19-rc1
-Message-Id: <20251211131127.defed99e5b82e49af605108a@linux-foundation.org>
+Subject: [GIT PULL] additional non-MM updates for 6.19-rc1
+Message-Id: <20251211131145.512b1694cf5f46d959cfef76@linux-foundation.org>
 X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
@@ -40,69 +40,95 @@ Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this small batch of followup patches for this -rc
-cycle, thanks.
+Linus, please merge this small batch of followup non-MM patches for the
+upcoming -rc cycle,
 
-My test merge found no conflicts.
+No conflicts were seen in a test merge.
+
+Thanks.
 
 
+The following changes since commit aa514a297a0c175239f24a2e582ebd37f0727494:
 
-The following changes since commit faf3c923523e5c8fc3baaa413d62e913774ae52f:
-
-  mm: fix vma_start_write_killable() signal handling (2025-11-29 10:41:11 -0800)
+  calibrate: update header inclusion (2025-11-27 14:24:45 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2025-12-11-11-39
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2025-12-11-11-47
 
-for you to fetch changes up to dafdba0964bd10913fbaa5537201cbbe05df5b9c:
+for you to fetch changes up to 601cc399a01049efa76be8f496541315dc9cf914:
 
-  mm/damon/tests/core-kunit: avoid damos_test_commit stack warning (2025-12-09 11:25:34 -0800)
-
-----------------------------------------------------------------
-Patch series in this pull request:
-
-- The 2 patch series "powerpc/pseries/cmm: two smaller fixes" from David
-  Hildenbrand fixes a couple of minor things in ppc land.
-
-- The 4 patch series "Improve folio split related functions" from Zi Yan
-  provides some cleanups and minorish fixes in the folio splitting code.
+  mm: memfd_luo: add CONFIG_SHMEM dependency (2025-12-10 16:07:44 -0800)
 
 ----------------------------------------------------------------
-Arnd Bergmann (1):
-      mm/damon/tests/core-kunit: avoid damos_test_commit stack warning
+There are no significant series in this small merge.  Please see the
+individual changelogs for details.
 
-Chen Ridong (1):
-      mm: vmscan: correct nr_requested tracing in scan_folios
+----------------------------------------------------------------
+Ahmet Eray Karadag (3):
+      ocfs2: add ocfs2_emergency_state helper and apply to setattr
+      ocfs2: convert remaining read-only checks to ocfs2_emergency_state
+      ocfs2: invalidate inode if i_mode is zero after block read
 
-David Hildenbrand (2):
-      powerpc/pseries/cmm: call balloon_devinfo_init() also without CONFIG_BALLOON_COMPACTION
-      powerpc/pseries/cmm: adjust BALLOON_MIGRATE when migrating pages
+Ally Heev (1):
+      checkpatch: add uninitialized pointer with __free attribute check
 
-Jinhui Guo (1):
-      mm/sparse: fix sparse_vmemmap_init_nid_early definition without CONFIG_SPARSEMEM
+Andy Shevchenko (1):
+      args: fix documentation to reflect the correct numbers
 
-Lukas Bulwahn (2):
-      mm: fix CONFIG_STACK_GROWSUP typo in mm.h
-      MAINTAINERS: add idr core-api doc file to XARRAY
+Arnd Bergmann (2):
+      mm: shmem: avoid build warning for CONFIG_SHMEM=n
+      mm: memfd_luo: add CONFIG_SHMEM dependency
 
-Shameer Kolothum (1):
-      mm/hugetlb: fix incorrect error return from hugetlb_reserve_pages()
+Dan Carpenter (1):
+      liveupdate: luo_file: don't use invalid list iterator
 
-Zi Yan (4):
-      mm/huge_memory: change folio_split_supported() to folio_check_splittable()
-      mm/huge_memory: replace can_split_folio() with direct refcount calculation
-      mm/huge_memory: make min_order_for_split() always return an order
-      mm/huge_memory: fix folio split stats counting
+Deepanshu Kartikey (1):
+      ocfs2: validate inline xattr size and entry count in ocfs2_xattr_ibody_list
 
- MAINTAINERS                          |   1 +
- arch/powerpc/platforms/pseries/cmm.c |   3 +-
- include/linux/huge_mm.h              |  13 ++-
- include/linux/mm.h                   |   2 +-
- include/linux/mmzone.h               |   2 +-
- mm/damon/tests/core-kunit.h          |   9 +-
- mm/huge_memory.c                     | 165 +++++++++++++++++++----------------
- mm/hugetlb.c                         |  25 ++++--
- mm/vmscan.c                          |   8 +-
- 9 files changed, 131 insertions(+), 97 deletions(-)
+Dmitry Antipov (1):
+      ocfs2: fix memory leak in ocfs2_merge_rec_left()
+
+Edward Adam Davis (1):
+      ocfs2: check tl_used after reading it from trancate log inode
+
+Gustavo A. R. Silva (1):
+      ocfs2: avoid -Wflex-array-member-not-at-end warning
+
+Lalit Shankar Chowdhury (1):
+      fs/fat: remove unnecessary wrapper fat_max_cache()
+
+Pasha Tatashin (1):
+      liveupdate: luo_core: fix redundant bound check in luo_ioctl()
+
+Prithvi Tambewagh (1):
+      ocfs2: fix kernel BUG in ocfs2_find_victim_chain
+
+Thorsten Blum (1):
+      ocfs2: replace deprecated strcpy with strscpy
+
+ Documentation/dev-tools/checkpatch.rst | 23 ++++++++++++++++++++
+ fs/fat/cache.c                         |  7 +------
+ fs/ocfs2/alloc.c                       | 12 ++++++-----
+ fs/ocfs2/buffer_head_io.c              |  2 +-
+ fs/ocfs2/cluster/nodemanager.c         |  3 ++-
+ fs/ocfs2/dir.c                         | 10 ++++-----
+ fs/ocfs2/file.c                        | 14 +++++++++----
+ fs/ocfs2/inode.c                       | 11 ++++++++--
+ fs/ocfs2/move_extents.c                |  2 +-
+ fs/ocfs2/namei.c                       |  3 ++-
+ fs/ocfs2/ocfs2.h                       | 18 ++++++++++++++++
+ fs/ocfs2/resize.c                      |  4 ++--
+ fs/ocfs2/stackglue.c                   |  3 ++-
+ fs/ocfs2/suballoc.c                    | 13 +++++++++++-
+ fs/ocfs2/super.c                       |  2 +-
+ fs/ocfs2/xattr.c                       | 38 ++++++++++++++++++++++++++++++----
+ include/linux/args.h                   |  4 ++--
+ kernel/liveupdate/Kconfig              |  1 +
+ kernel/liveupdate/luo_core.c           |  4 +---
+ kernel/liveupdate/luo_file.c           |  7 +++++--
+ mm/shmem.c                             | 11 ++++++++--
+ scripts/checkpatch.pl                  |  6 ++++++
+ 22 files changed, 154 insertions(+), 44 deletions(-)
+
 
