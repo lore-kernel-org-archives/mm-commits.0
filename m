@@ -1,98 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0E6A301498
-	for <mm-commits@vger.kernel.org>; Fri, 12 Dec 2025 18:21:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 219A2279DC3;
+	Sat, 13 Dec 2025 09:11:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765563675; cv=none; b=oXKTuFfm0pwNpkYhQpZT31JJoCCW+o4R8wV8zVjoGOs8ejYzv67U7FSelWgXWW3QkY5f9DSVsV0KGS3roPyyZoDB7GpsaIDfqJaiD2Ps0p399IO41A0X3OBCG3/2l21IdjOfZI0vp4knGFlwctkMUPADaKGZQqmM3wYGE18BXYU=
+	t=1765617071; cv=none; b=Vvqd5S5+9sxxD5WhI1t2xJQBH36/sMr44n+m0mtUDQcPRRIXrqhlDbUlJXThv4GP42RfQPGbQkUi2AuGG0CQW3xpj677j1drtKTLu7MyMD/uzPNlknyd6pURnIkyRk/vn4Tdz0mRbhHAKGo7qyNuj0929E7C1caJvqoWiMFR8d4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765563675; c=relaxed/simple;
-	bh=ql5XOaXZ5hRzJ3wRL1caSaIphaoyoPbQZSAJH5/XVdM=;
-	h=Date:To:From:Subject:Message-Id; b=Q/IQh250KC1Gxg0Aynm7FM02JFwcrqEVK23TJJmTWkWCat6XcXLPNjMIC04uM/iIxCcwLL8krF8HAW2vQf2flFjaasC2MzxSF+bfgRlcgk7bkcwqO6zAZGMirpMgUnXpkzUYmKotUu70SK0EyZLoFDIrkME/o7xShqQIebQw5ZM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VZdede1y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765617071; c=relaxed/simple;
+	bh=8kaMKdggW6PmADocHhcaePSRDkforroNc8Y7TLMr7NA=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=g8AAw4kHPR9FmU8fQ7gQJlhOQrOUO/Tl8M0WnQtKG0Xmx/6wz4ZWnHyacdRt6shzcPQik2q1xxB4WuYCfCzZQVWcie7HMWm7zQnPqIqkP2acJoFPLLWYdm3wvv0Ys0GCwn48HO8QYX58hQxJ4roJT0jFNAYtHnQNNlGVXruRU9w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KaJ7NElI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VZdede1y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B87C4CEF1;
-	Fri, 12 Dec 2025 18:21:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765563674;
-	bh=ql5XOaXZ5hRzJ3wRL1caSaIphaoyoPbQZSAJH5/XVdM=;
-	h=Date:To:From:Subject:From;
-	b=VZdede1y8Ntt1O630zAZH/+3J+sBjFHtTG2M3zRwO+pGGhyrLDSx2YsLhsyUZCUMQ
-	 xll/96vWw8O+5L79uFyajG+r+XrSgk9jIiWevbc/B38j4pwhkxKgdXn1GJP0+b5gqo
-	 9Em5i4ynx5Vi/Nwy88mTGboQAew2k0kYAQpbFV4I=
-Date: Fri, 12 Dec 2025 10:21:13 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,oliver.sang@intel.com,mjguzik@gmail.com,mhocko@suse.com,liam.howlett@oracle.com,jhubbard@nvidia.com,david.laight.linux@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch removed from -mm tree
-Message-Id: <20251212182114.33B87C4CEF1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KaJ7NElI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F54C4CEF7;
+	Sat, 13 Dec 2025 09:11:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1765617071;
+	bh=8kaMKdggW6PmADocHhcaePSRDkforroNc8Y7TLMr7NA=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=KaJ7NElIEjU9e14jICHyEsZK/BjSEGR+RMwpjFBagEH9ExqCYVKckcu7WkETVi++a
+	 7JHE3uok5iIrFahxgD0QEn9He95KpT5YC6xPbADgTP7+qasIYbcyh5vcBqfxtMKO4d
+	 avObKF3d2oWLKu+ZTa8sZXKciImOUrwGE7+FuFvgkusZFGBJ0ec7ImLW0m6ITlGU6Q
+	 IgYLNCmQjqMujQOYeMqljM6DDzkVDyRSUT5bp3mnvj+s+EWULXqu+/T9qm1ZoScpAi
+	 dpnoux4uPuR/sTxX7rpvPdW0aFMMbt1KNBHbQ46lsPrtsQt+OOLAseETxjJ9b2zmqD
+	 V3mrI82cL36Bw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id F2A25380A956;
+	Sat, 13 Dec 2025 09:08:04 +0000 (UTC)
+Subject: Re: [GIT PULL] additional MM updates for 6.19-rc1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20251211131127.defed99e5b82e49af605108a@linux-foundation.org>
+References: <20251211131127.defed99e5b82e49af605108a@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20251211131127.defed99e5b82e49af605108a@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2025-12-11-11-39
+X-PR-Tracked-Commit-Id: dafdba0964bd10913fbaa5537201cbbe05df5b9c
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 2516a87153183e1797021879121ca25c95f1ea3a
+Message-Id: <176561688356.2460530.11124774899123193311.pr-tracker-bot@kernel.org>
+Date: Sat, 13 Dec 2025 09:08:03 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, mm-commits@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Thu, 11 Dec 2025 13:11:27 -0800:
 
-The quilt patch titled
-     Subject: mm: avoid use of BIT() macro for initialising VMA flags
-has been removed from the -mm tree.  Its filename was
-     mm-avoid-use-of-bit-macro-for-initialising-vma-flags.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2025-12-11-11-39
 
-This patch was dropped because it was withdrawn
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/2516a87153183e1797021879121ca25c95f1ea3a
 
-------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: avoid use of BIT() macro for initialising VMA flags
-Date: Fri, 5 Dec 2025 17:50:37 +0000
+Thank you!
 
-Commit 2b6a3f061f11 ("mm: declare VMA flags by bit") significantly changed
-how VMA flags are declared, utilising an enum of VMA bit values and
-ifdef-fery VM_xxx flag declarations via macro.
-
-As part of this change, it uses INIT_VM_FLAG() to define VM_xxx flags from
-the newly introduced VMA bit numbers.
-
-However, use of this macro results in apparently unfortunate macro
-expansion and resulted in a performance degradation.This appears to be due
-to the (__force int), which is required for the sparse typechecking to
-work.
-
-Avoid macro expansion issues by simply using 1UL << bitnum.
-
-Link: https://lkml.kernel.org/r/20251205175037.1287366-1-lorenzo.stoakes@oracle.com
-Fixes: 2b6a3f061f11 ("mm: declare VMA flags by bit")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202512041634.150c7e4f-lkp@intel.com
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mm.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/include/linux/mm.h~mm-avoid-use-of-bit-macro-for-initialising-vma-flags
-+++ a/include/linux/mm.h
-@@ -395,7 +395,8 @@ enum {
- #undef DECLARE_VMA_BIT
- #undef DECLARE_VMA_BIT_ALIAS
- 
--#define INIT_VM_FLAG(name) BIT((__force int) VMA_ ## name ## _BIT)
-+#define INIT_VM_FLAG(name) (1UL << (__force int)(VMA_ ## name ## _BIT))
-+
- #define VM_READ		INIT_VM_FLAG(READ)
- #define VM_WRITE	INIT_VM_FLAG(WRITE)
- #define VM_EXEC		INIT_VM_FLAG(EXEC)
-_
-
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
-
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
