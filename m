@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1A1F23F27B
-	for <mm-commits@vger.kernel.org>; Sun, 14 Dec 2025 23:26:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C0D92BDC3F
+	for <mm-commits@vger.kernel.org>; Sun, 14 Dec 2025 23:27:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765754763; cv=none; b=AiWDZjCJ/dey/VRgG+Pe1veZBc902kMU00ktjLzsIT1IPL/2Ds9l3IamLAPSwpUYL+bCTukOKEWFysfDJFKWzuy4n91Ei3MtTRcUyxI4rCRa1ZTO8FyUr+bsKCfd3T13JTNNWesBZsMU2D/AD8y6kYPrGnRy8Oo9VtjPrVq6mgU=
+	t=1765754822; cv=none; b=HVjhIu/9+2YbFfDa6uYi/y1ip4moKMLzc4cPmiifizeChhRv7972XpOfsiTfpp2HiaaFa+dsHkiDHwOZ9cGK1SAERgtEM5usm0zZKM5JSZjPadgKKKqr5SUEy0LqdRmqqUiYg6BN5cNvpbOus54FE9VMIl87ShpsZTlRRd847Iw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765754763; c=relaxed/simple;
-	bh=ytIvRCGVAErhhGZTkK0F22cG14yoSDn0gygX7FDAHWQ=;
-	h=Date:To:From:Subject:Message-Id; b=W5Dn3ZBwwxzkH+Ub3QPlx8kVvwKi9SVJ02xtHys1lQb0pwed07DVqLplsmOxXgVy5f2TjHInJE1jM+3F8lNkxEpjKY6r9cOXu43AAu2/5wJ2+K4bY4hb3QVe6ROnduL/h545itR4P4Ic98PANDzZt4RNXbnTTQGoY4fERRvT1kg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=on3WkIcc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765754822; c=relaxed/simple;
+	bh=pUdLeT93wwfTE1MfIASbBhCtqplakFGb1FXTOkOv1ac=;
+	h=Date:To:From:Subject:Message-Id; b=kSn3ag+uCQSYTq8jpsilpDIJzX7oknoNgeS2i4QKjomu4BNDvpvrcgN3+/uBKyTOAzFaZNRNqTa6A5BNQnJCuFMj4usvzuNbdtY4jE132dDzm+ceVaFJGmwj/lLv7+rXfnsPWFwUkMQIsNLxrYeTXaVoGXvMXnYj5qtSZGmKGy8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KQ2pA6Hc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="on3WkIcc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D4A3C4CEF1;
-	Sun, 14 Dec 2025 23:26:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KQ2pA6Hc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D69CBC4CEF1;
+	Sun, 14 Dec 2025 23:27:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765754762;
-	bh=ytIvRCGVAErhhGZTkK0F22cG14yoSDn0gygX7FDAHWQ=;
+	s=korg; t=1765754820;
+	bh=pUdLeT93wwfTE1MfIASbBhCtqplakFGb1FXTOkOv1ac=;
 	h=Date:To:From:Subject:From;
-	b=on3WkIccy5SamSDM6d0EdZmJbiCRVMuzrlwSTMhlInuKkrdy66GSUnAQ8NvttdeJr
-	 KC3n6eQSghwW4qM68rjMcbAnH9dbhlKHF2l9erLv22Hj9P2AdfGDYFEcCoPvUB+PJ2
-	 pNsNKLj9DUCmeEEivI9rICDCD7g+cq7fUC4xjZYE=
-Date: Sun, 14 Dec 2025 15:26:01 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=KQ2pA6HcN7YrYeUoRqx24blDAmNzBbLkNjUYmLvH/sVz3/S2GxfriNLI9vZCCpqFC
+	 k2xV3L5y6Sfz4CN+HxLIi1jZOSJEeO1yVo6s+NmxMsHljvLYxXEpmeDEp+fxav02gK
+	 iPd7MG/X+FOPqPFfbFfDsa5VfiBxQQKdNVQVz2Dg=
+Date: Sun, 14 Dec 2025 15:27:00 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-leafopsh-correct-kernel-doc-function-param-names.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251214232602.8D4A3C4CEF1@smtp.kernel.org>
+Subject: + crash_dump-constify-struct-configfs_item_operations-and-configfs_group_operations.patch added to mm-nonmm-unstable branch
+Message-Id: <20251214232700.D69CBC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: leafops.h: correct kernel-doc function param. names
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-leafopsh-correct-kernel-doc-function-param-names.patch
+     Subject: crash_dump: constify struct configfs_item_operations and configfs_group_operations
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash_dump-constify-struct-configfs_item_operations-and-configfs_group_operations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-leafopsh-correct-kernel-doc-function-param-names.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_dump-constify-struct-configfs_item_operations-and-configfs_group_operations.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,55 +58,62 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: leafops.h: correct kernel-doc function param. names
-Date: Sun, 14 Dec 2025 12:15:17 -0800
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: crash_dump: constify struct configfs_item_operations and configfs_group_operations
+Date: Sun, 14 Dec 2025 18:57:30 +0100
 
-Modify the kernel-doc function parameter names to prevent kernel-doc
-warnings:
+'struct configfs_item_operations' and 'configfs_group_operations' are not
+modified in this driver.
 
-Warning: include/linux/leafops.h:135 function parameter 'entry' not
- described in 'leafent_type'
-Warning: include/linux/leafops.h:540 function parameter 'pte' not
- described in 'pte_is_uffd_marker'
+Constifying these structures moves some data to a read-only section, so
+increases overall security, especially when the structure holds some
+function pointers.
 
-Link: https://lkml.kernel.org/r/20251214201517.2187051-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+On a x86_64, with allmodconfig, as an example:
+Before:
+======
+   text	   data	    bss	    dec	    hex	filename
+  16339	  11001	    384	  27724	   6c4c	kernel/crash_dump_dm_crypt.o
+
+After:
+=====
+   text	   data	    bss	    dec	    hex	filename
+  16499	  10841	    384	  27724	   6c4c	kernel/crash_dump_dm_crypt.o
+
+Link: https://lkml.kernel.org/r/d046ee5666d2f6b1a48ca1a222dfbd2f7c44462f.1765735035.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/leafops.h |    4 ++--
+ kernel/crash_dump_dm_crypt.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/leafops.h~mm-leafopsh-correct-kernel-doc-function-param-names
-+++ a/include/linux/leafops.h
-@@ -133,7 +133,7 @@ static inline bool softleaf_is_none(soft
+--- a/kernel/crash_dump_dm_crypt.c~crash_dump-constify-struct-configfs_item_operations-and-configfs_group_operations
++++ a/kernel/crash_dump_dm_crypt.c
+@@ -223,7 +223,7 @@ static void config_key_release(struct co
+ 	key_count--;
+ }
  
- /**
-  * softleaf_type() - Identify the type of leaf entry.
-- * @enntry: Leaf entry.
-+ * @entry: Leaf entry.
-  *
-  * Returns: the leaf entry type associated with @entry.
+-static struct configfs_item_operations config_key_item_ops = {
++static const struct configfs_item_operations config_key_item_ops = {
+ 	.release = config_key_release,
+ };
+ 
+@@ -298,7 +298,7 @@ static struct configfs_attribute *config
+  * Note that, since no extra work is required on ->drop_item(),
+  * no ->drop_item() is provided.
   */
-@@ -534,7 +534,7 @@ static inline bool pte_is_uffd_wp_marker
- /**
-  * pte_is_uffd_marker() - Does this PTE entry encode a userfault-specific marker
-  * leaf entry?
-- * @entry: Leaf entry.
-+ * @pte: PTE entry.
-  *
-  * It's useful to be able to determine which leaf entries encode UFFD-specific
-  * markers so we can handle these correctly.
+-static struct configfs_group_operations config_keys_group_ops = {
++static const struct configfs_group_operations config_keys_group_ops = {
+ 	.make_item = config_keys_make_item,
+ };
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-mm-leafopsh-correct-kernel-doc-function-param-names.patch
+crash_dump-constify-struct-configfs_item_operations-and-configfs_group_operations.patch
 
