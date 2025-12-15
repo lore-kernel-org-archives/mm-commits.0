@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B70EC2857EE
-	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 20:39:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB8273271FA
+	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 20:55:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765831175; cv=none; b=S38+wcp3gLZByjEwXuhJltjKsJSxkV6rqXE42cIoT85cRYbTntb6c3o4i1nk1jAM0BqcH9MmeC7x09QmX23JbF1Mlb6S9NE6tZzM0h+9ccSzde0HbeFzl6KlVLGoz69xGHIscTPjQAUC9qlsn5W6BKn3qaTdZkGSb2foTNSEux4=
+	t=1765832116; cv=none; b=t+M2aKJ8wqVvHvItVha/cp3xEG7MYCCnL934tFFQwYoFVKcohLY8f1jGGLkXxq3hIyuajJYyk7iV+owJYCekBn/LM3ZABsvwtaQjGBxJOduY6pRicFz2OQYKEpcHL8YB2BiVKneOmZXfIor0cwwDHVI+1ij/XUaKQZ58N1MHrNQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765831175; c=relaxed/simple;
-	bh=pbjSRYnnT/4sUJu+F1E+RGgqrLR3Z5vWealG+JCmVHA=;
-	h=Date:To:From:Subject:Message-Id; b=Hf95c4tfjKhiE0KX5tSXr5SUWiHhqToIoQbj+MyAF2yxc8BPAbPf5Gto2R9bGBriyx+C8nSd/nTng6+ni/cnv2I2GDwjgQ6Pb6N5jO197BxKa4IbbGC/peC3s4BsjR7YQbznyet/uTq86J8x/7HG/uZ4sW1Z60eutXDwui99lVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gwnTzkFe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765832116; c=relaxed/simple;
+	bh=gmkh476wlgT87rfGf1FkVDvbZMJ7Jh10x2O79MqzXcw=;
+	h=Date:To:From:Subject:Message-Id; b=ikxfUJ+U5TX8SPCr/nW9AeETEWY5rDqPdEztJ2fzDElPBhLfFR9bXMTRk+XYPkh8uMNGKe7dskaw0Ynnl7BZVRtuXhBUsJyGBXV8SF4UVln1pV1KjaiJYTw6VnaVnuH47Chj3vjurgavT2uYtk8SQT/lSUtx8UJG1V+VRnFAeYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VeMcM0ZX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gwnTzkFe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C229C4CEF5;
-	Mon, 15 Dec 2025 20:39:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VeMcM0ZX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57EAFC4CEF5;
+	Mon, 15 Dec 2025 20:55:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765831175;
-	bh=pbjSRYnnT/4sUJu+F1E+RGgqrLR3Z5vWealG+JCmVHA=;
+	s=korg; t=1765832115;
+	bh=gmkh476wlgT87rfGf1FkVDvbZMJ7Jh10x2O79MqzXcw=;
 	h=Date:To:From:Subject:From;
-	b=gwnTzkFecV4j9z0xK5uglPWBO+3xsmTvEC3l0VUopUFM5Ng3wB6slrPZN+h7XigIc
-	 TdWh6nNrP5RNCMYI4hHO3Ai2el3ODLfrxHLhGWEXeK9GtpLP3MAVbfgwd449U/gSFU
-	 X81znd7uWyUKfCyAo1T/HFf0ZwQ9ccosC7RLAgLg=
-Date: Mon, 15 Dec 2025 12:39:34 -0800
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=VeMcM0ZXE9+eCkbWox3WdTFQW2fta9NQy5k6YlbY97KFgAJS2W9auirDgEm3HwX/3
+	 YmB6WxtQ/aWyWhCxeBsSlGY3WWiELbeapJBuNmTKNqYzXylr9+oADFfMxQgbw89ZeL
+	 te3ytAUWDmHIxATNWeKCEE5SibYh0NeDf5YSl44U=
+Date: Mon, 15 Dec 2025 12:55:14 -0800
+To: mm-commits@vger.kernel.org,yury.norov@gmail.com,mingo@kernel.org,andy@kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-vmscan-always-allow-writeback-during-memcg-reclaim.patch removed from -mm tree
-Message-Id: <20251215203935.1C229C4CEF5@smtp.kernel.org>
+Subject: + kernelh-drop-hexh-and-update-all-hexh-users.patch added to mm-nonmm-unstable branch
+Message-Id: <20251215205515.57EAFC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,74 +34,1411 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: vmscan: always allow writeback during memcg reclaim
-has been removed from the -mm tree.  Its filename was
-     mm-vmscan-always-allow-writeback-during-memcg-reclaim.patch
+The patch titled
+     Subject: kernel.h: drop hex.h and update all hex.h users
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernelh-drop-hexh-and-update-all-hexh-users.patch
 
-This patch was dropped because it was nacked
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernelh-drop-hexh-and-update-all-hexh-users.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: mm: vmscan: always allow writeback during memcg reclaim
-Date: Sat, 13 Dec 2025 14:06:39 +0530
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: kernel.h: drop hex.h and update all hex.h users
+Date: Sun, 14 Dec 2025 16:51:56 -0800
 
-When laptop_mode is enabled, may_writepage is set to 0 in
-try_to_free_mem_cgroup_pages().  This triggers a warning in MGLRU's
-lru_gen_shrink_lruvec():
+Remove <linux/hex.h> from <linux/kernel.h> and update all users/callers of
+hex.h interfaces to directly #include <linux/hex.h> as part of the process
+of putting kernel.h on a diet.
 
-    VM_WARN_ON_ONCE(!sc->may_writepage || !sc->may_unmap);
+Removing hex.h from kernel.h means that 36K C source files don't have to
+pay the price of parsing hex.h for the roughly 120 C source files that
+need it.
 
-The warning occurs because MGLRU expects full reclaim capabilities to
-function correctly.  The call path is:
+This change has been build-tested with allmodconfig on most ARCHes.  Also,
+all users/callers of <linux/hex.h> in the entire source tree have been
+updated if needed (if not already #included).
 
-    mem_cgroup_resize_max()
-      try_to_free_mem_cgroup_pages()
-        do_try_to_free_pages()
-          shrink_node()
-            shrink_lruvec()
-              lru_gen_shrink_lruvec()  <-- WARNING
-
-Unlike kswapd or direct reclaim where laptop_mode's disk-saving behavior
-is a reasonable optimization, memcg limit enforcement is a hard
-requirement - memory MUST be freed when a cgroup exceeds its limit.  The
-may_unmap field is already set unconditionally to 1 in this path,
-acknowledging that memcg reclaim needs full capabilities.
-
-Set may_writepage unconditionally to 1 for memcg reclaim to ensure MGLRU
-works correctly and memory limits are properly enforced.
-
-Link: https://lkml.kernel.org/r/20251213083639.364539-1-kartikey406@gmail.com
-Fixes: bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
-Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
-Reported-by: syzbot+90fcab4d88cffed6d0d8@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=90fcab4d88cffed6d0d8
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20251215005206.2362276-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Andy Shevchenko <andy@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/kernel/setup.c                                          |    1 +
+ arch/mips/rb532/devices.c                                         |    1 +
+ arch/powerpc/kernel/btext.c                                       |    1 +
+ arch/s390/kernel/alternative.c                                    |    1 +
+ arch/s390/kernel/stackprotector.c                                 |    1 +
+ arch/um/drivers/vector_kern.c                                     |    1 +
+ arch/xtensa/platforms/iss/network.c                               |    1 +
+ certs/blacklist.c                                                 |    1 +
+ crypto/asymmetric_keys/asymmetric_type.c                          |    1 +
+ crypto/asymmetric_keys/x509_public_key.c                          |    1 +
+ crypto/krb5/selftest.c                                            |    1 +
+ drivers/atm/nicstar.c                                             |    1 +
+ drivers/auxdisplay/hd44780_common.c                               |    1 +
+ drivers/auxdisplay/lcd2s.c                                        |    1 +
+ drivers/bus/moxtet.c                                              |    1 +
+ drivers/char/tpm/tpm.h                                            |    1 +
+ drivers/comedi/drivers/jr3_pci.c                                  |    1 +
+ drivers/firmware/broadcom/bcm47xx_sprom.c                         |    1 +
+ drivers/gpio/gpio-macsmc.c                                        |    1 +
+ drivers/hid/hid-picolcd_debugfs.c                                 |    1 +
+ drivers/hwmon/pmbus/q54sj108a2.c                                  |    1 +
+ drivers/hwmon/pmbus/ucd9000.c                                     |    1 +
+ drivers/infiniband/ulp/srp/ib_srp.c                               |    1 +
+ drivers/infiniband/ulp/srpt/ib_srpt.c                             |    1 +
+ drivers/input/touchscreen/iqs5xx.c                                |    1 +
+ drivers/md/dm-crypt.c                                             |    1 +
+ drivers/md/dm-integrity.c                                         |    1 +
+ drivers/md/dm-verity-target.c                                     |    1 +
+ drivers/media/cec/usb/extron-da-hd-4k-plus/extron-da-hd-4k-plus.c |    1 +
+ drivers/media/cec/usb/rainshadow/rainshadow-cec.c                 |    1 +
+ drivers/media/i2c/ccs/ccs-reg-access.c                            |    1 +
+ drivers/media/usb/pvrusb2/pvrusb2-debugifc.c                      |    1 +
+ drivers/misc/kgdbts.c                                             |    1 +
+ drivers/misc/pch_phub.c                                           |    1 +
+ drivers/net/bonding/bond_options.c                                |    1 +
+ drivers/net/can/can327.c                                          |    1 +
+ drivers/net/can/slcan/slcan-core.c                                |    1 +
+ drivers/net/ethernet/chelsio/cxgb3/common.h                       |    1 +
+ drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_dbg.c     |    1 +
+ drivers/net/ethernet/micrel/ksz884x.c                             |    1 +
+ drivers/net/ethernet/pasemi/pasemi_mac.c                          |    1 +
+ drivers/net/netconsole.c                                          |    1 +
+ drivers/net/netdevsim/dev.c                                       |    1 +
+ drivers/net/usb/r8152.c                                           |    1 +
+ drivers/net/usb/usbnet.c                                          |    1 +
+ drivers/net/wireless/ath/ath6kl/debug.c                           |    1 +
+ drivers/net/wireless/intel/iwlwifi/fw/debugfs.c                   |    1 +
+ drivers/net/wireless/intel/iwlwifi/mld/debugfs.c                  |    1 +
+ drivers/net/wireless/intel/iwlwifi/mvm/debugfs.c                  |    1 +
+ drivers/net/wireless/intel/iwlwifi/mvm/mvm.h                      |    1 +
+ drivers/net/wireless/mediatek/mt76/mt7615/mt7615.h                |    1 +
+ drivers/net/wireless/realtek/rtw89/debug.c                        |    1 +
+ drivers/net/wireless/silabs/wfx/fwio.c                            |    1 +
+ drivers/nvme/target/configfs.c                                    |    1 +
+ drivers/nvme/target/core.c                                        |    1 +
+ drivers/nvmem/brcm_nvram.c                                        |    1 +
+ drivers/nvmem/layouts/u-boot-env.c                                |    1 +
+ drivers/platform/x86/intel/wmi/thunderbolt.c                      |    1 +
+ drivers/pnp/support.c                                             |    1 +
+ drivers/ptp/ptp_pch.c                                             |    1 +
+ drivers/s390/cio/blacklist.c                                      |    1 +
+ drivers/s390/crypto/ap_bus.c                                      |    1 +
+ drivers/s390/crypto/zcrypt_cex4.c                                 |    1 +
+ drivers/s390/virtio/virtio_ccw.c                                  |    1 +
+ drivers/scsi/aacraid/rx.c                                         |    1 +
+ drivers/scsi/ips.c                                                |    1 +
+ drivers/scsi/libsas/sas_scsi_host.c                               |    1 +
+ drivers/scsi/qla2xxx/tcm_qla2xxx.c                                |    1 +
+ drivers/scsi/scsi_transport_fc.c                                  |    1 +
+ drivers/staging/rtl8723bs/core/rtw_ieee80211.c                    |    1 +
+ drivers/target/iscsi/iscsi_target_auth.c                          |    1 +
+ drivers/target/target_core_fabric_lib.c                           |    1 +
+ drivers/target/target_core_spc.c                                  |    1 +
+ drivers/target/tcm_fc/tfc_conf.c                                  |    1 +
+ drivers/thunderbolt/switch.c                                      |    1 +
+ drivers/tty/vt/vt.c                                               |    1 +
+ drivers/ufs/core/ufshcd.c                                         |    1 +
+ drivers/usb/atm/speedtch.c                                        |    1 +
+ drivers/usb/atm/ueagle-atm.c                                      |    1 +
+ drivers/usb/gadget/function/u_ether.c                             |    1 +
+ drivers/usb/gadget/function/uvc_configfs.c                        |    1 +
+ drivers/usb/typec/ucsi/debugfs.c                                  |    1 +
+ drivers/usb/typec/ucsi/ucsi_ccg.c                                 |    1 +
+ drivers/watchdog/hpwdt.c                                          |    1 +
+ fs/adfs/dir.c                                                     |    1 +
+ fs/binfmt_misc.c                                                  |    1 +
+ fs/ecryptfs/ecryptfs_kernel.h                                     |    1 +
+ fs/efivarfs/vars.c                                                |    1 +
+ fs/fat/dir.c                                                      |    1 +
+ fs/fat/namei_vfat.c                                               |    1 +
+ fs/gfs2/lock_dlm.c                                                |    1 +
+ fs/nfsd/nfs4recover.c                                             |    1 +
+ fs/ntfs3/ntfs_fs.h                                                |    1 +
+ fs/overlayfs/namei.c                                              |    1 +
+ fs/proc/array.c                                                   |    1 +
+ fs/seq_file.c                                                     |    1 +
+ fs/udf/unicode.c                                                  |    1 +
+ include/linux/kernel.h                                            |    1 -
+ kernel/audit.c                                                    |    1 +
+ kernel/bpf/core.c                                                 |    1 +
+ kernel/bpf/syscall.c                                              |    1 +
+ kernel/debug/gdbstub.c                                            |    1 +
+ lib/hexdump.c                                                     |    1 +
+ lib/string_helpers.c                                              |    1 +
+ lib/uuid.c                                                        |    1 +
+ lib/vsprintf.c                                                    |    1 +
+ net/bridge/br_sysfs_br.c                                          |    1 +
+ net/core/pktgen.c                                                 |    1 +
+ net/core/utils.c                                                  |    1 +
+ net/ipv4/arp.c                                                    |    1 +
+ net/mac80211/debugfs_netdev.c                                     |    1 +
+ net/sunrpc/cache.c                                                |    1 +
+ net/tipc/core.h                                                   |    1 +
+ security/integrity/evm/evm_crypto.c                               |    1 +
+ security/integrity/ima/ima_api.c                                  |    1 +
+ security/ipe/digest.c                                             |    1 +
+ security/keys/encrypted-keys/encrypted.c                          |    1 +
+ security/keys/trusted-keys/trusted_core.c                         |    1 +
+ security/keys/trusted-keys/trusted_tpm1.c                         |    1 +
+ security/loadpin/loadpin.c                                        |    1 +
+ security/selinux/selinuxfs.c                                      |    1 +
+ sound/pci/riptide/riptide.c                                       |    1 +
+ sound/usb/6fire/firmware.c                                        |    1 +
+ 123 files changed, 122 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-always-allow-writeback-during-memcg-reclaim
-+++ a/mm/vmscan.c
-@@ -6671,7 +6671,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.reclaim_idx = MAX_NR_ZONES - 1,
- 		.target_mem_cgroup = memcg,
- 		.priority = DEF_PRIORITY,
--		.may_writepage = !laptop_mode,
-+		.may_writepage = 1,
- 		.may_unmap = 1,
- 		.may_swap = !!(reclaim_options & MEMCG_RECLAIM_MAY_SWAP),
- 		.proactive = !!(reclaim_options & MEMCG_RECLAIM_PROACTIVE),
+--- a/arch/mips/kernel/setup.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/arch/mips/kernel/setup.c
+@@ -13,6 +13,7 @@
+ #include <linux/init.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/ioport.h>
+ #include <linux/export.h>
+ #include <linux/memblock.h>
+--- a/arch/mips/rb532/devices.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/arch/mips/rb532/devices.c
+@@ -7,6 +7,7 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/export.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/ctype.h>
+ #include <linux/string.h>
+--- a/arch/powerpc/kernel/btext.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/arch/powerpc/kernel/btext.c
+@@ -6,6 +6,7 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/string.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/export.h>
+ #include <linux/font.h>
+--- a/arch/s390/kernel/alternative.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/arch/s390/kernel/alternative.c
+@@ -4,6 +4,7 @@
+ #define pr_fmt(fmt)	"alt: " fmt
+ #endif
+ 
++#include <linux/hex.h>
+ #include <linux/uaccess.h>
+ #include <linux/printk.h>
+ #include <asm/nospec-branch.h>
+--- a/arch/s390/kernel/stackprotector.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/arch/s390/kernel/stackprotector.c
+@@ -5,6 +5,7 @@
+ #endif
+ 
+ #include <linux/export.h>
++#include <linux/hex.h>
+ #include <linux/uaccess.h>
+ #include <linux/printk.h>
+ #include <asm/abs_lowcore.h>
+--- a/arch/um/drivers/vector_kern.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/arch/um/drivers/vector_kern.c
+@@ -13,6 +13,7 @@
+ #include <linux/memblock.h>
+ #include <linux/etherdevice.h>
+ #include <linux/ethtool.h>
++#include <linux/hex.h>
+ #include <linux/inetdevice.h>
+ #include <linux/init.h>
+ #include <linux/list.h>
+--- a/arch/xtensa/platforms/iss/network.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/arch/xtensa/platforms/iss/network.c
+@@ -13,6 +13,7 @@
+ 
+ #define pr_fmt(fmt) "%s: " fmt, __func__
+ 
++#include <linux/hex.h>
+ #include <linux/list.h>
+ #include <linux/irq.h>
+ #include <linux/spinlock.h>
+--- a/certs/blacklist.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/certs/blacklist.c
+@@ -13,6 +13,7 @@
+ #include <linux/sched.h>
+ #include <linux/ctype.h>
+ #include <linux/err.h>
++#include <linux/hex.h>
+ #include <linux/seq_file.h>
+ #include <linux/uidgid.h>
+ #include <keys/asymmetric-type.h>
+--- a/crypto/asymmetric_keys/asymmetric_type.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/crypto/asymmetric_keys/asymmetric_type.c
+@@ -9,6 +9,7 @@
+ #include <keys/asymmetric-subtype.h>
+ #include <keys/asymmetric-parser.h>
+ #include <crypto/public_key.h>
++#include <linux/hex.h>
+ #include <linux/seq_file.h>
+ #include <linux/module.h>
+ #include <linux/overflow.h>
+--- a/crypto/asymmetric_keys/x509_public_key.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/crypto/asymmetric_keys/x509_public_key.c
+@@ -10,6 +10,7 @@
+ #include <keys/asymmetric-parser.h>
+ #include <keys/asymmetric-subtype.h>
+ #include <keys/system_keyring.h>
++#include <linux/hex.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+--- a/crypto/krb5/selftest.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/crypto/krb5/selftest.c
+@@ -7,6 +7,7 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/hex.h>
+ #include <linux/slab.h>
+ #include <crypto/skcipher.h>
+ #include <crypto/hash.h>
+--- a/drivers/atm/nicstar.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/atm/nicstar.c
+@@ -43,6 +43,7 @@
+ #include <linux/types.h>
+ #include <linux/string.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/sched.h>
+ #include <linux/timer.h>
+--- a/drivers/auxdisplay/hd44780_common.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/auxdisplay/hd44780_common.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
++#include <linux/hex.h>
+ #include <linux/module.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+--- a/drivers/auxdisplay/lcd2s.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/auxdisplay/lcd2s.c
+@@ -11,6 +11,7 @@
+  *  Author: Lars Pöschel <poeschel@lemonage.de>
+  *  All rights reserved.
+  */
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/mod_devicetable.h>
+ #include <linux/module.h>
+--- a/drivers/bus/moxtet.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/bus/moxtet.c
+@@ -8,6 +8,7 @@
+ #include <dt-bindings/bus/moxtet.h>
+ #include <linux/bitops.h>
+ #include <linux/debugfs.h>
++#include <linux/hex.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/moxtet.h>
+--- a/drivers/char/tpm/tpm.h~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/char/tpm/tpm.h
+@@ -20,6 +20,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/mutex.h>
+ #include <linux/sched.h>
+ #include <linux/platform_device.h>
+--- a/drivers/comedi/drivers/jr3_pci.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/comedi/drivers/jr3_pci.c
+@@ -32,6 +32,7 @@
+ #include <linux/module.h>
+ #include <linux/delay.h>
+ #include <linux/ctype.h>
++#include <linux/hex.h>
+ #include <linux/jiffies.h>
+ #include <linux/slab.h>
+ #include <linux/timer.h>
+--- a/drivers/firmware/broadcom/bcm47xx_sprom.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/firmware/broadcom/bcm47xx_sprom.c
+@@ -30,6 +30,7 @@
+ #include <linux/bcm47xx_sprom.h>
+ #include <linux/bcma/bcma.h>
+ #include <linux/etherdevice.h>
++#include <linux/hex.h>
+ #include <linux/if_ether.h>
+ #include <linux/ssb/ssb.h>
+ 
+--- a/drivers/gpio/gpio-macsmc.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/gpio/gpio-macsmc.c
+@@ -10,6 +10,7 @@
+ #include <linux/bitmap.h>
+ #include <linux/device.h>
+ #include <linux/gpio/driver.h>
++#include <linux/hex.h>
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/macsmc.h>
+ 
+--- a/drivers/hid/hid-picolcd_debugfs.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/hid/hid-picolcd_debugfs.c
+@@ -11,6 +11,7 @@
+ #include <linux/hid-debug.h>
+ 
+ #include <linux/fb.h>
++#include <linux/hex.h>
+ #include <linux/seq_file.h>
+ #include <linux/debugfs.h>
+ 
+--- a/drivers/hwmon/pmbus/q54sj108a2.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/hwmon/pmbus/q54sj108a2.c
+@@ -7,6 +7,7 @@
+  */
+ 
+ #include <linux/debugfs.h>
++#include <linux/hex.h>
+ #include <linux/i2c.h>
+ #include <linux/kstrtox.h>
+ #include <linux/module.h>
+--- a/drivers/hwmon/pmbus/ucd9000.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/hwmon/pmbus/ucd9000.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/debugfs.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+--- a/drivers/infiniband/ulp/srp/ib_srp.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -33,6 +33,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/module.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/err.h>
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -33,6 +33,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/err.h>
+--- a/drivers/input/touchscreen/iqs5xx.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/input/touchscreen/iqs5xx.c
+@@ -17,6 +17,7 @@
+ #include <linux/err.h>
+ #include <linux/firmware.h>
+ #include <linux/gpio/consumer.h>
++#include <linux/hex.h>
+ #include <linux/i2c.h>
+ #include <linux/input.h>
+ #include <linux/input/mt.h>
+--- a/drivers/md/dm-crypt.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/md/dm-crypt.c
+@@ -11,6 +11,7 @@
+ #include <linux/completion.h>
+ #include <linux/err.h>
+ #include <linux/module.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/key.h>
+--- a/drivers/md/dm-integrity.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/md/dm-integrity.c
+@@ -17,6 +17,7 @@
+ #include <linux/sort.h>
+ #include <linux/rbtree.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/random.h>
+ #include <linux/reboot.h>
+ #include <crypto/hash.h>
+--- a/drivers/md/dm-verity-target.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/md/dm-verity-target.c
+@@ -17,6 +17,7 @@
+ #include "dm-verity-fec.h"
+ #include "dm-verity-verify-sig.h"
+ #include "dm-audit.h"
++#include <linux/hex.h>
+ #include <linux/module.h>
+ #include <linux/reboot.h>
+ #include <linux/string.h>
+--- a/drivers/media/cec/usb/extron-da-hd-4k-plus/extron-da-hd-4k-plus.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/media/cec/usb/extron-da-hd-4k-plus/extron-da-hd-4k-plus.c
+@@ -19,6 +19,7 @@
+ #include <linux/completion.h>
+ #include <linux/ctype.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+--- a/drivers/media/cec/usb/rainshadow/rainshadow-cec.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/media/cec/usb/rainshadow/rainshadow-cec.c
+@@ -19,6 +19,7 @@
+ #include <linux/completion.h>
+ #include <linux/ctype.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+--- a/drivers/media/i2c/ccs/ccs-reg-access.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/media/i2c/ccs/ccs-reg-access.c
+@@ -12,6 +12,7 @@
+ #include <linux/unaligned.h>
+ 
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/i2c.h>
+ 
+ #include "ccs.h"
+--- a/drivers/media/usb/pvrusb2/pvrusb2-debugifc.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/media/usb/pvrusb2/pvrusb2-debugifc.c
+@@ -4,6 +4,7 @@
+  *  Copyright (C) 2005 Mike Isely <isely@pobox.com>
+  */
+ 
++#include <linux/hex.h>
+ #include <linux/string.h>
+ #include "pvrusb2-debugifc.h"
+ #include "pvrusb2-hdw.h"
+--- a/drivers/misc/kgdbts.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/misc/kgdbts.c
+@@ -89,6 +89,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/nmi.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/kthread.h>
+ #include <linux/module.h>
+ #include <linux/sched/task.h>
+--- a/drivers/misc/pch_phub.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/misc/pch_phub.c
+@@ -7,6 +7,7 @@
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/fs.h>
++#include <linux/hex.h>
+ #include <linux/uaccess.h>
+ #include <linux/string.h>
+ #include <linux/pci.h>
+--- a/drivers/net/bonding/bond_options.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/bonding/bond_options.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/if.h>
+ #include <linux/netdevice.h>
+ #include <linux/spinlock.h>
+--- a/drivers/net/can/can327.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/can/can327.c
+@@ -18,6 +18,7 @@
+ #include <linux/bitops.h>
+ #include <linux/ctype.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/lockdep.h>
+--- a/drivers/net/can/slcan/slcan-core.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/can/slcan/slcan-core.c
+@@ -50,6 +50,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/skbuff.h>
+ #include <linux/rtnetlink.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/workqueue.h>
+--- a/drivers/net/ethernet/chelsio/cxgb3/common.h~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/ethernet/chelsio/cxgb3/common.h
+@@ -36,6 +36,7 @@
+ #include <linux/types.h>
+ #include <linux/ctype.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/netdevice.h>
+ #include <linux/ethtool.h>
+ #include <linux/mdio.h>
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_dbg.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_dbg.c
+@@ -2,6 +2,7 @@
+ // Copyright (c) 2021, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <linux/debugfs.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/seq_file.h>
+ #include <linux/version.h>
+--- a/drivers/net/ethernet/micrel/ksz884x.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/ethernet/micrel/ksz884x.c
+@@ -12,6 +12,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/hex.h>
+ #include <linux/ioport.h>
+ #include <linux/pci.h>
+ #include <linux/proc_fs.h>
+--- a/drivers/net/ethernet/pasemi/pasemi_mac.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/ethernet/pasemi/pasemi_mac.c
+@@ -11,6 +11,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/dmaengine.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/netdevice.h>
+ #include <linux/of_mdio.h>
+ #include <linux/etherdevice.h>
+--- a/drivers/net/netconsole.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/netconsole.c
+@@ -36,6 +36,7 @@
+ #include <linux/inet.h>
+ #include <linux/configfs.h>
+ #include <linux/etherdevice.h>
++#include <linux/hex.h>
+ #include <linux/u64_stats_sync.h>
+ #include <linux/utsname.h>
+ #include <linux/rtnetlink.h>
+--- a/drivers/net/netdevsim/dev.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/netdevsim/dev.c
+@@ -18,6 +18,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/device.h>
+ #include <linux/etherdevice.h>
++#include <linux/hex.h>
+ #include <linux/inet.h>
+ #include <linux/jiffies.h>
+ #include <linux/kernel.h>
+--- a/drivers/net/usb/r8152.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/usb/r8152.c
+@@ -10,6 +10,7 @@
+ #include <linux/etherdevice.h>
+ #include <linux/mii.h>
+ #include <linux/ethtool.h>
++#include <linux/hex.h>
+ #include <linux/phy.h>
+ #include <linux/usb.h>
+ #include <linux/crc32.h>
+--- a/drivers/net/usb/usbnet.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/usb/usbnet.c
+@@ -18,6 +18,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+--- a/drivers/net/wireless/ath/ath6kl/debug.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/wireless/ath/ath6kl/debug.c
+@@ -19,6 +19,7 @@
+ 
+ #include <linux/skbuff.h>
+ #include <linux/fs.h>
++#include <linux/hex.h>
+ #include <linux/vmalloc.h>
+ #include <linux/export.h>
+ 
+--- a/drivers/net/wireless/intel/iwlwifi/fw/debugfs.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/wireless/intel/iwlwifi/fw/debugfs.c
+@@ -7,6 +7,7 @@
+ #include "api/commands.h"
+ #include "debugfs.h"
+ #include "dbg.h"
++#include <linux/hex.h>
+ #include <linux/seq_file.h>
+ 
+ #define FWRT_DEBUGFS_OPEN_WRAPPER(name, buflen, argtype)		\
+--- a/drivers/net/wireless/intel/iwlwifi/mld/debugfs.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/wireless/intel/iwlwifi/mld/debugfs.c
+@@ -24,6 +24,7 @@
+ #include "fw/api/rfi.h"
+ #include "fw/dhc-utils.h"
+ #include <linux/dmi.h>
++#include <linux/hex.h>
+ 
+ #define MLD_DEBUGFS_READ_FILE_OPS(name, bufsz)				\
+ 	_MLD_DEBUGFS_READ_FILE_OPS(name, bufsz, struct iwl_mld)
+--- a/drivers/net/wireless/intel/iwlwifi/mvm/debugfs.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/wireless/intel/iwlwifi/mvm/debugfs.c
+@@ -6,6 +6,7 @@
+  */
+ #include <linux/vmalloc.h>
+ #include <linux/err.h>
++#include <linux/hex.h>
+ #include <linux/ieee80211.h>
+ #include <linux/netdevice.h>
+ #include <linux/dmi.h>
+--- a/drivers/net/wireless/intel/iwlwifi/mvm/mvm.h~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/wireless/intel/iwlwifi/mvm/mvm.h
+@@ -11,6 +11,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/cleanup.h>
+ #include <linux/leds.h>
++#include <linux/hex.h>
+ #include <linux/in6.h>
+ 
+ #ifdef CONFIG_THERMAL
+--- a/drivers/net/wireless/mediatek/mt76/mt7615/mt7615.h~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/wireless/mediatek/mt76/mt7615/mt7615.h
+@@ -5,6 +5,7 @@
+ #define __MT7615_H
+ 
+ #include <linux/completion.h>
++#include <linux/hex.h>
+ #include <linux/interrupt.h>
+ #include <linux/ktime.h>
+ #include <linux/regmap.h>
+--- a/drivers/net/wireless/realtek/rtw89/debug.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/wireless/realtek/rtw89/debug.c
+@@ -2,6 +2,7 @@
+ /* Copyright(c) 2019-2020  Realtek Corporation
+  */
+ 
++#include <linux/hex.h>
+ #include <linux/vmalloc.h>
+ 
+ #include "coex.h"
+--- a/drivers/net/wireless/silabs/wfx/fwio.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/net/wireless/silabs/wfx/fwio.c
+@@ -6,6 +6,7 @@
+  * Copyright (c) 2010, ST-Ericsson
+  */
+ #include <linux/firmware.h>
++#include <linux/hex.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/bitfield.h>
+--- a/drivers/nvmem/brcm_nvram.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/nvmem/brcm_nvram.c
+@@ -5,6 +5,7 @@
+ 
+ #include <linux/bcm47xx_nvram.h>
+ #include <linux/etherdevice.h>
++#include <linux/hex.h>
+ #include <linux/if_ether.h>
+ #include <linux/io.h>
+ #include <linux/mod_devicetable.h>
+--- a/drivers/nvmem/layouts/u-boot-env.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/nvmem/layouts/u-boot-env.c
+@@ -6,6 +6,7 @@
+ #include <linux/crc32.h>
+ #include <linux/etherdevice.h>
+ #include <linux/export.h>
++#include <linux/hex.h>
+ #include <linux/if_ether.h>
+ #include <linux/nvmem-consumer.h>
+ #include <linux/nvmem-provider.h>
+--- a/drivers/nvme/target/configfs.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/nvme/target/configfs.c
+@@ -4,6 +4,7 @@
+  * Copyright (c) 2015-2016 HGST, a Western Digital Company.
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/hex.h>
+ #include <linux/kstrtox.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+--- a/drivers/nvme/target/core.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/nvme/target/core.c
+@@ -4,6 +4,7 @@
+  * Copyright (c) 2015-2016 HGST, a Western Digital Company.
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/hex.h>
+ #include <linux/module.h>
+ #include <linux/random.h>
+ #include <linux/rculist.h>
+--- a/drivers/platform/x86/intel/wmi/thunderbolt.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/platform/x86/intel/wmi/thunderbolt.c
+@@ -10,6 +10,7 @@
+ #include <linux/acpi.h>
+ #include <linux/device.h>
+ #include <linux/fs.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/string.h>
+--- a/drivers/pnp/support.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/pnp/support.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/ctype.h>
++#include <linux/hex.h>
+ #include <linux/pnp.h>
+ #include "base.h"
+ 
+--- a/drivers/ptp/ptp_pch.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/ptp/ptp_pch.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/err.h>
++#include <linux/hex.h>
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/io-64-nonatomic-lo-hi.h>
+--- a/drivers/s390/cio/blacklist.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/s390/cio/blacklist.c
+@@ -10,6 +10,7 @@
+ 
+ #define pr_fmt(fmt) "cio: " fmt
+ 
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/vmalloc.h>
+ #include <linux/proc_fs.h>
+--- a/drivers/s390/crypto/ap_bus.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/s390/crypto/ap_bus.c
+@@ -16,6 +16,7 @@
+ #include <linux/kernel_stat.h>
+ #include <linux/moduleparam.h>
+ #include <linux/export.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/err.h>
+--- a/drivers/s390/crypto/zcrypt_cex4.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/s390/crypto/zcrypt_cex4.c
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
+ #include <linux/atomic.h>
+--- a/drivers/s390/virtio/virtio_ccw.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/s390/virtio/virtio_ccw.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <linux/kernel_stat.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/memblock.h>
+ #include <linux/err.h>
+--- a/drivers/scsi/aacraid/rx.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/scsi/aacraid/rx.c
+@@ -17,6 +17,7 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/pci.h>
+--- a/drivers/scsi/ips.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/scsi/ips.c
+@@ -167,6 +167,7 @@
+ #include <linux/stddef.h>
+ #include <linux/string.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
+--- a/drivers/scsi/libsas/sas_scsi_host.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/scsi/libsas/sas_scsi_host.c
+@@ -10,6 +10,7 @@
+ #include <linux/firmware.h>
+ #include <linux/export.h>
+ #include <linux/ctype.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ 
+ #include "sas_internal.h"
+--- a/drivers/scsi/qla2xxx/tcm_qla2xxx.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/scsi/qla2xxx/tcm_qla2xxx.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ #include <linux/utsname.h>
+ #include <linux/vmalloc.h>
++#include <linux/hex.h>
+ #include <linux/list.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+--- a/drivers/scsi/scsi_transport_fc.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/scsi/scsi_transport_fc.c
+@@ -12,6 +12,7 @@
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/bsg-lib.h>
+ #include <scsi/scsi_device.h>
+--- a/drivers/staging/rtl8723bs/core/rtw_ieee80211.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/staging/rtl8723bs/core/rtw_ieee80211.c
+@@ -6,6 +6,7 @@
+  ******************************************************************************/
+ 
+ #include <drv_types.h>
++#include <linux/hex.h>
+ #include <linux/of.h>
+ #include <linux/unaligned.h>
+ 
+--- a/drivers/target/iscsi/iscsi_target_auth.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/target/iscsi/iscsi_target_auth.c
+@@ -12,6 +12,7 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/err.h>
++#include <linux/hex.h>
+ #include <linux/random.h>
+ #include <linux/scatterlist.h>
+ #include <target/iscsi/iscsi_target_core.h>
+--- a/drivers/target/target_core_fabric_lib.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/target/target_core_fabric_lib.c
+@@ -16,6 +16,7 @@
+  * on the formats implemented in this file.
+  */
+ 
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/ctype.h>
+--- a/drivers/target/target_core_spc.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/target/target_core_spc.c
+@@ -7,6 +7,7 @@
+  * Nicholas A. Bellinger <nab@kernel.org>
+  */
+ 
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/unaligned.h>
+--- a/drivers/target/tcm_fc/tfc_conf.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/target/tcm_fc/tfc_conf.c
+@@ -17,6 +17,7 @@
+ #include <linux/moduleparam.h>
+ #include <generated/utsrelease.h>
+ #include <linux/utsname.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/kthread.h>
+--- a/drivers/thunderbolt/switch.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/thunderbolt/switch.c
+@@ -7,6 +7,7 @@
+  */
+ 
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/idr.h>
+ #include <linux/module.h>
+ #include <linux/nvmem-provider.h>
+--- a/drivers/tty/vt/vt.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/tty/vt/vt.c
+@@ -79,6 +79,7 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/kd.h>
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+--- a/drivers/ufs/core/ufshcd.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/ufs/core/ufshcd.c
+@@ -18,6 +18,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/pm_opp.h>
+--- a/drivers/usb/atm/speedtch.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/usb/atm/speedtch.c
+@@ -13,6 +13,7 @@
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/firmware.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+--- a/drivers/usb/atm/ueagle-atm.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/usb/atm/ueagle-atm.c
+@@ -15,6 +15,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/crc32.h>
++#include <linux/hex.h>
+ #include <linux/usb.h>
+ #include <linux/firmware.h>
+ #include <linux/ctype.h>
+--- a/drivers/usb/gadget/function/u_ether.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/usb/gadget/function/u_ether.c
+@@ -16,6 +16,7 @@
+ #include <linux/ctype.h>
+ #include <linux/etherdevice.h>
+ #include <linux/ethtool.h>
++#include <linux/hex.h>
+ #include <linux/if_vlan.h>
+ #include <linux/string_helpers.h>
+ #include <linux/usb/composite.h>
+--- a/drivers/usb/gadget/function/uvc_configfs.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/usb/gadget/function/uvc_configfs.c
+@@ -12,6 +12,7 @@
+ 
+ #include "uvc_configfs.h"
+ 
++#include <linux/hex.h>
+ #include <linux/sort.h>
+ #include <linux/usb/uvc.h>
+ #include <linux/usb/video.h>
+--- a/drivers/usb/typec/ucsi/debugfs.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/usb/typec/ucsi/debugfs.c
+@@ -8,6 +8,7 @@
+  *	    Gopal Saranya <saranya.gopal@intel.com>
+  */
+ #include <linux/debugfs.h>
++#include <linux/hex.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+--- a/drivers/usb/typec/ucsi/ucsi_ccg.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/usb/typec/ucsi/ucsi_ccg.c
+@@ -10,6 +10,7 @@
+ #include <linux/acpi.h>
+ #include <linux/delay.h>
+ #include <linux/firmware.h>
++#include <linux/hex.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+ #include <linux/pci.h>
+--- a/drivers/watchdog/hpwdt.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/drivers/watchdog/hpwdt.c
+@@ -12,6 +12,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/device.h>
++#include <linux/hex.h>
+ #include <linux/io.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+--- a/fs/adfs/dir.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/adfs/dir.c
+@@ -6,6 +6,7 @@
+  *
+  *  Common directory handling for ADFS
+  */
++#include <linux/hex.h>
+ #include <linux/slab.h>
+ #include "adfs.h"
+ 
+--- a/fs/binfmt_misc.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/binfmt_misc.c
+@@ -12,6 +12,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/sched/mm.h>
+ #include <linux/magic.h>
+--- a/fs/ecryptfs/ecryptfs_kernel.h~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -21,6 +21,7 @@
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
+ #include <linux/fs_stack.h>
++#include <linux/hex.h>
+ #include <linux/namei.h>
+ #include <linux/scatterlist.h>
+ #include <linux/hash.h>
+--- a/fs/efivarfs/vars.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/efivarfs/vars.c
+@@ -9,6 +9,7 @@
+ #include <linux/capability.h>
+ #include <linux/types.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
+--- a/fs/fat/dir.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/fat/dir.c
+@@ -16,6 +16,7 @@
+ 
+ #include <linux/slab.h>
+ #include <linux/compat.h>
++#include <linux/hex.h>
+ #include <linux/uaccess.h>
+ #include <linux/iversion.h>
+ #include "fat.h"
+--- a/fs/fat/namei_vfat.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/fat/namei_vfat.c
+@@ -20,6 +20,7 @@
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
+ #include <linux/namei.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/iversion.h>
+ #include "fat.h"
+--- a/fs/gfs2/lock_dlm.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/gfs2/lock_dlm.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/fs.h>
+ #include <linux/dlm.h>
++#include <linux/hex.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/delay.h>
+--- a/fs/nfsd/nfs4recover.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/nfsd/nfs4recover.c
+@@ -39,6 +39,7 @@
+ #include <linux/namei.h>
+ #include <linux/sched.h>
+ #include <linux/fs.h>
++#include <linux/hex.h>
+ #include <linux/module.h>
+ #include <net/net_namespace.h>
+ #include <linux/sunrpc/rpc_pipe_fs.h>
+--- a/fs/ntfs3/ntfs_fs.h~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/ntfs3/ntfs_fs.h
+@@ -14,6 +14,7 @@
+ #include <linux/fs.h>
+ #include <linux/highmem.h>
+ #include <linux/kernel.h>
++#include <linux/hex.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
+ #include <linux/page-flags.h>
+--- a/fs/overlayfs/namei.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/overlayfs/namei.c
+@@ -7,6 +7,7 @@
+ #include <linux/fs.h>
+ #include <linux/cred.h>
+ #include <linux/ctype.h>
++#include <linux/hex.h>
+ #include <linux/namei.h>
+ #include <linux/xattr.h>
+ #include <linux/ratelimit.h>
+--- a/fs/proc/array.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/proc/array.c
+@@ -55,6 +55,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/time.h>
+ #include <linux/time_namespace.h>
+ #include <linux/kernel.h>
+--- a/fs/seq_file.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/seq_file.c
+@@ -11,6 +11,7 @@
+ #include <linux/cache.h>
+ #include <linux/fs.h>
+ #include <linux/export.h>
++#include <linux/hex.h>
+ #include <linux/seq_file.h>
+ #include <linux/vmalloc.h>
+ #include <linux/slab.h>
+--- a/fs/udf/unicode.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/fs/udf/unicode.c
+@@ -16,6 +16,7 @@
+ 
+ #include "udfdecl.h"
+ 
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/string.h>	/* for memset */
+ #include <linux/nls.h>
+--- a/include/linux/kernel.h~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/include/linux/kernel.h
+@@ -21,7 +21,6 @@
+ #include <linux/compiler.h>
+ #include <linux/container_of.h>
+ #include <linux/bitops.h>
+-#include <linux/hex.h>
+ #include <linux/kstrtox.h>
+ #include <linux/log2.h>
+ #include <linux/math.h>
+--- a/kernel/audit.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/kernel/audit.c
+@@ -32,6 +32,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/file.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/atomic.h>
+--- a/kernel/bpf/core.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/kernel/bpf/core.c
+@@ -25,6 +25,7 @@
+ #include <linux/prandom.h>
+ #include <linux/bpf.h>
+ #include <linux/btf.h>
++#include <linux/hex.h>
+ #include <linux/objtool.h>
+ #include <linux/overflow.h>
+ #include <linux/rbtree_latch.h>
+--- a/kernel/bpf/syscall.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/kernel/bpf/syscall.c
+@@ -9,6 +9,7 @@
+ #include <linux/bpf_verifier.h>
+ #include <linux/bsearch.h>
+ #include <linux/btf.h>
++#include <linux/hex.h>
+ #include <linux/syscalls.h>
+ #include <linux/slab.h>
+ #include <linux/sched/signal.h>
+--- a/kernel/debug/gdbstub.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/kernel/debug/gdbstub.c
+@@ -27,6 +27,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/sched/signal.h>
++#include <linux/hex.h>
+ #include <linux/kgdb.h>
+ #include <linux/kdb.h>
+ #include <linux/serial_core.h>
+--- a/lib/hexdump.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/lib/hexdump.c
+@@ -6,6 +6,7 @@
+ #include <linux/types.h>
+ #include <linux/ctype.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/minmax.h>
+ #include <linux/export.h>
+--- a/lib/string_helpers.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/lib/string_helpers.c
+@@ -13,6 +13,7 @@
+ #include <linux/device.h>
+ #include <linux/errno.h>
+ #include <linux/fs.h>
++#include <linux/hex.h>
+ #include <linux/limits.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+--- a/lib/uuid.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/lib/uuid.c
+@@ -10,6 +10,7 @@
+ #include <linux/ctype.h>
+ #include <linux/errno.h>
+ #include <linux/export.h>
++#include <linux/hex.h>
+ #include <linux/uuid.h>
+ #include <linux/random.h>
+ 
+--- a/lib/vsprintf.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/lib/vsprintf.c
+@@ -26,6 +26,7 @@
+ #include <linux/types.h>
+ #include <linux/string.h>
+ #include <linux/ctype.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ #include <linux/kallsyms.h>
+ #include <linux/math64.h>
+--- a/net/bridge/br_sysfs_br.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/net/bridge/br_sysfs_br.c
+@@ -11,6 +11,7 @@
+ #include <linux/kernel.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
++#include <linux/hex.h>
+ #include <linux/if_bridge.h>
+ #include <linux/rtnetlink.h>
+ #include <linux/spinlock.h>
+--- a/net/core/pktgen.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/net/core/pktgen.c
+@@ -126,6 +126,7 @@
+ #include <linux/string.h>
+ #include <linux/ptrace.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/ioport.h>
+ #include <linux/interrupt.h>
+ #include <linux/capability.h>
+--- a/net/core/utils.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/net/core/utils.c
+@@ -11,6 +11,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/hex.h>
+ #include <linux/jiffies.h>
+ #include <linux/kernel.h>
+ #include <linux/ctype.h>
+--- a/net/ipv4/arp.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/net/ipv4/arp.c
+@@ -79,6 +79,7 @@
+ #include <linux/socket.h>
+ #include <linux/sockios.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/in.h>
+ #include <linux/mm.h>
+ #include <linux/inet.h>
+--- a/net/mac80211/debugfs_netdev.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/net/mac80211/debugfs_netdev.c
+@@ -7,6 +7,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/device.h>
++#include <linux/hex.h>
+ #include <linux/if.h>
+ #include <linux/if_ether.h>
+ #include <linux/interrupt.h>
+--- a/net/sunrpc/cache.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/net/sunrpc/cache.c
+@@ -11,6 +11,7 @@
+ #include <linux/types.h>
+ #include <linux/fs.h>
+ #include <linux/file.h>
++#include <linux/hex.h>
+ #include <linux/slab.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+--- a/net/tipc/core.h~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/net/tipc/core.h
+@@ -44,6 +44,7 @@
+ #include <linux/types.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
++#include <linux/hex.h>
+ #include <linux/mm.h>
+ #include <linux/timer.h>
+ #include <linux/string.h>
+--- a/security/integrity/evm/evm_crypto.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/security/integrity/evm/evm_crypto.c
+@@ -13,6 +13,7 @@
+ #define pr_fmt(fmt) "EVM: "fmt
+ 
+ #include <linux/export.h>
++#include <linux/hex.h>
+ #include <linux/crypto.h>
+ #include <linux/xattr.h>
+ #include <linux/evm.h>
+--- a/security/integrity/ima/ima_api.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/security/integrity/ima/ima_api.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/file.h>
+ #include <linux/fs.h>
++#include <linux/hex.h>
+ #include <linux/xattr.h>
+ #include <linux/evm.h>
+ #include <linux/fsverity.h>
+--- a/security/ipe/digest.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/security/ipe/digest.c
+@@ -3,6 +3,7 @@
+  * Copyright (C) 2020-2024 Microsoft Corporation. All rights reserved.
+  */
+ 
++#include <linux/hex.h>
+ #include "digest.h"
+ 
+ /**
+--- a/security/keys/encrypted-keys/encrypted.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/security/keys/encrypted-keys/encrypted.c
+@@ -13,6 +13,7 @@
+ 
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/parser.h>
+--- a/security/keys/trusted-keys/trusted_core.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/security/keys/trusted-keys/trusted_core.c
+@@ -14,6 +14,7 @@
+ #include <keys/trusted_tpm.h>
+ #include <linux/capability.h>
+ #include <linux/err.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/key-type.h>
+ #include <linux/module.h>
+--- a/security/keys/trusted-keys/trusted_tpm1.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/security/keys/trusted-keys/trusted_tpm1.c
+@@ -9,6 +9,7 @@
+ #include <crypto/hash_info.h>
+ #include <crypto/sha1.h>
+ #include <crypto/utils.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/parser.h>
+--- a/security/loadpin/loadpin.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/security/loadpin/loadpin.c
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/fs.h>
++#include <linux/hex.h>
+ #include <linux/kernel_read_file.h>
+ #include <linux/lsm_hooks.h>
+ #include <linux/mount.h>
+--- a/security/selinux/selinuxfs.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/security/selinux/selinuxfs.c
+@@ -18,6 +18,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/fs.h>
+ #include <linux/fs_context.h>
++#include <linux/hex.h>
+ #include <linux/mount.h>
+ #include <linux/mutex.h>
+ #include <linux/namei.h>
+--- a/sound/pci/riptide/riptide.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/sound/pci/riptide/riptide.c
+@@ -75,6 +75,7 @@
+ */
+ 
+ #include <linux/delay.h>
++#include <linux/hex.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/pci.h>
+--- a/sound/usb/6fire/firmware.c~kernelh-drop-hexh-and-update-all-hexh-users
++++ a/sound/usb/6fire/firmware.c
+@@ -12,6 +12,7 @@
+ #include <linux/firmware.h>
+ #include <linux/module.h>
+ #include <linux/bitrev.h>
++#include <linux/hex.h>
+ #include <linux/kernel.h>
+ 
+ #include "firmware.h"
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-ocfs2-validate-i_refcount_loc-when-refcount-flag-is-set.patch
-ocfs2-validate-inline-data-i_size-during-inode-read.patch
+mm-leafopsh-correct-kernel-doc-function-param-names.patch
+kernelh-drop-hexh-and-update-all-hexh-users.patch
 
