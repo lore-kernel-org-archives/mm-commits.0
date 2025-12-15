@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F09D73358BC
-	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 17:16:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C0CF33BBC0
+	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 17:16:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765818997; cv=none; b=o8tEwLKQl9KUzbfohjqtvTnreh1nkHawHghMdhhnoOFIPgQEswox+gkHfHUK/VaOdVfE4sQHjE+fsr7zG89taCXk3SrL3aZEIHNi5Fj9aVjoRF6sVyzdTaXJAso5dBYpSFld6C69pBU43zHA4CG3QjvLqsLyMliHHLUizGhjxRM=
+	t=1765819004; cv=none; b=mMcovcRKMXrMvGgy277brIFR6Fq108C12lKhdRW7FpOkvh5QsGDtWxJ76Zqe0iPBbV0cp8EsJ3azYFV/CmNSuZcC28JILsKpWTeH2uqYvv4YMVXpomKtzEKZ+d7JEO6GunNyKuhUDSVEtL+HX+jgywPauFwe3XmMaOaGuApwqoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765818997; c=relaxed/simple;
-	bh=xk3D6Nymdmp3t+LDUI8rjzIi74AoaEvFIwCFkfaVHuc=;
-	h=Date:To:From:Subject:Message-Id; b=qR3a7tTbKn70azC/gk8MPJB0dm6W2/7XJ6pIpwBW2ffmYPz9dEo/49W3lX0Q3O8uU4P7OdgqWjNKGvrK9AOur5O7mlX1jh0SBxX/uD8K1IevDlI9QW8CcFntWfjTXG9x/LiHQZUjBa/wai8rhXwW5q+TJYZyUYlqj91cKQAQE2o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=faWEy0BB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765819004; c=relaxed/simple;
+	bh=PtKyFVI9UnuH0oT2XYwMFVXEwO2lZb/pWFyFSsguguw=;
+	h=Date:To:From:Subject:Message-Id; b=d01TL5yToPOhn9nwAx8VQz9EhFwLCFteBBgi5//p4205E1+a4OBXmqFlz8vnhvk5FCs92a/WxNbOUrYgnIfaQ5w6iLI5OxunIX8kXvS7NjIsgMHxs0JxitnXNlYlVotGk9ipqB/fzFw2oNjcUElFqQbA6ADwh6QQK2S9HXmD3bQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jjZoDupZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="faWEy0BB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D8CCC2BC87;
-	Mon, 15 Dec 2025 17:16:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jjZoDupZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F06DC19423;
+	Mon, 15 Dec 2025 17:16:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765818996;
-	bh=xk3D6Nymdmp3t+LDUI8rjzIi74AoaEvFIwCFkfaVHuc=;
+	s=korg; t=1765819003;
+	bh=PtKyFVI9UnuH0oT2XYwMFVXEwO2lZb/pWFyFSsguguw=;
 	h=Date:To:From:Subject:From;
-	b=faWEy0BBxfcPrmQnGuKnRgoBUh2w6z3ew8ep5E1+QUgIPIDPjeB61Pn1MBfZhjr8i
-	 yRaGlGLfNBS+zM6GXFNrKMOHxstLWo23UzlZmAgqQIgEL9RGGUS5AKIE2CgzIvr6XH
-	 ZUeXX0IwQJDsbF4SaYzS0MmfQUtRtBhW2rIci6Dk=
-Date: Mon, 15 Dec 2025 09:16:35 -0800
+	b=jjZoDupZwL/PNcKwvvoRkhNJl4j0pPJvj/Wx/7zze+uF0IwC+lQV/LvkCYLikpVt+
+	 zDVlAhwoejH23XzMyRCBMQ4xAZ2+cXOl4r/S1Tr0c5tphKH7P/1v7U42YPwH+S1iE2
+	 zvoj3yVeLM2LhlIDH2Mle/V69zl9Klycq5GigAZQ=
+Date: Mon, 15 Dec 2025 09:16:43 -0800
 To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,venkat88@linux.ibm.com,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,dwmw2@infradead.org,david@redhat.com,david@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,anshuman.khandual@arm.com,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-config_arch_has_lazy_mmu_mode.patch added to mm-new branch
-Message-Id: <20251215171636.3D8CCC2BC87@smtp.kernel.org>
+Subject: + mm-introduce-generic-lazy_mmu-helpers.patch added to mm-new branch
+Message-Id: <20251215171643.8F06DC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce CONFIG_ARCH_HAS_LAZY_MMU_MODE
+     Subject: mm: introduce generic lazy_mmu helpers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-config_arch_has_lazy_mmu_mode.patch
+     mm-introduce-generic-lazy_mmu-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-config_arch_has_lazy_mmu_mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-generic-lazy_mmu-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,38 +65,86 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: mm: introduce CONFIG_ARCH_HAS_LAZY_MMU_MODE
-Date: Mon, 15 Dec 2025 15:03:15 +0000
+Subject: mm: introduce generic lazy_mmu helpers
+Date: Mon, 15 Dec 2025 15:03:16 +0000
 
-Architectures currently opt in for implementing lazy_mmu helpers by
-defining __HAVE_ARCH_ENTER_LAZY_MMU_MODE.
+The implementation of the lazy MMU mode is currently entirely
+arch-specific; core code directly calls arch helpers:
+arch_{enter,leave}_lazy_mmu_mode().
 
-In preparation for introducing a generic lazy_mmu layer that will require
-storage in task_struct, let's switch to a cleaner approach: instead of
-defining a macro, select a CONFIG option.
+We are about to introduce support for nested lazy MMU sections.  As things
+stand we'd have to duplicate that logic in every arch implementing
+lazy_mmu - adding to a fair amount of logic already duplicated across
+lazy_mmu implementations.
 
-This patch introduces CONFIG_ARCH_HAS_LAZY_MMU_MODE and has each arch
-select it when it implements lazy_mmu helpers. 
-__HAVE_ARCH_ENTER_LAZY_MMU_MODE is removed and <linux/pgtable.h> relies on
-the new CONFIG instead.
+This patch therefore introduces a new generic layer that calls the
+existing arch_* helpers. Two pair of calls are introduced:
 
-On x86, lazy_mmu helpers are only implemented if PARAVIRT_XXL is selected.
-This creates some complications in arch/x86/boot/, because a few files
-manually undefine PARAVIRT* options.  As a result <asm/paravirt.h> does
-not define the lazy_mmu helpers, but this breaks the build as
-<linux/pgtable.h> only defines them if !CONFIG_ARCH_HAS_LAZY_MMU_MODE. 
-There does not seem to be a clean way out of this - let's just undefine
-that new CONFIG too.
+* lazy_mmu_mode_enable() ... lazy_mmu_mode_disable()
+    This is the standard case where the mode is enabled for a given
+    block of code by surrounding it with enable() and disable()
+    calls.
 
-Link: https://lkml.kernel.org/r/20251215150323.2218608-7-kevin.brodsky@arm.com
+* lazy_mmu_mode_pause() ... lazy_mmu_mode_resume()
+    This is for situations where the mode is temporarily disabled
+    by first calling pause() and then resume() (e.g. to prevent any
+    batching from occurring in a critical section).
+
+The documentation in <linux/pgtable.h> will be updated in a subsequent
+patch.
+
+No functional change should be introduced at this stage.  The
+implementation of enable()/resume() and disable()/pause() is currently
+identical, but nesting support will change that.
+
+Most of the call sites have been updated using the following Coccinelle
+script:
+
+@@
+@@
+{
+...
+- arch_enter_lazy_mmu_mode();
++ lazy_mmu_mode_enable();
+...
+- arch_leave_lazy_mmu_mode();
++ lazy_mmu_mode_disable();
+...
+}
+
+@@
+@@
+{
+...
+- arch_leave_lazy_mmu_mode();
++ lazy_mmu_mode_pause();
+...
+- arch_enter_lazy_mmu_mode();
++ lazy_mmu_mode_resume();
+...
+}
+
+A couple of notes regarding x86:
+
+* Xen is currently the only case where explicit handling is required
+  for lazy MMU when context-switching. This is purely an
+  implementation detail and using the generic lazy_mmu_mode_*
+  functions would cause trouble when nesting support is introduced,
+  because the generic functions must be called from the current task.
+  For that reason we still use arch_leave() and arch_enter() there.
+
+* x86 calls arch_flush_lazy_mmu_mode() unconditionally in a few
+  places, but only defines it if PARAVIRT_XXL is selected, and we
+  are removing the fallback in <linux/pgtable.h>. Add a new fallback
+  definition to <asm/pgtable.h> to keep things building.
+
+Link: https://lkml.kernel.org/r/20251215150323.2218608-8-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -116,6 +164,8 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
 Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
@@ -124,149 +174,605 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig                                 |    1 +
- arch/arm64/include/asm/pgtable.h                   |    1 -
- arch/powerpc/include/asm/book3s/64/tlbflush-hash.h |    2 --
- arch/powerpc/platforms/Kconfig.cputype             |    1 +
- arch/sparc/Kconfig                                 |    1 +
- arch/sparc/include/asm/tlbflush_64.h               |    2 --
- arch/x86/Kconfig                                   |    1 +
- arch/x86/boot/compressed/misc.h                    |    1 +
- arch/x86/boot/startup/sme.c                        |    1 +
- arch/x86/include/asm/paravirt.h                    |    1 -
- include/linux/pgtable.h                            |    2 +-
- mm/Kconfig                                         |    7 +++++++
- 12 files changed, 14 insertions(+), 7 deletions(-)
+ arch/arm64/mm/mmu.c                     |    8 +++---
+ arch/arm64/mm/pageattr.c                |    4 +--
+ arch/powerpc/mm/book3s64/hash_tlb.c     |    8 +++---
+ arch/powerpc/mm/book3s64/subpage_prot.c |    4 +--
+ arch/x86/include/asm/pgtable.h          |    1 
+ fs/proc/task_mmu.c                      |    4 +--
+ include/linux/pgtable.h                 |   29 ++++++++++++++++++----
+ mm/kasan/shadow.c                       |    8 +++---
+ mm/madvise.c                            |   18 ++++++-------
+ mm/memory.c                             |   16 ++++++------
+ mm/migrate_device.c                     |    8 +++---
+ mm/mprotect.c                           |    4 +--
+ mm/mremap.c                             |    4 +--
+ mm/userfaultfd.c                        |    4 +--
+ mm/vmalloc.c                            |   12 ++++-----
+ mm/vmscan.c                             |   12 ++++-----
+ 16 files changed, 83 insertions(+), 61 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -80,7 +80,6 @@ static inline void queue_pte_barriers(vo
- 	}
- }
+--- a/arch/arm64/mm/mmu.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/arch/arm64/mm/mmu.c
+@@ -801,7 +801,7 @@ int split_kernel_leaf_mapping(unsigned l
+ 		return -EINVAL;
  
--#define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
- static inline void arch_enter_lazy_mmu_mode(void)
- {
+ 	mutex_lock(&pgtable_split_lock);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
  	/*
---- a/arch/arm64/Kconfig~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/arm64/Kconfig
-@@ -35,6 +35,7 @@ config ARM64
- 	select ARCH_HAS_KCOV
- 	select ARCH_HAS_KERNEL_FPU_SUPPORT if KERNEL_MODE_NEON
- 	select ARCH_HAS_KEEPINITRD
-+	select ARCH_HAS_LAZY_MMU_MODE
- 	select ARCH_HAS_MEMBARRIER_SYNC_CORE
- 	select ARCH_HAS_MEM_ENCRYPT
- 	select ARCH_SUPPORTS_MSEAL_SYSTEM_MAPPINGS
---- a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/powerpc/include/asm/book3s/64/tlbflush-hash.h
-@@ -24,8 +24,6 @@ DECLARE_PER_CPU(struct ppc64_tlb_batch,
+ 	 * The split_kernel_leaf_mapping_locked() may sleep, it is not a
+@@ -823,7 +823,7 @@ int split_kernel_leaf_mapping(unsigned l
+ 			ret = split_kernel_leaf_mapping_locked(end);
+ 	}
  
- extern void __flush_tlb_pending(struct ppc64_tlb_batch *batch);
- 
--#define __HAVE_ARCH_ENTER_LAZY_MMU_MODE
--
- static inline void arch_enter_lazy_mmu_mode(void)
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	mutex_unlock(&pgtable_split_lock);
+ 	return ret;
+ }
+@@ -884,10 +884,10 @@ static int range_split_to_ptes(unsigned
  {
- 	struct ppc64_tlb_batch *batch;
---- a/arch/powerpc/platforms/Kconfig.cputype~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/powerpc/platforms/Kconfig.cputype
-@@ -93,6 +93,7 @@ config PPC_BOOK3S_64
- 	select IRQ_WORK
- 	select PPC_64S_HASH_MMU if !PPC_RADIX_MMU
- 	select KASAN_VMALLOC if KASAN
-+	select ARCH_HAS_LAZY_MMU_MODE
+ 	int ret;
  
- config PPC_BOOK3E_64
- 	bool "Embedded processors"
---- a/arch/sparc/include/asm/tlbflush_64.h~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/sparc/include/asm/tlbflush_64.h
-@@ -39,8 +39,6 @@ static inline void flush_tlb_range(struc
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	ret = walk_kernel_page_table_range_lockless(start, end,
+ 					&split_to_ptes_ops, NULL, &gfp);
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
  
- void flush_tlb_kernel_range(unsigned long start, unsigned long end);
+ 	return ret;
+ }
+--- a/arch/arm64/mm/pageattr.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/arch/arm64/mm/pageattr.c
+@@ -110,7 +110,7 @@ static int update_range_prot(unsigned lo
+ 	if (WARN_ON_ONCE(ret))
+ 		return ret;
  
--#define __HAVE_ARCH_ENTER_LAZY_MMU_MODE
--
- void flush_tlb_pending(void);
- void arch_enter_lazy_mmu_mode(void);
- void arch_flush_lazy_mmu_mode(void);
---- a/arch/sparc/Kconfig~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/sparc/Kconfig
-@@ -112,6 +112,7 @@ config SPARC64
- 	select NEED_PER_CPU_PAGE_FIRST_CHUNK
- 	select ARCH_SUPPORTS_SCHED_SMT if SMP
- 	select ARCH_SUPPORTS_SCHED_MC  if SMP
-+	select ARCH_HAS_LAZY_MMU_MODE
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
  
- config ARCH_PROC_KCORE_TEXT
- 	def_bool y
---- a/arch/x86/boot/compressed/misc.h~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/x86/boot/compressed/misc.h
-@@ -11,6 +11,7 @@
- #undef CONFIG_PARAVIRT
- #undef CONFIG_PARAVIRT_XXL
- #undef CONFIG_PARAVIRT_SPINLOCKS
-+#undef CONFIG_ARCH_HAS_LAZY_MMU_MODE
- #undef CONFIG_KASAN
- #undef CONFIG_KASAN_GENERIC
+ 	/*
+ 	 * The caller must ensure that the range we are operating on does not
+@@ -119,7 +119,7 @@ static int update_range_prot(unsigned lo
+ 	 */
+ 	ret = walk_kernel_page_table_range_lockless(start, start + size,
+ 						    &pageattr_ops, NULL, &data);
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
  
---- a/arch/x86/boot/startup/sme.c~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/x86/boot/startup/sme.c
-@@ -24,6 +24,7 @@
- #undef CONFIG_PARAVIRT
- #undef CONFIG_PARAVIRT_XXL
- #undef CONFIG_PARAVIRT_SPINLOCKS
-+#undef CONFIG_ARCH_HAS_LAZY_MMU_MODE
- 
- /*
-  * This code runs before CPU feature bits are set. By default, the
---- a/arch/x86/include/asm/paravirt.h~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/x86/include/asm/paravirt.h
-@@ -526,7 +526,6 @@ static inline void arch_end_context_swit
- 	PVOP_VCALL1(cpu.end_context_switch, next);
+ 	return ret;
+ }
+--- a/arch/powerpc/mm/book3s64/hash_tlb.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/arch/powerpc/mm/book3s64/hash_tlb.c
+@@ -205,7 +205,7 @@ void __flush_hash_table_range(unsigned l
+ 	 * way to do things but is fine for our needs here.
+ 	 */
+ 	local_irq_save(flags);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	for (; start < end; start += PAGE_SIZE) {
+ 		pte_t *ptep = find_init_mm_pte(start, &hugepage_shift);
+ 		unsigned long pte;
+@@ -217,7 +217,7 @@ void __flush_hash_table_range(unsigned l
+ 			continue;
+ 		hpte_need_flush(&init_mm, start, ptep, pte, hugepage_shift);
+ 	}
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	local_irq_restore(flags);
  }
  
--#define  __HAVE_ARCH_ENTER_LAZY_MMU_MODE
- static inline void arch_enter_lazy_mmu_mode(void)
- {
- 	PVOP_VCALL0(mmu.lazy_mode.enter);
---- a/arch/x86/Kconfig~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/arch/x86/Kconfig
-@@ -808,6 +808,7 @@ config PARAVIRT
- config PARAVIRT_XXL
- 	bool
- 	depends on X86_64
-+	select ARCH_HAS_LAZY_MMU_MODE
+@@ -237,7 +237,7 @@ void flush_hash_table_pmd_range(struct m
+ 	 * way to do things but is fine for our needs here.
+ 	 */
+ 	local_irq_save(flags);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	start_pte = pte_offset_map(pmd, addr);
+ 	if (!start_pte)
+ 		goto out;
+@@ -249,6 +249,6 @@ void flush_hash_table_pmd_range(struct m
+ 	}
+ 	pte_unmap(start_pte);
+ out:
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	local_irq_restore(flags);
+ }
+--- a/arch/powerpc/mm/book3s64/subpage_prot.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/arch/powerpc/mm/book3s64/subpage_prot.c
+@@ -73,13 +73,13 @@ static void hpte_flush_range(struct mm_s
+ 	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 	if (!pte)
+ 		return;
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	for (; npages > 0; --npages) {
+ 		pte_update(mm, addr, pte, 0, 0, 0);
+ 		addr += PAGE_SIZE;
+ 		++pte;
+ 	}
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	pte_unmap_unlock(pte - 1, ptl);
+ }
  
- config PARAVIRT_DEBUG
- 	bool "paravirt-ops debugging"
---- a/include/linux/pgtable.h~mm-introduce-config_arch_has_lazy_mmu_mode
+--- a/arch/x86/include/asm/pgtable.h~mm-introduce-generic-lazy_mmu-helpers
++++ a/arch/x86/include/asm/pgtable.h
+@@ -118,6 +118,7 @@ extern pmdval_t early_pmd_flags;
+ #define __pte(x)	native_make_pte(x)
+ 
+ #define arch_end_context_switch(prev)	do {} while(0)
++static inline void arch_flush_lazy_mmu_mode(void) {}
+ #endif	/* CONFIG_PARAVIRT_XXL */
+ 
+ static inline pmd_t pmd_set_flags(pmd_t pmd, pmdval_t set)
+--- a/fs/proc/task_mmu.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/fs/proc/task_mmu.c
+@@ -2739,7 +2739,7 @@ static int pagemap_scan_pmd_entry(pmd_t
+ 		return 0;
+ 	}
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	if ((p->arg.flags & PM_SCAN_WP_MATCHING) && !p->vec_out) {
+ 		/* Fast path for performing exclusive WP */
+@@ -2809,7 +2809,7 @@ flush_and_return:
+ 	if (flush_end)
+ 		flush_tlb_range(vma, start, addr);
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	pte_unmap_unlock(start_pte, ptl);
+ 
+ 	cond_resched();
+--- a/include/linux/pgtable.h~mm-introduce-generic-lazy_mmu-helpers
 +++ a/include/linux/pgtable.h
-@@ -235,7 +235,7 @@ static inline int pmd_dirty(pmd_t pmd)
+@@ -235,10 +235,31 @@ static inline int pmd_dirty(pmd_t pmd)
   *
   * Nesting is not permitted and the mode cannot be used in interrupt context.
   */
--#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
-+#ifndef CONFIG_ARCH_HAS_LAZY_MMU_MODE
- static inline void arch_enter_lazy_mmu_mode(void) {}
- static inline void arch_leave_lazy_mmu_mode(void) {}
- static inline void arch_flush_lazy_mmu_mode(void) {}
---- a/mm/Kconfig~mm-introduce-config_arch_has_lazy_mmu_mode
-+++ a/mm/Kconfig
-@@ -1464,6 +1464,13 @@ config PT_RECLAIM
- config FIND_NORMAL_PAGE
- 	def_bool n
- 
-+config ARCH_HAS_LAZY_MMU_MODE
-+	bool
-+	help
-+	  The architecture uses the lazy MMU mode. This allows changes to
-+	  MMU-related architectural state to be deferred until the mode is
-+	  exited. See <linux/pgtable.h> for details.
+-#ifndef CONFIG_ARCH_HAS_LAZY_MMU_MODE
+-static inline void arch_enter_lazy_mmu_mode(void) {}
+-static inline void arch_leave_lazy_mmu_mode(void) {}
+-static inline void arch_flush_lazy_mmu_mode(void) {}
++#ifdef CONFIG_ARCH_HAS_LAZY_MMU_MODE
++static inline void lazy_mmu_mode_enable(void)
++{
++	arch_enter_lazy_mmu_mode();
++}
 +
- source "mm/damon/Kconfig"
++static inline void lazy_mmu_mode_disable(void)
++{
++	arch_leave_lazy_mmu_mode();
++}
++
++static inline void lazy_mmu_mode_pause(void)
++{
++	arch_leave_lazy_mmu_mode();
++}
++
++static inline void lazy_mmu_mode_resume(void)
++{
++	arch_enter_lazy_mmu_mode();
++}
++#else
++static inline void lazy_mmu_mode_enable(void) {}
++static inline void lazy_mmu_mode_disable(void) {}
++static inline void lazy_mmu_mode_pause(void) {}
++static inline void lazy_mmu_mode_resume(void) {}
+ #endif
  
- endmenu
+ #ifndef pte_batch_hint
+--- a/mm/kasan/shadow.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/kasan/shadow.c
+@@ -305,7 +305,7 @@ static int kasan_populate_vmalloc_pte(pt
+ 	pte_t pte;
+ 	int index;
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_pause();
+ 
+ 	index = PFN_DOWN(addr - data->start);
+ 	page = data->pages[index];
+@@ -319,7 +319,7 @@ static int kasan_populate_vmalloc_pte(pt
+ 	}
+ 	spin_unlock(&init_mm.page_table_lock);
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_resume();
+ 
+ 	return 0;
+ }
+@@ -471,7 +471,7 @@ static int kasan_depopulate_vmalloc_pte(
+ 	pte_t pte;
+ 	int none;
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_pause();
+ 
+ 	spin_lock(&init_mm.page_table_lock);
+ 	pte = ptep_get(ptep);
+@@ -483,7 +483,7 @@ static int kasan_depopulate_vmalloc_pte(
+ 	if (likely(!none))
+ 		__free_page(pfn_to_page(pte_pfn(pte)));
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_resume();
+ 
+ 	return 0;
+ }
+--- a/mm/madvise.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/madvise.c
+@@ -453,7 +453,7 @@ restart:
+ 	if (!start_pte)
+ 		return 0;
+ 	flush_tlb_batched_pending(mm);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	for (; addr < end; pte += nr, addr += nr * PAGE_SIZE) {
+ 		nr = 1;
+ 		ptent = ptep_get(pte);
+@@ -461,7 +461,7 @@ restart:
+ 		if (++batch_count == SWAP_CLUSTER_MAX) {
+ 			batch_count = 0;
+ 			if (need_resched()) {
+-				arch_leave_lazy_mmu_mode();
++				lazy_mmu_mode_disable();
+ 				pte_unmap_unlock(start_pte, ptl);
+ 				cond_resched();
+ 				goto restart;
+@@ -497,7 +497,7 @@ restart:
+ 				if (!folio_trylock(folio))
+ 					continue;
+ 				folio_get(folio);
+-				arch_leave_lazy_mmu_mode();
++				lazy_mmu_mode_disable();
+ 				pte_unmap_unlock(start_pte, ptl);
+ 				start_pte = NULL;
+ 				err = split_folio(folio);
+@@ -508,7 +508,7 @@ restart:
+ 				if (!start_pte)
+ 					break;
+ 				flush_tlb_batched_pending(mm);
+-				arch_enter_lazy_mmu_mode();
++				lazy_mmu_mode_enable();
+ 				if (!err)
+ 					nr = 0;
+ 				continue;
+@@ -556,7 +556,7 @@ restart:
+ 	}
+ 
+ 	if (start_pte) {
+-		arch_leave_lazy_mmu_mode();
++		lazy_mmu_mode_disable();
+ 		pte_unmap_unlock(start_pte, ptl);
+ 	}
+ 	if (pageout)
+@@ -675,7 +675,7 @@ static int madvise_free_pte_range(pmd_t
+ 	if (!start_pte)
+ 		return 0;
+ 	flush_tlb_batched_pending(mm);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	for (; addr != end; pte += nr, addr += PAGE_SIZE * nr) {
+ 		nr = 1;
+ 		ptent = ptep_get(pte);
+@@ -724,7 +724,7 @@ static int madvise_free_pte_range(pmd_t
+ 				if (!folio_trylock(folio))
+ 					continue;
+ 				folio_get(folio);
+-				arch_leave_lazy_mmu_mode();
++				lazy_mmu_mode_disable();
+ 				pte_unmap_unlock(start_pte, ptl);
+ 				start_pte = NULL;
+ 				err = split_folio(folio);
+@@ -735,7 +735,7 @@ static int madvise_free_pte_range(pmd_t
+ 				if (!start_pte)
+ 					break;
+ 				flush_tlb_batched_pending(mm);
+-				arch_enter_lazy_mmu_mode();
++				lazy_mmu_mode_enable();
+ 				if (!err)
+ 					nr = 0;
+ 				continue;
+@@ -775,7 +775,7 @@ static int madvise_free_pte_range(pmd_t
+ 	if (nr_swap)
+ 		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
+ 	if (start_pte) {
+-		arch_leave_lazy_mmu_mode();
++		lazy_mmu_mode_disable();
+ 		pte_unmap_unlock(start_pte, ptl);
+ 	}
+ 	cond_resched();
+--- a/mm/memory.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/memory.c
+@@ -1256,7 +1256,7 @@ again:
+ 	spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
+ 	orig_src_pte = src_pte;
+ 	orig_dst_pte = dst_pte;
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	do {
+ 		nr = 1;
+@@ -1325,7 +1325,7 @@ again:
+ 	} while (dst_pte += nr, src_pte += nr, addr += PAGE_SIZE * nr,
+ 		 addr != end);
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	pte_unmap_unlock(orig_src_pte, src_ptl);
+ 	add_mm_rss_vec(dst_mm, rss);
+ 	pte_unmap_unlock(orig_dst_pte, dst_ptl);
+@@ -1842,7 +1842,7 @@ retry:
+ 		return addr;
+ 
+ 	flush_tlb_batched_pending(mm);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	do {
+ 		bool any_skipped = false;
+ 
+@@ -1874,7 +1874,7 @@ retry:
+ 		direct_reclaim = try_get_and_clear_pmd(mm, pmd, &pmdval);
+ 
+ 	add_mm_rss_vec(mm, rss);
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 
+ 	/* Do the actual TLB flush before dropping ptl */
+ 	if (force_flush) {
+@@ -2813,7 +2813,7 @@ static int remap_pte_range(struct mm_str
+ 	mapped_pte = pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
+ 	if (!pte)
+ 		return -ENOMEM;
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	do {
+ 		BUG_ON(!pte_none(ptep_get(pte)));
+ 		if (!pfn_modify_allowed(pfn, prot)) {
+@@ -2823,7 +2823,7 @@ static int remap_pte_range(struct mm_str
+ 		set_pte_at(mm, addr, pte, pte_mkspecial(pfn_pte(pfn, prot)));
+ 		pfn++;
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	pte_unmap_unlock(mapped_pte, ptl);
+ 	return err;
+ }
+@@ -3174,7 +3174,7 @@ static int apply_to_pte_range(struct mm_
+ 			return -EINVAL;
+ 	}
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	if (fn) {
+ 		do {
+@@ -3187,7 +3187,7 @@ static int apply_to_pte_range(struct mm_
+ 	}
+ 	*mask |= PGTBL_PTE_MODIFIED;
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 
+ 	if (mm != &init_mm)
+ 		pte_unmap_unlock(mapped_pte, ptl);
+--- a/mm/migrate_device.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/migrate_device.c
+@@ -271,7 +271,7 @@ again:
+ 	ptep = pte_offset_map_lock(mm, pmdp, start, &ptl);
+ 	if (!ptep)
+ 		goto again;
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	ptep += (addr - start) / PAGE_SIZE;
+ 
+ 	for (; addr < end; addr += PAGE_SIZE, ptep++) {
+@@ -313,7 +313,7 @@ again:
+ 			if (folio_test_large(folio)) {
+ 				int ret;
+ 
+-				arch_leave_lazy_mmu_mode();
++				lazy_mmu_mode_disable();
+ 				pte_unmap_unlock(ptep, ptl);
+ 				ret = migrate_vma_split_folio(folio,
+ 							  migrate->fault_page);
+@@ -356,7 +356,7 @@ again:
+ 			if (folio && folio_test_large(folio)) {
+ 				int ret;
+ 
+-				arch_leave_lazy_mmu_mode();
++				lazy_mmu_mode_disable();
+ 				pte_unmap_unlock(ptep, ptl);
+ 				ret = migrate_vma_split_folio(folio,
+ 							  migrate->fault_page);
+@@ -485,7 +485,7 @@ next:
+ 	if (unmapped)
+ 		flush_tlb_range(walk->vma, start, end);
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	pte_unmap_unlock(ptep - 1, ptl);
+ 
+ 	return 0;
+--- a/mm/mprotect.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/mprotect.c
+@@ -233,7 +233,7 @@ static long change_pte_range(struct mmu_
+ 		is_private_single_threaded = vma_is_single_threaded_private(vma);
+ 
+ 	flush_tlb_batched_pending(vma->vm_mm);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 	do {
+ 		nr_ptes = 1;
+ 		oldpte = ptep_get(pte);
+@@ -379,7 +379,7 @@ static long change_pte_range(struct mmu_
+ 			}
+ 		}
+ 	} while (pte += nr_ptes, addr += nr_ptes * PAGE_SIZE, addr != end);
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 
+ 	return pages;
+--- a/mm/mremap.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/mremap.c
+@@ -260,7 +260,7 @@ static int move_ptes(struct pagetable_mo
+ 	if (new_ptl != old_ptl)
+ 		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
+ 	flush_tlb_batched_pending(vma->vm_mm);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	for (; old_addr < old_end; old_ptep += nr_ptes, old_addr += nr_ptes * PAGE_SIZE,
+ 		new_ptep += nr_ptes, new_addr += nr_ptes * PAGE_SIZE) {
+@@ -305,7 +305,7 @@ static int move_ptes(struct pagetable_mo
+ 		}
+ 	}
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	if (force_flush)
+ 		flush_tlb_range(vma, old_end - len, old_end);
+ 	if (new_ptl != old_ptl)
+--- a/mm/userfaultfd.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/userfaultfd.c
+@@ -1103,7 +1103,7 @@ static long move_present_ptes(struct mm_
+ 	/* It's safe to drop the reference now as the page-table is holding one. */
+ 	folio_put(*first_src_folio);
+ 	*first_src_folio = NULL;
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	while (true) {
+ 		orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
+@@ -1140,7 +1140,7 @@ static long move_present_ptes(struct mm_
+ 			break;
+ 	}
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	if (src_addr > src_start)
+ 		flush_tlb_range(src_vma, src_start, src_addr);
+ 
+--- a/mm/vmalloc.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/vmalloc.c
+@@ -108,7 +108,7 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 	if (!pte)
+ 		return -ENOMEM;
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	do {
+ 		if (unlikely(!pte_none(ptep_get(pte)))) {
+@@ -134,7 +134,7 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 		pfn++;
+ 	} while (pte += PFN_DOWN(size), addr += size, addr != end);
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	*mask |= PGTBL_PTE_MODIFIED;
+ 	return 0;
+ }
+@@ -366,7 +366,7 @@ static void vunmap_pte_range(pmd_t *pmd,
+ 	unsigned long size = PAGE_SIZE;
+ 
+ 	pte = pte_offset_kernel(pmd, addr);
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	do {
+ #ifdef CONFIG_HUGETLB_PAGE
+@@ -385,7 +385,7 @@ static void vunmap_pte_range(pmd_t *pmd,
+ 		WARN_ON(!pte_none(ptent) && !pte_present(ptent));
+ 	} while (pte += (size >> PAGE_SHIFT), addr += size, addr != end);
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	*mask |= PGTBL_PTE_MODIFIED;
+ }
+ 
+@@ -533,7 +533,7 @@ static int vmap_pages_pte_range(pmd_t *p
+ 	if (!pte)
+ 		return -ENOMEM;
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	do {
+ 		struct page *page = pages[*nr];
+@@ -555,7 +555,7 @@ static int vmap_pages_pte_range(pmd_t *p
+ 		(*nr)++;
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	*mask |= PGTBL_PTE_MODIFIED;
+ 
+ 	return err;
+--- a/mm/vmscan.c~mm-introduce-generic-lazy_mmu-helpers
++++ a/mm/vmscan.c
+@@ -3516,7 +3516,7 @@ static bool walk_pte_range(pmd_t *pmd, u
+ 		return false;
+ 	}
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ restart:
+ 	for (i = pte_index(start), addr = start; addr != end; i++, addr += PAGE_SIZE) {
+ 		unsigned long pfn;
+@@ -3557,7 +3557,7 @@ restart:
+ 	if (i < PTRS_PER_PTE && get_next_vma(PMD_MASK, PAGE_SIZE, args, &start, &end))
+ 		goto restart;
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	pte_unmap_unlock(pte, ptl);
+ 
+ 	return suitable_to_scan(total, young);
+@@ -3598,7 +3598,7 @@ static void walk_pmd_range_locked(pud_t
+ 	if (!spin_trylock(ptl))
+ 		goto done;
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	do {
+ 		unsigned long pfn;
+@@ -3645,7 +3645,7 @@ next:
+ 
+ 	walk_update_folio(walk, last, gen, dirty);
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 	spin_unlock(ptl);
+ done:
+ 	*first = -1;
+@@ -4244,7 +4244,7 @@ bool lru_gen_look_around(struct page_vma
+ 		}
+ 	}
+ 
+-	arch_enter_lazy_mmu_mode();
++	lazy_mmu_mode_enable();
+ 
+ 	pte -= (addr - start) / PAGE_SIZE;
+ 
+@@ -4278,7 +4278,7 @@ bool lru_gen_look_around(struct page_vma
+ 
+ 	walk_update_folio(walk, last, gen, dirty);
+ 
+-	arch_leave_lazy_mmu_mode();
++	lazy_mmu_mode_disable();
+ 
+ 	/* feedback from rmap walkers to page table walkers */
+ 	if (mm_state && suitable_to_scan(i, young))
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
