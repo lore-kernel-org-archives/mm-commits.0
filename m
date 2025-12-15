@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3E6D2DA76A
-	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 17:48:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85B3A322B62
+	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 17:50:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765820939; cv=none; b=HKCjOuOwQKsS/+AAPcEaV4yPB8+z6OXtMErIx+RJvlPtT6zg1lFkEHotsASDC1iu3SOmA46lY0QY1BOa0ScMVD5yx/zCISqI0hDUVk+NkmmFex6NkssnGvbV6+xPY1oxLGt4D/sWT3/dju8IMd/rJx8HXl9JuqXrdrhiF5cZFmA=
+	t=1765821001; cv=none; b=MV4TZ0bDW5Y5QdqSkkHQF4mInOJq1AO2666J70UXkeO20HSBDFs+dkTo+bUfyBj/P8KRmz3RIbapo7wQK9f5mZ7H3o9UDf5EAdOTkE2b7rzonoFtyLvaHdysPBl2anBTgfd6DACXJB9aGjwFlA6waUttbsH5D+AR+2p5eb93WTw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765820939; c=relaxed/simple;
-	bh=U56EYdnnMDGeJGKKeo+MzRS4HpYlBJpgZlCI+T+0kP8=;
-	h=Date:To:From:Subject:Message-Id; b=uYQPKlWQPfDqQxAFUtGmBvxthGR27oOrGRr69jueCyjYJovz3R+t9ueqPYZs+AfoV6Q1u05P9hRK9snJMIZCpeCPazEKXbYEGbXPBu3mq6FuWhzZNImNQ1JmLtv1yGAtwP3VXmJZ0SwNQOZT58ekhybZixLCCa4wHVWxECgaI6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jPWM0oY5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765821001; c=relaxed/simple;
+	bh=RZqmq3HWjzVR29tRy7PLcz1Lqd13rAMQA9AXZRCh2U4=;
+	h=Date:To:From:Subject:Message-Id; b=SKQpS8AqMVbESRRZXHkkYZt942+oOR1Cy31bMfmdnyKoH0JnWWumGX/e4xSN+qCBVT9Y03fuKd6L68NQ5L2qqPFQnYsPQIhTB47hQKOdUBplf/WowE7CShNmLbK5E/2mPIGTPc7RWkZkEC3fu0Yu53oKKX7GQu/+ItQX9v4Ac/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l35tGbt+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jPWM0oY5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 288FBC4CEF5;
-	Mon, 15 Dec 2025 17:48:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l35tGbt+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD6C0C116B1;
+	Mon, 15 Dec 2025 17:50:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765820939;
-	bh=U56EYdnnMDGeJGKKeo+MzRS4HpYlBJpgZlCI+T+0kP8=;
+	s=korg; t=1765821001;
+	bh=RZqmq3HWjzVR29tRy7PLcz1Lqd13rAMQA9AXZRCh2U4=;
 	h=Date:To:From:Subject:From;
-	b=jPWM0oY5+iXRKElZJ/5mBW95bzv9x/YvYjORao56BvSRpd3ITFdZ0OFMnSZ7rLV6/
-	 JKsE8ZdrTlEhjLa4YQHFAxEmTE+AFpe+3RhMhIhKzwtBRNRDNk7YakFoVMtJ+uRcaP
-	 sc5lMsjnKhzpThyn9pP0G7uThVzkVz+yofFLgsuw=
-Date: Mon, 15 Dec 2025 09:48:58 -0800
-To: mm-commits@vger.kernel.org,hverkuil@kernel.org,bartosz.golaszewski@oss.qualcomm.com,akpm@linux-foundation.org
+	b=l35tGbt+AN2UIZcz5cj23PGAjU4Pk3fwsgPH9CpT/jx/6cqHxB7vNuAdmiCavdaJ0
+	 OWOVyeYnI/FAj0dxgd+UGJAi/SOHv2P+lyjuCCQYWFviltF7on5pTmPG6UtyDAqb5c
+	 QWhrrhiXxZNDfJUX2G0937RklpF8eJQBf8+W0kUU=
+Date: Mon, 15 Dec 2025 09:50:00 -0800
+To: mm-commits@vger.kernel.org,urezki@gmail.com,anshuman.khandual@arm.com,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-one-straggling-entry-for-bartosz-golaszewski.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251215174859.288FBC4CEF5@smtp.kernel.org>
+Subject: + mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch added to mm-unstable branch
+Message-Id: <20251215175000.DD6C0C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: update one straggling entry for Bartosz Golaszewski
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-update-one-straggling-entry-for-bartosz-golaszewski.patch
+     Subject: mm/vmalloc: clarify why vmap_range_noflush() might sleep
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-one-straggling-entry-for-bartosz-golaszewski.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,36 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Subject: MAINTAINERS: update one straggling entry for Bartosz Golaszewski
-Date: Thu, 4 Dec 2025 11:45:31 +0100
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm/vmalloc: clarify why vmap_range_noflush() might sleep
+Date: Mon, 15 Dec 2025 10:40:25 +0000
 
-The entry for the Qualcomm bluetooth driver only now got sent upstream and
-still has my old address.  Update it to use the kernel.org one.
+The only reason vmap_range_noflush() can sleep is because of pagetable
+allocations.
 
-Link: https://lkml.kernel.org/r/20251204104531.22045-1-bartosz.golaszewski@oss.qualcomm.com
-Signed-off-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-Cc: Hans Verkuil <hverkuil@kernel.org>
+The actual allocation mechanism is arch-specific so might_alloc() doesn't
+work here (what GFP flags would be used?).  Hence, just add a comment.
+
+Also note that this might do a TLB shootdown.  This is not actually
+sleeping but it requires IRQs on for x86, and might_sleep() incidentally
+serves to detect violations of that too.
+
+Link: https://lkml.kernel.org/r/20251215-b4-vmalloc-might_alloc-v3-1-92dd8e406868@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/MAINTAINERS~maintainers-update-one-straggling-entry-for-bartosz-golaszewski
-+++ a/MAINTAINERS
-@@ -21347,7 +21347,7 @@ F:	Documentation/devicetree/bindings/net
- F:	drivers/net/wwan/qcom_bam_dmux.c
+--- a/mm/vmalloc.c~mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep
++++ a/mm/vmalloc.c
+@@ -305,6 +305,11 @@ static int vmap_range_noflush(unsigned l
+ 	int err;
+ 	pgtbl_mod_mask mask = 0;
  
- QUALCOMM BLUETOOTH DRIVER
--M:	Bartosz Golaszewski <brgl@bgdev.pl>
-+M:	Bartosz Golaszewski <brgl@kernel.org>
- L:	linux-arm-msm@vger.kernel.org
- S:	Maintained
- F:	drivers/bluetooth/btqca.[ch]
++	/*
++	 * Might allocate pagetables (for most archs a more precise annotation
++	 * would be might_alloc(GFP_PGTABLE_KERNEL)). Also might shootdown TLB
++	 * (requires IRQs enabled on x86).
++	 */
+ 	might_sleep();
+ 	BUG_ON(addr >= end);
+ 
 _
 
-Patches currently in -mm which might be from bartosz.golaszewski@oss.qualcomm.com are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-maintainers-update-one-straggling-entry-for-bartosz-golaszewski.patch
+mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch
 
