@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85B3A322B62
-	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 17:50:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76CBC322B62
+	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 18:00:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765821001; cv=none; b=MV4TZ0bDW5Y5QdqSkkHQF4mInOJq1AO2666J70UXkeO20HSBDFs+dkTo+bUfyBj/P8KRmz3RIbapo7wQK9f5mZ7H3o9UDf5EAdOTkE2b7rzonoFtyLvaHdysPBl2anBTgfd6DACXJB9aGjwFlA6waUttbsH5D+AR+2p5eb93WTw=
+	t=1765821603; cv=none; b=jb4SjZNDTeFhElyQl5SenjT1G3ywMDb4TdtsCdfHbDMpQDoJxxXBwNL9QdH8xXOEOp+RvjN2CKxOM1ug5s9TO1Y1+G2+uznYt62qXL2KdyWtT1ycwUO2NYS8W66edMB9/5a4AgS8K8AcCvRLOK/dcgdUo+fjwH6t5Fu58mjCoNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765821001; c=relaxed/simple;
-	bh=RZqmq3HWjzVR29tRy7PLcz1Lqd13rAMQA9AXZRCh2U4=;
-	h=Date:To:From:Subject:Message-Id; b=SKQpS8AqMVbESRRZXHkkYZt942+oOR1Cy31bMfmdnyKoH0JnWWumGX/e4xSN+qCBVT9Y03fuKd6L68NQ5L2qqPFQnYsPQIhTB47hQKOdUBplf/WowE7CShNmLbK5E/2mPIGTPc7RWkZkEC3fu0Yu53oKKX7GQu/+ItQX9v4Ac/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l35tGbt+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765821603; c=relaxed/simple;
+	bh=MivtAg1Baz0G0B5yUxybrbTDXm+3+Yy4Wha/aMlj48M=;
+	h=Date:To:From:Subject:Message-Id; b=PYA5/yLTYzaPT59arRYMyW8/0k/251k0qB3g1+fhX9vaD7gvHIJ/gLH82ctoXMLlrGLEbZdTgpurw5U8cC6Rwi5yh09aBVccnltp7jWXQs4XBemSkuDuxLbkLicEY4O9hw/jihGA7TC9wrhD4wosBHyFx5IbBbzzZM1a7AumpSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nwnhyO9N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l35tGbt+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD6C0C116B1;
-	Mon, 15 Dec 2025 17:50:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nwnhyO9N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACAA5C4CEF5;
+	Mon, 15 Dec 2025 18:00:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765821001;
-	bh=RZqmq3HWjzVR29tRy7PLcz1Lqd13rAMQA9AXZRCh2U4=;
+	s=korg; t=1765821602;
+	bh=MivtAg1Baz0G0B5yUxybrbTDXm+3+Yy4Wha/aMlj48M=;
 	h=Date:To:From:Subject:From;
-	b=l35tGbt+AN2UIZcz5cj23PGAjU4Pk3fwsgPH9CpT/jx/6cqHxB7vNuAdmiCavdaJ0
-	 OWOVyeYnI/FAj0dxgd+UGJAi/SOHv2P+lyjuCCQYWFviltF7on5pTmPG6UtyDAqb5c
-	 QWhrrhiXxZNDfJUX2G0937RklpF8eJQBf8+W0kUU=
-Date: Mon, 15 Dec 2025 09:50:00 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,anshuman.khandual@arm.com,jackmanb@google.com,akpm@linux-foundation.org
+	b=nwnhyO9NNIXBZClHsV3I9LYymOQKfujqeEiz27RSpE0DlLY8aqqlgFhQ1TpUgCjEb
+	 x393px5DMMF2meUVgnqfrniVxt8eAl+/Br0QbXuQkYLllelkHFH6k3StLrxrIl+ZQ0
+	 7CmIzEdr8CQqeTpn9T4MULz/2X5/T+FNXCXsQtjE=
+Date: Mon, 15 Dec 2025 10:00:01 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,keescook@chromium.org,glider@google.com,elver@google.com,dvyukov@google.com,ardb@kernel.org,andreyknvl@gmail.com,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch added to mm-unstable branch
-Message-Id: <20251215175000.DD6C0C116B1@smtp.kernel.org>
+Subject: + kasan-mark-__sanitize_address__-stubs-__always_inline.patch added to mm-new branch
+Message-Id: <20251215180002.ACAA5C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: clarify why vmap_range_noflush() might sleep
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch
+     Subject: kasan: mark !__SANITIZE_ADDRESS__ stubs __always_inline
+has been added to the -mm mm-new branch.  Its filename is
+     kasan-mark-__sanitize_address__-stubs-__always_inline.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-mark-__sanitize_address__-stubs-__always_inline.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,46 +65,101 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/vmalloc: clarify why vmap_range_noflush() might sleep
-Date: Mon, 15 Dec 2025 10:40:25 +0000
+Subject: kasan: mark !__SANITIZE_ADDRESS__ stubs __always_inline
+Date: Mon, 15 Dec 2025 10:12:39 +0000
 
-The only reason vmap_range_noflush() can sleep is because of pagetable
-allocations.
+Patch series "Noinstr fixes for K[CA]SAN with GCOV", v2.
 
-The actual allocation mechanism is arch-specific so might_alloc() doesn't
-work here (what GFP flags would be used?).  Hence, just add a comment.
+ - clang --version
+   Debian clang version 19.1.7 (3+build5)
+   Target: x86_64-pc-linux-gnu
+   Thread model: posix
+   InstalledDir: /usr/lib/llvm-19/bin
 
-Also note that this might do a TLB shootdown.  This is not actually
-sleeping but it requires IRQs on for x86, and might_sleep() incidentally
-serves to detect violations of that too.
+ - Kernel config:
 
-Link: https://lkml.kernel.org/r/20251215-b4-vmalloc-might_alloc-v3-1-92dd8e406868@google.com
+   https://gist.githubusercontent.com/bjackman/bbfdf4ec2e1dfd0e18657174f053=
+7e2c/raw/a88dcc6567d14c69445e7928a7d5dfc23ca9f619/gistfile0.txt
+
+Note I also get this error:
+
+vmlinux.o: warning: objtool: set_ftrace_ops_ro+0x3b: relocation to !ENDBR: =
+machine_kexec_prepare+0x810
+
+That one's a total mystery to me. I guess it's better to "fix" the SEV
+one independently rather than waiting until I know how to fix them both.
+
+Note I also mentioned other similar errors in [0]. Those errors don't
+exist in Linus' master and I didn't note down where I saw them. Either
+they have since been fixed, or I observed them in Google's internal
+codebase where they were instroduced downstream.
+
+As discussed in [2], the GCOV+*SAN issue is attacked from two angles:
+both adding __always_inline to the instrumentation helpers AND disabling
+GCOV for noinstr.c. Only one or the other of these things is needed to
+make the build error go away, but they both make sense in their own
+right and both may serve to prevent other similar errors from cropping
+up in future.
+
+
+This patch (of 3):
+
+The x86 instrumented bitops in
+include/asm-generic/bitops/instrumented-non-atomic.h are
+KASAN-instrumented via explicit calls to instrument_* functions from
+include/linux/instrumented.h.
+
+These bitops are used from noinstr code in __sev_es_nmi_complete().  This
+code avoids noinstr violations by disabling __SANITIZE_ADDRESS__ etc for
+the compilation unit.
+
+However, when GCOV is enabled, there can still be violations caused by the
+stub versions of these functions, since coverage instrumentation is
+injected that causes them to be out-of-lined.
+
+Fix this by just applying __always_inline.
+
+Link: https://lkml.kernel.org/r/20251215-gcov-inline-noinstr-v2-1-6f100b94fa99@google.com
+Link: https://lore.kernel.org/all/DERNCQGNRITE.139O331ACPKZ9@google.com/ [1]
+Link: https://lore.kernel.org/all/20251117-b4-sev-gcov-objtool-v1-1-54f7790d54df@google.com/ [2]
+Link: https://lore.kernel.org/r/20251208-gcov-inline-noinstr-v1-0-623c48ca5714@google.com [3]
 Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/kasan-checks.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep
-+++ a/mm/vmalloc.c
-@@ -305,6 +305,11 @@ static int vmap_range_noflush(unsigned l
- 	int err;
- 	pgtbl_mod_mask mask = 0;
- 
-+	/*
-+	 * Might allocate pagetables (for most archs a more precise annotation
-+	 * would be might_alloc(GFP_PGTABLE_KERNEL)). Also might shootdown TLB
-+	 * (requires IRQs enabled on x86).
-+	 */
- 	might_sleep();
- 	BUG_ON(addr >= end);
- 
+--- a/include/linux/kasan-checks.h~kasan-mark-__sanitize_address__-stubs-__always_inline
++++ a/include/linux/kasan-checks.h
+@@ -37,11 +37,11 @@ static inline bool __kasan_check_write(c
+ #define kasan_check_read __kasan_check_read
+ #define kasan_check_write __kasan_check_write
+ #else
+-static inline bool kasan_check_read(const volatile void *p, unsigned int size)
++static __always_inline bool kasan_check_read(const volatile void *p, unsigned int size)
+ {
+ 	return true;
+ }
+-static inline bool kasan_check_write(const volatile void *p, unsigned int size)
++static __always_inline bool kasan_check_write(const volatile void *p, unsigned int size)
+ {
+ 	return true;
+ }
 _
 
 Patches currently in -mm which might be from jackmanb@google.com are
 
 mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch
+kasan-mark-__sanitize_address__-stubs-__always_inline.patch
+kcsan-mark-__sanitize_thread__-stub-__always_inline.patch
+x86-sev-disable-gcov-on-noinstr-object.patch
 
