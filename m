@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8534335BA1
-	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 17:16:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73477337BA2
+	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 17:16:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765818983; cv=none; b=MyfWwk/Dg86L0Udi7nz2yhRMmsm/F6jRYPVwSK0Tckm5VI/cKqM39u9ymZrcGHmC2T4hf/958mLhti3QYRJrmU1RSQJD2mskSWAMBEh+Of3oy1Nev6wOhKwjwtDDYcqMon06uXraQ7ztTQntzipLOKBJ1FA/NbywioPCD9tJbf4=
+	t=1765818986; cv=none; b=uKEmN2aAICj89XhBCCpg5EW8VRGpqMMs1ETQxeIG3ByeOy7Ob5M6iaZH9VHn61u8+bXlirFE7aFUyHILPuPr79SpBrcPsLbqr21JUs5+Bt2rfwNuXsYn8C6U12VtTKQ4lAgDCqNNujDuXFMwLplTVxUQNwVlX3iO7x1aHe48SFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765818983; c=relaxed/simple;
-	bh=bYE8wJKeWH32Lg9s3In2kQVIrNwIUJX2eFtecxY+peg=;
-	h=Date:To:From:Subject:Message-Id; b=LIvydZ8BAh3VLwL9tgPMDAcm3iKaJ65LYj/1OGdV3jr8WsAJZPowjYPDzUhFYaJSnqYFzYjO9t1vdvq6i2ZA2wHB5VaHWdwcxeFttHoXIrBO5FoA+cdTYC80VPn549EshzXtQiBFcCze4ELWpCOxu3FQFG9ZDpF7aFrGz2d38/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gIuqKBlJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765818986; c=relaxed/simple;
+	bh=/ov7pw2YftR1FUPwJyR2GpAxJ6/nAz4vxXUAkM6vm7M=;
+	h=Date:To:From:Subject:Message-Id; b=L1BR+wzacDF95RSDi7BNPqe3z8gFvYOYuRx563HhUV18yAFFDQFYFASKK+vCYM82p2qRP9SjeSAGK/j6dnc2yymyus7S5ycuFx4SvccLs1WLnGKoJ9vzGyihk9wUi29wkbphGrN5RbtDjc94GcySyNJqLfzGDPrLy9/NoUtlMkk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=biyOsCAQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gIuqKBlJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09C9AC19421;
-	Mon, 15 Dec 2025 17:16:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="biyOsCAQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D77D7C116B1;
+	Mon, 15 Dec 2025 17:16:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765818983;
-	bh=bYE8wJKeWH32Lg9s3In2kQVIrNwIUJX2eFtecxY+peg=;
+	s=korg; t=1765818986;
+	bh=/ov7pw2YftR1FUPwJyR2GpAxJ6/nAz4vxXUAkM6vm7M=;
 	h=Date:To:From:Subject:From;
-	b=gIuqKBlJuH1Qs4282eyXi0KqSCJOBjJri3T2NEu/N1+PzSAFI7ZEmAN8QJHl1vyMy
-	 IkrtmDv0nQddPloCNZh0OCcWNkhC2F3DUZrihxjzY7Iapyqlpvan5kduQecwe9Ketb
-	 rZjGljAUoXBruz06H4V28ZRuwqU2KkZRO4XyIV/4=
-Date: Mon, 15 Dec 2025 09:16:22 -0800
-To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,venkat88@linux.ibm.com,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,dwmw2@infradead.org,david@redhat.com,david@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,anshuman.khandual@arm.com,andreas@gaisler.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=biyOsCAQXVWaqx0VQ7MXxBSzMrQxJmHHWHQ01N3g7JBp6SLLr/U0onZ43+cq8IHBy
+	 ovEY8ZO949Mr4itHZho7drCqpq62lt772KyMIguYJcgUmaf6aYXIRzo/o1RautwAci
+	 USV9q3n0R2ah4P40p44b5XQCHexxvJJhd9l3shTg=
+Date: Mon, 15 Dec 2025 09:16:25 -0800
+To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,venkat88@linux.ibm.com,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,dwmw2@infradead.org,david@redhat.com,david@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,anshuman.khandual@arm.com,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-64s-do-not-re-activate-batched-tlb-flush.patch added to mm-new branch
-Message-Id: <20251215171623.09C9AC19421@smtp.kernel.org>
+Subject: + x86-xen-simplify-flush_lazy_mmu.patch added to mm-new branch
+Message-Id: <20251215171625.D77D7C116B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc/64s: do not re-activate batched TLB flush
+     Subject: x86/xen: simplify flush_lazy_mmu()
 has been added to the -mm mm-new branch.  Its filename is
-     powerpc-64s-do-not-re-activate-batched-tlb-flush.patch
+     x86-xen-simplify-flush_lazy_mmu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-64s-do-not-re-activate-batched-tlb-flush.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-xen-simplify-flush_lazy_mmu.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,71 +64,34 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: powerpc/64s: do not re-activate batched TLB flush
-Date: Mon, 15 Dec 2025 15:03:10 +0000
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+Subject: x86/xen: simplify flush_lazy_mmu()
+Date: Mon, 15 Dec 2025 15:03:11 +0000
 
-Patch series "Nesting support for lazy MMU mode", v6.
+arch_flush_lazy_mmu_mode() is called when outstanding batched pgtable
+operations must be completed immediately.  There should however be no need
+to leave and re-enter lazy MMU completely.  The only part of that sequence
+that we really need is xen_mc_flush(); call it directly.
 
-When the lazy MMU mode was introduced eons ago, it wasn't made clear
-whether such a sequence was legal:
-
-	arch_enter_lazy_mmu_mode()
-	...
-		arch_enter_lazy_mmu_mode()
-		...
-		arch_leave_lazy_mmu_mode()
-	...
-	arch_leave_lazy_mmu_mode()
-
-It seems fair to say that nested calls to
-arch_{enter,leave}_lazy_mmu_mode() were not expected, and most
-architectures never explicitly supported it.
-
-Nesting does in fact occur in certain configurations, and avoiding it has
-proved difficult.  This series therefore enables lazy_mmu sections to
-nest, on all architectures.
-
-Nesting is handled using a counter in task_struct (patch 8), like other
-stateless APIs such as pagefault_{disable,enable}().  This is fully
-handled in a new generic layer in <linux/pgtable.h>; the arch_* API
-remains unchanged.  A new pair of calls, lazy_mmu_mode_{pause,resume}(),
-is also introduced to allow functions that are called with the lazy MMU
-mode enabled to temporarily pause it, regardless of nesting.
-
-An arch now opts in to using the lazy MMU mode by selecting
-CONFIG_ARCH_LAZY_MMU; this is more appropriate now that we have a generic
-API, especially with state conditionally added to task_struct.
-
-
-This patch (of 14):
-
-Since commit b9ef323ea168 ("powerpc/64s: Disable preemption in hash lazy
-mmu mode") a task can not be preempted while in lazy MMU mode.  Therefore,
-the batch re-activation code is never called, so remove it.
-
-Link: https://lkml.kernel.org/r/20251215150323.2218608-1-kevin.brodsky@arm.com
-Link: https://lkml.kernel.org/r/20251215150323.2218608-2-kevin.brodsky@arm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20251215150323.2218608-3-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Reviewed-by: Juergen Gross <jgross@suse.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Juegren Gross <jgross@suse.com>
-Cc: levi.yun <yeoreum.yun@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -137,85 +100,48 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
+Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/thread_info.h |    2 -
- arch/powerpc/kernel/process.c          |   25 -----------------------
- 2 files changed, 27 deletions(-)
+ arch/x86/xen/mmu_pv.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/arch/powerpc/include/asm/thread_info.h~powerpc-64s-do-not-re-activate-batched-tlb-flush
-+++ a/arch/powerpc/include/asm/thread_info.h
-@@ -154,12 +154,10 @@ void arch_setup_new_exec(void);
- /* Don't move TLF_NAPPING without adjusting the code in entry_32.S */
- #define TLF_NAPPING		0	/* idle thread enabled NAP mode */
- #define TLF_SLEEPING		1	/* suspend code enabled SLEEP mode */
--#define TLF_LAZY_MMU		3	/* tlb_batch is active */
- #define TLF_RUNLATCH		4	/* Is the runlatch enabled? */
- 
- #define _TLF_NAPPING		(1 << TLF_NAPPING)
- #define _TLF_SLEEPING		(1 << TLF_SLEEPING)
--#define _TLF_LAZY_MMU		(1 << TLF_LAZY_MMU)
- #define _TLF_RUNLATCH		(1 << TLF_RUNLATCH)
- 
- #ifndef __ASSEMBLER__
---- a/arch/powerpc/kernel/process.c~powerpc-64s-do-not-re-activate-batched-tlb-flush
-+++ a/arch/powerpc/kernel/process.c
-@@ -1281,9 +1281,6 @@ struct task_struct *__switch_to(struct t
+--- a/arch/x86/xen/mmu_pv.c~x86-xen-simplify-flush_lazy_mmu
++++ a/arch/x86/xen/mmu_pv.c
+@@ -2139,10 +2139,8 @@ static void xen_flush_lazy_mmu(void)
  {
- 	struct thread_struct *new_thread, *old_thread;
- 	struct task_struct *last;
--#ifdef CONFIG_PPC_64S_HASH_MMU
--	struct ppc64_tlb_batch *batch;
--#endif
+ 	preempt_disable();
  
- 	new_thread = &new->thread;
- 	old_thread = &current->thread;
-@@ -1291,14 +1288,6 @@ struct task_struct *__switch_to(struct t
- 	WARN_ON(!irqs_disabled());
- 
- #ifdef CONFIG_PPC_64S_HASH_MMU
--	batch = this_cpu_ptr(&ppc64_tlb_batch);
--	if (batch->active) {
--		current_thread_info()->local_flags |= _TLF_LAZY_MMU;
--		if (batch->index)
--			__flush_tlb_pending(batch);
--		batch->active = 0;
+-	if (xen_get_lazy_mode() == XEN_LAZY_MMU) {
+-		arch_leave_lazy_mmu_mode();
+-		arch_enter_lazy_mmu_mode();
 -	}
--
- 	/*
- 	 * On POWER9 the copy-paste buffer can only paste into
- 	 * foreign real addresses, so unprivileged processes can not
-@@ -1369,20 +1358,6 @@ struct task_struct *__switch_to(struct t
- 	 */
++	if (xen_get_lazy_mode() == XEN_LAZY_MMU)
++		xen_mc_flush();
  
- #ifdef CONFIG_PPC_BOOK3S_64
--#ifdef CONFIG_PPC_64S_HASH_MMU
--	/*
--	 * This applies to a process that was context switched while inside
--	 * arch_enter_lazy_mmu_mode(), to re-activate the batch that was
--	 * deactivated above, before _switch(). This will never be the case
--	 * for new tasks.
--	 */
--	if (current_thread_info()->local_flags & _TLF_LAZY_MMU) {
--		current_thread_info()->local_flags &= ~_TLF_LAZY_MMU;
--		batch = this_cpu_ptr(&ppc64_tlb_batch);
--		batch->active = 1;
--	}
--#endif
--
- 	/*
- 	 * Math facilities are masked out of the child MSR in copy_thread.
- 	 * A new task does not need to restore_math because it will
+ 	preempt_enable();
+ }
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from kevin.brodsky@arm.com are
 
-mm-page_alloc-change-all-pageblocks-migrate-type-on-coalescing.patch
-powerpc-64s-do-not-re-activate-batched-tlb-flush.patch
+x86-xen-simplify-flush_lazy_mmu.patch
+powerpc-mm-implement-arch_flush_lazy_mmu_mode.patch
+sparc-mm-implement-arch_flush_lazy_mmu_mode.patch
+mm-clarify-lazy_mmu-sleeping-constraints.patch
+mm-introduce-config_arch_has_lazy_mmu_mode.patch
+mm-introduce-generic-lazy_mmu-helpers.patch
+mm-bail-out-of-lazy_mmu_mode_-in-interrupt-context.patch
+mm-enable-lazy_mmu-sections-to-nest.patch
+arm64-mm-replace-tif_lazy_mmu-with-is_lazy_mmu_mode_active.patch
+powerpc-mm-replace-batch-active-with-is_lazy_mmu_mode_active.patch
+sparc-mm-replace-batch-active-with-is_lazy_mmu_mode_active.patch
+x86-xen-use-lazy_mmu_state-when-context-switching.patch
+mm-add-basic-tests-for-lazy_mmu.patch
 
