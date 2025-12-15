@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22026268690;
-	Mon, 15 Dec 2025 18:23:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36BF71F92E
+	for <mm-commits@vger.kernel.org>; Mon, 15 Dec 2025 19:02:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765823024; cv=none; b=U0eX4SwhKJyfFRZAx2zFRorBoZACe7qd7oPs8izkzkxOV6s0re+jMU67p1pHvvq4IqgQmQGiJrftI4AryEu2FA96GlzQl879Gx+lXhK9D32oWHECELMzI3HZUWOekrlKGlvSUGVaiO4NuSqvhzLP6KZlDtNLDvd2bFiYBqenDis=
+	t=1765825328; cv=none; b=RszKCq10KYKhxawMTxmuvgz7TYfDOCL3+WihP0TE7XPpxcD/aUaX2ncSI+wjyqWY430drYvH6yYPZTTnqMulkjvRnzZHbuaHDFFFxZ3j/SUJcXaBTPshZT1LbzQwjzwE1wVv7njCLY5SE232MU5XwUtKKxmfvXTAxSTsiamfFzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765823024; c=relaxed/simple;
-	bh=j8SEOucCA7js+1o2Wwg1Nsvy4KvZJAKCedv7uO+JuXo=;
-	h=Date:To:From:Subject:Message-Id; b=jhMl9/NncNH9eCEiZEO/M6NGGVULLg59c4qXEVHbRO7T/CUHgDLarK0ZzL45Z24Us8d9G5vMRbR+C1LD0mege2nGlPGHI7ZAo4btNqbyan4fuv4tZETM/nEPE+l9BpJUIAtQ3N+RPf3uMe/isPO4z+omOSYImdG/n1FWPvq7wrg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tgcIQDUM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765825328; c=relaxed/simple;
+	bh=x/ln3LDwBehQEaOim/gDdSBRNVD6PUNcHijGjT6ikz4=;
+	h=Date:To:From:Subject:Message-Id; b=LVwWjOpImQBrM154Kxr5xeW3AYv6xCJjEeaeX7dnwGhbcZNn2gqIotyO2Ar37rXUK3qguMGLz9vXBuNEs/28sYK3vVR6rezh3eHRChQmNKthtmo8/pDffimoXG3P2jm4gEyNApHi9vpL5ObklNHfpI3W8w+WuUWJJwjA58Cesw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=isSoRPDc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tgcIQDUM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 863B0C4CEF5;
-	Mon, 15 Dec 2025 18:23:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="isSoRPDc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4087C4CEF5;
+	Mon, 15 Dec 2025 19:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765823023;
-	bh=j8SEOucCA7js+1o2Wwg1Nsvy4KvZJAKCedv7uO+JuXo=;
+	s=korg; t=1765825327;
+	bh=x/ln3LDwBehQEaOim/gDdSBRNVD6PUNcHijGjT6ikz4=;
 	h=Date:To:From:Subject:From;
-	b=tgcIQDUMesasBz0H2kLW8J+zX4ibmnTKW9tvjdvlEwI5qncXnNHQccwmdYsFeaVEl
-	 lxn5xemAxwGEL6zAF2VASKUs8mKc8jVms5ESRLoPycXdihVOUdSIu7YzQlQQXvlbnr
-	 lg2yMcXm0W/9cWUgcJM8ZtHfCJ66Vpq2xD4Xnmqc=
-Date: Mon, 15 Dec 2025 10:23:42 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,richard.weiyang@gmail.com,mhartmay@linux.ibm.com,hannes@cmpxchg.org,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=isSoRPDc7XyTNzcutAUlwkGlu7J405vsVFUoNjn4sLfAwIN4UOBRd+vK6wCJ7BPvb
+	 fG+JXHaYm30dsyKkDbFzSe7Ahpns5em3RQQ+yc5XiVcLaFJOTrx+HA9zTN53dpsQLd
+	 k6ZtZWyEGtKQElupU8SIfyXS0XmhHadKsSY0Zc3Y=
+Date: Mon, 15 Dec 2025 11:02:06 -0800
+To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,urezki@gmail.com,sumit.semwal@linaro.org,mripard@kernel.org,jstultz@google.com,david@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-change-all-pageblocks-migrate-type-on-coalescing.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251215182343.863B0C4CEF5@smtp.kernel.org>
+Subject: + mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible.patch added to mm-new branch
+Message-Id: <20251215190207.A4087C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: change all pageblocks migrate type on coalescing
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-change-all-pageblocks-migrate-type-on-coalescing.patch
+     Subject: mm/vmalloc: map contiguous pages in batches for vmap() whenever possible
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-change-all-pageblocks-migrate-type-on-coalescing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,194 +64,128 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: mm/page_alloc: change all pageblocks migrate type on coalescing
-Date: Fri, 12 Dec 2025 16:14:57 +0100
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm/vmalloc: map contiguous pages in batches for vmap() whenever possible
+Date: Mon, 15 Dec 2025 13:30:50 +0800
 
-When a page is freed it coalesces with a buddy into a higher order page
-while possible.  When the buddy page migrate type differs, it is expected
-to be updated to match the one of the page being freed.
+In many cases, the pages passed to vmap() may include high-order pages
+allocated with __GFP_COMP flags.  For example, the systemheap often
+allocates pages in descending order: order 8, then 4, then 0.  Currently,
+vmap() iterates over every page individually—even pages inside a
+high-order block are handled one by one.
 
-However, only the first pageblock of the buddy page is updated, while the
-rest of the pageblocks are left unchanged.
+This patch detects high-order pages and maps them as a single contiguous
+block whenever possible.
 
-That causes warnings in later expand() and other code paths (like below),
-since an inconsistency between migration type of the list containing the
-page and the page-owned pageblocks migration types is introduced.
+An alternative would be to implement a new API, vmap_sg(), but that
+change seems to be large in scope.
 
-[  308.986589] ------------[ cut here ]------------
-[  308.987227] page type is 0, passed migratetype is 1 (nr=256)
-[  308.987275] WARNING: CPU: 1 PID: 5224 at mm/page_alloc.c:812 expand+0x23c/0x270
-[  308.987293] Modules linked in: algif_hash(E) af_alg(E) nft_fib_inet(E) nft_fib_ipv4(E) nft_fib_ipv6(E) nft_fib(E) nft_reject_inet(E) nf_reject_ipv4(E) nf_reject_ipv6(E) nft_reject(E) nft_ct(E) nft_chain_nat(E) nf_nat(E) nf_conntrack(E) nf_defrag_ipv6(E) nf_defrag_ipv4(E) nf_tables(E) s390_trng(E) vfio_ccw(E) mdev(E) vfio_iommu_type1(E) vfio(E) sch_fq_codel(E) drm(E) i2c_core(E) drm_panel_orientation_quirks(E) loop(E) nfnetlink(E) vsock_loopback(E) vmw_vsock_virtio_transport_common(E) vsock(E) ctcm(E) fsm(E) diag288_wdt(E) watchdog(E) zfcp(E) scsi_transport_fc(E) ghash_s390(E) prng(E) aes_s390(E) des_generic(E) des_s390(E) libdes(E) sha3_512_s390(E) sha3_256_s390(E) sha_common(E) paes_s390(E) crypto_engine(E) pkey_cca(E) pkey_ep11(E) zcrypt(E) rng_core(E) pkey_pckmo(E) pkey(E) autofs4(E)
-[  308.987439] Unloaded tainted modules: hmac_s390(E):2
-[  308.987650] CPU: 1 UID: 0 PID: 5224 Comm: mempig_verify Kdump: loaded Tainted: G            E       6.18.0-gcc-bpf-debug #431 PREEMPT
-[  308.987657] Tainted: [E]=UNSIGNED_MODULE
-[  308.987661] Hardware name: IBM 3906 M04 704 (z/VM 7.3.0)
-[  308.987666] Krnl PSW : 0404f00180000000 00000349976fa600 (expand+0x240/0x270)
-[  308.987676]            R:0 T:1 IO:0 EX:0 Key:0 M:1 W:0 P:0 AS:3 CC:3 PM:0 RI:0 EA:3
-[  308.987682] Krnl GPRS: 0000034980000004 0000000000000005 0000000000000030 000003499a0e6d88
-[  308.987688]            0000000000000005 0000034980000005 000002be803ac000 0000023efe6c8300
-[  308.987692]            0000000000000008 0000034998d57290 000002be00000100 0000023e00000008
-[  308.987696]            0000000000000000 0000000000000000 00000349976fa5fc 000002c99b1eb6f0
-[  308.987708] Krnl Code: 00000349976fa5f0: c020008a02f2	larl	%r2,000003499883abd4
-                          00000349976fa5f6: c0e5ffe3f4b5	brasl	%r14,0000034997378f60
-                         #00000349976fa5fc: af000000		mc	0,0
-                         >00000349976fa600: a7f4ff4c		brc	15,00000349976fa498
-                          00000349976fa604: b9040026		lgr	%r2,%r6
-                          00000349976fa608: c0300088317f	larl	%r3,0000034998800906
-                          00000349976fa60e: c0e5fffdb6e1	brasl	%r14,00000349976b13d0
-                          00000349976fa614: af000000		mc	0,0
-[  308.987734] Call Trace:
-[  308.987738]  [<00000349976fa600>] expand+0x240/0x270
-[  308.987744] ([<00000349976fa5fc>] expand+0x23c/0x270)
-[  308.987749]  [<00000349976ff95e>] rmqueue_bulk+0x71e/0x940
-[  308.987754]  [<00000349976ffd7e>] __rmqueue_pcplist+0x1fe/0x2a0
-[  308.987759]  [<0000034997700966>] rmqueue.isra.0+0xb46/0xf40
-[  308.987763]  [<0000034997703ec8>] get_page_from_freelist+0x198/0x8d0
-[  308.987768]  [<0000034997706fa8>] __alloc_frozen_pages_noprof+0x198/0x400
-[  308.987774]  [<00000349977536f8>] alloc_pages_mpol+0xb8/0x220
-[  308.987781]  [<0000034997753bf6>] folio_alloc_mpol_noprof+0x26/0xc0
-[  308.987786]  [<0000034997753e4c>] vma_alloc_folio_noprof+0x6c/0xa0
-[  308.987791]  [<0000034997775b22>] vma_alloc_anon_folio_pmd+0x42/0x240
-[  308.987799]  [<000003499777bfea>] __do_huge_pmd_anonymous_page+0x3a/0x210
-[  308.987804]  [<00000349976cb08e>] __handle_mm_fault+0x4de/0x500
-[  308.987809]  [<00000349976cb14c>] handle_mm_fault+0x9c/0x3a0
-[  308.987813]  [<000003499734d70e>] do_exception+0x1de/0x540
-[  308.987822]  [<0000034998387390>] __do_pgm_check+0x130/0x220
-[  308.987830]  [<000003499839a934>] pgm_check_handler+0x114/0x160
-[  308.987838] 3 locks held by mempig_verify/5224:
-[  308.987842]  #0: 0000023ea44c1e08 (vm_lock){++++}-{0:0}, at: lock_vma_under_rcu+0xb2/0x2a0
-[  308.987859]  #1: 0000023ee4d41b18 (&pcp->lock){+.+.}-{2:2}, at: rmqueue.isra.0+0xad6/0xf40
-[  308.987871]  #2: 0000023efe6c8998 (&zone->lock){..-.}-{2:2}, at: rmqueue_bulk+0x5a/0x940
-[  308.987886] Last Breaking-Event-Address:
-[  308.987890]  [<0000034997379096>] __warn_printk+0x136/0x140
-[  308.987897] irq event stamp: 52330356
-[  308.987901] hardirqs last  enabled at (52330355): [<000003499838742e>] __do_pgm_check+0x1ce/0x220
-[  308.987907] hardirqs last disabled at (52330356): [<000003499839932e>] _raw_spin_lock_irqsave+0x9e/0xe0
-[  308.987913] softirqs last  enabled at (52329882): [<0000034997383786>] handle_softirqs+0x2c6/0x530
-[  308.987922] softirqs last disabled at (52329859): [<0000034997382f86>] __irq_exit_rcu+0x126/0x140
-[  308.987929] ---[ end trace 0000000000000000 ]---
-[  308.987936] ------------[ cut here ]------------
-[  308.987940] page type is 0, passed migratetype is 1 (nr=256)
-[  308.987951] WARNING: CPU: 1 PID: 5224 at mm/page_alloc.c:860 __del_page_from_free_list+0x1be/0x1e0
-[  308.987960] Modules linked in: algif_hash(E) af_alg(E) nft_fib_inet(E) nft_fib_ipv4(E) nft_fib_ipv6(E) nft_fib(E) nft_reject_inet(E) nf_reject_ipv4(E) nf_reject_ipv6(E) nft_reject(E) nft_ct(E) nft_chain_nat(E) nf_nat(E) nf_conntrack(E) nf_defrag_ipv6(E) nf_defrag_ipv4(E) nf_tables(E) s390_trng(E) vfio_ccw(E) mdev(E) vfio_iommu_type1(E) vfio(E) sch_fq_codel(E) drm(E) i2c_core(E) drm_panel_orientation_quirks(E) loop(E) nfnetlink(E) vsock_loopback(E) vmw_vsock_virtio_transport_common(E) vsock(E) ctcm(E) fsm(E) diag288_wdt(E) watchdog(E) zfcp(E) scsi_transport_fc(E) ghash_s390(E) prng(E) aes_s390(E) des_generic(E) des_s390(E) libdes(E) sha3_512_s390(E) sha3_256_s390(E) sha_common(E) paes_s390(E) crypto_engine(E) pkey_cca(E) pkey_ep11(E) zcrypt(E) rng_core(E) pkey_pckmo(E) pkey(E) autofs4(E)
-[  308.988070] Unloaded tainted modules: hmac_s390(E):2
-[  308.988087] CPU: 1 UID: 0 PID: 5224 Comm: mempig_verify Kdump: loaded Tainted: G        W   E       6.18.0-gcc-bpf-debug #431 PREEMPT
-[  308.988095] Tainted: [W]=WARN, [E]=UNSIGNED_MODULE
-[  308.988100] Hardware name: IBM 3906 M04 704 (z/VM 7.3.0)
-[  308.988105] Krnl PSW : 0404f00180000000 00000349976f9e32 (__del_page_from_free_list+0x1c2/0x1e0)
-[  308.988118]            R:0 T:1 IO:0 EX:0 Key:0 M:1 W:0 P:0 AS:3 CC:3 PM:0 RI:0 EA:3
-[  308.988127] Krnl GPRS: 0000034980000004 0000000000000005 0000000000000030 000003499a0e6d88
-[  308.988133]            0000000000000005 0000034980000005 0000034998d57290 0000023efe6c8300
-[  308.988139]            0000000000000001 0000000000000008 000002be00000100 000002be803ac000
-[  308.988144]            0000000000000000 0000000000000001 00000349976f9e2e 000002c99b1eb728
-[  308.988153] Krnl Code: 00000349976f9e22: c020008a06d9	larl	%r2,000003499883abd4
-                          00000349976f9e28: c0e5ffe3f89c	brasl	%r14,0000034997378f60
-                         #00000349976f9e2e: af000000		mc	0,0
-                         >00000349976f9e32: a7f4ff4e		brc	15,00000349976f9cce
-                          00000349976f9e36: b904002b		lgr	%r2,%r11
-                          00000349976f9e3a: c030008a06e7	larl	%r3,000003499883ac08
-                          00000349976f9e40: c0e5fffdbac8	brasl	%r14,00000349976b13d0
-                          00000349976f9e46: af000000		mc	0,0
-[  308.988184] Call Trace:
-[  308.988188]  [<00000349976f9e32>] __del_page_from_free_list+0x1c2/0x1e0
-[  308.988195] ([<00000349976f9e2e>] __del_page_from_free_list+0x1be/0x1e0)
-[  308.988202]  [<00000349976ff946>] rmqueue_bulk+0x706/0x940
-[  308.988208]  [<00000349976ffd7e>] __rmqueue_pcplist+0x1fe/0x2a0
-[  308.988214]  [<0000034997700966>] rmqueue.isra.0+0xb46/0xf40
-[  308.988221]  [<0000034997703ec8>] get_page_from_freelist+0x198/0x8d0
-[  308.988227]  [<0000034997706fa8>] __alloc_frozen_pages_noprof+0x198/0x400
-[  308.988233]  [<00000349977536f8>] alloc_pages_mpol+0xb8/0x220
-[  308.988240]  [<0000034997753bf6>] folio_alloc_mpol_noprof+0x26/0xc0
-[  308.988247]  [<0000034997753e4c>] vma_alloc_folio_noprof+0x6c/0xa0
-[  308.988253]  [<0000034997775b22>] vma_alloc_anon_folio_pmd+0x42/0x240
-[  308.988260]  [<000003499777bfea>] __do_huge_pmd_anonymous_page+0x3a/0x210
-[  308.988267]  [<00000349976cb08e>] __handle_mm_fault+0x4de/0x500
-[  308.988273]  [<00000349976cb14c>] handle_mm_fault+0x9c/0x3a0
-[  308.988279]  [<000003499734d70e>] do_exception+0x1de/0x540
-[  308.988286]  [<0000034998387390>] __do_pgm_check+0x130/0x220
-[  308.988293]  [<000003499839a934>] pgm_check_handler+0x114/0x160
-[  308.988300] 3 locks held by mempig_verify/5224:
-[  308.988305]  #0: 0000023ea44c1e08 (vm_lock){++++}-{0:0}, at: lock_vma_under_rcu+0xb2/0x2a0
-[  308.988322]  #1: 0000023ee4d41b18 (&pcp->lock){+.+.}-{2:2}, at: rmqueue.isra.0+0xad6/0xf40
-[  308.988334]  #2: 0000023efe6c8998 (&zone->lock){..-.}-{2:2}, at: rmqueue_bulk+0x5a/0x940
-[  308.988346] Last Breaking-Event-Address:
-[  308.988350]  [<0000034997379096>] __warn_printk+0x136/0x140
-[  308.988356] irq event stamp: 52330356
-[  308.988360] hardirqs last  enabled at (52330355): [<000003499838742e>] __do_pgm_check+0x1ce/0x220
-[  308.988366] hardirqs last disabled at (52330356): [<000003499839932e>] _raw_spin_lock_irqsave+0x9e/0xe0
-[  308.988373] softirqs last  enabled at (52329882): [<0000034997383786>] handle_softirqs+0x2c6/0x530
-[  308.988380] softirqs last disabled at (52329859): [<0000034997382f86>] __irq_exit_rcu+0x126/0x140
-[  308.988388] ---[ end trace 0000000000000000 ]---
+When vmapping a 128MB dma-buf using the systemheap, this patch makes
+system_heap_do_vmap() roughly 17× faster.
 
-Link: https://lkml.kernel.org/r/20251215081002.3353900A9c-agordeev@linux.ibm.com
-Link: https://lkml.kernel.org/r/20251212151457.3898073Add-agordeev@linux.ibm.com
-Fixes: e6cf9e1c4cde ("mm: page_alloc: fix up block types when merging compatible blocks")
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Reported-by: Marc Hartmayer <mhartmay@linux.ibm.com>
-Closes: https://lore.kernel.org/linux-mm/87wmalyktd.fsf@linux.ibm.com/
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Marc Hartmayer <mhartmay@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+W/ patch:
+[   10.404769] system_heap_do_vmap took 2494000 ns
+[   12.525921] system_heap_do_vmap took 2467008 ns
+[   14.517348] system_heap_do_vmap took 2471008 ns
+[   16.593406] system_heap_do_vmap took 2444000 ns
+[   19.501341] system_heap_do_vmap took 2489008 ns
+
+W/o patch:
+[    7.413756] system_heap_do_vmap took 42626000 ns
+[    9.425610] system_heap_do_vmap took 42500992 ns
+[   11.810898] system_heap_do_vmap took 42215008 ns
+[   14.336790] system_heap_do_vmap took 42134992 ns
+[   16.373890] system_heap_do_vmap took 42750000 ns
+
+Link: https://lkml.kernel.org/r/20251215053050.11599-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Tested-by: Tangquan Zheng <zhengtangquan@oppo.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: John Stultz <jstultz@google.com>
+Cc: Maxime Ripard <mripard@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ mm/vmalloc.c |   45 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 39 insertions(+), 6 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-change-all-pageblocks-migrate-type-on-coalescing
-+++ a/mm/page_alloc.c
-@@ -914,6 +914,17 @@ buddy_merge_likely(unsigned long pfn, un
- 			NULL) != NULL;
+--- a/mm/vmalloc.c~mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible
++++ a/mm/vmalloc.c
+@@ -647,6 +647,29 @@ static int vmap_small_pages_range_noflus
+ 	return err;
  }
  
-+static void change_pageblock_range(struct page *pageblock_page,
-+				   int start_order, int migratetype)
++static inline int get_vmap_batch_order(struct page **pages,
++		unsigned int stride, unsigned int max_steps, unsigned int idx)
 +{
-+	int nr_pageblocks = 1 << (start_order - pageblock_order);
++	int nr_pages = 1;
 +
-+	while (nr_pageblocks--) {
-+		set_pageblock_migratetype(pageblock_page, migratetype);
-+		pageblock_page += pageblock_nr_pages;
-+	}
++	/*
++	 * Currently, batching is only supported in vmap_pages_range
++	 * when page_shift == PAGE_SHIFT.
++	 */
++	if (stride != 1)
++		return 0;
++
++	nr_pages = compound_nr(pages[idx]);
++	if (nr_pages == 1)
++		return 0;
++	if (max_steps < nr_pages)
++		return 0;
++
++	if (num_pages_contiguous(&pages[idx], nr_pages) == nr_pages)
++		return compound_order(pages[idx]);
++	return 0;
 +}
 +
  /*
-  * Freeing function for a buddy system allocator.
-  *
-@@ -1000,7 +1011,7 @@ static inline void __free_one_page(struc
- 			 * expand() down the line puts the sub-blocks
- 			 * on the right freelists.
- 			 */
--			set_pageblock_migratetype(buddy, migratetype);
-+			change_pageblock_range(buddy, order, migratetype);
- 		}
- 
- 		combined_pfn = buddy_pfn & pfn;
-@@ -2147,17 +2158,6 @@ bool pageblock_unisolate_and_move_free_p
- 
- #endif /* CONFIG_MEMORY_ISOLATION */
- 
--static void change_pageblock_range(struct page *pageblock_page,
--					int start_order, int migratetype)
--{
--	int nr_pageblocks = 1 << (start_order - pageblock_order);
--
--	while (nr_pageblocks--) {
--		set_pageblock_migratetype(pageblock_page, migratetype);
--		pageblock_page += pageblock_nr_pages;
--	}
--}
--
- static inline bool boost_watermark(struct zone *zone)
+  * vmap_pages_range_noflush is similar to vmap_pages_range, but does not
+  * flush caches.
+@@ -660,23 +683,33 @@ int __vmap_pages_range_noflush(unsigned
+ 		pgprot_t prot, struct page **pages, unsigned int page_shift)
  {
- 	unsigned long max_boost;
+ 	unsigned int i, nr = (end - addr) >> PAGE_SHIFT;
++	unsigned int stride;
+ 
+ 	WARN_ON(page_shift < PAGE_SHIFT);
+ 
++	/*
++	 * For vmap(), users may allocate pages from high orders down to
++	 * order 0, while always using PAGE_SHIFT as the page_shift.
++	 * We first check whether the initial page is a compound page. If so,
++	 * there may be an opportunity to batch multiple pages together.
++	 */
+ 	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMALLOC) ||
+-			page_shift == PAGE_SHIFT)
++			(page_shift == PAGE_SHIFT && !PageCompound(pages[0])))
+ 		return vmap_small_pages_range_noflush(addr, end, prot, pages);
+ 
+-	for (i = 0; i < nr; i += 1U << (page_shift - PAGE_SHIFT)) {
+-		int err;
++	stride = 1U << (page_shift - PAGE_SHIFT);
++	for (i = 0; i < nr; ) {
++		int err, order;
+ 
+-		err = vmap_range_noflush(addr, addr + (1UL << page_shift),
++		order = get_vmap_batch_order(pages, stride, nr - i, i);
++		err = vmap_range_noflush(addr, addr + (1UL << (page_shift + order)),
+ 					page_to_phys(pages[i]), prot,
+-					page_shift);
++					page_shift + order);
+ 		if (err)
+ 			return err;
+ 
+-		addr += 1UL << page_shift;
++		addr += 1UL  << (page_shift + order);
++		i += 1U << (order + page_shift - PAGE_SHIFT);
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-page_alloc-change-all-pageblocks-migrate-type-on-coalescing.patch
-powerpc-64s-do-not-re-activate-batched-tlb-flush.patch
+mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible.patch
 
