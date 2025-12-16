@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7123120DD52
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 03:07:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B963A13AA2F
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 03:19:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765854457; cv=none; b=OkNNB0jc3ZnDESuswPCDuN3lEdIwFHItUbTImTm3ErqNTS80KlCgSTYWQ/WIwPCc8o6ubCtw7iNpteqAorzLODtd6nLSeqJbTBIVmDiFEEINzICZbRYUE5ce2a4RxaQVingqHxmLFl9ERsR5UZBu4JGGB15+BdaIIF5MCNI0vNw=
+	t=1765855165; cv=none; b=eZiUXhbe6hdAylkQzAfgT/VRSQDzXdJWPftA4U6xuZjHK+f3aIKc9nYZ1+8ueQx7ENwQdTtC+Xj2se9QFngeUs0/ekhSdZZM+lwgQrNQFvUT+aWwcLx6DCUc29EP4RDtBS6PHBolB2aXs9A0hrj7sRNGULXZsK22peythHGGcAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765854457; c=relaxed/simple;
-	bh=OfhLXtNugX3q/CYMZF2dBhPaki+jQbLyVUz+aI9g5rM=;
-	h=Date:To:From:Subject:Message-Id; b=Mw1scfagPXKH62C9+eUCisWBGRwa4WlsuMR3fSQiYonMC8kd77CrGM+2dQuBD2Gi6omGBzsUCaHtoVHxddD47g4Wib6KD4fbiB80iVHw99LQtx6Yo5r9omRC9NjeF6PPt4ZhYfDLQ0zOAWGxOp7DD2flWs9hV6FhELVQcCVq6gs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O+K0M2BW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765855165; c=relaxed/simple;
+	bh=yNSNflKq9/13/TFjhdhyzrLB1rI8qK9mMoLXaIRkGco=;
+	h=Date:To:From:Subject:Message-Id; b=nUQXFCOF3royz1gTNm7ufmMPYodll1qVgeaKwlCnGxVXVMYP0QUUZTRz0JOTEoVBrLbPRiSiI1U59qZGm1ik8PxB9VtMvELd0cjpcxgtgY5MWOkIkVYhIW2qJXgQObLcH/s0FEbV1z31tTgzhkKCUonybggxiz9VcqHZWGE1hPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NqGZmosm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O+K0M2BW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D46F8C4CEF5;
-	Tue, 16 Dec 2025 03:07:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NqGZmosm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33CA1C4CEF5;
+	Tue, 16 Dec 2025 03:19:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765854456;
-	bh=OfhLXtNugX3q/CYMZF2dBhPaki+jQbLyVUz+aI9g5rM=;
+	s=korg; t=1765855165;
+	bh=yNSNflKq9/13/TFjhdhyzrLB1rI8qK9mMoLXaIRkGco=;
 	h=Date:To:From:Subject:From;
-	b=O+K0M2BWxPFy7iMXv3TvKM59M8qSSiV1mGAOaNLYgeQVlma1vB7lVgkGQcNMtaJwb
-	 0K9tj70mQHhcujFVD0yyyA6VUZBDczCB/ilD8gF7Zf8zI85ZXJzpckCLM6kx10ZCGj
-	 yM3fYep16ESY0GB35oSYoqx580+CnORqvl6MtdJ8=
-Date: Mon, 15 Dec 2025 19:07:36 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,swarajgaikwad1925@gmail.com,akpm@linux-foundation.org
+	b=NqGZmosmB/AzspFu5mZPtRsE9J7OJ7XsVdB9bdaehCQ8TYdEKQDXnbsFRIsM1b9xW
+	 yuU5cqP8+hSKZSFaHnHUQG2X5CPU9UUNnca6A2HP4ZuF93qLNcrBaVcJ/weBNIKdS1
+	 7sCH6dKFRPeN964djBpvO64qaR4OObbNPhmdmDTo=
+Date: Mon, 15 Dec 2025 19:19:24 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,lujialin4@huawei.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,axelrasmussen@google.com,chenridong@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch added to mm-new branch
-Message-Id: <20251216030736.D46F8C4CEF5@smtp.kernel.org>
+Subject: + memcg-move-mem_cgroup_usage-memcontrol-v1c.patch added to mm-new branch
+Message-Id: <20251216031925.33CA1C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: remove outdated TODO in target_nid_store()
+     Subject: memcg: move mem_cgroup_usage memcontrol-v1.c
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch
+     memcg-move-mem_cgroup_usage-memcontrol-v1c.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-move-mem_cgroup_usage-memcontrol-v1c.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,46 +64,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Swaraj Gaikwad <swarajgaikwad1925@gmail.com>
-Subject: mm/damon/sysfs-schemes: remove outdated TODO in target_nid_store()
-Date: Thu, 11 Dec 2025 03:27:22 +0000
+From: Chen Ridong <chenridong@huawei.com>
+Subject: memcg: move mem_cgroup_usage memcontrol-v1.c
+Date: Thu, 11 Dec 2025 01:30:18 +0000
 
-The TODO comment in target_nid_store() suggested adding range validation
-for target_nid.  As discussed in [1], the current behavior of accepting
-any integer value is intentional.  DAMON sysfs aims to remain flexible,
-including supporting users who prepare node IDs before future NUMA hotplug
-events.
+Patch series "memcg cleanups", v3.
 
-Because this behavior matches the broader design philosophy of the DAMON
-sysfs interface, the TODO comment is now misleading.  This patch removes
-the comment without introducing any behavioral change.
+Two code moves/removals with no behavior change.
 
-No functional changes.
 
-Link: https://lkml.kernel.org/r/20251211032722.4928-2-swarajgaikwad1925@gmail.com
-Link: https://lore.kernel.org/lkml/20251210150930.57679-1-sj@kernel.org/ [1]
-Signed-off-by: Swaraj Gaikwad <swarajgaikwad1925@gmail.com>
-Suggested-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+This patch (of 2):
+
+Currently, mem_cgroup_usage is only used for v1, just move it to
+memcontrol-v1.c
+
+Link: https://lkml.kernel.org/r/20251211013019.2080004-1-chenridong@huaweicloud.com
+Link: https://lkml.kernel.org/r/20251211013019.2080004-2-chenridong@huaweicloud.com
+Signed-off-by: Chen Ridong <chenridong@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Koutný <mkoutny@suse.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Lu Jialin <lujialin4@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol-v1.c |   22 ++++++++++++++++++++++
+ mm/memcontrol-v1.h |    2 --
+ mm/memcontrol.c    |   22 ----------------------
+ 3 files changed, 22 insertions(+), 24 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2286,7 +2286,6 @@ static ssize_t target_nid_store(struct k
- 			struct damon_sysfs_scheme, kobj);
- 	int err = 0;
+--- a/mm/memcontrol.c~memcg-move-mem_cgroup_usage-memcontrol-v1c
++++ a/mm/memcontrol.c
+@@ -3272,28 +3272,6 @@ void folio_split_memcg_refs(struct folio
+ 	css_get_many(&__folio_memcg(folio)->css, new_refs);
+ }
  
--	/* TODO: error handling for target_nid range. */
- 	err = kstrtoint(buf, 0, &scheme->target_nid);
+-unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
+-{
+-	unsigned long val;
+-
+-	if (mem_cgroup_is_root(memcg)) {
+-		/*
+-		 * Approximate root's usage from global state. This isn't
+-		 * perfect, but the root usage was always an approximation.
+-		 */
+-		val = global_node_page_state(NR_FILE_PAGES) +
+-			global_node_page_state(NR_ANON_MAPPED);
+-		if (swap)
+-			val += total_swap_pages - get_nr_swap_pages();
+-	} else {
+-		if (!swap)
+-			val = page_counter_read(&memcg->memory);
+-		else
+-			val = page_counter_read(&memcg->memsw);
+-	}
+-	return val;
+-}
+-
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
+ {
+ 	struct obj_cgroup *objcg;
+--- a/mm/memcontrol-v1.c~memcg-move-mem_cgroup_usage-memcontrol-v1c
++++ a/mm/memcontrol-v1.c
+@@ -427,6 +427,28 @@ static int mem_cgroup_move_charge_write(
+ }
+ #endif
  
- 	return err ? err : count;
++static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
++{
++	unsigned long val;
++
++	if (mem_cgroup_is_root(memcg)) {
++		/*
++		 * Approximate root's usage from global state. This isn't
++		 * perfect, but the root usage was always an approximation.
++		 */
++		val = global_node_page_state(NR_FILE_PAGES) +
++			global_node_page_state(NR_ANON_MAPPED);
++		if (swap)
++			val += total_swap_pages - get_nr_swap_pages();
++	} else {
++		if (!swap)
++			val = page_counter_read(&memcg->memory);
++		else
++			val = page_counter_read(&memcg->memsw);
++	}
++	return val;
++}
++
+ static void __mem_cgroup_threshold(struct mem_cgroup *memcg, bool swap)
+ {
+ 	struct mem_cgroup_threshold_ary *t;
+--- a/mm/memcontrol-v1.h~memcg-move-mem_cgroup_usage-memcontrol-v1c
++++ a/mm/memcontrol-v1.h
+@@ -22,8 +22,6 @@
+ 	     iter != NULL;				\
+ 	     iter = mem_cgroup_iter(NULL, iter, NULL))
+ 
+-unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
+-
+ void drain_all_stock(struct mem_cgroup *root_memcg);
+ 
+ unsigned long memcg_events(struct mem_cgroup *memcg, int event);
 _
 
-Patches currently in -mm which might be from swarajgaikwad1925@gmail.com are
+Patches currently in -mm which might be from chenridong@huawei.com are
 
-mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch
+memcg-move-mem_cgroup_usage-memcontrol-v1c.patch
+memcg-remove-mem_cgroup_size.patch
 
