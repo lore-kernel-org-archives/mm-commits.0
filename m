@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF532E1730
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 21:09:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 288F52D8DD0;
+	Tue, 16 Dec 2025 22:20:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765919392; cv=none; b=DDYCPUK/NyYI6qrQ5mkq0jgLrEihYGu3pxCKL/rCbEBZJFCFhF//6gLeTP/Xr23uGqQjSZDDOu/va5oFXBir1+TTSwlX8fHCmU3P76dbTOu54lxkGlBWJzw25x1Y4mpGtsUiQZz/CaiYOentD0poD1Vva5XCTmwVkbQpUh9M6h8=
+	t=1765923635; cv=none; b=DR6RD5XrBNRQk89aSgr1ugFihZ4HUXiusAAkPP57Eniv/7f+wDqTq11ose4CCF7FALPYgyS9NWY1aLKbeTKGtJKAEsjDS8Vr552iUtFERstA9dmF3Mx5ukKnFgg0qOneuC4cLFPWtXT5E/AX6hcrW1nl4xyJemqULD57TDFtHAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765919392; c=relaxed/simple;
-	bh=GTOq0gds/9ehfEh9ldDNEELl27uYGK0SLwTC4+UKGWI=;
-	h=Date:To:From:Subject:Message-Id; b=Vffz+XFegjHa3MT+pjVLc3Vw29yLgJWBTi8PW1Z0mpC8Cx8IpKWS9YV5advhKu2F81H120v2SnbEKrgKiZzKYDPhd3uepRvxuOvKxmBv4DSgN1CTGR0x61tPgdG2P6fU0cHoFGB62CpTDgV8GDfbCBYM97N2DKA6xHpcPDOjsuo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLxMzi/a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765923635; c=relaxed/simple;
+	bh=xQkteA64nFbtvMb81WaksE3KN9fkv6qkVbQexeEpVA8=;
+	h=Date:To:From:Subject:Message-Id; b=c/G8MSyDb6VJM0+9q8gD9jnn7MsXn6dy/C6F8uw6zyVDZkS1Y/oUp1eJUG2lWF/7v8ebgXrXXlWNbcaFgkuC4RTlSIPHQQg1XJAiP4wPOwQ5uibe1Ej1EjpUk9rX1P0t3dHU9cFHe41xnpHcfUT1+0NIYastUDiHtsvNBb5+ykw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZOiVd+/y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLxMzi/a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7B7C4CEF1;
-	Tue, 16 Dec 2025 21:09:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZOiVd+/y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA9FEC4CEF1;
+	Tue, 16 Dec 2025 22:20:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765919392;
-	bh=GTOq0gds/9ehfEh9ldDNEELl27uYGK0SLwTC4+UKGWI=;
+	s=korg; t=1765923634;
+	bh=xQkteA64nFbtvMb81WaksE3KN9fkv6qkVbQexeEpVA8=;
 	h=Date:To:From:Subject:From;
-	b=gLxMzi/alRdgFfmlDMF7TR2CTkVgjhIpO8NjQpIdCA7Hx3Ke8UmAtW8emdfgkRZF3
-	 mJcK7DMWKNoinK9zXK162wO/oh8O9ac6rdHIf1hsQNtsX6tF8l+Asd4GCEaQUh6VKU
-	 1XQUFU4TxorIqnelcePN0LENzEc0JFbXArK8XccU=
-Date: Tue, 16 Dec 2025 13:09:51 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,raquini@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,audra@redhat.com,akpm@linux-foundation.org
+	b=ZOiVd+/y9PGQpuEczyEUO1VRGRjXLimh0iniOScT7rlmFTIeM0qdsH9PnPadeb/hx
+	 mSr/+micLSfL+vYICUWvn9MEmFXFcHcdiBG0YjarJ9o9870+zzpv40u6b0ex64dz8C
+	 u9cgR/2ym5BTRdmgABjmbgfGIxSeFXJQg5xzspnM=
+Date: Tue, 16 Dec 2025 14:20:34 -0800
+To: mm-commits@vger.kernel.org,william.roche@oracle.com,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,jiaqiyan@google.com,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch added to mm-new branch
-Message-Id: <20251216210952.0D7B7C4CEF1@smtp.kernel.org>
+Subject: + mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251216222034.AA9FEC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_vmalloc.c: minor fixes to test_vmalloc.c
-has been added to the -mm mm-new branch.  Its filename is
-     lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch
+     Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,155 +58,176 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Audra Mitchell <audra@redhat.com>
-Subject: lib/test_vmalloc.c: minor fixes to test_vmalloc.c
-Date: Mon, 1 Dec 2025 13:18:48 -0500
+From: Jane Chu <jane.chu@oracle.com>
+Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
+Date: Tue, 16 Dec 2025 14:56:21 -0700
 
-If PAGE_SIZE is larger than 4k and if you have a system with a large
-number of CPUs, this test can require a very large amount of memory
-leading to oom-killer firing.  Given the type of allocation, the kernel
-won't have anything to kill, causing the system to stall.
+When a newly poisoned subpage ends up in an already poisoned hugetlb
+folio, 'num_poisoned_pages' is incremented, but the per node ->mf_stats is
+not.  Fix the inconsistency by designating action_result() to update them
+both.
 
-Add a parameter to the test_vmalloc driver to represent the number of
-times a percpu object will be allocated.  Calculate this in
-test_vmalloc.sh to be 90% of available memory or the current default of
-35000, whichever is smaller.
-
-Link: https://lkml.kernel.org/r/20251201181848.1216197-1-audra@redhat.com
-Signed-off-by: Audra Mitchell <audra@redhat.com>
+Link: https://lkml.kernel.org/r/20251216215621.920093-1-jane.chu@oracle.com
+Fixes: 18f41fa616ee4 ("mm: memory-failure: bump memory failure stats to pglist_data")
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rafael Aquini <raquini@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: William Roche <william.roche@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c                         |   11 ++++--
- tools/testing/selftests/mm/test_vmalloc.sh |   31 +++++++++++++++++--
- 2 files changed, 35 insertions(+), 7 deletions(-)
+ include/linux/hugetlb.h |    4 ++--
+ include/linux/mm.h      |    4 ++--
+ mm/hugetlb.c            |    4 ++--
+ mm/memory-failure.c     |   22 +++++++++++++---------
+ 4 files changed, 19 insertions(+), 15 deletions(-)
 
---- a/lib/test_vmalloc.c~lib-test_vmallocc-minor-fixes-to-test_vmallocc
-+++ a/lib/test_vmalloc.c
-@@ -58,6 +58,9 @@ __param(int, run_test_mask, 7,
- 		/* Add a new test case description here. */
- );
+--- a/include/linux/hugetlb.h~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
++++ a/include/linux/hugetlb.h
+@@ -156,7 +156,7 @@ long hugetlb_unreserve_pages(struct inod
+ bool folio_isolate_hugetlb(struct folio *folio, struct list_head *list);
+ int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison);
+ int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+-				bool *migratable_cleared);
++				bool *migratable_cleared, bool *samepg);
+ void folio_putback_hugetlb(struct folio *folio);
+ void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason);
+ void hugetlb_fix_reserve_counts(struct inode *inode);
+@@ -418,7 +418,7 @@ static inline int get_hwpoison_hugetlb_f
+ }
  
-+__param(int, nr_pcpu_objects, 35000,
-+	"Number of pcpu objects to allocate for pcpu_alloc_test");
-+
- /*
-  * This is for synchronization of setup phase.
-  */
-@@ -317,24 +320,24 @@ pcpu_alloc_test(void)
- 	size_t size, align;
- 	int i;
+ static inline int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+-					bool *migratable_cleared)
++					bool *migratable_cleared, bool *samepg)
+ {
+ 	return 0;
+ }
+--- a/include/linux/mm.h~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
++++ a/include/linux/mm.h
+@@ -4351,7 +4351,7 @@ extern int soft_offline_page(unsigned lo
+ extern const struct attribute_group memory_failure_attr_group;
+ extern void memory_failure_queue(unsigned long pfn, int flags);
+ extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+-					bool *migratable_cleared);
++					bool *migratable_cleared, bool *samepg);
+ void num_poisoned_pages_inc(unsigned long pfn);
+ void num_poisoned_pages_sub(unsigned long pfn, long i);
+ #else
+@@ -4360,7 +4360,7 @@ static inline void memory_failure_queue(
+ }
  
--	pcpu = vmalloc(sizeof(void __percpu *) * 35000);
-+	pcpu = vmalloc(sizeof(void __percpu *) * nr_pcpu_objects);
- 	if (!pcpu)
- 		return -1;
+ static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+-					bool *migratable_cleared)
++					bool *migratable_cleared, bool *samepg)
+ {
+ 	return 0;
+ }
+--- a/mm/hugetlb.c~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
++++ a/mm/hugetlb.c
+@@ -7132,12 +7132,12 @@ int get_hwpoison_hugetlb_folio(struct fo
+ }
  
--	for (i = 0; i < 35000; i++) {
-+	for (i = 0; i < nr_pcpu_objects; i++) {
- 		size = get_random_u32_inclusive(1, PAGE_SIZE / 4);
+ int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+-				bool *migratable_cleared)
++				bool *migratable_cleared, bool *samepg)
+ {
+ 	int ret;
  
- 		/*
- 		 * Maximum PAGE_SIZE
- 		 */
--		align = 1 << get_random_u32_inclusive(1, 11);
-+		align = 1 << get_random_u32_inclusive(1, PAGE_SHIFT - 1);
+ 	spin_lock_irq(&hugetlb_lock);
+-	ret = __get_huge_page_for_hwpoison(pfn, flags, migratable_cleared);
++	ret = __get_huge_page_for_hwpoison(pfn, flags, migratable_cleared, samepg);
+ 	spin_unlock_irq(&hugetlb_lock);
+ 	return ret;
+ }
+--- a/mm/memory-failure.c~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
++++ a/mm/memory-failure.c
+@@ -1883,7 +1883,8 @@ static unsigned long __folio_free_raw_hw
+ 	return count;
+ }
  
- 		pcpu[i] = __alloc_percpu(size, align);
- 		if (!pcpu[i])
- 			rv = -1;
+-static int folio_set_hugetlb_hwpoison(struct folio *folio, struct page *page)
++static int folio_set_hugetlb_hwpoison(struct folio *folio, struct page *page,
++					bool *samepg)
+ {
+ 	struct llist_head *head;
+ 	struct raw_hwp_page *raw_hwp;
+@@ -1899,17 +1900,16 @@ static int folio_set_hugetlb_hwpoison(st
+ 		return -EHWPOISON;
+ 	head = raw_hwp_list_head(folio);
+ 	llist_for_each_entry(p, head->first, node) {
+-		if (p->page == page)
++		if (p->page == page) {
++			*samepg = true;
+ 			return -EHWPOISON;
++		}
  	}
  
--	for (i = 0; i < 35000; i++)
-+	for (i = 0; i < nr_pcpu_objects; i++)
- 		free_percpu(pcpu[i]);
- 
- 	vfree(pcpu);
---- a/tools/testing/selftests/mm/test_vmalloc.sh~lib-test_vmallocc-minor-fixes-to-test_vmallocc
-+++ a/tools/testing/selftests/mm/test_vmalloc.sh
-@@ -13,6 +13,9 @@ TEST_NAME="vmalloc"
- DRIVER="test_${TEST_NAME}"
- NUM_CPUS=`grep -c ^processor /proc/cpuinfo`
- 
-+# Default number of times we allocate percpu objects:
-+NR_PCPU_OBJECTS=35000
-+
- # 1 if fails
- exitcode=1
- 
-@@ -27,6 +30,8 @@ PERF_PARAM="sequential_test_order=1 test
- SMOKE_PARAM="test_loop_count=10000 test_repeat_count=10"
- STRESS_PARAM="nr_threads=$NUM_CPUS test_repeat_count=20"
- 
-+PCPU_OBJ_PARAM="nr_pcpu_objects=$NR_PCPU_OBJECTS"
-+
- check_test_requirements()
+ 	raw_hwp = kmalloc(sizeof(struct raw_hwp_page), GFP_ATOMIC);
+ 	if (raw_hwp) {
+ 		raw_hwp->page = page;
+ 		llist_add(&raw_hwp->node, head);
+-		/* the first error event will be counted in action_result(). */
+-		if (ret)
+-			num_poisoned_pages_inc(page_to_pfn(page));
+ 	} else {
+ 		/*
+ 		 * Failed to save raw error info.  We no longer trace all
+@@ -1966,7 +1966,7 @@ void folio_clear_hugetlb_hwpoison(struct
+  *   -EHWPOISON    - the hugepage is already hwpoisoned
+  */
+ int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+-				 bool *migratable_cleared)
++				 bool *migratable_cleared, bool *samepg)
  {
- 	uid=$(id -u)
-@@ -47,12 +52,30 @@ check_test_requirements()
- 	fi
- }
+ 	struct page *page = pfn_to_page(pfn);
+ 	struct folio *folio = page_folio(page);
+@@ -1991,7 +1991,7 @@ int __get_huge_page_for_hwpoison(unsigne
+ 			goto out;
+ 	}
  
-+check_memory_requirement()
-+{
-+	# The pcpu_alloc_test allocates nr_pcpu_objects per cpu. If the
-+	# PAGE_SIZE is on the larger side it is easier to set a value
-+	# that can cause oom events during testing. Since we are
-+	# testing the functionality of vmalloc and not the oom-killer,
-+	# calculate what is 90% of available memory and divide it by
-+	# the number of online CPUs.
-+	pages=$(($(getconf _AVPHYS_PAGES) * 90 / 100 / $NUM_CPUS))
-+
-+	if (($pages < $NR_PCPU_OBJECTS)); then
-+		echo "Updated nr_pcpu_objects to 90% of available memory."
-+		echo "nr_pcpu_objects is now set to: $pages."
-+		PCPU_OBJ_PARAM="nr_pcpu_objects=$pages"
-+	fi
-+}
-+
- run_performance_check()
- {
- 	echo "Run performance tests to evaluate how fast vmalloc allocation is."
- 	echo "It runs all test cases on one single CPU with sequential order."
+-	if (folio_set_hugetlb_hwpoison(folio, page)) {
++	if (folio_set_hugetlb_hwpoison(folio, page, samepg)) {
+ 		ret = -EHWPOISON;
+ 		goto out;
+ 	}
+@@ -2024,11 +2024,12 @@ static int try_memory_failure_hugetlb(un
+ 	struct page *p = pfn_to_page(pfn);
+ 	struct folio *folio;
+ 	unsigned long page_flags;
++	bool samepg = false;
+ 	bool migratable_cleared = false;
  
--	modprobe $DRIVER $PERF_PARAM > /dev/null 2>&1
-+	check_memory_requirement
-+	modprobe $DRIVER $PERF_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
- 	echo "Done."
- 	echo "Check the kernel message buffer to see the summary."
- }
-@@ -63,7 +86,8 @@ run_stability_check()
- 	echo "available test cases are run by NUM_CPUS workers simultaneously."
- 	echo "It will take time, so be patient."
- 
--	modprobe $DRIVER $STRESS_PARAM > /dev/null 2>&1
-+	check_memory_requirement
-+	modprobe $DRIVER $STRESS_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
- 	echo "Done."
- 	echo "Check the kernel ring buffer to see the summary."
- }
-@@ -74,7 +98,8 @@ run_smoke_check()
- 	echo "Please check $0 output how it can be used"
- 	echo "for deep performance analysis as well as stress testing."
- 
--	modprobe $DRIVER $SMOKE_PARAM > /dev/null 2>&1
-+	check_memory_requirement
-+	modprobe $DRIVER $SMOKE_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
- 	echo "Done."
- 	echo "Check the kernel ring buffer to see the summary."
- }
+ 	*hugetlb = 1;
+ retry:
+-	res = get_huge_page_for_hwpoison(pfn, flags, &migratable_cleared);
++	res = get_huge_page_for_hwpoison(pfn, flags, &migratable_cleared, &samepg);
+ 	if (res == 2) { /* fallback to normal page handling */
+ 		*hugetlb = 0;
+ 		return 0;
+@@ -2037,7 +2038,10 @@ retry:
+ 			folio = page_folio(p);
+ 			res = kill_accessing_process(current, folio_pfn(folio), flags);
+ 		}
+-		action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
++		if (samepg)
++			action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
++		else
++			action_result(pfn, MF_MSG_HUGE, MF_FAILED);
+ 		return res;
+ 	} else if (res == -EBUSY) {
+ 		if (!(flags & MF_NO_RETRY)) {
 _
 
-Patches currently in -mm which might be from audra@redhat.com are
+Patches currently in -mm which might be from jane.chu@oracle.com are
 
-lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch
+mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
