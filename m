@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DA0A1EEE6;
-	Tue, 16 Dec 2025 03:27:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B40EF1EEE6
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 03:27:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765855622; cv=none; b=h/6UOLtmZWcX8D1RKqmQsdP/b85G9ngTekTRd5JaCnzHuseROJJTWhan6ZObcIbz9+vX7v/tRIez6daUCNWfWxOv/2kaF3/rPyCCO+jvBl5i9eg88coLPjW1xc1ldnMytKEtVGBQoawDNe2Sr1ehwslqpv+HQDZcOmpLszywego=
+	t=1765855671; cv=none; b=BB82kN9QixBKPc70+EOpHfGZtV/IXXUxwW2pbySb2cwS2S593VSzT3P3+aEEY5fDZ67YfQJx3MG6lgfv7YGbcdCJac6SV+1mmUqVijXOp+6QhN6ttWpOXxSOCaOZxeEV8FSROb9KBQihqlM5XKmkbaIB8xd6lu3XjggnRKGss1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765855622; c=relaxed/simple;
-	bh=Cry2wmAN4Cz9SSQ/+BLRd2os0ES9qjDa8veSNc/7MLI=;
-	h=Date:To:From:Subject:Message-Id; b=FBefLrJSGvUCmLwiNGO5+Vz78JlN0Ec5TALjX6l0RKDgEm4IULZ4LPVjWEJabpWt3M0CsnyVe6VbUsgUs2ERKJKlQxxs4Ad9MyYpD3Pg8hndAkGiegDlAGjCR8OknTxQYU+5sapKk7WTs8NNUyoFoprxuBtHKz4EuTmHcGPV7hk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IzWgVx1C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765855671; c=relaxed/simple;
+	bh=Hkj+sEgVbEbUEft6YhjbqlmOEFnzznaGK09bBW13Ca4=;
+	h=Date:To:From:Subject:Message-Id; b=K84/rI/rZfxc5GnUxnO3/zLRifI2OrtfiEHnGl0eu8UaWtmmqCE28malU4ZqxRSHE49c5JYepnJE+LVebD0/6+E3g9SB+xDF6pdfHdOpROhxu+pbRPZaj60+vjZevSzWKv75G5YdV5UyQAvPUE4H07F7J801b8fMF6xpVzjHuRA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lyUxdAN0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IzWgVx1C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2479EC4CEF5;
-	Tue, 16 Dec 2025 03:27:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lyUxdAN0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46B5FC4CEF5;
+	Tue, 16 Dec 2025 03:27:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765855621;
-	bh=Cry2wmAN4Cz9SSQ/+BLRd2os0ES9qjDa8veSNc/7MLI=;
+	s=korg; t=1765855671;
+	bh=Hkj+sEgVbEbUEft6YhjbqlmOEFnzznaGK09bBW13Ca4=;
 	h=Date:To:From:Subject:From;
-	b=IzWgVx1CkyYHAJe3k47wrVecZjwp9yebKYh4aTqzRhvwTiC2Hz7U8cDcZUX+N+QK5
-	 xODKC/3nWn9GpFlfQv3/H+JEs/gr7Zv9+IqD6z9zKNiNvPizpGbk1aEW/hMzg4KBTu
-	 V2N1TdynOaJ4CbMwkp+iOB66VxxhPTdUKiIz8Il0=
-Date: Mon, 15 Dec 2025 19:27:00 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,wakel@google.com,akpm@linux-foundation.org
+	b=lyUxdAN0HtlSSDG8701u3vNl5PrKeaRrPIXAxIBNFZ7wntO1m/iObtfwwf/mX65gh
+	 NrJhBW/xRd/izetR4xRMbboMP6k+xIO0SMfmFGd82n85CF17rDebEETO7vP2HsLqaM
+	 f+OQR9G4zyxfdREbSyyAj6N5xLohJuVmqWtq/CyI=
+Date: Mon, 15 Dec 2025 19:27:50 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-thread-state-check-in-uffd-unit-tests.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251216032701.2479EC4CEF5@smtp.kernel.org>
+Subject: + mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets.patch added to mm-new branch
+Message-Id: <20251216032751.46B5FC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix thread state check in uffd-unit-tests
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-fix-thread-state-check-in-uffd-unit-tests.patch
+     Subject: mm/damon/core: fix wasteful CPU calls by skipping non-existent targets
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-thread-state-check-in-uffd-unit-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,70 +64,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Wake Liu <wakel@google.com>
-Subject: selftests/mm: fix thread state check in uffd-unit-tests
-Date: Wed, 10 Dec 2025 17:14:08 +0800
+From: Enze Li <lienze@kylinos.cn>
+Subject: mm/damon/core: fix wasteful CPU calls by skipping non-existent targets
+Date: Wed, 10 Dec 2025 13:25:08 +0800
 
-In the thread_state_get() function, the logic to find the thread's state
-character was using `sizeof(header) - 1` to calculate the offset from the
-"State:\t" string.
+Currently, DAMON does not proactively clean up invalid monitoring targets
+during its runtime.  When some monitored processes exit, DAMON continues
+to make the following unnecessary function calls,
 
-The `header` variable is a `const char *` pointer.  `sizeof()` on a
-pointer returns the size of the pointer itself, not the length of the
-string literal it points to.  This makes the code's behavior dependent on
-the architecture's pointer size.
+  --damon_for_each_target--
+  --damon_for_each_region--
+      damon_do_apply_schemes
+        damos_apply_scheme
+          damon_va_apply_scheme
+            damos_madvise
+              damon_get_mm
 
-This bug was identified on a 32-bit ARM build (`gsi_tv_arm`) for Android,
-running on an ARMv8-based device, compiled with Clang 19.0.1.
+it is only in the damon_get_mm() function that it may finally discover the
+target no longer exists, which wastes CPU resources.  A simple idea is to
+check for the existence of monitoring targets within the
+kdamond_need_stop() function and promptly clean up non-existent targets.
 
-On this 32-bit architecture, `sizeof(char *)` is 4.  The expression
-`sizeof(header) - 1` resulted in an incorrect offset of 3, causing the
-test to read the wrong character from `/proc/[tid]/status` and fail.
+However, SJ pointed out that this approach is problematic because the
+online commit logic incorrectly uses list indices to update the monitoring
+state.  This can lead to data loss if the target list is changed
+concurrently.  Meanwhile, SJ suggests checking for target existence at the
+damon_for_each_target level, and if a target does not exist, simply skip
+it and proceed to the next one.
 
-On 64-bit architectures, `sizeof(char *)` is 8, so the expression
-coincidentally evaluates to 7, which matches the length of "State:\t". 
-This is why the bug likely remained hidden on 64-bit builds.
-
-To fix this and make the code portable and correct across all
-architectures, this patch replaces `sizeof(header) - 1` with
-`strlen(header)`.  The `strlen()` function correctly calculates the
-string's length, ensuring the correct offset is always used.
-
-Link: https://lkml.kernel.org/r/20251210091408.3781445-1-wakel@google.com
-Fixes: f60b6634cd88 ("mm/selftests: add a test to verify mmap_changing race with -EAGAIN")
-Signed-off-by: Wake Liu <wakel@google.com>
-Acked-by: Peter Xu <peterx@redhat.com>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251210052508.264433-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
+Suggested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-thread-state-check-in-uffd-unit-tests
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1317,7 +1317,7 @@ static thread_state thread_state_get(pid
- 		p = strstr(tmp, header);
- 		if (p) {
- 			/* For example, "State:\tD (disk sleep)" */
--			c = *(p + sizeof(header) - 1);
-+			c = *(p + strlen(header));
- 			return c == 'D' ?
- 			    THR_STATE_UNINTERRUPTIBLE : THR_STATE_UNKNOWN;
- 		}
+--- a/mm/damon/core.c~mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets
++++ a/mm/damon/core.c
+@@ -2266,6 +2266,9 @@ static void kdamond_apply_schemes(struct
+ 
+ 	mutex_lock(&c->walk_control_lock);
+ 	damon_for_each_target(t, c) {
++		if (c->ops.target_valid && c->ops.target_valid(t) == false)
++			continue;
++
+ 		damon_for_each_region_safe(r, next_r, t)
+ 			damon_do_apply_schemes(c, t, r);
+ 	}
 _
 
-Patches currently in -mm which might be from wakel@google.com are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-selftests-mm-fix-thread-state-check-in-uffd-unit-tests.patch
+mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects.patch
+mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets.patch
 
