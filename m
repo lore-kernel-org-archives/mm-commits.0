@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4598C2D7387
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:49:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85F7E1D9A54
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:51:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765853382; cv=none; b=rd1raeMadIC2gCBVF0vEg52MymQzRAwTbBbsvwt+rIAzxp7H/f+FWjqfI6idlrXMrSjIGMVnoxqeCSrycD3M9FSoqhk+HeWAXUwG2V39zNqrhp6XL3V2Y1/5x8XZYYgA+HPHqa/LHd3GK1GOAtmiDLaaTc+6ijMkB+QWSR1qXU8=
+	t=1765853491; cv=none; b=Q239UG2n53UEEAz6/63s1TPk0s6R6q9bMBzHUOrZ7vlOtGGy+YZZPeBvBcFsycl4oPnrI6jp1chJa6nncojO51Xr/Yzz0mLtEIngLKr392UEVYygDzRg0wgifQAxREAYD1TYNwoz2VZrEd5feCu2aRSk4kUrSxJ/IUvATYc8ySI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765853382; c=relaxed/simple;
-	bh=gHKskrY4pzzgk20NLUTvhjMpso9ORVxCUvSZ9Z0bHKs=;
-	h=Date:To:From:Subject:Message-Id; b=UlTYV1YUvkEpSbGCClCgmLiQ4cRq0vQhCwssGR0H4xgiQt7BlKK5FGkF2ZiUIoh3IwNkQwoA/pHFhu2tXM8d6iBZS01suQj92w1RR/CIG9Qgt8bWrAEevOXljQlOTbbKthUSijeMrgRO+SZFsuEIIZhBR79FMJonJCuI/ydI4Mc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sJAOgfwC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765853491; c=relaxed/simple;
+	bh=7PD526Tcjeri1FC7hXk2nd4KBfrBO9Shfz4fVcYQs3A=;
+	h=Date:To:From:Subject:Message-Id; b=lMEh4eX64SSjxW4SUdDCHBfJZNWuHm8PH0HcBpXel/4sGX1lgOAAHCCXKbbVincThuXhFn1FAc8x0HCheM62TGaYq1UBhdXpwKZOxdP0VmCHUGzZ0K/Y7Ty3TycB75Qp3DnxN4ZxZK1KXLAP96YuXm90HhWdsIaMkV0MQqWNBKM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mte4hmlE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sJAOgfwC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD4D2C4CEF5;
-	Tue, 16 Dec 2025 02:49:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mte4hmlE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B3F8C4CEF5;
+	Tue, 16 Dec 2025 02:51:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765853381;
-	bh=gHKskrY4pzzgk20NLUTvhjMpso9ORVxCUvSZ9Z0bHKs=;
+	s=korg; t=1765853491;
+	bh=7PD526Tcjeri1FC7hXk2nd4KBfrBO9Shfz4fVcYQs3A=;
 	h=Date:To:From:Subject:From;
-	b=sJAOgfwCPhfp7o1wO5ovXjDn4lqE6btMy29X4KJifJOjHtTsIcl7lEHrFOvmfJaiu
-	 q+6KgRYWLTnBhwLi9P9TWPJ8yrao0rxuNLRJMi069e2gSeg15AXb83LjN6tz6lRWZS
-	 TBT4lmxCJXQO4uouLGP7lSfVCVMRkJOBWRW1UjHY=
-Date: Mon, 15 Dec 2025 18:49:41 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,luto@kernel.org,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@redhat.com,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
+	b=mte4hmlE2rBkV6QCz3z9kJQZ/w9uddIGJNNo5mr0e0IPK071daBJX/xwYlNY8ax3j
+	 VwE+k74/5h5Kw7TeluCKPmdhsXQtCYIUpTkHbebF7leLg2SALrXfKdPgyH293K6CqE
+	 YTZfceE7TWMz+5Ah4wKmx99C/XXtuTSA+RYaW2xQ=
+Date: Mon, 15 Dec 2025 18:51:30 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,kartikey406@gmail.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-folio_zero_user-cache-neighbouring-pages.patch added to mm-new branch
-Message-Id: <20251216024941.CD4D2C4CEF5@smtp.kernel.org>
+Subject: + ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks.patch added to mm-nonmm-unstable branch
+Message-Id: <20251216025131.0B3F8C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: folio_zero_user: cache neighbouring pages
-has been added to the -mm mm-new branch.  Its filename is
-     mm-folio_zero_user-cache-neighbouring-pages.patch
+     Subject: ocfs2: adjust ocfs2_xa_remove_entry() to match UBSAN boundary checks
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio_zero_user-cache-neighbouring-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,147 +58,72 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: mm: folio_zero_user: cache neighbouring pages
-Date: Mon, 15 Dec 2025 12:49:22 -0800
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: ocfs2: adjust ocfs2_xa_remove_entry() to match UBSAN boundary checks
+Date: Thu, 11 Dec 2025 18:59:49 +0300
 
-folio_zero_user() does straight zeroing without caring about temporal
-locality for caches.
+After introducing 2f26f58df041 ("ocfs2: annotate flexible array members
+with __counted_by_le()"), syzbot has reported the following issue:
 
-This replaced commit c6ddfb6c5890 ("mm, clear_huge_page: move order
-algorithm into a separate function") where we cleared a page at a time
-converging to the faulting page from the left and the right.
+UBSAN: array-index-out-of-bounds in fs/ocfs2/xattr.c:1955:3
+index 2 is out of range for type 'struct ocfs2_xattr_entry[]
+__counted_by(xh_count)' (aka 'struct ocfs2_xattr_entry[]')
+...
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0x189/0x250 lib/dump_stack.c:120
+ ubsan_epilogue+0xa/0x40 lib/ubsan.c:233
+ __ubsan_handle_out_of_bounds+0xe9/0xf0 lib/ubsan.c:455
+ ocfs2_xa_remove_entry+0x36d/0x3e0 fs/ocfs2/xattr.c:1955
+ ...
 
-To retain limited temporal locality, split the clearing in three parts:
-the faulting page and its immediate neighbourhood, and, the remaining
-regions on the left and the right.  The local neighbourhood will be
-cleared last.  Do this only when zeroing small folios (<
-MAX_ORDER_NR_PAGES) since there isn't much expectation of cache locality
-for large folios.
+To address this issue, 'xh_entries[]' member removal should be performed
+before actually changing 'xh_count', thus making sure that all array
+accesses matches the boundary checks performed by UBSAN.
 
-Performance
-===
-
-AMD Genoa (EPYC 9J14, cpus=2 sockets * 96 cores * 2 threads,
-  memory=2.2 TB, L1d= 16K/thread, L2=512K/thread, L3=2MB/thread)
-
-anon-w-seq (vm-scalability):
-                            stime                  utime
-
-  page-at-a-time      1654.63 ( +- 3.84% )     811.00 ( +- 3.84% )
-  contiguous clearing 1602.86 ( +- 3.00% )     970.75 ( +- 4.68% )
-  neighbourhood-last  1630.32 ( +- 2.73% )     886.37 ( +- 5.19% )
-
-Both stime and utime respond in expected ways.  stime drops for both
-contiguous clearing (-3.14%) and neighbourhood-last (-1.46%) approaches. 
-However, utime increases for both contiguous clearing (+19.7%) and
-neighbourhood-last (+9.28%).
-
-In part this is because anon-w-seq runs with 384 processes zeroing
-anonymously mapped memory which they then access sequentially.  As such
-this is likely an uncommon pattern where the memory bandwidth is saturated
-while also being cache limited because we access the entire region.
-
-Kernel make workload (make -j 12 bzImage):
-
-                            stime                  utime
-
-  page-at-a-time       138.16 ( +- 0.31% )    1015.11 ( +- 0.05% )
-  contiguous clearing  133.42 ( +- 0.90% )    1013.49 ( +- 0.05% )
-  neighbourhood-last   131.20 ( +- 0.76% )    1011.36 ( +- 0.07% )
-
-For make the utime stays relatively flat with an up to 4.9% improvement in
-the stime.
-
-Link: https://lkml.kernel.org/r/20251215204922.475324-9-ankur.a.arora@oracle.com
-Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
-Tested-by: Raghavendra K T <raghavendra.kt@amd.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20251211155949.774485-1-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reported-by: syzbot+cf96bc82a588a27346a8@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=cf96bc82a588a27346a8
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Deepanshu Kartikey <kartikey406@gmail.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   44 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 42 insertions(+), 2 deletions(-)
+ fs/ocfs2/xattr.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/memory.c~mm-folio_zero_user-cache-neighbouring-pages
-+++ a/mm/memory.c
-@@ -7268,13 +7268,53 @@ static void clear_contig_highpages(struc
-  * @addr_hint: The address accessed by the user or the base address.
-  *
-  * Uses architectural support to clear page ranges.
-+ *
-+ * Clearing of small folios (< MAX_ORDER_NR_PAGES) is split in three parts:
-+ * pages in the immediate locality of the faulting page, and its left, right
-+ * regions; the local neighbourhood is cleared last in order to keep cache
-+ * lines of the faulting region hot.
-+ *
-+ * For larger folios we assume that there is no expectation of cache locality
-+ * and just do a straight zero.
-  */
- void folio_zero_user(struct folio *folio, unsigned long addr_hint)
- {
- 	unsigned long base_addr = ALIGN_DOWN(addr_hint, folio_size(folio));
-+	const long fault_idx = (addr_hint - base_addr) / PAGE_SIZE;
-+	const struct range pg = DEFINE_RANGE(0, folio_nr_pages(folio) - 1);
-+	const int width = 2; /* number of pages cleared last on either side */
-+	struct range r[3];
-+	int i;
-+
-+	if (folio_nr_pages(folio) > MAX_ORDER_NR_PAGES) {
-+		clear_contig_highpages(folio_page(folio, 0),
-+				       base_addr, folio_nr_pages(folio));
-+		return;
-+	}
-+
-+	/*
-+	 * Faulting page and its immediate neighbourhood. Cleared at the end to
-+	 * ensure it sticks around in the cache.
-+	 */
-+	r[2] = DEFINE_RANGE(clamp_t(s64, fault_idx - width, pg.start, pg.end),
-+			    clamp_t(s64, fault_idx + width, pg.start, pg.end));
-+
-+	/* Region to the left of the fault */
-+	r[1] = DEFINE_RANGE(pg.start,
-+			    clamp_t(s64, r[2].start-1, pg.start-1, r[2].start));
-+
-+	/* Region to the right of the fault: always valid for the common fault_idx=0 case. */
-+	r[0] = DEFINE_RANGE(clamp_t(s64, r[2].end+1, r[2].end, pg.end+1),
-+			    pg.end);
-+
-+	for (i = 0; i <= 2; i++) {
-+		unsigned int npages = range_len(&r[i]);
-+		struct page *page = folio_page(folio, r[i].start);
-+		unsigned long addr = base_addr + folio_page_idx(folio, page) * PAGE_SIZE;
+--- a/fs/ocfs2/xattr.c~ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks
++++ a/fs/ocfs2/xattr.c
+@@ -1971,8 +1971,7 @@ static void ocfs2_xa_remove_entry(struct
+ 	ocfs2_xa_wipe_namevalue(loc);
+ 	loc->xl_entry = NULL;
  
--	clear_contig_highpages(folio_page(folio, 0),
--				base_addr, folio_nr_pages(folio));
-+		if (npages > 0)
-+			clear_contig_highpages(page, addr, npages);
-+	}
+-	le16_add_cpu(&xh->xh_count, -1);
+-	count = le16_to_cpu(xh->xh_count);
++	count = le16_to_cpu(xh->xh_count) - 1;
+ 
+ 	/*
+ 	 * Only zero out the entry if there are more remaining.  This is
+@@ -1987,6 +1986,8 @@ static void ocfs2_xa_remove_entry(struct
+ 		memset(&xh->xh_entries[count], 0,
+ 		       sizeof(struct ocfs2_xattr_entry));
+ 	}
++
++	xh->xh_count = cpu_to_le16(count);
  }
  
- static int copy_user_gigantic_page(struct folio *dst, struct folio *src,
+ /*
 _
 
-Patches currently in -mm which might be from ankur.a.arora@oracle.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-highmem-introduce-clear_user_highpages.patch
-mm-introduce-clear_pages-and-clear_user_pages.patch
-highmem-do-range-clearing-in-clear_user_highpages.patch
-x86-mm-simplify-clear_page_.patch
-x86-clear_page-introduce-clear_pages.patch
-mm-folio_zero_user-support-clearing-page-ranges.patch
-mm-folio_zero_user-cache-neighbouring-pages.patch
+ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks.patch
 
