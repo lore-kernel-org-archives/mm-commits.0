@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3570ACA6B
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:49:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43E7BCA6B
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:49:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765853355; cv=none; b=BUy86y5Ql9AD+xMMTgM7240Ubo2e1J/GnGmcnzTXyAMYBtKM3gA/fpRvyJnewcVmZVe1jT1VaxtwEpYivQvqb0+iXoZoCk74kWx9x2NfDJVJ7X164p0DEElTboaRwRAI7mvBObIUIBXw3soLDhjJBxG2jamkLFb+MT02ZsbPSEE=
+	t=1765853367; cv=none; b=XTtBzScvoIOkYczw7cC/cfJZJGzxOM5m2ZEjM63wGL3KWWBLBKyjT7ZTra/IbgmYmt/yjpZDfI/MrjNnWO9QPT1Xm0LNVLj1TrZoEko3kZSn5JWfoT5Mh9FJEGyx9a4GRTnJ9a4ovEIBqy0a0m4BepYEI9bw77AClg11Ios6dNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765853355; c=relaxed/simple;
-	bh=6dP3mRBZ+cpBK5RBf0EV+rsJwJLAiNSg8kMHRVm3cwQ=;
-	h=Date:To:From:Subject:Message-Id; b=doUC4Uz7XWyFT/MnIi8SuliqGdXdMTw7rlO3SOkidEOlld+HZRlEQkdhrzM+BV0jlpkWKPyLV38KO5J3cJbOIrhHaRDbARk0qn244T68vihYSDnCzcRIBbV4EJSFF3V7tB/SJijbByUIDm3Z7bSOstf7G4rBRBQsHVem07Xz7EM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b4+NctZ6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765853367; c=relaxed/simple;
+	bh=biK5zSH+SvI4KvFPCVUpU8t5tnk+w+YE5+aEsqZDq4I=;
+	h=Date:To:From:Subject:Message-Id; b=mOWCmKdy4Fdz2OcSy1e97thafoYYJD80eyElTnq8CyOeaoS9ARMulrtZMDDF2rPScIHMHHrirUrEXYJVpc96OtfWFofEpZPPUxI9uMNyM+4drSSbkr8KfSbaqTpWCqAJs4gOzpwuqTAUgghWjbwJC05txAlkZaqidShoT7glPoo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z9/xc7wj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b4+NctZ6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B18B3C4CEF5;
-	Tue, 16 Dec 2025 02:49:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z9/xc7wj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B81C0C4CEF5;
+	Tue, 16 Dec 2025 02:49:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765853354;
-	bh=6dP3mRBZ+cpBK5RBf0EV+rsJwJLAiNSg8kMHRVm3cwQ=;
+	s=korg; t=1765853366;
+	bh=biK5zSH+SvI4KvFPCVUpU8t5tnk+w+YE5+aEsqZDq4I=;
 	h=Date:To:From:Subject:From;
-	b=b4+NctZ6ph+qjUO8j/Y2FHnoATlQHmPXdN87poXuxYMIGJMXsUZ5pSUllRLWrz1PL
-	 OLVz8wNnH02rXEGHgUau4DkmQM28URB9zOSprjMl/RlfgqMDLwj1VFYm65MDiGHn/6
-	 82cMPjX7IyjBFI545M/fTH8dw5pxFIQt9tveCVNc=
-Date: Mon, 15 Dec 2025 18:49:13 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,luto@kernel.org,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,david@redhat.com,akpm@linux-foundation.org
+	b=Z9/xc7wj3vHe2JB6/8w5x1kYXFqz6ASfEfTOGmyLePYJOkDBx83wHOdlCuSJup1is
+	 +se1HGZZ2g6F6s8JuxWcMHj8IaGpPgfJPu1wAnbiiZxUn0Q58uBkhov1MLvLuU08xU
+	 0GuMl3nPNdLf6KVDOVPH/6nJTYyag2wzfRfb4wDk=
+Date: Mon, 15 Dec 2025 18:49:25 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,luto@kernel.org,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@redhat.com,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + treewide-provide-a-generic-clear_user_page-variant.patch added to mm-new branch
-Message-Id: <20251216024914.B18B3C4CEF5@smtp.kernel.org>
+Subject: + highmem-introduce-clear_user_highpages.patch added to mm-new branch
+Message-Id: <20251216024926.B81C0C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: treewide: provide a generic clear_user_page() variant
+     Subject: highmem: introduce clear_user_highpages()
 has been added to the -mm mm-new branch.  Its filename is
-     treewide-provide-a-generic-clear_user_page-variant.patch
+     highmem-introduce-clear_user_highpages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-provide-a-generic-clear_user_page-variant.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/highmem-introduce-clear_user_highpages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,103 +64,21 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: treewide: provide a generic clear_user_page() variant
-Date: Mon, 15 Dec 2025 12:49:15 -0800
+From: Ankur Arora <ankur.a.arora@oracle.com>
+Subject: highmem: introduce clear_user_highpages()
+Date: Mon, 15 Dec 2025 12:49:16 -0800
 
-Patch series "mm: folio_zero_user: clear contiguous pages", v10.
+Define clear_user_highpages() which clears pages sequentially using
+clear_user_highpage().
 
-This series adds clearing of contiguous page ranges for hugepages.
+Also add a comment describing clear_user_highpage().
 
-The series improves on the current page-at-a-time approach in two ways:
-
- - amortizes the per-page setup cost over a larger extent
- - when using string instructions, exposes the real region size
-   to the processor.
-
-A processor could use knowledge of the full extent to optimize the
-clearing better than if it sees only a single page sized extent at a time.
-AMD Zen uarchs, as an example, elide cacheline allocation for regions
-larger than LLC-size.
-
-Demand faulting a 64GB region shows performance improvement:
-
- $ perf bench mem mmap -p $pg-sz -f demand -s 64GB -l 5
-
-                       baseline              +series             change
-
-                  (GB/s  +- %stdev)     (GB/s  +- %stdev)
-
-   pg-sz=2MB       12.92  +- 2.55%        17.03  +-  0.70%       + 31.8%	preempt=*
-
-   pg-sz=1GB       17.14  +- 2.27%        18.04  +-  1.05%       +  5.2%	preempt=none|voluntary
-   pg-sz=1GB       17.26  +- 1.24%        42.17  +-  4.21% [#]   +144.3%	preempt=full|lazy
-
- [#] Notice that we perform much better with preempt=full|lazy. That's
-  because preemptible models don't need explicit invocations of
-  cond_resched() to ensure reasonable preemption latency, which,
-  allows us to clear the full extent (1GB) in a single unit.
-  In comparison the maximum extent used for preempt=none|voluntary is
-  PROCESS_PAGES_NON_PREEMPT_BATCH (8MB).
-
-  The larger extent allows the processor to elide cacheline
-  allocation (on Milan the threshold is LLC-size=32MB.) 
-
-  (The hope is that eventually, in the fullness of time, the lazy
-  preemption model will be able to do the same job that none or
-  voluntary models are used for, allowing cond_resched() to go away.)
-
-The anon-w-seq test in the vm-scalability benchmark, however, does show
-worse performance with utime increasing by ~9%:
-
-                         stime                  utime
-
-  baseline         1654.63 ( +- 3.84% )     811.00 ( +- 3.84% )
-  +series          1630.32 ( +- 2.73% )     886.37 ( +- 5.19% )
-
-In part this is because anon-w-seq runs with 384 processes zeroing
-anonymously mapped memory which they then access sequentially.  As such
-this is a likely uncommon pattern where the memory bandwidth is saturated
-while we are also cache limited because the workload accesses the entire
-region.
-
-Raghavendra also tested previous version of the series on AMD Genoa also
-sees improvement [1] with preempt=lazy.  (The pg-sz=2MB improvement is
-much higher on Genoa than I see on Milan):
-
-  $ perf bench mem map -p $page-size -f populate -s 64GB -l 10
-
-                    base               patched              change
-   pg-sz=2MB       12.731939 GB/sec    26.304263 GB/sec     106.6%
-   pg-sz=1GB       26.232423 GB/sec    61.174836 GB/sec     133.2%
-
-
-This patch (of 8):
-
-Let's drop all variants that effectively map to clear_page() and provide
-it in a generic variant instead.
-
-We'll use the macro clear_user_page to indicate whether an architecture
-provides it's own variant.  Maybe at some point these should be CONFIG_
-options.
-
-Also, clear_user_page() is only called from the generic variant of
-clear_user_highpage(), so define it only if the architecture does not
-provide a clear_user_highpage().  And, for simplicity define it in
-linux/highmem.h.
-
-Note that for parisc, clear_page() and clear_user_page() map to
-clear_page_asm(), so we can just get rid of the custom clear_user_page()
-implementation.  There is a clear_user_page_asm() function on parisc, that
-seems to be unused.  Not sure what's up with that.
-
-Link: https://lkml.kernel.org/r/20251215204922.475324-1-ankur.a.arora@oracle.com
-Link: https://lkml.kernel.org/r/20251215204922.475324-2-ankur.a.arora@oracle.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20251215204922.475324-3-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
@@ -173,292 +91,62 @@ Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/page.h      |    1 -
- arch/arc/include/asm/page.h        |    2 ++
- arch/arm/include/asm/page-nommu.h  |    1 -
- arch/arm64/include/asm/page.h      |    1 -
- arch/csky/abiv1/inc/abi/page.h     |    1 +
- arch/csky/abiv2/inc/abi/page.h     |    7 -------
- arch/hexagon/include/asm/page.h    |    1 -
- arch/loongarch/include/asm/page.h  |    1 -
- arch/m68k/include/asm/page_no.h    |    1 -
- arch/microblaze/include/asm/page.h |    1 -
- arch/mips/include/asm/page.h       |    1 +
- arch/nios2/include/asm/page.h      |    1 +
- arch/openrisc/include/asm/page.h   |    1 -
- arch/parisc/include/asm/page.h     |    1 -
- arch/powerpc/include/asm/page.h    |    1 +
- arch/riscv/include/asm/page.h      |    1 -
- arch/s390/include/asm/page.h       |    1 -
- arch/sparc/include/asm/page_64.h   |    1 +
- arch/um/include/asm/page.h         |    1 -
- arch/x86/include/asm/page.h        |    6 ------
- arch/xtensa/include/asm/page.h     |    1 -
- include/linux/highmem.h            |   23 +++++++++++++++++++++--
- 22 files changed, 28 insertions(+), 28 deletions(-)
+ include/linux/highmem.h |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
---- a/arch/alpha/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/alpha/include/asm/page.h
-@@ -11,7 +11,6 @@
- #define STRICT_MM_TYPECHECKS
- 
- extern void clear_page(void *page);
--#define clear_user_page(page, vaddr, pg)	clear_page(page)
- 
- #define vma_alloc_zeroed_movable_folio(vma, vaddr) \
- 	vma_alloc_folio(GFP_HIGHUSER_MOVABLE | __GFP_ZERO, 0, vma, vaddr)
---- a/arch/arc/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/arc/include/asm/page.h
-@@ -32,6 +32,8 @@ struct page;
- 
- void copy_user_highpage(struct page *to, struct page *from,
- 			unsigned long u_vaddr, struct vm_area_struct *vma);
-+
-+#define clear_user_page clear_user_page
- void clear_user_page(void *to, unsigned long u_vaddr, struct page *page);
- 
- typedef struct {
---- a/arch/arm64/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/arm64/include/asm/page.h
-@@ -36,7 +36,6 @@ struct folio *vma_alloc_zeroed_movable_f
- bool tag_clear_highpages(struct page *to, int numpages);
- #define __HAVE_ARCH_TAG_CLEAR_HIGHPAGES
- 
--#define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
- typedef struct page *pgtable_t;
---- a/arch/arm/include/asm/page-nommu.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/arm/include/asm/page-nommu.h
-@@ -11,7 +11,6 @@
- #define clear_page(page)	memset((page), 0, PAGE_SIZE)
- #define copy_page(to,from)	memcpy((to), (from), PAGE_SIZE)
- 
--#define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
- /*
---- a/arch/csky/abiv1/inc/abi/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/csky/abiv1/inc/abi/page.h
-@@ -10,6 +10,7 @@ static inline unsigned long pages_do_ali
- 	return (addr1 ^ addr2) & (SHMLBA-1);
- }
- 
-+#define clear_user_page clear_user_page
- static inline void clear_user_page(void *addr, unsigned long vaddr,
- 				   struct page *page)
- {
---- a/arch/csky/abiv2/inc/abi/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/csky/abiv2/inc/abi/page.h
-@@ -1,11 +1,4 @@
- /* SPDX-License-Identifier: GPL-2.0 */
--
--static inline void clear_user_page(void *addr, unsigned long vaddr,
--				   struct page *page)
--{
--	clear_page(addr);
--}
--
- static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
- 				  struct page *page)
- {
---- a/arch/hexagon/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/hexagon/include/asm/page.h
-@@ -113,7 +113,6 @@ static inline void clear_page(void *page
- /*
-  * Under assumption that kernel always "sees" user map...
-  */
--#define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
- static inline unsigned long virt_to_pfn(const void *kaddr)
---- a/arch/loongarch/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/loongarch/include/asm/page.h
-@@ -30,7 +30,6 @@
- extern void clear_page(void *page);
- extern void copy_page(void *to, void *from);
- 
--#define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
- extern unsigned long shm_align_mask;
---- a/arch/m68k/include/asm/page_no.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/m68k/include/asm/page_no.h
-@@ -10,7 +10,6 @@ extern unsigned long memory_end;
- #define clear_page(page)	memset((page), 0, PAGE_SIZE)
- #define copy_page(to,from)	memcpy((to), (from), PAGE_SIZE)
- 
--#define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
- #define vma_alloc_zeroed_movable_folio(vma, vaddr) \
---- a/arch/microblaze/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/microblaze/include/asm/page.h
-@@ -45,7 +45,6 @@ typedef unsigned long pte_basic_t;
- # define copy_page(to, from)			memcpy((to), (from), PAGE_SIZE)
- # define clear_page(pgaddr)			memset((pgaddr), 0, PAGE_SIZE)
- 
--# define clear_user_page(pgaddr, vaddr, page)	memset((pgaddr), 0, PAGE_SIZE)
- # define copy_user_page(vto, vfrom, vaddr, topg) \
- 			memcpy((vto), (vfrom), PAGE_SIZE)
- 
---- a/arch/mips/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/mips/include/asm/page.h
-@@ -90,6 +90,7 @@ static inline void clear_user_page(void
- 	if (pages_do_alias((unsigned long) addr, vaddr & PAGE_MASK))
- 		flush_data_cache_page((unsigned long)addr);
- }
-+#define clear_user_page clear_user_page
- 
- struct vm_area_struct;
- extern void copy_user_highpage(struct page *to, struct page *from,
---- a/arch/nios2/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/nios2/include/asm/page.h
-@@ -45,6 +45,7 @@
- 
- struct page;
- 
-+#define clear_user_page clear_user_page
- extern void clear_user_page(void *addr, unsigned long vaddr, struct page *page);
- extern void copy_user_page(void *vto, void *vfrom, unsigned long vaddr,
- 				struct page *to);
---- a/arch/openrisc/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/openrisc/include/asm/page.h
-@@ -30,7 +30,6 @@
- #define clear_page(page)	memset((page), 0, PAGE_SIZE)
- #define copy_page(to, from)	memcpy((to), (from), PAGE_SIZE)
- 
--#define clear_user_page(page, vaddr, pg)        clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)     copy_page(to, from)
- 
- /*
---- a/arch/parisc/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/parisc/include/asm/page.h
-@@ -21,7 +21,6 @@ struct vm_area_struct;
- 
- void clear_page_asm(void *page);
- void copy_page_asm(void *to, void *from);
--#define clear_user_page(vto, vaddr, page) clear_page_asm(vto)
- void copy_user_highpage(struct page *to, struct page *from, unsigned long vaddr,
- 		struct vm_area_struct *vma);
- #define __HAVE_ARCH_COPY_USER_HIGHPAGE
---- a/arch/powerpc/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/powerpc/include/asm/page.h
-@@ -271,6 +271,7 @@ static inline const void *pfn_to_kaddr(u
- 
- struct page;
- extern void clear_user_page(void *page, unsigned long vaddr, struct page *pg);
-+#define clear_user_page clear_user_page
- extern void copy_user_page(void *to, void *from, unsigned long vaddr,
- 		struct page *p);
- extern int devmem_is_allowed(unsigned long pfn);
---- a/arch/riscv/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/riscv/include/asm/page.h
-@@ -50,7 +50,6 @@ void clear_page(void *page);
- #endif
- #define copy_page(to, from)			memcpy((to), (from), PAGE_SIZE)
- 
--#define clear_user_page(pgaddr, vaddr, page)	clear_page(pgaddr)
- #define copy_user_page(vto, vfrom, vaddr, topg) \
- 			memcpy((vto), (vfrom), PAGE_SIZE)
- 
---- a/arch/s390/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/s390/include/asm/page.h
-@@ -65,7 +65,6 @@ static inline void copy_page(void *to, v
- 		: : "memory", "cc");
- }
- 
--#define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
- #define vma_alloc_zeroed_movable_folio(vma, vaddr) \
---- a/arch/sparc/include/asm/page_64.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/sparc/include/asm/page_64.h
-@@ -43,6 +43,7 @@ void _clear_page(void *page);
- #define clear_page(X)	_clear_page((void *)(X))
- struct page;
- void clear_user_page(void *addr, unsigned long vaddr, struct page *page);
-+#define clear_user_page clear_user_page
- #define copy_page(X,Y)	memcpy((void *)(X), (void *)(Y), PAGE_SIZE)
- void copy_user_page(void *to, void *from, unsigned long vaddr, struct page *topage);
- #define __HAVE_ARCH_COPY_USER_HIGHPAGE
---- a/arch/um/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/um/include/asm/page.h
-@@ -26,7 +26,6 @@ struct page;
- #define clear_page(page)	memset((void *)(page), 0, PAGE_SIZE)
- #define copy_page(to,from)	memcpy((void *)(to), (void *)(from), PAGE_SIZE)
- 
--#define clear_user_page(page, vaddr, pg)	clear_page(page)
- #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- 
- typedef struct { unsigned long pte; } pte_t;
---- a/arch/x86/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/x86/include/asm/page.h
-@@ -22,12 +22,6 @@ struct page;
- extern struct range pfn_mapped[];
- extern int nr_pfn_mapped;
- 
--static inline void clear_user_page(void *page, unsigned long vaddr,
--				   struct page *pg)
--{
--	clear_page(page);
--}
--
- static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
- 				  struct page *topage)
- {
---- a/arch/xtensa/include/asm/page.h~treewide-provide-a-generic-clear_user_page-variant
-+++ a/arch/xtensa/include/asm/page.h
-@@ -126,7 +126,6 @@ void clear_user_highpage(struct page *pa
- void copy_user_highpage(struct page *to, struct page *from,
- 			unsigned long vaddr, struct vm_area_struct *vma);
- #else
--# define clear_user_page(page, vaddr, pg)	clear_page(page)
- # define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- #endif
- 
---- a/include/linux/highmem.h~treewide-provide-a-generic-clear_user_page-variant
+--- a/include/linux/highmem.h~highmem-introduce-clear_user_highpages
 +++ a/include/linux/highmem.h
-@@ -197,15 +197,34 @@ static inline void invalidate_kernel_vma
+@@ -217,7 +217,14 @@ static inline void clear_user_page(void
  }
  #endif
  
 -/* when CONFIG_HIGHMEM is not set these will be plain clear/copy_page */
- #ifndef clear_user_highpage
-+#ifndef clear_user_page
 +/**
-+ * clear_user_page() - clear a page to be mapped to user space
-+ * @addr: the address of the page
-+ * @vaddr: the address of the user mapping
-+ * @page: the page
++ * clear_user_highpage() - clear a page to be mapped to user space
++ * @page: start page
++ * @vaddr: start address of the user mapping
 + *
-+ * We condition the definition of clear_user_page() on the architecture not
-+ * having a custom clear_user_highpage(). That's because if there is some
-+ * special flushing needed for clear_user_highpage() then it is likely that
-+ * clear_user_page() also needs some magic. And, since our only caller
-+ * is the generic clear_user_highpage(), not defining is not much of a loss.
++ * With !CONFIG_HIGHMEM this (and the copy_user_highpage() below) will
++ * be plain clear_user_page() (and copy_user_page()).
 + */
-+static inline void clear_user_page(void *addr, unsigned long vaddr, struct page *page)
-+{
-+	clear_page(addr);
-+}
-+#endif
-+
-+/* when CONFIG_HIGHMEM is not set these will be plain clear/copy_page */
  static inline void clear_user_highpage(struct page *page, unsigned long vaddr)
  {
  	void *addr = kmap_local_page(page);
- 	clear_user_page(addr, vaddr, page);
- 	kunmap_local(addr);
+@@ -226,6 +233,25 @@ static inline void clear_user_highpage(s
  }
--#endif
-+#endif /* clear_user_highpage */
+ #endif /* clear_user_highpage */
  
++/**
++ * clear_user_highpages() - clear a page range to be mapped to user space
++ * @page: start page
++ * @vaddr: start address of the user mapping
++ * @npages: number of pages
++ *
++ * Assumes that all the pages in the region (@page, +@npages) are valid
++ * so this does no exception handling.
++ */
++static inline void clear_user_highpages(struct page *page, unsigned long vaddr,
++					unsigned int npages)
++{
++	do {
++		clear_user_highpage(page, vaddr);
++		vaddr += PAGE_SIZE;
++		page++;
++	} while (--npages);
++}
++
  #ifndef vma_alloc_zeroed_movable_folio
  /**
+  * vma_alloc_zeroed_movable_folio - Allocate a zeroed page for a VMA.
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from ankur.a.arora@oracle.com are
 
-treewide-provide-a-generic-clear_user_page-variant.patch
+highmem-introduce-clear_user_highpages.patch
+mm-introduce-clear_pages-and-clear_user_pages.patch
+highmem-do-range-clearing-in-clear_user_highpages.patch
+x86-mm-simplify-clear_page_.patch
+x86-clear_page-introduce-clear_pages.patch
+mm-folio_zero_user-support-clearing-page-ranges.patch
+mm-folio_zero_user-cache-neighbouring-pages.patch
 
