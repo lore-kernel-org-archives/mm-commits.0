@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 288F52D8DD0;
-	Tue, 16 Dec 2025 22:20:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0E9EA59
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 23:33:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765923635; cv=none; b=DR6RD5XrBNRQk89aSgr1ugFihZ4HUXiusAAkPP57Eniv/7f+wDqTq11ose4CCF7FALPYgyS9NWY1aLKbeTKGtJKAEsjDS8Vr552iUtFERstA9dmF3Mx5ukKnFgg0qOneuC4cLFPWtXT5E/AX6hcrW1nl4xyJemqULD57TDFtHAo=
+	t=1765927997; cv=none; b=GuT5D9hUiLMTwRjr2yLPr1YpauH664U7gS35Jflor/shgK3XXafYlvpdFI9CJkuAyqpAZdihqithkmNnCC2jJ14JQqwVKcKAgVAn9QjyDdtGgwr8HZduGRsDdB+PWR/U/qRqcU64zaKpe99bbySwlYYyIjDVn2a1wcug2yKzMFw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765923635; c=relaxed/simple;
-	bh=xQkteA64nFbtvMb81WaksE3KN9fkv6qkVbQexeEpVA8=;
-	h=Date:To:From:Subject:Message-Id; b=c/G8MSyDb6VJM0+9q8gD9jnn7MsXn6dy/C6F8uw6zyVDZkS1Y/oUp1eJUG2lWF/7v8ebgXrXXlWNbcaFgkuC4RTlSIPHQQg1XJAiP4wPOwQ5uibe1Ej1EjpUk9rX1P0t3dHU9cFHe41xnpHcfUT1+0NIYastUDiHtsvNBb5+ykw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZOiVd+/y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765927997; c=relaxed/simple;
+	bh=YxHUX98MfhIqso7OxfEBh3G/dDladHAR3shmdJnJGps=;
+	h=Date:To:From:Subject:Message-Id; b=QIuZqvG/Fn/nxkt/xMjFKCBbLacrshmCfYsDuOtXvcRh4CdU8f+Jp084OBj4GK3I+ycgaeBpANFvUEA2HwljmgvPmcfWT/tmu6MGlbDXnYk4B0zLT72WRbAs+uTYZcvjD/JnhVtShO45bAhgF0TWV8xbm5Kw8Rud8V1xxhOsg/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PlKRA5b0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZOiVd+/y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA9FEC4CEF1;
-	Tue, 16 Dec 2025 22:20:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PlKRA5b0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C52CC4CEF1;
+	Tue, 16 Dec 2025 23:33:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765923634;
-	bh=xQkteA64nFbtvMb81WaksE3KN9fkv6qkVbQexeEpVA8=;
+	s=korg; t=1765927996;
+	bh=YxHUX98MfhIqso7OxfEBh3G/dDladHAR3shmdJnJGps=;
 	h=Date:To:From:Subject:From;
-	b=ZOiVd+/y9PGQpuEczyEUO1VRGRjXLimh0iniOScT7rlmFTIeM0qdsH9PnPadeb/hx
-	 mSr/+micLSfL+vYICUWvn9MEmFXFcHcdiBG0YjarJ9o9870+zzpv40u6b0ex64dz8C
-	 u9cgR/2ym5BTRdmgABjmbgfGIxSeFXJQg5xzspnM=
-Date: Tue, 16 Dec 2025 14:20:34 -0800
-To: mm-commits@vger.kernel.org,william.roche@oracle.com,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,jiaqiyan@google.com,jane.chu@oracle.com,akpm@linux-foundation.org
+	b=PlKRA5b0tt+BtWjVcYChkL5mY5mh5LCLF063ZJIgBrr1dajpCC6ETNhPKJ/vWili8
+	 J7eQtVlAmJRamoEwUvrO4PRGeOLQLniYwNMmwYfB5K1E5NeGsB+UWJ+28GAY6QRro/
+	 etz4jnLV+9zYXqHxtQxinm7skMXe6hQPnjYTnyCw=
+Date: Tue, 16 Dec 2025 15:33:15 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,clm@fb.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251216222034.AA9FEC4CEF1@smtp.kernel.org>
+Subject: + mm-memcg-fix-unit-conversion-for-k-macro-in-oom-log.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251216233316.4C52CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
+     Subject: mm: memcg: fix unit conversion for K() macro in OOM log
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+     mm-memcg-fix-unit-conversion-for-k-macro-in-oom-log.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-fix-unit-conversion-for-k-macro-in-oom-log.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,176 +58,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
-Date: Tue, 16 Dec 2025 14:56:21 -0700
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm: memcg: fix unit conversion for K() macro in OOM log
+Date: Tue, 16 Dec 2025 13:20:54 -0800
 
-When a newly poisoned subpage ends up in an already poisoned hugetlb
-folio, 'num_poisoned_pages' is incremented, but the per node ->mf_stats is
-not.  Fix the inconsistency by designating action_result() to update them
-both.
+The commit bc8e51c05ad5 ("mm: memcg: dump memcg protection info on oom or
+alloc failures") added functionality to dump memcg protections on OOM or
+allocation failures.  It uses K() macro to dump the information and passes
+bytes to the macro.  However the macro take number of pages instead of
+bytes.  It is defined as:
 
-Link: https://lkml.kernel.org/r/20251216215621.920093-1-jane.chu@oracle.com
-Fixes: 18f41fa616ee4 ("mm: memory-failure: bump memory failure stats to pglist_data")
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+
+Let's fix this.
+
+Link: https://lkml.kernel.org/r/20251216212054.484079-1-shakeel.butt@linux.dev
+Fixes: bc8e51c05ad5 ("mm: memcg: dump memcg protection info on oom or alloc failures")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: Chris Mason <clm@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: William Roche <william.roche@oracle.com>
-Cc: <stable@vger.kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 ++--
- include/linux/mm.h      |    4 ++--
- mm/hugetlb.c            |    4 ++--
- mm/memory-failure.c     |   22 +++++++++++++---------
- 4 files changed, 19 insertions(+), 15 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
-+++ a/include/linux/hugetlb.h
-@@ -156,7 +156,7 @@ long hugetlb_unreserve_pages(struct inod
- bool folio_isolate_hugetlb(struct folio *folio, struct list_head *list);
- int get_hwpoison_hugetlb_folio(struct folio *folio, bool *hugetlb, bool unpoison);
- int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
--				bool *migratable_cleared);
-+				bool *migratable_cleared, bool *samepg);
- void folio_putback_hugetlb(struct folio *folio);
- void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio, int reason);
- void hugetlb_fix_reserve_counts(struct inode *inode);
-@@ -418,7 +418,7 @@ static inline int get_hwpoison_hugetlb_f
+--- a/mm/memcontrol.c~mm-memcg-fix-unit-conversion-for-k-macro-in-oom-log
++++ a/mm/memcontrol.c
+@@ -5638,6 +5638,6 @@ void mem_cgroup_show_protected_memory(st
+ 		memcg = root_mem_cgroup;
+ 
+ 	pr_warn("Memory cgroup min protection %lukB -- low protection %lukB",
+-		K(atomic_long_read(&memcg->memory.children_min_usage)*PAGE_SIZE),
+-		K(atomic_long_read(&memcg->memory.children_low_usage)*PAGE_SIZE));
++		K(atomic_long_read(&memcg->memory.children_min_usage)),
++		K(atomic_long_read(&memcg->memory.children_low_usage)));
  }
- 
- static inline int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
--					bool *migratable_cleared)
-+					bool *migratable_cleared, bool *samepg)
- {
- 	return 0;
- }
---- a/include/linux/mm.h~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
-+++ a/include/linux/mm.h
-@@ -4351,7 +4351,7 @@ extern int soft_offline_page(unsigned lo
- extern const struct attribute_group memory_failure_attr_group;
- extern void memory_failure_queue(unsigned long pfn, int flags);
- extern int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
--					bool *migratable_cleared);
-+					bool *migratable_cleared, bool *samepg);
- void num_poisoned_pages_inc(unsigned long pfn);
- void num_poisoned_pages_sub(unsigned long pfn, long i);
- #else
-@@ -4360,7 +4360,7 @@ static inline void memory_failure_queue(
- }
- 
- static inline int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
--					bool *migratable_cleared)
-+					bool *migratable_cleared, bool *samepg)
- {
- 	return 0;
- }
---- a/mm/hugetlb.c~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
-+++ a/mm/hugetlb.c
-@@ -7132,12 +7132,12 @@ int get_hwpoison_hugetlb_folio(struct fo
- }
- 
- int get_huge_page_for_hwpoison(unsigned long pfn, int flags,
--				bool *migratable_cleared)
-+				bool *migratable_cleared, bool *samepg)
- {
- 	int ret;
- 
- 	spin_lock_irq(&hugetlb_lock);
--	ret = __get_huge_page_for_hwpoison(pfn, flags, migratable_cleared);
-+	ret = __get_huge_page_for_hwpoison(pfn, flags, migratable_cleared, samepg);
- 	spin_unlock_irq(&hugetlb_lock);
- 	return ret;
- }
---- a/mm/memory-failure.c~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
-+++ a/mm/memory-failure.c
-@@ -1883,7 +1883,8 @@ static unsigned long __folio_free_raw_hw
- 	return count;
- }
- 
--static int folio_set_hugetlb_hwpoison(struct folio *folio, struct page *page)
-+static int folio_set_hugetlb_hwpoison(struct folio *folio, struct page *page,
-+					bool *samepg)
- {
- 	struct llist_head *head;
- 	struct raw_hwp_page *raw_hwp;
-@@ -1899,17 +1900,16 @@ static int folio_set_hugetlb_hwpoison(st
- 		return -EHWPOISON;
- 	head = raw_hwp_list_head(folio);
- 	llist_for_each_entry(p, head->first, node) {
--		if (p->page == page)
-+		if (p->page == page) {
-+			*samepg = true;
- 			return -EHWPOISON;
-+		}
- 	}
- 
- 	raw_hwp = kmalloc(sizeof(struct raw_hwp_page), GFP_ATOMIC);
- 	if (raw_hwp) {
- 		raw_hwp->page = page;
- 		llist_add(&raw_hwp->node, head);
--		/* the first error event will be counted in action_result(). */
--		if (ret)
--			num_poisoned_pages_inc(page_to_pfn(page));
- 	} else {
- 		/*
- 		 * Failed to save raw error info.  We no longer trace all
-@@ -1966,7 +1966,7 @@ void folio_clear_hugetlb_hwpoison(struct
-  *   -EHWPOISON    - the hugepage is already hwpoisoned
-  */
- int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
--				 bool *migratable_cleared)
-+				 bool *migratable_cleared, bool *samepg)
- {
- 	struct page *page = pfn_to_page(pfn);
- 	struct folio *folio = page_folio(page);
-@@ -1991,7 +1991,7 @@ int __get_huge_page_for_hwpoison(unsigne
- 			goto out;
- 	}
- 
--	if (folio_set_hugetlb_hwpoison(folio, page)) {
-+	if (folio_set_hugetlb_hwpoison(folio, page, samepg)) {
- 		ret = -EHWPOISON;
- 		goto out;
- 	}
-@@ -2024,11 +2024,12 @@ static int try_memory_failure_hugetlb(un
- 	struct page *p = pfn_to_page(pfn);
- 	struct folio *folio;
- 	unsigned long page_flags;
-+	bool samepg = false;
- 	bool migratable_cleared = false;
- 
- 	*hugetlb = 1;
- retry:
--	res = get_huge_page_for_hwpoison(pfn, flags, &migratable_cleared);
-+	res = get_huge_page_for_hwpoison(pfn, flags, &migratable_cleared, &samepg);
- 	if (res == 2) { /* fallback to normal page handling */
- 		*hugetlb = 0;
- 		return 0;
-@@ -2037,7 +2038,10 @@ retry:
- 			folio = page_folio(p);
- 			res = kill_accessing_process(current, folio_pfn(folio), flags);
- 		}
--		action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
-+		if (samepg)
-+			action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
-+		else
-+			action_result(pfn, MF_MSG_HUGE, MF_FAILED);
- 		return res;
- 	} else if (res == -EBUSY) {
- 		if (!(flags & MF_NO_RETRY)) {
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+mm-memcg-fix-unit-conversion-for-k-macro-in-oom-log.patch
 
