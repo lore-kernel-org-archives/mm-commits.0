@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED1B12EC557
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 19:49:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C922EC557
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 19:50:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765914598; cv=none; b=krJ/imgP8lvw1AMSfJS/h6cZYQlhBeSFPl4OOMXFhQlUY9oOxb6HKG4UvZSTUGJGeLfExYzvSL/r4oW6rMW523O90RPEb66yRncBcPXzdQ3V89QROB92uk8dUQn9wKsbqfYA7P+rJIlhvOIYb2IgIyqAUqH9gHWqvluAghUbW20=
+	t=1765914601; cv=none; b=P8kJ71s0KCngQuLbxHGPmGmUKIZjGyjYiNdVwWqFLfH9Bsols6jrPb8KEu/4eIREcoOOWMECftUbV/I4ztn4p6Gv7A688OZ0sLqNU4CZoJ1J4D2swPKFfSW54hZYqegB30h3iB96wk6y7IxCUK2WuPHXXnvw7w2nNjWsxN5jAkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765914598; c=relaxed/simple;
-	bh=zLq9VCcVt3mLct6K6llKqtvFLdtIihQfaGWaYDzbOt0=;
-	h=Date:To:From:Subject:Message-Id; b=eha+JLKnRlRBlLlWwd9EHFDNd7Qa/u20YbRjnHAPEJH0UBt5w60OV7UQioiCF+givJKjejdUGdA9/04ToaDnGkcXMhYTPn0fhCWsX8bxn1m11e3q5XBCIIyvvfL55nQ5AoDiifNawqy1fQTqM4L1kem1J1EXOvXMwxNsVnhSIf4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TYujHl/a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765914601; c=relaxed/simple;
+	bh=sDLDJPjCCJ865bCLg6gNbA8me/Cz80PR+ExCDpoe/DQ=;
+	h=Date:To:From:Subject:Message-Id; b=nhW1BNyP00rrqLHMZT0XQlyGin9lN371ueH2WzEBJmGU89FBFvggN9EsrOi6Gn8yBkV145vZ1ZubBEuyFU+bzsKpn9fv9Itwa56rGb43GL0N/8/px3gIlYvKn1laHkEu+ybw7hKC8UbWLcF0OEMaUM572/HTzzlzmiB1r+8qync=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bsxUQfXv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TYujHl/a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70DE7C4CEF1;
-	Tue, 16 Dec 2025 19:49:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bsxUQfXv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B9EEC4CEF1;
+	Tue, 16 Dec 2025 19:50:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765914597;
-	bh=zLq9VCcVt3mLct6K6llKqtvFLdtIihQfaGWaYDzbOt0=;
+	s=korg; t=1765914600;
+	bh=sDLDJPjCCJ865bCLg6gNbA8me/Cz80PR+ExCDpoe/DQ=;
 	h=Date:To:From:Subject:From;
-	b=TYujHl/aukmZVv6xN4AFaD0zc7GKJgyk66sMW+XvtVUsksUzyhes1cHjwNR/o4slK
-	 VAFBqWYDi9g2dbjehlZWhxwpuhM6SDgiYVveEscqZjnAu6eDxjci6bKOBMFNKHAeyI
-	 vMsXa6jf0awRVn8DIix8jcmXwsrhwPnhBnzgEy9g=
-Date: Tue, 16 Dec 2025 11:49:56 -0800
+	b=bsxUQfXv3SSNdnXOYx3G/nMbEiVZThQEznmFii/zOpQhw4pkJxQzpNkQra8BoNh/h
+	 rG1UseOEt/sEKXw4zHz35rgUTjn6Xl17pKINylPUGyEydsesXo6wo5y1S3FP1QxVDU
+	 ihAImgPnxIySkcvAH7/cmwhxhq94shEhrL5Ncn8s=
+Date: Tue, 16 Dec 2025 11:49:59 -0800
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yonghong.song@linux.dev,will@kernel.org,stefan.kristiansson@saunalahti.fi,song@kernel.org,shorne@gmail.com,sdf@fomichev.me,peterz@infradead.org,martin.lau@linux.dev,mark.rutland@arm.com,kpsingh@kernel.org,jonas@southpole.se,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,gary@garyguo.net,eddyz87@gmail.com,dinguyen@kernel.org,daniel@iogearbox.net,dalias@libc.org,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,andrii@kernel.org,fthain@linux-m68k.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bpf-explicitly-align-bpf_res_spin_lock.patch added to mm-nonmm-unstable branch
-Message-Id: <20251216194957.70DE7C4CEF1@smtp.kernel.org>
+Subject: + atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch added to mm-nonmm-unstable branch
+Message-Id: <20251216195000.8B9EEC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bpf: explicitly align bpf_res_spin_lock
+     Subject: atomic: specify alignment for atomic_t and atomic64_t
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     bpf-explicitly-align-bpf_res_spin_lock.patch
+     atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-explicitly-align-bpf_res_spin_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,89 +59,85 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Finn Thain <fthain@linux-m68k.org>
-Subject: bpf: explicitly align bpf_res_spin_lock
+Subject: atomic: specify alignment for atomic_t and atomic64_t
 Date: Tue, 16 Dec 2025 17:31:05 +1100
 
-Patch series "Align atomic storage", v5.
+Some recent commits incorrectly assumed 4-byte alignment of locks.  That
+assumption fails on Linux/m68k (and, interestingly, would have failed on
+Linux/cris also).  The jump label implementation makes a similar alignment
+assumption.
 
-This series adds the __aligned attribute to atomic_t and atomic64_t
-definitions in include/linux and include/asm-generic (respectively) to get
-natural alignment of both types on csky, m68k, microblaze, nios2, openrisc
-and sh.
+The expectation that atomic_t and atomic64_t variables will be naturally
+aligned seems reasonable, as indeed they are on 64-bit architectures.  But
+atomic64_t isn't naturally aligned on csky, m68k, microblaze, nios2,
+openrisc and sh.  Neither atomic_t nor atomic64_t are naturally aligned on
+m68k.
 
-This series also adds Kconfig options to enable a new run-time warning to
-help reveal misaligned atomic accesses on platforms which don't trap that.
+This patch brings a little uniformity by specifying natural alignment for
+atomic types.  One benefit is that atomic64_t variables do not get split
+across a page boundary.  The cost is that some structs grow which leads to
+cache misses and wasted memory.
 
-The performance impact is expected to vary across platforms and workloads.
-The measurements I made on m68k show that some workloads run faster and
-others slower.
-
-
-This patch (of 4):
-
-Align bpf_res_spin_lock to avoid a BUILD_BUG_ON() when the alignment
-changes, as it will do on m68k when, in a subsequent patch, the minimum
-alignment of the atomic_t member of struct rqspinlock gets increased from
-2 to 4.  Drop the BUILD_BUG_ON() as it becomes redundant.
-
-Link: https://lkml.kernel.org/r/cover.1765866665.git.fthain@linux-m68k.org
-Link: https://lkml.kernel.org/r/4ff540deaf87eb24ba11bbac95bdbea68d22a129.1765866665.git.fthain@linux-m68k.org
+Link: https://lkml.kernel.org/r/d6cd17b387fa4b4cf9f419ec586ac4756bc7aaeb.1765866665.git.fthain@linux-m68k.org
+Link: https://lore.kernel.org/lkml/CAFr9PX=MYUDGJS2kAvPMkkfvH+0-SwQB_kxE4ea0J_wZ_pk=7w@mail.gmail.com
+Link: https://lore.kernel.org/lkml/CAMuHMdW7Ab13DdGs2acMQcix5ObJK0O2dG_Fxzr8_g58Rc1_0g@mail.gmail.com/
 Signed-off-by: Finn Thain <fthain@linux-m68k.org>
-Acked-by: Alexei Starovoitov <ast@kernel.org>
+Acked-by: Guo Ren <guoren@kernel.org>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Daniel Borkman <daniel@iogearbox.net>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Gary Guo <gary@garyguo.net>
-Cc: Guo Ren <guoren@kernel.org>
 Cc: Hao Luo <haoluo@google.com>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonas Bonn <jonas@southpole.se>
 Cc: KP Singh <kpsingh@kernel.org>
 Cc: Marc Rutland <mark.rutland@arm.com>
 Cc: Martin KaFai Lau <martin.lau@linux.dev>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rich Felker <dalias@libc.org>
 Cc: Song Liu <song@kernel.org>
-Cc: Stafford Horne <shorne@gmail.com>
 Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yonghong Song <yonghong.song@linux.dev>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/rqspinlock.h |    2 +-
- kernel/bpf/rqspinlock.c          |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/asm-generic/atomic64.h |    2 +-
+ include/linux/types.h          |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/asm-generic/rqspinlock.h~bpf-explicitly-align-bpf_res_spin_lock
-+++ a/include/asm-generic/rqspinlock.h
-@@ -28,7 +28,7 @@ struct rqspinlock {
-  */
- struct bpf_res_spin_lock {
- 	u32 val;
--};
-+} __aligned(__alignof__(struct rqspinlock));
+--- a/include/asm-generic/atomic64.h~atomic-specify-alignment-for-atomic_t-and-atomic64_t
++++ a/include/asm-generic/atomic64.h
+@@ -10,7 +10,7 @@
+ #include <linux/types.h>
  
- struct qspinlock;
- #ifdef CONFIG_QUEUED_SPINLOCKS
---- a/kernel/bpf/rqspinlock.c~bpf-explicitly-align-bpf_res_spin_lock
-+++ a/kernel/bpf/rqspinlock.c
-@@ -694,7 +694,6 @@ __bpf_kfunc int bpf_res_spin_lock(struct
- 	int ret;
+ typedef struct {
+-	s64 counter;
++	s64 __aligned(sizeof(s64)) counter;
+ } atomic64_t;
  
- 	BUILD_BUG_ON(sizeof(rqspinlock_t) != sizeof(struct bpf_res_spin_lock));
--	BUILD_BUG_ON(__alignof__(rqspinlock_t) != __alignof__(struct bpf_res_spin_lock));
+ #define ATOMIC64_INIT(i)	{ (i) }
+--- a/include/linux/types.h~atomic-specify-alignment-for-atomic_t-and-atomic64_t
++++ a/include/linux/types.h
+@@ -180,7 +180,7 @@ typedef phys_addr_t resource_size_t;
+ typedef unsigned long irq_hw_number_t;
  
- 	preempt_disable();
- 	ret = res_spin_lock((rqspinlock_t *)lock);
+ typedef struct {
+-	int counter;
++	int __aligned(sizeof(int)) counter;
+ } atomic_t;
+ 
+ #define ATOMIC_INIT(i) { (i) }
 _
 
 Patches currently in -mm which might be from fthain@linux-m68k.org are
