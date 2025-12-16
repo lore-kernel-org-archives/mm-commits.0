@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5082DCA6B
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:49:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3639026A1C4
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:49:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765853369; cv=none; b=LmzXYpJqoo/R2mShdghwQln8sLQ3OTxZLCGICbFbuVT3G9bZxufTRbQ+I8QZvPWNRWnN7JcGnMXHr6ouIxVunCvad9xFpQebTRtNUeUr4GF9uZ12LQhChlchnDpF1YedthWF8AebU6wskeppauLn0M56ml1hQsmGEMKhYGTWwew=
+	t=1765853373; cv=none; b=J9s68LcO9Fd+QGgM6uDOz0Z/h6xfczeSVMKj72vtA+uUIF06MQonzoWv7UDGH5q5W8ynntZoGYk88UuHc8XQgl2mNrJBYLBXdz5SzNVhx77CZqOkxbQctjQdPmm8V1vGpO4PoT4ajPLrbSAdxQTQQq0Nm/Ro551akbB5Wpr8E2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765853369; c=relaxed/simple;
-	bh=osK7u0Z6BmXoKLZAOGh2Z+ohPuZ9gW0+1UsYgCQruG8=;
-	h=Date:To:From:Subject:Message-Id; b=CLgBNO5fBYoiyHPB4LEDUqZYUhYGiCX48wMfNv9EhO1fDvsX7o7o434yszFO76aM/lc2rNta9rSURYdcrxJk+T2Ed8RIwryu+Uu2MyTKYpWD5k42Aka+yBlNJRGZu/YPnLXsQ8lqeKb4MB0ERoneh6Wsa4SwvXNSzrt1kER51Jg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uHzyjZky; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765853373; c=relaxed/simple;
+	bh=pVsrOvY8+Sc1ksyjfjb8jevfvvWAD1JV+DC31cuvScE=;
+	h=Date:To:From:Subject:Message-Id; b=TmtmWbNkrIXjGN+nCyeXiBVkMDsAWtrZpZ3+r+Pjh+tRIcG+2us/w3HpyUwXChmUlaZbnu9gCjziAIFKS4Utygpm9U1bS+6xclovWtlatdFGzSaixF43QS0Y61KFOicHiGsfnxnT1T6FgGepfHzh65EkfKFjuXIPx0zdQ3lWlsw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NtlMQWFK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uHzyjZky"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDE15C4CEF5;
-	Tue, 16 Dec 2025 02:49:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NtlMQWFK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85511C4CEF5;
+	Tue, 16 Dec 2025 02:49:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765853369;
-	bh=osK7u0Z6BmXoKLZAOGh2Z+ohPuZ9gW0+1UsYgCQruG8=;
+	s=korg; t=1765853371;
+	bh=pVsrOvY8+Sc1ksyjfjb8jevfvvWAD1JV+DC31cuvScE=;
 	h=Date:To:From:Subject:From;
-	b=uHzyjZkyQ+FR5224unbtjxG8LZg8PJanSkVzDhCJ+c0PzFIh6FhEkYLJFPPluqIZ0
-	 PtfjhJqZ2snYjQTG9ZujjN0WuM3s0csRXmavlbSOkEGZsOCyDfApcUkCmWwhS4Lx1L
-	 pJf87Sd+G35qIS+S/r/0ZZQJZLwib2N9iBLIF1Co=
-Date: Mon, 15 Dec 2025 18:49:28 -0800
+	b=NtlMQWFKZEPXyqVtFMCuQoqvKzK8lCzma95pqIePd+La0XphnUDK1Ny82O3JOAqCO
+	 zk88gBhZ1O/qRatMul4D0SXJYedOtS37qObUFXGjR5c7mmdalcW2V5oAn6gtyG1zQN
+	 p3G/VEdTqv7QXRJKf9KLaZRN2mvYSB04WrSOddXs=
+Date: Mon, 15 Dec 2025 18:49:31 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,luto@kernel.org,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@redhat.com,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-clear_pages-and-clear_user_pages.patch added to mm-new branch
-Message-Id: <20251216024928.DDE15C4CEF5@smtp.kernel.org>
+Subject: + highmem-do-range-clearing-in-clear_user_highpages.patch added to mm-new branch
+Message-Id: <20251216024931.85511C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce clear_pages() and clear_user_pages()
+     Subject: highmem: do range clearing in clear_user_highpages()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-clear_pages-and-clear_user_pages.patch
+     highmem-do-range-clearing-in-clear_user_highpages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-clear_pages-and-clear_user_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/highmem-do-range-clearing-in-clear_user_highpages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,26 +65,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: mm: introduce clear_pages() and clear_user_pages()
-Date: Mon, 15 Dec 2025 12:49:17 -0800
+Subject: highmem: do range clearing in clear_user_highpages()
+Date: Mon, 15 Dec 2025 12:49:18 -0800
 
-Introduce clear_pages(), to be overridden by architectures that support
-more efficient clearing of consecutive pages.
+Use the range clearing primitive clear_user_pages() when clearing
+contiguous pages in clear_user_highpages().
 
-Also introduce clear_user_pages(), however, we will not expect this
-function to be overridden anytime soon.
+We can safely do that when we have !CONFIG_HIGHMEM and when the
+architecture does not have clear_user_highpage.
 
-As we do for clear_user_page().  define clear_user_pages() only if the
-architecture does not define clear_user_highpage().
+The first is necessary because not doing intermediate maps for pages lets
+contiguous page ranges stay contiguous.  The second, because if the
+architecture has clear_user_highpage(), it likely needs flushing magic
+when clearing the page, magic that we aren't privy to.
 
-That is because if the architecture does define clear_user_highpage(),
-then it likely needs some flushing magic when clearing user pages or
-highpages.  This means we can get away without defining
-clear_user_pages(), since, much like its single page sibling, its only
-potential user is the generic clear_user_highpages() which should instead
-be using clear_user_highpage().
-
-Link: https://lkml.kernel.org/r/20251215204922.475324-4-ankur.a.arora@oracle.com
+Link: https://lkml.kernel.org/r/20251215204922.475324-5-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Borislav Betkov <bp@alien8.de>
@@ -102,81 +97,40 @@ Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |   33 +++++++++++++++++++++++++++++++++
- include/linux/mm.h      |   20 ++++++++++++++++++++
- 2 files changed, 53 insertions(+)
+ include/linux/highmem.h |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/include/linux/highmem.h~mm-introduce-clear_pages-and-clear_user_pages
+--- a/include/linux/highmem.h~highmem-do-range-clearing-in-clear_user_highpages
 +++ a/include/linux/highmem.h
-@@ -218,6 +218,39 @@ static inline void clear_user_page(void
- #endif
- 
- /**
-+ * clear_user_pages() - clear a page range to be mapped to user space
-+ * @addr: start address
-+ * @vaddr: start address of the user mapping
-+ * @page: start page
-+ * @npages: number of pages
-+ *
-+ * Assumes that the region (@addr, +@npages) has been validated
-+ * already so this does no exception handling.
-+ *
-+ * If the architecture provides a clear_user_page(), use that;
-+ * otherwise, we can safely use clear_pages().
-+ */
-+static inline void clear_user_pages(void *addr, unsigned long vaddr,
-+		struct page *page, unsigned int npages)
-+{
+@@ -278,11 +278,28 @@ static inline void clear_user_highpage(s
+ static inline void clear_user_highpages(struct page *page, unsigned long vaddr,
+ 					unsigned int npages)
+ {
 +
-+#ifdef clear_user_page
-+	do {
-+		clear_user_page(addr, vaddr, page);
-+		addr += PAGE_SIZE;
-+		vaddr += PAGE_SIZE;
-+		page++;
-+	} while (--npages);
-+#else
++#if defined(clear_user_highpage) || defined(CONFIG_HIGHMEM)
 +	/*
-+	 * Prefer clear_pages() to allow for architectural optimizations
++	 * An architecture defined clear_user_highpage() implies special
++	 * handling is needed.
++	 *
++	 * So we use that or, the generic variant if CONFIG_HIGHMEM is
++	 * enabled.
++	 */
+ 	do {
+ 		clear_user_highpage(page, vaddr);
+ 		vaddr += PAGE_SIZE;
+ 		page++;
+ 	} while (--npages);
++#else
++
++	/*
++	 * Prefer clear_user_pages() to allow for architectural optimizations
 +	 * when operating on contiguous page ranges.
 +	 */
-+	clear_pages(addr, npages);
++	clear_user_pages(page_address(page), vaddr, page, npages);
 +#endif
-+}
-+
-+/**
-  * clear_user_highpage() - clear a page to be mapped to user space
-  * @page: start page
-  * @vaddr: start address of the user mapping
---- a/include/linux/mm.h~mm-introduce-clear_pages-and-clear_user_pages
-+++ a/include/linux/mm.h
-@@ -4236,6 +4236,26 @@ static inline void clear_page_guard(stru
- 				unsigned int order) {}
- #endif	/* CONFIG_DEBUG_PAGEALLOC */
+ }
  
-+#ifndef clear_pages
-+/**
-+ * clear_pages() - clear a page range for kernel-internal use.
-+ * @addr: start address
-+ * @npages: number of pages
-+ *
-+ * Use clear_user_pages() instead when clearing a page range to be
-+ * mapped to user space.
-+ *
-+ * Does absolutely no exception handling.
-+ */
-+static inline void clear_pages(void *addr, unsigned int npages)
-+{
-+	do {
-+		clear_page(addr);
-+		addr += PAGE_SIZE;
-+	} while (--npages);
-+}
-+#endif
-+
- #ifdef __HAVE_ARCH_GATE_AREA
- extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
- extern int in_gate_area_no_mm(unsigned long addr);
+ #ifndef vma_alloc_zeroed_movable_folio
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
