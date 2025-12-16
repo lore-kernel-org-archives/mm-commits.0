@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D17C62E1726
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:20:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FC9C2E0939
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:20:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765851600; cv=none; b=PolPE0KX1IKoSNP4FVCtd8liDIZ6PTyf+lQkyIe6/ZNcmV6jepgXebSHx1kjmvl2h0/Yl599eviCqCis/UpDjjsMl98bWU9nHA2Q7/CZSUgFcc1AieZrxiBQ+SRGZOiKKMG6o6kwXx+nxMoxWWcPRW1wxqSvwr5LdCt+opiF0Ls=
+	t=1765851603; cv=none; b=mqe0CAwZkKFs/HWDtEdfOOKmeRsBTMBnvqOU297CPiyNKa02aP7YMamR7SlavnoCvQq1fxixau6teL56Y6onnmELu/SN3WUbYyKffC1hocti5jj8BThgTEvBJ+6AkSRcbSS8/ukRM4mM4fM17lBSBGHnVRF+zgY54s18YpDgF8U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765851600; c=relaxed/simple;
-	bh=2UDyFADOrCIkFSYxgzgh6cW/oHrnGfqO1NC9uulD7T4=;
-	h=Date:To:From:Subject:Message-Id; b=INV7QLJ95vvNX0/fD612gBrib1UvslN8rD4b6ZCGRMwQy3pg1qzPSh+wB62XdZ4mlox2awSS+F2XbPJHYPs0o5aq4baffubSVpEGEq4hx1H5cfmc/yydVxBCuDxNZ5yE0F3nWM/wmTc0JaFnQ4T+PuKC42L20iinn0nF33aeygI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YOFiPLof; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765851603; c=relaxed/simple;
+	bh=yjVwAV93NdqeVad9NWbRiDYBQbt7eVY3FmBgyGSFsZI=;
+	h=Date:To:From:Subject:Message-Id; b=p6LCkqC95R5ORRADdQfaxQuiRWzxb4wspfCtnEFZYTACnmVqpDMhSkOmqNTJm3RafTvceg9S1wokMVOAjNHXAxA79dpCLO84HP3KoZ4Fg7mxkvhitSyz/USKHwRNmxesUYjppsR+nKdFlGLBp0A6uujIiHmiHtqyWq6aQJ33/Z0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OnELZwDL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YOFiPLof"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5978EC4CEF5;
-	Tue, 16 Dec 2025 02:20:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OnELZwDL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAA0BC4CEF5;
+	Tue, 16 Dec 2025 02:20:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765851600;
-	bh=2UDyFADOrCIkFSYxgzgh6cW/oHrnGfqO1NC9uulD7T4=;
+	s=korg; t=1765851602;
+	bh=yjVwAV93NdqeVad9NWbRiDYBQbt7eVY3FmBgyGSFsZI=;
 	h=Date:To:From:Subject:From;
-	b=YOFiPLofHfEG9St3LhSJaFNME+D4OeX96n+VNyEGiS0M8tbrqfgkiSOfFhjTWI07e
-	 F9//d0B/vJwkw3TtbTz+NfZUUOxazm2ZA9D7IIX7Uzjx0oVjqQmYLa0wE+qH07v2se
-	 1XZMbaJbpdOwC7kDhv8Mb4plFop05T/2aMgvjSd4=
-Date: Mon, 15 Dec 2025 18:19:59 -0800
+	b=OnELZwDLlSnZP/75EFz8keD1Zh6h6jKqSGBBMyJwewyJVR2qXRGH48cFh20exNJ05
+	 dVf0r6AaiYxf/V2FpU8niF1JpFvdObTlkq9rijiQ3PomTOn53fl1laCg+avygEia4a
+	 jKUKsQKu/Jl5+ibQBJ3DPvClOq5PbUvrXdx9vRhI=
+Date: Mon, 15 Dec 2025 18:20:02 -0800
 To: mm-commits@vger.kernel.org,stevensd@google.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-document-writeback_batch_size.patch added to mm-new branch
-Message-Id: <20251216022000.5978EC4CEF5@smtp.kernel.org>
+Subject: + zram-move-bd_stat-to-writeback-section.patch added to mm-new branch
+Message-Id: <20251216022002.AAA0BC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: document writeback_batch_size
+     Subject: zram: move bd_stat to writeback section
 has been added to the -mm mm-new branch.  Its filename is
-     zram-document-writeback_batch_size.patch
+     zram-move-bd_stat-to-writeback-section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-document-writeback_batch_size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-move-bd_stat-to-writeback-section.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,12 +65,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: document writeback_batch_size
-Date: Mon, 1 Dec 2025 18:47:50 +0900
+Subject: zram: move bd_stat to writeback section
+Date: Mon, 1 Dec 2025 18:47:51 +0900
 
-Add missing writeback_batch_size documentation.
+Move bd_stat function and attribute declaration to
+existing CONFIG_WRITEBACK ifdef-sections.
 
-Link: https://lkml.kernel.org/r/20251201094754.4149975-4-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20251201094754.4149975-5-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: David Stevens <stevensd@google.com>
@@ -79,57 +80,102 @@ Cc: Richard Chang <richardycc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram  |    7 +++++++
- Documentation/admin-guide/blockdev/zram.rst |   11 ++++++++++-
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |   48 ++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 27 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-document-writeback_batch_size
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -157,3 +157,10 @@ Contact:	Richard Chang <richardycc@googl
- Description:
- 		The writeback_compressed device atrribute toggles compressed
- 		writeback feature.
-+
-+What:		/sys/block/zram<id>/writeback_batch_size
-+Date:		November 2025
-+Contact:	Sergey Senozhatsky <senozhatsky@chromium.org>
-+Description:
-+		The writeback_batch_size device atrribute sets the maximum
-+		number of in-flight writeback operations.
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-document-writeback_batch_size
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -214,6 +214,8 @@ mem_limit         	WO	specifies the maxi
- writeback_limit   	WO	specifies the maximum amount of write IO zram
- 				can write out to backing device as 4KB unit
- writeback_limit_enable  RW	show and set writeback_limit feature
-+writeback_batch_size	RW	show and set maximum number of in-flight
-+				writeback operations
- writeback_compressed	RW	show and set compressed writeback feature
- comp_algorithm    	RW	show and change the compression algorithm
- algorithm_params	WO	setup compression algorithm parameters
-@@ -223,7 +225,6 @@ backing_dev	  	RW	set up backend storage
- idle		  	WO	mark allocated slot as idle
- ======================  ======  ===============================================
+--- a/drivers/block/zram/zram_drv.c~zram-move-bd_stat-to-writeback-section
++++ a/drivers/block/zram/zram_drv.c
+@@ -539,6 +539,24 @@ struct zram_rb_req {
+ 	u32 index;
+ };
  
++#define FOUR_K(x) ((x) * (1 << (PAGE_SHIFT - 12)))
++static ssize_t bd_stat_show(struct device *dev, struct device_attribute *attr,
++			    char *buf)
++{
++	struct zram *zram = dev_to_zram(dev);
++	ssize_t ret;
++
++	down_read(&zram->init_lock);
++	ret = sysfs_emit(buf,
++			 "%8llu %8llu %8llu\n",
++			 FOUR_K((u64)atomic64_read(&zram->stats.bd_count)),
++			 FOUR_K((u64)atomic64_read(&zram->stats.bd_reads)),
++			 FOUR_K((u64)atomic64_read(&zram->stats.bd_writes)));
++	up_read(&zram->init_lock);
++
++	return ret;
++}
++
+ static ssize_t writeback_compressed_store(struct device *dev,
+ 					  struct device_attribute *attr,
+ 					  const char *buf, size_t len)
+@@ -1976,28 +1994,8 @@ static ssize_t mm_stat_show(struct devic
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_ZRAM_WRITEBACK
+-#define FOUR_K(x) ((x) * (1 << (PAGE_SHIFT - 12)))
+-static ssize_t bd_stat_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	struct zram *zram = dev_to_zram(dev);
+-	ssize_t ret;
 -
- User space is advised to use the following files to read the device statistics.
+-	down_read(&zram->init_lock);
+-	ret = sysfs_emit(buf,
+-			"%8llu %8llu %8llu\n",
+-			FOUR_K((u64)atomic64_read(&zram->stats.bd_count)),
+-			FOUR_K((u64)atomic64_read(&zram->stats.bd_reads)),
+-			FOUR_K((u64)atomic64_read(&zram->stats.bd_writes)));
+-	up_read(&zram->init_lock);
+-
+-	return ret;
+-}
+-#endif
+-
+ static ssize_t debug_stat_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
++			       struct device_attribute *attr, char *buf)
+ {
+ 	int version = 1;
+ 	struct zram *zram = dev_to_zram(dev);
+@@ -2015,9 +2013,6 @@ static ssize_t debug_stat_show(struct de
  
- File /sys/block/zram<id>/stat
-@@ -447,6 +448,14 @@ this feature, execute::
- Note that this feature should be configured before the `zramX` device is
- initialized.
+ static DEVICE_ATTR_RO(io_stat);
+ static DEVICE_ATTR_RO(mm_stat);
+-#ifdef CONFIG_ZRAM_WRITEBACK
+-static DEVICE_ATTR_RO(bd_stat);
+-#endif
+ static DEVICE_ATTR_RO(debug_stat);
  
-+Depending on backing device storage type, writeback operation may benefit
-+from a higher number of in-flight write requests (batched writes).  The
-+number of maximum in-flight writeback operations can be configured via
-+`writeback_batch_size` attribute.  To change the default value (which is 32),
-+execute::
-+
-+	$ echo 64 > /sys/block/zramX/writeback_batch_size
-+
- If admin wants to measure writeback count in a certain period, they could
- know it via /sys/block/zram0/bd_stat's 3rd column.
- 
+ static void zram_meta_free(struct zram *zram, u64 disksize)
+@@ -3079,6 +3074,7 @@ static DEVICE_ATTR_WO(mem_used_max);
+ static DEVICE_ATTR_WO(idle);
+ static DEVICE_ATTR_RW(comp_algorithm);
+ #ifdef CONFIG_ZRAM_WRITEBACK
++static DEVICE_ATTR_RO(bd_stat);
+ static DEVICE_ATTR_RW(backing_dev);
+ static DEVICE_ATTR_WO(writeback);
+ static DEVICE_ATTR_RW(writeback_limit);
+@@ -3102,6 +3098,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_idle.attr,
+ 	&dev_attr_comp_algorithm.attr,
+ #ifdef CONFIG_ZRAM_WRITEBACK
++	&dev_attr_bd_stat.attr,
+ 	&dev_attr_backing_dev.attr,
+ 	&dev_attr_writeback.attr,
+ 	&dev_attr_writeback_limit.attr,
+@@ -3111,9 +3108,6 @@ static struct attribute *zram_disk_attrs
+ #endif
+ 	&dev_attr_io_stat.attr,
+ 	&dev_attr_mm_stat.attr,
+-#ifdef CONFIG_ZRAM_WRITEBACK
+-	&dev_attr_bd_stat.attr,
+-#endif
+ 	&dev_attr_debug_stat.attr,
+ #ifdef CONFIG_ZRAM_MULTI_COMP
+ 	&dev_attr_recomp_algorithm.attr,
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
