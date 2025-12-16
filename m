@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0F363A1E6F
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 23:46:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 270C52512E6
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 23:46:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765928780; cv=none; b=YwwgdqS0TjIjkvj5U8ssrLJEJVOS1UHhQIgC7e/07D4t0HL8wjKXyRYyNcRu4ONUM3+ACqscyMMjqnuhrejPGsd0saBxLQNMrYGJ5YEAX3bXe88xhQk6Br9h8XdzGOf7wPrHvXEdaPgFj0+BiRmUeEksBscSU5+bEkGaybrclyA=
+	t=1765928783; cv=none; b=M6z742qoADZYUFaEgsw/iInt6QkS4Bcw4VLrm+jsiEW6jeQZCwNOE9IZXe8hP099pJPDalatbh2ccnPmolW5+Ky/hsqQcuwyZ9Mgp+2hNIdwjMY3g4b92aByIOxLVAbF/ZSVb4sKvBuu5Alg4W0CsnGh9vXtEMZt8Kcs19u/AFY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765928780; c=relaxed/simple;
-	bh=CX324ARvaxBcGNgIYCywwYbwRky0oXodY5DZV99gVsw=;
-	h=Date:To:From:Subject:Message-Id; b=Ag2173hmsCJlaz7xVLGaJBE4klVO3woFAYBKjn6y32U8rEumZQmQ3UNUuWKz3IKh/Ch0zuqCLfeGDK00n1ZVGxFJrbor/cq0NnmuB+VyZonovWtmaeDXkvLpo1QPLipgtEMmWy9xh99AENx6BxkqUJoypJg3Ef2S7mMbfjnDerU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u2SvaH5I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765928783; c=relaxed/simple;
+	bh=vfiUjgh8h5upKVr6imIe1flxf/nBOabNIOE7zp1baDc=;
+	h=Date:To:From:Subject:Message-Id; b=u2udR3y7VonkU1pEM8YZEGhyZyMZ26kXw7Ctg5rHDOOULtMyYlKMghMJBYONck0KtDPWEMjYj7JVbX24t236f05nuFiqqOUc46A8DHlCL+yjD5ockD+Zu+HxbHvK+klWP/xGmyvt5mx01vlATH5aZf2SGdIg8BcdPto5UzjmXeA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ifvtijU3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u2SvaH5I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 995A3C4CEF1;
-	Tue, 16 Dec 2025 23:46:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ifvtijU3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 997CBC4CEF1;
+	Tue, 16 Dec 2025 23:46:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765928779;
-	bh=CX324ARvaxBcGNgIYCywwYbwRky0oXodY5DZV99gVsw=;
+	s=korg; t=1765928782;
+	bh=vfiUjgh8h5upKVr6imIe1flxf/nBOabNIOE7zp1baDc=;
 	h=Date:To:From:Subject:From;
-	b=u2SvaH5IP/cqcq9Fv3/zZqA6bZZbUEEKD8v1gOwZT8BLK6cN4C2l6g50DK6MzKyxU
-	 pzFu4+6f4nbhI34grQ1LyRr8QCnGwLjck4F4ejTTm/K9pzwfBLbv5JAFhNxq0dk4HR
-	 1ZnncJjHdY+TEw9L6udbhfL0TPcIM2LeUuamRbTU=
-Date: Tue, 16 Dec 2025 15:46:18 -0800
+	b=ifvtijU3j9oon2yXsLvkz6GQ2R1gidoe/5bVhqIWU4AD/FjKlO/SFsBPB97PJaAG1
+	 mW9zH2KD4I45AnkXkbspJD7uo9N8jHaIDAyxoJSDmZybyKSXSIvFX7VHciWlN6gxyA
+	 XAj4BrJUR89mxHX8b8ypihb40/6tfaEyKywGGwfs=
+Date: Tue, 16 Dec 2025 15:46:22 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,rostedt@goodmis.org,rmk+kernel@armlinux.org.uk,mark.rutland@arm.com,macro@orcam.me.uk,ldv@strace.io,jcmvbkbc@gmail.com,deller@gmx.de,chris@zankel.net,charlie@rivosinc.com,catalin.marinas@arm.com,ruanjinjie@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + syscallh-remove-unused-syscall_max_args.patch added to mm-nonmm-unstable branch
-Message-Id: <20251216234619.995A3C4CEF1@smtp.kernel.org>
+Subject: + arm64-avoid-memcpy-for-syscall_get_arguments.patch added to mm-nonmm-unstable branch
+Message-Id: <20251216234622.997CBC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: syscall.h: remove unused SYSCALL_MAX_ARGS
+     Subject: arm64: avoid memcpy() for syscall_get_arguments()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     syscallh-remove-unused-syscall_max_args.patch
+     arm64-avoid-memcpy-for-syscall_get_arguments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/syscallh-remove-unused-syscall_max_args.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-avoid-memcpy-for-syscall_get_arguments.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,26 +59,58 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: syscall.h: remove unused SYSCALL_MAX_ARGS
-Date: Mon, 1 Dec 2025 20:06:32 +0800
+Subject: arm64: avoid memcpy() for syscall_get_arguments()
+Date: Mon, 1 Dec 2025 20:06:33 +0800
 
-Patch series "syscall: Cleanup and improve syscall_get_arguments()", v2.
+Do not use memcpy() to extract syscall arguments from struct pt_regs but
+rather just perform direct assignments.
 
-Remove unused SYSCALL_MAX_ARGS and avoid memcpy() for
-syscall_get_arguments() for arm64.
+Update syscall_set_arguments() too to keep syscall_get_arguments() and
+syscall_set_arguments() in sync.
 
+With Generic Entry patch[1] and turn on audit, the performance benchmarks
+from perf bench basic syscall on kunpeng920 gives roughly a 1% performance
+uplift.
 
-This patch (of 2):
+| Metric     | W/O this patch | With this patch | Change    |
+| ---------- | -------------- | --------------- | --------- |
+| Total time | 2.241 [sec]    | 2.211 [sec]     |  ↓1.36%   |
+| usecs/op   | 0.224157       | 0.221146        |  ↓1.36%   |
+| ops/sec    | 4,461,157      | 4,501,409       |  ↑0.9%    |
 
-SYSCALL_MAX_ARGS appears to have been unused since commit 32d92586629a
-("syscalls: Remove start and number from syscall_set_arguments() args"),
-so remove it.
+Disassembly shows that using direct assignment causes
+syscall_set_arguments() to be inlined and cuts the instruction count by
+five or six compared to memcpy().  Because __audit_syscall_entry() only
+uses four syscall arguments, the compiler has also elided the copy of
+regs->regs[4] and regs->regs[5].
 
-Link: https://lkml.kernel.org/r/20251201120633.1193122-1-ruanjinjie@huawei.com
-Link: https://lkml.kernel.org/r/20251201120633.1193122-2-ruanjinjie@huawei.com
-Fixes: 32d92586629a ("syscalls: Remove start and number from syscall_set_arguments() args")
+Before:
+<syscall_get_arguments.constprop.0>:
+       aa0103e2        mov     x2, x1
+       91002003        add     x3, x0, #0x8
+       f9408804        ldr     x4, [x0, #272]
+       f8008444        str     x4, [x2], #8
+       a9409404        ldp     x4, x5, [x0, #8]
+       a9009424        stp     x4, x5, [x1, #8]
+       a9418400        ldp     x0, x1, [x0, #24]
+       a9010440        stp     x0, x1, [x2, #16]
+       f9401060        ldr     x0, [x3, #32]
+       f9001040        str     x0, [x2, #32]
+       d65f03c0        ret
+       d503201f        nop
+
+After:
+       a9408e82        ldp     x2, x3, [x20, #8]
+       2a1603e0        mov     w0, w22
+       f9400e84        ldr     x4, [x20, #24]
+       f9408a81        ldr     x1, [x20, #272]
+       9401c4ba        bl      ffff800080215ca8 <__audit_syscall_entry>
+
+This also aligns the implementation with x86 and RISC-V.
+
+Link: https://lkml.kernel.org/r/20251201120633.1193122-3-ruanjinjie@huawei.com
+Link: https://lore.kernel.org/all/20251126071446.3234218-1-ruanjinjie@huawei.com/ [1]
 Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Reviewed-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Charlie Jenkins <charlie@rivosinc.com>
 Cc: Christian Zankel <chris@zankel.net>
@@ -87,49 +119,47 @@ Cc: Helge Deller <deller@gmx.de>
 Cc: Maciej W. Rozycki <macro@orcam.me.uk>
 Cc: Marc Rutland <mark.rutland@arm.com>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/syscall.h    |    2 --
- arch/arm64/include/asm/syscall.h  |    2 --
- arch/xtensa/include/asm/syscall.h |    1 -
- 3 files changed, 5 deletions(-)
+ arch/arm64/include/asm/syscall.h |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/syscall.h~syscallh-remove-unused-syscall_max_args
+--- a/arch/arm64/include/asm/syscall.h~arm64-avoid-memcpy-for-syscall_get_arguments
 +++ a/arch/arm64/include/asm/syscall.h
-@@ -77,8 +77,6 @@ static inline void syscall_set_nr(struct
- 	}
- }
- 
--#define SYSCALL_MAX_ARGS 6
--
- static inline void syscall_get_arguments(struct task_struct *task,
- 					 struct pt_regs *regs,
+@@ -82,16 +82,24 @@ static inline void syscall_get_arguments
  					 unsigned long *args)
---- a/arch/arm/include/asm/syscall.h~syscallh-remove-unused-syscall_max_args
-+++ a/arch/arm/include/asm/syscall.h
-@@ -92,8 +92,6 @@ static inline void syscall_set_nr(struct
- 		(nr & __NR_SYSCALL_MASK);
- }
- 
--#define SYSCALL_MAX_ARGS 7
+ {
+ 	args[0] = regs->orig_x0;
+-	args++;
 -
- static inline void syscall_get_arguments(struct task_struct *task,
- 					 struct pt_regs *regs,
- 					 unsigned long *args)
---- a/arch/xtensa/include/asm/syscall.h~syscallh-remove-unused-syscall_max_args
-+++ a/arch/xtensa/include/asm/syscall.h
-@@ -61,7 +61,6 @@ static inline void syscall_set_return_va
- 	regs->areg[2] = (long) error ? error : val;
+-	memcpy(args, &regs->regs[1], 5 * sizeof(args[0]));
++	args[1] = regs->regs[1];
++	args[2] = regs->regs[2];
++	args[3] = regs->regs[3];
++	args[4] = regs->regs[4];
++	args[5] = regs->regs[5];
  }
  
--#define SYSCALL_MAX_ARGS 6
- #define XTENSA_SYSCALL_ARGUMENT_REGS {6, 3, 4, 5, 8, 9}
- 
- static inline void syscall_get_arguments(struct task_struct *task,
+ static inline void syscall_set_arguments(struct task_struct *task,
+ 					 struct pt_regs *regs,
+ 					 const unsigned long *args)
+ {
+-	memcpy(&regs->regs[0], args, 6 * sizeof(args[0]));
++	regs->regs[0] = args[0];
++	regs->regs[1] = args[1];
++	regs->regs[2] = args[2];
++	regs->regs[3] = args[3];
++	regs->regs[4] = args[4];
++	regs->regs[5] = args[5];
++
+ 	/*
+ 	 * Also copy the first argument into orig_x0
+ 	 * so that syscall_get_arguments() would return it
 _
 
 Patches currently in -mm which might be from ruanjinjie@huawei.com are
