@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46E1122156B
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:49:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4598C2D7387
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:49:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765853379; cv=none; b=R0yUtFObOHfvsV8gfImymjmTszO4ZFR/zVBlPfefh/h9LdZzLiOSbyoNVlXzcc028TsALI4dDNmvk1V9/y7yjvDEoKkBk9vZCGlQ3vbiB9myGU0ko8GDwJml5CZiXalMi6SPR3/5qFmB11FGcqqmQF9xr6a3YJt5SziApJdxn8E=
+	t=1765853382; cv=none; b=rd1raeMadIC2gCBVF0vEg52MymQzRAwTbBbsvwt+rIAzxp7H/f+FWjqfI6idlrXMrSjIGMVnoxqeCSrycD3M9FSoqhk+HeWAXUwG2V39zNqrhp6XL3V2Y1/5x8XZYYgA+HPHqa/LHd3GK1GOAtmiDLaaTc+6ijMkB+QWSR1qXU8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765853379; c=relaxed/simple;
-	bh=gBhY7cWWpfID8mBttuGsQKF9j+1tSj8r6tTKHOZ0RsU=;
-	h=Date:To:From:Subject:Message-Id; b=SX6wJx99SwReA3seq3O7srUhRiuWdS0UsJiRLy2awTMom7niEmX4/YAVY9ZKoanwbS4YwVhJxjSPHzXohcfSl/GIGhMz+yZCYKOfqp6G9v0+cqmhg4eX0iDyFCbHDraiQzHG7OXJZ0mJ87Tc7mgCIFIH05HcAkZmlC52GxhR14o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hVs+gCfw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765853382; c=relaxed/simple;
+	bh=gHKskrY4pzzgk20NLUTvhjMpso9ORVxCUvSZ9Z0bHKs=;
+	h=Date:To:From:Subject:Message-Id; b=UlTYV1YUvkEpSbGCClCgmLiQ4cRq0vQhCwssGR0H4xgiQt7BlKK5FGkF2ZiUIoh3IwNkQwoA/pHFhu2tXM8d6iBZS01suQj92w1RR/CIG9Qgt8bWrAEevOXljQlOTbbKthUSijeMrgRO+SZFsuEIIZhBR79FMJonJCuI/ydI4Mc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sJAOgfwC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hVs+gCfw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15735C4CEF5;
-	Tue, 16 Dec 2025 02:49:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sJAOgfwC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD4D2C4CEF5;
+	Tue, 16 Dec 2025 02:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765853379;
-	bh=gBhY7cWWpfID8mBttuGsQKF9j+1tSj8r6tTKHOZ0RsU=;
+	s=korg; t=1765853381;
+	bh=gHKskrY4pzzgk20NLUTvhjMpso9ORVxCUvSZ9Z0bHKs=;
 	h=Date:To:From:Subject:From;
-	b=hVs+gCfwnTwgwbAmfZFeQTBiy2pjAGEpFE96gimDDuunu/XOhd70/ZBItJEWRF7uw
-	 iBqGapg5QJtI70sx4hP8iHqRQC3W2su14tgJIPHt2tDDZt1408lk1Uq6VSNoC1PU5i
-	 hqbz5szHwQtOHtD14W5FoeU/+6NBhBuw1LgdwB/E=
-Date: Mon, 15 Dec 2025 18:49:38 -0800
+	b=sJAOgfwCPhfp7o1wO5ovXjDn4lqE6btMy29X4KJifJOjHtTsIcl7lEHrFOvmfJaiu
+	 q+6KgRYWLTnBhwLi9P9TWPJ8yrao0rxuNLRJMi069e2gSeg15AXb83LjN6tz6lRWZS
+	 TBT4lmxCJXQO4uouLGP7lSfVCVMRkJOBWRW1UjHY=
+Date: Mon, 15 Dec 2025 18:49:41 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,luto@kernel.org,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@redhat.com,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-folio_zero_user-support-clearing-page-ranges.patch added to mm-new branch
-Message-Id: <20251216024939.15735C4CEF5@smtp.kernel.org>
+Subject: + mm-folio_zero_user-cache-neighbouring-pages.patch added to mm-new branch
+Message-Id: <20251216024941.CD4D2C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, folio_zero_user: support clearing page ranges
+     Subject: mm: folio_zero_user: cache neighbouring pages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-folio_zero_user-support-clearing-page-ranges.patch
+     mm-folio_zero_user-cache-neighbouring-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio_zero_user-support-clearing-page-ranges.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio_zero_user-cache-neighbouring-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,69 +65,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: mm, folio_zero_user: support clearing page ranges
-Date: Mon, 15 Dec 2025 12:49:21 -0800
+Subject: mm: folio_zero_user: cache neighbouring pages
+Date: Mon, 15 Dec 2025 12:49:22 -0800
 
-Clear contiguous page ranges in folio_zero_user() instead of clearing a
-single page at a time.  Exposing larger ranges enables extent based
-processor optimizations.
+folio_zero_user() does straight zeroing without caring about temporal
+locality for caches.
 
-However, because the underlying clearing primitives do not, or might not
-be able to check to call cond_resched() to check if preemption is
-required, limit the worst case preemption latency by doing the clearing in
-no more than PROCESS_PAGES_NON_PREEMPT_BATCH units.
+This replaced commit c6ddfb6c5890 ("mm, clear_huge_page: move order
+algorithm into a separate function") where we cleared a page at a time
+converging to the faulting page from the left and the right.
 
-For architectures that define clear_pages(), we assume that the clearing
-is fast and define PROCESS_PAGES_NON_PREEMPT_BATCH as 8MB worth of pages. 
-This should be large enough to allow the processor to optimize the
-operation and yet small enough that we see reasonable preemption latency
-for when this optimization is not possible (ex.  slow microarchitectures,
-memory bandwidth saturation.)
+To retain limited temporal locality, split the clearing in three parts:
+the faulting page and its immediate neighbourhood, and, the remaining
+regions on the left and the right.  The local neighbourhood will be
+cleared last.  Do this only when zeroing small folios (<
+MAX_ORDER_NR_PAGES) since there isn't much expectation of cache locality
+for large folios.
 
-Architectures that don't define clear_pages() will continue to use the
-base value (single page).  And, preemptible models don't need invocations
-of cond_resched() so don't care about the batch size.
+Performance
+===
 
-The resultant performance depends on the kinds of optimizations available
-to the CPU for the region size being cleared.  Two classes of
-optimizations:
+AMD Genoa (EPYC 9J14, cpus=2 sockets * 96 cores * 2 threads,
+  memory=2.2 TB, L1d= 16K/thread, L2=512K/thread, L3=2MB/thread)
 
-  - clearing iteration costs are amortized over a range larger
-    than a single page.
-  - cacheline allocation elision (seen on AMD Zen models).
+anon-w-seq (vm-scalability):
+                            stime                  utime
 
-Testing a demand fault workload shows an improved baseline from the first
-optimization and a larger improvement when the region being cleared is
-large enough for the second optimization.
+  page-at-a-time      1654.63 ( +- 3.84% )     811.00 ( +- 3.84% )
+  contiguous clearing 1602.86 ( +- 3.00% )     970.75 ( +- 4.68% )
+  neighbourhood-last  1630.32 ( +- 2.73% )     886.37 ( +- 5.19% )
 
-AMD Milan (EPYC 7J13, boost=0, region=64GB on the local NUMA node):
+Both stime and utime respond in expected ways.  stime drops for both
+contiguous clearing (-3.14%) and neighbourhood-last (-1.46%) approaches. 
+However, utime increases for both contiguous clearing (+19.7%) and
+neighbourhood-last (+9.28%).
 
-  $ perf bench mem mmap -p $pg-sz -f demand -s 64GB -l 5
+In part this is because anon-w-seq runs with 384 processes zeroing
+anonymously mapped memory which they then access sequentially.  As such
+this is likely an uncommon pattern where the memory bandwidth is saturated
+while also being cache limited because we access the entire region.
 
-                    page-at-a-time     contiguous clearing      change
+Kernel make workload (make -j 12 bzImage):
 
-                  (GB/s  +- %stdev)     (GB/s  +- %stdev)
+                            stime                  utime
 
-   pg-sz=2MB       12.92  +- 2.55%        17.03  +-  0.70%       + 31.8%	preempt=*
+  page-at-a-time       138.16 ( +- 0.31% )    1015.11 ( +- 0.05% )
+  contiguous clearing  133.42 ( +- 0.90% )    1013.49 ( +- 0.05% )
+  neighbourhood-last   131.20 ( +- 0.76% )    1011.36 ( +- 0.07% )
 
-   pg-sz=1GB       17.14  +- 2.27%        18.04  +-  1.05%       +  5.2%	preempt=none|voluntary
-   pg-sz=1GB       17.26  +- 1.24%        42.17  +-  4.21% [#]   +144.3%	preempt=full|lazy
+For make the utime stays relatively flat with an up to 4.9% improvement in
+the stime.
 
- [#] Notice that we perform much better with preempt=full|lazy. As
-  mentioned above, preemptible models not needing explicit invocations
-  of cond_resched() allow clearing of the full extent (1GB) as a
-  single unit.
-  In comparison the maximum extent used for preempt=none|voluntary is
-  PROCESS_PAGES_NON_PREEMPT_BATCH (8MB).
-
-  The larger extent allows the processor to elide cacheline
-  allocation (on Milan the threshold is LLC-size=32MB.)
-
-Also as mentioned earlier, the baseline improvement is not specific to AMD
-Zen platforms.  Intel Icelakex (pg-sz=2MB|1GB) sees a similar improvement
-as the Milan pg-sz=2MB workload above (~30%).
-
-Link: https://lkml.kernel.org/r/20251215204922.475324-8-ankur.a.arora@oracle.com
+Link: https://lkml.kernel.org/r/20251215204922.475324-9-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
 Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
 Tested-by: Raghavendra K T <raghavendra.kt@amd.com>
@@ -146,137 +135,64 @@ Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   38 ++++++++++++++++++++++++++++++++++-
- mm/memory.c        |   46 +++++++++++++++++++++++--------------------
- 2 files changed, 62 insertions(+), 22 deletions(-)
+ mm/memory.c |   44 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 42 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-folio_zero_user-support-clearing-page-ranges
-+++ a/include/linux/mm.h
-@@ -4236,7 +4236,6 @@ static inline void clear_page_guard(stru
- 				unsigned int order) {}
- #endif	/* CONFIG_DEBUG_PAGEALLOC */
- 
--#ifndef clear_pages
- /**
-  * clear_pages() - clear a page range for kernel-internal use.
-  * @addr: start address
-@@ -4246,7 +4245,18 @@ static inline void clear_page_guard(stru
-  * mapped to user space.
-  *
-  * Does absolutely no exception handling.
-+ *
-+ * Note that even though the clearing operation is preemptible, clear_pages()
-+ * does not (and on architectures where it reduces to a few long-running
-+ * instructions, might not be able to) call cond_resched() to check if
-+ * rescheduling is required.
-+ *
-+ * When running under preemptible models this is fine, since clear_pages(),
-+ * even when reduced to long-running instructions, is preemptible.
-+ * Under cooperatively scheduled models, however, the caller is expected to
-+ * limit @npages to no more than PROCESS_PAGES_NON_PREEMPT_BATCH.
-  */
-+#ifndef clear_pages
- static inline void clear_pages(void *addr, unsigned int npages)
- {
- 	do {
-@@ -4256,6 +4266,32 @@ static inline void clear_pages(void *add
- }
- #endif
- 
-+#ifndef PROCESS_PAGES_NON_PREEMPT_BATCH
-+#ifdef clear_pages
-+/*
-+ * The architecture defines clear_pages(), and we assume that it is
-+ * generally "fast". So choose a batch size large enough to allow the processor
-+ * headroom for optimizing the operation and yet small enough that we see
-+ * reasonable preemption latency for when this optimization is not possible
-+ * (ex. slow microarchitectures, memory bandwidth saturation.)
-+ *
-+ * With a value of 8MB and assuming a memory bandwidth of ~10GBps, this should
-+ * result in worst case preemption latency of around 1ms when clearing pages.
-+ *
-+ * (See comment above clear_pages() for why preemption latency is a concern
-+ * here.)
-+ */
-+#define PROCESS_PAGES_NON_PREEMPT_BATCH		(8 << (20 - PAGE_SHIFT))
-+#else /* !clear_pages */
-+/*
-+ * The architecture does not provide a clear_pages() implementation. Assume
-+ * that clear_page() -- which clear_pages() will fallback to -- is relatively
-+ * slow and choose a small value for PROCESS_PAGES_NON_PREEMPT_BATCH.
-+ */
-+#define PROCESS_PAGES_NON_PREEMPT_BATCH		1
-+#endif
-+#endif
-+
- #ifdef __HAVE_ARCH_GATE_AREA
- extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
- extern int in_gate_area_no_mm(unsigned long addr);
---- a/mm/memory.c~mm-folio_zero_user-support-clearing-page-ranges
+--- a/mm/memory.c~mm-folio_zero_user-cache-neighbouring-pages
 +++ a/mm/memory.c
-@@ -7237,40 +7237,44 @@ static inline int process_huge_page(
- 	return 0;
- }
- 
--static void clear_gigantic_page(struct folio *folio, unsigned long addr_hint,
--				unsigned int nr_pages)
-+static void clear_contig_highpages(struct page *page, unsigned long addr,
-+				   unsigned int npages)
- {
--	unsigned long addr = ALIGN_DOWN(addr_hint, folio_size(folio));
--	int i;
-+	unsigned int i, count, unit;
- 
--	might_sleep();
--	for (i = 0; i < nr_pages; i++) {
--		cond_resched();
--		clear_user_highpage(folio_page(folio, i), addr + i * PAGE_SIZE);
--	}
--}
-+	/*
-+	 * When clearing we want to operate on the largest extent possible since
-+	 * that allows for extent based architecture specific optimizations.
-+	 *
-+	 * However, since the clearing interfaces (clear_user_highpages(),
-+	 * clear_user_pages(), clear_pages()), do not call cond_resched(), we
-+	 * limit the batch size when running under non-preemptible scheduling
-+	 * models.
-+	 */
-+	unit = preempt_model_preemptible() ? npages : PROCESS_PAGES_NON_PREEMPT_BATCH;
- 
--static int clear_subpage(unsigned long addr, int idx, void *arg)
--{
--	struct folio *folio = arg;
-+	for (i = 0; i < npages; i += count) {
-+		cond_resched();
- 
--	clear_user_highpage(folio_page(folio, idx), addr);
--	return 0;
-+		count = min(unit, npages - i);
-+		clear_user_highpages(page + i,
-+				     addr + i * PAGE_SIZE, count);
-+	}
- }
- 
- /**
-  * folio_zero_user - Zero a folio which will be mapped to userspace.
-  * @folio: The folio to zero.
-- * @addr_hint: The address will be accessed or the base address if uncelar.
-+ * @addr_hint: The address accessed by the user or the base address.
+@@ -7268,13 +7268,53 @@ static void clear_contig_highpages(struc
+  * @addr_hint: The address accessed by the user or the base address.
+  *
+  * Uses architectural support to clear page ranges.
 + *
-+ * Uses architectural support to clear page ranges.
++ * Clearing of small folios (< MAX_ORDER_NR_PAGES) is split in three parts:
++ * pages in the immediate locality of the faulting page, and its left, right
++ * regions; the local neighbourhood is cleared last in order to keep cache
++ * lines of the faulting region hot.
++ *
++ * For larger folios we assume that there is no expectation of cache locality
++ * and just do a straight zero.
   */
  void folio_zero_user(struct folio *folio, unsigned long addr_hint)
  {
--	unsigned int nr_pages = folio_nr_pages(folio);
-+	unsigned long base_addr = ALIGN_DOWN(addr_hint, folio_size(folio));
+ 	unsigned long base_addr = ALIGN_DOWN(addr_hint, folio_size(folio));
++	const long fault_idx = (addr_hint - base_addr) / PAGE_SIZE;
++	const struct range pg = DEFINE_RANGE(0, folio_nr_pages(folio) - 1);
++	const int width = 2; /* number of pages cleared last on either side */
++	struct range r[3];
++	int i;
++
++	if (folio_nr_pages(folio) > MAX_ORDER_NR_PAGES) {
++		clear_contig_highpages(folio_page(folio, 0),
++				       base_addr, folio_nr_pages(folio));
++		return;
++	}
++
++	/*
++	 * Faulting page and its immediate neighbourhood. Cleared at the end to
++	 * ensure it sticks around in the cache.
++	 */
++	r[2] = DEFINE_RANGE(clamp_t(s64, fault_idx - width, pg.start, pg.end),
++			    clamp_t(s64, fault_idx + width, pg.start, pg.end));
++
++	/* Region to the left of the fault */
++	r[1] = DEFINE_RANGE(pg.start,
++			    clamp_t(s64, r[2].start-1, pg.start-1, r[2].start));
++
++	/* Region to the right of the fault: always valid for the common fault_idx=0 case. */
++	r[0] = DEFINE_RANGE(clamp_t(s64, r[2].end+1, r[2].end, pg.end+1),
++			    pg.end);
++
++	for (i = 0; i <= 2; i++) {
++		unsigned int npages = range_len(&r[i]);
++		struct page *page = folio_page(folio, r[i].start);
++		unsigned long addr = base_addr + folio_page_idx(folio, page) * PAGE_SIZE;
  
--	if (unlikely(nr_pages > MAX_ORDER_NR_PAGES))
--		clear_gigantic_page(folio, addr_hint, nr_pages);
--	else
--		process_huge_page(addr_hint, nr_pages, clear_subpage, folio);
-+	clear_contig_highpages(folio_page(folio, 0),
-+				base_addr, folio_nr_pages(folio));
+-	clear_contig_highpages(folio_page(folio, 0),
+-				base_addr, folio_nr_pages(folio));
++		if (npages > 0)
++			clear_contig_highpages(page, addr, npages);
++	}
  }
  
  static int copy_user_gigantic_page(struct folio *dst, struct folio *src,
