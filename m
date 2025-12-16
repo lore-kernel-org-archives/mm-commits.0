@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B40EF1EEE6
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 03:27:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B03EF1D90DD;
+	Tue, 16 Dec 2025 03:30:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765855671; cv=none; b=BB82kN9QixBKPc70+EOpHfGZtV/IXXUxwW2pbySb2cwS2S593VSzT3P3+aEEY5fDZ67YfQJx3MG6lgfv7YGbcdCJac6SV+1mmUqVijXOp+6QhN6ttWpOXxSOCaOZxeEV8FSROb9KBQihqlM5XKmkbaIB8xd6lu3XjggnRKGss1c=
+	t=1765855823; cv=none; b=fiMK7jsf8AyaD05iVxG2ltsisIz9dkFaQom71OPXL+q9cWjzAO2p1daxrX6eB5asw4Id7XyW/qgAOnqRTlgv17AC86vwRm3UM5xe9CgJ7FqL1XZ6r+9HuiJMkPLDBXTVpr/qgFX30ZcV6sLN4d+MWbjhYj6EGtI0vV18yowWTYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765855671; c=relaxed/simple;
-	bh=Hkj+sEgVbEbUEft6YhjbqlmOEFnzznaGK09bBW13Ca4=;
-	h=Date:To:From:Subject:Message-Id; b=K84/rI/rZfxc5GnUxnO3/zLRifI2OrtfiEHnGl0eu8UaWtmmqCE28malU4ZqxRSHE49c5JYepnJE+LVebD0/6+E3g9SB+xDF6pdfHdOpROhxu+pbRPZaj60+vjZevSzWKv75G5YdV5UyQAvPUE4H07F7J801b8fMF6xpVzjHuRA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lyUxdAN0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765855823; c=relaxed/simple;
+	bh=ts4UgXQUSRB3DlY0oEK5TQ0Z3lJWVO3ZAGbqjy4/MbE=;
+	h=Date:To:From:Subject:Message-Id; b=LIRxqB/Yted+Y5UUFOGSfecDVwX1lFkjup3kH0DY2gXT10NLmPP8qrPcOJ8cHb6IwevUao11DOi1EZhuLlmPKNWHhbux5XA+ch2F6MbchjUpnIjlh+hWvVOhZhL1RdBV9a/x3yhVMXvmJpCqqM8dZGlIJoXWfMSrYQbSCuTAUnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ya/maR3V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lyUxdAN0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46B5FC4CEF5;
-	Tue, 16 Dec 2025 03:27:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ya/maR3V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EBDDC4CEF5;
+	Tue, 16 Dec 2025 03:30:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765855671;
-	bh=Hkj+sEgVbEbUEft6YhjbqlmOEFnzznaGK09bBW13Ca4=;
+	s=korg; t=1765855823;
+	bh=ts4UgXQUSRB3DlY0oEK5TQ0Z3lJWVO3ZAGbqjy4/MbE=;
 	h=Date:To:From:Subject:From;
-	b=lyUxdAN0HtlSSDG8701u3vNl5PrKeaRrPIXAxIBNFZ7wntO1m/iObtfwwf/mX65gh
-	 NrJhBW/xRd/izetR4xRMbboMP6k+xIO0SMfmFGd82n85CF17rDebEETO7vP2HsLqaM
-	 f+OQR9G4zyxfdREbSyyAj6N5xLohJuVmqWtq/CyI=
-Date: Mon, 15 Dec 2025 19:27:50 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=ya/maR3V692N7ExXT9pmPp/qxHajrq+8m3BWfhWvAqmKUz+4EJsD3NG6xxCcnvxQV
+	 wmxlFvK4l4GMi+q1WYhklyDr4DFaZp/OPMKdxk6kRZzsWUvj7Bx/y/zeyxkBP6jMJs
+	 YdEsuFk5MQXl2sc3KfoCWtc3YgMNBIX058115PS4=
+Date: Mon, 15 Dec 2025 19:30:22 -0800
+To: mm-commits@vger.kernel.org,zhaochongxi2019@email.szu.edu.cn,stable@vger.kernel.org,kaushlendra.kumar@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets.patch added to mm-new branch
-Message-Id: <20251216032751.46B5FC4CEF5@smtp.kernel.org>
+Subject: + tools-mm-page_owner_sort-fix-timestamp-comparison-for-stable-sorting.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251216033023.3EBDDC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: fix wasteful CPU calls by skipping non-existent targets
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets.patch
+     Subject: tools/mm/page_owner_sort: fix timestamp comparison for stable sorting
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     tools-mm-page_owner_sort-fix-timestamp-comparison-for-stable-sorting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-page_owner_sort-fix-timestamp-comparison-for-stable-sorting.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,60 +58,44 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: mm/damon/core: fix wasteful CPU calls by skipping non-existent targets
-Date: Wed, 10 Dec 2025 13:25:08 +0800
+From: Kaushlendra Kumar <kaushlendra.kumar@intel.com>
+Subject: tools/mm/page_owner_sort: fix timestamp comparison for stable sorting
+Date: Tue, 9 Dec 2025 10:15:52 +0530
 
-Currently, DAMON does not proactively clean up invalid monitoring targets
-during its runtime.  When some monitored processes exit, DAMON continues
-to make the following unnecessary function calls,
+The ternary operator in compare_ts() returns 1 when timestamps are equal,
+causing unstable sorting behavior. Replace with explicit three-way
+comparison that returns 0 for equal timestamps, ensuring stable qsort
+ordering and consistent output.
 
-  --damon_for_each_target--
-  --damon_for_each_region--
-      damon_do_apply_schemes
-        damos_apply_scheme
-          damon_va_apply_scheme
-            damos_madvise
-              damon_get_mm
-
-it is only in the damon_get_mm() function that it may finally discover the
-target no longer exists, which wastes CPU resources.  A simple idea is to
-check for the existence of monitoring targets within the
-kdamond_need_stop() function and promptly clean up non-existent targets.
-
-However, SJ pointed out that this approach is problematic because the
-online commit logic incorrectly uses list indices to update the monitoring
-state.  This can lead to data loss if the target list is changed
-concurrently.  Meanwhile, SJ suggests checking for target existence at the
-damon_for_each_target level, and if a target does not exist, simply skip
-it and proceed to the next one.
-
-Link: https://lkml.kernel.org/r/20251210052508.264433-1-lienze@kylinos.cn
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Suggested-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20251209044552.3396468-1-kaushlendra.kumar@intel.com
+Fixes: 8f9c447e2e2b ("tools/vm/page_owner_sort.c: support sorting pid and time")
+Signed-off-by: Kaushlendra Kumar <kaushlendra.kumar@intel.com>
+Cc: Chongxi Zhao <zhaochongxi2019@email.szu.edu.cn>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/mm/page_owner_sort.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets
-+++ a/mm/damon/core.c
-@@ -2266,6 +2266,9 @@ static void kdamond_apply_schemes(struct
+--- a/tools/mm/page_owner_sort.c~tools-mm-page_owner_sort-fix-timestamp-comparison-for-stable-sorting
++++ a/tools/mm/page_owner_sort.c
+@@ -181,7 +181,11 @@ static int compare_ts(const void *p1, co
+ {
+ 	const struct block_list *l1 = p1, *l2 = p2;
  
- 	mutex_lock(&c->walk_control_lock);
- 	damon_for_each_target(t, c) {
-+		if (c->ops.target_valid && c->ops.target_valid(t) == false)
-+			continue;
-+
- 		damon_for_each_region_safe(r, next_r, t)
- 			damon_do_apply_schemes(c, t, r);
- 	}
+-	return l1->ts_nsec < l2->ts_nsec ? -1 : 1;
++	if (l1->ts_nsec < l2->ts_nsec)
++		return -1;
++	if (l1->ts_nsec > l2->ts_nsec)
++		return 1;
++	return 0;
+ }
+ 
+ static int compare_cull_condition(const void *p1, const void *p2)
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from kaushlendra.kumar@intel.com are
 
-mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects.patch
-mm-damon-core-fix-wasteful-cpu-calls-by-skipping-non-existent-targets.patch
+tools-mm-page_owner_sort-fix-timestamp-comparison-for-stable-sorting.patch
 
