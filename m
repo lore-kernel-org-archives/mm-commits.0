@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCAC22D876B
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:19:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86DF42D876B
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 02:19:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765851594; cv=none; b=tnQEs2ePao5qR1jv9DKV7nPFFlKhxJtL8PTbtAByZT6GVPwXtTHI1ZHDpRlKHaNj8g1VPmkJKsNcQGVCDCPfSWzW91hu35l0H1p1fc6ziYGuY/kezb2Pn6Nsf1Hm9SnFWOZYFN3p3YzPc6Yt0N3rVDjeLIuCHEYjbDKhmY2Q74s=
+	t=1765851597; cv=none; b=Lwq1ArPmiZP7IpeWsxXwMa7CFSdkgI6fhxPRJr0ulnIpfls2H4SfYR/va2zDpZzjDaTb+BVbL+W1e2WwYM9wlufZyqUewaGHnwWAv4KWu5aW2MHYQrzyaXBnoURZ0ukqZ/HZ0HhmwbTpeT1B3J8RvNSRHM4CdaqHSPiGlF6+GJs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765851594; c=relaxed/simple;
-	bh=9+oBK+rresKOSrR6subUDGWbV+mznHDJo8DrQKUn1bo=;
-	h=Date:To:From:Subject:Message-Id; b=RRd8OBCvJY5MrPbzyJ/TTNrBtCPEuVHm7fMq/PYM1fgF4aXjdwgTIZ8eNbdZXVK4Haq51OPugJZvQcCbT7fxg/X6+3qEaNVpPCY27rXEL25brK6eHH33Tw9m7ruzW1DOJ4s1RqDF62rb7CKLVANcDLCDc2maQMIODwiwC0GbTcU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qFqEzX4d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765851597; c=relaxed/simple;
+	bh=p6pYIXbrEOTnVMjvRX966cHH/gUoE0BgNNHiMPw++E4=;
+	h=Date:To:From:Subject:Message-Id; b=IepuepnJgRqXPK9hStvV5Dz3dCvJ952tdabTHaVOHN9vHJwEaWHvEgQuIeOTLCvAHYK17RgOOGYvFnmgqoOCX0vM41Q20tRidFMv2D3LAjA2X6i5Wj5mM2LyzviPnr00dBw3dCsMnverD2nLtflVcUhSI7e3sE3SXqhwqIj4Oa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YH0Qimn3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qFqEzX4d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EF5BC4CEF5;
-	Tue, 16 Dec 2025 02:19:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YH0Qimn3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14383C4CEF5;
+	Tue, 16 Dec 2025 02:19:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765851594;
-	bh=9+oBK+rresKOSrR6subUDGWbV+mznHDJo8DrQKUn1bo=;
+	s=korg; t=1765851597;
+	bh=p6pYIXbrEOTnVMjvRX966cHH/gUoE0BgNNHiMPw++E4=;
 	h=Date:To:From:Subject:From;
-	b=qFqEzX4dvmQvA3MeDDjz8vXfu5oS5RHguc1+bIjJuw00191jrBHDh47GjYEtAdUzh
-	 Zit7r9t3CeKY+ANtM47T11um/jt+hsGKLiSnMr6pEniP7kVK/oLxdJD9esNLcvIvg/
-	 yVUZ6AR8gimDNj9cX9O8E9hRZkEzqaClBcVPZdz8=
-Date: Mon, 15 Dec 2025 18:19:53 -0800
+	b=YH0Qimn3no9F5PWZkuee2LV3X2nmlX4N0beZt2edShAKeQGyKZImL2j3SEOSpOszq
+	 aNs72kIR2fbJBO1agPvyHxZcPWoqNT9tsaINFRe+fZwppbPXlgHtq4fMG9C0pw3LZU
+	 /NBW/9YAaVh3VkN6UjdOExpo9UjAK9F0X0CKlSGk=
+Date: Mon, 15 Dec 2025 18:19:56 -0800
 To: mm-commits@vger.kernel.org,stevensd@google.com,senozhatsky@chromium.org,minchan@google.com,bgeffon@google.com,richardycc@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-introduce-compressed-data-writeback.patch added to mm-new branch
-Message-Id: <20251216021954.3EF5BC4CEF5@smtp.kernel.org>
+Subject: + zram-introduce-writeback_compressed-device-attribute.patch added to mm-new branch
+Message-Id: <20251216021957.14383C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: introduce compressed data writeback
+     Subject: zram: introduce writeback_compressed device attribute
 has been added to the -mm mm-new branch.  Its filename is
-     zram-introduce-compressed-data-writeback.patch
+     zram-introduce-writeback_compressed-device-attribute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-compressed-data-writeback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-introduce-writeback_compressed-device-attribute.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,469 +65,131 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Richard Chang <richardycc@google.com>
-Subject: zram: introduce compressed data writeback
-Date: Mon, 1 Dec 2025 18:47:48 +0900
+Subject: zram: introduce writeback_compressed device attribute
+Date: Mon, 1 Dec 2025 18:47:49 +0900
 
-Patch series "zram: introduce compressed data writeback", v2.
+Introduce witeback_compressed device attribute to toggle compressed
+writeback (decompression on demand) feature.
 
-As writeback becomes more common there is another shortcoming that needs
-to be addressed - compressed data writeback.  Currently zram does
-uncompressed data writeback which is not optimal due to potential CPU and
-battery wastage.  This series changes suboptimal uncompressed writeback to
-a more optimal compressed data writeback.
-
-
-This patch (of 7):
-
-zram stores all written back slots raw, which implies that during
-writeback zram first has to decompress slots (except for ZRAM_HUGE slots,
-which are raw already).  The problem with this approach is that not every
-written back page gets read back (either via read() or via page-fault),
-which means that zram basically wastes CPU cycles and battery
-decompressing such slots.  This changes with introduction of decompression
-on demand, in other words decompression on read()/page-fault.
-
-One caveat of decompression on demand is that async read is completed in
-IRQ context, while zram decompression is sleepable.  To workaround this,
-read-back decompression is offloaded to a preemptible context - system
-high-prio work-queue.
-
-At this point compressed writeback is still disabled, a follow up patch
-will introduce a new device attribute which will make it possible to
-toggle compressed writeback per-device.
-
-[senozhatsky@chromium.org: rewrote original implementation]
-Link: https://lkml.kernel.org/r/20251201094754.4149975-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20251201094754.4149975-2-senozhatsky@chromium.org
+[senozhatsky@chromium.org: rewrote original patch, added documentation]
+Link: https://lkml.kernel.org/r/20251201094754.4149975-3-senozhatsky@chromium.org
 Signed-off-by: Richard Chang <richardycc@google.com>
 Co-developed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Minchan Kim <minchan@google.com>
-Suggested-by: Brian Geffon <bgeffon@google.com>
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Brian Geffon <bgeffon@google.com>
 Cc: David Stevens <stevensd@google.com>
+Cc: Minchan Kim <minchan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  279 +++++++++++++++++++++++++-------
- drivers/block/zram/zram_drv.h |    1 
- 2 files changed, 227 insertions(+), 53 deletions(-)
+ Documentation/ABI/testing/sysfs-block-zram  |    7 +++
+ Documentation/admin-guide/blockdev/zram.rst |   13 ++++++
+ drivers/block/zram/zram_drv.c               |   38 ++++++++++++++++++
+ 3 files changed, 58 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-introduce-compressed-data-writeback
-+++ a/drivers/block/zram/zram_drv.c
-@@ -57,9 +57,6 @@ static size_t huge_class_size;
- static const struct block_device_operations zram_devops;
- 
- static void zram_free_page(struct zram *zram, size_t index);
--static int zram_read_from_zspool(struct zram *zram, struct page *page,
--				 u32 index);
--
- #define slot_dep_map(zram, index) (&(zram)->table[(index)].dep_map)
- 
- static void zram_slot_lock_init(struct zram *zram, u32 index)
-@@ -502,6 +499,10 @@ out:
- #ifdef CONFIG_ZRAM_WRITEBACK
- #define INVALID_BDEV_BLOCK		(~0UL)
- 
-+static int read_from_zspool_raw(struct zram *zram, struct page *page,
-+				u32 index);
-+static int read_from_zspool(struct zram *zram, struct page *page, u32 index);
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-introduce-writeback_compressed-device-attribute
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -150,3 +150,10 @@ Contact:	Sergey Senozhatsky <senozhatsky
+ Description:
+ 		The algorithm_params file is write-only and is used to setup
+ 		compression algorithm parameters.
 +
- struct zram_wb_ctl {
- 	/* idle list is accessed only by the writeback task, no concurency */
- 	struct list_head idle_reqs;
-@@ -522,6 +523,22 @@ struct zram_wb_req {
- 	struct list_head entry;
++What:		/sys/block/zram<id>/writeback_compressed
++Date:		Decemeber 2025
++Contact:	Richard Chang <richardycc@google.com>
++Description:
++		The writeback_compressed device atrribute toggles compressed
++		writeback feature.
+--- a/Documentation/admin-guide/blockdev/zram.rst~zram-introduce-writeback_compressed-device-attribute
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -214,6 +214,7 @@ mem_limit         	WO	specifies the maxi
+ writeback_limit   	WO	specifies the maximum amount of write IO zram
+ 				can write out to backing device as 4KB unit
+ writeback_limit_enable  RW	show and set writeback_limit feature
++writeback_compressed	RW	show and set compressed writeback feature
+ comp_algorithm    	RW	show and change the compression algorithm
+ algorithm_params	WO	setup compression algorithm parameters
+ compact           	WO	trigger memory compaction
+@@ -434,6 +435,18 @@ system reboot, echo 1 > /sys/block/zramX
+ writeback happened until you reset the zram to allocate extra writeback
+ budget in next setting is user's job.
+ 
++By default zram stores written back pages in decompressed (raw) form, which
++means that writeback operation involves decompression of the page before
++writing it to the backing device.  This behavior can be changed by enabling
++`writeback_compressed` feature, which causes zram to write compressed pages
++to the backing device, thus avoiding decompression overhead.  To enable
++this feature, execute::
++
++	$ echo yes > /sys/block/zramX/writeback_compressed
++
++Note that this feature should be configured before the `zramX` device is
++initialized.
++
+ If admin wants to measure writeback count in a certain period, they could
+ know it via /sys/block/zram0/bd_stat's 3rd column.
+ 
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-writeback_compressed-device-attribute
++++ a/drivers/block/zram/zram_drv.c
+@@ -539,6 +539,42 @@ struct zram_rb_req {
+ 	u32 index;
  };
  
-+struct zram_rb_req {
-+	struct work_struct work;
-+	struct zram *zram;
-+	struct page *page;
-+	/* The read bio for backing device */
-+	struct bio *bio;
-+	unsigned long blk_idx;
-+	union {
-+		/* The original bio to complete (async read) */
-+		struct bio *parent;
-+		/* error status (sync read) */
-+		int error;
-+	};
-+	u32 index;
-+};
++static ssize_t writeback_compressed_store(struct device *dev,
++					  struct device_attribute *attr,
++					  const char *buf, size_t len)
++{
++	struct zram *zram = dev_to_zram(dev);
++	bool val;
++
++	if (kstrtobool(buf, &val))
++		return -EINVAL;
++
++	down_write(&zram->init_lock);
++	if (init_done(zram)) {
++		up_write(&zram->init_lock);
++		return -EBUSY;
++	}
++
++	zram->wb_compressed = val;
++	up_write(&zram->init_lock);
++
++	return len;
++}
++
++static ssize_t writeback_compressed_show(struct device *dev,
++					 struct device_attribute *attr,
++					 char *buf)
++{
++	bool val;
++	struct zram *zram = dev_to_zram(dev);
++
++	down_read(&zram->init_lock);
++	val = zram->wb_compressed;
++	up_read(&zram->init_lock);
++
++	return sysfs_emit(buf, "%d\n", val);
++}
 +
  static ssize_t writeback_limit_enable_store(struct device *dev,
  					    struct device_attribute *attr,
  					    const char *buf, size_t len)
-@@ -780,18 +797,6 @@ static void zram_release_bdev_block(stru
- 	atomic64_dec(&zram->stats.bd_count);
- }
- 
--static void read_from_bdev_async(struct zram *zram, struct page *page,
--			unsigned long entry, struct bio *parent)
--{
--	struct bio *bio;
--
--	bio = bio_alloc(zram->bdev, 1, parent->bi_opf, GFP_NOIO);
--	bio->bi_iter.bi_sector = entry * (PAGE_SIZE >> 9);
--	__bio_add_page(bio, page, PAGE_SIZE, 0);
--	bio_chain(bio, parent);
--	submit_bio(bio);
--}
--
- static void release_wb_req(struct zram_wb_req *req)
- {
- 	__free_page(req->page);
-@@ -886,8 +891,9 @@ static void zram_account_writeback_submi
- 
- static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
- {
--	u32 index = req->pps->index;
--	int err;
-+	u32 size, index = req->pps->index;
-+	int err, prio;
-+	bool huge;
- 
- 	err = blk_status_to_errno(req->bio.bi_status);
- 	if (err) {
-@@ -914,9 +920,27 @@ static int zram_writeback_complete(struc
- 		goto out;
- 	}
- 
-+	if (zram->wb_compressed) {
-+		/*
-+		 * ZRAM_WB slots get freed, we need to preserve data required
-+		 * for read decompression.
-+		 */
-+		size = zram_get_obj_size(zram, index);
-+		prio = zram_get_priority(zram, index);
-+		huge = zram_test_flag(zram, index, ZRAM_HUGE);
-+	}
-+
- 	zram_free_page(zram, index);
- 	zram_set_flag(zram, index, ZRAM_WB);
- 	zram_set_handle(zram, index, req->blk_idx);
-+
-+	if (zram->wb_compressed) {
-+		if (huge)
-+			zram_set_flag(zram, index, ZRAM_HUGE);
-+		zram_set_obj_size(zram, index, size);
-+		zram_set_priority(zram, index, prio);
-+	}
-+
- 	atomic64_inc(&zram->stats.pages_stored);
- 
- out:
-@@ -1050,7 +1074,11 @@ static int zram_writeback_slots(struct z
- 		 */
- 		if (!zram_test_flag(zram, index, ZRAM_PP_SLOT))
- 			goto next;
--		if (zram_read_from_zspool(zram, req->page, index))
-+		if (zram->wb_compressed)
-+			err = read_from_zspool_raw(zram, req->page, index);
-+		else
-+			err = read_from_zspool(zram, req->page, index);
-+		if (err)
- 			goto next;
- 		zram_slot_unlock(zram, index);
- 
-@@ -1313,24 +1341,140 @@ release_init_lock:
- 	return ret;
- }
- 
--struct zram_work {
--	struct work_struct work;
--	struct zram *zram;
--	unsigned long entry;
--	struct page *page;
--	int error;
--};
-+static int decompress_bdev_page(struct zram *zram, struct page *page, u32 index)
-+{
-+	struct zcomp_strm *zstrm;
-+	unsigned int size;
-+	int ret, prio;
-+	void *src;
-+
-+	zram_slot_lock(zram, index);
-+	/* Since slot was unlocked we need to make sure it's still ZRAM_WB */
-+	if (!zram_test_flag(zram, index, ZRAM_WB)) {
-+		zram_slot_unlock(zram, index);
-+		/* We read some stale data, zero it out */
-+		memset_page(page, 0, 0, PAGE_SIZE);
-+		return -EIO;
-+	}
-+
-+	if (zram_test_flag(zram, index, ZRAM_HUGE)) {
-+		zram_slot_unlock(zram, index);
-+		return 0;
-+	}
-+
-+	size = zram_get_obj_size(zram, index);
-+	prio = zram_get_priority(zram, index);
-+
-+	zstrm = zcomp_stream_get(zram->comps[prio]);
-+	src = kmap_local_page(page);
-+	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size,
-+			       zstrm->local_copy);
-+	if (!ret)
-+		copy_page(src, zstrm->local_copy);
-+	kunmap_local(src);
-+	zcomp_stream_put(zstrm);
-+	zram_slot_unlock(zram, index);
-+
-+	return ret;
-+}
- 
--static void zram_sync_read(struct work_struct *work)
-+static void zram_deferred_decompress(struct work_struct *w)
- {
--	struct zram_work *zw = container_of(work, struct zram_work, work);
-+	struct zram_rb_req *req = container_of(w, struct zram_rb_req, work);
-+	struct page *page = bio_first_page_all(req->bio);
-+	struct zram *zram = req->zram;
-+	u32 index = req->index;
-+	int ret;
-+
-+	ret = decompress_bdev_page(zram, page, index);
-+	if (ret)
-+		req->parent->bi_status = BLK_STS_IOERR;
-+
-+	/* Decrement parent's ->remaining */
-+	bio_endio(req->parent);
-+	bio_put(req->bio);
-+	kfree(req);
-+}
-+
-+static void zram_async_read_endio(struct bio *bio)
-+{
-+	struct zram_rb_req *req = bio->bi_private;
-+	struct zram *zram = req->zram;
-+
-+	if (bio->bi_status) {
-+		req->parent->bi_status = bio->bi_status;
-+		bio_endio(req->parent);
-+		bio_put(bio);
-+		kfree(req);
-+		return;
-+	}
-+
-+	/*
-+	 * NOTE: zram_async_read_endio() is not exactly right place for this.
-+	 * Ideally, we need to do it after ZRAM_WB check, but this requires
-+	 * us to use wq path even on systems that don't enable compressed
-+	 * writeback, because we cannot take slot-lock in the current context.
-+	 *
-+	 * Keep the existing behavior for now.
-+	 */
-+	if (zram->wb_compressed == false) {
-+		/* No decompression needed, complete the parent IO */
-+		bio_endio(req->parent);
-+		bio_put(bio);
-+		kfree(req);
-+		return;
-+	}
-+
-+	/*
-+	 * zram decompression is sleepable, so we need to deffer it to
-+	 * a preemptible context.
-+	 */
-+	INIT_WORK(&req->work, zram_deferred_decompress);
-+	queue_work(system_highpri_wq, &req->work);
-+}
-+
-+static void read_from_bdev_async(struct zram *zram, struct page *page,
-+				 u32 index, unsigned long blk_idx,
-+				 struct bio *parent)
-+{
-+	struct zram_rb_req *req;
-+	struct bio *bio;
-+
-+	req = kmalloc(sizeof(*req), GFP_NOIO);
-+	if (!req)
-+		return;
-+
-+	bio = bio_alloc(zram->bdev, 1, parent->bi_opf, GFP_NOIO);
-+	if (!bio) {
-+		kfree(req);
-+		return;
-+	}
-+
-+	req->zram = zram;
-+	req->index = index;
-+	req->blk_idx = blk_idx;
-+	req->bio = bio;
-+	req->parent = parent;
-+
-+	bio->bi_iter.bi_sector = blk_idx * (PAGE_SIZE >> 9);
-+	bio->bi_private = req;
-+	bio->bi_end_io = zram_async_read_endio;
-+
-+	__bio_add_page(bio, page, PAGE_SIZE, 0);
-+	bio_inc_remaining(parent);
-+	submit_bio(bio);
-+}
-+
-+static void zram_sync_read(struct work_struct *w)
-+{
-+	struct zram_rb_req *req = container_of(w, struct zram_rb_req, work);
- 	struct bio_vec bv;
- 	struct bio bio;
- 
--	bio_init(&bio, zw->zram->bdev, &bv, 1, REQ_OP_READ);
--	bio.bi_iter.bi_sector = zw->entry * (PAGE_SIZE >> 9);
--	__bio_add_page(&bio, zw->page, PAGE_SIZE, 0);
--	zw->error = submit_bio_wait(&bio);
-+	bio_init(&bio, req->zram->bdev, &bv, 1, REQ_OP_READ);
-+	bio.bi_iter.bi_sector = req->blk_idx * (PAGE_SIZE >> 9);
-+	__bio_add_page(&bio, req->page, PAGE_SIZE, 0);
-+	req->error = submit_bio_wait(&bio);
- }
- 
- /*
-@@ -1338,39 +1482,42 @@ static void zram_sync_read(struct work_s
-  * chained IO with parent IO in same context, it's a deadlock. To avoid that,
-  * use a worker thread context.
-  */
--static int read_from_bdev_sync(struct zram *zram, struct page *page,
--				unsigned long entry)
-+static int read_from_bdev_sync(struct zram *zram, struct page *page, u32 index,
-+			       unsigned long blk_idx)
- {
--	struct zram_work work;
-+	struct zram_rb_req req;
- 
--	work.page = page;
--	work.zram = zram;
--	work.entry = entry;
-+	req.page = page;
-+	req.zram = zram;
-+	req.blk_idx = blk_idx;
- 
--	INIT_WORK_ONSTACK(&work.work, zram_sync_read);
--	queue_work(system_dfl_wq, &work.work);
--	flush_work(&work.work);
--	destroy_work_on_stack(&work.work);
-+	INIT_WORK_ONSTACK(&req.work, zram_sync_read);
-+	queue_work(system_dfl_wq, &req.work);
-+	flush_work(&req.work);
-+	destroy_work_on_stack(&req.work);
- 
--	return work.error;
-+	if (req.error || zram->wb_compressed == false)
-+		return req.error;
-+
-+	return decompress_bdev_page(zram, page, index);
- }
- 
--static int read_from_bdev(struct zram *zram, struct page *page,
--			unsigned long entry, struct bio *parent)
-+static int read_from_bdev(struct zram *zram, struct page *page, u32 index,
-+			  unsigned long blk_idx, struct bio *parent)
- {
- 	atomic64_inc(&zram->stats.bd_reads);
- 	if (!parent) {
- 		if (WARN_ON_ONCE(!IS_ENABLED(ZRAM_PARTIAL_IO)))
- 			return -EIO;
--		return read_from_bdev_sync(zram, page, entry);
-+		return read_from_bdev_sync(zram, page, index, blk_idx);
- 	}
--	read_from_bdev_async(zram, page, entry, parent);
-+	read_from_bdev_async(zram, page, index, blk_idx, parent);
- 	return 0;
- }
- #else
- static inline void reset_bdev(struct zram *zram) {};
--static int read_from_bdev(struct zram *zram, struct page *page,
--			unsigned long entry, struct bio *parent)
-+static int read_from_bdev(struct zram *zram, struct page *page, u32 index,
-+			  unsigned long blk_idx, struct bio *parent)
- {
- 	return -EIO;
- }
-@@ -1977,12 +2124,37 @@ static int read_compressed_page(struct z
- 	return ret;
- }
- 
-+#if defined CONFIG_ZRAM_WRITEBACK
-+static int read_from_zspool_raw(struct zram *zram, struct page *page, u32 index)
-+{
-+	struct zcomp_strm *zstrm;
-+	unsigned long handle;
-+	unsigned int size;
-+	void *src;
-+
-+	handle = zram_get_handle(zram, index);
-+	size = zram_get_obj_size(zram, index);
-+
-+	/*
-+	 * We need to get stream just for ->local_copy buffer, in
-+	 * case if object spans two physical pages. No decompression
-+	 * takes place here, as we read raw compressed data.
-+	 */
-+	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
-+	src = zs_obj_read_begin(zram->mem_pool, handle, zstrm->local_copy);
-+	memcpy_to_page(page, 0, src, size);
-+	zs_obj_read_end(zram->mem_pool, handle, src);
-+	zcomp_stream_put(zstrm);
-+
-+	return 0;
-+}
-+#endif
-+
- /*
-  * Reads (decompresses if needed) a page from zspool (zsmalloc).
-  * Corresponding ZRAM slot should be locked.
-  */
--static int zram_read_from_zspool(struct zram *zram, struct page *page,
--				 u32 index)
-+static int read_from_zspool(struct zram *zram, struct page *page, u32 index)
- {
- 	if (zram_test_flag(zram, index, ZRAM_SAME) ||
- 	    !zram_get_handle(zram, index))
-@@ -2002,7 +2174,7 @@ static int zram_read_page(struct zram *z
- 	zram_slot_lock(zram, index);
- 	if (!zram_test_flag(zram, index, ZRAM_WB)) {
- 		/* Slot should be locked through out the function call */
--		ret = zram_read_from_zspool(zram, page, index);
-+		ret = read_from_zspool(zram, page, index);
- 		zram_slot_unlock(zram, index);
- 	} else {
- 		unsigned long blk_idx = zram_get_handle(zram, index);
-@@ -2012,7 +2184,7 @@ static int zram_read_page(struct zram *z
- 		 * device.
- 		 */
- 		zram_slot_unlock(zram, index);
--		ret = read_from_bdev(zram, page, blk_idx, parent);
-+		ret = read_from_bdev(zram, page, index, blk_idx, parent);
- 	}
- 
- 	/* Should NEVER happen. Return bio error if it does. */
-@@ -2273,7 +2445,7 @@ static int recompress_slot(struct zram *
- 	if (comp_len_old < threshold)
- 		return 0;
- 
--	ret = zram_read_from_zspool(zram, page, index);
-+	ret = read_from_zspool(zram, page, index);
- 	if (ret)
- 		return ret;
- 
-@@ -2960,6 +3132,7 @@ static int zram_add(void)
- 	init_rwsem(&zram->init_lock);
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	zram->wb_batch_size = 32;
-+	zram->wb_compressed = false;
+@@ -3048,6 +3084,7 @@ static DEVICE_ATTR_WO(writeback);
+ static DEVICE_ATTR_RW(writeback_limit);
+ static DEVICE_ATTR_RW(writeback_limit_enable);
+ static DEVICE_ATTR_RW(writeback_batch_size);
++static DEVICE_ATTR_RW(writeback_compressed);
  #endif
- 
- 	/* gendisk structure */
---- a/drivers/block/zram/zram_drv.h~zram-introduce-compressed-data-writeback
-+++ a/drivers/block/zram/zram_drv.h
-@@ -128,6 +128,7 @@ struct zram {
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	struct file *backing_dev;
- 	bool wb_limit_enable;
-+	bool wb_compressed;
- 	u32 wb_batch_size;
- 	u64 bd_wb_limit;
- 	struct block_device *bdev;
+ #ifdef CONFIG_ZRAM_MULTI_COMP
+ static DEVICE_ATTR_RW(recomp_algorithm);
+@@ -3070,6 +3107,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_writeback_limit.attr,
+ 	&dev_attr_writeback_limit_enable.attr,
+ 	&dev_attr_writeback_batch_size.attr,
++	&dev_attr_writeback_compressed.attr,
+ #endif
+ 	&dev_attr_io_stat.attr,
+ 	&dev_attr_mm_stat.attr,
 _
 
 Patches currently in -mm which might be from richardycc@google.com are
