@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E47B2F4A15
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 21:07:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF532E1730
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 21:09:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765919265; cv=none; b=ohPeB+V9RurgYWUlcJnjM0DIPKIfQxo4azyn/VL+b6I1izB3gL16rW8NzOmw+emGG0HQgGeN8LV6NrJNaktvk//35FpCMiYF8/GfJQB8z6z4P0ufkfSdHRNh8GBaC3H4YqrDh49dirnpE4Oj8IIqkav5alohvUQ8s/myzf7MoXs=
+	t=1765919392; cv=none; b=DDYCPUK/NyYI6qrQ5mkq0jgLrEihYGu3pxCKL/rCbEBZJFCFhF//6gLeTP/Xr23uGqQjSZDDOu/va5oFXBir1+TTSwlX8fHCmU3P76dbTOu54lxkGlBWJzw25x1Y4mpGtsUiQZz/CaiYOentD0poD1Vva5XCTmwVkbQpUh9M6h8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765919265; c=relaxed/simple;
-	bh=COCcUf51hY6QDU/817PPRb3ZLD74uCNJZOYd/8T3UZg=;
-	h=Date:To:From:Subject:Message-Id; b=R2TOs27EG9Lhg8VwjBjD6UzEBobdjsh32PLUvFBP8XwTHJN0LvoYsseyPeU8SwahFJnVLGZrz65ISF4Vd2EmsIMjgIBilMU/h/yr1v5fedWMLx2icV2hMaXY7b5iphYYtMU50INFhu5qLDZna07GFq8ya36HGjMQDz8xczZC6vA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aDrTC3EY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765919392; c=relaxed/simple;
+	bh=GTOq0gds/9ehfEh9ldDNEELl27uYGK0SLwTC4+UKGWI=;
+	h=Date:To:From:Subject:Message-Id; b=Vffz+XFegjHa3MT+pjVLc3Vw29yLgJWBTi8PW1Z0mpC8Cx8IpKWS9YV5advhKu2F81H120v2SnbEKrgKiZzKYDPhd3uepRvxuOvKxmBv4DSgN1CTGR0x61tPgdG2P6fU0cHoFGB62CpTDgV8GDfbCBYM97N2DKA6xHpcPDOjsuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLxMzi/a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aDrTC3EY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAE66C4CEF1;
-	Tue, 16 Dec 2025 21:07:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLxMzi/a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7B7C4CEF1;
+	Tue, 16 Dec 2025 21:09:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765919265;
-	bh=COCcUf51hY6QDU/817PPRb3ZLD74uCNJZOYd/8T3UZg=;
+	s=korg; t=1765919392;
+	bh=GTOq0gds/9ehfEh9ldDNEELl27uYGK0SLwTC4+UKGWI=;
 	h=Date:To:From:Subject:From;
-	b=aDrTC3EYPXvIhaD+dbbCvr9DqfyRrIjpqVMlWjCmLFYJ2tRoQOb9OoGt1DFKYmmPn
-	 COqLuDZTb6U5nti1N6eaoKFuLUp6SdpZBjrexMtp2sYSflHQzAKaIzatPUVovIsv+9
-	 vS06dU/zXOCP7m/0uXKoIq1qngYFxeL/annzQ7/c=
-Date: Tue, 16 Dec 2025 13:07:44 -0800
-To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,brauner@kernel.org,lalitshankarch@gmail.com,akpm@linux-foundation.org
+	b=gLxMzi/alRdgFfmlDMF7TR2CTkVgjhIpO8NjQpIdCA7Hx3Ke8UmAtW8emdfgkRZF3
+	 mJcK7DMWKNoinK9zXK162wO/oh8O9ac6rdHIf1hsQNtsX6tF8l+Asd4GCEaQUh6VKU
+	 1XQUFU4TxorIqnelcePN0LENzEc0JFbXArK8XccU=
+Date: Tue, 16 Dec 2025 13:09:51 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,raquini@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,audra@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-remove-unused-parameter.patch added to mm-nonmm-unstable branch
-Message-Id: <20251216210744.EAE66C4CEF1@smtp.kernel.org>
+Subject: + lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch added to mm-new branch
+Message-Id: <20251216210952.0D7B7C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fat: remove unused parameter
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fat-remove-unused-parameter.patch
+     Subject: lib/test_vmalloc.c: minor fixes to test_vmalloc.c
+has been added to the -mm mm-new branch.  Its filename is
+     lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-remove-unused-parameter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,45 +66,155 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
-Subject: fat: remove unused parameter
-Date: Tue, 2 Dec 2025 03:14:04 +0530
+From: Audra Mitchell <audra@redhat.com>
+Subject: lib/test_vmalloc.c: minor fixes to test_vmalloc.c
+Date: Mon, 1 Dec 2025 13:18:48 -0500
 
-Remove unused inode parameter from fat_cache_alloc().
+If PAGE_SIZE is larger than 4k and if you have a system with a large
+number of CPUs, this test can require a very large amount of memory
+leading to oom-killer firing.  Given the type of allocation, the kernel
+won't have anything to kill, causing the system to stall.
 
-Link: https://lkml.kernel.org/r/20251201214403.90604-2-lalitshankarch@gmail.com
-Signed-off-by: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Christian Brauner <brauner@kernel.org>
+Add a parameter to the test_vmalloc driver to represent the number of
+times a percpu object will be allocated.  Calculate this in
+test_vmalloc.sh to be 90% of available memory or the current default of
+35000, whichever is smaller.
+
+Link: https://lkml.kernel.org/r/20251201181848.1216197-1-audra@redhat.com
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/cache.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/test_vmalloc.c                         |   11 ++++--
+ tools/testing/selftests/mm/test_vmalloc.sh |   31 +++++++++++++++++--
+ 2 files changed, 35 insertions(+), 7 deletions(-)
 
---- a/fs/fat/cache.c~fat-remove-unused-parameter
-+++ a/fs/fat/cache.c
-@@ -54,7 +54,7 @@ void fat_cache_destroy(void)
- 	kmem_cache_destroy(fat_cache_cachep);
- }
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-minor-fixes-to-test_vmallocc
++++ a/lib/test_vmalloc.c
+@@ -58,6 +58,9 @@ __param(int, run_test_mask, 7,
+ 		/* Add a new test case description here. */
+ );
  
--static inline struct fat_cache *fat_cache_alloc(struct inode *inode)
-+static inline struct fat_cache *fat_cache_alloc(void)
++__param(int, nr_pcpu_objects, 35000,
++	"Number of pcpu objects to allocate for pcpu_alloc_test");
++
+ /*
+  * This is for synchronization of setup phase.
+  */
+@@ -317,24 +320,24 @@ pcpu_alloc_test(void)
+ 	size_t size, align;
+ 	int i;
+ 
+-	pcpu = vmalloc(sizeof(void __percpu *) * 35000);
++	pcpu = vmalloc(sizeof(void __percpu *) * nr_pcpu_objects);
+ 	if (!pcpu)
+ 		return -1;
+ 
+-	for (i = 0; i < 35000; i++) {
++	for (i = 0; i < nr_pcpu_objects; i++) {
+ 		size = get_random_u32_inclusive(1, PAGE_SIZE / 4);
+ 
+ 		/*
+ 		 * Maximum PAGE_SIZE
+ 		 */
+-		align = 1 << get_random_u32_inclusive(1, 11);
++		align = 1 << get_random_u32_inclusive(1, PAGE_SHIFT - 1);
+ 
+ 		pcpu[i] = __alloc_percpu(size, align);
+ 		if (!pcpu[i])
+ 			rv = -1;
+ 	}
+ 
+-	for (i = 0; i < 35000; i++)
++	for (i = 0; i < nr_pcpu_objects; i++)
+ 		free_percpu(pcpu[i]);
+ 
+ 	vfree(pcpu);
+--- a/tools/testing/selftests/mm/test_vmalloc.sh~lib-test_vmallocc-minor-fixes-to-test_vmallocc
++++ a/tools/testing/selftests/mm/test_vmalloc.sh
+@@ -13,6 +13,9 @@ TEST_NAME="vmalloc"
+ DRIVER="test_${TEST_NAME}"
+ NUM_CPUS=`grep -c ^processor /proc/cpuinfo`
+ 
++# Default number of times we allocate percpu objects:
++NR_PCPU_OBJECTS=35000
++
+ # 1 if fails
+ exitcode=1
+ 
+@@ -27,6 +30,8 @@ PERF_PARAM="sequential_test_order=1 test
+ SMOKE_PARAM="test_loop_count=10000 test_repeat_count=10"
+ STRESS_PARAM="nr_threads=$NUM_CPUS test_repeat_count=20"
+ 
++PCPU_OBJ_PARAM="nr_pcpu_objects=$NR_PCPU_OBJECTS"
++
+ check_test_requirements()
  {
- 	return kmem_cache_alloc(fat_cache_cachep, GFP_NOFS);
+ 	uid=$(id -u)
+@@ -47,12 +52,30 @@ check_test_requirements()
+ 	fi
  }
-@@ -144,7 +144,7 @@ static void fat_cache_add(struct inode *
- 			MSDOS_I(inode)->nr_caches++;
- 			spin_unlock(&MSDOS_I(inode)->cache_lru_lock);
  
--			tmp = fat_cache_alloc(inode);
-+			tmp = fat_cache_alloc();
- 			if (!tmp) {
- 				spin_lock(&MSDOS_I(inode)->cache_lru_lock);
- 				MSDOS_I(inode)->nr_caches--;
++check_memory_requirement()
++{
++	# The pcpu_alloc_test allocates nr_pcpu_objects per cpu. If the
++	# PAGE_SIZE is on the larger side it is easier to set a value
++	# that can cause oom events during testing. Since we are
++	# testing the functionality of vmalloc and not the oom-killer,
++	# calculate what is 90% of available memory and divide it by
++	# the number of online CPUs.
++	pages=$(($(getconf _AVPHYS_PAGES) * 90 / 100 / $NUM_CPUS))
++
++	if (($pages < $NR_PCPU_OBJECTS)); then
++		echo "Updated nr_pcpu_objects to 90% of available memory."
++		echo "nr_pcpu_objects is now set to: $pages."
++		PCPU_OBJ_PARAM="nr_pcpu_objects=$pages"
++	fi
++}
++
+ run_performance_check()
+ {
+ 	echo "Run performance tests to evaluate how fast vmalloc allocation is."
+ 	echo "It runs all test cases on one single CPU with sequential order."
+ 
+-	modprobe $DRIVER $PERF_PARAM > /dev/null 2>&1
++	check_memory_requirement
++	modprobe $DRIVER $PERF_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
+ 	echo "Done."
+ 	echo "Check the kernel message buffer to see the summary."
+ }
+@@ -63,7 +86,8 @@ run_stability_check()
+ 	echo "available test cases are run by NUM_CPUS workers simultaneously."
+ 	echo "It will take time, so be patient."
+ 
+-	modprobe $DRIVER $STRESS_PARAM > /dev/null 2>&1
++	check_memory_requirement
++	modprobe $DRIVER $STRESS_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
+ 	echo "Done."
+ 	echo "Check the kernel ring buffer to see the summary."
+ }
+@@ -74,7 +98,8 @@ run_smoke_check()
+ 	echo "Please check $0 output how it can be used"
+ 	echo "for deep performance analysis as well as stress testing."
+ 
+-	modprobe $DRIVER $SMOKE_PARAM > /dev/null 2>&1
++	check_memory_requirement
++	modprobe $DRIVER $SMOKE_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
+ 	echo "Done."
+ 	echo "Check the kernel ring buffer to see the summary."
+ }
 _
 
-Patches currently in -mm which might be from lalitshankarch@gmail.com are
+Patches currently in -mm which might be from audra@redhat.com are
 
-fat-remove-unused-parameter.patch
+lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch
 
