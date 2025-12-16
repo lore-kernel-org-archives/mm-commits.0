@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E87326B2B0
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 03:04:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7123120DD52
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 03:07:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765854293; cv=none; b=L938cPuyEAvCBZQOB18G8SkqCyI3QCZ6MNBNtwUvREbz+ohFiXPE0rGJ//5TrxtomTl8WtjJJP+MIgcb/TNcPgsYgW7gR19IwuwQQ3NznaBXvPGf9gXSBKtHEbroOB8j/WRTRNnn+CYg27mDgLfBIB5bS0aGNhqyAkWylHMEMZA=
+	t=1765854457; cv=none; b=OkNNB0jc3ZnDESuswPCDuN3lEdIwFHItUbTImTm3ErqNTS80KlCgSTYWQ/WIwPCc8o6ubCtw7iNpteqAorzLODtd6nLSeqJbTBIVmDiFEEINzICZbRYUE5ce2a4RxaQVingqHxmLFl9ERsR5UZBu4JGGB15+BdaIIF5MCNI0vNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765854293; c=relaxed/simple;
-	bh=1mngJokv7CmjtJmfRLHsL6iEr6lcEsKeVdo4xmysgIg=;
-	h=Date:To:From:Subject:Message-Id; b=Q+BXb/NU0p0MtarQJuSDkXKlmWHQgpTQssyAr/mWzyx9DVT/7tlOl1wYgM2lc3Dhd2bPuRH1MYMHpl7Tq/WHMKS9B+YcgTmfy0YqtVAesBarpbzrv9FcN4a+aL5zX+D+pUQfdaevVUscbAZuLIOoPn4AGJh8f124JNAoMSGo8GE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lVcuZRyd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765854457; c=relaxed/simple;
+	bh=OfhLXtNugX3q/CYMZF2dBhPaki+jQbLyVUz+aI9g5rM=;
+	h=Date:To:From:Subject:Message-Id; b=Mw1scfagPXKH62C9+eUCisWBGRwa4WlsuMR3fSQiYonMC8kd77CrGM+2dQuBD2Gi6omGBzsUCaHtoVHxddD47g4Wib6KD4fbiB80iVHw99LQtx6Yo5r9omRC9NjeF6PPt4ZhYfDLQ0zOAWGxOp7DD2flWs9hV6FhELVQcCVq6gs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O+K0M2BW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lVcuZRyd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B42B4C4CEF5;
-	Tue, 16 Dec 2025 03:04:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O+K0M2BW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D46F8C4CEF5;
+	Tue, 16 Dec 2025 03:07:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765854292;
-	bh=1mngJokv7CmjtJmfRLHsL6iEr6lcEsKeVdo4xmysgIg=;
+	s=korg; t=1765854456;
+	bh=OfhLXtNugX3q/CYMZF2dBhPaki+jQbLyVUz+aI9g5rM=;
 	h=Date:To:From:Subject:From;
-	b=lVcuZRyd7ZTi4H8IwtsxhyG3NZSOKzUYUZx+Xj9/4OdQkQWQEKzMrE33D+P0iKGH8
-	 iidDKptdYiX99qsyTUCRhbhNGqfdCQaPzEZF6iFRTjSkkeN9XIHqMf6f5h8YUvWXug
-	 Ke2sIWjokjnKoijs3j3yaMqy9gEMTloOppdzo6pI=
-Date: Mon, 15 Dec 2025 19:04:52 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,torvalds@linux-foundation.org,mhocko@suse.com,macro@orcam.me.uk,linux@rasmusvillemoes.dk,kees@kernel.org,jannh@google.com,glider@google.com,elver@google.com,dvyukov@google.com,chris.bazley.wg14@gmail.com,alx@kernel.org,akpm@linux-foundation.org
+	b=O+K0M2BWxPFy7iMXv3TvKM59M8qSSiV1mGAOaNLYgeQVlma1vB7lVgkGQcNMtaJwb
+	 0K9tj70mQHhcujFVD0yyyA6VUZBDczCB/ilD8gF7Zf8zI85ZXJzpckCLM6kx10ZCGj
+	 yM3fYep16ESY0GB35oSYoqx580+CnORqvl6MtdJ8=
+Date: Mon, 15 Dec 2025 19:07:36 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,swarajgaikwad1925@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-array_end-instead-of-open-coding-it.patch added to mm-nonmm-unstable branch
-Message-Id: <20251216030452.B42B4C4CEF5@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch added to mm-new branch
+Message-Id: <20251216030736.D46F8C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use ARRAY_END() instead of open-coding it
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-use-array_end-instead-of-open-coding-it.patch
+     Subject: mm/damon/sysfs-schemes: remove outdated TODO in target_nid_store()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-array_end-instead-of-open-coding-it.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,75 +64,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alejandro Colomar <alx@kernel.org>
-Subject: mm: use ARRAY_END() instead of open-coding it
-Date: Thu, 11 Dec 2025 11:44:04 +0100
+From: Swaraj Gaikwad <swarajgaikwad1925@gmail.com>
+Subject: mm/damon/sysfs-schemes: remove outdated TODO in target_nid_store()
+Date: Thu, 11 Dec 2025 03:27:22 +0000
 
-There aren't any bugs in this code; it's purely cosmetic.
+The TODO comment in target_nid_store() suggested adding range validation
+for target_nid.  As discussed in [1], the current behavior of accepting
+any integer value is intentional.  DAMON sysfs aims to remain flexible,
+including supporting users who prepare node IDs before future NUMA hotplug
+events.
 
-By using ARRAY_END(), we prevent future issues, in case the code is
-modified; it has less moving parts.  Also, it should be more readable (and
-perhaps more importantly, greppable), as there are several ways of writing
-an expression that gets the end of an array, which are unified by this API
-name.
+Because this behavior matches the broader design philosophy of the DAMON
+sysfs interface, the TODO comment is now misleading.  This patch removes
+the comment without introducing any behavioral change.
 
-Link: https://lkml.kernel.org/r/2335917d123891fec074ab1b3acfb517cf14b5a7.1765449750.git.alx@kernel.org
-Signed-off-by: Alejandro Colomar <alx@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christopher Bazley <chris.bazley.wg14@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Maciej W. Rozycki <macro@orcam.me.uk>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+No functional changes.
+
+Link: https://lkml.kernel.org/r/20251211032722.4928-2-swarajgaikwad1925@gmail.com
+Link: https://lore.kernel.org/lkml/20251210150930.57679-1-sj@kernel.org/ [1]
+Signed-off-by: Swaraj Gaikwad <swarajgaikwad1925@gmail.com>
+Suggested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c      |    2 +-
- mm/memcontrol-v1.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/sysfs-schemes.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/kmemleak.c~mm-use-array_end-instead-of-open-coding-it
-+++ a/mm/kmemleak.c
-@@ -510,7 +510,7 @@ static void mem_pool_free(struct kmemlea
- {
- 	unsigned long flags;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store
++++ a/mm/damon/sysfs-schemes.c
+@@ -2286,7 +2286,6 @@ static ssize_t target_nid_store(struct k
+ 			struct damon_sysfs_scheme, kobj);
+ 	int err = 0;
  
--	if (object < mem_pool || object >= mem_pool + ARRAY_SIZE(mem_pool)) {
-+	if (object < mem_pool || object >= ARRAY_END(mem_pool)) {
- 		kmem_cache_free(object_cache, object);
- 		return;
- 	}
---- a/mm/memcontrol-v1.c~mm-use-array_end-instead-of-open-coding-it
-+++ a/mm/memcontrol-v1.c
-@@ -1794,7 +1794,7 @@ static int memcg_numa_stat_show(struct s
+-	/* TODO: error handling for target_nid range. */
+ 	err = kstrtoint(buf, 0, &scheme->target_nid);
  
- 	mem_cgroup_flush_stats(memcg);
- 
--	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
-+	for (stat = stats; stat < ARRAY_END(stats); stat++) {
- 		seq_printf(m, "%s=%lu", stat->name,
- 			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
- 						   false));
-@@ -1805,7 +1805,7 @@ static int memcg_numa_stat_show(struct s
- 		seq_putc(m, '\n');
- 	}
- 
--	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
-+	for (stat = stats; stat < ARRAY_END(stats); stat++) {
- 
- 		seq_printf(m, "hierarchical_%s=%lu", stat->name,
- 			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
+ 	return err ? err : count;
 _
 
-Patches currently in -mm which might be from alx@kernel.org are
+Patches currently in -mm which might be from swarajgaikwad1925@gmail.com are
 
-array_sizeh-add-array_end.patch
-mm-fix-benign-off-by-one-bugs.patch
-kernel-fix-off-by-one-benign-bugs.patch
-mm-use-array_end-instead-of-open-coding-it.patch
+mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch
 
