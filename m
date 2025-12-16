@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B963A13AA2F
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 03:19:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F1B21494A8
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 03:23:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765855165; cv=none; b=eZiUXhbe6hdAylkQzAfgT/VRSQDzXdJWPftA4U6xuZjHK+f3aIKc9nYZ1+8ueQx7ENwQdTtC+Xj2se9QFngeUs0/ekhSdZZM+lwgQrNQFvUT+aWwcLx6DCUc29EP4RDtBS6PHBolB2aXs9A0hrj7sRNGULXZsK22peythHGGcAs=
+	t=1765855398; cv=none; b=cUnFRuzsipzj/kCcNXNF+/avhI9qdSF/Pmk5uk/yTfwC59xEbLs695HrCAcsizFEB7OP6T/PCdikCEUSQ16yeXGASfhWKT9vwLpJ0Y2aRuuI72oQjPTukDwwtxoBm8wjRXmWr02TlL07kIuHsoXyqc8NSb9ryp1E4on8HzkGy1U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765855165; c=relaxed/simple;
-	bh=yNSNflKq9/13/TFjhdhyzrLB1rI8qK9mMoLXaIRkGco=;
-	h=Date:To:From:Subject:Message-Id; b=nUQXFCOF3royz1gTNm7ufmMPYodll1qVgeaKwlCnGxVXVMYP0QUUZTRz0JOTEoVBrLbPRiSiI1U59qZGm1ik8PxB9VtMvELd0cjpcxgtgY5MWOkIkVYhIW2qJXgQObLcH/s0FEbV1z31tTgzhkKCUonybggxiz9VcqHZWGE1hPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NqGZmosm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765855398; c=relaxed/simple;
+	bh=SUTSqUxv1UdD6ZQyCKGHZnGeQl9+JI+YJvwzSwVJgko=;
+	h=Date:To:From:Subject:Message-Id; b=miYZ1yQ0wVH/6NtGkyLsSDTjHxUZqTT1WPpdlShvrVnPRfISCgTD/iOUTJA66jC4O6Gc+sLmjqah+1W5pCsm5PT70K/e+vnCJwmiGE8C8QUyj+iR7nMM5WBV2rN2AnjBESZs7RjK0u6NO9EJCY/+sZVK7JQ4X8nMnXZIfAdLsFM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xmN04kIk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NqGZmosm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33CA1C4CEF5;
-	Tue, 16 Dec 2025 03:19:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xmN04kIk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7E67C4CEF5;
+	Tue, 16 Dec 2025 03:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765855165;
-	bh=yNSNflKq9/13/TFjhdhyzrLB1rI8qK9mMoLXaIRkGco=;
+	s=korg; t=1765855398;
+	bh=SUTSqUxv1UdD6ZQyCKGHZnGeQl9+JI+YJvwzSwVJgko=;
 	h=Date:To:From:Subject:From;
-	b=NqGZmosmB/AzspFu5mZPtRsE9J7OJ7XsVdB9bdaehCQ8TYdEKQDXnbsFRIsM1b9xW
-	 yuU5cqP8+hSKZSFaHnHUQG2X5CPU9UUNnca6A2HP4ZuF93qLNcrBaVcJ/weBNIKdS1
-	 7sCH6dKFRPeN964djBpvO64qaR4OObbNPhmdmDTo=
-Date: Mon, 15 Dec 2025 19:19:24 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,lujialin4@huawei.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,axelrasmussen@google.com,chenridong@huawei.com,akpm@linux-foundation.org
+	b=xmN04kIkhZoqzidAqfbQrXYX7RAESrQuJW3Je4blSuWLyzmkpyARQoFIWSw6JejwJ
+	 8veuTY9/kj7U/n2+wzt5pGkXQrTivdxvS67+W5M4TEpfEDY0OWFbinha140oxbOr3S
+	 Wp4kPPaAJqzMTKJrUPEccqgS3vTMQZk1KlizZYx4=
+Date: Mon, 15 Dec 2025 19:23:17 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,anshuman.khandual@arm.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-move-mem_cgroup_usage-memcontrol-v1c.patch added to mm-new branch
-Message-Id: <20251216031925.33CA1C4CEF5@smtp.kernel.org>
+Subject: + mm-memcontrol-rename-mem_cgroup_from_slab_obj.patch added to mm-new branch
+Message-Id: <20251216032317.E7E67C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: move mem_cgroup_usage memcontrol-v1.c
+     Subject: mm: memcontrol: rename mem_cgroup_from_slab_obj()
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-move-mem_cgroup_usage-memcontrol-v1c.patch
+     mm-memcontrol-rename-mem_cgroup_from_slab_obj.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-move-mem_cgroup_usage-memcontrol-v1c.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-rename-mem_cgroup_from_slab_obj.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,120 +64,97 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chen Ridong <chenridong@huawei.com>
-Subject: memcg: move mem_cgroup_usage memcontrol-v1.c
-Date: Thu, 11 Dec 2025 01:30:18 +0000
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: rename mem_cgroup_from_slab_obj()
+Date: Wed, 10 Dec 2025 10:43:01 -0500
 
-Patch series "memcg cleanups", v3.
+In addition to slab objects, this function is used for resolving non-slab
+kernel pointers.  This has caused confusion in recent refactoring work. 
+Rename it to mem_cgroup_from_virt(), sticking with terminology established
+by the virt_to_<foo>() converters.
 
-Two code moves/removals with no behavior change.
-
-
-This patch (of 2):
-
-Currently, mem_cgroup_usage is only used for v1, just move it to
-memcontrol-v1.c
-
-Link: https://lkml.kernel.org/r/20251211013019.2080004-1-chenridong@huaweicloud.com
-Link: https://lkml.kernel.org/r/20251211013019.2080004-2-chenridong@huaweicloud.com
-Signed-off-by: Chen Ridong <chenridong@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lore.kernel.org/linux-mm/20251113161424.GB3465062@cmpxchg.org/
+Link: https://lkml.kernel.org/r/20251210154301.720133-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Koutný <mkoutny@suse.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Lu Jialin <lujialin4@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |   22 ++++++++++++++++++++++
- mm/memcontrol-v1.h |    2 --
- mm/memcontrol.c    |   22 ----------------------
- 3 files changed, 22 insertions(+), 24 deletions(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/list_lru.c              |    4 ++--
+ mm/memcontrol.c            |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~memcg-move-mem_cgroup_usage-memcontrol-v1c
+--- a/include/linux/memcontrol.h~mm-memcontrol-rename-mem_cgroup_from_slab_obj
++++ a/include/linux/memcontrol.h
+@@ -1723,7 +1723,7 @@ static inline int memcg_kmem_id(struct m
+ 	return memcg ? memcg->kmemcg_id : -1;
+ }
+ 
+-struct mem_cgroup *mem_cgroup_from_slab_obj(void *p);
++struct mem_cgroup *mem_cgroup_from_virt(void *p);
+ 
+ static inline void count_objcg_events(struct obj_cgroup *objcg,
+ 				      enum vm_event_item idx,
+@@ -1795,7 +1795,7 @@ static inline int memcg_kmem_id(struct m
+ 	return -1;
+ }
+ 
+-static inline struct mem_cgroup *mem_cgroup_from_slab_obj(void *p)
++static inline struct mem_cgroup *mem_cgroup_from_virt(void *p)
+ {
+ 	return NULL;
+ }
+--- a/mm/list_lru.c~mm-memcontrol-rename-mem_cgroup_from_slab_obj
++++ a/mm/list_lru.c
+@@ -187,7 +187,7 @@ bool list_lru_add_obj(struct list_lru *l
+ 
+ 	if (list_lru_memcg_aware(lru)) {
+ 		rcu_read_lock();
+-		ret = list_lru_add(lru, item, nid, mem_cgroup_from_slab_obj(item));
++		ret = list_lru_add(lru, item, nid, mem_cgroup_from_virt(item));
+ 		rcu_read_unlock();
+ 	} else {
+ 		ret = list_lru_add(lru, item, nid, NULL);
+@@ -224,7 +224,7 @@ bool list_lru_del_obj(struct list_lru *l
+ 
+ 	if (list_lru_memcg_aware(lru)) {
+ 		rcu_read_lock();
+-		ret = list_lru_del(lru, item, nid, mem_cgroup_from_slab_obj(item));
++		ret = list_lru_del(lru, item, nid, mem_cgroup_from_virt(item));
+ 		rcu_read_unlock();
+ 	} else {
+ 		ret = list_lru_del(lru, item, nid, NULL);
+--- a/mm/memcontrol.c~mm-memcontrol-rename-mem_cgroup_from_slab_obj
 +++ a/mm/memcontrol.c
-@@ -3272,28 +3272,6 @@ void folio_split_memcg_refs(struct folio
- 	css_get_many(&__folio_memcg(folio)->css, new_refs);
- }
+@@ -806,7 +806,7 @@ void mod_lruvec_kmem_state(void *p, enum
+ 	struct lruvec *lruvec;
  
--unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
--{
--	unsigned long val;
--
--	if (mem_cgroup_is_root(memcg)) {
--		/*
--		 * Approximate root's usage from global state. This isn't
--		 * perfect, but the root usage was always an approximation.
--		 */
--		val = global_node_page_state(NR_FILE_PAGES) +
--			global_node_page_state(NR_ANON_MAPPED);
--		if (swap)
--			val += total_swap_pages - get_nr_swap_pages();
--	} else {
--		if (!swap)
--			val = page_counter_read(&memcg->memory);
--		else
--			val = page_counter_read(&memcg->memsw);
--	}
--	return val;
--}
--
- static int memcg_online_kmem(struct mem_cgroup *memcg)
+ 	rcu_read_lock();
+-	memcg = mem_cgroup_from_slab_obj(p);
++	memcg = mem_cgroup_from_virt(p);
+ 
+ 	/*
+ 	 * Untracked pages have no memcg, no lruvec. Update only the
+@@ -2614,7 +2614,7 @@ struct mem_cgroup *mem_cgroup_from_obj_s
+  * The caller must ensure the memcg lifetime, e.g. by taking rcu_read_lock(),
+  * cgroup_mutex, etc.
+  */
+-struct mem_cgroup *mem_cgroup_from_slab_obj(void *p)
++struct mem_cgroup *mem_cgroup_from_virt(void *p)
  {
- 	struct obj_cgroup *objcg;
---- a/mm/memcontrol-v1.c~memcg-move-mem_cgroup_usage-memcontrol-v1c
-+++ a/mm/memcontrol-v1.c
-@@ -427,6 +427,28 @@ static int mem_cgroup_move_charge_write(
- }
- #endif
+ 	struct slab *slab;
  
-+static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
-+{
-+	unsigned long val;
-+
-+	if (mem_cgroup_is_root(memcg)) {
-+		/*
-+		 * Approximate root's usage from global state. This isn't
-+		 * perfect, but the root usage was always an approximation.
-+		 */
-+		val = global_node_page_state(NR_FILE_PAGES) +
-+			global_node_page_state(NR_ANON_MAPPED);
-+		if (swap)
-+			val += total_swap_pages - get_nr_swap_pages();
-+	} else {
-+		if (!swap)
-+			val = page_counter_read(&memcg->memory);
-+		else
-+			val = page_counter_read(&memcg->memsw);
-+	}
-+	return val;
-+}
-+
- static void __mem_cgroup_threshold(struct mem_cgroup *memcg, bool swap)
- {
- 	struct mem_cgroup_threshold_ary *t;
---- a/mm/memcontrol-v1.h~memcg-move-mem_cgroup_usage-memcontrol-v1c
-+++ a/mm/memcontrol-v1.h
-@@ -22,8 +22,6 @@
- 	     iter != NULL;				\
- 	     iter = mem_cgroup_iter(NULL, iter, NULL))
- 
--unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap);
--
- void drain_all_stock(struct mem_cgroup *root_memcg);
- 
- unsigned long memcg_events(struct mem_cgroup *memcg, int event);
 _
 
-Patches currently in -mm which might be from chenridong@huawei.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-memcg-move-mem_cgroup_usage-memcontrol-v1c.patch
-memcg-remove-mem_cgroup_size.patch
+mm-zswap-delete-unused-acomp-is_sleepable.patch
+mm-memcontrol-rename-mem_cgroup_from_slab_obj.patch
 
