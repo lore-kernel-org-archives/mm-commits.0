@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61E5632572F
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 19:25:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED1B12EC557
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 19:49:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765913110; cv=none; b=s+rOp8UfussC2tojoaYVeQEwdK7rFVul1IV02hiuIHa0kVu2u/IYc8A/ftLy1RNbQh1Q9jui7XswouO4S3fixGu3GYHsWbkA8/lRzb4GKItiLqF1+dLKJVRGIBvygv2e4iQlamE2amT+WXBDz/MsD5w3QgtRVfuUENdH293Xdeg=
+	t=1765914598; cv=none; b=krJ/imgP8lvw1AMSfJS/h6cZYQlhBeSFPl4OOMXFhQlUY9oOxb6HKG4UvZSTUGJGeLfExYzvSL/r4oW6rMW523O90RPEb66yRncBcPXzdQ3V89QROB92uk8dUQn9wKsbqfYA7P+rJIlhvOIYb2IgIyqAUqH9gHWqvluAghUbW20=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765913110; c=relaxed/simple;
-	bh=5HZtx2wG0k/U/iPEhaYbB8wk9+XHPo1U6nJS1gR93Ro=;
-	h=Date:To:From:Subject:Message-Id; b=dxRl/2SyI3FUw4Gzt5vhcFancTe1Kmd5KrOmN5wJ+dsXKlAkATUY2/81samtIlQW4QXMMQ7XDB68kG/n7iz1ifftzzaMm5J4Uo0z2onyPQIAoLwQjSX35phSPvMMjbxTSjIcXF9Rdxhj50JoIo61aEjAHscy1JzcSdLOmWY1bz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZZ4xlI6Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765914598; c=relaxed/simple;
+	bh=zLq9VCcVt3mLct6K6llKqtvFLdtIihQfaGWaYDzbOt0=;
+	h=Date:To:From:Subject:Message-Id; b=eha+JLKnRlRBlLlWwd9EHFDNd7Qa/u20YbRjnHAPEJH0UBt5w60OV7UQioiCF+givJKjejdUGdA9/04ToaDnGkcXMhYTPn0fhCWsX8bxn1m11e3q5XBCIIyvvfL55nQ5AoDiifNawqy1fQTqM4L1kem1J1EXOvXMwxNsVnhSIf4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TYujHl/a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZZ4xlI6Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C46DBC4CEF1;
-	Tue, 16 Dec 2025 19:25:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TYujHl/a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70DE7C4CEF1;
+	Tue, 16 Dec 2025 19:49:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765913109;
-	bh=5HZtx2wG0k/U/iPEhaYbB8wk9+XHPo1U6nJS1gR93Ro=;
+	s=korg; t=1765914597;
+	bh=zLq9VCcVt3mLct6K6llKqtvFLdtIihQfaGWaYDzbOt0=;
 	h=Date:To:From:Subject:From;
-	b=ZZ4xlI6QKg//8s7EAlXPF6EPFqpgANQms5nqZVWUQwuQw5l8wCivXvtYiyPX6HMFs
-	 bxZdOlcreKXQzjJo7ZxEnm/aJJymc2YgSayOFrLVrqh8j/1Un7v+tZoDUyOXLV9aYS
-	 lKj2prhbHFhWI/1FWAPiKZc2DxprYtWF35YrzSrc=
-Date: Tue, 16 Dec 2025 11:25:09 -0800
-To: mm-commits@vger.kernel.org,syzbot+c818e5c4559444f88aa0@syzkaller.appspotmail.com,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,activprithvi@gmail.com,akpm@linux-foundation.org
+	b=TYujHl/aukmZVv6xN4AFaD0zc7GKJgyk66sMW+XvtVUsksUzyhes1cHjwNR/o4slK
+	 VAFBqWYDi9g2dbjehlZWhxwpuhM6SDgiYVveEscqZjnAu6eDxjci6bKOBMFNKHAeyI
+	 vMsXa6jf0awRVn8DIix8jcmXwsrhwPnhBnzgEy9g=
+Date: Tue, 16 Dec 2025 11:49:56 -0800
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yonghong.song@linux.dev,will@kernel.org,stefan.kristiansson@saunalahti.fi,song@kernel.org,shorne@gmail.com,sdf@fomichev.me,peterz@infradead.org,martin.lau@linux.dev,mark.rutland@arm.com,kpsingh@kernel.org,jonas@southpole.se,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,gary@garyguo.net,eddyz87@gmail.com,dinguyen@kernel.org,daniel@iogearbox.net,dalias@libc.org,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,andrii@kernel.org,fthain@linux-m68k.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-add-validate-function-for-slot-map-blocks.patch added to mm-nonmm-unstable branch
-Message-Id: <20251216192509.C46DBC4CEF1@smtp.kernel.org>
+Subject: + bpf-explicitly-align-bpf_res_spin_lock.patch added to mm-nonmm-unstable branch
+Message-Id: <20251216194957.70DE7C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: add validate function for slot map blocks
+     Subject: bpf: explicitly align bpf_res_spin_lock
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-add-validate-function-for-slot-map-blocks.patch
+     bpf-explicitly-align-bpf_res_spin_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-add-validate-function-for-slot-map-blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-explicitly-align-bpf_res_spin_lock.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,108 +58,95 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Prithvi Tambewagh <activprithvi@gmail.com>
-Subject: ocfs2: add validate function for slot map blocks
-Date: Tue, 16 Dec 2025 00:15:57 +0530
+From: Finn Thain <fthain@linux-m68k.org>
+Subject: bpf: explicitly align bpf_res_spin_lock
+Date: Tue, 16 Dec 2025 17:31:05 +1100
 
-When the filesystem is being mounted, the kernel panics while the data
-regarding slot map allocation to the local node, is being written to the
-disk.  This occurs because the value of slot map buffer head block number,
-which should have been greater than or equal to `OCFS2_SUPER_BLOCK_BLKNO`
-(evaluating to 2) is less than it, indicative of disk metadata corruption.
-This triggers BUG_ON(bh->b_blocknr < OCFS2_SUPER_BLOCK_BLKNO) in
-ocfs2_write_block(), causing the kernel to panic.
+Patch series "Align atomic storage", v5.
 
-This is fixed by introducing function ocfs2_validate_slot_map_block() to
-validate slot map blocks.  It first checks if the buffer head passed to it
-is up to date and valid, else it panics the kernel at that point itself. 
-Further, it contains an if condition block, which checks if
-`bh->b_blocknr` is lesser than `OCFS2_SUPER_BLOCK_BLKNO`; if yes, then
-ocfs2_error is called, which prints the error log, for debugging purposes,
-and the return value of ocfs2_error() is returned.  If the if condition is
-false, value 0 is returned by ocfs2_validate_slot_map_block().
+This series adds the __aligned attribute to atomic_t and atomic64_t
+definitions in include/linux and include/asm-generic (respectively) to get
+natural alignment of both types on csky, m68k, microblaze, nios2, openrisc
+and sh.
 
-This function is used as validate function in calls to ocfs2_read_blocks()
-in ocfs2_refresh_slot_info() and ocfs2_map_slot_buffers().
+This series also adds Kconfig options to enable a new run-time warning to
+help reveal misaligned atomic accesses on platforms which don't trap that.
 
-Link: https://lkml.kernel.org/r/20251215184600.13147-1-activprithvi@gmail.com
-Signed-off-by: Prithvi Tambewagh <activprithvi@gmail.com>
-Reported-by: syzbot+c818e5c4559444f88aa0@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=c818e5c4559444f88aa0
-Tested-by: <syzbot+c818e5c4559444f88aa0@syzkaller.appspotmail.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+The performance impact is expected to vary across platforms and workloads.
+The measurements I made on m68k show that some workloads run faster and
+others slower.
+
+
+This patch (of 4):
+
+Align bpf_res_spin_lock to avoid a BUILD_BUG_ON() when the alignment
+changes, as it will do on m68k when, in a subsequent patch, the minimum
+alignment of the atomic_t member of struct rqspinlock gets increased from
+2 to 4.  Drop the BUILD_BUG_ON() as it becomes redundant.
+
+Link: https://lkml.kernel.org/r/cover.1765866665.git.fthain@linux-m68k.org
+Link: https://lkml.kernel.org/r/4ff540deaf87eb24ba11bbac95bdbea68d22a129.1765866665.git.fthain@linux-m68k.org
+Signed-off-by: Finn Thain <fthain@linux-m68k.org>
+Acked-by: Alexei Starovoitov <ast@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Daniel Borkman <daniel@iogearbox.net>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yonghong Song <yonghong.song@linux.dev>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/slot_map.c |   27 +++++++++++++++++++++++++--
- 1 file changed, 25 insertions(+), 2 deletions(-)
+ include/asm-generic/rqspinlock.h |    2 +-
+ kernel/bpf/rqspinlock.c          |    1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/ocfs2/slot_map.c~ocfs2-add-validate-function-for-slot-map-blocks
-+++ a/fs/ocfs2/slot_map.c
-@@ -44,6 +44,9 @@ struct ocfs2_slot_info {
- static int __ocfs2_node_num_to_slot(struct ocfs2_slot_info *si,
- 				    unsigned int node_num);
+--- a/include/asm-generic/rqspinlock.h~bpf-explicitly-align-bpf_res_spin_lock
++++ a/include/asm-generic/rqspinlock.h
+@@ -28,7 +28,7 @@ struct rqspinlock {
+  */
+ struct bpf_res_spin_lock {
+ 	u32 val;
+-};
++} __aligned(__alignof__(struct rqspinlock));
  
-+static int ocfs2_validate_slot_map_block(struct super_block *sb,
-+					  struct buffer_head *bh);
-+
- static void ocfs2_invalidate_slot(struct ocfs2_slot_info *si,
- 				  int slot_num)
- {
-@@ -132,7 +135,8 @@ int ocfs2_refresh_slot_info(struct ocfs2
- 	 * this is not true, the read of -1 (UINT64_MAX) will fail.
- 	 */
- 	ret = ocfs2_read_blocks(INODE_CACHE(si->si_inode), -1, si->si_blocks,
--				si->si_bh, OCFS2_BH_IGNORE_CACHE, NULL);
-+				si->si_bh, OCFS2_BH_IGNORE_CACHE,
-+				ocfs2_validate_slot_map_block);
- 	if (ret == 0) {
- 		spin_lock(&osb->osb_lock);
- 		ocfs2_update_slot_info(si);
-@@ -332,6 +336,24 @@ int ocfs2_clear_slot(struct ocfs2_super
- 	return ocfs2_update_disk_slot(osb, osb->slot_info, slot_num);
- }
+ struct qspinlock;
+ #ifdef CONFIG_QUEUED_SPINLOCKS
+--- a/kernel/bpf/rqspinlock.c~bpf-explicitly-align-bpf_res_spin_lock
++++ a/kernel/bpf/rqspinlock.c
+@@ -694,7 +694,6 @@ __bpf_kfunc int bpf_res_spin_lock(struct
+ 	int ret;
  
-+static int ocfs2_validate_slot_map_block(struct super_block *sb,
-+					  struct buffer_head *bh)
-+{
-+	int rc;
-+
-+	BUG_ON(!buffer_uptodate(bh));
-+
-+	if (bh->b_blocknr < OCFS2_SUPER_BLOCK_BLKNO) {
-+		rc = ocfs2_error(sb,
-+				 "Invalid Slot Map Buffer Head "
-+				 "Block Number : %llu, Should be >= %d",
-+				 (unsigned long long)bh->b_blocknr,
-+				 OCFS2_SUPER_BLOCK_BLKNO);
-+		return rc;
-+	}
-+	return 0;
-+}
-+
- static int ocfs2_map_slot_buffers(struct ocfs2_super *osb,
- 				  struct ocfs2_slot_info *si)
- {
-@@ -383,7 +405,8 @@ static int ocfs2_map_slot_buffers(struct
+ 	BUILD_BUG_ON(sizeof(rqspinlock_t) != sizeof(struct bpf_res_spin_lock));
+-	BUILD_BUG_ON(__alignof__(rqspinlock_t) != __alignof__(struct bpf_res_spin_lock));
  
- 		bh = NULL;  /* Acquire a fresh bh */
- 		status = ocfs2_read_blocks(INODE_CACHE(si->si_inode), blkno,
--					   1, &bh, OCFS2_BH_IGNORE_CACHE, NULL);
-+					   1, &bh, OCFS2_BH_IGNORE_CACHE,
-+					   ocfs2_validate_slot_map_block);
- 		if (status < 0) {
- 			mlog_errno(status);
- 			goto bail;
+ 	preempt_disable();
+ 	ret = res_spin_lock((rqspinlock_t *)lock);
 _
 
-Patches currently in -mm which might be from activprithvi@gmail.com are
+Patches currently in -mm which might be from fthain@linux-m68k.org are
 
-ocfs2-add-validate-function-for-slot-map-blocks.patch
+bpf-explicitly-align-bpf_res_spin_lock.patch
+atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch
+atomic-add-option-for-weaker-alignment-check.patch
 
