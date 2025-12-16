@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7424425A2A2
-	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 20:57:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A79225A2A2
+	for <mm-commits@vger.kernel.org>; Tue, 16 Dec 2025 20:57:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765918627; cv=none; b=gb+1GR52xFskuMEhBsQzIVw8EnNlq55obTAylCmqXjHeFXILfx4ayJjG8+5ZtVoU/85PYNSt0Rwo34prxIyQ/wVoNnrR0Apu1qQBmutQtAxs/JI3G2A5m25N1LJojsNzjhOGAR5DKCNwQbL32ANnENfi26qUkTrZ7EWXV4I2FLA=
+	t=1765918629; cv=none; b=lv47fj5xdB7/g9+4HQ8dsflLlxJ17qa6P/nM/EtRWpxpOkUPQwL7w9+a9ORQ/iO9inmswcBX373rsZGOrdxuIcVByQXJ/RKsJlfb88dEBpqc7GmVPpDx+z23YAMoE9XoWxYArTo7vsa9puu5qW2N5Wguzk97tP8vkwom65E6fPY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765918627; c=relaxed/simple;
-	bh=aPEa0zEktHLjFNiQxEfdKAoID9PWqR16Cm14L4LI2qE=;
-	h=Date:To:From:Subject:Message-Id; b=ZXB6OGvs3UIWxzDTZsCTPYqGAkoiQCikWWAqq2B9hXlIkRrpQyyFtzMeI47Ew9p1rTXojs133P6JD4c56Gr8+djUSYa/f5sBhs3/6R2wt2uTUwMAKZ4IZTCInjHJas+rF15ZM1Df0/AhGOr+etpdRivMl/Ot3ahNE/CyIGHFz6s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0Fhcs+Ow; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765918629; c=relaxed/simple;
+	bh=5oGityljGkBI4NSDe9oWyhkB/GQDlLQa5T5/ww+Va3Y=;
+	h=Date:To:From:Subject:Message-Id; b=TzPpBVXT2oYvOJgvf3njtavs6KsXoZq/V4C7bYf0a0BfE9mTFTeBIFfwVs/cSID+J41H5MG+VPwCgRvTg3x11mBcLtm3iLlS1XGMRiSO5E7ECOKdYhrRFE/AL9Fh3dds4RyJH30vYVzLtJ7++K8xQTC9HCenGolq5ek667G/kGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ADu3bqVl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0Fhcs+Ow"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB330C4CEFB;
-	Tue, 16 Dec 2025 20:57:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ADu3bqVl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A14CC4CEF1;
+	Tue, 16 Dec 2025 20:57:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765918626;
-	bh=aPEa0zEktHLjFNiQxEfdKAoID9PWqR16Cm14L4LI2qE=;
+	s=korg; t=1765918629;
+	bh=5oGityljGkBI4NSDe9oWyhkB/GQDlLQa5T5/ww+Va3Y=;
 	h=Date:To:From:Subject:From;
-	b=0Fhcs+Ow3Lvu9n63CuPA/xlfYC2WhcHGGB0749lqZ8uVGLdE6S63B+B+UcwdzDfKU
-	 BX4A1GDqsaQUuKMXRtXNegTX6OdNnkbQfgw9BqdDN5g897QwCWQMSMnQVd4MjiEvT4
-	 VDRYY6Sksj79uYJqxzkeyNz9IRP9OEfryrTRShf0=
-Date: Tue, 16 Dec 2025 12:57:06 -0800
+	b=ADu3bqVlYWquSGXL76FLGaTgwMHDpQOCmC5a2iU19rFb7r1UndzfebCfnXHo8CJYT
+	 mZN6+H2/PizZaZyYttafPHpSe6fREFJA+3qzvYeN9xKvggksfjW6gMmS6S4FOXic2d
+	 qLcYeUfUp252S+PRgwxpQb2gAmIpXSyyq0rgvS30=
+Date: Tue, 16 Dec 2025 12:57:08 -0800
 To: mm-commits@vger.kernel.org,tursulin@ursulin.net,rostedt@goodmis.org,rodrigo.vivi@intel.com,rdunlap@infradead.org,petr.pavlu@suse.com,mingo@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,joonas.lahtinen@linux.intel.com,jani.nikula@intel.com,gregkh@linuxfoundation.org,dakr@kernel.org,chleroy@kernel.org,atomlin@atomlin.com,andriy.shevchenko@linux.intel.com,andi.shyti@linux.intel.com,yury.norov@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + moduleparam-include-required-headers-explicitly.patch added to mm-nonmm-unstable branch
-Message-Id: <20251216205706.CB330C4CEFB@smtp.kernel.org>
+Subject: + kernelh-move-verify_octal_permissions-to-sysfsh.patch added to mm-nonmm-unstable branch
+Message-Id: <20251216205709.0A14CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: moduleparam: include required headers explicitly
+     Subject: kernel.h: move VERIFY_OCTAL_PERMISSIONS() to sysfs.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     moduleparam-include-required-headers-explicitly.patch
+     kernelh-move-verify_octal_permissions-to-sysfsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/moduleparam-include-required-headers-explicitly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernelh-move-verify_octal_permissions-to-sysfsh.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Yury Norov (NVIDIA)" <yury.norov@gmail.com>
-Subject: moduleparam: include required headers explicitly
-Date: Fri, 5 Dec 2025 12:52:33 -0500
+Subject: kernel.h: move VERIFY_OCTAL_PERMISSIONS() to sysfs.h
+Date: Fri, 5 Dec 2025 12:52:34 -0500
 
-The following patch drops moduleparam.h dependency on kernel.h.  In
-preparation to it, list all the required headers explicitly.
+The macro is related to sysfs, but is defined in kernel.h.  Move it to the
+proper header, and unload the generic kernel.h.
 
-Link: https://lkml.kernel.org/r/20251205175237.242022-3-yury.norov@gmail.com
+Now that the macro is removed from kernel.h, linux/moduleparam.h is
+decoupled, and kernel.h inclusion can be removed.
+
+Link: https://lkml.kernel.org/r/20251205175237.242022-4-yury.norov@gmail.com
 Signed-off-by: Yury Norov (NVIDIA) <yury.norov@gmail.com>
-Suggested-by: Petr Pavlu <petr.pavlu@suse.com>
-Reviewed-by: Petr Pavlu <petr.pavlu@suse.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Petr Pavlu <petr.pavlu@suse.com>
 Cc: Aaron Tomlin <atomlin@atomlin.com>
 Cc: Andi Shyti <andi.shyti@linux.intel.com>
 Cc: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
@@ -80,33 +84,79 @@ Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: Jonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Tvrtko Ursulin <tursulin@ursulin.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/moduleparam.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/filesystems/sysfs.rst |    2 +-
+ include/linux/kernel.h              |   12 ------------
+ include/linux/moduleparam.h         |    2 +-
+ include/linux/sysfs.h               |   13 +++++++++++++
+ 4 files changed, 15 insertions(+), 14 deletions(-)
 
---- a/include/linux/moduleparam.h~moduleparam-include-required-headers-explicitly
+--- a/Documentation/filesystems/sysfs.rst~kernelh-move-verify_octal_permissions-to-sysfsh
++++ a/Documentation/filesystems/sysfs.rst
+@@ -120,7 +120,7 @@ is equivalent to doing::
+ 	    .store = store_foo,
+     };
+ 
+-Note as stated in include/linux/kernel.h "OTHER_WRITABLE?  Generally
++Note as stated in include/linux/sysfs.h "OTHER_WRITABLE?  Generally
+ considered a bad idea." so trying to set a sysfs file writable for
+ everyone will fail reverting to RO mode for "Others".
+ 
+--- a/include/linux/kernel.h~kernelh-move-verify_octal_permissions-to-sysfsh
++++ a/include/linux/kernel.h
+@@ -388,16 +388,4 @@ static inline void ftrace_dump(enum ftra
+ # define REBUILD_DUE_TO_DYNAMIC_FTRACE
+ #endif
+ 
+-/* Permissions on a sysfs file: you didn't miss the 0 prefix did you? */
+-#define VERIFY_OCTAL_PERMISSIONS(perms)						\
+-	(BUILD_BUG_ON_ZERO((perms) < 0) +					\
+-	 BUILD_BUG_ON_ZERO((perms) > 0777) +					\
+-	 /* USER_READABLE >= GROUP_READABLE >= OTHER_READABLE */		\
+-	 BUILD_BUG_ON_ZERO((((perms) >> 6) & 4) < (((perms) >> 3) & 4)) +	\
+-	 BUILD_BUG_ON_ZERO((((perms) >> 3) & 4) < ((perms) & 4)) +		\
+-	 /* USER_WRITABLE >= GROUP_WRITABLE */					\
+-	 BUILD_BUG_ON_ZERO((((perms) >> 6) & 2) < (((perms) >> 3) & 2)) +	\
+-	 /* OTHER_WRITABLE?  Generally considered a bad idea. */		\
+-	 BUILD_BUG_ON_ZERO((perms) & 2) +					\
+-	 (perms))
+ #endif
+--- a/include/linux/moduleparam.h~kernelh-move-verify_octal_permissions-to-sysfsh
 +++ a/include/linux/moduleparam.h
-@@ -2,9 +2,14 @@
- #ifndef _LINUX_MODULE_PARAMS_H
- #define _LINUX_MODULE_PARAMS_H
- /* (C) Copyright 2001, 2002 Rusty Russell IBM Corporation */
-+
-+#include <linux/array_size.h>
-+#include <linux/build_bug.h>
-+#include <linux/compiler.h>
+@@ -8,7 +8,7 @@
+ #include <linux/compiler.h>
  #include <linux/init.h>
  #include <linux/stringify.h>
- #include <linux/kernel.h>
-+#include <linux/types.h>
+-#include <linux/kernel.h>
++#include <linux/sysfs.h>
+ #include <linux/types.h>
  
  /*
-  * The maximum module name length, including the NUL byte.
+--- a/include/linux/sysfs.h~kernelh-move-verify_octal_permissions-to-sysfsh
++++ a/include/linux/sysfs.h
+@@ -808,4 +808,17 @@ static inline void sysfs_put(struct kern
+ 	kernfs_put(kn);
+ }
+ 
++/* Permissions on a sysfs file: you didn't miss the 0 prefix did you? */
++#define VERIFY_OCTAL_PERMISSIONS(perms)						\
++	(BUILD_BUG_ON_ZERO((perms) < 0) +					\
++	 BUILD_BUG_ON_ZERO((perms) > 0777) +					\
++	 /* USER_READABLE >= GROUP_READABLE >= OTHER_READABLE */		\
++	 BUILD_BUG_ON_ZERO((((perms) >> 6) & 4) < (((perms) >> 3) & 4)) +	\
++	 BUILD_BUG_ON_ZERO((((perms) >> 3) & 4) < ((perms) & 4)) +		\
++	 /* USER_WRITABLE >= GROUP_WRITABLE */					\
++	 BUILD_BUG_ON_ZERO((((perms) >> 6) & 2) < (((perms) >> 3) & 2)) +	\
++	 /* OTHER_WRITABLE?  Generally considered a bad idea. */		\
++	 BUILD_BUG_ON_ZERO((perms) & 2) +					\
++	 (perms))
++
+ #endif /* _SYSFS_H_ */
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
