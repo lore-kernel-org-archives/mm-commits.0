@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE7661A76DE;
-	Wed, 17 Dec 2025 18:32:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E3D130B509
+	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 20:45:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765996365; cv=none; b=mNsbduZ8xaib70oOk7O5RR4DdEwOXgXubKTV6nVJ0g2A3JsG9Tu0aFVF4IK/EmS5CA9DSwYhnHcDR6fkveuSJ2gnHzBAyQE7Jl5gcDR2BYvutdknRskAFlS9/3oCGu4U26YEsOs6Ej/kfGPvkGemScuNJYHAyDXvbrN7W31SuYA=
+	t=1766004302; cv=none; b=opM4H75PXA5cWRDqbXACqVsS2+s/nxz/go10E1LhfUNnz1AIlGuBGPyzbIgm734XeJ/jp5Q1ROzWrBIq4ANbZElFPhocKdv391qgMtE/BnWtaXrGMbEnG2DnSNlQD9GRm5wfUX+6/ArCU5zp/rL2I02YYfu+D/n4hYkD8ElK94M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765996365; c=relaxed/simple;
-	bh=DBOCxvpRAugNtGDqaNARADpWtkkdXADRu5joS2yyOHo=;
-	h=Date:To:From:Subject:Message-Id; b=cqRAC4EkLvH/RtRzWRCWUvXgY1qqEjHksxxfvSb/meJlPvTevp8Us7P0hBIvSxPnZfZfjC+oXCaof7QmfosISBUxFUMOHD1Zu9cwlxGBc5GgOFFQ/R2H/yP+KKEq0VR0ZbeAxgcmrP/woNB+P4+5Loiq1WohS3Z53j62A3uk2VE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wjRMzpsE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766004302; c=relaxed/simple;
+	bh=FCs2EXzvT4mkcgJvJc4GSOzxWtne48pOZ7Q3qov+gi0=;
+	h=Date:To:From:Subject:Message-Id; b=uPvPJBvx3FO4qA9gCL7BKBCw2cioVsTVXQJiGNEe5T83y1/6sJvtNxu0g8eaoyh37z1buAMvaKJv3I1CYNuWsiH15DnopKuUlECr4UWUR3iLvoSJna2qAT4jRvzE9EUWecDWYpWwd960ll9T9fmq1nb/JMFqlFz3zmOvme1V9x8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K02RIYHo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wjRMzpsE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21BC8C4CEF5;
-	Wed, 17 Dec 2025 18:32:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K02RIYHo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CABE8C4CEF5;
+	Wed, 17 Dec 2025 20:45:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765996365;
-	bh=DBOCxvpRAugNtGDqaNARADpWtkkdXADRu5joS2yyOHo=;
+	s=korg; t=1766004301;
+	bh=FCs2EXzvT4mkcgJvJc4GSOzxWtne48pOZ7Q3qov+gi0=;
 	h=Date:To:From:Subject:From;
-	b=wjRMzpsEZtqkcHHjtjF2oucJ4gXNYbLWF7L6qmiXgM1pn+QsnzRONQLXyrb260ADF
-	 NYlpcsJM6SfgV9d+FKqikPbLmiBNAPoLu3DKVaGiAK0xrQuT4XlfLiVh6TNdC0VCb9
-	 CspE6o2yYCn1pwCjsBrmszT30qHwucSRnM13+2Iw=
-Date: Wed, 17 Dec 2025 10:32:44 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mporter@kernel.crashing.org,alex.bou9@gmail.com,lihaoxiang@isrc.iscas.ac.cn,akpm@linux-foundation.org
+	b=K02RIYHowkqIx6/HasDIrnIz52ysFnMHmdW1tsa0J0VGQzNaQnKaR2MeY6ydYohv9
+	 VcN0DHfkjmX9xpc/XpGiW/+QDNvmYyT0pWxvEU+EKD1f2p4/u1x5qtKDarnvNYbbvA
+	 thxgR7GkpikXVhTHYZ0WoPK3zXjuOCSEZwpIJ2L0=
+Date: Wed, 17 Dec 2025 12:45:01 -0800
+To: mm-commits@vger.kernel.org,sakamo.ryota@gmail.com,geert@linux-m68k.org,davidgow@google.com,brendan.higgins@linux.dev,andriy.shevchenko@linux.intel.com,lukas.bulwahn@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rapidio-replace-rio_free_net-with-kfree-in-rio_scan_alloc_net.patch added to mm-nonmm-unstable branch
-Message-Id: <20251217183245.21BC8C4CEF5@smtp.kernel.org>
+Subject: + lib-tests-convert-test_uuid-module-to-kunit-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251217204501.CABE8C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rapidio: replace rio_free_net() with kfree() in rio_scan_alloc_net()
+     Subject: MAINTAINERS: adjust file entry in UUID HELPERS
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rapidio-replace-rio_free_net-with-kfree-in-rio_scan_alloc_net.patch
+     lib-tests-convert-test_uuid-module-to-kunit-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-replace-rio_free_net-with-kfree-in-rio_scan_alloc_net.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-convert-test_uuid-module-to-kunit-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,39 +58,43 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Haoxiang Li <lihaoxiang@isrc.iscas.ac.cn>
-Subject: rapidio: replace rio_free_net() with kfree() in rio_scan_alloc_net()
-Date: Wed, 17 Dec 2025 17:15:48 +0800
+From: Lukas Bulwahn <lukas.bulwahn@redhat.com>
+Subject: MAINTAINERS: adjust file entry in UUID HELPERS
+Date: Wed, 17 Dec 2025 06:39:07 +0100
 
-When idtab allocation fails, net is not registered with rio_add_net() yet,
-so kfree(net) is sufficient to release the memory.
+Commit e61d3add3e7f ("lib/tests: convert test_uuid module to KUnit") moves
+lib/test_uuid.c to lib/tests/uuid_kunit.c, but misses to adjust the file
+entry in the MAINTAINERS section UUID HELPERS.
 
-Link: https://lkml.kernel.org/r/20251217091548.482358-1-lihaoxiang@isrc.iscas.ac.cn
-Fixes: e6b585ca6e81 ("rapidio: move net allocation into core code")
-Signed-off-by: Haoxiang Li <lihaoxiang@isrc.iscas.ac.cn>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: <stable@vger.kernel.org>
+Adjust the file entry in that section after this file movement.
+
+Link: https://lkml.kernel.org/r/20251217053907.2778515-1-lukas.bulwahn@redhat.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
+Acked-by: David Gow <davidgow@google.com>
+Acked-by: Ryota Sakamoto <sakamo.ryota@gmail.com>
+Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |    2 +-
+ MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/rapidio/rio-scan.c~rapidio-replace-rio_free_net-with-kfree-in-rio_scan_alloc_net
-+++ a/drivers/rapidio/rio-scan.c
-@@ -854,7 +854,7 @@ static struct rio_net *rio_scan_alloc_ne
+--- a/MAINTAINERS~lib-tests-convert-test_uuid-module-to-kunit-fix
++++ a/MAINTAINERS
+@@ -27245,7 +27245,7 @@ R:	Andy Shevchenko <andriy.shevchenko@li
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	include/linux/uuid.h
+-F:	lib/test_uuid.c
++F:	lib/tests/uuid_kunit.c
+ F:	lib/uuid.c
  
- 		if (idtab == NULL) {
- 			pr_err("RIO: failed to allocate destID table\n");
--			rio_free_net(net);
-+			kfree(net);
- 			net = NULL;
- 		} else {
- 			net->enum_data = idtab;
+ UV SYSFS DRIVER
 _
 
-Patches currently in -mm which might be from lihaoxiang@isrc.iscas.ac.cn are
+Patches currently in -mm which might be from lukas.bulwahn@redhat.com are
 
-rapidio-replace-rio_free_net-with-kfree-in-rio_scan_alloc_net.patch
+lib-tests-convert-test_uuid-module-to-kunit-fix.patch
 
