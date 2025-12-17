@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0941652F88
-	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 21:17:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41D5752F88
+	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 21:17:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766006270; cv=none; b=RQtiaGysQexy5zZUOCMdftL1j2wR49WMd8PBiJzG88LdaOP9lX2L2xoXurhs06FAjNV0E6MtfTZQ1UbU2F8p6sjvfySQxTLuwKlUhq+mAElNQaGMZtuuuEt6+gffm40yc65yShgVdnnaAC3BY/aSJbE2Kv+L6CUyGw2rUhpn4SY=
+	t=1766006271; cv=none; b=nzNKsNbOJT7aLZ/Y3iQNl93ANuAN4rRAInfszIn4PattCiYbDVTLO47/Gxl8nXS9r3vRQ93/EHF4ZHmco8T2AGlR3kMLVcdNAjLsKxStezWLZUARzPYFWBlJRnx/JouqtX6UEDyEgusoqiuxWVA4mc3QKO/QdpZfv3ub0L/Hrnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766006270; c=relaxed/simple;
-	bh=mqnKT1bJJ+MXmWxMnkafIuaPDKd+Te8d5bdojvX+AUw=;
-	h=Date:To:From:Subject:Message-Id; b=TZXiAEJe9jWCaaR7gxDo16BEGq00DIYa4ari3ME22FLpI4x3cUIcWMyECRCq6R62mMXcMf+/1VA6Zk4k1Ghv30VErpoJoaeUUvPXXSJnhGVWPBAwJPC8qthAChIsTJUXlNM5zj9iSgfslfd66gWpfeYKHd/0SxkbaczAbRaW71o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oCNIYmB9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766006271; c=relaxed/simple;
+	bh=cPB+sT7MDyeprG4NSAhf7SzpWBfIDWRI4s3J3TTbsPs=;
+	h=Date:To:From:Subject:Message-Id; b=hVh1EaC8N3G3D+NNRAwnqpS0eSY1EdBPO52oLMSk2fu4ZbDtAxn2gEGlkYb4Ztci6VUHKrW0RGDkeB6oFUPW53P+q1b4Q6U5exSP4pV1ki/9K/6b+lLT19BdyldEBUEMPO9Kk2FOzaN1LBST1OmyDrMyR7vgTj5gHBuJzZ3USVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L7L7siGQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oCNIYmB9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA14EC4CEF5;
-	Wed, 17 Dec 2025 21:17:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L7L7siGQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C370C4CEF5;
+	Wed, 17 Dec 2025 21:17:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766006269;
-	bh=mqnKT1bJJ+MXmWxMnkafIuaPDKd+Te8d5bdojvX+AUw=;
+	s=korg; t=1766006271;
+	bh=cPB+sT7MDyeprG4NSAhf7SzpWBfIDWRI4s3J3TTbsPs=;
 	h=Date:To:From:Subject:From;
-	b=oCNIYmB9HI94iNN7BXkGKsej1If3VwXaC3Czta7mXKh7W3jhxzgHqCUSJ3CTjSnzO
-	 r5BSnalBTeDBMT83YiZ1jgQXExUKE4Buy7x3uWsfOdaPtR+Q8dS+lrsflA27UqcGIa
-	 Du8rcGadH2TUAwyRYdW+tI5y1AfvSbwNUujMGbhc=
-Date: Wed, 17 Dec 2025 13:17:49 -0800
+	b=L7L7siGQf8gTs0RzxMYSR6XIvwwlf4PhpNjjy+TNSlul8gkqeUaVYHwrD9mcTmyvP
+	 p9Yp+MW/9Lk9eh6lYw3Hf5RhppqVxs7Jld3ZZ9aD6aawsWJE0KZMVf6JoePDROEB7j
+	 4VlaUq6g+08eibQ2/zaSTyO+v9NZLMenx5yPFAiA=
+Date: Wed, 17 Dec 2025 13:17:50 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,yosry.ahmed@linux.dev,willy@infradead.org,weixugc@google.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david.laight.linux@gmail.com,david@kernel.org,chengming.zhou@linux.dev,axelrasmussen@google.com,chandna.sahil@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-simplify-hugepage-boundary-calculation.patch added to mm-new branch
-Message-Id: <20251217211749.BA14EC4CEF5@smtp.kernel.org>
+Subject: + mm-vmscan-use-%pe-to-print-error-pointers.patch added to mm-new branch
+Message-Id: <20251217211751.0C370C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: pagewalk: simplify hugepage boundary calculation
+     Subject: mm/vmscan: use %pe to print error pointers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-pagewalk-simplify-hugepage-boundary-calculation.patch
+     mm-vmscan-use-%pe-to-print-error-pointers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-simplify-hugepage-boundary-calculation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-use-%pe-to-print-error-pointers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,52 +67,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sahil Chandna <chandna.sahil@gmail.com>
-Subject: mm: pagewalk: simplify hugepage boundary calculation
-Date: Fri, 28 Nov 2025 12:31:42 +0530
+Subject: mm/vmscan: use %pe to print error pointers
+Date: Fri, 28 Nov 2025 12:31:43 +0530
 
-Patch series "mm: Coccinelle-driven cleanups across memory management
-code", v4.
+Use the %pe printk format specifier to report error pointers directly
+instead of printing PTR_ERR() as a long value.  This improves clarity,
+produces more readable error messages.
 
-This patch series contains three minor cleanups identified by Coccinelle
-scripts under scripts/coccinelle/misc/:
-
-  * Use ALIGN() to compute the next hugepage boundary instead of the
-    open-coded expression and use min() macro to improve readability.
-  * Use the %pe printk format specifier for PTR_ERR() reporting
-    in vmscan.c and zswap.c
-Found using:
-  make coccicheck MODE=report M=mm/
-
-
-This patch (of 3):
-
-Replace hugepage boundary computation with ALIGN() helper instead of an
-open coded expression.  This helps to improves code readability.
-
-This was flagged by Coccinelle (misc/minmax.cocci) as an opportunity to
-use min(), after which the boundary computation was updated following
-review suggestions.
+This instance was flagged by the Coccinelle script
+(misc/ptr_err_to_pe.cocci) as an opportunity to adopt %pe.
 
 Found by: make coccicheck MODE=report M=mm/
-No functional change intended.
+No functional change intended
 
-Link: https://lkml.kernel.org/r/cover.1764312627.git.chandna.sahil@gmail.com
-Link: https://lkml.kernel.org/r/35ab82f052d248c0047c10bf01853e37e4f9b4e4.1764312627.git.chandna.sahil@gmail.com
+Link: https://lkml.kernel.org/r/2c842a64fddeb0fe0cac087783aaedd97edc3191.1764312627.git.chandna.sahil@gmail.com
 Signed-off-by: Sahil Chandna <chandna.sahil@gmail.com>
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Suggested-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Suggested-by: David Laight <david.laight.linux@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: David Laight <david.laight.linux@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: SeongJae Park <sj@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -122,21 +104,16 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/pagewalk.c~mm-pagewalk-simplify-hugepage-boundary-calculation
-+++ a/mm/pagewalk.c
-@@ -312,8 +312,7 @@ static int walk_pgd_range(unsigned long
- static unsigned long hugetlb_entry_end(struct hstate *h, unsigned long addr,
- 				       unsigned long end)
- {
--	unsigned long boundary = (addr & huge_page_mask(h)) + huge_page_size(h);
--	return boundary < end ? boundary : end;
-+	return min(ALIGN(addr, huge_page_size(h)), end);
+--- a/mm/vmscan.c~mm-vmscan-use-%pe-to-print-error-pointers
++++ a/mm/vmscan.c
+@@ -7869,3 +7869,4 @@ void reclaim_unregister_node(struct node
+ 	return device_remove_file(&node->dev, &dev_attr_reclaim);
  }
- 
- static int walk_hugetlb_range(unsigned long addr, unsigned long end,
+ #endif
++Wed Dec 17 01:15:15 PM PST 2025
 _
 
 Patches currently in -mm which might be from chandna.sahil@gmail.com are
