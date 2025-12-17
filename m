@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E239C296BBF
-	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 21:17:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA0B52494FE
+	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 21:23:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766006273; cv=none; b=Ug+iCE1eATGrgaEBAvuEPBHM1vSeqTfxuNiQabI/12gECv8KtGyhKGn16Y9q3My+bsF+2vhngTVZ2jMbSiCHQc4Ivde1NKAdYp/3I6zW/URxePlz/DMgKkl/hdAxiDKWvmLfOzaqQuHzRLRxxOhbospUEY6uIoQVnnXQV/8Luf4=
+	t=1766006591; cv=none; b=qWCDBr56FcWAq+sbTsG9VrljCs9raFR3dSz5seUre8IlF/BAYvIVpO0gq6ERrT3y4Ws0v+QQShJYHYNJARdD64JOFxzVFfTP3mihRrc3tgv8Ql9/puHtK4PAjNqeneKWtRe/OXYtHf/DrTKLXsFMr2w3IzqAXv7fAHBkq2T1kBY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766006273; c=relaxed/simple;
-	bh=1p2oIlmCJsmoedTyiXVOgO6pMWLQfkIo0XpEbN0gr+E=;
-	h=Date:To:From:Subject:Message-Id; b=PvApUl3fjA6BAPIlLfGhKETfl+fv26x/dtFYWmSX/8iCJV4tOdPkblJcoCFtJ8+B6e1etDgvOmw7tFg7H8yPZZDtZrsw1rk84SCkvLaGCCkokhs0WFc3W1TTC1osJASAP45knbM8RRzceqaAYQ+UvMpFDuYu6i8naB6M6R7diRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2fFlrYI1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766006591; c=relaxed/simple;
+	bh=BigMcTVqoeTc5UP6y5/DycosaRzhVEM6+OXgwhnrvdI=;
+	h=Date:To:From:Subject:Message-Id; b=Xvnu+sOKPznXNJgcQeDL5PQj9bhLPoAgfDQQeH+V0tKSvzIW5nwLHnj4T/TM0Hc4j44XvV2tHqytnk5x7u/bND42Ekf8rMKRezXqmmDg5hdDeDLXoLuZKTGyf2R/ZCV6qnziJIp4ckDJJzaH8hsaBppMbgGmzIA+rgdEDmVJGTA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2i5x+mE7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2fFlrYI1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 581EEC4CEF5;
-	Wed, 17 Dec 2025 21:17:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2i5x+mE7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44966C4CEF5;
+	Wed, 17 Dec 2025 21:23:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766006272;
-	bh=1p2oIlmCJsmoedTyiXVOgO6pMWLQfkIo0XpEbN0gr+E=;
+	s=korg; t=1766006590;
+	bh=BigMcTVqoeTc5UP6y5/DycosaRzhVEM6+OXgwhnrvdI=;
 	h=Date:To:From:Subject:From;
-	b=2fFlrYI1+RCY1qxSnMHwzv0XEDpihXG6AjC4A1VF4rrMNfPKe6IyDdCQxC2B5feaR
-	 +0PafsbwBaeFCJPXJ0RwCY9biQ1RylC1+tezpi1HuJfvBTwQg05C63azz5ie/eyaxa
-	 LSv17JCtZpGhehuQU373QzBDtAzR6rwZzQJHpJbE=
-Date: Wed, 17 Dec 2025 13:17:51 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,yosry.ahmed@linux.dev,willy@infradead.org,weixugc@google.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david.laight.linux@gmail.com,david@kernel.org,chengming.zhou@linux.dev,axelrasmussen@google.com,chandna.sahil@gmail.com,akpm@linux-foundation.org
+	b=2i5x+mE7nqsFHfXBdQKh02qn6nW5a3O79xrRUcYJMmK3dSUKfYvtQTlWGU/+bfiRJ
+	 crQha276UljizM1GuppeLCU13TsBWj4E/b5YRUtHrMvH7Eh8/C9Pgegkjawmbz2I1g
+	 DdEoeIuA36RD88I4sqa+jSjqZc41YTl5/D7OXKz0=
+Date: Wed, 17 Dec 2025 13:23:09 -0800
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,hca@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-use-%pe-to-print-error-pointers.patch added to mm-new branch
-Message-Id: <20251217211752.581EEC4CEF5@smtp.kernel.org>
+Subject: + zram-remove-kmsg_component-macro.patch added to mm-new branch
+Message-Id: <20251217212310.44966C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: use %pe to print error pointers
+     Subject: zram: remove KMSG_COMPONENT macro
 has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-use-%pe-to-print-error-pointers.patch
+     zram-remove-kmsg_component-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-%pe-to-print-error-pointers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-kmsg_component-macro.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,64 +66,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sahil Chandna <chandna.sahil@gmail.com>
-Subject: mm/zswap: use %pe to print error pointers
-Date: Fri, 28 Nov 2025 12:31:44 +0530
+From: Heiko Carstens <hca@linux.ibm.com>
+Subject: zram: remove KMSG_COMPONENT macro
+Date: Wed, 26 Nov 2025 15:36:02 +0100
 
-Use the %pe printk format specifier to report error pointers directly
-instead of printing PTR_ERR() as a long value.  This improves clarity,
-produces more readable error messages.
+The KMSG_COMPONENT macro is a leftover of the s390 specific "kernel
+message catalog" from 2008 [1] which never made it upstream.
 
-This instance was flagged by the Coccinelle script
-(misc/ptr_err_to_pe.cocci) as an opportunity to adopt %pe.
+The macro was added to s390 code to allow for an out-of-tree patch which
+used this to generate unique message ids.  Also this out-of-tree doesn't
+exist anymore.
 
-Found by: make coccicheck MODE=report M=mm/ No functional change intended.
+The pattern of how the KMSG_COMPONENT is used was partially also used for
+non s390 specific code, for whatever reasons.
 
-Link: https://lkml.kernel.org/r/6d729a60eb71baade3670e5bb609a068683af3eb.1764312627.git.chandna.sahil@gmail.com
-Signed-off-by: Sahil Chandna <chandna.sahil@gmail.com>
-Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Remove the macro in order to get rid of a pointless indirection.
+
+Link: https://lkml.kernel.org/r/20251126143602.2207435-1-hca@linux.ibm.com
+Link: https://lwn.net/Articles/292650/ [1]
+Signed-off-by: Heiko Carstens <hca@linux.ibm.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-use-%pe-to-print-error-pointers
-+++ a/mm/zswap.c
-@@ -748,8 +748,8 @@ static int zswap_cpu_comp_prepare(unsign
+--- a/drivers/block/zram/zram_drv.c~zram-remove-kmsg_component-macro
++++ a/drivers/block/zram/zram_drv.c
+@@ -12,8 +12,7 @@
+  *
+  */
  
- 	acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
- 	if (IS_ERR(acomp)) {
--		pr_err("could not alloc crypto acomp %s : %ld\n",
--				pool->tfm_name, PTR_ERR(acomp));
-+		pr_err("could not alloc crypto acomp %s : %pe\n",
-+				pool->tfm_name, acomp);
- 		ret = PTR_ERR(acomp);
- 		goto fail;
- 	}
+-#define KMSG_COMPONENT "zram"
+-#define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
++#define pr_fmt(fmt) "zram: " fmt
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
 _
 
-Patches currently in -mm which might be from chandna.sahil@gmail.com are
+Patches currently in -mm which might be from hca@linux.ibm.com are
 
-mm-pagewalk-simplify-hugepage-boundary-calculation.patch
-mm-vmscan-use-%pe-to-print-error-pointers.patch
-mm-zswap-use-%pe-to-print-error-pointers.patch
+zram-remove-kmsg_component-macro.patch
 
