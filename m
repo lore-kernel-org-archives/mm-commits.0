@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3D3D30F529
-	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 21:10:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 241282EF652
+	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 21:11:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766005858; cv=none; b=NvDuaRGzGZsMitjD62AnI4820dZIK6YhNzFPkYs0BsXN2q4aNV12gY7uugUcQUXx8I6FiwOhUJ2a0G+HyuFKcUUYjJqFT8mTQBphf1kyVmtWSMuqfW/zuv29qI+JogmuFHbK/6rQHMqrUDXDMZ1OzSzSGky2Px/Y4DIfWd08RHQ=
+	t=1766005861; cv=none; b=YDVX/RrjazS+JZqR1tLS3Wq7K49LdRrD9Vbr3SGAFkuvOdtNAZrsM5KdIulKNLeUEPji8Xo1IeKaX0rat7NCjI3sWO3bNyLFYfLls259IBOLIZh3TRK1MQR3a31pCl7SJ1vZxo0V7W2mkzzamcpCfeSIX++4t+afOYaUbA5nL4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766005858; c=relaxed/simple;
-	bh=Cb58HAe52InIC4KiR2P+i1UVha/D3baFhfn/Ne6xZtI=;
-	h=Date:To:From:Subject:Message-Id; b=U4SH1I8y2nIX8ll/npGgpzlM5W5pqT19H6EmrpNxpp1eN0hfSxSw3a+mzlw+qVg9/H0Hgvt2mSgqA3bPb6Cprjysrlt6j139WQaL6oKSoGXSaKh3EkoOHOEbnoFO8OyFZKGTi++GcjeJiCQBrP/q8RjTRbo0MiqWsjoMS+ezH/4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qowvnBbC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766005861; c=relaxed/simple;
+	bh=E99+zwn0yyxqlZnj/nPeVlzL5VXJh88JFFEl3Jf4W68=;
+	h=Date:To:From:Subject:Message-Id; b=fpdQSSrDFu7WBoCzwW4ZXBB4J5fUz8pJ33QK3Dd5Ri0LifyywYfWTUlDUrZYqkNXctYnyJS034ortYIede9UJokhn6mW5WDkF8ckiVcDmyAWB591IPLVTEEIl4b8d0cjIp2GBuclwtReLjBy3mVKZTxxnvHqHp4MQey078bVXYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RhzxFfHy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qowvnBbC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB9D4C4CEF5;
-	Wed, 17 Dec 2025 21:10:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RhzxFfHy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51A37C4CEF5;
+	Wed, 17 Dec 2025 21:11:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766005857;
-	bh=Cb58HAe52InIC4KiR2P+i1UVha/D3baFhfn/Ne6xZtI=;
+	s=korg; t=1766005860;
+	bh=E99+zwn0yyxqlZnj/nPeVlzL5VXJh88JFFEl3Jf4W68=;
 	h=Date:To:From:Subject:From;
-	b=qowvnBbCz3qYRKqvXUsigl0J4SYug1W0wS8M4/KRax59pEjet9VomeqKz5QdFvBCa
-	 jHCZLnSkBbB+wLHOhjD1FGsQQQeAGEEB9sj0XKbZg0zG0WBU3hm2FnmGmMrFwGPp3N
-	 BSsSNdbBHYk/rtx93mYz7x2tTMz3qXR9zpXeFTBA=
-Date: Wed, 17 Dec 2025 13:10:57 -0800
+	b=RhzxFfHyGGoMYzq0pETjAB9IMNNWM9l6So6uoxjMdJsH3Z7xBqJ2EWtaENTbWuws8
+	 HVb4TITJy26ghriway3qkhDR5S+d1QEm1+3UVAHPDRSzP6FuSdFaVpnw30iW373HMa
+	 /ozs8y8jJTOy+LbLRuB2WUUOquFMSbWkqYlBUYAI=
+Date: Wed, 17 Dec 2025 13:10:59 -0800
 To: mm-commits@vger.kernel.org,samitolvanen@google.com,rostedt@goodmis.org,petr.pavlu@suse.com,mhiramat@kernel.org,mcgrof@kernel.org,mark.rutland@arm.com,kees@kernel.org,john.fastabend@gmail.com,daniel@iogearbox.net,da.gomez@samsung.com,atomlin@atomlin.com,ast@kernel.org,pmladek@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid.patch added to mm-nonmm-unstable branch
-Message-Id: <20251217211057.BB9D4C4CEF5@smtp.kernel.org>
+Subject: + kallsyms-clean-up-modname-and-modbuildid-initialization-in-kallsyms_lookup_buildid.patch added to mm-nonmm-unstable branch
+Message-Id: <20251217211100.51A37C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kallsyms: clean up @namebuf initialization in kallsyms_lookup_buildid()
+     Subject: kallsyms: clean up modname and modbuildid initialization in kallsyms_lookup_buildid()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid.patch
+     kallsyms-clean-up-modname-and-modbuildid-initialization-in-kallsyms_lookup_buildid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kallsyms-clean-up-modname-and-modbuildid-initialization-in-kallsyms_lookup_buildid.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,81 +59,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
-Subject: kallsyms: clean up @namebuf initialization in kallsyms_lookup_buildid()
-Date: Fri, 28 Nov 2025 14:59:14 +0100
+Subject: kallsyms: clean up modname and modbuildid initialization in kallsyms_lookup_buildid()
+Date: Fri, 28 Nov 2025 14:59:15 +0100
 
-Patch series "kallsyms: Prevent invalid access when showing module
-buildid", v3.
+The @modname and @modbuildid optional return parameters are set only when
+the symbol is in a module.
 
-We have seen nested crashes in __sprint_symbol(), see below.  They seem to
-be caused by an invalid pointer to "buildid".  This patchset cleans up
-kallsyms code related to module buildid and fixes this invalid access when
-printing backtraces.
+Always initialize them so that they do not need to be cleared when the
+module is not in a module.  It simplifies the logic and makes the code
+even slightly more safe.
 
-I made an audit of __sprint_symbol() and found several situations
-when the buildid might be wrong:
+Note that bpf_address_lookup() function will get updated in a separate
+patch.
 
-  + bpf_address_lookup() does not set @modbuildid
-
-  + ftrace_mod_address_lookup() does not set @modbuildid
-
-  + __sprint_symbol() does not take rcu_read_lock and
-    the related struct module might get removed before
-    mod->build_id is printed.
-
-This patchset solves these problems:
-
-  + 1st, 2nd patches are preparatory
-  + 3rd, 4th, 6th patches fix the above problems
-  + 5th patch cleans up a suspicious initialization code.
-
-This is the backtrace, we have seen. But it is not really important.
-The problems fixed by the patchset are obvious:
-
-  crash64> bt [62/2029]
-  PID: 136151 TASK: ffff9f6c981d4000 CPU: 367 COMMAND: "btrfs"
-  #0 [ffffbdb687635c28] machine_kexec at ffffffffb4c845b3
-  #1 [ffffbdb687635c80] __crash_kexec at ffffffffb4d86a6a
-  #2 [ffffbdb687635d08] hex_string at ffffffffb51b3b61
-  #3 [ffffbdb687635d40] crash_kexec at ffffffffb4d87964
-  #4 [ffffbdb687635d50] oops_end at ffffffffb4c41fc8
-  #5 [ffffbdb687635d70] do_trap at ffffffffb4c3e49a
-  #6 [ffffbdb687635db8] do_error_trap at ffffffffb4c3e6a4
-  #7 [ffffbdb687635df8] exc_stack_segment at ffffffffb5666b33
-  #8 [ffffbdb687635e20] asm_exc_stack_segment at ffffffffb5800cf9
-  ...
-
-
-This patch (of 7)
-
-The function kallsyms_lookup_buildid() initializes the given @namebuf by
-clearing the first and the last byte.  It is not clear why.
-
-The 1st byte makes sense because some callers ignore the return code and
-expect that the buffer contains a valid string, for example:
-
-  - function_stat_show()
-    - kallsyms_lookup()
-      - kallsyms_lookup_buildid()
-
-The initialization of the last byte does not make much sense because it
-can later be overwritten.  Fortunately, it seems that all called functions
-behave correctly:
-
-  -  kallsyms_expand_symbol() explicitly adds the trailing '\0'
-     at the end of the function.
-
-  - All *__address_lookup() functions either use the safe strscpy()
-    or they do not touch the buffer at all.
-
-Document the reason for clearing the first byte.  And remove the useless
-initialization of the last byte.
-
-Link: https://lkml.kernel.org/r/20251128135920.217303-2-pmladek@suse.com
+Link: https://lkml.kernel.org/r/20251128135920.217303-3-pmladek@suse.com
 Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Aaron Tomlin <atomlin@atomlin.com>
+Cc: Aaron Tomlin <atomlin@atomlin.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkman <daniel@iogearbox.net>
+Cc: Daniel Gomez <da.gomez@samsung.com>
 Cc: John Fastabend <john.fastabend@gmail.com>
 Cc: Kees Cook <kees@kernel.org>
 Cc: Luis Chamberalin <mcgrof@kernel.org>
@@ -141,30 +85,41 @@ Cc: Marc Rutland <mark.rutland@arm.com>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Petr Pavlu <petr.pavlu@suse.com>
 Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/kallsyms.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/kernel/kallsyms.c~kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid
+--- a/kernel/kallsyms.c~kallsyms-clean-up-modname-and-modbuildid-initialization-in-kallsyms_lookup_buildid
 +++ a/kernel/kallsyms.c
-@@ -355,7 +355,12 @@ static int kallsyms_lookup_buildid(unsig
- {
- 	int ret;
- 
--	namebuf[KSYM_NAME_LEN - 1] = 0;
-+	/*
-+	 * kallsyms_lookus() returns pointer to namebuf on success and
-+	 * NULL on error. But some callers ignore the return value.
-+	 * Instead they expect @namebuf filled either with valid
-+	 * or empty string.
-+	 */
+@@ -362,6 +362,14 @@ static int kallsyms_lookup_buildid(unsig
+ 	 * or empty string.
+ 	 */
  	namebuf[0] = 0;
++	/*
++	 * Initialize the module-related return values. They are not set
++	 * when the symbol is in vmlinux or it is a bpf address.
++	 */
++	if (modname)
++		*modname = NULL;
++	if (modbuildid)
++		*modbuildid = NULL;
  
  	if (is_ksym_addr(addr)) {
+ 		unsigned long pos;
+@@ -370,10 +378,6 @@ static int kallsyms_lookup_buildid(unsig
+ 		/* Grab name */
+ 		kallsyms_expand_symbol(get_symbol_offset(pos),
+ 				       namebuf, KSYM_NAME_LEN);
+-		if (modname)
+-			*modname = NULL;
+-		if (modbuildid)
+-			*modbuildid = NULL;
+ 
+ 		return strlen(namebuf);
+ 	}
 _
 
 Patches currently in -mm which might be from pmladek@suse.com are
