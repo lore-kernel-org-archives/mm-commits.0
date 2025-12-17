@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56A68243387
-	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 18:24:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1D1D288C96
+	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 18:24:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765995892; cv=none; b=scgrV8UaLJmq+HsuGHdzDoRnxq/K7sAAo2VdnPcKu6V4nK2aetNim0tCaWOLU8n1kBTFYLRMXqNzHV3nbWy9pcyvIV+FbF7mQNGtxuXrm26BLTy9SHamPhkPEEHZJt2f8CWyGDpYphqrMAnsULSkKKG3Mq4d5dlc+wUmr9Mx8zs=
+	t=1765995895; cv=none; b=dTQqY94h2K7gTUAwocsJywoDML0LgNjdbQ8pRmoR8RlDDqc16n5XDms5yagkH2dP/bLHVCYjDDr9iir9cnChFwD4QwHz1c42cj2Zln84RFrQIYtBsLXzVhJZtwz9r0iJVe4hflglV5qFkdfqt++jBvGFlkV/sJZY73i8dJZXS7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765995892; c=relaxed/simple;
-	bh=69d/CV9J6acM4WDE5vvfJVa2TDiXX7UnXF91Ida33fQ=;
-	h=Date:To:From:Subject:Message-Id; b=gdFn0XuZ4Wr6gAO6U9eDo/I0lHjNlQbW3CITlDo2wbmVbjGIpmKRpPedU3/V+jU4MKriA1bucfIPxGQzWilFxI9z7N25CLUTK7qToDlOZI9dsOn7D8uSu5VBDfHz6GxdG+3fd0hD/RM0WAipha/+GKBX/M9+MRuNWVsi7MKnBys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IwpgDhU0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765995895; c=relaxed/simple;
+	bh=emb3GhriXVkrK83bac1GRF6ajdhZg5E+WTod1CuB8As=;
+	h=Date:To:From:Subject:Message-Id; b=rDwYdPqCjpEol++lq66UiktDTOF4MpnoFtd/1wdiwgCOLDhqkI5r8wGPjOeojhEzGN/dC/OQ52bBQtz/kOyT7XVMuuz9UHvP9d8tBckWxV9OTQJ9Dh2XtsIGJnmEXmDDKLScSADHWMIWusdizNyZGfc5oXMwN4l0GSPsWbbqzQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o4fB+8fu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IwpgDhU0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA1E7C4CEF5;
-	Wed, 17 Dec 2025 18:24:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o4fB+8fu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7851FC4CEF5;
+	Wed, 17 Dec 2025 18:24:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765995891;
-	bh=69d/CV9J6acM4WDE5vvfJVa2TDiXX7UnXF91Ida33fQ=;
+	s=korg; t=1765995894;
+	bh=emb3GhriXVkrK83bac1GRF6ajdhZg5E+WTod1CuB8As=;
 	h=Date:To:From:Subject:From;
-	b=IwpgDhU0VuZJxu2tWCkJgKnSTqC8qGcAW1Ne65MLOibM9EIlU2tob9wmNySLpEexM
-	 UsOm2VQWhJkABT5MT8gkhV0Ktr7EoKPGR4ogg0z79uBAelW3rLr6mHWSIqwlZIFd4d
-	 kCkvoGeyOYJJI6GDMTYWvCbxB6nLxspth1ch94s8=
-Date: Wed, 17 Dec 2025 10:24:51 -0800
+	b=o4fB+8fuoaDnK32c6cizYk7L82olTLAo0HGMu0QinjNIXfgwAM/y49KerG9x0Mttv
+	 ReukUwNaOs3bKeTty0lijHpiirFjK+6oEe8A+5XEBq/K5XVB5Xiac81Nb6Qr2vRiJH
+	 dJHYmLEds1qHyhYRES0eU/YTkiIeJFmKi0FpagTU=
+Date: Wed, 17 Dec 2025 10:24:53 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tsbogend@alpha.franken.de,richard@nod.at,richard.henderson@linaro.org,peterz@infradead.org,npiggin@gmail.com,mattst88@gmail.com,linmag7@gmail.com,kernel@xen0n.name,johannes@sipsolutions.net,James.Bottomley@HansenPartnership.com,ioworker0@gmail.com,dev.jain@arm.com,deller@gmx.de,david@kernel.org,chenhuacai@kernel.org,anton.ivanov@cambridgegreys.com,aneesh.kumar@kernel.org,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-mm-enable-mmu_gather_rcu_table_free.patch added to mm-new branch
-Message-Id: <20251217182451.CA1E7C4CEF5@smtp.kernel.org>
+Subject: + parisc-mm-enable-mmu_gather_rcu_table_free.patch added to mm-new branch
+Message-Id: <20251217182454.7851FC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mips: mm: enable MMU_GATHER_RCU_TABLE_FREE
+     Subject: parisc: mm: enable MMU_GATHER_RCU_TABLE_FREE
 has been added to the -mm mm-new branch.  Its filename is
-     mips-mm-enable-mmu_gather_rcu_table_free.patch
+     parisc-mm-enable-mmu_gather_rcu_table_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-mm-enable-mmu_gather_rcu_table_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-mm-enable-mmu_gather_rcu_table_free.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,24 +67,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mips: mm: enable MMU_GATHER_RCU_TABLE_FREE
-Date: Wed, 17 Dec 2025 17:45:45 +0800
+Subject: parisc: mm: enable MMU_GATHER_RCU_TABLE_FREE
+Date: Wed, 17 Dec 2025 17:45:46 +0800
 
 On a 64-bit system, madvise(MADV_DONTNEED) may cause a large number of
 empty PTE page table pages (such as 100GB+).  To resolve this problem,
 first enable MMU_GATHER_RCU_TABLE_FREE to prepare for enabling the
 PT_RECLAIM feature, which resolves this problem.
 
-Link: https://lkml.kernel.org/r/1c14fe4de18e7bc71b98eb58dbd4edb13d3391cd.1765963770.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/e0445acf2c267f060e888a090cdd94cbf7f52dd3.1765963770.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
 Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
 Cc: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Helge Deller <deller@gmx.de>
 Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Lance Yang <ioworker0@gmail.com>
 Cc: Magnus Lindholm <linmag7@gmail.com>
@@ -93,55 +92,39 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Richard Henderson <richard.henderson@linaro.org>
 Cc: Richard Weinberger <richard@nod.at>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig               |    1 +
- arch/mips/include/asm/pgalloc.h |    7 +++----
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/parisc/Kconfig           |    1 +
+ arch/parisc/include/asm/tlb.h |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/arch/mips/include/asm/pgalloc.h~mips-mm-enable-mmu_gather_rcu_table_free
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -48,8 +48,7 @@ static inline void pud_populate(struct m
- extern void pgd_init(void *addr);
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
+--- a/arch/parisc/include/asm/tlb.h~parisc-mm-enable-mmu_gather_rcu_table_free
++++ a/arch/parisc/include/asm/tlb.h
+@@ -5,8 +5,8 @@
+ #include <asm-generic/tlb.h>
  
--#define __pte_free_tlb(tlb, pte, address)	\
--	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
-+#define __pte_free_tlb(tlb, pte, address)	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
- 
- #ifndef __PAGETABLE_PMD_FOLDED
- 
-@@ -72,7 +71,7 @@ static inline pmd_t *pmd_alloc_one(struc
- 	return pmd;
- }
- 
--#define __pmd_free_tlb(tlb, x, addr)	pmd_free((tlb)->mm, x)
-+#define __pmd_free_tlb(tlb, x, addr)	tlb_remove_ptdesc((tlb), virt_to_ptdesc(x))
+ #if CONFIG_PGTABLE_LEVELS == 3
+-#define __pmd_free_tlb(tlb, pmd, addr)	pmd_free((tlb)->mm, pmd)
++#define __pmd_free_tlb(tlb, pmd, addr)	tlb_remove_ptdesc((tlb), virt_to_ptdesc(pmd))
+ #endif
+-#define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, pte)
++#define __pte_free_tlb(tlb, pte, addr)	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
  
  #endif
- 
-@@ -97,7 +96,7 @@ static inline void p4d_populate(struct m
- 	set_p4d(p4d, __p4d((unsigned long)pud));
- }
- 
--#define __pud_free_tlb(tlb, x, addr)	pud_free((tlb)->mm, x)
-+#define __pud_free_tlb(tlb, x, addr)	tlb_remove_ptdesc((tlb), virt_to_ptdesc(x))
- 
- #endif /* __PAGETABLE_PUD_FOLDED */
- 
---- a/arch/mips/Kconfig~mips-mm-enable-mmu_gather_rcu_table_free
-+++ a/arch/mips/Kconfig
-@@ -99,6 +99,7 @@ config MIPS
- 	select IRQ_FORCED_THREADING
- 	select ISA if EISA
- 	select LOCK_MM_AND_FIND_VMA
+--- a/arch/parisc/Kconfig~parisc-mm-enable-mmu_gather_rcu_table_free
++++ a/arch/parisc/Kconfig
+@@ -79,6 +79,7 @@ config PARISC
+ 	select GENERIC_CLOCKEVENTS
+ 	select CPU_NO_EFFICIENT_FFS
+ 	select THREAD_INFO_IN_TASK
 +	select MMU_GATHER_RCU_TABLE_FREE
- 	select MODULES_USE_ELF_REL if MODULES
- 	select MODULES_USE_ELF_RELA if MODULES && 64BIT
- 	select PERF_USE_VMALLOC
+ 	select NEED_DMA_MAP_STATE
+ 	select NEED_SG_DMA_LENGTH
+ 	select HAVE_ARCH_KGDB
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
