@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98CA83090D5;
-	Wed, 17 Dec 2025 20:57:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3D3D30F529
+	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 21:10:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766005043; cv=none; b=NNQYR4wqm0f3oIRUqYu5xeGVF/e7klzKisnoxwcc7mErLoFcjENUab/HGha4Q0iKdwR14Hn6LhjKH+pOlm8dbG75QwdkMUPf0fNxWDaJTTd2RAsPufTOgTzZctasAZvK/Gw1SFlv3DRzngZUVUFPq+9BFL4QjiHozYSu0biuNr8=
+	t=1766005858; cv=none; b=NvDuaRGzGZsMitjD62AnI4820dZIK6YhNzFPkYs0BsXN2q4aNV12gY7uugUcQUXx8I6FiwOhUJ2a0G+HyuFKcUUYjJqFT8mTQBphf1kyVmtWSMuqfW/zuv29qI+JogmuFHbK/6rQHMqrUDXDMZ1OzSzSGky2Px/Y4DIfWd08RHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766005043; c=relaxed/simple;
-	bh=5j834NNQUN/BfiUU+Akg4hw2F8NZ4DC3ocKo0aivsSk=;
-	h=Date:To:From:Subject:Message-Id; b=H68ZzLw2/DQdbJImtsUVpygZviDiiBS96HXqUab0yD8ZM8DB5Fj4Qy+R9nIBW2IeD/B7LvcsNGq/cUBhdiRly4qJoX+d5o3wurz2E39hXMa3tSgXEFuu0VTyAyaIolMsw4Eu6VYBikcIRkjvRryH+U9bri4zml9KzI1YG2cOJqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GicqngGY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766005858; c=relaxed/simple;
+	bh=Cb58HAe52InIC4KiR2P+i1UVha/D3baFhfn/Ne6xZtI=;
+	h=Date:To:From:Subject:Message-Id; b=U4SH1I8y2nIX8ll/npGgpzlM5W5pqT19H6EmrpNxpp1eN0hfSxSw3a+mzlw+qVg9/H0Hgvt2mSgqA3bPb6Cprjysrlt6j139WQaL6oKSoGXSaKh3EkoOHOEbnoFO8OyFZKGTi++GcjeJiCQBrP/q8RjTRbo0MiqWsjoMS+ezH/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qowvnBbC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GicqngGY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDC03C4CEF5;
-	Wed, 17 Dec 2025 20:57:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qowvnBbC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB9D4C4CEF5;
+	Wed, 17 Dec 2025 21:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766005043;
-	bh=5j834NNQUN/BfiUU+Akg4hw2F8NZ4DC3ocKo0aivsSk=;
+	s=korg; t=1766005857;
+	bh=Cb58HAe52InIC4KiR2P+i1UVha/D3baFhfn/Ne6xZtI=;
 	h=Date:To:From:Subject:From;
-	b=GicqngGYe3yKlmT+4RGVGWvT8rjkYn966OOOEMsDrTaLeQfaT9kvSKTgVFA17GlSV
-	 jkYkNk/FI2tULH0QGjyvB1sveWRzpGKGsfp3dXzsz0WK1rdutAL9TUuoiVp0L0Lfoy
-	 +pEGonJYDEW4FcmvhQNaEHlGo4h+uOGuzFBG/bwA=
-Date: Wed, 17 Dec 2025 12:57:22 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shivankg@amd.com,ryncsn@gmail.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,baolin.wang@linux.alibaba.com,bijan311@gmail.com,akpm@linux-foundation.org
+	b=qowvnBbCz3qYRKqvXUsigl0J4SYug1W0wS8M4/KRax59pEjet9VomeqKz5QdFvBCa
+	 jHCZLnSkBbB+wLHOhjD1FGsQQQeAGEEB9sj0XKbZg0zG0WBU3hm2FnmGmMrFwGPp3N
+	 BSsSNdbBHYk/rtx93mYz7x2tTMz3qXR9zpXeFTBA=
+Date: Wed, 17 Dec 2025 13:10:57 -0800
+To: mm-commits@vger.kernel.org,samitolvanen@google.com,rostedt@goodmis.org,petr.pavlu@suse.com,mhiramat@kernel.org,mcgrof@kernel.org,mark.rutland@arm.com,kees@kernel.org,john.fastabend@gmail.com,daniel@iogearbox.net,da.gomez@samsung.com,atomlin@atomlin.com,ast@kernel.org,pmladek@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-consider-non-anon-swap-cache-folios-in-folio_expected_ref_count.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251217205722.DDC03C4CEF5@smtp.kernel.org>
+Subject: + kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid.patch added to mm-nonmm-unstable branch
+Message-Id: <20251217211057.BB9D4C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: consider non-anon swap cache folios in folio_expected_ref_count()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-consider-non-anon-swap-cache-folios-in-folio_expected_ref_count.patch
+     Subject: kallsyms: clean up @namebuf initialization in kallsyms_lookup_buildid()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-consider-non-anon-swap-cache-folios-in-folio_expected_ref_count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,120 +58,122 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bijan Tabatabai <bijan311@gmail.com>
-Subject: mm: consider non-anon swap cache folios in folio_expected_ref_count()
-Date: Tue, 16 Dec 2025 14:07:27 -0600
+From: Petr Mladek <pmladek@suse.com>
+Subject: kallsyms: clean up @namebuf initialization in kallsyms_lookup_buildid()
+Date: Fri, 28 Nov 2025 14:59:14 +0100
 
-Currently, folio_expected_ref_count() only adds references for the swap
-cache if the folio is anonymous.  However, according to the comment above
-the definition of PG_swapcache in enum pageflags, shmem folios can also
-have PG_swapcache set.  This patch makes sure references for the swap
-cache are added if folio_test_swapcache(folio) is true.
+Patch series "kallsyms: Prevent invalid access when showing module
+buildid", v3.
 
-This issue was found when trying to hot-unplug memory in a QEMU/KVM
-virtual machine.  When initiating hot-unplug when most of the guest memory
-is allocated, hot-unplug hangs partway through removal due to migration
-failures.  The following message would be printed several times, and would
-be printed again about every five seconds:
+We have seen nested crashes in __sprint_symbol(), see below.  They seem to
+be caused by an invalid pointer to "buildid".  This patchset cleans up
+kallsyms code related to module buildid and fixes this invalid access when
+printing backtraces.
 
-[   49.641309] migrating pfn b12f25 failed ret:7
-[   49.641310] page: refcount:2 mapcount:0 mapping:0000000033bd8fe2 index:0x7f404d925 pfn:0xb12f25
-[   49.641311] aops:swap_aops
-[   49.641313] flags: 0x300000000030508(uptodate|active|owner_priv_1|reclaim|swapbacked|node=0|zone=3)
-[   49.641314] raw: 0300000000030508 ffffed312c4bc908 ffffed312c4bc9c8 0000000000000000
-[   49.641315] raw: 00000007f404d925 00000000000c823b 00000002ffffffff 0000000000000000
-[   49.641315] page dumped because: migration failure
+I made an audit of __sprint_symbol() and found several situations
+when the buildid might be wrong:
 
-When debugging this, I found that these migration failures were due to
-__migrate_folio() returning -EAGAIN for a small set of folios because the
-expected reference count it calculates via folio_expected_ref_count() is
-one less than the actual reference count of the folios.  Furthermore, all
-of the affected folios were not anonymous, but had the PG_swapcache flag
-set, inspiring this patch.  After applying this patch, the memory
-hot-unplug behaves as expected.
+  + bpf_address_lookup() does not set @modbuildid
 
-I tested this on a machine running Ubuntu 24.04 with kernel version
-6.8.0-90-generic and 64GB of memory.  The guest VM is managed by libvirt
-and runs Ubuntu 24.04 with kernel version 6.18 (though the head of the
-mm-unstable branch as a Dec 16, 2025 was also tested and behaves the same)
-and 48GB of memory.  The libvirt XML definition for the VM can be found at
-[1].  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE is set in the guest
-kernel so the hot-pluggable memory is automatically onlined.
+  + ftrace_mod_address_lookup() does not set @modbuildid
 
-Below are the steps to reproduce this behavior:
+  + __sprint_symbol() does not take rcu_read_lock and
+    the related struct module might get removed before
+    mod->build_id is printed.
 
-1) Define and start and virtual machine
-  host$ virsh -c qemu:///system define ./test_vm.xml # test_vm.xml from [1]
-  host$ virsh -c qemu:///system start test_vm
+This patchset solves these problems:
 
-2) Setup swap in the guest
-  guest$ sudo fallocate -l 32G /swapfile
-  guest$ sudo chmod 0600 /swapfile
-  guest$ sudo mkswap /swapfile
-  guest$ sudo swapon /swapfile
+  + 1st, 2nd patches are preparatory
+  + 3rd, 4th, 6th patches fix the above problems
+  + 5th patch cleans up a suspicious initialization code.
 
-3) Use alloc_data [2] to allocate most of the remaining guest memory
-  guest$ ./alloc_data 45
+This is the backtrace, we have seen. But it is not really important.
+The problems fixed by the patchset are obvious:
 
-4) In a separate guest terminal, monitor the amount of used memory
-  guest$ watch -n1 free -h
+  crash64> bt [62/2029]
+  PID: 136151 TASK: ffff9f6c981d4000 CPU: 367 COMMAND: "btrfs"
+  #0 [ffffbdb687635c28] machine_kexec at ffffffffb4c845b3
+  #1 [ffffbdb687635c80] __crash_kexec at ffffffffb4d86a6a
+  #2 [ffffbdb687635d08] hex_string at ffffffffb51b3b61
+  #3 [ffffbdb687635d40] crash_kexec at ffffffffb4d87964
+  #4 [ffffbdb687635d50] oops_end at ffffffffb4c41fc8
+  #5 [ffffbdb687635d70] do_trap at ffffffffb4c3e49a
+  #6 [ffffbdb687635db8] do_error_trap at ffffffffb4c3e6a4
+  #7 [ffffbdb687635df8] exc_stack_segment at ffffffffb5666b33
+  #8 [ffffbdb687635e20] asm_exc_stack_segment at ffffffffb5800cf9
+  ...
 
-5) When alloc_data has finished allocating, initiate the memory
-hot-unplug using the provided xml file [3]
-  host$ virsh -c qemu:///system detach-device test_vm ./remove.xml --live
 
-After initiating the memory hot-unplug, you should see the amount of
-available memory in the guest decrease, and the amount of used swap data
-increase.  If everything works as expected, when all of the memory is
-unplugged, there should be around 8.5-9GB of data in swap.  If the
-unplugging is unsuccessful, the amount of used swap data will settle below
-that.  If that happens, you should be able to see log messages in dmesg
-similar to the one posted above.
+This patch (of 7)
 
-Link: https://lkml.kernel.org/r/20251216200727.2360228-1-bijan311@gmail.com
-Link: https://github.com/BijanT/linux_patch_files/blob/main/test_vm.xml [1]
-Link: https://github.com/BijanT/linux_patch_files/blob/main/alloc_data.c [2]
-Link: https://github.com/BijanT/linux_patch_files/blob/main/remove.xml [3]
-Fixes: 86ebd50224c0 ("mm: add folio_expected_ref_count() for reference count calculation")
-Signed-off-by: Bijan Tabatabai <bijan311@gmail.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shivank Garg <shivankg@amd.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: <stable@vger.kernel.org>
+The function kallsyms_lookup_buildid() initializes the given @namebuf by
+clearing the first and the last byte.  It is not clear why.
+
+The 1st byte makes sense because some callers ignore the return code and
+expect that the buffer contains a valid string, for example:
+
+  - function_stat_show()
+    - kallsyms_lookup()
+      - kallsyms_lookup_buildid()
+
+The initialization of the last byte does not make much sense because it
+can later be overwritten.  Fortunately, it seems that all called functions
+behave correctly:
+
+  -  kallsyms_expand_symbol() explicitly adds the trailing '\0'
+     at the end of the function.
+
+  - All *__address_lookup() functions either use the safe strscpy()
+    or they do not touch the buffer at all.
+
+Document the reason for clearing the first byte.  And remove the useless
+initialization of the last byte.
+
+Link: https://lkml.kernel.org/r/20251128135920.217303-2-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Aaron Tomlin <atomlin@atomlin.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkman <daniel@iogearbox.net>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Petr Pavlu <petr.pavlu@suse.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/kallsyms.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-consider-non-anon-swap-cache-folios-in-folio_expected_ref_count
-+++ a/include/linux/mm.h
-@@ -2459,10 +2459,10 @@ static inline int folio_expected_ref_cou
- 	if (WARN_ON_ONCE(page_has_type(&folio->page) && !folio_test_hugetlb(folio)))
- 		return 0;
+--- a/kernel/kallsyms.c~kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid
++++ a/kernel/kallsyms.c
+@@ -355,7 +355,12 @@ static int kallsyms_lookup_buildid(unsig
+ {
+ 	int ret;
  
--	if (folio_test_anon(folio)) {
--		/* One reference per page from the swapcache. */
--		ref_count += folio_test_swapcache(folio) << order;
--	} else {
-+	/* One reference per page from the swapcache. */
-+	ref_count += folio_test_swapcache(folio) << order;
-+
-+	if (!folio_test_anon(folio)) {
- 		/* One reference per page from the pagecache. */
- 		ref_count += !!folio->mapping << order;
- 		/* One reference from PG_private. */
+-	namebuf[KSYM_NAME_LEN - 1] = 0;
++	/*
++	 * kallsyms_lookus() returns pointer to namebuf on success and
++	 * NULL on error. But some callers ignore the return value.
++	 * Instead they expect @namebuf filled either with valid
++	 * or empty string.
++	 */
+ 	namebuf[0] = 0;
+ 
+ 	if (is_ksym_addr(addr)) {
 _
 
-Patches currently in -mm which might be from bijan311@gmail.com are
+Patches currently in -mm which might be from pmladek@suse.com are
 
-mm-consider-non-anon-swap-cache-folios-in-folio_expected_ref_count.patch
+kallsyms-clean-up-namebuf-initialization-in-kallsyms_lookup_buildid.patch
+kallsyms-clean-up-modname-and-modbuildid-initialization-in-kallsyms_lookup_buildid.patch
+module-add-helper-function-for-reading-module_buildid.patch
+kallsyms-cleanup-code-for-appending-the-module-buildid.patch
+kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup.patch
+kallsyms-ftrace-set-module-buildid-in-ftrace_mod_address_lookup.patch
+kallsyms-prevent-module-removal-when-printing-module-name-and-buildid.patch
 
