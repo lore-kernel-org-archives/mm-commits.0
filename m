@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E3D130B509
-	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 20:45:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B387B1400C
+	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 20:46:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766004302; cv=none; b=opM4H75PXA5cWRDqbXACqVsS2+s/nxz/go10E1LhfUNnz1AIlGuBGPyzbIgm734XeJ/jp5Q1ROzWrBIq4ANbZElFPhocKdv391qgMtE/BnWtaXrGMbEnG2DnSNlQD9GRm5wfUX+6/ArCU5zp/rL2I02YYfu+D/n4hYkD8ElK94M=
+	t=1766004380; cv=none; b=mDgDqfa7QZnxEYweqF5YH9cS52LGtd4g9Z9n609FbnIDpR+6PFz4N5bPG2z/05sCjCxEiWZxpP3LrX4efJxyThQknUk4FMOG39d1vIvLR4e3DcQagVKzNCpnrUlxwEIVXIcwT6/2wNXV0EVUwKdp0WFe400JhHyg0sHDm1xRvvU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766004302; c=relaxed/simple;
-	bh=FCs2EXzvT4mkcgJvJc4GSOzxWtne48pOZ7Q3qov+gi0=;
-	h=Date:To:From:Subject:Message-Id; b=uPvPJBvx3FO4qA9gCL7BKBCw2cioVsTVXQJiGNEe5T83y1/6sJvtNxu0g8eaoyh37z1buAMvaKJv3I1CYNuWsiH15DnopKuUlECr4UWUR3iLvoSJna2qAT4jRvzE9EUWecDWYpWwd960ll9T9fmq1nb/JMFqlFz3zmOvme1V9x8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K02RIYHo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766004380; c=relaxed/simple;
+	bh=Bt39DvjVRfUM3SbyeIKoJvwxwZopkv9eLKq5w+jdSWc=;
+	h=Date:To:From:Subject:Message-Id; b=NBpwCQZ6bO+LBTtGhAGUtL8RMLkFmXdb1a3gE6r589hIth823w/RsoRBwueVcEQQhJghdCTqsO61GGWdcQR6P2G1iFPEYyR6HEi2Lk0L/A16IEu961b8SyBp+HKvJEkvIumrnABhrHLkgZdcmWHeCW+ywz7OsntBDpWMSchbCSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gUwOnLn+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K02RIYHo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CABE8C4CEF5;
-	Wed, 17 Dec 2025 20:45:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gUwOnLn+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20F84C4CEF5;
+	Wed, 17 Dec 2025 20:46:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766004301;
-	bh=FCs2EXzvT4mkcgJvJc4GSOzxWtne48pOZ7Q3qov+gi0=;
+	s=korg; t=1766004380;
+	bh=Bt39DvjVRfUM3SbyeIKoJvwxwZopkv9eLKq5w+jdSWc=;
 	h=Date:To:From:Subject:From;
-	b=K02RIYHowkqIx6/HasDIrnIz52ysFnMHmdW1tsa0J0VGQzNaQnKaR2MeY6ydYohv9
-	 VcN0DHfkjmX9xpc/XpGiW/+QDNvmYyT0pWxvEU+EKD1f2p4/u1x5qtKDarnvNYbbvA
-	 thxgR7GkpikXVhTHYZ0WoPK3zXjuOCSEZwpIJ2L0=
-Date: Wed, 17 Dec 2025 12:45:01 -0800
-To: mm-commits@vger.kernel.org,sakamo.ryota@gmail.com,geert@linux-m68k.org,davidgow@google.com,brendan.higgins@linux.dev,andriy.shevchenko@linux.intel.com,lukas.bulwahn@redhat.com,akpm@linux-foundation.org
+	b=gUwOnLn+TPuTxnYga340SazARiCrrZwAZys8jgdl04LO3vF1N1mzp6UxZW/7rfue/
+	 iSKKCaequMkCOBP+asstLInqvv9uqBHrU/NxapYce2sMW1wAC7GSBB8VmnqjLCta0p
+	 Kd29RNj6q2SoJw0j7XpFwq7KaZTap3P/aqAiVjS8=
+Date: Wed, 17 Dec 2025 12:46:19 -0800
+To: mm-commits@vger.kernel.org,mic@digikod.net,masahiroy@kernel.org,ihuguet@redhat.com,danny@kdrag0n.dev,haokexin@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-tests-convert-test_uuid-module-to-kunit-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20251217204501.CABE8C4CEF5@smtp.kernel.org>
+Subject: + editorconfig-respect-editorconfig-settings-from-parent-directories.patch added to mm-nonmm-unstable branch
+Message-Id: <20251217204620.20F84C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: adjust file entry in UUID HELPERS
+     Subject: .editorconfig: respect .editorconfig settings from parent directories
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-tests-convert-test_uuid-module-to-kunit-fix.patch
+     editorconfig-respect-editorconfig-settings-from-parent-directories.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-convert-test_uuid-module-to-kunit-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/editorconfig-respect-editorconfig-settings-from-parent-directories.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,43 +58,43 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@redhat.com>
-Subject: MAINTAINERS: adjust file entry in UUID HELPERS
-Date: Wed, 17 Dec 2025 06:39:07 +0100
+From: Kevin Hao <haokexin@gmail.com>
+Subject: .editorconfig: respect .editorconfig settings from parent directories
+Date: Wed, 17 Dec 2025 12:23:27 +0800
 
-Commit e61d3add3e7f ("lib/tests: convert test_uuid module to KUnit") moves
-lib/test_uuid.c to lib/tests/uuid_kunit.c, but misses to adjust the file
-entry in the MAINTAINERS section UUID HELPERS.
+Setting 'root' to 'true' prevents the editor from searching for other
+.editorconfig files in parent directories.  However, a common workflow
+involves generating a patch with 'git format-patch' and opening it in an
+editor within the kernel source directory.  In such cases, we want any
+specific settings for patch files defined in an .editorconfig located
+above the kernel source directory to remain effective.  Therefore, remove
+the 'root' setting from the kernel .editorconfig.
 
-Adjust the file entry in that section after this file movement.
-
-Link: https://lkml.kernel.org/r/20251217053907.2778515-1-lukas.bulwahn@redhat.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
-Acked-by: David Gow <davidgow@google.com>
-Acked-by: Ryota Sakamoto <sakamo.ryota@gmail.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Link: https://lkml.kernel.org/r/20251217-editconfig-v1-1-883e6dd6dbfa@gmail.com
+Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Cc: Íñigo Huguet <ihuguet@redhat.com>
+Cc: Danny Lin <danny@kdrag0n.dev>
+Cc: Mickaël Salaün <mic@digikod.net>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .editorconfig |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/MAINTAINERS~lib-tests-convert-test_uuid-module-to-kunit-fix
-+++ a/MAINTAINERS
-@@ -27245,7 +27245,7 @@ R:	Andy Shevchenko <andriy.shevchenko@li
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
- F:	include/linux/uuid.h
--F:	lib/test_uuid.c
-+F:	lib/tests/uuid_kunit.c
- F:	lib/uuid.c
+--- a/.editorconfig~editorconfig-respect-editorconfig-settings-from-parent-directories
++++ a/.editorconfig
+@@ -1,7 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
  
- UV SYSFS DRIVER
+-root = true
+-
+ [{*.{awk,c,dts,dtsi,dtso,h,mk,s,S},Kconfig,Makefile,Makefile.*}]
+ charset = utf-8
+ end_of_line = lf
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@redhat.com are
+Patches currently in -mm which might be from haokexin@gmail.com are
 
-lib-tests-convert-test_uuid-module-to-kunit-fix.patch
+editorconfig-respect-editorconfig-settings-from-parent-directories.patch
 
