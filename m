@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BD9833F362
-	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 17:25:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E3B81B81CA
+	for <mm-commits@vger.kernel.org>; Wed, 17 Dec 2025 17:32:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765992318; cv=none; b=iAeeFN1Nx1kDddvRPfVK/mgfwfDi4tXEv4bDbnrfoqM26QyvSNaFZKh2olKtWWJKXShbpZx15CW/58ubeKMe5moc2ghH83I2X1ZJqjiZNTCQ0uRpzoCxcqvIeOZ5fASdgwiiMSZG7BaWSyh3NmASuKFiQMOppabvbuSLRcqrEu4=
+	t=1765992754; cv=none; b=OcQMIHNnbHmmOxlOkev34ODBGBQ90on9xULMS7NSns4qQpXR1dx2Z5JR9CJJNBv4gAoSByRg/ABypIGMrFfv4mQmrmB8hB1GtR2tZVFQN6kNDqScA0GLeLiUY/0eZiPmh5NwqMm1nVWcCHlk8sk1PyHCeJDmBIcahrB5kXpZH60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765992318; c=relaxed/simple;
-	bh=U8A740Ty4PAPCjT97R5thNKndUjorc9NP9F4JSYygHc=;
-	h=Date:To:From:Subject:Message-Id; b=ZVOX0SD+Fb9dZLPgDejUpA+9gYVbcGo+/kYVD5SR8f4jFsq3KeAc4e/vjUV75raYDu/43kYTruzvO23VzG5ZSg7RjGYuMtBLrkZJnp1I1iE8OglffjQXL41PlHlaZqeS82JaUQ9L9bCtsLVLKos5q1M/mv2wB02R4oJENRAupEY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZcVXKRWr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1765992754; c=relaxed/simple;
+	bh=RS0nw4kUcgVT0j8LHMyZJ8iUP15tgUmhlmLbgYSoUrY=;
+	h=Date:To:From:Subject:Message-Id; b=CDxxg57VxLhkK7GcKDZ981f2NRSTKBHDCaddI9tm92JxgB9zZRW+wRvoymeDyAmOD1tpza7tjpGZLOzwUZpSBcGQc/XGW8mlvhRa4jacFPLIl+KkKMlOsdljkbAIikTLgkL666jHcWF8jc7PbY8jsU9ha+N7DtmJYOj5U1h0fEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rCIMbCIA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZcVXKRWr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B24B9C4CEF5;
-	Wed, 17 Dec 2025 17:25:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rCIMbCIA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20FD4C4CEF5;
+	Wed, 17 Dec 2025 17:32:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1765992317;
-	bh=U8A740Ty4PAPCjT97R5thNKndUjorc9NP9F4JSYygHc=;
+	s=korg; t=1765992754;
+	bh=RS0nw4kUcgVT0j8LHMyZJ8iUP15tgUmhlmLbgYSoUrY=;
 	h=Date:To:From:Subject:From;
-	b=ZcVXKRWrDF2RlBVsQVU3qxzWLo9DRIP1/NvpxNd/lcPyXCEf4mFIsV8l3sIKTORaB
-	 Qr88Ty2dIHufx4djXSSHC4K687bDDb4KXPi4fe2WYJ5b4D8ihq9P9nY4bQlyQCdwyB
-	 cDQw1PML1k0TkU+O50ejvBbdms/oJGX1/PxMANiw=
-Date: Wed, 17 Dec 2025 09:25:17 -0800
-To: mm-commits@vger.kernel.org,kevin.brodsky@arm.com,ritesh.list@gmail.com,akpm@linux-foundation.org
+	b=rCIMbCIAVMgUlDct0IcmsCy/LMaxqQTTS2tXVcJSN8SCs4bc/1jBExAc2UeWvK1VI
+	 srPzXbnRZ/yRL7mfD+jemA6nt5My5NfxD8L1qZEv3rHexQOJMRJ0w85oGRAAYFLhIC
+	 7Upl0Rh6/jqwMXn85acJKHfk7nv2BDsos1ytiWtk=
+Date: Wed, 17 Dec 2025 09:32:33 -0800
+To: mm-commits@vger.kernel.org,ritesh.list@gmail.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-basic-tests-for-lazy_mmu-fix-fix.patch added to mm-new branch
-Message-Id: <20251217172517.B24B9C4CEF5@smtp.kernel.org>
+Subject: + mm-add-basic-tests-for-lazy_mmu-fix-fix-fix.patch added to mm-new branch
+Message-Id: <20251217173234.20FD4C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-add-basic-tests-for-lazy_mmu-fix-fix
+     Subject: mm-add-basic-tests-for-lazy_mmu-fix-fix-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-basic-tests-for-lazy_mmu-fix-fix.patch
+     mm-add-basic-tests-for-lazy_mmu-fix-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-basic-tests-for-lazy_mmu-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-basic-tests-for-lazy_mmu-fix-fix-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,58 +66,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Subject: mm-add-basic-tests-for-lazy_mmu-fix-fix
-Date: Wed, 17 Dec 2025 21:16:14 +0530
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+Subject: mm-add-basic-tests-for-lazy_mmu-fix-fix-fix
+Date: Wed, 17 Dec 2025 16:38:12 +0000
 
-use EXPORT_SYMBOL_IF_KUNIT()
+move MODULE_IMPORT_NS(), add comment
 
-Link: https://lkml.kernel.org/r/87a4zhkt6h.ritesh.list@gmail.com
-Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Link: https://lkml.kernel.org/r/20251217163812.2633648-2-kevin.brodsky@arm.com
+Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/hash_tlb.c |    6 +++---
- mm/tests/lazy_mmu_mode_kunit.c      |    1 +
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/tests/lazy_mmu_mode_kunit.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/powerpc/mm/book3s64/hash_tlb.c~mm-add-basic-tests-for-lazy_mmu-fix-fix
-+++ a/arch/powerpc/mm/book3s64/hash_tlb.c
-@@ -25,12 +25,12 @@
- #include <asm/tlb.h>
- #include <asm/bug.h>
- #include <asm/pte-walk.h>
--
-+#include <kunit/visibility.h>
- 
- #include <trace/events/thp.h>
- 
- DEFINE_PER_CPU(struct ppc64_tlb_batch, ppc64_tlb_batch);
--EXPORT_SYMBOL_GPL(ppc64_tlb_batch);
-+EXPORT_SYMBOL_IF_KUNIT(ppc64_tlb_batch);
- 
- /*
-  * A linux PTE was changed and the corresponding hash table entry
-@@ -155,7 +155,7 @@ void __flush_tlb_pending(struct ppc64_tl
- 		flush_hash_range(i, local);
- 	batch->index = 0;
- }
--EXPORT_SYMBOL_GPL(__flush_tlb_pending);
-+EXPORT_SYMBOL_IF_KUNIT(__flush_tlb_pending);
- 
- void hash__tlb_flush(struct mmu_gather *tlb)
- {
---- a/mm/tests/lazy_mmu_mode_kunit.c~mm-add-basic-tests-for-lazy_mmu-fix-fix
+--- a/mm/tests/lazy_mmu_mode_kunit.c~mm-add-basic-tests-for-lazy_mmu-fix-fix-fix
 +++ a/mm/tests/lazy_mmu_mode_kunit.c
-@@ -69,3 +69,4 @@ kunit_test_suite(lazy_mmu_mode_test_suit
+@@ -2,6 +2,9 @@
+ #include <kunit/test.h>
+ #include <linux/pgtable.h>
+ 
++/* For some symbols referenced by arch_{enter,leave}_lazy_mmu_mode on powerpc */
++MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
++
+ static void expect_not_active(struct kunit *test)
+ {
+ 	KUNIT_EXPECT_FALSE(test, is_lazy_mmu_mode_active());
+@@ -69,4 +72,3 @@ kunit_test_suite(lazy_mmu_mode_test_suit
  
  MODULE_DESCRIPTION("Tests for the lazy MMU mode");
  MODULE_LICENSE("GPL");
-+MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
+-MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
 _
 
-Patches currently in -mm which might be from ritesh.list@gmail.com are
+Patches currently in -mm which might be from kevin.brodsky@arm.com are
 
-mm-add-basic-tests-for-lazy_mmu-fix-fix.patch
+x86-xen-simplify-flush_lazy_mmu.patch
+powerpc-mm-implement-arch_flush_lazy_mmu_mode.patch
+sparc-mm-implement-arch_flush_lazy_mmu_mode.patch
+mm-clarify-lazy_mmu-sleeping-constraints.patch
+mm-introduce-config_arch_has_lazy_mmu_mode.patch
+mm-introduce-generic-lazy_mmu-helpers.patch
+mm-bail-out-of-lazy_mmu_mode_-in-interrupt-context.patch
+mm-enable-lazy_mmu-sections-to-nest.patch
+arm64-mm-replace-tif_lazy_mmu-with-is_lazy_mmu_mode_active.patch
+powerpc-mm-replace-batch-active-with-is_lazy_mmu_mode_active.patch
+sparc-mm-replace-batch-active-with-is_lazy_mmu_mode_active.patch
+x86-xen-use-lazy_mmu_state-when-context-switching.patch
+mm-add-basic-tests-for-lazy_mmu.patch
+mm-add-basic-tests-for-lazy_mmu-fix-fix-fix.patch
 
