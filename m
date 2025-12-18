@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 289351E991B
-	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:59:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E86391E991B
+	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:59:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766102362; cv=none; b=dckTgEOGDxixSP0dxjcohI8ELrS3eUknsutGBEoKS0l3b8hw7FNclwKOA9x8xPT1Wy1/+k3JqMfbxbwN7sDUStNg9zjCnnuewa7cMjDvQQEGGl70/tmBlv1wsokpHmwtSzD5+Fcb8Bf08mMtc7ysCaGEcYjwjEk2PE/3dA+rlVo=
+	t=1766102363; cv=none; b=c66tgMJMNXIjG7MrEdplCk2cIXzugjMBnpyXlHTJo+vuX7EeBIceAV4nLnceAeAPK9GnS3MwWUG2jzQKH6wofifSqezo3JeyNjNPRqgeWvPG4dlJ9vceafgwh89eWwPy3ZtjUEWwaV0vigJw1zRF/VfenixPDtis3A88/5pM6cs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766102362; c=relaxed/simple;
-	bh=ZvOXEfkdHVwviIxnWoKSCWW40uI4nQujsbbEHianUv8=;
-	h=Date:To:From:Subject:Message-Id; b=ecvKnvPkckhadZNk5gMGi5WdVvLWf/jeDQsQclGGjbkppaH96xJSRzWbvOcJTCapgUW00/kuSbANdVwIc/oGr16W6A8B9CqfC/EfKHdk4S9rArJK/1l3LN2e4HhW1g2nIpQtV7d2y9KJKtgSbwbMh7JjPCy62KazhyoqlQ/JC7Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wW1K+EuY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766102363; c=relaxed/simple;
+	bh=BIBLi1eREagZYVgm/qgtTQizf0awYUQacpjxw6GFoQk=;
+	h=Date:To:From:Subject:Message-Id; b=kSqY35eodONnHbg5um0IIHjd4svbEk8IN/BWPoFAQS3N2PqR7WS7078XWx/pI6AOYgCwXYAstP1ZWxxi4nocxq5KxLaw2oV4x0adMeh8k19qOAsj24lf28vXz+1SYjbZxlkwbkmALbn6zWk7AcQYVCU9Goczn2xTSysiP3WYTto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CoyUOkis; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wW1K+EuY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEACAC4CEFB;
-	Thu, 18 Dec 2025 23:59:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CoyUOkis"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B334BC4CEFB;
+	Thu, 18 Dec 2025 23:59:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766102360;
-	bh=ZvOXEfkdHVwviIxnWoKSCWW40uI4nQujsbbEHianUv8=;
+	s=korg; t=1766102362;
+	bh=BIBLi1eREagZYVgm/qgtTQizf0awYUQacpjxw6GFoQk=;
 	h=Date:To:From:Subject:From;
-	b=wW1K+EuYPoFBh179xFc0LjC9O873T/BRagAYSSjoOM+6rvDSpyNK/3OCwxWBoTK19
-	 h5ucK4K31QpQynmTMOdDjZo2PyBxsXTM57GTrZCWhHaHvqW6AQ+zmj51bh4YdBEkE1
-	 TQOFdlbQyhcAjDrFWS0/qz0GE/hDNXQvLCdefwbs=
-Date: Thu, 18 Dec 2025 15:59:20 -0800
+	b=CoyUOkisqkIilT1uff8PfX+mIktxRBjrXrbTGA75xAXfydmQmTja7yavSYR71u5fJ
+	 wHiOtJ3mYWc8EXMkvbrIwuQi2wjgJAZ643O3EUVciM4mYPdBNzFj6eB6z2tynALNh9
+	 lKmXyw8FKJj18zNuuICJnal0SDPaufwiyaRzqajc=
+Date: Thu, 18 Dec 2025 15:59:22 -0800
 To: mm-commits@vger.kernel.org,kernel@xen0n.name,glider@google.com,elver@google.com,dvyukov@google.com,chenhuacai@kernel.org,yuanlinyu@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kfence-allow-create-debugfs-dir-file-unconditionally.patch added to mm-new branch
-Message-Id: <20251218235920.AEACAC4CEFB@smtp.kernel.org>
+Subject: + kfence-allow-change-number-of-object-by-early-parameter.patch added to mm-new branch
+Message-Id: <20251218235922.B334BC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kfence: allow create debugfs dir/file unconditionally
+     Subject: kfence: allow change number of object by early parameter
 has been added to the -mm mm-new branch.  Its filename is
-     kfence-allow-create-debugfs-dir-file-unconditionally.patch
+     kfence-allow-change-number-of-object-by-early-parameter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfence-allow-create-debugfs-dir-file-unconditionally.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfence-allow-change-number-of-object-by-early-parameter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,17 +67,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: yuan linyu <yuanlinyu@honor.com>
-Subject: kfence: allow create debugfs dir/file unconditionally
-Date: Thu, 18 Dec 2025 09:58:48 +0800
+Subject: kfence: allow change number of object by early parameter
+Date: Thu, 18 Dec 2025 09:58:49 +0800
 
-When add boot parameter kfence.sample_interval=0, it will not create
-debugfs dir/file, but when user change this parameter after boot, it can
-enable kfence, there is no debugfs info to check the kfence state.
+when want to change the kfence pool size, currently it is not easy and
+need to compile kernel.
 
-Remove kfence_enabled check in kfence_debugfs_init() to create debugfs
-unconditionally.
+Add an early boot parameter kfence.num_objects to allow change kfence
+objects number and allow increate total pool to provide high failure
+rate.
 
-Link: https://lkml.kernel.org/r/20251218015849.1414609-3-yuanlinyu@honor.com
+Link: https://lkml.kernel.org/r/20251218015849.1414609-4-yuanlinyu@honor.com
 Signed-off-by: yuan linyu <yuanlinyu@honor.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitriy Vyukov <dvyukov@google.com>
@@ -87,21 +87,351 @@ Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/kfence.h  |    5 +
+ mm/kfence/core.c        |  122 +++++++++++++++++++++++++++-----------
+ mm/kfence/kfence.h      |    4 -
+ mm/kfence/kfence_test.c |    2 
+ 4 files changed, 96 insertions(+), 37 deletions(-)
 
---- a/mm/kfence/core.c~kfence-allow-create-debugfs-dir-file-unconditionally
-+++ a/mm/kfence/core.c
-@@ -782,9 +782,6 @@ static int kfence_debugfs_init(void)
- {
- 	struct dentry *kfence_dir;
+--- a/include/linux/kfence.h~kfence-allow-change-number-of-object-by-early-parameter
++++ a/include/linux/kfence.h
+@@ -24,7 +24,10 @@ extern unsigned long kfence_sample_inter
+  * address to metadata indices; effectively, the very first page serves as an
+  * extended guard page, but otherwise has no special purpose.
+  */
+-#define KFENCE_POOL_SIZE ((CONFIG_KFENCE_NUM_OBJECTS + 1) * 2 * PAGE_SIZE)
++extern unsigned int __kfence_pool_size;
++#define KFENCE_POOL_SIZE (__kfence_pool_size)
++extern unsigned int __kfence_num_objects;
++#define KFENCE_NUM_OBJECTS (__kfence_num_objects)
+ extern char *__kfence_pool;
  
--	if (!READ_ONCE(kfence_enabled))
--		return 0;
--
- 	kfence_dir = debugfs_create_dir("kfence", NULL);
- 	debugfs_create_file("stats", 0444, kfence_dir, NULL, &stats_fops);
- 	debugfs_create_file("objects", 0400, kfence_dir, NULL, &objects_fops);
+ DECLARE_STATIC_KEY_FALSE(kfence_allocation_key);
+--- a/mm/kfence/core.c~kfence-allow-change-number-of-object-by-early-parameter
++++ a/mm/kfence/core.c
+@@ -132,6 +132,31 @@ struct kfence_metadata *kfence_metadata
+  */
+ static struct kfence_metadata *kfence_metadata_init __read_mostly;
+ 
++/* allow change number of objects from cmdline */
++#define KFENCE_MIN_NUM_OBJECTS 1
++#define KFENCE_MAX_NUM_OBJECTS 65535
++unsigned int __kfence_num_objects __read_mostly = CONFIG_KFENCE_NUM_OBJECTS;
++EXPORT_SYMBOL(__kfence_num_objects); /* Export for test modules. */
++static unsigned int __kfence_pool_pages __read_mostly = (CONFIG_KFENCE_NUM_OBJECTS + 1) * 2;
++unsigned int __kfence_pool_size __read_mostly = (CONFIG_KFENCE_NUM_OBJECTS + 1) * 2 * PAGE_SIZE;
++EXPORT_SYMBOL(__kfence_pool_size); /* Export for lkdtm module. */
++
++static int __init early_parse_kfence_num_objects(char *buf)
++{
++	unsigned int num;
++	int ret = kstrtouint(buf, 10, &num);
++
++	if (ret < 0)
++		return ret;
++
++	__kfence_num_objects = clamp(num, KFENCE_MIN_NUM_OBJECTS, KFENCE_MAX_NUM_OBJECTS);
++	__kfence_pool_pages = (__kfence_num_objects + 1) * 2;
++	__kfence_pool_size = __kfence_pool_pages * PAGE_SIZE;
++
++	return 0;
++}
++early_param("kfence.num_objects", early_parse_kfence_num_objects);
++
+ /* Freelist with available objects. */
+ static struct list_head kfence_freelist = LIST_HEAD_INIT(kfence_freelist);
+ static DEFINE_RAW_SPINLOCK(kfence_freelist_lock); /* Lock protecting freelist. */
+@@ -155,12 +180,13 @@ atomic_t kfence_allocation_gate = ATOMIC
+  *
+  *	P(alloc_traces) = (1 - e^(-HNUM * (alloc_traces / SIZE)) ^ HNUM
+  */
++static unsigned int kfence_alloc_covered_order __read_mostly;
++static unsigned int kfence_alloc_covered_mask __read_mostly;
++static atomic_t *alloc_covered __read_mostly;
+ #define ALLOC_COVERED_HNUM	2
+-#define ALLOC_COVERED_ORDER	(const_ilog2(CONFIG_KFENCE_NUM_OBJECTS) + 2)
+-#define ALLOC_COVERED_SIZE	(1 << ALLOC_COVERED_ORDER)
+-#define ALLOC_COVERED_HNEXT(h)	hash_32(h, ALLOC_COVERED_ORDER)
+-#define ALLOC_COVERED_MASK	(ALLOC_COVERED_SIZE - 1)
+-static atomic_t alloc_covered[ALLOC_COVERED_SIZE];
++#define ALLOC_COVERED_HNEXT(h)	hash_32(h, kfence_alloc_covered_order)
++#define ALLOC_COVERED_MASK		(kfence_alloc_covered_mask)
++#define KFENCE_COVERED_SIZE		(sizeof(atomic_t) * (1 << kfence_alloc_covered_order))
+ 
+ /* Stack depth used to determine uniqueness of an allocation. */
+ #define UNIQUE_ALLOC_STACK_DEPTH ((size_t)8)
+@@ -200,7 +226,7 @@ static_assert(ARRAY_SIZE(counter_names)
+ 
+ static inline bool should_skip_covered(void)
+ {
+-	unsigned long thresh = (CONFIG_KFENCE_NUM_OBJECTS * kfence_skip_covered_thresh) / 100;
++	unsigned long thresh = (__kfence_num_objects * kfence_skip_covered_thresh) / 100;
+ 
+ 	return atomic_long_read(&counters[KFENCE_COUNTER_ALLOCATED]) > thresh;
+ }
+@@ -262,7 +288,7 @@ static inline unsigned long metadata_to_
+ 
+ 	/* Only call with a pointer into kfence_metadata. */
+ 	if (KFENCE_WARN_ON(meta < kfence_metadata ||
+-			   meta >= kfence_metadata + CONFIG_KFENCE_NUM_OBJECTS))
++			   meta >= kfence_metadata + __kfence_num_objects))
+ 		return 0;
+ 
+ 	/*
+@@ -612,7 +638,7 @@ static unsigned long kfence_init_pool(vo
+ 	 * fast-path in SLUB, and therefore need to ensure kfree() correctly
+ 	 * enters __slab_free() slow-path.
+ 	 */
+-	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
++	for (i = 0; i < __kfence_pool_pages; i++) {
+ 		struct page *page;
+ 
+ 		if (!i || (i % 2))
+@@ -640,7 +666,7 @@ static unsigned long kfence_init_pool(vo
+ 		addr += PAGE_SIZE;
+ 	}
+ 
+-	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
++	for (i = 0; i < __kfence_num_objects; i++) {
+ 		struct kfence_metadata *meta = &kfence_metadata_init[i];
+ 
+ 		/* Initialize metadata. */
+@@ -666,7 +692,7 @@ static unsigned long kfence_init_pool(vo
+ 	return 0;
+ 
+ reset_slab:
+-	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
++	for (i = 0; i < __kfence_pool_pages; i++) {
+ 		struct page *page;
+ 
+ 		if (!i || (i % 2))
+@@ -710,7 +736,7 @@ static bool __init kfence_init_pool_earl
+ 	 * fails for the first page, and therefore expect addr==__kfence_pool in
+ 	 * most failure cases.
+ 	 */
+-	memblock_free_late(__pa(addr), KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool));
++	memblock_free_late(__pa(addr), __kfence_pool_size - (addr - (unsigned long)__kfence_pool));
+ 	__kfence_pool = NULL;
+ 
+ 	memblock_free_late(__pa(kfence_metadata_init), KFENCE_METADATA_SIZE);
+@@ -740,7 +766,7 @@ DEFINE_SHOW_ATTRIBUTE(stats);
+  */
+ static void *start_object(struct seq_file *seq, loff_t *pos)
+ {
+-	if (*pos < CONFIG_KFENCE_NUM_OBJECTS)
++	if (*pos < __kfence_num_objects)
+ 		return (void *)((long)*pos + 1);
+ 	return NULL;
+ }
+@@ -752,7 +778,7 @@ static void stop_object(struct seq_file
+ static void *next_object(struct seq_file *seq, void *v, loff_t *pos)
+ {
+ 	++*pos;
+-	if (*pos < CONFIG_KFENCE_NUM_OBJECTS)
++	if (*pos < __kfence_num_objects)
+ 		return (void *)((long)*pos + 1);
+ 	return NULL;
+ }
+@@ -796,7 +822,7 @@ static void kfence_check_all_canary(void
+ {
+ 	int i;
+ 
+-	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
++	for (i = 0; i < __kfence_num_objects; i++) {
+ 		struct kfence_metadata *meta = &kfence_metadata[i];
+ 
+ 		if (kfence_obj_allocated(meta))
+@@ -891,7 +917,7 @@ void __init kfence_alloc_pool_and_metada
+ 	 * re-allocate the memory pool.
+ 	 */
+ 	if (!__kfence_pool)
+-		__kfence_pool = memblock_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
++		__kfence_pool = memblock_alloc(__kfence_pool_size, PAGE_SIZE);
+ 
+ 	if (!__kfence_pool) {
+ 		pr_err("failed to allocate pool\n");
+@@ -900,11 +926,23 @@ void __init kfence_alloc_pool_and_metada
+ 
+ 	/* The memory allocated by memblock has been zeroed out. */
+ 	kfence_metadata_init = memblock_alloc(KFENCE_METADATA_SIZE, PAGE_SIZE);
+-	if (!kfence_metadata_init) {
+-		pr_err("failed to allocate metadata\n");
+-		memblock_free(__kfence_pool, KFENCE_POOL_SIZE);
+-		__kfence_pool = NULL;
+-	}
++	if (!kfence_metadata_init)
++		goto fail_pool;
++
++	kfence_alloc_covered_order = ilog2(__kfence_num_objects) + 2;
++	kfence_alloc_covered_mask = (1 << kfence_alloc_covered_order) - 1;
++	alloc_covered = memblock_alloc(KFENCE_COVERED_SIZE, PAGE_SIZE);
++	if (alloc_covered)
++		return;
++
++	pr_err("failed to allocate covered\n");
++	memblock_free(kfence_metadata_init, KFENCE_METADATA_SIZE);
++	kfence_metadata_init = NULL;
++
++fail_pool:
++	pr_err("failed to allocate metadata\n");
++	memblock_free(__kfence_pool, __kfence_pool_size);
++	__kfence_pool = NULL;
+ }
+ 
+ static void kfence_init_enable(void)
+@@ -927,9 +965,9 @@ static void kfence_init_enable(void)
+ 	WRITE_ONCE(kfence_enabled, true);
+ 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
+ 
+-	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
+-		CONFIG_KFENCE_NUM_OBJECTS, (void *)__kfence_pool,
+-		(void *)(__kfence_pool + KFENCE_POOL_SIZE));
++	pr_info("initialized - using %u bytes for %d objects at 0x%p-0x%p\n", __kfence_pool_size,
++		__kfence_num_objects, (void *)__kfence_pool,
++		(void *)(__kfence_pool + __kfence_pool_size));
+ }
+ 
+ void __init kfence_init(void)
+@@ -950,41 +988,53 @@ void __init kfence_init(void)
+ 
+ static int kfence_init_late(void)
+ {
+-	const unsigned long nr_pages_pool = KFENCE_POOL_SIZE / PAGE_SIZE;
+-	const unsigned long nr_pages_meta = KFENCE_METADATA_SIZE / PAGE_SIZE;
++	unsigned long nr_pages_meta = KFENCE_METADATA_SIZE / PAGE_SIZE;
+ 	unsigned long addr = (unsigned long)__kfence_pool;
+-	unsigned long free_size = KFENCE_POOL_SIZE;
++	unsigned long free_size = __kfence_pool_size;
++	unsigned long nr_pages_covered, covered_size;
+ 	int err = -ENOMEM;
+ 
++	kfence_alloc_covered_order = ilog2(__kfence_num_objects) + 2;
++	kfence_alloc_covered_mask = (1 << kfence_alloc_covered_order) - 1;
++	covered_size =  PAGE_ALIGN(KFENCE_COVERED_SIZE);
++	nr_pages_covered = (covered_size / PAGE_SIZE);
+ #ifdef CONFIG_CONTIG_ALLOC
+ 	struct page *pages;
+ 
+-	pages = alloc_contig_pages(nr_pages_pool, GFP_KERNEL, first_online_node,
++	pages = alloc_contig_pages(__kfence_pool_pages, GFP_KERNEL, first_online_node,
+ 				   NULL);
+ 	if (!pages)
+ 		return -ENOMEM;
+ 
+ 	__kfence_pool = page_to_virt(pages);
++	pages = alloc_contig_pages(nr_pages_covered, GFP_KERNEL, first_online_node,
++				   NULL);
++	if (!pages)
++		goto free_pool;
++	alloc_covered = page_to_virt(pages);
+ 	pages = alloc_contig_pages(nr_pages_meta, GFP_KERNEL, first_online_node,
+ 				   NULL);
+ 	if (pages)
+ 		kfence_metadata_init = page_to_virt(pages);
+ #else
+-	if (nr_pages_pool > MAX_ORDER_NR_PAGES ||
++	if (__kfence_pool_pages > MAX_ORDER_NR_PAGES ||
+ 	    nr_pages_meta > MAX_ORDER_NR_PAGES) {
+ 		pr_warn("KFENCE_NUM_OBJECTS too large for buddy allocator\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	__kfence_pool = alloc_pages_exact(KFENCE_POOL_SIZE, GFP_KERNEL);
++	__kfence_pool = alloc_pages_exact(__kfence_pool_size, GFP_KERNEL);
+ 	if (!__kfence_pool)
+ 		return -ENOMEM;
+ 
++	alloc_covered = alloc_pages_exact(covered_size, GFP_KERNEL);
++	if (!alloc_covered)
++		goto free_pool;
+ 	kfence_metadata_init = alloc_pages_exact(KFENCE_METADATA_SIZE, GFP_KERNEL);
+ #endif
+ 
+ 	if (!kfence_metadata_init)
+-		goto free_pool;
++		goto free_cover;
+ 
+ 	memzero_explicit(kfence_metadata_init, KFENCE_METADATA_SIZE);
+ 	addr = kfence_init_pool();
+@@ -995,22 +1045,28 @@ static int kfence_init_late(void)
+ 	}
+ 
+ 	pr_err("%s failed\n", __func__);
+-	free_size = KFENCE_POOL_SIZE - (addr - (unsigned long)__kfence_pool);
++	free_size = __kfence_pool_size - (addr - (unsigned long)__kfence_pool);
+ 	err = -EBUSY;
+ 
+ #ifdef CONFIG_CONTIG_ALLOC
+ 	free_contig_range(page_to_pfn(virt_to_page((void *)kfence_metadata_init)),
+ 			  nr_pages_meta);
++free_cover:
++	free_contig_range(page_to_pfn(virt_to_page((void *)alloc_covered)),
++			  nr_pages_covered);
+ free_pool:
+ 	free_contig_range(page_to_pfn(virt_to_page((void *)addr)),
+ 			  free_size / PAGE_SIZE);
+ #else
+ 	free_pages_exact((void *)kfence_metadata_init, KFENCE_METADATA_SIZE);
++free_cover:
++	free_pages_exact((void *)alloc_covered, covered_size);
+ free_pool:
+ 	free_pages_exact((void *)addr, free_size);
+ #endif
+ 
+ 	kfence_metadata_init = NULL;
++	alloc_covered = NULL;
+ 	__kfence_pool = NULL;
+ 	return err;
+ }
+@@ -1036,7 +1092,7 @@ void kfence_shutdown_cache(struct kmem_c
+ 	if (!smp_load_acquire(&kfence_metadata))
+ 		return;
+ 
+-	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
++	for (i = 0; i < __kfence_num_objects; i++) {
+ 		bool in_use;
+ 
+ 		meta = &kfence_metadata[i];
+@@ -1074,7 +1130,7 @@ void kfence_shutdown_cache(struct kmem_c
+ 		}
+ 	}
+ 
+-	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
++	for (i = 0; i < __kfence_num_objects; i++) {
+ 		meta = &kfence_metadata[i];
+ 
+ 		/* See above. */
+--- a/mm/kfence/kfence.h~kfence-allow-change-number-of-object-by-early-parameter
++++ a/mm/kfence/kfence.h
+@@ -104,7 +104,7 @@ struct kfence_metadata {
+ };
+ 
+ #define KFENCE_METADATA_SIZE PAGE_ALIGN(sizeof(struct kfence_metadata) * \
+-					CONFIG_KFENCE_NUM_OBJECTS)
++					__kfence_num_objects)
+ 
+ extern struct kfence_metadata *kfence_metadata;
+ 
+@@ -123,7 +123,7 @@ static inline struct kfence_metadata *ad
+ 	 * error.
+ 	 */
+ 	index = (addr - (unsigned long)__kfence_pool) / (PAGE_SIZE * 2) - 1;
+-	if (index < 0 || index >= CONFIG_KFENCE_NUM_OBJECTS)
++	if (index < 0 || index >= __kfence_num_objects)
+ 		return NULL;
+ 
+ 	return &kfence_metadata[index];
+--- a/mm/kfence/kfence_test.c~kfence-allow-change-number-of-object-by-early-parameter
++++ a/mm/kfence/kfence_test.c
+@@ -641,7 +641,7 @@ static void test_gfpzero(struct kunit *t
+ 			break;
+ 		test_free(buf2);
+ 
+-		if (kthread_should_stop() || (i == CONFIG_KFENCE_NUM_OBJECTS)) {
++		if (kthread_should_stop() || (i == __kfence_num_objects)) {
+ 			kunit_warn(test, "giving up ... cannot get same object back\n");
+ 			return;
+ 		}
 _
 
 Patches currently in -mm which might be from yuanlinyu@honor.com are
