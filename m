@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43BBCEEB3
-	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:00:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA2C2356C9
+	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:01:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766098825; cv=none; b=ZGTWT72m5s/p1iMSb6sv3shYrK1Fnq0HKf/1VjTzGTVkEHnjE9koMMzd3/wOILfjtWZZAzKOmccvznOqvLOW+JDKILNSuuSuJtSo6aSJ9jbFFemFVWUk7zRPImfEkxJiV/4YX66qx0HWG4X4N/YrQYUnLitZivdZhuKcjje934g=
+	t=1766098862; cv=none; b=d/PkvVszXZLxkQr0i7t1Alz1HNat8FTFHYJKsvoZD0b/AP/25CHzbMsV+UhzJt1pWS87CTpvvHlhfD5HLmaY62egNtFjMh23dbAbTjVt+bAzwD1aazbggggNGCVAOgnPwD2IvMGIVCYXTlHgIkys4iseDjborMjy3CeoBdZjnVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766098825; c=relaxed/simple;
-	bh=gUsSd7ESUOZsbiLA+We4ERkYHAb18QPRypZzJq8ulvk=;
-	h=Date:To:From:Subject:Message-Id; b=bEQSjLSlHGR06wVDwLFeAKECm5A8JeHaMFQkmbmXzW01WBcJ83v6XTy0mD3KFHfmCe9caELH5gS5Pd5GE5f55lK9+kYK2stC13ETe8lWemL/zWFH+jH7q3k4cebHmMcOHWjGerJJYaF0FAp0d79nmTTSjjJYMrEaYMJdKFclu6Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OO7+vRm+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766098862; c=relaxed/simple;
+	bh=Q03Iw9SnbKmRX+cOpabE/DWcKtaOHLyFIdvywxBdq+0=;
+	h=Date:To:From:Subject:Message-Id; b=MjxRm8G3VPvD/gy3qTcyuchjIdnExI6ynpWvdjN9yI5nj/gsP7akuozdFRVbCJ6aOj16WjWbuILTLDVYcrv9i1eENSBOpxceE7AQW2gjA/aa8yfM4WGxr4/vcMDjBg591OFB5m3Z0ITKmduiY+BkENSIwckk/LtpocJTgMgshq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k/uYHToa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OO7+vRm+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE34BC4CEFB;
-	Thu, 18 Dec 2025 23:00:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k/uYHToa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B06C9C4CEFB;
+	Thu, 18 Dec 2025 23:01:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766098824;
-	bh=gUsSd7ESUOZsbiLA+We4ERkYHAb18QPRypZzJq8ulvk=;
+	s=korg; t=1766098860;
+	bh=Q03Iw9SnbKmRX+cOpabE/DWcKtaOHLyFIdvywxBdq+0=;
 	h=Date:To:From:Subject:From;
-	b=OO7+vRm+AXoL470vZ+JM8cjTShjP6T4yJtWJfnG9e5rbykVF0zqBBkkx5AaoEksFr
-	 z8pqjirIvgd0UUBBGptVzZzVvpa/CvMRuT7aFyQf/uS3uEukioNjSAE4Q2vbVXw5qU
-	 f2r+ELhDiATKWw+rfuX5tt/tR3/mYHoBrR+e4aUU=
-Date: Thu, 18 Dec 2025 15:00:24 -0800
+	b=k/uYHToarU6RhCKTH2kfd921KnYM14OejyGMu0+dyQICmPERbVoFpNDw6YskYCSU0
+	 I6JwySQ5TBExF9FoKu+fuLgUTtZR1osmCIt6pIKZuBS/w1EPF2UlAJ6cb1d9niswdr
+	 xtTqnHZix+2vA5irukQnvKwIa14qouiznZwrvXZ8=
+Date: Thu, 18 Dec 2025 15:01:00 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,linux@roeck-us.net,jackmanb@google.com,hannes@cmpxchg.org,daniel@thingy.jp,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-page_alloc-report-1-as-zone_batchsize-for-config_mmu.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251218230024.AE34BC4CEFB@smtp.kernel.org>
+Message-Id: <20251218230100.B06C9C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -82,12 +82,13 @@ Reported-by: Daniel Palmer <daniel@thingy.jp>
 Closes: https://lore.kernel.org/linux-mm/CAFr9PX=_HaM3_xPtTiBn5Gw5-0xcRpawpJ02NStfdr0khF2k7g@mail.gmail.com/
 Reported-by: Guenter Roeck <linux@roeck-us.net>
 Closes: https://lore.kernel.org/all/42143500-c380-41fe-815c-696c17241506@roeck-us.net/
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Daniel Palmer <daniel@thingy.jp>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
 Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Guenetr Roeck <linux@roeck-us.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
