@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E0F322258C
-	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:33:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B92B2192FA
+	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:51:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766100813; cv=none; b=dBoBOAHUHlzf5KMLKkJFQhQRWIWZZJmvzbryQT2o8VQusajJFo/jpL3UcJrxpVVA5nXgveESS1Cph1RO8n7lyl6f7PlD403Hkpc+faaiRqQL28fVMP58uAFCJVzsa1K8W5nUtY5v72lWz3ouP4bgN1cfaw98PzhgjOOpjsqgVf8=
+	t=1766101915; cv=none; b=bXjAJvvPwAijtA6eJnVrrnUmj+liOXCfoQZQIN5txCiUd3k4sFeSj03AsvBVok53WapRG5s7nTFSRELQNKMbUfRkKxPd/CAJLsdXn5N+3Z+8UDdeKntDDuPLOcWYpjWNo0oNF89Jlp3Qvq38WCk/U2/JNvEK4cy6Vl6JTeMdfbk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766100813; c=relaxed/simple;
-	bh=qgnD9TG+r678irhEFKrsDKukbtjOzQVr6Ja15PJkFJY=;
-	h=Date:To:From:Subject:Message-Id; b=Zab34pcAW65V9RrBNBWFXHiaMGlkBW6ajMhFjrkfzsJzShrJ93LWODuCPF/QsfsubwBkagpKVwXWT1K0oSY9jV/quaMOCixIXWitCMtRkecvtI+D+PaeVC+goUjntdEmFrf8w18nhQfKEgkE+8+Tsn9nO4Mq1Bfm6ttKDzMNzFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X3vLHdYY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766101915; c=relaxed/simple;
+	bh=DktmU/BcinQr7N/NwDC5KTGeYdWcGydwaYU36ed+eoM=;
+	h=Date:To:From:Subject:Message-Id; b=jLwZLO0yZhjzwCRhwbViwPa5ASuvPXLqhyb0qCiW1kfFniaFBvtBVfe7rzt/AmfLkapYZjfnc5/fNC0NY44MM6CSqjAYOJcFqG9nRzj6/HKvXtSG8rl96UfT7+eLoiQVqw3zwnAmbH4qrWPmR0ma7XmR/GXG6QqInvFUuFyz2Ks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aXY08XOz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X3vLHdYY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68197C4CEFB;
-	Thu, 18 Dec 2025 23:33:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aXY08XOz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02683C4CEFB;
+	Thu, 18 Dec 2025 23:51:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766100813;
-	bh=qgnD9TG+r678irhEFKrsDKukbtjOzQVr6Ja15PJkFJY=;
+	s=korg; t=1766101915;
+	bh=DktmU/BcinQr7N/NwDC5KTGeYdWcGydwaYU36ed+eoM=;
 	h=Date:To:From:Subject:From;
-	b=X3vLHdYYn2ym/5dVWOtVCY9TNE3TEaAvxF8tTnODbwNR+H0j6Ynuvrq2unbiVpW7s
-	 GXk5Od+RYyK5AckA1VBao+htxM6DTsQNhVjWkXvZYxhNJo+ldZ3WlIX7QFUrYpq8cz
-	 N2UWLaEwFC1Sk+oJvG2cSnA870nR6D0jMyXCNw7k=
-Date: Thu, 18 Dec 2025 15:33:32 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tycho@kernel.org,oleg@redhat.com,david.laight.linux@gmail.com,brauner@kernel.org,mjguzik@gmail.com,akpm@linux-foundation.org
+	b=aXY08XOzxSnn2XaiDUpzO6qnh6+IiTXQZ5lKAUXGlmwzDOm6i9Acdm3EgFbIwXufJ
+	 DY91KM3Cp0eeWL7GY+Hg/BgnlX4X5kTPb5QfuX7autvpVb5uknJvqYLcneToqzpTGu
+	 UEMpX+iK0XLUAU+6ODEUDfn2ZSEUeShiiGeE+QWY=
+Date: Thu, 18 Dec 2025 15:51:54 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,gregkh@linuxfoundation.org,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] pid-only-take-pidmap_lock-once-on-alloc.patch removed from -mm tree
-Message-Id: <20251218233333.68197C4CEFB@smtp.kernel.org>
+Subject: [to-be-updated] hung_task-introduce-helper-for-hung-task-warning.patch removed from -mm tree
+Message-Id: <20251218235155.02683C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,265 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: pid: only take pidmap_lock once on alloc
+     Subject: hung_task: introduce helper for hung task warning
 has been removed from the -mm tree.  Its filename was
-     pid-only-take-pidmap_lock-once-on-alloc.patch
+     hung_task-introduce-helper-for-hung-task-warning.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Mateusz Guzik <mjguzik@gmail.com>
-Subject: pid: only take pidmap_lock once on alloc
-Date: Sat, 6 Dec 2025 14:19:55 +0100
+From: Aaron Tomlin <atomlin@atomlin.com>
+Subject: hung_task: introduce helper for hung task warning
+Date: Mon, 15 Dec 2025 22:00:35 -0500
 
-When spawning and killing threads in separate processes in parallel the
-primary bottleneck on the stock kernel is pidmap_lock, largely because of
-a back-to-back acquire in the common case.  This aspect is fixed with the
-patch.
+Patch series "hung_task: Provide runtime reset interface for hung task
+detector", v3.
 
-Performance improvement varies between reboots.  When benchmarking with 20
-processes creating and killing threads in a loop, the unpatched baseline
-hovers around 465k ops/s, while patched is anything between ~510k ops/s
-and ~560k depending on false-sharing (which I only minimally sanitized). 
-So this is at least 10% if you are unlucky.
+This series introduces the ability to reset
+/proc/sys/kernel/hung_task_detect_count.
 
-The change also facilitated some cosmetic changes.
+Writing any value to this file atomically resets the counter of detected
+hung tasks to zero.  This functionality provides system administrators
+with the means to clear the cumulative diagnostic history following
+incident resolution, thereby simplifying subsequent monitoring without
+necessitating a system restart.
 
-Link: https://lkml.kernel.org/r/20251206131955.780557-3-mjguzik@gmail.com
-Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Tested-by: Tycho Andersen (AMD) <tycho@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+
+This patch (of 2):
+
+Consolidate the multi-line console output block for reporting a hung task
+into a new helper function, hung_task_diagnostics().  This improves
+readability in the main check_hung_task() loop and makes the diagnostic
+output structure easier to maintain and update in the future.
+
+Link: https://lkml.kernel.org/r/20251216030036.1822217-1-atomlin@atomlin.com
+Link: https://lkml.kernel.org/r/20251216030036.1822217-2-atomlin@atomlin.com
+Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/kernel/pid.c~pid-only-take-pidmap_lock-once-on-alloc
-+++ a/kernel/pid.c
-@@ -159,65 +159,94 @@ void free_pids(struct pid **pids)
- 			free_pid(pids[tmp]);
+--- a/kernel/hung_task.c~hung_task-introduce-helper-for-hung-task-warning
++++ a/kernel/hung_task.c
+@@ -223,6 +223,32 @@ static inline void debug_show_blocker(st
  }
+ #endif
  
--struct pid *alloc_pid(struct pid_namespace *ns, pid_t *set_tid,
--		      size_t set_tid_size)
-+struct pid *alloc_pid(struct pid_namespace *ns, pid_t *arg_set_tid,
-+		      size_t arg_set_tid_size)
- {
-+	int set_tid[MAX_PID_NS_LEVEL + 1] = {};
-+	int pid_max[MAX_PID_NS_LEVEL + 1] = {};
- 	struct pid *pid;
- 	enum pid_type type;
- 	int i, nr;
- 	struct pid_namespace *tmp;
- 	struct upid *upid;
- 	int retval = -ENOMEM;
-+	bool retried_preload;
- 
- 	/*
--	 * set_tid_size contains the size of the set_tid array. Starting at
-+	 * arg_set_tid_size contains the size of the arg_set_tid array. Starting at
- 	 * the most nested currently active PID namespace it tells alloc_pid()
- 	 * which PID to set for a process in that most nested PID namespace
--	 * up to set_tid_size PID namespaces. It does not have to set the PID
--	 * for a process in all nested PID namespaces but set_tid_size must
-+	 * up to arg_set_tid_size PID namespaces. It does not have to set the PID
-+	 * for a process in all nested PID namespaces but arg_set_tid_size must
- 	 * never be greater than the current ns->level + 1.
- 	 */
--	if (set_tid_size > ns->level + 1)
-+	if (unlikely(arg_set_tid_size > ns->level + 1))
- 		return ERR_PTR(-EINVAL);
- 
-+	/*
-+	 * Prep before we take locks:
-+	 *
-+	 * 1. allocate and fill in pid struct
-+	 */
- 	pid = kmem_cache_alloc(ns->pid_cachep, GFP_KERNEL);
--	if (!pid)
-+	if (unlikely(!pid))
- 		return ERR_PTR(retval);
- 
--	tmp = ns;
-+	get_pid_ns(ns);
- 	pid->level = ns->level;
-+	refcount_set(&pid->count, 1);
-+	spin_lock_init(&pid->lock);
-+	for (type = 0; type < PIDTYPE_MAX; ++type)
-+		INIT_HLIST_HEAD(&pid->tasks[type]);
-+	init_waitqueue_head(&pid->wait_pidfd);
-+	INIT_HLIST_HEAD(&pid->inodes);
- 
--	for (i = ns->level; i >= 0; i--) {
--		int tid = 0;
--		int pid_max = READ_ONCE(tmp->pid_max);
-+	/*
-+	 * 2. perm check checkpoint_restore_ns_capable()
-+	 *
-+	 * This stores found pid_max to make sure the used value is the same should
-+	 * later code need it.
-+	 */
-+	for (tmp = ns, i = ns->level; i >= 0;) {
-+		pid_max[ns->level - i] = READ_ONCE(tmp->pid_max);
- 
--		if (set_tid_size) {
--			tid = set_tid[ns->level - i];
-+		if (arg_set_tid_size) {
-+			int tid = set_tid[ns->level - i] = arg_set_tid[ns->level - i];
- 
- 			retval = -EINVAL;
--			if (tid < 1 || tid >= pid_max)
--				goto out_free;
-+			if (tid < 1 || tid >= pid_max[ns->level - i])
-+				goto out_abort;
- 			/*
- 			 * Also fail if a PID != 1 is requested and
- 			 * no PID 1 exists.
- 			 */
- 			if (tid != 1 && !tmp->child_reaper)
--				goto out_free;
-+				goto out_abort;
- 			retval = -EPERM;
- 			if (!checkpoint_restore_ns_capable(tmp->user_ns))
--				goto out_free;
--			set_tid_size--;
-+				goto out_abort;
-+			arg_set_tid_size--;
- 		}
- 
--		idr_preload(GFP_KERNEL);
--		spin_lock(&pidmap_lock);
-+		tmp = tmp->parent;
-+		i--;
-+	}
++/**
++ * hung_task_diagnostics - Print structured diagnostic info for a hung task.
++ * @t: Pointer to the detected hung task.
++ *
++ * This function consolidates the printing of core diagnostic information
++ * for a task found to be blocked.
++ */
++static inline void hung_task_diagnostics(struct task_struct *t)
++{
++	unsigned long blocked_secs = (jiffies - t->last_switch_time) / HZ;
++	const char *coredump_msg = "      Blocked by coredump.";
++	const char *disable_msg =
++		"\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
++		" disables this message.";
 +
-+	/*
-+	 * Prep is done, id allocation goes here:
-+	 */
-+	retried_preload = false;
-+	idr_preload(GFP_KERNEL);
-+	spin_lock(&pidmap_lock);
-+	for (tmp = ns, i = ns->level; i >= 0;) {
-+		int tid = set_tid[ns->level - i];
++	pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
++	       t->comm, t->pid, blocked_secs);
++	pr_err("      %s %s %.*s\n",
++	       print_tainted(), init_utsname()->release,
++	       (int)strcspn(init_utsname()->version, " "),
++	       init_utsname()->version);
++	if (t->flags & PF_POSTCOREDUMP)
++		pr_err("%s\n", coredump_msg);
++	pr_err("%s\n", disable_msg);
++}
++
+ static void check_hung_task(struct task_struct *t, unsigned long timeout,
+ 		unsigned long prev_detect_count)
+ {
+@@ -252,16 +278,7 @@ static void check_hung_task(struct task_
+ 	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+ 		if (sysctl_hung_task_warnings > 0)
+ 			sysctl_hung_task_warnings--;
+-		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
+-		       t->comm, t->pid, (jiffies - t->last_switch_time) / HZ);
+-		pr_err("      %s %s %.*s\n",
+-			print_tainted(), init_utsname()->release,
+-			(int)strcspn(init_utsname()->version, " "),
+-			init_utsname()->version);
+-		if (t->flags & PF_POSTCOREDUMP)
+-			pr_err("      Blocked by coredump.\n");
+-		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
+-			" disables this message.\n");
++		hung_task_diagnostics(t);
+ 		sched_show_task(t);
+ 		debug_show_blocker(t, timeout);
  
- 		if (tid) {
- 			nr = idr_alloc(&tmp->idr, NULL, tid,
- 				       tid + 1, GFP_ATOMIC);
- 			/*
- 			 * If ENOSPC is returned it means that the PID is
--			 * alreay in use. Return EEXIST in that case.
-+			 * already in use. Return EEXIST in that case.
- 			 */
- 			if (nr == -ENOSPC)
- 				nr = -EEXIST;
-@@ -235,19 +264,41 @@ struct pid *alloc_pid(struct pid_namespa
- 			 * a partially initialized PID (see below).
- 			 */
- 			nr = idr_alloc_cyclic(&tmp->idr, NULL, pid_min,
--					      pid_max, GFP_ATOMIC);
-+					      pid_max[ns->level - i], GFP_ATOMIC);
-+			if (nr == -ENOSPC)
-+				nr = -EAGAIN;
- 		}
--		spin_unlock(&pidmap_lock);
--		idr_preload_end();
- 
--		if (nr < 0) {
--			retval = (nr == -ENOSPC) ? -EAGAIN : nr;
-+		if (unlikely(nr < 0)) {
-+			/*
-+			 * Preload more memory if idr_alloc{,cyclic} failed with -ENOMEM.
-+			 *
-+			 * The IDR API only allows us to preload memory for one call, while we may end
-+			 * up doing several with GFP_ATOMIC. It may be the situation is salvageable with
-+			 * GFP_KERNEL. But make sure to not loop indefinitely if preload did not help
-+			 * (the routine unfortunately returns void, so we have no idea if it got anywhere).
-+			 *
-+			 * The pidmap lock can be safely dropped and picked up as historically pid allocation
-+			 * for different namespaces was *not* atomic -- we try to hold on to it the
-+			 * entire time only for performance reasons.
-+			 */
-+			if (nr == -ENOMEM && !retried_preload) {
-+				spin_unlock(&pidmap_lock);
-+				idr_preload_end();
-+				retried_preload = true;
-+				idr_preload(GFP_KERNEL);
-+				spin_lock(&pidmap_lock);
-+				continue;
-+			}
-+			retval = nr;
- 			goto out_free;
- 		}
- 
- 		pid->numbers[i].nr = nr;
- 		pid->numbers[i].ns = tmp;
- 		tmp = tmp->parent;
-+		i--;
-+		retried_preload = false;
- 	}
- 
- 	/*
-@@ -257,25 +308,15 @@ struct pid *alloc_pid(struct pid_namespa
- 	 * is what we have exposed to userspace for a long time and it is
- 	 * documented behavior for pid namespaces. So we can't easily
- 	 * change it even if there were an error code better suited.
-+	 *
-+	 * This can't be done earlier because we need to preserve other
-+	 * error conditions.
- 	 */
- 	retval = -ENOMEM;
--
--	get_pid_ns(ns);
--	refcount_set(&pid->count, 1);
--	spin_lock_init(&pid->lock);
--	for (type = 0; type < PIDTYPE_MAX; ++type)
--		INIT_HLIST_HEAD(&pid->tasks[type]);
--
--	init_waitqueue_head(&pid->wait_pidfd);
--	INIT_HLIST_HEAD(&pid->inodes);
--
--	upid = pid->numbers + ns->level;
--	idr_preload(GFP_KERNEL);
--	spin_lock(&pidmap_lock);
--	if (!(ns->pid_allocated & PIDNS_ADDING))
--		goto out_unlock;
-+	if (unlikely(!(ns->pid_allocated & PIDNS_ADDING)))
-+		goto out_free;
- 	pidfs_add_pid(pid);
--	for ( ; upid >= pid->numbers; --upid) {
-+	for (upid = pid->numbers + ns->level; upid >= pid->numbers; --upid) {
- 		/* Make the PID visible to find_pid_ns. */
- 		idr_replace(&upid->ns->idr, pid, upid->nr);
- 		upid->ns->pid_allocated++;
-@@ -286,13 +327,7 @@ struct pid *alloc_pid(struct pid_namespa
- 
- 	return pid;
- 
--out_unlock:
--	spin_unlock(&pidmap_lock);
--	idr_preload_end();
--	put_pid_ns(ns);
--
- out_free:
--	spin_lock(&pidmap_lock);
- 	while (++i <= ns->level) {
- 		upid = pid->numbers + i;
- 		idr_remove(&upid->ns->idr, upid->nr);
-@@ -303,7 +338,10 @@ out_free:
- 		idr_set_cursor(&ns->idr, 0);
- 
- 	spin_unlock(&pidmap_lock);
-+	idr_preload_end();
- 
-+out_abort:
-+	put_pid_ns(ns);
- 	kmem_cache_free(ns->pid_cachep, pid);
- 	return ERR_PTR(retval);
- }
 _
 
-Patches currently in -mm which might be from mjguzik@gmail.com are
+Patches currently in -mm which might be from atomlin@atomlin.com are
 
+hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
 
