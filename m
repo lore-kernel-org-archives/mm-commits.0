@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FA2C2356C9
-	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:01:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 009722C11CF
+	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:07:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766098862; cv=none; b=d/PkvVszXZLxkQr0i7t1Alz1HNat8FTFHYJKsvoZD0b/AP/25CHzbMsV+UhzJt1pWS87CTpvvHlhfD5HLmaY62egNtFjMh23dbAbTjVt+bAzwD1aazbggggNGCVAOgnPwD2IvMGIVCYXTlHgIkys4iseDjborMjy3CeoBdZjnVw=
+	t=1766099260; cv=none; b=UG0STkpLEph1Zmq4qTvTMnvV08RjWEj1Z6PdNQUMicrstHQExOkfB/pkd+fSHc6dDWQr7oahMx10zBnp9Xc47s2apfDyDvJPZhqmwU/Oum/F63dztf0NZFcO8ryxogzeaiJhp0akar9kzaqG8x7P4qNru4glLnQdvSJg4xaogQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766098862; c=relaxed/simple;
-	bh=Q03Iw9SnbKmRX+cOpabE/DWcKtaOHLyFIdvywxBdq+0=;
-	h=Date:To:From:Subject:Message-Id; b=MjxRm8G3VPvD/gy3qTcyuchjIdnExI6ynpWvdjN9yI5nj/gsP7akuozdFRVbCJ6aOj16WjWbuILTLDVYcrv9i1eENSBOpxceE7AQW2gjA/aa8yfM4WGxr4/vcMDjBg591OFB5m3Z0ITKmduiY+BkENSIwckk/LtpocJTgMgshq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k/uYHToa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766099260; c=relaxed/simple;
+	bh=0AYIHquJqf9x6k0bMAY/gmDHvxk0rsNWhJ/l1My1Jvk=;
+	h=Date:To:From:Subject:Message-Id; b=VkmR8ql4ibwnLZq6+FMjNA+IvgTFPOVl7iQIM13/Tm0fxPGP5aEWZ6uW675bV3r418xPR0CacuDO9mcYT5Fvj1rAGQAZtx6Mu3t6CSlcA/6Ac6ZZW4JS5baYJhKyZq979KuISufAIJhzUevJGRovDvdWeT1ptCV8ZNnFPaO4mvs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XC16qyW+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k/uYHToa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B06C9C4CEFB;
-	Thu, 18 Dec 2025 23:01:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XC16qyW+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68143C116C6;
+	Thu, 18 Dec 2025 23:07:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766098860;
-	bh=Q03Iw9SnbKmRX+cOpabE/DWcKtaOHLyFIdvywxBdq+0=;
+	s=korg; t=1766099259;
+	bh=0AYIHquJqf9x6k0bMAY/gmDHvxk0rsNWhJ/l1My1Jvk=;
 	h=Date:To:From:Subject:From;
-	b=k/uYHToarU6RhCKTH2kfd921KnYM14OejyGMu0+dyQICmPERbVoFpNDw6YskYCSU0
-	 I6JwySQ5TBExF9FoKu+fuLgUTtZR1osmCIt6pIKZuBS/w1EPF2UlAJ6cb1d9niswdr
-	 xtTqnHZix+2vA5irukQnvKwIa14qouiznZwrvXZ8=
-Date: Thu, 18 Dec 2025 15:01:00 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,linux@roeck-us.net,jackmanb@google.com,hannes@cmpxchg.org,daniel@thingy.jp,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=XC16qyW+ASAj9w3I2TzeSRHwxa/n3p6qv5Di/ooJ6XNPCYOLOjlo+cgrn8hhxqIRG
+	 jk5+DbWAeUVDP9LE4DSrdEA7COpukA4/Lm2I0MpHwrR8N99iCS2mJdc8ez7JTKXep6
+	 eH2MX230luK4njGB+MJxs1wmMEAd6VwYKe6aSu6I=
+Date: Thu, 18 Dec 2025 15:07:38 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,glass.su@suse.com,gechangwei@live.cn,dan.carpenter@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-report-1-as-zone_batchsize-for-config_mmu.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251218230100.B06C9C4CEFB@smtp.kernel.org>
+Subject: + ocfs2-detect-released-suballocator-bg-for-fh_to_-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20251218230739.68143C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: report 1 as zone_batchsize for !CONFIG_MMU
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-report-1-as-zone_batchsize-for-config_mmu.patch
+     Subject: ocfs2: fix uninitialized variable in ocfs2_test_suballoc_bit()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-detect-released-suballocator-bg-for-fh_to_-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-report-1-as-zone_batchsize-for-config_mmu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-detect-released-suballocator-bg-for-fh_to_-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,58 +58,45 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/page_alloc: report 1 as zone_batchsize for !CONFIG_MMU
-Date: Thu, 18 Dec 2025 00:31:59 -0800
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: ocfs2: fix uninitialized variable in ocfs2_test_suballoc_bit()
+Date: Thu, 18 Dec 2025 10:48:12 +0300
 
-Commit 2783088ef24e ("mm/page_alloc: prevent reporting pcp->batch = 0")
-moved the error handling (0-handling) of zone_batchsize from its callers
-to inside the function.  However, the commit left out the error handling
-for the NOMMU case, leading to deadlocks on NOMMU systems.
+The ocfs2_read_hint_group_descriptor() function sets "*released = 1;" but
+nothing ever sets it to zero so it's used without being initialized. 
+Initialize it to zero.
 
-For NOMMU systems, return 1 instead of 0 for zone_batchsize, which
-restores the previous deadlock-free behavior.
-
-There is no functional difference expected with this patch before commit
-2783088ef24e, other than the pr_debug in zone_pcp_init now printing out 1
-instead of 0 for zones in NOMMU systems.  Not only is this a pr_debug, the
-difference is purely semantic anyways.
-
-Link: https://lkml.kernel.org/r/20251218083200.2435789-1-joshua.hahnjy@gmail.com
-Fixes: 2783088ef24e ("mm/page_alloc: prevent reporting pcp->batch = 0")
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reported-by: Daniel Palmer <daniel@thingy.jp>
-Closes: https://lore.kernel.org/linux-mm/CAFr9PX=_HaM3_xPtTiBn5Gw5-0xcRpawpJ02NStfdr0khF2k7g@mail.gmail.com/
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Closes: https://lore.kernel.org/all/42143500-c380-41fe-815c-696c17241506@roeck-us.net/
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Daniel Palmer <daniel@thingy.jp>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/dc37519fd2470909f8c65e26c5131b8b6dde2a5c.1766043917.git.dan.carpenter@linaro.org
+Fixes: acb8a8335a64 ("ocfs2: detect released suballocator BG for fh_to_[dentry|parent]")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Su Yue <glass.su@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ fs/ocfs2/suballoc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-report-1-as-zone_batchsize-for-config_mmu
-+++ a/mm/page_alloc.c
-@@ -5924,7 +5924,7 @@ static int zone_batchsize(struct zone *z
- 	 * recycled, this leads to the once large chunks of space being
- 	 * fragmented and becoming unavailable for high-order allocations.
- 	 */
--	return 0;
-+	return 1;
- #endif
- }
+--- a/fs/ocfs2/suballoc.c~ocfs2-detect-released-suballocator-bg-for-fh_to_-fix
++++ a/fs/ocfs2/suballoc.c
+@@ -3163,7 +3163,7 @@ static int ocfs2_test_suballoc_bit(struc
+ 	struct ocfs2_group_desc *group;
+ 	struct buffer_head *group_bh = NULL;
+ 	u64 bg_blkno;
+-	int status, quiet = 0, released;
++	int status, quiet = 0, released = 0;
  
+ 	trace_ocfs2_test_suballoc_bit((unsigned long long)blkno,
+ 				      (unsigned int)bit);
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-mm-page_alloc-report-1-as-zone_batchsize-for-config_mmu.patch
+ocfs2-detect-released-suballocator-bg-for-fh_to_-fix.patch
 
