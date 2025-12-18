@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 618622877DE
-	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:25:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0C662FE598
+	for <mm-commits@vger.kernel.org>; Thu, 18 Dec 2025 23:28:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766100350; cv=none; b=MJVpWUEsjACAmkMzCYzRM+JZhLdsPbGO9nEjaJhAxxXahF4lmC+yv7apRF9M6VQV6kF0L+Y2oUnFdSe//T+b2wqeZ34C9VTART954jEeoaNNf2mG8Xp+CtlCKw5/kJlga3oyBOZU/FKLopP8QCvnUdVyqTDST4rWuzjHmV/9F+o=
+	t=1766100538; cv=none; b=EkqzAkRu2CvoyO+rMCVRBCYdblgwQGgwG3J88u+MuIjQoY3YQAggG0G0MFZRT4GQBvcCl7hbENRRhnd7YwOQv1FJ7JHqreCddOqH9XrnYrG2aH2AjAZSx3dJQV4EOSQrq7GqiiyjUVTLepB9LFReISmaOMdHO0nEoVs6vipwx8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766100350; c=relaxed/simple;
-	bh=9HRi+XBVqf48VzoQ4ah32Of0cnBd07bruHUKOL45dcw=;
-	h=Date:To:From:Subject:Message-Id; b=mDJZIe2WqJDuBZnXyHXum6en80OgJSgSiKHjyRY7a6qqQjqS7v8M5ft0q5+/+Emr9hplG0J0T0KN5XgooHmgOU7yoptol6bmbSP0C/Oe2b9Weyd85htDaLNBJ2Nl8TSkX+6pUkNm00JIRJjjIeyOD13FAJhhA7SkPKCTwaEwqaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xEQG5Jmu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766100538; c=relaxed/simple;
+	bh=2hO0TV/dZx9vIGTwNE/6O/6n50B2yeiO6IGz+KoDS7c=;
+	h=Date:To:From:Subject:Message-Id; b=IzWAIkzc+SUFumY7IeYdos5abuo2w0TeqqQDMruWGsdd1CqF1nUN0gyUX831YaYIv9JafSHkFRBKCxM2WVr3Uozily5IKC9HFOGsAtOuVumVZ/6ZuCgJGu4K3PqKWlLxMvsfMJUy8NnQGLr0f42E3mJnDeckb6/NncBgBSKrfZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pi9iI41j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xEQG5Jmu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAE57C4CEFB;
-	Thu, 18 Dec 2025 23:25:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pi9iI41j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14ECDC116D0;
+	Thu, 18 Dec 2025 23:28:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766100348;
-	bh=9HRi+XBVqf48VzoQ4ah32Of0cnBd07bruHUKOL45dcw=;
+	s=korg; t=1766100538;
+	bh=2hO0TV/dZx9vIGTwNE/6O/6n50B2yeiO6IGz+KoDS7c=;
 	h=Date:To:From:Subject:From;
-	b=xEQG5JmuDFL7V55N2tcfu/vkkqN8+VsPb9idAYSF8PTa9e457FNF+gv5JcxZAF4h+
-	 pjYkbPw1M8h7Lo2qeMQoNVv0DuMimGAI6bD+heOpd/C7LNsRH3EOrKuQYNfmaHUVSd
-	 tFs+XRO3ZYfcGR2jfRrmh5V5R7X1cPRds4IGBvsM=
-Date: Thu, 18 Dec 2025 15:25:48 -0800
-To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,sdf@fomichev.me,npiggin@gmail.com,martin.lau@linux.dev,lance.yang@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,lirongqing@baidu.com,akpm@linux-foundation.org
+	b=Pi9iI41jB/qiqhUToZBarkHjSuco8Fb7aCToNxnDR+VyOv/eCyUadOW+P9kQMRLUU
+	 dOxxyq9GUW7FwJQ8Sf/us3jCcBv1ytoaVERJh5rQRaqeitzvsYBIsgmw9LjGCHS1LX
+	 BuFMSdPXoqCDRuEFTZFU4dT8y480gGG2ldymwbZE=
+Date: Thu, 18 Dec 2025 15:28:57 -0800
+To: mm-commits@vger.kernel.org,sparse@chrisli.org,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2.patch added to mm-nonmm-unstable branch
-Message-Id: <20251218232548.CAE57C4CEFB@smtp.kernel.org>
+Subject: + sparse-update-maintainers-info.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251218232858.14ECDC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2.patch
+     Subject: sparse: update MAINTAINERS info
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     sparse-update-maintainers-info.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparse-update-maintainers-info.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,72 +58,39 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Li RongQing <lirongqing@baidu.com>
-Subject: watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
-Date: Thu, 18 Dec 2025 02:43:00 -0500
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: sparse: update MAINTAINERS info
+Date: Wed, 17 Dec 2025 22:09:21 -0800
 
-add a temp variable thresh_count
-chang config to 0 in kernel/configs/debug.config 
+Chris Li is back as sparse maintainer.
 
-Link: https://lkml.kernel.org/r/20251218074300.4080-1-lirongqing@baidu.com
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Yonghong Song <yonghong.song@linux.dev>
+See https://git.kernel.org/pub/scm/devel/sparse/sparse.git/commit/?id=67f0a03cee4637e495151c48a02be642a158cbbb
+
+Link: https://lkml.kernel.org/r/20251218060921.995516-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Christopher Li <sparse@chrisli.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/configs/debug.config |    2 +-
- kernel/watchdog.c           |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/configs/debug.config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
-+++ a/kernel/configs/debug.config
-@@ -84,7 +84,7 @@ CONFIG_SLUB_DEBUG_ON=y
- # Debug Oops, Lockups and Hangs
- #
- CONFIG_BOOTPARAM_HUNG_TASK_PANIC=0
--# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=0
- CONFIG_DEBUG_ATOMIC_SLEEP=y
- CONFIG_DETECT_HUNG_TASK=y
- CONFIG_PANIC_ON_OOPS=y
---- a/kernel/watchdog.c~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
-+++ a/kernel/watchdog.c
-@@ -774,8 +774,8 @@ static enum hrtimer_restart watchdog_tim
- {
- 	unsigned long touch_ts, period_ts, now;
- 	struct pt_regs *regs = get_irq_regs();
--	int duration;
- 	int softlockup_all_cpu_backtrace;
-+	int duration, thresh_count;
- 	unsigned long flags;
+--- a/MAINTAINERS~sparse-update-maintainers-info
++++ a/MAINTAINERS
+@@ -24575,7 +24575,7 @@ F:	drivers/tty/vcc.c
+ F:	include/linux/sunserialcore.h
  
- 	if (!watchdog_enabled)
-@@ -879,9 +879,9 @@ static enum hrtimer_restart watchdog_tim
- 
- 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
- 		sys_info(softlockup_si_mask & ~SYS_INFO_ALL_BT);
--		duration = duration / get_softlockup_thresh();
-+		thresh_count = duration / get_softlockup_thresh();
- 
--		if (softlockup_panic && duration >= softlockup_panic)
-+		if (softlockup_panic && thresh_count >= softlockup_panic)
- 			panic("softlockup: hung tasks");
- 	}
- 
+ SPARSE CHECKER
+-M:	"Luc Van Oostenryck" <luc.vanoostenryck@gmail.com>
++M:	Chris Li <sparse@chrisli.org>
+ L:	linux-sparse@vger.kernel.org
+ S:	Maintained
+ W:	https://sparse.docs.kernel.org/
 _
 
-Patches currently in -mm which might be from lirongqing@baidu.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds.patch
-watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2.patch
+mm-leafopsh-correct-kernel-doc-function-param-names.patch
+sparse-update-maintainers-info.patch
+kernelh-drop-hexh-and-update-all-hexh-users.patch
 
