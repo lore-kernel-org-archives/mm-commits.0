@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27F0D24169D
-	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 19:53:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7DBC24169D
+	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 19:54:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766260435; cv=none; b=q18RCXtJH45jXevIzB3qYxTZs5UsAzAzPIwg7LoOS/5YvdwYjM8QsnpEFOEeTml2BJiVgLkcRZUJpTjpVtXZhHJeYXzqMyPxDON6Y5pLb5dxuhp34wZSUFBDkPVLBZCLn1tkRZ3Ugqlkrzqw7heBx5OztAXv4fi5Dds0ujLwQJM=
+	t=1766260482; cv=none; b=J4jMkPA1IuGS8lfM+4yGUsE0qXsaJoKE5F+gSNAZWNBXMCtn13IpUtoj+VQl9E6kFQ99jGnzii1e0BEQijE2UwtRn42Xe27+7S6VKnGuJ9qOP0sIXmEgLiaGarGP5dH+gv7MJtsPyhvEQakF8aUNbVQUoGzABscHVfJirL7ct3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766260435; c=relaxed/simple;
-	bh=Jt1f202sPBTDMikifNgdGYxl1K4fwJrGvRW/2ykaRtg=;
-	h=Date:To:From:Subject:Message-Id; b=l9CxERW+vZT5zyFX95fe2uF2JhlvUGWDdCcvZwb4QbymEVaZFjk8aJCYc0CCPNt0S6T6Zx6/dTAathtjofABDu764GdoqGeuXUt6LOslXPC3ahPdn1F38BmvkzTIiQyIvqnKrcvsIBs+NFMDhoQn3rjiB4STJSNtT1yM6LUHpws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EFpiamOh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766260482; c=relaxed/simple;
+	bh=Mgr+6u7tznCQchbDdCZzfma8Vb786kiocSHqPnIl7/c=;
+	h=Date:To:From:Subject:Message-Id; b=Zmgfcd5nhMmtTueT0p9xh2/eKVdbufnaMHsSmbd2Z48KMiJKntdp6FMh920A13FLCuI0fVHijkRLOBxsKYx7P+loS6o1kRIeZTCWaUROfcEeOobAVNBMy9cYmP8HE5yvMOvPaS5GKRehKKkgmED2XRa4ANOvkiHaoIyOhROZOHA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pMeriz11; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EFpiamOh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D17FC4CEF5;
-	Sat, 20 Dec 2025 19:53:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pMeriz11"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E1B3C4CEF5;
+	Sat, 20 Dec 2025 19:54:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766260434;
-	bh=Jt1f202sPBTDMikifNgdGYxl1K4fwJrGvRW/2ykaRtg=;
+	s=korg; t=1766260481;
+	bh=Mgr+6u7tznCQchbDdCZzfma8Vb786kiocSHqPnIl7/c=;
 	h=Date:To:From:Subject:From;
-	b=EFpiamOh3jzsHzLUVVu0VczXLRWSKKR5VfpxnJU7TcTUpFcz877EQj7uUA4xgHQ0K
-	 b4KCkd1xCMmds6lisZaKCbOgPSuFC1okjiN/zRa+LAo57ojJNRwAcp7wwaubc4kB5l
-	 KTJkIAocHn7w3yHVLxi9o5xDz0AOsqdH5XfHJ6K8=
-Date: Sat, 20 Dec 2025 11:53:54 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,cl@linux.com,bigeasy@linutronix.de,dennis@kernel.org,akpm@linux-foundation.org
+	b=pMeriz11VpkuSiSmNYPGigqppBqQW8z97PCiT1nKgACq3QBVwidPcMwaz/GesSB1h
+	 cFS4p9nT3WZZQ2vOiuIzmW5asE2LRLILHKup5PnZlzIDnr6xxTJcpTG5nm6DiwZrzc
+	 xC35u5CwRGiGOmxLaN52Rweh7izrCoatm2m8OMCI=
+Date: Sat, 20 Dec 2025 11:54:41 -0800
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,osalvador@suse.de,jonathan.cameron@huawei.com,John@Groves.net,ira.weiny@intel.com,david@kernel.org,dave@stgolabs.net,dave.jiang@intel.com,alison.schofield@intel.com,dan.j.williams@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + percpu-add-basic-double-free-check.patch added to mm-new branch
-Message-Id: <20251220195354.9D17FC4CEF5@smtp.kernel.org>
+Subject: + maintainers-notify-the-device-memory-community-of-memory-hotplug-changes.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251220195441.9E1B3C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: percpu: add basic double free check
-has been added to the -mm mm-new branch.  Its filename is
-     percpu-add-basic-double-free-check.patch
+     Subject: MAINTAINERS: notify the "Device Memory" community of memory hotplug changes
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-notify-the-device-memory-community-of-memory-hotplug-changes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-add-basic-double-free-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-notify-the-device-memory-community-of-memory-hotplug-changes.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,78 +58,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dennis Zhou <dennis@kernel.org>
-Subject: percpu: add basic double free check
-Date: Fri, 19 Dec 2025 16:27:37 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: MAINTAINERS: notify the "Device Memory" community of memory hotplug changes
+Date: Fri, 19 Dec 2025 16:03:27 -0800
 
-This adds a basic double free check by validating the first bit of the
-allocation in alloc_map and bound_map are set.  If the alloc_map bit is
-not set, then this means the area is currently unallocated.  If the
-bound_map bit is not set, then we are not freeing from the beginning of
-the allocation.
+The recent episode of a warning regression in memremap_pages() [1]
+highlights that relevant updates are being missed by folks that care about
+core ZONE_DEVICE changes.  Yes, CXL folks should pay more attention to
+linux-mm@, but it also would not hurt to copy linux-cxl@, where most
+Device Memory folks hang out, on memory hotplug changes by default.
 
-This is a respin of [1] adding the requested changes from me and
-Christoph.
-
-Link: https://lkml.kernel.org/r/20251220002737.84100-1-dennis@kernel.org
-Link: https://lore.kernel.org/linux-mm/20250904143514.Yk6Ap-jy@linutronix.de/ [1]
-Signed-off-by: Dennis Zhou <dennis@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Chistoph Lameter <cl@linux.com>
-Cc: Tejun Heo <tj@kernel.org>
+Link: http://lore.kernel.org/20251219123717.39330-1-john@groves.net [1]
+Link: https://lkml.kernel.org/r/20251220000327.3502994-1-dan.j.williams@intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: John Groves <John@Groves.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/percpu.c~percpu-add-basic-double-free-check
-+++ a/mm/percpu.c
-@@ -79,6 +79,7 @@
- #include <linux/mutex.h>
- #include <linux/percpu.h>
- #include <linux/pfn.h>
-+#include <linux/ratelimit.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/vmalloc.h>
-@@ -1285,6 +1286,11 @@ static int pcpu_free_area(struct pcpu_ch
- 
- 	bit_off = off / PCPU_MIN_ALLOC_SIZE;
- 
-+	/* check double free */
-+	if (!test_bit(bit_off, chunk->alloc_map) ||
-+	    !test_bit(bit_off, chunk->bound_map))
-+		return 0;
-+
- 	/* find end index */
- 	end = find_next_bit(chunk->bound_map, pcpu_chunk_map_bits(chunk),
- 			    bit_off + 1);
-@@ -2225,6 +2231,7 @@ static void pcpu_balance_workfn(struct w
-  */
- void free_percpu(void __percpu *ptr)
- {
-+	static DEFINE_RATELIMIT_STATE(_rs, 60 * HZ, DEFAULT_RATELIMIT_BURST);
- 	void *addr;
- 	struct pcpu_chunk *chunk;
- 	unsigned long flags;
-@@ -2242,6 +2249,13 @@ void free_percpu(void __percpu *ptr)
- 
- 	spin_lock_irqsave(&pcpu_lock, flags);
- 	size = pcpu_free_area(chunk, off);
-+	if (size == 0) {
-+		spin_unlock_irqrestore(&pcpu_lock, flags);
-+
-+		if (__ratelimit(&_rs))
-+			WARN(1, "percpu double free\n");
-+		return;
-+	}
- 
- 	pcpu_alloc_tag_free_hook(chunk, off, size);
- 
+--- a/MAINTAINERS~maintainers-notify-the-device-memory-community-of-memory-hotplug-changes
++++ a/MAINTAINERS
+@@ -16428,6 +16428,7 @@ MEMORY HOT(UN)PLUG
+ M:	David Hildenbrand <david@kernel.org>
+ M:	Oscar Salvador <osalvador@suse.de>
+ L:	linux-mm@kvack.org
++L:	linux-cxl@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/admin-guide/mm/memory-hotplug.rst
+ F:	Documentation/core-api/memory-hotplug.rst
 _
 
-Patches currently in -mm which might be from dennis@kernel.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-percpu-add-basic-double-free-check.patch
+maintainers-notify-the-device-memory-community-of-memory-hotplug-changes.patch
 
