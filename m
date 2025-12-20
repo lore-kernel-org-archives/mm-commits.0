@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 444D54C92
-	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 03:28:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AEEF263F54
+	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 19:23:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766201306; cv=none; b=c84kIJUI5OU4+lyTzsCcEdDzd2CxQUVecbKfNOe9Vdxts7jN9p0N7GckjAOpB7mNYMjXAchTDWKgk9p1T12NpN5yBbWkL1pJtAzOsWqzmx/6BEkZtqWBSm53C3jyXDuZOIX35Hg+fEb0m174WGlp1ZpSbBM+lL+50WHyqJ1fK6E=
+	t=1766258602; cv=none; b=dJyxTBWxPd72oTJzwihOdxcUJ6wsXHMS8XZNtUfQdSKb+QNw30pQ0uwUQ4tGciCIqmbr1MMWIaI4ja8LufDsJitCet4OXqPtTUk42sfEWMUtMsnHwUNdbSKMjMmao7xUlFZBBkrEOcfpqwfebIYJ5fnRnCCVqLKMmX+9lx27zW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766201306; c=relaxed/simple;
-	bh=sisUkT6/GEdmctdX7okM+Qce+Db50J7NUNppk8MJpoo=;
-	h=Date:To:From:Subject:Message-Id; b=PIDskuq8HJhXEX2xz57yGsuoe5bZll5nw5x1xSUBXD7BCDhpzTGWFe1mDmpKtGd8otLWd16fxIrjHqUVaS9kaOCH1nWqAx3/y0YQx5J6JplQMk4TLouXNyZ/C+381qIZVMTNo7Aahlo7pHkeHo5W732pKtIIBzAKAPtV2dAK0/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jf1TntQN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766258602; c=relaxed/simple;
+	bh=P8zmB8K/JPdtoSoKxtEA7v2uVHDXXMkdUELE40cdsfI=;
+	h=Date:To:From:Subject:Message-Id; b=UbeHZRhn/tAIPO6QG6BbexLIvifTSfdAntTcDjIcWauxCOjPzVMtzJoZAFf7YIrEsMZOt+1N1IuH6wAOenFPlBgxkRvQczPQAb0pJZ2KKODH22IWX25KByL0eqiwLv3fqymoRE9GGabIDP5WTlMHyQ2KWa59r6wZCIuOMxtsn/g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y3K+wE8R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jf1TntQN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF14AC4CEF5;
-	Sat, 20 Dec 2025 03:28:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y3K+wE8R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 594ECC4CEF5;
+	Sat, 20 Dec 2025 19:23:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766201305;
-	bh=sisUkT6/GEdmctdX7okM+Qce+Db50J7NUNppk8MJpoo=;
+	s=korg; t=1766258602;
+	bh=P8zmB8K/JPdtoSoKxtEA7v2uVHDXXMkdUELE40cdsfI=;
 	h=Date:To:From:Subject:From;
-	b=Jf1TntQN3ybcvKIW++XEkw55roBPVAMfUReV7msNANa5KRFtakW52O0ryuKbZ/zvx
-	 KM7BA/+Br1uS35V0o+fc/79LWdmpl2AFR+jv9vRfaWJTSlxWqmsfnOkYlAlt4ualxa
-	 X+p21WwzGHb1hYV5NQis5VdnhnHFQ5vgbBykrcaM=
-Date: Fri, 19 Dec 2025 19:28:24 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@gentwo.org,a909204013@gmail.com,niuwl1@chinatelecom.cn,akpm@linux-foundation.org
+	b=Y3K+wE8RbuCAbkGvJKOeAOESLEwvOFndKJpHY/RaocuETVfv8isrj0ss8LDa2qCnI
+	 xkfP1xy1j4TvKxXouPNRqYxeeERFNqiYQAov7e3zawyLLKssPKOy2NWw+WwSmOrX/K
+	 FqFSp6JT6PZ9NBnoM27OOkw/MQI7F1x9RZ2+07IU=
+Date: Sat, 20 Dec 2025 11:23:21 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stefani@seibold.net,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] mm-percpu-drop-unused-max_upa-in-pcpu_build_alloc_info.patch removed from -mm tree
-Message-Id: <20251220032825.AF14AC4CEF5@smtp.kernel.org>
+Subject: + kfifo-fix-kmalloc_array_node-argument-order.patch added to mm-nonmm-unstable branch
+Message-Id: <20251220192322.594ECC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,75 +34,66 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/percpu: drop unused max_upa in pcpu_build_alloc_info()
-has been removed from the -mm tree.  Its filename was
-     mm-percpu-drop-unused-max_upa-in-pcpu_build_alloc_info.patch
+The patch titled
+     Subject: kfifo: fix kmalloc_array_node() argument order
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kfifo-fix-kmalloc_array_node-argument-order.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfifo-fix-kmalloc_array_node-argument-order.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: WanLi Niu <niuwl1@chinatelecom.cn>
-Subject: mm/percpu: drop unused max_upa in pcpu_build_alloc_info()
-Date: Mon, 8 Dec 2025 17:26:27 +0800
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: kfifo: fix kmalloc_array_node() argument order
+Date: Fri, 19 Dec 2025 21:45:41 -0800
 
-pcpu_build_alloc_info() only needs the initial upa as the starting point
-for the downward search.  Storing it in max_upa and reusing it adds no
-value.  Iterate from upa directly to remove the redundant local variable
-without changing behavior, improving readability.
+To be consistent, pass the kmalloc_array_node() parameters in the order
+(number_of_elements, element_size).  Since only the product of the two
+values is used, this is not a bug fix.
 
-Link: https://lkml.kernel.org/r/20251208092627.5603-1-niuwl1@chinatelecom.cn
-Signed-off-by: WanLi Niu <niuwl1@chinatelecom.cn>
-Co-developed-by: hlleng <a909204013@gmail.com>
-Signed-off-by: hlleng <a909204013@gmail.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20251220054541.2295599-1-rdunlap@infradead.org
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=216015
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stefani Seibold <stefani@seibold.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/kfifo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/percpu.c~mm-percpu-drop-unused-max_upa-in-pcpu_build_alloc_info
-+++ a/mm/percpu.c
-@@ -2800,7 +2800,7 @@ static struct pcpu_alloc_info * __init _
- 	const size_t static_size = __per_cpu_end - __per_cpu_start;
- 	int nr_groups = 1, nr_units = 0;
- 	size_t size_sum, min_unit_size, alloc_size;
--	int upa, max_upa, best_upa;	/* units_per_alloc */
-+	int upa, best_upa;	/* units_per_alloc */
- 	int last_allocs, group, unit;
- 	unsigned int cpu, tcpu;
- 	struct pcpu_alloc_info *ai;
-@@ -2817,7 +2817,7 @@ static struct pcpu_alloc_info * __init _
- 	dyn_size = size_sum - static_size - reserved_size;
+--- a/lib/kfifo.c~kfifo-fix-kmalloc_array_node-argument-order
++++ a/lib/kfifo.c
+@@ -41,7 +41,7 @@ int __kfifo_alloc_node(struct __kfifo *f
+ 		return -EINVAL;
+ 	}
  
- 	/*
--	 * Determine min_unit_size, alloc_size and max_upa such that
-+	 * Determine min_unit_size, alloc_size such that
- 	 * alloc_size is multiple of atom_size and is the smallest
- 	 * which can accommodate 4k aligned segments which are equal to
- 	 * or larger than min_unit_size.
-@@ -2829,7 +2829,6 @@ static struct pcpu_alloc_info * __init _
- 	upa = alloc_size / min_unit_size;
- 	while (alloc_size % upa || (offset_in_page(alloc_size / upa)))
- 		upa--;
--	max_upa = upa;
+-	fifo->data = kmalloc_array_node(esize, size, gfp_mask, node);
++	fifo->data = kmalloc_array_node(size, esize, gfp_mask, node);
  
- 	cpumask_copy(&mask, cpu_possible_mask);
- 
-@@ -2860,7 +2859,7 @@ static struct pcpu_alloc_info * __init _
- 	 */
- 	last_allocs = INT_MAX;
- 	best_upa = 0;
--	for (upa = max_upa; upa; upa--) {
-+	for (; upa; upa--) {
- 		int allocs = 0, wasted = 0;
- 
- 		if (alloc_size % upa || (offset_in_page(alloc_size / upa)))
+ 	if (!fifo->data) {
+ 		fifo->mask = 0;
 _
 
-Patches currently in -mm which might be from niuwl1@chinatelecom.cn are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+mm-leafopsh-correct-kernel-doc-function-param-names.patch
+sparse-update-maintainers-info.patch
+kernelh-drop-hexh-and-update-all-hexh-users.patch
+kfifo-fix-kmalloc_array_node-argument-order.patch
 
