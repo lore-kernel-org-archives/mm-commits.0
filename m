@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E794D2FE578;
-	Sat, 20 Dec 2025 22:06:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4931136349
+	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 22:15:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766268397; cv=none; b=Etscd/cksbR/83qGIU9q+IK8cRaNfhr2NuoMC45AdcEd64hjPw5HXm2vrUFT1cGggRzsUn3krDcRYqE8PL/DS8yRpnu1RXQ7BaVPAp4/TrAH31p2eHNZPG3JCllasdTi5+FUXccuVDmRwFmxMi40426mSOgyYJcky6EMFAY+x7I=
+	t=1766268912; cv=none; b=WGWFrvXTgZ1zy5lb5JeQEFhdSGcl4y1532G2gfs4wfJ9UB21/wGgi61r8hfQKsUyZ5OHcDP/9BqV/wUJGcYjbyIjor1xFRzFKYZWW9QCl5NLrY6NUWeUJi3oNNwXXlcUqHJhSKYP1GDLxt8rfJa0lkdWD4gqkY9BOX5wuFs9018=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766268397; c=relaxed/simple;
-	bh=5cDLO0X0P3dc747NAaNcvWLmP7/AC0fEAikAhTD/bWQ=;
-	h=Date:To:From:Subject:Message-Id; b=VJv7h1U0gNvMIvi4lDMrqFph0hEkfhKnGyxSd72O3d4wzgLFS5lpEOlPJRviRRT17N70eERlo+BgXDkVs+C351k/QGV7xeX4yHIzLTtEshGKOMAtSjv7c6041zldZcTDF0MOGXnFSc91vjAF2qZ4nvS/mBTc80BKErxiDtg2vCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cMwFjYC9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766268912; c=relaxed/simple;
+	bh=lI2pWmJ4sJ1FcAvHXniVvH26NEVWLO0Hwum1rvT9sLk=;
+	h=Date:To:From:Subject:Message-Id; b=BvyBoAT9onMEX4H7S4Us9SHxauksnF4ytDXPGVSpv19FZJK1AusdkN1gXHCTLXCN6BbQVQXGqM4CZDuMiZPeYnY8woQDXAQ965Cirj92PXLaxZ/EwbdFVcoMVmYn3jd/5YP2sQYSQMmLraZHJdGqYJkEWKBztNchgZPXHSw+ZbY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NzYabP7C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cMwFjYC9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9D97C4CEF5;
-	Sat, 20 Dec 2025 22:06:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NzYabP7C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 434D3C4CEF5;
+	Sat, 20 Dec 2025 22:15:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766268396;
-	bh=5cDLO0X0P3dc747NAaNcvWLmP7/AC0fEAikAhTD/bWQ=;
+	s=korg; t=1766268911;
+	bh=lI2pWmJ4sJ1FcAvHXniVvH26NEVWLO0Hwum1rvT9sLk=;
 	h=Date:To:From:Subject:From;
-	b=cMwFjYC97nYC54jTQ76RiI0oHYSjRcxYjYNfagVq4MWoBS7MZC6ikFH2Z5MpG58QV
-	 0mNdn9yskqNEH+uopsRDFS2UCjrKNOT/mscpPHKTs1iK8vi0LNqsYf4f7tI5pQsCKt
-	 4tOWSEPTR9IWgnv3oKAXBVlrDsBLvfjJdYvEoYmU=
-Date: Sat, 20 Dec 2025 14:06:36 -0800
-To: mm-commits@vger.kernel.org,william.roche@oracle.com,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,jiaqiyan@google.com,david@kernel.org,jane.chu@oracle.com,akpm@linux-foundation.org
+	b=NzYabP7CWZCEKulxsjBFUfumiuBHGAZu//cqscwyEpEPTOWI8oCdm1i/HVWy7Cnv1
+	 2/Rdblom2D8iaElT0c+PYiHY7L2v1pkphA30AwfVTBX8sMacrJFk3FoUybx9AxybjM
+	 aOD+8DlfztLkWN8Z+v094rUlGzliH1zWgECPCV0k=
+Date: Sat, 20 Dec 2025 14:15:10 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,rppt@kernel.org,rientjes@google.com,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251220220636.B9D97C4CEF5@smtp.kernel.org>
+Subject: + mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch added to mm-new branch
+Message-Id: <20251220221511.434D3C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+     Subject: mm, page_alloc, thp: prevent reclaim for __GFP_THISNODE THP allocations
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,180 +66,92 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
-Date: Fri, 19 Dec 2025 12:15:58 -0700
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc, thp: prevent reclaim for __GFP_THISNODE THP allocations
+Date: Fri, 19 Dec 2025 17:31:57 +0100
 
-When a newly poisoned subpage ends up in an already poisoned hugetlb
-folio, 'num_poisoned_pages' is incremented, but the per node ->mf_stats is
-not.  Fix the inconsistency by designating action_result() to update them
-both.
+Since commit cc638f329ef6 ("mm, thp: tweak reclaim/compaction effort of
+local-only and all-node allocations"), THP page fault allocations have
+settled on the following scheme (from the commit log):
 
-While at it, define __get_huge_page_for_hwpoison() return values in terms
-of symbol names for better readibility.  Also rename
-folio_set_hugetlb_hwpoison() to hugetlb_update_hwpoison() since the
-function does more than the conventional bit setting and the fact three
-possible return values are expected.
+1. local node only THP allocation with no reclaim, just compaction.
+2. for madvised VMA's or when synchronous compaction is enabled always - THP
+   allocation from any node with effort determined by global defrag setting
+   and VMA madvise
+3. fallback to base pages on any node
 
-Link: https://lkml.kernel.org/r/20251219191559.2962716-1-jane.chu@oracle.com
-Fixes: 18f41fa616ee4 ("mm: memory-failure: bump memory failure stats to pglist_data")
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Recent customer reports however revealed we have a gap in step 1 above. 
+What we have seen is excessive reclaim due to THP page faults on a NUMA
+node that's close to its high watermark, while other nodes have plenty of
+free memory.
+
+The problem with step 1 is that it promises no reclaim after the
+compaction attempt, however reclaim is only avoided for certain compaction
+outcomes (deferred, or skipped due to insufficient free base pages), and
+not e.g.  when compaction is actually performed but fails (we did see
+compact_fail vmstat counter increasing).
+
+THP page faults can therefore exhibit a zone_reclaim_mode-like behavior,
+which is not the intention.
+
+Thus add a check for __GFP_THISNODE that corresponds to this exact
+situation and prevents continuing with reclaim/compaction once the initial
+compaction attempt isn't successful in allocating the page.
+
+Note that commit cc638f329ef6 has not introduced this over-reclaim
+possibility; it appears to exist in some form since commit 2f0799a0ffc0
+("mm, thp: restore node-local hugepage allocations").  Followup commits
+b39d0ee2632d ("mm, page_alloc: avoid expensive reclaim when compaction may
+not succeed") and cc638f329ef6 have moved in the right direction, but left
+the abovementioned gap.
+
+Link: https://lkml.kernel.org/r/20251219-costly-noretry-thisnode-fix-v1-1-e1085a4a0c34@suse.cz
+Fixes: 2f0799a0ffc0 ("mm, thp: restore node-local hugepage allocations")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
 Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: William Roche <william.roche@oracle.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   56 ++++++++++++++++++++++++------------------
- 1 file changed, 33 insertions(+), 23 deletions(-)
+ mm/page_alloc.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/memory-failure.c~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
-+++ a/mm/memory-failure.c
-@@ -1883,12 +1883,18 @@ static unsigned long __folio_free_raw_hw
- 	return count;
- }
+--- a/mm/page_alloc.c~mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations
++++ a/mm/page_alloc.c
+@@ -4792,6 +4792,20 @@ restart:
+ 				goto nopage;
  
--static int folio_set_hugetlb_hwpoison(struct folio *folio, struct page *page)
-+#define	MF_HUGETLB_ALREADY_POISONED	3  /* already poisoned */
-+#define	MF_HUGETLB_ACC_EXISTING_POISON	4  /* accessed existing poisoned page */
-+/*
-+ * Set hugetlb folio as hwpoisoned, update folio private raw hwpoison list
-+ * to keep track of the poisoned pages.
-+ */
-+static int hugetlb_update_hwpoison(struct folio *folio, struct page *page)
- {
- 	struct llist_head *head;
- 	struct raw_hwp_page *raw_hwp;
- 	struct raw_hwp_page *p;
--	int ret = folio_test_set_hwpoison(folio) ? -EHWPOISON : 0;
-+	int ret = folio_test_set_hwpoison(folio) ? MF_HUGETLB_ALREADY_POISONED : 0;
- 
- 	/*
- 	 * Once the hwpoison hugepage has lost reliable raw error info,
-@@ -1896,20 +1902,18 @@ static int folio_set_hugetlb_hwpoison(st
- 	 * so skip to add additional raw error info.
- 	 */
- 	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
--		return -EHWPOISON;
-+		return MF_HUGETLB_ALREADY_POISONED;
+ 			/*
++			 * THP page faults may attempt local node only first,
++			 * but are then allowed to only compact, not reclaim,
++			 * see alloc_pages_mpol().
++			 *
++			 * Compaction can fail for other reasons than those
++			 * checked above and we don't want such THP allocations
++			 * to put reclaim pressure on a single node in a
++			 * situation where other nodes might have plenty of
++			 * available memory.
++			 */
++			if (gfp_mask & __GFP_THISNODE)
++				goto nopage;
 +
- 	head = raw_hwp_list_head(folio);
- 	llist_for_each_entry(p, head->first, node) {
- 		if (p->page == page)
--			return -EHWPOISON;
-+			return MF_HUGETLB_ACC_EXISTING_POISON;
- 	}
- 
- 	raw_hwp = kmalloc(sizeof(struct raw_hwp_page), GFP_ATOMIC);
- 	if (raw_hwp) {
- 		raw_hwp->page = page;
- 		llist_add(&raw_hwp->node, head);
--		/* the first error event will be counted in action_result(). */
--		if (ret)
--			num_poisoned_pages_inc(page_to_pfn(page));
- 	} else {
- 		/*
- 		 * Failed to save raw error info.  We no longer trace all
-@@ -1955,32 +1959,30 @@ void folio_clear_hugetlb_hwpoison(struct
- 	folio_free_raw_hwp(folio, true);
- }
- 
-+#define	MF_HUGETLB_FREED			0	/* freed hugepage */
-+#define	MF_HUGETLB_IN_USED			1	/* in-use hugepage */
-+#define	MF_NOT_HUGETLB				2	/* not a hugepage */
-+
- /*
-  * Called from hugetlb code with hugetlb_lock held.
-- *
-- * Return values:
-- *   0             - free hugepage
-- *   1             - in-use hugepage
-- *   2             - not a hugepage
-- *   -EBUSY        - the hugepage is busy (try to retry)
-- *   -EHWPOISON    - the hugepage is already hwpoisoned
-  */
- int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
- 				 bool *migratable_cleared)
- {
- 	struct page *page = pfn_to_page(pfn);
- 	struct folio *folio = page_folio(page);
--	int ret = 2;	/* fallback to normal page handling */
-+	int ret = MF_NOT_HUGETLB;
- 	bool count_increased = false;
-+	int rc;
- 
- 	if (!folio_test_hugetlb(folio))
- 		goto out;
- 
- 	if (flags & MF_COUNT_INCREASED) {
--		ret = 1;
-+		ret = MF_HUGETLB_IN_USED;
- 		count_increased = true;
- 	} else if (folio_test_hugetlb_freed(folio)) {
--		ret = 0;
-+		ret = MF_HUGETLB_FREED;
- 	} else if (folio_test_hugetlb_migratable(folio)) {
- 		ret = folio_try_get(folio);
- 		if (ret)
-@@ -1991,8 +1993,9 @@ int __get_huge_page_for_hwpoison(unsigne
- 			goto out;
- 	}
- 
--	if (folio_set_hugetlb_hwpoison(folio, page)) {
--		ret = -EHWPOISON;
-+	rc = hugetlb_update_hwpoison(folio, page);
-+	if (rc >= MF_HUGETLB_ALREADY_POISONED) {
-+		ret = rc;
- 		goto out;
- 	}
- 
-@@ -2029,22 +2032,29 @@ static int try_memory_failure_hugetlb(un
- 	*hugetlb = 1;
- retry:
- 	res = get_huge_page_for_hwpoison(pfn, flags, &migratable_cleared);
--	if (res == 2) { /* fallback to normal page handling */
-+	switch (res) {
-+	case MF_NOT_HUGETLB:	/* fallback to normal page handling */
- 		*hugetlb = 0;
- 		return 0;
--	} else if (res == -EHWPOISON) {
-+	case MF_HUGETLB_ALREADY_POISONED:
-+	case MF_HUGETLB_ACC_EXISTING_POISON:
- 		if (flags & MF_ACTION_REQUIRED) {
- 			folio = page_folio(p);
- 			res = kill_accessing_process(current, folio_pfn(folio), flags);
- 		}
--		action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
-+		if (res == MF_HUGETLB_ALREADY_POISONED)
-+			action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
-+		else
-+			action_result(pfn, MF_MSG_HUGE, MF_FAILED);
- 		return res;
--	} else if (res == -EBUSY) {
-+	case -EBUSY:
- 		if (!(flags & MF_NO_RETRY)) {
- 			flags |= MF_NO_RETRY;
- 			goto retry;
- 		}
- 		return action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
-+	default:
-+		break;
- 	}
- 
- 	folio = page_folio(p);
++			/*
+ 			 * Looks like reclaim/compaction is worth trying, but
+ 			 * sync compaction could be very expensive, so keep
+ 			 * using async compaction.
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch
 
