@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8DE92FE075
-	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 22:05:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E794D2FE578;
+	Sat, 20 Dec 2025 22:06:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766268337; cv=none; b=VLZ1b5TPgSLf1KCykUf4Bk8FP4gPtbCtlDXQWfQyN2Rg76CJT7XHDtSrlldX9uxhpsIS42PRMXMzx1HFDpihaiURpOMlkskAa4o4CxB1ljUKgyAz+s3pwKHhGpb3Sr/N0OMD9Et6Y1WMJ6dx4kSCDakQmLMr1XZr3UrkpD5tL0c=
+	t=1766268397; cv=none; b=Etscd/cksbR/83qGIU9q+IK8cRaNfhr2NuoMC45AdcEd64hjPw5HXm2vrUFT1cGggRzsUn3krDcRYqE8PL/DS8yRpnu1RXQ7BaVPAp4/TrAH31p2eHNZPG3JCllasdTi5+FUXccuVDmRwFmxMi40426mSOgyYJcky6EMFAY+x7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766268337; c=relaxed/simple;
-	bh=X22yw+x4Gb698c+n8GEkP/OIh+LKYVigxm/GBvK6G38=;
-	h=Date:To:From:Subject:Message-Id; b=Y1TbKL8UozC+d6COi8iDqZqIDwgPzrA+BrxwI6HgHJTnSAyabjW6EDihCrlPgIyKLSphQU4zeg5XQcE3jM7+iJzIbkGmV+qNCYAjGvUQh9CfMHXrDz0pKPj/EF3qI2EpEt6zYy2o9O4xBnnYM5rdZ9XvcPIzkgY940SK2IMNZiY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DlZlQgUz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766268397; c=relaxed/simple;
+	bh=5cDLO0X0P3dc747NAaNcvWLmP7/AC0fEAikAhTD/bWQ=;
+	h=Date:To:From:Subject:Message-Id; b=VJv7h1U0gNvMIvi4lDMrqFph0hEkfhKnGyxSd72O3d4wzgLFS5lpEOlPJRviRRT17N70eERlo+BgXDkVs+C351k/QGV7xeX4yHIzLTtEshGKOMAtSjv7c6041zldZcTDF0MOGXnFSc91vjAF2qZ4nvS/mBTc80BKErxiDtg2vCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cMwFjYC9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DlZlQgUz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 886B2C4CEF5;
-	Sat, 20 Dec 2025 22:05:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cMwFjYC9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9D97C4CEF5;
+	Sat, 20 Dec 2025 22:06:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766268337;
-	bh=X22yw+x4Gb698c+n8GEkP/OIh+LKYVigxm/GBvK6G38=;
+	s=korg; t=1766268396;
+	bh=5cDLO0X0P3dc747NAaNcvWLmP7/AC0fEAikAhTD/bWQ=;
 	h=Date:To:From:Subject:From;
-	b=DlZlQgUzDtm1QFUAdCKeVa4JQb9rFqHDBzOzEqK2igMa7SHetSDzpQLGQIn8oeSYg
-	 8T7XV1Z4MBcDh/XuKYPKwAF/eKruTobeNhyf50oaV2Q3hiWpT3+DgCr1O/7vkyi8Fx
-	 CFge1kPlZWAfkHf9vAQbrKG7NfFkKTGBq+w3PbWY=
-Date: Sat, 20 Dec 2025 14:05:37 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,rafael@kernel.org,nphamcs@gmail.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=cMwFjYC97nYC54jTQ76RiI0oHYSjRcxYjYNfagVq4MWoBS7MZC6ikFH2Z5MpG58QV
+	 0mNdn9yskqNEH+uopsRDFS2UCjrKNOT/mscpPHKTs1iK8vi0LNqsYf4f7tI5pQsCKt
+	 4tOWSEPTR9IWgnv3oKAXBVlrDsBLvfjJdYvEoYmU=
+Date: Sat, 20 Dec 2025 14:06:36 -0800
+To: mm-commits@vger.kernel.org,william.roche@oracle.com,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,jiaqiyan@google.com,david@kernel.org,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-no-longer-needed-_swap_info_get.patch added to mm-new branch
-Message-Id: <20251220220537.886B2C4CEF5@smtp.kernel.org>
+Subject: + mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251220220636.B9D97C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: remove no longer needed _swap_info_get
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-remove-no-longer-needed-_swap_info_get.patch
+     Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-no-longer-needed-_swap_info_get.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,145 +58,180 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: remove no longer needed _swap_info_get
-Date: Sat, 20 Dec 2025 03:43:48 +0800
+From: Jane Chu <jane.chu@oracle.com>
+Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
+Date: Fri, 19 Dec 2025 12:15:58 -0700
 
-There are now only two users of _swap_info_get after consolidating these
-callers, folio_free_swap and swp_swapcount.
+When a newly poisoned subpage ends up in an already poisoned hugetlb
+folio, 'num_poisoned_pages' is incremented, but the per node ->mf_stats is
+not.  Fix the inconsistency by designating action_result() to update them
+both.
 
-folio_free_swap already holds the folio lock, and the folio must be in the
-swap cache, _swap_info_get is redundant.
+While at it, define __get_huge_page_for_hwpoison() return values in terms
+of symbol names for better readibility.  Also rename
+folio_set_hugetlb_hwpoison() to hugetlb_update_hwpoison() since the
+function does more than the conventional bit setting and the fact three
+possible return values are expected.
 
-For swp_swapcount, it should use get_swap_device instead.  get_swap_device
-increases the device ref count, which is actually a bit safer.  The only
-current use is smap walking, and the performance change here is tiny.
-
-And after these changes, _swap_info_get is no longer used, so we can
-safely remove it.
-
-Link: https://lkml.kernel.org/r/20251220-swap-table-p2-v5-19-8862a265a033@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
+Link: https://lkml.kernel.org/r/20251219191559.2962716-1-jane.chu@oracle.com
+Fixes: 18f41fa616ee4 ("mm: memory-failure: bump memory failure stats to pglist_data")
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: William Roche <william.roche@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   47 ++++++-----------------------------------------
- 1 file changed, 6 insertions(+), 41 deletions(-)
+ mm/memory-failure.c |   56 ++++++++++++++++++++++++------------------
+ 1 file changed, 33 insertions(+), 23 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-remove-no-longer-needed-_swap_info_get
-+++ a/mm/swapfile.c
-@@ -83,9 +83,7 @@ bool swap_migration_ad_supported;
- #endif	/* CONFIG_MIGRATION */
- 
- static const char Bad_file[] = "Bad swap file entry ";
--static const char Unused_file[] = "Unused swap file entry ";
- static const char Bad_offset[] = "Bad swap offset entry ";
--static const char Unused_offset[] = "Unused swap offset entry ";
- 
- /*
-  * all active swap_info_structs
-@@ -1600,41 +1598,6 @@ void folio_put_swap(struct folio *folio,
- 	swap_put_entries_cluster(si, swp_offset(entry), nr_pages, false);
- }
- 
--static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
--{
--	struct swap_info_struct *si;
--	unsigned long offset;
--
--	if (!entry.val)
--		goto out;
--	si = swap_entry_to_info(entry);
--	if (!si)
--		goto bad_nofile;
--	if (data_race(!(si->flags & SWP_USED)))
--		goto bad_device;
--	offset = swp_offset(entry);
--	if (offset >= si->max)
--		goto bad_offset;
--	if (data_race(!si->swap_map[swp_offset(entry)]) &&
--	    !swap_cache_has_folio(entry))
--		goto bad_free;
--	return si;
--
--bad_free:
--	pr_err("%s: %s%08lx\n", __func__, Unused_offset, entry.val);
--	goto out;
--bad_offset:
--	pr_err("%s: %s%08lx\n", __func__, Bad_offset, entry.val);
--	goto out;
--bad_device:
--	pr_err("%s: %s%08lx\n", __func__, Unused_file, entry.val);
--	goto out;
--bad_nofile:
--	pr_err("%s: %s%08lx\n", __func__, Bad_file, entry.val);
--out:
--	return NULL;
--}
--
- static void swap_put_entry_locked(struct swap_info_struct *si,
- 				  struct swap_cluster_info *ci,
- 				  unsigned long offset)
-@@ -1794,7 +1757,7 @@ int swp_swapcount(swp_entry_t entry)
- 	pgoff_t offset;
- 	unsigned char *map;
- 
--	si = _swap_info_get(entry);
-+	si = get_swap_device(entry);
- 	if (!si)
- 		return 0;
- 
-@@ -1824,6 +1787,7 @@ int swp_swapcount(swp_entry_t entry)
- 	} while (tmp_count & COUNT_CONTINUED);
- out:
- 	swap_cluster_unlock(ci);
-+	put_swap_device(si);
+--- a/mm/memory-failure.c~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
++++ a/mm/memory-failure.c
+@@ -1883,12 +1883,18 @@ static unsigned long __folio_free_raw_hw
  	return count;
  }
  
-@@ -1858,11 +1822,12 @@ unlock_out:
- static bool folio_swapped(struct folio *folio)
+-static int folio_set_hugetlb_hwpoison(struct folio *folio, struct page *page)
++#define	MF_HUGETLB_ALREADY_POISONED	3  /* already poisoned */
++#define	MF_HUGETLB_ACC_EXISTING_POISON	4  /* accessed existing poisoned page */
++/*
++ * Set hugetlb folio as hwpoisoned, update folio private raw hwpoison list
++ * to keep track of the poisoned pages.
++ */
++static int hugetlb_update_hwpoison(struct folio *folio, struct page *page)
  {
- 	swp_entry_t entry = folio->swap;
--	struct swap_info_struct *si = _swap_info_get(entry);
-+	struct swap_info_struct *si;
+ 	struct llist_head *head;
+ 	struct raw_hwp_page *raw_hwp;
+ 	struct raw_hwp_page *p;
+-	int ret = folio_test_set_hwpoison(folio) ? -EHWPOISON : 0;
++	int ret = folio_test_set_hwpoison(folio) ? MF_HUGETLB_ALREADY_POISONED : 0;
  
--	if (!si)
--		return false;
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_swapcache(folio), folio);
+ 	/*
+ 	 * Once the hwpoison hugepage has lost reliable raw error info,
+@@ -1896,20 +1902,18 @@ static int folio_set_hugetlb_hwpoison(st
+ 	 * so skip to add additional raw error info.
+ 	 */
+ 	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
+-		return -EHWPOISON;
++		return MF_HUGETLB_ALREADY_POISONED;
++
+ 	head = raw_hwp_list_head(folio);
+ 	llist_for_each_entry(p, head->first, node) {
+ 		if (p->page == page)
+-			return -EHWPOISON;
++			return MF_HUGETLB_ACC_EXISTING_POISON;
+ 	}
  
-+	si = __swap_entry_to_info(entry);
- 	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!folio_test_large(folio)))
- 		return swap_entry_swapped(si, entry);
+ 	raw_hwp = kmalloc(sizeof(struct raw_hwp_page), GFP_ATOMIC);
+ 	if (raw_hwp) {
+ 		raw_hwp->page = page;
+ 		llist_add(&raw_hwp->node, head);
+-		/* the first error event will be counted in action_result(). */
+-		if (ret)
+-			num_poisoned_pages_inc(page_to_pfn(page));
+ 	} else {
+ 		/*
+ 		 * Failed to save raw error info.  We no longer trace all
+@@ -1955,32 +1959,30 @@ void folio_clear_hugetlb_hwpoison(struct
+ 	folio_free_raw_hwp(folio, true);
+ }
  
++#define	MF_HUGETLB_FREED			0	/* freed hugepage */
++#define	MF_HUGETLB_IN_USED			1	/* in-use hugepage */
++#define	MF_NOT_HUGETLB				2	/* not a hugepage */
++
+ /*
+  * Called from hugetlb code with hugetlb_lock held.
+- *
+- * Return values:
+- *   0             - free hugepage
+- *   1             - in-use hugepage
+- *   2             - not a hugepage
+- *   -EBUSY        - the hugepage is busy (try to retry)
+- *   -EHWPOISON    - the hugepage is already hwpoisoned
+  */
+ int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+ 				 bool *migratable_cleared)
+ {
+ 	struct page *page = pfn_to_page(pfn);
+ 	struct folio *folio = page_folio(page);
+-	int ret = 2;	/* fallback to normal page handling */
++	int ret = MF_NOT_HUGETLB;
+ 	bool count_increased = false;
++	int rc;
+ 
+ 	if (!folio_test_hugetlb(folio))
+ 		goto out;
+ 
+ 	if (flags & MF_COUNT_INCREASED) {
+-		ret = 1;
++		ret = MF_HUGETLB_IN_USED;
+ 		count_increased = true;
+ 	} else if (folio_test_hugetlb_freed(folio)) {
+-		ret = 0;
++		ret = MF_HUGETLB_FREED;
+ 	} else if (folio_test_hugetlb_migratable(folio)) {
+ 		ret = folio_try_get(folio);
+ 		if (ret)
+@@ -1991,8 +1993,9 @@ int __get_huge_page_for_hwpoison(unsigne
+ 			goto out;
+ 	}
+ 
+-	if (folio_set_hugetlb_hwpoison(folio, page)) {
+-		ret = -EHWPOISON;
++	rc = hugetlb_update_hwpoison(folio, page);
++	if (rc >= MF_HUGETLB_ALREADY_POISONED) {
++		ret = rc;
+ 		goto out;
+ 	}
+ 
+@@ -2029,22 +2032,29 @@ static int try_memory_failure_hugetlb(un
+ 	*hugetlb = 1;
+ retry:
+ 	res = get_huge_page_for_hwpoison(pfn, flags, &migratable_cleared);
+-	if (res == 2) { /* fallback to normal page handling */
++	switch (res) {
++	case MF_NOT_HUGETLB:	/* fallback to normal page handling */
+ 		*hugetlb = 0;
+ 		return 0;
+-	} else if (res == -EHWPOISON) {
++	case MF_HUGETLB_ALREADY_POISONED:
++	case MF_HUGETLB_ACC_EXISTING_POISON:
+ 		if (flags & MF_ACTION_REQUIRED) {
+ 			folio = page_folio(p);
+ 			res = kill_accessing_process(current, folio_pfn(folio), flags);
+ 		}
+-		action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
++		if (res == MF_HUGETLB_ALREADY_POISONED)
++			action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
++		else
++			action_result(pfn, MF_MSG_HUGE, MF_FAILED);
+ 		return res;
+-	} else if (res == -EBUSY) {
++	case -EBUSY:
+ 		if (!(flags & MF_NO_RETRY)) {
+ 			flags |= MF_NO_RETRY;
+ 			goto retry;
+ 		}
+ 		return action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
++	default:
++		break;
+ 	}
+ 
+ 	folio = page_folio(p);
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from jane.chu@oracle.com are
 
-mm-swap-rename-__read_swap_cache_async-to-swap_cache_alloc_folio.patch
-mm-swap-split-swap-cache-preparation-loop-into-a-standalone-helper.patch
-mm-swap-never-bypass-the-swap-cache-even-for-swp_synchronous_io.patch
-mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
-mm-swap-simplify-the-code-and-reduce-indention.patch
-mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
-mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
-mm-swap-swap-entry-of-a-bad-slot-should-not-be-considered-as-swapped-out.patch
-mm-swap-consolidate-cluster-reclaim-and-usability-check.patch
-mm-swap-split-locked-entry-duplicating-into-a-standalone-helper.patch
-mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer.patch
-mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
-mm-swap-cleanup-swap-entry-management-workflow.patch
-mm-swap-add-folio-to-swap-cache-directly-on-allocation.patch
-mm-swap-check-swap-table-directly-for-checking-cache.patch
-mm-swap-clean-up-and-improve-swap-entries-freeing.patch
-mm-swap-drop-the-swap_has_cache-flag.patch
-mm-swap-remove-no-longer-needed-_swap_info_get.patch
+mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
