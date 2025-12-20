@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF2341F17E8
-	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 22:50:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59BF9238C1A
+	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 22:51:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766271029; cv=none; b=BdLrXwDN0gbCziA35iQfABRutc6vRu+xjpICDN00CesDIfaWFPAi2CS7OUdSy+y9Pc4MU+SN2CBwk5zGhw+1R8u9IC1YtewxGj9Y3aothJJzyHbY8AxG2e1ycebtKRB/2rSFTpxaKbyjsJZ7GTYUZ2B9Io2ACng77Yo6dkB0ETc=
+	t=1766271089; cv=none; b=VJXY3cCQOjQGWUFRNYn83xc6Q9vKJCShjC1mM90oMVdvRF5K60kweNlu9W70YfRG/xWIj9tVuF/DEcrzIMqjbPoKS0N7FpjKJwVN532WnGKI/mY2Ae5cBouS7DL8gVeOazSQybl+SZm+x+U83jvzh2yTMdxl2jvI1d+fDEKIHjo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766271029; c=relaxed/simple;
-	bh=EGqbhctAoAD63gZIunvVfyoaX7tCVhofw7HENZTsfEk=;
-	h=Date:To:From:Subject:Message-Id; b=DsiHEp7a2D45flLKldmzu7K4DS8XHsyhwMJZzmcS49PK2FeFsrdCNgQNmuDiw/DvjPi2UTpFZrAZYFBKPPbH1wwBtll4Lrp69rck5To/foU74cOSc/eNEHpr9na22Zd/heTsVWljk42xY/jY5P12udAnmu/hWxonCuXgyWfuK7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CP4sjTKj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766271089; c=relaxed/simple;
+	bh=vzjqTSGsY9w7NZWXo3WWxg4N2DpQdlammke/m9xpZTo=;
+	h=Date:To:From:Subject:Message-Id; b=ndgfV6/OG3j+nJ2S6Leeo+/aosWpTMZ/eBJNZ0jDFOrBmNOWKlbEwU+r1LUf6DJ8NuxfSXmqyKTO7X8fkexrWYIaIjJVKg1XlFt7fmoJTpl3CqRF0BtLOlFO6rNfqQ9LmQwyY6cmXcp60Wvm+zWa6Sc8m7RlOOnkPOLjXUu7mkw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i2vHHIhn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CP4sjTKj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D6A9C4CEF5;
-	Sat, 20 Dec 2025 22:50:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i2vHHIhn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCD2FC4CEF5;
+	Sat, 20 Dec 2025 22:51:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766271028;
-	bh=EGqbhctAoAD63gZIunvVfyoaX7tCVhofw7HENZTsfEk=;
+	s=korg; t=1766271088;
+	bh=vzjqTSGsY9w7NZWXo3WWxg4N2DpQdlammke/m9xpZTo=;
 	h=Date:To:From:Subject:From;
-	b=CP4sjTKjrJhZiMBIKMw5TsDP0/MAHARLDHD0RGFzru4jmdfCIY1Pc+UUlIzZ6Z+vt
-	 Zz7iE3bKYGRAgeNg1VEdgRb0pjn00BRiHPmHQx0PS091/1vNjf0Li1ccIx119Z5nnm
-	 XKbrvFAbz3PCIaWcyrncK8tRXANFBixtroGECsOY=
-Date: Sat, 20 Dec 2025 14:50:27 -0800
-To: mm-commits@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,apopple@nvidia.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=i2vHHIhnpzBsmcyRSSOz0XBYNBi6dJfYS4wbmNS9ZBkMC3Sxi09OrZLQtdUeMPFXh
+	 6S5K4CDYAKK/rXwWgg+cbWJWxYw5a1sQXoTGANuXIQQq6of5ZYWd9Y3IzHP1vQ1Z4r
+	 CPuCopB91CwwZqYe2nb5+R8vPuVpufi+cTA1F3jw=
+Date: Sat, 20 Dec 2025 14:51:28 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,bigeasy@linutronix.de,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-remove-no-longer-used-gup_fast_undo_dev_pagemap.patch added to mm-new branch
-Message-Id: <20251220225028.5D6A9C4CEF5@smtp.kernel.org>
+Subject: + mm-clarify-gfp_atomic-gfp_nowait-doc-comment.patch added to mm-new branch
+Message-Id: <20251220225128.CCD2FC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: remove no longer used gup_fast_undo_dev_pagemap
+     Subject: mm: clarify GFP_ATOMIC/GFP_NOWAIT doc-comment
 has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-remove-no-longer-used-gup_fast_undo_dev_pagemap.patch
+     mm-clarify-gfp_atomic-gfp_nowait-doc-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-remove-no-longer-used-gup_fast_undo_dev_pagemap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clarify-gfp_atomic-gfp_nowait-doc-comment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,67 +66,64 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/gup: remove no longer used gup_fast_undo_dev_pagemap
-Date: Fri, 19 Dec 2025 19:46:00 +0800
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm: clarify GFP_ATOMIC/GFP_NOWAIT doc-comment
+Date: Fri, 19 Dec 2025 11:32:18 +0000
 
-This helper is no longer used after commit fd2825b0760a ("mm/gup: remove
-pXX_devmap usage from get_user_pages()").
+The current description of contexts where it's invalid to make GFP_ATOMIC
+and GFP_NOWAIT calls is rather vague.
 
-Link: https://lkml.kernel.org/r/20251219-gup-cleanup-v1-1-348a70d9eecb@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
+Replace this with a direct description of the actual contexts of concern
+and refer to the RT docs where this is explained more discursively.
+
+While rejigging this prose, also move the documentation of GFP_NOWAIT to
+the GFP_NOWAIT section.
+
+Link: https://lore.kernel.org/all/d912480a-5229-4efe-9336-b31acded30f5@suse.cz/
+Link: https://lkml.kernel.org/r/20251219-b4-gfp_atomic-comment-v2-1-4c4ce274c2b6@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ include/linux/gfp_types.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-remove-no-longer-used-gup_fast_undo_dev_pagemap
-+++ a/mm/gup.c
-@@ -2806,17 +2806,6 @@ static bool gup_fast_folio_allowed(struc
- 	return !reject_file_backed || shmem_mapping(mapping);
- }
- 
--static void __maybe_unused gup_fast_undo_dev_pagemap(int *nr, int nr_start,
--		unsigned int flags, struct page **pages)
--{
--	while ((*nr) - nr_start) {
--		struct folio *folio = page_folio(pages[--(*nr)]);
--
--		folio_clear_referenced(folio);
--		gup_put_folio(folio, 1, flags);
--	}
--}
--
- #ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
- /*
-  * GUP-fast relies on pte change detection to avoid concurrent pgtable
+--- a/include/linux/gfp_types.h~mm-clarify-gfp_atomic-gfp_nowait-doc-comment
++++ a/include/linux/gfp_types.h
+@@ -309,8 +309,10 @@ enum {
+  *
+  * %GFP_ATOMIC users can not sleep and need the allocation to succeed. A lower
+  * watermark is applied to allow access to "atomic reserves".
+- * The current implementation doesn't support NMI and few other strict
+- * non-preemptive contexts (e.g. raw_spin_lock). The same applies to %GFP_NOWAIT.
++ * The current implementation doesn't support NMI, nor contexts that disable
++ * preemption under PREEMPT_RT. This includes raw_spin_lock() and plain
++ * preempt_disable() - see "Memory allocation" in
++ * Documentation/core-api/real-time/differences.rst for more info.
+  *
+  * %GFP_KERNEL is typical for kernel-internal allocations. The caller requires
+  * %ZONE_NORMAL or a lower zone for direct access but can direct reclaim.
+@@ -321,6 +323,7 @@ enum {
+  * %GFP_NOWAIT is for kernel allocations that should not stall for direct
+  * reclaim, start physical IO or use any filesystem callback.  It is very
+  * likely to fail to allocate memory, even for very small allocations.
++ * The same restrictions on calling contexts apply as for %GFP_ATOMIC.
+  *
+  * %GFP_NOIO will use direct reclaim to discard clean pages or slab pages
+  * that do not require the starting of any physical IO.
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-swap-rename-__read_swap_cache_async-to-swap_cache_alloc_folio.patch
-mm-swap-split-swap-cache-preparation-loop-into-a-standalone-helper.patch
-mm-swap-never-bypass-the-swap-cache-even-for-swp_synchronous_io.patch
-mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
-mm-swap-simplify-the-code-and-reduce-indention.patch
-mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
-mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
-mm-swap-swap-entry-of-a-bad-slot-should-not-be-considered-as-swapped-out.patch
-mm-swap-consolidate-cluster-reclaim-and-usability-check.patch
-mm-swap-split-locked-entry-duplicating-into-a-standalone-helper.patch
-mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer.patch
-mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
-mm-swap-cleanup-swap-entry-management-workflow.patch
-mm-swap-add-folio-to-swap-cache-directly-on-allocation.patch
-mm-swap-check-swap-table-directly-for-checking-cache.patch
-mm-swap-clean-up-and-improve-swap-entries-freeing.patch
-mm-swap-drop-the-swap_has_cache-flag.patch
-mm-swap-remove-no-longer-needed-_swap_info_get.patch
-mm-gup-remove-no-longer-used-gup_fast_undo_dev_pagemap.patch
+mm-vmalloc-clarify-why-vmap_range_noflush-might-sleep.patch
+mm-clarify-gfp_atomic-gfp_nowait-doc-comment.patch
 
