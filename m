@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A18CB2E62C4
-	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 19:52:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27F0D24169D
+	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 19:53:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766260354; cv=none; b=qNIc6uVOY0TXYMNjxfhwZYiZdhf1h9DqcrJiHckYJGplI6CCe61g22W2vB2CXdQslf8YPexqyZIRCoIUcaqPgR55qVuHRo2d2zwPpvXXkZhFiRgvQ1WbLl+QwmI4OSAhf2nSs9CZShaBKoGv65Oai9qDQ8+SNiAMrfKT8XNQwOM=
+	t=1766260435; cv=none; b=q18RCXtJH45jXevIzB3qYxTZs5UsAzAzPIwg7LoOS/5YvdwYjM8QsnpEFOEeTml2BJiVgLkcRZUJpTjpVtXZhHJeYXzqMyPxDON6Y5pLb5dxuhp34wZSUFBDkPVLBZCLn1tkRZ3Ugqlkrzqw7heBx5OztAXv4fi5Dds0ujLwQJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766260354; c=relaxed/simple;
-	bh=B45KeqO0hJvpsf5+oYzZUHEP8XR5bSFTSRhbESkzWKk=;
-	h=Date:To:From:Subject:Message-Id; b=XhsRiJnkj1ASNIBtgT01I1DG2zRLgLl1wM7MHPsoxmPBljIEdUCGVooDvxup2dkI6iI5b6K9H1wAPI46l8uFgwBnvFz3IZVG9tjZ6iEJ+WaikTsWqgVTwGCDEXMeAf8NQeLDAEsXsmGhazG4wkgSply9m3vGQ0S8HpQ18jb3gg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LKWeWTgB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766260435; c=relaxed/simple;
+	bh=Jt1f202sPBTDMikifNgdGYxl1K4fwJrGvRW/2ykaRtg=;
+	h=Date:To:From:Subject:Message-Id; b=l9CxERW+vZT5zyFX95fe2uF2JhlvUGWDdCcvZwb4QbymEVaZFjk8aJCYc0CCPNt0S6T6Zx6/dTAathtjofABDu764GdoqGeuXUt6LOslXPC3ahPdn1F38BmvkzTIiQyIvqnKrcvsIBs+NFMDhoQn3rjiB4STJSNtT1yM6LUHpws=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EFpiamOh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LKWeWTgB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2424AC4CEF5;
-	Sat, 20 Dec 2025 19:52:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EFpiamOh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D17FC4CEF5;
+	Sat, 20 Dec 2025 19:53:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766260354;
-	bh=B45KeqO0hJvpsf5+oYzZUHEP8XR5bSFTSRhbESkzWKk=;
+	s=korg; t=1766260434;
+	bh=Jt1f202sPBTDMikifNgdGYxl1K4fwJrGvRW/2ykaRtg=;
 	h=Date:To:From:Subject:From;
-	b=LKWeWTgBsL++RLW56Axpl3BcmNI/cKQz0jY1xm8xeGmwQdhOuCVsVi5pIiGiT3Yi6
-	 fBukcZfQoNqRi2zA/upEMCDTdEJN3zZN+gvsi6128JrQB7Kar8uVcwx57vwfN6j3eO
-	 MKZb4uLWLClRwEmzKAB1U/b4SKl5py9h6q0kKxL0=
-Date: Sat, 20 Dec 2025 11:52:33 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,klourencodev@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=EFpiamOh3jzsHzLUVVu0VczXLRWSKKR5VfpxnJU7TcTUpFcz877EQj7uUA4xgHQ0K
+	 b4KCkd1xCMmds6lisZaKCbOgPSuFC1okjiN/zRa+LAo57ojJNRwAcp7wwaubc4kB5l
+	 KTJkIAocHn7w3yHVLxi9o5xDz0AOsqdH5XfHJ6K8=
+Date: Sat, 20 Dec 2025 11:53:54 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,cl@linux.com,bigeasy@linutronix.de,dennis@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-minor-spelling-mistakes-in-comments-fix.patch added to mm-new branch
-Message-Id: <20251220195234.2424AC4CEF5@smtp.kernel.org>
+Subject: + percpu-add-basic-double-free-check.patch added to mm-new branch
+Message-Id: <20251220195354.9D17FC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-fix-minor-spelling-mistakes-in-comments-fix
+     Subject: percpu: add basic double free check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-fix-minor-spelling-mistakes-in-comments-fix.patch
+     percpu-add-basic-double-free-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-minor-spelling-mistakes-in-comments-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-add-basic-double-free-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,47 +66,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-minor-spelling-mistakes-in-comments-fix
-Date: Sat Dec 20 11:51:12 AM PST 2025
+From: Dennis Zhou <dennis@kernel.org>
+Subject: percpu: add basic double free check
+Date: Fri, 19 Dec 2025 16:27:37 -0800
 
-also fix comment grammar, per SeongJae
+This adds a basic double free check by validating the first bit of the
+allocation in alloc_map and bound_map are set.  If the alloc_map bit is
+not set, then this means the area is currently unallocated.  If the
+bound_map bit is not set, then we are not freeing from the beginning of
+the allocation.
 
-Cc: Kevin Lourenco <klourencodev@gmail.com>
-Cc: SeongJae Park <sj@kernel.org>
+This is a respin of [1] adding the requested changes from me and
+Christoph.
+
+Link: https://lkml.kernel.org/r/20251220002737.84100-1-dennis@kernel.org
+Link: https://lore.kernel.org/linux-mm/20250904143514.Yk6Ap-jy@linutronix.de/ [1]
+Signed-off-by: Dennis Zhou <dennis@kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Chistoph Lameter <cl@linux.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/percpu.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/vma.c~mm-fix-minor-spelling-mistakes-in-comments-fix
-+++ a/mm/vma.c
-@@ -2907,10 +2907,10 @@ retry:
- 		return -ENOMEM;
+--- a/mm/percpu.c~percpu-add-basic-double-free-check
++++ a/mm/percpu.c
+@@ -79,6 +79,7 @@
+ #include <linux/mutex.h>
+ #include <linux/percpu.h>
+ #include <linux/pfn.h>
++#include <linux/ratelimit.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/vmalloc.h>
+@@ -1285,6 +1286,11 @@ static int pcpu_free_area(struct pcpu_ch
  
- 	/*
--	 * Adjust for the gap first so it doesn't interfere with the
--	 * later alignment. The first step is the minimum needed to
--	 * fulfill the start gap, the next steps is the minimum to align
--	 * that. It is the minimum needed to fulfill both.
-+	 * Adjust for the gap first so it doesn't interfere with the later
-+	 * alignment. The first step is the minimum needed to fulfill the start
-+	 * gap, the next step is the minimum to align that. It is the minimum
-+	 * needed to fulfill both.
- 	 */
- 	gap = vma_iter_addr(&vmi) + info->start_gap;
- 	gap += (info->align_offset - gap) & info->align_mask;
+ 	bit_off = off / PCPU_MIN_ALLOC_SIZE;
+ 
++	/* check double free */
++	if (!test_bit(bit_off, chunk->alloc_map) ||
++	    !test_bit(bit_off, chunk->bound_map))
++		return 0;
++
+ 	/* find end index */
+ 	end = find_next_bit(chunk->bound_map, pcpu_chunk_map_bits(chunk),
+ 			    bit_off + 1);
+@@ -2225,6 +2231,7 @@ static void pcpu_balance_workfn(struct w
+  */
+ void free_percpu(void __percpu *ptr)
+ {
++	static DEFINE_RATELIMIT_STATE(_rs, 60 * HZ, DEFAULT_RATELIMIT_BURST);
+ 	void *addr;
+ 	struct pcpu_chunk *chunk;
+ 	unsigned long flags;
+@@ -2242,6 +2249,13 @@ void free_percpu(void __percpu *ptr)
+ 
+ 	spin_lock_irqsave(&pcpu_lock, flags);
+ 	size = pcpu_free_area(chunk, off);
++	if (size == 0) {
++		spin_unlock_irqrestore(&pcpu_lock, flags);
++
++		if (__ratelimit(&_rs))
++			WARN(1, "percpu double free\n");
++		return;
++	}
+ 
+ 	pcpu_alloc_tag_free_hook(chunk, off, size);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dennis@kernel.org are
 
-genalloch-fix-htmldocs-warning.patch
-x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix.patch
-mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free-fix.patch
-kasan-unpoison-vms-addresses-with-a-common-tag-fix.patch
-mm-add-basic-tests-for-lazy_mmu-fix.patch
-mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
-mm-fix-minor-spelling-mistakes-in-comments-fix.patch
-kernel-watchdogc-fix-unused-var-warning.patch
+percpu-add-basic-double-free-check.patch
 
