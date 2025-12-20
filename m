@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7659254654;
-	Sat, 20 Dec 2025 22:59:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6742822DFA5
+	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 23:00:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766271542; cv=none; b=GzIZAHfj6e/9Qkb1pBkk5YVNB2xZnNvGRFL+iHEs4fPcWSeVE/Mj4Td0w9c5sFfuTkgNkh7IzKwq5GYS2aUbRPEqH3RZugWtR8X/P/365bfq3ZdCR2P13q7tyUupaQA9aaXO7GLfrsZtY/cCFE6KBkDgRMPO5H2UBKYql5IRjLw=
+	t=1766271618; cv=none; b=n/GLyIdFgsovvPTO/iowZ+HgtOrL0ICX2t0KT0vghRwInAWxNDhhHw0cTy71J5eAxsGAZPEGgJ/vte4ApsYc7kXmHxdgPyvuf7RL4NCw3YH+4QT0yHjJJM08wJl8fF2mWrbDdnQAiIDu+bSTFAvj1NqPk3/q1mpXmFhNo8jYlrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766271542; c=relaxed/simple;
-	bh=q4oNtkC3wknNN4pJt8OW+tay8jgj9vpsuwNrLHwi1ms=;
-	h=Date:To:From:Subject:Message-Id; b=WBLtM2H8lJkyK6+Js3H55Bar946UhObDzA7lUF4XGAL9rUiz3GFJqJ7ck9CuTPKU/YS8VBFdg4WIkLzdGRnDsXQyWgPwdtktDFLLAVDX5Wt625aOZKss4tmOyk/61VsC6BBR0n69QScGh7cuwczpFC3msDPqqMPrfFaPhTRD2zY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BoAnmKZZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766271618; c=relaxed/simple;
+	bh=1sN1QELbldZcTBqWwX2Q4FDUPNzXA9iSuBqgcjnJTLc=;
+	h=Date:To:From:Subject:Message-Id; b=Cl7Bpz+CQmYkJFacSEkpOf7dgS0bXY/cs3UsqGxvn2uia7H70iTlTE2tV0d/oYy9RsvKObf4SK4vBM5Zpwej7+MVU9W0bbxt55OyOe6mIS+mFgvnh6rGq3myv8E/msqFmDzVnk4MS0QEVvjQ03KYuqtIAK6oo1cIAq3pjQ6Z5Ss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L2inwqRN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BoAnmKZZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBCBCC4CEF5;
-	Sat, 20 Dec 2025 22:59:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L2inwqRN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F140AC4CEF5;
+	Sat, 20 Dec 2025 23:00:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766271542;
-	bh=q4oNtkC3wknNN4pJt8OW+tay8jgj9vpsuwNrLHwi1ms=;
+	s=korg; t=1766271618;
+	bh=1sN1QELbldZcTBqWwX2Q4FDUPNzXA9iSuBqgcjnJTLc=;
 	h=Date:To:From:Subject:From;
-	b=BoAnmKZZhF5lRfPl25rJHBxzmZgZVIO+dqIoMrlI0ick/y9irBjPVVbFBAHsk9Aeg
-	 3nmY8FA9U/JvpbOA/Gy0HtRI8wOppvBPzqY37enRcAhde2ErlT8wV3GSDqX2mHR1bO
-	 iCyiHq6mnIP8HiQdq4yPvNOEi4xu5JmpJWlzCKIw=
-Date: Sat, 20 Dec 2025 14:59:01 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,elver@google.com,andreyknvl@gmail.com,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
+	b=L2inwqRN0RvGI4nqjf+Hl9GCL3LOOvn4nLDJMK++ty+EGFWE/rluI1qDnXs2mS4Nd
+	 VSZ6lycx0jL7I5sxA5Eu6etas/gjkcxtR2oFMfXemnokD4XF/O6RoYUKUGxoHrIbIL
+	 KKKLA3knHrxaEAoqTcdcWmXolEDK3xnUXZiZk4TI=
+Date: Sat, 20 Dec 2025 15:00:17 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,ricardo.neri-calderon@linux.intel.com,pratyush@kernel.org,graf@amazon.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-fix-memory-leak-in-page_owner_stack_fops-release.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251220225901.EBCBCC4CEF5@smtp.kernel.org>
+Subject: + kho-validate-preserved-memory-map-during-population.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251220230017.F140AC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: fix memory leak in page_owner_stack_fops->release()
+     Subject: kho: validate preserved memory map during population
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_owner-fix-memory-leak-in-page_owner_stack_fops-release.patch
+     kho-validate-preserved-memory-map-during-population.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-fix-memory-leak-in-page_owner_stack_fops-release.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-validate-preserved-memory-map-during-population.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,47 +58,158 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Subject: mm/page_owner: fix memory leak in page_owner_stack_fops->release()
-Date: Fri, 19 Dec 2025 07:42:32 +0000
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: kho: validate preserved memory map during population
+Date: Fri, 19 Dec 2025 02:12:09 -0500
 
-The page_owner_stack_fops->open() callback invokes seq_open_private(),
-therefore its corresponding ->release() callback must call
-seq_release_private().  Otherwise it will cause a memory leak of struct
-stack_print_ctx.
+If the previous kernel enabled KHO but did not call kho_finalize() (e.g.,
+CONFIG_LIVEUPDATE=n or userspace skipped the finalization step), the
+'preserved-memory-map' property in the FDT remains empty/zero.
 
-Link: https://lkml.kernel.org/r/20251219074232.136482-1-ranxiaokai627@163.com
-Fixes: 765973a098037 ("mm,page_owner: display all stacks and their count")
-Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Previously, kho_populate() would succeed regardless of the memory map's
+state, reserving the incoming scratch regions in memblock.  However,
+kho_memory_init() would later fail to deserialize the empty map.  By that
+time, the scratch regions were already registered, leading to partial
+initialization and subsequent list corruption (double-free) during
+kho_init().
+
+Move the validation of the preserved memory map earlier into
+kho_populate(). If the memory map is empty/NULL:
+1. Abort kho_populate() immediately with -ENOENT.
+2. Do not register or reserve the incoming scratch memory, allowing the new
+   kernel to reclaim those pages as standard free memory.
+3. Leave the global 'kho_in' state uninitialized.
+
+Consequently, kho_memory_init() sees no active KHO context
+(kho_in.mem_chunks_phys is 0) and falls back to kho_reserve_scratch(),
+allocating fresh scratch memory as if it were a standard cold boot.
+
+Link: https://lkml.kernel.org/r/20251219071209.3696755-1-pasha.tatashin@soleen.com
+Fixes: de51999e687c ("kho: allow memory preservation state updates after finalization")
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reported-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Closes: https://lore.kernel.org/all/20251218215613.GA17304@ranerica-svr.sc.intel.com
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Tested-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/liveupdate/kexec_handover.c |   39 ++++++++++++++-------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-fix-memory-leak-in-page_owner_stack_fops-release
-+++ a/mm/page_owner.c
-@@ -952,7 +952,7 @@ static const struct file_operations page
- 	.open		= page_owner_stack_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
--	.release	= seq_release,
-+	.release	= seq_release_private,
+--- a/kernel/liveupdate/kexec_handover.c~kho-validate-preserved-memory-map-during-population
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -460,27 +460,23 @@ static void __init deserialize_bitmap(un
+ 	}
+ }
+ 
+-/* Return true if memory was deserizlied */
+-static bool __init kho_mem_deserialize(const void *fdt)
++/* Returns physical address of the preserved memory map from FDT */
++static phys_addr_t __init kho_get_mem_map_phys(const void *fdt)
+ {
+-	struct khoser_mem_chunk *chunk;
+ 	const void *mem_ptr;
+-	u64 mem;
+ 	int len;
+ 
+ 	mem_ptr = fdt_getprop(fdt, 0, PROP_PRESERVED_MEMORY_MAP, &len);
+ 	if (!mem_ptr || len != sizeof(u64)) {
+ 		pr_err("failed to get preserved memory bitmaps\n");
+-		return false;
++		return 0;
+ 	}
+ 
+-	mem = get_unaligned((const u64 *)mem_ptr);
+-	chunk = mem ? phys_to_virt(mem) : NULL;
+-
+-	/* No preserved physical pages were passed, no deserialization */
+-	if (!chunk)
+-		return false;
++	return get_unaligned((const u64 *)mem_ptr);
++}
+ 
++static void __init kho_mem_deserialize(struct khoser_mem_chunk *chunk)
++{
+ 	while (chunk) {
+ 		unsigned int i;
+ 
+@@ -489,8 +485,6 @@ static bool __init kho_mem_deserialize(c
+ 					   &chunk->bitmaps[i]);
+ 		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
+ 	}
+-
+-	return true;
+ }
+ 
+ /*
+@@ -1253,6 +1247,7 @@ bool kho_finalized(void)
+ struct kho_in {
+ 	phys_addr_t fdt_phys;
+ 	phys_addr_t scratch_phys;
++	phys_addr_t mem_map_phys;
+ 	struct kho_debugfs dbg;
  };
  
- static int page_owner_threshold_get(void *data, u64 *val)
+@@ -1434,12 +1429,10 @@ static void __init kho_release_scratch(v
+ 
+ void __init kho_memory_init(void)
+ {
+-	if (kho_in.scratch_phys) {
++	if (kho_in.mem_map_phys) {
+ 		kho_scratch = phys_to_virt(kho_in.scratch_phys);
+ 		kho_release_scratch();
+-
+-		if (!kho_mem_deserialize(kho_get_fdt()))
+-			kho_in.fdt_phys = 0;
++		kho_mem_deserialize(phys_to_virt(kho_in.mem_map_phys));
+ 	} else {
+ 		kho_reserve_scratch();
+ 	}
+@@ -1448,8 +1441,9 @@ void __init kho_memory_init(void)
+ void __init kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
+ 			 phys_addr_t scratch_phys, u64 scratch_len)
+ {
+-	void *fdt = NULL;
+ 	struct kho_scratch *scratch = NULL;
++	phys_addr_t mem_map_phys;
++	void *fdt = NULL;
+ 	int err = 0;
+ 	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
+ 
+@@ -1475,6 +1469,14 @@ void __init kho_populate(phys_addr_t fdt
+ 		goto out;
+ 	}
+ 
++	mem_map_phys = kho_get_mem_map_phys(fdt);
++	if (!mem_map_phys) {
++		pr_warn("setup: handover FDT (0x%llx) present but no preserved memory found\n",
++			fdt_phys);
++		err = -ENOENT;
++		goto out;
++	}
++
+ 	scratch = early_memremap(scratch_phys, scratch_len);
+ 	if (!scratch) {
+ 		pr_warn("setup: failed to memremap scratch (phys=0x%llx, len=%lld)\n",
+@@ -1515,6 +1517,7 @@ void __init kho_populate(phys_addr_t fdt
+ 
+ 	kho_in.fdt_phys = fdt_phys;
+ 	kho_in.scratch_phys = scratch_phys;
++	kho_in.mem_map_phys = mem_map_phys;
+ 	kho_scratch_cnt = scratch_cnt;
+ 	pr_info("found kexec handover data.\n");
+ 
 _
 
-Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-page_owner-fix-memory-leak-in-page_owner_stack_fops-release.patch
+kho-validate-preserved-memory-map-during-population.patch
+list-add-primitives-for-private-list-manipulations.patch
+list-add-kunit-test-for-private-list-primitives.patch
+liveupdate-luo_file-use-private-list.patch
+liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
+tests-liveupdate-add-in-kernel-liveupdate-test.patch
 
