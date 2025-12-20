@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 848662FE04E
-	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 22:05:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B10D2C0287
+	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 22:05:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766268315; cv=none; b=p8mc9UItOG+5Fu/Gw6cZJgpTaGFKeFhw8Pfa5xmUYcT8t8mV3Q9U+ZArcFatqbkXIrmGbwYJeF4zUyJF/DfYYz4yGOoZlJe2uqy/ZBPIauvUvQzitMDJzZa7B639Pj2p3AoT54i/tOjZ6KzZLq1F9/mYmIaUddX1Tt+Po7YDZ84=
+	t=1766268319; cv=none; b=lOgvlyGOJJSHkgaO1YGCE0Ix7kFyWgThoS4PuQ/V8BbjTsafkBxD3g8Y5eZqlhia3ooBM/dnyggZ1nFMD62gk5mzDhzMGQZfsUTKjS6FXz87nAbAIDhGcRmwMulMcCNEip79A2IGn5sGxB3TEmrkg7vCia/36KRzl6HpxunpulA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766268315; c=relaxed/simple;
-	bh=gxvctDdECXhZh4bk+eGhqzh2FjuMxeoVVC1hbxOXPQw=;
-	h=Date:To:From:Subject:Message-Id; b=tFoDAKs6dOjyU73mbo7lMNhfXmb9WCxLI3eQOiIUffLnd/OFbyf02ya5H/CfjXyDV3eCvKPBiENuOvccI31EItTsSlaEnMV6xBEiFQvhirn2wrUuEMTwqefYRa0w1+wnnxK1jUkAswaiLb3OWcDD8gQ1rBXkQnI43V+/aZkmgo4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zkTNPdiO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766268319; c=relaxed/simple;
+	bh=9pSI24PMvdXhLGkzlCtTco+rEs91PtMn7NsPtu8ldn4=;
+	h=Date:To:From:Subject:Message-Id; b=KCvb21ezTXlIyw6aopHSr4ujT4/cTi5AphyGq9PtXuBQm16tc/tNxRQcIzRgyNdrTAhHwBhUHfVtPfsScODhSFBp/nNiZ/HFyKDSptfoAmXHwG7nP5ls2ySltuR/G8NTbi/OAipH62NCyr0N0y82ut2UKyuoNWZSwyLtG68QCWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kG4IWFU7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zkTNPdiO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 587F9C4CEF5;
-	Sat, 20 Dec 2025 22:05:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kG4IWFU7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9460DC4CEF5;
+	Sat, 20 Dec 2025 22:05:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766268315;
-	bh=gxvctDdECXhZh4bk+eGhqzh2FjuMxeoVVC1hbxOXPQw=;
+	s=korg; t=1766268318;
+	bh=9pSI24PMvdXhLGkzlCtTco+rEs91PtMn7NsPtu8ldn4=;
 	h=Date:To:From:Subject:From;
-	b=zkTNPdiOVeEex9zGf6XojUOr7790RFEf8G05EQhrcgn176A648mObW+XQegVRwFcg
-	 JMa1SfNS8U6T+qjgHvGMR8iONqdsqCvFxSHPpVUtr1yJU2N2lFD4eSeZRA4k4XazV3
-	 F/8PFYJoHtEgoaWYGPEY2Kq4zUnlGUz6rAN2eImk=
-Date: Sat, 20 Dec 2025 14:05:14 -0800
+	b=kG4IWFU76UnL2q466bsU3UiG3BzmvUUHQKb1g5CEk5MKWoHZ3LdRGaYXbnrn8+qGc
+	 DKJkv5PPXjmtFW29EvKXSI85cH420Mxuru7aNZ0492WtEIWeepqn6Xi2s9yGAGNZ5j
+	 aI0Urrq7RtWLIqHr9rxE0fQc6jAlM2NqCsasQyck=
+Date: Sat, 20 Dec 2025 14:05:18 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,rafael@kernel.org,nphamcs@gmail.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch added to mm-new branch
-Message-Id: <20251220220515.587F9C4CEF5@smtp.kernel.org>
+Subject: + mm-swap-cleanup-swap-entry-management-workflow.patch added to mm-new branch
+Message-Id: <20251220220518.9460DC4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: remove workaround for unsynchronized swap map cache state
+     Subject: mm, swap: cleanup swap entry management workflow
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
+     mm-swap-cleanup-swap-entry-management-workflow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cleanup-swap-entry-management-workflow.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,172 +67,758 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: remove workaround for unsynchronized swap map cache state
-Date: Sat, 20 Dec 2025 03:43:42 +0800
+Subject: mm, swap: cleanup swap entry management workflow
+Date: Sat, 20 Dec 2025 03:43:43 +0800
 
-Remove the "skip if exists" check from commit a65b0e7607ccb ("zswap: make
-shrinking memcg-aware").  It was needed because there is a tiny time
-window between setting the SWAP_HAS_CACHE bit and actually adding the
-folio to the swap cache.  If a user is trying to add the folio into the
-swap cache but another user was interrupted after setting SWAP_HAS_CACHE
-but hasn't added the folio to the swap cache yet, it might lead to a
-deadlock.
+The current swap entry allocation/freeing workflow has never had a clear
+definition.  This makes it hard to debug or add new optimizations.
 
-We have moved the bit setting to the same critical section as adding the
-folio, so this is no longer needed.  Remove it and clean it up.
+This commit introduces a proper definition of how swap entries would be
+allocated and freed.  Now, most operations are folio based, so they will
+never exceed one swap cluster, and we now have a cleaner border between
+swap and the rest of mm, making it much easier to follow and debug,
+especially with new added sanity checks.  Also making more optimization
+possible.
 
-Link: https://lkml.kernel.org/r/20251220-swap-table-p2-v5-13-8862a265a033@tencent.com
+Swap entry will be mostly freed and free with a folio bound.  The folio
+lock will be useful for resolving many swap related races.
+
+Now swap allocation (except hibernation) always starts with a folio in the
+swap cache, and gets duped/freed protected by the folio lock:
+
+- folio_alloc_swap() - The only allocation entry point now.
+  Context: The folio must be locked.
+  This allocates one or a set of continuous swap slots for a folio and
+  binds them to the folio by adding the folio to the swap cache. The
+  swap slots' swap count start with zero value.
+
+- folio_dup_swap() - Increase the swap count of one or more entries.
+  Context: The folio must be locked and in the swap cache. For now, the
+  caller still has to lock the new swap entry owner (e.g., PTL).
+  This increases the ref count of swap entries allocated to a folio.
+  Newly allocated swap slots' count has to be increased by this helper
+  as the folio got unmapped (and swap entries got installed).
+
+- folio_put_swap() - Decrease the swap count of one or more entries.
+  Context: The folio must be locked and in the swap cache. For now, the
+  caller still has to lock the new swap entry owner (e.g., PTL).
+  This decreases the ref count of swap entries allocated to a folio.
+  Typically, swapin will decrease the swap count as the folio got
+  installed back and the swap entry got uninstalled
+
+  This won't remove the folio from the swap cache and free the
+  slot. Lazy freeing of swap cache is helpful for reducing IO.
+  There is already a folio_free_swap() for immediate cache reclaim.
+  This part could be further optimized later.
+
+The above locking constraints could be further relaxed when the swap table
+is fully implemented.  Currently dup still needs the caller to lock the
+swap entry container (e.g.  PTL), or a concurrent zap may underflow the
+swap count.
+
+Some swap users need to interact with swap count without involving folio
+(e.g.  forking/zapping the page table or mapping truncate without swapin).
+In such cases, the caller has to ensure there is no race condition on
+whatever owns the swap count and use the below helpers:
+
+- swap_put_entries_direct() - Decrease the swap count directly.
+  Context: The caller must lock whatever is referencing the slots to
+  avoid a race.
+
+  Typically the page table zapping or shmem mapping truncate will need
+  to free swap slots directly. If a slot is cached (has a folio bound),
+  this will also try to release the swap cache.
+
+- swap_dup_entry_direct() - Increase the swap count directly.
+  Context: The caller must lock whatever is referencing the entries to
+  avoid race, and the entries must already have a swap count > 1.
+
+  Typically, forking will need to copy the page table and hence needs to
+  increase the swap count of the entries in the table. The page table is
+  locked while referencing the swap entries, so the entries all have a
+  swap count > 1 and can't be freed.
+
+Hibernation subsystem is a bit different, so two special wrappers are here:
+
+- swap_alloc_hibernation_slot() - Allocate one entry from one device.
+- swap_free_hibernation_slot() - Free one entry allocated by the above
+  helper.
+
+All hibernation entries are exclusive to the hibernation subsystem and
+should not interact with ordinary swap routines.
+
+By separating the workflows, it will be possible to bind folio more
+tightly with swap cache and get rid of the SWAP_HAS_CACHE as a temporary
+pin.
+
+This commit should not introduce any behavior change
+
+Link: https://lkml.kernel.org/r/20251220-swap-table-p2-v5-14-8862a265a033@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.h       |    2 +-
- mm/swap_state.c |   27 ++++++++++-----------------
- mm/zswap.c      |    2 +-
- 3 files changed, 12 insertions(+), 19 deletions(-)
+ arch/s390/mm/gmap_helpers.c |    2 
+ arch/s390/mm/pgtable.c      |    2 
+ include/linux/swap.h        |   58 +++++-------
+ kernel/power/swap.c         |   10 +-
+ mm/madvise.c                |    2 
+ mm/memory.c                 |   15 ++-
+ mm/rmap.c                   |    7 -
+ mm/shmem.c                  |   10 +-
+ mm/swap.h                   |   37 ++++++++
+ mm/swapfile.c               |  152 ++++++++++++++++++++++++----------
+ 10 files changed, 197 insertions(+), 98 deletions(-)
 
---- a/mm/swap.h~mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state
-+++ a/mm/swap.h
-@@ -260,7 +260,7 @@ int swap_cache_add_folio(struct folio *f
- void swap_cache_del_folio(struct folio *folio);
- struct folio *swap_cache_alloc_folio(swp_entry_t entry, gfp_t gfp_flags,
- 				     struct mempolicy *mpol, pgoff_t ilx,
--				     bool *alloced, bool skip_if_exists);
-+				     bool *alloced);
- /* Below helpers require the caller to lock and pass in the swap cluster. */
- void __swap_cache_del_folio(struct swap_cluster_info *ci,
- 			    struct folio *folio, swp_entry_t entry, void *shadow);
---- a/mm/swap_state.c~mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state
-+++ a/mm/swap_state.c
-@@ -445,8 +445,6 @@ void swap_update_readahead(struct folio
-  * @folio: folio to be added.
-  * @gfp: memory allocation flags for charge, can be 0 if @charged if true.
-  * @charged: if the folio is already charged.
-- * @skip_if_exists: if the slot is in a cached state, return NULL.
-- *                  This is an old workaround that will be removed shortly.
-  *
-  * Update the swap_map and add folio as swap cache, typically before swapin.
-  * All swap slots covered by the folio must have a non-zero swap count.
-@@ -457,8 +455,7 @@ void swap_update_readahead(struct folio
-  */
- static struct folio *__swap_cache_prepare_and_add(swp_entry_t entry,
- 						  struct folio *folio,
--						  gfp_t gfp, bool charged,
--						  bool skip_if_exists)
-+						  gfp_t gfp, bool charged)
+--- a/arch/s390/mm/gmap_helpers.c~mm-swap-cleanup-swap-entry-management-workflow
++++ a/arch/s390/mm/gmap_helpers.c
+@@ -32,7 +32,7 @@ static void ptep_zap_softleaf_entry(stru
+ 		dec_mm_counter(mm, MM_SWAPENTS);
+ 	else if (softleaf_is_migration(entry))
+ 		dec_mm_counter(mm, mm_counter(softleaf_to_folio(entry)));
+-	free_swap_and_cache(entry);
++	swap_put_entries_direct(entry, 1);
+ }
+ 
+ /**
+--- a/arch/s390/mm/pgtable.c~mm-swap-cleanup-swap-entry-management-workflow
++++ a/arch/s390/mm/pgtable.c
+@@ -682,7 +682,7 @@ static void ptep_zap_softleaf_entry(stru
+ 
+ 		dec_mm_counter(mm, mm_counter(folio));
+ 	}
+-	free_swap_and_cache(entry);
++	swap_put_entries_direct(entry, 1);
+ }
+ 
+ void ptep_zap_unused(struct mm_struct *mm, unsigned long addr,
+--- a/include/linux/swap.h~mm-swap-cleanup-swap-entry-management-workflow
++++ a/include/linux/swap.h
+@@ -452,14 +452,8 @@ static inline long get_nr_swap_pages(voi
+ }
+ 
+ extern void si_swapinfo(struct sysinfo *);
+-int folio_alloc_swap(struct folio *folio);
+-bool folio_free_swap(struct folio *folio);
+ void put_swap_folio(struct folio *folio, swp_entry_t entry);
+-extern swp_entry_t get_swap_page_of_type(int);
+ extern int add_swap_count_continuation(swp_entry_t, gfp_t);
+-extern int swap_duplicate_nr(swp_entry_t entry, int nr);
+-extern void swap_free_nr(swp_entry_t entry, int nr_pages);
+-extern void free_swap_and_cache_nr(swp_entry_t entry, int nr);
+ int swap_type_of(dev_t device, sector_t offset);
+ int find_first_swap(dev_t *device);
+ extern unsigned int count_swap_pages(int, int);
+@@ -471,6 +465,29 @@ struct backing_dev_info;
+ extern struct swap_info_struct *get_swap_device(swp_entry_t entry);
+ sector_t swap_folio_sector(struct folio *folio);
+ 
++/*
++ * If there is an existing swap slot reference (swap entry) and the caller
++ * guarantees that there is no race modification of it (e.g., PTL
++ * protecting the swap entry in page table; shmem's cmpxchg protects t
++ * he swap entry in shmem mapping), these two helpers below can be used
++ * to put/dup the entries directly.
++ *
++ * All entries must be allocated by folio_alloc_swap(). And they must have
++ * a swap count > 1. See comments of folio_*_swap helpers for more info.
++ */
++int swap_dup_entry_direct(swp_entry_t entry);
++void swap_put_entries_direct(swp_entry_t entry, int nr);
++
++/*
++ * folio_free_swap tries to free the swap entries pinned by a swap cache
++ * folio, it has to be here to be called by other components.
++ */
++bool folio_free_swap(struct folio *folio);
++
++/* Allocate / free (hibernation) exclusive entries */
++swp_entry_t swap_alloc_hibernation_slot(int type);
++void swap_free_hibernation_slot(swp_entry_t entry);
++
+ static inline void put_swap_device(struct swap_info_struct *si)
  {
- 	struct folio *swapcache = NULL;
- 	void *shadow;
-@@ -478,7 +475,7 @@ static struct folio *__swap_cache_prepar
- 		 * might return a folio that is irrelevant to the faulting
- 		 * entry because @entry is aligned down. Just return NULL.
+ 	percpu_ref_put(&si->users);
+@@ -498,10 +515,6 @@ static inline void put_swap_device(struc
+ #define free_pages_and_swap_cache(pages, nr) \
+ 	release_pages((pages), (nr));
+ 
+-static inline void free_swap_and_cache_nr(swp_entry_t entry, int nr)
+-{
+-}
+-
+ static inline void free_swap_cache(struct folio *folio)
+ {
+ }
+@@ -511,12 +524,12 @@ static inline int add_swap_count_continu
+ 	return 0;
+ }
+ 
+-static inline int swap_duplicate_nr(swp_entry_t swp, int nr_pages)
++static inline int swap_dup_entry_direct(swp_entry_t ent)
+ {
+ 	return 0;
+ }
+ 
+-static inline void swap_free_nr(swp_entry_t entry, int nr_pages)
++static inline void swap_put_entries_direct(swp_entry_t ent, int nr)
+ {
+ }
+ 
+@@ -539,11 +552,6 @@ static inline int swp_swapcount(swp_entr
+ 	return 0;
+ }
+ 
+-static inline int folio_alloc_swap(struct folio *folio)
+-{
+-	return -EINVAL;
+-}
+-
+ static inline bool folio_free_swap(struct folio *folio)
+ {
+ 	return false;
+@@ -556,22 +564,6 @@ static inline int add_swap_extent(struct
+ 	return -EINVAL;
+ }
+ #endif /* CONFIG_SWAP */
+-
+-static inline int swap_duplicate(swp_entry_t entry)
+-{
+-	return swap_duplicate_nr(entry, 1);
+-}
+-
+-static inline void free_swap_and_cache(swp_entry_t entry)
+-{
+-	free_swap_and_cache_nr(entry, 1);
+-}
+-
+-static inline void swap_free(swp_entry_t entry)
+-{
+-	swap_free_nr(entry, 1);
+-}
+-
+ #ifdef CONFIG_MEMCG
+ static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
+ {
+--- a/kernel/power/swap.c~mm-swap-cleanup-swap-entry-management-workflow
++++ a/kernel/power/swap.c
+@@ -174,10 +174,10 @@ sector_t alloc_swapdev_block(int swap)
+ 	 * Allocate a swap page and register that it has been allocated, so that
+ 	 * it can be freed in case of an error.
+ 	 */
+-	offset = swp_offset(get_swap_page_of_type(swap));
++	offset = swp_offset(swap_alloc_hibernation_slot(swap));
+ 	if (offset) {
+ 		if (swsusp_extents_insert(offset))
+-			swap_free(swp_entry(swap, offset));
++			swap_free_hibernation_slot(swp_entry(swap, offset));
+ 		else
+ 			return swapdev_block(swap, offset);
+ 	}
+@@ -186,6 +186,7 @@ sector_t alloc_swapdev_block(int swap)
+ 
+ void free_all_swap_pages(int swap)
+ {
++	unsigned long offset;
+ 	struct rb_node *node;
+ 
+ 	/*
+@@ -197,8 +198,9 @@ void free_all_swap_pages(int swap)
+ 
+ 		ext = rb_entry(node, struct swsusp_extent, node);
+ 		rb_erase(node, &swsusp_extents);
+-		swap_free_nr(swp_entry(swap, ext->start),
+-			     ext->end - ext->start + 1);
++
++		for (offset = ext->start; offset < ext->end; offset++)
++			swap_free_hibernation_slot(swp_entry(swap, offset));
+ 
+ 		kfree(ext);
+ 	}
+--- a/mm/madvise.c~mm-swap-cleanup-swap-entry-management-workflow
++++ a/mm/madvise.c
+@@ -694,7 +694,7 @@ static int madvise_free_pte_range(pmd_t
+ 				max_nr = (end - addr) / PAGE_SIZE;
+ 				nr = swap_pte_batch(pte, max_nr, ptent);
+ 				nr_swap -= nr;
+-				free_swap_and_cache_nr(entry, nr);
++				swap_put_entries_direct(entry, nr);
+ 				clear_not_present_full_ptes(mm, addr, pte, nr, tlb->fullmm);
+ 			} else if (softleaf_is_hwpoison(entry) ||
+ 				   softleaf_is_poison_marker(entry)) {
+--- a/mm/memory.c~mm-swap-cleanup-swap-entry-management-workflow
++++ a/mm/memory.c
+@@ -934,7 +934,7 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 	struct page *page;
+ 
+ 	if (likely(softleaf_is_swap(entry))) {
+-		if (swap_duplicate(entry) < 0)
++		if (swap_dup_entry_direct(entry) < 0)
+ 			return -EIO;
+ 
+ 		/* make sure dst_mm is on swapoff's mmlist. */
+@@ -1744,7 +1744,7 @@ static inline int zap_nonpresent_ptes(st
+ 
+ 		nr = swap_pte_batch(pte, max_nr, ptent);
+ 		rss[MM_SWAPENTS] -= nr;
+-		free_swap_and_cache_nr(entry, nr);
++		swap_put_entries_direct(entry, nr);
+ 	} else if (softleaf_is_migration(entry)) {
+ 		struct folio *folio = softleaf_to_folio(entry);
+ 
+@@ -4933,7 +4933,7 @@ check_folio:
+ 	/*
+ 	 * Some architectures may have to restore extra metadata to the page
+ 	 * when reading from swap. This metadata may be indexed by swap entry
+-	 * so this must be called before swap_free().
++	 * so this must be called before folio_put_swap().
+ 	 */
+ 	arch_swap_restore(folio_swap(entry, folio), folio);
+ 
+@@ -4971,6 +4971,7 @@ check_folio:
+ 	if (unlikely(folio != swapcache)) {
+ 		folio_add_new_anon_rmap(folio, vma, address, RMAP_EXCLUSIVE);
+ 		folio_add_lru_vma(folio, vma);
++		folio_put_swap(swapcache, NULL);
+ 	} else if (!folio_test_anon(folio)) {
+ 		/*
+ 		 * We currently only expect !anon folios that are fully
+@@ -4979,9 +4980,12 @@ check_folio:
+ 		VM_WARN_ON_ONCE_FOLIO(folio_nr_pages(folio) != nr_pages, folio);
+ 		VM_WARN_ON_ONCE_FOLIO(folio_mapped(folio), folio);
+ 		folio_add_new_anon_rmap(folio, vma, address, rmap_flags);
++		folio_put_swap(folio, NULL);
+ 	} else {
++		VM_WARN_ON_ONCE(nr_pages != 1 && nr_pages != folio_nr_pages(folio));
+ 		folio_add_anon_rmap_ptes(folio, page, nr_pages, vma, address,
+-					rmap_flags);
++					 rmap_flags);
++		folio_put_swap(folio, nr_pages == 1 ? page : NULL);
+ 	}
+ 
+ 	VM_BUG_ON(!folio_test_anon(folio) ||
+@@ -4995,7 +4999,6 @@ check_folio:
+ 	 * Do it after mapping, so raced page faults will likely see the folio
+ 	 * in swap cache and wait on the folio lock.
+ 	 */
+-	swap_free_nr(entry, nr_pages);
+ 	if (should_try_to_free_swap(si, folio, vma, nr_pages, vmf->flags))
+ 		folio_free_swap(folio);
+ 
+@@ -5005,7 +5008,7 @@ check_folio:
+ 		 * Hold the lock to avoid the swap entry to be reused
+ 		 * until we take the PT lock for the pte_same() check
+ 		 * (to avoid false positives from pte_same). For
+-		 * further safety release the lock after the swap_free
++		 * further safety release the lock after the folio_put_swap
+ 		 * so that the swap count won't change under a
+ 		 * parallel locked swapcache.
  		 */
--		if (ret != -EEXIST || skip_if_exists || folio_test_large(folio))
-+		if (ret != -EEXIST || folio_test_large(folio))
- 			goto failed;
+--- a/mm/rmap.c~mm-swap-cleanup-swap-entry-management-workflow
++++ a/mm/rmap.c
+@@ -82,6 +82,7 @@
+ #include <trace/events/migrate.h>
  
- 		swapcache = swap_cache_get_folio(entry);
-@@ -511,8 +508,6 @@ failed:
-  * @mpol: NUMA memory allocation policy to be applied
-  * @ilx: NUMA interleave index, for use only when MPOL_INTERLEAVE
-  * @new_page_allocated: sets true if allocation happened, false otherwise
-- * @skip_if_exists: if the slot is a partially cached state, return NULL.
-- *                  This is a workaround that would be removed shortly.
-  *
-  * Allocate a folio in the swap cache for one swap slot, typically before
-  * doing IO (e.g. swap in or zswap writeback). The swap slot indicated by
-@@ -525,8 +520,7 @@ failed:
-  */
- struct folio *swap_cache_alloc_folio(swp_entry_t entry, gfp_t gfp_mask,
- 				     struct mempolicy *mpol, pgoff_t ilx,
--				     bool *new_page_allocated,
--				     bool skip_if_exists)
-+				     bool *new_page_allocated)
- {
- 	struct swap_info_struct *si = __swap_entry_to_info(entry);
- 	struct folio *folio;
-@@ -547,8 +541,7 @@ struct folio *swap_cache_alloc_folio(swp
- 	if (!folio)
- 		return NULL;
- 	/* Try add the new folio, returns existing folio or NULL on failure. */
--	result = __swap_cache_prepare_and_add(entry, folio, gfp_mask,
--					      false, skip_if_exists);
-+	result = __swap_cache_prepare_and_add(entry, folio, gfp_mask, false);
- 	if (result == folio)
- 		*new_page_allocated = true;
- 	else
-@@ -577,7 +570,7 @@ struct folio *swapin_folio(swp_entry_t e
- 	unsigned long nr_pages = folio_nr_pages(folio);
+ #include "internal.h"
++#include "swap.h"
  
- 	entry = swp_entry(swp_type(entry), round_down(offset, nr_pages));
--	swapcache = __swap_cache_prepare_and_add(entry, folio, 0, true, false);
-+	swapcache = __swap_cache_prepare_and_add(entry, folio, 0, true);
- 	if (swapcache == folio)
- 		swap_read_folio(folio, NULL);
- 	return swapcache;
-@@ -605,7 +598,7 @@ struct folio *read_swap_cache_async(swp_
+ static struct kmem_cache *anon_vma_cachep;
+ static struct kmem_cache *anon_vma_chain_cachep;
+@@ -2147,7 +2148,7 @@ static bool try_to_unmap_one(struct foli
+ 				goto discard;
+ 			}
  
- 	mpol = get_vma_policy(vma, addr, 0, &ilx);
- 	folio = swap_cache_alloc_folio(entry, gfp_mask, mpol, ilx,
--					&page_allocated, false);
-+				       &page_allocated);
- 	mpol_cond_put(mpol);
+-			if (swap_duplicate(entry) < 0) {
++			if (folio_dup_swap(folio, subpage) < 0) {
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				goto walk_abort;
+ 			}
+@@ -2158,7 +2159,7 @@ static bool try_to_unmap_one(struct foli
+ 			 * so we'll not check/care.
+ 			 */
+ 			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
+-				swap_free(entry);
++				folio_put_swap(folio, subpage);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				goto walk_abort;
+ 			}
+@@ -2166,7 +2167,7 @@ static bool try_to_unmap_one(struct foli
+ 			/* See folio_try_share_anon_rmap(): clear PTE first. */
+ 			if (anon_exclusive &&
+ 			    folio_try_share_anon_rmap_pte(folio, subpage)) {
+-				swap_free(entry);
++				folio_put_swap(folio, subpage);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				goto walk_abort;
+ 			}
+--- a/mm/shmem.c~mm-swap-cleanup-swap-entry-management-workflow
++++ a/mm/shmem.c
+@@ -970,7 +970,7 @@ static long shmem_free_swap(struct addre
+ 	old = xa_cmpxchg_irq(&mapping->i_pages, index, radswap, NULL, 0);
+ 	if (old != radswap)
+ 		return 0;
+-	free_swap_and_cache_nr(radix_to_swp_entry(radswap), 1 << order);
++	swap_put_entries_direct(radix_to_swp_entry(radswap), 1 << order);
  
- 	if (page_allocated)
-@@ -724,7 +717,7 @@ struct folio *swap_cluster_readahead(swp
- 		/* Ok, do the async read-ahead now */
- 		folio = swap_cache_alloc_folio(
- 			swp_entry(swp_type(entry), offset), gfp_mask, mpol, ilx,
--			&page_allocated, false);
-+			&page_allocated);
- 		if (!folio)
- 			continue;
- 		if (page_allocated) {
-@@ -742,7 +735,7 @@ struct folio *swap_cluster_readahead(swp
- skip:
- 	/* The page was likely read above, so no need for plugging here */
- 	folio = swap_cache_alloc_folio(entry, gfp_mask, mpol, ilx,
--					&page_allocated, false);
-+				       &page_allocated);
- 	if (unlikely(page_allocated))
- 		swap_read_folio(folio, NULL);
- 	return folio;
-@@ -847,7 +840,7 @@ static struct folio *swap_vma_readahead(
- 				continue;
+ 	return 1 << order;
+ }
+@@ -1667,7 +1667,7 @@ try_split:
+ 			spin_unlock(&shmem_swaplist_lock);
  		}
- 		folio = swap_cache_alloc_folio(entry, gfp_mask, mpol, ilx,
--						&page_allocated, false);
-+					       &page_allocated);
- 		if (si)
- 			put_swap_device(si);
- 		if (!folio)
-@@ -869,7 +862,7 @@ static struct folio *swap_vma_readahead(
- skip:
- 	/* The folio was likely read above, so no need for plugging here */
- 	folio = swap_cache_alloc_folio(targ_entry, gfp_mask, mpol, targ_ilx,
--					&page_allocated, false);
-+				       &page_allocated);
- 	if (unlikely(page_allocated))
- 		swap_read_folio(folio, NULL);
- 	return folio;
---- a/mm/zswap.c~mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state
-+++ a/mm/zswap.c
-@@ -1013,7 +1013,7 @@ static int zswap_writeback_entry(struct
  
- 	mpol = get_task_policy(current);
- 	folio = swap_cache_alloc_folio(swpentry, GFP_KERNEL, mpol,
--				       NO_INTERLEAVE_INDEX, &folio_was_allocated, true);
-+				       NO_INTERLEAVE_INDEX, &folio_was_allocated);
+-		swap_duplicate_nr(folio->swap, nr_pages);
++		folio_dup_swap(folio, NULL);
+ 		shmem_delete_from_page_cache(folio, swp_to_radix_entry(folio->swap));
+ 
+ 		BUG_ON(folio_mapped(folio));
+@@ -1688,7 +1688,7 @@ try_split:
+ 		/* Swap entry might be erased by racing shmem_free_swap() */
+ 		if (!error) {
+ 			shmem_recalc_inode(inode, 0, -nr_pages);
+-			swap_free_nr(folio->swap, nr_pages);
++			folio_put_swap(folio, NULL);
+ 		}
+ 
+ 		/*
+@@ -2174,6 +2174,7 @@ static void shmem_set_folio_swapin_error
+ 
+ 	nr_pages = folio_nr_pages(folio);
+ 	folio_wait_writeback(folio);
++	folio_put_swap(folio, NULL);
+ 	swap_cache_del_folio(folio);
+ 	/*
+ 	 * Don't treat swapin error folio as alloced. Otherwise inode->i_blocks
+@@ -2181,7 +2182,6 @@ static void shmem_set_folio_swapin_error
+ 	 * in shmem_evict_inode().
+ 	 */
+ 	shmem_recalc_inode(inode, -nr_pages, -nr_pages);
+-	swap_free_nr(swap, nr_pages);
+ }
+ 
+ static int shmem_split_large_entry(struct inode *inode, pgoff_t index,
+@@ -2404,9 +2404,9 @@ static int shmem_swapin_folio(struct ino
+ 	if (sgp == SGP_WRITE)
+ 		folio_mark_accessed(folio);
+ 
++	folio_put_swap(folio, NULL);
+ 	swap_cache_del_folio(folio);
+ 	folio_mark_dirty(folio);
+-	swap_free_nr(swap, nr_pages);
  	put_swap_device(si);
- 	if (!folio)
- 		return -ENOMEM;
+ 
+ 	*foliop = folio;
+--- a/mm/swapfile.c~mm-swap-cleanup-swap-entry-management-workflow
++++ a/mm/swapfile.c
+@@ -58,6 +58,9 @@ static void swap_entries_free(struct swa
+ 			      swp_entry_t entry, unsigned int nr_pages);
+ static void swap_range_alloc(struct swap_info_struct *si,
+ 			     unsigned int nr_entries);
++static int __swap_duplicate(swp_entry_t entry, unsigned char usage, int nr);
++static bool swap_entries_put_map(struct swap_info_struct *si,
++				 swp_entry_t entry, int nr);
+ static bool folio_swapcache_freeable(struct folio *folio);
+ static void move_cluster(struct swap_info_struct *si,
+ 			 struct swap_cluster_info *ci, struct list_head *list,
+@@ -1482,6 +1485,12 @@ again:
+ 	 */
+ 	WARN_ON_ONCE(swap_cache_add_folio(folio, entry, NULL, true));
+ 
++	/*
++	 * Allocator should always allocate aligned entries so folio based
++	 * operations never crossed more than one cluster.
++	 */
++	VM_WARN_ON_ONCE_FOLIO(!IS_ALIGNED(folio->swap.val, size), folio);
++
+ 	return 0;
+ 
+ out_free:
+@@ -1489,6 +1498,66 @@ out_free:
+ 	return -ENOMEM;
+ }
+ 
++/**
++ * folio_dup_swap() - Increase swap count of swap entries of a folio.
++ * @folio: folio with swap entries bounded.
++ * @subpage: if not NULL, only increase the swap count of this subpage.
++ *
++ * Typically called when the folio is unmapped and have its swap entry to
++ * take its palce.
++ *
++ * Context: Caller must ensure the folio is locked and in the swap cache.
++ * NOTE: The caller also has to ensure there is no raced call to
++ * swap_put_entries_direct on its swap entry before this helper returns, or
++ * the swap map may underflow. Currently, we only accept @subpage == NULL
++ * for shmem due to the limitation of swap continuation: shmem always
++ * duplicates the swap entry only once, so there is no such issue for it.
++ */
++int folio_dup_swap(struct folio *folio, struct page *subpage)
++{
++	int err = 0;
++	swp_entry_t entry = folio->swap;
++	unsigned long nr_pages = folio_nr_pages(folio);
++
++	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++	VM_WARN_ON_FOLIO(!folio_test_swapcache(folio), folio);
++
++	if (subpage) {
++		entry.val += folio_page_idx(folio, subpage);
++		nr_pages = 1;
++	}
++
++	while (!err && __swap_duplicate(entry, 1, nr_pages) == -ENOMEM)
++		err = add_swap_count_continuation(entry, GFP_ATOMIC);
++
++	return err;
++}
++
++/**
++ * folio_put_swap() - Decrease swap count of swap entries of a folio.
++ * @folio: folio with swap entries bounded, must be in swap cache and locked.
++ * @subpage: if not NULL, only decrease the swap count of this subpage.
++ *
++ * This won't free the swap slots even if swap count drops to zero, they are
++ * still pinned by the swap cache. User may call folio_free_swap to free them.
++ * Context: Caller must ensure the folio is locked and in the swap cache.
++ */
++void folio_put_swap(struct folio *folio, struct page *subpage)
++{
++	swp_entry_t entry = folio->swap;
++	unsigned long nr_pages = folio_nr_pages(folio);
++
++	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++	VM_WARN_ON_FOLIO(!folio_test_swapcache(folio), folio);
++
++	if (subpage) {
++		entry.val += folio_page_idx(folio, subpage);
++		nr_pages = 1;
++	}
++
++	swap_entries_put_map(__swap_entry_to_info(entry), entry, nr_pages);
++}
++
+ static struct swap_info_struct *_swap_info_get(swp_entry_t entry)
+ {
+ 	struct swap_info_struct *si;
+@@ -1730,28 +1799,6 @@ static void swap_entries_free(struct swa
+ }
+ 
+ /*
+- * Caller has made sure that the swap device corresponding to entry
+- * is still around or has not been recycled.
+- */
+-void swap_free_nr(swp_entry_t entry, int nr_pages)
+-{
+-	int nr;
+-	struct swap_info_struct *sis;
+-	unsigned long offset = swp_offset(entry);
+-
+-	sis = _swap_info_get(entry);
+-	if (!sis)
+-		return;
+-
+-	while (nr_pages) {
+-		nr = min_t(int, nr_pages, SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
+-		swap_entries_put_map(sis, swp_entry(sis->type, offset), nr);
+-		offset += nr;
+-		nr_pages -= nr;
+-	}
+-}
+-
+-/*
+  * Called after dropping swapcache to decrease refcnt to swap entries.
+  */
+ void put_swap_folio(struct folio *folio, swp_entry_t entry)
+@@ -1940,16 +1987,19 @@ bool folio_free_swap(struct folio *folio
+ }
+ 
+ /**
+- * free_swap_and_cache_nr() - Release reference on range of swap entries and
+- *                            reclaim their cache if no more references remain.
++ * swap_put_entries_direct() - Release reference on range of swap entries and
++ *                             reclaim their cache if no more references remain.
+  * @entry: First entry of range.
+  * @nr: Number of entries in range.
+  *
+  * For each swap entry in the contiguous range, release a reference. If any swap
+  * entries become free, try to reclaim their underlying folios, if present. The
+  * offset range is defined by [entry.offset, entry.offset + nr).
++ *
++ * Context: Caller must ensure there is no race condition on the reference
++ * owner. e.g., locking the PTL of a PTE containing the entry being released.
+  */
+-void free_swap_and_cache_nr(swp_entry_t entry, int nr)
++void swap_put_entries_direct(swp_entry_t entry, int nr)
+ {
+ 	const unsigned long start_offset = swp_offset(entry);
+ 	const unsigned long end_offset = start_offset + nr;
+@@ -1958,10 +2008,9 @@ void free_swap_and_cache_nr(swp_entry_t
+ 	unsigned long offset;
+ 
+ 	si = get_swap_device(entry);
+-	if (!si)
++	if (WARN_ON_ONCE(!si))
+ 		return;
+-
+-	if (WARN_ON(end_offset > si->max))
++	if (WARN_ON_ONCE(end_offset > si->max))
+ 		goto out;
+ 
+ 	/*
+@@ -2005,8 +2054,8 @@ out:
+ }
+ 
+ #ifdef CONFIG_HIBERNATION
+-
+-swp_entry_t get_swap_page_of_type(int type)
++/* Allocate a slot for hibernation */
++swp_entry_t swap_alloc_hibernation_slot(int type)
+ {
+ 	struct swap_info_struct *si = swap_type_to_info(type);
+ 	unsigned long offset;
+@@ -2034,6 +2083,27 @@ fail:
+ 	return entry;
+ }
+ 
++/* Free a slot allocated by swap_alloc_hibernation_slot */
++void swap_free_hibernation_slot(swp_entry_t entry)
++{
++	struct swap_info_struct *si;
++	struct swap_cluster_info *ci;
++	pgoff_t offset = swp_offset(entry);
++
++	si = get_swap_device(entry);
++	if (WARN_ON(!si))
++		return;
++
++	ci = swap_cluster_lock(si, offset);
++	swap_entry_put_locked(si, ci, entry, 1);
++	WARN_ON(swap_entry_swapped(si, entry));
++	swap_cluster_unlock(ci);
++
++	/* In theory readahead might add it to the swap cache by accident */
++	__try_to_reclaim_swap(si, offset, TTRS_ANYWAY);
++	put_swap_device(si);
++}
++
+ /*
+  * Find the swap type that corresponds to given device (if any).
+  *
+@@ -2195,7 +2265,7 @@ static int unuse_pte(struct vm_area_stru
+ 	/*
+ 	 * Some architectures may have to restore extra metadata to the page
+ 	 * when reading from swap. This metadata may be indexed by swap entry
+-	 * so this must be called before swap_free().
++	 * so this must be called before folio_put_swap().
+ 	 */
+ 	arch_swap_restore(folio_swap(entry, folio), folio);
+ 
+@@ -2236,7 +2306,7 @@ static int unuse_pte(struct vm_area_stru
+ 		new_pte = pte_mkuffd_wp(new_pte);
+ setpte:
+ 	set_pte_at(vma->vm_mm, addr, pte, new_pte);
+-	swap_free(entry);
++	folio_put_swap(folio, page);
+ out:
+ 	if (pte)
+ 		pte_unmap_unlock(pte, ptl);
+@@ -3746,28 +3816,22 @@ static int __swap_duplicate(swp_entry_t
+ 	return err;
+ }
+ 
+-/**
+- * swap_duplicate_nr() - Increase reference count of nr contiguous swap entries
+- *                       by 1.
+- *
++/*
++ * swap_dup_entry_direct() - Increase reference count of a swap entry by one.
+  * @entry: first swap entry from which we want to increase the refcount.
+- * @nr: Number of entries in range.
+  *
+  * Returns 0 for success, or -ENOMEM if a swap_count_continuation is required
+  * but could not be atomically allocated.  Returns 0, just as if it succeeded,
+  * if __swap_duplicate() fails for another reason (-EINVAL or -ENOENT), which
+  * might occur if a page table entry has got corrupted.
+  *
+- * Note that we are currently not handling the case where nr > 1 and we need to
+- * add swap count continuation. This is OK, because no such user exists - shmem
+- * is the only user that can pass nr > 1, and it never re-duplicates any swap
+- * entry it owns.
++ * Context: Caller must ensure there is no race condition on the reference
++ * owner. e.g., locking the PTL of a PTE containing the entry being increased.
+  */
+-int swap_duplicate_nr(swp_entry_t entry, int nr)
++int swap_dup_entry_direct(swp_entry_t entry)
+ {
+ 	int err = 0;
+-
+-	while (!err && __swap_duplicate(entry, 1, nr) == -ENOMEM)
++	while (!err && __swap_duplicate(entry, 1, 1) == -ENOMEM)
+ 		err = add_swap_count_continuation(entry, GFP_ATOMIC);
+ 	return err;
+ }
+--- a/mm/swap.h~mm-swap-cleanup-swap-entry-management-workflow
++++ a/mm/swap.h
+@@ -183,6 +183,28 @@ static inline void swap_cluster_unlock_i
+ 	spin_unlock_irq(&ci->lock);
+ }
+ 
++/*
++ * Below are the core routines for doing swap for a folio.
++ * All helpers requires the folio to be locked, and a locked folio
++ * in the swap cache pins the swap entries / slots allocated to the
++ * folio, swap relies heavily on the swap cache and folio lock for
++ * synchronization.
++ *
++ * folio_alloc_swap(): the entry point for a folio to be swapped
++ * out. It allocates swap slots and pins the slots with swap cache.
++ * The slots start with a swap count of zero.
++ *
++ * folio_dup_swap(): increases the swap count of a folio, usually
++ * during it gets unmapped and a swap entry is installed to replace
++ * it (e.g., swap entry in page table). A swap slot with swap
++ * count == 0 should only be increasd by this helper.
++ *
++ * folio_put_swap(): does the opposite thing of folio_dup_swap().
++ */
++int folio_alloc_swap(struct folio *folio);
++int folio_dup_swap(struct folio *folio, struct page *subpage);
++void folio_put_swap(struct folio *folio, struct page *subpage);
++
+ /* linux/mm/page_io.c */
+ int sio_pool_init(void);
+ struct swap_iocb;
+@@ -363,9 +385,24 @@ static inline struct swap_info_struct *_
+ 	return NULL;
+ }
+ 
++static inline int folio_alloc_swap(struct folio *folio)
++{
++	return -EINVAL;
++}
++
++static inline int folio_dup_swap(struct folio *folio, struct page *page)
++{
++	return -EINVAL;
++}
++
++static inline void folio_put_swap(struct folio *folio, struct page *page)
++{
++}
++
+ static inline void swap_read_folio(struct folio *folio, struct swap_iocb **plug)
+ {
+ }
++
+ static inline void swap_write_unplug(struct swap_iocb *sio)
+ {
+ }
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
