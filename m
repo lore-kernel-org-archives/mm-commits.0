@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12D3419DFAB
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 00:25:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68F8719DFAB
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 00:25:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766276753; cv=none; b=fKBJMq3Hn5NEzDLe+2FGuPA4LMJkZxv+eVUDoE59gKvXSneiQ9eAr2vW4DDY7zDXRzBK29/uLY4BXcegnkggi1HSu4mLDDo65QzMHaN/3jyff6cFbUpXuuu4lkaPO9fmBFUoZuMDJ7h54k/0jF/YDqxK/TDhUmtsobH7IwIFySs=
+	t=1766276755; cv=none; b=khivXWOP0XqTEsOSp6QY93c7ggG0qqeyMn9Y8mw85r+FWOG0NqB0z12e0F24MmCbwZUczHd7nR++htxmqf8hwB21ZMtqoDXQ/iwMT369DGvykqjAL9crnm76dG/IwL848zscPUWpBolAtEz+QALCDAyOQw1oZeQSYSUg1iBBmjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766276753; c=relaxed/simple;
-	bh=UoO+u5Pm7ZNkhxdA8pBnBGhHsudaI6vA0XihZyoc+Z4=;
-	h=Date:To:From:Subject:Message-Id; b=kz+OV+dEm/BC2gflgXkUWHxVnTwxwxmn63usSJaYmGPVpXIToPIEfucALthqJbZIudOJkY9zyX6uXU6wmVD4JxZM7HmnG/tpfngzB9tL3UiQ3DAkzcglKm24328Zpnlxj+Lw17gK2ZpmIpor1d1Dk48O1hkw1Cf93XOqTyah68M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2FsMpGOc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766276755; c=relaxed/simple;
+	bh=FvcV4Jm9O02Bi/igLKJCt+J2uv1OlI54QOrwTnLP4o4=;
+	h=Date:To:From:Subject:Message-Id; b=VHNFHc3ZU+E1g8yMZEv1L06UyhgpdzWglXpa8c3NwX7dMXIZddN+1Ggjdnyz7zJwlR6Ba+L/GyhOqIqV+Wk+PhzdfwdN6w5FSS4o9QYcA01zIk687eNAA+yF5Tfv1cefGwomCqT+fNySjLhOnykaEPzqV13NWFOpndtlqqPKQDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vBtN6kEq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2FsMpGOc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBBC2C4CEF5;
-	Sun, 21 Dec 2025 00:25:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vBtN6kEq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6190C4CEF5;
+	Sun, 21 Dec 2025 00:25:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766276752;
-	bh=UoO+u5Pm7ZNkhxdA8pBnBGhHsudaI6vA0XihZyoc+Z4=;
+	s=korg; t=1766276755;
+	bh=FvcV4Jm9O02Bi/igLKJCt+J2uv1OlI54QOrwTnLP4o4=;
 	h=Date:To:From:Subject:From;
-	b=2FsMpGOcLUZ7oa4xJdzGKX+LLPO0aFUH2a5ngfm0bhuSDMws9tvpn97wGJon+uKUf
-	 y9TVjFdhuVYUPVTs7kX98Q9e6Wd2I2k2oLvlP0j43y77PPgd83Z/lEJV+7Czqe4NZs
-	 l1GP9MFAsypFEepp+OMH8xEPW29Yxm0Ic3PV2ZFo=
-Date: Sat, 20 Dec 2025 16:25:52 -0800
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,bagasdotme@gmail.com,akpm@linux-foundation.org
+	b=vBtN6kEqWeyKlxYLTWoOctcrX3diUnlWZHq+fXaD8QNfYvL8d0NC/oX4qYZSDQ47c
+	 pCKjMMVHKCk/ZjkqBDFgPOpmot/QqPWNlulkR+aM2Nd8NbToklkwIlMiTegjvn9f3G
+	 T+2Qqd/ZLL4WC6gWLZvL1ngepn9h5FsGkFr3RfxQ=
+Date: Sat, 20 Dec 2025 16:25:54 -0800
+To: mm-commits@vger.kernel.org,harry.yoo@oracle.com,elver@google.com,david@kernel.org,bagasdotme@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251221002552.DBBC2C4CEF5@smtp.kernel.org>
+Subject: + mm-kfence-describe-slab-parameter-in-__kfence_obj_info.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251221002554.E6190C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmalloc: fix up vrealloc_node_align() kernel-doc macro name
+     Subject: mm, kfence: describe @slab parameter in __kfence_obj_info()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name.patch
+     mm-kfence-describe-slab-parameter-in-__kfence_obj_info.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-describe-slab-parameter-in-__kfence_obj_info.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Bagas Sanjaya <bagasdotme@gmail.com>
-Subject: mm: vmalloc: fix up vrealloc_node_align() kernel-doc macro name
-Date: Fri, 19 Dec 2025 08:40:06 +0700
+Subject: mm, kfence: describe @slab parameter in __kfence_obj_info()
+Date: Fri, 19 Dec 2025 08:40:07 +0700
 
 Sphinx reports kernel-doc warning:
 
-WARNING: ./mm/vmalloc.c:4284 expecting prototype for vrealloc_node_align_noprof(). Prototype was for vrealloc_node_align() instead
+WARNING: ./include/linux/kfence.h:220 function parameter 'slab' not described in '__kfence_obj_info'
 
-Fix the macro name in vrealloc_node_align_noprof() kernel-doc comment.
+Fix it by describing @slab parameter.
 
-Link: https://lkml.kernel.org/r/20251219014006.16328-5-bagasdotme@gmail.com
-Fixes: 4c5d3365882dbb ("mm/vmalloc: allow to set node and align in vrealloc")
+Link: https://lkml.kernel.org/r/20251219014006.16328-6-bagasdotme@gmail.com
+Fixes: 2dfe63e61cc31e ("mm, kfence: support kmem_dump_obj() for KFENCE objects")
 Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Acked-by: Marco Elver <elver@google.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Harry Yoo <harry.yoo@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kfence.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name
-+++ a/mm/vmalloc.c
-@@ -4248,7 +4248,7 @@ void *vzalloc_node_noprof(unsigned long
- EXPORT_SYMBOL(vzalloc_node_noprof);
- 
- /**
-- * vrealloc_node_align_noprof - reallocate virtually contiguous memory; contents
-+ * vrealloc_node_align - reallocate virtually contiguous memory; contents
-  * remain unchanged
-  * @p: object to reallocate memory for
-  * @size: the size to reallocate
+--- a/include/linux/kfence.h~mm-kfence-describe-slab-parameter-in-__kfence_obj_info
++++ a/include/linux/kfence.h
+@@ -211,6 +211,7 @@ struct kmem_obj_info;
+  * __kfence_obj_info() - fill kmem_obj_info struct
+  * @kpp: kmem_obj_info to be filled
+  * @object: the object
++ * @slab: the slab
+  *
+  * Return:
+  * * false - not a KFENCE object
 _
 
 Patches currently in -mm which might be from bagasdotme@gmail.com are
