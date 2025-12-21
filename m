@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EDF7219E8C
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:26:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C01FC21B91D
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:28:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766341603; cv=none; b=pKkDjFAFgg0btClZt2qzreYDpJQGbW4EbLAnmPrC0DACwvhyCDwPiJYrdyBKFqwnkp3Olajr+mydJZ8VcSgF6yIqxKjoWb8whbSnCQU2q+Mizc0ueK6O2ESmBJu3k9YBe2CX4O8IOdPTYJP6+hbfP2sYXJp7gKmtoQMV3EZx4xk=
+	t=1766341713; cv=none; b=IEiRzp/pMAkHErvKmPvHUoNfYiaUVreQhoPeI5gv0MyYeFn38ce7OkxJc+wP+FypM1skofoqEC2PHcPXX4C4LTB4RvnX3Fq/Igu8Mbr+tRQmYC1hNKqV6a7tAqDvouopqHWjxvF6MGCL9WhVhEAXmoB2S0ejJoYGql/XGm5965o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766341603; c=relaxed/simple;
-	bh=BQpPsfekIstWNVQ+0JDZs87Tb9khHmaYOVp/RVhlcek=;
-	h=Date:To:From:Subject:Message-Id; b=D50z8TvZImZk40G5+JNkT57RE192XmZoac1w0L0sfniJ3qxgOBwL+x2qkcrOdQvN28CHBfgs9cb7hDnAWd7Ox7dzDGVD68jqUFPUDdNdRSpLBWvIXxuBpaOYvFZOgsfkXlv7xTUdtyhv9HxidZr7+UE2UCqkWJkuW4CelYdmQ/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A2Rc/z1F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766341713; c=relaxed/simple;
+	bh=AkNI0IP65wDJFFRdu3MdafAv4S5yHYsoDfUw0WPLVwk=;
+	h=Date:To:From:Subject:Message-Id; b=ZmpD76HVJoGkg147MxjWpXeZlR+3tt/FqO7V/WQkO1W4Yj6zvytSFIrG4LlbDgx2+SkOGLOqka4pYJkEYcoYT5LVlfz3oE6BuCs2KGw4TfWKODYKcbvuoF1YF75WI0bilB38HvidsZ4f8KnwAdAkd4hWNw3W/Ht3tkgHd8/RkbE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ol6Fyyso; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A2Rc/z1F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9F03C4CEFB;
-	Sun, 21 Dec 2025 18:26:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ol6Fyyso"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D844C4CEFB;
+	Sun, 21 Dec 2025 18:28:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766341602;
-	bh=BQpPsfekIstWNVQ+0JDZs87Tb9khHmaYOVp/RVhlcek=;
+	s=korg; t=1766341713;
+	bh=AkNI0IP65wDJFFRdu3MdafAv4S5yHYsoDfUw0WPLVwk=;
 	h=Date:To:From:Subject:From;
-	b=A2Rc/z1FYekPtsPdDptUCluWohcohf+NgCzTM0mJqTCbqcZt2RqTw14P9y4XpA6VS
-	 ERHwkoWapBVl0+Ob7Rm+OeGa0boIf3Q7v5X6XF+leSr8yQKWAOe3hJ6jAyFChiXGo7
-	 ZLzp/mcnHfLeWvwLKcUNcBXrMQ+m/ySKpydc1P38=
-Date: Sun, 21 Dec 2025 10:26:42 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,corbet@lwn.net,gourry@gourry.net,akpm@linux-foundation.org
+	b=Ol6Fyyso7tevHb4j9E88QHnaMJkuMMV6hrsP0mKc0h8ebRWTwF+BiKiHSo9BjxaV2
+	 EybmsYdBR3R0F286dVnV3SjMEPdRgHm1mtrMtxVTrtCjDbgDlNkGD42wir6i9oMGOU
+	 NmszO4rFt7uVCT9sZdrzzjvxZSva+/l2Qrtm6Yq8=
+Date: Sun, 21 Dec 2025 10:28:32 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,richard.weiyang@gmail.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch added to mm-new branch
-Message-Id: <20251221182642.A9F03C4CEFB@smtp.kernel.org>
+Subject: + page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc.patch added to mm-new branch
+Message-Id: <20251221182833.3D844C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, hugetlb: implement movable_gigantic_pages sysctl
+     Subject: page_alloc: allow migration of smaller hugepages during contig_alloc
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch
+     page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,196 +67,175 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Gregory Price <gourry@gourry.net>
-Subject: mm, hugetlb: implement movable_gigantic_pages sysctl
-Date: Sun, 21 Dec 2025 07:56:03 -0500
+Subject: page_alloc: allow migration of smaller hugepages during contig_alloc
+Date: Sun, 21 Dec 2025 07:46:56 -0500
 
-This reintroduces a concept removed by: commit d6cb41cc44c6 ("mm, hugetlb:
-remove hugepages_treat_as_movable sysctl")
+We presently skip regions with hugepages entirely when trying to do
+contiguous page allocation.  This will cause otherwise-movable 2MB HugeTLB
+pages to be considered unmovable, and makes 1GB gigantic page allocation
+less reliable on systems utilizing both.
 
-This sysctl provides flexibility between ZONE_MOVABLE use cases:
-1) onlining memory in ZONE_MOVABLE to maintain hotplug compatibility
-2) onlining memory in ZONE_MOVABLE to make hugepage allocate reliable
+Commit 4d73ba5fa710 ("mm: page_alloc: skip regions with hugetlbfs pages
+when allocating 1G pages") skipped all HugePage containing regions because
+it can cause significant delays in 1G allocation (as HugeTLB migrations
+may fail for a number of reasons).
 
-When ZONE_MOVABLE is used to make huge page allocation more reliable,
-disallowing gigantic pages memory in this region is pointless.  If hotplug
-is not a requirement, we can loosen the restrictions to allow 1GB gigantic
-pages in ZONE_MOVABLE.
+Instead, if hugepage migration is enabled, consider regions with hugepages
+smaller than the target contiguous allocation request as valid targets for
+allocation.
 
-Since 1GB can be difficult to migrate / has impacts on compaction /
-defragmentation, we don't enable this by default.  Notably, 1GB pages can
-only be migrated if another 1GB page is available - so hot-unplug will
-fail if such a page cannot be found.
+We optimize for the existing behavior by searching for non-hugetlb regions
+in a first pass, then retrying the search to include hugetlb only on
+failure.  This allows the existing fast-path to remain the default case
+with a slow-path fallback to increase reliability.
 
-However, since there are scenarios where gigantic pages are migratable, we
-should allow use of these on movable regions.
+We only fallback to the slow path if a hugetlb region was detected, and we
+do a full re-scan because the zones/blocks may have changed during the
+first pass (and it's not worth further complexity).
 
-When not valid 1GB is available for migration, hot-unplug will retry
-indefinitely (or until interrupted).  For example:
+isolate_migrate_pages_block() has similar hugetlb filter logic, and the
+hugetlb code does a migratable check in folio_isolate_hugetlb() during
+isolation.  The code servicing the allocation and migration already
+supports this exact use case.
 
-  echo 0 > node0/hugepages/..-1GB/nr_hugepages  # clear node0 1GB pages
-  echo 1 > node1/hugepages/..-1GB/nr_hugepages  # reserve node1 1GB page
-  ./alloc_huge_node1 &    # Allocate a 1GB page on node1
-  ./node1_offline  &      # attempt to offline all node1 memory
-  echo 1 > node0/hugepages/..-1GB/nr_hugepages  # reserve node0 1GB page
+To test, allocate a bunch of 2MB HugeTLB pages (in this case 48GB) and
+then attempt to allocate some 1G HugeTLB pages (in this case 4GB) (Scale
+to your machine's memory capacity).
 
-In this example, node1_offline will block indefinitely until the final
-step, when a node0 1GB page is made available.
+echo 24576 > .../hugepages-2048kB/nr_hugepages
+echo 4 > .../hugepages-1048576kB/nr_hugepages
 
-Note: Boot-time CMA is not possible for driver-managed hotplug memory, as
-CMA requires the memory to be registered as SystemRAM at boot time. 
-Additionally, 1GB huge pages are not supported by THP.
+Prior to this patch, the 1GB page reservation can fail if no contiguous
+1GB pages remain.  After this patch, the kernel will try to move 2MB pages
+and successfully allocate the 1GB pages (assuming overall sufficient
+memory is available).  Also tested this while a program had the 2MB
+reservations mapped, and the 1GB reservation still succeeds.
 
-Link: https://lkml.kernel.org/r/20251221125603.2364174-1-gourry@gourry.net
+folio_alloc_gigantic() is the primary user of alloc_contig_pages(),
+other users are debug or init-time allocations and largely unaffected.
+- ppc/memtrace is a debugfs interface
+- x86/tdx memory allocation occurs once on module-init
+- kfence/core happens once on module (late) init
+- THP uses it in debug_vm_pgtable_alloc_huge_page at __init time
+
+Link: https://lkml.kernel.org/r/20251221124656.2362540-1-gourry@gourry.net
 Signed-off-by: Gregory Price <gourry@gourry.net>
-Suggested-by: David Rientjes <rientjes@google.com>
-Link: https://lore.kernel.org/all/20180201193132.Hk7vI_xaU%25akpm@linux-foundation.org/
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gregory Price <gourry@gourry.net>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Link: https://lore.kernel.org/linux-mm/6fe3562d-49b2-4975-aa86-e139c535ad00@redhat.com/
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/memory-hotplug.rst |   14 ++++++-
- Documentation/admin-guide/sysctl/vm.rst         |   28 ++++++++++++++
- include/linux/hugetlb.h                         |    3 +
- mm/hugetlb_sysctl.c                             |   11 +++++
- 4 files changed, 53 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   59 ++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 55 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-hugetlb-implement-movable_gigantic_pages-sysctl
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -612,8 +612,9 @@ ZONE_MOVABLE, especially when fine-tunin
-   allocations and silently create a zone imbalance, usually triggered by
-   inflation requests from the hypervisor.
+--- a/mm/page_alloc.c~page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc
++++ a/mm/page_alloc.c
+@@ -7108,7 +7108,8 @@ static int __alloc_contig_pages(unsigned
+ }
  
--- Gigantic pages are unmovable, resulting in user space consuming a
--  lot of unmovable memory.
-+- Gigantic pages are unmovable when an architecture does not support
-+  huge page migration and/or the ``movable_gigantic_pages`` sysctl is false.
-+  See Documentation/admin-guide/sysctl/vm.rst for more info on this sysctl.
+ static bool pfn_range_valid_contig(struct zone *z, unsigned long start_pfn,
+-				   unsigned long nr_pages)
++				   unsigned long nr_pages, bool skip_hugetlb,
++				   bool *skipped_hugetlb)
+ {
+ 	unsigned long i, end_pfn = start_pfn + nr_pages;
+ 	struct page *page;
+@@ -7124,8 +7125,42 @@ static bool pfn_range_valid_contig(struc
+ 		if (PageReserved(page))
+ 			return false;
  
- - Huge pages are unmovable when an architectures does not support huge
-   page migration, resulting in a similar issue as with gigantic pages.
-@@ -672,6 +673,15 @@ block might fail:
- - Concurrent activity that operates on the same physical memory area, such as
-   allocating gigantic pages, can result in temporary offlining failures.
- 
-+- When an admin sets the ``movable_gigantic_pages`` sysctl to true, gigantic
-+  pages are allowed in ZONE_MOVABLE.  This only allows migratable gigantic
-+  pages to be allocated; however, if there are no eligible destination gigantic
-+  pages at offline, the offlining operation will fail.
+-		if (PageHuge(page))
+-			return false;
++		/*
++		 * Only consider ranges containing hugepages if those pages are
++		 * smaller than the requested contiguous region.  e.g.:
++		 *     Move 2MB pages to free up a 1GB range.
++		 *     Don't move 1GB pages to free up a 2MB range.
++		 *
++		 * This makes contiguous allocation more reliable if multiple
++		 * hugepage sizes are used without causing needless movement.
++		 */
++		if (PageHuge(page)) {
++			unsigned int order;
 +
-+  Users leveraging ``movable_gigantic_pages`` should weigh the value of
-+  ZONE_MOVABLE for increasing the reliability of gigantic page allocation
-+  against the potential loss of hot-unplug reliability.
++			if (!IS_ENABLED(CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION))
++				return false;
 +
- - Out of memory when dissolving huge pages, especially when HugeTLB Vmemmap
-   Optimization (HVO) is enabled.
- 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-hugetlb-implement-movable_gigantic_pages-sysctl
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -53,6 +53,7 @@ Currently, these files are in /proc/sys/
- - mmap_min_addr
- - mmap_rnd_bits
- - mmap_rnd_compat_bits
-+- movable_gigantic_pages
- - nr_hugepages
- - nr_hugepages_mempolicy
- - nr_overcommit_hugepages
-@@ -616,6 +617,33 @@ This value can be changed after boot usi
- /proc/sys/vm/mmap_rnd_compat_bits tunable
- 
- 
-+movable_gigantic_pages
-+======================
++			if (skip_hugetlb) {
++				*skipped_hugetlb = true;
++				return false;
++			}
 +
-+This parameter controls whether gigantic pages may be allocated from
-+ZONE_MOVABLE. If set to non-zero, gigantic pages can be allocated
-+from ZONE_MOVABLE. ZONE_MOVABLE memory may be created via the kernel
-+boot parameter `kernelcore` or via memory hotplug as discussed in
-+Documentation/admin-guide/mm/memory-hotplug.rst.
++			page = compound_head(page);
++			order = compound_order(page);
++			if ((order >= MAX_FOLIO_ORDER) ||
++			    (nr_pages <= (1 << order)))
++				return false;
 +
-+Support may depend on specific architecture.
-+
-+Note that using ZONE_MOVABLE gigantic pages make memory hotremove unreliable.
-+
-+Memory hot-remove operations will block indefinitely until the admin reserves
-+sufficient gigantic pages to service migration requests associated with the
-+memory offlining process.  As HugeTLB gigantic page reservation is a manual
-+process (via `nodeN/hugepages/.../nr_hugepages` interfaces) this may not be
-+obvious when just attempting to offline a block of memory.
-+
-+Additionally, as multiple gigantic pages may be reserved on a single block,
-+it may appear that gigantic pages are available for migration when in reality
-+they are in the process of being removed. For example if `memoryN` contains
-+two gigantic pages, one reserved and one allocated, and an admin attempts to
-+offline that block, this operations may hang indefinitely unless another
-+reserved gigantic page is available on another block `memoryM`.
-+
-+
- nr_hugepages
- ============
- 
---- a/include/linux/hugetlb.h~mm-hugetlb-implement-movable_gigantic_pages-sysctl
-+++ a/include/linux/hugetlb.h
-@@ -171,6 +171,7 @@ bool hugetlbfs_pagecache_present(struct
- 
- struct address_space *hugetlb_folio_mapping_lock_write(struct folio *folio);
- 
-+extern int movable_gigantic_pages __read_mostly;
- extern int sysctl_hugetlb_shm_group __read_mostly;
- extern struct list_head huge_boot_pages[MAX_NUMNODES];
- 
-@@ -929,7 +930,7 @@ static inline bool hugepage_movable_supp
- 	if (!hugepage_migration_supported(h))
- 		return false;
- 
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic(h) && !movable_gigantic_pages)
- 		return false;
++			/*
++			 * Reaching this point means we've encounted a huge page
++			 * smaller than nr_pages, skip all pfn's for that page.
++			 *
++			 * We can't get here from a tail-PageHuge, as it implies
++			 * we started a scan in the middle of a hugepage larger
++			 * than nr_pages - which the prior check filters for.
++			 */
++			i += (1 << order) - 1;
++		}
+ 	}
  	return true;
  }
---- a/mm/hugetlb_sysctl.c~mm-hugetlb-implement-movable_gigantic_pages-sysctl
-+++ a/mm/hugetlb_sysctl.c
-@@ -8,6 +8,8 @@
+@@ -7168,7 +7203,10 @@ struct page *alloc_contig_pages_noprof(u
+ 	struct zonelist *zonelist;
+ 	struct zone *zone;
+ 	struct zoneref *z;
++	bool skip_hugetlb = true;
++	bool skipped_hugetlb = false;
  
- #include "hugetlb_internal.h"
++retry:
+ 	zonelist = node_zonelist(nid, gfp_mask);
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 					gfp_zone(gfp_mask), nodemask) {
+@@ -7176,7 +7214,9 @@ struct page *alloc_contig_pages_noprof(u
  
-+int movable_gigantic_pages;
-+
- #ifdef CONFIG_SYSCTL
- static int proc_hugetlb_doulongvec_minmax(const struct ctl_table *table, int write,
- 					  void *buffer, size_t *length,
-@@ -125,6 +127,15 @@ static const struct ctl_table hugetlb_ta
- 		.mode		= 0644,
- 		.proc_handler	= hugetlb_overcommit_handler,
- 	},
-+#ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
-+	{
-+		.procname	= "movable_gigantic_pages",
-+		.data		= &movable_gigantic_pages,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+#endif
- };
- 
- void __init hugetlb_sysctl_init(void)
+ 		pfn = ALIGN(zone->zone_start_pfn, nr_pages);
+ 		while (zone_spans_last_pfn(zone, pfn, nr_pages)) {
+-			if (pfn_range_valid_contig(zone, pfn, nr_pages)) {
++			if (pfn_range_valid_contig(zone, pfn, nr_pages,
++						   skip_hugetlb,
++						   &skipped_hugetlb)) {
+ 				/*
+ 				 * We release the zone lock here because
+ 				 * alloc_contig_range() will also lock the zone
+@@ -7195,6 +7235,17 @@ struct page *alloc_contig_pages_noprof(u
+ 		}
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
++	/*
++	 * If we failed, retry the search, but treat regions with HugeTLB pages
++	 * as valid targets.  This retains fast-allocations on first pass
++	 * without trying to migrate HugeTLB pages (which may fail). On the
++	 * second pass, we will try moving HugeTLB pages when those pages are
++	 * smaller than the requested contiguous region size.
++	 */
++	if (skip_hugetlb && skipped_hugetlb) {
++		skip_hugetlb = false;
++		goto retry;
++	}
+ 	return NULL;
+ }
+ #endif /* CONFIG_CONTIG_ALLOC */
 _
 
 Patches currently in -mm which might be from gourry@gourry.net are
 
 mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch
+page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc.patch
 
