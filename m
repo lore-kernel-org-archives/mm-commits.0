@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 937A7309F0D
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:57:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F068C309F08
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:57:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766343471; cv=none; b=gqhblot4xvc6BrmYb6bJCcfHN8vvC0XPoJCN/LKOLpurYtKaCXyITEs+um0pEXAf/dy8lIvMOcXwbd0Frf0z3Q0V8C4ka7hHdFBdrajQSahc1cKGmKYaA19bCIIYhbhx1ysDnYIourogy/uInMMIoYnMqyO1S34lVCNs89TJMiE=
+	t=1766343474; cv=none; b=P82/tflAdChFCvUeH1v5KHdPEZARShl/4ZmY4BbTbfiIPQ/LBBsgftw19X4YBggje5vBspn0naXti4M2mxcN8iQyU1ADye3pfBD+yiO/7Cd+gwzAIUUAH9TudeSELon4gKS8iIBkZja7kjPYsXu8n2iF2EQbIthKTC2heuadC/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766343471; c=relaxed/simple;
-	bh=7S1/Y+EZBSlwGBI+fiRS2/0j6TdM4uJxmksKfPh+7uE=;
-	h=Date:To:From:Subject:Message-Id; b=IjJl+9fFGZTgwyJxIGKrcvaA6yJtDZ0jYud9WQZ9VaP0+5JEhQF7qqETKSc+KwaOMm011XLtFfrxr4J6Pkrskd/4tFEpT/wQ2pbnCQCzDVBiQipe5Yb1jaCEKItPY7M+FZkTkCKE8jjNWqT7CY00X2xzC5v8m+xLUhJz74yIbok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HF+YrTFW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766343474; c=relaxed/simple;
+	bh=+Il/o3wReervpikegWg5O/lMMB4tF1JOnPSTlKQ1c60=;
+	h=Date:To:From:Subject:Message-Id; b=pixuBOyMq3bscUj3mLwLKRu0BGUYsX4ug4/UOmtm1JCo3k/nH8ZK1TBYPGR2caSwMMP1aVd8tWtjZELubzSCOOQmVVmZRPLp/pYCs1tZ5jnhCB4wxhRY/eJjLVAILAM8LUOfgUlGvjz8dRGdITktA6OKYjq5LyKDQxVBGywJqp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=geJrupDW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HF+YrTFW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 186C3C4CEFB;
-	Sun, 21 Dec 2025 18:57:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="geJrupDW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CC55C4CEFB;
+	Sun, 21 Dec 2025 18:57:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766343471;
-	bh=7S1/Y+EZBSlwGBI+fiRS2/0j6TdM4uJxmksKfPh+7uE=;
+	s=korg; t=1766343473;
+	bh=+Il/o3wReervpikegWg5O/lMMB4tF1JOnPSTlKQ1c60=;
 	h=Date:To:From:Subject:From;
-	b=HF+YrTFWdMFzu4M4UEkGUDWIBBrPSwoCd0IJopKbfM5fzuf0rC7NAMn+7NHtGXIE+
-	 3tXttrfn3UztYfyq3ZRf6+29w1gKxKL6VzNGJeQK17BKgKxk9sSVukD/PNM/TPNi9/
-	 9fpVpM1YCYafGl+tmbrmzOx1TZknawADIAh4ixcY=
-Date: Sun, 21 Dec 2025 10:57:50 -0800
+	b=geJrupDW+g7W8jUFQqKyGYN//SV0X3hU0yUhifm9HqqATCaT+0iuU13sriKJymG0Y
+	 2Gdk/ZEBCFsGUVMLwAw3rj5O7MEfoTlb1EgIl2uqS7SD/NNjoU7DvSMct+jYqF0zi8
+	 kG8lO72E1GJooDhknCuhrs4RL8UtWyFEM0BTOre8=
+Date: Sun, 21 Dec 2025 10:57:52 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,luizcap@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,chuhu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-va_high_addr_switch-return-fail-when-either-test-failed.patch added to mm-new branch
-Message-Id: <20251221185751.186C3C4CEFB@smtp.kernel.org>
+Subject: + selftests-mm-fix-comment-for-check_test_requirements.patch added to mm-new branch
+Message-Id: <20251221185753.2CC55C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: va_high_addr_switch return fail when either test failed
+     Subject: selftests/mm: fix comment for check_test_requirements
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-va_high_addr_switch-return-fail-when-either-test-failed.patch
+     selftests-mm-fix-comment-for-check_test_requirements.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-va_high_addr_switch-return-fail-when-either-test-failed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-comment-for-check_test_requirements.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,15 +67,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Chunyu Hu <chuhu@redhat.com>
-Subject: selftests/mm: va_high_addr_switch return fail when either test failed
-Date: Sun, 21 Dec 2025 12:00:24 +0800
+Subject: selftests/mm: fix comment for check_test_requirements
+Date: Sun, 21 Dec 2025 12:00:25 +0800
 
-When the first test failed, and the hugetlb test passed, the result would
-be pass, but we expect a fail.  Fix this issue by returning fail if either
-is not KSFT_PASS.
+The test supports arm64 as well so the comment is incorrect.  And there's
+a check for arm64 in va_high_addr_switch.c.
 
-Link: https://lkml.kernel.org/r/20251221040025.3159990-4-chuhu@redhat.com
+Link: https://lkml.kernel.org/r/20251221040025.3159990-5-chuhu@redhat.com
 Signed-off-by: Chunyu Hu <chuhu@redhat.com>
+Fixes: 983e760bcdb6 ("selftest/mm: va_high_addr_switch: add ppc64 support check")
+Fixes: f556acc2facd ("selftests/mm: skip test for non-LPA2 and non-LVA systems")
 Cc: Luiz Capitulino <luizcap@redhat.com>
 Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -88,33 +89,24 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.c~selftests-mm-va_high_addr_switch-return-fail-when-either-test-failed
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.c
-@@ -322,7 +322,7 @@ static int supported_arch(void)
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-fix-comment-for-check_test_requirements
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -61,9 +61,9 @@ check_supported_ppc64()
  
- int main(int argc, char **argv)
+ check_test_requirements()
  {
--	int ret;
-+	int ret, hugetlb_ret = KSFT_PASS;
- 
- 	if (!supported_arch())
- 		return KSFT_SKIP;
-@@ -331,6 +331,10 @@ int main(int argc, char **argv)
- 
- 	ret = run_test(testcases, sz_testcases);
- 	if (argc == 2 && !strcmp(argv[1], "--run-hugetlb"))
--		ret = run_test(hugetlb_testcases, sz_hugetlb_testcases);
--	return ret;
-+		hugetlb_ret = run_test(hugetlb_testcases, sz_hugetlb_testcases);
+-	# The test supports x86_64 and powerpc64. We currently have no useful
+-	# eligibility check for powerpc64, and the test itself will reject other
+-	# architectures.
++	# The test supports x86_64, powerpc64 and arm64. There's check for arm64
++	# in va_high_addr_switch.c. The test itself will reject other architectures.
 +
-+	if (ret == KSFT_PASS && hugetlb_ret == KSFT_PASS)
-+		return KSFT_PASS;
-+	else
-+		return KSFT_FAIL;
- }
+ 	case `uname -m` in
+ 		"x86_64")
+ 			check_supported_x86_64
 _
 
 Patches currently in -mm which might be from chuhu@redhat.com are
