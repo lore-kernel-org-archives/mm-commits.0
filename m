@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1906A3A1E6A
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:32:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B27A3A1E6A
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:32:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766341964; cv=none; b=W3kweubRbhMq983mJJ+xe2wnMWUuE2mm3HA+ekuEk68fH24ipFlfXTZCFzMeFU7VEwsow8uEOgDlr3NooGy15AlTJDWOpPwnfUTBmjjOAB8JedehnJN7a1BeJ4UOpSxmbXscIJIvTLGOS/suuODRePeAr8m/A+8MiPMbVGuiwp0=
+	t=1766341966; cv=none; b=TnLBR7ORg9pcp7RDxTapIEJLChCYpcT1VbyDFxN22rYT0PHQHL14ucwDxPtJZpfWbQKSvxU78hj+H/VQbnko+FK1y/UHBihm5cs7IKPxJIvypwicbn/aQPdv3nh5ccrd7CybIX5rIruP0VYZJvnCXcFhejA6FRrxceYx0IQtJh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766341964; c=relaxed/simple;
-	bh=xx8Iq0M6Q5dMIEkEtUNsaXdvE/o7TWt5g2c6Z9Frkj0=;
-	h=Date:To:From:Subject:Message-Id; b=qneJiJwx/Opg8dafXyhoLPO6MScFJ8WUdK1C3FTHFuj6MJW1MrUKqyY5dv/UW/ai/Nkawbe+1VD00QaL1TKDNDvBPeBfTGojV+L+iqiHEcJiNxg2tZbFX9UVFUPGcms2CgmERiFy039wCR6Pnjv+toRgHOAvFnVR73YaPr/kieQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQuffWAS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766341966; c=relaxed/simple;
+	bh=b9ISN6aKdetn8ItEFi7wl1tqcJ3sRmFWjyxAci8XayE=;
+	h=Date:To:From:Subject:Message-Id; b=q1v0nCKLJUoql70VNYJVfCAm2gI3NXtzNgEVkZBdLEmNxujK1ysR3FoL7g++7KvFOTTZMBgAzrAt+heW1c9VYU+5xNVzAWlbJemZuEO0YZYlIPQk4Z9z3anb5YEjqJn7WuitZwjqDL4TYirzpL+tLp4JsyY8Vhq+VojYONFdl6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VclCKMj3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQuffWAS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96D02C4CEFB;
-	Sun, 21 Dec 2025 18:32:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VclCKMj3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A69C1C4CEFB;
+	Sun, 21 Dec 2025 18:32:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766341963;
-	bh=xx8Iq0M6Q5dMIEkEtUNsaXdvE/o7TWt5g2c6Z9Frkj0=;
+	s=korg; t=1766341965;
+	bh=b9ISN6aKdetn8ItEFi7wl1tqcJ3sRmFWjyxAci8XayE=;
 	h=Date:To:From:Subject:From;
-	b=aQuffWASd4Knkq53Yhxa3jjxX3Z/TnZgt7U9Kjjj4rQnFW3E32d9WDJ3gk1dShH3g
-	 o8wQCn7o6Twp6D5t13XSRJXvFzDJ8HWSuLhJn4DxwmL1v9HH+zs9L0o+aTxXuoV5gZ
-	 bhks5ClrxmmJRwQrRxYDD9kfeiR4+/dOyVD7Ahmc=
-Date: Sun, 21 Dec 2025 10:32:43 -0800
+	b=VclCKMj3VLmlKE5a3hPAfIitN3y1Vrbscv8oGmzoVllBJaqFz1z0q4l71nCgXCRYf
+	 ZDahE+tFH4euXLVkNUSvc9w0bm62o3b0VgZx1xPOBFWk+NF/QHt1HHRR2GuEKfJwqS
+	 zILHKY3xsPMRvaRI/DOQdu9VXP3NmfgC5/ENIDSo=
+Date: Sun, 21 Dec 2025 10:32:45 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,longman@redhat.com,david@kernel.org,broonie@kernel.org,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-write_to_hugetlbfs-parse-s-as-size_t.patch added to mm-new branch
-Message-Id: <20251221183243.96D02C4CEFB@smtp.kernel.org>
+Subject: + selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs.patch added to mm-new branch
+Message-Id: <20251221183245.A69C1C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm/write_to_hugetlbfs: parse -s as size_t
+     Subject: selftests/mm/charge_reserved_hugetlb: drop mount size for hugetlbfs
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-write_to_hugetlbfs-parse-s-as-size_t.patch
+     selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-write_to_hugetlbfs-parse-s-as-size_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,68 +67,53 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Li Wang <liwang@redhat.com>
-Subject: selftests/mm/write_to_hugetlbfs: parse -s as size_t
-Date: Sun, 21 Dec 2025 20:26:37 +0800
+Subject: selftests/mm/charge_reserved_hugetlb: drop mount size for hugetlbfs
+Date: Sun, 21 Dec 2025 20:26:38 +0800
 
-Patch series "selftests/mm: hugetlb cgroup charging: robustness fixes", v3.
+charge_reserved_hugetlb.sh mounts a hugetlbfs instance at /mnt/huge with a
+fixed size of 256M.  On systems with large base hugepages (e.g.  512MB),
+this is smaller than a single hugepage, so the hugetlbfs mount ends up
+with zero capacity (often visible as size=0 in mount output).
 
-This series fixes a few issues in the hugetlb cgroup charging selftests
-(write_to_hugetlbfs.c + charge_reserved_hugetlb.sh) that show up on
-systems with large hugepages (e.g.  512MB) and when failures cause the
-test to wait indefinitely.
-
-On an aarch64 64k page kernel with 512MB hugepages, the test consistently
-fails in write_to_hugetlbfs with ENOMEM and then hangs waiting for the
-expected usage values.  The root cause is that charge_reserved_hugetlb.sh
-mounts hugetlbfs with a fixed size=256M, which is smaller than a single
-hugepage, resulting in a mount with size=0 capacity.
-
-In addition, write_to_hugetlbfs previously parsed -s via atoi() into an
-int, which can overflow and print negative sizes.
-
-Reproducer / environment:
-  - Kernel: 6.12.0-xxx.el10.aarch64+64k
-  - Hugepagesize: 524288 kB (512MB)
-  - ./charge_reserved_hugetlb.sh -cgroup-v2
-  - Observed mount: pagesize=512M,size=0 before this series
-
-After applying the series, the test completes successfully on the above
-setup.
-
-
-This patch (of 3):
-
-write_to_hugetlbfs currently parses the -s size argument with atoi() into
-an int.  This silently accepts malformed input, cannot report overflow,
-and can truncate large sizes.
+As a result, write_to_hugetlbfs fails with ENOMEM and the test can hang
+waiting for progress.
 
 --- Error log ---
- # uname -r
- 6.12.0-xxx.el10.aarch64+64k
+  # uname -r
+  6.12.0-xxx.el10.aarch64+64k
 
- # ls /sys/kernel/mm/hugepages/hugepages-*
- hugepages-16777216kB/  hugepages-2048kB/  hugepages-524288kB/
+  #./charge_reserved_hugetlb.sh -cgroup-v2
+  # -----------------------------------------
+  ...
+  # nr hugepages = 10
+  # writing cgroup limit: 5368709120
+  # writing reseravation limit: 5368709120
+  ...
+  # write_to_hugetlbfs: Error mapping the file: Cannot allocate memory
+  # Waiting for hugetlb memory reservation to reach size 2684354560.
+  # 0
+  # Waiting for hugetlb memory reservation to reach size 2684354560.
+  # 0
+  ...
 
- #./charge_reserved_hugetlb.sh -cgroup-v2
- # -----------------------------------------
- ...
- # nr hugepages = 10
- # writing cgroup limit: 5368709120
- # writing reseravation limit: 5368709120
- ...
- # Writing to this path: /mnt/huge/test
- # Writing this size: -1610612736        <--------
+  # mount |grep /mnt/huge
+  none on /mnt/huge type hugetlbfs (rw,relatime,seclabel,pagesize=512M,size=0)
 
-Switch the size variable to size_t and parse -s with sscanf("%zu", ...). 
-Also print the size using %zu.
+  # grep -i huge /proc/meminfo
+  ...
+  HugePages_Total:      10
+  HugePages_Free:       10
+  HugePages_Rsvd:        0
+  HugePages_Surp:        0
+  Hugepagesize:     524288 kB
+  Hugetlb:         5242880 kB
 
-This avoids incorrect behavior with large -s values and makes the utility
-more robust.
+Drop the mount args with 'size=256M', so the filesystem capacity is sufficient
+regardless of HugeTLB page size.
 
-Link: https://lkml.kernel.org/r/20251221122639.3168038-1-liwang@redhat.com
-Link: https://lkml.kernel.org/r/20251221122639.3168038-2-liwang@redhat.com
+Link: https://lkml.kernel.org/r/20251221122639.3168038-3-liwang@redhat.com
+Fixes: 29750f71a9 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
 Signed-off-by: Li Wang <liwang@redhat.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
@@ -136,41 +121,29 @@ Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/write_to_hugetlbfs.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/charge_reserved_hugetlb.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/write_to_hugetlbfs.c~selftests-mm-write_to_hugetlbfs-parse-s-as-size_t
-+++ a/tools/testing/selftests/mm/write_to_hugetlbfs.c
-@@ -68,7 +68,7 @@ int main(int argc, char **argv)
- 	int key = 0;
- 	int *ptr = NULL;
- 	int c = 0;
--	int size = 0;
-+	size_t size = 0;
- 	char path[256] = "";
- 	enum method method = MAX_METHOD;
- 	int want_sleep = 0, private = 0;
-@@ -86,7 +86,10 @@ int main(int argc, char **argv)
- 	while ((c = getopt(argc, argv, "s:p:m:owlrn")) != -1) {
- 		switch (c) {
- 		case 's':
--			size = atoi(optarg);
-+			if (sscanf(optarg, "%zu", &size) != 1) {
-+				perror("Invalid -s.");
-+				exit_usage();
-+			}
- 			break;
- 		case 'p':
- 			strncpy(path, optarg, sizeof(path) - 1);
-@@ -131,7 +134,7 @@ int main(int argc, char **argv)
- 	}
+--- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs
++++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
+@@ -290,7 +290,7 @@ function run_test() {
+   setup_cgroup "hugetlb_cgroup_test" "$cgroup_limit" "$reservation_limit"
  
- 	if (size != 0) {
--		printf("Writing this size: %d\n", size);
-+		printf("Writing this size: %zu\n", size);
- 	} else {
- 		errno = EINVAL;
- 		perror("size not found");
+   mkdir -p /mnt/huge
+-  mount -t hugetlbfs -o pagesize=${MB}M,size=256M none /mnt/huge
++  mount -t hugetlbfs -o pagesize=${MB}M none /mnt/huge
+ 
+   write_hugetlbfs_and_get_usage "hugetlb_cgroup_test" "$size" "$populate" \
+     "$write" "/mnt/huge/test" "$method" "$private" "$expect_failure" \
+@@ -344,7 +344,7 @@ function run_multiple_cgroup_test() {
+   setup_cgroup "hugetlb_cgroup_test2" "$cgroup_limit2" "$reservation_limit2"
+ 
+   mkdir -p /mnt/huge
+-  mount -t hugetlbfs -o pagesize=${MB}M,size=256M none /mnt/huge
++  mount -t hugetlbfs -o pagesize=${MB}M none /mnt/huge
+ 
+   write_hugetlbfs_and_get_usage "hugetlb_cgroup_test1" "$size1" \
+     "$populate1" "$write1" "/mnt/huge/test1" "$method" "$private" \
 _
 
 Patches currently in -mm which might be from liwang@redhat.com are
