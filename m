@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6742822DFA5
-	for <mm-commits@vger.kernel.org>; Sat, 20 Dec 2025 23:00:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A92D2EEBB
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 00:17:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766271618; cv=none; b=n/GLyIdFgsovvPTO/iowZ+HgtOrL0ICX2t0KT0vghRwInAWxNDhhHw0cTy71J5eAxsGAZPEGgJ/vte4ApsYc7kXmHxdgPyvuf7RL4NCw3YH+4QT0yHjJJM08wJl8fF2mWrbDdnQAiIDu+bSTFAvj1NqPk3/q1mpXmFhNo8jYlrE=
+	t=1766276254; cv=none; b=HRWTSh95LebDZLCefbg+Ghn1CjmP78MRd32XXGC3MYxZDNeR53Uassqyy74Ds+27qzagZ+zCRcaPG0IpXZZu+8nuYPcD93dyrdLUASbijGZre2OPK+w5LiOzehIQT4sTtlW/EptSCoyiLo+cw+WfWa7766CWMjA/t5SdQWQzvbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766271618; c=relaxed/simple;
-	bh=1sN1QELbldZcTBqWwX2Q4FDUPNzXA9iSuBqgcjnJTLc=;
-	h=Date:To:From:Subject:Message-Id; b=Cl7Bpz+CQmYkJFacSEkpOf7dgS0bXY/cs3UsqGxvn2uia7H70iTlTE2tV0d/oYy9RsvKObf4SK4vBM5Zpwej7+MVU9W0bbxt55OyOe6mIS+mFgvnh6rGq3myv8E/msqFmDzVnk4MS0QEVvjQ03KYuqtIAK6oo1cIAq3pjQ6Z5Ss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L2inwqRN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766276254; c=relaxed/simple;
+	bh=I5LrZ9AFHP9Bg5Ip9o/qJlwTCUfEwv+J7JpkKMJmhLg=;
+	h=Date:To:From:Subject:Message-Id; b=isSWphZmWWSwwWN9KNrPg0vZQ9Ih7wXFG+MsWSoytL6wmQAVANXame9z48qX7n5kVB4y/vSJALO6KEpCp2pkwoSlRjI/mTBGiLZR0USCqxhMT7vqBUqCg+ZUwG38J8bNbKKYPuX39magEz1AXC5E3v0Aj7dw1Qog5HoafuzQzrg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KLAyHhLS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L2inwqRN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F140AC4CEF5;
-	Sat, 20 Dec 2025 23:00:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KLAyHhLS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AAA9C4CEF5;
+	Sun, 21 Dec 2025 00:17:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766271618;
-	bh=1sN1QELbldZcTBqWwX2Q4FDUPNzXA9iSuBqgcjnJTLc=;
+	s=korg; t=1766276254;
+	bh=I5LrZ9AFHP9Bg5Ip9o/qJlwTCUfEwv+J7JpkKMJmhLg=;
 	h=Date:To:From:Subject:From;
-	b=L2inwqRN0RvGI4nqjf+Hl9GCL3LOOvn4nLDJMK++ty+EGFWE/rluI1qDnXs2mS4Nd
-	 VSZ6lycx0jL7I5sxA5Eu6etas/gjkcxtR2oFMfXemnokD4XF/O6RoYUKUGxoHrIbIL
-	 KKKLA3knHrxaEAoqTcdcWmXolEDK3xnUXZiZk4TI=
-Date: Sat, 20 Dec 2025 15:00:17 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,ricardo.neri-calderon@linux.intel.com,pratyush@kernel.org,graf@amazon.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=KLAyHhLStoyZ0kOd/kBv078NBCY6lzsQ4pVe9o/0RhfT2H8ecQagqWPM/e38/mVkj
+	 18jE3J2AZS3hEyMFQIj6PAAdJWfNgr3fCJvmb9LPz4dbrcLOncfwUOZcarlUUc0J/8
+	 JK/2FN5kpwF3OhxfxG7yhwN4S3x5mh243CucwlGo=
+Date: Sat, 20 Dec 2025 16:17:33 -0800
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,pedrodemargomes@gmail.com,david@kernel.org,chengming.zhou@linux.dev,sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-validate-preserved-memory-map-during-population.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251220230017.F140AC4CEF5@smtp.kernel.org>
+Subject: + mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251221001734.2AAA9C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: validate preserved memory map during population
+     Subject: mm/ksm: fix pte_unmap_unlock of wrong address in break_ksm_pmd_entry
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kho-validate-preserved-memory-map-during-population.patch
+     mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-validate-preserved-memory-map-during-population.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,158 +58,61 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: validate preserved memory map during population
-Date: Fri, 19 Dec 2025 02:12:09 -0500
+From: Sasha Levin <sashal@kernel.org>
+Subject: mm/ksm: fix pte_unmap_unlock of wrong address in break_ksm_pmd_entry
+Date: Sat, 20 Dec 2025 15:29:26 -0500
 
-If the previous kernel enabled KHO but did not call kho_finalize() (e.g.,
-CONFIG_LIVEUPDATE=n or userspace skipped the finalization step), the
-'preserved-memory-map' property in the FDT remains empty/zero.
+On ARM32 with HIGHMEM/HIGHPTE, break_ksm_pmd_entry() triggers a BUG during
+KSM unmerging because pte_unmap_unlock() is passed a pointer that may be
+beyond the mapped PTE page.
 
-Previously, kho_populate() would succeed regardless of the memory map's
-state, reserving the incoming scratch regions in memblock.  However,
-kho_memory_init() would later fail to deserialize the empty map.  By that
-time, the scratch regions were already registered, leading to partial
-initialization and subsequent list corruption (double-free) during
-kho_init().
+The issue occurs when the PTE iteration loop completes without finding a
+KSM page.  After the loop, 'ptep' has been incremented past the last PTE
+entry.  On ARM32 LPAE with 512 PTEs per page (512 * 8 = 4096 bytes), this
+means ptep points to the next page, outside the kmap'd region.
 
-Move the validation of the preserved memory map earlier into
-kho_populate(). If the memory map is empty/NULL:
-1. Abort kho_populate() immediately with -ENOENT.
-2. Do not register or reserve the incoming scratch memory, allowing the new
-   kernel to reclaim those pages as standard free memory.
-3. Leave the global 'kho_in' state uninitialized.
+When pte_unmap_unlock(ptep, ptl) calls kunmap_local(ptep), it unmaps the
+wrong page address, leaving the original kmap slot still mapped.  The next
+kmap_local then finds this slot unexpectedly occupied:
 
-Consequently, kho_memory_init() sees no active KHO context
-(kho_in.mem_chunks_phys is 0) and falls back to kho_reserve_scratch(),
-allocating fresh scratch memory as if it were a standard cold boot.
+  WARNING: mm/highmem.c:622 kunmap_local_indexed  (address mismatch)
+  kernel BUG at mm/highmem.c:564  __kmap_local_pfn_prot  (slot not empty)
 
-Link: https://lkml.kernel.org/r/20251219071209.3696755-1-pasha.tatashin@soleen.com
-Fixes: de51999e687c ("kho: allow memory preservation state updates after finalization")
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reported-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Closes: https://lore.kernel.org/all/20251218215613.GA17304@ranerica-svr.sc.intel.com
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Fix this by passing start_ptep to pte_unmap_unlock(), which always points
+within the originally mapped PTE page.
+
+Reproducer: Run LTP ksm03 test on ARM32 with HIGHMEM enabled.  The test
+triggers KSM merging followed by unmerging (writing 0 then 2 to
+/sys/kernel/mm/ksm/run), which exercises break_ksm_pmd_entry().
+
+Link: https://lkml.kernel.org/r/20251220202926.318366-1-sashal@kernel.org
+Fixes: 5d4939fc2258 ("ksm: perform a range-walk in break_ksm")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+Assisted-by: claude-opus-4-5-20251101
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   39 ++++++++++++++-------------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+ mm/ksm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-validate-preserved-memory-map-during-population
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -460,27 +460,23 @@ static void __init deserialize_bitmap(un
+--- a/mm/ksm.c~mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry
++++ a/mm/ksm.c
+@@ -650,7 +650,7 @@ static int break_ksm_pmd_entry(pmd_t *pm
+ 		}
  	}
+ out_unlock:
+-	pte_unmap_unlock(ptep, ptl);
++	pte_unmap_unlock(start_ptep, ptl);
+ 	return found;
  }
- 
--/* Return true if memory was deserizlied */
--static bool __init kho_mem_deserialize(const void *fdt)
-+/* Returns physical address of the preserved memory map from FDT */
-+static phys_addr_t __init kho_get_mem_map_phys(const void *fdt)
- {
--	struct khoser_mem_chunk *chunk;
- 	const void *mem_ptr;
--	u64 mem;
- 	int len;
- 
- 	mem_ptr = fdt_getprop(fdt, 0, PROP_PRESERVED_MEMORY_MAP, &len);
- 	if (!mem_ptr || len != sizeof(u64)) {
- 		pr_err("failed to get preserved memory bitmaps\n");
--		return false;
-+		return 0;
- 	}
- 
--	mem = get_unaligned((const u64 *)mem_ptr);
--	chunk = mem ? phys_to_virt(mem) : NULL;
--
--	/* No preserved physical pages were passed, no deserialization */
--	if (!chunk)
--		return false;
-+	return get_unaligned((const u64 *)mem_ptr);
-+}
- 
-+static void __init kho_mem_deserialize(struct khoser_mem_chunk *chunk)
-+{
- 	while (chunk) {
- 		unsigned int i;
- 
-@@ -489,8 +485,6 @@ static bool __init kho_mem_deserialize(c
- 					   &chunk->bitmaps[i]);
- 		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
- 	}
--
--	return true;
- }
- 
- /*
-@@ -1253,6 +1247,7 @@ bool kho_finalized(void)
- struct kho_in {
- 	phys_addr_t fdt_phys;
- 	phys_addr_t scratch_phys;
-+	phys_addr_t mem_map_phys;
- 	struct kho_debugfs dbg;
- };
- 
-@@ -1434,12 +1429,10 @@ static void __init kho_release_scratch(v
- 
- void __init kho_memory_init(void)
- {
--	if (kho_in.scratch_phys) {
-+	if (kho_in.mem_map_phys) {
- 		kho_scratch = phys_to_virt(kho_in.scratch_phys);
- 		kho_release_scratch();
--
--		if (!kho_mem_deserialize(kho_get_fdt()))
--			kho_in.fdt_phys = 0;
-+		kho_mem_deserialize(phys_to_virt(kho_in.mem_map_phys));
- 	} else {
- 		kho_reserve_scratch();
- 	}
-@@ -1448,8 +1441,9 @@ void __init kho_memory_init(void)
- void __init kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
- 			 phys_addr_t scratch_phys, u64 scratch_len)
- {
--	void *fdt = NULL;
- 	struct kho_scratch *scratch = NULL;
-+	phys_addr_t mem_map_phys;
-+	void *fdt = NULL;
- 	int err = 0;
- 	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
- 
-@@ -1475,6 +1469,14 @@ void __init kho_populate(phys_addr_t fdt
- 		goto out;
- 	}
- 
-+	mem_map_phys = kho_get_mem_map_phys(fdt);
-+	if (!mem_map_phys) {
-+		pr_warn("setup: handover FDT (0x%llx) present but no preserved memory found\n",
-+			fdt_phys);
-+		err = -ENOENT;
-+		goto out;
-+	}
-+
- 	scratch = early_memremap(scratch_phys, scratch_len);
- 	if (!scratch) {
- 		pr_warn("setup: failed to memremap scratch (phys=0x%llx, len=%lld)\n",
-@@ -1515,6 +1517,7 @@ void __init kho_populate(phys_addr_t fdt
- 
- 	kho_in.fdt_phys = fdt_phys;
- 	kho_in.scratch_phys = scratch_phys;
-+	kho_in.mem_map_phys = mem_map_phys;
- 	kho_scratch_cnt = scratch_cnt;
- 	pr_info("found kexec handover data.\n");
  
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-kho-validate-preserved-memory-map-during-population.patch
-list-add-primitives-for-private-list-manipulations.patch
-list-add-kunit-test-for-private-list-primitives.patch
-liveupdate-luo_file-use-private-list.patch
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
+mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry.patch
 
