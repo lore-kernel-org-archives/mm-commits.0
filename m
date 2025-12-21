@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 258742FE598
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:25:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EDF7219E8C
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:26:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766341512; cv=none; b=G7G/7VRTQYcVkWfasR9QozeVwMsq2joZAKqTRYOJvVj20TtVML1fVCT0GYkNwbcZ+UcTT+aw0hH8PENawjfuSIhrQW/GF6Y3kGaztQnSnGHuaIBXDeJ02X2CRHqqU0gnWRHd5FMSlzHK+j2KuVwNBaFq4QgzqBzyrr3lCIf0uNk=
+	t=1766341603; cv=none; b=pKkDjFAFgg0btClZt2qzreYDpJQGbW4EbLAnmPrC0DACwvhyCDwPiJYrdyBKFqwnkp3Olajr+mydJZ8VcSgF6yIqxKjoWb8whbSnCQU2q+Mizc0ueK6O2ESmBJu3k9YBe2CX4O8IOdPTYJP6+hbfP2sYXJp7gKmtoQMV3EZx4xk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766341512; c=relaxed/simple;
-	bh=wQax7F23Rt4qAHoksYmagWMYlUHkWdfp1Whkp7AaLDk=;
-	h=Date:To:From:Subject:Message-Id; b=bOcQT++fN0CfustvB/8MqkqtYVZFFaVw7qGN2vxjfNNntAWyn4F835oquC4x9EGHfHPjVSkwNz8+ybVL3KINerSh/6FdgWgMwfRBtxchCI70jsKwdD3mQSgo+blKkhAQlgyqsVbFVM9JVkX+Zsba0Z4c/cuATHHxQxR+gRE+jxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=03bNzT8I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766341603; c=relaxed/simple;
+	bh=BQpPsfekIstWNVQ+0JDZs87Tb9khHmaYOVp/RVhlcek=;
+	h=Date:To:From:Subject:Message-Id; b=D50z8TvZImZk40G5+JNkT57RE192XmZoac1w0L0sfniJ3qxgOBwL+x2qkcrOdQvN28CHBfgs9cb7hDnAWd7Ox7dzDGVD68jqUFPUDdNdRSpLBWvIXxuBpaOYvFZOgsfkXlv7xTUdtyhv9HxidZr7+UE2UCqkWJkuW4CelYdmQ/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A2Rc/z1F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="03bNzT8I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D8A9C4CEFB;
-	Sun, 21 Dec 2025 18:25:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A2Rc/z1F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9F03C4CEFB;
+	Sun, 21 Dec 2025 18:26:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766341511;
-	bh=wQax7F23Rt4qAHoksYmagWMYlUHkWdfp1Whkp7AaLDk=;
+	s=korg; t=1766341602;
+	bh=BQpPsfekIstWNVQ+0JDZs87Tb9khHmaYOVp/RVhlcek=;
 	h=Date:To:From:Subject:From;
-	b=03bNzT8IXXzuS4QzKTIUzHogjTe/7wFSLT7KgIfsIL8lPP4UxRqPE8ppCfX2QjZzx
-	 mbs+yE/V6si32KpjFYGhI3dDQWRFGngNEq/Joml1GkMLrF1ibSROw2QS0dQMSzbnH/
-	 xLWrFLZfeGSJJdQTyuc7Bx7f0XD37rAsOLPzAh6Y=
-Date: Sun, 21 Dec 2025 10:25:10 -0800
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,svens@linux.ibm.com,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,geert@linux-m68k.org,davidgow@google.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,sakamo.ryota@gmail.com,akpm@linux-foundation.org
+	b=A2Rc/z1FYekPtsPdDptUCluWohcohf+NgCzTM0mJqTCbqcZt2RqTw14P9y4XpA6VS
+	 ERHwkoWapBVl0+Ob7Rm+OeGa0boIf3Q7v5X6XF+leSr8yQKWAOe3hJ6jAyFChiXGo7
+	 ZLzp/mcnHfLeWvwLKcUNcBXrMQ+m/ySKpydc1P38=
+Date: Sun, 21 Dec 2025 10:26:42 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,corbet@lwn.net,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-tests-convert-test_min_heap-module-to-kunit.patch added to mm-nonmm-unstable branch
-Message-Id: <20251221182511.8D8A9C4CEFB@smtp.kernel.org>
+Subject: + mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch added to mm-new branch
+Message-Id: <20251221182642.A9F03C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/tests: convert test_min_heap module to KUnit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-tests-convert-test_min_heap-module-to-kunit.patch
+     Subject: mm, hugetlb: implement movable_gigantic_pages sysctl
+has been added to the -mm mm-new branch.  Its filename is
+     mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-convert-test_min_heap-module-to-kunit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,713 +66,197 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ryota Sakamoto <sakamo.ryota@gmail.com>
-Subject: lib/tests: convert test_min_heap module to KUnit
-Date: Sun, 21 Dec 2025 13:35:16 +0000
+From: Gregory Price <gourry@gourry.net>
+Subject: mm, hugetlb: implement movable_gigantic_pages sysctl
+Date: Sun, 21 Dec 2025 07:56:03 -0500
 
-Move lib/test_min_heap.c to lib/tests/min_heap_kunit.c and convert it to
-use KUnit.
+This reintroduces a concept removed by: commit d6cb41cc44c6 ("mm, hugetlb:
+remove hugepages_treat_as_movable sysctl")
 
-This change switches the ad-hoc test code to standard KUnit test cases. 
-The test data remains the same, but the verification logic is updated to
-use KUNIT_EXPECT_* macros.
+This sysctl provides flexibility between ZONE_MOVABLE use cases:
+1) onlining memory in ZONE_MOVABLE to maintain hotplug compatibility
+2) onlining memory in ZONE_MOVABLE to make hugepage allocate reliable
 
-Also remove CONFIG_TEST_MIN_HEAP from arch/*/configs/* because it is no
-longer used.  The new CONFIG_MIN_HEAP_KUNIT_TEST will be automatically
-enabled by CONFIG_KUNIT_ALL_TESTS.
+When ZONE_MOVABLE is used to make huge page allocation more reliable,
+disallowing gigantic pages memory in this region is pointless.  If hotplug
+is not a requirement, we can loosen the restrictions to allow 1GB gigantic
+pages in ZONE_MOVABLE.
 
-Link: https://lkml.kernel.org/r/20251221133516.321846-1-sakamo.ryota@gmail.com
-Signed-off-by: Ryota Sakamoto <sakamo.ryota@gmail.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Since 1GB can be difficult to migrate / has impacts on compaction /
+defragmentation, we don't enable this by default.  Notably, 1GB pages can
+only be migrated if another 1GB page is available - so hot-unplug will
+fail if such a page cannot be found.
+
+However, since there are scenarios where gigantic pages are migratable, we
+should allow use of these on movable regions.
+
+When not valid 1GB is available for migration, hot-unplug will retry
+indefinitely (or until interrupted).  For example:
+
+  echo 0 > node0/hugepages/..-1GB/nr_hugepages  # clear node0 1GB pages
+  echo 1 > node1/hugepages/..-1GB/nr_hugepages  # reserve node1 1GB page
+  ./alloc_huge_node1 &    # Allocate a 1GB page on node1
+  ./node1_offline  &      # attempt to offline all node1 memory
+  echo 1 > node0/hugepages/..-1GB/nr_hugepages  # reserve node0 1GB page
+
+In this example, node1_offline will block indefinitely until the final
+step, when a node0 1GB page is made available.
+
+Note: Boot-time CMA is not possible for driver-managed hotplug memory, as
+CMA requires the memory to be registered as SystemRAM at boot time. 
+Additionally, 1GB huge pages are not supported by THP.
+
+Link: https://lkml.kernel.org/r/20251221125603.2364174-1-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Suggested-by: David Rientjes <rientjes@google.com>
+Link: https://lore.kernel.org/all/20180201193132.Hk7vI_xaU%25akpm@linux-foundation.org/
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                          |    2 
- arch/m68k/configs/amiga_defconfig    |    1 
- arch/m68k/configs/apollo_defconfig   |    1 
- arch/m68k/configs/atari_defconfig    |    1 
- arch/m68k/configs/bvme6000_defconfig |    1 
- arch/m68k/configs/hp300_defconfig    |    1 
- arch/m68k/configs/mac_defconfig      |    1 
- arch/m68k/configs/multi_defconfig    |    1 
- arch/m68k/configs/mvme147_defconfig  |    1 
- arch/m68k/configs/mvme16x_defconfig  |    1 
- arch/m68k/configs/q40_defconfig      |    1 
- arch/m68k/configs/sun3_defconfig     |    1 
- arch/m68k/configs/sun3x_defconfig    |    1 
- arch/powerpc/configs/ppc64_defconfig |    1 
- arch/s390/configs/debug_defconfig    |    2 
- lib/Kconfig.debug                    |   21 +-
- lib/Makefile                         |    1 
- lib/test_min_heap.c                  |  222 -------------------------
- lib/tests/Makefile                   |    1 
- lib/tests/min_heap_kunit.c           |  209 +++++++++++++++++++++++
- 20 files changed, 223 insertions(+), 248 deletions(-)
+ Documentation/admin-guide/mm/memory-hotplug.rst |   14 ++++++-
+ Documentation/admin-guide/sysctl/vm.rst         |   28 ++++++++++++++
+ include/linux/hugetlb.h                         |    3 +
+ mm/hugetlb_sysctl.c                             |   11 +++++
+ 4 files changed, 53 insertions(+), 3 deletions(-)
 
---- a/arch/m68k/configs/amiga_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/amiga_defconfig
-@@ -609,7 +609,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/apollo_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/apollo_defconfig
-@@ -566,7 +566,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/atari_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/atari_defconfig
-@@ -586,7 +586,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/bvme6000_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/bvme6000_defconfig
-@@ -558,7 +558,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/hp300_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/hp300_defconfig
-@@ -568,7 +568,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/mac_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/mac_defconfig
-@@ -585,7 +585,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/multi_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/multi_defconfig
-@@ -672,7 +672,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/mvme147_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/mvme147_defconfig
-@@ -558,7 +558,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/mvme16x_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/mvme16x_defconfig
-@@ -559,7 +559,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/q40_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/q40_defconfig
-@@ -575,7 +575,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/sun3_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/sun3_defconfig
-@@ -555,7 +555,6 @@ CONFIG_WW_MUTEX_SELFTEST=m
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/m68k/configs/sun3x_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/m68k/configs/sun3x_defconfig
-@@ -556,7 +556,6 @@ CONFIG_EARLY_PRINTK=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_TEST_DHRY=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_TEST_MULDIV64=m
- CONFIG_REED_SOLOMON_TEST=m
---- a/arch/powerpc/configs/ppc64_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/powerpc/configs/ppc64_defconfig
-@@ -426,7 +426,6 @@ CONFIG_BOOTX_TEXT=y
- CONFIG_KUNIT=m
- CONFIG_KUNIT_ALL_TESTS=m
- CONFIG_LKDTM=m
--CONFIG_TEST_MIN_HEAP=m
- CONFIG_TEST_DIV64=m
- CONFIG_BACKTRACE_SELF_TEST=m
- CONFIG_TEST_REF_TRACKER=m
---- a/arch/s390/configs/debug_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/arch/s390/configs/debug_defconfig
-@@ -921,7 +921,7 @@ CONFIG_FAULT_INJECTION_DEBUG_FS=y
- CONFIG_FAULT_INJECTION_CONFIGFS=y
- CONFIG_FAULT_INJECTION_STACKTRACE_FILTER=y
- CONFIG_LKDTM=m
--CONFIG_TEST_MIN_HEAP=y
-+CONFIG_MIN_HEAP_KUNIT_TEST=m
- CONFIG_KPROBES_SANITY_TEST=m
- CONFIG_RBTREE_TEST=y
- CONFIG_INTERVAL_TREE_TEST=m
---- a/lib/Kconfig.debug~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/lib/Kconfig.debug
-@@ -2296,16 +2296,6 @@ config TEST_LIST_SORT
+--- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-hugetlb-implement-movable_gigantic_pages-sysctl
++++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+@@ -612,8 +612,9 @@ ZONE_MOVABLE, especially when fine-tunin
+   allocations and silently create a zone imbalance, usually triggered by
+   inflation requests from the hypervisor.
  
- 	  If unsure, say N.
+-- Gigantic pages are unmovable, resulting in user space consuming a
+-  lot of unmovable memory.
++- Gigantic pages are unmovable when an architecture does not support
++  huge page migration and/or the ``movable_gigantic_pages`` sysctl is false.
++  See Documentation/admin-guide/sysctl/vm.rst for more info on this sysctl.
  
--config TEST_MIN_HEAP
--	tristate "Min heap test"
--	depends on DEBUG_KERNEL || m
--	help
--	  Enable this to turn on min heap function tests. This test is
--	  executed only once during system boot (so affects only boot time),
--	  or at module load time.
--
--	  If unsure, say N.
--
- config TEST_SORT
- 	tristate "Array-based sort test" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
-@@ -2933,6 +2923,17 @@ config MEMCPY_KUNIT_TEST
+ - Huge pages are unmovable when an architectures does not support huge
+   page migration, resulting in a similar issue as with gigantic pages.
+@@ -672,6 +673,15 @@ block might fail:
+ - Concurrent activity that operates on the same physical memory area, such as
+   allocating gigantic pages, can result in temporary offlining failures.
  
- 	  If unsure, say N.
++- When an admin sets the ``movable_gigantic_pages`` sysctl to true, gigantic
++  pages are allowed in ZONE_MOVABLE.  This only allows migratable gigantic
++  pages to be allocated; however, if there are no eligible destination gigantic
++  pages at offline, the offlining operation will fail.
++
++  Users leveraging ``movable_gigantic_pages`` should weigh the value of
++  ZONE_MOVABLE for increasing the reliability of gigantic page allocation
++  against the potential loss of hot-unplug reliability.
++
+ - Out of memory when dissolving huge pages, especially when HugeTLB Vmemmap
+   Optimization (HVO) is enabled.
  
-+config MIN_HEAP_KUNIT_TEST
-+	tristate "Min heap test" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  This option enables the KUnit test suite for the min heap library
-+	  which provides functions for creating and managing min heaps.
-+	  The test suite checks the functionality of the min heap library.
-+
-+	  If unsure, say N
-+
- config IS_SIGNED_TYPE_KUNIT_TEST
- 	tristate "Test is_signed_type() macro" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
---- a/lib/Makefile~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/lib/Makefile
-@@ -75,7 +75,6 @@ obj-$(CONFIG_TEST_UBSAN) += test_ubsan.o
- CFLAGS_test_ubsan.o += $(call cc-disable-warning, unused-but-set-variable)
- UBSAN_SANITIZE_test_ubsan.o := y
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
--obj-$(CONFIG_TEST_MIN_HEAP) += test_min_heap.o
- obj-$(CONFIG_TEST_LKM) += test_module.o
- obj-$(CONFIG_TEST_VMALLOC) += test_vmalloc.o
- obj-$(CONFIG_TEST_RHASHTABLE) += test_rhashtable.o
-diff --git a/lib/test_min_heap.c a/lib/test_min_heap.c
-deleted file mode 100644
---- a/lib/test_min_heap.c
-+++ /dev/null
-@@ -1,222 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--#define pr_fmt(fmt) "min_heap_test: " fmt
--
--/*
-- * Test cases for the min max heap.
-- */
--
--#include <linux/log2.h>
--#include <linux/min_heap.h>
--#include <linux/module.h>
--#include <linux/printk.h>
--#include <linux/random.h>
--
--DEFINE_MIN_HEAP(int, min_heap_test);
--
--static __init bool less_than(const void *lhs, const void *rhs, void __always_unused *args)
--{
--	return *(int *)lhs < *(int *)rhs;
--}
--
--static __init bool greater_than(const void *lhs, const void *rhs, void __always_unused *args)
--{
--	return *(int *)lhs > *(int *)rhs;
--}
--
--static __init int pop_verify_heap(bool min_heap,
--				struct min_heap_test *heap,
--				const struct min_heap_callbacks *funcs)
--{
--	int *values = heap->data;
--	int err = 0;
--	int last;
--
--	last = values[0];
--	min_heap_pop_inline(heap, funcs, NULL);
--	while (heap->nr > 0) {
--		if (min_heap) {
--			if (last > values[0]) {
--				pr_err("error: expected %d <= %d\n", last,
--					values[0]);
--				err++;
--			}
--		} else {
--			if (last < values[0]) {
--				pr_err("error: expected %d >= %d\n", last,
--					values[0]);
--				err++;
--			}
--		}
--		last = values[0];
--		min_heap_pop_inline(heap, funcs, NULL);
--	}
--	return err;
--}
--
--static __init int test_heapify_all(bool min_heap)
--{
--	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
--			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
--	struct min_heap_test heap = {
--		.data = values,
--		.nr = ARRAY_SIZE(values),
--		.size =  ARRAY_SIZE(values),
--	};
--	struct min_heap_callbacks funcs = {
--		.less = min_heap ? less_than : greater_than,
--		.swp = NULL,
--	};
--	int i, err;
--
--	/* Test with known set of values. */
--	min_heapify_all_inline(&heap, &funcs, NULL);
--	err = pop_verify_heap(min_heap, &heap, &funcs);
--
--
--	/* Test with randomly generated values. */
--	heap.nr = ARRAY_SIZE(values);
--	for (i = 0; i < heap.nr; i++)
--		values[i] = get_random_u32();
--
--	min_heapify_all_inline(&heap, &funcs, NULL);
--	err += pop_verify_heap(min_heap, &heap, &funcs);
--
--	return err;
--}
--
--static __init int test_heap_push(bool min_heap)
--{
--	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
--			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
--	int values[ARRAY_SIZE(data)];
--	struct min_heap_test heap = {
--		.data = values,
--		.nr = 0,
--		.size =  ARRAY_SIZE(values),
--	};
--	struct min_heap_callbacks funcs = {
--		.less = min_heap ? less_than : greater_than,
--		.swp = NULL,
--	};
--	int i, temp, err;
--
--	/* Test with known set of values copied from data. */
--	for (i = 0; i < ARRAY_SIZE(data); i++)
--		min_heap_push_inline(&heap, &data[i], &funcs, NULL);
--
--	err = pop_verify_heap(min_heap, &heap, &funcs);
--
--	/* Test with randomly generated values. */
--	while (heap.nr < heap.size) {
--		temp = get_random_u32();
--		min_heap_push_inline(&heap, &temp, &funcs, NULL);
--	}
--	err += pop_verify_heap(min_heap, &heap, &funcs);
--
--	return err;
--}
--
--static __init int test_heap_pop_push(bool min_heap)
--{
--	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
--			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
--	int values[ARRAY_SIZE(data)];
--	struct min_heap_test heap = {
--		.data = values,
--		.nr = 0,
--		.size =  ARRAY_SIZE(values),
--	};
--	struct min_heap_callbacks funcs = {
--		.less = min_heap ? less_than : greater_than,
--		.swp = NULL,
--	};
--	int i, temp, err;
--
--	/* Fill values with data to pop and replace. */
--	temp = min_heap ? 0x80000000 : 0x7FFFFFFF;
--	for (i = 0; i < ARRAY_SIZE(data); i++)
--		min_heap_push_inline(&heap, &temp, &funcs, NULL);
--
--	/* Test with known set of values copied from data. */
--	for (i = 0; i < ARRAY_SIZE(data); i++)
--		min_heap_pop_push_inline(&heap, &data[i], &funcs, NULL);
--
--	err = pop_verify_heap(min_heap, &heap, &funcs);
--
--	heap.nr = 0;
--	for (i = 0; i < ARRAY_SIZE(data); i++)
--		min_heap_push_inline(&heap, &temp, &funcs, NULL);
--
--	/* Test with randomly generated values. */
--	for (i = 0; i < ARRAY_SIZE(data); i++) {
--		temp = get_random_u32();
--		min_heap_pop_push_inline(&heap, &temp, &funcs, NULL);
--	}
--	err += pop_verify_heap(min_heap, &heap, &funcs);
--
--	return err;
--}
--
--static __init int test_heap_del(bool min_heap)
--{
--	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
--			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
--	struct min_heap_test heap;
--
--	min_heap_init_inline(&heap, values, ARRAY_SIZE(values));
--	heap.nr = ARRAY_SIZE(values);
--	struct min_heap_callbacks funcs = {
--		.less = min_heap ? less_than : greater_than,
--		.swp = NULL,
--	};
--	int i, err;
--
--	/* Test with known set of values. */
--	min_heapify_all_inline(&heap, &funcs, NULL);
--	for (i = 0; i < ARRAY_SIZE(values) / 2; i++)
--		min_heap_del_inline(&heap, get_random_u32() % heap.nr, &funcs, NULL);
--	err = pop_verify_heap(min_heap, &heap, &funcs);
--
--
--	/* Test with randomly generated values. */
--	heap.nr = ARRAY_SIZE(values);
--	for (i = 0; i < heap.nr; i++)
--		values[i] = get_random_u32();
--	min_heapify_all_inline(&heap, &funcs, NULL);
--
--	for (i = 0; i < ARRAY_SIZE(values) / 2; i++)
--		min_heap_del_inline(&heap, get_random_u32() % heap.nr, &funcs, NULL);
--	err += pop_verify_heap(min_heap, &heap, &funcs);
--
--	return err;
--}
--
--static int __init test_min_heap_init(void)
--{
--	int err = 0;
--
--	err += test_heapify_all(true);
--	err += test_heapify_all(false);
--	err += test_heap_push(true);
--	err += test_heap_push(false);
--	err += test_heap_pop_push(true);
--	err += test_heap_pop_push(false);
--	err += test_heap_del(true);
--	err += test_heap_del(false);
--	if (err) {
--		pr_err("test failed with %d errors\n", err);
--		return -EINVAL;
--	}
--	pr_info("test passed\n");
--	return 0;
--}
--module_init(test_min_heap_init);
--
--static void __exit test_min_heap_exit(void)
--{
--	/* do nothing */
--}
--module_exit(test_min_heap_exit);
--
--MODULE_DESCRIPTION("Test cases for the min max heap");
--MODULE_LICENSE("GPL");
---- a/lib/tests/Makefile~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/lib/tests/Makefile
-@@ -35,6 +35,7 @@ CFLAGS_longest_symbol_kunit.o += $(call
- obj-$(CONFIG_LONGEST_SYM_KUNIT_TEST) += longest_symbol_kunit.o
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-hugetlb-implement-movable_gigantic_pages-sysctl
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -53,6 +53,7 @@ Currently, these files are in /proc/sys/
+ - mmap_min_addr
+ - mmap_rnd_bits
+ - mmap_rnd_compat_bits
++- movable_gigantic_pages
+ - nr_hugepages
+ - nr_hugepages_mempolicy
+ - nr_overcommit_hugepages
+@@ -616,6 +617,33 @@ This value can be changed after boot usi
+ /proc/sys/vm/mmap_rnd_compat_bits tunable
  
- obj-$(CONFIG_MEMCPY_KUNIT_TEST) += memcpy_kunit.o
-+obj-$(CONFIG_MIN_HEAP_KUNIT_TEST) += min_heap_kunit.o
- CFLAGS_overflow_kunit.o = $(call cc-disable-warning, tautological-constant-out-of-range-compare)
- obj-$(CONFIG_OVERFLOW_KUNIT_TEST) += overflow_kunit.o
- obj-$(CONFIG_PRINTF_KUNIT_TEST) += printf_kunit.o
-diff --git a/lib/tests/min_heap_kunit.c a/lib/tests/min_heap_kunit.c
-new file mode 100664
---- /dev/null
-+++ a/lib/tests/min_heap_kunit.c
-@@ -0,0 +1,209 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Test cases for the min max heap.
-+ */
+ 
++movable_gigantic_pages
++======================
 +
-+#include <kunit/test.h>
-+#include <linux/min_heap.h>
-+#include <linux/module.h>
-+#include <linux/random.h>
++This parameter controls whether gigantic pages may be allocated from
++ZONE_MOVABLE. If set to non-zero, gigantic pages can be allocated
++from ZONE_MOVABLE. ZONE_MOVABLE memory may be created via the kernel
++boot parameter `kernelcore` or via memory hotplug as discussed in
++Documentation/admin-guide/mm/memory-hotplug.rst.
 +
-+struct min_heap_test_case {
-+	const char *str;
-+	bool min_heap;
-+};
++Support may depend on specific architecture.
 +
-+static struct min_heap_test_case min_heap_cases[] = {
++Note that using ZONE_MOVABLE gigantic pages make memory hotremove unreliable.
++
++Memory hot-remove operations will block indefinitely until the admin reserves
++sufficient gigantic pages to service migration requests associated with the
++memory offlining process.  As HugeTLB gigantic page reservation is a manual
++process (via `nodeN/hugepages/.../nr_hugepages` interfaces) this may not be
++obvious when just attempting to offline a block of memory.
++
++Additionally, as multiple gigantic pages may be reserved on a single block,
++it may appear that gigantic pages are available for migration when in reality
++they are in the process of being removed. For example if `memoryN` contains
++two gigantic pages, one reserved and one allocated, and an admin attempts to
++offline that block, this operations may hang indefinitely unless another
++reserved gigantic page is available on another block `memoryM`.
++
++
+ nr_hugepages
+ ============
+ 
+--- a/include/linux/hugetlb.h~mm-hugetlb-implement-movable_gigantic_pages-sysctl
++++ a/include/linux/hugetlb.h
+@@ -171,6 +171,7 @@ bool hugetlbfs_pagecache_present(struct
+ 
+ struct address_space *hugetlb_folio_mapping_lock_write(struct folio *folio);
+ 
++extern int movable_gigantic_pages __read_mostly;
+ extern int sysctl_hugetlb_shm_group __read_mostly;
+ extern struct list_head huge_boot_pages[MAX_NUMNODES];
+ 
+@@ -929,7 +930,7 @@ static inline bool hugepage_movable_supp
+ 	if (!hugepage_migration_supported(h))
+ 		return false;
+ 
+-	if (hstate_is_gigantic(h))
++	if (hstate_is_gigantic(h) && !movable_gigantic_pages)
+ 		return false;
+ 	return true;
+ }
+--- a/mm/hugetlb_sysctl.c~mm-hugetlb-implement-movable_gigantic_pages-sysctl
++++ a/mm/hugetlb_sysctl.c
+@@ -8,6 +8,8 @@
+ 
+ #include "hugetlb_internal.h"
+ 
++int movable_gigantic_pages;
++
+ #ifdef CONFIG_SYSCTL
+ static int proc_hugetlb_doulongvec_minmax(const struct ctl_table *table, int write,
+ 					  void *buffer, size_t *length,
+@@ -125,6 +127,15 @@ static const struct ctl_table hugetlb_ta
+ 		.mode		= 0644,
+ 		.proc_handler	= hugetlb_overcommit_handler,
+ 	},
++#ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
 +	{
-+		.str = "min",
-+		.min_heap = true,
++		.procname	= "movable_gigantic_pages",
++		.data		= &movable_gigantic_pages,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
 +	},
-+	{
-+		.str = "max",
-+		.min_heap = false,
-+	},
-+};
-+
-+KUNIT_ARRAY_PARAM_DESC(min_heap, min_heap_cases, str);
-+
-+DEFINE_MIN_HEAP(int, min_heap_test);
-+
-+static bool less_than(const void *lhs, const void *rhs, void __always_unused *args)
-+{
-+	return *(int *)lhs < *(int *)rhs;
-+}
-+
-+static bool greater_than(const void *lhs, const void *rhs, void __always_unused *args)
-+{
-+	return *(int *)lhs > *(int *)rhs;
-+}
-+
-+static void pop_verify_heap(struct kunit *test,
-+			    bool min_heap,
-+			    struct min_heap_test *heap,
-+			    const struct min_heap_callbacks *funcs)
-+{
-+	int *values = heap->data;
-+	int last;
-+
-+	last = values[0];
-+	min_heap_pop_inline(heap, funcs, NULL);
-+	while (heap->nr > 0) {
-+		if (min_heap)
-+			KUNIT_EXPECT_LE(test, last, values[0]);
-+		else
-+			KUNIT_EXPECT_GE(test, last, values[0]);
-+		last = values[0];
-+		min_heap_pop_inline(heap, funcs, NULL);
-+	}
-+}
-+
-+static void test_heapify_all(struct kunit *test)
-+{
-+	const struct min_heap_test_case *params = test->param_value;
-+	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
-+			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
-+	struct min_heap_test heap = {
-+		.data = values,
-+		.nr = ARRAY_SIZE(values),
-+		.size =  ARRAY_SIZE(values),
-+	};
-+	struct min_heap_callbacks funcs = {
-+		.less = params->min_heap ? less_than : greater_than,
-+		.swp = NULL,
-+	};
-+	int i;
-+
-+	/* Test with known set of values. */
-+	min_heapify_all_inline(&heap, &funcs, NULL);
-+	pop_verify_heap(test, params->min_heap, &heap, &funcs);
-+
-+	/* Test with randomly generated values. */
-+	heap.nr = ARRAY_SIZE(values);
-+	for (i = 0; i < heap.nr; i++)
-+		values[i] = get_random_u32();
-+
-+	min_heapify_all_inline(&heap, &funcs, NULL);
-+	pop_verify_heap(test, params->min_heap, &heap, &funcs);
-+}
-+
-+static void test_heap_push(struct kunit *test)
-+{
-+	const struct min_heap_test_case *params = test->param_value;
-+	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
-+			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
-+	int values[ARRAY_SIZE(data)];
-+	struct min_heap_test heap = {
-+		.data = values,
-+		.nr = 0,
-+		.size =  ARRAY_SIZE(values),
-+	};
-+	struct min_heap_callbacks funcs = {
-+		.less = params->min_heap ? less_than : greater_than,
-+		.swp = NULL,
-+	};
-+	int i, temp;
-+
-+	/* Test with known set of values copied from data. */
-+	for (i = 0; i < ARRAY_SIZE(data); i++)
-+		min_heap_push_inline(&heap, &data[i], &funcs, NULL);
-+
-+	pop_verify_heap(test, params->min_heap, &heap, &funcs);
-+
-+	/* Test with randomly generated values. */
-+	while (heap.nr < heap.size) {
-+		temp = get_random_u32();
-+		min_heap_push_inline(&heap, &temp, &funcs, NULL);
-+	}
-+	pop_verify_heap(test, params->min_heap, &heap, &funcs);
-+}
-+
-+static void test_heap_pop_push(struct kunit *test)
-+{
-+	const struct min_heap_test_case *params = test->param_value;
-+	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
-+			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
-+	int values[ARRAY_SIZE(data)];
-+	struct min_heap_test heap = {
-+		.data = values,
-+		.nr = 0,
-+		.size =  ARRAY_SIZE(values),
-+	};
-+	struct min_heap_callbacks funcs = {
-+		.less = params->min_heap ? less_than : greater_than,
-+		.swp = NULL,
-+	};
-+	int i, temp;
-+
-+	/* Fill values with data to pop and replace. */
-+	temp = params->min_heap ? 0x80000000 : 0x7FFFFFFF;
-+	for (i = 0; i < ARRAY_SIZE(data); i++)
-+		min_heap_push_inline(&heap, &temp, &funcs, NULL);
-+
-+	/* Test with known set of values copied from data. */
-+	for (i = 0; i < ARRAY_SIZE(data); i++)
-+		min_heap_pop_push_inline(&heap, &data[i], &funcs, NULL);
-+
-+	pop_verify_heap(test, params->min_heap, &heap, &funcs);
-+
-+	heap.nr = 0;
-+	for (i = 0; i < ARRAY_SIZE(data); i++)
-+		min_heap_push_inline(&heap, &temp, &funcs, NULL);
-+
-+	/* Test with randomly generated values. */
-+	for (i = 0; i < ARRAY_SIZE(data); i++) {
-+		temp = get_random_u32();
-+		min_heap_pop_push_inline(&heap, &temp, &funcs, NULL);
-+	}
-+	pop_verify_heap(test, params->min_heap, &heap, &funcs);
-+}
-+
-+static void test_heap_del(struct kunit *test)
-+{
-+	const struct min_heap_test_case *params = test->param_value;
-+	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
-+			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
-+	struct min_heap_test heap;
-+
-+	min_heap_init_inline(&heap, values, ARRAY_SIZE(values));
-+	heap.nr = ARRAY_SIZE(values);
-+	struct min_heap_callbacks funcs = {
-+		.less = params->min_heap ? less_than : greater_than,
-+		.swp = NULL,
-+	};
-+	int i;
-+
-+	/* Test with known set of values. */
-+	min_heapify_all_inline(&heap, &funcs, NULL);
-+	for (i = 0; i < ARRAY_SIZE(values) / 2; i++)
-+		min_heap_del_inline(&heap, get_random_u32() % heap.nr, &funcs, NULL);
-+	pop_verify_heap(test, params->min_heap, &heap, &funcs);
-+
-+	/* Test with randomly generated values. */
-+	heap.nr = ARRAY_SIZE(values);
-+	for (i = 0; i < heap.nr; i++)
-+		values[i] = get_random_u32();
-+	min_heapify_all_inline(&heap, &funcs, NULL);
-+
-+	for (i = 0; i < ARRAY_SIZE(values) / 2; i++)
-+		min_heap_del_inline(&heap, get_random_u32() % heap.nr, &funcs, NULL);
-+	pop_verify_heap(test, params->min_heap, &heap, &funcs);
-+}
-+
-+static struct kunit_case min_heap_test_cases[] = {
-+	KUNIT_CASE_PARAM(test_heapify_all, min_heap_gen_params),
-+	KUNIT_CASE_PARAM(test_heap_push, min_heap_gen_params),
-+	KUNIT_CASE_PARAM(test_heap_pop_push, min_heap_gen_params),
-+	KUNIT_CASE_PARAM(test_heap_del, min_heap_gen_params),
-+	{},
-+};
-+
-+static struct kunit_suite min_heap_test_suite = {
-+	.name = "min_heap",
-+	.test_cases = min_heap_test_cases,
-+};
-+
-+kunit_test_suite(min_heap_test_suite);
-+
-+MODULE_DESCRIPTION("Test cases for the min max heap");
-+MODULE_LICENSE("GPL");
---- a/MAINTAINERS~lib-tests-convert-test_min_heap-module-to-kunit
-+++ a/MAINTAINERS
-@@ -17448,7 +17448,7 @@ S:	Maintained
- F:	Documentation/core-api/min_heap.rst
- F:	include/linux/min_heap.h
- F:	lib/min_heap.c
--F:	lib/test_min_heap.c
-+F:	lib/tests/min_heap_kunit.c
++#endif
+ };
  
- MIPI CCS, SMIA AND SMIA++ IMAGE SENSOR DRIVER
- M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+ void __init hugetlb_sysctl_init(void)
 _
 
-Patches currently in -mm which might be from sakamo.ryota@gmail.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-lib-tests-convert-test_uuid-module-to-kunit.patch
-lib-tests-convert-test_min_heap-module-to-kunit.patch
+mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch
 
