@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27523157487
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 00:36:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29045221FCD
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:20:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766277408; cv=none; b=ZQAIfEzahW+D5YDKRWbpweX60iji4NqwNRQX2M+O3t8y2YR65Stn6DyQteGUfTs2oCiEnp7osoCvrSN4cgglw8ZF4dCCVYECsy2PHnAG7CQFQDrJgMBt8NOVonAsmvRs0Hu2sjY4ntkR5jGb9s3aapO+mtkJAEtukAYIlnuK09o=
+	t=1766341232; cv=none; b=p8n+pZQfhCAb7HSxMOu0gkJCNqT4XKo70BInk88Qt+s17fQHcD1VLn1Eu5PgOXzNquuwfJXLqcNOzCN/RlLZgwMhmPK5zlJiBoVv1ZOSGz3uus/cJ7Oi1a+WSJnkrJa4WWUDj+MV5jfhsf7J9168ZGzRDwldLRuW8IsvAuh/Mko=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766277408; c=relaxed/simple;
-	bh=VJoTCxl4D/CNOQRBqiY1Q1bQMpd9YIhR7ZH0cgD0avM=;
-	h=Date:To:From:Subject:Message-Id; b=nIDd9PQBsNt7p1km8uL9CpKGqR87F3FbFE1p7v0IfOF/FjMCEDLdlyB+j36xwYUqAGIJxV6ZzlPu/quCgUspSxWb1Uw7VSANLZqbQdfoniFGmhOJJCOeHHWBg0QdRSbRlrvdLgBEV027WfVJlfLIoXpCQFTFVzpW/TPGRmXgJiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qlrnBt7h; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766341232; c=relaxed/simple;
+	bh=UiTd2o/p1BG+Nd2HosZ+/YucDr4iUXFCO2okeHaS3II=;
+	h=Date:To:From:Subject:Message-Id; b=LlZwoRUfjX3Khno/DgwGTzr5sh389pDRMYMc48/vuEykg4veKIp6M5ByaNe7niSlgWsGNVJpkAEgm+InxHY9LfsXlhjKAepUSCzKLyzExcxd+J7R2R7P8k3IjJjw4Rrih29IUajiCKHOHrCWvNCb0C5oTkKJXA+KJUK8XWPeDRI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=by684lo7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qlrnBt7h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F81FC4CEF5;
-	Sun, 21 Dec 2025 00:36:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="by684lo7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41FB7C4CEFB;
+	Sun, 21 Dec 2025 18:20:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766277406;
-	bh=VJoTCxl4D/CNOQRBqiY1Q1bQMpd9YIhR7ZH0cgD0avM=;
+	s=korg; t=1766341231;
+	bh=UiTd2o/p1BG+Nd2HosZ+/YucDr4iUXFCO2okeHaS3II=;
 	h=Date:To:From:Subject:From;
-	b=qlrnBt7hib1HzCyrU1Lw1Fhl68KYD/8E85bsszt8rHelYJMJNwKVOI66LazGzbbVa
-	 wldvn7dYYiDRf4S5sBZ2tbPR0lXES1SRU5DPyPLB9td+RaSYSF1QFrJZTNEAVDSWPS
-	 a5Y6IPQtvhKZl/4gc4PMZduYtpIMxbQRz1r1yuOw=
-Date: Sat, 20 Dec 2025 16:36:46 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,pfalcato@suse.de,niecheng1@uniontech.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,anshuman.khandual@arm.com,guanwentao@uniontech.com,akpm@linux-foundation.org
+	b=by684lo7TzEXKxQwMaP0AESB1IlQf/PLvl1bOUJnIBVzTgYxjH+QETxxn6fSUdxD8
+	 +CCFGgZ2yU5qD8uDizUUt1fVzKC0Lge7swZGUyHD6dShMjc9yRCTiaqtc8APIvUlyy
+	 kJ/ch1htN0U3NEcUh69quAgrT+8vpbUEB85SfAUs=
+Date: Sun, 21 Dec 2025 10:20:30 -0800
+To: mm-commits@vger.kernel.org,swilczek.lx@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cleanup-vma_iter_bulk_alloc.patch added to mm-new branch
-Message-Id: <20251221003646.9F81FC4CEF5@smtp.kernel.org>
+Subject: + mailmap-update-email-address-for-szymon-wilczek.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251221182031.41FB7C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: cleanup vma_iter_bulk_alloc
-has been added to the -mm mm-new branch.  Its filename is
-     mm-cleanup-vma_iter_bulk_alloc.patch
+     Subject: mailmap: update email address for Szymon Wilczek
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mailmap-update-email-address-for-szymon-wilczek.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cleanup-vma_iter_bulk_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-email-address-for-szymon-wilczek.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,63 +58,35 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wentao Guan <guanwentao@uniontech.com>
-Subject: mm: cleanup vma_iter_bulk_alloc
-Date: Thu, 6 Nov 2025 19:09:29 +0800
+From: Szymon Wilczek <swilczek.lx@gmail.com>
+Subject: mailmap: update email address for Szymon Wilczek
+Date: Sun, 21 Dec 2025 16:17:10 +0100
 
-commit d24062914837 ("fork: use __mt_dup() to duplicate maple tree in
-dup_mmap()"), removed the only user and mas_expected_entries has been
-removed, since commit e3852a1213ffc ("maple_tree: Drop bulk insert
-support").  Also cleanup the mas_expected_entries in maple_tree.h.
+Map my old address <szymonwilczek@gmx.com> to my new address
+<swilczek.lx@gmail.com>.  The old account is no longer accessible due to
+provider blocking access.
 
-No functional change.
-
-Link: https://lkml.kernel.org/r/20251106110929.3522073-1-guanwentao@uniontech.com
-Signed-off-by: Wentao Guan <guanwentao@uniontech.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Cheng Nie <niecheng1@uniontech.com>
-Cc: Guan Wentao <guanwentao@uniontech.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Link: https://lkml.kernel.org/r/20251221151710.13747-1-swilczek.lx@gmail.com
+Signed-off-by: Szymon Wilczek <swilczek.lx@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    1 -
- mm/vma.h                   |    6 ------
- 2 files changed, 7 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/maple_tree.h~mm-cleanup-vma_iter_bulk_alloc
-+++ a/include/linux/maple_tree.h
-@@ -528,7 +528,6 @@ bool mas_nomem(struct ma_state *mas, gfp
- void mas_pause(struct ma_state *mas);
- void maple_tree_init(void);
- void mas_destroy(struct ma_state *mas);
--int mas_expected_entries(struct ma_state *mas, unsigned long nr_entries);
- 
- void *mas_prev(struct ma_state *mas, unsigned long min);
- void *mas_prev_range(struct ma_state *mas, unsigned long max);
---- a/mm/vma.h~mm-cleanup-vma_iter_bulk_alloc
-+++ a/mm/vma.h
-@@ -558,12 +558,6 @@ static inline unsigned long vma_iter_end
- 	return vmi->mas.last + 1;
- }
- 
--static inline int vma_iter_bulk_alloc(struct vma_iterator *vmi,
--				      unsigned long count)
--{
--	return mas_expected_entries(&vmi->mas, count);
--}
--
- static inline
- struct vm_area_struct *vma_iter_prev_range(struct vma_iterator *vmi)
- {
+--- a/.mailmap~mailmap-update-email-address-for-szymon-wilczek
++++ a/.mailmap
+@@ -787,6 +787,7 @@ Sven Eckelmann <sven@narfation.org> <sve
+ Sven Eckelmann <sven@narfation.org> <sven.eckelmann@openmesh.com>
+ Sven Eckelmann <sven@narfation.org> <sven@open-mesh.com>
+ Sven Peter <sven@kernel.org> <sven@svenpeter.dev>
++Szymon Wilczek <swilczek.lx@gmail.com> <szymonwilczek@gmx.com>
+ Takashi YOSHII <takashi.yoshii.zj@renesas.com>
+ Tamizh Chelvam Raja <quic_tamizhr@quicinc.com> <tamizhr@codeaurora.org>
+ Taniya Das <quic_tdas@quicinc.com> <tdas@codeaurora.org>
 _
 
-Patches currently in -mm which might be from guanwentao@uniontech.com are
+Patches currently in -mm which might be from swilczek.lx@gmail.com are
 
-mm-cleanup-vma_iter_bulk_alloc.patch
+mailmap-update-email-address-for-szymon-wilczek.patch
 
