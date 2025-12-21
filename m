@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B27A3A1E6A
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:32:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3932D1FC101
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:32:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766341966; cv=none; b=TnLBR7ORg9pcp7RDxTapIEJLChCYpcT1VbyDFxN22rYT0PHQHL14ucwDxPtJZpfWbQKSvxU78hj+H/VQbnko+FK1y/UHBihm5cs7IKPxJIvypwicbn/aQPdv3nh5ccrd7CybIX5rIruP0VYZJvnCXcFhejA6FRrxceYx0IQtJh8=
+	t=1766341968; cv=none; b=CaKq4zK3Gnvz00XcgTQG0mfdVhiU17scj45qCDkWQdWJwhGHITM0Y+Vvt1tvPIpvEW+M84jVst5eFdU0e++PoOX6RqRNp3qI2r9nMla2bLIFsjfSNn7EVSZNo3IF3awwRzwrm8nPfv9x0NFWYyDCfcYrinrc+9CnY2312HXLqP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766341966; c=relaxed/simple;
-	bh=b9ISN6aKdetn8ItEFi7wl1tqcJ3sRmFWjyxAci8XayE=;
-	h=Date:To:From:Subject:Message-Id; b=q1v0nCKLJUoql70VNYJVfCAm2gI3NXtzNgEVkZBdLEmNxujK1ysR3FoL7g++7KvFOTTZMBgAzrAt+heW1c9VYU+5xNVzAWlbJemZuEO0YZYlIPQk4Z9z3anb5YEjqJn7WuitZwjqDL4TYirzpL+tLp4JsyY8Vhq+VojYONFdl6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VclCKMj3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766341968; c=relaxed/simple;
+	bh=VITs3aD4koYCZc38gSRGQ/q6/dzDGFRVfuZVAKhG3Ig=;
+	h=Date:To:From:Subject:Message-Id; b=PD5DEeqSgizNwq1FWk0TYQlbr9ehGJtWHpajzyzMGgUBlKWZt4vAjc5XQd+extXX1+qGaU39I5irhp27tLXzmkDTGXcGzrAwdbWA2byOg7u8j9aOClJLHxuXQd5TJMRH+IfqDBJsfkB3lWSOnr81VIhqeAJ4b1hF8c1LKj9zrPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sd1wb55Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VclCKMj3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A69C1C4CEFB;
-	Sun, 21 Dec 2025 18:32:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sd1wb55Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A602EC4CEFB;
+	Sun, 21 Dec 2025 18:32:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766341965;
-	bh=b9ISN6aKdetn8ItEFi7wl1tqcJ3sRmFWjyxAci8XayE=;
+	s=korg; t=1766341967;
+	bh=VITs3aD4koYCZc38gSRGQ/q6/dzDGFRVfuZVAKhG3Ig=;
 	h=Date:To:From:Subject:From;
-	b=VclCKMj3VLmlKE5a3hPAfIitN3y1Vrbscv8oGmzoVllBJaqFz1z0q4l71nCgXCRYf
-	 ZDahE+tFH4euXLVkNUSvc9w0bm62o3b0VgZx1xPOBFWk+NF/QHt1HHRR2GuEKfJwqS
-	 zILHKY3xsPMRvaRI/DOQdu9VXP3NmfgC5/ENIDSo=
-Date: Sun, 21 Dec 2025 10:32:45 -0800
+	b=sd1wb55YHWWGRVt2r6Bss2gq6zVtTK8lFobtv3eNe5hNiYjZL5JeDNEMSzAThpChU
+	 eDMSXo56gf3wLQd8u5kQDSykYHiD48+0BhQ1mGb0ssu4DGLLylIjlypeVStAE0wKZo
+	 q7xaimOY1hFGMDycPrJo/v64It2xKkqhYN77AW64=
+Date: Sun, 21 Dec 2025 10:32:47 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,longman@redhat.com,david@kernel.org,broonie@kernel.org,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs.patch added to mm-new branch
-Message-Id: <20251221183245.A69C1C4CEFB@smtp.kernel.org>
+Subject: + selftests-mm-charge_reserved_hugetlbsh-add-waits-with-timeout-helper.patch added to mm-new branch
+Message-Id: <20251221183247.A602EC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm/charge_reserved_hugetlb: drop mount size for hugetlbfs
+     Subject: selftests/mm/charge_reserved_hugetlb.sh: add waits with timeout helper
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs.patch
+     selftests-mm-charge_reserved_hugetlbsh-add-waits-with-timeout-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-charge_reserved_hugetlbsh-add-waits-with-timeout-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,20 +67,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Li Wang <liwang@redhat.com>
-Subject: selftests/mm/charge_reserved_hugetlb: drop mount size for hugetlbfs
-Date: Sun, 21 Dec 2025 20:26:38 +0800
+Subject: selftests/mm/charge_reserved_hugetlb.sh: add waits with timeout helper
+Date: Sun, 21 Dec 2025 20:26:39 +0800
 
-charge_reserved_hugetlb.sh mounts a hugetlbfs instance at /mnt/huge with a
-fixed size of 256M.  On systems with large base hugepages (e.g.  512MB),
-this is smaller than a single hugepage, so the hugetlbfs mount ends up
-with zero capacity (often visible as size=0 in mount output).
-
-As a result, write_to_hugetlbfs fails with ENOMEM and the test can hang
-waiting for progress.
+The hugetlb cgroup usage wait loops in charge_reserved_hugetlb.sh were
+unbounded and could hang forever if the expected cgroup file value never
+appears (e.g.  due to write_to_hugetlbfs in Error mapping).
 
 --- Error log ---
   # uname -r
   6.12.0-xxx.el10.aarch64+64k
+
+  # ls /sys/kernel/mm/hugepages/hugepages-*
+  hugepages-16777216kB/  hugepages-2048kB/  hugepages-524288kB/
 
   #./charge_reserved_hugetlb.sh -cgroup-v2
   # -----------------------------------------
@@ -94,25 +93,25 @@ waiting for progress.
   # 0
   # Waiting for hugetlb memory reservation to reach size 2684354560.
   # 0
+  # Waiting for hugetlb memory reservation to reach size 2684354560.
+  # 0
+  # Waiting for hugetlb memory reservation to reach size 2684354560.
+  # 0
+  # Waiting for hugetlb memory reservation to reach size 2684354560.
+  # 0
+  # Waiting for hugetlb memory reservation to reach size 2684354560.
+  # 0
   ...
 
-  # mount |grep /mnt/huge
-  none on /mnt/huge type hugetlbfs (rw,relatime,seclabel,pagesize=512M,size=0)
+Introduce a small helper, wait_for_file_value(), and use it for:
+  - waiting for reservation usage to drop to 0,
+  - waiting for reservation usage to reach a given size,
+  - waiting for fault usage to reach a given size.
 
-  # grep -i huge /proc/meminfo
-  ...
-  HugePages_Total:      10
-  HugePages_Free:       10
-  HugePages_Rsvd:        0
-  HugePages_Surp:        0
-  Hugepagesize:     524288 kB
-  Hugetlb:         5242880 kB
+This makes the waits consistent and adds a hard timeout (60 tries with 1s
+sleep) so the test fails instead of stalling indefinitely.
 
-Drop the mount args with 'size=256M', so the filesystem capacity is sufficient
-regardless of HugeTLB page size.
-
-Link: https://lkml.kernel.org/r/20251221122639.3168038-3-liwang@redhat.com
-Fixes: 29750f71a9 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
+Link: https://lkml.kernel.org/r/20251221122639.3168038-4-liwang@redhat.com
 Signed-off-by: Li Wang <liwang@redhat.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
@@ -121,29 +120,91 @@ Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/charge_reserved_hugetlb.sh |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/charge_reserved_hugetlb.sh |   51 +++++-----
+ 1 file changed, 30 insertions(+), 21 deletions(-)
 
---- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs
+--- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-charge_reserved_hugetlbsh-add-waits-with-timeout-helper
 +++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
-@@ -290,7 +290,7 @@ function run_test() {
-   setup_cgroup "hugetlb_cgroup_test" "$cgroup_limit" "$reservation_limit"
+@@ -100,7 +100,7 @@ function setup_cgroup() {
+   echo writing cgroup limit: "$cgroup_limit"
+   echo "$cgroup_limit" >$cgroup_path/$name/hugetlb.${MB}MB.$fault_limit_file
  
-   mkdir -p /mnt/huge
--  mount -t hugetlbfs -o pagesize=${MB}M,size=256M none /mnt/huge
-+  mount -t hugetlbfs -o pagesize=${MB}M none /mnt/huge
+-  echo writing reseravation limit: "$reservation_limit"
++  echo writing reservation limit: "$reservation_limit"
+   echo "$reservation_limit" > \
+     $cgroup_path/$name/hugetlb.${MB}MB.$reservation_limit_file
  
-   write_hugetlbfs_and_get_usage "hugetlb_cgroup_test" "$size" "$populate" \
-     "$write" "/mnt/huge/test" "$method" "$private" "$expect_failure" \
-@@ -344,7 +344,7 @@ function run_multiple_cgroup_test() {
-   setup_cgroup "hugetlb_cgroup_test2" "$cgroup_limit2" "$reservation_limit2"
+@@ -112,41 +112,50 @@ function setup_cgroup() {
+   fi
+ }
  
-   mkdir -p /mnt/huge
--  mount -t hugetlbfs -o pagesize=${MB}M,size=256M none /mnt/huge
-+  mount -t hugetlbfs -o pagesize=${MB}M none /mnt/huge
++function wait_for_file_value() {
++  local path="$1"
++  local expect="$2"
++  local max_tries=60
++
++  if [[ ! -r "$path" ]]; then
++    echo "ERROR: cannot read '$path', missing or permission denied"
++    return 1
++  fi
++
++  for ((i=1; i<=max_tries; i++)); do
++    local cur="$(cat "$path")"
++    if [[ "$cur" == "$expect" ]]; then
++      return 0
++    fi
++    echo "Waiting for $path to become '$expect' (current: '$cur') (try $i/$max_tries)"
++    sleep 1
++  done
++
++  echo "ERROR: timeout waiting for $path to become '$expect'"
++  return 1
++}
++
+ function wait_for_hugetlb_memory_to_get_depleted() {
+   local cgroup="$1"
+   local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$reservation_usage_file"
+-  # Wait for hugetlbfs memory to get depleted.
+-  while [ $(cat $path) != 0 ]; do
+-    echo Waiting for hugetlb memory to get depleted.
+-    cat $path
+-    sleep 0.5
+-  done
++
++  wait_for_file_value "$path" "0"
+ }
  
-   write_hugetlbfs_and_get_usage "hugetlb_cgroup_test1" "$size1" \
-     "$populate1" "$write1" "/mnt/huge/test1" "$method" "$private" \
+ function wait_for_hugetlb_memory_to_get_reserved() {
+   local cgroup="$1"
+   local size="$2"
+-
+   local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$reservation_usage_file"
+-  # Wait for hugetlbfs memory to get written.
+-  while [ $(cat $path) != $size ]; do
+-    echo Waiting for hugetlb memory reservation to reach size $size.
+-    cat $path
+-    sleep 0.5
+-  done
++
++  wait_for_file_value "$path" "$size"
+ }
+ 
+ function wait_for_hugetlb_memory_to_get_written() {
+   local cgroup="$1"
+   local size="$2"
+-
+   local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$fault_usage_file"
+-  # Wait for hugetlbfs memory to get written.
+-  while [ $(cat $path) != $size ]; do
+-    echo Waiting for hugetlb memory to reach size $size.
+-    cat $path
+-    sleep 0.5
+-  done
++
++  wait_for_file_value "$path" "$size"
+ }
+ 
+ function write_hugetlbfs_and_get_usage() {
 _
 
 Patches currently in -mm which might be from liwang@redhat.com are
