@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C01FC21B91D
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:28:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1906A3A1E6A
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:32:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766341713; cv=none; b=IEiRzp/pMAkHErvKmPvHUoNfYiaUVreQhoPeI5gv0MyYeFn38ce7OkxJc+wP+FypM1skofoqEC2PHcPXX4C4LTB4RvnX3Fq/Igu8Mbr+tRQmYC1hNKqV6a7tAqDvouopqHWjxvF6MGCL9WhVhEAXmoB2S0ejJoYGql/XGm5965o=
+	t=1766341964; cv=none; b=W3kweubRbhMq983mJJ+xe2wnMWUuE2mm3HA+ekuEk68fH24ipFlfXTZCFzMeFU7VEwsow8uEOgDlr3NooGy15AlTJDWOpPwnfUTBmjjOAB8JedehnJN7a1BeJ4UOpSxmbXscIJIvTLGOS/suuODRePeAr8m/A+8MiPMbVGuiwp0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766341713; c=relaxed/simple;
-	bh=AkNI0IP65wDJFFRdu3MdafAv4S5yHYsoDfUw0WPLVwk=;
-	h=Date:To:From:Subject:Message-Id; b=ZmpD76HVJoGkg147MxjWpXeZlR+3tt/FqO7V/WQkO1W4Yj6zvytSFIrG4LlbDgx2+SkOGLOqka4pYJkEYcoYT5LVlfz3oE6BuCs2KGw4TfWKODYKcbvuoF1YF75WI0bilB38HvidsZ4f8KnwAdAkd4hWNw3W/Ht3tkgHd8/RkbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ol6Fyyso; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766341964; c=relaxed/simple;
+	bh=xx8Iq0M6Q5dMIEkEtUNsaXdvE/o7TWt5g2c6Z9Frkj0=;
+	h=Date:To:From:Subject:Message-Id; b=qneJiJwx/Opg8dafXyhoLPO6MScFJ8WUdK1C3FTHFuj6MJW1MrUKqyY5dv/UW/ai/Nkawbe+1VD00QaL1TKDNDvBPeBfTGojV+L+iqiHEcJiNxg2tZbFX9UVFUPGcms2CgmERiFy039wCR6Pnjv+toRgHOAvFnVR73YaPr/kieQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQuffWAS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ol6Fyyso"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D844C4CEFB;
-	Sun, 21 Dec 2025 18:28:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQuffWAS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96D02C4CEFB;
+	Sun, 21 Dec 2025 18:32:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766341713;
-	bh=AkNI0IP65wDJFFRdu3MdafAv4S5yHYsoDfUw0WPLVwk=;
+	s=korg; t=1766341963;
+	bh=xx8Iq0M6Q5dMIEkEtUNsaXdvE/o7TWt5g2c6Z9Frkj0=;
 	h=Date:To:From:Subject:From;
-	b=Ol6Fyyso7tevHb4j9E88QHnaMJkuMMV6hrsP0mKc0h8ebRWTwF+BiKiHSo9BjxaV2
-	 EybmsYdBR3R0F286dVnV3SjMEPdRgHm1mtrMtxVTrtCjDbgDlNkGD42wir6i9oMGOU
-	 NmszO4rFt7uVCT9sZdrzzjvxZSva+/l2Qrtm6Yq8=
-Date: Sun, 21 Dec 2025 10:28:32 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,richard.weiyang@gmail.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=aQuffWASd4Knkq53Yhxa3jjxX3Z/TnZgt7U9Kjjj4rQnFW3E32d9WDJ3gk1dShH3g
+	 o8wQCn7o6Twp6D5t13XSRJXvFzDJ8HWSuLhJn4DxwmL1v9HH+zs9L0o+aTxXuoV5gZ
+	 bhks5ClrxmmJRwQrRxYDD9kfeiR4+/dOyVD7Ahmc=
+Date: Sun, 21 Dec 2025 10:32:43 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,longman@redhat.com,david@kernel.org,broonie@kernel.org,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc.patch added to mm-new branch
-Message-Id: <20251221182833.3D844C4CEFB@smtp.kernel.org>
+Subject: + selftests-mm-write_to_hugetlbfs-parse-s-as-size_t.patch added to mm-new branch
+Message-Id: <20251221183243.96D02C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: page_alloc: allow migration of smaller hugepages during contig_alloc
+     Subject: selftests/mm/write_to_hugetlbfs: parse -s as size_t
 has been added to the -mm mm-new branch.  Its filename is
-     page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc.patch
+     selftests-mm-write_to_hugetlbfs-parse-s-as-size_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-write_to_hugetlbfs-parse-s-as-size_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,176 +66,116 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: page_alloc: allow migration of smaller hugepages during contig_alloc
-Date: Sun, 21 Dec 2025 07:46:56 -0500
+From: Li Wang <liwang@redhat.com>
+Subject: selftests/mm/write_to_hugetlbfs: parse -s as size_t
+Date: Sun, 21 Dec 2025 20:26:37 +0800
 
-We presently skip regions with hugepages entirely when trying to do
-contiguous page allocation.  This will cause otherwise-movable 2MB HugeTLB
-pages to be considered unmovable, and makes 1GB gigantic page allocation
-less reliable on systems utilizing both.
+Patch series "selftests/mm: hugetlb cgroup charging: robustness fixes", v3.
 
-Commit 4d73ba5fa710 ("mm: page_alloc: skip regions with hugetlbfs pages
-when allocating 1G pages") skipped all HugePage containing regions because
-it can cause significant delays in 1G allocation (as HugeTLB migrations
-may fail for a number of reasons).
+This series fixes a few issues in the hugetlb cgroup charging selftests
+(write_to_hugetlbfs.c + charge_reserved_hugetlb.sh) that show up on
+systems with large hugepages (e.g.  512MB) and when failures cause the
+test to wait indefinitely.
 
-Instead, if hugepage migration is enabled, consider regions with hugepages
-smaller than the target contiguous allocation request as valid targets for
-allocation.
+On an aarch64 64k page kernel with 512MB hugepages, the test consistently
+fails in write_to_hugetlbfs with ENOMEM and then hangs waiting for the
+expected usage values.  The root cause is that charge_reserved_hugetlb.sh
+mounts hugetlbfs with a fixed size=256M, which is smaller than a single
+hugepage, resulting in a mount with size=0 capacity.
 
-We optimize for the existing behavior by searching for non-hugetlb regions
-in a first pass, then retrying the search to include hugetlb only on
-failure.  This allows the existing fast-path to remain the default case
-with a slow-path fallback to increase reliability.
+In addition, write_to_hugetlbfs previously parsed -s via atoi() into an
+int, which can overflow and print negative sizes.
 
-We only fallback to the slow path if a hugetlb region was detected, and we
-do a full re-scan because the zones/blocks may have changed during the
-first pass (and it's not worth further complexity).
+Reproducer / environment:
+  - Kernel: 6.12.0-xxx.el10.aarch64+64k
+  - Hugepagesize: 524288 kB (512MB)
+  - ./charge_reserved_hugetlb.sh -cgroup-v2
+  - Observed mount: pagesize=512M,size=0 before this series
 
-isolate_migrate_pages_block() has similar hugetlb filter logic, and the
-hugetlb code does a migratable check in folio_isolate_hugetlb() during
-isolation.  The code servicing the allocation and migration already
-supports this exact use case.
+After applying the series, the test completes successfully on the above
+setup.
 
-To test, allocate a bunch of 2MB HugeTLB pages (in this case 48GB) and
-then attempt to allocate some 1G HugeTLB pages (in this case 4GB) (Scale
-to your machine's memory capacity).
 
-echo 24576 > .../hugepages-2048kB/nr_hugepages
-echo 4 > .../hugepages-1048576kB/nr_hugepages
+This patch (of 3):
 
-Prior to this patch, the 1GB page reservation can fail if no contiguous
-1GB pages remain.  After this patch, the kernel will try to move 2MB pages
-and successfully allocate the 1GB pages (assuming overall sufficient
-memory is available).  Also tested this while a program had the 2MB
-reservations mapped, and the 1GB reservation still succeeds.
+write_to_hugetlbfs currently parses the -s size argument with atoi() into
+an int.  This silently accepts malformed input, cannot report overflow,
+and can truncate large sizes.
 
-folio_alloc_gigantic() is the primary user of alloc_contig_pages(),
-other users are debug or init-time allocations and largely unaffected.
-- ppc/memtrace is a debugfs interface
-- x86/tdx memory allocation occurs once on module-init
-- kfence/core happens once on module (late) init
-- THP uses it in debug_vm_pgtable_alloc_huge_page at __init time
+--- Error log ---
+ # uname -r
+ 6.12.0-xxx.el10.aarch64+64k
 
-Link: https://lkml.kernel.org/r/20251221124656.2362540-1-gourry@gourry.net
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Link: https://lore.kernel.org/linux-mm/6fe3562d-49b2-4975-aa86-e139c535ad00@redhat.com/
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+ # ls /sys/kernel/mm/hugepages/hugepages-*
+ hugepages-16777216kB/  hugepages-2048kB/  hugepages-524288kB/
+
+ #./charge_reserved_hugetlb.sh -cgroup-v2
+ # -----------------------------------------
+ ...
+ # nr hugepages = 10
+ # writing cgroup limit: 5368709120
+ # writing reseravation limit: 5368709120
+ ...
+ # Writing to this path: /mnt/huge/test
+ # Writing this size: -1610612736        <--------
+
+Switch the size variable to size_t and parse -s with sscanf("%zu", ...). 
+Also print the size using %zu.
+
+This avoids incorrect behavior with large -s values and makes the utility
+more robust.
+
+Link: https://lkml.kernel.org/r/20251221122639.3168038-1-liwang@redhat.com
+Link: https://lkml.kernel.org/r/20251221122639.3168038-2-liwang@redhat.com
+Signed-off-by: Li Wang <liwang@redhat.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   59 ++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 55 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/write_to_hugetlbfs.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc
-+++ a/mm/page_alloc.c
-@@ -7108,7 +7108,8 @@ static int __alloc_contig_pages(unsigned
- }
- 
- static bool pfn_range_valid_contig(struct zone *z, unsigned long start_pfn,
--				   unsigned long nr_pages)
-+				   unsigned long nr_pages, bool skip_hugetlb,
-+				   bool *skipped_hugetlb)
- {
- 	unsigned long i, end_pfn = start_pfn + nr_pages;
- 	struct page *page;
-@@ -7124,8 +7125,42 @@ static bool pfn_range_valid_contig(struc
- 		if (PageReserved(page))
- 			return false;
- 
--		if (PageHuge(page))
--			return false;
-+		/*
-+		 * Only consider ranges containing hugepages if those pages are
-+		 * smaller than the requested contiguous region.  e.g.:
-+		 *     Move 2MB pages to free up a 1GB range.
-+		 *     Don't move 1GB pages to free up a 2MB range.
-+		 *
-+		 * This makes contiguous allocation more reliable if multiple
-+		 * hugepage sizes are used without causing needless movement.
-+		 */
-+		if (PageHuge(page)) {
-+			unsigned int order;
-+
-+			if (!IS_ENABLED(CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION))
-+				return false;
-+
-+			if (skip_hugetlb) {
-+				*skipped_hugetlb = true;
-+				return false;
+--- a/tools/testing/selftests/mm/write_to_hugetlbfs.c~selftests-mm-write_to_hugetlbfs-parse-s-as-size_t
++++ a/tools/testing/selftests/mm/write_to_hugetlbfs.c
+@@ -68,7 +68,7 @@ int main(int argc, char **argv)
+ 	int key = 0;
+ 	int *ptr = NULL;
+ 	int c = 0;
+-	int size = 0;
++	size_t size = 0;
+ 	char path[256] = "";
+ 	enum method method = MAX_METHOD;
+ 	int want_sleep = 0, private = 0;
+@@ -86,7 +86,10 @@ int main(int argc, char **argv)
+ 	while ((c = getopt(argc, argv, "s:p:m:owlrn")) != -1) {
+ 		switch (c) {
+ 		case 's':
+-			size = atoi(optarg);
++			if (sscanf(optarg, "%zu", &size) != 1) {
++				perror("Invalid -s.");
++				exit_usage();
 +			}
-+
-+			page = compound_head(page);
-+			order = compound_order(page);
-+			if ((order >= MAX_FOLIO_ORDER) ||
-+			    (nr_pages <= (1 << order)))
-+				return false;
-+
-+			/*
-+			 * Reaching this point means we've encounted a huge page
-+			 * smaller than nr_pages, skip all pfn's for that page.
-+			 *
-+			 * We can't get here from a tail-PageHuge, as it implies
-+			 * we started a scan in the middle of a hugepage larger
-+			 * than nr_pages - which the prior check filters for.
-+			 */
-+			i += (1 << order) - 1;
-+		}
+ 			break;
+ 		case 'p':
+ 			strncpy(path, optarg, sizeof(path) - 1);
+@@ -131,7 +134,7 @@ int main(int argc, char **argv)
  	}
- 	return true;
- }
-@@ -7168,7 +7203,10 @@ struct page *alloc_contig_pages_noprof(u
- 	struct zonelist *zonelist;
- 	struct zone *zone;
- 	struct zoneref *z;
-+	bool skip_hugetlb = true;
-+	bool skipped_hugetlb = false;
  
-+retry:
- 	zonelist = node_zonelist(nid, gfp_mask);
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 					gfp_zone(gfp_mask), nodemask) {
-@@ -7176,7 +7214,9 @@ struct page *alloc_contig_pages_noprof(u
- 
- 		pfn = ALIGN(zone->zone_start_pfn, nr_pages);
- 		while (zone_spans_last_pfn(zone, pfn, nr_pages)) {
--			if (pfn_range_valid_contig(zone, pfn, nr_pages)) {
-+			if (pfn_range_valid_contig(zone, pfn, nr_pages,
-+						   skip_hugetlb,
-+						   &skipped_hugetlb)) {
- 				/*
- 				 * We release the zone lock here because
- 				 * alloc_contig_range() will also lock the zone
-@@ -7195,6 +7235,17 @@ struct page *alloc_contig_pages_noprof(u
- 		}
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
-+	/*
-+	 * If we failed, retry the search, but treat regions with HugeTLB pages
-+	 * as valid targets.  This retains fast-allocations on first pass
-+	 * without trying to migrate HugeTLB pages (which may fail). On the
-+	 * second pass, we will try moving HugeTLB pages when those pages are
-+	 * smaller than the requested contiguous region size.
-+	 */
-+	if (skip_hugetlb && skipped_hugetlb) {
-+		skip_hugetlb = false;
-+		goto retry;
-+	}
- 	return NULL;
- }
- #endif /* CONFIG_CONTIG_ALLOC */
+ 	if (size != 0) {
+-		printf("Writing this size: %d\n", size);
++		printf("Writing this size: %zu\n", size);
+ 	} else {
+ 		errno = EINVAL;
+ 		perror("size not found");
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from liwang@redhat.com are
 
-mm-hugetlb-implement-movable_gigantic_pages-sysctl.patch
-page_alloc-allow-migration-of-smaller-hugepages-during-contig_alloc.patch
+selftests-mm-write_to_hugetlbfs-parse-s-as-size_t.patch
+selftests-mm-charge_reserved_hugetlb-drop-mount-size-for-hugetlbfs.patch
+selftests-mm-charge_reserved_hugetlbsh-add-waits-with-timeout-helper.patch
 
