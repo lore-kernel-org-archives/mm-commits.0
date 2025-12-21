@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A92D2EEBB
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 00:17:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96D9819DFAB
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 00:25:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766276254; cv=none; b=HRWTSh95LebDZLCefbg+Ghn1CjmP78MRd32XXGC3MYxZDNeR53Uassqyy74Ds+27qzagZ+zCRcaPG0IpXZZu+8nuYPcD93dyrdLUASbijGZre2OPK+w5LiOzehIQT4sTtlW/EptSCoyiLo+cw+WfWa7766CWMjA/t5SdQWQzvbY=
+	t=1766276749; cv=none; b=UhQjaP+fnSttKglsL3X4Dg1Vi1nLhYT8WlAL9F+HtI1Ff9yfZcteKRxGiNs5ssyC0pftas6WIzxpX3frUJSLnDeS2FdXJ7tCxqlhuQVrkNsSWHVeeeJ7v6vmA8/diq2d7Fp8InvIeYIgyG14epxv79UnsPHj7SaVVcLOCX6BJ3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766276254; c=relaxed/simple;
-	bh=I5LrZ9AFHP9Bg5Ip9o/qJlwTCUfEwv+J7JpkKMJmhLg=;
-	h=Date:To:From:Subject:Message-Id; b=isSWphZmWWSwwWN9KNrPg0vZQ9Ih7wXFG+MsWSoytL6wmQAVANXame9z48qX7n5kVB4y/vSJALO6KEpCp2pkwoSlRjI/mTBGiLZR0USCqxhMT7vqBUqCg+ZUwG38J8bNbKKYPuX39magEz1AXC5E3v0Aj7dw1Qog5HoafuzQzrg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KLAyHhLS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766276749; c=relaxed/simple;
+	bh=faQ/vc9gez8zRCjVx67pzRSKUdzWKcBZ6b0VvwAn9Qw=;
+	h=Date:To:From:Subject:Message-Id; b=CT0MJneiEUJ8ClP/4J/E/X+SxgM2W2wfmne2CqB1kTMVxCcQLJJ4ItTSwWhtkz6nBylZHdKDczSGLZVwBkw0l1HqKDRgRY9daN3KHwW4XHZzDQcOSrvmNDHAjxUBUdShAJvKkj09J5uJBy9sWyze0lgbRAIxFbeYybCoCP7yhCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J2dj6xSl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KLAyHhLS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AAA9C4CEF5;
-	Sun, 21 Dec 2025 00:17:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J2dj6xSl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0933C4CEF5;
+	Sun, 21 Dec 2025 00:25:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766276254;
-	bh=I5LrZ9AFHP9Bg5Ip9o/qJlwTCUfEwv+J7JpkKMJmhLg=;
+	s=korg; t=1766276749;
+	bh=faQ/vc9gez8zRCjVx67pzRSKUdzWKcBZ6b0VvwAn9Qw=;
 	h=Date:To:From:Subject:From;
-	b=KLAyHhLStoyZ0kOd/kBv078NBCY6lzsQ4pVe9o/0RhfT2H8ecQagqWPM/e38/mVkj
-	 18jE3J2AZS3hEyMFQIj6PAAdJWfNgr3fCJvmb9LPz4dbrcLOncfwUOZcarlUUc0J/8
-	 JK/2FN5kpwF3OhxfxG7yhwN4S3x5mh243CucwlGo=
-Date: Sat, 20 Dec 2025 16:17:33 -0800
-To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,pedrodemargomes@gmail.com,david@kernel.org,chengming.zhou@linux.dev,sashal@kernel.org,akpm@linux-foundation.org
+	b=J2dj6xSlTQPW+taRtq/0a1jbBDCCZfYH1PamSWa1PEUQGmOkUAaqcKTsBJZrPWw7A
+	 EbZhjp1gVJ417cLqWBSTk850lFwafQRz/08gi7qzKrrLR19ewdhcsBmSEc/5P9Cmv5
+	 lAiuKKwAYJe+GcrPaeasxsKXUNWIw2gplF3svzUc=
+Date: Sat, 20 Dec 2025 16:25:48 -0800
+To: mm-commits@vger.kernel.org,harry.yoo@oracle.com,david@kernel.org,bagasdotme@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251221001734.2AAA9C4CEF5@smtp.kernel.org>
+Subject: + mm-describe-flags-parameter-in-memalloc_flags_save.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251221002548.E0933C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/ksm: fix pte_unmap_unlock of wrong address in break_ksm_pmd_entry
+     Subject: mm: describe @flags parameter in memalloc_flags_save()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry.patch
+     mm-describe-flags-parameter-in-memalloc_flags_save.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-describe-flags-parameter-in-memalloc_flags_save.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,61 +58,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: mm/ksm: fix pte_unmap_unlock of wrong address in break_ksm_pmd_entry
-Date: Sat, 20 Dec 2025 15:29:26 -0500
+From: Bagas Sanjaya <bagasdotme@gmail.com>
+Subject: mm: describe @flags parameter in memalloc_flags_save()
+Date: Fri, 19 Dec 2025 08:40:04 +0700
 
-On ARM32 with HIGHMEM/HIGHPTE, break_ksm_pmd_entry() triggers a BUG during
-KSM unmerging because pte_unmap_unlock() is passed a pointer that may be
-beyond the mapped PTE page.
+Patch series "mm kernel-doc fixes".
 
-The issue occurs when the PTE iteration loop completes without finding a
-KSM page.  After the loop, 'ptep' has been incremented past the last PTE
-entry.  On ARM32 LPAE with 512 PTEs per page (512 * 8 = 4096 bytes), this
-means ptep points to the next page, outside the kmap'd region.
+Here are kernel-doc fixes for mm subsystem.  I'm also including textsearch
+fix since there's currently no maintainer for include/linux/textsearch.h
+(get_maintainer.pl only shows LKML).
 
-When pte_unmap_unlock(ptep, ptl) calls kunmap_local(ptep), it unmaps the
-wrong page address, leaving the original kmap slot still mapped.  The next
-kmap_local then finds this slot unexpectedly occupied:
 
-  WARNING: mm/highmem.c:622 kunmap_local_indexed  (address mismatch)
-  kernel BUG at mm/highmem.c:564  __kmap_local_pfn_prot  (slot not empty)
+This patch (of 4):
 
-Fix this by passing start_ptep to pte_unmap_unlock(), which always points
-within the originally mapped PTE page.
+Sphinx reports kernel-doc warning:
 
-Reproducer: Run LTP ksm03 test on ARM32 with HIGHMEM enabled.  The test
-triggers KSM merging followed by unmerging (writing 0 then 2 to
-/sys/kernel/mm/ksm/run), which exercises break_ksm_pmd_entry().
+WARNING: ./include/linux/sched/mm.h:332 function parameter 'flags' not described in 'memalloc_flags_save'
 
-Link: https://lkml.kernel.org/r/20251220202926.318366-1-sashal@kernel.org
-Fixes: 5d4939fc2258 ("ksm: perform a range-walk in break_ksm")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
-Assisted-by: claude-opus-4-5-20251101
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Cc: xu xin <xu.xin16@zte.com.cn>
+Describe @flags to fix it.
+
+Link: https://lkml.kernel.org/r/20251219014006.16328-2-bagasdotme@gmail.com
+Link: https://lkml.kernel.org/r/20251219014006.16328-3-bagasdotme@gmail.com
+Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Fixes: 3f6d5e6a468d02 ("mm: introduce memalloc_flags_{save,restore}")
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Harry Yoo <harry.yoo@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched/mm.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/ksm.c~mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry
-+++ a/mm/ksm.c
-@@ -650,7 +650,7 @@ static int break_ksm_pmd_entry(pmd_t *pm
- 		}
- 	}
- out_unlock:
--	pte_unmap_unlock(ptep, ptl);
-+	pte_unmap_unlock(start_ptep, ptl);
- 	return found;
- }
+--- a/include/linux/sched/mm.h~mm-describe-flags-parameter-in-memalloc_flags_save
++++ a/include/linux/sched/mm.h
+@@ -325,6 +325,7 @@ static inline void might_alloc(gfp_t gfp
  
+ /**
+  * memalloc_flags_save - Add a PF_* flag to current->flags, save old value
++ * @flags: Flags to add.
+  *
+  * This allows PF_* flags to be conveniently added, irrespective of current
+  * value, and then the old version restored with memalloc_flags_restore().
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from bagasdotme@gmail.com are
 
-mm-ksm-fix-pte_unmap_unlock-of-wrong-address-in-break_ksm_pmd_entry.patch
+mm-describe-flags-parameter-in-memalloc_flags_save.patch
+textsearch-describe-list-member-in-ts_ops-search.patch
+mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name.patch
+mm-kfence-describe-slab-parameter-in-__kfence_obj_info.patch
 
