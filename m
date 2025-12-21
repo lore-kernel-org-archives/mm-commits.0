@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F068C309F08
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:57:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3A2D20C001
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 19:11:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766343474; cv=none; b=P82/tflAdChFCvUeH1v5KHdPEZARShl/4ZmY4BbTbfiIPQ/LBBsgftw19X4YBggje5vBspn0naXti4M2mxcN8iQyU1ADye3pfBD+yiO/7Cd+gwzAIUUAH9TudeSELon4gKS8iIBkZja7kjPYsXu8n2iF2EQbIthKTC2heuadC/s=
+	t=1766344260; cv=none; b=V9HQro+zCnB1UK9fHcrl7u1ohsV7UgVbhp5sER6dJm0gEb2sVeHLTVd3XhacQy31xLjOG3D2nemt8LA9Q8KlcQu3uJdz5kIDioLwvZVuSHGAzPyUj+xVjWOoe9cFJUC9oQosD+2U9dnosl2GF8ZbqVeHsYMhCJb+qhLc9se/yLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766343474; c=relaxed/simple;
-	bh=+Il/o3wReervpikegWg5O/lMMB4tF1JOnPSTlKQ1c60=;
-	h=Date:To:From:Subject:Message-Id; b=pixuBOyMq3bscUj3mLwLKRu0BGUYsX4ug4/UOmtm1JCo3k/nH8ZK1TBYPGR2caSwMMP1aVd8tWtjZELubzSCOOQmVVmZRPLp/pYCs1tZ5jnhCB4wxhRY/eJjLVAILAM8LUOfgUlGvjz8dRGdITktA6OKYjq5LyKDQxVBGywJqp0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=geJrupDW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766344260; c=relaxed/simple;
+	bh=WUcIkmJbe8m+8beMDnpGQGb6bsyJnNuirzoGpGo0Ybs=;
+	h=Date:To:From:Subject:Message-Id; b=dZTXSEyoihslq4MIKydg2UVIyKYk/k36PyMAGOHasUazi7rqp3O0rAHPJqEQRmiuvzEUoUtLf2sa3ZkblSTxXLqcqqPjLFLJXvRiQtS3n7VUYDDZh3IMUmoSdrUmf/1cAAkS9vFL5uAhDrT8XU7JiygsE695ykSawEeowWJoxd0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iYK4N6tv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="geJrupDW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CC55C4CEFB;
-	Sun, 21 Dec 2025 18:57:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iYK4N6tv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 311DBC4CEFB;
+	Sun, 21 Dec 2025 19:11:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766343473;
-	bh=+Il/o3wReervpikegWg5O/lMMB4tF1JOnPSTlKQ1c60=;
+	s=korg; t=1766344260;
+	bh=WUcIkmJbe8m+8beMDnpGQGb6bsyJnNuirzoGpGo0Ybs=;
 	h=Date:To:From:Subject:From;
-	b=geJrupDW+g7W8jUFQqKyGYN//SV0X3hU0yUhifm9HqqATCaT+0iuU13sriKJymG0Y
-	 2Gdk/ZEBCFsGUVMLwAw3rj5O7MEfoTlb1EgIl2uqS7SD/NNjoU7DvSMct+jYqF0zi8
-	 kG8lO72E1GJooDhknCuhrs4RL8UtWyFEM0BTOre8=
-Date: Sun, 21 Dec 2025 10:57:52 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,luizcap@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,chuhu@redhat.com,akpm@linux-foundation.org
+	b=iYK4N6tvGY1Ku0Chr2tBfcqJeyoj+MhLnMSpHQCVK6ln34YWNFoME8VSCymRPrkfb
+	 JNunkFTbxQHnUoqRUACqKGe3DewtCUtOakBeKud4Wme9/ue/J6coB5ovTtL1ZWb0Up
+	 tCPIKf1qAPISYVt2e6GHWcDwbgtlhGwr+jyz7YIo=
+Date: Sun, 21 Dec 2025 11:10:59 -0800
+To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,tianyou.li@intel.com,tglx@linutronix.de,dan.liang@intel.com,wangyang.guo@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-comment-for-check_test_requirements.patch added to mm-new branch
-Message-Id: <20251221185753.2CC55C4CEFB@smtp.kernel.org>
+Subject: + lib-group_cpus-make-group-cpu-cluster-aware.patch added to mm-nonmm-unstable branch
+Message-Id: <20251221191100.311DBC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix comment for check_test_requirements
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-fix-comment-for-check_test_requirements.patch
+     Subject: lib/group_cpus: make group CPU cluster aware
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-group_cpus-make-group-cpu-cluster-aware.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-comment-for-check_test_requirements.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpus-make-group-cpu-cluster-aware.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,54 +58,349 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chunyu Hu <chuhu@redhat.com>
-Subject: selftests/mm: fix comment for check_test_requirements
-Date: Sun, 21 Dec 2025 12:00:25 +0800
+From: Wangyang Guo <wangyang.guo@intel.com>
+Subject: lib/group_cpus: make group CPU cluster aware
+Date: Fri, 24 Oct 2025 10:30:38 +0800
 
-The test supports arm64 as well so the comment is incorrect.  And there's
-a check for arm64 in va_high_addr_switch.c.
+As CPU core counts increase, the number of NVMe IRQs may be smaller than
+the total number of CPUs.  This forces multiple CPUs to share the same
+IRQ.  If the IRQ affinity and the CPU's cluster do not align, a
+performance penalty can be observed on some platforms.
 
-Link: https://lkml.kernel.org/r/20251221040025.3159990-5-chuhu@redhat.com
-Signed-off-by: Chunyu Hu <chuhu@redhat.com>
-Fixes: 983e760bcdb6 ("selftest/mm: va_high_addr_switch: add ppc64 support check")
-Fixes: f556acc2facd ("selftests/mm: skip test for non-LPA2 and non-LVA systems")
-Cc: Luiz Capitulino <luizcap@redhat.com>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This patch improves IRQ affinity by grouping CPUs by cluster within each
+NUMA domain, ensuring better locality between CPUs and their assigned NVMe
+IRQs.
+
+Link: https://lkml.kernel.org/r/20251024023038.872616-1-wangyang.guo@intel.com
+Signed-off-by: Wangyang Guo <wangyang.guo@intel.com>
+Reviewed-by: Tianyou Li <tianyou.li@intel.com>
+Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
+Tested-by: Dan Liang <dan.liang@intel.com>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.sh |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/group_cpus.c |  269 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 204 insertions(+), 65 deletions(-)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-fix-comment-for-check_test_requirements
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
-@@ -61,9 +61,9 @@ check_supported_ppc64()
+--- a/lib/group_cpus.c~lib-group_cpus-make-group-cpu-cluster-aware
++++ a/lib/group_cpus.c
+@@ -114,48 +114,15 @@ static int ncpus_cmp_func(const void *l,
+ 	return ln->ncpus - rn->ncpus;
+ }
  
- check_test_requirements()
+-/*
+- * Allocate group number for each node, so that for each node:
+- *
+- * 1) the allocated number is >= 1
+- *
+- * 2) the allocated number is <= active CPU number of this node
+- *
+- * The actual allocated total groups may be less than @numgrps when
+- * active total CPU number is less than @numgrps.
+- *
+- * Active CPUs means the CPUs in '@cpu_mask AND @node_to_cpumask[]'
+- * for each node.
+- */
+-static void alloc_nodes_groups(unsigned int numgrps,
+-			       cpumask_var_t *node_to_cpumask,
+-			       const struct cpumask *cpu_mask,
+-			       const nodemask_t nodemsk,
+-			       struct cpumask *nmsk,
+-			       struct node_groups *node_groups)
++static void alloc_groups_to_nodes(unsigned int numgrps,
++				  unsigned int numcpus,
++				  struct node_groups *node_groups,
++				  unsigned int num_nodes)
  {
--	# The test supports x86_64 and powerpc64. We currently have no useful
--	# eligibility check for powerpc64, and the test itself will reject other
--	# architectures.
-+	# The test supports x86_64, powerpc64 and arm64. There's check for arm64
-+	# in va_high_addr_switch.c. The test itself will reject other architectures.
+-	unsigned n, remaining_ncpus = 0;
+-
+-	for (n = 0; n < nr_node_ids; n++) {
+-		node_groups[n].id = n;
+-		node_groups[n].ncpus = UINT_MAX;
+-	}
+-
+-	for_each_node_mask(n, nodemsk) {
+-		unsigned ncpus;
++	unsigned int n, remaining_ncpus = numcpus;
++	unsigned int  ngroups, ncpus;
+ 
+-		cpumask_and(nmsk, cpu_mask, node_to_cpumask[n]);
+-		ncpus = cpumask_weight(nmsk);
+-
+-		if (!ncpus)
+-			continue;
+-		remaining_ncpus += ncpus;
+-		node_groups[n].ncpus = ncpus;
+-	}
+-
+-	numgrps = min_t(unsigned, remaining_ncpus, numgrps);
+-
+-	sort(node_groups, nr_node_ids, sizeof(node_groups[0]),
++	sort(node_groups, num_nodes, sizeof(node_groups[0]),
+ 	     ncpus_cmp_func, NULL);
+ 
+ 	/*
+@@ -226,9 +193,8 @@ static void alloc_nodes_groups(unsigned
+ 	 * finally for each node X: grps(X) <= ncpu(X).
+ 	 *
+ 	 */
+-	for (n = 0; n < nr_node_ids; n++) {
+-		unsigned ngroups, ncpus;
+ 
++	for (n = 0; n < num_nodes; n++) {
+ 		if (node_groups[n].ncpus == UINT_MAX)
+ 			continue;
+ 
+@@ -246,12 +212,199 @@ static void alloc_nodes_groups(unsigned
+ 	}
+ }
+ 
++/*
++ * Allocate group number for each node, so that for each node:
++ *
++ * 1) the allocated number is >= 1
++ *
++ * 2) the allocated number is <= active CPU number of this node
++ *
++ * The actual allocated total groups may be less than @numgrps when
++ * active total CPU number is less than @numgrps.
++ *
++ * Active CPUs means the CPUs in '@cpu_mask AND @node_to_cpumask[]'
++ * for each node.
++ */
++static void alloc_nodes_groups(unsigned int numgrps,
++			       cpumask_var_t *node_to_cpumask,
++			       const struct cpumask *cpu_mask,
++			       const nodemask_t nodemsk,
++			       struct cpumask *nmsk,
++			       struct node_groups *node_groups)
++{
++	unsigned int n, numcpus = 0;
 +
- 	case `uname -m` in
- 		"x86_64")
- 			check_supported_x86_64
++	for (n = 0; n < nr_node_ids; n++) {
++		node_groups[n].id = n;
++		node_groups[n].ncpus = UINT_MAX;
++	}
++
++	for_each_node_mask(n, nodemsk) {
++		unsigned int ncpus;
++
++		cpumask_and(nmsk, cpu_mask, node_to_cpumask[n]);
++		ncpus = cpumask_weight(nmsk);
++
++		if (!ncpus)
++			continue;
++		numcpus += ncpus;
++		node_groups[n].ncpus = ncpus;
++	}
++
++	numgrps = min_t(unsigned int, numcpus, numgrps);
++	alloc_groups_to_nodes(numgrps, numcpus, node_groups, nr_node_ids);
++}
++
++static void assign_cpus_to_groups(unsigned int ncpus,
++				  struct cpumask *nmsk,
++				  struct node_groups *nv,
++				  struct cpumask *masks,
++				  unsigned int *curgrp,
++				  unsigned int last_grp)
++{
++	unsigned int v, cpus_per_grp, extra_grps;
++	/* Account for rounding errors */
++	extra_grps = ncpus - nv->ngroups * (ncpus / nv->ngroups);
++
++	/* Spread allocated groups on CPUs of the current node */
++	for (v = 0; v < nv->ngroups; v++, *curgrp += 1) {
++		cpus_per_grp = ncpus / nv->ngroups;
++
++		/* Account for extra groups to compensate rounding errors */
++		if (extra_grps) {
++			cpus_per_grp++;
++			--extra_grps;
++		}
++
++		/*
++		 * wrapping has to be considered given 'startgrp'
++		 * may start anywhere
++		 */
++		if (*curgrp >= last_grp)
++			*curgrp = 0;
++		grp_spread_init_one(&masks[*curgrp], nmsk, cpus_per_grp);
++	}
++}
++
++static int alloc_cluster_groups(unsigned int ncpus,
++				unsigned int ngroups,
++				struct cpumask *node_cpumask,
++				cpumask_var_t msk,
++				const struct cpumask ***clusters_ptr,
++				struct node_groups **cluster_groups_ptr)
++{
++	unsigned int ncluster = 0;
++	unsigned int cpu, nc, n;
++	const struct cpumask *cluster_mask;
++	const struct cpumask **clusters;
++	struct node_groups *cluster_groups;
++
++	cpumask_copy(msk, node_cpumask);
++
++	/* Probe how many clusters in this node. */
++	while (1) {
++		cpu = cpumask_first(msk);
++		if (cpu >= nr_cpu_ids)
++			break;
++
++		cluster_mask = topology_cluster_cpumask(cpu);
++		/* Clean out CPUs on the same cluster. */
++		cpumask_andnot(msk, msk, cluster_mask);
++		ncluster++;
++	}
++
++	/* If ngroups < ncluster, cross cluster is inevitable, skip. */
++	if (ncluster == 0 || ncluster > ngroups)
++		goto no_cluster;
++
++	/* Allocate memory based on cluster number. */
++	clusters = kcalloc(ncluster, sizeof(struct cpumask *), GFP_KERNEL);
++	if (!clusters)
++		goto no_cluster;
++	cluster_groups = kcalloc(ncluster, sizeof(struct node_groups), GFP_KERNEL);
++	if (!cluster_groups)
++		goto fail_cluster_groups;
++
++	/* Filling cluster info for later process. */
++	cpumask_copy(msk, node_cpumask);
++	for (n = 0; n < ncluster; n++) {
++		cpu = cpumask_first(msk);
++		cluster_mask = topology_cluster_cpumask(cpu);
++		nc = cpumask_weight_and(cluster_mask, node_cpumask);
++		clusters[n] = cluster_mask;
++		cluster_groups[n].id = n;
++		cluster_groups[n].ncpus = nc;
++		cpumask_andnot(msk, msk, cluster_mask);
++	}
++
++	alloc_groups_to_nodes(ngroups, ncpus, cluster_groups, ncluster);
++
++	*clusters_ptr = clusters;
++	*cluster_groups_ptr = cluster_groups;
++	return ncluster;
++
++ fail_cluster_groups:
++	kfree(clusters);
++ no_cluster:
++	return 0;
++}
++
++/*
++ * Try group CPUs evenly for cluster locality within a NUMA node.
++ *
++ * Return: true if success, false otherwise.
++ */
++static bool __try_group_cluster_cpus(unsigned int ncpus,
++				     unsigned int ngroups,
++				     struct cpumask *node_cpumask,
++				     struct cpumask *masks,
++				     unsigned int *curgrp,
++				     unsigned int last_grp)
++{
++	struct node_groups *cluster_groups;
++	const struct cpumask **clusters;
++	unsigned int ncluster;
++	bool ret = false;
++	cpumask_var_t nmsk;
++	unsigned int i, nc;
++
++	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
++		goto fail_nmsk_alloc;
++
++	ncluster = alloc_cluster_groups(ncpus, ngroups, node_cpumask, nmsk,
++					&clusters, &cluster_groups);
++
++	if (ncluster == 0)
++		goto fail_no_clusters;
++
++	for (i = 0; i < ncluster; i++) {
++		struct node_groups *nv = &cluster_groups[i];
++
++		/* Get the cpus on this cluster. */
++		cpumask_and(nmsk, node_cpumask, clusters[nv->id]);
++		nc = cpumask_weight(nmsk);
++		if (!nc)
++			continue;
++		WARN_ON_ONCE(nv->ngroups > nc);
++
++		assign_cpus_to_groups(nc, nmsk, nv, masks, curgrp, last_grp);
++	}
++
++	ret = true;
++	kfree(cluster_groups);
++	kfree(clusters);
++ fail_no_clusters:
++	free_cpumask_var(nmsk);
++ fail_nmsk_alloc:
++	return ret;
++}
++
+ static int __group_cpus_evenly(unsigned int startgrp, unsigned int numgrps,
+ 			       cpumask_var_t *node_to_cpumask,
+ 			       const struct cpumask *cpu_mask,
+ 			       struct cpumask *nmsk, struct cpumask *masks)
+ {
+-	unsigned int i, n, nodes, cpus_per_grp, extra_grps, done = 0;
++	unsigned int i, n, nodes, done = 0;
+ 	unsigned int last_grp = numgrps;
+ 	unsigned int curgrp = startgrp;
+ 	nodemask_t nodemsk = NODE_MASK_NONE;
+@@ -287,7 +440,7 @@ static int __group_cpus_evenly(unsigned
+ 	alloc_nodes_groups(numgrps, node_to_cpumask, cpu_mask,
+ 			   nodemsk, nmsk, node_groups);
+ 	for (i = 0; i < nr_node_ids; i++) {
+-		unsigned int ncpus, v;
++		unsigned int ncpus;
+ 		struct node_groups *nv = &node_groups[i];
+ 
+ 		if (nv->ngroups == UINT_MAX)
+@@ -301,28 +454,14 @@ static int __group_cpus_evenly(unsigned
+ 
+ 		WARN_ON_ONCE(nv->ngroups > ncpus);
+ 
+-		/* Account for rounding errors */
+-		extra_grps = ncpus - nv->ngroups * (ncpus / nv->ngroups);
+-
+-		/* Spread allocated groups on CPUs of the current node */
+-		for (v = 0; v < nv->ngroups; v++, curgrp++) {
+-			cpus_per_grp = ncpus / nv->ngroups;
+-
+-			/* Account for extra groups to compensate rounding errors */
+-			if (extra_grps) {
+-				cpus_per_grp++;
+-				--extra_grps;
+-			}
+-
+-			/*
+-			 * wrapping has to be considered given 'startgrp'
+-			 * may start anywhere
+-			 */
+-			if (curgrp >= last_grp)
+-				curgrp = 0;
+-			grp_spread_init_one(&masks[curgrp], nmsk,
+-						cpus_per_grp);
++		if (__try_group_cluster_cpus(ncpus, nv->ngroups, nmsk,
++					     masks, &curgrp, last_grp)) {
++			done += nv->ngroups;
++			continue;
+ 		}
++
++		assign_cpus_to_groups(ncpus, nmsk, nv, masks, &curgrp,
++				      last_grp);
+ 		done += nv->ngroups;
+ 	}
+ 	kfree(node_groups);
 _
 
-Patches currently in -mm which might be from chuhu@redhat.com are
+Patches currently in -mm which might be from wangyang.guo@intel.com are
 
-selftests-mm-fix-va_high_addr_switchsh-return-value.patch
-selftests-mm-allocate-6-hugepages-in-va_high_addr_switchsh.patch
-selftests-mm-remove-arm64-nr_hugepages-setup-for-va_high_addr_switch-test.patch
-selftests-mm-va_high_addr_switch-return-fail-when-either-test-failed.patch
-selftests-mm-fix-comment-for-check_test_requirements.patch
+lib-group_cpus-make-group-cpu-cluster-aware.patch
 
