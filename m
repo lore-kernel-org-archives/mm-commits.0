@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46F0019DFAB
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 00:25:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12D3419DFAB
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 00:25:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766276751; cv=none; b=eFe/2VCOma4GgPHIZ1swVde0bfQg8vLj5+EDaoa1vpHci6PXWghIcerqAsBHTkd7UF6r4H54aWdvqVAA9Zhsq4Ai42jrdPRtcmpbcdGFgfMRuDTvWqx/E5GPo2mM7oyqx32hTg83LBgSS+YDcUKzxGslMUQ60rLrz8SoRSXk5r0=
+	t=1766276753; cv=none; b=fKBJMq3Hn5NEzDLe+2FGuPA4LMJkZxv+eVUDoE59gKvXSneiQ9eAr2vW4DDY7zDXRzBK29/uLY4BXcegnkggi1HSu4mLDDo65QzMHaN/3jyff6cFbUpXuuu4lkaPO9fmBFUoZuMDJ7h54k/0jF/YDqxK/TDhUmtsobH7IwIFySs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766276751; c=relaxed/simple;
-	bh=y/bj3DxOF9HwOS9+blrMm3CMoufJbagtH8kUgdBV0dc=;
-	h=Date:To:From:Subject:Message-Id; b=dWkNkBfGaUdEsdkJjUzx1Ysne6MKADo608ae0AoIL0cxkFQ+R33iq2D0psEzN5fDbrsQI/KXqREx20ToYePtQfuQ0vhfML9aHQt3AMAWNAuTRPvXz76petaS0jgPypJwiksB11elYBRcH03FtuwsHmKI8X5tAYZHh+y/0VtqgKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g8zlkpOL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766276753; c=relaxed/simple;
+	bh=UoO+u5Pm7ZNkhxdA8pBnBGhHsudaI6vA0XihZyoc+Z4=;
+	h=Date:To:From:Subject:Message-Id; b=kz+OV+dEm/BC2gflgXkUWHxVnTwxwxmn63usSJaYmGPVpXIToPIEfucALthqJbZIudOJkY9zyX6uXU6wmVD4JxZM7HmnG/tpfngzB9tL3UiQ3DAkzcglKm24328Zpnlxj+Lw17gK2ZpmIpor1d1Dk48O1hkw1Cf93XOqTyah68M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2FsMpGOc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g8zlkpOL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA2BCC4CEF5;
-	Sun, 21 Dec 2025 00:25:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2FsMpGOc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBBC2C4CEF5;
+	Sun, 21 Dec 2025 00:25:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766276750;
-	bh=y/bj3DxOF9HwOS9+blrMm3CMoufJbagtH8kUgdBV0dc=;
+	s=korg; t=1766276752;
+	bh=UoO+u5Pm7ZNkhxdA8pBnBGhHsudaI6vA0XihZyoc+Z4=;
 	h=Date:To:From:Subject:From;
-	b=g8zlkpOLxP4fdpAUu+44MKXjmH5amLYhey7vaV2IALNQE1/zQaK0OFNyKzs1SSzVF
-	 U3ne7UOcT7HX0tS+iWkaw9Sz/l/hsizCpIqfX+xftUwRkxsbGBTNRMX5HBKRnrveJ8
-	 K93/JDDwOLuCGSAiGGrVH//F0FPP4bgl/k2GcDW8=
-Date: Sat, 20 Dec 2025 16:25:50 -0800
-To: mm-commits@vger.kernel.org,tgraf@suug.ch,davem@davemloft.net,bagasdotme@gmail.com,akpm@linux-foundation.org
+	b=2FsMpGOcLUZ7oa4xJdzGKX+LLPO0aFUH2a5ngfm0bhuSDMws9tvpn97wGJon+uKUf
+	 y9TVjFdhuVYUPVTs7kX98Q9e6Wd2I2k2oLvlP0j43y77PPgd83Z/lEJV+7Czqe4NZs
+	 l1GP9MFAsypFEepp+OMH8xEPW29Yxm0Ic3PV2ZFo=
+Date: Sat, 20 Dec 2025 16:25:52 -0800
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,bagasdotme@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + textsearch-describe-list-member-in-ts_ops-search.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251221002550.DA2BCC4CEF5@smtp.kernel.org>
+Subject: + mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251221002552.DBBC2C4CEF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: textsearch: describe @list member in ts_ops search
+     Subject: mm: vmalloc: fix up vrealloc_node_align() kernel-doc macro name
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     textsearch-describe-list-member-in-ts_ops-search.patch
+     mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/textsearch-describe-list-member-in-ts_ops-search.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Bagas Sanjaya <bagasdotme@gmail.com>
-Subject: textsearch: describe @list member in ts_ops search
-Date: Fri, 19 Dec 2025 08:40:05 +0700
+Subject: mm: vmalloc: fix up vrealloc_node_align() kernel-doc macro name
+Date: Fri, 19 Dec 2025 08:40:06 +0700
 
 Sphinx reports kernel-doc warning:
 
-WARNING: ./include/linux/textsearch.h:49 struct member 'list' not described in 'ts_ops'
+WARNING: ./mm/vmalloc.c:4284 expecting prototype for vrealloc_node_align_noprof(). Prototype was for vrealloc_node_align() instead
 
-Describe @list member to fix it.
+Fix the macro name in vrealloc_node_align_noprof() kernel-doc comment.
 
-Link: https://lkml.kernel.org/r/20251219014006.16328-4-bagasdotme@gmail.com
-Fixes: 2de4ff7bd658c9 ("[LIB]: Textsearch infrastructure.")
+Link: https://lkml.kernel.org/r/20251219014006.16328-5-bagasdotme@gmail.com
+Fixes: 4c5d3365882dbb ("mm/vmalloc: allow to set node and align in vrealloc")
 Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Thomas Graf <tgraf@suug.ch>
-Cc: "David S. Miller" <davem@davemloft.net>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/textsearch.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/textsearch.h~textsearch-describe-list-member-in-ts_ops-search
-+++ a/include/linux/textsearch.h
-@@ -35,6 +35,7 @@ struct ts_state
-  * @get_pattern: return head of pattern
-  * @get_pattern_len: return length of pattern
-  * @owner: module reference to algorithm
-+ * @list: list to search
-  */
- struct ts_ops
- {
+--- a/mm/vmalloc.c~mm-vmalloc-fix-up-vrealloc_node_align-kernel-doc-macro-name
++++ a/mm/vmalloc.c
+@@ -4248,7 +4248,7 @@ void *vzalloc_node_noprof(unsigned long
+ EXPORT_SYMBOL(vzalloc_node_noprof);
+ 
+ /**
+- * vrealloc_node_align_noprof - reallocate virtually contiguous memory; contents
++ * vrealloc_node_align - reallocate virtually contiguous memory; contents
+  * remain unchanged
+  * @p: object to reallocate memory for
+  * @size: the size to reallocate
 _
 
 Patches currently in -mm which might be from bagasdotme@gmail.com are
