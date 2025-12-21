@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29045221FCD
-	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:20:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 258742FE598
+	for <mm-commits@vger.kernel.org>; Sun, 21 Dec 2025 18:25:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766341232; cv=none; b=p8n+pZQfhCAb7HSxMOu0gkJCNqT4XKo70BInk88Qt+s17fQHcD1VLn1Eu5PgOXzNquuwfJXLqcNOzCN/RlLZgwMhmPK5zlJiBoVv1ZOSGz3uus/cJ7Oi1a+WSJnkrJa4WWUDj+MV5jfhsf7J9168ZGzRDwldLRuW8IsvAuh/Mko=
+	t=1766341512; cv=none; b=G7G/7VRTQYcVkWfasR9QozeVwMsq2joZAKqTRYOJvVj20TtVML1fVCT0GYkNwbcZ+UcTT+aw0hH8PENawjfuSIhrQW/GF6Y3kGaztQnSnGHuaIBXDeJ02X2CRHqqU0gnWRHd5FMSlzHK+j2KuVwNBaFq4QgzqBzyrr3lCIf0uNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766341232; c=relaxed/simple;
-	bh=UiTd2o/p1BG+Nd2HosZ+/YucDr4iUXFCO2okeHaS3II=;
-	h=Date:To:From:Subject:Message-Id; b=LlZwoRUfjX3Khno/DgwGTzr5sh389pDRMYMc48/vuEykg4veKIp6M5ByaNe7niSlgWsGNVJpkAEgm+InxHY9LfsXlhjKAepUSCzKLyzExcxd+J7R2R7P8k3IjJjw4Rrih29IUajiCKHOHrCWvNCb0C5oTkKJXA+KJUK8XWPeDRI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=by684lo7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766341512; c=relaxed/simple;
+	bh=wQax7F23Rt4qAHoksYmagWMYlUHkWdfp1Whkp7AaLDk=;
+	h=Date:To:From:Subject:Message-Id; b=bOcQT++fN0CfustvB/8MqkqtYVZFFaVw7qGN2vxjfNNntAWyn4F835oquC4x9EGHfHPjVSkwNz8+ybVL3KINerSh/6FdgWgMwfRBtxchCI70jsKwdD3mQSgo+blKkhAQlgyqsVbFVM9JVkX+Zsba0Z4c/cuATHHxQxR+gRE+jxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=03bNzT8I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="by684lo7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41FB7C4CEFB;
-	Sun, 21 Dec 2025 18:20:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="03bNzT8I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D8A9C4CEFB;
+	Sun, 21 Dec 2025 18:25:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766341231;
-	bh=UiTd2o/p1BG+Nd2HosZ+/YucDr4iUXFCO2okeHaS3II=;
+	s=korg; t=1766341511;
+	bh=wQax7F23Rt4qAHoksYmagWMYlUHkWdfp1Whkp7AaLDk=;
 	h=Date:To:From:Subject:From;
-	b=by684lo7TzEXKxQwMaP0AESB1IlQf/PLvl1bOUJnIBVzTgYxjH+QETxxn6fSUdxD8
-	 +CCFGgZ2yU5qD8uDizUUt1fVzKC0Lge7swZGUyHD6dShMjc9yRCTiaqtc8APIvUlyy
-	 kJ/ch1htN0U3NEcUh69quAgrT+8vpbUEB85SfAUs=
-Date: Sun, 21 Dec 2025 10:20:30 -0800
-To: mm-commits@vger.kernel.org,swilczek.lx@gmail.com,akpm@linux-foundation.org
+	b=03bNzT8IXXzuS4QzKTIUzHogjTe/7wFSLT7KgIfsIL8lPP4UxRqPE8ppCfX2QjZzx
+	 mbs+yE/V6si32KpjFYGhI3dDQWRFGngNEq/Joml1GkMLrF1ibSROw2QS0dQMSzbnH/
+	 xLWrFLZfeGSJJdQTyuc7Bx7f0XD37rAsOLPzAh6Y=
+Date: Sun, 21 Dec 2025 10:25:10 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,svens@linux.ibm.com,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,geert@linux-m68k.org,davidgow@google.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,sakamo.ryota@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-email-address-for-szymon-wilczek.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251221182031.41FB7C4CEFB@smtp.kernel.org>
+Subject: + lib-tests-convert-test_min_heap-module-to-kunit.patch added to mm-nonmm-unstable branch
+Message-Id: <20251221182511.8D8A9C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: update email address for Szymon Wilczek
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-update-email-address-for-szymon-wilczek.patch
+     Subject: lib/tests: convert test_min_heap module to KUnit
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-tests-convert-test_min_heap-module-to-kunit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-email-address-for-szymon-wilczek.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-convert-test_min_heap-module-to-kunit.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,35 +58,713 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Szymon Wilczek <swilczek.lx@gmail.com>
-Subject: mailmap: update email address for Szymon Wilczek
-Date: Sun, 21 Dec 2025 16:17:10 +0100
+From: Ryota Sakamoto <sakamo.ryota@gmail.com>
+Subject: lib/tests: convert test_min_heap module to KUnit
+Date: Sun, 21 Dec 2025 13:35:16 +0000
 
-Map my old address <szymonwilczek@gmx.com> to my new address
-<swilczek.lx@gmail.com>.  The old account is no longer accessible due to
-provider blocking access.
+Move lib/test_min_heap.c to lib/tests/min_heap_kunit.c and convert it to
+use KUnit.
 
-Link: https://lkml.kernel.org/r/20251221151710.13747-1-swilczek.lx@gmail.com
-Signed-off-by: Szymon Wilczek <swilczek.lx@gmail.com>
+This change switches the ad-hoc test code to standard KUnit test cases. 
+The test data remains the same, but the verification logic is updated to
+use KUNIT_EXPECT_* macros.
+
+Also remove CONFIG_TEST_MIN_HEAP from arch/*/configs/* because it is no
+longer used.  The new CONFIG_MIN_HEAP_KUNIT_TEST will be automatically
+enabled by CONFIG_KUNIT_ALL_TESTS.
+
+Link: https://lkml.kernel.org/r/20251221133516.321846-1-sakamo.ryota@gmail.com
+Signed-off-by: Ryota Sakamoto <sakamo.ryota@gmail.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS                          |    2 
+ arch/m68k/configs/amiga_defconfig    |    1 
+ arch/m68k/configs/apollo_defconfig   |    1 
+ arch/m68k/configs/atari_defconfig    |    1 
+ arch/m68k/configs/bvme6000_defconfig |    1 
+ arch/m68k/configs/hp300_defconfig    |    1 
+ arch/m68k/configs/mac_defconfig      |    1 
+ arch/m68k/configs/multi_defconfig    |    1 
+ arch/m68k/configs/mvme147_defconfig  |    1 
+ arch/m68k/configs/mvme16x_defconfig  |    1 
+ arch/m68k/configs/q40_defconfig      |    1 
+ arch/m68k/configs/sun3_defconfig     |    1 
+ arch/m68k/configs/sun3x_defconfig    |    1 
+ arch/powerpc/configs/ppc64_defconfig |    1 
+ arch/s390/configs/debug_defconfig    |    2 
+ lib/Kconfig.debug                    |   21 +-
+ lib/Makefile                         |    1 
+ lib/test_min_heap.c                  |  222 -------------------------
+ lib/tests/Makefile                   |    1 
+ lib/tests/min_heap_kunit.c           |  209 +++++++++++++++++++++++
+ 20 files changed, 223 insertions(+), 248 deletions(-)
 
---- a/.mailmap~mailmap-update-email-address-for-szymon-wilczek
-+++ a/.mailmap
-@@ -787,6 +787,7 @@ Sven Eckelmann <sven@narfation.org> <sve
- Sven Eckelmann <sven@narfation.org> <sven.eckelmann@openmesh.com>
- Sven Eckelmann <sven@narfation.org> <sven@open-mesh.com>
- Sven Peter <sven@kernel.org> <sven@svenpeter.dev>
-+Szymon Wilczek <swilczek.lx@gmail.com> <szymonwilczek@gmx.com>
- Takashi YOSHII <takashi.yoshii.zj@renesas.com>
- Tamizh Chelvam Raja <quic_tamizhr@quicinc.com> <tamizhr@codeaurora.org>
- Taniya Das <quic_tdas@quicinc.com> <tdas@codeaurora.org>
+--- a/arch/m68k/configs/amiga_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/amiga_defconfig
+@@ -609,7 +609,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/apollo_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/apollo_defconfig
+@@ -566,7 +566,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/atari_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/atari_defconfig
+@@ -586,7 +586,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/bvme6000_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/bvme6000_defconfig
+@@ -558,7 +558,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/hp300_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/hp300_defconfig
+@@ -568,7 +568,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/mac_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/mac_defconfig
+@@ -585,7 +585,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/multi_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/multi_defconfig
+@@ -672,7 +672,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/mvme147_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/mvme147_defconfig
+@@ -558,7 +558,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/mvme16x_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/mvme16x_defconfig
+@@ -559,7 +559,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/q40_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/q40_defconfig
+@@ -575,7 +575,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/sun3_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/sun3_defconfig
+@@ -555,7 +555,6 @@ CONFIG_WW_MUTEX_SELFTEST=m
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/m68k/configs/sun3x_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/m68k/configs/sun3x_defconfig
+@@ -556,7 +556,6 @@ CONFIG_EARLY_PRINTK=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_TEST_DHRY=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_TEST_MULDIV64=m
+ CONFIG_REED_SOLOMON_TEST=m
+--- a/arch/powerpc/configs/ppc64_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/powerpc/configs/ppc64_defconfig
+@@ -426,7 +426,6 @@ CONFIG_BOOTX_TEXT=y
+ CONFIG_KUNIT=m
+ CONFIG_KUNIT_ALL_TESTS=m
+ CONFIG_LKDTM=m
+-CONFIG_TEST_MIN_HEAP=m
+ CONFIG_TEST_DIV64=m
+ CONFIG_BACKTRACE_SELF_TEST=m
+ CONFIG_TEST_REF_TRACKER=m
+--- a/arch/s390/configs/debug_defconfig~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/arch/s390/configs/debug_defconfig
+@@ -921,7 +921,7 @@ CONFIG_FAULT_INJECTION_DEBUG_FS=y
+ CONFIG_FAULT_INJECTION_CONFIGFS=y
+ CONFIG_FAULT_INJECTION_STACKTRACE_FILTER=y
+ CONFIG_LKDTM=m
+-CONFIG_TEST_MIN_HEAP=y
++CONFIG_MIN_HEAP_KUNIT_TEST=m
+ CONFIG_KPROBES_SANITY_TEST=m
+ CONFIG_RBTREE_TEST=y
+ CONFIG_INTERVAL_TREE_TEST=m
+--- a/lib/Kconfig.debug~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/lib/Kconfig.debug
+@@ -2296,16 +2296,6 @@ config TEST_LIST_SORT
+ 
+ 	  If unsure, say N.
+ 
+-config TEST_MIN_HEAP
+-	tristate "Min heap test"
+-	depends on DEBUG_KERNEL || m
+-	help
+-	  Enable this to turn on min heap function tests. This test is
+-	  executed only once during system boot (so affects only boot time),
+-	  or at module load time.
+-
+-	  If unsure, say N.
+-
+ config TEST_SORT
+ 	tristate "Array-based sort test" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT
+@@ -2933,6 +2923,17 @@ config MEMCPY_KUNIT_TEST
+ 
+ 	  If unsure, say N.
+ 
++config MIN_HEAP_KUNIT_TEST
++	tristate "Min heap test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for the min heap library
++	  which provides functions for creating and managing min heaps.
++	  The test suite checks the functionality of the min heap library.
++
++	  If unsure, say N
++
+ config IS_SIGNED_TYPE_KUNIT_TEST
+ 	tristate "Test is_signed_type() macro" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT
+--- a/lib/Makefile~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/lib/Makefile
+@@ -75,7 +75,6 @@ obj-$(CONFIG_TEST_UBSAN) += test_ubsan.o
+ CFLAGS_test_ubsan.o += $(call cc-disable-warning, unused-but-set-variable)
+ UBSAN_SANITIZE_test_ubsan.o := y
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+-obj-$(CONFIG_TEST_MIN_HEAP) += test_min_heap.o
+ obj-$(CONFIG_TEST_LKM) += test_module.o
+ obj-$(CONFIG_TEST_VMALLOC) += test_vmalloc.o
+ obj-$(CONFIG_TEST_RHASHTABLE) += test_rhashtable.o
+diff --git a/lib/test_min_heap.c a/lib/test_min_heap.c
+deleted file mode 100644
+--- a/lib/test_min_heap.c
++++ /dev/null
+@@ -1,222 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-#define pr_fmt(fmt) "min_heap_test: " fmt
+-
+-/*
+- * Test cases for the min max heap.
+- */
+-
+-#include <linux/log2.h>
+-#include <linux/min_heap.h>
+-#include <linux/module.h>
+-#include <linux/printk.h>
+-#include <linux/random.h>
+-
+-DEFINE_MIN_HEAP(int, min_heap_test);
+-
+-static __init bool less_than(const void *lhs, const void *rhs, void __always_unused *args)
+-{
+-	return *(int *)lhs < *(int *)rhs;
+-}
+-
+-static __init bool greater_than(const void *lhs, const void *rhs, void __always_unused *args)
+-{
+-	return *(int *)lhs > *(int *)rhs;
+-}
+-
+-static __init int pop_verify_heap(bool min_heap,
+-				struct min_heap_test *heap,
+-				const struct min_heap_callbacks *funcs)
+-{
+-	int *values = heap->data;
+-	int err = 0;
+-	int last;
+-
+-	last = values[0];
+-	min_heap_pop_inline(heap, funcs, NULL);
+-	while (heap->nr > 0) {
+-		if (min_heap) {
+-			if (last > values[0]) {
+-				pr_err("error: expected %d <= %d\n", last,
+-					values[0]);
+-				err++;
+-			}
+-		} else {
+-			if (last < values[0]) {
+-				pr_err("error: expected %d >= %d\n", last,
+-					values[0]);
+-				err++;
+-			}
+-		}
+-		last = values[0];
+-		min_heap_pop_inline(heap, funcs, NULL);
+-	}
+-	return err;
+-}
+-
+-static __init int test_heapify_all(bool min_heap)
+-{
+-	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
+-			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
+-	struct min_heap_test heap = {
+-		.data = values,
+-		.nr = ARRAY_SIZE(values),
+-		.size =  ARRAY_SIZE(values),
+-	};
+-	struct min_heap_callbacks funcs = {
+-		.less = min_heap ? less_than : greater_than,
+-		.swp = NULL,
+-	};
+-	int i, err;
+-
+-	/* Test with known set of values. */
+-	min_heapify_all_inline(&heap, &funcs, NULL);
+-	err = pop_verify_heap(min_heap, &heap, &funcs);
+-
+-
+-	/* Test with randomly generated values. */
+-	heap.nr = ARRAY_SIZE(values);
+-	for (i = 0; i < heap.nr; i++)
+-		values[i] = get_random_u32();
+-
+-	min_heapify_all_inline(&heap, &funcs, NULL);
+-	err += pop_verify_heap(min_heap, &heap, &funcs);
+-
+-	return err;
+-}
+-
+-static __init int test_heap_push(bool min_heap)
+-{
+-	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
+-			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
+-	int values[ARRAY_SIZE(data)];
+-	struct min_heap_test heap = {
+-		.data = values,
+-		.nr = 0,
+-		.size =  ARRAY_SIZE(values),
+-	};
+-	struct min_heap_callbacks funcs = {
+-		.less = min_heap ? less_than : greater_than,
+-		.swp = NULL,
+-	};
+-	int i, temp, err;
+-
+-	/* Test with known set of values copied from data. */
+-	for (i = 0; i < ARRAY_SIZE(data); i++)
+-		min_heap_push_inline(&heap, &data[i], &funcs, NULL);
+-
+-	err = pop_verify_heap(min_heap, &heap, &funcs);
+-
+-	/* Test with randomly generated values. */
+-	while (heap.nr < heap.size) {
+-		temp = get_random_u32();
+-		min_heap_push_inline(&heap, &temp, &funcs, NULL);
+-	}
+-	err += pop_verify_heap(min_heap, &heap, &funcs);
+-
+-	return err;
+-}
+-
+-static __init int test_heap_pop_push(bool min_heap)
+-{
+-	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
+-			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
+-	int values[ARRAY_SIZE(data)];
+-	struct min_heap_test heap = {
+-		.data = values,
+-		.nr = 0,
+-		.size =  ARRAY_SIZE(values),
+-	};
+-	struct min_heap_callbacks funcs = {
+-		.less = min_heap ? less_than : greater_than,
+-		.swp = NULL,
+-	};
+-	int i, temp, err;
+-
+-	/* Fill values with data to pop and replace. */
+-	temp = min_heap ? 0x80000000 : 0x7FFFFFFF;
+-	for (i = 0; i < ARRAY_SIZE(data); i++)
+-		min_heap_push_inline(&heap, &temp, &funcs, NULL);
+-
+-	/* Test with known set of values copied from data. */
+-	for (i = 0; i < ARRAY_SIZE(data); i++)
+-		min_heap_pop_push_inline(&heap, &data[i], &funcs, NULL);
+-
+-	err = pop_verify_heap(min_heap, &heap, &funcs);
+-
+-	heap.nr = 0;
+-	for (i = 0; i < ARRAY_SIZE(data); i++)
+-		min_heap_push_inline(&heap, &temp, &funcs, NULL);
+-
+-	/* Test with randomly generated values. */
+-	for (i = 0; i < ARRAY_SIZE(data); i++) {
+-		temp = get_random_u32();
+-		min_heap_pop_push_inline(&heap, &temp, &funcs, NULL);
+-	}
+-	err += pop_verify_heap(min_heap, &heap, &funcs);
+-
+-	return err;
+-}
+-
+-static __init int test_heap_del(bool min_heap)
+-{
+-	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
+-			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
+-	struct min_heap_test heap;
+-
+-	min_heap_init_inline(&heap, values, ARRAY_SIZE(values));
+-	heap.nr = ARRAY_SIZE(values);
+-	struct min_heap_callbacks funcs = {
+-		.less = min_heap ? less_than : greater_than,
+-		.swp = NULL,
+-	};
+-	int i, err;
+-
+-	/* Test with known set of values. */
+-	min_heapify_all_inline(&heap, &funcs, NULL);
+-	for (i = 0; i < ARRAY_SIZE(values) / 2; i++)
+-		min_heap_del_inline(&heap, get_random_u32() % heap.nr, &funcs, NULL);
+-	err = pop_verify_heap(min_heap, &heap, &funcs);
+-
+-
+-	/* Test with randomly generated values. */
+-	heap.nr = ARRAY_SIZE(values);
+-	for (i = 0; i < heap.nr; i++)
+-		values[i] = get_random_u32();
+-	min_heapify_all_inline(&heap, &funcs, NULL);
+-
+-	for (i = 0; i < ARRAY_SIZE(values) / 2; i++)
+-		min_heap_del_inline(&heap, get_random_u32() % heap.nr, &funcs, NULL);
+-	err += pop_verify_heap(min_heap, &heap, &funcs);
+-
+-	return err;
+-}
+-
+-static int __init test_min_heap_init(void)
+-{
+-	int err = 0;
+-
+-	err += test_heapify_all(true);
+-	err += test_heapify_all(false);
+-	err += test_heap_push(true);
+-	err += test_heap_push(false);
+-	err += test_heap_pop_push(true);
+-	err += test_heap_pop_push(false);
+-	err += test_heap_del(true);
+-	err += test_heap_del(false);
+-	if (err) {
+-		pr_err("test failed with %d errors\n", err);
+-		return -EINVAL;
+-	}
+-	pr_info("test passed\n");
+-	return 0;
+-}
+-module_init(test_min_heap_init);
+-
+-static void __exit test_min_heap_exit(void)
+-{
+-	/* do nothing */
+-}
+-module_exit(test_min_heap_exit);
+-
+-MODULE_DESCRIPTION("Test cases for the min max heap");
+-MODULE_LICENSE("GPL");
+--- a/lib/tests/Makefile~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/lib/tests/Makefile
+@@ -35,6 +35,7 @@ CFLAGS_longest_symbol_kunit.o += $(call
+ obj-$(CONFIG_LONGEST_SYM_KUNIT_TEST) += longest_symbol_kunit.o
+ 
+ obj-$(CONFIG_MEMCPY_KUNIT_TEST) += memcpy_kunit.o
++obj-$(CONFIG_MIN_HEAP_KUNIT_TEST) += min_heap_kunit.o
+ CFLAGS_overflow_kunit.o = $(call cc-disable-warning, tautological-constant-out-of-range-compare)
+ obj-$(CONFIG_OVERFLOW_KUNIT_TEST) += overflow_kunit.o
+ obj-$(CONFIG_PRINTF_KUNIT_TEST) += printf_kunit.o
+diff --git a/lib/tests/min_heap_kunit.c a/lib/tests/min_heap_kunit.c
+new file mode 100664
+--- /dev/null
++++ a/lib/tests/min_heap_kunit.c
+@@ -0,0 +1,209 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Test cases for the min max heap.
++ */
++
++#include <kunit/test.h>
++#include <linux/min_heap.h>
++#include <linux/module.h>
++#include <linux/random.h>
++
++struct min_heap_test_case {
++	const char *str;
++	bool min_heap;
++};
++
++static struct min_heap_test_case min_heap_cases[] = {
++	{
++		.str = "min",
++		.min_heap = true,
++	},
++	{
++		.str = "max",
++		.min_heap = false,
++	},
++};
++
++KUNIT_ARRAY_PARAM_DESC(min_heap, min_heap_cases, str);
++
++DEFINE_MIN_HEAP(int, min_heap_test);
++
++static bool less_than(const void *lhs, const void *rhs, void __always_unused *args)
++{
++	return *(int *)lhs < *(int *)rhs;
++}
++
++static bool greater_than(const void *lhs, const void *rhs, void __always_unused *args)
++{
++	return *(int *)lhs > *(int *)rhs;
++}
++
++static void pop_verify_heap(struct kunit *test,
++			    bool min_heap,
++			    struct min_heap_test *heap,
++			    const struct min_heap_callbacks *funcs)
++{
++	int *values = heap->data;
++	int last;
++
++	last = values[0];
++	min_heap_pop_inline(heap, funcs, NULL);
++	while (heap->nr > 0) {
++		if (min_heap)
++			KUNIT_EXPECT_LE(test, last, values[0]);
++		else
++			KUNIT_EXPECT_GE(test, last, values[0]);
++		last = values[0];
++		min_heap_pop_inline(heap, funcs, NULL);
++	}
++}
++
++static void test_heapify_all(struct kunit *test)
++{
++	const struct min_heap_test_case *params = test->param_value;
++	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
++			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
++	struct min_heap_test heap = {
++		.data = values,
++		.nr = ARRAY_SIZE(values),
++		.size =  ARRAY_SIZE(values),
++	};
++	struct min_heap_callbacks funcs = {
++		.less = params->min_heap ? less_than : greater_than,
++		.swp = NULL,
++	};
++	int i;
++
++	/* Test with known set of values. */
++	min_heapify_all_inline(&heap, &funcs, NULL);
++	pop_verify_heap(test, params->min_heap, &heap, &funcs);
++
++	/* Test with randomly generated values. */
++	heap.nr = ARRAY_SIZE(values);
++	for (i = 0; i < heap.nr; i++)
++		values[i] = get_random_u32();
++
++	min_heapify_all_inline(&heap, &funcs, NULL);
++	pop_verify_heap(test, params->min_heap, &heap, &funcs);
++}
++
++static void test_heap_push(struct kunit *test)
++{
++	const struct min_heap_test_case *params = test->param_value;
++	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
++			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
++	int values[ARRAY_SIZE(data)];
++	struct min_heap_test heap = {
++		.data = values,
++		.nr = 0,
++		.size =  ARRAY_SIZE(values),
++	};
++	struct min_heap_callbacks funcs = {
++		.less = params->min_heap ? less_than : greater_than,
++		.swp = NULL,
++	};
++	int i, temp;
++
++	/* Test with known set of values copied from data. */
++	for (i = 0; i < ARRAY_SIZE(data); i++)
++		min_heap_push_inline(&heap, &data[i], &funcs, NULL);
++
++	pop_verify_heap(test, params->min_heap, &heap, &funcs);
++
++	/* Test with randomly generated values. */
++	while (heap.nr < heap.size) {
++		temp = get_random_u32();
++		min_heap_push_inline(&heap, &temp, &funcs, NULL);
++	}
++	pop_verify_heap(test, params->min_heap, &heap, &funcs);
++}
++
++static void test_heap_pop_push(struct kunit *test)
++{
++	const struct min_heap_test_case *params = test->param_value;
++	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
++			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
++	int values[ARRAY_SIZE(data)];
++	struct min_heap_test heap = {
++		.data = values,
++		.nr = 0,
++		.size =  ARRAY_SIZE(values),
++	};
++	struct min_heap_callbacks funcs = {
++		.less = params->min_heap ? less_than : greater_than,
++		.swp = NULL,
++	};
++	int i, temp;
++
++	/* Fill values with data to pop and replace. */
++	temp = params->min_heap ? 0x80000000 : 0x7FFFFFFF;
++	for (i = 0; i < ARRAY_SIZE(data); i++)
++		min_heap_push_inline(&heap, &temp, &funcs, NULL);
++
++	/* Test with known set of values copied from data. */
++	for (i = 0; i < ARRAY_SIZE(data); i++)
++		min_heap_pop_push_inline(&heap, &data[i], &funcs, NULL);
++
++	pop_verify_heap(test, params->min_heap, &heap, &funcs);
++
++	heap.nr = 0;
++	for (i = 0; i < ARRAY_SIZE(data); i++)
++		min_heap_push_inline(&heap, &temp, &funcs, NULL);
++
++	/* Test with randomly generated values. */
++	for (i = 0; i < ARRAY_SIZE(data); i++) {
++		temp = get_random_u32();
++		min_heap_pop_push_inline(&heap, &temp, &funcs, NULL);
++	}
++	pop_verify_heap(test, params->min_heap, &heap, &funcs);
++}
++
++static void test_heap_del(struct kunit *test)
++{
++	const struct min_heap_test_case *params = test->param_value;
++	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
++			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
++	struct min_heap_test heap;
++
++	min_heap_init_inline(&heap, values, ARRAY_SIZE(values));
++	heap.nr = ARRAY_SIZE(values);
++	struct min_heap_callbacks funcs = {
++		.less = params->min_heap ? less_than : greater_than,
++		.swp = NULL,
++	};
++	int i;
++
++	/* Test with known set of values. */
++	min_heapify_all_inline(&heap, &funcs, NULL);
++	for (i = 0; i < ARRAY_SIZE(values) / 2; i++)
++		min_heap_del_inline(&heap, get_random_u32() % heap.nr, &funcs, NULL);
++	pop_verify_heap(test, params->min_heap, &heap, &funcs);
++
++	/* Test with randomly generated values. */
++	heap.nr = ARRAY_SIZE(values);
++	for (i = 0; i < heap.nr; i++)
++		values[i] = get_random_u32();
++	min_heapify_all_inline(&heap, &funcs, NULL);
++
++	for (i = 0; i < ARRAY_SIZE(values) / 2; i++)
++		min_heap_del_inline(&heap, get_random_u32() % heap.nr, &funcs, NULL);
++	pop_verify_heap(test, params->min_heap, &heap, &funcs);
++}
++
++static struct kunit_case min_heap_test_cases[] = {
++	KUNIT_CASE_PARAM(test_heapify_all, min_heap_gen_params),
++	KUNIT_CASE_PARAM(test_heap_push, min_heap_gen_params),
++	KUNIT_CASE_PARAM(test_heap_pop_push, min_heap_gen_params),
++	KUNIT_CASE_PARAM(test_heap_del, min_heap_gen_params),
++	{},
++};
++
++static struct kunit_suite min_heap_test_suite = {
++	.name = "min_heap",
++	.test_cases = min_heap_test_cases,
++};
++
++kunit_test_suite(min_heap_test_suite);
++
++MODULE_DESCRIPTION("Test cases for the min max heap");
++MODULE_LICENSE("GPL");
+--- a/MAINTAINERS~lib-tests-convert-test_min_heap-module-to-kunit
++++ a/MAINTAINERS
+@@ -17448,7 +17448,7 @@ S:	Maintained
+ F:	Documentation/core-api/min_heap.rst
+ F:	include/linux/min_heap.h
+ F:	lib/min_heap.c
+-F:	lib/test_min_heap.c
++F:	lib/tests/min_heap_kunit.c
+ 
+ MIPI CCS, SMIA AND SMIA++ IMAGE SENSOR DRIVER
+ M:	Sakari Ailus <sakari.ailus@linux.intel.com>
 _
 
-Patches currently in -mm which might be from swilczek.lx@gmail.com are
+Patches currently in -mm which might be from sakamo.ryota@gmail.com are
 
-mailmap-update-email-address-for-szymon-wilczek.patch
+lib-tests-convert-test_uuid-module-to-kunit.patch
+lib-tests-convert-test_min_heap-module-to-kunit.patch
 
