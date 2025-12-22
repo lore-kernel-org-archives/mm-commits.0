@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DCC12C029D
-	for <mm-commits@vger.kernel.org>; Mon, 22 Dec 2025 17:40:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F35E722068F
+	for <mm-commits@vger.kernel.org>; Mon, 22 Dec 2025 17:54:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766425212; cv=none; b=htfYei4yUxDbUPzI58cDdgHVEavcnDdkwdc30Uvx8y7zaOcZqhQR6bkM8oylNueXGjl4zED5Sp+vKy3bS6uiv8jXHAWK0ED1aXaf9v/pC/a1/HdillCZu4G+yFUZp7V5tjUhPHUAGA1lDvzpa7Tw7gLWOzWZXpkd9O+RQn1/RSg=
+	t=1766426046; cv=none; b=aoNy2VaFjZ3NVrdqiIWaNUsJpAo3Ibt9EWGPqTSkmTItZQFdUfIQRE/MePOil/J3OhRIbZbbUq5iDWC/syy8LnF18qZ5iY/ot/mL4RbQu2ronatO4RZhdXzq/u+3eY3R6SgGX4qsOP3TbkYwDBzHy+oKzp4eVdLtsgOdZB+ZPwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766425212; c=relaxed/simple;
-	bh=mLwZYRPzRNCPB7oZGbmVODBgNQRlOG3WDb2oHcAEufw=;
-	h=Date:To:From:Subject:Message-Id; b=udIIFEmQBXJw8IYTgYL9cnxGbz1zVAjcWNGX6qErblaGmkgHuh1OP7LOLvtrmpeAn2K/Xt6+z2MqRnjkWjiKvZvsL/wAK+Zn/cnZJo72dIo5x/iCnui8bfmBivv6gtVNLDt0JfEmOIHgXe/KAmwNzPJ5XM3If9xc5LTX4RIf/40=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=USm7F3M2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766426046; c=relaxed/simple;
+	bh=9jw7qjbIz9nN2QH02e3agd+e7ceBiusK1l9yoCUPSC0=;
+	h=Date:To:From:Subject:Message-Id; b=uySFR86SIr0plY4yqR2h100o3yK80Qz3024AXV1UTd1syNGP9vmCkOHPDYXuUXmgPc0ZWIgS9X0EmI5YBeNIgs8C5YmjoeDRfNU3h3JdFNM4AureshK5LXjegIqA7kzJQRIBUdcVMYOBw12XAcCC9zbwY8Edx33TLXPes8BIaWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rCL/kiqE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="USm7F3M2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5F89C4CEF1;
-	Mon, 22 Dec 2025 17:40:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rCL/kiqE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D1A8C4CEF1;
+	Mon, 22 Dec 2025 17:54:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766425212;
-	bh=mLwZYRPzRNCPB7oZGbmVODBgNQRlOG3WDb2oHcAEufw=;
+	s=korg; t=1766426044;
+	bh=9jw7qjbIz9nN2QH02e3agd+e7ceBiusK1l9yoCUPSC0=;
 	h=Date:To:From:Subject:From;
-	b=USm7F3M2CZuqb/bbmdtNNbn9T+gM5Q7ABrvwHzXA1h5vYvtgNrirXaEf8IK1u5kF5
-	 cOeLvcYsMh688tMdDx5a9J2QO30LQPma870sAcgLsspsT7/az/XQ5HuBXcCD9ocFGQ
-	 QZKVF+TAs8p2jkTW0vtvB+YBMo6PzQIvYz7USdE8=
-Date: Mon, 22 Dec 2025 09:40:11 -0800
-To: mm-commits@vger.kernel.org,glider@google.com,dvyukov@google.com,corbet@lwn.net,elver@google.com,akpm@linux-foundation.org
+	b=rCL/kiqEXMDKebrow1qp0ka7aqZp5CO6nlH2fnoqhZHfaIUjb5u0BGX/QfyTTkYVU
+	 gSJfy+8KqL6v1yXuozTbqhY7LqMH4qOzQyaWldVqcjeL+YCxHi+V3jxddR1xK8iOv2
+	 OZkiWFflP0w9GeodTCbaJaKd3bpm8rpQtmDys89w=
+Date: Mon, 22 Dec 2025 09:54:03 -0800
+To: mm-commits@vger.kernel.org,k.lourenco@criteo.com,david@kernel.org,klourencodev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-kernel-parameters-add-kfence-parameters.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251222174011.E5F89C4CEF1@smtp.kernel.org>
+Subject: + mm-fadvise-validate-offset-in-generic_fadvise.patch added to mm-unstable branch
+Message-Id: <20251222175404.4D1A8C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: kernel-parameters: add kfence parameters
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     docs-kernel-parameters-add-kfence-parameters.patch
+     Subject: mm/fadvise: validate offset in generic_fadvise
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fadvise-validate-offset-in-generic_fadvise.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-kernel-parameters-add-kfence-parameters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fadvise-validate-offset-in-generic_fadvise.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,71 +58,43 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: docs: kernel-parameters: add kfence parameters
-Date: Mon, 22 Dec 2025 16:00:06 +0100
+From: Kevin Lourenco <klourencodev@gmail.com>
+Subject: mm/fadvise: validate offset in generic_fadvise
+Date: Mon, 22 Dec 2025 15:18:17 +0100
 
-Add a brief summary for KFENCE's kernel command-line parameters in
-admin-guide/kernel-parameters.
+When converted to (u64) for page calculations, a negative offset can
+produce extremely large page indices.  This may lead to issues in certain
+advice modes (excessive readahead or cache invalidation)
 
-Link: https://lkml.kernel.org/r/20251222150018.1349672-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+offsets are normally non-negative, but the API does not guarantee this. 
+Since 'len' is already validated, checking 'offset' here is reasonable to
+prevent potential system instability.
+
+Link: https://lkml.kernel.org/r/20251222141817.13335-1-klourencodev@gmail.com
+Signed-off-by: Kevin Lourenco <k.lourenco@criteo.com>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   35 ++++++++++++++
- 1 file changed, 35 insertions(+)
+ mm/fadvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~docs-kernel-parameters-add-kfence-parameters
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2917,6 +2917,41 @@ Kernel parameters
- 			for Movable pages.  "nn[KMGTPE]", "nn%", and "mirror"
- 			are exclusive, so you cannot specify multiple forms.
+--- a/mm/fadvise.c~mm-fadvise-validate-offset-in-generic_fadvise
++++ a/mm/fadvise.c
+@@ -43,7 +43,7 @@ int generic_fadvise(struct file *file, l
+ 		return -ESPIPE;
  
-+	kfence.burst=	[MM,KFENCE] The number of additional successive
-+			allocations to be attempted through KFENCE for each
-+			sample interval.
-+			Format: <unsigned integer>
-+			Default: 0
-+
-+	kfence.check_on_panic=
-+			[MM,KFENCE] Whether to check all KFENCE-managed objects'
-+			canaries on panic.
-+			Format: <bool>
-+			Default: false
-+
-+	kfence.deferrable=
-+			[MM,KFENCE] Whether to use a deferrable timer to trigger
-+			allocations. This avoids forcing CPU wake-ups if the
-+			system is idle, at the risk of a less predictable
-+			sample interval.
-+			Format: <bool>
-+			Default: CONFIG_KFENCE_DEFERRABLE
-+
-+	kfence.sample_interval=
-+			[MM,KFENCE] KFENCE's sample interval in milliseconds.
-+			Format: <unsigned integer>
-+			 0 - Disable KFENCE.
-+			>0 - Enabled KFENCE with given sample interval.
-+			Default: CONFIG_KFENCE_SAMPLE_INTERVAL
-+
-+	kfence.skip_covered_thresh=
-+			[MM,KFENCE] If pool utilization reaches this threshold
-+			(pool usage%), KFENCE limits currently covered
-+			allocations of the same source from further filling
-+			up the pool.
-+			Format: <unsigned integer>
-+			Default: 75
-+
- 	kgdbdbgp=	[KGDB,HW,EARLY] kgdb over EHCI usb debug port.
- 			Format: <Controller#>[,poll interval]
- 			The controller # is the number of the ehci usb debug
+ 	mapping = file->f_mapping;
+-	if (!mapping || len < 0)
++	if (!mapping || len < 0 || offset < 0)
+ 		return -EINVAL;
+ 
+ 	bdi = inode_to_bdi(mapping->host);
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from klourencodev@gmail.com are
 
-docs-kernel-parameters-add-kfence-parameters.patch
+mm-damon-fix-typos-in-comments.patch
+mm-fix-minor-spelling-mistakes-in-comments.patch
+mm-fadvise-validate-offset-in-generic_fadvise.patch
 
