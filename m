@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBB0632ABCA
-	for <mm-commits@vger.kernel.org>; Mon, 22 Dec 2025 19:12:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D5EF2BE03D
+	for <mm-commits@vger.kernel.org>; Mon, 22 Dec 2025 19:15:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766430731; cv=none; b=tb2aMceue/Nf8P6735/vKhFHkQaX+tPR5RkOa0tO2R7sdBTUkw3U+8lcO3FC/p2rsb+46Aj3aEo+XDfYZrDD9q9RFr84N8oe/ZZ5jp3P4DEqdkzKq97yoe8+NcBCt8sCpJjVec7G+kF6OrTFpSSXAAf/pV1CWjTM62Zib7jVbDU=
+	t=1766430934; cv=none; b=QLH1P1j6EZN69xwRxAa1RAEwsRWM4//0T6jF9uXsclp36FyrBmZ5icV1zDqQcSiv1fgh7YeRnvq6mQUbkn/RBEBwCJz6tz7UIWqs483djCgcxCTOhbRXE6uuH+IZb5sBNJ6DT83cgCPKmVqUh8mBjoSgL+hmhlATkudrYIZGSsg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766430731; c=relaxed/simple;
-	bh=SXPDQ9eixt91d2OC1YGHK/H2r2IE9Am+lCTkzcb1fSo=;
-	h=Date:To:From:Subject:Message-Id; b=MEqBaRdGTNz3+LbE8XJxiQ5exRxTsDpZNR3q6qlvLUR/NUGxBi1hrli4wOQdSoff7NhNdzrR6I6tph0gd/tP4i+Wurvf6oTQF3kZ5V9kRDngx+cWcmQs499769YmG8UniImil6wHNHGi7hidkDPmCnzhGa9am6fE+mYrUbQLx/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tl89kQfR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766430934; c=relaxed/simple;
+	bh=m1CGRxCnPdk+vhPRmZjgEkfKi0iYKsJDYRWInGVjzCU=;
+	h=Date:To:From:Subject:Message-Id; b=qZ+KyKZpP9wiEKxlkdARp8DCUD63m+FldjsW5VGflFUiZ3XEveq3iTFidCTF5d7gFi04jMppS6jq6mGXFeQ8zdh9kwFgeE1IPJm4mH1ApVhFSwDEK4Q/GfXPKLsIA7iigLhFvb1+X36Dyuyr40Ppb1asDf18RNwqWICaFX0YMmA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DcfpiFOb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tl89kQfR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51515C4CEF1;
-	Mon, 22 Dec 2025 19:12:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DcfpiFOb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AC99C116D0;
+	Mon, 22 Dec 2025 19:15:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766430731;
-	bh=SXPDQ9eixt91d2OC1YGHK/H2r2IE9Am+lCTkzcb1fSo=;
+	s=korg; t=1766430934;
+	bh=m1CGRxCnPdk+vhPRmZjgEkfKi0iYKsJDYRWInGVjzCU=;
 	h=Date:To:From:Subject:From;
-	b=tl89kQfR1u5Yk8Q+uxdH9mUDmG1dhflOgXaSxQYcUzUTtXUIzUlSlb4GRjybEIPST
-	 Dtc1Vs53N3IMY3Y1mSt+qgWVjLTjZiIN7RX+5CVQyEEPui1yTsVelMm/KbrBlbxmVl
-	 AvbGtTZz06AFOfWiecHAPHo7bNdcGUo0PlOTbVbg=
-Date: Mon, 22 Dec 2025 11:12:10 -0800
-To: mm-commits@vger.kernel.org,arnd@arndb.de,thomas.weissschuh@linutronix.de,akpm@linux-foundation.org
+	b=DcfpiFObn5CQAn6dPrea+mwuHXyBscr9Lc5WDu948mMwS2s6SWHbnfweg1sfgjJWu
+	 zb6ciQpHlsAMFyPnT+qZVEZ7TB3/12OVO4jG5OpEdo0uJqkmo3HflqdEinCch1AAJb
+	 lkfPveYIcE9If1AADZpiHLeBDt7kM7bAXtxoFcrI=
+Date: Mon, 22 Dec 2025 11:15:33 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,lkp@intel.com,david@kernel.org,xiujianfeng@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-shm-uapi-remove-dependency-on-libc.patch added to mm-nonmm-unstable branch
-Message-Id: <20251222191211.51515C4CEF1@smtp.kernel.org>
+Subject: + mm-hugetlb_cgroup-fix-wformat-truncation-warning.patch added to mm-unstable branch
+Message-Id: <20251222191534.2AC99C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ipc/shm: uapi: remove dependency on libc
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-shm-uapi-remove-dependency-on-libc.patch
+     Subject: mm/hugetlb_cgroup: fix -Wformat-truncation warning
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb_cgroup-fix-wformat-truncation-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-shm-uapi-remove-dependency-on-libc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-fix-wformat-truncation-warning.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,42 +58,48 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Subject: ipc/shm: uapi: remove dependency on libc
-Date: Mon, 22 Dec 2025 08:55:10 +0100
+From: Xiu Jianfeng <xiujianfeng@huawei.com>
+Subject: mm/hugetlb_cgroup: fix -Wformat-truncation warning
+Date: Mon, 22 Dec 2025 07:23:59 +0000
 
-Using libc types and headers from the UAPI headers is problematic as it
-introduces a dependency on a full C toolchain.  shm.h does not even use
-any symbols from the libc header as the usage of getpagesize() was removed
-a decade ago in commit 060028bac94b ("ipc/shm.c: increase the defaults for
-SHMALL, SHMMAX")
+A false-positive compile warnings with -Wformat-trucation was introduced
+by commit 47179fe03588 ("mm/hugetlb_cgroup: prepare cftypes based on
+template") on arch s390.  Suppress it by replacing snprintf() with
+scnprintf().
 
-Drop the unnecessary inclusion.
+mm/hugetlb_cgroup.c: In function 'hugetlb_cgroup_file_init':
+mm/hugetlb_cgroup.c:829:44: warning: '%s' directive output may be truncated writing up to 1623 bytes into a region of size between 32 and 63 [-Wformat-truncation=]
+  829 |   snprintf(cft->name, MAX_CFTYPE_NAME, "%s.%s", buf, tmpl->name);
+      |                                            ^~
 
-Link: https://lkml.kernel.org/r/20251222-uapi-shm-v1-1-270bb7f75d97@linutronix.de
-Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/20251222072359.3626182-1-xiujianfeng@huaweicloud.com
+Fixes: 47179fe03588 ("mm/hugetlb_cgroup: prepare cftypes based on template")
+Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202512212332.9lFRbgdS-lkp@intel.com/
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/shm.h |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/hugetlb_cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/uapi/linux/shm.h~ipc-shm-uapi-remove-dependency-on-libc
-+++ a/include/uapi/linux/shm.h
-@@ -5,9 +5,6 @@
- #include <linux/ipc.h>
- #include <linux/errno.h>
- #include <asm-generic/hugetlb_encode.h>
--#ifndef __KERNEL__
--#include <unistd.h>
--#endif
- 
- /*
-  * SHMMNI, SHMMAX and SHMALL are default upper limits which can be
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-fix-wformat-truncation-warning
++++ a/mm/hugetlb_cgroup.c
+@@ -822,7 +822,7 @@ hugetlb_cgroup_cfttypes_init(struct hsta
+ 	for (i = 0; i < tmpl_size; cft++, tmpl++, i++) {
+ 		*cft = *tmpl;
+ 		/* rebuild the name */
+-		snprintf(cft->name, MAX_CFTYPE_NAME, "%s.%s", buf, tmpl->name);
++		scnprintf(cft->name, MAX_CFTYPE_NAME, "%s.%s", buf, tmpl->name);
+ 		/* rebuild the private */
+ 		cft->private = MEMFILE_PRIVATE(idx, tmpl->private);
+ 		/* rebuild the file_offset */
 _
 
-Patches currently in -mm which might be from thomas.weissschuh@linutronix.de are
+Patches currently in -mm which might be from xiujianfeng@huawei.com are
 
-ipc-shm-uapi-remove-dependency-on-libc.patch
+mm-hugetlb_cgroup-fix-wformat-truncation-warning.patch
 
