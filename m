@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9995C2C3261
-	for <mm-commits@vger.kernel.org>; Mon, 22 Dec 2025 18:15:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E0212AE68
+	for <mm-commits@vger.kernel.org>; Mon, 22 Dec 2025 18:30:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766427301; cv=none; b=WHAbG+IUS2uHtMwDWZaVDKpi+oEBPUq++NWT881OCndWaQKU1RqQQFXOz1raAqWcARsmG5mBl8UbsY1gd2G+Ql9Ny8Wj4OtUHeE8PmQKnjhIuw5dPnx6hNHbXJMl/lR6qmrOnimV7nDpP4bKtROOpusgDzNXPtZDf/tnMBNINCA=
+	t=1766428224; cv=none; b=D65y0KpjJ4fbUIa5gUEsUbtgpBCzUhmUNZxKW1ttMgOMQRJFvLMS1XlV+DJXmp9nZEQ4mEjCI4hmBPeBWIrBwWHjLq/MGf6AcFDgjLfyZx/UE/4sN/IG6MtQhhHCg8SwxkAj7/uiK/HkvVr9e/vU+IuhHyb03b7EKHqNF+2FUxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766427301; c=relaxed/simple;
-	bh=iUmw3owyvqF9UsMxnqNiVumUjlz9GD5kmrMLsuSZJtY=;
-	h=Date:To:From:Subject:Message-Id; b=n4/He19K2dmwQpPv87rRsqFs/FKKWB54mclIvoLNux4lLncx2/XkkDUyeX1hwnsL/lkZTlcX1mfpmseIeiDzHmWmYoGKKtu5BCqJ88WlL7H1idZ16oGFX7iyhir+TbgBohezNGuG6x0pfRdlktnmUzIbUp+h8V9T1uTtP86yU54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WQ4sGXTK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766428224; c=relaxed/simple;
+	bh=fY7hNFFRDAv51egL+zCB7cP6NPzIZ3+lW6VhBCqUwsE=;
+	h=Date:To:From:Subject:Message-Id; b=P4qIKjp0gBY+v8BY/RMO+RYb1c0+z2mrFzeWw7FD6sTwitqUcvSXOJXfsnowEzfNAcoujVQ/ll73MucZw0G1e+3Fj2lPtMkW28jPyuSPXaeVWeJvnpoEud+TbKpsZ8S3HinDrIdwILopyBXqHlJ5q8pSzeHtlucu9ugkJwYtTyU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=paPwjPI8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WQ4sGXTK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18E91C4CEF1;
-	Mon, 22 Dec 2025 18:15:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="paPwjPI8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDD12C4CEF1;
+	Mon, 22 Dec 2025 18:30:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766427301;
-	bh=iUmw3owyvqF9UsMxnqNiVumUjlz9GD5kmrMLsuSZJtY=;
+	s=korg; t=1766428224;
+	bh=fY7hNFFRDAv51egL+zCB7cP6NPzIZ3+lW6VhBCqUwsE=;
 	h=Date:To:From:Subject:From;
-	b=WQ4sGXTKxL0MgAzm/e9IEp+b/3hCrBtjqZg+npNtRc3UnASz4ypCBX1JC95Id4faw
-	 izhbFa+FbAY3htqawS9dYHKCk76QKGtn6bnorseggWcQg4jgWE3AYnFyF9EDDen48t
-	 RtvuV1OcCeI/kZ/Q/b6I2w/DdhvKsbFPOS5VyS98=
-Date: Mon, 22 Dec 2025 10:15:00 -0800
-To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,urezki@gmail.com,sumit.semwal@linaro.org,mripard@kernel.org,jstultz@google.com,david@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=paPwjPI8yb4M0Y/dwD6XdJ+EpxSaDpRJT/j1snLiqcBzX3pn72PGJztftiIXtBRPZ
+	 766kwsqKrRgWkIQCAgJXYGIVWUFq6SZI/XlZPsrNogkm2VeUjxuVYPmi5qSfdDcUCi
+	 7jMD76Hp/3C8xz2GFP9HQSEcR/Ow4biSE20C/i0M=
+Date: Mon, 22 Dec 2025 10:30:23 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible.patch removed from -mm tree
-Message-Id: <20251222181501.18E91C4CEF1@smtp.kernel.org>
+Subject: + mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch added to mm-new branch
+Message-Id: <20251222183023.DDD12C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,135 +34,141 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/vmalloc: map contiguous pages in batches for vmap() whenever possible
-has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible.patch
+The patch titled
+     Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm/vmalloc: map contiguous pages in batches for vmap() whenever possible
-Date: Mon, 15 Dec 2025 13:30:50 +0800
+From: Jiayuan Chen <jiayuan.chen@shopee.com>
+Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+Date: Mon, 22 Dec 2025 20:20:21 +0800
 
-In many cases, the pages passed to vmap() may include high-order pages
-allocated with __GFP_COMP flags.  For example, the systemheap often
-allocates pages in descending order: order 8, then 4, then 0.  Currently,
-vmap() iterates over every page individually—even pages inside a
-high-order block are handled one by one.
+When kswapd fails to reclaim memory, kswapd_failures is incremented.  Once
+it reaches MAX_RECLAIM_RETRIES, kswapd stops running to avoid futile
+reclaim attempts.  However, any successful direct reclaim unconditionally
+resets kswapd_failures to 0, which can cause problems.
 
-This patch detects high-order pages and maps them as a single contiguous
-block whenever possible.
+We observed an issue in production on a multi-NUMA system where a process
+allocated large amounts of anonymous pages on a single NUMA node, causing
+its watermark to drop below high and evicting most file pages:
 
-An alternative would be to implement a new API, vmap_sg(), but that
-change seems to be large in scope.
+$ numastat -m
+Per-node system memory usage (in MBs):
+                          Node 0          Node 1           Total
+                 --------------- --------------- ---------------
+MemTotal               128222.19       127983.91       256206.11
+MemFree                  1414.48         1432.80         2847.29
+MemUsed                126807.71       126551.11       252358.82
+SwapCached                  0.00            0.00            0.00
+Active                  29017.91        25554.57        54572.48
+Inactive                92749.06        95377.00       188126.06
+Active(anon)            28998.96        23356.47        52355.43
+Inactive(anon)          92685.27        87466.11       180151.39
+Active(file)               18.95         2198.10         2217.05
+Inactive(file)             63.79         7910.89         7974.68
 
-When vmapping a 128MB dma-buf using the systemheap, this patch makes
-system_heap_do_vmap() roughly 17× faster.
+With swap disabled, only file pages can be reclaimed.  When kswapd is
+woken (e.g., via wake_all_kswapds()), it runs continuously but cannot
+raise free memory above the high watermark since reclaimable file pages
+are insufficient.  Normally, kswapd would eventually stop after
+kswapd_failures reaches MAX_RECLAIM_RETRIES.
 
-W/ patch:
-[   10.404769] system_heap_do_vmap took 2494000 ns
-[   12.525921] system_heap_do_vmap took 2467008 ns
-[   14.517348] system_heap_do_vmap took 2471008 ns
-[   16.593406] system_heap_do_vmap took 2444000 ns
-[   19.501341] system_heap_do_vmap took 2489008 ns
+However, pods on this machine have memory.high set in their cgroup. 
+Business processes continuously trigger the high limit, causing frequent
+direct reclaim that keeps resetting kswapd_failures to 0.  This prevents
+kswapd from ever stopping.
 
-W/o patch:
-[    7.413756] system_heap_do_vmap took 42626000 ns
-[    9.425610] system_heap_do_vmap took 42500992 ns
-[   11.810898] system_heap_do_vmap took 42215008 ns
-[   14.336790] system_heap_do_vmap took 42134992 ns
-[   16.373890] system_heap_do_vmap took 42750000 ns
+The result is that kswapd runs endlessly, repeatedly evicting the few
+remaining file pages which are actually hot.  These pages constantly
+refault, generating sustained heavy IO READ pressure.
 
-Link: https://lkml.kernel.org/r/20251215053050.11599-1-21cnbao@gmail.com
-Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Tested-by: Tangquan Zheng <zhengtangquan@oppo.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: John Stultz <jstultz@google.com>
-Cc: Maxime Ripard <mripard@kernel.org>
+Fix this by only resetting kswapd_failures from direct reclaim when the
+node is actually balanced.  This prevents direct reclaim from keeping
+kswapd alive when the node cannot be balanced through reclaim alone.
+
+Link: https://lkml.kernel.org/r/20251222122022.254268-1-jiayuan.chen@linux.dev
+Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   45 +++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 39 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible
-+++ a/mm/vmalloc.c
-@@ -647,6 +647,29 @@ static int vmap_small_pages_range_noflus
- 	return err;
+--- a/mm/vmscan.c~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
++++ a/mm/vmscan.c
+@@ -2648,6 +2648,15 @@ static bool can_age_anon_pages(struct lr
+ 			  lruvec_memcg(lruvec));
  }
  
-+static inline int get_vmap_batch_order(struct page **pages,
-+		unsigned int stride, unsigned int max_steps, unsigned int idx)
++static bool pgdat_balanced(pg_data_t *pgdat, int order, int highest_zoneidx);
++static inline void reset_kswapd_failures(struct pglist_data *pgdat,
++					 struct scan_control *sc)
 +{
-+	int nr_pages = 1;
-+
-+	/*
-+	 * Currently, batching is only supported in vmap_pages_range
-+	 * when page_shift == PAGE_SHIFT.
-+	 */
-+	if (stride != 1)
-+		return 0;
-+
-+	nr_pages = compound_nr(pages[idx]);
-+	if (nr_pages == 1)
-+		return 0;
-+	if (max_steps < nr_pages)
-+		return 0;
-+
-+	if (num_pages_contiguous(&pages[idx], nr_pages) == nr_pages)
-+		return compound_order(pages[idx]);
-+	return 0;
++	if (!current_is_kswapd() &&
++	    pgdat_balanced(pgdat, sc->order, sc->reclaim_idx))
++		atomic_set(&pgdat->kswapd_failures, 0);
 +}
 +
- /*
-  * vmap_pages_range_noflush is similar to vmap_pages_range, but does not
-  * flush caches.
-@@ -660,23 +683,33 @@ int __vmap_pages_range_noflush(unsigned
- 		pgprot_t prot, struct page **pages, unsigned int page_shift)
- {
- 	unsigned int i, nr = (end - addr) >> PAGE_SHIFT;
-+	unsigned int stride;
+ #ifdef CONFIG_LRU_GEN
  
- 	WARN_ON(page_shift < PAGE_SHIFT);
+ #ifdef CONFIG_LRU_GEN_ENABLED
+@@ -5065,7 +5074,7 @@ static void lru_gen_shrink_node(struct p
+ 	blk_finish_plug(&plug);
+ done:
+ 	if (sc->nr_reclaimed > reclaimed)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		reset_kswapd_failures(pgdat, sc);
+ }
  
-+	/*
-+	 * For vmap(), users may allocate pages from high orders down to
-+	 * order 0, while always using PAGE_SHIFT as the page_shift.
-+	 * We first check whether the initial page is a compound page. If so,
-+	 * there may be an opportunity to batch multiple pages together.
-+	 */
- 	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMALLOC) ||
--			page_shift == PAGE_SHIFT)
-+			(page_shift == PAGE_SHIFT && !PageCompound(pages[0])))
- 		return vmap_small_pages_range_noflush(addr, end, prot, pages);
- 
--	for (i = 0; i < nr; i += 1U << (page_shift - PAGE_SHIFT)) {
--		int err;
-+	stride = 1U << (page_shift - PAGE_SHIFT);
-+	for (i = 0; i < nr; ) {
-+		int err, order;
- 
--		err = vmap_range_noflush(addr, addr + (1UL << page_shift),
-+		order = get_vmap_batch_order(pages, stride, nr - i, i);
-+		err = vmap_range_noflush(addr, addr + (1UL << (page_shift + order)),
- 					page_to_phys(pages[i]), prot,
--					page_shift);
-+					page_shift + order);
- 		if (err)
- 			return err;
- 
--		addr += 1UL << page_shift;
-+		addr += 1UL  << (page_shift + order);
-+		i += 1U << (order + page_shift - PAGE_SHIFT);
- 	}
- 
- 	return 0;
+ /******************************************************************************
+@@ -6139,7 +6148,7 @@ again:
+ 	 * successful direct reclaim run will revive a dormant kswapd.
+ 	 */
+ 	if (reclaimable)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		reset_kswapd_failures(pgdat, sc);
+ 	else if (sc->cache_trim_mode)
+ 		sc->cache_trim_mode_failed = 1;
+ }
 _
 
-Patches currently in -mm which might be from v-songbaohua@oppo.com are
+Patches currently in -mm which might be from jiayuan.chen@shopee.com are
 
+mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
