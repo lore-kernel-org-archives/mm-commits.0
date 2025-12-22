@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F35E722068F
-	for <mm-commits@vger.kernel.org>; Mon, 22 Dec 2025 17:54:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9995C2C3261
+	for <mm-commits@vger.kernel.org>; Mon, 22 Dec 2025 18:15:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766426046; cv=none; b=aoNy2VaFjZ3NVrdqiIWaNUsJpAo3Ibt9EWGPqTSkmTItZQFdUfIQRE/MePOil/J3OhRIbZbbUq5iDWC/syy8LnF18qZ5iY/ot/mL4RbQu2ronatO4RZhdXzq/u+3eY3R6SgGX4qsOP3TbkYwDBzHy+oKzp4eVdLtsgOdZB+ZPwU=
+	t=1766427301; cv=none; b=WHAbG+IUS2uHtMwDWZaVDKpi+oEBPUq++NWT881OCndWaQKU1RqQQFXOz1raAqWcARsmG5mBl8UbsY1gd2G+Ql9Ny8Wj4OtUHeE8PmQKnjhIuw5dPnx6hNHbXJMl/lR6qmrOnimV7nDpP4bKtROOpusgDzNXPtZDf/tnMBNINCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766426046; c=relaxed/simple;
-	bh=9jw7qjbIz9nN2QH02e3agd+e7ceBiusK1l9yoCUPSC0=;
-	h=Date:To:From:Subject:Message-Id; b=uySFR86SIr0plY4yqR2h100o3yK80Qz3024AXV1UTd1syNGP9vmCkOHPDYXuUXmgPc0ZWIgS9X0EmI5YBeNIgs8C5YmjoeDRfNU3h3JdFNM4AureshK5LXjegIqA7kzJQRIBUdcVMYOBw12XAcCC9zbwY8Edx33TLXPes8BIaWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rCL/kiqE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766427301; c=relaxed/simple;
+	bh=iUmw3owyvqF9UsMxnqNiVumUjlz9GD5kmrMLsuSZJtY=;
+	h=Date:To:From:Subject:Message-Id; b=n4/He19K2dmwQpPv87rRsqFs/FKKWB54mclIvoLNux4lLncx2/XkkDUyeX1hwnsL/lkZTlcX1mfpmseIeiDzHmWmYoGKKtu5BCqJ88WlL7H1idZ16oGFX7iyhir+TbgBohezNGuG6x0pfRdlktnmUzIbUp+h8V9T1uTtP86yU54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WQ4sGXTK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rCL/kiqE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D1A8C4CEF1;
-	Mon, 22 Dec 2025 17:54:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WQ4sGXTK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18E91C4CEF1;
+	Mon, 22 Dec 2025 18:15:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766426044;
-	bh=9jw7qjbIz9nN2QH02e3agd+e7ceBiusK1l9yoCUPSC0=;
+	s=korg; t=1766427301;
+	bh=iUmw3owyvqF9UsMxnqNiVumUjlz9GD5kmrMLsuSZJtY=;
 	h=Date:To:From:Subject:From;
-	b=rCL/kiqEXMDKebrow1qp0ka7aqZp5CO6nlH2fnoqhZHfaIUjb5u0BGX/QfyTTkYVU
-	 gSJfy+8KqL6v1yXuozTbqhY7LqMH4qOzQyaWldVqcjeL+YCxHi+V3jxddR1xK8iOv2
-	 OZkiWFflP0w9GeodTCbaJaKd3bpm8rpQtmDys89w=
-Date: Mon, 22 Dec 2025 09:54:03 -0800
-To: mm-commits@vger.kernel.org,k.lourenco@criteo.com,david@kernel.org,klourencodev@gmail.com,akpm@linux-foundation.org
+	b=WQ4sGXTKxL0MgAzm/e9IEp+b/3hCrBtjqZg+npNtRc3UnASz4ypCBX1JC95Id4faw
+	 izhbFa+FbAY3htqawS9dYHKCk76QKGtn6bnorseggWcQg4jgWE3AYnFyF9EDDen48t
+	 RtvuV1OcCeI/kZ/Q/b6I2w/DdhvKsbFPOS5VyS98=
+Date: Mon, 22 Dec 2025 10:15:00 -0800
+To: mm-commits@vger.kernel.org,zhengtangquan@oppo.com,urezki@gmail.com,sumit.semwal@linaro.org,mripard@kernel.org,jstultz@google.com,david@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fadvise-validate-offset-in-generic_fadvise.patch added to mm-unstable branch
-Message-Id: <20251222175404.4D1A8C4CEF1@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible.patch removed from -mm tree
+Message-Id: <20251222181501.18E91C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,67 +34,135 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/fadvise: validate offset in generic_fadvise
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fadvise-validate-offset-in-generic_fadvise.patch
+The quilt patch titled
+     Subject: mm/vmalloc: map contiguous pages in batches for vmap() whenever possible
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fadvise-validate-offset-in-generic_fadvise.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kevin Lourenco <klourencodev@gmail.com>
-Subject: mm/fadvise: validate offset in generic_fadvise
-Date: Mon, 22 Dec 2025 15:18:17 +0100
+From: Barry Song <v-songbaohua@oppo.com>
+Subject: mm/vmalloc: map contiguous pages in batches for vmap() whenever possible
+Date: Mon, 15 Dec 2025 13:30:50 +0800
 
-When converted to (u64) for page calculations, a negative offset can
-produce extremely large page indices.  This may lead to issues in certain
-advice modes (excessive readahead or cache invalidation)
+In many cases, the pages passed to vmap() may include high-order pages
+allocated with __GFP_COMP flags.  For example, the systemheap often
+allocates pages in descending order: order 8, then 4, then 0.  Currently,
+vmap() iterates over every page individually—even pages inside a
+high-order block are handled one by one.
 
-offsets are normally non-negative, but the API does not guarantee this. 
-Since 'len' is already validated, checking 'offset' here is reasonable to
-prevent potential system instability.
+This patch detects high-order pages and maps them as a single contiguous
+block whenever possible.
 
-Link: https://lkml.kernel.org/r/20251222141817.13335-1-klourencodev@gmail.com
-Signed-off-by: Kevin Lourenco <k.lourenco@criteo.com>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+An alternative would be to implement a new API, vmap_sg(), but that
+change seems to be large in scope.
+
+When vmapping a 128MB dma-buf using the systemheap, this patch makes
+system_heap_do_vmap() roughly 17× faster.
+
+W/ patch:
+[   10.404769] system_heap_do_vmap took 2494000 ns
+[   12.525921] system_heap_do_vmap took 2467008 ns
+[   14.517348] system_heap_do_vmap took 2471008 ns
+[   16.593406] system_heap_do_vmap took 2444000 ns
+[   19.501341] system_heap_do_vmap took 2489008 ns
+
+W/o patch:
+[    7.413756] system_heap_do_vmap took 42626000 ns
+[    9.425610] system_heap_do_vmap took 42500992 ns
+[   11.810898] system_heap_do_vmap took 42215008 ns
+[   14.336790] system_heap_do_vmap took 42134992 ns
+[   16.373890] system_heap_do_vmap took 42750000 ns
+
+Link: https://lkml.kernel.org/r/20251215053050.11599-1-21cnbao@gmail.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Tested-by: Tangquan Zheng <zhengtangquan@oppo.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: John Stultz <jstultz@google.com>
+Cc: Maxime Ripard <mripard@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   45 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 39 insertions(+), 6 deletions(-)
 
---- a/mm/fadvise.c~mm-fadvise-validate-offset-in-generic_fadvise
-+++ a/mm/fadvise.c
-@@ -43,7 +43,7 @@ int generic_fadvise(struct file *file, l
- 		return -ESPIPE;
+--- a/mm/vmalloc.c~mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-whenever-possible
++++ a/mm/vmalloc.c
+@@ -647,6 +647,29 @@ static int vmap_small_pages_range_noflus
+ 	return err;
+ }
  
- 	mapping = file->f_mapping;
--	if (!mapping || len < 0)
-+	if (!mapping || len < 0 || offset < 0)
- 		return -EINVAL;
++static inline int get_vmap_batch_order(struct page **pages,
++		unsigned int stride, unsigned int max_steps, unsigned int idx)
++{
++	int nr_pages = 1;
++
++	/*
++	 * Currently, batching is only supported in vmap_pages_range
++	 * when page_shift == PAGE_SHIFT.
++	 */
++	if (stride != 1)
++		return 0;
++
++	nr_pages = compound_nr(pages[idx]);
++	if (nr_pages == 1)
++		return 0;
++	if (max_steps < nr_pages)
++		return 0;
++
++	if (num_pages_contiguous(&pages[idx], nr_pages) == nr_pages)
++		return compound_order(pages[idx]);
++	return 0;
++}
++
+ /*
+  * vmap_pages_range_noflush is similar to vmap_pages_range, but does not
+  * flush caches.
+@@ -660,23 +683,33 @@ int __vmap_pages_range_noflush(unsigned
+ 		pgprot_t prot, struct page **pages, unsigned int page_shift)
+ {
+ 	unsigned int i, nr = (end - addr) >> PAGE_SHIFT;
++	unsigned int stride;
  
- 	bdi = inode_to_bdi(mapping->host);
+ 	WARN_ON(page_shift < PAGE_SHIFT);
+ 
++	/*
++	 * For vmap(), users may allocate pages from high orders down to
++	 * order 0, while always using PAGE_SHIFT as the page_shift.
++	 * We first check whether the initial page is a compound page. If so,
++	 * there may be an opportunity to batch multiple pages together.
++	 */
+ 	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMALLOC) ||
+-			page_shift == PAGE_SHIFT)
++			(page_shift == PAGE_SHIFT && !PageCompound(pages[0])))
+ 		return vmap_small_pages_range_noflush(addr, end, prot, pages);
+ 
+-	for (i = 0; i < nr; i += 1U << (page_shift - PAGE_SHIFT)) {
+-		int err;
++	stride = 1U << (page_shift - PAGE_SHIFT);
++	for (i = 0; i < nr; ) {
++		int err, order;
+ 
+-		err = vmap_range_noflush(addr, addr + (1UL << page_shift),
++		order = get_vmap_batch_order(pages, stride, nr - i, i);
++		err = vmap_range_noflush(addr, addr + (1UL << (page_shift + order)),
+ 					page_to_phys(pages[i]), prot,
+-					page_shift);
++					page_shift + order);
+ 		if (err)
+ 			return err;
+ 
+-		addr += 1UL << page_shift;
++		addr += 1UL  << (page_shift + order);
++		i += 1U << (order + page_shift - PAGE_SHIFT);
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from klourencodev@gmail.com are
+Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
-mm-damon-fix-typos-in-comments.patch
-mm-fix-minor-spelling-mistakes-in-comments.patch
-mm-fadvise-validate-offset-in-generic_fadvise.patch
 
