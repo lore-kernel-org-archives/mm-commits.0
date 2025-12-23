@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B8D52F3C02
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 19:24:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 639AD34AB00;
+	Tue, 23 Dec 2025 19:24:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766517853; cv=none; b=tmgvuM0y/PNggPdYy4EgwoRcAQf7NQEF4jy7FaoTYvRtIIW7gkkCHaxkGbuSRLxx4wtu9d9zCEqK+dbKWWFuN2CLpsLK9C7o6morFebEztsAG34PR8AtrqzMgCGfSEZ91BsPGBxy0Y6wxDz9lK8ndY+Lp095inft2A7wbx7xVOk=
+	t=1766517854; cv=none; b=elSbI+z9VU6JEJTUxEZ6CDdffpuCDss0XduuwoBYkdpZuuD8kKUEQ8cnPlMwLPKFP0KVZpJD1CSiir2KzcpWLskwYthexi084UVbgssX9MogSS9l0lp0JcHMGzxTukj+sJPlVCUa5XfmDGVzK2PktvOMp0jCW4iKoxKUnK0fOjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766517853; c=relaxed/simple;
-	bh=UxIq2JgcU7Hav1Zk+0y96aYy0COpMzCAuUrJDv3pM9o=;
-	h=Date:To:From:Subject:Message-Id; b=u09NlxF0vTmO08+sElss5mX7cjeaVpnmxFbOpoCS2psSPqWCVNZuqQio0JvDlow+QWMbBUV33afVaL4xEu8w3libfrcEfaqg42tF49LDhlLUzSpT2HvSXaquKef7gyaP54g01MZCPVQSj9qip6lbGtm6V+FCqBhcnmqD6jrn5g0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wGYBRGZs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766517854; c=relaxed/simple;
+	bh=jYQX8Ewqzf61bUusqX4Uv6gE0amhnE6sXK+SqVg5VUc=;
+	h=Date:To:From:Subject:Message-Id; b=UBht7o9Mm65BnOPtcSGsRalAggWuei3ThIWvOUy9yBcZK5bM3iIyaOUEbI5vY/SGaoESjP4c7UbY6Ni7mlGqTB4ww/aKYAOueNQ7dCtrowbEmFdp2vG5L3bmfXNBWXFJVqaRsT71jJhdnytBzB0Ji9ZclOSbJOFsBUwXY8KnNR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n6SuuJAj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wGYBRGZs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94D1EC113D0;
-	Tue, 23 Dec 2025 19:24:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n6SuuJAj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAB6AC113D0;
+	Tue, 23 Dec 2025 19:24:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766517852;
-	bh=UxIq2JgcU7Hav1Zk+0y96aYy0COpMzCAuUrJDv3pM9o=;
+	s=korg; t=1766517853;
+	bh=jYQX8Ewqzf61bUusqX4Uv6gE0amhnE6sXK+SqVg5VUc=;
 	h=Date:To:From:Subject:From;
-	b=wGYBRGZsiJ/dFFH0MKyJPWN7DVRwAjtygbNT2Po2wqPmiEufI6HFEzOUjhCAKRQjL
-	 L3ElgUdByCM+w1B0+KYI96qLoWadf4V/IzsHy1rikxOc5TLZGHG+nDGgR3WM8snvmf
-	 H9/LB5Yl1GfiUq6g7nePmrISjFlu54qIpc18iWoM=
-Date: Tue, 23 Dec 2025 11:24:12 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=n6SuuJAjJ55RwpHuL/R7Mdowkiu9YLSweM5rnsXX/LgA4/8Y9fKARHOseOAWjgxQg
+	 hywZCZ4f9PVk3qlQC3/5l7nG/YWSaRuSc10lFYHCcHKBPSH1K5iGJFYnTutyiHtQ6S
+	 Y1NVbMaLtW+ZpDnnNlicqJFNPey2qSL2dMe1SDO0=
+Date: Tue, 23 Dec 2025 11:24:13 -0800
+To: mm-commits@vger.kernel.org,zohar@linux.ibm.com,stable@vger.kernel.org,roberto.sassu@huawei.com,graf@amazon.com,chenste@linux.microsoft.com,bhe@redhat.com,piliu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-abi-headers-to-kho-and-live-update.patch removed from -mm tree
-Message-Id: <20251223192412.94D1EC113D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kernel-kexec-change-the-prototype-of-kimage_map_segment.patch removed from -mm tree
+Message-Id: <20251223192413.CAB6AC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add ABI headers to KHO and LIVE UPDATE
+     Subject: kernel/kexec: change the prototype of kimage_map_segment()
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-abi-headers-to-kho-and-live-update.patch
+     kernel-kexec-change-the-prototype-of-kimage_map_segment.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pratyush Yadav <pratyush@kernel.org>
-Subject: MAINTAINERS: add ABI headers to KHO and LIVE UPDATE
-Date: Fri, 12 Dec 2025 16:12:02 +0900
+From: Pingfan Liu <piliu@redhat.com>
+Subject: kernel/kexec: change the prototype of kimage_map_segment()
+Date: Tue, 16 Dec 2025 09:48:51 +0800
 
-include/linux/kho is supposed to hold KHO headers.  Add it to KHO's
-MAINTAINERS entry so the right people can get patches to it.
+The kexec segment index will be required to extract the corresponding
+information for that segment in kimage_map_segment().  Additionally,
+kexec_segment already holds the kexec relocation destination address and
+size.  Therefore, the prototype of kimage_map_segment() can be changed.
 
-include/linux/kho/abi contains the live update ABI headers for LUO core
-and memfd.  It will also hold ABI headers for other upcoming file types as
-well.  Add it to live update entry so live update maintainers can get
-changes for it (currently they happen to be the same people).
-
-Link: https://lkml.kernel.org/r/20251212071204.398788-1-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lkml.kernel.org/r/20251216014852.8737-1-piliu@redhat.com
+Fixes: 07d24902977e ("kexec: enable CMA based contiguous allocation")
+Signed-off-by: Pingfan Liu <piliu@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Mimi Zohar <zohar@linux.ibm.com>
+Cc: Roberto Sassu <roberto.sassu@huawei.com>
 Cc: Alexander Graf <graf@amazon.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Steven Chen <chenste@linux.microsoft.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/kexec.h              |    4 ++--
+ kernel/kexec_core.c                |    9 ++++++---
+ security/integrity/ima/ima_kexec.c |    4 +---
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-abi-headers-to-kho-and-live-update
-+++ a/MAINTAINERS
-@@ -13959,6 +13959,7 @@ S:	Maintained
- F:	Documentation/admin-guide/mm/kho.rst
- F:	Documentation/core-api/kho/*
- F:	include/linux/kexec_handover.h
-+F:	include/linux/kho/
- F:	kernel/liveupdate/kexec_handover*
- F:	lib/test_kho.c
- F:	tools/testing/selftests/kho/
-@@ -14637,6 +14638,7 @@ S:	Maintained
- F:	Documentation/core-api/liveupdate.rst
- F:	Documentation/mm/memfd_preservation.rst
- F:	Documentation/userspace-api/liveupdate.rst
-+F:	include/linux/kho/abi/
- F:	include/linux/liveupdate.h
- F:	include/linux/liveupdate/
- F:	include/uapi/linux/liveupdate.h
+--- a/include/linux/kexec.h~kernel-kexec-change-the-prototype-of-kimage_map_segment
++++ a/include/linux/kexec.h
+@@ -530,7 +530,7 @@ extern bool kexec_file_dbg_print;
+ #define kexec_dprintk(fmt, arg...) \
+         do { if (kexec_file_dbg_print) pr_info(fmt, ##arg); } while (0)
+ 
+-extern void *kimage_map_segment(struct kimage *image, unsigned long addr, unsigned long size);
++extern void *kimage_map_segment(struct kimage *image, int idx);
+ extern void kimage_unmap_segment(void *buffer);
+ #else /* !CONFIG_KEXEC_CORE */
+ struct pt_regs;
+@@ -540,7 +540,7 @@ static inline void __crash_kexec(struct
+ static inline void crash_kexec(struct pt_regs *regs) { }
+ static inline int kexec_should_crash(struct task_struct *p) { return 0; }
+ static inline int kexec_crash_loaded(void) { return 0; }
+-static inline void *kimage_map_segment(struct kimage *image, unsigned long addr, unsigned long size)
++static inline void *kimage_map_segment(struct kimage *image, int idx)
+ { return NULL; }
+ static inline void kimage_unmap_segment(void *buffer) { }
+ #define kexec_in_progress false
+--- a/kernel/kexec_core.c~kernel-kexec-change-the-prototype-of-kimage_map_segment
++++ a/kernel/kexec_core.c
+@@ -953,17 +953,20 @@ int kimage_load_segment(struct kimage *i
+ 	return result;
+ }
+ 
+-void *kimage_map_segment(struct kimage *image,
+-			 unsigned long addr, unsigned long size)
++void *kimage_map_segment(struct kimage *image, int idx)
+ {
++	unsigned long addr, size, eaddr;
+ 	unsigned long src_page_addr, dest_page_addr = 0;
+-	unsigned long eaddr = addr + size;
+ 	kimage_entry_t *ptr, entry;
+ 	struct page **src_pages;
+ 	unsigned int npages;
+ 	void *vaddr = NULL;
+ 	int i;
+ 
++	addr = image->segment[idx].mem;
++	size = image->segment[idx].memsz;
++	eaddr = addr + size;
++
+ 	/*
+ 	 * Collect the source pages and map them in a contiguous VA range.
+ 	 */
+--- a/security/integrity/ima/ima_kexec.c~kernel-kexec-change-the-prototype-of-kimage_map_segment
++++ a/security/integrity/ima/ima_kexec.c
+@@ -250,9 +250,7 @@ void ima_kexec_post_load(struct kimage *
+ 	if (!image->ima_buffer_addr)
+ 		return;
+ 
+-	ima_kexec_buffer = kimage_map_segment(image,
+-					      image->ima_buffer_addr,
+-					      image->ima_buffer_size);
++	ima_kexec_buffer = kimage_map_segment(image, image->ima_segment_index);
+ 	if (!ima_kexec_buffer) {
+ 		pr_err("Could not map measurements buffer.\n");
+ 		return;
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from piliu@redhat.com are
 
-kho-simplify-page-initialization-in-kho_restore_page.patch
 
