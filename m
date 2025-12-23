@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB4BE28C5AA;
-	Tue, 23 Dec 2025 19:24:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB448279DCC;
+	Tue, 23 Dec 2025 19:24:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766517863; cv=none; b=XDEoQzMJhDuo0Kzt0NVPoKlIJgcx3NuqXWdT6WwMd0Wn8oQ6bgFmNtgANZdyvByXoX7bt/raYxQyYlt5T620h2Bg/L/V/aLe4C211nbDHcgw8ypf4lYGOs1PuJy1+wCoyRkGQ8c00Fh01uaDVSxcuTcOaO/hh60L/P7v8rHPLdw=
+	t=1766517863; cv=none; b=hUCMim8MgDwEUlvpFzkS/u3fTWwX+yLfzNHcUfGX2jxwViEahiuQK2uLnjX2iChOcymk7VDFXp1j0s+U8CCOArnSyslBqccepPkvJhWUq74z7x8mujWpCYox1ijgOc8lTO+MKgUXWz0AWMJOqHvDdmQgQj0AFWt7xzgclqMFFoE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1766517863; c=relaxed/simple;
-	bh=L8REVJ2gtNeCkJh53/51pPnydUZUrhvwC1XfdNcInQs=;
-	h=Date:To:From:Subject:Message-Id; b=qlpXVbIiwinD/W7sCogS7H5jK8fpsxJgF193pReF+jgRCQkYAglgCFIZi2o2pq4VqCUjkO5DbBDdIY5g+LCOZnW3Egdw8h/yUeHOpU1Klv/GworfjLXnIK7IL0KjkmKbmR90Yp4efZu+IimecGj/df1LAKGKdge4sY8HVMoFs2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cpzBnPo1; arc=none smtp.client-ip=10.30.226.201
+	bh=dzJhG2dYwTx1crbhFCeE3gsWOQ3pqzg6kKWs1xvm2wE=;
+	h=Date:To:From:Subject:Message-Id; b=qE093PQwhOs0U+ZiJLz911Oij+Td7zKMoPnDsNPkBkun6Sz5bSkB/8NPdSG/cHSrhk1RIRJAsxvyVBRzTeNbBhXdQR5DixO1Emjo+DDOcGFGYJ0G1ztSmdWETpcQVXNpDB9ivJm34iCACJGSAiSBTRFaexUY2+0JH3OTOQXuMPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CLt+k5qJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cpzBnPo1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0FA3C113D0;
-	Tue, 23 Dec 2025 19:24:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CLt+k5qJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47FDEC116D0;
+	Tue, 23 Dec 2025 19:24:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766517862;
-	bh=L8REVJ2gtNeCkJh53/51pPnydUZUrhvwC1XfdNcInQs=;
+	s=korg; t=1766517863;
+	bh=dzJhG2dYwTx1crbhFCeE3gsWOQ3pqzg6kKWs1xvm2wE=;
 	h=Date:To:From:Subject:From;
-	b=cpzBnPo1MXFF7RZdrVEsovKp6dDlMLrzptgVL+x9ij9z7sbvqQb91eIEKJ4nPga4/
-	 jl/Vaid7UaenkS0y2a7ARuU3TCxGnW6xuhV0FzdZkw5H4TYF48ylBDcXGGGj3vpuaZ
-	 WWARUXarwXU5kd1JyC8YCA3SzqlPdBrwh//jjOCk=
-Date: Tue, 23 Dec 2025 11:24:21 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tmgross@umich.edu,stable@vger.kernel.org,ojeda@kernel.org,liam.howlett@oracle.com,gary@garyguo.net,daniel.almeida@collabora.com,dakr@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,andrewjballance@gmail.com,a.hindborg@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
+	b=CLt+k5qJHzLBBG4XO7xDJ0py3fwMBPW6mebmiR3vGkWsA9ADcccEfHUncnsbqU823
+	 Bpveq42ulMRXlhBuJoQD5D+gAMaUMRN62uv6COZ53GPSJ1MhRo/pabD981117nheAt
+	 rbTxKehRDg72Sxn63KBB2fyMpqJ4GON7+5rGTAoo=
+Date: Tue, 23 Dec 2025 11:24:22 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shivankg@amd.com,ryncsn@gmail.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,baolin.wang@linux.alibaba.com,bijan311@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] rust-maple_tree-rcu_read_lock-in-destructor-to-silence-lockdep.patch removed from -mm tree
-Message-Id: <20251223192421.E0FA3C113D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-consider-non-anon-swap-cache-folios-in-folio_expected_ref_count.patch removed from -mm tree
+Message-Id: <20251223192423.47FDEC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,127 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: rust: maple_tree: rcu_read_lock() in destructor to silence lockdep
+     Subject: mm: consider non-anon swap cache folios in folio_expected_ref_count()
 has been removed from the -mm tree.  Its filename was
-     rust-maple_tree-rcu_read_lock-in-destructor-to-silence-lockdep.patch
+     mm-consider-non-anon-swap-cache-folios-in-folio_expected_ref_count.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alice Ryhl <aliceryhl@google.com>
-Subject: rust: maple_tree: rcu_read_lock() in destructor to silence lockdep
-Date: Wed, 17 Dec 2025 13:10:37 +0000
+From: Bijan Tabatabai <bijan311@gmail.com>
+Subject: mm: consider non-anon swap cache folios in folio_expected_ref_count()
+Date: Tue, 16 Dec 2025 14:07:27 -0600
 
-When running the Rust maple tree kunit tests with lockdep, you may trigger
-a warning that looks like this:
+Currently, folio_expected_ref_count() only adds references for the swap
+cache if the folio is anonymous.  However, according to the comment above
+the definition of PG_swapcache in enum pageflags, shmem folios can also
+have PG_swapcache set.  This patch makes sure references for the swap
+cache are added if folio_test_swapcache(folio) is true.
 
-	lib/maple_tree.c:780 suspicious rcu_dereference_check() usage!
+This issue was found when trying to hot-unplug memory in a QEMU/KVM
+virtual machine.  When initiating hot-unplug when most of the guest memory
+is allocated, hot-unplug hangs partway through removal due to migration
+failures.  The following message would be printed several times, and would
+be printed again about every five seconds:
 
-	other info that might help us debug this:
+[   49.641309] migrating pfn b12f25 failed ret:7
+[   49.641310] page: refcount:2 mapcount:0 mapping:0000000033bd8fe2 index:0x7f404d925 pfn:0xb12f25
+[   49.641311] aops:swap_aops
+[   49.641313] flags: 0x300000000030508(uptodate|active|owner_priv_1|reclaim|swapbacked|node=0|zone=3)
+[   49.641314] raw: 0300000000030508 ffffed312c4bc908 ffffed312c4bc9c8 0000000000000000
+[   49.641315] raw: 00000007f404d925 00000000000c823b 00000002ffffffff 0000000000000000
+[   49.641315] page dumped because: migration failure
 
-	rcu_scheduler_active = 2, debug_locks = 1
-	no locks held by kunit_try_catch/344.
+When debugging this, I found that these migration failures were due to
+__migrate_folio() returning -EAGAIN for a small set of folios because the
+expected reference count it calculates via folio_expected_ref_count() is
+one less than the actual reference count of the folios.  Furthermore, all
+of the affected folios were not anonymous, but had the PG_swapcache flag
+set, inspiring this patch.  After applying this patch, the memory
+hot-unplug behaves as expected.
 
-	stack backtrace:
-	CPU: 3 UID: 0 PID: 344 Comm: kunit_try_catch Tainted: G                 N  6.19.0-rc1+ #2 NONE
-	Tainted: [N]=TEST
-	Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org 04/01/2014
-	Call Trace:
-	 <TASK>
-	 dump_stack_lvl+0x71/0x90
-	 lockdep_rcu_suspicious+0x150/0x190
-	 mas_start+0x104/0x150
-	 mas_find+0x179/0x240
-	 _RINvNtCs5QSdWC790r4_4core3ptr13drop_in_placeINtNtCs1cdwasc6FUb_6kernel10maple_tree9MapleTreeINtNtNtBL_5alloc4kbox3BoxlNtNtB1x_9allocator7KmallocEEECsgxAQYCfdR72_25doctests_kernel_generated+0xaf/0x130
-	 rust_doctest_kernel_maple_tree_rs_0+0x600/0x6b0
-	 ? lock_release+0xeb/0x2a0
-	 ? kunit_try_catch_run+0x210/0x210
-	 kunit_try_run_case+0x74/0x160
-	 ? kunit_try_catch_run+0x210/0x210
-	 kunit_generic_run_threadfn_adapter+0x12/0x30
-	 kthread+0x21c/0x230
-	 ? __do_trace_sched_kthread_stop_ret+0x40/0x40
-	 ret_from_fork+0x16c/0x270
-	 ? __do_trace_sched_kthread_stop_ret+0x40/0x40
-	 ret_from_fork_asm+0x11/0x20
-	 </TASK>
+I tested this on a machine running Ubuntu 24.04 with kernel version
+6.8.0-90-generic and 64GB of memory.  The guest VM is managed by libvirt
+and runs Ubuntu 24.04 with kernel version 6.18 (though the head of the
+mm-unstable branch as a Dec 16, 2025 was also tested and behaves the same)
+and 48GB of memory.  The libvirt XML definition for the VM can be found at
+[1].  CONFIG_MHP_DEFAULT_ONLINE_TYPE_ONLINE_MOVABLE is set in the guest
+kernel so the hot-pluggable memory is automatically onlined.
 
-This is because the destructor of maple tree calls mas_find() without
-taking rcu_read_lock() or the spinlock.  Doing that is actually ok in this
-case since the destructor has exclusive access to the entire maple tree,
-but it triggers a lockdep warning.  To fix that, take the rcu read lock.
+Below are the steps to reproduce this behavior:
 
-In the future, it's possible that memory reclaim could gain a feature
-where it reallocates entries in maple trees even if no user-code is
-touching it.  If that feature is added, then this use of rcu read lock
-would become load-bearing, so I did not make it conditional on lockdep.
+1) Define and start and virtual machine
+  host$ virsh -c qemu:///system define ./test_vm.xml # test_vm.xml from [1]
+  host$ virsh -c qemu:///system start test_vm
 
-We have to repeatedly take and release rcu because the destructor of T
-might perform operations that sleep.
+2) Setup swap in the guest
+  guest$ sudo fallocate -l 32G /swapfile
+  guest$ sudo chmod 0600 /swapfile
+  guest$ sudo mkswap /swapfile
+  guest$ sudo swapon /swapfile
 
-Link: https://lkml.kernel.org/r/20251217-maple-drop-rcu-v1-1-702af063573f@google.com
-Fixes: da939ef4c494 ("rust: maple_tree: add MapleTree")
-Signed-off-by: Alice Ryhl <aliceryhl@google.com>
-Reported-by: Andreas Hindborg <a.hindborg@kernel.org>
-Closes: https://rust-for-linux.zulipchat.com/#narrow/channel/x/topic/x/near/564215108
-Reviewed-by: Gary Guo <gary@garyguo.net>
-Reviewed-by: Daniel Almeida <daniel.almeida@collabora.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
-Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
+3) Use alloc_data [2] to allocate most of the remaining guest memory
+  guest$ ./alloc_data 45
+
+4) In a separate guest terminal, monitor the amount of used memory
+  guest$ watch -n1 free -h
+
+5) When alloc_data has finished allocating, initiate the memory
+hot-unplug using the provided xml file [3]
+  host$ virsh -c qemu:///system detach-device test_vm ./remove.xml --live
+
+After initiating the memory hot-unplug, you should see the amount of
+available memory in the guest decrease, and the amount of used swap data
+increase.  If everything works as expected, when all of the memory is
+unplugged, there should be around 8.5-9GB of data in swap.  If the
+unplugging is unsuccessful, the amount of used swap data will settle below
+that.  If that happens, you should be able to see log messages in dmesg
+similar to the one posted above.
+
+Link: https://lkml.kernel.org/r/20251216200727.2360228-1-bijan311@gmail.com
+Link: https://github.com/BijanT/linux_patch_files/blob/main/test_vm.xml [1]
+Link: https://github.com/BijanT/linux_patch_files/blob/main/alloc_data.c [2]
+Link: https://github.com/BijanT/linux_patch_files/blob/main/remove.xml [3]
+Fixes: 86ebd50224c0 ("mm: add folio_expected_ref_count() for reference count calculation")
+Signed-off-by: Bijan Tabatabai <bijan311@gmail.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Trevor Gross <tmgross@umich.edu>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kairui Song <ryncsn@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/kernel/maple_tree.rs |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/rust/kernel/maple_tree.rs~rust-maple_tree-rcu_read_lock-in-destructor-to-silence-lockdep
-+++ a/rust/kernel/maple_tree.rs
-@@ -265,7 +265,16 @@ impl<T: ForeignOwnable> MapleTree<T> {
-         loop {
-             // This uses the raw accessor because we're destroying pointers without removing them
-             // from the maple tree, which is only valid because this is the destructor.
--            let ptr = ma_state.mas_find_raw(usize::MAX);
-+            //
-+            // Take the rcu lock because mas_find_raw() requires that you hold either the spinlock
-+            // or the rcu read lock. This is only really required if memory reclaim might
-+            // reallocate entries in the tree, as we otherwise have exclusive access. That feature
-+            // doesn't exist yet, so for now, taking the rcu lock only serves the purpose of
-+            // silencing lockdep.
-+            let ptr = {
-+                let _rcu = kernel::sync::rcu::Guard::new();
-+                ma_state.mas_find_raw(usize::MAX)
-+            };
-             if ptr.is_null() {
-                 break;
-             }
+--- a/include/linux/mm.h~mm-consider-non-anon-swap-cache-folios-in-folio_expected_ref_count
++++ a/include/linux/mm.h
+@@ -2459,10 +2459,10 @@ static inline int folio_expected_ref_cou
+ 	if (WARN_ON_ONCE(page_has_type(&folio->page) && !folio_test_hugetlb(folio)))
+ 		return 0;
+ 
+-	if (folio_test_anon(folio)) {
+-		/* One reference per page from the swapcache. */
+-		ref_count += folio_test_swapcache(folio) << order;
+-	} else {
++	/* One reference per page from the swapcache. */
++	ref_count += folio_test_swapcache(folio) << order;
++
++	if (!folio_test_anon(folio)) {
+ 		/* One reference per page from the pagecache. */
+ 		ref_count += !!folio->mapping << order;
+ 		/* One reference from PG_private. */
 _
 
-Patches currently in -mm which might be from aliceryhl@google.com are
+Patches currently in -mm which might be from bijan311@gmail.com are
 
 
