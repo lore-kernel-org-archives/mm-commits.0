@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98DFF221DB9
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 02:01:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C4F57082F
+	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 02:09:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766455295; cv=none; b=bBRMNyn930/4BB+J2i8Q0aX255h4c8G6pkOQiJuYQBprThzAenP/9VgUrwNxSlfvbm4l/n8Kd9COEyM4NX3Ykqq3TAdVdkvAGyTO2oHPZQT9LfnkPmQScit4wBUeyN5wNuSsZp59SiDwuzKKWOcUZiY/AF5HTQ04UzA6bUdWwWA=
+	t=1766455788; cv=none; b=TltmjzzAc6SOaZjlJA/QeaKkGsPamTvc2ralDysPyZ1gDR2QjUe18vo5BSdasFCfkrcFNA2kFm+r2RyY2KDqVihBkxkjR/xjWfpjwUAP6O0rTSrLBOP7rRnQFlxEVcxYtgtstmuppEc9zXLXhA9y+JIrFdP5b85OVLEJlgCXswA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766455295; c=relaxed/simple;
-	bh=oYYSq85yNH1Zj9jqMLDOqjpX2chzwyh+tSDgOKSaiys=;
-	h=Date:To:From:Subject:Message-Id; b=pSiLcUTmWjv3nIY9NgEW5/h6tQaaqH94BoKNcYKlgP2NQuJHQahW6fUDmzV1q6TvirDZBG2HBacBkgw+JJILRcLLvi2K+6X0BqPv/jDX2MLLyMtbss3TU3Q1Izy31CRSAQWEAVupkaezuPIbWBHi15M0zE/76znMQXDDqJ9uXh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iXxYTFoR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766455788; c=relaxed/simple;
+	bh=toOnYb26EVv+QEy0Y/tlAIt/pXmM75N5Nhcb1nL6LlY=;
+	h=Date:To:From:Subject:Message-Id; b=RHjBJK3b+PL0YFyojjN+O0HpUpufNK78kjF39tP46n5kc9qLgsOuF6rqJ+noKuhhxFVHeW2PmmqonOtWcRSRI766gTXsTbGlPC28eu25bh8/KANHqFkl5JoCyEAwtrFLI+blyFol+LZTllQt3AeD2tt5GhN4LMvFn69XHzGaxBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v7kAHcIG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iXxYTFoR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C6D9C4CEF1;
-	Tue, 23 Dec 2025 02:01:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v7kAHcIG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3A34C4CEF1;
+	Tue, 23 Dec 2025 02:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766455295;
-	bh=oYYSq85yNH1Zj9jqMLDOqjpX2chzwyh+tSDgOKSaiys=;
+	s=korg; t=1766455788;
+	bh=toOnYb26EVv+QEy0Y/tlAIt/pXmM75N5Nhcb1nL6LlY=;
 	h=Date:To:From:Subject:From;
-	b=iXxYTFoRDD4m2/YvF8RVkaTxsUCXFyelIn715opQ8A4kcY5hq/0Hmld6Xx7KcF405
-	 h3S2NbaoE6DYsU/enNcuePBTngX6kJny0DBHUN+jjYhwZ0pd7TyugouwAJvWYHkawA
-	 fdC6L1cl71TCrpw9U4k1xk3xE23toPEQdsYBdsok=
-Date: Mon, 22 Dec 2025 18:01:34 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,broonie@kernel.org,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
+	b=v7kAHcIGAP3ZsgHK9vMK23EZ3VHSPm65rrzPhCz6CCkeIAgePvX/ZaIbOo9VjObiw
+	 sZ7f2fv7NAbf8kb8K3Ny4GtH8gqutisY4RpIJL7UnPXFr47EvCdPWV0i75jEy5hoa7
+	 jpfzjiDuiEfgWvZzMg1A2iCYjIT+Qb9WkOYWgpso=
+Date: Mon, 22 Dec 2025 18:09:47 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,mhocko@suse.com,lkp@intel.com,kartikey406@gmail.com,hch@infradead.org,hannes@cmpxchg.org,axboe@kernel.dk,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tsacct-skip-all-kernel-threads.patch added to mm-new branch
-Message-Id: <20251223020135.6C6D9C4CEF1@smtp.kernel.org>
+Subject: + mm-block-fs-remove-laptop_mode-fix.patch added to mm-unstable branch
+Message-Id: <20251223020947.E3A34C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tsacct: skip all kernel threads
-has been added to the -mm mm-new branch.  Its filename is
-     tsacct-skip-all-kernel-threads.patch
+     Subject: mm-block-fs-remove-laptop_mode-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-block-fs-remove-laptop_mode-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tsacct-skip-all-kernel-threads.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-block-fs-remove-laptop_mode-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,54 +58,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: tsacct: skip all kernel threads
-Date: Sun, 21 Dec 2025 18:29:26 -0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-block-fs-remove-laptop_mode-fix
+Date: Mon Dec 22 06:06:52 PM PST 2025
 
-When we hit acct_account_cputime within a irq handler over a kthread that
-happens to use a userspace mm, we end up summing up the mm's RSS into the
-tsk acct_rss_mem1, which eventually decays.
+fix Documentation/admin-guide/laptops/index.rst
 
-I don't see a good rationale behind tracking the mm's rss in that way when
-a kthread use a userspace mm temporarily through use_mm.
-
-It causes issues with init_mm and efi_mm which only partially initialize
-their mm_struct.
-
-Skip all kernel threads in acct_account_cputime(), not just those that
-happen to have a NULL mm.
-
-Link: https://lkml.kernel.org/r/20251221232926.450602-6-mathieu.desnoyers@efficios.com
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202512212211.GvfwAGPP-lkp@intel.com/
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Deepanshu Kartikey <kartikey406@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/tsacct.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/laptops/index.rst |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/kernel/tsacct.c~tsacct-skip-all-kernel-threads
-+++ a/kernel/tsacct.c
-@@ -125,7 +125,7 @@ static void __acct_update_integrals(stru
- {
- 	u64 time, delta;
- 
--	if (!likely(tsk->mm))
-+	if (!tsk->mm || (tsk->flags & PF_KTHREAD))
- 		return;
- 
- 	time = stime + utime;
+--- a/Documentation/admin-guide/laptops/index.rst~mm-block-fs-remove-laptop_mode-fix
++++ a/Documentation/admin-guide/laptops/index.rst
+@@ -10,7 +10,6 @@ Laptop Drivers
+    alienware-wmi
+    asus-laptop
+    disk-shock-protection
+-   laptop-mode
+    lg-laptop
+    samsung-galaxybook
+    sony-laptop
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-introduce-hierarchical-per-cpu-counters.patch
-mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
-mm-implement-precise-oom-killer-task-selection.patch
-mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch
-mm-rename-cpu_bitmap-field-to-flexible_array.patch
-mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
-mm-take-into-account-hierarchical-percpu-tree-items-for-static-mm_struct-definitions.patch
-tsacct-skip-all-kernel-threads.patch
+genalloch-fix-htmldocs-warning.patch
+x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer-fix.patch
+mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free-fix.patch
+kasan-unpoison-vms-addresses-with-a-common-tag-fix.patch
+mm-add-basic-tests-for-lazy_mmu-fix.patch
+mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
+mm-block-fs-remove-laptop_mode-fix.patch
+mm-fix-minor-spelling-mistakes-in-comments-fix.patch
+kernel-watchdogc-fix-unused-var-warning.patch
 
