@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 754A5202C48;
-	Tue, 23 Dec 2025 02:01:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FFF31E4AB
+	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 02:01:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766455291; cv=none; b=lP5Bx9r+Iphd6bHTig85Srjn8j9BH5gVwHK7S1qWJZqb8WK7SCAvu14uWsKSbDE4j1w2DSvOFsvxS7s385aNdNlIzyzVSl1vNemm7/EAvvOMic08WsrE9RX1xvfsy4poYE1aabR0IgZF6GqRLweSn359iyMceEYZPJ/Oam1kZz8=
+	t=1766455293; cv=none; b=Aiq1dYn52SuvZqcPR1fmvf2UNWYt570GUbwm+Mgsmo/0QD0V8aIk096KeWpAeaXNSOE1MbyhSs2wsET1VfqEOTihkYq+iyo9ZXDB56osY2Ed6D3dG8tEd9LPYvvrFWxR7amR8kbTv45/swwcAJX4VMkqjbcvlz1Laf6RZLKDZ18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766455291; c=relaxed/simple;
-	bh=+kRSPTURYiA3TPBCEdUP1R47TaZ/HlTx8LIdT8o7Mdk=;
-	h=Date:To:From:Subject:Message-Id; b=D3qyBVL0PKoYP1QxTCRxc3jODDFy3Dlep5lmD+mUQTt+itlnkYvSd299uJDXB2Dk6bWly3jwSUNcq6GeWQbQVIg0FUJVdwKhFChmHoj4LSX38NIfFrCz1vzh2aqp6BsfTO7HfzGQNDVODkbDgEfBKrOmTw4VVVvJXVhF8zSIAjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N4LoHTkX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766455293; c=relaxed/simple;
+	bh=WHKO2c3ZWDRDtfGgk63Bys8DT+38/bqzlXluyuZOnmE=;
+	h=Date:To:From:Subject:Message-Id; b=Ql3bd2coGhp1KzM0jQGSxndpCOkQisAkuh+NQwRMXYCQQvoT4zHlvdBmwEqoR0NvDSiTkqf9NKUcR5HOQUw1STNYVG6OM+ugLCD0tMt/Jibfcr2rV9z1EOp5FkKAZBfsewn+psEy0VmEy4a+ozgrnvV1haOqakwTCNv8b4Q5Sxs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vmBoMOiN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N4LoHTkX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECB50C4CEF1;
-	Tue, 23 Dec 2025 02:01:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vmBoMOiN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7339C4CEF1;
+	Tue, 23 Dec 2025 02:01:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766455291;
-	bh=+kRSPTURYiA3TPBCEdUP1R47TaZ/HlTx8LIdT8o7Mdk=;
+	s=korg; t=1766455293;
+	bh=WHKO2c3ZWDRDtfGgk63Bys8DT+38/bqzlXluyuZOnmE=;
 	h=Date:To:From:Subject:From;
-	b=N4LoHTkX4DXq6bAKiVkYYGvRWHhp2G+4Gl+WL+35MjxaD9ffCqWKP07OWLTVC1R/3
-	 /XLhViFyR0qZH/FrjEjnKTEIDqaaFLHhPZ8OPGLj0AUm/hl1CKn5dGll2l0X95IWQ8
-	 3LFjsWSsuN7OEwBBWnwveN3Sspvvwfa5jOZxtDms=
-Date: Mon, 22 Dec 2025 18:01:30 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,stable@vger.kernel.org,broonie@kernel.org,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
+	b=vmBoMOiN2yxq9/QcVvG4TmrJWB4IWcRbe+RkSLJ+FEh4nzH1o++BhBJaYgkOM7foT
+	 J8pJCWoeSIj/if0PqL9XDhuaoTbP05eMb4gbeoXEkLOZLMBZyG55HLkdDTLp5pTNwu
+	 maSnNZNo5//aWa+p1kInj5uZ++iSx5tGp85Bbn60=
+Date: Mon, 22 Dec 2025 18:01:32 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,broonie@kernel.org,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch added to mm-new branch
-Message-Id: <20251223020130.ECB50C4CEF1@smtp.kernel.org>
+Subject: + mm-take-into-account-hierarchical-percpu-tree-items-for-static-mm_struct-definitions.patch added to mm-new branch
+Message-Id: <20251223020132.E7339C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: take into account mm_cid size for mm_struct static definitions
+     Subject: mm: take into account hierarchical percpu tree items for static mm_struct definitions
 has been added to the -mm mm-new branch.  Its filename is
-     mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
+     mm-take-into-account-hierarchical-percpu-tree-items-for-static-mm_struct-definitions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-take-into-account-hierarchical-percpu-tree-items-for-static-mm_struct-definitions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,63 +67,114 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: mm: take into account mm_cid size for mm_struct static definitions
-Date: Sun, 21 Dec 2025 18:29:24 -0500
+Subject: mm: take into account hierarchical percpu tree items for static mm_struct definitions
+Date: Sun, 21 Dec 2025 18:29:25 -0500
 
 Both init_mm and efi_mm static definitions need to make room for the
-2 mm_cid cpumasks.
+hierarchical percpu counters items.
 
 This fixes possible out-of-bounds accesses to init_mm and efi_mm.
 
-Link: https://lkml.kernel.org/r/20251221232926.450602-4-mathieu.desnoyers@efficios.com
-Fixes: af7f588d8f73 ("sched: Introduce per-memory-map concurrency ID")
+Link: https://lkml.kernel.org/r/20251221232926.450602-5-mathieu.desnoyers@efficios.com
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Mark Brown <broonie@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h            |    6 +--
+ include/linux/percpu_counter_tree.h |   51 ++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm_types.h~mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions
+--- a/include/linux/mm_types.h~mm-take-into-account-hierarchical-percpu-tree-items-for-static-mm_struct-definitions
 +++ a/include/linux/mm_types.h
-@@ -1368,7 +1368,7 @@ extern struct mm_struct init_mm;
+@@ -1366,9 +1366,9 @@ static inline void __mm_flags_set_mask_b
+ 			 MT_FLAGS_USE_RCU)
+ extern struct mm_struct init_mm;
  
- #define MM_STRUCT_FLEXIBLE_ARRAY_INIT				\
- {								\
--	[0 ... sizeof(cpumask_t)-1] = 0				\
-+	[0 ... sizeof(cpumask_t) + MM_CID_STATIC_SIZE - 1] = 0	\
+-#define MM_STRUCT_FLEXIBLE_ARRAY_INIT				\
+-{								\
+-	[0 ... sizeof(cpumask_t) + MM_CID_STATIC_SIZE - 1] = 0	\
++#define MM_STRUCT_FLEXIBLE_ARRAY_INIT									\
++{													\
++	[0 ... sizeof(cpumask_t) + MM_CID_STATIC_SIZE + PERCPU_COUNTER_TREE_ITEMS_STATIC_SIZE - 1] = 0	\
  }
  
  /* Pointer magic because the dynamic array size confuses some compilers. */
-@@ -1500,7 +1500,7 @@ static inline int mm_alloc_cid_noprof(st
- 	mm_init_cid(mm, p);
- 	return 0;
- }
--#define mm_alloc_cid(...)	alloc_hooks(mm_alloc_cid_noprof(__VA_ARGS__))
-+# define mm_alloc_cid(...)	alloc_hooks(mm_alloc_cid_noprof(__VA_ARGS__))
+--- a/include/linux/percpu_counter_tree.h~mm-take-into-account-hierarchical-percpu-tree-items-for-static-mm_struct-definitions
++++ a/include/linux/percpu_counter_tree.h
+@@ -10,6 +10,52 @@
  
- static inline void mm_destroy_cid(struct mm_struct *mm)
- {
-@@ -1514,6 +1514,8 @@ static inline unsigned int mm_cid_size(v
- 	return cpumask_size() + bitmap_size(num_possible_cpus());
- }
+ #ifdef CONFIG_SMP
  
-+/* Use NR_CPUS as worse case for static allocation. */
-+# define MM_CID_STATIC_SIZE	(2 * sizeof(cpumask_t))
- #else /* CONFIG_SCHED_MM_CID */
- static inline void mm_init_cid(struct mm_struct *mm, struct task_struct *p) { }
- static inline int mm_alloc_cid(struct mm_struct *mm, struct task_struct *p) { return 0; }
-@@ -1522,6 +1524,7 @@ static inline unsigned int mm_cid_size(v
- {
- 	return 0;
- }
-+# define MM_CID_STATIC_SIZE	0
- #endif /* CONFIG_SCHED_MM_CID */
++#if NR_CPUS == (1U << 0)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	0
++#elif NR_CPUS <= (1U << 1)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	1
++#elif NR_CPUS <= (1U << 2)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	3
++#elif NR_CPUS <= (1U << 3)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	7
++#elif NR_CPUS <= (1U << 4)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	7
++#elif NR_CPUS <= (1U << 5)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	11
++#elif NR_CPUS <= (1U << 6)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	21
++#elif NR_CPUS <= (1U << 7)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	21
++#elif NR_CPUS <= (1U << 8)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	37
++#elif NR_CPUS <= (1U << 9)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	73
++#elif NR_CPUS <= (1U << 10)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	149
++#elif NR_CPUS <= (1U << 11)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	293
++#elif NR_CPUS <= (1U << 12)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	585
++#elif NR_CPUS <= (1U << 13)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	1173
++#elif NR_CPUS <= (1U << 14)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	2341
++#elif NR_CPUS <= (1U << 15)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	4681
++#elif NR_CPUS <= (1U << 16)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	4681
++#elif NR_CPUS <= (1U << 17)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	8777
++#elif NR_CPUS <= (1U << 18)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	17481
++#elif NR_CPUS <= (1U << 19)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	34953
++#elif NR_CPUS <= (1U << 20)
++# define PERCPU_COUNTER_TREE_STATIC_NR_ITEMS	69905
++#else
++# error "Unsupported number of CPUs."
++#endif
++
+ struct percpu_counter_tree_level_item {
+ 	atomic_t count;			/*
+ 					 * Count the number of carry fort this tree item.
+@@ -18,6 +64,9 @@ struct percpu_counter_tree_level_item {
+ 					 */
+ } ____cacheline_aligned_in_smp;
  
- struct mmu_gather;
++#define PERCPU_COUNTER_TREE_ITEMS_STATIC_SIZE	\
++	(PERCPU_COUNTER_TREE_STATIC_NR_ITEMS * sizeof(struct percpu_counter_tree_level_item))
++
+ struct percpu_counter_tree {
+ 	/* Fast-path fields. */
+ 	unsigned int __percpu *level0;	/* Pointer to per-CPU split counters (tree level 0). */
+@@ -92,6 +141,8 @@ int percpu_counter_tree_approximate_sum(
+ 
+ #else	/* !CONFIG_SMP */
+ 
++#define PERCPU_COUNTER_TREE_ITEMS_STATIC_SIZE	0
++
+ struct percpu_counter_tree_level_item;
+ 
+ struct percpu_counter_tree {
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
