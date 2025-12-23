@@ -1,108 +1,92 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B760A34B433;
-	Tue, 23 Dec 2025 19:27:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFC082F0673
+	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 20:05:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766518052; cv=none; b=R7SQKGdRwynGskb5rGLBFD02qBPU6CtlbwIDCZpxARBNey0rjZsvvm6/EO6rDny6zAw0Gumhqzpgr0hSx27RMoO80obgWFNIPiCyiP24cAaKMYys6rR1zNuczOG/fcvA+n6hYbOnKCDs8Gp55eX9YoBcc1M4JflQWFPg5KVuB6Q=
+	t=1766520333; cv=none; b=VX0YLNsirSCViugGpjdSniXmchktlePZPlIAYFh+hQX9YIDB2FWwzm6NCrGMgpbsFPRmyiW6GVtdCQzBydbIG5GWjLULt+PAJk7Eyd9Y+t7F4XGnX0xqRxhp7Nr08f4gm7tiwUj3AMNL4AnIucOKUhy1D6SqggsHaLKSTEOp/lY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766518052; c=relaxed/simple;
-	bh=w/mM1RtlPC6+5CfYRU4ZgCWz1IFYWz8OSAL7MrhqG8s=;
-	h=Date:To:From:Subject:Message-Id; b=SE8ufSQC5akR3kwWCMUM5ydfktkLnEbPUrveGj1gF/FmYwJX8ptwRVELxF6VEU946P7hiLuOscBuz2I+q27RgjFQAnVo3BwQVGifIIOwV7FnAh0IWcWoCi5UPPArAESUbA44EjhORJk20S9kALRtz+EkCm5AkX2iYuLii2FBzRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DLYIi9pp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766520333; c=relaxed/simple;
+	bh=3G7jakdZOOF2xB2QOuk54PIqYiTfYXTvMwmuh/Xm2jE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=sQqhGTMbBVOM0AlVBf+KEk2jdGK/bj+So3LiHlQObXaf9dR444d1rzmpQ4EtgxmgvQxw5rzwUYwUtmnFLiBhCV2kuYS6MZYslpZie5N4+z/m8mY85Fb8zKwzp/FB8nHmZh8bPUq2igolvDnKQu5srWTc+BOjZoznsetss9Pt4FE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AGzCnHv9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DLYIi9pp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 787F1C113D0;
-	Tue, 23 Dec 2025 19:27:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766518052;
-	bh=w/mM1RtlPC6+5CfYRU4ZgCWz1IFYWz8OSAL7MrhqG8s=;
-	h=Date:To:From:Subject:From;
-	b=DLYIi9ppdiw4Z3b7OQImI2BDcPCCly4JBSKLukHiefcHJdpNHfHnjnZY2Q0tZVnlR
-	 8pgF7hioIEvLRPPMpeh7MjrL0JnB60zH+vxjp2EFM2ENLcAwkLOJMELjr+PsL4oY23
-	 MS5AOGCQ57VEqwghQMVXiLkNM3FBB+A2hojptt7Q=
-Date: Tue, 23 Dec 2025 11:27:31 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,yonghong.song@linux.dev,weixugc@google.com,syzbot+e008db2ac01e282550ee@syzkaller.appspotmail.com,stable@vger.kernel.org,song@kernel.org,shakeel.butt@linux.dev,sdf@fomichev.me,osandov@fb.com,mhocko@kernel.org,martin.lau@linux.dev,lorenzo.stoakes@oracle.com,kpsingh@kernel.org,kartikey406@gmail.com,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,hannes@cmpxchg.org,eddyz87@gmail.com,david@kernel.org,daniel@iogearbox.net,axelrasmussen@google.com,ast@kernel.org,andrii@kernel.org,wangjinchao600@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] buildid-validate-page-backed-file-before-parsing-build-id.patch removed from -mm tree
-Message-Id: <20251223192732.787F1C113D0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AGzCnHv9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1B4FC113D0;
+	Tue, 23 Dec 2025 20:05:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1766520333;
+	bh=3G7jakdZOOF2xB2QOuk54PIqYiTfYXTvMwmuh/Xm2jE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=AGzCnHv9JJZ3kXcfuL6Af82wH+Oe2uwDEF0dzzjCujSIVXHeMZPZwYUL1dNI8xR3s
+	 P9LdIQkHbKKS7d1A6QW8B7RryXj9AfZwtBrHUkLIPMnzVsXs93pyTaiS9TCxpJPpuy
+	 14BgOmiB5ke/0VI/uTpXW4cRqAwR5lvGvIUbEarzbHo/JfBFsPb3LtepBnlNyXUHBo
+	 29/V7BGT3srb2CRMIbFffKu1tNOkFM2iWT2boLADuyHsQmQm7KHMrWGPDLLmeddHQK
+	 GFu5y8e+sY2O/zb9sYCmAO5hqOgE5gQa/w02i/YkWQ+aM03qh2T2Cf8vLbVrn/Kgx7
+	 t1MoF6nbOv7zg==
+Date: Tue, 23 Dec 2025 22:05:27 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+	jgg@nvidia.com, baolu.lu@linux.intel.com, yuan1.liu@intel.com,
+	Dave Hansen <dave.hansen@linux.intel.com>
+Subject: Re: + mm-fix-huge-page-table-not-free-after-memory-unplug.patch
+ added to mm-hotfixes-unstable branch
+Message-ID: <aUr2B5RXmnWQab0a@kernel.org>
+References: <20251223011522.BA78DC4CEF1@smtp.kernel.org>
+ <8f111584-51ab-4df2-a7f4-966ec400139d@kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8f111584-51ab-4df2-a7f4-966ec400139d@kernel.org>
 
+On Tue, Dec 23, 2025 at 09:27:52AM +0100, David Hildenbrand (Red Hat) wrote:
+> On 12/23/25 02:15, Andrew Morton wrote:
+>
+> > From: Yuan Liu <yuan1.liu@intel.com>
+> > Subject: mm: fix huge page table not free after memory unplug
+> > Date: Sun, 21 Dec 2025 23:11:17 -0500
+> > 
+> > Newly plugged memory is marked as prot_sethuge via phys_pmd_init without
+> > setting PG_head.  During memory unplug, free_hugepage_table frees the page
+> > table as 2M, but pagetable_free handles it as 4K.
+> > 
+> > Link: https://lkml.kernel.org/r/20251222041117.44865-1-yuan1.liu@intel.com
+> > Fixes: bf9e4e30f353 ("x86/mm: use pagetable_free()")
+> > Signed-off-by: Yuan Liu <yuan1.liu@intel.com>
+> > Cc: Jason Gunthorpe <jgg@nvidia.com>
+> > Cc: Baolu Lu <baolu.lu@linux.intel.com>
+> > Cc: David Hildenbrand <david@redhat.com>
+> > Cc: Mike Rapoport <rppt@kernel.org>
+> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> > ---
+> > 
+> >   arch/x86/mm/init_64.c |    2 +-
+> >   1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > --- a/arch/x86/mm/init_64.c~mm-fix-huge-page-table-not-free-after-memory-unplug
+> > +++ a/arch/x86/mm/init_64.c
+> > @@ -1028,7 +1028,7 @@ static void __meminit free_pagetable(str
+> >   		free_reserved_pages(page, nr_pages);
+> >   #endif
+> >   	} else {
+> > -		pagetable_free(page_ptdesc(page));
+> > +		__free_pages(page, order);
+> 
+> Hm, but this way we are skipping deconstructors, no?
+> 
+> In particular, clearing the kernel flag (ptdesc_clear_kernel()) and not
+> handling ASYNC_KERNEL_PGTABLE_FREE correctly.
 
-The quilt patch titled
-     Subject: buildid: validate page-backed file before parsing build ID
-has been removed from the -mm tree.  Its filename was
-     buildid-validate-page-backed-file-before-parsing-build-id.patch
+And it seems to be x86 material at any rate.
 
-This patch was dropped because an alternative patch was or shall be merged
-
-------------------------------------------------------
-From: Jinchao Wang <wangjinchao600@gmail.com>
-Subject: buildid: validate page-backed file before parsing build ID
-Date: Tue, 23 Dec 2025 18:32:07 +0800
-
-__build_id_parse() only works on page-backed storage.  Its helper paths
-eventually call mapping->a_ops->read_folio(), so explicitly reject VMAs
-that do not map a regular file or lack valid address_space operations.
-
-Link: https://lkml.kernel.org/r/20251223103214.2412446-1-wangjinchao600@gmail.com
-Fixes: ad41251c290d ("lib/buildid: implement sleepable build_id_parse() API")
-Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
-Reported-by: <syzbot+e008db2ac01e282550ee@syzkaller.appspotmail.com>
-Tested-by: <syzbot+e008db2ac01e282550ee@syzkaller.appspotmail.com>
-  Link: https://lkml.kernel.org/r/694a67ab.050a0220.19928e.001c.GAE@google.com
-Closes: https://lkml.kernel.org/r/693540fe.a70a0220.38f243.004c.GAE@google.com
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Omar Sandoval <osandov@fb.com>
-Cc: Deepanshu Kartikey <kartikey406@gmail.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkman <daniel@iogearbox.net>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Song Liu <song@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Yonghong Song <yonghong.song@linux.dev>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/buildid.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
---- a/lib/buildid.c~buildid-validate-page-backed-file-before-parsing-build-id
-+++ a/lib/buildid.c
-@@ -288,7 +288,10 @@ static int __build_id_parse(struct vm_ar
- 	int ret;
- 
- 	/* only works for page backed storage  */
--	if (!vma->vm_file)
-+	if (!vma->vm_file ||
-+	    !S_ISREG(file_inode(vma->vm_file)->i_mode) ||
-+	    !vma->vm_file->f_mapping->a_ops ||
-+	    !vma->vm_file->f_mapping->a_ops->read_folio)
- 		return -EINVAL;
- 
- 	freader_init_from_file(&r, buf, sizeof(buf), vma->vm_file, may_fault);
-_
-
-Patches currently in -mm which might be from wangjinchao600@gmail.com are
-
-
+-- 
+Sincerely yours,
+Mike.
