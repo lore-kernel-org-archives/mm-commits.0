@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 941D6481DD
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 01:15:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE1002367BA
+	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 01:42:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766452523; cv=none; b=DvW9gxBOkYFQs5SfTw7gh9lySwGG2VxH/mNtFveY+rY2nFL3l6YavZQt4Suf3AOhIfInhIF1THOjO+stZ0oaOjjibGq3gE5lz5R11dny9TDKXNam/FRkrbVjQpiqneGIZg4JVzew0OkEdaFz3ETmIDcPqAHm+kUjpNt9DjoQ8q8=
+	t=1766454167; cv=none; b=fe9Wu8E53m3xJUwh8kFpIM0c/lJOFNTNvdyeBFQAvn33Bthttcp+0TljDFLdnBfKrEorThaACg4gMym7YokoSg5tJUDLXFeaXQMzrUNB2/YbmDt7g2KnK9QmsFbSEA4JrxBm6ezPJWuGqV4ssW6aXl/DSILnCT4Gobctppo4JZo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766452523; c=relaxed/simple;
-	bh=B6aNXnLm3KbN3VNN7rw4C8ud0G7dW3SNRxDT4d0Zs5c=;
-	h=Date:To:From:Subject:Message-Id; b=lRKM4qIHt6zwRDjUbAmgnPr48N3FaKeOdA2hfbRaYXJ4j5Wkn357Sw8tkyMtfK6xLVU2Vbe+fy4Rfa8s+4MIjTEzS0KFJ9803T/e3Q4Yj7i3MPoxYDNIEKCox68KflXX8oQEqoKT+6wfFojqXap0YidcG8r2g/vrrONtEKsL3hU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yl9yiZhl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766454167; c=relaxed/simple;
+	bh=nIUeUn838avVDvHuL3/5IHlBB3eZso9rTLOewCJoivY=;
+	h=Date:To:From:Subject:Message-Id; b=gr6lJ6H7YFEqxz4rMjDdULScOAQvkCOHwEsjazVnUOHYeB/M3UmbczhtU04g8lXMAFcWQhXzUxP+btp1HII15aAqAZHv053paTMRHqdIc6i8fWGMDcRdZMJYp/2hSOQXHhp1lGdyqX1DMkZeRDlJicqkd5RR+YAjXroEs6RIqsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2MQ5usXm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yl9yiZhl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA78DC4CEF1;
-	Tue, 23 Dec 2025 01:15:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2MQ5usXm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 227E7C116C6;
+	Tue, 23 Dec 2025 01:42:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766452522;
-	bh=B6aNXnLm3KbN3VNN7rw4C8ud0G7dW3SNRxDT4d0Zs5c=;
+	s=korg; t=1766454167;
+	bh=nIUeUn838avVDvHuL3/5IHlBB3eZso9rTLOewCJoivY=;
 	h=Date:To:From:Subject:From;
-	b=yl9yiZhl+qEWVwbjb5z8BkudvrmjCiygQSb+sTcWugBCaUr8vibprOHToKKP1litQ
-	 VXivSlnpLcun8rXY90l+siMooGxNG/dmey+eBL8D6OQQDD1aV0qXIgwO3fIoKu+vk9
-	 oWT4wXXgDQ1gsavJHR/2xVm/7J0DLI2UOzae/i20=
-Date: Mon, 22 Dec 2025 17:15:22 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,jgg@nvidia.com,david@redhat.com,baolu.lu@linux.intel.com,yuan1.liu@intel.com,akpm@linux-foundation.org
+	b=2MQ5usXmJX2y0Zcfv5WLHSwtJEAlzWyBXHu18eMwLkKWhTGV0qVtzqMbhmZEeSzB8
+	 TVCEx/wx31NSP5eSqsxuUbgSWNwt57t2KjhmIlq31OINX6lrajpDHmJ1l2xctEogoL
+	 VbQTJX+H6ntJzkP9GxsI5Ifp4JQkz4ybodVcJEps=
+Date: Mon, 22 Dec 2025 17:42:46 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-huge-page-table-not-free-after-memory-unplug.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251223011522.BA78DC4CEF1@smtp.kernel.org>
+Subject: + mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch added to mm-new branch
+Message-Id: <20251223014247.227E7C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix huge page table not free after memory unplug
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-huge-page-table-not-free-after-memory-unplug.patch
+     Subject: mm: memory-tiers, numa_emu: enable to create memory tiers using fake numa nodes
+has been added to the -mm mm-new branch.  Its filename is
+     mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-huge-page-table-not-free-after-memory-unplug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,77 +66,119 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yuan Liu <yuan1.liu@intel.com>
-Subject: mm: fix huge page table not free after memory unplug
-Date: Sun, 21 Dec 2025 23:11:17 -0500
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm: memory-tiers, numa_emu: enable to create memory tiers using fake numa nodes
+Date: Mon, 22 Dec 2025 09:48:32 +0900
 
-Newly plugged memory is marked as prot_sethuge via phys_pmd_init without
-setting PG_head.  During memory unplug, free_hugepage_table frees the page
-table as 2M, but pagetable_free handles it as 4K.
+Patch series "mm: fix oom-killer not being invoked when demotion is
+enabled", v2.
 
-The following test case of memory unplug for a VM [1], tested in the
-environment [2], show that results.
+On systems with multiple memory-tiers consisting of DRAM and CXL memory,
+the OOM killer is not invoked properly.
 
-+-----------------------+------+------+
-|Check System Memory    |Plug  |Unplug|
-|via free -h            |256GB |256GB |
-+-----------------------+------+------+
-| Free 4K page table    |257GB |5.6GB |
-+-----------------------+------+------+
-| Free 2M page table    |257GB |1.7GB |
-+-----------------------+------+------+
+This patchset includes a fix for the issue and an enhancement that makes
+the issue reproducible with numa emulation.
 
-[1] Qemu commands to unhotplug 256G memory for a VM:
-    object_add memory-backend-ram,id=hotmem0,size=256G,share=on
-    device_add virtio-mem-pci,id=vmem1,memdev=hotmem0,bus=port1
-    qom-set vmem1 requested-size 256G (Plug Memory)
-    qom-set vmem1 requested-size 0G (Unplug Memory)
 
-[2] Hardware     : Intel Icelake server
-    Guest Kernel : v6.19-rc1
-    Qemu         : v9.0.0
+This patch (of 3):
 
-Launch VM:
-    qemu-system-x86_64 -accel kvm -cpu host \
-    -drive file=./Centos10_cloud.qcow2,format=qcow2,if=virtio \
-    -drive file=./seed.img,format=raw,if=virtio \
-    -smp 3,cores=3,threads=1,sockets=1,maxcpus=3 \
-    -m 2G,slots=10,maxmem=2052472M \
-    -device pcie-root-port,id=port1,bus=pcie.0,slot=1,multifunction=on \
-    -device pcie-root-port,id=port2,bus=pcie.0,slot=2 \
-    -nographic -machine q35 \
-    -nic user,hostfwd=tcp::3000-:22
+This makes it possible to create memory tiers using fake numa nodes
+generated by numa emulation.
 
-   Guest kernel auto-onlines newly added memory blocks:
-   echo online > /sys/devices/system/memory/auto_online_blocks
+The "numa_emulation.adistance=" kernel cmdline option allows you to set
+the abstract distance for each NUMA node.
 
-Link: https://lkml.kernel.org/r/20251222041117.44865-1-yuan1.liu@intel.com
-Fixes: bf9e4e30f353 ("x86/mm: use pagetable_free()")
-Signed-off-by: Yuan Liu <yuan1.liu@intel.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Baolu Lu <baolu.lu@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
+For example, you can create two fake nodes, each in a different memory
+tier by booting with "numa=fake=2 numa_emulation.adistance=576,704". 
+Here, the abstract distances of node0 and node1 are set to 576 and 706,
+respectively.
+
+Each memory tier covers an abstract distance chunk size of 128.  Thus,
+nodes with abstract distances between 512 and 639 are classified into the
+same memory tier, and nodes with abstract distances between 640 and 767
+are classified into the next slower memory tier.
+
+The abstract distance of fake nodes not specified in the parameter will be
+the default DRAM abstract distance of 576.
+
+Link: https://lkml.kernel.org/r/20251222004834.10539-1-akinobu.mita@gmail.com
+Link: https://lkml.kernel.org/r/20251222004834.10539-2-akinobu.mita@gmail.com
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/numa_emulation.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
---- a/arch/x86/mm/init_64.c~mm-fix-huge-page-table-not-free-after-memory-unplug
-+++ a/arch/x86/mm/init_64.c
-@@ -1028,7 +1028,7 @@ static void __meminit free_pagetable(str
- 		free_reserved_pages(page, nr_pages);
- #endif
- 	} else {
--		pagetable_free(page_ptdesc(page));
-+		__free_pages(page, order);
- 	}
+--- a/mm/numa_emulation.c~mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes
++++ a/mm/numa_emulation.c
+@@ -6,6 +6,9 @@
+ #include <linux/errno.h>
+ #include <linux/topology.h>
+ #include <linux/memblock.h>
++#include <linux/memory-tiers.h>
++#include <linux/module.h>
++#include <linux/node.h>
+ #include <linux/numa_memblks.h>
+ #include <asm/numa.h>
+ #include <acpi/acpi_numa.h>
+@@ -344,6 +347,27 @@ static int __init setup_emu2phys_nid(int
+ 	return max_emu_nid;
  }
  
++static int adistance[MAX_NUMNODES];
++module_param_array(adistance, int, NULL, 0400);
++MODULE_PARM_DESC(adistance, "Abstract distance values for each NUMA node");
++
++static int emu_calculate_adistance(struct notifier_block *self,
++				unsigned long nid, void *data)
++{
++	if (adistance[nid]) {
++		int *adist = data;
++
++		*adist = adistance[nid];
++		return NOTIFY_STOP;
++	}
++	return NOTIFY_OK;
++}
++
++static struct notifier_block emu_adist_nb = {
++	.notifier_call = emu_calculate_adistance,
++	.priority = INT_MIN,
++};
++
+ /**
+  * numa_emulation - Emulate NUMA nodes
+  * @numa_meminfo: NUMA configuration to massage
+@@ -532,6 +556,8 @@ void __init numa_emulation(struct numa_m
+ 		}
+ 	}
+ 
++	register_mt_adistance_algorithm(&emu_adist_nb);
++
+ 	/* free the copied physical distance table */
+ 	memblock_free(phys_dist, phys_size);
+ 	return;
 _
 
-Patches currently in -mm which might be from yuan1.liu@intel.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-fix-huge-page-table-not-free-after-memory-unplug.patch
+mm-damon-vaddr-fix-missing-pte_unmap_unlock-in-damos_va_migrate_pmd_entry.patch
+mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch
+mm-numa_emu-add-document-for-numa-emulation.patch
+mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch
 
