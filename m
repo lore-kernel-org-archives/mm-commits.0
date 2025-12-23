@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6CD5274FE3
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 17:04:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E89B2E6CD0
+	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 17:05:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766509442; cv=none; b=Gq1s57glpsAWgWvOWuxWC8Axh+hjMDwWTqiXMIzrdVD/FpXuuAFr8n4OvhNslcD7q3zAzxrh9f6pwNsnxtPPGmp1xPdgdwTq9nJs0fmjB97shT99ghtKNQ8B9GwcwpHt6KG888opBVBOqZygis+lZS/+CgJZLwaf+gNs20+w+OQ=
+	t=1766509540; cv=none; b=teUUnshZpDdezn3xHIZH2499hUgyYhD7sOOFHEmL8gUjjQE35Qdx1uwSO+FTOjLMIkT3owgiNK70ayj2ZZ9J0q7iWODwE95z/dwFJrgV+kuvIVSZFlBt+LvltsSXKAcsaKwWu1+Z9Uzhs1s3k/GUHjInQejtXc0cGKSf63djEJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766509442; c=relaxed/simple;
-	bh=dEtY8N1ajoizUp4UO79BNktHntV4rveXhUeE4rVu5jk=;
-	h=Date:To:From:Subject:Message-Id; b=KKVw4CwdQgwwcnQQ4V3v7O/SAJKOqxl9qllx2w23F7TZ7a6CeG77lJMEGkSTQf5+Oz7Rf+A3m+LjE92v2N9vpoEwu+N9iSjj8vQzRBeWTHgXtXwmi0eWTCXXGwEtDgyw7EAPd8SnEgCTHGOLB5FbL1R8hdFxjgjZGqbZoYSDHPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QstnjUqL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766509540; c=relaxed/simple;
+	bh=PPieUlX4rmPqXC8V/5J5wwIf8qk1Tm83HCWz97V4Zbc=;
+	h=Date:To:From:Subject:Message-Id; b=RMgUkc95RjXOFJZTzyrHIyd8eYqKp7vsb/y4PFyPQRVPxfJKc1JiliVvUhj3y+fOEDRz18ysVcj8AxWiEC3HC4Pz15Hwm35docESPD5LlQxbMDEmqMlYuz30nFBIbNyRztaGL6PU61zHPu541sqbDyCsSFCiglX0rlU9P0CbQKE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oueq2tpJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QstnjUqL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2961C113D0;
-	Tue, 23 Dec 2025 17:04:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oueq2tpJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18F8DC113D0;
+	Tue, 23 Dec 2025 17:05:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766509441;
-	bh=dEtY8N1ajoizUp4UO79BNktHntV4rveXhUeE4rVu5jk=;
+	s=korg; t=1766509540;
+	bh=PPieUlX4rmPqXC8V/5J5wwIf8qk1Tm83HCWz97V4Zbc=;
 	h=Date:To:From:Subject:From;
-	b=QstnjUqLByIyTTekiYlvS8TjwzeRMd2cmFE3YRBBwKQaErf8rqizf08QH7P+n+cit
-	 9MTEO+etJAt6iA88l5pXBfYvtUWDAVI1XLl6yrHqwq9hOQHJf3r7CBhZ+LbmHWKmBN
-	 KMjAeGOWLqARlSVTuLh9JFiwVgK2Dw+ZpQexSVPQ=
-Date: Tue, 23 Dec 2025 09:04:01 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=Oueq2tpJrieadhi2jbbJ7uEo7HDuEl4LDQr9E+NgfqPANoOH6nTwFeiUoGXSwVtau
+	 3nJCCEo1VowWr6vFcXpCwEdcJPcvPihR3vArY+dANGUVl8Xy3LWB2Mwcj+TvLJgbjt
+	 mcr7TadfnwZfwbezWV1ZjH9WFd6dcYzL1Q9DtWmo=
+Date: Tue, 23 Dec 2025 09:05:39 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,wangkefeng.wang@huawei.com,rakie.kim@sk.com,mgorman@suse.de,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-simplify-page-initialization-in-kho_restore_page.patch added to mm-new branch
-Message-Id: <20251223170401.A2961C113D0@smtp.kernel.org>
+Subject: + mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch added to mm-new branch
+Message-Id: <20251223170540.18F8DC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: simplify page initialization in kho_restore_page()
+     Subject: mm/mempolicy: fix mpol_rebind_nodemask() for MPOL_F_NUMA_BALANCING
 has been added to the -mm mm-new branch.  Its filename is
-     kho-simplify-page-initialization-in-kho_restore_page.patch
+     mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-simplify-page-initialization-in-kho_restore_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,102 +66,79 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pratyush Yadav <pratyush@kernel.org>
-Subject: kho: simplify page initialization in kho_restore_page()
-Date: Tue, 23 Dec 2025 11:44:46 +0100
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/mempolicy: fix mpol_rebind_nodemask() for MPOL_F_NUMA_BALANCING
+Date: Tue, 23 Dec 2025 19:05:23 +0800
 
-When restoring a page (from kho_restore_pages()) or folio (from
-kho_restore_folio()), KHO must initialize the struct page.  The
-initialization differs slightly depending on if a folio is requested or a
-set of 0-order pages is requested.
+commit bda420b98505 ("numa balancing: migrate on fault among multiple
+bound nodes") adds new flag MPOL_F_NUMA_BALANCING to enable NUMA balancing
+for MPOL_BIND memory policy.
 
-Conceptually, it is quite simple to understand.  When restoring 0-order
-pages, each page gets a refcount of 1 and that's it.  When restoring a
-folio, head page gets a refcount of 1 and tail pages get 0.
+When the cpuset of tasks changes, the mempolicy of the task is rebound by
+mpol_rebind_nodemask().  When MPOL_F_STATIC_NODES and
+MPOL_F_RELATIVE_NODES are both not set, the behaviour of rebinding should
+be same whenever MPOL_F_NUMA_BALANCING is set or not.  So, when an
+application calls set_mempolicy() with MPOL_F_NUMA_BALANCING set but both
+MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES cleared,
+mempolicy.w.cpuset_mems_allowed should be set to
+cpuset_current_mems_allowed nodemask.  However, in current implementation,
+mpol_store_user_nodemask() wrongly returns true, causing
+mempolicy->w.user_nodemask to be incorrectly set to the user-specified
+nodemask.  Later, when the cpuset of the application changes,
+mpol_rebind_nodemask() ends up rebinding based on the user-specified
+nodemask rather than the cpuset_mems_allowed nodemask as intended.
 
-kho_restore_page() tries to combine the two separate initialization flow
-into one piece of code.  While it works fine, it is more complicated to
-read than it needs to be.  Make the code simpler by splitting the two
-initalization paths into two separate functions.  This improves
-readability by clearly showing how each type must be initialized.
+To fix this, only set mempolicy->w.user_nodemask to the user-specified
+nodemask if MPOL_F_STATIC_NODES or MPOL_F_RELATIVE_NODES is present.
 
-Link: https://lkml.kernel.org/r/20251223104448.195589-1-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lkml.kernel.org/r/20251223110523.1161421-1-tujinjiang@huawei.com
+Link: https://lkml.kernel.org/r/20251223110523.1161421-1-tujinjiang@huawei.com
+Fixes: bda420b98505 ("numa balancing: migrate on fault among multiple bound nodes")
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   41 +++++++++++++++++----------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+ include/uapi/linux/mempolicy.h |    3 +++
+ mm/mempolicy.c                 |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-simplify-page-initialization-in-kho_restore_page
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -219,11 +219,33 @@ static int __kho_preserve_order(struct k
- 	return 0;
+--- a/include/uapi/linux/mempolicy.h~mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing
++++ a/include/uapi/linux/mempolicy.h
+@@ -39,6 +39,9 @@ enum {
+ #define MPOL_MODE_FLAGS							\
+ 	(MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES | MPOL_F_NUMA_BALANCING)
+ 
++/* Whether the nodemask is specified by users */
++#define MPOL_USER_NODEMASK_FLAGS (MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES)
++
+ /* Flags for get_mempolicy */
+ #define MPOL_F_NODE	(1<<0)	/* return next IL mode instead of node mask */
+ #define MPOL_F_ADDR	(1<<1)	/* look up vma using address */
+--- a/mm/mempolicy.c~mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing
++++ a/mm/mempolicy.c
+@@ -365,7 +365,7 @@ static const struct mempolicy_operations
+ 
+ static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
+ {
+-	return pol->flags & MPOL_MODE_FLAGS;
++	return pol->flags & MPOL_USER_NODEMASK_FLAGS;
  }
  
-+/* For physically contiguous 0-order pages. */
-+static void kho_init_pages(struct page *page, unsigned int nr_pages)
-+{
-+	for (unsigned int i = 0; i < nr_pages; i++)
-+		set_page_count(page + i, 1);
-+}
-+
-+static void kho_init_folio(struct page *page, unsigned int order)
-+{
-+	unsigned int nr_pages = (1 << order);
-+
-+	/* Head page gets refcount of 1. */
-+	set_page_count(page, 1);
-+
-+	/* For higher order folios, tail pages get a page count of zero. */
-+	for (unsigned int i = 1; i < nr_pages; i++)
-+		set_page_count(page + i, 0);
-+
-+	if (order > 0)
-+		prep_compound_page(page, order);
-+}
-+
- static struct page *kho_restore_page(phys_addr_t phys, bool is_folio)
- {
- 	struct page *page = pfn_to_online_page(PHYS_PFN(phys));
--	unsigned int nr_pages, ref_cnt;
- 	union kho_page_info info;
-+	unsigned int nr_pages;
- 
- 	if (!page)
- 		return NULL;
-@@ -240,20 +262,11 @@ static struct page *kho_restore_page(phy
- 
- 	/* Clear private to make sure later restores on this page error out. */
- 	page->private = 0;
--	/* Head page gets refcount of 1. */
--	set_page_count(page, 1);
--
--	/*
--	 * For higher order folios, tail pages get a page count of zero.
--	 * For physically contiguous order-0 pages every pages gets a page
--	 * count of 1
--	 */
--	ref_cnt = is_folio ? 0 : 1;
--	for (unsigned int i = 1; i < nr_pages; i++)
--		set_page_count(page + i, ref_cnt);
- 
--	if (is_folio && info.order)
--		prep_compound_page(page, info.order);
-+	if (is_folio)
-+		kho_init_folio(page, info.order);
-+	else
-+		kho_init_pages(page, nr_pages);
- 
- 	adjust_managed_page_count(page, nr_pages);
- 	return page;
+ static void mpol_relative_nodemask(nodemask_t *ret, const nodemask_t *orig,
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-maintainers-add-abi-headers-to-kho-and-live-update.patch
-kho-simplify-page-initialization-in-kho_restore_page.patch
+mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch
 
