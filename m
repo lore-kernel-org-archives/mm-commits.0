@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E89B2E6CD0
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 17:05:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D095D2F290E;
+	Tue, 23 Dec 2025 17:30:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766509540; cv=none; b=teUUnshZpDdezn3xHIZH2499hUgyYhD7sOOFHEmL8gUjjQE35Qdx1uwSO+FTOjLMIkT3owgiNK70ayj2ZZ9J0q7iWODwE95z/dwFJrgV+kuvIVSZFlBt+LvltsSXKAcsaKwWu1+Z9Uzhs1s3k/GUHjInQejtXc0cGKSf63djEJ0=
+	t=1766511005; cv=none; b=kmekWo+rmNpCqZwMyv1MxjLSSGYurBFJADzGg9Jt+jsJiVAPlkxdkiuRgUOycY2qjDwT5nDYdi5PojK6Uu8sVBwIG05qnr6K603336r/3Nq6GAPoTorSSeLMs6r4Re+qZ9mk+pAkOwRvP0MDdNGduzAm4Vl6J0ZslhDUpoxCJfQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766509540; c=relaxed/simple;
-	bh=PPieUlX4rmPqXC8V/5J5wwIf8qk1Tm83HCWz97V4Zbc=;
-	h=Date:To:From:Subject:Message-Id; b=RMgUkc95RjXOFJZTzyrHIyd8eYqKp7vsb/y4PFyPQRVPxfJKc1JiliVvUhj3y+fOEDRz18ysVcj8AxWiEC3HC4Pz15Hwm35docESPD5LlQxbMDEmqMlYuz30nFBIbNyRztaGL6PU61zHPu541sqbDyCsSFCiglX0rlU9P0CbQKE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oueq2tpJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766511005; c=relaxed/simple;
+	bh=gouiFRQzEpMMM671aiKCRi9kgVHmM95JkI+GLNEqg5E=;
+	h=Date:To:From:Subject:Message-Id; b=DMdoBTnKEVoIPq6vhyihYrRo2oaV4JhoTYgZHuLDP2acpHVfv/Kg2To/LDGuh3Y4UAnuQ6YUqqQbnhW8f/zvlhgkn9lgpYx7PhoppqvTdH6249wBKzBC+2z15I3qxnegfE2ccWPxYk9q6lflR+9KTMyuapRPWJdwkf9ZPH85Wx8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h8Dtpoay; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oueq2tpJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18F8DC113D0;
-	Tue, 23 Dec 2025 17:05:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h8Dtpoay"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 305BDC113D0;
+	Tue, 23 Dec 2025 17:30:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766509540;
-	bh=PPieUlX4rmPqXC8V/5J5wwIf8qk1Tm83HCWz97V4Zbc=;
+	s=korg; t=1766511005;
+	bh=gouiFRQzEpMMM671aiKCRi9kgVHmM95JkI+GLNEqg5E=;
 	h=Date:To:From:Subject:From;
-	b=Oueq2tpJrieadhi2jbbJ7uEo7HDuEl4LDQr9E+NgfqPANoOH6nTwFeiUoGXSwVtau
-	 3nJCCEo1VowWr6vFcXpCwEdcJPcvPihR3vArY+dANGUVl8Xy3LWB2Mwcj+TvLJgbjt
-	 mcr7TadfnwZfwbezWV1ZjH9WFd6dcYzL1Q9DtWmo=
-Date: Tue, 23 Dec 2025 09:05:39 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,wangkefeng.wang@huawei.com,rakie.kim@sk.com,mgorman@suse.de,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=h8DtpoayJqGKuDV99jgRsnUHVvf4cEjngaFoL6RTUaxcTWczilRaeLth0ZH6qonY0
+	 07Ggy+eCUF4S0Yv63u9FX1LNQ5lJ7e7BhcuBDrrMa3uDS8HZ8iWJaiRye3XhWCez73
+	 H3ke575rl3h6vbvAt9IlnCpelZntNCjPYUl6Py6M=
+Date: Tue, 23 Dec 2025 09:30:04 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,yonghong.song@linux.dev,weixugc@google.com,syzbot+e008db2ac01e282550ee@syzkaller.appspotmail.com,stable@vger.kernel.org,song@kernel.org,shakeel.butt@linux.dev,sdf@fomichev.me,osandov@fb.com,mhocko@kernel.org,martin.lau@linux.dev,lorenzo.stoakes@oracle.com,kpsingh@kernel.org,kartikey406@gmail.com,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,hannes@cmpxchg.org,eddyz87@gmail.com,david@kernel.org,daniel@iogearbox.net,axelrasmussen@google.com,ast@kernel.org,andrii@kernel.org,wangjinchao600@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch added to mm-new branch
-Message-Id: <20251223170540.18F8DC113D0@smtp.kernel.org>
+Subject: + buildid-validate-page-backed-file-before-parsing-build-id.patch added to mm-hotfixes-unstable branch
+Message-Id: <20251223173005.305BDC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: fix mpol_rebind_nodemask() for MPOL_F_NUMA_BALANCING
-has been added to the -mm mm-new branch.  Its filename is
-     mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch
+     Subject: buildid: validate page-backed file before parsing build ID
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     buildid-validate-page-backed-file-before-parsing-build-id.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buildid-validate-page-backed-file-before-parsing-build-id.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,79 +58,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/mempolicy: fix mpol_rebind_nodemask() for MPOL_F_NUMA_BALANCING
-Date: Tue, 23 Dec 2025 19:05:23 +0800
+From: Jinchao Wang <wangjinchao600@gmail.com>
+Subject: buildid: validate page-backed file before parsing build ID
+Date: Tue, 23 Dec 2025 18:32:07 +0800
 
-commit bda420b98505 ("numa balancing: migrate on fault among multiple
-bound nodes") adds new flag MPOL_F_NUMA_BALANCING to enable NUMA balancing
-for MPOL_BIND memory policy.
+__build_id_parse() only works on page-backed storage.  Its helper paths
+eventually call mapping->a_ops->read_folio(), so explicitly reject VMAs
+that do not map a regular file or lack valid address_space operations.
 
-When the cpuset of tasks changes, the mempolicy of the task is rebound by
-mpol_rebind_nodemask().  When MPOL_F_STATIC_NODES and
-MPOL_F_RELATIVE_NODES are both not set, the behaviour of rebinding should
-be same whenever MPOL_F_NUMA_BALANCING is set or not.  So, when an
-application calls set_mempolicy() with MPOL_F_NUMA_BALANCING set but both
-MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES cleared,
-mempolicy.w.cpuset_mems_allowed should be set to
-cpuset_current_mems_allowed nodemask.  However, in current implementation,
-mpol_store_user_nodemask() wrongly returns true, causing
-mempolicy->w.user_nodemask to be incorrectly set to the user-specified
-nodemask.  Later, when the cpuset of the application changes,
-mpol_rebind_nodemask() ends up rebinding based on the user-specified
-nodemask rather than the cpuset_mems_allowed nodemask as intended.
-
-To fix this, only set mempolicy->w.user_nodemask to the user-specified
-nodemask if MPOL_F_STATIC_NODES or MPOL_F_RELATIVE_NODES is present.
-
-Link: https://lkml.kernel.org/r/20251223110523.1161421-1-tujinjiang@huawei.com
-Link: https://lkml.kernel.org/r/20251223110523.1161421-1-tujinjiang@huawei.com
-Fixes: bda420b98505 ("numa balancing: migrate on fault among multiple bound nodes")
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
+Link: https://lkml.kernel.org/r/20251223103214.2412446-1-wangjinchao600@gmail.com
+Fixes: ad41251c290d ("lib/buildid: implement sleepable build_id_parse() API")
+Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
+Reported-by: <syzbot+e008db2ac01e282550ee@syzkaller.appspotmail.com>
+Tested-by: <syzbot+e008db2ac01e282550ee@syzkaller.appspotmail.com>
+  Link: https://lkml.kernel.org/r/694a67ab.050a0220.19928e.001c.GAE@google.com
+Closes: https://lkml.kernel.org/r/693540fe.a70a0220.38f243.004c.GAE@google.com
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Mel Gorman <mgorman <mgorman@suse.de>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Omar Sandoval <osandov@fb.com>
+Cc: Deepanshu Kartikey <kartikey406@gmail.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkman <daniel@iogearbox.net>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Song Liu <song@kernel.org>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Yonghong Song <yonghong.song@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/mempolicy.h |    3 +++
- mm/mempolicy.c                 |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ lib/buildid.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/uapi/linux/mempolicy.h~mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing
-+++ a/include/uapi/linux/mempolicy.h
-@@ -39,6 +39,9 @@ enum {
- #define MPOL_MODE_FLAGS							\
- 	(MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES | MPOL_F_NUMA_BALANCING)
+--- a/lib/buildid.c~buildid-validate-page-backed-file-before-parsing-build-id
++++ a/lib/buildid.c
+@@ -288,7 +288,10 @@ static int __build_id_parse(struct vm_ar
+ 	int ret;
  
-+/* Whether the nodemask is specified by users */
-+#define MPOL_USER_NODEMASK_FLAGS (MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES)
-+
- /* Flags for get_mempolicy */
- #define MPOL_F_NODE	(1<<0)	/* return next IL mode instead of node mask */
- #define MPOL_F_ADDR	(1<<1)	/* look up vma using address */
---- a/mm/mempolicy.c~mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing
-+++ a/mm/mempolicy.c
-@@ -365,7 +365,7 @@ static const struct mempolicy_operations
+ 	/* only works for page backed storage  */
+-	if (!vma->vm_file)
++	if (!vma->vm_file ||
++	    !S_ISREG(file_inode(vma->vm_file)->i_mode) ||
++	    !vma->vm_file->f_mapping->a_ops ||
++	    !vma->vm_file->f_mapping->a_ops->read_folio)
+ 		return -EINVAL;
  
- static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
- {
--	return pol->flags & MPOL_MODE_FLAGS;
-+	return pol->flags & MPOL_USER_NODEMASK_FLAGS;
- }
- 
- static void mpol_relative_nodemask(nodemask_t *ret, const nodemask_t *orig,
+ 	freader_init_from_file(&r, buf, sizeof(buf), vma->vm_file, may_fault);
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from wangjinchao600@gmail.com are
 
-mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch
+buildid-validate-page-backed-file-before-parsing-build-id.patch
 
