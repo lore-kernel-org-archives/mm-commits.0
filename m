@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF567274B2B
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 16:49:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 797152E6CD0
+	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 16:50:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766508553; cv=none; b=SlVFX2OOW0rCIsh9BL0rFktkm1k2UaFz99za3B1tsW/6021tEl83CILce/R7wbRrc6bAsn0B9KxsCGtGekukWUfCaqw9UUHqpLNhQC9HKQo2+T8MqXivthXLbbSSTDh9nTQq33BYVNieFU5lGMw+4/O3TcZQGVoNyyafGFePnew=
+	t=1766508660; cv=none; b=mC+SHIsGJAp0T2aj1SrFtnsu7hOKi8dIhwPWZCS/t7P62r4AC+2Ow0RQ8oGxw7XOSW8oQhpB8JMxPIQ23wsLZeORLhDCF/2/0gMKaGNbn+kLXTBRf56n8II62Dkxftilh2zBYybwE7bWhUP4cmlKtEVw0gP4jRh7pY39GykU0PI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766508553; c=relaxed/simple;
-	bh=DzAExNADTkJ+v2bZQH8C+q4ma3JUZ2r2U1sI8WpY0wQ=;
-	h=Date:To:From:Subject:Message-Id; b=umfh0lr7gBu1jAFT9o1Y3W1ancFD8DQcVQTEBDC04Q7IpCLW6MztwSswDRTuCLK1lsAVozqYW8UXIL7BwR7KovK94OYWcT7/+uT1+n19doo+plpe1Wq6pqrhwxNHlYuGHcNUkjDqC36SS1hIon0fxTykXHfeBR6Hg8SMujzlMJg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vmS/k9EQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766508660; c=relaxed/simple;
+	bh=f7F2SEjK9rMltxq5Ycxjj57Osg0nXNZgIsjVsnBpML0=;
+	h=Date:To:From:Subject:Message-Id; b=h0RXUBjbqKExKvW89aaWo5lcV5Zo/3KmF65oumkKyZNz86fW3A+fiRuF1Dve7vOCcikZSmlJdoFcurOwmKWy4BrsdqmaQD2I+/HYyjJBL8MKtwOJtglF8ctvLkjnAsTU6b+r2ZiVU2Cxs+f7C7b5ijNmQ7rSA1/coz52OqWO15E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=do+3c9pq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vmS/k9EQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42988C113D0;
-	Tue, 23 Dec 2025 16:49:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="do+3c9pq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBB29C116D0;
+	Tue, 23 Dec 2025 16:50:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766508552;
-	bh=DzAExNADTkJ+v2bZQH8C+q4ma3JUZ2r2U1sI8WpY0wQ=;
+	s=korg; t=1766508658;
+	bh=f7F2SEjK9rMltxq5Ycxjj57Osg0nXNZgIsjVsnBpML0=;
 	h=Date:To:From:Subject:From;
-	b=vmS/k9EQ2lLYtg//iuBl2SlY1xvuHqNkSUEZgG461TadGekr1XnCfavZ/TqxiqlKv
-	 QBJgZ2ms9/USQToKRgA7P1U1hmwJDe0LLXJxFYTcuWAldw0H6PuKT3mxDMKzpzLKyt
-	 WYkXCj2D31RpKKIBWi/YKvoL2VMXQfm6T0PX9k1w=
-Date: Tue, 23 Dec 2025 08:49:11 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,ricardo.neri-calderon@linux.intel.com,pratyush@kernel.org,graf@amazon.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=do+3c9pqmqM7EoarhrXPjXUCsCYnbWJZ5L+WYgMYsMMWV9zKkKlOB5weoeKFK1V9o
+	 mONfgqD61frOV+W5AAZAdj0zWj0B0aFx8mWWNTNKGe6aSs/frcy2gcuW7ab9usHFhC
+	 LNsLxSicE/9kKb2gSEYichd0gS9Wqukrk/LP9exk=
+Date: Tue, 23 Dec 2025 08:50:57 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-validate-preserved-memory-map-during-population.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251223164912.42988C113D0@smtp.kernel.org>
+Subject: + mm-huge_memory-consolidate-order-related-checks-into-folio_check_splittable.patch added to mm-new branch
+Message-Id: <20251223165057.EBB29C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: validate preserved memory map during population
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kho-validate-preserved-memory-map-during-population.patch
+     Subject: mm/huge_memory: consolidate order-related checks into folio_check_splittable()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-huge_memory-consolidate-order-related-checks-into-folio_check_splittable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-validate-preserved-memory-map-during-population.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-consolidate-order-related-checks-into-folio_check_splittable.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,156 +66,140 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: validate preserved memory map during population
-Date: Tue, 23 Dec 2025 09:01:40 -0500
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/huge_memory: consolidate order-related checks into folio_check_splittable()
+Date: Tue, 23 Dec 2025 12:25:39 +0000
 
-If the previous kernel enabled KHO but did not call kho_finalize() (e.g.,
-CONFIG_LIVEUPDATE=n or userspace skipped the finalization step), the
-'preserved-memory-map' property in the FDT remains empty/zero.
+The primary goal of the folio_check_splittable() function is to validate
+whether a folio is suitable for splitting and to bail out early if it is
+not.
 
-Previously, kho_populate() would succeed regardless of the memory map's
-state, reserving the incoming scratch regions in memblock.  However,
-kho_memory_init() would later fail to deserialize the empty map.  By that
-time, the scratch regions were already registered, leading to partial
-initialization and subsequent list corruption (freeing scratch area twice)
-during kho_init().
+Currently, some order-related checks are scattered throughout the calling
+code rather than being centralized in folio_check_splittable().
 
-Move the validation of the preserved memory map earlier into
-kho_populate(). If the memory map is empty/NULL:
-1. Abort kho_populate() immediately with -ENOENT.
-2. Do not register or reserve the incoming scratch memory, allowing the new
-   kernel to reclaim those pages as standard free memory.
-3. Leave the global 'kho_in' state uninitialized.
+This commit moves all remaining order-related validation logic into
+folio_check_splittable().  This consolidation ensures that the function
+serves its intended purpose as a single point of failure and improves the
+clarity and maintainability of the surrounding code.
 
-Consequently, kho_memory_init() sees no active KHO context
-(kho_in.mem_chunks_phys is 0) and falls back to kho_reserve_scratch(),
-allocating fresh scratch memory as if it were a standard cold boot.
-
-Link: https://lkml.kernel.org/r/20251223140140.2090337-1-pasha.tatashin@soleen.com
-Fixes: de51999e687c ("kho: allow memory preservation state updates after finalization")
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reported-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Closes: https://lore.kernel.org/all/20251218215613.GA17304@ranerica-svr.sc.intel.com
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
+Link: https://lkml.kernel.org/r/20251223122539.10726-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   37 +++++++++++++--------------
- 1 file changed, 19 insertions(+), 18 deletions(-)
+ mm/huge_memory.c |   63 +++++++++++++++++++++------------------------
+ 1 file changed, 30 insertions(+), 33 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-validate-preserved-memory-map-during-population
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -460,27 +460,23 @@ static void __init deserialize_bitmap(un
- 	}
- }
- 
--/* Return true if memory was deserizlied */
--static bool __init kho_mem_deserialize(const void *fdt)
-+/* Returns physical address of the preserved memory map from FDT */
-+static phys_addr_t __init kho_get_mem_map_phys(const void *fdt)
+--- a/mm/huge_memory.c~mm-huge_memory-consolidate-order-related-checks-into-folio_check_splittable
++++ a/mm/huge_memory.c
+@@ -3700,6 +3700,10 @@ int folio_check_splittable(struct folio
+ 			   enum split_type split_type)
  {
--	struct khoser_mem_chunk *chunk;
- 	const void *mem_ptr;
--	u64 mem;
- 	int len;
- 
- 	mem_ptr = fdt_getprop(fdt, 0, PROP_PRESERVED_MEMORY_MAP, &len);
- 	if (!mem_ptr || len != sizeof(u64)) {
- 		pr_err("failed to get preserved memory bitmaps\n");
--		return false;
-+		return 0;
+ 	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++
++	if (new_order >= folio_order(folio))
++		return -EINVAL;
++
+ 	/*
+ 	 * Folios that just got truncated cannot get split. Signal to the
+ 	 * caller that there was a race.
+@@ -3714,28 +3718,33 @@ int folio_check_splittable(struct folio
+ 		/* order-1 is not supported for anonymous THP. */
+ 		if (new_order == 1)
+ 			return -EINVAL;
+-	} else if (split_type == SPLIT_TYPE_NON_UNIFORM || new_order) {
+-		if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+-		    !mapping_large_folio_support(folio->mapping)) {
+-			/*
+-			 * We can always split a folio down to a single page
+-			 * (new_order == 0) uniformly.
+-			 *
+-			 * For any other scenario
+-			 *   a) uniform split targeting a large folio
+-			 *      (new_order > 0)
+-			 *   b) any non-uniform split
+-			 * we must confirm that the file system supports large
+-			 * folios.
+-			 *
+-			 * Note that we might still have THPs in such
+-			 * mappings, which is created from khugepaged when
+-			 * CONFIG_READ_ONLY_THP_FOR_FS is enabled. But in that
+-			 * case, the mapping does not actually support large
+-			 * folios properly.
+-			 */
+-			return -EINVAL;
++	} else {
++		if (split_type == SPLIT_TYPE_NON_UNIFORM || new_order) {
++			if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
++			    !mapping_large_folio_support(folio->mapping)) {
++				/*
++				 * We can always split a folio down to a
++				 * single page (new_order == 0) uniformly.
++				 *
++				 * For any other scenario
++				 *   a) uniform split targeting a large folio
++				 *      (new_order > 0)
++				 *   b) any non-uniform split
++				 * we must confirm that the file system
++				 * supports large folios.
++				 *
++				 * Note that we might still have THPs in such
++				 * mappings, which is created from khugepaged
++				 * when CONFIG_READ_ONLY_THP_FOR_FS is
++				 * enabled. But in that case, the mapping does
++				 * not actually support large folios properly.
++				 */
++				return -EINVAL;
++			}
+ 		}
++
++		if (new_order < mapping_min_folio_order(folio->mapping))
++			return -EINVAL;
  	}
  
--	mem = get_unaligned((const u64 *)mem_ptr);
--	chunk = mem ? phys_to_virt(mem) : NULL;
--
--	/* No preserved physical pages were passed, no deserialization */
--	if (!chunk)
--		return false;
-+	return get_unaligned((const u64 *)mem_ptr);
-+}
- 
-+static void __init kho_mem_deserialize(struct khoser_mem_chunk *chunk)
-+{
- 	while (chunk) {
- 		unsigned int i;
- 
-@@ -489,8 +485,6 @@ static bool __init kho_mem_deserialize(c
- 					   &chunk->bitmaps[i]);
- 		chunk = KHOSER_LOAD_PTR(chunk->hdr.next);
- 	}
--
--	return true;
- }
- 
- /*
-@@ -1253,6 +1247,7 @@ bool kho_finalized(void)
- struct kho_in {
- 	phys_addr_t fdt_phys;
- 	phys_addr_t scratch_phys;
-+	phys_addr_t mem_map_phys;
- 	struct kho_debugfs dbg;
- };
- 
-@@ -1434,12 +1429,10 @@ static void __init kho_release_scratch(v
- 
- void __init kho_memory_init(void)
- {
--	if (kho_in.scratch_phys) {
-+	if (kho_in.mem_map_phys) {
- 		kho_scratch = phys_to_virt(kho_in.scratch_phys);
- 		kho_release_scratch();
--
--		if (!kho_mem_deserialize(kho_get_fdt()))
--			kho_in.fdt_phys = 0;
-+		kho_mem_deserialize(phys_to_virt(kho_in.mem_map_phys));
- 	} else {
- 		kho_reserve_scratch();
- 	}
-@@ -1448,8 +1441,9 @@ void __init kho_memory_init(void)
- void __init kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
- 			 phys_addr_t scratch_phys, u64 scratch_len)
- {
--	void *fdt = NULL;
- 	struct kho_scratch *scratch = NULL;
-+	phys_addr_t mem_map_phys;
-+	void *fdt = NULL;
- 	int err = 0;
- 	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
- 
-@@ -1475,6 +1469,12 @@ void __init kho_populate(phys_addr_t fdt
+ 	/*
+@@ -3956,11 +3965,6 @@ static int __folio_split(struct folio *f
  		goto out;
  	}
  
-+	mem_map_phys = kho_get_mem_map_phys(fdt);
-+	if (!mem_map_phys) {
-+		err = -ENOENT;
-+		goto out;
-+	}
-+
- 	scratch = early_memremap(scratch_phys, scratch_len);
- 	if (!scratch) {
- 		pr_warn("setup: failed to memremap scratch (phys=0x%llx, len=%lld)\n",
-@@ -1515,6 +1515,7 @@ void __init kho_populate(phys_addr_t fdt
+-	if (new_order >= old_order) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
+ 	ret = folio_check_splittable(folio, new_order, split_type);
+ 	if (ret) {
+ 		VM_WARN_ONCE(ret == -EINVAL, "Tried to split an unsplittable folio");
+@@ -3984,16 +3988,9 @@ static int __folio_split(struct folio *f
+ 		anon_vma_lock_write(anon_vma);
+ 		mapping = NULL;
+ 	} else {
+-		unsigned int min_order;
+ 		gfp_t gfp;
  
- 	kho_in.fdt_phys = fdt_phys;
- 	kho_in.scratch_phys = scratch_phys;
-+	kho_in.mem_map_phys = mem_map_phys;
- 	kho_scratch_cnt = scratch_cnt;
- 	pr_info("found kexec handover data.\n");
+ 		mapping = folio->mapping;
+-		min_order = mapping_min_folio_order(folio->mapping);
+-		if (new_order < min_order) {
+-			ret = -EINVAL;
+-			goto out;
+-		}
+-
+ 		gfp = current_gfp_context(mapping_gfp_mask(mapping) &
+ 							GFP_RECLAIM_MASK);
  
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-kho-validate-preserved-memory-map-during-population.patch
-list-add-primitives-for-private-list-manipulations.patch
-list-add-kunit-test-for-private-list-primitives.patch
-liveupdate-luo_file-use-private-list.patch
-liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
-tests-liveupdate-add-in-kernel-liveupdate-test.patch
+mm-huge_memory-consolidate-order-related-checks-into-folio_check_splittable.patch
 
