@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA9B02690F9
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 19:24:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B8D52F3C02
+	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 19:24:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766517851; cv=none; b=DkdHGuu774oXR2eMw/OBPo9X5LcqfT0Zt9k1xDrPfdG9PGfQZKy7FVXtrUPhK2gBkhZigHuAI30wZVddyAWq8OtUagzRx6GQKMxpdCt/MwKUV1FxJjy9tpfk3GWooWDP2mhY/aTMiH8RM41f30vIgOoUnYOGc2XOD0/5Jjl9t4w=
+	t=1766517853; cv=none; b=tmgvuM0y/PNggPdYy4EgwoRcAQf7NQEF4jy7FaoTYvRtIIW7gkkCHaxkGbuSRLxx4wtu9d9zCEqK+dbKWWFuN2CLpsLK9C7o6morFebEztsAG34PR8AtrqzMgCGfSEZ91BsPGBxy0Y6wxDz9lK8ndY+Lp095inft2A7wbx7xVOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766517851; c=relaxed/simple;
-	bh=EiStlN/2YpED+vS6GOcb4YU5QeJV7JfMwxXUv4Dnsok=;
-	h=Date:To:From:Subject:Message-Id; b=WokqV7PvdHp67LWVQcL4ZJXYLCYl6TGLYJCPHnY+w3iAGZ4edw+Ls556F2Tjqu8z8n6sR52UO7T63CrxpgaV2Rw46N+wA6AVnjs07M1eKagRD6JdLGUVnQASZPKypltXEpF+EJw70LtXzrQ+ltOMClpt7lavz6hVWqT7dw+MrBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P9nFlKvM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766517853; c=relaxed/simple;
+	bh=UxIq2JgcU7Hav1Zk+0y96aYy0COpMzCAuUrJDv3pM9o=;
+	h=Date:To:From:Subject:Message-Id; b=u09NlxF0vTmO08+sElss5mX7cjeaVpnmxFbOpoCS2psSPqWCVNZuqQio0JvDlow+QWMbBUV33afVaL4xEu8w3libfrcEfaqg42tF49LDhlLUzSpT2HvSXaquKef7gyaP54g01MZCPVQSj9qip6lbGtm6V+FCqBhcnmqD6jrn5g0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wGYBRGZs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P9nFlKvM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B7BAC113D0;
-	Tue, 23 Dec 2025 19:24:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wGYBRGZs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94D1EC113D0;
+	Tue, 23 Dec 2025 19:24:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766517851;
-	bh=EiStlN/2YpED+vS6GOcb4YU5QeJV7JfMwxXUv4Dnsok=;
+	s=korg; t=1766517852;
+	bh=UxIq2JgcU7Hav1Zk+0y96aYy0COpMzCAuUrJDv3pM9o=;
 	h=Date:To:From:Subject:From;
-	b=P9nFlKvMkj4O3YH31epfsjZFJCRKxE+Mhqa5idILcRuYwp8RYAWmsDrJ6uZUuClwe
-	 /qZWMR2YKj0InIryTMVF3XDu//uAXF4kGEdmsJbeup1x0pmZIcGWO+AtRq/0FtyyfE
-	 gvcFILApmBtA6hEm7d147tyL5zMbsyhGXi8Guzfg=
-Date: Tue, 23 Dec 2025 11:24:10 -0800
-To: mm-commits@vger.kernel.org,sln@onemain.com,martink@posteo.de,hverkuil@kernel.org,carlos.bilbao@kernel.org,wangyl5933@chinaunicom.cn,akpm@linux-foundation.org
+	b=wGYBRGZsiJ/dFFH0MKyJPWN7DVRwAjtygbNT2Po2wqPmiEufI6HFEzOUjhCAKRQjL
+	 L3ElgUdByCM+w1B0+KYI96qLoWadf4V/IzsHy1rikxOc5TLZGHG+nDGgR3WM8snvmf
+	 H9/LB5Yl1GfiUq6g7nePmrISjFlu54qIpc18iWoM=
+Date: Tue, 23 Dec 2025 11:24:12 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-remove-one-of-the-entries-for-wangyuli.patch removed from -mm tree
-Message-Id: <20251223192411.5B7BAC113D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-abi-headers-to-kho-and-live-update.patch removed from -mm tree
+Message-Id: <20251223192412.94D1EC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: .mailmap: remove one of the entries for WangYuli
+     Subject: MAINTAINERS: add ABI headers to KHO and LIVE UPDATE
 has been removed from the -mm tree.  Its filename was
-     mailmap-remove-one-of-the-entries-for-wangyuli.patch
+     maintainers-add-abi-headers-to-kho-and-live-update.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: WangYuli <wangyl5933@chinaunicom.cn>
-Subject: .mailmap: remove one of the entries for WangYuli
-Date: Mon, 8 Dec 2025 10:57:30 +0800
+From: Pratyush Yadav <pratyush@kernel.org>
+Subject: MAINTAINERS: add ABI headers to KHO and LIVE UPDATE
+Date: Fri, 12 Dec 2025 16:12:02 +0900
 
-Since commit 01ef0296d2eb (".mailmap: add entry for WangYuli") was merged
-into mainline, I've received feedback from former colleagues: They believe
-the change to .mailmap affects git log based statistics, which in turn
-reduces the reported “contributions from uniontech” in the Linux
-commit tree, and they think it's difficult to explain to everyone that
-future statistics must be generated with the --no-use-mailmap option.
+include/linux/kho is supposed to hold KHO headers.  Add it to KHO's
+MAINTAINERS entry so the right people can get patches to it.
 
-I don't have a strong opinion either way, but since my commit has caused
-them trouble, I'm now requesting that this line be removed to bring a
-little more LOVE AND PEACE to the world :-)
+include/linux/kho/abi contains the live update ABI headers for LUO core
+and memfd.  It will also hold ABI headers for other upcoming file types as
+well.  Add it to live update entry so live update maintainers can get
+changes for it (currently they happen to be the same people).
 
-Link: https://lkml.kernel.org/r/20251208025730.33881-1-wangyuli@aosc.io
-Signed-off-by: WangYuli <wangyl5933@chinaunicom.cn>
-Cc: Carlos Bilbao <carlos.bilbao@kernel.org>
-Cc: Hans Verkuil <hverkuil@kernel.org>
-Cc: Martin Kepplinger <martink@posteo.de>
-Cc: Shannon Nelson <sln@onemain.com>
+Link: https://lkml.kernel.org/r/20251212071204.398788-1-pratyush@kernel.org
+Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/.mailmap~mailmap-remove-one-of-the-entries-for-wangyuli
-+++ a/.mailmap
-@@ -858,7 +858,6 @@ Vladimir Davydov <vdavydov.dev@gmail.com
- Vladimir Davydov <vdavydov.dev@gmail.com> <vdavydov@virtuozzo.com>
- WangYuli <wangyuli@aosc.io> <wangyl5933@chinaunicom.cn>
- WangYuli <wangyuli@aosc.io> <wangyuli@deepin.org>
--WangYuli <wangyuli@aosc.io> <wangyuli@uniontech.com>
- Weiwen Hu <huweiwen@linux.alibaba.com> <sehuww@mail.scut.edu.cn>
- WeiXiong Liao <gmpy.liaowx@gmail.com> <liaoweixiong@allwinnertech.com>
- Wen Gong <quic_wgong@quicinc.com> <wgong@codeaurora.org>
+--- a/MAINTAINERS~maintainers-add-abi-headers-to-kho-and-live-update
++++ a/MAINTAINERS
+@@ -13959,6 +13959,7 @@ S:	Maintained
+ F:	Documentation/admin-guide/mm/kho.rst
+ F:	Documentation/core-api/kho/*
+ F:	include/linux/kexec_handover.h
++F:	include/linux/kho/
+ F:	kernel/liveupdate/kexec_handover*
+ F:	lib/test_kho.c
+ F:	tools/testing/selftests/kho/
+@@ -14637,6 +14638,7 @@ S:	Maintained
+ F:	Documentation/core-api/liveupdate.rst
+ F:	Documentation/mm/memfd_preservation.rst
+ F:	Documentation/userspace-api/liveupdate.rst
++F:	include/linux/kho/abi/
+ F:	include/linux/liveupdate.h
+ F:	include/linux/liveupdate/
+ F:	include/uapi/linux/liveupdate.h
 _
 
-Patches currently in -mm which might be from wangyl5933@chinaunicom.cn are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
+kho-simplify-page-initialization-in-kho_restore_page.patch
 
