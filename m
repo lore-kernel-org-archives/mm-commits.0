@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DDC0279DCC
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 19:24:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA9B02690F9
+	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 19:24:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766517850; cv=none; b=OGO6WyUM/ug0XqaBag+BGbBnQNTOMpvYsEd3LoeiiaQibfq7Tc1mc8WlfkGREBqXamPZzX7Jp2scsWN28GbPkkK5tw4dmjiCnhjjZ5MSGa9m56jaXv/LxBnfqKFKxkjRwEdLZowRjiJtxbzNp/ry3/Q4QPYIW+mrHFx0UW90J/8=
+	t=1766517851; cv=none; b=DkdHGuu774oXR2eMw/OBPo9X5LcqfT0Zt9k1xDrPfdG9PGfQZKy7FVXtrUPhK2gBkhZigHuAI30wZVddyAWq8OtUagzRx6GQKMxpdCt/MwKUV1FxJjy9tpfk3GWooWDP2mhY/aTMiH8RM41f30vIgOoUnYOGc2XOD0/5Jjl9t4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766517850; c=relaxed/simple;
-	bh=mzvg1F6CZuRgxg8Cl2GPnYP/gsO5ZPG3jHGqytisElI=;
-	h=Date:To:From:Subject:Message-Id; b=bGe9VTBI4C2ugwPL3yK9yIrUNGH7CZvMWmk4iG1Q12/3bmigoVEvTvbpb46i0141fEjtZcyhHDicKe8ITsI0I2Klk/CNLIKZQmu6QwRod2hkmgwo1AhfHHfIfy8/dF3P2xYDj0IOEX4zukvjfJdRJaKaPURygu2bRe4xzG6N+kE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EwQmhAbV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766517851; c=relaxed/simple;
+	bh=EiStlN/2YpED+vS6GOcb4YU5QeJV7JfMwxXUv4Dnsok=;
+	h=Date:To:From:Subject:Message-Id; b=WokqV7PvdHp67LWVQcL4ZJXYLCYl6TGLYJCPHnY+w3iAGZ4edw+Ls556F2Tjqu8z8n6sR52UO7T63CrxpgaV2Rw46N+wA6AVnjs07M1eKagRD6JdLGUVnQASZPKypltXEpF+EJw70LtXzrQ+ltOMClpt7lavz6hVWqT7dw+MrBQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P9nFlKvM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EwQmhAbV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34C7CC113D0;
-	Tue, 23 Dec 2025 19:24:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P9nFlKvM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B7BAC113D0;
+	Tue, 23 Dec 2025 19:24:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766517850;
-	bh=mzvg1F6CZuRgxg8Cl2GPnYP/gsO5ZPG3jHGqytisElI=;
+	s=korg; t=1766517851;
+	bh=EiStlN/2YpED+vS6GOcb4YU5QeJV7JfMwxXUv4Dnsok=;
 	h=Date:To:From:Subject:From;
-	b=EwQmhAbVOfwNdI9ep/iO1vWctOkJNAJSbKGNZNFr6oFBFK4c3jFCj9uA43SsbpoZU
-	 jrxrZm6ObXsIg7zagqqLMuUOdSY1V7geCqkXwO+Fgt8s3/yd1aVJbxnyT0XGm2qmhK
-	 6Fezbbj2/BJAFxKWMnFVBL5BtEBrbaSThQDi/WFQ=
-Date: Tue, 23 Dec 2025 11:24:09 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,akinobu.mita@gmail.com,akpm@linux-foundation.org
+	b=P9nFlKvMkj4O3YH31epfsjZFJCRKxE+Mhqa5idILcRuYwp8RYAWmsDrJ6uZUuClwe
+	 /qZWMR2YKj0InIryTMVF3XDu//uAXF4kGEdmsJbeup1x0pmZIcGWO+AtRq/0FtyyfE
+	 gvcFILApmBtA6hEm7d147tyL5zMbsyhGXi8Guzfg=
+Date: Tue, 23 Dec 2025 11:24:10 -0800
+To: mm-commits@vger.kernel.org,sln@onemain.com,martink@posteo.de,hverkuil@kernel.org,carlos.bilbao@kernel.org,wangyl5933@chinaunicom.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-vaddr-fix-missing-pte_unmap_unlock-in-damos_va_migrate_pmd_entry.patch removed from -mm tree
-Message-Id: <20251223192410.34C7CC113D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-remove-one-of-the-entries-for-wangyuli.patch removed from -mm tree
+Message-Id: <20251223192411.5B7BAC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: fix missing pte_unmap_unlock in damos_va_migrate_pmd_entry()
+     Subject: .mailmap: remove one of the entries for WangYuli
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-fix-missing-pte_unmap_unlock-in-damos_va_migrate_pmd_entry.patch
+     mailmap-remove-one-of-the-entries-for-wangyuli.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mm/damon/vaddr: fix missing pte_unmap_unlock in damos_va_migrate_pmd_entry()
-Date: Wed, 10 Dec 2025 00:10:34 +0900
+From: WangYuli <wangyl5933@chinaunicom.cn>
+Subject: .mailmap: remove one of the entries for WangYuli
+Date: Mon, 8 Dec 2025 10:57:30 +0800
 
-If the PTE page table lock is acquired by pte_offset_map_lock(), the lock
-must be released via pte_unmap_unlock().
+Since commit 01ef0296d2eb (".mailmap: add entry for WangYuli") was merged
+into mainline, I've received feedback from former colleagues: They believe
+the change to .mailmap affects git log based statistics, which in turn
+reduces the reported “contributions from uniontech” in the Linux
+commit tree, and they think it's difficult to explain to everyone that
+future statistics must be generated with the --no-use-mailmap option.
 
-However, in damos_va_migrate_pmd_entry(), if damos_va_filter_out() returns
-true, it immediately returns without releasing the lock.
+I don't have a strong opinion either way, but since my commit has caused
+them trouble, I'm now requesting that this line be removed to bring a
+little more LOVE AND PEACE to the world :-)
 
-This fixes the issue by not stopping page table traversal when
-damos_va_filter_out() returns true and ensuring that the lock is released.
-
-Link: https://lkml.kernel.org/r/20251209151034.77221-1-akinobu.mita@gmail.com
-Fixes: 09efc56a3b1c ("mm/damon/vaddr: consistently use only pmd_entry for damos_migrate")
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20251208025730.33881-1-wangyuli@aosc.io
+Signed-off-by: WangYuli <wangyl5933@chinaunicom.cn>
+Cc: Carlos Bilbao <carlos.bilbao@kernel.org>
+Cc: Hans Verkuil <hverkuil@kernel.org>
+Cc: Martin Kepplinger <martink@posteo.de>
+Cc: Shannon Nelson <sln@onemain.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-fix-missing-pte_unmap_unlock-in-damos_va_migrate_pmd_entry
-+++ a/mm/damon/vaddr.c
-@@ -743,7 +743,7 @@ huge_out:
- 		if (!folio)
- 			continue;
- 		if (damos_va_filter_out(s, folio, walk->vma, addr, pte, NULL))
--			return 0;
-+			continue;
- 		damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
- 				migration_lists);
- 		nr = folio_nr_pages(folio);
+--- a/.mailmap~mailmap-remove-one-of-the-entries-for-wangyuli
++++ a/.mailmap
+@@ -858,7 +858,6 @@ Vladimir Davydov <vdavydov.dev@gmail.com
+ Vladimir Davydov <vdavydov.dev@gmail.com> <vdavydov@virtuozzo.com>
+ WangYuli <wangyuli@aosc.io> <wangyl5933@chinaunicom.cn>
+ WangYuli <wangyuli@aosc.io> <wangyuli@deepin.org>
+-WangYuli <wangyuli@aosc.io> <wangyuli@uniontech.com>
+ Weiwen Hu <huweiwen@linux.alibaba.com> <sehuww@mail.scut.edu.cn>
+ WeiXiong Liao <gmpy.liaowx@gmail.com> <liaoweixiong@allwinnertech.com>
+ Wen Gong <quic_wgong@quicinc.com> <wgong@codeaurora.org>
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from wangyl5933@chinaunicom.cn are
 
-mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch
-mm-numa_emu-add-document-for-numa-emulation.patch
-mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch
 
