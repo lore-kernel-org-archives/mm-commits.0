@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 945BC34B1AF;
-	Tue, 23 Dec 2025 19:24:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 719AB34B1B0;
+	Tue, 23 Dec 2025 19:24:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766517855; cv=none; b=geRg30MFy2/MBnQrk6lXD1QalPk+GqpHCNL+MmA00VV3nnck5Ka2HyJNtfSAW2CNCtRQQnEoVirXbLqHdDDmIsoYCzn43y+MD0b3043YCal3vgfRA/56GqNHGftYFxwxq8lQLZUb5u/JgObBE1c7Cdj3LMyf59AbGDxmUtMCdfU=
+	t=1766517857; cv=none; b=Y/fgpIoIZMHgsta38eWyVmS2WpAuBUmpOX6qxIPSJpiVW/P/YuUiWRPxuESWvtOKmmCZPemq1JKb8NecpcH5UFbBGLsmf67k25DJi4gRFT6MVQ6ygkAcUUoEcc+IAHxTJX4zJ4kclUjhxPkB0QRNh9sWH8DwnIloEw0CfdJxlQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766517855; c=relaxed/simple;
-	bh=EuHse1g+HXhQ9340YvmZUvnBS15MBb75W4jEcJ83qfQ=;
-	h=Date:To:From:Subject:Message-Id; b=bX7NktyuoJGc88F5sLsU8dh0BL9bFvc3i5/frOpSqyseVSoa8PzP7vIaX41/WYXMxnQLRoQ2zDTcDKbYGhF7SaEC+VWrfY30OYj4cz2P2CIZ6pAjsYZ8S1apjPjQqa8+8PsrYySqcRaCNLvTgAgGT+fHfLEjGf9BWZ1ncOgSuf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fbc2Gbby; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766517857; c=relaxed/simple;
+	bh=4SZBJERtximoSjHx13esxaLcgXd9tbNQ10wb0DXTtMY=;
+	h=Date:To:From:Subject:Message-Id; b=T5PxgATIgKUFc1KL//499pSLoYeb1YSdKN1RBkhUMpTnOOoVtAUGIULJTVLZ8G2+lGPxtcnmkz5k9x4kA+5Cx0nAeDAppm90Z/qJgzk/ZYN5uyKb2Q1An7EBdETIyCf/fHefgK6MsLWbJkDF7gIpHUrW7w59XqZOxiq0Z9JedSQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N4AUmbIl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fbc2Gbby"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67061C113D0;
-	Tue, 23 Dec 2025 19:24:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N4AUmbIl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01F0FC113D0;
+	Tue, 23 Dec 2025 19:24:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766517855;
-	bh=EuHse1g+HXhQ9340YvmZUvnBS15MBb75W4jEcJ83qfQ=;
+	s=korg; t=1766517857;
+	bh=4SZBJERtximoSjHx13esxaLcgXd9tbNQ10wb0DXTtMY=;
 	h=Date:To:From:Subject:From;
-	b=fbc2GbbyaAL92gf5exxV8GbKC93StdhXTHViAMJXd/Sy7AJVl7aAT+J1CvOKT3zjA
-	 YtzU1OpYvvvAWvcESmYRIi+uiTBwvBcFYpB5f4j/3xzgJQgL37Zi7Lo5/jKJw+ONul
-	 GBmFdhh8NiUpE6zV/6crxolte5nnEsOoYegFD+DY=
-Date: Tue, 23 Dec 2025 11:24:14 -0800
-To: mm-commits@vger.kernel.org,zohar@linux.ibm.com,stable@vger.kernel.org,roberto.sassu@huawei.com,graf@amazon.com,chenste@linux.microsoft.com,bhe@redhat.com,piliu@redhat.com,akpm@linux-foundation.org
+	b=N4AUmbIlOO5UzEK9gKdJXvTfx13WR78uHvH9kz2K5wApeFWCyMV6t7Iea5d+joVYT
+	 MrAPB+o2+MaZXMnsaPXRBHD3fv0xpvyDTD9koEeZOqtkXcLFoO8nbaKq/gXOmN3YgS
+	 oZ0mM7fZgQzpPOSa9Ih7yDkxKUIkwldkMNRP3cqA=
+Date: Tue, 23 Dec 2025 11:24:16 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,nathan@kernel.org,morbo@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,justinstitt@google.com,wakel@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kernel-kexec-fix-ima-when-allocation-happens-in-cma-area.patch removed from -mm tree
-Message-Id: <20251223192415.67061C113D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-fix-thread-state-check-in-uffd-unit-tests.patch removed from -mm tree
+Message-Id: <20251223192417.01F0FC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/kexec: fix IMA when allocation happens in CMA area
+     Subject: selftests/mm: fix thread state check in uffd-unit-tests
 has been removed from the -mm tree.  Its filename was
-     kernel-kexec-fix-ima-when-allocation-happens-in-cma-area.patch
+     selftests-mm-fix-thread-state-check-in-uffd-unit-tests.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pingfan Liu <piliu@redhat.com>
-Subject: kernel/kexec: fix IMA when allocation happens in CMA area
-Date: Tue, 16 Dec 2025 09:48:52 +0800
+From: Wake Liu <wakel@google.com>
+Subject: selftests/mm: fix thread state check in uffd-unit-tests
+Date: Wed, 10 Dec 2025 17:14:08 +0800
 
-*** Bug description ***
+In the thread_state_get() function, the logic to find the thread's state
+character was using `sizeof(header) - 1` to calculate the offset from the
+"State:\t" string.
 
-When I tested kexec with the latest kernel, I ran into the following warning:
+The `header` variable is a `const char *` pointer.  `sizeof()` on a
+pointer returns the size of the pointer itself, not the length of the
+string literal it points to.  This makes the code's behavior dependent on
+the architecture's pointer size.
 
-[   40.712410] ------------[ cut here ]------------
-[   40.712576] WARNING: CPU: 2 PID: 1562 at kernel/kexec_core.c:1001 kimage_map_segment+0x144/0x198
-[...]
-[   40.816047] Call trace:
-[   40.818498]  kimage_map_segment+0x144/0x198 (P)
-[   40.823221]  ima_kexec_post_load+0x58/0xc0
-[   40.827246]  __do_sys_kexec_file_load+0x29c/0x368
-[...]
-[   40.855423] ---[ end trace 0000000000000000 ]---
+This bug was identified on a 32-bit ARM build (`gsi_tv_arm`) for Android,
+running on an ARMv8-based device, compiled with Clang 19.0.1.
 
-*** How to reproduce ***
+On this 32-bit architecture, `sizeof(char *)` is 4.  The expression
+`sizeof(header) - 1` resulted in an incorrect offset of 3, causing the
+test to read the wrong character from `/proc/[tid]/status` and fail.
 
-This bug is only triggered when the kexec target address is allocated in
-the CMA area. If no CMA area is reserved in the kernel, use the "cma="
-option in the kernel command line to reserve one.
+On 64-bit architectures, `sizeof(char *)` is 8, so the expression
+coincidentally evaluates to 7, which matches the length of "State:\t". 
+This is why the bug likely remained hidden on 64-bit builds.
 
-*** Root cause ***
-The commit 07d24902977e ("kexec: enable CMA based contiguous
-allocation") allocates the kexec target address directly on the CMA area
-to avoid copying during the jump. In this case, there is no IND_SOURCE
-for the kexec segment.  But the current implementation of
-kimage_map_segment() assumes that IND_SOURCE pages exist and map them
-into a contiguous virtual address by vmap().
+To fix this and make the code portable and correct across all
+architectures, this patch replaces `sizeof(header) - 1` with
+`strlen(header)`.  The `strlen()` function correctly calculates the
+string's length, ensuring the correct offset is always used.
 
-*** Solution ***
-If IMA segment is allocated in the CMA area, use its page_address()
-directly.
-
-Link: https://lkml.kernel.org/r/20251216014852.8737-2-piliu@redhat.com
-Fixes: 07d24902977e ("kexec: enable CMA based contiguous allocation")
-Signed-off-by: Pingfan Liu <piliu@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Steven Chen <chenste@linux.microsoft.com>
-Cc: Mimi Zohar <zohar@linux.ibm.com>
-Cc: Roberto Sassu <roberto.sassu@huawei.com>
+Link: https://lkml.kernel.org/r/20251210091408.3781445-1-wakel@google.com
+Fixes: f60b6634cd88 ("mm/selftests: add a test to verify mmap_changing race with -EAGAIN")
+Signed-off-by: Wake Liu <wakel@google.com>
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kexec_core.c~kernel-kexec-fix-ima-when-allocation-happens-in-cma-area
-+++ a/kernel/kexec_core.c
-@@ -960,13 +960,17 @@ void *kimage_map_segment(struct kimage *
- 	kimage_entry_t *ptr, entry;
- 	struct page **src_pages;
- 	unsigned int npages;
-+	struct page *cma;
- 	void *vaddr = NULL;
- 	int i;
- 
-+	cma = image->segment_cma[idx];
-+	if (cma)
-+		return page_address(cma);
-+
- 	addr = image->segment[idx].mem;
- 	size = image->segment[idx].memsz;
- 	eaddr = addr + size;
--
- 	/*
- 	 * Collect the source pages and map them in a contiguous VA range.
- 	 */
-@@ -1007,7 +1011,8 @@ void *kimage_map_segment(struct kimage *
- 
- void kimage_unmap_segment(void *segment_buffer)
- {
--	vunmap(segment_buffer);
-+	if (is_vmalloc_addr(segment_buffer))
-+		vunmap(segment_buffer);
- }
- 
- struct kexec_load_limit {
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-thread-state-check-in-uffd-unit-tests
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -1317,7 +1317,7 @@ static thread_state thread_state_get(pid
+ 		p = strstr(tmp, header);
+ 		if (p) {
+ 			/* For example, "State:\tD (disk sleep)" */
+-			c = *(p + sizeof(header) - 1);
++			c = *(p + strlen(header));
+ 			return c == 'D' ?
+ 			    THR_STATE_UNINTERRUPTIBLE : THR_STATE_UNKNOWN;
+ 		}
 _
 
-Patches currently in -mm which might be from piliu@redhat.com are
+Patches currently in -mm which might be from wakel@google.com are
 
 
