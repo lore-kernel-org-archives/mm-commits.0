@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA9FB34A795;
-	Tue, 23 Dec 2025 19:23:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E3F734B183;
+	Tue, 23 Dec 2025 19:23:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766517838; cv=none; b=ezPXPXoBZNFXkU2rmcBrnJEEs38/JdmawiZ8/MWNCLm50Y499qe+ahYfXAo76PNdM8JD3hSEFC6VcjTdD9lfvP+5Su7Bry6w74YiudkljlvjQwUdfLi2wPrNvQYAc6IqHHkemSP0FBYdGgXWFhWoqOJsbCBOT0xTtCFq8M1X6B0=
+	t=1766517840; cv=none; b=OzTl6nRs5TB7+GXU7cSK0Qcy6zMvnzyM12QyDeYEIVDqDU3kVvH8GgDF5TARnOrna87+96I9wVM2L/dyv2iiuopkLFqGWju0WY8FRhFDb+yIF8T7jksmdRT68bWjOJ8cgkV4KwIRvlkwvWVDJDIVmYjCBfzcn0YIZ1vsq1Phxhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766517838; c=relaxed/simple;
-	bh=J5e8hfWuaT4XVshPRDUbfOz+Djs1I8yAoVwt1CsuwZo=;
-	h=Date:To:From:Subject:Message-Id; b=LoOGq9pEdogcEtOFsTC/DUbELQlfGew+SLHa3BNPp3n9pOSXle7amA50mbYJDiYmyaqzsdQhP/C7vnP4Ky/KNjPo+bpnR1dFHlq6TYilADcqzJgnKrEFCqqelxF1hEKEPMApq2PgoHIu4tr7lBBfzge2fm8tsJuOnHZwR24r1fI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=00F+bwxP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766517840; c=relaxed/simple;
+	bh=YPFehnj/22YzpbKHt3vDxDe5w+Z9eE4eWVYMsSY1gmI=;
+	h=Date:To:From:Subject:Message-Id; b=kmLZ9on8XPzA+XRASp2U5LrYxQv2nhbCEInUBmpvktxnoy9KtzvX01ZpbdI0Cc0r3JIvwj9CEPm1FkLA1eChMBuLYvxUuVIM+idkItKX7A3j7ZLTpJFSZu/kaVNhyRendHN0qDZiD/HZV4BPpAtF8RW6uJLufgvoiJpRnMw35eg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D0Cq+Ay7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="00F+bwxP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3F41C113D0;
-	Tue, 23 Dec 2025 19:23:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D0Cq+Ay7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3771DC113D0;
+	Tue, 23 Dec 2025 19:23:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766517837;
-	bh=J5e8hfWuaT4XVshPRDUbfOz+Djs1I8yAoVwt1CsuwZo=;
+	s=korg; t=1766517839;
+	bh=YPFehnj/22YzpbKHt3vDxDe5w+Z9eE4eWVYMsSY1gmI=;
 	h=Date:To:From:Subject:From;
-	b=00F+bwxPrChUO4pJ5pAgk0dAJ2Ya7kH75GwDgNRqTnzmFaWQh8JMy3voUCev02oTC
-	 L2V4LJd2TXIO/ZOvhIJKY4ZepWAgQb6v3lyeo1zZ+YQ8dMZoXWeM8sfLwdSWXiBj6n
-	 Il/fly7qQreYaPXpY6WgV5iKKFLSrbLc2m80rtwE=
-Date: Tue, 23 Dec 2025 11:23:57 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peter.senna@linux.intel.com,koen.koning@intel.com,jan.sokolowski@intel.com,christian.koenig@amd.com,willy@infradead.org,akpm@linux-foundation.org
+	b=D0Cq+Ay7/48xmBBFr+su5u7AxStsmDHSykjAxWgolIbTyPuuM9n1llEd/opqxkBuN
+	 yXoOf/oGEbLoUGNV6TCK4na5dgaEHmu0lH453P8QTAnriinr6X3Cp+o7hqfbagnfPg
+	 hq73IU55Cgk2/Dz/gBndSGdu7s4VPv/FDEC4mSvA=
+Date: Tue, 23 Dec 2025 11:23:58 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,maciej.wieczor-retman@intel.com,kees@kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,dakr@kernel.org,andreyknvl@gmail.com,jiayuan.chen@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] idr-fix-idr_alloc-returning-an-id-out-of-range.patch removed from -mm tree
-Message-Id: <20251223192357.A3F41C113D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch removed from -mm tree
+Message-Id: <20251223192359.3771DC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,162 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: idr: fix idr_alloc() returning an ID out of range
+     Subject: mm/kasan: fix incorrect unpoisoning in vrealloc for KASAN
 has been removed from the -mm tree.  Its filename was
-     idr-fix-idr_alloc-returning-an-id-out-of-range.patch
+     mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: idr: fix idr_alloc() returning an ID out of range
-Date: Fri, 28 Nov 2025 16:18:32 +0000
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+Subject: mm/kasan: fix incorrect unpoisoning in vrealloc for KASAN
+Date: Thu, 04 Dec 2025 18:59:55 +0000
 
-If you use an IDR with a non-zero base, and specify a range that lies
-entirely below the base, 'max - base' becomes very large and
-idr_get_free() can return an ID that lies outside of the requested range.
+Patch series "kasan: vmalloc: Fixes for the percpu allocator and
+vrealloc", v3.
 
-Link: https://lkml.kernel.org/r/20251128161853.3200058-1-willy@infradead.org
-Fixes: 6ce711f27500 ("idr: Make 1-based IDRs more efficient")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Jan Sokolowski <jan.sokolowski@intel.com>
-Reported-by: Koen Koning <koen.koning@intel.com>
-Reported-by: Peter Senna Tschudin <peter.senna@linux.intel.com>
-Closes: https://gitlab.freedesktop.org/drm/xe/kernel/-/issues/6449
-Reviewed-by: Christian König <christian.koenig@amd.com>
+Patches fix two issues related to KASAN and vmalloc.
+
+The first one, a KASAN tag mismatch, possibly resulting in a kernel panic,
+can be observed on systems with a tag-based KASAN enabled and with
+multiple NUMA nodes.  Initially it was only noticed on x86 [1] but later a
+similar issue was also reported on arm64 [2].
+
+Specifically the problem is related to how vm_structs interact with
+pcpu_chunks - both when they are allocated, assigned and when pcpu_chunk
+addresses are derived.
+
+When vm_structs are allocated they are unpoisoned, each with a different
+random tag, if vmalloc support is enabled along the KASAN mode.  Later
+when first pcpu chunk is allocated it gets its 'base_addr' field set to
+the first allocated vm_struct.  With that it inherits that vm_struct's
+tag.
+
+When pcpu_chunk addresses are later derived (by pcpu_chunk_addr(), for
+example in pcpu_alloc_noprof()) the base_addr field is used and offsets
+are added to it.  If the initial conditions are satisfied then some of the
+offsets will point into memory allocated with a different vm_struct.  So
+while the lower bits will get accurately derived the tag bits in the top
+of the pointer won't match the shadow memory contents.
+
+The solution (proposed at v2 of the x86 KASAN series [3]) is to unpoison
+the vm_structs with the same tag when allocating them for the per cpu
+allocator (in pcpu_get_vm_areas()).
+
+The second one reported by syzkaller [4] is related to vrealloc and
+happens because of random tag generation when unpoisoning memory without
+allocating new pages.  This breaks shadow memory tracking and needs to
+reuse the existing tag instead of generating a new one.  At the same time
+an inconsistency in used flags is corrected.
+
+
+This patch (of 3):
+
+Syzkaller reported a memory out-of-bounds bug [4].  This patch fixes two
+issues:
+
+1. In vrealloc the KASAN_VMALLOC_VM_ALLOC flag is missing when
+   unpoisoning the extended region. This flag is required to correctly
+   associate the allocation with KASAN's vmalloc tracking.
+
+   Note: In contrast, vzalloc (via __vmalloc_node_range_noprof)
+   explicitly sets KASAN_VMALLOC_VM_ALLOC and calls
+   kasan_unpoison_vmalloc() with it.  vrealloc must behave consistently --
+   especially when reusing existing vmalloc regions -- to ensure KASAN can
+   track allocations correctly.
+
+2. When vrealloc reuses an existing vmalloc region (without allocating
+   new pages) KASAN generates a new tag, which breaks tag-based memory
+   access tracking.
+
+Introduce KASAN_VMALLOC_KEEP_TAG, a new KASAN flag that allows reusing the
+tag already attached to the pointer, ensuring consistent tag behavior
+during reallocation.
+
+Pass KASAN_VMALLOC_KEEP_TAG and KASAN_VMALLOC_VM_ALLOC to the
+kasan_unpoison_vmalloc inside vrealloc_node_align_noprof().
+
+Link: https://lkml.kernel.org/r/cover.1765978969.git.m.wieczorretman@pm.me
+Link: https://lkml.kernel.org/r/38dece0a4074c43e48150d1e242f8242c73bf1a5.1764874575.git.m.wieczorretman@pm.me
+Link: https://lore.kernel.org/all/e7e04692866d02e6d3b32bb43b998e5d17092ba4.1738686764.git.maciej.wieczor-retman@intel.com/ [1]
+Link: https://lore.kernel.org/all/aMUrW1Znp1GEj7St@MiWiFi-R3L-srv/ [2]
+Link: https://lore.kernel.org/all/CAPAsAGxDRv_uFeMYu9TwhBVWHCCtkSxoWY4xmFB_vowMbi8raw@mail.gmail.com/ [3]
+Link: https://syzkaller.appspot.com/bug?extid=997752115a851cb0cf36 [4]
+Fixes: a0309faf1cb0 ("mm: vmalloc: support more granular vrealloc() sizing")
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+Co-developed-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Reported-by: syzbot+997752115a851cb0cf36@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/68e243a2.050a0220.1696c6.007d.GAE@google.com/T/
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c                           |    2 ++
- tools/testing/radix-tree/idr-test.c |   21 +++++++++++++++++++++
- 2 files changed, 23 insertions(+)
+ include/linux/kasan.h |    1 +
+ mm/kasan/hw_tags.c    |    2 +-
+ mm/kasan/shadow.c     |    4 +++-
+ mm/vmalloc.c          |    4 +++-
+ 4 files changed, 8 insertions(+), 3 deletions(-)
 
---- a/lib/idr.c~idr-fix-idr_alloc-returning-an-id-out-of-range
-+++ a/lib/idr.c
-@@ -40,6 +40,8 @@ int idr_alloc_u32(struct idr *idr, void
+--- a/include/linux/kasan.h~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/include/linux/kasan.h
+@@ -28,6 +28,7 @@ typedef unsigned int __bitwise kasan_vma
+ #define KASAN_VMALLOC_INIT		((__force kasan_vmalloc_flags_t)0x01u)
+ #define KASAN_VMALLOC_VM_ALLOC		((__force kasan_vmalloc_flags_t)0x02u)
+ #define KASAN_VMALLOC_PROT_NORMAL	((__force kasan_vmalloc_flags_t)0x04u)
++#define KASAN_VMALLOC_KEEP_TAG		((__force kasan_vmalloc_flags_t)0x08u)
  
- 	if (WARN_ON_ONCE(!(idr->idr_rt.xa_flags & ROOT_IS_IDR)))
- 		idr->idr_rt.xa_flags |= IDR_RT_MARKER;
-+	if (max < base)
-+		return -ENOSPC;
+ #define KASAN_VMALLOC_PAGE_RANGE 0x1 /* Apply exsiting page range */
+ #define KASAN_VMALLOC_TLB_FLUSH  0x2 /* TLB flush */
+--- a/mm/kasan/hw_tags.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/kasan/hw_tags.c
+@@ -361,7 +361,7 @@ void *__kasan_unpoison_vmalloc(const voi
+ 		return (void *)start;
+ 	}
  
- 	id = (id < base) ? 0 : id - base;
- 	radix_tree_iter_init(&iter, id);
---- a/tools/testing/radix-tree/idr-test.c~idr-fix-idr_alloc-returning-an-id-out-of-range
-+++ a/tools/testing/radix-tree/idr-test.c
-@@ -57,6 +57,26 @@ void idr_alloc_test(void)
- 	idr_destroy(&idr);
+-	tag = kasan_random_tag();
++	tag = (flags & KASAN_VMALLOC_KEEP_TAG) ? get_tag(start) : kasan_random_tag();
+ 	start = set_tag(start, tag);
+ 
+ 	/* Unpoison and initialize memory up to size. */
+--- a/mm/kasan/shadow.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/kasan/shadow.c
+@@ -631,7 +631,9 @@ void *__kasan_unpoison_vmalloc(const voi
+ 	    !(flags & KASAN_VMALLOC_PROT_NORMAL))
+ 		return (void *)start;
+ 
+-	start = set_tag(start, kasan_random_tag());
++	if (unlikely(!(flags & KASAN_VMALLOC_KEEP_TAG)))
++		start = set_tag(start, kasan_random_tag());
++
+ 	kasan_unpoison(start, size, false);
+ 	return (void *)start;
  }
- 
-+void idr_alloc2_test(void)
-+{
-+	int id;
-+	struct idr idr = IDR_INIT_BASE(idr, 1);
-+
-+	id = idr_alloc(&idr, idr_alloc2_test, 0, 1, GFP_KERNEL);
-+	assert(id == -ENOSPC);
-+
-+	id = idr_alloc(&idr, idr_alloc2_test, 1, 2, GFP_KERNEL);
-+	assert(id == 1);
-+
-+	id = idr_alloc(&idr, idr_alloc2_test, 0, 1, GFP_KERNEL);
-+	assert(id == -ENOSPC);
-+
-+	id = idr_alloc(&idr, idr_alloc2_test, 0, 2, GFP_KERNEL);
-+	assert(id == -ENOSPC);
-+
-+	idr_destroy(&idr);
-+}
-+
- void idr_replace_test(void)
- {
- 	DEFINE_IDR(idr);
-@@ -409,6 +429,7 @@ void idr_checks(void)
- 
- 	idr_replace_test();
- 	idr_alloc_test();
-+	idr_alloc2_test();
- 	idr_null_test();
- 	idr_nowait_test();
- 	idr_get_next_test(0);
+--- a/mm/vmalloc.c~mm-kasan-fix-incorrect-unpoisoning-in-vrealloc-for-kasan
++++ a/mm/vmalloc.c
+@@ -4331,7 +4331,9 @@ void *vrealloc_node_align_noprof(const v
+ 	 */
+ 	if (size <= alloced_size) {
+ 		kasan_unpoison_vmalloc(p + old_size, size - old_size,
+-				       KASAN_VMALLOC_PROT_NORMAL);
++				       KASAN_VMALLOC_PROT_NORMAL |
++				       KASAN_VMALLOC_VM_ALLOC |
++				       KASAN_VMALLOC_KEEP_TAG);
+ 		/*
+ 		 * No need to zero memory here, as unused memory will have
+ 		 * already been zeroed at initial allocation time or during
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from jiayuan.chen@linux.dev are
 
 
