@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFD9724DD15
-	for <mm-commits@vger.kernel.org>; Tue, 23 Dec 2025 01:42:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02F3420C490;
+	Tue, 23 Dec 2025 02:01:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766454173; cv=none; b=IPuh6tMMZwkpM3vvbCo+EDpqQrpff+bOeRvmBmEHylmO/vW0MqR1GpBP2/GKfWQrg+GxDYQX9nlz6RbyvOvR3E3p6OC/v1qaBxoyWyMgFHPbT7RH08t/rMwNTNRi8hN4CkmqULpj0KCDbeGgdwrlNe7PhrzLxiI2a0WM+soVP8Q=
+	t=1766455286; cv=none; b=HwH0L7uFWTQtK9OCwon5FbI/Sem/4nmrHe3ntq+O+YB2XJT1P4gNvjnrntTqDo/DfBuamz9qo7ndHDvW3fqzNlQvimAKk+M/pQuhcNTj4odZ/Dzf3ylemgbXpC0yCZ/cg0g9K99qi/oW6lx/p0GiVEABhRztI/OnSp/0gszKe/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766454173; c=relaxed/simple;
-	bh=5VyAjrhDuzxGvzxf/3kOqXMUo14JxgeWLTtTYdMeUr4=;
-	h=Date:To:From:Subject:Message-Id; b=d7awT3N6pr2mYk5R1Q+uf1zJmB5IWsmeoQUgM45cJHZuaXzgKrRau9WVv9QILP3UllKBDMYUyQYGi2yAsG86caX87BAWSWw0aYgr5cwQZ18KlSbqOA3UCaNw/PTf+93HYf9OKWx2XETK6Zf16ZGKBMBSNqRyn3wlC3FAPtQoLz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uJXt2sov; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766455286; c=relaxed/simple;
+	bh=VibKW4rFrlqEVk5lvNzEgf8tiJl1ks8BIBvxSH4K4qE=;
+	h=Date:To:From:Subject:Message-Id; b=JVzLYLB7bJyZLJ9yzzF0fHoyX6+2ddAKzOjLPE7P2Vx4G9ouzX+vZ6csx0ToxgKP1qoVe88myE6HH7xuLvVcJkMvjBh7iAYXHgYOcPV9+t+abs/m5cCQkO7Y3zc7SHqUl1+g3uFS18SK2YbQqsNdBBn0pO3j/rij3bzkKznx0Xg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j1lsA8QB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uJXt2sov"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6784EC4CEF1;
-	Tue, 23 Dec 2025 01:42:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j1lsA8QB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A86B6C4CEF1;
+	Tue, 23 Dec 2025 02:01:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766454172;
-	bh=5VyAjrhDuzxGvzxf/3kOqXMUo14JxgeWLTtTYdMeUr4=;
+	s=korg; t=1766455285;
+	bh=VibKW4rFrlqEVk5lvNzEgf8tiJl1ks8BIBvxSH4K4qE=;
 	h=Date:To:From:Subject:From;
-	b=uJXt2sovTH85RNhmd9hWL0CnNeRARl9zjhSSzFlrfoHBsOxmS1GZx9u9cVwBYc/DM
-	 5MlJhFymfEHFxxls2CmeYBn0ntXIrvIHLqzF/orzfDhfNjeIA0gqCynleJ6sgUYHBa
-	 ibmNC2oF2sC2aT8100Siet0ZBokgH34cGKZ1q4G8=
-Date: Mon, 22 Dec 2025 17:42:51 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,akinobu.mita@gmail.com,akpm@linux-foundation.org
+	b=j1lsA8QBnkfKnaR1+nwrSLxHdhY0fOP1hZWqcWZAzqG7obDiTpFrHvzlYNRs0zBs/
+	 x9fvzAxnv0UcD9IMZNiErNMrqlIw33ZdUHexGl/Dv0E0/Op721DFFOMDmH1ptRXuiU
+	 13Bv4UhsNR81aR7DS0imT2i+IM5Y33eC08JrNkJY=
+Date: Mon, 22 Dec 2025 18:01:25 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,stable@vger.kernel.org,broonie@kernel.org,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch added to mm-new branch
-Message-Id: <20251223014252.6784EC4CEF1@smtp.kernel.org>
+Subject: + mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch added to mm-new branch
+Message-Id: <20251223020125.A86B6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: don't demote if there is not enough free memory in the lower memory tier
+     Subject: mm: add missing static initializer for init_mm::mm_cid.lock
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch
+     mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,97 +66,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mm/vmscan: don't demote if there is not enough free memory in the lower memory tier
-Date: Mon, 22 Dec 2025 09:48:34 +0900
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: mm: add missing static initializer for init_mm::mm_cid.lock
+Date: Sun, 21 Dec 2025 18:29:22 -0500
 
-On systems with multiple memory-tiers consisting of DRAM and CXL memory,
-the OOM killer is not invoked properly.
+Patch series "MM_CID and HPCC mm_struct static init fixes".
 
-Here's the command to reproduce:
+Mark Brown reported a regression [1] on linux next due to the hierarchical
+percpu counters (HPCC).  You mentioned they were only in mm-new (and
+therefore not pulled into -next) [2], but it looks like they got more
+exposure that we expected.  :)
 
-$ sudo swapoff -a
-$ stress-ng --oomable -v --memrate 20 --memrate-bytes 10G \
-    --memrate-rd-mbs 1 --memrate-wr-mbs 1
+This bug hunting got me to fix static initialization issues in both MM_CID
+(for upstream) and HPCC (mm-new).  Mark tested my series and confirmed
+that it fixes his issues.
 
-The memory usage is the number of workers specified with the --memrate
-option multiplied by the buffer size specified with the --memrate-bytes
-option, so please adjust it so that it exceeds the total size of the
-installed DRAM and CXL memory.
 
-If swap is disabled, you can usually expect the OOM killer to terminate
-the stress-ng process when memory usage approaches the installed memory
-size.
+This patch (of 5):
 
-However, if multiple memory-tiers exist (multiple
-/sys/devices/virtual/memory_tiering/memory_tier<N> directories exist) and
-/sys/kernel/mm/numa/demotion_enabled is true, the OOM killer will not be
-invoked and the system will become inoperable, regardless of whether MGLRU
-is enabled or not.
+Initialize the mm_cid.lock struct member of init_mm.
 
-This issue can be reproduced using NUMA emulation even on systems with
-only DRAM.  You can create two-fake memory-tiers by booting a single-node
-system with "numa=fake=2 numa_emulation.adistance=576,704" kernel
-parameters.
-
-The reason for this issue is that memory allocations do not directly
-trigger the oom-killer, assuming that if the target node has an underlying
-memory tier, it can always be reclaimed by demotion.
-
-So this change avoids this issue by not attempting to demote if the
-underlying node has less free memory than the minimum watermark, and the
-oom-killer will be triggered directly from memory allocations.
-
-Link: https://lkml.kernel.org/r/20251222004834.10539-4-akinobu.mita@gmail.com
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Link: https://lkml.kernel.org/r/20251221232926.450602-2-mathieu.desnoyers@efficios.com
+Fixes: 8cea569ca785 ("sched/mmcid: Use proper data structures")
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/init-mm.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier
-+++ a/mm/vmscan.c
-@@ -356,7 +356,18 @@ static bool can_demote(int nid, struct s
- 		return false;
- 
- 	/* If demotion node isn't in the cgroup's mems_allowed, fall back */
--	return mem_cgroup_node_allowed(memcg, demotion_nid);
-+	if (mem_cgroup_node_allowed(memcg, demotion_nid)) {
-+		int z;
-+		struct zone *zone;
-+		struct pglist_data *pgdat = NODE_DATA(demotion_nid);
-+
-+		for_each_managed_zone_pgdat(zone, pgdat, z, MAX_NR_ZONES - 1) {
-+			if (zone_watermark_ok(zone, 0, min_wmark_pages(zone),
-+						ZONE_MOVABLE, 0))
-+				return true;
-+		}
-+	}
-+	return false;
- }
- 
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
+--- a/mm/init-mm.c~mm-add-missing-static-initializer-for-init_mm-mm_cidlock
++++ a/mm/init-mm.c
+@@ -44,6 +44,9 @@ struct mm_struct init_mm = {
+ 	.mm_lock_seq	= SEQCNT_ZERO(init_mm.mm_lock_seq),
+ #endif
+ 	.user_ns	= &init_user_ns,
++#ifdef CONFIG_SCHED_MM_CID
++	.mm_cid.lock = __RAW_SPIN_LOCK_UNLOCKED(init_mm.mm_cid.lock),
++#endif
+ 	.cpu_bitmap	= CPU_BITS_NONE,
+ 	INIT_MM_CONTEXT(init_mm)
+ };
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
-mm-damon-vaddr-fix-missing-pte_unmap_unlock-in-damos_va_migrate_pmd_entry.patch
-mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch
-mm-numa_emu-add-document-for-numa-emulation.patch
-mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch
+lib-introduce-hierarchical-per-cpu-counters.patch
+mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
+mm-implement-precise-oom-killer-task-selection.patch
+mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch
+mm-rename-cpu_bitmap-field-to-flexible_array.patch
+mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
+mm-take-into-account-hierarchical-percpu-tree-items-for-static-mm_struct-definitions.patch
+tsacct-skip-all-kernel-threads.patch
 
