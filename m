@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE87D199FBA;
-	Thu,  1 Jan 2026 02:42:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDE4D1C84AB
+	for <mm-commits@vger.kernel.org>; Thu,  1 Jan 2026 02:48:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767235332; cv=none; b=L07FsqWmRAvdddq7sZPzdHcYAQ8Hr7wJxzb1qyQLBP8tkNnP1P3et+zUuaI2R8piybqv38wn8dlhWdI04l+F3heo3SrPfAYvzvm1jyVyBXZGndKchMIt4/7twQwr7a0D1a2qZTTU0P6d0motIzf7I0RaBkvC1a9lkTtrBHRtuNY=
+	t=1767235713; cv=none; b=ZZ98PAlo//9cBr92Wk1RfEg9ANBsYylENg9XZzoP+AIOt8RpYLlPeKgNiuV82y0jxrnK38WcfRjiWxlDCYR6CRcvlXwApC3XSsEfHlKx0xNUktA08heCPnCSo2QXQOuvfFB587yVXEA9dbcwH8SB4cyzRmVEJR93lFV1P969ZJA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767235332; c=relaxed/simple;
-	bh=TDmOJc9F5eQV/dUJa3gcTvlgOSCUh84gUlGuIjOTS68=;
-	h=Date:To:From:Subject:Message-Id; b=OkFBayORpu14noNFkT11P9JLjL6WxcCrMBPaxxmOHvRmBvxb1v4cL5Ga8BP52i2kEJH7tLaQE7/XEsOF/+5ixvhv1EKUhtvUGe0bDV1/ZzzpTCeblQXZJcqw0w/JDEj/t7yG9IfGvueXmpFc5+V+oeIJk7renKrqCOCKbAAMWfs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gjMa6+gi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767235713; c=relaxed/simple;
+	bh=y4AaWjLvfA+pKiWJ2xMU+1Ggn01e7HqjvghsPMr0bAM=;
+	h=Date:To:From:Subject:Message-Id; b=ogQBE3tpv4BoDgXeoJc+CuLh7EBHtJpxjfloc5liT/ty0QiG8gGrJYcrY7GdOSUExTDS/T9T92ium3HVwMFd9Eq9ad7gvkslmq6wrqRQep6YtgXj6Gx+KluHqEEaBNBiPnbWIXwSnLUBWR+ebB/ZrmWus7/0+G5OJAPpm5aM+YM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kvIs2Umn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gjMa6+gi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3AB6C113D0;
-	Thu,  1 Jan 2026 02:42:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kvIs2Umn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 232C0C113D0;
+	Thu,  1 Jan 2026 02:48:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767235331;
-	bh=TDmOJc9F5eQV/dUJa3gcTvlgOSCUh84gUlGuIjOTS68=;
+	s=korg; t=1767235713;
+	bh=y4AaWjLvfA+pKiWJ2xMU+1Ggn01e7HqjvghsPMr0bAM=;
 	h=Date:To:From:Subject:From;
-	b=gjMa6+gixYYy9c8iAY2ZIkmA6ItMTPfkxK16Wmpme7CWeBIFGCvGkYPZfPmzszyGf
-	 EdZd2kXdLkMq6qCfdi3HfLOra2WPlFY1a0uaLO9+jF87jUlyIm0G2u7WPzVO+jDdBr
-	 VeiVfx/n6jtNClxdhPzrUg6y/jXPlNf4SzqOFR98=
-Date: Wed, 31 Dec 2025 18:42:11 +9900
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rgbi3307@gmail.com,sj@kernel.org,akpm@linux-foundation.org
+	b=kvIs2Umn2SzAbp7pZlzPr2LqKuVtbFjH/GDNz4BH/jEdCKXl5LPqaUNe3Pvpj/FdS
+	 vXa73Uhd+kBFtBtk8XoyMaUPYcTEmkehG7zHRZG4jWYpTPh/AU6O+d+M9E6uDbwL/O
+	 pbOkp2XxY9B/QIYZolR13ggB381EdKnTyqaeGYeg=
+Date: Wed, 31 Dec 2025 18:48:32 +9900
+To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,joel.granados@kernel.org,gregkh@linuxfoundation.org,feng.tang@linux.alibaba.com,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-call_control-in-inactive-contexts.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260101024211.A3AB6C113D0@smtp.kernel.org>
+Subject: + hung_task-introduce-helper-for-hung-task-warning.patch added to mm-nonmm-unstable branch
+Message-Id: <20260101024833.232C0C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove call_control in inactive contexts
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-remove-call_control-in-inactive-contexts.patch
+     Subject: hung_task: introduce helper for hung task warning
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     hung_task-introduce-helper-for-hung-task-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-call_control-in-inactive-contexts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-introduce-helper-for-hung-task-warning.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,126 +58,105 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: remove call_control in inactive contexts
-Date: Tue, 30 Dec 2025 17:23:13 -0800
+From: Aaron Tomlin <atomlin@atomlin.com>
+Subject: hung_task: introduce helper for hung task warning
+Date: Tue, 30 Dec 2025 19:41:24 -0500
 
-If damon_call() is executed against a DAMON context that is not running,
-the function returns error while keeping the damon_call_control object
-linked to the context's call_controls list.  Let's suppose the object is
-deallocated after the damon_call(), and yet another damon_call() is
-executed against the same context.  The function tries to add the new
-damon_call_control object to the call_controls list, which still has the
-pointer to the previous damon_call_control object, which is deallocated. 
-As a result, use-after-free happens.
+Patch series "hung_task: Provide runtime reset interface for hung task
+detector", v5.
 
-This can actually be triggered using the DAMON sysfs interface.  It is not
-easily exploitable since it requires the sysfs write permission and making
-a definitely weird file writes, though.  Please refer to the report for
-more details about the issue reproduction steps.
+This series introduces the ability to reset
+/proc/sys/kernel/hung_task_detect_count.
 
-Fix the issue by making two changes.  Firstly, move the final
-kdamond_call() for cancelling all existing damon_call() requests from
-terminating DAMON context to be done before the ctx->kdamond reset.  This
-makes any code that sees NULL ctx->kdamond can safely assume the context
-may not access damon_call() requests anymore.  Secondly, let damon_call()
-to cleanup the damon_call_control objects that were added to the
-already-terminated DAMON context, before returning the error.
+Writing a zero value to this file atomically resets the counter of
+detected hung tasks.  This functionality provides system administrators
+with the means to clear the cumulative diagnostic history following
+incident resolution, thereby simplifying subsequent monitoring without
+necessitating a system restart.
 
-Link: https://lkml.kernel.org/r/20251231012315.75835-1-sj@kernel.org
-Fixes: 004ded6bee11 ("mm/damon: accept parallel damon_call() requests")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: JaeJoon Jung <rgbi3307@gmail.com>
-Closes: https://lore.kernel.org/20251224094401.20384-1-rgbi3307@gmail.com
-Cc: <stable@vger.kernel.org> # 6.17.x
+The implementation uses atomic acquire/release semantics to ensure that
+diagnostic metadata published by one CPU is correctly observed by the
+monitoring thread on another CPU.
+
+
+This patch (of 2):
+
+Consolidate the multi-line console output block for reporting a hung task
+into a new helper function, hung_task_diagnostics().  This improves
+readability in the main check_hung_task() loop and makes the diagnostic
+output structure easier to maintain and update in the future.
+
+Link: https://lkml.kernel.org/r/20251231004125.2380105-1-atomlin@atomlin.com
+Link: https://lkml.kernel.org/r/20251231004125.2380105-2-atomlin@atomlin.com
+Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   33 +++++++++++++++++++++++++++++++--
- 1 file changed, 31 insertions(+), 2 deletions(-)
+ kernel/hung_task.c |   33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-call_control-in-inactive-contexts
-+++ a/mm/damon/core.c
-@@ -1431,6 +1431,35 @@ bool damon_is_running(struct damon_ctx *
- 	return running;
+--- a/kernel/hung_task.c~hung_task-introduce-helper-for-hung-task-warning
++++ a/kernel/hung_task.c
+@@ -223,6 +223,28 @@ static inline void debug_show_blocker(st
  }
+ #endif
  
-+/*
-+ * damon_call_handle_inactive_ctx() - handle DAMON call request that added to
-+ *				      an inactive context.
-+ * @ctx:	The inactive DAMON context.
-+ * @control:	Control variable of the call request.
++/**
++ * hung_task_diagnostics - Print structured diagnostic info for a hung task.
++ * @t: Pointer to the detected hung task.
 + *
-+ * This function is called in a case that @control is added to @ctx but @ctx is
-+ * not running (inactive).  See if @ctx handled @control or not, and cleanup
-+ * @control if it was not handled.
-+ *
-+ * Returns 0 if @control was handled by @ctx, negative error code otherwise.
++ * This function consolidates the printing of core diagnostic information
++ * for a task found to be blocked.
 + */
-+static int damon_call_handle_inactive_ctx(
-+		struct damon_ctx *ctx, struct damon_call_control *control)
++static inline void hung_task_diagnostics(struct task_struct *t)
 +{
-+	struct damon_call_control *c;
++	unsigned long blocked_secs = (jiffies - t->last_switch_time) / HZ;
 +
-+	mutex_lock(&ctx->call_controls_lock);
-+	list_for_each_entry(c, &ctx->call_controls, list) {
-+		if (c == control) {
-+			list_del(&control->list);
-+			mutex_unlock(&ctx->call_controls_lock);
-+			return -EINVAL;
-+		}
-+	}
-+	mutex_unlock(&ctx->call_controls_lock);
-+	return 0;
++	pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
++	       t->comm, t->pid, blocked_secs);
++	pr_err("      %s %s %.*s\n",
++	       print_tainted(), init_utsname()->release,
++	       (int)strcspn(init_utsname()->version, " "),
++	       init_utsname()->version);
++	if (t->flags & PF_POSTCOREDUMP)
++		pr_err("      Blocked by coredump.\n");
++	pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\" disables this message.\n");
 +}
 +
- /**
-  * damon_call() - Invoke a given function on DAMON worker thread (kdamond).
-  * @ctx:	DAMON context to call the function for.
-@@ -1461,7 +1490,7 @@ int damon_call(struct damon_ctx *ctx, st
- 	list_add_tail(&control->list, &ctx->call_controls);
- 	mutex_unlock(&ctx->call_controls_lock);
- 	if (!damon_is_running(ctx))
--		return -EINVAL;
-+		return damon_call_handle_inactive_ctx(ctx, control);
- 	if (control->repeat)
- 		return 0;
- 	wait_for_completion(&control->completion);
-@@ -2755,13 +2784,13 @@ done:
- 	if (ctx->ops.cleanup)
- 		ctx->ops.cleanup(ctx);
- 	kfree(ctx->regions_score_histogram);
-+	kdamond_call(ctx, true);
+ static void check_hung_task(struct task_struct *t, unsigned long timeout,
+ 		unsigned long prev_detect_count)
+ {
+@@ -252,16 +274,7 @@ static void check_hung_task(struct task_
+ 	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+ 		if (sysctl_hung_task_warnings > 0)
+ 			sysctl_hung_task_warnings--;
+-		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
+-		       t->comm, t->pid, (jiffies - t->last_switch_time) / HZ);
+-		pr_err("      %s %s %.*s\n",
+-			print_tainted(), init_utsname()->release,
+-			(int)strcspn(init_utsname()->version, " "),
+-			init_utsname()->version);
+-		if (t->flags & PF_POSTCOREDUMP)
+-			pr_err("      Blocked by coredump.\n");
+-		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
+-			" disables this message.\n");
++		hung_task_diagnostics(t);
+ 		sched_show_task(t);
+ 		debug_show_blocker(t, timeout);
  
- 	pr_debug("kdamond (%d) finishes\n", current->pid);
- 	mutex_lock(&ctx->kdamond_lock);
- 	ctx->kdamond = NULL;
- 	mutex_unlock(&ctx->kdamond_lock);
- 
--	kdamond_call(ctx, true);
- 	damos_walk_cancel(ctx);
- 
- 	mutex_lock(&damon_lock);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from atomlin@atomlin.com are
 
-mm-damon-core-remove-call_control-in-inactive-contexts.patch
-mm-damon-core-introduce-nr_snapshots-damos-stat.patch
-mm-damon-sysfs-schemes-introduce-nr_snapshots-damos-stat-file.patch
-docs-mm-damon-design-update-for-nr_snapshots-damos-stat.patch
-docs-admin-guide-mm-damon-usage-update-for-nr_snapshots-damos-stat.patch
-docs-abi-damon-update-for-nr_snapshots-damos-stat.patch
-mm-damon-update-damos-kerneldoc-for-stat-field.patch
-mm-damon-core-implement-max_nr_snapshots.patch
-mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch
-docs-mm-damon-design-update-for-max_nr_snapshots.patch
-docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch
-docs-abi-damon-update-for-max_nr_snapshots.patch
-mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch
-mm-damon-sysfs-cleanup-intervals-subdirs-on-attrs-dir-setup-failure.patch
-mm-damon-sysfs-cleanup-attrs-subdirs-on-context-dir-setup-failure.patch
-mm-damon-sysfs-scheme-cleanup-quotas-subdirs-on-scheme-dir-setup-failure.patch
-mm-damon-sysfs-scheme-cleanup-access_pattern-subdirs-on-scheme-dir-setup-failure.patch
-mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch
+fs-proc-expose-mm_cpumask-in-proc-status.patch
+hung_task-introduce-helper-for-hung-task-warning.patch
+hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
+hung_task-provide-runtime-reset-interface-for-hung-task-detector.patch
 
