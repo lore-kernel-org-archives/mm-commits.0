@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88DBF17A305;
-	Thu,  1 Jan 2026 02:30:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECDE8199FBA
+	for <mm-commits@vger.kernel.org>; Thu,  1 Jan 2026 02:36:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767234617; cv=none; b=MJyHZl+8kNOnJc+7JvxuKIxz7gycgOZSJrpki2bNIrf5BG1bFvEByae4gLbPkzsHgAn1DNVOnnLWZT36Rgn30m/ljW1Rfek0FCcJ4pbV/mOOjIX18tmSVEF3PmhsVZhT0M4p8GMeo6czC3PQ86JGyQUSi+74WzaUZXth+p3YCOM=
+	t=1767235011; cv=none; b=tlBzx4YmBF2Mv+Lvr0PTCGA3eUDSRzFkC+NdEaUSujigxMyJi5t3j0LoGfy/ha7dUzrKtWpuyoydvtvEJJwsDLI7wsb5G6w3vlu7zTbW9p1xHMslzlVdclf/87F2tYbTVAqn2LsqwYv0rdK814DtZhaOqDmJWrv8ChUgkgYAPsk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767234617; c=relaxed/simple;
-	bh=tDxrmcJt/4fl84n5cWJZNV5peEV826otlarUz+4zYTg=;
-	h=Date:To:From:Subject:Message-Id; b=blOslyjAG2FCKl8eaMrAyqsmr0rIgQ3vQIs3FImQg7eUlKd/HfpN9oR05XkEo+fMoLUiZo3+BeRvRsu7cYIlPQUgcFQ2mqjYtVPtDxVuk3Pnl1Hl4QnrPG63IdVWh1tycWdoIUSRNPt13X0M0T4aIqcZeX5jxhGPwgiSn5FxsG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NNsM2Mjs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767235011; c=relaxed/simple;
+	bh=Kc4jvKmpEpgdjXqjlkjHdUAbR0Vo3wEzM0HOHLK7e8Q=;
+	h=Date:To:From:Subject:Message-Id; b=GTfuCsj7nZ3HIt9ad+Mn4ow2Vlv7qsBABbNWg+zMEPqv7BGKty5fiAHz+/uOylZCQBFf6w8hTCfWOXR8cFBq9JKfkQ5MZVvggY4kAtW4sc0C1YuXPNrMb1szNZWnmskwaxCkDfOAP2AVCppYaxaLXLEwZxFSHeBMwG2VILkN+/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oq6s3mZq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NNsM2Mjs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D553C113D0;
-	Thu,  1 Jan 2026 02:30:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oq6s3mZq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FA5CC113D0;
+	Thu,  1 Jan 2026 02:36:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767234617;
-	bh=tDxrmcJt/4fl84n5cWJZNV5peEV826otlarUz+4zYTg=;
+	s=korg; t=1767235009;
+	bh=Kc4jvKmpEpgdjXqjlkjHdUAbR0Vo3wEzM0HOHLK7e8Q=;
 	h=Date:To:From:Subject:From;
-	b=NNsM2MjsEI3e4GZoB0q/fMffO3nkQ/ICpG7AzVyzUEr6vKKSot36JFtbGSuDBZiiL
-	 gp1yVyzvzLratTrv72lmdumYrwz5rVpTa9W4rN0pXn2Q07gaaPilfMOoKEaMkRGrtM
-	 xSRCvupYqfWxdcJ+XykXVtmUFmZiBMZDNaoF1IfQ=
-Date: Wed, 31 Dec 2025 18:30:16 +9900
-To: mm-commits@vger.kernel.org,zohar@linux.ibm.com,yifei.l.liu@oracle.com,tglx@linutronix.de,stable@vger.kernel.org,sourabhjain@linux.ibm.com,sohil.mehta@intel.com,rppt@kernel.org,paul.x.webb@oracle.com,noodles@fb.com,mingo@redhat.com,joel.granados@kernel.org,jbohac@suse.cz,hpa@zytor.com,henry.willard@oracle.com,guoweikang.kernel@gmail.com,graf@amazon.com,bp@alien8.de,bhe@redhat.com,ardb@kernel.org,harshit.m.mogalapalli@oracle.com,akpm@linux-foundation.org
+	b=oq6s3mZq+TImo9LFoGA99DSomIpJiR4XVKV6D6/SdO/jWNBSlSOodLf+DcT1YtATY
+	 rR7BBAFcFB7+hwJ3/uwrsAtFDUgsyIem9RFXs58EjRmQe9gmEYHSX323oN/fHRyG1Z
+	 DWb/El+RpTHAzsHfADn6eGHIK78JvLV4kKtbZM0M=
+Date: Wed, 31 Dec 2025 18:36:48 +9900
+To: mm-commits@vger.kernel.org,will@kernel.org,svens@linux.ibm.com,sj@kernel.org,peterz@infradead.org,npiggin@gmail.com,hca@linux.ibm.com,gor@linux.ibm.com,david@kernel.org,borntraeger@linux.ibm.com,arnd@arndb.de,aneesh.kumar@kernel.org,agordeev@linux.ibm.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer.patch added to mm-nonmm-unstable branch
-Message-Id: <20260101023017.0D553C113D0@smtp.kernel.org>
+Subject: + mm-mmu_gather-remove-delay_remap-of-__tlb_remove_page_size.patch added to mm-new branch
+Message-Id: <20260101023649.5FA5CC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/kexec: add a sanity check on previous kernel's ima kexec buffer
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer.patch
+     Subject: mm/mmu_gather: remove @delay_remap of __tlb_remove_page_size()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mmu_gather-remove-delay_remap-of-__tlb_remove_page_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_gather-remove-delay_remap-of-__tlb_remove_page_size.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,77 +66,102 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
-Subject: x86/kexec: add a sanity check on previous kernel's ima kexec buffer
-Date: Tue, 30 Dec 2025 22:16:09 -0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/mmu_gather: remove @delay_remap of __tlb_remove_page_size()
+Date: Wed, 31 Dec 2025 03:00:26 +0000
 
-When the second-stage kernel is booted via kexec with a limiting command
-line such as "mem=<size>", the physical range that contains the carried
-over IMA measurement list may fall outside the truncated RAM leading to a
-kernel panic.
+__tlb_remove_page_size() is only used in tlb_remove_page_size() with
+@delay_remap set to false and it is passed directly to
+__tlb_remove_folio_pages_size().
 
-    BUG: unable to handle page fault for address: ffff97793ff47000
-    RIP: ima_restore_measurement_list+0xdc/0x45a
-    #PF: error_code(0x0000) – not-present page
+Remove @delay_remap of __tlb_remove_page_size() and call
+__tlb_remove_folio_pages_size() with false @delay_remap.
 
-Other architectures already validate the range with page_is_ram(), as done
-in commit cbf9c4b9617b ("of: check previous kernel's ima-kexec-buffer
-against memory bounds") do a similar check on x86.
-
-Without carrying the measurement list across kexec, the attestation
-would fail.
-
-Link: https://lkml.kernel.org/r/20251231061609.907170-4-harshit.m.mogalapalli@oracle.com
-Signed-off-by: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
-Fixes: b69a2afd5afc ("x86/kexec: Carry forward IMA measurement log on kexec")
-Reported-by: Paul Webb <paul.x.webb@oracle.com>
-Reviewed-by: Mimi Zohar <zohar@linux.ibm.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: guoweikang <guoweikang.kernel@gmail.com>
-Cc: Henry Willard <henry.willard@oracle.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Jonathan McDowell <noodles@fb.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Sohil Mehta <sohil.mehta@intel.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Yifei Liu <yifei.l.liu@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20251231030026.15938-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: SeongJae Park <sj@kernel.org>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/s390/include/asm/tlb.h |    6 ++----
+ include/asm-generic/tlb.h   |    5 ++---
+ mm/mmu_gather.c             |    5 ++---
+ 3 files changed, 6 insertions(+), 10 deletions(-)
 
---- a/arch/x86/kernel/setup.c~x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer
-+++ a/arch/x86/kernel/setup.c
-@@ -439,9 +439,15 @@ int __init ima_free_kexec_buffer(void)
+--- a/arch/s390/include/asm/tlb.h~mm-mmu_gather-remove-delay_remap-of-__tlb_remove_page_size
++++ a/arch/s390/include/asm/tlb.h
+@@ -24,7 +24,7 @@
  
- int __init ima_get_kexec_buffer(void **addr, size_t *size)
+ static inline void tlb_flush(struct mmu_gather *tlb);
+ static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
+-		struct page *page, bool delay_rmap, int page_size);
++		struct page *page, int page_size);
+ static inline bool __tlb_remove_folio_pages(struct mmu_gather *tlb,
+ 		struct page *page, unsigned int nr_pages, bool delay_rmap);
+ 
+@@ -46,10 +46,8 @@ static inline bool __tlb_remove_folio_pa
+  * s390 doesn't delay rmap removal.
+  */
+ static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
+-		struct page *page, bool delay_rmap, int page_size)
++		struct page *page, int page_size)
  {
-+	int ret;
-+
- 	if (!ima_kexec_buffer_size)
- 		return -ENOENT;
+-	VM_WARN_ON_ONCE(delay_rmap);
+-
+ 	free_folio_and_swap_cache(page_folio(page));
+ 	return false;
+ }
+--- a/include/asm-generic/tlb.h~mm-mmu_gather-remove-delay_remap-of-__tlb_remove_page_size
++++ a/include/asm-generic/tlb.h
+@@ -287,8 +287,7 @@ struct mmu_gather_batch {
+  */
+ #define MAX_GATHER_BATCH_COUNT	(10000UL/MAX_GATHER_BATCH)
  
-+	ret = ima_validate_range(ima_kexec_buffer_phys, ima_kexec_buffer_size);
-+	if (ret)
-+		return ret;
-+
- 	*addr = __va(ima_kexec_buffer_phys);
- 	*size = ima_kexec_buffer_size;
+-extern bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
+-		bool delay_rmap, int page_size);
++extern bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page, int page_size);
+ bool __tlb_remove_folio_pages(struct mmu_gather *tlb, struct page *page,
+ 		unsigned int nr_pages, bool delay_rmap);
  
+@@ -510,7 +509,7 @@ static inline void tlb_flush_mmu_tlbonly
+ static inline void tlb_remove_page_size(struct mmu_gather *tlb,
+ 					struct page *page, int page_size)
+ {
+-	if (__tlb_remove_page_size(tlb, page, false, page_size))
++	if (__tlb_remove_page_size(tlb, page, page_size))
+ 		tlb_flush_mmu(tlb);
+ }
+ 
+--- a/mm/mmu_gather.c~mm-mmu_gather-remove-delay_remap-of-__tlb_remove_page_size
++++ a/mm/mmu_gather.c
+@@ -210,10 +210,9 @@ bool __tlb_remove_folio_pages(struct mmu
+ 					     PAGE_SIZE);
+ }
+ 
+-bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
+-		bool delay_rmap, int page_size)
++bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page, int page_size)
+ {
+-	return __tlb_remove_folio_pages_size(tlb, page, 1, delay_rmap, page_size);
++	return __tlb_remove_folio_pages_size(tlb, page, 1, false, page_size);
+ }
+ 
+ #endif /* MMU_GATHER_NO_GATHER */
 _
 
-Patches currently in -mm which might be from harshit.m.mogalapalli@oracle.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-ima-verify-the-previous-kernels-ima-buffer-lies-in-addressable-ram.patch
-of-kexec-refactor-ima_get_kexec_buffer-to-use-ima_validate_range.patch
-x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer.patch
+mm-vmstat-remove-unused-node-and-zone-state-helpers.patch
+mm-mmu_gather-remove-delay_remap-of-__tlb_remove_page_size.patch
 
