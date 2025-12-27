@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDE4D1C84AB
-	for <mm-commits@vger.kernel.org>; Thu,  1 Jan 2026 02:48:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B69EF1C84AB
+	for <mm-commits@vger.kernel.org>; Thu,  1 Jan 2026 02:48:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767235713; cv=none; b=ZZ98PAlo//9cBr92Wk1RfEg9ANBsYylENg9XZzoP+AIOt8RpYLlPeKgNiuV82y0jxrnK38WcfRjiWxlDCYR6CRcvlXwApC3XSsEfHlKx0xNUktA08heCPnCSo2QXQOuvfFB587yVXEA9dbcwH8SB4cyzRmVEJR93lFV1P969ZJA=
+	t=1767235715; cv=none; b=aJeneeP1XEmqs80nWujdd25SI6creSk+I7RyiQcRT1uYgq21/QO+vm8L49J823suXc9eoYhD6iaVfpwWSZCfLfyqHpJoAHxGluF/kuWu5LQN9nKXIl5BuqHzGSl3+xBZ8kR1xhBm/9UjX7CcxlBRtRyQ4D5yb9acaOq7nNx/R48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767235713; c=relaxed/simple;
-	bh=y4AaWjLvfA+pKiWJ2xMU+1Ggn01e7HqjvghsPMr0bAM=;
-	h=Date:To:From:Subject:Message-Id; b=ogQBE3tpv4BoDgXeoJc+CuLh7EBHtJpxjfloc5liT/ty0QiG8gGrJYcrY7GdOSUExTDS/T9T92ium3HVwMFd9Eq9ad7gvkslmq6wrqRQep6YtgXj6Gx+KluHqEEaBNBiPnbWIXwSnLUBWR+ebB/ZrmWus7/0+G5OJAPpm5aM+YM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kvIs2Umn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767235715; c=relaxed/simple;
+	bh=HW2Pr55aPAfsCB4YB4SNFIWgLrW9GS2xyOJ2t2sgYYA=;
+	h=Date:To:From:Subject:Message-Id; b=HexnWvygxEXkEbOkHITXSbvm1R/DdfatC/azdQX8tNzjVCYDTXYaGV2+J3dzvrcGO3+NYb/stltu2goSIVUxhWZPljCvcD32Om/wjv9+7y2saDueFBh+1vVxXXT0i7kmgQYTscfpc+0XqZXNrkA+dqhxbvDwdDfL31rXgdqICdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2pMfv3U5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kvIs2Umn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 232C0C113D0;
-	Thu,  1 Jan 2026 02:48:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2pMfv3U5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D563C113D0;
+	Thu,  1 Jan 2026 02:48:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767235713;
-	bh=y4AaWjLvfA+pKiWJ2xMU+1Ggn01e7HqjvghsPMr0bAM=;
+	s=korg; t=1767235715;
+	bh=HW2Pr55aPAfsCB4YB4SNFIWgLrW9GS2xyOJ2t2sgYYA=;
 	h=Date:To:From:Subject:From;
-	b=kvIs2Umn2SzAbp7pZlzPr2LqKuVtbFjH/GDNz4BH/jEdCKXl5LPqaUNe3Pvpj/FdS
-	 vXa73Uhd+kBFtBtk8XoyMaUPYcTEmkehG7zHRZG4jWYpTPh/AU6O+d+M9E6uDbwL/O
-	 pbOkp2XxY9B/QIYZolR13ggB381EdKnTyqaeGYeg=
-Date: Wed, 31 Dec 2025 18:48:32 +9900
+	b=2pMfv3U5JEQmfL7oU+2N0dCHMNpK5rY6lmiq7jvGBgoU7N/fcmYd/bci6TMxpk4fk
+	 U2ZepG/2awFvLYDlkQXvurV3JT62GvJ+nliU8pfVV32xRVWWc8fAG8vcYFbTlBxylF
+	 udOoa/yXEUoIGFNeUsqn52n8I2onCj7PdGElE6yQ=
+Date: Wed, 31 Dec 2025 18:48:34 +9900
 To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,joel.granados@kernel.org,gregkh@linuxfoundation.org,feng.tang@linux.alibaba.com,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-introduce-helper-for-hung-task-warning.patch added to mm-nonmm-unstable branch
-Message-Id: <20260101024833.232C0C113D0@smtp.kernel.org>
+Subject: + hung_task-enable-runtime-reset-of-hung_task_detect_count.patch added to mm-nonmm-unstable branch
+Message-Id: <20260101024835.3D563C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: introduce helper for hung task warning
+     Subject: hung_task: enable runtime reset of hung_task_detect_count
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-introduce-helper-for-hung-task-warning.patch
+     hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-introduce-helper-for-hung-task-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,98 +59,189 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: hung_task: introduce helper for hung task warning
-Date: Tue, 30 Dec 2025 19:41:24 -0500
+Subject: hung_task: enable runtime reset of hung_task_detect_count
+Date: Tue, 30 Dec 2025 19:41:25 -0500
 
-Patch series "hung_task: Provide runtime reset interface for hung task
-detector", v5.
+Introduce support for writing to /proc/sys/kernel/hung_task_detect_count.
 
-This series introduces the ability to reset
-/proc/sys/kernel/hung_task_detect_count.
+Writing a value of zero to this file atomically resets the counter of
+detected hung tasks.  This grants system administrators the ability to
+clear the cumulative diagnostic history after resolving an incident,
+simplifying monitoring without requiring a system restart.
 
-Writing a zero value to this file atomically resets the counter of
-detected hung tasks.  This functionality provides system administrators
-with the means to clear the cumulative diagnostic history following
-incident resolution, thereby simplifying subsequent monitoring without
-necessitating a system restart.
-
-The implementation uses atomic acquire/release semantics to ensure that
-diagnostic metadata published by one CPU is correctly observed by the
-monitoring thread on another CPU.
-
-
-This patch (of 2):
-
-Consolidate the multi-line console output block for reporting a hung task
-into a new helper function, hung_task_diagnostics().  This improves
-readability in the main check_hung_task() loop and makes the diagnostic
-output structure easier to maintain and update in the future.
-
-Link: https://lkml.kernel.org/r/20251231004125.2380105-1-atomlin@atomlin.com
-Link: https://lkml.kernel.org/r/20251231004125.2380105-2-atomlin@atomlin.com
+Link: https://lkml.kernel.org/r/20251231004125.2380105-3-atomlin@atomlin.com
 Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
+Cc: Feng Tang <feng.tang@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Joel Granados <joel.granados@kernel.org>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Petr Mladek <pmladek@suse.com>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |   33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+ Documentation/admin-guide/sysctl/kernel.rst |    3 
+ kernel/hung_task.c                          |   82 +++++++++++++++---
+ 2 files changed, 73 insertions(+), 12 deletions(-)
 
---- a/kernel/hung_task.c~hung_task-introduce-helper-for-hung-task-warning
-+++ a/kernel/hung_task.c
-@@ -223,6 +223,28 @@ static inline void debug_show_blocker(st
- }
- #endif
+--- a/Documentation/admin-guide/sysctl/kernel.rst~hung_task-enable-runtime-reset-of-hung_task_detect_count
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -418,7 +418,8 @@ hung_task_detect_count
+ ======================
  
-+/**
-+ * hung_task_diagnostics - Print structured diagnostic info for a hung task.
-+ * @t: Pointer to the detected hung task.
-+ *
-+ * This function consolidates the printing of core diagnostic information
-+ * for a task found to be blocked.
-+ */
-+static inline void hung_task_diagnostics(struct task_struct *t)
-+{
-+	unsigned long blocked_secs = (jiffies - t->last_switch_time) / HZ;
+ Indicates the total number of tasks that have been detected as hung since
+-the system boot.
++the system boot or since the counter was reset. The counter is zeroed when
++a value of 0 is written.
+ 
+ This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
+ 
+--- a/kernel/hung_task.c~hung_task-enable-runtime-reset-of-hung_task_detect_count
++++ a/kernel/hung_task.c
+@@ -17,6 +17,7 @@
+ #include <linux/export.h>
+ #include <linux/panic_notifier.h>
+ #include <linux/sysctl.h>
++#include <linux/atomic.h>
+ #include <linux/suspend.h>
+ #include <linux/utsname.h>
+ #include <linux/sched/signal.h>
+@@ -36,7 +37,7 @@ static int __read_mostly sysctl_hung_tas
+ /*
+  * Total number of tasks detected as hung since boot:
+  */
+-static unsigned long __read_mostly sysctl_hung_task_detect_count;
++static atomic_long_t sysctl_hung_task_detect_count = ATOMIC_LONG_INIT(0);
+ 
+ /*
+  * Limit number of tasks checked in a batch.
+@@ -246,20 +247,26 @@ static inline void hung_task_diagnostics
+ }
+ 
+ static void check_hung_task(struct task_struct *t, unsigned long timeout,
+-		unsigned long prev_detect_count)
++			    unsigned long prev_detect_count)
+ {
+-	unsigned long total_hung_task;
++	unsigned long total_hung_task, cur_detect_count;
+ 
+ 	if (!task_is_hung(t, timeout))
+ 		return;
+ 
+ 	/*
+ 	 * This counter tracks the total number of tasks detected as hung
+-	 * since boot.
++	 * since boot. If a reset occurred during the scan, we treat the
++	 * current count as the new delta to avoid an underflow error.
++	 * Ensure hang details are globally visible before the counter
++	 * update.
+ 	 */
+-	sysctl_hung_task_detect_count++;
++	cur_detect_count = atomic_long_inc_return_release(&sysctl_hung_task_detect_count);
++	if (cur_detect_count >= prev_detect_count)
++		total_hung_task = cur_detect_count - prev_detect_count;
++	else
++		total_hung_task = cur_detect_count;
+ 
+-	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
+ 	trace_sched_process_hang(t);
+ 
+ 	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
+@@ -318,10 +325,12 @@ static void check_hung_uninterruptible_t
+ 	int max_count = sysctl_hung_task_check_count;
+ 	unsigned long last_break = jiffies;
+ 	struct task_struct *g, *t;
+-	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
++	unsigned long cur_detect_count, prev_detect_count, delta;
+ 	int need_warning = sysctl_hung_task_warnings;
+ 	unsigned long si_mask = hung_task_si_mask;
+ 
++	/* Acquire prevents reordering task checks before this point. */
++	prev_detect_count = atomic_long_read_acquire(&sysctl_hung_task_detect_count);
+ 	/*
+ 	 * If the system crashed already then all bets are off,
+ 	 * do not report extra hung tasks:
+@@ -346,7 +355,14 @@ static void check_hung_uninterruptible_t
+  unlock:
+ 	rcu_read_unlock();
+ 
+-	if (!(sysctl_hung_task_detect_count - prev_detect_count))
++	/* Ensures we see all hang details recorded during the scan. */
++	cur_detect_count = atomic_long_read_acquire(&sysctl_hung_task_detect_count);
++	if (cur_detect_count < prev_detect_count)
++		delta = cur_detect_count;
++	else
++		delta = cur_detect_count - prev_detect_count;
 +
-+	pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
-+	       t->comm, t->pid, blocked_secs);
-+	pr_err("      %s %s %.*s\n",
-+	       print_tainted(), init_utsname()->release,
-+	       (int)strcspn(init_utsname()->version, " "),
-+	       init_utsname()->version);
-+	if (t->flags & PF_POSTCOREDUMP)
-+		pr_err("      Blocked by coredump.\n");
-+	pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\" disables this message.\n");
++	if (!delta)
+ 		return;
+ 
+ 	if (need_warning || hung_task_call_panic) {
+@@ -371,6 +387,51 @@ static long hung_timeout_jiffies(unsigne
+ }
+ 
+ #ifdef CONFIG_SYSCTL
++
++/**
++ * proc_dohung_task_detect_count - proc handler for hung_task_detect_count
++ * @table: Pointer to the struct ctl_table definition for this proc entry
++ * @dir: Flag indicating the operation
++ * @buffer: User space buffer for data transfer
++ * @lenp: Pointer to the length of the data being transferred
++ * @ppos: Pointer to the current file offset
++ *
++ * This handler is used for reading the current hung task detection count
++ * and for resetting it to zero when a write operation is performed using a
++ * zero value only. Returns 0 on success or a negative error code on
++ * failure.
++ */
++static int proc_dohung_task_detect_count(const struct ctl_table *table, int dir,
++					 void *buffer, size_t *lenp, loff_t *ppos)
++{
++	unsigned long detect_count;
++	struct ctl_table proxy_table;
++	int err;
++
++	proxy_table = *table;
++	proxy_table.data = &detect_count;
++
++	if (SYSCTL_KERN_TO_USER(dir)) {
++		detect_count = atomic_long_read(&sysctl_hung_task_detect_count);
++
++		return proc_doulongvec_minmax(&proxy_table, dir, buffer, lenp, ppos);
++	}
++
++	err = proc_doulongvec_minmax(&proxy_table, dir, buffer, lenp, ppos);
++	if (err < 0)
++		return err;
++
++	if (SYSCTL_USER_TO_KERN(dir)) {
++		/* The only valid value for clearing is zero. */
++		if (detect_count)
++			return -EINVAL;
++		atomic_long_set(&sysctl_hung_task_detect_count, 0);
++	}
++
++	*ppos += *lenp;
++	return err;
 +}
 +
- static void check_hung_task(struct task_struct *t, unsigned long timeout,
- 		unsigned long prev_detect_count)
- {
-@@ -252,16 +274,7 @@ static void check_hung_task(struct task_
- 	if (sysctl_hung_task_warnings || hung_task_call_panic) {
- 		if (sysctl_hung_task_warnings > 0)
- 			sysctl_hung_task_warnings--;
--		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
--		       t->comm, t->pid, (jiffies - t->last_switch_time) / HZ);
--		pr_err("      %s %s %.*s\n",
--			print_tainted(), init_utsname()->release,
--			(int)strcspn(init_utsname()->version, " "),
--			init_utsname()->version);
--		if (t->flags & PF_POSTCOREDUMP)
--			pr_err("      Blocked by coredump.\n");
--		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
--			" disables this message.\n");
-+		hung_task_diagnostics(t);
- 		sched_show_task(t);
- 		debug_show_blocker(t, timeout);
- 
+ /*
+  * Process updating of timeout sysctl
+  */
+@@ -451,10 +512,9 @@ static const struct ctl_table hung_task_
+ 	},
+ 	{
+ 		.procname	= "hung_task_detect_count",
+-		.data		= &sysctl_hung_task_detect_count,
+ 		.maxlen		= sizeof(unsigned long),
+-		.mode		= 0444,
+-		.proc_handler	= proc_doulongvec_minmax,
++		.mode		= 0644,
++		.proc_handler	= proc_dohung_task_detect_count,
+ 	},
+ 	{
+ 		.procname	= "hung_task_sys_info",
 _
 
 Patches currently in -mm which might be from atomlin@atomlin.com are
