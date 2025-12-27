@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD3DA1A3029
-	for <mm-commits@vger.kernel.org>; Thu,  1 Jan 2026 01:43:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE33319F115
+	for <mm-commits@vger.kernel.org>; Thu,  1 Jan 2026 01:49:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767231817; cv=none; b=WagnMtoCt9qSAswZqC5WbkRxQ3jf9z/THH9gD5bfq4t95SLx8pU5UOUXl07weeBAd3lWXszk5B5EbCTfNmdODkdSTO0zr6FbnGjLSG5xtcTMsRpRu9RH7T1NMpjcpBJwwQUq5pxuJ4ekTAeO5u3MZCrrwxYkuyaEfIzQy8FaYrA=
+	t=1767232185; cv=none; b=BA6lmdSXinYA0gw23TS7kPm+gLiNNRMgkzlJ1V8CHOMVNmWbmzYcRs9w8G1SvQI1dOyZzSYkXW2EakPgc2e6szTQ6vQh4qHRIa9D6fIVaz0c1q+pcerFX6xNagjs51tAqwXi7uoCRsjSe6Rk3HvuseQzdQbQsv/HWzQx5h4ayO4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767231817; c=relaxed/simple;
-	bh=5Fw4eiF1lKPd0piUp2S2/K9KI5lH4Ykib5tXSLIqYPo=;
-	h=Date:To:From:Subject:Message-Id; b=MPbsfY6YHBNyaCJ+Luyfoz/VXkxJOm596zqHfZ9Fb4ZFaYZbo3SK3rgHG9Pag56rSmf9DygBalGa9TBlYer+KFNQ7G/Mmt/JfKrXJWSf5AOFDR0VFhBFM/SH4dHsjluPd3pT2zkC0C1ru9pOCmDJYSw8tjOHfb4j7kQx7hY+tRo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H1COETq7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767232185; c=relaxed/simple;
+	bh=zNCVAN4s+vSXLZ8UhI7JETY+BXZUulZ0qh0bk3ELqHw=;
+	h=Date:To:From:Subject:Message-Id; b=XyYI/pcnb619UQvPymgW44ILfiSPqVdnNpaDEnOrrd3Mp0suNMnuVT3Oyso+y8ArOxmYTcbZAwKfUC0xSga+LD50cqS7y11hklKdAuM72zUDVdd2lyctESMnnIzWhk3royEItSv4yvkZA0TSoh3p0BJlPlCkbGQ/Y9YAZPRuXjA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b9YkSXHP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H1COETq7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 434C6C113D0;
-	Thu,  1 Jan 2026 01:43:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b9YkSXHP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FF4FC113D0;
+	Thu,  1 Jan 2026 01:49:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767231817;
-	bh=5Fw4eiF1lKPd0piUp2S2/K9KI5lH4Ykib5tXSLIqYPo=;
+	s=korg; t=1767232184;
+	bh=zNCVAN4s+vSXLZ8UhI7JETY+BXZUulZ0qh0bk3ELqHw=;
 	h=Date:To:From:Subject:From;
-	b=H1COETq7zg0tEmXmffoVVm1Uniqhf93iGfCwMHCUgp5S+BfOnGLIMw47S3lecBZJG
-	 EnOuA2NWg4ZchHo7StQNv0hlZSQoAyj1DNi5cttRhFFXIicU9YiehjslmVx6cGgG6d
-	 qN5uXjeme4LYCHwQOfOJQJVVULSybwiJbuwOL9gw=
-Date: Wed, 31 Dec 2025 17:43:36 +9900
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,rientjes@google.com,mhocko@suse.com,kdipendra88@gmail.com,akpm@linux-foundation.org
+	b=b9YkSXHPf3CzGtdM3RbBpAolDwuVz+ye+6nzOKezI7XPyOK5k9X6j7gPCh7/EUXtC
+	 lMQ92T9fnVy9r/Hf4Ivgg1lvzenVYGcPF3FhI/9VCZaqfWqvqYnzizFnW2Ha6DdA7D
+	 3x9LIXoLvk7PxEsBY1fgXzO3grQ35WFfGYPZytOY=
+Date: Wed, 31 Dec 2025 17:49:43 +9900
+To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,tglx@linutronix.de,markus.stockhausen@gmx.de,jelonek.jonas@gmail.com,hauke@hauke-m.de,chris.packham@alliedtelesis.co.nz,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string.patch added to mm-new branch
-Message-Id: <20260101014337.434C6C113D0@smtp.kernel.org>
+Subject: + mips-fix-highmem-initialization.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260101014944.3FF4FC113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/oom_kill: remove unnecessary integer promotion in format string
-has been added to the -mm mm-new branch.  Its filename is
-     mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string.patch
+     Subject: mips: fix HIGHMEM initialization
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mips-fix-highmem-initialization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-highmem-initialization.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,47 +58,102 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dipendra Khadka <kdipendra88@gmail.com>
-Subject: mm/oom_kill: remove unnecessary integer promotion in format string
-Date: Sun, 28 Dec 2025 15:44:55 +0000
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: mips: fix HIGHMEM initialization
+Date: Wed, 31 Dec 2025 12:57:01 +0200
 
-The 'h' length modifier in '%hd' is unnecessary as short integers are
-promoted to int in variadic functions.  Use '%d' instead.
+Commit 6faea3422e3b ("arch, mm: streamline HIGHMEM freeing") overzealously
+removed mem_init_free_highmem() function that beside freeing high memory
+pages checked for CPU support for high memory as a prerequisite.
 
-Link: https://lkml.kernel.org/r/20251228154456.2386-1-kdipendra88@gmail.com
-Signed-off-by: Dipendra Khadka <kdipendra88@gmail.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Partially restore mem_init_free_highmem() with a new highmem_init() name
+and make it discard high memory in case there is no CPU support for it.
+
+Link: https://lkml.kernel.org/r/20251231105701.519711-1-rppt@kernel.org
+Fixes: 6faea3422e3b ("arch, mm: streamline HIGHMEM freeing")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reported-by: Markus Stockhausen <markus.stockhausen@gmx.de>
+Cc: Chris Packham <chris.packham@alliedtelesis.co.nz>
+Cc: Hauke Mehrtens <hauke@hauke-m.de>
+Cc: Jonas Jelonek <jelonek.jonas@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleinxer <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/mm/init.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
---- a/mm/oom_kill.c~mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string
-+++ a/mm/oom_kill.c
-@@ -506,7 +506,7 @@ static void dump_oom_victim(struct oom_c
+--- a/arch/mips/mm/init.c~mips-fix-highmem-initialization
++++ a/arch/mips/mm/init.c
+@@ -425,6 +425,28 @@ void __init paging_init(void)
+ static struct kcore_list kcore_kseg0;
+ #endif
  
- static void dump_header(struct oom_control *oc)
++static inline void __init highmem_init(void)
++{
++#ifdef CONFIG_HIGHMEM
++	unsigned long tmp;
++
++	/*
++	 * If CPU cannot support HIGHMEM discard the memory above highstart_pfn
++	 */
++	if (cpu_has_dc_aliases) {
++		memblock_remove(PFN_PHYS(highstart_pfn), -1);
++		return;
++	}
++
++	for (tmp = highstart_pfn; tmp < highend_pfn; tmp++) {
++		struct page *page = pfn_to_page(tmp);
++
++		if (!memblock_is_memory(PFN_PHYS(tmp)))
++			SetPageReserved(page);
++	}
++#endif
++}
++
+ void __init arch_mm_preinit(void)
  {
--	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
-+	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%d\n",
- 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
- 			current->signal->oom_score_adj);
- 	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
-@@ -1006,7 +1006,7 @@ static void __oom_kill_process(struct ta
- 	 */
- 	do_send_sig_info(SIGKILL, SEND_SIG_PRIV, victim, PIDTYPE_TGID);
- 	mark_oom_victim(victim);
--	pr_err("%s: Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB, UID:%u pgtables:%lukB oom_score_adj:%hd\n",
-+	pr_err("%s: Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB, UID:%u pgtables:%lukB oom_score_adj:%d\n",
- 		message, task_pid_nr(victim), victim->comm, K(mm->total_vm),
- 		K(get_mm_counter(mm, MM_ANONPAGES)),
- 		K(get_mm_counter(mm, MM_FILEPAGES)),
+ 	/*
+@@ -435,6 +457,7 @@ void __init arch_mm_preinit(void)
+ 
+ 	maar_init();
+ 	setup_zero_pages();	/* Setup zeroed pages.  */
++	highmem_init();
+ 
+ #ifdef CONFIG_64BIT
+ 	if ((unsigned long) &_text > (unsigned long) CKSEG0)
 _
 
-Patches currently in -mm which might be from kdipendra88@gmail.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string.patch
+mips-fix-highmem-initialization.patch
+alpha-introduce-arch_zone_limits_init.patch
+arc-introduce-arch_zone_limits_init.patch
+arm-introduce-arch_zone_limits_init.patch
+arm64-introduce-arch_zone_limits_init.patch
+csky-introduce-arch_zone_limits_init.patch
+hexagon-introduce-arch_zone_limits_init.patch
+loongarch-introduce-arch_zone_limits_init.patch
+m68k-introduce-arch_zone_limits_init.patch
+microblaze-introduce-arch_zone_limits_init.patch
+mips-introduce-arch_zone_limits_init.patch
+nios2-introduce-arch_zone_limits_init.patch
+openrisc-introduce-arch_zone_limits_init.patch
+parisc-introduce-arch_zone_limits_init.patch
+powerpc-introduce-arch_zone_limits_init.patch
+riscv-introduce-arch_zone_limits_init.patch
+s390-introduce-arch_zone_limits_init.patch
+sh-introduce-arch_zone_limits_init.patch
+sparc-introduce-arch_zone_limits_init.patch
+um-introduce-arch_zone_limits_init.patch
+x86-introduce-arch_zone_limits_init.patch
+xtensa-introduce-arch_zone_limits_init.patch
+arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch
+arch-mm-consolidate-initialization-of-sparse-memory-model.patch
+mips-drop-paging_init.patch
+x86-dont-reserve-hugetlb-memory-in-setup_arch.patch
+mm-arch-consolidate-hugetlb-cma-reservation.patch
+mm-hugetlb-drop-hugetlb_cma_check.patch
+revert-mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
 
