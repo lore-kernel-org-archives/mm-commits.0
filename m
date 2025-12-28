@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18F6429B8E5
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 22:50:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31C8C3A1CD
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 22:50:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766962257; cv=none; b=ZbVJNH78e1rN6j+kX+5AeZtP5+gMaIl8POPc50p/TyEDfv4KbYZVHpRNNegBJhlBSmEETZJoN+WQ/6b6K44QZM6K75tPY6EJb5OYN7lWChSN0ToVRt4lzStvMh0sgk//WTBDegkLdYbV9ttis05m61+a54OjSHYP9f2ZpLEXNzk=
+	t=1766962260; cv=none; b=r/OdP5h6dvB3kSDhwlveMQrxgZnTpfdnTWZd+9Q3TJ3CdpKMo/SfcpcFaD7O0WMMiPSmHDMfkPg+HR5ZEbUVsVD4Z/Cu7jXINUu+BQi/n0b6FDTT5/HXgLM7zCiukFq9iboiztHU9zz+MzlaryitH1GRfFcj4/A/4b32xS10qXI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766962257; c=relaxed/simple;
-	bh=NO4s6EwlcPvXqybyz1NXFlvmIKoai59PoE9xpp9rj9s=;
-	h=Date:To:From:Subject:Message-Id; b=ovxnqzylMJfB9kYfd7PpjuBEsZ24uwLZM2WFM3FUJR9ANyGnKEZL7bKkL9hNGmNdkaezVKNg5ViFbaVwXswPpZ5BzrS0Fvnui6u90YHPj9d2glOGOHj8SR+YjD2uirSNeSm/b1TBApNu2VUR/482dzWubqDBKysuw8IkGFMOAz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XALEo2l2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766962260; c=relaxed/simple;
+	bh=aSna70iAud1AHyObZbJ7AtD95kkfhjfxGf+SW1+1dUI=;
+	h=Date:To:From:Subject:Message-Id; b=RMFMmZ9vT/dxzWxTm2EHJ/aqJWgfptFehWgWzqFKARZGxgHuPtxpIPuwDInL4Fa2hN7fkGMDogP0mbt+nhebZIfr8n4SPlVYy2Kkjfc1K/1Kd+Yv/lqz7cxZzyYnr2IDIDmf3WSdijrAeuVZYDE5dyFoge8r/0LYefLKfHVVdwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hU53Ohih; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XALEo2l2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95764C4CEFB;
-	Sun, 28 Dec 2025 22:50:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hU53Ohih"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE4AEC4CEFB;
+	Sun, 28 Dec 2025 22:50:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766962256;
-	bh=NO4s6EwlcPvXqybyz1NXFlvmIKoai59PoE9xpp9rj9s=;
+	s=korg; t=1766962258;
+	bh=aSna70iAud1AHyObZbJ7AtD95kkfhjfxGf+SW1+1dUI=;
 	h=Date:To:From:Subject:From;
-	b=XALEo2l2PNxSblsr8Izlah20GgJk8CpM1c9iRxHQbdTAg6LcQye8FJGGxWWYjGjvh
-	 72w+no1UOWRK7mEUfCzroVDvc71gkXqGZ3zLk2LnMI0MmC6HpEVR4pbjW4EZeeJfEs
-	 rNG9CnHb64RoWCZY7EE5chsR1coRYuvBkExEI++4=
-Date: Sun, 28 Dec 2025 14:50:56 -0800
+	b=hU53Ohihv3/jVD75JMBFSgYz5+GyMcMX80mraG3BZhM+BPjRQWo7c1Oym0y5wyy+I
+	 6cFybtfoagF7eLEmmUxcMHo/BHGjgLp8u/jShEmAD/aQb6Ghd2wqwhVA3dH4/zlqjL
+	 9/Hg+kIW3kQLrihCyFPadAfZjt2XcDRcuAqvVkNk=
+Date: Sun, 28 Dec 2025 14:50:58 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-count-small-vmas-towards-scan-limit-fix.patch added to mm-new branch
-Message-Id: <20251228225056.95764C4CEFB@smtp.kernel.org>
+Subject: + mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch added to mm-new branch
+Message-Id: <20251228225058.AE4AEC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-khugepaged-count-small-vmas-towards-scan-limit-fix
+     Subject: mm/khugepaged: change collapse_pte_mapped_thp() to return void
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-count-small-vmas-towards-scan-limit-fix.patch
+     mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-count-small-vmas-towards-scan-limit-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,41 +66,141 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Garg, Shivank" <shivankg@amd.com>
-Subject: mm-khugepaged-count-small-vmas-towards-scan-limit-fix
-Date: Sun, 28 Dec 2025 23:28:12 +0530
+From: Shivank Garg <shivankg@amd.com>
+Subject: mm/khugepaged: change collapse_pte_mapped_thp() to return void
+Date: Wed, 24 Dec 2025 11:13:55 +0000
 
-update changelog, add comment per Lance
+The only external caller of collapse_pte_mapped_thp() is uprobe, which
+ignores the return value.  Change the external API to return void to
+simplify the interface.
 
-Link: https://lkml.kernel.org/r/24ed11d1-4761-458f-900b-8fa79379ace2@amd.com
+Introduce try_collapse_pte_mapped_thp() for internal use that preserves
+the return value.  This prepares for future patch that will convert the
+return type to use enum scan_result.
+
+Link: https://lkml.kernel.org/r/20251224111351.41042-10-shivankg@amd.com
 Signed-off-by: Shivank Garg <shivankg@amd.com>
+Suggested-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Lance Yang <lance.yang@linux.dev>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/khugepaged.h |    9 +++----
+ mm/khugepaged.c            |   40 ++++++++++++++++++++---------------
+ 2 files changed, 27 insertions(+), 22 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-count-small-vmas-towards-scan-limit-fix
+--- a/include/linux/khugepaged.h~mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void
++++ a/include/linux/khugepaged.h
+@@ -17,8 +17,8 @@ extern void khugepaged_enter_vma(struct
+ 				 vm_flags_t vm_flags);
+ extern void khugepaged_min_free_kbytes_update(void);
+ extern bool current_is_khugepaged(void);
+-extern int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
+-				   bool install_pmd);
++extern void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
++				    bool install_pmd);
+ 
+ static inline void khugepaged_fork(struct mm_struct *mm, struct mm_struct *oldmm)
+ {
+@@ -42,10 +42,9 @@ static inline void khugepaged_enter_vma(
+ 					vm_flags_t vm_flags)
+ {
+ }
+-static inline int collapse_pte_mapped_thp(struct mm_struct *mm,
+-					  unsigned long addr, bool install_pmd)
++static inline void collapse_pte_mapped_thp(struct mm_struct *mm,
++					   unsigned long addr, bool install_pmd)
+ {
+-	return 0;
+ }
+ 
+ static inline void khugepaged_min_free_kbytes_update(void)
+--- a/mm/khugepaged.c~mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void
 +++ a/mm/khugepaged.c
-@@ -2448,6 +2448,7 @@ static unsigned int khugepaged_scan_mm_s
- 		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
- 		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
- 		if (khugepaged_scan.address > hend || hend <= hstart) {
-+			/* VMA already scanned or too small/unaligned for hugepage. */
- 			progress++;
- 			continue;
- 		}
+@@ -1477,20 +1477,8 @@ static int set_huge_pmd(struct vm_area_s
+ 	return SCAN_SUCCEED;
+ }
+ 
+-/**
+- * collapse_pte_mapped_thp - Try to collapse a pte-mapped THP for mm at
+- * address haddr.
+- *
+- * @mm: process address space where collapse happens
+- * @addr: THP collapse address
+- * @install_pmd: If a huge PMD should be installed
+- *
+- * This function checks whether all the PTEs in the PMD are pointing to the
+- * right THP. If so, retract the page table so the THP can refault in with
+- * as pmd-mapped. Possibly install a huge PMD mapping the THP.
+- */
+-int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
+-			    bool install_pmd)
++static int try_collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
++				       bool install_pmd)
+ {
+ 	int nr_mapped_ptes = 0, result = SCAN_FAIL;
+ 	unsigned int nr_batch_ptes;
+@@ -1711,6 +1699,24 @@ drop_folio:
+ 	return result;
+ }
+ 
++/**
++ * collapse_pte_mapped_thp - Try to collapse a pte-mapped THP for mm at
++ * address haddr.
++ *
++ * @mm: process address space where collapse happens
++ * @addr: THP collapse address
++ * @install_pmd: If a huge PMD should be installed
++ *
++ * This function checks whether all the PTEs in the PMD are pointing to the
++ * right THP. If so, retract the page table so the THP can refault in with
++ * as pmd-mapped. Possibly install a huge PMD mapping the THP.
++ */
++void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
++			     bool install_pmd)
++{
++	try_collapse_pte_mapped_thp(mm, addr, install_pmd);
++}
++
+ /* Can we retract page tables for this file-backed VMA? */
+ static bool file_backed_vma_is_retractable(struct vm_area_struct *vma)
+ {
+@@ -2227,7 +2233,7 @@ immap_locked:
+ 
+ 	/*
+ 	 * Remove pte page tables, so we can re-fault the page as huge.
+-	 * If MADV_COLLAPSE, adjust result to call collapse_pte_mapped_thp().
++	 * If MADV_COLLAPSE, adjust result to call try_collapse_pte_mapped_thp().
+ 	 */
+ 	retract_page_tables(mapping, start);
+ 	if (cc && !cc->is_khugepaged)
+@@ -2480,7 +2486,7 @@ static unsigned int khugepaged_scan_mm_s
+ 					mmap_read_lock(mm);
+ 					if (hpage_collapse_test_exit_or_disable(mm))
+ 						goto breakouterloop;
+-					*result = collapse_pte_mapped_thp(mm,
++					*result = try_collapse_pte_mapped_thp(mm,
+ 						khugepaged_scan.address, false);
+ 					if (*result == SCAN_PMD_MAPPED)
+ 						*result = SCAN_SUCCEED;
+@@ -2870,7 +2876,7 @@ handle_result:
+ 		case SCAN_PTE_MAPPED_HUGEPAGE:
+ 			BUG_ON(mmap_locked);
+ 			mmap_read_lock(mm);
+-			result = collapse_pte_mapped_thp(mm, addr, true);
++			result = try_collapse_pte_mapped_thp(mm, addr, true);
+ 			mmap_read_unlock(mm);
+ 			goto handle_result;
+ 		/* Whitelisted set of results where continuing OK */
 _
 
 Patches currently in -mm which might be from shivankg@amd.com are
