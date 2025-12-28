@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B05762144C7
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 23:01:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B614529BD8C
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 23:01:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766962917; cv=none; b=JWSLeyUaXH0D5TJ+03hurd7dC9UFahqdmsb3LbcESOzHJRy09gfuQkhT9F0ykwTxpnuMsfcJvSRsZsMA/qiFE34WIeXYaSN1LrfW6FqmqTC03+FGe1qdO68xZdvCJBbYs5GDX3G1KGyNH9GfjnbTXkTwW4VXVGQYqGQKEXBkHsM=
+	t=1766962920; cv=none; b=i2HDULsykKLMWF0ygVjNH/8sEcGwGqHSg7Fqx4K9rkKwbh6cUPond+fayI1fQSnguRncupidATcPbak5kW/uM2NHP60dANxbIfaCRh7RPrJk8i6ThlOtaf5sZH4pVWhuv+kryyvGEJpzv/AzZPgr1QcP5hbTlHOpzE6MTFnw+wY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766962917; c=relaxed/simple;
-	bh=Z0fIMQL5z+7gFmf+5wihIllfScRvC0xe3vq89TW2kik=;
-	h=Date:To:From:Subject:Message-Id; b=ADMMEWnBCdQgPm61jaMkgysr0UmYjSd4OgGPlRSjbZgfwfNUtHfjlz3goRZGcJtIaEPbzmiPV+C50L4AvCdxIi5LGt4nfmumRJkzUIAL51MpuqqvtB6d+6HQ43C3SrSnQLM3ZenyqRGFUsf2yp7A6oQDr6UKIhWoXKDrJk5qprU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Th+2deNS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766962920; c=relaxed/simple;
+	bh=oT8f6/NJG5FpbMPMAKo6FOjWphnq7CR9ylUNRVLDSCo=;
+	h=Date:To:From:Subject:Message-Id; b=H37Z8sVF3C/t+0wyo4TDJ4+uNvS/PYA/lKq+diMY4DI4ZYZaXbYECKuX/cJWGYd+Mk1+ukoEa2qEci6ivP7LuFciulEZQ3xIfTarvHHPpDcOwlsw0yiag+XPXlN045gMthEWDvqo0dNVKcDxoHQULBjUVVGoW2xa5llHg18q2rY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D+R6lYQI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Th+2deNS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 350AAC4CEFB;
-	Sun, 28 Dec 2025 23:01:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D+R6lYQI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 430A1C4CEFB;
+	Sun, 28 Dec 2025 23:01:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766962917;
-	bh=Z0fIMQL5z+7gFmf+5wihIllfScRvC0xe3vq89TW2kik=;
+	s=korg; t=1766962919;
+	bh=oT8f6/NJG5FpbMPMAKo6FOjWphnq7CR9ylUNRVLDSCo=;
 	h=Date:To:From:Subject:From;
-	b=Th+2deNSlarRFkzHbUIqy9sIQ+w4I+OZA7u+ajQNU01MepHlIG9TML5PAeDcCTkON
-	 Eftr40voxixUlf+F7Z0Ni83oneip0BYpxQiu64ELHHhruq5YL1iwe7o/xMPOIPpI+C
-	 XHc3KQtzsyYfFuVt8ERKJqrXwrFWptI+Wc4cM+5A=
-Date: Sun, 28 Dec 2025 15:01:56 -0800
+	b=D+R6lYQIbQb1qTuWGJTr8/dFZQcDTIQYnHSUwmoP/rtrw9CaLb9EjqYAS1o2ojfOZ
+	 kXM1qD8y9OBjk2Q7ExYQVeig4EJ7AQA60iQhc3NtbV8DJ1SP+bNddinFKKgry4+1f6
+	 Pdf6pF80yubQTFZ+ZdVCPN0BqmexvrTGUk7EWGbQ=
+Date: Sun, 28 Dec 2025 15:01:58 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,shu17az@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-add-a-test-case-for-region-merge-size-limit-in-damon_test_merge_regions_of.patch added to mm-new branch
-Message-Id: <20251228230157.350AAC4CEFB@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of.patch added to mm-new branch
+Message-Id: <20251228230159.430A1C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: add a test case for region merge size limit in damon_test_merge_regions_of()
+     Subject: mm/damon/tests/core-kunit: add test cases for multiple regions in damon_test_split_regions_of()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-add-a-test-case-for-region-merge-size-limit-in-damon_test_merge_regions_of.patch
+     mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-a-test-case-for-region-merge-size-limit-in-damon_test_merge_regions_of.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,55 +67,58 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shu Anzai <shu17az@gmail.com>
-Subject: mm/damon/tests/core-kunit: add a test case for region merge size limit in damon_test_merge_regions_of()
-Date: Wed, 24 Dec 2025 04:21:58 +0000
+Subject: mm/damon/tests/core-kunit: add test cases for multiple regions in damon_test_split_regions_of()
+Date: Wed, 24 Dec 2025 04:21:59 +0000
 
-Add a test case in damon_test_merge_regions_of() to verify that two
-adjacent regions are not merged if the resulting region would exceed the
-specified size limit.
+Extend damon_test_split_regions_of() to verify that it correctly handles
+multiple regions with various 'min_sz_region'.
 
-Link: https://lkml.kernel.org/r/20251224042200.2061847-4-shu17az@gmail.com
+Link: https://lkml.kernel.org/r/20251224042200.2061847-5-shu17az@gmail.com
 Signed-off-by: Shu Anzai <shu17az@gmail.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/damon/tests/core-kunit.h |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-a-test-case-for-region-merge-size-limit-in-damon_test_merge_regions_of
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of
 +++ a/mm/damon/tests/core-kunit.h
-@@ -238,12 +238,12 @@ static void damon_test_merge_regions_of(
+@@ -275,6 +275,9 @@ static void damon_test_split_regions_of(
  {
  	struct damon_target *t;
  	struct damon_region *r;
--	unsigned long sa[] = {0, 100, 114, 122, 130, 156, 170, 184};
--	unsigned long ea[] = {100, 112, 122, 130, 156, 170, 184, 230};
--	unsigned int nrs[] = {0, 0, 10, 10, 20, 30, 1, 2};
-+	unsigned long sa[] = {0, 100, 114, 122, 130, 156, 170, 184, 230};
-+	unsigned long ea[] = {100, 112, 122, 130, 156, 170, 184, 230, 10170};
-+	unsigned int nrs[] = {0, 0, 10, 10, 20, 30, 1, 2, 5};
- 
--	unsigned long saddrs[] = {0, 114, 130, 156, 170};
--	unsigned long eaddrs[] = {112, 130, 156, 170, 230};
-+	unsigned long saddrs[] = {0, 114, 130, 156, 170, 230};
-+	unsigned long eaddrs[] = {112, 130, 156, 170, 230, 10170};
- 	int i;
++	unsigned long sa[] = {0, 300, 500};
++	unsigned long ea[] = {220, 400, 700};
++	int i;
  
  	t = damon_new_target();
-@@ -261,9 +261,9 @@ static void damon_test_merge_regions_of(
- 	}
+ 	if (!t)
+@@ -301,6 +304,24 @@ static void damon_test_split_regions_of(
+ 	damon_split_regions_of(t, 4, 1);
+ 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
+ 	damon_free_target(t);
++
++	t = damon_new_target();
++	if (!t)
++		kunit_skip(test, "third target alloc fail");
++	for (i = 0; i < ARRAY_SIZE(sa); i++) {
++		r = damon_new_region(sa[i], ea[i]);
++		if (!r) {
++			damon_free_target(t);
++			kunit_skip(test, "region alloc fail");
++		}
++		damon_add_region(r, t);
++	}
++	damon_split_regions_of(t, 4, 5);
++	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 12u);
++	damon_for_each_region(r, t) {
++		KUNIT_EXPECT_GE(test, damon_sz_region(r) % 5ul, 0ul);
++	}
++	damon_free_target(t);
+ }
  
- 	damon_merge_regions_of(t, 9, 9999);
--	/* 0-112, 114-130, 130-156, 156-170 */
--	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 5u);
--	for (i = 0; i < 5; i++) {
-+	/* 0-112, 114-130, 130-156, 156-170, 170-230, 230-10170 */
-+	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 6u);
-+	for (i = 0; i < 6; i++) {
- 		r = __nth_region_of(t, i);
- 		KUNIT_EXPECT_EQ(test, r->ar.start, saddrs[i]);
- 		KUNIT_EXPECT_EQ(test, r->ar.end, eaddrs[i]);
+ static void damon_test_ops_registration(struct kunit *test)
 _
 
 Patches currently in -mm which might be from shu17az@gmail.com are
