@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAD7E29AB15
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 22:50:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 089DE2144C7
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 22:50:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766962252; cv=none; b=QqW7oiamlR3MwxUsRkJNf577EEHyjbuwJrXcLphvg3rxtg9RG13mK7DbBT7qrlQFLS9wSt/hlq5b5Z2ZiN6OxrW5LvnhI/0aI4sBJpBt5VFRXFtR7LtWZE7+tvkywDG+/NZSucbNjNPXJad4XWvnCIPswVvY2HNesm+1h9Sq+Oo=
+	t=1766962255; cv=none; b=L2cBtB5OO3/24IH9f7x8LVL3ylAi0/hDdmaDXIPs5P78pYMWS+ue+mU6ZXtOCyh2LgWY2qBJewbEsfRtNheV2iTL0gjBiFEHav7q1EwwGdJbLPdUltdS1Agd8ijj2unnWgSdhpriXWGr/PGKx3hOvqZpMY7FMA8i//9olVcLgPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766962252; c=relaxed/simple;
-	bh=yVabb3Z4b/2h1tDY+Fr32JI1EvzljlR5M+tTnc3+egg=;
-	h=Date:To:From:Subject:Message-Id; b=AUKjaD2QJmWtl8akiEZzfHqqnmTYiloJhl1HwW5nPJmSik4JerV8tPO9+D7PvlZsbiZk4PnY6igg/SjHJ55S/WQAU+uISZVtIOLM0MV4SlZLfL+5+ZylkMqDwlfS6N9A4cyIQBE79VNi3CgA222PnbGqsDeXM8eMxj9pmSGxg4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rImWHDwV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766962255; c=relaxed/simple;
+	bh=h4ypf7v3aSVlaM//WMahKAgTPR+WrHyn84xcKEeaxfw=;
+	h=Date:To:From:Subject:Message-Id; b=rcYUdK6e45UqooikdYtX/2dpplyHTUB2b+c+xXYo2RU5HjwE2M8PBvHMP5EBcT0n8ZNNsTH8JleiEyLrk5aCkhKzIxGHsSHm78539LPv3oVGFxOHmaP6aDDrR1JnN5TAJggJqQmJWWAw4NzazV2nlPd5ikAtMxI/rhgHY6OdO1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O71326Rb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rImWHDwV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41C1CC4CEFB;
-	Sun, 28 Dec 2025 22:50:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O71326Rb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71C36C4CEFB;
+	Sun, 28 Dec 2025 22:50:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766962252;
-	bh=yVabb3Z4b/2h1tDY+Fr32JI1EvzljlR5M+tTnc3+egg=;
+	s=korg; t=1766962254;
+	bh=h4ypf7v3aSVlaM//WMahKAgTPR+WrHyn84xcKEeaxfw=;
 	h=Date:To:From:Subject:From;
-	b=rImWHDwVTaV9GtT6JM6ChD7WjLcpoI9ugf1Juugtam8gfRnoEnqNpbnVGKf9jLn3e
-	 PBKiKUgixszEl6cQHd2cHalSLm1I3ZR+pCtcDgnJz3tccVbPINSo0890Ud7IlGWqcG
-	 gvlm0WwDDt9FsYyrPvclAZFb2ZdY8djdbGj+z8eI=
-Date: Sun, 28 Dec 2025 14:50:51 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,shivankg@amd.com,akpm@linux-foundation.org
+	b=O71326RbaqOCxZoQbuBjv/sTU790SePpetApxDDXXY8IEbz5ponjyFOwZ1kXyKVhI
+	 K9UceQcRMDPLHSGYe5c1X2d9WiPswoXtJMFIPMTEDwp/isZNgpDIKCThvoONHE9SF8
+	 en7eg9/EisjidkXQnGsaMJFSZgFT5KmRC60zyRsQ=
+Date: Sun, 28 Dec 2025 14:50:53 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-unnecessary-goto-skip-label.patch added to mm-new branch
-Message-Id: <20251228225052.41C1CC4CEFB@smtp.kernel.org>
+Subject: + mm-khugepaged-count-small-vmas-towards-scan-limit.patch added to mm-new branch
+Message-Id: <20251228225054.71C36C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: remove unnecessary goto 'skip' label
+     Subject: mm/khugepaged: count small VMAs towards scan limit
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-remove-unnecessary-goto-skip-label.patch
+     mm-khugepaged-count-small-vmas-towards-scan-limit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-unnecessary-goto-skip-label.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-count-small-vmas-towards-scan-limit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,64 +67,82 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shivank Garg <shivankg@amd.com>
-Subject: mm/khugepaged: remove unnecessary goto 'skip' label
-Date: Wed, 24 Dec 2025 11:13:51 +0000
+Subject: mm/khugepaged: count small VMAs towards scan limit
+Date: Wed, 24 Dec 2025 11:13:53 +0000
 
-Patch series "mm/khugepaged: cleanups and scan limit fix", v2.
+The khugepaged_scan_mm_slot() uses a 'progress' counter to limit the
+amount of work performed and consists of three components:
+1. Starting/resuming scan of mm slot (+1).
+2. Skipping an unsuitable VMA (+1).
+3. Scanning a PMD-sized range (+HPAGE_PMD_NR).
 
-This series contains several cleanups for mm/khugepaged.c to improve code
-readability and type safety, and one functional fix to ensure
-khugepaged_scan_mm_slot() correctly accounts for small VMAs towards scan
-limit.
+Consider a 1MB VMA sitting between two 2MB alignment boundaries:
 
+     vma1       vma2   vma3
+    +----------+------+----------+
+    |2M        |1M    |2M        |
+    +----------+------+----------+
+               ^      ^
+               start  end
+               ^
+          hstart,hend
 
-This patch (of 5):
+In this case, for vma2:
+  hstart = round_up(start, HPAGE_PMD_SIZE)  -> Next 2MB alignment
+  hend   = round_down(end, HPAGE_PMD_SIZE) -> Prev 2MB alignment
 
-Replace goto skip with actual logic for better code readability.
+Currently, since `hend <= hstart`, VMAs that are too small or unaligned
+to contain a hugepage are skipped without incrementing 'progress'.
+A process containing a large number of such small VMAs will unfairly
+consume more CPU cycles before yielding compared to a process with
+fewer, larger, or aligned VMAs.
 
-No functional change.
+Fix this by incrementing progress when the `hend <= hstart` condition
+is met.
 
-Link: https://lkml.kernel.org/r/20251224111351.41042-4-shivankg@amd.com
-Link: https://lkml.kernel.org/r/20251224111351.41042-6-shivankg@amd.com
+Additionally, change 'progress' to `unsigned int`. This matches both
+the 'pages' type and the function return value.
+
+Link: https://lkml.kernel.org/r/20251224111351.41042-8-shivankg@amd.com
 Signed-off-by: Shivank Garg <shivankg@amd.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Suggested-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/khugepaged.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-unnecessary-goto-skip-label
+--- a/mm/khugepaged.c~mm-khugepaged-count-small-vmas-towards-scan-limit
 +++ a/mm/khugepaged.c
-@@ -2442,14 +2442,15 @@ static unsigned int khugepaged_scan_mm_s
- 			break;
- 		}
- 		if (!thp_vma_allowable_order(vma, vma->vm_flags, TVA_KHUGEPAGED, PMD_ORDER)) {
--skip:
- 			progress++;
- 			continue;
+@@ -2403,7 +2403,7 @@ static unsigned int khugepaged_scan_mm_s
+ 	struct mm_slot *slot;
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+-	int progress = 0;
++	unsigned int progress = 0;
+ 
+ 	VM_BUG_ON(!pages);
+ 	lockdep_assert_held(&khugepaged_mm_lock);
+@@ -2447,7 +2447,7 @@ static unsigned int khugepaged_scan_mm_s
  		}
  		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
  		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
--		if (khugepaged_scan.address > hend)
--			goto skip;
-+		if (khugepaged_scan.address > hend) {
-+			progress++;
-+			continue;
-+		}
- 		if (khugepaged_scan.address < hstart)
- 			khugepaged_scan.address = hstart;
- 		VM_BUG_ON(khugepaged_scan.address & ~HPAGE_PMD_MASK);
+-		if (khugepaged_scan.address > hend) {
++		if (khugepaged_scan.address > hend || hend <= hstart) {
+ 			progress++;
+ 			continue;
+ 		}
 _
 
 Patches currently in -mm which might be from shivankg@amd.com are
