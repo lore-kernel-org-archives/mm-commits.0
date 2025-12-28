@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 920CBD531
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 21:28:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FE49625;
+	Sun, 28 Dec 2025 21:49:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766957324; cv=none; b=tD9ArRCnEqWwp7eTGSMVHO+Bl4/TcXu1q9idmFRdpC4K9X7bHXF5iBY2MBINGXxszduEMiCl5admFnnTwsGUDZkeQ7VD/ldZ/ru0i+jCRLyDiYyV3ORxBNiaDPoApNwJZ7X77c5APipAbYtE8E9K3hb1pFpOjwAybOAdqSzD3OA=
+	t=1766958544; cv=none; b=t0B2lP4iAFr11fmxGVGm/iwdRZqMVKqFmXXlnEcGxFIzvhCJPwHFfr7GErLYseRhydbMdU6sVpdC6Hs245KTHi3Ito/thRprIamylXuWkeBQ2uKZNLbZppc1kE9BzlzzDUO6Z4YIBkl9WP+/lKjZgCP8pkTOnUJCm9iX4Z3rNxQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766957324; c=relaxed/simple;
-	bh=WryLTNUaXSFN9XG7U5DlUeUq9e96fWRUO7vbHyQZ0RU=;
-	h=Date:To:From:Subject:Message-Id; b=AcYqqyDt2a2WDCIfZEHeUhKD8jXojacQ5GdZh3bwe42hBJbTp6Z9vPn7UWuPCjA9JL7F/0+BY8+QOTUwIjTG1UyHyCjYsF4RP3qkkgGmb1uFA7sN85CU1cdgyJaatCiSWR2FmAxrTRqOLUQZ2lPhTEUn3qqH5m1+gbby5zQ2JY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ar3AgUBh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766958544; c=relaxed/simple;
+	bh=PyoIfZuHrC0Jud/Y6As3ZLdi70V+qiNq2ysRNhMFotk=;
+	h=Date:To:From:Subject:Message-Id; b=jrRO0O7tfQPz6zlp8W8Q61OKxld56jSJozfdKvD306C0S3b89V6Wwg1nesevWCBmiTtKETlE5/NlLN1l74knp13x3sOM+XmrfU5sAI1QopC09lEox4weWbM6vnOX4hmlmoxzoeJa02BeRS2MZhqwFLzt66+7HW41JTF3LCeMb2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ftkpRA2i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ar3AgUBh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC856C4CEFB;
-	Sun, 28 Dec 2025 21:28:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ftkpRA2i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 706D4C4CEFB;
+	Sun, 28 Dec 2025 21:49:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766957324;
-	bh=WryLTNUaXSFN9XG7U5DlUeUq9e96fWRUO7vbHyQZ0RU=;
+	s=korg; t=1766958543;
+	bh=PyoIfZuHrC0Jud/Y6As3ZLdi70V+qiNq2ysRNhMFotk=;
 	h=Date:To:From:Subject:From;
-	b=Ar3AgUBhFzBc2mf2eKOii5zcr0gpRnRoM3BuYDyVER/7kxypLqdho8BjnZvkfeD+5
-	 LqhIuLttNxPkv54HxmDBICsWAkN3TQxpfUIN7I0exvDzx5eXdjsmR0xQGKsyynTcPI
-	 uqgC45t8aYGPr/GGyXeXtYvqRVbkTVxqLppV5aGQ=
-Date: Sun, 28 Dec 2025 13:28:43 -0800
-To: mm-commits@vger.kernel.org,joshua.hahnjy@gmail.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=ftkpRA2iFtcdhZfoRnNZdgSRjYiu1UoevZO1Bfo8S7QbbB7rqD9atX4CINHPJFb5R
+	 PyYux4IPiG5JY5tYZP7GrbSfo/Co1//2Sr7uUGbPitDoUldVIMoQzaT+5FWw8squ0q
+	 tmdhGE8eiWZ3+5/bBfkB/bFljlyU0Kqe3aJ11/aA=
+Date: Sun, 28 Dec 2025 13:49:02 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jiapeng.chong@linux.alibaba.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmstat-remove-unused-node-and-zone-state-helpers.patch added to mm-new branch
-Message-Id: <20251228212843.EC856C4CEFB@smtp.kernel.org>
+Subject: + mm-damon-sysfs-cleanup-intervals-subdirs-on-attrs-dir-setup-failure.patch added to mm-new branch
+Message-Id: <20251228214903.706D4C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmstat: remove unused node and zone state helpers
+     Subject: mm/damon/sysfs: cleanup intervals subdirs on attrs dir setup failure
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmstat-remove-unused-node-and-zone-state-helpers.patch
+     mm-damon-sysfs-cleanup-intervals-subdirs-on-attrs-dir-setup-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-remove-unused-node-and-zone-state-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-cleanup-intervals-subdirs-on-attrs-dir-setup-failure.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,87 +66,99 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/vmstat: remove unused node and zone state helpers
-Date: Thu, 25 Dec 2025 21:02:13 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: cleanup intervals subdirs on attrs dir setup failure
+Date: Wed, 24 Dec 2025 18:30:34 -0800
 
-Several helper functions for managing node and zone states have become
-obsolete and no longer have any callers within the kernel.
+Patch series "mm/damon/sysfs: free setup failures generated zombie sub-sub
+dirs".
 
-  inc_node_state()
-  inc_zone_state()
-  dec_zone_state()
+Some DAMON sysfs directory setup functions generates its sub and sub-sub
+directories.  For example, 'monitoring_attrs/' directory setup creates
+'intervals/' and 'intervals/intervals_goal/' directories under
+'monitoring_attrs/' directory.  When such sub-sub directories are
+successfully made but followup setup is failed, the setup function should
+recursively clean up the subdirectories.
 
-This commit removes the dead code.
+However, such setup functions are only dereferencing sub directory
+reference counters.  As a result, under certain setup failures, the
+sub-sub directories keep having non-zero reference counters.  It means the
+directories cannot be removed like zombies, and the memory for the
+directories cannot be freed.
 
-Link: https://lkml.kernel.org/r/20251225210213.2553-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+The user impact of this issue is limited due to the following reasons.
+
+When the issue happens, the zombie directories are still taking the path. 
+Hence attempts to generate the directories again will fail, without
+additional memory leak.  This means the upper bound memory leak is
+limited.  Nonetheless this also implies controlling DAMON with a feature
+that requires the setup-failed sysfs files will be impossible until the
+system reboots.
+
+Also, the setup operations are quite simple.  The certain failures would
+hence only rarely happen, and are difficult to artificially trigger.
+
+
+This patch (of 4):
+
+When attrs/ DAMON sysfs directory setup is failed after setup of
+intervals/ directory, intervals/intervals_goal/ directory is not cleaned
+up.  As a result, DAMON sysfs interface is nearly broken until the system
+reboots, and the memory for the unremoved directory is leaked.
+
+Cleanup the directory under such failures.
+
+Link: https://lkml.kernel.org/r/20251225023043.18579-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251225023043.18579-2-sj@kernel.org
+Fixes: 8fbbcbeaafeb ("mm/damon/sysfs: implement intervals tuning goal directory")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: chongjiapeng <jiapeng.chong@linux.alibaba.com>
+Cc: <stable@vger.kernel.org> # 6.15.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    6 ------
- mm/vmstat.c            |   15 ---------------
- 2 files changed, 21 deletions(-)
+ mm/damon/sysfs.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/vmstat.h~mm-vmstat-remove-unused-node-and-zone-state-helpers
-+++ a/include/linux/vmstat.h
-@@ -286,10 +286,8 @@ void mod_node_page_state(struct pglist_d
- void inc_node_page_state(struct page *, enum node_stat_item);
- void dec_node_page_state(struct page *, enum node_stat_item);
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-cleanup-intervals-subdirs-on-attrs-dir-setup-failure
++++ a/mm/damon/sysfs.c
+@@ -792,7 +792,7 @@ static int damon_sysfs_attrs_add_dirs(st
+ 	nr_regions_range = damon_sysfs_ul_range_alloc(10, 1000);
+ 	if (!nr_regions_range) {
+ 		err = -ENOMEM;
+-		goto put_intervals_out;
++		goto rmdir_put_intervals_out;
+ 	}
  
--extern void inc_node_state(struct pglist_data *, enum node_stat_item);
- extern void __inc_zone_state(struct zone *, enum zone_stat_item);
- extern void __inc_node_state(struct pglist_data *, enum node_stat_item);
--extern void dec_zone_state(struct zone *, enum zone_stat_item);
- extern void __dec_zone_state(struct zone *, enum zone_stat_item);
- extern void __dec_node_state(struct pglist_data *, enum node_stat_item);
- 
-@@ -394,10 +392,6 @@ static inline void __dec_node_page_state
- #define dec_node_page_state __dec_node_page_state
- #define mod_node_page_state __mod_node_page_state
- 
--#define inc_zone_state __inc_zone_state
--#define inc_node_state __inc_node_state
--#define dec_zone_state __dec_zone_state
--
- #define set_pgdat_percpu_threshold(pgdat, callback) { }
- 
- static inline void refresh_zone_stat_thresholds(void) { }
---- a/mm/vmstat.c~mm-vmstat-remove-unused-node-and-zone-state-helpers
-+++ a/mm/vmstat.c
-@@ -672,11 +672,6 @@ void mod_node_page_state(struct pglist_d
- }
- EXPORT_SYMBOL(mod_node_page_state);
- 
--void inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
--{
--	mod_node_state(pgdat, item, 1, 1);
--}
--
- void inc_node_page_state(struct page *page, enum node_stat_item item)
- {
- 	mod_node_state(page_pgdat(page), item, 1, 1);
-@@ -725,16 +720,6 @@ void dec_zone_page_state(struct page *pa
- }
- EXPORT_SYMBOL(dec_zone_page_state);
- 
--void inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__inc_node_state(pgdat, item);
--	local_irq_restore(flags);
--}
--EXPORT_SYMBOL(inc_node_state);
--
- void mod_node_page_state(struct pglist_data *pgdat, enum node_stat_item item,
- 					long delta)
- {
+ 	err = kobject_init_and_add(&nr_regions_range->kobj,
+@@ -806,6 +806,8 @@ static int damon_sysfs_attrs_add_dirs(st
+ put_nr_regions_intervals_out:
+ 	kobject_put(&nr_regions_range->kobj);
+ 	attrs->nr_regions_range = NULL;
++rmdir_put_intervals_out:
++	damon_sysfs_intervals_rm_dirs(intervals);
+ put_intervals_out:
+ 	kobject_put(&intervals->kobj);
+ 	attrs->intervals = NULL;
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-vmstat-remove-unused-node-and-zone-state-helpers.patch
+mm-damon-core-remove-call_control-in-inactive-contexts.patch
+mm-damon-core-introduce-nr_snapshots-damos-stat.patch
+mm-damon-sysfs-schemes-introduce-nr_snapshots-damos-stat-file.patch
+docs-mm-damon-design-update-for-nr_snapshots-damos-stat.patch
+docs-admin-guide-mm-damon-usage-update-for-nr_snapshots-damos-stat.patch
+docs-abi-damon-update-for-nr_snapshots-damos-stat.patch
+mm-damon-update-damos-kerneldoc-for-stat-field.patch
+mm-damon-core-implement-max_nr_snapshots.patch
+mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch
+docs-mm-damon-design-update-for-max_nr_snapshots.patch
+docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch
+docs-abi-damon-update-for-max_nr_snapshots.patch
+mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch
+mm-damon-sysfs-cleanup-intervals-subdirs-on-attrs-dir-setup-failure.patch
+mm-damon-sysfs-cleanup-attrs-subdirs-on-context-dir-setup-failure.patch
+mm-damon-sysfs-scheme-cleanup-quotas-subdirs-on-scheme-dir-setup-failure.patch
+mm-damon-sysfs-scheme-cleanup-access_pattern-subdirs-on-scheme-dir-setup-failure.patch
 
