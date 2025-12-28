@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FE502874F8
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 23:02:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 227CD625;
+	Sun, 28 Dec 2025 23:11:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766962923; cv=none; b=u4r5cYTn6V3eduQGjdJ91R1BrfuA0cFka8osidicuDPRwKhQEQETai6FrbDt9cJWezd/+jIXNms/Dthejtlrqv/mFXzFS7fCGi1tc7n/GPai7WiqkbWrI2P3BcoBjJW4ebHlRn5J2y0BTQkpgjlMqFG27zmAXieiQU0nRA7pZ3w=
+	t=1766963481; cv=none; b=h27ruKh8KDIgCaR1mIvjYQgBE1WizWTC/VYHagE6JyUSH9pEWLtq3HC0BwH2WfAKRlQbNGCjyiFoRXzSOIIlUxIUZe5Xuv1Bvm+1sTauyEO483FdPda/sUQqEKjdPiqGsepEkuOOI3vNssC8bSDdcLbVNgrN0R+D9QasXheveQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766962923; c=relaxed/simple;
-	bh=Cc5kam93aI9PiSoqw3pvtrhh05eJWZAyytFTNb5e+4w=;
-	h=Date:To:From:Subject:Message-Id; b=NAL3bmcH+z7El7TxozzducRcjEX1ls+zPv6Y9e2aUhWr8lu0EfxMxGm658zacUCgY2FDv9FdgQ3VYXNvpv84XzgKeoUKwtd6N68pEX6JQrQvDwQInZ3URwihylYQIwkYow4GP7DfbjTdLTUW5RJCWJEcoLi55aNV2ukPFsFeOW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UGPaljpL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766963481; c=relaxed/simple;
+	bh=KNd1crHi2peVQ4lz55oU29PuHoEKnTw9AaOqxyEkYGQ=;
+	h=Date:To:From:Subject:Message-Id; b=OvO6lZ3rG9fRfm2Sx7cqoRFrBN8uQ6Qv3dBNfPSeX3jdngHIgsl485dOc3jWIYKxUxcZXAtNLUoJsofGtbFqLQaVvTGIslCOcyfWyD620AHyzrwxglQhYtPDNYXhT53nhdt4REih024tzhMij5kL7xUUogM9BolVaH9Fz3mAIC0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0dj4r9cY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UGPaljpL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C601C116D0;
-	Sun, 28 Dec 2025 23:02:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0dj4r9cY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC266C4CEFB;
+	Sun, 28 Dec 2025 23:11:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766962921;
-	bh=Cc5kam93aI9PiSoqw3pvtrhh05eJWZAyytFTNb5e+4w=;
+	s=korg; t=1766963480;
+	bh=KNd1crHi2peVQ4lz55oU29PuHoEKnTw9AaOqxyEkYGQ=;
 	h=Date:To:From:Subject:From;
-	b=UGPaljpLiVvyOJdlzvKfxnMrlNIINjmZU3I/EFOEzsLcX2GPpo+Rr1etdSZwtiDSz
-	 cUO1KF3/C6jp3PmXk1A5iVRDkQwul8ieaZszRuoYYN1ckjbjeAprGqGkr8DKqQTnLF
-	 gwt4tupEVIdUOpk6fKrIEgUt5Ho+0rp9+pc7Qfyg=
-Date: Sun, 28 Dec 2025 15:02:00 -0800
-To: mm-commits@vger.kernel.org,shu17az@gmail.com,sj@kernel.org,akpm@linux-foundation.org
+	b=0dj4r9cYr3SJvAE3OUnbFuRfcA3riMDXGzRhwfohdMHXIi9pA0E3Yisp5g2mFza27
+	 ReiOxSDE8THVSjWbj7E6DX4PRkgYlrOe2FENiGVwGAg/FVF/8UUTZw5B8qEPSxr1ZT
+	 IQ1B0xgChq8nmsQRBqRXk6PoH4tR6UZ+pXaM6rrk=
+Date: Sun, 28 Dec 2025 15:11:20 -0800
+To: mm-commits@vger.kernel.org,suschako@amazon.de,stable@vger.kernel.org,riel@surriel.com,osalvador@suse.de,lorenzo.stoakes@oracle.com,loberman@redhat.com,liushixin2@huawei.com,lance.yang@linux.dev,harry.yoo@oracle.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch added to mm-new branch
-Message-Id: <20251228230201.3C601C116D0@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-hugetlb_pmd_shared.patch added to mm-unstable branch
+Message-Id: <20251228231120.DC266C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch
+     Subject: mm/hugetlb: fix hugetlb_pmd_shared()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-fix-hugetlb_pmd_shared.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-hugetlb_pmd_shared.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,55 +58,97 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix
-Date: Wed, 24 Dec 2025 07:27:04 -0800
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: mm/hugetlb: fix hugetlb_pmd_shared()
+Date: Tue, 23 Dec 2025 22:40:34 +0100
 
-damon_test_split_regions_of() has braces for a single statement, which is
-unnecessary.  Remove it.
+Patch series "mm/hugetlb: fixes for PMD table sharing (incl.  using
+mmu_gather)", v3.
 
-Link: https://lkml.kernel.org/r/20251224153125.69194-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shu Anzai <shu17az@gmail.com>
+One functional fix, one performance regression fix, and two related
+comment fixes.
+
+I cleaned up my prototype I recently shared [1] for the performance fix,
+deferring most of the cleanups I had in the prototype to a later point. 
+While doing that I identified the other things.
+
+The goal of this patch set is to be backported to stable trees "fairly"
+easily. At least patch #1 and #4.
+
+Patch #1 fixes hugetlb_pmd_shared() not detecting any sharing
+Patch #2 + #3 are simple comment fixes that patch #4 interacts with.
+Patch #4 is a fix for the reported performance regression due to excessive
+IPI broadcasts during fork()+exit().
+
+The last patch is all about TLB flushes, IPIs and mmu_gather.
+Read: complicated
+
+There are plenty of cleanups in the future to be had + one reasonable
+optimization on x86. But that's all out of scope for this series.
+
+Runtime tested, with a focus on fixing the performance regression using
+the original reproducer [2] on x86.
+
+
+This patch (of 4):
+
+We switched from (wrongly) using the page count to an independent shared
+count.  Now, shared page tables have a refcount of 1 (excluding
+speculative references) and instead use ptdesc->pt_share_count to identify
+sharing.
+
+We didn't convert hugetlb_pmd_shared(), so right now, we would never
+detect a shared PMD table as such, because sharing/unsharing no longer
+touches the refcount of a PMD table.
+
+Page migration, like mbind() or migrate_pages() would allow for migrating
+folios mapped into such shared PMD tables, even though the folios are not
+exclusive.  In smaps we would account them as "private" although they are
+"shared", and we would be wrongly setting the PM_MMAP_EXCLUSIVE in the
+pagemap interface.
+
+Fix it by properly using ptdesc_pmd_is_shared() in hugetlb_pmd_shared().
+
+Link: https://lkml.kernel.org/r/20251223214037.580860-1-david@kernel.org
+Link: https://lkml.kernel.org/r/20251223214037.580860-2-david@kernel.org
+Link: https://lore.kernel.org/all/8cab934d-4a56-44aa-b641-bfd7e23bd673@kernel.org/ [1]
+Link: https://lore.kernel.org/all/8cab934d-4a56-44aa-b641-bfd7e23bd673@kernel.org/ [2]
+Fixes: 59d9094df3d7 ("mm: hugetlb: independent PMD page table shared count")
+Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Tested-by: Laurence Oberman <loberman@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: Liu Shixin <liushixin2@huawei.com>
+Cc: Uschakow, Stanislav" <suschako@amazon.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/hugetlb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix
-+++ a/mm/damon/tests/core-kunit.h
-@@ -318,9 +318,8 @@ static void damon_test_split_regions_of(
- 	}
- 	damon_split_regions_of(t, 4, 5);
- 	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 12u);
--	damon_for_each_region(r, t) {
-+	damon_for_each_region(r, t)
- 		KUNIT_EXPECT_GE(test, damon_sz_region(r) % 5ul, 0ul);
--	}
- 	damon_free_target(t);
+--- a/include/linux/hugetlb.h~mm-hugetlb-fix-hugetlb_pmd_shared
++++ a/include/linux/hugetlb.h
+@@ -1326,7 +1326,7 @@ static inline __init void hugetlb_cma_re
+ #ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
+ static inline bool hugetlb_pmd_shared(pte_t *pte)
+ {
+-	return page_count(virt_to_page(pte)) > 1;
++	return ptdesc_pmd_is_shared(virt_to_ptdesc(pte));
  }
- 
+ #else
+ static inline bool hugetlb_pmd_shared(pte_t *pte)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-damon-core-remove-call_control-in-inactive-contexts.patch
-mm-damon-core-introduce-nr_snapshots-damos-stat.patch
-mm-damon-sysfs-schemes-introduce-nr_snapshots-damos-stat-file.patch
-docs-mm-damon-design-update-for-nr_snapshots-damos-stat.patch
-docs-admin-guide-mm-damon-usage-update-for-nr_snapshots-damos-stat.patch
-docs-abi-damon-update-for-nr_snapshots-damos-stat.patch
-mm-damon-update-damos-kerneldoc-for-stat-field.patch
-mm-damon-core-implement-max_nr_snapshots.patch
-mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch
-docs-mm-damon-design-update-for-max_nr_snapshots.patch
-docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch
-docs-abi-damon-update-for-max_nr_snapshots.patch
-mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch
-mm-damon-sysfs-cleanup-intervals-subdirs-on-attrs-dir-setup-failure.patch
-mm-damon-sysfs-cleanup-attrs-subdirs-on-context-dir-setup-failure.patch
-mm-damon-sysfs-scheme-cleanup-quotas-subdirs-on-scheme-dir-setup-failure.patch
-mm-damon-sysfs-scheme-cleanup-access_pattern-subdirs-on-scheme-dir-setup-failure.patch
-mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch
+mm-hugetlb-fix-hugetlb_pmd_shared.patch
+mm-hugetlb-fix-two-comments-related-to-huge_pmd_unshare.patch
+mm-rmap-fix-two-comments-related-to-huge_pmd_unshare.patch
+mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather.patch
+mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather-fix.patch
 
