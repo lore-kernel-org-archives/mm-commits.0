@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBA1F1E0DCB
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 23:01:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97C9E281530
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 23:01:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766962913; cv=none; b=K2y/htCkFxsFR+4PgWD7D+vzdePQA59k91yme+8J/QgxBu7alw+ds/X9JOREjVvZL9fYqU9PXqgk61DmQRKnXRoRChxTRUhNT68rEUjoOpI8MI4U/YG1g/o0hPaJYe+2pn9hBcL2EUomzYWIaNECo+SsqltiZX78/QZ3G27/F40=
+	t=1766962915; cv=none; b=T+jZUvXGcsB5vUjZuceCF7p5qAFPZnp3Ha24te2JLfdWKU502Idn+pucY7kQJ3zhGkwatkgSRxvLGxiKMj7z3pBfsTtVOSTdlSS5fDsc5m2aeFYcWY8JNGqgAopOXhC8DzmAbsKQzt8nFB4jrGbnZIArEFdjO3FelRmd0iIFn24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766962913; c=relaxed/simple;
-	bh=M2xm0PY6GQ09qli6fCbekRRGWMlrJ3IXgZV7mmEscqg=;
-	h=Date:To:From:Subject:Message-Id; b=b3L4MXOoY7I3eeG9OJP8ui5z+vnbprvwCoF6r49sHTk5mvVm+/r7yJOpz0HkE0WjznIVccJH0LeLyXapNbTxsVOEcdkiy+sEV5iLhiFcu8LYI2tmL9tSUioh78MNVlyihp5hI08WYDzSRUdbOELItoaaUMtroz5m8fDk3dvTHc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d/JxRrrc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766962915; c=relaxed/simple;
+	bh=ejnPVXClxOyKVaRZPdRpUI2/cGmaQIHaFF6h8v6fokQ=;
+	h=Date:To:From:Subject:Message-Id; b=icmvhbl86wZRtju7bXMzPLi39dq7HyPbzcZ9BCf6w3a5IDdjI6RHA2a8Ix8y0ddLz1pmuSqdVl/zOIakSvshUz/cBLHYHOg34jxv0hC7AsuVAXZrq15+IMvpXY0oZJ/EnO+YwSq2COtXuna3r28ILYYABxGwrxOGxKMCnRGB33U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fwNekhhP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d/JxRrrc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D895C4CEFB;
-	Sun, 28 Dec 2025 23:01:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fwNekhhP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36145C4CEFB;
+	Sun, 28 Dec 2025 23:01:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766962913;
-	bh=M2xm0PY6GQ09qli6fCbekRRGWMlrJ3IXgZV7mmEscqg=;
+	s=korg; t=1766962915;
+	bh=ejnPVXClxOyKVaRZPdRpUI2/cGmaQIHaFF6h8v6fokQ=;
 	h=Date:To:From:Subject:From;
-	b=d/JxRrrcuXPmiZNL8ANEtEvWXK7DQBwpkxkQxmSRIb9j0cF7FgFrGEXqiYFpSlvq9
-	 j700EPPdHzFprWO8QiA+Jr2YVWVx3BDcruhga1jsfKLn7j1mCk2RGbVbtxzkchaF0e
-	 dZz/bqc79UdCxofkOmgCzvpGf6Ecvk4FfN/kqLqg=
-Date: Sun, 28 Dec 2025 15:01:52 -0800
+	b=fwNekhhP7Q1YtD4HVt+X531oJhj2o+atExlEpXh6mc7jOh3HX3q0+3n+eZIRFMf7Y
+	 t2Xsr3B63pez9A3/FpfyQzpaaTiiGXX756hx9y0THF+b7+GJwuctIBMMDVshRaOuyC
+	 FLJ1l6wkh/UVUQ6BZlsRWWuvSZn9dXtMZ50L+vA4=
+Date: Sun, 28 Dec 2025 15:01:54 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,shu17az@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-verify-the-age-field-in-damon_test_split_at.patch added to mm-new branch
-Message-Id: <20251228230153.3D895C4CEFB@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-verify-the-age-and-nr_accesses_bp-fields-in-damon_test_merge_two.patch added to mm-new branch
+Message-Id: <20251228230155.36145C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: verify the 'age' field in damon_test_split_at()
+     Subject: mm/damon/tests/core-kunit: verify the 'age' and 'nr_accesses_bp' fields in damon_test_merge_two()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-verify-the-age-field-in-damon_test_split_at.patch
+     mm-damon-tests-core-kunit-verify-the-age-and-nr_accesses_bp-fields-in-damon_test_merge_two.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-verify-the-age-field-in-damon_test_split_at.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-verify-the-age-and-nr_accesses_bp-fields-in-damon_test_merge_two.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,51 +67,47 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shu Anzai <shu17az@gmail.com>
-Subject: mm/damon/tests/core-kunit: verify the 'age' field in damon_test_split_at()
-Date: Wed, 24 Dec 2025 04:21:56 +0000
+Subject: mm/damon/tests/core-kunit: verify the 'age' and 'nr_accesses_bp' fields in damon_test_merge_two()
+Date: Wed, 24 Dec 2025 04:21:57 +0000
 
-Patch series "mm/damon/tests/core-kunit: extend existing test scenarios",
-v2.
+Extend damon_test_merge_two() to verify the 'age' and 'nr_accesses_bp'
+fields.
 
-Improve the KUnit test coverage for DAMON. 
-
-The five patches in this series respectively extend damon_test_split_at(),
-damon_test_merge_two(), damon_test_merge_regions_of(),
-damon_test_split_regions_of(), and damos_test_commit_quota_goal().
-
-
-This patch (of 5):
-
-Extend damon_test_split_at() to verify the 'age' field.
-
-Link: https://lkml.kernel.org/r/20251224042200.2061847-1-shu17az@gmail.com
-Link: https://lkml.kernel.org/r/20251224042200.2061847-2-shu17az@gmail.com
+Link: https://lkml.kernel.org/r/20251224042200.2061847-3-shu17az@gmail.com
 Signed-off-by: Shu Anzai <shu17az@gmail.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/tests/core-kunit.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-verify-the-age-field-in-damon_test_split_at
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-verify-the-age-and-nr_accesses_bp-fields-in-damon_test_merge_two
 +++ a/mm/damon/tests/core-kunit.h
-@@ -158,6 +158,7 @@ static void damon_test_split_at(struct k
- 	r->nr_accesses_bp = 420000;
- 	r->nr_accesses = 42;
- 	r->last_nr_accesses = 15;
-+	r->age = 10;
+@@ -192,6 +192,7 @@ static void damon_test_merge_two(struct
+ 	}
+ 	r->nr_accesses = 10;
+ 	r->nr_accesses_bp = 100000;
++	r->age = 9;
  	damon_add_region(r, t);
- 	damon_split_region_at(t, r, 25);
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
-@@ -170,6 +171,7 @@ static void damon_test_split_at(struct k
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses_bp, r_new->nr_accesses_bp);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, r_new->nr_accesses);
- 	KUNIT_EXPECT_EQ(test, r->last_nr_accesses, r_new->last_nr_accesses);
-+	KUNIT_EXPECT_EQ(test, r->age, r_new->age);
+ 	r2 = damon_new_region(100, 300);
+ 	if (!r2) {
+@@ -200,12 +201,15 @@ static void damon_test_merge_two(struct
+ 	}
+ 	r2->nr_accesses = 20;
+ 	r2->nr_accesses_bp = 200000;
++	r2->age = 21;
+ 	damon_add_region(r2, t);
  
- 	damon_free_target(t);
- }
+ 	damon_merge_two_regions(t, r, r2);
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 300ul);
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 16u);
++	KUNIT_EXPECT_EQ(test, r->nr_accesses_bp, 160000u);
++	KUNIT_EXPECT_EQ(test, r->age, 17u);
+ 
+ 	i = 0;
+ 	damon_for_each_region(r3, t) {
 _
 
 Patches currently in -mm which might be from shu17az@gmail.com are
