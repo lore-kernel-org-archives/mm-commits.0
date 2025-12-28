@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8632A25392A
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 19:13:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E117C25783C
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 19:16:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766949238; cv=none; b=IXRmp8BWxY7ckJS76ed4I+YF2kIEpVeJcSBan87RQ882fu1HvwORcnIkdGjP8V6sgwPNcR31PisdS31nSR/ouaZembusQeeMoi/InKis8yqOC2gHkAAWRN3QSjgAANr/24FU9Uicg6WXOWTUshDFaywXSm9PHXwPhNnIpLXDizo=
+	t=1766949386; cv=none; b=omMeJ5FuK/aaMlDkVyEPeKjZr1OzYIRFFYgxGUpF11FsOVcy4NjbMuKY+2+YK2aKBbOflwqCITKCRraEr5EzMpHD78RSha8cWdrsY4teiLz85Hna3SgzPo3v/xYrT0hUJm7uZeKPpyEU2BjeMPGpiJQEU5I501a73Kw9XTLvMNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766949238; c=relaxed/simple;
-	bh=1WLO3DnXkJY2LB6L2BFC3jLPwLRDwi3Cyw9REgYKNFY=;
-	h=Date:To:From:Subject:Message-Id; b=TyY+kTFT59D8cVxd40sj++yTPTWEScbua82kVeC3JwThKRiqpCrPmmYmcFj1D5A7237Qd0D315S0m6LRYWIalmO1AjGdDBcZY4ZYX4IlJzZMfkvGA13hQ2VqXlyXJay2oJnb7ErTeiBf2Qb+wC7L0GFnmw1XfBuXs/0llQZdjGw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ByxJrgtU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766949386; c=relaxed/simple;
+	bh=ENdZLyuIlwBEfeuWnINlSUsht+iDTcx6n+5ctnZMCSE=;
+	h=Date:To:From:Subject:Message-Id; b=sygkcyRQAFVbDftEL07BOZDLXeqPUSy6epBzzq9ZFf20n+nLJDsUWFO1Swqf6iRcjQFVjL6ugMuLfJ0anIID1SbpSoZ9eY+InLR25CcbfkV46dWmKR7UCThmRX0qGbKzz5ifXDEHp50z3Ce1Nf6e5IuXNoXVefnAWrB+wEjHi8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T6WaCCk4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ByxJrgtU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE813C4CEFB;
-	Sun, 28 Dec 2025 19:13:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T6WaCCk4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2351AC4CEFB;
+	Sun, 28 Dec 2025 19:16:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766949238;
-	bh=1WLO3DnXkJY2LB6L2BFC3jLPwLRDwi3Cyw9REgYKNFY=;
+	s=korg; t=1766949385;
+	bh=ENdZLyuIlwBEfeuWnINlSUsht+iDTcx6n+5ctnZMCSE=;
 	h=Date:To:From:Subject:From;
-	b=ByxJrgtUYbgcox2ZpJQK+SWk++VjZ487o7OSYAQZt4IhAAL3G3PpuWOxZYLMJiSM4
-	 /3E47mNfdIA9RF/1iaenb13lG4VVY/wMQ0r4SCIBOsGRvPPCllG/wLhNyyGbdb+R0z
-	 WM6SxWjC4lB+MVG5fduIHY1C7Po6B/j/+KOCictc=
-Date: Sun, 28 Dec 2025 11:13:57 -0800
-To: mm-commits@vger.kernel.org,ilpo.jarvinen@linux.intel.com,bhelgaas@google.com,andriy.shevchenko@linux.intel.com,ansuelsmth@gmail.com,akpm@linux-foundation.org
+	b=T6WaCCk4eiizB7OOMSgiuBJ4v3AT+W7XgIpJCD31J0kHP7usrlIPlJdbd3Ihrh4UJ
+	 3a1FfulzIpqamAyZyDSzd7TVo3+Cwy9cmGw42zVkQ88IwP5qo28ohfzyEggiLhElSp
+	 ZFj/JAxVNa3F/I/i2/bfo6hI0vHbKAASwi4/t7cw=
+Date: Sun, 28 Dec 2025 11:16:24 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,rientjes@google.com,mhocko@suse.com,kdipendra88@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-provide-0args-define_res-variant-for-unset-resource-desc.patch added to mm-nonmm-unstable branch
-Message-Id: <20251228191357.EE813C4CEFB@smtp.kernel.org>
+Subject: + mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string.patch added to mm-new branch
+Message-Id: <20251228191625.2351AC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: resource: provide 0args DEFINE_RES variant for unset resource desc
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-provide-0args-define_res-variant-for-unset-resource-desc.patch
+     Subject: mm/oom_kill: remove unnecessary integer promotion in format string
+has been added to the -mm mm-new branch.  Its filename is
+     mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-provide-0args-define_res-variant-for-unset-resource-desc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,69 +66,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Christian Marangi <ansuelsmth@gmail.com>
-Subject: resource: provide 0args DEFINE_RES variant for unset resource desc
-Date: Sat, 13 Dec 2025 12:53:09 +0100
+From: Dipendra Khadka <kdipendra88@gmail.com>
+Subject: mm/oom_kill: remove unnecessary integer promotion in format string
+Date: Sun, 28 Dec 2025 15:44:55 +0000
 
-Provide a variant of DEFINE_RES that takes 0 arguments to initialize an
-"unset" resource descriptor.
+The 'h' length modifier in '%hd' is unnecessary as short integers are
+promoted to int in variadic functions.  Use '%d' instead.
 
-This should be used for the improper case of
-
-	struct resource res = {};
-
-where DEFINE_RES() should be used.
-
-With this new helper variant, it would result in:
-
-	struct resource res = DEFINE_RES();
-
-instead of having to define the full 3 arguments:
-
-	struct resource res = DEFINE_RES(0, 0, IORESOURCE_UNSET);
-
-DEFINE_RES() with no args, will set the flags to IORESOURCE_UNSET
-signaling the resource descriptor is UNSET and doesn't reflect an actual
-resource currently.
-
-Link: https://lkml.kernel.org/r/20251213115314.16700-1-ansuelsmth@gmail.com
-Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
-Suggested-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
-Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Link: https://lkml.kernel.org/r/20251228154456.2386-1-kdipendra88@gmail.com
+Signed-off-by: Dipendra Khadka <kdipendra88@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ioport.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/ioport.h~resource-provide-0args-define_res-variant-for-unset-resource-desc
-+++ a/include/linux/ioport.h
-@@ -10,6 +10,7 @@
- #define _LINUX_IOPORT_H
+--- a/mm/oom_kill.c~mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string
++++ a/mm/oom_kill.c
+@@ -506,7 +506,7 @@ static void dump_oom_victim(struct oom_c
  
- #ifndef __ASSEMBLY__
-+#include <linux/args.h>
- #include <linux/bits.h>
- #include <linux/compiler.h>
- #include <linux/minmax.h>
-@@ -165,8 +166,12 @@ enum {
- 
- #define DEFINE_RES_NAMED(_start, _size, _name, _flags)			\
- 	DEFINE_RES_NAMED_DESC(_start, _size, _name, _flags, IORES_DESC_NONE)
--#define DEFINE_RES(_start, _size, _flags)				\
-+#define __DEFINE_RES0()							\
-+	DEFINE_RES_NAMED(0, 0, NULL, IORESOURCE_UNSET)
-+#define __DEFINE_RES3(_start, _size, _flags)				\
- 	DEFINE_RES_NAMED(_start, _size, NULL, _flags)
-+#define DEFINE_RES(...)							\
-+	CONCATENATE(__DEFINE_RES, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__)
- 
- #define DEFINE_RES_IO_NAMED(_start, _size, _name)			\
- 	DEFINE_RES_NAMED((_start), (_size), (_name), IORESOURCE_IO)
+ static void dump_header(struct oom_control *oc)
+ {
+-	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
++	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%d\n",
+ 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
+ 			current->signal->oom_score_adj);
+ 	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
+@@ -1006,7 +1006,7 @@ static void __oom_kill_process(struct ta
+ 	 */
+ 	do_send_sig_info(SIGKILL, SEND_SIG_PRIV, victim, PIDTYPE_TGID);
+ 	mark_oom_victim(victim);
+-	pr_err("%s: Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB, UID:%u pgtables:%lukB oom_score_adj:%hd\n",
++	pr_err("%s: Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB, UID:%u pgtables:%lukB oom_score_adj:%d\n",
+ 		message, task_pid_nr(victim), victim->comm, K(mm->total_vm),
+ 		K(get_mm_counter(mm, MM_ANONPAGES)),
+ 		K(get_mm_counter(mm, MM_FILEPAGES)),
 _
 
-Patches currently in -mm which might be from ansuelsmth@gmail.com are
+Patches currently in -mm which might be from kdipendra88@gmail.com are
 
-resource-provide-0args-define_res-variant-for-unset-resource-desc.patch
+mm-oom_kill-remove-unnecessary-integer-promotion-in-format-string.patch
 
