@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 173FF27FB2A
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 20:03:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 920CBD531
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 21:28:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766952190; cv=none; b=VErIN9yyzkTm7f9FKWRxgluaQ7P3ypIT6H3VamP2auTCaHpjw1aQflxeeWzb7FLjuABhgs5LaarNZCUrZWk0N4SysDbt61eeCCgeeuGFpKwref70/SXhPbrzweCaNx3qLJJe5VxAboG6OzCu0cR32jOwRFU32yCwqRhuSGJvmvk=
+	t=1766957324; cv=none; b=tD9ArRCnEqWwp7eTGSMVHO+Bl4/TcXu1q9idmFRdpC4K9X7bHXF5iBY2MBINGXxszduEMiCl5admFnnTwsGUDZkeQ7VD/ldZ/ru0i+jCRLyDiYyV3ORxBNiaDPoApNwJZ7X77c5APipAbYtE8E9K3hb1pFpOjwAybOAdqSzD3OA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766952190; c=relaxed/simple;
-	bh=9AFYdTUOEDKFn8iaJrjbVTJn9LKnIEGaZ9akD/Ty+v8=;
-	h=Date:To:From:Subject:Message-Id; b=bQxPcclRDKGgNAvVt6gwaFIZ22JcbqhrijGkn4D+umgnyV8pRQbyjFYdHhXsvW0NGJivCaS6M3OWfljJn0VGsk0IShoIaEukpDAtIv2a8dEAk05OQ3R+3vXZk1W55plbmJNanHb4UhOtYnAEL/04j/SD8YX31bEas3u2VVc5YMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DdShIvLO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766957324; c=relaxed/simple;
+	bh=WryLTNUaXSFN9XG7U5DlUeUq9e96fWRUO7vbHyQZ0RU=;
+	h=Date:To:From:Subject:Message-Id; b=AcYqqyDt2a2WDCIfZEHeUhKD8jXojacQ5GdZh3bwe42hBJbTp6Z9vPn7UWuPCjA9JL7F/0+BY8+QOTUwIjTG1UyHyCjYsF4RP3qkkgGmb1uFA7sN85CU1cdgyJaatCiSWR2FmAxrTRqOLUQZ2lPhTEUn3qqH5m1+gbby5zQ2JY0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ar3AgUBh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DdShIvLO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A17CC4CEFB;
-	Sun, 28 Dec 2025 20:03:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ar3AgUBh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC856C4CEFB;
+	Sun, 28 Dec 2025 21:28:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766952188;
-	bh=9AFYdTUOEDKFn8iaJrjbVTJn9LKnIEGaZ9akD/Ty+v8=;
+	s=korg; t=1766957324;
+	bh=WryLTNUaXSFN9XG7U5DlUeUq9e96fWRUO7vbHyQZ0RU=;
 	h=Date:To:From:Subject:From;
-	b=DdShIvLOBMDnQ/k4Run7HFIqvRLHuXUuPvxP+tUeMiTexLj9MR3HSrDBFjkEwcQrn
-	 OefBzNOT+8G0K1Q4gTFHyHq+eD2aYDYvxszlTOALFBwWAxqshuaKwqQNcSDr43yTqh
-	 oBDaK2MqYI7lffwE2MmVAr7QoYxr5BhjyAv3ZqVI=
-Date: Sun, 28 Dec 2025 12:03:08 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=Ar3AgUBhFzBc2mf2eKOii5zcr0gpRnRoM3BuYDyVER/7kxypLqdho8BjnZvkfeD+5
+	 LqhIuLttNxPkv54HxmDBICsWAkN3TQxpfUIN7I0exvDzx5eXdjsmR0xQGKsyynTcPI
+	 uqgC45t8aYGPr/GGyXeXtYvqRVbkTVxqLppV5aGQ=
+Date: Sun, 28 Dec 2025 13:28:43 -0800
+To: mm-commits@vger.kernel.org,joshua.hahnjy@gmail.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-support-batched-unmapping-for-file-large-folios.patch added to mm-new branch
-Message-Id: <20251228200308.8A17CC4CEFB@smtp.kernel.org>
+Subject: + mm-vmstat-remove-unused-node-and-zone-state-helpers.patch added to mm-new branch
+Message-Id: <20251228212843.EC856C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rmap: support batched unmapping for file large folios
+     Subject: mm/vmstat: remove unused node and zone state helpers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-support-batched-unmapping-for-file-large-folios.patch
+     mm-vmstat-remove-unused-node-and-zone-state-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-support-batched-unmapping-for-file-large-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-remove-unused-node-and-zone-state-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,91 +66,87 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: rmap: support batched unmapping for file large folios
-Date: Fri, 26 Dec 2025 14:07:59 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/vmstat: remove unused node and zone state helpers
+Date: Thu, 25 Dec 2025 21:02:13 +0000
 
-Similar to folio_referenced_one(), we can apply batched unmapping for file
-large folios to optimize the performance of file folios reclamation.
+Several helper functions for managing node and zone states have become
+obsolete and no longer have any callers within the kernel.
 
-Barry previously implemented batched unmapping for lazyfree anonymous
-large folios[1] and did not further optimize anonymous large folios or
-file-backed large folios at that stage.  As for file-backed large folios,
-the batched unmapping support is relatively straightforward, as we only
-need to clear the consecutive (present) PTE entries for file-backed large
-folios.
+  inc_node_state()
+  inc_zone_state()
+  dec_zone_state()
 
-Performance testing: Allocate 10G clean file-backed folios by mmap() in a
-memory cgroup, and try to reclaim 8G file-backed folios via the
-memory.reclaim interface.  I can observe 75% performance improvement on my
-Arm64 32-core server (and 50%+ improvement on my X86 machine) with this
-patch.
+This commit removes the dead code.
 
-W/o patch:
-real    0m1.018s
-user    0m0.000s
-sys     0m1.018s
-
-W/ patch:
-real	0m0.249s
-user	0m0.000s
-sys	0m0.249s
-
-Link: https://lkml.kernel.org/r/142919ac14d3cf70cba370808d85debe089df7b4.1766631066.git.baolin.wang@linux.alibaba.com
-Link: https://lore.kernel.org/all/20250214093015.51024-4-21cnbao@gmail.com/T/#u [1]
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20251225210213.2553-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/vmstat.h |    6 ------
+ mm/vmstat.c            |   15 ---------------
+ 2 files changed, 21 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-support-batched-unmapping-for-file-large-folios
-+++ a/mm/rmap.c
-@@ -1863,9 +1863,10 @@ static inline unsigned int folio_unmap_p
- 	end_addr = pmd_addr_end(addr, vma->vm_end);
- 	max_nr = (end_addr - addr) >> PAGE_SHIFT;
+--- a/include/linux/vmstat.h~mm-vmstat-remove-unused-node-and-zone-state-helpers
++++ a/include/linux/vmstat.h
+@@ -286,10 +286,8 @@ void mod_node_page_state(struct pglist_d
+ void inc_node_page_state(struct page *, enum node_stat_item);
+ void dec_node_page_state(struct page *, enum node_stat_item);
  
--	/* We only support lazyfree batching for now ... */
--	if (!folio_test_anon(folio) || folio_test_swapbacked(folio))
-+	/* We only support lazyfree or file folios batching for now ... */
-+	if (folio_test_anon(folio) && folio_test_swapbacked(folio))
- 		return 1;
-+
- 	if (pte_unused(pte))
- 		return 1;
+-extern void inc_node_state(struct pglist_data *, enum node_stat_item);
+ extern void __inc_zone_state(struct zone *, enum zone_stat_item);
+ extern void __inc_node_state(struct pglist_data *, enum node_stat_item);
+-extern void dec_zone_state(struct zone *, enum zone_stat_item);
+ extern void __dec_zone_state(struct zone *, enum zone_stat_item);
+ extern void __dec_node_state(struct pglist_data *, enum node_stat_item);
  
-@@ -2231,7 +2232,7 @@ static bool try_to_unmap_one(struct foli
- 			 *
- 			 * See Documentation/mm/mmu_notifier.rst
- 			 */
--			dec_mm_counter(mm, mm_counter_file(folio));
-+			add_mm_counter(mm, mm_counter_file(folio), -nr_pages);
- 		}
- discard:
- 		if (unlikely(folio_test_hugetlb(folio))) {
+@@ -394,10 +392,6 @@ static inline void __dec_node_page_state
+ #define dec_node_page_state __dec_node_page_state
+ #define mod_node_page_state __mod_node_page_state
+ 
+-#define inc_zone_state __inc_zone_state
+-#define inc_node_state __inc_node_state
+-#define dec_zone_state __dec_zone_state
+-
+ #define set_pgdat_percpu_threshold(pgdat, callback) { }
+ 
+ static inline void refresh_zone_stat_thresholds(void) { }
+--- a/mm/vmstat.c~mm-vmstat-remove-unused-node-and-zone-state-helpers
++++ a/mm/vmstat.c
+@@ -672,11 +672,6 @@ void mod_node_page_state(struct pglist_d
+ }
+ EXPORT_SYMBOL(mod_node_page_state);
+ 
+-void inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+-{
+-	mod_node_state(pgdat, item, 1, 1);
+-}
+-
+ void inc_node_page_state(struct page *page, enum node_stat_item item)
+ {
+ 	mod_node_state(page_pgdat(page), item, 1, 1);
+@@ -725,16 +720,6 @@ void dec_zone_page_state(struct page *pa
+ }
+ EXPORT_SYMBOL(dec_zone_page_state);
+ 
+-void inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__inc_node_state(pgdat, item);
+-	local_irq_restore(flags);
+-}
+-EXPORT_SYMBOL(inc_node_state);
+-
+ void mod_node_page_state(struct pglist_data *pgdat, enum node_stat_item item,
+ 					long delta)
+ {
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch
-arm64-mm-factor-out-the-address-and-ptep-alignment-into-a-new-helper.patch
-arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios.patch
-arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
-mm-rmap-support-batched-unmapping-for-file-large-folios.patch
+mm-vmstat-remove-unused-node-and-zone-state-helpers.patch
 
