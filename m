@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9FFD289824
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 22:37:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAD7E29AB15
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 22:50:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766961429; cv=none; b=gRwYVerPOs/rQj6lNPMRdknaxhh/ZFBNe5XyQpdLBSQaKd83+570e+6VTt5cflduXnPNTahTV9OxpUMPwAzI3xGDiuc/oP4H3LSGuShrFNbPIy4+2cJnTYUsfchWIJsr7S/p20rWRR9P8lXQO6YWDnM+Ew3PW/tHtSDB73E6R+0=
+	t=1766962252; cv=none; b=QqW7oiamlR3MwxUsRkJNf577EEHyjbuwJrXcLphvg3rxtg9RG13mK7DbBT7qrlQFLS9wSt/hlq5b5Z2ZiN6OxrW5LvnhI/0aI4sBJpBt5VFRXFtR7LtWZE7+tvkywDG+/NZSucbNjNPXJad4XWvnCIPswVvY2HNesm+1h9Sq+Oo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766961429; c=relaxed/simple;
-	bh=GyKxkfW9k+3VCtwdAUf5uh4eBZ60JDLj7eBTmppt484=;
-	h=Date:To:From:Subject:Message-Id; b=iD/tdIHk+MKRnq6hcghuqwt6o92gFRMLMJrhNyy/75YlzVw6GZru/pZPfxryeDIcgBk+pZZwnltrgDzXwLg5F6hznzwQOOTeOkXkS3LTvmk9i/EfqzJl9kgEG7q3zFcXerUZIXHukpSHy6QCB9LmHRr90RW9z6gOFGU0c7MdvyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MLOP3xSf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766962252; c=relaxed/simple;
+	bh=yVabb3Z4b/2h1tDY+Fr32JI1EvzljlR5M+tTnc3+egg=;
+	h=Date:To:From:Subject:Message-Id; b=AUKjaD2QJmWtl8akiEZzfHqqnmTYiloJhl1HwW5nPJmSik4JerV8tPO9+D7PvlZsbiZk4PnY6igg/SjHJ55S/WQAU+uISZVtIOLM0MV4SlZLfL+5+ZylkMqDwlfS6N9A4cyIQBE79VNi3CgA222PnbGqsDeXM8eMxj9pmSGxg4U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rImWHDwV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MLOP3xSf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A638C4CEFB;
-	Sun, 28 Dec 2025 22:37:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rImWHDwV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41C1CC4CEFB;
+	Sun, 28 Dec 2025 22:50:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766961429;
-	bh=GyKxkfW9k+3VCtwdAUf5uh4eBZ60JDLj7eBTmppt484=;
+	s=korg; t=1766962252;
+	bh=yVabb3Z4b/2h1tDY+Fr32JI1EvzljlR5M+tTnc3+egg=;
 	h=Date:To:From:Subject:From;
-	b=MLOP3xSfWrr0Ec8tTat8qif+Xl/VMJt46fHDZfRNTAVzi+g6lAVuMhI2zsLC6FubB
-	 7FzX9HYuiPrWvQr3wL4TvaBbcORCImx4qTdkGFK1AkTOD4CWAtK2RMBkC+S51H5avn
-	 9Meeikdrc6UpC16IVaNTI6aruqAwIDfvcTiYOKtI=
-Date: Sun, 28 Dec 2025 14:37:08 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,ritesh.list@gmail.com,osalvador@suse.de,muchun.song@linux.dev,mpe@ellerman.id.au,mingo@redhat.com,maddy@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,david@kernel.org,christophe.leroy@csgroup.eu,bp@alien8.de,sourabhjain@linux.ibm.com,akpm@linux-foundation.org
+	b=rImWHDwVTaV9GtT6JM6ChD7WjLcpoI9ugf1Juugtam8gfRnoEnqNpbnVGKf9jLn3e
+	 PBKiKUgixszEl6cQHd2cHalSLm1I3ZR+pCtcDgnJz3tccVbPINSo0890Ud7IlGWqcG
+	 gvlm0WwDDt9FsYyrPvclAZFb2ZdY8djdbGj+z8eI=
+Date: Sun, 28 Dec 2025 14:50:51 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-ignore-hugepage-kernel-args-if-hugepages-are-unsupported.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251228223709.4A638C4CEFB@smtp.kernel.org>
+Subject: + mm-khugepaged-remove-unnecessary-goto-skip-label.patch added to mm-new branch
+Message-Id: <20251228225052.41C1CC4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: ignore hugepage kernel args if hugepages are unsupported
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-ignore-hugepage-kernel-args-if-hugepages-are-unsupported.patch
+     Subject: mm/khugepaged: remove unnecessary goto 'skip' label
+has been added to the -mm mm-new branch.  Its filename is
+     mm-khugepaged-remove-unnecessary-goto-skip-label.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-ignore-hugepage-kernel-args-if-hugepages-are-unsupported.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-unnecessary-goto-skip-label.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,140 +66,75 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sourabh Jain <sourabhjain@linux.ibm.com>
-Subject: mm/hugetlb: ignore hugepage kernel args if hugepages are unsupported
-Date: Wed, 24 Dec 2025 17:25:24 +0530
+From: Shivank Garg <shivankg@amd.com>
+Subject: mm/khugepaged: remove unnecessary goto 'skip' label
+Date: Wed, 24 Dec 2025 11:13:51 +0000
 
-Skip processing hugepage kernel arguments (hugepagesz, hugepages, and
-default_hugepagesz) when hugepages are not supported by the architecture.
+Patch series "mm/khugepaged: cleanups and scan limit fix", v2.
 
-Some architectures may need to disable hugepages based on conditions
-discovered during kernel boot.  The hugepages_supported() helper allows
-architecture code to advertise whether hugepages are supported.
+This series contains several cleanups for mm/khugepaged.c to improve code
+readability and type safety, and one functional fix to ensure
+khugepaged_scan_mm_slot() correctly accounts for small VMAs towards scan
+limit.
 
-Currently, normal hugepage allocation is guarded by hugepages_supported(),
-but gigantic hugepages are allocated regardless of this check.  This
-causes problems on powerpc for fadump (firmware- assisted dump).
 
-In the fadump (firmware-assisted dump) scenario, a production kernel crash
-causes the system to boot into a special kernel whose sole purpose is to
-collect the memory dump and reboot.  Features such as hugepages are not
-required in this environment and should be disabled.
+This patch (of 5):
 
-For example, when the fadump kernel boots with the following kernel
-arguments:
-default_hugepagesz=1GB hugepagesz=1GB hugepages=200
+Replace goto skip with actual logic for better code readability.
 
-Before this patch, the kernel prints the following logs:
+No functional change.
 
- HugeTLB: allocating 200 of page size 1.00 GiB failed.  Only allocated 58 hugepages.
- HugeTLB support is disabled!
- HugeTLB: huge pages not supported, ignoring associated command-line parameters
- hugetlbfs: disabling because there are no supported hugepage sizes
-
-Even though the logs state that HugeTLB support is disabled, gigantic
-hugepages are still allocated. This causes the fadump kernel to run out
-of memory during boot.
-
-After this patch is applied, the kernel prints the following logs for
-the same command line:
-
- HugeTLB: hugepages unsupported, ignoring default_hugepagesz=1GB cmdline
- HugeTLB: hugepages unsupported, ignoring hugepagesz=1GB cmdline
- HugeTLB: hugepages unsupported, ignoring hugepages=200 cmdline
- HugeTLB support is disabled!
- hugetlbfs: disabling because there are no supported hugepage sizes
-
-To fix the issue, gigantic hugepage allocation should be guarded by
-hugepages_supported().
-
-Previously, two approaches were proposed to bring gigantic hugepage
-allocation under hugepages_supported():
-
-[1] Check hugepages_supported() in the generic code before allocating
-    gigantic hugepages
-
-[2] Make arch_hugetlb_valid_size() return false for all hugetlb sizes
-
-Approach [2] has two minor issues:
-1. It prints misleading logs about invalid hugepage sizes
-2. The kernel still processes hugepage kernel arguments unnecessarily
-
-To control gigantic hugepage allocation, skip processing hugepage kernel
-arguments (default_hugepagesz, hugepagesz and hugepages) when
-hugepages_supported() returns false.
-
-Note for backporting: This fix is a partial reversion of the commit
-mentioned in the Fixes tag and is only valid once the change referenced by
-the Depends-on tag is present.  When backporting this patch, the commit
-mentioned in the Depends-on tag must be included first.
-
-Link: https://lore.kernel.org/all/20250121150419.1342794-1-sourabhjain@linux.ibm.com/ [1]
-Link: https://lore.kernel.org/all/20250128043358.163372-1-sourabhjain@linux.ibm.com/ [2]
-Link: https://lkml.kernel.org/r/20251224115524.1272010-1-sourabhjain@linux.ibm.com
-Fixes: c2833a5bf75b ("hugetlbfs: fix changes to command line processing")
-Signed-off-by: Sourabh Jain <sourabhjain@linux.ibm.com>
-Depends-on: 2354ad252b66 ("powerpc/mm: Update default hugetlb size early")
+Link: https://lkml.kernel.org/r/20251224111351.41042-4-shivankg@amd.com
+Link: https://lkml.kernel.org/r/20251224111351.41042-6-shivankg@amd.com
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ mm/khugepaged.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-ignore-hugepage-kernel-args-if-hugepages-are-unsupported
-+++ a/mm/hugetlb.c
-@@ -4286,6 +4286,11 @@ static int __init hugepages_setup(char *
- 	unsigned long tmp;
- 	char *p = s;
- 
-+	if (!hugepages_supported()) {
-+		pr_warn("HugeTLB: hugepages unsupported, ignoring hugepages=%s cmdline\n", s);
-+		return 0;
-+	}
-+
- 	if (!parsed_valid_hugepagesz) {
- 		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
- 		parsed_valid_hugepagesz = true;
-@@ -4366,6 +4371,11 @@ static int __init hugepagesz_setup(char
- 	unsigned long size;
- 	struct hstate *h;
- 
-+	if (!hugepages_supported()) {
-+		pr_warn("HugeTLB: hugepages unsupported, ignoring hugepagesz=%s cmdline\n", s);
-+		return 0;
-+	}
-+
- 	parsed_valid_hugepagesz = false;
- 	size = (unsigned long)memparse(s, NULL);
- 
-@@ -4414,6 +4424,12 @@ static int __init default_hugepagesz_set
- 	unsigned long size;
- 	int i;
- 
-+	if (!hugepages_supported()) {
-+		pr_warn("HugeTLB: hugepages unsupported, ignoring default_hugepagesz=%s cmdline\n",
-+			s);
-+		return 0;
-+	}
-+
- 	parsed_valid_hugepagesz = false;
- 	if (parsed_default_hugepagesz) {
- 		pr_err("HugeTLB: default_hugepagesz previously specified, ignoring %s\n", s);
+--- a/mm/khugepaged.c~mm-khugepaged-remove-unnecessary-goto-skip-label
++++ a/mm/khugepaged.c
+@@ -2442,14 +2442,15 @@ static unsigned int khugepaged_scan_mm_s
+ 			break;
+ 		}
+ 		if (!thp_vma_allowable_order(vma, vma->vm_flags, TVA_KHUGEPAGED, PMD_ORDER)) {
+-skip:
+ 			progress++;
+ 			continue;
+ 		}
+ 		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
+ 		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
+-		if (khugepaged_scan.address > hend)
+-			goto skip;
++		if (khugepaged_scan.address > hend) {
++			progress++;
++			continue;
++		}
+ 		if (khugepaged_scan.address < hstart)
+ 			khugepaged_scan.address = hstart;
+ 		VM_BUG_ON(khugepaged_scan.address & ~HPAGE_PMD_MASK);
 _
 
-Patches currently in -mm which might be from sourabhjain@linux.ibm.com are
+Patches currently in -mm which might be from shivankg@amd.com are
 
-mm-hugetlb-ignore-hugepage-kernel-args-if-hugepages-are-unsupported.patch
+mm-khugepaged-map-dirty-writeback-pages-failures-to-eagain.patch
+mm-khugepaged-retry-with-sync-writeback-for-madv_collapse.patch
+mm-khugepaged-remove-unnecessary-goto-skip-label.patch
+mm-khugepaged-count-small-vmas-towards-scan-limit.patch
+mm-khugepaged-count-small-vmas-towards-scan-limit-fix.patch
+mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch
+mm-khugepaged-use-enum-scan_result-for-result-variables-and-return-types.patch
+mm-khugepaged-make-khugepaged_collapse_control-static.patch
 
