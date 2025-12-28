@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5305A280325;
-	Sun, 28 Dec 2025 22:23:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58A67194098
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 22:23:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766960584; cv=none; b=cXcF9s1mS1JojmF9DfDYE+72AVzBEdVsI4FR8g+zJ1wV3WSVYAx2weq0wt4QWLlqsY7ov2XeDLi3Y1/MU7fvTjZbQs++LNrcZiHaN9XDHx5RJfD3KzTbz390IrdoxlvsUpyTg5xFXQhi82jXFfhYxOmmFqOw2yT6FyPNckuj6Rk=
+	t=1766960616; cv=none; b=tvrYztyggXjjFk2pmkGTYMv8Vltq5nVNQz9wZFM+RZ5bIa0Acmg25nhNFXl4y57ey19vcZHaP14qLO6z7rHWGfb7ZZryQGrLvgl/51iKChE2eoi7HsDP7ZgVgLzjFR9EP4E/k1EAf7Bn9sX6Nj4mojFJLyRgqO36aHh/3Pz73T0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766960584; c=relaxed/simple;
-	bh=F/4Grc31sR07x4aZBS1Okth2FORftr1RZleCK4xyHnM=;
-	h=Date:To:From:Subject:Message-Id; b=P9bK9DyLY/TMctamDYz5WM2sUqYvT7yDqEhUN7qVuJJnORZbMxrH5/e3ekXLx686ZiRHMlJOx1W1ot2xP/juz44NDdfrpcby93/M3iKKZwTN3qoVvJkPeoZnwSPMxUT/vtmrynP4jRaMINZlElvt8P/xdx43/blqcuRm/IZ3IMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zgGnK1fv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766960616; c=relaxed/simple;
+	bh=8f3Q/zLk2cgZ9JA4GrX7/PkE1+WrimbMwAtyRQluI+k=;
+	h=Date:To:From:Subject:Message-Id; b=l7OBb7jgy7MM80am4d6/zI5VopNthslvvz7rPu0VaRtmfnsDUkWSBA0IWjb45lg5YVRId2V4xsFUQg6oWkiY8oVLqIoP3ezbVAL9cQBj8yNyEYQIVPyT9n+oQ++NcEUu8HC2S3pdryvd/69RJxKy47ImzooInxPi0aohgTUwrng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kZKMiN8/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zgGnK1fv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FFB1C4CEFB;
-	Sun, 28 Dec 2025 22:23:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kZKMiN8/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D59A4C4CEFB;
+	Sun, 28 Dec 2025 22:23:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766960583;
-	bh=F/4Grc31sR07x4aZBS1Okth2FORftr1RZleCK4xyHnM=;
+	s=korg; t=1766960615;
+	bh=8f3Q/zLk2cgZ9JA4GrX7/PkE1+WrimbMwAtyRQluI+k=;
 	h=Date:To:From:Subject:From;
-	b=zgGnK1fvSFVjWMGzAzUgpQBgus5GSc0wOwxxGRejATA/d57D5jG7vjNvDEUJpT9H4
-	 5S0VBgz7BARoXh/aPA2QGZ1nxW1Ka5d9hGsZgc+p/h+se4bzSqd1XAbLHW8oxRyugI
-	 wu0voto0li/fabkciUmXlU0CT5V8DAJl0pmYjrxA=
-Date: Sun, 28 Dec 2025 14:23:03 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,sweettea-kernel@dorminy.me,surenb@google.com,stable@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,peterz@infradead.org,paulmck@kernel.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,christian.koenig@amd.com,broonie@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
+	b=kZKMiN8/6GG8wrqU91tYJdi/aRwpWZhyuvV1ySPHzFAFsVSVAXrV/CufTymoR5RCE
+	 YiHIlxLYZIyxgA1pN9eNwSFM3zs1ETJAzcQZPlPYj9ICsPCqN5MDdS8mDUsLQF11GB
+	 EuNdH8CyyWGd62o8qDtmLgeDt5PZpe8FBqfbfuWM=
+Date: Sun, 28 Dec 2025 14:23:35 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,sweettea-kernel@dorminy.me,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,paulmck@kernel.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,christian.koenig@amd.com,broonie@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch added to mm-hotfixes-unstable branch
-Message-Id: <20251228222303.9FFB1C4CEFB@smtp.kernel.org>
+Subject: + tsacct-skip-all-kernel-threads.patch added to mm-new branch
+Message-Id: <20251228222335.D59A4C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: take into account mm_cid size for mm_struct static definitions
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
+     Subject: tsacct: skip all kernel threads
+has been added to the -mm mm-new branch.  Its filename is
+     tsacct-skip-all-kernel-threads.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tsacct-skip-all-kernel-threads.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,21 +67,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: mm: take into account mm_cid size for mm_struct static definitions
-Date: Wed, 24 Dec 2025 12:33:58 -0500
+Subject: tsacct: skip all kernel threads
+Date: Wed, 24 Dec 2025 12:38:10 -0500
 
-Both init_mm and efi_mm static definitions need to make room for the 2
-mm_cid cpumasks.
+This patch is a preparation step for HPCC, for the OOM killer
+improvements.  I suspect that this patch is useful on its own, because it
+really makes no sense to sum up accounting statistics of use_mm within
+kernel threads which are only temporarily using those mm.
 
-This fixes possible out-of-bounds accesses to init_mm and efi_mm.
+When we hit acct_account_cputime within a irq handler over a kthread that
+happens to use a userspace mm, we end up summing up the mm's RSS into the
+tsk acct_rss_mem1, which eventually decays.
 
-Add a space between # and define for the mm_alloc_cid() definition to make
-it consistent with the coding style used in the rest of this header file.
+I don't see a good rationale behind tracking the mm's rss in that way when
+a kthread use a userspace mm temporarily through use_mm.
 
-Link: https://lkml.kernel.org/r/20251224173358.647691-4-mathieu.desnoyers@efficios.com
-Fixes: af7f588d8f73 ("sched: Introduce per-memory-map concurrency ID")
+It causes issues with init_mm and efi_mm which only partially initialize
+their mm_struct when introducing the new hierarchical percpu counters to
+replace RSS counters, which requires a pointer dereference when reading
+the approximate counter sum.  The current percpu counters simply load a
+zeroed atomic counter, which happen to work.
+
+Skip all kernel threads in acct_account_cputime(), not just those that
+happen to have a NULL mm.
+
+This is a preparation step before introducing the hierarchical percpu
+counters.
+
+Link: https://lkml.kernel.org/r/20251224173810.648699-2-mathieu.desnoyers@efficios.com
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -102,54 +124,27 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Yu Zhao <yuzhao@google.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/tsacct.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm_types.h~mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions
-+++ a/include/linux/mm_types.h
-@@ -1368,7 +1368,7 @@ extern struct mm_struct init_mm;
- 
- #define MM_STRUCT_FLEXIBLE_ARRAY_INIT				\
- {								\
--	[0 ... sizeof(cpumask_t)-1] = 0				\
-+	[0 ... sizeof(cpumask_t) + MM_CID_STATIC_SIZE - 1] = 0	\
- }
- 
- /* Pointer magic because the dynamic array size confuses some compilers. */
-@@ -1500,7 +1500,7 @@ static inline int mm_alloc_cid_noprof(st
- 	mm_init_cid(mm, p);
- 	return 0;
- }
--#define mm_alloc_cid(...)	alloc_hooks(mm_alloc_cid_noprof(__VA_ARGS__))
-+# define mm_alloc_cid(...)	alloc_hooks(mm_alloc_cid_noprof(__VA_ARGS__))
- 
- static inline void mm_destroy_cid(struct mm_struct *mm)
+--- a/kernel/tsacct.c~tsacct-skip-all-kernel-threads
++++ a/kernel/tsacct.c
+@@ -125,7 +125,7 @@ static void __acct_update_integrals(stru
  {
-@@ -1514,6 +1514,8 @@ static inline unsigned int mm_cid_size(v
- 	return cpumask_size() + bitmap_size(num_possible_cpus());
- }
+ 	u64 time, delta;
  
-+/* Use 2 * NR_CPUS as worse case for static allocation. */
-+# define MM_CID_STATIC_SIZE	(2 * sizeof(cpumask_t))
- #else /* CONFIG_SCHED_MM_CID */
- static inline void mm_init_cid(struct mm_struct *mm, struct task_struct *p) { }
- static inline int mm_alloc_cid(struct mm_struct *mm, struct task_struct *p) { return 0; }
-@@ -1522,6 +1524,7 @@ static inline unsigned int mm_cid_size(v
- {
- 	return 0;
- }
-+# define MM_CID_STATIC_SIZE	0
- #endif /* CONFIG_SCHED_MM_CID */
+-	if (!likely(tsk->mm))
++	if (unlikely(!tsk->mm || (tsk->flags & PF_KTHREAD)))
+ 		return;
  
- struct mmu_gather;
+ 	time = stime + utime;
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
