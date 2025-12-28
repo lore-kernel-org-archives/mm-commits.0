@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB09926ED40
-	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 19:24:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A3144C6D
+	for <mm-commits@vger.kernel.org>; Sun, 28 Dec 2025 19:47:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766949843; cv=none; b=Jz03R+5OjX3n5ZmImIoM/sGUcKDjJ1DOQdGgrlIH3lJiCxqo2RCi359lNIhY6iSGzfAKxtqq/gqJDwUWjaxjuySXK0+ZrfjJsApK9Q8uXD1MpfjIXSA+vvoTRb33u2ob37m10topqhxhSGU96C5eHHHAfCFn5NIuxg7f5xA7NHk=
+	t=1766951230; cv=none; b=TrGv+j3dCK7vMw4FWpANqiRhWALTlLqF1LOIZdrdqvV28E2bzPT4GGh8uOvo4St2sKSAoBZ//N3nKOfIb7tZoqK2IymqgPkKuHibus8Z9+QRiAN4OFtZPqCRQkjidsQ0jSpAK79j1mG0v2hIn8H+ZwzWCccYqw/UmYH6mUxvzmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766949843; c=relaxed/simple;
-	bh=54WjhaWqELFJy/XIiCuYfeWKUrxYlJ3rAxjMH8gYMAg=;
-	h=Date:To:From:Subject:Message-Id; b=sdzx85pL5NyizK4afBAKDG99dnbv99+L73MrPW+Wp0pngAIRburVp4EgAt6gEz9Iq9Q0DkB56FEM1j9fHFTP4W5IEa2yQnlyKRPin1tNnkXb0l60nSdAcL/7aBmWUIyblhvgkYKe8vPOTTssAmCXyjx6PhcQIZ5lL65L0eTmfmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v5asvpAd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1766951230; c=relaxed/simple;
+	bh=FQ/mMEoKC46sdHcQf9jgIlawABECfuLmYCEkqUQ8+qE=;
+	h=Date:To:From:Subject:Message-Id; b=iCzjsPqUThKrfKkjrXNEU4y0SPgEXMhHi4kS0CXukyMVA24alQ9ekVbf3FGwPvU/5beo0bcxqBM+urF3OsG7mZ0MY9br+jKacHP07DpW04voaFL7RfIb/uIjFnXCbFarWPZLLJC3jr+7C/1msA/CcWD2zekJ+10m5yiHKvQd3dc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AeA/PonN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v5asvpAd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10773C4CEFB;
-	Sun, 28 Dec 2025 19:24:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AeA/PonN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1345C4CEFB;
+	Sun, 28 Dec 2025 19:47:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1766949843;
-	bh=54WjhaWqELFJy/XIiCuYfeWKUrxYlJ3rAxjMH8gYMAg=;
+	s=korg; t=1766951229;
+	bh=FQ/mMEoKC46sdHcQf9jgIlawABECfuLmYCEkqUQ8+qE=;
 	h=Date:To:From:Subject:From;
-	b=v5asvpAdBFtjNhW8QhcETYSfozC9fhOGhyRVUNGsGiH7fMF0ebs8GkGum0J+A9c9c
-	 q3oTydSH2ZUlhyN+hASV7olqlTUklzSPZyuwfQeo+6KTDwKU62Wf825sKKWO5sa1NI
-	 4DSQdyRyDCKht4DpezFURtRtKuKJ9bTylfQaJIx4=
-Date: Sun, 28 Dec 2025 11:24:02 -0800
-To: mm-commits@vger.kernel.org,oleg@redhat.com,mingo@kernel.org,gregkh@linuxfoundation.org,david@kernel.org,brauner@kernel.org,adobriyan@gmail.com,atomlin@atomlin.com,akpm@linux-foundation.org
+	b=AeA/PonNM+QPvfAPUHjTrqNIz2g4e1Fe6gKjRx1VIfZ3CCaEOVZHJXWu9UEDj0VAP
+	 jIoqgadOlVzHfFZpmMvCg84RroFl1jHNbVnf1/kyw3PZMmJQoR1cVVEI9W+I5ueGPC
+	 9TP7fMYT1KckY9q8/r59qozAEYWupVX13HAvsX2c=
+Date: Sun, 28 Dec 2025 11:47:09 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,jiayuan.chen@shopee.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,jiayuan.chen@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-expose-mm_cpumask-in-proc-status.patch added to mm-new branch
-Message-Id: <20251228192403.10773C4CEFB@smtp.kernel.org>
+Subject: + mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch added to mm-new branch
+Message-Id: <20251228194709.C1345C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc: expose mm_cpumask in /proc/[pid]/status
+     Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
 has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-expose-mm_cpumask-in-proc-status.patch
+     mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-expose-mm_cpumask-in-proc-status.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,100 +66,132 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: fs/proc: expose mm_cpumask in /proc/[pid]/status
-Date: Fri, 26 Dec 2025 16:14:07 -0500
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+Date: Fri, 26 Dec 2025 16:00:42 +0800
 
-This patch introduces two new fields to /proc/[pid]/status to display the
-set of CPUs, representing the CPU affinity of the process's active memory
-context, in both mask and list format: "Cpus_active_mm" and
-"Cpus_active_mm_list".  The mm_cpumask is primarily used for TLB and cache
-synchronisation.
 
-Exposing this information allows userspace to easily describe the
-relationship between CPUs where a memory descriptor is "active" and the
-CPUs where the thread is allowed to execute.  The primary intent is to
-provide visibility into the "memory footprint" across CPUs, which is
-invaluable for debugging performance issues related to IPI storms and TLB
-shootdowns in large-scale NUMA systems.  The CPU-affinity sets the
-boundary; the mm_cpumask records the arrival; they complement each other.
+This is v2 of this patch series. For v1, see [1].
 
-Frequent mm_cpumask changes may indicate instability in placement policies
-or excessive task migration overhead.
+When kswapd fails to reclaim memory, kswapd_failures is incremented.
+Once it reaches MAX_RECLAIM_RETRIES, kswapd stops running to avoid
+futile reclaim attempts. However, any successful direct reclaim
+unconditionally resets kswapd_failures to 0, which can cause problems.
 
-Link: https://lkml.kernel.org/r/20251226211407.2252573-2-atomlin@atomlin.com
-Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
-Cc: Christian Brauner <brauner@kernel.org>
+We observed an issue in production on a multi-NUMA system where a
+process allocated large amounts of anonymous pages on a single NUMA
+node, causing its watermark to drop below high and evicting most file
+pages:
+
+$ numastat -m
+Per-node system memory usage (in MBs):
+                          Node 0          Node 1           Total
+                 --------------- --------------- ---------------
+MemTotal               128222.19       127983.91       256206.11
+MemFree                  1414.48         1432.80         2847.29
+MemUsed                126807.71       126551.11       252358.82
+SwapCached                  0.00            0.00            0.00
+Active                  29017.91        25554.57        54572.48
+Inactive                92749.06        95377.00       188126.06
+Active(anon)            28998.96        23356.47        52355.43
+Inactive(anon)          92685.27        87466.11       180151.39
+Active(file)               18.95         2198.10         2217.05
+Inactive(file)             63.79         7910.89         7974.68
+
+With swap disabled, only file pages can be reclaimed. When kswapd is
+woken (e.g., via wake_all_kswapds()), it runs continuously but cannot
+raise free memory above the high watermark since reclaimable file pages
+are insufficient. Normally, kswapd would eventually stop after
+kswapd_failures reaches MAX_RECLAIM_RETRIES.
+
+However, containers on this machine have memory.high set in their
+cgroup. Business processes continuously trigger the high limit, causing
+frequent direct reclaim that keeps resetting kswapd_failures to 0. This
+prevents kswapd from ever stopping.
+
+The key insight is that direct reclaim triggered by cgroup memory.high
+performs aggressive scanning to throttle the allocating process. With
+sufficiently aggressive scanning, even hot pages will eventually be
+reclaimed, making direct reclaim "successful" at freeing some memory.
+However, this success does not mean the node has reached a balanced
+state - the freed memory may still be insufficient to bring free pages
+above the high watermark. Unconditionally resetting kswapd_failures in
+this case keeps kswapd alive indefinitely.
+
+The result is that kswapd runs endlessly. Unlike direct reclaim which
+only reclaims from the allocating cgroup, kswapd scans the entire node's
+memory. This causes hot file pages from all workloads on the node to be
+evicted, not just those from the cgroup triggering memory.high. These
+pages constantly refault, generating sustained heavy IO READ pressure
+across the entire system.
+
+Fix this by only resetting kswapd_failures when the node is actually
+balanced. This allows both kswapd and direct reclaim to clear
+kswapd_failures upon successful reclaim, but only when the reclaim
+actually resolves the memory pressure (i.e., the node becomes balanced).
+
+[1] https://lore.kernel.org/all/20251222122022.254268-1-jiayuan.chen@linux.dev/
+Link: https://lkml.kernel.org/r/20251226080042.291657-1-jiayuan.chen@linux.dev
+Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    3 +++
- fs/proc/array.c                    |   22 +++++++++++++++++++++-
- 2 files changed, 24 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~fs-proc-expose-mm_cpumask-in-proc-status
-+++ a/Documentation/filesystems/proc.rst
-@@ -291,6 +291,9 @@ It's slow but very precise.
-  SpeculationIndirectBranch   indirect branch speculation mode
-  Cpus_allowed                mask of CPUs on which this process may run
-  Cpus_allowed_list           Same as previous, but in "list format"
-+ Cpus_active_mm              mask of CPUs on which this process has an active
-+                             memory context
-+ Cpus_active_mm_list         Same as previous, but in "list format"
-  Mems_allowed                mask of memory nodes allowed to this process
-  Mems_allowed_list           Same as previous, but in "list format"
-  voluntary_ctxt_switches     number of voluntary context switches
---- a/fs/proc/array.c~fs-proc-expose-mm_cpumask-in-proc-status
-+++ a/fs/proc/array.c
-@@ -409,6 +409,23 @@ static void task_cpus_allowed(struct seq
- 		   cpumask_pr_args(&task->cpus_mask));
+--- a/mm/vmscan.c~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
++++ a/mm/vmscan.c
+@@ -2659,6 +2659,20 @@ static bool can_age_anon_pages(struct lr
+ 			  lruvec_memcg(lruvec));
  }
  
-+/**
-+ * task_cpus_active_mm - Show the mm_cpumask for a process
-+ * @m: The seq_file structure for the /proc/PID/status output
-+ * @mm: The memory descriptor of the process
-+ *
-+ * Prints the set of CPUs, representing the CPU affinity of the process's
-+ * active memory context, in both mask and list format. This mask is
-+ * primarily used for TLB and cache synchronisation.
++/*
++ * Reset kswapd_failures only when the node is balanced. Without this
++ * check, successful direct reclaim (e.g., from cgroup memory.high
++ * throttling) can keep resetting kswapd_failures even when the node
++ * cannot be balanced, causing kswapd to run endlessly.
 + */
-+static void task_cpus_active_mm(struct seq_file *m, struct mm_struct *mm)
++static bool pgdat_balanced(pg_data_t *pgdat, int order, int highest_zoneidx);
++static inline void reset_kswapd_failures(struct pglist_data *pgdat,
++					 struct scan_control *sc)
 +{
-+	seq_printf(m, "Cpus_active_mm:\t%*pb\n",
-+		   cpumask_pr_args(mm_cpumask(mm)));
-+	seq_printf(m, "Cpus_active_mm_list:\t%*pbl\n",
-+		   cpumask_pr_args(mm_cpumask(mm)));
++	if (pgdat_balanced(pgdat, sc->order, sc->reclaim_idx))
++		atomic_set(&pgdat->kswapd_failures, 0);
 +}
 +
- static inline void task_core_dumping(struct seq_file *m, struct task_struct *task)
- {
- 	seq_put_decimal_ull(m, "CoreDumping:\t", !!task->signal->core_state);
-@@ -450,12 +467,15 @@ int proc_pid_status(struct seq_file *m,
- 		task_core_dumping(m, task);
- 		task_thp_status(m, mm);
- 		task_untag_mask(m, mm);
--		mmput(mm);
- 	}
- 	task_sig(m, task);
- 	task_cap(m, task);
- 	task_seccomp(m, task);
- 	task_cpus_allowed(m, task);
-+	if (mm) {
-+		task_cpus_active_mm(m, mm);
-+		mmput(mm);
-+	}
- 	cpuset_task_status_allowed(m, task);
- 	task_context_switch_counts(m, task);
- 	arch_proc_pid_thread_features(m, task);
+ #ifdef CONFIG_LRU_GEN
+ 
+ #ifdef CONFIG_LRU_GEN_ENABLED
+@@ -5076,7 +5090,7 @@ static void lru_gen_shrink_node(struct p
+ 	blk_finish_plug(&plug);
+ done:
+ 	if (sc->nr_reclaimed > reclaimed)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		reset_kswapd_failures(pgdat, sc);
+ }
+ 
+ /******************************************************************************
+@@ -6150,7 +6164,7 @@ again:
+ 	 * successful direct reclaim run will revive a dormant kswapd.
+ 	 */
+ 	if (reclaimable)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		reset_kswapd_failures(pgdat, sc);
+ 	else if (sc->cache_trim_mode)
+ 		sc->cache_trim_mode_failed = 1;
+ }
 _
 
-Patches currently in -mm which might be from atomlin@atomlin.com are
+Patches currently in -mm which might be from jiayuan.chen@linux.dev are
 
-fs-proc-expose-mm_cpumask-in-proc-status.patch
+mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
