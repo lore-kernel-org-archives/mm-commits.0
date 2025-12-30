@@ -1,107 +1,141 @@
-Received: from mail-lf1-f50.google.com (mail-lf1-f50.google.com [209.85.167.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7AB121D3CA
-	for <mm-commits@vger.kernel.org>; Tue, 30 Dec 2025 16:23:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6703326E719
+	for <mm-commits@vger.kernel.org>; Tue, 30 Dec 2025 18:06:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767111806; cv=none; b=HcXHZFc8AmZnSOMObyRjT71JAZm5E+64ZqxXu379PPvkV6gupNn2B0T/19xQitvl6gPOmWUaXepV2TTx5wvNr+9U/v/t0K6kDxS8o9oIgL/SF6Sbmkwy/S/aWZbNnR/nzVhraMgcjOPpA04spGYpnpGCX6LvGd5SmRTSd8zZXVA=
+	t=1767118000; cv=none; b=en+QEF3DyIW5PPdWd9NqRYoQytZWY3amcSdkciSAaVGD3iteRRYumK4yQkZjAKDu9vuK80h2jB6F/H6hfLSBLU1ah95yPuri1Aexa4H+a0h8VyifrnbUlkZzVqa0FxyFc+r7kWdZvsh/w0oYrg7WtWWDpDnwRwEoWYqRu4mFb7o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767111806; c=relaxed/simple;
-	bh=ONX0cv2+JhjLnUTN8O51VyT6leq5KUEjhVizgfgO2bQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gTqNTO2xdovbN3K01yVNiPTym9ZM2sZUSJEWiqEx8Sf2Zvhgz9YE8J4D6vWuRzK/gLE+CTfa4yC0fdgLOu83b1X92qu0x8I9kZPNyEBZctjRug95Odgc3OEfVKosaW+NfQBFc3Rvd1O+s4tF06yJDqSMKwt+X192H+CS/PELNbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=j6aITRhx; arc=none smtp.client-ip=209.85.167.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1767118000; c=relaxed/simple;
+	bh=qlEo1EdWIwLFYfzsH5rrTrtTxF5jqKc2cTpRLh5dAX0=;
+	h=Date:To:From:Subject:Message-Id; b=QLPlULt8HX0KecglcRhFlXu+ZRhoLJWOoipKKxqbcn6qF6CESWv+HFfDYYIN026cZImDBfU+xOr55N2K4ziDgir3tqL9z8S0q6ZWXavGcIfnUjkIprwxI11VNm36nSscEPWlqISSu00VID5cux9s+ndc7cfAJk0IV/voVCM3Wtk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O7AS/pl4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="j6aITRhx"
-Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-596ba05aaecso10935399e87.0
-        for <mm-commits@vger.kernel.org>; Tue, 30 Dec 2025 08:23:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767111803; x=1767716603; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=22GfgSLVW9nrtFLqbTUllG4aBZa4x2Yq5YgXpf88rYo=;
-        b=j6aITRhx63gcqxBWNrRRdqIwOHgzcxgPW7a+bcooxk75mRRM3ZDe8k8BXCuN17YHoC
-         BTpBLgblhXIizymlOEfAlj5l3zrVTWM0Mn+7MIeigDZqXrSfi3jYZV/NFHQglfYRgWv5
-         96TaHZNl4zkKi30ix7p1LFIQ/pv8UL5juZdHrDbWYJQp8CrrogXMUPxyrlT9kPjnQwyc
-         oZR0M54B1vfrlXF0/yilkOgUUzEgFlL4dVyxFNX0VJ5g5B39TW0R0TtjK4RcBlGsF3M3
-         YSoxaTogk5rqXgOQaJ0aLUmzwePHzPexTSBO8bill2czPAkNoxqX2DpuklNNc75yStyJ
-         U3gg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767111803; x=1767716603;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=22GfgSLVW9nrtFLqbTUllG4aBZa4x2Yq5YgXpf88rYo=;
-        b=UHW0olpqZEHmDJKCpkQTvGeSWzgDRRot0xtUUxh0c3gpcSyX5XJ4KmOHyYKyACIfYJ
-         I2QqHqR2BRWfGNFVpUFtXsPW+Hf7fLzetuvRwycERcYc9oB2Nqssi7mu86a8Iidun9bg
-         3eJiK2dmUBVmW9CJYWXoQsbMDit3j5rkvVCfzAPq30ZDFIFW27xrSq+8Fq0hG/5nezYK
-         JGh/JB+jJEGY0v/VptfG8njA9de8+zgE8z2AmKVk6GeSpuI7pFAh5ygGH4II7zTo955N
-         wz5RrBiEaa7e3vL73JLcNV8Yuanov+7wxU1L8VAlj7wAuo5+m8qq320sSL6yJFXXIzH0
-         XcLQ==
-X-Gm-Message-State: AOJu0Yz5ZZo7YiYXbhBsKyQHFsEHNqMMVy/ZTRybdxzFAlOgofTA+IK/
-	Vr1vZeG0JjOgJUDIsUT2Z8Y0GKyOXUvhpvRJclwPuOSm28mvh5U/rXc=
-X-Gm-Gg: AY/fxX53sSl+4Nqg2SB+f8Or8Y0WYNn9ByXJR3UGGChZ3avnmHD6pPH6agXkYOt1pJR
-	v1jtJjLVOoFCAQyaUBUGlVKpvdXVaSxiiHVtFblfPRlxIZjuA+CdIuwVdjRqVHGK7xjVQcfaot7
-	OQkIjyf6m+Qo8fWA3hz3rHKMpfqHLGRN+Rmr6Q0u0uo/pwFKSkAkr9qJydDKvtGDlAtGysA4yJx
-	DrYpO9l8RDlGRhq6e2pEiuT4YaLz8bsqs6A4aeHLJBV0bsrvHjivfRLL3pqAX19jDz085JMtWYf
-	+B3niguirUgLl4RvMiOkv9pShKAN5RvRMSKCFL/maxnvUtZ7SxheCwTWTOImKpkgkjZkp5z0KqB
-	JhwcBLPsXgN5Jsxhsh+dX+/JciU/xjhAtLO2tQmGUJI1t/VvioJwYA2XjLTnM2DkzVBUgy7FooG
-	p+
-X-Google-Smtp-Source: AGHT+IEa2IZqd/x12v5cDLghgxV47gZik6ifYEe5Q7rvahoFptChCXGY3tpRDDqjYooWDFj+7hBBLw==
-X-Received: by 2002:a05:6512:2241:b0:59a:1087:f0e8 with SMTP id 2adb3069b0e04-59a17d22532mr12433931e87.21.1767111802399;
-        Tue, 30 Dec 2025 08:23:22 -0800 (PST)
-Received: from p183 ([178.172.147.163])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-59a185dd1e9sm10160621e87.23.2025.12.30.08.23.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 Dec 2025 08:23:21 -0800 (PST)
-Date: Tue, 30 Dec 2025 19:23:50 +0300
-From: Alexey Dobriyan <adobriyan@gmail.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, oleg@redhat.com, mingo@kernel.org,
-	gregkh@linuxfoundation.org, david@kernel.org, brauner@kernel.org,
-	atomlin@atomlin.com
-Subject: Re: + fs-proc-expose-mm_cpumask-in-proc-status.patch added to mm-new
- branch
-Message-ID: <2a537a45-d75d-41e9-96a7-aefd14420ef2@p183>
-References: <20251228192403.10773C4CEFB@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O7AS/pl4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5936C4CEFB;
+	Tue, 30 Dec 2025 18:06:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1767117999;
+	bh=qlEo1EdWIwLFYfzsH5rrTrtTxF5jqKc2cTpRLh5dAX0=;
+	h=Date:To:From:Subject:From;
+	b=O7AS/pl411I/sRxfz1wwOHzTe2OOT8WnFwXo6xD0bclmif5Yw8BwWtC3f66plG85j
+	 Gr9qMq4/qa5yrxisACn/YojnbxzCgYmQt3cwZkoE4SmxdVA8t9YKHTC6VED2KUvQu/
+	 baFfoZ6ao3+ZwX+HFFj3SFR4SaKlR7U9VRGdina8=
+Date: Tue, 30 Dec 2025 10:06:39 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + liveupdate-separate-memfd-support-into-liveupdate_memfd.patch added to mm-nonmm-unstable branch
+Message-Id: <20251230180639.B5936C4CEFB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20251228192403.10773C4CEFB@smtp.kernel.org>
 
-On Sun, Dec 28, 2025 at 11:24:02AM -0800, Andrew Morton wrote:
-> Subject: fs/proc: expose mm_cpumask in /proc/[pid]/status
 
-> --- a/Documentation/filesystems/proc.rst~fs-proc-expose-mm_cpumask-in-proc-status
-> +++ a/Documentation/filesystems/proc.rst
-> @@ -291,6 +291,9 @@ It's slow but very precise.
->   Cpus_allowed                mask of CPUs on which this process may run
->   Cpus_allowed_list           Same as previous, but in "list format"
-> + Cpus_active_mm              mask of CPUs on which this process has an active
-> +                             memory context
-> + Cpus_active_mm_list         Same as previous, but in "list format"
->   Mems_allowed                mask of memory nodes allowed to this process
->   Mems_allowed_list           Same as previous, but in "list format"
+The patch titled
+     Subject: liveupdate: separate memfd support into LIVEUPDATE_MEMFD
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     liveupdate-separate-memfd-support-into-liveupdate_memfd.patch
 
-> +static void task_cpus_active_mm(struct seq_file *m, struct mm_struct *mm)
-> +{
-> +	seq_printf(m, "Cpus_active_mm:\t%*pb\n",
-> +		   cpumask_pr_args(mm_cpumask(mm)));
-> +	seq_printf(m, "Cpus_active_mm_list:\t%*pbl\n",
-> +		   cpumask_pr_args(mm_cpumask(mm)));
-> +}
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-separate-memfd-support-into-liveupdate_memfd.patch
 
-So this is 3rd pair of values which represent the same thing
-but can become desync during read().
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-I also wonder if anyone checked %pbl code to survive printing unstable masks.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-	/proc/alexey
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: liveupdate: separate memfd support into LIVEUPDATE_MEMFD
+Date: Tue, 30 Dec 2025 11:14:02 -0500
+
+Decouple memfd preservation support from the core Live Update Orchestrator
+configuration.
+
+Previously, enabling CONFIG_LIVEUPDATE forced a dependency on CONFIG_SHMEM
+and unconditionally compiled memfd_luo.o.  However, Live Update may be
+used for purposes that do not require memfd-backed memory preservation.
+
+Introduce CONFIG_LIVEUPDATE_MEMFD to gate memfd_luo.o.  This moves the
+SHMEM and MEMFD_CREATE dependencies to the specific feature that needs
+them, allowing the base LIVEUPDATE option to be selected independently of
+shared memory support.
+
+Link: https://lkml.kernel.org/r/20251230161402.1542099-1-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ kernel/liveupdate/Kconfig |   17 ++++++++++++++++-
+ mm/Makefile               |    2 +-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+--- a/kernel/liveupdate/Kconfig~liveupdate-separate-memfd-support-into-liveupdate_memfd
++++ a/kernel/liveupdate/Kconfig
+@@ -54,7 +54,6 @@ config KEXEC_HANDOVER_ENABLE_DEFAULT
+ config LIVEUPDATE
+ 	bool "Live Update Orchestrator"
+ 	depends on KEXEC_HANDOVER
+-	depends on SHMEM
+ 	help
+ 	  Enable the Live Update Orchestrator. Live Update is a mechanism,
+ 	  typically based on kexec, that allows the kernel to be updated
+@@ -73,4 +72,20 @@ config LIVEUPDATE
+ 
+ 	  If unsure, say N.
+ 
++config LIVEUPDATE_MEMFD
++	bool "Live update support for memfd"
++	depends on LIVEUPDATE
++	depends on MEMFD_CREATE
++	depends on SHMEM
++	default LIVEUPDATE
++	help
++	  Enable live update support for memfd regions. This allows preserving
++	  memfd-backed memory across kernel live updates.
++
++	  This can be used to back VM memory with memfds, allowing the guest
++	  memory to persist, or for other user workloads needing to preserve
++	  pages.
++
++	  If unsure, say N.
++
+ endmenu
+--- a/mm/Makefile~liveupdate-separate-memfd-support-into-liveupdate_memfd
++++ a/mm/Makefile
+@@ -100,7 +100,7 @@ obj-$(CONFIG_NUMA) += memory-tiers.o
+ obj-$(CONFIG_DEVICE_MIGRATION) += migrate_device.o
+ obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
+ obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
+-obj-$(CONFIG_LIVEUPDATE) += memfd_luo.o
++obj-$(CONFIG_LIVEUPDATE_MEMFD) += memfd_luo.o
+ obj-$(CONFIG_MEMCG_V1) += memcontrol-v1.o
+ obj-$(CONFIG_MEMCG) += memcontrol.o vmpressure.o
+ ifdef CONFIG_SWAP
+_
+
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+
+kho-validate-preserved-memory-map-during-population.patch
+list-add-primitives-for-private-list-manipulations.patch
+list-add-kunit-test-for-private-list-primitives.patch
+liveupdate-luo_file-use-private-list.patch
+liveupdate-luo_flb-introduce-file-lifecycle-bound-global-state.patch
+tests-liveupdate-add-in-kernel-liveupdate-test.patch
+liveupdate-separate-memfd-support-into-liveupdate_memfd.patch
+
