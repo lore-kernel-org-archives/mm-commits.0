@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D0281E531;
-	Sat,  3 Jan 2026 07:12:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73B7024728E;
+	Sat,  3 Jan 2026 17:25:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767424380; cv=none; b=oBQ/ALN49e6r0aQOKXnS1qW+NOuwgzxyNGSe0LEw8CkOvaJFePXdFvymcaEfgkq/1lZQloc5mwuZF8/HuuBu1j3zxBOMBvYZyaSlmhDnhE9t1WGZtA+LPb6S62VL1F+TM7t9N1RRlmgMbWTm7SGDF8RhLRGiZALpYCSm8xwU/cA=
+	t=1767461136; cv=none; b=nZYi6fiFHiH0dUyodSOe5XQ+D+D2SrCxTdwOtg+Z6FLxXCc/ymr27zPihMYVeP8YkEMfNucTBCQtkhnc1LMSEJMlVfuktpHRMV3TeOSGt6FWug/vUMFg1dPaKwuAkD1Ya8rCObGz/KDy/PyLeJ0fb0tOFU0j+LoUq4LmVZToQPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767424380; c=relaxed/simple;
-	bh=wJBLt6DVmzRrjjd82HM+fxjEWhRWKPO6j09EgKZGlR0=;
-	h=Date:To:From:Subject:Message-Id; b=azVQCsgoOmNnNJPtmSciG1viOcaq/M0XddLNWVRLFknQZy52PN3YNJ5SAeq3NeooAuaNUFt0xc/OkPvVZQGJ49uLxDkQabvarBBgxfCV1ITvD4/12CQ0qhnbaxNhj1q2IdpKCECKY2Wuz9IhKft3sBxC+WtZ6sQJpbzjAv5vR0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hy6SLf2R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767461136; c=relaxed/simple;
+	bh=6WZ0AOXtP02BpTrVImKKq/I9TOcXb2K0dpB3xUXTtm0=;
+	h=Date:To:From:Subject:Message-Id; b=DzHRZ9ZnWdtYsPJJUSA2e0hO99zLvGS7EKJ1llkIukxXsiXEOLcPt9py4U89wpYxlOlv0IJ6U8KDDvpSV3d2EJ/dwFalTUmA56mCgInT7xqa6I6HL7oHWT/2Gk1Gs+jWV4iab1VBt4UT0JAi8vZQhcjPtt9GJkcRLm6QCEmfToo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SisapzQ8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hy6SLf2R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7A0C113D0;
-	Sat,  3 Jan 2026 07:12:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SisapzQ8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBF29C113D0;
+	Sat,  3 Jan 2026 17:25:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767424379;
-	bh=wJBLt6DVmzRrjjd82HM+fxjEWhRWKPO6j09EgKZGlR0=;
+	s=korg; t=1767461136;
+	bh=6WZ0AOXtP02BpTrVImKKq/I9TOcXb2K0dpB3xUXTtm0=;
 	h=Date:To:From:Subject:From;
-	b=Hy6SLf2RLa3/hftV6eN2rvoMD8PzYJTYN2WwIGH3eE/SXQ+C1Zyq/Vcb6r8D8veye
-	 zfac2B2KG6CcE8zpghF4+e5m7ewbUzyc76BxFzk+wR+JjJHk1JfYJaw3Xt8vWdjoWY
-	 JZ7Y5NI/TJ1G+z0AeeKDTNbV0PTdhxnfj+ur5Hzg=
-Date: Fri, 02 Jan 2026 23:12:58 -0800
-To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,pfalcato@suse.de,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,aha310510@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=SisapzQ8GQwwWNjyAf47iWmdZAvU0kDz7J6PdxWZnAw9pXYHYxSyXVMUpGfyFFjJp
+	 1ysHWFwJqpkrpAIv6j6MtxWVau5sTIdDqgvrXl7ENK7OTAhWmP4MYaIZzZWpFoHw/7
+	 vex5IOFH5VCriBXKX74DHX0NXuht5hzFEwZ/kvXk=
+Date: Sat, 03 Jan 2026 09:25:35 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,mark.rutland@arm.com,leitao@debian.org,coxu@redhat.com,catalin.marinas@arm.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260103071259.8B7A0C113D0@smtp.kernel.org>
+Subject: + arm64-kernel-initialize-missing-kexec_buf-random-field.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260103172535.DBF29C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: fix anon_vma UAF on mremap() faulted, unfaulted merge
+     Subject: arm64: kernel: initialize missing kexec_buf->random field
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
+     arm64-kernel-initialize-missing-kexec_buf-random-field.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-kernel-initialize-missing-kexec_buf-random-field.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,283 +58,74 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: fix anon_vma UAF on mremap() faulted, unfaulted merge
-Date: Fri, 2 Jan 2026 20:55:20 +0000
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: arm64: kernel: initialize missing kexec_buf->random field
+Date: Mon, 1 Dec 2025 10:51:18 +0000
 
-Commit 879bca0a2c4f ("mm/vma: fix incorrectly disallowed anonymous VMA
-merges") introduced the ability to merge previously unavailable VMA merge
-scenarios.
+Commit bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
+introduced the kexec_buf->random field to enable random placement of
+kexec_buf.
 
-The key piece of logic introduced was the ability to merge a faulted VMA
-immediately next to an unfaulted VMA, which relies upon dup_anon_vma() to
-correctly handle anon_vma state.
+However, this field was never properly initialized for kexec images that
+do not need to be placed randomly, leading to the following UBSAN warning:
 
-In the case of the merge of an existing VMA (that is changing properties
-of a VMA and then merging if those properties are shared by adjacent
-VMAs), dup_anon_vma() is invoked correctly.
+[  +0.364528] ------------[ cut here ]------------
+[  +0.000019] UBSAN: invalid-load in ./include/linux/kexec.h:210:12
+[  +0.000131] load of value 2 is not a valid value for type 'bool' (aka '_Bool')
+[  +0.000003] CPU: 4 UID: 0 PID: 927 Comm: kexec Not tainted 6.18.0-rc7+ #3 PREEMPT(full)
+[  +0.000002] Hardware name: QEMU QEMU Virtual Machine, BIOS 0.0.0 02/06/2015
+[  +0.000000] Call trace:
+[  +0.000001]  show_stack+0x24/0x40 (C)
+[  +0.000006]  __dump_stack+0x28/0x48
+[  +0.000002]  dump_stack_lvl+0x7c/0xb0
+[  +0.000002]  dump_stack+0x18/0x34
+[  +0.000001]  ubsan_epilogue+0x10/0x50
+[  +0.000002]  __ubsan_handle_load_invalid_value+0xc8/0xd0
+[  +0.000003]  locate_mem_hole_callback+0x28c/0x2a0
+[  +0.000003]  kexec_locate_mem_hole+0xf4/0x2f0
+[  +0.000001]  kexec_add_buffer+0xa8/0x178
+[  +0.000002]  image_load+0xf0/0x258
+[  +0.000001]  __arm64_sys_kexec_file_load+0x510/0x718
+[  +0.000002]  invoke_syscall+0x68/0xe8
+[  +0.000001]  el0_svc_common+0xb0/0xf8
+[  +0.000002]  do_el0_svc+0x28/0x48
+[  +0.000001]  el0_svc+0x40/0xe8
+[  +0.000002]  el0t_64_sync_handler+0x84/0x140
+[  +0.000002]  el0t_64_sync+0x1bc/0x1c0
 
-However in the case of the merge of a new VMA, a corner case peculiar to
-mremap() was missed.
+To address this, initialise kexec_buf->random field properly.
 
-The issue is that vma_expand() only performs dup_anon_vma() if the target
-(the VMA that will ultimately become the merged VMA): is not the next VMA,
-i.e.  the one that appears after the range in which the new VMA is to be
-established.
-
-A key insight here is that in all other cases other than mremap(), a new
-VMA merge either expands an existing VMA, meaning that the target VMA will
-be that VMA, or would have anon_vma be NULL.
-
-Specifically:
-
-* __mmap_region() - no anon_vma in place, initial mapping.
-* do_brk_flags() - expanding an existing VMA.
-* vma_merge_extend() - expanding an existing VMA.
-* relocate_vma_down() - no anon_vma in place, initial mapping.
-
-In addition, we are in the unique situation of needing to duplicate
-anon_vma state from a VMA that is neither the previous or next VMA being
-merged with.
-
-To account for this, introduce a new field in struct vma_merge_struct
-specifically for the mremap() case, and update vma_expand() to explicitly
-check for this case and invoke dup_anon_vma() to ensure anon_vma state is
-correctly propagated.
-
-This issue can be observed most directly by invoked mremap() to move
-around a VMA and cause this kind of merge with the MREMAP_DONTUNMAP flag
-specified.
-
-This will result in unlink_anon_vmas() being called after failing to
-duplicate anon_vma state to the target VMA, which results in the anon_vma
-itself being freed with folios still possessing dangling pointers to the
-anon_vma and thus a use-after-free bug.
-
-This bug was discovered via a syzbot report, which this patch resolves.
-
-The following program reproduces the issue (and is fixed by this patch):
-
-#define _GNU_SOURCE
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/mman.h>
-
-#define RESERVED_PGS	(100)
-#define VMA_A_PGS	(10)
-#define VMA_B_PGS	(10)
-#define NUM_ITERS	(1000)
-
-static void trigger_bug(void)
-{
-	unsigned long page_size = sysconf(_SC_PAGE_SIZE);
-	char *reserved, *ptr_a, *ptr_b;
-
-	/*
-	 * The goal here is to achieve:
-	 *
-	 * mremap() with MREMAP_DONTUNMAP such that A and B merge:
-	 *
-	 *      |-------------------------|
-	 *      |                         |
-	 *      |    |-----------|   |---------|
-	 *      v    | unfaulted |   | faulted |
-	 *           |-----------|   |---------|
-	 *                 B              A
-	 *
-	 * Then unmap VMA A to trigger the bug.
-	 */
-
-	/* Reserve a region of memory to operate in. */
-	reserved = mmap(NULL, RESERVED_PGS * page_size, PROT_NONE,
-			MAP_PRIVATE | MAP_ANON, -1, 0);
-	if (reserved == MAP_FAILED) {
-		perror("mmap reserved");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Map VMA A into place. */
-	ptr_a = mmap(&reserved[page_size], VMA_A_PGS * page_size,
-		     PROT_READ | PROT_WRITE,
-		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-	if (ptr_a == MAP_FAILED) {
-		perror("mmap VMA A");
-		exit(EXIT_FAILURE);
-	}
-	/* Fault it in. */
-	ptr_a[0] = 'x';
-
-	/*
-	 * Now move it out of the way so we can place VMA B in position,
-	 * unfaulted.
-	 */
-	ptr_a = mremap(ptr_a, VMA_A_PGS * page_size, VMA_A_PGS * page_size,
-		       MREMAP_FIXED | MREMAP_MAYMOVE, &reserved[50 * page_size]);
-	if (ptr_a == MAP_FAILED) {
-		perror("mremap VMA A out of the way");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Map VMA B into place. */
-	ptr_b = mmap(&reserved[page_size + VMA_A_PGS * page_size],
-		     VMA_B_PGS * page_size, PROT_READ | PROT_WRITE,
-		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-	if (ptr_b == MAP_FAILED) {
-		perror("mmap VMA B");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Now move VMA A into position w/MREMAP_DONTUNMAP + free anon_vma. */
-	ptr_a = mremap(ptr_a, VMA_A_PGS * page_size, VMA_A_PGS * page_size,
-		       MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
-		       &reserved[page_size]);
-	if (ptr_a == MAP_FAILED) {
-		perror("mremap VMA A with MREMAP_DONTUNMAP");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Finally, unmap VMA A which should trigger the bug. */
-	munmap(ptr_a, VMA_A_PGS * page_size);
-
-	/* Cleanup in case bug didn't trigger sufficiently visibly... */
-	munmap(reserved, RESERVED_PGS * page_size);
-}
-
-int main(void)
-{
-	int i;
-
-	for (i = 0; i < NUM_ITERS; i++)
-		trigger_bug();
-
-	return EXIT_SUCCESS;
-}
-
-Link: https://lkml.kernel.org/r/20260102205520.986725-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Fixes: 879bca0a2c4f ("mm/vma: fix incorrectly disallowed anonymous VMA merges")
-Reported-by: syzbot+b165fc2e11771c66d8ba@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/694a2745.050a0220.19928e.0017.GAE@google.com/
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeongjun Park <aha310510@gmail.com>
+Link: https://lkml.kernel.org/r/20251201105118.2786335-1-yeoreum.yun@arm.com
+Fixes: bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
+Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Suggested-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Breno Leitao <leitao@debian.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Coiby Xu <coxu@redhat.com>
 Cc: levi.yun <yeoreum.yun@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   58 ++++++++++++++++++++++++++++++++++++++++-------------
- mm/vma.h |    3 ++
- 2 files changed, 47 insertions(+), 14 deletions(-)
+ arch/arm64/kernel/kexec_image.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vma.c~mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge
-+++ a/mm/vma.c
-@@ -1130,26 +1130,50 @@ int vma_expand(struct vma_merge_struct *
- 	mmap_assert_write_locked(vmg->mm);
- 
- 	vma_start_write(target);
--	if (next && (target != next) && (vmg->end == next->vm_end)) {
-+	if (next && vmg->end == next->vm_end) {
-+		struct vm_area_struct *copied_from = vmg->copied_from;
- 		int ret;
- 
--		sticky_flags |= next->vm_flags & VM_STICKY;
--		remove_next = true;
--		/* This should already have been checked by this point. */
--		VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
--		vma_start_write(next);
--		/*
--		 * In this case we don't report OOM, so vmg->give_up_on_mm is
--		 * safe.
--		 */
--		ret = dup_anon_vma(target, next, &anon_dup);
--		if (ret)
--			return ret;
-+		if (target != next) {
-+			sticky_flags |= next->vm_flags & VM_STICKY;
-+			remove_next = true;
-+			/* This should already have been checked by this point. */
-+			VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
-+			vma_start_write(next);
-+			/*
-+			 * In this case we don't report OOM, so vmg->give_up_on_mm is
-+			 * safe.
-+			 */
-+			ret = dup_anon_vma(target, next, &anon_dup);
-+			if (ret)
-+				return ret;
-+		} else if (copied_from) {
-+			vma_start_write(next);
-+
-+			/*
-+			 * We are copying from a VMA (i.e. mremap()'ing) to
-+			 * next, and thus must ensure that either anon_vma's are
-+			 * already compatible (in which case this call is a nop)
-+			 * or all anon_vma state is propagated to next
-+			 */
-+			ret = dup_anon_vma(next, copied_from, &anon_dup);
-+			if (ret)
-+				return ret;
-+		} else {
-+			/* In no other case may the anon_vma differ. */
-+			VM_WARN_ON_VMG(target->anon_vma != next->anon_vma, vmg);
-+		}
- 	}
- 
- 	/* Not merging but overwriting any part of next is not handled. */
- 	VM_WARN_ON_VMG(next && !remove_next &&
- 		       next != target && vmg->end > next->vm_start, vmg);
-+	/*
-+	 * We should only see a copy with next as the target on a new merge
-+	 * which sets the end to the next of next.
-+	 */
-+	VM_WARN_ON_VMG(target == next && vmg->copied_from &&
-+		       vmg->end != next->vm_end, vmg);
- 	/* Only handles expanding */
- 	VM_WARN_ON_VMG(target->vm_start < vmg->start ||
- 		       target->vm_end > vmg->end, vmg);
-@@ -1808,6 +1832,13 @@ struct vm_area_struct *copy_vma(struct v
- 	VMG_VMA_STATE(vmg, &vmi, NULL, vma, addr, addr + len);
- 
- 	/*
-+	 * VMG_VMA_STATE() installs vma in middle, but this is a new VMA, inform
-+	 * merging logic correctly.
-+	 */
-+	vmg.copied_from = vma;
-+	vmg.middle = NULL;
-+
-+	/*
- 	 * If anonymous vma has not yet been faulted, update new pgoff
- 	 * to match new location, to increase its chance of merging.
- 	 */
-@@ -1828,7 +1859,6 @@ struct vm_area_struct *copy_vma(struct v
- 	if (new_vma && new_vma->vm_start < addr + len)
- 		return NULL;	/* should never get here */
- 
--	vmg.middle = NULL; /* New VMA range. */
- 	vmg.pgoff = pgoff;
- 	vmg.next = vma_iter_next_rewind(&vmi, NULL);
- 	new_vma = vma_merge_new_range(&vmg);
---- a/mm/vma.h~mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge
-+++ a/mm/vma.h
-@@ -106,6 +106,9 @@ struct vma_merge_struct {
- 	struct anon_vma_name *anon_name;
- 	enum vma_merge_state state;
- 
-+	/* If we are copying a VMA, which VMA are we copying from? */
-+	struct vm_area_struct *copied_from;
-+
- 	/* Flags which callers can use to modify merge behaviour: */
- 
- 	/*
+--- a/arch/arm64/kernel/kexec_image.c~arm64-kernel-initialize-missing-kexec_buf-random-field
++++ a/arch/arm64/kernel/kexec_image.c
+@@ -41,7 +41,7 @@ static void *image_load(struct kimage *i
+ 	struct arm64_image_header *h;
+ 	u64 flags, value;
+ 	bool be_image, be_kernel;
+-	struct kexec_buf kbuf;
++	struct kexec_buf kbuf = {};
+ 	unsigned long text_offset, kernel_segment_number;
+ 	struct kexec_segment *kernel_segment;
+ 	int ret;
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from yeoreum.yun@arm.com are
 
-mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
+arm64-kernel-initialize-missing-kexec_buf-random-field.patch
 
