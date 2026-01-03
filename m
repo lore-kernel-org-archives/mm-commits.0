@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B69EF1C84AB
-	for <mm-commits@vger.kernel.org>; Thu,  1 Jan 2026 02:48:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D0281E531;
+	Sat,  3 Jan 2026 07:12:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767235715; cv=none; b=aJeneeP1XEmqs80nWujdd25SI6creSk+I7RyiQcRT1uYgq21/QO+vm8L49J823suXc9eoYhD6iaVfpwWSZCfLfyqHpJoAHxGluF/kuWu5LQN9nKXIl5BuqHzGSl3+xBZ8kR1xhBm/9UjX7CcxlBRtRyQ4D5yb9acaOq7nNx/R48=
+	t=1767424380; cv=none; b=oBQ/ALN49e6r0aQOKXnS1qW+NOuwgzxyNGSe0LEw8CkOvaJFePXdFvymcaEfgkq/1lZQloc5mwuZF8/HuuBu1j3zxBOMBvYZyaSlmhDnhE9t1WGZtA+LPb6S62VL1F+TM7t9N1RRlmgMbWTm7SGDF8RhLRGiZALpYCSm8xwU/cA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767235715; c=relaxed/simple;
-	bh=HW2Pr55aPAfsCB4YB4SNFIWgLrW9GS2xyOJ2t2sgYYA=;
-	h=Date:To:From:Subject:Message-Id; b=HexnWvygxEXkEbOkHITXSbvm1R/DdfatC/azdQX8tNzjVCYDTXYaGV2+J3dzvrcGO3+NYb/stltu2goSIVUxhWZPljCvcD32Om/wjv9+7y2saDueFBh+1vVxXXT0i7kmgQYTscfpc+0XqZXNrkA+dqhxbvDwdDfL31rXgdqICdY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2pMfv3U5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767424380; c=relaxed/simple;
+	bh=wJBLt6DVmzRrjjd82HM+fxjEWhRWKPO6j09EgKZGlR0=;
+	h=Date:To:From:Subject:Message-Id; b=azVQCsgoOmNnNJPtmSciG1viOcaq/M0XddLNWVRLFknQZy52PN3YNJ5SAeq3NeooAuaNUFt0xc/OkPvVZQGJ49uLxDkQabvarBBgxfCV1ITvD4/12CQ0qhnbaxNhj1q2IdpKCECKY2Wuz9IhKft3sBxC+WtZ6sQJpbzjAv5vR0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hy6SLf2R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2pMfv3U5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D563C113D0;
-	Thu,  1 Jan 2026 02:48:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hy6SLf2R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7A0C113D0;
+	Sat,  3 Jan 2026 07:12:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767235715;
-	bh=HW2Pr55aPAfsCB4YB4SNFIWgLrW9GS2xyOJ2t2sgYYA=;
+	s=korg; t=1767424379;
+	bh=wJBLt6DVmzRrjjd82HM+fxjEWhRWKPO6j09EgKZGlR0=;
 	h=Date:To:From:Subject:From;
-	b=2pMfv3U5JEQmfL7oU+2N0dCHMNpK5rY6lmiq7jvGBgoU7N/fcmYd/bci6TMxpk4fk
-	 U2ZepG/2awFvLYDlkQXvurV3JT62GvJ+nliU8pfVV32xRVWWc8fAG8vcYFbTlBxylF
-	 udOoa/yXEUoIGFNeUsqn52n8I2onCj7PdGElE6yQ=
-Date: Wed, 31 Dec 2025 18:48:34 +9900
-To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,joel.granados@kernel.org,gregkh@linuxfoundation.org,feng.tang@linux.alibaba.com,atomlin@atomlin.com,akpm@linux-foundation.org
+	b=Hy6SLf2RLa3/hftV6eN2rvoMD8PzYJTYN2WwIGH3eE/SXQ+C1Zyq/Vcb6r8D8veye
+	 zfac2B2KG6CcE8zpghF4+e5m7ewbUzyc76BxFzk+wR+JjJHk1JfYJaw3Xt8vWdjoWY
+	 JZ7Y5NI/TJ1G+z0AeeKDTNbV0PTdhxnfj+ur5Hzg=
+Date: Fri, 02 Jan 2026 23:12:58 -0800
+To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,pfalcato@suse.de,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,aha310510@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-enable-runtime-reset-of-hung_task_detect_count.patch added to mm-nonmm-unstable branch
-Message-Id: <20260101024835.3D563C113D0@smtp.kernel.org>
+Subject: + mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260103071259.8B7A0C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: enable runtime reset of hung_task_detect_count
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
+     Subject: mm/vma: fix anon_vma UAF on mremap() faulted, unfaulted merge
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,196 +58,283 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: hung_task: enable runtime reset of hung_task_detect_count
-Date: Tue, 30 Dec 2025 19:41:25 -0500
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/vma: fix anon_vma UAF on mremap() faulted, unfaulted merge
+Date: Fri, 2 Jan 2026 20:55:20 +0000
 
-Introduce support for writing to /proc/sys/kernel/hung_task_detect_count.
+Commit 879bca0a2c4f ("mm/vma: fix incorrectly disallowed anonymous VMA
+merges") introduced the ability to merge previously unavailable VMA merge
+scenarios.
 
-Writing a value of zero to this file atomically resets the counter of
-detected hung tasks.  This grants system administrators the ability to
-clear the cumulative diagnostic history after resolving an incident,
-simplifying monitoring without requiring a system restart.
+The key piece of logic introduced was the ability to merge a faulted VMA
+immediately next to an unfaulted VMA, which relies upon dup_anon_vma() to
+correctly handle anon_vma state.
 
-Link: https://lkml.kernel.org/r/20251231004125.2380105-3-atomlin@atomlin.com
-Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+In the case of the merge of an existing VMA (that is changing properties
+of a VMA and then merging if those properties are shared by adjacent
+VMAs), dup_anon_vma() is invoked correctly.
+
+However in the case of the merge of a new VMA, a corner case peculiar to
+mremap() was missed.
+
+The issue is that vma_expand() only performs dup_anon_vma() if the target
+(the VMA that will ultimately become the merged VMA): is not the next VMA,
+i.e.  the one that appears after the range in which the new VMA is to be
+established.
+
+A key insight here is that in all other cases other than mremap(), a new
+VMA merge either expands an existing VMA, meaning that the target VMA will
+be that VMA, or would have anon_vma be NULL.
+
+Specifically:
+
+* __mmap_region() - no anon_vma in place, initial mapping.
+* do_brk_flags() - expanding an existing VMA.
+* vma_merge_extend() - expanding an existing VMA.
+* relocate_vma_down() - no anon_vma in place, initial mapping.
+
+In addition, we are in the unique situation of needing to duplicate
+anon_vma state from a VMA that is neither the previous or next VMA being
+merged with.
+
+To account for this, introduce a new field in struct vma_merge_struct
+specifically for the mremap() case, and update vma_expand() to explicitly
+check for this case and invoke dup_anon_vma() to ensure anon_vma state is
+correctly propagated.
+
+This issue can be observed most directly by invoked mremap() to move
+around a VMA and cause this kind of merge with the MREMAP_DONTUNMAP flag
+specified.
+
+This will result in unlink_anon_vmas() being called after failing to
+duplicate anon_vma state to the target VMA, which results in the anon_vma
+itself being freed with folios still possessing dangling pointers to the
+anon_vma and thus a use-after-free bug.
+
+This bug was discovered via a syzbot report, which this patch resolves.
+
+The following program reproduces the issue (and is fixed by this patch):
+
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/mman.h>
+
+#define RESERVED_PGS	(100)
+#define VMA_A_PGS	(10)
+#define VMA_B_PGS	(10)
+#define NUM_ITERS	(1000)
+
+static void trigger_bug(void)
+{
+	unsigned long page_size = sysconf(_SC_PAGE_SIZE);
+	char *reserved, *ptr_a, *ptr_b;
+
+	/*
+	 * The goal here is to achieve:
+	 *
+	 * mremap() with MREMAP_DONTUNMAP such that A and B merge:
+	 *
+	 *      |-------------------------|
+	 *      |                         |
+	 *      |    |-----------|   |---------|
+	 *      v    | unfaulted |   | faulted |
+	 *           |-----------|   |---------|
+	 *                 B              A
+	 *
+	 * Then unmap VMA A to trigger the bug.
+	 */
+
+	/* Reserve a region of memory to operate in. */
+	reserved = mmap(NULL, RESERVED_PGS * page_size, PROT_NONE,
+			MAP_PRIVATE | MAP_ANON, -1, 0);
+	if (reserved == MAP_FAILED) {
+		perror("mmap reserved");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Map VMA A into place. */
+	ptr_a = mmap(&reserved[page_size], VMA_A_PGS * page_size,
+		     PROT_READ | PROT_WRITE,
+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
+	if (ptr_a == MAP_FAILED) {
+		perror("mmap VMA A");
+		exit(EXIT_FAILURE);
+	}
+	/* Fault it in. */
+	ptr_a[0] = 'x';
+
+	/*
+	 * Now move it out of the way so we can place VMA B in position,
+	 * unfaulted.
+	 */
+	ptr_a = mremap(ptr_a, VMA_A_PGS * page_size, VMA_A_PGS * page_size,
+		       MREMAP_FIXED | MREMAP_MAYMOVE, &reserved[50 * page_size]);
+	if (ptr_a == MAP_FAILED) {
+		perror("mremap VMA A out of the way");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Map VMA B into place. */
+	ptr_b = mmap(&reserved[page_size + VMA_A_PGS * page_size],
+		     VMA_B_PGS * page_size, PROT_READ | PROT_WRITE,
+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
+	if (ptr_b == MAP_FAILED) {
+		perror("mmap VMA B");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Now move VMA A into position w/MREMAP_DONTUNMAP + free anon_vma. */
+	ptr_a = mremap(ptr_a, VMA_A_PGS * page_size, VMA_A_PGS * page_size,
+		       MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
+		       &reserved[page_size]);
+	if (ptr_a == MAP_FAILED) {
+		perror("mremap VMA A with MREMAP_DONTUNMAP");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Finally, unmap VMA A which should trigger the bug. */
+	munmap(ptr_a, VMA_A_PGS * page_size);
+
+	/* Cleanup in case bug didn't trigger sufficiently visibly... */
+	munmap(reserved, RESERVED_PGS * page_size);
+}
+
+int main(void)
+{
+	int i;
+
+	for (i = 0; i < NUM_ITERS; i++)
+		trigger_bug();
+
+	return EXIT_SUCCESS;
+}
+
+Link: https://lkml.kernel.org/r/20260102205520.986725-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Fixes: 879bca0a2c4f ("mm/vma: fix incorrectly disallowed anonymous VMA merges")
+Reported-by: syzbot+b165fc2e11771c66d8ba@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/694a2745.050a0220.19928e.0017.GAE@google.com/
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jeongjun Park <aha310510@gmail.com>
+Cc: levi.yun <yeoreum.yun@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    3 
- kernel/hung_task.c                          |   82 +++++++++++++++---
- 2 files changed, 73 insertions(+), 12 deletions(-)
+ mm/vma.c |   58 ++++++++++++++++++++++++++++++++++++++++-------------
+ mm/vma.h |    3 ++
+ 2 files changed, 47 insertions(+), 14 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~hung_task-enable-runtime-reset-of-hung_task_detect_count
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -418,7 +418,8 @@ hung_task_detect_count
- ======================
+--- a/mm/vma.c~mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge
++++ a/mm/vma.c
+@@ -1130,26 +1130,50 @@ int vma_expand(struct vma_merge_struct *
+ 	mmap_assert_write_locked(vmg->mm);
  
- Indicates the total number of tasks that have been detected as hung since
--the system boot.
-+the system boot or since the counter was reset. The counter is zeroed when
-+a value of 0 is written.
+ 	vma_start_write(target);
+-	if (next && (target != next) && (vmg->end == next->vm_end)) {
++	if (next && vmg->end == next->vm_end) {
++		struct vm_area_struct *copied_from = vmg->copied_from;
+ 		int ret;
  
- This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
+-		sticky_flags |= next->vm_flags & VM_STICKY;
+-		remove_next = true;
+-		/* This should already have been checked by this point. */
+-		VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
+-		vma_start_write(next);
+-		/*
+-		 * In this case we don't report OOM, so vmg->give_up_on_mm is
+-		 * safe.
+-		 */
+-		ret = dup_anon_vma(target, next, &anon_dup);
+-		if (ret)
+-			return ret;
++		if (target != next) {
++			sticky_flags |= next->vm_flags & VM_STICKY;
++			remove_next = true;
++			/* This should already have been checked by this point. */
++			VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
++			vma_start_write(next);
++			/*
++			 * In this case we don't report OOM, so vmg->give_up_on_mm is
++			 * safe.
++			 */
++			ret = dup_anon_vma(target, next, &anon_dup);
++			if (ret)
++				return ret;
++		} else if (copied_from) {
++			vma_start_write(next);
++
++			/*
++			 * We are copying from a VMA (i.e. mremap()'ing) to
++			 * next, and thus must ensure that either anon_vma's are
++			 * already compatible (in which case this call is a nop)
++			 * or all anon_vma state is propagated to next
++			 */
++			ret = dup_anon_vma(next, copied_from, &anon_dup);
++			if (ret)
++				return ret;
++		} else {
++			/* In no other case may the anon_vma differ. */
++			VM_WARN_ON_VMG(target->anon_vma != next->anon_vma, vmg);
++		}
+ 	}
  
---- a/kernel/hung_task.c~hung_task-enable-runtime-reset-of-hung_task_detect_count
-+++ a/kernel/hung_task.c
-@@ -17,6 +17,7 @@
- #include <linux/export.h>
- #include <linux/panic_notifier.h>
- #include <linux/sysctl.h>
-+#include <linux/atomic.h>
- #include <linux/suspend.h>
- #include <linux/utsname.h>
- #include <linux/sched/signal.h>
-@@ -36,7 +37,7 @@ static int __read_mostly sysctl_hung_tas
- /*
-  * Total number of tasks detected as hung since boot:
-  */
--static unsigned long __read_mostly sysctl_hung_task_detect_count;
-+static atomic_long_t sysctl_hung_task_detect_count = ATOMIC_LONG_INIT(0);
- 
- /*
-  * Limit number of tasks checked in a batch.
-@@ -246,20 +247,26 @@ static inline void hung_task_diagnostics
- }
- 
- static void check_hung_task(struct task_struct *t, unsigned long timeout,
--		unsigned long prev_detect_count)
-+			    unsigned long prev_detect_count)
- {
--	unsigned long total_hung_task;
-+	unsigned long total_hung_task, cur_detect_count;
- 
- 	if (!task_is_hung(t, timeout))
- 		return;
+ 	/* Not merging but overwriting any part of next is not handled. */
+ 	VM_WARN_ON_VMG(next && !remove_next &&
+ 		       next != target && vmg->end > next->vm_start, vmg);
++	/*
++	 * We should only see a copy with next as the target on a new merge
++	 * which sets the end to the next of next.
++	 */
++	VM_WARN_ON_VMG(target == next && vmg->copied_from &&
++		       vmg->end != next->vm_end, vmg);
+ 	/* Only handles expanding */
+ 	VM_WARN_ON_VMG(target->vm_start < vmg->start ||
+ 		       target->vm_end > vmg->end, vmg);
+@@ -1808,6 +1832,13 @@ struct vm_area_struct *copy_vma(struct v
+ 	VMG_VMA_STATE(vmg, &vmi, NULL, vma, addr, addr + len);
  
  	/*
- 	 * This counter tracks the total number of tasks detected as hung
--	 * since boot.
-+	 * since boot. If a reset occurred during the scan, we treat the
-+	 * current count as the new delta to avoid an underflow error.
-+	 * Ensure hang details are globally visible before the counter
-+	 * update.
++	 * VMG_VMA_STATE() installs vma in middle, but this is a new VMA, inform
++	 * merging logic correctly.
++	 */
++	vmg.copied_from = vma;
++	vmg.middle = NULL;
++
++	/*
+ 	 * If anonymous vma has not yet been faulted, update new pgoff
+ 	 * to match new location, to increase its chance of merging.
  	 */
--	sysctl_hung_task_detect_count++;
-+	cur_detect_count = atomic_long_inc_return_release(&sysctl_hung_task_detect_count);
-+	if (cur_detect_count >= prev_detect_count)
-+		total_hung_task = cur_detect_count - prev_detect_count;
-+	else
-+		total_hung_task = cur_detect_count;
+@@ -1828,7 +1859,6 @@ struct vm_area_struct *copy_vma(struct v
+ 	if (new_vma && new_vma->vm_start < addr + len)
+ 		return NULL;	/* should never get here */
  
--	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
- 	trace_sched_process_hang(t);
+-	vmg.middle = NULL; /* New VMA range. */
+ 	vmg.pgoff = pgoff;
+ 	vmg.next = vma_iter_next_rewind(&vmi, NULL);
+ 	new_vma = vma_merge_new_range(&vmg);
+--- a/mm/vma.h~mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge
++++ a/mm/vma.h
+@@ -106,6 +106,9 @@ struct vma_merge_struct {
+ 	struct anon_vma_name *anon_name;
+ 	enum vma_merge_state state;
  
- 	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
-@@ -318,10 +325,12 @@ static void check_hung_uninterruptible_t
- 	int max_count = sysctl_hung_task_check_count;
- 	unsigned long last_break = jiffies;
- 	struct task_struct *g, *t;
--	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
-+	unsigned long cur_detect_count, prev_detect_count, delta;
- 	int need_warning = sysctl_hung_task_warnings;
- 	unsigned long si_mask = hung_task_si_mask;
++	/* If we are copying a VMA, which VMA are we copying from? */
++	struct vm_area_struct *copied_from;
++
+ 	/* Flags which callers can use to modify merge behaviour: */
  
-+	/* Acquire prevents reordering task checks before this point. */
-+	prev_detect_count = atomic_long_read_acquire(&sysctl_hung_task_detect_count);
  	/*
- 	 * If the system crashed already then all bets are off,
- 	 * do not report extra hung tasks:
-@@ -346,7 +355,14 @@ static void check_hung_uninterruptible_t
-  unlock:
- 	rcu_read_unlock();
- 
--	if (!(sysctl_hung_task_detect_count - prev_detect_count))
-+	/* Ensures we see all hang details recorded during the scan. */
-+	cur_detect_count = atomic_long_read_acquire(&sysctl_hung_task_detect_count);
-+	if (cur_detect_count < prev_detect_count)
-+		delta = cur_detect_count;
-+	else
-+		delta = cur_detect_count - prev_detect_count;
-+
-+	if (!delta)
- 		return;
- 
- 	if (need_warning || hung_task_call_panic) {
-@@ -371,6 +387,51 @@ static long hung_timeout_jiffies(unsigne
- }
- 
- #ifdef CONFIG_SYSCTL
-+
-+/**
-+ * proc_dohung_task_detect_count - proc handler for hung_task_detect_count
-+ * @table: Pointer to the struct ctl_table definition for this proc entry
-+ * @dir: Flag indicating the operation
-+ * @buffer: User space buffer for data transfer
-+ * @lenp: Pointer to the length of the data being transferred
-+ * @ppos: Pointer to the current file offset
-+ *
-+ * This handler is used for reading the current hung task detection count
-+ * and for resetting it to zero when a write operation is performed using a
-+ * zero value only. Returns 0 on success or a negative error code on
-+ * failure.
-+ */
-+static int proc_dohung_task_detect_count(const struct ctl_table *table, int dir,
-+					 void *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	unsigned long detect_count;
-+	struct ctl_table proxy_table;
-+	int err;
-+
-+	proxy_table = *table;
-+	proxy_table.data = &detect_count;
-+
-+	if (SYSCTL_KERN_TO_USER(dir)) {
-+		detect_count = atomic_long_read(&sysctl_hung_task_detect_count);
-+
-+		return proc_doulongvec_minmax(&proxy_table, dir, buffer, lenp, ppos);
-+	}
-+
-+	err = proc_doulongvec_minmax(&proxy_table, dir, buffer, lenp, ppos);
-+	if (err < 0)
-+		return err;
-+
-+	if (SYSCTL_USER_TO_KERN(dir)) {
-+		/* The only valid value for clearing is zero. */
-+		if (detect_count)
-+			return -EINVAL;
-+		atomic_long_set(&sysctl_hung_task_detect_count, 0);
-+	}
-+
-+	*ppos += *lenp;
-+	return err;
-+}
-+
- /*
-  * Process updating of timeout sysctl
-  */
-@@ -451,10 +512,9 @@ static const struct ctl_table hung_task_
- 	},
- 	{
- 		.procname	= "hung_task_detect_count",
--		.data		= &sysctl_hung_task_detect_count,
- 		.maxlen		= sizeof(unsigned long),
--		.mode		= 0444,
--		.proc_handler	= proc_doulongvec_minmax,
-+		.mode		= 0644,
-+		.proc_handler	= proc_dohung_task_detect_count,
- 	},
- 	{
- 		.procname	= "hung_task_sys_info",
 _
 
-Patches currently in -mm which might be from atomlin@atomlin.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-fs-proc-expose-mm_cpumask-in-proc-status.patch
-hung_task-introduce-helper-for-hung-task-warning.patch
-hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
-hung_task-provide-runtime-reset-interface-for-hung-task-detector.patch
+mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
 
