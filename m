@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73B7024728E;
-	Sat,  3 Jan 2026 17:25:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90C731E0DCB;
+	Sat,  3 Jan 2026 18:05:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767461136; cv=none; b=nZYi6fiFHiH0dUyodSOe5XQ+D+D2SrCxTdwOtg+Z6FLxXCc/ymr27zPihMYVeP8YkEMfNucTBCQtkhnc1LMSEJMlVfuktpHRMV3TeOSGt6FWug/vUMFg1dPaKwuAkD1Ya8rCObGz/KDy/PyLeJ0fb0tOFU0j+LoUq4LmVZToQPM=
+	t=1767463546; cv=none; b=Q5foNTuYVHRtdsqp5pE6hqRAJ+neG23g69cTYh6hd3anikZzmijmgiXZvT2JJjqqljlgL2CfMzNi07ptOzWPH2fCxPkelvAt+SYEZv74y9gkCjKR8LxoZ+IYGnjUErBHDEn4Rtq/Rm5vUwi4Fi1YI83RFw+BKUpR0mC8DjZ/zA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767461136; c=relaxed/simple;
-	bh=6WZ0AOXtP02BpTrVImKKq/I9TOcXb2K0dpB3xUXTtm0=;
-	h=Date:To:From:Subject:Message-Id; b=DzHRZ9ZnWdtYsPJJUSA2e0hO99zLvGS7EKJ1llkIukxXsiXEOLcPt9py4U89wpYxlOlv0IJ6U8KDDvpSV3d2EJ/dwFalTUmA56mCgInT7xqa6I6HL7oHWT/2Gk1Gs+jWV4iab1VBt4UT0JAi8vZQhcjPtt9GJkcRLm6QCEmfToo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SisapzQ8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767463546; c=relaxed/simple;
+	bh=vIeZd9TujoJpzV0ubasbi9v64y5IJWNSWiK9NxtOVdA=;
+	h=Date:To:From:Subject:Message-Id; b=hU06Pu2bUSN6WbXtg4DXvUqa1OI5kdOArtOfW+5De3DaMREjsN+YSf6B4Ug4UngP+uBTITH1jOx626HK0YXCkwpY47YUb6KoEyrgVxcHKpWubrEMIdtMBaLL6vmM1lX+qOfl6fy1Vs7vo0D/FfgOW9vVNFsn9KFYzvHKAbUGc0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hrtmLWxi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SisapzQ8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBF29C113D0;
-	Sat,  3 Jan 2026 17:25:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hrtmLWxi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07BE1C113D0;
+	Sat,  3 Jan 2026 18:05:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767461136;
-	bh=6WZ0AOXtP02BpTrVImKKq/I9TOcXb2K0dpB3xUXTtm0=;
+	s=korg; t=1767463546;
+	bh=vIeZd9TujoJpzV0ubasbi9v64y5IJWNSWiK9NxtOVdA=;
 	h=Date:To:From:Subject:From;
-	b=SisapzQ8GQwwWNjyAf47iWmdZAvU0kDz7J6PdxWZnAw9pXYHYxSyXVMUpGfyFFjJp
-	 1ysHWFwJqpkrpAIv6j6MtxWVau5sTIdDqgvrXl7ENK7OTAhWmP4MYaIZzZWpFoHw/7
-	 vex5IOFH5VCriBXKX74DHX0NXuht5hzFEwZ/kvXk=
-Date: Sat, 03 Jan 2026 09:25:35 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,mark.rutland@arm.com,leitao@debian.org,coxu@redhat.com,catalin.marinas@arm.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
+	b=hrtmLWxigkl14TEXytsH+8jtD7z/vhdPn4FNWDlqmS16FCH/gkpfWX2jjVhd+6J9H
+	 P1ZhC17qw+waUUFqiy6+SQ+oTJeFoBHURSQZ7TkZqy+HJrOEdSPb9K2YMUNP3Yfu7w
+	 fwEzFyMMY1RDVqwwcDbgxPo7SpPJzbF2h+ETZmEg=
+Date: Sat, 03 Jan 2026 10:05:45 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,miklos@szeredi.hu,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,j.neuschaefer@gmx.net,jack@suse.cz,david@kernel.org,carnil@debian.org,brauner@kernel.org,athul.krishna.kr@protonmail.com,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-kernel-initialize-missing-kexec_buf-random-field.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260103172535.DBF29C113D0@smtp.kernel.org>
+Subject: + fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260103180546.07BE1C113D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: kernel: initialize missing kexec_buf->random field
+     Subject: fs/writeback: skip AS_NO_DATA_INTEGRITY mappings in wait_sb_inodes()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     arm64-kernel-initialize-missing-kexec_buf-random-field.patch
+     fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-kernel-initialize-missing-kexec_buf-random-field.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,74 +58,103 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yeoreum Yun <yeoreum.yun@arm.com>
-Subject: arm64: kernel: initialize missing kexec_buf->random field
-Date: Mon, 1 Dec 2025 10:51:18 +0000
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: fs/writeback: skip AS_NO_DATA_INTEGRITY mappings in wait_sb_inodes()
+Date: Sun, 14 Dec 2025 19:00:43 -0800
 
-Commit bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
-introduced the kexec_buf->random field to enable random placement of
-kexec_buf.
+Skip waiting on writeback for inodes that belong to mappings that do not
+have data integrity guarantees (denoted by the AS_NO_DATA_INTEGRITY
+mapping flag).
 
-However, this field was never properly initialized for kexec images that
-do not need to be placed randomly, leading to the following UBSAN warning:
+This restores fuse back to prior behavior where syncs are no-ops.  This is
+needed because otherwise, if a system is running a faulty fuse server that
+does not reply to issued write requests, this will cause wait_sb_inodes()
+to wait forever.
 
-[  +0.364528] ------------[ cut here ]------------
-[  +0.000019] UBSAN: invalid-load in ./include/linux/kexec.h:210:12
-[  +0.000131] load of value 2 is not a valid value for type 'bool' (aka '_Bool')
-[  +0.000003] CPU: 4 UID: 0 PID: 927 Comm: kexec Not tainted 6.18.0-rc7+ #3 PREEMPT(full)
-[  +0.000002] Hardware name: QEMU QEMU Virtual Machine, BIOS 0.0.0 02/06/2015
-[  +0.000000] Call trace:
-[  +0.000001]  show_stack+0x24/0x40 (C)
-[  +0.000006]  __dump_stack+0x28/0x48
-[  +0.000002]  dump_stack_lvl+0x7c/0xb0
-[  +0.000002]  dump_stack+0x18/0x34
-[  +0.000001]  ubsan_epilogue+0x10/0x50
-[  +0.000002]  __ubsan_handle_load_invalid_value+0xc8/0xd0
-[  +0.000003]  locate_mem_hole_callback+0x28c/0x2a0
-[  +0.000003]  kexec_locate_mem_hole+0xf4/0x2f0
-[  +0.000001]  kexec_add_buffer+0xa8/0x178
-[  +0.000002]  image_load+0xf0/0x258
-[  +0.000001]  __arm64_sys_kexec_file_load+0x510/0x718
-[  +0.000002]  invoke_syscall+0x68/0xe8
-[  +0.000001]  el0_svc_common+0xb0/0xf8
-[  +0.000002]  do_el0_svc+0x28/0x48
-[  +0.000001]  el0_svc+0x40/0xe8
-[  +0.000002]  el0t_64_sync_handler+0x84/0x140
-[  +0.000002]  el0t_64_sync+0x1bc/0x1c0
-
-To address this, initialise kexec_buf->random field properly.
-
-Link: https://lkml.kernel.org/r/20251201105118.2786335-1-yeoreum.yun@arm.com
-Fixes: bf454ec31add ("kexec_file: allow to place kexec_buf randomly")
-Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Suggested-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Breno Leitao <leitao@debian.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Coiby Xu <coxu@redhat.com>
-Cc: levi.yun <yeoreum.yun@arm.com>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20251215030043.1431306-2-joannelkoong@gmail.com
+Fixes: 0c58a97f919c ("fuse: remove tmp folio for writebacks and internal rb tree")
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+Reported-by: Athul Krishna <athul.krishna.kr@protonmail.com>
+Reported-by: J. Neuschäfer <j.neuschaefer@gmx.net>
+Cc: Bonaccorso Salvatore <carnil@debian.org>
+Cc: Jonathan Neuschaefer <j.neuschaefer@gmx.net>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/kexec_image.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c       |    3 ++-
+ fs/fuse/file.c          |    4 +++-
+ include/linux/pagemap.h |   11 +++++++++++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/kernel/kexec_image.c~arm64-kernel-initialize-missing-kexec_buf-random-field
-+++ a/arch/arm64/kernel/kexec_image.c
-@@ -41,7 +41,7 @@ static void *image_load(struct kimage *i
- 	struct arm64_image_header *h;
- 	u64 flags, value;
- 	bool be_image, be_kernel;
--	struct kexec_buf kbuf;
-+	struct kexec_buf kbuf = {};
- 	unsigned long text_offset, kernel_segment_number;
- 	struct kexec_segment *kernel_segment;
- 	int ret;
+--- a/fs/fs-writeback.c~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/fs/fs-writeback.c
+@@ -2751,7 +2751,8 @@ static void wait_sb_inodes(struct super_
+ 		 * do not have the mapping lock. Skip it here, wb completion
+ 		 * will remove it.
+ 		 */
+-		if (!mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK))
++		if (!mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK) ||
++		    mapping_no_data_integrity(mapping))
+ 			continue;
+ 
+ 		spin_unlock_irq(&sb->s_inode_wblist_lock);
+--- a/fs/fuse/file.c~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/fs/fuse/file.c
+@@ -3200,8 +3200,10 @@ void fuse_init_file_inode(struct inode *
+ 
+ 	inode->i_fop = &fuse_file_operations;
+ 	inode->i_data.a_ops = &fuse_file_aops;
+-	if (fc->writeback_cache)
++	if (fc->writeback_cache) {
+ 		mapping_set_writeback_may_deadlock_on_reclaim(&inode->i_data);
++		mapping_set_no_data_integrity(&inode->i_data);
++	}
+ 
+ 	INIT_LIST_HEAD(&fi->write_files);
+ 	INIT_LIST_HEAD(&fi->queued_writes);
+--- a/include/linux/pagemap.h~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/include/linux/pagemap.h
+@@ -210,6 +210,7 @@ enum mapping_flags {
+ 	AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM = 9,
+ 	AS_KERNEL_FILE = 10,	/* mapping for a fake kernel file that shouldn't
+ 				   account usage to user cgroups */
++	AS_NO_DATA_INTEGRITY = 11, /* no data integrity guarantees */
+ 	/* Bits 16-25 are used for FOLIO_ORDER */
+ 	AS_FOLIO_ORDER_BITS = 5,
+ 	AS_FOLIO_ORDER_MIN = 16,
+@@ -345,6 +346,16 @@ static inline bool mapping_writeback_may
+ 	return test_bit(AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM, &mapping->flags);
+ }
+ 
++static inline void mapping_set_no_data_integrity(struct address_space *mapping)
++{
++	set_bit(AS_NO_DATA_INTEGRITY, &mapping->flags);
++}
++
++static inline bool mapping_no_data_integrity(const struct address_space *mapping)
++{
++	return test_bit(AS_NO_DATA_INTEGRITY, &mapping->flags);
++}
++
+ static inline gfp_t mapping_gfp_mask(const struct address_space *mapping)
+ {
+ 	return mapping->gfp_mask;
 _
 
-Patches currently in -mm which might be from yeoreum.yun@arm.com are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-arm64-kernel-initialize-missing-kexec_buf-random-field.patch
+fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch
 
