@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EFEB314A7B
-	for <mm-commits@vger.kernel.org>; Sun,  4 Jan 2026 19:00:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F7D02DF12F
+	for <mm-commits@vger.kernel.org>; Sun,  4 Jan 2026 19:03:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767553208; cv=none; b=qWxx3G59IWCx0EpB4Lecd4OKfCYzCDQYrENmFL8/bWV0+xMKYyRMTS5hKqfu0ZL1RNkHv8llrPyjAPIsf7BNVkJpeSI6kpOPxsxorFotaJDltbkHIOzcqrEM+PxD/eB7N5pa3f+fAxLp4WX9mrNolm5Uq+E6PZs5jX7Upfyiy0w=
+	t=1767553382; cv=none; b=Je3QLmwznzmqVsypprOFM1h2pUijpSctMg9DfyonLsOLemG4LPU1e3QDemqpgd3ArQ4RiBVpkTeuD5I0k3MLSwDDVefbduGHrt7rw2yT7LTrlx546evABw3AVBrqtooEWCuAYP42lgikR5CYZHM1AD0XTIST1gVp2mq4Z5Ossxg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767553208; c=relaxed/simple;
-	bh=u2AKsFDjAMcPymn2ImV+UndYYmmNSKWwaYFfh5PPQeA=;
-	h=Date:To:From:Subject:Message-Id; b=ry6R+8daaDlIN9B6D9ydSnAT0y0BcsLSuzTaFJ5FzorTcRfTECi+mNdFjbiTtsfkR4JMgNbKBuPveK2FbowLywMSOWidqFWEqW6C4jSJ0eKtO+KaGm2v22cdznisoZaUm4izgM0VfGZ0Ds1OGDo7kpTj+cR8720F/NcDpgVvPdM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ruqsduiL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767553382; c=relaxed/simple;
+	bh=eGhSdV/+QY5eg0D8zi4yzVac5LcHJmD3m1c1iUmf90c=;
+	h=Date:To:From:Subject:Message-Id; b=GX7C399ISwvT8DcwnUFCq7uTHdtCjrnodxgg4jH7IqLxlw7ZXjIbdHwD2wdfBikW5+2ckKTzmTQxdsO5Eysnu3A8MtkWODQMcnSvhjCEv5pCC8ovgQEBSi2p7ZwssW6+/O/aqW69jaWzWGpC7+PxMe9b+KCYdTOX9aycTHhprUQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IQtCgOj5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ruqsduiL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5F52C4CEF7;
-	Sun,  4 Jan 2026 19:00:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IQtCgOj5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C320CC4CEF7;
+	Sun,  4 Jan 2026 19:03:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767553208;
-	bh=u2AKsFDjAMcPymn2ImV+UndYYmmNSKWwaYFfh5PPQeA=;
+	s=korg; t=1767553381;
+	bh=eGhSdV/+QY5eg0D8zi4yzVac5LcHJmD3m1c1iUmf90c=;
 	h=Date:To:From:Subject:From;
-	b=ruqsduiLexU3Oxpk1mhAgVE01JKy+W1t4PutIOIGCRCmcAwfb0ERA57UkEelfLWLP
-	 JpBPnRlSWq5Zab8DCG7jb3+4+JCkOeS9ZXmNBWfYPDzXW26W09nWnVk8hQiAOlcKqH
-	 yB0tBtslV1gGCUrj/Qv6Cmtnk8AcT83roNxyHlys=
-Date: Sun, 04 Jan 2026 11:00:07 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
+	b=IQtCgOj5D4IarNbKb+z/5MYq3sZwM+XuPIIP3vTq3Zx14wtw/5NabOmPoTPPu0aSd
+	 IxQrhy/oqM6QQBwbnike0SzvX9y/v6rQB3jc7JXKiNIa746xVEZMniMwYpu1lfgJrd
+	 vBA+oUd7VtyOtJInhA5i611a7Qjo+7v+YDljdZ48=
+Date: Sun, 04 Jan 2026 11:03:01 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,Julia.Lawall@inria.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-reflink-preserve-cleanup-issue.patch added to mm-nonmm-unstable branch
-Message-Id: <20260104190007.E5F52C4CEF7@smtp.kernel.org>
+Subject: + ocfs2-adjust-function-name-reference.patch added to mm-nonmm-unstable branch
+Message-Id: <20260104190301.C320CC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix reflink preserve cleanup issue
+     Subject: ocfs2: adjust function name reference
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-reflink-preserve-cleanup-issue.patch
+     ocfs2-adjust-function-name-reference.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-reflink-preserve-cleanup-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-adjust-function-name-reference.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,43 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Heming Zhao <heming.zhao@suse.com>
-Subject: ocfs2: fix reflink preserve cleanup issue
-Date: Wed, 10 Dec 2025 09:57:24 +0800
+From: Julia Lawall <Julia.Lawall@inria.fr>
+Subject: ocfs2: adjust function name reference
+Date: Tue, 30 Dec 2025 15:25:13 +0100
 
-commit c06c303832ec ("ocfs2: fix xattr array entry __counted_by error")
-doesn't handle all cases and the cleanup job for preserved xattr entries
-still has bug:
-- the 'last' pointer should be shifted by one unit after cleanup
-  an array entry.
-- current code logic doesn't cleanup the first entry when xh_count is 1.
+There is no function dlm_mast_regions().  However, dlm_match_regions() is
+passed the buffer "local", which it uses internally, so it seems like
+dlm_match_regions() was intended.
 
-Note, commit c06c303832ec is also a bug fix for 0fe9b66c65f3.
-
-Link: https://lkml.kernel.org/r/20251210015725.8409-2-heming.zhao@suse.com
-Fixes: 0fe9b66c65f3 ("ocfs2: Add preserve to reflink.")
-Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Link: https://lkml.kernel.org/r/20251230142513.95467-1-Julia.Lawall@inria.fr
+Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/ocfs2/dlm/dlmdomain.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-fix-reflink-preserve-cleanup-issue
-+++ a/fs/ocfs2/xattr.c
-@@ -6395,6 +6395,10 @@ static int ocfs2_reflink_xattr_header(ha
- 					(void *)last - (void *)xe);
- 				memset(last, 0,
- 				       sizeof(struct ocfs2_xattr_entry));
-+				last = &new_xh->xh_entries[le16_to_cpu(new_xh->xh_count)] - 1;
-+			} else {
-+				memset(xe, 0, sizeof(struct ocfs2_xattr_entry));
-+				last = NULL;
- 			}
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-adjust-function-name-reference
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -1105,7 +1105,7 @@ static int dlm_query_region_handler(stru
+ 	mlog(0, "Node %u queries hb regions on domain %s\n", qr->qr_node,
+ 	     qr->qr_domain);
  
- 			/*
+-	/* buffer used in dlm_mast_regions() */
++	/* buffer used in dlm_match_regions() */
+ 	local = kmalloc(sizeof(qr->qr_regions), GFP_KERNEL);
+ 	if (!local)
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from heming.zhao@suse.com are
+Patches currently in -mm which might be from Julia.Lawall@inria.fr are
 
-ocfs2-give-ocfs2-the-ability-to-reclaim-suballocator-free-bg.patch
-ocfs2-detect-released-suballocator-bg-for-fh_to_.patch
-ocfs2-fix-reflink-preserve-cleanup-issue.patch
+ocfs2-adjust-function-name-reference.patch
 
