@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F2A91F4168
-	for <mm-commits@vger.kernel.org>; Mon,  5 Jan 2026 21:24:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EAA11F4168
+	for <mm-commits@vger.kernel.org>; Mon,  5 Jan 2026 21:24:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767648258; cv=none; b=kcE1KkZBqo2sWLBSC3nTLWQ89ZoDyIFz75Vz3vkC1uq/cVEzfr5jRgTLSqAICR/j57bEsCEwjkvM6taRrvmPdKlGTXAA3H8xcFykAgdVpnySuAthtSKQ3cEgWFSI82+mAsLtwODu1PQCDY4tblZ/Jyp3gkIx5I/aBMRWY9zzfhA=
+	t=1767648264; cv=none; b=qPjtK+6UcfdTzbgR1MMBEsi+9+R4ryFojVt7pBuglFgAlR4eXVR0YiO79WJs9ikZ0k8/EMKnFgnvamjLRCa5dcxGHyFaJDclBHSpVz3imWvRg1CBMg3+INE1b4V8g2kLALUkTrlVvD2nMuq1LFZSN5Xhc4oaequ46P79C51t1Zo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767648258; c=relaxed/simple;
-	bh=TX4IE10z864uLlshjx/hOpjwMWFpiYW5MqAvIaZ3ads=;
-	h=Date:To:From:Subject:Message-Id; b=KES5zupCF1oC4dO/QJlf/ZOWAMEtIQT3eDqjJa5TwDCAsCelBp4V4x5PFHOJzhU+N26DmSMEm1Nkei9kHFCI8FaOlyQYIFhetVRbgcGRfelpWoj8YZFyipUSxJSz7vTcPlDBmSNY8NKJ8ubujqscfWrbQTJf0lCpTsJvhxTOA70=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PlBw1Hg+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767648264; c=relaxed/simple;
+	bh=XC4HAak/e2EGLQRuroLEBakUJs3WJ/N3YL3gKEyPeyU=;
+	h=Date:To:From:Subject:Message-Id; b=jJL/cx0X+0onvaU0Kw5uDbhTMUAbKCJV9ip429rUgzMuIYckBOiiCeI2JqjoGVHJwmPSjpG/43gFQwie5yg0BY/aS2SKgZ8oRwyIsJue1ldYNbmY9MwfzR6cEEdX+/sqHUfIgesjjSg+Xtts5NO3nbjGpsHN0E45ERfCIbwXt+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K0iG3WEJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PlBw1Hg+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09D8DC116D0;
-	Mon,  5 Jan 2026 21:24:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K0iG3WEJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8E6FC116D0;
+	Mon,  5 Jan 2026 21:24:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767648258;
-	bh=TX4IE10z864uLlshjx/hOpjwMWFpiYW5MqAvIaZ3ads=;
+	s=korg; t=1767648263;
+	bh=XC4HAak/e2EGLQRuroLEBakUJs3WJ/N3YL3gKEyPeyU=;
 	h=Date:To:From:Subject:From;
-	b=PlBw1Hg+tlLQRhrdfy/VKBzU0Wj26JPdcmawqykCEOpQFz0/r5NyF6P45zBsRbzou
-	 +ugmQS8FlN9rghM/7EzfZVeXF0xuUQ2q5aZUWZXdYurVvif7p8kc6BB8OCjvVxdHah
-	 e3rb5W9SsyffBYo3VfqD4tuk6vAjj7s1zkaLrafg=
-Date: Mon, 05 Jan 2026 13:24:17 -0800
+	b=K0iG3WEJP5kAh95Qe+hWX2TskOd4wKDJLSFXgILSXWomzNyjpId3BIMNE+bAB6Spo
+	 EtXTqwjTCB2OZnebjaC4GDmjJ1yHzbPNzLbAVT24T0LYSJjQFyufWGZGm2+a0vEkDb
+	 xaiCiXuVUiWJs++woFUVmarRbQJrAnKZ2+iGmwOY=
+Date: Mon, 05 Jan 2026 13:24:23 -0800
 To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,corbet@lwn.net,jasonmiu@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-introduce-kho-fdt-abi-header.patch added to mm-nonmm-unstable branch
-Message-Id: <20260105212418.09D8DC116D0@smtp.kernel.org>
+Subject: + kho-relocate-vmalloc-preservation-structure-to-kho-abi-header.patch added to mm-nonmm-unstable branch
+Message-Id: <20260105212423.C8E6FC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: introduce KHO FDT ABI header
+     Subject: kho: relocate vmalloc preservation structure to KHO ABI header
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-introduce-kho-fdt-abi-header.patch
+     kho-relocate-vmalloc-preservation-structure-to-kho-abi-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-introduce-kho-fdt-abi-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-relocate-vmalloc-preservation-structure-to-kho-abi-header.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Jason Miu <jasonmiu@google.com>
-Subject: kho: introduce KHO FDT ABI header
-Date: Mon, 5 Jan 2026 18:58:37 +0200
+Subject: kho: relocate vmalloc preservation structure to KHO ABI header
+Date: Mon, 5 Jan 2026 18:58:38 +0200
 
-Introduce the `include/linux/kho/abi/kexec_handover.h` header file, which
-defines the stable ABI for the KHO mechanism.  This header specifies how
-preserved data is passed between kernels using an FDT.
+The `struct kho_vmalloc` defines the in-memory layout for preserving
+vmalloc regions across kexec.  This layout is a contract between kernels
+and part of the KHO ABI.
 
-The ABI contract includes the FDT structure, node properties, and the
-"kho-v1" compatible string.  By centralizing these definitions, this
-header serves as the foundational agreement for inter-kernel communication
-of preserved states, ensuring forward compatibility and preventing
-misinterpretation of data across kexec transitions.
+To reflect this relationship, the related structs and helper macros are
+relocated to the ABI header, `include/linux/kho/abi/kexec_handover.h`. 
+This move places the structure's definition under the protection of the
+KHO_FDT_COMPATIBLE version string.
 
-Since the ABI definitions are now centralized in the header files, the
-YAML files that previously described the FDT interfaces are redundant. 
-These redundant files have therefore been removed.
+The structure and its components are now also documented within the ABI
+header to describe the contract and prevent ABI breaks.
 
-Link: https://lkml.kernel.org/r/20260105165839.285270-5-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20260105165839.285270-6-rppt@kernel.org
 Signed-off-by: Jason Miu <jasonmiu@google.com>
 Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -87,311 +85,205 @@ Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/kho/abi.rst               |   16 ++
- Documentation/core-api/kho/bindings/kho.yaml     |   43 ------
- Documentation/core-api/kho/bindings/sub-fdt.yaml |   27 ----
- Documentation/core-api/kho/index.rst             |    9 +
- MAINTAINERS                                      |    1 
- include/linux/kho/abi/kexec_handover.h           |   85 +++++++++++++
- kernel/liveupdate/kexec_handover.c               |   19 +-
- 7 files changed, 120 insertions(+), 80 deletions(-)
+ Documentation/core-api/kho/abi.rst     |    6 +
+ include/linux/kexec_handover.h         |   27 -------
+ include/linux/kho/abi/kexec_handover.h |   78 +++++++++++++++++++++++
+ include/linux/kho/abi/memfd.h          |    2 
+ kernel/liveupdate/kexec_handover.c     |   15 ----
+ lib/test_kho.c                         |    1 
+ 6 files changed, 88 insertions(+), 41 deletions(-)
 
-diff --git a/Documentation/core-api/kho/abi.rst a/Documentation/core-api/kho/abi.rst
-new file mode 100644
---- /dev/null
+--- a/Documentation/core-api/kho/abi.rst~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
 +++ a/Documentation/core-api/kho/abi.rst
-@@ -0,0 +1,16 @@
-+.. SPDX-License-Identifier: GPL-2.0-or-later
-+
-+==================
-+Kexec Handover ABI
-+==================
-+
-+Core Kexec Handover ABI
+@@ -10,6 +10,12 @@ Core Kexec Handover ABI
+ .. kernel-doc:: include/linux/kho/abi/kexec_handover.h
+    :doc: Kexec Handover ABI
+ 
++vmalloc preservation ABI
 +========================
 +
 +.. kernel-doc:: include/linux/kho/abi/kexec_handover.h
-+   :doc: Kexec Handover ABI
++   :doc: Kexec Handover ABI for vmalloc Preservation
 +
-+See Also
-+========
-+
-+- :doc:`/admin-guide/mm/kho`
-diff --git a/Documentation/core-api/kho/bindings/kho.yaml a/Documentation/core-api/kho/bindings/kho.yaml
-deleted file mode 100644
---- a/Documentation/core-api/kho/bindings/kho.yaml
-+++ /dev/null
-@@ -1,43 +0,0 @@
--# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
--%YAML 1.2
-----
--title: Kexec HandOver (KHO) root tree
--
--maintainers:
--  - Mike Rapoport <rppt@kernel.org>
--  - Changyuan Lyu <changyuanl@google.com>
--
--description: |
--  System memory preserved by KHO across kexec.
--
--properties:
--  compatible:
--    enum:
--      - kho-v1
--
--  preserved-memory-map:
--    description: |
--      physical address (u64) of an in-memory structure describing all preserved
--      folios and memory ranges.
--
--patternProperties:
--  "$[0-9a-f_]+^":
--    $ref: sub-fdt.yaml#
--    description: physical address of a KHO user's own FDT.
--
--required:
--  - compatible
--  - preserved-memory-map
--
--additionalProperties: false
--
--examples:
--  - |
--    kho {
--        compatible = "kho-v1";
--        preserved-memory-map = <0xf0be16 0x1000000>;
--
--        memblock {
--                fdt = <0x80cc16 0x1000000>;
--        };
--    };
-diff --git a/Documentation/core-api/kho/bindings/sub-fdt.yaml a/Documentation/core-api/kho/bindings/sub-fdt.yaml
-deleted file mode 100644
---- a/Documentation/core-api/kho/bindings/sub-fdt.yaml
-+++ /dev/null
-@@ -1,27 +0,0 @@
--# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
--%YAML 1.2
-----
--title: KHO users' FDT address
--
--maintainers:
--  - Mike Rapoport <rppt@kernel.org>
--  - Changyuan Lyu <changyuanl@google.com>
--
--description: |
--  Physical address of an FDT blob registered by a KHO user.
--
--properties:
--  fdt:
--    description: |
--      physical address (u64) of an FDT blob.
--
--required:
--  - fdt
--
--additionalProperties: false
--
--examples:
--  - |
--    memblock {
--            fdt = <0x80cc16 0x1000000>;
--    };
---- a/Documentation/core-api/kho/index.rst~kho-introduce-kho-fdt-abi-header
-+++ a/Documentation/core-api/kho/index.rst
-@@ -29,6 +29,15 @@ can retrieve and restore the preserved s
- Subsystems participating in KHO can define their own format for state
- serialization and preservation.
+ See Also
+ ========
  
-+KHO FDT and structures defined by the subsystems form an ABI between pre-kexec
-+and post-kexec kernels. This ABI is defined by header files in
-+``include/linux/kho/abi`` directory.
-+
-+.. toctree::
-+   :maxdepth: 1
-+
-+   abi.rst
-+
- .. _kho_scratch:
+--- a/include/linux/kexec_handover.h~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
++++ a/include/linux/kexec_handover.h
+@@ -11,34 +11,11 @@ struct kho_scratch {
+ 	phys_addr_t size;
+ };
  
- Scratch Regions
-diff --git a/include/linux/kho/abi/kexec_handover.h a/include/linux/kho/abi/kexec_handover.h
-new file mode 100644
---- /dev/null
++struct kho_vmalloc;
++
+ struct folio;
+ struct page;
+ 
+-#define DECLARE_KHOSER_PTR(name, type) \
+-	union {                        \
+-		phys_addr_t phys;      \
+-		type ptr;              \
+-	} name
+-#define KHOSER_STORE_PTR(dest, val)               \
+-	({                                        \
+-		typeof(val) v = val;              \
+-		typecheck(typeof((dest).ptr), v); \
+-		(dest).phys = virt_to_phys(v);    \
+-	})
+-#define KHOSER_LOAD_PTR(src)                                                 \
+-	({                                                                   \
+-		typeof(src) s = src;                                         \
+-		(typeof((s).ptr))((s).phys ? phys_to_virt((s).phys) : NULL); \
+-	})
+-
+-struct kho_vmalloc_chunk;
+-struct kho_vmalloc {
+-	DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
+-	unsigned int total_pages;
+-	unsigned short flags;
+-	unsigned short order;
+-};
+-
+ #ifdef CONFIG_KEXEC_HANDOVER
+ bool kho_is_enabled(void);
+ bool is_kho_boot(void);
+--- a/include/linux/kho/abi/kexec_handover.h~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
 +++ a/include/linux/kho/abi/kexec_handover.h
-@@ -0,0 +1,85 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
+@@ -10,6 +10,8 @@
+ #ifndef _LINUX_KHO_ABI_KEXEC_HANDOVER_H
+ #define _LINUX_KHO_ABI_KEXEC_HANDOVER_H
+ 
++#include <linux/types.h>
++
+ /**
+  * DOC: Kexec Handover ABI
+  *
+@@ -82,4 +84,80 @@
+ /* The FDT property for sub-FDTs. */
+ #define KHO_FDT_SUB_TREE_PROP_NAME "fdt"
+ 
++/**
++ * DOC: Kexec Handover ABI for vmalloc Preservation
++ *
++ * The Kexec Handover ABI for preserving vmalloc'ed memory is defined by
++ * a set of structures and helper macros. The layout of these structures is a
++ * stable contract between kernels and is versioned by the KHO_FDT_COMPATIBLE
++ * string.
++ *
++ * The preservation is managed through a main descriptor &struct kho_vmalloc,
++ * which points to a linked list of &struct kho_vmalloc_chunk structures. These
++ * chunks contain the physical addresses of the preserved pages, allowing the
++ * next kernel to reconstruct the vmalloc area with the same content and layout.
++ * Helper macros are also defined for storing and loading pointers within
++ * these structures.
++ */
++
++/* Helper macro to define a union for a serializable pointer. */
++#define DECLARE_KHOSER_PTR(name, type)	\
++	union {                        \
++		u64 phys;              \
++		type ptr;              \
++	} name
++
++/* Stores the physical address of a serializable pointer. */
++#define KHOSER_STORE_PTR(dest, val)               \
++	({                                        \
++		typeof(val) v = val;              \
++		typecheck(typeof((dest).ptr), v); \
++		(dest).phys = virt_to_phys(v);    \
++	})
++
++/* Loads the stored physical address back to a pointer. */
++#define KHOSER_LOAD_PTR(src)						\
++	({                                                                   \
++		typeof(src) s = src;                                         \
++		(typeof((s).ptr))((s).phys ? phys_to_virt((s).phys) : NULL); \
++	})
 +
 +/*
-+ * Copyright (C) 2023 Alexander Graf <graf@amazon.com>
-+ * Copyright (C) 2025 Microsoft Corporation, Mike Rapoport <rppt@kernel.org>
-+ * Copyright (C) 2025 Google LLC, Changyuan Lyu <changyuanl@google.com>
-+ * Copyright (C) 2025 Google LLC, Jason Miu <jasonmiu@google.com>
++ * This header is embedded at the beginning of each `kho_vmalloc_chunk`
++ * and contains a pointer to the next chunk in the linked list,
++ * stored as a physical address for handover.
 + */
++struct kho_vmalloc_hdr {
++	DECLARE_KHOSER_PTR(next, struct kho_vmalloc_chunk *);
++};
 +
-+#ifndef _LINUX_KHO_ABI_KEXEC_HANDOVER_H
-+#define _LINUX_KHO_ABI_KEXEC_HANDOVER_H
++#define KHO_VMALLOC_SIZE				\
++	((PAGE_SIZE - sizeof(struct kho_vmalloc_hdr)) / \
++	 sizeof(u64))
 +
-+/**
-+ * DOC: Kexec Handover ABI
-+ *
-+ * Kexec Handover uses the ABI defined below for passing preserved data from
-+ * one kernel to the next.
-+ * The ABI uses Flattened Device Tree (FDT) format. The first kernel creates an
-+ * FDT which is then passed to the next kernel during a kexec handover.
-+ *
-+ * This interface is a contract. Any modification to the FDT structure, node
-+ * properties, compatible string, or the layout of the data structures
-+ * referenced here constitutes a breaking change. Such changes require
-+ * incrementing the version number in KHO_FDT_COMPATIBLE to prevent a new kernel
-+ * from misinterpreting data from an older kernel. Changes are allowed provided
-+ * the compatibility version is incremented. However, backward/forward
-+ * compatibility is only guaranteed for kernels supporting the same ABI version.
-+ *
-+ * FDT Structure Overview:
-+ *   The FDT serves as a central registry for physical
-+ *   addresses of preserved data structures and sub-FDTs. The first kernel
-+ *   populates this FDT with references to memory regions and other FDTs that
-+ *   need to persist across the kexec transition. The subsequent kernel then
-+ *   parses this FDT to locate and restore the preserved data.::
-+ *
-+ *     / {
-+ *         compatible = "kho-v1";
-+ *
-+ *         preserved-memory-map = <0x...>;
-+ *
-+ *         <subnode-name-1> {
-+ *             fdt = <0x...>;
-+ *         };
-+ *
-+ *         <subnode-name-2> {
-+ *             fdt = <0x...>;
-+ *         };
-+ *               ... ...
-+ *         <subnode-name-N> {
-+ *             fdt = <0x...>;
-+ *         };
-+ *     };
-+ *
-+ *   Root KHO Node (/):
-+ *     - compatible: "kho-v1"
-+ *
-+ *       Indentifies the overall KHO ABI version.
-+ *
-+ *     - preserved-memory-map: u64
-+ *
-+ *       Physical memory address pointing to the root of the
-+ *       preserved memory map data structure.
-+ *
-+ *   Subnodes (<subnode-name-N>):
-+ *     Subnodes can also be added to the root node to
-+ *     describe other preserved data blobs. The <subnode-name-N>
-+ *     is provided by the subsystem that uses KHO for preserving its
-+ *     data.
-+ *
-+ *     - fdt: u64
-+ *
-+ *       Physical address pointing to a subnode FDT blob that is also
-+ *       being preserved.
++/*
++ * Each chunk is a single page and is part of a linked list that describes
++ * a preserved vmalloc area. It contains the header with the link to the next
++ * chunk and an array of physical addresses of the pages that make up the
++ * preserved vmalloc area.
 + */
++struct kho_vmalloc_chunk {
++	struct kho_vmalloc_hdr hdr;
++	u64 phys[KHO_VMALLOC_SIZE];
++};
 +
-+/* The compatible string for the KHO FDT root node. */
-+#define KHO_FDT_COMPATIBLE "kho-v1"
++static_assert(sizeof(struct kho_vmalloc_chunk) == PAGE_SIZE);
 +
-+/* The FDT property for the preserved memory map. */
-+#define KHO_FDT_MEMORY_MAP_PROP_NAME "preserved-memory-map"
++/*
++ * Describes a preserved vmalloc memory area, including the
++ * total number of pages, allocation flags, page order, and a pointer to the
++ * first chunk of physical page addresses.
++ */
++struct kho_vmalloc {
++	DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
++	unsigned int total_pages;
++	unsigned short flags;
++	unsigned short order;
++};
 +
-+/* The FDT property for sub-FDTs. */
-+#define KHO_FDT_SUB_TREE_PROP_NAME "fdt"
-+
-+#endif	/* _LINUX_KHO_ABI_KEXEC_HANDOVER_H */
---- a/kernel/liveupdate/kexec_handover.c~kho-introduce-kho-fdt-abi-header
+ #endif	/* _LINUX_KHO_ABI_KEXEC_HANDOVER_H */
+--- a/include/linux/kho/abi/memfd.h~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
++++ a/include/linux/kho/abi/memfd.h
+@@ -12,7 +12,7 @@
+ #define _LINUX_KHO_ABI_MEMFD_H
+ 
+ #include <linux/types.h>
+-#include <linux/kexec_handover.h>
++#include <linux/kho/abi/kexec_handover.h>
+ 
+ /**
+  * DOC: memfd Live Update ABI
+--- a/kernel/liveupdate/kexec_handover.c~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
 +++ a/kernel/liveupdate/kexec_handover.c
-@@ -15,6 +15,7 @@
- #include <linux/count_zeros.h>
- #include <linux/kexec.h>
+@@ -889,21 +889,6 @@ void kho_unpreserve_pages(struct page *p
+ }
+ EXPORT_SYMBOL_GPL(kho_unpreserve_pages);
+ 
+-struct kho_vmalloc_hdr {
+-	DECLARE_KHOSER_PTR(next, struct kho_vmalloc_chunk *);
+-};
+-
+-#define KHO_VMALLOC_SIZE				\
+-	((PAGE_SIZE - sizeof(struct kho_vmalloc_hdr)) / \
+-	 sizeof(phys_addr_t))
+-
+-struct kho_vmalloc_chunk {
+-	struct kho_vmalloc_hdr hdr;
+-	phys_addr_t phys[KHO_VMALLOC_SIZE];
+-};
+-
+-static_assert(sizeof(struct kho_vmalloc_chunk) == PAGE_SIZE);
+-
+ /* vmalloc flags KHO supports */
+ #define KHO_VMALLOC_SUPPORTED_FLAGS	(VM_ALLOC | VM_ALLOW_HUGE_VMAP)
+ 
+--- a/lib/test_kho.c~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
++++ a/lib/test_kho.c
+@@ -19,6 +19,7 @@
+ #include <linux/printk.h>
+ #include <linux/vmalloc.h>
  #include <linux/kexec_handover.h>
 +#include <linux/kho/abi/kexec_handover.h>
- #include <linux/libfdt.h>
- #include <linux/list.h>
- #include <linux/memblock.h>
-@@ -33,10 +34,7 @@
- #include "../kexec_internal.h"
- #include "kexec_handover_internal.h"
  
--#define KHO_FDT_COMPATIBLE "kho-v1"
--#define PROP_PRESERVED_MEMORY_MAP "preserved-memory-map"
--#define PROP_SUB_FDT "fdt"
--
-+/* The magic token for preserved pages */
- #define KHO_PAGE_MAGIC 0x4b484f50U /* ASCII for 'KHOP' */
+ #include <net/checksum.h>
  
- /*
-@@ -391,7 +389,7 @@ static void kho_update_memory_map(struct
- 	void *ptr;
- 	u64 phys;
- 
--	ptr = fdt_getprop_w(kho_out.fdt, 0, PROP_PRESERVED_MEMORY_MAP, NULL);
-+	ptr = fdt_getprop_w(kho_out.fdt, 0, KHO_FDT_MEMORY_MAP_PROP_NAME, NULL);
- 
- 	/* Check and discard previous memory map */
- 	phys = get_unaligned((u64 *)ptr);
-@@ -479,7 +477,7 @@ static phys_addr_t __init kho_get_mem_ma
- 	const void *mem_ptr;
- 	int len;
- 
--	mem_ptr = fdt_getprop(fdt, 0, PROP_PRESERVED_MEMORY_MAP, &len);
-+	mem_ptr = fdt_getprop(fdt, 0, KHO_FDT_MEMORY_MAP_PROP_NAME, &len);
- 	if (!mem_ptr || len != sizeof(u64)) {
- 		pr_err("failed to get preserved memory bitmaps\n");
- 		return 0;
-@@ -740,7 +738,8 @@ int kho_add_subtree(const char *name, vo
- 		goto out_pack;
- 	}
- 
--	err = fdt_setprop(root_fdt, off, PROP_SUB_FDT, &phys, sizeof(phys));
-+	err = fdt_setprop(root_fdt, off, KHO_FDT_SUB_TREE_PROP_NAME,
-+			  &phys, sizeof(phys));
- 	if (err < 0)
- 		goto out_pack;
- 
-@@ -771,7 +770,7 @@ void kho_remove_subtree(void *fdt)
- 		const u64 *val;
- 		int len;
- 
--		val = fdt_getprop(root_fdt, off, PROP_SUB_FDT, &len);
-+		val = fdt_getprop(root_fdt, off, KHO_FDT_SUB_TREE_PROP_NAME, &len);
- 		if (!val || len != sizeof(phys_addr_t))
- 			continue;
- 
-@@ -1318,7 +1317,7 @@ int kho_retrieve_subtree(const char *nam
- 	if (offset < 0)
- 		return -ENOENT;
- 
--	val = fdt_getprop(fdt, offset, PROP_SUB_FDT, &len);
-+	val = fdt_getprop(fdt, offset, KHO_FDT_SUB_TREE_PROP_NAME, &len);
- 	if (!val || len != sizeof(*val))
- 		return -EINVAL;
- 
-@@ -1338,7 +1337,7 @@ static __init int kho_out_fdt_setup(void
- 	err |= fdt_finish_reservemap(root);
- 	err |= fdt_begin_node(root, "");
- 	err |= fdt_property_string(root, "compatible", KHO_FDT_COMPATIBLE);
--	err |= fdt_property(root, PROP_PRESERVED_MEMORY_MAP, &empty_mem_map,
-+	err |= fdt_property(root, KHO_FDT_MEMORY_MAP_PROP_NAME, &empty_mem_map,
- 			    sizeof(empty_mem_map));
- 	err |= fdt_end_node(root);
- 	err |= fdt_finish(root);
---- a/MAINTAINERS~kho-introduce-kho-fdt-abi-header
-+++ a/MAINTAINERS
-@@ -13960,6 +13960,7 @@ F:	Documentation/admin-guide/mm/kho.rst
- F:	Documentation/core-api/kho/*
- F:	include/linux/kexec_handover.h
- F:	include/linux/kho/
-+F:	include/linux/kho/abi/
- F:	kernel/liveupdate/kexec_handover*
- F:	lib/test_kho.c
- F:	tools/testing/selftests/kho/
 _
 
 Patches currently in -mm which might be from jasonmiu@google.com are
