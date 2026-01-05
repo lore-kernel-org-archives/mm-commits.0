@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EAA11F4168
-	for <mm-commits@vger.kernel.org>; Mon,  5 Jan 2026 21:24:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 996261F4168
+	for <mm-commits@vger.kernel.org>; Mon,  5 Jan 2026 21:24:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767648264; cv=none; b=qPjtK+6UcfdTzbgR1MMBEsi+9+R4ryFojVt7pBuglFgAlR4eXVR0YiO79WJs9ikZ0k8/EMKnFgnvamjLRCa5dcxGHyFaJDclBHSpVz3imWvRg1CBMg3+INE1b4V8g2kLALUkTrlVvD2nMuq1LFZSN5Xhc4oaequ46P79C51t1Zo=
+	t=1767648268; cv=none; b=bX/aC5pVGMxe+KOX43Blw60LYT4MMw4+RnXtuIhwbc3Dsz7c+w3XH22uVL+rQhat3+PaAUZmH2jOt6okE3VwN6vkIlvfpDaPQvrRs/oEc86w/BglRTzzdehM0zp7iA4wGxs0CSVTprmyxzeHaXp+PJlBix0nEtrVCUxwxgRZEtA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767648264; c=relaxed/simple;
-	bh=XC4HAak/e2EGLQRuroLEBakUJs3WJ/N3YL3gKEyPeyU=;
-	h=Date:To:From:Subject:Message-Id; b=jJL/cx0X+0onvaU0Kw5uDbhTMUAbKCJV9ip429rUgzMuIYckBOiiCeI2JqjoGVHJwmPSjpG/43gFQwie5yg0BY/aS2SKgZ8oRwyIsJue1ldYNbmY9MwfzR6cEEdX+/sqHUfIgesjjSg+Xtts5NO3nbjGpsHN0E45ERfCIbwXt+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K0iG3WEJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767648268; c=relaxed/simple;
+	bh=mwIVC0PGpXtMGiGg66pr6mBbmjpPyw5JlgEZxUs7aSM=;
+	h=Date:To:From:Subject:Message-Id; b=eN1RNOnTz4IXAIrwSGrFIqb4rRK9dHu9BOMr8YJi23VP6dCuTp0VqmwTv1k1gNy5DJY2h/QJTQd6niqXllfP5grHQ7EbEpm1m1zOWqG5OZPtqxDrj+rcMhLJvJKDCm8Gr4jstHFg1zvHQxCZlvOlh+LodNpb1YPTNLGceknS5EE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tLQ3EwrQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K0iG3WEJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8E6FC116D0;
-	Mon,  5 Jan 2026 21:24:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tLQ3EwrQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F76AC116D0;
+	Mon,  5 Jan 2026 21:24:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767648263;
-	bh=XC4HAak/e2EGLQRuroLEBakUJs3WJ/N3YL3gKEyPeyU=;
+	s=korg; t=1767648268;
+	bh=mwIVC0PGpXtMGiGg66pr6mBbmjpPyw5JlgEZxUs7aSM=;
 	h=Date:To:From:Subject:From;
-	b=K0iG3WEJP5kAh95Qe+hWX2TskOd4wKDJLSFXgILSXWomzNyjpId3BIMNE+bAB6Spo
-	 EtXTqwjTCB2OZnebjaC4GDmjJ1yHzbPNzLbAVT24T0LYSJjQFyufWGZGm2+a0vEkDb
-	 xaiCiXuVUiWJs++woFUVmarRbQJrAnKZ2+iGmwOY=
-Date: Mon, 05 Jan 2026 13:24:23 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,corbet@lwn.net,jasonmiu@google.com,akpm@linux-foundation.org
+	b=tLQ3EwrQDDF2yhOeYG999z14jFyIxZh7m8Irp0EZlErHfiZiRA/J7dKwPBUTshb3g
+	 a/fUXdMvQNjG19xeV0ZHEDKM2gXwayOr264kJrtAz7ZgTIi6MvFTkVcJrggo3ENv3Q
+	 cbNTsnGH8S4vh73HhJ4koDW+vkoOElSkzmZFM3MQ=
+Date: Mon, 05 Jan 2026 13:24:27 -0800
+To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jasonmiu@google.com,graf@amazon.com,corbet@lwn.net,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-relocate-vmalloc-preservation-structure-to-kho-abi-header.patch added to mm-nonmm-unstable branch
-Message-Id: <20260105212423.C8E6FC116D0@smtp.kernel.org>
+Subject: + kho-abi-add-memblock-abi-header.patch added to mm-nonmm-unstable branch
+Message-Id: <20260105212428.1F76AC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: relocate vmalloc preservation structure to KHO ABI header
+     Subject: kho/abi: add memblock ABI header
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-relocate-vmalloc-preservation-structure-to-kho-abi-header.patch
+     kho-abi-add-memblock-abi-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-relocate-vmalloc-preservation-structure-to-kho-abi-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-abi-add-memblock-abi-header.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,236 +58,266 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jason Miu <jasonmiu@google.com>
-Subject: kho: relocate vmalloc preservation structure to KHO ABI header
-Date: Mon, 5 Jan 2026 18:58:38 +0200
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: kho/abi: add memblock ABI header
+Date: Mon, 5 Jan 2026 18:58:39 +0200
 
-The `struct kho_vmalloc` defines the in-memory layout for preserving
-vmalloc regions across kexec.  This layout is a contract between kernels
-and part of the KHO ABI.
+Introduce KHO ABI header describing preservation ABI for memblock's
+reserve_mem regions and link the relevant documentation to KHO docs.
 
-To reflect this relationship, the related structs and helper macros are
-relocated to the ABI header, `include/linux/kho/abi/kexec_handover.h`. 
-This move places the structure's definition under the protection of the
-KHO_FDT_COMPATIBLE version string.
-
-The structure and its components are now also documented within the ABI
-header to describe the contract and prevent ABI breaks.
-
-Link: https://lkml.kernel.org/r/20260105165839.285270-6-rppt@kernel.org
-Signed-off-by: Jason Miu <jasonmiu@google.com>
-Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20260105165839.285270-7-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
+Cc: Jason Miu <jasonmiu@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/kho/abi.rst     |    6 +
- include/linux/kexec_handover.h         |   27 -------
- include/linux/kho/abi/kexec_handover.h |   78 +++++++++++++++++++++++
- include/linux/kho/abi/memfd.h          |    2 
- kernel/liveupdate/kexec_handover.c     |   15 ----
- lib/test_kho.c                         |    1 
- 6 files changed, 88 insertions(+), 41 deletions(-)
+ Documentation/core-api/kho/abi.rst                            |    6 
+ Documentation/core-api/kho/bindings/memblock/memblock.yaml    |   39 -----
+ Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml |   40 -----
+ include/linux/kho/abi/memblock.h                              |   72 ++++++++++
+ mm/memblock.c                                                 |    4 
+ 5 files changed, 79 insertions(+), 82 deletions(-)
 
---- a/Documentation/core-api/kho/abi.rst~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
+--- a/Documentation/core-api/kho/abi.rst~kho-abi-add-memblock-abi-header
 +++ a/Documentation/core-api/kho/abi.rst
-@@ -10,6 +10,12 @@ Core Kexec Handover ABI
+@@ -16,6 +16,12 @@ vmalloc preservation ABI
  .. kernel-doc:: include/linux/kho/abi/kexec_handover.h
-    :doc: Kexec Handover ABI
+    :doc: Kexec Handover ABI for vmalloc Preservation
  
-+vmalloc preservation ABI
-+========================
++memblock preservation ABI
++=========================
 +
-+.. kernel-doc:: include/linux/kho/abi/kexec_handover.h
-+   :doc: Kexec Handover ABI for vmalloc Preservation
++.. kernel-doc:: include/linux/kho/abi/memblock.h
++   :doc: memblock kexec handover ABI
 +
  See Also
  ========
  
---- a/include/linux/kexec_handover.h~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
-+++ a/include/linux/kexec_handover.h
-@@ -11,34 +11,11 @@ struct kho_scratch {
- 	phys_addr_t size;
- };
- 
-+struct kho_vmalloc;
-+
- struct folio;
- struct page;
- 
--#define DECLARE_KHOSER_PTR(name, type) \
--	union {                        \
--		phys_addr_t phys;      \
--		type ptr;              \
--	} name
--#define KHOSER_STORE_PTR(dest, val)               \
--	({                                        \
--		typeof(val) v = val;              \
--		typecheck(typeof((dest).ptr), v); \
--		(dest).phys = virt_to_phys(v);    \
--	})
--#define KHOSER_LOAD_PTR(src)                                                 \
--	({                                                                   \
--		typeof(src) s = src;                                         \
--		(typeof((s).ptr))((s).phys ? phys_to_virt((s).phys) : NULL); \
--	})
+diff --git a/Documentation/core-api/kho/bindings/memblock/memblock.yaml a/Documentation/core-api/kho/bindings/memblock/memblock.yaml
+deleted file mode 100644
+--- a/Documentation/core-api/kho/bindings/memblock/memblock.yaml
++++ /dev/null
+@@ -1,39 +0,0 @@
+-# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+-%YAML 1.2
+----
+-title: Memblock reserved memory
 -
--struct kho_vmalloc_chunk;
--struct kho_vmalloc {
--	DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
--	unsigned int total_pages;
--	unsigned short flags;
--	unsigned short order;
--};
+-maintainers:
+-  - Mike Rapoport <rppt@kernel.org>
 -
- #ifdef CONFIG_KEXEC_HANDOVER
- bool kho_is_enabled(void);
- bool is_kho_boot(void);
---- a/include/linux/kho/abi/kexec_handover.h~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
-+++ a/include/linux/kho/abi/kexec_handover.h
-@@ -10,6 +10,8 @@
- #ifndef _LINUX_KHO_ABI_KEXEC_HANDOVER_H
- #define _LINUX_KHO_ABI_KEXEC_HANDOVER_H
- 
-+#include <linux/types.h>
+-description: |
+-  Memblock can serialize its current memory reservations created with
+-  reserve_mem command line option across kexec through KHO.
+-  The post-KHO kernel can then consume these reservations and they are
+-  guaranteed to have the same physical address.
+-
+-properties:
+-  compatible:
+-    enum:
+-      - reserve-mem-v1
+-
+-patternProperties:
+-  "$[0-9a-f_]+^":
+-    $ref: reserve-mem.yaml#
+-    description: reserved memory regions
+-
+-required:
+-  - compatible
+-
+-additionalProperties: false
+-
+-examples:
+-  - |
+-    memblock {
+-      compatible = "memblock-v1";
+-      n1 {
+-        compatible = "reserve-mem-v1";
+-        start = <0xc06b 0x4000000>;
+-        size = <0x04 0x00>;
+-      };
+-    };
+diff --git a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml
+deleted file mode 100644
+--- a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml
++++ /dev/null
+@@ -1,40 +0,0 @@
+-# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+-%YAML 1.2
+----
+-title: Memblock reserved memory regions
+-
+-maintainers:
+-  - Mike Rapoport <rppt@kernel.org>
+-
+-description: |
+-  Memblock can serialize its current memory reservations created with
+-  reserve_mem command line option across kexec through KHO.
+-  This object describes each such region.
+-
+-properties:
+-  compatible:
+-    enum:
+-      - reserve-mem-v1
+-
+-  start:
+-    description: |
+-      physical address (u64) of the reserved memory region.
+-
+-  size:
+-    description: |
+-      size (u64) of the reserved memory region.
+-
+-required:
+-  - compatible
+-  - start
+-  - size
+-
+-additionalProperties: false
+-
+-examples:
+-  - |
+-    n1 {
+-      compatible = "reserve-mem-v1";
+-      start = <0xc06b 0x4000000>;
+-      size = <0x04 0x00>;
+-    };
+diff --git a/include/linux/kho/abi/memblock.h a/include/linux/kho/abi/memblock.h
+new file mode 100644
+--- /dev/null
++++ a/include/linux/kho/abi/memblock.h
+@@ -0,0 +1,72 @@
++/* SPDX-License-Identifier: GPL-2.0 */
 +
- /**
-  * DOC: Kexec Handover ABI
-  *
-@@ -82,4 +84,80 @@
- /* The FDT property for sub-FDTs. */
- #define KHO_FDT_SUB_TREE_PROP_NAME "fdt"
- 
++#ifndef _LINUX_KHO_ABI_MEMBLOCK_H
++#define _LINUX_KHO_ABI_MEMBLOCK_H
++
 +/**
-+ * DOC: Kexec Handover ABI for vmalloc Preservation
++ * DOC: memblock kexec handover ABI
 + *
-+ * The Kexec Handover ABI for preserving vmalloc'ed memory is defined by
-+ * a set of structures and helper macros. The layout of these structures is a
-+ * stable contract between kernels and is versioned by the KHO_FDT_COMPATIBLE
-+ * string.
++ * Memblock can serialize its current memory reservations created with
++ * reserve_mem command line option across kexec through KHO.
++ * The post-KHO kernel can then consume these reservations and they are
++ * guaranteed to have the same physical address.
 + *
-+ * The preservation is managed through a main descriptor &struct kho_vmalloc,
-+ * which points to a linked list of &struct kho_vmalloc_chunk structures. These
-+ * chunks contain the physical addresses of the preserved pages, allowing the
-+ * next kernel to reconstruct the vmalloc area with the same content and layout.
-+ * Helper macros are also defined for storing and loading pointers within
-+ * these structures.
++ * The state is serialized using Flattened Device Tree (FDT) format. Any
++ * modification to the FDT structure, node properties, or the compatible
++ * strings constitutes a breaking change. Such changes require incrementing the
++ * version number in the relevant `_COMPATIBLE` string to prevent a new kernel
++ * from misinterpreting data from an old kernel.
++ *
++ * Changes are allowed provided the compatibility version is incremented.
++ * However, backward/forward compatibility is only guaranteed for kernels
++ * supporting the same ABI version.
++ *
++ * FDT Structure Overview:
++ *   The entire memblock state is encapsulated within a single KHO entry named
++ *   "memblock".
++ *   This entry contains an FDT with the following layout:
++ *
++ *   .. code-block:: none
++ *
++ *	/ {
++ *		compatible = "memblock-v1";
++ *
++ *		n1 {
++ *			compatible = "reserve-mem-v1";
++ *			start = <0xc06b 0x4000000>;
++ *			size = <0x04 0x00>;
++ *		};
++ *	};
++ *
++ * Main memblock node (/):
++ *
++ *   - compatible: "memblock-v1"
++
++ *     Identifies the overall memblock ABI version.
++ *
++ * reserved_mem node:
++ *   These nodes describe all reserve_mem regions.
++ *
++ *   - compatible: "reserve-mem-v1"
++ *
++ *     Identifies the ABI version of reserve_mem descriptions
++ *
++ *   - start: u64
++ *
++ *     Physical address of the reserved memory region.
++ *
++ *   - size: u64
++ *
++ *     size in bytes of the reserved memory region.
 + */
 +
-+/* Helper macro to define a union for a serializable pointer. */
-+#define DECLARE_KHOSER_PTR(name, type)	\
-+	union {                        \
-+		u64 phys;              \
-+		type ptr;              \
-+	} name
++/* Top level memblock FDT node name. */
++#define MEMBLOCK_KHO_FDT "memblock"
 +
-+/* Stores the physical address of a serializable pointer. */
-+#define KHOSER_STORE_PTR(dest, val)               \
-+	({                                        \
-+		typeof(val) v = val;              \
-+		typecheck(typeof((dest).ptr), v); \
-+		(dest).phys = virt_to_phys(v);    \
-+	})
++/* The compatible string for the memblock FDT root node. */
++#define MEMBLOCK_KHO_NODE_COMPATIBLE "memblock-v1"
 +
-+/* Loads the stored physical address back to a pointer. */
-+#define KHOSER_LOAD_PTR(src)						\
-+	({                                                                   \
-+		typeof(src) s = src;                                         \
-+		(typeof((s).ptr))((s).phys ? phys_to_virt((s).phys) : NULL); \
-+	})
++/* The compatible string for the reserve_mem FDT nodes. */
++#define RESERVE_MEM_KHO_NODE_COMPATIBLE "reserve-mem-v1"
 +
-+/*
-+ * This header is embedded at the beginning of each `kho_vmalloc_chunk`
-+ * and contains a pointer to the next chunk in the linked list,
-+ * stored as a physical address for handover.
-+ */
-+struct kho_vmalloc_hdr {
-+	DECLARE_KHOSER_PTR(next, struct kho_vmalloc_chunk *);
-+};
-+
-+#define KHO_VMALLOC_SIZE				\
-+	((PAGE_SIZE - sizeof(struct kho_vmalloc_hdr)) / \
-+	 sizeof(u64))
-+
-+/*
-+ * Each chunk is a single page and is part of a linked list that describes
-+ * a preserved vmalloc area. It contains the header with the link to the next
-+ * chunk and an array of physical addresses of the pages that make up the
-+ * preserved vmalloc area.
-+ */
-+struct kho_vmalloc_chunk {
-+	struct kho_vmalloc_hdr hdr;
-+	u64 phys[KHO_VMALLOC_SIZE];
-+};
-+
-+static_assert(sizeof(struct kho_vmalloc_chunk) == PAGE_SIZE);
-+
-+/*
-+ * Describes a preserved vmalloc memory area, including the
-+ * total number of pages, allocation flags, page order, and a pointer to the
-+ * first chunk of physical page addresses.
-+ */
-+struct kho_vmalloc {
-+	DECLARE_KHOSER_PTR(first, struct kho_vmalloc_chunk *);
-+	unsigned int total_pages;
-+	unsigned short flags;
-+	unsigned short order;
-+};
-+
- #endif	/* _LINUX_KHO_ABI_KEXEC_HANDOVER_H */
---- a/include/linux/kho/abi/memfd.h~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
-+++ a/include/linux/kho/abi/memfd.h
-@@ -12,7 +12,7 @@
- #define _LINUX_KHO_ABI_MEMFD_H
- 
- #include <linux/types.h>
--#include <linux/kexec_handover.h>
-+#include <linux/kho/abi/kexec_handover.h>
- 
- /**
-  * DOC: memfd Live Update ABI
---- a/kernel/liveupdate/kexec_handover.c~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -889,21 +889,6 @@ void kho_unpreserve_pages(struct page *p
- }
- EXPORT_SYMBOL_GPL(kho_unpreserve_pages);
- 
--struct kho_vmalloc_hdr {
--	DECLARE_KHOSER_PTR(next, struct kho_vmalloc_chunk *);
--};
--
--#define KHO_VMALLOC_SIZE				\
--	((PAGE_SIZE - sizeof(struct kho_vmalloc_hdr)) / \
--	 sizeof(phys_addr_t))
--
--struct kho_vmalloc_chunk {
--	struct kho_vmalloc_hdr hdr;
--	phys_addr_t phys[KHO_VMALLOC_SIZE];
--};
--
--static_assert(sizeof(struct kho_vmalloc_chunk) == PAGE_SIZE);
--
- /* vmalloc flags KHO supports */
- #define KHO_VMALLOC_SUPPORTED_FLAGS	(VM_ALLOC | VM_ALLOW_HUGE_VMAP)
- 
---- a/lib/test_kho.c~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header
-+++ a/lib/test_kho.c
-@@ -19,6 +19,7 @@
- #include <linux/printk.h>
- #include <linux/vmalloc.h>
++#endif /* _LINUX_KHO_ABI_MEMBLOCK_H */
+--- a/mm/memblock.c~kho-abi-add-memblock-abi-header
++++ a/mm/memblock.c
+@@ -21,6 +21,7 @@
+ #ifdef CONFIG_KEXEC_HANDOVER
+ #include <linux/libfdt.h>
  #include <linux/kexec_handover.h>
-+#include <linux/kho/abi/kexec_handover.h>
++#include <linux/kho/abi/memblock.h>
+ #endif /* CONFIG_KEXEC_HANDOVER */
  
- #include <net/checksum.h>
+ #include <asm/sections.h>
+@@ -2442,9 +2443,6 @@ int reserve_mem_release_by_name(const ch
+ }
  
+ #ifdef CONFIG_KEXEC_HANDOVER
+-#define MEMBLOCK_KHO_FDT "memblock"
+-#define MEMBLOCK_KHO_NODE_COMPATIBLE "memblock-v1"
+-#define RESERVE_MEM_KHO_NODE_COMPATIBLE "reserve-mem-v1"
+ 
+ static int __init reserved_mem_preserve(void)
+ {
 _
 
-Patches currently in -mm which might be from jasonmiu@google.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-kho-introduce-kho-fdt-abi-header.patch
-kho-relocate-vmalloc-preservation-structure-to-kho-abi-header.patch
+mips-fix-highmem-initialization.patch
+alpha-introduce-arch_zone_limits_init.patch
+arc-introduce-arch_zone_limits_init.patch
+arm-introduce-arch_zone_limits_init.patch
+arm64-introduce-arch_zone_limits_init.patch
+csky-introduce-arch_zone_limits_init.patch
+hexagon-introduce-arch_zone_limits_init.patch
+loongarch-introduce-arch_zone_limits_init.patch
+m68k-introduce-arch_zone_limits_init.patch
+microblaze-introduce-arch_zone_limits_init.patch
+mips-introduce-arch_zone_limits_init.patch
+nios2-introduce-arch_zone_limits_init.patch
+openrisc-introduce-arch_zone_limits_init.patch
+parisc-introduce-arch_zone_limits_init.patch
+powerpc-introduce-arch_zone_limits_init.patch
+riscv-introduce-arch_zone_limits_init.patch
+s390-introduce-arch_zone_limits_init.patch
+sh-introduce-arch_zone_limits_init.patch
+sparc-introduce-arch_zone_limits_init.patch
+um-introduce-arch_zone_limits_init.patch
+x86-introduce-arch_zone_limits_init.patch
+xtensa-introduce-arch_zone_limits_init.patch
+arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch
+arch-mm-consolidate-initialization-of-sparse-memory-model.patch
+mips-drop-paging_init.patch
+x86-dont-reserve-hugetlb-memory-in-setup_arch.patch
+mm-arch-consolidate-hugetlb-cma-reservation.patch
+mm-hugetlb-drop-hugetlb_cma_check.patch
+revert-mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
+kho-abi-luo-make-generated-documentation-more-coherent.patch
+kho-abi-memfd-make-generated-documentation-more-coherent.patch
+kho-docs-combine-concepts-and-fdt-documentation.patch
+kho-abi-add-memblock-abi-header.patch
 
