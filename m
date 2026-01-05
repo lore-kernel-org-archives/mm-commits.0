@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D89A310645
-	for <mm-commits@vger.kernel.org>; Mon,  5 Jan 2026 21:41:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37BB5246BC6;
+	Mon,  5 Jan 2026 21:44:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767649306; cv=none; b=Ej35M1JKdjNgqfWCvezTB7RldGQJp7jGE5vzB6ybuP9c12EgauRO9lpoRI4m9N8eSY3UUFKSEn3dYPR1uRuDZHOfaM7kGvtgQTpqF6ml88Ashm1gYNDKaYubYamK0IP2OeUtew2OzVLcRSu9ZF7lnSWB3I2BBM6HrblufpZQypY=
+	t=1767649489; cv=none; b=e/kbYDeeT3q+RIoIxviLFidNOTSPNB/fQHUJfCebCkL8Ql3MKCThNbfP3k6B09m9eDCSDaUxWOFhamGsICTqEXkaHarWldm7huEZ2sdorzrGhe/hXS4riX6d/PV4dEEPugvHnI3JB4hoWQsCZCpPs4E/gvKZvE+sK74Urfm79zo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767649306; c=relaxed/simple;
-	bh=QcfsXG6/4Ih+/b+UQwbK1riOtXOd71m2qU2HJNHhTig=;
-	h=Date:To:From:Subject:Message-Id; b=fUVnK9ZqlNJcSt/4mQeyPr1S+46NLEP0WAmx60gT92PnHFYd9ZKB0JLzIuzDUyIeZcsV7qTNvrC7+vZgavOx/Y6Ez/bmCjOZBPiuh4Lgb2adb6ZzZBQav2834AwWAmpFQGQtBkK16WZ/TRRA8WqVujk2RAZBbpR1Ii5oH/95e8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k+2WSI74; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767649489; c=relaxed/simple;
+	bh=tghwZv+0pS9JMUWI8vVr+QIVUdvPWF2Sn7Yb/T8qPSY=;
+	h=Date:To:From:Subject:Message-Id; b=IB6rfzBhiC+ih8d5Mw+t9fVbTNAN++8NIbA31os03IjAvICrwAQn4BDIf/A2uuXrqtC9N71iLppQ3TGxO35s5/t6NAQ+Lv5RXuMpN5dkwtqCZsCcH4khRVlZgKbw454pqZjKO4lA9uZtg6eF3o2eqFgcfO5A4/ir+YiwC8LqMBw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Osg3UqUb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k+2WSI74"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FC4BC116D0;
-	Mon,  5 Jan 2026 21:41:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Osg3UqUb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFCAAC116D0;
+	Mon,  5 Jan 2026 21:44:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767649306;
-	bh=QcfsXG6/4Ih+/b+UQwbK1riOtXOd71m2qU2HJNHhTig=;
+	s=korg; t=1767649488;
+	bh=tghwZv+0pS9JMUWI8vVr+QIVUdvPWF2Sn7Yb/T8qPSY=;
 	h=Date:To:From:Subject:From;
-	b=k+2WSI74lu/1baGFMMq5EHuf4qzg5wN32jJlOBJ1wr/5EWhxm6F4Q0OkgamD2Bve3
-	 byMYvM+hCWHgBGL/hKCwDoBiIWkWbDmYGKl41C4HjI3OUyevLMv7kShxAMtAKpAZaE
-	 +YJfSJTXQbllFen5mlOe7InIxYa87MPlZJY7An78=
-Date: Mon, 05 Jan 2026 13:41:45 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,axelrasmussen@google.com,tballasi@linux.microsoft.com,akpm@linux-foundation.org
+	b=Osg3UqUbpXc2zUYhp6N4NVPhhdeXTK1HRZV0WCDN/94aWNH0ZY/jFjdJA9mDN8Ojm
+	 OCjBXQApZ1tYDdav5FXUpBETlf0x86RgPkNZpfrYh7PumyTmjFWZzNPfFOQOAsEdUq
+	 HKN3rIWDPUe3pVp3T9soGmpbUVY/t6PBzrAeFT+8=
+Date: Mon, 05 Jan 2026 13:44:48 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,surenb@google.com,stable@vger.kernel.org,rostedt@goodmis.org,oliver.sang@intel.com,mhocko@suse.com,mgorman@techsingularity.net,jackmanb@google.com,hannes@cmpxchg.org,bigeasy@linutronix.de,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-add-pids-to-vmscan-tracepoints.patch added to mm-new branch
-Message-Id: <20260105214146.1FC4BC116D0@smtp.kernel.org>
+Subject: + mm-page_alloc-prevent-pcp-corruption-with-smp=n.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260105214448.CFCAAC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: add PIDs to vmscan tracepoints
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-add-pids-to-vmscan-tracepoints.patch
+     Subject: mm/page_alloc: prevent pcp corruption with SMP=n
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_alloc-prevent-pcp-corruption-with-smp=n.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-pids-to-vmscan-tracepoints.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-prevent-pcp-corruption-with-smp=n.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,167 +58,211 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Thomas Ballasi <tballasi@linux.microsoft.com>
-Subject: mm: vmscan: add PIDs to vmscan tracepoints
-Date: Mon, 5 Jan 2026 08:04:23 -0800
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm/page_alloc: prevent pcp corruption with SMP=n
+Date: Mon, 05 Jan 2026 16:08:56 +0100
 
-The changes aim at adding additional tracepoints variables to help
-debuggers attribute them to specific processes.
+The kernel test robot has reported:
 
-The PID field uses in_task() to reliably detect when we're in process
-context and can safely access current->pid.  When not in process context
-(such as in interrupt or in an asynchronous RCU context), the field is set
-to -1 as a sentinel value.
+ BUG: spinlock trylock failure on UP on CPU#0, kcompactd0/28
+  lock: 0xffff888807e35ef0, .magic: dead4ead, .owner: kcompactd0/28, .owner_cpu: 0
+ CPU: 0 UID: 0 PID: 28 Comm: kcompactd0 Not tainted 6.18.0-rc5-00127-ga06157804399 #1 PREEMPT  8cc09ef94dcec767faa911515ce9e609c45db470
+ Call Trace:
+  <IRQ>
+  __dump_stack (lib/dump_stack.c:95)
+  dump_stack_lvl (lib/dump_stack.c:123)
+  dump_stack (lib/dump_stack.c:130)
+  spin_dump (kernel/locking/spinlock_debug.c:71)
+  do_raw_spin_trylock (kernel/locking/spinlock_debug.c:?)
+  _raw_spin_trylock (include/linux/spinlock_api_smp.h:89 kernel/locking/spinlock.c:138)
+  __free_frozen_pages (mm/page_alloc.c:2973)
+  ___free_pages (mm/page_alloc.c:5295)
+  __free_pages (mm/page_alloc.c:5334)
+  tlb_remove_table_rcu (include/linux/mm.h:? include/linux/mm.h:3122 include/asm-generic/tlb.h:220 mm/mmu_gather.c:227 mm/mmu_gather.c:290)
+  ? __cfi_tlb_remove_table_rcu (mm/mmu_gather.c:289)
+  ? rcu_core (kernel/rcu/tree.c:?)
+  rcu_core (include/linux/rcupdate.h:341 kernel/rcu/tree.c:2607 kernel/rcu/tree.c:2861)
+  rcu_core_si (kernel/rcu/tree.c:2879)
+  handle_softirqs (arch/x86/include/asm/jump_label.h:36 include/trace/events/irq.h:142 kernel/softirq.c:623)
+  __irq_exit_rcu (arch/x86/include/asm/jump_label.h:36 kernel/softirq.c:725)
+  irq_exit_rcu (kernel/softirq.c:741)
+  sysvec_apic_timer_interrupt (arch/x86/kernel/apic/apic.c:1052)
+  </IRQ>
+  <TASK>
+ RIP: 0010:_raw_spin_unlock_irqrestore (arch/x86/include/asm/preempt.h:95 include/linux/spinlock_api_smp.h:152 kernel/locking/spinlock.c:194)
+  free_pcppages_bulk (mm/page_alloc.c:1494)
+  drain_pages_zone (include/linux/spinlock.h:391 mm/page_alloc.c:2632)
+  __drain_all_pages (mm/page_alloc.c:2731)
+  drain_all_pages (mm/page_alloc.c:2747)
+  kcompactd (mm/compaction.c:3115)
+  kthread (kernel/kthread.c:465)
+  ? __cfi_kcompactd (mm/compaction.c:3166)
+  ? __cfi_kthread (kernel/kthread.c:412)
+  ret_from_fork (arch/x86/kernel/process.c:164)
+  ? __cfi_kthread (kernel/kthread.c:412)
+  ret_from_fork_asm (arch/x86/entry/entry_64.S:255)
+  </TASK>
 
-Link: https://lkml.kernel.org/r/20260105160423.23708-3-tballasi@linux.microsoft.com
-Signed-off-by: Thomas Ballasi <tballasi@linux.microsoft.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand <david@kernel.org>
+Matthew has analyzed the report and identified that in drain_page_zone()
+we are in a section protected by spin_lock(&pcp->lock) and then get an
+interrupt that attempts spin_trylock() on the same lock.  The code is
+designed to work this way without disabling IRQs and occasionally fail the
+trylock with a fallback.  However, the SMP=n spinlock implementation
+assumes spin_trylock() will always succeed, and thus it's normally a
+no-op.  Here the enabled lock debugging catches the problem, but otherwise
+it could cause a corruption of the pcp structure.
+
+The problem has been introduced by commit 574907741599 ("mm/page_alloc:
+leave IRQs enabled for per-cpu page allocations").  The pcp locking scheme
+recognizes the need for disabling IRQs to prevent nesting spin_trylock()
+sections on SMP=n, but the need to prevent the nesting in spin_lock() has
+not been recognized.  Fix it by introducing local wrappers that change the
+spin_lock() to spin_lock_iqsave() with SMP=n and use them in all places
+that do spin_lock(&pcp->lock).
+
+Link: https://lkml.kernel.org/r/20260105-fix-pcp-up-v1-1-5579662d2071@suse.cz
+Fixes: 574907741599 ("mm/page_alloc: leave IRQs enabled for per-cpu page allocations")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202512101320.e2f2dd6f-lkp@intel.com
+Analyzed-by: Matthew Wilcox <willy@infradead.org>
+Link: https://lore.kernel.org/all/aUW05pyc9nZkvY-1@casper.infradead.org/
+Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   33 +++++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   45 +++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 37 insertions(+), 8 deletions(-)
 
---- a/include/trace/events/vmscan.h~mm-vmscan-add-pids-to-vmscan-tracepoints
-+++ a/include/trace/events/vmscan.h
-@@ -121,19 +121,23 @@ DECLARE_EVENT_CLASS(mm_vmscan_direct_rec
- 	TP_STRUCT__entry(
- 		__field(	unsigned long,	gfp_flags	)
- 		__field(	int,	order		)
-+		__field(	int,	pid		)
- 		__field(	unsigned short,	memcg_id	)
- 	),
+--- a/mm/page_alloc.c~mm-page_alloc-prevent-pcp-corruption-with-smp=n
++++ a/mm/page_alloc.c
+@@ -167,6 +167,31 @@ static inline void __pcp_trylock_noop(un
+ 	pcp_trylock_finish(UP_flags);					\
+ })
  
- 	TP_fast_assign(
- 		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
- 		__entry->order		= order;
-+		__entry->pid		= current->pid;
- 		__entry->memcg_id	= memcg_id;
- 	),
++/*
++ * With the UP spinlock implementation, when we spin_lock(&pcp->lock) (for i.e.
++ * a potentially remote cpu drain) and get interrupted by an operation that
++ * attempts pcp_spin_trylock(), we can't rely on the trylock failure due to UP
++ * spinlock assumptions making the trylock a no-op. So we have to turn that
++ * spin_lock() to a spin_lock_irqsave(). This works because on UP there are no
++ * remote cpu's so we can only be locking the only existing local one.
++ */
++#if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT)
++static inline void __flags_noop(unsigned long *flags) { }
++#define spin_lock_maybe_irqsave(lock, flags)		\
++({							\
++	 __flags_noop(&(flags));			\
++	 spin_lock(lock);				\
++})
++#define spin_unlock_maybe_irqrestore(lock, flags)	\
++({							\
++	 spin_unlock(lock);				\
++	 __flags_noop(&(flags));			\
++})
++#else
++#define spin_lock_maybe_irqsave(lock, flags)		spin_lock_irqsave(lock, flags)
++#define spin_unlock_maybe_irqrestore(lock, flags)	spin_unlock_irqrestore(lock, flags)
++#endif
++
+ #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
+ DEFINE_PER_CPU(int, numa_node);
+ EXPORT_PER_CPU_SYMBOL(numa_node);
+@@ -2556,6 +2581,7 @@ static int rmqueue_bulk(struct zone *zon
+ bool decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp)
+ {
+ 	int high_min, to_drain, to_drain_batched, batch;
++	unsigned long UP_flags;
+ 	bool todo = false;
  
--	TP_printk("order=%d gfp_flags=%s memcg_id=%u",
-+	TP_printk("order=%d gfp_flags=%s pid=%d memcg_id=%u %s",
- 		__entry->order,
- 		show_gfp_flags(__entry->gfp_flags),
--		__entry->memcg_id)
-+		__entry->pid,
-+		__entry->memcg_id,
-++		__event_in_irq() ? "(in-irq)" : "")
- );
+ 	high_min = READ_ONCE(pcp->high_min);
+@@ -2575,9 +2601,9 @@ bool decay_pcp_high(struct zone *zone, s
+ 	to_drain = pcp->count - pcp->high;
+ 	while (to_drain > 0) {
+ 		to_drain_batched = min(to_drain, batch);
+-		spin_lock(&pcp->lock);
++		spin_lock_maybe_irqsave(&pcp->lock, UP_flags);
+ 		free_pcppages_bulk(zone, to_drain_batched, pcp, 0);
+-		spin_unlock(&pcp->lock);
++		spin_unlock_maybe_irqrestore(&pcp->lock, UP_flags);
+ 		todo = true;
  
- DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_direct_reclaim_begin,
-@@ -167,17 +171,21 @@ DECLARE_EVENT_CLASS(mm_vmscan_direct_rec
+ 		to_drain -= to_drain_batched;
+@@ -2594,14 +2620,15 @@ bool decay_pcp_high(struct zone *zone, s
+  */
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp)
+ {
++	unsigned long UP_flags;
+ 	int to_drain, batch;
  
- 	TP_STRUCT__entry(
- 		__field(	unsigned long,	nr_reclaimed	)
-+		__field(	int,	pid		)
- 		__field(	unsigned short,	memcg_id	)
- 	),
+ 	batch = READ_ONCE(pcp->batch);
+ 	to_drain = min(pcp->count, batch);
+ 	if (to_drain > 0) {
+-		spin_lock(&pcp->lock);
++		spin_lock_maybe_irqsave(&pcp->lock, UP_flags);
+ 		free_pcppages_bulk(zone, to_drain, pcp, 0);
+-		spin_unlock(&pcp->lock);
++		spin_unlock_maybe_irqrestore(&pcp->lock, UP_flags);
+ 	}
+ }
+ #endif
+@@ -2612,10 +2639,11 @@ void drain_zone_pages(struct zone *zone,
+ static void drain_pages_zone(unsigned int cpu, struct zone *zone)
+ {
+ 	struct per_cpu_pages *pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
++	unsigned long UP_flags;
+ 	int count;
  
- 	TP_fast_assign(
- 		__entry->nr_reclaimed	= nr_reclaimed;
-+		__entry->pid		= current->pid;
- 		__entry->memcg_id	= memcg_id;
- 	),
+ 	do {
+-		spin_lock(&pcp->lock);
++		spin_lock_maybe_irqsave(&pcp->lock, UP_flags);
+ 		count = pcp->count;
+ 		if (count) {
+ 			int to_drain = min(count,
+@@ -2624,7 +2652,7 @@ static void drain_pages_zone(unsigned in
+ 			free_pcppages_bulk(zone, to_drain, pcp, 0);
+ 			count -= to_drain;
+ 		}
+-		spin_unlock(&pcp->lock);
++		spin_unlock_maybe_irqrestore(&pcp->lock, UP_flags);
+ 	} while (count);
+ }
  
--	TP_printk("nr_reclaimed=%lu memcg_id=%u",
-+	TP_printk("nr_reclaimed=%lu pid=%d memcg_id=%u %s",
- 		__entry->nr_reclaimed,
--		__entry->memcg_id)
-+		__entry->pid,
-+		__entry->memcg_id,
-+		__event_in_irq() ? "(in-irq)" : "")
- );
+@@ -6109,6 +6137,7 @@ static void zone_pcp_update_cacheinfo(st
+ {
+ 	struct per_cpu_pages *pcp;
+ 	struct cpu_cacheinfo *cci;
++	unsigned long UP_flags;
  
- DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_direct_reclaim_end,
-@@ -222,6 +230,7 @@ TRACE_EVENT(mm_shrink_slab_start,
- 		__field(unsigned long, total_scan)
- 		__field(int, priority)
- 		__field(int, nid)
-+		__field(int, pid)
- 		__field(unsigned short, memcg_id)
- 	),
+ 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
+ 	cci = get_cpu_cacheinfo(cpu);
+@@ -6119,12 +6148,12 @@ static void zone_pcp_update_cacheinfo(st
+ 	 * This can reduce zone lock contention without hurting
+ 	 * cache-hot pages sharing.
+ 	 */
+-	spin_lock(&pcp->lock);
++	spin_lock_maybe_irqsave(&pcp->lock, UP_flags);
+ 	if ((cci->per_cpu_data_slice_size >> PAGE_SHIFT) > 3 * pcp->batch)
+ 		pcp->flags |= PCPF_FREE_HIGH_BATCH;
+ 	else
+ 		pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
+-	spin_unlock(&pcp->lock);
++	spin_unlock_maybe_irqrestore(&pcp->lock, UP_flags);
+ }
  
-@@ -235,20 +244,23 @@ TRACE_EVENT(mm_shrink_slab_start,
- 		__entry->total_scan = total_scan;
- 		__entry->priority = priority;
- 		__entry->nid = sc->nid;
-+		__entry->pid = current->pid;
- 		__entry->memcg_id = sc->memcg ? cgroup_id(sc->memcg->css.cgroup) : 0;
- 	),
- 
--	TP_printk("%pS %p: nid: %d memcg_id: %u objects to shrink %ld gfp_flags %s cache items %ld delta %lld total_scan %ld priority %d",
-+	TP_printk("%pS %p: nid: %d pid: %d memcg_id: %u objects to shrink %ld gfp_flags %s cache items %ld delta %lld total_scan %ld priority %d %s",
- 		__entry->shrink,
- 		__entry->shr,
- 		__entry->nid,
-+		__entry->pid,
- 		__entry->memcg_id,
- 		__entry->nr_objects_to_shrink,
- 		show_gfp_flags(__entry->gfp_flags),
- 		__entry->cache_items,
- 		__entry->delta,
- 		__entry->total_scan,
--		__entry->priority)
-+		__entry->priority,
-++		__event_in_irq() ? "(in-irq)" : "")
- );
- 
- TRACE_EVENT(mm_shrink_slab_end,
-@@ -266,29 +278,32 @@ TRACE_EVENT(mm_shrink_slab_end,
- 		__field(long, total_scan)
- 		__field(int, nid)
- 		__field(int, retval)
-+		__field(int, pid)
- 		__field(unsigned short, memcg_id)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->shr = shr;
--		__entry->shrink = shr->scan_objects;
- 		__entry->unused_scan = unused_scan_cnt;
- 		__entry->new_scan = new_scan_cnt;
- 		__entry->total_scan = total_scan;
- 		__entry->nid = sc->nid;
- 		__entry->retval = shrinker_retval;
-+		__entry->pid = current->pid;
- 		__entry->memcg_id = cgroup_id(sc->memcg->css.cgroup);
- 	),
- 
--	TP_printk("%pS %p: nid: %d memcg_id: %u unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d",
-+	TP_printk("%pS %p: nid: %d pid: %d memcg_id: %u unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d %s",
- 		__entry->shrink,
- 		__entry->shr,
- 		__entry->nid,
-+		__entry->pid,
- 		__entry->memcg_id,
- 		__entry->unused_scan,
- 		__entry->new_scan,
- 		__entry->total_scan,
--		__entry->retval)
-+		__entry->retval,
-++		__event_in_irq() ? "(in-irq)" : "")
- );
- 
- TRACE_EVENT(mm_vmscan_lru_isolate,
+ void setup_pcp_cacheinfo(unsigned int cpu)
 _
 
-Patches currently in -mm which might be from tballasi@linux.microsoft.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-vmscan-add-cgroup-ids-to-vmscan-tracepoints.patch
-mm-vmscan-add-pids-to-vmscan-tracepoints.patch
+mm-page_alloc-prevent-pcp-corruption-with-smp=n.patch
+mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch
 
