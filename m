@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D8C92DCBFD;
-	Mon,  5 Jan 2026 21:11:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF9FC2DCC01;
+	Mon,  5 Jan 2026 21:11:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767647505; cv=none; b=JH1ZCRAvpekCshOEfBaKiO+j2KIHHCJzE3mPVxVwtziIOcN+NmMvqL3W1zi5vdyJoXBqSX3FgvKgTZrHSAxKYvsniIaXWu4Zawsbl5yjDjFo68oVnYa6pSgHTMgk8aYSpNkZmoFtkAzUs6JKz9imMiozbI23SZkrPxdiK3LKB5o=
+	t=1767647507; cv=none; b=XzDhbbisdwQc/S6XAtbGGGkhKs9qxdiZV+/XZ5GsqdOgI6On0F6d/gTO/cEu4YLfbhwmWyLv2AR5xafV705HHypHXWSKWt6xsdueKwZbbCNwHkuX7VnFBmqO3wSDTl9IcleE59zsO6+D2njLfyEwFSO40WUqVMSmcJTbdo3zr8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767647505; c=relaxed/simple;
-	bh=um+0hVOV/mq3rat3zLY0jIw5JcgawgkPap4SkUOrQeA=;
-	h=Date:To:From:Subject:Message-Id; b=sp55ovGorXRBAqy9w31HWadvqMnen4OWR3RuEvHWgu4xd01pW2h37fcHGa6Y0kYfWo22wt/STAxCH/H8SiVbM6qYuFLOZw9XcjTT4Oj0njYIzS3Gk0cJR95EAId3iQJkt5uQfMqy2YZVWYs/gai/BDeqelKoaTxeFqw0Jo+MOw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IZ/tmnJB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767647507; c=relaxed/simple;
+	bh=Meln78RHQvTGgpc8eJxE13RW8JBjoXlRF8gcVGntq+w=;
+	h=Date:To:From:Subject:Message-Id; b=C+EknM1RA1LSxjlH6E/CvOy0I5jIuVuz+063whNJ8Z9ur0UeSEKrX91FPtne6A/SIA1rnAMNi7TpyuxEGftK0CeUMbvikHZ2aK9yLsbTX0SQ0c7dNNZzbCUhYpTgqOnGcXQK4Ri9FTsRR0947NGnD66KREiKw1V/bvePJiD8d74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yct4yFye; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IZ/tmnJB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEDE3C116D0;
-	Mon,  5 Jan 2026 21:11:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yct4yFye"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B275C116D0;
+	Mon,  5 Jan 2026 21:11:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767647504;
-	bh=um+0hVOV/mq3rat3zLY0jIw5JcgawgkPap4SkUOrQeA=;
+	s=korg; t=1767647507;
+	bh=Meln78RHQvTGgpc8eJxE13RW8JBjoXlRF8gcVGntq+w=;
 	h=Date:To:From:Subject:From;
-	b=IZ/tmnJBNmlhIiaq39+eYaTPyZIxBvUAF258Kfj+YzjZlFMbULwooFvD8b+DT7waX
-	 3PF0M6y5pLS4cjPvrG0JBhLJdgvVUqn1s0RzNQHDPOmv3rkHctax6uZg2rqPpLhW2V
-	 YbgmBtJkE6RMIsKtT9d3178OMX8y8f5fj60k0omk=
-Date: Mon, 05 Jan 2026 13:11:44 -0800
+	b=yct4yFyexFcF5bBwdtYmwnO8elZoUF6DKU8gyN1pms1kay34EDpDEnV1zgBTe3Lml
+	 /0O82+coWspmltQ9LMWTzH6ZPaVbOge2Biln/1ZpuaXS/YkEhlizs/jlM7V/VlO9sE
+	 UdSg26q7b0T5h2k83gZq7tY7D1e4lduShPIxY7kc=
+Date: Mon, 05 Jan 2026 13:11:46 -0800
 To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,pfalcato@suse.de,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,aha310510@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-add-tests-for-tgt-src-mremap-merges.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260105211144.AEDE3C116D0@smtp.kernel.org>
+Subject: + mm-vma-enforce-vma-fork-limit-on-unfaultedfaulted-mremap-merge-too.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260105211147.5B275C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/testing/selftests: add tests for !tgt, src mremap() merges
+     Subject: mm/vma: enforce VMA fork limit on unfaulted,faulted mremap merge too
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     tools-testing-selftests-add-tests-for-tgt-src-mremap-merges.patch
+     mm-vma-enforce-vma-fork-limit-on-unfaultedfaulted-mremap-merge-too.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-add-tests-for-tgt-src-mremap-merges.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-enforce-vma-fork-limit-on-unfaultedfaulted-mremap-merge-too.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,65 +59,32 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: add tests for !tgt, src mremap() merges
-Date: Mon, 5 Jan 2026 20:11:48 +0000
+Subject: mm/vma: enforce VMA fork limit on unfaulted,faulted mremap merge too
+Date: Mon, 5 Jan 2026 20:11:49 +0000
 
-Test that mremap()'ing a VMA into a position such that the target VMA on
-merge is unfaulted and the source faulted is correctly performed.
+The is_mergeable_anon_vma() function uses vmg->middle as the source VMA. 
+However when merging a new VMA, this field is NULL.
 
-We cover 4 cases:
+In all cases except mremap(), the new VMA will either be newly established
+and thus lack an anon_vma, or will be an expansion of an existing VMA thus
+we do not care about whether VMA is CoW'd or not.
 
-    1. Previous VMA unfaulted:
+In the case of an mremap(), we can end up in a situation where we can
+accidentally allow an unfaulted/faulted merge with a VMA that has been
+forked, violating the general rule that we do not permit this for reasons
+of anon_vma lock scalability.
 
-                  copied -----|
-                              v
-            |-----------|.............|
-            | unfaulted |(faulted VMA)|
-            |-----------|.............|
-                 prev
+Now we have the ability to be aware of the fact we are copying a VMA and
+also know which VMA that is, we can explicitly check for this, so do so.
 
-    target = prev, expand prev to cover.
+This is pertinent since commit 879bca0a2c4f ("mm/vma: fix incorrectly
+disallowed anonymous VMA merges"), as this patch permits unfaulted/faulted
+merges that were previously disallowed running afoul of this issue.
 
-    2. Next VMA unfaulted:
+While we are here, vma_had_uncowed_parents() is a confusing name, so make
+it simple and rename it to vma_is_fork_child().
 
-                  copied -----|
-                              v
-                        |.............|-----------|
-                        |(faulted VMA)| unfaulted |
-                        |.............|-----------|
-                                          next
-
-    target = next, expand next to cover.
-
-    3. Both adjacent VMAs unfaulted:
-
-                  copied -----|
-                              v
-            |-----------|.............|-----------|
-            | unfaulted |(faulted VMA)| unfaulted |
-            |-----------|.............|-----------|
-                 prev                      next
-
-    target = prev, expand prev to cover.
-
-    4. prev unfaulted, next faulted:
-
-                  copied -----|
-                              v
-            |-----------|.............|-----------|
-            | unfaulted |(faulted VMA)|  faulted  |
-            |-----------|.............|-----------|
-                 prev                      next
-
-    target = prev, expand prev to cover. Essentially equivalent to 3, but
-    with additional requirement that next's anon_vma is the same as the
-    copied VMA's.
-
-Each of these are performed with MREMAP_DONTUNMAP set, which will cause a
-KASAN assert for UAF or an assert on zero refcount anon_vma if a bug
-exists with correctly propagating anon_vma state in each scenario.
-
-Link: https://lkml.kernel.org/r/f903af2930c7c2c6e0948c886b58d0f42d8e8ba3.1767638272.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/6e2b9b3024ae1220961c8b81d74296d4720eaf2b.1767638272.git.lorenzo.stoakes@oracle.com
 Fixes: 879bca0a2c4f ("mm/vma: fix incorrectly disallowed anonymous VMA merges")
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: David Hildenbrand (Red Hat) <david@kernel.org>
@@ -132,248 +99,57 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |  232 +++++++++++++++++++++++++++
- 1 file changed, 232 insertions(+)
+ mm/vma.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-tests-for-tgt-src-mremap-merges
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -1171,4 +1171,236 @@ TEST_F(merge, mremap_correct_placed_faul
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
- }
+--- a/mm/vma.c~mm-vma-enforce-vma-fork-limit-on-unfaultedfaulted-mremap-merge-too
++++ a/mm/vma.c
+@@ -67,18 +67,13 @@ struct mmap_state {
+ 		.state = VMA_MERGE_START,				\
+ 	}
  
-+TEST_F(merge, mremap_faulted_to_unfaulted_prev)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *ptr_a, *ptr_b;
+-/*
+- * If, at any point, the VMA had unCoW'd mappings from parents, it will maintain
+- * more than one anon_vma_chain connecting it to more than one anon_vma. A merge
+- * would mean a wider range of folios sharing the root anon_vma lock, and thus
+- * potential lock contention, we do not wish to encourage merging such that this
+- * scales to a problem.
+- */
+-static bool vma_had_uncowed_parents(struct vm_area_struct *vma)
++/* Was this VMA ever forked from a parent, i.e. maybe contains CoW mappings? */
++static bool vma_is_fork_child(struct vm_area_struct *vma)
+ {
+ 	/*
+ 	 * The list_is_singular() test is to avoid merging VMA cloned from
+-	 * parents. This can improve scalability caused by anon_vma lock.
++	 * parents. This can improve scalability caused by the anon_vma root
++	 * lock.
+ 	 */
+ 	return vma && vma->anon_vma && !list_is_singular(&vma->anon_vma_chain);
+ }
+@@ -115,11 +110,19 @@ static bool is_mergeable_anon_vma(struct
+ 	VM_WARN_ON(src && src_anon != src->anon_vma);
+ 
+ 	/* Case 1 - we will dup_anon_vma() from src into tgt. */
+-	if (!tgt_anon && src_anon)
+-		return !vma_had_uncowed_parents(src);
++	if (!tgt_anon && src_anon) {
++		struct vm_area_struct *copied_from = vmg->copied_from;
 +
-+	/*
-+	 * mremap() such that A and B merge:
-+	 *
-+	 *                             |------------|
-+	 *                             |    \       |
-+	 *           |-----------|     |    /  |---------|
-+	 *           | unfaulted |     v    \  | faulted |
-+	 *           |-----------|          /  |---------|
-+	 *                 B                \       A
-+	 */
++		if (vma_is_fork_child(src))
++			return false;
++		if (vma_is_fork_child(copied_from))
++			return false;
 +
-+	/* Map VMA A into place. */
-+	ptr_a = mmap(&self->carveout[page_size + 3 * page_size],
-+		     3 * page_size,
-+		     PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_a, MAP_FAILED);
-+	/* Fault it in. */
-+	ptr_a[0] = 'x';
-+
-+	/*
-+	 * Now move it out of the way so we can place VMA B in position,
-+	 * unfaulted.
-+	 */
-+	ptr_a = mremap(ptr_a, 3 * page_size, 3 * page_size,
-+		       MREMAP_FIXED | MREMAP_MAYMOVE, &self->carveout[20 * page_size]);
-+	ASSERT_NE(ptr_a, MAP_FAILED);
-+
-+	/* Map VMA B into place. */
-+	ptr_b = mmap(&self->carveout[page_size], 3 * page_size,
-+		     PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_b, MAP_FAILED);
-+
-+	/*
-+	 * Now move VMA A into position with MREMAP_DONTUNMAP to catch incorrect
-+	 * anon_vma propagation.
-+	 */
-+	ptr_a = mremap(ptr_a, 3 * page_size, 3 * page_size,
-+		       MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
-+		       &self->carveout[page_size + 3 * page_size]);
-+	ASSERT_NE(ptr_a, MAP_FAILED);
-+
-+	/* The VMAs should have merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr_b));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr_b);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr_b + 6 * page_size);
-+}
-+
-+TEST_F(merge, mremap_faulted_to_unfaulted_next)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *ptr_a, *ptr_b;
-+
-+	/*
-+	 * mremap() such that A and B merge:
-+	 *
-+	 *      |---------------------------|
-+	 *      |                   \       |
-+	 *      |    |-----------|  /  |---------|
-+	 *      v    | unfaulted |  \  | faulted |
-+	 *           |-----------|  /  |---------|
-+	 *                 B        \       A
-+	 *
-+	 * Then unmap VMA A to trigger the bug.
-+	 */
-+
-+	/* Map VMA A into place. */
-+	ptr_a = mmap(&self->carveout[page_size], 3 * page_size,
-+		     PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_a, MAP_FAILED);
-+	/* Fault it in. */
-+	ptr_a[0] = 'x';
-+
-+	/*
-+	 * Now move it out of the way so we can place VMA B in position,
-+	 * unfaulted.
-+	 */
-+	ptr_a = mremap(ptr_a, 3 * page_size, 3 * page_size,
-+		       MREMAP_FIXED | MREMAP_MAYMOVE, &self->carveout[20 * page_size]);
-+	ASSERT_NE(ptr_a, MAP_FAILED);
-+
-+	/* Map VMA B into place. */
-+	ptr_b = mmap(&self->carveout[page_size + 3 * page_size], 3 * page_size,
-+		     PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_b, MAP_FAILED);
-+
-+	/*
-+	 * Now move VMA A into position with MREMAP_DONTUNMAP to catch incorrect
-+	 * anon_vma propagation.
-+	 */
-+	ptr_a = mremap(ptr_a, 3 * page_size, 3 * page_size,
-+		       MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
-+		       &self->carveout[page_size]);
-+	ASSERT_NE(ptr_a, MAP_FAILED);
-+
-+	/* The VMAs should have merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr_a));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr_a);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr_a + 6 * page_size);
-+}
-+
-+TEST_F(merge, mremap_faulted_to_unfaulted_prev_unfaulted_next)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *ptr_a, *ptr_b, *ptr_c;
-+
-+	/*
-+	 * mremap() with MREMAP_DONTUNMAP such that A, B and C merge:
-+	 *
-+	 *                  |---------------------------|
-+	 *                  |                   \       |
-+	 * |-----------|    |    |-----------|  /  |---------|
-+	 * | unfaulted |    v    | unfaulted |  \  | faulted |
-+	 * |-----------|         |-----------|  /  |---------|
-+	 *       A                     C        \        B
-+	 */
-+
-+	/* Map VMA B into place. */
-+	ptr_b = mmap(&self->carveout[page_size + 3 * page_size], 3 * page_size,
-+		     PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_b, MAP_FAILED);
-+	/* Fault it in. */
-+	ptr_b[0] = 'x';
-+
-+	/*
-+	 * Now move it out of the way so we can place VMAs A, C in position,
-+	 * unfaulted.
-+	 */
-+	ptr_b = mremap(ptr_b, 3 * page_size, 3 * page_size,
-+		       MREMAP_FIXED | MREMAP_MAYMOVE, &self->carveout[20 * page_size]);
-+	ASSERT_NE(ptr_b, MAP_FAILED);
-+
-+	/* Map VMA A into place. */
-+
-+	ptr_a = mmap(&self->carveout[page_size], 3 * page_size,
-+		     PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_a, MAP_FAILED);
-+
-+	/* Map VMA C into place. */
-+	ptr_c = mmap(&self->carveout[page_size + 3 * page_size + 3 * page_size],
-+		     3 * page_size, PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_c, MAP_FAILED);
-+
-+	/*
-+	 * Now move VMA B into position with MREMAP_DONTUNMAP to catch incorrect
-+	 * anon_vma propagation.
-+	 */
-+	ptr_b = mremap(ptr_b, 3 * page_size, 3 * page_size,
-+		       MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
-+		       &self->carveout[page_size + 3 * page_size]);
-+	ASSERT_NE(ptr_b, MAP_FAILED);
-+
-+	/* The VMAs should have merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr_a));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr_a);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr_a + 9 * page_size);
-+}
-+
-+TEST_F(merge, mremap_faulted_to_unfaulted_prev_faulted_next)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *ptr_a, *ptr_b, *ptr_bc;
-+
-+	/*
-+	 * mremap() with MREMAP_DONTUNMAP such that A, B and C merge:
-+	 *
-+	 *                  |---------------------------|
-+	 *                  |                   \       |
-+	 * |-----------|    |    |-----------|  /  |---------|
-+	 * | unfaulted |    v    |  faulted  |  \  | faulted |
-+	 * |-----------|         |-----------|  /  |---------|
-+	 *       A                     C        \       B
-+	 */
-+
-+	/*
-+	 * Map VMA B and C into place. We have to map them together so their
-+	 * anon_vma is the same and the vma->vm_pgoff's are correctly aligned.
-+	 */
-+	ptr_bc = mmap(&self->carveout[page_size + 3 * page_size],
-+		      3 * page_size + 3 * page_size,
-+		     PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_bc, MAP_FAILED);
-+
-+	/* Fault it in. */
-+	ptr_bc[0] = 'x';
-+
-+	/*
-+	 * Now move VMA B out the way (splitting VMA BC) so we can place VMA A
-+	 * in position, unfaulted, and leave the remainder of the VMA we just
-+	 * moved in place, faulted, as VMA C.
-+	 */
-+	ptr_b = mremap(ptr_bc, 3 * page_size, 3 * page_size,
-+		       MREMAP_FIXED | MREMAP_MAYMOVE, &self->carveout[20 * page_size]);
-+	ASSERT_NE(ptr_b, MAP_FAILED);
-+
-+	/* Map VMA A into place. */
-+	ptr_a = mmap(&self->carveout[page_size], 3 * page_size,
-+		     PROT_READ | PROT_WRITE,
-+		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr_a, MAP_FAILED);
-+
-+	/*
-+	 * Now move VMA B into position with MREMAP_DONTUNMAP to catch incorrect
-+	 * anon_vma propagation.
-+	 */
-+	ptr_b = mremap(ptr_b, 3 * page_size, 3 * page_size,
-+		       MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
-+		       &self->carveout[page_size + 3 * page_size]);
-+	ASSERT_NE(ptr_b, MAP_FAILED);
-+
-+	/* The VMAs should have merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr_a));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr_a);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr_a + 9 * page_size);
-+}
-+
- TEST_HARNESS_MAIN
++		return true;
++	}
+ 	/* Case 2 - we will simply use tgt's anon_vma. */
+ 	if (tgt_anon && !src_anon)
+-		return !vma_had_uncowed_parents(tgt);
++		return !vma_is_fork_child(tgt);
+ 	/* Case 3 - the anon_vma's are already shared. */
+ 	return src_anon == tgt_anon;
+ }
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
