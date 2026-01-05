@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E8FD2C0284;
-	Mon,  5 Jan 2026 15:29:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E999933A9EF
+	for <mm-commits@vger.kernel.org>; Mon,  5 Jan 2026 16:49:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767626972; cv=none; b=ApCgafdKcw9mmTH6JdwqdhmirbDtViI+n9fmSyVk4wkuKJZhB9IFW1S+FZ+52VQkK0r1Se0slzNr2IkhewIdg19EF7WxcE4xUUNT73iVFKPzUlD/D23R6BwXgsEduG7wK8VUjLUkpwv5jXKx3k+Kh5uhcV/uzdiK5mg7VYQJpmA=
+	t=1767631741; cv=none; b=jvDgCjj2+p0cGOHBtQdgYwOnEeAmSpU6XPqJYOpp1jiO9nxQgnLZODxmUGxpYfA0BnpvuOmFnt+Pbde9swP0UXLWhfSxyRpQPGuPrRs9k8z/2q+wY/wZsYPq8x3QW2ou/lRjiuMbtdVyDkyD+m7igOzabmeWiYQZW7wcpocts/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767626972; c=relaxed/simple;
-	bh=4bZVFOscflBe/dlCrxkpfAlehbJTcoL4YWIjcntTNjo=;
-	h=Date:To:From:Subject:Message-Id; b=c3EZs6SGwHiCWSm9XhYHL+OD70HOPdjOgcOVbe6TKqToGrX52RtFyi5wf+cMzCbq+3HGBInEoi6A9TpCy58s8qGOcvBh5PJUzT5Fmi/s1hfovY/8Oju/CxseOPm2Ppai+kivMVsEV1hpSWuImCjNJNGL+ECZ/r7cXYjur5he88o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XmNsEvpX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767631741; c=relaxed/simple;
+	bh=PQe0A9J8zboCz1kjYoeTsMY4KfLhgyyeKLL3yv1gIkU=;
+	h=Date:To:From:Subject:Message-Id; b=KuZ59CXPySq004QT5iEIhyDTy0H/3DUZwcgAGHAZ+mo3JXiFM0EUWPCdKJEaeYb77ioW2+SIFHS0WuypN36f2OqUbKGTGTT7Y4yzWjQFMTQzr48xxdt2XovwV4MpnbWggx/A/otoalpOieQEAwCQdNI1+tX1KsXclbl1JxjXirI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bd+xR8tE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XmNsEvpX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89565C116D0;
-	Mon,  5 Jan 2026 15:29:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bd+xR8tE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EEE8C116D0;
+	Mon,  5 Jan 2026 16:49:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767626971;
-	bh=4bZVFOscflBe/dlCrxkpfAlehbJTcoL4YWIjcntTNjo=;
+	s=korg; t=1767631740;
+	bh=PQe0A9J8zboCz1kjYoeTsMY4KfLhgyyeKLL3yv1gIkU=;
 	h=Date:To:From:Subject:From;
-	b=XmNsEvpXNMmIJokkSfPtULX3aLBdZ6mQLm6wTsLKB6TLe9t6eDvA2IriHicJntYYB
-	 BkCif+Uf7C2GjibyQ+WjdCOcsjmjOb+2KCp/CVDbCBzT0Mv66pMf5tIicSqLqXKJQ4
-	 swdfTh16WeQvT+zRYIB++TEp9ZQrW+7nx4KqCAHw=
-Date: Mon, 05 Jan 2026 07:29:30 -0800
-To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,pfalcato@suse.de,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,aha310510@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Bd+xR8tE3zLLq5pbHmn0vQ9eK97rJ9+FifkGaE8N8lOZswDUCNF7IT+RznF6KwyAM
+	 zTdvH1eqtwjgQ46ksMfzU3ZsOhQdSQSXKVe4M84djXSykxf3ACOUcj408/SH96ApzR
+	 UxZa6zRAJ20awX/bj36v02fI/hGVXuh8BFy+7xbo=
+Date: Mon, 05 Jan 2026 08:48:59 -0800
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yonghong.song@linux.dev,will@kernel.org,tglx@linutronix.de,stefan.kristiansson@saunalahti.fi,song@kernel.org,shorne@gmail.com,sdf@fomichev.me,sashal@kernel.org,mingo@redhat.com,martin.lau@linux.dev,mark.rutland@arm.com,kpsingh@kernel.org,jonas@southpole.se,jolsa@kernel.org,john.fastabend@gmail.com,hpa@zytor.com,haoluo@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,gary@garyguo.net,fthain@linux-m68k.org,eddyz87@gmail.com,dinguyen@kernel.org,dave.hansen@linux.intel.com,daniel@iogearbox.net,dalias@libc.org,bp@alien8.de,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,ardb@kernel.org,andrii@kernel.org,peterz@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch removed from -mm tree
-Message-Id: <20260105152931.89565C116D0@smtp.kernel.org>
+Subject: [to-be-updated] atomic-add-alignment-check-to-instrumented-atomic-operations.patch removed from -mm tree
+Message-Id: <20260105164900.6EEE8C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,289 +35,149 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: fix anon_vma UAF on mremap() faulted, unfaulted merge
+     Subject: atomic: add alignment check to instrumented atomic operations
 has been removed from the -mm tree.  Its filename was
-     mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
+     atomic-add-alignment-check-to-instrumented-atomic-operations.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: fix anon_vma UAF on mremap() faulted, unfaulted merge
-Date: Fri, 2 Jan 2026 20:55:20 +0000
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: atomic: add alignment check to instrumented atomic operations
+Date: Wed, 31 Dec 2025 19:25:42 +1100
 
-Commit 879bca0a2c4f ("mm/vma: fix incorrectly disallowed anonymous VMA
-merges") introduced the ability to merge previously unavailable VMA merge
-scenarios.
+Add a Kconfig option for debug builds which logs a warning when an
+instrumented atomic operation takes place that's misaligned.  Some
+platforms don't trap for this.
 
-The key piece of logic introduced was the ability to merge a faulted VMA
-immediately next to an unfaulted VMA, which relies upon dup_anon_vma() to
-correctly handle anon_vma state.
-
-In the case of the merge of an existing VMA (that is changing properties
-of a VMA and then merging if those properties are shared by adjacent
-VMAs), dup_anon_vma() is invoked correctly.
-
-However in the case of the merge of a new VMA, a corner case peculiar to
-mremap() was missed.
-
-The issue is that vma_expand() only performs dup_anon_vma() if the target
-(the VMA that will ultimately become the merged VMA): is not the next VMA,
-i.e.  the one that appears after the range in which the new VMA is to be
-established.
-
-A key insight here is that in all other cases other than mremap(), a new
-VMA merge either expands an existing VMA, meaning that the target VMA will
-be that VMA, or would have anon_vma be NULL.
-
-Specifically:
-
-* __mmap_region() - no anon_vma in place, initial mapping.
-* do_brk_flags() - expanding an existing VMA.
-* vma_merge_extend() - expanding an existing VMA.
-* relocate_vma_down() - no anon_vma in place, initial mapping.
-
-In addition, we are in the unique situation of needing to duplicate
-anon_vma state from a VMA that is neither the previous or next VMA being
-merged with.
-
-To account for this, introduce a new field in struct vma_merge_struct
-specifically for the mremap() case, and update vma_expand() to explicitly
-check for this case and invoke dup_anon_vma() to ensure anon_vma state is
-correctly propagated.
-
-This issue can be observed most directly by invoked mremap() to move
-around a VMA and cause this kind of merge with the MREMAP_DONTUNMAP flag
-specified.
-
-This will result in unlink_anon_vmas() being called after failing to
-duplicate anon_vma state to the target VMA, which results in the anon_vma
-itself being freed with folios still possessing dangling pointers to the
-anon_vma and thus a use-after-free bug.
-
-This bug was discovered via a syzbot report, which this patch resolves.
-
-The following program reproduces the issue (and is fixed by this patch):
-
-#define _GNU_SOURCE
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/mman.h>
-
-#define RESERVED_PGS	(100)
-#define VMA_A_PGS	(10)
-#define VMA_B_PGS	(10)
-#define NUM_ITERS	(1000)
-
-static void trigger_bug(void)
-{
-	unsigned long page_size = sysconf(_SC_PAGE_SIZE);
-	char *reserved, *ptr_a, *ptr_b;
-
-	/*
-	 * The goal here is to achieve:
-	 *
-	 * mremap() with MREMAP_DONTUNMAP such that A and B merge:
-	 *
-	 *      |-------------------------|
-	 *      |                         |
-	 *      |    |-----------|   |---------|
-	 *      v    | unfaulted |   | faulted |
-	 *           |-----------|   |---------|
-	 *                 B              A
-	 *
-	 * Then unmap VMA A to trigger the bug.
-	 */
-
-	/* Reserve a region of memory to operate in. */
-	reserved = mmap(NULL, RESERVED_PGS * page_size, PROT_NONE,
-			MAP_PRIVATE | MAP_ANON, -1, 0);
-	if (reserved == MAP_FAILED) {
-		perror("mmap reserved");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Map VMA A into place. */
-	ptr_a = mmap(&reserved[page_size], VMA_A_PGS * page_size,
-		     PROT_READ | PROT_WRITE,
-		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-	if (ptr_a == MAP_FAILED) {
-		perror("mmap VMA A");
-		exit(EXIT_FAILURE);
-	}
-	/* Fault it in. */
-	ptr_a[0] = 'x';
-
-	/*
-	 * Now move it out of the way so we can place VMA B in position,
-	 * unfaulted.
-	 */
-	ptr_a = mremap(ptr_a, VMA_A_PGS * page_size, VMA_A_PGS * page_size,
-		       MREMAP_FIXED | MREMAP_MAYMOVE, &reserved[50 * page_size]);
-	if (ptr_a == MAP_FAILED) {
-		perror("mremap VMA A out of the way");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Map VMA B into place. */
-	ptr_b = mmap(&reserved[page_size + VMA_A_PGS * page_size],
-		     VMA_B_PGS * page_size, PROT_READ | PROT_WRITE,
-		     MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-	if (ptr_b == MAP_FAILED) {
-		perror("mmap VMA B");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Now move VMA A into position w/MREMAP_DONTUNMAP + free anon_vma. */
-	ptr_a = mremap(ptr_a, VMA_A_PGS * page_size, VMA_A_PGS * page_size,
-		       MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP,
-		       &reserved[page_size]);
-	if (ptr_a == MAP_FAILED) {
-		perror("mremap VMA A with MREMAP_DONTUNMAP");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Finally, unmap VMA A which should trigger the bug. */
-	munmap(ptr_a, VMA_A_PGS * page_size);
-
-	/* Cleanup in case bug didn't trigger sufficiently visibly... */
-	munmap(reserved, RESERVED_PGS * page_size);
-}
-
-int main(void)
-{
-	int i;
-
-	for (i = 0; i < NUM_ITERS; i++)
-		trigger_bug();
-
-	return EXIT_SUCCESS;
-}
-
-Link: https://lkml.kernel.org/r/20260102205520.986725-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Fixes: 879bca0a2c4f ("mm/vma: fix incorrectly disallowed anonymous VMA merges")
-Reported-by: syzbot+b165fc2e11771c66d8ba@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/694a2745.050a0220.19928e.0017.GAE@google.com/
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jeongjun Park <aha310510@gmail.com>
-Cc: levi.yun <yeoreum.yun@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: <stable@vger.kernel.org>
+[fthain@linux-m68k.org: added __DISABLE_BUG_TABLE macro]
+Link: https://lkml.kernel.org/r/f8cfe0d121be0849f5175495e73eafeeb85e1ad3.1767169542.git.fthain@linux-m68k.org
+Link: https://lore.kernel.org/lkml/20250901093600.GF4067720@noisy.programming.kicks-ass.net/
+Link: https://lore.kernel.org/linux-next/df9fbd22-a648-ada4-fee0-68fe4325ff82@linux-m68k.org/
+Signed-off-by: Finn Thain <fthain@linux-m68k.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Daniel Borkman <daniel@iogearbox.net>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yonghong Song <yonghong.song@linux.dev>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   58 ++++++++++++++++++++++++++++++++++++++++-------------
- mm/vma.h |    3 ++
- 2 files changed, 47 insertions(+), 14 deletions(-)
+ arch/x86/boot/compressed/Makefile     |    1 +
+ drivers/firmware/efi/libstub/Makefile |    1 +
+ include/linux/instrumented.h          |   10 ++++++++++
+ lib/Kconfig.debug                     |   10 ++++++++++
+ 4 files changed, 22 insertions(+)
 
---- a/mm/vma.c~mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge
-+++ a/mm/vma.c
-@@ -1130,26 +1130,50 @@ int vma_expand(struct vma_merge_struct *
- 	mmap_assert_write_locked(vmg->mm);
+--- a/arch/x86/boot/compressed/Makefile~atomic-add-alignment-check-to-instrumented-atomic-operations
++++ a/arch/x86/boot/compressed/Makefile
+@@ -42,6 +42,7 @@ KBUILD_CFLAGS += -Wno-microsoft-anon-tag
+ endif
+ KBUILD_CFLAGS += -Wno-pointer-sign
+ KBUILD_CFLAGS += -fno-asynchronous-unwind-tables
++KBUILD_CFLAGS += -D__DISABLE_BUG_TABLE
+ KBUILD_CFLAGS += -D__DISABLE_EXPORTS
+ # Disable relocation relaxation in case the link is not PIE.
+ KBUILD_CFLAGS += $(call cc-option,-Wa$(comma)-mrelax-relocations=no)
+--- a/drivers/firmware/efi/libstub/Makefile~atomic-add-alignment-check-to-instrumented-atomic-operations
++++ a/drivers/firmware/efi/libstub/Makefile
+@@ -42,6 +42,7 @@ KBUILD_CFLAGS			:= $(subst $(CC_FLAGS_FT
+ 				   -ffreestanding \
+ 				   -fno-stack-protector \
+ 				   $(call cc-option,-fno-addrsig) \
++				   -D__DISABLE_BUG_TABLE \
+ 				   -D__DISABLE_EXPORTS
  
- 	vma_start_write(target);
--	if (next && (target != next) && (vmg->end == next->vm_end)) {
-+	if (next && vmg->end == next->vm_end) {
-+		struct vm_area_struct *copied_from = vmg->copied_from;
- 		int ret;
+ #
+--- a/include/linux/instrumented.h~atomic-add-alignment-check-to-instrumented-atomic-operations
++++ a/include/linux/instrumented.h
+@@ -7,6 +7,7 @@
+ #ifndef _LINUX_INSTRUMENTED_H
+ #define _LINUX_INSTRUMENTED_H
  
--		sticky_flags |= next->vm_flags & VM_STICKY;
--		remove_next = true;
--		/* This should already have been checked by this point. */
--		VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
--		vma_start_write(next);
--		/*
--		 * In this case we don't report OOM, so vmg->give_up_on_mm is
--		 * safe.
--		 */
--		ret = dup_anon_vma(target, next, &anon_dup);
--		if (ret)
--			return ret;
-+		if (target != next) {
-+			sticky_flags |= next->vm_flags & VM_STICKY;
-+			remove_next = true;
-+			/* This should already have been checked by this point. */
-+			VM_WARN_ON_VMG(!can_merge_remove_vma(next), vmg);
-+			vma_start_write(next);
-+			/*
-+			 * In this case we don't report OOM, so vmg->give_up_on_mm is
-+			 * safe.
-+			 */
-+			ret = dup_anon_vma(target, next, &anon_dup);
-+			if (ret)
-+				return ret;
-+		} else if (copied_from) {
-+			vma_start_write(next);
++#include <linux/bug.h>
+ #include <linux/compiler.h>
+ #include <linux/kasan-checks.h>
+ #include <linux/kcsan-checks.h>
+@@ -67,6 +68,9 @@ static __always_inline void instrument_a
+ {
+ 	kasan_check_read(v, size);
+ 	kcsan_check_atomic_read(v, size);
++#ifndef __DISABLE_BUG_TABLE
++	WARN_ON_ONCE(IS_ENABLED(CONFIG_DEBUG_ATOMIC) && ((unsigned long)v & (size - 1)));
++#endif
+ }
+ 
+ /**
+@@ -81,6 +85,9 @@ static __always_inline void instrument_a
+ {
+ 	kasan_check_write(v, size);
+ 	kcsan_check_atomic_write(v, size);
++#ifndef __DISABLE_BUG_TABLE
++	WARN_ON_ONCE(IS_ENABLED(CONFIG_DEBUG_ATOMIC) && ((unsigned long)v & (size - 1)));
++#endif
+ }
+ 
+ /**
+@@ -95,6 +102,9 @@ static __always_inline void instrument_a
+ {
+ 	kasan_check_write(v, size);
+ 	kcsan_check_atomic_read_write(v, size);
++#ifndef __DISABLE_BUG_TABLE
++	WARN_ON_ONCE(IS_ENABLED(CONFIG_DEBUG_ATOMIC) && ((unsigned long)v & (size - 1)));
++#endif
+ }
+ 
+ /**
+--- a/lib/Kconfig.debug~atomic-add-alignment-check-to-instrumented-atomic-operations
++++ a/lib/Kconfig.debug
+@@ -1360,6 +1360,16 @@ config DEBUG_PREEMPT
+ 	  depending on workload as it triggers debugging routines for each
+ 	  this_cpu operation. It should only be used for debugging purposes.
+ 
++config DEBUG_ATOMIC
++	bool "Debug atomic variables"
++	depends on DEBUG_KERNEL
++	help
++	  If you say Y here then the kernel will add a runtime alignment check
++	  to atomic accesses. Useful for architectures that do not have trap on
++	  mis-aligned access.
 +
-+			/*
-+			 * We are copying from a VMA (i.e. mremap()'ing) to
-+			 * next, and thus must ensure that either anon_vma's are
-+			 * already compatible (in which case this call is a nop)
-+			 * or all anon_vma state is propagated to next
-+			 */
-+			ret = dup_anon_vma(next, copied_from, &anon_dup);
-+			if (ret)
-+				return ret;
-+		} else {
-+			/* In no other case may the anon_vma differ. */
-+			VM_WARN_ON_VMG(target->anon_vma != next->anon_vma, vmg);
-+		}
- 	}
- 
- 	/* Not merging but overwriting any part of next is not handled. */
- 	VM_WARN_ON_VMG(next && !remove_next &&
- 		       next != target && vmg->end > next->vm_start, vmg);
-+	/*
-+	 * We should only see a copy with next as the target on a new merge
-+	 * which sets the end to the next of next.
-+	 */
-+	VM_WARN_ON_VMG(target == next && vmg->copied_from &&
-+		       vmg->end != next->vm_end, vmg);
- 	/* Only handles expanding */
- 	VM_WARN_ON_VMG(target->vm_start < vmg->start ||
- 		       target->vm_end > vmg->end, vmg);
-@@ -1808,6 +1832,13 @@ struct vm_area_struct *copy_vma(struct v
- 	VMG_VMA_STATE(vmg, &vmi, NULL, vma, addr, addr + len);
- 
- 	/*
-+	 * VMG_VMA_STATE() installs vma in middle, but this is a new VMA, inform
-+	 * merging logic correctly.
-+	 */
-+	vmg.copied_from = vma;
-+	vmg.middle = NULL;
++	  This option has potentially significant overhead.
 +
-+	/*
- 	 * If anonymous vma has not yet been faulted, update new pgoff
- 	 * to match new location, to increase its chance of merging.
- 	 */
-@@ -1828,7 +1859,6 @@ struct vm_area_struct *copy_vma(struct v
- 	if (new_vma && new_vma->vm_start < addr + len)
- 		return NULL;	/* should never get here */
+ menu "Lock Debugging (spinlocks, mutexes, etc...)"
  
--	vmg.middle = NULL; /* New VMA range. */
- 	vmg.pgoff = pgoff;
- 	vmg.next = vma_iter_next_rewind(&vmi, NULL);
- 	new_vma = vma_merge_new_range(&vmg);
---- a/mm/vma.h~mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge
-+++ a/mm/vma.h
-@@ -106,6 +106,9 @@ struct vma_merge_struct {
- 	struct anon_vma_name *anon_name;
- 	enum vma_merge_state state;
- 
-+	/* If we are copying a VMA, which VMA are we copying from? */
-+	struct vm_area_struct *copied_from;
-+
- 	/* Flags which callers can use to modify merge behaviour: */
- 
- 	/*
+ config LOCK_DEBUGGING_SUPPORT
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from peterz@infradead.org are
 
 
