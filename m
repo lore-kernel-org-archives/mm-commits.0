@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0820F35E553
-	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 17:47:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0689334D386
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:07:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767721680; cv=none; b=rTKwqDGOQrAcUUUudqOwYwHPOffyRA09vB66z/JTZtZG77D27ck5k4jtY8y3HH9uiupVqvYbU2jBslNkiE7NfF2tZy9lCBovjioor42gBJcTC2SkaRJ1TEfKnNF+rGLRYUnX+Jnp6vwMMy7f0tLllYzGwNDZTZLty/kh3NY5hS0=
+	t=1767722868; cv=none; b=trEPOny18+F9cGn9O+cXIeaQ6R3P0L9u7OaXA9wwpFxzXV9PZry99jKIEpHpony3KJTtxic/1Au+EoY6KQnXi0ultipyAVVos72EvJc2SobOkfZg09EG0EvBVhVFSwHBiuHB6k1Lr2ooDr08qpYEOzI0p1bQ2G9X+0pafcXBrI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767721680; c=relaxed/simple;
-	bh=Bmd/tTAgy4ggwTGkAboHVxM35NMUHa8h2aa0uRUIqAM=;
-	h=Date:To:From:Subject:Message-Id; b=qSBnivgBL/uSBjfAV2Y7jo24nYusWewfkFXYWLwKf3fDvgW9DRJyQy2a+EfWzFF0R1nYsQQasBkQ2F6+PU1Qq2YKE1oHQbTWVRfcUMDiEdsEr6Cfmn34ctbDXdOkswEjXV8DI3mh4tgjeXAPFZM8waBoynQLMlSgdR6XyMHb8rY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qyrw+jPJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767722868; c=relaxed/simple;
+	bh=zIP4y6NxTDI/JTVo0wyztRq11SiutvocuWBxau4Xev8=;
+	h=Date:To:From:Subject:Message-Id; b=oQSZ7sCRZa2gRh0xHmhiIK+RNUSJ5mNNq4mmKqYl5xRzKw4sm/8B/aWUnHuELGWryQOba2x9wDAkBuCZLJSpxY7lfVDWDthZtK8R/4JXmxgOgnxRLXD1+cdzZYApLg4PxzlAnjx/thY7fhBBDQJW5Wibcd0OwulMSuXnB81/lo0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=myQmylLI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qyrw+jPJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2706C116C6;
-	Tue,  6 Jan 2026 17:47:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="myQmylLI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA398C116C6;
+	Tue,  6 Jan 2026 18:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767721679;
-	bh=Bmd/tTAgy4ggwTGkAboHVxM35NMUHa8h2aa0uRUIqAM=;
+	s=korg; t=1767722867;
+	bh=zIP4y6NxTDI/JTVo0wyztRq11SiutvocuWBxau4Xev8=;
 	h=Date:To:From:Subject:From;
-	b=Qyrw+jPJvl0vusPik7oNdK3QAqMkuYNiu+dC4njvZqVxGxgS1rbMU4ogTFo7akCCH
-	 mImesFy/gwEggwWq3UxUIMylsRZw+mEJTkXtDLplR/uCzgDQClhQkgG14UOO2rHR2/
-	 EqXiinDh3z1Rhcmd+slqOpRhHlnJoybciw0PgUmc=
-Date: Tue, 06 Jan 2026 09:47:59 -0800
-To: mm-commits@vger.kernel.org,lirongqing@baidu.com,lance.yang@linux.dev,jm@machine-hall.org,tglozar@redhat.com,akpm@linux-foundation.org
+	b=myQmylLISkbow1tQbiCGIZpIKTI5DDRbuKeTWM2f7jLLge2/RAm6IupQCyuBbxN98
+	 F0Ek6ZdggwPsH5Ht6yszLm6MnsZ2M9tRy9Tst7v6wXJVllDEPhERjMqzDNAp40ZRCg
+	 kwn0NbRQBIDn099AeruHOfXS4awHb6y+BbgshPBY=
+Date: Tue, 06 Jan 2026 10:07:47 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,rppt@kernel.org,rientjes@google.com,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-kconfigdebug-fix-bootparam_hung_task_panic-comment.patch added to mm-nonmm-unstable branch
-Message-Id: <20260106174759.B2706C116C6@smtp.kernel.org>
+Subject: + mm-page_alloc-ignore-the-exact-initial-compaction-result.patch added to mm-new branch
+Message-Id: <20260106180747.AA398C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: fix BOOTPARAM_HUNG_TASK_PANIC comment
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-kconfigdebug-fix-bootparam_hung_task_panic-comment.patch
+     Subject: mm/page_alloc: ignore the exact initial compaction result
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_alloc-ignore-the-exact-initial-compaction-result.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kconfigdebug-fix-bootparam_hung_task_panic-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-ignore-the-exact-initial-compaction-result.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,50 +66,124 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tomas Glozar <tglozar@redhat.com>
-Subject: lib/Kconfig.debug: fix BOOTPARAM_HUNG_TASK_PANIC comment
-Date: Tue, 6 Jan 2026 15:01:40 +0100
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm/page_alloc: ignore the exact initial compaction result
+Date: Tue, 06 Jan 2026 12:52:36 +0100
 
-The comment for CONFIG_BOOTPARAM_HUNG_TASK_PANIC says:
+Patch series "tweaks for __alloc_pages_slowpath()", v3.
 
-   Say N if unsure.
 
-but since commit 9544f9e6947f ("hung_task: panic when there are more than
-N hung tasks at the same time"), N is not a valid value for the option,
-leading to a warning at build time:
+This patch (of 3):
 
-   .config:11736:warning: symbol value 'n' invalid for BOOTPARAM_HUNG_TASK_PANIC
+For allocations that are of costly order and __GFP_NORETRY (and can
+perform compaction) we attempt direct compaction first.  If that fails, we
+continue with a single round of direct reclaim+compaction (as for other
+__GFP_NORETRY allocations, except the compaction is of lower priority),
+with two exceptions that fail immediately:
 
-as well as an error when given to menuconfig.
+- __GFP_THISNODE is specified, to prevent zone_reclaim_mode-like
+  behavior for e.g. THP page faults
 
-Fix the comment to say '0' instead of 'N'.
+- compaction failed because it was deferred (i.e. has been failing
+  recently so further attempts are not done for a while) or skipped,
+  which means there are insufficient free base pages to defragment to
+  begin with
 
-Link: https://lkml.kernel.org/r/20260106140140.136446-1-tglozar@redhat.com
-Fixes: 9544f9e6947f ("hung_task: panic when there are more than N hung tasks at the same time")
-Signed-off-by: Tomas Glozar <tglozar@redhat.com>
-Reported-by: Johnny Mnemonic <jm@machine-hall.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Li RongQing <lirongqing@baidu.com>
+Upon closer inspection, the second condition has a somewhat flawed
+reasoning.  If there are not enough base pages and reclaim could create
+them, we instead fail.  When there are enough base pages and compaction
+has already ran and failed, we proceed and hope that reclaim and the
+subsequent compaction attempt will succeed.  But it's unclear why they
+should and whether it will be as inexpensive as intended.
+
+It might make therefore more sense to just fail unconditionally after the
+initial compaction attempt.  However that would change the semantics of
+__GFP_NORETRY to attempt reclaim at least once.
+
+Alternatively we can remove the compaction result checks and proceed with
+the single reclaim and (lower priority) compaction attempt, leaving only
+the __GFP_THISNODE exception for failing immediately.
+
+Link: https://lkml.kernel.org/r/20260106-thp-thisnode-tweak-v3-0-f5d67c21a193@suse.cz
+Link: https://lkml.kernel.org/r/20260106-thp-thisnode-tweak-v3-1-f5d67c21a193@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   34 ++++++----------------------------
+ 1 file changed, 6 insertions(+), 28 deletions(-)
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-fix-bootparam_hung_task_panic-comment
-+++ a/lib/Kconfig.debug
-@@ -1274,7 +1274,7 @@ config BOOTPARAM_HUNG_TASK_PANIC
- 	  high-availability systems that have uptime guarantees and
- 	  where a hung tasks must be resolved ASAP.
+--- a/mm/page_alloc.c~mm-page_alloc-ignore-the-exact-initial-compaction-result
++++ a/mm/page_alloc.c
+@@ -4806,43 +4806,21 @@ restart:
+ 		 */
+ 		if (costly_order && (gfp_mask & __GFP_NORETRY)) {
+ 			/*
+-			 * If allocating entire pageblock(s) and compaction
+-			 * failed because all zones are below low watermarks
+-			 * or is prohibited because it recently failed at this
+-			 * order, fail immediately unless the allocator has
+-			 * requested compaction and reclaim retry.
+-			 *
+-			 * Reclaim is
+-			 *  - potentially very expensive because zones are far
+-			 *    below their low watermarks or this is part of very
+-			 *    bursty high order allocations,
+-			 *  - not guaranteed to help because isolate_freepages()
+-			 *    may not iterate over freed pages as part of its
+-			 *    linear scan, and
+-			 *  - unlikely to make entire pageblocks free on its
+-			 *    own.
+-			 */
+-			if (compact_result == COMPACT_SKIPPED ||
+-			    compact_result == COMPACT_DEFERRED)
+-				goto nopage;
+-
+-			/*
+ 			 * THP page faults may attempt local node only first,
+ 			 * but are then allowed to only compact, not reclaim,
+ 			 * see alloc_pages_mpol().
+ 			 *
+-			 * Compaction can fail for other reasons than those
+-			 * checked above and we don't want such THP allocations
+-			 * to put reclaim pressure on a single node in a
+-			 * situation where other nodes might have plenty of
+-			 * available memory.
++			 * Compaction has failed above and we don't want such
++			 * THP allocations to put reclaim pressure on a single
++			 * node in a situation where other nodes might have
++			 * plenty of available memory.
+ 			 */
+ 			if (gfp_mask & __GFP_THISNODE)
+ 				goto nopage;
  
--	  Say N if unsure.
-+	  Say 0 if unsure.
- 
- config DETECT_HUNG_TASK_BLOCKER
- 	bool "Dump Hung Tasks Blocker"
+ 			/*
+-			 * Looks like reclaim/compaction is worth trying, but
+-			 * sync compaction could be very expensive, so keep
++			 * Proceed with single round of reclaim/compaction, but
++			 * since sync compaction could be very expensive, keep
+ 			 * using async compaction.
+ 			 */
+ 			compact_priority = INIT_COMPACT_PRIORITY;
 _
 
-Patches currently in -mm which might be from tglozar@redhat.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-lib-kconfigdebug-fix-bootparam_hung_task_panic-comment.patch
+mm-page_alloc-prevent-pcp-corruption-with-smp=n.patch
+mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch
+mm-page_alloc-ignore-the-exact-initial-compaction-result.patch
+mm-page_alloc-refactor-the-initial-compaction-handling.patch
+mm-page_alloc-simplify-__alloc_pages_slowpath-flow.patch
 
