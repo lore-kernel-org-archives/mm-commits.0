@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE10E236435
-	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 01:37:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D0E654723;
+	Tue,  6 Jan 2026 01:48:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767663443; cv=none; b=kzJqWikM6ENtDlcEpvK8Rp82nomtQeWyJHi2vC+rO5wVrQPZwW5lufpm2HdTM9VAKHc8X9v/8HE00OH/UKgS1Tqy6UWq8ne6yM2jI58bmdxGljQoW2HymHaonnjQsKXmfZjr9bpco8K8vFLhLVq1aXeX/MlZSOIXHoGx8baCQq8=
+	t=1767664110; cv=none; b=ZtgLFHoZoPoedkWdVHo4arFEuv0qM0ccklV7pEzSwirHpAbjeQbBPD1eQi/L5PQiw58nlsrQq9+9WdAoYlYvWc7wdAKsyCDVBPQ/1hSlBkcfDlQ+8j4Xq9qIMuIsgyk6JiHHmQpRdmVfrYQkR+fW2lBTgaWG5n5STIXbmhBu7RQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767663443; c=relaxed/simple;
-	bh=qlv7VP2rEJm/vwlWPyxTRdXDLseuv+sUKLCRlQ7yP6E=;
-	h=Date:To:From:Subject:Message-Id; b=cZQ3wpEaltOfPltrAZPswBoNt3lS9LHNpoqE+Taj2OAi3bTrz6QitBM82SpuBUlLcbin0ggM1eZ569mGFkGFgUWPpvyAd8k2hHWSzrwLUGLAzwC5Aq1Odhwv06Wd+1X+s9A/2CxyHYguNAnEdWcwsj7niaccK8y/qC+glGXVyCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PgfLVHLQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767664110; c=relaxed/simple;
+	bh=l53VTd+SUEtW2mClevWwfpcJcMJZXRxVtzOKWmw3DQA=;
+	h=Date:To:From:Subject:Message-Id; b=Htah2Ouf+j9p5+5oddGZSqTxZyFy7TnMLmTSBNmLLuMLjzJ85ewkvJtFZFOaeqKbuFHOEo8/AMh4BQeLypxGVGdv70VCb0Cetuak5MTJsoiK7QbFro88o1x6uBZCcNGrwY3RZQgiRFhnAvw+VcFeEIWSmFIQMOPrMC54xx9FCw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aF1jiQcL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PgfLVHLQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F4E0C19421;
-	Tue,  6 Jan 2026 01:37:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aF1jiQcL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFC96C116D0;
+	Tue,  6 Jan 2026 01:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767663442;
-	bh=qlv7VP2rEJm/vwlWPyxTRdXDLseuv+sUKLCRlQ7yP6E=;
+	s=korg; t=1767664109;
+	bh=l53VTd+SUEtW2mClevWwfpcJcMJZXRxVtzOKWmw3DQA=;
 	h=Date:To:From:Subject:From;
-	b=PgfLVHLQxswgYMhr3sDa+5dkhWqQMPjE4h0y3yqhX+JkLubmq8cxBmQqV4kmsDbJf
-	 F/AvITzirf9y5AU31+GZiObFB6QzfCxKeDJd8q7zg+zge3ZFgMfBlyGF9QQ+V+TP3l
-	 b5As+vsJ7qIypm5mL09OT6p40PJliQgGIQv0zvZw=
-Date: Mon, 05 Jan 2026 17:37:21 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,swilczek.lx@gmail.com,akpm@linux-foundation.org
+	b=aF1jiQcLg95m0D63pwyUHyG9dQSBBK3wPbhrq0Wnci+zPq6aFAEq4QO5ao/0Yyak7
+	 wmeP9iHpvx+pwtWI3sVIo5iMuZYB6lQdpCJVBUSgB0TZR34Sd48pggsgMz853WWQiN
+	 n3LVusCvcIX3zAdb8GIMZULb7pq6bvSx9KrOzEfM=
+Date: Mon, 05 Jan 2026 17:48:29 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,miklos@szeredi.hu,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,j.neuschaefer@gmx.net,jack@suse.cz,david@kernel.org,carnil@debian.org,bschubert@ddn.com,brauner@kernel.org,athul.krishna.kr@protonmail.com,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch added to mm-nonmm-unstable branch
-Message-Id: <20260106013722.6F4E0C19421@smtp.kernel.org>
+Subject: + fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260106014829.CFC96C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix circular locking dependency in ocfs2_acquire_dquot
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
+     Subject: fs/writeback: skip AS_NO_DATA_INTEGRITY mappings in wait_sb_inodes()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,90 +58,111 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Szymon Wilczek <swilczek.lx@gmail.com>
-Subject: ocfs2: fix circular locking dependency in ocfs2_acquire_dquot
-Date: Sat, 27 Dec 2025 18:42:51 +0100
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: fs/writeback: skip AS_NO_DATA_INTEGRITY mappings in wait_sb_inodes()
+Date: Mon, 5 Jan 2026 13:17:27 -0800
 
-Move ocfs2_extend_no_holes() to execute before ocfs2_lock_global_qf() to
-fix a circular locking dependency reported by syzbot.
+Above the while() loop in wait_sb_inodes(), we document that we must wait
+for all pages under writeback for data integrity.  Consequently, if a
+mapping, like fuse, traditionally does not have data integrity semantics,
+there is no need to wait at all; we can simply skip these inodes.
 
-The issue occurs because ocfs2_extend_no_holes() internally calls
-ocfs2_extend_allocation() which starts a transaction (acquiring
-sb_start_intwrite).  When called while holding the global quota file lock,
-this conflicts with mount-time operations that acquire sb_internal first,
-creating the following circular dependency:
+This restores fuse back to prior behavior where syncs are no-ops.  This
+fixes a user regression where if a system is running a faulty fuse server
+that does not reply to issued write requests, this causes wait_sb_inodes()
+to wait forever.
 
-  sb_internal -> ocfs2_sysfile_lock_key -> ocfs2_quota_ip_alloc_sem_key
-
-By moving the quota file extension before acquiring the global quota file
-lock, we ensure that any internal transactions complete before quota locks
-are held, breaking the circular dependency.
-
-Link: https://lkml.kernel.org/r/20251227174251.121668-1-swilczek.lx@gmail.com
-Signed-off-by: Szymon Wilczek <swilczek.lx@gmail.com>
-Reported-by: syzbot+51244a05705883616c95@syzkaller.appspotmail.com
-Tested-by: syzbot+51244a05705883616c95@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=51244a05705883616c95
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lkml.kernel.org/r/20260105211737.4105620-2-joannelkoong@gmail.com
+Fixes: 0c58a97f919c ("fuse: remove tmp folio for writebacks and internal rb tree")
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+Reported-by: Athul Krishna <athul.krishna.kr@protonmail.com>
+Reported-by: J. Neuschäfer <j.neuschaefer@gmx.net>
+Reviewed-by: Bernd Schubert <bschubert@ddn.com>
+Tested-by: J. Neuschäfer <j.neuschaefer@gmx.net>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Bernd Schubert <bschubert@ddn.com>
+Cc: Bonaccorso Salvatore <carnil@debian.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ fs/fs-writeback.c       |    7 ++++++-
+ fs/fuse/file.c          |    4 +++-
+ include/linux/pagemap.h |   11 +++++++++++
+ 3 files changed, 20 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot
-+++ a/fs/ocfs2/quota_global.c
-@@ -822,6 +822,19 @@ static int ocfs2_acquire_dquot(struct dq
- 				  type);
- 	mutex_lock(&dquot->dq_lock);
- 	/*
-+	 * Extend global quota file before acquiring global qf lock to avoid
-+	 * lock inversion with sb_internal (via ocfs2_start_trans).
-+	 */
-+	if (need_alloc) {
-+		WARN_ON(journal_current_handle());
-+		status = ocfs2_extend_no_holes(gqinode, NULL,
-+			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
-+			i_size_read(gqinode));
-+		if (status < 0)
-+			goto out;
-+	}
-+
-+	/*
- 	 * We need an exclusive lock, because we're going to update use count
- 	 * and instantiate possibly new dquot structure
- 	 */
-@@ -843,19 +856,8 @@ static int ocfs2_acquire_dquot(struct dq
- 	OCFS2_DQUOT(dquot)->dq_use_count++;
- 	OCFS2_DQUOT(dquot)->dq_origspace = dquot->dq_dqb.dqb_curspace;
- 	OCFS2_DQUOT(dquot)->dq_originodes = dquot->dq_dqb.dqb_curinodes;
--	if (!dquot->dq_off) {	/* No real quota entry? */
-+	if (!dquot->dq_off)	/* No real quota entry? */
- 		ex = 1;
--		/*
--		 * Add blocks to quota file before we start a transaction since
--		 * locking allocators ranks above a transaction start
--		 */
--		WARN_ON(journal_current_handle());
--		status = ocfs2_extend_no_holes(gqinode, NULL,
--			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
--			i_size_read(gqinode));
--		if (status < 0)
--			goto out_dq;
--	}
+--- a/fs/fs-writeback.c~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/fs/fs-writeback.c
+@@ -2750,8 +2750,13 @@ static void wait_sb_inodes(struct super_
+ 		 * The mapping can appear untagged while still on-list since we
+ 		 * do not have the mapping lock. Skip it here, wb completion
+ 		 * will remove it.
++		 *
++		 * If the mapping does not have data integrity semantics,
++		 * there's no need to wait for the writeout to complete, as the
++		 * mapping cannot guarantee that data is persistently stored.
+ 		 */
+-		if (!mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK))
++		if (!mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK) ||
++		    mapping_no_data_integrity(mapping))
+ 			continue;
  
- 	handle = ocfs2_start_trans(osb,
- 				   ocfs2_calc_global_qinit_credits(sb, type));
+ 		spin_unlock_irq(&sb->s_inode_wblist_lock);
+--- a/fs/fuse/file.c~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/fs/fuse/file.c
+@@ -3200,8 +3200,10 @@ void fuse_init_file_inode(struct inode *
+ 
+ 	inode->i_fop = &fuse_file_operations;
+ 	inode->i_data.a_ops = &fuse_file_aops;
+-	if (fc->writeback_cache)
++	if (fc->writeback_cache) {
+ 		mapping_set_writeback_may_deadlock_on_reclaim(&inode->i_data);
++		mapping_set_no_data_integrity(&inode->i_data);
++	}
+ 
+ 	INIT_LIST_HEAD(&fi->write_files);
+ 	INIT_LIST_HEAD(&fi->queued_writes);
+--- a/include/linux/pagemap.h~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/include/linux/pagemap.h
+@@ -210,6 +210,7 @@ enum mapping_flags {
+ 	AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM = 9,
+ 	AS_KERNEL_FILE = 10,	/* mapping for a fake kernel file that shouldn't
+ 				   account usage to user cgroups */
++	AS_NO_DATA_INTEGRITY = 11, /* no data integrity guarantees */
+ 	/* Bits 16-25 are used for FOLIO_ORDER */
+ 	AS_FOLIO_ORDER_BITS = 5,
+ 	AS_FOLIO_ORDER_MIN = 16,
+@@ -345,6 +346,16 @@ static inline bool mapping_writeback_may
+ 	return test_bit(AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM, &mapping->flags);
+ }
+ 
++static inline void mapping_set_no_data_integrity(struct address_space *mapping)
++{
++	set_bit(AS_NO_DATA_INTEGRITY, &mapping->flags);
++}
++
++static inline bool mapping_no_data_integrity(const struct address_space *mapping)
++{
++	return test_bit(AS_NO_DATA_INTEGRITY, &mapping->flags);
++}
++
+ static inline gfp_t mapping_gfp_mask(const struct address_space *mapping)
+ {
+ 	return mapping->gfp_mask;
 _
 
-Patches currently in -mm which might be from swilczek.lx@gmail.com are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-mailmap-update-email-address-for-szymon-wilczek.patch
-ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
+fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch
 
