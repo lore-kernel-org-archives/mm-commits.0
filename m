@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B3CE3396F7;
-	Tue,  6 Jan 2026 19:18:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62F9F346FA8
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 19:36:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767727123; cv=none; b=dD4CdwBWMeo+ZvS3sIDWEdAUNtffKSEdbfIt/DKltPRLR+ebof4aBTkWDYrb3KojiDh59xEBnYcSUV5ATSRdBGkDAMMVOuybiaab3HUnUL6QmKb1661iAPvvq0gKXi2n3Qe8FvynmqDTwjrqpbSV9H0NuFolNc+zAI1HNIJdp+g=
+	t=1767728209; cv=none; b=Pn9ovfIiTnwtpe6xwiAoJWi0jhqcRoiD0c/+r78l2rnr8R71AKXdnWMA1fAf7V4DnldSUTFpGRhu3losgpWz2Zwid6yCnw3eHILix2cnMKEi0czOvILXPDD90KGOOUdra8xR+N0R3/W4FmRJrGG5se3luichrlqjdHfQwblO4fQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767727123; c=relaxed/simple;
-	bh=rbXyQXMkBBEvg5DAgUSRJAd4b1tBYpX+ExDUAysSWxY=;
-	h=Date:To:From:Subject:Message-Id; b=elAYle206GJN+PSRuf+lb2bYpXMeyIBZ3dD10mTXuI7bqdnZcbVQqSQ4++NadSPEQhDMHoYikMZTKwq1bSH9YF4YgmWl5wuTeO5EzyO1YGtnanQDuFDWeK4VdiYuiatsB8upvsrCGKfcUoQPgOMZdkQflo7hjLijlX/GalKKROg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jJT/hYRp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767728209; c=relaxed/simple;
+	bh=Q/Q++uP6QOMH3ci4/U59h4zBpsCP6m1X99zHBfRNSK8=;
+	h=Date:To:From:Subject:Message-Id; b=bvEZWXgs65xKRwmmoF/2tdXQ2VlYOoGYbdVn/yBGgyofdOrqlA6QTU8zw5ZW4gnirul5LMpla4xMwNa/Osp7oviDymM7BXbapkQ2B1mH/sQz9kpK31T7ByWYOhZ+27CuSVy+ppaOXPBFGErgVLLjoRijRwStYlSaynh0Y0KVkOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D90sFmo6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jJT/hYRp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23367C116C6;
-	Tue,  6 Jan 2026 19:18:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D90sFmo6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4BE7C116C6;
+	Tue,  6 Jan 2026 19:36:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767727123;
-	bh=rbXyQXMkBBEvg5DAgUSRJAd4b1tBYpX+ExDUAysSWxY=;
+	s=korg; t=1767728209;
+	bh=Q/Q++uP6QOMH3ci4/U59h4zBpsCP6m1X99zHBfRNSK8=;
 	h=Date:To:From:Subject:From;
-	b=jJT/hYRp5DMZZjq2L6koXbU2xVBQekHyow/v9l42xz22l2h8Mw8rgvPudWfoGYG4l
-	 +Hufq/IxBW69PoHrBwXJyqVtUBB4u+wZvLN+4FpnDNDJOHUQY0hiHJoUyogbBLi7zu
-	 KVAeYrwGVgSLs6Q+r3MmYx2ZCr9zoMXZXhDzgl84=
-Date: Tue, 06 Jan 2026 11:18:42 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,tj@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,longman@redhat.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,axelrasmussen@google.com,bingjiao@google.com,akpm@linux-foundation.org
+	b=D90sFmo6Eik87x1QNgI7z5ES/f+XE1ilc1tkB7t8ktQdbYBF0gKcMJStQA8A+vV71
+	 lXyBBBHw887j8TOonJRl2L6eELnr0MMJ1Ej9JVe1B6BwfCZ/Nvp4ZhKGYDoTW3WZGI
+	 pjJy6ZPpVjgc+oJlv+AqXou9rNvo9PFDT8Z9pMVA=
+Date: Tue, 06 Jan 2026 11:36:48 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,bingjiao@google.com,axelrasmussen@google.com,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260106191843.23367C116C6@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch removed from -mm tree
+Message-Id: <20260106193648.E4BE7C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,350 +34,125 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/vmscan: fix demotion targets checks in reclaim/demotion
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch
+The quilt patch titled
+     Subject: mm: memory-tiers, numa_emu: enable to create memory tiers using fake numa nodes
+has been removed from the -mm tree.  Its filename was
+     mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Bing Jiao <bingjiao@google.com>
-Subject: mm/vmscan: fix demotion targets checks in reclaim/demotion
-Date: Tue, 6 Jan 2026 07:56:54 +0000
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm: memory-tiers, numa_emu: enable to create memory tiers using fake numa nodes
+Date: Mon, 22 Dec 2025 09:48:32 +0900
 
-Fix two bugs in demote_folio_list() and can_demote() due to incorrect
-demotion target checks in reclaim/demotion.
+Patch series "mm: fix oom-killer not being invoked when demotion is
+enabled", v2.
 
-Commit 7d709f49babc ("vmscan,cgroup: apply mems_effective to reclaim")
-introduces the cpuset.mems_effective check and applies it to can_demote().
-However:
+On systems with multiple memory-tiers consisting of DRAM and CXL memory,
+the OOM killer is not invoked properly.
 
-  1. It does not apply this check in demote_folio_list(), which leads
-     to situations where pages are demoted to nodes that are
-     explicitly excluded from the task's cpuset.mems.
+This patchset includes a fix for the issue and an enhancement that makes
+the issue reproducible with numa emulation.
 
-  2. It checks only the nodes in the immediate next demotion hierarchy
-     and does not check all allowed demotion targets in can_demote().
-     This can cause pages to never be demoted if the nodes in the next
-     demotion hierarchy are not set in mems_effective.
 
-These bugs break resource isolation provided by cpuset.mems.  This is
-visible from userspace because pages can either fail to be demoted
-entirely or are demoted to nodes that are not allowed in multi-tier memory
-systems.
+This patch (of 3):
 
-To address these bugs, update cpuset_node_allowed() and
-mem_cgroup_node_allowed() to return effective_mems, allowing directly
-logic-and operation against demotion targets.  Also update can_demote()
-and demote_folio_list() accordingly.
+This makes it possible to create memory tiers using fake numa nodes
+generated by numa emulation.
 
-Bug 1 reproduction:
-  Assume a system with 4 nodes, where nodes 0-1 are top-tier and
-  nodes 2-3 are far-tier memory. All nodes have equal capacity.
+The "numa_emulation.adistance=" kernel cmdline option allows you to set
+the abstract distance for each NUMA node.
 
-  Test script:
-    echo 1 > /sys/kernel/mm/numa/demotion_enabled
-    mkdir /sys/fs/cgroup/test
-    echo +cpuset > /sys/fs/cgroup/cgroup.subtree_control
-    echo "0-2" > /sys/fs/cgroup/test/cpuset.mems
-    echo $$ > /sys/fs/cgroup/test/cgroup.procs
-    swapoff -a
-    # Expectation: Should respect node 0-2 limit.
-    # Observation: Node 3 shows significant allocation (MemFree drops)
-    stress-ng --oomable --vm 1 --vm-bytes 150% --mbind 0,1
+For example, you can create two fake nodes, each in a different memory
+tier by booting with "numa=fake=2 numa_emulation.adistance=576,704". 
+Here, the abstract distances of node0 and node1 are set to 576 and 706,
+respectively.
 
-Bug 2 reproduction:
-  Assume a system with 6 nodes, where nodes 0-2 are top-tier,
-  node 3 is a far-tier node, and nodes 4-5 are the farthest-tier nodes.
-  All nodes have equal capacity.
+Each memory tier covers an abstract distance chunk size of 128.  Thus,
+nodes with abstract distances between 512 and 639 are classified into the
+same memory tier, and nodes with abstract distances between 640 and 767
+are classified into the next slower memory tier.
 
-  Test script:
-    echo 1 > /sys/kernel/mm/numa/demotion_enabled
-    mkdir /sys/fs/cgroup/test
-    echo +cpuset > /sys/fs/cgroup/cgroup.subtree_control
-    echo "0-2,4-5" > /sys/fs/cgroup/test/cpuset.mems
-    echo $$ > /sys/fs/cgroup/test/cgroup.procs
-    swapoff -a
-    # Expectation: Pages are demoted to Nodes 4-5
-    # Observation: No pages are demoted before oom.
-    stress-ng --oomable --vm 1 --vm-bytes 150% --mbind 0,1,2
+The abstract distance of fake nodes not specified in the parameter will be
+the default DRAM abstract distance of 576.
 
-Link: https://lkml.kernel.org/r/20260106075703.1420072-1-bingjiao@google.com
-Fixes: 7d709f49babc ("vmscan,cgroup: apply mems_effective to reclaim")
-Signed-off-by: Bing Jiao <bingjiao@google.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
+Link: https://lkml.kernel.org/r/20251222004834.10539-1-akinobu.mita@gmail.com
+Link: https://lkml.kernel.org/r/20251222004834.10539-2-akinobu.mita@gmail.com
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@kernel.org>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Michal Koutný" <mkoutny@suse.com>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h     |    6 +--
- include/linux/memcontrol.h |    6 +--
- kernel/cgroup/cpuset.c     |   54 +++++++++++++++++++++++------------
- mm/memcontrol.c            |   16 +++++++++-
- mm/vmscan.c                |   30 +++++++++++--------
- 5 files changed, 74 insertions(+), 38 deletions(-)
+ mm/numa_emulation.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
---- a/include/linux/cpuset.h~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/include/linux/cpuset.h
-@@ -174,7 +174,7 @@ static inline void set_mems_allowed(node
- 	task_unlock(current);
+--- a/mm/numa_emulation.c~mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes
++++ a/mm/numa_emulation.c
+@@ -6,6 +6,9 @@
+ #include <linux/errno.h>
+ #include <linux/topology.h>
+ #include <linux/memblock.h>
++#include <linux/memory-tiers.h>
++#include <linux/module.h>
++#include <linux/node.h>
+ #include <linux/numa_memblks.h>
+ #include <asm/numa.h>
+ #include <acpi/acpi_numa.h>
+@@ -344,6 +347,27 @@ static int __init setup_emu2phys_nid(int
+ 	return max_emu_nid;
  }
  
--extern bool cpuset_node_allowed(struct cgroup *cgroup, int nid);
-+extern void cpuset_nodes_allowed(struct cgroup *cgroup, nodemask_t *mask);
- #else /* !CONFIG_CPUSETS */
- 
- static inline bool cpusets_enabled(void) { return false; }
-@@ -301,9 +301,9 @@ static inline bool read_mems_allowed_ret
- 	return false;
- }
- 
--static inline bool cpuset_node_allowed(struct cgroup *cgroup, int nid)
-+static inline void cpuset_nodes_allowed(struct cgroup *cgroup, nodemask_t *mask)
- {
--	return true;
-+	nodes_copy(*mask, node_states[N_MEMORY]);
- }
- #endif /* !CONFIG_CPUSETS */
- 
---- a/include/linux/memcontrol.h~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/include/linux/memcontrol.h
-@@ -1744,7 +1744,7 @@ static inline void count_objcg_events(st
- 	rcu_read_unlock();
- }
- 
--bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid);
-+void mem_cgroup_node_filter_allowed(struct mem_cgroup *memcg, nodemask_t *mask);
- 
- void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg);
- 
-@@ -1815,9 +1815,9 @@ static inline ino_t page_cgroup_ino(stru
- 	return 0;
- }
- 
--static inline bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid)
-+static inline void mem_cgroup_node_filter_allowed(struct mem_cgroup *memcg,
-+						  nodemask_t *mask)
- {
--	return true;
- }
- 
- static inline void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
---- a/kernel/cgroup/cpuset.c~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/kernel/cgroup/cpuset.c
-@@ -4416,40 +4416,58 @@ bool cpuset_current_node_allowed(int nod
- 	return allowed;
- }
- 
--bool cpuset_node_allowed(struct cgroup *cgroup, int nid)
-+/**
-+ * cpuset_nodes_allowed - return effective_mems mask from a cgroup cpuset.
-+ * @cgroup: pointer to struct cgroup.
-+ * @mask: pointer to struct nodemask_t to be returned.
-+ *
-+ * Returns effective_mems mask from a cgroup cpuset if it is cgroup v2 and
-+ * has cpuset subsys. Otherwise, returns node_states[N_MEMORY].
-+ *
-+ * This function intentionally avoids taking the cpuset_mutex or callback_lock
-+ * when accessing effective_mems. This is because the obtained effective_mems
-+ * is stale immediately after the query anyway (e.g., effective_mems is updated
-+ * immediately after releasing the lock but before returning).
-+ *
-+ * As a result, returned @mask may be empty because cs->effective_mems can be
-+ * rebound during this call. Besides, nodes in @mask are not guaranteed to be
-+ * online due to hot plugins. Callers should check the mask for validity on
-+ * return based on its subsequent use.
-+ **/
-+void cpuset_nodes_allowed(struct cgroup *cgroup, nodemask_t *mask)
- {
- 	struct cgroup_subsys_state *css;
- 	struct cpuset *cs;
--	bool allowed;
- 
- 	/*
- 	 * In v1, mem_cgroup and cpuset are unlikely in the same hierarchy
- 	 * and mems_allowed is likely to be empty even if we could get to it,
--	 * so return true to avoid taking a global lock on the empty check.
-+	 * so return directly to avoid taking a global lock on the empty check.
- 	 */
--	if (!cpuset_v2())
--		return true;
-+	if (!cgroup || !cpuset_v2()) {
-+		nodes_copy(*mask, node_states[N_MEMORY]);
-+		return;
++static int adistance[MAX_NUMNODES];
++module_param_array(adistance, int, NULL, 0400);
++MODULE_PARM_DESC(adistance, "Abstract distance values for each NUMA node");
++
++static int emu_calculate_adistance(struct notifier_block *self,
++				unsigned long nid, void *data)
++{
++	if (adistance[nid]) {
++		int *adist = data;
++
++		*adist = adistance[nid];
++		return NOTIFY_STOP;
 +	}
- 
- 	css = cgroup_get_e_css(cgroup, &cpuset_cgrp_subsys);
--	if (!css)
--		return true;
-+	if (!css) {
-+		nodes_copy(*mask, node_states[N_MEMORY]);
-+		return;
-+	}
- 
- 	/*
--	 * Normally, accessing effective_mems would require the cpuset_mutex
--	 * or callback_lock - but node_isset is atomic and the reference
--	 * taken via cgroup_get_e_css is sufficient to protect css.
--	 *
--	 * Since this interface is intended for use by migration paths, we
--	 * relax locking here to avoid taking global locks - while accepting
--	 * there may be rare scenarios where the result may be innaccurate.
-+	 * The reference taken via cgroup_get_e_css is sufficient to
-+	 * protect css, but it does not imply safe accesses to effective_mems.
- 	 *
--	 * Reclaim and migration are subject to these same race conditions, and
--	 * cannot make strong isolation guarantees, so this is acceptable.
-+	 * Normally, accessing effective_mems would require the cpuset_mutex
-+	 * or callback_lock - but the correctness of this information is stale
-+	 * immediately after the query anyway. We do not acquire the lock
-+	 * during this process to save lock contention in exchange for racing
-+	 * against mems_allowed rebinds.
- 	 */
- 	cs = container_of(css, struct cpuset, css);
--	allowed = node_isset(nid, cs->effective_mems);
-+	nodes_copy(*mask, cs->effective_mems);
- 	css_put(css);
--	return allowed;
- }
- 
++	return NOTIFY_OK;
++}
++
++static struct notifier_block emu_adist_nb = {
++	.notifier_call = emu_calculate_adistance,
++	.priority = INT_MIN,
++};
++
  /**
---- a/mm/memcontrol.c~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/mm/memcontrol.c
-@@ -5624,9 +5624,21 @@ subsys_initcall(mem_cgroup_swap_init);
+  * numa_emulation - Emulate NUMA nodes
+  * @numa_meminfo: NUMA configuration to massage
+@@ -532,6 +556,8 @@ void __init numa_emulation(struct numa_m
+ 		}
+ 	}
  
- #endif /* CONFIG_SWAP */
- 
--bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid)
-+void mem_cgroup_node_filter_allowed(struct mem_cgroup *memcg, nodemask_t *mask)
- {
--	return memcg ? cpuset_node_allowed(memcg->css.cgroup, nid) : true;
-+	nodemask_t allowed;
++	register_mt_adistance_algorithm(&emu_adist_nb);
 +
-+	if (!memcg)
-+		return;
-+
-+	/*
-+	 * Since this interface is intended for use by migration paths, and
-+	 * reclaim and migration are subject to race conditions such as changes
-+	 * in effective_mems and hot-unpluging of nodes, inaccurate allowed
-+	 * mask is acceptable.
-+	 */
-+	cpuset_nodes_allowed(memcg->css.cgroup, &allowed);
-+	nodes_and(*mask, *mask, allowed);
- }
- 
- void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
---- a/mm/vmscan.c~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/mm/vmscan.c
-@@ -344,19 +344,21 @@ static void flush_reclaim_state(struct s
- static bool can_demote(int nid, struct scan_control *sc,
- 		       struct mem_cgroup *memcg)
- {
--	int demotion_nid;
-+	struct pglist_data *pgdat = NODE_DATA(nid);
-+	nodemask_t allowed_mask;
- 
--	if (!numa_demotion_enabled)
-+	if (!pgdat || !numa_demotion_enabled)
- 		return false;
- 	if (sc && sc->no_demotion)
- 		return false;
- 
--	demotion_nid = next_demotion_node(nid);
--	if (demotion_nid == NUMA_NO_NODE)
-+	node_get_allowed_targets(pgdat, &allowed_mask);
-+	if (nodes_empty(allowed_mask))
- 		return false;
- 
--	/* If demotion node isn't in the cgroup's mems_allowed, fall back */
--	return mem_cgroup_node_allowed(memcg, demotion_nid);
-+	/* Filter out nodes that are not in cgroup's mems_allowed. */
-+	mem_cgroup_node_filter_allowed(memcg, &allowed_mask);
-+	return !nodes_empty(allowed_mask);
- }
- 
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
-@@ -1019,7 +1021,8 @@ static struct folio *alloc_demote_folio(
-  * Folios which are not demoted are left on @demote_folios.
-  */
- static unsigned int demote_folio_list(struct list_head *demote_folios,
--				     struct pglist_data *pgdat)
-+				      struct pglist_data *pgdat,
-+				      struct mem_cgroup *memcg)
- {
- 	int target_nid = next_demotion_node(pgdat->node_id);
- 	unsigned int nr_succeeded;
-@@ -1033,7 +1036,6 @@ static unsigned int demote_folio_list(st
- 		 */
- 		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) |
- 			__GFP_NOMEMALLOC | GFP_NOWAIT,
--		.nid = target_nid,
- 		.nmask = &allowed_mask,
- 		.reason = MR_DEMOTION,
- 	};
-@@ -1041,10 +1043,14 @@ static unsigned int demote_folio_list(st
- 	if (list_empty(demote_folios))
- 		return 0;
- 
--	if (target_nid == NUMA_NO_NODE)
--		return 0;
--
- 	node_get_allowed_targets(pgdat, &allowed_mask);
-+	mem_cgroup_node_filter_allowed(memcg, &allowed_mask);
-+	if (nodes_empty(allowed_mask))
-+		return false;
-+
-+	if (!node_isset(target_nid, allowed_mask))
-+		target_nid = node_random(&allowed_mask);
-+	mtc.nid = target_nid;
- 
- 	/* Demotion ignores all cpuset and mempolicy settings */
- 	migrate_pages(demote_folios, alloc_demote_folio, NULL,
-@@ -1566,7 +1572,7 @@ keep:
- 	/* 'folio_list' is always empty here */
- 
- 	/* Migrate folios selected for demotion */
--	nr_demoted = demote_folio_list(&demote_folios, pgdat);
-+	nr_demoted = demote_folio_list(&demote_folios, pgdat, memcg);
- 	nr_reclaimed += nr_demoted;
- 	stat->nr_demoted += nr_demoted;
- 	/* Folios that could not be demoted are still in @demote_folios */
+ 	/* free the copied physical distance table */
+ 	memblock_free(phys_dist, phys_size);
+ 	return;
 _
 
-Patches currently in -mm which might be from bingjiao@google.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch
+mm-numa_emu-add-document-for-numa-emulation.patch
+mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch
 
