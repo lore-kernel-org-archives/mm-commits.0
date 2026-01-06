@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 655FB2BE7B2
-	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:51:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA2AA2C21FF
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:51:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767725488; cv=none; b=tfcfh2iPfx2NcuF8IKNoyH+h9BrEU0AsGXlQfWnTJOl/SBqx+KueSd1r9JEzNVtJKcATnCi0iHFjS6jehocVhJHemD+XPOmgkRPu6bdt5ijHigFyZ8CaMHBsTM+TOFETJi5ODI+HGK4zxbAVl2ypt+Y9iER63imaAelVPJnlA4Y=
+	t=1767725493; cv=none; b=chL42Bfu7dEuBLBVnw/2YJAn8AIW2dFIyO/UbYckFNMRbiFnefI9+CfnmcwRMtmqi9Ofgfxz4211Y016brTcCkA5d4T1B4e6NRvXbnK/sgqCSVQvl6JoOsF3qH6hPbawaVWuac4rRI+qY5rcwm6k2E12E57ZYVY23TIoH3VmBOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767725488; c=relaxed/simple;
-	bh=5PHpKpW/yKy0qzIp3yGaxXs3/J/nxxF60/evZsId64o=;
-	h=Date:To:From:Subject:Message-Id; b=GL7cQkgf72MSZuHsDYRGzoNdaH3oOTiXxsYTppVpOpFQSYgZGXhOP9UYvRaTwkOJ+Gr0w1PLJbgN3E1rVBiXJNw8lw8YaxX5SnAEdskrS90J3Q+OiagcP1Xl0ZaMaxiv6uveoex05BZa6lS1NUyP9O6CLhNaPcR+5AWWW4Rz9/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ixA7lzfk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767725493; c=relaxed/simple;
+	bh=0kw52nnSWkbvgp6eGXEkPV9nN9I2fRvLmwqchYvpaYE=;
+	h=Date:To:From:Subject:Message-Id; b=EFIlyxkCO/273CwVk1rd0wrxgvrlSaNweiV5lTc2DGO31BXekQTezqRbRQWOs9dhEpc+kWJNDYs75QHF/IgYluMMJZBoqvcZTrAcaO6wIjRKiFZIPXCWzgtMmAY5fGHjV3SyFvyJ4/UHNoNr8u4gGmj2WqL4KoFHSO6FEBlS1m4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i0Qwjygc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ixA7lzfk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D471EC116C6;
-	Tue,  6 Jan 2026 18:51:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i0Qwjygc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 661D6C19424;
+	Tue,  6 Jan 2026 18:51:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767725487;
-	bh=5PHpKpW/yKy0qzIp3yGaxXs3/J/nxxF60/evZsId64o=;
+	s=korg; t=1767725491;
+	bh=0kw52nnSWkbvgp6eGXEkPV9nN9I2fRvLmwqchYvpaYE=;
 	h=Date:To:From:Subject:From;
-	b=ixA7lzfkMOgmohA/0yzSQOsy3MwRiuIIJ9iIAMh70GfXGwRjGN8wC2QEE8MI0tNLy
-	 sXPHjShUGLtfMA60SAUImcOoTt2X4us03wncQKH+J4NaO1mIIt97atQIY4RCgFhY+l
-	 JHVCDnCfVtt5iS0QHgNny/ILKEXDVhXdKTnhqJNA=
-Date: Tue, 06 Jan 2026 10:51:27 -0800
+	b=i0Qwjygc6rpT3rruzP++nj46S8kZ3Iy9sl4YZInpAEMlLPFDnGcDxLxfuHtVwjFzI
+	 1QNj/Dw5xaPRvkrOQv4nHjSF2d2aDkzNLcSva/IXFk4nSyIxQRma2/j+pT9KUJQRo0
+	 twXJwHuD8zY+SmOCQn19Iw/l+2QHveQ4eLZK74kg=
+Date: Tue, 06 Jan 2026 10:51:30 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,sj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-use-cgroup-id-instead-of-private-memcg-id.patch added to mm-new branch
-Message-Id: <20260106185127.D471EC116C6@smtp.kernel.org>
+Subject: + mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface.patch added to mm-new branch
+Message-Id: <20260106185131.661D6C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: use cgroup ID instead of private memcg ID
+     Subject: mm/vmscan: use cgroup ID instead of private memcg ID in lru_gen interface
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-use-cgroup-id-instead-of-private-memcg-id.patch
+     mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-use-cgroup-id-instead-of-private-memcg-id.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm/damon: use cgroup ID instead of private memcg ID
-Date: Thu, 25 Dec 2025 15:21:13 -0800
+Subject: mm/vmscan: use cgroup ID instead of private memcg ID in lru_gen interface
+Date: Thu, 25 Dec 2025 15:21:14 -0800
 
-DAMON was using the internal private memcg ID which is meant for tracking
-kernel objects that outlive their cgroup.  Switch to using the public
-cgroup ID instead.
+The LRU gen debugfs interface was using the internal private memcg ID
+which is meant for tracking kernel objects that outlive their cgroup. 
+Switch to using the public cgroup ID instead.
 
-Link: https://lkml.kernel.org/r/20251225232116.294540-6-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20251225232116.294540-7-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: SeongJae Park <sj@kernel.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -86,95 +85,75 @@ Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h    |    4 ++--
- mm/damon/core.c          |    7 ++-----
- mm/damon/ops-common.c    |    2 +-
- mm/damon/sysfs-schemes.c |    8 ++++----
- 4 files changed, 9 insertions(+), 12 deletions(-)
+ mm/vmscan.c |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-use-cgroup-id-instead-of-private-memcg-id
-+++ a/include/linux/damon.h
-@@ -203,7 +203,7 @@ struct damos_quota_goal {
- 		u64 last_psi_total;
- 		struct {
- 			int nid;
--			unsigned short memcg_id;
-+			u64 memcg_id;
- 		};
- 	};
- 	struct list_head list;
-@@ -419,7 +419,7 @@ struct damos_filter {
- 	bool matching;
- 	bool allow;
- 	union {
--		unsigned short memcg_id;
-+		u64 memcg_id;
- 		struct damon_addr_range addr_range;
- 		int target_idx;
- 		struct damon_size_range sz_range;
---- a/mm/damon/core.c~mm-damon-use-cgroup-id-instead-of-private-memcg-id
-+++ a/mm/damon/core.c
-@@ -2094,16 +2094,13 @@ static unsigned long damos_get_node_memc
- 	unsigned long used_pages, numerator;
- 	struct sysinfo i;
- 
--	rcu_read_lock();
--	memcg = mem_cgroup_from_id(goal->memcg_id);
--	if (!memcg || !mem_cgroup_tryget(memcg)) {
--		rcu_read_unlock();
-+	memcg = mem_cgroup_get_from_ino(goal->memcg_id);
-+	if (!memcg) {
- 		if (goal->metric == DAMOS_QUOTA_NODE_MEMCG_USED_BP)
- 			return 0;
- 		else	/* DAMOS_QUOTA_NODE_MEMCG_FREE_BP */
- 			return 10000;
+--- a/mm/vmscan.c~mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface
++++ a/mm/vmscan.c
+@@ -5440,7 +5440,7 @@ static int lru_gen_seq_show(struct seq_f
+ 		if (memcg)
+ 			cgroup_path(memcg->css.cgroup, m->private, PATH_MAX);
+ #endif
+-		seq_printf(m, "memcg %5hu %s\n", mem_cgroup_id(memcg), path);
++		seq_printf(m, "memcg %llu %s\n", mem_cgroup_ino(memcg), path);
  	}
--	rcu_read_unlock();
  
- 	mem_cgroup_flush_stats(memcg);
- 	lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(goal->nid));
---- a/mm/damon/ops-common.c~mm-damon-use-cgroup-id-instead-of-private-memcg-id
-+++ a/mm/damon/ops-common.c
-@@ -274,7 +274,7 @@ bool damos_folio_filter_match(struct dam
- 		if (!memcg)
- 			matched = false;
- 		else
--			matched = filter->memcg_id == mem_cgroup_id(memcg);
-+			matched = filter->memcg_id == mem_cgroup_ino(memcg);
- 		rcu_read_unlock();
- 		break;
- 	case DAMOS_FILTER_TYPE_YOUNG:
---- a/mm/damon/sysfs-schemes.c~mm-damon-use-cgroup-id-instead-of-private-memcg-id
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2494,7 +2494,7 @@ static bool damon_sysfs_memcg_path_eq(st
- 	return false;
+ 	seq_printf(m, " node %5d\n", nid);
+@@ -5525,7 +5525,7 @@ static int run_eviction(struct lruvec *l
+ 	return -EINTR;
  }
  
--static int damon_sysfs_memcg_path_to_id(char *memcg_path, unsigned short *id)
-+static int damon_sysfs_memcg_path_to_id(char *memcg_path, u64 *id)
+-static int run_cmd(char cmd, int memcg_id, int nid, unsigned long seq,
++static int run_cmd(char cmd, u64 memcg_id, int nid, unsigned long seq,
+ 		   struct scan_control *sc, int swappiness, unsigned long opt)
  {
- 	struct mem_cgroup *memcg;
- 	char *path;
-@@ -2509,11 +2509,11 @@ static int damon_sysfs_memcg_path_to_id(
+ 	struct lruvec *lruvec;
+@@ -5536,19 +5536,12 @@ static int run_cmd(char cmd, int memcg_i
+ 		return -EINVAL;
  
- 	for (memcg = mem_cgroup_iter(NULL, NULL, NULL); memcg;
- 			memcg = mem_cgroup_iter(NULL, memcg, NULL)) {
--		/* skip removed memcg */
--		if (!mem_cgroup_id(memcg))
-+		/* skip offlined memcg */
-+		if (!mem_cgroup_online(memcg))
+ 	if (!mem_cgroup_disabled()) {
+-		rcu_read_lock();
+-
+-		memcg = mem_cgroup_from_id(memcg_id);
+-		if (!mem_cgroup_tryget(memcg))
+-			memcg = NULL;
+-
+-		rcu_read_unlock();
+-
++		memcg = mem_cgroup_get_from_ino(memcg_id);
+ 		if (!memcg)
+ 			return -EINVAL;
+ 	}
+ 
+-	if (memcg_id != mem_cgroup_id(memcg))
++	if (memcg_id != mem_cgroup_ino(memcg))
+ 		goto done;
+ 
+ 	sc->target_mem_cgroup = memcg;
+@@ -5615,7 +5608,7 @@ static ssize_t lru_gen_seq_write(struct
+ 		int n;
+ 		int end;
+ 		char cmd, swap_string[5];
+-		unsigned int memcg_id;
++		u64 memcg_id;
+ 		unsigned int nid;
+ 		unsigned long seq;
+ 		unsigned int swappiness;
+@@ -5625,7 +5618,7 @@ static ssize_t lru_gen_seq_write(struct
+ 		if (!*cur)
  			continue;
- 		if (damon_sysfs_memcg_path_eq(memcg, path, memcg_path)) {
--			*id = mem_cgroup_id(memcg);
-+			*id = mem_cgroup_ino(memcg);
- 			found = true;
- 			break;
- 		}
+ 
+-		n = sscanf(cur, "%c %u %u %lu %n %4s %n %lu %n", &cmd, &memcg_id, &nid,
++		n = sscanf(cur, "%c %llu %u %lu %n %4s %n %lu %n", &cmd, &memcg_id, &nid,
+ 			   &seq, &end, swap_string, &end, &opt, &end);
+ 		if (n < 4 || cur[end]) {
+ 			err = -EINVAL;
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
