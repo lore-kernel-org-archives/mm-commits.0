@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA1EE2DECBF
-	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:51:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4052EACEE
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:51:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767725482; cv=none; b=q1xBKNXQeeXnFwfQ9EQjr/Tk9lAinn++QiZxFofcdyFtbiQsQ4eK6ZUm2vrUF0iKHU1kUAhwpV/HxmZDvmT0hR0hQpDTVm3XCRmR5DxkzEHzipMteOehT3vllf8QKhc13E1IA0ie1qwQIFyXHKFcm8OnfCsNydt2sktn7M76rsE=
+	t=1767725485; cv=none; b=ZsIReHcQMSJ2eWbXEgmYIt9TqA3eV14vu0WnYsHB1Bu9jEb5r6qVth0zGhcjvASspI8WKmN0Ti7ZJjk8aCkz7TSq4gfmURXN1wSx4GXP3sF9hHcsrnQ5YPle6eQ2UyxFibt0Som3XFxXsAJ5YQd11CI6rHV6nIbFq41uw1yx3sM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767725482; c=relaxed/simple;
-	bh=URtZDYpCT/19HAtzP5n1WdkLQzBx5QiUZ3S7A69Vm6M=;
-	h=Date:To:From:Subject:Message-Id; b=r8xMGitt6F4RyobF5X0fMsCC/f7CFavXm9NXbpDpUqPYGgUdWsncnwz902XXTOHLxsoJKz3gl9o4TzZ+f6rUgU48EpG5QjNvniG8TUgVp8kjP+/pb2E4nK36F2z+pOAT+g07UQbLs4Sc7Md9xBOnKZQ9ol/O5yCHFm5U7MYksvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qwKRZ2mY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767725485; c=relaxed/simple;
+	bh=qtbRnP9ExB/Wog39mFFmAEh5vDehl6V1Pr8ZHpq5WeA=;
+	h=Date:To:From:Subject:Message-Id; b=KlkQAd3T3xKypq67oioHxWEMM+fGLXHjVuxnH0C5qXABAK+txCyqTYZAGmJclV+rN1LWQAzPVVS3MTQQPD6c8asbwRm29GsnuBG7ITTsnScupXLegin9n6Espi2b2X29ACZKQtUscMMqBJevyov8br8uqTGfLpVghdd8XzPgWog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=osOQbNK9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qwKRZ2mY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5241FC116C6;
-	Tue,  6 Jan 2026 18:51:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="osOQbNK9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB95EC116C6;
+	Tue,  6 Jan 2026 18:51:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767725482;
-	bh=URtZDYpCT/19HAtzP5n1WdkLQzBx5QiUZ3S7A69Vm6M=;
+	s=korg; t=1767725484;
+	bh=qtbRnP9ExB/Wog39mFFmAEh5vDehl6V1Pr8ZHpq5WeA=;
 	h=Date:To:From:Subject:From;
-	b=qwKRZ2mYeI4gDKFlGxNGsnenJmZ5/u4mhYW7tswQjbHo9ocGIS1mlOIpI2hgohJnT
-	 SP1QXmQSyzlTH1+/QgdSPic0eOwTJdQ60+SZuhCpfZUy9eJ4vYpF3T95zBPlzwXfIH
-	 prj9oRw4rO+uLLhj6IOYIN0wp/56YYr8/ei9MIYI=
-Date: Tue, 06 Jan 2026 10:51:21 -0800
+	b=osOQbNK9wpuPBFw1akdJZBknvDTMKO6g+eYPCXC2ZC1ye8MnLfGjtTh8lIypYC2fF
+	 8XyayIhoy6bL11Owwti0pfaDhjXsldhMKxwkrnTBvEc304vK/g/u/aCVol6XiQsxoc
+	 Su7Q8f63OCG6C4r2333MCDwib/b5zs9E2gX83d1U=
+Date: Tue, 06 Jan 2026 10:51:24 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,sj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-mem_cgroup_get_from_ino-returns-null-on-error.patch added to mm-new branch
-Message-Id: <20260106185122.5241FC116C6@smtp.kernel.org>
+Subject: + memcg-use-cgroup_id-instead-of-cgroup_ino-for-memcg-id.patch added to mm-new branch
+Message-Id: <20260106185124.DB95EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: mem_cgroup_get_from_ino() returns NULL on error
+     Subject: memcg: use cgroup_id() instead of cgroup_ino() for memcg ID
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-mem_cgroup_get_from_ino-returns-null-on-error.patch
+     memcg-use-cgroup_id-instead-of-cgroup_ino-for-memcg-id.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-mem_cgroup_get_from_ino-returns-null-on-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-use-cgroup_id-instead-of-cgroup_ino-for-memcg-id.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,15 +67,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: mem_cgroup_get_from_ino() returns NULL on error
-Date: Thu, 25 Dec 2025 15:21:11 -0800
+Subject: memcg: use cgroup_id() instead of cgroup_ino() for memcg ID
+Date: Thu, 25 Dec 2025 15:21:12 -0800
 
-Change mem_cgroup_get_from_ino() to return NULL on error instead of
-ERR_PTR values.  This simplifies the API: NULL indicates failure, and a
-valid pointer indicates success with a CSS reference held that the caller
-must release via mem_cgroup_put().
+Switch mem_cgroup_ino() from using cgroup_ino() to cgroup_id().  The
+cgroup_ino() returns the kernfs inode number while cgroup_id() returns the
+kernfs node ID.  For 64-bit systems, they are the same.  Also
+cgroup_get_from_id() expects 64-bit node ID which is called by
+mem_cgroup_get_from_ino().
 
-Link: https://lkml.kernel.org/r/20251225232116.294540-4-shakeel.butt@linux.dev
+Change the type from unsigned long to u64 to match cgroup_id()'s return
+type, and update the format specifiers accordingly.
+
+Note that the names mem_cgroup_ino() and mem_cgroup_get_from_ino() are now
+misnomers since they deal with cgroup IDs rather than inode numbers.  A
+follow-up patch will rename them.
+
+Link: https://lkml.kernel.org/r/20251225232116.294540-5-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -92,43 +100,85 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c     |    6 ++----
- mm/shrinker_debug.c |    2 +-
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |   10 +++++-----
+ mm/memcontrol.c            |    2 +-
+ mm/shrinker_debug.c        |    7 ++++---
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/mm/memcontrol.c~memcg-mem_cgroup_get_from_ino-returns-null-on-error
+--- a/include/linux/memcontrol.h~memcg-use-cgroup_id-instead-of-cgroup_ino-for-memcg-id
++++ a/include/linux/memcontrol.h
+@@ -836,12 +836,12 @@ static inline unsigned short mem_cgroup_
+ }
+ struct mem_cgroup *mem_cgroup_from_id(unsigned short id);
+ 
+-static inline unsigned long mem_cgroup_ino(struct mem_cgroup *memcg)
++static inline u64 mem_cgroup_ino(struct mem_cgroup *memcg)
+ {
+-	return memcg ? cgroup_ino(memcg->css.cgroup) : 0;
++	return memcg ? cgroup_id(memcg->css.cgroup) : 0;
+ }
+ 
+-struct mem_cgroup *mem_cgroup_get_from_ino(unsigned long ino);
++struct mem_cgroup *mem_cgroup_get_from_ino(u64 ino);
+ 
+ static inline struct mem_cgroup *mem_cgroup_from_seq(struct seq_file *m)
+ {
+@@ -1306,12 +1306,12 @@ static inline struct mem_cgroup *mem_cgr
+ 	return NULL;
+ }
+ 
+-static inline unsigned long mem_cgroup_ino(struct mem_cgroup *memcg)
++static inline u64 mem_cgroup_ino(struct mem_cgroup *memcg)
+ {
+ 	return 0;
+ }
+ 
+-static inline struct mem_cgroup *mem_cgroup_get_from_ino(unsigned long ino)
++static inline struct mem_cgroup *mem_cgroup_get_from_ino(u64 ino)
+ {
+ 	return NULL;
+ }
+--- a/mm/memcontrol.c~memcg-use-cgroup_id-instead-of-cgroup_ino-for-memcg-id
 +++ a/mm/memcontrol.c
-@@ -3624,17 +3624,15 @@ struct mem_cgroup *mem_cgroup_get_from_i
+@@ -3620,7 +3620,7 @@ struct mem_cgroup *mem_cgroup_from_id(un
+ 	return mem_cgroup_from_private_id(id);
+ }
+ 
+-struct mem_cgroup *mem_cgroup_get_from_ino(unsigned long ino)
++struct mem_cgroup *mem_cgroup_get_from_ino(u64 ino)
  {
  	struct cgroup *cgrp;
  	struct cgroup_subsys_state *css;
--	struct mem_cgroup *memcg;
-+	struct mem_cgroup *memcg = NULL;
- 
- 	cgrp = cgroup_get_from_id(ino);
- 	if (IS_ERR(cgrp))
--		return ERR_CAST(cgrp);
-+		return NULL;
- 
- 	css = cgroup_get_e_css(cgrp, &memory_cgrp_subsys);
- 	if (css)
- 		memcg = container_of(css, struct mem_cgroup, css);
--	else
--		memcg = ERR_PTR(-ENOENT);
- 
- 	cgroup_put(cgrp);
- 
---- a/mm/shrinker_debug.c~memcg-mem_cgroup_get_from_ino-returns-null-on-error
+--- a/mm/shrinker_debug.c~memcg-use-cgroup_id-instead-of-cgroup_ino-for-memcg-id
 +++ a/mm/shrinker_debug.c
-@@ -130,7 +130,7 @@ static ssize_t shrinker_debugfs_scan_wri
+@@ -70,7 +70,7 @@ static int shrinker_debugfs_count_show(s
+ 					       memcg_aware ? memcg : NULL,
+ 					       count_per_node);
+ 		if (total) {
+-			seq_printf(m, "%lu", mem_cgroup_ino(memcg));
++			seq_printf(m, "%llu", mem_cgroup_ino(memcg));
+ 			for_each_node(nid)
+ 				seq_printf(m, " %lu", count_per_node[nid]);
+ 			seq_putc(m, '\n');
+@@ -106,7 +106,8 @@ static ssize_t shrinker_debugfs_scan_wri
+ 					   size_t size, loff_t *pos)
+ {
+ 	struct shrinker *shrinker = file->private_data;
+-	unsigned long nr_to_scan = 0, ino, read_len;
++	unsigned long nr_to_scan = 0, read_len;
++	u64 ino;
+ 	struct shrink_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 	};
+@@ -119,7 +120,7 @@ static ssize_t shrinker_debugfs_scan_wri
+ 		return -EFAULT;
+ 	kbuf[read_len] = '\0';
  
- 	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
- 		memcg = mem_cgroup_get_from_ino(ino);
--		if (!memcg || IS_ERR(memcg))
-+		if (!memcg)
- 			return -ENOENT;
+-	if (sscanf(kbuf, "%lu %d %lu", &ino, &nid, &nr_to_scan) != 3)
++	if (sscanf(kbuf, "%llu %d %lu", &ino, &nid, &nr_to_scan) != 3)
+ 		return -EINVAL;
  
- 		if (!mem_cgroup_online(memcg)) {
+ 	if (nid < 0 || nid >= nr_node_ids)
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
