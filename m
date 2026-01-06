@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0689334D386
-	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:07:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23EF033C53A
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:07:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767722868; cv=none; b=trEPOny18+F9cGn9O+cXIeaQ6R3P0L9u7OaXA9wwpFxzXV9PZry99jKIEpHpony3KJTtxic/1Au+EoY6KQnXi0ultipyAVVos72EvJc2SobOkfZg09EG0EvBVhVFSwHBiuHB6k1Lr2ooDr08qpYEOzI0p1bQ2G9X+0pafcXBrI8=
+	t=1767722870; cv=none; b=TWleq0m0ZTyz9T5FYlnWUhrDwtUtQ/MJ+Njgc6HsZdex3EcK9e6SaSjAug2ShABiQPnqOjddg+ss2fZcpJopLcXH5bfMmFjJYyNm6kcO9dDdhFG6P1COweLvQYHn6byH9GhG7ylSgtUQCD8I2Y3YGWPplkzf/GA1F2J+fn0kkCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767722868; c=relaxed/simple;
-	bh=zIP4y6NxTDI/JTVo0wyztRq11SiutvocuWBxau4Xev8=;
-	h=Date:To:From:Subject:Message-Id; b=oQSZ7sCRZa2gRh0xHmhiIK+RNUSJ5mNNq4mmKqYl5xRzKw4sm/8B/aWUnHuELGWryQOba2x9wDAkBuCZLJSpxY7lfVDWDthZtK8R/4JXmxgOgnxRLXD1+cdzZYApLg4PxzlAnjx/thY7fhBBDQJW5Wibcd0OwulMSuXnB81/lo0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=myQmylLI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767722870; c=relaxed/simple;
+	bh=t+JsNh81jTl+35Jwp5VnbsUHvoe8s7sLlJGS32PDa4Y=;
+	h=Date:To:From:Subject:Message-Id; b=H/a0TNaEkzQ28M+m099YG8Kd+GnXRkoyODkBSxXwS23fuxNkWBuEHqbL/uoEBMKWNGvc7Kc1n0IbqVwUqoZ8BRO45xOtaum9Tdwez5xZ/suwQyvfnBsUzDnczyDfbzgVWYR7OE3X9P591i1s0wRCqgGdQ+vxGE4gbxW2BJfdw8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rqh/+OlI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="myQmylLI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA398C116C6;
-	Tue,  6 Jan 2026 18:07:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rqh/+OlI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3CCCC116C6;
+	Tue,  6 Jan 2026 18:07:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767722867;
-	bh=zIP4y6NxTDI/JTVo0wyztRq11SiutvocuWBxau4Xev8=;
+	s=korg; t=1767722869;
+	bh=t+JsNh81jTl+35Jwp5VnbsUHvoe8s7sLlJGS32PDa4Y=;
 	h=Date:To:From:Subject:From;
-	b=myQmylLISkbow1tQbiCGIZpIKTI5DDRbuKeTWM2f7jLLge2/RAm6IupQCyuBbxN98
-	 F0Ek6ZdggwPsH5Ht6yszLm6MnsZ2M9tRy9Tst7v6wXJVllDEPhERjMqzDNAp40ZRCg
-	 kwn0NbRQBIDn099AeruHOfXS4awHb6y+BbgshPBY=
-Date: Tue, 06 Jan 2026 10:07:47 -0800
+	b=rqh/+OlI427rlGLjs7Fz7CGyqsoeWmF5D4RJZ3eJfYilduZWiSUcJNYp2mZsK1FWo
+	 Xz6SWakOWoMjsr1dPwSoCluajTNSo9iNn65Z6MNtB9ftwU6wm6t340OaXcL/5m2tOt
+	 +50yCdQplFFF5CJ6D9h5icyzBZWpFfZFy7tdV7+Y=
+Date: Tue, 06 Jan 2026 10:07:49 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,rppt@kernel.org,rientjes@google.com,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-ignore-the-exact-initial-compaction-result.patch added to mm-new branch
-Message-Id: <20260106180747.AA398C116C6@smtp.kernel.org>
+Subject: + mm-page_alloc-refactor-the-initial-compaction-handling.patch added to mm-new branch
+Message-Id: <20260106180749.D3CCCC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: ignore the exact initial compaction result
+     Subject: mm/page_alloc: refactor the initial compaction handling
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-ignore-the-exact-initial-compaction-result.patch
+     mm-page_alloc-refactor-the-initial-compaction-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-ignore-the-exact-initial-compaction-result.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-refactor-the-initial-compaction-handling.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,52 +67,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/page_alloc: ignore the exact initial compaction result
-Date: Tue, 06 Jan 2026 12:52:36 +0100
+Subject: mm/page_alloc: refactor the initial compaction handling
+Date: Tue, 06 Jan 2026 12:52:37 +0100
 
-Patch series "tweaks for __alloc_pages_slowpath()", v3.
+The initial direct compaction done in some cases in
+__alloc_pages_slowpath() stands out from the main retry loop of reclaim +
+compaction.
 
+We can simplify this by instead skipping the initial reclaim attempt via a
+new local variable compact_first, and handle the compact_prority as
+necessary to match the original behavior.  No functional change intended.
 
-This patch (of 3):
-
-For allocations that are of costly order and __GFP_NORETRY (and can
-perform compaction) we attempt direct compaction first.  If that fails, we
-continue with a single round of direct reclaim+compaction (as for other
-__GFP_NORETRY allocations, except the compaction is of lower priority),
-with two exceptions that fail immediately:
-
-- __GFP_THISNODE is specified, to prevent zone_reclaim_mode-like
-  behavior for e.g. THP page faults
-
-- compaction failed because it was deferred (i.e. has been failing
-  recently so further attempts are not done for a while) or skipped,
-  which means there are insufficient free base pages to defragment to
-  begin with
-
-Upon closer inspection, the second condition has a somewhat flawed
-reasoning.  If there are not enough base pages and reclaim could create
-them, we instead fail.  When there are enough base pages and compaction
-has already ran and failed, we proceed and hope that reclaim and the
-subsequent compaction attempt will succeed.  But it's unclear why they
-should and whether it will be as inexpensive as intended.
-
-It might make therefore more sense to just fail unconditionally after the
-initial compaction attempt.  However that would change the semantics of
-__GFP_NORETRY to attempt reclaim at least once.
-
-Alternatively we can remove the compaction result checks and proceed with
-the single reclaim and (lower priority) compaction attempt, leaving only
-the __GFP_THISNODE exception for failing immediately.
-
-Link: https://lkml.kernel.org/r/20260106-thp-thisnode-tweak-v3-0-f5d67c21a193@suse.cz
-Link: https://lkml.kernel.org/r/20260106-thp-thisnode-tweak-v3-1-f5d67c21a193@suse.cz
+Link: https://lkml.kernel.org/r/20260106-thp-thisnode-tweak-v3-2-f5d67c21a193@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -122,61 +95,173 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   34 ++++++----------------------------
- 1 file changed, 6 insertions(+), 28 deletions(-)
+ include/linux/gfp.h |    8 ++-
+ mm/page_alloc.c     |  100 ++++++++++++++++++++----------------------
+ 2 files changed, 55 insertions(+), 53 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-ignore-the-exact-initial-compaction-result
+--- a/include/linux/gfp.h~mm-page_alloc-refactor-the-initial-compaction-handling
++++ a/include/linux/gfp.h
+@@ -407,9 +407,15 @@ extern gfp_t gfp_allowed_mask;
+ /* Returns true if the gfp_mask allows use of ALLOC_NO_WATERMARK */
+ bool gfp_pfmemalloc_allowed(gfp_t gfp_mask);
+ 
++/* A helper for checking if gfp includes all the specified flags */
++static inline bool gfp_has_flags(gfp_t gfp, gfp_t flags)
++{
++	return (gfp & flags) == flags;
++}
++
+ static inline bool gfp_has_io_fs(gfp_t gfp)
+ {
+-	return (gfp & (__GFP_IO | __GFP_FS)) == (__GFP_IO | __GFP_FS);
++	return gfp_has_flags(gfp, __GFP_IO | __GFP_FS);
+ }
+ 
+ /*
+--- a/mm/page_alloc.c~mm-page_alloc-refactor-the-initial-compaction-handling
 +++ a/mm/page_alloc.c
-@@ -4806,43 +4806,21 @@ restart:
- 		 */
- 		if (costly_order && (gfp_mask & __GFP_NORETRY)) {
- 			/*
--			 * If allocating entire pageblock(s) and compaction
--			 * failed because all zones are below low watermarks
--			 * or is prohibited because it recently failed at this
--			 * order, fail immediately unless the allocator has
--			 * requested compaction and reclaim retry.
+@@ -4702,7 +4702,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 						struct alloc_context *ac)
+ {
+ 	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
+-	bool can_compact = gfp_compaction_allowed(gfp_mask);
++	bool can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
+ 	bool nofail = gfp_mask & __GFP_NOFAIL;
+ 	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
+ 	struct page *page = NULL;
+@@ -4715,6 +4715,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	unsigned int cpuset_mems_cookie;
+ 	unsigned int zonelist_iter_cookie;
+ 	int reserve_flags;
++	bool compact_first = false;
+ 
+ 	if (unlikely(nofail)) {
+ 		/*
+@@ -4739,6 +4740,19 @@ restart:
+ 	zonelist_iter_cookie = zonelist_iter_begin();
+ 
+ 	/*
++	 * For costly allocations, try direct compaction first, as it's likely
++	 * that we have enough base pages and don't need to reclaim. For non-
++	 * movable high-order allocations, do that as well, as compaction will
++	 * try prevent permanent fragmentation by migrating from blocks of the
++	 * same migratetype.
++	 */
++	if (can_compact && (costly_order || (order > 0 &&
++					ac->migratetype != MIGRATE_MOVABLE))) {
++		compact_first = true;
++		compact_priority = INIT_COMPACT_PRIORITY;
++	}
++
++	/*
+ 	 * The fast path uses conservative alloc_flags to succeed only until
+ 	 * kswapd needs to be woken up, and to avoid the cost of setting up
+ 	 * alloc_flags precisely. So we do that now.
+@@ -4780,53 +4794,6 @@ restart:
+ 	if (page)
+ 		goto got_pg;
+ 
+-	/*
+-	 * For costly allocations, try direct compaction first, as it's likely
+-	 * that we have enough base pages and don't need to reclaim. For non-
+-	 * movable high-order allocations, do that as well, as compaction will
+-	 * try prevent permanent fragmentation by migrating from blocks of the
+-	 * same migratetype.
+-	 * Don't try this for allocations that are allowed to ignore
+-	 * watermarks, as the ALLOC_NO_WATERMARKS attempt didn't yet happen.
+-	 */
+-	if (can_direct_reclaim && can_compact &&
+-			(costly_order ||
+-			   (order > 0 && ac->migratetype != MIGRATE_MOVABLE))
+-			&& !gfp_pfmemalloc_allowed(gfp_mask)) {
+-		page = __alloc_pages_direct_compact(gfp_mask, order,
+-						alloc_flags, ac,
+-						INIT_COMPACT_PRIORITY,
+-						&compact_result);
+-		if (page)
+-			goto got_pg;
+-
+-		/*
+-		 * Checks for costly allocations with __GFP_NORETRY, which
+-		 * includes some THP page fault allocations
+-		 */
+-		if (costly_order && (gfp_mask & __GFP_NORETRY)) {
+-			/*
+-			 * THP page faults may attempt local node only first,
+-			 * but are then allowed to only compact, not reclaim,
+-			 * see alloc_pages_mpol().
 -			 *
--			 * Reclaim is
--			 *  - potentially very expensive because zones are far
--			 *    below their low watermarks or this is part of very
--			 *    bursty high order allocations,
--			 *  - not guaranteed to help because isolate_freepages()
--			 *    may not iterate over freed pages as part of its
--			 *    linear scan, and
--			 *  - unlikely to make entire pageblocks free on its
--			 *    own.
+-			 * Compaction has failed above and we don't want such
+-			 * THP allocations to put reclaim pressure on a single
+-			 * node in a situation where other nodes might have
+-			 * plenty of available memory.
 -			 */
--			if (compact_result == COMPACT_SKIPPED ||
--			    compact_result == COMPACT_DEFERRED)
+-			if (gfp_mask & __GFP_THISNODE)
 -				goto nopage;
 -
 -			/*
- 			 * THP page faults may attempt local node only first,
- 			 * but are then allowed to only compact, not reclaim,
- 			 * see alloc_pages_mpol().
- 			 *
--			 * Compaction can fail for other reasons than those
--			 * checked above and we don't want such THP allocations
--			 * to put reclaim pressure on a single node in a
--			 * situation where other nodes might have plenty of
--			 * available memory.
-+			 * Compaction has failed above and we don't want such
-+			 * THP allocations to put reclaim pressure on a single
-+			 * node in a situation where other nodes might have
-+			 * plenty of available memory.
- 			 */
- 			if (gfp_mask & __GFP_THISNODE)
- 				goto nopage;
+-			 * Proceed with single round of reclaim/compaction, but
+-			 * since sync compaction could be very expensive, keep
+-			 * using async compaction.
+-			 */
+-			compact_priority = INIT_COMPACT_PRIORITY;
+-		}
+-	}
+-
+ retry:
+ 	/*
+ 	 * Deal with possible cpuset update races or zonelist updates to avoid
+@@ -4870,10 +4837,12 @@ retry:
+ 		goto nopage;
  
- 			/*
--			 * Looks like reclaim/compaction is worth trying, but
--			 * sync compaction could be very expensive, so keep
-+			 * Proceed with single round of reclaim/compaction, but
-+			 * since sync compaction could be very expensive, keep
- 			 * using async compaction.
- 			 */
- 			compact_priority = INIT_COMPACT_PRIORITY;
+ 	/* Try direct reclaim and then allocating */
+-	page = __alloc_pages_direct_reclaim(gfp_mask, order, alloc_flags, ac,
+-							&did_some_progress);
+-	if (page)
+-		goto got_pg;
++	if (!compact_first) {
++		page = __alloc_pages_direct_reclaim(gfp_mask, order, alloc_flags,
++							ac, &did_some_progress);
++		if (page)
++			goto got_pg;
++	}
+ 
+ 	/* Try direct compaction and then allocating */
+ 	page = __alloc_pages_direct_compact(gfp_mask, order, alloc_flags, ac,
+@@ -4881,6 +4850,33 @@ retry:
+ 	if (page)
+ 		goto got_pg;
+ 
++	if (compact_first) {
++		/*
++		 * THP page faults may attempt local node only first, but are
++		 * then allowed to only compact, not reclaim, see
++		 * alloc_pages_mpol().
++		 *
++		 * Compaction has failed above and we don't want such THP
++		 * allocations to put reclaim pressure on a single node in a
++		 * situation where other nodes might have plenty of available
++		 * memory.
++		 */
++		if (gfp_has_flags(gfp_mask, __GFP_NORETRY | __GFP_THISNODE))
++			goto nopage;
++
++		/*
++		 * For the initial compaction attempt we have lowered its
++		 * priority. Restore it for further retries, if those are
++		 * allowed. With __GFP_NORETRY there will be a single round of
++		 * reclaim and compaction with the lowered priority.
++		 */
++		if (!(gfp_mask & __GFP_NORETRY))
++			compact_priority = DEF_COMPACT_PRIORITY;
++
++		compact_first = false;
++		goto retry;
++	}
++
+ 	/* Do not loop if specifically requested */
+ 	if (gfp_mask & __GFP_NORETRY)
+ 		goto nopage;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
