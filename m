@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8C2234844F
-	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 19:36:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BF363446C8
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 20:39:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767728213; cv=none; b=ei/H2ee0nW6NBOx2Oz7CPedYrBR4f12THvnC9NpnePVL84XOtvgnqRjwv38RRQVzJWbro+ZS8rrGx2m0DlYTiZwoyL2EoZGRRE0Qu9FDq7lbMc2vr86Ujfz/4O2B3Wnbw2qMTcfx0oa7hC38YLEzEqeUUnkHrR3g0yT/ujIqCH8=
+	t=1767731978; cv=none; b=PL1mgS7r5XLlSZHhIsEEyLG0zwfuxSpgAL4c/6LOzpzJr7PpElK437D9ylFETnx9LlHn6FXENyZi8H8B2rnwwTdOjhANJYpHYbNot3ouiiBl+RU2UDmlNSYv7kQ1uLZ8mnj8lfXPCeNaR4i2mfrsegQ9/m5QcRb5ycimjkg2/6c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767728213; c=relaxed/simple;
-	bh=JBdUf+aPwPN8Kpq0TvVDQMHZtIzW/Nc0gWHiCawYZjo=;
-	h=Date:To:From:Subject:Message-Id; b=bZZpWRW3uIDy6SVSfXLj94n37xVyp7fi02kF5B+avKdxtBREFJw567Hf0c5tMBB6cqLMdX8dwMOZHp8rgg9npQd58nX2x2ruWqLHmIjJiPkMktXwSAytyF3vsIfJtkmsG2KWREIBXeiHgUdGIpU+IoUOrxBckYGPaLNY9TdOJGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nh8FEw9r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767731978; c=relaxed/simple;
+	bh=sIvbKK7hOZoV18tu0SB5kC88zxt3GStCDX95AeP7sIU=;
+	h=Date:To:From:Subject:Message-Id; b=CrxZc6sOSOXgXiewu2BD2ZYfRy9agiCoyyqakcBYtcslS1W0LU58VChkZ4ciOp5w39vGyb6jVgMNyCE75gvba1WrFNtju0AVF9l9eldmZ8e10Il8GgLE31uWLcTgbOD09ObCSxSXtME3EQ1phNPTGWcAKvhq5KpAQ+zf6SS5HQE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ncSPNt69; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nh8FEw9r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7474EC116C6;
-	Tue,  6 Jan 2026 19:36:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ncSPNt69"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB08CC116C6;
+	Tue,  6 Jan 2026 20:39:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767728212;
-	bh=JBdUf+aPwPN8Kpq0TvVDQMHZtIzW/Nc0gWHiCawYZjo=;
+	s=korg; t=1767731977;
+	bh=sIvbKK7hOZoV18tu0SB5kC88zxt3GStCDX95AeP7sIU=;
 	h=Date:To:From:Subject:From;
-	b=nh8FEw9rYI0RArgkiicFZmK1JaQRL2iFAmX7NJJDQL9rvbZwqKErK7o3q+0EyhiiR
-	 0JUWQIpiUtUSlTYgT22qVI2kpdhXiHg4Ve7LpNnEr7Lb2ONE4wlIG2eoXnRVcrVuU+
-	 JI6AZVeHJkwrSIVpajfFczqC/4vL1ymHEJ0aZ5NM=
-Date: Tue, 06 Jan 2026 11:36:51 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,bingjiao@google.com,axelrasmussen@google.com,akinobu.mita@gmail.com,akpm@linux-foundation.org
+	b=ncSPNt69NUhJsURRPaveeTBRULOvnR4iJgnCY+LW91FxWn810mhGNMSiAE9K3p3DW
+	 scsycThSUGHfSxkuNG3uZ7FedhqcCMlAp5mDd5+cT0xZUaI+2eS2sELEqLIeWKWP0r
+	 NVEz5UBHaRWmG9f0LbuESPIQGuPfTR5NEQojCgMQ=
+Date: Tue, 06 Jan 2026 12:39:37 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,kartikey406@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch removed from -mm tree
-Message-Id: <20260106193652.7474EC116C6@smtp.kernel.org>
+Subject: + ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch added to mm-nonmm-unstable branch
+Message-Id: <20260106203937.CB08CC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,101 +34,103 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/vmscan: don't demote if there is not enough free memory in the lower memory tier
-has been removed from the -mm tree.  Its filename was
-     mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch
+The patch titled
+     Subject: ocfs2: add check for free bits before allocation in ocfs2_move_extent()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mm/vmscan: don't demote if there is not enough free memory in the lower memory tier
-Date: Mon, 22 Dec 2025 09:48:34 +0900
+From: Deepanshu Kartikey <kartikey406@gmail.com>
+Subject: ocfs2: add check for free bits before allocation in ocfs2_move_extent()
+Date: Sun, 4 Jan 2026 19:05:04 +0530
 
-On systems with multiple memory-tiers consisting of DRAM and CXL memory,
-the OOM killer is not invoked properly.
+Add a check to verify the group descriptor has enough free bits before
+attempting allocation in ocfs2_move_extent().  This prevents a kernel
+BUG_ON crash in ocfs2_block_group_set_bits() when the move_extents ioctl
+is called on a crafted or corrupted filesystem.
 
-Here's the command to reproduce:
+The existing validation in ocfs2_validate_gd_self() only checks static
+metadata consistency (bg_free_bits_count <= bg_bits) when the descriptor
+is first read from disk.  However, during move_extents operations,
+multiple allocations can exhaust the free bits count below the requested
+allocation size, triggering BUG_ON(le16_to_cpu(bg->bg_free_bits_count) <
+num_bits).
 
-$ sudo swapoff -a
-$ stress-ng --oomable -v --memrate 20 --memrate-bytes 10G \
-    --memrate-rd-mbs 1 --memrate-wr-mbs 1
+The debug trace shows the issue clearly:
+  - Block group 32 validated with bg_free_bits_count=427
+  - Repeated allocations decreased count: 427 -> 171 -> 43 -> ... -> 1
+  - Final request for 2 bits with only 1 available triggers BUG_ON
 
-The memory usage is the number of workers specified with the --memrate
-option multiplied by the buffer size specified with the --memrate-bytes
-option, so please adjust it so that it exceeds the total size of the
-installed DRAM and CXL memory.
+By adding an early check in ocfs2_move_extent() right after
+ocfs2_find_victim_alloc_group(), we return -ENOSPC gracefully instead of
+crashing the kernel.  This also avoids unnecessary work in
+ocfs2_probe_alloc_group() and __ocfs2_move_extent() when the allocation
+will fail.
 
-If swap is disabled, you can usually expect the OOM killer to terminate
-the stress-ng process when memory usage approaches the installed memory
-size.
-
-However, if multiple memory-tiers exist (multiple
-/sys/devices/virtual/memory_tiering/memory_tier<N> directories exist) and
-/sys/kernel/mm/numa/demotion_enabled is true, the OOM killer will not be
-invoked and the system will become inoperable, regardless of whether MGLRU
-is enabled or not.
-
-This issue can be reproduced using NUMA emulation even on systems with
-only DRAM.  You can create two-fake memory-tiers by booting a single-node
-system with "numa=fake=2 numa_emulation.adistance=576,704" kernel
-parameters.
-
-The reason for this issue is that memory allocations do not directly
-trigger the oom-killer, assuming that if the target node has an underlying
-memory tier, it can always be reclaimed by demotion.
-
-So this change avoids this issue by not attempting to demote if the
-underlying node has less free memory than the minimum watermark, and the
-oom-killer will be triggered directly from memory allocations.
-
-Link: https://lkml.kernel.org/r/20251222004834.10539-4-akinobu.mita@gmail.com
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Link: https://lkml.kernel.org/r/20260104133504.14810-1-kartikey406@gmail.com
+Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
+Reported-by: syzbot+7960178e777909060224@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=7960178e777909060224
+Link: https://lore.kernel.org/all/20251231115801.293726-1-kartikey406@gmail.com/T/ [v1]
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ fs/ocfs2/move_extents.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier
-+++ a/mm/vmscan.c
-@@ -356,7 +356,18 @@ static bool can_demote(int nid, struct s
- 		return false;
+--- a/fs/ocfs2/move_extents.c~ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent
++++ a/fs/ocfs2/move_extents.c
+@@ -662,6 +662,12 @@ static int ocfs2_move_extent(struct ocfs
+ 		goto out_commit;
+ 	}
  
- 	/* If demotion node isn't in the cgroup's mems_allowed, fall back */
--	return mem_cgroup_node_allowed(memcg, demotion_nid);
-+	if (mem_cgroup_node_allowed(memcg, demotion_nid)) {
-+		int z;
-+		struct zone *zone;
-+		struct pglist_data *pgdat = NODE_DATA(demotion_nid);
-+
-+		for_each_managed_zone_pgdat(zone, pgdat, z, MAX_NR_ZONES - 1) {
-+			if (zone_watermark_ok(zone, 0, min_wmark_pages(zone),
-+						ZONE_MOVABLE, 0))
-+				return true;
-+		}
++	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
++	if (le16_to_cpu(gd->bg_free_bits_count) < len) {
++		ret = -ENOSPC;
++		goto out_commit;
 +	}
-+	return false;
- }
++
+ 	/*
+ 	 * probe the victim cluster group to find a proper
+ 	 * region to fit wanted movement, it even will perform
+@@ -682,7 +688,6 @@ static int ocfs2_move_extent(struct ocfs
+ 		goto out_commit;
+ 	}
  
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
+-	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
+ 	ret = ocfs2_alloc_dinode_update_counts(gb_inode, handle, gb_bh, len,
+ 					       le16_to_cpu(gd->bg_chain));
+ 	if (ret) {
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from kartikey406@gmail.com are
 
+ocfs2-validate-i_refcount_loc-when-refcount-flag-is-set.patch
+ocfs2-validate-inline-data-i_size-during-inode-read.patch
+ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch
 
