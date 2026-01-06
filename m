@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5363F337BB8;
-	Tue,  6 Jan 2026 17:17:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC29535580B
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 17:28:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767719822; cv=none; b=GNqzlMVBr9RFLaSWZqpeFRS/IoNsKT1yChOL3wMoV/VFHcocq1ubeqrZL01x+EjRMaoq59S4COK8zdqXg/JIv6Qe0BX0K8Q/91vqi3v4A2Mfgh7aNfjtWBdKwOszlwE0t8NB1cSPovAcC84oqUw2EOT9BEBKtCyzrnOAaQ2wUYU=
+	t=1767720489; cv=none; b=Ru0Z0jKwfeRYIRnlaN0qE2HBdLTHCm7iPMHFp0mUd8Dnap8i6vVgDl8vDJB0cNqMU7AlgCtBzwEL2ldp5SbhbCaYCvavpuAJXbHMpTb2PQWlay789Xpvvx5v4DJR3w6jBD4FprPgbRMZzq1EPjkeZ791ZekAlLz34SJdNfJoutg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767719822; c=relaxed/simple;
-	bh=GpUUakj2qAg0mreZfE0T2jsgf7d85KdlNRXMuVpBbG8=;
-	h=Date:To:From:Subject:Message-Id; b=ZLcbiWuNEbInYmbcPsaSxTJr47xplur7iKd60ztnbFSLsBgyzZv2nGuitWoHugdl3VCDuHwg3c61Luf0ByuJ1TwcXScQPXVbbQXIwgr/TiLQ/nTk33ZQV61Xku//ktBpQalM5dfJwF73APfJKmbzulGH7l+dz/yU2JMpf6+1j6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zRmMf3cz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767720489; c=relaxed/simple;
+	bh=dhUofWTOhUeBdfwBDtzxRpAfTg9UpU+/KJzBvAzjzVs=;
+	h=Date:To:From:Subject:Message-Id; b=oby+KeB9PYrTKy/w19fGGx8j9h5Tcuq0Hf4B1xp9YE/ux5RSFmtn4ohMpStQr8dFq8g0Qkpnt8fm8yeHBgf6n5uGm40vFftl5sg0Hcd+xkRhv0ffjOl24wi1uKca/M3cdQ1ZoIeUgePlt9jzD2bSNVfsmfEfuIHDAIOSqcBXyqE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fi/a4R/d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zRmMf3cz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1F4BC19424;
-	Tue,  6 Jan 2026 17:17:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fi/a4R/d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A857BC116C6;
+	Tue,  6 Jan 2026 17:28:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767719822;
-	bh=GpUUakj2qAg0mreZfE0T2jsgf7d85KdlNRXMuVpBbG8=;
+	s=korg; t=1767720488;
+	bh=dhUofWTOhUeBdfwBDtzxRpAfTg9UpU+/KJzBvAzjzVs=;
 	h=Date:To:From:Subject:From;
-	b=zRmMf3cz6miiZIANZx+w84Vx/mN33Li1wf2JXL8sXlIc1XyAEG4MKCkrm00nE46iI
-	 vuJMCZE4AZuc+Py0WhnzcSO9MDyXgf6I3ZIxD5qExdGMEXPVSo3nbX+Lqov7YkBTE+
-	 JMZBvA3MgTOqZMkCIKf6P+G4r5kg7gK7ionN3IXQ=
-Date: Tue, 06 Jan 2026 09:17:01 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pmladek@suse.com,noren@nvidia.com,mbloch@nvidia.com,joel.granados@kernel.org,feng.tang@linux.alibaba.com,gal@nvidia.com,akpm@linux-foundation.org
+	b=Fi/a4R/drrajKOBOr2eN6nj9VuhtXxIIaOWOhKK67ouwZz24zac1/Hu6Th8Ico1ez
+	 bJHYAHNIRe5y3zvdTSs5U/4a7iIJMK/WNmi4gIfaMu78xAlwdAo7lvltHVXf7SvoEQ
+	 PBZeuicBUNi1AL89/HtxuTcDl9PARE29sH1uB1AY=
+Date: Tue, 06 Jan 2026 09:28:08 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,Liam.Howlett@oracle.com,liam.howlett@oracle.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,broonie@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-only-warn-about-deprecated-panic_print-on-write-access.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260106171701.E1F4BC19424@smtp.kernel.org>
+Subject: + tools-testing-selftests-fix-gup_longterm-for-unknown-fs.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260106172808.A857BC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: only warn about deprecated panic_print on write access
+     Subject: tools/testing/selftests: fix gup_longterm for unknown fs
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     panic-only-warn-about-deprecated-panic_print-on-write-access.patch
+     tools-testing-selftests-fix-gup_longterm-for-unknown-fs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-only-warn-about-deprecated-panic_print-on-write-access.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-fix-gup_longterm-for-unknown-fs.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,65 +58,65 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gal Pressman <gal@nvidia.com>
-Subject: panic: only warn about deprecated panic_print on write access
-Date: Tue, 6 Jan 2026 18:33:21 +0200
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: tools/testing/selftests: fix gup_longterm for unknown fs
+Date: Tue, 6 Jan 2026 15:45:47 +0000
 
-The panic_print_deprecated() warning is being triggered on both read and
-write operations to the panic_print parameter.
+Commit 66bce7afbaca ("selftests/mm: fix test result reporting in
+gup_longterm") introduced a small bug causing unknown filesystems to
+always result in a test failure.
 
-This causes spurious warnings when users run 'sysctl -a' to list all
-sysctl values, since that command reads /proc/sys/kernel/panic_print and
-triggers the deprecation notice.
+This is because do_test() was updated to use a common reporting path, but
+this case appears to have been missed.
 
-Modify the handlers to only emit the deprecation warning when the
-parameter is actually being set:
+This is problematic for e.g.  virtme-ng which uses an overlayfs file
+system, causing gup_longterm to appear to fail each time due to a test
+count mismatch:
 
- - sysctl_panic_print_handler(): check 'write' flag before warning.
- - panic_print_get(): remove the deprecation call entirely.
+	# Planned tests != run tests (50 != 46)
+	# Totals: pass:24 fail:0 xfail:0 xpass:0 skip:22 error:0
 
-This way, users are only warned when they actively try to use the
-deprecated parameter, not when passively querying system state.
+The fix is to simply change the return into a break.
 
-Link: https://lkml.kernel.org/r/20260106163321.83586-1-gal@nvidia.com
-Fixes: ee13240cd78b ("panic: add note that panic_print sysctl interface is deprecated")
-Fixes: 2683df6539cb ("panic: add note that 'panic_print' parameter is deprecated")
-Signed-off-by: Gal Pressman <gal@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Reviewed-by: Nimrod Oren <noren@nvidia.com>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260106154547.214907-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Fixes: 66bce7afbaca ("selftests/mm: fix test result reporting in gup_longterm")
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/gup_longterm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/panic.c~panic-only-warn-about-deprecated-panic_print-on-write-access
-+++ a/kernel/panic.c
-@@ -131,7 +131,8 @@ static int proc_taint(const struct ctl_t
- static int sysctl_panic_print_handler(const struct ctl_table *table, int write,
- 			   void *buffer, size_t *lenp, loff_t *ppos)
- {
--	panic_print_deprecated();
-+	if (write)
-+		panic_print_deprecated();
- 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
- }
- 
-@@ -1014,7 +1015,6 @@ static int panic_print_set(const char *v
- 
- static int panic_print_get(char *val, const struct kernel_param *kp)
- {
--	panic_print_deprecated();
- 	return  param_get_ulong(val, kp);
- }
- 
+--- a/tools/testing/selftests/mm/gup_longterm.c~tools-testing-selftests-fix-gup_longterm-for-unknown-fs
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -179,7 +179,7 @@ static void do_test(int fd, size_t size,
+ 		if (rw && shared && fs_is_unknown(fs_type)) {
+ 			ksft_print_msg("Unknown filesystem\n");
+ 			result = KSFT_SKIP;
+-			return;
++			break;
+ 		}
+ 		/*
+ 		 * R/O pinning or pinning in a private mapping is always
 _
 
-Patches currently in -mm which might be from gal@nvidia.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-panic-only-warn-about-deprecated-panic_print-on-write-access.patch
+mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
+tools-testing-selftests-add-tests-for-tgt-src-mremap-merges.patch
+mm-vma-enforce-vma-fork-limit-on-unfaultedfaulted-mremap-merge-too.patch
+tools-testing-selftests-add-forked-un-faulted-vma-merge-tests.patch
+tools-testing-selftests-fix-gup_longterm-for-unknown-fs.patch
 
