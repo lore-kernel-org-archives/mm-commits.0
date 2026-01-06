@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE90133987D
-	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 17:37:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3851C33987D
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 17:37:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767721023; cv=none; b=D09us5eXUJmBdsjRdvWBUqhD+lU2DZ8YMl3ih0TTP2xiK5nXOb1mSsnHttJvCift8Kx7/5eXLNvo0plI1aQk8z9ZdZNjyH4m1+Ta/IOzPPyZBfdpd0DgSAqWxF2Q/psng8JXWPE2iGRhWyHavJEm8QKxIbbtJnXgJHlxMzP1Jq0=
+	t=1767721026; cv=none; b=nIykox1kDuNzCgEBjXNPToBA6b9wmplkOu2VaWFzFnMNuzupzzw867zgBO5TrFdMh6WK4oZux35G/SYDUBjp7FliFWR+YdA+/4kQi9aHzkUHS4r9ID1Leog20dAeOU7lMTjv86ZRzFdpVx7SOEc3QvLL1Bk7WTJhFX1/JBudwbE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767721023; c=relaxed/simple;
-	bh=zPHntQyu/zQ38AfGApZuXds09yaOztgNVWFjxK6BaZA=;
-	h=Date:To:From:Subject:Message-Id; b=BVxj9F7jssmzieh8r/bJ1JUVYweTa6aEPwD5IYDR8VLD1FoREs7nYUwOm/xHoITBpl766MoomcV56kKJPT+DHWayothBqTPY4VF6wDPrCzCy0zy2alcpm3ARvirpEypW8xG+vfdP/jEljh03z1rT2MqFavZtOrRQsj8xfQE/xOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e68v81q+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767721026; c=relaxed/simple;
+	bh=ngeuvBsWq+hGOdQz4W+EJNov/AUQPdAa0XlboExP2hM=;
+	h=Date:To:From:Subject:Message-Id; b=pQONd7BqY6A/A5vAxi6eGVIdZMi2W9R+YJF1eXn9KavvWOfwtQvZVoJBQTL6o0lRZyImNqubMh3Eq0Bp2B6+gXcwXsBlGXfYLtp1hW9hetX2GPV4CUYX+LBZx9pFmvZ36yy6YT0Z1Gg0wjtqLW5svohw5WdKoVuZXk9jj48547M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=atr7D8BO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e68v81q+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABEEEC116C6;
-	Tue,  6 Jan 2026 17:37:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="atr7D8BO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1793C116C6;
+	Tue,  6 Jan 2026 17:37:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767721023;
-	bh=zPHntQyu/zQ38AfGApZuXds09yaOztgNVWFjxK6BaZA=;
+	s=korg; t=1767721026;
+	bh=ngeuvBsWq+hGOdQz4W+EJNov/AUQPdAa0XlboExP2hM=;
 	h=Date:To:From:Subject:From;
-	b=e68v81q+No5hJ/ymTx7x/XMhK0qVzoi6M+Uvo3qFIX0D4Lukx16K9D7QW7qidiej8
-	 wl6a9j9cwRB6v6KUNg3Ar4EeMV23hT1L1eUQZqTC03hxZjXFmmsRfqY9Bb59jaEk66
-	 fZ/83ugrV7mu8C+S0U3H6sYgCVasm3FO1QpJb8Rc=
-Date: Tue, 06 Jan 2026 09:37:03 -0800
+	b=atr7D8BOHoe9FAALGC3yHpizHaIeUPoHWTBXgdJ/p3KYWjF+hstK8ALFr0L/qR31Q
+	 5J09hFkxBikN6wEbMK+Ej6Gsxo2J7GKcT68urswPIm23b+KrvreJ6HFgEp7XPnfknG
+	 IXhDAg4jzDkmto1bUJSqxanXDRvHXepav8G9lHfE=
+Date: Tue, 06 Jan 2026 09:37:05 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,mhocko@suse.com,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,chriscli@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch added to mm-new branch
-Message-Id: <20260106173703.ABEEEC116C6@smtp.kernel.org>
+Subject: + mm-rmap-remove-anon_vma_merge-function.patch added to mm-new branch
+Message-Id: <20260106173705.E1793C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: remove unnecessary root lock dance in anon_vma clone, unmap
+     Subject: mm/rmap: remove anon_vma_merge() function
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
+     mm-rmap-remove-anon_vma_merge-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-remove-anon_vma_merge-function.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,28 +67,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/rmap: remove unnecessary root lock dance in anon_vma clone, unmap
-Date: Tue, 6 Jan 2026 15:04:28 +0000
+Subject: mm/rmap: remove anon_vma_merge() function
+Date: Tue, 6 Jan 2026 15:04:29 +0000
 
-The root anon_vma of all anon_vma's linked to a VMA must by definition be
-the same - a VMA and all of its descendants/ancestors must exist in the
-same CoW chain.
+This function is confusing, we already have the concept of anon_vma merge
+to adjacent VMA's anon_vma's to increase probability of anon_vma
+compatibility and therefore VMA merge (see is_mergeable_anon_vma() etc.),
+as well as anon_vma reuse, along side the usual VMA merge logic.
 
-Commit bb4aa39676f7 ("mm: avoid repeated anon_vma lock/unlock sequences in
-anon_vma_clone()") introduced paranoid checking of the root anon_vma
-remaining the same throughout all AVC's in 2011.
+We can remove the anon_vma check as it is redundant - a merge would not
+have been permitted with removal if the anon_vma's were not the same (and
+in the case of an unfaulted/faulted merge, we would have already set the
+unfaulted VMA's anon_vma to vp->remove->anon_vma in dup_anon_vma()).
 
-I think 15 years later we can safely assume that this is always the case.
+Avoid overloading this term when we're very simply unlinking anon_vma
+state from a removed VMA upon merge.
 
-Additionally, since unfaulted VMAs being cloned from or unlinked are
-no-op's, we can simply lock the anon_vma's associated with this rather
-than doing any specific dance around this.
-
-This removes unnecessary checks and makes it clear that the root anon_vma
-is shared between all anon_vma's in a given VMA's anon_vma_chain.
-
-Link: https://lkml.kernel.org/r/9b5a438237e4ea3b19a986a4f8fddb8848cba54a.1767711638.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/1f5d605c2b35462194782fd17212a4d6c060e278.1767711638.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Chris Li <chriscli@google.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -100,139 +97,56 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   51 +++++++++++++++------------------------------------
- 1 file changed, 15 insertions(+), 36 deletions(-)
+ include/linux/rmap.h             |    7 -------
+ mm/vma.c                         |    2 +-
+ tools/testing/vma/vma_internal.h |    5 -----
+ 3 files changed, 1 insertion(+), 13 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap
-+++ a/mm/rmap.c
-@@ -232,32 +232,6 @@ int __anon_vma_prepare(struct vm_area_st
- 	return -ENOMEM;
+--- a/include/linux/rmap.h~mm-rmap-remove-anon_vma_merge-function
++++ a/include/linux/rmap.h
+@@ -165,13 +165,6 @@ static inline int anon_vma_prepare(struc
+ 	return __anon_vma_prepare(vma);
  }
  
--/*
-- * This is a useful helper function for locking the anon_vma root as
-- * we traverse the vma->anon_vma_chain, looping over anon_vma's that
-- * have the same vma.
-- *
-- * Such anon_vma's should have the same root, so you'd expect to see
-- * just a single mutex_lock for the whole traversal.
-- */
--static inline struct anon_vma *lock_anon_vma_root(struct anon_vma *root, struct anon_vma *anon_vma)
+-static inline void anon_vma_merge(struct vm_area_struct *vma,
+-				  struct vm_area_struct *next)
 -{
--	struct anon_vma *new_root = anon_vma->root;
--	if (new_root != root) {
--		if (WARN_ON_ONCE(root))
--			up_write(&root->rwsem);
--		root = new_root;
--		down_write(&root->rwsem);
--	}
--	return root;
+-	VM_BUG_ON_VMA(vma->anon_vma != next->anon_vma, vma);
+-	unlink_anon_vmas(next);
 -}
 -
--static inline void unlock_anon_vma_root(struct anon_vma *root)
--{
--	if (root)
--		up_write(&root->rwsem);
--}
--
- static void check_anon_vma_clone(struct vm_area_struct *dst,
- 				 struct vm_area_struct *src)
- {
-@@ -310,26 +284,28 @@ static void cleanup_partial_anon_vmas(st
- int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src)
- {
- 	struct anon_vma_chain *avc, *pavc;
--	struct anon_vma *root = NULL;
+ struct anon_vma *folio_get_anon_vma(const struct folio *folio);
  
- 	check_anon_vma_clone(dst, src);
- 
- 	if (!src->anon_vma)
- 		return 0;
- 
-+	check_anon_vma_clone(dst, src);
-+
-+	/* All anon_vma's share the same root. */
-+	anon_vma_lock_write(src->anon_vma);
- 	list_for_each_entry_reverse(pavc, &src->anon_vma_chain, same_vma) {
- 		struct anon_vma *anon_vma;
- 
- 		avc = anon_vma_chain_alloc(GFP_NOWAIT);
- 		if (unlikely(!avc)) {
--			unlock_anon_vma_root(root);
--			root = NULL;
-+			anon_vma_unlock_write(src->anon_vma);
- 			avc = anon_vma_chain_alloc(GFP_KERNEL);
- 			if (!avc)
- 				goto enomem_failure;
-+			anon_vma_lock_write(src->anon_vma);
+ #ifdef CONFIG_MM_ID
+--- a/mm/vma.c~mm-rmap-remove-anon_vma_merge-function
++++ a/mm/vma.c
+@@ -379,7 +379,7 @@ again:
+ 			fput(vp->file);
  		}
- 		anon_vma = pavc->anon_vma;
--		root = lock_anon_vma_root(root, anon_vma);
- 		anon_vma_chain_link(dst, avc, anon_vma);
- 
- 		/*
-@@ -346,7 +322,8 @@ int anon_vma_clone(struct vm_area_struct
- 	}
- 	if (dst->anon_vma)
- 		dst->anon_vma->num_active_vmas++;
--	unlock_anon_vma_root(root);
-+
-+	anon_vma_unlock_write(src->anon_vma);
- 	return 0;
- 
-  enomem_failure:
-@@ -471,17 +448,19 @@ static void cleanup_partial_anon_vmas(st
- void unlink_anon_vmas(struct vm_area_struct *vma)
+ 		if (vp->remove->anon_vma)
+-			anon_vma_merge(vp->vma, vp->remove);
++			unlink_anon_vmas(vp->remove);
+ 		mm->map_count--;
+ 		mpol_put(vma_policy(vp->remove));
+ 		if (!vp->remove2)
+--- a/tools/testing/vma/vma_internal.h~mm-rmap-remove-anon_vma_merge-function
++++ a/tools/testing/vma/vma_internal.h
+@@ -1265,11 +1265,6 @@ static inline void i_mmap_unlock_write(s
  {
- 	struct anon_vma_chain *avc, *next;
--	struct anon_vma *root = NULL;
-+	struct anon_vma *active_anon_vma = vma->anon_vma;
+ }
  
- 	/* Always hold mmap lock, read-lock on unmap possibly. */
- 	mmap_assert_locked(vma->vm_mm);
- 
- 	/* Unfaulted is a no-op. */
--	if (!vma->anon_vma) {
-+	if (!active_anon_vma) {
- 		VM_WARN_ON_ONCE(!list_empty(&vma->anon_vma_chain));
- 		return;
- 	}
- 
-+	anon_vma_lock_write(active_anon_vma);
-+
- 	/*
- 	 * Unlink each anon_vma chained to the VMA.  This list is ordered
- 	 * from newest to oldest, ensuring the root anon_vma gets freed last.
-@@ -489,7 +468,6 @@ void unlink_anon_vmas(struct vm_area_str
- 	list_for_each_entry_safe(avc, next, &vma->anon_vma_chain, same_vma) {
- 		struct anon_vma *anon_vma = avc->anon_vma;
- 
--		root = lock_anon_vma_root(root, anon_vma);
- 		anon_vma_interval_tree_remove(avc, &anon_vma->rb_root);
- 
- 		/*
-@@ -505,13 +483,14 @@ void unlink_anon_vmas(struct vm_area_str
- 		anon_vma_chain_free(avc);
- 	}
- 
--	vma->anon_vma->num_active_vmas--;
-+	active_anon_vma->num_active_vmas--;
- 	/*
- 	 * vma would still be needed after unlink, and anon_vma will be prepared
- 	 * when handle fault.
- 	 */
- 	vma->anon_vma = NULL;
--	unlock_anon_vma_root(root);
-+	anon_vma_unlock_write(active_anon_vma);
-+
- 
- 	/*
- 	 * Iterate the list once more, it now only contains empty and unlinked
+-static inline void anon_vma_merge(struct vm_area_struct *vma,
+-				  struct vm_area_struct *next)
+-{
+-}
+-
+ static inline int userfaultfd_unmap_prep(struct vm_area_struct *vma,
+ 					 unsigned long start,
+ 					 unsigned long end,
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
