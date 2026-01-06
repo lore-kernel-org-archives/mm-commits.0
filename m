@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4CF9340263
-	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:07:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7A1C2C21FC
+	for <mm-commits@vger.kernel.org>; Tue,  6 Jan 2026 18:51:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767722872; cv=none; b=YU+499JmgF1odhuYBD89ATfhKqYV1MWVY5BMh/y6/0P1iVgjjEJ3IqGUYxFmE0vP0f/0Wfs8UmkD0stHmYMXbBf9tulfy4Nw3qX1eFAxYfSrMXktJnpyutv/eZY6r0Qipq1K1nXpPFWJQXq/5kNkBBPbmSquvhP6l1VUdIyKjSA=
+	t=1767725475; cv=none; b=uzRkTnpWNApfgd1QjO0uNPQoNg/FyN3Jy5DGYBLRdCvrVYFSYPC94B7GLIM5xvV3SsriuboevCvrHyXmLzraELSzLonrztlwMMuovsE8a+tAQP8nGR1Kq+O2pc1ph5V0kufjF9hQa/r4VdDe+TPhikLznhl279rQV7XpjQcs6yk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767722872; c=relaxed/simple;
-	bh=XQ4UpHczerWM7NGQlaluLiSVGo4Y4V5KBrvaZ+7h5aU=;
-	h=Date:To:From:Subject:Message-Id; b=nUMzBinRm8ViZbwMFWOcIlNCPFLDfh9JOorfRdcgTviiuBXGVIcjoSkeY5n1g4k+hVj/1AxtZpyQ/fiqok3EfhcdNCqAQSZFyBo+DyvUHQrucuLmJxiz/dKqEs/EUQQ/kNfoHUZS0GVmLPrVrRLwuuv/ShjxJMktWC0rWQ2dQg0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sTmEmiWk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767725475; c=relaxed/simple;
+	bh=ruMhh1LTouxeqOkaEwZu1uILi9n+0zoreabO3ugmTgQ=;
+	h=Date:To:From:Subject:Message-Id; b=ipqNaTlHDPjFYIh+HXJnyHZ04ucIaZ6ZRIwWPZYfkocPfS/q64ontt/+Az4hB4KBwqCXMIK3xkRGISRLk6z3dVlVqP/J+fuBL1dr+/5OPfUjRevskjjbgrSzq4KcK+3g0UFWm16tNjDWqeHFkSOyyBWSRMU8/bsFcCuMP7ZqkoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n8o5rhC/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sTmEmiWk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8361BC116C6;
-	Tue,  6 Jan 2026 18:07:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n8o5rhC/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DD2FC116C6;
+	Tue,  6 Jan 2026 18:51:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767722872;
-	bh=XQ4UpHczerWM7NGQlaluLiSVGo4Y4V5KBrvaZ+7h5aU=;
+	s=korg; t=1767725475;
+	bh=ruMhh1LTouxeqOkaEwZu1uILi9n+0zoreabO3ugmTgQ=;
 	h=Date:To:From:Subject:From;
-	b=sTmEmiWkQZNlixL2vA7rl5S0S8bjUoRWLqsxzULEAwONX2/kb81cFyKmaHqv8UW3l
-	 lz3xZ8RXkq+b1eoVtWqpjIcw6rZiDpvIt+/rAQL+zb67Jo9oNIAKYzyA1xbcEtOKoV
-	 u4KfYAYtl94SZIPXKElTOVTvW+0Wchn8H6yRXozs=
-Date: Tue, 06 Jan 2026 10:07:51 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,rppt@kernel.org,rientjes@google.com,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,vbabka@suse.cz,akpm@linux-foundation.org
+	b=n8o5rhC/HJa48eLS4gOc+X5Qaj1nzVSkDrryF4Uec51OikqQ0ndlxdouYTrNL8Dn9
+	 m0jHJ17zqycC4b3C0uqfIKsmLI6mPBbuJflWobWZYoU1UMftd5iIZanbAhJck7Jh5z
+	 zKxNLGYkoFcGBLgZ91z77e3Iu0RXOaGzlwyZGlMk=
+Date: Tue, 06 Jan 2026 10:51:14 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,sj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-simplify-__alloc_pages_slowpath-flow.patch added to mm-new branch
-Message-Id: <20260106180752.8361BC116C6@smtp.kernel.org>
+Subject: + memcg-introduce-private-id-api-for-in-kernel-users.patch added to mm-new branch
+Message-Id: <20260106185115.4DD2FC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: simplify __alloc_pages_slowpath() flow
+     Subject: memcg: introduce private id API for in-kernel users
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-simplify-__alloc_pages_slowpath-flow.patch
+     memcg-introduce-private-id-api-for-in-kernel-users.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-simplify-__alloc_pages_slowpath-flow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-introduce-private-id-api-for-in-kernel-users.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,140 +66,423 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/page_alloc: simplify __alloc_pages_slowpath() flow
-Date: Tue, 06 Jan 2026 12:52:38 +0100
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: introduce private id API for in-kernel users
+Date: Thu, 25 Dec 2025 15:21:09 -0800
 
-The actions done before entering the main retry loop include waking up
-kswapds and an allocation attempt with the precise alloc_flags.  Then in
-the loop we keep waking up kswapds, and we retry the allocation with flags
-potentially further adjusted by being allowed to use reserves (due to e.g.
-becoming an OOM killer victim).
+Patch series "memcg: separate private and public ID namespaces".
 
-We can adjust the retry loop to keep only one instance of waking up
-kswapds and allocation attempt.  Introduce the can_retry_reserves variable
-for retrying once when we become eligible for reserves.  It is still
-useful not to evaluate reserve_flags immediately for the first allocation
-attempt, because it's better to first try succeed in a non-preferred zone
-above the min watermark before allocating immediately from the preferred
-zone below min watermark.
+The memory cgroup subsystem maintains a private ID infrastructure that
+is decoupled from the cgroup IDs. This private ID system exists because
+some kernel objects (like swap entries and shadow entries in the
+workingset code) can outlive the cgroup they were associated with.
+The motivation is best described in commit 73f576c04b941 ("mm:
+memcontrol: fix cgroup creation failure after many small jobs").
 
-Additionally move the cpuset update checks introduced by e05741fb10c3
-("mm/page_alloc.c: avoid infinite retries caused by cpuset race") further
-down the retry loop.  It's enough to do the checks only before reaching
-any potentially infinite 'goto retry;' loop.
+Unfortunately, some in-kernel users (DAMON, LRU gen debugfs interface,
+shrinker debugfs) started exposing these private IDs to userspace.
+This is problematic because:
 
-There should be no meaningful functional changes.  The change of exact
-moments the retry for reserves and cpuset updates are checked should not
-result in different outomes modulo races with concurrent allocator
-activity.
+1. The private IDs are internal implementation details that could change
+2. Userspace already has access to cgroup IDs through the cgroup
+   filesystem
+3. Using different ID namespaces in different interfaces is confusing
 
-Link: https://lkml.kernel.org/r/20260106-thp-thisnode-tweak-v3-3-f5d67c21a193@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+This series cleans up the memcg ID infrastructure by:
+
+1. Explicitly marking the private ID APIs with "private" in their names
+   to make it clear they are for internal use only (swap/workingset)
+
+2. Making the public cgroup ID APIs (mem_cgroup_id/mem_cgroup_get_from_id)
+   unconditionally available
+
+3. Converting DAMON, LRU gen, and shrinker debugfs interfaces to use
+   the public cgroup IDs instead of the private IDs
+
+4. Removing the now-unused wrapper functions and renaming the public
+   APIs for clarity
+
+After this series:
+- mem_cgroup_private_id() / mem_cgroup_from_private_id() are used for
+  internal kernel objects that outlive their cgroup (swap, workingset)
+- mem_cgroup_id() / mem_cgroup_get_from_id() return the public cgroup ID
+  (from cgroup_id()) for use in userspace-facing interfaces
+
+
+This patch (of 8):
+
+The memory cgroup maintains a private ID infrastructure decoupled from the
+cgroup IDs for swapout records and shadow entries.  The main motivation of
+this private ID infra is best described in the commit 73f576c04b941 ("mm:
+memcontrol: fix cgroup creation failure after many small jobs").
+
+Unfortunately some users have started exposing these private IDs to the
+userspace where they should have used the cgroup IDs which are already
+exposed to the userspace.  Let's rename the memcg ID APIs to explicitly
+mark them private.
+
+No functional change is intended.
+
+Link: https://lkml.kernel.org/r/20251225232116.294540-1-shakeel.butt@linux.dev
+Link: https://lkml.kernel.org/r/20251225232116.294540-2-shakeel.butt@linux.dev
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   41 +++++++++++++++++++++++------------------
- 1 file changed, 23 insertions(+), 18 deletions(-)
+ include/linux/memcontrol.h |   24 +++++++++++++--
+ mm/list_lru.c              |    2 -
+ mm/memcontrol-v1.c         |    6 +--
+ mm/memcontrol-v1.h         |    4 +-
+ mm/memcontrol.c            |   55 +++++++++++++++++++----------------
+ mm/workingset.c            |    8 ++---
+ 6 files changed, 61 insertions(+), 38 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-simplify-__alloc_pages_slowpath-flow
-+++ a/mm/page_alloc.c
-@@ -4716,6 +4716,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	unsigned int zonelist_iter_cookie;
- 	int reserve_flags;
- 	bool compact_first = false;
-+	bool can_retry_reserves = true;
+--- a/include/linux/memcontrol.h~memcg-introduce-private-id-api-for-in-kernel-users
++++ a/include/linux/memcontrol.h
+@@ -65,7 +65,7 @@ struct mem_cgroup_reclaim_cookie {
  
- 	if (unlikely(nofail)) {
+ #define MEM_CGROUP_ID_SHIFT	16
+ 
+-struct mem_cgroup_id {
++struct mem_cgroup_private_id {
+ 	int id;
+ 	refcount_t ref;
+ };
+@@ -191,7 +191,7 @@ struct mem_cgroup {
+ 	struct cgroup_subsys_state css;
+ 
+ 	/* Private memcg ID. Used to ID objects that outlive the cgroup */
+-	struct mem_cgroup_id id;
++	struct mem_cgroup_private_id id;
+ 
+ 	/* Accounted resources */
+ 	struct page_counter memory;		/* Both v1 & v2 */
+@@ -821,13 +821,19 @@ void mem_cgroup_iter_break(struct mem_cg
+ void mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
+ 			   int (*)(struct task_struct *, void *), void *arg);
+ 
+-static inline unsigned short mem_cgroup_id(struct mem_cgroup *memcg)
++static inline unsigned short mem_cgroup_private_id(struct mem_cgroup *memcg)
+ {
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+ 
+ 	return memcg->id.id;
+ }
++struct mem_cgroup *mem_cgroup_from_private_id(unsigned short id);
++
++static inline unsigned short mem_cgroup_id(struct mem_cgroup *memcg)
++{
++	return mem_cgroup_private_id(memcg);
++}
+ struct mem_cgroup *mem_cgroup_from_id(unsigned short id);
+ 
+ #ifdef CONFIG_SHRINKER_DEBUG
+@@ -1287,6 +1293,18 @@ static inline struct mem_cgroup *mem_cgr
+ {
+ 	WARN_ON_ONCE(id);
+ 	/* XXX: This should always return root_mem_cgroup */
++	return NULL;
++}
++
++static inline unsigned short mem_cgroup_private_id(struct mem_cgroup *memcg)
++{
++	return 0;
++}
++
++static inline struct mem_cgroup *mem_cgroup_from_private_id(unsigned short id)
++{
++	WARN_ON_ONCE(id);
++	/* XXX: This should always return root_mem_cgroup */
+ 	return NULL;
+ }
+ 
+--- a/mm/list_lru.c~memcg-introduce-private-id-api-for-in-kernel-users
++++ a/mm/list_lru.c
+@@ -369,7 +369,7 @@ unsigned long list_lru_walk_node(struct
+ 
+ 		xa_for_each(&lru->xa, index, mlru) {
+ 			rcu_read_lock();
+-			memcg = mem_cgroup_from_id(index);
++			memcg = mem_cgroup_from_private_id(index);
+ 			if (!mem_cgroup_tryget(memcg)) {
+ 				rcu_read_unlock();
+ 				continue;
+--- a/mm/memcontrol.c~memcg-introduce-private-id-api-for-in-kernel-users
++++ a/mm/memcontrol.c
+@@ -3554,38 +3554,38 @@ static void memcg_wb_domain_size_changed
+  */
+ 
+ #define MEM_CGROUP_ID_MAX	((1UL << MEM_CGROUP_ID_SHIFT) - 1)
+-static DEFINE_XARRAY_ALLOC1(mem_cgroup_ids);
++static DEFINE_XARRAY_ALLOC1(mem_cgroup_private_ids);
+ 
+-static void mem_cgroup_id_remove(struct mem_cgroup *memcg)
++static void mem_cgroup_private_id_remove(struct mem_cgroup *memcg)
+ {
+ 	if (memcg->id.id > 0) {
+-		xa_erase(&mem_cgroup_ids, memcg->id.id);
++		xa_erase(&mem_cgroup_private_ids, memcg->id.id);
+ 		memcg->id.id = 0;
+ 	}
+ }
+ 
+-void __maybe_unused mem_cgroup_id_get_many(struct mem_cgroup *memcg,
++void __maybe_unused mem_cgroup_private_id_get_many(struct mem_cgroup *memcg,
+ 					   unsigned int n)
+ {
+ 	refcount_add(n, &memcg->id.ref);
+ }
+ 
+-static void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n)
++static void mem_cgroup_private_id_put_many(struct mem_cgroup *memcg, unsigned int n)
+ {
+ 	if (refcount_sub_and_test(n, &memcg->id.ref)) {
+-		mem_cgroup_id_remove(memcg);
++		mem_cgroup_private_id_remove(memcg);
+ 
+ 		/* Memcg ID pins CSS */
+ 		css_put(&memcg->css);
+ 	}
+ }
+ 
+-static inline void mem_cgroup_id_put(struct mem_cgroup *memcg)
++static inline void mem_cgroup_private_id_put(struct mem_cgroup *memcg)
+ {
+-	mem_cgroup_id_put_many(memcg, 1);
++	mem_cgroup_private_id_put_many(memcg, 1);
+ }
+ 
+-struct mem_cgroup *mem_cgroup_id_get_online(struct mem_cgroup *memcg)
++struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg)
+ {
+ 	while (!refcount_inc_not_zero(&memcg->id.ref)) {
  		/*
-@@ -4783,6 +4784,8 @@ restart:
- 			goto nopage;
+@@ -3604,15 +3604,20 @@ struct mem_cgroup *mem_cgroup_id_get_onl
+ }
+ 
+ /**
+- * mem_cgroup_from_id - look up a memcg from a memcg id
++ * mem_cgroup_from_private_id - look up a memcg from a memcg id
+  * @id: the memcg id to look up
+  *
+  * Caller must hold rcu_read_lock().
+  */
+-struct mem_cgroup *mem_cgroup_from_id(unsigned short id)
++struct mem_cgroup *mem_cgroup_from_private_id(unsigned short id)
+ {
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+-	return xa_load(&mem_cgroup_ids, id);
++	return xa_load(&mem_cgroup_private_ids, id);
++}
++
++struct mem_cgroup *mem_cgroup_from_id(unsigned short id)
++{
++	return mem_cgroup_from_private_id(id);
+ }
+ 
+ #ifdef CONFIG_SHRINKER_DEBUG
+@@ -3711,7 +3716,7 @@ static struct mem_cgroup *mem_cgroup_all
+ 	if (!memcg)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	error = xa_alloc(&mem_cgroup_ids, &memcg->id.id, NULL,
++	error = xa_alloc(&mem_cgroup_private_ids, &memcg->id.id, NULL,
+ 			 XA_LIMIT(1, MEM_CGROUP_ID_MAX), GFP_KERNEL);
+ 	if (error)
+ 		goto fail;
+@@ -3771,7 +3776,7 @@ static struct mem_cgroup *mem_cgroup_all
+ 	lru_gen_init_memcg(memcg);
+ 	return memcg;
+ fail:
+-	mem_cgroup_id_remove(memcg);
++	mem_cgroup_private_id_remove(memcg);
+ 	__mem_cgroup_free(memcg);
+ 	return ERR_PTR(error);
+ }
+@@ -3854,7 +3859,7 @@ static int mem_cgroup_css_online(struct
+ 	css_get(css);
+ 
+ 	/*
+-	 * Ensure mem_cgroup_from_id() works once we're fully online.
++	 * Ensure mem_cgroup_from_private_id() works once we're fully online.
+ 	 *
+ 	 * We could do this earlier and require callers to filter with
+ 	 * css_tryget_online(). But right now there are no users that
+@@ -3863,13 +3868,13 @@ static int mem_cgroup_css_online(struct
+ 	 * publish it here at the end of onlining. This matches the
+ 	 * regular ID destruction during offlining.
+ 	 */
+-	xa_store(&mem_cgroup_ids, memcg->id.id, memcg, GFP_KERNEL);
++	xa_store(&mem_cgroup_private_ids, memcg->id.id, memcg, GFP_KERNEL);
+ 
+ 	return 0;
+ offline_kmem:
+ 	memcg_offline_kmem(memcg);
+ remove_id:
+-	mem_cgroup_id_remove(memcg);
++	mem_cgroup_private_id_remove(memcg);
+ 	return -ENOMEM;
+ }
+ 
+@@ -3892,7 +3897,7 @@ static void mem_cgroup_css_offline(struc
+ 
+ 	drain_all_stock(memcg);
+ 
+-	mem_cgroup_id_put(memcg);
++	mem_cgroup_private_id_put(memcg);
+ }
+ 
+ static void mem_cgroup_css_released(struct cgroup_subsys_state *css)
+@@ -4779,7 +4784,7 @@ int mem_cgroup_swapin_charge_folio(struc
+ 
+ 	id = lookup_swap_cgroup_id(entry);
+ 	rcu_read_lock();
+-	memcg = mem_cgroup_from_id(id);
++	memcg = mem_cgroup_from_private_id(id);
+ 	if (!memcg || !css_tryget_online(&memcg->css))
+ 		memcg = get_mem_cgroup_from_mm(mm);
+ 	rcu_read_unlock();
+@@ -5174,22 +5179,22 @@ int __mem_cgroup_try_charge_swap(struct
+ 		return 0;
  	}
  
-+retry:
-+	/* Ensure kswapd doesn't accidentally go to sleep as long as we loop */
- 	if (alloc_flags & ALLOC_KSWAPD)
- 		wake_all_kswapds(order, gfp_mask, ac);
+-	memcg = mem_cgroup_id_get_online(memcg);
++	memcg = mem_cgroup_private_id_get_online(memcg);
  
-@@ -4794,19 +4797,6 @@ restart:
- 	if (page)
- 		goto got_pg;
+ 	if (!mem_cgroup_is_root(memcg) &&
+ 	    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
+ 		memcg_memory_event(memcg, MEMCG_SWAP_MAX);
+ 		memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
+-		mem_cgroup_id_put(memcg);
++		mem_cgroup_private_id_put(memcg);
+ 		return -ENOMEM;
+ 	}
  
--retry:
--	/*
--	 * Deal with possible cpuset update races or zonelist updates to avoid
--	 * infinite retries.
--	 */
--	if (check_retry_cpuset(cpuset_mems_cookie, ac) ||
--	    check_retry_zonelist(zonelist_iter_cookie))
--		goto restart;
--
--	/* Ensure kswapd doesn't accidentally go to sleep as long as we loop */
--	if (alloc_flags & ALLOC_KSWAPD)
--		wake_all_kswapds(order, gfp_mask, ac);
--
- 	reserve_flags = __gfp_pfmemalloc_flags(gfp_mask);
- 	if (reserve_flags)
- 		alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, reserve_flags) |
-@@ -4821,12 +4811,18 @@ retry:
- 		ac->nodemask = NULL;
- 		ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
- 					ac->highest_zoneidx, ac->nodemask);
--	}
+ 	/* Get references for the tail pages, too */
+ 	if (nr_pages > 1)
+-		mem_cgroup_id_get_many(memcg, nr_pages - 1);
++		mem_cgroup_private_id_get_many(memcg, nr_pages - 1);
+ 	mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
  
--	/* Attempt with potentially adjusted zonelist and alloc_flags */
--	page = get_page_from_freelist(gfp_mask, order, alloc_flags, ac);
--	if (page)
--		goto got_pg;
-+		/*
-+		 * The first time we adjust anything due to being allowed to
-+		 * ignore memory policies or watermarks, retry immediately. This
-+		 * allows us to keep the first allocation attempt optimistic so
-+		 * it can succeed in a zone that is still above watermarks.
-+		 */
-+		if (can_retry_reserves) {
-+			can_retry_reserves = false;
-+			goto retry;
-+		}
-+	}
+-	swap_cgroup_record(folio, mem_cgroup_id(memcg), entry);
++	swap_cgroup_record(folio, mem_cgroup_private_id(memcg), entry);
  
- 	/* Caller is not willing to reclaim, we can't balance anything */
- 	if (!can_direct_reclaim)
-@@ -4889,6 +4885,15 @@ retry:
- 			     !(gfp_mask & __GFP_RETRY_MAYFAIL)))
- 		goto nopage;
+ 	return 0;
+ }
+@@ -5206,7 +5211,7 @@ void __mem_cgroup_uncharge_swap(swp_entr
  
-+	/*
-+	 * Deal with possible cpuset update races or zonelist updates to avoid
-+	 * infinite retries. No "goto retry;" can be placed above this check
-+	 * unless it can execute just once.
-+	 */
-+	if (check_retry_cpuset(cpuset_mems_cookie, ac) ||
-+	    check_retry_zonelist(zonelist_iter_cookie))
-+		goto restart;
-+
- 	if (should_reclaim_retry(gfp_mask, order, ac, alloc_flags,
- 				 did_some_progress > 0, &no_progress_loops))
- 		goto retry;
+ 	id = swap_cgroup_clear(entry, nr_pages);
+ 	rcu_read_lock();
+-	memcg = mem_cgroup_from_id(id);
++	memcg = mem_cgroup_from_private_id(id);
+ 	if (memcg) {
+ 		if (!mem_cgroup_is_root(memcg)) {
+ 			if (do_memsw_account())
+@@ -5215,7 +5220,7 @@ void __mem_cgroup_uncharge_swap(swp_entr
+ 				page_counter_uncharge(&memcg->swap, nr_pages);
+ 		}
+ 		mod_memcg_state(memcg, MEMCG_SWAP, -nr_pages);
+-		mem_cgroup_id_put_many(memcg, nr_pages);
++		mem_cgroup_private_id_put_many(memcg, nr_pages);
+ 	}
+ 	rcu_read_unlock();
+ }
+--- a/mm/memcontrol-v1.c~memcg-introduce-private-id-api-for-in-kernel-users
++++ a/mm/memcontrol-v1.c
+@@ -635,14 +635,14 @@ void memcg1_swapout(struct folio *folio,
+ 	 * have an ID allocated to it anymore, charge the closest online
+ 	 * ancestor for the swap instead and transfer the memory+swap charge.
+ 	 */
+-	swap_memcg = mem_cgroup_id_get_online(memcg);
++	swap_memcg = mem_cgroup_private_id_get_online(memcg);
+ 	nr_entries = folio_nr_pages(folio);
+ 	/* Get references for the tail pages, too */
+ 	if (nr_entries > 1)
+-		mem_cgroup_id_get_many(swap_memcg, nr_entries - 1);
++		mem_cgroup_private_id_get_many(swap_memcg, nr_entries - 1);
+ 	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
+ 
+-	swap_cgroup_record(folio, mem_cgroup_id(swap_memcg), entry);
++	swap_cgroup_record(folio, mem_cgroup_private_id(swap_memcg), entry);
+ 
+ 	folio_unqueue_deferred_split(folio);
+ 	folio->memcg_data = 0;
+--- a/mm/memcontrol-v1.h~memcg-introduce-private-id-api-for-in-kernel-users
++++ a/mm/memcontrol-v1.h
+@@ -28,8 +28,8 @@ unsigned long memcg_events(struct mem_cg
+ unsigned long memcg_page_state_output(struct mem_cgroup *memcg, int item);
+ int memory_stat_show(struct seq_file *m, void *v);
+ 
+-void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n);
+-struct mem_cgroup *mem_cgroup_id_get_online(struct mem_cgroup *memcg);
++void mem_cgroup_private_id_get_many(struct mem_cgroup *memcg, unsigned int n);
++struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg);
+ 
+ /* Cgroup v1-specific declarations */
+ #ifdef CONFIG_MEMCG_V1
+--- a/mm/workingset.c~memcg-introduce-private-id-api-for-in-kernel-users
++++ a/mm/workingset.c
+@@ -254,7 +254,7 @@ static void *lru_gen_eviction(struct fol
+ 	hist = lru_hist_from_seq(min_seq);
+ 	atomic_long_add(delta, &lrugen->evicted[hist][type][tier]);
+ 
+-	return pack_shadow(mem_cgroup_id(memcg), pgdat, token, workingset);
++	return pack_shadow(mem_cgroup_private_id(memcg), pgdat, token, workingset);
+ }
+ 
+ /*
+@@ -271,7 +271,7 @@ static bool lru_gen_test_recent(void *sh
+ 
+ 	unpack_shadow(shadow, &memcg_id, &pgdat, token, workingset);
+ 
+-	memcg = mem_cgroup_from_id(memcg_id);
++	memcg = mem_cgroup_from_private_id(memcg_id);
+ 	*lruvec = mem_cgroup_lruvec(memcg, pgdat);
+ 
+ 	max_seq = READ_ONCE((*lruvec)->lrugen.max_seq);
+@@ -395,7 +395,7 @@ void *workingset_eviction(struct folio *
+ 
+ 	lruvec = mem_cgroup_lruvec(target_memcg, pgdat);
+ 	/* XXX: target_memcg can be NULL, go through lruvec */
+-	memcgid = mem_cgroup_id(lruvec_memcg(lruvec));
++	memcgid = mem_cgroup_private_id(lruvec_memcg(lruvec));
+ 	eviction = atomic_long_read(&lruvec->nonresident_age);
+ 	eviction >>= bucket_order;
+ 	workingset_age_nonresident(lruvec, folio_nr_pages(folio));
+@@ -456,7 +456,7 @@ bool workingset_test_recent(void *shadow
+ 	 * would be better if the root_mem_cgroup existed in all
+ 	 * configurations instead.
+ 	 */
+-	eviction_memcg = mem_cgroup_from_id(memcgid);
++	eviction_memcg = mem_cgroup_from_private_id(memcgid);
+ 	if (!mem_cgroup_tryget(eviction_memcg))
+ 		eviction_memcg = NULL;
+ 	rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-page_alloc-prevent-pcp-corruption-with-smp=n.patch
-mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch
-mm-page_alloc-ignore-the-exact-initial-compaction-result.patch
-mm-page_alloc-refactor-the-initial-compaction-handling.patch
-mm-page_alloc-simplify-__alloc_pages_slowpath-flow.patch
+lib-buildid-use-__kernel_read-for-sleepable-context.patch
+mm-damon-core-get-memcg-reference-before-access.patch
+memcg-introduce-private-id-api-for-in-kernel-users.patch
+memcg-expose-mem_cgroup_ino-and-mem_cgroup_get_from_ino-unconditionally.patch
+memcg-mem_cgroup_get_from_ino-returns-null-on-error.patch
+memcg-use-cgroup_id-instead-of-cgroup_ino-for-memcg-id.patch
+mm-damon-use-cgroup-id-instead-of-private-memcg-id.patch
+mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface.patch
+memcg-remove-unused-mem_cgroup_id-and-mem_cgroup_from_id.patch
+memcg-rename-mem_cgroup_ino-to-mem_cgroup_id.patch
 
