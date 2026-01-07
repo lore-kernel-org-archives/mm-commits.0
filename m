@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E04AD36CE0E
-	for <mm-commits@vger.kernel.org>; Wed,  7 Jan 2026 17:26:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00E6238DFCD
+	for <mm-commits@vger.kernel.org>; Wed,  7 Jan 2026 17:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767806805; cv=none; b=ZmxrC6T5Apx8U4j0YOnIuCQlxXsZ9cqfv5qGEwipLtV+TjgXBbBmvGg0vvxMwZ0On/lz1j62NLQHZ5Rt/SfNil6A4ezbU7BdWnofHEzhqAwydYJXQHSws5mBcnrG0TG2qpZlC8hIzfJ1EbXb1VpeESJ37RpbCc7XUNtsdQKU+kg=
+	t=1767806980; cv=none; b=rTDVF0/QNxsEmndz2UcrVJCQoV2lUwHkuyaR7Evz737Fqw76vAKOSuh3WIhfMRbbrccNLji5iLa86qxS81R137wXlC9/nrx91toVJWlXQ9hafqtWhYbsZ/XMBaBA1jiY+Lc0j7RqpN9ufWqz30f15EcSEffHxc1cke+bs2fMyzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767806805; c=relaxed/simple;
-	bh=U5t+yindztRj+BBfUklo1mXd4gAf6QidO6BZEOIRRFE=;
-	h=Date:To:From:Subject:Message-Id; b=OlTbgzYxFBOsqg76lb8O6i4JqCS+pxK0xJTdo61+h9B0IQ2CU5eDcqe/mwx9HQA15PY3czIhpdPmULSAdEb+55Eqp6UYDw2JFzin5FCgFt90O4rir7WOPpo7R+tm5wkUUhlK18/RjkSmRZI1F43KA++SHMM3UvLWyF6Cmqmt1vo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PCWgOo0I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767806980; c=relaxed/simple;
+	bh=E2l8hZMpM6vHAsU+4pEtXIEXvF00u67jwjK65GR+tWY=;
+	h=Date:To:From:Subject:Message-Id; b=LFoFIotJyFgtr7TOmodq8Zmid/UfhjX6OtSWIsp8EFtN0DPmkH66JXzZilWrSoirc/9tgqZsbr4cyfCGlKO+4Fz/bBESofS/92UiA2Ayi389dZHZpZGq7dRsbNQYpVnaqp5cUeGtxA1ScxipQ3poBa94UUPPK8fVISjNTWMnics=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yvvHwTti; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PCWgOo0I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25775C4CEF1;
-	Wed,  7 Jan 2026 17:26:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yvvHwTti"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCFCFC4CEF1;
+	Wed,  7 Jan 2026 17:29:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767806804;
-	bh=U5t+yindztRj+BBfUklo1mXd4gAf6QidO6BZEOIRRFE=;
+	s=korg; t=1767806979;
+	bh=E2l8hZMpM6vHAsU+4pEtXIEXvF00u67jwjK65GR+tWY=;
 	h=Date:To:From:Subject:From;
-	b=PCWgOo0IqoB43V6evLvgNc+Uv0tXjtU77QaJwkNP6Cx/WNGbnTWPtqzHLFIYZrnRP
-	 vSff+agzbcxSVNCCVimylHo6tRWrvuUL5IMYkT3iXeo7xIgWffUPzR9+Ud8RYseTG8
-	 w5lkAXGbPGmlErFT4MSNcgSz+FK1Axstux5YbVLg=
-Date: Wed, 07 Jan 2026 09:26:43 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=yvvHwTtiV+IVVhdk+h9Td/zNcfFdpWOnABNK9qhttcjt/fmCcuKPlmsXHbxbuM+bv
+	 duHYjmDypxZ5WkovQtHMSs64DKl5LLEALmVuCKSxKbjFJzMUyAup5F+Q45WlahhFcD
+	 wa13oV6LjLW/fg7q+PP6p2BLuxRVW/xVeQi9Z9wg=
+Date: Wed, 07 Jan 2026 09:29:38 -0800
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kees@kernel.org,juri.lelli@redhat.com,jqqlijiazi@gmail.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,mingzhu.wang@transsion.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-docs-combine-concepts-and-fdt-documentation-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20260107172644.25775C4CEF1@smtp.kernel.org>
+Subject: + kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm.patch added to mm-nonmm-unstable branch
+Message-Id: <20260107172938.DCFCFC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho-docs-combine-concepts-and-fdt-documentation-fix
+     Subject: kernel/fork: update obsolete use_mm references to kthread_use_mm
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-docs-combine-concepts-and-fdt-documentation-fix.patch
+     kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-docs-combine-concepts-and-fdt-documentation-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,88 +58,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: kho-docs-combine-concepts-and-fdt-documentation-fix
-Date: Wed, 7 Jan 2026 10:38:52 +0200
+From: mingzhu.wang(王明珠) <mingzhu.wang@transsion.com>
+Subject: kernel/fork: update obsolete use_mm references to kthread_use_mm
+Date: Wed, 7 Jan 2026 08:15:32 +0000
 
-fix Documentation/core-api/kho/index.rst
+The comment for get_task_mm() in kernel/fork.c incorrectly references the
+deprecated function `use_mm()`, which has been renamed to
+`kthread_use_mm()` in kernel/kthread.c.
 
-Link: https://lkml.kernel.org/r/aV4bnHlBXGpT_FMc@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+This patch updates the documentation to reflect the current function
+names, ensuring accuracy when developers refer to the kernel thread memory
+context API.
+
+No functional changes were introduced.
+
+Link: https://lkml.kernel.org/r/KUZPR04MB8965F954108B4DD7E8FFDB2B8F84A@KUZPR04MB8965.apcprd04.prod.outlook.com
+Signed-off-by: mingzhu.wang <mingzhu.wang@transsion.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiazi Li <jqqlijiazi@gmail.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/kho/index.rst |    4 ++++
- kernel/liveupdate/luo_core.c         |    3 +--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/core-api/kho/index.rst~kho-docs-combine-concepts-and-fdt-documentation-fix
-+++ a/Documentation/core-api/kho/index.rst
-@@ -1,5 +1,7 @@
- .. SPDX-License-Identifier: GPL-2.0-or-later
- 
-+.. _kho-concepts:
-+
- ========================
- Kexec Handover Subsystem
- ========================
-@@ -60,6 +62,8 @@ for boot memory allocations and as targe
- of that memory region may be reserved. These reservations are irrelevant for
- the next KHO, because kexec can overwrite even the original kernel.
- 
-+.. _kho-finalization-phase:
-+
- KHO finalization phase
- ======================
- 
---- a/kernel/liveupdate/luo_core.c~kho-docs-combine-concepts-and-fdt-documentation-fix
-+++ a/kernel/liveupdate/luo_core.c
-@@ -35,8 +35,7 @@
-  * iommu, interrupts, vfio, participating filesystems, and memory management.
+--- a/kernel/fork.c~kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm
++++ a/kernel/fork.c
+@@ -1360,7 +1360,7 @@ struct file *get_task_exe_file(struct ta
+  * @task: The task.
   *
-  * LUO uses Kexec Handover to transfer memory state from the current kernel to
-- * the next kernel. For more details see
-- * Documentation/core-api/kho/concepts.rst.
-+ * the next kernel. For more details see Documentation/core-api/kho/index.rst.
-  */
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+  * Returns %NULL if the task has no mm.  Checks PF_KTHREAD (meaning
+- * this kernel workthread has transiently adopted a user mm with use_mm,
++ * this kernel workthread has transiently adopted a user mm with kthread_use_mm,
+  * to do its AIO) is not set and if so returns a reference to it, after
+  * bumping up the use count.  User must release the mm via mmput()
+  * after use.  Typically used by /proc and ptrace.
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from mingzhu.wang@transsion.com are
 
-mips-fix-highmem-initialization.patch
-alpha-introduce-arch_zone_limits_init.patch
-arc-introduce-arch_zone_limits_init.patch
-arm-introduce-arch_zone_limits_init.patch
-arm64-introduce-arch_zone_limits_init.patch
-csky-introduce-arch_zone_limits_init.patch
-hexagon-introduce-arch_zone_limits_init.patch
-loongarch-introduce-arch_zone_limits_init.patch
-m68k-introduce-arch_zone_limits_init.patch
-microblaze-introduce-arch_zone_limits_init.patch
-mips-introduce-arch_zone_limits_init.patch
-nios2-introduce-arch_zone_limits_init.patch
-openrisc-introduce-arch_zone_limits_init.patch
-parisc-introduce-arch_zone_limits_init.patch
-powerpc-introduce-arch_zone_limits_init.patch
-riscv-introduce-arch_zone_limits_init.patch
-s390-introduce-arch_zone_limits_init.patch
-sh-introduce-arch_zone_limits_init.patch
-sparc-introduce-arch_zone_limits_init.patch
-um-introduce-arch_zone_limits_init.patch
-x86-introduce-arch_zone_limits_init.patch
-xtensa-introduce-arch_zone_limits_init.patch
-arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch
-arch-mm-consolidate-initialization-of-sparse-memory-model.patch
-mips-drop-paging_init.patch
-x86-dont-reserve-hugetlb-memory-in-setup_arch.patch
-mm-arch-consolidate-hugetlb-cma-reservation.patch
-mm-hugetlb-drop-hugetlb_cma_check.patch
-revert-mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
-kho-abi-luo-make-generated-documentation-more-coherent.patch
-kho-abi-memfd-make-generated-documentation-more-coherent.patch
-kho-docs-combine-concepts-and-fdt-documentation.patch
-kho-docs-combine-concepts-and-fdt-documentation-fix.patch
-kho-abi-add-memblock-abi-header.patch
+kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm.patch
 
