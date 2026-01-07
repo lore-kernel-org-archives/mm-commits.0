@@ -1,31 +1,27 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from relay.hostedemail.com (smtprelay0010.hostedemail.com [216.40.44.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9305318B93
-	for <mm-commits@vger.kernel.org>; Wed,  7 Jan 2026 16:35:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A31D3385AB
+	for <mm-commits@vger.kernel.org>; Wed,  7 Jan 2026 17:09:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=216.40.44.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767803754; cv=none; b=fQo3bSyiqHxeJPHAy0eW1e9izjAgLytRwM1AWcKz+/OUEcmkP24HzGKx2ZfO1vzONnSyC58oMetGm71kZThuWIApX77jWxNOCBQjoZnkfS9r21oD3oiAeohdzIMMPG+oK9w3r3myNtqlZm/fn7vuvbQWmHyx5weR0wSgepPpzM8=
+	t=1767805784; cv=none; b=cK5PXO/+TvOkJMgzixS0TBRwFEtpbgdCZi+rzYvbunwYZztJUi9bE2SJnHUa0O77rdGVszriE15YBG2lKgxa07st6A5lTZ7XUUTcxLalH2RzoYl39dW1xu172aEV+L+FFjSnlB/7x1Pzx9jk2/lEslXJ9PjApYETkNfEzZbARds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767803754; c=relaxed/simple;
-	bh=52KAM+dj47yS2S7Frn5arzU8CC6s1z7UNp8kEwMhfRw=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=R4QzCbpaQ5UDIPinBXezJoUwZmgJeFg2edZk25ROJnHCxXFM8lOr8J6lsVUJUoyAASqejGN2HGWlw1WK7anrFIHPdoYVHx0kpcTKUSy4gRwjDpQNoENP+4dADGpTiyVrZKS4jno52w3C2N+YFlsbiQJ/EbVzUo3Rzwn+Ky1sQ/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r90q3MaI; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r90q3MaI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCFE5C4CEF7;
-	Wed,  7 Jan 2026 16:35:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767803753;
-	bh=52KAM+dj47yS2S7Frn5arzU8CC6s1z7UNp8kEwMhfRw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=r90q3MaIwW6yleNRXSxStd4YjRtG2gLOn3ZEwfaic6WiChAQfeB8G1XT3JYeV6loE
-	 zA6VTCGPBVpYcJAOJmE615fmiyITBVIwk75OtPTDH6qDtodpCPIw+pazQXO3/Ik37S
-	 JnLpSbj9i9Vd1MPknFiP2+OQfZSaziMRR4mqsaKE=
-Date: Wed, 7 Jan 2026 08:35:52 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Steven Rostedt <rostedt@goodmis.org>
+	s=arc-20240116; t=1767805784; c=relaxed/simple;
+	bh=EASnPdzBvfvS7OgpV8RgiT/lec0IwAfMG4C5spzP3qA=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=mS7V0yfMtWgCJFi+fnuqzR8LqSp7qY3lHdpB4k+L4pdNX38Q3bhG/MrzGUgQ1khLnB9oFJR1OAavlEQ6QEU1ulw1MPdSFstHUTK08OrYJZlcVBhGuWgNbO+iG2HTOTCVQ17IWegS2LoYoy8r7H3zQou+H7dYHRZ1mZM9r3gw1xY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=goodmis.org; spf=pass smtp.mailfrom=goodmis.org; arc=none smtp.client-ip=216.40.44.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=goodmis.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goodmis.org
+Received: from omf03.hostedemail.com (a10.router.float.18 [10.200.18.1])
+	by unirelay10.hostedemail.com (Postfix) with ESMTP id 95F2BC1D7E;
+	Wed,  7 Jan 2026 17:09:38 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: rostedt@goodmis.org) by omf03.hostedemail.com (Postfix) with ESMTPA id 21FCC6000D;
+	Wed,  7 Jan 2026 17:09:35 +0000 (UTC)
+Date: Wed, 7 Jan 2026 12:10:01 -0500
+From: Steven Rostedt <rostedt@goodmis.org>
+To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com, yuanchu@google.com,
  weixugc@google.com, tballasi@linux.microsoft.com, shakeel.butt@linux.dev,
@@ -34,48 +30,52 @@ Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
  david@kernel.org, david@fromorbit.com, axelrasmussen@google.com
 Subject: Re: + tracing-add-__event_in_irq-helpers.patch added to mm-new
  branch
-Message-Id: <20260107083552.9ed2e3c375f1d9971bc35997@linux-foundation.org>
-In-Reply-To: <20260107112700.1c1ce18e@gandalf.local.home>
+Message-ID: <20260107121001.5607939b@gandalf.local.home>
+In-Reply-To: <20260107083552.9ed2e3c375f1d9971bc35997@linux-foundation.org>
 References: <20260106033842.559EBC116D0@smtp.kernel.org>
 	<3a96b65e-49b1-45f5-a36a-77b38cea62e2@lucifer.local>
 	<20260107112700.1c1ce18e@gandalf.local.home>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	<20260107083552.9ed2e3c375f1d9971bc35997@linux-foundation.org>
+X-Mailer: Claws Mail 3.20.0git84 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Server: rspamout07
+X-Rspamd-Queue-Id: 21FCC6000D
+X-Stat-Signature: hpfcq3iatp4xzghdtxjq1rn3x57zmizu
+X-Session-Marker: 726F737465647440676F6F646D69732E6F7267
+X-Session-ID: U2FsdGVkX1/fouYbTZ58fioHQnD5ie8jw9VXoYWTLE8=
+X-HE-Tag: 1767805775-732427
+X-HE-Meta: U2FsdGVkX1+TpfwX7JFf6R2StOqs8eOFJhs3hFGDuy0AU6FjgDoGo6rpg93Ugd447jLbeLHUZzV8BaX/bFSwvtoOgwb6OKXzivfLRTbEG/Y9GItim/OHhTlHubMl2ad08IPzDo8pOTkyxpXNZUDCvMWNvHTQaACF7sdwk4HwgbdKzAlAMwWc9IZR+Biu8G3sMojUZ5Rgd/N1gkKR13MjIYCBhfwE/51CvrTm2f0WiWAW0LxG5JC3WimoAstaolOFn1r/K0ZKuFLVkDhgRvH+A25inn7AwX3nRUrgm1GsWMfglDOz2eU6i2e1eiPch3HwdEcYuIhnYPHUaJBE+vG3fOBrFj9d/k95Zg+5eTxSZHBTd+xgqAnIOIRirlQUEUylON6QE4IwvExICViG5o4Y/I6PoWl8aoPo4rzTLozrc9o=
 
-On Wed, 7 Jan 2026 11:27:00 -0500 Steven Rostedt <rostedt@goodmis.org> wrote:
+On Wed, 7 Jan 2026 08:35:52 -0800
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-> On Tue, 6 Jan 2026 17:30:32 +0000
-> Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
+> > OK, the bug isn't the patch I wrote. It's with the patch that was added on
+> > top of it.
+> > 
+> >    https://lore.kernel.org/all/20260105160423.23708-2-tballasi@linux.microsoft.com/  
 > 
-> >   AR      arch/x86/entry/built-in.a
-> > In file included from ./include/trace/define_trace.h:132,
-> >                  from ./include/trace/events/vmscan.h:554,
-> >                  from mm/vmscan.c:73:
-> > ./include/trace/events/vmscan.h: In function ‘do_trace_event_raw_event_mm_shrink_slab_start’:
-> > ./include/trace/events/vmscan.h:238:68: error: invalid use of undefined type ‘struct mem_cgroup’
-> >   238 |                 __entry->memcg_id = sc->memcg ? cgroup_id(sc->memcg->css.cgroup) : 0;
-> >       |                                                                    ^~
-> > ./include/trace/trace_events.h:427:11: note: in definition of macro ‘__DECLARE_EVENT_CLASS’
+> Yep, thanks, Thomas is presumably working on a new version.
 > 
-> OK, the bug isn't the patch I wrote. It's with the patch that was added on
-> top of it.
+> Thomas, please include Stephen's patch in that series (don't forget to
+> add your own signoff to it).
+
+Who's this "Stephen" you keep referring to?
+
 > 
->    https://lore.kernel.org/all/20260105160423.23708-2-tballasi@linux.microsoft.com/
-
-Yep, thanks, Thomas is presumably working on a new version.
-
-Thomas, please include Stephen's patch in that series (don't forget to
-add your own signoff to it).
-
->
-> Thus, not my fault ;-)
+> >
+> > Thus, not my fault ;-)
+> >   
 > 
+> Please don't deprive us of the joy of blaming you for stuff.
 
-Please don't deprive us of the joy of blaming you for stuff.
+That's what I'm here for. Heck for several years the topic of the #linux-rt
+IRC channel in OFTC was "Blame rostedt".
+
+-- Steve
