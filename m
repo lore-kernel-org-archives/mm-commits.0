@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFE2434B69F
-	for <mm-commits@vger.kernel.org>; Wed,  7 Jan 2026 17:21:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E415F32ABEC
+	for <mm-commits@vger.kernel.org>; Wed,  7 Jan 2026 17:21:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767806494; cv=none; b=Ka+kRGxeu5zrs/SSini6QM1/1VnnZ0nnm12s3XxUnTylzJI1DV6g7eb/rx57fTM6LucxdoqFgMFoVsLsGaNTKxt3/2WveN88bmBFkx/Wa4LuPNTBxBdvfSaHUidkSEtBxwneY4B6MJrTv8tucnvjDnrKTO0etVALNpInpmoYZeo=
+	t=1767806498; cv=none; b=XfcgjVmd+To3ncgKyLNoz/wxbV3KeTqXZg3VR3t6rO42OhzUim9+g+Brwu+CEVWjvYIG7IpPNZDV07+Dyc1KuIfPC/FcZTF/4axMmwA7N241uW/qKa1LxpOT9NGSKoIBzU0Aw6qLZT8fL0aW6oL4WbiMcZEJ1xuI0iSElIvVD0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767806494; c=relaxed/simple;
-	bh=2L3XN5Fzxdseua4NJChz95Elf3DPbtCeUcs39ytTzaY=;
-	h=Date:To:From:Subject:Message-Id; b=hYLSiXsNwfQExF2bBLD/A1nFB6JCpQk691Ti3DMidZuvlnGdJAFLj7IuQ474KhKMq/ruVWS7SUon8IQuT4KJuj5633yhosNkNyUF864hvTjjSEZMP2QO5FwKqgintnDSvxiEKn7N/RSGnrQe4zDrVODff3YVpw/karSsN+P0DHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R78B5um6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767806498; c=relaxed/simple;
+	bh=Cv/K1C3/1JbREjdMLS+bGJru1Z/uLfQTmN2EKBfVAV8=;
+	h=Date:To:From:Subject:Message-Id; b=WY6oNtrwuczEWox32oFC+RdCWiTgl1EM8zhdJyIPIFUEPHIeG9pXZwVMBPjMuhkIaEpMEeuSpYRX7VlxqQpF9OXgs/Jm3C1HkDrKb2JJmEp3RmGqSH8f8cPX0QO7v23bGubA2BIGf0rbLIflx7pGom3I1sSx7CL9xmG+WBmPI/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=olKd0s3L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R78B5um6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33EDAC4CEF7;
-	Wed,  7 Jan 2026 17:21:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="olKd0s3L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 779E1C4CEF1;
+	Wed,  7 Jan 2026 17:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767806493;
-	bh=2L3XN5Fzxdseua4NJChz95Elf3DPbtCeUcs39ytTzaY=;
+	s=korg; t=1767806495;
+	bh=Cv/K1C3/1JbREjdMLS+bGJru1Z/uLfQTmN2EKBfVAV8=;
 	h=Date:To:From:Subject:From;
-	b=R78B5um6C0yJ58c2Cq4Pi0dhXjag1LGHZIWud6qMd6GFks9jfN/Jx6jVb6WoUQSWN
-	 smnxw8tZ0VWfKFCVJ3YRenOXI7bnr/7oz6UfpoMi+ul6T4Ak32Anv94Rye7TQ16MWg
-	 Kn5Gh2BV/qwPS9vOIXR94q+lAiB+/0AWByqHmrbs=
-Date: Wed, 07 Jan 2026 09:21:32 -0800
+	b=olKd0s3LYFuML0MR3YQbFpL87Sm+7YgCbYf0yN07UPnVyyzoRVuSo53s1Kg2+G3WM
+	 XbS5IMy7fZyRffo1Jm8UcWR0rIoLVJJV0Js7VylWNx0DzIviW9zSwrAmCWgWECJCiv
+	 HuIfU3EHzCYAAiuoV5/TWMi6/od9/OQtSdqrbO8I=
+Date: Wed, 07 Jan 2026 09:21:34 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,Usama.Anjum@arm.com,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,pabeni@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,linyunsheng@huawei.com,Liam.Howlett@oracle.com,jhubbard@nvidia.com,jgg@nvidia.com,david@kernel.org,broonie@kernel.org,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-remove-flaky-header-check.patch added to mm-new branch
-Message-Id: <20260107172133.33EDAC4CEF7@smtp.kernel.org>
+Subject: + selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh.patch added to mm-new branch
+Message-Id: <20260107172135.779E1C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: remove flaky header check
+     Subject: selftests/mm: pass down full CC and CFLAGS to check_config.sh
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-remove-flaky-header-check.patch
+     selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-flaky-header-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,58 +67,72 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: remove flaky header check
-Date: Wed, 7 Jan 2026 16:48:36 +0000
+Subject: selftests/mm: pass down full CC and CFLAGS to check_config.sh
+Date: Wed, 7 Jan 2026 16:48:37 +0000
 
-Commit 96ed62ea0298 ("mm: page_frag: fix a compile error when kernel is
-not compiled") introduced a check to avoid attempting to build the
-page_frag module if <linux/page_frag_cache.h> is missing.
+check_config.sh checks that liburing is available by running the compiler
+provided as its first argument.  This makes two assumptions:
 
-Unfortunately this check only works if KDIR points to /lib/modules/...  or
-an in-tree kernel build.  It always fails if KDIR points to an out-of-tree
-build (i.e.  when the kernel was built with O=...  make) because only
-generated headers are present under $KDIR/include/ in that case.
+1. CC consists of only one word
+2. No extra flag is required
 
-A recent commit switched KDIR to default to the kernel's build directory,
-so that check is no longer justified.
+Unfortunately, there are many situations where these assumptions don't
+hold.  For instance:
 
-Link: https://lkml.kernel.org/r/20260107164842.3289559-3-kevin.brodsky@arm.com
+- When using Clang, CC consists of multiple words
+- When cross-compiling, extra flags may be required to allow the
+  compiler to find headers
+
+Remove these assumptions by passing down CC and CFLAGS as-is from the
+Makefile, so that the same command line is used as when actually building
+the tests.
+
+Link: https://lkml.kernel.org/r/20260107164842.3289559-4-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Reviewed-by: Mark Brown <broonie@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Yunsheng Lin <linyunsheng@huawei.com>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Usama Anjum <Usama.Anjum@arm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    4 ----
- 1 file changed, 4 deletions(-)
+ tools/testing/selftests/mm/Makefile        |    2 +-
+ tools/testing/selftests/mm/check_config.sh |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-flaky-header-check
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -46,12 +46,8 @@ CFLAGS += -U_FORTIFY_SOURCE
+--- a/tools/testing/selftests/mm/check_config.sh~selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh
++++ a/tools/testing/selftests/mm/check_config.sh
+@@ -16,8 +16,7 @@ echo "#include <sys/types.h>"        > $
+ echo "#include <liburing.h>"        >> $tmpfile_c
+ echo "int func(void) { return 0; }" >> $tmpfile_c
  
- KDIR ?= $(if $(O),$(O),$(realpath ../../../..))
- ifneq (,$(wildcard $(KDIR)/Module.symvers))
--ifneq (,$(wildcard $(KDIR)/include/linux/page_frag_cache.h))
- TEST_GEN_MODS_DIR := page_frag
- else
--PAGE_FRAG_WARNING = "missing page_frag_cache.h, please use a newer kernel"
--endif
--else
- PAGE_FRAG_WARNING = "missing Module.symvers, please have the kernel built first"
- endif
+-CC=${1:?"Usage: $0 <compiler> # example compiler: gcc"}
+-$CC -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
++$CC $CFLAGS -c $tmpfile_c -o $tmpfile_o
+ 
+ if [ -f $tmpfile_o ]; then
+     echo "#define LOCAL_CONFIG_HAVE_LIBURING 1"  > $OUTPUT_H_FILE
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh
++++ a/tools/testing/selftests/mm/Makefile
+@@ -231,7 +231,7 @@ $(OUTPUT)/migration: LDLIBS += -lnuma
+ $(OUTPUT)/rmap: LDLIBS += -lnuma
+ 
+ local_config.mk local_config.h: check_config.sh
+-	/bin/sh ./check_config.sh $(CC)
++	CC="$(CC)" CFLAGS="$(CFLAGS)" ./check_config.sh
+ 
+ EXTRA_CLEAN += local_config.mk local_config.h
  
 _
 
