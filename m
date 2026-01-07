@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 720002FD673
-	for <mm-commits@vger.kernel.org>; Wed,  7 Jan 2026 17:21:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFE2434B69F
+	for <mm-commits@vger.kernel.org>; Wed,  7 Jan 2026 17:21:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767806491; cv=none; b=SnDBAKK64SuULWshMBahkvGobzcL4HQE0Ki7V77WzrZVYwq853PNOlUV1BD4I2lnLkAN3zMz903mXHBNOjqYqR2Udx7l3cvCPinp5E7N6f/4AoyKfuFAJ+nE5xQu8B0cVrAayigy5V4Lr/LT3yjtCUtzziN6L8vDdTo39xfAPxQ=
+	t=1767806494; cv=none; b=Ka+kRGxeu5zrs/SSini6QM1/1VnnZ0nnm12s3XxUnTylzJI1DV6g7eb/rx57fTM6LucxdoqFgMFoVsLsGaNTKxt3/2WveN88bmBFkx/Wa4LuPNTBxBdvfSaHUidkSEtBxwneY4B6MJrTv8tucnvjDnrKTO0etVALNpInpmoYZeo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767806491; c=relaxed/simple;
-	bh=W3fQRB9IQRZ2lRM63IBi1dcPiQPPyJAO8O3bCtCFGqY=;
-	h=Date:To:From:Subject:Message-Id; b=H/uww8tB+P+9F97GYrLQLd0uBSIMlubxYmXqV/aC3m36ZhgjL4beqX4vWDVREmiOrtiZs7XSiBn664XfrExj+KqTLWG1RobWQiY6+JuJkgUtl2nzMGCCsUE22O5erzYBFCKtLV/BFvg9Sb5FPqm3J/1tlfetXeD0OwWg3XBZa0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yuOVYJu8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767806494; c=relaxed/simple;
+	bh=2L3XN5Fzxdseua4NJChz95Elf3DPbtCeUcs39ytTzaY=;
+	h=Date:To:From:Subject:Message-Id; b=hYLSiXsNwfQExF2bBLD/A1nFB6JCpQk691Ti3DMidZuvlnGdJAFLj7IuQ474KhKMq/ruVWS7SUon8IQuT4KJuj5633yhosNkNyUF864hvTjjSEZMP2QO5FwKqgintnDSvxiEKn7N/RSGnrQe4zDrVODff3YVpw/karSsN+P0DHw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R78B5um6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yuOVYJu8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FA57C4CEF1;
-	Wed,  7 Jan 2026 17:21:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R78B5um6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33EDAC4CEF7;
+	Wed,  7 Jan 2026 17:21:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767806490;
-	bh=W3fQRB9IQRZ2lRM63IBi1dcPiQPPyJAO8O3bCtCFGqY=;
+	s=korg; t=1767806493;
+	bh=2L3XN5Fzxdseua4NJChz95Elf3DPbtCeUcs39ytTzaY=;
 	h=Date:To:From:Subject:From;
-	b=yuOVYJu8BGBoX2S1ZEIeUXwg2V52W2eztpXh8LSEUO0iswKJUIOqQT02ZqrekxZyI
-	 kHsK+V5Bog50O0o/qFYU5ewC8d4ZjkGBtzGOfFkoOEKyXrpBqwiwX/I2DGXWA2cyEK
-	 sZnx4EVXXcXAbeKIMz5wEsO2pfSEUnGGkio9U2Bw=
-Date: Wed, 07 Jan 2026 09:21:30 -0800
+	b=R78B5um6C0yJ58c2Cq4Pi0dhXjag1LGHZIWud6qMd6GFks9jfN/Jx6jVb6WoUQSWN
+	 smnxw8tZ0VWfKFCVJ3YRenOXI7bnr/7oz6UfpoMi+ul6T4Ak32Anv94Rye7TQ16MWg
+	 Kn5Gh2BV/qwPS9vOIXR94q+lAiB+/0AWByqHmrbs=
+Date: Wed, 07 Jan 2026 09:21:32 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,Usama.Anjum@arm.com,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,pabeni@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,linyunsheng@huawei.com,Liam.Howlett@oracle.com,jhubbard@nvidia.com,jgg@nvidia.com,david@kernel.org,broonie@kernel.org,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-default-kdir-to-build-directory.patch added to mm-new branch
-Message-Id: <20260107172130.8FA57C4CEF1@smtp.kernel.org>
+Subject: + selftests-mm-remove-flaky-header-check.patch added to mm-new branch
+Message-Id: <20260107172133.33EDAC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: default KDIR to build directory
+     Subject: selftests/mm: remove flaky header check
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-default-kdir-to-build-directory.patch
+     selftests-mm-remove-flaky-header-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-default-kdir-to-build-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-flaky-header-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,95 +67,59 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: default KDIR to build directory
-Date: Wed, 7 Jan 2026 16:48:35 +0000
+Subject: selftests/mm: remove flaky header check
+Date: Wed, 7 Jan 2026 16:48:36 +0000
 
-Patch series "Various mm kselftests improvements/fixes", v2.
+Commit 96ed62ea0298 ("mm: page_frag: fix a compile error when kernel is
+not compiled") introduced a check to avoid attempting to build the
+page_frag module if <linux/page_frag_cache.h> is missing.
 
-Various improvements/fixes for the mm kselftests:
+Unfortunately this check only works if KDIR points to /lib/modules/...  or
+an in-tree kernel build.  It always fails if KDIR points to an out-of-tree
+build (i.e.  when the kernel was built with O=...  make) because only
+generated headers are present under $KDIR/include/ in that case.
 
-- Patch 1-3 extend support for more build configurations: out-of-tree
-  $KDIR, cross-compilation, etc.
+A recent commit switched KDIR to default to the kernel's build directory,
+so that check is no longer justified.
 
-- Patch 4-6 fix issues related to faulting in pages, introducing a new
-  helper for that purpose.
-
-- Patch 7 fixes the value returned by pagemap_ioctl (PASS was always
-  returned, which explains why the issue fixed in patch 6 went
-  unnoticed).
-
-- Patch 8 improves the exit code of pfnmap.
-
-Net results:
-- 1 test no longer fails (patch 6)
-- 3 tests are no longer skipped (patch 4)
-- More accurate return values for whole suites (patch 7, 8)
-- Extra tests are more likely to be built (patch 1-3)
-
-
-This patch (of 8):
-
-KDIR currently defaults to the running kernel's modules directory when
-building the page_frag module.  The underlying assumption is that most
-users build the kselftests in order to run them against the system they're
-built on.
-
-This assumption seems questionable, and there is no guarantee that the
-module can actually be built against the running kernel.
-
-Switch the default value of KDIR to the kernel's build directory, i.e. 
-$(O) if O= or KBUILD_OUTPUT= is used, and the source directory otherwise. 
-This seems like the least surprising option: the test module is built
-against the kernel that has been previously built.
-
-Note: we can't use $(top_srcdir) in mm/Makefile because it is only defined
-once lib.mk is included.
-
-Link: https://lkml.kernel.org/r/20260107164842.3289559-1-kevin.brodsky@arm.com
-Link: https://lkml.kernel.org/r/20260107164842.3289559-2-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20260107164842.3289559-3-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Usama Anjum <Usama.Anjum@arm.com>
-Cc: Yunsheng Lin <linyunsheng@huawei.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile           |    2 +-
- tools/testing/selftests/mm/page_frag/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/Makefile |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-default-kdir-to-build-directory
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-flaky-header-check
 +++ a/tools/testing/selftests/mm/Makefile
-@@ -44,7 +44,7 @@ LDLIBS = -lrt -lpthread -lm
- # warnings.
- CFLAGS += -U_FORTIFY_SOURCE
+@@ -46,12 +46,8 @@ CFLAGS += -U_FORTIFY_SOURCE
  
--KDIR ?= /lib/modules/$(shell uname -r)/build
-+KDIR ?= $(if $(O),$(O),$(realpath ../../../..))
+ KDIR ?= $(if $(O),$(O),$(realpath ../../../..))
  ifneq (,$(wildcard $(KDIR)/Module.symvers))
- ifneq (,$(wildcard $(KDIR)/include/linux/page_frag_cache.h))
+-ifneq (,$(wildcard $(KDIR)/include/linux/page_frag_cache.h))
  TEST_GEN_MODS_DIR := page_frag
---- a/tools/testing/selftests/mm/page_frag/Makefile~selftests-mm-default-kdir-to-build-directory
-+++ a/tools/testing/selftests/mm/page_frag/Makefile
-@@ -1,5 +1,5 @@
- PAGE_FRAG_TEST_DIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
--KDIR ?= /lib/modules/$(shell uname -r)/build
-+KDIR ?= $(if $(O),$(O),$(realpath ../../../../..))
+ else
+-PAGE_FRAG_WARNING = "missing page_frag_cache.h, please use a newer kernel"
+-endif
+-else
+ PAGE_FRAG_WARNING = "missing Module.symvers, please have the kernel built first"
+ endif
  
- ifeq ($(V),1)
- Q =
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
