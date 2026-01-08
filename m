@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30679157A5A
-	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 19:59:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A8E21DDC07
+	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 20:01:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767902398; cv=none; b=JPfP73afEz+W73qp7wvWG9/6xEjZf2AfoaSNv3OUxW5oOBgQREYKY1o4JI32cP+HXyy0Fh3qSA1QxAbv3zFGewuQLARoGMcbGO4wMhD3o7DZnJs+YUKO6a9h8/UFJEVllZtBQeZedKDuFKoI2HlcevFPPl9TCHQTsV+aOTsrWSE=
+	t=1767902519; cv=none; b=RAj8E3fOoDTXA+6ZoirIC4jYHpiN/LiauvAbssa00f45DLwKA5zeJ7+Whoe1C5c2ZqgMsKe9OHNVY5CFcOVYTVBjtyYtQMc9qaD0wS1St9929qfCuPSQ/hiDoQhRhLX1vSvMYzF+3GbkslOkOAgxwODtaBaSjtYmCUObW26nQqM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767902398; c=relaxed/simple;
-	bh=XikobkF5W4zet5rWGF1zOLIlw+uzgjt+iegIqkJ0FF8=;
-	h=Date:To:From:Subject:Message-Id; b=F20eohAo2tlzRVGmxzdyZwpSs6rCrdWvXh5tIw89pWNt8ttNhFfGiyh6GCOIMnC1l5Mmq20V9UCg6/plU1GIIQLSphCHQd/M8LkkvPAh/J6V/nPK87y8iGt5SkkXqNG4Iq87v9uusJiFbhEhxXntl/IrMpw4iIOjTsFj1yqfwDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rBDnvfoR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767902519; c=relaxed/simple;
+	bh=Y1GsFKfKYDeLmE+HkrASLkSpxB9Xqq+T4AS+eMHSuQE=;
+	h=Date:To:From:Subject:Message-Id; b=itxK3uuMM4NRkcwk6/Nn3lLlnPnqmBJpQP7Hff9iGj2MeeOgQjw5hak/hwBvM5zNEle3VwfM1dR+CUV9MeovuNkunJJXfJBpOMNjeWAuXyWKHRHFE9OUmgmWsxUSZIpu+1DxBs5HwVSLqjfcvMDueVzGltoUj2yJNskZaPIFxWY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l9fBgTEU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rBDnvfoR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A438DC16AAE;
-	Thu,  8 Jan 2026 19:59:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l9fBgTEU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA0EBC116C6;
+	Thu,  8 Jan 2026 20:01:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767902397;
-	bh=XikobkF5W4zet5rWGF1zOLIlw+uzgjt+iegIqkJ0FF8=;
+	s=korg; t=1767902518;
+	bh=Y1GsFKfKYDeLmE+HkrASLkSpxB9Xqq+T4AS+eMHSuQE=;
 	h=Date:To:From:Subject:From;
-	b=rBDnvfoRlRPhU0Q8oVrmzw0qp9Iuba8LHsv29wpYSMr6rREQ14HvlgJ7cHji3F6kC
-	 9fTpSmW12rsqXAI0aelI0aDcmQiqOKslYL2kaSRbt8mzNbJLDfIa9GDJaV9XmNo94B
-	 3tPynDqY3Dv36BjF0OW2MQ1NP3o4CC5fwBBYv9AE=
-Date: Thu, 08 Jan 2026 11:59:57 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=l9fBgTEUwo0jjFXyWzTS++Ih0PAiEfYwv5uWYYmAzSjUAjPXzBEt/czNWD3p+4GeB
+	 dihdYT9+1iLAuEGytNH01VN23IkZPvXPWa0dgOnZQF4UPt7gh8hi9H+v9iODQVylT4
+	 SxCLM/6Pj8rN32DhQSwwQVf4xlIekuXjICbFMc80=
+Date: Thu, 08 Jan 2026 12:01:58 -0800
+To: mm-commits@vger.kernel.org,liam.howlett@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch added to mm-new branch
-Message-Id: <20260108195957.A438DC16AAE@smtp.kernel.org>
+Subject: + mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch added to mm-new branch
+Message-Id: <20260108200158.CA0EBC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix
+     Subject: mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
+     mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,35 +67,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix
-Date: Thu, 8 Jan 2026 18:49:07 +0000
+Subject: mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix
+Date: Thu, 8 Jan 2026 18:49:44 +0000
 
-fix comment, per Suren
+rename try_to_reuse_anon_vma(), per Liam
 
-Link: https://lkml.kernel.org/r/f0fe73fd-cb23-4670-b5ba-c716edfd115f@lucifer.local
+Link: https://lkml.kernel.org/r/e38b8ed2-455f-41f5-8cf9-bfca3915c7c6@lucifer.local
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/rmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix
+--- a/mm/rmap.c~mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix
 +++ a/mm/rmap.c
-@@ -297,8 +297,10 @@ int anon_vma_clone(struct vm_area_struct
- 	 * are not updating the anon_vma rbtree nor are we changing
- 	 * anon_vma statistics.
- 	 *
--	 * We hold the exclusive mmap write lock so there's no possibliity of
--	 * the unlinked AVC's being observed yet.
-+	* Either src, dst have the same mm for which we hold an exclusive mmap
-+	* write lock, or we are forking and we hold it on src->vm_mm and dst is
-+	* not yet accessible to other threads so there's no possibliity of the
-+	* unlinked AVC's being observed yet.
- 	 */
- 	list_for_each_entry(pavc, &src->anon_vma_chain, same_vma) {
- 		avc = anon_vma_chain_alloc(GFP_KERNEL);
+@@ -267,8 +267,8 @@ static void check_anon_vma_clone(struct
+ #endif
+ }
+ 
+-static void try_to_reuse_anon_vma(struct vm_area_struct *dst,
+-				  struct anon_vma *anon_vma)
++static void maybe_reuse_anon_vma(struct vm_area_struct *dst,
++		struct anon_vma *anon_vma)
+ {
+ 	/* If already populated, nothing to do.*/
+ 	if (dst->anon_vma)
+@@ -356,7 +356,7 @@ int anon_vma_clone(struct vm_area_struct
+ 
+ 		anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
+ 		if (operation == VMA_OP_FORK)
+-			try_to_reuse_anon_vma(dst, anon_vma);
++			maybe_reuse_anon_vma(dst, anon_vma);
+ 	}
+ 
+ 	if (operation != VMA_OP_FORK)
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
@@ -114,4 +121,5 @@ mm-mmap_lock-add-vma_is_attached-helper.patch
 mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
 mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
 mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
+mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
 
