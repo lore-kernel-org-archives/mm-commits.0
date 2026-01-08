@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A8E21DDC07
-	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 20:01:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF95E1A23A0
+	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 20:23:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767902519; cv=none; b=RAj8E3fOoDTXA+6ZoirIC4jYHpiN/LiauvAbssa00f45DLwKA5zeJ7+Whoe1C5c2ZqgMsKe9OHNVY5CFcOVYTVBjtyYtQMc9qaD0wS1St9929qfCuPSQ/hiDoQhRhLX1vSvMYzF+3GbkslOkOAgxwODtaBaSjtYmCUObW26nQqM=
+	t=1767903828; cv=none; b=b9TipUZs7DNZSVM69OkeQCF3lobT9QrLq183V0TqdmtkEcMQj+ixngFZKSF86hUvS3jygj5zymdwAVhxFb5q11BpjaOJ6vvZYRgkcEJabhLGNs6gNkFIivpFKLmFSnFaaFe/uTx0g8kyrdrVy/SEiGK9Qg5MdCTWeYPk0mOLRaM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767902519; c=relaxed/simple;
-	bh=Y1GsFKfKYDeLmE+HkrASLkSpxB9Xqq+T4AS+eMHSuQE=;
-	h=Date:To:From:Subject:Message-Id; b=itxK3uuMM4NRkcwk6/Nn3lLlnPnqmBJpQP7Hff9iGj2MeeOgQjw5hak/hwBvM5zNEle3VwfM1dR+CUV9MeovuNkunJJXfJBpOMNjeWAuXyWKHRHFE9OUmgmWsxUSZIpu+1DxBs5HwVSLqjfcvMDueVzGltoUj2yJNskZaPIFxWY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l9fBgTEU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767903828; c=relaxed/simple;
+	bh=3N6+jJcVhT0T6abWobXg1AsT7yxPkzjvfuaJ4/C7IGw=;
+	h=Date:To:From:Subject:Message-Id; b=FifH+bhF5tnhTtMudoF0P2VLZOvPkRJ7uD+9ngEDw7/x2xWtWH3wkPHVJqXLg4Te4AbpV5jhQtIJ2+RS0b3W+ZEH1SNdkBelIP0RhaDuRF/A0VHZqNPEFrBE0qvEZ9DTgmfehgdujgtRcDy1GRvQ5K9b4uUcKzwpbHoZLbSg95w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lrtOV4m8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l9fBgTEU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA0EBC116C6;
-	Thu,  8 Jan 2026 20:01:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lrtOV4m8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2778EC116C6;
+	Thu,  8 Jan 2026 20:23:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767902518;
-	bh=Y1GsFKfKYDeLmE+HkrASLkSpxB9Xqq+T4AS+eMHSuQE=;
+	s=korg; t=1767903827;
+	bh=3N6+jJcVhT0T6abWobXg1AsT7yxPkzjvfuaJ4/C7IGw=;
 	h=Date:To:From:Subject:From;
-	b=l9fBgTEUwo0jjFXyWzTS++Ih0PAiEfYwv5uWYYmAzSjUAjPXzBEt/czNWD3p+4GeB
-	 dihdYT9+1iLAuEGytNH01VN23IkZPvXPWa0dgOnZQF4UPt7gh8hi9H+v9iODQVylT4
-	 SxCLM/6Pj8rN32DhQSwwQVf4xlIekuXjICbFMc80=
-Date: Thu, 08 Jan 2026 12:01:58 -0800
-To: mm-commits@vger.kernel.org,liam.howlett@oracle.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=lrtOV4m84oVD7X9Q9ZEa9DxdW2ie/lZWY9YsR69PfN8V/d1uVpmS1MSaRonkl9qNf
+	 fMqZ3E1J1hC5K2rW/W/2/SgrFImiMuCExz0CslEv/11zpSiMJpdiZLAl3A38cpQW2v
+	 KHM2B6JUyo72YgjvdMWOyq1XBgkfA9dGvZGsonGQ=
+Date: Thu, 08 Jan 2026 12:23:46 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,rppt@kernel.org,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizhe.67@bytedance.com,Liam.Howlett@oracle.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch added to mm-new branch
-Message-Id: <20260108200158.CA0EBC116C6@smtp.kernel.org>
+Subject: + mm-folio_zero_user-clear-page-ranges-fix.patch added to mm-unstable branch
+Message-Id: <20260108202347.2778EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
+     Subject: mm-folio_zero_user-clear-page-ranges-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-folio_zero_user-clear-page-ranges-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio_zero_user-clear-page-ranges-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,60 +58,98 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix
-Date: Thu, 8 Jan 2026 18:49:44 +0000
+From: Ankur Arora <ankur.a.arora@oracle.com>
+Subject: mm-folio_zero_user-clear-page-ranges-fix
+Date: Wed, 7 Jan 2026 22:04:06 -0800
 
-rename try_to_reuse_anon_vma(), per Liam
+Move the unit computation and make it a const. Also, clean up the
+comment a little bit.
 
-Link: https://lkml.kernel.org/r/e38b8ed2-455f-41f5-8cf9-bfca3915c7c6@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Use SZ_32M to define PROCESS_PAGES_NON_PREEMPT_BATCH instead
+of hand coding the computation.
+
+Link: https://lkml.kernel.org/r/20260108060406.1693853-1-ankur.a.arora@oracle.com
+Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/memory.c        |   20 ++++++++++----------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix
-+++ a/mm/rmap.c
-@@ -267,8 +267,8 @@ static void check_anon_vma_clone(struct
- #endif
- }
- 
--static void try_to_reuse_anon_vma(struct vm_area_struct *dst,
--				  struct anon_vma *anon_vma)
-+static void maybe_reuse_anon_vma(struct vm_area_struct *dst,
-+		struct anon_vma *anon_vma)
+--- a/include/linux/mm.h~mm-folio_zero_user-clear-page-ranges-fix
++++ a/include/linux/mm.h
+@@ -4238,7 +4238,7 @@ static inline void clear_pages(void *add
+  * (See comment above clear_pages() for why preemption latency is a concern
+  * here.)
+  */
+-#define PROCESS_PAGES_NON_PREEMPT_BATCH		(32 << (20 - PAGE_SHIFT))
++#define PROCESS_PAGES_NON_PREEMPT_BATCH		(SZ_32M >> PAGE_SHIFT)
+ #else /* !clear_pages */
+ /*
+  * The architecture does not provide a clear_pages() implementation. Assume
+--- a/mm/memory.c~mm-folio_zero_user-clear-page-ranges-fix
++++ a/mm/memory.c
+@@ -7240,19 +7240,19 @@ static inline int process_huge_page(
+ static void clear_contig_highpages(struct page *page, unsigned long addr,
+ 				   unsigned int nr_pages)
  {
- 	/* If already populated, nothing to do.*/
- 	if (dst->anon_vma)
-@@ -356,7 +356,7 @@ int anon_vma_clone(struct vm_area_struct
+-	unsigned int i, unit, count;
+-
+-	might_sleep();
++	unsigned int i, count;
+ 	/*
+-	 * When clearing we want to operate on the largest extent possible since
+-	 * that allows for extent based architecture specific optimizations.
++	 * When clearing we want to operate on the largest extent possible to
++	 * allow for architecture specific extent based optimizations.
+ 	 *
+-	 * However, since the clearing interfaces (clear_user_highpages(),
+-	 * clear_user_pages(), clear_pages()), do not call cond_resched(), we
+-	 * limit the batch size when running under non-preemptible scheduling
+-	 * models.
++	 * However, since clear_user_highpages() (and primitives clear_user_pages(),
++	 * clear_pages()), do not call cond_resched(), limit the unit size when
++	 * running under non-preemptible scheduling models.
+ 	 */
+-	unit = preempt_model_preemptible() ? nr_pages : PROCESS_PAGES_NON_PREEMPT_BATCH;
++	const unsigned int unit = preempt_model_preemptible() ?
++				   nr_pages : PROCESS_PAGES_NON_PREEMPT_BATCH;
++
++	might_sleep();
  
- 		anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
- 		if (operation == VMA_OP_FORK)
--			try_to_reuse_anon_vma(dst, anon_vma);
-+			maybe_reuse_anon_vma(dst, anon_vma);
- 	}
- 
- 	if (operation != VMA_OP_FORK)
+ 	for (i = 0; i < nr_pages; i += count) {
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ankur.a.arora@oracle.com are
 
-mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
-tools-testing-selftests-add-tests-for-tgt-src-mremap-merges.patch
-mm-vma-enforce-vma-fork-limit-on-unfaultedfaulted-mremap-merge-too.patch
-tools-testing-selftests-add-forked-un-faulted-vma-merge-tests.patch
-tools-testing-selftests-fix-gup_longterm-for-unknown-fs.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
+mm-introduce-clear_pages-and-clear_user_pages.patch
+highmem-introduce-clear_user_highpages.patch
+x86-mm-simplify-clear_page_.patch
+x86-clear_page-introduce-clear_pages.patch
+mm-folio_zero_user-clear-pages-sequentially.patch
+mm-folio_zero_user-clear-page-ranges.patch
+mm-folio_zero_user-clear-page-ranges-fix.patch
+mm-folio_zero_user-cache-neighbouring-pages.patch
 
