@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63D9A32142E
-	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 18:42:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 893C2230BCB;
+	Thu,  8 Jan 2026 18:52:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767897768; cv=none; b=GuGgVaSuRPxyCulNiUzTA+w9k3l1IG6HilUPBM+/PiarWgEVSSDVG/HFycMgK0uYwCMjnIMf8VMY773gZdx8BDmHbu/AUegTW860dzdYsbHHLUohnSNFLkNPt1ESZnfZdp3YYTXT6/XPuSoXM2XGhDUnsazCjF5fg/QZnMK4ILQ=
+	t=1767898349; cv=none; b=DGpKHwNovmmjqjyC92jT6YYweGPsdnC2vBD9P00JEonN5ujQAUv0lHZgBwqOfR5xdhq+GRCVMfdTKCdzsEwh/Ai3Zay5wm06adAhtofrxJBFX4jI/FTyh/27YILTdNyA/7SZxqsEVVMOuQxe1/zPe88PBxcoTKs4B6af0hMpLcw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767897768; c=relaxed/simple;
-	bh=rQhtx76dGhQvAB8uoGGXpytI8fJf4zfapYEghWR2lEw=;
-	h=Date:To:From:Subject:Message-Id; b=fZArD8hAnqmDNxJc6rQBf3Hdb4rQ0ZGAZXfQ8tPQOnZo1tcQMC0o+PheuZwBhpE4OFuDG4qZNZHuJrrRLUNdiuMRmX22HufhmTCfYsp9pgTotJQW5l5aBc39S2oFDRhfrvwXJ2f2rtnMZTSBd10BRKrzEu31mFugti+97Pb+PYk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MzCaENP9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767898349; c=relaxed/simple;
+	bh=7QifOqS9kDsEluvc7c9EoJ52paAV7/lFgsKc0D0TAPQ=;
+	h=Date:To:From:Subject:Message-Id; b=G9qalU3S2GJG/XPmfo+0PZWm0A+/yBMAlIRe46Ngwybe0l0OnZ4K9fXTJ8/FkXgOF55cVoSVArH3NGjXNrkEMkjfz+7qOVo7spiiP9/94fLui2RHLHskBQPNt71Ny6lkMlcowuD86opNKuzLxG4phyX+f3jenheEv+m6Y7wtPk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qpW4RnD6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MzCaENP9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D001CC116C6;
-	Thu,  8 Jan 2026 18:42:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qpW4RnD6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01A07C116C6;
+	Thu,  8 Jan 2026 18:52:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767897767;
-	bh=rQhtx76dGhQvAB8uoGGXpytI8fJf4zfapYEghWR2lEw=;
+	s=korg; t=1767898349;
+	bh=7QifOqS9kDsEluvc7c9EoJ52paAV7/lFgsKc0D0TAPQ=;
 	h=Date:To:From:Subject:From;
-	b=MzCaENP9E1lV9jCEYkg+Nog0xjf645cZLYcodNJhwlnzdNMTc5peCUH9sTSMCvuQz
-	 3LnIQZwtg4zhWQoMnJNjTgJCAQgUn0GmRceAZSaajfZj2+qfPHmqrAQf5d5oY4NebE
-	 BvQFUuKD68Rf0f5WIN7bNGdZdtu6lm9XcUcq4lyE=
-Date: Thu, 08 Jan 2026 10:42:47 -0800
-To: mm-commits@vger.kernel.org,danielt@kernel.org,akpm@linux-foundation.org
+	b=qpW4RnD6T8Z20aCCclv45fdT5RUEyWt5eG+m0IBm4dUVHow/Er6LuTPbqsHVT/ivD
+	 1k8XtLiDwAQJIEssVP6goAm3041am5fEGO+59FbvHd5NvSs6r467UysoZnNuYoLmeO
+	 ynXMyh40Rrel/LbaoEsbCvTUbqQfmH3Sn6lkjORs=
+Date: Thu, 08 Jan 2026 10:52:28 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,ben.dooks@codethink.co.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-entry-for-daniel-thompson.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260108184247.D001CC116C6@smtp.kernel.org>
+Subject: + mm-numamemblock-include-asm-numah-for-numa_nodes_parsed.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260108185229.01A07C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: add entry for Daniel Thompson
+     Subject: mm: numa,memblock: include <asm/numa.h> for 'numa_nodes_parsed'
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-add-entry-for-daniel-thompson.patch
+     mm-numamemblock-include-asm-numah-for-numa_nodes_parsed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entry-for-daniel-thompson.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numamemblock-include-asm-numah-for-numa_nodes_parsed.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,34 +58,42 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Daniel Thompson <danielt@kernel.org>
-Subject: mailmap: add entry for Daniel Thompson
-Date: Thu, 08 Jan 2026 11:09:54 +0000
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: mm: numa,memblock: include <asm/numa.h> for 'numa_nodes_parsed'
+Date: Thu, 8 Jan 2026 10:15:39 +0000
 
-My linaro address stopped working a long time ago but I didn't update my
-mailmap entry.  Fix that.
+The 'numa_nodes_parsed' is defined in <asm/numa.h> but this file
+is not included in mm/numa_memblks.c (build x86_64) so add this
+to the incldues to fix the following sparse warning:
 
-Link: https://lkml.kernel.org/r/20260108-mailmap-daniel_thompson_linaro-org-v1-1-83f610876377@kernel.org
-Signed-off-by: Daniel Thompson <danielt@kernel.org>
+mm/numa_memblks.c:13:12: warning: symbol 'numa_nodes_parsed' was not declared. Should it be static?
+
+Link: https://lkml.kernel.org/r/20260108101539.229192-1-ben.dooks@codethink.co.uk
+Fixes: 87482708210f ("mm: introduce numa_memblks")
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ mm/numa_memblks.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/.mailmap~mailmap-add-entry-for-daniel-thompson
-+++ a/.mailmap
-@@ -207,6 +207,7 @@ Daniel Borkmann <daniel@iogearbox.net> <
- Daniel Borkmann <daniel@iogearbox.net> <dborkmann@redhat.com>
- Daniel Borkmann <daniel@iogearbox.net> <dborkman@redhat.com>
- Daniel Borkmann <daniel@iogearbox.net> <dxchgb@gmail.com>
-+Daniel Thompson <danielt@kernel.org> <daniel.thompson@linaro.org>
- Danilo Krummrich <dakr@kernel.org> <dakr@redhat.com>
- David Brownell <david-b@pacbell.net>
- David Collins <quic_collinsd@quicinc.com> <collinsd@codeaurora.org>
+--- a/mm/numa_memblks.c~mm-numamemblock-include-asm-numah-for-numa_nodes_parsed
++++ a/mm/numa_memblks.c
+@@ -7,6 +7,8 @@
+ #include <linux/numa.h>
+ #include <linux/numa_memblks.h>
+ 
++#include <asm/numa.h>
++
+ int numa_distance_cnt;
+ static u8 *numa_distance;
+ 
 _
 
-Patches currently in -mm which might be from danielt@kernel.org are
+Patches currently in -mm which might be from ben.dooks@codethink.co.uk are
 
-mailmap-add-entry-for-daniel-thompson.patch
+mm-numamemblock-include-asm-numah-for-numa_nodes_parsed.patch
 
