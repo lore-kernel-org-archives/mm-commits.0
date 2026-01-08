@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88315312805
-	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 18:24:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F9DD3101C2
+	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 18:26:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767896688; cv=none; b=PPRjwdmzbF4A/NPlARBYCyMeDFV2JnkwrDoS3uY1oMJX5uVQjdgzfjB6gg+2yo06dGtvB74aZayzJBw1ZcDz2Auuv8D751PMZoCHTTBvaSaHWF2SI3yXU5si3lBRHh8+ppo1r37d+Nec7MqojxaOqCSJe/M9psjEuBWpHsyNd4U=
+	t=1767896800; cv=none; b=UbWLWoIr2CetS1kLpFsZoRxOHSusPdtMbdmh1zQXOfL6S/UZaxvu7A82ZA5f9lE+/29aMh8OkurUlYSxaD1KBYxZeaKn0t+Z+dAeVxDPAnKD+p9OpJua8HVpid9QlDU0ZYuRHRIbAwLWggEDybwEIBahl8w2ALf85jAWrkO016M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767896688; c=relaxed/simple;
-	bh=yxpjXmsAc8Xygh80+LZSoeFQjN6xkaCqHyQA8dxs3Ig=;
-	h=Date:To:From:Subject:Message-Id; b=k4NpclD6oT7c9QHJH/j4TvyU4KB874/AxTnQRGf1Sh8Q6taMa98Vqgr9ZBq9yvoepk+RGPbq2KGxP9bdtaLqWYfYv3oKsWYY9mbzbFs7p9nGL66wuMXV+7n1Eu6lblojpp1cdbMsr0k3ymAdXA6sF6ntGd4Amvoy+iN9GhhTxzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ipk3C7ut; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767896800; c=relaxed/simple;
+	bh=cKm/P1Ea220i+4ilzu7rD6GvU25JjQkxZJ8TQIIEb5w=;
+	h=Date:To:From:Subject:Message-Id; b=X9PQi89Qe2eeCv/s7NKAOOW6efPfJhHj0+0jRX9v1ZgSQVWHIgkHHqex4Y81aup7RCbHgayyJRa5/GnKGBCesupXL3GWzTiCNQVhF1Xdn+B5w8IDEbMIpouX6KuZyTR507anQoiUQr0NBtMcgrEC4MWO6Gm2F4Vh8u2b2EXKT6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rcVQidmU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ipk3C7ut"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F4F1C116D0;
-	Thu,  8 Jan 2026 18:24:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rcVQidmU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F411BC116C6;
+	Thu,  8 Jan 2026 18:26:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767896688;
-	bh=yxpjXmsAc8Xygh80+LZSoeFQjN6xkaCqHyQA8dxs3Ig=;
+	s=korg; t=1767896800;
+	bh=cKm/P1Ea220i+4ilzu7rD6GvU25JjQkxZJ8TQIIEb5w=;
 	h=Date:To:From:Subject:From;
-	b=ipk3C7ut4EWIbuGr60hR5Nqv1qRy2xFpRMvWZj+9+jb1Z2rnoD4LUisQ3aKz81krN
-	 MhQr0Glvi8V2sWc+JZe3EM6EkC9dEkkwSjroUPeg1LW9jNKk+11RYHVNkVfh5lrWnC
-	 Cilc0cBMfDHdeh6ulOtmQMXKQmrwbL3ZJKJB4ymg=
-Date: Thu, 08 Jan 2026 10:24:47 -0800
-To: mm-commits@vger.kernel.org,geert@linux-m68k.org,davidgow@google.com,brendan.higgins@linux.dev,note351@hotmail.com,akpm@linux-foundation.org
+	b=rcVQidmUkda44xsiMY0SV46sfhlk8B4aVwPurpZD5an7KMHEh6Q0NrItF4qB++3TR
+	 p2T3uLrzR6a5puQeGTRWhq9mk6W3htVGJ0WzEmu7cvoAqsSgvanKGFCtSuZ32j0yHh
+	 vKmyAWoBpu1yBk6cJCE9HZ7cAiEtI/c9J4lufV/k=
+Date: Thu, 08 Jan 2026 10:26:39 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,kirchou@google.com,geert@linux-m68k.org,davidgow@google.com,note351@hotmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] lib-glob-convert-selftest-to-kunit.patch removed from -mm tree
-Message-Id: <20260108182448.0F4F1C116D0@smtp.kernel.org>
+Subject: + lib-glob-convert-selftest-to-kunit.patch added to mm-nonmm-unstable branch
+Message-Id: <20260108182639.F411BC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,20 +34,36 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: lib/glob: convert selftest to KUnit
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
      lib-glob-convert-selftest-to-kunit.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-glob-convert-selftest-to-kunit.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Kir Chou <note351@hotmail.com>
 Subject: lib/glob: convert selftest to KUnit
-Date: Wed, 7 Jan 2026 14:19:03 +0900
+Date: Thu, 8 Jan 2026 21:07:53 +0900
 
-Convert the existing glob selftest (lib/globtest.c) to use the KUnit
-framework (lib/tests/glob_kunit.c).
+This patch converts the existing glob selftest (lib/globtest.c) to use the
+KUnit framework (lib/tests/glob_kunit.c).
 
 The new test:
 
@@ -63,11 +79,12 @@ with the .kunit/.kunitconfig:
 CONFIG_KUNIT=y
 CONFIG_GLOB_KUNIT_TEST=y
 
-Link: https://lkml.kernel.org/r/20260107051903.35039-1-note351@hotmail.com
+Link: https://lkml.kernel.org/r/20260108120753.27339-1-note351@hotmail.com
 Signed-off-by: Kir Chou <note351@hotmail.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>	[m68k]
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@google.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: David Gow <davidgow@google.com>
+Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: <kirchou@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -88,8 +105,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  lib/Makefile                         |    1 
  lib/globtest.c                       |  167 -------------------------
  lib/tests/Makefile                   |    1 
- lib/tests/glob_kunit.c               |  122 ++++++++++++++++++
- 18 files changed, 136 insertions(+), 193 deletions(-)
+ lib/tests/glob_kunit.c               |  125 ++++++++++++++++++
+ 18 files changed, 139 insertions(+), 193 deletions(-)
 
 --- a/arch/m68k/configs/amiga_defconfig~lib-glob-convert-selftest-to-kunit
 +++ a/arch/m68k/configs/amiga_defconfig
@@ -413,9 +430,9 @@ deleted file mode 100644
  
 +config GLOB_KUNIT_TEST
 +	tristate "Glob matching test" if !KUNIT_ALL_TESTS
++	depends on GLOB
 +	depends on KUNIT
 +	default KUNIT_ALL_TESTS
-+	select GLOB
 +	help
 +	  Enable this option to test the glob functions at runtime.
 +
@@ -429,7 +446,7 @@ deleted file mode 100644
  config ARCH_USE_MEMTEST
 --- a/lib/Makefile~lib-glob-convert-selftest-to-kunit
 +++ a/lib/Makefile
-@@ -224,7 +224,6 @@ obj-$(CONFIG_CLOSURES) += closure.o
+@@ -225,7 +225,6 @@ obj-$(CONFIG_CLOSURES) += closure.o
  obj-$(CONFIG_DQL) += dynamic_queue_limits.o
  
  obj-$(CONFIG_GLOB) += glob.o
@@ -441,8 +458,8 @@ diff --git a/lib/tests/glob_kunit.c a/lib/tests/glob_kunit.c
 new file mode 100644
 --- /dev/null
 +++ a/lib/tests/glob_kunit.c
-@@ -0,0 +1,122 @@
-+// SPDX-License-Identifier: GPL-2.0
+@@ -0,0 +1,125 @@
++// SPDX-License-Identifier: MIT OR GPL-2.0
 +/*
 + * Test cases for glob functions.
 + */
@@ -451,12 +468,15 @@ new file mode 100644
 +#include <linux/glob.h>
 +#include <linux/module.h>
 +
++/**
++ * struct glob_test_case - Test case for glob matching.
++ * @pat: Pattern to match.
++ * @str: String to match against.
++ * @expected: Expected glob_match result, true if matched.
++ */
 +struct glob_test_case {
-+	// Pattern to match.
 +	const char *pat;
-+	// String to match against.
 +	const char *str;
-+	// Expected glob_match result, true is matched.
 +	bool expected;
 +};
 +
@@ -545,10 +565,10 @@ new file mode 100644
 +	const struct glob_test_case *params = test->param_value;
 +
 +	KUNIT_EXPECT_EQ_MSG(test,
-+		glob_match(params->pat, params->str),
-+		params->expected,
-+		"Pattern: \"%s\", String: \"%s\", Expected: %d",
-+		params->pat, params->str, params->expected);
++			    glob_match(params->pat, params->str),
++			    params->expected,
++			    "Pattern: \"%s\", String: \"%s\", Expected: %d",
++			    params->pat, params->str, params->expected);
 +}
 +
 +static struct kunit_case glob_kunit_test_cases[] = {
@@ -578,4 +598,5 @@ _
 
 Patches currently in -mm which might be from note351@hotmail.com are
 
+lib-glob-convert-selftest-to-kunit.patch
 
