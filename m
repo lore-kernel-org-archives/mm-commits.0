@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 293E3330333;
-	Thu,  8 Jan 2026 20:50:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CB49330333
+	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 20:50:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767905401; cv=none; b=BGgXecYTyIGJvUkUgjWyxUo2HVuraylMxZPu2lcQ4TR2eYtQndQP4wV7OSTA4A0q6ra3wY6Vlp5/Nue2Hj4u5K4PpfXbA1Zl5bILFdWGSR6SxC+QoFNRKI1t7Oc2zkF0Fv4zjf3o5XLrMza4PzxzXHAPb5Kw22zFlf++LYdHsnU=
+	t=1767905405; cv=none; b=uPoU8Y4MUFf/cqDQTTg0YE7aiJ5K9xPEWkgufYaGWaNZPuJDgtwHT0lu0R4gg6UVpscI+ATILMpBMAanF+T0F6BVAsa92KmtJ22KHcw49ehEvXgXvfgbLVODs+TeVdjVJAKjgLnhNJ/3ceIrKtAG1HeuS+CAcNVoC0FKHbw06Gc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767905401; c=relaxed/simple;
-	bh=aS7lS9qmGaUPzyeGqfuxY9W94KEBDGBd07hGN8hFdH8=;
-	h=Date:To:From:Subject:Message-Id; b=lBbgy5o/xQR3FfsVEP7j3S0PSPaRY74GPmqMfo+Y6cLex5J94NnuWGtwP2Xuq+UXj3KtDYjJF+U+hIg9Din7EETOdz5QiwkILFCt5VOjI5gidszVLw1RiQs0WQWiNqkAN8g72UnUfY5yN9BduS1SkTVL25SQJt3xFaRMzxSnViM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gyxEI4jx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767905405; c=relaxed/simple;
+	bh=qeB+okGTJVlOQeTlRcUwkVp5D4GphRzZFOe/o4K8yDk=;
+	h=Date:To:From:Subject:Message-Id; b=NX2Pm8vFtCkFgnko+PF5jLMXF3isKufA4OvJLl+Ko369DZ2JRouGRJW0qXtXtpDjXXgaQizHlHs32cXqKvxIRLBX0KHDuzPp70jdnyxL4ZdP31I2R5obl0wCq1YZK4wiem+OjLFkvVFMENidaiJairxG9FfI0OCZE9HF8Z3RySo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q3jlcdnx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gyxEI4jx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99B18C116C6;
-	Thu,  8 Jan 2026 20:50:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q3jlcdnx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9EA3C116C6;
+	Thu,  8 Jan 2026 20:50:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767905400;
-	bh=aS7lS9qmGaUPzyeGqfuxY9W94KEBDGBd07hGN8hFdH8=;
+	s=korg; t=1767905404;
+	bh=qeB+okGTJVlOQeTlRcUwkVp5D4GphRzZFOe/o4K8yDk=;
 	h=Date:To:From:Subject:From;
-	b=gyxEI4jx+GPHFibMwluSz3dj8agrZHvruAl1F7VzGa+QpnsYXrvy0JW4bJ1QqtgAz
-	 44mGktNLMK3I9wuQfJ6LPugRWbfO/pLG6HBXsI4WDnQogDSpLM/0SbdheQ8GAZ7fK3
-	 aZbcMbx+vsPzPR/TypV8CG12ri+VzmtWU1fFIKdE=
-Date: Thu, 08 Jan 2026 12:49:59 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,tj@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,longman@redhat.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,axelrasmussen@google.com,akinobu.mita@gmail.com,bingjiao@google.com,akpm@linux-foundation.org
+	b=Q3jlcdnx23Lr8q0tdwpuP7wyWx61uvby7WCa0PtK6XtZEVJY7H4LdZ89uou2JZCP5
+	 fFDRllVMFw5uYkQXtlValeNjMlfFJjd1SbK83wl1BVz4WwK/R/CgQRDwmkhBC/cEb4
+	 3hGDKOC0tLKv5co2ShTzILxCLHBtU78Uk80QjDsY=
+Date: Thu, 08 Jan 2026 12:50:04 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,longman@redhat.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,axelrasmussen@google.com,akinobu.mita@gmail.com,bingjiao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch added to mm-new branch
-Message-Id: <20260108205000.99B18C116C6@smtp.kernel.org>
+Subject: + mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list.patch added to mm-new branch
+Message-Id: <20260108205004.D9EA3C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: fix demotion targets checks in reclaim/demotion
+     Subject: mm/vmscan: select the closest preferred node in demote_folio_list()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch
+     mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,68 +67,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Bing Jiao <bingjiao@google.com>
-Subject: mm/vmscan: fix demotion targets checks in reclaim/demotion
-Date: Thu, 8 Jan 2026 03:32:46 +0000
+Subject: mm/vmscan: select the closest preferred node in demote_folio_list()
+Date: Thu, 8 Jan 2026 03:32:47 +0000
 
-Fix two bugs in demote_folio_list() and can_demote() due to incorrect
-demotion target checks in reclaim/demotion.
+The preferred demotion node (migration_target_control.nid) should be the
+one closest to the source node to minimize migration latency.  Currently,
+a discrepancy exists where demote_folio_list() randomly selects an allowed
+node if the preferred node from next_demotion_node() is not set in
+mems_allowed.
 
-Commit 7d709f49babc ("vmscan,cgroup: apply mems_effective to reclaim")
-introduces the cpuset.mems_effective check and applies it to can_demote().
-However:
+To address it, update next_demotion_node() to return preferred nodes,
+allowing the caller to select the preferred one.  Also update
+demote_folio_list() to traverse the demotion targets hierarchically until
+a preferred node within mems_allowed is found.  It ensures that the
+selected demotion target is consistently the closest available node.
 
-  1. It does not apply this check in demote_folio_list(), which leads
-     to situations where pages are demoted to nodes that are
-     explicitly excluded from the task's cpuset.mems.
-
-  2. It checks only the nodes in the immediate next demotion hierarchy
-     and does not check all allowed demotion targets in can_demote().
-     This can cause pages to never be demoted if the nodes in the next
-     demotion hierarchy are not set in mems_effective.
-
-These bugs break resource isolation provided by cpuset.mems.  This is
-visible from userspace because pages can either fail to be demoted
-entirely or are demoted to nodes that are not allowed in multi-tier memory
-systems.
-
-To address these bugs, update cpuset_node_allowed() to return
-effective_mems and mem_cgroup_node_allowed() to filter out nodes that are
-not set in effective_mems.  Also update can_demote() and
-demote_folio_list() accordingly.
-
-Bug 1 reproduction:
-  Assume a system with 4 nodes, where nodes 0-1 are top-tier and
-  nodes 2-3 are far-tier memory. All nodes have equal capacity.
-
-  Test script:
-    echo 1 > /sys/kernel/mm/numa/demotion_enabled
-    mkdir /sys/fs/cgroup/test
-    echo +cpuset > /sys/fs/cgroup/cgroup.subtree_control
-    echo "0-2" > /sys/fs/cgroup/test/cpuset.mems
-    echo $$ > /sys/fs/cgroup/test/cgroup.procs
-    swapoff -a
-    # Expectation: Should respect node 0-2 limit.
-    # Observation: Node 3 shows significant allocation (MemFree drops)
-    stress-ng --oomable --vm 1 --vm-bytes 150% --mbind 0,1
-
-Bug 2 reproduction:
-  Assume a system with 6 nodes, where nodes 0-2 are top-tier,
-  node 3 is a far-tier node, and nodes 4-5 are the farthest-tier nodes.
-  All nodes have equal capacity.
-
-  Test script:
-    echo 1 > /sys/kernel/mm/numa/demotion_enabled
-    mkdir /sys/fs/cgroup/test
-    echo +cpuset > /sys/fs/cgroup/cgroup.subtree_control
-    echo "0-2,4-5" > /sys/fs/cgroup/test/cpuset.mems
-    echo $$ > /sys/fs/cgroup/test/cgroup.procs
-    swapoff -a
-    # Expectation: Pages are demoted to Nodes 4-5
-    # Observation: No pages are demoted before oom.
-    stress-ng --oomable --vm 1 --vm-bytes 150% --mbind 0,1,2
-
-Link: https://lkml.kernel.org/r/20260108033248.2791579-2-bingjiao@google.com
-Fixes: 7d709f49babc ("vmscan,cgroup: apply mems_effective to reclaim")
+Link: https://lkml.kernel.org/r/20260108033248.2791579-3-bingjiao@google.com
 Signed-off-by: Bing Jiao <bingjiao@google.com>
 Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -138,7 +92,6 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
@@ -147,243 +100,112 @@ Cc: Tejun Heo <tj@kernel.org>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h     |    6 +--
- include/linux/memcontrol.h |    6 +--
- kernel/cgroup/cpuset.c     |   54 +++++++++++++++++++++++------------
- mm/memcontrol.c            |   16 +++++++++-
- mm/vmscan.c                |   28 ++++++++++++------
- 5 files changed, 75 insertions(+), 35 deletions(-)
+ include/linux/memory-tiers.h |    6 +++---
+ mm/memory-tiers.c            |   11 +++++++----
+ mm/vmscan.c                  |   25 ++++++++++++++++++++++---
+ 3 files changed, 32 insertions(+), 10 deletions(-)
 
---- a/include/linux/cpuset.h~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/include/linux/cpuset.h
-@@ -174,7 +174,7 @@ static inline void set_mems_allowed(node
- 	task_unlock(current);
- }
- 
--extern bool cpuset_node_allowed(struct cgroup *cgroup, int nid);
-+extern void cpuset_nodes_allowed(struct cgroup *cgroup, nodemask_t *mask);
- #else /* !CONFIG_CPUSETS */
- 
- static inline bool cpusets_enabled(void) { return false; }
-@@ -301,9 +301,9 @@ static inline bool read_mems_allowed_ret
- 	return false;
- }
- 
--static inline bool cpuset_node_allowed(struct cgroup *cgroup, int nid)
-+static inline void cpuset_nodes_allowed(struct cgroup *cgroup, nodemask_t *mask)
+--- a/include/linux/memory-tiers.h~mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list
++++ a/include/linux/memory-tiers.h
+@@ -53,11 +53,11 @@ struct memory_dev_type *mt_find_alloc_me
+ 						  struct list_head *memory_types);
+ void mt_put_memory_types(struct list_head *memory_types);
+ #ifdef CONFIG_MIGRATION
+-int next_demotion_node(int node);
++int next_demotion_node(int node, nodemask_t *preferred_nodes);
+ void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
+ bool node_is_toptier(int node);
+ #else
+-static inline int next_demotion_node(int node)
++static inline int next_demotion_node(int node, nodemask_t *preferred_nodes)
  {
--	return true;
-+	nodes_copy(*mask, node_states[N_MEMORY]);
+ 	return NUMA_NO_NODE;
  }
- #endif /* !CONFIG_CPUSETS */
+@@ -101,7 +101,7 @@ static inline void clear_node_memory_typ
  
---- a/include/linux/memcontrol.h~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/include/linux/memcontrol.h
-@@ -1736,7 +1736,7 @@ static inline void count_objcg_events(st
- 	rcu_read_unlock();
  }
  
--bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid);
-+void mem_cgroup_node_filter_allowed(struct mem_cgroup *memcg, nodemask_t *mask);
- 
- void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg);
- 
-@@ -1807,9 +1807,9 @@ static inline ino_t page_cgroup_ino(stru
- 	return 0;
- }
- 
--static inline bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid)
-+static inline void mem_cgroup_node_filter_allowed(struct mem_cgroup *memcg,
-+						  nodemask_t *mask)
+-static inline int next_demotion_node(int node)
++static inline int next_demotion_node(int node, nodemask_t *preferred_nodes)
  {
--	return true;
+ 	return NUMA_NO_NODE;
  }
- 
- static inline void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
---- a/kernel/cgroup/cpuset.c~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/kernel/cgroup/cpuset.c
-@@ -4416,40 +4416,58 @@ bool cpuset_current_node_allowed(int nod
- 	return allowed;
- }
- 
--bool cpuset_node_allowed(struct cgroup *cgroup, int nid)
-+/**
-+ * cpuset_nodes_allowed - return effective_mems mask from a cgroup cpuset.
-+ * @cgroup: pointer to struct cgroup.
-+ * @mask: pointer to struct nodemask_t to be returned.
-+ *
-+ * Returns effective_mems mask from a cgroup cpuset if it is cgroup v2 and
-+ * has cpuset subsys. Otherwise, returns node_states[N_MEMORY].
-+ *
-+ * This function intentionally avoids taking the cpuset_mutex or callback_lock
-+ * when accessing effective_mems. This is because the obtained effective_mems
-+ * is stale immediately after the query anyway (e.g., effective_mems is updated
-+ * immediately after releasing the lock but before returning).
-+ *
-+ * As a result, returned @mask may be empty because cs->effective_mems can be
-+ * rebound during this call. Besides, nodes in @mask are not guaranteed to be
-+ * online due to hot plugins. Callers should check the mask for validity on
-+ * return based on its subsequent use.
-+ **/
-+void cpuset_nodes_allowed(struct cgroup *cgroup, nodemask_t *mask)
- {
- 	struct cgroup_subsys_state *css;
- 	struct cpuset *cs;
--	bool allowed;
- 
- 	/*
- 	 * In v1, mem_cgroup and cpuset are unlikely in the same hierarchy
- 	 * and mems_allowed is likely to be empty even if we could get to it,
--	 * so return true to avoid taking a global lock on the empty check.
-+	 * so return directly to avoid taking a global lock on the empty check.
- 	 */
--	if (!cpuset_v2())
--		return true;
-+	if (!cgroup || !cpuset_v2()) {
-+		nodes_copy(*mask, node_states[N_MEMORY]);
-+		return;
-+	}
- 
- 	css = cgroup_get_e_css(cgroup, &cpuset_cgrp_subsys);
--	if (!css)
--		return true;
-+	if (!css) {
-+		nodes_copy(*mask, node_states[N_MEMORY]);
-+		return;
-+	}
- 
- 	/*
--	 * Normally, accessing effective_mems would require the cpuset_mutex
--	 * or callback_lock - but node_isset is atomic and the reference
--	 * taken via cgroup_get_e_css is sufficient to protect css.
--	 *
--	 * Since this interface is intended for use by migration paths, we
--	 * relax locking here to avoid taking global locks - while accepting
--	 * there may be rare scenarios where the result may be innaccurate.
-+	 * The reference taken via cgroup_get_e_css is sufficient to
-+	 * protect css, but it does not imply safe accesses to effective_mems.
- 	 *
--	 * Reclaim and migration are subject to these same race conditions, and
--	 * cannot make strong isolation guarantees, so this is acceptable.
-+	 * Normally, accessing effective_mems would require the cpuset_mutex
-+	 * or callback_lock - but the correctness of this information is stale
-+	 * immediately after the query anyway. We do not acquire the lock
-+	 * during this process to save lock contention in exchange for racing
-+	 * against mems_allowed rebinds.
- 	 */
- 	cs = container_of(css, struct cpuset, css);
--	allowed = node_isset(nid, cs->effective_mems);
-+	nodes_copy(*mask, cs->effective_mems);
- 	css_put(css);
--	return allowed;
- }
- 
+--- a/mm/memory-tiers.c~mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list
++++ a/mm/memory-tiers.c
+@@ -320,13 +320,14 @@ void node_get_allowed_targets(pg_data_t
  /**
---- a/mm/memcontrol.c~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/mm/memcontrol.c
-@@ -5593,9 +5593,21 @@ subsys_initcall(mem_cgroup_swap_init);
- 
- #endif /* CONFIG_SWAP */
- 
--bool mem_cgroup_node_allowed(struct mem_cgroup *memcg, int nid)
-+void mem_cgroup_node_filter_allowed(struct mem_cgroup *memcg, nodemask_t *mask)
- {
--	return memcg ? cpuset_node_allowed(memcg->css.cgroup, nid) : true;
-+	nodemask_t allowed;
-+
-+	if (!memcg)
-+		return;
-+
-+	/*
-+	 * Since this interface is intended for use by migration paths, and
-+	 * reclaim and migration are subject to race conditions such as changes
-+	 * in effective_mems and hot-unpluging of nodes, inaccurate allowed
-+	 * mask is acceptable.
-+	 */
-+	cpuset_nodes_allowed(memcg->css.cgroup, &allowed);
-+	nodes_and(*mask, *mask, allowed);
- }
- 
- void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
---- a/mm/vmscan.c~mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion
-+++ a/mm/vmscan.c
-@@ -344,19 +344,21 @@ static void flush_reclaim_state(struct s
- static bool can_demote(int nid, struct scan_control *sc,
- 		       struct mem_cgroup *memcg)
- {
--	int demotion_nid;
-+	struct pglist_data *pgdat = NODE_DATA(nid);
-+	nodemask_t allowed_mask;
- 
--	if (!numa_demotion_enabled)
-+	if (!pgdat || !numa_demotion_enabled)
- 		return false;
- 	if (sc && sc->no_demotion)
- 		return false;
- 
--	demotion_nid = next_demotion_node(nid);
--	if (demotion_nid == NUMA_NO_NODE)
-+	node_get_allowed_targets(pgdat, &allowed_mask);
-+	if (nodes_empty(allowed_mask))
- 		return false;
- 
--	/* If demotion node isn't in the cgroup's mems_allowed, fall back */
--	return mem_cgroup_node_allowed(memcg, demotion_nid);
-+	/* Filter out nodes that are not in cgroup's mems_allowed. */
-+	mem_cgroup_node_filter_allowed(memcg, &allowed_mask);
-+	return !nodes_empty(allowed_mask);
- }
- 
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
-@@ -1018,7 +1020,8 @@ static struct folio *alloc_demote_folio(
-  * Folios which are not demoted are left on @demote_folios.
+  * next_demotion_node() - Get the next node in the demotion path
+  * @node: The starting node to lookup the next node
++ * @preferred_nodes: The pointer to nodemask of all preferred nodes to return
+  *
+  * Return: node id for next memory node in the demotion path hierarchy
+- * from @node; NUMA_NO_NODE if @node is terminal.  This does not keep
+- * @node online or guarantee that it *continues* to be the next demotion
+- * target.
++ * from @node; NUMA_NO_NODE if @node is terminal. Also returns all preferred
++ * nodes in @preferred_nodes. This does not keep @node online or guarantee
++ * that it *continues* to be the next demotion target.
   */
- static unsigned int demote_folio_list(struct list_head *demote_folios,
--				     struct pglist_data *pgdat)
-+				      struct pglist_data *pgdat,
-+				      struct mem_cgroup *memcg)
+-int next_demotion_node(int node)
++int next_demotion_node(int node, nodemask_t *preferred_nodes)
  {
- 	int target_nid = next_demotion_node(pgdat->node_id);
+ 	struct demotion_nodes *nd;
+ 	int target;
+@@ -357,6 +358,8 @@ int next_demotion_node(int node)
+ 	 * target node randomly seems better until now.
+ 	 */
+ 	target = node_random(&nd->preferred);
++	if (preferred_nodes)
++		nodes_copy(*preferred_nodes, nd->preferred);
+ 	rcu_read_unlock();
+ 
+ 	return target;
+--- a/mm/vmscan.c~mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list
++++ a/mm/vmscan.c
+@@ -1023,9 +1023,10 @@ static unsigned int demote_folio_list(st
+ 				      struct pglist_data *pgdat,
+ 				      struct mem_cgroup *memcg)
+ {
+-	int target_nid = next_demotion_node(pgdat->node_id);
++	int target_nid;
  	unsigned int nr_succeeded;
-@@ -1032,7 +1035,6 @@ static unsigned int demote_folio_list(st
- 		 */
- 		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) |
- 			__GFP_NOMEMALLOC | GFP_NOWAIT,
--		.nid = target_nid,
- 		.nmask = &allowed_mask,
- 		.reason = MR_DEMOTION,
- 	};
-@@ -1041,9 +1043,17 @@ static unsigned int demote_folio_list(st
+ 	nodemask_t allowed_mask;
++	nodemask_t preferred;
+ 
+ 	struct migration_target_control mtc = {
+ 		/*
+@@ -1051,8 +1052,26 @@ static unsigned int demote_folio_list(st
+ 	if (nodes_empty(allowed_mask))
  		return 0;
  
- 	if (target_nid == NUMA_NO_NODE)
-+		/* No lower-tier nodes or nodes were hot-unplugged. */
- 		return 0;
- 
- 	node_get_allowed_targets(pgdat, &allowed_mask);
-+	mem_cgroup_node_filter_allowed(memcg, &allowed_mask);
-+	if (nodes_empty(allowed_mask))
-+		return 0;
+-	if (!node_isset(target_nid, allowed_mask))
+-		target_nid = node_random(&allowed_mask);
++	target_nid = next_demotion_node(pgdat->node_id, &preferred);
++	while (target_nid != NUMA_NO_NODE &&
++	       !node_isset(target_nid, allowed_mask)) {
++		/* Filter out preferred nodes that are not in allowed. */
++		nodes_and(preferred, preferred, allowed_mask);
++		if (!nodes_empty(preferred)) {
++			/* Randomly select one node from preferred. */
++			target_nid = node_random(&preferred);
++			break;
++		}
++		/*
++		 * Preferred nodes in the lower tier are not set in allowed.
++		 * Recursively get preferred from the next lower tier.
++		 */
++		target_nid = next_demotion_node(target_nid, &preferred);
++	}
 +
-+	if (!node_isset(target_nid, allowed_mask))
-+		target_nid = node_random(&allowed_mask);
-+	mtc.nid = target_nid;
++	if (target_nid == NUMA_NO_NODE)
++		/* Nodes are gone (e.g., hot-unplugged). */
++		return 0;
+ 	mtc.nid = target_nid;
  
  	/* Demotion ignores all cpuset and mempolicy settings */
- 	migrate_pages(demote_folios, alloc_demote_folio, NULL,
-@@ -1565,7 +1575,7 @@ keep:
- 	/* 'folio_list' is always empty here */
- 
- 	/* Migrate folios selected for demotion */
--	nr_demoted = demote_folio_list(&demote_folios, pgdat);
-+	nr_demoted = demote_folio_list(&demote_folios, pgdat, memcg);
- 	nr_reclaimed += nr_demoted;
- 	stat->nr_demoted += nr_demoted;
- 	/* Folios that could not be demoted are still in @demote_folios */
 _
 
 Patches currently in -mm which might be from bingjiao@google.com are
