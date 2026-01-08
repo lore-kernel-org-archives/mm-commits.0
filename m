@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDA3C2253A1
-	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 17:48:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E3DC23D7CE
+	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 18:10:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767894524; cv=none; b=Ha4peXt3ANFatnjLa+DQD6qGGlNI056ZJdLZMGcccK3lJZv0SA8zeGE5nQETWJkExpSOo0ida8qMw6KvvTVllLP0dzFJiLyznI6v7NcmuEG/lVxmfXcdVSQ5WugOnIX5MSLlJifhZcEOKCuOopVXjOOSYSkDA4Xg1gnMTomOc0c=
+	t=1767895838; cv=none; b=F5AofwQjTZyXg/oEol5sDLgwxoe3Mt2EzpHYivmFSALFfPfS3oniFDQpup0+4FmO2Se1/K4d2IaOJ2hXRqFQHVJJX41VHDwdZ920q7weFpu/rZlSus09tHJZg2bHvb+vie/Y3XZNNdbMkdd/NzDYPT0r3RN+2Mcx3jUueJvG0E4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767894524; c=relaxed/simple;
-	bh=VNSnirK9LVgfpC2P7YKxMg9KVc57TRXlwEMABkY9+0w=;
-	h=Date:To:From:Subject:Message-Id; b=UOlq4pZVmyXCUsIomDlr096u6FKDzKWbaBYWsKQWnkSkgVYey8boi/lUMY+vpDq8jm/7mNozj9u5tUli/zopRPUHhuNxOkQ6rvQjAkGD6qjSLCwsh0j/2EwalhM4l3a3v0MqB9V8fvHbnFs4ovdo6TY+B8+E6/f+wxiy/DIizjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uIbmPqNo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767895838; c=relaxed/simple;
+	bh=JGzu4oue9a8MH76lPGTPX24revDbeFN7d/sKJg889AE=;
+	h=Date:To:From:Subject:Message-Id; b=ewXZB2Y/5igdMW4EuoK+J6QNwykndSqY6vlb0BcRZKXgXu3rhF22i5lrPFMsSQhjJrK3IDAE0boSTAyhueJhwYKX/OU6QUbHXClMXv8hXn28zpyp61VHk6em2PeU8ms/q21n3FI8PFvkny1zead+7QyOrsfjt+51owDRuJguscg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kp5sGoTo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uIbmPqNo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 531DCC116C6;
-	Thu,  8 Jan 2026 17:48:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kp5sGoTo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23B13C116C6;
+	Thu,  8 Jan 2026 18:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767894524;
-	bh=VNSnirK9LVgfpC2P7YKxMg9KVc57TRXlwEMABkY9+0w=;
+	s=korg; t=1767895838;
+	bh=JGzu4oue9a8MH76lPGTPX24revDbeFN7d/sKJg889AE=;
 	h=Date:To:From:Subject:From;
-	b=uIbmPqNoGRwmHDgg+60R3doNQu9FVNQgQ2D7gqZnQuvz6A6Hb7zUdrY6nS1wkYL6R
-	 Fev+8fJ1nmcbBMRQNMT+k7Cyxi7eXW8NVf6IDh4qRaaPTa8A189Sq/jKPgcTkhK+AB
-	 wGxabc3h/P1bZp489bET8uCE2y0pm291092IsXmg=
-Date: Thu, 08 Jan 2026 09:48:43 -0800
-To: mm-commits@vger.kernel.org,wangyinfeng@phytium.com.cn,rppt@kernel.org,jonathan.cameron@huawei.com,cuichao1753@phytium.com.cn,akpm@linux-foundation.org
+	b=kp5sGoTo1Gwf17sGXQaNsi6qO0wcFD0ctoIDzRXP4GyO20RY3/wY9cueRc7QGuu7q
+	 IHHXXoZv4HeiOBGnzOAY0RNhchmTvgQkA6+XQ5Prw3qQBspS9lWR1QH8Lu2QizrS8y
+	 8wdhqpnmKFXy/CF9duJN654ZI/4Vuxa3eb/BHpAk=
+Date: Thu, 08 Jan 2026 10:10:37 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,joel.granados@kernel.org,gregkh@linuxfoundation.org,feng.tang@linux.alibaba.com,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-numa_memblks-identify-the-accurate-numa-id-of-cfmw.patch added to mm-new branch
-Message-Id: <20260108174844.531DCC116C6@smtp.kernel.org>
+Subject: [to-be-updated] hung_task-introduce-helper-for-hung-task-warning.patch removed from -mm tree
+Message-Id: <20260108181038.23B13C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,102 +34,111 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: numa_memblks: identify the accurate NUMA ID of CFMW
-has been added to the -mm mm-new branch.  Its filename is
-     mm-numa_memblks-identify-the-accurate-numa-id-of-cfmw.patch
+The quilt patch titled
+     Subject: hung_task: introduce helper for hung task warning
+has been removed from the -mm tree.  Its filename was
+     hung_task-introduce-helper-for-hung-task-warning.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_memblks-identify-the-accurate-numa-id-of-cfmw.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Cui Chao <cuichao1753@phytium.com.cn>
-Subject: mm: numa_memblks: identify the accurate NUMA ID of CFMW
-Date: Tue, 6 Jan 2026 11:10:42 +0800
+From: Aaron Tomlin <atomlin@atomlin.com>
+Subject: hung_task: introduce helper for hung task warning
+Date: Tue, 30 Dec 2025 19:41:24 -0500
 
-In some physical memory layout designs, the address space of CFMW (CXL
-Fixed Memory Window) resides between multiple segments of system memory
-belonging to the same NUMA node.  In numa_cleanup_meminfo, these multiple
-segments of system memory are merged into a larger numa_memblk.  When
-identifying which NUMA node the CFMW belongs to, it may be incorrectly
-assigned to the NUMA node of the merged system memory.
+Patch series "hung_task: Provide runtime reset interface for hung task
+detector", v5.
 
-Example memory layout:
+This series introduces the ability to reset
+/proc/sys/kernel/hung_task_detect_count.
 
-Physical address space:
-    0x00000000 - 0x1FFFFFFF  System RAM (node0)
-    0x20000000 - 0x2FFFFFFF  CXL CFMW (node2)
-    0x40000000 - 0x5FFFFFFF  System RAM (node0)
-    0x60000000 - 0x7FFFFFFF  System RAM (node1)
+Writing a zero value to this file atomically resets the counter of
+detected hung tasks.  This functionality provides system administrators
+with the means to clear the cumulative diagnostic history following
+incident resolution, thereby simplifying subsequent monitoring without
+necessitating a system restart.
 
-After numa_cleanup_meminfo, the two node0 segments are merged into one:
-    0x00000000 - 0x5FFFFFFF  System RAM (node0) // CFMW is inside the range
-    0x60000000 - 0x7FFFFFFF  System RAM (node1)
+The implementation uses atomic acquire/release semantics to ensure that
+diagnostic metadata published by one CPU is correctly observed by the
+monitoring thread on another CPU.
 
-So the CFMW (0x20000000-0x2FFFFFFF) will be incorrectly assigned to node0.
 
-To address this scenario, accurately identifying the correct NUMA node
-can be achieved by checking whether the region belongs to both
-numa_meminfo and numa_reserved_meminfo.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20260106031042.1606729-2-cuichao1753@phytium.com.cn
-Signed-off-by: Cui Chao <cuichao1753@phytium.com.cn>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Wang Yinfeng <wangyinfeng@phytium.com.cn>
+Consolidate the multi-line console output block for reporting a hung task
+into a new helper function, hung_task_diagnostics().  This improves
+readability in the main check_hung_task() loop and makes the diagnostic
+output structure easier to maintain and update in the future.
+
+Link: https://lkml.kernel.org/r/20251231004125.2380105-1-atomlin@atomlin.com
+Link: https://lkml.kernel.org/r/20251231004125.2380105-2-atomlin@atomlin.com
+Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/numa_memblks.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/hung_task.c |   33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
---- a/mm/numa_memblks.c~mm-numa_memblks-identify-the-accurate-numa-id-of-cfmw
-+++ a/mm/numa_memblks.c
-@@ -568,15 +568,16 @@ static int meminfo_to_nid(struct numa_me
- int phys_to_target_node(u64 start)
- {
- 	int nid = meminfo_to_nid(&numa_meminfo, start);
-+	int reserved_nid = meminfo_to_nid(&numa_reserved_meminfo, start);
- 
- 	/*
- 	 * Prefer online nodes, but if reserved memory might be
- 	 * hot-added continue the search with reserved ranges.
- 	 */
--	if (nid != NUMA_NO_NODE)
-+	if (nid != NUMA_NO_NODE && reserved_nid == NUMA_NO_NODE)
- 		return nid;
- 
--	return meminfo_to_nid(&numa_reserved_meminfo, start);
-+	return reserved_nid;
+--- a/kernel/hung_task.c~hung_task-introduce-helper-for-hung-task-warning
++++ a/kernel/hung_task.c
+@@ -223,6 +223,28 @@ static inline void debug_show_blocker(st
  }
- EXPORT_SYMBOL_GPL(phys_to_target_node);
+ #endif
+ 
++/**
++ * hung_task_diagnostics - Print structured diagnostic info for a hung task.
++ * @t: Pointer to the detected hung task.
++ *
++ * This function consolidates the printing of core diagnostic information
++ * for a task found to be blocked.
++ */
++static inline void hung_task_diagnostics(struct task_struct *t)
++{
++	unsigned long blocked_secs = (jiffies - t->last_switch_time) / HZ;
++
++	pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
++	       t->comm, t->pid, blocked_secs);
++	pr_err("      %s %s %.*s\n",
++	       print_tainted(), init_utsname()->release,
++	       (int)strcspn(init_utsname()->version, " "),
++	       init_utsname()->version);
++	if (t->flags & PF_POSTCOREDUMP)
++		pr_err("      Blocked by coredump.\n");
++	pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\" disables this message.\n");
++}
++
+ static void check_hung_task(struct task_struct *t, unsigned long timeout,
+ 		unsigned long prev_detect_count)
+ {
+@@ -252,16 +274,7 @@ static void check_hung_task(struct task_
+ 	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+ 		if (sysctl_hung_task_warnings > 0)
+ 			sysctl_hung_task_warnings--;
+-		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
+-		       t->comm, t->pid, (jiffies - t->last_switch_time) / HZ);
+-		pr_err("      %s %s %.*s\n",
+-			print_tainted(), init_utsname()->release,
+-			(int)strcspn(init_utsname()->version, " "),
+-			init_utsname()->version);
+-		if (t->flags & PF_POSTCOREDUMP)
+-			pr_err("      Blocked by coredump.\n");
+-		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
+-			" disables this message.\n");
++		hung_task_diagnostics(t);
+ 		sched_show_task(t);
+ 		debug_show_blocker(t, timeout);
  
 _
 
-Patches currently in -mm which might be from cuichao1753@phytium.com.cn are
+Patches currently in -mm which might be from atomlin@atomlin.com are
 
-mm-numa_memblks-identify-the-accurate-numa-id-of-cfmw.patch
+fs-proc-expose-mm_cpumask-in-proc-status.patch
+hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
 
