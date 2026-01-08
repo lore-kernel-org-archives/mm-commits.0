@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83F3126F471
-	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 19:02:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7E252882B7
+	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 19:02:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767898943; cv=none; b=dyjjbiv2rKXLBIIgFZPc+VL1qc8oPmnSimZ0YT4KvANdjwS92zc5ANNiD4N4UcHcEo3rhIv9C/KWMobQz851lupRe1nfY4bcir1E31Ag1uQYEwVZF9mX2hyQO2/Q1oFEIAHJLDISR5pJU9ZwrMTPB9YnNEugmSwVSAHUGFMcknA=
+	t=1767898946; cv=none; b=oWlhJ5eJTUqWVKl4ZpKoKmGDqHjxmepea3UKFDGRcn/XCvuCE5rBwpDidLQrDs/iZmi3FFx9QCIB+SYMqRfSWUQwR3jFcozdjmje4ysAyYFS31arUEDu4zsugctyIs56WrbOH1+tIHVcsAFL4Sb+ObINrBYkBuXS4Vr8Jodu5x0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767898943; c=relaxed/simple;
-	bh=LFfCJawFoq/8chuPEGl5dKyz4lgJdM3SquNbVKbmzeg=;
-	h=Date:To:From:Subject:Message-Id; b=L1U4cgAf4DZAssV3pO9tsZtjSLycRFtaBBslgkwaz9kKt66MPSX6/3aiWsfQH6QlE+J73DxV50PVQ9q7nSOOE8s4LWt/ZLhDVaUM8oAubVatXRqd6lDvDv08fNtZCsCfW+m5ZMr3mLDHWbAP5tSABACz/IqLs/52ZM2MBtDKrPc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RN4xUnR+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767898946; c=relaxed/simple;
+	bh=n7Z0aSYW5EnhtfO6BllhonTvJYl6V++1f2wg7c9H1Ys=;
+	h=Date:To:From:Subject:Message-Id; b=kclBMSnkiyZJzus5wse/5pN2ggrSH2Wzk/ep7M7cGQ/z3UkP4TRocIc1X9LiZypHbm520RbdgPwIg3wdmC8gOp//pIwbNmomFPgij9Cw8sRcgZm+MLdqC9gNEFscjsWqfn6zQVQQJlDWMSoKoqqC5+KhtLisERhSjZdl+naqquI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ph1IB+sj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RN4xUnR+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BB3AC116C6;
-	Thu,  8 Jan 2026 19:02:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ph1IB+sj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 799D2C116C6;
+	Thu,  8 Jan 2026 19:02:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767898943;
-	bh=LFfCJawFoq/8chuPEGl5dKyz4lgJdM3SquNbVKbmzeg=;
+	s=korg; t=1767898945;
+	bh=n7Z0aSYW5EnhtfO6BllhonTvJYl6V++1f2wg7c9H1Ys=;
 	h=Date:To:From:Subject:From;
-	b=RN4xUnR+Y7uCcZo11QfN7B7LgnpSrd+DlRaw2+F4wzo5pg18xiuOnjVdRKrXTDKJh
-	 0aA1QcyeHv8qRFq3XfrUTY2pgtNCCLK6gaym3rNswh4nzv4R9OJwHW0UwYckmwseQb
-	 zG5brLHBCaIBOvs0kV3Aq1qRRp1Z/IdUAEbyfMRI=
-Date: Thu, 08 Jan 2026 11:02:22 -0800
-To: mm-commits@vger.kernel.org,jonathan.cameron@huawei.com,akinobu.mita@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ph1IB+sjomPabI7ob1tU1mjCeV+I7eYpzJVMLuwYVDkYVZvW2H3uid24508OUMTeH
+	 9EfQfpz6AlLTCj1Gga/0qhQtM3qqVxrWXPvMtFWf/3pTLILlG7FX7enh/xlldAcCuO
+	 pL/JCYeV3LciO3Eq8cL266WFQ5PVK2WANO4DruPs=
+Date: Thu, 08 Jan 2026 11:02:24 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rientjes@google.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jonathan.cameron@huawei.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes-fix.patch added to mm-new branch
-Message-Id: <20260108190223.4BB3AC116C6@smtp.kernel.org>
+Subject: + mm-numa_emu-add-document-for-numa-emulation.patch added to mm-new branch
+Message-Id: <20260108190225.799D2C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes-fix
+     Subject: mm: numa_emu: add document for NUMA emulation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes-fix.patch
+     mm-numa_emu-add-document-for-numa-emulation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-numa_emu-add-document-for-numa-emulation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,39 +66,87 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes-fix
-Date: Thu Jan  8 11:01:07 AM PST 2026
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: mm: numa_emu: add document for NUMA emulation
+Date: Thu, 8 Jan 2026 19:15:34 +0900
 
-include linux/notifier.h, per Jonathan
+Add a document with a brief explanation of numa emulation and how to use
+the newly added "numa_emulation.adistance=" kernel cmdline parameter.
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+Link: https://lkml.kernel.org/r/20260108101535.50696-3-akinobu.mita@gmail.com
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/numa_emulation.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/mm/index.rst          |    1 
+ Documentation/mm/numa_emulation.rst |   30 ++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+)
 
---- a/mm/numa_emulation.c~mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes-fix
-+++ a/mm/numa_emulation.c
-@@ -9,6 +9,7 @@
- #include <linux/memory-tiers.h>
- #include <linux/module.h>
- #include <linux/node.h>
-+#include <linux/notifier.h>
- #include <linux/numa_memblks.h>
- #include <asm/numa.h>
- #include <acpi/acpi_numa.h>
+--- a/Documentation/mm/index.rst~mm-numa_emu-add-document-for-numa-emulation
++++ a/Documentation/mm/index.rst
+@@ -24,6 +24,7 @@ see the :doc:`admin guide <../admin-guid
+    page_cache
+    shmfs
+    oom
++   numa_emulation
+ 
+ Unsorted Documentation
+ ======================
+diff --git a/Documentation/mm/numa_emulation.rst a/Documentation/mm/numa_emulation.rst
+new file mode 100644
+--- /dev/null
++++ a/Documentation/mm/numa_emulation.rst
+@@ -0,0 +1,30 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++==============
++NUMA emulation
++==============
++
++If CONFIG_NUMA_EMU is enabled, you can create fake NUMA nodes with
++``numa=fake=`` kernel cmdline option.
++See Documentation/admin-guide/kernel-parameters.txt and
++Documentation/arch/x86/x86_64/fake-numa-for-cpusets.rst for more information.
++
++
++Multiple Memory Tiers Creation
++==============================
++
++The "numa_emulation.adistance=" kernel cmdline option allows you to set
++the abstract distance for each NUMA node.
++
++For example, you can create two fake nodes, each in a different memory
++tier by booting with "numa=fake=2 numa_emulation.adistance=576,704".
++Here, the abstract distances of node0 and node1 are set to 576 and 706,
++respectively.
++
++Each memory tier covers an abstract distance chunk size of 128. Thus,
++nodes with abstract distances between 512 and 639 are classified into the
++same memory tier, and nodes with abstract distances between 640 and 767
++are classified into the next slower memory tier.
++
++The abstract distance of fake nodes not specified in the parameter will
++be the default DRAM abstract distance of 576.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free-fix.patch
-mm-add-basic-tests-for-lazy_mmu-fix.patch
-mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
-mm-block-fs-remove-laptop_mode-fix.patch
-mm-fix-minor-spelling-mistakes-in-comments-fix.patch
-mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes-fix.patch
-list-add-primitives-for-private-list-manipulations-fix.patch
+mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes.patch
+mm-numa_emu-add-document-for-numa-emulation.patch
+mm-vmscan-dont-demote-if-there-is-not-enough-free-memory-in-the-lower-memory-tier.patch
 
