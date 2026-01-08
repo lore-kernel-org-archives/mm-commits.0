@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D2A23D7CE
-	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 18:10:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88315312805
+	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 18:24:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767895839; cv=none; b=ZmOD5FB04ALFg/gom204BCG5nQrBfOrzwQJFrc5X0eGo+NZ8yTdvp7U3BJ72acMjqIvbpphXxkIndYibo+QxwSi/Bc4tEb21EYik2KCledq4xkENpmnC9X/mdJTHuUe9kzT9iSes7rLoTtUz8RVE8GbYgCAP9z4wo0IYPY8irfc=
+	t=1767896688; cv=none; b=PPRjwdmzbF4A/NPlARBYCyMeDFV2JnkwrDoS3uY1oMJX5uVQjdgzfjB6gg+2yo06dGtvB74aZayzJBw1ZcDz2Auuv8D751PMZoCHTTBvaSaHWF2SI3yXU5si3lBRHh8+ppo1r37d+Nec7MqojxaOqCSJe/M9psjEuBWpHsyNd4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767895839; c=relaxed/simple;
-	bh=eHOPHpG+NeKnH5pdIwj/CAqXHYTmbqE3V5WY1f/MIoc=;
-	h=Date:To:From:Subject:Message-Id; b=ETq5/cxCxnAtH9hipPPRh5/gfEHB503KZ2sel7iJURNsUoX7BX9HZy9PCrkWLrA7QAxOb8h4hHAPjY7J06oMpibB50RkMN9Lrj7PXSWsnI4xL4uxyLNdlcc9zrqpGRk9ayg64w9ewtCZJFPvIAgFjILsnjLmnYofy88HaqenmSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nox1hTRl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767896688; c=relaxed/simple;
+	bh=yxpjXmsAc8Xygh80+LZSoeFQjN6xkaCqHyQA8dxs3Ig=;
+	h=Date:To:From:Subject:Message-Id; b=k4NpclD6oT7c9QHJH/j4TvyU4KB874/AxTnQRGf1Sh8Q6taMa98Vqgr9ZBq9yvoepk+RGPbq2KGxP9bdtaLqWYfYv3oKsWYY9mbzbFs7p9nGL66wuMXV+7n1Eu6lblojpp1cdbMsr0k3ymAdXA6sF6ntGd4Amvoy+iN9GhhTxzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ipk3C7ut; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nox1hTRl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0D72C116C6;
-	Thu,  8 Jan 2026 18:10:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ipk3C7ut"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F4F1C116D0;
+	Thu,  8 Jan 2026 18:24:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767895839;
-	bh=eHOPHpG+NeKnH5pdIwj/CAqXHYTmbqE3V5WY1f/MIoc=;
+	s=korg; t=1767896688;
+	bh=yxpjXmsAc8Xygh80+LZSoeFQjN6xkaCqHyQA8dxs3Ig=;
 	h=Date:To:From:Subject:From;
-	b=Nox1hTRlbd+nqWq+XVFyf4aH+gOCasWJyyZmY/HsK6K9NDZQUuAVMwFTxE2pS5z72
-	 gU+mL0O51MnntqzBMFwXgwMnlIdU63NahKro18jZhozO4K/4eAGkJNtuFDJmqPsbi4
-	 VGwIdDwMVY75bXlXv468Ml0eCo5wRcZAO8iqKVkM=
-Date: Thu, 08 Jan 2026 10:10:39 -0800
-To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,joel.granados@kernel.org,gregkh@linuxfoundation.org,feng.tang@linux.alibaba.com,atomlin@atomlin.com,akpm@linux-foundation.org
+	b=ipk3C7ut4EWIbuGr60hR5Nqv1qRy2xFpRMvWZj+9+jb1Z2rnoD4LUisQ3aKz81krN
+	 MhQr0Glvi8V2sWc+JZe3EM6EkC9dEkkwSjroUPeg1LW9jNKk+11RYHVNkVfh5lrWnC
+	 Cilc0cBMfDHdeh6ulOtmQMXKQmrwbL3ZJKJB4ymg=
+Date: Thu, 08 Jan 2026 10:24:47 -0800
+To: mm-commits@vger.kernel.org,geert@linux-m68k.org,davidgow@google.com,brendan.higgins@linux.dev,note351@hotmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] hung_task-enable-runtime-reset-of-hung_task_detect_count.patch removed from -mm tree
-Message-Id: <20260108181039.A0D72C116C6@smtp.kernel.org>
+Subject: [to-be-updated] lib-glob-convert-selftest-to-kunit.patch removed from -mm tree
+Message-Id: <20260108182448.0F4F1C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,200 +35,547 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hung_task: enable runtime reset of hung_task_detect_count
+     Subject: lib/glob: convert selftest to KUnit
 has been removed from the -mm tree.  Its filename was
-     hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
+     lib-glob-convert-selftest-to-kunit.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: hung_task: enable runtime reset of hung_task_detect_count
-Date: Tue, 30 Dec 2025 19:41:25 -0500
+From: Kir Chou <note351@hotmail.com>
+Subject: lib/glob: convert selftest to KUnit
+Date: Wed, 7 Jan 2026 14:19:03 +0900
 
-Introduce support for writing to /proc/sys/kernel/hung_task_detect_count.
+Convert the existing glob selftest (lib/globtest.c) to use the KUnit
+framework (lib/tests/glob_kunit.c).
 
-Writing a value of zero to this file atomically resets the counter of
-detected hung tasks.  This grants system administrators the ability to
-clear the cumulative diagnostic history after resolving an incident,
-simplifying monitoring without requiring a system restart.
+The new test:
 
-Link: https://lkml.kernel.org/r/20251231004125.2380105-3-atomlin@atomlin.com
-Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
-Acked-by: Lance Yang <lance.yang@linux.dev>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+- Migrates all 64 test cases from the original test to the KUnit suite.
+- Removes the custom 'verbose' module parameter as KUnit handles logging.
+- Updates Kconfig.debug and Makefile to support the new KUnit test.
+- Updates Kconfig and Makefile to remove the original selftest.
+- Updates GLOB_SELFTEST to GLOB_KUNIT_TEST for arch/m68k/configs.
+
+This commit is verified by `./tools/testing/kunit/kunit.py run'
+with the .kunit/.kunitconfig:
+
+CONFIG_KUNIT=y
+CONFIG_GLOB_KUNIT_TEST=y
+
+Link: https://lkml.kernel.org/r/20260107051903.35039-1-note351@hotmail.com
+Signed-off-by: Kir Chou <note351@hotmail.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>	[m68k]
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    3 
- kernel/hung_task.c                          |   82 +++++++++++++++---
- 2 files changed, 73 insertions(+), 12 deletions(-)
+ arch/m68k/configs/amiga_defconfig    |    1 
+ arch/m68k/configs/apollo_defconfig   |    1 
+ arch/m68k/configs/atari_defconfig    |    1 
+ arch/m68k/configs/bvme6000_defconfig |    1 
+ arch/m68k/configs/hp300_defconfig    |    1 
+ arch/m68k/configs/mac_defconfig      |    1 
+ arch/m68k/configs/multi_defconfig    |    1 
+ arch/m68k/configs/mvme147_defconfig  |    1 
+ arch/m68k/configs/mvme16x_defconfig  |    1 
+ arch/m68k/configs/q40_defconfig      |    1 
+ arch/m68k/configs/sun3_defconfig     |    1 
+ arch/m68k/configs/sun3x_defconfig    |    1 
+ lib/Kconfig                          |   13 -
+ lib/Kconfig.debug                    |   13 +
+ lib/Makefile                         |    1 
+ lib/globtest.c                       |  167 -------------------------
+ lib/tests/Makefile                   |    1 
+ lib/tests/glob_kunit.c               |  122 ++++++++++++++++++
+ 18 files changed, 136 insertions(+), 193 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~hung_task-enable-runtime-reset-of-hung_task_detect_count
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -418,7 +418,8 @@ hung_task_detect_count
- ======================
+--- a/arch/m68k/configs/amiga_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/amiga_defconfig
+@@ -600,7 +600,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/apollo_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/apollo_defconfig
+@@ -557,7 +557,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/atari_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/atari_defconfig
+@@ -577,7 +577,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/bvme6000_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/bvme6000_defconfig
+@@ -549,7 +549,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/hp300_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/hp300_defconfig
+@@ -559,7 +559,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/mac_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/mac_defconfig
+@@ -576,7 +576,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/multi_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/multi_defconfig
+@@ -663,7 +663,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/mvme147_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/mvme147_defconfig
+@@ -549,7 +549,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/mvme16x_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/mvme16x_defconfig
+@@ -550,7 +550,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/q40_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/q40_defconfig
+@@ -566,7 +566,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/sun3_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/sun3_defconfig
+@@ -547,7 +547,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+--- a/arch/m68k/configs/sun3x_defconfig~lib-glob-convert-selftest-to-kunit
++++ a/arch/m68k/configs/sun3x_defconfig
+@@ -547,7 +547,6 @@ CONFIG_CRYPTO_USER_API_AEAD=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_CRC_BENCHMARK=y
+ CONFIG_XZ_DEC_TEST=m
+-CONFIG_GLOB_SELFTEST=m
+ # CONFIG_SECTION_MISMATCH_WARN_ONLY is not set
+ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_TEST_LOCKUP=m
+diff --git a/lib/globtest.c a/lib/globtest.c
+deleted file mode 100644
+--- a/lib/globtest.c
++++ /dev/null
+@@ -1,167 +0,0 @@
+-/*
+- * Extracted fronm glob.c
+- */
+-
+-#include <linux/module.h>
+-#include <linux/moduleparam.h>
+-#include <linux/glob.h>
+-#include <linux/printk.h>
+-
+-/* Boot with "glob.verbose=1" to show successful tests, too */
+-static bool verbose = false;
+-module_param(verbose, bool, 0);
+-
+-struct glob_test {
+-	char const *pat, *str;
+-	bool expected;
+-};
+-
+-static bool __pure __init test(char const *pat, char const *str, bool expected)
+-{
+-	bool match = glob_match(pat, str);
+-	bool success = match == expected;
+-
+-	/* Can't get string literals into a particular section, so... */
+-	static char const msg_error[] __initconst =
+-		KERN_ERR "glob: \"%s\" vs. \"%s\": %s *** ERROR ***\n";
+-	static char const msg_ok[] __initconst =
+-		KERN_DEBUG "glob: \"%s\" vs. \"%s\": %s OK\n";
+-	static char const mismatch[] __initconst = "mismatch";
+-	char const *message;
+-
+-	if (!success)
+-		message = msg_error;
+-	else if (verbose)
+-		message = msg_ok;
+-	else
+-		return success;
+-
+-	printk(message, pat, str, mismatch + 3*match);
+-	return success;
+-}
+-
+-/*
+- * The tests are all jammed together in one array to make it simpler
+- * to place that array in the .init.rodata section.  The obvious
+- * "array of structures containing char *" has no way to force the
+- * pointed-to strings to be in a particular section.
+- *
+- * Anyway, a test consists of:
+- * 1. Expected glob_match result: '1' or '0'.
+- * 2. Pattern to match: null-terminated string
+- * 3. String to match against: null-terminated string
+- *
+- * The list of tests is terminated with a final '\0' instead of
+- * a glob_match result character.
+- */
+-static char const glob_tests[] __initconst =
+-	/* Some basic tests */
+-	"1" "a\0" "a\0"
+-	"0" "a\0" "b\0"
+-	"0" "a\0" "aa\0"
+-	"0" "a\0" "\0"
+-	"1" "\0" "\0"
+-	"0" "\0" "a\0"
+-	/* Simple character class tests */
+-	"1" "[a]\0" "a\0"
+-	"0" "[a]\0" "b\0"
+-	"0" "[!a]\0" "a\0"
+-	"1" "[!a]\0" "b\0"
+-	"1" "[ab]\0" "a\0"
+-	"1" "[ab]\0" "b\0"
+-	"0" "[ab]\0" "c\0"
+-	"1" "[!ab]\0" "c\0"
+-	"1" "[a-c]\0" "b\0"
+-	"0" "[a-c]\0" "d\0"
+-	/* Corner cases in character class parsing */
+-	"1" "[a-c-e-g]\0" "-\0"
+-	"0" "[a-c-e-g]\0" "d\0"
+-	"1" "[a-c-e-g]\0" "f\0"
+-	"1" "[]a-ceg-ik[]\0" "a\0"
+-	"1" "[]a-ceg-ik[]\0" "]\0"
+-	"1" "[]a-ceg-ik[]\0" "[\0"
+-	"1" "[]a-ceg-ik[]\0" "h\0"
+-	"0" "[]a-ceg-ik[]\0" "f\0"
+-	"0" "[!]a-ceg-ik[]\0" "h\0"
+-	"0" "[!]a-ceg-ik[]\0" "]\0"
+-	"1" "[!]a-ceg-ik[]\0" "f\0"
+-	/* Simple wild cards */
+-	"1" "?\0" "a\0"
+-	"0" "?\0" "aa\0"
+-	"0" "??\0" "a\0"
+-	"1" "?x?\0" "axb\0"
+-	"0" "?x?\0" "abx\0"
+-	"0" "?x?\0" "xab\0"
+-	/* Asterisk wild cards (backtracking) */
+-	"0" "*??\0" "a\0"
+-	"1" "*??\0" "ab\0"
+-	"1" "*??\0" "abc\0"
+-	"1" "*??\0" "abcd\0"
+-	"0" "??*\0" "a\0"
+-	"1" "??*\0" "ab\0"
+-	"1" "??*\0" "abc\0"
+-	"1" "??*\0" "abcd\0"
+-	"0" "?*?\0" "a\0"
+-	"1" "?*?\0" "ab\0"
+-	"1" "?*?\0" "abc\0"
+-	"1" "?*?\0" "abcd\0"
+-	"1" "*b\0" "b\0"
+-	"1" "*b\0" "ab\0"
+-	"0" "*b\0" "ba\0"
+-	"1" "*b\0" "bb\0"
+-	"1" "*b\0" "abb\0"
+-	"1" "*b\0" "bab\0"
+-	"1" "*bc\0" "abbc\0"
+-	"1" "*bc\0" "bc\0"
+-	"1" "*bc\0" "bbc\0"
+-	"1" "*bc\0" "bcbc\0"
+-	/* Multiple asterisks (complex backtracking) */
+-	"1" "*ac*\0" "abacadaeafag\0"
+-	"1" "*ac*ae*ag*\0" "abacadaeafag\0"
+-	"1" "*a*b*[bc]*[ef]*g*\0" "abacadaeafag\0"
+-	"0" "*a*b*[ef]*[cd]*g*\0" "abacadaeafag\0"
+-	"1" "*abcd*\0" "abcabcabcabcdefg\0"
+-	"1" "*ab*cd*\0" "abcabcabcabcdefg\0"
+-	"1" "*abcd*abcdef*\0" "abcabcdabcdeabcdefg\0"
+-	"0" "*abcd*\0" "abcabcabcabcefg\0"
+-	"0" "*ab*cd*\0" "abcabcabcabcefg\0";
+-
+-static int __init glob_init(void)
+-{
+-	unsigned successes = 0;
+-	unsigned n = 0;
+-	char const *p = glob_tests;
+-	static char const message[] __initconst =
+-		KERN_INFO "glob: %u self-tests passed, %u failed\n";
+-
+-	/*
+-	 * Tests are jammed together in a string.  The first byte is '1'
+-	 * or '0' to indicate the expected outcome, or '\0' to indicate the
+-	 * end of the tests.  Then come two null-terminated strings: the
+-	 * pattern and the string to match it against.
+-	 */
+-	while (*p) {
+-		bool expected = *p++ & 1;
+-		char const *pat = p;
+-
+-		p += strlen(p) + 1;
+-		successes += test(pat, p, expected);
+-		p += strlen(p) + 1;
+-		n++;
+-	}
+-
+-	n -= successes;
+-	printk(message, successes, n);
+-
+-	/* What's the errno for "kernel bug detected"?  Guess... */
+-	return n ? -ECANCELED : 0;
+-}
+-
+-/* We need a dummy exit function to allow unload */
+-static void __exit glob_fini(void) { }
+-
+-module_init(glob_init);
+-module_exit(glob_fini);
+-
+-MODULE_DESCRIPTION("glob(7) matching tests");
+-MODULE_LICENSE("Dual MIT/GPL");
+--- a/lib/Kconfig~lib-glob-convert-selftest-to-kunit
++++ a/lib/Kconfig
+@@ -430,19 +430,6 @@ config GLOB
+ 	  are compiling an out-of tree driver which tells you that it
+ 	  depends on this.
  
- Indicates the total number of tasks that have been detected as hung since
--the system boot.
-+the system boot or since the counter was reset. The counter is zeroed when
-+a value of 0 is written.
+-config GLOB_SELFTEST
+-	tristate "glob self-test on init"
+-	depends on GLOB
+-	help
+-	  This option enables a simple self-test of the glob_match
+-	  function on startup.	It is primarily useful for people
+-	  working on the code to ensure they haven't introduced any
+-	  regressions.
+-
+-	  It only adds a little bit of code and slows kernel boot (or
+-	  module load) by a small amount, so you're welcome to play with
+-	  it, but you probably don't need it.
+-
+ #
+ # Netlink attribute parsing support is select'ed if needed
+ #
+--- a/lib/Kconfig.debug~lib-glob-convert-selftest-to-kunit
++++ a/lib/Kconfig.debug
+@@ -3401,6 +3401,19 @@ config PRIME_NUMBERS_KUNIT_TEST
  
- This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
+ 	  If unsure, say N
  
---- a/kernel/hung_task.c~hung_task-enable-runtime-reset-of-hung_task_detect_count
-+++ a/kernel/hung_task.c
-@@ -17,6 +17,7 @@
- #include <linux/export.h>
- #include <linux/panic_notifier.h>
- #include <linux/sysctl.h>
-+#include <linux/atomic.h>
- #include <linux/suspend.h>
- #include <linux/utsname.h>
- #include <linux/sched/signal.h>
-@@ -36,7 +37,7 @@ static int __read_mostly sysctl_hung_tas
- /*
-  * Total number of tasks detected as hung since boot:
-  */
--static unsigned long __read_mostly sysctl_hung_task_detect_count;
-+static atomic_long_t sysctl_hung_task_detect_count = ATOMIC_LONG_INIT(0);
- 
- /*
-  * Limit number of tasks checked in a batch.
-@@ -246,20 +247,26 @@ static inline void hung_task_diagnostics
- }
- 
- static void check_hung_task(struct task_struct *t, unsigned long timeout,
--		unsigned long prev_detect_count)
-+			    unsigned long prev_detect_count)
- {
--	unsigned long total_hung_task;
-+	unsigned long total_hung_task, cur_detect_count;
- 
- 	if (!task_is_hung(t, timeout))
- 		return;
- 
- 	/*
- 	 * This counter tracks the total number of tasks detected as hung
--	 * since boot.
-+	 * since boot. If a reset occurred during the scan, we treat the
-+	 * current count as the new delta to avoid an underflow error.
-+	 * Ensure hang details are globally visible before the counter
-+	 * update.
- 	 */
--	sysctl_hung_task_detect_count++;
-+	cur_detect_count = atomic_long_inc_return_release(&sysctl_hung_task_detect_count);
-+	if (cur_detect_count >= prev_detect_count)
-+		total_hung_task = cur_detect_count - prev_detect_count;
-+	else
-+		total_hung_task = cur_detect_count;
- 
--	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
- 	trace_sched_process_hang(t);
- 
- 	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
-@@ -318,10 +325,12 @@ static void check_hung_uninterruptible_t
- 	int max_count = sysctl_hung_task_check_count;
- 	unsigned long last_break = jiffies;
- 	struct task_struct *g, *t;
--	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
-+	unsigned long cur_detect_count, prev_detect_count, delta;
- 	int need_warning = sysctl_hung_task_warnings;
- 	unsigned long si_mask = hung_task_si_mask;
- 
-+	/* Acquire prevents reordering task checks before this point. */
-+	prev_detect_count = atomic_long_read_acquire(&sysctl_hung_task_detect_count);
- 	/*
- 	 * If the system crashed already then all bets are off,
- 	 * do not report extra hung tasks:
-@@ -346,7 +355,14 @@ static void check_hung_uninterruptible_t
-  unlock:
- 	rcu_read_unlock();
- 
--	if (!(sysctl_hung_task_detect_count - prev_detect_count))
-+	/* Ensures we see all hang details recorded during the scan. */
-+	cur_detect_count = atomic_long_read_acquire(&sysctl_hung_task_detect_count);
-+	if (cur_detect_count < prev_detect_count)
-+		delta = cur_detect_count;
-+	else
-+		delta = cur_detect_count - prev_detect_count;
++config GLOB_KUNIT_TEST
++	tristate "Glob matching test" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	select GLOB
++	help
++	  Enable this option to test the glob functions at runtime.
 +
-+	if (!delta)
- 		return;
- 
- 	if (need_warning || hung_task_call_panic) {
-@@ -371,6 +387,51 @@ static long hung_timeout_jiffies(unsigne
- }
- 
- #ifdef CONFIG_SYSCTL
++	  This test suite verifies the correctness of glob_match() across various
++	  scenarios, including edge cases.
 +
-+/**
-+ * proc_dohung_task_detect_count - proc handler for hung_task_detect_count
-+ * @table: Pointer to the struct ctl_table definition for this proc entry
-+ * @dir: Flag indicating the operation
-+ * @buffer: User space buffer for data transfer
-+ * @lenp: Pointer to the length of the data being transferred
-+ * @ppos: Pointer to the current file offset
-+ *
-+ * This handler is used for reading the current hung task detection count
-+ * and for resetting it to zero when a write operation is performed using a
-+ * zero value only. Returns 0 on success or a negative error code on
-+ * failure.
++	  If unsure, say N
++
+ endif # RUNTIME_TESTING_MENU
+ 
+ config ARCH_USE_MEMTEST
+--- a/lib/Makefile~lib-glob-convert-selftest-to-kunit
++++ a/lib/Makefile
+@@ -224,7 +224,6 @@ obj-$(CONFIG_CLOSURES) += closure.o
+ obj-$(CONFIG_DQL) += dynamic_queue_limits.o
+ 
+ obj-$(CONFIG_GLOB) += glob.o
+-obj-$(CONFIG_GLOB_SELFTEST) += globtest.o
+ 
+ obj-$(CONFIG_DIMLIB) += dim/
+ obj-$(CONFIG_SIGNATURE) += digsig.o
+diff --git a/lib/tests/glob_kunit.c a/lib/tests/glob_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/tests/glob_kunit.c
+@@ -0,0 +1,122 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Test cases for glob functions.
 + */
-+static int proc_dohung_task_detect_count(const struct ctl_table *table, int dir,
-+					 void *buffer, size_t *lenp, loff_t *ppos)
++
++#include <kunit/test.h>
++#include <linux/glob.h>
++#include <linux/module.h>
++
++struct glob_test_case {
++	// Pattern to match.
++	const char *pat;
++	// String to match against.
++	const char *str;
++	// Expected glob_match result, true is matched.
++	bool expected;
++};
++
++static const struct glob_test_case glob_test_cases[] = {
++	/* Some basic tests */
++	{ .pat = "a", .str = "a", .expected = true },
++	{ .pat = "a", .str = "b", .expected = false },
++	{ .pat = "a", .str = "aa", .expected = false },
++	{ .pat = "a", .str = "", .expected = false },
++	{ .pat = "", .str = "", .expected = true },
++	{ .pat = "", .str = "a", .expected = false },
++	/* Simple character class tests */
++	{ .pat = "[a]", .str = "a", .expected = true },
++	{ .pat = "[a]", .str = "b", .expected = false },
++	{ .pat = "[!a]", .str = "a", .expected = false },
++	{ .pat = "[!a]", .str = "b", .expected = true },
++	{ .pat = "[ab]", .str = "a", .expected = true },
++	{ .pat = "[ab]", .str = "b", .expected = true },
++	{ .pat = "[ab]", .str = "c", .expected = false },
++	{ .pat = "[!ab]", .str = "c", .expected = true },
++	{ .pat = "[a-c]", .str = "b", .expected = true },
++	{ .pat = "[a-c]", .str = "d", .expected = false },
++	/* Corner cases in character class parsing */
++	{ .pat = "[a-c-e-g]", .str = "-", .expected = true },
++	{ .pat = "[a-c-e-g]", .str = "d", .expected = false },
++	{ .pat = "[a-c-e-g]", .str = "f", .expected = true },
++	{ .pat = "[]a-ceg-ik[]", .str = "a", .expected = true },
++	{ .pat = "[]a-ceg-ik[]", .str = "]", .expected = true },
++	{ .pat = "[]a-ceg-ik[]", .str = "[", .expected = true },
++	{ .pat = "[]a-ceg-ik[]", .str = "h", .expected = true },
++	{ .pat = "[]a-ceg-ik[]", .str = "f", .expected = false },
++	{ .pat = "[!]a-ceg-ik[]", .str = "h", .expected = false },
++	{ .pat = "[!]a-ceg-ik[]", .str = "]", .expected = false },
++	{ .pat = "[!]a-ceg-ik[]", .str = "f", .expected = true },
++	/* Simple wild cards */
++	{ .pat = "?", .str = "a", .expected = true },
++	{ .pat = "?", .str = "aa", .expected = false },
++	{ .pat = "??", .str = "a", .expected = false },
++	{ .pat = "?x?", .str = "axb", .expected = true },
++	{ .pat = "?x?", .str = "abx", .expected = false },
++	{ .pat = "?x?", .str = "xab", .expected = false },
++	/* Asterisk wild cards (backtracking) */
++	{ .pat = "*??", .str = "a", .expected = false },
++	{ .pat = "*??", .str = "ab", .expected = true },
++	{ .pat = "*??", .str = "abc", .expected = true },
++	{ .pat = "*??", .str = "abcd", .expected = true },
++	{ .pat = "??*", .str = "a", .expected = false },
++	{ .pat = "??*", .str = "ab", .expected = true },
++	{ .pat = "??*", .str = "abc", .expected = true },
++	{ .pat = "??*", .str = "abcd", .expected = true },
++	{ .pat = "?*?", .str = "a", .expected = false },
++	{ .pat = "?*?", .str = "ab", .expected = true },
++	{ .pat = "?*?", .str = "abc", .expected = true },
++	{ .pat = "?*?", .str = "abcd", .expected = true },
++	{ .pat = "*b", .str = "b", .expected = true },
++	{ .pat = "*b", .str = "ab", .expected = true },
++	{ .pat = "*b", .str = "ba", .expected = false },
++	{ .pat = "*b", .str = "bb", .expected = true },
++	{ .pat = "*b", .str = "abb", .expected = true },
++	{ .pat = "*b", .str = "bab", .expected = true },
++	{ .pat = "*bc", .str = "abbc", .expected = true },
++	{ .pat = "*bc", .str = "bc", .expected = true },
++	{ .pat = "*bc", .str = "bbc", .expected = true },
++	{ .pat = "*bc", .str = "bcbc", .expected = true },
++	/* Multiple asterisks (complex backtracking) */
++	{ .pat = "*ac*", .str = "abacadaeafag", .expected = true },
++	{ .pat = "*ac*ae*ag*", .str = "abacadaeafag", .expected = true },
++	{ .pat = "*a*b*[bc]*[ef]*g*", .str = "abacadaeafag", .expected = true },
++	{ .pat = "*a*b*[ef]*[cd]*g*", .str = "abacadaeafag", .expected = false },
++	{ .pat = "*abcd*", .str = "abcabcabcabcdefg", .expected = true },
++	{ .pat = "*ab*cd*", .str = "abcabcabcabcdefg", .expected = true },
++	{ .pat = "*abcd*abcdef*", .str = "abcabcdabcdeabcdefg", .expected = true },
++	{ .pat = "*abcd*", .str = "abcabcabcabcefg", .expected = false },
++	{ .pat = "*ab*cd*", .str = "abcabcabcabcefg", .expected = false },
++};
++
++static void glob_case_to_desc(const struct glob_test_case *t, char *desc)
 +{
-+	unsigned long detect_count;
-+	struct ctl_table proxy_table;
-+	int err;
-+
-+	proxy_table = *table;
-+	proxy_table.data = &detect_count;
-+
-+	if (SYSCTL_KERN_TO_USER(dir)) {
-+		detect_count = atomic_long_read(&sysctl_hung_task_detect_count);
-+
-+		return proc_doulongvec_minmax(&proxy_table, dir, buffer, lenp, ppos);
-+	}
-+
-+	err = proc_doulongvec_minmax(&proxy_table, dir, buffer, lenp, ppos);
-+	if (err < 0)
-+		return err;
-+
-+	if (SYSCTL_USER_TO_KERN(dir)) {
-+		/* The only valid value for clearing is zero. */
-+		if (detect_count)
-+			return -EINVAL;
-+		atomic_long_set(&sysctl_hung_task_detect_count, 0);
-+	}
-+
-+	*ppos += *lenp;
-+	return err;
++	snprintf(desc, KUNIT_PARAM_DESC_SIZE, "pat:\"%s\" str:\"%s\"", t->pat, t->str);
 +}
 +
- /*
-  * Process updating of timeout sysctl
-  */
-@@ -451,10 +512,9 @@ static const struct ctl_table hung_task_
- 	},
- 	{
- 		.procname	= "hung_task_detect_count",
--		.data		= &sysctl_hung_task_detect_count,
- 		.maxlen		= sizeof(unsigned long),
--		.mode		= 0444,
--		.proc_handler	= proc_doulongvec_minmax,
-+		.mode		= 0644,
-+		.proc_handler	= proc_dohung_task_detect_count,
- 	},
- 	{
- 		.procname	= "hung_task_sys_info",
++KUNIT_ARRAY_PARAM(glob, glob_test_cases, glob_case_to_desc);
++
++static void glob_test_match(struct kunit *test)
++{
++	const struct glob_test_case *params = test->param_value;
++
++	KUNIT_EXPECT_EQ_MSG(test,
++		glob_match(params->pat, params->str),
++		params->expected,
++		"Pattern: \"%s\", String: \"%s\", Expected: %d",
++		params->pat, params->str, params->expected);
++}
++
++static struct kunit_case glob_kunit_test_cases[] = {
++	KUNIT_CASE_PARAM(glob_test_match, glob_gen_params),
++	{}
++};
++
++static struct kunit_suite glob_test_suite = {
++	.name = "glob",
++	.test_cases = glob_kunit_test_cases,
++};
++
++kunit_test_suite(glob_test_suite);
++MODULE_DESCRIPTION("Test cases for glob functions");
++MODULE_LICENSE("Dual MIT/GPL");
+--- a/lib/tests/Makefile~lib-glob-convert-selftest-to-kunit
++++ a/lib/tests/Makefile
+@@ -19,6 +19,7 @@ CFLAGS_fortify_kunit.o += $(DISABLE_STRU
+ obj-$(CONFIG_FORTIFY_KUNIT_TEST) += fortify_kunit.o
+ CFLAGS_test_fprobe.o += $(CC_FLAGS_FTRACE)
+ obj-$(CONFIG_FPROBE_SANITY_TEST) += test_fprobe.o
++obj-$(CONFIG_GLOB_KUNIT_TEST) += glob_kunit.o
+ obj-$(CONFIG_HASHTABLE_KUNIT_TEST) += hashtable_test.o
+ obj-$(CONFIG_HASH_KUNIT_TEST) += test_hash.o
+ obj-$(CONFIG_TEST_IOV_ITER) += kunit_iov_iter.o
 _
 
-Patches currently in -mm which might be from atomlin@atomlin.com are
+Patches currently in -mm which might be from note351@hotmail.com are
 
-fs-proc-expose-mm_cpumask-in-proc-status.patch
 
