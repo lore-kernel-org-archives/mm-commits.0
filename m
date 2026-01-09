@@ -1,215 +1,123 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CB49330333
-	for <mm-commits@vger.kernel.org>; Thu,  8 Jan 2026 20:50:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B98013358B6
+	for <mm-commits@vger.kernel.org>; Fri,  9 Jan 2026 13:59:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767905405; cv=none; b=uPoU8Y4MUFf/cqDQTTg0YE7aiJ5K9xPEWkgufYaGWaNZPuJDgtwHT0lu0R4gg6UVpscI+ATILMpBMAanF+T0F6BVAsa92KmtJ22KHcw49ehEvXgXvfgbLVODs+TeVdjVJAKjgLnhNJ/3ceIrKtAG1HeuS+CAcNVoC0FKHbw06Gc=
+	t=1767967184; cv=none; b=pU7c2a0B3O8foG5ikDkL5D43IbdTfYBBhfoMrC127Tfh8Ge0ZMFmkSW7UcaWfv0XtMi54ERVLJfLjmxXW9gzpN0RftJGmxItOa65A2ycJjZ86Cqpohuic4oqoVYY5pW7ETsgSUwSKCyU6czfivSIIIqQ8BJrcPiU7K/X+tsN2u4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767905405; c=relaxed/simple;
-	bh=qeB+okGTJVlOQeTlRcUwkVp5D4GphRzZFOe/o4K8yDk=;
-	h=Date:To:From:Subject:Message-Id; b=NX2Pm8vFtCkFgnko+PF5jLMXF3isKufA4OvJLl+Ko369DZ2JRouGRJW0qXtXtpDjXXgaQizHlHs32cXqKvxIRLBX0KHDuzPp70jdnyxL4ZdP31I2R5obl0wCq1YZK4wiem+OjLFkvVFMENidaiJairxG9FfI0OCZE9HF8Z3RySo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q3jlcdnx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767967184; c=relaxed/simple;
+	bh=pUWJxzbfNlkWuhep/hwWXS6lsvBK4RONyS2rFx1MFME=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=hoMgPmpQttBjvnVdaGp2L70M4qCb01gQOWiS10xtlqpVMKIIpiNGEJb0zyaci9ZNX+Au0+18uqojFDK6Jm6iGj9XmjIHxP/Ccod9mrPy7CZ+cOPNO+NbtxUoqhx9XXCRWGJWFcFVFqka0FitDss8nxerGm/NCBxoCJg3ty+PBDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DbvETnG8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q3jlcdnx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9EA3C116C6;
-	Thu,  8 Jan 2026 20:50:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767905404;
-	bh=qeB+okGTJVlOQeTlRcUwkVp5D4GphRzZFOe/o4K8yDk=;
-	h=Date:To:From:Subject:From;
-	b=Q3jlcdnx23Lr8q0tdwpuP7wyWx61uvby7WCa0PtK6XtZEVJY7H4LdZ89uou2JZCP5
-	 fFDRllVMFw5uYkQXtlValeNjMlfFJjd1SbK83wl1BVz4WwK/R/CgQRDwmkhBC/cEb4
-	 3hGDKOC0tLKv5co2ShTzILxCLHBtU78Uk80QjDsY=
-Date: Thu, 08 Jan 2026 12:50:04 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,longman@redhat.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,axelrasmussen@google.com,akinobu.mita@gmail.com,bingjiao@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list.patch added to mm-new branch
-Message-Id: <20260108205004.D9EA3C116C6@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DbvETnG8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E25C9C4CEF1;
+	Fri,  9 Jan 2026 13:59:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1767967184;
+	bh=pUWJxzbfNlkWuhep/hwWXS6lsvBK4RONyS2rFx1MFME=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=DbvETnG8M+cP1C1LDbObgCOBPQSntQ5362H595A0bAPKF3MFWuK4NH0BexZ4AEZTI
+	 3sYgFznTi6/J62lJZRobhWjbrJaADJadgTkpfqrnq1auZ1sGKjacIDsxqwdlUx+ml9
+	 gUERjY5UbS4fO7RjzhNdrHKh3Jy2H0ZEMPnX+6OdT9uDpgyYPenohA9+wYhbihSe+t
+	 4QW70OSbJyau0/hMCqZU4n1ddklGWNwEuJaJAkj3+K2iWTfr0xSudXar3tcciHgsJG
+	 jA7osGHR/GSF518MHAEq/i+A9va4PVKjVl2opMbCo5oo8MJ4Trpt8JlAtUYQBJ9BXF
+	 aH+qaGfE4OmHg==
+Message-ID: <c8b4e2db-def0-49bf-bf04-5dee7e73711d@kernel.org>
+Date: Fri, 9 Jan 2026 14:59:38 +0100
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: + tracing-add-__event_in_irq-helpers.patch added to mm-new branch
+To: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ zhengqi.arch@bytedance.com, yuanchu@google.com, weixugc@google.com,
+ tballasi@linux.microsoft.com, shakeel.butt@linux.dev,
+ roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
+ mhiramat@kernel.org, mathieu.desnoyers@efficios.com, hannes@cmpxchg.org,
+ david@fromorbit.com, axelrasmussen@google.com, rostedt@goodmis.org
+References: <20260106033842.559EBC116D0@smtp.kernel.org>
+ <3a96b65e-49b1-45f5-a36a-77b38cea62e2@lucifer.local>
+ <20260106124930.827da463ea281bb392a9843d@linux-foundation.org>
+ <4cccaf21-c78e-4017-bb95-29a401d7c3a5@lucifer.local>
+ <f916c970-33fe-4147-9daf-159ba61a0302@kernel.org>
+ <8b54e314-be57-4fa0-bb53-e9a0adb7d969@lucifer.local>
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+In-Reply-To: <8b54e314-be57-4fa0-bb53-e9a0adb7d969@lucifer.local>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm/vmscan: select the closest preferred node in demote_folio_list()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list.patch
+Nothing to add to the above :)
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list.patch
+>>
+>> Hm.
+>>
+>> [1] we have 0day now running and reporting problems mostly private to me, I
+>> just didn't have the time yet to closely look into the results I've been
+>> getting because there seem to be some false positive test failures in some
+>> unrelated tests.
+> 
+> I've not seen bot reports from mm-new at all, so this is news to me.
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+So far the reports only go to me while we are experimenting with how 
+helpful it is and how stable the results are.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+I skimmed over some results today, and apparently it found that the new 
+memory-failure selftests are a bit shaky (fail in some environments).
 
-The mm-new branch of mm.git is not included in linux-next
+-- 
+Cheers
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Bing Jiao <bingjiao@google.com>
-Subject: mm/vmscan: select the closest preferred node in demote_folio_list()
-Date: Thu, 8 Jan 2026 03:32:47 +0000
-
-The preferred demotion node (migration_target_control.nid) should be the
-one closest to the source node to minimize migration latency.  Currently,
-a discrepancy exists where demote_folio_list() randomly selects an allowed
-node if the preferred node from next_demotion_node() is not set in
-mems_allowed.
-
-To address it, update next_demotion_node() to return preferred nodes,
-allowing the caller to select the preferred one.  Also update
-demote_folio_list() to traverse the demotion targets hierarchically until
-a preferred node within mems_allowed is found.  It ensures that the
-selected demotion target is consistently the closest available node.
-
-Link: https://lkml.kernel.org/r/20260108033248.2791579-3-bingjiao@google.com
-Signed-off-by: Bing Jiao <bingjiao@google.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/memory-tiers.h |    6 +++---
- mm/memory-tiers.c            |   11 +++++++----
- mm/vmscan.c                  |   25 ++++++++++++++++++++++---
- 3 files changed, 32 insertions(+), 10 deletions(-)
-
---- a/include/linux/memory-tiers.h~mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list
-+++ a/include/linux/memory-tiers.h
-@@ -53,11 +53,11 @@ struct memory_dev_type *mt_find_alloc_me
- 						  struct list_head *memory_types);
- void mt_put_memory_types(struct list_head *memory_types);
- #ifdef CONFIG_MIGRATION
--int next_demotion_node(int node);
-+int next_demotion_node(int node, nodemask_t *preferred_nodes);
- void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
- bool node_is_toptier(int node);
- #else
--static inline int next_demotion_node(int node)
-+static inline int next_demotion_node(int node, nodemask_t *preferred_nodes)
- {
- 	return NUMA_NO_NODE;
- }
-@@ -101,7 +101,7 @@ static inline void clear_node_memory_typ
- 
- }
- 
--static inline int next_demotion_node(int node)
-+static inline int next_demotion_node(int node, nodemask_t *preferred_nodes)
- {
- 	return NUMA_NO_NODE;
- }
---- a/mm/memory-tiers.c~mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list
-+++ a/mm/memory-tiers.c
-@@ -320,13 +320,14 @@ void node_get_allowed_targets(pg_data_t
- /**
-  * next_demotion_node() - Get the next node in the demotion path
-  * @node: The starting node to lookup the next node
-+ * @preferred_nodes: The pointer to nodemask of all preferred nodes to return
-  *
-  * Return: node id for next memory node in the demotion path hierarchy
-- * from @node; NUMA_NO_NODE if @node is terminal.  This does not keep
-- * @node online or guarantee that it *continues* to be the next demotion
-- * target.
-+ * from @node; NUMA_NO_NODE if @node is terminal. Also returns all preferred
-+ * nodes in @preferred_nodes. This does not keep @node online or guarantee
-+ * that it *continues* to be the next demotion target.
-  */
--int next_demotion_node(int node)
-+int next_demotion_node(int node, nodemask_t *preferred_nodes)
- {
- 	struct demotion_nodes *nd;
- 	int target;
-@@ -357,6 +358,8 @@ int next_demotion_node(int node)
- 	 * target node randomly seems better until now.
- 	 */
- 	target = node_random(&nd->preferred);
-+	if (preferred_nodes)
-+		nodes_copy(*preferred_nodes, nd->preferred);
- 	rcu_read_unlock();
- 
- 	return target;
---- a/mm/vmscan.c~mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list
-+++ a/mm/vmscan.c
-@@ -1023,9 +1023,10 @@ static unsigned int demote_folio_list(st
- 				      struct pglist_data *pgdat,
- 				      struct mem_cgroup *memcg)
- {
--	int target_nid = next_demotion_node(pgdat->node_id);
-+	int target_nid;
- 	unsigned int nr_succeeded;
- 	nodemask_t allowed_mask;
-+	nodemask_t preferred;
- 
- 	struct migration_target_control mtc = {
- 		/*
-@@ -1051,8 +1052,26 @@ static unsigned int demote_folio_list(st
- 	if (nodes_empty(allowed_mask))
- 		return 0;
- 
--	if (!node_isset(target_nid, allowed_mask))
--		target_nid = node_random(&allowed_mask);
-+	target_nid = next_demotion_node(pgdat->node_id, &preferred);
-+	while (target_nid != NUMA_NO_NODE &&
-+	       !node_isset(target_nid, allowed_mask)) {
-+		/* Filter out preferred nodes that are not in allowed. */
-+		nodes_and(preferred, preferred, allowed_mask);
-+		if (!nodes_empty(preferred)) {
-+			/* Randomly select one node from preferred. */
-+			target_nid = node_random(&preferred);
-+			break;
-+		}
-+		/*
-+		 * Preferred nodes in the lower tier are not set in allowed.
-+		 * Recursively get preferred from the next lower tier.
-+		 */
-+		target_nid = next_demotion_node(target_nid, &preferred);
-+	}
-+
-+	if (target_nid == NUMA_NO_NODE)
-+		/* Nodes are gone (e.g., hot-unplugged). */
-+		return 0;
- 	mtc.nid = target_nid;
- 
- 	/* Demotion ignores all cpuset and mempolicy settings */
-_
-
-Patches currently in -mm which might be from bingjiao@google.com are
-
-mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch
-mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list.patch
-
+David
