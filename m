@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4562FAD24
-	for <mm-commits@vger.kernel.org>; Sat, 10 Jan 2026 23:47:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 997FC1E515
+	for <mm-commits@vger.kernel.org>; Sat, 10 Jan 2026 23:52:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768088834; cv=none; b=KL/sj15sl/k9WhqEfkanpqtDNNUKSg0xMEO/XBdLLm8P0oPEo8dNGE7QLoIRgJLPtpMaGgdilW08OrAGQwzs2IgNvrqqG/O3v8Rm5PQcuxicoo/M5xYIumPrYnkpkY9n4oqT3JULFw5ql1YGYowoQBsLaD6NunHOzqOtSQZyjbY=
+	t=1768089150; cv=none; b=sgdfA9FtyFHl6cJuqehXDzlAvJW+KR6dJYcIoDowOUfDcbS6KvvrKX2qCRfB9jDwQYB1w4fePw7sAc+RXPkjGPLGDEdNULYGIs6vdoVsvoWSXnaOCPC+SHfmA2YyDNPI7U8cJhfQZWiwBVT9oX/zixVhN+stdH3IkoAsZGOUGzE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768088834; c=relaxed/simple;
-	bh=qALSTcoksQ6kHhcZNx79cCRSPAzwywyNtApKOkNXn0o=;
-	h=Date:To:From:Subject:Message-Id; b=B/71gIzqn2v1AklJVoSuPAnva6e7+f1rpi54ERlR/tDKH3lWozVK5hCqxfHudbBP055TXA4BMJzdL3qmgxbLDbY93eYE4tcpDQmhqJ6cGwNp8qV/ZLDt0vb98ipvDMBuWSP6ARL/l6Fl2YoHCaRT6s5tTWusgGXOnlZK25M0xBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eM/arcab; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768089150; c=relaxed/simple;
+	bh=x8XrrhZm7aadalhmGvHMTZK3hQj8vZe4Z8QSNtTHwfk=;
+	h=Date:To:From:Subject:Message-Id; b=snNfa3B8HXOmg0c78QPFDZxGSA62jIC23liPWT8lfSTR2BsP3VvktlHpcZGrCK9DUC0psoeRjHoly34TB1YeNH3moFhg8JVnvtY5WcAdd/MrvAXWArnxDZsv97dg2HRoRhUvo4Svdaf9Hdi3hTK3m/ENv7G42c/JcOnw06fR8hY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yDQynzdK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eM/arcab"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A211AC4CEF1;
-	Sat, 10 Jan 2026 23:47:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yDQynzdK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01C0AC4CEF1;
+	Sat, 10 Jan 2026 23:52:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768088833;
-	bh=qALSTcoksQ6kHhcZNx79cCRSPAzwywyNtApKOkNXn0o=;
+	s=korg; t=1768089150;
+	bh=x8XrrhZm7aadalhmGvHMTZK3hQj8vZe4Z8QSNtTHwfk=;
 	h=Date:To:From:Subject:From;
-	b=eM/arcabzQZmakcZUCT2gqCLG3CaKCDtjRQji7lmq9MvclUb4f4o4cpArw2GTUkxz
-	 ufnPY8g/I+yDA3e4fo2gXv3bcoUfQz/Q7rQAMEkAAJ6ofA5j2Oh2PDgVwc8Z9hw/f2
-	 2HhVSxm2aX3oiBbQA5D5wxoQ0BMGLfw1bHiD6ZJs=
-Date: Sat, 10 Jan 2026 15:47:13 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,tj@kernel.org,sj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,longman@redhat.com,lkp@intel.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,axelrasmussen@google.com,akinobu.mita@gmail.com,bingjiao@google.com,akpm@linux-foundation.org
+	b=yDQynzdKRjEWL7QUPK/c8/XX288qhdxP1rW/bbesbcJio5K5BfNYHLDlWcwxYhUNG
+	 oQjPWGG9cAWLTMuO+fYcb6+UbWX7vr2CuINkGCOLm7Urt2MBsv1najpWVM34OKwOif
+	 PsomZJC0EKv2eK6WGAaZIaXTHN5i9O0qw3rpDbgs=
+Date: Sat, 10 Jan 2026 15:52:29 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list-fix.patch added to mm-new branch
-Message-Id: <20260110234713.A211AC4CEF1@smtp.kernel.org>
+Subject: [failures] selftests-mm-add-memory-failure-anonymous-page-test.patch removed from -mm tree
+Message-Id: <20260110235230.01C0AC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,99 +34,449 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/vmscan: fix uninitialized variable in demote_folio_list()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list-fix.patch
+The quilt patch titled
+     Subject: selftests/mm: add memory failure anonymous page test
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-add-memory-failure-anonymous-page-test.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list-fix.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Bing Jiao <bingjiao@google.com>
-Subject: mm/vmscan: fix uninitialized variable in demote_folio_list()
-Date: Sat, 10 Jan 2026 03:38:21 +0000
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: selftests/mm: add memory failure anonymous page test
+Date: Wed, 7 Jan 2026 17:37:08 +0800
 
-Commit d92027a5f30a6c ("mm/vmscan: select the closest preferred node in
-demote_folio_list()") refactored the selection logic for demotion target
-nodes.  However, it removed the initial assignment of 'target_nid' while
-leaving a premature check for 'NUMA_NO_NODE' in place.
+Patch series "selftests/mm: add memory failure selftests".
 
-Since 'target_nid' is now assigned further down in the function based on
-preferred and allowed node masks, the initial check at line 1046 is
-redundant.
+Introduce selftests to validate the functionality of memory failure. 
+These tests help ensure that memory failure handling for anonymous pages,
+pagecaches pages works correctly, including proper SIGBUS delivery to user
+processes, page isolation, and recovery paths.
 
-Remove the redundant check to resolve the compiler warning.
+Currently madvise syscall is used to inject memory failures.  And only
+anonymous pages and pagecaches are tested.  More test scenarios, e.g. 
+hugetlb, shmem, thp, will be added.  Also more memory failure injecting
+methods will be supported, e.g.  APEI Error INJection, if required.
 
-Link: https://lkml.kernel.org/r/20260109055937.3739860-1-bingjiao@google.com
-Link: https://lkml.kernel.org/r/20260110033830.443638-1-bingjiao@google.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202601091037.vUSHeJCH-lkp@intel.com/
-Signed-off-by: Bing Jiao <bingjiao@google.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+
+This patch (of 3):
+
+This patch adds a new kselftest to validate memory failure handling for
+anonymous pages. The test performs the following operations:
+1. Allocates anonymous pages using mmap().
+2. Injects memory failure via madvise syscall.
+3. Verifies expected error handling behavior.
+4. Unpoison memory.
+
+This test helps ensure that memory failure handling for anonymous pages
+works correctly, including proper SIGBUS delivery to user processes, page
+isolation and recovery paths.
+
+Link: https://lkml.kernel.org/r/20260107093710.3928374-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20260107093710.3928374-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ----
- 1 file changed, 4 deletions(-)
+ MAINTAINERS                                 |    1 
+ tools/testing/selftests/mm/.gitignore       |    1 
+ tools/testing/selftests/mm/Makefile         |    1 
+ tools/testing/selftests/mm/memory-failure.c |  239 ++++++++++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh   |   21 +
+ tools/testing/selftests/mm/vm_util.c        |   41 +++
+ tools/testing/selftests/mm/vm_util.h        |    3 
+ 7 files changed, 307 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list-fix
-+++ a/mm/vmscan.c
-@@ -1043,10 +1043,6 @@ static unsigned int demote_folio_list(st
- 	if (list_empty(demote_folios))
- 		return 0;
+--- a/MAINTAINERS~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/MAINTAINERS
+@@ -11683,6 +11683,7 @@ F:	include/linux/memory-failure.h
+ F:	include/trace/events/memory-failure.h
+ F:	mm/hwpoison-inject.c
+ F:	mm/memory-failure.c
++F:	tools/testing/selftests/mm/memory-failure.c
  
--	if (target_nid == NUMA_NO_NODE)
--		/* No lower-tier nodes or nodes were hot-unplugged. */
--		return 0;
--
- 	node_get_allowed_targets(pgdat, &allowed_mask);
- 	mem_cgroup_node_filter_allowed(memcg, &allowed_mask);
- 	if (nodes_empty(allowed_mask))
+ HYCON HY46XX TOUCHSCREEN SUPPORT
+ M:	Giulio Benetti <giulio.benetti@benettiengineering.com>
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -12,6 +12,7 @@ map_hugetlb
+ map_populate
+ thuge-gen
+ compaction_test
++memory-failure
+ migration
+ mlock2-tests
+ mrelease_test
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -75,6 +75,7 @@ TEST_GEN_FILES += map_populate
+ ifneq (,$(filter $(ARCH),arm64 riscv riscv64 x86 x86_64))
+ TEST_GEN_FILES += memfd_secret
+ endif
++TEST_GEN_FILES += memory-failure
+ TEST_GEN_FILES += migration
+ TEST_GEN_FILES += mkdirty
+ TEST_GEN_FILES += mlock-random-test
+diff --git a/tools/testing/selftests/mm/memory-failure.c a/tools/testing/selftests/mm/memory-failure.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/memory-failure.c
+@@ -0,0 +1,239 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Memory-failure functional tests.
++ *
++ * Author(s): Miaohe Lin <linmiaohe@huawei.com>
++ */
++
++#include "../kselftest_harness.h"
++
++#include <sys/mman.h>
++#include <linux/mman.h>
++#include <linux/string.h>
++#include <signal.h>
++#include <setjmp.h>
++#include <unistd.h>
++#include <fcntl.h>
++
++#include "vm_util.h"
++
++enum inject_type {
++	MADV_HARD,
++	MADV_SOFT,
++};
++
++enum result_type {
++	MADV_HARD_ANON,
++	MADV_SOFT_ANON,
++};
++
++static jmp_buf signal_jmp_buf;
++static siginfo_t siginfo;
++const char *pagemap_proc = "/proc/self/pagemap";
++const char *kpageflags_proc = "/proc/kpageflags";
++
++FIXTURE(memory_failure)
++{
++	unsigned long page_size;
++	unsigned long corrupted_size;
++	unsigned long pfn;
++	int pagemap_fd;
++	int kpageflags_fd;
++	bool triggered;
++};
++
++FIXTURE_VARIANT(memory_failure)
++{
++	enum inject_type type;
++	int (*inject)(FIXTURE_DATA(memory_failure) * self, void *vaddr);
++};
++
++static int madv_hard_inject(FIXTURE_DATA(memory_failure) * self, void *vaddr)
++{
++	return madvise(vaddr, self->page_size, MADV_HWPOISON);
++}
++
++FIXTURE_VARIANT_ADD(memory_failure, madv_hard)
++{
++	.type = MADV_HARD,
++	.inject = madv_hard_inject,
++};
++
++static int madv_soft_inject(FIXTURE_DATA(memory_failure) * self, void *vaddr)
++{
++	return madvise(vaddr, self->page_size, MADV_SOFT_OFFLINE);
++}
++
++FIXTURE_VARIANT_ADD(memory_failure, madv_soft)
++{
++	.type = MADV_SOFT,
++	.inject = madv_soft_inject,
++};
++
++static void sigbus_action(int signo, siginfo_t *si, void *args)
++{
++	memcpy(&siginfo, si, sizeof(siginfo_t));
++	siglongjmp(signal_jmp_buf, 1);
++}
++
++static int setup_sighandler(void)
++{
++	struct sigaction sa = {
++		.sa_sigaction = sigbus_action,
++		.sa_flags = SA_SIGINFO,
++	};
++
++	return sigaction(SIGBUS, &sa, NULL);
++}
++
++FIXTURE_SETUP(memory_failure)
++{
++	memset(self, 0, sizeof(*self));
++
++	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
++
++	memset(&siginfo, 0, sizeof(siginfo));
++	if (setup_sighandler())
++		SKIP(return, "setup sighandler failed.\n");
++
++	self->pagemap_fd = open(pagemap_proc, O_RDONLY);
++	if (self->pagemap_fd == -1)
++		SKIP(return, "open %s failed.\n", pagemap_proc);
++
++	self->kpageflags_fd = open(kpageflags_proc, O_RDONLY);
++	if (self->kpageflags_fd == -1)
++		SKIP(return, "open %s failed.\n", kpageflags_proc);
++}
++
++static void teardown_sighandler(void)
++{
++	struct sigaction sa = {
++		.sa_handler = SIG_DFL,
++		.sa_flags = SA_SIGINFO,
++	};
++
++	sigaction(SIGBUS, &sa, NULL);
++}
++
++FIXTURE_TEARDOWN(memory_failure)
++{
++	close(self->kpageflags_fd);
++	close(self->pagemap_fd);
++	teardown_sighandler();
++}
++
++static void prepare(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
++		    void *vaddr)
++{
++	self->pfn = pagemap_get_pfn(self->pagemap_fd, vaddr);
++	ASSERT_NE(self->pfn, -1UL);
++
++	ASSERT_EQ(get_hardware_corrupted_size(&self->corrupted_size), 0);
++}
++
++static bool check_memory(void *vaddr, unsigned long size)
++{
++	char buf[64];
++
++	memset(buf, 0xce, sizeof(buf));
++	while (size >= sizeof(buf)) {
++		if (memcmp(vaddr, buf, sizeof(buf)))
++			return false;
++		size -= sizeof(buf);
++		vaddr += sizeof(buf);
++	}
++
++	return true;
++}
++
++static void check(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
++		  void *vaddr, enum result_type type, int setjmp)
++{
++	unsigned long size;
++	uint64_t pfn_flags;
++
++	switch (type) {
++	case MADV_SOFT_ANON:
++		/* It is not expected to receive a SIGBUS signal. */
++		ASSERT_EQ(setjmp, 0);
++
++		/* The page content should remain unchanged. */
++		ASSERT_TRUE(check_memory(vaddr, self->page_size));
++
++		/* The backing pfn of addr should have changed. */
++		ASSERT_NE(pagemap_get_pfn(self->pagemap_fd, vaddr), self->pfn);
++		break;
++	case MADV_HARD_ANON:
++		/* The SIGBUS signal should have been received. */
++		ASSERT_EQ(setjmp, 1);
++
++		/* Check if siginfo contains correct SIGBUS context. */
++		ASSERT_EQ(siginfo.si_signo, SIGBUS);
++		ASSERT_EQ(siginfo.si_code, BUS_MCEERR_AR);
++		ASSERT_EQ(1UL << siginfo.si_addr_lsb, self->page_size);
++		ASSERT_EQ(siginfo.si_addr, vaddr);
++
++		/* XXX Check backing pte is hwpoison entry when supported. */
++		ASSERT_TRUE(pagemap_is_swapped(self->pagemap_fd, vaddr));
++		break;
++	default:
++		SKIP(return, "unexpected inject type %d.\n", type);
++	}
++
++	/* Check if the value of HardwareCorrupted has increased. */
++	ASSERT_EQ(get_hardware_corrupted_size(&size), 0);
++	ASSERT_EQ(size, self->corrupted_size + self->page_size / 1024);
++
++	/* Check if HWPoison flag is set. */
++	ASSERT_EQ(pageflags_get(self->pfn, self->kpageflags_fd, &pfn_flags), 0);
++	ASSERT_EQ(pfn_flags & KPF_HWPOISON, KPF_HWPOISON);
++}
++
++static void cleanup(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
++		    void *vaddr)
++{
++	unsigned long size;
++	uint64_t pfn_flags;
++
++	ASSERT_EQ(unpoison_memory(self->pfn), 0);
++
++	/* Check if HWPoison flag is cleared. */
++	ASSERT_EQ(pageflags_get(self->pfn, self->kpageflags_fd, &pfn_flags), 0);
++	ASSERT_NE(pfn_flags & KPF_HWPOISON, KPF_HWPOISON);
++
++	/* Check if the value of HardwareCorrupted has decreased. */
++	ASSERT_EQ(get_hardware_corrupted_size(&size), 0);
++	ASSERT_EQ(size, self->corrupted_size);
++}
++
++TEST_F(memory_failure, anon)
++{
++	char *addr;
++	int ret;
++
++	addr = mmap(0, self->page_size, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (addr == MAP_FAILED)
++		SKIP(return, "mmap failed, not enough memory.\n");
++	memset(addr, 0xce, self->page_size);
++
++	prepare(_metadata, self, addr);
++
++	ret = sigsetjmp(signal_jmp_buf, 1);
++	if (!self->triggered) {
++		self->triggered = true;
++		ASSERT_EQ(variant->inject(self, addr), 0);
++		FORCE_READ(*addr);
++	}
++
++	if (variant->type == MADV_HARD)
++		check(_metadata, self, addr, MADV_HARD_ANON, ret);
++	else
++		check(_metadata, self, addr, MADV_SOFT_ANON, ret);
++
++	cleanup(_metadata, self, addr);
++
++	ASSERT_EQ(munmap(addr, self->page_size), 0);
++}
++
++TEST_HARNESS_MAIN
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -87,6 +87,8 @@ separated by spaces:
+ 	test VMA merge cases behave as expected
+ - rmap
+ 	test rmap behaves as expected
++- memory-failure
++	test memory-failure behaves as expected
+ 
+ example: ./run_vmtests.sh -t "hmm mmap ksm"
+ EOF
+@@ -535,6 +537,25 @@ CATEGORY="page_frag" run_test ./test_pag
+ 
+ CATEGORY="rmap" run_test ./rmap
+ 
++# Try to load hwpoison_inject if not present.
++HWPOISON_DIR=/sys/kernel/debug/hwpoison/
++if [ ! -d "$HWPOISON_DIR" ]; then
++	if ! modprobe -q -R hwpoison_inject; then
++		echo "Module hwpoison_inject not found, skipping..."
++	else
++		modprobe hwpoison_inject > /dev/null 2>&1
++		LOADED_MOD=1
++	fi
++fi
++
++if [ -d "$HWPOISON_DIR" ]; then
++	CATEGORY="memory-failure" run_test ./memory-failure
++fi
++
++if [ -n "${LOADED_MOD}" ]; then
++	modprobe -r hwpoison_inject > /dev/null 2>&1
++fi
++
+ if [ "${HAVE_HUGEPAGES}" = 1 ]; then
+ 	echo "$orig_nr_hugepgs" > /proc/sys/vm/nr_hugepages
+ fi
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -723,3 +723,44 @@ int ksm_stop(void)
+ 	close(ksm_fd);
+ 	return ret == 1 ? 0 : -errno;
+ }
++
++int get_hardware_corrupted_size(unsigned long *val)
++{
++	unsigned long size;
++	char *line = NULL;
++	size_t linelen = 0;
++	FILE *f = fopen("/proc/meminfo", "r");
++	int ret = -1;
++
++	if (!f)
++		return ret;
++
++	while (getline(&line, &linelen, f) > 0) {
++		if (sscanf(line, "HardwareCorrupted: %12lu kB", &size) == 1) {
++			*val = size;
++			ret = 0;
++			break;
++		}
++	}
++
++	free(line);
++	fclose(f);
++	return ret;
++}
++
++int unpoison_memory(unsigned long pfn)
++{
++	int unpoison_fd, len;
++	char buf[32];
++	ssize_t ret;
++
++	unpoison_fd = open("/sys/kernel/debug/hwpoison/unpoison-pfn", O_WRONLY);
++	if (unpoison_fd < 0)
++		return -errno;
++
++	len = sprintf(buf, "0x%lx\n", pfn);
++	ret = write(unpoison_fd, buf, len);
++	close(unpoison_fd);
++
++	return ret > 0 ? 0 : -errno;
++}
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -20,6 +20,7 @@
+ 
+ #define KPF_COMPOUND_HEAD             BIT_ULL(15)
+ #define KPF_COMPOUND_TAIL             BIT_ULL(16)
++#define KPF_HWPOISON                  BIT_ULL(19)
+ #define KPF_THP                       BIT_ULL(22)
+ /*
+  * Ignore the checkpatch warning, we must read from x but don't want to do
+@@ -147,6 +148,8 @@ long ksm_get_full_scans(void);
+ int ksm_use_zero_pages(void);
+ int ksm_start(void);
+ int ksm_stop(void);
++int get_hardware_corrupted_size(unsigned long *val);
++int unpoison_memory(unsigned long pfn);
+ 
+ /*
+  * On ppc64 this will only work with radix 2M hugepage size
 _
 
-Patches currently in -mm which might be from bingjiao@google.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-vmscan-fix-demotion-targets-checks-in-reclaim-demotion.patch
-mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list.patch
-mm-vmscan-select-the-closest-preferred-node-in-demote_folio_list-fix.patch
+selftests-mm-add-memory-failure-clean-pagecache-test.patch
+selftests-mm-add-memory-failure-dirty-pagecache-test.patch
 
