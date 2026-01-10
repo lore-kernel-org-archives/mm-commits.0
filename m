@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A6B0F4FA
-	for <mm-commits@vger.kernel.org>; Sat, 10 Jan 2026 22:48:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D27B41A58D
+	for <mm-commits@vger.kernel.org>; Sat, 10 Jan 2026 23:30:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768085294; cv=none; b=hSW4c0nstQsD396o0SpNIK1kZgUZ4QfYkxDvA5i2DKippTc68hyyl779cymEWw7VDbz2LhiXGPFe8DeZiKCj2CzCnK/tVWz4tdr2iN2TpNba8BrixrNXeE7QPFPxBh7L15wPcmtwum5cYV0NUbw2xOKirwX7R0ylgsS+EYSRIUc=
+	t=1768087830; cv=none; b=nj4JKcHKhpEmNraJ1tGXQvMYwFHqK5oE7fjDnlCA0F8BcNA3uoFVXAS5U2BtXrKA1Iv50Uh9KFWJo59ZzpW0+e6WcKSp07X0AmSYUHOAB/MtWbfETxGPEwDhrsGR8nnzlJmuQIQ+kVz5XaS/DX/tx3MnHMFZFgMIxHFhgXoEIJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768085294; c=relaxed/simple;
-	bh=T4GG4qgwRPkE4t4ZzRkUaq52XBTf6nNmJpjT61Uo+fA=;
-	h=Date:To:From:Subject:Message-Id; b=cPi1E18Co1XFLvDWV8/M2wfXou16p+ZOiyW0M70NwmOI4yV2/etkWS2DQsqpVt3Ui4T0OVo5hD4wzCjJ2gnusQGrNRvliv3Blc0bY2sA9BXCQXVPmUBS1aREO2N6Ht1Xwvu7pWaSBTFGUlVW5iZDa8edrfwPGkcSixOrqVM7XNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U9MHZq0A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768087830; c=relaxed/simple;
+	bh=PF9l53kHNtiz4ZRhAlpDhPUW4aas7L9cJmFrwlf3p8U=;
+	h=Date:To:From:Subject:Message-Id; b=c2i1SQQTqn9wWUo8Ewt31pO9GnbGUkfFG8CCWK/r/EQzhKaRbBJOPEy5yxhLmnPi2RJZcB2u9kcCmjENrHFzMO9EJWizNOfcUzpsz0i+n+nU0HY7LOJJMsI3BY55eneGa1wiaEkvaNaJtL5F+RyS6bl4g/t8zAUGWrRDeUJ3RPE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X4iVusT7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U9MHZq0A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E66AFC4CEF1;
-	Sat, 10 Jan 2026 22:48:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X4iVusT7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C56FC116C6;
+	Sat, 10 Jan 2026 23:30:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768085294;
-	bh=T4GG4qgwRPkE4t4ZzRkUaq52XBTf6nNmJpjT61Uo+fA=;
+	s=korg; t=1768087830;
+	bh=PF9l53kHNtiz4ZRhAlpDhPUW4aas7L9cJmFrwlf3p8U=;
 	h=Date:To:From:Subject:From;
-	b=U9MHZq0AjkBKanGAQG4tjNP3zgrmBs7eWL4QSv+1nJnaBCXBNtrYtrgJwhkmzpdlm
-	 FBavXZX6tQ0nk0i2YP+cxs67kOKID85srZ1+9rvHKTdXyeub+8ipa8bIEPvgJwgi7R
-	 FSAwsAQV+3aKvv85ZVsebhuRqYKRxl9BJAeLrgaA=
-Date: Sat, 10 Jan 2026 14:48:13 -0800
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,john@groves.net,joao.m.martins@oracle.com,dan.j.williams@intel.com,John@Groves.net,akpm@linux-foundation.org
+	b=X4iVusT7FdPdK44yzZqsokNNSREocXE7JiI/kXMu4Ilu3ESVvcGehH9T/q8DWTBL/
+	 kJ4V79bSsFtffbvk7iL9BmcmSmB3tNj/uFupQZMeSh0sjWWZtaMEe98KJZht7WWGMx
+	 /Cv1aCJrplxbmCp2gsAat41EdgcnwSqQPTHeSJsE=
+Date: Sat, 10 Jan 2026 15:30:29 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,kartikey406@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + add-some-missing-kerneldoc-comment-fields-for-struct-dev_dax.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260110224813.E66AFC4CEF1@smtp.kernel.org>
+Subject: + mm-swap_cgroup-fix-kernel-bug-in-swap_cgroup_record.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260110233030.5C56FC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/dax: add some missing kerneldoc comment fields for struct dev_dax
+     Subject: mm/swap_cgroup: fix kernel BUG in swap_cgroup_record
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     add-some-missing-kerneldoc-comment-fields-for-struct-dev_dax.patch
+     mm-swap_cgroup-fix-kernel-bug-in-swap_cgroup_record.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/add-some-missing-kerneldoc-comment-fields-for-struct-dev_dax.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_cgroup-fix-kernel-bug-in-swap_cgroup_record.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,99 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: John Groves <John@Groves.net>
-Subject: drivers/dax: add some missing kerneldoc comment fields for struct dev_dax
-Date: Sat, 10 Jan 2026 13:18:04 -0600
+From: Deepanshu Kartikey <kartikey406@gmail.com>
+Subject: mm/swap_cgroup: fix kernel BUG in swap_cgroup_record
+Date: Sat, 10 Jan 2026 12:16:13 +0530
 
-Add the missing @align and @memmap_on_memory fields to kerneldoc comment
-header for struct dev_dax.
+When using MADV_PAGEOUT, pages can remain in swapcache with their swap
+entries assigned.  If MADV_PAGEOUT is called again on these pages, they
+reuse the same swap entries, causing memcg1_swapout() to call
+swap_cgroup_record() with an already-recorded entry.
 
-Also, some other fields were followed by '-' and others by ':'. Fix all
-to be ':' for actual kerneldoc compliance.
+The existing code assumes swap entries are always being recorded for the
+first time (oldid == 0), triggering VM_BUG_ON when it encounters an
+already-recorded entry:
 
-Link: https://lkml.kernel.org/r/20260110191804.5739-1-john@groves.net
-Fixes: 33cf94d71766 ("device-dax: make align a per-device property")
-Fixes: 4eca0ef49af9 ("dax/kmem: allow kmem to add memory with memmap_on_memory")
-Signed-off-by: John Groves <john@groves.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
+  ------------[ cut here ]------------
+  kernel BUG at mm/swap_cgroup.c:78!
+  Oops: invalid opcode: 0000 [#1] SMP KASAN PTI
+  CPU: 0 UID: 0 PID: 6176 Comm: syz.0.30 Not tainted
+  RIP: 0010:swap_cgroup_record+0x19c/0x1c0 mm/swap_cgroup.c:78
+  Call Trace:
+   memcg1_swapout+0x2fa/0x830 mm/memcontrol-v1.c:623
+   __remove_mapping+0xac5/0xe30 mm/vmscan.c:773
+   shrink_folio_list+0x2786/0x4f40 mm/vmscan.c:1528
+   reclaim_folio_list+0xeb/0x4e0 mm/vmscan.c:2208
+   reclaim_pages+0x454/0x520 mm/vmscan.c:2245
+   madvise_cold_or_pageout_pte_range+0x19a0/0x1ce0 mm/madvise.c:563
+   ...
+   do_madvise+0x1bc/0x270 mm/madvise.c:2030
+   __do_sys_madvise mm/madvise.c:2039
+
+This bug occurs because pages in swapcache can be targeted by MADV_PAGEOUT
+multiple times without being swapped in between.  Each time, the same swap
+entry is reused, but swap_cgroup_record() expects to only record new,
+unused entries.
+
+Fix this by checking if the swap entry already has the correct cgroup ID
+recorded before attempting to record it.  Use the existing
+lookup_swap_cgroup_id() to read the current cgroup ID, and return early
+from memcg1_swapout() if the entry is already correctly recorded.  Only
+call swap_cgroup_record() when the entry needs to be set or updated.
+
+This approach avoids unnecessary atomic operations, reference count
+manipulations, and statistics updates when the entry is already correct.
+
+Link: https://syzkaller.appspot.com/bug?extid=d97580a8cceb9b03c13e
+Link: https://lkml.kernel.org/r/20260110064613.606532-1-kartikey406@gmail.com
+Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
+Reported-by: syzbot+d97580a8cceb9b03c13e@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d97580a8cceb9b03c13e
+Tested-by: syzbot+d97580a8cceb9b03c13e@syzkaller.appspotmail.com
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/dax-private.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/memcontrol-v1.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/drivers/dax/dax-private.h~add-some-missing-kerneldoc-comment-fields-for-struct-dev_dax
-+++ a/drivers/dax/dax-private.h
-@@ -67,14 +67,16 @@ struct dev_dax_range {
- /**
-  * struct dev_dax - instance data for a subdivision of a dax region, and
-  * data while the device is activated in the driver.
-- * @region - parent region
-- * @dax_dev - core dax functionality
-+ * @region: parent region
-+ * @dax_dev: core dax functionality
-+ * @align: alignment of this instance
-  * @target_node: effective numa node if dev_dax memory range is onlined
-  * @dyn_id: is this a dynamic or statically created instance
-  * @id: ida allocated id when the dax_region is not static
-  * @ida: mapping id allocator
-- * @dev - device core
-- * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-+ * @dev: device core
-+ * @pgmap: pgmap for memmap setup / lifetime (driver owned)
-+ * @memmap_on_memory: allow kmem to put the memmap in the memory
-  * @nr_range: size of @ranges
-  * @ranges: range tuples of memory used
-  */
+--- a/mm/memcontrol-v1.c~mm-swap_cgroup-fix-kernel-bug-in-swap_cgroup_record
++++ a/mm/memcontrol-v1.c
+@@ -592,6 +592,7 @@ void memcg1_swapout(struct folio *folio,
+ {
+ 	struct mem_cgroup *memcg, *swap_memcg;
+ 	unsigned int nr_entries;
++	unsigned short oldid;
+ 
+ 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 	VM_BUG_ON_FOLIO(folio_ref_count(folio), folio);
+@@ -609,6 +610,16 @@ void memcg1_swapout(struct folio *folio,
+ 		return;
+ 
+ 	/*
++	 * Check if this swap entry is already recorded. This can happen
++	 * when MADV_PAGEOUT is called multiple times on pages that remain
++	 * in swapcache, reusing the same swap entries.
++	 */
++	oldid = lookup_swap_cgroup_id(entry);
++	if (oldid == mem_cgroup_id(memcg))
++		return;
++	VM_WARN_ON_ONCE(oldid != 0);
++
++	/*
+ 	 * In case the memcg owning these pages has been offlined and doesn't
+ 	 * have an ID allocated to it anymore, charge the closest online
+ 	 * ancestor for the swap instead and transfer the memory+swap charge.
 _
 
-Patches currently in -mm which might be from John@Groves.net are
+Patches currently in -mm which might be from kartikey406@gmail.com are
 
-add-some-missing-kerneldoc-comment-fields-for-struct-dev_dax.patch
+mm-swap_cgroup-fix-kernel-bug-in-swap_cgroup_record.patch
+ocfs2-validate-i_refcount_loc-when-refcount-flag-is-set.patch
+ocfs2-validate-inline-data-i_size-during-inode-read.patch
+ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch
 
