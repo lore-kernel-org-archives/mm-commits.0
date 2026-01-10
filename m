@@ -1,389 +1,130 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5566A27FD7C
-	for <mm-commits@vger.kernel.org>; Fri,  9 Jan 2026 22:48:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B803C43ABC
+	for <mm-commits@vger.kernel.org>; Sat, 10 Jan 2026 00:32:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767998893; cv=none; b=p0/0pqDr811b/z3w6vJkpRSrwE0JJsw9ugNKRbKQ0v/YywriEsU4EsEPabA4yD0W9/WnnREDzKP1I7HTgPPcmTSocJElNqzgs5Osmsuf1sU4rhxGG8rXqmsFHQ3tFEYnjmzqDXCS5m0BXLwcw5CnYB8nGNc9Yu3YWEh/FCXTsWk=
+	t=1768005155; cv=none; b=ga6jAAsDqb+PNhoxqHgbfW3t31RDYu9RtV0CFiHntZuXSJIEpaukOsIuV60CC7/pegHyb3/z1uPQ42BpYibd+hb2fkSd0UUh/lIsnRYAJI8UI5XG5vaZLNY7ZZIt2UBqb9D6TFHl1kouOxiuEzScktOTjzcXmfJueqAJNTiL+vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767998893; c=relaxed/simple;
-	bh=xcLpG1T41MWH47mBdK3uzRtQSfFLMdCKI56E/66kuLA=;
-	h=Date:To:From:Subject:Message-Id; b=AsLHHX114uy2v40ypzqbXcheVfGGqs4SImpyEbw3HTPZHKInTYmLQ/+uTyKPEdxzhAAH7AOI2enTD9lt3PU9WWL5gxaulFPYFVNjU7eyv/C3eHh+VUOcinepwPp0KbwZP/+Se0KpsAxi4+MF1mnCStE87CQKkVqhS0iRTpb6MqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tGJuCKwr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768005155; c=relaxed/simple;
+	bh=gBB1sVNLogLKO+uQ2J7HaXts1De8Gn3Mpe4KrFZtUXA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=lGproCF/jeC4DTvfhWPugA/SY4lkFiZ14JPHJh0OWY9+ft0MyMRHcodrqi1XbznS6RvE+a5sltDvEYUATc8fDm90kPDr47eVfn0RfBMogP2b2smVB2XWMfvrgmSoE2HhdBx98UNW9FwdCavsFOUkmSKli8cwody+mQtmnR9RHBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TCfkvb0X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tGJuCKwr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F59CC4CEF1;
-	Fri,  9 Jan 2026 22:48:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1767998893;
-	bh=xcLpG1T41MWH47mBdK3uzRtQSfFLMdCKI56E/66kuLA=;
-	h=Date:To:From:Subject:From;
-	b=tGJuCKwr+GrLJTlDpXFxZ3vWocT0rKM2OSgTMl1sx0BtzhL3jtnupKDfOfCzTa4+B
-	 3IZW4B7J2c57D/TWCGOq1ZIhqHHWdjLgZhlXvWVghHH0GCiZ5QUaJItgsUWl66RtEn
-	 g88Tkdlx56TuJAcGQrAvn9vxecSDEL9YG2PAEw7E=
-Date: Fri, 09 Jan 2026 14:48:12 -0800
-To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,tianyou.li@intel.com,tglx@linutronix.de,dan.liang@intel.com,wangyang.guo@intel.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] lib-group_cpus-make-group-cpu-cluster-aware.patch removed from -mm tree
-Message-Id: <20260109224813.0F59CC4CEF1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TCfkvb0X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E465DC4CEF1;
+	Sat, 10 Jan 2026 00:32:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1768005155;
+	bh=gBB1sVNLogLKO+uQ2J7HaXts1De8Gn3Mpe4KrFZtUXA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=TCfkvb0XEH4Gu2auilwIDqr1e4vYlSbvKOPlN7pJIYM2zoaeXQk0z1afgAQKn10f4
+	 bTffnk5TuDPTXvo7A6lW4zlxcwcRIUTrfg0MtzgqA/ekwji/yZ8iHilfrIN/OuNgmF
+	 Ity1tDplRXnGgxB7rnzc3B8ybcdRNtPxzl7Va2uz9DPp4Pgt2kSdw77hI80VeI6JR/
+	 /ZbNV4soicHkiRtsMW2PTFziRcGXaNddJeQpyigFhi18ZXLBx7mpSrASc7fpcH/0uI
+	 FrlHZUbkMtAza8ElmBfdPNsUVrspooQ35WONqrNKjJVwzowLRJS1F40QcuQNegRbM+
+	 SZm28NKQ+kGIQ==
+From: SeongJae Park <sj@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: SeongJae Park <sj@kernel.org>,
+	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>,
+	"David Hildenbrand (Red Hat)" <david@kernel.org>,
+	mm-commits@vger.kernel.org,
+	zhengqi.arch@bytedance.com,
+	yuanchu@google.com,
+	weixugc@google.com,
+	tballasi@linux.microsoft.com,
+	shakeel.butt@linux.dev,
+	roman.gushchin@linux.dev,
+	muchun.song@linux.dev,
+	mhocko@kernel.org,
+	mhiramat@kernel.org,
+	mathieu.desnoyers@efficios.com,
+	hannes@cmpxchg.org,
+	david@fromorbit.com,
+	axelrasmussen@google.com,
+	rostedt@goodmis.org
+Subject: Re: + tracing-add-__event_in_irq-helpers.patch added to mm-new branch
+Date: Fri,  9 Jan 2026 16:32:32 -0800
+Message-ID: <20260110003232.79586-1-sj@kernel.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260109110028.8567b1a4a5cef096c25e173b@linux-foundation.org>
+References: 
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+
+On Fri, 9 Jan 2026 11:00:28 -0800 Andrew Morton <akpm@linux-foundation.org> wrote:
+
+> On Fri, 9 Jan 2026 14:17:19 +0000 Lorenzo Stoakes <lorenzo.stoakes@oracle.com> wrote:
+> 
+> > On Fri, Jan 09, 2026 at 02:59:38PM +0100, David Hildenbrand (Red Hat) wrote:
+> > >
+> > > Nothing to add to the above :)
+> > >
+> > > > >
+> > > > > Hm.
+> > > > >
+> > > > > [1] we have 0day now running and reporting problems mostly private to me, I
+> > > > > just didn't have the time yet to closely look into the results I've been
+> > > > > getting because there seem to be some false positive test failures in some
+> > > > > unrelated tests.
+> > > >
+> > > > I've not seen bot reports from mm-new at all, so this is news to me.
+> > >
+> > > So far the reports only go to me while we are experimenting with how helpful
+> > > it is and how stable the results are.
+> > >
+> > > I skimmed over some results today, and apparently it found that the new
+> > > memory-failure selftests are a bit shaky (fail in some environments).
+> > 
+> > I guess this is why Andrew isn't bothered about me no longer checking the
+> > branch then, you're taking over that role somewhat :)
+> 
+> These are serious matters and they merit serious consideration.  This
+> takes time and I shall not be making half-baked statements.  Please be
+> patient.
+> 
+> I've seen some buildbot/fuzzbot reports for mm-new but they seem to
+> have stopped.  It would be good to get this all going again but I never
+> know who to poke.
+
+Seems at least some build tests for mm-new are still actively ongoing.  We got
+wo reports today (2026-01-09 UTC):
+https://lore.kernel.org/oe-kbuild-all/?q=mm-new
+
+> 
+> > To be constructive, FWIW, here's what I propose:
+> > 
+> > 	I think we should rename mm-new to mm-early-testing, base stuff on
+> > 	mm-unstable, and have a clear indication as to how things flow
+> > 	through.
+> 
+> Yes, let's not base changes on mm-new.  If an mm-unstable patch needs
+> work to integrate into mm-new (unlikely) then I'll take care of that.
+> 
+> I'm working on documentation for this and much more.  Hopefully I'll be
+> progressing that significantly this weekend.
+
+I was actually thinking it would be nice to have a document that describing the
+current process, becasue the nwe can make an alignment on the current status,
+and further discuss possible improvements.  I was actually about to share the
+idea today, and start writing an RFC patch that adds the documentation based on
+my best understanding, as MM's maintainer profile [1].  It's good to hear you
+are doing the documentation.  I'm not sure your documentation will be somewhat
+I was planning to make, but I sure that will be helpful.  So I will wait for
+your documentation.
+
+[1] https://docs.kernel.org/maintainer/maintainer-entry-profile.html
 
 
-The quilt patch titled
-     Subject: lib/group_cpus: make group CPU cluster aware
-has been removed from the -mm tree.  Its filename was
-     lib-group_cpus-make-group-cpu-cluster-aware.patch
+Thanks,
+SJ
 
-This patch was dropped because an updated version will be issued
-
-------------------------------------------------------
-From: Wangyang Guo <wangyang.guo@intel.com>
-Subject: lib/group_cpus: make group CPU cluster aware
-Date: Fri, 24 Oct 2025 10:30:38 +0800
-
-As CPU core counts increase, the number of NVMe IRQs may be smaller than
-the total number of CPUs.  This forces multiple CPUs to share the same
-IRQ.  If the IRQ affinity and the CPU's cluster do not align, a
-performance penalty can be observed on some platforms.
-
-This patch improves IRQ affinity by grouping CPUs by cluster within each
-NUMA domain, ensuring better locality between CPUs and their assigned NVMe
-IRQs.
-
-Link: https://lkml.kernel.org/r/20251024023038.872616-1-wangyang.guo@intel.com
-Signed-off-by: Wangyang Guo <wangyang.guo@intel.com>
-Reviewed-by: Tianyou Li <tianyou.li@intel.com>
-Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
-Tested-by: Dan Liang <dan.liang@intel.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/group_cpus.c |  269 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 204 insertions(+), 65 deletions(-)
-
---- a/lib/group_cpus.c~lib-group_cpus-make-group-cpu-cluster-aware
-+++ a/lib/group_cpus.c
-@@ -114,48 +114,15 @@ static int ncpus_cmp_func(const void *l,
- 	return ln->ncpus - rn->ncpus;
- }
- 
--/*
-- * Allocate group number for each node, so that for each node:
-- *
-- * 1) the allocated number is >= 1
-- *
-- * 2) the allocated number is <= active CPU number of this node
-- *
-- * The actual allocated total groups may be less than @numgrps when
-- * active total CPU number is less than @numgrps.
-- *
-- * Active CPUs means the CPUs in '@cpu_mask AND @node_to_cpumask[]'
-- * for each node.
-- */
--static void alloc_nodes_groups(unsigned int numgrps,
--			       cpumask_var_t *node_to_cpumask,
--			       const struct cpumask *cpu_mask,
--			       const nodemask_t nodemsk,
--			       struct cpumask *nmsk,
--			       struct node_groups *node_groups)
-+static void alloc_groups_to_nodes(unsigned int numgrps,
-+				  unsigned int numcpus,
-+				  struct node_groups *node_groups,
-+				  unsigned int num_nodes)
- {
--	unsigned n, remaining_ncpus = 0;
--
--	for (n = 0; n < nr_node_ids; n++) {
--		node_groups[n].id = n;
--		node_groups[n].ncpus = UINT_MAX;
--	}
--
--	for_each_node_mask(n, nodemsk) {
--		unsigned ncpus;
-+	unsigned int n, remaining_ncpus = numcpus;
-+	unsigned int  ngroups, ncpus;
- 
--		cpumask_and(nmsk, cpu_mask, node_to_cpumask[n]);
--		ncpus = cpumask_weight(nmsk);
--
--		if (!ncpus)
--			continue;
--		remaining_ncpus += ncpus;
--		node_groups[n].ncpus = ncpus;
--	}
--
--	numgrps = min_t(unsigned, remaining_ncpus, numgrps);
--
--	sort(node_groups, nr_node_ids, sizeof(node_groups[0]),
-+	sort(node_groups, num_nodes, sizeof(node_groups[0]),
- 	     ncpus_cmp_func, NULL);
- 
- 	/*
-@@ -226,9 +193,8 @@ static void alloc_nodes_groups(unsigned
- 	 * finally for each node X: grps(X) <= ncpu(X).
- 	 *
- 	 */
--	for (n = 0; n < nr_node_ids; n++) {
--		unsigned ngroups, ncpus;
- 
-+	for (n = 0; n < num_nodes; n++) {
- 		if (node_groups[n].ncpus == UINT_MAX)
- 			continue;
- 
-@@ -246,12 +212,199 @@ static void alloc_nodes_groups(unsigned
- 	}
- }
- 
-+/*
-+ * Allocate group number for each node, so that for each node:
-+ *
-+ * 1) the allocated number is >= 1
-+ *
-+ * 2) the allocated number is <= active CPU number of this node
-+ *
-+ * The actual allocated total groups may be less than @numgrps when
-+ * active total CPU number is less than @numgrps.
-+ *
-+ * Active CPUs means the CPUs in '@cpu_mask AND @node_to_cpumask[]'
-+ * for each node.
-+ */
-+static void alloc_nodes_groups(unsigned int numgrps,
-+			       cpumask_var_t *node_to_cpumask,
-+			       const struct cpumask *cpu_mask,
-+			       const nodemask_t nodemsk,
-+			       struct cpumask *nmsk,
-+			       struct node_groups *node_groups)
-+{
-+	unsigned int n, numcpus = 0;
-+
-+	for (n = 0; n < nr_node_ids; n++) {
-+		node_groups[n].id = n;
-+		node_groups[n].ncpus = UINT_MAX;
-+	}
-+
-+	for_each_node_mask(n, nodemsk) {
-+		unsigned int ncpus;
-+
-+		cpumask_and(nmsk, cpu_mask, node_to_cpumask[n]);
-+		ncpus = cpumask_weight(nmsk);
-+
-+		if (!ncpus)
-+			continue;
-+		numcpus += ncpus;
-+		node_groups[n].ncpus = ncpus;
-+	}
-+
-+	numgrps = min_t(unsigned int, numcpus, numgrps);
-+	alloc_groups_to_nodes(numgrps, numcpus, node_groups, nr_node_ids);
-+}
-+
-+static void assign_cpus_to_groups(unsigned int ncpus,
-+				  struct cpumask *nmsk,
-+				  struct node_groups *nv,
-+				  struct cpumask *masks,
-+				  unsigned int *curgrp,
-+				  unsigned int last_grp)
-+{
-+	unsigned int v, cpus_per_grp, extra_grps;
-+	/* Account for rounding errors */
-+	extra_grps = ncpus - nv->ngroups * (ncpus / nv->ngroups);
-+
-+	/* Spread allocated groups on CPUs of the current node */
-+	for (v = 0; v < nv->ngroups; v++, *curgrp += 1) {
-+		cpus_per_grp = ncpus / nv->ngroups;
-+
-+		/* Account for extra groups to compensate rounding errors */
-+		if (extra_grps) {
-+			cpus_per_grp++;
-+			--extra_grps;
-+		}
-+
-+		/*
-+		 * wrapping has to be considered given 'startgrp'
-+		 * may start anywhere
-+		 */
-+		if (*curgrp >= last_grp)
-+			*curgrp = 0;
-+		grp_spread_init_one(&masks[*curgrp], nmsk, cpus_per_grp);
-+	}
-+}
-+
-+static int alloc_cluster_groups(unsigned int ncpus,
-+				unsigned int ngroups,
-+				struct cpumask *node_cpumask,
-+				cpumask_var_t msk,
-+				const struct cpumask ***clusters_ptr,
-+				struct node_groups **cluster_groups_ptr)
-+{
-+	unsigned int ncluster = 0;
-+	unsigned int cpu, nc, n;
-+	const struct cpumask *cluster_mask;
-+	const struct cpumask **clusters;
-+	struct node_groups *cluster_groups;
-+
-+	cpumask_copy(msk, node_cpumask);
-+
-+	/* Probe how many clusters in this node. */
-+	while (1) {
-+		cpu = cpumask_first(msk);
-+		if (cpu >= nr_cpu_ids)
-+			break;
-+
-+		cluster_mask = topology_cluster_cpumask(cpu);
-+		/* Clean out CPUs on the same cluster. */
-+		cpumask_andnot(msk, msk, cluster_mask);
-+		ncluster++;
-+	}
-+
-+	/* If ngroups < ncluster, cross cluster is inevitable, skip. */
-+	if (ncluster == 0 || ncluster > ngroups)
-+		goto no_cluster;
-+
-+	/* Allocate memory based on cluster number. */
-+	clusters = kcalloc(ncluster, sizeof(struct cpumask *), GFP_KERNEL);
-+	if (!clusters)
-+		goto no_cluster;
-+	cluster_groups = kcalloc(ncluster, sizeof(struct node_groups), GFP_KERNEL);
-+	if (!cluster_groups)
-+		goto fail_cluster_groups;
-+
-+	/* Filling cluster info for later process. */
-+	cpumask_copy(msk, node_cpumask);
-+	for (n = 0; n < ncluster; n++) {
-+		cpu = cpumask_first(msk);
-+		cluster_mask = topology_cluster_cpumask(cpu);
-+		nc = cpumask_weight_and(cluster_mask, node_cpumask);
-+		clusters[n] = cluster_mask;
-+		cluster_groups[n].id = n;
-+		cluster_groups[n].ncpus = nc;
-+		cpumask_andnot(msk, msk, cluster_mask);
-+	}
-+
-+	alloc_groups_to_nodes(ngroups, ncpus, cluster_groups, ncluster);
-+
-+	*clusters_ptr = clusters;
-+	*cluster_groups_ptr = cluster_groups;
-+	return ncluster;
-+
-+ fail_cluster_groups:
-+	kfree(clusters);
-+ no_cluster:
-+	return 0;
-+}
-+
-+/*
-+ * Try group CPUs evenly for cluster locality within a NUMA node.
-+ *
-+ * Return: true if success, false otherwise.
-+ */
-+static bool __try_group_cluster_cpus(unsigned int ncpus,
-+				     unsigned int ngroups,
-+				     struct cpumask *node_cpumask,
-+				     struct cpumask *masks,
-+				     unsigned int *curgrp,
-+				     unsigned int last_grp)
-+{
-+	struct node_groups *cluster_groups;
-+	const struct cpumask **clusters;
-+	unsigned int ncluster;
-+	bool ret = false;
-+	cpumask_var_t nmsk;
-+	unsigned int i, nc;
-+
-+	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
-+		goto fail_nmsk_alloc;
-+
-+	ncluster = alloc_cluster_groups(ncpus, ngroups, node_cpumask, nmsk,
-+					&clusters, &cluster_groups);
-+
-+	if (ncluster == 0)
-+		goto fail_no_clusters;
-+
-+	for (i = 0; i < ncluster; i++) {
-+		struct node_groups *nv = &cluster_groups[i];
-+
-+		/* Get the cpus on this cluster. */
-+		cpumask_and(nmsk, node_cpumask, clusters[nv->id]);
-+		nc = cpumask_weight(nmsk);
-+		if (!nc)
-+			continue;
-+		WARN_ON_ONCE(nv->ngroups > nc);
-+
-+		assign_cpus_to_groups(nc, nmsk, nv, masks, curgrp, last_grp);
-+	}
-+
-+	ret = true;
-+	kfree(cluster_groups);
-+	kfree(clusters);
-+ fail_no_clusters:
-+	free_cpumask_var(nmsk);
-+ fail_nmsk_alloc:
-+	return ret;
-+}
-+
- static int __group_cpus_evenly(unsigned int startgrp, unsigned int numgrps,
- 			       cpumask_var_t *node_to_cpumask,
- 			       const struct cpumask *cpu_mask,
- 			       struct cpumask *nmsk, struct cpumask *masks)
- {
--	unsigned int i, n, nodes, cpus_per_grp, extra_grps, done = 0;
-+	unsigned int i, n, nodes, done = 0;
- 	unsigned int last_grp = numgrps;
- 	unsigned int curgrp = startgrp;
- 	nodemask_t nodemsk = NODE_MASK_NONE;
-@@ -287,7 +440,7 @@ static int __group_cpus_evenly(unsigned
- 	alloc_nodes_groups(numgrps, node_to_cpumask, cpu_mask,
- 			   nodemsk, nmsk, node_groups);
- 	for (i = 0; i < nr_node_ids; i++) {
--		unsigned int ncpus, v;
-+		unsigned int ncpus;
- 		struct node_groups *nv = &node_groups[i];
- 
- 		if (nv->ngroups == UINT_MAX)
-@@ -301,28 +454,14 @@ static int __group_cpus_evenly(unsigned
- 
- 		WARN_ON_ONCE(nv->ngroups > ncpus);
- 
--		/* Account for rounding errors */
--		extra_grps = ncpus - nv->ngroups * (ncpus / nv->ngroups);
--
--		/* Spread allocated groups on CPUs of the current node */
--		for (v = 0; v < nv->ngroups; v++, curgrp++) {
--			cpus_per_grp = ncpus / nv->ngroups;
--
--			/* Account for extra groups to compensate rounding errors */
--			if (extra_grps) {
--				cpus_per_grp++;
--				--extra_grps;
--			}
--
--			/*
--			 * wrapping has to be considered given 'startgrp'
--			 * may start anywhere
--			 */
--			if (curgrp >= last_grp)
--				curgrp = 0;
--			grp_spread_init_one(&masks[curgrp], nmsk,
--						cpus_per_grp);
-+		if (__try_group_cluster_cpus(ncpus, nv->ngroups, nmsk,
-+					     masks, &curgrp, last_grp)) {
-+			done += nv->ngroups;
-+			continue;
- 		}
-+
-+		assign_cpus_to_groups(ncpus, nmsk, nv, masks, &curgrp,
-+				      last_grp);
- 		done += nv->ngroups;
- 	}
- 	kfree(node_groups);
-_
-
-Patches currently in -mm which might be from wangyang.guo@intel.com are
-
-
+[...]
