@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00DD32E7BDC
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 19:49:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D91DB17BB21
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 19:55:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768247382; cv=none; b=radJLL7mrr1KdoD3Sq1noiqfeRtpcSVcOSQRa9e/eytW1N949fUM5SK83InIAAw5KWF8NbHJsIwE0TSXpdn6e/5VJvWgs9MjQLIEhyGITo/02Ww9B1s2CIMPt2HGCmV6/M5GbJD3oXk5qUmt3HQQKrrpSV+tge/u1YleKwLUovs=
+	t=1768247732; cv=none; b=jgqmtEHOBMvpFvd70DSyY8s4HeJ8pvk+3lTzNPZYOZg8Fwj1I9aiq6zzvt6Sxl9PcIoAB9uZPiBZWdvNO3913EDozEaYn02aaX4hh0L2FeyHuH7YAsmZMXk59xGGpA3wanVihyZb5ZI89nzC2LOVmzSDSAtESQlZYpwFGuQddGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768247382; c=relaxed/simple;
-	bh=ytJsib9ZZ6Jio4EDxvvHVaRJkJvEK3rh5zJImYJILT0=;
-	h=Date:To:From:Subject:Message-Id; b=bwNbNDj6p8ZOCMUWm26VR276MUJuhdwosKbnca1fssaNXNLpOUsE4nGbO8WBn4/heTshdYnAjQXu3nY9YwP77Z9/GXVTj31yj2pbGJaCm8WZIM3Jr+2dY0KVxfUqYG4rqguTPBWR4/4ELWY7euiSwSsl1Jh+QyEcw5123Xmx+Qg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qOxR/4J4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768247732; c=relaxed/simple;
+	bh=/TXbfxTvLW+nvd/6+TXYM5ri7Ywa1siJVPdTEwpZmW0=;
+	h=Date:To:From:Subject:Message-Id; b=Km2E7ZFGYqrXKGFuomVVTO5q6mM8fCfbNEr9+h7XAbektxGXobsvbNNU9XHunueu2lpCWyasZa2TjlCg4vxKHllJmgYsDWbNx+KVww7809v2Iuk9Yi3sQH5euCcBJnbjrb5LcOb3U4uUVVUjcoRbVxnqZReqBbbw2IFoqJYLMNA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1606N2Gm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qOxR/4J4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EB19C116D0;
-	Mon, 12 Jan 2026 19:49:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1606N2Gm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54FA8C116D0;
+	Mon, 12 Jan 2026 19:55:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768247381;
-	bh=ytJsib9ZZ6Jio4EDxvvHVaRJkJvEK3rh5zJImYJILT0=;
+	s=korg; t=1768247732;
+	bh=/TXbfxTvLW+nvd/6+TXYM5ri7Ywa1siJVPdTEwpZmW0=;
 	h=Date:To:From:Subject:From;
-	b=qOxR/4J4pVYLB/Qyu4k7SGHHUGtQzDXVYLz4dkiZuepY47xruVnlMshlZf/tAQN+s
-	 tJFOPbP44arfARFS/cA+pOheIlQXifmXkgSrpqRY0I8RF5odhzwi/MtEU1/SCBZ4z8
-	 /xpJsXTgeosK6nTZyMIdQSJNCQykv1RJ2FQD88ws=
-Date: Mon, 12 Jan 2026 11:49:40 -0800
-To: mm-commits@vger.kernel.org,suhui@nfschina.com,martin.petersen@oracle.com,john.g.garry@oracle.com,axboe@kernel.dk,macro@orcam.me.uk,akpm@linux-foundation.org
+	b=1606N2Gm52fpF/ADzMQ33+f6C+uiDCr1W46o5TpComx7g865wbvpcNAAKrgE1foGw
+	 JCoWeDhIeb30p5BCpC2USSh56M73JGWwV/qYiL3LHFK+mm2+g5F/sSly34UPJHK1qe
+	 FeSScn4I2/wf49/nn6ddaZgRS1LUXVzW1ydwYNfM=
+Date: Mon, 12 Jan 2026 11:55:31 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,sweettea-kernel@dorminy.me,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,paulmck@kernel.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,christian.koenig@amd.com,broonie@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + linux-log2h-reduce-instruction-count-for-is_power_of_2.patch added to mm-nonmm-unstable branch
-Message-Id: <20260112194941.5EB19C116D0@smtp.kernel.org>
+Subject: [to-be-updated] tsacct-skip-all-kernel-threads.patch removed from -mm tree
+Message-Id: <20260112195532.54FA8C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,78 +34,101 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: linux/log2.h: reduce instruction count for is_power_of_2()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     linux-log2h-reduce-instruction-count-for-is_power_of_2.patch
+The quilt patch titled
+     Subject: tsacct: skip all kernel threads
+has been removed from the -mm tree.  Its filename was
+     tsacct-skip-all-kernel-threads.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/linux-log2h-reduce-instruction-count-for-is_power_of_2.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Maciej W. Rozycki" <macro@orcam.me.uk>
-Subject: linux/log2.h: reduce instruction count for is_power_of_2()
-Date: Sun, 11 Jan 2026 21:21:57 +0000 (GMT)
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: tsacct: skip all kernel threads
+Date: Wed, 24 Dec 2025 12:38:10 -0500
 
-Follow an observation that (n ^ (n - 1)) will only ever retain the most
-significant bit set in the word operated on if that is the only bit set in
-the first place, and use it to determine whether a number is a whole power
-of 2, avoiding the need for an explicit check for nonzero.
+This patch is a preparation step for HPCC, for the OOM killer
+improvements.  I suspect that this patch is useful on its own, because it
+really makes no sense to sum up accounting statistics of use_mm within
+kernel threads which are only temporarily using those mm.
 
-This reduces the sequence produced to 3 instructions only across Alpha,
-MIPS, and RISC-V targets, down from 4, 5, and 4 respectively, removing a
-branch in the two latter cases.  And it's 5 instructions on POWER and
-x86-64 vs 8 and 9 respectively.  There are no branches now emitted here
-for targets that have a suitable conditional set operation, although an
-inline expansion will often end with one, depending on what code a call to
-this function is used in.
+When we hit acct_account_cputime within a irq handler over a kthread that
+happens to use a userspace mm, we end up summing up the mm's RSS into the
+tsk acct_rss_mem1, which eventually decays.
 
-Credit goes to GCC authors for coming up with this optimisation used as
-the fallback for (__builtin_popcountl(n) == 1), equivalent to this code,
-for targets where the hardware population count operation is considered
-expensive.
+I don't see a good rationale behind tracking the mm's rss in that way when
+a kthread use a userspace mm temporarily through use_mm.
 
-Link: https://lkml.kernel.org/r/alpine.DEB.2.21.2601111836250.30566@angie.orcam.me.uk
-Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: John Garry <john.g.garry@oracle.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Su Hui <suhui@nfschina.com>
+It causes issues with init_mm and efi_mm which only partially initialize
+their mm_struct when introducing the new hierarchical percpu counters to
+replace RSS counters, which requires a pointer dereference when reading
+the approximate counter sum.  The current percpu counters simply load a
+zeroed atomic counter, which happen to work.
+
+Skip all kernel threads in acct_account_cputime(), not just those that
+happen to have a NULL mm.
+
+This is a preparation step before introducing the hierarchical percpu
+counters.
+
+Link: https://lkml.kernel.org/r/20251224173810.648699-2-mathieu.desnoyers@efficios.com
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Christan König <christian.koenig@amd.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Liam R . Howlett" <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Martin Liu <liumartin@google.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/log2.h |    2 +-
+ kernel/tsacct.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/log2.h~linux-log2h-reduce-instruction-count-for-is_power_of_2
-+++ a/include/linux/log2.h
-@@ -44,7 +44,7 @@ int __ilog2_u64(u64 n)
- static __always_inline __attribute__((const))
- bool is_power_of_2(unsigned long n)
+--- a/kernel/tsacct.c~tsacct-skip-all-kernel-threads
++++ a/kernel/tsacct.c
+@@ -125,7 +125,7 @@ static void __acct_update_integrals(stru
  {
--	return (n != 0 && ((n & (n - 1)) == 0));
-+	return n - 1 < (n ^ (n - 1));
- }
+ 	u64 time, delta;
  
- /**
+-	if (!likely(tsk->mm))
++	if (unlikely(!tsk->mm || (tsk->flags & PF_KTHREAD)))
+ 		return;
+ 
+ 	time = stime + utime;
 _
 
-Patches currently in -mm which might be from macro@orcam.me.uk are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
-linux-log2h-reduce-instruction-count-for-is_power_of_2.patch
+mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch
+mm-rename-cpu_bitmap-field-to-flexible_array.patch
+mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
+lib-introduce-hierarchical-per-cpu-counters.patch
+mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
+mm-implement-precise-oom-killer-task-selection.patch
 
