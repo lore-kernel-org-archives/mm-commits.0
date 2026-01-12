@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DD4637F750
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B463876AA
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768243168; cv=none; b=LWrOMzLDMdWOGwD5EJV4VUOx468ng7pLGQUdaZYwaLC88FF2L2PQYGrniIbz1GXzCcq+KAHGmfnCn35wRyu+3OaJ7z27njCNKTqiSmEKwiYSBogiQr+jAViQca6vt+XfyDCh0nwdY93ixLpQzuhakvRfmGWGOFoe8dzT8Ytit0s=
+	t=1768243171; cv=none; b=DlYfXY3ZCjMcegFBd6DZm6dQ086No8IEm8va6hvb9ji8bN610ZWpJPdOLAtsbanQBUWNynOPpaisowSx5O8+e0fGpFAM8z72zzrM8kgXakvZ/OqZJzh+03nKugP6JtZNklm7h41g4mlzII2WsNxYVF+EKp7OJ9WONt+ES/+RDEU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768243168; c=relaxed/simple;
-	bh=U6H7etpstOFEcKsxGZAim9I6mfVaPPFQWXM+3wIaE+E=;
-	h=Date:To:From:Subject:Message-Id; b=a0Sq6+qf9oJLYoaC419tGD/HHiX4ndK5hxVQ2251Q7Eax7GdeTCk6eUmXh+RANTIA0PPtJMs86xzF8pzdyWlPNUyK7N6+E8v7LRJy+7smKtqk6RH5aCKAFojBBNmvYGYe+7sZNVh7lmyhkpKJSbCWk4BXStdBS8vsjwypZYryQw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zti9XcHw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768243171; c=relaxed/simple;
+	bh=oZCsaFWy2I5lvgVwcmVnoDCHdKDEKCy3kepA6vsdYug=;
+	h=Date:To:From:Subject:Message-Id; b=Ay27Qa7aPIj4HMm8Cy0wcMaz/1Ewna0ZWcoRl8y6KtabmUc7eyZT/c9RodddJnpB9CAOk2nv+o1NRtr4W3uLTpgt2REbogDcQDqzJ0EPIFzAlIftAOQO6c1gg9dUHCRsWy3pFzXRr4MDeJk6ge3rZmD0zNNUx2cTwypKd0cpsls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mKFPzT/K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zti9XcHw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECEC6C116D0;
-	Mon, 12 Jan 2026 18:39:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mKFPzT/K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95936C116D0;
+	Mon, 12 Jan 2026 18:39:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768243168;
-	bh=U6H7etpstOFEcKsxGZAim9I6mfVaPPFQWXM+3wIaE+E=;
+	s=korg; t=1768243170;
+	bh=oZCsaFWy2I5lvgVwcmVnoDCHdKDEKCy3kepA6vsdYug=;
 	h=Date:To:From:Subject:From;
-	b=Zti9XcHwsDgL2HpZna20mZINY4A/boQENa16Q8XIv3UZ81LF80ho5ZIXRxw3ECHik
-	 /DXofLDol5Bi8+FpDHd8BDryRRSxzQ5WnGSvm/ky0zJhL8APIPhyehJPID1DvXMOnD
-	 9kmlrDdEynSugA7qrlY6wbSCV3mRbx4ISTlWkizQ=
-Date: Mon, 12 Jan 2026 10:39:27 -0800
+	b=mKFPzT/Kon4XKNguWTspx6WVN5pV1si27g9GPfHxTTWnMU4IBH6gWHJSPo9mETwih
+	 11sI8BA2kfnjmgmRIF/eg5bfaOsXBQHBu3ZE3MbtaYb7mKdep+pVaYx3gz9Kj4uQP2
+	 le/azmb2VibLsROpYJPtBs4BMHCzkU0xiwIGHOB4=
+Date: Mon, 12 Jan 2026 10:39:30 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,yeoreum.yun@arm.com,will@kernel.org,weixugc@google.com,vincenzo.frascino@arm.com,vbabka@suse.cz,urezki@gmail.com,ubizjak@gmail.com,trintaeoitogc@gmail.com,thuth@redhat.com,thomas.lendacky@amd.com,tglx@kernel.org,surenb@google.com,smostafa@google.com,samuel.holland@sifive.com,samitolvanen@google.com,ryabinin.a.a@gmail.com,rppt@kernel.org,peterz@infradead.org,osandov@fb.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,mhocko@suse.com,maz@kernel.org,mark.rutland@arm.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leitao@debian.org,kees@kernel.org,kbingham@kernel.org,justinstitt@google.com,jpoimboe@kernel.org,jeremy.linton@arm.com,jan.kiszka@siemens.com,jackmanb@google.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,brgerst@gmail.com,bp@alien8.de,bigeasy@linutronix.de,axelrasmussen@google.com,ardb@kernel.org,anshuman.khandual@arm.com,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-physical-address-comparisons-in-fill_pd-pte.patch added to mm-new branch
-Message-Id: <20260112183927.ECEC6C116D0@smtp.kernel.org>
+Subject: + x86-kasan-kasan-raw-shadow-memory-pte-init.patch added to mm-new branch
+Message-Id: <20260112183930.95936C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm: physical address comparisons in fill_p*d/pte
+     Subject: x86/kasan: KASAN raw shadow memory PTE init
 has been added to the -mm mm-new branch.  Its filename is
-     x86-mm-physical-address-comparisons-in-fill_pd-pte.patch
+     x86-kasan-kasan-raw-shadow-memory-pte-init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-physical-address-comparisons-in-fill_pd-pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kasan-kasan-raw-shadow-memory-pte-init.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,23 +67,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Subject: x86/mm: physical address comparisons in fill_p*d/pte
-Date: Mon, 12 Jan 2026 17:27:59 +0000
+Subject: x86/kasan: KASAN raw shadow memory PTE init
+Date: Mon, 12 Jan 2026 17:28:05 +0000
 
-Calculating page offset returns a pointer without a tag.  When comparing
-the calculated offset to a tagged page pointer an error is raised because
-they are not equal.
+In KASAN's generic mode the default value in shadow memory is zero. 
+During initialization of shadow memory pages they are allocated and
+zeroed.
 
-Change pointer comparisons to physical address comparisons as to avoid
-issues with tagged pointers that pointer arithmetic would create.  Open
-code pte_offset_kernel(), pmd_offset(), pud_offset() and p4d_offset(). 
-Because one parameter is always zero and the rest of the function insides
-are enclosed inside __va(), removing that layer lowers the complexity of
-final assembly.
+In KASAN's tag-based mode the default tag for the arm64 architecture is
+0xFE which corresponds to any memory that should not be accessed.  On x86
+(where tags are 4-bit wide instead of 8-bit wide) that tag is 0xE so
+during the initializations all the bytes in shadow memory pages should be
+filled with it.
 
-Link: https://lkml.kernel.org/r/3775e34b030fe5a8e3306026654f51d7b7ca33f7.1768233085.git.m.wieczorretman@pm.me
+Use memblock_alloc_try_nid_raw() instead of memblock_alloc_try_nid() to
+avoid zeroing out the memory so it can be set with the KASAN invalid tag.
+
+Link: https://lkml.kernel.org/r/9968297ee3c83a73e1fb05c6415b024d1d2d6a04.1768233085.git.m.wieczorretman@pm.me
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Cc: Alexander Potapenko <glider@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -137,50 +139,51 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/x86/mm/kasan_init_64.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
---- a/arch/x86/mm/init_64.c~x86-mm-physical-address-comparisons-in-fill_pd-pte
-+++ a/arch/x86/mm/init_64.c
-@@ -269,7 +269,10 @@ static p4d_t *fill_p4d(pgd_t *pgd, unsig
- 	if (pgd_none(*pgd)) {
- 		p4d_t *p4d = (p4d_t *)spp_getpage();
- 		pgd_populate(&init_mm, pgd, p4d);
--		if (p4d != p4d_offset(pgd, 0))
+--- a/arch/x86/mm/kasan_init_64.c~x86-kasan-kasan-raw-shadow-memory-pte-init
++++ a/arch/x86/mm/kasan_init_64.c
+@@ -34,6 +34,18 @@ static __init void *early_alloc(size_t s
+ 	return ptr;
+ }
+ 
++static __init void *early_raw_alloc(size_t size, int nid, bool should_panic)
++{
++	void *ptr = memblock_alloc_try_nid_raw(size, size,
++			__pa(MAX_DMA_ADDRESS), MEMBLOCK_ALLOC_ACCESSIBLE, nid);
 +
-+		if (__pa(p4d) != (pgtable_l5_enabled() ?
-+				  (unsigned long)pgd_val(*pgd) & PTE_PFN_MASK :
-+				  __pa(pgd)))
- 			printk(KERN_ERR "PAGETABLE BUG #00! %p <-> %p\n",
- 			       p4d, p4d_offset(pgd, 0));
- 	}
-@@ -281,7 +284,7 @@ static pud_t *fill_pud(p4d_t *p4d, unsig
- 	if (p4d_none(*p4d)) {
- 		pud_t *pud = (pud_t *)spp_getpage();
- 		p4d_populate(&init_mm, p4d, pud);
--		if (pud != pud_offset(p4d, 0))
-+		if (__pa(pud) != (p4d_val(*p4d) & p4d_pfn_mask(*p4d)))
- 			printk(KERN_ERR "PAGETABLE BUG #01! %p <-> %p\n",
- 			       pud, pud_offset(p4d, 0));
- 	}
-@@ -293,7 +296,7 @@ static pmd_t *fill_pmd(pud_t *pud, unsig
- 	if (pud_none(*pud)) {
- 		pmd_t *pmd = (pmd_t *) spp_getpage();
- 		pud_populate(&init_mm, pud, pmd);
--		if (pmd != pmd_offset(pud, 0))
-+		if (__pa(pmd) != (pud_val(*pud) & pud_pfn_mask(*pud)))
- 			printk(KERN_ERR "PAGETABLE BUG #02! %p <-> %p\n",
- 			       pmd, pmd_offset(pud, 0));
- 	}
-@@ -305,7 +308,7 @@ static pte_t *fill_pte(pmd_t *pmd, unsig
- 	if (pmd_none(*pmd)) {
- 		pte_t *pte = (pte_t *) spp_getpage();
- 		pmd_populate_kernel(&init_mm, pmd, pte);
--		if (pte != pte_offset_kernel(pmd, 0))
-+		if (__pa(pte) != (pmd_val(*pmd) & pmd_pfn_mask(*pmd)))
- 			printk(KERN_ERR "PAGETABLE BUG #03!\n");
- 	}
- 	return pte_offset_kernel(pmd, vaddr);
++	if (!ptr && should_panic)
++		panic("%pS: Failed to allocate page, nid=%d from=%lx\n",
++		      (void *)_RET_IP_, nid, __pa(MAX_DMA_ADDRESS));
++
++	return ptr;
++}
++
+ static void __init kasan_populate_pmd(pmd_t *pmd, unsigned long addr,
+ 				      unsigned long end, int nid)
+ {
+@@ -63,8 +75,9 @@ static void __init kasan_populate_pmd(pm
+ 		if (!pte_none(*pte))
+ 			continue;
+ 
+-		p = early_alloc(PAGE_SIZE, nid, true);
+-		entry = pfn_pte(PFN_DOWN(__pa(p)), PAGE_KERNEL);
++		p = early_raw_alloc(PAGE_SIZE, nid, true);
++		memset(p, KASAN_SHADOW_INIT, PAGE_SIZE);
++		entry = pfn_pte(PFN_DOWN(__pa_nodebug(p)), PAGE_KERNEL);
+ 		set_pte_at(&init_mm, addr, pte, entry);
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+ }
+@@ -436,7 +449,7 @@ void __init kasan_init(void)
+ 	 * it may contain some garbage. Now we can clear and write protect it,
+ 	 * since after the TLB flush no one should write to it.
+ 	 */
+-	memset(kasan_early_shadow_page, 0, PAGE_SIZE);
++	memset(kasan_early_shadow_page, KASAN_SHADOW_INIT, PAGE_SIZE);
+ 	for (i = 0; i < PTRS_PER_PTE; i++) {
+ 		pte_t pte;
+ 		pgprot_t prot;
 _
 
 Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
