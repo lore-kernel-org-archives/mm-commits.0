@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A94AB3793A0
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A08937E313
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768243142; cv=none; b=my863PVSw9dkI3Grb8jI5Dg2AzsIhbYVjTYwF+HZOPsF1Ro1Ll+jQso5CthwXfZiPSXGj18C0ku7scXlsD7YbwiLcTVDFkpQ+KVgYdUVLuE5jEN+qxJ0oVshQm6Gzsu/IKGed3wQJJ2PvFnuB6wwkREkfMybmbMtNQY61jfqXiQ=
+	t=1768243148; cv=none; b=sMLkZ3+h7HA7N0gaIn/GwjUwd8B8vbbW/3554uBzYc/X9CTEl7vYcYzdBuhhbnq4qyvcJasec84VINNCzwV1n1SV9twYNGY51uoqcHX3Xnczf5hxKgEHI8/jWbqgjgHJ8AUfgDwmNAqgDqlmyofaCJ/5GYNcsO43sS3lOHX919o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768243142; c=relaxed/simple;
-	bh=M0abQHvv7l1Zlo592cyxMhJeFSOhW/8jhCeI7mnQyiE=;
-	h=Date:To:From:Subject:Message-Id; b=jJSILe1MYJAKfX3LUiiixb4BtR5+VemUp+LvZ6sbe7QefbN1PC0FRwujdowVfPx383Up4EpQnIGZJwOkq1hrEXaJDP3ENQoOiNhlco7HrlYoUwEEoFFPJkGAZQcKHTILKYQ4b8xaNjFijq6qPKLnU9nnn/chRSHpLj00j7NVtdw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pvUI7GwN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768243148; c=relaxed/simple;
+	bh=74pOn8WOXwFw+X0xxmPyQjcM5NuWNQySJMRUxP9iZhk=;
+	h=Date:To:From:Subject:Message-Id; b=m8BxVwlx9NS3NUA6MYRhEZnkAYPIaWZFb5bcILgxFdCJ70LRnuaDh69jr+fowJB1JgoaXRWv6lDe+u7aAebOYQmdAd3naq7eIvrehN2+Xd0N3pqiFPde6e8szuYB4yJig0xILa2IB/CKLrP2Kh4+e+q3MXU8RGb9hv+Tpg3TxfA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZtzcqaYy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pvUI7GwN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 161AEC116D0;
-	Mon, 12 Jan 2026 18:39:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZtzcqaYy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3BFFC116D0;
+	Mon, 12 Jan 2026 18:39:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768243142;
-	bh=M0abQHvv7l1Zlo592cyxMhJeFSOhW/8jhCeI7mnQyiE=;
+	s=korg; t=1768243148;
+	bh=74pOn8WOXwFw+X0xxmPyQjcM5NuWNQySJMRUxP9iZhk=;
 	h=Date:To:From:Subject:From;
-	b=pvUI7GwNXHsXXBsjm/GUdol3VmlfzJ0qeKYr7lokPSNh1jEwWcHbomhUy5PQKcTCa
-	 cih+IoM3XUxup6ohIozoJrg0Gb5zYyqJh22ekUCoZdo3Uvz2lnCa4gTCENNp00p+g6
-	 xivkGC81q+UxTc2VCw90tbNdOmnBCyYxtreel7K8=
-Date: Mon, 12 Jan 2026 10:39:01 -0800
+	b=ZtzcqaYyFjMtErRoPD2JwMWJk1prGI97LLgxVl2xkQ9YgNlvxwl9SuJffgwMTDp8I
+	 I1XXJTTnMjyh7OFPSixy2ZwdPVKbWoyhM2HUKtEl0gOxXId3z/fgA0roD69dA1AWNw
+	 EixGGBAeyYpJgM2TewJd60RGaB3cEqS1wAsXvccA=
+Date: Mon, 12 Jan 2026 10:39:07 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,yeoreum.yun@arm.com,will@kernel.org,weixugc@google.com,vincenzo.frascino@arm.com,vbabka@suse.cz,urezki@gmail.com,ubizjak@gmail.com,trintaeoitogc@gmail.com,thuth@redhat.com,thomas.lendacky@amd.com,tglx@kernel.org,surenb@google.com,smostafa@google.com,samitolvanen@google.com,ryabinin.a.a@gmail.com,rppt@kernel.org,peterz@infradead.org,osandov@fb.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,mhocko@suse.com,maz@kernel.org,mark.rutland@arm.com,maciej.wieczor-retman@intel.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leitao@debian.org,kees@kernel.org,kbingham@kernel.org,justinstitt@google.com,jpoimboe@kernel.org,jeremy.linton@arm.com,jan.kiszka@siemens.com,jackmanb@google.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,brgerst@gmail.com,bp@alien8.de,bigeasy@linutronix.de,axelrasmussen@google.com,ardb@kernel.org,anshuman.khandual@arm.com,andreyknvl@gmail.com,samuel.holland@sifive.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-sw_tags-use-arithmetic-shift-for-shadow-computation.patch added to mm-new branch
-Message-Id: <20260112183902.161AEC116D0@smtp.kernel.org>
+Subject: + kasan-arm64-x86-make-special-tags-arch-specific.patch added to mm-new branch
+Message-Id: <20260112183907.F3BFFC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: sw_tags: use arithmetic shift for shadow computation
+     Subject: kasan: arm64: x86: make special tags arch specific
 has been added to the -mm mm-new branch.  Its filename is
-     kasan-sw_tags-use-arithmetic-shift-for-shadow-computation.patch
+     kasan-arm64-x86-make-special-tags-arch-specific.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-sw_tags-use-arithmetic-shift-for-shadow-computation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-arm64-x86-make-special-tags-arch-specific.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,192 +67,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Samuel Holland <samuel.holland@sifive.com>
-Subject: kasan: sw_tags: use arithmetic shift for shadow computation
-Date: Mon, 12 Jan 2026 17:27:22 +0000
+Subject: kasan: arm64: x86: make special tags arch specific
+Date: Mon, 12 Jan 2026 17:27:29 +0000
 
-Patch series "kasan: x86: arm64: KASAN tag-based mode for x86", v8.
+KASAN's tag-based mode defines multiple special tag values. They're
+reserved for:
+- Native kernel value. On arm64 it's 0xFF and it causes an early return
+  in the tag checking function.
+- Invalid value. 0xFE marks an area as freed / unallocated. It's also
+  the value that is used to initialize regions of shadow memory.
+- Min and max values. 0xFD is the highest value that can be randomly
+  generated for a new tag. 0 is the minimal value with the exception of
+  arm64's hardware mode where it is equal to 0xF0.
 
-======= Introduction
-The patchset aims to add a KASAN tag-based mode for the x86 architecture
-with the help of the new CPU feature called Linear Address Masking
-(LAM). Main improvement introduced by the series is 2x lower memory
-usage compared to KASAN's generic mode, the only currently available
-mode on x86. The tag based mode may also find errors that the generic
-mode couldn't because of differences in how these modes operate.
+Metadata macro is also defined:
+- Tag width equal to 8.
 
-======= How does KASAN' tag-based mode work?
-When enabled, memory accesses and allocations are augmented by the
-compiler during kernel compilation. Instrumentation functions are added
-to each memory allocation and each pointer dereference.
+Tag-based mode on x86 is going to use 4 bit wide tags so all the above
+values need to be changed accordingly.
 
-The allocation related functions generate a random tag and save it in
-two places: in shadow memory that maps to the allocated memory, and in
-the top bits of the pointer that points to the allocated memory. Storing
-the tag in the top of the pointer is possible because of Top-Byte Ignore
-(TBI) on arm64 architecture and LAM on x86.
+Make tag width and native kernel tag arch specific for x86 and arm64.
 
-The access related functions are performing a comparison between the tag
-stored in the pointer and the one stored in shadow memory. If the tags
-don't match an out of bounds error must have occurred and so an error
-report is generated.
+Base the invalid tag value and the max value on the native kernel tag
+since they follow the same pattern on both mentioned architectures.
 
-The general idea for the tag-based mode is very well explained in the
-series with the original implementation [1].
+Also generalize KASAN_SHADOW_INIT and 0xff used in various
+page_kasan_tag* helpers.
 
-[1] https://lore.kernel.org/all/cover.1544099024.git.andreyknvl@google.com/
+Give KASAN_TAG_MIN the default value of zero, and move the special value
+for hw_tags arm64 to its arch specific kasan-tags.h.
 
-======= Differences summary compared to the arm64 tag-based mode
-- Tag width:
-	- Tag width influences the chance of a tag mismatch due to two
-	  tags from different allocations having the same value. The
-	  bigger the possible range of tag values the lower the chance
-	  of that happening.
-	- Shortening the tag width from 8 bits to 4, while it can help
-	  with memory usage, it also increases the chance of not
-	  reporting an error. 4 bit tags have a ~7% chance of a tag
-	  mismatch.
-
-- Address masking mechanism
-	- TBI in arm64 allows for storing metadata in the top 8 bits of
-	  the virtual address.
-	- LAM in x86 allows storing tags in bits [62:57] of the pointer.
-	  To maximize memory savings the tag width is reduced to bits
-	  [60:57].
-
-- Inline mode mismatch reporting
-	- Arm64 inserts a BRK instruction to pass metadata about a tag
-	  mismatch to the KASAN report.
-	- Right now on x86 the INT3 instruction is used for the same
-	  purpose. The attempt to move it over to use UD1 is already
-	  implemented and tested but relies on another series that needs
-	  merging first. Therefore this patch will be posted separately
-	  once the dependency is satisfied by being merged upstream.
-
-======= Testing
-Checked all the kunits for both software tags and generic KASAN after
-making changes.
-
-In generic mode (both with these patches and without) the results were:
-
-kasan: pass:61 fail:1 skip:14 total:76
-Totals: pass:61 fail:1 skip:14 total:76
-not ok 1 kasan
-
-and for software tags:
-
-kasan: pass:65 fail:1 skip:10 total:76
-Totals: pass:65 fail:1 skip:10 total:76
-not ok 1 kasan
-
-At the time of testing the one failing case is also present on generic
-mode without this patchset applied. This seems to point to something
-else being at fault for the one case not passing. The test case in
-question concerns strscpy() out of bounds error not getting caught.
-
-======= Benchmarks [1]
-All tests were ran on a Sierra Forest server platform. The only
-differences between the tests were kernel options:
-	- CONFIG_KASAN
-	- CONFIG_KASAN_GENERIC
-	- CONFIG_KASAN_SW_TAGS
-	- CONFIG_KASAN_INLINE [1]
-	- CONFIG_KASAN_OUTLINE
-
-Boot time (until login prompt):
-* 02:55 for clean kernel
-* 05:42 / 06:32 for generic KASAN (inline/outline)
-* 05:58 for tag-based KASAN (outline) [2]
-
-Total memory usage (512GB present on the system - MemAvailable just
-after boot):
-* 12.56 GB for clean kernel
-* 81.74 GB for generic KASAN
-* 44.39 GB for tag-based KASAN
-
-Kernel size:
-* 14 MB for clean kernel
-* 24.7 MB / 19.5 MB for generic KASAN (inline/outline)
-* 27.1 MB / 18.1 MB for tag-based KASAN (inline/outline)
-
-Work under load time comparison (compiling the mainline kernel) (200 cores):
-*  62s for clean kernel
-* 171s / 125s for generic KASAN (outline/inline)
-* 145s for tag-based KASAN (outline) [2]
-
-[1] Currently inline mode doesn't work on x86 due to things missing in
-the compiler. I have written a patch for clang that seems to fix the
-inline mode and I was able to boot and check that all patches regarding
-the inline mode work as expected. My hope is to post the patch to LLVM
-once this series is completed, and then make inline mode available in
-the kernel config.
-
-[2] While I was able to boot the inline tag-based kernel with my
-compiler changes in a simulated environment, due to toolchain
-difficulties I couldn't get it to boot on the machine I had access to.
-Also boot time results from the simulation seem too good to be true, and
-they're much too worse for the generic case to be believable. Therefore
-I'm posting only results from the physical server platform.
-
-======= Compilation
-Clang was used to compile the series (make LLVM=1) since gcc doesn't
-seem to have support for KASAN tag-based compiler instrumentation on
-x86.
-
-
-This patch (of 14):
-
-Currently, kasan_mem_to_shadow() uses a logical right shift, which turns
-canonical kernel addresses into non-canonical addresses by clearing the
-high KASAN_SHADOW_SCALE_SHIFT bits.  The value of KASAN_SHADOW_OFFSET is
-then chosen so that the addition results in a canonical address for the
-shadow memory.
-
-For KASAN_GENERIC, this shift/add combination is ABI with the compiler,
-because KASAN_SHADOW_OFFSET is used in compiler-generated inline tag
-checks[1], which must only attempt to dereference canonical addresses.
-
-However, for KASAN_SW_TAGS there is some freedom to change the algorithm
-without breaking the ABI.  Because TBI is enabled for kernel addresses,
-the top bits of shadow memory addresses computed during tag checks are
-irrelevant, and so likewise are the top bits of KASAN_SHADOW_OFFSET.  This
-is demonstrated by the fact that LLVM uses a logical right shift in the
-tag check fast path[2] but a sbfx (signed bitfield extract) instruction in
-the slow path[3] without causing any issues.
-
-Using an arithmetic shift in kasan_mem_to_shadow() provides a number of
-benefits:
-
-1) The memory layout doesn't change but is easier to understand. 
-   KASAN_SHADOW_OFFSET becomes a canonical memory address, and the shifted
-   pointer becomes a negative offset, so KASAN_SHADOW_OFFSET ==
-   KASAN_SHADOW_END regardless of the shift amount or the size of the
-   virtual address space.
-
-2) KASAN_SHADOW_OFFSET becomes a simpler constant, requiring only one
-   instruction to load instead of two.  Since it must be loaded in each
-   function with a tag check, this decreases kernel text size by 0.5%.
-
-3) This shift and the sign extension from kasan_reset_tag() can be
-   combined into a single sbfx instruction.  When this same algorithm
-   change is applied to the compiler, it removes an instruction from each
-   inline tag check, further reducing kernel text size by an additional
-   4.6%.
-
-These benefits extend to other architectures as well.  On RISC-V, where
-the baseline ISA does not shifted addition or have an equivalent to the
-sbfx instruction, loading KASAN_SHADOW_OFFSET is reduced from 3 to 2
-instructions, and kasan_mem_to_shadow(kasan_reset_tag(addr)) similarly
-combines two consecutive right shifts.
-
-Link: https://lkml.kernel.org/r/cover.1768233085.git.m.wieczorretman@pm.me
-Link: https://github.com/llvm/llvm-project/blob/llvmorg-20-init/llvm/lib/Transforms/Instrumentation/AddressSanitizer.cpp#L1316 [1]
-Link: https://github.com/llvm/llvm-project/blob/llvmorg-20-init/llvm/lib/Transforms/Instrumentation/HWAddressSanitizer.cpp#L895 [2]
-Link: https://github.com/llvm/llvm-project/blob/llvmorg-20-init/llvm/lib/Target/AArch64/AArch64AsmPrinter.cpp#L669 [3]
-Link: https://lkml.kernel.org/r/4f31939d55d886f21c91272398fe43a32ea36b3f.1768233085.git.m.wieczorretman@pm.me
+Link: https://lkml.kernel.org/r/be136bf8d1a6ae9ef98686c3ba0b6a4e2ea2e780.1768233085.git.m.wieczorretman@pm.me
 Signed-off-by: Samuel Holland <samuel.holland@sifive.com>
 Co-developed-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Will Deacon <will@kernel.org> (for the arm part)
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -261,14 +111,13 @@ Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Bill Wendling <morbo@google.com>
 Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Borislav Petkov <bp@alien8.de>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Breno Leitao <leitao@debian.org>
 Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Guilherme Giacomo Simoes <trintaeoitogc@gmail.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -295,216 +144,188 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Gleixner <tglx@kernel.org>
 Cc: Thomas Huth <thuth@redhat.com>
 Cc: Thomas Lendacky <thomas.lendacky@amd.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Cc: Uros Bizjak <ubizjak@gmail.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Yeoreum Yun <yeoreum.yun@arm.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/arch/arm64/kasan-offsets.sh |    8 +++-
- arch/arm64/Kconfig                        |   10 ++---
- arch/arm64/include/asm/memory.h           |   14 +++++++
- arch/arm64/mm/kasan_init.c                |    7 ++-
- include/linux/kasan.h                     |   10 ++++-
- mm/kasan/report.c                         |   36 +++++++++++++++++---
- scripts/gdb/linux/kasan.py                |    5 ++
- scripts/gdb/linux/mm.py                   |    5 +-
- 8 files changed, 76 insertions(+), 19 deletions(-)
+ MAINTAINERS                         |    2 +-
+ arch/arm64/include/asm/kasan-tags.h |   14 ++++++++++++++
+ arch/arm64/include/asm/kasan.h      |    2 --
+ arch/arm64/include/asm/uaccess.h    |    1 +
+ arch/x86/include/asm/kasan-tags.h   |    9 +++++++++
+ include/linux/kasan-tags.h          |   19 ++++++++++++++-----
+ include/linux/kasan.h               |    3 +--
+ include/linux/mm.h                  |    6 +++---
+ include/linux/page-flags-layout.h   |    9 +--------
+ 9 files changed, 44 insertions(+), 21 deletions(-)
 
---- a/arch/arm64/include/asm/memory.h~kasan-sw_tags-use-arithmetic-shift-for-shadow-computation
-+++ a/arch/arm64/include/asm/memory.h
-@@ -89,7 +89,15 @@
-  *
-  * KASAN_SHADOW_END is defined first as the shadow address that corresponds to
-  * the upper bound of possible virtual kernel memory addresses UL(1) << 64
-- * according to the mapping formula.
-+ * according to the mapping formula. For Generic KASAN, the address in the
-+ * mapping formula is treated as unsigned (part of the compiler's ABI), so the
-+ * end of the shadow memory region is at a large positive offset from
-+ * KASAN_SHADOW_OFFSET. For Software Tag-Based KASAN, the address in the
-+ * formula is treated as signed. Since all kernel addresses are negative, they
-+ * map to shadow memory below KASAN_SHADOW_OFFSET, making KASAN_SHADOW_OFFSET
-+ * itself the end of the shadow memory region. (User pointers are positive and
-+ * would map to shadow memory above KASAN_SHADOW_OFFSET, but shadow memory is
-+ * not allocated for them.)
-  *
-  * KASAN_SHADOW_START is defined second based on KASAN_SHADOW_END. The shadow
-  * memory start must map to the lowest possible kernel virtual memory address
-@@ -100,7 +108,11 @@
-  */
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- #define KASAN_SHADOW_OFFSET	_AC(CONFIG_KASAN_SHADOW_OFFSET, UL)
-+#ifdef CONFIG_KASAN_GENERIC
- #define KASAN_SHADOW_END	((UL(1) << (64 - KASAN_SHADOW_SCALE_SHIFT)) + KASAN_SHADOW_OFFSET)
+--- a/arch/arm64/include/asm/kasan.h~kasan-arm64-x86-make-special-tags-arch-specific
++++ a/arch/arm64/include/asm/kasan.h
+@@ -6,8 +6,6 @@
+ 
+ #include <linux/linkage.h>
+ #include <asm/memory.h>
+-#include <asm/mte-kasan.h>
+-#include <asm/pgtable-types.h>
+ 
+ #define arch_kasan_set_tag(addr, tag)	__tag_set(addr, tag)
+ #define arch_kasan_reset_tag(addr)	__tag_reset(addr)
+diff --git a/arch/arm64/include/asm/kasan-tags.h a/arch/arm64/include/asm/kasan-tags.h
+new file mode 100644
+--- /dev/null
++++ a/arch/arm64/include/asm/kasan-tags.h
+@@ -0,0 +1,14 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __ASM_KASAN_TAGS_H
++#define __ASM_KASAN_TAGS_H
++
++#define KASAN_TAG_KERNEL	0xFF /* native kernel pointers tag */
++
++#ifdef CONFIG_KASAN_HW_TAGS
++#define KASAN_TAG_MIN		0xF0 /* minimum value for random tags */
++#define KASAN_TAG_WIDTH		4
 +#else
-+#define KASAN_SHADOW_END	KASAN_SHADOW_OFFSET
++#define KASAN_TAG_WIDTH		8
 +#endif
- #define _KASAN_SHADOW_START(va)	(KASAN_SHADOW_END - (UL(1) << ((va) - KASAN_SHADOW_SCALE_SHIFT)))
- #define KASAN_SHADOW_START	_KASAN_SHADOW_START(vabits_actual)
- #define PAGE_END		KASAN_SHADOW_START
---- a/arch/arm64/Kconfig~kasan-sw_tags-use-arithmetic-shift-for-shadow-computation
-+++ a/arch/arm64/Kconfig
-@@ -435,11 +435,11 @@ config KASAN_SHADOW_OFFSET
- 	default 0xdffffe0000000000 if ARM64_VA_BITS_42 && !KASAN_SW_TAGS
- 	default 0xdfffffc000000000 if ARM64_VA_BITS_39 && !KASAN_SW_TAGS
- 	default 0xdffffff800000000 if ARM64_VA_BITS_36 && !KASAN_SW_TAGS
--	default 0xefff800000000000 if (ARM64_VA_BITS_48 || (ARM64_VA_BITS_52 && !ARM64_16K_PAGES)) && KASAN_SW_TAGS
--	default 0xefffc00000000000 if (ARM64_VA_BITS_47 || ARM64_VA_BITS_52) && ARM64_16K_PAGES && KASAN_SW_TAGS
--	default 0xeffffe0000000000 if ARM64_VA_BITS_42 && KASAN_SW_TAGS
--	default 0xefffffc000000000 if ARM64_VA_BITS_39 && KASAN_SW_TAGS
--	default 0xeffffff800000000 if ARM64_VA_BITS_36 && KASAN_SW_TAGS
-+	default 0xffff800000000000 if (ARM64_VA_BITS_48 || (ARM64_VA_BITS_52 && !ARM64_16K_PAGES)) && KASAN_SW_TAGS
-+	default 0xffffc00000000000 if (ARM64_VA_BITS_47 || ARM64_VA_BITS_52) && ARM64_16K_PAGES && KASAN_SW_TAGS
-+	default 0xfffffe0000000000 if ARM64_VA_BITS_42 && KASAN_SW_TAGS
-+	default 0xffffffc000000000 if ARM64_VA_BITS_39 && KASAN_SW_TAGS
-+	default 0xfffffff800000000 if ARM64_VA_BITS_36 && KASAN_SW_TAGS
- 	default 0xffffffffffffffff
- 
- config UNWIND_TABLES
---- a/arch/arm64/mm/kasan_init.c~kasan-sw_tags-use-arithmetic-shift-for-shadow-computation
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -198,8 +198,11 @@ static bool __init root_level_aligned(u6
- /* The early shadow maps everything to a single page of zeroes */
- asmlinkage void __init kasan_early_init(void)
- {
--	BUILD_BUG_ON(KASAN_SHADOW_OFFSET !=
--		KASAN_SHADOW_END - (1UL << (64 - KASAN_SHADOW_SCALE_SHIFT)));
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		BUILD_BUG_ON(KASAN_SHADOW_OFFSET !=
-+			KASAN_SHADOW_END - (1UL << (64 - KASAN_SHADOW_SCALE_SHIFT)));
-+	else
-+		BUILD_BUG_ON(KASAN_SHADOW_OFFSET != KASAN_SHADOW_END);
- 	BUILD_BUG_ON(!IS_ALIGNED(_KASAN_SHADOW_START(VA_BITS), SHADOW_ALIGN));
- 	BUILD_BUG_ON(!IS_ALIGNED(_KASAN_SHADOW_START(VA_BITS_MIN), SHADOW_ALIGN));
- 	BUILD_BUG_ON(!IS_ALIGNED(KASAN_SHADOW_END, SHADOW_ALIGN));
---- a/Documentation/arch/arm64/kasan-offsets.sh~kasan-sw_tags-use-arithmetic-shift-for-shadow-computation
-+++ a/Documentation/arch/arm64/kasan-offsets.sh
-@@ -5,8 +5,12 @@
- 
- print_kasan_offset () {
- 	printf "%02d\t" $1
--	printf "0x%08x00000000\n" $(( (0xffffffff & (-1 << ($1 - 1 - 32))) \
--			- (1 << (64 - 32 - $2)) ))
-+	if [[ $2 -ne 4 ]] then
-+		printf "0x%08x00000000\n" $(( (0xffffffff & (-1 << ($1 - 1 - 32))) \
-+				- (1 << (64 - 32 - $2)) ))
-+	else
-+		printf "0x%08x00000000\n" $(( (0xffffffff & (-1 << ($1 - 1 - 32))) ))
-+	fi
- }
- 
- echo KASAN_SHADOW_SCALE_SHIFT = 3
---- a/include/linux/kasan.h~kasan-sw_tags-use-arithmetic-shift-for-shadow-computation
++
++#endif /* ASM_KASAN_TAGS_H */
+--- a/arch/arm64/include/asm/uaccess.h~kasan-arm64-x86-make-special-tags-arch-specific
++++ a/arch/arm64/include/asm/uaccess.h
+@@ -22,6 +22,7 @@
+ #include <asm/cpufeature.h>
+ #include <asm/mmu.h>
+ #include <asm/mte.h>
++#include <asm/mte-kasan.h>
+ #include <asm/ptrace.h>
+ #include <asm/memory.h>
+ #include <asm/extable.h>
+diff --git a/arch/x86/include/asm/kasan-tags.h a/arch/x86/include/asm/kasan-tags.h
+new file mode 100644
+--- /dev/null
++++ a/arch/x86/include/asm/kasan-tags.h
+@@ -0,0 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __ASM_KASAN_TAGS_H
++#define __ASM_KASAN_TAGS_H
++
++#define KASAN_TAG_KERNEL	0xF /* native kernel pointers tag */
++
++#define KASAN_TAG_WIDTH		4
++
++#endif /* ASM_KASAN_TAGS_H */
+--- a/include/linux/kasan.h~kasan-arm64-x86-make-special-tags-arch-specific
 +++ a/include/linux/kasan.h
-@@ -62,8 +62,14 @@ int kasan_populate_early_shadow(const vo
- #ifndef kasan_mem_to_shadow
- static inline void *kasan_mem_to_shadow(const void *addr)
- {
--	return (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
--		+ KASAN_SHADOW_OFFSET;
-+	void *scaled;
+@@ -40,8 +40,7 @@ typedef unsigned int __bitwise kasan_vma
+ /* Software KASAN implementations use shadow memory. */
+ 
+ #ifdef CONFIG_KASAN_SW_TAGS
+-/* This matches KASAN_TAG_INVALID. */
+-#define KASAN_SHADOW_INIT 0xFE
++#define KASAN_SHADOW_INIT KASAN_TAG_INVALID
+ #else
+ #define KASAN_SHADOW_INIT 0
+ #endif
+--- a/include/linux/kasan-tags.h~kasan-arm64-x86-make-special-tags-arch-specific
++++ a/include/linux/kasan-tags.h
+@@ -2,13 +2,22 @@
+ #ifndef _LINUX_KASAN_TAGS_H
+ #define _LINUX_KASAN_TAGS_H
+ 
++#if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
++#include <asm/kasan-tags.h>
++#endif
 +
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		scaled = (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT);
-+	else
-+		scaled = (void *)((long)addr >> KASAN_SHADOW_SCALE_SHIFT);
++#ifndef KASAN_TAG_WIDTH
++#define KASAN_TAG_WIDTH		0
++#endif
 +
-+	return KASAN_SHADOW_OFFSET + scaled;
- }
++#ifndef KASAN_TAG_KERNEL
+ #define KASAN_TAG_KERNEL	0xFF /* native kernel pointers tag */
+-#define KASAN_TAG_INVALID	0xFE /* inaccessible memory tag */
+-#define KASAN_TAG_MAX		0xFD /* maximum value for random tags */
++#endif
++
++#define KASAN_TAG_INVALID	(KASAN_TAG_KERNEL - 1) /* inaccessible memory tag */
++#define KASAN_TAG_MAX		(KASAN_TAG_KERNEL - 2) /* maximum value for random tags */
+ 
+-#ifdef CONFIG_KASAN_HW_TAGS
+-#define KASAN_TAG_MIN		0xF0 /* minimum value for random tags */
+-#else
++#ifndef KASAN_TAG_MIN
+ #define KASAN_TAG_MIN		0x00 /* minimum value for random tags */
  #endif
  
---- a/mm/kasan/report.c~kasan-sw_tags-use-arithmetic-shift-for-shadow-computation
-+++ a/mm/kasan/report.c
-@@ -642,11 +642,39 @@ void kasan_non_canonical_hook(unsigned l
- 	const char *bug_type;
+--- a/include/linux/mm.h~kasan-arm64-x86-make-special-tags-arch-specific
++++ a/include/linux/mm.h
+@@ -1950,7 +1950,7 @@ static inline u8 page_kasan_tag(const st
  
- 	/*
--	 * All addresses that came as a result of the memory-to-shadow mapping
--	 * (even for bogus pointers) must be >= KASAN_SHADOW_OFFSET.
-+	 * For Generic KASAN, kasan_mem_to_shadow() uses the logical right shift
-+	 * and never overflows with the chosen KASAN_SHADOW_OFFSET values (on
-+	 * both x86 and arm64). Thus, the possible shadow addresses (even for
-+	 * bogus pointers) belong to a single contiguous region that is the
-+	 * result of kasan_mem_to_shadow() applied to the whole address space.
- 	 */
--	if (addr < KASAN_SHADOW_OFFSET)
--		return;
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC)) {
-+		if (addr < (unsigned long)kasan_mem_to_shadow((void *)(0ULL)) ||
-+		    addr > (unsigned long)kasan_mem_to_shadow((void *)(~0ULL)))
-+			return;
-+	}
-+
-+	/*
-+	 * For Software Tag-Based KASAN, kasan_mem_to_shadow() uses the
-+	 * arithmetic shift. Normally, this would make checking for a possible
-+	 * shadow address complicated, as the shadow address computation
-+	 * operation would overflow only for some memory addresses. However, due
-+	 * to the chosen KASAN_SHADOW_OFFSET values and the fact the
-+	 * kasan_mem_to_shadow() only operates on pointers with the tag reset,
-+	 * the overflow always happens.
-+	 *
-+	 * For arm64, the top byte of the pointer gets reset to 0xFF. Thus, the
-+	 * possible shadow addresses belong to a region that is the result of
-+	 * kasan_mem_to_shadow() applied to the memory range
-+	 * [0xFF000000000000, 0xFFFFFFFFFFFFFFFF]. Despite the overflow, the
-+	 * resulting possible shadow region is contiguous, as the overflow
-+	 * happens for both 0xFF000000000000 and 0xFFFFFFFFFFFFFFFF.
-+	 */
-+	if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) && IS_ENABLED(CONFIG_ARM64)) {
-+		if (addr < (unsigned long)kasan_mem_to_shadow((void *)(0xFFULL << 56)) ||
-+		    addr > (unsigned long)kasan_mem_to_shadow((void *)(~0ULL)))
-+			return;
-+	}
+ 	if (kasan_enabled()) {
+ 		tag = (page->flags.f >> KASAN_TAG_PGSHIFT) & KASAN_TAG_MASK;
+-		tag ^= 0xff;
++		tag ^= KASAN_TAG_KERNEL;
+ 	}
  
- 	orig_addr = (unsigned long)kasan_shadow_to_mem((void *)addr);
+ 	return tag;
+@@ -1963,7 +1963,7 @@ static inline void page_kasan_tag_set(st
+ 	if (!kasan_enabled())
+ 		return;
  
---- a/scripts/gdb/linux/kasan.py~kasan-sw_tags-use-arithmetic-shift-for-shadow-computation
-+++ a/scripts/gdb/linux/kasan.py
-@@ -7,7 +7,8 @@
- #
+-	tag ^= 0xff;
++	tag ^= KASAN_TAG_KERNEL;
+ 	old_flags = READ_ONCE(page->flags.f);
+ 	do {
+ 		flags = old_flags;
+@@ -1982,7 +1982,7 @@ static inline void page_kasan_tag_reset(
  
- import gdb
--from linux import constants, mm
-+from linux import constants, utils, mm
-+from ctypes import c_int64 as s64
+ static inline u8 page_kasan_tag(const struct page *page)
+ {
+-	return 0xff;
++	return KASAN_TAG_KERNEL;
+ }
  
- def help():
-     t = """Usage: lx-kasan_mem_to_shadow [Hex memory addr]
-@@ -39,6 +40,8 @@ class KasanMemToShadow(gdb.Command):
-         else:
-             help()
-     def kasan_mem_to_shadow(self, addr):
-+        if constants.CONFIG_KASAN_SW_TAGS and not utils.is_target_arch('x86'):
-+            addr = s64(addr)
-         return (addr >> self.p_ops.KASAN_SHADOW_SCALE_SHIFT) + self.p_ops.KASAN_SHADOW_OFFSET
+ static inline void page_kasan_tag_set(struct page *page, u8 tag) { }
+--- a/include/linux/page-flags-layout.h~kasan-arm64-x86-make-special-tags-arch-specific
++++ a/include/linux/page-flags-layout.h
+@@ -3,6 +3,7 @@
+ #define PAGE_FLAGS_LAYOUT_H
  
- KasanMemToShadow()
---- a/scripts/gdb/linux/mm.py~kasan-sw_tags-use-arithmetic-shift-for-shadow-computation
-+++ a/scripts/gdb/linux/mm.py
-@@ -110,12 +110,13 @@ class aarch64_page_ops():
-         self.KERNEL_END = gdb.parse_and_eval("_end")
+ #include <linux/numa.h>
++#include <linux/kasan-tags.h>
+ #include <generated/bounds.h>
  
-         if constants.LX_CONFIG_KASAN_GENERIC or constants.LX_CONFIG_KASAN_SW_TAGS:
-+            self.KASAN_SHADOW_OFFSET = constants.LX_CONFIG_KASAN_SHADOW_OFFSET
-             if constants.LX_CONFIG_KASAN_GENERIC:
-                 self.KASAN_SHADOW_SCALE_SHIFT = 3
-+                self.KASAN_SHADOW_END = (1 << (64 - self.KASAN_SHADOW_SCALE_SHIFT)) + self.KASAN_SHADOW_OFFSET
-             else:
-                 self.KASAN_SHADOW_SCALE_SHIFT = 4
--            self.KASAN_SHADOW_OFFSET = constants.LX_CONFIG_KASAN_SHADOW_OFFSET
--            self.KASAN_SHADOW_END = (1 << (64 - self.KASAN_SHADOW_SCALE_SHIFT)) + self.KASAN_SHADOW_OFFSET
-+                self.KASAN_SHADOW_END = self.KASAN_SHADOW_OFFSET
-             self.PAGE_END = self.KASAN_SHADOW_END - (1 << (self.vabits_actual - self.KASAN_SHADOW_SCALE_SHIFT))
-         else:
-             self.PAGE_END = self._PAGE_END(self.VA_BITS_MIN)
+ /*
+@@ -72,14 +73,6 @@
+ #define NODE_NOT_IN_PAGE_FLAGS	1
+ #endif
+ 
+-#if defined(CONFIG_KASAN_SW_TAGS)
+-#define KASAN_TAG_WIDTH 8
+-#elif defined(CONFIG_KASAN_HW_TAGS)
+-#define KASAN_TAG_WIDTH 4
+-#else
+-#define KASAN_TAG_WIDTH 0
+-#endif
+-
+ #ifdef CONFIG_NUMA_BALANCING
+ #define LAST__PID_SHIFT 8
+ #define LAST__PID_MASK  ((1 << LAST__PID_SHIFT)-1)
+--- a/MAINTAINERS~kasan-arm64-x86-make-special-tags-arch-specific
++++ a/MAINTAINERS
+@@ -13581,7 +13581,7 @@ L:	kasan-dev@googlegroups.com
+ S:	Maintained
+ B:	https://bugzilla.kernel.org/buglist.cgi?component=Sanitizers&product=Memory%20Management
+ F:	Documentation/dev-tools/kasan.rst
+-F:	arch/*/include/asm/*kasan.h
++F:	arch/*/include/asm/*kasan*.h
+ F:	arch/*/mm/kasan_init*
+ F:	include/linux/kasan*.h
+ F:	lib/Kconfig.kasan
 _
 
 Patches currently in -mm which might be from samuel.holland@sifive.com are
