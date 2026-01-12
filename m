@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14F9C37F750
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAFD237F750
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768243182; cv=none; b=F1Cz48/DYbKFgC2IXqYd7X44TEFaNNrocHG+GkluH1K/KYuG4oDv4URC8zdzFB9CgEgBZgKAdx2PQ4Uc0+ss9+TDrQ5n7NSo3H/93NVX4c/CJwqDU5xk5S7nf0BjGEdLoLCKqPxqL756Syz2rvp27AqUCXV8eLdTQ6KPQiE27pw=
+	t=1768243184; cv=none; b=OnfRgayG85nrIRVgTuButBTq93TffXtE2JqQx+pB/J86MhK9BI3MdyQEFgBj/VMyJoD04kLxlHpCkpAq/yCkYtz0KD2uGOP7Yf9oR6CGn9lW+CtdSFVq3u+CBIpoQ2QI39vbORxdg77LHVVQhAawcLbn4OlzjUi0NZiK4+tlrGI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768243182; c=relaxed/simple;
-	bh=GclTuJP6bHR5Vi8wGVCGDW9MMxbecvwXAtmwacBQZno=;
-	h=Date:To:From:Subject:Message-Id; b=tmMTO0XIHntopou1LP+s6V/5VIUW9ZiP66gxme9DgVvJk207AwPWw2whLA7gGBbgFLEDil1L/IjrNR97A5UtMbIG6CFSPth9Te2eHYS9fiz6Ult0LqYuciMPU42UB0JGIeET1wrsDJFsgBGBkO9c4BXnMZAXfVV7m2LdP3WxUIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hHMrP28w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768243184; c=relaxed/simple;
+	bh=du2ztmb9pQxakrTjSTcTaOuZ7URz0rYxXQuLA9BMW1Y=;
+	h=Date:To:From:Subject:Message-Id; b=loAsb2LDjIBQWO1yUm4+/iajpN4NTI84/9ZGkATJqVE4y/dwH+wv/86+2Vp4bpSFsHdEwT5OwPXKnS2WPTd7U4odMe7jjF0yMlDal6J5UhQlHgSWVgpbyfGs1gh1GZSw0HIR/EIDn4oTfS7rLS8Tem5G9GZukv8LCWHwAPXxeQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sACKmMex; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hHMrP28w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98ED5C116D0;
-	Mon, 12 Jan 2026 18:39:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sACKmMex"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D8B2C116D0;
+	Mon, 12 Jan 2026 18:39:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768243181;
-	bh=GclTuJP6bHR5Vi8wGVCGDW9MMxbecvwXAtmwacBQZno=;
+	s=korg; t=1768243184;
+	bh=du2ztmb9pQxakrTjSTcTaOuZ7URz0rYxXQuLA9BMW1Y=;
 	h=Date:To:From:Subject:From;
-	b=hHMrP28wsoQJ3X1sJfdo4Gy+Th7vsY29wMQsGORf/2Ce5BfTg0rSjCO052mDXyWPj
-	 WZRZ2N4poJNytwZ0LBA6xqrzgHh0hPCxpoDFqvLBdz9SELoEOMA9LxFoJVa2wDOs3h
-	 ON+AiwNawzq2Wex2bqgYrQ+/AcX314QYMtokv6NI=
-Date: Mon, 12 Jan 2026 10:39:41 -0800
+	b=sACKmMexXTA6fOhKzEYI8zCoe9aCQox2TCxLngo29qevDd9YdmVal54PEPdM4BstH
+	 pjNsIG1VSMTqbx7XAZdip5cTLIw/9wc5/Pity57y7lirz0tMQa1/hxNkWeyYdYK7xu
+	 nKx3vN7v47tIzRsxnh312sYeenbf/23+oXQbLLgw=
+Date: Mon, 12 Jan 2026 10:39:43 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,yeoreum.yun@arm.com,will@kernel.org,weixugc@google.com,vincenzo.frascino@arm.com,vbabka@suse.cz,urezki@gmail.com,ubizjak@gmail.com,trintaeoitogc@gmail.com,thuth@redhat.com,thomas.lendacky@amd.com,tglx@kernel.org,surenb@google.com,smostafa@google.com,samuel.holland@sifive.com,samitolvanen@google.com,ryabinin.a.a@gmail.com,rppt@kernel.org,peterz@infradead.org,osandov@fb.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,mhocko@suse.com,maz@kernel.org,mark.rutland@arm.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leitao@debian.org,kees@kernel.org,kbingham@kernel.org,justinstitt@google.com,jpoimboe@kernel.org,jeremy.linton@arm.com,jan.kiszka@siemens.com,jackmanb@google.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,brgerst@gmail.com,bp@alien8.de,bigeasy@linutronix.de,axelrasmussen@google.com,ardb@kernel.org,anshuman.khandual@arm.com,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-unify-software-tag-based-kasan-inline-recovery-path.patch added to mm-new branch
-Message-Id: <20260112183941.98ED5C116D0@smtp.kernel.org>
+Subject: + x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow.patch added to mm-new branch
+Message-Id: <20260112183944.3D8B2C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: unify software tag-based KASAN inline recovery path
+     Subject: x86/kasan: logical bit shift for kasan_mem_to_shadow
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-unify-software-tag-based-kasan-inline-recovery-path.patch
+     x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-unify-software-tag-based-kasan-inline-recovery-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,21 +67,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Subject: arm64: unify software tag-based KASAN inline recovery path
-Date: Mon, 12 Jan 2026 17:28:24 +0000
+Subject: x86/kasan: logical bit shift for kasan_mem_to_shadow
+Date: Mon, 12 Jan 2026 17:28:29 +0000
 
-To avoid having a copy of a long comment explaining the intricacies of the
-inline KASAN recovery system and issues for every architecture that uses
-the software tag-based mode, a unified kasan_die_unless_recover() function
-was added.
+The tag-based KASAN adopts an arithemitc bit shift to convert a memory
+address to a shadow memory address.  While it makes a lot of sense on
+arm64, it doesn't work well for all cases on x86 - either the
+non-canonical hook becomes quite complex for different paging levels, or
+the inline mode would need a lot more adjustments.  Thus the best working
+scheme is the logical bit shift and non-canonical shadow offset that x86
+uses for generic KASAN, of course adjusted for the increased granularity
+from 8 to 16 bytes.
 
-Use kasan_die_unless_recover() in the kasan brk handler to cleanup the
-long comment, that's kept in the non-arch KASAN code.
+Add an arch specific implementation of kasan_mem_to_shadow() that uses the
+logical bit shift.
 
-Link: https://lkml.kernel.org/r/85ee02ae536a4c2e95f7d2609c5893d99cd64a00.1768233085.git.m.wieczorretman@pm.me
+The non-canonical hook tries to calculate whether an address came from
+kasan_mem_to_shadow().  First it checks whether this address fits into the
+legal set of values possible to output from the mem to shadow function.
+
+Tie both generic and tag-based x86 KASAN modes to the address range
+check associated with generic KASAN.
+
+Link: https://lkml.kernel.org/r/b1dcc32aa58fd94196885842e0e7f7501182a7c4.1768233085.git.m.wieczorretman@pm.me
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -93,6 +103,7 @@ Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Breno Leitao <leitao@debian.org>
 Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dmitriy Vyukov <dvyukov@google.com>
@@ -134,35 +145,53 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/traps.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ arch/x86/include/asm/kasan.h |   15 +++++++++++++++
+ mm/kasan/report.c            |    5 +++--
+ 2 files changed, 18 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/kernel/traps.c~arm64-unify-software-tag-based-kasan-inline-recovery-path
-+++ a/arch/arm64/kernel/traps.c
-@@ -1071,22 +1071,7 @@ int kasan_brk_handler(struct pt_regs *re
+--- a/arch/x86/include/asm/kasan.h~x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow
++++ a/arch/x86/include/asm/kasan.h
+@@ -31,6 +31,21 @@
+ #include <linux/bits.h>
  
- 	kasan_report(addr, size, write, pc);
+ #ifdef CONFIG_KASAN_SW_TAGS
++/*
++ * Using the non-arch specific implementation of __kasan_mem_to_shadow() with a
++ * arithmetic bit shift can cause high code complexity in KASAN's non-canonical
++ * hook for x86 or might not work for some paging level and KASAN mode
++ * combinations. The inline mode compiler support could also suffer from higher
++ * complexity for no specific benefit. Therefore the generic mode's logical
++ * shift implementation is used.
++ */
++static inline void *__kasan_mem_to_shadow(const void *addr)
++{
++	return (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
++		+ KASAN_SHADOW_OFFSET;
++}
++
++#define kasan_mem_to_shadow(addr)	__kasan_mem_to_shadow(addr)
+ #define __tag_shifted(tag)		FIELD_PREP(GENMASK_ULL(60, 57), tag)
+ #define __tag_reset(addr)		(sign_extend64((u64)(addr), 56))
+ #define __tag_get(addr)			((u8)FIELD_GET(GENMASK_ULL(60, 57), (u64)addr))
+--- a/mm/kasan/report.c~x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow
++++ a/mm/kasan/report.c
+@@ -642,13 +642,14 @@ void kasan_non_canonical_hook(unsigned l
+ 	const char *bug_type;
  
--	/*
--	 * The instrumentation allows to control whether we can proceed after
--	 * a crash was detected. This is done by passing the -recover flag to
--	 * the compiler. Disabling recovery allows to generate more compact
--	 * code.
--	 *
--	 * Unfortunately disabling recovery doesn't work for the kernel right
--	 * now. KASAN reporting is disabled in some contexts (for example when
--	 * the allocator accesses slab object metadata; this is controlled by
--	 * current->kasan_depth). All these accesses are detected by the tool,
--	 * even though the reports for them are not printed.
--	 *
--	 * This is something that might be fixed at some point in the future.
--	 */
--	if (!recover)
--		die("Oops - KASAN", regs, esr);
-+	kasan_die_unless_recover(recover, "Oops - KASAN", regs, esr, die);
- 
- 	/* If thread survives, skip over the brk instruction and continue: */
- 	arm64_skip_faulting_instruction(regs, AARCH64_INSN_SIZE);
+ 	/*
+-	 * For Generic KASAN, kasan_mem_to_shadow() uses the logical right shift
++	 * For Generic KASAN and Software Tag-Based mode on the x86
++	 * architecture, kasan_mem_to_shadow() uses the logical right shift
+ 	 * and never overflows with the chosen KASAN_SHADOW_OFFSET values (on
+ 	 * both x86 and arm64). Thus, the possible shadow addresses (even for
+ 	 * bogus pointers) belong to a single contiguous region that is the
+ 	 * result of kasan_mem_to_shadow() applied to the whole address space.
+ 	 */
+-	if (IS_ENABLED(CONFIG_KASAN_GENERIC)) {
++	if (IS_ENABLED(CONFIG_KASAN_GENERIC) || IS_ENABLED(CONFIG_X86_64)) {
+ 		if (addr < (unsigned long)kasan_mem_to_shadow((void *)(0ULL)) ||
+ 		    addr > (unsigned long)kasan_mem_to_shadow((void *)(~0ULL)))
+ 			return;
 _
 
 Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
