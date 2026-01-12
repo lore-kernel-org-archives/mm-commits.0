@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAFD237F750
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB22937F750
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768243184; cv=none; b=OnfRgayG85nrIRVgTuButBTq93TffXtE2JqQx+pB/J86MhK9BI3MdyQEFgBj/VMyJoD04kLxlHpCkpAq/yCkYtz0KD2uGOP7Yf9oR6CGn9lW+CtdSFVq3u+CBIpoQ2QI39vbORxdg77LHVVQhAawcLbn4OlzjUi0NZiK4+tlrGI=
+	t=1768243187; cv=none; b=JkFLr/wcJvteYSA2gQVdxQo8222THDJ6yMROA8Th91RBMnyJ0DlQqQkhjKfn7X7SUWn60bP2+UltNzBL4ZjeqwQsNHgUMmXpwyZc1gtT7+gCHiJhSB7r1DJ+TEN4t/DB+4g9SljZpfOAkEoRvbz32437DXK9IfrMIOHz04ql0+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768243184; c=relaxed/simple;
-	bh=du2ztmb9pQxakrTjSTcTaOuZ7URz0rYxXQuLA9BMW1Y=;
-	h=Date:To:From:Subject:Message-Id; b=loAsb2LDjIBQWO1yUm4+/iajpN4NTI84/9ZGkATJqVE4y/dwH+wv/86+2Vp4bpSFsHdEwT5OwPXKnS2WPTd7U4odMe7jjF0yMlDal6J5UhQlHgSWVgpbyfGs1gh1GZSw0HIR/EIDn4oTfS7rLS8Tem5G9GZukv8LCWHwAPXxeQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sACKmMex; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768243187; c=relaxed/simple;
+	bh=cOZkNN3UtocgN6d6kHH4Z90TGWFiidpphRR+5z7fPIo=;
+	h=Date:To:From:Subject:Message-Id; b=BdPjgQW3n9gpEzjsB4ivEYd/+bt8w/pwcV2Vlfuk+u3Ive2X0+FBslQ1r4YgazH7RnNJlIzLHD/xg0wnWOr7R60sr9MwQGlQEi08wfOXQe93SLmcjMhvnFwNJKOB2uG2iUpCUvBQpW2AQDBDMpjmZYXwpML0mgAwS0Nau/aqBxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mOzcVVe/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sACKmMex"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D8B2C116D0;
-	Mon, 12 Jan 2026 18:39:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mOzcVVe/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DD9EC116D0;
+	Mon, 12 Jan 2026 18:39:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768243184;
-	bh=du2ztmb9pQxakrTjSTcTaOuZ7URz0rYxXQuLA9BMW1Y=;
+	s=korg; t=1768243187;
+	bh=cOZkNN3UtocgN6d6kHH4Z90TGWFiidpphRR+5z7fPIo=;
 	h=Date:To:From:Subject:From;
-	b=sACKmMexXTA6fOhKzEYI8zCoe9aCQox2TCxLngo29qevDd9YdmVal54PEPdM4BstH
-	 pjNsIG1VSMTqbx7XAZdip5cTLIw/9wc5/Pity57y7lirz0tMQa1/hxNkWeyYdYK7xu
-	 nKx3vN7v47tIzRsxnh312sYeenbf/23+oXQbLLgw=
-Date: Mon, 12 Jan 2026 10:39:43 -0800
+	b=mOzcVVe/DihgbQz9hZNq57np/1hRyS4CefyTAU9zn/KwsNdlNoLPHZ68GEpcQHvZX
+	 BSzzVGk1Ly/Grq12vmUiloxKAsxgJJJ1ooQaal5TDfftMxA2mgjVkKM6N9E9ScByY3
+	 qCyxkJhz4jFwcxV7Drxg9zuy/jjynKuqoh7/qpUU=
+Date: Mon, 12 Jan 2026 10:39:46 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,yeoreum.yun@arm.com,will@kernel.org,weixugc@google.com,vincenzo.frascino@arm.com,vbabka@suse.cz,urezki@gmail.com,ubizjak@gmail.com,trintaeoitogc@gmail.com,thuth@redhat.com,thomas.lendacky@amd.com,tglx@kernel.org,surenb@google.com,smostafa@google.com,samuel.holland@sifive.com,samitolvanen@google.com,ryabinin.a.a@gmail.com,rppt@kernel.org,peterz@infradead.org,osandov@fb.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,mhocko@suse.com,maz@kernel.org,mark.rutland@arm.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leitao@debian.org,kees@kernel.org,kbingham@kernel.org,justinstitt@google.com,jpoimboe@kernel.org,jeremy.linton@arm.com,jan.kiszka@siemens.com,jackmanb@google.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,brgerst@gmail.com,bp@alien8.de,bigeasy@linutronix.de,axelrasmussen@google.com,ardb@kernel.org,anshuman.khandual@arm.com,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow.patch added to mm-new branch
-Message-Id: <20260112183944.3D8B2C116D0@smtp.kernel.org>
+Subject: + x86-kasan-make-software-tag-based-kasan-available.patch added to mm-new branch
+Message-Id: <20260112183947.5DD9EC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/kasan: logical bit shift for kasan_mem_to_shadow
+     Subject: x86/kasan: make software tag-based kasan available
 has been added to the -mm mm-new branch.  Its filename is
-     x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow.patch
+     x86-kasan-make-software-tag-based-kasan-available.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kasan-make-software-tag-based-kasan-available.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,29 +67,27 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Subject: x86/kasan: logical bit shift for kasan_mem_to_shadow
-Date: Mon, 12 Jan 2026 17:28:29 +0000
+Subject: x86/kasan: make software tag-based kasan available
+Date: Mon, 12 Jan 2026 17:28:35 +0000
 
-The tag-based KASAN adopts an arithemitc bit shift to convert a memory
-address to a shadow memory address.  While it makes a lot of sense on
-arm64, it doesn't work well for all cases on x86 - either the
-non-canonical hook becomes quite complex for different paging levels, or
-the inline mode would need a lot more adjustments.  Thus the best working
-scheme is the logical bit shift and non-canonical shadow offset that x86
-uses for generic KASAN, of course adjusted for the increased granularity
-from 8 to 16 bytes.
+Make CONFIG_KASAN_SW_TAGS available for x86 machines if they have
+ADDRESS_MASKING enabled (LAM) as that works similarly to Top-Byte Ignore
+(TBI) that allows the software tag-based mode on arm64 platform.
 
-Add an arch specific implementation of kasan_mem_to_shadow() that uses the
-logical bit shift.
+The value for sw_tags KASAN_SHADOW_OFFSET was calculated by rearranging
+the formulas for KASAN_SHADOW_START and KASAN_SHADOW_END from
+arch/x86/include/asm/kasan.h - the only prerequisites being
+KASAN_SHADOW_SCALE_SHIFT of 4, and KASAN_SHADOW_END equal to the one from
+KASAN generic mode.
 
-The non-canonical hook tries to calculate whether an address came from
-kasan_mem_to_shadow().  First it checks whether this address fits into the
-legal set of values possible to output from the mem to shadow function.
+Set scale macro based on KASAN mode: in software tag-based mode 16 bytes
+of memory map to one shadow byte and 8 in generic mode.
 
-Tie both generic and tag-based x86 KASAN modes to the address range
-check associated with generic KASAN.
+Disable CONFIG_KASAN_INLINE and CONFIG_KASAN_STACK when
+CONFIG_KASAN_SW_TAGS is enabled on x86 until the appropriate compiler
+support is available.
 
-Link: https://lkml.kernel.org/r/b1dcc32aa58fd94196885842e0e7f7501182a7c4.1768233085.git.m.wieczorretman@pm.me
+Link: https://lkml.kernel.org/r/5b46822936bf9bf7e5cf5d1b57f936345c45a140.1768233085.git.m.wieczorretman@pm.me
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -145,53 +143,113 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kasan.h |   15 +++++++++++++++
- mm/kasan/report.c            |    5 +++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ Documentation/arch/x86/x86_64/mm.rst |    6 ++++--
+ arch/x86/Kconfig                     |    4 ++++
+ arch/x86/boot/compressed/misc.h      |    1 +
+ arch/x86/include/asm/kasan.h         |    5 +++++
+ arch/x86/mm/kasan_init_64.c          |    6 ++++++
+ lib/Kconfig.kasan                    |    3 ++-
+ 6 files changed, 22 insertions(+), 3 deletions(-)
 
---- a/arch/x86/include/asm/kasan.h~x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow
+--- a/arch/x86/boot/compressed/misc.h~x86-kasan-make-software-tag-based-kasan-available
++++ a/arch/x86/boot/compressed/misc.h
+@@ -14,6 +14,7 @@
+ #undef CONFIG_ARCH_HAS_LAZY_MMU_MODE
+ #undef CONFIG_KASAN
+ #undef CONFIG_KASAN_GENERIC
++#undef CONFIG_KASAN_SW_TAGS
+ 
+ #define __NO_FORTIFY
+ 
+--- a/arch/x86/include/asm/kasan.h~x86-kasan-make-software-tag-based-kasan-available
 +++ a/arch/x86/include/asm/kasan.h
-@@ -31,6 +31,21 @@
- #include <linux/bits.h>
- 
- #ifdef CONFIG_KASAN_SW_TAGS
-+/*
-+ * Using the non-arch specific implementation of __kasan_mem_to_shadow() with a
-+ * arithmetic bit shift can cause high code complexity in KASAN's non-canonical
-+ * hook for x86 or might not work for some paging level and KASAN mode
-+ * combinations. The inline mode compiler support could also suffer from higher
-+ * complexity for no specific benefit. Therefore the generic mode's logical
-+ * shift implementation is used.
-+ */
-+static inline void *__kasan_mem_to_shadow(const void *addr)
-+{
-+	return (void *)((unsigned long)addr >> KASAN_SHADOW_SCALE_SHIFT)
-+		+ KASAN_SHADOW_OFFSET;
-+}
+@@ -6,7 +6,12 @@
+ #include <linux/kasan-tags.h>
+ #include <linux/types.h>
+ #define KASAN_SHADOW_OFFSET _AC(CONFIG_KASAN_SHADOW_OFFSET, UL)
 +
-+#define kasan_mem_to_shadow(addr)	__kasan_mem_to_shadow(addr)
- #define __tag_shifted(tag)		FIELD_PREP(GENMASK_ULL(60, 57), tag)
- #define __tag_reset(addr)		(sign_extend64((u64)(addr), 56))
- #define __tag_get(addr)			((u8)FIELD_GET(GENMASK_ULL(60, 57), (u64)addr))
---- a/mm/kasan/report.c~x86-kasan-logical-bit-shift-for-kasan_mem_to_shadow
-+++ a/mm/kasan/report.c
-@@ -642,13 +642,14 @@ void kasan_non_canonical_hook(unsigned l
- 	const char *bug_type;
++#ifdef CONFIG_KASAN_SW_TAGS
++#define KASAN_SHADOW_SCALE_SHIFT 4
++#else
+ #define KASAN_SHADOW_SCALE_SHIFT 3
++#endif
  
- 	/*
--	 * For Generic KASAN, kasan_mem_to_shadow() uses the logical right shift
-+	 * For Generic KASAN and Software Tag-Based mode on the x86
-+	 * architecture, kasan_mem_to_shadow() uses the logical right shift
- 	 * and never overflows with the chosen KASAN_SHADOW_OFFSET values (on
- 	 * both x86 and arm64). Thus, the possible shadow addresses (even for
- 	 * bogus pointers) belong to a single contiguous region that is the
- 	 * result of kasan_mem_to_shadow() applied to the whole address space.
- 	 */
--	if (IS_ENABLED(CONFIG_KASAN_GENERIC)) {
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC) || IS_ENABLED(CONFIG_X86_64)) {
- 		if (addr < (unsigned long)kasan_mem_to_shadow((void *)(0ULL)) ||
- 		    addr > (unsigned long)kasan_mem_to_shadow((void *)(~0ULL)))
- 			return;
+ /*
+  * Compiler uses shadow offset assuming that addresses start
+--- a/arch/x86/Kconfig~x86-kasan-make-software-tag-based-kasan-available
++++ a/arch/x86/Kconfig
+@@ -67,6 +67,7 @@ config X86
+ 	select ARCH_CLOCKSOURCE_INIT
+ 	select ARCH_CONFIGURES_CPU_MITIGATIONS
+ 	select ARCH_CORRECT_STACKTRACE_ON_KRETPROBE
++	select ARCH_DISABLE_KASAN_INLINE	if X86_64 && KASAN_SW_TAGS
+ 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if X86_64 && HUGETLB_PAGE && MIGRATION
+ 	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64
+ 	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
+@@ -196,6 +197,8 @@ config X86
+ 	select HAVE_ARCH_JUMP_LABEL_RELATIVE
+ 	select HAVE_ARCH_KASAN			if X86_64
+ 	select HAVE_ARCH_KASAN_VMALLOC		if X86_64
++	select HAVE_ARCH_KASAN_SW_TAGS		if ADDRESS_MASKING
++	select ARCH_NEEDS_DEFER_KASAN		if ADDRESS_MASKING
+ 	select HAVE_ARCH_KFENCE
+ 	select HAVE_ARCH_KMSAN			if X86_64
+ 	select HAVE_ARCH_KGDB
+@@ -409,6 +412,7 @@ config AUDIT_ARCH
+ config KASAN_SHADOW_OFFSET
+ 	hex
+ 	depends on KASAN
++	default 0xeffffc0000000000 if KASAN_SW_TAGS
+ 	default 0xdffffc0000000000
+ 
+ config HAVE_INTEL_TXT
+--- a/arch/x86/mm/kasan_init_64.c~x86-kasan-make-software-tag-based-kasan-available
++++ a/arch/x86/mm/kasan_init_64.c
+@@ -465,4 +465,10 @@ void __init kasan_init(void)
+ 
+ 	init_task.kasan_depth = 0;
+ 	kasan_init_generic();
++	pr_info("KernelAddressSanitizer initialized\n");
++
++	if (boot_cpu_has(X86_FEATURE_LAM))
++		kasan_init_sw_tags();
++	else
++		pr_info("KernelAddressSanitizer not initialized (sw-tags): hardware doesn't support LAM\n");
+ }
+--- a/Documentation/arch/x86/x86_64/mm.rst~x86-kasan-make-software-tag-based-kasan-available
++++ a/Documentation/arch/x86/x86_64/mm.rst
+@@ -60,7 +60,8 @@ Complete virtual memory map with 4-level
+    ffffe90000000000 |  -23    TB | ffffe9ffffffffff |    1 TB | ... unused hole
+    ffffea0000000000 |  -22    TB | ffffeaffffffffff |    1 TB | virtual memory map (vmemmap_base)
+    ffffeb0000000000 |  -21    TB | ffffebffffffffff |    1 TB | ... unused hole
+-   ffffec0000000000 |  -20    TB | fffffbffffffffff |   16 TB | KASAN shadow memory
++   ffffec0000000000 |  -20    TB | fffffbffffffffff |   16 TB | KASAN shadow memory (generic mode)
++   fffff40000000000 |   -8    TB | fffffbffffffffff |    8 TB | KASAN shadow memory (software tag-based mode)
+   __________________|____________|__________________|_________|____________________________________________________________
+                                                               |
+                                                               | Identical layout to the 56-bit one from here on:
+@@ -130,7 +131,8 @@ Complete virtual memory map with 5-level
+    ffd2000000000000 |  -11.5  PB | ffd3ffffffffffff |  0.5 PB | ... unused hole
+    ffd4000000000000 |  -11    PB | ffd5ffffffffffff |  0.5 PB | virtual memory map (vmemmap_base)
+    ffd6000000000000 |  -10.5  PB | ffdeffffffffffff | 2.25 PB | ... unused hole
+-   ffdf000000000000 |   -8.25 PB | fffffbffffffffff |   ~8 PB | KASAN shadow memory
++   ffdf000000000000 |   -8.25 PB | fffffbffffffffff |   ~8 PB | KASAN shadow memory (generic mode)
++   ffeffc0000000000 |   -6    PB | fffffbffffffffff |    4 PB | KASAN shadow memory (software tag-based mode)
+   __________________|____________|__________________|_________|____________________________________________________________
+                                                               |
+                                                               | Identical layout to the 47-bit one from here on:
+--- a/lib/Kconfig.kasan~x86-kasan-make-software-tag-based-kasan-available
++++ a/lib/Kconfig.kasan
+@@ -112,7 +112,8 @@ config KASAN_SW_TAGS
+ 
+ 	  Requires GCC 11+ or Clang.
+ 
+-	  Supported only on arm64 CPUs and relies on Top Byte Ignore.
++	  Supported on arm64 CPUs that support Top Byte Ignore and on x86 CPUs
++	  that support Linear Address Masking.
+ 
+ 	  Consumes about 1/16th of available memory at kernel start and
+ 	  add an overhead of ~20% for dynamic allocations.
 _
 
 Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
