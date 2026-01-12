@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E897379995
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 17:22:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 609FE37F8BD
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 17:47:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768238574; cv=none; b=orTk+q/KjAbuspvZdZIYa/4DAKYE1MwqS8VaMiU1y/KKNaovQ0iwyWfAElitpvYu2el4ZLOf6nDedpVoh3j4tHHaE80nJCH3NpU9+i8Yn55YaTaw69CQbzBU3rdInlykdvfbIFnf1cXW/23l6PItcj5+D6stWPthmwww4mftiFU=
+	t=1768240043; cv=none; b=ApP8wZT653Z/dyOSw1DsVXyXAcboHMZxhJeepVGCW+oq7VJKq0xi107IMAA+pKi8FqjT5wWGXcvbt/+Uhyf1BwnR6zHokIANQekn7n3920ZGGh1Uq5IwazDn2DduSEDV/o+40YLUt42NWmRaEeQk9A+1ulhF6xIgF5qU5SWu4KY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768238574; c=relaxed/simple;
-	bh=AK1628yHqQPtl1bkWaKNAMNmphQxcz32Fh4+8dk4u58=;
-	h=Date:To:From:Subject:Message-Id; b=GIZ9uNHyra8WPeBc7LF0Egrk5K8BDqVW8YJvS+pwvkjdiXFWA1OPRhs6SE4UyVvGFqIQJW4N/jO6mgkLMIYpDHVNdm6usa3eIK76Xgx2knB4pkUfjDWK6OEKcTa333kIu1/QU3CUKRQ0Zb7Z2csYl6uxLA5wL6AXpENxFnoZOpM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F6EIbGR4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768240043; c=relaxed/simple;
+	bh=5uE0jZZ5H6SF2i8OaPh/OIUrHaMr+QS5GcED7Vz9aqw=;
+	h=Date:To:From:Subject:Message-Id; b=Ml0DDzITmWz1PxAFiI3TSuhjOOTCOveydiofy34E2D8seAAFoFH7TIJXnEZy3W2bSAiwAWeJETYzzTtIdgANOpQNZDskRnoHt6bWm5ExinIE5uKtI28cZ0ZT6vH8AVW6naEPaUhqX7q55WJYMrIk9Z+m6Uk1waQFErsC7H6mk90=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yO0NQezj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F6EIbGR4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06D34C16AAE;
-	Mon, 12 Jan 2026 17:22:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yO0NQezj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2154C19425;
+	Mon, 12 Jan 2026 17:47:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768238574;
-	bh=AK1628yHqQPtl1bkWaKNAMNmphQxcz32Fh4+8dk4u58=;
+	s=korg; t=1768240043;
+	bh=5uE0jZZ5H6SF2i8OaPh/OIUrHaMr+QS5GcED7Vz9aqw=;
 	h=Date:To:From:Subject:From;
-	b=F6EIbGR4wrrROQeK9H04krDX2WS6XkKtS39UnTCXtgDtMoW+UYb+x1tGD4rs9Fhz7
-	 y6WP8RQMmWszP/Rc6Fa/XXOlZ81OiRbmFCtH+RMFaiFojFGNrYoSu8YqrbfdssjKt4
-	 hlAf/zD8UjH99asbedIHMBVqRTzYEQ3DPZTs2sH0=
-Date: Mon, 12 Jan 2026 09:22:53 -0800
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
+	b=yO0NQezjS0kHezURWJQs+I2ysP8HSzo9bgikmbhcytparJhNbXo0lTIHP+7ihMCfU
+	 NurjHjN7F2gQOK23n4tORNjj982HBeeHIOXJrJ6rc34iTk5Yaa9PAzP8atnQAgoCmI
+	 Io0DQQ9QGNGjA76tyHQDBO2h5rYcXEXZGU81w80w=
+Date: Mon, 12 Jan 2026 09:47:22 -0800
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,hughd@google.com,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmsan-add-tests-for-high-order-page-freeing.patch added to mm-new branch
-Message-Id: <20260112172254.06D34C16AAE@smtp.kernel.org>
+Subject: + ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch added to mm-new branch
+Message-Id: <20260112174722.F2154C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kmsan: add tests for high-order page freeing
+     Subject: ksm: initialize the addr only once in rmap_walk_ksm
 has been added to the -mm mm-new branch.  Its filename is
-     mm-kmsan-add-tests-for-high-order-page-freeing.patch
+     ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-add-tests-for-high-order-page-freeing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,107 +66,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: mm: kmsan: add tests for high-order page freeing
-Date: Mon, 12 Jan 2026 15:51:50 +0100
+From: xu xin <xu.xin16@zte.com.cn>
+Subject: ksm: initialize the addr only once in rmap_walk_ksm
+Date: Mon, 12 Jan 2026 21:55:22 +0800 (CST)
 
-Add regression tests to verify that KMSAN correctly poisons the full
-memory range when freeing pages.
+Patch series "KSM: Optimizations for rmap_walk_ksm".
 
-Specifically, verify that accessing the tail pages of a high-order
-non-compound allocation triggers a use-after-free report.  This ensures
-that the fix "mm: kmsan: Fix poisoning of high-order non-compound pages"
-is working as expected.
+There are two perfomance optimization patches for rmap_walk_ksm.  Patch
+[1/2] moves the initializaion of addr from the position inside loop to the
+position before the loop, since the variable will not change in the loop. 
+Patch [2/2] optimizes rmap_walk_ksm() by passing a suitable page offset
+range to the anon_vma_interval_tree_foreach loop to reduce ineffective
+checks.
 
-Also add a test for standard order-0 pages for completeness.
+The performance metrics are presented in [2/2].
 
-Link: https://lore.kernel.org/all/20260104134348.3544298-1-ryan.roberts@arm.com/
-Link: https://lkml.kernel.org/r/20260112145150.3259084-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
+
+This patch (of 2):
+
+This is a minor performance optimization, especially when there are many
+for-loop iterations, because the addr variable doesn't change across
+iterations.
+
+Therefore, it only needs to be initialized once before the loop.
+
+Link: https://lkml.kernel.org/r/20260112215522600q2jPW2Un_1HGohr1lVXJ3@zte.com.cn
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/kmsan_test.c |   48 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 47 insertions(+), 1 deletion(-)
+ mm/ksm.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/kmsan/kmsan_test.c~mm-kmsan-add-tests-for-high-order-page-freeing
-+++ a/mm/kmsan/kmsan_test.c
-@@ -361,7 +361,7 @@ static void test_init_vmalloc(struct kun
- 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
- }
+--- a/mm/ksm.c~ksm-initialize-the-addr-only-once-in-rmap_walk_ksm
++++ a/mm/ksm.c
+@@ -3171,6 +3171,7 @@ again:
+ 		struct anon_vma *anon_vma = rmap_item->anon_vma;
+ 		struct anon_vma_chain *vmac;
+ 		struct vm_area_struct *vma;
++		unsigned long addr;
  
--/* Test case: ensure that use-after-free reporting works. */
-+/* Test case: ensure that use-after-free reporting works for kmalloc. */
- static void test_uaf(struct kunit *test)
- {
- 	EXPECTATION_USE_AFTER_FREE(expect);
-@@ -378,6 +378,50 @@ static void test_uaf(struct kunit *test)
- 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
- }
+ 		cond_resched();
+ 		if (!anon_vma_trylock_read(anon_vma)) {
+@@ -3180,16 +3181,16 @@ again:
+ 			}
+ 			anon_vma_lock_read(anon_vma);
+ 		}
++
++		/* Ignore the stable/unstable/sqnr flags */
++		addr = rmap_item->address & PAGE_MASK;
++
+ 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
+ 					       0, ULONG_MAX) {
+-			unsigned long addr;
  
-+/* Test case: ensure that use-after-free reporting works for freed pages. */
-+static void test_uaf_pages(struct kunit *test)
-+{
-+	EXPECTATION_USE_AFTER_FREE(expect);
-+	const int order = 0;
-+	volatile char value;
-+	struct page *page;
-+	volatile char *var;
-+
-+	kunit_info(test, "use-after-free on a freed page (UMR report)\n");
-+
-+	/* Memory is initialized up until __free_pages() thanks to __GFP_ZERO. */
-+	page = alloc_pages(GFP_KERNEL | __GFP_ZERO, order);
-+	var = page_address(page);
-+	__free_pages(page, order);
-+
-+	/* Copy the invalid value before checking it. */
-+	value = var[3];
-+	USE(value);
-+	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
-+}
-+
-+/* Test case: ensure that use-after-free reporting works for alloc_pages. */
-+static void test_uaf_high_order_pages(struct kunit *test)
-+{
-+	EXPECTATION_USE_AFTER_FREE(expect);
-+	const int order = 1;
-+	volatile char value;
-+	struct page *page;
-+	volatile char *var;
-+
-+	kunit_info(test,
-+		   "use-after-free on a freed high-order page (UMR report)\n");
-+
-+	page = alloc_pages(GFP_KERNEL | __GFP_ZERO, order);
-+	var = page_address(page) + PAGE_SIZE;
-+	__free_pages(page, order);
-+
-+	/* Copy the invalid value before checking it. */
-+	value = var[3];
-+	USE(value);
-+	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
-+}
-+
- /*
-  * Test case: ensure that uninitialized values are propagated through per-CPU
-  * memory.
-@@ -683,6 +727,8 @@ static struct kunit_case kmsan_test_case
- 	KUNIT_CASE(test_init_kmsan_vmap_vunmap),
- 	KUNIT_CASE(test_init_vmalloc),
- 	KUNIT_CASE(test_uaf),
-+	KUNIT_CASE(test_uaf_pages),
-+	KUNIT_CASE(test_uaf_high_order_pages),
- 	KUNIT_CASE(test_percpu_propagate),
- 	KUNIT_CASE(test_printk),
- 	KUNIT_CASE(test_init_memcpy),
+ 			cond_resched();
+ 			vma = vmac->vma;
+ 
+-			/* Ignore the stable/unstable/sqnr flags */
+-			addr = rmap_item->address & PAGE_MASK;
+-
+ 			if (addr < vma->vm_start || addr >= vma->vm_end)
+ 				continue;
+ 			/*
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from xu.xin16@zte.com.cn are
 
-mm-kmsan-add-tests-for-high-order-page-freeing.patch
+ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch
+ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-addressrange.patch
 
