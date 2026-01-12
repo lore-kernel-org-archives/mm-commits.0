@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D12063793D6
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 17:21:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E897379995
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 17:22:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768238502; cv=none; b=UncV7moTyl16xTU0AoQbLZfvv6YlGBD6DkVMagbb5ngyTUyBfSoso1URowiiMKajKwJ0J4WOQmSucpXbyEGDZrazmtFbEC67PgjM+RmbotqUKLZPllnyLkFZIltYi6f4Qm2p7eaScMdmnBcRMi3Odky2ORi8XsaOD35nAusr+JA=
+	t=1768238574; cv=none; b=orTk+q/KjAbuspvZdZIYa/4DAKYE1MwqS8VaMiU1y/KKNaovQ0iwyWfAElitpvYu2el4ZLOf6nDedpVoh3j4tHHaE80nJCH3NpU9+i8Yn55YaTaw69CQbzBU3rdInlykdvfbIFnf1cXW/23l6PItcj5+D6stWPthmwww4mftiFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768238502; c=relaxed/simple;
-	bh=cgVLR30FGvZGCiMg5Tz0CQNcmUvLu2YFTCb3aSw/XE0=;
-	h=Date:To:From:Subject:Message-Id; b=r4NAKdE+uTi3QuV4fInhX3NXcsFJ5mwOIb4nQ4TUlceyGBd1rZnS+3gNN04FLi86OO24vl+nIjd5tXFyce6b9S7gDGOrEWvlSm274kyWJtly11N11aNl6pWlyUP/q3K4uTA2lc3df0KuOIVPQMbHi92JKngL85wOJYJRVtdAPVY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YJXYKQS8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768238574; c=relaxed/simple;
+	bh=AK1628yHqQPtl1bkWaKNAMNmphQxcz32Fh4+8dk4u58=;
+	h=Date:To:From:Subject:Message-Id; b=GIZ9uNHyra8WPeBc7LF0Egrk5K8BDqVW8YJvS+pwvkjdiXFWA1OPRhs6SE4UyVvGFqIQJW4N/jO6mgkLMIYpDHVNdm6usa3eIK76Xgx2knB4pkUfjDWK6OEKcTa333kIu1/QU3CUKRQ0Zb7Z2csYl6uxLA5wL6AXpENxFnoZOpM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F6EIbGR4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YJXYKQS8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 686B2C116D0;
-	Mon, 12 Jan 2026 17:21:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F6EIbGR4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06D34C16AAE;
+	Mon, 12 Jan 2026 17:22:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768238502;
-	bh=cgVLR30FGvZGCiMg5Tz0CQNcmUvLu2YFTCb3aSw/XE0=;
+	s=korg; t=1768238574;
+	bh=AK1628yHqQPtl1bkWaKNAMNmphQxcz32Fh4+8dk4u58=;
 	h=Date:To:From:Subject:From;
-	b=YJXYKQS8w2MUkiM8NzAPObsyS/wVJApoocqE1imokU06ayl9XZs9FwSYcFmrEeOuw
-	 XtMPrAVjP7xc5r9I1u9vbJd0SPXNw6n1fy8J5EE0eVoej9r6Ojl7XgEG5XmBZOh/b2
-	 k8t5Mog5zFygtpR/P1l+E55GkkQ/MAVDipyBA/mc=
-Date: Mon, 12 Jan 2026 09:21:41 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=F6EIbGR4wrrROQeK9H04krDX2WS6XkKtS39UnTCXtgDtMoW+UYb+x1tGD4rs9Fhz7
+	 y6WP8RQMmWszP/Rc6Fa/XXOlZ81OiRbmFCtH+RMFaiFojFGNrYoSu8YqrbfdssjKt4
+	 hlAf/zD8UjH99asbedIHMBVqRTzYEQ3DPZTs2sH0=
+Date: Mon, 12 Jan 2026 09:22:53 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init.patch added to mm-new branch
-Message-Id: <20260112172142.686B2C116D0@smtp.kernel.org>
+Subject: + mm-kmsan-add-tests-for-high-order-page-freeing.patch added to mm-new branch
+Message-Id: <20260112172254.06D34C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: hugetlb_cma: mark hugetlb_cma{_only} as __ro_after_init
+     Subject: mm: kmsan: add tests for high-order page freeing
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init.patch
+     mm-kmsan-add-tests-for-high-order-page-freeing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-add-tests-for-high-order-page-freeing.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,58 +66,107 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hugetlb_cma: mark hugetlb_cma{_only} as __ro_after_init
-Date: Mon, 12 Jan 2026 23:09:54 +0800
+From: Alexander Potapenko <glider@google.com>
+Subject: mm: kmsan: add tests for high-order page freeing
+Date: Mon, 12 Jan 2026 15:51:50 +0100
 
-hugetlb_cma and hugetlb_cma_only are initialized once during init and
-never changed.
+Add regression tests to verify that KMSAN correctly poisons the full
+memory range when freeing pages.
 
-Link: https://lkml.kernel.org/r/20260112150954.1802953-6-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Specifically, verify that accessing the tail pages of a high-order
+non-compound allocation triggers a use-after-free report.  This ensures
+that the fix "mm: kmsan: Fix poisoning of high-order non-compound pages"
+is working as expected.
+
+Also add a test for standard order-0 pages for completeness.
+
+Link: https://lore.kernel.org/all/20260104134348.3544298-1-ryan.roberts@arm.com/
+Link: https://lkml.kernel.org/r/20260112145150.3259084-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kmsan/kmsan_test.c |   48 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 47 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb_cma.c~mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init
-+++ a/mm/hugetlb_cma.c
-@@ -13,9 +13,9 @@
- #include "hugetlb_cma.h"
+--- a/mm/kmsan/kmsan_test.c~mm-kmsan-add-tests-for-high-order-page-freeing
++++ a/mm/kmsan/kmsan_test.c
+@@ -361,7 +361,7 @@ static void test_init_vmalloc(struct kun
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
  
+-/* Test case: ensure that use-after-free reporting works. */
++/* Test case: ensure that use-after-free reporting works for kmalloc. */
+ static void test_uaf(struct kunit *test)
+ {
+ 	EXPECTATION_USE_AFTER_FREE(expect);
+@@ -378,6 +378,50 @@ static void test_uaf(struct kunit *test)
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
  
--static struct cma *hugetlb_cma[MAX_NUMNODES];
-+static struct cma *hugetlb_cma[MAX_NUMNODES] __ro_after_init;
- static unsigned long hugetlb_cma_size_in_node[MAX_NUMNODES] __initdata;
--static bool hugetlb_cma_only;
-+static bool hugetlb_cma_only __ro_after_init;
- static unsigned long hugetlb_cma_size __ro_after_init;
- 
- void hugetlb_cma_free_frozen_folio(struct folio *folio)
++/* Test case: ensure that use-after-free reporting works for freed pages. */
++static void test_uaf_pages(struct kunit *test)
++{
++	EXPECTATION_USE_AFTER_FREE(expect);
++	const int order = 0;
++	volatile char value;
++	struct page *page;
++	volatile char *var;
++
++	kunit_info(test, "use-after-free on a freed page (UMR report)\n");
++
++	/* Memory is initialized up until __free_pages() thanks to __GFP_ZERO. */
++	page = alloc_pages(GFP_KERNEL | __GFP_ZERO, order);
++	var = page_address(page);
++	__free_pages(page, order);
++
++	/* Copy the invalid value before checking it. */
++	value = var[3];
++	USE(value);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++/* Test case: ensure that use-after-free reporting works for alloc_pages. */
++static void test_uaf_high_order_pages(struct kunit *test)
++{
++	EXPECTATION_USE_AFTER_FREE(expect);
++	const int order = 1;
++	volatile char value;
++	struct page *page;
++	volatile char *var;
++
++	kunit_info(test,
++		   "use-after-free on a freed high-order page (UMR report)\n");
++
++	page = alloc_pages(GFP_KERNEL | __GFP_ZERO, order);
++	var = page_address(page) + PAGE_SIZE;
++	__free_pages(page, order);
++
++	/* Copy the invalid value before checking it. */
++	value = var[3];
++	USE(value);
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
+ /*
+  * Test case: ensure that uninitialized values are propagated through per-CPU
+  * memory.
+@@ -683,6 +727,8 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_init_kmsan_vmap_vunmap),
+ 	KUNIT_CASE(test_init_vmalloc),
+ 	KUNIT_CASE(test_uaf),
++	KUNIT_CASE(test_uaf_pages),
++	KUNIT_CASE(test_uaf_high_order_pages),
+ 	KUNIT_CASE(test_percpu_propagate),
+ 	KUNIT_CASE(test_printk),
+ 	KUNIT_CASE(test_init_memcpy),
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-debug_vm_pgtable-add-debug_vm_pgtable_free_huge_page.patch
-mm-page_alloc-add-__split_page.patch
-mm-cma-kill-cma_pages_valid.patch
-mm-page_alloc-add-alloc_contig_frozen_rangepages.patch
-mm-cma-add-cma_alloc_frozen_compound.patch
-mm-hugetlb-allocate-frozen-pages-for-gigantic-allocation.patch
-mm-page_isolation-introduce-page_is_unmovable.patch
-mm-page_alloc-optimize-pfn_range_valid_contig.patch
-mm-hugetlb-optimize-replace_free_hugepage_folios.patch
-mm-hugetlb_cma-optimize-hugetlb_cma_alloc_frozen_folio.patch
-mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init.patch
+mm-kmsan-add-tests-for-high-order-page-freeing.patch
 
