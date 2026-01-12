@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 357C32F49F0
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 19:12:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F092C2FF65B;
+	Mon, 12 Jan 2026 19:28:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768245170; cv=none; b=mtclzMjKBRMToBgGZ2z/ZIaXNpiWVHiWZmmFQx/MGvP1/VL9aPjUxuhrVVaRzrcH/rRU3AoiVi0dLI2kU7S7Xb4ndcIXV3DrlI0Hi5icI1vnNU2ckUEakYWfJGARYf20rczvOLohkPzidA0CdQq8jtjb2+lcQCEyzCERXpwj3es=
+	t=1768246098; cv=none; b=gWwjMb4IOY/ROds6/lvar+l/qEcibrfoRLPU+iShMQbh6BXw8EC0j3MhFQDkYCLqn3pGLKqHTtO3oCApPPG3ZOo3sDK0Tb26EMNeGIVk0Nlp6Abdxb0E+qGvA4qsGvgwomKtrqOOhN006Fk6KZbmIac6kaei8zH+Wzfihy57jeU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768245170; c=relaxed/simple;
-	bh=3nl2TrE+amSgChRefbtjUjyDTihrpMBS5NLmJtN+UZQ=;
-	h=Date:To:From:Subject:Message-Id; b=txZUu5q6ShWyARFpdhFqKE+q7/ckCeiByhWfOyHkquTFeyXn7xf3JDv4EEF/bypT6QsQI2leMnzCFCcUlGpVN1xA0WvZr6f9JrAbp9xwJlpCRuYuRT9SMh8cq3YSwgBcYFffaHfcJru7IQ2r8FXYwdDxYmSoFEIvU71HGaOMwW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=av3I4ihx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768246098; c=relaxed/simple;
+	bh=RX0Sv+nwwGP5jlmTmIvwmhFwdFZM6lqTlF9ZMSWDv0w=;
+	h=Date:To:From:Subject:Message-Id; b=rhrDAIHkUNGIv09sD590dtszNwHBltnwRT0BKK5k7zs7PNtumDyVmgdCiytdSJPu5+RAG9USxOaVCG1RQ34izHE4FyaoCOhUBXZ08OaN3w7Cz19VE3dCnnI2R7NR2xEzQbdXOHzrYNe90nt6RdKlMDHhAyfKkNoRNqG9GcCicI8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cUOvzy8D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="av3I4ihx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA444C116D0;
-	Mon, 12 Jan 2026 19:12:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cUOvzy8D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 845DBC116D0;
+	Mon, 12 Jan 2026 19:28:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768245169;
-	bh=3nl2TrE+amSgChRefbtjUjyDTihrpMBS5NLmJtN+UZQ=;
+	s=korg; t=1768246097;
+	bh=RX0Sv+nwwGP5jlmTmIvwmhFwdFZM6lqTlF9ZMSWDv0w=;
 	h=Date:To:From:Subject:From;
-	b=av3I4ihxRCiJVajrgPjhQNgfGGzRFp/IqCCzDQ0h9X48eaxsEUeQUAEpV1725nV51
-	 JdB46lyul5vCr+AZ+a8QSd7Be2mGlHRBhbf1TUUh/ojryYjQ1jOoGKSZKseEUc0NaE
-	 NDB6ohBENSjx3vayuJZ3sTSm+YUxy1c8Ftux3P+4=
-Date: Mon, 12 Jan 2026 11:12:49 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,houwenlong.hwl@antgroup.com,akpm@linux-foundation.org
+	b=cUOvzy8DS7jBfB6sfhSsACJ8m44bbOuhy3t2BfrVQvyLhWYSQZMwU5ybuoiOl1SZC
+	 ZnlIP+sfn65KMAaxNMgwzjiVH1h3oWG3yMvXX7fnX4oKFDQI/2tlgI/3su9+Dmrs6G
+	 lo0FT57N9Tv6ajMxyYXuXPu67TvAl6tbYatMQ3cM=
+Date: Mon, 12 Jan 2026 11:28:16 -0800
+To: mm-commits@vger.kernel.org,urezki@gmail.com,stable@vger.kernel.org,hdanton@sina.com,kartikey406@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-early_ioremap-clean-up-the-use-of-warn-for-debugging.patch added to mm-new branch
-Message-Id: <20260112191249.BA444C116D0@smtp.kernel.org>
+Subject: + mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node.patch added to mm-new branch
+Message-Id: <20260112192817.845DBC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/early_ioremap: clean up the use of WARN() for debugging
+     Subject: mm/vmalloc: prevent RCU stalls in kasan_release_vmalloc_node
 has been added to the -mm mm-new branch.  Its filename is
-     mm-early_ioremap-clean-up-the-use-of-warn-for-debugging.patch
+     mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-early_ioremap-clean-up-the-use-of-warn-for-debugging.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,72 +66,93 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hou Wenlong <houwenlong.hwl@antgroup.com>
-Subject: mm/early_ioremap: clean up the use of WARN() for debugging
-Date: Mon, 12 Jan 2026 20:24:29 +0800
+From: Deepanshu Kartikey <kartikey406@gmail.com>
+Subject: mm/vmalloc: prevent RCU stalls in kasan_release_vmalloc_node
+Date: Mon, 12 Jan 2026 16:06:12 +0530
 
-Using WARN() for debugging is strange when nothing is wrong, so replace
-WARN(early_ioremap_debug) with pr_warn() + dump_stack().
+When CONFIG_PAGE_OWNER is enabled, freeing KASAN shadow pages during
+vmalloc cleanup triggers expensive stack unwinding that acquires RCU read
+locks.  Processing a large purge_list without rescheduling can cause the
+task to hold CPU for extended periods (10+ seconds), leading to RCU stalls
+and potential OOM conditions.
 
-Link: https://lkml.kernel.org/r/d4470531ce0c03fd80f9a1be7e8d8ae1bc60fcd1.1768220636.git.houwenlong.hwl@antgroup.com
-Signed-off-by: Hou Wenlong <houwenlong.hwl@antgroup.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hou Wenlong <houwenlong.hwl@antgroup.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The issue manifests in purge_vmap_node() -> kasan_release_vmalloc_node()
+where iterating through hundreds or thousands of vmap_area entries and
+freeing their associated shadow pages causes:
+
+  rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+  rcu: Tasks blocked on level-0 rcu_node (CPUs 0-1): P6229/1:b..l
+  ...
+  task:kworker/0:17 state:R running task stack:28840 pid:6229
+  ...
+  kasan_release_vmalloc_node+0x1ba/0xad0 mm/vmalloc.c:2299
+  purge_vmap_node+0x1ba/0xad0 mm/vmalloc.c:2299
+
+Each call to kasan_release_vmalloc() can free many pages, and with
+page_owner tracking, each free triggers save_stack() which performs stack
+unwinding under RCU read lock.  Without yielding, this creates an
+unbounded RCU critical section.
+
+Add periodic cond_resched() calls within the loop to allow:
+- RCU grace periods to complete
+- Other tasks to run
+- Scheduler to preempt when needed
+
+The fix uses need_resched() for immediate response under load, with a
+batch count of 32 as a guaranteed upper bound to prevent worst-case stalls
+even under light load.
+
+Link: https://lkml.kernel.org/r/20260112103612.627247-1-kartikey406@gmail.com
+Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
+Reported-by: syzbot+d8d4c31d40f868eaea30@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d8d4c31d40f868eaea30
+Link: https://lore.kernel.org/all/20260112084723.622910-1-kartikey406@gmail.com/T/ [v1]
+Suggested-by: Uladzislau Rezki <urezki@gmail.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/early_ioremap.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/vmalloc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/early_ioremap.c~mm-early_ioremap-clean-up-the-use-of-warn-for-debugging
-+++ a/mm/early_ioremap.c
-@@ -30,6 +30,14 @@ static int __init early_ioremap_debug_se
+--- a/mm/vmalloc.c~mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node
++++ a/mm/vmalloc.c
+@@ -2273,11 +2273,14 @@ decay_va_pool_node(struct vmap_node *vn,
+ 	reclaim_list_global(&decay_list);
  }
- early_param("early_ioremap_debug", early_ioremap_debug_setup);
  
-+#define early_ioremap_dbg(fmt, args...)			\
-+	do {						\
-+		if (unlikely(early_ioremap_debug)) {	\
-+			pr_warn(fmt, ##args);		\
-+			dump_stack();			\
-+		}					\
-+	} while (0)
++#define KASAN_RELEASE_BATCH_SIZE 32
 +
- static int after_paging_init __initdata;
+ static void
+ kasan_release_vmalloc_node(struct vmap_node *vn)
+ {
+ 	struct vmap_area *va;
+ 	unsigned long start, end;
++	unsigned int batch_count = 0;
  
- pgprot_t __init __weak early_memremap_pgprot_adjust(resource_size_t phys_addr,
-@@ -139,8 +147,8 @@ __early_ioremap(resource_size_t phys_add
- 	if (WARN_ON(nrpages > NR_FIX_BTMAPS))
- 		return NULL;
+ 	start = list_first_entry(&vn->purge_list, struct vmap_area, list)->va_start;
+ 	end = list_last_entry(&vn->purge_list, struct vmap_area, list)->va_end;
+@@ -2287,6 +2290,11 @@ kasan_release_vmalloc_node(struct vmap_n
+ 			kasan_release_vmalloc(va->va_start, va->va_end,
+ 				va->va_start, va->va_end,
+ 				KASAN_VMALLOC_PAGE_RANGE);
++
++		if (need_resched() || (++batch_count >= KASAN_RELEASE_BATCH_SIZE)) {
++			cond_resched();
++			batch_count = 0;
++		}
+ 	}
  
--	WARN(early_ioremap_debug, "%s(%pa, %08lx) [%d] => %08lx + %08lx\n",
--	     __func__, &phys_addr, size, slot, slot_virt[slot], offset);
-+	early_ioremap_dbg("%s(%pa, %08lx) [%d] => %08lx + %08lx\n",
-+			  __func__, &phys_addr, size, slot, slot_virt[slot], offset);
- 
- 	/*
- 	 * Ok, go for it..
-@@ -185,8 +193,7 @@ void __init early_iounmap(void __iomem *
- 		  __func__, addr, size, slot, prev_size[slot]))
- 		return;
- 
--	WARN(early_ioremap_debug, "%s(%p, %08lx) [%d]\n",
--	      __func__, addr, size, slot);
-+	early_ioremap_dbg("%s(%p, %08lx) [%d]\n", __func__, addr, size, slot);
- 
- 	virt_addr = (unsigned long)addr;
- 	if (WARN_ON(virt_addr < fix_to_virt(FIX_BTMAP_BEGIN)))
+ 	kasan_release_vmalloc(start, end, start, end, KASAN_VMALLOC_TLB_FLUSH);
 _
 
-Patches currently in -mm which might be from houwenlong.hwl@antgroup.com are
+Patches currently in -mm which might be from kartikey406@gmail.com are
 
-mm-early_ioremap-print-the-starting-physical-address-in-__early_ioremap.patch
-mm-early_ioremap-clean-up-the-use-of-warn-for-debugging.patch
+mm-swap_cgroup-fix-kernel-bug-in-swap_cgroup_record.patch
+mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node.patch
+ocfs2-validate-i_refcount_loc-when-refcount-flag-is-set.patch
+ocfs2-validate-inline-data-i_size-during-inode-read.patch
+ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch
 
