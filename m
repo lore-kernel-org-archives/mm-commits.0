@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B463876AA
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4D193876AA
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768243171; cv=none; b=DlYfXY3ZCjMcegFBd6DZm6dQ086No8IEm8va6hvb9ji8bN610ZWpJPdOLAtsbanQBUWNynOPpaisowSx5O8+e0fGpFAM8z72zzrM8kgXakvZ/OqZJzh+03nKugP6JtZNklm7h41g4mlzII2WsNxYVF+EKp7OJ9WONt+ES/+RDEU=
+	t=1768243173; cv=none; b=fHqCYUC3y7loYTuektf6/sIZ+idpsDtmPp//faoTwRrAVM3kcQ05rZBphBTTCn9BLxnfvVZi+Ny/ZyHjIivJUS8niezbnIHRljvq4hr+mhijyUFzpY5RYjGhD7kYse/BymbnassvEaGQLNKrwgfGvUvTLIAdINmkRjeht08Dwbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768243171; c=relaxed/simple;
-	bh=oZCsaFWy2I5lvgVwcmVnoDCHdKDEKCy3kepA6vsdYug=;
-	h=Date:To:From:Subject:Message-Id; b=Ay27Qa7aPIj4HMm8Cy0wcMaz/1Ewna0ZWcoRl8y6KtabmUc7eyZT/c9RodddJnpB9CAOk2nv+o1NRtr4W3uLTpgt2REbogDcQDqzJ0EPIFzAlIftAOQO6c1gg9dUHCRsWy3pFzXRr4MDeJk6ge3rZmD0zNNUx2cTwypKd0cpsls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mKFPzT/K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768243173; c=relaxed/simple;
+	bh=FDlnGVA2kDHhVIBXYKyCYEoZ54hWElbcSlqkSlOPTUg=;
+	h=Date:To:From:Subject:Message-Id; b=I6K6hc4Ht5gCRYevK07zAJgr55slVMmmtHoOVqQe+Y6euIyr12TdIjHThjt+v5N/mYAzlkvjyxibJ92XZy4SIy1NT8Ie2denMPBFb4xNfw3Z1DtoU76UB/eWCbEgCq7+dK/oGmGCmAb7Ofk067iwDnninpFvIv3XoXhoNNzGiQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uYJSszGp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mKFPzT/K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95936C116D0;
-	Mon, 12 Jan 2026 18:39:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uYJSszGp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41047C116D0;
+	Mon, 12 Jan 2026 18:39:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768243170;
-	bh=oZCsaFWy2I5lvgVwcmVnoDCHdKDEKCy3kepA6vsdYug=;
+	s=korg; t=1768243173;
+	bh=FDlnGVA2kDHhVIBXYKyCYEoZ54hWElbcSlqkSlOPTUg=;
 	h=Date:To:From:Subject:From;
-	b=mKFPzT/Kon4XKNguWTspx6WVN5pV1si27g9GPfHxTTWnMU4IBH6gWHJSPo9mETwih
-	 11sI8BA2kfnjmgmRIF/eg5bfaOsXBQHBu3ZE3MbtaYb7mKdep+pVaYx3gz9Kj4uQP2
-	 le/azmb2VibLsROpYJPtBs4BMHCzkU0xiwIGHOB4=
-Date: Mon, 12 Jan 2026 10:39:30 -0800
+	b=uYJSszGpr6E09nCPKzMBbx6312qhDoj6prir1UC41TAhjBmD7e9ANLuVrhxQNKENB
+	 lfQfsbqkYAEBPNCve4+CpOiIChhF2QqARxygv6AU5tVOEfLHpYbSDhJuBlJD64JWbK
+	 SxuLpywABCiG2/EHq9TqlKu6EHMFbRT9eix2pzqI=
+Date: Mon, 12 Jan 2026 10:39:32 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,yeoreum.yun@arm.com,will@kernel.org,weixugc@google.com,vincenzo.frascino@arm.com,vbabka@suse.cz,urezki@gmail.com,ubizjak@gmail.com,trintaeoitogc@gmail.com,thuth@redhat.com,thomas.lendacky@amd.com,tglx@kernel.org,surenb@google.com,smostafa@google.com,samuel.holland@sifive.com,samitolvanen@google.com,ryabinin.a.a@gmail.com,rppt@kernel.org,peterz@infradead.org,osandov@fb.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,mhocko@suse.com,maz@kernel.org,mark.rutland@arm.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leitao@debian.org,kees@kernel.org,kbingham@kernel.org,justinstitt@google.com,jpoimboe@kernel.org,jeremy.linton@arm.com,jan.kiszka@siemens.com,jackmanb@google.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,brgerst@gmail.com,bp@alien8.de,bigeasy@linutronix.de,axelrasmussen@google.com,ardb@kernel.org,anshuman.khandual@arm.com,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kasan-kasan-raw-shadow-memory-pte-init.patch added to mm-new branch
-Message-Id: <20260112183930.95936C116D0@smtp.kernel.org>
+Subject: + x86-mm-lam-compatible-non-canonical-definition.patch added to mm-new branch
+Message-Id: <20260112183933.41047C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/kasan: KASAN raw shadow memory PTE init
+     Subject: x86/mm: LAM compatible non-canonical definition
 has been added to the -mm mm-new branch.  Its filename is
-     x86-kasan-kasan-raw-shadow-memory-pte-init.patch
+     x86-mm-lam-compatible-non-canonical-definition.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kasan-kasan-raw-shadow-memory-pte-init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-lam-compatible-non-canonical-definition.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,25 +67,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Subject: x86/kasan: KASAN raw shadow memory PTE init
-Date: Mon, 12 Jan 2026 17:28:05 +0000
+Subject: x86/mm: LAM compatible non-canonical definition
+Date: Mon, 12 Jan 2026 17:28:09 +0000
 
-In KASAN's generic mode the default value in shadow memory is zero. 
-During initialization of shadow memory pages they are allocated and
-zeroed.
+For an address to be canonical it has to have its top bits equal to each
+other.  The number of bits depends on the paging level and whether they're
+supposed to be ones or zeroes depends on whether the address points to
+kernel or user space.
 
-In KASAN's tag-based mode the default tag for the arm64 architecture is
-0xFE which corresponds to any memory that should not be accessed.  On x86
-(where tags are 4-bit wide instead of 8-bit wide) that tag is 0xE so
-during the initializations all the bytes in shadow memory pages should be
-filled with it.
+With Linear Address Masking (LAM) enabled, the definition of linear
+address canonicality is modified.  Not all of the previously required bits
+need to be equal, only the first and last from the previously equal
+bitmask.  So for example a 5-level paging kernel address needs to have
+bits [63] and [56] set.
 
-Use memblock_alloc_try_nid_raw() instead of memblock_alloc_try_nid() to
-avoid zeroing out the memory so it can be set with the KASAN invalid tag.
+Change the canonical checking function to use bit masks instead of bit
+shifts.
 
-Link: https://lkml.kernel.org/r/9968297ee3c83a73e1fb05c6415b024d1d2d6a04.1768233085.git.m.wieczorretman@pm.me
+Link: https://lkml.kernel.org/r/0347c61eccf739ad15ec62600f009c212d52e761.1768233085.git.m.wieczorretman@pm.me
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -139,51 +140,35 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/kasan_init_64.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/page.h |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
---- a/arch/x86/mm/kasan_init_64.c~x86-kasan-kasan-raw-shadow-memory-pte-init
-+++ a/arch/x86/mm/kasan_init_64.c
-@@ -34,6 +34,18 @@ static __init void *early_alloc(size_t s
- 	return ptr;
+--- a/arch/x86/include/asm/page.h~x86-mm-lam-compatible-non-canonical-definition
++++ a/arch/x86/include/asm/page.h
+@@ -76,9 +76,22 @@ static __always_inline void *pfn_to_kadd
+ 	return __va(pfn << PAGE_SHIFT);
  }
  
-+static __init void *early_raw_alloc(size_t size, int nid, bool should_panic)
-+{
-+	void *ptr = memblock_alloc_try_nid_raw(size, size,
-+			__pa(MAX_DMA_ADDRESS), MEMBLOCK_ALLOC_ACCESSIBLE, nid);
++#ifdef CONFIG_KASAN_SW_TAGS
++#define CANONICAL_MASK(vaddr_bits) (BIT_ULL(63) | BIT_ULL((vaddr_bits) - 1))
++#else
++#define CANONICAL_MASK(vaddr_bits) GENMASK_ULL(63, vaddr_bits)
++#endif
 +
-+	if (!ptr && should_panic)
-+		panic("%pS: Failed to allocate page, nid=%d from=%lx\n",
-+		      (void *)_RET_IP_, nid, __pa(MAX_DMA_ADDRESS));
-+
-+	return ptr;
-+}
-+
- static void __init kasan_populate_pmd(pmd_t *pmd, unsigned long addr,
- 				      unsigned long end, int nid)
++/*
++ * To make an address canonical either set or clear the bits defined by the
++ * CANONICAL_MASK(). Clear the bits for userspace addresses if the top address
++ * bit is a zero. Set the bits for kernel addresses if the top address bit is a
++ * one.
++ */
+ static __always_inline u64 __canonical_address(u64 vaddr, u8 vaddr_bits)
  {
-@@ -63,8 +75,9 @@ static void __init kasan_populate_pmd(pm
- 		if (!pte_none(*pte))
- 			continue;
- 
--		p = early_alloc(PAGE_SIZE, nid, true);
--		entry = pfn_pte(PFN_DOWN(__pa(p)), PAGE_KERNEL);
-+		p = early_raw_alloc(PAGE_SIZE, nid, true);
-+		memset(p, KASAN_SHADOW_INIT, PAGE_SIZE);
-+		entry = pfn_pte(PFN_DOWN(__pa_nodebug(p)), PAGE_KERNEL);
- 		set_pte_at(&init_mm, addr, pte, entry);
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	return ((s64)vaddr << (64 - vaddr_bits)) >> (64 - vaddr_bits);
++	return (vaddr & BIT_ULL(63)) ? vaddr | CANONICAL_MASK(vaddr_bits) :
++				       vaddr & ~CANONICAL_MASK(vaddr_bits);
  }
-@@ -436,7 +449,7 @@ void __init kasan_init(void)
- 	 * it may contain some garbage. Now we can clear and write protect it,
- 	 * since after the TLB flush no one should write to it.
- 	 */
--	memset(kasan_early_shadow_page, 0, PAGE_SIZE);
-+	memset(kasan_early_shadow_page, KASAN_SHADOW_INIT, PAGE_SIZE);
- 	for (i = 0; i < PTRS_PER_PTE; i++) {
- 		pte_t pte;
- 		pgprot_t prot;
+ 
+ static __always_inline u64 __is_canonical_address(u64 vaddr, u8 vaddr_bits)
 _
 
 Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
