@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 860413803F5
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F07D3793A0
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768243155; cv=none; b=bpry7SN2As/SnjdoLnidvxTYhrkvUmZ1o/+Pqk2lcTKQgIJDtuSe4DOswfAo0SPiNGDTGVvK00d6oa0ds79Am9GVT2Zh2TyKt9v6bJFRtMxoTzGQSL8k+pMiX4HquFot4fEx4tZwuFmn8PAQDP+c5ziRpkHdcZtQ79o7mEiQfFI=
+	t=1768243158; cv=none; b=RaTxR1AdQL9X2jgo6anOtzeELc/bRJFJj421DQpxKILrVFjA48K/iQyWzmfISMhbT8nPEfwWT04Gpyxmt3QZFi+vi4gWvJIF8pGQgSIU+/M9mXV/uXdD7NkkOVpVA+d/oUOZ6BmXlGAITACh9/xbtc1mzaeS0xlPi1xaw8Xli8Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768243155; c=relaxed/simple;
-	bh=7zJxC/qrwQZUL/HUiqvTVb1c6XT/+nTA72cjMozeSsc=;
-	h=Date:To:From:Subject:Message-Id; b=EEPzsoh2lAW4yC43IgyK7H8T2KkOKCz5wQn66NJ71IZKIhWAAjKunu0Ur2lBA+G80FWIAsWQOwViOXoHDyPsXzr1ad9zt3aJsjIJvdzHJi+GG9ApWVZNx6ECW7v3GLOwISc0i6qb+7JOeIq7g7Qya0ddPPhO77eFpsf/p5adiZo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hAX+b5+d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768243158; c=relaxed/simple;
+	bh=k7Mot9Y/LFECLiA7QAER9qb00cxdw3q6JwkzyEX/hY4=;
+	h=Date:To:From:Subject:Message-Id; b=c4Z7HxNLZmnFvbi2HmwaovqpADkih68GIlsbfLT2Zt/eLNwo7Um+LK8vYCRgQK+hktx1JGjSqEtn7jNCvxU9J38ZsoAxb8Ns3i9F+Q4cMM6495K30d4tIqOvX2KW5kE6BIbZ6ANntj1i09xCfrWVPsVYA2IQvWVZYii26N+iCes=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N03ezwcm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hAX+b5+d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053CCC116D0;
-	Mon, 12 Jan 2026 18:39:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N03ezwcm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B06DEC116D0;
+	Mon, 12 Jan 2026 18:39:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768243155;
-	bh=7zJxC/qrwQZUL/HUiqvTVb1c6XT/+nTA72cjMozeSsc=;
+	s=korg; t=1768243157;
+	bh=k7Mot9Y/LFECLiA7QAER9qb00cxdw3q6JwkzyEX/hY4=;
 	h=Date:To:From:Subject:From;
-	b=hAX+b5+dsJi1ag8IaIYLjrsLcGGENQ8JZQKx9feXBfU10qae8erjv/ulZyWt2awmq
-	 RrEFu73EOhGnHjrhvWotVbTR9enOHO5Ri0NUqiPrQTf/J1ev3kkC9ilfX3rwXerd8k
-	 QYXdIP6N9ePtVcr4vvSUAOhOQ9Dl1AWJ3NBOySGc=
-Date: Mon, 12 Jan 2026 10:39:14 -0800
+	b=N03ezwcmJPAK+P9h6mVfr3/31Wt9w6eTUHnjn17idRCBdk3McG5aMCxczEpBd9w5T
+	 pFGb07MgGRQij+AXuysK4tE+I7rB78zd+GlC/1MjyLADFTrtahmtZzc6Cjj+w5foKE
+	 66tMO10gw3yha8TFljFnafnvYlILpGtNTuZpV/4U=
+Date: Mon, 12 Jan 2026 10:39:17 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,yeoreum.yun@arm.com,will@kernel.org,weixugc@google.com,vincenzo.frascino@arm.com,vbabka@suse.cz,urezki@gmail.com,ubizjak@gmail.com,trintaeoitogc@gmail.com,thuth@redhat.com,thomas.lendacky@amd.com,tglx@kernel.org,surenb@google.com,smostafa@google.com,samuel.holland@sifive.com,samitolvanen@google.com,ryabinin.a.a@gmail.com,rppt@kernel.org,peterz@infradead.org,osandov@fb.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,mhocko@suse.com,maz@kernel.org,mark.rutland@arm.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leitao@debian.org,kees@kernel.org,kbingham@kernel.org,justinstitt@google.com,jpoimboe@kernel.org,jeremy.linton@arm.com,jan.kiszka@siemens.com,jackmanb@google.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,brgerst@gmail.com,bp@alien8.de,bigeasy@linutronix.de,axelrasmussen@google.com,ardb@kernel.org,anshuman.khandual@arm.com,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-fix-inline-mode-for-x86-tag-based-mode.patch added to mm-new branch
-Message-Id: <20260112183915.053CCC116D0@smtp.kernel.org>
+Subject: + x86-kasan-add-arch-specific-kasan-functions.patch added to mm-new branch
+Message-Id: <20260112183917.B06DEC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: Fix inline mode for x86 tag-based mode
+     Subject: x86/kasan: add arch specific kasan functions
 has been added to the -mm mm-new branch.  Its filename is
-     kasan-fix-inline-mode-for-x86-tag-based-mode.patch
+     x86-kasan-add-arch-specific-kasan-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-fix-inline-mode-for-x86-tag-based-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kasan-add-arch-specific-kasan-functions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,28 +67,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Subject: kasan: Fix inline mode for x86 tag-based mode
-Date: Mon, 12 Jan 2026 17:27:35 +0000
+Subject: x86/kasan: add arch specific kasan functions
+Date: Mon, 12 Jan 2026 17:27:43 +0000
 
-The LLVM compiler uses hwasan-instrument-with-calls parameter to setup
-inline or outline mode in tag-based KASAN.  If zeroed, it means the
-instrumentation implementation will be pasted into each relevant location
-along with KASAN related constants during compilation.  If set to one all
-function instrumentation will be done with function calls instead.
+KASAN's software tag-based mode needs multiple macros/functions to handle
+tag and pointer interactions - to set, retrieve and reset tags from the
+top bits of a pointer.
 
-The default hwasan-instrument-with-calls value for the x86 architecture in
-the compiler is "1", which is not true for other architectures.  Because
-of this, enabling inline mode in software tag-based KASAN doesn't work on
-x86 as the kernel script doesn't zero out the parameter and always sets up
-the outline mode.
+Mimic functions currently used by arm64 but change the tag's position to
+bits [60:57] in the pointer.
 
-Explicitly zero out hwasan-instrument-with-calls when enabling inline mode
-in tag-based KASAN.
-
-Link: https://lkml.kernel.org/r/1598e2bb7d45902fb0dc4d0d8e218f61b0c1a0f6.1768233085.git.m.wieczorretman@pm.me
+Link: https://lkml.kernel.org/r/785eb728e2cc897e05ee709d42214172be481ab9.1768233085.git.m.wieczorretman@pm.me
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -141,23 +133,100 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/include/asm/kasan.h |   42 +++++++++++++++++++++++++++++++--
+ include/linux/kasan-tags.h   |    2 +
+ include/linux/mmzone.h       |    2 -
+ 3 files changed, 43 insertions(+), 3 deletions(-)
 
---- a/scripts/Makefile.kasan~kasan-fix-inline-mode-for-x86-tag-based-mode
-+++ a/scripts/Makefile.kasan
-@@ -76,8 +76,11 @@ CFLAGS_KASAN := -fsanitize=kernel-hwaddr
- RUSTFLAGS_KASAN := -Zsanitizer=kernel-hwaddress \
- 		   -Zsanitizer-recover=kernel-hwaddress
+--- a/arch/x86/include/asm/kasan.h~x86-kasan-add-arch-specific-kasan-functions
++++ a/arch/x86/include/asm/kasan.h
+@@ -3,6 +3,8 @@
+ #define _ASM_X86_KASAN_H
  
-+# LLVM sets hwasan-instrument-with-calls to 1 on x86 by default. Set it to 0
-+# when inline mode is enabled.
- ifdef CONFIG_KASAN_INLINE
- 	kasan_params += hwasan-mapping-offset=$(KASAN_SHADOW_OFFSET)
-+	kasan_params += hwasan-instrument-with-calls=0
- else
- 	kasan_params += hwasan-instrument-with-calls=1
- endif
+ #include <linux/const.h>
++#include <linux/kasan-tags.h>
++#include <linux/types.h>
+ #define KASAN_SHADOW_OFFSET _AC(CONFIG_KASAN_SHADOW_OFFSET, UL)
+ #define KASAN_SHADOW_SCALE_SHIFT 3
+ 
+@@ -24,8 +26,43 @@
+ 						  KASAN_SHADOW_SCALE_SHIFT)))
+ 
+ #ifndef __ASSEMBLER__
++#include <linux/bitops.h>
++#include <linux/bitfield.h>
++#include <linux/bits.h>
++
++#ifdef CONFIG_KASAN_SW_TAGS
++#define __tag_shifted(tag)		FIELD_PREP(GENMASK_ULL(60, 57), tag)
++#define __tag_reset(addr)		(sign_extend64((u64)(addr), 56))
++#define __tag_get(addr)			((u8)FIELD_GET(GENMASK_ULL(60, 57), (u64)addr))
++#else
++#define __tag_shifted(tag)		0UL
++#define __tag_reset(addr)		(addr)
++#define __tag_get(addr)			0
++#endif /* CONFIG_KASAN_SW_TAGS */
++
++#ifdef CONFIG_64BIT
++static inline void *__tag_set(const void *__addr, u8 tag)
++{
++	u64 addr = (u64)__addr;
++
++	addr &= ~__tag_shifted(KASAN_TAG_BYTE_MASK);
++	addr |= __tag_shifted(tag & KASAN_TAG_BYTE_MASK);
++
++	return (void *)addr;
++}
++#else
++static inline void *__tag_set(void *__addr, u8 tag)
++{
++	return __addr;
++}
++#endif
++
++#define arch_kasan_set_tag(addr, tag)	__tag_set(addr, tag)
++#define arch_kasan_reset_tag(addr)	__tag_reset(addr)
++#define arch_kasan_get_tag(addr)	__tag_get(addr)
+ 
+ #ifdef CONFIG_KASAN
++
+ void __init kasan_early_init(void);
+ void __init kasan_init(void);
+ void __init kasan_populate_shadow_for_vaddr(void *va, size_t size, int nid);
+@@ -34,8 +71,9 @@ static inline void kasan_early_init(void
+ static inline void kasan_init(void) { }
+ static inline void kasan_populate_shadow_for_vaddr(void *va, size_t size,
+ 						   int nid) { }
+-#endif
+ 
+-#endif
++#endif /* CONFIG_KASAN */
++
++#endif /* __ASSEMBLER__ */
+ 
+ #endif
+--- a/include/linux/kasan-tags.h~x86-kasan-add-arch-specific-kasan-functions
++++ a/include/linux/kasan-tags.h
+@@ -10,6 +10,8 @@
+ #define KASAN_TAG_WIDTH		0
+ #endif
+ 
++#define KASAN_TAG_BYTE_MASK	((1UL << KASAN_TAG_WIDTH) - 1)
++
+ #ifndef KASAN_TAG_KERNEL
+ #define KASAN_TAG_KERNEL	0xFF /* native kernel pointers tag */
+ #endif
+--- a/include/linux/mmzone.h~x86-kasan-add-arch-specific-kasan-functions
++++ a/include/linux/mmzone.h
+@@ -1177,7 +1177,7 @@ static inline bool zone_is_empty(const s
+ #define NODES_MASK		((1UL << NODES_WIDTH) - 1)
+ #define SECTIONS_MASK		((1UL << SECTIONS_WIDTH) - 1)
+ #define LAST_CPUPID_MASK	((1UL << LAST_CPUPID_SHIFT) - 1)
+-#define KASAN_TAG_MASK		((1UL << KASAN_TAG_WIDTH) - 1)
++#define KASAN_TAG_MASK		KASAN_TAG_BYTE_MASK
+ #define ZONEID_MASK		((1UL << ZONEID_SHIFT) - 1)
+ 
+ static inline enum zone_type memdesc_zonenum(memdesc_flags_t flags)
 _
 
 Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
