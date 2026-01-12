@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E0723644D4
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 16:14:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B199A363C42
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 17:21:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768234458; cv=none; b=SkKWQCuSsZM5zTwmqOyjdmJTmW++q3AuLd1TuyR+Ihrg6NGrRVIIxj+oFhqvlkednNghVKR9M9hl67RGpUISPwOM2NprStrZzFqGomfGyyYd5FThTLyAqDbWqW6JAXwtoP3R8h4Q0ntkfWdy5q3mCqJOEc4v1Un0z2XpDuj071I=
+	t=1768238493; cv=none; b=cOqrl79zdX7xPo5DbnUMnYLrompVKregCmj1aptJ831Cbl+HC/zgdUpFzcYrxjIybYwuxh5EnsrocttW7aRD6Y1vopAOiEnovs8M+tI/x4dWu5Yb4hFWH30KOG+CaFZBvgbmp2x8GsS9q90NBM2ERQOeKy/uVBPiaLwC9sDFNW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768234458; c=relaxed/simple;
-	bh=KT9xYY2uu+6PPTEJuXtvOxsHFZNZp0AHoIrWiLE27UY=;
-	h=Date:To:From:Subject:Message-Id; b=RoKSvqmnav3okoKodrQIx3/+y/7MkxWD4iURlHx9PK24sScFzSoQPMkcNm208ljJX6QjJ4conk9My/USgDmVhCRl0m48aMwCWXTLG9IXd9CuhV/X6IUWxDLjZeKwFgcSwS8BCzMrKOGCl+2JZbFQbGHnK3Uw1fbqz1B8ed0Djio=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t8Qm+74k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768238493; c=relaxed/simple;
+	bh=ae25tcsM3gxjTkvzLDKYzdJpuxoVcHx6ctL0zqzy8qo=;
+	h=Date:To:From:Subject:Message-Id; b=IzsSJ+IPlko0icqkTLjJxmTz1F2XecO9BmItN6W52Rc05+WjG07UDMl4dWgHqX8ICPxC2ZLMqHEihnX7cNO+zzC+Sm4ZiE6m6MMRQetwi+MVRieJqo+FfSKmuYxeeytejcTZYiaE1VdB8xXdby2/vJ88gOrpVD67BDwI8iq/bJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X8wixDEc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t8Qm+74k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D922FC2BC9E;
-	Mon, 12 Jan 2026 16:14:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X8wixDEc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AFD0C116D0;
+	Mon, 12 Jan 2026 17:21:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768234458;
-	bh=KT9xYY2uu+6PPTEJuXtvOxsHFZNZp0AHoIrWiLE27UY=;
+	s=korg; t=1768238493;
+	bh=ae25tcsM3gxjTkvzLDKYzdJpuxoVcHx6ctL0zqzy8qo=;
 	h=Date:To:From:Subject:From;
-	b=t8Qm+74k/anNV3gcD9/uX8dITHanrvjiXRDh0ISJ0vCYRUip1xM9Geb48oJsA4qf7
-	 L+SQaTXdxS2OFzeDOZRNUcUOSP0vz5ieY0O3L+C5lPZRon7Kq1SiTfh2pkGWIQkfVe
-	 PkyMzdh1xYMsSaycxJgmxeZzNWQIS95CBXO0Xylg=
-Date: Mon, 12 Jan 2026 08:14:17 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,pfalcato@suse.de,liam.howlett@oracle.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=X8wixDEcY7E6PWknxp1hUtdLQ/mSoZFpG1txxEq54xLA1Zb8/e6a6y4Mj8XnikOtr
+	 zH80wwS5K8vuC70GbfseGpcwj7+/OYi5ratDGNMf3ATKsjB0bZJWLVCeQtlUyB53gR
+	 whP447rdfGz/AzA+AupEcD7rH7bLsve1AoQNB85Q=
+Date: Mon, 12 Jan 2026 09:21:32 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260112161417.D922FC2BC9E@smtp.kernel.org>
+Subject: + mm-page_isolation-introduce-page_is_unmovable.patch added to mm-new branch
+Message-Id: <20260112172133.1AFD0C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: do not leak memory when .mmap_prepare swaps the file
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
+     Subject: mm: page_isolation: introduce page_is_unmovable()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_isolation-introduce-page_is_unmovable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_isolation-introduce-page_is_unmovable.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,105 +66,282 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: do not leak memory when .mmap_prepare swaps the file
-Date: Mon, 12 Jan 2026 15:51:43 +0000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: page_isolation: introduce page_is_unmovable()
+Date: Mon, 12 Jan 2026 23:09:50 +0800
 
-The current implementation of mmap() is set up such that a struct file
-object is obtained for the input fd in ksys_mmap_pgoff() via fget(), and
-its reference count decremented at the end of the function via.  fput().
+Patch series "mm: accelerate gigantic folio allocation".
 
-If a merge can be achieved, we are fine to simply decrement the refcount
-on the file.  Otherwise, in __mmap_new_file_vma(), we increment the
-reference count on the file via get_file() such that the fput() in
-ksys_mmap_pgoff() does not free the now-referenced file object.
+Optimize pfn_range_valid_contig() and replace_free_hugepage_folios() in
+alloc_contig_frozen_pages() to speed up gigantic folio allocation.  The
+allocation time for 120*1G folios drops from 3.605s to 0.431s.
 
-The introduction of the f_op->mmap_prepare hook changes things, as it
-becomes possible for a driver to replace the file object right at the
-beginning of the mmap operation.
 
-The current implementation is buggy if this happens because it
-unconditionally calls get_file() on the mapping's file whether or not it
-was replaced (and thus whether or not its reference count will be
-decremented at the end of ksys_mmap_pgoff()).
+This patch (of 5):
 
-This results in a memory leak, and was exposed in commit ab04945f91bc
-("mm: update mem char driver to use mmap_prepare").
+Factor out the check if a page is unmovable into a new helper, and will be
+reused in the following patch.
 
-This patch solves the problem by explicitly tracking whether we actually
-need to call get_file() on the file or not, and only doing so if required.
+No functional change intended, the minor changes are as follows,
+1) Avoid unnecessary calls by checking CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+2) Directly call PageCompound since PageTransCompound may be dropped
+3) Using folio_test_hugetlb()
 
-Link: https://lkml.kernel.org/r/20260112155143.661284-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Fixes: ab04945f91bc ("mm: update mem char driver to use mmap_prepare")
-Reported-by: syzbot+bf5de69ebb4bdf86f59f@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/6964a92b.050a0220.eaf7.008a.GAE@google.com/
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Link: https://lkml.kernel.org/r/20260112150954.1802953-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20260112150954.1802953-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ include/linux/page-isolation.h |    2 
+ mm/page_isolation.c            |  187 ++++++++++++++++---------------
+ 2 files changed, 101 insertions(+), 88 deletions(-)
 
---- a/mm/vma.c~mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file
-+++ a/mm/vma.c
-@@ -37,6 +37,8 @@ struct mmap_state {
- 	bool check_ksm_early :1;
- 	/* If we map new, hold the file rmap lock on mapping. */
- 	bool hold_file_rmap_lock :1;
-+	/* If .mmap_prepare changed the file, we don't need to pin. */
-+	bool file_doesnt_need_get :1;
- };
+--- a/include/linux/page-isolation.h~mm-page_isolation-introduce-page_is_unmovable
++++ a/include/linux/page-isolation.h
+@@ -67,4 +67,6 @@ void undo_isolate_page_range(unsigned lo
  
- #define MMAP_STATE(name, mm_, vmi_, addr_, len_, pgoff_, vm_flags_, file_) \
-@@ -2450,7 +2452,9 @@ static int __mmap_new_file_vma(struct mm
- 	struct vma_iterator *vmi = map->vmi;
- 	int error;
+ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
+ 			enum pb_isolate_mode mode);
++bool page_is_unmovable(struct zone *zone, struct page *page,
++			enum pb_isolate_mode mode, unsigned long *step);
+ #endif
+--- a/mm/page_isolation.c~mm-page_isolation-introduce-page_is_unmovable
++++ a/mm/page_isolation.c
+@@ -15,6 +15,100 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/page_isolation.h>
  
--	vma->vm_file = get_file(map->file);
-+	vma->vm_file = map->file;
-+	if (!map->file_doesnt_need_get)
-+		get_file(map->file);
- 
- 	if (!map->file->f_op->mmap)
- 		return 0;
-@@ -2638,7 +2642,10 @@ static int call_mmap_prepare(struct mmap
- 
- 	/* Update fields permitted to be changed. */
- 	map->pgoff = desc->pgoff;
--	map->file = desc->vm_file;
-+	if (desc->vm_file != map->file) {
-+		map->file_doesnt_need_get = true;
-+		map->file = desc->vm_file;
++bool page_is_unmovable(struct zone *zone, struct page *page,
++		enum pb_isolate_mode mode, unsigned long *step)
++{
++	/*
++	 * Both, bootmem allocations and memory holes are marked
++	 * PG_reserved and are unmovable. We can even have unmovable
++	 * allocations inside ZONE_MOVABLE, for example when
++	 * specifying "movablecore".
++	 */
++	if (PageReserved(page))
++		return true;
++
++	/*
++	 * If the zone is movable and we have ruled out all reserved
++	 * pages then it should be reasonably safe to assume the rest
++	 * is movable.
++	 */
++	if (zone_idx(zone) == ZONE_MOVABLE)
++		return false;
++
++	/*
++	 * Hugepages are not in LRU lists, but they're movable.
++	 * THPs are on the LRU, but need to be counted as #small pages.
++	 * We need not scan over tail pages because we don't
++	 * handle each tail page individually in migration.
++	 */
++	if (PageHuge(page) || PageCompound(page)) {
++		struct folio *folio = page_folio(page);
++
++		if (folio_test_hugetlb(folio)) {
++			struct hstate *h;
++
++			if (!IS_ENABLED(CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION))
++				return true;
++
++			/*
++			 * The huge page may be freed so can not
++			 * use folio_hstate() directly.
++			 */
++			h = size_to_hstate(folio_size(folio));
++			if (h && !hugepage_migration_supported(h))
++				return true;
++
++		} else if (!folio_test_lru(folio)) {
++			return true;
++		}
++
++		*step = folio_nr_pages(folio) - folio_page_idx(folio, page);
++		return false;
 +	}
- 	map->vm_flags = desc->vm_flags;
- 	map->page_prot = desc->page_prot;
- 	/* User-defined fields. */
++
++	/*
++	 * We can't use page_count without pin a page
++	 * because another CPU can free compound page.
++	 * This check already skips compound tails of THP
++	 * because their page->_refcount is zero at all time.
++	 */
++	if (!page_ref_count(page)) {
++		if (PageBuddy(page))
++			*step = (1 << buddy_order(page));
++		return false;
++	}
++
++	/*
++	 * The HWPoisoned page may be not in buddy system, and
++	 * page_count() is not 0.
++	 */
++	if ((mode == PB_ISOLATE_MODE_MEM_OFFLINE) && PageHWPoison(page))
++		return false;
++
++	/*
++	 * We treat all PageOffline() pages as movable when offlining
++	 * to give drivers a chance to decrement their reference count
++	 * in MEM_GOING_OFFLINE in order to indicate that these pages
++	 * can be offlined as there are no direct references anymore.
++	 * For actually unmovable PageOffline() where the driver does
++	 * not support this, we will fail later when trying to actually
++	 * move these pages that still have a reference count > 0.
++	 * (false negatives in this function only)
++	 */
++	if ((mode == PB_ISOLATE_MODE_MEM_OFFLINE) && PageOffline(page))
++		return false;
++
++	if (PageLRU(page) || page_has_movable_ops(page))
++		return false;
++
++	/*
++	 * If there are RECLAIMABLE pages, we need to check
++	 * it.  But now, memory offline itself doesn't call
++	 * shrink_node_slabs() and it still to be fixed.
++	 */
++	return true;
++}
++
+ /*
+  * This function checks whether the range [start_pfn, end_pfn) includes
+  * unmovable pages or not. The range must fall into a single pageblock and
+@@ -35,7 +129,6 @@ static struct page *has_unmovable_pages(
+ {
+ 	struct page *page = pfn_to_page(start_pfn);
+ 	struct zone *zone = page_zone(page);
+-	unsigned long pfn;
+ 
+ 	VM_BUG_ON(pageblock_start_pfn(start_pfn) !=
+ 		  pageblock_start_pfn(end_pfn - 1));
+@@ -52,96 +145,14 @@ static struct page *has_unmovable_pages(
+ 		return page;
+ 	}
+ 
+-	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+-		page = pfn_to_page(pfn);
++	while (start_pfn < end_pfn) {
++		unsigned long step = 1;
+ 
+-		/*
+-		 * Both, bootmem allocations and memory holes are marked
+-		 * PG_reserved and are unmovable. We can even have unmovable
+-		 * allocations inside ZONE_MOVABLE, for example when
+-		 * specifying "movablecore".
+-		 */
+-		if (PageReserved(page))
++		page = pfn_to_page(start_pfn);
++		if (page_is_unmovable(zone, page, mode, &step))
+ 			return page;
+ 
+-		/*
+-		 * If the zone is movable and we have ruled out all reserved
+-		 * pages then it should be reasonably safe to assume the rest
+-		 * is movable.
+-		 */
+-		if (zone_idx(zone) == ZONE_MOVABLE)
+-			continue;
+-
+-		/*
+-		 * Hugepages are not in LRU lists, but they're movable.
+-		 * THPs are on the LRU, but need to be counted as #small pages.
+-		 * We need not scan over tail pages because we don't
+-		 * handle each tail page individually in migration.
+-		 */
+-		if (PageHuge(page) || PageTransCompound(page)) {
+-			struct folio *folio = page_folio(page);
+-			unsigned int skip_pages;
+-
+-			if (PageHuge(page)) {
+-				struct hstate *h;
+-
+-				/*
+-				 * The huge page may be freed so can not
+-				 * use folio_hstate() directly.
+-				 */
+-				h = size_to_hstate(folio_size(folio));
+-				if (h && !hugepage_migration_supported(h))
+-					return page;
+-			} else if (!folio_test_lru(folio)) {
+-				return page;
+-			}
+-
+-			skip_pages = folio_nr_pages(folio) - folio_page_idx(folio, page);
+-			pfn += skip_pages - 1;
+-			continue;
+-		}
+-
+-		/*
+-		 * We can't use page_count without pin a page
+-		 * because another CPU can free compound page.
+-		 * This check already skips compound tails of THP
+-		 * because their page->_refcount is zero at all time.
+-		 */
+-		if (!page_ref_count(page)) {
+-			if (PageBuddy(page))
+-				pfn += (1 << buddy_order(page)) - 1;
+-			continue;
+-		}
+-
+-		/*
+-		 * The HWPoisoned page may be not in buddy system, and
+-		 * page_count() is not 0.
+-		 */
+-		if ((mode == PB_ISOLATE_MODE_MEM_OFFLINE) && PageHWPoison(page))
+-			continue;
+-
+-		/*
+-		 * We treat all PageOffline() pages as movable when offlining
+-		 * to give drivers a chance to decrement their reference count
+-		 * in MEM_GOING_OFFLINE in order to indicate that these pages
+-		 * can be offlined as there are no direct references anymore.
+-		 * For actually unmovable PageOffline() where the driver does
+-		 * not support this, we will fail later when trying to actually
+-		 * move these pages that still have a reference count > 0.
+-		 * (false negatives in this function only)
+-		 */
+-		if ((mode == PB_ISOLATE_MODE_MEM_OFFLINE) && PageOffline(page))
+-			continue;
+-
+-		if (PageLRU(page) || page_has_movable_ops(page))
+-			continue;
+-
+-		/*
+-		 * If there are RECLAIMABLE pages, we need to check
+-		 * it.  But now, memory offline itself doesn't call
+-		 * shrink_node_slabs() and it still to be fixed.
+-		 */
+-		return page;
++		start_pfn += step;
+ 	}
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-vma-fix-anon_vma-uaf-on-mremap-faulted-unfaulted-merge.patch
-tools-testing-selftests-add-tests-for-tgt-src-mremap-merges.patch
-mm-vma-enforce-vma-fork-limit-on-unfaultedfaulted-mremap-merge-too.patch
-tools-testing-selftests-add-forked-un-faulted-vma-merge-tests.patch
-tools-testing-selftests-fix-gup_longterm-for-unknown-fs.patch
-mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
+mm-debug_vm_pgtable-add-debug_vm_pgtable_free_huge_page.patch
+mm-page_alloc-add-__split_page.patch
+mm-cma-kill-cma_pages_valid.patch
+mm-page_alloc-add-alloc_contig_frozen_rangepages.patch
+mm-cma-add-cma_alloc_frozen_compound.patch
+mm-hugetlb-allocate-frozen-pages-for-gigantic-allocation.patch
+mm-page_isolation-introduce-page_is_unmovable.patch
+mm-page_alloc-optimize-pfn_range_valid_contig.patch
+mm-hugetlb-optimize-replace_free_hugepage_folios.patch
+mm-hugetlb_cma-optimize-hugetlb_cma_alloc_frozen_folio.patch
+mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init.patch
 
