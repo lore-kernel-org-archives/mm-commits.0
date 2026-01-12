@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A63237F750
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14F9C37F750
+	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 18:39:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768243179; cv=none; b=AmmwaZb5mHkiXXrZ8Q+xwsMn+s0pnYWmOWvpSQVPJP2hfgz8YcF8DX0Ds1r4OD4aY6/vqmjzgEuYulptg16CAXMCQRZi/7UmLBJ3GKcot2KKpyIlOrPpykiw90bwgGgLAnVeyUpfoWSTChF46o7kEr2EOkSz/A74DvilQcd7DAk=
+	t=1768243182; cv=none; b=F1Cz48/DYbKFgC2IXqYd7X44TEFaNNrocHG+GkluH1K/KYuG4oDv4URC8zdzFB9CgEgBZgKAdx2PQ4Uc0+ss9+TDrQ5n7NSo3H/93NVX4c/CJwqDU5xk5S7nf0BjGEdLoLCKqPxqL756Syz2rvp27AqUCXV8eLdTQ6KPQiE27pw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768243179; c=relaxed/simple;
-	bh=CSAPQbf9S11ddv9U4d0RjLfyNh9sagiyoMlsg9qsLWc=;
-	h=Date:To:From:Subject:Message-Id; b=cnY0UMT5NvDQZDbuWRdjpR+N33DBWU893JH8bFhKdaz+Ro19BC5rPju79aNGyx4F/XpUCEvwub8xXaXO4gse/5MAHhSesxZpteH2krZJzEYGBPZcx+eVHUULFfjF+KpN1wD7+GSWcAS6GeqbY7KPcheyJuC1nVrWWCz0lbNo4XE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kVrrMNgG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768243182; c=relaxed/simple;
+	bh=GclTuJP6bHR5Vi8wGVCGDW9MMxbecvwXAtmwacBQZno=;
+	h=Date:To:From:Subject:Message-Id; b=tmMTO0XIHntopou1LP+s6V/5VIUW9ZiP66gxme9DgVvJk207AwPWw2whLA7gGBbgFLEDil1L/IjrNR97A5UtMbIG6CFSPth9Te2eHYS9fiz6Ult0LqYuciMPU42UB0JGIeET1wrsDJFsgBGBkO9c4BXnMZAXfVV7m2LdP3WxUIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hHMrP28w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kVrrMNgG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F152BC116D0;
-	Mon, 12 Jan 2026 18:39:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hHMrP28w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98ED5C116D0;
+	Mon, 12 Jan 2026 18:39:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768243179;
-	bh=CSAPQbf9S11ddv9U4d0RjLfyNh9sagiyoMlsg9qsLWc=;
+	s=korg; t=1768243181;
+	bh=GclTuJP6bHR5Vi8wGVCGDW9MMxbecvwXAtmwacBQZno=;
 	h=Date:To:From:Subject:From;
-	b=kVrrMNgGkvoPNNeUDkc1wdW5bA/RHwxqe9r3/7QzbS5X8himaylBXxg0CVCQoyF8h
-	 LDWNAv6k8EPwZDYiXw5ByDH5U5ltN92laa4WU0rTGjzNtj8B0kWq+/LbmbgNHiJdNo
-	 0IsZn9KVZyXaQNdlO3zwwp01Qc6wfUznjkKAYheA=
-Date: Mon, 12 Jan 2026 10:39:38 -0800
+	b=hHMrP28wsoQJ3X1sJfdo4Gy+Th7vsY29wMQsGORf/2Ce5BfTg0rSjCO052mDXyWPj
+	 WZRZ2N4poJNytwZ0LBA6xqrzgHh0hPCxpoDFqvLBdz9SELoEOMA9LxFoJVa2wDOs3h
+	 ON+AiwNawzq2Wex2bqgYrQ+/AcX314QYMtokv6NI=
+Date: Mon, 12 Jan 2026 10:39:41 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,yeoreum.yun@arm.com,will@kernel.org,weixugc@google.com,vincenzo.frascino@arm.com,vbabka@suse.cz,urezki@gmail.com,ubizjak@gmail.com,trintaeoitogc@gmail.com,thuth@redhat.com,thomas.lendacky@amd.com,tglx@kernel.org,surenb@google.com,smostafa@google.com,samuel.holland@sifive.com,samitolvanen@google.com,ryabinin.a.a@gmail.com,rppt@kernel.org,peterz@infradead.org,osandov@fb.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,mhocko@suse.com,maz@kernel.org,mark.rutland@arm.com,luto@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,leitao@debian.org,kees@kernel.org,kbingham@kernel.org,justinstitt@google.com,jpoimboe@kernel.org,jeremy.linton@arm.com,jan.kiszka@siemens.com,jackmanb@google.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,catalin.marinas@arm.com,brgerst@gmail.com,bp@alien8.de,bigeasy@linutronix.de,axelrasmussen@google.com,ardb@kernel.org,anshuman.khandual@arm.com,andreyknvl@gmail.com,maciej.wieczor-retman@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-minimal-slab-alignment.patch added to mm-new branch
-Message-Id: <20260112183938.F152BC116D0@smtp.kernel.org>
+Subject: + arm64-unify-software-tag-based-kasan-inline-recovery-path.patch added to mm-new branch
+Message-Id: <20260112183941.98ED5C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86: minimal SLAB alignment
+     Subject: arm64: unify software tag-based KASAN inline recovery path
 has been added to the -mm mm-new branch.  Its filename is
-     x86-minimal-slab-alignment.patch
+     arm64-unify-software-tag-based-kasan-inline-recovery-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-minimal-slab-alignment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-unify-software-tag-based-kasan-inline-recovery-path.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,28 +67,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Subject: x86: minimal SLAB alignment
-Date: Mon, 12 Jan 2026 17:28:19 +0000
+Subject: arm64: unify software tag-based KASAN inline recovery path
+Date: Mon, 12 Jan 2026 17:28:24 +0000
 
-8 byte minimal SLAB alignment interferes with KASAN's granularity of 16
-bytes.  It causes a lot of out-of-bounds errors for unaligned 8 byte
-allocations.
+To avoid having a copy of a long comment explaining the intricacies of the
+inline KASAN recovery system and issues for every architecture that uses
+the software tag-based mode, a unified kasan_die_unless_recover() function
+was added.
 
-Compared to a kernel with KASAN disabled, the memory footprint increases
-because all kmalloc-8 allocations now are realized as kmalloc-16, which
-has twice the object size.  But more meaningfully, when compared to a
-kernel with generic KASAN enabled, there is no difference.  Because of
-redzones in generic KASAN, kmalloc-8' and kmalloc-16' object size is the
-same (48 bytes).  So changing the minimal SLAB alignment of the tag-based
-mode doesn't have any negative impact when compared to the other software
-KASAN mode.
+Use kasan_die_unless_recover() in the kasan brk handler to cleanup the
+long comment, that's kept in the non-arch KASAN code.
 
-Adjust x86 minimal SLAB alignment to match KASAN granularity size.
-
-Link: https://lkml.kernel.org/r/1e1283ac47effe841f37b6a877842a7bf1948abe.1768233085.git.m.wieczorretman@pm.me
+Link: https://lkml.kernel.org/r/85ee02ae536a4c2e95f7d2609c5893d99cd64a00.1768233085.git.m.wieczorretman@pm.me
 Signed-off-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -99,7 +93,6 @@ Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Breno Leitao <leitao@debian.org>
 Cc: Brian Gerst <brgerst@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dmitriy Vyukov <dvyukov@google.com>
@@ -141,20 +134,35 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/cache.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm64/kernel/traps.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
---- a/arch/x86/include/asm/cache.h~x86-minimal-slab-alignment
-+++ a/arch/x86/include/asm/cache.h
-@@ -21,4 +21,8 @@
- #endif
- #endif
+--- a/arch/arm64/kernel/traps.c~arm64-unify-software-tag-based-kasan-inline-recovery-path
++++ a/arch/arm64/kernel/traps.c
+@@ -1071,22 +1071,7 @@ int kasan_brk_handler(struct pt_regs *re
  
-+#ifdef CONFIG_KASAN_SW_TAGS
-+#define ARCH_SLAB_MINALIGN (1ULL << KASAN_SHADOW_SCALE_SHIFT)
-+#endif
-+
- #endif /* _ASM_X86_CACHE_H */
+ 	kasan_report(addr, size, write, pc);
+ 
+-	/*
+-	 * The instrumentation allows to control whether we can proceed after
+-	 * a crash was detected. This is done by passing the -recover flag to
+-	 * the compiler. Disabling recovery allows to generate more compact
+-	 * code.
+-	 *
+-	 * Unfortunately disabling recovery doesn't work for the kernel right
+-	 * now. KASAN reporting is disabled in some contexts (for example when
+-	 * the allocator accesses slab object metadata; this is controlled by
+-	 * current->kasan_depth). All these accesses are detected by the tool,
+-	 * even though the reports for them are not printed.
+-	 *
+-	 * This is something that might be fixed at some point in the future.
+-	 */
+-	if (!recover)
+-		die("Oops - KASAN", regs, esr);
++	kasan_die_unless_recover(recover, "Oops - KASAN", regs, esr, die);
+ 
+ 	/* If thread survives, skip over the brk instruction and continue: */
+ 	arm64_skip_faulting_instruction(regs, AARCH64_INSN_SIZE);
 _
 
 Patches currently in -mm which might be from maciej.wieczor-retman@intel.com are
