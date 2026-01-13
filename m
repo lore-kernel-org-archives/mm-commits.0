@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE53D30F551
-	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 22:56:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E37A2DA755
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 23:00:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768345008; cv=none; b=ABQdkusAizPHeW5nk/vI3kQuHOk51mzbKLihM6GpZx+tsfnWa6PBjx4jh8SfiyEFeC2c7cAdMBy+Xv1a3vUH08QWygV5YqVYFiyl34TbVcdatBUbhHFkwBNri9rupGKDYceJKycAntOa5rGPsRX/0EyEVJ+b9rJf7wbE3FoX8pU=
+	t=1768345251; cv=none; b=Y5LTHxCpNwq8wCgSfRtpkONmBidaH/0acjhrQC8/R2VgKsdPNNRYZgh0gHMRBLxLXv61kOHl39AhsJM1i63XcfIJ1/oVZ7k/i8Rd2PqBdQVtnfL2CIbP3yxbllWBPAK6QOLjwBt1NQXOZ0qYyOC29defDj3wgkB53EpRLaa4p/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768345008; c=relaxed/simple;
-	bh=r3zy2yWuuePc2yRomANDR6sPW6AfSgGB5o7O0ILVZtA=;
-	h=Date:To:From:Subject:Message-Id; b=i5uxqsJc/uYZYj8ifnkMv9DqMskyVJwvfBMU76Wf3voS+UFJ9jJuNpCtZakwdjMg2YUfUNAfegOtMD1eUyAd8mm+L8foA06kF228iHIiJ2tFlAMw72LBR28dvs4GUhdGHV4anc4LSlH2ihxGj5ZyWKK8UGJCVuua0EFma2vyUa4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TkocoC3M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768345251; c=relaxed/simple;
+	bh=XNtopabULFdRvhIbNoiaL+pnkLsROWbixO7CXDmVc3w=;
+	h=Date:To:From:Subject:Message-Id; b=p3AUQU+x4iW8lC9OdfKHsH1YgDT+aJ1N6a8u6q299DF5/UHtTRWC2GebfZIgjtwKOCG6rc3BAR1nLtEq7S/r6A479MOenw8dDA9v1M+WCmRdGOHtvUpnZQvFPxiDcy7s+03YacKfmGDS8JtraFo9uTO5eUp5x1PkesRg62wVlJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g2jKIc/b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TkocoC3M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68507C116C6;
-	Tue, 13 Jan 2026 22:56:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g2jKIc/b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 362E1C116C6;
+	Tue, 13 Jan 2026 23:00:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768345008;
-	bh=r3zy2yWuuePc2yRomANDR6sPW6AfSgGB5o7O0ILVZtA=;
+	s=korg; t=1768345251;
+	bh=XNtopabULFdRvhIbNoiaL+pnkLsROWbixO7CXDmVc3w=;
 	h=Date:To:From:Subject:From;
-	b=TkocoC3MdRWRwqAheICJan2WHak1q1SzG1ft5EDp/t3c52rxESwZizyW8Y1fa8Swa
-	 Fas308KVgqIjlTFXrrZl3nemGYd6H9H5aUrSXdrAj4wF0/aQjInh8ZLKMgDK8z7+si
-	 wGThi+XseG8SseCcJcqzFCYz0ZgtBt6zrYA6DcnQ=
-Date: Tue, 13 Jan 2026 14:56:47 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jiangshanlai@gmail.com,hannes@cmpxchg.org,glider@google.com,frederic@kernel.org,elver@google.com,dvyukov@google.com,david@kernel.org,bigeasy@linutronix.de,marco.crivellari@suse.com,akpm@linux-foundation.org
+	b=g2jKIc/bjJvesAq0qIzfwQ6EIY4CRITDllEqeY1oPs8tY5AtRkX24dbd7E3O4s/KU
+	 VsI6DAHIgu/PMZ3ZoroF95YtUOZx/od6SEkCV2b+8/ziFKMIn3EwuOos5LwKe6P3bY
+	 y2006cItrVNsu+elFdIhfeTbp7/kvwSrvirqhDkQ=
+Date: Tue, 13 Jan 2026 15:00:50 -0800
+To: mm-commits@vger.kernel.org,tglx@kernel.org,mingo@kernel.org,sun.jian.kdev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-wq_percpu-to-alloc_workqueue-users.patch added to mm-new branch
-Message-Id: <20260113225648.68507C116C6@smtp.kernel.org>
+Subject: + init-main-read-bootconfig-header-with-get_unaligned_le32.patch added to mm-nonmm-unstable branch
+Message-Id: <20260113230051.362E1C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add WQ_PERCPU to alloc_workqueue users
-has been added to the -mm mm-new branch.  Its filename is
-     mm-add-wq_percpu-to-alloc_workqueue-users.patch
+     Subject: init/main: read bootconfig header with get_unaligned_le32()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     init-main-read-bootconfig-header-with-get_unaligned_le32.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-wq_percpu-to-alloc_workqueue-users.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-main-read-bootconfig-header-with-get_unaligned_le32.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,96 +58,70 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Marco Crivellari <marco.crivellari@suse.com>
-Subject: mm: add WQ_PERCPU to alloc_workqueue users
-Date: Tue, 13 Jan 2026 12:46:30 +0100
+From: Sun Jian <sun.jian.kdev@gmail.com>
+Subject: init/main: read bootconfig header with get_unaligned_le32()
+Date: Tue, 13 Jan 2026 18:15:32 +0800
 
-This continues the effort to refactor workqueue APIs, which began with the
-introduction of new workqueues and a new alloc_workqueue flag in:
+get_boot_config_from_initrd() scans up to 3 bytes before initrd_end to
+handle GRUB 4-byte alignment.  As a result, the bootconfig header
+immediately preceding the magic may be unaligned.
 
-   commit 128ea9f6ccfb ("workqueue: Add system_percpu_wq and system_dfl_wq")
-   commit 930c2ea566af ("workqueue: Add new WQ_PERCPU flag")
+Read the size and checksum fields with get_unaligned_le32() instead of
+casting to u32 * and using le32_to_cpu(), avoiding potential unaligned
+access and silencing sparse "cast to restricted __le32" warnings.
 
-The refactoring is going to alter the default behavior of
-alloc_workqueue() to be unbound by default.
+Sparse warnings (gcc + C=1):
+  init/main.c:292:16: warning: cast to restricted __le32
+  init/main.c:293:16: warning: cast to restricted __le32
 
-With the introduction of the WQ_PERCPU flag (equivalent to !WQ_UNBOUND),
-any alloc_workqueue() caller that doesn't explicitly specify WQ_UNBOUND
-must now use WQ_PERCPU.  For more details see the Link tag below.
+No functional change intended.
 
-In order to keep alloc_workqueue() behavior identical, explicitly request
-WQ_PERCPU.
-
-Link: https://lore.kernel.org/all/20250221112003.1dSuoGyc@linutronix.de/
-Link: https://lkml.kernel.org/r/20260113114630.152942-4-marco.crivellari@suse.com
-Signed-off-by: Marco Crivellari <marco.crivellari@suse.com>
-Suggested-by: Tejun Heo <tj@kernel.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lai jiangshan <jiangshanlai@gmail.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20260113101532.1630770-1-sun.jian.kdev@gmail.com
+Signed-off-by: Sun Jian <sun.jian.kdev@gmail.com>
+Cc:
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    2 +-
- mm/slub.c        |    4 +++-
- mm/vmstat.c      |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ init/main.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/backing-dev.c~mm-add-wq_percpu-to-alloc_workqueue-users
-+++ a/mm/backing-dev.c
-@@ -974,7 +974,7 @@ static int __init cgwb_init(void)
- 	 * system_percpu_wq.  Put them in a separate wq and limit concurrency.
- 	 * There's no point in executing many of these in parallel.
- 	 */
--	cgwb_release_wq = alloc_workqueue("cgwb_release", 0, 1);
-+	cgwb_release_wq = alloc_workqueue("cgwb_release", WQ_PERCPU, 1);
- 	if (!cgwb_release_wq)
- 		return -ENOMEM;
+--- a/init/main.c~init-main-read-bootconfig-header-with-get_unaligned_le32
++++ a/init/main.c
+@@ -104,6 +104,7 @@
+ #include <linux/pidfs.h>
+ #include <linux/ptdump.h>
+ #include <linux/time_namespace.h>
++#include <linux/unaligned.h>
+ #include <net/net_namespace.h>
  
---- a/mm/slub.c~mm-add-wq_percpu-to-alloc_workqueue-users
-+++ a/mm/slub.c
-@@ -8542,7 +8542,9 @@ void __init kmem_cache_init(void)
- 
- void __init kmem_cache_init_late(void)
+ #include <asm/io.h>
+@@ -270,7 +271,7 @@ static void * __init get_boot_config_fro
  {
--	flushwq = alloc_workqueue("slub_flushwq", WQ_MEM_RECLAIM, 0);
-+#ifndef CONFIG_SLUB_TINY
-+	flushwq = alloc_workqueue("slub_flushwq", WQ_MEM_RECLAIM | WQ_PERCPU,
-+				  0);
- 	WARN_ON(!flushwq);
- }
+ 	u32 size, csum;
+ 	char *data;
+-	u32 *hdr;
++	u8 *hdr;
+ 	int i;
  
---- a/mm/vmstat.c~mm-add-wq_percpu-to-alloc_workqueue-users
-+++ a/mm/vmstat.c
-@@ -2259,7 +2259,8 @@ void __init init_mm_internals(void)
- {
- 	int ret __maybe_unused;
+ 	if (!initrd_end)
+@@ -289,9 +290,9 @@ static void * __init get_boot_config_fro
+ 	return NULL;
  
--	mm_percpu_wq = alloc_workqueue("mm_percpu_wq", WQ_MEM_RECLAIM, 0);
-+	mm_percpu_wq = alloc_workqueue("mm_percpu_wq",
-+				       WQ_MEM_RECLAIM | WQ_PERCPU, 0);
+ found:
+-	hdr = (u32 *)(data - 8);
+-	size = le32_to_cpu(hdr[0]);
+-	csum = le32_to_cpu(hdr[1]);
++	hdr = (u8 *)(data - 8);
++	size = get_unaligned_le32(hdr);
++	csum = get_unaligned_le32(hdr + 4);
  
- #ifdef CONFIG_SMP
- 	ret = cpuhp_setup_state_nocalls(CPUHP_MM_VMSTAT_DEAD, "mm/vmstat:dead",
+ 	data = ((void *)hdr) - size;
+ 	if ((unsigned long)data < initrd_start) {
 _
 
-Patches currently in -mm which might be from marco.crivellari@suse.com are
+Patches currently in -mm which might be from sun.jian.kdev@gmail.com are
 
-mm-replace-use-of-system_unbound_wq-with-system_dfl_wq.patch
-mm-replace-use-of-system_wq-with-system_percpu_wq.patch
-mm-add-wq_percpu-to-alloc_workqueue-users.patch
+init-main-read-bootconfig-header-with-get_unaligned_le32.patch
 
