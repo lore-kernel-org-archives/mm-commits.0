@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63B6A30BF4E;
-	Tue, 13 Jan 2026 23:23:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7298834FF59
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 23:24:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768346592; cv=none; b=TjCXTrqtXAOxG3Z7t367/UhjyJHuf0hV23/xQ1oGTsSCbO4DjmGtwo4VPLKj5gKKCiaSaau1ZD3CmxNW0rHwmfJKHEpj/bFdZgXBtElQl2bVlylxpPxGYwWIamIob5vSRLgqfGewsOTx+CSJd5Vf3c+NC9XIq7UOWq2lItgRL/Q=
+	t=1768346657; cv=none; b=D2y1Z0rSi9uoBoDqMXe/tei+FB9d7Jl/EQatXaokQHMVQ1RaW4d0xDveAQK0rgzYmDLDywClZrUiYYsgd7uczO/q3MIW7DFXbj+VvgaN7ALhx1Tr03lYi55WoUVCYIlIz9Mvjcqe61VWjJosfjMnFVkQ4/q06+IY745qcbTbQwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768346592; c=relaxed/simple;
-	bh=NXrOCIc7NG6wQj1ZH5/XTIB7/G9i7gY2RVrzyqIfAdg=;
-	h=Date:To:From:Subject:Message-Id; b=butqeCLeg99d/LhTYlx4DxKmfothVq7FOLTjjOcLCZKNywp8ls9c82LkEaEV43X7S3exNbXi7sT3uBuyKHJ7bs59PFpOJEqLl8Iydgl5k1A4cUuN5dXOTyJT1XH65BN0EUZ7SqqKj6I+kFfNqFt8lWoGZcePhWUCixVQ5C9tJig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J4Djwcsu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768346657; c=relaxed/simple;
+	bh=CXecMBx+Ev1NuFcdGYfy8RNPnPNU4+kuLz4D9R5dfJ8=;
+	h=Date:To:From:Subject:Message-Id; b=b4fEJ2JjcCYrVv3Z2MY9Xv1VmLk5I19R9ySxFyqGbTN/Z6xMVceaUHkiV7pbEsDPc2VkjYsl+advCtKqq3blEhQyfSliXlIj5WSC5aJx6cfe6c/kHJWsC6NzSn6j9FTibv3XWebmyIE+bcehlc2mFCCELiFxKJohptxDumH+dd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y+1sftga; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J4Djwcsu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27CEBC116C6;
-	Tue, 13 Jan 2026 23:23:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y+1sftga"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B232FC116C6;
+	Tue, 13 Jan 2026 23:24:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768346592;
-	bh=NXrOCIc7NG6wQj1ZH5/XTIB7/G9i7gY2RVrzyqIfAdg=;
+	s=korg; t=1768346656;
+	bh=CXecMBx+Ev1NuFcdGYfy8RNPnPNU4+kuLz4D9R5dfJ8=;
 	h=Date:To:From:Subject:From;
-	b=J4DjwcsuX0dw3XlmgRtul21cYtw82cYoQ7emJdBZdI3DtH7QF/Q1euwC+/KqhwJnT
-	 GY7yLZ+ulf8mkKCXeT9AskhmQ7r/q5TcNrUIFyXv8/wJrdXlGuQNiSKIO/ZPPpfr2U
-	 WjGoQ0wCX/IZR1TcdbvmaLx0NAMb/LzGwDQ7iy6s=
-Date: Tue, 13 Jan 2026 15:23:11 -0800
-To: mm-commits@vger.kernel.org,william.roche@oracle.com,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,Liam.Howlett@oracle.com,david@kernel.org,jane.chu@oracle.com,akpm@linux-foundation.org
+	b=y+1sftgaZxtbBk7t/HTxBfzKmZYHyUzJ7j1kWuubECcOHwiIRl3hNVneAzkMFMSCU
+	 s3IBGxp8qm/xkxShjAt3H/5x5wRXyexgbfMw6By0uTibuJkxCJ2PtURoVik67d7HBG
+	 WjGL7vYMjcWDaX+7x1JfXwc8C47kpktohchcPHM8=
+Date: Tue, 13 Jan 2026 15:24:16 -0800
+To: mm-commits@vger.kernel.org,matttbe@kernel.org,luca.ceresoli@bootlin.com,leitao@debian.org,cmllamas@google.com,wangjinchao600@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260113232312.27CEBC116C6@smtp.kernel.org>
+Subject: [to-be-updated] scripts-decode_stacktracesh-update-usage-to-show-vmlinux-is-mandatory.patch removed from -mm tree
+Message-Id: <20260113232416.B232FC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,111 +34,48 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/memory-failure: teach kill_accessing_process to accept hugetlb tail page pfn
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn.patch
+The quilt patch titled
+     Subject: scripts/decode_stacktrace.sh update usage to show vmlinux is mandatory
+has been removed from the -mm tree.  Its filename was
+     scripts-decode_stacktracesh-update-usage-to-show-vmlinux-is-mandatory.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: mm/memory-failure: teach kill_accessing_process to accept hugetlb tail page pfn
-Date: Tue, 13 Jan 2026 01:07:51 -0700
+From: Jinchao Wang <wangjinchao600@gmail.com>
+Subject: scripts/decode_stacktrace.sh update usage to show vmlinux is mandatory
+Date: Mon, 12 Jan 2026 17:10:36 +0800
 
-When a hugetlb folio is being poisoned again, try_memory_failure_hugetlb()
-passed head pfn to kill_accessing_process(), that is not right.  The
-precise pfn of the poisoned page should be used in order to determine the
-precise vaddr as the SIGBUS payload.
+The script currently errors out if vmlinux is not provided, but the
+usage string implies it is optional. Remove the square brackets to
+correctly indicate that <vmlinux> is a required argument.
 
-This issue has already been taken care of in the normal path, that is,
-hwpoison_user_mappings(), see [1][2].  Further more, for [3] to work
-correctly in the hugetlb repoisoning case, it's essential to inform VM the
-precise poisoned page, not the head page.
-
-Link: https://lkml.kernel.org/r/20260113080751.2173497-2-jane.chu@oracle.com
-Link: https://lkml.kernel.org/r/20231218135837.3310403-1-willy@infradead.org [1]
-Link: https://lkml.kernel.org/r/20250224211445.2663312-1-jane.chu@oracle.com [2]
-Link: https://lore.kernel.org/lkml/20251116013223.1557158-1-jiaqiyan@google.com/ [3]
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: William Roche <william.roche@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260112091057.2119227-1-wangjinchao600@gmail.com
+Signed-off-by: Jinchao Wang <wangjinchao600@gmail.com>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Carlos Llamas <cmllamas@google.com>
+Cc: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Cc: Matthieu Baerts <matttbe@kernel.org>
+Cc: "Matthieu Baerts (NGI0)" <matttbe@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ scripts/decode_stacktrace.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn
-+++ a/mm/memory-failure.c
-@@ -692,6 +692,8 @@ static int check_hwpoisoned_entry(pte_t
- 				unsigned long poisoned_pfn, struct to_kill *tk)
- {
- 	unsigned long pfn = 0;
-+	unsigned long hwpoison_vaddr;
-+	unsigned long mask;
- 
- 	if (pte_present(pte)) {
- 		pfn = pte_pfn(pte);
-@@ -702,10 +704,12 @@ static int check_hwpoisoned_entry(pte_t
- 			pfn = softleaf_to_pfn(entry);
- 	}
- 
--	if (!pfn || pfn != poisoned_pfn)
-+	mask = ~((1UL << (shift - PAGE_SHIFT)) - 1);
-+	if (!pfn || ((pfn & mask) != (poisoned_pfn & mask)))
- 		return 0;
- 
--	set_to_kill(tk, addr, shift);
-+	hwpoison_vaddr = addr + ((poisoned_pfn - pfn) << PAGE_SHIFT);
-+	set_to_kill(tk, hwpoison_vaddr, shift);
- 	return 1;
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-update-usage-to-show-vmlinux-is-mandatory
++++ a/scripts/decode_stacktrace.sh
+@@ -6,7 +6,7 @@
+ usage() {
+ 	echo "Usage:"
+ 	echo "	$0 -r <release>"
+-	echo "	$0 [<vmlinux> [<base_path>|auto [<modules_path>]]]"
++	echo "	$0 <vmlinux> [<base_path>|auto [<modules_path>]]"
+ 	echo "	$0 -h"
  }
  
-@@ -2049,10 +2053,8 @@ retry:
- 		return action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
- 	case MF_HUGETLB_FOLIO_PRE_POISONED:
- 	case MF_HUGETLB_PAGE_PRE_POISON:
--		if (flags & MF_ACTION_REQUIRED) {
--			folio = page_folio(p);
--			res = kill_accessing_process(current, folio_pfn(folio), flags);
--		}
-+		if (flags & MF_ACTION_REQUIRED)
-+			res = kill_accessing_process(current, pfn, flags);
- 		if (res == MF_HUGETLB_FOLIO_PRE_POISONED)
- 			action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
- 		else
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from wangjinchao600@gmail.com are
 
-mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
-mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn.patch
 
