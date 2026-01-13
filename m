@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7FAF248891
-	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 23:34:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D846350D5E
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 23:34:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768347248; cv=none; b=IM224iI1AJcyW6ffPSlFhokWcD9HAnwy9Od5ZCpCrD/eJ3T5y92EGJBEHqzGMbBmMhfQaXQb/3clgY2Y0bBIzCE3d2Vvd4QlRgPbBgOuMsmAHFZSdQGNwzQnTGKo2tDZSuU2T4AMTiIrpjXMbfcA7yKVKWy4mr5AJ+Vb3I7mG28=
+	t=1768347252; cv=none; b=tTe9XVE9cHR16GzN0LIXWKMmeIxJ/+1w9BWlGnue+DO0U1lRN/YnA5GSagmuUu3xvPb0d/CFf0uuntX7vXMEObLqYRoROcFmVd5n/pxB4c2Cp9AddKTGpX5EgikSN/gTk/Y0SH4m5dBUZWaDxntFtf/a1c2cLXri9uSGC1DrGuQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768347248; c=relaxed/simple;
-	bh=uuYlrMHhQApRt46GSrUDOPsIxkWx8L9o7N49QLa17oo=;
-	h=Date:To:From:Subject:Message-Id; b=LVAi/XsbpGT3n8ASkalToeuwiycxIp3cL5TW/5nHpPp+3eI5B45ly71ATQNxYaavU2JPaueCpiv3CkPOxzYkJBxabTySzOqCQ7UOzh3EQD2h7uKicsiCxR9F919f2/wQpMP2r8zpHj9APZ63SjfVTmgf7OqbVQiBiXCerG3NvPg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tN5/cJHy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768347252; c=relaxed/simple;
+	bh=bnHd3XBx4igcYxINvqlG9/A0J6PyLDwUNwfGiCuZx90=;
+	h=Date:To:From:Subject:Message-Id; b=pX+IZH0vJz0Ap3QhFGR1ROB5VyvLdhj/Z7jaS21BLPPR+030Aovn0F6VrHmqITiy0cCKXoj7sf+eepbmBxZT20gy1T/H+RLILmpf8lNcqhNAIuAP9byd8Tico4OS5sFVSwI8BxMufW5CLHhBAtriKCz5ITon0VkZ7mC/lgbqzoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pxswic6J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tN5/cJHy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 574D8C116C6;
-	Tue, 13 Jan 2026 23:34:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pxswic6J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33CE8C116C6;
+	Tue, 13 Jan 2026 23:34:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768347248;
-	bh=uuYlrMHhQApRt46GSrUDOPsIxkWx8L9o7N49QLa17oo=;
+	s=korg; t=1768347251;
+	bh=bnHd3XBx4igcYxINvqlG9/A0J6PyLDwUNwfGiCuZx90=;
 	h=Date:To:From:Subject:From;
-	b=tN5/cJHyHgF6uyKrYRMdqLB9r3x1zQf8pMBrG+LGORa5yqb5310Xk3Vys6vrYhTK6
-	 tBHKReyqQHK1XavVBLNDozjZeDUGrwK7T0D29d7NZhV/Yo8mlSCm0ZpXtn4hFQ3wpr
-	 xDw4iWVxITHyiLb++R+05SSPxJ2KkuEtUFkw8VCg=
-Date: Tue, 13 Jan 2026 15:34:07 -0800
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yonghong.song@linux.dev,will@kernel.org,tglx@linutronix.de,stefan.kristiansson@saunalahti.fi,song@kernel.org,shorne@gmail.com,sdf@fomichev.me,sashal@kernel.org,peterz@infradead.org,mingo@redhat.com,martin.lau@linux.dev,mark.rutland@arm.com,kpsingh@kernel.org,jonas@southpole.se,jolsa@kernel.org,john.fastabend@gmail.com,hpa@zytor.com,haoluo@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,gary@garyguo.net,eddyz87@gmail.com,dinguyen@kernel.org,dave.hansen@linux.intel.com,daniel@iogearbox.net,dalias@libc.org,bp@alien8.de,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,ardb@kernel.org,andrii@kernel.org,fthain@linux-m68k.org,akpm@linux-foundation.org
+	b=Pxswic6JlhjgKptE4Jtqp+okPwI8PLQr7bZWBRFD0N5fCr8BfUt1GXAIHCftr/mrM
+	 aBES+xzZ22iAuNnd6oYGXZhivxZvHO+7//XNd8KioNRiNJE31yOK2bz9a3zqnIJSHg
+	 /hvbUYibyWgtI6RIjPu9OoH7s+0teasTKWl5o490=
+Date: Tue, 13 Jan 2026 15:34:10 -0800
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yonghong.song@linux.dev,will@kernel.org,tglx@linutronix.de,stefan.kristiansson@saunalahti.fi,song@kernel.org,shorne@gmail.com,sdf@fomichev.me,sashal@kernel.org,mingo@redhat.com,martin.lau@linux.dev,mark.rutland@arm.com,kpsingh@kernel.org,jonas@southpole.se,jolsa@kernel.org,john.fastabend@gmail.com,hpa@zytor.com,haoluo@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,gary@garyguo.net,fthain@linux-m68k.org,eddyz87@gmail.com,dinguyen@kernel.org,dave.hansen@linux.intel.com,daniel@iogearbox.net,dalias@libc.org,bp@alien8.de,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,ardb@kernel.org,andrii@kernel.org,peterz@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch added to mm-nonmm-unstable branch
-Message-Id: <20260113233408.574D8C116C6@smtp.kernel.org>
+Subject: + atomic-add-alignment-check-to-instrumented-atomic-operations.patch added to mm-nonmm-unstable branch
+Message-Id: <20260113233411.33CE8C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: atomic: specify alignment for atomic_t and atomic64_t
+     Subject: atomic: add alignment check to instrumented atomic operations
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch
+     atomic-add-alignment-check-to-instrumented-atomic-operations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/atomic-add-alignment-check-to-instrumented-atomic-operations.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,129 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Finn Thain <fthain@linux-m68k.org>
-Subject: atomic: specify alignment for atomic_t and atomic64_t
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: atomic: add alignment check to instrumented atomic operations
 Date: Tue, 13 Jan 2026 16:22:28 +1100
 
-Some recent commits incorrectly assumed 4-byte alignment of locks.  That
-assumption fails on Linux/m68k (and, interestingly, would have failed on
-Linux/cris also).  The jump label implementation makes a similar alignment
-assumption.
+Add a Kconfig option for debug builds which logs a warning when an
+instrumented atomic operation takes place that's misaligned.  Some
+platforms don't trap for this.
 
-The expectation that atomic_t and atomic64_t variables will be naturally
-aligned seems reasonable, as indeed they are on 64-bit architectures.  But
-atomic64_t isn't naturally aligned on csky, m68k, microblaze, nios2,
-openrisc and sh.  Neither atomic_t nor atomic64_t are naturally aligned on
-m68k.
-
-This patch brings a little uniformity by specifying natural alignment for
-atomic types.  One benefit is that atomic64_t variables do not get split
-across a page boundary.  The cost is that some structs grow which leads to
-cache misses and wasted memory.
-
-See also, commit bbf2a330d92c ("x86: atomic64: The atomic64_t data type
-should be 8 bytes aligned on 32-bit too").
-
-Link: https://lkml.kernel.org/r/a76bc24a4e7c1d8112d7d5fa8d14e4b694a0e90c.1768281748.git.fthain@linux-m68k.org
-Link: https://lore.kernel.org/lkml/CAFr9PX=MYUDGJS2kAvPMkkfvH+0-SwQB_kxE4ea0J_wZ_pk=7w@mail.gmail.com
-Link: https://lore.kernel.org/lkml/CAMuHMdW7Ab13DdGs2acMQcix5ObJK0O2dG_Fxzr8_g58Rc1_0g@mail.gmail.com/
+[fthain@linux-m68k.org: added __DISABLE_EXPORTS conditional and refactored as helper function]
+Link: https://lkml.kernel.org/r/51ebf844e006ca0de408f5d3a831e7b39d7fc31c.1768281748.git.fthain@linux-m68k.org
+Link: https://lore.kernel.org/lkml/20250901093600.GF4067720@noisy.programming.kicks-ass.net/
+Link: https://lore.kernel.org/linux-next/df9fbd22-a648-ada4-fee0-68fe4325ff82@linux-m68k.org/
 Signed-off-by: Finn Thain <fthain@linux-m68k.org>
-Acked-by: Guo Ren <guoren@kernel.org>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: Daniel Borkman <daniel@iogearbox.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Gary Guo <gary@garyguo.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Guo Ren <guoren@kernel.org>
 Cc: Hao Luo <haoluo@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Jonas Bonn <jonas@southpole.se>
 Cc: KP Singh <kpsingh@kernel.org>
 Cc: Marc Rutland <mark.rutland@arm.com>
 Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sasha Levin (Microsoft) <sashal@kernel.org>
+Cc: Rich Felker <dalias@libc.org>
 Cc: Song Liu <song@kernel.org>
+Cc: Stafford Horne <shorne@gmail.com>
 Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 Cc: Will Deacon <will@kernel.org>
 Cc: Yonghong Song <yonghong.song@linux.dev>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/atomic64.h |    2 +-
- include/linux/types.h          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/instrumented.h |   11 +++++++++++
+ lib/Kconfig.debug            |   10 ++++++++++
+ 2 files changed, 21 insertions(+)
 
---- a/include/asm-generic/atomic64.h~atomic-specify-alignment-for-atomic_t-and-atomic64_t
-+++ a/include/asm-generic/atomic64.h
-@@ -10,7 +10,7 @@
- #include <linux/types.h>
+--- a/include/linux/instrumented.h~atomic-add-alignment-check-to-instrumented-atomic-operations
++++ a/include/linux/instrumented.h
+@@ -7,6 +7,7 @@
+ #ifndef _LINUX_INSTRUMENTED_H
+ #define _LINUX_INSTRUMENTED_H
  
- typedef struct {
--	s64 counter;
-+	s64 __aligned(sizeof(s64)) counter;
- } atomic64_t;
++#include <linux/bug.h>
+ #include <linux/compiler.h>
+ #include <linux/kasan-checks.h>
+ #include <linux/kcsan-checks.h>
+@@ -55,6 +56,13 @@ static __always_inline void instrument_r
+ 	kcsan_check_read_write(v, size);
+ }
  
- #define ATOMIC64_INIT(i)	{ (i) }
---- a/include/linux/types.h~atomic-specify-alignment-for-atomic_t-and-atomic64_t
-+++ a/include/linux/types.h
-@@ -179,7 +179,7 @@ typedef phys_addr_t resource_size_t;
- typedef unsigned long irq_hw_number_t;
++static __always_inline void instrument_atomic_check_alignment(const volatile void *v, size_t size)
++{
++#ifndef __DISABLE_EXPORTS
++	WARN_ON_ONCE(IS_ENABLED(CONFIG_DEBUG_ATOMIC) && ((unsigned long)v & (size - 1)));
++#endif
++}
++
+ /**
+  * instrument_atomic_read - instrument atomic read access
+  * @v: address of access
+@@ -67,6 +75,7 @@ static __always_inline void instrument_a
+ {
+ 	kasan_check_read(v, size);
+ 	kcsan_check_atomic_read(v, size);
++	instrument_atomic_check_alignment(v, size);
+ }
  
- typedef struct {
--	int counter;
-+	int __aligned(sizeof(int)) counter;
- } atomic_t;
+ /**
+@@ -81,6 +90,7 @@ static __always_inline void instrument_a
+ {
+ 	kasan_check_write(v, size);
+ 	kcsan_check_atomic_write(v, size);
++	instrument_atomic_check_alignment(v, size);
+ }
  
- #define ATOMIC_INIT(i) { (i) }
+ /**
+@@ -95,6 +105,7 @@ static __always_inline void instrument_a
+ {
+ 	kasan_check_write(v, size);
+ 	kcsan_check_atomic_read_write(v, size);
++	instrument_atomic_check_alignment(v, size);
+ }
+ 
+ /**
+--- a/lib/Kconfig.debug~atomic-add-alignment-check-to-instrumented-atomic-operations
++++ a/lib/Kconfig.debug
+@@ -1360,6 +1360,16 @@ config DEBUG_PREEMPT
+ 	  depending on workload as it triggers debugging routines for each
+ 	  this_cpu operation. It should only be used for debugging purposes.
+ 
++config DEBUG_ATOMIC
++	bool "Debug atomic variables"
++	depends on DEBUG_KERNEL
++	help
++	  If you say Y here then the kernel will add a runtime alignment check
++	  to atomic accesses. Useful for architectures that do not have trap on
++	  mis-aligned access.
++
++	  This option has potentially significant overhead.
++
+ menu "Lock Debugging (spinlocks, mutexes, etc...)"
+ 
+ config LOCK_DEBUGGING_SUPPORT
 _
 
-Patches currently in -mm which might be from fthain@linux-m68k.org are
+Patches currently in -mm which might be from peterz@infradead.org are
 
-bpf-explicitly-align-bpf_res_spin_lock.patch
-atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch
-atomic-add-option-for-weaker-alignment-check.patch
+atomic-add-alignment-check-to-instrumented-atomic-operations.patch
 
