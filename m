@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D244D22A4E8
-	for <mm-commits@vger.kernel.org>; Mon, 12 Jan 2026 23:46:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46AA625487C
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 04:37:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768261593; cv=none; b=dzRZkT3Om1CSNmdS5Rf3FqipyGvO2my2wkp4vD/urPldVvuPes/yPUxkPYp0GnMRAp0xuyRDHJy3nvwLNnjKyDkEoT2qyaAyb+0gDvQzYybUJhZ2JrTe6rbwNomk7GGhnZzE5OdbzZ4btwQdWJipHh8qJNpnVOYyDZvqW/jute0=
+	t=1768279047; cv=none; b=tUWISxvdHaTrj3c16mRX+PmNeviA5FEqnGEZwsY0CgyIC3zo8aDET0BqfLxXy6obR+AY23YEnR4PzqU02S6Ih85TsxTemDbkLaHGBKXF0A603Engq2mR8n2qyFSHjuVuV3JQLgnDQGGqTfZnbnOCllb7EnBBwjZ1V6fxQqAqyDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768261593; c=relaxed/simple;
-	bh=etVvZnkZiNV9kP4WIOFDEbs/+6EeZ37oxPYOeNROE6E=;
-	h=Date:To:From:Subject:Message-Id; b=kj0n79cV+3vfOl1R2R7OV4XamR2ebbGwBQrUNXeCbPUhAqwvvntV9PSo019GeThE6b5WFU6h/ZRXXqR8mA9VCZtPyleHxoUeJx3PVNgh/IgLJsV8vCrgQVDP2ZKnUM+td21C4AeJq0/EWSCBBZt1ukSgl0ynVWC7+A/aVtR1gZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HwiWTryD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768279047; c=relaxed/simple;
+	bh=E0aPR7EGPiyXrZY8rU/USwZMc0B7yYvEGWzSSbCkO/g=;
+	h=Date:To:From:Subject:Message-Id; b=RPFHSok8g2IOqghwszJhiQ7m+iv8zMyj1PWg68P+FDxwCXh4D0ZfnysM1XKquO+gEzcm7zPJLF6jg0rhIkHAVb2gHssRQLMoUume/tTQLItot+5IAxwlgLVb+gp+gt7U3bmQUFQWH62H5KednSrHL/RArgu1XqrxOi4OGX7Ld8c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AKMbVo7K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HwiWTryD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60CFCC116D0;
-	Mon, 12 Jan 2026 23:46:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AKMbVo7K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0EC6C116C6;
+	Tue, 13 Jan 2026 04:37:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768261592;
-	bh=etVvZnkZiNV9kP4WIOFDEbs/+6EeZ37oxPYOeNROE6E=;
+	s=korg; t=1768279046;
+	bh=E0aPR7EGPiyXrZY8rU/USwZMc0B7yYvEGWzSSbCkO/g=;
 	h=Date:To:From:Subject:From;
-	b=HwiWTryDVScyu3VRoLVV/jQYnRmYLvAxd2AW0pL6c9+NrY8fEpr1/yULX8BmTqtfi
-	 cIqJkcqsPkNfZIRSbiq5gkyDTVlGKaeaPrH1pbD2H+UCOcqJQDtImx0vdwPvdCDTHI
-	 Au0/7nElrKeTjAOpYdNkOOM4/D6vAmB5rCTcBJdM=
-Date: Mon, 12 Jan 2026 15:46:31 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=AKMbVo7KsyoFFuWhT7CJofZahujhpygLA9kK+KH6xcmndioJj9QFlcLDmaIdrVyNF
+	 +vNRlNOhnNvAlo7v/D8niMul216veECu637RA4fXBd1AlmdybEfVNk2bbGWaBE/LdC
+	 juDtTyInjD3icFS37wfG65LAqx+lDFLcIk6e6unY=
+Date: Mon, 12 Jan 2026 20:37:25 -0800
+To: mm-commits@vger.kernel.org,corbet@lwn.net,diego.viola@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch added to mm-unstable branch
-Message-Id: <20260112234632.60CFCC116D0@smtp.kernel.org>
+Subject: [merged] credits-add-whitespace-before-opening-parentheses.patch removed from -mm tree
+Message-Id: <20260113043726.C0EC6C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,72 +34,69 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: memcg-mem_cgroup_get_from_ino-returns-null-on-error-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
+The quilt patch titled
+     Subject: CREDITS: add whitespace before opening parentheses
+has been removed from the -mm tree.  Its filename was
+     credits-add-whitespace-before-opening-parentheses.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-mem_cgroup_get_from_ino-returns-null-on-error-fix
-Date: Mon Jan 12 03:36:40 PM PST 2026
+From: Diego Viola <diego.viola@gmail.com>
+Subject: CREDITS: add whitespace before opening parentheses
+Date: Sat, 10 Jan 2026 21:23:52 -0300
 
-build fix
+In order to maintain consistent formatting across the file.
 
-mm/memcontrol.c: In function 'mem_cgroup_get_from_id':
-mm/memcontrol.c:3624:35: error: 'ino' undeclared (first use in this function); did you mean 'int'?
- 3624 |         cgrp = cgroup_get_from_id(ino);
-      |                                   ^~~
-      |                                   int
-
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lkml.kernel.org/r/20260111002353.4592-1-diego.viola@gmail.com
+Signed-off-by: Diego Viola <diego.viola@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ CREDITS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/memcontrol.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix
-+++ a/mm/memcontrol.c
-@@ -3621,7 +3621,7 @@ struct mem_cgroup *mem_cgroup_get_from_i
- 	struct cgroup_subsys_state *css;
- 	struct mem_cgroup *memcg = NULL;
+--- a/CREDITS~credits-add-whitespace-before-opening-parentheses
++++ a/CREDITS
+@@ -695,7 +695,7 @@ S: USA
+ N: Chih-Jen Chang
+ E: chihjenc@scf.usc.edu
+ E: chihjen@iis.sinica.edu.tw
+-D: IGMP(Internet Group Management Protocol) version 2
++D: IGMP (Internet Group Management Protocol) version 2
+ S: 3F, 65 Tajen street
+ S: Tamsui town, Taipei county,
+ S: Taiwan 251
+@@ -1997,7 +1997,7 @@ E: bkaindl@netway.at
+ E: edv@bartelt.via.at
+ D: Author of a menu based configuration tool, kmenu, which
+ D: is the predecessor of 'make menuconfig' and 'make xconfig'.
+-D: digiboard driver update(modularisation work and 2.1.x upd)
++D: digiboard driver update (modularisation work and 2.1.x upd)
+ S: Tallak 95
+ S: 8103 Rein
+ S: Austria
+@@ -3609,7 +3609,7 @@ S: Finland
+ N: Deepak Saxena
+ E: dsaxena@plexity.net
+ D: I2O kernel layer (config, block, core, pci, net). I2O disk support for LILO
+-D: XScale(IOP, IXP) porting and other random ARM bits
++D: XScale (IOP, IXP) porting and other random ARM bits
+ S: Portland, OR
  
--	cgrp = cgroup_get_from_id(ino);
-+	cgrp = cgroup_get_from_id(id);
- 	if (IS_ERR(cgrp))
- 		return NULL;
+ N: Eric Schenk
+@@ -3986,7 +3986,7 @@ S: D-50968 Köln
  
+ N: Tsu-Sheng Tsao
+ E: tsusheng@scf.usc.edu
+-D: IGMP(Internet Group Management Protocol) version 2
++D: IGMP (Internet Group Management Protocol) version 2
+ S: 2F 14 ALY 31 LN 166 SEC 1 SHIH-PEI RD
+ S: Taipei
+ S: Taiwan 112
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from diego.viola@gmail.com are
 
-mm-page_alloc-make-percpu_pagelist_high_fraction-reads-lock-free-fix.patch
-mm-add-basic-tests-for-lazy_mmu-fix.patch
-mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
-mm-block-fs-remove-laptop_mode-fix.patch
-mm-fix-minor-spelling-mistakes-in-comments-fix.patch
-memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
-mm-memory-tiers-numa_emu-enable-to-create-memory-tiers-using-fake-numa-nodes-fix.patch
-list-add-primitives-for-private-list-manipulations-fix.patch
-init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning-fix.patch
 
