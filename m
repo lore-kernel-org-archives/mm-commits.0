@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9BEA30AD0A;
-	Tue, 13 Jan 2026 05:09:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C051730AD0A
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 05:09:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768280996; cv=none; b=blhdmShGwgeyqFLDgA3YlHneasC3ijUTkzBSwFaniO5xRPbhGQLTPsMRAkE1c/lasNz/KirS+0KKpLxr/YcXHAxt80YrZFg0WcOYunOBCsFipyfNEkXGoBF1qjvefXXfpSs8aB7DWcUxNrSVHHT2mSkUugzyDy7+ukVaO4UCt9k=
+	t=1768280997; cv=none; b=AWeFu/HIe8ufKjK5cKNK08YrbGHE1DQw4W1D9Wm0FXTpvPZXDagqfX4AsK8soF8xKycUaSVNOMFYqHPtyD+aD3W+BaOSmn8Qb7Q1PWPUEqGM0tSFFoLIKHBio4c8RiMtG2PhFujYFO4MwAi4UOFct7WsC6IfFgaFWneEDmhQSoE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768280996; c=relaxed/simple;
-	bh=K7c1+ZuLcM1wU5Vlzk2CrNF2Qzgfa8dbHn4Cq+BIWF8=;
-	h=Date:To:From:Subject:Message-Id; b=sq9RRH39IY0hDNM/4B1ek9/udB+FqiVluIVV97nBfFq7lrWFZDWN/p1FW6KD6tTpKWMVimzkEH7BPeMoRU9AqmGQ4sqScC4+Dih/xZZZiWh0ri4kqOe7eT2ROsGKn0w05xzIgTS/kqEX3ncpvWYpyWuFhuqjRpqAfvnlXSsn8OA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sjDmuMIY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768280997; c=relaxed/simple;
+	bh=REiLG1MrbHP0Wb4OpOA+Ik956lsAI+5osk1FSCjwj5U=;
+	h=Date:To:From:Subject:Message-Id; b=ndLBYg40wNR+U+5d/O+vvXKzUQUEHAjV8oIFMVO/lkXrIeCNuwWE/71c9l5/yR8K7hAZbHxsgKXo6cc9ccycEpu6QV44af5QBgtBtlGp4X+FkBG+UMY5jf9//R70qfUr2qBkJ1fhDF9G6hp840TSXT71E3dQM5L7yw3gdd1gAuY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rEnfwPRc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sjDmuMIY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82699C116C6;
-	Tue, 13 Jan 2026 05:09:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rEnfwPRc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98A1EC116C6;
+	Tue, 13 Jan 2026 05:09:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768280996;
-	bh=K7c1+ZuLcM1wU5Vlzk2CrNF2Qzgfa8dbHn4Cq+BIWF8=;
+	s=korg; t=1768280997;
+	bh=REiLG1MrbHP0Wb4OpOA+Ik956lsAI+5osk1FSCjwj5U=;
 	h=Date:To:From:Subject:From;
-	b=sjDmuMIYp/yRUg+fIa3CuvrOFD4gsNbVpBhJncmPP+tHEuld/RyOnlUSg/NLrarTn
-	 7zENC934kGMlMqrDoJUIxEMybeXXFO2fZSnQExIFJlKttHfnwSllJR7nH24Ehfyn10
-	 VbgmbJB7+RTI0dwN4fUtxlIopEMSKdEDuXyXw0r0=
-Date: Mon, 12 Jan 2026 21:09:55 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,Liam.Howlett@oracle.com,liam.howlett@oracle.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,broonie@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=rEnfwPRcDPdthWEUrOzcPYi8qWMookcVm1dS6dk9CxBHK6/eLiFGfDZgLYmHVtiQl
+	 jRzEyeWhYZ2Sar/QiAiYCgx3R/oZjk1CeQRjL1756V4rkURr0FOTZNv8xzcXDH5R2X
+	 oYrzXSzHhONW5xbxD+QV6H5Jh0UUVjr7oV5wn4o0=
+Date: Mon, 12 Jan 2026 21:09:57 -0800
+To: mm-commits@vger.kernel.org,danielt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] tools-testing-selftests-fix-gup_longterm-for-unknown-fs.patch removed from -mm tree
-Message-Id: <20260113050956.82699C116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mailmap-add-entry-for-daniel-thompson.patch removed from -mm tree
+Message-Id: <20260113050957.98A1EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,41 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests: fix gup_longterm for unknown fs
+     Subject: mailmap: add entry for Daniel Thompson
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-fix-gup_longterm-for-unknown-fs.patch
+     mailmap-add-entry-for-daniel-thompson.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools/testing/selftests: fix gup_longterm for unknown fs
-Date: Tue, 6 Jan 2026 15:45:47 +0000
+From: Daniel Thompson <danielt@kernel.org>
+Subject: mailmap: add entry for Daniel Thompson
+Date: Thu, 08 Jan 2026 11:09:54 +0000
 
-Commit 66bce7afbaca ("selftests/mm: fix test result reporting in
-gup_longterm") introduced a small bug causing unknown filesystems to
-always result in a test failure.
+My linaro address stopped working a long time ago but I didn't update my
+mailmap entry.  Fix that.
 
-This is because do_test() was updated to use a common reporting path, but
-this case appears to have been missed.
-
-This is problematic for e.g.  virtme-ng which uses an overlayfs file
-system, causing gup_longterm to appear to fail each time due to a test
-count mismatch:
-
-	# Planned tests != run tests (50 != 46)
-	# Totals: pass:24 fail:0 xfail:0 xpass:0 skip:22 error:0
-
-The fix is to simply change the return into a break.
-
-Link: https://lkml.kernel.org/r/20260106154547.214907-1-lorenzo.stoakes@oracle.com
-Fixes: 66bce7afbaca ("selftests/mm: fix test result reporting in gup_longterm")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260108-mailmap-daniel_thompson_linaro-org-v1-1-83f610876377@kernel.org
+Signed-off-by: Daniel Thompson <danielt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/gup_longterm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/mm/gup_longterm.c~tools-testing-selftests-fix-gup_longterm-for-unknown-fs
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -179,7 +179,7 @@ static void do_test(int fd, size_t size,
- 		if (rw && shared && fs_is_unknown(fs_type)) {
- 			ksft_print_msg("Unknown filesystem\n");
- 			result = KSFT_SKIP;
--			return;
-+			break;
- 		}
- 		/*
- 		 * R/O pinning or pinning in a private mapping is always
+--- a/.mailmap~mailmap-add-entry-for-daniel-thompson
++++ a/.mailmap
+@@ -207,6 +207,7 @@ Daniel Borkmann <daniel@iogearbox.net> <
+ Daniel Borkmann <daniel@iogearbox.net> <dborkmann@redhat.com>
+ Daniel Borkmann <daniel@iogearbox.net> <dborkman@redhat.com>
+ Daniel Borkmann <daniel@iogearbox.net> <dxchgb@gmail.com>
++Daniel Thompson <danielt@kernel.org> <daniel.thompson@linaro.org>
+ Danilo Krummrich <dakr@kernel.org> <dakr@redhat.com>
+ David Brownell <david-b@pacbell.net>
+ David Collins <quic_collinsd@quicinc.com> <collinsd@codeaurora.org>
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from danielt@kernel.org are
 
-mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
 
