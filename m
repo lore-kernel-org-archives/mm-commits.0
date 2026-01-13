@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A8E62E7186
-	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 22:38:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37E01320CA7
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 22:38:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768343888; cv=none; b=J10nDXwfFl/x+m93UBQHn/Norcwt5A9jfpqaB7UALgzM4E3m6cseoUuR0OH5ncBjHn7FldN1LigdhQh0VuPaWncE6YLYiib/MIVCnBFWMsPSLzilQZLEmSFUwWhPAlVtRupy3FmEyjB8kRI/oIlrkKkedTVRZylevet2d8eljX0=
+	t=1768343890; cv=none; b=klP7ADIkqKVVoSdijhXtWl8JBG3XJAdShaG8yLrTaqWd7P9QfafJj1750NNWJgl7xkdlliI4Ax1NSzFGPeOMt14IbRxB82AKGUNHZawdLZEQcdvanNulq+OJpiVdhjp5+Uh6YyHALsAtxJckJh140I4HtXUaj20JrIGVQYffZYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768343888; c=relaxed/simple;
-	bh=kloIc1ZnKhAjGI0eqXQKGvzNqu8DmMv5Yv4yjc04tRs=;
-	h=Date:To:From:Subject:Message-Id; b=D9GKw1PuGtaC+XZcTfOiEeVZWdRK/H0ZQlG3XyS7PoJc0MRydVDZpreS19n4Ov0sb4X+WZs4PlZBDEeLC1lG5EmPe8OEmTR9fZVBbXfQURh5F83XQQMcon6N7Bgqr/T0MklyXqvxvaSo4Q64Q2Atzs6z9z8JfPXCGbnaJHVEZC4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i5dzpknh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768343890; c=relaxed/simple;
+	bh=DFDyLcAxqGxzE37nXz3bEqfuntmibARqnWh3GIm6aZg=;
+	h=Date:To:From:Subject:Message-Id; b=U0wUmFaoiZcb/MczSIv8zOojA5/fgt9kfSPvVFQVLGIZcodgfbp1JIciZvOjvUTsGNuubaWIePWvXF0Od70DHrzYEcLw91MIRLHVnE649KbcToCZ7bVQl2pWWfZI1v4mfIJAp96svaFYPoAlM6GrFdCyvn1zF9iMg+VRH9KsHIs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=me+WFqUc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i5dzpknh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D371DC116C6;
-	Tue, 13 Jan 2026 22:38:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="me+WFqUc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D03C6C116C6;
+	Tue, 13 Jan 2026 22:38:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768343887;
-	bh=kloIc1ZnKhAjGI0eqXQKGvzNqu8DmMv5Yv4yjc04tRs=;
+	s=korg; t=1768343889;
+	bh=DFDyLcAxqGxzE37nXz3bEqfuntmibARqnWh3GIm6aZg=;
 	h=Date:To:From:Subject:From;
-	b=i5dzpknh+jaevORn7XRZ1qhQDloIsCz5Z4rclMdcZYMps6PGV9TZ26RkuWKEQZQWx
-	 sR2/ozr61F33RodB9ZVqKbnIYutzIIoSSFm6ugmLuvDGLSWnI5Y14wIz9TmKPOuFIn
-	 VpuB76SUn7s7mTFMuCkDZAYLyUaXp/KuJlh8UbfA=
-Date: Tue, 13 Jan 2026 14:38:07 -0800
+	b=me+WFqUce7VG5U7TTi3yt0XS3MS1jIglc2vCvfBssBv85xFXSV7bEF7VFp8ooBGaQ
+	 mAJ33WI6466xeogOCz1gItNyb/SVh1CMNrywYvDqVslLdcIK3dxbrmW4OHv5j4/61T
+	 pbRUjaWQK+MTVqt6n5IU50be+HMPLlD6CEiAi5DM=
+Date: Tue, 13 Jan 2026 14:38:09 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-consider-age-for-quota-prioritization.patch added to mm-new branch
-Message-Id: <20260113223807.D371DC116C6@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-support-young-page-filters.patch added to mm-new branch
+Message-Id: <20260113223809.D03C6C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: consider age for quota prioritization
+     Subject: mm/damon/lru_sort: support young page filters
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-lru_sort-consider-age-for-quota-prioritization.patch
+     mm-damon-lru_sort-support-young-page-filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-consider-age-for-quota-prioritization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-support-young-page-filters.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,15 +67,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: consider age for quota prioritization
-Date: Tue, 13 Jan 2026 07:27:10 -0800
+Subject: mm/damon/lru_sort: support young page filters
+Date: Tue, 13 Jan 2026 07:27:11 -0800
 
-DAMON_LRU_SORT is doing under-quota access pattern based regions
-prioritization using only access frequency.  Age of regions is another
-useful information for distinguishing hot and cold regions.  Use it for
-prioritization, too.
+DAMON monitors access patterns at the region level, and hence there could
+be some page level mismatches.  A few hot pages could be located in cold
+regions, and vice versa.  Young page filters can be useful for doing
+additional page level access checks before applying some DAMOS action.
 
-Link: https://lkml.kernel.org/r/20260113152717.70459-6-sj@kernel.org
+DAMON_LRU_SORT is not using young page filters, though.  Add a parameter
+for using it.
+
+Link: https://lkml.kernel.org/r/20260113152717.70459-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -88,20 +91,73 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/lru_sort.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-consider-age-for-quota-prioritization
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-support-young-page-filters
 +++ a/mm/damon/lru_sort.c
-@@ -71,7 +71,7 @@ static struct damos_quota damon_lru_sort
- 	/* Within the quota, mark hotter regions accessed first. */
- 	.weight_sz = 0,
- 	.weight_nr_accesses = 1,
--	.weight_age = 0,
-+	.weight_age = 1,
- };
- DEFINE_DAMON_MODULES_DAMOS_TIME_QUOTA(damon_lru_sort_quota);
+@@ -42,6 +42,21 @@ static bool commit_inputs __read_mostly;
+ module_param(commit_inputs, bool, 0600);
  
+ /*
++ * Filter [non-]young pages accordingly for LRU [de]prioritizations.
++ *
++ * If this is set, check page level access (youngness) once again before each
++ * LRU [de]prioritization operation.  LRU prioritization operation is skipped
++ * if the page has not accessed since the last check (not young).  LRU
++ * deprioritization operation is skipped if the page has accessed since the
++ * last check (young).  The feature is enabled or disabled if this parameter is
++ * set as ``Y`` or ``N``, respectively.
++ *
++ * Disabled by default.
++ */
++static bool filter_young_pages __read_mostly;
++module_param(filter_young_pages, bool, 0600);
++
++/*
+  * Access frequency threshold for hot memory regions identification in permil.
+  *
+  * If a memory region is accessed in frequency of this or higher,
+@@ -193,6 +208,28 @@ static struct damos *damon_lru_sort_new_
+ 	return damon_lru_sort_new_scheme(&pattern, DAMOS_LRU_DEPRIO);
+ }
+ 
++static int damon_lru_sort_add_filters(struct damos *hot_scheme,
++		struct damos *cold_scheme)
++{
++	struct damos_filter *filter;
++
++	if (!filter_young_pages)
++		return 0;
++
++	/* disallow prioritizing not-young pages */
++	filter = damos_new_filter(DAMOS_FILTER_TYPE_YOUNG, false, false);
++	if (!filter)
++		return -ENOMEM;
++	damos_add_filter(hot_scheme, filter);
++
++	/* disabllow de-prioritizing young pages */
++	filter = damos_new_filter(DAMOS_FILTER_TYPE_YOUNG, true, false);
++	if (!filter)
++		return -ENOMEM;
++	damos_add_filter(cold_scheme, filter);
++	return 0;
++}
++
+ static int damon_lru_sort_apply_parameters(void)
+ {
+ 	struct damon_ctx *param_ctx;
+@@ -240,6 +277,10 @@ static int damon_lru_sort_apply_paramete
+ 	damon_set_schemes(param_ctx, &hot_scheme, 1);
+ 	damon_add_scheme(param_ctx, cold_scheme);
+ 
++	err = damon_lru_sort_add_filters(hot_scheme, cold_scheme);
++	if (err)
++		goto out;
++
+ 	err = damon_set_region_biggest_system_ram_default(param_target,
+ 					&monitor_region_start,
+ 					&monitor_region_end,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
