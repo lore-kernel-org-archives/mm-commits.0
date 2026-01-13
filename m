@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E37A2DA755
-	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 23:00:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0B381632E7
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 23:05:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768345251; cv=none; b=Y5LTHxCpNwq8wCgSfRtpkONmBidaH/0acjhrQC8/R2VgKsdPNNRYZgh0gHMRBLxLXv61kOHl39AhsJM1i63XcfIJ1/oVZ7k/i8Rd2PqBdQVtnfL2CIbP3yxbllWBPAK6QOLjwBt1NQXOZ0qYyOC29defDj3wgkB53EpRLaa4p/Q=
+	t=1768345546; cv=none; b=LaAOFo/h40a8lAqZ9GF3cjYOxHPai3RSSzttgCcjDJRHc/bARYEF6QSTG59kOpc0GcR2MAAdt8UDBE9cIHqq50Wa1M2Z/TA6QBiDW3LUp7bWTdMT/D6ia41OnOEDIDcX37Fv2YN8ORz4w7YThCt7oM8yXAXc7rY1/dLwVQ9v/xM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768345251; c=relaxed/simple;
-	bh=XNtopabULFdRvhIbNoiaL+pnkLsROWbixO7CXDmVc3w=;
-	h=Date:To:From:Subject:Message-Id; b=p3AUQU+x4iW8lC9OdfKHsH1YgDT+aJ1N6a8u6q299DF5/UHtTRWC2GebfZIgjtwKOCG6rc3BAR1nLtEq7S/r6A479MOenw8dDA9v1M+WCmRdGOHtvUpnZQvFPxiDcy7s+03YacKfmGDS8JtraFo9uTO5eUp5x1PkesRg62wVlJ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g2jKIc/b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768345546; c=relaxed/simple;
+	bh=mhQ2H/j1pmIDg6qGvOP+lVzWPRki7EuRX9mwO9ZbCoM=;
+	h=Date:To:From:Subject:Message-Id; b=WB0mtn3Z/1XkEU25YTXhtE0Zd6HBJKBpHvXk7ZL6KHQhyC2j9k00lnfdtSGYzmQnwAxYc5MTXNZhe7Z3e2qHR9oRSXSxY98lecXYQnnrm9vySQTZGeGx7/RsobBkOiUpjCR2UnkG0qIk5U9hIDbs19o7E7DJedOQ4GeGcDe9nto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HbGNoKae; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g2jKIc/b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 362E1C116C6;
-	Tue, 13 Jan 2026 23:00:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HbGNoKae"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7015EC116C6;
+	Tue, 13 Jan 2026 23:05:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768345251;
-	bh=XNtopabULFdRvhIbNoiaL+pnkLsROWbixO7CXDmVc3w=;
+	s=korg; t=1768345545;
+	bh=mhQ2H/j1pmIDg6qGvOP+lVzWPRki7EuRX9mwO9ZbCoM=;
 	h=Date:To:From:Subject:From;
-	b=g2jKIc/bjJvesAq0qIzfwQ6EIY4CRITDllEqeY1oPs8tY5AtRkX24dbd7E3O4s/KU
-	 VsI6DAHIgu/PMZ3ZoroF95YtUOZx/od6SEkCV2b+8/ziFKMIn3EwuOos5LwKe6P3bY
-	 y2006cItrVNsu+elFdIhfeTbp7/kvwSrvirqhDkQ=
-Date: Tue, 13 Jan 2026 15:00:50 -0800
-To: mm-commits@vger.kernel.org,tglx@kernel.org,mingo@kernel.org,sun.jian.kdev@gmail.com,akpm@linux-foundation.org
+	b=HbGNoKaeO6vxVaohgx9fsrBnzVDT4zLaenl3ufBvWzwb/N9q2mYula/ZbylNqbpTk
+	 neNIczJT5Zr5CAHdAvElDT7dpz0VRUpY6JlBor5uc2JwQkNYrZEZV+1ArLhRA4lOTi
+	 Ns2TQOIPq8t4eoJWV+yO/zbfMHBbEbBQGa8rCMxY=
+Date: Tue, 13 Jan 2026 15:05:44 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,elver@google.com,dvyukov@google.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-main-read-bootconfig-header-with-get_unaligned_le32.patch added to mm-nonmm-unstable branch
-Message-Id: <20260113230051.362E1C116C6@smtp.kernel.org>
+Subject: + mm-kmsan-add-tests-for-high-order-page-freeing.patch added to mm-new branch
+Message-Id: <20260113230545.7015EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: init/main: read bootconfig header with get_unaligned_le32()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     init-main-read-bootconfig-header-with-get_unaligned_le32.patch
+     Subject: mm: kmsan: add tests for high-order page freeing
+has been added to the -mm mm-new branch.  Its filename is
+     mm-kmsan-add-tests-for-high-order-page-freeing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-main-read-bootconfig-header-with-get_unaligned_le32.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-add-tests-for-high-order-page-freeing.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,70 +66,109 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sun Jian <sun.jian.kdev@gmail.com>
-Subject: init/main: read bootconfig header with get_unaligned_le32()
-Date: Tue, 13 Jan 2026 18:15:32 +0800
+From: Alexander Potapenko <glider@google.com>
+Subject: mm: kmsan: add tests for high-order page freeing
+Date: Tue, 13 Jan 2026 10:11:50 +0100
 
-get_boot_config_from_initrd() scans up to 3 bytes before initrd_end to
-handle GRUB 4-byte alignment.  As a result, the bootconfig header
-immediately preceding the magic may be unaligned.
+Add regression tests to verify that KMSAN correctly poisons the full
+memory range when freeing pages.
 
-Read the size and checksum fields with get_unaligned_le32() instead of
-casting to u32 * and using le32_to_cpu(), avoiding potential unaligned
-access and silencing sparse "cast to restricted __le32" warnings.
+Specifically, verify that accessing the tail pages of a high-order
+non-compound allocation triggers a use-after-free report.  This ensures
+that the fix "mm: kmsan: Fix poisoning of high-order non-compound pages"
+is working as expected.
 
-Sparse warnings (gcc + C=1):
-  init/main.c:292:16: warning: cast to restricted __le32
-  init/main.c:293:16: warning: cast to restricted __le32
+Also add a test for standard order-0 pages for completeness.
 
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20260113101532.1630770-1-sun.jian.kdev@gmail.com
-Signed-off-by: Sun Jian <sun.jian.kdev@gmail.com>
-Cc:
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
+Link: https://lore.kernel.org/all/20260104134348.3544298-1-ryan.roberts@arm.com/
+Link: https://lkml.kernel.org/r/20260113091151.4035013-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/kmsan/kmsan_test.c |   49 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 48 insertions(+), 1 deletion(-)
 
---- a/init/main.c~init-main-read-bootconfig-header-with-get_unaligned_le32
-+++ a/init/main.c
-@@ -104,6 +104,7 @@
- #include <linux/pidfs.h>
- #include <linux/ptdump.h>
- #include <linux/time_namespace.h>
-+#include <linux/unaligned.h>
- #include <net/net_namespace.h>
+--- a/mm/kmsan/kmsan_test.c~mm-kmsan-add-tests-for-high-order-page-freeing
++++ a/mm/kmsan/kmsan_test.c
+@@ -361,7 +361,7 @@ static void test_init_vmalloc(struct kun
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
  
- #include <asm/io.h>
-@@ -270,7 +271,7 @@ static void * __init get_boot_config_fro
+-/* Test case: ensure that use-after-free reporting works. */
++/* Test case: ensure that use-after-free reporting works for kmalloc. */
+ static void test_uaf(struct kunit *test)
  {
- 	u32 size, csum;
- 	char *data;
--	u32 *hdr;
-+	u8 *hdr;
- 	int i;
+ 	EXPECTATION_USE_AFTER_FREE(expect);
+@@ -378,6 +378,51 @@ static void test_uaf(struct kunit *test)
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
  
- 	if (!initrd_end)
-@@ -289,9 +290,9 @@ static void * __init get_boot_config_fro
- 	return NULL;
- 
- found:
--	hdr = (u32 *)(data - 8);
--	size = le32_to_cpu(hdr[0]);
--	csum = le32_to_cpu(hdr[1]);
-+	hdr = (u8 *)(data - 8);
-+	size = get_unaligned_le32(hdr);
-+	csum = get_unaligned_le32(hdr + 4);
- 
- 	data = ((void *)hdr) - size;
- 	if ((unsigned long)data < initrd_start) {
++static volatile char *test_uaf_pages_helper(int order, int offset)
++{
++	struct page *page;
++	volatile char *var;
++
++	/* Memory is initialized up until __free_pages() thanks to __GFP_ZERO. */
++	page = alloc_pages(GFP_KERNEL | __GFP_ZERO, order);
++	var = page_address(page) + offset;
++	__free_pages(page, order);
++
++	return var;
++}
++
++/* Test case: ensure that use-after-free reporting works for a freed page. */
++static void test_uaf_pages(struct kunit *test)
++{
++	EXPECTATION_USE_AFTER_FREE(expect);
++	volatile char value;
++
++	kunit_info(test, "use-after-free on a freed page (UMR report)\n");
++	/* Allocate a single page, free it, then try to access it. */
++	value = *test_uaf_pages_helper(0, 3);
++	USE(value);
++
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
++/* Test case: ensure that UAF reporting works for high order pages. */
++static void test_uaf_high_order_pages(struct kunit *test)
++{
++	EXPECTATION_USE_AFTER_FREE(expect);
++	volatile char value;
++
++	kunit_info(test,
++		   "use-after-free on a freed high-order page (UMR report)\n");
++	/*
++	 * Create a high-order non-compound page, free it, then try to access
++	 * its tail page.
++	 */
++	value = *test_uaf_pages_helper(1, PAGE_SIZE + 3);
++	USE(value);
++
++	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++}
++
+ /*
+  * Test case: ensure that uninitialized values are propagated through per-CPU
+  * memory.
+@@ -683,6 +728,8 @@ static struct kunit_case kmsan_test_case
+ 	KUNIT_CASE(test_init_kmsan_vmap_vunmap),
+ 	KUNIT_CASE(test_init_vmalloc),
+ 	KUNIT_CASE(test_uaf),
++	KUNIT_CASE(test_uaf_pages),
++	KUNIT_CASE(test_uaf_high_order_pages),
+ 	KUNIT_CASE(test_percpu_propagate),
+ 	KUNIT_CASE(test_printk),
+ 	KUNIT_CASE(test_init_memcpy),
 _
 
-Patches currently in -mm which might be from sun.jian.kdev@gmail.com are
+Patches currently in -mm which might be from glider@google.com are
 
-init-main-read-bootconfig-header-with-get_unaligned_le32.patch
+mm-kmsan-add-tests-for-high-order-page-freeing.patch
+mm-kmsan-add-test_uninit_page.patch
 
