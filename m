@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 930EF31AF07
-	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 22:38:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 870D931AF07
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 22:38:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768343892; cv=none; b=lEv0YbfWIelBYXg4BhklF25Sydm4VVOyUg2lZKob5g8fuYYBoY+dCnuuG/BeSpfiajPZOLYARIpcPjWnsx5s8nqqGss8gqL1Ms3YDxUj7mQQ2LknUFasrXLb9c2bliVpbNKNIzdjTAlCdQeI4sKeO4v5S/OLZrA3wjo4VxvgiZM=
+	t=1768343894; cv=none; b=g8SnTDD1Uoege3lXR3D7ly9xvk2n3vml+n2d4unBSE81Q8rz/ILgOaSiBnN14BQ5GqvnMM7kaW8ZQIl9WytLXfDExox5FywLvKitXOwtOaEg86w1RKlnPFztir1vwWgtDPVvMcKo2ZH1cOuA09/OAwOms0EcWMwCHO5YkLmQMmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768343892; c=relaxed/simple;
-	bh=CTGs6wL3ryBk2gk3JkLQOnPTGCb8Ew9jmeLhcJPiHL4=;
-	h=Date:To:From:Subject:Message-Id; b=l9NJrc2Vo+aexaLAgAjUlZmOir7wwpasngDrsdlzvAWwJhoadDXkDHiXAQCuQXpIivSXyyobdGkfXhm9QzJokUn6UBciswx9kTamkCJ52uMPuUlTjsPLAe7X2k87dMqxrmEvdu3Sy+E9WU+1aqM1+1X83kcbEGpTrj9C/lqJMK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GErRtkcX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768343894; c=relaxed/simple;
+	bh=EEA7k9YajX4TmiFXLMbYHUwj/RvSG8yRVz2IbZilMaI=;
+	h=Date:To:From:Subject:Message-Id; b=TjeDHpo0eXC9T8m9vaQESceRJi/7ajFE0+sr2OIr3C4UH7CvKzeDYxWlR23A5hqEiJgvKcOmPown9+uPZTuLRuT8MVTORswuKTWhKFAJkA8WESBngIWXzC3zEdEo2TL98l3NVICF0DflYyY0up6xWARXNgocU53TS7qlqRu6hD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QPHky8vd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GErRtkcX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DA9DC116C6;
-	Tue, 13 Jan 2026 22:38:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QPHky8vd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A525C116C6;
+	Tue, 13 Jan 2026 22:38:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768343892;
-	bh=CTGs6wL3ryBk2gk3JkLQOnPTGCb8Ew9jmeLhcJPiHL4=;
+	s=korg; t=1768343894;
+	bh=EEA7k9YajX4TmiFXLMbYHUwj/RvSG8yRVz2IbZilMaI=;
 	h=Date:To:From:Subject:From;
-	b=GErRtkcXC0jztiHB56ORKRi17eGX2FWPDooZfzfry8fMbj2Dua142TiClL7LmgFYr
-	 0GDdF+xrmMfmthO9wYml9kmty1B8C2BziXmAObB9lLiHu9eg8HRJTXwEeW8KdTA6QZ
-	 W+qHBeLDkeWauL5HysDRDu2rqaUIUzqDqSAOqYWU=
-Date: Tue, 13 Jan 2026 14:38:11 -0800
+	b=QPHky8vd0wP/i77E9q8EPTnLUx71tVFWfh/TYr3RiKGy6bFh5wMtRJjoQYC7CMlWy
+	 lewyA0s58obOcCo2u5KtRzUIITX9Lri0JQukTrPXu3FOhpCIcRzLwn3BhKHb0dOOHv
+	 3h8lYcgqf7c94cwcJPoPDPvJUVX9TpGsb/K1PRUc=
+Date: Tue, 13 Jan 2026 14:38:13 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages.patch added to mm-new branch
-Message-Id: <20260113223812.0DA9DC116C6@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch added to mm-new branch
+Message-Id: <20260113223814.1A525C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/lru_sort: document filter_young_pages
+     Subject: mm/damon/lru_sort: support active:inactive memory ratio based auto-tuning
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages.patch
+     mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,13 +67,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/lru_sort: document filter_young_pages
-Date: Tue, 13 Jan 2026 07:27:12 -0800
+Subject: mm/damon/lru_sort: support active:inactive memory ratio based auto-tuning
+Date: Tue, 13 Jan 2026 07:27:13 -0800
 
-Document the new DAMON_LRU_SORT parameter, filter_young_pages.  It can be
-used to use page level access re-check for the LRU sorting.
+Doing DAMOS_LRU_[DE]PRIO with DAMOS_QUOTA_[IN]ACTIVE_MEM_BP based quota
+auto-tuning can be easy and intuitive, compared to the manual
+[de]prioritization target access pattern thresholds tuning.  For example,
+users can ask DAMON to "find hot/cold pages and activate/deactivate those
+aiming 50:50 active:inactive memory size." But DAMON_LRU_SORT has no
+interface to do that.  Add a module parameter for setting the target
+ratio.
 
-Link: https://lkml.kernel.org/r/20260113152717.70459-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260113152717.70459-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -86,32 +91,69 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/damon/lru_sort.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages
-+++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -79,6 +79,20 @@ of parametrs except ``enabled`` again.
- parameter is set as ``N``.  If invalid parameters are found while the
- re-reading, DAMON_LRU_SORT will be disabled.
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning
++++ a/mm/damon/lru_sort.c
+@@ -42,6 +42,20 @@ static bool commit_inputs __read_mostly;
+ module_param(commit_inputs, bool, 0600);
  
-+filter_young_pages
-+------------------
+ /*
++ * Desired active to [in]active memory ratio in bp (1/10,000).
++ *
++ * While keeping the caps that set by other quotas, DAMON_LRU_SORT
++ * automatically increases and decreases the effective level of the quota
++ * aiming the LRU [de]prioritizations of the hot and cold memory resulting in
++ * this active to [in]active memory ratio.  Value zero means disabling this
++ * auto-tuning feature.
++ *
++ * Disabled by default.
++ */
++static unsigned long active_mem_bp __read_mostly;
++module_param(active_mem_bp, ulong, 0600);
 +
-+Filter [non-]young pages accordingly for LRU [de]prioritizations.
-+
-+If this is set, check page level access (youngness) once again before each
-+LRU [de]prioritization operation.  LRU prioritization operation is skipped
-+if the page has not accessed since the last check (not young).  LRU
-+deprioritization operation is skipped if the page has accessed since the
-+last check (young).  The feature is enabled or disabled if this parameter is
-+set as ``Y`` or ``N``, respectively.
-+
-+Disabled by default.
-+
- hot_thres_access_freq
- ---------------------
++/*
+  * Filter [non-]young pages accordingly for LRU [de]prioritizations.
+  *
+  * If this is set, check page level access (youngness) once again before each
+@@ -208,6 +222,26 @@ static struct damos *damon_lru_sort_new_
+ 	return damon_lru_sort_new_scheme(&pattern, DAMOS_LRU_DEPRIO);
+ }
  
++static int damon_lru_sort_add_quota_goals(struct damos *hot_scheme,
++		struct damos *cold_scheme)
++{
++	struct damos_quota_goal *goal;
++
++	if (!active_mem_bp)
++		return 0;
++	goal = damos_new_quota_goal(DAMOS_QUOTA_ACTIVE_MEM_BP, active_mem_bp);
++	if (!goal)
++		return -ENOMEM;
++	damos_add_quota_goal(&hot_scheme->quota, goal);
++	/* aim 0.2 % goal conflict, to keep little ping pong */
++	goal = damos_new_quota_goal(DAMOS_QUOTA_INACTIVE_MEM_BP,
++			10000 - active_mem_bp + 2);
++	if (!goal)
++		return -ENOMEM;
++	damos_add_quota_goal(&hot_scheme->quota, goal);
++	return 0;
++}
++
+ static int damon_lru_sort_add_filters(struct damos *hot_scheme,
+ 		struct damos *cold_scheme)
+ {
+@@ -277,6 +311,9 @@ static int damon_lru_sort_apply_paramete
+ 	damon_set_schemes(param_ctx, &hot_scheme, 1);
+ 	damon_add_scheme(param_ctx, cold_scheme);
+ 
++	err = damon_lru_sort_add_quota_goals(hot_scheme, cold_scheme);
++	if (err)
++		goto out;
+ 	err = damon_lru_sort_add_filters(hot_scheme, cold_scheme);
+ 	if (err)
+ 		goto out;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
