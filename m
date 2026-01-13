@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1ADA2DBF78
-	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 05:09:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 492A42DBF78
+	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 05:09:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768280957; cv=none; b=nwziHYvixpFlgpcUyromwgfQl1tVSjWV+3XKcc6/Ov4Ohel0ELp0lUTD73tY9Sgx9SoeX5lWSB+wgpgEpOEYGB6a0/r3ZMG+tWG5nrxi7GrzqZkJX8+FdfHOPRwgphcjsfSeHm5mbZo8HfLMLJbtBcBGJ5Q8wYQgu1aaH5xjyS0=
+	t=1768280959; cv=none; b=hz0YyfhLErBSn0rsRCbm8etWH+Tkxfl4Md7MRbfvskwrVUgublfF+V2O3pleruG6N+iJnWONxNRWbWZ0Z2lRBTN3Rte9Ach2iBN8gPczK5T+X3YjOrsMCaaaM/7zCG/qSFzyfeadVVgZlECIj+OIrku3zw40RvKZdzJ7mNPBqHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768280957; c=relaxed/simple;
-	bh=DEyb9dRDUKRIlbJlba0s4e5wp68R3u9eAQ/puQxwYtw=;
-	h=Date:To:From:Subject:Message-Id; b=Kpwd9ewrVLdLjZ5EaAvlqn89i16cD0eDD8Xg8uQVKywfrl/m96bxY9Tv5cAV7B8xR8B0ruCl6dLEKzmZhGfK39eO7Ts2AmnFoUzqOzdszBfKztBVZUs63xhpai/wHn9K+nzCLgX1uq2yYkY43dLWuppjYiwA+XPCoS29WpwRiXY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IpNhVyBx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768280959; c=relaxed/simple;
+	bh=D+0D4H1KPjaVltzYAjN6Hvq1CEqYYGLkMR11A8U44VA=;
+	h=Date:To:From:Subject:Message-Id; b=tZEDNJKkmzSRywEi9XBDlZ7s3HYu0o8KsXnNrcSZxIJgtd8aRdML7OzFK+dn05Nn49nGa8JPlxHHIKJbzhZZw+gTko6NxMpYSmG9nmLFgCkveti6k4Hu80EOEqlur6UHXYoQtoO2+zUaLxKnoBp8xPrnJm+5PwrNT78PrxmWgsY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rti4AsGY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IpNhVyBx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82D01C116C6;
-	Tue, 13 Jan 2026 05:09:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rti4AsGY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D25ABC116C6;
+	Tue, 13 Jan 2026 05:09:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768280957;
-	bh=DEyb9dRDUKRIlbJlba0s4e5wp68R3u9eAQ/puQxwYtw=;
+	s=korg; t=1768280958;
+	bh=D+0D4H1KPjaVltzYAjN6Hvq1CEqYYGLkMR11A8U44VA=;
 	h=Date:To:From:Subject:From;
-	b=IpNhVyBxZzdTBmlnrVBeOsu+fk+/Nf87VVCzpMfBzf6QjFq/8kkQ05XPqhNcXHdhf
-	 SxR2EOUSzQJISE6znljgQyyrw+0KPoSBkL+ogl+T0BKpRE7GEu/cWKScSVfmpiEvM8
-	 Cml65WRSZkG5ccm2x0PWiAPYkMXSf1Lfqjn8LYp0=
-Date: Mon, 12 Jan 2026 21:09:16 -0800
-To: mm-commits@vger.kernel.org,harry.yoo@oracle.com,david@kernel.org,bagasdotme@gmail.com,akpm@linux-foundation.org
+	b=Rti4AsGYe1eJSuX5I7XBBlIFwuoS2ZKstLt/GNMxRRlmyTjvpDn9qEUmhnMxXHE/+
+	 sKMHUWolTaQ7P9Ugn67oqqk1EYoUf5tfQ1lHg6VfnPaXsZR0jyC43Z2p0Jk7Ez8u3N
+	 XHcgdIgkxQyejD34//M3GdEcfEc1Uzvmp632bfGQ=
+Date: Mon, 12 Jan 2026 21:09:18 -0800
+To: mm-commits@vger.kernel.org,tgraf@suug.ch,davem@davemloft.net,bagasdotme@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-describe-flags-parameter-in-memalloc_flags_save.patch removed from -mm tree
-Message-Id: <20260113050917.82D01C116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] textsearch-describe-list-member-in-ts_ops-search.patch removed from -mm tree
+Message-Id: <20260113050918.D25ABC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: describe @flags parameter in memalloc_flags_save()
+     Subject: textsearch: describe @list member in ts_ops search
 has been removed from the -mm tree.  Its filename was
-     mm-describe-flags-parameter-in-memalloc_flags_save.patch
+     textsearch-describe-list-member-in-ts_ops-search.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Bagas Sanjaya <bagasdotme@gmail.com>
-Subject: mm: describe @flags parameter in memalloc_flags_save()
-Date: Fri, 19 Dec 2025 08:40:04 +0700
-
-Patch series "mm kernel-doc fixes".
-
-Here are kernel-doc fixes for mm subsystem.  I'm also including textsearch
-fix since there's currently no maintainer for include/linux/textsearch.h
-(get_maintainer.pl only shows LKML).
-
-
-This patch (of 4):
+Subject: textsearch: describe @list member in ts_ops search
+Date: Fri, 19 Dec 2025 08:40:05 +0700
 
 Sphinx reports kernel-doc warning:
 
-WARNING: ./include/linux/sched/mm.h:332 function parameter 'flags' not described in 'memalloc_flags_save'
+WARNING: ./include/linux/textsearch.h:49 struct member 'list' not described in 'ts_ops'
 
-Describe @flags to fix it.
+Describe @list member to fix it.
 
-Link: https://lkml.kernel.org/r/20251219014006.16328-2-bagasdotme@gmail.com
-Link: https://lkml.kernel.org/r/20251219014006.16328-3-bagasdotme@gmail.com
+Link: https://lkml.kernel.org/r/20251219014006.16328-4-bagasdotme@gmail.com
+Fixes: 2de4ff7bd658 ("[LIB]: Textsearch infrastructure.")
 Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Fixes: 3f6d5e6a468d ("mm: introduce memalloc_flags_{save,restore}")
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Acked-by: Harry Yoo <harry.yoo@oracle.com>
+Cc: Thomas Graf <tgraf@suug.ch>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |    1 +
+ include/linux/textsearch.h |    1 +
  1 file changed, 1 insertion(+)
 
---- a/include/linux/sched/mm.h~mm-describe-flags-parameter-in-memalloc_flags_save
-+++ a/include/linux/sched/mm.h
-@@ -325,6 +325,7 @@ static inline void might_alloc(gfp_t gfp
- 
- /**
-  * memalloc_flags_save - Add a PF_* flag to current->flags, save old value
-+ * @flags: Flags to add.
-  *
-  * This allows PF_* flags to be conveniently added, irrespective of current
-  * value, and then the old version restored with memalloc_flags_restore().
+--- a/include/linux/textsearch.h~textsearch-describe-list-member-in-ts_ops-search
++++ a/include/linux/textsearch.h
+@@ -35,6 +35,7 @@ struct ts_state
+  * @get_pattern: return head of pattern
+  * @get_pattern_len: return length of pattern
+  * @owner: module reference to algorithm
++ * @list: list to search
+  */
+ struct ts_ops
+ {
 _
 
 Patches currently in -mm which might be from bagasdotme@gmail.com are
