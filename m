@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC38220F067
-	for <mm-commits@vger.kernel.org>; Wed, 14 Jan 2026 21:57:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6132A3A9623
+	for <mm-commits@vger.kernel.org>; Wed, 14 Jan 2026 22:05:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768427865; cv=none; b=sF1sQFPudoxVkF0iM181gJu/tIDaXl/ujsiqcrtbVfi/8ZXkwccYbjCj5h1gAu/zYP8a8qGD3Mq0mOreJDcVgdyKpTfdQsmkzsQU+xz4cjKgxs9Zd5Wv4w9YeWbv37TP87jBofT9NeVzj6NtT7S6w/aOouKbWgXIixnnkxblK/c=
+	t=1768428307; cv=none; b=M0V+idGvhsVA00Xo5Pl6Jr/WlXAki6mp8OwIg89MWurcBjaeK/bxDsg7J2A0mYNw70eyNw2KXSWInSKegADLyFKqtkXPoW9k0anl+Htdb9ZZ+JDuQUKnF6jFa8lA8317LBcjKskleVxko6l7gdvwaG3gyUKX9MoH0nrwpV1fDKM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768427865; c=relaxed/simple;
-	bh=oDp+QTQu/vVHeC3lvzny/NO+i1v4k9OX3bzeai9Vrhg=;
-	h=Date:To:From:Subject:Message-Id; b=X9YiTnQxiXK+R8OQLduhCfzwhy6XTdLMh3YuIBx4z8tURDZ0NVy1BfEsefBWsYTah0+qKxJl/nubhRpwxX5aJ3ZumANSb0tleKAv44CAgyGnWQfZnqNjLHFxOqPcqKvt8n4WYArcb3LOkkrUx3DH8+/pZ9RARZtmGqdcAtG6vFw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WOu0gwK7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768428307; c=relaxed/simple;
+	bh=hzAl6V9ZcgPCk1cV8KaPyl6ArqnbREDNEicyHo4ftMo=;
+	h=Date:To:From:Subject:Message-Id; b=D+HCt1h129y3vt62XqYpNwvdHiF3WwcS16SUCTvdUE+/BYK8ELLDLSljQ4YK2lTRHwEUqvXDdLfXq7UjRZ6wpMUrs18AKjWS1YqpEvRaSSzdxdi77aRPxEJAI8HrE89ZmX9FnoBS/v9JuIXnCn6U2m3b1qx9t2LeDiTgHU+FQ3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A/wgnBY+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WOu0gwK7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE524C4CEF7;
-	Wed, 14 Jan 2026 21:57:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A/wgnBY+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E8B1C4CEF7;
+	Wed, 14 Jan 2026 22:05:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768427864;
-	bh=oDp+QTQu/vVHeC3lvzny/NO+i1v4k9OX3bzeai9Vrhg=;
+	s=korg; t=1768428306;
+	bh=hzAl6V9ZcgPCk1cV8KaPyl6ArqnbREDNEicyHo4ftMo=;
 	h=Date:To:From:Subject:From;
-	b=WOu0gwK7fCzma0LzzZ+15rH4elBND/7nuXFfmym5K/uGTGiG/tsG27ccLPQJYB5+7
-	 X4CfcJjrMNAXb/Lrz1XnQCu+Sqw7bgpGqPEXpQOLLy+SuPBAc325alubx2Ib/cL4D+
-	 QtKqLd337lFui9yDlqjXFbvR8bmyjnETb+HL6Wr8=
-Date: Wed, 14 Jan 2026 13:57:43 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=A/wgnBY+X/8aW6WCQD9jz0hpQGUrjVrB34CWP0JrwQyoX3dZDa+zJElBVFULvmCy4
+	 1raGlTfF/+2PaZD742pCikFY60tLaFkinUh+yYV8lO9ySYjmpyXkuJNwoQQgujDElm
+	 CGyx6/MbAdYoLz1D+bN2MVU0f4dMqS/ctFeBWnSk=
+Date: Wed, 14 Jan 2026 14:05:05 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yury.norov@gmail.com,ying.huang@linux.alibaba.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,rppt@kernel.org,rakie.kim@sk.com,mkoutny@suse.com,mhocko@suse.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,longman@redhat.com,linux@rasmusvillemoes.dk,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,ynorov@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix.patch added to mm-unstable branch
-Message-Id: <20260114215744.CE524C4CEF7@smtp.kernel.org>
+Subject: + nodemask-propagate-boolean-for-nodes_andnot.patch added to mm-new branch
+Message-Id: <20260114220506.8E8B1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix.patch
+     Subject: nodemask: propagate boolean for nodes_and{,not}
+has been added to the -mm mm-new branch.  Its filename is
+     nodemask-propagate-boolean-for-nodes_andnot.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nodemask-propagate-boolean-for-nodes_andnot.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,69 +66,89 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix
-Date: Wed, 14 Jan 2026 18:52:37 +0000
+From: Yury Norov <ynorov@nvidia.com>
+Subject: nodemask: propagate boolean for nodes_and{,not}
+Date: Wed, 14 Jan 2026 12:22:13 -0500
 
-fix missed unlock, per Suren
+Patch series "nodemask: align nodes_and{,not} with underlying bitmap ops".
 
-Link: https://lkml.kernel.org/r/6fb9d6b4-ad39-41de-8db0-aa41a6406378@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+nodes_and{,not} are void despite that underlying bitmap_and(,not) return
+boolean, true if the result bitmap is non-empty.  Align nodemask API, and
+simplify client code.
+
+
+This patch (of 3):
+
+Bitmap functions bitmap_and{,not} return boolean depending on emptiness of
+the result bitmap.  The corresponding nodemask helpers ignore the returned
+value.
+
+Propagate the underlying bitmaps result to nodemasks users, as it
+simplifies user code.
+
+Link: https://lkml.kernel.org/r/20260114172217.861204-1-ynorov@nvidia.com
+Link: https://lkml.kernel.org/r/20260114172217.861204-2-ynorov@nvidia.com
+Signed-off-by: Yury Norov <ynorov@nvidia.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ include/linux/nodemask.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix
-+++ a/mm/rmap.c
-@@ -432,7 +432,7 @@ int anon_vma_fork(struct vm_area_struct
- static void cleanup_partial_anon_vmas(struct vm_area_struct *vma)
+--- a/include/linux/nodemask.h~nodemask-propagate-boolean-for-nodes_andnot
++++ a/include/linux/nodemask.h
+@@ -157,10 +157,10 @@ static __always_inline bool __node_test_
+ 
+ #define nodes_and(dst, src1, src2) \
+ 			__nodes_and(&(dst), &(src1), &(src2), MAX_NUMNODES)
+-static __always_inline void __nodes_and(nodemask_t *dstp, const nodemask_t *src1p,
++static __always_inline bool __nodes_and(nodemask_t *dstp, const nodemask_t *src1p,
+ 					const nodemask_t *src2p, unsigned int nbits)
  {
- 	struct anon_vma_chain *avc, *next;
--	bool locked = false;
-+	struct anon_vma *root = NULL;
- 
- 	/*
- 	 * We exclude everybody else from being able to modify anon_vma's
-@@ -444,15 +444,18 @@ static void cleanup_partial_anon_vmas(st
- 		struct anon_vma *anon_vma = avc->anon_vma;
- 
- 		/* All anon_vma's share the same root. */
--		if (!locked) {
--			anon_vma_lock_write(anon_vma);
--			locked = true;
-+		if (!root) {
-+			root = anon_vma->root;
-+			anon_vma_lock_write(root);
- 		}
- 
- 		anon_vma_interval_tree_remove(avc, &anon_vma->rb_root);
- 		list_del(&avc->same_vma);
- 		anon_vma_chain_free(avc);
- 	}
-+
-+	if (root)
-+		anon_vma_unlock_write(root);
+-	bitmap_and(dstp->bits, src1p->bits, src2p->bits, nbits);
++	return bitmap_and(dstp->bits, src1p->bits, src2p->bits, nbits);
  }
  
- /**
+ #define nodes_or(dst, src1, src2) \
+@@ -181,10 +181,10 @@ static __always_inline void __nodes_xor(
+ 
+ #define nodes_andnot(dst, src1, src2) \
+ 			__nodes_andnot(&(dst), &(src1), &(src2), MAX_NUMNODES)
+-static __always_inline void __nodes_andnot(nodemask_t *dstp, const nodemask_t *src1p,
++static __always_inline bool __nodes_andnot(nodemask_t *dstp, const nodemask_t *src1p,
+ 					const nodemask_t *src2p, unsigned int nbits)
+ {
+-	bitmap_andnot(dstp->bits, src1p->bits, src2p->bits, nbits);
++	return bitmap_andnot(dstp->bits, src1p->bits, src2p->bits, nbits);
+ }
+ 
+ #define nodes_copy(dst, src) __nodes_copy(&(dst), &(src), MAX_NUMNODES)
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ynorov@nvidia.com are
 
-mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
-mm-remove-unnecessary-and-incorrect-mmap-lock-assert.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
+nodemask-propagate-boolean-for-nodes_andnot.patch
+mm-use-nodes_and-return-value-to-simplify-client-code.patch
+cgroup-use-nodes_and-output-where-appropriate.patch
 
