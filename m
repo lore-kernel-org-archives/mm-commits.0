@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AE0D329361
-	for <mm-commits@vger.kernel.org>; Tue, 13 Jan 2026 23:34:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3AE5A59
+	for <mm-commits@vger.kernel.org>; Wed, 14 Jan 2026 00:11:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768347254; cv=none; b=uPB1z3/1NSjSxyzcoAcgqQ3Y5kwGzCSrNtLKFDzvkECKF50OYGA5EvUTyKqhP6cg9j9jTKYIEITSoHa62+nZY2k6r7+xiuhK01zELPUT7a9pU8VRECcAM2ZGI6Ltp+h1eDxVD+CXLkwLIeWeEo8TbKUbv1NOMMrWKjH3Ez09qlI=
+	t=1768349481; cv=none; b=ShL20oEbeaWzVOiQPunWLW9LBDg4wtKV6JqMi6qU5dpFho/6M0JY+9Z7CBnIidyoaxPyL36d1f2xSKW/Ybj9dhFDXXgHzeu3AaZAG71QUKH4ksjxMYgv6BQuqHqh77LnNomGGEWOjq0wpc31MpVw4K+4m4wpOp1BU0DVCGN9oXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768347254; c=relaxed/simple;
-	bh=KHGllkMUsT0chDcmCPHeNTpc1Q733tDOa2ZpDByi4oI=;
-	h=Date:To:From:Subject:Message-Id; b=Ylm/3j5iB337nHMyIzkPWhjTlu3bAAqk2kJK3lBYDn0INPqhh+lK3+8uncVugoD//CTD8DFnKsF5loN4cyorHc2cezhOHNk9PFxVp21NjvaC4GaUXd3ym1B8gzOwYoL0hzkUwhMGTkXMOjJx1fRF+BujuG4zwzD2CEdXcVsP2nc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g8EZWSvj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768349481; c=relaxed/simple;
+	bh=dJjBkVMian+SMCxdrGOfhdS8Ch4qmvE9m82B9x9J5X4=;
+	h=Date:To:From:Subject:Message-Id; b=IUZCL0juOsOZIn2klQi9nbZO+J0SvbP/Kcr04yBnng20pRbaSAGzZ2xYqIAH+67OX2rcwydWiyMLD425gapsvZE6jd4KgFmFzraISV1rLzLgw8kddm4ZyRtAnt3cGd9VB1mEkSvgU8I2ffXhOhrvCQqSLtA1Rv3tNn6g796otvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pczU9IpY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g8EZWSvj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07C3CC116C6;
-	Tue, 13 Jan 2026 23:34:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pczU9IpY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B6ADC19421;
+	Wed, 14 Jan 2026 00:11:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768347254;
-	bh=KHGllkMUsT0chDcmCPHeNTpc1Q733tDOa2ZpDByi4oI=;
+	s=korg; t=1768349481;
+	bh=dJjBkVMian+SMCxdrGOfhdS8Ch4qmvE9m82B9x9J5X4=;
 	h=Date:To:From:Subject:From;
-	b=g8EZWSvjXQeC9AzH9RukfhyUS3lAS0shWFtudHFWwR2Ias5EVNyIQleK5/vIeyXdx
-	 EHFv1TN/OvXx2uJNbCKsWYC5DoYhcG28nyKkC6DuuU36WiKRVCPO5jko86P+JArZeU
-	 NrINmlNLahypnIKIWy4DAAOAAVwef2EXXYPjNppw=
-Date: Tue, 13 Jan 2026 15:34:13 -0800
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yonghong.song@linux.dev,will@kernel.org,tglx@linutronix.de,stefan.kristiansson@saunalahti.fi,song@kernel.org,shorne@gmail.com,sdf@fomichev.me,sashal@kernel.org,peterz@infradead.org,mingo@redhat.com,martin.lau@linux.dev,mark.rutland@arm.com,kpsingh@kernel.org,jonas@southpole.se,jolsa@kernel.org,john.fastabend@gmail.com,hpa@zytor.com,haoluo@google.com,guoren@kernel.org,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,gary@garyguo.net,eddyz87@gmail.com,dinguyen@kernel.org,dave.hansen@linux.intel.com,daniel@iogearbox.net,dalias@libc.org,bp@alien8.de,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,ardb@kernel.org,andrii@kernel.org,fthain@linux-m68k.org,akpm@linux-foundation.org
+	b=pczU9IpYqPHmtpm2DpQzmthZ0vL/E2x9p9kEBtSyWIIkFlBSdkyxX0UK/jYWyrn47
+	 8ZhUGeiHOwbzC/03G2eUobfIfUNVqwkBfMTgbysmmpuxzGwL9JNZAQ2+PGsRNGKwif
+	 undQCRnHdBdFDZx3UmQgbaGFW+nwKTOD5cKmt4mc=
+Date: Tue, 13 Jan 2026 16:11:20 -0800
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,minchan@kernel.org,herbert@gondor.apana.org.au,hannes@cmpxchg.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + atomic-add-option-for-weaker-alignment-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20260113233414.07C3CC116C6@smtp.kernel.org>
+Subject: + zsmalloc-introduce-sg-list-based-object-read-api.patch added to mm-new branch
+Message-Id: <20260114001121.5B6ADC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: atomic: add option for weaker alignment check
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     atomic-add-option-for-weaker-alignment-check.patch
+     Subject: zsmalloc: introduce SG-list based object read API
+has been added to the -mm mm-new branch.  Its filename is
+     zsmalloc-introduce-sg-list-based-object-read-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/atomic-add-option-for-weaker-alignment-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-introduce-sg-list-based-object-read-api.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,96 +66,154 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Finn Thain <fthain@linux-m68k.org>
-Subject: atomic: add option for weaker alignment check
-Date: Tue, 13 Jan 2026 16:22:28 +1100
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: introduce SG-list based object read API
+Date: Tue, 13 Jan 2026 12:46:45 +0900
 
-Add a new Kconfig symbol to make CONFIG_DEBUG_ATOMIC more useful on those
-architectures which do not align dynamic allocations to 8-byte boundaries.
-Without this, CONFIG_DEBUG_ATOMIC produces excessive WARN splats.
+Currently, zsmalloc performs address linearization on read (which
+sometimes requires memcpy() to a local buffer).  Not all zsmalloc users
+need a linear address.  For example, Crypto API supports SG-list,
+performing linearization under the hood, if needed.  In addition, some
+compressors can have native SG-list support, completely avoiding the
+linearization step.
 
-Link: https://lkml.kernel.org/r/6d25a12934fe9199332f4d65d17c17de450139a8.1768281748.git.fthain@linux-m68k.org
-Signed-off-by: Finn Thain <fthain@linux-m68k.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Daniel Borkman <daniel@iogearbox.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Hao Luo <haoluo@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Sasha Levin (Microsoft) <sashal@kernel.org>
-Cc: Song Liu <song@kernel.org>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yonghong Song <yonghong.song@linux.dev>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Provide an SG-list based zsmalloc read API:
+- zs_obj_read_sg_begin()
+- zs_obj_read_sg_end()
+
+This API allows callers to obtain an SG representation of the object (one
+entry for objects that are contained in a single page and two entries for
+spanning objects), avoiding the need for a bounce buffer and memcpy.
+
+Link: https://lkml.kernel.org/r/20260113034645.2729998-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/instrumented.h |    8 +++++++-
- lib/Kconfig.debug            |    8 ++++++++
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ include/linux/zsmalloc.h |    4 ++
+ mm/zsmalloc.c            |   65 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 69 insertions(+)
 
---- a/include/linux/instrumented.h~atomic-add-option-for-weaker-alignment-check
-+++ a/include/linux/instrumented.h
-@@ -59,7 +59,13 @@ static __always_inline void instrument_r
- static __always_inline void instrument_atomic_check_alignment(const volatile void *v, size_t size)
- {
- #ifndef __DISABLE_EXPORTS
--	WARN_ON_ONCE(IS_ENABLED(CONFIG_DEBUG_ATOMIC) && ((unsigned long)v & (size - 1)));
-+	if (IS_ENABLED(CONFIG_DEBUG_ATOMIC)) {
-+		unsigned int mask = size - 1;
-+
-+		if (IS_ENABLED(CONFIG_DEBUG_ATOMIC_LARGEST_ALIGN))
-+			mask &= sizeof(struct { long x; } __aligned_largest) - 1;
-+		WARN_ON_ONCE((unsigned long)v & mask);
-+	}
- #endif
+--- a/include/linux/zsmalloc.h~zsmalloc-introduce-sg-list-based-object-read-api
++++ a/include/linux/zsmalloc.h
+@@ -22,6 +22,7 @@ struct zs_pool_stats {
+ };
+ 
+ struct zs_pool;
++struct scatterlist;
+ 
+ struct zs_pool *zs_create_pool(const char *name);
+ void zs_destroy_pool(struct zs_pool *pool);
+@@ -43,6 +44,9 @@ void *zs_obj_read_begin(struct zs_pool *
+ 			size_t mem_len, void *local_copy);
+ void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
+ 		     size_t mem_len, void *handle_mem);
++int zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
++		   struct scatterlist *sg, size_t mem_len);
++void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle);
+ void zs_obj_write(struct zs_pool *pool, unsigned long handle,
+ 		  void *handle_mem, size_t mem_len);
+ 
+--- a/mm/zsmalloc.c~zsmalloc-introduce-sg-list-based-object-read-api
++++ a/mm/zsmalloc.c
+@@ -30,6 +30,7 @@
+ #include <linux/highmem.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
++#include <linux/scatterlist.h>
+ #include <linux/spinlock.h>
+ #include <linux/sprintf.h>
+ #include <linux/shrinker.h>
+@@ -1141,6 +1142,70 @@ void zs_obj_read_end(struct zs_pool *poo
  }
+ EXPORT_SYMBOL_GPL(zs_obj_read_end);
  
---- a/lib/Kconfig.debug~atomic-add-option-for-weaker-alignment-check
-+++ a/lib/Kconfig.debug
-@@ -1370,6 +1370,14 @@ config DEBUG_ATOMIC
- 
- 	  This option has potentially significant overhead.
- 
-+config DEBUG_ATOMIC_LARGEST_ALIGN
-+	bool "Check alignment only up to __aligned_largest"
-+	depends on DEBUG_ATOMIC
-+	help
-+	  If you say Y here then the check for natural alignment of
-+	  atomic accesses will be constrained to the compiler's largest
-+	  alignment for scalar types.
++int zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
++			 struct scatterlist *sg, size_t mem_len)
++{
++	struct zspage *zspage;
++	struct zpdesc *zpdesc;
++	unsigned long obj, off;
++	unsigned int obj_idx;
++	struct size_class *class;
 +
- menu "Lock Debugging (spinlocks, mutexes, etc...)"
- 
- config LOCK_DEBUGGING_SUPPORT
++	/* Guarantee we can get zspage from handle safely */
++	read_lock(&pool->lock);
++	obj = handle_to_obj(handle);
++	obj_to_location(obj, &zpdesc, &obj_idx);
++	zspage = get_zspage(zpdesc);
++
++	/* Make sure migration doesn't move any pages in this zspage */
++	zspage_read_lock(zspage);
++	read_unlock(&pool->lock);
++
++	class = zspage_class(pool, zspage);
++	off = offset_in_page(class->size * obj_idx);
++
++	if (!ZsHugePage(zspage))
++		off += ZS_HANDLE_SIZE;
++
++	if (off + mem_len <= PAGE_SIZE) {
++		/* this object is contained entirely within a page */
++		sg_init_table(sg, 1);
++		sg_set_page(sg, zpdesc_page(zpdesc), mem_len, off);
++	} else {
++		size_t sizes[2];
++
++		/* this object spans two pages */
++		sizes[0] = PAGE_SIZE - off;
++		sizes[1] = mem_len - sizes[0];
++
++		sg_init_table(sg, 2);
++		sg_set_page(sg, zpdesc_page(zpdesc), sizes[0], off);
++
++		zpdesc = get_next_zpdesc(zpdesc);
++		sg = sg_next(sg);
++
++		sg_set_page(sg, zpdesc_page(zpdesc), sizes[1], 0);
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(zs_obj_read_sg_begin);
++
++void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle)
++{
++	struct zspage *zspage;
++	struct zpdesc *zpdesc;
++	unsigned long obj;
++	unsigned int obj_idx;
++
++	obj = handle_to_obj(handle);
++	obj_to_location(obj, &zpdesc, &obj_idx);
++	zspage = get_zspage(zpdesc);
++
++	zspage_read_unlock(zspage);
++}
++EXPORT_SYMBOL_GPL(zs_obj_read_sg_end);
++
+ void zs_obj_write(struct zs_pool *pool, unsigned long handle,
+ 		  void *handle_mem, size_t mem_len)
+ {
 _
 
-Patches currently in -mm which might be from fthain@linux-m68k.org are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-bpf-explicitly-align-bpf_res_spin_lock.patch
-atomic-specify-alignment-for-atomic_t-and-atomic64_t.patch
-atomic-add-option-for-weaker-alignment-check.patch
+zram-document-writeback_batch_size.patch
+zram-move-bd_stat-to-writeback-section.patch
+zram-rename-zram_free_page.patch
+zram-switch-to-guard-for-init_lock.patch
+zram-consolidate-device-attr-declarations.patch
+zram-use-u32-for-entry-ac_time-tracking.patch
+zram-rename-internal-slot-api.patch
+zram-trivial-fix-of-recompress_slot-coding-styles.patch
+zram-drop-pp_in_progress.patch
+zsmalloc-use-actual-object-size-to-detect-spans.patch
+zsmalloc-introduce-sg-list-based-object-read-api.patch
 
