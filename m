@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 665053B52FA
-	for <mm-commits@vger.kernel.org>; Wed, 14 Jan 2026 22:05:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A688625DAEA
+	for <mm-commits@vger.kernel.org>; Wed, 14 Jan 2026 22:29:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768428310; cv=none; b=uX7TGJza4FxUE2XlKQEr5QKXEr77n/1mgwVw++tAk7fXSbmXgBWMtueZfAXamrUdkKBg5EKHGYB1cFdk9EdmVBPjDa8ldp6odzGjfmNHndglDrdxVh8HSXXZGJOW1pZuCeND8kTQt2KxegQFblWhxI7XaKbUss6VaKZot7aylgk=
+	t=1768429771; cv=none; b=WlPoM6ndj6sLltgumJhLt4+ztOUihF2Ffrm+1o2ki5WDl5JNi6AwlwqwTgj6rtY9AD+VUFivhYETUW3m6NoY6P2uHY6WmzTijcW2KZVhWWz0z1y4reQ7ij1Cb3OFU+rWBOuC3bfY8HF6eNcTdXQjHAi5Op+kGwnS50CuseV4ETs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768428310; c=relaxed/simple;
-	bh=Mp9w0obwD8ro8x0UR3QW3k2NygBusZulsvpR5yxXuK0=;
-	h=Date:To:From:Subject:Message-Id; b=bcBmHAEzvIbGLxIiLkPSxX0L0Jq1W+F7KNef4bvQ+ckoRWsWEgaYdU9I9VJrJthMZwiL/2lFfhjnTh0hZpuYdea0u7NCFyuS+I35uU7RFTTo6yhGJ1XlbPRYqy6faMn27SDVhiqILexrQcewHNJJYYt5Nfy2106pl2+r78nXoTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c7CR+1U8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768429771; c=relaxed/simple;
+	bh=yqYkXT/+6Rv3NbW5fPgZnKQVzN2LLCLek/lFn3H422E=;
+	h=Date:To:From:Subject:Message-Id; b=irNP5/1jQKBUz4TVXz52fBf+rD2LusHNtRxcb2IAtRFiSdDyHaa1BsJtod5rtgwTdM6oFsvL0naK8MS6eap/QXyMD7cvHWogArjqNRC53cNyBtIuXdNFuRPGYfcRNX3O1GAgk+Fxn7gBxe95IGAOog2OtXBmyCcKMyzW6m5u3k0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zE7gOhdf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c7CR+1U8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9367C19421;
-	Wed, 14 Jan 2026 22:05:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zE7gOhdf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A707DC4CEF7;
+	Wed, 14 Jan 2026 22:29:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768428309;
-	bh=Mp9w0obwD8ro8x0UR3QW3k2NygBusZulsvpR5yxXuK0=;
+	s=korg; t=1768429770;
+	bh=yqYkXT/+6Rv3NbW5fPgZnKQVzN2LLCLek/lFn3H422E=;
 	h=Date:To:From:Subject:From;
-	b=c7CR+1U8sO+egfHgorlNj9IwS8kZF2PVdkrisRCLWAl2Tb/ionRLp4ihlflW0wbpa
-	 uE6nbPmUqOkaOLxE+bcM2IfU7k+NUzVmW9ZIAENg7oWhWCe2VqKi9ZlCajSSo0tW1W
-	 bM1GVqTvvMVq7PRx/3NY097w1ByinKDw3bvGdrsk=
-Date: Wed, 14 Jan 2026 14:05:08 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yury.norov@gmail.com,ying.huang@linux.alibaba.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,rppt@kernel.org,rakie.kim@sk.com,mkoutny@suse.com,mhocko@suse.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,longman@redhat.com,linux@rasmusvillemoes.dk,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,ynorov@nvidia.com,akpm@linux-foundation.org
+	b=zE7gOhdfR3WUyxvA6RGFwgp7Ku1qZ4w9dhviWh/3b5IT7riEFV6hOP9b7FjP7XUNG
+	 7noi1TeGuQJdxMpAwuEWHdS8Zc7tdPL9zpyOqyCMpgUeJIORDPuIe6HJc272mHbLVp
+	 24HIpSQLEGSuwjwldrj6BxqGFnMRB01nCauti9ZU=
+Date: Wed, 14 Jan 2026 14:29:30 -0800
+To: mm-commits@vger.kernel.org,yi1.lai@linux.intel.com,clm@fb.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cgroup-use-nodes_and-output-where-appropriate.patch added to mm-new branch
-Message-Id: <20260114220509.B9367C19421@smtp.kernel.org>
+Subject: + mm-swap-cleanup-swap-entry-management-workflow-fix.patch added to mm-unstable branch
+Message-Id: <20260114222930.A707DC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cgroup: use nodes_and() output where appropriate
-has been added to the -mm mm-new branch.  Its filename is
-     cgroup-use-nodes_and-output-where-appropriate.patch
+     Subject: mm, swap: fix locking and leaking with hibernation snapshot releasing
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-cleanup-swap-entry-management-workflow-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cgroup-use-nodes_and-output-where-appropriate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cleanup-swap-entry-management-workflow-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,77 +58,67 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@nvidia.com>
-Subject: cgroup: use nodes_and() output where appropriate
-Date: Wed, 14 Jan 2026 12:22:15 -0500
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: fix locking and leaking with hibernation snapshot releasing
+Date: Thu, 15 Jan 2026 00:15:27 +0800
 
-Now that nodes_and() returns true if the result nodemask is not empty,
-drop useless nodes_intersects() in guarantee_online_mems() and
-nodes_empty() in update_nodemasks_hier(), which both are O(N).
+fix leak, per Chris Mason.  Remove WARN_ON, per Lai Yi
 
-Link: https://lkml.kernel.org/r/20260114172217.861204-4-ynorov@nvidia.com
-Signed-off-by: Yury Norov <ynorov@nvidia.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/CAMgjq7AUz10uETVm8ozDWcB3XohkOqf0i33KGrAquvEVvfp5cg@mail.gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: Lai Yi <yi1.lai@linux.intel.com>
+Cc: Chris Mason <clm@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cpuset.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/power/swap.c |    2 +-
+ mm/swapfile.c       |    1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
---- a/kernel/cgroup/cpuset.c~cgroup-use-nodes_and-output-where-appropriate
-+++ a/kernel/cgroup/cpuset.c
-@@ -456,9 +456,8 @@ static void guarantee_active_cpus(struct
-  */
- static void guarantee_online_mems(struct cpuset *cs, nodemask_t *pmask)
- {
--	while (!nodes_intersects(cs->effective_mems, node_states[N_MEMORY]))
-+	while (!nodes_and(*pmask, cs->effective_mems, node_states[N_MEMORY]))
- 		cs = parent_cs(cs);
--	nodes_and(*pmask, cs->effective_mems, node_states[N_MEMORY]);
- }
+--- a/kernel/power/swap.c~mm-swap-cleanup-swap-entry-management-workflow-fix
++++ a/kernel/power/swap.c
+@@ -199,7 +199,7 @@ void free_all_swap_pages(int swap)
+ 		ext = rb_entry(node, struct swsusp_extent, node);
+ 		rb_erase(node, &swsusp_extents);
  
- /**
-@@ -2862,13 +2861,13 @@ static void update_nodemasks_hier(struct
- 	cpuset_for_each_descendant_pre(cp, pos_css, cs) {
- 		struct cpuset *parent = parent_cs(cp);
+-		for (offset = ext->start; offset < ext->end; offset++)
++		for (offset = ext->start; offset <= ext->end; offset++)
+ 			swap_free_hibernation_slot(swp_entry(swap, offset));
  
--		nodes_and(*new_mems, cp->mems_allowed, parent->effective_mems);
-+		bool has_mems = nodes_and(*new_mems, cp->mems_allowed, parent->effective_mems);
+ 		kfree(ext);
+--- a/mm/swapfile.c~mm-swap-cleanup-swap-entry-management-workflow-fix
++++ a/mm/swapfile.c
+@@ -2096,7 +2096,6 @@ void swap_free_hibernation_slot(swp_entr
  
- 		/*
- 		 * If it becomes empty, inherit the effective mask of the
- 		 * parent, which is guaranteed to have some MEMs.
- 		 */
--		if (is_in_v2_mode() && nodes_empty(*new_mems))
-+		if (is_in_v2_mode() && !has_mems)
- 			*new_mems = parent->effective_mems;
+ 	ci = swap_cluster_lock(si, offset);
+ 	swap_entry_put_locked(si, ci, entry, 1);
+-	WARN_ON(swap_entry_swapped(si, entry));
+ 	swap_cluster_unlock(ci);
  
- 		/* Skip the whole subtree if the nodemask remains the same. */
+ 	/* In theory readahead might add it to the swap cache by accident */
 _
 
-Patches currently in -mm which might be from ynorov@nvidia.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-nodemask-propagate-boolean-for-nodes_andnot.patch
-mm-use-nodes_and-return-value-to-simplify-client-code.patch
-cgroup-use-nodes_and-output-where-appropriate.patch
+mm-swap-rename-__read_swap_cache_async-to-swap_cache_alloc_folio.patch
+mm-swap-split-swap-cache-preparation-loop-into-a-standalone-helper.patch
+mm-swap-never-bypass-the-swap-cache-even-for-swp_synchronous_io.patch
+mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
+mm-swap-simplify-the-code-and-reduce-indention.patch
+mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
+mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
+mm-swap-swap-entry-of-a-bad-slot-should-not-be-considered-as-swapped-out.patch
+mm-swap-consolidate-cluster-reclaim-and-usability-check.patch
+mm-swap-split-locked-entry-duplicating-into-a-standalone-helper.patch
+mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer.patch
+mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer-fix.patch
+mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
+mm-swap-cleanup-swap-entry-management-workflow.patch
+mm-swap-cleanup-swap-entry-management-workflow-fix.patch
+mm-swap-add-folio-to-swap-cache-directly-on-allocation.patch
+mm-swap-check-swap-table-directly-for-checking-cache.patch
+mm-swap-clean-up-and-improve-swap-entries-freeing.patch
+mm-swap-drop-the-swap_has_cache-flag.patch
+mm-swap-remove-no-longer-needed-_swap_info_get.patch
+mm-gup-remove-no-longer-used-gup_fast_undo_dev_pagemap.patch
 
