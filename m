@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A688625DAEA
-	for <mm-commits@vger.kernel.org>; Wed, 14 Jan 2026 22:29:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 653D32629D;
+	Thu, 15 Jan 2026 01:28:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768429771; cv=none; b=WlPoM6ndj6sLltgumJhLt4+ztOUihF2Ffrm+1o2ki5WDl5JNi6AwlwqwTgj6rtY9AD+VUFivhYETUW3m6NoY6P2uHY6WmzTijcW2KZVhWWz0z1y4reQ7ij1Cb3OFU+rWBOuC3bfY8HF6eNcTdXQjHAi5Op+kGwnS50CuseV4ETs=
+	t=1768440506; cv=none; b=n1/OkHEOX2MXe8YwvpM0PW37pyvKFoI4Bqjf9PTmvFhtJ2wndoq0+XUjKLiobVfNhJlWfCHc2Fw9cON3HCJoFDCWHBliKf1V+DnMwdccAhhB3TpQz58jX83cFvDm1VBDx66QcQKe4CwUdZXPAwiV/hHjIgVzM19VBOy9RWHUT5Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768429771; c=relaxed/simple;
-	bh=yqYkXT/+6Rv3NbW5fPgZnKQVzN2LLCLek/lFn3H422E=;
-	h=Date:To:From:Subject:Message-Id; b=irNP5/1jQKBUz4TVXz52fBf+rD2LusHNtRxcb2IAtRFiSdDyHaa1BsJtod5rtgwTdM6oFsvL0naK8MS6eap/QXyMD7cvHWogArjqNRC53cNyBtIuXdNFuRPGYfcRNX3O1GAgk+Fxn7gBxe95IGAOog2OtXBmyCcKMyzW6m5u3k0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zE7gOhdf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768440506; c=relaxed/simple;
+	bh=ba7mVTMZ+EY7lEEW5AM+qRtHnEa41sYHr9T8L4Vb3P0=;
+	h=Date:To:From:Subject:Message-Id; b=T6Z0NuBujeJ2y6PgVjBBaRWE8MXl8atsh5iJ3Mfy85+JMTLjHtQWlUtyqhBTfz+qhNSmEy/Ohtcg4k2xIRyRl7YS50aQH2dvfZY/78pabl74Riou4YOsZLZF2aJR2RcEohJVHIz68uJ9kNsERAR9T+8vrUxvyhB8OnDcon6zCug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zye1B6sY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zE7gOhdf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A707DC4CEF7;
-	Wed, 14 Jan 2026 22:29:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zye1B6sY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A3B8C4CEF7;
+	Thu, 15 Jan 2026 01:28:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768429770;
-	bh=yqYkXT/+6Rv3NbW5fPgZnKQVzN2LLCLek/lFn3H422E=;
+	s=korg; t=1768440506;
+	bh=ba7mVTMZ+EY7lEEW5AM+qRtHnEa41sYHr9T8L4Vb3P0=;
 	h=Date:To:From:Subject:From;
-	b=zE7gOhdfR3WUyxvA6RGFwgp7Ku1qZ4w9dhviWh/3b5IT7riEFV6hOP9b7FjP7XUNG
-	 7noi1TeGuQJdxMpAwuEWHdS8Zc7tdPL9zpyOqyCMpgUeJIORDPuIe6HJc272mHbLVp
-	 24HIpSQLEGSuwjwldrj6BxqGFnMRB01nCauti9ZU=
-Date: Wed, 14 Jan 2026 14:29:30 -0800
-To: mm-commits@vger.kernel.org,yi1.lai@linux.intel.com,clm@fb.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=Zye1B6sYCsjwcCU4M5QzXkQxI6Ih04J4qe8gLCvZPJcybv8Nv+34V5jXxyLzH0yKO
+	 jwX6t8dIXY9IrNRHPZrCAEe3h5pRqMDiohnxWKOk4NnZ0/cakECVZprOZZnb+TXDTR
+	 uZ/pCdgbxwp5dzC03PVeyys5y9VCZzimOHqgen10=
+Date: Wed, 14 Jan 2026 17:28:25 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,robin.kuo@mediatek.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-cleanup-swap-entry-management-workflow-fix.patch added to mm-unstable branch
-Message-Id: <20260114222930.A707DC4CEF7@smtp.kernel.org>
+Subject: + restore-swap_space-attr-aviod-krn-panic.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260115012826.1A3B8C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: fix locking and leaking with hibernation snapshot releasing
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-cleanup-swap-entry-management-workflow-fix.patch
+     Subject: mm/swap: restore swap_space attr aviod kernel panic
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     restore-swap_space-attr-aviod-krn-panic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cleanup-swap-entry-management-workflow-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/restore-swap_space-attr-aviod-krn-panic.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,67 +58,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: fix locking and leaking with hibernation snapshot releasing
-Date: Thu, 15 Jan 2026 00:15:27 +0800
+From: "robin.kuo" <robin.kuo@mediatek.com>
+Subject: mm/swap: restore swap_space attr aviod kernel panic
+Date: Thu, 15 Jan 2026 08:13:43 +0800
 
-fix leak, per Chris Mason.  Remove WARN_ON, per Lai Yi
+Restore swap_space attr to avoid kernel panic.
 
-Link: https://lkml.kernel.org/r/CAMgjq7AUz10uETVm8ozDWcB3XohkOqf0i33KGrAquvEVvfp5cg@mail.gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Lai Yi <yi1.lai@linux.intel.com>
-Cc: Chris Mason <clm@fb.com>
+Commit 8b47299a411a ('mm, swap: mark swap address space ro and add context
+debug check') made the swap address space __ro_after_init.  It may lead to
+a kernel panic if arch_prepare_to_swap() returns a failure under heavy
+memory pressure as follows:
+
+el1_abort+0x40/0x64
+el1h_64_sync_handler+0x48/0xcc
+el1h_64_sync+0x84/0x88
+errseq_set+0x4c/0xb8 (P)
+__filemap_set_wb_err+0x20/0xd0
+shrink_folio_list+0xc20/0x11cc
+evict_folios+0x1520/0x1be4
+try_to_shrink_lruvec+0x27c/0x3dc
+shrink_one+0x9c/0x228
+shrink_node+0xb3c/0xeac
+do_try_to_free_pages+0x170/0x4f0
+try_to_free_pages+0x334/0x534
+__alloc_pages_direct_reclaim+0x90/0x158
+__alloc_pages_slowpath+0x334/0x588
+__alloc_frozen_pages_noprof+0x224/0x2fc
+__folio_alloc_noprof+0x14/0x64
+vma_alloc_zeroed_movable_folio+0x34/0x44
+do_pte_missing+0xad4/0x1040
+handle_mm_fault+0x4a4/0x790
+do_page_fault+0x288/0x5f8
+do_translation_fault+0x38/0x54
+do_mem_abort+0x54/0xa8
+
+Restore the swap address space to  __read_mostly to avoid the panic.
+
+Link: https://lkml.kernel.org/r/20260115001405.3513440-1-robin.kuo@mediatek.com
+Fixes: 8b47299a411a ("mm, swap: mark swap address space ro and add context debug check")
+Signed-off-by: robin.kuo <robin.kuo@mediatek.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/swap.c |    2 +-
- mm/swapfile.c       |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ mm/swap.h       |    2 +-
+ mm/swap_state.c |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/kernel/power/swap.c~mm-swap-cleanup-swap-entry-management-workflow-fix
-+++ a/kernel/power/swap.c
-@@ -199,7 +199,7 @@ void free_all_swap_pages(int swap)
- 		ext = rb_entry(node, struct swsusp_extent, node);
- 		rb_erase(node, &swsusp_extents);
+--- a/mm/swap.h~restore-swap_space-attr-aviod-krn-panic
++++ a/mm/swap.h
+@@ -198,7 +198,7 @@ int swap_writeout(struct folio *folio, s
+ void __swap_writepage(struct folio *folio, struct swap_iocb **swap_plug);
  
--		for (offset = ext->start; offset < ext->end; offset++)
-+		for (offset = ext->start; offset <= ext->end; offset++)
- 			swap_free_hibernation_slot(swp_entry(swap, offset));
+ /* linux/mm/swap_state.c */
+-extern struct address_space swap_space __ro_after_init;
++extern struct address_space swap_space __read_mostly;
+ static inline struct address_space *swap_address_space(swp_entry_t entry)
+ {
+ 	return &swap_space;
+--- a/mm/swap_state.c~restore-swap_space-attr-aviod-krn-panic
++++ a/mm/swap_state.c
+@@ -37,8 +37,7 @@ static const struct address_space_operat
+ #endif
+ };
  
- 		kfree(ext);
---- a/mm/swapfile.c~mm-swap-cleanup-swap-entry-management-workflow-fix
-+++ a/mm/swapfile.c
-@@ -2096,7 +2096,6 @@ void swap_free_hibernation_slot(swp_entr
+-/* Set swap_space as read only as swap cache is handled by swap table */
+-struct address_space swap_space __ro_after_init = {
++struct address_space swap_space __read_mostly = {
+ 	.a_ops = &swap_aops,
+ };
  
- 	ci = swap_cluster_lock(si, offset);
- 	swap_entry_put_locked(si, ci, entry, 1);
--	WARN_ON(swap_entry_swapped(si, entry));
- 	swap_cluster_unlock(ci);
- 
- 	/* In theory readahead might add it to the swap cache by accident */
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from robin.kuo@mediatek.com are
 
-mm-swap-rename-__read_swap_cache_async-to-swap_cache_alloc_folio.patch
-mm-swap-split-swap-cache-preparation-loop-into-a-standalone-helper.patch
-mm-swap-never-bypass-the-swap-cache-even-for-swp_synchronous_io.patch
-mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
-mm-swap-simplify-the-code-and-reduce-indention.patch
-mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
-mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
-mm-swap-swap-entry-of-a-bad-slot-should-not-be-considered-as-swapped-out.patch
-mm-swap-consolidate-cluster-reclaim-and-usability-check.patch
-mm-swap-split-locked-entry-duplicating-into-a-standalone-helper.patch
-mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer.patch
-mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer-fix.patch
-mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
-mm-swap-cleanup-swap-entry-management-workflow.patch
-mm-swap-cleanup-swap-entry-management-workflow-fix.patch
-mm-swap-add-folio-to-swap-cache-directly-on-allocation.patch
-mm-swap-check-swap-table-directly-for-checking-cache.patch
-mm-swap-clean-up-and-improve-swap-entries-freeing.patch
-mm-swap-drop-the-swap_has_cache-flag.patch
-mm-swap-remove-no-longer-needed-_swap_info_get.patch
-mm-gup-remove-no-longer-used-gup_fast_undo_dev_pagemap.patch
+restore-swap_space-attr-aviod-krn-panic.patch
 
