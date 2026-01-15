@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F29922FCBF0
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 19:24:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D0922F12A3
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 19:25:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768505099; cv=none; b=IcV51KLc7bSFA8ipwmSAJl6PJAyOpaFHhwyLCd6h+SuSrnOepZ8wIdqLn3L8e7hQezbiKpUzZjOgQ+LIBiT6xg+10lHa51xvhjek0AYOIL/o9voRjgeIr7xGp6s/MqFWEEABqOASvjeggSF2nd5Ca5BDBVNaFRTqT7c2hkJq8u8=
+	t=1768505101; cv=none; b=F/ZkUosNjfvaVhMTGaNMgZsCn/3V2A8N02mX40A3mHTLAaqIVGq0HSne86yk4mCiJkmatNjH3+YP2QdUvyHs1TCsYz7lA7KJ+tRVVuprup87AjZHC/vfvZrJN9XSELJCArfzmpkY5b7wLiL3rdWwWlkAmzjHfUfOQ8EdplMVB3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768505099; c=relaxed/simple;
-	bh=DMYCXH8LR2C1LOQgJw3oIL82ZDnccWjscSzHtNaqpdQ=;
-	h=Date:To:From:Subject:Message-Id; b=TYsj6GCgylda7gUGfQyN3PyGrKdz2F9qIvhR5kMPR3CBrWz6Z0qbwEtBszUDrlc0HLW1yMw9GycDnVcvXaDAPL0jwx6Fc52S2iaztpeCTdbL0mDrAn+1HoBgGIi56ZSrT8B66ZKL+d7XUFsX6/yk2+V0smCzfwLp4c0/7/mbmwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pqoUjR3f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768505101; c=relaxed/simple;
+	bh=JhhzN1LqggsYCIDmqT8Pp4A3SPqpHgvdHgg8KCUm/1k=;
+	h=Date:To:From:Subject:Message-Id; b=S8HiJ7469rdzIy0fQv/lbQLxpq2FriviqW3IRcru9wYgrr0661NyMerCEVRx/3NSILNpP7JVkFe9orAqh3SwNi/Y3pZByZxy0pMDLAKsMKf1QecYLawDD3sxkSq9Tn0HJCRfCZO0Y2ZePzzxqjXgstvAs5nmnwmpXRgxTI+4S/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dT1pIiaf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pqoUjR3f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39098C116D0;
-	Thu, 15 Jan 2026 19:24:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dT1pIiaf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D84AC116D0;
+	Thu, 15 Jan 2026 19:25:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768505098;
-	bh=DMYCXH8LR2C1LOQgJw3oIL82ZDnccWjscSzHtNaqpdQ=;
+	s=korg; t=1768505100;
+	bh=JhhzN1LqggsYCIDmqT8Pp4A3SPqpHgvdHgg8KCUm/1k=;
 	h=Date:To:From:Subject:From;
-	b=pqoUjR3f+XkJFuOzXxbF9ATuHTCWohAC9MCzN74AqjkFPg7ry3yhAvue6dtZIig6v
-	 IvPspvwzo7WyLlKIupQ+GGv/5MTIuVsQi+8aowB6W2aBSixVKbPHz2y6UTcOm9ygR+
-	 7a510BI2IxwJMUKnzp8hscRGd7YX/NFjZf22zBMU=
-Date: Thu, 15 Jan 2026 11:24:57 -0800
+	b=dT1pIiafvhmIQRiGIS6x3MVKMU1kmN4N2OijHy5nSLnwPmL7mx1yxA0QZq/Fa2Ppt
+	 kmoDX2dSPuNA7xBs0EpRlvKxU0veisOwJw322irIRGGfLYWhHl3InLvna7ZyRauDXq
+	 HwGgNdKJFLeWR+BTZhby/GEzyIWYFYSM93rQf+KM=
+Date: Thu, 15 Jan 2026 11:24:59 -0800
 To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,akpm@linux-foundation.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-remove-unnecessary-if-condition.patch added to mm-new branch
-Message-Id: <20260115192458.39098C116D0@smtp.kernel.org>
+Subject: + mm-hugetlb-enforce-brace-style.patch added to mm-new branch
+Message-Id: <20260115192500.5D84AC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: remove unnecessary if condition
+     Subject: mm/hugetlb: enforce brace style
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-remove-unnecessary-if-condition.patch
+     mm-hugetlb-enforce-brace-style.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-unnecessary-if-condition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-enforce-brace-style.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,56 +67,91 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/hugetlb: remove unnecessary if condition
-Date: Thu, 15 Jan 2026 13:14:36 -0500
+Subject: mm/hugetlb: enforce brace style
+Date: Thu, 15 Jan 2026 13:14:37 -0500
 
-if (map_chg) is always true, since it is nested in another if statement
-which checks for it already.  Remove the check and un-indent for
-readability.
-
-if (unlikely(map_chg == MAP_CHG_NEEDED && retval == 0)) {
-	...
-
-	if (map_chg) {
-		...
-	}
-}
+Documentation/process/coding-style.rst explicitly notes that if only one
+branch of a conditional statement is a single statement, braces should
+be used in both branches. Enforce this in mm/hugetlb.c.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/20260115181438.223620-3-joshua.hahnjy@gmail.com
+Link: https://lkml.kernel.org/r/20260115181438.223620-4-joshua.hahnjy@gmail.com
 Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-remove-unnecessary-if-condition
+--- a/mm/hugetlb.c~mm-hugetlb-enforce-brace-style
 +++ a/mm/hugetlb.c
-@@ -3019,13 +3019,11 @@ struct folio *alloc_hugetlb_folio(struct
+@@ -578,8 +578,9 @@ hugetlb_resv_map_add(struct resv_map *ma
+ 		record_hugetlb_cgroup_uncharge_info(cg, h, map, nrg);
+ 		list_add(&nrg->link, rg);
+ 		coalesce_file_region(map, nrg);
+-	} else
++	} else {
+ 		*regions_needed += 1;
++	}
  
- 			rsv_adjust = hugepage_subpool_put_pages(spool, 1);
- 			hugetlb_acct_memory(h, -rsv_adjust);
--			if (map_chg) {
--				spin_lock_irq(&hugetlb_lock);
--				hugetlb_cgroup_uncharge_folio_rsvd(
--				    hstate_index(h), pages_per_huge_page(h),
--				    folio);
--				spin_unlock_irq(&hugetlb_lock);
--			}
-+			spin_lock_irq(&hugetlb_lock);
-+			hugetlb_cgroup_uncharge_folio_rsvd(
-+			    hstate_index(h), pages_per_huge_page(h),
-+			    folio);
-+			spin_unlock_irq(&hugetlb_lock);
- 		}
+ 	return to - from;
+ }
+@@ -1247,8 +1248,9 @@ void hugetlb_dup_vma_private(struct vm_a
+ 
+ 		if (vma_lock && vma_lock->vma != vma)
+ 			vma->vm_private_data = NULL;
+-	} else
++	} else {
+ 		vma->vm_private_data = NULL;
++	}
+ }
+ 
+ /*
+@@ -2076,8 +2078,9 @@ retry:
+ 				h->max_huge_pages++;
+ 				goto out;
+ 			}
+-		} else
++		} else {
+ 			rc = 0;
++		}
+ 
+ 		update_and_free_hugetlb_folio(h, folio, false);
+ 		return rc;
+@@ -2672,11 +2675,13 @@ void restore_reserve_on_error(struct hst
+ 				 * be consumed on a subsequent allocation.
+ 				 */
+ 				folio_set_hugetlb_restore_reserve(folio);
+-		} else
++		} else {
+ 			/*
+ 			 * No reservation present, do nothing
+ 			 */
+ 			 vma_end_reservation(h, vma, address);
++
++		}
  	}
+ }
+ 
+@@ -4703,10 +4708,12 @@ static void hugetlb_vm_op_open(struct vm
+ 			if (vma_lock->vma != vma) {
+ 				vma->vm_private_data = NULL;
+ 				hugetlb_vma_lock_alloc(vma);
+-			} else
++			} else {
+ 				pr_warn("HugeTLB: vma_lock already exists in %s.\n", __func__);
+-		} else
++			}
++		} else {
+ 			hugetlb_vma_lock_alloc(vma);
++		}
+ 	}
+ }
  
 _
 
