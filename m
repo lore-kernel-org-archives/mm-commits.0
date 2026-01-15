@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D0922F12A3
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 19:25:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AB012FF66C
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 19:25:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768505101; cv=none; b=F/ZkUosNjfvaVhMTGaNMgZsCn/3V2A8N02mX40A3mHTLAaqIVGq0HSne86yk4mCiJkmatNjH3+YP2QdUvyHs1TCsYz7lA7KJ+tRVVuprup87AjZHC/vfvZrJN9XSELJCArfzmpkY5b7wLiL3rdWwWlkAmzjHfUfOQ8EdplMVB3c=
+	t=1768505156; cv=none; b=o5vTpjhnpY+Wx4XPltEPFl1P6icvym+jdP192ABQMaxMIiMwHCyEvSy1x2MDcdpkj+xwa8rutzNjO+Dzeww0GnUprL3nZjQyc+DN0iC3KaOx7yKjUT5ywqE8NwKF2J+c44Q2Qg4HQr9+fG0bvZ6OSPBGdwG/QytEDoGP5qwWVpA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768505101; c=relaxed/simple;
-	bh=JhhzN1LqggsYCIDmqT8Pp4A3SPqpHgvdHgg8KCUm/1k=;
-	h=Date:To:From:Subject:Message-Id; b=S8HiJ7469rdzIy0fQv/lbQLxpq2FriviqW3IRcru9wYgrr0661NyMerCEVRx/3NSILNpP7JVkFe9orAqh3SwNi/Y3pZByZxy0pMDLAKsMKf1QecYLawDD3sxkSq9Tn0HJCRfCZO0Y2ZePzzxqjXgstvAs5nmnwmpXRgxTI+4S/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dT1pIiaf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768505156; c=relaxed/simple;
+	bh=+C6vz5VlM3QFdIgRLHAZBVIsRskLIx8fRK97zebSF7Y=;
+	h=Date:To:From:Subject:Message-Id; b=L2RcIF9nOIWHkWlI7Oc9P8+NA6StR3zwFviPFpyHAw1qSstmie7qwnAmSPpArKqk9rKcA1iMypb9WLsieumVkKUcs1c+TeMarI7dIfRBCl2oEEXr2WeefKcZrsDCqIAhk1qvpSCNUjbSgqbtmD1AJreEwiUTEgCX3O4jcOwKSdk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Auh786qf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dT1pIiaf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D84AC116D0;
-	Thu, 15 Jan 2026 19:25:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Auh786qf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D21BC16AAE;
+	Thu, 15 Jan 2026 19:25:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768505100;
-	bh=JhhzN1LqggsYCIDmqT8Pp4A3SPqpHgvdHgg8KCUm/1k=;
+	s=korg; t=1768505155;
+	bh=+C6vz5VlM3QFdIgRLHAZBVIsRskLIx8fRK97zebSF7Y=;
 	h=Date:To:From:Subject:From;
-	b=dT1pIiafvhmIQRiGIS6x3MVKMU1kmN4N2OijHy5nSLnwPmL7mx1yxA0QZq/Fa2Ppt
-	 kmoDX2dSPuNA7xBs0EpRlvKxU0veisOwJw322irIRGGfLYWhHl3InLvna7ZyRauDXq
-	 HwGgNdKJFLeWR+BTZhby/GEzyIWYFYSM93rQf+KM=
-Date: Thu, 15 Jan 2026 11:24:59 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,akpm@linux-foundation.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=Auh786qfEOtDYFeqmD7GEyybLm7qlPD//vmZoY0xNZZ5sSX67n+j+EHIopNfDAloj
+	 cPGmSKlHP9w5VfJy3PlFonYRDD3IeUVWHoyOHoHWmhSDoI/TvjSYvmO0uzZxxWPvBh
+	 J1hCJ7KerP5T39pVsLpFLetOr7VJi6kABpPZ9g34=
+Date: Thu, 15 Jan 2026 11:25:54 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,joshua.hahnjy@gmail.com,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-enforce-brace-style.patch added to mm-new branch
-Message-Id: <20260115192500.5D84AC116D0@smtp.kernel.org>
+Subject: + mm-hugetlb-enforce-brace-style-checkpatch-fixes.patch added to mm-new branch
+Message-Id: <20260115192555.2D21BC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: enforce brace style
+     Subject: mm-hugetlb-enforce-brace-style-checkpatch-fixes
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-enforce-brace-style.patch
+     mm-hugetlb-enforce-brace-style-checkpatch-fixes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-enforce-brace-style.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-enforce-brace-style-checkpatch-fixes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,98 +66,63 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/hugetlb: enforce brace style
-Date: Thu, 15 Jan 2026 13:14:37 -0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-enforce-brace-style-checkpatch-fixes
+Date: Thu Jan 15 11:25:21 AM PST 2026
 
-Documentation/process/coding-style.rst explicitly notes that if only one
-branch of a conditional statement is a single statement, braces should
-be used in both branches. Enforce this in mm/hugetlb.c.
+WARNING: suspect code indent for conditional statements (16, 25)
+#63: FILE: mm/hugetlb.c:2678:
++		} else {
+[...]
+ 			 vma_end_reservation(h, vma, address);
 
-No functional change intended.
+total: 0 errors, 1 warnings, 58 lines checked
 
-Link: https://lkml.kernel.org/r/20260115181438.223620-4-joshua.hahnjy@gmail.com
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-hugetlb-enforce-brace-style.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-enforce-brace-style
+--- a/mm/hugetlb.c~mm-hugetlb-enforce-brace-style-checkpatch-fixes
 +++ a/mm/hugetlb.c
-@@ -578,8 +578,9 @@ hugetlb_resv_map_add(struct resv_map *ma
- 		record_hugetlb_cgroup_uncharge_info(cg, h, map, nrg);
- 		list_add(&nrg->link, rg);
- 		coalesce_file_region(map, nrg);
--	} else
-+	} else {
- 		*regions_needed += 1;
-+	}
- 
- 	return to - from;
- }
-@@ -1247,8 +1248,9 @@ void hugetlb_dup_vma_private(struct vm_a
- 
- 		if (vma_lock && vma_lock->vma != vma)
- 			vma->vm_private_data = NULL;
--	} else
-+	} else {
- 		vma->vm_private_data = NULL;
-+	}
- }
- 
- /*
-@@ -2076,8 +2078,9 @@ retry:
- 				h->max_huge_pages++;
- 				goto out;
- 			}
--		} else
-+		} else {
- 			rc = 0;
-+		}
- 
- 		update_and_free_hugetlb_folio(h, folio, false);
- 		return rc;
-@@ -2672,11 +2675,13 @@ void restore_reserve_on_error(struct hst
- 				 * be consumed on a subsequent allocation.
- 				 */
- 				folio_set_hugetlb_restore_reserve(folio);
--		} else
-+		} else {
+@@ -2679,8 +2679,7 @@ void restore_reserve_on_error(struct hst
  			/*
  			 * No reservation present, do nothing
  			 */
- 			 vma_end_reservation(h, vma, address);
-+
-+		}
+-			 vma_end_reservation(h, vma, address);
+-
++			vma_end_reservation(h, vma, address);
+ 		}
  	}
  }
- 
-@@ -4703,10 +4708,12 @@ static void hugetlb_vm_op_open(struct vm
- 			if (vma_lock->vma != vma) {
- 				vma->vm_private_data = NULL;
- 				hugetlb_vma_lock_alloc(vma);
--			} else
-+			} else {
- 				pr_warn("HugeTLB: vma_lock already exists in %s.\n", __func__);
--		} else
-+			}
-+		} else {
- 			hugetlb_vma_lock_alloc(vma);
-+		}
- 	}
- }
- 
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
-mm-hugetlb-remove-unnecessary-if-condition.patch
-mm-hugetlb-enforce-brace-style.patch
+mm-add-basic-tests-for-lazy_mmu-fix.patch
+mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
+mm-block-fs-remove-laptop_mode-fix.patch
+mm-fix-minor-spelling-mistakes-in-comments-fix.patch
+memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
+mm-hugetlb-enforce-brace-style-checkpatch-fixes.patch
+kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix.patch
+list-add-primitives-for-private-list-manipulations-fix.patch
+init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning-fix.patch
+panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-checkpatch-fixes.patch
 
