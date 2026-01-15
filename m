@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F1AD21FF26;
-	Thu, 15 Jan 2026 22:20:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89922328605
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 22:28:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768515601; cv=none; b=mD5IHuBK/vqn8Nz4fJbLbijQZ4YXYb/erJc86xnESnYEEPtqd3GwKMBunYcNUsdZShtx0nJTIms10JOKuuLoD8OK20ZGmszmUs+kPQEKsTHR+6UZkGO3JOoiEGmeuK0jsoee1IaZaIXDB3u7gTQkj94j6O5hosbN0eAA2B79fxs=
+	t=1768516097; cv=none; b=H8M8TjjLeq2nOkSc2/R4U8Y77zv4RleaMFe64Erq0mvx4ihHje5fTYvPWlkBx4LuR639YtGHVafaZ3WpA6jmAbVc8tN7N9/w47Td2Qac8T+ecFy3icxi3V6Hdto+GAi8fLYxdc15+s3aYIPjHUeCkmPXw3JNkOhCkadkSc335kk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768515601; c=relaxed/simple;
-	bh=T+/9/2cdWEUBKSJ64Hs5G3Vts1++g1oHjyVLUIsdYWI=;
-	h=Date:To:From:Subject:Message-Id; b=KayEO2h658QTRd79AbyeEsuLQcXn3FoGo3zYbTH1reQa30lGIBpJX5y+UA2kIdOGz1WNKUsXcqCNc8aaGI4u8Ubae5Y/Su4WrIDHqQbwHlJJR3dI+KS1lIZF3gjflamJkHozV8XAJ51UVSMS9btaHf7tdgIfzZ47x7Nv1dsGMnw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y1HR+rjM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768516097; c=relaxed/simple;
+	bh=MRTmhE0pNS/86F5GQQz3jx9yWGDfHVLbKxI2xgkLFds=;
+	h=Date:To:From:Subject:Message-Id; b=oMxLkfjFJpp+vG/+9UsLZnAHKauv59AnqdUXXDSBOKN1om6jazGWnpFhx8pq6QHwPx8+f+kvNj81UvzFwGbWtrr+JfiNzRIe5wjhpEnQWyh3+iYLd6Erqs1z6O7Horn1D8up1lpEKlTKrbf3ax8ahf3nQftsfC5X+jhf/4yDJ0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PGiZ5axY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y1HR+rjM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E91C116D0;
-	Thu, 15 Jan 2026 22:20:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PGiZ5axY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3F41C116D0;
+	Thu, 15 Jan 2026 22:28:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768515600;
-	bh=T+/9/2cdWEUBKSJ64Hs5G3Vts1++g1oHjyVLUIsdYWI=;
+	s=korg; t=1768516097;
+	bh=MRTmhE0pNS/86F5GQQz3jx9yWGDfHVLbKxI2xgkLFds=;
 	h=Date:To:From:Subject:From;
-	b=Y1HR+rjMQD1+9YPwpqZrYatO2qwpu0tb4n6jzn/w/t6oex90Q6VPJnyS7e4Rcoa/m
-	 eU6TCCgdNv85WwmOiYRsI8CiV0Q7DbtSpWfu0G1iqHXWpMwVcZkXr3Z6fheV+Ukaaz
-	 /+ZQQEcfY9E6esPJVITxgzWM7PnjAxFKRLuHBu3s=
-Date: Thu, 15 Jan 2026 14:19:59 -0800
-To: mm-commits@vger.kernel.org,william.roche@oracle.com,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,Liam.Howlett@oracle.com,david@kernel.org,jane.chu@oracle.com,akpm@linux-foundation.org
+	b=PGiZ5axYFPPCl6JEtyz0O3QEpzKTkU2psMkqSdvFzHwoErqjjE18mvFTsd8/sMmJZ
+	 Ih/sZB8phbG3Cx7Mklqh2X50X83gdd7lmsYJV9Unwa2/PqrxM76/WX9keAvTp49/H8
+	 Vn0lxUsHY7D1fOH5SWjZs77CZ8kq0sHCFUf+MQlw=
+Date: Thu, 15 Jan 2026 14:28:16 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,sweettea-kernel@dorminy.me,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,paulmck@kernel.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn.patch removed from -mm tree
-Message-Id: <20260115222000.96E91C116D0@smtp.kernel.org>
+Subject: + mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch added to mm-new branch
+Message-Id: <20260115222816.F3F41C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,93 +34,227 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/memory-failure: teach kill_accessing_process to accept hugetlb tail page pfn
-has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn.patch
+The patch titled
+     Subject: mm: fix OOM killer inaccuracy on large many-core systems
+has been added to the -mm mm-new branch.  Its filename is
+     mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: mm/memory-failure: teach kill_accessing_process to accept hugetlb tail page pfn
-Date: Tue, 13 Jan 2026 01:07:51 -0700
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: mm: fix OOM killer inaccuracy on large many-core systems
+Date: Wed, 14 Jan 2026 09:36:42 -0500
 
-When a hugetlb folio is being poisoned again, try_memory_failure_hugetlb()
-passed head pfn to kill_accessing_process(), that is not right.  The
-precise pfn of the poisoned page should be used in order to determine the
-precise vaddr as the SIGBUS payload.
+Use the precise, albeit slower, precise RSS counter sums for the OOM
+killer task selection and console dumps.  The approximated value is too
+imprecise on large many-core systems.
 
-This issue has already been taken care of in the normal path, that is,
-hwpoison_user_mappings(), see [1][2].  Further more, for [3] to work
-correctly in the hugetlb repoisoning case, it's essential to inform VM the
-precise poisoned page, not the head page.
+The following rss tracking issues were noted by Sweet Tea Dorminy [1],
+which lead to picking wrong tasks as OOM kill target:
 
-Link: https://lkml.kernel.org/r/20260113080751.2173497-2-jane.chu@oracle.com
-Link: https://lkml.kernel.org/r/20231218135837.3310403-1-willy@infradead.org [1]
-Link: https://lkml.kernel.org/r/20250224211445.2663312-1-jane.chu@oracle.com [2]
-Link: https://lore.kernel.org/lkml/20251116013223.1557158-1-jiaqiyan@google.com/ [3]
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: David Hildenbrand <david@kernel.org>
+  Recently, several internal services had an RSS usage regression as part of a
+  kernel upgrade. Previously, they were on a pre-6.2 kernel and were able to
+  read RSS statistics in a backup watchdog process to monitor and decide if
+  they'd overrun their memory budget. Now, however, a representative service
+  with five threads, expected to use about a hundred MB of memory, on a 250-cpu
+  machine had memory usage tens of megabytes different from the expected amount
+  -- this constituted a significant percentage of inaccuracy, causing the
+  watchdog to act.
+
+  This was a result of commit f1a7941243c1 ("mm: convert mm's rss stats
+  into percpu_counter") [1].  Previously, the memory error was bounded by
+  64*nr_threads pages, a very livable megabyte. Now, however, as a result of
+  scheduler decisions moving the threads around the CPUs, the memory error could
+  be as large as a gigabyte.
+
+  This is a really tremendous inaccuracy for any few-threaded program on a
+  large machine and impedes monitoring significantly. These stat counters are
+  also used to make OOM killing decisions, so this additional inaccuracy could
+  make a big difference in OOM situations -- either resulting in the wrong
+  process being killed, or in less memory being returned from an OOM-kill than
+  expected.
+
+Here is a (possibly incomplete) list of the prior approaches that were
+used or proposed, along with their downside:
+
+1) Per-thread rss tracking: large error on many-thread processes.
+
+2) Per-CPU counters: up to 12% slower for short-lived processes and 9%
+   increased system time in make test workloads [1]. Moreover, the
+   inaccuracy increases with O(n^2) with the number of CPUs.
+
+3) Per-NUMA-node counters: requires atomics on fast-path (overhead),
+   error is high with systems that have lots of NUMA nodes (32 times
+   the number of NUMA nodes).
+
+commit 82241a83cd15 ("mm: fix the inaccurate memory statistics issue for
+users") introduced get_mm_counter_sum() for precise proc memory status
+queries for some proc files.
+
+The simple fix proposed here is to do the precise per-cpu counters sum
+every time a counter value needs to be read.  This applies to the OOM
+killer task selection, oom task console dumps (printk).
+
+This change increases the latency introduced when the OOM killer executes
+in favor of doing a more precise OOM target task selection.  Effectively,
+the OOM killer iterates on all tasks, for all relevant page types, for
+which the precise sum iterates on all possible CPUs.
+
+As a reference, here is the execution time of the OOM killer before/after
+the change:
+
+AMD EPYC 9654 96-Core (2 sockets)
+Within a KVM, configured with 256 logical cpus.
+
+                                  |  before  |  after   |
+----------------------------------|----------|----------|
+nr_processes=40                   |  0.3 ms  |   0.5 ms |
+nr_processes=10000                |  3.0 ms  |  80.0 ms |
+
+Link: https://lkml.kernel.org/r/20260114143642.47333-1-mathieu.desnoyers@efficios.com
+Fixes: f1a7941243c1 ("mm: convert mm's rss stats into percpu_counter")
+Link: https://lore.kernel.org/lkml/20250331223516.7810-2-sweettea-kernel@dorminy.me/ # [1]
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Martin Liu <liumartin@google.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Liam R . Howlett" <liam.howlett@oracle.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: William Roche <william.roche@oracle.com>
-Cc: <stable@vger.kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ include/linux/mm.h |    7 +++++++
+ mm/oom_kill.c      |   22 +++++++++++-----------
+ 2 files changed, 18 insertions(+), 11 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn
-+++ a/mm/memory-failure.c
-@@ -692,6 +692,8 @@ static int check_hwpoisoned_entry(pte_t
- 				unsigned long poisoned_pfn, struct to_kill *tk)
- {
- 	unsigned long pfn = 0;
-+	unsigned long hwpoison_vaddr;
-+	unsigned long mask;
- 
- 	if (pte_present(pte)) {
- 		pfn = pte_pfn(pte);
-@@ -702,10 +704,12 @@ static int check_hwpoisoned_entry(pte_t
- 			pfn = softleaf_to_pfn(entry);
- 	}
- 
--	if (!pfn || pfn != poisoned_pfn)
-+	mask = ~((1UL << (shift - PAGE_SHIFT)) - 1);
-+	if (!pfn || ((pfn & mask) != (poisoned_pfn & mask)))
- 		return 0;
- 
--	set_to_kill(tk, addr, shift);
-+	hwpoison_vaddr = addr + ((poisoned_pfn - pfn) << PAGE_SHIFT);
-+	set_to_kill(tk, hwpoison_vaddr, shift);
- 	return 1;
+--- a/include/linux/mm.h~mm-fix-oom-killer-inaccuracy-on-large-many-core-systems
++++ a/include/linux/mm.h
+@@ -2893,6 +2893,13 @@ static inline unsigned long get_mm_rss(s
+ 		get_mm_counter(mm, MM_SHMEMPAGES);
  }
  
-@@ -2049,10 +2053,8 @@ retry:
- 		return action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
- 	case MF_HUGETLB_FOLIO_PRE_POISONED:
- 	case MF_HUGETLB_PAGE_PRE_POISON:
--		if (flags & MF_ACTION_REQUIRED) {
--			folio = page_folio(p);
--			res = kill_accessing_process(current, folio_pfn(folio), flags);
--		}
-+		if (flags & MF_ACTION_REQUIRED)
-+			res = kill_accessing_process(current, pfn, flags);
- 		if (res == MF_HUGETLB_FOLIO_PRE_POISONED)
- 			action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
- 		else
++static inline unsigned long get_mm_rss_sum(struct mm_struct *mm)
++{
++	return get_mm_counter_sum(mm, MM_FILEPAGES) +
++		get_mm_counter_sum(mm, MM_ANONPAGES) +
++		get_mm_counter_sum(mm, MM_SHMEMPAGES);
++}
++
+ static inline unsigned long get_mm_hiwater_rss(struct mm_struct *mm)
+ {
+ 	return max(mm->hiwater_rss, get_mm_rss(mm));
+--- a/mm/oom_kill.c~mm-fix-oom-killer-inaccuracy-on-large-many-core-systems
++++ a/mm/oom_kill.c
+@@ -228,7 +228,7 @@ long oom_badness(struct task_struct *p,
+ 	 * The baseline for the badness score is the proportion of RAM that each
+ 	 * task's rss, pagetable and swap space use.
+ 	 */
+-	points = get_mm_rss(p->mm) + get_mm_counter(p->mm, MM_SWAPENTS) +
++	points = get_mm_rss_sum(p->mm) + get_mm_counter_sum(p->mm, MM_SWAPENTS) +
+ 		mm_pgtables_bytes(p->mm) / PAGE_SIZE;
+ 	task_unlock(p);
+ 
+@@ -402,10 +402,10 @@ static int dump_task(struct task_struct
+ 
+ 	pr_info("[%7d] %5d %5d %8lu %8lu %8lu %8lu %9lu %8ld %8lu         %5hd %s\n",
+ 		task->pid, from_kuid(&init_user_ns, task_uid(task)),
+-		task->tgid, task->mm->total_vm, get_mm_rss(task->mm),
+-		get_mm_counter(task->mm, MM_ANONPAGES), get_mm_counter(task->mm, MM_FILEPAGES),
+-		get_mm_counter(task->mm, MM_SHMEMPAGES), mm_pgtables_bytes(task->mm),
+-		get_mm_counter(task->mm, MM_SWAPENTS),
++		task->tgid, task->mm->total_vm, get_mm_rss_sum(task->mm),
++		get_mm_counter_sum(task->mm, MM_ANONPAGES), get_mm_counter_sum(task->mm, MM_FILEPAGES),
++		get_mm_counter_sum(task->mm, MM_SHMEMPAGES), mm_pgtables_bytes(task->mm),
++		get_mm_counter_sum(task->mm, MM_SWAPENTS),
+ 		task->signal->oom_score_adj, task->comm);
+ 	task_unlock(task);
+ 
+@@ -604,9 +604,9 @@ static bool oom_reap_task_mm(struct task
+ 
+ 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+ 			task_pid_nr(tsk), tsk->comm,
+-			K(get_mm_counter(mm, MM_ANONPAGES)),
+-			K(get_mm_counter(mm, MM_FILEPAGES)),
+-			K(get_mm_counter(mm, MM_SHMEMPAGES)));
++			K(get_mm_counter_sum(mm, MM_ANONPAGES)),
++			K(get_mm_counter_sum(mm, MM_FILEPAGES)),
++			K(get_mm_counter_sum(mm, MM_SHMEMPAGES)));
+ out_finish:
+ 	trace_finish_task_reaping(tsk->pid);
+ out_unlock:
+@@ -960,9 +960,9 @@ static void __oom_kill_process(struct ta
+ 	mark_oom_victim(victim);
+ 	pr_err("%s: Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB, UID:%u pgtables:%lukB oom_score_adj:%d\n",
+ 		message, task_pid_nr(victim), victim->comm, K(mm->total_vm),
+-		K(get_mm_counter(mm, MM_ANONPAGES)),
+-		K(get_mm_counter(mm, MM_FILEPAGES)),
+-		K(get_mm_counter(mm, MM_SHMEMPAGES)),
++		K(get_mm_counter_sum(mm, MM_ANONPAGES)),
++		K(get_mm_counter_sum(mm, MM_FILEPAGES)),
++		K(get_mm_counter_sum(mm, MM_SHMEMPAGES)),
+ 		from_kuid(&init_user_ns, task_uid(victim)),
+ 		mm_pgtables_bytes(mm) >> 10, victim->signal->oom_score_adj);
+ 	task_unlock(victim);
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
+mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch
+mm-rename-cpu_bitmap-field-to-flexible_array.patch
+mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
+tsacct-skip-all-kernel-threads.patch
+mm-fix-oom-killer-and-proc-stats-inaccuracy-on-large-many-core-systems.patch
+mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
 
