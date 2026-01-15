@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77EBE289E06
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 23:19:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 344152BFC70
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 23:31:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768519141; cv=none; b=jsfAtCDe5nUvjb1fWwzT43DDoX95fZ1Kj/l6CdR05+tRnkhfqvM9iAc8i531ksoSr8fj/N4ujS0T8+acnqFZqaSq/XKxFPZbUolb8cy2thobbarl70xEz6B/xS9oviUNOJBvjH0/hj9xYwis0a33nGuCJvL8UBVg94+E7ehECiA=
+	t=1768519869; cv=none; b=iIsSJTgeDsxxowU4j1EnP7us7F8PeRBcZWxeH8TL+CIkofBA8lXL8dGnumeMxuCp6J42ve4CyxezDE6EkZdVRaFpYISv7R7rO739fB1r2xyQtONRc5EfOQYiXiD1NZNXTK9JM/dnFHJQmUPtElJIu8tbz5iVbtubT69RgozlX+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768519141; c=relaxed/simple;
-	bh=zwJr0ynThT0SEEPvCtK2OCi2VB8GkNDEYhFM9HlLRLM=;
-	h=Date:To:From:Subject:Message-Id; b=gspy8HUDv107/HPyHy3zyA7ufyeNQr7No+jBqV9a5vodFjNUu8k9Tdp91xPrzqIBziZkxrMSox+frY6KvJvs/y9FYcHTvn4mSfiO0/ZYOVgqzv0KRyM0IMnALU5lZb5dR/nzOQE0e8Y0m4tDqp5vKSrfpUlHkXXizjKB5pNCRWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O/eiX8K+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768519869; c=relaxed/simple;
+	bh=fmweyeXvDMOFiieQ12u3RrZvxkiOWZ76ESkaSbkUK7s=;
+	h=Date:To:From:Subject:Message-Id; b=eifbxpuS2PZZ92VCyhVjc/K4L2z+CGHz1MDV9Kb5Ks91U2T7t9EKL0C8Z7Hqy8RUtt9QEiB51QcFTTHJ91dDvs5HUqEVGqOJx2m8/DQHPoefdopq0YXo/OTLzdLSWPnz2PAJrDvHTK9aM9yC1qnVkcS/4Ro7yETUzYm9TXlCqlU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vrl20yVG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O/eiX8K+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3DC7C116D0;
-	Thu, 15 Jan 2026 23:19:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vrl20yVG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4456C116D0;
+	Thu, 15 Jan 2026 23:31:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768519141;
-	bh=zwJr0ynThT0SEEPvCtK2OCi2VB8GkNDEYhFM9HlLRLM=;
+	s=korg; t=1768519868;
+	bh=fmweyeXvDMOFiieQ12u3RrZvxkiOWZ76ESkaSbkUK7s=;
 	h=Date:To:From:Subject:From;
-	b=O/eiX8K+juRvMwi67pnlJ+ad8aymi4vWTVczvltxYfyvu7406WaLz4i/AZEYVekr9
-	 TFPup0p61Fy2h+KhHLK/KV7eb4fzKOUQSTLi8HTSgshqU+Sw6iZXUI9bngvhaUpZ2B
-	 E4on+XnKxk5p5tvPF3TIUvUJElM8t/2Zx/jRryMM=
-Date: Thu, 15 Jan 2026 15:19:00 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,david@kernel.org,clm@meta.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=vrl20yVGBtNsK6KTJeQSwVI0Sz948dpzhgApZ930kddbVQKUWGllQ9Nzy+HsymAp2
+	 qgJx3EMHxlFDpIuLwHleQ120hc6FICzaLOa1F3dNrYrNtREa6hLlSsZp5vDsUszPRr
+	 zVDT7a2WOO+heqTzWqGyBoILEuzr2c5DqfSGuqok=
+Date: Thu, 15 Jan 2026 15:31:08 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-do-not-copy-page-tables-unnecessarily-for-vm_uffd_wp.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260115231900.E3DC7C116D0@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch removed from -mm tree
+Message-Id: <20260115233108.B4456C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,122 +34,134 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: do not copy page tables unnecessarily for VM_UFFD_WP
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-do-not-copy-page-tables-unnecessarily-for-vm_uffd_wp.patch
+The quilt patch titled
+     Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-do-not-copy-page-tables-unnecessarily-for-vm_uffd_wp.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: do not copy page tables unnecessarily for VM_UFFD_WP
-Date: Wed, 14 Jan 2026 11:00:06 +0000
+From: Jiayuan Chen <jiayuan.chen@shopee.com>
+Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+Date: Fri, 26 Dec 2025 16:00:42 +0800
 
-Commit ab04b530e7e8 ("mm: introduce copy-on-fork VMAs and make
-VM_MAYBE_GUARD one") aggregates flags checks in vma_needs_copy(),
-including VM_UFFD_WP.
+When kswapd fails to reclaim memory, kswapd_failures is incremented.  Once
+it reaches MAX_RECLAIM_RETRIES, kswapd stops running to avoid futile
+reclaim attempts.  However, any successful direct reclaim unconditionally
+resets kswapd_failures to 0, which can cause problems.
 
-However in doing so, it incorrectly performed this check against src_vma. 
-This check was done on the assumption that all relevant flags are copied
-upon fork.
+We observed an issue in production on a multi-NUMA system where a process
+allocated large amounts of anonymous pages on a single NUMA node, causing
+its watermark to drop below high and evicting most file pages:
 
-However the userfaultfd logic is very innovative in that it implements
-custom logic on fork in dup_userfaultfd(), including a rather well hidden
-case where lacking UFFD_FEATURE_EVENT_FORK causes VM_UFFD_WP to not be
-propagated to the destination VMA.
+$ numastat -m
+Per-node system memory usage (in MBs):
+                          Node 0          Node 1           Total
+                 --------------- --------------- ---------------
+MemTotal               128222.19       127983.91       256206.11
+MemFree                  1414.48         1432.80         2847.29
+MemUsed                126807.71       126551.11       252358.82
+SwapCached                  0.00            0.00            0.00
+Active                  29017.91        25554.57        54572.48
+Inactive                92749.06        95377.00       188126.06
+Active(anon)            28998.96        23356.47        52355.43
+Inactive(anon)          92685.27        87466.11       180151.39
+Active(file)               18.95         2198.10         2217.05
+Inactive(file)             63.79         7910.89         7974.68
 
-And indeed, vma_needs_copy(), prior to this patch, did check this property
-on dst_vma, not src_vma.
+With swap disabled, only file pages can be reclaimed.  When kswapd is
+woken (e.g., via wake_all_kswapds()), it runs continuously but cannot
+raise free memory above the high watermark since reclaimable file pages
+are insufficient.  Normally, kswapd would eventually stop after
+kswapd_failures reaches MAX_RECLAIM_RETRIES.
 
-Since all the other relevant flags are copied on fork, we can simply fix
-this by checking against dst_vma.
+However, containers on this machine have memory.high set in their cgroup. 
+Business processes continuously trigger the high limit, causing frequent
+direct reclaim that keeps resetting kswapd_failures to 0.  This prevents
+kswapd from ever stopping.
 
-While we're here, we fix a comment against VM_COPY_ON_FORK (noting that it
-did indeed already reference dst_vma) to make it abundantly clear that we
-must check against the destination VMA.
+The key insight is that direct reclaim triggered by cgroup memory.high
+performs aggressive scanning to throttle the allocating process.  With
+sufficiently aggressive scanning, even hot pages will eventually be
+reclaimed, making direct reclaim "successful" at freeing some memory. 
+However, this success does not mean the node has reached a balanced state
+- the freed memory may still be insufficient to bring free pages above the
+high watermark.  Unconditionally resetting kswapd_failures in this case
+keeps kswapd alive indefinitely.
 
-Link: https://lkml.kernel.org/r/20260114110006.1047071-1-lorenzo.stoakes@oracle.com
-Fixes: ab04b530e7e8 ("mm: introduce copy-on-fork VMAs and make VM_MAYBE_GUARD one")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reported-by: Chris Mason <clm@meta.com>
-Closes: https://lore.kernel.org/all/20260113231257.3002271-1-clm@meta.com/
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Acked-by: Pedro Falcato <pfalcato@suse.de>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The result is that kswapd runs endlessly.  Unlike direct reclaim which
+only reclaims from the allocating cgroup, kswapd scans the entire node's
+memory.  This causes hot file pages from all workloads on the node to be
+evicted, not just those from the cgroup triggering memory.high.  These
+pages constantly refault, generating sustained heavy IO READ pressure
+across the entire system.
+
+Fix this by only resetting kswapd_failures when the node is actually
+balanced.  This allows both kswapd and direct reclaim to clear
+kswapd_failures upon successful reclaim, but only when the reclaim
+actually resolves the memory pressure (i.e., the node becomes balanced).
+
+Link: https://lkml.kernel.org/r/20251226080042.291657-1-jiayuan.chen@linux.dev
+Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 +++++-
- mm/memory.c        |    6 +++++-
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-do-not-copy-page-tables-unnecessarily-for-vm_uffd_wp
-+++ a/include/linux/mm.h
-@@ -608,7 +608,11 @@ enum {
- /*
-  * Flags which should result in page tables being copied on fork. These are
-  * flags which indicate that the VMA maps page tables which cannot be
-- * reconsistuted upon page fault, so necessitate page table copying upon
-+ * reconsistuted upon page fault, so necessitate page table copying upon fork.
-+ *
-+ * Note that these flags should be compared with the DESTINATION VMA not the
-+ * source, as VM_UFFD_WP may not be propagated to destination, while all other
-+ * flags will be.
-  *
-  * VM_PFNMAP / VM_MIXEDMAP - These contain kernel-mapped data which cannot be
-  *                           reasonably reconstructed on page fault.
---- a/mm/memory.c~mm-do-not-copy-page-tables-unnecessarily-for-vm_uffd_wp
-+++ a/mm/memory.c
-@@ -1465,7 +1465,11 @@ copy_p4d_range(struct vm_area_struct *ds
- static bool
- vma_needs_copy(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma)
- {
--	if (src_vma->vm_flags & VM_COPY_ON_FORK)
-+	/*
-+	 * We check against dst_vma as while sane VMA flags will have been
-+	 * copied, VM_UFFD_WP may be set only on dst_vma.
-+	 */
-+	if (dst_vma->vm_flags & VM_COPY_ON_FORK)
- 		return true;
- 	/*
- 	 * The presence of an anon_vma indicates an anonymous VMA has page
+--- a/mm/vmscan.c~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
++++ a/mm/vmscan.c
+@@ -2648,6 +2648,20 @@ static bool can_age_anon_pages(struct lr
+ 			  lruvec_memcg(lruvec));
+ }
+ 
++/*
++ * Reset kswapd_failures only when the node is balanced. Without this
++ * check, successful direct reclaim (e.g., from cgroup memory.high
++ * throttling) can keep resetting kswapd_failures even when the node
++ * cannot be balanced, causing kswapd to run endlessly.
++ */
++static bool pgdat_balanced(pg_data_t *pgdat, int order, int highest_zoneidx);
++static inline void reset_kswapd_failures(struct pglist_data *pgdat,
++					 struct scan_control *sc)
++{
++	if (pgdat_balanced(pgdat, sc->order, sc->reclaim_idx))
++		atomic_set(&pgdat->kswapd_failures, 0);
++}
++
+ #ifdef CONFIG_LRU_GEN
+ 
+ #ifdef CONFIG_LRU_GEN_ENABLED
+@@ -5065,7 +5079,7 @@ static void lru_gen_shrink_node(struct p
+ 	blk_finish_plug(&plug);
+ done:
+ 	if (sc->nr_reclaimed > reclaimed)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		reset_kswapd_failures(pgdat, sc);
+ }
+ 
+ /******************************************************************************
+@@ -6139,7 +6153,7 @@ again:
+ 	 * successful direct reclaim run will revive a dormant kswapd.
+ 	 */
+ 	if (reclaimable)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		reset_kswapd_failures(pgdat, sc);
+ 	else if (sc->cache_trim_mode)
+ 		sc->cache_trim_mode_failed = 1;
+ }
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from jiayuan.chen@shopee.com are
 
-mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
-mm-remove-unnecessary-and-incorrect-mmap-lock-assert.patch
-mm-do-not-copy-page-tables-unnecessarily-for-vm_uffd_wp.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
 
