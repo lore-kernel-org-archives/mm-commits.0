@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 629453BBA0B
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 16:40:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 242703B8D70
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 16:40:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768495218; cv=none; b=DojV/7Of4I71Ae32BDv7QaZIIyLc6cMbftCO1B3jSKFlPKEzX1rda3bCAMi2nVEoN/GlsmojKeOvJVLoIeQd1YdhBLHazoA2s78CU+0LPkOIQnlpiIeVlQxIMLLfsgaxDoxy135DUafy+1nuj3CzNEUHUEOTXT57mQ6nX8tDdA8=
+	t=1768495220; cv=none; b=SDSyCZAH90IG8X92f11Ra9QE0W+SSIOo0Q9PDr9EXzy0tM9570/FRnfFQz1oL6DF24vApKddHMYb9xWv12LkMUcpHx7p9xqCbPnSbMMBx+FMNTNg7W4ngIvLDM0e32sxoPRKQsSJNVsLR1AWsKbNhKDn41xh6TsDCaRHJHhsmGY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768495218; c=relaxed/simple;
-	bh=1lvnepn7sehXHxE85Mu511FNMqGabp8ol6fHfRaJAfg=;
-	h=Date:To:From:Subject:Message-Id; b=TfAfOnMvzJEGGwMgvYdwaX13twoHAwSM1TV39RMT6B03aDTl31Dh9CQY8inMya7/xzHEV27PEaSHzw9XRsCu9f1z1CStHB68vL+GV6QAk8yzIaR+ClEtG8VNsdyQFD9GWi++S/46LXWIM75MitPyrXH5gY9iuUYRTUnNTqApzHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xOO2Cwt5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768495220; c=relaxed/simple;
+	bh=yBC/ZT+OchR3yARzQ3jxuXSgDrDjcdcd0NIfOr64LJA=;
+	h=Date:To:From:Subject:Message-Id; b=eEnIO56S3KP1h8ogIpw0L9SCectk8aIzEQOg42MVNPlXoK5HD0GWOyFuyfozRsAytSAXyVl18lTeCMnVx3CDQSXzvz+Iv6X4tu2llsXtvyOQ8osUQP0o+YYp463kV25IjdGhNLtLTdTj9t9P+jGaVSdgy0b9zymfc7e+MWFB0v0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X2AQz9xI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xOO2Cwt5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEF1EC116D0;
-	Thu, 15 Jan 2026 16:40:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X2AQz9xI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E53E7C116D0;
+	Thu, 15 Jan 2026 16:40:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768495218;
-	bh=1lvnepn7sehXHxE85Mu511FNMqGabp8ol6fHfRaJAfg=;
+	s=korg; t=1768495220;
+	bh=yBC/ZT+OchR3yARzQ3jxuXSgDrDjcdcd0NIfOr64LJA=;
 	h=Date:To:From:Subject:From;
-	b=xOO2Cwt5JHkf3pBwRwLEbmjv3piU5DMJxzBEoO2hRGYrEdzXFeq2dRaMkPSMUJXOd
-	 4T3RiJvsCyvYGoPE/3I8653IvbrxaFw9x4tbHzKYWIIo8faG2vNpirPZeNCU/RDufm
-	 OCKX1G4eNh0+aUH6A4gZQvtLjlk9rW8qyikdxKHs=
-Date: Thu, 15 Jan 2026 08:40:17 -0800
+	b=X2AQz9xIG/vypZijDiVU9p6CBtyiAyROWdmXb6SOk4+ko6tmPmdespPA20ooFAW3f
+	 IxIl79WdT6mkQxIP/iaRBgKoDMQClG4ZW4R3HbdExWt/UQLiFRnB9wGkBqUtUlIZDF
+	 W2EL16r/l7rSx12/IrXZAq6c/LKVb2qfxGrWoHwM=
+Date: Thu, 15 Jan 2026 08:40:19 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-use-damon_kdamond_pid.patch added to mm-new branch
-Message-Id: <20260115164017.DEF1EC116D0@smtp.kernel.org>
+Subject: + mm-damon-reclaim-use-damon_kdamond_pid.patch added to mm-new branch
+Message-Id: <20260115164019.E53E7C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: use damon_kdamond_pid()
+     Subject: mm/damon/reclaim: use damon_kdamond_pid()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-lru_sort-use-damon_kdamond_pid.patch
+     mm-damon-reclaim-use-damon_kdamond_pid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-use-damon_kdamond_pid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-use-damon_kdamond_pid.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,26 +67,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: use damon_kdamond_pid()
-Date: Thu, 15 Jan 2026 07:20:43 -0800
+Subject: mm/damon/reclaim: use damon_kdamond_pid()
+Date: Thu, 15 Jan 2026 07:20:44 -0800
 
-DAMON_LRU_SORT directly uses damon_ctx->kdamond field with manual
+DAMON_RECLAIM directly uses damon_ctx->kdamond field with manual
 synchronization using damon_ctx->kdamond_lock, to get the pid of the
 kdamond.  Use a new dedicated function for the purpose, namely
 damon_kdamond_pid(), since that doesn't require manual and error-prone
 synchronization.
 
-Link: https://lkml.kernel.org/r/20260115152047.68415-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260115152047.68415-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    4 +++-
+ mm/damon/reclaim.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-use-damon_kdamond_pid
-+++ a/mm/damon/lru_sort.c
-@@ -405,7 +405,9 @@ static int damon_lru_sort_turn(bool on)
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-use-damon_kdamond_pid
++++ a/mm/damon/reclaim.c
+@@ -307,7 +307,9 @@ static int damon_reclaim_turn(bool on)
  	err = damon_start(&ctx, 1, true);
  	if (err)
  		return err;
