@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D416F3BBA0B
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 16:40:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 478773B960F
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 16:40:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768495213; cv=none; b=cwOuRQVsAwvGsIvTdYOYZD4I1hi54frX8vfb7Azi+4SAoD9q3xexAadtorGnigeVDVMq19HfnKCKle04zJWNNC2UG/UAeamoR9ZueM3D71C5wbwShpuQG6xyLSZmmZT/Ef/JL7euvH8chvhXxJvUdwDyqk+IMT+/dMdrgzTb7UI=
+	t=1768495216; cv=none; b=snqc4ZcAKz7ieVvXhhUELPc2KNxjzg3Fcoma+Sn+WQW7kwcVmmy4FqGfGWP1SPfW4xKVbWDuwz+iRNFKWyUE/bjw/3ESgHIyiITiYFRoBlSC4gjqbtZLDMOMCqZ4q02PrmdPL4Jww+Zib0PqJvrsyWFlm5TSipkhzognf+DZRCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768495213; c=relaxed/simple;
-	bh=CTc1327g9hE1ZjOQpVN2704bIazDl+LF/stpmm2fAss=;
-	h=Date:To:From:Subject:Message-Id; b=azVPUM+gUbu1u1OcMfHmo5Ov6eBmXsmNNBWLb2ZWUPC+3UeMT2mDGeK/Mg+EiqGPr0rEOGxce8mZs577quKtt4uP9XOoJf5zPCgOnQvMdHm8US6Lvu1KJ7FIb9Q/Zv2/i4qxU3iJel1Zqsc7rnZApi8BiGMjglbLXaN1JzmF8hc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C6ODMk8S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768495216; c=relaxed/simple;
+	bh=O+vVOjB+u5ZnRArjQmTCxa0G+6AnI4nfcwcq8/MW8Tg=;
+	h=Date:To:From:Subject:Message-Id; b=VoDCau89ZwQijYcv3pX8MfPL0ZcmFN+JtVSlNYV2pZRTo6v3m0GeMaXmJxwFx8bro9vUu8d7TMcVXKlaRhy1ehpkyCg9GdvjWISP/4ANu07ttmMSPEN0WLa2lihdQJboM8oR7KRN+TvqohIowf3FW0PtNK6OqCB51fwEicKu7nE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a81+EfwJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C6ODMk8S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76854C19422;
-	Thu, 15 Jan 2026 16:40:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a81+EfwJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD8AFC116D0;
+	Thu, 15 Jan 2026 16:40:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768495213;
-	bh=CTc1327g9hE1ZjOQpVN2704bIazDl+LF/stpmm2fAss=;
+	s=korg; t=1768495215;
+	bh=O+vVOjB+u5ZnRArjQmTCxa0G+6AnI4nfcwcq8/MW8Tg=;
 	h=Date:To:From:Subject:From;
-	b=C6ODMk8S0vmDJ7uIeOhsxHKAf6PUB0G3gqVItNv/XE4DcKJ4xPcQDaytSYnEdMHmM
-	 aWlVRDX+1fW+Lk6D9pwslr2LZMUBkG5j0/cdf7/oDLW8XxH8VEI6nTRS+xD81cXU+Y
-	 B+VqVDlCuR7hugViXrdOO45i4OYX7XgBQ5O0JyqA=
-Date: Thu, 15 Jan 2026 08:40:12 -0800
+	b=a81+EfwJ0tu0dR3lopOE0JSdl/AT9+ST3W8hzmxASzQ6kKzCIvBnEx3AdaTTnP3Ff
+	 CKqwRCXjtFxGob5HVcNnEOw0ZX9gS5EpSVNTu8+YiB2zinRHqZ8aBMpk0WVfy7K+UV
+	 BCWpBqttn/Ay3UBqrdL3Y6fOiQRVjrRCS8Ajwe9I=
+Date: Thu, 15 Jan 2026 08:40:15 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-implement-damon_kdamond_pid.patch added to mm-new branch
-Message-Id: <20260115164013.76854C19422@smtp.kernel.org>
+Subject: + mm-damon-sysfs-use-damon_kdamond_pid.patch added to mm-new branch
+Message-Id: <20260115164015.DD8AFC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: implement damon_kdamond_pid()
+     Subject: mm/damon/sysfs: use damon_kdamond_pid()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-implement-damon_kdamond_pid.patch
+     mm-damon-sysfs-use-damon_kdamond_pid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-implement-damon_kdamond_pid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-use-damon_kdamond_pid.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,86 +67,41 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: implement damon_kdamond_pid()
-Date: Thu, 15 Jan 2026 07:20:41 -0800
+Subject: mm/damon/sysfs: use damon_kdamond_pid()
+Date: Thu, 15 Jan 2026 07:20:42 -0800
 
-Patch series "mm/damon: hide kdamond and kdamond_lock from API callers".
+DAMON sysfs interface directly uses damon_ctx->kdamond field with manual
+synchronization using damon_ctx->kdamond_lock, to get the pid of the
+kdamond.  Use a new dedicated function for the purpose, namely
+damon_kdamond_pid(), since that doesn't require manual and error-prone
+synchronization.
 
-'kdamond' and 'kdamond_lock' fields initially exposed to DAMON API callers
-for flexible synchronization and use cases.  As DAMON API became somewhat
-complicated compared to the early days, Keeping those exposed could only
-encourage the API callers to invent more creative but complicated and
-difficult-to-debug use cases.
+Avoid use of kdamond_lock outside of the core.
 
-Fortunately DAMON API callers didn't invent that many creative use cases. 
-There exist only two use cases of 'kdamond' and 'kdamond_lock'.  Finding
-whether the kdamond is actively running, and getting the pid of the
-kdamond.  For the first use case, a dedicated API function, namely
-'damon_is_running()' is provided, and all DAMON API callers are using the
-function for the use case.  Hence only the second use case is where the
-fields are directly being used by DAMON API callers.
-
-To prevent future invention of complicated and erroneous use cases of the
-fields, hide the fields from the API callers.  For that, provide new
-dedicated DAMON API functions for the remaining use case, namely
-damon_kdamond_pid(), migrate DAMON API callers to use the new function,
-and mark the fields as private fields.
-
-
-This patch (of 5):
-
-'kdamond' and 'kdamond_lock' are directly being used by DAMON API callers
-for getting the pid of the corresponding kdamond.  To discourage invention
-of creative but complicated and erroneous new usages of the fields that
-require careful synchronization, implement a new API function that can
-simply be used without the manual synchronizations.
-
-Link: https://lkml.kernel.org/r/20260115152047.68415-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20260115152047.68415-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260115152047.68415-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    1 +
- mm/damon/core.c       |   17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
+ mm/damon/sysfs.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-implement-damon_kdamond_pid
-+++ a/include/linux/damon.h
-@@ -972,6 +972,7 @@ bool damon_initialized(void);
- int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
- int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
- bool damon_is_running(struct damon_ctx *ctx);
-+int damon_kdamond_pid(struct damon_ctx *ctx);
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-use-damon_kdamond_pid
++++ a/mm/damon/sysfs.c
+@@ -1819,10 +1819,9 @@ static ssize_t pid_show(struct kobject *
+ 	if (!ctx)
+ 		goto out;
  
- int damon_call(struct damon_ctx *ctx, struct damon_call_control *control);
- int damos_walk(struct damon_ctx *ctx, struct damos_walk_control *control);
---- a/mm/damon/core.c~mm-damon-core-implement-damon_kdamond_pid
-+++ a/mm/damon/core.c
-@@ -1442,6 +1442,23 @@ bool damon_is_running(struct damon_ctx *
- 	return running;
- }
- 
-+/**
-+ * damon_kdamond_pid() - Return pid of a given DAMON context's worker thread.
-+ * @ctx:	The DAMON context of the question.
-+ *
-+ * Return: pid if @ctx is running, negative error code otherwise.
-+ */
-+int damon_kdamond_pid(struct damon_ctx *ctx)
-+{
-+	int pid = -EINVAL;
-+
-+	mutex_lock(&ctx->kdamond_lock);
-+	if (ctx->kdamond)
-+		pid = ctx->kdamond->pid;
-+	mutex_unlock(&ctx->kdamond_lock);
-+	return pid;
-+}
-+
- /*
-  * damon_call_handle_inactive_ctx() - handle DAMON call request that added to
-  *				      an inactive context.
+-	mutex_lock(&ctx->kdamond_lock);
+-	if (ctx->kdamond)
+-		pid = ctx->kdamond->pid;
+-	mutex_unlock(&ctx->kdamond_lock);
++	pid = damon_kdamond_pid(ctx);
++	if (pid < 0)
++		pid = -1;
+ out:
+ 	mutex_unlock(&damon_sysfs_lock);
+ 	return sysfs_emit(buf, "%d\n", pid);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
