@@ -1,125 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A17872EAB82
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 20:04:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BD8C25F798;
+	Thu, 15 Jan 2026 20:13:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768507498; cv=none; b=ZGvITN+/PPEPe5DFUQUN9p5U1rEPEi0V575oM2n6PdU6m74hQEjuS18/1LDUicw8nMWs85upOnE2tpdubHXeKLRHmMpkFpaTfNKEkb8wJOHMKZfKSHVzFu8woA2kwI+EoiB/qRdpfc0IveZsarUqhTWRCBbHwFL+KBszuKwxKq8=
+	t=1768508000; cv=none; b=Gy7khv/G9E/fPvdIokgs9Xs7Uez8iHchY93Jl4OUDj2UzHH9nPc/gON3N0bIgeBzyXK0CrsGxjxDt/K8rVbgOXU9MSuiqVBcx0NGM3774xSHUJo2C3ptrziwLH5mqf1+YLVQjW3vIVrRSqWYilTXcOJsadtEmXw/WYkooHAZo68=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768507498; c=relaxed/simple;
-	bh=PuGvtyB+1SXefGPYi3yuudaXcQdhXZ9V34deQtjJMJE=;
-	h=Date:To:From:Subject:Message-Id; b=UlyOQ5XhisXYDBHMqPBpNXbJhLw4nOvQqHqHvcdCiTvoIPUOUSuCmyw4mFBjDRO/tGPiXvLsPs3YbcQZMNglEOojIa08ueLUuk6NMBvBDc6A3ZfzXxqFJuyVAA1EAxUsgaqveXFPt0SX5phE6KF9Z5l8KUtbFFuOR6SFu9ahoJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a3crWAy2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768508000; c=relaxed/simple;
+	bh=DyEw4wdK9i63jquzZL/QXi85unjtuB7rL3sRfLLuuhI=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=doqgDPYuZAorZGO2lD1UvWTUXUKLRAPHGz3yYCVKpyhtogBwinF59JvgyqZnkdy9TCAvDuvp5J9TA9fAjHLPM5IVb6rguaGld6Kh47YPSaKXpKNxcFjDCfLYdODwnkgHVU7q80za8W0MVo8Iz1/NMnw1aVJ6CE1ReWEszRLyiRs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m3N/HOct; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a3crWAy2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A238C16AAE;
-	Thu, 15 Jan 2026 20:04:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768507498;
-	bh=PuGvtyB+1SXefGPYi3yuudaXcQdhXZ9V34deQtjJMJE=;
-	h=Date:To:From:Subject:From;
-	b=a3crWAy2xu/OZqmzCCewAzJzdk0i19gcPZrInxZvW0ArtvyBm9iqMsb/7otOXIJOl
-	 DKa0qb0O0yI5dCOh9UB6Jd3x+OeuyTT8/GlWD/Fe46Fb709JMHCWJP88lNwycZhN21
-	 JkD+i8kOpDlRpiVP5kZj2DqMkUU3RGLpJbrQrq/A=
-Date: Thu, 15 Jan 2026 12:04:57 -0800
-To: mm-commits@vger.kernel.org,linux@leemhuis.info,corbet@lwn.net,rdunlap@infradead.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-chktaint-add-reporting-for-tainted-modules.patch added to mm-nonmm-unstable branch
-Message-Id: <20260115200458.3A238C16AAE@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m3N/HOct"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21474C116D0;
+	Thu, 15 Jan 2026 20:13:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1768508000;
+	bh=DyEw4wdK9i63jquzZL/QXi85unjtuB7rL3sRfLLuuhI=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=m3N/HOctEwVHBtIRawEdgcshJHCWMqwlMAMj8EkHjnJXFivVoJsfDe5HYPYObE0t+
+	 mYgO9TtzGevBv+ELLMs9N7fFzAvMRwjRkN0mWVT6FuVz4px5NO/uZ/LHPfwXnBiK2i
+	 zgLJr4WJG0SFrHeeH3nusUr7uU1ZHi6wyRnLHPLh6aqRg8ze8d8oCKstPlOujqwIVC
+	 EOIG1WzF4TfBqkKSyqbkuuMU7v/cVs0mveS2ePko6Ydj94oEKUaD+WzUeCUw3OY62i
+	 p7lT6oaSKUOo8kWgcY0VtXs23cMVk9ypY17dNwtV9jtHHNbm1H62rJM8hBugJoGnfJ
+	 BKNCxI40F/CXQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 78E19380A97F;
+	Thu, 15 Jan 2026 20:09:53 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.19-rc6
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20260115080645.3744d9e4178884f988d6366d@linux-foundation.org>
+References: <20260115080645.3744d9e4178884f988d6366d@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20260115080645.3744d9e4178884f988d6366d@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-01-15-08-03
+X-PR-Tracked-Commit-Id: 3e8e590fd65d0572584ab7bba89a35e6d19931f1
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 13b2d15d991b3f0f4ebfffbed081dbff27ac1c9d
+Message-Id: <176850779212.4151234.10322330701377620588.pr-tracker-bot@kernel.org>
+Date: Thu, 15 Jan 2026 20:09:52 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Thu, 15 Jan 2026 08:06:45 -0800:
 
-The patch titled
-     Subject: kernel-chktaint: add reporting for tainted modules
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-chktaint-add-reporting-for-tainted-modules.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-01-15-08-03
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-chktaint-add-reporting-for-tainted-modules.patch
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/13b2d15d991b3f0f4ebfffbed081dbff27ac1c9d
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thank you!
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: kernel-chktaint: add reporting for tainted modules
-Date: Wed, 14 Jan 2026 22:47:56 -0800
-
-Check all loaded modules and report any that have their 'taint'
-flags set.  The tainted module output format is:
- * <module_name> (<taint_flags>)
-
-Example output:
-
-Kernel is "tainted" for the following reasons:
- * externally-built ('out-of-tree') module was loaded  (#12)
- * unsigned module was loaded (#13)
-Raw taint value as int/string: 12288/'G           OE      '
-
-Tainted modules:
- * dump_test (OE)
-
-Link: https://lkml.kernel.org/r/20260115064756.531592-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Thorsten Leemhuis <linux@leemhuis.info>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- tools/debugging/kernel-chktaint |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
-
---- a/tools/debugging/kernel-chktaint~kernel-chktaint-add-reporting-for-tainted-modules
-+++ a/tools/debugging/kernel-chktaint
-@@ -211,9 +211,25 @@ else
- 	addout "J"
- 	echo " * fwctl's mutating debug interface was used (#19)"
- fi
-+echo "Raw taint value as int/string: $taint/'$out'"
-+
-+# report on any tainted loadable modules
-+[ "$1" = "" ] && [ -r /sys/module/ ] && \
-+	cnt=`grep [A-Z] /sys/module/*/taint | wc -l` || cnt=0
- 
-+if [ $cnt -ne 0 ]; then
-+	echo
-+	echo "Tainted modules:"
-+	for dir in `ls /sys/module` ; do
-+		if [ -r /sys/module/$dir/taint ]; then
-+			modtnt=`cat /sys/module/$dir/taint`
-+			[ "$modtnt" = "" ] || echo " * $dir ($modtnt)"
-+		fi
-+	done
-+fi
-+
-+echo
- echo "For a more detailed explanation of the various taint flags see"
- echo " Documentation/admin-guide/tainted-kernels.rst in the Linux kernel sources"
- echo " or https://kernel.org/doc/html/latest/admin-guide/tainted-kernels.html"
--echo "Raw taint value as int/string: $taint/'$out'"
- #EOF#
-_
-
-Patches currently in -mm which might be from rdunlap@infradead.org are
-
-kernelh-drop-hexh-and-update-all-hexh-users.patch
-kfifo-fix-kmalloc_array_node-argument-order.patch
-kernel-chktaint-add-reporting-for-tainted-modules.patch
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
