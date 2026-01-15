@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 242703B8D70
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 16:40:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 261EC3BB9FE
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 16:40:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768495220; cv=none; b=SDSyCZAH90IG8X92f11Ra9QE0W+SSIOo0Q9PDr9EXzy0tM9570/FRnfFQz1oL6DF24vApKddHMYb9xWv12LkMUcpHx7p9xqCbPnSbMMBx+FMNTNg7W4ngIvLDM0e32sxoPRKQsSJNVsLR1AWsKbNhKDn41xh6TsDCaRHJHhsmGY=
+	t=1768495222; cv=none; b=kIkc3ahC7X8+K5BwRy0WuBZXSc/HvjKPIlngsy9TtXFSFcRwarz6Clzr5mjyTR0MBSl2mJrG87HJSlJ8wPRZpu3HB79eH7+sMpQ6q4MpRp3NkpOcGOEs0FSFY43ehvtMwEjIb75LjHSnKucK6MG/zPc0/0DTQ7jTLYYYsDbnXZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768495220; c=relaxed/simple;
-	bh=yBC/ZT+OchR3yARzQ3jxuXSgDrDjcdcd0NIfOr64LJA=;
-	h=Date:To:From:Subject:Message-Id; b=eEnIO56S3KP1h8ogIpw0L9SCectk8aIzEQOg42MVNPlXoK5HD0GWOyFuyfozRsAytSAXyVl18lTeCMnVx3CDQSXzvz+Iv6X4tu2llsXtvyOQ8osUQP0o+YYp463kV25IjdGhNLtLTdTj9t9P+jGaVSdgy0b9zymfc7e+MWFB0v0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X2AQz9xI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768495222; c=relaxed/simple;
+	bh=UDNYHw9im0KKc+GA1yzZ3TRc5nZbbHWpXpXC4x9PvQg=;
+	h=Date:To:From:Subject:Message-Id; b=Xria2BOz6UvvLvhJ3ci4PF0/5BDOxCBUSFsDRRlgBZV1SskQddSE5kewR5Zi97ancCgXDhuJKNus3ToTzSJ88DBhf55A7K8bNsPGmIoEvUg9MjLDjaBzQwGbXsBjClK4mfaGIjLZq79RK87OStlxWIsD9G+Pgqpls2yXF10WOPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oTMY11Xm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X2AQz9xI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E53E7C116D0;
-	Thu, 15 Jan 2026 16:40:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oTMY11Xm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E269AC116D0;
+	Thu, 15 Jan 2026 16:40:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768495220;
-	bh=yBC/ZT+OchR3yARzQ3jxuXSgDrDjcdcd0NIfOr64LJA=;
+	s=korg; t=1768495222;
+	bh=UDNYHw9im0KKc+GA1yzZ3TRc5nZbbHWpXpXC4x9PvQg=;
 	h=Date:To:From:Subject:From;
-	b=X2AQz9xIG/vypZijDiVU9p6CBtyiAyROWdmXb6SOk4+ko6tmPmdespPA20ooFAW3f
-	 IxIl79WdT6mkQxIP/iaRBgKoDMQClG4ZW4R3HbdExWt/UQLiFRnB9wGkBqUtUlIZDF
-	 W2EL16r/l7rSx12/IrXZAq6c/LKVb2qfxGrWoHwM=
-Date: Thu, 15 Jan 2026 08:40:19 -0800
+	b=oTMY11XmhK3f11DguooBIwAKEC0U8zgCB8qxo71b3oAkujecmo6IvPrS1FYjOU9U0
+	 IOsBcTzqOIHd36my5OGjogABCG7dN0AtfJGsa4JnU1xQL9D+jwmzrCeW5xq/KjF76R
+	 bLxxW/v8GE7HHkhSgPzCml0K/dMYhrjlUIyFop+k=
+Date: Thu, 15 Jan 2026 08:40:21 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-use-damon_kdamond_pid.patch added to mm-new branch
-Message-Id: <20260115164019.E53E7C116D0@smtp.kernel.org>
+Subject: + mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch added to mm-new branch
+Message-Id: <20260115164021.E269AC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: use damon_kdamond_pid()
+     Subject: mm/damon: hide kdamond and kdamond_lock of damon_ctx
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-reclaim-use-damon_kdamond_pid.patch
+     mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-use-damon_kdamond_pid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,36 +67,73 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: use damon_kdamond_pid()
-Date: Thu, 15 Jan 2026 07:20:44 -0800
+Subject: mm/damon: hide kdamond and kdamond_lock of damon_ctx
+Date: Thu, 15 Jan 2026 07:20:45 -0800
 
-DAMON_RECLAIM directly uses damon_ctx->kdamond field with manual
-synchronization using damon_ctx->kdamond_lock, to get the pid of the
-kdamond.  Use a new dedicated function for the purpose, namely
-damon_kdamond_pid(), since that doesn't require manual and error-prone
-synchronization.
+There is no DAMON API caller that directly access 'kdamond' and
+'kdamond_lock' fields of 'struct damon_ctx'.  Keeping those exposed could
+only encourage creative but error-prone usages.  Hide them from DAMON API
+callers by marking those as private fields.
 
-Link: https://lkml.kernel.org/r/20260115152047.68415-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260115152047.68415-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/damon.h |   29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-use-damon_kdamond_pid
-+++ a/mm/damon/reclaim.c
-@@ -307,7 +307,9 @@ static int damon_reclaim_turn(bool on)
- 	err = damon_start(&ctx, 1, true);
- 	if (err)
- 		return err;
--	kdamond_pid = ctx->kdamond->pid;
-+	kdamond_pid = damon_kdamond_pid(ctx);
-+	if (kdamond_pid < 0)
-+		return kdamond_pid;
- 	return damon_call(ctx, &call_control);
- }
+--- a/include/linux/damon.h~mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx
++++ a/include/linux/damon.h
+@@ -759,23 +759,20 @@ struct damon_attrs {
+  * of the monitoring.
+  *
+  * @attrs:		Monitoring attributes for accuracy/overhead control.
+- * @kdamond:		Kernel thread who does the monitoring.
+- * @kdamond_lock:	Mutex for the synchronizations with @kdamond.
+  *
+- * For each monitoring context, one kernel thread for the monitoring is
+- * created.  The pointer to the thread is stored in @kdamond.
++ * For each monitoring context, one kernel thread for the monitoring, namely
++ * kdamond, is created.  The pid of kdamond can be retrieved using
++ * damon_kdamond_pid().
+  *
+- * Once started, the monitoring thread runs until explicitly required to be
+- * terminated or every monitoring target is invalid.  The validity of the
+- * targets is checked via the &damon_operations.target_valid of @ops.  The
+- * termination can also be explicitly requested by calling damon_stop().
+- * The thread sets @kdamond to NULL when it terminates. Therefore, users can
+- * know whether the monitoring is ongoing or terminated by reading @kdamond.
+- * Reads and writes to @kdamond from outside of the monitoring thread must
+- * be protected by @kdamond_lock.
++ * Once started, kdamond runs until explicitly required to be terminated or
++ * every monitoring target is invalid.  The validity of the targets is checked
++ * via the &damon_operations.target_valid of @ops.  The termination can also be
++ * explicitly requested by calling damon_stop().  To know if a kdamond is
++ * running, damon_is_running() can be used.
+  *
+- * Note that the monitoring thread protects only @kdamond via @kdamond_lock.
+- * Accesses to other fields must be protected by themselves.
++ * While the kdamond is running, all accesses to &struct damon_ctx from a
++ * thread other than the kdamond should be made using safe DAMON APIs,
++ * including damon_call() and damos_walk().
+  *
+  * @ops:	Set of monitoring operations for given use cases.
+  * @addr_unit:	Scale factor for core to ops address conversion.
+@@ -816,10 +813,12 @@ struct damon_ctx {
+ 	struct damos_walk_control *walk_control;
+ 	struct mutex walk_control_lock;
  
+-/* public: */
++	/* Working thread of the given DAMON context */
+ 	struct task_struct *kdamond;
++	/* Protects @kdamond field access */
+ 	struct mutex kdamond_lock;
+ 
++/* public: */
+ 	struct damon_operations ops;
+ 	unsigned long addr_unit;
+ 	unsigned long min_sz_region;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
