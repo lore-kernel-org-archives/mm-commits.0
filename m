@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 478773B960F
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 16:40:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 629453BBA0B
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 16:40:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768495216; cv=none; b=snqc4ZcAKz7ieVvXhhUELPc2KNxjzg3Fcoma+Sn+WQW7kwcVmmy4FqGfGWP1SPfW4xKVbWDuwz+iRNFKWyUE/bjw/3ESgHIyiITiYFRoBlSC4gjqbtZLDMOMCqZ4q02PrmdPL4Jww+Zib0PqJvrsyWFlm5TSipkhzognf+DZRCo=
+	t=1768495218; cv=none; b=DojV/7Of4I71Ae32BDv7QaZIIyLc6cMbftCO1B3jSKFlPKEzX1rda3bCAMi2nVEoN/GlsmojKeOvJVLoIeQd1YdhBLHazoA2s78CU+0LPkOIQnlpiIeVlQxIMLLfsgaxDoxy135DUafy+1nuj3CzNEUHUEOTXT57mQ6nX8tDdA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768495216; c=relaxed/simple;
-	bh=O+vVOjB+u5ZnRArjQmTCxa0G+6AnI4nfcwcq8/MW8Tg=;
-	h=Date:To:From:Subject:Message-Id; b=VoDCau89ZwQijYcv3pX8MfPL0ZcmFN+JtVSlNYV2pZRTo6v3m0GeMaXmJxwFx8bro9vUu8d7TMcVXKlaRhy1ehpkyCg9GdvjWISP/4ANu07ttmMSPEN0WLa2lihdQJboM8oR7KRN+TvqohIowf3FW0PtNK6OqCB51fwEicKu7nE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a81+EfwJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768495218; c=relaxed/simple;
+	bh=1lvnepn7sehXHxE85Mu511FNMqGabp8ol6fHfRaJAfg=;
+	h=Date:To:From:Subject:Message-Id; b=TfAfOnMvzJEGGwMgvYdwaX13twoHAwSM1TV39RMT6B03aDTl31Dh9CQY8inMya7/xzHEV27PEaSHzw9XRsCu9f1z1CStHB68vL+GV6QAk8yzIaR+ClEtG8VNsdyQFD9GWi++S/46LXWIM75MitPyrXH5gY9iuUYRTUnNTqApzHw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xOO2Cwt5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a81+EfwJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD8AFC116D0;
-	Thu, 15 Jan 2026 16:40:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xOO2Cwt5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEF1EC116D0;
+	Thu, 15 Jan 2026 16:40:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768495215;
-	bh=O+vVOjB+u5ZnRArjQmTCxa0G+6AnI4nfcwcq8/MW8Tg=;
+	s=korg; t=1768495218;
+	bh=1lvnepn7sehXHxE85Mu511FNMqGabp8ol6fHfRaJAfg=;
 	h=Date:To:From:Subject:From;
-	b=a81+EfwJ0tu0dR3lopOE0JSdl/AT9+ST3W8hzmxASzQ6kKzCIvBnEx3AdaTTnP3Ff
-	 CKqwRCXjtFxGob5HVcNnEOw0ZX9gS5EpSVNTu8+YiB2zinRHqZ8aBMpk0WVfy7K+UV
-	 BCWpBqttn/Ay3UBqrdL3Y6fOiQRVjrRCS8Ajwe9I=
-Date: Thu, 15 Jan 2026 08:40:15 -0800
+	b=xOO2Cwt5JHkf3pBwRwLEbmjv3piU5DMJxzBEoO2hRGYrEdzXFeq2dRaMkPSMUJXOd
+	 4T3RiJvsCyvYGoPE/3I8653IvbrxaFw9x4tbHzKYWIIo8faG2vNpirPZeNCU/RDufm
+	 OCKX1G4eNh0+aUH6A4gZQvtLjlk9rW8qyikdxKHs=
+Date: Thu, 15 Jan 2026 08:40:17 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-use-damon_kdamond_pid.patch added to mm-new branch
-Message-Id: <20260115164015.DD8AFC116D0@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-use-damon_kdamond_pid.patch added to mm-new branch
+Message-Id: <20260115164017.DEF1EC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: use damon_kdamond_pid()
+     Subject: mm/damon/lru_sort: use damon_kdamond_pid()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-use-damon_kdamond_pid.patch
+     mm-damon-lru_sort-use-damon_kdamond_pid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-use-damon_kdamond_pid.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-use-damon_kdamond_pid.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,41 +67,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: use damon_kdamond_pid()
-Date: Thu, 15 Jan 2026 07:20:42 -0800
+Subject: mm/damon/lru_sort: use damon_kdamond_pid()
+Date: Thu, 15 Jan 2026 07:20:43 -0800
 
-DAMON sysfs interface directly uses damon_ctx->kdamond field with manual
+DAMON_LRU_SORT directly uses damon_ctx->kdamond field with manual
 synchronization using damon_ctx->kdamond_lock, to get the pid of the
 kdamond.  Use a new dedicated function for the purpose, namely
 damon_kdamond_pid(), since that doesn't require manual and error-prone
 synchronization.
 
-Avoid use of kdamond_lock outside of the core.
-
-Link: https://lkml.kernel.org/r/20260115152047.68415-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260115152047.68415-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/damon/lru_sort.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-use-damon_kdamond_pid
-+++ a/mm/damon/sysfs.c
-@@ -1819,10 +1819,9 @@ static ssize_t pid_show(struct kobject *
- 	if (!ctx)
- 		goto out;
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-use-damon_kdamond_pid
++++ a/mm/damon/lru_sort.c
+@@ -405,7 +405,9 @@ static int damon_lru_sort_turn(bool on)
+ 	err = damon_start(&ctx, 1, true);
+ 	if (err)
+ 		return err;
+-	kdamond_pid = ctx->kdamond->pid;
++	kdamond_pid = damon_kdamond_pid(ctx);
++	if (kdamond_pid < 0)
++		return kdamond_pid;
+ 	return damon_call(ctx, &call_control);
+ }
  
--	mutex_lock(&ctx->kdamond_lock);
--	if (ctx->kdamond)
--		pid = ctx->kdamond->pid;
--	mutex_unlock(&ctx->kdamond_lock);
-+	pid = damon_kdamond_pid(ctx);
-+	if (pid < 0)
-+		pid = -1;
- out:
- 	mutex_unlock(&damon_sysfs_lock);
- 	return sysfs_emit(buf, "%d\n", pid);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
