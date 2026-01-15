@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0864A3BFE43
-	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 17:47:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9AE93BFE34
+	for <mm-commits@vger.kernel.org>; Thu, 15 Jan 2026 17:47:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768499240; cv=none; b=BhIWDzVqtCfYZ9DdTvIXOK6xTFlv0Px0a/Je9dYqJIVwGYbIOd65J0bOdXW6kOFSDcBFwhznzo29Zk44mR9cMANQEUf13oN8Ck93qRcpkDDxtKdsws1cWamp7wPdASYtXZeXWw+r++qc0NkWX+D6Zsco4LnEo4n3FwymW/tiHiw=
+	t=1768499242; cv=none; b=NaRhyer0KxUHHg4d5X5UXySQJ6sxiLNHDDVPGtqhYW/1DLP3qbU+NBca9g4ZmS/Jstu2100KtgCcwyRM2FjivSkSmy1WC852wjiQ7GAW0/IBgF7c3foGkjSCBPjXxDUonsVjQflqwSuwbVniJw9BwISPYQK+rAYh7Ka5e0a24SU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768499240; c=relaxed/simple;
-	bh=owC6evCP7s/MbLcnTi4wItrUo8pPO4UqoQLNt9Dbujc=;
-	h=Date:To:From:Subject:Message-Id; b=RtSOXC4DeEUZcaIQ7osuppeS7JlSzsuG8t+a0DONTC3PUP69wk8DaFUmaZTRvhWNLRpIVKqX3zDnsF4qKQkLXXllYGUvKyyCGWaJ/ORssvyGX4BjMuTDBZjljMWkexaau/c79FL2gqgyyVqJxsMeAPxtSOxtnkFUMx13QeRLAgI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b2GU6Jr4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768499242; c=relaxed/simple;
+	bh=bl4EzNWh2XiaKmB1k8Jw+LGqqCANWB8WlgLINDcxewc=;
+	h=Date:To:From:Subject:Message-Id; b=cXR3jaJYsWM63Hv/pIjHR/aenNGjYgQIhzxz2C/x39YLNya1dclYL/oxBUvFwwn1hTpWB72mAVCavXklEzECqiypraNEK7TGvyZIBhlt25f9OUKYeN/9uED+vDO2XIYfO3jBpXmCKflEGLy172E7jJE5rlB5Ofvg7VKzhs94Ht4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kukwFEHj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b2GU6Jr4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2C35C116D0;
-	Thu, 15 Jan 2026 17:47:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kukwFEHj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D0DBC116D0;
+	Thu, 15 Jan 2026 17:47:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768499239;
-	bh=owC6evCP7s/MbLcnTi4wItrUo8pPO4UqoQLNt9Dbujc=;
+	s=korg; t=1768499242;
+	bh=bl4EzNWh2XiaKmB1k8Jw+LGqqCANWB8WlgLINDcxewc=;
 	h=Date:To:From:Subject:From;
-	b=b2GU6Jr4hLRbp3cSUrwBcVc4y6gPNfXnjwooP9yDwjh0ra9TufjBzP5FYbFRAkX3U
-	 3je35d9rzA/AIUJuDKHotGl8pdm1ulaYZKjDmqkgpOGPbUH3UGKipp44Funul2j9uI
-	 wpsHM8DwFMGoHs/6leuJBv+jA9UNqVUByV02fkoc=
-Date: Thu, 15 Jan 2026 09:47:19 -0800
+	b=kukwFEHjFyrlQE3MM3DX249MDtKmQ2Q/00XoTX9V2Gr/tm7ZKMZPk8oJt4mN8x5jx
+	 VXNxy0feZQ2jG2RAMsQyFAWHEn8jCkFmnnFfI2PZ2uYtqrbjV4RbeuiJmSwXcDdsMl
+	 KaEGtWYHB+nanpqROYw6lauM0+/pmTq/CG2xALH0=
+Date: Thu, 15 Jan 2026 09:47:22 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,david@fromorbit.com,chenridong@huawei.com,chengming.zhou@linux.dev,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-prepare-for-reparenting-mglru-folios-fix.patch added to mm-new branch
-Message-Id: <20260115174719.B2C35C116D0@smtp.kernel.org>
+Subject: + mm-memcontrol-prepare-for-reparenting-state_local-fix.patch added to mm-new branch
+Message-Id: <20260115174722.9D0DBC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: mglru: do not call update_lru_size() during reparenting
+     Subject: mm: memcontrol: fix lruvec_stats->state_local reparenting
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-prepare-for-reparenting-mglru-folios-fix.patch
+     mm-memcontrol-prepare-for-reparenting-state_local-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-prepare-for-reparenting-mglru-folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-prepare-for-reparenting-state_local-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,10 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: mglru: do not call update_lru_size() during reparenting
-Date: Thu, 15 Jan 2026 18:44:44 +0800
+Subject: mm: memcontrol: fix lruvec_stats->state_local reparenting
+Date: Thu, 15 Jan 2026 18:41:38 +0800
 
-Only non-hierarchical lruvec_stats->state_local needs to be reparented, so
-handle it in reparent_state_local(), and remove the unreasonable
-update_lru_size() call in __lru_gen_reparent_memcg().
-
-Link: https://lkml.kernel.org/r/20260115104444.85986-1-qi.zheng@linux.dev
+Link: https://lkml.kernel.org/r/e5afd1b5ae95d70f82433b9b4e13201342d16707.1768473427.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Allen Pais <apais@linux.microsoft.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -102,61 +98,108 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |    2 --
+ mm/memcontrol-v1.c         |    8 --------
+ mm/memcontrol-v1.h         |    5 ++++-
+ mm/memcontrol.c            |   19 ++++++++-----------
+ 4 files changed, 12 insertions(+), 22 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-prepare-for-reparenting-mglru-folios-fix
-+++ a/mm/vmscan.c
-@@ -4545,7 +4545,6 @@ static void __lru_gen_reparent_memcg(str
- 				     int zone, int type)
+--- a/include/linux/memcontrol.h~mm-memcontrol-prepare-for-reparenting-state_local-fix
++++ a/include/linux/memcontrol.h
+@@ -967,8 +967,6 @@ void reparent_memcg_state_local(struct m
+ unsigned long lruvec_page_state(struct lruvec *lruvec, enum node_stat_item idx);
+ unsigned long lruvec_page_state_local(struct lruvec *lruvec,
+ 				      enum node_stat_item idx);
+-void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
+-				       struct mem_cgroup *parent, int idx);
+ void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
+ void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
+ 
+--- a/mm/memcontrol.c~mm-memcontrol-prepare-for-reparenting-state_local-fix
++++ a/mm/memcontrol.c
+@@ -223,13 +223,13 @@ static inline struct obj_cgroup *__memcg
+ 	return objcg;
+ }
+ 
+-#ifdef CONFIG_MEMCG_V1
++static void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
++					      struct mem_cgroup *parent, int idx);
+ static void __mem_cgroup_flush_stats(struct mem_cgroup *memcg, bool force);
+ 
+ static inline void reparent_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
  {
- 	struct lru_gen_folio *child_lrugen, *parent_lrugen;
--	enum lru_list lru = type * LRU_INACTIVE_FILE;
- 	int i;
+-	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+-		return;
++	int i;
  
- 	child_lrugen = &child_lruvec->lrugen;
-@@ -4554,7 +4553,6 @@ static void __lru_gen_reparent_memcg(str
- 	for (i = 0; i < get_nr_gens(child_lruvec, type); i++) {
- 		int gen = lru_gen_from_seq(child_lrugen->max_seq - i);
- 		long nr_pages = child_lrugen->nr_pages[gen][type][zone];
--		int dst_lru_active = lru_gen_is_active(parent_lruvec, gen) ? LRU_ACTIVE : 0;
+ 	synchronize_rcu();
  
- 		/* Assuming that child pages are colder than parent pages */
- 		list_splice_init(&child_lrugen->folios[gen][type][zone],
-@@ -4563,8 +4561,6 @@ static void __lru_gen_reparent_memcg(str
- 		WRITE_ONCE(child_lrugen->nr_pages[gen][type][zone], 0);
- 		WRITE_ONCE(parent_lrugen->nr_pages[gen][type][zone],
- 			   parent_lrugen->nr_pages[gen][type][zone] + nr_pages);
+@@ -237,13 +237,10 @@ static inline void reparent_state_local(
+ 
+ 	/* The following counts are all non-hierarchical and need to be reparented. */
+ 	reparent_memcg1_state_local(memcg, parent);
+-	reparent_memcg1_lruvec_state_local(memcg, parent);
+-}
+-#else
+-static inline void reparent_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
+-{
++
++	for (i = 0; i < NR_LRU_LISTS; i++)
++		reparent_memcg_lruvec_state_local(memcg, parent, i);
+ }
+-#endif
+ 
+ static inline void reparent_locks(struct mem_cgroup *memcg, struct mem_cgroup *parent)
+ {
+@@ -478,8 +475,8 @@ unsigned long lruvec_page_state_local(st
+ 	return x;
+ }
+ 
+-void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
+-				       struct mem_cgroup *parent, int idx)
++static void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
++					      struct mem_cgroup *parent, int idx)
+ {
+ 	int i = memcg_stats_index(idx);
+ 	int nid;
+--- a/mm/memcontrol-v1.c~mm-memcontrol-prepare-for-reparenting-state_local-fix
++++ a/mm/memcontrol-v1.c
+@@ -1906,14 +1906,6 @@ void reparent_memcg1_state_local(struct
+ 		reparent_memcg_state_local(memcg, parent, memcg1_stats[i]);
+ }
+ 
+-void reparent_memcg1_lruvec_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
+-{
+-	int i;
 -
--		update_lru_size(parent_lruvec, lru + dst_lru_active, zone, nr_pages);
- 	}
- }
+-	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++)
+-		reparent_memcg_lruvec_state_local(memcg, parent, memcg1_stats[i]);
+-}
+-
+ void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
+ {
+ 	unsigned long memory, memsw;
+--- a/mm/memcontrol-v1.h~mm-memcontrol-prepare-for-reparenting-state_local-fix
++++ a/mm/memcontrol-v1.h
+@@ -76,7 +76,6 @@ void memcg1_uncharge_batch(struct mem_cg
  
-@@ -4576,15 +4572,21 @@ void lru_gen_reparent_memcg(struct mem_c
- 		struct lruvec *child_lruvec, *parent_lruvec;
- 		int type, zid;
- 		struct zone *zone;
-+		enum lru_list lru;
+ void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s);
+ void reparent_memcg1_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent);
+-void reparent_memcg1_lruvec_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent);
  
- 		child_lruvec = get_lruvec(memcg, nid);
- 		parent_lruvec = get_lruvec(parent, nid);
+ void memcg1_account_kmem(struct mem_cgroup *memcg, int nr_pages);
+ static inline bool memcg1_tcpmem_active(struct mem_cgroup *memcg)
+@@ -117,6 +116,10 @@ static inline void memcg1_uncharge_batch
  
--		for_each_managed_zone_pgdat(zone, NODE_DATA(nid), zid, MAX_NR_ZONES - 1) {
-+		for_each_managed_zone_pgdat(zone, NODE_DATA(nid), zid, MAX_NR_ZONES - 1)
- 			for (type = 0; type < ANON_AND_FILE; type++)
- 				__lru_gen_reparent_memcg(child_lruvec, parent_lruvec, zid, type);
--			mem_cgroup_update_lru_size(parent_lruvec, LRU_UNEVICTABLE, zid,
--				mem_cgroup_get_zone_lru_size(child_lruvec, LRU_UNEVICTABLE, zid));
+ static inline void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s) {}
+ 
++static inline void reparent_memcg1_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
++{
++}
 +
-+		for_each_lru(lru) {
-+			for_each_managed_zone_pgdat(zone, NODE_DATA(nid), zid, MAX_NR_ZONES - 1) {
-+				unsigned long size = mem_cgroup_get_zone_lru_size(child_lruvec, lru, zid);
-+
-+				mem_cgroup_update_lru_size(parent_lruvec, lru, zid, size);
-+			}
- 		}
- 	}
- }
+ static inline void memcg1_account_kmem(struct mem_cgroup *memcg, int nr_pages) {}
+ static inline bool memcg1_tcpmem_active(struct mem_cgroup *memcg) { return false; }
+ static inline bool memcg1_charge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages,
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
