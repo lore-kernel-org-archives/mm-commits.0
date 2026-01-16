@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB33E2376E4
-	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 21:40:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4337230EF7B
+	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 22:28:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768599602; cv=none; b=ofzwZA/NIgyXuzOMQoBAgkXn1FuSTfXctcsoYXKlAJ78Er+h9jj5i8BekreL4b3dv7uVbFgCYou1ff62x5/rtj/5AL9u296Aopyf8DZUS8smgL9QbDHnZgnmN8BsuCao4OA+UXyp1pdoGPysf13HCZhow4JWYt34NJRZoToxpt4=
+	t=1768602520; cv=none; b=lmdAGK6hDe+kcRtlQDmJtQ10tNBfnPq2/ygQhSShEehE6eRyrHhfdnaxy8czHzA5BNQsbG2IR+rodc3YFDSOxZjiHUUcUWRwvWEGzuecYAu0aMfWUxHp5FClYKVqgnl9h5qgj+t3dxN5iOEb8zqgTihblXP80tAL/6oqGp+UtEI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768599602; c=relaxed/simple;
-	bh=Dt46GiJEKKuhvWhMzPxlEqE5l8rNe/0nYU2rtsxJJW0=;
-	h=Date:To:From:Subject:Message-Id; b=hfr90f7sNQQCV/BKqaKVVxLbFjD4kh90qtr+/pXMqtUMMhZrlbjnf5g10GsQiqaJGndE0TAMdgKB6D3pXgqOU76jZ1LWUQ/9bSPuk7V55tXa08XAJeVrcBJk/7xKdxyLN0jWJBfPsyWfupo8aPFkNfBIxY7LcsIX48/SBLih2b0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=czwgQgeh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768602520; c=relaxed/simple;
+	bh=4uaVMPkkbyptkPwPapM1ar//G3cQ/SdQaIW7G+cxqnA=;
+	h=Date:To:From:Subject:Message-Id; b=PnFgGPdvXJ85eRsvZhVcC6ORWR9Snkjuj08NvL/ljB65rDmdTWqks69p0CjF3HoRPMDTg2G8b/vGzXGaZwey6Sa5mYBMtqcpWL2ruqHv/GkKZFWmz81SUBPC0gQbjNUbB299zffuNyOKJJa5atOWWNFkUhDkKR6iINMVpdfVges=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c+WYqxIz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="czwgQgeh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F0FEC116C6;
-	Fri, 16 Jan 2026 21:40:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c+WYqxIz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9D96C116C6;
+	Fri, 16 Jan 2026 22:28:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768599602;
-	bh=Dt46GiJEKKuhvWhMzPxlEqE5l8rNe/0nYU2rtsxJJW0=;
+	s=korg; t=1768602519;
+	bh=4uaVMPkkbyptkPwPapM1ar//G3cQ/SdQaIW7G+cxqnA=;
 	h=Date:To:From:Subject:From;
-	b=czwgQgehU8ea8mkEF5U53NK2OJhNbO9/Qv2hwwnt46I2ytXf3rPUPG+JnQf0e94Jc
-	 a0+i22b0OVsHY5PXWoxi+QihQc8rALckz4q/Y0pObtv4pRppViYRLAAbez9V4Jp9Q2
-	 rELCXabRnAfcrFgCRxr//hIx/qpGgTcVI8pkga8c=
-Date: Fri, 16 Jan 2026 13:40:01 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,david@kernel.org,broonie@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=c+WYqxIzfob6/RKdCIqypOvyuDFb9+eFN+FB1wXYvxUe0y8sHuleS+CVVRq7lC+dh
+	 fjQZbhWajAooprLsFZYLBU8fgYl4M4Zi7DiBTRN90STYJL5MpSVbifQ8C7B2H2WF7Y
+	 jLA38v+Fd5ZB1GT1Y/2s8su6gGwW/DtEQtOlb8ek=
+Date: Fri, 16 Jan 2026 14:28:39 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-remove-virtual_address_range-test.patch added to mm-new branch
-Message-Id: <20260116214002.5F0FEC116C6@smtp.kernel.org>
+Subject: + kho-use-unsigned-long-for-nr_pages.patch added to mm-nonmm-unstable branch
+Message-Id: <20260116222839.B9D96C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: remove virtual_address_range test
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-remove-virtual_address_range-test.patch
+     Subject: kho: use unsigned long for nr_pages
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kho-use-unsigned-long-for-nr_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-virtual_address_range-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-use-unsigned-long-for-nr_pages.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,399 +58,117 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: selftests/mm: remove virtual_address_range test
-Date: Fri, 16 Jan 2026 13:20:53 +0000
+From: Pratyush Yadav <pratyush@kernel.org>
+Subject: kho: use unsigned long for nr_pages
+Date: Fri, 16 Jan 2026 11:22:14 +0000
 
-This self test is asserting internal implementation details and is highly
-vulnerable to internal kernel changes as a result.
+Patch series "kho: clean up page initialization logic", v2.
 
-It is currently failing locally from at least v6.17, and it seems that it
-may have been failing for longer in many configurations/hardware as it
-skips if e.g.  CONFIG_ANON_VMA_NAME is not specified.
+This series simplifies the page initialization logic in
+kho_restore_page().  It was originally only a single patch [0], but on
+Pasha's suggestion, I added another patch to use unsigned long for
+nr_pages.
 
-With these skips and the fact that run_vmtests.sh won't run the tests in
-certain configurations it is likely we have simply missed this test being
-broken in CI for a long while.
+Technically speaking, the patches aren't related and can be applied
+independently, but bundling them together since patch 2 relies on 1 and it
+is easier to manage them this way.
 
-I have tried multiple versions of these tests and am unable to find a
-working bisect as previous versions of the test fail also.
 
-The tests are essentially mmap()'ing a series of mappings with no hint and
-asserting what the get_unmapped_area*() functions will come up with, with
-seemingly few checks for what other mappings may already be in place.
+This patch (of 2):
 
-It then appears to be mmap()'ing with a hint, and making a series of
-similar assertions about the internal implementation details of the
-hinting logic.
+With 4k pages, a 32-bit nr_pages can span up to 16 TiB.  While it is a
+lot, there exist systems with terabytes of RAM.  gup is also moving to
+using long for nr_pages.  Use unsigned long and make KHO future-proof.
 
-Commit 0ef3783d7558 ("selftests/mm: add support to test 4PB VA on PPC64"),
-commit 3bd6137220bb ("selftests/mm: virtual_address_range: avoid reading
-from VM_IO mappings"), and especially commit a005145b9c96 ("selftests/mm:
-virtual_address_range: mmap() without PROT_WRITE") are good examples of
-the whack-a-mole nature of maintaining this test.
-
-The last commit there being particularly pertinent as it was accounting
-for an internal implementation detail change that really should have no
-bearing on self-tests, that is commit e93d2521b27f ("x86/vdso: Split
-virtual clock pages into dedicated mapping").
-
-The purpose of the mm self-tests are to assert attributes about the API
-exposed to users, and to ensure that expectations are met.
-
-This test is emphatically not doing this, rather making a series of
-assumptions about internal implementation details and asserting them.
-
-It therefore, sadly, seems that the best course is to remove this test
-altogether.
-
-Link: https://lkml.kernel.org/r/20260116132053.857887-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20260116112217.915803-1-pratyush@kernel.org
+Link: https://lkml.kernel.org/r/20260116112217.915803-2-pratyush@kernel.org
+Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
+Suggested-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Alexander Graf <graf@amazon.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore              |    1 
- tools/testing/selftests/mm/Makefile                |    3 
- tools/testing/selftests/mm/run_vmtests.sh          |   12 
- tools/testing/selftests/mm/virtual_address_range.c |  260 -----------
- 4 files changed, 276 deletions(-)
+ include/linux/kexec_handover.h     |    6 +++---
+ kernel/liveupdate/kexec_handover.c |   11 ++++++-----
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-remove-virtual_address_range-test
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -32,7 +32,6 @@ uffd-unit-tests
- uffd-wp-mremap
- mlock-intersect-test
- mlock-random-test
--virtual_address_range
- gup_test
- va_128TBswitch
- map_fixed_noreplace
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-virtual_address_range-test
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -136,9 +136,6 @@ endif
+--- a/include/linux/kexec_handover.h~kho-use-unsigned-long-for-nr_pages
++++ a/include/linux/kexec_handover.h
+@@ -22,15 +22,15 @@ bool is_kho_boot(void);
  
- ifneq (,$(filter $(ARCH),arm64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
- TEST_GEN_FILES += va_high_addr_switch
--ifneq ($(ARCH),riscv64)
--TEST_GEN_FILES += virtual_address_range
--endif
- TEST_GEN_FILES += write_to_hugetlbfs
- endif
+ int kho_preserve_folio(struct folio *folio);
+ void kho_unpreserve_folio(struct folio *folio);
+-int kho_preserve_pages(struct page *page, unsigned int nr_pages);
+-void kho_unpreserve_pages(struct page *page, unsigned int nr_pages);
++int kho_preserve_pages(struct page *page, unsigned long nr_pages);
++void kho_unpreserve_pages(struct page *page, unsigned long nr_pages);
+ int kho_preserve_vmalloc(void *ptr, struct kho_vmalloc *preservation);
+ void kho_unpreserve_vmalloc(struct kho_vmalloc *preservation);
+ void *kho_alloc_preserve(size_t size);
+ void kho_unpreserve_free(void *mem);
+ void kho_restore_free(void *mem);
+ struct folio *kho_restore_folio(phys_addr_t phys);
+-struct page *kho_restore_pages(phys_addr_t phys, unsigned int nr_pages);
++struct page *kho_restore_pages(phys_addr_t phys, unsigned long nr_pages);
+ void *kho_restore_vmalloc(const struct kho_vmalloc *preservation);
+ int kho_add_subtree(const char *name, void *fdt);
+ void kho_remove_subtree(void *fdt);
+--- a/kernel/liveupdate/kexec_handover.c~kho-use-unsigned-long-for-nr_pages
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -219,7 +219,8 @@ static int __kho_preserve_order(struct k
+ static struct page *kho_restore_page(phys_addr_t phys, bool is_folio)
+ {
+ 	struct page *page = pfn_to_online_page(PHYS_PFN(phys));
+-	unsigned int nr_pages, ref_cnt;
++	unsigned long nr_pages;
++	unsigned int ref_cnt;
+ 	union kho_page_info info;
  
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-virtual_address_range-test
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -399,18 +399,6 @@ CATEGORY="hugetlb" run_test ./hugetlb-re
- fi
+ 	if (!page)
+@@ -246,7 +247,7 @@ static struct page *kho_restore_page(phy
+ 	 * count of 1
+ 	 */
+ 	ref_cnt = is_folio ? 0 : 1;
+-	for (unsigned int i = 1; i < nr_pages; i++)
++	for (unsigned long i = 1; i < nr_pages; i++)
+ 		set_page_count(page + i, ref_cnt);
  
- if [ $VADDR64 -ne 0 ]; then
--
--	# set overcommit_policy as OVERCOMMIT_ALWAYS so that kernel
--	# allows high virtual address allocation requests independent
--	# of platform's physical memory.
--
--	if [ -x ./virtual_address_range ]; then
--		prev_policy=$(cat /proc/sys/vm/overcommit_memory)
--		echo 1 > /proc/sys/vm/overcommit_memory
--		CATEGORY="hugevm" run_test ./virtual_address_range
--		echo $prev_policy > /proc/sys/vm/overcommit_memory
--	fi
--
- 	# va high address boundary switch test
- 	CATEGORY="hugevm" run_test bash ./va_high_addr_switch.sh
- fi # VADDR64
-diff --git a/tools/testing/selftests/mm/virtual_address_range.c a/tools/testing/selftests/mm/virtual_address_range.c
-deleted file mode 100644
---- a/tools/testing/selftests/mm/virtual_address_range.c
-+++ /dev/null
-@@ -1,260 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * Copyright 2017, Anshuman Khandual, IBM Corp.
-- *
-- * Works on architectures which support 128TB virtual
-- * address range and beyond.
-- */
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--#include <unistd.h>
--#include <errno.h>
--#include <sys/prctl.h>
--#include <sys/mman.h>
--#include <sys/time.h>
--#include <fcntl.h>
--
--#include "vm_util.h"
--#include "kselftest.h"
--
--/*
-- * Maximum address range mapped with a single mmap()
-- * call is little bit more than 1GB. Hence 1GB is
-- * chosen as the single chunk size for address space
-- * mapping.
-- */
--
--#define SZ_1GB	(1024 * 1024 * 1024UL)
--#define SZ_1TB	(1024 * 1024 * 1024 * 1024UL)
--
--#define MAP_CHUNK_SIZE	SZ_1GB
--
--/*
-- * Address space till 128TB is mapped without any hint
-- * and is enabled by default. Address space beyond 128TB
-- * till 512TB is obtained by passing hint address as the
-- * first argument into mmap() system call.
-- *
-- * The process heap address space is divided into two
-- * different areas one below 128TB and one above 128TB
-- * till it reaches 512TB. One with size 128TB and the
-- * other being 384TB.
-- *
-- * On Arm64 the address space is 256TB and support for
-- * high mappings up to 4PB virtual address space has
-- * been added.
-- *
-- * On PowerPC64, the address space up to 128TB can be
-- * mapped without a hint. Addresses beyond 128TB, up to
-- * 4PB, can be mapped with a hint.
-- *
-- */
--
--#define NR_CHUNKS_128TB   ((128 * SZ_1TB) / MAP_CHUNK_SIZE) /* Number of chunks for 128TB */
--#define NR_CHUNKS_256TB   (NR_CHUNKS_128TB * 2UL)
--#define NR_CHUNKS_384TB   (NR_CHUNKS_128TB * 3UL)
--#define NR_CHUNKS_3840TB  (NR_CHUNKS_128TB * 30UL)
--#define NR_CHUNKS_3968TB  (NR_CHUNKS_128TB * 31UL)
--
--#define ADDR_MARK_128TB  (1UL << 47) /* First address beyond 128TB */
--#define ADDR_MARK_256TB  (1UL << 48) /* First address beyond 256TB */
--
--#ifdef __aarch64__
--#define HIGH_ADDR_MARK  ADDR_MARK_256TB
--#define HIGH_ADDR_SHIFT 49
--#define NR_CHUNKS_LOW   NR_CHUNKS_256TB
--#define NR_CHUNKS_HIGH  NR_CHUNKS_3840TB
--#elif defined(__PPC64__)
--#define HIGH_ADDR_MARK  ADDR_MARK_128TB
--#define HIGH_ADDR_SHIFT 48
--#define NR_CHUNKS_LOW   NR_CHUNKS_128TB
--#define NR_CHUNKS_HIGH  NR_CHUNKS_3968TB
--#else
--#define HIGH_ADDR_MARK  ADDR_MARK_128TB
--#define HIGH_ADDR_SHIFT 48
--#define NR_CHUNKS_LOW   NR_CHUNKS_128TB
--#define NR_CHUNKS_HIGH  NR_CHUNKS_384TB
--#endif
--
--static char *hint_addr(void)
--{
--	int bits = HIGH_ADDR_SHIFT + rand() % (63 - HIGH_ADDR_SHIFT);
--
--	return (char *) (1UL << bits);
--}
--
--static void validate_addr(char *ptr, int high_addr)
--{
--	unsigned long addr = (unsigned long) ptr;
--
--	if (high_addr) {
--		if (addr < HIGH_ADDR_MARK)
--			ksft_exit_fail_msg("Bad address %lx\n", addr);
--		return;
--	}
--
--	if (addr > HIGH_ADDR_MARK)
--		ksft_exit_fail_msg("Bad address %lx\n", addr);
--}
--
--static void mark_range(char *ptr, size_t size)
--{
--	if (prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, ptr, size, "virtual_address_range") == -1) {
--		if (errno == EINVAL) {
--			/* Depends on CONFIG_ANON_VMA_NAME */
--			ksft_test_result_skip("prctl(PR_SET_VMA_ANON_NAME) not supported\n");
--			ksft_finished();
--		} else {
--			ksft_exit_fail_perror("prctl(PR_SET_VMA_ANON_NAME) failed\n");
--		}
--	}
--}
--
--static int is_marked_vma(const char *vma_name)
--{
--	return vma_name && !strcmp(vma_name, "[anon:virtual_address_range]\n");
--}
--
--static int validate_lower_address_hint(void)
--{
--	char *ptr;
--
--	ptr = mmap((void *) (1UL << 45), MAP_CHUNK_SIZE, PROT_READ |
--		   PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
--
--	if (ptr == MAP_FAILED)
--		return 0;
--
--	return 1;
--}
--
--static int validate_complete_va_space(void)
--{
--	unsigned long start_addr, end_addr, prev_end_addr;
--	char line[400];
--	char prot[6];
--	FILE *file;
--	int fd;
--
--	fd = open("va_dump", O_CREAT | O_WRONLY, 0600);
--	unlink("va_dump");
--	if (fd < 0) {
--		ksft_test_result_skip("cannot create or open dump file\n");
--		ksft_finished();
--	}
--
--	file = fopen("/proc/self/maps", "r");
--	if (file == NULL)
--		ksft_exit_fail_msg("cannot open /proc/self/maps\n");
--
--	prev_end_addr = 0;
--	while (fgets(line, sizeof(line), file)) {
--		const char *vma_name = NULL;
--		int vma_name_start = 0;
--		unsigned long hop;
--
--		if (sscanf(line, "%lx-%lx %4s %*s %*s %*s %n",
--			   &start_addr, &end_addr, prot, &vma_name_start) != 3)
--			ksft_exit_fail_msg("cannot parse /proc/self/maps\n");
--
--		if (vma_name_start)
--			vma_name = line + vma_name_start;
--
--		/* end of userspace mappings; ignore vsyscall mapping */
--		if (start_addr & (1UL << 63))
--			return 0;
--
--		/* /proc/self/maps must have gaps less than MAP_CHUNK_SIZE */
--		if (start_addr - prev_end_addr >= MAP_CHUNK_SIZE)
--			return 1;
--
--		prev_end_addr = end_addr;
--
--		if (prot[0] != 'r')
--			continue;
--
--		if (check_vmflag_io((void *)start_addr))
--			continue;
--
--		/*
--		 * Confirm whether MAP_CHUNK_SIZE chunk can be found or not.
--		 * If write succeeds, no need to check MAP_CHUNK_SIZE - 1
--		 * addresses after that. If the address was not held by this
--		 * process, write would fail with errno set to EFAULT.
--		 * Anyways, if write returns anything apart from 1, exit the
--		 * program since that would mean a bug in /proc/self/maps.
--		 */
--		hop = 0;
--		while (start_addr + hop < end_addr) {
--			if (write(fd, (void *)(start_addr + hop), 1) != 1)
--				return 1;
--			lseek(fd, 0, SEEK_SET);
--
--			if (is_marked_vma(vma_name))
--				munmap((char *)(start_addr + hop), MAP_CHUNK_SIZE);
--
--			hop += MAP_CHUNK_SIZE;
--		}
--	}
--	return 0;
--}
--
--int main(int argc, char *argv[])
--{
--	char *ptr[NR_CHUNKS_LOW];
--	char **hptr;
--	char *hint;
--	unsigned long i, lchunks, hchunks;
--
--	ksft_print_header();
--	ksft_set_plan(1);
--
--	for (i = 0; i < NR_CHUNKS_LOW; i++) {
--		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ,
--			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
--
--		if (ptr[i] == MAP_FAILED) {
--			if (validate_lower_address_hint())
--				ksft_exit_fail_msg("mmap unexpectedly succeeded with hint\n");
--			break;
--		}
--
--		mark_range(ptr[i], MAP_CHUNK_SIZE);
--		validate_addr(ptr[i], 0);
--	}
--	lchunks = i;
--	hptr = (char **) calloc(NR_CHUNKS_HIGH, sizeof(char *));
--	if (hptr == NULL) {
--		ksft_test_result_skip("Memory constraint not fulfilled\n");
--		ksft_finished();
--	}
--
--	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
--		hint = hint_addr();
--		hptr[i] = mmap(hint, MAP_CHUNK_SIZE, PROT_READ,
--			       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
--
--		if (hptr[i] == MAP_FAILED)
--			break;
--
--		mark_range(hptr[i], MAP_CHUNK_SIZE);
--		validate_addr(hptr[i], 1);
--	}
--	hchunks = i;
--	if (validate_complete_va_space()) {
--		ksft_test_result_fail("BUG in mmap() or /proc/self/maps\n");
--		ksft_finished();
--	}
--
--	for (i = 0; i < lchunks; i++)
--		munmap(ptr[i], MAP_CHUNK_SIZE);
--
--	for (i = 0; i < hchunks; i++)
--		munmap(hptr[i], MAP_CHUNK_SIZE);
--
--	free(hptr);
--
--	ksft_test_result_pass("Test\n");
--	ksft_finished();
--}
+ 	if (is_folio && info.order)
+@@ -281,7 +282,7 @@ EXPORT_SYMBOL_GPL(kho_restore_folio);
+  *
+  * Return: 0 on success, error code on failure
+  */
+-struct page *kho_restore_pages(phys_addr_t phys, unsigned int nr_pages)
++struct page *kho_restore_pages(phys_addr_t phys, unsigned long nr_pages)
+ {
+ 	const unsigned long start_pfn = PHYS_PFN(phys);
+ 	const unsigned long end_pfn = start_pfn + nr_pages;
+@@ -830,7 +831,7 @@ EXPORT_SYMBOL_GPL(kho_unpreserve_folio);
+  *
+  * Return: 0 on success, error code on failure
+  */
+-int kho_preserve_pages(struct page *page, unsigned int nr_pages)
++int kho_preserve_pages(struct page *page, unsigned long nr_pages)
+ {
+ 	struct kho_mem_track *track = &kho_out.track;
+ 	const unsigned long start_pfn = page_to_pfn(page);
+@@ -874,7 +875,7 @@ EXPORT_SYMBOL_GPL(kho_preserve_pages);
+  * kho_preserve_pages() call. Unpreserving arbitrary sub-ranges of larger
+  * preserved blocks is not supported.
+  */
+-void kho_unpreserve_pages(struct page *page, unsigned int nr_pages)
++void kho_unpreserve_pages(struct page *page, unsigned long nr_pages)
+ {
+ 	struct kho_mem_track *track = &kho_out.track;
+ 	const unsigned long start_pfn = page_to_pfn(page);
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
-mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
-mm-remove-unnecessary-and-incorrect-mmap-lock-assert.patch
-mm-do-not-copy-page-tables-unnecessarily-for-vm_uffd_wp.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts-fix.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible-fix.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone-fix.patch
-locking-add-rwsem_is_write_locked-update-non-lockdep-asserts.patch
-mm-vma-add-vma_is__locked-helpers.patch
-mm-add-use-vma_is_stabilised-vma_assert_stabilised-helpers.patch
-selftests-mm-remove-virtual_address_range-test.patch
+kho-print-which-scratch-buffer-failed-to-be-reserved.patch
+kho-use-unsigned-long-for-nr_pages.patch
+kho-simplify-page-initialization-in-kho_restore_page.patch
 
