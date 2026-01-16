@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4337230EF7B
-	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 22:28:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F0C030EF7B
+	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 22:28:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768602520; cv=none; b=lmdAGK6hDe+kcRtlQDmJtQ10tNBfnPq2/ygQhSShEehE6eRyrHhfdnaxy8czHzA5BNQsbG2IR+rodc3YFDSOxZjiHUUcUWRwvWEGzuecYAu0aMfWUxHp5FClYKVqgnl9h5qgj+t3dxN5iOEb8zqgTihblXP80tAL/6oqGp+UtEI=
+	t=1768602522; cv=none; b=B3qKnkk6ho6IGZydrG5lgxTPHWitEsPAsFMu1wiuXUO5qU8mXrQzqKXrImzy93zwQQLm72RJPcs+bLYZP5TKsTYu2VDpLNhonGTD54aPMsyF5jrJdy0dNciN00Ye9Pl5/99eMIEJlbBi9vIvRnijYIP0Y0o99HIuLNgPkLF11wY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768602520; c=relaxed/simple;
-	bh=4uaVMPkkbyptkPwPapM1ar//G3cQ/SdQaIW7G+cxqnA=;
-	h=Date:To:From:Subject:Message-Id; b=PnFgGPdvXJ85eRsvZhVcC6ORWR9Snkjuj08NvL/ljB65rDmdTWqks69p0CjF3HoRPMDTg2G8b/vGzXGaZwey6Sa5mYBMtqcpWL2ruqHv/GkKZFWmz81SUBPC0gQbjNUbB299zffuNyOKJJa5atOWWNFkUhDkKR6iINMVpdfVges=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c+WYqxIz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768602522; c=relaxed/simple;
+	bh=czaz0lihiv5Jc4FDvQ4PmnehaDZgvMLrrFH5e/WvGOE=;
+	h=Date:To:From:Subject:Message-Id; b=lOg0gEDLeHofxH4zqQFmlaWvBBmtLr5861VbiS+s30m57c6oGH2qCYWMl/PP6y6Gei6+PANUQZhovQGVZOxRbnaIK0feDTC1ick21MwiXO3u42ZsnBA/esTj43+rtp2rfgBqZGFFnXecR6XXVmTtXkDXtQa2fPedPa7SYuGeezQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HOY5u13M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c+WYqxIz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9D96C116C6;
-	Fri, 16 Jan 2026 22:28:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HOY5u13M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FBA1C116C6;
+	Fri, 16 Jan 2026 22:28:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768602519;
-	bh=4uaVMPkkbyptkPwPapM1ar//G3cQ/SdQaIW7G+cxqnA=;
+	s=korg; t=1768602522;
+	bh=czaz0lihiv5Jc4FDvQ4PmnehaDZgvMLrrFH5e/WvGOE=;
 	h=Date:To:From:Subject:From;
-	b=c+WYqxIzfob6/RKdCIqypOvyuDFb9+eFN+FB1wXYvxUe0y8sHuleS+CVVRq7lC+dh
-	 fjQZbhWajAooprLsFZYLBU8fgYl4M4Zi7DiBTRN90STYJL5MpSVbifQ8C7B2H2WF7Y
-	 jLA38v+Fd5ZB1GT1Y/2s8su6gGwW/DtEQtOlb8ek=
-Date: Fri, 16 Jan 2026 14:28:39 -0800
+	b=HOY5u13M83AaAJsNWkfsdqwhpX3OA9+PZi0u+6EuvRVPLl0ax3kUB/DeXS8I8mxbQ
+	 zxYIEiitkiZIgkxoR0TxhLE0qh7xYNOxJeFVT4iiATRQTucgRQX+A/kxG25+LKlH3f
+	 k7pNsxsEWF2eugMxiJXCtLMXcwUo2FViooihYYdk=
+Date: Fri, 16 Jan 2026 14:28:41 -0800
 To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-use-unsigned-long-for-nr_pages.patch added to mm-nonmm-unstable branch
-Message-Id: <20260116222839.B9D96C116C6@smtp.kernel.org>
+Subject: + kho-simplify-page-initialization-in-kho_restore_page.patch added to mm-nonmm-unstable branch
+Message-Id: <20260116222842.4FBA1C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: use unsigned long for nr_pages
+     Subject: kho: simplify page initialization in kho_restore_page()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-use-unsigned-long-for-nr_pages.patch
+     kho-simplify-page-initialization-in-kho_restore_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-use-unsigned-long-for-nr_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-simplify-page-initialization-in-kho_restore_page.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Pratyush Yadav <pratyush@kernel.org>
-Subject: kho: use unsigned long for nr_pages
-Date: Fri, 16 Jan 2026 11:22:14 +0000
+Subject: kho: simplify page initialization in kho_restore_page()
+Date: Fri, 16 Jan 2026 11:22:15 +0000
 
-Patch series "kho: clean up page initialization logic", v2.
+When restoring a page (from kho_restore_pages()) or folio (from
+kho_restore_folio()), KHO must initialize the struct page.  The
+initialization differs slightly depending on if a folio is requested or a
+set of 0-order pages is requested.
 
-This series simplifies the page initialization logic in
-kho_restore_page().  It was originally only a single patch [0], but on
-Pasha's suggestion, I added another patch to use unsigned long for
-nr_pages.
+Conceptually, it is quite simple to understand.  When restoring 0-order
+pages, each page gets a refcount of 1 and that's it.  When restoring a
+folio, head page gets a refcount of 1 and tail pages get 0.
 
-Technically speaking, the patches aren't related and can be applied
-independently, but bundling them together since patch 2 relies on 1 and it
-is easier to manage them this way.
+kho_restore_page() tries to combine the two separate initialization flow
+into one piece of code.  While it works fine, it is more complicated to
+read than it needs to be.  Make the code simpler by splitting the two
+initalization paths into two separate functions.  This improves
+readability by clearly showing how each type must be initialized.
 
-
-This patch (of 2):
-
-With 4k pages, a 32-bit nr_pages can span up to 16 TiB.  While it is a
-lot, there exist systems with terabytes of RAM.  gup is also moving to
-using long for nr_pages.  Use unsigned long and make KHO future-proof.
-
-Link: https://lkml.kernel.org/r/20260116112217.915803-1-pratyush@kernel.org
-Link: https://lkml.kernel.org/r/20260116112217.915803-2-pratyush@kernel.org
+Link: https://lkml.kernel.org/r/20260116112217.915803-3-pratyush@kernel.org
 Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
-Suggested-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
@@ -91,79 +86,70 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec_handover.h     |    6 +++---
- kernel/liveupdate/kexec_handover.c |   11 ++++++-----
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ kernel/liveupdate/kexec_handover.c |   40 +++++++++++++++++----------
+ 1 file changed, 26 insertions(+), 14 deletions(-)
 
---- a/include/linux/kexec_handover.h~kho-use-unsigned-long-for-nr_pages
-+++ a/include/linux/kexec_handover.h
-@@ -22,15 +22,15 @@ bool is_kho_boot(void);
- 
- int kho_preserve_folio(struct folio *folio);
- void kho_unpreserve_folio(struct folio *folio);
--int kho_preserve_pages(struct page *page, unsigned int nr_pages);
--void kho_unpreserve_pages(struct page *page, unsigned int nr_pages);
-+int kho_preserve_pages(struct page *page, unsigned long nr_pages);
-+void kho_unpreserve_pages(struct page *page, unsigned long nr_pages);
- int kho_preserve_vmalloc(void *ptr, struct kho_vmalloc *preservation);
- void kho_unpreserve_vmalloc(struct kho_vmalloc *preservation);
- void *kho_alloc_preserve(size_t size);
- void kho_unpreserve_free(void *mem);
- void kho_restore_free(void *mem);
- struct folio *kho_restore_folio(phys_addr_t phys);
--struct page *kho_restore_pages(phys_addr_t phys, unsigned int nr_pages);
-+struct page *kho_restore_pages(phys_addr_t phys, unsigned long nr_pages);
- void *kho_restore_vmalloc(const struct kho_vmalloc *preservation);
- int kho_add_subtree(const char *name, void *fdt);
- void kho_remove_subtree(void *fdt);
---- a/kernel/liveupdate/kexec_handover.c~kho-use-unsigned-long-for-nr_pages
+--- a/kernel/liveupdate/kexec_handover.c~kho-simplify-page-initialization-in-kho_restore_page
 +++ a/kernel/liveupdate/kexec_handover.c
-@@ -219,7 +219,8 @@ static int __kho_preserve_order(struct k
+@@ -216,11 +216,32 @@ static int __kho_preserve_order(struct k
+ 	return 0;
+ }
+ 
++/* For physically contiguous 0-order pages. */
++static void kho_init_pages(struct page *page, unsigned long nr_pages)
++{
++	for (unsigned long i = 0; i < nr_pages; i++)
++		set_page_count(page + i, 1);
++}
++
++static void kho_init_folio(struct page *page, unsigned int order)
++{
++	unsigned long nr_pages = (1 << order);
++
++	/* Head page gets refcount of 1. */
++	set_page_count(page, 1);
++
++	/* For higher order folios, tail pages get a page count of zero. */
++	for (unsigned long i = 1; i < nr_pages; i++)
++		set_page_count(page + i, 0);
++
++	if (order > 0)
++		prep_compound_page(page, order);
++}
++
  static struct page *kho_restore_page(phys_addr_t phys, bool is_folio)
  {
  	struct page *page = pfn_to_online_page(PHYS_PFN(phys));
--	unsigned int nr_pages, ref_cnt;
-+	unsigned long nr_pages;
-+	unsigned int ref_cnt;
+ 	unsigned long nr_pages;
+-	unsigned int ref_cnt;
  	union kho_page_info info;
  
  	if (!page)
-@@ -246,7 +247,7 @@ static struct page *kho_restore_page(phy
- 	 * count of 1
- 	 */
- 	ref_cnt = is_folio ? 0 : 1;
--	for (unsigned int i = 1; i < nr_pages; i++)
-+	for (unsigned long i = 1; i < nr_pages; i++)
- 		set_page_count(page + i, ref_cnt);
+@@ -238,20 +259,11 @@ static struct page *kho_restore_page(phy
  
- 	if (is_folio && info.order)
-@@ -281,7 +282,7 @@ EXPORT_SYMBOL_GPL(kho_restore_folio);
-  *
-  * Return: 0 on success, error code on failure
-  */
--struct page *kho_restore_pages(phys_addr_t phys, unsigned int nr_pages)
-+struct page *kho_restore_pages(phys_addr_t phys, unsigned long nr_pages)
- {
- 	const unsigned long start_pfn = PHYS_PFN(phys);
- 	const unsigned long end_pfn = start_pfn + nr_pages;
-@@ -830,7 +831,7 @@ EXPORT_SYMBOL_GPL(kho_unpreserve_folio);
-  *
-  * Return: 0 on success, error code on failure
-  */
--int kho_preserve_pages(struct page *page, unsigned int nr_pages)
-+int kho_preserve_pages(struct page *page, unsigned long nr_pages)
- {
- 	struct kho_mem_track *track = &kho_out.track;
- 	const unsigned long start_pfn = page_to_pfn(page);
-@@ -874,7 +875,7 @@ EXPORT_SYMBOL_GPL(kho_preserve_pages);
-  * kho_preserve_pages() call. Unpreserving arbitrary sub-ranges of larger
-  * preserved blocks is not supported.
-  */
--void kho_unpreserve_pages(struct page *page, unsigned int nr_pages)
-+void kho_unpreserve_pages(struct page *page, unsigned long nr_pages)
- {
- 	struct kho_mem_track *track = &kho_out.track;
- 	const unsigned long start_pfn = page_to_pfn(page);
+ 	/* Clear private to make sure later restores on this page error out. */
+ 	page->private = 0;
+-	/* Head page gets refcount of 1. */
+-	set_page_count(page, 1);
+-
+-	/*
+-	 * For higher order folios, tail pages get a page count of zero.
+-	 * For physically contiguous order-0 pages every pages gets a page
+-	 * count of 1
+-	 */
+-	ref_cnt = is_folio ? 0 : 1;
+-	for (unsigned long i = 1; i < nr_pages; i++)
+-		set_page_count(page + i, ref_cnt);
+ 
+-	if (is_folio && info.order)
+-		prep_compound_page(page, info.order);
++	if (is_folio)
++		kho_init_folio(page, info.order);
++	else
++		kho_init_pages(page, nr_pages);
+ 
+ 	clear_page_tag_ref(page);
+ 	adjust_managed_page_count(page, nr_pages);
 _
 
 Patches currently in -mm which might be from pratyush@kernel.org are
