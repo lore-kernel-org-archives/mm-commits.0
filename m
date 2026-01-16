@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2312347BC1
-	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 06:39:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C45E334026B;
+	Fri, 16 Jan 2026 17:48:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768545558; cv=none; b=CsDw1q817b6AFN+5EYADZHfseLhtASksum7RGo5rjRAepx7qsc9gP7bmUGXkR4wuoZasmFZDFq3+iKNZB1uvpdXs/WxF3G1Kgzof2H8CLNUBVvpfj0kzbB8KF7DET878qk6jKgWDi6Pcb3V84NrgxXj0fAlcWGsAE1dMa3zk8ek=
+	t=1768585710; cv=none; b=L2Yw5WgRHVm66qACGQ0xeql+hZZ3d7rH0htgRXnNNmZeUz/PuuZb0nA14pnRAJ0+o7noojw4AxA7f1URGMnJRdOkproR4FXHXu1y/tQphu1wrixjVuw7JG2QK89wWsgTGcV86kwYcM4MeJEOA6Fvn4vkrtvS1JpSxguacRZVYEA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768545558; c=relaxed/simple;
-	bh=uHqPBs67k304jvS15DRsENqBSyMFo4VpuDmEEPffI9E=;
-	h=Date:To:From:Subject:Message-Id; b=nisivPqcQJij1PxKpsLx1Z2f92luYMrpokNKDsHC39sio7EHbAPGTCdK4DSO7uizj8lg5ElRtFUOjIFmqckUv4fTWoCk61x0P7TImStXOaIKyH8E0uOe+qWZfcW9BFbTMDZ5IUotXQK02AYxLGLl2dboq/DSwtdPkwxu43XFhl4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j8SVp1Tk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768585710; c=relaxed/simple;
+	bh=mZwJPl5VQFqlNa5iiOuI2qG74d5RfCNxPwmtvkK98oY=;
+	h=Date:To:From:Subject:Message-Id; b=f0+OjTAKq+RXrvntxBgWGQZxTiQSgLm4PomzHjca4J8XVqeRgC1JNBtazdb9AEqgqnm0v/Put4ryo0z7TCYspVUoGbyuJSuE5a6rdf/bcPUgkDHaEZLRle9lxaGrJ/vZckrhZzp4US7GJdhMwkYLBFmUfFKMcUPnHGr7x3DOt7E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HKGxuR9t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j8SVp1Tk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32E04C116C6;
-	Fri, 16 Jan 2026 06:39:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HKGxuR9t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48FE8C116C6;
+	Fri, 16 Jan 2026 17:48:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768545558;
-	bh=uHqPBs67k304jvS15DRsENqBSyMFo4VpuDmEEPffI9E=;
+	s=korg; t=1768585708;
+	bh=mZwJPl5VQFqlNa5iiOuI2qG74d5RfCNxPwmtvkK98oY=;
 	h=Date:To:From:Subject:From;
-	b=j8SVp1TkLkKti6ImyQ5nELHFfm1dBxKZvNzQVMV7Sn4zukiKR8K1sC2r8Bm/d+pIN
-	 /eCgRH//a6FR9wpq/+Jqlvw75h4FExtOgnLECQvZ6r1ws/k5Y6yvVIRHfjrXA2S6ph
-	 FejRbbyTHNehSmIbLPLiu70M8MH9GgBQS2G1JN4w=
-Date: Thu, 15 Jan 2026 22:39:17 -0800
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=HKGxuR9tmGWLwCvWLsA0yRG8SmK73X8V5PsZmzab1N0rram4HGMN8sahzXmvhItmb
+	 Co8gMCB9uweW/Gy7AUidRoR2J9FVgcq3vfBUx1NAptPPLAO/IUm9z3q68LYF8SWTWK
+	 CnsVK2SQko+GbJKH6FU7JCtJKCFyip6iaXn/vjU8=
+Date: Fri, 16 Jan 2026 09:48:27 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jcmvbkbc@gmail.com,chris@zankel.net,williamt@cadence.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-fixup-read_block_state-fix-2.patch added to mm-unstable branch
-Message-Id: <20260116063918.32E04C116C6@smtp.kernel.org>
+Subject: + mm-highmem-fix-__kmap_to_page-build-error.patch added to mm-new branch
+Message-Id: <20260116174828.48FE8C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram-fixup-read_block_state-fix-2
-has been added to the -mm mm-unstable branch.  Its filename is
-     zram-fixup-read_block_state-fix-2.patch
+     Subject: mm/highmem: fix __kmap_to_page() build error
+has been added to the -mm mm-new branch.  Its filename is
+     mm-highmem-fix-__kmap_to_page-build-error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fixup-read_block_state-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-highmem-fix-__kmap_to_page-build-error.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,59 +66,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-fixup-read_block_state-fix-2
-Date: Thu Jan 15 10:30:48 PM PST 2026
+From: William Tambe <williamt@cadence.com>
+Subject: mm/highmem: fix __kmap_to_page() build error
+Date: Thu, 11 Dec 2025 12:38:19 -0800
 
-fix build
+This changes fixes following build error which is a miss from ef6e06b2ef87
+("highmem: fix kmap_to_page() for kmap_local_page() addresses").
 
-drivers/block/zram/zram_drv.c: In function 'read_block_state':
-drivers/block/zram/zram_drv.c:1582:41: error: format '%lu' expects argument of type 'long unsigned int', but argument 6 has type 'int' [-Werror=format=]
- 1582 |                         "%12zd %12u.%06lu %c%c%c%c%c%c\n",
-      |                                     ~~~~^
-      |                                         |
-      |                                         long unsigned int
-      |                                     %06u
- 1583 |                         index, zram->table[index].attr.ac_time, 0,
-      |                                                                 ~
-      |                                                                 |
-      |                                                                 int
+mm/highmem.c:184:66: error: 'pteval' undeclared (first use in this
+function); did you mean 'pte_val'?
+184 | idx =3D arch_kmap_local_map_idx(i, pte_pfn(pteval));
 
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+In __kmap_to_page(), pteval is used but does not exist in the function.
+
+(akpm: affects xtensa only)
+
+Link: https://lkml.kernel.org/r/SJ0PR07MB86317E00EC0C59DA60935FDCD18DA@SJ0PR07MB8631.namprd07.prod.outlook.com
+Fixes: ef6e06b2ef87 ("highmem: fix kmap_to_page() for kmap_local_page() addresses")
+Signed-off-by: William Tambe <williamt@cadence.com>
+Reviewed-by: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/highmem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fixup-read_block_state-fix-2
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1589,7 +1589,7 @@ static ssize_t read_block_state(struct f
- 			goto next;
+--- a/mm/highmem.c~mm-highmem-fix-__kmap_to_page-build-error
++++ a/mm/highmem.c
+@@ -180,12 +180,13 @@ struct page *__kmap_to_page(void *vaddr)
+ 		for (i = 0; i < kctrl->idx; i++) {
+ 			unsigned long base_addr;
+ 			int idx;
++			pte_t pteval = kctrl->pteval[i];
  
- 		copied = snprintf(kbuf + written, count,
--			"%12zd %12u.%06lu %c%c%c%c%c%c\n",
-+			"%12zd %12u.%06d %c%c%c%c%c%c\n",
- 			index, zram->table[index].attr.ac_time, 0,
- 			test_slot_flag(zram, index, ZRAM_SAME) ? 's' : '.',
- 			test_slot_flag(zram, index, ZRAM_WB) ? 'w' : '.',
+ 			idx = arch_kmap_local_map_idx(i, pte_pfn(pteval));
+ 			base_addr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ 
+ 			if (base_addr == base)
+-				return pte_page(kctrl->pteval[i]);
++				return pte_page(pteval);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from williamt@cadence.com are
 
-mm-add-basic-tests-for-lazy_mmu-fix.patch
-mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
-zram-fixup-read_block_state-fix.patch
-zram-fixup-read_block_state-fix-2.patch
-mm-block-fs-remove-laptop_mode-fix.patch
-mm-fix-minor-spelling-mistakes-in-comments-fix.patch
-memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
-mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix.patch
-mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch
-mm-hugetlb-enforce-brace-style-checkpatch-fixes.patch
-kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix.patch
-list-add-primitives-for-private-list-manipulations-fix.patch
-init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning-fix.patch
-panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-checkpatch-fixes.patch
+mm-highmem-fix-__kmap_to_page-build-error.patch
 
