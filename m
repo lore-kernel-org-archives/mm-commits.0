@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 499856FC5
-	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 20:43:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56538145348
+	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 20:48:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768596238; cv=none; b=cf3CdIqoEwKDGvbbMkTMkVHSAIghA1tKW0Zc0k6UkfkoxkoiGboQalOBNR3TmwgWFG0s2KtnCr1rakpCbm9+LZbyrTB9H7/Tl13ZvPLfR7CHmiQnROB0/xtjapWTYEFN7EPEX/H6w81VNcQK/ONXpoQrNxNAqfbh5k7bIRmMm3Q=
+	t=1768596507; cv=none; b=V8LEoljlQNgS3BHQa+lpVVA4kvSHFVKfTWCFuI61Y/tJcrppEAHLrutSjfxp0EuzyDnlEVT5+ZZdXA75lFAVq0u0kNF4kjAkeX6+gc4fAQyzzKEaMVe7lQlG9uYklo24kkjEN2oXut1b96g7QHT8aR9ucEjakkwzfjvufDCqv8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768596238; c=relaxed/simple;
-	bh=v9e0IhYd6Yvt90eVJbhspINstcJb9Dyo8Gi+iarFD/4=;
-	h=Date:To:From:Subject:Message-Id; b=iv56YO4BngnSvC1o4SuT9STEiutSnngQxPvGwPTAzdTAY+ppqQQy++x+uTmE1BW8f5n0/awHiCnU7CZg88vR8jxiUTqLwVP/1A/LqrxdhdDmKEVsImAegTb2PrBkUNiwm6DoAkyHMdt8IghgwX7h+VEFGMS7Z6iea4nosn9O8KE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0qG2diyh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768596507; c=relaxed/simple;
+	bh=5FkwOhh6ZMwsYTV8yN20rOr5+p4Trp+If4nmNKFQXC4=;
+	h=Date:To:From:Subject:Message-Id; b=PG2wEGYBR9a49SQ5pgqLPHHbfXY3nVUjzyqIZvGVbVxL/rdrQYbVOnoEAOdR51nJgyGaAlfvhnPZFpfsete3AC6lpTkxxDcT8Ql/3vij4lJgnMSUGwCPulwq3gTWMgCsWKJsjkQEm4dcyyDtETRrtdnzsKZA4i4Pr/Ef5MHlOd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0OtkSsvG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0qG2diyh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0A15C116C6;
-	Fri, 16 Jan 2026 20:43:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0OtkSsvG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6895C116C6;
+	Fri, 16 Jan 2026 20:48:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768596237;
-	bh=v9e0IhYd6Yvt90eVJbhspINstcJb9Dyo8Gi+iarFD/4=;
+	s=korg; t=1768596506;
+	bh=5FkwOhh6ZMwsYTV8yN20rOr5+p4Trp+If4nmNKFQXC4=;
 	h=Date:To:From:Subject:From;
-	b=0qG2diyhPsdbLHOYJQdRkZszplUVv253dbH/agveG1bD9HL9adxfFVZ+8eotZtM34
-	 ImHOZuyuGqgv+ditBLcQ7+cNZ7Li69LHotqzj0AtbAJCdeucYffwl2COkwA/+HDaij
-	 NVwTcSzXEaFmK8Tq446QYD9bxANl35/yGYrSn76g=
-Date: Fri, 16 Jan 2026 12:43:57 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,ran.xiaokai@zte.com.cn,kent.overstreet@linux.dev,corbet@lwn.net,akpm@linux-foundation.org,surenb@google.com,akpm@linux-foundation.org
+	b=0OtkSsvGallYHY44olHmW5YJXd1BBJwYrUhunIKtvIuBaiv4iLIDWzUPI3LYFE2W4
+	 il9pVKEnNryyUzhlKQlP3QSDuZ6vcuc4iPeHlzQU6J9gnNehsKxIVOzGPLyLQGRXkQ
+	 EU/wf3FWrrPfFWnBwg3XNJq6c4NA5M1AZfpvpED4=
+Date: Fri, 16 Jan 2026 12:48:26 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,sfr@canb.auug.org.au,namhyung@kernel.org,lukas.bulwahn@gmail.com,irogers@google.com,dwaipayanray1@gmail.com,apw@canonical.com,joe@perches.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260116204357.C0A15C116C6@smtp.kernel.org>
+Subject: + checkpatch-add-an-invalid-patch-separator-test.patch added to mm-nonmm-unstable branch
+Message-Id: <20260116204826.C6895C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/allocation-profiling: describe sysctrl limitations in debug mode
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode.patch
+     Subject: checkpatch: add an invalid patch separator test
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     checkpatch-add-an-invalid-patch-separator-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-an-invalid-patch-separator-test.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,68 +58,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: Docs/mm/allocation-profiling: describe sysctrl limitations in debug mode
-Date: Fri, 16 Jan 2026 10:44:23 -0800
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add an invalid patch separator test
+Date: Fri, 16 Jan 2026 09:42:52 -0800
 
-When CONFIG_MEM_ALLOC_PROFILING_DEBUG=y, /proc/sys/vm/mem_profiling is
-read-only to avoid debug warnings in a scenario when an allocation is
-made while profiling is disabled (allocation does not get an allocation
-tag), then profiling gets enabled and allocation gets freed (warning due
-to the allocation missing allocation tag).
+Some versions of tools that apply patches incorrectly allow lines that
+start with 3 dashes and have additional content on the same line.
 
-Link: https://lkml.kernel.org/r/20260116184423.2708363-1-surenb@google.com
-Fixes: ebdf9ad4ca98 ("memprofiling: documentation")
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Cc: SeongJae Park <sj@kernel.org>
+Checkpatch will now emit an ERROR on these lines and optionally convert
+those lines from dashes to equals with --fix.
+
+Link: https://lkml.kernel.org/r/6ec1ed08328340db42655287afd5fa4067316b11.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Suggested-by: Ian Rogers <irogers@google.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Namhyung kim <namhyung@kernel.org>
+Cc: Stehen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst   |    4 ++++
- Documentation/mm/allocation-profiling.rst |   10 ++++++++++
- 2 files changed, 14 insertions(+)
+ Documentation/dev-tools/checkpatch.rst |    5 +++++
+ scripts/checkpatch.pl                  |   10 ++++++++++
+ 2 files changed, 15 insertions(+)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -487,6 +487,10 @@ memory allocations.
+--- a/Documentation/dev-tools/checkpatch.rst~checkpatch-add-an-invalid-patch-separator-test
++++ a/Documentation/dev-tools/checkpatch.rst
+@@ -601,6 +601,11 @@ Commit message
  
- The default value depends on CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT.
+     See: https://www.kernel.org/doc/html/latest/process/submitting-patches.html#describe-your-changes
  
-+When CONFIG_MEM_ALLOC_PROFILING_DEBUG=y, this control is read-only to avoid
-+warnings produced by allocations made while profiling is disabled and freed
-+when it's enabled.
-+
++  **BAD_COMMIT_SEPARATOR**
++    The commit separator is a single line with 3 dashes.
++    The regex match is '^---$'
++    Lines that start with 3 dashes and have more content on the same line
++    may confuse tools that apply patches.
  
- memory_failure_early_kill
- =========================
---- a/Documentation/mm/allocation-profiling.rst~docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode
-+++ a/Documentation/mm/allocation-profiling.rst
-@@ -33,6 +33,16 @@ Boot parameter:
- sysctl:
-   /proc/sys/vm/mem_profiling
+ Comparison style
+ ----------------
+--- a/scripts/checkpatch.pl~checkpatch-add-an-invalid-patch-separator-test
++++ a/scripts/checkpatch.pl
+@@ -3031,6 +3031,16 @@ sub process {
+ 			}
+ 		}
  
-+  1: Enable memory profiling.
++# Check for invalid patch separator
++		if ($in_commit_log &&
++		    $line =~ /^---.+/) {
++			if (ERROR("BAD_COMMIT_SEPARATOR",
++				  "Invalid commit separator - some tools may have problems applying this\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$fixlinenr] =~ s/-/=/g;
++			}
++		}
 +
-+  0: Disable memory profiling.
-+
-+  The default value depends on CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT.
-+
-+  When CONFIG_MEM_ALLOC_PROFILING_DEBUG=y, this control is read-only to avoid
-+  warnings produced by allocations made while profiling is disabled and freed
-+  when it's enabled.
-+
- Runtime info:
-   /proc/allocinfo
- 
+ # Check for patch separator
+ 		if ($line =~ /^---$/) {
+ 			$has_patch_separator = 1;
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode.patch
+checkpatch-add-an-invalid-patch-separator-test.patch
 
