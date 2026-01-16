@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EBEE338594
-	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 17:56:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FDB33939AE
+	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 17:59:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768586217; cv=none; b=FJECC3g/F1Hl0JyUPmBz2v7SzjdglF4dy/6BNcDXVPpJxjmmsJ/sik+u0PF+MZkwf7NEvjH185rMfvFEKSKUpUMJs0QcpTlPS54J0E9Z6yXQIDWMjuN895BDITvKbTGaj+Y0uPntaPWkaNg6ubo0VsRR3FHo/W1IbwoglLrE7qE=
+	t=1768586359; cv=none; b=nZMjl0ijpfFyzn/0Fto7/uTMAUp7Rh9tqt1Abm1X47+SZwEQaZwRAOX02iH0I3ft8q2rLenMf+y0uK8YWtU7Vpv7mCBIO/i2H+qJzIkMBnuEqSSndXyobFhAUGuZ3PrdlojAodUoAy4H9irmuXnpyBtc24HMkI+pTMvq0ptRqNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768586217; c=relaxed/simple;
-	bh=FqhgiUw4fbz73Rn0shtxbE4vFgL4pb9ANJw6oWY4XnY=;
-	h=Date:To:From:Subject:Message-Id; b=U7la4T+vXSgAUrY9nnya3m0SgLqicFuAgblm3Vmjvc+TQ5VTtM+0bstGom9LQkwcr5kPGipbUEkfGFoxjsAD0WCRlmN/SrvLDb2HGsBRDLtiL5c+ONg29MjaqJlnvD3u1NUeZv9xthIrUU8Zqp3LRLmiew+Jv9B+oZYOpv2leu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fcOQXm1z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768586359; c=relaxed/simple;
+	bh=NbTKBaVjXjTpAE5JEYasiuH7x0pxj6Yn48AJuuvuNpU=;
+	h=Date:To:From:Subject:Message-Id; b=DMmG7x1NTnzZ+p1QPn6RyHBIMvFRZKRmb1ncULH/m60iKtR5g4eBRw9eI5DENRtPZPK3eknpW/5GIn5YQTY03UW2aZKkL9NJG0Bv0DUzqxBq9XEXdnCzcnllW6mVbBxk2QwrT5UMFgogbAqpoboMA2IzR0F8fdj2F+e77TIt1og=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QguQ0rwt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fcOQXm1z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0148DC116C6;
-	Fri, 16 Jan 2026 17:56:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QguQ0rwt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5AF8C116C6;
+	Fri, 16 Jan 2026 17:59:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768586217;
-	bh=FqhgiUw4fbz73Rn0shtxbE4vFgL4pb9ANJw6oWY4XnY=;
+	s=korg; t=1768586358;
+	bh=NbTKBaVjXjTpAE5JEYasiuH7x0pxj6Yn48AJuuvuNpU=;
 	h=Date:To:From:Subject:From;
-	b=fcOQXm1z5n9ZkAWG0aSOT08tFqtVmFN880dnKXg/JuEEhfdrzY5Jy/UA/yWYLphw5
-	 H4KKEkrx8Ry9fpvplPv5THAXKYKiTH0RLJV4K7ComUlHAb8R+natFcy6cwdGiLw4kN
-	 bcXqq2wrA1tjX5VqjPrn3oe1wtCkDyrAXd/vKgoY=
-Date: Fri, 16 Jan 2026 09:56:56 -0800
-To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,dmatlack@google.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=QguQ0rwtPCYbpRzhswz1vMe1FK25c/oQFe8xDSdCFg6HUxDn81+VzL5u7eSwUF2eB
+	 b/5i5gGunxxDQNhbCYnKFM2/wNCkBdyif1Et5QRU5rgMoHYdDg87PnPBmubkqzYQi5
+	 pDvAn6xQpEzSYosPISpYAI5yThh1fzpFB2g6bL/Q=
+Date: Fri, 16 Jan 2026 09:59:18 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-print-which-scratch-buffer-failed-to-be-reserved.patch added to mm-nonmm-unstable branch
-Message-Id: <20260116175657.0148DC116C6@smtp.kernel.org>
+Subject: + mm-rmap-support-batched-unmapping-for-file-large-folios-fix.patch added to mm-unstable branch
+Message-Id: <20260116175918.D5AF8C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: print which scratch buffer failed to be reserved
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-print-which-scratch-buffer-failed-to-be-reserved.patch
+     Subject: mm: rmap: skip batched unmapping for UFFD vmas
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rmap-support-batched-unmapping-for-file-large-folios-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-print-which-scratch-buffer-failed-to-be-reserved.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-support-batched-unmapping-for-file-large-folios-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,86 +58,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: kho: print which scratch buffer failed to be reserved
-Date: Fri, 16 Jan 2026 16:54:11 +0000
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: rmap: skip batched unmapping for UFFD vmas
+Date: Sat, 17 Jan 2026 00:26:52 +0800
 
-When scratch area fails to reserve, KHO prints a message indicating that. 
-But it doesn't say which scratch failed to allocate.  This can be useful
-information for debugging.  Even more so when the failure is hard to
-reproduce.
+As Dev reported[1], it's not ready to support batched unmapping for uffd
+case.  Let's still fallback to per-page unmapping for the uffd case.
 
-Along with the current message, also print which exact scratch area failed
-to be reserved.
-
-Link: https://lkml.kernel.org/r/20260116165416.1262531-1-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: David Matlack <dmatlack@google.com>
+Link: https://lkml.kernel.org/r/20260116162652.176054-1-baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: Dev Jain <dev.jain@arm.com>
+Closes: https://lore.kernel.org/linux-mm/20260116082721.275178-1-dev.jain@arm.com/ [1]
+Suggested-by: Barry Song <baohua@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Samiullah Khawaja <skhawaja@google.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ mm/rmap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-print-which-scratch-buffer-failed-to-be-reserved
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -651,8 +651,10 @@ static void __init kho_reserve_scratch(v
- 	kho_scratch_cnt = num_online_nodes() + 2;
- 	size = kho_scratch_cnt * sizeof(*kho_scratch);
- 	kho_scratch = memblock_alloc(size, PAGE_SIZE);
--	if (!kho_scratch)
-+	if (!kho_scratch) {
-+		pr_err("Failed to reserve scratch array\n");
- 		goto err_disable_kho;
-+	}
+--- a/mm/rmap.c~mm-rmap-support-batched-unmapping-for-file-large-folios-fix
++++ a/mm/rmap.c
+@@ -1953,6 +1953,9 @@ static inline unsigned int folio_unmap_p
+ 	if (pte_unused(pte))
+ 		return 1;
  
- 	/*
- 	 * reserve scratch area in low memory for lowmem allocations in the
-@@ -661,8 +663,10 @@ static void __init kho_reserve_scratch(v
- 	size = scratch_size_lowmem;
- 	addr = memblock_phys_alloc_range(size, CMA_MIN_ALIGNMENT_BYTES, 0,
- 					 ARCH_LOW_ADDRESS_LIMIT);
--	if (!addr)
-+	if (!addr) {
-+		pr_err("Failed to reserve lowmem scratch buffer\n");
- 		goto err_free_scratch_desc;
-+	}
++	if (userfaultfd_wp(vma))
++		return 1;
++
+ 	return folio_pte_batch(folio, pvmw->pte, pte, max_nr);
+ }
  
- 	kho_scratch[i].addr = addr;
- 	kho_scratch[i].size = size;
-@@ -671,8 +675,10 @@ static void __init kho_reserve_scratch(v
- 	/* reserve large contiguous area for allocations without nid */
- 	size = scratch_size_global;
- 	addr = memblock_phys_alloc(size, CMA_MIN_ALIGNMENT_BYTES);
--	if (!addr)
-+	if (!addr) {
-+		pr_err("Failed to reserve global scratch buffer\n");
- 		goto err_free_scratch_areas;
-+	}
- 
- 	kho_scratch[i].addr = addr;
- 	kho_scratch[i].size = size;
-@@ -683,8 +689,10 @@ static void __init kho_reserve_scratch(v
- 		addr = memblock_alloc_range_nid(size, CMA_MIN_ALIGNMENT_BYTES,
- 						0, MEMBLOCK_ALLOC_ACCESSIBLE,
- 						nid, true);
--		if (!addr)
-+		if (!addr) {
-+			pr_err("Failed to reserve nid %d scratch buffer\n", nid);
- 			goto err_free_scratch_areas;
-+		}
- 
- 		kho_scratch[i].addr = addr;
- 		kho_scratch[i].size = size;
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-kho-simplify-page-initialization-in-kho_restore_page.patch
-kho-print-which-scratch-buffer-failed-to-be-reserved.patch
+mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch
+arm64-mm-factor-out-the-address-and-ptep-alignment-into-a-new-helper.patch
+arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios.patch
+arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
+mm-rmap-support-batched-unmapping-for-file-large-folios.patch
+mm-rmap-support-batched-unmapping-for-file-large-folios-fix.patch
 
