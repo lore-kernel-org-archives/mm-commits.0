@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3425319E968
-	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 23:34:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3337327700D
+	for <mm-commits@vger.kernel.org>; Fri, 16 Jan 2026 23:38:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768606459; cv=none; b=HJNB1EjtrPkH3UfmPjKL8vD8RVqttMZtcgLWLL1W+Of6odPr/ltnjiMMw+3Cva0ntt6DDIeGs9MGu99geFLxhU5qNOlAT3gUc9WPKHdMCQPAW2h0Lj4nsXGVUJz7udJMVcAQ5FpwmIonFMbM/GbWwi5KDKjPmkIHzDnNeodkst4=
+	t=1768606701; cv=none; b=JeAC7Rq2UbWlxXwlm0gxdu+X8Hzh1VIhJ1i1pVarw+1QL4p82BtzavxWVnp8M+MUKDCJDAiqVlSNTG/+NGUr+Jjlmi4fGbvUm8U58XUZG3cnfE7yB1sGXTjWDMx+94nZLt2XnMPnaNJ6rH0wg8/sGFDUw3AX5Mz8ATjLeBrYvgI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768606459; c=relaxed/simple;
-	bh=DRABC8GN7zeccYeyyp4Ic1mZ6sLcOXYDV9+VyuzEf5w=;
-	h=Date:To:From:Subject:Message-Id; b=gQf9xA+0qBW0LTPhXSYfhKLzzjfELR+dCZvC40MiZTyI6yq4pDsd85bx7EGTDtubWFyMh0E+47ONLnEPNqTBeV4LLA2kMZSalowFB0OZTU2pILarqHYX/Y01dJ7BkS9kROpOQH1ulqCfm0I6j1MPVDNq4icoPZ3BS2NUksUjtkU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lNBLmCpN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768606701; c=relaxed/simple;
+	bh=ocUq05FeBAmV6RKLtaRdwNH1ufCxCQDLiEvjW47uvyM=;
+	h=Date:To:From:Subject:Message-Id; b=bC1LPq3IsfdwodHi6yZlrKjxN7W4NPbO8CrOC0BG6PNsJY6mk7kyUZvckjeWGYcaOJMde/tQXOpQXkvAm3CK35MH0xMqeJ+J4Om+4eCgaRfqvPzDNBgxi4fzzW9o2HUw4uuR8MPZTcTxmXJwNX4y3wV5TBSFW2zDt5dUwCH+NBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M8Lnet7R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lNBLmCpN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFB9AC116C6;
-	Fri, 16 Jan 2026 23:34:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M8Lnet7R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A648AC116C6;
+	Fri, 16 Jan 2026 23:38:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768606458;
-	bh=DRABC8GN7zeccYeyyp4Ic1mZ6sLcOXYDV9+VyuzEf5w=;
+	s=korg; t=1768606700;
+	bh=ocUq05FeBAmV6RKLtaRdwNH1ufCxCQDLiEvjW47uvyM=;
 	h=Date:To:From:Subject:From;
-	b=lNBLmCpNerLhjDxRXeeMgxAitzGsO3XYTjD77yTFpBjDmt+nZFdO5rn1iXOBLwD7R
-	 K/7kL1gXIo2b7KF4ZEFLArk2mY77U1K2pA2cUBEc47KdiWPSXwXds3bKyW3GT3MRvR
-	 gPGAgQTlHtfsrapf+jA41XXg8o51/0ezAFN7A16A=
-Date: Fri, 16 Jan 2026 15:34:18 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
+	b=M8Lnet7Rs5dSPSvOuHACybNvXyvpqO6dJVEop1AKyQ4GfYtwhujwXbS53nxTYETnD
+	 Z9z32qmdxyDXKGYVtlMMvs2cE/mds3atDoDMpqJj9j5yekumvrIryzkRakKV6sixyj
+	 19mdUsJ2LIJzIvjEmB2CBmTcZcuOqGmDLHBFcqec=
+Date: Fri, 16 Jan 2026 15:38:20 -0800
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,Qun-wei.Lin@mediatek.com,nphamcs@gmail.com,matthias.bgg@gmail.com,kasong@tencent.com,chrisl@kernel.org,chinwen.chang@mediatek.com,bhe@redhat.com,baohua@kernel.org,angelogioacchino.delregno@collabora.com,andrew.yang@mediatek.com,robin.kuo@mediatek.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-uffd-wp-bit-loss-when-batching-file-folio-unmapping.patch added to mm-unstable branch
-Message-Id: <20260116233418.AFB9AC116C6@smtp.kernel.org>
+Subject: + mm-swap-restore-swap_space-attr-aviod-krn-panic.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260116233820.A648AC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix uffd-wp bit loss when batching file folio unmapping
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-uffd-wp-bit-loss-when-batching-file-folio-unmapping.patch
+     Subject: mm, swap: restore swap_space attr aviod kernel panic
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap-restore-swap_space-attr-aviod-krn-panic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-uffd-wp-bit-loss-when-batching-file-folio-unmapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-restore-swap_space-attr-aviod-krn-panic.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,123 +58,88 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm: fix uffd-wp bit loss when batching file folio unmapping
-Date: Fri, 16 Jan 2026 13:57:21 +0530
+From: "robin.kuo" <robin.kuo@mediatek.com>
+Subject: mm, swap: restore swap_space attr aviod kernel panic
+Date: Fri, 16 Jan 2026 14:25:00 +0800
 
-The recently added file folio unmap batching support forgets to update
-pte_install_uffd_wp_if_needed(), which still updates a single pte.  We end
-up jumping to the end of the folio in page_vma_mapped_walk(), thus setting
-the uffd-wp marker only on a single pte in the batch.  Fix this by passing
-nr_pages into the function, and set the uffd-wp marker on all ptes.
+commit 8b47299a411a ("mm, swap: mark swap address space ro and add context
+debug check") made the swap address space read-only.  It may lead to
+kernel panic if arch_prepare_to_swap returns a failure under heavy memory
+pressure as follows,
 
-Note that, since the nr_pages passed to this function is always derived by
-some sort of batching, it is guaranteed that the set of old ptevals of the
-batch have uffd-wp bit on all ptes or no ptes, therefore it is safe to
-derive the value of the local variable "arm_uffd_pte" from only the
-particular pteval passed to this function, but apply the result on all
-ptes of the batch.
+el1_abort+0x40/0x64
+el1h_64_sync_handler+0x48/0xcc
+el1h_64_sync+0x84/0x88
+errseq_set+0x4c/0xb8 (P)
+__filemap_set_wb_err+0x20/0xd0
+shrink_folio_list+0xc20/0x11cc
+evict_folios+0x1520/0x1be4
+try_to_shrink_lruvec+0x27c/0x3dc
+shrink_one+0x9c/0x228
+shrink_node+0xb3c/0xeac
+do_try_to_free_pages+0x170/0x4f0
+try_to_free_pages+0x334/0x534
+__alloc_pages_direct_reclaim+0x90/0x158
+__alloc_pages_slowpath+0x334/0x588
+__alloc_frozen_pages_noprof+0x224/0x2fc
+__folio_alloc_noprof+0x14/0x64
+vma_alloc_zeroed_movable_folio+0x34/0x44
+do_pte_missing+0xad4/0x1040
+handle_mm_fault+0x4a4/0x790
+do_page_fault+0x288/0x5f8
+do_translation_fault+0x38/0x54
+do_mem_abort+0x54/0xa8
 
-Use set_pte_at() in a loop to set the markers - we cannot use set_ptes()
-as that will increment the PFN, but we don't have any PFN to update here.
+Restore swap address space as not ro to avoid the panic.
 
-The userspace visible effect of the bug is inaccuracy observed by
-workloads relying on uffd-wp regions to install their own pages.
-
-Link: https://lkml.kernel.org/r/20260116082721.275178-1-dev.jain@arm.com
-Fixes: 8798e255b5ec ("mm: rmap: support batched unmapping for file large folios")
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20260116062535.306453-2-robin.kuo@mediatek.com
+Fixes: 8b47299a411a ("mm, swap: mark swap address space ro and add context debug check")
+Signed-off-by: robin.kuo <robin.kuo@mediatek.com>
+Cc: andrew.yang <andrew.yang@mediatek.com>
+Cc: AngeloGiaocchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Mathias Brugger <matthias.bgg@gmail.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Qun-wei Lin <Qun-wei.Lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    7 ++++---
- mm/memory.c               |   14 +-------------
- mm/rmap.c                 |    2 +-
- 3 files changed, 6 insertions(+), 17 deletions(-)
+ mm/swap.h       |    2 +-
+ mm/swap_state.c |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-fix-uffd-wp-bit-loss-when-batching-file-folio-unmapping
-+++ a/include/linux/mm_inline.h
-@@ -568,7 +568,7 @@ static inline pte_marker copy_pte_marker
-  */
- static inline bool
- pte_install_uffd_wp_if_needed(struct vm_area_struct *vma, unsigned long addr,
--			      pte_t *pte, pte_t pteval)
-+			      pte_t *pte, pte_t pteval, unsigned int nr_pages)
+--- a/mm/swap.h~mm-swap-restore-swap_space-attr-aviod-krn-panic
++++ a/mm/swap.h
+@@ -198,7 +198,7 @@ int swap_writeout(struct folio *folio, s
+ void __swap_writepage(struct folio *folio, struct swap_iocb **swap_plug);
+ 
+ /* linux/mm/swap_state.c */
+-extern struct address_space swap_space __ro_after_init;
++extern struct address_space swap_space __read_mostly;
+ static inline struct address_space *swap_address_space(swp_entry_t entry)
  {
- 	bool arm_uffd_pte = false;
+ 	return &swap_space;
+--- a/mm/swap_state.c~mm-swap-restore-swap_space-attr-aviod-krn-panic
++++ a/mm/swap_state.c
+@@ -37,8 +37,7 @@ static const struct address_space_operat
+ #endif
+ };
  
-@@ -599,8 +599,9 @@ pte_install_uffd_wp_if_needed(struct vm_
- 		arm_uffd_pte = true;
+-/* Set swap_space as read only as swap cache is handled by swap table */
+-struct address_space swap_space __ro_after_init = {
++struct address_space swap_space __read_mostly = {
+ 	.a_ops = &swap_aops,
+ };
  
- 	if (unlikely(arm_uffd_pte)) {
--		set_pte_at(vma->vm_mm, addr, pte,
--			   make_pte_marker(PTE_MARKER_UFFD_WP));
-+		for (int i = 0; i < nr_pages; ++i, ++pte, addr += PAGE_SIZE)
-+			set_pte_at(vma->vm_mm, addr, pte,
-+				make_pte_marker(PTE_MARKER_UFFD_WP));
- 		return true;
- 	}
- 
---- a/mm/memory.c~mm-fix-uffd-wp-bit-loss-when-batching-file-folio-unmapping
-+++ a/mm/memory.c
-@@ -1592,8 +1592,6 @@ zap_install_uffd_wp_if_needed(struct vm_
- 			      unsigned long addr, pte_t *pte, int nr,
- 			      struct zap_details *details, pte_t pteval)
- {
--	bool was_installed = false;
--
- 	if (!uffd_supports_wp_marker())
- 		return false;
- 
-@@ -1604,17 +1602,7 @@ zap_install_uffd_wp_if_needed(struct vm_
- 	if (zap_drop_markers(details))
- 		return false;
- 
--	for (;;) {
--		/* the PFN in the PTE is irrelevant. */
--		if (pte_install_uffd_wp_if_needed(vma, addr, pte, pteval))
--			was_installed = true;
--		if (--nr == 0)
--			break;
--		pte++;
--		addr += PAGE_SIZE;
--	}
--
--	return was_installed;
-+	return pte_install_uffd_wp_if_needed(vma, addr, pte, pteval, nr);
- }
- 
- static __always_inline void zap_present_folio_ptes(struct mmu_gather *tlb,
---- a/mm/rmap.c~mm-fix-uffd-wp-bit-loss-when-batching-file-folio-unmapping
-+++ a/mm/rmap.c
-@@ -2174,7 +2174,7 @@ static bool try_to_unmap_one(struct foli
- 		 * we may want to replace a none pte with a marker pte if
- 		 * it's file-backed, so we don't lose the tracking info.
- 		 */
--		pte_install_uffd_wp_if_needed(vma, address, pvmw.pte, pteval);
-+		pte_install_uffd_wp_if_needed(vma, address, pvmw.pte, pteval, nr_pages);
- 
- 		/* Update high watermark before we lower rss */
- 		update_hiwater_rss(mm);
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from robin.kuo@mediatek.com are
 
-mm-fix-uffd-wp-bit-loss-when-batching-file-folio-unmapping.patch
+mm-swap-restore-swap_space-attr-aviod-krn-panic.patch
 
