@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F0262C0285;
-	Sat, 17 Jan 2026 02:57:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E15242C0285;
+	Sat, 17 Jan 2026 02:59:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768618634; cv=none; b=YdLLiw0sHLTVet5WYmu7czJyjy2/y9/z1k2fSA0RYyKDkotLiBE6J8LH5cLqq2X4ClZwH9QLT1op0cAepTNQqdw8ismb5vLq/zjLN9sScZHE1Pxy0iqtH7x+OCTurpGyTufAN4m7cX0Jfr5EQjaQ+dg1au+W3DHKNO7Nyq1qWkw=
+	t=1768618779; cv=none; b=hTIYH2pKBt5aTebbLhmPaKH5o/lNMq3vs4owkNoe0apRrYCPM/SwFZPaL2YFW6r2ZsIN7jE0CIbdDoym+Ze5lNG3FmjzX1XhG5+zlCl3/JayW4TqhMN/mzdGVYejJcTcnx14pSmjprlbolyP9a/U1br7XCDQDKKJ0qa9FkeaM6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768618634; c=relaxed/simple;
-	bh=fHrUFaaCIhGCIlTbCjiUkPf33+lRfiKJK0pjPvXoRVs=;
-	h=Date:To:From:Subject:Message-Id; b=hshjnY7bPdV0F35Kd/LrusN7BnGlTqmRJa3gPZPT50hTVX1Q26dOy1yPRRng/ndtNk1FiE1P/047vbNql5TGw4oCK0NZ2EGqufAdRhBEjbzhozBUTbrEzHUBI5jxDEpAs2wkJKdy2+YuVbN4lSi8Hz33kzsA2pRoc4nwGbEeirg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2IYnakEQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768618779; c=relaxed/simple;
+	bh=xVtKIZs9QCnyODCx8pkNQqIw2ZHLAlyZiWM3qMe40A4=;
+	h=Date:To:From:Subject:Message-Id; b=GwXgzChUb/TzuLFjaFABxlQi7vCLe1S2qSZ7w2zGsnhjSXQ2F0PO4Pn8ZqhJ6u6sHqn3HdHfXrDSi28EvQGyTdj0fYCT/eyl6csxPXuflLT1ge8KVTKiFPv+6ygYi8VaBD+za45IoYnexdjB/bx0aEKLKxyarwbpLBzfKyL5/vo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jlODS8OP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2IYnakEQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BABCBC116C6;
-	Sat, 17 Jan 2026 02:57:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jlODS8OP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E207C116C6;
+	Sat, 17 Jan 2026 02:59:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768618633;
-	bh=fHrUFaaCIhGCIlTbCjiUkPf33+lRfiKJK0pjPvXoRVs=;
+	s=korg; t=1768618778;
+	bh=xVtKIZs9QCnyODCx8pkNQqIw2ZHLAlyZiWM3qMe40A4=;
 	h=Date:To:From:Subject:From;
-	b=2IYnakEQbmKPwBkYld5N/wMnB95A1mtAdaEu0AWEzZRLh+vR8AgbATwxkSA/h6vOU
-	 l+2j/4KPgK7vynBZ6HinTfM9ccxIqXCUTzB4a9TVKg0uPNSX6dwAkNSUALdslglhZg
-	 e6w6TB2xh+K944z5cUPa8Vkz108sY2v3PxDio9Os=
-Date: Fri, 16 Jan 2026 18:57:13 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,mawupeng1@huawei.com,lorenzo.stoakes@oracle.com,longman@redhat.com,Liam.Howlett@oracle.com,david@kernel.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=jlODS8OPuLyKFdl1mror2IsArAjeGZrJFUn3HZk+MFDyAnre3mV0WgFNannoguKIB
+	 MW0FeY6uXZ42xF7EoQk2N4aKu2BoavTi43TBCzYwgI6XTZv7e4/s2wBLVXUiD/b6BD
+	 w2BgLCiOJiRRvKnws4mmqpycy6L5dxHCx2osfTWk=
+Date: Fri, 16 Jan 2026 18:59:37 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,jiaqiyan@google.com,david@kernel.org,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-restore-failed-global-reservations-to-subpool.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260117025713.BABCBC116C6@smtp.kernel.org>
+Subject: + mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260117025938.5E207C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: restore failed global reservations to subpool
+     Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
+     mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,92 +58,231 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/hugetlb: restore failed global reservations to subpool
-Date: Fri, 16 Jan 2026 15:40:36 -0500
+From: Jane Chu <jane.chu@oracle.com>
+Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
+Date: Fri, 16 Jan 2026 13:38:32 -0700
 
-Commit a833a693a490 ("mm: hugetlb: fix incorrect fallback for subpool")
-fixed an underflow error for hstate->resv_huge_pages caused by incorrectly
-attributing globally requested pages to the subpool's reservation.
+When a newly poisoned subpage ends up in an already poisoned hugetlb
+folio, 'num_poisoned_pages' is incremented, but the per node ->mf_stats is
+not.  Fix the inconsistency by designating action_result() to update them
+both.
 
-Unfortunately, this fix also introduced the opposite problem, which would
-leave spool->used_hpages elevated if the globally requested pages could
-not be acquired.  This is because while a subpool's reserve pages only
-accounts for what is requested and allocated from the subpool, its "used"
-counter keeps track of what is consumed in total, both from the subpool
-and globally.  Thus, we need to adjust spool->used_hpages in the other
-direction, and make sure that globally requested pages are uncharged from
-the subpool's used counter.
+While at it, define __get_huge_page_for_hwpoison() return values in terms
+of symbol names for better readibility.  Also rename
+folio_set_hugetlb_hwpoison() to hugetlb_update_hwpoison() since the
+function does more than the conventional bit setting and the fact three
+possible return values are expected.
 
-Each failed allocation attempt increments the used_hpages counter by how
-many pages were requested from the global pool.  Ultimately, this renders
-the subpool unusable, as used_hpages approaches the max limit.
-
-The issue can be reproduced as follows:
-1. Allocate 4 hugetlb pages
-2. Create a hugetlb mount with max=4, min=2
-3. Consume 2 pages globally
-4. Request 3 pages from the subpool (2 from subpool + 1 from global)
-	4.1 hugepage_subpool_get_pages(spool, 3) succeeds.
-		used_hpages += 3
-	4.2 hugetlb_acct_memory(h, 1) fails: no global pages left
-		used_hpages -= 2
-5. Subpool now has used_hpages = 1, despite not being able to
-   successfully allocate any hugepages. It believes it can now only
-   allocate 3 more hugepages, not 4.
-
-Repeating this process will ultimately render the subpool unable to
-allocate any hugepages, since it believes that it is using the maximum
-number of hugepages that the subpool has been allotted.
-
-The underflow issue that the original commit fixes still remains fixed
-as well.
-
-Link: https://lkml.kernel.org/r/20260116204037.2270096-1-joshua.hahnjy@gmail.com
-Fixes: a833a693a490 ("mm: hugetlb: fix incorrect fallback for subpool")
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Link: https://lkml.kernel.org/r/20260116203834.3179551-1-jane.chu@oracle.com
+Fixes: 18f41fa616ee ("mm: memory-failure: bump memory failure stats to pglist_data")
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/memory-failure.c |   91 ++++++++++++++++++++++++------------------
+ 1 file changed, 54 insertions(+), 37 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-restore-failed-global-reservations-to-subpool
-+++ a/mm/hugetlb.c
-@@ -6717,6 +6717,15 @@ out_put_pages:
- 		 */
- 		hugetlb_acct_memory(h, -gbl_resv);
+--- a/mm/memory-failure.c~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
++++ a/mm/memory-failure.c
+@@ -1883,12 +1883,22 @@ static unsigned long __folio_free_raw_hw
+ 	return count;
+ }
+ 
+-static int folio_set_hugetlb_hwpoison(struct folio *folio, struct page *page)
++#define	MF_HUGETLB_FREED		0	/* freed hugepage */
++#define	MF_HUGETLB_IN_USED		1	/* in-use hugepage */
++#define	MF_HUGETLB_NON_HUGEPAGE		2	/* not a hugepage */
++#define	MF_HUGETLB_FOLIO_PRE_POISONED	3	/* folio already poisoned */
++#define	MF_HUGETLB_PAGE_PRE_POISONED	4	/* exact page already poisoned */
++#define	MF_HUGETLB_RETRY		5	/* hugepage is busy, retry */
++/*
++ * Set hugetlb folio as hwpoisoned, update folio private raw hwpoison list
++ * to keep track of the poisoned pages.
++ */
++static int hugetlb_update_hwpoison(struct folio *folio, struct page *page)
+ {
+ 	struct llist_head *head;
+ 	struct raw_hwp_page *raw_hwp;
+ 	struct raw_hwp_page *p;
+-	int ret = folio_test_set_hwpoison(folio) ? -EHWPOISON : 0;
++	int ret = folio_test_set_hwpoison(folio) ? MF_HUGETLB_FOLIO_PRE_POISONED : 0;
+ 
+ 	/*
+ 	 * Once the hwpoison hugepage has lost reliable raw error info,
+@@ -1896,20 +1906,17 @@ static int folio_set_hugetlb_hwpoison(st
+ 	 * so skip to add additional raw error info.
+ 	 */
+ 	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
+-		return -EHWPOISON;
++		return MF_HUGETLB_FOLIO_PRE_POISONED;
+ 	head = raw_hwp_list_head(folio);
+ 	llist_for_each_entry(p, head->first, node) {
+ 		if (p->page == page)
+-			return -EHWPOISON;
++			return MF_HUGETLB_PAGE_PRE_POISONED;
  	}
-+	/* Restore used_hpages for pages that failed global reservation */
-+	if (gbl_reserve && spool) {
-+		unsigned long flags;
-+
-+		spin_lock_irqsave(&spool->lock, flags);
-+		if (spool->max_hpages != -1)
-+			spool->used_hpages -= gbl_reserve;
-+		unlock_or_release_subpool(spool, flags);
-+	}
- out_uncharge_cgroup:
- 	hugetlb_cgroup_uncharge_cgroup_rsvd(hstate_index(h),
- 					    chg * pages_per_huge_page(h), h_cg);
+ 
+ 	raw_hwp = kmalloc(sizeof(struct raw_hwp_page), GFP_ATOMIC);
+ 	if (raw_hwp) {
+ 		raw_hwp->page = page;
+ 		llist_add(&raw_hwp->node, head);
+-		/* the first error event will be counted in action_result(). */
+-		if (ret)
+-			num_poisoned_pages_inc(page_to_pfn(page));
+ 	} else {
+ 		/*
+ 		 * Failed to save raw error info.  We no longer trace all
+@@ -1957,42 +1964,38 @@ void folio_clear_hugetlb_hwpoison(struct
+ 
+ /*
+  * Called from hugetlb code with hugetlb_lock held.
+- *
+- * Return values:
+- *   0             - free hugepage
+- *   1             - in-use hugepage
+- *   2             - not a hugepage
+- *   -EBUSY        - the hugepage is busy (try to retry)
+- *   -EHWPOISON    - the hugepage is already hwpoisoned
+  */
+ int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+ 				 bool *migratable_cleared)
+ {
+ 	struct page *page = pfn_to_page(pfn);
+ 	struct folio *folio = page_folio(page);
+-	int ret = 2;	/* fallback to normal page handling */
+ 	bool count_increased = false;
++	int ret, rc;
+ 
+-	if (!folio_test_hugetlb(folio))
++	if (!folio_test_hugetlb(folio)) {
++		ret = MF_HUGETLB_NON_HUGEPAGE;
+ 		goto out;
+-
+-	if (flags & MF_COUNT_INCREASED) {
+-		ret = 1;
++	} else if (flags & MF_COUNT_INCREASED) {
++		ret = MF_HUGETLB_IN_USED;
+ 		count_increased = true;
+ 	} else if (folio_test_hugetlb_freed(folio)) {
+-		ret = 0;
++		ret = MF_HUGETLB_FREED;
+ 	} else if (folio_test_hugetlb_migratable(folio)) {
+-		ret = folio_try_get(folio);
+-		if (ret)
++		if (folio_try_get(folio)) {
++			ret = MF_HUGETLB_IN_USED;
+ 			count_increased = true;
++		} else
++			ret = MF_HUGETLB_FREED;
+ 	} else {
+-		ret = -EBUSY;
++		ret = MF_HUGETLB_RETRY;
+ 		if (!(flags & MF_NO_RETRY))
+ 			goto out;
+ 	}
+ 
+-	if (folio_set_hugetlb_hwpoison(folio, page)) {
+-		ret = -EHWPOISON;
++	rc = hugetlb_update_hwpoison(folio, page);
++	if (rc >= MF_HUGETLB_FOLIO_PRE_POISONED) {
++		ret = rc;
+ 		goto out;
+ 	}
+ 
+@@ -2017,10 +2020,15 @@ out:
+  * with basic operations like hugepage allocation/free/demotion.
+  * So some of prechecks for hwpoison (pinning, and testing/setting
+  * PageHWPoison) should be done in single hugetlb_lock range.
++ * Returns:
++ *	0		- not hugetlb, or recovered
++ *	-EBUSY		- not recovered
++ *	-EOPNOTSUPP	- hwpoison_filter'ed
++ *	-EHWPOISON	- folio or exact page already poisoned
+  */
+ static int try_memory_failure_hugetlb(unsigned long pfn, int flags, int *hugetlb)
+ {
+-	int res;
++	int res, rv;
+ 	struct page *p = pfn_to_page(pfn);
+ 	struct folio *folio;
+ 	unsigned long page_flags;
+@@ -2029,22 +2037,31 @@ static int try_memory_failure_hugetlb(un
+ 	*hugetlb = 1;
+ retry:
+ 	res = get_huge_page_for_hwpoison(pfn, flags, &migratable_cleared);
+-	if (res == 2) { /* fallback to normal page handling */
++	switch (res) {
++	case MF_HUGETLB_NON_HUGEPAGE:	/* fallback to normal page handling */
+ 		*hugetlb = 0;
+ 		return 0;
+-	} else if (res == -EHWPOISON) {
+-		if (flags & MF_ACTION_REQUIRED) {
+-			folio = page_folio(p);
+-			res = kill_accessing_process(current, folio_pfn(folio), flags);
+-		}
+-		action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
+-		return res;
+-	} else if (res == -EBUSY) {
++	case MF_HUGETLB_RETRY:
+ 		if (!(flags & MF_NO_RETRY)) {
+ 			flags |= MF_NO_RETRY;
+ 			goto retry;
+ 		}
+ 		return action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
++	case MF_HUGETLB_FOLIO_PRE_POISONED:
++	case MF_HUGETLB_PAGE_PRE_POISONED:
++		rv = -EHWPOISON;
++		if (flags & MF_ACTION_REQUIRED) {
++			folio = page_folio(p);
++			rv = kill_accessing_process(current, folio_pfn(folio), flags);
++		}
++		if (res == MF_HUGETLB_PAGE_PRE_POISONED)
++			action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
++		else
++			action_result(pfn, MF_MSG_HUGE, MF_FAILED);
++		return rv;
++	default:
++		WARN_ON((res != MF_HUGETLB_FREED) && (res != MF_HUGETLB_IN_USED));
++		break;
+ 	}
+ 
+ 	folio = page_folio(p);
+@@ -2055,7 +2072,7 @@ retry:
+ 		if (migratable_cleared)
+ 			folio_set_hugetlb_migratable(folio);
+ 		folio_unlock(folio);
+-		if (res == 1)
++		if (res == MF_HUGETLB_IN_USED)
+ 			folio_put(folio);
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -2064,7 +2081,7 @@ retry:
+ 	 * Handling free hugepage.  The possible race with hugepage allocation
+ 	 * or demotion can be prevented by PageHWPoison flag.
+ 	 */
+-	if (res == 0) {
++	if (res == MF_HUGETLB_FREED) {
+ 		folio_unlock(folio);
+ 		if (__page_handle_poison(p) > 0) {
+ 			page_ref_inc(p);
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from jane.chu@oracle.com are
 
-mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
-mm-hugetlb-remove-unnecessary-if-condition.patch
-mm-hugetlb-enforce-brace-style.patch
+mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn.patch
 
