@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 373BC2FE592
-	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 02:50:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56478322B7A
+	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 02:50:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768618249; cv=none; b=ZY08l9eu4CzMmwbtLwxDXoLg1hXMao636MapW3i8UaXZ13bl0+Dn4tb+AVEThDvFiP4ERIe1zyU+eD6QfYuX3scz4UpNCZ6Z48p8apHQ6t1uC4ap8XLr3ihPBO6VLLlh179VBok+soxxqmcpUxj/gOzsWjWGu7YWI41SD1pAU94=
+	t=1768618251; cv=none; b=sg8cjMjajiu8CSppVEvtxakA83helUT+ReaV5K185RkKLyb23VhSJ/HZLj94xwkiHMhiNrMDsqGWFMLIgnG3ylfuA5Gf15p5UojZ+VZlkVMbpWHsxRQvKe6/y4WvNQ7DzrJ+8GlLFm+UDfXgTD4nN0EMCVswSbbSlUUk+ubhJlY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768618249; c=relaxed/simple;
-	bh=IqfUNW2z7vFqyH0TtoLIZbo+4eEDWoJLqLx3V0KKmO8=;
-	h=Date:To:From:Subject:Message-Id; b=fwO/cpmEeF/uP71Mdb4GprADRbrgWry2CL3AC+z0z5y+o7FfLV+Y9lMeSWZfdzJgtvLtkx5rKr4lTcnWDcNjmNMWePauRtefUDVPdH7Qz2RmG/hO2NOA99Q72DEGwaQcufzLdU8b3ntgGjqJ3MhBQcnOdh9WhRl90yxlwTiL9/4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DqTWhZk5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768618251; c=relaxed/simple;
+	bh=ufVY5hCWkEDj5NXlfMnPH9tasgsPBNcPPKX2ZQe59zY=;
+	h=Date:To:From:Subject:Message-Id; b=uZ9dNjoMd3AT0GVxMpPI1SAgbUZCKijx/wOYjhnYf4nxYkc4NYXAsUiYDf34bXalSVwI+Xm/KRkA5p1YrLDhCL8ZhRccBPXmub/jqepRcRcZDm/jpBaWcSQi70FaS192/qzzlz/zUVnQjg6wywMQHA54W6/t9aCn1mVLW1kDeys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iq/2ABOT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DqTWhZk5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED332C116C6;
-	Sat, 17 Jan 2026 02:50:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iq/2ABOT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1B0CC116C6;
+	Sat, 17 Jan 2026 02:50:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768618249;
-	bh=IqfUNW2z7vFqyH0TtoLIZbo+4eEDWoJLqLx3V0KKmO8=;
+	s=korg; t=1768618251;
+	bh=ufVY5hCWkEDj5NXlfMnPH9tasgsPBNcPPKX2ZQe59zY=;
 	h=Date:To:From:Subject:From;
-	b=DqTWhZk53LspA8afnNh8Q4LtPMBrFjm5cfPzS8rHG2kG0VkTpw1pY3v+iRGeyfinH
-	 BiwbgJiQ4KpX+7njlN62/pGcCw95enz6DKO0Dsi6R84cUSatQtWpaADAXgJbfrbHjD
-	 Njmr1i5sYVnfu8u1Iiy/pj0ERlmDbLRsEWzbOmLc=
-Date: Fri, 16 Jan 2026 18:50:48 -0800
+	b=Iq/2ABOT4I+zVZXKMlKdCZuswMH/OzzcXx0YouJ+wuy70YqJ7PV+7P/WnzA44fbP7
+	 RGvkXPX8KK+M8Q2kdUxa+HZs7xxDdANQNt4U+r5TGrYDJghamcdH0oNn7ONvzBcZcG
+	 B88SsqMKQi7wpRnWyrQupHyBxs1t1Be9qg31B0rI=
+Date: Fri, 16 Jan 2026 18:50:50 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch added to mm-new branch
-Message-Id: <20260117025048.ED332C116C6@smtp.kernel.org>
+Subject: + selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch added to mm-new branch
+Message-Id: <20260117025050.E1B0CC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/wss_estimation: ensure number of collected wss
+     Subject: selftests/damon/wss_estimation: deduplicate failed samples output
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
+     selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,56 +67,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/wss_estimation: ensure number of collected wss
-Date: Fri, 16 Jan 2026 18:07:27 -0800
+Subject: selftests/damon/wss_estimation: deduplicate failed samples output
+Date: Fri, 16 Jan 2026 18:07:28 -0800
 
-DAMON selftest for working set size estimation collects DAMON's working
-set size measurements of the running artificial memory access generator
-program until the program is finished.  Depending on how quickly the
-program finishes, and how quickly DAMON starts, the number of collected
-working set size measurements may vary, and make the test results
-unreliable.  Ensure it collects 40 measurements by using the repeat mode
-of the artificial memory access generator program, and finish the
-measurements only after the desired number of collections are made.
+When the test fails, it shows whole sampled working set size measurements.
+The purpose is showing the distribution of the measured values, to let
+the tester know if it was just intermittent failure.  Multiple same values
+on the output are therefore unnecessary.  It was not a big deal since the
+test was failing only once in the past.  But the test can now fail
+multiple times with increased working set size, until it passes or the
+working set size reaches a limit.  Hence the noisy output can be quite
+long and annoying.  Print only the deduplicated distribution information.
 
-Link: https://lkml.kernel.org/r/20260117020731.226785-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260117020731.226785-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftests-damon-wss_estimation-ensure-number-of-collected-wss
+--- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftests-damon-wss_estimation-deduplicate-failed-samples-output
 +++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
-@@ -8,7 +8,8 @@ import _damon_sysfs
+@@ -53,7 +53,11 @@ def pass_wss_estimation(sz_region):
+             print('the error rate is not acceptable (> %f)' %
+                     acceptable_error_rate)
+             print('samples are as below')
+-            print('\n'.join(['%d' % wss for wss in wss_collected]))
++            for idx, wss in enumerate(wss_collected):
++                if idx < len(wss_collected) - 1 and \
++                        wss_collected[idx + 1] == wss:
++                    continue
++                print('%d/%d: %d' % (idx, len(wss_collected), wss))
+             return False
+     return True
  
- def pass_wss_estimation(sz_region):
-     # access two regions of given size, 2 seocnds per each region
--    proc = subprocess.Popen(['./access_memory', '2', '%d' % sz_region, '2000'])
-+    proc = subprocess.Popen(
-+            ['./access_memory', '2', '%d' % sz_region, '2000', 'repeat'])
-     kdamonds = _damon_sysfs.Kdamonds([_damon_sysfs.Kdamond(
-             contexts=[_damon_sysfs.DamonCtx(
-                 ops='vaddr',
-@@ -26,7 +27,7 @@ def pass_wss_estimation(sz_region):
-         exit(1)
- 
-     wss_collected = []
--    while proc.poll() == None:
-+    while proc.poll() is None and len(wss_collected) < 40:
-         time.sleep(0.1)
-         err = kdamonds.kdamonds[0].update_schemes_tried_bytes()
-         if err != None:
-@@ -35,6 +36,7 @@ def pass_wss_estimation(sz_region):
- 
-         wss_collected.append(
-                 kdamonds.kdamonds[0].contexts[0].schemes[0].tried_bytes)
-+    proc.terminate()
-     err = kdamonds.stop()
-     if err is not None:
-         print('kdamond stop failed: %s' % err)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
