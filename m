@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC3562D661C;
-	Sat, 17 Jan 2026 02:53:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F0262C0285;
+	Sat, 17 Jan 2026 02:57:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768618435; cv=none; b=LH6fG/4FFYwTp/NzoZYCqiXw9gZ2RXtQZhTSjX3WC4GzgL6lgyZqWTWPCqh+G19FRbLqagZR7VNBuFfDSKRgbwCKVsXlERPR4FjVR5cjNHJTgnfuRRdz1/uk4TS7EO1Rz0ZsMkKZDSlqFDxza6ofn6HRdGBbBQDNiOwC/WL2Itw=
+	t=1768618634; cv=none; b=YdLLiw0sHLTVet5WYmu7czJyjy2/y9/z1k2fSA0RYyKDkotLiBE6J8LH5cLqq2X4ClZwH9QLT1op0cAepTNQqdw8ismb5vLq/zjLN9sScZHE1Pxy0iqtH7x+OCTurpGyTufAN4m7cX0Jfr5EQjaQ+dg1au+W3DHKNO7Nyq1qWkw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768618435; c=relaxed/simple;
-	bh=JQm5DIRXYiCtzOhWiwjD7Wh+YLz0zu1WzfkxRRNEKas=;
-	h=Date:To:From:Subject:Message-Id; b=MPxoacMbvccVNPsxCSSK35g7hafvhq5AHCzaXDV9S4b//WM73aejmFB+ChwkrJ7uB2MzGMe3+PRG75kAsVU/GlfeVS5IkFuYNQiWGKGhciD8jQcW49W6ouzW0tFAkJNpkmqcO9VhGHW8E723+ajqtjPy+AcxvXWxlp3XYHOjkY8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RU49QWB0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768618634; c=relaxed/simple;
+	bh=fHrUFaaCIhGCIlTbCjiUkPf33+lRfiKJK0pjPvXoRVs=;
+	h=Date:To:From:Subject:Message-Id; b=hshjnY7bPdV0F35Kd/LrusN7BnGlTqmRJa3gPZPT50hTVX1Q26dOy1yPRRng/ndtNk1FiE1P/047vbNql5TGw4oCK0NZ2EGqufAdRhBEjbzhozBUTbrEzHUBI5jxDEpAs2wkJKdy2+YuVbN4lSi8Hz33kzsA2pRoc4nwGbEeirg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2IYnakEQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RU49QWB0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2FDBC116C6;
-	Sat, 17 Jan 2026 02:53:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2IYnakEQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BABCBC116C6;
+	Sat, 17 Jan 2026 02:57:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768618435;
-	bh=JQm5DIRXYiCtzOhWiwjD7Wh+YLz0zu1WzfkxRRNEKas=;
+	s=korg; t=1768618633;
+	bh=fHrUFaaCIhGCIlTbCjiUkPf33+lRfiKJK0pjPvXoRVs=;
 	h=Date:To:From:Subject:From;
-	b=RU49QWB0nKgmEkSEn6DseN/sLdnFDafBqeNdpmNSl7LLTuq20Cns/CMBd7Rm3PmTk
-	 Z38W0tIoFs2jSnoLvLZDSsCxpos9M7rwNQse94TgrsiXnDMHsfnqjcdhgGMZAHanbK
-	 nqJ+yk6o5baqtk53+IYtPAJH4W6Mti0FCWX1NxPQ=
-Date: Fri, 16 Jan 2026 18:53:54 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,axelrasmussen@google.com,yosry.ahmed@linux.dev,akpm@linux-foundation.org
+	b=2IYnakEQbmKPwBkYld5N/wMnB95A1mtAdaEu0AWEzZRLh+vR8AgbATwxkSA/h6vOU
+	 l+2j/4KPgK7vynBZ6HinTfM9ccxIqXCUTzB4a9TVKg0uPNSX6dwAkNSUALdslglhZg
+	 e6w6TB2xh+K944z5cUPa8Vkz108sY2v3PxDio9Os=
+Date: Fri, 16 Jan 2026 18:57:13 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,mawupeng1@huawei.com,lorenzo.stoakes@oracle.com,longman@redhat.com,Liam.Howlett@oracle.com,david@kernel.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260117025355.A2FDBC116C6@smtp.kernel.org>
+Subject: + mm-hugetlb-restore-failed-global-reservations-to-subpool.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260117025713.BABCBC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: restore per-memcg proactive reclaim with !CONFIG_NUMA
+     Subject: mm/hugetlb: restore failed global reservations to subpool
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch
+     mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,92 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosry.ahmed@linux.dev>
-Subject: mm: restore per-memcg proactive reclaim with !CONFIG_NUMA
-Date: Fri, 16 Jan 2026 20:52:47 +0000
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/hugetlb: restore failed global reservations to subpool
+Date: Fri, 16 Jan 2026 15:40:36 -0500
 
-Commit 2b7226af730c ("mm/memcg: make memory.reclaim interface generic")
-moved proactive reclaim logic from memory.reclaim handler to a generic
-user_proactive_reclaim() helper to be used for per-node proactive reclaim.
+Commit a833a693a490 ("mm: hugetlb: fix incorrect fallback for subpool")
+fixed an underflow error for hstate->resv_huge_pages caused by incorrectly
+attributing globally requested pages to the subpool's reservation.
 
-However, user_proactive_reclaim() was only defined under CONFIG_NUMA, with
-a stub always returning 0 otherwise.  This broke memory.reclaim on
-!CONFIG_NUMA configs, causing it to report success without actually
-attempting reclaim.
+Unfortunately, this fix also introduced the opposite problem, which would
+leave spool->used_hpages elevated if the globally requested pages could
+not be acquired.  This is because while a subpool's reserve pages only
+accounts for what is requested and allocated from the subpool, its "used"
+counter keeps track of what is consumed in total, both from the subpool
+and globally.  Thus, we need to adjust spool->used_hpages in the other
+direction, and make sure that globally requested pages are uncharged from
+the subpool's used counter.
 
-Move the definition of user_proactive_reclaim() outside CONFIG_NUMA, and
-instead define a stub for __node_reclaim() in the !CONFIG_NUMA case. 
-__node_reclaim() is only called from user_proactive_reclaim() when a write
-is made to sys/devices/system/node/nodeX/reclaim, which is only defined
-with CONFIG_NUMA.
+Each failed allocation attempt increments the used_hpages counter by how
+many pages were requested from the global pool.  Ultimately, this renders
+the subpool unusable, as used_hpages approaches the max limit.
 
-Link: https://lkml.kernel.org/r/20260116205247.928004-1-yosry.ahmed@linux.dev
-Fixes: 2b7226af730c ("mm/memcg: make memory.reclaim interface generic")
-Signed-off-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+The issue can be reproduced as follows:
+1. Allocate 4 hugetlb pages
+2. Create a hugetlb mount with max=4, min=2
+3. Consume 2 pages globally
+4. Request 3 pages from the subpool (2 from subpool + 1 from global)
+	4.1 hugepage_subpool_get_pages(spool, 3) succeeds.
+		used_hpages += 3
+	4.2 hugetlb_acct_memory(h, 1) fails: no global pages left
+		used_hpages -= 2
+5. Subpool now has used_hpages = 1, despite not being able to
+   successfully allocate any hugepages. It believes it can now only
+   allocate 3 more hugepages, not 4.
+
+Repeating this process will ultimately render the subpool unable to
+allocate any hugepages, since it believes that it is using the maximum
+number of hugepages that the subpool has been allotted.
+
+The underflow issue that the original commit fixes still remains fixed
+as well.
+
+Link: https://lkml.kernel.org/r/20260116204037.2270096-1-joshua.hahnjy@gmail.com
+Fixes: a833a693a490 ("mm: hugetlb: fix incorrect fallback for subpool")
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Ma Wupeng <mawupeng1@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Waiman Long <longman@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    8 --------
- mm/vmscan.c   |   13 +++++++++++--
- 2 files changed, 11 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/mm/internal.h~mm-restore-per-memcg-proactive-reclaim-with-config_numa
-+++ a/mm/internal.h
-@@ -538,16 +538,8 @@ extern unsigned long highest_memmap_pfn;
- bool folio_isolate_lru(struct folio *folio);
- void folio_putback_lru(struct folio *folio);
- extern void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason);
--#ifdef CONFIG_NUMA
- int user_proactive_reclaim(char *buf,
- 			   struct mem_cgroup *memcg, pg_data_t *pgdat);
--#else
--static inline int user_proactive_reclaim(char *buf,
--			   struct mem_cgroup *memcg, pg_data_t *pgdat)
--{
--	return 0;
--}
--#endif
- 
- /*
-  * in mm/rmap.c:
---- a/mm/vmscan.c~mm-restore-per-memcg-proactive-reclaim-with-config_numa
-+++ a/mm/vmscan.c
-@@ -7707,6 +7707,17 @@ int node_reclaim(struct pglist_data *pgd
- 	return ret;
- }
- 
-+#else
+--- a/mm/hugetlb.c~mm-hugetlb-restore-failed-global-reservations-to-subpool
++++ a/mm/hugetlb.c
+@@ -6717,6 +6717,15 @@ out_put_pages:
+ 		 */
+ 		hugetlb_acct_memory(h, -gbl_resv);
+ 	}
++	/* Restore used_hpages for pages that failed global reservation */
++	if (gbl_reserve && spool) {
++		unsigned long flags;
 +
-+static unsigned long __node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask,
-+				    unsigned long nr_pages,
-+				    struct scan_control *sc)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
- enum {
- 	MEMORY_RECLAIM_SWAPPINESS = 0,
- 	MEMORY_RECLAIM_SWAPPINESS_MAX,
-@@ -7814,8 +7825,6 @@ int user_proactive_reclaim(char *buf,
- 	return 0;
- }
- 
--#endif
--
- /**
-  * check_move_unevictable_folios - Move evictable folios to appropriate zone
-  * lru list
++		spin_lock_irqsave(&spool->lock, flags);
++		if (spool->max_hpages != -1)
++			spool->used_hpages -= gbl_reserve;
++		unlock_or_release_subpool(spool, flags);
++	}
+ out_uncharge_cgroup:
+ 	hugetlb_cgroup_uncharge_cgroup_rsvd(hstate_index(h),
+ 					    chg * pages_per_huge_page(h), h_cg);
 _
 
-Patches currently in -mm which might be from yosry.ahmed@linux.dev are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch
-zsmalloc-simplify-read-begin-end-logic.patch
+mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
+mm-hugetlb-remove-unnecessary-if-condition.patch
+mm-hugetlb-enforce-brace-style.patch
 
