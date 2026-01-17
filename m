@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4532829DB6C
-	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 03:16:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A787230CD8B
+	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 03:25:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768619775; cv=none; b=PzSz+xLVIqBS8TDQTafSR8HaoY7B5YNCe2zwCdBtfRoi2guUOtCzGsv3wkujlRNJFy5/CYv12YeHL8ekuSukP2qtCMN/9zKLFfI0/DfQs17hmTt9z6Sk7fgLzwW8+td02OderDQOzItVRhNVHtCPdfMR7Fcs2FlBWNPAe2vdpAo=
+	t=1768620359; cv=none; b=cLU4ZgBEaPsRl5Utrq20oWGlksnfDerMwz4INeeNVyMgk3VYqhApfPZLiueEcSdsrDhdSumZyIVucQPEXphY/bOPuXchJaWy67akv4rq8R0aFnTM8CJ8Cx43TDj5m5GicnAtGFgBHiyuTUWhJ1M+bUbI7O7eBAk5t7DboLO+9W4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768619775; c=relaxed/simple;
-	bh=l29AxtyfBsypT1r9pz1wXJi7ehkCWPUe6mSBqR4fGKE=;
-	h=Date:To:From:Subject:Message-Id; b=g8ri8pIiatXDfJfxkR6Hv4GGvoSVjAUPH0+cHwh0uR8g3bqWDliL/Ax/7i3NMiQ4o76j7z4QqfV55BZToyzGAOZyCLxDAKHqvuWXLSDaWTNknFlXeqKB00unpYxjglsxEUwgldepZUQb8KmQJvgXRAXoBvxk6pA47c5fsgwR+QQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IFWEWO2a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768620359; c=relaxed/simple;
+	bh=EJ+JD56lBL73VCUhIkS/Zf4z1MTYyDEcu5GlM+y2aL0=;
+	h=Date:To:From:Subject:Message-Id; b=OZyCDrkDVXf1Rz0o5pXZ5dnlQ9Ovk86c/wTOTSoTfkze7z8z1lwhMguBVW1CMikgZkuZfNduakpoh/clFweFt1m6as+9kJQS1JklJif9UvshRX5JZ7zjoe7KuEO+gN6k1vxCV1vw1COIf5M0+cX9MA3Q50pXDMpVwGTe5n1ED58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kpqBBPnf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IFWEWO2a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CD58C4CEF7;
-	Sat, 17 Jan 2026 03:16:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kpqBBPnf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F234C4CEF7;
+	Sat, 17 Jan 2026 03:25:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768619774;
-	bh=l29AxtyfBsypT1r9pz1wXJi7ehkCWPUe6mSBqR4fGKE=;
+	s=korg; t=1768620359;
+	bh=EJ+JD56lBL73VCUhIkS/Zf4z1MTYyDEcu5GlM+y2aL0=;
 	h=Date:To:From:Subject:From;
-	b=IFWEWO2axDzp3N10PRuhdOPpq0Z/oNMnDTGwDGZBblZ3ujV/comTtW2T6UkZlPt3G
-	 T8YeFEyFpEfDMFaLZCLLt9HjlIQBIW3suUUIiyGRnKhAKHdGkkeGq/oIodBNUT8NRu
-	 C/RBDvHk8PaxbQDONEjkbyuzBSn184cvPzAaVffw=
-Date: Fri, 16 Jan 2026 19:16:13 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,clm@meta.com,cl@linux.com,bigeasy@linutronix.de,dennis@kernel.org,akpm@linux-foundation.org
+	b=kpqBBPnfiXTowEp4zlf/WllZvs8po5xtIAeusszHb6xEQP6fkmHSDFYBPxAHfw120
+	 fTFNHwgbkh4SB1UlyvxNVlnEQtfXfeN0nHBoSA98v/GWtCd73/3et6ImR2wuMX+EIe
+	 A9EsELeYD0WonrZ993Zw4WmbwT5blsbKcI+4fMIU=
+Date: Fri, 16 Jan 2026 19:25:58 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + percpu-add-basic-double-free-check.patch added to mm-new branch
-Message-Id: <20260117031614.6CD58C4CEF7@smtp.kernel.org>
+Subject: + mm-vma-temporary-build-fix.patch added to mm-new branch
+Message-Id: <20260117032559.4F234C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: percpu: add basic double free check
+     Subject: mm/vma: temporary build fix
 has been added to the -mm mm-new branch.  Its filename is
-     percpu-add-basic-double-free-check.patch
+     mm-vma-temporary-build-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-add-basic-double-free-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-temporary-build-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,104 +66,125 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dennis Zhou <dennis@kernel.org>
-Subject: percpu: add basic double free check
-Date: Thu, 15 Jan 2026 18:32:16 -0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/vma: temporary build fix
+Date: Fri, 16 Jan 2026 17:01:27 -0800
 
-This adds a basic double free check by validating the first bit of the
-allocation in alloc_map and bound_map are set.  If the alloc_map bit is
-not set, then this means the area is currently unallocated.  If the
-bound_map bit is not set, then we are not freeing from the beginning of
-the allocation.
-
-This is a respin of [1] adding the requested changes from me and
-Christoph.
-
-Link: https://lore.kernel.org/linux-mm/20250904143514.Yk6Ap-jy@linutronix.de/ [1]
-Link: https://lkml.kernel.org/r/20260116023216.14515-1-dennis@kernel.org
-Signed-off-by: Dennis Zhou <dennis@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Chistoph Lameter <cl@linux.com>
-Cc: Chris Mason <clm@meta.com>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20260115182720.1691130-9-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20260117010707.202128-1-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |   23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
+ include/linux/pgtable.h |   38 +++++++++++++++++++-------------------
+ mm/vma_internal.h       |    1 +
+ 2 files changed, 20 insertions(+), 19 deletions(-)
 
---- a/mm/percpu.c~percpu-add-basic-double-free-check
-+++ a/mm/percpu.c
-@@ -79,6 +79,7 @@
- #include <linux/mutex.h>
- #include <linux/percpu.h>
- #include <linux/pfn.h>
-+#include <linux/ratelimit.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/vmalloc.h>
-@@ -1276,18 +1277,24 @@ static int pcpu_alloc_area(struct pcpu_c
- static int pcpu_free_area(struct pcpu_chunk *chunk, int off)
- {
- 	struct pcpu_block_md *chunk_md = &chunk->chunk_md;
-+	int region_bits = pcpu_chunk_map_bits(chunk);
- 	int bit_off, bits, end, oslot, freed;
+--- a/include/linux/pgtable.h~mm-vma-temporary-build-fix
++++ a/include/linux/pgtable.h
+@@ -23,25 +23,6 @@
+ #endif
  
- 	lockdep_assert_held(&pcpu_lock);
--	pcpu_stats_area_dealloc(chunk);
+ /*
+- * On almost all architectures and configurations, 0 can be used as the
+- * upper ceiling to free_pgtables(): on many architectures it has the same
+- * effect as using TASK_SIZE.  However, there is one configuration which
+- * must impose a more careful limit, to avoid freeing kernel pgtables.
+- */
+-#ifndef USER_PGTABLES_CEILING
+-#define USER_PGTABLES_CEILING	0UL
+-#endif
+-
+-/*
+- * This defines the first usable user address. Platforms
+- * can override its value with custom FIRST_USER_ADDRESS
+- * defined in their respective <asm/pgtable.h>.
+- */
+-#ifndef FIRST_USER_ADDRESS
+-#define FIRST_USER_ADDRESS	0UL
+-#endif
+-
+-/*
+  * This defines the generic helper for accessing PMD page
+  * table page. Although platforms can still override this
+  * via their respective <asm/pgtable.h>.
+@@ -1661,6 +1642,25 @@ void arch_sync_kernel_mappings(unsigned
+ #endif /* CONFIG_MMU */
  
- 	oslot = pcpu_chunk_slot(chunk);
- 
- 	bit_off = off / PCPU_MIN_ALLOC_SIZE;
-+	if (unlikely(bit_off < 0 || bit_off >= region_bits))
-+		return 0;
+ /*
++ * On almost all architectures and configurations, 0 can be used as the
++ * upper ceiling to free_pgtables(): on many architectures it has the same
++ * effect as using TASK_SIZE.  However, there is one configuration which
++ * must impose a more careful limit, to avoid freeing kernel pgtables.
++ */
++#ifndef USER_PGTABLES_CEILING
++#define USER_PGTABLES_CEILING	0UL
++#endif
 +
-+	/* check double free */
-+	if (!test_bit(bit_off, chunk->alloc_map) ||
-+	    !test_bit(bit_off, chunk->bound_map))
-+		return 0;
- 
- 	/* find end index */
--	end = find_next_bit(chunk->bound_map, pcpu_chunk_map_bits(chunk),
--			    bit_off + 1);
-+	end = find_next_bit(chunk->bound_map, region_bits, bit_off + 1);
- 	bits = end - bit_off;
- 	bitmap_clear(chunk->alloc_map, bit_off, bits);
- 
-@@ -1303,6 +1310,8 @@ static int pcpu_free_area(struct pcpu_ch
- 
- 	pcpu_chunk_relocate(chunk, oslot);
- 
-+	pcpu_stats_area_dealloc(chunk);
++/*
++ * This defines the first usable user address. Platforms
++ * can override its value with custom FIRST_USER_ADDRESS
++ * defined in their respective <asm/pgtable.h>.
++ */
++#ifndef FIRST_USER_ADDRESS
++#define FIRST_USER_ADDRESS	0UL
++#endif
 +
- 	return freed;
- }
- 
-@@ -2225,6 +2234,7 @@ static void pcpu_balance_workfn(struct w
++/*
+  * No-op macros that just return the current protection value. Defined here
+  * because these macros can be used even if CONFIG_MMU is not defined.
   */
- void free_percpu(void __percpu *ptr)
- {
-+	static DEFINE_RATELIMIT_STATE(_rs, 60 * HZ, DEFAULT_RATELIMIT_BURST);
- 	void *addr;
- 	struct pcpu_chunk *chunk;
- 	unsigned long flags;
-@@ -2242,6 +2252,13 @@ void free_percpu(void __percpu *ptr)
+--- a/mm/vma_internal.h~mm-vma-temporary-build-fix
++++ a/mm/vma_internal.h
+@@ -46,6 +46,7 @@
+ #include <linux/swap.h>
+ #include <linux/uprobes.h>
+ #include <linux/userfaultfd_k.h>
++#include <linux/pgtable.h>
  
- 	spin_lock_irqsave(&pcpu_lock, flags);
- 	size = pcpu_free_area(chunk, off);
-+	if (size == 0) {
-+		spin_unlock_irqrestore(&pcpu_lock, flags);
-+
-+		if (__ratelimit(&_rs))
-+			WARN(1, "percpu double free or bad ptr\n");
-+		return;
-+	}
- 
- 	pcpu_alloc_tag_free_hook(chunk, off, size);
- 
+ #include <asm/current.h>
+ #include <asm/tlb.h>
 _
 
-Patches currently in -mm which might be from dennis@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-percpu-add-basic-double-free-check.patch
+mm-damon-core-introduce-nr_snapshots-damos-stat.patch
+mm-damon-core-introduce-nr_snapshots-damos-stat-fix.patch
+mm-damon-sysfs-schemes-introduce-nr_snapshots-damos-stat-file.patch
+docs-mm-damon-design-update-for-nr_snapshots-damos-stat.patch
+docs-admin-guide-mm-damon-usage-update-for-nr_snapshots-damos-stat.patch
+docs-abi-damon-update-for-nr_snapshots-damos-stat.patch
+mm-damon-update-damos-kerneldoc-for-stat-field.patch
+mm-damon-core-implement-max_nr_snapshots.patch
+mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch
+docs-mm-damon-design-update-for-max_nr_snapshots.patch
+docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch
+docs-abi-damon-update-for-max_nr_snapshots.patch
+mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch
+mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch
+mm-damon-core-introduce-active-memory-ratio-damos-quota-goal-metric.patch
+mm-damon-sysfs-schemes-support-damos_quota_active_mem_bp.patch
+docs-mm-damon-design-document-damos_quota_active_mem_bp.patch
+mm-damon-paddr-activate-damos_lru_prio-targets-instead-of-marking-accessed.patch
+mm-damon-lru_sort-consider-age-for-quota-prioritization.patch
+mm-damon-lru_sort-support-young-page-filters.patch
+docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages.patch
+mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch
+mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning-fix.patch
+docs-admin-guide-mm-damon-lru_sort-document-active_mem_bp-parameter.patch
+mm-damon-lru_sort-add-monitoring-intervals-auto-tuning-parameter.patch
+docs-admin-guide-mm-damon-lru_sort-document-intervals-autotuning.patch
+mm-damon-core-implement-damon_kdamond_pid.patch
+mm-damon-sysfs-use-damon_kdamond_pid.patch
+mm-damon-lru_sort-use-damon_kdamond_pid.patch
+mm-damon-reclaim-use-damon_kdamond_pid.patch
+mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch
+mm-vma-temporary-build-fix.patch
+selftests-damon-sysfs_memcg_path_leaksh-use-kmemleak.patch
+selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
+selftests-damon-access_memory-add-repeat-mode.patch
+selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
+selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
 
