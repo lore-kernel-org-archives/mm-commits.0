@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DAF7322A3F
-	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 02:50:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 373BC2FE592
+	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 02:50:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768618247; cv=none; b=kcpFNCy/kLakD+nOYJWbgi3s1rNFPEKzlqrw1vCGmZ/Mgj9VqXNJeUThUeRuzmYpKueZOwCpU/1BDqiPAZqzH3icFIS384geSci6/y0Kx2dw3bfPP1R5hien2NKVDZIW3Y/f+YpY5C1ucXcyXEH7mCYMubT406uCFRVKI5cRepA=
+	t=1768618249; cv=none; b=ZY08l9eu4CzMmwbtLwxDXoLg1hXMao636MapW3i8UaXZ13bl0+Dn4tb+AVEThDvFiP4ERIe1zyU+eD6QfYuX3scz4UpNCZ6Z48p8apHQ6t1uC4ap8XLr3ihPBO6VLLlh179VBok+soxxqmcpUxj/gOzsWjWGu7YWI41SD1pAU94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768618247; c=relaxed/simple;
-	bh=FIJbGRae7qXO7zgVjucsT1gVKVgmVA/4CNdj76mEihQ=;
-	h=Date:To:From:Subject:Message-Id; b=FySg0C3cVoexl49TOKwc5kYrMI9VwqHiPYjykjnMEl+FA5nR61Xv99x1DZDx/R6WdrvepzhsswR1aaGVAbNcZLvQDY70txexWb/ai76w28pOzrCekjtWPtuX5kAAy6CdnZh8z++5LXEpM9+joBdFvrLz9sa3w59tQQDhpVGEKYM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CVb3JO0g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768618249; c=relaxed/simple;
+	bh=IqfUNW2z7vFqyH0TtoLIZbo+4eEDWoJLqLx3V0KKmO8=;
+	h=Date:To:From:Subject:Message-Id; b=fwO/cpmEeF/uP71Mdb4GprADRbrgWry2CL3AC+z0z5y+o7FfLV+Y9lMeSWZfdzJgtvLtkx5rKr4lTcnWDcNjmNMWePauRtefUDVPdH7Qz2RmG/hO2NOA99Q72DEGwaQcufzLdU8b3ntgGjqJ3MhBQcnOdh9WhRl90yxlwTiL9/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DqTWhZk5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CVb3JO0g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5FF9C116C6;
-	Sat, 17 Jan 2026 02:50:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DqTWhZk5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED332C116C6;
+	Sat, 17 Jan 2026 02:50:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768618246;
-	bh=FIJbGRae7qXO7zgVjucsT1gVKVgmVA/4CNdj76mEihQ=;
+	s=korg; t=1768618249;
+	bh=IqfUNW2z7vFqyH0TtoLIZbo+4eEDWoJLqLx3V0KKmO8=;
 	h=Date:To:From:Subject:From;
-	b=CVb3JO0gaCLv/tRS7Hb2uMvvQeuWskJs92HwDYzxxSxZcPsvdnlOkT5asNF3MufVa
-	 5Yd9rGbssoAE3rzOl7s3X8RajUKLPDpJiVjg5v00WKp3+eacGsZAe0LI5g81uXliVd
-	 GTwF5kGzoZgfcuwzDKjWTe05v/J5Bls97Yc1X7Wk=
-Date: Fri, 16 Jan 2026 18:50:46 -0800
+	b=DqTWhZk53LspA8afnNh8Q4LtPMBrFjm5cfPzS8rHG2kG0VkTpw1pY3v+iRGeyfinH
+	 BiwbgJiQ4KpX+7njlN62/pGcCw95enz6DKO0Dsi6R84cUSatQtWpaADAXgJbfrbHjD
+	 Njmr1i5sYVnfu8u1Iiy/pj0ERlmDbLRsEWzbOmLc=
+Date: Fri, 16 Jan 2026 18:50:48 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-access_memory-add-repeat-mode.patch added to mm-new branch
-Message-Id: <20260117025046.C5FF9C116C6@smtp.kernel.org>
+Subject: + selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch added to mm-new branch
+Message-Id: <20260117025048.ED332C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/access_memory: add repeat mode
+     Subject: selftests/damon/wss_estimation: ensure number of collected wss
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-access_memory-add-repeat-mode.patch
+     selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-access_memory-add-repeat-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,82 +67,56 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/access_memory: add repeat mode
-Date: Fri, 16 Jan 2026 18:07:26 -0800
+Subject: selftests/damon/wss_estimation: ensure number of collected wss
+Date: Fri, 16 Jan 2026 18:07:27 -0800
 
-'access_memory' is an artificial memory access generator program that is
-used for a few DAMON selftests.  It accesses a given number of regions one
-by one only once, and exits.  Depending on systems, the test workload may
-exit faster than expected, making the tests unreliable.  For reliable
-control of the artificial memory access pattern, add a mode to make it
-repeat running.
+DAMON selftest for working set size estimation collects DAMON's working
+set size measurements of the running artificial memory access generator
+program until the program is finished.  Depending on how quickly the
+program finishes, and how quickly DAMON starts, the number of collected
+working set size measurements may vary, and make the test results
+unreliable.  Ensure it collects 40 measurements by using the repeat mode
+of the artificial memory access generator program, and finish the
+measurements only after the desired number of collections are made.
 
-Link: https://lkml.kernel.org/r/20260117020731.226785-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260117020731.226785-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/access_memory.c |   29 +++++++++++-----
- 1 file changed, 21 insertions(+), 8 deletions(-)
+ tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/damon/access_memory.c~selftests-damon-access_memory-add-repeat-mode
-+++ a/tools/testing/selftests/damon/access_memory.c
-@@ -8,6 +8,11 @@
- #include <string.h>
- #include <time.h>
+--- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftests-damon-wss_estimation-ensure-number-of-collected-wss
++++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
+@@ -8,7 +8,8 @@ import _damon_sysfs
  
-+enum access_mode {
-+	ACCESS_MODE_ONCE,
-+	ACCESS_MODE_REPEAT,
-+};
-+
- int main(int argc, char *argv[])
- {
- 	char **regions;
-@@ -15,10 +20,12 @@ int main(int argc, char *argv[])
- 	int nr_regions;
- 	int sz_region;
- 	int access_time_ms;
-+	enum access_mode mode = ACCESS_MODE_ONCE;
-+
- 	int i;
+ def pass_wss_estimation(sz_region):
+     # access two regions of given size, 2 seocnds per each region
+-    proc = subprocess.Popen(['./access_memory', '2', '%d' % sz_region, '2000'])
++    proc = subprocess.Popen(
++            ['./access_memory', '2', '%d' % sz_region, '2000', 'repeat'])
+     kdamonds = _damon_sysfs.Kdamonds([_damon_sysfs.Kdamond(
+             contexts=[_damon_sysfs.DamonCtx(
+                 ops='vaddr',
+@@ -26,7 +27,7 @@ def pass_wss_estimation(sz_region):
+         exit(1)
  
--	if (argc != 4) {
--		printf("Usage: %s <number> <size (bytes)> <time (ms)>\n",
-+	if (argc < 4) {
-+		printf("Usage: %s <number> <size (bytes)> <time (ms)> [mode]\n",
- 				argv[0]);
- 		return -1;
- 	}
-@@ -27,15 +34,21 @@ int main(int argc, char *argv[])
- 	sz_region = atoi(argv[2]);
- 	access_time_ms = atoi(argv[3]);
+     wss_collected = []
+-    while proc.poll() == None:
++    while proc.poll() is None and len(wss_collected) < 40:
+         time.sleep(0.1)
+         err = kdamonds.kdamonds[0].update_schemes_tried_bytes()
+         if err != None:
+@@ -35,6 +36,7 @@ def pass_wss_estimation(sz_region):
  
-+	if (argc > 4 && !strcmp(argv[4], "repeat"))
-+		mode = ACCESS_MODE_REPEAT;
-+
- 	regions = malloc(sizeof(*regions) * nr_regions);
- 	for (i = 0; i < nr_regions; i++)
- 		regions[i] = malloc(sz_region);
- 
--	for (i = 0; i < nr_regions; i++) {
--		start_clock = clock();
--		while ((clock() - start_clock) * 1000 / CLOCKS_PER_SEC <
--				access_time_ms)
--			memset(regions[i], i, sz_region);
--	}
-+	do {
-+		for (i = 0; i < nr_regions; i++) {
-+			start_clock = clock();
-+			while ((clock() - start_clock) * 1000 / CLOCKS_PER_SEC
-+					< access_time_ms)
-+				memset(regions[i], i, sz_region);
-+		}
-+	} while (mode == ACCESS_MODE_REPEAT);
-+
- 	return 0;
- }
+         wss_collected.append(
+                 kdamonds.kdamonds[0].contexts[0].schemes[0].tried_bytes)
++    proc.terminate()
+     err = kdamonds.stop()
+     if err is not None:
+         print('kdamond stop failed: %s' % err)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
