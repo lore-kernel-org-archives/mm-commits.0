@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56478322B7A
-	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 02:50:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC3562D661C;
+	Sat, 17 Jan 2026 02:53:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768618251; cv=none; b=sg8cjMjajiu8CSppVEvtxakA83helUT+ReaV5K185RkKLyb23VhSJ/HZLj94xwkiHMhiNrMDsqGWFMLIgnG3ylfuA5Gf15p5UojZ+VZlkVMbpWHsxRQvKe6/y4WvNQ7DzrJ+8GlLFm+UDfXgTD4nN0EMCVswSbbSlUUk+ubhJlY=
+	t=1768618435; cv=none; b=LH6fG/4FFYwTp/NzoZYCqiXw9gZ2RXtQZhTSjX3WC4GzgL6lgyZqWTWPCqh+G19FRbLqagZR7VNBuFfDSKRgbwCKVsXlERPR4FjVR5cjNHJTgnfuRRdz1/uk4TS7EO1Rz0ZsMkKZDSlqFDxza6ofn6HRdGBbBQDNiOwC/WL2Itw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768618251; c=relaxed/simple;
-	bh=ufVY5hCWkEDj5NXlfMnPH9tasgsPBNcPPKX2ZQe59zY=;
-	h=Date:To:From:Subject:Message-Id; b=uZ9dNjoMd3AT0GVxMpPI1SAgbUZCKijx/wOYjhnYf4nxYkc4NYXAsUiYDf34bXalSVwI+Xm/KRkA5p1YrLDhCL8ZhRccBPXmub/jqepRcRcZDm/jpBaWcSQi70FaS192/qzzlz/zUVnQjg6wywMQHA54W6/t9aCn1mVLW1kDeys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iq/2ABOT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768618435; c=relaxed/simple;
+	bh=JQm5DIRXYiCtzOhWiwjD7Wh+YLz0zu1WzfkxRRNEKas=;
+	h=Date:To:From:Subject:Message-Id; b=MPxoacMbvccVNPsxCSSK35g7hafvhq5AHCzaXDV9S4b//WM73aejmFB+ChwkrJ7uB2MzGMe3+PRG75kAsVU/GlfeVS5IkFuYNQiWGKGhciD8jQcW49W6ouzW0tFAkJNpkmqcO9VhGHW8E723+ajqtjPy+AcxvXWxlp3XYHOjkY8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RU49QWB0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iq/2ABOT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1B0CC116C6;
-	Sat, 17 Jan 2026 02:50:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RU49QWB0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2FDBC116C6;
+	Sat, 17 Jan 2026 02:53:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768618251;
-	bh=ufVY5hCWkEDj5NXlfMnPH9tasgsPBNcPPKX2ZQe59zY=;
+	s=korg; t=1768618435;
+	bh=JQm5DIRXYiCtzOhWiwjD7Wh+YLz0zu1WzfkxRRNEKas=;
 	h=Date:To:From:Subject:From;
-	b=Iq/2ABOT4I+zVZXKMlKdCZuswMH/OzzcXx0YouJ+wuy70YqJ7PV+7P/WnzA44fbP7
-	 RGvkXPX8KK+M8Q2kdUxa+HZs7xxDdANQNt4U+r5TGrYDJghamcdH0oNn7ONvzBcZcG
-	 B88SsqMKQi7wpRnWyrQupHyBxs1t1Be9qg31B0rI=
-Date: Fri, 16 Jan 2026 18:50:50 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=RU49QWB0nKgmEkSEn6DseN/sLdnFDafBqeNdpmNSl7LLTuq20Cns/CMBd7Rm3PmTk
+	 Z38W0tIoFs2jSnoLvLZDSsCxpos9M7rwNQse94TgrsiXnDMHsfnqjcdhgGMZAHanbK
+	 nqJ+yk6o5baqtk53+IYtPAJH4W6Mti0FCWX1NxPQ=
+Date: Fri, 16 Jan 2026 18:53:54 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,axelrasmussen@google.com,yosry.ahmed@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch added to mm-new branch
-Message-Id: <20260117025050.E1B0CC116C6@smtp.kernel.org>
+Subject: + mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260117025355.A2FDBC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/wss_estimation: deduplicate failed samples output
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
+     Subject: mm: restore per-memcg proactive reclaim with !CONFIG_NUMA
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,81 +58,102 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/wss_estimation: deduplicate failed samples output
-Date: Fri, 16 Jan 2026 18:07:28 -0800
+From: Yosry Ahmed <yosry.ahmed@linux.dev>
+Subject: mm: restore per-memcg proactive reclaim with !CONFIG_NUMA
+Date: Fri, 16 Jan 2026 20:52:47 +0000
 
-When the test fails, it shows whole sampled working set size measurements.
-The purpose is showing the distribution of the measured values, to let
-the tester know if it was just intermittent failure.  Multiple same values
-on the output are therefore unnecessary.  It was not a big deal since the
-test was failing only once in the past.  But the test can now fail
-multiple times with increased working set size, until it passes or the
-working set size reaches a limit.  Hence the noisy output can be quite
-long and annoying.  Print only the deduplicated distribution information.
+Commit 2b7226af730c ("mm/memcg: make memory.reclaim interface generic")
+moved proactive reclaim logic from memory.reclaim handler to a generic
+user_proactive_reclaim() helper to be used for per-node proactive reclaim.
 
-Link: https://lkml.kernel.org/r/20260117020731.226785-6-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+However, user_proactive_reclaim() was only defined under CONFIG_NUMA, with
+a stub always returning 0 otherwise.  This broke memory.reclaim on
+!CONFIG_NUMA configs, causing it to report success without actually
+attempting reclaim.
+
+Move the definition of user_proactive_reclaim() outside CONFIG_NUMA, and
+instead define a stub for __node_reclaim() in the !CONFIG_NUMA case. 
+__node_reclaim() is only called from user_proactive_reclaim() when a write
+is made to sys/devices/system/node/nodeX/reclaim, which is only defined
+with CONFIG_NUMA.
+
+Link: https://lkml.kernel.org/r/20260116205247.928004-1-yosry.ahmed@linux.dev
+Fixes: 2b7226af730c ("mm/memcg: make memory.reclaim interface generic")
+Signed-off-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/internal.h |    8 --------
+ mm/vmscan.c   |   13 +++++++++++--
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftests-damon-wss_estimation-deduplicate-failed-samples-output
-+++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
-@@ -53,7 +53,11 @@ def pass_wss_estimation(sz_region):
-             print('the error rate is not acceptable (> %f)' %
-                     acceptable_error_rate)
-             print('samples are as below')
--            print('\n'.join(['%d' % wss for wss in wss_collected]))
-+            for idx, wss in enumerate(wss_collected):
-+                if idx < len(wss_collected) - 1 and \
-+                        wss_collected[idx + 1] == wss:
-+                    continue
-+                print('%d/%d: %d' % (idx, len(wss_collected), wss))
-             return False
-     return True
+--- a/mm/internal.h~mm-restore-per-memcg-proactive-reclaim-with-config_numa
++++ a/mm/internal.h
+@@ -538,16 +538,8 @@ extern unsigned long highest_memmap_pfn;
+ bool folio_isolate_lru(struct folio *folio);
+ void folio_putback_lru(struct folio *folio);
+ extern void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason);
+-#ifdef CONFIG_NUMA
+ int user_proactive_reclaim(char *buf,
+ 			   struct mem_cgroup *memcg, pg_data_t *pgdat);
+-#else
+-static inline int user_proactive_reclaim(char *buf,
+-			   struct mem_cgroup *memcg, pg_data_t *pgdat)
+-{
+-	return 0;
+-}
+-#endif
  
+ /*
+  * in mm/rmap.c:
+--- a/mm/vmscan.c~mm-restore-per-memcg-proactive-reclaim-with-config_numa
++++ a/mm/vmscan.c
+@@ -7707,6 +7707,17 @@ int node_reclaim(struct pglist_data *pgd
+ 	return ret;
+ }
+ 
++#else
++
++static unsigned long __node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask,
++				    unsigned long nr_pages,
++				    struct scan_control *sc)
++{
++	return 0;
++}
++
++#endif
++
+ enum {
+ 	MEMORY_RECLAIM_SWAPPINESS = 0,
+ 	MEMORY_RECLAIM_SWAPPINESS_MAX,
+@@ -7814,8 +7825,6 @@ int user_proactive_reclaim(char *buf,
+ 	return 0;
+ }
+ 
+-#endif
+-
+ /**
+  * check_move_unevictable_folios - Move evictable folios to appropriate zone
+  * lru list
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from yosry.ahmed@linux.dev are
 
-mm-damon-core-introduce-nr_snapshots-damos-stat.patch
-mm-damon-core-introduce-nr_snapshots-damos-stat-fix.patch
-mm-damon-sysfs-schemes-introduce-nr_snapshots-damos-stat-file.patch
-docs-mm-damon-design-update-for-nr_snapshots-damos-stat.patch
-docs-admin-guide-mm-damon-usage-update-for-nr_snapshots-damos-stat.patch
-docs-abi-damon-update-for-nr_snapshots-damos-stat.patch
-mm-damon-update-damos-kerneldoc-for-stat-field.patch
-mm-damon-core-implement-max_nr_snapshots.patch
-mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch
-docs-mm-damon-design-update-for-max_nr_snapshots.patch
-docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch
-docs-abi-damon-update-for-max_nr_snapshots.patch
-mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch
-mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch
-mm-damon-core-introduce-active-memory-ratio-damos-quota-goal-metric.patch
-mm-damon-sysfs-schemes-support-damos_quota_active_mem_bp.patch
-docs-mm-damon-design-document-damos_quota_active_mem_bp.patch
-mm-damon-paddr-activate-damos_lru_prio-targets-instead-of-marking-accessed.patch
-mm-damon-lru_sort-consider-age-for-quota-prioritization.patch
-mm-damon-lru_sort-support-young-page-filters.patch
-docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages.patch
-mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch
-mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning-fix.patch
-docs-admin-guide-mm-damon-lru_sort-document-active_mem_bp-parameter.patch
-mm-damon-lru_sort-add-monitoring-intervals-auto-tuning-parameter.patch
-docs-admin-guide-mm-damon-lru_sort-document-intervals-autotuning.patch
-mm-damon-core-implement-damon_kdamond_pid.patch
-mm-damon-sysfs-use-damon_kdamond_pid.patch
-mm-damon-lru_sort-use-damon_kdamond_pid.patch
-mm-damon-reclaim-use-damon_kdamond_pid.patch
-mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch
-selftests-damon-sysfs_memcg_path_leaksh-use-kmemleak.patch
-selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
-selftests-damon-access_memory-add-repeat-mode.patch
-selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
-selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
+mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch
+zsmalloc-simplify-read-begin-end-logic.patch
 
