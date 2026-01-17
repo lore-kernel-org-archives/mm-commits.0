@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CF571850A4
-	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 03:28:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFD5354723
+	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 03:31:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768620498; cv=none; b=e1uEtvW9wvz1dEN6S4t+h4vUlMXPwJPOOvJziOQ/X/2I7avsKevWAPLV/pARReH608xXFV9DBfj4qDvylySW3oorTcRT4SnLjYoRNz0hh492UkxuUwHBTul7Rn72jKfS2p0bsZIPf6JKIi2rK1sWhN9JXYkdtltHzZABKWxH63U=
+	t=1768620663; cv=none; b=OSxMNM3qH9OdjeFgYy86sdZzOVVFF49VGzPaTKmCiF3UA9cQiwCxEgELW7kilnJCoGfn8ylgjR/zShyCNTxBadBk0zhc/d84gz8xPkEQPufi2kjV15k0mJFPyvzPlXk8lnrpysrHjbrd9VYrGP8ecgENq3S+4K7xWb1guGCfsaM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768620498; c=relaxed/simple;
-	bh=tuFTAzpGIwRl/bQGMiG+fntHNohMOJEt1s5JjTq/2i4=;
-	h=Date:To:From:Subject:Message-Id; b=iR0xlFBsFLcpY1mlOpBjUKekBlVHLEZY15lNiAlUUIqcaFRvVhA+UqTKdNYdS8cNnsjusdW3lpJhKQRfRySXbCh1pyBdU8fFjmqSI1YmZ652S+QSk8ahXkWKyaPdh7cIq8uEgX7EqNQU4IBmbJHG2+xr8c6zG3xmst+38Hp0xys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sXMaUXb5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768620663; c=relaxed/simple;
+	bh=FjHy+0CIkZaD96Ob2Uv5MxGRjkTs9Zq6KNHBhFwLw5g=;
+	h=Date:To:From:Subject:Message-Id; b=sJ0v7y8rM8xG5ssg58+Rqt0j6s8q8E8RnGaHsIE45p3mwR5S+TL1haIxyfsJUkC3wvWzg0vnQ265UisuwmVZHGrXkAzkBM5iszRLNVIla9anwEnOBanT/yfC/5ePtOadJiWZPpBujxHW4M34ZVb+2jXy3rZKLVA2/37zCnjbyrI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PXzLMdmu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sXMaUXb5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFCECC4CEF7;
-	Sat, 17 Jan 2026 03:28:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PXzLMdmu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BF3C4CEF7;
+	Sat, 17 Jan 2026 03:31:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768620497;
-	bh=tuFTAzpGIwRl/bQGMiG+fntHNohMOJEt1s5JjTq/2i4=;
+	s=korg; t=1768620663;
+	bh=FjHy+0CIkZaD96Ob2Uv5MxGRjkTs9Zq6KNHBhFwLw5g=;
 	h=Date:To:From:Subject:From;
-	b=sXMaUXb5Uzw6NT2jQpw9zNF2ElXX75Me+Gzr++a+K7mFFY5q76b1p+o0THMHSE8R/
-	 +QrAmu7m+tM9XNheM5nPXSmv80fND+X6OrHKKNnfCuRbCSCFspj+caa+Gg5SXVbSpe
-	 XtOPXwagifwqdnZG2L+fHcEzQkKuu3+4OA4bKXsw=
-Date: Fri, 16 Jan 2026 19:28:17 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,minchan@kernel.org,herbert@gondor.apana.org.au,hannes@cmpxchg.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=PXzLMdmuhVf2GBzG5Mw60UcfIhVQAX1uKOcKOiEPFpSrwKG//KgyeH7iGMIQ/IMSC
+	 apFTuqct3GrIGV4hTT8vQaWQFbyAOsikjDA1v1w+BBZYCim9jhbME3LsADegxQrDrK
+	 bfQt/7T/alBWVKo1uefbxsSok9sCA5om+ED8txKQ=
+Date: Fri, 16 Jan 2026 19:31:02 -0800
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-introduce-sg-list-based-object-read-api-fix.patch added to mm-unstable branch
-Message-Id: <20260117032817.CFCECC4CEF7@smtp.kernel.org>
+Subject: + zsmalloc-make-common-caches-global.patch added to mm-new branch
+Message-Id: <20260117033103.24BF3C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zsmalloc: fixup zsmalloc-introduce-sg-list-based-object-read-api.patch
-has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-introduce-sg-list-based-object-read-api-fix.patch
+     Subject: zsmalloc: make common caches global
+has been added to the -mm mm-new branch.  Its filename is
+     zsmalloc-make-common-caches-global.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-introduce-sg-list-based-object-read-api-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-make-common-caches-global.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,61 +67,241 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: fixup zsmalloc-introduce-sg-list-based-object-read-api.patch
-Date: Sat, 17 Jan 2026 11:48:40 +0900
+Subject: zsmalloc: make common caches global
+Date: Sat, 17 Jan 2026 11:54:05 +0900
 
-zs_obj_read_sg_begin() always returns 0, convert it to void (per Yosry).
+Currently, zsmalloc creates kmem_cache of handles and zspages for each
+pool, which may be suboptimal from the memory usage point of view (extra
+internal fragmentation per pool).  Systems that create multiple zsmalloc
+pools may benefit from shared common zsmalloc caches.
 
-Link: https://lkml.kernel.org/r/20260117024900.792237-1-senozhatsky@chromium.org
+Make handles and zspages kmem caches global.  The memory savings depend on
+particular setup and data patterns and can be found via slabinfo.
+
+Link: https://lkml.kernel.org/r/20260117025406.799428-1-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Brian Geffon <bgeffon@google.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zsmalloc.h |    4 ++--
- mm/zsmalloc.c            |    6 ++----
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ mm/zsmalloc.c |  106 ++++++++++++++++++++++--------------------------
+ 1 file changed, 50 insertions(+), 56 deletions(-)
 
---- a/include/linux/zsmalloc.h~zsmalloc-introduce-sg-list-based-object-read-api-fix
-+++ a/include/linux/zsmalloc.h
-@@ -44,8 +44,8 @@ void *zs_obj_read_begin(struct zs_pool *
- 			size_t mem_len, void *local_copy);
- void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
- 		     size_t mem_len, void *handle_mem);
--int zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
--		   struct scatterlist *sg, size_t mem_len);
-+void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
-+			  struct scatterlist *sg, size_t mem_len);
- void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle);
- void zs_obj_write(struct zs_pool *pool, unsigned long handle,
- 		  void *handle_mem, size_t mem_len);
---- a/mm/zsmalloc.c~zsmalloc-introduce-sg-list-based-object-read-api-fix
+--- a/mm/zsmalloc.c~zsmalloc-make-common-caches-global
 +++ a/mm/zsmalloc.c
-@@ -1142,8 +1142,8 @@ void zs_obj_read_end(struct zs_pool *poo
- }
- EXPORT_SYMBOL_GPL(zs_obj_read_end);
+@@ -193,12 +193,13 @@ struct link_free {
+ 	};
+ };
  
--int zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
--			 struct scatterlist *sg, size_t mem_len)
-+void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
-+			  struct scatterlist *sg, size_t mem_len)
++static struct kmem_cache *handle_cachep;
++static struct kmem_cache *zspage_cachep;
++
+ struct zs_pool {
+ 	const char *name;
+ 
+ 	struct size_class *size_class[ZS_SIZE_CLASSES];
+-	struct kmem_cache *handle_cachep;
+-	struct kmem_cache *zspage_cachep;
+ 
+ 	atomic_long_t pages_allocated;
+ 
+@@ -371,60 +372,28 @@ static void init_deferred_free(struct zs
+ static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage) {}
+ #endif
+ 
+-static int create_cache(struct zs_pool *pool)
++static unsigned long cache_alloc_handle(gfp_t gfp)
  {
- 	struct zspage *zspage;
- 	struct zpdesc *zpdesc;
-@@ -1186,8 +1186,6 @@ int zs_obj_read_sg_begin(struct zs_pool
- 
- 		sg_set_page(sg, zpdesc_page(zpdesc), sizes[1], 0);
- 	}
+-	char *name;
 -
--	return 0;
- }
- EXPORT_SYMBOL_GPL(zs_obj_read_sg_begin);
+-	name = kasprintf(GFP_KERNEL, "zs_handle-%s", pool->name);
+-	if (!name)
+-		return -ENOMEM;
+-	pool->handle_cachep = kmem_cache_create(name, ZS_HANDLE_SIZE,
+-						0, 0, NULL);
+-	kfree(name);
+-	if (!pool->handle_cachep)
+-		return -EINVAL;
+-
+-	name = kasprintf(GFP_KERNEL, "zspage-%s", pool->name);
+-	if (!name)
+-		return -ENOMEM;
+-	pool->zspage_cachep = kmem_cache_create(name, sizeof(struct zspage),
+-						0, 0, NULL);
+-	kfree(name);
+-	if (!pool->zspage_cachep) {
+-		kmem_cache_destroy(pool->handle_cachep);
+-		pool->handle_cachep = NULL;
+-		return -EINVAL;
+-	}
++	gfp = gfp & ~(__GFP_HIGHMEM | __GFP_MOVABLE);
  
+-	return 0;
+-}
+-
+-static void destroy_cache(struct zs_pool *pool)
+-{
+-	kmem_cache_destroy(pool->handle_cachep);
+-	kmem_cache_destroy(pool->zspage_cachep);
++	return (unsigned long)kmem_cache_alloc(handle_cachep, gfp);
+ }
+ 
+-static unsigned long cache_alloc_handle(struct zs_pool *pool, gfp_t gfp)
++static void cache_free_handle(unsigned long handle)
+ {
+-	return (unsigned long)kmem_cache_alloc(pool->handle_cachep,
+-			gfp & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
++	kmem_cache_free(handle_cachep, (void *)handle);
+ }
+ 
+-static void cache_free_handle(struct zs_pool *pool, unsigned long handle)
++static struct zspage *cache_alloc_zspage(gfp_t gfp)
+ {
+-	kmem_cache_free(pool->handle_cachep, (void *)handle);
+-}
++	gfp = gfp & ~(__GFP_HIGHMEM | __GFP_MOVABLE);
+ 
+-static struct zspage *cache_alloc_zspage(struct zs_pool *pool, gfp_t flags)
+-{
+-	return kmem_cache_zalloc(pool->zspage_cachep,
+-			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
++	return kmem_cache_zalloc(zspage_cachep, gfp);
+ }
+ 
+-static void cache_free_zspage(struct zs_pool *pool, struct zspage *zspage)
++static void cache_free_zspage(struct zspage *zspage)
+ {
+-	kmem_cache_free(pool->zspage_cachep, zspage);
++	kmem_cache_free(zspage_cachep, zspage);
+ }
+ 
+ /* class->lock(which owns the handle) synchronizes races */
+@@ -853,7 +822,7 @@ static void __free_zspage(struct zs_pool
+ 		zpdesc = next;
+ 	} while (zpdesc != NULL);
+ 
+-	cache_free_zspage(pool, zspage);
++	cache_free_zspage(zspage);
+ 
+ 	class_stat_sub(class, ZS_OBJS_ALLOCATED, class->objs_per_zspage);
+ 	atomic_long_sub(class->pages_per_zspage, &pool->pages_allocated);
+@@ -966,7 +935,7 @@ static struct zspage *alloc_zspage(struc
+ {
+ 	int i;
+ 	struct zpdesc *zpdescs[ZS_MAX_PAGES_PER_ZSPAGE];
+-	struct zspage *zspage = cache_alloc_zspage(pool, gfp);
++	struct zspage *zspage = cache_alloc_zspage(gfp);
+ 
+ 	if (!zspage)
+ 		return NULL;
+@@ -988,7 +957,7 @@ static struct zspage *alloc_zspage(struc
+ 				zpdesc_dec_zone_page_state(zpdescs[i]);
+ 				free_zpdesc(zpdescs[i]);
+ 			}
+-			cache_free_zspage(pool, zspage);
++			cache_free_zspage(zspage);
+ 			return NULL;
+ 		}
+ 		__zpdesc_set_zsmalloc(zpdesc);
+@@ -1339,7 +1308,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 	if (unlikely(size > ZS_MAX_ALLOC_SIZE))
+ 		return (unsigned long)ERR_PTR(-ENOSPC);
+ 
+-	handle = cache_alloc_handle(pool, gfp);
++	handle = cache_alloc_handle(gfp);
+ 	if (!handle)
+ 		return (unsigned long)ERR_PTR(-ENOMEM);
+ 
+@@ -1363,7 +1332,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 
+ 	zspage = alloc_zspage(pool, class, gfp, nid);
+ 	if (!zspage) {
+-		cache_free_handle(pool, handle);
++		cache_free_handle(handle);
+ 		return (unsigned long)ERR_PTR(-ENOMEM);
+ 	}
+ 
+@@ -1443,7 +1412,7 @@ void zs_free(struct zs_pool *pool, unsig
+ 		free_zspage(pool, class, zspage);
+ 
+ 	spin_unlock(&class->lock);
+-	cache_free_handle(pool, handle);
++	cache_free_handle(handle);
+ }
+ EXPORT_SYMBOL_GPL(zs_free);
+ 
+@@ -2105,9 +2074,6 @@ struct zs_pool *zs_create_pool(const cha
+ 	if (!pool->name)
+ 		goto err;
+ 
+-	if (create_cache(pool))
+-		goto err;
+-
+ 	/*
+ 	 * Iterate reversely, because, size of size_class that we want to use
+ 	 * for merging should be larger or equal to current size.
+@@ -2229,20 +2195,47 @@ void zs_destroy_pool(struct zs_pool *poo
+ 		kfree(class);
+ 	}
+ 
+-	destroy_cache(pool);
+ 	kfree(pool->name);
+ 	kfree(pool);
+ }
+ EXPORT_SYMBOL_GPL(zs_destroy_pool);
+ 
++static void zs_destroy_caches(void)
++{
++	kmem_cache_destroy(handle_cachep);
++	handle_cachep = NULL;
++	kmem_cache_destroy(zspage_cachep);
++	zspage_cachep = NULL;
++}
++
++static int __init zs_init_caches(void)
++{
++	handle_cachep = kmem_cache_create("zs_handle", ZS_HANDLE_SIZE,
++					  0, 0, NULL);
++	zspage_cachep = kmem_cache_create("zspage", sizeof(struct zspage),
++					  0, 0, NULL);
++
++	if (!handle_cachep || !zspage_cachep) {
++		zs_destroy_caches();
++		return -ENOMEM;
++	}
++	return 0;
++}
++
+ static int __init zs_init(void)
+ {
+-	int rc __maybe_unused;
++	int rc;
++
++	rc = zs_init_caches();
++	if (rc)
++		return rc;
+ 
+ #ifdef CONFIG_COMPACTION
+ 	rc = set_movable_ops(&zsmalloc_mops, PGTY_zsmalloc);
+-	if (rc)
++	if (rc) {
++		zs_destroy_caches();
+ 		return rc;
++	}
+ #endif
+ 	zs_stat_init();
+ 	return 0;
+@@ -2254,6 +2247,7 @@ static void __exit zs_exit(void)
+ 	set_movable_ops(NULL, PGTY_zsmalloc);
+ #endif
+ 	zs_stat_exit();
++	zs_destroy_caches();
+ }
+ 
+ module_init(zs_init);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
@@ -133,4 +321,5 @@ zsmalloc-use-actual-object-size-to-detect-spans.patch
 zsmalloc-introduce-sg-list-based-object-read-api.patch
 zsmalloc-introduce-sg-list-based-object-read-api-fix.patch
 zram-rename-init_lock-to-dev_lock.patch
+zsmalloc-make-common-caches-global.patch
 
