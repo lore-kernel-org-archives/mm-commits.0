@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 419C62DAFAC
-	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 03:04:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8731ACED5
+	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 03:04:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768619071; cv=none; b=OvGDVnhZVqauNUlYXVzi4HOxDqj1FqtwZKFjU5+csCQIWidB/UQ1lpcOQzMu0wlqAxb7w0orpGSi4zFOuiZWwO0KkgayYIRFCJxKCSDo0EGv8UigyX60ERvh2W//m0wLYyGp+sPfGWD8YJet6rWkW3mYfxAR7l2A4+IqhyvMuHo=
+	t=1768619074; cv=none; b=ZITg4sIaIs6ZbpqD3t/2JaSS6A5KWQ4gOvHUK2Bo5kQPPCDZt7Yk+uYd+bhn9xRRTv93c245uJmRoI8aAGHAHD4Z9a/LNiln50PJLVQP2JanKJGx5T2pqwVIKsr/R2EFgmQDJOKg5yO2rTwDu71iw0By4oBV+OzXAWUMoDM4TMk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768619071; c=relaxed/simple;
-	bh=ualrIg5y0/qoRjruwEWVJt7mGJMovwGtH49z12TmxGA=;
-	h=Date:To:From:Subject:Message-Id; b=AVjmyVndXw6CDIvlpzXwud1MwfN9mwXyH5s7jHy/tvBknz4LlVT+0+aQvUyYKfz5/Obiv6bQb6+1umJ5lv1BJYuvYPi331Zp5YeGTb88bx+WcTDMyT7Xmu3qHfP3ENhsY7Uay8vK6dLbm1YrILLCzNXqRZPMB8F08+xWQkTFs80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cmwjd3Eu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768619074; c=relaxed/simple;
+	bh=6EHZetJyquLtgcKc3D9tRtQ2arxJghlSJ0lKHxCezgE=;
+	h=Date:To:From:Subject:Message-Id; b=M9TVFFlS7/QsldR2g/Ts4jS9fcABLHSWHFWN1kqLeFQGCyJ8LF0u0D/iE3ak74Kr3sUfPJxeTeQAzC0FVlDyw47fRL3+D5NnQlQVhTeUYpQoh0EPUjkiW2SiCgK5iJ5D6VnL5GZ47hE7RsQVWbmovukU61/q2y82gk4YHeCDot4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M1GJ6Hfz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cmwjd3Eu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1288FC116C6;
-	Sat, 17 Jan 2026 03:04:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M1GJ6Hfz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FADFC116C6;
+	Sat, 17 Jan 2026 03:04:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768619071;
-	bh=ualrIg5y0/qoRjruwEWVJt7mGJMovwGtH49z12TmxGA=;
+	s=korg; t=1768619073;
+	bh=6EHZetJyquLtgcKc3D9tRtQ2arxJghlSJ0lKHxCezgE=;
 	h=Date:To:From:Subject:From;
-	b=Cmwjd3EuiAohKqo5sDlbu5k1VnjNZehaMa5nD5ASc81btAOP6xmE853dxf8oWghcV
-	 DnswZBKHLwtGI5ei0uteTH2hWR4VQDO5rZeHYuzPt9O7kJpJ3E8vEGB6yIWozv9DPD
-	 RKwDi7hd8erecLlkTCiwcyWMDuu7ImWnLe/gsYng=
-Date: Fri, 16 Jan 2026 19:04:30 -0800
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,rdunlap@infradead.org,petr.pavlu@suse.com,joelagnelf@nvidia.com,jani.nikula@intel.com,gregkh@linuxfoundation.org,chleroy@kernel.org,atomlin@atomlin.com,andriy.shevchenko@linux.intel.com,andi.shyti@linux.intel.com,ynorov@nvidia.com,akpm@linux-foundation.org
+	b=M1GJ6Hfz21TZwCFPJOI3+xtGajHvBJmdYSHsppOdxn7Alw4xVewB69ZEKWDxxsmiF
+	 QKXaiWQ+/w9ZbIvzDhgosO81786x0A/QRDOWl7zHiBvqnoGtSxD9v7z2YxSFT31UxN
+	 JyyBWAagXKarkFWp9knTVsANm/tLY4xPnLlwBPt8=
+Date: Fri, 16 Jan 2026 19:04:33 -0800
+To: mm-commits@vger.kernel.org,ynorov@nvidia.com,rdunlap@infradead.org,petr.pavlu@suse.com,joelagnelf@nvidia.com,jani.nikula@intel.com,gregkh@linuxfoundation.org,chleroy@kernel.org,atomlin@atomlin.com,andriy.shevchenko@linux.intel.com,andi.shyti@linux.intel.com,rostedt@goodmis.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernelh-include-linux-instruction_pointerh-explicitly.patch added to mm-nonmm-unstable branch
-Message-Id: <20260117030431.1288FC116C6@smtp.kernel.org>
+Subject: + tracing-remove-size-parameter-in-__trace_puts.patch added to mm-nonmm-unstable branch
+Message-Id: <20260117030433.9FADFC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel.h: include linux/instruction_pointer.h explicitly
+     Subject: tracing: Remove size parameter in __trace_puts()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernelh-include-linux-instruction_pointerh-explicitly.patch
+     tracing-remove-size-parameter-in-__trace_puts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernelh-include-linux-instruction_pointerh-explicitly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tracing-remove-size-parameter-in-__trace_puts.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,14 +58,24 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@nvidia.com>
-Subject: kernel.h: include linux/instruction_pointer.h explicitly
-Date: Thu, 15 Jan 2026 23:25:07 -0500
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: tracing: Remove size parameter in __trace_puts()
+Date: Thu, 15 Jan 2026 23:25:08 -0500
 
-In preparation for decoupling linux/instruction_pointer.h and
-linux/kernel.h, include instruction_pointer.h explicitly where needed.
+The __trace_puts() function takes a string pointer and the size of the
+string itself.  All users currently simply pass in the strlen() of the
+string it is also passing in.  There's no reason to pass in the size. 
+Instead have the __trace_puts() function do the strlen() within the
+function itself.
 
-Link: https://lkml.kernel.org/r/20260116042510.241009-5-ynorov@nvidia.com
+This fixes a header recursion issue where using strlen() in the macro
+calling __trace_puts() requires adding #include <linux/string.h> in order
+to use strlen().  Removing the use of strlen() from the header fixes the
+recursion issue.
+
+Link: https://lore.kernel.org/all/aUN8Hm377C5A0ILX@yury/
+Link: https://lkml.kernel.org/r/20260116042510.241009-6-ynorov@nvidia.com
+Signed-off-by: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Yury Norov <ynorov@nvidia.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Joel Fernandes <joelagnelf@nvidia.com>
@@ -76,44 +86,68 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: Petr Pavlu <petr.pavlu@suse.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/processor.h |    1 +
- include/linux/ww_mutex.h          |    1 +
- 2 files changed, 2 insertions(+)
+ include/linux/kernel.h |    4 ++--
+ kernel/trace/trace.c   |    7 +++----
+ kernel/trace/trace.h   |    2 +-
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
---- a/arch/s390/include/asm/processor.h~kernelh-include-linux-instruction_pointerh-explicitly
-+++ a/arch/s390/include/asm/processor.h
-@@ -31,6 +31,7 @@
- #include <linux/cpumask.h>
- #include <linux/linkage.h>
- #include <linux/irqflags.h>
-+#include <linux/instruction_pointer.h>
- #include <linux/bitops.h>
- #include <asm/fpu-types.h>
- #include <asm/cpu.h>
---- a/include/linux/ww_mutex.h~kernelh-include-linux-instruction_pointerh-explicitly
-+++ a/include/linux/ww_mutex.h
-@@ -17,6 +17,7 @@
- #ifndef __LINUX_WW_MUTEX_H
- #define __LINUX_WW_MUTEX_H
+--- a/include/linux/kernel.h~tracing-remove-size-parameter-in-__trace_puts
++++ a/include/linux/kernel.h
+@@ -328,10 +328,10 @@ int __trace_printk(unsigned long ip, con
+ 	if (__builtin_constant_p(str))					\
+ 		__trace_bputs(_THIS_IP_, trace_printk_fmt);		\
+ 	else								\
+-		__trace_puts(_THIS_IP_, str, strlen(str));		\
++		__trace_puts(_THIS_IP_, str);				\
+ })
+ extern int __trace_bputs(unsigned long ip, const char *str);
+-extern int __trace_puts(unsigned long ip, const char *str, int size);
++extern int __trace_puts(unsigned long ip, const char *str);
  
-+#include <linux/instruction_pointer.h>
- #include <linux/mutex.h>
- #include <linux/rtmutex.h>
+ extern void trace_dump_stack(int skip);
  
+--- a/kernel/trace/trace.c~tracing-remove-size-parameter-in-__trace_puts
++++ a/kernel/trace/trace.c
+@@ -1178,11 +1178,10 @@ EXPORT_SYMBOL_GPL(__trace_array_puts);
+  * __trace_puts - write a constant string into the trace buffer.
+  * @ip:	   The address of the caller
+  * @str:   The constant string to write
+- * @size:  The size of the string.
+  */
+-int __trace_puts(unsigned long ip, const char *str, int size)
++int __trace_puts(unsigned long ip, const char *str)
+ {
+-	return __trace_array_puts(printk_trace, ip, str, size);
++	return __trace_array_puts(printk_trace, ip, str, strlen(str));
+ }
+ EXPORT_SYMBOL_GPL(__trace_puts);
+ 
+@@ -1201,7 +1200,7 @@ int __trace_bputs(unsigned long ip, cons
+ 	int size = sizeof(struct bputs_entry);
+ 
+ 	if (!printk_binsafe(tr))
+-		return __trace_puts(ip, str, strlen(str));
++		return __trace_puts(ip, str);
+ 
+ 	if (!(tr->trace_flags & TRACE_ITER(PRINTK)))
+ 		return 0;
+--- a/kernel/trace/trace.h~tracing-remove-size-parameter-in-__trace_puts
++++ a/kernel/trace/trace.h
+@@ -2116,7 +2116,7 @@ extern void tracing_log_err(struct trace
+  * about performance). The internal_trace_puts() is for such
+  * a purpose.
+  */
+-#define internal_trace_puts(str) __trace_puts(_THIS_IP_, str, strlen(str))
++#define internal_trace_puts(str) __trace_puts(_THIS_IP_, str)
+ 
+ #undef FTRACE_ENTRY
+ #define FTRACE_ENTRY(call, struct_name, id, tstruct, print)	\
 _
 
-Patches currently in -mm which might be from ynorov@nvidia.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-nodemask-propagate-boolean-for-nodes_andnot.patch
-mm-use-nodes_and-return-value-to-simplify-client-code.patch
-cgroup-use-nodes_and-output-where-appropriate.patch
-kernelh-drop-stack_magic-macro.patch
-moduleparam-include-required-headers-explicitly.patch
-kernelh-move-verify_octal_permissions-to-sysfsh.patch
-kernelh-include-linux-instruction_pointerh-explicitly.patch
-tracing-move-tracing-declarations-from-kernelh-to-a-dedicated-header.patch
+tracing-remove-size-parameter-in-__trace_puts.patch
 
