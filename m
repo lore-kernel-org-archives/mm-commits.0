@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45C5831A7F8
-	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 02:50:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DAF7322A3F
+	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 02:50:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768618245; cv=none; b=JxkOZrPTgrc7gxCwjYUz/vTD/ynvnZ8VMB2f7rAHG1JdmIZmUyEh6qAVAfG+r2omWArBHRmNczFd8ttf29f+hIIc+Knp6e20YvTnK7jHrIXD/AVJn8ohxLyCMrrzdTH2/iin+4zNbwWqNjT+NMGVo4RK9QlLZ6k2c7+SMArr1kI=
+	t=1768618247; cv=none; b=kcpFNCy/kLakD+nOYJWbgi3s1rNFPEKzlqrw1vCGmZ/Mgj9VqXNJeUThUeRuzmYpKueZOwCpU/1BDqiPAZqzH3icFIS384geSci6/y0Kx2dw3bfPP1R5hien2NKVDZIW3Y/f+YpY5C1ucXcyXEH7mCYMubT406uCFRVKI5cRepA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768618245; c=relaxed/simple;
-	bh=nPjBpSb7fcispyAskq+QuBrL+Kngm2LpXBdEfWCCaHM=;
-	h=Date:To:From:Subject:Message-Id; b=J58x5BVpwU8PWOHJ4IEi2/twyXqgUA7fL9lSJAOCO9+WYaRR0+w7j/6J3xMMh2jvVWLKfckk2yM1Y18hFNwwyIn3YyMYuu5M90z+gnenJf0bpWHNnAiy77D6rkH98hglxgaJ38+2il6CHBk/VtWC8uwuLbjTly7E5vxInKetYfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VEMdW85G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768618247; c=relaxed/simple;
+	bh=FIJbGRae7qXO7zgVjucsT1gVKVgmVA/4CNdj76mEihQ=;
+	h=Date:To:From:Subject:Message-Id; b=FySg0C3cVoexl49TOKwc5kYrMI9VwqHiPYjykjnMEl+FA5nR61Xv99x1DZDx/R6WdrvepzhsswR1aaGVAbNcZLvQDY70txexWb/ai76w28pOzrCekjtWPtuX5kAAy6CdnZh8z++5LXEpM9+joBdFvrLz9sa3w59tQQDhpVGEKYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CVb3JO0g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VEMdW85G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D52A4C116C6;
-	Sat, 17 Jan 2026 02:50:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CVb3JO0g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5FF9C116C6;
+	Sat, 17 Jan 2026 02:50:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768618244;
-	bh=nPjBpSb7fcispyAskq+QuBrL+Kngm2LpXBdEfWCCaHM=;
+	s=korg; t=1768618246;
+	bh=FIJbGRae7qXO7zgVjucsT1gVKVgmVA/4CNdj76mEihQ=;
 	h=Date:To:From:Subject:From;
-	b=VEMdW85GoxFrkt9feisISVGK5mGmZY+TGoAZYl3dKPv2SEl5FWwPRKlu5jmzjquqO
-	 UZiM4RpL9rw4UCJDMtcNEIYzm23UAonqIa50Bwy0WrpBZ//JokAgY93BlXCxvAx0ho
-	 G+KNGCU+Jnq4Eytj9nHqN+/Vy68UTEGqYVCE3h7I=
-Date: Fri, 16 Jan 2026 18:50:44 -0800
+	b=CVb3JO0gaCLv/tRS7Hb2uMvvQeuWskJs92HwDYzxxSxZcPsvdnlOkT5asNF3MufVa
+	 5Yd9rGbssoAE3rzOl7s3X8RajUKLPDpJiVjg5v00WKp3+eacGsZAe0LI5g81uXliVd
+	 GTwF5kGzoZgfcuwzDKjWTe05v/J5Bls97Yc1X7Wk=
+Date: Fri, 16 Jan 2026 18:50:46 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch added to mm-new branch
-Message-Id: <20260117025044.D52A4C116C6@smtp.kernel.org>
+Subject: + selftests-damon-access_memory-add-repeat-mode.patch added to mm-new branch
+Message-Id: <20260117025046.C5FF9C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/wss_estimation: test for up to 160 MiB working set size
+     Subject: selftests/damon/access_memory: add repeat mode
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
+     selftests-damon-access_memory-add-repeat-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-access_memory-add-repeat-mode.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,90 +67,82 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/wss_estimation: test for up to 160 MiB working set size
-Date: Fri, 16 Jan 2026 18:07:25 -0800
+Subject: selftests/damon/access_memory: add repeat mode
+Date: Fri, 16 Jan 2026 18:07:26 -0800
 
-DAMON reads and writes Accessed bits of page tables without manual TLB
-flush for two reasons.  First, it minimizes the overhead.  Second, real
-systems that need DAMON are expected to be memory intensive enough to
-cause periodic TLB flushes.  For test setups that use small test
-workloads, however, the system's TLB could be big enough to cover whole or
-most accesses of the test workload.  In this case, no page table walk
-happens and DAMON cannot show any access from the test workload.
+'access_memory' is an artificial memory access generator program that is
+used for a few DAMON selftests.  It accesses a given number of regions one
+by one only once, and exits.  Depending on systems, the test workload may
+exit faster than expected, making the tests unreliable.  For reliable
+control of the artificial memory access pattern, add a mode to make it
+repeat running.
 
-The test workload for DAMON's working set size estimation selftest is such
-a case.  It accesses only 10 MiB working set, and it turned out there are
-test setups that have TLBs large enough to cover the 10 MiB data accesses.
-As a result, the test fails depending on the test machine.
-
-Make it more reliable by trying larger working sets up to 160 MiB when it
-fails.
-
-Link: https://lkml.kernel.org/r/20260117020731.226785-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260117020731.226785-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |   29 +++++++---
- 1 file changed, 23 insertions(+), 6 deletions(-)
+ tools/testing/selftests/damon/access_memory.c |   29 +++++++++++-----
+ 1 file changed, 21 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size
-+++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
-@@ -6,9 +6,8 @@ import time
+--- a/tools/testing/selftests/damon/access_memory.c~selftests-damon-access_memory-add-repeat-mode
++++ a/tools/testing/selftests/damon/access_memory.c
+@@ -8,6 +8,11 @@
+ #include <string.h>
+ #include <time.h>
  
- import _damon_sysfs
- 
--def main():
--    # access two 10 MiB memory regions, 2 second per each
--    sz_region = 10 * 1024 * 1024
-+def pass_wss_estimation(sz_region):
-+    # access two regions of given size, 2 seocnds per each region
-     proc = subprocess.Popen(['./access_memory', '2', '%d' % sz_region, '2000'])
-     kdamonds = _damon_sysfs.Kdamonds([_damon_sysfs.Kdamond(
-             contexts=[_damon_sysfs.DamonCtx(
-@@ -36,20 +35,38 @@ def main():
- 
-         wss_collected.append(
-                 kdamonds.kdamonds[0].contexts[0].schemes[0].tried_bytes)
-+    err = kdamonds.stop()
-+    if err is not None:
-+        print('kdamond stop failed: %s' % err)
-+        exit(1)
- 
-     wss_collected.sort()
-     acceptable_error_rate = 0.2
-     for percentile in [50, 75]:
-         sample = wss_collected[int(len(wss_collected) * percentile / 100)]
-         error_rate = abs(sample - sz_region) / sz_region
--        print('%d-th percentile (%d) error %f' %
--                (percentile, sample, error_rate))
-+        print('%d-th percentile error %f (expect %d, result %d)' %
-+                (percentile, error_rate, sz_region, sample))
-         if error_rate > acceptable_error_rate:
-             print('the error rate is not acceptable (> %f)' %
-                     acceptable_error_rate)
-             print('samples are as below')
-             print('\n'.join(['%d' % wss for wss in wss_collected]))
--            exit(1)
-+            return False
-+    return True
++enum access_mode {
++	ACCESS_MODE_ONCE,
++	ACCESS_MODE_REPEAT,
++};
 +
-+def main():
-+    # DAMON doesn't flush TLB.  If the system has large TLB that can cover
-+    # whole test working set, DAMON cannot see the access.  Test up to 160 MiB
-+    # test working set.
-+    sz_region_mb = 10
-+    max_sz_region_mb = 160
-+    while sz_region_mb <= max_sz_region_mb:
-+        test_pass = pass_wss_estimation(sz_region_mb * 1024 * 1024)
-+        if test_pass is True:
-+            exit(0)
-+        sz_region_mb *= 2
-+    exit(1)
+ int main(int argc, char *argv[])
+ {
+ 	char **regions;
+@@ -15,10 +20,12 @@ int main(int argc, char *argv[])
+ 	int nr_regions;
+ 	int sz_region;
+ 	int access_time_ms;
++	enum access_mode mode = ACCESS_MODE_ONCE;
++
+ 	int i;
  
- if __name__ == '__main__':
-     main()
+-	if (argc != 4) {
+-		printf("Usage: %s <number> <size (bytes)> <time (ms)>\n",
++	if (argc < 4) {
++		printf("Usage: %s <number> <size (bytes)> <time (ms)> [mode]\n",
+ 				argv[0]);
+ 		return -1;
+ 	}
+@@ -27,15 +34,21 @@ int main(int argc, char *argv[])
+ 	sz_region = atoi(argv[2]);
+ 	access_time_ms = atoi(argv[3]);
+ 
++	if (argc > 4 && !strcmp(argv[4], "repeat"))
++		mode = ACCESS_MODE_REPEAT;
++
+ 	regions = malloc(sizeof(*regions) * nr_regions);
+ 	for (i = 0; i < nr_regions; i++)
+ 		regions[i] = malloc(sz_region);
+ 
+-	for (i = 0; i < nr_regions; i++) {
+-		start_clock = clock();
+-		while ((clock() - start_clock) * 1000 / CLOCKS_PER_SEC <
+-				access_time_ms)
+-			memset(regions[i], i, sz_region);
+-	}
++	do {
++		for (i = 0; i < nr_regions; i++) {
++			start_clock = clock();
++			while ((clock() - start_clock) * 1000 / CLOCKS_PER_SEC
++					< access_time_ms)
++				memset(regions[i], i, sz_region);
++		}
++	} while (mode == ACCESS_MODE_REPEAT);
++
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
