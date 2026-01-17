@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A787230CD8B
-	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 03:25:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CF571850A4
+	for <mm-commits@vger.kernel.org>; Sat, 17 Jan 2026 03:28:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768620359; cv=none; b=cLU4ZgBEaPsRl5Utrq20oWGlksnfDerMwz4INeeNVyMgk3VYqhApfPZLiueEcSdsrDhdSumZyIVucQPEXphY/bOPuXchJaWy67akv4rq8R0aFnTM8CJ8Cx43TDj5m5GicnAtGFgBHiyuTUWhJ1M+bUbI7O7eBAk5t7DboLO+9W4=
+	t=1768620498; cv=none; b=e1uEtvW9wvz1dEN6S4t+h4vUlMXPwJPOOvJziOQ/X/2I7avsKevWAPLV/pARReH608xXFV9DBfj4qDvylySW3oorTcRT4SnLjYoRNz0hh492UkxuUwHBTul7Rn72jKfS2p0bsZIPf6JKIi2rK1sWhN9JXYkdtltHzZABKWxH63U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768620359; c=relaxed/simple;
-	bh=EJ+JD56lBL73VCUhIkS/Zf4z1MTYyDEcu5GlM+y2aL0=;
-	h=Date:To:From:Subject:Message-Id; b=OZyCDrkDVXf1Rz0o5pXZ5dnlQ9Ovk86c/wTOTSoTfkze7z8z1lwhMguBVW1CMikgZkuZfNduakpoh/clFweFt1m6as+9kJQS1JklJif9UvshRX5JZ7zjoe7KuEO+gN6k1vxCV1vw1COIf5M0+cX9MA3Q50pXDMpVwGTe5n1ED58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kpqBBPnf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768620498; c=relaxed/simple;
+	bh=tuFTAzpGIwRl/bQGMiG+fntHNohMOJEt1s5JjTq/2i4=;
+	h=Date:To:From:Subject:Message-Id; b=iR0xlFBsFLcpY1mlOpBjUKekBlVHLEZY15lNiAlUUIqcaFRvVhA+UqTKdNYdS8cNnsjusdW3lpJhKQRfRySXbCh1pyBdU8fFjmqSI1YmZ652S+QSk8ahXkWKyaPdh7cIq8uEgX7EqNQU4IBmbJHG2+xr8c6zG3xmst+38Hp0xys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sXMaUXb5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kpqBBPnf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F234C4CEF7;
-	Sat, 17 Jan 2026 03:25:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sXMaUXb5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFCECC4CEF7;
+	Sat, 17 Jan 2026 03:28:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768620359;
-	bh=EJ+JD56lBL73VCUhIkS/Zf4z1MTYyDEcu5GlM+y2aL0=;
+	s=korg; t=1768620497;
+	bh=tuFTAzpGIwRl/bQGMiG+fntHNohMOJEt1s5JjTq/2i4=;
 	h=Date:To:From:Subject:From;
-	b=kpqBBPnfiXTowEp4zlf/WllZvs8po5xtIAeusszHb6xEQP6fkmHSDFYBPxAHfw120
-	 fTFNHwgbkh4SB1UlyvxNVlnEQtfXfeN0nHBoSA98v/GWtCd73/3et6ImR2wuMX+EIe
-	 A9EsELeYD0WonrZ993Zw4WmbwT5blsbKcI+4fMIU=
-Date: Fri, 16 Jan 2026 19:25:58 -0800
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,sj@kernel.org,akpm@linux-foundation.org
+	b=sXMaUXb5Uzw6NT2jQpw9zNF2ElXX75Me+Gzr++a+K7mFFY5q76b1p+o0THMHSE8R/
+	 +QrAmu7m+tM9XNheM5nPXSmv80fND+X6OrHKKNnfCuRbCSCFspj+caa+Gg5SXVbSpe
+	 XtOPXwagifwqdnZG2L+fHcEzQkKuu3+4OA4bKXsw=
+Date: Fri, 16 Jan 2026 19:28:17 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,minchan@kernel.org,herbert@gondor.apana.org.au,hannes@cmpxchg.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-temporary-build-fix.patch added to mm-new branch
-Message-Id: <20260117032559.4F234C4CEF7@smtp.kernel.org>
+Subject: + zsmalloc-introduce-sg-list-based-object-read-api-fix.patch added to mm-unstable branch
+Message-Id: <20260117032817.CFCECC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: temporary build fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-temporary-build-fix.patch
+     Subject: zsmalloc: fixup zsmalloc-introduce-sg-list-based-object-read-api.patch
+has been added to the -mm mm-unstable branch.  Its filename is
+     zsmalloc-introduce-sg-list-based-object-read-api-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-temporary-build-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-introduce-sg-list-based-object-read-api-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,125 +58,79 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/vma: temporary build fix
-Date: Fri, 16 Jan 2026 17:01:27 -0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: fixup zsmalloc-introduce-sg-list-based-object-read-api.patch
+Date: Sat, 17 Jan 2026 11:48:40 +0900
 
-Link: https://lkml.kernel.org/r/20260115182720.1691130-9-Liam.Howlett@oracle.com
-Link: https://lkml.kernel.org/r/20260117010707.202128-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+zs_obj_read_sg_begin() always returns 0, convert it to void (per Yosry).
+
+Link: https://lkml.kernel.org/r/20260117024900.792237-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   38 +++++++++++++++++++-------------------
- mm/vma_internal.h       |    1 +
- 2 files changed, 20 insertions(+), 19 deletions(-)
+ include/linux/zsmalloc.h |    4 ++--
+ mm/zsmalloc.c            |    6 ++----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
---- a/include/linux/pgtable.h~mm-vma-temporary-build-fix
-+++ a/include/linux/pgtable.h
-@@ -23,25 +23,6 @@
- #endif
+--- a/include/linux/zsmalloc.h~zsmalloc-introduce-sg-list-based-object-read-api-fix
++++ a/include/linux/zsmalloc.h
+@@ -44,8 +44,8 @@ void *zs_obj_read_begin(struct zs_pool *
+ 			size_t mem_len, void *local_copy);
+ void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
+ 		     size_t mem_len, void *handle_mem);
+-int zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
+-		   struct scatterlist *sg, size_t mem_len);
++void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
++			  struct scatterlist *sg, size_t mem_len);
+ void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle);
+ void zs_obj_write(struct zs_pool *pool, unsigned long handle,
+ 		  void *handle_mem, size_t mem_len);
+--- a/mm/zsmalloc.c~zsmalloc-introduce-sg-list-based-object-read-api-fix
++++ a/mm/zsmalloc.c
+@@ -1142,8 +1142,8 @@ void zs_obj_read_end(struct zs_pool *poo
+ }
+ EXPORT_SYMBOL_GPL(zs_obj_read_end);
  
- /*
-- * On almost all architectures and configurations, 0 can be used as the
-- * upper ceiling to free_pgtables(): on many architectures it has the same
-- * effect as using TASK_SIZE.  However, there is one configuration which
-- * must impose a more careful limit, to avoid freeing kernel pgtables.
-- */
--#ifndef USER_PGTABLES_CEILING
--#define USER_PGTABLES_CEILING	0UL
--#endif
+-int zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
+-			 struct scatterlist *sg, size_t mem_len)
++void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
++			  struct scatterlist *sg, size_t mem_len)
+ {
+ 	struct zspage *zspage;
+ 	struct zpdesc *zpdesc;
+@@ -1186,8 +1186,6 @@ int zs_obj_read_sg_begin(struct zs_pool
+ 
+ 		sg_set_page(sg, zpdesc_page(zpdesc), sizes[1], 0);
+ 	}
 -
--/*
-- * This defines the first usable user address. Platforms
-- * can override its value with custom FIRST_USER_ADDRESS
-- * defined in their respective <asm/pgtable.h>.
-- */
--#ifndef FIRST_USER_ADDRESS
--#define FIRST_USER_ADDRESS	0UL
--#endif
--
--/*
-  * This defines the generic helper for accessing PMD page
-  * table page. Although platforms can still override this
-  * via their respective <asm/pgtable.h>.
-@@ -1661,6 +1642,25 @@ void arch_sync_kernel_mappings(unsigned
- #endif /* CONFIG_MMU */
+-	return 0;
+ }
+ EXPORT_SYMBOL_GPL(zs_obj_read_sg_begin);
  
- /*
-+ * On almost all architectures and configurations, 0 can be used as the
-+ * upper ceiling to free_pgtables(): on many architectures it has the same
-+ * effect as using TASK_SIZE.  However, there is one configuration which
-+ * must impose a more careful limit, to avoid freeing kernel pgtables.
-+ */
-+#ifndef USER_PGTABLES_CEILING
-+#define USER_PGTABLES_CEILING	0UL
-+#endif
-+
-+/*
-+ * This defines the first usable user address. Platforms
-+ * can override its value with custom FIRST_USER_ADDRESS
-+ * defined in their respective <asm/pgtable.h>.
-+ */
-+#ifndef FIRST_USER_ADDRESS
-+#define FIRST_USER_ADDRESS	0UL
-+#endif
-+
-+/*
-  * No-op macros that just return the current protection value. Defined here
-  * because these macros can be used even if CONFIG_MMU is not defined.
-  */
---- a/mm/vma_internal.h~mm-vma-temporary-build-fix
-+++ a/mm/vma_internal.h
-@@ -46,6 +46,7 @@
- #include <linux/swap.h>
- #include <linux/uprobes.h>
- #include <linux/userfaultfd_k.h>
-+#include <linux/pgtable.h>
- 
- #include <asm/current.h>
- #include <asm/tlb.h>
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-damon-core-introduce-nr_snapshots-damos-stat.patch
-mm-damon-core-introduce-nr_snapshots-damos-stat-fix.patch
-mm-damon-sysfs-schemes-introduce-nr_snapshots-damos-stat-file.patch
-docs-mm-damon-design-update-for-nr_snapshots-damos-stat.patch
-docs-admin-guide-mm-damon-usage-update-for-nr_snapshots-damos-stat.patch
-docs-abi-damon-update-for-nr_snapshots-damos-stat.patch
-mm-damon-update-damos-kerneldoc-for-stat-field.patch
-mm-damon-core-implement-max_nr_snapshots.patch
-mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch
-docs-mm-damon-design-update-for-max_nr_snapshots.patch
-docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch
-docs-abi-damon-update-for-max_nr_snapshots.patch
-mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch
-mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch
-mm-damon-core-introduce-active-memory-ratio-damos-quota-goal-metric.patch
-mm-damon-sysfs-schemes-support-damos_quota_active_mem_bp.patch
-docs-mm-damon-design-document-damos_quota_active_mem_bp.patch
-mm-damon-paddr-activate-damos_lru_prio-targets-instead-of-marking-accessed.patch
-mm-damon-lru_sort-consider-age-for-quota-prioritization.patch
-mm-damon-lru_sort-support-young-page-filters.patch
-docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages.patch
-mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch
-mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning-fix.patch
-docs-admin-guide-mm-damon-lru_sort-document-active_mem_bp-parameter.patch
-mm-damon-lru_sort-add-monitoring-intervals-auto-tuning-parameter.patch
-docs-admin-guide-mm-damon-lru_sort-document-intervals-autotuning.patch
-mm-damon-core-implement-damon_kdamond_pid.patch
-mm-damon-sysfs-use-damon_kdamond_pid.patch
-mm-damon-lru_sort-use-damon_kdamond_pid.patch
-mm-damon-reclaim-use-damon_kdamond_pid.patch
-mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch
-mm-vma-temporary-build-fix.patch
-selftests-damon-sysfs_memcg_path_leaksh-use-kmemleak.patch
-selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
-selftests-damon-access_memory-add-repeat-mode.patch
-selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
-selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
+zram-document-writeback_batch_size.patch
+zram-move-bd_stat-to-writeback-section.patch
+zram-rename-zram_free_page.patch
+zram-switch-to-guard-for-init_lock.patch
+zram-consolidate-device-attr-declarations.patch
+zram-use-u32-for-entry-ac_time-tracking.patch
+zram-rename-internal-slot-api.patch
+zram-rename-internal-slot-api-fix.patch
+zram-trivial-fix-of-recompress_slot-coding-styles.patch
+zram-fixup-read_block_state.patch
+zram-drop-pp_in_progress.patch
+zsmalloc-use-actual-object-size-to-detect-spans.patch
+zsmalloc-introduce-sg-list-based-object-read-api.patch
+zsmalloc-introduce-sg-list-based-object-read-api-fix.patch
+zram-rename-init_lock-to-dev_lock.patch
 
