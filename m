@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF6F92032D
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 00:39:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC3194C6D
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 00:39:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768696782; cv=none; b=lbpyJuBtVp80c2TIfKyll73hr7jxBJMko89PLZjmb6oNVU9TuqCDb4bWm90KRJSmr+8281WlF0qZl/E9yD0SR4ejRLOlbBcat9bV7yYPy00KKsp3DFchoMG0CQeBU4+r86QbYgmYos1kplsnPfWUZn7m82K8z6RjUz+SBfE0r8o=
+	t=1768696784; cv=none; b=pIPKXFDm4PUGmMdWCN6FwIv4QhpIyz8JDag3cOuNri5GUSgfrVtbFo24HhHq8Sewispx3vJZPInCuykfrvD8lHl/GqiLAJn0x+UFW/6nMifQTE07BV4vm8w44EuyGHZFOzg5B32r34ZIh5eA1FNwEBin3VqyseXfsQ5mYj922CQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768696782; c=relaxed/simple;
-	bh=p/T6wJmEpQYYJpAysSXadmPyiRqomq+GZ7XhRKNw0ms=;
-	h=Date:To:From:Subject:Message-Id; b=Yp9neJdEpOz/MOsGWDuFDoOcrdbbXz/chzAi0hvv2T3C+k717GF+DaRLemWLrFw3sj2Pfj0VNlJmRjELSqbQwafjKzhrB09uLdS1IaWaeID/55a5a3uW9P5TB7cD9/RMK9tDsZ9HXlZJvdIZiP/Eb9bDBZeffgiOvQ0482Qb2mk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EMjzaC4y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768696784; c=relaxed/simple;
+	bh=hynWCQlOK1GPf7ArhlnN+uM1EYo72vKqSR7kqPeiYgI=;
+	h=Date:To:From:Subject:Message-Id; b=c2lPw/XTh7h3lygmUQ7uP+eSPt3oubedo+lEbGEDBumCDD3B8mzHhGDr0E6DWx4ukySOKe34w6w4lWlIxBXu5RWketSCDq/hdj27I3jZN3i7nYUiGe9m2VhhBc7RyJh7jECEGOYQFos3qghD55pPLnLuYgW8Z+DKBn+kzoFCrTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bm5K1SCV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EMjzaC4y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FA4FC4CEF7;
-	Sun, 18 Jan 2026 00:39:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bm5K1SCV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 821A5C4CEF7;
+	Sun, 18 Jan 2026 00:39:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768696782;
-	bh=p/T6wJmEpQYYJpAysSXadmPyiRqomq+GZ7XhRKNw0ms=;
+	s=korg; t=1768696784;
+	bh=hynWCQlOK1GPf7ArhlnN+uM1EYo72vKqSR7kqPeiYgI=;
 	h=Date:To:From:Subject:From;
-	b=EMjzaC4yehHKqdnamaXyzQzw+3aTGy3K/l/zD84Fgenz2APXNGljEmFnRQxyhzw64
-	 NI2aYLABqeFvXg9AvqeIHHiXPUE5zsfrRUB8sen+FzxO0tZxtLAQCAdigQkphgSG1O
-	 8eb5ILLsBHPufM8zB9cEgq+CecjDWDYaoVcrWlZc=
-Date: Sat, 17 Jan 2026 16:39:41 -0800
+	b=bm5K1SCVKtr3wjMehf1LaSwcDkgncYgj5Y1nx9nY4yaId2TfCE/iEFBRY7A8WKhrn
+	 EfMjYLgYTBE3CGzlo14DZ0wcM8NdCzvfWIihFXY8tkjODauEHNWexLMhfcbvwWEHFN
+	 E23EfbGVJM1x4VEdBtcLSSzsuIz4NZJIWXV5lRYA=
+Date: Sat, 17 Jan 2026 16:39:43 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch added to mm-new branch
-Message-Id: <20260118003942.6FA4FC4CEF7@smtp.kernel.org>
+Subject: + mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch added to mm-new branch
+Message-Id: <20260118003944.821A5C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: cleanup targets and regions at once on kdamond termination
+     Subject: mm/damon/core: cancel damos_walk() before damon_ctx->kdamond reset
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch
+     mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,73 +67,49 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: cleanup targets and regions at once on kdamond termination
-Date: Sat, 17 Jan 2026 09:52:49 -0800
+Subject: mm/damon/core: cancel damos_walk() before damon_ctx->kdamond reset
+Date: Sat, 17 Jan 2026 09:52:50 -0800
 
-When kdamond terminates, it destroys the regions of the context first, and
-the targets of the context just before the kdamond main function returns. 
-Because regions are linked inside targets, doing them separately is only
-inefficient and looks weird.  A more serious problem is that the cleanup
-of the targets is done after damon_ctx->kdamond reset, which is the event
-that lets DAMON API callers know the kdamond is no longer actively
-running.  That is, some DAMON targets could still exist while kdamond is
-not running.  There are no real problems from this, but this implicit fact
-could cause subtle racy issues in future.  Destroy targets and regions at
-one.
+damos_walk() request is canceled after damon_ctx->kdamond is reset.  This
+can make weird situations where damon_is_running() returns false but the
+DAMON context has the damos_walk() request linked.  There was a similar
+situation for damon_call() requests handling [1], which _was_ able to
+cause a racy use-after-free bug.  Unlike the case of damon_call(), because
+damos_walk() is always synchronously handled and allows only single
+request at time, there is no such problematic race cases.  But, keeping it
+as is could stem another subtle race condition bug in future.
 
-Adding contexts on how the code has evolved in the way.  Doing only
-regions destruction was because putting pids of the targets were done on
-DAMON API callers.  Commit 7114bc5e01cf ("mm/damon/core: add
-cleanup_target() ops callback") moved the role to be done via operations
-set on each target destruction.  Hence it removed the reason to do only
-regions cleanup.  Commit 3a69f1635769 ("mm/damon/core: destroy targets
-when kdamond_fn() finish") therefore further destructed targets on kdamond
-termination time.  It was still separated from regions destruction because
-damon_operations->cleanup() may do additional targets cleanup.  Placing
-the targets destruction after damon_ctx->kdamond reset was just an
-unnecessary decision of the commit.  The previous commit removed
-damon_operations->cleanup(), so there is no more reason to do destructions
-of regions and targets separately.
+Avoid that by cancelling the requests before the ->kdamond reset.  Note
+that this change also makes all damon_ctx dependent resource cleanups
+consistently done before the damon_ctx->kdamond reset.
 
-Link: https://lkml.kernel.org/r/20260117175256.82826-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260117175256.82826-4-sj@kernel.org
+Link: https://lore.kernel.org/20251230014532.47563-1-sj@kernel.org [1]
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/damon/core.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination
+--- a/mm/damon/core.c~mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset
 +++ a/mm/damon/core.c
-@@ -2748,8 +2748,6 @@ static void kdamond_init_ctx(struct damo
- static int kdamond_fn(void *data)
- {
- 	struct damon_ctx *ctx = data;
--	struct damon_target *t;
--	struct damon_region *r, *next;
- 	unsigned int max_nr_accesses = 0;
- 	unsigned long sz_limit = 0;
- 
-@@ -2854,10 +2852,7 @@ static int kdamond_fn(void *data)
- 		}
- 	}
- done:
--	damon_for_each_target(t, ctx) {
--		damon_for_each_region_safe(r, next, t)
--			damon_destroy_region(r, t);
--	}
-+	damon_destroy_targets(ctx);
+@@ -2856,14 +2856,13 @@ done:
  
  	kfree(ctx->regions_score_histogram);
  	kdamond_call(ctx, true);
-@@ -2875,7 +2870,6 @@ done:
- 		running_exclusive_ctxs = false;
- 	mutex_unlock(&damon_lock);
++	damos_walk_cancel(ctx);
  
--	damon_destroy_targets(ctx);
- 	return 0;
- }
+ 	pr_debug("kdamond (%d) finishes\n", current->pid);
+ 	mutex_lock(&ctx->kdamond_lock);
+ 	ctx->kdamond = NULL;
+ 	mutex_unlock(&ctx->kdamond_lock);
  
+-	damos_walk_cancel(ctx);
+-
+ 	mutex_lock(&damon_lock);
+ 	nr_running_ctxs--;
+ 	if (!nr_running_ctxs && running_exclusive_ctxs)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
