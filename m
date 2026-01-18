@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A958500973
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 00:39:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE2FA4C6D
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 00:39:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768696787; cv=none; b=DEtRvfssjOVywmkMZEBxok3t5nGcRtSvbS0po2cgbs/ZBChQqItgKVYGAqr/QbGLa38c6HRBVQQ1yCEO5MsjRcZawZnJ55TiTceIKexQ3YqIZSQD1EvmH1cHj7ZCfEwymMrPi5Vo7rqoPhJjM0xHI342ZB/urupOTKZ9tlz/QKg=
+	t=1768696788; cv=none; b=P/zSnXlBV79GVJ8Hi/Gb46nJtptnhceWA5QNFNBFaMdFeUC2sOIjKByM8ff2vRy8GphoFfBMUQGF8PihAuZOE5hSEIdvGszMp2EGDYnUes/mVeDaI7x2g7exMcE4DCr2lctSj0++DpS2rSaxrBTMnrHs6Hkf+lWHvmIT9XNdtIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768696787; c=relaxed/simple;
-	bh=G0l55eN9jC/AKZ2YdmktN8g1Xl8t8HboZeQEeCtbML8=;
-	h=Date:To:From:Subject:Message-Id; b=FYfXY4e1AbNmPsVVLHV+86BBnY0FgXMgY6AizDH0ydBQ1q+eMkhcBdmrDNqyScLETB8eVJacZt8mmYcRXpCTmxleG9rcLKcJuNS2vN7cX4u7bzPl5u6ygVR+pQsbirNt0afD0Av0SlT5dHTVopD3VClaX5Y/DBJzgd2ftovUrr4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qHOybZ7i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768696788; c=relaxed/simple;
+	bh=u0ibAj9mPqSWv7BqDBiUxvYq0bIkSZ/OBYwmjEP1VMw=;
+	h=Date:To:From:Subject:Message-Id; b=oMDgxnU9P7ho6cRDTmnT7pl8RYJf+MqcVH/qA7U70yibI3tvcIDKuDfQNKYSttm9fmamu/hflZ586oTAPuDGoUMm25NV/CzsFOLSdua+bogGDjsJqIUCxuoXFQN/9lAGBpLd182dn1IKZ5DgOjzRXBud2qZP5RQnZcCAZ+P2iis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wM4mhmZ4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qHOybZ7i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C6B6C4CEF7;
-	Sun, 18 Jan 2026 00:39:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wM4mhmZ4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ECC2C4CEF7;
+	Sun, 18 Jan 2026 00:39:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768696786;
-	bh=G0l55eN9jC/AKZ2YdmktN8g1Xl8t8HboZeQEeCtbML8=;
+	s=korg; t=1768696788;
+	bh=u0ibAj9mPqSWv7BqDBiUxvYq0bIkSZ/OBYwmjEP1VMw=;
 	h=Date:To:From:Subject:From;
-	b=qHOybZ7inf+KDUcKZLadwCq7oYX38Aff62Meb4IrwoNLamvmAoPw1g3DM2DlF9oev
-	 gbNgrbsTtfHY+4TTs8V3EehBvJkc7PLWAr4vM+xlFNUmNZdlhUClPTM55cItyJrmuh
-	 nePfLsMnrW+lGVSB2mbPO8GC8tU6fyFbI9SU60EU=
-Date: Sat, 17 Jan 2026 16:39:45 -0800
+	b=wM4mhmZ4dkNFN7T4ZWA2zI29W3A/+umh49RlvFU07FG++uT1OKFnNJir11Z1WE8ip
+	 FqJpAyHnFtcTZvvyKRCLDuVSS/mIVyA+zg75lbMMwTGr4Bp1f7zLWC3TZy3jXv22Jh
+	 F5J3yFqkWwRxJjXPX3P+Rl4TIFGSMgZRy7lF/A+I=
+Date: Sat, 17 Jan 2026 16:39:48 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch added to mm-new branch
-Message-Id: <20260118003946.8C6B6C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch added to mm-new branch
+Message-Id: <20260118003948.9ECC2C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: process damon_call_control requests on a local list
+     Subject: mm/damon: document damon_call_control->dealloc_on_cancel repeat behavior
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch
+     mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,110 +67,33 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: process damon_call_control requests on a local list
-Date: Sat, 17 Jan 2026 09:52:51 -0800
+Subject: mm/damon: document damon_call_control->dealloc_on_cancel repeat behavior
+Date: Sat, 17 Jan 2026 09:52:52 -0800
 
-kdamond_call() handles damon_call() requests on the ->call_controls list
-of damon_ctx, which is shared with damon_call() callers.  To protect the
-list from concurrent accesses while letting the callback function
-independent of the call_controls_lock, the function does complicated
-locking operations.  For each damon_call_control object on the list, the
-function removes the control object from the list under locking, invoke
-the callback of the control object without locking, and then puts the
-control object back to the list if needed, under locking.  It is
-complicated, and can contend the locks more frequently with other DAMON
-API caller threads as the number of concurrent callback requests
-increases.  Contention overhead is not a big deal, but the increased race
-opportunity can make headaches.
+damon_call_control->dealloc_on_cancel works only when ->repeat is true. 
+But the behavior is not clearly documented.  DAMON API callers can
+understand the behavior only after reading kdamond_call() code.  Document
+the behavior on the kernel-doc comment of damon_call_control.
 
-Simplify the locking sequence by moving all damon_call_control objects
-from the shared list to a local list at once under the single lock
-protection, processing the callback requests without locking, and adding
-back repeat mode controls to the shared list again at once again, again
-under the single lock protection.  This change makes the number of locking
-in kdamond_call() be always two, regardless of the number of the queued
-requests.
-
-Link: https://lkml.kernel.org/r/20260117175256.82826-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260117175256.82826-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   59 ++++++++++++++++------------------------------
- 1 file changed, 21 insertions(+), 38 deletions(-)
+ include/linux/damon.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-process-damon_call_control-requests-on-a-local-list
-+++ a/mm/damon/core.c
-@@ -2649,48 +2649,31 @@ static void kdamond_usleep(unsigned long
-  */
- static void kdamond_call(struct damon_ctx *ctx, bool cancel)
- {
--	struct damon_call_control *control;
--	LIST_HEAD(repeat_controls);
--	int ret = 0;
--
--	while (true) {
--		mutex_lock(&ctx->call_controls_lock);
--		control = list_first_entry_or_null(&ctx->call_controls,
--				struct damon_call_control, list);
--		mutex_unlock(&ctx->call_controls_lock);
--		if (!control)
--			break;
--		if (cancel) {
-+	struct damon_call_control *control, *next;
-+	LIST_HEAD(controls);
-+
-+	mutex_lock(&ctx->call_controls_lock);
-+	list_splice_tail_init(&ctx->call_controls, &controls);
-+	mutex_unlock(&ctx->call_controls_lock);
-+
-+	list_for_each_entry_safe(control, next, &controls, list) {
-+		if (!control->repeat || cancel)
-+			list_del(&control->list);
-+
-+		if (cancel)
- 			control->canceled = true;
--		} else {
--			ret = control->fn(control->data);
--			control->return_code = ret;
--		}
--		mutex_lock(&ctx->call_controls_lock);
--		list_del(&control->list);
--		mutex_unlock(&ctx->call_controls_lock);
--		if (!control->repeat) {
-+		else
-+			control->return_code = control->fn(control->data);
-+
-+		if (!control->repeat)
- 			complete(&control->completion);
--		} else if (control->canceled && control->dealloc_on_cancel) {
-+		else if (control->canceled && control->dealloc_on_cancel)
- 			kfree(control);
--			continue;
--		} else {
--			list_add(&control->list, &repeat_controls);
--		}
--	}
--	while (true) {
--		control = list_first_entry_or_null(&repeat_controls,
--				struct damon_call_control, list);
--		if (!control)
--			break;
--		/* Unlink from the repeate_controls list. */
--		list_del(&control->list);
--		if (cancel)
--			continue;
--		mutex_lock(&ctx->call_controls_lock);
--		list_add(&control->list, &ctx->call_controls);
--		mutex_unlock(&ctx->call_controls_lock);
- 	}
-+
-+	mutex_lock(&ctx->call_controls_lock);
-+	list_splice_tail(&controls, &ctx->call_controls);
-+	mutex_unlock(&ctx->call_controls_lock);
- }
- 
- /* Returns negative error code if it's not activated but should return */
+--- a/include/linux/damon.h~mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior
++++ a/include/linux/damon.h
+@@ -663,7 +663,7 @@ struct damon_operations {
+  * @data:		Data that will be passed to @fn.
+  * @repeat:		Repeat invocations.
+  * @return_code:	Return code from @fn invocation.
+- * @dealloc_on_cancel:	De-allocate when canceled.
++ * @dealloc_on_cancel:	If @repeat is true, de-allocate when canceled.
+  *
+  * Control damon_call(), which requests specific kdamond to invoke a given
+  * function.  Refer to damon_call() for more details.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
