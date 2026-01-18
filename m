@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D47C248F6F
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A00A2253EF
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768764081; cv=none; b=ruf24HRjiQUIaVfV3SjHtGpjqEXKmjMN6ibry/tOHt4+SRkGL5wslSjO7/OiCF7Ut3IoFPPIVOJUAD0ptakvpcCCI9Wx93BDvyrmGH2BQbKQb+JlE/7SirFFRYXDVx0wzWfxbgR71ml6vEkfCNaS5PJHSCNYzKe0xVI7PqZ3SqY=
+	t=1768764083; cv=none; b=ZaBnWSItE/9coBz0t+k6O/O9P4br7Vau7hyHS2ev9h07F9jfA7jCkWZuQaMamnlEbbZXfFeX+ZIUc+we1Jcc4uH6nxVLSv7PEZ7BqjgryzHIRo08esCytigT7fIHEW0KIGj8So1Z2Nnwr9d+Ly0mFe5QTskX+pc3VuShUsExwqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768764081; c=relaxed/simple;
-	bh=bN9iTjypKQ5QxKfdJbreSa5LBScsmEKpb/nGRUb9fjA=;
-	h=Date:To:From:Subject:Message-Id; b=a9GKyWcVdoEacMgPWe9WfmSmKbMAJj/GAUui1bq6n8qWN3wuq0g735YL7eZ6YQluV+MdxfT5C8Ok/khdfkeYBM+9VnouIQ82WBlOYfOCIyMpSjDTKzreO2y2ViuDMjq1QGRrVFq0r7Bw19bzPjCq8+dILdsgdUBd6/W80ReGKXo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T6hnSs8+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768764083; c=relaxed/simple;
+	bh=vhw/Eoz7S2arYkN7vJq3vcyV2Bprh3emI1Rm/zypGks=;
+	h=Date:To:From:Subject:Message-Id; b=e2ZrQHUTwtgzOXeD4vbrzQuRnWWAwAOcNhMVNWcVKANv3H74KjtRDLT8yxGp5WyPvythrJfQGYI094DESHEv+vBE3RX8QexPt34mSkdrcAT7BFy5DlolE1zxJDFgIafJFtUAdCiS85rX6DLgazfkvgUMUFtNK581XhsNHeCNY/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DfH/pVlz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T6hnSs8+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08000C116D0;
-	Sun, 18 Jan 2026 19:21:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DfH/pVlz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D101C116D0;
+	Sun, 18 Jan 2026 19:21:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768764081;
-	bh=bN9iTjypKQ5QxKfdJbreSa5LBScsmEKpb/nGRUb9fjA=;
+	s=korg; t=1768764083;
+	bh=vhw/Eoz7S2arYkN7vJq3vcyV2Bprh3emI1Rm/zypGks=;
 	h=Date:To:From:Subject:From;
-	b=T6hnSs8+vmgD5/U3u6pX7uyrwa+09T24jtsg58dzr58FBtDcu8byFt45VRHrhS+XZ
-	 MfPDmKGVWv3ALRA6NQ0KGeudeY5J2KBu/pSmGPn4Wb7+gk/SX9Zrn0ZF6et4D93eSY
-	 Sg+vb6O8rEJBCBmaXMuILussuSDfvbHRnw9307K8=
-Date: Sun, 18 Jan 2026 11:21:20 -0800
+	b=DfH/pVlz3SemPsuUoll2HLFzKj4kxQx4bf6UFrg0v7fut4LQ+xFDGWCw7gP2jG/0J
+	 d0WVii9ptdZldZ9Kt4mlqg+hOismE+tECCM1c7m2rxMqoyJZUdoYV6Biz4uOGhrYJX
+	 Eu4MfsH9qPICPbzEgSa3IdMM7CmSucVO8H3vH2SY=
+Date: Sun, 18 Jan 2026 11:21:22 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-link-repology-instead-of-fedora-package.patch added to mm-new branch
-Message-Id: <20260118192121.08000C116D0@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-damon-sample-modules.patch added to mm-new branch
+Message-Id: <20260118192123.1D101C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: link repology instead of Fedora package
+     Subject: Docs/mm/damon/design: document DAMON sample modules
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-link-repology-instead-of-fedora-package.patch
+     docs-mm-damon-design-document-damon-sample-modules.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-link-repology-instead-of-fedora-package.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-damon-sample-modules.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: link repology instead of Fedora package
-Date: Sun, 18 Jan 2026 10:02:53 -0800
+Subject: Docs/mm/damon/design: document DAMON sample modules
+Date: Sun, 18 Jan 2026 10:02:54 -0800
 
-The document is introducing Fedora as one way to get DAMON user-space tool
-(damo) from OS-providing packaging system.  Linux distros more than Fedora
-are providing damo with their packaging systems, though.  Replace the
-Fedora part with the repology.org page that shows damo packaging status
-for multiple Linux distros.
+People sometimes get confused about the purposes of DAMON special-purpose
+modules and sample modules.  Clarify those on the design document by
+adding a section describing their existence and purposes.
 
-Link: https://lkml.kernel.org/r/20260118180305.70023-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260118180305.70023-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -89,22 +87,28 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/mm/damon/design.rst |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-link-repology-instead-of-fedora-package
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-damon-sample-modules
 +++ a/Documentation/mm/damon/design.rst
-@@ -809,8 +809,8 @@ The ABIs are designed to be used for use
- rather than human beings' fingers.  Human users are recommended to use such
- user space tools.  One such Python-written user space tool is available at
- Github (https://github.com/damonitor/damo), Pypi
--(https://pypistats.org/packages/damo), and Fedora
--(https://packages.fedoraproject.org/pkgs/python-damo/damo/).
-+(https://pypistats.org/packages/damo), and multiple distros
-+(https://repology.org/project/damo/versions).
- 
- Currently, one module for this type, namely 'DAMON sysfs interface' is
- available.  Please refer to the ABI :ref:`doc <sysfs_interface>` for details of
+@@ -836,3 +836,16 @@ modules for proactive reclamation and LR
+ more detail, please read the usage documents for those
+ (:doc:`/admin-guide/mm/damon/reclaim` and
+ :doc:`/admin-guide/mm/damon/lru_sort`).
++
++
++Sample DAMON Modules
++--------------------
++
++DAMON modules that provides example DAMON kernel API usages.
++
++kernel programmers can build their own special or general purpose DAMON modules
++using DAMON kernel API.  To help them easily understand how DAMON kernel API
++can be used, a few sample modules are provided under ``samples/damon/`` of the
++linux source tree.  Please note that these modules are not developed for being
++used on real products, but only for showing how DAMON kernel API can be used in
++simple ways.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
