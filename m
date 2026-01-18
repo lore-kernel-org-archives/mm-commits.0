@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BD5F2253EF
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F22B2253EF
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768764090; cv=none; b=qavfUm87/bKqiikMZi87I/dagDA5dHAL9LhY5TdRuaU9AMWrV9kZiG6xd/2ym5vEg1bYop/JRCwlY/45SPLhxEX7XMmQRh7EwdzMnq1183l4KHBUbTPY6+0nWFRazPIlyfKxJZuMmV+Z8grkQukByZj++uxnyxlvciXGFR8m4pA=
+	t=1768764092; cv=none; b=W4vL/VaWjNIADdKnQKPUmzzEy0jdmqraPLg8VGkxSqSZnBGVA9a967AGhjUT6G/McZqOSQn80zOzbyCLvpKnvU/FYHipYDXSbBKtWuFdzP4GlhGsPW2y8XuxO+FHLZDpkmV+xAJkCPIDtguP7iaFUBWKFvjrHSD04cWOaaSFkjc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768764090; c=relaxed/simple;
-	bh=i3ym5ofZt9lvEX7exu/LOVTFcZTZUiRr4Kh13sSmWuY=;
-	h=Date:To:From:Subject:Message-Id; b=L9waduAlB4fbE+RR0aXSA5Y6Qf+gGikHEaguR0VUYQtdjM16BWE+6GDS0e5so/Nk2ga9dJI+5fPOU9kw2cOKScYO7UqRKF4zO5IEzYE0vgqoww43sRVspfq6tHlCSajgCMXxEQ1ATWBvlVWfCpizEPAcnRDvYl+0uBtHuEtQdtE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wsEPGX3/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768764092; c=relaxed/simple;
+	bh=fvPqirF5FD6CZ+lpdfe5a+lOdRCgkTz7Bee2Uj/hMjU=;
+	h=Date:To:From:Subject:Message-Id; b=bJJeI+VDwBmL/mZJD6us/voIFumM0HJFjF9JPTP40mJ3VPZv15NHe90QXjY9ZHpVQ67Z/FDOYBIJSez3/yAbQgzdQRjoOMohsZpK7AU8BLpmkQrrU1fIulshi4T8Da+NpzeNggs0xEMi16HfKYOuaL3stdT26JmkKHoPmw2Evn4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=12yauf56; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wsEPGX3/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE4DAC116D0;
-	Sun, 18 Jan 2026 19:21:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="12yauf56"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C32D3C116D0;
+	Sun, 18 Jan 2026 19:21:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768764089;
-	bh=i3ym5ofZt9lvEX7exu/LOVTFcZTZUiRr4Kh13sSmWuY=;
+	s=korg; t=1768764091;
+	bh=fvPqirF5FD6CZ+lpdfe5a+lOdRCgkTz7Bee2Uj/hMjU=;
 	h=Date:To:From:Subject:From;
-	b=wsEPGX3/maCTbnWy9pU5/lWTUb2jufPc75Gv9fBZMMDBtQyIMydL5Qf76DKEpoOjB
-	 IJnY0+1Jtty6nBsg/q9yiMazS9hxoSw21paL2/ZQyV8J6siLe4VoDUXENaVRZ8Jo2x
-	 N6rYb9DM/lbDjapxKGdpi8OPB68T9tYeFn823so4=
-Date: Sun, 18 Jan 2026 11:21:29 -0800
+	b=12yauf562abRZQgbSdyoRSJzivLb1945Qj4RMp9RjfR/fFgt7vURV8clAqxdoQVP9
+	 S9MR81rwD595wLKs0ClnpO+s28OeiujNSl9jMKBaU+VkoKk85bfYCic+1vUMk9ux7t
+	 AmsW+Qzz4mOQVwhH/9McnZLaXXhlgvMj7nrGqhzE=
+Date: Sun, 18 Jan 2026 11:21:31 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch added to mm-new branch
-Message-Id: <20260118192129.CE4DAC116D0@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch added to mm-new branch
+Message-Id: <20260118192131.C32D3C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update stats update process for refresh_ms
+     Subject: Docs/mm/damon/maintainer-profile: fix wrong MAITNAINERS section name
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch
+     docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,15 +67,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update stats update process for refresh_ms
-Date: Sun, 18 Jan 2026 10:02:57 -0800
+Subject: Docs/mm/damon/maintainer-profile: fix wrong MAITNAINERS section name
+Date: Sun, 18 Jan 2026 10:02:58 -0800
 
-DAMOS stats on sysfs was only manually updated.  Recent addition of
-'refresh_ms' knob enabled periodic and automated updates of the stats. 
-The document for stats update process is not updated for the change,
-however.  Update.
+Commit 9044cbe50a70 ("MAINTAINERS: rename DAMON section") renamed the
+section for DAMON from "DATA ACCESS MONITOR" to "DAMON".  But the commit
+forgot updating the name on the maintainer-profile document.  Update.
 
-Link: https://lkml.kernel.org/r/20260118180305.70023-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260118180305.70023-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -88,29 +87,22 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -549,10 +549,13 @@ online analysis or tuning of the schemes
- The statistics can be retrieved by reading the files under ``stats`` directory
- (``nr_tried``, ``sz_tried``, ``nr_applied``, ``sz_applied``,
- ``sz_ops_filter_passed``, ``qt_exceeds``, ``nr_snapshots`` and
--``max_nr_snapshots``), respectively.  The files are not updated in real time,
--so you should ask DAMON sysfs interface to update the content of the files for
--the stats by writing a special keyword, ``update_schemes_stats`` to the
--relevant ``kdamonds/<N>/state`` file.
-+``max_nr_snapshots``), respectively.
-+
-+The files are not updated in real time by default.  Users should ask DAMON
-+sysfs interface to periodically update those using ``refresh_ms``, or do a one
-+time update by writing a special keyword, ``update_schemes_stats`` to the
-+relevant ``kdamonds/<N>/state`` file.  Refer to :ref:`kdamond directory
-+<sysfs_kdamond>` for more details.
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -3,8 +3,8 @@
+ DAMON Maintainer Entry Profile
+ ==============================
  
- .. _sysfs_schemes_tried_regions:
+-The DAMON subsystem covers the files that are listed in 'DATA ACCESS MONITOR'
+-section of 'MAINTAINERS' file.
++The DAMON subsystem covers the files that are listed in 'DAMON' section of
++'MAINTAINERS' file.
  
+ The mailing lists for the subsystem are damon@lists.linux.dev and
+ linux-mm@kvack.org.  Patches should be made against the `mm-new tree
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
