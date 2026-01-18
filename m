@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 826BA246BC7
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D47C248F6F
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768764079; cv=none; b=Nt3wavlpQnFad5HSJozFH5ojslaNLY6mgHpG5EGZqO++8/5kq0jAaPXpdO0RHZDjQ7Uqk2aLntWg1/fgQ3oNIS1GW5OIpZFx6U7TPZZdPjw3DEUDa0gYaQ1HFKn3X8s6IREeCENKYV89OjxvDiZv87Xb0HQGWdOXgG2cPPk14ng=
+	t=1768764081; cv=none; b=ruf24HRjiQUIaVfV3SjHtGpjqEXKmjMN6ibry/tOHt4+SRkGL5wslSjO7/OiCF7Ut3IoFPPIVOJUAD0ptakvpcCCI9Wx93BDvyrmGH2BQbKQb+JlE/7SirFFRYXDVx0wzWfxbgR71ml6vEkfCNaS5PJHSCNYzKe0xVI7PqZ3SqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768764079; c=relaxed/simple;
-	bh=yzpnq1f8GhVUmqhjO3U1CCC1uCpw7XNjQsQflQNRJ6o=;
-	h=Date:To:From:Subject:Message-Id; b=DGz1PlxhpWwL8m0Ugp+nc3npECBtDCsbyF8YfYSac5/wZNJHN9Gt3HbI7ZPHfjmYj1UENUu4bfmHyOAA8mOtnMVqbMe5rMopFMF+HAqWWeaAS8TLQX+nhDeAghcVCgaoltgxBH0Gv3rKizKr+QsqU4xUPmp3cFdDrF/r/yQGYio=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EyWfexok; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768764081; c=relaxed/simple;
+	bh=bN9iTjypKQ5QxKfdJbreSa5LBScsmEKpb/nGRUb9fjA=;
+	h=Date:To:From:Subject:Message-Id; b=a9GKyWcVdoEacMgPWe9WfmSmKbMAJj/GAUui1bq6n8qWN3wuq0g735YL7eZ6YQluV+MdxfT5C8Ok/khdfkeYBM+9VnouIQ82WBlOYfOCIyMpSjDTKzreO2y2ViuDMjq1QGRrVFq0r7Bw19bzPjCq8+dILdsgdUBd6/W80ReGKXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T6hnSs8+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EyWfexok"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00DC8C116D0;
-	Sun, 18 Jan 2026 19:21:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T6hnSs8+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08000C116D0;
+	Sun, 18 Jan 2026 19:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768764079;
-	bh=yzpnq1f8GhVUmqhjO3U1CCC1uCpw7XNjQsQflQNRJ6o=;
+	s=korg; t=1768764081;
+	bh=bN9iTjypKQ5QxKfdJbreSa5LBScsmEKpb/nGRUb9fjA=;
 	h=Date:To:From:Subject:From;
-	b=EyWfexokP81j5hvB2JR7cgK4U1S2n01G/rjI/21yVUAPc5H3/3Vn1z2MEenqNvUU6
-	 p0mamRuXLCGGex42LOzjef37YocbunfZpL3+ChN5mPKixlAwxYCX3bDh1aJxCxv7mT
-	 /Rn4lGp2K2C/t6XfKJT1eM3GTJZtPR4S+tULHS4I=
-Date: Sun, 18 Jan 2026 11:21:18 -0800
+	b=T6hnSs8+vmgD5/U3u6pX7uyrwa+09T24jtsg58dzr58FBtDcu8byFt45VRHrhS+XZ
+	 MfPDmKGVWv3ALRA6NQ0KGeudeY5J2KBu/pSmGPn4Wb7+gk/SX9Zrn0ZF6et4D93eSY
+	 Sg+vb6O8rEJBCBmaXMuILussuSDfvbHRnw9307K8=
+Date: Sun, 18 Jan 2026 11:21:20 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-index-simplify-the-intro.patch added to mm-new branch
-Message-Id: <20260118192119.00DC8C116D0@smtp.kernel.org>
+Subject: + docs-mm-damon-design-link-repology-instead-of-fedora-package.patch added to mm-new branch
+Message-Id: <20260118192121.08000C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/index: simplify the intro
+     Subject: Docs/mm/damon/design: link repology instead of Fedora package
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-index-simplify-the-intro.patch
+     docs-mm-damon-design-link-repology-instead-of-fedora-package.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-index-simplify-the-intro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-link-repology-instead-of-fedora-package.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,33 +67,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/index: simplify the intro
-Date: Sun, 18 Jan 2026 10:02:52 -0800
+Subject: Docs/mm/damon/design: link repology instead of Fedora package
+Date: Sun, 18 Jan 2026 10:02:53 -0800
 
-Patch series "Docs/mm/damon: update intro, modules, maintainer profile,
-and misc".
+The document is introducing Fedora as one way to get DAMON user-space tool
+(damo) from OS-providing packaging system.  Linux distros more than Fedora
+are providing damo with their packaging systems, though.  Replace the
+Fedora part with the repology.org page that shows damo packaging status
+for multiple Linux distros.
 
-Update DAMON documentations for wordsmithing, clarifications, and
-miscellaneous outdated things with eight patches.  Patch 1 simplifies the
-brief introduction of DAMON.  Patch 2 updates DAMON user-space tool
-packaged distros information on design doc to include not only Fedora, but
-refer to repology.  Three following patches update design and usage
-documents for clarifying DAMON sample modules purposes (patch 3), and
-outdated information about usages of DAMON modules (patches 4 and 5). 
-Final three patches update usage and maintainer-profile for sysfs
-refresh_ms feature behavior (patch 6), synchronize DAMON MAINTAINERS
-section name (patch 7), and broken damon-tests performance tests (patch
-8).
-
-
-This patch (of 8):
-
-The intro is a bit verbose and redundant.  Simplify it by replacing
-details with more links to the design docs, and refining the design points
-list.
-
-Link: https://lkml.kernel.org/r/20260118180305.70023-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20260118180305.70023-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260118180305.70023-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -106,48 +89,22 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/index.rst |   29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ Documentation/mm/damon/design.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/damon/index.rst~docs-mm-damon-index-simplify-the-intro
-+++ a/Documentation/mm/damon/index.rst
-@@ -4,28 +4,15 @@
- DAMON: Data Access MONitoring and Access-aware System Operations
- ================================================================
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-link-repology-instead-of-fedora-package
++++ a/Documentation/mm/damon/design.rst
+@@ -809,8 +809,8 @@ The ABIs are designed to be used for use
+ rather than human beings' fingers.  Human users are recommended to use such
+ user space tools.  One such Python-written user space tool is available at
+ Github (https://github.com/damonitor/damo), Pypi
+-(https://pypistats.org/packages/damo), and Fedora
+-(https://packages.fedoraproject.org/pkgs/python-damo/damo/).
++(https://pypistats.org/packages/damo), and multiple distros
++(https://repology.org/project/damo/versions).
  
--DAMON is a Linux kernel subsystem that provides a framework for data access
--monitoring and the monitoring results based system operations.  The core
--monitoring :ref:`mechanisms <damon_design_monitoring>` of DAMON make it
-+DAMON is a Linux kernel subsystem for efficient :ref:`data access monitoring
-+<damon_design_monitoring>` and :ref:`access-aware system operations
-+<damon_design_damos>`.  It is designed for being
- 
-- - *accurate* (the monitoring output is useful enough for DRAM level memory
--   management; It might not appropriate for CPU Cache levels, though),
-- - *light-weight* (the monitoring overhead is low enough to be applied online),
--   and
-- - *scalable* (the upper-bound of the overhead is in constant range regardless
--   of the size of target workloads).
--
--Using this framework, therefore, the kernel can operate system in an
--access-aware fashion.  Because the features are also exposed to the :doc:`user
--space </admin-guide/mm/damon/index>`, users who have special information about
--their workloads can write personalized applications for better understanding
--and optimizations of their workloads and systems.
--
--For easier development of such systems, DAMON provides a feature called
--:ref:`DAMOS <damon_design_damos>` (DAMon-based Operation Schemes) in addition
--to the monitoring.  Using the feature, DAMON users in both kernel and :doc:`user
--spaces </admin-guide/mm/damon/index>` can do access-aware system operations
--with no code but simple configurations.
-+ - *accurate* (for DRAM level memory management),
-+ - *light-weight* (for production online usages),
-+ - *scalable* (in terms of memory size),
-+ - *tunable* (for flexible usages), and
-+ - *autoamted* (for production operation without manual tunings).
- 
- .. toctree::
-    :maxdepth: 2
+ Currently, one module for this type, namely 'DAMON sysfs interface' is
+ available.  Please refer to the ABI :ref:`doc <sysfs_interface>` for details of
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
