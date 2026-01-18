@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE2FA4C6D
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 00:39:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B826A199949
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 00:39:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768696788; cv=none; b=P/zSnXlBV79GVJ8Hi/Gb46nJtptnhceWA5QNFNBFaMdFeUC2sOIjKByM8ff2vRy8GphoFfBMUQGF8PihAuZOE5hSEIdvGszMp2EGDYnUes/mVeDaI7x2g7exMcE4DCr2lctSj0++DpS2rSaxrBTMnrHs6Hkf+lWHvmIT9XNdtIs=
+	t=1768696790; cv=none; b=Cmo9FKbo/V8/sozgYo59IiIvg0mQTyDS9bid51bsUerCeUbZQ2RF5Jxpuqlj/kMwJlQx3ef0Nxt4v1ej4v2CZWnOVhIamGINS0a+Pp3b+1G+NIIZkQZn4enan/jRTa9fZES36ooqcojNVglAFXP5qir1+XAtf11z8Z8V1p+7hIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768696788; c=relaxed/simple;
-	bh=u0ibAj9mPqSWv7BqDBiUxvYq0bIkSZ/OBYwmjEP1VMw=;
-	h=Date:To:From:Subject:Message-Id; b=oMDgxnU9P7ho6cRDTmnT7pl8RYJf+MqcVH/qA7U70yibI3tvcIDKuDfQNKYSttm9fmamu/hflZ586oTAPuDGoUMm25NV/CzsFOLSdua+bogGDjsJqIUCxuoXFQN/9lAGBpLd182dn1IKZ5DgOjzRXBud2qZP5RQnZcCAZ+P2iis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wM4mhmZ4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768696790; c=relaxed/simple;
+	bh=9RSx6G/k0dVvswWJd8LkVPUv38/hyIP0GGGqkhLzGO8=;
+	h=Date:To:From:Subject:Message-Id; b=F3k3uwipWcK0jui/zo59Dn7+0TqKc4ISflygr6zzckwW1L7+7ba6oamHWLHjQtuoOgEv8q0hw2fHUpf9QSDb6srdPVvXlA+66JZmnemThDQoCYUOJeBHv/rKDghUkSHG8VayLpJn2hR1D8K55LROX5RWeMSdAkiKrgcFxUjcat4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FVIJfqwg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wM4mhmZ4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ECC2C4CEF7;
-	Sun, 18 Jan 2026 00:39:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FVIJfqwg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CEBDC4CEF7;
+	Sun, 18 Jan 2026 00:39:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768696788;
-	bh=u0ibAj9mPqSWv7BqDBiUxvYq0bIkSZ/OBYwmjEP1VMw=;
+	s=korg; t=1768696790;
+	bh=9RSx6G/k0dVvswWJd8LkVPUv38/hyIP0GGGqkhLzGO8=;
 	h=Date:To:From:Subject:From;
-	b=wM4mhmZ4dkNFN7T4ZWA2zI29W3A/+umh49RlvFU07FG++uT1OKFnNJir11Z1WE8ip
-	 FqJpAyHnFtcTZvvyKRCLDuVSS/mIVyA+zg75lbMMwTGr4Bp1f7zLWC3TZy3jXv22Jh
-	 F5J3yFqkWwRxJjXPX3P+Rl4TIFGSMgZRy7lF/A+I=
-Date: Sat, 17 Jan 2026 16:39:48 -0800
+	b=FVIJfqwgpwx8KB7NHUnV7C7moV6OUnwjJGgzPbXnxoJtW4pRQgMIoaUp0Qq/qWJaC
+	 JwUw1CBabpHEu5MJbw6XiCJi3HRkF1J9jJIBJbov7cut+2tOEeNkOoy2dObtyeHJpB
+	 /H3nkNntmYxteGpuzEhh9siaWjOxtQ0FSI74/H00=
+Date: Sat, 17 Jan 2026 16:39:50 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch added to mm-new branch
-Message-Id: <20260118003948.9ECC2C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-core-rename-damos_filter_out-to-damos_core_filter_out.patch added to mm-new branch
+Message-Id: <20260118003950.8CEBDC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: document damon_call_control->dealloc_on_cancel repeat behavior
+     Subject: mm/damon/core: rename damos_filter_out() to damos_core_filter_out()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch
+     mm-damon-core-rename-damos_filter_out-to-damos_core_filter_out.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-rename-damos_filter_out-to-damos_core_filter_out.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,33 +67,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: document damon_call_control->dealloc_on_cancel repeat behavior
-Date: Sat, 17 Jan 2026 09:52:52 -0800
+Subject: mm/damon/core: rename damos_filter_out() to damos_core_filter_out()
+Date: Sat, 17 Jan 2026 09:52:53 -0800
 
-damon_call_control->dealloc_on_cancel works only when ->repeat is true. 
-But the behavior is not clearly documented.  DAMON API callers can
-understand the behavior only after reading kdamond_call() code.  Document
-the behavior on the kernel-doc comment of damon_call_control.
+DAMOS filters are processed on the core layer and operations layer,
+depending on their types.  damos_filter_out() in core.c, which is for only
+core layer handled filters, can confuse the fact.  Rename it to
+damos_core_filter_out(), to be more explicit about the fact.
 
-Link: https://lkml.kernel.org/r/20260117175256.82826-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260117175256.82826-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior
-+++ a/include/linux/damon.h
-@@ -663,7 +663,7 @@ struct damon_operations {
-  * @data:		Data that will be passed to @fn.
-  * @repeat:		Repeat invocations.
-  * @return_code:	Return code from @fn invocation.
-- * @dealloc_on_cancel:	De-allocate when canceled.
-+ * @dealloc_on_cancel:	If @repeat is true, de-allocate when canceled.
-  *
-  * Control damon_call(), which requests specific kdamond to invoke a given
-  * function.  Refer to damon_call() for more details.
+--- a/mm/damon/core.c~mm-damon-core-rename-damos_filter_out-to-damos_core_filter_out
++++ a/mm/damon/core.c
+@@ -1813,7 +1813,7 @@ static bool damos_filter_match(struct da
+ 	return matched == filter->matching;
+ }
+ 
+-static bool damos_filter_out(struct damon_ctx *ctx, struct damon_target *t,
++static bool damos_core_filter_out(struct damon_ctx *ctx, struct damon_target *t,
+ 		struct damon_region *r, struct damos *s)
+ {
+ 	struct damos_filter *filter;
+@@ -1960,7 +1960,7 @@ static void damos_apply_scheme(struct da
+ 				goto update_stat;
+ 			damon_split_region_at(t, r, sz);
+ 		}
+-		if (damos_filter_out(c, t, r, s))
++		if (damos_core_filter_out(c, t, r, s))
+ 			return;
+ 		ktime_get_coarse_ts64(&begin);
+ 		trace_damos_before_apply(cidx, sidx, tidx, r,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
