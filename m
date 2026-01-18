@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5F062253EF
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 938632253EF
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768764085; cv=none; b=FEXXAGff4/5kpNWJKY3/AlZreIByPQqv6M216DVduKzxNMmtpTmXJP5Wxm1/X5BeOm7gQiuVpUXHEzfjus2srw6N66L0nxEHJMB4ZJ1tDGUfh70qhZvUT3HZFZoS4LgyHzOB8cfNSqfegLEtb41PNHaqEtNpMVIffIWF4R7Embc=
+	t=1768764087; cv=none; b=aFyIfC5w1Z2SAQxsyZgl7WdEcevqopYbioM2+3WytzS+qTg/nyDPRcTaGPWD22UpckOVnmL1jmvYV+HYyS7JTSsptWJPMXADUmscWoLnVIK66jTq9h4Xr2VsSsAK9hrxik/42gMRVXlphHnicTP4AUJqYl1uduryoyQzXVzRSU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768764085; c=relaxed/simple;
-	bh=0ifmaxma6jekNzLLPVYqvUmmn214HHO49/Hvg957mAA=;
-	h=Date:To:From:Subject:Message-Id; b=L4K34Ea9iX354Z9UACTrAh7AHSkMo/T2Q9P5SwF5s+SCrV/vMt+iQxILpOMwK8v6e5QKSEuODNJgVIl1OMuVChsVUaj8i/6hjZ7koC9CBHC+EhpW5aQ2WTIxieWXq24H6V3z8f0FECtRfsFOp1vhyyEWW18SClQWWaEKPYJ4meg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RXqZ38au; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768764087; c=relaxed/simple;
+	bh=2osCIjglJ8eBuMiLNY6WhAmt6xMRQkTNnghT0f5Llk4=;
+	h=Date:To:From:Subject:Message-Id; b=B2mjcsl1OspcMjBlmY0XDJwVUHqp8GeqL3XHXbGq8/9OZOV2fK3VBADTPhBK/ZFI861UBPI/bZsOPdhOI52gXwjLULOT7ZqpYAIEq6/IplSyZEyUcSCU6Nzk+8jIBPqiUGh2vqvrV9WKzTXNkc8ZQdumWD+WbfXzaGvUjieMZ9g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ULrvk9vC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RXqZ38au"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D44CC116D0;
-	Sun, 18 Jan 2026 19:21:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ULrvk9vC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6979DC116D0;
+	Sun, 18 Jan 2026 19:21:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768764085;
-	bh=0ifmaxma6jekNzLLPVYqvUmmn214HHO49/Hvg957mAA=;
+	s=korg; t=1768764087;
+	bh=2osCIjglJ8eBuMiLNY6WhAmt6xMRQkTNnghT0f5Llk4=;
 	h=Date:To:From:Subject:From;
-	b=RXqZ38auLFwH16vLqv6wq+n/1C1dJnViaPfh98WKgP37ZbJ0QVIdVMX3MBN66oASu
-	 /EDHV5t/RKlTIo4W6pnX9bAAn9eG8wD6VblgkeQ4mM7opdLxx9u1CwWq8CEck3SQ6B
-	 8NyRQiB+T7Eovz3K0spDYfkPCYkkJTrXsO6NavBY=
-Date: Sun, 18 Jan 2026 11:21:24 -0800
+	b=ULrvk9vCAGbe24C2dOPWvj/RsyX08ge/hf1R2vOD6nwek5seAnCtTZV7soUxUhrPy
+	 F9FnzKZSBYiLY5F+jGVQRq4JeTStG7KLrCcUDyFnEzndf12G3e9Sz+UjLKOttECDaY
+	 ikqIxrayF3v8Li/Iem7wkubskClAwXQkyyWJxBc8=
+Date: Sun, 18 Jan 2026 11:21:26 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-add-reference-to-damon_stat-usage.patch added to mm-new branch
-Message-Id: <20260118192125.4D44CC116D0@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch added to mm-new branch
+Message-Id: <20260118192127.6979DC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: add reference to DAMON_STAT usage
+     Subject: Docs/admin-guide/mm/damon/usage: introduce DAMON modules at the beginning
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-add-reference-to-damon_stat-usage.patch
+     docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-add-reference-to-damon_stat-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: add reference to DAMON_STAT usage
-Date: Sun, 18 Jan 2026 10:02:55 -0800
+Subject: Docs/admin-guide/mm/damon/usage: introduce DAMON modules at the beginning
+Date: Sun, 18 Jan 2026 10:02:56 -0800
 
-Design document's special-purpose DAMON modules section is providing the
-list of links to the usage documents of existing DAMON modules.  It is
-missing the link for DAMON_STAT, though.  Add the missed link.
+DAMON usage document provides a list of available DAMON interfaces with
+brief introduction at the beginning of the doc.  The list is missing DAMON
+modules for special purposes, while it is one of the major suggested
+interfaces.  Add an item for those to the list.
 
-Link: https://lkml.kernel.org/r/20260118180305.70023-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260118180305.70023-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -87,19 +88,34 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/damon/usage.rst |    5 +++++
+ Documentation/mm/damon/design.rst            |    2 ++
+ 2 files changed, 7 insertions(+)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-add-reference-to-damon_stat-usage
-+++ a/Documentation/mm/damon/design.rst
-@@ -834,7 +834,7 @@ To support such cases, yet more DAMON AP
- simple and optimized user space interfaces are available.  Currently, two
- modules for proactive reclamation and LRU lists manipulation are provided.  For
- more detail, please read the usage documents for those
--(:doc:`/admin-guide/mm/damon/reclaim` and
-+(:doc:`/admin-guide/mm/damon/stat`, :doc:`/admin-guide/mm/damon/reclaim` and
- :doc:`/admin-guide/mm/damon/lru_sort`).
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -6,6 +6,11 @@ Detailed Usages
  
+ DAMON provides below interfaces for different users.
+ 
++- *Special-purpose DAMON modules.*
++  :ref:`This <damon_modules_special_purpose>` is for people who are building,
++  distributing, and/or administrating the kernel with special-purpose DAMON
++  usages.  Using this, users can use DAMON's major features for the given
++  purposes in build, boot, or runtime in simple ways.
+ - *DAMON user space tool.*
+   `This <https://github.com/damonitor/damo>`_ is for privileged people such as
+   system administrators who want a just-working human-friendly interface.
+--- a/Documentation/mm/damon/design.rst~docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning
++++ a/Documentation/mm/damon/design.rst
+@@ -817,6 +817,8 @@ available.  Please refer to the ABI :ref
+ the interfaces.
+ 
+ 
++.. _damon_modules_special_purpose:
++
+ Special-Purpose Access-aware Kernel Modules
+ -------------------------------------------
  
 _
 
