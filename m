@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC3194C6D
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 00:39:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A958500973
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 00:39:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768696784; cv=none; b=pIPKXFDm4PUGmMdWCN6FwIv4QhpIyz8JDag3cOuNri5GUSgfrVtbFo24HhHq8Sewispx3vJZPInCuykfrvD8lHl/GqiLAJn0x+UFW/6nMifQTE07BV4vm8w44EuyGHZFOzg5B32r34ZIh5eA1FNwEBin3VqyseXfsQ5mYj922CQ=
+	t=1768696787; cv=none; b=DEtRvfssjOVywmkMZEBxok3t5nGcRtSvbS0po2cgbs/ZBChQqItgKVYGAqr/QbGLa38c6HRBVQQ1yCEO5MsjRcZawZnJ55TiTceIKexQ3YqIZSQD1EvmH1cHj7ZCfEwymMrPi5Vo7rqoPhJjM0xHI342ZB/urupOTKZ9tlz/QKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768696784; c=relaxed/simple;
-	bh=hynWCQlOK1GPf7ArhlnN+uM1EYo72vKqSR7kqPeiYgI=;
-	h=Date:To:From:Subject:Message-Id; b=c2lPw/XTh7h3lygmUQ7uP+eSPt3oubedo+lEbGEDBumCDD3B8mzHhGDr0E6DWx4ukySOKe34w6w4lWlIxBXu5RWketSCDq/hdj27I3jZN3i7nYUiGe9m2VhhBc7RyJh7jECEGOYQFos3qghD55pPLnLuYgW8Z+DKBn+kzoFCrTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bm5K1SCV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768696787; c=relaxed/simple;
+	bh=G0l55eN9jC/AKZ2YdmktN8g1Xl8t8HboZeQEeCtbML8=;
+	h=Date:To:From:Subject:Message-Id; b=FYfXY4e1AbNmPsVVLHV+86BBnY0FgXMgY6AizDH0ydBQ1q+eMkhcBdmrDNqyScLETB8eVJacZt8mmYcRXpCTmxleG9rcLKcJuNS2vN7cX4u7bzPl5u6ygVR+pQsbirNt0afD0Av0SlT5dHTVopD3VClaX5Y/DBJzgd2ftovUrr4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qHOybZ7i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bm5K1SCV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 821A5C4CEF7;
-	Sun, 18 Jan 2026 00:39:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qHOybZ7i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C6B6C4CEF7;
+	Sun, 18 Jan 2026 00:39:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768696784;
-	bh=hynWCQlOK1GPf7ArhlnN+uM1EYo72vKqSR7kqPeiYgI=;
+	s=korg; t=1768696786;
+	bh=G0l55eN9jC/AKZ2YdmktN8g1Xl8t8HboZeQEeCtbML8=;
 	h=Date:To:From:Subject:From;
-	b=bm5K1SCVKtr3wjMehf1LaSwcDkgncYgj5Y1nx9nY4yaId2TfCE/iEFBRY7A8WKhrn
-	 EfMjYLgYTBE3CGzlo14DZ0wcM8NdCzvfWIihFXY8tkjODauEHNWexLMhfcbvwWEHFN
-	 E23EfbGVJM1x4VEdBtcLSSzsuIz4NZJIWXV5lRYA=
-Date: Sat, 17 Jan 2026 16:39:43 -0800
+	b=qHOybZ7inf+KDUcKZLadwCq7oYX38Aff62Meb4IrwoNLamvmAoPw1g3DM2DlF9oev
+	 gbNgrbsTtfHY+4TTs8V3EehBvJkc7PLWAr4vM+xlFNUmNZdlhUClPTM55cItyJrmuh
+	 nePfLsMnrW+lGVSB2mbPO8GC8tU6fyFbI9SU60EU=
+Date: Sat, 17 Jan 2026 16:39:45 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch added to mm-new branch
-Message-Id: <20260118003944.821A5C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch added to mm-new branch
+Message-Id: <20260118003946.8C6B6C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: cancel damos_walk() before damon_ctx->kdamond reset
+     Subject: mm/damon/core: process damon_call_control requests on a local list
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch
+     mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,49 +67,110 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: cancel damos_walk() before damon_ctx->kdamond reset
-Date: Sat, 17 Jan 2026 09:52:50 -0800
+Subject: mm/damon/core: process damon_call_control requests on a local list
+Date: Sat, 17 Jan 2026 09:52:51 -0800
 
-damos_walk() request is canceled after damon_ctx->kdamond is reset.  This
-can make weird situations where damon_is_running() returns false but the
-DAMON context has the damos_walk() request linked.  There was a similar
-situation for damon_call() requests handling [1], which _was_ able to
-cause a racy use-after-free bug.  Unlike the case of damon_call(), because
-damos_walk() is always synchronously handled and allows only single
-request at time, there is no such problematic race cases.  But, keeping it
-as is could stem another subtle race condition bug in future.
+kdamond_call() handles damon_call() requests on the ->call_controls list
+of damon_ctx, which is shared with damon_call() callers.  To protect the
+list from concurrent accesses while letting the callback function
+independent of the call_controls_lock, the function does complicated
+locking operations.  For each damon_call_control object on the list, the
+function removes the control object from the list under locking, invoke
+the callback of the control object without locking, and then puts the
+control object back to the list if needed, under locking.  It is
+complicated, and can contend the locks more frequently with other DAMON
+API caller threads as the number of concurrent callback requests
+increases.  Contention overhead is not a big deal, but the increased race
+opportunity can make headaches.
 
-Avoid that by cancelling the requests before the ->kdamond reset.  Note
-that this change also makes all damon_ctx dependent resource cleanups
-consistently done before the damon_ctx->kdamond reset.
+Simplify the locking sequence by moving all damon_call_control objects
+from the shared list to a local list at once under the single lock
+protection, processing the callback requests without locking, and adding
+back repeat mode controls to the shared list again at once again, again
+under the single lock protection.  This change makes the number of locking
+in kdamond_call() be always two, regardless of the number of the queued
+requests.
 
-Link: https://lkml.kernel.org/r/20260117175256.82826-4-sj@kernel.org
-Link: https://lore.kernel.org/20251230014532.47563-1-sj@kernel.org [1]
+Link: https://lkml.kernel.org/r/20260117175256.82826-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/damon/core.c |   59 ++++++++++++++++------------------------------
+ 1 file changed, 21 insertions(+), 38 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset
+--- a/mm/damon/core.c~mm-damon-core-process-damon_call_control-requests-on-a-local-list
 +++ a/mm/damon/core.c
-@@ -2856,14 +2856,13 @@ done:
- 
- 	kfree(ctx->regions_score_histogram);
- 	kdamond_call(ctx, true);
-+	damos_walk_cancel(ctx);
- 
- 	pr_debug("kdamond (%d) finishes\n", current->pid);
- 	mutex_lock(&ctx->kdamond_lock);
- 	ctx->kdamond = NULL;
- 	mutex_unlock(&ctx->kdamond_lock);
- 
--	damos_walk_cancel(ctx);
+@@ -2649,48 +2649,31 @@ static void kdamond_usleep(unsigned long
+  */
+ static void kdamond_call(struct damon_ctx *ctx, bool cancel)
+ {
+-	struct damon_call_control *control;
+-	LIST_HEAD(repeat_controls);
+-	int ret = 0;
 -
- 	mutex_lock(&damon_lock);
- 	nr_running_ctxs--;
- 	if (!nr_running_ctxs && running_exclusive_ctxs)
+-	while (true) {
+-		mutex_lock(&ctx->call_controls_lock);
+-		control = list_first_entry_or_null(&ctx->call_controls,
+-				struct damon_call_control, list);
+-		mutex_unlock(&ctx->call_controls_lock);
+-		if (!control)
+-			break;
+-		if (cancel) {
++	struct damon_call_control *control, *next;
++	LIST_HEAD(controls);
++
++	mutex_lock(&ctx->call_controls_lock);
++	list_splice_tail_init(&ctx->call_controls, &controls);
++	mutex_unlock(&ctx->call_controls_lock);
++
++	list_for_each_entry_safe(control, next, &controls, list) {
++		if (!control->repeat || cancel)
++			list_del(&control->list);
++
++		if (cancel)
+ 			control->canceled = true;
+-		} else {
+-			ret = control->fn(control->data);
+-			control->return_code = ret;
+-		}
+-		mutex_lock(&ctx->call_controls_lock);
+-		list_del(&control->list);
+-		mutex_unlock(&ctx->call_controls_lock);
+-		if (!control->repeat) {
++		else
++			control->return_code = control->fn(control->data);
++
++		if (!control->repeat)
+ 			complete(&control->completion);
+-		} else if (control->canceled && control->dealloc_on_cancel) {
++		else if (control->canceled && control->dealloc_on_cancel)
+ 			kfree(control);
+-			continue;
+-		} else {
+-			list_add(&control->list, &repeat_controls);
+-		}
+-	}
+-	while (true) {
+-		control = list_first_entry_or_null(&repeat_controls,
+-				struct damon_call_control, list);
+-		if (!control)
+-			break;
+-		/* Unlink from the repeate_controls list. */
+-		list_del(&control->list);
+-		if (cancel)
+-			continue;
+-		mutex_lock(&ctx->call_controls_lock);
+-		list_add(&control->list, &ctx->call_controls);
+-		mutex_unlock(&ctx->call_controls_lock);
+ 	}
++
++	mutex_lock(&ctx->call_controls_lock);
++	list_splice_tail(&controls, &ctx->call_controls);
++	mutex_unlock(&ctx->call_controls_lock);
+ }
+ 
+ /* Returns negative error code if it's not activated but should return */
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
