@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F22B2253EF
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 364592253EF
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 19:21:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768764092; cv=none; b=W4vL/VaWjNIADdKnQKPUmzzEy0jdmqraPLg8VGkxSqSZnBGVA9a967AGhjUT6G/McZqOSQn80zOzbyCLvpKnvU/FYHipYDXSbBKtWuFdzP4GlhGsPW2y8XuxO+FHLZDpkmV+xAJkCPIDtguP7iaFUBWKFvjrHSD04cWOaaSFkjc=
+	t=1768764094; cv=none; b=PeuOkPQij+6uCreXVJjPhsLIHIvHpxK3iZeAzNuyJYlnlQ3wOIwVm8eY07YFhqAD2bA12Znz3NyeFHIaTIR8wSXR2MuIONo2qUBdk9yHW4UYtBvI0bArW8kdF2s+AUDNF8xh9Rx0LEIaGg9wU9N4g85BH2YkHaUaU0a7vUlrlfM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768764092; c=relaxed/simple;
-	bh=fvPqirF5FD6CZ+lpdfe5a+lOdRCgkTz7Bee2Uj/hMjU=;
-	h=Date:To:From:Subject:Message-Id; b=bJJeI+VDwBmL/mZJD6us/voIFumM0HJFjF9JPTP40mJ3VPZv15NHe90QXjY9ZHpVQ67Z/FDOYBIJSez3/yAbQgzdQRjoOMohsZpK7AU8BLpmkQrrU1fIulshi4T8Da+NpzeNggs0xEMi16HfKYOuaL3stdT26JmkKHoPmw2Evn4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=12yauf56; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768764094; c=relaxed/simple;
+	bh=ScDfS6iWog4chO2fW9U2/3RMy5Uuqd06kyP/VpzRV9s=;
+	h=Date:To:From:Subject:Message-Id; b=COP1e2SIzEcUfCn4sh3OR1Ay1AUimdgxYgrEP8uwGDrvdsnSkOO+GNGBDeSa4IKW85BCRNkz9Xk+WIDD48tLXg0iViCmg1Gonda+rTniT2jLkl/Dt4E24uhl0HMnASAhHJON1dlRc34CC8fNk6SsVNYyVDs6a5fMAdnIdXJ5Elw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RMDG8ILu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="12yauf56"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C32D3C116D0;
-	Sun, 18 Jan 2026 19:21:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RMDG8ILu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCF03C116D0;
+	Sun, 18 Jan 2026 19:21:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768764091;
-	bh=fvPqirF5FD6CZ+lpdfe5a+lOdRCgkTz7Bee2Uj/hMjU=;
+	s=korg; t=1768764093;
+	bh=ScDfS6iWog4chO2fW9U2/3RMy5Uuqd06kyP/VpzRV9s=;
 	h=Date:To:From:Subject:From;
-	b=12yauf562abRZQgbSdyoRSJzivLb1945Qj4RMp9RjfR/fFgt7vURV8clAqxdoQVP9
-	 S9MR81rwD595wLKs0ClnpO+s28OeiujNSl9jMKBaU+VkoKk85bfYCic+1vUMk9ux7t
-	 AmsW+Qzz4mOQVwhH/9McnZLaXXhlgvMj7nrGqhzE=
-Date: Sun, 18 Jan 2026 11:21:31 -0800
+	b=RMDG8ILui65k8ssGJ1XqDcDLFK6o7zr1HGzS5Esk79ppoOJcE+BhtLyWM5VpptpUD
+	 5G3HbM20UGd7prqiuBn6RRGOjN61feUzchS5SFlOSqu8+ADozYx5xVqusDT4JgGeyL
+	 DAiS0vCgaOZ2/Rof33itt8tcDLNN9YAJdYCVYb0A=
+Date: Sun, 18 Jan 2026 11:21:33 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch added to mm-new branch
-Message-Id: <20260118192131.C32D3C116D0@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-remove-damon-tests-perf-suggestion.patch added to mm-new branch
+Message-Id: <20260118192133.BCF03C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/maintainer-profile: fix wrong MAITNAINERS section name
+     Subject: Docs/mm/damon/maintainer-profile: remove damon-tests/perf suggestion
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch
+     docs-mm-damon-maintainer-profile-remove-damon-tests-perf-suggestion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-remove-damon-tests-perf-suggestion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/maintainer-profile: fix wrong MAITNAINERS section name
-Date: Sun, 18 Jan 2026 10:02:58 -0800
+Subject: Docs/mm/damon/maintainer-profile: remove damon-tests/perf suggestion
+Date: Sun, 18 Jan 2026 10:02:59 -0800
 
-Commit 9044cbe50a70 ("MAINTAINERS: rename DAMON section") renamed the
-section for DAMON from "DATA ACCESS MONITOR" to "DAMON".  But the commit
-forgot updating the name on the maintainer-profile document.  Update.
+The DAMON performance tests [1] use PARSEC 3.0 as its major test
+workloads.  But the official web site for PARSEC 3.0 has gone, so there is
+no easy way to get the benchmark.  Mainly due to the fact, DAMON
+performance tests are difficult to run, and effectively broken.  Do not
+request running it for now.  Instead, suggest running any benchmarks or
+real world workloads that make sense for performance changes.
 
-Link: https://lkml.kernel.org/r/20260118180305.70023-8-sj@kernel.org
+[1] https://github.com/damonitor/damon-tests/tree/master/perf
+
+Link: https://lkml.kernel.org/r/20260118180305.70023-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -87,22 +92,21 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/maintainer-profile.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-remove-damon-tests-perf-suggestion
 +++ a/Documentation/mm/damon/maintainer-profile.rst
-@@ -3,8 +3,8 @@
- DAMON Maintainer Entry Profile
- ==============================
+@@ -48,8 +48,7 @@ Further doing below and putting the resu
+ - Run `damon-tests/corr
+   <https://github.com/damonitor/damon-tests/tree/master/corr>`_ for normal
+   changes.
+-- Run `damon-tests/perf
+-  <https://github.com/damonitor/damon-tests/tree/master/perf>`_ for performance
++- Measure impacts on benchmarks or real world workloads for performance
+   changes.
  
--The DAMON subsystem covers the files that are listed in 'DATA ACCESS MONITOR'
--section of 'MAINTAINERS' file.
-+The DAMON subsystem covers the files that are listed in 'DAMON' section of
-+'MAINTAINERS' file.
- 
- The mailing lists for the subsystem are damon@lists.linux.dev and
- linux-mm@kvack.org.  Patches should be made against the `mm-new tree
+ Key cycle dates
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
