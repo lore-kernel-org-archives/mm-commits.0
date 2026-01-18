@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67567212F98
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 20:16:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C72332FF14F
+	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 20:46:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768767372; cv=none; b=E1sI8z1PfXiMlBMzB3YB9WeKdgNh2uWfkzZkfhu5/VKHlTn3LladiUggolAu+Smn++h+QVcD7pT6nIj1tJML+IFi2em4w3Wz/mMmr1BQmLHis47X/EfBuYVCAbuLY7CMQ6AI7vJeR2uAAFUbwMTQ17XcfhRdajZqXlHf/3rvVYY=
+	t=1768769172; cv=none; b=q4hyM/yCrzMdttJbL/CD/uy97grMPeoPUKe5ANA953JvzBhh/tcyhlOf9sDBYZbmTmNsH/brCEydZnQDzQq1gRZM3r6rr3CoR46WDVOq/+x8YxsDrz/xObJR/fs/j+GO3qsdl/TVIxcjsJ+Dqird13IEjn3TAZ4PltmA+Ujt4VI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768767372; c=relaxed/simple;
-	bh=vbc+zHQTcPQFMEkP/FbfRnpGShnfAJLlD93BF7MTYP0=;
-	h=Date:To:From:Subject:Message-Id; b=ig3WIiMnFbhO/I+KrEVRa38a2XzET+OulB+LLKUh18rwtWtEn5WOn6TiX3DKCxFmC8R/mOEYlRVKtPJAm0k25+ZCwIjzY8ZhsSop8inz9VICQDfqKZngHKzdaAgUSfIesXHSNl65JB/sT6xQcUt1gIzBanwYg8dBlYLFJlsRaJ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KU/JZomF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768769172; c=relaxed/simple;
+	bh=gbRFFMkSCaFp/T+RcVA4+rG5hihs+5kI3t6jwT5hfdk=;
+	h=Date:To:From:Subject:Message-Id; b=lOTj3ixd8rZU6OdpXzFX4fGyZ9BTs4JZhnvSaPYWBTMrcOYi4KGsBl0khmaku3XqANGRcir+uAXS6PipwGQZbRUSWKzrGZsrGjx5cvfSVcLhp5Se00DN2FeLTuPAgpsVY9F+ZnvZIQuCx9efamIFr09F4YFlQK195zhpsdoEl0Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HGMoLrVR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KU/JZomF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2EE1C116D0;
-	Sun, 18 Jan 2026 20:16:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HGMoLrVR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52DC6C116D0;
+	Sun, 18 Jan 2026 20:46:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768767372;
-	bh=vbc+zHQTcPQFMEkP/FbfRnpGShnfAJLlD93BF7MTYP0=;
+	s=korg; t=1768769172;
+	bh=gbRFFMkSCaFp/T+RcVA4+rG5hihs+5kI3t6jwT5hfdk=;
 	h=Date:To:From:Subject:From;
-	b=KU/JZomFHHLgVQrUXpIM1qGY1qicvoQvcOf4BV3mXsN5vSdemVOxqT1TQndG4of9a
-	 ojt/P6MXaLwjP36xFjA9HTE2EtA0TgdSkveb4csZBQj8/N8ZN72/cNZdabaQchx65a
-	 Rej9txCQug5MkSoKKTnhozP5PxX4iqRFeTWkW+6I=
-Date: Sun, 18 Jan 2026 12:16:11 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,lianux.mm@gmail.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,Branden.Moore@amd.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,shivankg@amd.com,akpm@linux-foundation.org
+	b=HGMoLrVRJWF1cq7INFLPtW4ucScodhRzquxquf2EGD62UfL6Ksj9iWlfYsbudzV93
+	 1kTvZ8MOQoHYTy8Xj0ZP2n4DsgtaRQFqbO/FyczRXaOOgyiXmTJmaWIGgc8Ixea7yF
+	 cMVHWKnvidUfqcyEGEH3gdLS/BkP9WJJEqdjvQsI=
+Date: Sun, 18 Jan 2026 12:46:11 -0800
+To: mm-commits@vger.kernel.org,liam.howlett@oracle.com,andrewjballance@gmail.com,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-retry-with-sync-writeback-for-madv_collapse.patch added to mm-unstable branch
-Message-Id: <20260118201611.F2EE1C116D0@smtp.kernel.org>
+Subject: + maple_tree-update-mas_next-docs.patch added to mm-new branch
+Message-Id: <20260118204612.52DC6C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: retry with sync writeback for MADV_COLLAPSE
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-retry-with-sync-writeback-for-madv_collapse.patch
+     Subject: maple_tree: update mas_next[_range] docs
+has been added to the -mm mm-new branch.  Its filename is
+     maple_tree-update-mas_next-docs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-retry-with-sync-writeback-for-madv_collapse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-update-mas_next-docs.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,98 +66,64 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shivank Garg <shivankg@amd.com>
-Subject: mm/khugepaged: retry with sync writeback for MADV_COLLAPSE
-Date: Sun, 18 Jan 2026 19:09:43 +0000
+From: Alice Ryhl <aliceryhl@google.com>
+Subject: maple_tree: update mas_next[_range] docs
+Date: Sun, 18 Jan 2026 11:00:41 +0000
 
-When MADV_COLLAPSE is called on file-backed mappings (e.g., executable
-text sections), the pages may still be dirty from recent writes. 
-collapse_file() will trigger async writeback and fail with
-SCAN_PAGE_DIRTY_OR_WRITEBACK (-EAGAIN).
+If you read the docs, it sounds like the difference between these
+functions is whether mas->index and mas->last are updated.  However, if
+you read the implementation, you will instead find that the difference is
+whether NULL entries are skipped.
 
-MADV_COLLAPSE is a synchronous operation where userspace expects immediate
-results.  If the collapse fails due to dirty pages, perform synchronous
-writeback on the specific range and retry once.
-
-This avoids spurious failures for freshly written executables while
-avoiding unnecessary synchronous I/O for mappings that are already clean.
-
-Link: https://lkml.kernel.org/r/20260118190939.8986-7-shivankg@amd.com
-Signed-off-by: Shivank Garg <shivankg@amd.com>
-Reported-by: Branden Moore <Branden.Moore@amd.com>
-Closes: https://lore.kernel.org/all/4e26fe5e-7374-467c-a333-9dd48f85d7cc@amd.com
-Fixes: 34488399fa08 ("mm/madvise: add file and shmem support to MADV_COLLAPSE")
-Suggested-by: David Hildenbrand <david@kernel.org>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
+Link: https://lkml.kernel.org/r/20260118-mas-next-doc-v1-1-827d9f4924ce@google.com
+Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: wang lian <lianux.mm@gmail.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ lib/maple_tree.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-retry-with-sync-writeback-for-madv_collapse
-+++ a/mm/khugepaged.c
-@@ -22,6 +22,7 @@
- #include <linux/dax.h>
- #include <linux/ksm.h>
- #include <linux/pgalloc.h>
-+#include <linux/backing-dev.h>
+--- a/lib/maple_tree.c~maple_tree-update-mas_next-docs
++++ a/lib/maple_tree.c
+@@ -5293,13 +5293,14 @@ static bool mas_next_setup(struct ma_sta
+ }
  
- #include <asm/tlb.h>
- #include "internal.h"
-@@ -2788,7 +2789,9 @@ int madvise_collapse(struct vm_area_stru
+ /**
+- * mas_next() - Get the next entry.
++ * mas_next() - Advance the maple state to the next range, skipping zero entries.
+  * @mas: The maple state
+  * @max: The maximum index to check.
+  *
+  * Returns the next entry after @mas->index.
++ * Updates @mas->index and @mas->last to the range.
+  * Must hold rcu_read_lock or the write lock.
+- * Can return the zero entry.
++ * Skips entries reserved with XA_ZERO_ENTRY.
+  *
+  * Return: The next entry or %NULL
+  */
+@@ -5316,11 +5317,12 @@ void *mas_next(struct ma_state *mas, uns
+ EXPORT_SYMBOL_GPL(mas_next);
  
- 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
- 		int result = SCAN_FAIL;
-+		bool triggered_wb = false;
- 
-+retry:
- 		if (!mmap_locked) {
- 			cond_resched();
- 			mmap_read_lock(mm);
-@@ -2809,8 +2812,20 @@ int madvise_collapse(struct vm_area_stru
- 
- 			mmap_read_unlock(mm);
- 			mmap_locked = false;
-+			*lock_dropped = true;
- 			result = hpage_collapse_scan_file(mm, addr, file, pgoff,
- 							  cc);
-+
-+			if (result == SCAN_PAGE_DIRTY_OR_WRITEBACK && !triggered_wb &&
-+			    mapping_can_writeback(file->f_mapping)) {
-+				loff_t lstart = (loff_t)pgoff << PAGE_SHIFT;
-+				loff_t lend = lstart + HPAGE_PMD_SIZE - 1;
-+
-+				filemap_write_and_wait_range(file->f_mapping, lstart, lend);
-+				triggered_wb = true;
-+				fput(file);
-+				goto retry;
-+			}
- 			fput(file);
- 		} else {
- 			result = hpage_collapse_scan_pmd(mm, vma, addr,
+ /**
+- * mas_next_range() - Advance the maple state to the next range
++ * mas_next_range() - Advance the maple state to the next range.
+  * @mas: The maple state
+  * @max: The maximum index to check.
+  *
+- * Sets @mas->index and @mas->last to the range.
++ * Returns the next entry after @mas->index.
++ * Updates @mas->index and @mas->last to the range.
+  * Must hold rcu_read_lock or the write lock.
+  * Can return the zero entry.
+  *
 _
 
-Patches currently in -mm which might be from shivankg@amd.com are
+Patches currently in -mm which might be from aliceryhl@google.com are
 
-mm-khugepaged-map-dirty-writeback-pages-failures-to-eagain.patch
-mm-khugepaged-retry-with-sync-writeback-for-madv_collapse.patch
-mm-khugepaged-remove-unnecessary-goto-skip-label.patch
-mm-khugepaged-count-small-vmas-towards-scan-limit.patch
-mm-khugepaged-count-small-vmas-towards-scan-limit-fix.patch
-mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch
-mm-khugepaged-use-enum-scan_result-for-result-variables-and-return-types.patch
-mm-khugepaged-make-khugepaged_collapse_control-static.patch
+vmalloc-export-vrealloc_node_align_noprof.patch
+maple_tree-update-mas_next-docs.patch
+rust-task-restrict-task-group_leader-to-current.patch
 
