@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B85812DF145;
-	Mon, 19 Jan 2026 20:30:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF1827A13A
+	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 20:30:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768854650; cv=none; b=pjCBi+oUCgGLUCQvqxZF4FGhUjtTwI9QUphFAi8gPa/eM1/xgI1+OMW445Rp/daDqspUPJDeWNFFfZ1WCpPnCTgVwv/em49lci3WdXZPkZrDXEfjvjg8R1outCMuFyxMiW3nAoH29ERyyb29MN69u6fvutGue5HlrQiyuWzNhS8=
+	t=1768854651; cv=none; b=m4UlQIO5PQHk78RYpNwkY9hgkegn4FlMX56JhJ3G2JlJY5JoHfXmCEERjqUO2yFSambJtgolQN07CxcPIBLOyMoJAodIxVEGfx/AqJGAoy6ohRmHeqZWi6zn2Hsiq08bKHD3d15CrUSjb9MCPhtzIHTf/BVLZcyUHjEXrypdcfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768854650; c=relaxed/simple;
-	bh=sUwgmvI4ntMza+u4SuFxN6NDm1ntsxZb6alTj3zNto0=;
-	h=Date:To:From:Subject:Message-Id; b=oKjxiOCnx/RGAade1SAbvJNQ6XNt4JJruIbazw6BaWYzshUCkm8IPsZI+3zbDT17m68OC7SVMGL4TLzKlTmS3Bp8dDhl0yqgjfrnilQ90jqNs4VYZJPndes5PwZg6jjH/gzXu2QQGtiz7ws2UCxU+B3LjQnHFcx52FcTAqF/82s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VcVfl5kI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768854651; c=relaxed/simple;
+	bh=IpcVEI1zivvuz63sdGERn3CYq5fEnASQpAryWJ5FDqs=;
+	h=Date:To:From:Subject:Message-Id; b=IKRmNt+6a1XDWoPnWtBKz6qNHS/M2xuUs1N36c/lIVbKjwYvaxOCPQNffEOQjgkUOtxZ9Fn+XG9AdqIgjxoUvzPDQBHGi8y4B1PYcF5VkYAALJ2Z6LZ4CFVlj3YDh4T3TXiIAfLtcx2leA3VB8c1q7kT7bsuiv6Zbou1CmcG+wU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ukFBVi6/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VcVfl5kI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 482B6C116C6;
-	Mon, 19 Jan 2026 20:30:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ukFBVi6/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D33BC116C6;
+	Mon, 19 Jan 2026 20:30:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768854650;
-	bh=sUwgmvI4ntMza+u4SuFxN6NDm1ntsxZb6alTj3zNto0=;
+	s=korg; t=1768854651;
+	bh=IpcVEI1zivvuz63sdGERn3CYq5fEnASQpAryWJ5FDqs=;
 	h=Date:To:From:Subject:From;
-	b=VcVfl5kInvr8msHDs9I41LdLo3lBSZ+XG4MfVl0XHo9Rml/SeM7v18nwgfzAbHckF
-	 NamKRD7BOOWIWrfYta8ijIIBCDG2WZHOogwuGivn6pp0jvncVzVVg24zi3SkypZ95j
-	 yqTcVhYxesVQLjvHGq/JO9nGC2TB8CJhyZj4CmWw=
-Date: Mon, 19 Jan 2026 12:30:49 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,rakie.kim@sk.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
+	b=ukFBVi6/AQSg0jDyv6CUdkvEZpMzdmgwU9C+uz2sJXANEyYFg34cZt/Adh3xZxx/F
+	 ylehr+SrpkeC1rye+nc9ohWbQvKVvnUGEpGiEZ/MUcVbZwLrsHRDJWhwnCUpbXCPZ6
+	 GqgoGYV1YSV0cnuEtQSEcpABV0i8nmRlAwZZ+MdQ=
+Date: Mon, 19 Jan 2026 12:30:51 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,pfalcato@suse.de,liam.howlett@oracle.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] migrate-correct-lock-ordering-for-hugetlb-file-folios.patch removed from -mm tree
-Message-Id: <20260119203050.482B6C116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch removed from -mm tree
+Message-Id: <20260119203051.9D33BC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: migrate: correct lock ordering for hugetlb file folios
+     Subject: mm/vma: do not leak memory when .mmap_prepare swaps the file
 has been removed from the -mm tree.  Its filename was
-     migrate-correct-lock-ordering-for-hugetlb-file-folios.patch
+     mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: migrate: correct lock ordering for hugetlb file folios
-Date: Fri, 9 Jan 2026 04:13:42 +0000
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm/vma: do not leak memory when .mmap_prepare swaps the file
+Date: Mon, 12 Jan 2026 15:51:43 +0000
 
-Syzbot has found a deadlock (analyzed by Lance Yang):
+The current implementation of mmap() is set up such that a struct file
+object is obtained for the input fd in ksys_mmap_pgoff() via fget(), and
+its reference count decremented at the end of the function via.  fput().
 
-1) Task (5749): Holds folio_lock, then tries to acquire i_mmap_rwsem(read lock).
-2) Task (5754): Holds i_mmap_rwsem(write lock), then tries to acquire
-folio_lock.
+If a merge can be achieved, we are fine to simply decrement the refcount
+on the file.  Otherwise, in __mmap_new_file_vma(), we increment the
+reference count on the file via get_file() such that the fput() in
+ksys_mmap_pgoff() does not free the now-referenced file object.
 
-migrate_pages()
-  -> migrate_hugetlbs()
-    -> unmap_and_move_huge_page()     <- Takes folio_lock!
-      -> remove_migration_ptes()
-        -> __rmap_walk_file()
-          -> i_mmap_lock_read()       <- Waits for i_mmap_rwsem(read lock)!
+The introduction of the f_op->mmap_prepare hook changes things, as it
+becomes possible for a driver to replace the file object right at the
+beginning of the mmap operation.
 
-hugetlbfs_fallocate()
-  -> hugetlbfs_punch_hole()           <- Takes i_mmap_rwsem(write lock)!
-    -> hugetlbfs_zero_partial_page()
-     -> filemap_lock_hugetlb_folio()
-      -> filemap_lock_folio()
-        -> __filemap_get_folio        <- Waits for folio_lock!
+The current implementation is buggy if this happens because it
+unconditionally calls get_file() on the mapping's file whether or not it
+was replaced (and thus whether or not its reference count will be
+decremented at the end of ksys_mmap_pgoff()).
 
-The migration path is the one taking locks in the wrong order according to
-the documentation at the top of mm/rmap.c.  So expand the scope of the
-existing i_mmap_lock to cover the calls to remove_migration_ptes() too.
+This results in a memory leak, and was exposed in commit ab04945f91bc
+("mm: update mem char driver to use mmap_prepare").
 
-This is (mostly) how it used to be after commit c0d0381ade79.  That was
-removed by 336bf30eb765 for both file & anon hugetlb pages when it should
-only have been removed for anon hugetlb pages.
+This patch solves the problem by explicitly tracking whether we actually
+need to call get_file() on the file or not, and only doing so if required.
 
-Link: https://lkml.kernel.org/r/20260109041345.3863089-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Fixes: 336bf30eb765 ("hugetlbfs: fix anon huge page migration race")
-Reported-by: syzbot+2d9c96466c978346b55f@syzkaller.appspotmail.com
-Link: https://lore.kernel.org/all/68e9715a.050a0220.1186a4.000d.GAE@google.com
-Debugged-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
+Link: https://lkml.kernel.org/r/20260112155143.661284-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Fixes: ab04945f91bc ("mm: update mem char driver to use mmap_prepare")
+Reported-by: syzbot+bf5de69ebb4bdf86f59f@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/6964a92b.050a0220.eaf7.008a.GAE@google.com/
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jann Horn <jannh@google.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/vma.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/migrate.c~migrate-correct-lock-ordering-for-hugetlb-file-folios
-+++ a/mm/migrate.c
-@@ -1458,6 +1458,7 @@ static int unmap_and_move_huge_page(new_
- 	int page_was_mapped = 0;
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
-+	enum ttu_flags ttu = 0;
+--- a/mm/vma.c~mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file
++++ a/mm/vma.c
+@@ -37,6 +37,8 @@ struct mmap_state {
+ 	bool check_ksm_early :1;
+ 	/* If we map new, hold the file rmap lock on mapping. */
+ 	bool hold_file_rmap_lock :1;
++	/* If .mmap_prepare changed the file, we don't need to pin. */
++	bool file_doesnt_need_get :1;
+ };
  
- 	if (folio_ref_count(src) == 1) {
- 		/* page was freed from under us. So we are done. */
-@@ -1498,8 +1499,6 @@ static int unmap_and_move_huge_page(new_
- 		goto put_anon;
+ #define MMAP_STATE(name, mm_, vmi_, addr_, len_, pgoff_, vm_flags_, file_) \
+@@ -2450,7 +2452,9 @@ static int __mmap_new_file_vma(struct mm
+ 	struct vma_iterator *vmi = map->vmi;
+ 	int error;
  
- 	if (folio_mapped(src)) {
--		enum ttu_flags ttu = 0;
--
- 		if (!folio_test_anon(src)) {
- 			/*
- 			 * In shared mappings, try_to_unmap could potentially
-@@ -1516,16 +1515,17 @@ static int unmap_and_move_huge_page(new_
+-	vma->vm_file = get_file(map->file);
++	vma->vm_file = map->file;
++	if (!map->file_doesnt_need_get)
++		get_file(map->file);
  
- 		try_to_migrate(src, ttu);
- 		page_was_mapped = 1;
--
--		if (ttu & TTU_RMAP_LOCKED)
--			i_mmap_unlock_write(mapping);
- 	}
+ 	if (!map->file->f_op->mmap)
+ 		return 0;
+@@ -2638,7 +2642,10 @@ static int call_mmap_prepare(struct mmap
  
- 	if (!folio_mapped(src))
- 		rc = move_to_new_folio(dst, src, mode);
- 
- 	if (page_was_mapped)
--		remove_migration_ptes(src, !rc ? dst : src, 0);
-+		remove_migration_ptes(src, !rc ? dst : src,
-+				ttu ? RMP_LOCKED : 0);
-+
-+	if (ttu & TTU_RMAP_LOCKED)
-+		i_mmap_unlock_write(mapping);
- 
- unlock_put_anon:
- 	folio_unlock(dst);
+ 	/* Update fields permitted to be changed. */
+ 	map->pgoff = desc->pgoff;
+-	map->file = desc->vm_file;
++	if (desc->vm_file != map->file) {
++		map->file_doesnt_need_get = true;
++		map->file = desc->vm_file;
++	}
+ 	map->vm_flags = desc->vm_flags;
+ 	map->page_prot = desc->page_prot;
+ 	/* User-defined fields. */
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-migrate-replace-rmp_-flags-with-ttu_-flags.patch
+mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
+mm-rmap-eliminate-partial-anon_vma-tear-down-in-anon_vma_fork.patch
+mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
+mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
+mm-rmap-remove-anon_vma_merge-function.patch
+mm-rmap-make-anon_vma-functions-internal.patch
+mm-mmap_lock-add-vma_is_attached-helper.patch
+mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
+mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
+locking-add-rwsem_is_write_locked-update-non-lockdep-asserts.patch
+mm-vma-add-vma_is__locked-helpers.patch
+mm-add-use-vma_is_stabilised-vma_assert_stabilised-helpers.patch
+selftests-mm-remove-virtual_address_range-test.patch
 
