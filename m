@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21AEC2727EE
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 20:27:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBF15275B05;
+	Mon, 19 Jan 2026 20:30:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768854448; cv=none; b=bbyKUgpAElVk1hVqL77l8xt5K4D8Ffjcaoo8PMBOqdHEuXygwW77xnfMvYO+v0TKaKitvPLG70xcdJ4BSVF09nwhzs8DZGPJNO1iBJFkV7Up6D1v70wzTNaaFjjNQwjsuBt4MGAs8SGY3+LbYczBCWJkyDBwFcQePUi/TRrbz5E=
+	t=1768854641; cv=none; b=GH1r/I9Q6bJkGOXK5lfqMSu88AEvQYdGMfep+ItrsV6DRBgBTmRmKl9mt84u2fLtyZ17AaLPdq1MkUznUV7mM7NsDBBTxTm7lN9uFz2gaHX9+VpRjFs+3jf/AQxtAGF6tfzE2uPNFSh1uDW4aDmvR9uZG5kNam4nRc8WD9ShpY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768854448; c=relaxed/simple;
-	bh=Iw0zU+aLY9Qh6T4y74UQ3x7zrwyhSzreCueeSWsBXHU=;
-	h=Date:To:From:Subject:Message-Id; b=jhkls52xVbptxkTlqIz/xhiL5SwD3VkgV5K7BVY/geIb0Y8mn+L0KCDLTxAXNvk8Kx6C/Jsi3uOjbbjyobE3iOCleGa7hSv0XqiLXPm5TacUAfpjTl6K9GhasvQIpaEU6qeoQeJIwRMHX4kOIXeR8ri90IpInKjsXCdMPJPzhq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ClyqvW1S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768854641; c=relaxed/simple;
+	bh=HFEHCiRDel003sUznNZA/cm9bXQgeWOcSJWPoEYFNAM=;
+	h=Date:To:From:Subject:Message-Id; b=idzJElFCJ79Va5dlA71keUXlLUxOgv8ur2gFE9y91o61DUpb239CFQmL41WDMdD4KHIwsHToW1O0S6vlr0plyeWoKJ6h/BWOV4Ti20UlOZgKyQZ2ZyujN2UPrhFRBI5/RGULiksM6NEvFptS/d6T0N7QuOp5D67pMv9l7Rfk4D4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HXYWR4Ad; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ClyqvW1S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA5DFC116C6;
-	Mon, 19 Jan 2026 20:27:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HXYWR4Ad"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43672C116C6;
+	Mon, 19 Jan 2026 20:30:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768854447;
-	bh=Iw0zU+aLY9Qh6T4y74UQ3x7zrwyhSzreCueeSWsBXHU=;
+	s=korg; t=1768854641;
+	bh=HFEHCiRDel003sUznNZA/cm9bXQgeWOcSJWPoEYFNAM=;
 	h=Date:To:From:Subject:From;
-	b=ClyqvW1SRvq9cSqXkvCdX9loo6ddLRWs6AqYB333G3rx+GyR+hbNO4Su2ZfoMerDY
-	 a5jjLiHcHuDP6bDopSvNEWBIXv29sPMvQePXEr7WC26pnXekRCLBlS3tqL5JK68FqA
-	 aE5+rXhOsWC4rPluDi4nZJ03mwu16yBZucxPcNmI=
-Date: Mon, 19 Jan 2026 12:27:27 -0800
-To: mm-commits@vger.kernel.org,suschako@amazon.de,riel@surriel.com,osalvador@suse.de,lorenzo.stoakes@oracle.com,loberman@redhat.com,liushixin2@huawei.com,lance.yang@linux.dev,harry.yoo@oracle.com,david@kernel.org,akpm@linux-foundation.org
+	b=HXYWR4AdFtRPP1C2n8LX5reuTx4+hdD/4l6b6w85ZU8UkMo0m2zkb6Iamky7Qa8GA
+	 zyGkfHYgmZEVahoI9uqMAPxCmzO8n0B05co789I64tqGqGbjxWmrkQg3vDgOuSjnR6
+	 zrqUmC3xWngsN4aotMgjO8uqqmb8lVP12Txs3mI4=
+Date: Mon, 19 Jan 2026 12:30:40 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,tglx@kernel.org,sweettea-kernel@dorminy.me,surenb@google.com,stable@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,peterz@infradead.org,paulmck@kernel.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,christian.koenig@amd.com,broonie@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather-fix.patch removed from -mm tree
-Message-Id: <20260119202727.AA5DFC116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch removed from -mm tree
+Message-Id: <20260119203041.43672C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather-fix
+     Subject: mm: add missing static initializer for init_mm::mm_cid.lock
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather-fix.patch
+     mm-add-missing-static-initializer-for-init_mm-mm_cidlock.patch
 
-This patch was dropped because it was folded into mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather-fix
-Date: Thu, 25 Dec 2025 10:41:55 +0100
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: mm: add missing static initializer for init_mm::mm_cid.lock
+Date: Wed, 24 Dec 2025 12:33:56 -0500
 
-fix kerneldoc
+Initialize the mm_cid.lock struct member of init_mm.
 
-Link: https://lkml.kernel.org/r/f223dd74-331c-412d-93fc-69e360a5006c@kernel.org
-Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Laurence Oberman <loberman@redhat.com>
-Cc: Liu Shixin <liushixin2@huawei.com>
+Link: https://lkml.kernel.org/r/20251224173358.647691-2-mathieu.desnoyers@efficios.com
+Fixes: 8cea569ca785 ("sched/mmcid: Use proper data structures")
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Reviewed-by: Thomas Gleixner <tglx@kernel.org>
+Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Christan König <christian.koenig@amd.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Liam R . Howlett" <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Uschakow, Stanislav" <suschako@amazon.de>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Martin Liu <liumartin@google.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_gather.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/init-mm.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/mmu_gather.c~mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather-fix
-+++ a/mm/mmu_gather.c
-@@ -462,8 +462,8 @@ void tlb_gather_mmu_fullmm(struct mmu_ga
- }
- 
- /**
-- * tlb_gather_mmu - initialize an mmu_gather structure for operating on a single
-- *		    VMA
-+ * tlb_gather_mmu_vma - initialize an mmu_gather structure for operating on a
-+ *			single VMA
-  * @tlb: the mmu_gather structure to initialize
-  * @vma: the vm_area_struct
-  *
+--- a/mm/init-mm.c~mm-add-missing-static-initializer-for-init_mm-mm_cidlock
++++ a/mm/init-mm.c
+@@ -44,6 +44,9 @@ struct mm_struct init_mm = {
+ 	.mm_lock_seq	= SEQCNT_ZERO(init_mm.mm_lock_seq),
+ #endif
+ 	.user_ns	= &init_user_ns,
++#ifdef CONFIG_SCHED_MM_CID
++	.mm_cid.lock = __RAW_SPIN_LOCK_UNLOCKED(init_mm.mm_cid.lock),
++#endif
+ 	.cpu_bitmap	= CPU_BITS_NONE,
+ 	INIT_MM_CONTEXT(init_mm)
+ };
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
-mm-hugetlb-fix-hugetlb_pmd_shared.patch
-mm-hugetlb-fix-two-comments-related-to-huge_pmd_unshare.patch
-mm-rmap-fix-two-comments-related-to-huge_pmd_unshare.patch
-mm-hugetlb-fix-excessive-ipi-broadcasts-when-unsharing-pmd-tables-using-mmu_gather.patch
-vmw_balloon-adjust-balloon_deflate-when-deflating-while-migrating.patch
-vmw_balloon-remove-vmballoon_compaction_init.patch
-powerpc-pseries-cmm-remove-cmm_balloon_compaction_init.patch
-mm-balloon_compaction-centralize-basic-page-migration-handling.patch
-mm-balloon_compaction-centralize-adjust_managed_page_count-handling.patch
-vmw_balloon-stop-using-the-balloon_dev_info-lock.patch
-mm-balloon_compaction-use-a-device-independent-balloon-list-lock.patch
-mm-balloon_compaction-remove-dependency-on-page-lock.patch
-mm-balloon_compaction-make-balloon_mops-static.patch
-mm-balloon_compaction-drop-fsh-include-from-balloon_compactionh.patch
-drivers-virtio-virtio_balloon-stop-using-balloon_page_push-pop.patch
-mm-balloon_compaction-remove-balloon_page_push-pop.patch
-mm-balloon_compaction-fold-balloon_mapping_gfp_mask-into-balloon_page_alloc.patch
-mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc.patch
-mm-balloon_compaction-assert-that-the-balloon_pages_lock-is-held.patch
-mm-balloon_compaction-mark-remaining-functions-for-having-proper-kerneldoc.patch
-mm-balloon_compaction-remove-extern-from-functions.patch
-mm-vmscan-drop-inclusion-of-balloon_compactionh.patch
-mm-rename-balloon_compactionch-to-balloonch.patch
-mm-kconfig-make-balloon_compaction-depend-on-migration.patch
-mm-rename-config_balloon_compaction-to-config_balloon_migration.patch
-mm-rename-config_memory_balloon-config_balloon.patch
-maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon.patch
-maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon-fix.patch
+tsacct-skip-all-kernel-threads.patch
+mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
 
