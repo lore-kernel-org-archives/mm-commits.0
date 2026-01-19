@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 729D02DD60E
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 20:31:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7296D29B8E1
+	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 20:31:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768854668; cv=none; b=Y7fZslasFE7VP6B67t9L6x90RBTnnmWz04Ti39kPHW9rRnsNoFEG+64sXrFq9/FyalN96GuvfdBzv1vkGeYp+n8Yam+AQtJ8WLELyFJrVTvbTZmVrCi8Sijc8XmSeUkhFPe9HHDHpWby1Uncj04Mih7G088CDs6oaZ5tcsttl9I=
+	t=1768854668; cv=none; b=XW2IUERPKaWAyp2YsI58I1SMEDEv1vIbDJEDZDxmyMCtXg1ZV3gl+e+kItkEjP533KP2zueI/YEAxOIgbWufprcMAJS72Ax4vkQ8VTgpwSSVt+QXdb29gF43PLjYR/59tFOVpNArsoInCiCsxbFTtq5/jqGrKvJsPCsIzGmW3K0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1768854668; c=relaxed/simple;
-	bh=PW9wCKH36pwi2ev2DMTGwN+HAAAqjkhwHATkTuZw8VI=;
-	h=Date:To:From:Subject:Message-Id; b=e9Anz7G8KrTu7E8J6kRvDaBy+5i1fPcLEafNTU7Pt19BM1BTXcbGyBbCN24eiU2byBTyirK/PtP+M9M2OwozgRDrtZJ4lQG4N6LPMU92AwjcUT4VL2Dse7gUdx9w5U8+3iljoI+O8o/hGDF7B0uSdW8bot6ybbEtYWk52Czhm2o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mUpMF4g9; arc=none smtp.client-ip=10.30.226.201
+	bh=WaP6lq/ac3jMdOpZ6Kc9LqkmtvqQ+nT45gDT7I0wLc4=;
+	h=Date:To:From:Subject:Message-Id; b=dMZcpVNIRruqA1qYzZGjUyj8YYnhZc7yu5AHQEs33Q9s9Eff4TAut6Y0Tj6hxFfTLBPk4BA5RwYh0KdQaz4xLZlH6fFSGKCLh0GWROf/jteRkM0ywktzMA8ZewfptuQ1OiIRAQpRpvRqaq8bJOA7J8NW7zUplrXPGfbx8hbzCWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vHhj9Wst; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mUpMF4g9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D19A0C116C6;
-	Mon, 19 Jan 2026 20:31:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vHhj9Wst"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 150F6C19424;
+	Mon, 19 Jan 2026 20:31:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768854666;
-	bh=PW9wCKH36pwi2ev2DMTGwN+HAAAqjkhwHATkTuZw8VI=;
+	s=korg; t=1768854668;
+	bh=WaP6lq/ac3jMdOpZ6Kc9LqkmtvqQ+nT45gDT7I0wLc4=;
 	h=Date:To:From:Subject:From;
-	b=mUpMF4g9wtpLv/prbDOdNiGW3h6j2uaiioPWvNMCq/PiFz0MMEhj1wrisrGvMbpe+
-	 tIBUv0wyjJX9EIwpN6UX+mLHMzrNMBByPLp49nQ3Qv8m+7zbj6NyWRhU5PAw0wAjS0
-	 ean8AIT8lgdZeVeOyTmRaDlsDkJz8LjArs808xBQ=
-Date: Mon, 19 Jan 2026 12:31:06 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,sj@kernel.org,ran.xiaokai@zte.com.cn,kent.overstreet@linux.dev,corbet@lwn.net,akpm@linux-foundation.org,surenb@google.com,akpm@linux-foundation.org
+	b=vHhj9Wst5UFQ/caU7DaHo6M26wYAuMO+ZrZeGIvTMM2KXe3SYdBuneba/0sov6a42
+	 +w2MrqfP26oVwozhtn8wYL55oLJJJ8uf/LRFLjt/RU8hkkFI+nfDaimh2+HxSgBJL4
+	 Q/eWHP1XOljC9fz6e82VzM9izUr73O9VzPpctfyE=
+Date: Mon, 19 Jan 2026 12:31:07 -0800
+To: mm-commits@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,clm@meta.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode.patch removed from -mm tree
-Message-Id: <20260119203106.D19A0C116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kfence-fix-potential-deadlock-in-reboot-notifier.patch removed from -mm tree
+Message-Id: <20260119203108.150F6C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/allocation-profiling: describe sysctrl limitations in debug mode
+     Subject: mm/kfence: fix potential deadlock in reboot notifier
 has been removed from the -mm tree.  Its filename was
-     docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode.patch
+     mm-kfence-fix-potential-deadlock-in-reboot-notifier.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: Docs/mm/allocation-profiling: describe sysctrl limitations in debug mode
-Date: Fri, 16 Jan 2026 10:44:23 -0800
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/kfence: fix potential deadlock in reboot notifier
+Date: Fri, 16 Jan 2026 06:10:11 -0800
 
-When CONFIG_MEM_ALLOC_PROFILING_DEBUG=y, /proc/sys/vm/mem_profiling is
-read-only to avoid debug warnings in a scenario when an allocation is
-made while profiling is disabled (allocation does not get an allocation
-tag), then profiling gets enabled and allocation gets freed (warning due
-to the allocation missing allocation tag).
+The reboot notifier callback can deadlock when calling
+cancel_delayed_work_sync() if toggle_allocation_gate() is blocked in
+wait_event_idle() waiting for allocations, that might not happen on
+shutdown path.
 
-Link: https://lkml.kernel.org/r/20260116184423.2708363-1-surenb@google.com
-Fixes: ebdf9ad4ca98 ("memprofiling: documentation")
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Cc: SeongJae Park <sj@kernel.org>
+The issue is that cancel_delayed_work_sync() waits for the work to
+complete, but the work is waiting for kfence_allocation_gate > 0 which
+requires allocations to happen (each allocation is increased by 1) -
+allocations that may have stopped during shutdown.
+
+Fix this by:
+1. Using cancel_delayed_work() (non-sync) to avoid blocking. Now the
+   callback succeeds and return.
+2. Adding wake_up() to unblock any waiting toggle_allocation_gate()
+3. Adding !kfence_enabled to the wait condition so the wake succeeds
+
+The static_branch_disable() IPI will still execute after the wake, but at
+this early point in shutdown (reboot notifier runs with INT_MAX priority),
+the system is still functional and CPUs can respond to IPIs.
+
+Link: https://lkml.kernel.org/r/20260116-kfence_fix-v1-1-4165a055933f@debian.org
+Fixes: ce2bba89566b ("mm/kfence: add reboot notifier to disable KFENCE on shutdown")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reported-by: Chris Mason <clm@meta.com>
+Closes: https://lore.kernel.org/all/20260113140234.677117-1-clm@meta.com/
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Chris Mason <clm@meta.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst   |    4 ++++
- Documentation/mm/allocation-profiling.rst |   10 ++++++++++
- 2 files changed, 14 insertions(+)
+ mm/kfence/core.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -494,6 +494,10 @@ memory allocations.
+--- a/mm/kfence/core.c~mm-kfence-fix-potential-deadlock-in-reboot-notifier
++++ a/mm/kfence/core.c
+@@ -823,6 +823,9 @@ static struct notifier_block kfence_chec
+ static struct delayed_work kfence_timer;
  
- The default value depends on CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT.
+ #ifdef CONFIG_KFENCE_STATIC_KEYS
++/* Wait queue to wake up allocation-gate timer task. */
++static DECLARE_WAIT_QUEUE_HEAD(allocation_wait);
++
+ static int kfence_reboot_callback(struct notifier_block *nb,
+ 				  unsigned long action, void *data)
+ {
+@@ -832,7 +835,12 @@ static int kfence_reboot_callback(struct
+ 	 */
+ 	WRITE_ONCE(kfence_enabled, false);
+ 	/* Cancel any pending timer work */
+-	cancel_delayed_work_sync(&kfence_timer);
++	cancel_delayed_work(&kfence_timer);
++	/*
++	 * Wake up any blocked toggle_allocation_gate() so it can complete
++	 * early while the system is still able to handle IPIs.
++	 */
++	wake_up(&allocation_wait);
  
-+When CONFIG_MEM_ALLOC_PROFILING_DEBUG=y, this control is read-only to avoid
-+warnings produced by allocations made while profiling is disabled and freed
-+when it's enabled.
-+
+ 	return NOTIFY_OK;
+ }
+@@ -842,9 +850,6 @@ static struct notifier_block kfence_rebo
+ 	.priority = INT_MAX, /* Run early to stop timers ASAP */
+ };
  
- memory_failure_early_kill
- =========================
---- a/Documentation/mm/allocation-profiling.rst~docs-mm-allocation-profiling-describe-sysctrl-limitations-in-debug-mode
-+++ a/Documentation/mm/allocation-profiling.rst
-@@ -33,6 +33,16 @@ Boot parameter:
- sysctl:
-   /proc/sys/vm/mem_profiling
+-/* Wait queue to wake up allocation-gate timer task. */
+-static DECLARE_WAIT_QUEUE_HEAD(allocation_wait);
+-
+ static void wake_up_kfence_timer(struct irq_work *work)
+ {
+ 	wake_up(&allocation_wait);
+@@ -873,7 +878,9 @@ static void toggle_allocation_gate(struc
+ 	/* Enable static key, and await allocation to happen. */
+ 	static_branch_enable(&kfence_allocation_key);
  
-+  1: Enable memory profiling.
-+
-+  0: Disable memory profiling.
-+
-+  The default value depends on CONFIG_MEM_ALLOC_PROFILING_ENABLED_BY_DEFAULT.
-+
-+  When CONFIG_MEM_ALLOC_PROFILING_DEBUG=y, this control is read-only to avoid
-+  warnings produced by allocations made while profiling is disabled and freed
-+  when it's enabled.
-+
- Runtime info:
-   /proc/allocinfo
+-	wait_event_idle(allocation_wait, atomic_read(&kfence_allocation_gate) > 0);
++	wait_event_idle(allocation_wait,
++			atomic_read(&kfence_allocation_gate) > 0 ||
++			!READ_ONCE(kfence_enabled));
  
+ 	/* Disable static key and reset timer. */
+ 	static_branch_disable(&kfence_allocation_key);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
 
