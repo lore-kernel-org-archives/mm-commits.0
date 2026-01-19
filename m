@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8D0324BD03
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 18:47:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC28A27E7F0
+	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 19:34:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768848441; cv=none; b=QFfnan7ScacwruE2ZJZiTQ92e3QDWlVX+bfbHz394DRiDrxBrBiC+4XLfUOs0BVASBLiHm9aiiMtpkDGWMa2xnNXT881KEtCy1KIASXayhEiMKzOkEJOWe+GMar+YjN9vZC6ToxjBMBVic4ADSfulgZ3zwV/ik7VnutFjrlOfbU=
+	t=1768851249; cv=none; b=cjD/g7d+4cs9cOOdCbQVHVPabBzAYy1QvBnestwrY0ukeiZuuzE9tGKAQKO6EX9Yao+q9yLrYv0o8rBeyuXkZYnELodQIZRP4/PePAiQUkzAMKZsT8M00oPUsK41on3EVozeTOjuMi5nkmFrwLlHlK7NK8+wL1LbChgPixe8mOs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768848441; c=relaxed/simple;
-	bh=b5aMxOPOrdgtJTs8aIncsus0y1detK0J94QqVkzdp64=;
-	h=Date:To:From:Subject:Message-Id; b=QKEbkK8/vgcAOQzT+b90K3d4n7BQYsyHa3/RMMysp3wgk8rCR6mb9rbW1JnpBCc+QgDgZjqAtxaHhGY6eCfI0fjp1sGT4ZbpktftQPjjD/Qz9034532uQXNmcljivpYAbwn8FFLFj5KGkyRfL6ykkUTtugPc9bfQ+hQDFEGLzp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ApRFyb9D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768851249; c=relaxed/simple;
+	bh=zzdobDahE7Fy1JqtTx4Rh0SHeECx9+0weXX1jKDLHcY=;
+	h=Date:To:From:Subject:Message-Id; b=ojsmBRCKoeuALeUs+NB+gn8evAqtzjOP/NREcSsSr1C9Astjng/lOopvtuSzDPX4Gf42HdxQfl+V2QNUsg8KxUzhbHlPnLQChllh4Rz9ZA1o0b4nlEMLI7gwrVKf7C0UScXiS/uUufcGPuGYvEF7jaw58EXNOgyAgHNG4lifmfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UC3GWRbT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ApRFyb9D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85CE6C116C6;
-	Mon, 19 Jan 2026 18:47:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UC3GWRbT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 538F8C116C6;
+	Mon, 19 Jan 2026 19:34:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768848440;
-	bh=b5aMxOPOrdgtJTs8aIncsus0y1detK0J94QqVkzdp64=;
+	s=korg; t=1768851249;
+	bh=zzdobDahE7Fy1JqtTx4Rh0SHeECx9+0weXX1jKDLHcY=;
 	h=Date:To:From:Subject:From;
-	b=ApRFyb9Dsd4ujrIWPTQOeKnVn8mR4X8PMjoa1r83vjUNdCYM++MxF4TbhQv7DNrB2
-	 sZEXXrpPaTN+YPGN0C6y05Ph/tlW7xYVD31Z7iqTfO55rStUAj90DYqexS6vy5m9Df
-	 3sBijiRvicBM8b9moPlu7OSZmXlnPFqi4OLBTpCM=
-Date: Mon, 19 Jan 2026 10:47:19 -0800
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,fan.yu9@zte.com.cn,corbet@lwn.net,wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=UC3GWRbT2IF5wX25R3ScjeR4cTJ/I80HLRrpgdUNtnSUXAzKoiQMXBYPOy7mfTG+G
+	 QE8c84wxCp3hiyIcsjPJ+kB+hFzbPHdaFTrL8JkYYM7qdjXYBZKKnIdiGSOSiE/O95
+	 Aro0Nh8hg/a3NcJikPPLiBodnUWM3mYkVh614ozo=
+Date: Mon, 19 Jan 2026 11:34:08 -0800
+To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delayacct-add-timestamp-of-delay-max.patch added to mm-nonmm-unstable branch
-Message-Id: <20260119184720.85CE6C116C6@smtp.kernel.org>
+Subject: + mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag.patch added to mm-new branch
+Message-Id: <20260119193409.538F8C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: delayacct: add timestamp of delay max
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delayacct-add-timestamp-of-delay-max.patch
+     Subject: mm: rename vma_flag_test/set_atomic() to vma_test/set_atomic_flag()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-add-timestamp-of-delay-max.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,564 +66,248 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: delayacct: add timestamp of delay max
-Date: Mon, 19 Jan 2026 10:02:41 +0800 (CST)
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: mm: rename vma_flag_test/set_atomic() to vma_test/set_atomic_flag()
+Date: Mon, 19 Jan 2026 14:48:52 +0000
 
-Problem
-=======
-Commit 658eb5ab916d ("delayacct: add delay max to record delay peak")
-introduced the delay max for getdelays, which records abnormal latency
-peaks and helps us understand the magnitude of such delays.  However, the
-peak latency value alone is insufficient for effective root cause
-analysis.  Without the precise timestamp of when the peak occurred, we
-still lack the critical context needed to correlate it with other system
-events.
+Patch series "mm: add bitmap VMA flag helpers and convert all mmap_prepare
+to use them".
 
-Solution
-========
-To address this, we need to additionally record a precise timestamp when
-the maximum latency occurs.  By correlating this timestamp with system
-logs and monitoring metrics, we can identify processes with abnormal
-resource usage at the same moment, which can help us to pinpoint root
-causes.
+We introduced the bitmap VMA type vma_flags_t in the aptly named commit
+9ea35a25d51b ("mm: introduce VMA flags bitmap type") in order to permit
+future growth in VMA flags and to prevent the asinine requirement that VMA
+flags be available to 64-bit kernels only if they happened to use a bit
+number about 32-bits.
 
-Use Case
-========
-bash-4.4# ./getdelays -d -t 227
-print delayacct stats ON
-TGID    227
-CPU         count     real total  virtual total    delay total  delay average      delay max      delay min      delay max timestamp
-               46      188000000      192348334        4098012          0.089ms     0.429260ms     0.051205ms    2026-01-15T15:06:58
-IO          count    delay total  delay average      delay max      delay min      delay max timestamp
-                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-SWAP        count    delay total  delay average      delay max      delay min      delay max timestamp
-                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-RECLAIM     count    delay total  delay average      delay max      delay min      delay max timestamp
-                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-THRAS HING   count    delay total  delay average      delay max      delay min      delay max timestamp
-                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-COMPACT     count    delay total  delay average      delay max      delay min      delay max timestamp
-                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-WPCOPY      count    delay total  delay average      delay max      delay min      delay max timestamp
-              182       19413338          0.107ms     0.547353ms     0.022462ms    2026-01-15T15:05:24
-IRQ         count    delay total  delay average      delay max      delay min      delay max timestamp
-                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
+This is a long-term project as there are very many users of VMA flags
+within the kernel that need to be updated in order to utilise this new
+type.
 
-Link: https://lkml.kernel.org/r/20260119100241520gWubW8-5QfhSf9gjqcc_E@zte.com.cn
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+In order to further this aim, this series adds a number of helper functions
+to enable ordinary interactions with VMA flags - that is testing, setting
+and clearing them.
+
+In order to make working with VMA bit numbers less cumbersome this series
+introduces the mk_vma_flags() helper macro which generates a vma_flags_t
+from a variadic parameter list, e.g.:
+
+	vma_flags_t flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
+					 VMA_EXEC_BIT);
+
+It turns out that the compiler optimises this very well to the point that
+this is just as efficient as using VM_xxx pre-computed bitmap values.
+
+This series then introduces the following functions:
+
+	bool vma_flags_test_mask(vma_flags_t flags, vma_flags_t to_test);
+	bool vma_flags_test_all_mask(vma_flags_t flags, vma_flags_t to_test);
+	void vma_flags_set_mask(vma_flags_t *flags, vma_flags_t to_set);
+	void vma_flags_clear_mask(vma_flags_t *flags, vma_flags_t to_clear);
+
+Providing means of testing, setting, and clearing a specific vma_flags_t
+mask.
+
+For convenience, helper macros are provided - vma_flags_test(),
+vma_flags_set() and vma_flags_clear(), each of which utilise mk_vma_flags()
+to make these operations easier, as well as an EMPTY_VMA_FLAGS macro to
+make initialisation of an empty vma_flags_t value easier, e.g.:
+
+	vma_flags_t flags = EMPTY_VMA_FLAGS;
+
+	vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
+	...
+	if (vma_flags_test(flags, VMA_READ_BIT)) {
+		...
+	}
+	...
+	if (vma_flags_test_all_mask(flags, VMA_REMAP_FLAGS)) {
+		...
+	}
+	...
+	vma_flags_clear(&flags, VMA_READ_BIT);
+
+Since callers are often dealing with a vm_area_struct (VMA) or vm_area_desc
+(VMA descriptor as used in .mmap_prepare) object, this series further
+provides helpers for these - firstly vma_set_flags_mask() and vma_set_flags() for a
+VMA:
+
+	vma_flags_t flags = EMPTY_VMA_FLAGS:
+
+	vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
+	...
+	vma_set_flags_mask(&vma, flags);
+	...
+	vma_set_flags(&vma, VMA_DONTDUMP_BIT);
+
+Note that these do NOT ensure appropriate locks are taken and assume the
+callers takes care of this.
+
+For VMA descriptors this series adds vma_desc_[test, set,
+clear]_flags_mask() and vma_desc_[test, set, clear]_flags() for a VMA
+descriptor, e.g.:
+
+	static int foo_mmap_prepare(struct vm_area_desc *desc)
+	{
+		...
+		vma_desc_set_flags(desc, VMA_SEQ_READ_BIT);
+		vma_desc_clear_flags(desc, VMA_RAND_READ_BIT);
+		...
+		if (vma_desc_test_flags(desc, VMA_SHARED_BIT) {
+			...
+		}
+		...
+	}
+
+With these helpers introduced, this series then updates all mmap_prepare
+users to make use of the vma_flags_t vm_area_desc->vma_flags field rather
+than the legacy vm_flags_t vm_area_desc->vm_flags field.
+
+In order to do so, several other related functions need to be updated, with
+separate patches for larger changes in hugetlbfs, secretmem and shmem
+before finally removing vm_area_desc->vm_flags altogether.
+
+This lays the foundations for future elimination of vm_flags_t and
+associated defines and functionality altogether in the long run, and
+elimination of the use of vm_flags_t in f_op->mmap() hooks in the near term
+as mmap_prepare replaces these.
+
+There is a useful synergy between the VMA flags and mmap_prepare work here
+as with this change in place, converting f_op->mmap() to f_op->mmap_prepare
+naturally also converts use of vm_flags_t to vma_flags_t in all drivers
+which declare mmap handlers.
+
+This accounts for the majority of the users of the legacy vm_flags_*()
+helpers and thus a large number of drivers which need to interact with VMA
+flags in general.
+
+This series also updates the userland VMA tests to account for the change,
+and adds unit tests for these helper functions to assert that they behave
+as expected.
+
+In order to faciliate this change in a sensible way, the series also
+separates out the VMA unit tests into - code that is duplicated from the
+kernel that should be kept in sync, code that is customised for test
+purposes and code that is stubbed out.
+
+We also separate out the VMA userland tests into separate files to make it
+easier to manage and to provide a sensible baseline for adding the userland
+tests for these helpers.
+
+
+This patch (of 12):
+
+In order to stay consistent between functions which manipulate a
+vm_flags_t argument of the form of vma_flags_...() and those which
+manipulate a VMA (in this case the flags field of a VMA), rename
+vma_flag_[test/set]_atomic() to vma_[test/set]_atomic_flag().
+
+This lays the groundwork for adding VMA flag manipulation functions in a
+subsequent commit.
+
+Link: https://lkml.kernel.org/r/cover.1768834061.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/2e5b2bc153b1e0cd61ff1ae67cb6acd289ddfa7f.1768834061.git.lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/delay-accounting.rst |   32 +-
- include/linux/delayacct.h                     |    8 
- include/linux/sched.h                         |    5 
- include/uapi/linux/taskstats.h                |   22 +
- kernel/delayacct.c                            |   31 +-
- kernel/sched/stats.h                          |    8 
- tools/accounting/getdelays.c                  |  180 +++++++++++++---
- 7 files changed, 227 insertions(+), 59 deletions(-)
+ include/linux/mm.h |   13 +++++--------
+ mm/khugepaged.c    |    2 +-
+ mm/madvise.c       |    2 +-
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
---- a/Documentation/accounting/delay-accounting.rst~delayacct-add-timestamp-of-delay-max
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -107,22 +107,22 @@ Get sum and peak of delays, since system
- 	TGID    242
+--- a/include/linux/mm.h~mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag
++++ a/include/linux/mm.h
+@@ -987,8 +987,7 @@ static inline void vm_flags_mod(struct v
+ 	__vm_flags_mod(vma, set, clear);
+ }
  
- 
--	CPU         count     real total  virtual total    delay total  delay average      delay max      delay min
--	               39      156000000      156576579        2111069          0.054ms     0.212296ms     0.031307ms
--	IO          count    delay total  delay average      delay max      delay min
--	                0              0          0.000ms     0.000000ms     0.000000ms
--	SWAP        count    delay total  delay average      delay max      delay min
--	                0              0          0.000ms     0.000000ms     0.000000ms
--	RECLAIM     count    delay total  delay average      delay max      delay min
--	                0              0          0.000ms     0.000000ms     0.000000ms
--	THRASHING   count    delay total  delay average      delay max      delay min
--	                0              0          0.000ms     0.000000ms     0.000000ms
--	COMPACT     count    delay total  delay average      delay max      delay min
--	                0              0          0.000ms     0.000000ms     0.000000ms
--	WPCOPY      count    delay total  delay average      delay max      delay min
--	              156       11215873          0.072ms     0.207403ms     0.033913ms
--	IRQ         count    delay total  delay average      delay max      delay min
--	                0              0          0.000ms     0.000000ms     0.000000ms
-+	CPU         count     real total  virtual total    delay total  delay average      delay max      delay min      delay max timestamp
-+	               46      188000000      192348334        4098012          0.089ms     0.429260ms     0.051205ms    2026-01-15T15:06:58
-+	IO          count    delay total  delay average      delay max      delay min      delay max timestamp
-+	                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-+	SWAP        count    delay total  delay average      delay max      delay min      delay max timestamp
-+	                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-+	RECLAIM     count    delay total  delay average      delay max      delay min      delay max timestamp
-+	                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-+	THRASHING   count    delay total  delay average      delay max      delay min      delay max timestamp
-+	                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-+	COMPACT     count    delay total  delay average      delay max      delay min      delay max timestamp
-+	                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
-+	WPCOPY      count    delay total  delay average      delay max      delay min      delay max timestamp
-+	              182       19413338          0.107ms     0.547353ms     0.022462ms    2026-01-15T15:05:24
-+	IRQ         count    delay total  delay average      delay max      delay min      delay max timestamp
-+	                0              0          0.000ms     0.000000ms     0.000000ms                    N/A
- 
- Get IO accounting for pid 1, it works only with -p::
- 
---- a/include/linux/delayacct.h~delayacct-add-timestamp-of-delay-max
-+++ a/include/linux/delayacct.h
-@@ -69,6 +69,14 @@ struct task_delay_info {
- 	u32 compact_count;	/* total count of memory compact */
- 	u32 wpcopy_count;	/* total count of write-protect copy */
- 	u32 irq_count;	/* total count of IRQ/SOFTIRQ */
-+
-+	struct timespec64 blkio_delay_max_ts;
-+	struct timespec64 swapin_delay_max_ts;
-+	struct timespec64 freepages_delay_max_ts;
-+	struct timespec64 thrashing_delay_max_ts;
-+	struct timespec64 compact_delay_max_ts;
-+	struct timespec64 wpcopy_delay_max_ts;
-+	struct timespec64 irq_delay_max_ts;
- };
- #endif
- 
---- a/include/linux/sched.h~delayacct-add-timestamp-of-delay-max
-+++ a/include/linux/sched.h
-@@ -49,6 +49,7 @@
- #include <linux/tracepoint-defs.h>
- #include <linux/unwind_deferred_types.h>
- #include <asm/kmap_size.h>
-+#include <linux/time64.h>
- #ifndef COMPILE_OFFSETS
- #include <generated/rq-offsets.h>
- #endif
-@@ -86,6 +87,7 @@ struct signal_struct;
- struct task_delay_info;
- struct task_group;
- struct task_struct;
-+struct timespec64;
- struct user_event_mm;
- 
- #include <linux/sched/ext.h>
-@@ -435,6 +437,9 @@ struct sched_info {
- 	/* When were we last queued to run? */
- 	unsigned long long		last_queued;
- 
-+	/* Timestamp of max time spent waiting on a runqueue: */
-+	struct timespec64		max_run_delay_ts;
-+
- #endif /* CONFIG_SCHED_INFO */
- };
- 
---- a/include/uapi/linux/taskstats.h~delayacct-add-timestamp-of-delay-max
-+++ a/include/uapi/linux/taskstats.h
-@@ -18,6 +18,16 @@
- #define _LINUX_TASKSTATS_H
- 
- #include <linux/types.h>
-+#ifdef __KERNEL__
-+#include <linux/time64.h>
-+#else
-+#ifndef _LINUX_TIME64_H
-+struct timespec64 {
-+	__s64   tv_sec;         /* seconds */
-+	long    tv_nsec;        /* nanoseconds */
-+};
-+#endif
-+#endif
- 
- /* Format for per-task data returned to userland when
-  *	- a task exits
-@@ -34,7 +44,7 @@
-  */
- 
- 
--#define TASKSTATS_VERSION	16
-+#define TASKSTATS_VERSION	17
- #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
- 					 * in linux/sched.h */
- 
-@@ -230,6 +240,16 @@ struct taskstats {
- 
- 	__u64	irq_delay_max;
- 	__u64	irq_delay_min;
-+
-+	/*v17: delay max timestamp record*/
-+	struct timespec64 cpu_delay_max_ts;
-+	struct timespec64 blkio_delay_max_ts;
-+	struct timespec64 swapin_delay_max_ts;
-+	struct timespec64 freepages_delay_max_ts;
-+	struct timespec64 thrashing_delay_max_ts;
-+	struct timespec64 compact_delay_max_ts;
-+	struct timespec64 wpcopy_delay_max_ts;
-+	struct timespec64 irq_delay_max_ts;
- };
- 
- 
---- a/kernel/delayacct.c~delayacct-add-timestamp-of-delay-max
-+++ a/kernel/delayacct.c
-@@ -18,6 +18,7 @@
- do { \
- 	d->type##_delay_max = tsk->delays->type##_delay_max; \
- 	d->type##_delay_min = tsk->delays->type##_delay_min; \
-+	d->type##_delay_max_ts = tsk->delays->type##_delay_max_ts; \
- 	tmp = d->type##_delay_total + tsk->delays->type##_delay; \
- 	d->type##_delay_total = (tmp < d->type##_delay_total) ? 0 : tmp; \
- 	d->type##_count += tsk->delays->type##_count; \
-@@ -104,7 +105,8 @@ void __delayacct_tsk_init(struct task_st
-  * Finish delay accounting for a statistic using its timestamps (@start),
-  * accumulator (@total) and @count
-  */
--static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count, u64 *max, u64 *min)
-+static void delayacct_end(raw_spinlock_t *lock, u64 *start, u64 *total, u32 *count,
-+							 u64 *max, u64 *min, struct timespec64 *ts)
+-static inline bool __vma_flag_atomic_valid(struct vm_area_struct *vma,
+-					   vma_flag_t bit)
++static inline bool __vma_atomic_valid_flag(struct vm_area_struct *vma, vma_flag_t bit)
  {
- 	s64 ns = local_clock() - *start;
- 	unsigned long flags;
-@@ -113,8 +115,10 @@ static void delayacct_end(raw_spinlock_t
- 		raw_spin_lock_irqsave(lock, flags);
- 		*total += ns;
- 		(*count)++;
--		if (ns > *max)
-+		if (ns > *max) {
- 			*max = ns;
-+			ktime_get_real_ts64(ts);
-+		}
- 		if (*min == 0 || ns < *min)
- 			*min = ns;
- 		raw_spin_unlock_irqrestore(lock, flags);
-@@ -137,7 +141,8 @@ void __delayacct_blkio_end(struct task_s
- 		      &p->delays->blkio_delay,
- 		      &p->delays->blkio_count,
- 		      &p->delays->blkio_delay_max,
--		      &p->delays->blkio_delay_min);
-+		      &p->delays->blkio_delay_min,
-+		      &p->delays->blkio_delay_max_ts);
- }
+ 	const vm_flags_t mask = BIT((__force int)bit);
  
- int delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
-@@ -170,6 +175,7 @@ int delayacct_add_tsk(struct taskstats *
- 
- 	d->cpu_delay_max = tsk->sched_info.max_run_delay;
- 	d->cpu_delay_min = tsk->sched_info.min_run_delay;
-+	d->cpu_delay_max_ts = tsk->sched_info.max_run_delay_ts;
- 	tmp = (s64)d->cpu_delay_total + t2;
- 	d->cpu_delay_total = (tmp < (s64)d->cpu_delay_total) ? 0 : tmp;
- 	tmp = (s64)d->cpu_run_virtual_total + t3;
-@@ -217,7 +223,8 @@ void __delayacct_freepages_end(void)
- 		      &current->delays->freepages_delay,
- 		      &current->delays->freepages_count,
- 		      &current->delays->freepages_delay_max,
--		      &current->delays->freepages_delay_min);
-+		      &current->delays->freepages_delay_min,
-+		      &current->delays->freepages_delay_max_ts);
- }
- 
- void __delayacct_thrashing_start(bool *in_thrashing)
-@@ -241,7 +248,8 @@ void __delayacct_thrashing_end(bool *in_
- 		      &current->delays->thrashing_delay,
- 		      &current->delays->thrashing_count,
- 		      &current->delays->thrashing_delay_max,
--		      &current->delays->thrashing_delay_min);
-+		      &current->delays->thrashing_delay_min,
-+		      &current->delays->thrashing_delay_max_ts);
- }
- 
- void __delayacct_swapin_start(void)
-@@ -256,7 +264,8 @@ void __delayacct_swapin_end(void)
- 		      &current->delays->swapin_delay,
- 		      &current->delays->swapin_count,
- 		      &current->delays->swapin_delay_max,
--		      &current->delays->swapin_delay_min);
-+		      &current->delays->swapin_delay_min,
-+		      &current->delays->swapin_delay_max_ts);
- }
- 
- void __delayacct_compact_start(void)
-@@ -271,7 +280,8 @@ void __delayacct_compact_end(void)
- 		      &current->delays->compact_delay,
- 		      &current->delays->compact_count,
- 		      &current->delays->compact_delay_max,
--		      &current->delays->compact_delay_min);
-+		      &current->delays->compact_delay_min,
-+		      &current->delays->compact_delay_max_ts);
- }
- 
- void __delayacct_wpcopy_start(void)
-@@ -286,7 +296,8 @@ void __delayacct_wpcopy_end(void)
- 		      &current->delays->wpcopy_delay,
- 		      &current->delays->wpcopy_count,
- 		      &current->delays->wpcopy_delay_max,
--		      &current->delays->wpcopy_delay_min);
-+		      &current->delays->wpcopy_delay_min,
-+		      &current->delays->wpcopy_delay_max_ts);
- }
- 
- void __delayacct_irq(struct task_struct *task, u32 delta)
-@@ -296,8 +307,10 @@ void __delayacct_irq(struct task_struct
- 	raw_spin_lock_irqsave(&task->delays->lock, flags);
- 	task->delays->irq_delay += delta;
- 	task->delays->irq_count++;
--	if (delta > task->delays->irq_delay_max)
-+	if (delta > task->delays->irq_delay_max) {
- 		task->delays->irq_delay_max = delta;
-+		ktime_get_real_ts64(&task->delays->irq_delay_max_ts);
-+	}
- 	if (delta && (!task->delays->irq_delay_min || delta < task->delays->irq_delay_min))
- 		task->delays->irq_delay_min = delta;
- 	raw_spin_unlock_irqrestore(&task->delays->lock, flags);
---- a/kernel/sched/stats.h~delayacct-add-timestamp-of-delay-max
-+++ a/kernel/sched/stats.h
-@@ -253,8 +253,10 @@ static inline void sched_info_dequeue(st
- 	delta = rq_clock(rq) - t->sched_info.last_queued;
- 	t->sched_info.last_queued = 0;
- 	t->sched_info.run_delay += delta;
--	if (delta > t->sched_info.max_run_delay)
-+	if (delta > t->sched_info.max_run_delay) {
- 		t->sched_info.max_run_delay = delta;
-+		ktime_get_real_ts64(&t->sched_info.max_run_delay_ts);
-+	}
- 	if (delta && (!t->sched_info.min_run_delay || delta < t->sched_info.min_run_delay))
- 		t->sched_info.min_run_delay = delta;
- 	rq_sched_info_dequeue(rq, delta);
-@@ -278,8 +280,10 @@ static void sched_info_arrive(struct rq
- 	t->sched_info.run_delay += delta;
- 	t->sched_info.last_arrival = now;
- 	t->sched_info.pcount++;
--	if (delta > t->sched_info.max_run_delay)
-+	if (delta > t->sched_info.max_run_delay) {
- 		t->sched_info.max_run_delay = delta;
-+		ktime_get_real_ts64(&t->sched_info.max_run_delay_ts);
-+	}
- 	if (delta && (!t->sched_info.min_run_delay || delta < t->sched_info.min_run_delay))
- 		t->sched_info.min_run_delay = delta;
- 
---- a/tools/accounting/getdelays.c~delayacct-add-timestamp-of-delay-max
-+++ a/tools/accounting/getdelays.c
-@@ -24,6 +24,7 @@
- #include <sys/socket.h>
- #include <sys/wait.h>
- #include <signal.h>
-+#include <time.h>
- 
- #include <linux/genetlink.h>
- #include <linux/taskstats.h>
-@@ -195,6 +196,37 @@ static int get_family_id(int sd)
- #define delay_ms(t) (t / 1000000ULL)
- 
- /*
-+ * Format timespec64 to human readable string (YYYY-MM-DD HH:MM:SS)
-+ * Returns formatted string or "N/A" if timestamp is zero
-+ */
-+static const char *format_timespec64(struct timespec64 *ts)
-+{
-+	static char buffer[32];
-+	struct tm tm_info;
-+	time_t time_sec;
-+
-+	/* Check if timestamp is zero (not set) */
-+	if (ts->tv_sec == 0 && ts->tv_nsec == 0)
-+		return "N/A";
-+
-+	time_sec = (time_t)ts->tv_sec;
-+
-+	/* Use thread-safe localtime_r */
-+	if (localtime_r(&time_sec, &tm_info) == NULL)
-+		return "N/A";
-+
-+	snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d",
-+		tm_info.tm_year + 1900,
-+		tm_info.tm_mon + 1,
-+		tm_info.tm_mday,
-+		tm_info.tm_hour,
-+		tm_info.tm_min,
-+		tm_info.tm_sec);
-+
-+	return buffer;
-+}
-+
-+/*
-  * Version compatibility note:
-  * Field availability depends on taskstats version (t->version),
-  * corresponding to TASKSTATS_VERSION in kernel headers
-@@ -205,13 +237,28 @@ static int get_family_id(int sd)
-  * version >= 13  - supports WPCOPY statistics
-  * version >= 14  - supports IRQ statistics
-  * version >= 16  - supports *_max and *_min delay statistics
-+ * version >= 17  - supports delay max timestamp statistics
-  *
-  * Always verify version before accessing version-dependent fields
-  * to maintain backward compatibility.
+@@ -1003,14 +1002,13 @@ static inline bool __vma_flag_atomic_val
+  * Set VMA flag atomically. Requires only VMA/mmap read lock. Only specific
+  * valid flags are allowed to do this.
   */
- #define PRINT_CPU_DELAY(version, t) \
- 	do { \
--		if (version >= 16) { \
-+		if (version >= 17) { \
-+			printf("%-10s%15s%15s%15s%15s%15s%15s%15s%25s\n", \
-+				"CPU", "count", "real total", "virtual total", \
-+				"delay total", "delay average", "delay max", \
-+				"delay min", "delay max timestamp"); \
-+			printf("          %15llu%15llu%15llu%15llu%15.3fms%13.6fms%13.6fms%23s\n", \
-+				(unsigned long long)(t)->cpu_count, \
-+				(unsigned long long)(t)->cpu_run_real_total, \
-+				(unsigned long long)(t)->cpu_run_virtual_total, \
-+				(unsigned long long)(t)->cpu_delay_total, \
-+				average_ms((double)(t)->cpu_delay_total, (t)->cpu_count), \
-+				delay_ms((double)(t)->cpu_delay_max), \
-+				delay_ms((double)(t)->cpu_delay_min), \
-+				format_timespec64(&(t)->cpu_delay_max_ts)); \
-+		} else if (version >= 16) { \
- 			printf("%-10s%15s%15s%15s%15s%15s%15s%15s\n", \
- 				"CPU", "count", "real total", "virtual total", \
- 				"delay total", "delay average", "delay max", "delay min"); \
-@@ -257,44 +304,115 @@ static int get_family_id(int sd)
- 		} \
- 	} while (0)
- 
-+#define PRINT_FILED_DELAY_WITH_TS(name, version, t, count, total, max, min, max_ts) \
-+	do { \
-+		if (version >= 17) { \
-+			printf("%-10s%15s%15s%15s%15s%15s%25s\n", \
-+				name, "count", "delay total", "delay average", \
-+				"delay max", "delay min", "delay max timestamp"); \
-+			printf("          %15llu%15llu%15.3fms%13.6fms%13.6fms%23s\n", \
-+				(unsigned long long)(t)->count, \
-+				(unsigned long long)(t)->total, \
-+				average_ms((double)(t)->total, (t)->count), \
-+				delay_ms((double)(t)->max), \
-+				delay_ms((double)(t)->min), \
-+				format_timespec64(&(t)->max_ts)); \
-+		} else if (version >= 16) { \
-+			printf("%-10s%15s%15s%15s%15s%15s\n", \
-+				name, "count", "delay total", "delay average", \
-+				"delay max", "delay min"); \
-+			printf("          %15llu%15llu%15.3fms%13.6fms%13.6fms\n", \
-+				(unsigned long long)(t)->count, \
-+				(unsigned long long)(t)->total, \
-+				average_ms((double)(t)->total, (t)->count), \
-+				delay_ms((double)(t)->max), \
-+				delay_ms((double)(t)->min)); \
-+		} else { \
-+			printf("%-10s%15s%15s%15s\n", \
-+				name, "count", "delay total", "delay average"); \
-+			printf("          %15llu%15llu%15.3fms\n", \
-+				(unsigned long long)(t)->count, \
-+				(unsigned long long)(t)->total, \
-+				average_ms((double)(t)->total, (t)->count)); \
-+		} \
-+	} while (0)
-+
- static void print_delayacct(struct taskstats *t)
+-static inline void vma_flag_set_atomic(struct vm_area_struct *vma,
+-				       vma_flag_t bit)
++static inline void vma_set_atomic_flag(struct vm_area_struct *vma, vma_flag_t bit)
  {
- 	printf("\n\n");
+ 	unsigned long *bitmap = ACCESS_PRIVATE(&vma->flags, __vma_flags);
  
- 	PRINT_CPU_DELAY(t->version, t);
+ 	vma_assert_stabilised(vma);
  
--	PRINT_FILED_DELAY("IO", t->version, t,
--		blkio_count, blkio_delay_total,
--		blkio_delay_max, blkio_delay_min);
--
--	PRINT_FILED_DELAY("SWAP", t->version, t,
--		swapin_count, swapin_delay_total,
--		swapin_delay_max, swapin_delay_min);
--
--	PRINT_FILED_DELAY("RECLAIM", t->version, t,
--		freepages_count, freepages_delay_total,
--		freepages_delay_max, freepages_delay_min);
--
--	PRINT_FILED_DELAY("THRASHING", t->version, t,
--		thrashing_count, thrashing_delay_total,
--		thrashing_delay_max, thrashing_delay_min);
--
--	if (t->version >= 11) {
--		PRINT_FILED_DELAY("COMPACT", t->version, t,
--			compact_count, compact_delay_total,
--			compact_delay_max, compact_delay_min);
--	}
-+	/* Use new macro with timestamp support for version >= 17 */
-+	if (t->version >= 17) {
-+		PRINT_FILED_DELAY_WITH_TS("IO", t->version, t,
-+			blkio_count, blkio_delay_total,
-+			blkio_delay_max, blkio_delay_min, blkio_delay_max_ts);
-+
-+		PRINT_FILED_DELAY_WITH_TS("SWAP", t->version, t,
-+			swapin_count, swapin_delay_total,
-+			swapin_delay_max, swapin_delay_min, swapin_delay_max_ts);
-+
-+		PRINT_FILED_DELAY_WITH_TS("RECLAIM", t->version, t,
-+			freepages_count, freepages_delay_total,
-+			freepages_delay_max, freepages_delay_min, freepages_delay_max_ts);
-+
-+		PRINT_FILED_DELAY_WITH_TS("THRASHING", t->version, t,
-+			thrashing_count, thrashing_delay_total,
-+			thrashing_delay_max, thrashing_delay_min, thrashing_delay_max_ts);
-+
-+		if (t->version >= 11) {
-+			PRINT_FILED_DELAY_WITH_TS("COMPACT", t->version, t,
-+				compact_count, compact_delay_total,
-+				compact_delay_max, compact_delay_min, compact_delay_max_ts);
-+		}
- 
--	if (t->version >= 13) {
--		PRINT_FILED_DELAY("WPCOPY", t->version, t,
--			wpcopy_count, wpcopy_delay_total,
--			wpcopy_delay_max, wpcopy_delay_min);
--	}
-+		if (t->version >= 13) {
-+			PRINT_FILED_DELAY_WITH_TS("WPCOPY", t->version, t,
-+				wpcopy_count, wpcopy_delay_total,
-+				wpcopy_delay_max, wpcopy_delay_min, wpcopy_delay_max_ts);
-+		}
- 
--	if (t->version >= 14) {
--		PRINT_FILED_DELAY("IRQ", t->version, t,
--			irq_count, irq_delay_total,
--			irq_delay_max, irq_delay_min);
-+		if (t->version >= 14) {
-+			PRINT_FILED_DELAY_WITH_TS("IRQ", t->version, t,
-+				irq_count, irq_delay_total,
-+				irq_delay_max, irq_delay_min, irq_delay_max_ts);
-+		}
-+	} else {
-+		/* Use original macro for older versions */
-+		PRINT_FILED_DELAY("IO", t->version, t,
-+			blkio_count, blkio_delay_total,
-+			blkio_delay_max, blkio_delay_min);
-+
-+		PRINT_FILED_DELAY("SWAP", t->version, t,
-+			swapin_count, swapin_delay_total,
-+			swapin_delay_max, swapin_delay_min);
-+
-+		PRINT_FILED_DELAY("RECLAIM", t->version, t,
-+			freepages_count, freepages_delay_total,
-+			freepages_delay_max, freepages_delay_min);
-+
-+		PRINT_FILED_DELAY("THRASHING", t->version, t,
-+			thrashing_count, thrashing_delay_total,
-+			thrashing_delay_max, thrashing_delay_min);
-+
-+		if (t->version >= 11) {
-+			PRINT_FILED_DELAY("COMPACT", t->version, t,
-+				compact_count, compact_delay_total,
-+				compact_delay_max, compact_delay_min);
-+		}
-+
-+		if (t->version >= 13) {
-+			PRINT_FILED_DELAY("WPCOPY", t->version, t,
-+				wpcopy_count, wpcopy_delay_total,
-+				wpcopy_delay_max, wpcopy_delay_min);
-+		}
-+
-+		if (t->version >= 14) {
-+			PRINT_FILED_DELAY("IRQ", t->version, t,
-+				irq_count, irq_delay_total,
-+				irq_delay_max, irq_delay_min);
-+		}
- 	}
+-	if (__vma_flag_atomic_valid(vma, bit))
++	if (__vma_atomic_valid_flag(vma, bit))
+ 		set_bit((__force int)bit, bitmap);
  }
  
+@@ -1021,10 +1019,9 @@ static inline void vma_flag_set_atomic(s
+  * This is necessarily racey, so callers must ensure that serialisation is
+  * achieved through some other means, or that races are permissible.
+  */
+-static inline bool vma_flag_test_atomic(struct vm_area_struct *vma,
+-					vma_flag_t bit)
++static inline bool vma_test_atomic_flag(struct vm_area_struct *vma, vma_flag_t bit)
+ {
+-	if (__vma_flag_atomic_valid(vma, bit))
++	if (__vma_atomic_valid_flag(vma, bit))
+ 		return test_bit((__force int)bit, &vma->vm_flags);
+ 
+ 	return false;
+--- a/mm/khugepaged.c~mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag
++++ a/mm/khugepaged.c
+@@ -1741,7 +1741,7 @@ static bool file_backed_vma_is_retractab
+ 	 * obtained on guard region installation after the flag is set, so this
+ 	 * check being performed under this lock excludes races.
+ 	 */
+-	if (vma_flag_test_atomic(vma, VMA_MAYBE_GUARD_BIT))
++	if (vma_test_atomic_flag(vma, VMA_MAYBE_GUARD_BIT))
+ 		return false;
+ 
+ 	return true;
+--- a/mm/madvise.c~mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag
++++ a/mm/madvise.c
+@@ -1140,7 +1140,7 @@ static long madvise_guard_install(struct
+ 	 * acquire an mmap/VMA write lock to read it. All remaining readers may
+ 	 * or may not see the flag set, but we don't care.
+ 	 */
+-	vma_flag_set_atomic(vma, VMA_MAYBE_GUARD_BIT);
++	vma_set_atomic_flag(vma, VMA_MAYBE_GUARD_BIT);
+ 
+ 	/*
+ 	 * If anonymous and we are establishing page tables the VMA ought to
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
-delayacct-add-timestamp-of-delay-max.patch
+mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
+mm-remove-unnecessary-and-incorrect-mmap-lock-assert.patch
+mm-do-not-copy-page-tables-unnecessarily-for-vm_uffd_wp.patch
+mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
+mm-rmap-eliminate-partial-anon_vma-tear-down-in-anon_vma_fork.patch
+mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
+mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
+mm-rmap-remove-anon_vma_merge-function.patch
+mm-rmap-make-anon_vma-functions-internal.patch
+mm-mmap_lock-add-vma_is_attached-helper.patch
+mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
+mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
+locking-add-rwsem_is_write_locked-update-non-lockdep-asserts.patch
+mm-vma-add-vma_is__locked-helpers.patch
+mm-add-use-vma_is_stabilised-vma_assert_stabilised-helpers.patch
+selftests-mm-remove-virtual_address_range-test.patch
+mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag.patch
+mm-add-mk_vma_flags-bitmap-flag-macro-helper.patch
+tools-bitmap-add-missing-bitmap_.patch
+mm-add-basic-vma-flag-operation-helper-functions.patch
+mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare.patch
+mm-update-secretmem-to-use-vma-flags-on-mmap_prepare.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t.patch
+mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t.patch
+mm-make-vm_area_desc-utilise-vma_flags_t-only.patch
+tools-testing-vma-separate-vma-userland-tests-into-separate-files.patch
+tools-testing-vma-add-vma-userland-tests-for-vma-flag-functions.patch
 
