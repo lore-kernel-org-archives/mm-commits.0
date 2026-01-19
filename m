@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFCAC23FC54;
-	Mon, 19 Jan 2026 20:30:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 785B3500960;
+	Mon, 19 Jan 2026 20:30:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768854645; cv=none; b=hRadJfCP54pvQHAL5jGpZLU5pEIRQTHgxkZ+zUipU0eTR9+36KgTXrkORoUvMRLn8GCGyopiPajElJwYq9TBvIU/TFcIgOXxFaSXelrbqM7+15dqgURQaG+hGQxKHNIz5hNTUTWFTFburSOCxWX8wcrxytxtDkJtYrcNmULKs2c=
+	t=1768854647; cv=none; b=mlPluWkJ0xoDHSBcVioblZAGxDFzDPcrSO8oCYpxfO92Nhg8qh0YwjUJ705x8r3NxpERRxHHmy5HwTgkieFEo/ys5PDB3Q128GDB3GU9200fkWGbk5Oir4XiU6j/cssDdsSM/T6h/qgGgtX2Vt8qq1m9ZIUGrpMvekWzxZEzmG4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768854645; c=relaxed/simple;
-	bh=zwfpeAnrB8BeNETMcYy39u+bPOQq+OAPZbzYLmTpIo8=;
-	h=Date:To:From:Subject:Message-Id; b=QHrVUjW/CeTw/wFhFn7antELk65thn3WgwtrLJe1re9jrVJxzTTkpe28C6pOFeHtKbfhW6yS1R7qOE4wAyl1NdSgiXMmtEx2fN8mIgzM7imNXEXLvpu6so2lFtVQ6DZ46k8ubtrclJcyqhovY8z5gDhoXOcu6M0R5n6lxVxdebo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gAb1IAgO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768854647; c=relaxed/simple;
+	bh=yQ+r6YEO6e0gcVLxcYkufZHf5fmfy03mGcxaDAMJ5vk=;
+	h=Date:To:From:Subject:Message-Id; b=ey0dzvan7k0iWMs4Rpi8vSqrmVzlx6C7D+vHCl1V+RIcmkOct8pw/MYiOsx7/pvEAVElZmrIP8M4gsiPLw6/5/KA8KKXVKgMRH3to33K9H+xR6DqimQDqyn17JVNPpRyLJGVlBLHl47SUUoXtlKninOhK8lvTMFwKk3SMpRKqdI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s6B062G9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gAb1IAgO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4860DC116C6;
-	Mon, 19 Jan 2026 20:30:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s6B062G9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E168C116C6;
+	Mon, 19 Jan 2026 20:30:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768854645;
-	bh=zwfpeAnrB8BeNETMcYy39u+bPOQq+OAPZbzYLmTpIo8=;
+	s=korg; t=1768854647;
+	bh=yQ+r6YEO6e0gcVLxcYkufZHf5fmfy03mGcxaDAMJ5vk=;
 	h=Date:To:From:Subject:From;
-	b=gAb1IAgOLPWEu4c5w3XdQVK3MZ5wSk05wh0d+2gUciJXOlRF8whniKZSQ2nGHVAt0
-	 uc+gKI6QUoCsyuPNDyfAayR5/S7lJLfeS0oJO/LffGeOi+19RkQO2XTkL9QeaniP1q
-	 lXOCIkkwVBceB6mqQdgSjNHK1EhKWA71ee2WFsKQ=
-Date: Mon, 19 Jan 2026 12:30:44 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,tglx@kernel.org,sweettea-kernel@dorminy.me,surenb@google.com,stable@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,peterz@infradead.org,paulmck@kernel.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,christian.koenig@amd.com,broonie@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
+	b=s6B062G9m+MQE5wBpL3qbIqF6jyxXTVY4EGAcH8Qy2joi1O1tLuKwSYaMZY7hbL2b
+	 j6pXQvlEOf+eNBhmgrMRYT+FF4RQVrxGELLrWCI7vfMBX60Uy4bih2PfOA0UM1O4pg
+	 mijFiNjekkQ+f+fFAfEcL1USNJZhEkKd9SmaxfxM=
+Date: Mon, 19 Jan 2026 12:30:46 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,miklos@szeredi.hu,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,j.neuschaefer@gmx.net,jack@suse.cz,david@kernel.org,carnil@debian.org,bschubert@ddn.com,brauner@kernel.org,athul.krishna.kr@protonmail.com,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch removed from -mm tree
-Message-Id: <20260119203045.4860DC116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch removed from -mm tree
+Message-Id: <20260119203047.1E168C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,110 +35,118 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: take into account mm_cid size for mm_struct static definitions
+     Subject: fs/writeback: skip AS_NO_DATA_INTEGRITY mappings in wait_sb_inodes()
 has been removed from the -mm tree.  Its filename was
-     mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions.patch
+     fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: mm: take into account mm_cid size for mm_struct static definitions
-Date: Wed, 24 Dec 2025 12:33:58 -0500
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: fs/writeback: skip AS_NO_DATA_INTEGRITY mappings in wait_sb_inodes()
+Date: Mon, 5 Jan 2026 13:17:27 -0800
 
-Both init_mm and efi_mm static definitions need to make room for the 2
-mm_cid cpumasks.
+Above the while() loop in wait_sb_inodes(), we document that we must wait
+for all pages under writeback for data integrity.  Consequently, if a
+mapping, like fuse, traditionally does not have data integrity semantics,
+there is no need to wait at all; we can simply skip these inodes.
 
-This fixes possible out-of-bounds accesses to init_mm and efi_mm.
+This restores fuse back to prior behavior where syncs are no-ops.  This
+fixes a user regression where if a system is running a faulty fuse server
+that does not reply to issued write requests, this causes wait_sb_inodes()
+to wait forever.
 
-Add a space between # and define for the mm_alloc_cid() definition to make
-it consistent with the coding style used in the rest of this header file.
-
-Link: https://lkml.kernel.org/r/20251224173358.647691-4-mathieu.desnoyers@efficios.com
-Fixes: af7f588d8f73 ("sched: Introduce per-memory-map concurrency ID")
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Reviewed-by: Thomas Gleixner <tglx@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christan König <christian.koenig@amd.com>
+Link: https://lkml.kernel.org/r/20260105211737.4105620-2-joannelkoong@gmail.com
+Fixes: 0c58a97f919c ("fuse: remove tmp folio for writebacks and internal rb tree")
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+Reported-by: Athul Krishna <athul.krishna.kr@protonmail.com>
+Reported-by: J. Neuschäfer <j.neuschaefer@gmx.net>
+Reviewed-by: Bernd Schubert <bschubert@ddn.com>
+Tested-by: J. Neuschäfer <j.neuschaefer@gmx.net>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Bernd Schubert <bschubert@ddn.com>
+Cc: Bonaccorso Salvatore <carnil@debian.org>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Liam R . Howlett" <liam.howlett@oracle.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Martin Liu <liumartin@google.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c       |    7 ++++++-
+ fs/fuse/file.c          |    4 +++-
+ include/linux/pagemap.h |   11 +++++++++++
+ 3 files changed, 20 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm_types.h~mm-take-into-account-mm_cid-size-for-mm_struct-static-definitions
-+++ a/include/linux/mm_types.h
-@@ -1368,7 +1368,7 @@ extern struct mm_struct init_mm;
+--- a/fs/fs-writeback.c~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/fs/fs-writeback.c
+@@ -2750,8 +2750,13 @@ static void wait_sb_inodes(struct super_
+ 		 * The mapping can appear untagged while still on-list since we
+ 		 * do not have the mapping lock. Skip it here, wb completion
+ 		 * will remove it.
++		 *
++		 * If the mapping does not have data integrity semantics,
++		 * there's no need to wait for the writeout to complete, as the
++		 * mapping cannot guarantee that data is persistently stored.
+ 		 */
+-		if (!mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK))
++		if (!mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK) ||
++		    mapping_no_data_integrity(mapping))
+ 			continue;
  
- #define MM_STRUCT_FLEXIBLE_ARRAY_INIT				\
- {								\
--	[0 ... sizeof(cpumask_t)-1] = 0				\
-+	[0 ... sizeof(cpumask_t) + MM_CID_STATIC_SIZE - 1] = 0	\
+ 		spin_unlock_irq(&sb->s_inode_wblist_lock);
+--- a/fs/fuse/file.c~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/fs/fuse/file.c
+@@ -3200,8 +3200,10 @@ void fuse_init_file_inode(struct inode *
+ 
+ 	inode->i_fop = &fuse_file_operations;
+ 	inode->i_data.a_ops = &fuse_file_aops;
+-	if (fc->writeback_cache)
++	if (fc->writeback_cache) {
+ 		mapping_set_writeback_may_deadlock_on_reclaim(&inode->i_data);
++		mapping_set_no_data_integrity(&inode->i_data);
++	}
+ 
+ 	INIT_LIST_HEAD(&fi->write_files);
+ 	INIT_LIST_HEAD(&fi->queued_writes);
+--- a/include/linux/pagemap.h~fs-writeback-skip-as_no_data_integrity-mappings-in-wait_sb_inodes
++++ a/include/linux/pagemap.h
+@@ -210,6 +210,7 @@ enum mapping_flags {
+ 	AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM = 9,
+ 	AS_KERNEL_FILE = 10,	/* mapping for a fake kernel file that shouldn't
+ 				   account usage to user cgroups */
++	AS_NO_DATA_INTEGRITY = 11, /* no data integrity guarantees */
+ 	/* Bits 16-25 are used for FOLIO_ORDER */
+ 	AS_FOLIO_ORDER_BITS = 5,
+ 	AS_FOLIO_ORDER_MIN = 16,
+@@ -345,6 +346,16 @@ static inline bool mapping_writeback_may
+ 	return test_bit(AS_WRITEBACK_MAY_DEADLOCK_ON_RECLAIM, &mapping->flags);
  }
  
- /* Pointer magic because the dynamic array size confuses some compilers. */
-@@ -1500,7 +1500,7 @@ static inline int mm_alloc_cid_noprof(st
- 	mm_init_cid(mm, p);
- 	return 0;
- }
--#define mm_alloc_cid(...)	alloc_hooks(mm_alloc_cid_noprof(__VA_ARGS__))
-+# define mm_alloc_cid(...)	alloc_hooks(mm_alloc_cid_noprof(__VA_ARGS__))
- 
- static inline void mm_destroy_cid(struct mm_struct *mm)
++static inline void mapping_set_no_data_integrity(struct address_space *mapping)
++{
++	set_bit(AS_NO_DATA_INTEGRITY, &mapping->flags);
++}
++
++static inline bool mapping_no_data_integrity(const struct address_space *mapping)
++{
++	return test_bit(AS_NO_DATA_INTEGRITY, &mapping->flags);
++}
++
+ static inline gfp_t mapping_gfp_mask(const struct address_space *mapping)
  {
-@@ -1514,6 +1514,8 @@ static inline unsigned int mm_cid_size(v
- 	return cpumask_size() + bitmap_size(num_possible_cpus());
- }
- 
-+/* Use 2 * NR_CPUS as worse case for static allocation. */
-+# define MM_CID_STATIC_SIZE	(2 * sizeof(cpumask_t))
- #else /* CONFIG_SCHED_MM_CID */
- static inline void mm_init_cid(struct mm_struct *mm, struct task_struct *p) { }
- static inline int mm_alloc_cid(struct mm_struct *mm, struct task_struct *p) { return 0; }
-@@ -1522,6 +1524,7 @@ static inline unsigned int mm_cid_size(v
- {
- 	return 0;
- }
-+# define MM_CID_STATIC_SIZE	0
- #endif /* CONFIG_SCHED_MM_CID */
- 
- struct mmu_gather;
+ 	return mapping->gfp_mask;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-tsacct-skip-all-kernel-threads.patch
-mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
 
