@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99DEA28689A
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 19:34:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C08522C15A0
+	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 19:34:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768851269; cv=none; b=b+SNlY4NZ/cneF+/UttZFEd7tXuoSw/S1WqZTNGUIvkLiuLrSrOWARbhOOGHYexRUNeSSChR91KNqTpdMSKqUtRsIDfgt2jNoSqd1nA0/dHlvNLaYp23yGJoUMnib/kJ0jZMFsmFimtBNSFaLpuu5iCWEdjuS4AgfDLTb7N3xYc=
+	t=1768851277; cv=none; b=MkTANhNKK7CoRg8hLT1mUbD01gKFuuYBi8cnR1Zwq1Qm1KEnMOXDNzKQSa3hRBYQ+JMkFgHEZ+0NZ6QnYcG3PP2WXToQiL/SOD1qv54pLDVTUiF0HhPkL3YGLJgJj/cN0WJUjfAIlr5IJkE3fAOIHnwvZu/HbVXWn70y7krabZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768851269; c=relaxed/simple;
-	bh=c961wUfOGRFs/t0uWqzYaErUOaGa0++0xZRa7eFaQ+U=;
-	h=Date:To:From:Subject:Message-Id; b=MVm3VWBPzJtUgdJX1ZltCmUFK3yR/EOOOjEOgJXpj//CoSrp6dZWUj2ZmJW/uRtMdIKh11XXfic9l2ThuTIUtL6WPnIq9n3jqQaN++ilo+3xVHKXL82ozovXFh+2J9hvMIIG0VqoDmRN5dq2nv/+FHuV4RGqIhpu5fkthJV4lm4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FRCZO2gC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768851277; c=relaxed/simple;
+	bh=mUA3KQjP8vIGN2fl3fEgoatTjtsQTVyChPhm808ZaZs=;
+	h=Date:To:From:Subject:Message-Id; b=Dk8we0ZaZ0d9eCNGaiCTsjKjeFBA15EYr0IjWYwe7FUAV9IaUaZr4R5xwSJ7CX0CZkFkb2sNfL2yOYwlLCSd8NHYv01zowx2ja3j52zmjKMrUBuZGdfCVKpgkPeb9+Esqa7kk/oj2fuc5glRoBPZ6tkTQhvEdlmI7MTlSIbui7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bbj5AfGV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FRCZO2gC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 233C4C116C6;
-	Mon, 19 Jan 2026 19:34:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bbj5AfGV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54247C116C6;
+	Mon, 19 Jan 2026 19:34:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768851269;
-	bh=c961wUfOGRFs/t0uWqzYaErUOaGa0++0xZRa7eFaQ+U=;
+	s=korg; t=1768851277;
+	bh=mUA3KQjP8vIGN2fl3fEgoatTjtsQTVyChPhm808ZaZs=;
 	h=Date:To:From:Subject:From;
-	b=FRCZO2gCrq1bV/K4sj59PJsLSyadmxELIrjQsVGhqFvziyLKstg8Z6g5tP9LTlKth
-	 viv5Fzq/93K9wihFTtkMQfxVZeZuLWhkyE3epXNsrH+Xbw7MAxetwOUrrB3sf09d9A
-	 FBGAN8VhN2Kko7YxXKUB8GnJjJuN8AKzvrjQ5pYc=
-Date: Mon, 19 Jan 2026 11:34:28 -0800
+	b=Bbj5AfGVcPmdtpm5QmRmMiImsJlHzo3ev0EzCUsxy5LfUZ5SS0BGuKrq6SXDklmKN
+	 xjDydZ+8YEFX4BfSxIeM7HJhMfWxy+IqfuRkORGWi/G40VtembDuaWkUMNW8Q0fwf5
+	 wLf5TNVqCeIw0Z23kHQnRVT4GZ0vN+kL1/yHPd3o=
+Date: Mon, 19 Jan 2026 11:34:36 -0800
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-update-shmem__file_-functions-to-use-vma_flags_t.patch added to mm-new branch
-Message-Id: <20260119193429.233C4C116C6@smtp.kernel.org>
+Subject: + mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t.patch added to mm-new branch
+Message-Id: <20260119193437.54247C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: update shmem_[kernel]_file_*() functions to use vma_flags_t
+     Subject: mm: update all remaining mmap_prepare users to use vma_flags_t
 has been added to the -mm mm-new branch.  Its filename is
-     mm-update-shmem__file_-functions-to-use-vma_flags_t.patch
+     mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-shmem__file_-functions-to-use-vma_flags_t.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,430 +67,395 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: update shmem_[kernel]_file_*() functions to use vma_flags_t
-Date: Mon, 19 Jan 2026 14:48:58 +0000
+Subject: mm: update all remaining mmap_prepare users to use vma_flags_t
+Date: Mon, 19 Jan 2026 14:48:59 +0000
 
-In order to be able to use only vma_flags_t in vm_area_desc we must adjust
-shmem file setup functions to operate in terms of vma_flags_t rather than
-vm_flags_t.
+We will be shortly removing the vm_flags_t field from vm_area_desc so we
+need to update all mmap_prepare users to only use the dessc->vma_flags
+field.
 
-This patch makes this change and updates all callers to use the new
-functions.
+This patch achieves that and makes all ancillary changes required to make
+this possible.
+
+This lays the groundwork for future work to eliminate the use of
+vm_flags_t in vm_area_desc altogether and more broadly throughout the
+kernel.
+
+While we're here, we take the opportunity to replace VM_REMAP_FLAGS with
+VMA_REMAP_FLAGS, the vma_flags_t equivalent.
 
 No functional changes intended.
 
-Link: https://lkml.kernel.org/r/678490aa78664f42d0fbd1a31311f261e74002bc.1768834061.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/f4f9bc314c27e8187cb83667b7fd88634f3c27ba.1768834061.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/sgx/ioctl.c           |    2 
- drivers/gpu/drm/drm_gem.c                 |    5 +
- drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    2 
- drivers/gpu/drm/i915/gem/i915_gem_ttm.c   |    3 -
- drivers/gpu/drm/i915/gt/shmem_utils.c     |    3 -
- drivers/gpu/drm/ttm/tests/ttm_tt_test.c   |    2 
- drivers/gpu/drm/ttm/ttm_backup.c          |    3 -
- drivers/gpu/drm/ttm/ttm_tt.c              |    2 
- fs/xfs/scrub/xfile.c                      |    3 -
- fs/xfs/xfs_buf_mem.c                      |    2 
- include/linux/shmem_fs.h                  |    8 +-
- ipc/shm.c                                 |    6 --
- mm/memfd.c                                |    2 
- mm/shmem.c                                |   59 +++++++++++---------
- security/keys/big_key.c                   |    2 
- 15 files changed, 56 insertions(+), 48 deletions(-)
+ drivers/char/mem.c       |    6 +++---
+ drivers/dax/device.c     |   10 +++++-----
+ fs/aio.c                 |    2 +-
+ fs/erofs/data.c          |    5 +++--
+ fs/ext4/file.c           |    4 ++--
+ fs/ntfs3/file.c          |    2 +-
+ fs/orangefs/file.c       |    4 ++--
+ fs/ramfs/file-nommu.c    |    2 +-
+ fs/resctrl/pseudo_lock.c |    2 +-
+ fs/romfs/mmap-nommu.c    |    2 +-
+ fs/xfs/xfs_file.c        |    4 ++--
+ fs/zonefs/file.c         |    3 ++-
+ include/linux/dax.h      |    4 ++--
+ include/linux/mm.h       |   24 +++++++++++++++++++-----
+ kernel/relay.c           |    2 +-
+ mm/memory.c              |   17 ++++++++---------
+ 16 files changed, 54 insertions(+), 39 deletions(-)
 
---- a/arch/x86/kernel/cpu/sgx/ioctl.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/arch/x86/kernel/cpu/sgx/ioctl.c
-@@ -83,7 +83,7 @@ static int sgx_encl_create(struct sgx_en
- 	encl_size = secs->size + PAGE_SIZE;
- 
- 	backing = shmem_file_setup("SGX backing", encl_size + (encl_size >> 5),
--				   VM_NORESERVE);
-+				   mk_vma_flags(VMA_NORESERVE_BIT));
- 	if (IS_ERR(backing)) {
- 		ret = PTR_ERR(backing);
- 		goto err_out_shrink;
---- a/drivers/gpu/drm/drm_gem.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/drivers/gpu/drm/drm_gem.c
-@@ -130,14 +130,15 @@ int drm_gem_object_init_with_mnt(struct
- 				 struct vfsmount *gemfs)
+--- a/drivers/char/mem.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/drivers/char/mem.c
+@@ -306,7 +306,7 @@ static unsigned zero_mmap_capabilities(s
+ /* can't do an in-place private mapping if there's no MMU */
+ static inline int private_mapping_ok(struct vm_area_desc *desc)
  {
- 	struct file *filp;
-+	const vma_flags_t flags = mk_vma_flags(VMA_NORESERVE_BIT);
- 
- 	drm_gem_private_object_init(dev, obj, size);
- 
- 	if (gemfs)
- 		filp = shmem_file_setup_with_mnt(gemfs, "drm mm object", size,
--						 VM_NORESERVE);
-+						 flags);
- 	else
--		filp = shmem_file_setup("drm mm object", size, VM_NORESERVE);
-+		filp = shmem_file_setup("drm mm object", size, flags);
- 
- 	if (IS_ERR(filp))
- 		return PTR_ERR(filp);
---- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
-@@ -496,7 +496,7 @@ static int __create_shmem(struct drm_i91
- 			  struct drm_gem_object *obj,
- 			  resource_size_t size)
- {
--	unsigned long flags = VM_NORESERVE;
-+	const vma_flags_t flags = mk_vma_flags(VMA_NORESERVE_BIT);
- 	struct file *filp;
- 
- 	drm_gem_private_object_init(&i915->drm, obj, size);
---- a/drivers/gpu/drm/i915/gem/i915_gem_ttm.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_ttm.c
-@@ -200,7 +200,8 @@ static int i915_ttm_tt_shmem_populate(st
- 		struct address_space *mapping;
- 		gfp_t mask;
- 
--		filp = shmem_file_setup("i915-shmem-tt", size, VM_NORESERVE);
-+		filp = shmem_file_setup("i915-shmem-tt", size,
-+					mk_vma_flags(VMA_NORESERVE_BIT));
- 		if (IS_ERR(filp))
- 			return PTR_ERR(filp);
- 
---- a/drivers/gpu/drm/i915/gt/shmem_utils.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/drivers/gpu/drm/i915/gt/shmem_utils.c
-@@ -19,7 +19,8 @@ struct file *shmem_create_from_data(cons
- 	struct file *file;
- 	int err;
- 
--	file = shmem_file_setup(name, PAGE_ALIGN(len), VM_NORESERVE);
-+	file = shmem_file_setup(name, PAGE_ALIGN(len),
-+				mk_vma_flags(VMA_NORESERVE_BIT));
- 	if (IS_ERR(file))
- 		return file;
- 
---- a/drivers/gpu/drm/ttm/tests/ttm_tt_test.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/drivers/gpu/drm/ttm/tests/ttm_tt_test.c
-@@ -143,7 +143,7 @@ static void ttm_tt_fini_shmem(struct kun
- 	err = ttm_tt_init(tt, bo, 0, caching, 0);
- 	KUNIT_ASSERT_EQ(test, err, 0);
- 
--	shmem = shmem_file_setup("ttm swap", BO_SIZE, 0);
-+	shmem = shmem_file_setup("ttm swap", BO_SIZE, EMPTY_VMA_FLAGS);
- 	tt->swap_storage = shmem;
- 
- 	ttm_tt_fini(tt);
---- a/drivers/gpu/drm/ttm/ttm_backup.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/drivers/gpu/drm/ttm/ttm_backup.c
-@@ -178,5 +178,6 @@ EXPORT_SYMBOL_GPL(ttm_backup_bytes_avail
-  */
- struct file *ttm_backup_shmem_create(loff_t size)
- {
--	return shmem_file_setup("ttm shmem backup", size, 0);
-+	return shmem_file_setup("ttm shmem backup", size,
-+				EMPTY_VMA_FLAGS);
- }
---- a/drivers/gpu/drm/ttm/ttm_tt.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/drivers/gpu/drm/ttm/ttm_tt.c
-@@ -330,7 +330,7 @@ int ttm_tt_swapout(struct ttm_device *bd
- 	struct page *to_page;
- 	int i, ret;
- 
--	swap_storage = shmem_file_setup("ttm swap", size, 0);
-+	swap_storage = shmem_file_setup("ttm swap", size, EMPTY_VMA_FLAGS);
- 	if (IS_ERR(swap_storage)) {
- 		pr_err("Failed allocating swap storage\n");
- 		return PTR_ERR(swap_storage);
---- a/fs/xfs/scrub/xfile.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/fs/xfs/scrub/xfile.c
-@@ -61,7 +61,8 @@ xfile_create(
- 	if (!xf)
- 		return -ENOMEM;
- 
--	xf->file = shmem_kernel_file_setup(description, isize, VM_NORESERVE);
-+	xf->file = shmem_kernel_file_setup(description, isize,
-+					   mk_vma_flags(VMA_NORESERVE_BIT));
- 	if (IS_ERR(xf->file)) {
- 		error = PTR_ERR(xf->file);
- 		goto out_xfile;
---- a/fs/xfs/xfs_buf_mem.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/fs/xfs/xfs_buf_mem.c
-@@ -62,7 +62,7 @@ xmbuf_alloc(
- 	if (!btp)
- 		return -ENOMEM;
- 
--	file = shmem_kernel_file_setup(descr, 0, 0);
-+	file = shmem_kernel_file_setup(descr, 0, EMPTY_VMA_FLAGS);
- 	if (IS_ERR(file)) {
- 		error = PTR_ERR(file);
- 		goto out_free_btp;
---- a/include/linux/shmem_fs.h~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/include/linux/shmem_fs.h
-@@ -102,12 +102,10 @@ static inline struct shmem_inode_info *S
- extern const struct fs_parameter_spec shmem_fs_parameters[];
- extern void shmem_init(void);
- extern int shmem_init_fs_context(struct fs_context *fc);
--extern struct file *shmem_file_setup(const char *name,
--					loff_t size, unsigned long flags);
--extern struct file *shmem_kernel_file_setup(const char *name, loff_t size,
--					    unsigned long flags);
-+struct file *shmem_file_setup(const char *name, loff_t size, vma_flags_t flags);
-+struct file *shmem_kernel_file_setup(const char *name, loff_t size, vma_flags_t vma_flags);
- extern struct file *shmem_file_setup_with_mnt(struct vfsmount *mnt,
--		const char *name, loff_t size, unsigned long flags);
-+		const char *name, loff_t size, vma_flags_t flags);
- int shmem_zero_setup(struct vm_area_struct *vma);
- int shmem_zero_setup_desc(struct vm_area_desc *desc);
- extern unsigned long shmem_get_unmapped_area(struct file *, unsigned long addr,
---- a/ipc/shm.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/ipc/shm.c
-@@ -708,6 +708,7 @@ static int newseg(struct ipc_namespace *
- 	struct shmid_kernel *shp;
- 	size_t numpages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	const bool has_no_reserve = shmflg & SHM_NORESERVE;
-+	vma_flags_t acctflag = EMPTY_VMA_FLAGS;
- 	struct file *file;
- 	char name[13];
- 
-@@ -738,7 +739,6 @@ static int newseg(struct ipc_namespace *
- 
- 	sprintf(name, "SYSV%08x", key);
- 	if (shmflg & SHM_HUGETLB) {
--		vma_flags_t acctflag = EMPTY_VMA_FLAGS;
- 		struct hstate *hs;
- 		size_t hugesize;
- 
-@@ -755,14 +755,12 @@ static int newseg(struct ipc_namespace *
- 		file = hugetlb_file_setup(name, hugesize, acctflag,
- 				HUGETLB_SHMFS_INODE, (shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK);
- 	} else {
--		vm_flags_t acctflag = 0;
--
- 		/*
- 		 * Do not allow no accounting for OVERCOMMIT_NEVER, even
- 		 * if it's asked for.
- 		 */
- 		if  (has_no_reserve && sysctl_overcommit_memory != OVERCOMMIT_NEVER)
--			acctflag = VM_NORESERVE;
-+			vma_flags_set(&acctflag, VMA_NORESERVE_BIT);
- 		file = shmem_kernel_file_setup(name, size, acctflag);
- 	}
- 	error = PTR_ERR(file);
---- a/mm/memfd.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/mm/memfd.c
-@@ -469,7 +469,7 @@ static struct file *alloc_file(const cha
- 					(flags >> MFD_HUGE_SHIFT) &
- 					MFD_HUGE_MASK);
- 	} else {
--		file = shmem_file_setup(name, 0, VM_NORESERVE);
-+		file = shmem_file_setup(name, 0, mk_vma_flags(VMA_NORESERVE_BIT));
- 	}
- 	if (IS_ERR(file))
- 		return file;
---- a/mm/shmem.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/mm/shmem.c
-@@ -3057,9 +3057,9 @@ static struct offset_ctx *shmem_get_offs
- }
- 
- static struct inode *__shmem_get_inode(struct mnt_idmap *idmap,
--					     struct super_block *sb,
--					     struct inode *dir, umode_t mode,
--					     dev_t dev, unsigned long flags)
-+				       struct super_block *sb,
-+				       struct inode *dir, umode_t mode,
-+				       dev_t dev, vma_flags_t flags)
- {
- 	struct inode *inode;
- 	struct shmem_inode_info *info;
-@@ -3087,7 +3087,8 @@ static struct inode *__shmem_get_inode(s
- 	spin_lock_init(&info->lock);
- 	atomic_set(&info->stop_eviction, 0);
- 	info->seals = F_SEAL_SEAL;
--	info->flags = (flags & VM_NORESERVE) ? SHMEM_F_NORESERVE : 0;
-+	info->flags = vma_flags_test(flags, VMA_NORESERVE_BIT)
-+		? SHMEM_F_NORESERVE : 0;
- 	info->i_crtime = inode_get_mtime(inode);
- 	info->fsflags = (dir == NULL) ? 0 :
- 		SHMEM_I(dir)->fsflags & SHMEM_FL_INHERITED;
-@@ -3140,7 +3141,7 @@ static struct inode *__shmem_get_inode(s
- #ifdef CONFIG_TMPFS_QUOTA
- static struct inode *shmem_get_inode(struct mnt_idmap *idmap,
- 				     struct super_block *sb, struct inode *dir,
--				     umode_t mode, dev_t dev, unsigned long flags)
-+				     umode_t mode, dev_t dev, vma_flags_t flags)
- {
- 	int err;
- 	struct inode *inode;
-@@ -3166,9 +3167,9 @@ errout:
- 	return ERR_PTR(err);
+-	return is_nommu_shared_mapping(desc->vm_flags);
++	return is_nommu_shared_vma_flags(desc->vma_flags);
  }
  #else
--static inline struct inode *shmem_get_inode(struct mnt_idmap *idmap,
-+static struct inode *shmem_get_inode(struct mnt_idmap *idmap,
- 				     struct super_block *sb, struct inode *dir,
--				     umode_t mode, dev_t dev, unsigned long flags)
-+				     umode_t mode, dev_t dev, vma_flags_t flags)
+ 
+@@ -360,7 +360,7 @@ static int mmap_mem_prepare(struct vm_ar
+ 
+ 	desc->vm_ops = &mmap_mem_ops;
+ 
+-	/* Remap-pfn-range will mark the range VM_IO. */
++	/* Remap-pfn-range will mark the range with the I/O flag. */
+ 	mmap_action_remap_full(desc, desc->pgoff);
+ 	/* We filter remap errors to -EAGAIN. */
+ 	desc->action.error_hook = mmap_filter_error;
+@@ -520,7 +520,7 @@ static int mmap_zero_prepare(struct vm_a
+ #ifndef CONFIG_MMU
+ 	return -ENOSYS;
+ #endif
+-	if (desc->vm_flags & VM_SHARED)
++	if (vma_desc_test_flags(desc, VMA_SHARED_BIT))
+ 		return shmem_zero_setup_desc(desc);
+ 
+ 	desc->action.success_hook = mmap_zero_private_success;
+--- a/drivers/dax/device.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/drivers/dax/device.c
+@@ -13,7 +13,7 @@
+ #include "dax-private.h"
+ #include "bus.h"
+ 
+-static int __check_vma(struct dev_dax *dev_dax, vm_flags_t vm_flags,
++static int __check_vma(struct dev_dax *dev_dax, vma_flags_t flags,
+ 		       unsigned long start, unsigned long end, struct file *file,
+ 		       const char *func)
  {
- 	return __shmem_get_inode(idmap, sb, dir, mode, dev, flags);
+@@ -24,7 +24,7 @@ static int __check_vma(struct dev_dax *d
+ 		return -ENXIO;
+ 
+ 	/* prevent private mappings from being established */
+-	if ((vm_flags & VM_MAYSHARE) != VM_MAYSHARE) {
++	if (!vma_flags_test(flags, VMA_MAYSHARE_BIT)) {
+ 		dev_info_ratelimited(dev,
+ 				"%s: %s: fail, attempted private mapping\n",
+ 				current->comm, func);
+@@ -53,7 +53,7 @@ static int __check_vma(struct dev_dax *d
+ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ 		     const char *func)
+ {
+-	return __check_vma(dev_dax, vma->vm_flags, vma->vm_start, vma->vm_end,
++	return __check_vma(dev_dax, vma->flags, vma->vm_start, vma->vm_end,
+ 			   vma->vm_file, func);
  }
-@@ -3875,7 +3876,8 @@ shmem_mknod(struct mnt_idmap *idmap, str
- 	if (!generic_ci_validate_strict_name(dir, &dentry->d_name))
+ 
+@@ -306,14 +306,14 @@ static int dax_mmap_prepare(struct vm_ar
+ 	 * fault time.
+ 	 */
+ 	id = dax_read_lock();
+-	rc = __check_vma(dev_dax, desc->vm_flags, desc->start, desc->end, filp,
++	rc = __check_vma(dev_dax, desc->vma_flags, desc->start, desc->end, filp,
+ 			 __func__);
+ 	dax_read_unlock(id);
+ 	if (rc)
+ 		return rc;
+ 
+ 	desc->vm_ops = &dax_vm_ops;
+-	desc->vm_flags |= VM_HUGEPAGE;
++	vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT);
+ 	return 0;
+ }
+ 
+--- a/fs/aio.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/aio.c
+@@ -394,7 +394,7 @@ static const struct vm_operations_struct
+ 
+ static int aio_ring_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	desc->vm_flags |= VM_DONTEXPAND;
++	vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT);
+ 	desc->vm_ops = &aio_ring_vm_ops;
+ 	return 0;
+ }
+--- a/fs/erofs/data.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/erofs/data.c
+@@ -438,11 +438,12 @@ static int erofs_file_mmap_prepare(struc
+ 	if (!IS_DAX(file_inode(desc->file)))
+ 		return generic_file_readonly_mmap_prepare(desc);
+ 
+-	if ((desc->vm_flags & VM_SHARED) && (desc->vm_flags & VM_MAYWRITE))
++	if (vma_desc_test_flags(desc, VMA_SHARED_BIT) &&
++	    vma_desc_test_flags(desc, VMA_MAYWRITE_BIT))
  		return -EINVAL;
  
--	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, dev, VM_NORESERVE);
-+	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, dev,
-+				mk_vma_flags(VMA_NORESERVE_BIT));
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
- 
-@@ -3910,7 +3912,8 @@ shmem_tmpfile(struct mnt_idmap *idmap, s
- 	struct inode *inode;
- 	int error;
- 
--	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, 0, VM_NORESERVE);
-+	inode = shmem_get_inode(idmap, dir->i_sb, dir, mode, 0,
-+				mk_vma_flags(VMA_NORESERVE_BIT));
- 	if (IS_ERR(inode)) {
- 		error = PTR_ERR(inode);
- 		goto err_out;
-@@ -4107,7 +4110,7 @@ static int shmem_symlink(struct mnt_idma
- 		return -ENAMETOOLONG;
- 
- 	inode = shmem_get_inode(idmap, dir->i_sb, dir, S_IFLNK | 0777, 0,
--				VM_NORESERVE);
-+				mk_vma_flags(VMA_NORESERVE_BIT));
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
- 
-@@ -5108,7 +5111,8 @@ static int shmem_fill_super(struct super
- #endif /* CONFIG_TMPFS_QUOTA */
- 
- 	inode = shmem_get_inode(&nop_mnt_idmap, sb, NULL,
--				S_IFDIR | sbinfo->mode, 0, VM_NORESERVE);
-+				S_IFDIR | sbinfo->mode, 0,
-+				mk_vma_flags(VMA_NORESERVE_BIT));
- 	if (IS_ERR(inode)) {
- 		error = PTR_ERR(inode);
- 		goto failed;
-@@ -5808,7 +5812,7 @@ static inline void shmem_unacct_size(uns
- 
- static inline struct inode *shmem_get_inode(struct mnt_idmap *idmap,
- 				struct super_block *sb, struct inode *dir,
--				umode_t mode, dev_t dev, unsigned long flags)
-+				umode_t mode, dev_t dev, vma_flags_t flags)
- {
- 	struct inode *inode = ramfs_get_inode(sb, dir, mode, dev);
- 	return inode ? inode : ERR_PTR(-ENOSPC);
-@@ -5819,10 +5823,11 @@ static inline struct inode *shmem_get_in
- /* common code */
- 
- static struct file *__shmem_file_setup(struct vfsmount *mnt, const char *name,
--				       loff_t size, unsigned long vm_flags,
-+				       loff_t size, vma_flags_t flags,
- 				       unsigned int i_flags)
- {
--	unsigned long flags = (vm_flags & VM_NORESERVE) ? SHMEM_F_NORESERVE : 0;
-+	const unsigned long shmem_flags =
-+		vma_flags_test(flags, VMA_NORESERVE_BIT) ? SHMEM_F_NORESERVE : 0;
- 	struct inode *inode;
- 	struct file *res;
- 
-@@ -5835,13 +5840,13 @@ static struct file *__shmem_file_setup(s
- 	if (is_idmapped_mnt(mnt))
- 		return ERR_PTR(-EINVAL);
- 
--	if (shmem_acct_size(flags, size))
-+	if (shmem_acct_size(shmem_flags, size))
- 		return ERR_PTR(-ENOMEM);
- 
- 	inode = shmem_get_inode(&nop_mnt_idmap, mnt->mnt_sb, NULL,
--				S_IFREG | S_IRWXUGO, 0, vm_flags);
-+				S_IFREG | S_IRWXUGO, 0, flags);
- 	if (IS_ERR(inode)) {
--		shmem_unacct_size(flags, size);
-+		shmem_unacct_size(shmem_flags, size);
- 		return ERR_CAST(inode);
- 	}
- 	inode->i_flags |= i_flags;
-@@ -5864,9 +5869,10 @@ static struct file *__shmem_file_setup(s
-  *	checks are provided at the key or shm level rather than the inode.
-  * @name: name for dentry (to be seen in /proc/<pid>/maps)
-  * @size: size to be set for the file
-- * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
-+ * @vma_flags: VMA_NORESERVE_BIT suppresses pre-accounting of the entire object size
-  */
--struct file *shmem_kernel_file_setup(const char *name, loff_t size, unsigned long flags)
-+struct file *shmem_kernel_file_setup(const char *name, loff_t size,
-+				     vma_flags_t flags)
- {
- 	return __shmem_file_setup(shm_mnt, name, size, flags, S_PRIVATE);
+ 	desc->vm_ops = &erofs_dax_vm_ops;
+-	desc->vm_flags |= VM_HUGEPAGE;
++	vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT);
+ 	return 0;
  }
-@@ -5878,7 +5884,7 @@ EXPORT_SYMBOL_GPL(shmem_kernel_file_setu
-  * @size: size to be set for the file
-  * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
-  */
--struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags)
-+struct file *shmem_file_setup(const char *name, loff_t size, vma_flags_t flags)
- {
- 	return __shmem_file_setup(shm_mnt, name, size, flags, 0);
- }
-@@ -5889,16 +5895,17 @@ EXPORT_SYMBOL_GPL(shmem_file_setup);
-  * @mnt: the tmpfs mount where the file will be created
-  * @name: name for dentry (to be seen in /proc/<pid>/maps)
-  * @size: size to be set for the file
-- * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
-+ * @flags: VMA_NORESERVE_BIT suppresses pre-accounting of the entire object size
-  */
- struct file *shmem_file_setup_with_mnt(struct vfsmount *mnt, const char *name,
--				       loff_t size, unsigned long flags)
-+				       loff_t size, vma_flags_t flags)
- {
- 	return __shmem_file_setup(mnt, name, size, flags, 0);
- }
- EXPORT_SYMBOL_GPL(shmem_file_setup_with_mnt);
- 
--static struct file *__shmem_zero_setup(unsigned long start, unsigned long end, vm_flags_t vm_flags)
-+static struct file *__shmem_zero_setup(unsigned long start, unsigned long end,
-+		vma_flags_t flags)
- {
- 	loff_t size = end - start;
- 
-@@ -5908,7 +5915,7 @@ static struct file *__shmem_zero_setup(u
- 	 * accessible to the user through its mapping, use S_PRIVATE flag to
- 	 * bypass file security, in the same way as shmem_kernel_file_setup().
+ #else
+--- a/fs/ext4/file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/ext4/file.c
+@@ -822,13 +822,13 @@ static int ext4_file_mmap_prepare(struct
+ 	 * We don't support synchronous mappings for non-DAX files and
+ 	 * for DAX files if underneath dax_device is not synchronous.
  	 */
--	return shmem_kernel_file_setup("dev/zero", size, vm_flags);
-+	return shmem_kernel_file_setup("dev/zero", size, flags);
+-	if (!daxdev_mapping_supported(desc->vm_flags, file_inode(file), dax_dev))
++	if (!daxdev_mapping_supported(desc->vma_flags, file_inode(file), dax_dev))
+ 		return -EOPNOTSUPP;
+ 
+ 	file_accessed(file);
+ 	if (IS_DAX(file_inode(file))) {
+ 		desc->vm_ops = &ext4_dax_vm_ops;
+-		desc->vm_flags |= VM_HUGEPAGE;
++		vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT);
+ 	} else {
+ 		desc->vm_ops = &ext4_file_vm_ops;
+ 	}
+--- a/fs/ntfs3/file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/ntfs3/file.c
+@@ -347,7 +347,7 @@ static int ntfs_file_mmap_prepare(struct
+ 	struct inode *inode = file_inode(file);
+ 	struct ntfs_inode *ni = ntfs_i(inode);
+ 	u64 from = ((u64)desc->pgoff << PAGE_SHIFT);
+-	bool rw = desc->vm_flags & VM_WRITE;
++	const bool rw = vma_desc_test_flags(desc, VMA_WRITE_BIT);
+ 	int err;
+ 
+ 	/* Avoid any operation if inode is bad. */
+--- a/fs/orangefs/file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/orangefs/file.c
+@@ -411,8 +411,8 @@ static int orangefs_file_mmap_prepare(st
+ 		     "orangefs_file_mmap: called on %pD\n", file);
+ 
+ 	/* set the sequential readahead hint */
+-	desc->vm_flags |= VM_SEQ_READ;
+-	desc->vm_flags &= ~VM_RAND_READ;
++	vma_desc_set_flags(desc, VMA_SEQ_READ_BIT);
++	vma_desc_clear_flags(desc, VMA_RAND_READ_BIT);
+ 
+ 	file_accessed(file);
+ 	desc->vm_ops = &orangefs_file_vm_ops;
+--- a/fs/ramfs/file-nommu.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/ramfs/file-nommu.c
+@@ -264,7 +264,7 @@ out:
+  */
+ static int ramfs_nommu_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	if (!is_nommu_shared_mapping(desc->vm_flags))
++	if (!is_nommu_shared_vma_flags(desc->vma_flags))
+ 		return -ENOSYS;
+ 
+ 	file_accessed(desc->file);
+--- a/fs/resctrl/pseudo_lock.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/resctrl/pseudo_lock.c
+@@ -1044,7 +1044,7 @@ static int pseudo_lock_dev_mmap_prepare(
+ 	 * Ensure changes are carried directly to the memory being mapped,
+ 	 * do not allow copy-on-write mapping.
+ 	 */
+-	if (!(desc->vm_flags & VM_SHARED)) {
++	if (!vma_desc_test_flags(desc, VMA_SHARED_BIT)) {
+ 		mutex_unlock(&rdtgroup_mutex);
+ 		return -EINVAL;
+ 	}
+--- a/fs/romfs/mmap-nommu.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/romfs/mmap-nommu.c
+@@ -63,7 +63,7 @@ static unsigned long romfs_get_unmapped_
+  */
+ static int romfs_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	return is_nommu_shared_mapping(desc->vm_flags) ? 0 : -ENOSYS;
++	return is_nommu_shared_vma_flags(desc->vma_flags) ? 0 : -ENOSYS;
  }
  
- /**
-@@ -5918,7 +5925,7 @@ static struct file *__shmem_zero_setup(u
+ static unsigned romfs_mmap_capabilities(struct file *file)
+--- a/fs/xfs/xfs_file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/xfs/xfs_file.c
+@@ -1974,14 +1974,14 @@ xfs_file_mmap_prepare(
+ 	 * We don't support synchronous mappings for non-DAX files and
+ 	 * for DAX files if underneath dax_device is not synchronous.
+ 	 */
+-	if (!daxdev_mapping_supported(desc->vm_flags, file_inode(file),
++	if (!daxdev_mapping_supported(desc->vma_flags, file_inode(file),
+ 				      target->bt_daxdev))
+ 		return -EOPNOTSUPP;
+ 
+ 	file_accessed(file);
+ 	desc->vm_ops = &xfs_file_vm_ops;
+ 	if (IS_DAX(inode))
+-		desc->vm_flags |= VM_HUGEPAGE;
++		vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT);
+ 	return 0;
+ }
+ 
+--- a/fs/zonefs/file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/fs/zonefs/file.c
+@@ -333,7 +333,8 @@ static int zonefs_file_mmap_prepare(stru
+ 	 * ordering between msync() and page cache writeback.
+ 	 */
+ 	if (zonefs_inode_is_seq(file_inode(file)) &&
+-	    (desc->vm_flags & VM_SHARED) && (desc->vm_flags & VM_MAYWRITE))
++	    vma_desc_test_flags(desc, VMA_SHARED_BIT) &&
++	    vma_desc_test_flags(desc, VMA_MAYWRITE_BIT))
+ 		return -EINVAL;
+ 
+ 	file_accessed(file);
+--- a/include/linux/dax.h~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/include/linux/dax.h
+@@ -65,11 +65,11 @@ size_t dax_recovery_write(struct dax_dev
+ /*
+  * Check if given mapping is supported by the file / underlying device.
   */
- int shmem_zero_setup(struct vm_area_struct *vma)
+-static inline bool daxdev_mapping_supported(vm_flags_t vm_flags,
++static inline bool daxdev_mapping_supported(vma_flags_t flags,
+ 					    const struct inode *inode,
+ 					    struct dax_device *dax_dev)
  {
--	struct file *file = __shmem_zero_setup(vma->vm_start, vma->vm_end, vma->vm_flags);
-+	struct file *file = __shmem_zero_setup(vma->vm_start, vma->vm_end, vma->flags);
- 
- 	if (IS_ERR(file))
- 		return PTR_ERR(file);
-@@ -5939,7 +5946,7 @@ int shmem_zero_setup(struct vm_area_stru
+-	if (!(vm_flags & VM_SYNC))
++	if (!vma_flags_test(flags, VMA_SYNC_BIT))
+ 		return true;
+ 	if (!IS_DAX(inode))
+ 		return false;
+--- a/include/linux/mm.h~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/include/linux/mm.h
+@@ -550,17 +550,18 @@ enum {
+ /*
+  * Physically remapped pages are special. Tell the
+  * rest of the world about it:
+- *   VM_IO tells people not to look at these pages
++ *   IO tells people not to look at these pages
+  *	(accesses can have side effects).
+- *   VM_PFNMAP tells the core MM that the base pages are just
++ *   PFNMAP tells the core MM that the base pages are just
+  *	raw PFN mappings, and do not have a "struct page" associated
+  *	with them.
+- *   VM_DONTEXPAND
++ *   DONTEXPAND
+  *      Disable vma merging and expanding with mremap().
+- *   VM_DONTDUMP
++ *   DONTDUMP
+  *      Omit vma from core dump, even when VM_IO turned off.
   */
- int shmem_zero_setup_desc(struct vm_area_desc *desc)
+-#define VM_REMAP_FLAGS (VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP)
++#define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
++				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
+ 
+ /* This mask prevents VMA from being scanned with khugepaged */
+ #define VM_NO_KHUGEPAGED (VM_SPECIAL | VM_HUGETLB)
+@@ -1926,6 +1927,14 @@ static inline bool is_cow_mapping(vm_fla
+ 	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
+ }
+ 
++static inline bool vma_desc_is_cow_mapping(struct vm_area_desc *desc)
++{
++	const vma_flags_t flags = desc->vma_flags;
++
++	return vma_flags_test(flags, VMA_MAYWRITE_BIT) &&
++		!vma_flags_test(flags, VMA_SHARED_BIT);
++}
++
+ #ifndef CONFIG_MMU
+ static inline bool is_nommu_shared_mapping(vm_flags_t flags)
  {
--	struct file *file = __shmem_zero_setup(desc->start, desc->end, desc->vm_flags);
-+	struct file *file = __shmem_zero_setup(desc->start, desc->end, desc->vma_flags);
+@@ -1939,6 +1948,11 @@ static inline bool is_nommu_shared_mappi
+ 	 */
+ 	return flags & (VM_MAYSHARE | VM_MAYOVERLAY);
+ }
++
++static inline bool is_nommu_shared_vma_flags(vma_flags_t flags)
++{
++	return vma_flags_test(flags, VMA_MAYSHARE_BIT, VMA_MAYOVERLAY_BIT);
++}
+ #endif
  
- 	if (IS_ERR(file))
- 		return PTR_ERR(file);
---- a/security/keys/big_key.c~mm-update-shmem__file_-functions-to-use-vma_flags_t
-+++ a/security/keys/big_key.c
-@@ -103,7 +103,7 @@ int big_key_preparse(struct key_preparse
- 					 0, enckey);
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+--- a/kernel/relay.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/kernel/relay.c
+@@ -92,7 +92,7 @@ static int relay_mmap_prepare_buf(struct
+ 		return -EINVAL;
  
- 		/* save aligned data to file */
--		file = shmem_kernel_file_setup("", enclen, 0);
-+		file = shmem_kernel_file_setup("", enclen, EMPTY_VMA_FLAGS);
- 		if (IS_ERR(file)) {
- 			ret = PTR_ERR(file);
- 			goto err_enckey;
+ 	desc->vm_ops = &relay_file_mmap_ops;
+-	desc->vm_flags |= VM_DONTEXPAND;
++	vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT);
+ 	desc->private_data = buf;
+ 
+ 	return 0;
+--- a/mm/memory.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
++++ a/mm/memory.c
+@@ -2897,7 +2897,7 @@ static inline int remap_p4d_range(struct
+ 	return 0;
+ }
+ 
+-static int get_remap_pgoff(vm_flags_t vm_flags, unsigned long addr,
++static int get_remap_pgoff(bool is_cow, unsigned long addr,
+ 		unsigned long end, unsigned long vm_start, unsigned long vm_end,
+ 		unsigned long pfn, pgoff_t *vm_pgoff_p)
+ {
+@@ -2907,7 +2907,7 @@ static int get_remap_pgoff(vm_flags_t vm
+ 	 * un-COW'ed pages by matching them up with "vma->vm_pgoff".
+ 	 * See vm_normal_page() for details.
+ 	 */
+-	if (is_cow_mapping(vm_flags)) {
++	if (is_cow) {
+ 		if (addr != vm_start || end != vm_end)
+ 			return -EINVAL;
+ 		*vm_pgoff_p = pfn;
+@@ -2928,7 +2928,7 @@ static int remap_pfn_range_internal(stru
+ 	if (WARN_ON_ONCE(!PAGE_ALIGNED(addr)))
+ 		return -EINVAL;
+ 
+-	VM_WARN_ON_ONCE((vma->vm_flags & VM_REMAP_FLAGS) != VM_REMAP_FLAGS);
++	VM_WARN_ON_ONCE(!vma_test_all_flags_mask(vma, VMA_REMAP_FLAGS));
+ 
+ 	BUG_ON(addr >= end);
+ 	pfn -= addr >> PAGE_SHIFT;
+@@ -3052,9 +3052,9 @@ void remap_pfn_range_prepare(struct vm_a
+ 	 * check it again on complete and will fail there if specified addr is
+ 	 * invalid.
+ 	 */
+-	get_remap_pgoff(desc->vm_flags, desc->start, desc->end,
++	get_remap_pgoff(vma_desc_is_cow_mapping(desc), desc->start, desc->end,
+ 			desc->start, desc->end, pfn, &desc->pgoff);
+-	desc->vm_flags |= VM_REMAP_FLAGS;
++	vma_desc_set_flags_mask(desc, VMA_REMAP_FLAGS);
+ }
+ 
+ static int remap_pfn_range_prepare_vma(struct vm_area_struct *vma, unsigned long addr,
+@@ -3063,13 +3063,12 @@ static int remap_pfn_range_prepare_vma(s
+ 	unsigned long end = addr + PAGE_ALIGN(size);
+ 	int err;
+ 
+-	err = get_remap_pgoff(vma->vm_flags, addr, end,
+-			      vma->vm_start, vma->vm_end,
+-			      pfn, &vma->vm_pgoff);
++	err = get_remap_pgoff(is_cow_mapping(vma->vm_flags), addr, end,
++			      vma->vm_start, vma->vm_end, pfn, &vma->vm_pgoff);
+ 	if (err)
+ 		return err;
+ 
+-	vm_flags_set(vma, VM_REMAP_FLAGS);
++	vma_set_flags_mask(vma, VMA_REMAP_FLAGS);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
