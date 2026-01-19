@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CCD7500960;
-	Mon, 19 Jan 2026 20:30:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B85812DF145;
+	Mon, 19 Jan 2026 20:30:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768854649; cv=none; b=VA6tKAsX1zAGHSmf6+AtOQBGpkwhCzL7pCSkCNrfLvR/+hUqTA2qydrtTm7I8gRv3LQuxy0AWfy9MKuJiqQnll+yBAmM9oZDRTzl5TkccDx0O9l+mOoJaYN/bC3h+38YAr1D4UlXT0chh+1bB+9+vO76fzYddLTiDYXLswOnetw=
+	t=1768854650; cv=none; b=pjCBi+oUCgGLUCQvqxZF4FGhUjtTwI9QUphFAi8gPa/eM1/xgI1+OMW445Rp/daDqspUPJDeWNFFfZ1WCpPnCTgVwv/em49lci3WdXZPkZrDXEfjvjg8R1outCMuFyxMiW3nAoH29ERyyb29MN69u6fvutGue5HlrQiyuWzNhS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768854649; c=relaxed/simple;
-	bh=mq4fxkF6fn9Xko0vW1kin/l5bm+A7FWlUtQGj52ewmI=;
-	h=Date:To:From:Subject:Message-Id; b=epAwsJlqZb6XEP8/exxWsCytxasfAEOhZHCB+0+2ytPa8YMeETfNtkttcjPaxpJyxpcwmABpD0reGWkvkqBzrNPgCm40zlHlvUTT9cr+b95Ka3xePg/CzOzO9ynsTEgka4iyNh8wlqFI1h4AYtXEgdzyKvwsCGnoVbj0uj4Q6WQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GvA/pnFI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768854650; c=relaxed/simple;
+	bh=sUwgmvI4ntMza+u4SuFxN6NDm1ntsxZb6alTj3zNto0=;
+	h=Date:To:From:Subject:Message-Id; b=oKjxiOCnx/RGAade1SAbvJNQ6XNt4JJruIbazw6BaWYzshUCkm8IPsZI+3zbDT17m68OC7SVMGL4TLzKlTmS3Bp8dDhl0yqgjfrnilQ90jqNs4VYZJPndes5PwZg6jjH/gzXu2QQGtiz7ws2UCxU+B3LjQnHFcx52FcTAqF/82s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VcVfl5kI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GvA/pnFI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDCC8C116C6;
-	Mon, 19 Jan 2026 20:30:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VcVfl5kI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 482B6C116C6;
+	Mon, 19 Jan 2026 20:30:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768854648;
-	bh=mq4fxkF6fn9Xko0vW1kin/l5bm+A7FWlUtQGj52ewmI=;
+	s=korg; t=1768854650;
+	bh=sUwgmvI4ntMza+u4SuFxN6NDm1ntsxZb6alTj3zNto0=;
 	h=Date:To:From:Subject:From;
-	b=GvA/pnFIY4OU+dFCkjAatFzhz5ql+rqT5zJnKq8DmgaMXjKi+Ve1cWQQhiFM6eKcn
-	 r5ehMstOlhuwndNuIxJct/SaXcd5tSH83ZOx1DZE562WpN6a5HpXvp+4L+8vkpEILI
-	 LJjHRotMh+rOeo8cTPcw2JT564gVLrBHb87hTT+A=
-Date: Mon, 19 Jan 2026 12:30:48 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pmladek@suse.com,noren@nvidia.com,mbloch@nvidia.com,joel.granados@kernel.org,feng.tang@linux.alibaba.com,gal@nvidia.com,akpm@linux-foundation.org
+	b=VcVfl5kInvr8msHDs9I41LdLo3lBSZ+XG4MfVl0XHo9Rml/SeM7v18nwgfzAbHckF
+	 NamKRD7BOOWIWrfYta8ijIIBCDG2WZHOogwuGivn6pp0jvncVzVVg24zi3SkypZ95j
+	 yqTcVhYxesVQLjvHGq/JO9nGC2TB8CJhyZj4CmWw=
+Date: Mon, 19 Jan 2026 12:30:49 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,rakie.kim@sk.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] panic-only-warn-about-deprecated-panic_print-on-write-access.patch removed from -mm tree
-Message-Id: <20260119203048.CDCC8C116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] migrate-correct-lock-ordering-for-hugetlb-file-folios.patch removed from -mm tree
+Message-Id: <20260119203050.482B6C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,117 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: panic: only warn about deprecated panic_print on write access
+     Subject: migrate: correct lock ordering for hugetlb file folios
 has been removed from the -mm tree.  Its filename was
-     panic-only-warn-about-deprecated-panic_print-on-write-access.patch
+     migrate-correct-lock-ordering-for-hugetlb-file-folios.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gal Pressman <gal@nvidia.com>
-Subject: panic: only warn about deprecated panic_print on write access
-Date: Tue, 6 Jan 2026 18:33:21 +0200
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: migrate: correct lock ordering for hugetlb file folios
+Date: Fri, 9 Jan 2026 04:13:42 +0000
 
-The panic_print_deprecated() warning is being triggered on both read and
-write operations to the panic_print parameter.
+Syzbot has found a deadlock (analyzed by Lance Yang):
 
-This causes spurious warnings when users run 'sysctl -a' to list all
-sysctl values, since that command reads /proc/sys/kernel/panic_print and
-triggers the deprecation notice.
+1) Task (5749): Holds folio_lock, then tries to acquire i_mmap_rwsem(read lock).
+2) Task (5754): Holds i_mmap_rwsem(write lock), then tries to acquire
+folio_lock.
 
-Modify the handlers to only emit the deprecation warning when the
-parameter is actually being set:
+migrate_pages()
+  -> migrate_hugetlbs()
+    -> unmap_and_move_huge_page()     <- Takes folio_lock!
+      -> remove_migration_ptes()
+        -> __rmap_walk_file()
+          -> i_mmap_lock_read()       <- Waits for i_mmap_rwsem(read lock)!
 
- - sysctl_panic_print_handler(): check 'write' flag before warning.
- - panic_print_get(): remove the deprecation call entirely.
+hugetlbfs_fallocate()
+  -> hugetlbfs_punch_hole()           <- Takes i_mmap_rwsem(write lock)!
+    -> hugetlbfs_zero_partial_page()
+     -> filemap_lock_hugetlb_folio()
+      -> filemap_lock_folio()
+        -> __filemap_get_folio        <- Waits for folio_lock!
 
-This way, users are only warned when they actively try to use the
-deprecated parameter, not when passively querying system state.
+The migration path is the one taking locks in the wrong order according to
+the documentation at the top of mm/rmap.c.  So expand the scope of the
+existing i_mmap_lock to cover the calls to remove_migration_ptes() too.
 
-Link: https://lkml.kernel.org/r/20260106163321.83586-1-gal@nvidia.com
-Fixes: ee13240cd78b ("panic: add note that panic_print sysctl interface is deprecated")
-Fixes: 2683df6539cb ("panic: add note that 'panic_print' parameter is deprecated")
-Signed-off-by: Gal Pressman <gal@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Reviewed-by: Nimrod Oren <noren@nvidia.com>
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+This is (mostly) how it used to be after commit c0d0381ade79.  That was
+removed by 336bf30eb765 for both file & anon hugetlb pages when it should
+only have been removed for anon hugetlb pages.
+
+Link: https://lkml.kernel.org/r/20260109041345.3863089-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Fixes: 336bf30eb765 ("hugetlbfs: fix anon huge page migration race")
+Reported-by: syzbot+2d9c96466c978346b55f@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/all/68e9715a.050a0220.1186a4.000d.GAE@google.com
+Debugged-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Jann Horn <jannh@google.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/migrate.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/kernel/panic.c~panic-only-warn-about-deprecated-panic_print-on-write-access
-+++ a/kernel/panic.c
-@@ -131,7 +131,8 @@ static int proc_taint(const struct ctl_t
- static int sysctl_panic_print_handler(const struct ctl_table *table, int write,
- 			   void *buffer, size_t *lenp, loff_t *ppos)
- {
--	panic_print_deprecated();
-+	if (write)
-+		panic_print_deprecated();
- 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
- }
+--- a/mm/migrate.c~migrate-correct-lock-ordering-for-hugetlb-file-folios
++++ a/mm/migrate.c
+@@ -1458,6 +1458,7 @@ static int unmap_and_move_huge_page(new_
+ 	int page_was_mapped = 0;
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct address_space *mapping = NULL;
++	enum ttu_flags ttu = 0;
  
-@@ -1014,7 +1015,6 @@ static int panic_print_set(const char *v
+ 	if (folio_ref_count(src) == 1) {
+ 		/* page was freed from under us. So we are done. */
+@@ -1498,8 +1499,6 @@ static int unmap_and_move_huge_page(new_
+ 		goto put_anon;
  
- static int panic_print_get(char *val, const struct kernel_param *kp)
- {
--	panic_print_deprecated();
- 	return  param_get_ulong(val, kp);
- }
+ 	if (folio_mapped(src)) {
+-		enum ttu_flags ttu = 0;
+-
+ 		if (!folio_test_anon(src)) {
+ 			/*
+ 			 * In shared mappings, try_to_unmap could potentially
+@@ -1516,16 +1515,17 @@ static int unmap_and_move_huge_page(new_
  
+ 		try_to_migrate(src, ttu);
+ 		page_was_mapped = 1;
+-
+-		if (ttu & TTU_RMAP_LOCKED)
+-			i_mmap_unlock_write(mapping);
+ 	}
+ 
+ 	if (!folio_mapped(src))
+ 		rc = move_to_new_folio(dst, src, mode);
+ 
+ 	if (page_was_mapped)
+-		remove_migration_ptes(src, !rc ? dst : src, 0);
++		remove_migration_ptes(src, !rc ? dst : src,
++				ttu ? RMP_LOCKED : 0);
++
++	if (ttu & TTU_RMAP_LOCKED)
++		i_mmap_unlock_write(mapping);
+ 
+ unlock_put_anon:
+ 	folio_unlock(dst);
 _
 
-Patches currently in -mm which might be from gal@nvidia.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+migrate-replace-rmp_-flags-with-ttu_-flags.patch
 
