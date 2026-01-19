@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF1827A13A
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 20:30:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 379C523FC54;
+	Mon, 19 Jan 2026 20:30:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768854651; cv=none; b=m4UlQIO5PQHk78RYpNwkY9hgkegn4FlMX56JhJ3G2JlJY5JoHfXmCEERjqUO2yFSambJtgolQN07CxcPIBLOyMoJAodIxVEGfx/AqJGAoy6ohRmHeqZWi6zn2Hsiq08bKHD3d15CrUSjb9MCPhtzIHTf/BVLZcyUHjEXrypdcfk=
+	t=1768854653; cv=none; b=qawYJQCkVBr0FTuN7jSySo6050Hko9o18ut0g2De8RfOPKqePxnjsivtwrjyFiqv02Kmjt8MsHuyPOtVYr1hTeNXC9eFlW9RW0DXWkUWiLrraEMFKedxgb22hBPy90abKh3DDAM3JXbpXXZKyrGvfDC6ucBtogjbEOKrk4jG9iE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768854651; c=relaxed/simple;
-	bh=IpcVEI1zivvuz63sdGERn3CYq5fEnASQpAryWJ5FDqs=;
-	h=Date:To:From:Subject:Message-Id; b=IKRmNt+6a1XDWoPnWtBKz6qNHS/M2xuUs1N36c/lIVbKjwYvaxOCPQNffEOQjgkUOtxZ9Fn+XG9AdqIgjxoUvzPDQBHGi8y4B1PYcF5VkYAALJ2Z6LZ4CFVlj3YDh4T3TXiIAfLtcx2leA3VB8c1q7kT7bsuiv6Zbou1CmcG+wU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ukFBVi6/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768854653; c=relaxed/simple;
+	bh=aQ9PnFx6gf1LOI0aEdXPFRAYjdQYr6wl0NwaRoRLkiQ=;
+	h=Date:To:From:Subject:Message-Id; b=bJXY3p2cFjytEL6JlVxTXRrWVwdqUhqMnXwaryoNYQnQAtF2ptOW2qHQMixq8tGltDz+y4ypx1Ag7lG+B/7u1lZIdVfMbh11/vH2xkut17wmVfqYSmK//ss2HqeO2fACUYngSM2nExHtyc+//7oj5Sp81vZihH58XGYXe06ggDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rPxxlb0g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ukFBVi6/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D33BC116C6;
-	Mon, 19 Jan 2026 20:30:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rPxxlb0g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 051BFC116C6;
+	Mon, 19 Jan 2026 20:30:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768854651;
-	bh=IpcVEI1zivvuz63sdGERn3CYq5fEnASQpAryWJ5FDqs=;
+	s=korg; t=1768854653;
+	bh=aQ9PnFx6gf1LOI0aEdXPFRAYjdQYr6wl0NwaRoRLkiQ=;
 	h=Date:To:From:Subject:From;
-	b=ukFBVi6/AQSg0jDyv6CUdkvEZpMzdmgwU9C+uz2sJXANEyYFg34cZt/Adh3xZxx/F
-	 ylehr+SrpkeC1rye+nc9ohWbQvKVvnUGEpGiEZ/MUcVbZwLrsHRDJWhwnCUpbXCPZ6
-	 GqgoGYV1YSV0cnuEtQSEcpABV0i8nmRlAwZZ+MdQ=
-Date: Mon, 19 Jan 2026 12:30:51 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,pfalcato@suse.de,liam.howlett@oracle.com,jgg@ziepe.ca,jannh@google.com,jack@suse.cz,brauner@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=rPxxlb0gVXpKAuBuuj4EAnupCQVlR5H+R4No1zlySXoZ3bF5vGCApzxonjLbVVF5z
+	 i3G2WPX9llkyPpOwmdPQDXszlmY3Pd0gjIH6ToRtJUMU+AwsyabW/DWYjpL+ZuoKHg
+	 D6uKq+QjaEflOdetAeeUT0NTSQflRYJQKZXAv1/4=
+Date: Mon, 19 Jan 2026 12:30:52 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,stable@vger.kernel.org,mingo@redhat.com,jannh@google.com,hpa@zytor.com,glider@google.com,elver@google.com,dvyukov@google.com,dave.hansen@linux.intel.com,bp@alien8.de,andrew.cooper3@citrix.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch removed from -mm tree
-Message-Id: <20260119203051.9D33BC116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] x86-kfence-avoid-writing-l1tf-vulnerable-ptes.patch removed from -mm tree
+Message-Id: <20260119203053.051BFC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,110 +35,125 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: do not leak memory when .mmap_prepare swaps the file
+     Subject: x86/kfence: avoid writing L1TF-vulnerable PTEs
 has been removed from the -mm tree.  Its filename was
-     mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file.patch
+     x86-kfence-avoid-writing-l1tf-vulnerable-ptes.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: do not leak memory when .mmap_prepare swaps the file
-Date: Mon, 12 Jan 2026 15:51:43 +0000
+From: Andrew Cooper <andrew.cooper3@citrix.com>
+Subject: x86/kfence: avoid writing L1TF-vulnerable PTEs
+Date: Tue, 6 Jan 2026 18:04:26 +0000
 
-The current implementation of mmap() is set up such that a struct file
-object is obtained for the input fd in ksys_mmap_pgoff() via fget(), and
-its reference count decremented at the end of the function via.  fput().
+For native, the choice of PTE is fine.  There's real memory backing the
+non-present PTE.  However, for XenPV, Xen complains:
 
-If a merge can be achieved, we are fine to simply decrement the refcount
-on the file.  Otherwise, in __mmap_new_file_vma(), we increment the
-reference count on the file via get_file() such that the fput() in
-ksys_mmap_pgoff() does not free the now-referenced file object.
+  (XEN) d1 L1TF-vulnerable L1e 8010000018200066 - Shadowing
 
-The introduction of the f_op->mmap_prepare hook changes things, as it
-becomes possible for a driver to replace the file object right at the
-beginning of the mmap operation.
+To explain, some background on XenPV pagetables:
 
-The current implementation is buggy if this happens because it
-unconditionally calls get_file() on the mapping's file whether or not it
-was replaced (and thus whether or not its reference count will be
-decremented at the end of ksys_mmap_pgoff()).
+  Xen PV guests are control their own pagetables; they choose the new
+  PTE value, and use hypercalls to make changes so Xen can audit for
+  safety.
 
-This results in a memory leak, and was exposed in commit ab04945f91bc
-("mm: update mem char driver to use mmap_prepare").
+  In addition to a regular reference count, Xen also maintains a type
+  reference count.  e.g.  SegDesc (referenced by vGDT/vLDT), Writable
+  (referenced with _PAGE_RW) or L{1..4} (referenced by vCR3 or a lower
+  pagetable level).  This is in order to prevent e.g.  a page being
+  inserted into the pagetables for which the guest has a writable mapping.
 
-This patch solves the problem by explicitly tracking whether we actually
-need to call get_file() on the file or not, and only doing so if required.
+  For non-present mappings, all other bits become software accessible,
+  and typically contain metadata rather a real frame address.  There is
+  nothing that a reference count could sensibly be tied to.  As such, even
+  if Xen could recognise the address as currently safe, nothing would
+  prevent that frame from changing owner to another VM in the future.
 
-Link: https://lkml.kernel.org/r/20260112155143.661284-1-lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Fixes: ab04945f91bc ("mm: update mem char driver to use mmap_prepare")
-Reported-by: syzbot+bf5de69ebb4bdf86f59f@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/6964a92b.050a0220.eaf7.008a.GAE@google.com/
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+  When Xen detects a PV guest writing a L1TF-PTE, it responds by
+  activating shadow paging.  This is normally only used for the live phase
+  of migration, and comes with a reasonable overhead.
+
+KFENCE only cares about getting #PF to catch wild accesses; it doesn't
+care about the value for non-present mappings.  Use a fully inverted PTE,
+to avoid hitting the slow path when running under Xen.
+
+While adjusting the logic, take the opportunity to skip all actions if the
+PTE is already in the right state, half the number PVOps callouts, and
+skip TLB maintenance on a !P -> P transition which benefits non-Xen cases
+too.
+
+Link: https://lkml.kernel.org/r/20260106180426.710013-1-andrew.cooper3@citrix.com
+Fixes: 1dc0da6e9ec0 ("x86, kfence: enable KFENCE for x86")
+Signed-off-by: Andrew Cooper <andrew.cooper3@citrix.com>
+Tested-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/kfence.h |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
---- a/mm/vma.c~mm-vma-do-not-leak-memory-when-mmap_prepare-swaps-the-file
-+++ a/mm/vma.c
-@@ -37,6 +37,8 @@ struct mmap_state {
- 	bool check_ksm_early :1;
- 	/* If we map new, hold the file rmap lock on mapping. */
- 	bool hold_file_rmap_lock :1;
-+	/* If .mmap_prepare changed the file, we don't need to pin. */
-+	bool file_doesnt_need_get :1;
- };
+--- a/arch/x86/include/asm/kfence.h~x86-kfence-avoid-writing-l1tf-vulnerable-ptes
++++ a/arch/x86/include/asm/kfence.h
+@@ -42,10 +42,34 @@ static inline bool kfence_protect_page(u
+ {
+ 	unsigned int level;
+ 	pte_t *pte = lookup_address(addr, &level);
++	pteval_t val;
  
- #define MMAP_STATE(name, mm_, vmi_, addr_, len_, pgoff_, vm_flags_, file_) \
-@@ -2450,7 +2452,9 @@ static int __mmap_new_file_vma(struct mm
- 	struct vma_iterator *vmi = map->vmi;
- 	int error;
+ 	if (WARN_ON(!pte || level != PG_LEVEL_4K))
+ 		return false;
  
--	vma->vm_file = get_file(map->file);
-+	vma->vm_file = map->file;
-+	if (!map->file_doesnt_need_get)
-+		get_file(map->file);
++	val = pte_val(*pte);
++
++	/*
++	 * protect requires making the page not-present.  If the PTE is
++	 * already in the right state, there's nothing to do.
++	 */
++	if (protect != !!(val & _PAGE_PRESENT))
++		return true;
++
++	/*
++	 * Otherwise, invert the entire PTE.  This avoids writing out an
++	 * L1TF-vulnerable PTE (not present, without the high address bits
++	 * set).
++	 */
++	set_pte(pte, __pte(~val));
++
++	/*
++	 * If the page was protected (non-present) and we're making it
++	 * present, there is no need to flush the TLB at all.
++	 */
++	if (!protect)
++		return true;
++
+ 	/*
+ 	 * We need to avoid IPIs, as we may get KFENCE allocations or faults
+ 	 * with interrupts disabled. Therefore, the below is best-effort, and
+@@ -53,11 +77,6 @@ static inline bool kfence_protect_page(u
+ 	 * lazy fault handling takes care of faults after the page is PRESENT.
+ 	 */
  
- 	if (!map->file->f_op->mmap)
- 		return 0;
-@@ -2638,7 +2642,10 @@ static int call_mmap_prepare(struct mmap
- 
- 	/* Update fields permitted to be changed. */
- 	map->pgoff = desc->pgoff;
--	map->file = desc->vm_file;
-+	if (desc->vm_file != map->file) {
-+		map->file_doesnt_need_get = true;
-+		map->file = desc->vm_file;
-+	}
- 	map->vm_flags = desc->vm_flags;
- 	map->page_prot = desc->page_prot;
- 	/* User-defined fields. */
+-	if (protect)
+-		set_pte(pte, __pte(pte_val(*pte) & ~_PAGE_PRESENT));
+-	else
+-		set_pte(pte, __pte(pte_val(*pte) | _PAGE_PRESENT));
+-
+ 	/*
+ 	 * Flush this CPU's TLB, assuming whoever did the allocation/free is
+ 	 * likely to continue running on this CPU.
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from andrew.cooper3@citrix.com are
 
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-eliminate-partial-anon_vma-tear-down-in-anon_vma_fork.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-locking-add-rwsem_is_write_locked-update-non-lockdep-asserts.patch
-mm-vma-add-vma_is__locked-helpers.patch
-mm-add-use-vma_is_stabilised-vma_assert_stabilised-helpers.patch
-selftests-mm-remove-virtual_address_range-test.patch
 
