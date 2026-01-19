@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECECF2638BA
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 22:21:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2593F21CC64
+	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 23:12:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768861302; cv=none; b=NyW57yUdi7pobW9IKqIDLNkDrJXGhGywQB5t0J9wO3LfDeYNjZqSlG/BemVGdlbDlUu0fi/pniqeFj9sHo79QnplwTGgsPc7wkB8rkkrG6aUSqEmR7lmyEfjIgKPIuD/DhbNWPI7XHxUAl9MV7Kh6vGNmDzipgsd8Lrl3DVQeqE=
+	t=1768864352; cv=none; b=uLH8rjAvEV+FJB6PI4GvJhh03CEXnPnvGPaPhQAMX4+PyCMVVgdq6mv0AJnHXzJsTPEcANpnWRaRWODDp82IxqoFNd4d7Pq+Ryq6+7V58k2eSban+x1ilSH1DG6I9WUA8CM/AL0QrFYdXBbpiRUhhVKjSPqnZuyJbufNYmdsjOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768861302; c=relaxed/simple;
-	bh=lXGjWE8jkO2HQq0NfKkX3N3/S68GU14j5b3QQT5XnmA=;
-	h=Date:To:From:Subject:Message-Id; b=kC4ITkgFFEEEQInHD4c/ennK7y/d5oYwkRPzicxmv49WolquTJSHgG1oH8VTsjcqFk//Emay5Ye8dwkpLuDRnJXRA2wLPDDIh6mB1pk3AxJNs2v564N2hVo8IwOasrWIY8kcAFh+XmZ/sxFvi5jKqmscqXdCgxgOu6iJLjA4Tpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xRzFEu+3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768864352; c=relaxed/simple;
+	bh=o2YiEHlAAWLPtTkrKjNGsBgDaoyqXHpJrfYCb4+CgHk=;
+	h=Date:To:From:Subject:Message-Id; b=DtuGL6aidHFc7VpLUz8xCezUfJHBXr8QDf0nF0if62T6w7lRda2kS6aVOHhsTUHovZC/bByKkZlp39/X6Ttat7ogobbW0xoquS7Vw3E2+TZfnFz0LSocEcGUm8h2PKZgRtejOsztCys5HyQ4WP8F8ASO7xHKsgRpCwZI+obuj1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jykUu0fU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xRzFEu+3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A16D2C116C6;
-	Mon, 19 Jan 2026 22:21:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jykUu0fU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E2DEC19424;
+	Mon, 19 Jan 2026 23:12:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768861301;
-	bh=lXGjWE8jkO2HQq0NfKkX3N3/S68GU14j5b3QQT5XnmA=;
+	s=korg; t=1768864351;
+	bh=o2YiEHlAAWLPtTkrKjNGsBgDaoyqXHpJrfYCb4+CgHk=;
 	h=Date:To:From:Subject:From;
-	b=xRzFEu+3pQ92+d7VgB6kc8raGJQ9F53BkNP00GoG4f1T+XUdFREc1zsLM+jVFvGFR
-	 IVsUtaI8f4ug49ZkqnS4YFKTjptZUyB5q7v4EjySVlENoMQVVS4qaBCuv9jbD8jz0G
-	 iCjbhFe9VQI5Lca4WmiC4a3IJ8lQHFVo85pUTyZE=
-Date: Mon, 19 Jan 2026 14:21:41 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org
+	b=jykUu0fU5A+L9crPBvCsU5pvalOxdOvTZpKIZbLMxzVIDpO/LPjgWELnpkBt44Xwa
+	 5RdZdOWfes7dO1nohUHmMPNRQjgFkrFmKpdj/04xH+VW50vbkYiJ1KT0gNdwGYgNe+
+	 /smwgnggBvwbdXsT6+WQEVyh/5plnvuLii55jbXU=
+Date: Mon, 19 Jan 2026 15:12:31 -0800
+To: mm-commits@vger.kernel.org,tglx@kernel.org,rusty@rustcorp.com.au,peterz@infradead.org,kernelxing@tencent.com,karim.yaghmour@opersys.com,tim.bird@sony.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table.patch added to mm-unstable branch
-Message-Id: <20260119222141.A16D2C116C6@smtp.kernel.org>
+Subject: + kernel-add-spdx-license-identifier-lines.patch added to mm-nonmm-unstable branch
+Message-Id: <20260119231231.9E2DEC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: handle non-split locks correctly in zap_empty_pte_table()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table.patch
+     Subject: kernel: add SPDX-License-Identifier lines
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-add-spdx-license-identifier-lines.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-add-spdx-license-identifier-lines.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,95 +58,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: mm/memory: handle non-split locks correctly in zap_empty_pte_table()
-Date: Mon, 19 Jan 2026 23:07:08 +0100
+From: Tim Bird <tim.bird@sony.com>
+Subject: kernel: add SPDX-License-Identifier lines
+Date: Mon, 19 Jan 2026 15:40:21 -0700
 
-While we handle pte_lockptr() == pmd_lockptr() correctly in
-zap_pte_table_if_empty(), we don't handle it in zap_empty_pte_table(),
-making the spin_trylock() always fail and forcing us onto the slow path.
+Add SPDX-License-Identifier lines to some old kernel files.
 
-So let's handle the scenario where pte_lockptr() == pmd_lockptr() better,
-which can only happen if CONFIG_SPLIT_PTE_PTLOCKS is not set.
-
-This is only relevant once we unlock CONFIG_PT_RECLAIM on architectures
-that are not x86-64.
-
-Link: https://lkml.kernel.org/r/20260119220708.3438514-3-david@kernel.org
-Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20260119224021.793309-1-tim.bird@sony.com
+Signed-off-by: Tim Bird <tim.bird@sony.com>
+Acked-by: Karim Yaghmour <karim.yaghmour@opersys.com>
+Cc: Jason Xing <kernelxing@tencent.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rusty "Buggy" Russell <rusty@rustcorp.com.au>
+Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Tim Bird <tim.bird@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ kernel/cpu.c   |    3 +--
+ kernel/relay.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/memory.c~mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table
-+++ a/mm/memory.c
-@@ -1830,16 +1830,18 @@ static bool pte_table_reclaim_possible(u
- 	return details && details->reclaim_pt && (end - start >= PMD_SIZE);
- }
- 
--static bool zap_empty_pte_table(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval)
-+static bool zap_empty_pte_table(struct mm_struct *mm, pmd_t *pmd,
-+		spinlock_t *ptl, pmd_t *pmdval)
- {
- 	spinlock_t *pml = pmd_lockptr(mm, pmd);
- 
--	if (!spin_trylock(pml))
-+	if (ptl != pml && !spin_trylock(pml))
- 		return false;
- 
- 	*pmdval = pmdp_get(pmd);
- 	pmd_clear(pmd);
--	spin_unlock(pml);
-+	if (ptl != pml)
-+		spin_unlock(pml);
- 	return true;
- }
- 
-@@ -1931,7 +1933,7 @@ retry:
- 	 * from being repopulated by another thread.
- 	 */
- 	if (can_reclaim_pt && direct_reclaim && addr == end)
--		direct_reclaim = zap_empty_pte_table(mm, pmd, &pmdval);
-+		direct_reclaim = zap_empty_pte_table(mm, pmd, ptl, &pmdval);
- 
- 	add_mm_rss_vec(mm, rss);
- 	lazy_mmu_mode_disable();
+--- a/kernel/cpu.c~kernel-add-spdx-license-identifier-lines
++++ a/kernel/cpu.c
+@@ -1,7 +1,6 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
+ /* CPU control.
+  * (C) 2001, 2002, 2003, 2004 Rusty Russell
+- *
+- * This code is licenced under the GPL.
+  */
+ #include <linux/sched/mm.h>
+ #include <linux/proc_fs.h>
+--- a/kernel/relay.c~kernel-add-spdx-license-identifier-lines
++++ a/kernel/relay.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Public API and common code for kernel->userspace relay file support.
+  *
+@@ -9,8 +10,6 @@
+  * Moved to kernel/relay.c by Paul Mundt, 2006.
+  * November 2006 - CPU hotplug support by Mathieu Desnoyers
+  * 	(mathieu.desnoyers@polymtl.ca)
+- *
+- * This file is released under the GPL.
+  */
+ #include <linux/errno.h>
+ #include <linux/stddef.h>
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from tim.bird@sony.com are
 
-mm-move-pte-table-reclaim-code-to-memoryc.patch
-mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table.patch
-vmw_balloon-adjust-balloon_deflate-when-deflating-while-migrating.patch
-vmw_balloon-remove-vmballoon_compaction_init.patch
-powerpc-pseries-cmm-remove-cmm_balloon_compaction_init.patch
-mm-balloon_compaction-centralize-basic-page-migration-handling.patch
-mm-balloon_compaction-centralize-adjust_managed_page_count-handling.patch
-vmw_balloon-stop-using-the-balloon_dev_info-lock.patch
-mm-balloon_compaction-use-a-device-independent-balloon-list-lock.patch
-mm-balloon_compaction-remove-dependency-on-page-lock.patch
-mm-balloon_compaction-make-balloon_mops-static.patch
-mm-balloon_compaction-drop-fsh-include-from-balloon_compactionh.patch
-drivers-virtio-virtio_balloon-stop-using-balloon_page_push-pop.patch
-mm-balloon_compaction-remove-balloon_page_push-pop.patch
-mm-balloon_compaction-fold-balloon_mapping_gfp_mask-into-balloon_page_alloc.patch
-mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc.patch
-mm-balloon_compaction-assert-that-the-balloon_pages_lock-is-held.patch
-mm-balloon_compaction-mark-remaining-functions-for-having-proper-kerneldoc.patch
-mm-balloon_compaction-remove-extern-from-functions.patch
-mm-vmscan-drop-inclusion-of-balloon_compactionh.patch
-mm-rename-balloon_compactionch-to-balloonch.patch
-mm-kconfig-make-balloon_compaction-depend-on-migration.patch
-mm-rename-config_balloon_compaction-to-config_balloon_migration.patch
-mm-rename-config_memory_balloon-config_balloon.patch
-maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon.patch
-maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon-fix.patch
+kernel-add-spdx-license-identifier-lines.patch
 
