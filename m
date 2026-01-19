@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7296D29B8E1
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 20:31:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90F81221545;
+	Mon, 19 Jan 2026 20:31:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768854668; cv=none; b=XW2IUERPKaWAyp2YsI58I1SMEDEv1vIbDJEDZDxmyMCtXg1ZV3gl+e+kItkEjP533KP2zueI/YEAxOIgbWufprcMAJS72Ax4vkQ8VTgpwSSVt+QXdb29gF43PLjYR/59tFOVpNArsoInCiCsxbFTtq5/jqGrKvJsPCsIzGmW3K0=
+	t=1768854669; cv=none; b=uuM7pchv1+npYCtfLgzL9WhfKCU0znXFziwyzLPuOO2pc7tHDrDIMJPqMPZak/pJlWlSxwNiWoSqBvXbZQNhBvRozuRJEmw3vKDK3BWNU8+lAzr78I5MDS0eAyHhVtrtJiWfQMa7Iko25LjpW7aWgHQTd/mEeuybIqQe7eX+638=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768854668; c=relaxed/simple;
-	bh=WaP6lq/ac3jMdOpZ6Kc9LqkmtvqQ+nT45gDT7I0wLc4=;
-	h=Date:To:From:Subject:Message-Id; b=dMZcpVNIRruqA1qYzZGjUyj8YYnhZc7yu5AHQEs33Q9s9Eff4TAut6Y0Tj6hxFfTLBPk4BA5RwYh0KdQaz4xLZlH6fFSGKCLh0GWROf/jteRkM0ywktzMA8ZewfptuQ1OiIRAQpRpvRqaq8bJOA7J8NW7zUplrXPGfbx8hbzCWc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vHhj9Wst; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768854669; c=relaxed/simple;
+	bh=HLz25jOG/H1IPRxKelfY2lQfl0mlfpkuPOLuws/pXUo=;
+	h=Date:To:From:Subject:Message-Id; b=iSHniboYgW3ShQQfLCxqy2bidQl9VjRBNIV6ltw8hwS/i7ZJLnSgKuCvYssHsbEb0cXopbSujJegOPUuM2Icmw7ng4B27xhZFM4AnIZXAPVG6F4KCOhBANH1GPxBIMwAw/u++iRFtp3uXBfUinaqU2m7BzE4/UrYXb3cu4wEHjQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dX97UaQv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vHhj9Wst"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 150F6C19424;
-	Mon, 19 Jan 2026 20:31:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dX97UaQv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63DD2C116C6;
+	Mon, 19 Jan 2026 20:31:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768854668;
-	bh=WaP6lq/ac3jMdOpZ6Kc9LqkmtvqQ+nT45gDT7I0wLc4=;
+	s=korg; t=1768854669;
+	bh=HLz25jOG/H1IPRxKelfY2lQfl0mlfpkuPOLuws/pXUo=;
 	h=Date:To:From:Subject:From;
-	b=vHhj9Wst5UFQ/caU7DaHo6M26wYAuMO+ZrZeGIvTMM2KXe3SYdBuneba/0sov6a42
-	 +w2MrqfP26oVwozhtn8wYL55oLJJJ8uf/LRFLjt/RU8hkkFI+nfDaimh2+HxSgBJL4
-	 Q/eWHP1XOljC9fz6e82VzM9izUr73O9VzPpctfyE=
-Date: Mon, 19 Jan 2026 12:31:07 -0800
-To: mm-commits@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,clm@meta.com,leitao@debian.org,akpm@linux-foundation.org
+	b=dX97UaQv4OeUr+cAAUMhLFKxSupVH5gQ94IEZwGxir+1v+Ta5DVYrnDU74stlogTu
+	 EP01i7Fmg/CSMxEgwm9e4shoV2Y4K0CyFUlZZNZIwc6umg9C7ogd2UK1aIGp560zec
+	 BqobxhYzt0sLBIqAXEaCHneJOidi4/gwUVkrGVNA=
+Date: Mon, 19 Jan 2026 12:31:08 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,axelrasmussen@google.com,yosry.ahmed@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kfence-fix-potential-deadlock-in-reboot-notifier.patch removed from -mm tree
-Message-Id: <20260119203108.150F6C19424@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch removed from -mm tree
+Message-Id: <20260119203109.63DD2C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/kfence: fix potential deadlock in reboot notifier
+     Subject: mm: restore per-memcg proactive reclaim with !CONFIG_NUMA
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-fix-potential-deadlock-in-reboot-notifier.patch
+     mm-restore-per-memcg-proactive-reclaim-with-config_numa.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm/kfence: fix potential deadlock in reboot notifier
-Date: Fri, 16 Jan 2026 06:10:11 -0800
+From: Yosry Ahmed <yosry.ahmed@linux.dev>
+Subject: mm: restore per-memcg proactive reclaim with !CONFIG_NUMA
+Date: Fri, 16 Jan 2026 20:52:47 +0000
 
-The reboot notifier callback can deadlock when calling
-cancel_delayed_work_sync() if toggle_allocation_gate() is blocked in
-wait_event_idle() waiting for allocations, that might not happen on
-shutdown path.
+Commit 2b7226af730c ("mm/memcg: make memory.reclaim interface generic")
+moved proactive reclaim logic from memory.reclaim handler to a generic
+user_proactive_reclaim() helper to be used for per-node proactive reclaim.
 
-The issue is that cancel_delayed_work_sync() waits for the work to
-complete, but the work is waiting for kfence_allocation_gate > 0 which
-requires allocations to happen (each allocation is increased by 1) -
-allocations that may have stopped during shutdown.
+However, user_proactive_reclaim() was only defined under CONFIG_NUMA, with
+a stub always returning 0 otherwise.  This broke memory.reclaim on
+!CONFIG_NUMA configs, causing it to report success without actually
+attempting reclaim.
 
-Fix this by:
-1. Using cancel_delayed_work() (non-sync) to avoid blocking. Now the
-   callback succeeds and return.
-2. Adding wake_up() to unblock any waiting toggle_allocation_gate()
-3. Adding !kfence_enabled to the wait condition so the wake succeeds
+Move the definition of user_proactive_reclaim() outside CONFIG_NUMA, and
+instead define a stub for __node_reclaim() in the !CONFIG_NUMA case. 
+__node_reclaim() is only called from user_proactive_reclaim() when a write
+is made to sys/devices/system/node/nodeX/reclaim, which is only defined
+with CONFIG_NUMA.
 
-The static_branch_disable() IPI will still execute after the wake, but at
-this early point in shutdown (reboot notifier runs with INT_MAX priority),
-the system is still functional and CPUs can respond to IPIs.
-
-Link: https://lkml.kernel.org/r/20260116-kfence_fix-v1-1-4165a055933f@debian.org
-Fixes: ce2bba89566b ("mm/kfence: add reboot notifier to disable KFENCE on shutdown")
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reported-by: Chris Mason <clm@meta.com>
-Closes: https://lore.kernel.org/all/20260113140234.677117-1-clm@meta.com/
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Chris Mason <clm@meta.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/20260116205247.928004-1-yosry.ahmed@linux.dev
+Fixes: 2b7226af730c ("mm/memcg: make memory.reclaim interface generic")
+Signed-off-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/internal.h |    8 --------
+ mm/vmscan.c   |   13 +++++++++++--
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-fix-potential-deadlock-in-reboot-notifier
-+++ a/mm/kfence/core.c
-@@ -823,6 +823,9 @@ static struct notifier_block kfence_chec
- static struct delayed_work kfence_timer;
+--- a/mm/internal.h~mm-restore-per-memcg-proactive-reclaim-with-config_numa
++++ a/mm/internal.h
+@@ -538,16 +538,8 @@ extern unsigned long highest_memmap_pfn;
+ bool folio_isolate_lru(struct folio *folio);
+ void folio_putback_lru(struct folio *folio);
+ extern void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason);
+-#ifdef CONFIG_NUMA
+ int user_proactive_reclaim(char *buf,
+ 			   struct mem_cgroup *memcg, pg_data_t *pgdat);
+-#else
+-static inline int user_proactive_reclaim(char *buf,
+-			   struct mem_cgroup *memcg, pg_data_t *pgdat)
+-{
+-	return 0;
+-}
+-#endif
  
- #ifdef CONFIG_KFENCE_STATIC_KEYS
-+/* Wait queue to wake up allocation-gate timer task. */
-+static DECLARE_WAIT_QUEUE_HEAD(allocation_wait);
-+
- static int kfence_reboot_callback(struct notifier_block *nb,
- 				  unsigned long action, void *data)
- {
-@@ -832,7 +835,12 @@ static int kfence_reboot_callback(struct
- 	 */
- 	WRITE_ONCE(kfence_enabled, false);
- 	/* Cancel any pending timer work */
--	cancel_delayed_work_sync(&kfence_timer);
-+	cancel_delayed_work(&kfence_timer);
-+	/*
-+	 * Wake up any blocked toggle_allocation_gate() so it can complete
-+	 * early while the system is still able to handle IPIs.
-+	 */
-+	wake_up(&allocation_wait);
- 
- 	return NOTIFY_OK;
+ /*
+  * in mm/rmap.c:
+--- a/mm/vmscan.c~mm-restore-per-memcg-proactive-reclaim-with-config_numa
++++ a/mm/vmscan.c
+@@ -7707,6 +7707,17 @@ int node_reclaim(struct pglist_data *pgd
+ 	return ret;
  }
-@@ -842,9 +850,6 @@ static struct notifier_block kfence_rebo
- 	.priority = INT_MAX, /* Run early to stop timers ASAP */
- };
  
--/* Wait queue to wake up allocation-gate timer task. */
--static DECLARE_WAIT_QUEUE_HEAD(allocation_wait);
++#else
++
++static unsigned long __node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask,
++				    unsigned long nr_pages,
++				    struct scan_control *sc)
++{
++	return 0;
++}
++
++#endif
++
+ enum {
+ 	MEMORY_RECLAIM_SWAPPINESS = 0,
+ 	MEMORY_RECLAIM_SWAPPINESS_MAX,
+@@ -7814,8 +7825,6 @@ int user_proactive_reclaim(char *buf,
+ 	return 0;
+ }
+ 
+-#endif
 -
- static void wake_up_kfence_timer(struct irq_work *work)
- {
- 	wake_up(&allocation_wait);
-@@ -873,7 +878,9 @@ static void toggle_allocation_gate(struc
- 	/* Enable static key, and await allocation to happen. */
- 	static_branch_enable(&kfence_allocation_key);
- 
--	wait_event_idle(allocation_wait, atomic_read(&kfence_allocation_gate) > 0);
-+	wait_event_idle(allocation_wait,
-+			atomic_read(&kfence_allocation_gate) > 0 ||
-+			!READ_ONCE(kfence_enabled));
- 
- 	/* Disable static key and reset timer. */
- 	static_branch_disable(&kfence_allocation_key);
+ /**
+  * check_move_unevictable_folios - Move evictable folios to appropriate zone
+  * lru list
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from yosry.ahmed@linux.dev are
 
+zsmalloc-simplify-read-begin-end-logic.patch
 
