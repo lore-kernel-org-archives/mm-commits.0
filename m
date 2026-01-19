@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44A0A4315F
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 22:16:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 303892DA768
+	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 22:21:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768860981; cv=none; b=XtvTSeOJ5g5qqMSNfMpRw189prdezLMSzsIlF1YOhL27RHf/j1NGEKbJLKwLcy7f+Y6RhAuh343YBZ75tZPZO6nFXZlRwp6RWco3vmf/YHD90Evv6bwmsvQMS/UTyTgUNgOM/hxIVoTKQFEWIi1sgYur4legDPaFxT44i1aeeuk=
+	t=1768861300; cv=none; b=WlkwTQVqqrT1J73fR6Nial22AGYGhHrFY4vrmRqbMW1DF2fbuGOVDISAiBFycH3OCx/+UHL5kbRF4tIAcFolXvxu003Dxz7CgayxHtOgYEdQ4VdCAz8JSDVF2UHsqYbjPhnXkxhO4n+XzDoL9wr5ApXX1zTqVg+mhpStNUV+kDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768860981; c=relaxed/simple;
-	bh=wIkx2Ytvf9TUiMkepNCWD7LOkTd7f7XmjsGS3Mn1U1w=;
-	h=Date:To:From:Subject:Message-Id; b=lFcR3mFgIkbJm8C3+G3ba7wsv30nIpLGlLjt1xgnqSdNUe8IJOmbgPlteKJrVecQ5XE0dugoHpsNCg74cJzAcdO5AJQwLlJTame/neArLxGhBapXuP5bERdLN+QMXum8yxF35Gs99YJerMz226PP+etUupejtJNUfTzMLT+lul0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eN/dkVND; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768861300; c=relaxed/simple;
+	bh=NbfmCRvEzuRTr8Kqn9LLA2lykPBIi2LDreE7sKD3voE=;
+	h=Date:To:From:Subject:Message-Id; b=LvSWt3oO6/p5Q/tUqttZxutRpNjKgYPwx1IlhT3aUxuzWdgiUO9X1MYioodnKWrxVx813D0X9kTGOhYZgMmgpDeyKV+ggpE+Wwgn5oLCTC1MU12rV/R/Twcrx0R2FTKLpLEjNzLX/kv+RJPmXza1EwUpCfMhwHWw+TYw2kNhDYQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dyv0pUV6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eN/dkVND"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B7E6C116C6;
-	Mon, 19 Jan 2026 22:16:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dyv0pUV6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C59BC2BC86;
+	Mon, 19 Jan 2026 22:21:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768860981;
-	bh=wIkx2Ytvf9TUiMkepNCWD7LOkTd7f7XmjsGS3Mn1U1w=;
+	s=korg; t=1768861297;
+	bh=NbfmCRvEzuRTr8Kqn9LLA2lykPBIi2LDreE7sKD3voE=;
 	h=Date:To:From:Subject:From;
-	b=eN/dkVNDJvMZnzqJKwJQumAE5U7yxQtTPfrQHZXi/o3JY9MDMexmCMubixnpSNA/z
-	 aj3Y03ZVE8Eo5mtYzcSLwGAX+2FYdl7pdNuazbKpM16ZcVc0g7kQZU01p2+6fhnP7Z
-	 jOmXW9poYEM3aZ60Gze+J9GXmuTSEL6MsitKb+OQ=
-Date: Mon, 19 Jan 2026 14:16:20 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,longman@redhat.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,boqun.feng@gmail.com,bigeasy@linutronix.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Dyv0pUV6VqXSZilEdL9cq9Xwcmroz9DYVeZcSCBRSUEx14vmgYDKb5HyP89YqBEjH
+	 lxchbA7h65L3B9a6AAh0D8c+twk+KioTEhSnJQR9Q34m0Kvc3+8YSxY6USKwYfNA8d
+	 PqfwxgZ6uxKQ81mf5N1xjVOpwUldjBMqiOZYwxRg=
+Date: Mon, 19 Jan 2026 14:21:37 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-vma_assert_stabilised.patch added to mm-new branch
-Message-Id: <20260119221621.0B7E6C116C6@smtp.kernel.org>
+Subject: + mm-move-pte-table-reclaim-code-to-memoryc.patch added to mm-unstable branch
+Message-Id: <20260119222137.9C59BC2BC86@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add vma_assert_stabilised()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-add-vma_assert_stabilised.patch
+     Subject: mm: move pte table reclaim code to memory.c
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-move-pte-table-reclaim-code-to-memoryc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-vma_assert_stabilised.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-pte-table-reclaim-code-to-memoryc.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,254 +58,311 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: add vma_assert_stabilised()
-Date: Mon, 19 Jan 2026 20:59:40 +0000
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: mm: move pte table reclaim code to memory.c
+Date: Mon, 19 Jan 2026 23:07:07 +0100
 
-Patch series "add and use vma_assert_stabilised() helper", v2.
-
-Sometimes we wish to assert that a VMA is stable, that is - the VMA cannot
-be changed underneath us.  This will be the case if EITHER the VMA lock or
-the mmap lock is held.
-
-We already open-code this in two places - anon_vma_name() in mm/madvise.c
-and vma_flag_set_atomic() in include/linux/mm.h.
-
-This series adds vma_assert_stablised() which abstract this can be used in
-these callsites instead.
-
-This implementation uses lockdep where possible - that is VMA read locks -
-which correctly track read lock acquisition/release via:
-
-vma_start_read() ->
-rwsem_acquire_read()
-
-vma_start_read_locked() ->
-vma_start_read_locked_nested() ->
-rwsem_acquire_read()
-
-And:
-
-vma_end_read() ->
-vma_refcount_put() ->
-rwsem_release()
-
-We don't track the VMA locks using lockdep for VMA write locks, however
-these are predicated upon mmap write locks whose lockdep state we do
-track, and additionally vma_assert_stabillised() asserts this check if VMA
-read lock is not held, so we get lockdep coverage in this case also.
-
-We also add vma_is_read_locked() and update vma_assert_locked() to perform
-lockdep tracking for VMA read locks.
-
-We also add extensive comments to describe what we're doing.
-
-There's some tricky stuff around mmap locking and stabilisation races that
-we have to be careful of that I describe in the patch introducing
-vma_assert_stabilised().
-
-This change also lays the foundation for future series to add this assert
-in further places where we wish to make it clear that we rely upon a
-stabilised VMA.
-
-The motivation for this change was precisely this.
+Some cleanups for PT table reclaim code, triggered by a false-positive
+warning we might start to see soon after we unlocked pt-reclaim on
+architectures besides x86-64.
 
 
 This patch (of 2):
 
-Sometimes we wish to assert that a VMA is stable, that is - the VMA cannot
-be changed underneath us.  This will be the case if EITHER the VMA lock or
-the mmap lock is held.
+The pte-table reclaim code is only called from memory.c, while zapping
+pages, and it better also stays that way in the long run.  If we ever have
+to call it from other files, we should expose proper high-level helpers
+for zapping if the existing helpers are not good enough.
 
-In order to do so, we introduce a new assert vma_assert_stablised() - this
-will make a lockdep assert if lockdep is enabled AND the VMA is
-read-locked.
+So, let's move the code over (it's not a lot) and slightly clean it up a
+bit by:
+- Renaming the functions.
+- Dropping the "Check if it is empty PTE page" comment, which is now
+  self-explaining given the function name.
+- Making zap_pte_table_if_empty() return whether zapping worked so the
+  caller can free it.
+- Adding a comment in pte_table_reclaim_possible().
+- Inlining free_pte() in the last remaining user.
+- In zap_empty_pte_table(), switch from pmdp_get_lcokless() to
+  pmd_clear(), we are holding the PMD PT lock.
 
-Currently lockdep tracking for VMA write locks is not implemented, so it
-suffices to check in this case that we have either an mmap read or write
-semaphore held.
+By moving the code over, compilers can also easily figure out when
+zap_empty_pte_table() does not initialize the pmdval variable, avoiding
+false-positive warnings about the variable possibly not being initialized.
 
-Note that because the VMA lock uses the non-standard vmlock_dep_map naming
-convention, we cannot use lockdep_assert_is_write_held() so have to open
-code this ourselves via lockdep-asserting that
-lock_is_held_type(&vma->vmlock_dep_map, 0).
-
-We have to be careful here - for instance when merging a VMA, we use the
-mmap write lock to stabilise the examination of adjacent VMAs which might
-be simultaneously VMA read-locked whilst being faulted in.
-
-If we were to assert VMA read lock using lockdep we would encounter an
-incorrect lockdep assert.
-
-Also, we have to be careful about asserting mmap locks are held - if we
-try to address the above issue by first checking whether mmap lock is held
-and if so asserting it via lockdep, we may find that we were raced by
-another thread acquiring an mmap read lock simultaneously that either we
-don't own (and thus can be released any time - so we are not stable) or
-was indeed released since we last checked.
-
-So to deal with these complexities we end up with either a precise (if
-lockdep is enabled) or imprecise (if not) approach - in the first instance
-we assert the lock is held using lockdep and thus whether we own it.
-
-If we do own it, then the check is complete, otherwise we must check for
-the VMA read lock being held (VMA write lock implies mmap write lock so
-the mmap lock suffices for this).
-
-If lockdep is not enabled we simply check if the mmap lock is held and
-risk a false positive.
-
-We add vma_assert_read_locked() for this case.
-
-There are a couple places in the kernel where we already do this
-stabliisation check - the anon_vma_name() helper in mm/madvise.c and
-vma_flag_set_atomic() in include/linux/mm.h, which we update to use
-vma_assert_stabilised().
-
-This change abstracts these into vma_assert_stabilised(), uses lockdep if
-possible, and avoids a duplicate check of whether the mmap lock is held.
-
-This is also self-documenting and lays the foundations for further VMA
-stability checks in the code.
-
-Link: https://lkml.kernel.org/r/cover.1768855783.git.lorenzo.stoakes@oracle.com
-Link: https://lkml.kernel.org/r/45f8b4cd77be75b095b474570487650ae728be0f.1768855783.git.lorenzo.stoakes@oracle.com
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20260119220708.3438514-1-david@kernel.org
+Link: https://lkml.kernel.org/r/20260119220708.3438514-2-david@kernel.org
+Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h        |    4 --
- include/linux/mmap_lock.h |   56 ++++++++++++++++++++++++++++++++++++
- mm/madvise.c              |    4 --
- 3 files changed, 58 insertions(+), 6 deletions(-)
+ MAINTAINERS     |    1 
+ mm/Makefile     |    1 
+ mm/internal.h   |   18 -----------
+ mm/memory.c     |   68 +++++++++++++++++++++++++++++++++++++++----
+ mm/pt_reclaim.c |   72 ----------------------------------------------
+ 5 files changed, 62 insertions(+), 98 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-add-vma_assert_stabilised
-+++ a/include/linux/mmap_lock.h
-@@ -277,6 +277,56 @@ static inline void vma_assert_locked(str
- 		vma_assert_write_locked(vma);
- }
+--- a/MAINTAINERS~mm-move-pte-table-reclaim-code-to-memoryc
++++ a/MAINTAINERS
+@@ -16685,7 +16685,6 @@ R:	Shakeel Butt <shakeel.butt@linux.dev>
+ R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-F:	mm/pt_reclaim.c
+ F:	mm/vmscan.c
+ F:	mm/workingset.c
  
-+/**
-+ * vma_assert_read_locked() - Asserts that @vma is specifically read locked.
-+ * @vma: The VMA we assert.
-+ */
-+static inline void vma_assert_read_locked(struct vm_area_struct *vma)
-+{
-+	lockdep_assert(lock_is_held(&vma->vmlock_dep_map));
-+	VM_BUG_ON_VMA(!vma_is_read_locked(vma), vma);
-+}
-+
-+/**
-+ * vma_assert_stabilised() - assert that this VMA cannot be changed from
-+ * underneath us either by having a VMA or mmap lock held.
-+ * @vma: The VMA whose stability we wish to assess.
-+ *
-+ * If lockdep is enabled we can precisely ensure stability via either an mmap
-+ * lock owned by us or a specific VMA lock.
-+ *
-+ * With lockdep disabled we may sometimes race with other threads acquiring the
-+ * mmap read lock simultaneous with our VMA read lock.
-+ */
-+static inline void vma_assert_stabilised(struct vm_area_struct *vma)
-+{
-+	/*
-+	 * We have to be careful about VMA read locks and concurrent mmap locks
-+	 * by other threads. If we were to assert we own an mmap lock when in
-+	 * fact it is another thread's, or if we were to race with it unlocking
-+	 * when asserting an mmap lock, we will fail incorrectly.
-+	 *
-+	 * If we have lockdep, we can treat OUR owning the mmap lock as
-+	 * sufficient stabilisation.
-+	 *
-+	 * If not, this is an approximation and we simply assume the same,
-+	 * though sometimes we might be wrong due to races.
-+	 */
-+	if (IS_ENABLED(CONFIG_LOCKDEP)) {
-+		if (lockdep_is_held(&vma->vm_mm->mmap_lock))
-+			return;
-+	} else {
-+		if (rwsem_is_locked(&vma->vm_mm->mmap_lock))
-+			return;
-+	}
-+
-+	/*
-+	 * OK we must hold a VMA read lock, since a write lock requires mmap
-+	 * lock.
-+	 */
-+	vma_assert_read_locked(vma);
-+}
-+
- static inline bool vma_is_attached(struct vm_area_struct *vma)
- {
- 	return refcount_read(&vma->vm_refcnt);
-@@ -353,6 +403,12 @@ static inline struct vm_area_struct *loc
- 	return NULL;
- }
+--- a/mm/internal.h~mm-move-pte-table-reclaim-code-to-memoryc
++++ a/mm/internal.h
+@@ -1743,24 +1743,6 @@ int walk_page_range_debug(struct mm_stru
+ 			  unsigned long end, const struct mm_walk_ops *ops,
+ 			  pgd_t *pgd, void *private);
  
-+static inline void vma_assert_stabilised(struct vm_area_struct *vma)
-+{
-+	/* If no VMA locks, then either mmap lock suffices to stabilise. */
-+	mmap_assert_locked(vma->vm_mm);
-+}
-+
- static inline void vma_assert_locked(struct vm_area_struct *vma)
- {
- 	mmap_assert_locked(vma->vm_mm);
---- a/include/linux/mm.h~mm-add-vma_assert_stabilised
-+++ a/include/linux/mm.h
-@@ -1008,9 +1008,7 @@ static inline void vma_flag_set_atomic(s
- {
- 	unsigned long *bitmap = ACCESS_PRIVATE(&vma->flags, __vma_flags);
- 
--	/* mmap read lock/VMA read lock must be held. */
--	if (!rwsem_is_locked(&vma->vm_mm->mmap_lock))
--		vma_assert_locked(vma);
-+	vma_assert_stabilised(vma);
- 
- 	if (__vma_flag_atomic_valid(vma, bit))
- 		set_bit((__force int)bit, bitmap);
---- a/mm/madvise.c~mm-add-vma_assert_stabilised
-+++ a/mm/madvise.c
-@@ -109,9 +109,7 @@ void anon_vma_name_free(struct kref *kre
- 
- struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
- {
--	if (!rwsem_is_locked(&vma->vm_mm->mmap_lock))
--		vma_assert_locked(vma);
+-/* pt_reclaim.c */
+-bool try_get_and_clear_pmd(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval);
+-void free_pte(struct mm_struct *mm, unsigned long addr, struct mmu_gather *tlb,
+-	      pmd_t pmdval);
+-void try_to_free_pte(struct mm_struct *mm, pmd_t *pmd, unsigned long addr,
+-		     struct mmu_gather *tlb);
 -
-+	vma_assert_stabilised(vma);
- 	return vma->anon_name;
+-#ifdef CONFIG_PT_RECLAIM
+-bool reclaim_pt_is_enabled(unsigned long start, unsigned long end,
+-			   struct zap_details *details);
+-#else
+-static inline bool reclaim_pt_is_enabled(unsigned long start, unsigned long end,
+-					 struct zap_details *details)
+-{
+-	return false;
+-}
+-#endif /* CONFIG_PT_RECLAIM */
+-
+ void dup_mm_exe_file(struct mm_struct *mm, struct mm_struct *oldmm);
+ int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm);
+ 
+--- a/mm/Makefile~mm-move-pte-table-reclaim-code-to-memoryc
++++ a/mm/Makefile
+@@ -146,5 +146,4 @@ obj-$(CONFIG_GENERIC_IOREMAP) += ioremap
+ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker_debug.o
+ obj-$(CONFIG_EXECMEM) += execmem.o
+ obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
+-obj-$(CONFIG_PT_RECLAIM) += pt_reclaim.o
+ obj-$(CONFIG_LAZY_MMU_MODE_KUNIT_TEST) += tests/lazy_mmu_mode_kunit.o
+--- a/mm/memory.c~mm-move-pte-table-reclaim-code-to-memoryc
++++ a/mm/memory.c
+@@ -1821,11 +1821,68 @@ static inline int do_zap_pte_range(struc
+ 	return nr;
  }
  
++static bool pte_table_reclaim_possible(unsigned long start, unsigned long end,
++		struct zap_details *details)
++{
++	if (!IS_ENABLED(CONFIG_PT_RECLAIM))
++		return false;
++	/* Only zap if we are allowed to and cover the full page table. */
++	return details && details->reclaim_pt && (end - start >= PMD_SIZE);
++}
++
++static bool zap_empty_pte_table(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval)
++{
++	spinlock_t *pml = pmd_lockptr(mm, pmd);
++
++	if (!spin_trylock(pml))
++		return false;
++
++	*pmdval = pmdp_get(pmd);
++	pmd_clear(pmd);
++	spin_unlock(pml);
++	return true;
++}
++
++static bool zap_pte_table_if_empty(struct mm_struct *mm, pmd_t *pmd,
++		unsigned long addr, pmd_t *pmdval)
++{
++	spinlock_t *pml, *ptl = NULL;
++	pte_t *start_pte, *pte;
++	int i;
++
++	pml = pmd_lock(mm, pmd);
++	start_pte = pte_offset_map_rw_nolock(mm, pmd, addr, pmdval, &ptl);
++	if (!start_pte)
++		goto out_ptl;
++	if (ptl != pml)
++		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
++
++	for (i = 0, pte = start_pte; i < PTRS_PER_PTE; i++, pte++) {
++		if (!pte_none(ptep_get(pte)))
++			goto out_ptl;
++	}
++	pte_unmap(start_pte);
++
++	pmd_clear(pmd);
++
++	if (ptl != pml)
++		spin_unlock(ptl);
++	spin_unlock(pml);
++	return true;
++out_ptl:
++	if (start_pte)
++		pte_unmap_unlock(start_pte, ptl);
++	if (ptl != pml)
++		spin_unlock(pml);
++	return false;
++}
++
+ static unsigned long zap_pte_range(struct mmu_gather *tlb,
+ 				struct vm_area_struct *vma, pmd_t *pmd,
+ 				unsigned long addr, unsigned long end,
+ 				struct zap_details *details)
+ {
++	bool can_reclaim_pt = pte_table_reclaim_possible(addr, end, details);
+ 	bool force_flush = false, force_break = false;
+ 	struct mm_struct *mm = tlb->mm;
+ 	int rss[NR_MM_COUNTERS];
+@@ -1834,7 +1891,6 @@ static unsigned long zap_pte_range(struc
+ 	pte_t *pte;
+ 	pmd_t pmdval;
+ 	unsigned long start = addr;
+-	bool can_reclaim_pt = reclaim_pt_is_enabled(start, end, details);
+ 	bool direct_reclaim = true;
+ 	int nr;
+ 
+@@ -1875,7 +1931,7 @@ retry:
+ 	 * from being repopulated by another thread.
+ 	 */
+ 	if (can_reclaim_pt && direct_reclaim && addr == end)
+-		direct_reclaim = try_get_and_clear_pmd(mm, pmd, &pmdval);
++		direct_reclaim = zap_empty_pte_table(mm, pmd, &pmdval);
+ 
+ 	add_mm_rss_vec(mm, rss);
+ 	lazy_mmu_mode_disable();
+@@ -1904,10 +1960,10 @@ retry:
+ 	}
+ 
+ 	if (can_reclaim_pt) {
+-		if (direct_reclaim)
+-			free_pte(mm, start, tlb, pmdval);
+-		else
+-			try_to_free_pte(mm, pmd, start, tlb);
++		if (direct_reclaim || zap_pte_table_if_empty(mm, pmd, start, &pmdval)) {
++			pte_free_tlb(tlb, pmd_pgtable(pmdval), addr);
++			mm_dec_nr_ptes(mm);
++		}
+ 	}
+ 
+ 	return addr;
+diff --git a/mm/pt_reclaim.c a/mm/pt_reclaim.c
+deleted file mode 100644
+--- a/mm/pt_reclaim.c
++++ /dev/null
+@@ -1,72 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-#include <linux/hugetlb.h>
+-#include <linux/pgalloc.h>
+-
+-#include <asm/tlb.h>
+-
+-#include "internal.h"
+-
+-bool reclaim_pt_is_enabled(unsigned long start, unsigned long end,
+-			   struct zap_details *details)
+-{
+-	return details && details->reclaim_pt && (end - start >= PMD_SIZE);
+-}
+-
+-bool try_get_and_clear_pmd(struct mm_struct *mm, pmd_t *pmd, pmd_t *pmdval)
+-{
+-	spinlock_t *pml = pmd_lockptr(mm, pmd);
+-
+-	if (!spin_trylock(pml))
+-		return false;
+-
+-	*pmdval = pmdp_get_lockless(pmd);
+-	pmd_clear(pmd);
+-	spin_unlock(pml);
+-
+-	return true;
+-}
+-
+-void free_pte(struct mm_struct *mm, unsigned long addr, struct mmu_gather *tlb,
+-	      pmd_t pmdval)
+-{
+-	pte_free_tlb(tlb, pmd_pgtable(pmdval), addr);
+-	mm_dec_nr_ptes(mm);
+-}
+-
+-void try_to_free_pte(struct mm_struct *mm, pmd_t *pmd, unsigned long addr,
+-		     struct mmu_gather *tlb)
+-{
+-	pmd_t pmdval;
+-	spinlock_t *pml, *ptl = NULL;
+-	pte_t *start_pte, *pte;
+-	int i;
+-
+-	pml = pmd_lock(mm, pmd);
+-	start_pte = pte_offset_map_rw_nolock(mm, pmd, addr, &pmdval, &ptl);
+-	if (!start_pte)
+-		goto out_ptl;
+-	if (ptl != pml)
+-		spin_lock_nested(ptl, SINGLE_DEPTH_NESTING);
+-
+-	/* Check if it is empty PTE page */
+-	for (i = 0, pte = start_pte; i < PTRS_PER_PTE; i++, pte++) {
+-		if (!pte_none(ptep_get(pte)))
+-			goto out_ptl;
+-	}
+-	pte_unmap(start_pte);
+-
+-	pmd_clear(pmd);
+-
+-	if (ptl != pml)
+-		spin_unlock(ptl);
+-	spin_unlock(pml);
+-
+-	free_pte(mm, addr, tlb, pmdval);
+-
+-	return;
+-out_ptl:
+-	if (start_pte)
+-		pte_unmap_unlock(start_pte, ptl);
+-	if (ptl != pml)
+-		spin_unlock(pml);
+-}
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-eliminate-partial-anon_vma-tear-down-in-anon_vma_fork.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-selftests-mm-remove-virtual_address_range-test.patch
-mm-vma-use-lockdep-where-we-can-reduce-duplication.patch
-mm-add-vma_assert_stabilised.patch
+mm-move-pte-table-reclaim-code-to-memoryc.patch
+mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table.patch
+vmw_balloon-adjust-balloon_deflate-when-deflating-while-migrating.patch
+vmw_balloon-remove-vmballoon_compaction_init.patch
+powerpc-pseries-cmm-remove-cmm_balloon_compaction_init.patch
+mm-balloon_compaction-centralize-basic-page-migration-handling.patch
+mm-balloon_compaction-centralize-adjust_managed_page_count-handling.patch
+vmw_balloon-stop-using-the-balloon_dev_info-lock.patch
+mm-balloon_compaction-use-a-device-independent-balloon-list-lock.patch
+mm-balloon_compaction-remove-dependency-on-page-lock.patch
+mm-balloon_compaction-make-balloon_mops-static.patch
+mm-balloon_compaction-drop-fsh-include-from-balloon_compactionh.patch
+drivers-virtio-virtio_balloon-stop-using-balloon_page_push-pop.patch
+mm-balloon_compaction-remove-balloon_page_push-pop.patch
+mm-balloon_compaction-fold-balloon_mapping_gfp_mask-into-balloon_page_alloc.patch
+mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc.patch
+mm-balloon_compaction-assert-that-the-balloon_pages_lock-is-held.patch
+mm-balloon_compaction-mark-remaining-functions-for-having-proper-kerneldoc.patch
+mm-balloon_compaction-remove-extern-from-functions.patch
+mm-vmscan-drop-inclusion-of-balloon_compactionh.patch
+mm-rename-balloon_compactionch-to-balloonch.patch
+mm-kconfig-make-balloon_compaction-depend-on-migration.patch
+mm-rename-config_balloon_compaction-to-config_balloon_migration.patch
+mm-rename-config_memory_balloon-config_balloon.patch
+maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon.patch
+maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon-fix.patch
 
