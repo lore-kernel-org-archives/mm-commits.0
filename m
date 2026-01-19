@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F05B26ED3D
-	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 19:34:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9B1C27E7F0
+	for <mm-commits@vger.kernel.org>; Mon, 19 Jan 2026 19:34:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768851257; cv=none; b=PcnxKJEns/x5QA4hu2O2Hsn+p8FPPaG2OSTFrDq0KCAXpkBy+UevFynyLBrmI24BLgzL5W+8t+1Z/Lgml+pl0IDJqXOiwQhqI65ZlU2S4/q393kq4PEjOv4XQCBpJg0M7FtT3zTlrje6DgVeFh3FUPQ0UisZJRTVGQQouacsuGI=
+	t=1768851260; cv=none; b=fXLSVG7ONEMXZ0NM/gtXl4IwDsUi6pY3FhATNIoZV8iQzgk0zZsc8zQbILfwKfQ7URwabYgADloQktUOhISMjan6wGlcgirNyEQBWBHHF0sV4lVSXTI1H/0MlRYa7KfOVDiNnf7DMCWcSqa96edPo538cmIfrirARx01RAoOO04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768851257; c=relaxed/simple;
-	bh=oqTCREk8qI0h0rhiLf74a6rSlehH0983pBn/jKWQyxo=;
-	h=Date:To:From:Subject:Message-Id; b=hceslykJd2AsF1Yd8bkEBORQDgY/JWhtIJtWZS0RVodZ/hLlxeaXQ4tPLc+s1d5dE+4OPmt16oGR/DbgGXfVDblC7cPwg2ZyHd6C4KL6sruG25/VoOxHkb3QchEaKy58gLhNJ8pnBW7fXI+jH3iwNbbMldmiOtIYhHr2UKwrLGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c11sPSjE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768851260; c=relaxed/simple;
+	bh=psejK3Zp36LBgE/X0Wsht4yyqa+/tP439IPzESDfOoA=;
+	h=Date:To:From:Subject:Message-Id; b=AMwwhK1mlukzsRhx+PHqBJCEvO9FS/6qGdK84R9aXxY+hGyVDx60NijrrRE7t195e18WsMSXH4rruub590n6rCLgZ6U/X4o1dAk6AknbdrO5KiqIJRqgOZydyik8Hbn1jTQjvnMXK6ihYKbBc1eaX2w/GBJvk3TPUGEGgEVdswE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KbQW1p2o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c11sPSjE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3818BC116C6;
-	Mon, 19 Jan 2026 19:34:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KbQW1p2o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82484C116C6;
+	Mon, 19 Jan 2026 19:34:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768851257;
-	bh=oqTCREk8qI0h0rhiLf74a6rSlehH0983pBn/jKWQyxo=;
+	s=korg; t=1768851260;
+	bh=psejK3Zp36LBgE/X0Wsht4yyqa+/tP439IPzESDfOoA=;
 	h=Date:To:From:Subject:From;
-	b=c11sPSjEaCh8oImWnyvmNW+jIUQr2+emmZS1npOx9Qe8i0uuA0Hw/XCIjqm5G2TNr
-	 ooW/ZQfWI9cYnJdV5qh01FC1zuZ1hutDmsfLL2Dj9bDrYSuLQJdH4GkMEOGpLBL4jY
-	 /MtLYT2DxX/+GvARrVYWvTWTyDlgU3YEuJS1Ncno=
-Date: Mon, 19 Jan 2026 11:34:16 -0800
+	b=KbQW1p2ortSUD9P5py7FixztSgLt4XATaPI4DM19bysWDiEql1Ko1ggbLLr/YqWf6
+	 vNVlOgnqfw2U5VOka8m/Egfn0qBTUjN7Spe1Rh+/H3bN7nhZzWg3ZALioVHh8EO68I
+	 WejpOHIiYSPR10EO6jc9v5Ht8kBl4WhYfCIc6QKw=
+Date: Mon, 19 Jan 2026 11:34:20 -0800
 To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-basic-vma-flag-operation-helper-functions.patch added to mm-new branch
-Message-Id: <20260119193417.3818BC116C6@smtp.kernel.org>
+Subject: + mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare.patch added to mm-new branch
+Message-Id: <20260119193420.82484C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add basic VMA flag operation helper functions
+     Subject: mm: update hugetlbfs to use VMA flags on mmap_prepare
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-basic-vma-flag-operation-helper-functions.patch
+     mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-basic-vma-flag-operation-helper-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,444 +67,306 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: add basic VMA flag operation helper functions
-Date: Mon, 19 Jan 2026 14:48:55 +0000
+Subject: mm: update hugetlbfs to use VMA flags on mmap_prepare
+Date: Mon, 19 Jan 2026 14:48:56 +0000
 
-Now we have the mk_vma_flags() macro helper which permits easy
-specification of any number of VMA flags, add helper functions which
-operate with vma_flags_t parameters.
+In order to update all mmap_prepare users to utilising the new VMA flags
+type vma_flags_t and associated helper functions, we start by updating
+hugetlbfs which has a lot of additional logic that requires updating to
+make this change.
 
-This patch provides vma_flags_test[_mask](), vma_flags_set[_mask]() and
-vma_flags_clear[_mask]() respectively testing, setting and clearing flags
-with the _mask variants accepting vma_flag_t parameters, and the non-mask
-variants implemented as macros which accept a list of flags.
+This is laying the groundwork for eliminating the vm_flags_t from struct
+vm_area_desc and using vma_flags_t only, which further lays the ground for
+removing the deprecated vm_flags_t type altogether.
 
-This allows us to trivially test/set/clear aggregate VMA flag values as
-necessary, for instance:
+No functional changes intended.
 
-	if (vma_flags_test(flags, VMA_READ_BIT, VMA_WRITE_BIT))
-		goto readwrite;
-
-	vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT);
-
-	vma_flags_clear(&flags, VMA_READ_BIT, VMA_WRITE_BIT);
-
-We also add a function for testing that ALL flags are set for convenience,
-e.g.:
-
-	if (vma_flags_test_all(flags, VMA_READ_BIT, VMA_MAYREAD_BIT)) {
-		/* Both READ and MAYREAD flags set */
-		...
-	}
-
-The compiler generates optimal assembly for each such that they behave as
-if the caller were setting the bitmap flags manually.
-
-This is important for e.g. drivers which manipulate flag values rather than
-a VMA's specific flag values.
-
-We also add helpers for testing, setting and clearing flags for VMA's and VMA
-descriptors to reduce boilerplate.
-
-Also add the EMPTY_VMA_FLAGS define to aid initialisation of empty flags.
-
-Finally, update the userland VMA tests to add the helpers there so they can
-be utilised as part of userland testing.
-
-Link: https://lkml.kernel.org/r/6662dd9fe977edc7dde233edf5d762ee14a43fa0.1768834061.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/39343423b10c7b342647af3cdbefc89908b1819e.1768834061.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h               |  165 +++++++++++++++++++++++++++++
- include/linux/mm_types.h         |    4 
- tools/testing/vma/vma_internal.h |  147 ++++++++++++++++++++++---
- 3 files changed, 295 insertions(+), 21 deletions(-)
+ fs/hugetlbfs/inode.c           |   14 +++++++-------
+ include/linux/hugetlb.h        |    6 +++---
+ include/linux/hugetlb_inline.h |   10 ++++++++++
+ ipc/shm.c                      |   12 +++++++-----
+ mm/hugetlb.c                   |   22 +++++++++++-----------
+ mm/memfd.c                     |    4 ++--
+ mm/mmap.c                      |    2 +-
+ 7 files changed, 41 insertions(+), 29 deletions(-)
 
---- a/include/linux/mm.h~mm-add-basic-vma-flag-operation-helper-functions
-+++ a/include/linux/mm.h
-@@ -1060,6 +1060,171 @@ static inline vma_flags_t __mk_vma_flags
- #define mk_vma_flags(...) __mk_vma_flags(COUNT_ARGS(__VA_ARGS__), \
- 					 (const vma_flag_t []){__VA_ARGS__})
- 
-+/*  Test each of to_test flags in flags, non-atomically. */
-+static __always_inline bool vma_flags_test_mask(vma_flags_t flags,
-+		vma_flags_t to_test)
-+{
-+	const unsigned long *bitmap = ACCESS_PRIVATE(&flags, __vma_flags);
-+	const unsigned long *bitmap_to_test = ACCESS_PRIVATE(&to_test, __vma_flags);
-+
-+	return bitmap_intersects(bitmap_to_test, bitmap, NUM_VMA_FLAG_BITS);
-+}
-+
-+/*
-+ * Test whether any specified VMA flag is set, e.g.:
-+ *
-+ * if (vma_flags_test(flags, VMA_READ_BIT, VMA_MAYREAD_BIT)) { ... }
-+ */
-+#define vma_flags_test(flags, ...) \
-+	vma_flags_test_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
-+/* Test that ALL of the to_test flags are set, non-atomically. */
-+static __always_inline bool vma_flags_test_all_mask(vma_flags_t flags,
-+		vma_flags_t to_test)
-+{
-+	const unsigned long *bitmap = ACCESS_PRIVATE(&flags, __vma_flags);
-+	const unsigned long *bitmap_to_test = ACCESS_PRIVATE(&to_test, __vma_flags);
-+
-+	return bitmap_subset(bitmap_to_test, bitmap, NUM_VMA_FLAG_BITS);
-+}
-+
-+/*
-+ * Test whether ALL specified VMA flags are set, e.g.:
-+ *
-+ * if (vma_flags_test_all(flags, VMA_READ_BIT, VMA_MAYREAD_BIT)) { ... }
-+ */
-+#define vma_flags_test_all(flags, ...) \
-+	vma_flags_test_all_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
-+/* Set each of the to_set flags in flags, non-atomically. */
-+static __always_inline void vma_flags_set_mask(vma_flags_t *flags, vma_flags_t to_set)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+	const unsigned long *bitmap_to_set = ACCESS_PRIVATE(&to_set, __vma_flags);
-+
-+	bitmap_or(bitmap, bitmap, bitmap_to_set, NUM_VMA_FLAG_BITS);
-+}
-+
-+/*
-+ * Set all specified VMA flags, e.g.:
-+ *
-+ * vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
-+ */
-+#define vma_flags_set(flags, ...) \
-+	vma_flags_set_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
-+/* Clear all of the to-clear flags in flags, non-atomically. */
-+static __always_inline void vma_flags_clear_mask(vma_flags_t *flags, vma_flags_t to_clear)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+	const unsigned long *bitmap_to_clear = ACCESS_PRIVATE(&to_clear, __vma_flags);
-+
-+	bitmap_andnot(bitmap, bitmap, bitmap_to_clear, NUM_VMA_FLAG_BITS);
-+}
-+
-+/*
-+ * Clear all specified individual flags, e.g.:
-+ *
-+ * vma_flags_clear(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
-+ */
-+#define vma_flags_clear(flags, ...) \
-+	vma_flags_clear_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
-+/*
-+ * Helper to test that ALL specified flags are set in a VMA.
-+ *
-+ * Note: appropriate locks must be held, this function does not acquire them for
-+ * you.
-+ */
-+static inline bool vma_test_all_flags_mask(struct vm_area_struct *vma,
-+					   vma_flags_t flags)
-+{
-+	return vma_flags_test_all_mask(vma->flags, flags);
-+}
-+
-+/*
-+ * Helper macro for checking that ALL specified flags are set in a VMA, e.g.:
-+ *
-+ * if (vma_test_all_flags(vma, VMA_READ_BIT, VMA_MAYREAD_BIT) { ... }
-+ */
-+#define vma_test_all_flags(vma, ...) \
-+	vma_test_all_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
-+
-+/*
-+ * Helper to set all VMA flags in a VMA.
-+ *
-+ * Note: appropriate locks must be held, this function does not acquire them for
-+ * you.
-+ */
-+static inline void vma_set_flags_mask(struct vm_area_struct *vma,
-+				      vma_flags_t flags)
-+{
-+	vma_flags_set_mask(&vma->flags, flags);
-+}
-+
-+/*
-+ * Helper macro for specifying VMA flags in a VMA, e.g.:
-+ *
-+ * vma_set_flags(vma, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT,
-+ * 		VMA_DONTDUMP_BIT);
-+ *
-+ * Note: appropriate locks must be held, this function does not acquire them for
-+ * you.
-+ */
-+#define vma_set_flags(vma, ...) \
-+	vma_set_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
-+
-+/* Helper to test all VMA flags in a VMA descriptor. */
-+static inline bool vma_desc_test_flags_mask(struct vm_area_desc *desc,
-+					    vma_flags_t flags)
-+{
-+	return vma_flags_test_mask(desc->vma_flags, flags);
-+}
-+
-+/*
-+ * Helper macro for testing VMA flags for an input pointer to a struct
-+ * vm_area_desc object describing a proposed VMA, e.g.:
-+ *
-+ * if (vma_desc_test_flags(desc, VMA_IO_BIT, VMA_PFNMAP_BIT,
-+ *		VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)) { ... }
-+ */
-+#define vma_desc_test_flags(desc, ...) \
-+	vma_desc_test_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
-+
-+/* Helper to set all VMA flags in a VMA descriptor. */
-+static inline void vma_desc_set_flags_mask(struct vm_area_desc *desc,
-+					   vma_flags_t flags)
-+{
-+	vma_flags_set_mask(&desc->vma_flags, flags);
-+}
-+
-+/*
-+ * Helper macro for specifying VMA flags for an input pointer to a struct
-+ * vm_area_desc object describing a proposed VMA, e.g.:
-+ *
-+ * vma_desc_set_flags(desc, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT,
-+ * 		VMA_DONTDUMP_BIT);
-+ */
-+#define vma_desc_set_flags(desc, ...) \
-+	vma_desc_set_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
-+
-+/* Helper to clear all VMA flags in a VMA descriptor. */
-+static inline void vma_desc_clear_flags_mask(struct vm_area_desc *desc,
-+					     vma_flags_t flags)
-+{
-+	vma_flags_clear_mask(&desc->vma_flags, flags);
-+}
-+
-+/*
-+ * Helper macro for clearing VMA flags for an input pointer to a struct
-+ * vm_area_desc object describing a proposed VMA, e.g.:
-+ *
-+ * vma_desc_clear_flags(desc, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT,
-+ * 		VMA_DONTDUMP_BIT);
-+ */
-+#define vma_desc_clear_flags(desc, ...) \
-+	vma_desc_clear_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
-+
- static inline void vma_set_anonymous(struct vm_area_struct *vma)
- {
- 	vma->vm_ops = NULL;
---- a/include/linux/mm_types.h~mm-add-basic-vma-flag-operation-helper-functions
-+++ a/include/linux/mm_types.h
-@@ -834,7 +834,7 @@ struct mmap_action {
+--- a/fs/hugetlbfs/inode.c~mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare
++++ a/fs/hugetlbfs/inode.c
+@@ -109,7 +109,7 @@ static int hugetlbfs_file_mmap_prepare(s
+ 	loff_t len, vma_len;
+ 	int ret;
+ 	struct hstate *h = hstate_file(file);
+-	vm_flags_t vm_flags;
++	vma_flags_t vma_flags;
  
  	/*
- 	 * If specified, this hook is invoked when an error occurred when
--	 * attempting the selection action.
-+	 * attempting the selected action.
- 	 *
- 	 * The hook can return an error code in order to filter the error, but
- 	 * it is not valid to clear the error here.
-@@ -858,6 +858,8 @@ typedef struct {
- 	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
- } __private vma_flags_t;
+ 	 * vma address alignment (but not the pgoff alignment) has
+@@ -119,7 +119,7 @@ static int hugetlbfs_file_mmap_prepare(s
+ 	 * way when do_mmap unwinds (may be important on powerpc
+ 	 * and ia64).
+ 	 */
+-	desc->vm_flags |= VM_HUGETLB | VM_DONTEXPAND;
++	vma_desc_set_flags(desc, VMA_HUGETLB_BIT, VMA_DONTEXPAND_BIT);
+ 	desc->vm_ops = &hugetlb_vm_ops;
  
-+#define EMPTY_VMA_FLAGS ((vma_flags_t){ })
+ 	/*
+@@ -148,23 +148,23 @@ static int hugetlbfs_file_mmap_prepare(s
+ 
+ 	ret = -ENOMEM;
+ 
+-	vm_flags = desc->vm_flags;
++	vma_flags = desc->vma_flags;
+ 	/*
+ 	 * for SHM_HUGETLB, the pages are reserved in the shmget() call so skip
+ 	 * reserving here. Note: only for SHM hugetlbfs file, the inode
+ 	 * flag S_PRIVATE is set.
+ 	 */
+ 	if (inode->i_flags & S_PRIVATE)
+-		vm_flags |= VM_NORESERVE;
++		vma_flags_set(&vma_flags, VMA_NORESERVE_BIT);
+ 
+ 	if (hugetlb_reserve_pages(inode,
+ 			desc->pgoff >> huge_page_order(h),
+ 			len >> huge_page_shift(h), desc,
+-			vm_flags) < 0)
++			vma_flags) < 0)
+ 		goto out;
+ 
+ 	ret = 0;
+-	if ((desc->vm_flags & VM_WRITE) && inode->i_size < len)
++	if (vma_desc_test_flags(desc, VMA_WRITE_BIT) && inode->i_size < len)
+ 		i_size_write(inode, len);
+ out:
+ 	inode_unlock(inode);
+@@ -1527,7 +1527,7 @@ static int get_hstate_idx(int page_size_
+  * otherwise hugetlb_reserve_pages reserves one less hugepages than intended.
+  */
+ struct file *hugetlb_file_setup(const char *name, size_t size,
+-				vm_flags_t acctflag, int creat_flags,
++				vma_flags_t acctflag, int creat_flags,
+ 				int page_size_log)
+ {
+ 	struct inode *inode;
+--- a/include/linux/hugetlb.h~mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare
++++ a/include/linux/hugetlb.h
+@@ -150,7 +150,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 			     struct folio **foliop);
+ #endif /* CONFIG_USERFAULTFD */
+ long hugetlb_reserve_pages(struct inode *inode, long from, long to,
+-			   struct vm_area_desc *desc, vm_flags_t vm_flags);
++			   struct vm_area_desc *desc, vma_flags_t vma_flags);
+ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+ 						long freed);
+ bool folio_isolate_hugetlb(struct folio *folio, struct list_head *list);
+@@ -529,7 +529,7 @@ static inline struct hugetlbfs_inode_inf
+ }
+ 
+ extern const struct vm_operations_struct hugetlb_vm_ops;
+-struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
++struct file *hugetlb_file_setup(const char *name, size_t size, vma_flags_t acct,
+ 				int creat_flags, int page_size_log);
+ 
+ static inline bool is_file_hugepages(const struct file *file)
+@@ -545,7 +545,7 @@ static inline struct hstate *hstate_inod
+ 
+ #define is_file_hugepages(file)			false
+ static inline struct file *
+-hugetlb_file_setup(const char *name, size_t size, vm_flags_t acctflag,
++hugetlb_file_setup(const char *name, size_t size, vma_flags_t acctflag,
+ 		int creat_flags, int page_size_log)
+ {
+ 	return ERR_PTR(-ENOSYS);
+--- a/include/linux/hugetlb_inline.h~mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare
++++ a/include/linux/hugetlb_inline.h
+@@ -11,12 +11,22 @@ static inline bool is_vm_hugetlb_flags(v
+ 	return !!(vm_flags & VM_HUGETLB);
+ }
+ 
++static inline bool is_vma_hugetlb_flags(vma_flags_t flags)
++{
++	return vma_flags_test(flags, VMA_HUGETLB_BIT);
++}
 +
- /*
-  * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
-  * manipulate mutable fields which will cause those fields to be updated in the
---- a/tools/testing/vma/vma_internal.h~mm-add-basic-vma-flag-operation-helper-functions
-+++ a/tools/testing/vma/vma_internal.h
-@@ -21,7 +21,13 @@
+ #else
  
- #include <stdlib.h>
- 
-+#ifdef __CONCAT
-+#undef __CONCAT
-+#endif
+ static inline bool is_vm_hugetlb_flags(vm_flags_t vm_flags)
+ {
+ 	return false;
+ }
 +
-+#include <linux/args.h>
- #include <linux/atomic.h>
-+#include <linux/bitmap.h>
- #include <linux/list.h>
- #include <linux/maple_tree.h>
- #include <linux/mm.h>
-@@ -38,6 +44,8 @@ extern unsigned long dac_mmap_min_addr;
- #define dac_mmap_min_addr	0UL
++static inline bool is_vma_hugetlb_flags(vma_flags_t flags)
++{
++	return false;
++}
+ 
  #endif
  
-+#define ACCESS_PRIVATE(p, member) ((p)->member)
-+
- #define VM_WARN_ON(_expr) (WARN_ON(_expr))
- #define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
- #define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
-@@ -533,6 +541,8 @@ typedef struct {
- 	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
- } __private vma_flags_t;
+--- a/ipc/shm.c~mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare
++++ a/ipc/shm.c
+@@ -707,9 +707,9 @@ static int newseg(struct ipc_namespace *
+ 	int error;
+ 	struct shmid_kernel *shp;
+ 	size_t numpages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	const bool has_no_reserve = shmflg & SHM_NORESERVE;
+ 	struct file *file;
+ 	char name[13];
+-	vm_flags_t acctflag = 0;
  
-+#define EMPTY_VMA_FLAGS ((vma_flags_t){ })
+ 	if (size < SHMMIN || size > ns->shm_ctlmax)
+ 		return -EINVAL;
+@@ -738,6 +738,7 @@ static int newseg(struct ipc_namespace *
+ 
+ 	sprintf(name, "SYSV%08x", key);
+ 	if (shmflg & SHM_HUGETLB) {
++		vma_flags_t acctflag = EMPTY_VMA_FLAGS;
+ 		struct hstate *hs;
+ 		size_t hugesize;
+ 
+@@ -749,17 +750,18 @@ static int newseg(struct ipc_namespace *
+ 		hugesize = ALIGN(size, huge_page_size(hs));
+ 
+ 		/* hugetlb_file_setup applies strict accounting */
+-		if (shmflg & SHM_NORESERVE)
+-			acctflag = VM_NORESERVE;
++		if (has_no_reserve)
++			vma_flags_set(&acctflag, VMA_NORESERVE_BIT);
+ 		file = hugetlb_file_setup(name, hugesize, acctflag,
+ 				HUGETLB_SHMFS_INODE, (shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK);
+ 	} else {
++		vm_flags_t acctflag = 0;
 +
- struct mm_struct {
- 	struct maple_tree mm_mt;
- 	int map_count;			/* number of VMAs */
-@@ -882,6 +892,123 @@ static inline pgprot_t vm_get_page_prot(
- 	return __pgprot(vm_flags);
+ 		/*
+ 		 * Do not allow no accounting for OVERCOMMIT_NEVER, even
+ 		 * if it's asked for.
+ 		 */
+-		if  ((shmflg & SHM_NORESERVE) &&
+-				sysctl_overcommit_memory != OVERCOMMIT_NEVER)
++		if  (has_no_reserve && sysctl_overcommit_memory != OVERCOMMIT_NEVER)
+ 			acctflag = VM_NORESERVE;
+ 		file = shmem_kernel_file_setup(name, size, acctflag);
+ 	}
+--- a/mm/hugetlb.c~mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare
++++ a/mm/hugetlb.c
+@@ -1193,16 +1193,16 @@ static void set_vma_resv_flags(struct vm
+ 
+ static void set_vma_desc_resv_map(struct vm_area_desc *desc, struct resv_map *map)
+ {
+-	VM_WARN_ON_ONCE(!is_vm_hugetlb_flags(desc->vm_flags));
+-	VM_WARN_ON_ONCE(desc->vm_flags & VM_MAYSHARE);
++	VM_WARN_ON_ONCE(!is_vma_hugetlb_flags(desc->vma_flags));
++	VM_WARN_ON_ONCE(vma_desc_test_flags(desc, VMA_MAYSHARE_BIT));
+ 
+ 	desc->private_data = map;
  }
  
-+static inline void vma_flags_clear_all(vma_flags_t *flags)
-+{
-+	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
-+}
-+
-+static inline void vma_flag_set(vma_flags_t *flags, vma_flag_t bit)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+
-+	__set_bit((__force int)bit, bitmap);
-+}
-+
-+static inline vma_flags_t __mk_vma_flags(size_t count, const vma_flag_t *bits)
-+{
-+	vma_flags_t flags;
-+	int i;
-+
-+	vma_flags_clear_all(&flags);
-+	for (i = 0; i < count; i++)
-+		vma_flag_set(&flags, bits[i]);
-+	return flags;
-+}
-+
-+#define mk_vma_flags(...) __mk_vma_flags(COUNT_ARGS(__VA_ARGS__), \
-+					 (const vma_flag_t []){__VA_ARGS__})
-+
-+static __always_inline bool vma_flags_test_mask(vma_flags_t flags,
-+		vma_flags_t to_test)
-+{
-+	const unsigned long *bitmap = ACCESS_PRIVATE(&flags, __vma_flags);
-+	const unsigned long *bitmap_to_test = ACCESS_PRIVATE(&to_test, __vma_flags);
-+
-+	return bitmap_intersects(bitmap_to_test, bitmap, NUM_VMA_FLAG_BITS);
-+}
-+
-+#define vma_flags_test(flags, ...) \
-+	vma_flags_test_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
-+static __always_inline void vma_flags_set_mask(vma_flags_t *flags, vma_flags_t to_set)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+	const unsigned long *bitmap_to_set = ACCESS_PRIVATE(&to_set, __vma_flags);
-+
-+	bitmap_or(bitmap, bitmap, bitmap_to_set, NUM_VMA_FLAG_BITS);
-+}
-+
-+#define vma_flags_set(flags, ...) \
-+	vma_flags_set_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
-+static __always_inline void vma_flags_clear_mask(vma_flags_t *flags, vma_flags_t to_clear)
-+{
-+	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+	const unsigned long *bitmap_to_clear = ACCESS_PRIVATE(&to_clear, __vma_flags);
-+
-+	bitmap_andnot(bitmap, bitmap, bitmap_to_clear, NUM_VMA_FLAG_BITS);
-+}
-+
-+#define vma_flags_clear(flags, ...) \
-+	vma_flags_clear_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
-+static __always_inline bool vma_flags_test_all_mask(vma_flags_t flags,
-+		vma_flags_t to_test)
-+{
-+	const unsigned long *bitmap = ACCESS_PRIVATE(&flags, __vma_flags);
-+	const unsigned long *bitmap_to_test = ACCESS_PRIVATE(&to_test, __vma_flags);
-+
-+	return bitmap_subset(bitmap_to_test, bitmap, NUM_VMA_FLAG_BITS);
-+}
-+
-+#define vma_flags_test_all(flags, ...) \
-+	vma_flags_test_all_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
-+static inline void vma_set_flags_mask(struct vm_area_struct *vma,
-+				      vma_flags_t flags)
-+{
-+	vma_flags_set_mask(&vma->flags, flags);
-+}
-+
-+#define vma_set_flags(vma, ...) \
-+	vma_set_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
-+
-+static inline bool vma_test_all_flags_mask(struct vm_area_struct *vma,
-+					   vma_flags_t flags)
-+{
-+	return vma_flags_test_all_mask(vma->flags, flags);
-+}
-+
-+#define vma_test_all_flags(vma, ...) \
-+	vma_test_all_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
-+
-+static inline bool vma_desc_test_flags_mask(struct vm_area_desc *desc,
-+					    vma_flags_t flags)
-+{
-+	return vma_flags_test_mask(desc->vma_flags, flags);
-+}
-+
-+#define vma_desc_test_flags(desc, ...) \
-+	vma_desc_test_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
-+
-+static inline void vma_desc_set_flags_mask(struct vm_area_desc *desc,
-+					   vma_flags_t flags)
-+{
-+	vma_flags_set_mask(&desc->vma_flags, flags);
-+}
-+
-+#define vma_desc_set_flags(desc, ...) \
-+	vma_desc_set_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
-+
-+static inline void vma_desc_clear_flags_mask(struct vm_area_desc *desc,
-+					     vma_flags_t flags)
-+{
-+	vma_flags_clear_mask(&desc->vma_flags, flags);
-+}
-+
-+#define vma_desc_clear_flags(desc, ...) \
-+	vma_desc_clear_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
-+
- static inline bool is_shared_maywrite(vm_flags_t vm_flags)
+ static void set_vma_desc_resv_flags(struct vm_area_desc *desc, unsigned long flags)
  {
- 	return (vm_flags & (VM_SHARED | VM_MAYWRITE)) ==
-@@ -1540,31 +1667,11 @@ static inline void userfaultfd_unmap_com
- {
- }
+-	VM_WARN_ON_ONCE(!is_vm_hugetlb_flags(desc->vm_flags));
+-	VM_WARN_ON_ONCE(desc->vm_flags & VM_MAYSHARE);
++	VM_WARN_ON_ONCE(!is_vma_hugetlb_flags(desc->vma_flags));
++	VM_WARN_ON_ONCE(vma_desc_test_flags(desc, VMA_MAYSHARE_BIT));
  
--#define ACCESS_PRIVATE(p, member) ((p)->member)
--
--#define bitmap_size(nbits)	(ALIGN(nbits, BITS_PER_LONG) / BITS_PER_BYTE)
--
--static __always_inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
--{
--	unsigned int len = bitmap_size(nbits);
--
--	if (small_const_nbits(nbits))
--		*dst = 0;
--	else
--		memset(dst, 0, len);
--}
--
- static inline bool mm_flags_test(int flag, const struct mm_struct *mm)
- {
- 	return test_bit(flag, ACCESS_PRIVATE(&mm->flags, __mm_flags));
+ 	desc->private_data = (void *)((unsigned long)desc->private_data | flags);
  }
+@@ -1216,7 +1216,7 @@ static int is_vma_resv_set(struct vm_are
  
--/* Clears all bits in the VMA flags bitmap, non-atomically. */
--static inline void vma_flags_clear_all(vma_flags_t *flags)
--{
--	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
--}
--
- /*
-  * Copy value to the first system word of VMA flags, non-atomically.
-  *
+ static bool is_vma_desc_resv_set(struct vm_area_desc *desc, unsigned long flag)
+ {
+-	VM_WARN_ON_ONCE(!is_vm_hugetlb_flags(desc->vm_flags));
++	VM_WARN_ON_ONCE(!is_vma_hugetlb_flags(desc->vma_flags));
+ 
+ 	return ((unsigned long)desc->private_data) & flag;
+ }
+@@ -6564,7 +6564,7 @@ next:
+ long hugetlb_reserve_pages(struct inode *inode,
+ 		long from, long to,
+ 		struct vm_area_desc *desc,
+-		vm_flags_t vm_flags)
++		vma_flags_t vma_flags)
+ {
+ 	long chg = -1, add = -1, spool_resv, gbl_resv;
+ 	struct hstate *h = hstate_inode(inode);
+@@ -6585,7 +6585,7 @@ long hugetlb_reserve_pages(struct inode
+ 	 * attempt will be made for VM_NORESERVE to allocate a page
+ 	 * without using reserves
+ 	 */
+-	if (vm_flags & VM_NORESERVE)
++	if (vma_flags_test(vma_flags, VMA_NORESERVE_BIT))
+ 		return 0;
+ 
+ 	/*
+@@ -6594,7 +6594,7 @@ long hugetlb_reserve_pages(struct inode
+ 	 * to reserve the full area even if read-only as mprotect() may be
+ 	 * called to make the mapping read-write. Assume !desc is a shm mapping
+ 	 */
+-	if (!desc || desc->vm_flags & VM_MAYSHARE) {
++	if (!desc || vma_desc_test_flags(desc, VMA_MAYSHARE_BIT)) {
+ 		/*
+ 		 * resv_map can not be NULL as hugetlb_reserve_pages is only
+ 		 * called for inodes for which resv_maps were created (see
+@@ -6628,7 +6628,7 @@ long hugetlb_reserve_pages(struct inode
+ 	if (err < 0)
+ 		goto out_err;
+ 
+-	if (desc && !(desc->vm_flags & VM_MAYSHARE) && h_cg) {
++	if (desc && !vma_desc_test_flags(desc, VMA_MAYSHARE_BIT) && h_cg) {
+ 		/* For private mappings, the hugetlb_cgroup uncharge info hangs
+ 		 * of the resv_map.
+ 		 */
+@@ -6665,7 +6665,7 @@ long hugetlb_reserve_pages(struct inode
+ 	 * consumed reservations are stored in the map. Hence, nothing
+ 	 * else has to be done for private mappings here
+ 	 */
+-	if (!desc || desc->vm_flags & VM_MAYSHARE) {
++	if (!desc || vma_desc_test_flags(desc, VMA_MAYSHARE_BIT)) {
+ 		add = region_add(resv_map, from, to, regions_needed, h, h_cg);
+ 
+ 		if (unlikely(add < 0)) {
+@@ -6729,7 +6729,7 @@ out_uncharge_cgroup:
+ 	hugetlb_cgroup_uncharge_cgroup_rsvd(hstate_index(h),
+ 					    chg * pages_per_huge_page(h), h_cg);
+ out_err:
+-	if (!desc || desc->vm_flags & VM_MAYSHARE)
++	if (!desc || vma_desc_test_flags(desc, VMA_MAYSHARE_BIT))
+ 		/* Only call region_abort if the region_chg succeeded but the
+ 		 * region_add failed or didn't run.
+ 		 */
+--- a/mm/memfd.c~mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare
++++ a/mm/memfd.c
+@@ -87,7 +87,7 @@ struct folio *memfd_alloc_folio(struct f
+ 		gfp_mask &= ~(__GFP_HIGHMEM | __GFP_MOVABLE);
+ 		idx >>= huge_page_order(h);
+ 
+-		nr_resv = hugetlb_reserve_pages(inode, idx, idx + 1, NULL, 0);
++		nr_resv = hugetlb_reserve_pages(inode, idx, idx + 1, NULL, EMPTY_VMA_FLAGS);
+ 		if (nr_resv < 0)
+ 			return ERR_PTR(nr_resv);
+ 
+@@ -464,7 +464,7 @@ static struct file *alloc_file(const cha
+ 	int err = 0;
+ 
+ 	if (flags & MFD_HUGETLB) {
+-		file = hugetlb_file_setup(name, 0, VM_NORESERVE,
++		file = hugetlb_file_setup(name, 0, mk_vma_flags(VMA_NORESERVE_BIT),
+ 					HUGETLB_ANONHUGE_INODE,
+ 					(flags >> MFD_HUGE_SHIFT) &
+ 					MFD_HUGE_MASK);
+--- a/mm/mmap.c~mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare
++++ a/mm/mmap.c
+@@ -594,7 +594,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
+ 		 * taken when vm_ops->mmap() is called
+ 		 */
+ 		file = hugetlb_file_setup(HUGETLB_ANON_FILE, len,
+-				VM_NORESERVE,
++				mk_vma_flags(VMA_NORESERVE_BIT),
+ 				HUGETLB_ANONHUGE_INODE,
+ 				(flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK);
+ 		if (IS_ERR(file))
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
