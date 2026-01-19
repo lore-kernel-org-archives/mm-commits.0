@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90A6B2FE071
-	for <mm-commits@vger.kernel.org>; Sun, 18 Jan 2026 20:55:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1025129BDB4;
+	Mon, 19 Jan 2026 17:55:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768769701; cv=none; b=YShA5vkTcEC0niP6jHSHhhtSfJYVpF8y+OPhqFexm7eyCVWuNvVbCvHd+LQ4vp9rL7v4pAeAoy2kkjE7Q/SMzpS+ZrKis3gSo8+egj25tqMyiJUPXVeoPpF8sQF4/4DSXTyo038b8Caqb28Lfnj4skwnP4A43TcPN3zkaSRgr6k=
+	t=1768845354; cv=none; b=FC7dhZo0WzOrdkU78aTB/r8Xj3dE12Hrc2T/YSbO533no9E+SmVYi2pc4gxlCBw6JO8dmTZ/O6KDBF4fzZ2AlBf26VPCLfYSdSttqeUkxe8BpSbVF2uX8n7YE3lHN+09H72/mbEk2SNHg528tFcp//UjoEnSlH0fhMQVWL0e3dc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768769701; c=relaxed/simple;
-	bh=DK89VWBY3+Qe7rsy4noP2dXXi8dMDVbbjIVAM2bsKig=;
-	h=Date:To:From:Subject:Message-Id; b=RqL0t34YFDN8+HYNMUT/TiBCtiW0Aen3K2ztSitXkD4/52PSlxufWf/WwVyoWRdqx3IijqrPo5z8x7WJCp9B5lrWJEVTzS6GVmjMJzispkQGnd7NbF8ANsLuXSPDvvcnwTSaZXdlZd/TpOd3gtD5QDbae36M2Fvm6aCEfUK37vA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IlGggb57; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768845354; c=relaxed/simple;
+	bh=8Cvh2KaSfQf8lSAJTgG2RJCMySIRjoZIzHP4R/SzfNY=;
+	h=Date:To:From:Subject:Message-Id; b=mAjQUJblXX8Sxyfi386+NwTMyuU8QiubhBvwza48b47zdXxRkbsNfBEdlzCZq6kRi4u5mSPAdNhp5lo/9ZmEj0U80+0VRxBSdSsfrSjdC1UxWWGsXoftvyOtqyUOoL9YgvD91GxpSdyylQQmgkHmbudwGL7OXjOaAbJ+0sjSJJY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KRbOJGkG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IlGggb57"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A3D8C116D0;
-	Sun, 18 Jan 2026 20:55:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KRbOJGkG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E68FC116C6;
+	Mon, 19 Jan 2026 17:55:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768769701;
-	bh=DK89VWBY3+Qe7rsy4noP2dXXi8dMDVbbjIVAM2bsKig=;
+	s=korg; t=1768845353;
+	bh=8Cvh2KaSfQf8lSAJTgG2RJCMySIRjoZIzHP4R/SzfNY=;
 	h=Date:To:From:Subject:From;
-	b=IlGggb57TiP9KaSXFl66WG/qpwAqWzEM71tVtpXTeWk8HS1yvGTLxR+onI+mxDdDn
-	 gg6adHMePm33S5MG3W/+8888sdjnfiC6e8NPR3PlPCjM5lq+IaNmYyZAAzITeeaQ8v
-	 9IHOXAZKjD0tjPBQRjPuFUHNKPgQYNM0ybNa4ZLQ=
-Date: Sun, 18 Jan 2026 12:55:00 -0800
-To: mm-commits@vger.kernel.org,pmladek@suse.com,lkp@intel.com,bhe@redhat.com,pnina.feder@mobileye.com,akpm@linux-foundation.org
+	b=KRbOJGkGUpzuk0vNkOxmbl3uBhuT3eure7CdBMdCkg+6+13fnk1yLZqV22pdTtAgt
+	 jwBbto0p3II/RBMQp7dOin6e1mVkDqrUbHsrKZeg0N+OE/WG1ubVvkpvqefTX7cFeg
+	 5yGlELkggPYavHor6pKTiUpsFThph1O0HFvrxgJo=
+Date: Mon, 19 Jan 2026 09:55:52 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20260118205501.1A3D8C116D0@smtp.kernel.org>
+Subject: + mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260119175553.7E68FC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: add panic_redirect_cpu declaration to header
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch
+     Subject: mm/shmem, swap: fix race of truncate and swap entry split
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,55 +58,155 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pnina Feder <pnina.feder@mobileye.com>
-Subject: panic: add panic_redirect_cpu declaration to header
-Date: Sun, 18 Jan 2026 14:01:49 +0200
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/shmem, swap: fix race of truncate and swap entry split
+Date: Tue, 20 Jan 2026 00:11:21 +0800
 
-Add the extern declaration for panic_redirect_cpu to linux/panic.h to fix
-the sparse warning:
+The helper for shmem swap freeing is not handling the order of swap
+entries correctly.  It uses xa_cmpxchg_irq to erase the swap entry, but it
+gets the entry order before that using xa_get_order without lock
+protection, and it may get an outdated order value if the entry is split
+or changed in other ways after the xa_get_order and before the
+xa_cmpxchg_irq.
 
-  kernel/panic.c:305:10: sparse: sparse: symbol 'panic_redirect_cpu'
-  was not declared. Should it be static?
+And besides, the order could grow and be larger than expected, and cause
+truncation to erase data beyond the end border.  For example, if the
+target entry and following entries are swapped in or freed, then a large
+folio was added in place and swapped out, using the same entry, the
+xa_cmpxchg_irq will still succeed, it's very unlikely to happen though.
 
-The variable needs to be declared in the header alongside panic_cpu since
-it is used for synchronization when redirecting panic to a specific CPU
-via the panic_force_cpu= boot parameter.
+To fix that, open code the Xarray cmpxchg and put the order retrieval and
+value checking in the same critical section.  Also, ensure the order won't
+exceed the end border, skip it if the entry goes across the border.
 
-Link: https://lkml.kernel.org/r/20260118120149.986849-1-pnina.feder@mobileye.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202601161825.pUmb6FsK-lkp@intel.com/
-Signed-off-by: Pnina Feder <pnina.feder@mobileye.com>
+Skipping large swap entries crosses the end border is safe here.  Shmem
+truncate iterates the range twice, in the first iteration,
+find_lock_entries already filtered such entries, and shmem will swapin the
+entries that cross the end border and partially truncate the folio (split
+the folio or at least zero part of it).  So in the second loop here, if we
+see a swap entry that crosses the end order, it must at least have its
+content erased already.
+
+I observed random swapoff hangs and kernel panics when stress testing
+ZSWAP with shmem.  After applying this patch, all problems are gone.
+
+Link: https://lkml.kernel.org/r/20260120-shmem-swap-fix-v3-1-3d33ebfbc057@tencent.com
+Fixes: 809bc86517cc ("mm: shmem: support large folio swap out")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
-Cc: Petr Mladek <pmladek@suse.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/panic.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/shmem.c |   45 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 34 insertions(+), 11 deletions(-)
 
---- a/include/linux/panic.h~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix
-+++ a/include/linux/panic.h
-@@ -41,6 +41,14 @@ void abort(void);
-  * PANIC_CPU_INVALID means no CPU has entered panic() or crash_kexec().
+--- a/mm/shmem.c~mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split
++++ a/mm/shmem.c
+@@ -962,17 +962,29 @@ static void shmem_delete_from_page_cache
+  * being freed).
   */
- extern atomic_t panic_cpu;
+ static long shmem_free_swap(struct address_space *mapping,
+-			    pgoff_t index, void *radswap)
++			    pgoff_t index, pgoff_t end, void *radswap)
+ {
+-	int order = xa_get_order(&mapping->i_pages, index);
+-	void *old;
++	XA_STATE(xas, &mapping->i_pages, index);
++	unsigned int nr_pages = 0;
++	pgoff_t base;
++	void *entry;
 +
-+/*
-+ * panic_redirect_cpu is used when panic is redirected to a specific CPU via
-+ * the panic_force_cpu= boot parameter. It holds the CPU number that originally
-+ * triggered the panic before redirection. A value of PANIC_CPU_INVALID means
-+ * no redirection has occurred.
-+ */
-+extern atomic_t panic_redirect_cpu;
- #define PANIC_CPU_INVALID	-1
++	xas_lock_irq(&xas);
++	entry = xas_load(&xas);
++	if (entry == radswap) {
++		nr_pages = 1 << xas_get_order(&xas);
++		base = round_down(xas.xa_index, nr_pages);
++		if (base < index || base + nr_pages - 1 > end)
++			nr_pages = 0;
++		else
++			xas_store(&xas, NULL);
++	}
++	xas_unlock_irq(&xas);
  
- bool panic_try_start(void);
+-	old = xa_cmpxchg_irq(&mapping->i_pages, index, radswap, NULL, 0);
+-	if (old != radswap)
+-		return 0;
+-	free_swap_and_cache_nr(radix_to_swp_entry(radswap), 1 << order);
++	if (nr_pages)
++		free_swap_and_cache_nr(radix_to_swp_entry(radswap), nr_pages);
+ 
+-	return 1 << order;
++	return nr_pages;
+ }
+ 
+ /*
+@@ -1124,8 +1136,8 @@ static void shmem_undo_range(struct inod
+ 			if (xa_is_value(folio)) {
+ 				if (unfalloc)
+ 					continue;
+-				nr_swaps_freed += shmem_free_swap(mapping,
+-							indices[i], folio);
++				nr_swaps_freed += shmem_free_swap(mapping, indices[i],
++								  end - 1, folio);
+ 				continue;
+ 			}
+ 
+@@ -1191,12 +1203,23 @@ whole_folios:
+ 			folio = fbatch.folios[i];
+ 
+ 			if (xa_is_value(folio)) {
++				int order;
+ 				long swaps_freed;
+ 
+ 				if (unfalloc)
+ 					continue;
+-				swaps_freed = shmem_free_swap(mapping, indices[i], folio);
++				swaps_freed = shmem_free_swap(mapping, indices[i],
++							      end - 1, folio);
+ 				if (!swaps_freed) {
++					/*
++					 * If found a large swap entry cross the end border,
++					 * skip it as the truncate_inode_partial_folio above
++					 * should have at least zerod its content once.
++					 */
++					order = shmem_confirm_swap(mapping, indices[i],
++								   radix_to_swp_entry(folio));
++					if (order > 0 && indices[i] + (1 << order) > end)
++						continue;
+ 					/* Swap was replaced by page: retry */
+ 					index = indices[i];
+ 					break;
 _
 
-Patches currently in -mm which might be from pnina.feder@mobileye.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-kernel-vmcoreinfo-allocate-vmcoreinfo_data-based-on-vmcoreinfo_bytes.patch
-kernel-crash-handle-multi-page-vmcoreinfo-in-crash-kernel-copy.patch
-panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
-panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch
+mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
+mm-gup-remove-no-longer-used-gup_fast_undo_dev_pagemap.patch
+mm-swap-rename-__read_swap_cache_async-to-swap_cache_alloc_folio.patch
+mm-swap-split-swap-cache-preparation-loop-into-a-standalone-helper.patch
+mm-swap-never-bypass-the-swap-cache-even-for-swp_synchronous_io.patch
+mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
+mm-swap-simplify-the-code-and-reduce-indention.patch
+mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
+mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
+mm-swap-swap-entry-of-a-bad-slot-should-not-be-considered-as-swapped-out.patch
+mm-swap-consolidate-cluster-reclaim-and-usability-check.patch
+mm-swap-split-locked-entry-duplicating-into-a-standalone-helper.patch
+mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer.patch
+mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer-fix.patch
+mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
+mm-swap-cleanup-swap-entry-management-workflow.patch
+mm-swap-cleanup-swap-entry-management-workflow-fix.patch
+mm-swap-add-folio-to-swap-cache-directly-on-allocation.patch
+mm-swap-check-swap-table-directly-for-checking-cache.patch
+mm-swap-clean-up-and-improve-swap-entries-freeing.patch
+mm-swap-drop-the-swap_has_cache-flag.patch
+mm-swap-remove-no-longer-needed-_swap_info_get.patch
 
