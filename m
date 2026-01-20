@@ -1,147 +1,133 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C85444CF37;
-	Tue, 20 Jan 2026 15:24:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEBE6423179
+	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 16:35:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768922649; cv=none; b=oeEzh14nTVH2RNtCM0/Nr0E06N7PIieCZXzoUIRipboZ1zQiTdcsIerrmFY4LUC6CyYyb3xKZI/0tBv0iVQm/9d6lSQqCVVkPFcEd8nwczFbvXOhs23Y69hlWd1eB2W27lI+iP9YDTXeKIhPYhnsoOFA5kXHF31yE5JULYxZJ9c=
+	t=1768926926; cv=none; b=HOQ4MY2LrCyI8KeIq4DBnscdBj9Ccv7Q63opuaPuye/6mw6//58CWQAX6l6cGmhgCKkbp9m+v0QyO4CNafGq8DFBcfCVGHsp637JLRCYgAKJlnejRIdj5yuNxZSxzg/vTDxQsIZTfWxYqv2himzkJlID2fFM5wNmodJbtmQp8qg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768922649; c=relaxed/simple;
-	bh=9jRhlOcB/BCAcsGAE6E2GxTLrKYlRd8V5vOhZYZPVfA=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=uOu0Ivw2O3Rh2Ad29rc4fDDA69Rs/7TQRf0uxCDzm/07OKUagaunEUlByBvbysNv1VAvGYbOWllIli2YjATtxkaNqmdr1DsvTTRjOir88DK7DqEVPBWi5ReMOi21QTYppCOZ5TLn/lKNOv2qGat2DQlbRy4TCZRD9rR+nWcxOgY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ew1eoVWJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768926926; c=relaxed/simple;
+	bh=UxXBh4RyaGK3/EHEEazxeTO6u/KDVbPLb+aB/dOqjjs=;
+	h=Date:To:From:Subject:Message-Id; b=mwH4w3cQpqFMsvKfsMRP8//RBz8ITJB3j8Ytjyq2yzP057AzX6otpIf1rPhOfX9nZfvDWlsJRJNrgyQ4SflbHxHEHRWynGdWYRari8olrqp3dfTzdoc7BZQGBTcPbIXo/HFj7szbl6PwkbrpdciVZFslldzY5lia2iQGetGL/2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LcFW+8Rw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ew1eoVWJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94F36C16AAE;
-	Tue, 20 Jan 2026 15:24:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1768922649;
-	bh=9jRhlOcB/BCAcsGAE6E2GxTLrKYlRd8V5vOhZYZPVfA=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=ew1eoVWJ54oFj/fHJHf3R4ddG73yX/O+h1arlczZW/Y0qoDGHJK4xUDuDseOZn96J
-	 O5PSCx0qh6qm9XCIobNNDkFAlJc/IuZTCWhqVaZRjdtaId2V13S6DyE1EXJAnRbegv
-	 WSUCtHwY44USLA63eUbZcWN9+LHTjl+RVrtukk9y22GwIzUfR4J/ajXbDBIBq+JdbI
-	 mMHTgSg8nxbG0i7ru/nn/6qRH3QtOiSsUKHvu5PPQJXtC0jXMtz89tvdqxFpKhxadT
-	 lJhpskuWvRXZ1+jYaBe6qVVAGb8B6rGWrRhLtTdxic8wTFK3/nNUJ03J2fJTOcdbaI
-	 YoD49CQ1I1Q4A==
-From: Pratyush Yadav <pratyush@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, surenb@google.com, stable@vger.kernel.org,
- rppt@kernel.org, pratyush@kernel.org, pasha.tatashin@soleen.com,
- graf@amazon.com, ran.xiaokai@zte.com.cn
-Subject: Re: [merged mm-hotfixes-stable]
- kho-init-alloc-tags-when-restoring-pages-from-reserved-memory.patch
- removed from -mm tree
-In-Reply-To: <20260119203054.70AE8C116C6@smtp.kernel.org> (Andrew Morton's
-	message of "Mon, 19 Jan 2026 12:30:53 -0800")
-References: <20260119203054.70AE8C116C6@smtp.kernel.org>
-Date: Tue, 20 Jan 2026 15:24:06 +0000
-Message-ID: <2vxzqzrke295.fsf@kernel.org>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LcFW+8Rw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56854C16AAE;
+	Tue, 20 Jan 2026 16:35:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1768926926;
+	bh=UxXBh4RyaGK3/EHEEazxeTO6u/KDVbPLb+aB/dOqjjs=;
+	h=Date:To:From:Subject:From;
+	b=LcFW+8RwzfcAzYSOHzedLeCIbT8M2ZxRy/olupBH8tTHcFuVUKBmruNPsSGomQCG8
+	 BY34Nh9fr5I58J/dTbiJ2P+4nujctEI0nXBhb05/+y4CLb2Iu35BxRIK5hsjZWu9XK
+	 TFQv7uULzTI/cKWN/zBgfhOn19cbt9K6f3SX7QnQ=
+Date: Tue, 20 Jan 2026 08:35:25 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,david@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix.patch added to mm-unstable branch
+Message-Id: <20260120163526.56854C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain
 
-Hi Andrew,
 
-On Mon, Jan 19 2026, Andrew Morton wrote:
+The patch titled
+     Subject: fixup: mm/balloon_compaction: move internal helpers to balloon_compaction.c
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix.patch
 
-> The quilt patch titled
->      Subject: kho: init alloc tags when restoring pages from reserved memory
-> has been removed from the -mm tree.  Its filename was
->      kho-init-alloc-tags-when-restoring-pages-from-reserved-memory.patch
->
-> This patch was dropped because it was merged into the mm-hotfixes-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix.patch
 
-This patch isn't quite complete. See [0]. It doesn't do anything wrong,
-it just doesn't fix the problem for every case.
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-I suggested a re-roll of this patch based on top of my cleanup patches
-[1], since I think with those the end result is a bit nicer.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-I suppose we have 3 options:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-1. Take this patch in hotfixes and leave kho_restore_pages() path
-   unfixed. The fix the rest next merge window.
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-2. Do a new version of this patch fixing kho_restore_pages() with the
-   current code, and then re-roll the clean up series to fix conflicts
-   for next merge window.
+------------------------------------------------------
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: fixup: mm/balloon_compaction: move internal helpers to balloon_compaction.c
+Date: Tue, 20 Jan 2026 07:37:39 +0100
 
-3. Pull in the cleanups in hotfixes too, and then do a new revision of
-   this patch on top.
+Move balloon_page_device() under CONFIG_BALLOON_COMPACTION.
 
-I don't think the end result of option 2 is too horrible, so I think
-that is probably the best option, but do let me know what you'd prefer.
+Link: https://lkml.kernel.org/r/27f0adf1-54c1-4d99-8b7f-fd45574e7f41@kernel.org
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202601201338.4muFmFHV-lkp@intel.com/
+Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-[0] https://lore.kernel.org/linux-mm/2vxzpl7chw8d.fsf@kernel.org/
-[1] https://lore.kernel.org/linux-mm/20260116112217.915803-1-pratyush@kernel.org/T/#u
+ mm/balloon_compaction.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
->
-> ------------------------------------------------------
-> From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-> Subject: kho: init alloc tags when restoring pages from reserved memory
-> Date: Fri, 9 Jan 2026 10:42:51 +0000
->
-> Memblock pages (including reserved memory) should have their allocation
-> tags initialized to CODETAG_EMPTY via clear_page_tag_ref() before being
-> released to the page allocator.  When kho restores pages through
-> kho_restore_page(), missing this call causes mismatched
-> allocation/deallocation tracking and below warning message:
->
-> alloc_tag was not set
-> WARNING: include/linux/alloc_tag.h:164 at ___free_pages+0xb8/0x260, CPU#1: swapper/0/1
-> RIP: 0010:___free_pages+0xb8/0x260
->  kho_restore_vmalloc+0x187/0x2e0
->  kho_test_init+0x3c4/0xa30
->  do_one_initcall+0x62/0x2b0
->  kernel_init_freeable+0x25b/0x480
->  kernel_init+0x1a/0x1c0
->  ret_from_fork+0x2d1/0x360
->
-> Add missing clear_page_tag_ref() annotation in kho_restore_page() to
-> fix this.
->
-> Link: https://lkml.kernel.org/r/20260113033403.161869-1-ranxiaokai627@163.com
-> Link: https://lkml.kernel.org/r/20260109104251.157767-1-ranxiaokai627@163.com
-> Fixes: fc33e4b44b27 ("kexec: enable KHO support for memory preservation")
-> Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-> Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-> Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-> Cc: Alexander Graf <graf@amazon.com>
-> Cc: Pratyush Yadav <pratyush@kernel.org>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  kernel/liveupdate/kexec_handover.c |    1 +
->  1 file changed, 1 insertion(+)
->
-> --- a/kernel/liveupdate/kexec_handover.c~kho-init-alloc-tags-when-restoring-pages-from-reserved-memory
-> +++ a/kernel/liveupdate/kexec_handover.c
-> @@ -255,6 +255,7 @@ static struct page *kho_restore_page(phy
->  	if (is_folio && info.order)
->  		prep_compound_page(page, info.order);
->  
-> +	clear_page_tag_ref(page);
->  	adjust_managed_page_count(page, nr_pages);
->  	return page;
->  }
-> _
->
-> Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
->
-> alloc_tag-fix-rw-permission-issue-when-handling-boot-parameter.patch
->
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix
++++ a/mm/balloon_compaction.c
+@@ -17,11 +17,6 @@
+  */
+ static DEFINE_SPINLOCK(balloon_pages_lock);
+ 
+-static struct balloon_dev_info *balloon_page_device(struct page *page)
+-{
+-	return (struct balloon_dev_info *)page_private(page);
+-}
+-
+ /*
+  * balloon_page_insert - insert a page into the balloon's page list and make
+  *			 the page->private assignment accordingly.
+@@ -232,6 +227,10 @@ struct page *balloon_page_dequeue(struct
+ EXPORT_SYMBOL_GPL(balloon_page_dequeue);
+ 
+ #ifdef CONFIG_BALLOON_COMPACTION
++static struct balloon_dev_info *balloon_page_device(struct page *page)
++{
++	return (struct balloon_dev_info *)page_private(page);
++}
+ 
+ static bool balloon_page_isolate(struct page *page, isolate_mode_t mode)
+ 
+_
 
--- 
-Regards,
-Pratyush Yadav
+Patches currently in -mm which might be from david@kernel.org are
+
+mm-move-pte-table-reclaim-code-to-memoryc.patch
+mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table.patch
+vmw_balloon-adjust-balloon_deflate-when-deflating-while-migrating.patch
+vmw_balloon-remove-vmballoon_compaction_init.patch
+powerpc-pseries-cmm-remove-cmm_balloon_compaction_init.patch
+mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info.patch
+mm-balloon_compaction-centralize-basic-page-migration-handling.patch
+mm-balloon_compaction-centralize-adjust_managed_page_count-handling.patch
+vmw_balloon-stop-using-the-balloon_dev_info-lock.patch
+mm-balloon_compaction-use-a-device-independent-balloon-list-lock.patch
+mm-balloon_compaction-remove-dependency-on-page-lock.patch
+mm-balloon_compaction-make-balloon_mops-static.patch
+mm-balloon_compaction-drop-fsh-include-from-balloon_compactionh.patch
+drivers-virtio-virtio_balloon-stop-using-balloon_page_push-pop.patch
+mm-balloon_compaction-remove-balloon_page_push-pop.patch
+mm-balloon_compaction-fold-balloon_mapping_gfp_mask-into-balloon_page_alloc.patch
+mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc.patch
+mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix.patch
+mm-balloon_compaction-assert-that-the-balloon_pages_lock-is-held.patch
+mm-balloon_compaction-mark-remaining-functions-for-having-proper-kerneldoc.patch
+mm-balloon_compaction-remove-extern-from-functions.patch
+mm-vmscan-drop-inclusion-of-balloon_compactionh.patch
+mm-rename-balloon_compactionch-to-balloonch.patch
+mm-kconfig-make-balloon_compaction-depend-on-migration.patch
+mm-rename-config_balloon_compaction-to-config_balloon_migration.patch
+mm-rename-config_memory_balloon-config_balloon.patch
+maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon.patch
+
