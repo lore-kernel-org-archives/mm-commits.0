@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64766399A62
-	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 20:06:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A4D33A7DEB
+	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 20:09:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768939560; cv=none; b=nSv9U6Rn6SdZ0raHosgcVcu8LeZl2+E1E4O9m3O55n/JY3+37rlhhTs+EnrioAKL+MxCCN+wK3tDYRd3xWYr6TReIRIB9xK3Pbn3T9sWGWgEnGXlREBggH/zz9ILM+YbifVoZfzeo9aB09qAb0mNhDYtvKgn07mbkekYTPJm3LM=
+	t=1768939796; cv=none; b=KUPqUReGIy+vCPvJPgg/WinKwRppK3IHDm7JN2HrqTFVR7s5DZcBzzYwNlUPxZumQO9mSrIinZCu+JClYR+KfNGCVer4iMkXhoybJ0MI7d1ZqxJQPPBbAdvbi1zpTxXQb0/5E1hk7/h71R/vby2ANDM8tgZDOA+SE/bNflkZjVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768939560; c=relaxed/simple;
-	bh=wR+Cu+r21orWMHTPGdN84v9n9i6Afk3zKKEehqXa42w=;
-	h=Date:To:From:Subject:Message-Id; b=kcv0BBc9CqGkjLKM3o1yVSbqU3jihw0spUEbQhl/ucEPaLa4AV+XOIf6MSZTB+PkMFIPkRcwUEWkqOxXV02qnnctpZDLmqkUov3+4bOZJucXLsWTsjkkS+C1qvXo+IPASwtnoSO9I8bomOuthvj/AcxxAjgOq90xtX2hskavC7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eba9XJOy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768939796; c=relaxed/simple;
+	bh=dbHFpwYDSCe8nGZR9H0CRnq34ftzOggomZktZFoF2oI=;
+	h=Date:To:From:Subject:Message-Id; b=V/3t3qnZx18m7FNbaJ7VR2R/D1AdvRtZV72qfGwgeRnXqxVJ0bcpDe5t3RHKVGWvBpD4s/0GxMA/NtU13lEVGk/ReoUPDIh0SYtoKsP2gUoX4dGB69kI+jKaZmBPr8qjnNqsgJ8JXcSSbBhDNWmqXQaTTBrsC8gtmBntdkZ5JeM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EY22V/FB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eba9XJOy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB75AC16AAE;
-	Tue, 20 Jan 2026 20:05:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EY22V/FB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00BC1C16AAE;
+	Tue, 20 Jan 2026 20:09:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768939560;
-	bh=wR+Cu+r21orWMHTPGdN84v9n9i6Afk3zKKEehqXa42w=;
+	s=korg; t=1768939796;
+	bh=dbHFpwYDSCe8nGZR9H0CRnq34ftzOggomZktZFoF2oI=;
 	h=Date:To:From:Subject:From;
-	b=Eba9XJOy+QLd78HfJVWQJVSX1oSZXq90hOYyZH/lpzILh3RQJF5XWqDIjmjNC/mH3
-	 AkjkrYaX5kxn+Csro/szc3YHeibKb6ZDs+9Rmx17H9ad1DJcsngvsIGypXrL6lMqmH
-	 nOseYzukHAikaoXdWa6B8chhvFy6MN0FfcTwFGsg=
-Date: Tue, 20 Jan 2026 12:05:59 -0800
-To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=EY22V/FBGmX94IC0fnUTvcupCk5+iAYlPFSqgkBQDD5XBHnFQITHawy+ZlpKk+2jL
+	 r/HRMqh4xedwADcnH8U//TxsamtCuN88pCU6lOsRfXz5jPWUNuZcSCTytp0YhTVhcS
+	 AIRSFTkTIF/PQDlRGE2c+7rArzlYt3WZLPmXmiOA=
+Date: Tue, 20 Jan 2026 12:09:55 -0800
+To: mm-commits@vger.kernel.org,zwisler@google.com,sourabhjain@linux.ibm.com,rostedt@goodmis.org,ribalda@chromium.org,prudo@redhat.com,graf@amazon.com,ebiggers@kernel.org,bhe@redhat.com,me@linux.beauty,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-relocate-vmalloc-preservation-structure-to-kho-abi-header-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20260120200559.EB75AC16AAE@smtp.kernel.org>
+Subject: + kexec-derive-purgatory-entry-from-symbol.patch added to mm-nonmm-unstable branch
+Message-Id: <20260120200956.00BC1C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho-relocate-vmalloc-preservation-structure-to-kho-abi-header-fix
+     Subject: kexec: derive purgatory entry from symbol
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-relocate-vmalloc-preservation-structure-to-kho-abi-header-fix.patch
+     kexec-derive-purgatory-entry-from-symbol.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-relocate-vmalloc-preservation-structure-to-kho-abi-header-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-derive-purgatory-entry-from-symbol.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,71 +58,114 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: kho-relocate-vmalloc-preservation-structure-to-kho-abi-header-fix
-Date: Tue, 20 Jan 2026 20:42:50 +0200
+From: Li Chen <me@linux.beauty>
+Subject: kexec: derive purgatory entry from symbol
+Date: Tue, 20 Jan 2026 20:40:04 +0800
 
-update comment, per Pratyush
+kexec_load_purgatory() derives image->start by locating e_entry inside an
+SHF_EXECINSTR section.  If the purgatory object contains multiple
+executable sections with overlapping sh_addr, the entrypoint check can
+match more than once and trigger a WARN.
 
-Link: https://lkml.kernel.org/r/aW_Mqp6HcqLwQImS@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Derive the entry section from the purgatory_start symbol when present and
+compute image->start from its final placement.  Keep the existing e_entry
+fallback for purgatories that do not expose the symbol.
+
+WARNING: kernel/kexec_file.c:1009 at kexec_load_purgatory+0x395/0x3c0, CPU#10: kexec/1784
+Call Trace:
+ <TASK>
+ bzImage64_load+0x133/0xa00
+ __do_sys_kexec_file_load+0x2b3/0x5c0
+ do_syscall_64+0x81/0x610
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+Link: https://lkml.kernel.org/r/20260120124005.148381-1-me@linux.beauty
+Fixes: 8652d44f466a ("kexec: support purgatories with .text.hot sections")
+Signed-off-by: Li Chen <me@linux.beauty>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Li Chen <me@linux.beauty>
+Cc: Philipp Rudo <prudo@redhat.com>
+Cc: Ricardo Ribalda Delgado <ribalda@chromium.org>
+Cc: Ross Zwisler <zwisler@google.com>
+Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kho/abi/kexec_handover.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/kexec_file.c |   24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
 
---- a/include/linux/kho/abi/kexec_handover.h~kho-relocate-vmalloc-preservation-structure-to-kho-abi-header-fix
-+++ a/include/linux/kho/abi/kexec_handover.h
-@@ -138,8 +138,8 @@ struct kho_vmalloc_hdr {
+--- a/kernel/kexec_file.c~kexec-derive-purgatory-entry-from-symbol
++++ a/kernel/kexec_file.c
+@@ -880,6 +880,8 @@ out_free_sha_regions:
+ }
+ 
+ #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
++static const Elf_Sym * kexec_purgatory_find_symbol(struct purgatory_info *pi,
++			      const char *name);
  /*
-  * Each chunk is a single page and is part of a linked list that describes
-  * a preserved vmalloc area. It contains the header with the link to the next
-- * chunk and an array of physical addresses of the pages that make up the
-- * preserved vmalloc area.
-+ * chunk and a zero terminated array of physical addresses of the pages that
-+ * make up the preserved vmalloc area.
-  */
- struct kho_vmalloc_chunk {
- 	struct kho_vmalloc_hdr hdr;
+  * kexec_purgatory_setup_kbuf - prepare buffer to load purgatory.
+  * @pi:		Purgatory to be loaded.
+@@ -958,6 +960,10 @@ static int kexec_purgatory_setup_sechdrs
+ 	unsigned long offset;
+ 	size_t sechdrs_size;
+ 	Elf_Shdr *sechdrs;
++	const Elf_Sym *entry_sym;
++	u16 entry_shndx = 0;
++	unsigned long entry_off = 0;
++	bool start_fixed = false;
+ 	int i;
+ 
+ 	/*
+@@ -975,6 +981,12 @@ static int kexec_purgatory_setup_sechdrs
+ 	bss_addr = kbuf->mem + kbuf->bufsz;
+ 	kbuf->image->start = pi->ehdr->e_entry;
+ 
++	entry_sym = kexec_purgatory_find_symbol(pi, "purgatory_start");
++	if (entry_sym) {
++		entry_shndx = entry_sym->st_shndx;
++		entry_off = entry_sym->st_value;
++	}
++
+ 	for (i = 0; i < pi->ehdr->e_shnum; i++) {
+ 		unsigned long align;
+ 		void *src, *dst;
+@@ -992,6 +1004,13 @@ static int kexec_purgatory_setup_sechdrs
+ 
+ 		offset = ALIGN(offset, align);
+ 
++		if (!start_fixed && entry_sym && i == entry_shndx &&
++		    (sechdrs[i].sh_flags & SHF_EXECINSTR) &&
++		    entry_off < sechdrs[i].sh_size) {
++			kbuf->image->start = kbuf->mem + offset + entry_off;
++			start_fixed = true;
++		}
++
+ 		/*
+ 		 * Check if the segment contains the entry point, if so,
+ 		 * calculate the value of image->start based on it.
+@@ -1002,13 +1021,14 @@ static int kexec_purgatory_setup_sechdrs
+ 		 * is not set to the initial value, and warn the user so they
+ 		 * have a chance to fix their purgatory's linker script.
+ 		 */
+-		if (sechdrs[i].sh_flags & SHF_EXECINSTR &&
++		if (!start_fixed && sechdrs[i].sh_flags & SHF_EXECINSTR &&
+ 		    pi->ehdr->e_entry >= sechdrs[i].sh_addr &&
+ 		    pi->ehdr->e_entry < (sechdrs[i].sh_addr
+ 					 + sechdrs[i].sh_size) &&
+-		    !WARN_ON(kbuf->image->start != pi->ehdr->e_entry)) {
++		    kbuf->image->start == pi->ehdr->e_entry) {
+ 			kbuf->image->start -= sechdrs[i].sh_addr;
+ 			kbuf->image->start += kbuf->mem + offset;
++			start_fixed = true;
+ 		}
+ 
+ 		src = (void *)pi->ehdr + sechdrs[i].sh_offset;
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from me@linux.beauty are
 
-alpha-introduce-arch_zone_limits_init.patch
-arc-introduce-arch_zone_limits_init.patch
-arm-introduce-arch_zone_limits_init.patch
-arm64-introduce-arch_zone_limits_init.patch
-csky-introduce-arch_zone_limits_init.patch
-hexagon-introduce-arch_zone_limits_init.patch
-loongarch-introduce-arch_zone_limits_init.patch
-m68k-introduce-arch_zone_limits_init.patch
-microblaze-introduce-arch_zone_limits_init.patch
-mips-introduce-arch_zone_limits_init.patch
-nios2-introduce-arch_zone_limits_init.patch
-openrisc-introduce-arch_zone_limits_init.patch
-parisc-introduce-arch_zone_limits_init.patch
-powerpc-introduce-arch_zone_limits_init.patch
-riscv-introduce-arch_zone_limits_init.patch
-s390-introduce-arch_zone_limits_init.patch
-sh-introduce-arch_zone_limits_init.patch
-sparc-introduce-arch_zone_limits_init.patch
-um-introduce-arch_zone_limits_init.patch
-x86-introduce-arch_zone_limits_init.patch
-xtensa-introduce-arch_zone_limits_init.patch
-arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch
-arch-mm-consolidate-initialization-of-sparse-memory-model.patch
-mips-drop-paging_init.patch
-x86-dont-reserve-hugetlb-memory-in-setup_arch.patch
-mm-arch-consolidate-hugetlb-cma-reservation.patch
-mm-hugetlb-drop-hugetlb_cma_check.patch
-revert-mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
-kho-abi-luo-make-generated-documentation-more-coherent.patch
-kho-abi-memfd-make-generated-documentation-more-coherent.patch
-kho-docs-combine-concepts-and-fdt-documentation.patch
-kho-docs-combine-concepts-and-fdt-documentation-fix.patch
-kho-relocate-vmalloc-preservation-structure-to-kho-abi-header-fix.patch
-kho-abi-add-memblock-abi-header.patch
-kho-abi-add-memblock-abi-header-fix-2.patch
+kexec-derive-purgatory-entry-from-symbol.patch
 
