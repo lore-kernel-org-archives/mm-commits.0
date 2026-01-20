@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CCC63491F4
-	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 16:54:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F8663033CA
+	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 16:54:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768928092; cv=none; b=CV8OErpUvGM3Aj9f2mU1GkfCiP+ibKwDe+P8xVx9ARUoPpnMMX9eq52ZjWEW+jKouy9s5ECCijTwSaPMDdUv3rAkBoyg7TDNaRxhAJGKVPgBr6KjMl4AWBk0DgzLxYbmG90e2/yOEwQF6QhRk7a+fwIl551Cj/GykZ4IK+t0QYc=
+	t=1768928094; cv=none; b=AvaffMCc3dlXjcc0BJ0JNNDEMOe6T93aiKHl0BFivVdVS9XguIm5P6ciPq+gnYa4fDpkc1m2GxS7rWLZjLrppFsIOgoKLFWrVW9hymO0nGc72Vh/ZcF8YKXXRf97tfsAg0/1pg31UuLFmLJwRkIr2MIP2W2ppbCt8N8MoXTxUi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768928092; c=relaxed/simple;
-	bh=ttUe9rtL9EkfQ6af6RK/qlgvNoikuRPth2RiM6ORDN0=;
-	h=Date:To:From:Subject:Message-Id; b=FDbJuhcO8l5fkIVAxFdLJTU70Fd3DSFc67F4aCa9YumHDvczhBkOOE9EGKc7INbgMjt8CiYQs/vthDdOxhmFe+RrN7oGiMKYjKE5tJowAnBX1w43sPVC02Fl3yT/ftWcLoDPEgI7CA6Thw3S6ETGAxuVI/xvDOuPsTrYzTS3Uqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=imFpIg3T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768928094; c=relaxed/simple;
+	bh=sovaZ48IOZAfYjxOID5xV1C/yBbp5Ty+qBnZK7TJRc4=;
+	h=Date:To:From:Subject:Message-Id; b=dpPPZlgzus1DsHPF/pNM4ryChx9XGWTwniTKK3Jj0yqFXZSDXCmxV66uNBTwOmlpUuXmyjsYGnxzi3TDNpN6W7dnG/PlZKHhwezTrUk73sv90QELvcrndgS8Lh2dgrgdZgJQkaZYZGzQ//fpJdZhFF8Bebqh3vGx51MigNYYu7A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2g/zdBdr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="imFpIg3T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67548C16AAE;
-	Tue, 20 Jan 2026 16:54:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2g/zdBdr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EA8EC16AAE;
+	Tue, 20 Jan 2026 16:54:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768928091;
-	bh=ttUe9rtL9EkfQ6af6RK/qlgvNoikuRPth2RiM6ORDN0=;
+	s=korg; t=1768928094;
+	bh=sovaZ48IOZAfYjxOID5xV1C/yBbp5Ty+qBnZK7TJRc4=;
 	h=Date:To:From:Subject:From;
-	b=imFpIg3TYA50sRT/oBvJp02B/Mqj7pY2Ia3XzQ+fddb4zeC7S4RNFEx5psEDxf/Ef
-	 gjcGnCngZOM0SvskOPJ+N0JEdh08IUtyq2ryWNidLpLdRk/rlJOY3JCPmDpGqHNOsD
-	 fXv6udLSCIa5XldZPoKJ/q0GUkcEvnhjRX9Gp+MY=
-Date: Tue, 20 Jan 2026 08:54:50 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,zenghongling@kylinos.cn,akpm@linux-foundation.org
+	b=2g/zdBdrvHSEsgZhjSfGRqa1ZpvxUOy9TVZSEPA3Wbgc9su9AJmZXfeny/So/SyOV
+	 h84jqQOyX/zX/Nj5QNumFFW2h8A/MwvBeAvnYUd32yhqCWU9Q/cGGrBPV4wxh66onC
+	 m1ACEXi0xU9DAZhh5CycdYtOomm/4caZZVpede2I=
+Date: Tue, 20 Jan 2026 08:54:53 -0800
+To: mm-commits@vger.kernel.org,zenghongling@kylinos.cn,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-use-min-to-simplify-the-code.patch added to mm-new branch
-Message-Id: <20260120165451.67548C16AAE@smtp.kernel.org>
+Subject: + mm-pagewalk-use-min-to-simplify-the-code-fix.patch added to mm-new branch
+Message-Id: <20260120165454.1EA8EC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/pagewalk: use min() to simplify the code
+     Subject: mm-pagewalk-use-min-to-simplify-the-code-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-pagewalk-use-min-to-simplify-the-code.patch
+     mm-pagewalk-use-min-to-simplify-the-code-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-use-min-to-simplify-the-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-use-min-to-simplify-the-code-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,14 +66,12 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: zenghongling <zenghongling@kylinos.cn>
-Subject: mm/pagewalk: use min() to simplify the code
-Date: Tue, 20 Jan 2026 17:49:32 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-pagewalk-use-min-to-simplify-the-code-fix
+Date: Tue Jan 20 08:54:09 AM PST 2026
 
-Use the min() macro to simplify the function and improve its readability.
+add newline, per Lorenzo
 
-Link: https://lkml.kernel.org/r/20260120094932.183697-1-zenghongling@kylinos.cn
-Signed-off-by: zenghongling <zenghongling@kylinos.cn>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Hongling Zeng <zenghongling@kylinos.cn>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -85,23 +83,37 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/pagewalk.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/pagewalk.c~mm-pagewalk-use-min-to-simplify-the-code
+--- a/mm/pagewalk.c~mm-pagewalk-use-min-to-simplify-the-code-fix
 +++ a/mm/pagewalk.c
-@@ -313,7 +313,7 @@ static unsigned long hugetlb_entry_end(s
+@@ -313,6 +313,7 @@ static unsigned long hugetlb_entry_end(s
  				       unsigned long end)
  {
  	unsigned long boundary = (addr & huge_page_mask(h)) + huge_page_size(h);
--	return boundary < end ? boundary : end;
-+	return min(boundary, end);
++
+ 	return min(boundary, end);
  }
  
- static int walk_hugetlb_range(unsigned long addr, unsigned long end,
 _
 
-Patches currently in -mm which might be from zenghongling@kylinos.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-pagewalk-use-min-to-simplify-the-code.patch
+mm-add-basic-tests-for-lazy_mmu-fix.patch
+mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
+zram-fixup-read_block_state-fix.patch
+zram-fixup-read_block_state-fix-2.patch
+mm-block-fs-remove-laptop_mode-fix.patch
+mm-fix-minor-spelling-mistakes-in-comments-fix.patch
+memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
+mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix.patch
+mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
+mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix.patch
+list-add-primitives-for-private-list-manipulations-fix.patch
+init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning-fix.patch
+panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-checkpatch-fixes.patch
 
