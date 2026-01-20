@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A4D33A7DEB
-	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 20:09:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D396F3A4F24
+	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 20:31:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768939796; cv=none; b=KUPqUReGIy+vCPvJPgg/WinKwRppK3IHDm7JN2HrqTFVR7s5DZcBzzYwNlUPxZumQO9mSrIinZCu+JClYR+KfNGCVer4iMkXhoybJ0MI7d1ZqxJQPPBbAdvbi1zpTxXQb0/5E1hk7/h71R/vby2ANDM8tgZDOA+SE/bNflkZjVg=
+	t=1768941071; cv=none; b=YBo3Y9SkGqVNSsO2WL21+gSA2b6v+kYXf6r9ZDJleNJgvs4MqlTKim4NR+Ej4VTJ7BldeIJe9vRg1TXqoY/LZABO8gKXb+HPlZFfLwlu2kMgz8p6g9A0XNjspqD4g36pgu26KdPmskEdPKDRzoCx1zBy8BplnyaMHrF/vQZtXv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768939796; c=relaxed/simple;
-	bh=dbHFpwYDSCe8nGZR9H0CRnq34ftzOggomZktZFoF2oI=;
-	h=Date:To:From:Subject:Message-Id; b=V/3t3qnZx18m7FNbaJ7VR2R/D1AdvRtZV72qfGwgeRnXqxVJ0bcpDe5t3RHKVGWvBpD4s/0GxMA/NtU13lEVGk/ReoUPDIh0SYtoKsP2gUoX4dGB69kI+jKaZmBPr8qjnNqsgJ8JXcSSbBhDNWmqXQaTTBrsC8gtmBntdkZ5JeM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EY22V/FB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768941071; c=relaxed/simple;
+	bh=1Q8wl6ppXik1+QAzEoPaMlZ7G1KZj63QRJLLvgtcYmY=;
+	h=Date:To:From:Subject:Message-Id; b=tf72aYXTwOBe2gfPi83rTQP5o3R0aUBMF9BOcd5xPsigX3gTjvUe7LHV+INZOiunKt6T3VBgqhFXZVV9Hhk9j2njKWbRCW35DYZM2bIBm++luzp+gQXq1JbU9KfUXFZHPMWr0hmQmP4FJ+fsDYUF2zJCQXe20hpEUs918+woz04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZcKvucwu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EY22V/FB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00BC1C16AAE;
-	Tue, 20 Jan 2026 20:09:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZcKvucwu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 429A4C16AAE;
+	Tue, 20 Jan 2026 20:31:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768939796;
-	bh=dbHFpwYDSCe8nGZR9H0CRnq34ftzOggomZktZFoF2oI=;
+	s=korg; t=1768941071;
+	bh=1Q8wl6ppXik1+QAzEoPaMlZ7G1KZj63QRJLLvgtcYmY=;
 	h=Date:To:From:Subject:From;
-	b=EY22V/FBGmX94IC0fnUTvcupCk5+iAYlPFSqgkBQDD5XBHnFQITHawy+ZlpKk+2jL
-	 r/HRMqh4xedwADcnH8U//TxsamtCuN88pCU6lOsRfXz5jPWUNuZcSCTytp0YhTVhcS
-	 AIRSFTkTIF/PQDlRGE2c+7rArzlYt3WZLPmXmiOA=
-Date: Tue, 20 Jan 2026 12:09:55 -0800
-To: mm-commits@vger.kernel.org,zwisler@google.com,sourabhjain@linux.ibm.com,rostedt@goodmis.org,ribalda@chromium.org,prudo@redhat.com,graf@amazon.com,ebiggers@kernel.org,bhe@redhat.com,me@linux.beauty,akpm@linux-foundation.org
+	b=ZcKvucwuHwxx3voml4kr7PMU/PJgyuiAwmqY80WILG20ORN4DRKuj3HdaSKkU9ivG
+	 WeXQWadjvcFsD7Kd/T6zoGKhUjzh++Co/nIZPzP5svtwsPeRipAr1FyR/kVZgXZBjy
+	 bE7LdCGDUWaAux4GLAkMsNWFFmSEdj+s+d91zMaA=
+Date: Tue, 20 Jan 2026 12:31:10 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jiayuan.chen@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-derive-purgatory-entry-from-symbol.patch added to mm-nonmm-unstable branch
-Message-Id: <20260120200956.00BC1C16AAE@smtp.kernel.org>
+Subject: + mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch added to mm-unstable branch
+Message-Id: <20260120203111.429A4C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec: derive purgatory entry from symbol
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-derive-purgatory-entry-from-symbol.patch
+     Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-derive-purgatory-entry-from-symbol.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,114 +58,241 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Li Chen <me@linux.beauty>
-Subject: kexec: derive purgatory entry from symbol
-Date: Tue, 20 Jan 2026 20:40:04 +0800
+From: Jiayuan Chen <jiayuan.chen@shopee.com>
+Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+Date: Tue, 20 Jan 2026 10:43:48 +0800
 
-kexec_load_purgatory() derives image->start by locating e_entry inside an
-SHF_EXECINSTR section.  If the purgatory object contains multiple
-executable sections with overlapping sh_addr, the entrypoint check can
-match more than once and trigger a WARN.
+Patch series "mm/vmscan: add tracepoint and reason for kswapd_failures
+reset", v4.
 
-Derive the entry section from the purgatory_start symbol when present and
-compute image->start from its final placement.  Keep the existing e_entry
-fallback for purgatories that do not expose the symbol.
+Currently, kswapd_failures is reset in multiple places (kswapd,
+direct reclaim, PCP freeing, memory-tiers), but there's no way to
+trace when and why it was reset, making it difficult to debug
+memory reclaim issues.
 
-WARNING: kernel/kexec_file.c:1009 at kexec_load_purgatory+0x395/0x3c0, CPU#10: kexec/1784
-Call Trace:
- <TASK>
- bzImage64_load+0x133/0xa00
- __do_sys_kexec_file_load+0x2b3/0x5c0
- do_syscall_64+0x81/0x610
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
+This patch:
 
-Link: https://lkml.kernel.org/r/20260120124005.148381-1-me@linux.beauty
-Fixes: 8652d44f466a ("kexec: support purgatories with .text.hot sections")
-Signed-off-by: Li Chen <me@linux.beauty>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Eric Biggers <ebiggers@kernel.org>
-Cc: Li Chen <me@linux.beauty>
-Cc: Philipp Rudo <prudo@redhat.com>
-Cc: Ricardo Ribalda Delgado <ribalda@chromium.org>
-Cc: Ross Zwisler <zwisler@google.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+1. Introduce kswapd_clear_hopeless() as a wrapper function to
+   centralize kswapd_failures reset logic.
+
+2. Introduce kswapd_test_hopeless() to encapsulate hopeless node
+   checks, replacing all open-coded kswapd_failures comparisons.
+
+3. Add kswapd_clear_hopeless_reason enum to distinguish reset sources:
+   - KSWAPD_CLEAR_HOPELESS_KSWAPD: reset from kswapd context
+   - KSWAPD_CLEAR_HOPELESS_DIRECT: reset from direct reclaim
+   - KSWAPD_CLEAR_HOPELESS_PCP: reset from PCP page freeing
+   - KSWAPD_CLEAR_HOPELESS_OTHER: reset from other paths
+
+4. Add tracepoints for better observability:
+   - mm_vmscan_kswapd_clear_hopeless: traces each reset with reason
+   - mm_vmscan_kswapd_reclaim_fail: traces each kswapd reclaim failure
+
+Test results:
+
+$ trace-cmd record -e vmscan:mm_vmscan_kswapd_clear_hopeless -e vmscan:mm_vmscan_kswapd_reclaim_fail
+$ # generate memory pressure
+$ trace-cmd report
+cpus=4
+ kswapd0-71    [000]    27.216563: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=1
+ kswapd0-71    [000]    27.217169: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=2
+ kswapd0-71    [000]    27.217764: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=3
+ kswapd0-71    [000]    27.218353: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=4
+ kswapd0-71    [000]    27.218993: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=5
+ kswapd0-71    [000]    27.219744: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=6
+ kswapd0-71    [000]    27.220488: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=7
+ kswapd0-71    [000]    27.221206: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=8
+ kswapd0-71    [000]    27.221806: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=9
+ kswapd0-71    [000]    27.222634: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=10
+ kswapd0-71    [000]    27.223286: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=11
+ kswapd0-71    [000]    27.223894: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=12
+ kswapd0-71    [000]    27.224712: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=13
+ kswapd0-71    [000]    27.225424: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=14
+ kswapd0-71    [000]    27.226082: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=15
+ kswapd0-71    [000]    27.226810: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=16
+ kswapd1-72    [002]    27.386869: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=1
+ kswapd1-72    [002]    27.387435: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=2
+ kswapd1-72    [002]    27.388016: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=3
+ kswapd1-72    [002]    27.388586: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=4
+ kswapd1-72    [002]    27.389155: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=5
+ kswapd1-72    [002]    27.389723: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=6
+ kswapd1-72    [002]    27.390292: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=7
+ kswapd1-72    [002]    27.392364: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=8
+ kswapd1-72    [002]    27.392934: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=9
+ kswapd1-72    [002]    27.393504: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=10
+ kswapd1-72    [002]    27.394073: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=11
+ kswapd1-72    [002]    27.394899: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=12
+ kswapd1-72    [002]    27.395472: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=13
+ kswapd1-72    [002]    27.396055: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=14
+ kswapd1-72    [002]    27.396628: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=15
+ kswapd1-72    [002]    27.397199: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=16
+kworker/u18:0-40    [002]    27.410151: mm_vmscan_kswapd_clear_hopeless: nid=0 reason=DIRECT
+ kswapd0-71    [000]    27.439454: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=1
+ kswapd0-71    [000]    27.440048: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=2
+ kswapd0-71    [000]    27.440634: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=3
+ kswapd0-71    [000]    27.441211: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=4
+ kswapd0-71    [000]    27.441787: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=5
+ kswapd0-71    [000]    27.442363: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=6
+ kswapd0-71    [000]    27.443030: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=7
+ kswapd0-71    [000]    27.443725: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=8
+ kswapd0-71    [000]    27.444315: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=9
+ kswapd0-71    [000]    27.444898: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=10
+ kswapd0-71    [000]    27.445476: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=11
+ kswapd0-71    [000]    27.446053: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=12
+ kswapd0-71    [000]    27.446646: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=13
+ kswapd0-71    [000]    27.447230: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=14
+ kswapd0-71    [000]    27.447812: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=15
+ kswapd0-71    [000]    27.448391: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=16
+ ann-423   [003]    28.028285: mm_vmscan_kswapd_clear_hopeless: nid=0 reason=PCP
+
+
+This patch (of 2):
+
+When kswapd fails to reclaim memory, kswapd_failures is incremented.  Once
+it reaches MAX_RECLAIM_RETRIES, kswapd stops running to avoid futile
+reclaim attempts.  However, any successful direct reclaim unconditionally
+resets kswapd_failures to 0, which can cause problems.
+
+We observed an issue in production on a multi-NUMA system where a process
+allocated large amounts of anonymous pages on a single NUMA node, causing
+its watermark to drop below high and evicting most file pages:
+
+$ numastat -m
+Per-node system memory usage (in MBs):
+                          Node 0          Node 1           Total
+                 --------------- --------------- ---------------
+MemTotal               128222.19       127983.91       256206.11
+MemFree                  1414.48         1432.80         2847.29
+MemUsed                126807.71       126551.11       252358.82
+SwapCached                  0.00            0.00            0.00
+Active                  29017.91        25554.57        54572.48
+Inactive                92749.06        95377.00       188126.06
+Active(anon)            28998.96        23356.47        52355.43
+Inactive(anon)          92685.27        87466.11       180151.39
+Active(file)               18.95         2198.10         2217.05
+Inactive(file)             63.79         7910.89         7974.68
+
+With swap disabled, only file pages can be reclaimed.  When kswapd is
+woken (e.g., via wake_all_kswapds()), it runs continuously but cannot
+raise free memory above the high watermark since reclaimable file pages
+are insufficient.  Normally, kswapd would eventually stop after
+kswapd_failures reaches MAX_RECLAIM_RETRIES.
+
+However, containers on this machine have memory.high set in their cgroup. 
+Business processes continuously trigger the high limit, causing frequent
+direct reclaim that keeps resetting kswapd_failures to 0.  This prevents
+kswapd from ever stopping.
+
+The key insight is that direct reclaim triggered by cgroup memory.high
+performs aggressive scanning to throttle the allocating process.  With
+sufficiently aggressive scanning, even hot pages will eventually be
+reclaimed, making direct reclaim "successful" at freeing some memory. 
+However, this success does not mean the node has reached a balanced state
+- the freed memory may still be insufficient to bring free pages above the
+high watermark.  Unconditionally resetting kswapd_failures in this case
+keeps kswapd alive indefinitely.
+
+The result is that kswapd runs endlessly.  Unlike direct reclaim which
+only reclaims from the allocating cgroup, kswapd scans the entire node's
+memory.  This causes hot file pages from all workloads on the node to be
+evicted, not just those from the cgroup triggering memory.high.  These
+pages constantly refault, generating sustained heavy IO READ pressure
+across the entire system.
+
+Fix this by only resetting kswapd_failures when the node is actually
+balanced.  This allows both kswapd and direct reclaim to clear
+kswapd_failures upon successful reclaim, but only when the reclaim
+actually resolves the memory pressure (i.e., the node becomes balanced).
+
+Link: https://lkml.kernel.org/r/20260120024402.387576-1-jiayuan.chen@linux.dev
+Link: https://lkml.kernel.org/r/20260120024402.387576-2-jiayuan.chen@linux.dev
+Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    2 ++
+ mm/vmscan.c            |   22 ++++++++++++++++++++--
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
---- a/kernel/kexec_file.c~kexec-derive-purgatory-entry-from-symbol
-+++ a/kernel/kexec_file.c
-@@ -880,6 +880,8 @@ out_free_sha_regions:
+--- a/include/linux/mmzone.h~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
++++ a/include/linux/mmzone.h
+@@ -1536,6 +1536,8 @@ static inline unsigned long pgdat_end_pf
+ void build_all_zonelists(pg_data_t *pgdat);
+ void wakeup_kswapd(struct zone *zone, gfp_t gfp_mask, int order,
+ 		   enum zone_type highest_zoneidx);
++void kswapd_try_clear_hopeless(struct pglist_data *pgdat,
++			       unsigned int order, int highest_zoneidx);
+ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
+ 			 int highest_zoneidx, unsigned int alloc_flags,
+ 			 long free_pages);
+--- a/mm/vmscan.c~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
++++ a/mm/vmscan.c
+@@ -5064,7 +5064,7 @@ static void lru_gen_shrink_node(struct p
+ 	blk_finish_plug(&plug);
+ done:
+ 	if (sc->nr_reclaimed > reclaimed)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		kswapd_try_clear_hopeless(pgdat, sc->order, sc->reclaim_idx);
  }
  
- #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
-+static const Elf_Sym * kexec_purgatory_find_symbol(struct purgatory_info *pi,
-+			      const char *name);
+ /******************************************************************************
+@@ -6131,7 +6131,7 @@ again:
+ 	 * successful direct reclaim run will revive a dormant kswapd.
+ 	 */
+ 	if (reclaimable)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		kswapd_try_clear_hopeless(pgdat, sc->order, sc->reclaim_idx);
+ 	else if (sc->cache_trim_mode)
+ 		sc->cache_trim_mode_failed = 1;
+ }
+@@ -7390,6 +7390,24 @@ void wakeup_kswapd(struct zone *zone, gf
+ 	wake_up_interruptible(&pgdat->kswapd_wait);
+ }
+ 
++static void kswapd_clear_hopeless(pg_data_t *pgdat)
++{
++	atomic_set(&pgdat->kswapd_failures, 0);
++}
++
++/*
++ * Reset kswapd_failures only when the node is balanced. Without this
++ * check, successful direct reclaim (e.g., from cgroup memory.high
++ * throttling) can keep resetting kswapd_failures even when the node
++ * cannot be balanced, causing kswapd to run endlessly.
++ */
++void kswapd_try_clear_hopeless(struct pglist_data *pgdat,
++			       unsigned int order, int highest_zoneidx)
++{
++	if (pgdat_balanced(pgdat, order, highest_zoneidx))
++		kswapd_clear_hopeless(pgdat);
++}
++
+ #ifdef CONFIG_HIBERNATION
  /*
-  * kexec_purgatory_setup_kbuf - prepare buffer to load purgatory.
-  * @pi:		Purgatory to be loaded.
-@@ -958,6 +960,10 @@ static int kexec_purgatory_setup_sechdrs
- 	unsigned long offset;
- 	size_t sechdrs_size;
- 	Elf_Shdr *sechdrs;
-+	const Elf_Sym *entry_sym;
-+	u16 entry_shndx = 0;
-+	unsigned long entry_off = 0;
-+	bool start_fixed = false;
- 	int i;
- 
- 	/*
-@@ -975,6 +981,12 @@ static int kexec_purgatory_setup_sechdrs
- 	bss_addr = kbuf->mem + kbuf->bufsz;
- 	kbuf->image->start = pi->ehdr->e_entry;
- 
-+	entry_sym = kexec_purgatory_find_symbol(pi, "purgatory_start");
-+	if (entry_sym) {
-+		entry_shndx = entry_sym->st_shndx;
-+		entry_off = entry_sym->st_value;
-+	}
-+
- 	for (i = 0; i < pi->ehdr->e_shnum; i++) {
- 		unsigned long align;
- 		void *src, *dst;
-@@ -992,6 +1004,13 @@ static int kexec_purgatory_setup_sechdrs
- 
- 		offset = ALIGN(offset, align);
- 
-+		if (!start_fixed && entry_sym && i == entry_shndx &&
-+		    (sechdrs[i].sh_flags & SHF_EXECINSTR) &&
-+		    entry_off < sechdrs[i].sh_size) {
-+			kbuf->image->start = kbuf->mem + offset + entry_off;
-+			start_fixed = true;
-+		}
-+
- 		/*
- 		 * Check if the segment contains the entry point, if so,
- 		 * calculate the value of image->start based on it.
-@@ -1002,13 +1021,14 @@ static int kexec_purgatory_setup_sechdrs
- 		 * is not set to the initial value, and warn the user so they
- 		 * have a chance to fix their purgatory's linker script.
- 		 */
--		if (sechdrs[i].sh_flags & SHF_EXECINSTR &&
-+		if (!start_fixed && sechdrs[i].sh_flags & SHF_EXECINSTR &&
- 		    pi->ehdr->e_entry >= sechdrs[i].sh_addr &&
- 		    pi->ehdr->e_entry < (sechdrs[i].sh_addr
- 					 + sechdrs[i].sh_size) &&
--		    !WARN_ON(kbuf->image->start != pi->ehdr->e_entry)) {
-+		    kbuf->image->start == pi->ehdr->e_entry) {
- 			kbuf->image->start -= sechdrs[i].sh_addr;
- 			kbuf->image->start += kbuf->mem + offset;
-+			start_fixed = true;
- 		}
- 
- 		src = (void *)pi->ehdr + sechdrs[i].sh_offset;
+  * Try to free `nr_to_reclaim' of memory, system-wide, and return the number of
 _
 
-Patches currently in -mm which might be from me@linux.beauty are
+Patches currently in -mm which might be from jiayuan.chen@shopee.com are
 
-kexec-derive-purgatory-entry-from-symbol.patch
+mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
+mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset.patch
 
