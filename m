@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9DAC34F27E
-	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 17:10:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7567233971F
+	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 17:26:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768929055; cv=none; b=RdSIMp74VMY6i6jaepPbiMzY2rNUpNmhLPeGa3g8gNVpgiQhCn3a6lSRrxErBSph6c0u3QfdC8kyiFozyS2ZS16kABadN0IMDec3Fo3irdd7IElbWjtjfkBM4GhKHXMsTRXOMDtlFCaT5ZNDISeq+qTdxTV5HPr7Pp2XntuJ2ks=
+	t=1768929999; cv=none; b=EIaYgYcgK0YHXTwqKRfz+avFyET04b2krHNF/ogl793q8U5Y17+46TNTEtHjcS3dTsqjDW0f56HVa+fakeGwFCx+Q3OVgx+99VFJNZ8+hlbXHaQWWzUsQh/dVMgVL/UpT/EexseAXMF7ZqJbTO68uE1gRbSvJHdee4ho4G9LXGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768929055; c=relaxed/simple;
-	bh=DI/cttLANtv/5DLfOFp7XaQZKiElGFOHNqzBEHF3UtA=;
-	h=Date:To:From:Subject:Message-Id; b=rd9Fcmo03Ab9dIwY+EOdW+ZUIXcaRGuNP9Wv1KrTp2MD7gifieXqDeEpm19Ey8U88xvvk2MBgfgyBpU7vbqxKq1db+iyEabb4ktXWSMpKZXpuYsb1gde3cbYA+Lbl4P/1/CsflCO4uDxGWBijncDcB7stLH18M4QTesScpiw5f0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KuMqWxgP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768929999; c=relaxed/simple;
+	bh=btFyWbGaNh94pPWnVAVlvsfvG4AAZeHtnNDeyCyLKRU=;
+	h=Date:To:From:Subject:Message-Id; b=INVhdNXVweIqUacknCMSUDTzvbzh0Yk6IMrupjNn1rmaintbWyXLBit1A7o/BtEoqGbG/pZ4ANiorXhkZDPE8a0HzkuZC1A4qo4OnN90IMSNlrXgowbQCJu2NnvuPzPrllpz1oF80vcl0Ky5ZL9s7Eaqwn5PcIG4sksO5S7fTuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IFUFgqqi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KuMqWxgP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52600C16AAE;
-	Tue, 20 Jan 2026 17:10:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IFUFgqqi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0987FC16AAE;
+	Tue, 20 Jan 2026 17:26:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768929054;
-	bh=DI/cttLANtv/5DLfOFp7XaQZKiElGFOHNqzBEHF3UtA=;
+	s=korg; t=1768929999;
+	bh=btFyWbGaNh94pPWnVAVlvsfvG4AAZeHtnNDeyCyLKRU=;
 	h=Date:To:From:Subject:From;
-	b=KuMqWxgPMT6KsjAoksexaTwIzPDiOj+W3rfF1+Fix8g5fZg4W84jz51YB4Yyb6La3
-	 oXOB44irBwqpMTnE7yGHT99jh8i0UmIv5BiCJLn8b1K3E95dnbUwtaSViUufar43pF
-	 izMGZPAaf5KjR8g6z7QnwjfQUwrKxGsJQ7yes760=
-Date: Tue, 20 Jan 2026 09:10:53 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=IFUFgqqiFgVaoOgelWVFLSWzCf13moSaPr1qMgSXY+bki1iEW9HC5hzgbNUtriJyT
+	 M3NYFQLU9hPH9YITAXQO6KP+T2fnBbsfaW/lfCbeVGnP2TNAHq8O3589/XlWPYnG4l
+	 Wf9TiWZEFaAnCUMA04zVApuJETef8pJYH7UfEhHo=
+Date: Tue, 20 Jan 2026 09:26:38 -0800
+To: mm-commits@vger.kernel.org,pnina.feder@mobileye.com,pmladek@suse.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-memory-failure-dirty-pagecache-test.patch added to mm-new branch
-Message-Id: <20260120171054.52600C16AAE@smtp.kernel.org>
+Subject: [folded-merged] panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20260120172639.0987FC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,187 +34,75 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/mm: add memory failure dirty pagecache test
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-memory-failure-dirty-pagecache-test.patch
+The quilt patch titled
+     Subject: panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-checkpatch-fixes.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-memory-failure-dirty-pagecache-test.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: selftests/mm: add memory failure dirty pagecache test
-Date: Tue, 20 Jan 2026 20:32:39 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-checkpatch-fixes
+Date: Thu Jan 15 09:00:36 AM PST 2026
 
-This patch adds a new testcase to validate memory failure handling for
-dirty pagecache.  This performs similar operations as clean pagecaches
-except fsync() is not used to keep pages dirty.
+WARNING: braces {} are not necessary for single statement blocks
+#168: FILE: kernel/panic.c:383:
++	if (panic_in_progress()) {
++		return false;
++	}
 
-This test helps ensure that memory failure handling for dirty pagecache
-works correctly, including proper SIGBUS delivery, page isolation, and
-recovery paths.
+total: 0 errors, 1 warnings, 191 lines checked
 
-Link: https://lkml.kernel.org/r/20260120123239.909882-4-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Pnina Feder <pnina.feder@mobileye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/memory-failure.c |   62 ++++++++++++++++--
- 1 file changed, 58 insertions(+), 4 deletions(-)
+ kernel/panic.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/memory-failure.c~selftests-mm-add-memory-failure-dirty-pagecache-test
-+++ a/tools/testing/selftests/mm/memory-failure.c
-@@ -29,8 +29,10 @@ enum inject_type {
- enum result_type {
- 	MADV_HARD_ANON,
- 	MADV_HARD_CLEAN_PAGECACHE,
-+	MADV_HARD_DIRTY_PAGECACHE,
- 	MADV_SOFT_ANON,
- 	MADV_SOFT_CLEAN_PAGECACHE,
-+	MADV_SOFT_DIRTY_PAGECACHE,
- };
+--- a/kernel/panic.c~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-checkpatch-fixes
++++ a/kernel/panic.c
+@@ -380,9 +380,8 @@ static bool panic_try_force_cpu(char *bu
+ 		return false;
  
- static jmp_buf signal_jmp_buf;
-@@ -162,6 +164,7 @@ static void check(struct __test_metadata
- 	case MADV_SOFT_ANON:
- 	case MADV_HARD_CLEAN_PAGECACHE:
- 	case MADV_SOFT_CLEAN_PAGECACHE:
-+	case MADV_SOFT_DIRTY_PAGECACHE:
- 		/* It is not expected to receive a SIGBUS signal. */
- 		ASSERT_EQ(setjmp, 0);
+ 	/* Another panic already in progress */
+-	if (panic_in_progress()) {
++	if (panic_in_progress())
+ 		return false;
+-	}
  
-@@ -172,6 +175,7 @@ static void check(struct __test_metadata
- 		ASSERT_NE(pagemap_get_pfn(self->pagemap_fd, vaddr), self->pfn);
- 		break;
- 	case MADV_HARD_ANON:
-+	case MADV_HARD_DIRTY_PAGECACHE:
- 		/* The SIGBUS signal should have been received. */
- 		ASSERT_EQ(setjmp, 1);
- 
-@@ -244,6 +248,18 @@ TEST_F(memory_failure, anon)
- 	ASSERT_EQ(munmap(addr, self->page_size), 0);
- }
- 
-+static int prepare_file(const char *fname, unsigned long size)
-+{
-+	int fd;
-+
-+	fd = open(fname, O_RDWR | O_CREAT, 0664);
-+	if (fd >= 0) {
-+		unlink(fname);
-+		ftruncate(fd, size);
-+	}
-+	return fd;
-+}
-+
- /* Borrowed from mm/gup_longterm.c. */
- static __fsword_t get_fs_type(int fd)
- {
-@@ -259,17 +275,14 @@ static __fsword_t get_fs_type(int fd)
- 
- TEST_F(memory_failure, clean_pagecache)
- {
--	const char *fname = "./clean-page-cache-test-file";
- 	int fd;
- 	char *addr;
- 	int ret;
- 	__fsword_t fs_type;
- 
--	fd = open(fname, O_RDWR | O_CREAT, 0664);
-+	fd = prepare_file("./clean-page-cache-test-file", self->page_size);
- 	if (fd < 0)
- 		SKIP(return, "failed to open test file.\n");
--	unlink(fname);
--	ftruncate(fd, self->page_size);
- 	fs_type = get_fs_type(fd);
- 	if (!fs_type || fs_type == TMPFS_MAGIC)
- 		SKIP(return, "unsupported filesystem :%lx\n", fs_type);
-@@ -297,6 +310,47 @@ TEST_F(memory_failure, clean_pagecache)
- 
- 	cleanup(_metadata, self, addr);
- 
-+	ASSERT_EQ(munmap(addr, self->page_size), 0);
-+
-+	ASSERT_EQ(close(fd), 0);
-+}
-+
-+TEST_F(memory_failure, dirty_pagecache)
-+{
-+	int fd;
-+	char *addr;
-+	int ret;
-+	__fsword_t fs_type;
-+
-+	fd = prepare_file("./dirty-page-cache-test-file", self->page_size);
-+	if (fd < 0)
-+		SKIP(return, "failed to open test file.\n");
-+	fs_type = get_fs_type(fd);
-+	if (!fs_type || fs_type == TMPFS_MAGIC)
-+		SKIP(return, "unsupported filesystem :%lx\n", fs_type);
-+
-+	addr = mmap(0, self->page_size, PROT_READ | PROT_WRITE,
-+		    MAP_SHARED, fd, 0);
-+	if (addr == MAP_FAILED)
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+	memset(addr, 0xce, self->page_size);
-+
-+	prepare(_metadata, self, addr);
-+
-+	ret = sigsetjmp(signal_jmp_buf, 1);
-+	if (!self->triggered) {
-+		self->triggered = true;
-+		ASSERT_EQ(variant->inject(self, addr), 0);
-+		FORCE_READ(*addr);
-+	}
-+
-+	if (variant->type == MADV_HARD)
-+		check(_metadata, self, addr, MADV_HARD_DIRTY_PAGECACHE, ret);
-+	else
-+		check(_metadata, self, addr, MADV_SOFT_DIRTY_PAGECACHE, ret);
-+
-+	cleanup(_metadata, self, addr);
-+
- 	ASSERT_EQ(munmap(addr, self->page_size), 0);
- 
- 	ASSERT_EQ(close(fd), 0);
+ 	/*
+ 	 * Only one CPU can do the redirect. Use atomic cmpxchg to ensure
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-selftests-mm-add-memory-failure-anonymous-page-test.patch
-selftests-mm-add-memory-failure-clean-pagecache-test.patch
-selftests-mm-add-memory-failure-dirty-pagecache-test.patch
+mm-add-basic-tests-for-lazy_mmu-fix.patch
+mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
+zram-fixup-read_block_state-fix.patch
+zram-fixup-read_block_state-fix-2.patch
+mm-block-fs-remove-laptop_mode-fix.patch
+mm-fix-minor-spelling-mistakes-in-comments-fix.patch
+memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
+mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix.patch
+mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
+mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix.patch
+list-add-primitives-for-private-list-manipulations-fix.patch
+init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning-fix.patch
+panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
 
