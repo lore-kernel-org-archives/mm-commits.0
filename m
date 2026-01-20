@@ -1,314 +1,81 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B078256C70
-	for <mm-commits@vger.kernel.org>; Tue, 20 Jan 2026 17:27:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 734AF34E76E;
+	Tue, 20 Jan 2026 17:36:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768930047; cv=none; b=aV/fIzDdDJnEN7vPVswjTp1VZefu7odQqluq2pRQynhrMPOH+KSj8qPk+V62LU/4zlMGxMxBNx/vKu1xnVcd0EkGQ9nLiHFzVf4eYFQQAi6+kW4XaHYpjeJT1yPYALhJCJ9K2Dcc7LDI/MYB7N9cjoBFw0Q8ql9yVsCXC1AEgU4=
+	t=1768930600; cv=none; b=p/LExW79hTwPVi2taJuayxZi932OYeoHsMbfGxdk8cwbzgK3HfqovwkU7sGXwxBbYraFYjyF6r6aVIxaVehkmaaY3BIwwywCbPM26j+EqRNi7AeAxMM+ECSDhl6xBvUik/p2umwUGROGBAD/AY78JVkzTSI+rDUyGnj1M6SwU7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768930047; c=relaxed/simple;
-	bh=rqgPU5LhgL6U0rgrh4VcWHHa5ZgOqeArY18Gr3JtcJQ=;
-	h=Date:To:From:Subject:Message-Id; b=QgUQYAiESQEqCOTC8zFTIk7GIoHo/Ih7t4hx1ptCUrPsn5CHK/FsBLMIM5VU6EXQaCCLMTNrtqx+4i/Ht2BiS6/pxOVu5nEOHt3JUxuEikt+/BS3JaXQs3TaK2mjg4YNHtEd4YkgxuOA7ALpU2qIl+RhaGT6Xp41yIqT3PhKHME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wFiNkEK9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768930600; c=relaxed/simple;
+	bh=K0Ie7KHqcECTWWw6s8cTXnvc3JOQEzzS3gXq7gAGAOk=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=U9iZbFd5AMLjmrdp7ACbj+WRBfQuU149jMXE1gyiZW623OK+xD0p5n/llZ0OCyfnbHsv+57E4Joy1mJ1Yg14SmfcISDuZOAeRPBNfazMXFLEiV2LrpYguqgJkeBzbLVy9oWJq4FAbN/y8pdbBbRZ1LMmqVTDvMwv4KkQg9viWLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tp+SieoN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wFiNkEK9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E0A3C19422;
-	Tue, 20 Jan 2026 17:27:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tp+SieoN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5158C16AAE;
+	Tue, 20 Jan 2026 17:36:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768930046;
-	bh=rqgPU5LhgL6U0rgrh4VcWHHa5ZgOqeArY18Gr3JtcJQ=;
-	h=Date:To:From:Subject:From;
-	b=wFiNkEK9e72UCL2KyDfSlGFMmY1WKPdG2MzdsPCfVG5Eq7tiESZQN0AJjP+7IN38L
-	 rT8qY82WRtp9Scks/87URocF8Bi3y5sbt7UGRw8slJRiSrFPze8x/AG/NI35J+D/LG
-	 tc4aLGhtk08CvlgVv2ra6Bi/w6+eg9o8cOwpV3ZA=
-Date: Tue, 20 Jan 2026 09:27:25 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,senozhatsky@chromium.org,rostedt@goodmis.org,pmladek@suse.com,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,bhe@redhat.com,pnina.feder@mobileye.com,akpm@linux-foundation.org
+	s=korg; t=1768930600;
+	bh=K0Ie7KHqcECTWWw6s8cTXnvc3JOQEzzS3gXq7gAGAOk=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Tp+SieoN+0i+MpO2Nt9UdeUBovtRKQ4c7Ozt7m0DAG56ZVjp992bCs1L+M3zd4iHx
+	 3j85OK7yhlpwcqQUMqi3QijMos7Wq+haEHVO7emfiSsVvih/Igx86byiRgjUoh8xG/
+	 slmk56H9ov0JprGSAPEC2NtI+o10egqt53KXCC2E=
+Date: Tue, 20 Jan 2026 09:36:39 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch removed from -mm tree
-Message-Id: <20260120172726.7E0A3C19422@smtp.kernel.org>
+To: Pratyush Yadav <pratyush@kernel.org>
+Cc: mm-commits@vger.kernel.org, surenb@google.com, stable@vger.kernel.org,
+ rppt@kernel.org, pasha.tatashin@soleen.com, graf@amazon.com,
+ ran.xiaokai@zte.com.cn
+Subject: Re: [merged mm-hotfixes-stable]
+ kho-init-alloc-tags-when-restoring-pages-from-reserved-memory.patch removed
+ from -mm tree
+Message-Id: <20260120093639.3d316ff26f802b36bfe7a285@linux-foundation.org>
+In-Reply-To: <2vxzqzrke295.fsf@kernel.org>
+References: <20260119203054.70AE8C116C6@smtp.kernel.org>
+	<2vxzqzrke295.fsf@kernel.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Tue, 20 Jan 2026 15:24:06 +0000 Pratyush Yadav <pratyush@kernel.org> wrote:
 
-The quilt patch titled
-     Subject: panic: add panic_force_cpu= parameter to redirect panic to a specific CPU
-has been removed from the -mm tree.  Its filename was
-     panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
+> > The quilt patch titled
+> >      Subject: kho: init alloc tags when restoring pages from reserved memory
+> > has been removed from the -mm tree.  Its filename was
+> >      kho-init-alloc-tags-when-restoring-pages-from-reserved-memory.patch
+> >
+> > This patch was dropped because it was merged into the mm-hotfixes-stable branch
+> > of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> This patch isn't quite complete. See [0]. It doesn't do anything wrong,
+> it just doesn't fix the problem for every case.
+> 
+> I suggested a re-roll of this patch based on top of my cleanup patches
+> [1], since I think with those the end result is a bit nicer.
+> 
+> I suppose we have 3 options:
+> 
+> 1. Take this patch in hotfixes and leave kho_restore_pages() path
+>    unfixed. The fix the rest next merge window.
+> 
+> 2. Do a new version of this patch fixing kho_restore_pages() with the
+>    current code, and then re-roll the clean up series to fix conflicts
+>    for next merge window.
+> 
+> 3. Pull in the cleanups in hotfixes too, and then do a new revision of
+>    this patch on top.
+> 
+> I don't think the end result of option 2 is too horrible, so I think
+> that is probably the best option, but do let me know what you'd prefer.
 
-This patch was dropped because an updated version will be issued
-
-------------------------------------------------------
-From: Pnina Feder <pnina.feder@mobileye.com>
-Subject: panic: add panic_force_cpu= parameter to redirect panic to a specific CPU
-Date: Thu, 15 Jan 2026 15:05:52 +0200
-
-Some platforms require panic handling to execute on a specific CPU for
-crash dump to work reliably.  This can be due to firmware limitations,
-interrupt routing constraints, or platform-specific requirements where
-only a single CPU is able to safely enter the crash kernel.
-
-Add the panic_force_cpu= kernel command-line parameter to redirect panic
-execution to a designated CPU.  When the parameter is provided, the CPU
-that initially triggers panic forwards the panic context to the target CPU
-via IPI, which then proceeds with the normal panic and kexec flow.
-
-The IPI delivery is implemented as a weak function
-(panic_smp_redirect_cpu) so architectures with NMI support can override it
-for more reliable delivery.
-
-If the specified CPU is invalid, offline, or a panic is already in
-progress on another CPU, the redirection is skipped and panic continues on
-the current CPU.
-
-[pnina.feder@mobileye.com: add panic_redirect_cpu declaration to header]
-  Link: https://lkml.kernel.org/r/20260118120149.986849-1-pnina.feder@mobileye.com
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/20260115130552.3761679-1-pnina.feder@mobileye.com
-Signed-off-by: Pnina Feder <pnina.feder@mobileye.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/admin-guide/kernel-parameters.txt |   15 +
- include/linux/panic.h                           |    8 
- include/linux/smp.h                             |    1 
- kernel/panic.c                                  |  138 +++++++++++++-
- 4 files changed, 161 insertions(+), 1 deletion(-)
-
---- a/Documentation/admin-guide/kernel-parameters.txt~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4788,6 +4788,21 @@ Kernel parameters
- 	panic_on_warn=1	panic() instead of WARN().  Useful to cause kdump
- 			on a WARN().
- 
-+	panic_force_cpu=
-+			[KNL,SMP] Force panic handling to execute on a specific CPU.
-+			Format: <cpu number>
-+			Some platforms require panic handling to occur on a
-+			specific CPU for the crash kernel to function correctly.
-+			This can be due to firmware limitations, interrupt routing
-+			constraints, or platform-specific requirements where only
-+			a particular CPU can safely enter the crash kernel.
-+			When set, panic() will redirect execution to the specified
-+			CPU before proceeding with the normal panic and kexec flow.
-+			If the target CPU is offline or unavailable, panic proceeds
-+			on the current CPU.
-+			This option should only be used for systems with the above
-+			constraints as it might cause the panic operation to be less reliable.
-+
- 	panic_print=	Bitmask for printing system info when panic happens.
- 			User can chose combination of the following bits:
- 			bit 0: print all tasks info
---- a/include/linux/smp.h~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/include/linux/smp.h
-@@ -62,6 +62,7 @@ int smp_call_function_single_async(int c
- void __noreturn panic_smp_self_stop(void);
- void __noreturn nmi_panic_self_stop(struct pt_regs *regs);
- void crash_smp_send_stop(void);
-+int panic_smp_redirect_cpu(int target_cpu, void *msg);
- 
- /*
-  * Call a function on all processors
---- a/kernel/panic.c~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/kernel/panic.c
-@@ -74,6 +74,8 @@ EXPORT_SYMBOL_GPL(panic_timeout);
- 
- unsigned long panic_print;
- 
-+static int panic_force_cpu = -1;
-+
- ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
- 
- EXPORT_SYMBOL(panic_notifier_list);
-@@ -300,6 +302,127 @@ void __weak crash_smp_send_stop(void)
- }
- 
- atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
-+atomic_t panic_redirect_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
-+
-+#if defined(CONFIG_SMP) && defined(CONFIG_CRASH_DUMP)
-+static int __init panic_force_cpu_setup(char *str)
-+{
-+	int cpu;
-+
-+	if (!str)
-+		return -EINVAL;
-+
-+	if (kstrtoint(str, 0, &cpu) || cpu < 0) {
-+		pr_warn("panic_force_cpu: invalid value '%s'\n", str);
-+		return -EINVAL;
-+	}
-+
-+	panic_force_cpu = cpu;
-+	return 0;
-+}
-+early_param("panic_force_cpu", panic_force_cpu_setup);
-+
-+static void do_panic_on_target_cpu(void *info)
-+{
-+	panic("%s", (char *)info);
-+}
-+
-+/**
-+ * panic_smp_redirect_cpu - Redirect panic to target CPU
-+ * @target_cpu: CPU that should handle the panic
-+ * @msg: formatted panic message
-+ *
-+ * Default implementation uses IPI. Architectures with NMI support
-+ * can override this for more reliable delivery.
-+ *
-+ * Return: 0 on success, negative errno on failure
-+ */
-+int __weak panic_smp_redirect_cpu(int target_cpu, void *msg)
-+{
-+	static call_single_data_t panic_csd;
-+
-+	panic_csd.func = do_panic_on_target_cpu;
-+	panic_csd.info = msg;
-+
-+	return smp_call_function_single_async(target_cpu, &panic_csd);
-+}
-+
-+/**
-+ * panic_try_force_cpu - Redirect panic to a specific CPU for crash kernel
-+ * @buf: buffer to format the panic message into
-+ * @buf_size: size of the buffer
-+ * @fmt: panic message format string
-+ * @args: arguments for format string
-+ *
-+ * Some platforms require panic handling to occur on a specific CPU
-+ * for the crash kernel to function correctly. This function redirects
-+ * panic handling to the CPU specified via the panic_force_cpu= boot parameter.
-+ *
-+ * Returns false if panic should proceed on current CPU.
-+ * Returns true if panic was redirected.
-+ */
-+__printf(3, 0)
-+static bool panic_try_force_cpu(char *buf, int buf_size, const char *fmt, va_list args)
-+{
-+	int this_cpu = raw_smp_processor_id();
-+	int old_cpu = PANIC_CPU_INVALID;
-+
-+	/* Feature not enabled via boot parameter */
-+	if (panic_force_cpu < 0)
-+		return false;
-+
-+	/* Already on target CPU - proceed normally */
-+	if (this_cpu == panic_force_cpu)
-+		return false;
-+
-+	/* Target CPU is offline, can't redirect */
-+	if (!cpu_online(panic_force_cpu))
-+		return false;
-+
-+	/* Another panic already in progress */
-+	if (panic_in_progress())
-+		return false;
-+
-+	/*
-+	 * Only one CPU can do the redirect. Use atomic cmpxchg to ensure
-+	 * we don't race with another CPU also trying to redirect.
-+	 */
-+	if (!atomic_try_cmpxchg(&panic_redirect_cpu, &old_cpu, this_cpu))
-+		return false;
-+
-+	vsnprintf(buf, buf_size, fmt, args);
-+
-+	console_verbose();
-+	bust_spinlocks(1);
-+
-+	pr_emerg("panic: Redirecting from CPU %d to CPU %d for crash kernel.\n",
-+		 this_cpu, panic_force_cpu);
-+
-+	/* Dump original CPU before redirecting */
-+	if (!test_taint(TAINT_DIE) &&
-+	    oops_in_progress <= 1 &&
-+	    IS_ENABLED(CONFIG_DEBUG_BUGVERBOSE)) {
-+		dump_stack();
-+	}
-+
-+	printk_legacy_allow_panic_sync();
-+	console_flush_on_panic(CONSOLE_FLUSH_PENDING);
-+
-+	if (panic_smp_redirect_cpu(panic_force_cpu, buf) != 0) {
-+		atomic_set(&panic_redirect_cpu, PANIC_CPU_INVALID);
-+		return false;
-+	}
-+
-+	/* IPI/NMI sent, this CPU should stop */
-+	return true;
-+}
-+#else
-+__printf(3, 0)
-+static inline bool panic_try_force_cpu(char *buf, int buf_size, const char *fmt, va_list args)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_SMP && CONFIG_CRASH_DUMP */
- 
- bool panic_try_start(void)
- {
-@@ -452,6 +575,15 @@ void vpanic(const char *fmt, va_list arg
- 	local_irq_disable();
- 	preempt_disable_notrace();
- 
-+	/* Redirect panic to target CPU if configured via panic_force_cpu=. */
-+	if (panic_try_force_cpu(buf, sizeof(buf), fmt, args)) {
-+		/*
-+		 * Mark ourselves offline so panic_other_cpus_shutdown() won't wait
-+		 * for us on architectures that check num_online_cpus().
-+		 */
-+		set_cpu_online(smp_processor_id(), false);
-+		panic_smp_self_stop();
-+	}
- 	/*
- 	 * It's possible to come here directly from a panic-assertion and
- 	 * not have preempt disabled. Some functions called from here want
-@@ -484,7 +616,11 @@ void vpanic(const char *fmt, va_list arg
- 	/*
- 	 * Avoid nested stack-dumping if a panic occurs during oops processing
- 	 */
--	if (test_taint(TAINT_DIE) || oops_in_progress > 1) {
-+	if (atomic_read(&panic_redirect_cpu) != PANIC_CPU_INVALID &&
-+	    panic_force_cpu == raw_smp_processor_id()) {
-+		pr_emerg("panic: Redirected from CPU %d, skipping stack dump.\n",
-+			 atomic_read(&panic_redirect_cpu));
-+	} else if (test_taint(TAINT_DIE) || oops_in_progress > 1) {
- 		panic_this_cpu_backtrace_printed = true;
- 	} else if (IS_ENABLED(CONFIG_DEBUG_BUGVERBOSE)) {
- 		dump_stack();
---- a/include/linux/panic.h~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/include/linux/panic.h
-@@ -41,6 +41,14 @@ void abort(void);
-  * PANIC_CPU_INVALID means no CPU has entered panic() or crash_kexec().
-  */
- extern atomic_t panic_cpu;
-+
-+/*
-+ * panic_redirect_cpu is used when panic is redirected to a specific CPU via
-+ * the panic_force_cpu= boot parameter. It holds the CPU number that originally
-+ * triggered the panic before redirection. A value of PANIC_CPU_INVALID means
-+ * no redirection has occurred.
-+ */
-+extern atomic_t panic_redirect_cpu;
- #define PANIC_CPU_INVALID	-1
- 
- bool panic_try_start(void);
-_
-
-Patches currently in -mm which might be from pnina.feder@mobileye.com are
-
-kernel-vmcoreinfo-allocate-vmcoreinfo_data-based-on-vmcoreinfo_bytes.patch
-kernel-crash-handle-multi-page-vmcoreinfo-in-crash-kernel-copy.patch
-
+No probs, I removed this patch from mm-hotfixes-stable and put it back
+into mm-hotfixes-unstable, with a note that an updated version is expected.
