@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6223115B0
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70E2A2D8370
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967397; cv=none; b=CJkRE6r3qFup1zcvrQJikpvQelywqxJKeL8Va//+FYXA4cznM2+Lfte0RDrB7L6AolcNyxo71j5mbV22AnOC12rts7A0d7uXhHOlSx8g0AWfcuOVz/e3yipGiCaVwfqirXkQ93tKSAz23eFHFLv0plfY8sfAe4/UzSXCjSpjATs=
+	t=1768967396; cv=none; b=RaSdw5EFNnnoOu6b3HT03dQKxXxPLw3HtzyIM1stbrRH7HirQryeRYabN4NYTbNS8048x359oMoDraENCwKUYLcCEAeG6R2cxzIu64Rs9sbdQA+TFGRyRBH/31PiF76jKLTMkFoNvDLUD1El80d8fzl/TaHVBzJbOAuOIg9WY24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967397; c=relaxed/simple;
-	bh=kzMdl0I9mAzoqnZmsFypzN+JYlWLk3behsbw1x4xvJ8=;
-	h=Date:To:From:Subject:Message-Id; b=KMm8NlcsAmbFfJB1ECqJdPXF2J+XjbwXQ/kCFr+6nO9XJ06NeJmKslvX017oqjxdECYtZR0Sa+bPquogGy/AFJ6qV3SQ0YaDMSSyXM5A0Le4qdOJvE/qq5UY2LPXJXFvtD7KGNPcwQuQaM6Oat2vZ7q/WJ0zvsPlhYcGiQwmmOQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V7G/4ysJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967396; c=relaxed/simple;
+	bh=bO3mLUYO282TYPzWe1Nn/RyCh9dEwDY27ZYJChjOJU4=;
+	h=Date:To:From:Subject:Message-Id; b=HKrXWCUBm/hdLlogj7fkHzVo4g3ecf7TyuwR4j5laQ4OHjNd/m/F82wpFyAdf7Ep5a04tsq+au85isPF5VcqueFXzSm9EU3hDBbVuhlDG56JMVo9f8/SCUpXgRW4Skyaw0P+iVvRkGl5ES987d3eOXPxfWv4PUTU6VwLK12aNIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LK9ajKa9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V7G/4ysJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4CB4C16AAE;
-	Wed, 21 Jan 2026 03:49:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LK9ajKa9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61F5AC16AAE;
+	Wed, 21 Jan 2026 03:49:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967396;
-	bh=kzMdl0I9mAzoqnZmsFypzN+JYlWLk3behsbw1x4xvJ8=;
+	s=korg; t=1768967395;
+	bh=bO3mLUYO282TYPzWe1Nn/RyCh9dEwDY27ZYJChjOJU4=;
 	h=Date:To:From:Subject:From;
-	b=V7G/4ysJioGZAgGPHIT1hZt5gljuwnyNjuCo8ShP5jOz6NtdtdeX2s5mFMHm3Aywv
-	 AcQslas/eoLpul9tc0C3NKHN8owXzEkasVB3Ffu3YQlyyn5O6T2aWz5kSuQAfsEF9m
-	 lO7vr4uhkXB4TygTG8fyCxXR3NnCJgIko9NeQieo=
-Date: Tue, 20 Jan 2026 19:49:56 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=LK9ajKa9v9BKAsWy5EvvdsxPpVkdhPwYstTGUA2HwdjV0QFPRprOPFKPQOITDLJ3+
+	 QeT7Au7lARcAc5CJP+rl/YCAKH1EahsmBFE4H8E/yftPcqcFdE7W5zVnh4NfEvl9en
+	 gqbzEMaUmLkAa1EelcEny9+Usx8Bo4sZQvk36DKA=
+Date: Tue, 20 Jan 2026 19:49:54 -0800
+To: mm-commits@vger.kernel.org,lirongqing@baidu.com,lance.yang@linux.dev,jm@machine-hall.org,tglozar@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch removed from -mm tree
-Message-Id: <20260121034956.A4CB4C16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-kconfigdebug-fix-bootparam_hung_task_panic-comment.patch removed from -mm tree
+Message-Id: <20260121034955.61F5AC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: add check for free bits before allocation in ocfs2_move_extent()
+     Subject: lib/Kconfig.debug: fix BOOTPARAM_HUNG_TASK_PANIC comment
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch
+     lib-kconfigdebug-fix-bootparam_hung_task_panic-comment.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: ocfs2: add check for free bits before allocation in ocfs2_move_extent()
-Date: Sun, 4 Jan 2026 19:05:04 +0530
+From: Tomas Glozar <tglozar@redhat.com>
+Subject: lib/Kconfig.debug: fix BOOTPARAM_HUNG_TASK_PANIC comment
+Date: Tue, 6 Jan 2026 15:01:40 +0100
 
-Add a check to verify the group descriptor has enough free bits before
-attempting allocation in ocfs2_move_extent().  This prevents a kernel
-BUG_ON crash in ocfs2_block_group_set_bits() when the move_extents ioctl
-is called on a crafted or corrupted filesystem.
+The comment for CONFIG_BOOTPARAM_HUNG_TASK_PANIC says:
 
-The existing validation in ocfs2_validate_gd_self() only checks static
-metadata consistency (bg_free_bits_count <= bg_bits) when the descriptor
-is first read from disk.  However, during move_extents operations,
-multiple allocations can exhaust the free bits count below the requested
-allocation size, triggering BUG_ON(le16_to_cpu(bg->bg_free_bits_count) <
-num_bits).
+   Say N if unsure.
 
-The debug trace shows the issue clearly:
-  - Block group 32 validated with bg_free_bits_count=427
-  - Repeated allocations decreased count: 427 -> 171 -> 43 -> ... -> 1
-  - Final request for 2 bits with only 1 available triggers BUG_ON
+but since commit 9544f9e6947f ("hung_task: panic when there are more than
+N hung tasks at the same time"), N is not a valid value for the option,
+leading to a warning at build time:
 
-By adding an early check in ocfs2_move_extent() right after
-ocfs2_find_victim_alloc_group(), we return -ENOSPC gracefully instead of
-crashing the kernel.  This also avoids unnecessary work in
-ocfs2_probe_alloc_group() and __ocfs2_move_extent() when the allocation
-will fail.
+   .config:11736:warning: symbol value 'n' invalid for BOOTPARAM_HUNG_TASK_PANIC
 
-Link: https://lkml.kernel.org/r/20260104133504.14810-1-kartikey406@gmail.com
-Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
-Reported-by: syzbot+7960178e777909060224@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=7960178e777909060224
-Link: https://lore.kernel.org/all/20251231115801.293726-1-kartikey406@gmail.com/T/ [v1]
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+as well as an error when given to menuconfig.
+
+Fix the comment to say '0' instead of 'N'.
+
+Link: https://lkml.kernel.org/r/20260106140140.136446-1-tglozar@redhat.com
+Fixes: 9544f9e6947f ("hung_task: panic when there are more than N hung tasks at the same time")
+Signed-off-by: Tomas Glozar <tglozar@redhat.com>
+Reported-by: Johnny Mnemonic <jm@machine-hall.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: Li RongQing <lirongqing@baidu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/move_extents.c~ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent
-+++ a/fs/ocfs2/move_extents.c
-@@ -662,6 +662,12 @@ static int ocfs2_move_extent(struct ocfs
- 		goto out_commit;
- 	}
+--- a/lib/Kconfig.debug~lib-kconfigdebug-fix-bootparam_hung_task_panic-comment
++++ a/lib/Kconfig.debug
+@@ -1274,7 +1274,7 @@ config BOOTPARAM_HUNG_TASK_PANIC
+ 	  high-availability systems that have uptime guarantees and
+ 	  where a hung tasks must be resolved ASAP.
  
-+	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
-+	if (le16_to_cpu(gd->bg_free_bits_count) < len) {
-+		ret = -ENOSPC;
-+		goto out_commit;
-+	}
-+
- 	/*
- 	 * probe the victim cluster group to find a proper
- 	 * region to fit wanted movement, it even will perform
-@@ -682,7 +688,6 @@ static int ocfs2_move_extent(struct ocfs
- 		goto out_commit;
- 	}
+-	  Say N if unsure.
++	  Say 0 if unsure.
  
--	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
- 	ret = ocfs2_alloc_dinode_update_counts(gb_inode, handle, gb_bh, len,
- 					       le16_to_cpu(gd->bg_chain));
- 	if (ret) {
+ config DETECT_HUNG_TASK_BLOCKER
+ 	bool "Dump Hung Tasks Blocker"
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from tglozar@redhat.com are
 
-mm-swap_cgroup-fix-kernel-bug-in-swap_cgroup_record.patch
-mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node.patch
 
