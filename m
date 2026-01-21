@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3478D1DF759
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 01:49:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99A24320A09
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 01:50:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768960191; cv=none; b=Gkkjb5ZqGjt99Bs6eQgs/w+eP/FsGu1j6io40btJgz7OHSmtWmPty3Ev+IgG0l0ZOhuLrJeAUPwm8pwsonJkJh7w/H40cmzQ7aoI3avzExrZDHjiuMoOGDCnSRclxnkCZqECvMM7Bczo7hrddTsfhlfm1Ti1jYIksC0VYkxMUAY=
+	t=1768960232; cv=none; b=NvenZD3ZXx9lidSohE9YJv/VlWv6idOt8jXii65MAyRx3dG3uI0oxbv5S9eYx6rRh5btt3wu2+XeAQ/UJ3/2929j1Yh+AEhFRUMSkvpgHV8EOPzl/PRtCKPXklyadEoV1qBJ/QDOSFYXzddKxVCJ5EzulVbX+2MAWHt23frcMq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768960191; c=relaxed/simple;
-	bh=eopED7koZwDIXfXvjvUEOFkVbDpZxjrMjvOXA5orHnE=;
-	h=Date:To:From:Subject:Message-Id; b=i/AbiN6K917OSnfdkcuAs7gNRY4uyAg2IgEK4vVFHfilRLghsta2JK3YoByz5tpidIuwjGXlFx8HL++4mO4ym26n60uWWBHHdbMCzpz7hUhTBDmN8Pu1uQoPWnALj+/QnS2oROD1Gc+QGBEq3AGXUqvZAJG/ilEkYrKN2ePpLgQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zpdS1jRr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768960232; c=relaxed/simple;
+	bh=RgSSTBM4KklTk9tDVSjuWwrlYGxSMcimu3zyE9ZVmY0=;
+	h=Date:To:From:Subject:Message-Id; b=ThSV5GF9GUI3+AZsZMoOcC/dPL30yeLfLofjuiKwNZTjjAOoDWlijxiUWTe6khlE9/SGCYMMuaFlClmogv2wdgpS0SwOp+XsKKx8ahg54jKCQpjZaGuI9TeGqNtE3L+K2r0U3jOrO/QMU1qBCFk6jzJQ1sd1SUmWMvtNU0N5j0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V2NO6KlD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zpdS1jRr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF204C16AAE;
-	Wed, 21 Jan 2026 01:49:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V2NO6KlD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D757C19424;
+	Wed, 21 Jan 2026 01:50:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768960190;
-	bh=eopED7koZwDIXfXvjvUEOFkVbDpZxjrMjvOXA5orHnE=;
+	s=korg; t=1768960232;
+	bh=RgSSTBM4KklTk9tDVSjuWwrlYGxSMcimu3zyE9ZVmY0=;
 	h=Date:To:From:Subject:From;
-	b=zpdS1jRr+hLjdrvsGoIq/effkcGZTNBM1RY2xvXnHI4PR4NnPjzCZNswlJuoUNDK+
-	 0ZL1/7c+IomLJRSAQlvsi28LKZt+wySl2P5+v8jbjFZuaYtUMNvOkO75TRjfY4j/t3
-	 t9ie/84ev09Lr+N5g1HDCf4I7iYLrKOL+/RGJSuM=
-Date: Tue, 20 Jan 2026 17:49:49 -0800
-To: mm-commits@vger.kernel.org,clm@meta.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=V2NO6KlDgXWmCvMRAJvU9vnoUqJpTTA4+7jjUXgHw/CXIwwzbAHjzKU3W0AU9FCqV
+	 HM4VigngshBS0nc5ygf6RLHdFQS3k/2f6vFW7OoGnSTSjvAqPtoc0knpKrpOWWF3DI
+	 RIfvtK+0byhB8qimtFHJaHyctxmWMfIOr4wV6qF4=
+Date: Tue, 20 Jan 2026 17:50:31 -0800
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] zram-rename-internal-slot-api-fix.patch removed from -mm tree
-Message-Id: <20260121014949.EF204C16AAE@smtp.kernel.org>
+Subject: [folded-merged] zram-fixup-read_block_state-fix-2.patch removed from -mm tree
+Message-Id: <20260121015032.4D757C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: fixup mark_slot_accessed()
+     Subject: zram-fixup-read_block_state-fix-2
 has been removed from the -mm tree.  Its filename was
-     zram-rename-internal-slot-api-fix.patch
+     zram-fixup-read_block_state-fix-2.patch
 
-This patch was dropped because it was folded into zram-rename-internal-slot-api.patch
+This patch was dropped because it was folded into zram-fixup-read_block_state.patch
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: fixup mark_slot_accessed()
-Date: Thu, 15 Jan 2026 12:19:00 +0900
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zram-fixup-read_block_state-fix-2
+Date: Thu Jan 15 10:30:48 PM PST 2026
 
-mark_slot_accessed() should continue using ktime_get_boottime_seconds()
+fix build
 
-Link: https://lkml.kernel.org/r/20260115031922.3813659-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reported-by: Chris Mason <clm@meta.com>
+drivers/block/zram/zram_drv.c: In function 'read_block_state':
+drivers/block/zram/zram_drv.c:1582:41: error: format '%lu' expects argument of type 'long unsigned int', but argument 6 has type 'int' [-Werror=format=]
+ 1582 |                         "%12zd %12u.%06lu %c%c%c%c%c%c\n",
+      |                                     ~~~~^
+      |                                         |
+      |                                         long unsigned int
+      |                                     %06u
+ 1583 |                         index, zram->table[index].attr.ac_time, 0,
+      |                                                                 ~
+      |                                                                 |
+      |                                                                 int
+
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/block/zram/zram_drv.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-rename-internal-slot-api-fix
+--- a/drivers/block/zram/zram_drv.c~zram-fixup-read_block_state-fix-2
 +++ a/drivers/block/zram/zram_drv.c
-@@ -191,7 +191,7 @@ static void mark_slot_accessed(struct zr
- 	clear_slot_flag(zram, index, ZRAM_IDLE);
- 	clear_slot_flag(zram, index, ZRAM_PP_SLOT);
- #ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
--	zram->table[index].attr.ac_time = ktime_get_boottime();
-+	zram->table[index].attr.ac_time = (u32)ktime_get_boottime_seconds();
- #endif
- }
+@@ -1589,7 +1589,7 @@ static ssize_t read_block_state(struct f
+ 			goto next;
  
+ 		copied = snprintf(kbuf + written, count,
+-			"%12zd %12u.%06lu %c%c%c%c%c%c\n",
++			"%12zd %12u.%06d %c%c%c%c%c%c\n",
+ 			index, zram->table[index].attr.ac_time, 0,
+ 			test_slot_flag(zram, index, ZRAM_SAME) ? 's' : '.',
+ 			test_slot_flag(zram, index, ZRAM_WB) ? 'w' : '.',
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-document-writeback_batch_size.patch
-zram-move-bd_stat-to-writeback-section.patch
-zram-rename-zram_free_page.patch
-zram-switch-to-guard-for-init_lock.patch
-zram-consolidate-device-attr-declarations.patch
-zram-use-u32-for-entry-ac_time-tracking.patch
-zram-rename-internal-slot-api.patch
-zram-trivial-fix-of-recompress_slot-coding-styles.patch
+mm-vmscanc-shrink_folio_list-save-a-tabstop.patch
 zram-fixup-read_block_state.patch
-zram-drop-pp_in_progress.patch
-zsmalloc-use-actual-object-size-to-detect-spans.patch
-zsmalloc-introduce-sg-list-based-object-read-api.patch
-zsmalloc-introduce-sg-list-based-object-read-api-fix.patch
-zram-rename-init_lock-to-dev_lock.patch
-zsmalloc-make-common-caches-global.patch
+mm-block-fs-remove-laptop_mode-fix.patch
+mm-fix-minor-spelling-mistakes-in-comments-fix.patch
+memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
+mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix.patch
+mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
+mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix.patch
+list-add-primitives-for-private-list-manipulations-fix.patch
+init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning-fix.patch
 
