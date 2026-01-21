@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A8DF35F8C8
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 133D2363C60
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966116; cv=none; b=nWx/oa88dXYtdKFVn9HoS4P+DyzSF9Q/eeYfzOR/CRQ6XrHKIBxI00NXjqyxJcpuy3eKCGJGCIQ708MFdAeedLFakikRJJUsKYGeQ7e9NysxpmVhWDHO2c9NA6fQwqWS1Hqm0IC0na6NQdzHZ2j8VswNOFndVh6hKD72PUL7HRg=
+	t=1768966118; cv=none; b=kn+LnpTG6f0y+psDTvI9c8InfuQ/1Y9pS3fqeDVHqG2WjTDa7I8klnVJOSy4MiuyT8Ayy5Sb+EvZJCxBC3UXF1AyKPaZtlWHLPJyWKpuWvYJBhn375svvhqTrMeUfPGaQnWl5Zrd5wyvYXEhP1FMbhSSm6zLVdnFE95QiVHQYIQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966116; c=relaxed/simple;
-	bh=y5eDBldTr7ZC0Jnn2iwgeq2FdQ9aDWawye/Hi2lKn3Q=;
-	h=Date:To:From:Subject:Message-Id; b=swDzHi9c2CFqjDi/3Y6+fq4PewEtKylciXzEPmNHkS5mC/TKKMgcKNszD6iQ+2t/s2JtJTsnxGfquQ6kv4egrongvUI4WN8jByqH5misb/M3vDVvEA/Z5dCuoCajXc+tiqX/5h4jC013mur8cZ8oUvBXf6D8vyUz2+wz+9DrTaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=djbDt70W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966118; c=relaxed/simple;
+	bh=Yx3RNUb5/A93avAKUWmfia2uV5sJMj8U0Ee11T08pHA=;
+	h=Date:To:From:Subject:Message-Id; b=jMvsuy3QjwlW6c07RmH1zjlqQXU+OeNip/xvCMj6PehZ0bLmWT9SkiIcpSOIvEcv+zkYJGJdSnVB1HNod/R5CtR897agkh6oB+IZOAJ1tIUvti1+kBTY0NCisr8BZDVLkcRw3m58N9zEbq435nFLPKNabtM0/lw7oVjYRmNUszA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ovsG5GNz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="djbDt70W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62CA1C16AAE;
-	Wed, 21 Jan 2026 03:28:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ovsG5GNz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D1B9C16AAE;
+	Wed, 21 Jan 2026 03:28:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966116;
-	bh=y5eDBldTr7ZC0Jnn2iwgeq2FdQ9aDWawye/Hi2lKn3Q=;
+	s=korg; t=1768966117;
+	bh=Yx3RNUb5/A93avAKUWmfia2uV5sJMj8U0Ee11T08pHA=;
 	h=Date:To:From:Subject:From;
-	b=djbDt70WxPSFkVB8Z3OGgsjVWl15cPYMJ9E3UgU18424gq/vY/gchwrX8lKBLnJqO
-	 zXPXoUdQbdkEA9uGaEv0uV+3d9TX9fe4mcWRChdEYExIY7EYpWWhewK9VO0APuUKa/
-	 oxO+B+xlshghO+a5Hxxr3JHnGBce3GFTpdX8LDz4=
-Date: Tue, 20 Jan 2026 19:28:35 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,luizcap@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,chuhu@redhat.com,akpm@linux-foundation.org
+	b=ovsG5GNziimG4hAMWStFHDBRfh6DCTs4GSeiy2W8uHphqLJtipYw0CW6DrTn7sief
+	 unwrxwyCdovISQCsBXec/DgAjd/BefChpXdF3KTQg4F//aqaudw8hSKlEO7jjngs0b
+	 NSBOT9/ZdEDihfIMH0Pjq8ZD8gLWYgUmFS5RUEE4=
+Date: Tue, 20 Jan 2026 19:28:37 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,joshua.hahnjy@gmail.com,david@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-comment-for-check_test_requirements.patch removed from -mm tree
-Message-Id: <20260121032836.62CA1C16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmstat-remove-unused-node-and-zone-state-helpers.patch removed from -mm tree
+Message-Id: <20260121032837.8D1B9C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,96 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix comment for check_test_requirements
+     Subject: mm/vmstat: remove unused node and zone state helpers
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-comment-for-check_test_requirements.patch
+     mm-vmstat-remove-unused-node-and-zone-state-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chunyu Hu <chuhu@redhat.com>
-Subject: selftests/mm: fix comment for check_test_requirements
-Date: Sun, 21 Dec 2025 12:00:25 +0800
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/vmstat: remove unused node and zone state helpers
+Date: Thu, 25 Dec 2025 21:02:13 +0000
 
-The test supports arm64 as well so the comment is incorrect.  And there's
-a check for arm64 in va_high_addr_switch.c.
+Several helper functions for managing node and zone states have become
+obsolete and no longer have any callers within the kernel.
 
-Link: https://lkml.kernel.org/r/20251221040025.3159990-5-chuhu@redhat.com
-Fixes: 983e760bcdb6 ("selftest/mm: va_high_addr_switch: add ppc64 support check")
-Fixes: f556acc2facd ("selftests/mm: skip test for non-LPA2 and non-LVA systems")
-Signed-off-by: Chunyu Hu <chuhu@redhat.com>
-Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+  inc_node_state()
+  inc_zone_state()
+  dec_zone_state()
+
+This commit removes the dead code.
+
+Link: https://lkml.kernel.org/r/20251225210213.2553-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.sh |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/vmstat.h |    6 ------
+ mm/vmstat.c            |   15 ---------------
+ 2 files changed, 21 deletions(-)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-fix-comment-for-check_test_requirements
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
-@@ -61,9 +61,9 @@ check_supported_ppc64()
+--- a/include/linux/vmstat.h~mm-vmstat-remove-unused-node-and-zone-state-helpers
++++ a/include/linux/vmstat.h
+@@ -286,10 +286,8 @@ void mod_node_page_state(struct pglist_d
+ void inc_node_page_state(struct page *, enum node_stat_item);
+ void dec_node_page_state(struct page *, enum node_stat_item);
  
- check_test_requirements()
+-extern void inc_node_state(struct pglist_data *, enum node_stat_item);
+ extern void __inc_zone_state(struct zone *, enum zone_stat_item);
+ extern void __inc_node_state(struct pglist_data *, enum node_stat_item);
+-extern void dec_zone_state(struct zone *, enum zone_stat_item);
+ extern void __dec_zone_state(struct zone *, enum zone_stat_item);
+ extern void __dec_node_state(struct pglist_data *, enum node_stat_item);
+ 
+@@ -394,10 +392,6 @@ static inline void __dec_node_page_state
+ #define dec_node_page_state __dec_node_page_state
+ #define mod_node_page_state __mod_node_page_state
+ 
+-#define inc_zone_state __inc_zone_state
+-#define inc_node_state __inc_node_state
+-#define dec_zone_state __dec_zone_state
+-
+ #define set_pgdat_percpu_threshold(pgdat, callback) { }
+ 
+ static inline void refresh_zone_stat_thresholds(void) { }
+--- a/mm/vmstat.c~mm-vmstat-remove-unused-node-and-zone-state-helpers
++++ a/mm/vmstat.c
+@@ -672,11 +672,6 @@ void mod_node_page_state(struct pglist_d
+ }
+ EXPORT_SYMBOL(mod_node_page_state);
+ 
+-void inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+-{
+-	mod_node_state(pgdat, item, 1, 1);
+-}
+-
+ void inc_node_page_state(struct page *page, enum node_stat_item item)
  {
--	# The test supports x86_64 and powerpc64. We currently have no useful
--	# eligibility check for powerpc64, and the test itself will reject other
--	# architectures.
-+	# The test supports x86_64, powerpc64 and arm64. There's check for arm64
-+	# in va_high_addr_switch.c. The test itself will reject other architectures.
-+
- 	case `uname -m` in
- 		"x86_64")
- 			check_supported_x86_64
+ 	mod_node_state(page_pgdat(page), item, 1, 1);
+@@ -725,16 +720,6 @@ void dec_zone_page_state(struct page *pa
+ }
+ EXPORT_SYMBOL(dec_zone_page_state);
+ 
+-void inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__inc_node_state(pgdat, item);
+-	local_irq_restore(flags);
+-}
+-EXPORT_SYMBOL(inc_node_state);
+-
+ void mod_node_page_state(struct pglist_data *pgdat, enum node_stat_item item,
+ 					long delta)
+ {
 _
 
-Patches currently in -mm which might be from chuhu@redhat.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
 
