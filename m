@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E44EB35CBB3
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 253C135CBB3
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966063; cv=none; b=sBMmyZFkXH+HdYzAU8DN4aFbafmRvDk2nrL5rnL5CdzmWxd4BxTezUMsxYXLY5sIyHCAypIWAwrM9M4kRyJK/otbIfoANXd4JQBD0oXpzBCPIVvBsUbyt5wYfN3TXn7lPpbxzLHrBPassixlpSVVZssBhyq/uheMdLNDootJ6D8=
+	t=1768966064; cv=none; b=TkxGRT6sFaNsIG/M7izjldnBhj1itwCg591AYGpBognDun6iP1ly18W7JP+f/+DSvZ9gdpmpl2MG5fZFvOyn7uh0nL/f9gY/yMWnNjKDcetEtYiswEYyceyoIc5gFOEJPs3ddOQb6GfK8X24JjYxY8NBa5+AMcNJMUk9b+bHnYk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966063; c=relaxed/simple;
-	bh=JZ06DjekpmxqNPhCG++oAi24Oi9ur+VOQ3fssQ1zpoc=;
-	h=Date:To:From:Subject:Message-Id; b=ikqGvgyAW5uqeAmw/qS7FjjFu+bwf5R6tyTIAkUIfVjIQahbmU9XD4ZN1CR3QONamAM/mq6UbZgayHZHBJ9t31f0t8YCGLJRvEyUENCv9xzXBCdkOewrTwip94Sqn8+Pa3STFv/Vf+2K0nhDNTziqH8phInEPwiu+orWAdfHgRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=It1n1fZk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966064; c=relaxed/simple;
+	bh=uvsrEzV7DGE29hu3GhuTNr8ijLcI84RS9mNmdtT9YK0=;
+	h=Date:To:From:Subject:Message-Id; b=HMc2pblNf1aaSsbwDfz97Mn3TR9nYorlXnY6JBtethApjLvfhCTJbXlqtkcqqCO6DYhX1l9AGQzsswttk5QRa1VivkHE+9le2QK/y190NelFdxe3jesOLp+0fc85Pynp7cgiRXc0uy9dcA74Dbt58i78fKg+e3djveu/cgFmS/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ByPm2uIk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="It1n1fZk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAB3DC16AAE;
-	Wed, 21 Jan 2026 03:27:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ByPm2uIk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0ACEC16AAE;
+	Wed, 21 Jan 2026 03:27:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966062;
-	bh=JZ06DjekpmxqNPhCG++oAi24Oi9ur+VOQ3fssQ1zpoc=;
+	s=korg; t=1768966064;
+	bh=uvsrEzV7DGE29hu3GhuTNr8ijLcI84RS9mNmdtT9YK0=;
 	h=Date:To:From:Subject:From;
-	b=It1n1fZkcPWqi6H9q616vlJ5FrqSfHApUne5UXA/Varw9kMgYo6r3lDqBgfvTOdtk
-	 h5UgHUu7rwoyBa523PZAZsPKYOkb3Bb0zTtc2rEfDh/eDCcgymhY7M0mV1X7A06M1m
-	 qgz223UDhCE2rh7Q9WcKWSSAqe3fXH4dCyotkpCc=
-Date: Tue, 20 Jan 2026 19:27:42 -0800
-To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,kaushlendra.kumar@intel.com,akpm@linux-foundation.org
+	b=ByPm2uIklAl4kFPi1dhvyO7f7TF9hcGusXzuCQqnUaRr0ty3WYgn8igchLF8HxnK6
+	 wn/1Otmu9kl9tgwoidB7+xrUD0SfbLPDPrjMBOkzSaA7dhjF4OPprSmKdxrYxWYJzr
+	 7VP4yhXn/RoGB5ZdmwJBhIW3mpCd1F8o3H/Pz4ok=
+Date: Tue, 20 Jan 2026 19:27:43 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,kaushlendra.kumar@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-mm-thp_swap_allocator_test-fix-small-folio-alignment.patch removed from -mm tree
-Message-Id: <20260121032742.BAB3DC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] tools-mm-slabinfo-fix-partial-long-option-mapping.patch removed from -mm tree
+Message-Id: <20260121032743.E0ACEC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/mm/thp_swap_allocator_test: fix small folio alignment
+     Subject: tools/mm/slabinfo: fix --partial long option mapping
 has been removed from the -mm tree.  Its filename was
-     tools-mm-thp_swap_allocator_test-fix-small-folio-alignment.patch
+     tools-mm-slabinfo-fix-partial-long-option-mapping.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kaushlendra Kumar <kaushlendra.kumar@intel.com>
-Subject: tools/mm/thp_swap_allocator_test: fix small folio alignment
-Date: Tue, 9 Dec 2025 08:47:45 +0530
+Subject: tools/mm/slabinfo: fix --partial long option mapping
+Date: Mon, 8 Dec 2025 16:22:40 +0530
 
-Use ALIGNMENT_SMALLFOLIO instead of ALIGNMENT_MTHP when allocating small
-folios to ensure correct memory alignment for the test case.
+The long option "--partial" was incorrectly mapped to lowercase 'p' in the
+opts[] array, but the getopt string and switch case handle uppercase 'P'. 
+This mismatch caused --partial to be rejected.
 
-Before: test allocates small folios with 64KB alignment
-(ALIGNMENT_MTHP) when only 4KB alignment (ALIGNMENT_SMALLFOLIO) is
-needed.  This wastes address space and may cause allocation failures on
-systems with fragmented memory.
+Fix the long_options mapping to use 'P' so --partial works correctly
+alongside the existing -P short option.
 
-Worst-case impact: this only affects thp_swap_allocator_test tool
-behavior.
-
-Link: https://lkml.kernel.org/r/20251209031745.2723120-1-kaushlendra.kumar@intel.com
+Link: https://lkml.kernel.org/r/20251208105240.2719773-1-kaushlendra.kumar@intel.com
 Signed-off-by: Kaushlendra Kumar <kaushlendra.kumar@intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Tested-by: SeongJae Park <sj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/thp_swap_allocator_test.c |    2 +-
+ tools/mm/slabinfo.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/mm/thp_swap_allocator_test.c~tools-mm-thp_swap_allocator_test-fix-small-folio-alignment
-+++ a/tools/mm/thp_swap_allocator_test.c
-@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
- 	}
- 
- 	if (use_small_folio) {
--		mem2 = aligned_alloc_mem(MEMSIZE_SMALLFOLIO, ALIGNMENT_MTHP);
-+		mem2 = aligned_alloc_mem(MEMSIZE_SMALLFOLIO, ALIGNMENT_SMALLFOLIO);
- 		if (mem2 == NULL) {
- 			fprintf(stderr, "Failed to allocate small folios memory\n");
- 			free(mem1);
+--- a/tools/mm/slabinfo.c~tools-mm-slabinfo-fix-partial-long-option-mapping
++++ a/tools/mm/slabinfo.c
+@@ -1405,7 +1405,7 @@ struct option opts[] = {
+ 	{ "numa", no_argument, NULL, 'n' },
+ 	{ "lines", required_argument, NULL, 'N'},
+ 	{ "ops", no_argument, NULL, 'o' },
+-	{ "partial", no_argument, NULL, 'p'},
++	{ "partial", no_argument, NULL, 'P'},
+ 	{ "report", no_argument, NULL, 'r' },
+ 	{ "shrink", no_argument, NULL, 's' },
+ 	{ "Size", no_argument, NULL, 'S'},
 _
 
 Patches currently in -mm which might be from kaushlendra.kumar@intel.com are
