@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78FCF34677A
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C65DC3612F4;
+	Wed, 21 Jan 2026 03:28:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966098; cv=none; b=SzhM1Br5WZyFq/OdHsxuHMUcg8Vztss7Vd47Wx9i5/Tpyp0IhouiGr9/pe099rZCSYFDLwpw9NXMXs5W8+XJ1v+pTV+VehFABsh1pHD/lYy0rKy11JcP4kcKB0ICqV8bkgiC6O9e//tKOYPSq5ogzYT8hemRv+uO6skh7WHAWhw=
+	t=1768966099; cv=none; b=Jr2Ol8o3NfubpYax7QhuLSfD6ZP74jJpLSbLOkjCc6lJfXB7MtuqEgZQYkA0CH8lbWn8E02vAh20GzXoUNpWztqrZcl37kKdsob0RT6N4sbzdKMWeWxsBZkJKYG3Yd6SW1pSs3ArO/YHF4eyRpZLIy5VwX4AuU1nt8xs7ehbVhs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966098; c=relaxed/simple;
-	bh=4qDGdEZyCGGrhM6sWqylsxiedCQrfjgP4EQFBffPPSk=;
-	h=Date:To:From:Subject:Message-Id; b=cs7Gft7RmduMkPuZ4eR7jBWDzea0zjoX29o3/R/ZwHAZN+7up87STePsz7rAp+n90S2pGvNY92we80waDpWbkzJgbFEc3z1s494cW/KQ4ETglZSy57YXQSn6qBbe6UpGb4hiL4ztzsdKcoJKTGEegZ/OfwEhMQowcluQ4GhKRl4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0+t2agOu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966099; c=relaxed/simple;
+	bh=HQzlJD8f+EbcLTjeuVIAja2myNC7jNchRaXD3uxTMb4=;
+	h=Date:To:From:Subject:Message-Id; b=gd9exKIEAwP6aDKI5EGA1xYAByuzAMahcDEGvsd0n8teulb/xRLTzvndJ8x3Cm8pa64+XR0NbUJtjjVQlG5/g+Lc+n5Mp0do8BEUTEBnezQ4EMnWo2urUbl5at04Nx9DHg8WkpKrOOM3W0vvcOAN8JYGYnyH30wW7oocaHZqpPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J+FyK7Je; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0+t2agOu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 504B3C16AAE;
-	Wed, 21 Jan 2026 03:28:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J+FyK7Je"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EF82C16AAE;
+	Wed, 21 Jan 2026 03:28:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966098;
-	bh=4qDGdEZyCGGrhM6sWqylsxiedCQrfjgP4EQFBffPPSk=;
+	s=korg; t=1768966099;
+	bh=HQzlJD8f+EbcLTjeuVIAja2myNC7jNchRaXD3uxTMb4=;
 	h=Date:To:From:Subject:From;
-	b=0+t2agOums81pXEu0WclgqG+k8Xhi2EvA8YFN/5u4hk/A7lZIe0kZgtgn0+Jkk944
-	 SVtfxLluqYaG5n70cRid0cVuLfWrqMX5lPQjOR6LdOqtEWSN8mkQUgQFccYOYPhKhG
-	 Jy62em/7F72IGZrQNFr5ART2JajND/RD630MX8xc=
-Date: Tue, 20 Jan 2026 19:28:17 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,lkp@intel.com,david@kernel.org,akpm@linux-foundation.org,xiujianfeng@huawei.com,akpm@linux-foundation.org
+	b=J+FyK7Je2O4TKYaOp53Pmz2NsTQcNLSWkJpMIyejM07J+hTB4IxvwL7sWzZSrGGJt
+	 TvDC46VgRTzLR3LxBmpSwZ0Bl/NNV5+jXLU/zxyEyfNdqLYF5dR9hLvOI2zwrxVPBV
+	 4euM1QnX5HyE4ohTRmFa/ZB/+0ugh2NCafGz4QD0=
+Date: Tue, 20 Jan 2026 19:28:19 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,vbabka@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_cgroup-fix-wformat-truncation-warning.patch removed from -mm tree
-Message-Id: <20260121032818.504B3C16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch removed from -mm tree
+Message-Id: <20260121032819.9EF82C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cgroup: fix -Wformat-truncation warning
+     Subject: mm, page_alloc, thp: prevent reclaim for __GFP_THISNODE THP allocations
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cgroup-fix-wformat-truncation-warning.patch
+     mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xiu Jianfeng <xiujianfeng@huawei.com>
-Subject: mm/hugetlb_cgroup: fix -Wformat-truncation warning
-Date: Mon, 22 Dec 2025 07:23:59 +0000
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc, thp: prevent reclaim for __GFP_THISNODE THP allocations
+Date: Fri, 19 Dec 2025 17:31:57 +0100
 
-A false-positive compile warnings with -Wformat-trucation was introduced
-by commit 47179fe03588 ("mm/hugetlb_cgroup: prepare cftypes based on
-template") on arch s390.  Suppress it by replacing snprintf() with
-scnprintf().
+Since commit cc638f329ef6 ("mm, thp: tweak reclaim/compaction effort of
+local-only and all-node allocations"), THP page fault allocations have
+settled on the following scheme (from the commit log):
 
-mm/hugetlb_cgroup.c: In function 'hugetlb_cgroup_file_init':
-mm/hugetlb_cgroup.c:829:44: warning: '%s' directive output may be truncated writing up to 1623 bytes into a region of size between 32 and 63 [-Wformat-truncation=]
-  829 |   snprintf(cft->name, MAX_CFTYPE_NAME, "%s.%s", buf, tmpl->name);
-      |                                            ^~
+1. local node only THP allocation with no reclaim, just compaction.
+2. for madvised VMA's or when synchronous compaction is enabled always - THP
+   allocation from any node with effort determined by global defrag setting
+   and VMA madvise
+3. fallback to base pages on any node
 
-Link: https://lkml.kernel.org/r/20251222072359.3626182-1-xiujianfeng@huaweicloud.com
-Fixes: 47179fe03588 ("mm/hugetlb_cgroup: prepare cftypes based on template")
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202512212332.9lFRbgdS-lkp@intel.com/
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Recent customer reports however revealed we have a gap in step 1 above. 
+What we have seen is excessive reclaim due to THP page faults on a NUMA
+node that's close to its high watermark, while other nodes have plenty of
+free memory.
+
+The problem with step 1 is that it promises no reclaim after the
+compaction attempt, however reclaim is only avoided for certain compaction
+outcomes (deferred, or skipped due to insufficient free base pages), and
+not e.g.  when compaction is actually performed but fails (we did see
+compact_fail vmstat counter increasing).
+
+THP page faults can therefore exhibit a zone_reclaim_mode-like behavior,
+which is not the intention.
+
+Thus add a check for __GFP_THISNODE that corresponds to this exact
+situation and prevents continuing with reclaim/compaction once the initial
+compaction attempt isn't successful in allocating the page.
+
+Note that commit cc638f329ef6 has not introduced this over-reclaim
+possibility; it appears to exist in some form since commit 2f0799a0ffc0
+("mm, thp: restore node-local hugepage allocations").  Followup commits
+b39d0ee2632d ("mm, page_alloc: avoid expensive reclaim when compaction may
+not succeed") and cc638f329ef6 have moved in the right direction, but left
+the abovementioned gap.
+
+Link: https://lkml.kernel.org/r/20251219-costly-noretry-thisnode-fix-v1-1-e1085a4a0c34@suse.cz
+Fixes: 2f0799a0ffc0 ("mm, thp: restore node-local hugepage allocations")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
 Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-fix-wformat-truncation-warning
-+++ a/mm/hugetlb_cgroup.c
-@@ -822,7 +822,7 @@ hugetlb_cgroup_cfttypes_init(struct hsta
- 	for (i = 0; i < tmpl_size; cft++, tmpl++, i++) {
- 		*cft = *tmpl;
- 		/* rebuild the name */
--		snprintf(cft->name, MAX_CFTYPE_NAME, "%s.%s", buf, tmpl->name);
-+		scnprintf(cft->name, MAX_CFTYPE_NAME, "%s.%s", buf, tmpl->name);
- 		/* rebuild the private */
- 		cft->private = MEMFILE_PRIVATE(idx, tmpl->private);
- 		/* rebuild the file_offset */
+--- a/mm/page_alloc.c~mm-page_alloc-thp-prevent-reclaim-for-__gfp_thisnode-thp-allocations
++++ a/mm/page_alloc.c
+@@ -4819,6 +4819,20 @@ restart:
+ 				goto nopage;
+ 
+ 			/*
++			 * THP page faults may attempt local node only first,
++			 * but are then allowed to only compact, not reclaim,
++			 * see alloc_pages_mpol().
++			 *
++			 * Compaction can fail for other reasons than those
++			 * checked above and we don't want such THP allocations
++			 * to put reclaim pressure on a single node in a
++			 * situation where other nodes might have plenty of
++			 * available memory.
++			 */
++			if (gfp_mask & __GFP_THISNODE)
++				goto nopage;
++
++			/*
+ 			 * Looks like reclaim/compaction is worth trying, but
+ 			 * sync compaction could be very expensive, so keep
+ 			 * using async compaction.
 _
 
-Patches currently in -mm which might be from xiujianfeng@huawei.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
+mm-page_alloc-ignore-the-exact-initial-compaction-result.patch
+mm-page_alloc-refactor-the-initial-compaction-handling.patch
+mm-page_alloc-simplify-__alloc_pages_slowpath-flow.patch
 
