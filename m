@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A5A134677A
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A4CA3624AB
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966120; cv=none; b=GT2/+/MZs/iW/Tla1Yimth4JwVeq1qqRc4ws8wJrrDttWvw+UzO88snaIoTR/ypjLdTCb/qq2RihecC71GRUDzYrixFdsrBDv9+uZJhKKQ5kfRWUBvgyw3HgpeB62fmhgPe2eLNXAAf4uA7Xmc0flMUFZr7yJKBjKAiWfz8GY2I=
+	t=1768966121; cv=none; b=U8uMjZPQ2adm9JxtQbOaJ2da5jS4JNbUDc+NbwpD2UEe5Mw+F3dPnqMej7DxmyjNes9meROk9CYYfmrVRNwotgtkpxl3eLu7AVWWJD1E7HgPNe/APoI26MeIlAGAmxDRX2hXnluAehIMimSgYMbjtxywM8EL7cUrcM4BevobOY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966120; c=relaxed/simple;
-	bh=VrL3v2Sr/UrTh2vIIzWgYWKuiHwrRNrDoRWwPaZxzbU=;
-	h=Date:To:From:Subject:Message-Id; b=NvAUDh4c2TSach3bPmRsG5lL2K6CCjV/JDgqdLMUufA8wDchki9ltUWZ7pJBrDAzNvN3ps4Pw8y4pnYMWatwkXlsRep3z4MGgJUHCPSCQae7cwEhJJ46tZcB6fn8lYgvvLX6XGpONA8cSRNC0nuwl54RnEaxoc3hKKUWscTnk5U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NV7As3La; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966121; c=relaxed/simple;
+	bh=CgJ2fhddE48zz2qpgrjTu0Q1lQkTnVfZas0x9WcSPiA=;
+	h=Date:To:From:Subject:Message-Id; b=WOFLwAKqyjohb1xsX9BQKsnUva7BZokJUmrfUBqK1HDkNjkdxJOqXRO4IDbJhrm55D4WXAsgOc2lJJ67fxb0kA+s55/vkQ0dcAWoSp7t5sRmmlwQKr62q+BOUN6BJAjXawUMpWJtQa0mlLeSvX1gYFwtt1v/oBZZhYgwFirh3T4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iZWGKVHo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NV7As3La"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C467FC16AAE;
-	Wed, 21 Jan 2026 03:28:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iZWGKVHo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E01BAC16AAE;
+	Wed, 21 Jan 2026 03:28:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966119;
-	bh=VrL3v2Sr/UrTh2vIIzWgYWKuiHwrRNrDoRWwPaZxzbU=;
+	s=korg; t=1768966121;
+	bh=CgJ2fhddE48zz2qpgrjTu0Q1lQkTnVfZas0x9WcSPiA=;
 	h=Date:To:From:Subject:From;
-	b=NV7As3LaPmoBBdXMS8C4BPsBrFJKSkWg/FiyYmaEON3cBjtFYAjvoiP0pvtLnCFbx
-	 RW++vDPZ/jWO7tHczHmVZclyIxoBu3aW7sXmrtD2HdpxrW+CUAKVwpt4sZNEWyJ3yq
-	 Mtw8Ce3COXe+8YTFjsuYr6Vc2yStN4BTtKPZYpqc=
-Date: Tue, 20 Jan 2026 19:28:39 -0800
+	b=iZWGKVHoGv8lYbq+9m0lpjEQaxXoJaqfiUQGzrj9CBQsqU19P8XY4BKz73+kLaL1n
+	 17KlEy45Cw/x373yUKDM/n0qnd8MsdKfmYzS2FIyhF+dLKznu6mQvyy2sa2ib/Y3iG
+	 yfZGrL2oazchIjhTDTGsrYnPzdrMBGGILjEBUaaY=
+Date: Tue, 20 Jan 2026 19:28:40 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,shu17az@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-tests-core-kunit-verify-the-age-and-nr_accesses_bp-fields-in-damon_test_merge_two.patch removed from -mm tree
-Message-Id: <20260121032839.C467FC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-add-a-test-case-for-region-merge-size-limit-in-damon_test_merge_regions_of.patch removed from -mm tree
+Message-Id: <20260121032840.E01BAC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/tests/core-kunit: verify the 'age' and 'nr_accesses_bp' fields in damon_test_merge_two()
+     Subject: mm/damon/tests/core-kunit: add a test case for region merge size limit in damon_test_merge_regions_of()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-tests-core-kunit-verify-the-age-and-nr_accesses_bp-fields-in-damon_test_merge_two.patch
+     mm-damon-tests-core-kunit-add-a-test-case-for-region-merge-size-limit-in-damon_test_merge_regions_of.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shu Anzai <shu17az@gmail.com>
-Subject: mm/damon/tests/core-kunit: verify the 'age' and 'nr_accesses_bp' fields in damon_test_merge_two()
-Date: Wed, 24 Dec 2025 04:21:57 +0000
+Subject: mm/damon/tests/core-kunit: add a test case for region merge size limit in damon_test_merge_regions_of()
+Date: Wed, 24 Dec 2025 04:21:58 +0000
 
-Extend damon_test_merge_two() to verify the 'age' and 'nr_accesses_bp'
-fields.
+Add a test case in damon_test_merge_regions_of() to verify that two
+adjacent regions are not merged if the resulting region would exceed the
+specified size limit.
 
-Link: https://lkml.kernel.org/r/20251224042200.2061847-3-shu17az@gmail.com
+Link: https://lkml.kernel.org/r/20251224042200.2061847-4-shu17az@gmail.com
 Signed-off-by: Shu Anzai <shu17az@gmail.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/damon/tests/core-kunit.h |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-verify-the-age-and-nr_accesses_bp-fields-in-damon_test_merge_two
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-a-test-case-for-region-merge-size-limit-in-damon_test_merge_regions_of
 +++ a/mm/damon/tests/core-kunit.h
-@@ -192,6 +192,7 @@ static void damon_test_merge_two(struct
- 	}
- 	r->nr_accesses = 10;
- 	r->nr_accesses_bp = 100000;
-+	r->age = 9;
- 	damon_add_region(r, t);
- 	r2 = damon_new_region(100, 300);
- 	if (!r2) {
-@@ -200,12 +201,15 @@ static void damon_test_merge_two(struct
- 	}
- 	r2->nr_accesses = 20;
- 	r2->nr_accesses_bp = 200000;
-+	r2->age = 21;
- 	damon_add_region(r2, t);
+@@ -238,12 +238,12 @@ static void damon_test_merge_regions_of(
+ {
+ 	struct damon_target *t;
+ 	struct damon_region *r;
+-	unsigned long sa[] = {0, 100, 114, 122, 130, 156, 170, 184};
+-	unsigned long ea[] = {100, 112, 122, 130, 156, 170, 184, 230};
+-	unsigned int nrs[] = {0, 0, 10, 10, 20, 30, 1, 2};
++	unsigned long sa[] = {0, 100, 114, 122, 130, 156, 170, 184, 230};
++	unsigned long ea[] = {100, 112, 122, 130, 156, 170, 184, 230, 10170};
++	unsigned int nrs[] = {0, 0, 10, 10, 20, 30, 1, 2, 5};
  
- 	damon_merge_two_regions(t, r, r2);
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 300ul);
- 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 16u);
-+	KUNIT_EXPECT_EQ(test, r->nr_accesses_bp, 160000u);
-+	KUNIT_EXPECT_EQ(test, r->age, 17u);
+-	unsigned long saddrs[] = {0, 114, 130, 156, 170};
+-	unsigned long eaddrs[] = {112, 130, 156, 170, 230};
++	unsigned long saddrs[] = {0, 114, 130, 156, 170, 230};
++	unsigned long eaddrs[] = {112, 130, 156, 170, 230, 10170};
+ 	int i;
  
- 	i = 0;
- 	damon_for_each_region(r3, t) {
+ 	t = damon_new_target();
+@@ -261,9 +261,9 @@ static void damon_test_merge_regions_of(
+ 	}
+ 
+ 	damon_merge_regions_of(t, 9, 9999);
+-	/* 0-112, 114-130, 130-156, 156-170 */
+-	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 5u);
+-	for (i = 0; i < 5; i++) {
++	/* 0-112, 114-130, 130-156, 156-170, 170-230, 230-10170 */
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 6u);
++	for (i = 0; i < 6; i++) {
+ 		r = __nth_region_of(t, i);
+ 		KUNIT_EXPECT_EQ(test, r->ar.start, saddrs[i]);
+ 		KUNIT_EXPECT_EQ(test, r->ar.end, eaddrs[i]);
 _
 
 Patches currently in -mm which might be from shu17az@gmail.com are
