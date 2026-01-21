@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3BFD346FB7
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4414B342CAD
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967340; cv=none; b=cOUbqdnE/ndn3dKl06AlkF4fCArezPZyx0URUaSanwEHY+NlQ25qmRpRuHToD16uDyrFe37Yrq0UKzh1HWbESRmBAAhwmny0QnqMkZnwW09yDqu6oLbBBBP73uzQNK+1Opog0DWokLkGP6/IyPiEbUSEFiOdxICocGQr3LMbzf8=
+	t=1768967342; cv=none; b=Kkwi00L5LA/wtjmBQT/oHN+/myDxgMZbthRukmFjZmW21mD7BOMWOdze+jVnJS3ZZ+8Kt8pfOYdx09OQG88ZEKeQNZ2m9wv5LLda/5QI1cF+Au5TRuKSbq5Y9dAG/M/bI0BDdWgbNllwwfqbJktCmqmTqKNozRcoZtLo2g+Ucuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967340; c=relaxed/simple;
-	bh=gjv517Snd39mGLtHBxzWdNW6ZLSgPlh3NsqkHwF8S+g=;
-	h=Date:To:From:Subject:Message-Id; b=R8bADccJcKMn5xQ2PB1H/8YA7e160zOOCslgpqfa79QPgXyX9Z+Sl/VN5vmGSRRh2XKiVw9nVFTzNy74EQCfe9gSm/aHKCqI0fWul/g5uDy3Hu8Y3LFNI14/UxhiCLGt8Rf/Ck3qi0EFKYPOby+il3pgoSjKssAMBNkpppaki30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nslJuOtf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967342; c=relaxed/simple;
+	bh=DFvC3bkMtOUrPw6ffFhfawTSRH1WlsaY5kGYawyUZFw=;
+	h=Date:To:From:Subject:Message-Id; b=KrL+sfAx76igVCwkDhXuZIXF/d6EwT8mgYM9Tknff82vyZjquUmp/GbQwZam8bi4yEgTByE33q0le7tm+FYV/WF9+0JYHGPgaB/LtiaOi6hpCIX1kqcnigK5D8HVFUzlFxoR96ZURmhUFpuU7oJd4YcUXiATHW4Q5s7c6xk3j28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ir24yzLn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nslJuOtf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B88C3C16AAE;
-	Wed, 21 Jan 2026 03:48:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ir24yzLn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06738C16AAE;
+	Wed, 21 Jan 2026 03:49:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967339;
-	bh=gjv517Snd39mGLtHBxzWdNW6ZLSgPlh3NsqkHwF8S+g=;
+	s=korg; t=1768967341;
+	bh=DFvC3bkMtOUrPw6ffFhfawTSRH1WlsaY5kGYawyUZFw=;
 	h=Date:To:From:Subject:From;
-	b=nslJuOtfRtconpqkIYAAUE8poMxDj7jy/AFTfWLRN4BWwEb6YYtBdvB4b7f5mjViO
-	 ucQHQJjj9eGK7w5SC4OICtuQ4pWO1UlUszeFLW0CpbklkQ0Pz2fkIGAnP7V5vO8xSE
-	 IuLyliEWu240wIzJVJaIhhbuRQ7G9cTZt1iwBKDU=
-Date: Tue, 20 Jan 2026 19:48:59 -0800
+	b=ir24yzLn+2+Bpqh7SdCsoyDX2TCl0elG6bIun7eTKncK8z697Eakf62NWKGh+J07v
+	 01zA9eejmXl7ny6NFk6w1E4MRKQllPs86PsFAiusGxS11aFmAZRAz2VfDIkwVmY0lq
+	 HZ5KLu01kuPRGUtmuv7cJwIV9tMSEPH3v94OZXhw=
+Date: Tue, 20 Jan 2026 19:49:00 -0800
 To: mm-commits@vger.kernel.org,samitolvanen@google.com,rostedt@goodmis.org,petr.pavlu@suse.com,mhiramat@kernel.org,mcgrof@kernel.org,mark.rutland@arm.com,kees@kernel.org,john.fastabend@gmail.com,daniel@iogearbox.net,da.gomez@samsung.com,atomlin@atomlin.com,ast@kernel.org,pmladek@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kallsyms-clean-up-modname-and-modbuildid-initialization-in-kallsyms_lookup_buildid.patch removed from -mm tree
-Message-Id: <20260121034859.B88C3C16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] module-add-helper-function-for-reading-module_buildid.patch removed from -mm tree
+Message-Id: <20260121034901.06738C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kallsyms: clean up modname and modbuildid initialization in kallsyms_lookup_buildid()
+     Subject: module: add helper function for reading module_buildid()
 has been removed from the -mm tree.  Its filename was
-     kallsyms-clean-up-modname-and-modbuildid-initialization-in-kallsyms_lookup_buildid.patch
+     module-add-helper-function-for-reading-module_buildid.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
-Subject: kallsyms: clean up modname and modbuildid initialization in kallsyms_lookup_buildid()
-Date: Fri, 28 Nov 2025 14:59:15 +0100
+Subject: module: add helper function for reading module_buildid()
+Date: Fri, 28 Nov 2025 14:59:16 +0100
 
-The @modname and @modbuildid optional return parameters are set only when
-the symbol is in a module.
+Add a helper function for reading the optional "build_id" member of struct
+module.  It is going to be used also in ftrace_mod_address_lookup().
 
-Always initialize them so that they do not need to be cleared when the
-module is not in a module.  It simplifies the logic and makes the code
-even slightly more safe.
+Use "#ifdef" instead of "#if IS_ENABLED()" to match the declaration of the
+optional field in struct module.
 
-Note that bpf_address_lookup() function will get updated in a separate
-patch.
-
-Link: https://lkml.kernel.org/r/20251128135920.217303-3-pmladek@suse.com
+Link: https://lkml.kernel.org/r/20251128135920.217303-4-pmladek@suse.com
 Signed-off-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Daniel Gomez <da.gomez@samsung.com>
+Reviewed-by: Petr Pavlu <petr.pavlu@suse.com>
 Cc: Aaron Tomlin <atomlin@atomlin.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkman <daniel@iogearbox.net>
-Cc: Daniel Gomez <da.gomez@samsung.com>
 Cc: John Fastabend <john.fastabend@gmail.com>
 Cc: Kees Cook <kees@kernel.org>
 Cc: Luis Chamberalin <mcgrof@kernel.org>
 Cc: Marc Rutland <mark.rutland@arm.com>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
 Cc: Sami Tolvanen <samitolvanen@google.com>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ include/linux/module.h   |    9 +++++++++
+ kernel/module/kallsyms.c |    9 ++-------
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
---- a/kernel/kallsyms.c~kallsyms-clean-up-modname-and-modbuildid-initialization-in-kallsyms_lookup_buildid
-+++ a/kernel/kallsyms.c
-@@ -362,6 +362,14 @@ static int kallsyms_lookup_buildid(unsig
- 	 * or empty string.
- 	 */
- 	namebuf[0] = 0;
-+	/*
-+	 * Initialize the module-related return values. They are not set
-+	 * when the symbol is in vmlinux or it is a bpf address.
-+	 */
-+	if (modname)
-+		*modname = NULL;
-+	if (modbuildid)
-+		*modbuildid = NULL;
+--- a/include/linux/module.h~module-add-helper-function-for-reading-module_buildid
++++ a/include/linux/module.h
+@@ -748,6 +748,15 @@ static inline void __module_get(struct m
+ 	__mod ? __mod->name : "kernel";		\
+ })
  
- 	if (is_ksym_addr(addr)) {
- 		unsigned long pos;
-@@ -370,10 +378,6 @@ static int kallsyms_lookup_buildid(unsig
- 		/* Grab name */
- 		kallsyms_expand_symbol(get_symbol_offset(pos),
- 				       namebuf, KSYM_NAME_LEN);
--		if (modname)
--			*modname = NULL;
--		if (modbuildid)
++static inline const unsigned char *module_buildid(struct module *mod)
++{
++#ifdef CONFIG_STACKTRACE_BUILD_ID
++	return mod->build_id;
++#else
++	return NULL;
++#endif
++}
++
+ /* Dereference module function descriptor */
+ void *dereference_module_function_descriptor(struct module *mod, void *ptr);
+ 
+--- a/kernel/module/kallsyms.c~module-add-helper-function-for-reading-module_buildid
++++ a/kernel/module/kallsyms.c
+@@ -334,13 +334,8 @@ int module_address_lookup(unsigned long
+ 	if (mod) {
+ 		if (modname)
+ 			*modname = mod->name;
+-		if (modbuildid) {
+-#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
+-			*modbuildid = mod->build_id;
+-#else
 -			*modbuildid = NULL;
+-#endif
+-		}
++		if (modbuildid)
++			*modbuildid = module_buildid(mod);
  
- 		return strlen(namebuf);
- 	}
+ 		sym = find_kallsyms_symbol(mod, addr, size, offset);
+ 
 _
 
 Patches currently in -mm which might be from pmladek@suse.com are
