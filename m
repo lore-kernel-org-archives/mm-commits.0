@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48CD6330B04
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2AD533C52F
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967326; cv=none; b=GgCn+FMWAVfjOkuIcb/z55B3BYfS90+/dBtNR+ASQgiuVLVPODqA+TZwg6KQn1eziLITY5A5d61/pysMCWHIhS+IFJHh+OvFG/Py0sv/8y9l5TJGaIZ7HNFkQd/jQbzq5IFYcKVwzymgljGKbQUdBVj7JQmbes38xXZ/T2cMMDo=
+	t=1768967327; cv=none; b=iT4E+FQajHMndibthEW6PFXzA2WoRkLron1rcR6ckiBmtYrhM6aSJQz85QoHeSmwCGhtr4P8oTap8xALGVxI6VbNih39cG5SVjmxHBJbrl+3PTl5oCU1A1QUCyTnHTzSMX6zJKAcI+hapgkWlAskwFzTKgPd0wKhCrXu7WjW2oY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967326; c=relaxed/simple;
-	bh=VrAVOv7m1/rA3SaR3WIn3x3xC8vMXbaHcDznRyRhh1M=;
-	h=Date:To:From:Subject:Message-Id; b=u+RMz8yVgb81oceZ59Qv3IAJonS1wWOjSf7H8KKTju1yVoNguYSrhkrY8aFSXYcDh9VjFAq5bL+rtmZHIl6BGDi6RWzGKlDoJfmD1n4PMfQu4KidZSohqoWJc9d/Fekxu0PeYXqNk64CwoiNAWyHo/+E+gNtLw7vIpIfgmxQO64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rotzsyce; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967327; c=relaxed/simple;
+	bh=WyxwDEe/9jLBHvS1LDptJy0h1NiZBziFIFCm1f+BbUU=;
+	h=Date:To:From:Subject:Message-Id; b=W28MQcNvvxZUgWGZXFhp1DIeunTIG3gHNtNlD8WLo9hDJCsEhVPOnVGuHy4w+HTn6AatAlsRS6k5fvn1QbpCqchOOE+bS8K0UJBNC9s/a8PU3CH378sLa0tT5P47wJZJUVzhjgCYfyX18EPknaDW2EAnAGE5l/8/5eizJyRLoCU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dyGAMgXm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rotzsyce"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8225FC16AAE;
-	Wed, 21 Jan 2026 03:48:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dyGAMgXm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5FABC16AAE;
+	Wed, 21 Jan 2026 03:48:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967325;
-	bh=VrAVOv7m1/rA3SaR3WIn3x3xC8vMXbaHcDznRyRhh1M=;
+	s=korg; t=1768967326;
+	bh=WyxwDEe/9jLBHvS1LDptJy0h1NiZBziFIFCm1f+BbUU=;
 	h=Date:To:From:Subject:From;
-	b=RotzsycesWO1qQdRrrX2nc+MGTbZ1UANmeoqYnbwEatvf59u+W48OoGwYrcfYRBE1
-	 OLdlwS3p+4buSN6KNzLpxb+uP9Frk+IeEDIyBmltrRgDbKfTyazUW/cYSbi8/XLiY5
-	 fPGx5tEwvg7Q8MGlaJ2JcdV8Ky5d56djEIe2ABS8=
-Date: Tue, 20 Jan 2026 19:48:44 -0800
+	b=dyGAMgXmr5KYwWPm4VoljXYy2dNoxfL1Rsts8FZg6hJmjT76ba5SMRhDZxDfPjNuS
+	 /AClu9rQhWDEkp7gcgvndRuMtvBYwpoDSHN+QK/tAWis8iSykOUbKmIIMa0d2KPYQJ
+	 W2suUjZ6iN8EOSdTvoaclfhI4w1tUMACWrYnMGYE=
+Date: Tue, 20 Jan 2026 19:48:46 -0800
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,torvalds@linux-foundation.org,mhocko@suse.com,macro@orcam.me.uk,linux@rasmusvillemoes.dk,kees@kernel.org,jannh@google.com,glider@google.com,elver@google.com,dvyukov@google.com,chris.bazley.wg14@gmail.com,alx@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-fix-off-by-one-benign-bugs.patch removed from -mm tree
-Message-Id: <20260121034845.8225FC16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mm-use-array_end-instead-of-open-coding-it.patch removed from -mm tree
+Message-Id: <20260121034846.C5FABC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel: fix off-by-one benign bugs
+     Subject: mm: use ARRAY_END() instead of open-coding it
 has been removed from the -mm tree.  Its filename was
-     kernel-fix-off-by-one-benign-bugs.patch
+     mm-use-array_end-instead-of-open-coding-it.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Alejandro Colomar <alx@kernel.org>
-Subject: kernel: fix off-by-one benign bugs
-Date: Thu, 11 Dec 2025 11:44:00 +0100
+Subject: mm: use ARRAY_END() instead of open-coding it
+Date: Thu, 11 Dec 2025 11:44:04 +0100
 
-We were wasting a byte due to an off-by-one bug.  s[c]nprintf() doesn't
-write more than $2 bytes including the null byte, so trying to pass
-'size-1' there is wasting one byte.
+There aren't any bugs in this code; it's purely cosmetic.
 
-This is essentially the same as the previous commit, in a different
-file.
+By using ARRAY_END(), we prevent future issues, in case the code is
+modified; it has less moving parts.  Also, it should be more readable (and
+perhaps more importantly, greppable), as there are several ways of writing
+an expression that gets the end of an array, which are unified by this API
+name.
 
-Link: https://lkml.kernel.org/r/b4a945a4d40b7104364244f616eb9fb9f1fa691f.1765449750.git.alx@kernel.org
+Link: https://lkml.kernel.org/r/2335917d123891fec074ab1b3acfb517cf14b5a7.1765449750.git.alx@kernel.org
 Signed-off-by: Alejandro Colomar <alx@kernel.org>
-Cc: Marco Elver <elver@google.com>
 Cc: Kees Cook <kees@kernel.org>
-Cc: Christopher Bazley <chris.bazley.wg14@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christopher Bazley <chris.bazley.wg14@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Maciej W. Rozycki <macro@orcam.me.uk>
 Cc: Marco Elver <elver@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Maciej W. Rozycki <macro@orcam.me.uk>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcsan/kcsan_test.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/kmemleak.c      |    2 +-
+ mm/memcontrol-v1.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/kcsan/kcsan_test.c~kernel-fix-off-by-one-benign-bugs
-+++ a/kernel/kcsan/kcsan_test.c
-@@ -176,7 +176,7 @@ static bool __report_matches(const struc
+--- a/mm/kmemleak.c~mm-use-array_end-instead-of-open-coding-it
++++ a/mm/kmemleak.c
+@@ -510,7 +510,7 @@ static void mem_pool_free(struct kmemlea
+ {
+ 	unsigned long flags;
  
- 	/* Title */
- 	cur = expect[0];
--	end = &expect[0][sizeof(expect[0]) - 1];
-+	end = ARRAY_END(expect[0]);
- 	cur += scnprintf(cur, end - cur, "BUG: KCSAN: %s in ",
- 			 is_assert ? "assert: race" : "data-race");
- 	if (r->access[1].fn) {
-@@ -200,7 +200,7 @@ static bool __report_matches(const struc
+-	if (object < mem_pool || object >= mem_pool + ARRAY_SIZE(mem_pool)) {
++	if (object < mem_pool || object >= ARRAY_END(mem_pool)) {
+ 		kmem_cache_free(object_cache, object);
+ 		return;
+ 	}
+--- a/mm/memcontrol-v1.c~mm-use-array_end-instead-of-open-coding-it
++++ a/mm/memcontrol-v1.c
+@@ -1794,7 +1794,7 @@ static int memcg_numa_stat_show(struct s
  
- 	/* Access 1 */
- 	cur = expect[1];
--	end = &expect[1][sizeof(expect[1]) - 1];
-+	end = ARRAY_END(expect[1]);
- 	if (!r->access[1].fn)
- 		cur += scnprintf(cur, end - cur, "race at unknown origin, with ");
+ 	mem_cgroup_flush_stats(memcg);
  
+-	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
++	for (stat = stats; stat < ARRAY_END(stats); stat++) {
+ 		seq_printf(m, "%s=%lu", stat->name,
+ 			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
+ 						   false));
+@@ -1805,7 +1805,7 @@ static int memcg_numa_stat_show(struct s
+ 		seq_putc(m, '\n');
+ 	}
+ 
+-	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
++	for (stat = stats; stat < ARRAY_END(stats); stat++) {
+ 
+ 		seq_printf(m, "hierarchical_%s=%lu", stat->name,
+ 			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
 _
 
 Patches currently in -mm which might be from alx@kernel.org are
