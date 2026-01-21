@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 073BA30FF1D
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:34:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC5F93793DE
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:34:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966454; cv=none; b=T2MMo0LGlJvVZA6eJLUYbkjwrWl4zqtz5xJ48Sd+JZxIRUgCaiLjjwXGoUTdyYn4FqTvWyKq38S0VlXJa8TOkeg7mA58vfxgFjP+/wIGPQneOotOq9g33gAbYdkP0qB0Uv/F+NhZujfg+VEHp1BzZhTTw512jMUnQuLn1HMdPhA=
+	t=1768966490; cv=none; b=j9NO426HKj0veXZiveYiHPX1m8+Oa8mrq57hCFXPf6Ec6wfGxokOiVcEGfQuIKv/JiymD2r5m1FYkm4IX9u8ueCJsCwuUjjUyo1F8DGgG8Ums3wBr80qRrEHa73e6F0Jmy1Q+oiPLqN1Ct4kbkVkGEIzx4xsYvjpAGP7lsEAyxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966454; c=relaxed/simple;
-	bh=/P6eSHVGZuNwRarr4dMcC1gXABkkm7Y51VUQONOsjQI=;
-	h=Date:To:From:Subject:Message-Id; b=F5DmcUNGWOk6DXH0FqpA2kkOA9glYzYfL+O7wHxEtrAWNAqCjqXZ556LUfZ82d3MHTyP55rJ8hXgArt4o/4TcRr4VDImY8pL41zUPdauUMd2oXO7TsJr/ugWyphkwOu8r/K4+nZOUYsr5QEQXDKjndlRb0RQrbA3f7NbZXf56ks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eOa3C/oQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966490; c=relaxed/simple;
+	bh=ScEalZyjv8zDetdJD9xJjMeipA7Ul+WIoQns9eOmf7Q=;
+	h=Date:To:From:Subject:Message-Id; b=dvanSNFtix5bbh6zN/jI5cMjD9Pnjl0EaY/p8yJEYLTyK+foMzsyiRXl8ZFiGB8fj4fETLSSKbkfHVDm5HN4rwdx20ChYwBcNimkl2q6/gaiAsDtBVYP2eOox2csqRrAgCQ/j4blH5uHc4leFYj81J1LVoMZwLL/MweHNUZwH+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j/xp/QZM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eOa3C/oQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0556C16AAE;
-	Wed, 21 Jan 2026 03:34:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j/xp/QZM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5CE8C19423;
+	Wed, 21 Jan 2026 03:34:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966452;
-	bh=/P6eSHVGZuNwRarr4dMcC1gXABkkm7Y51VUQONOsjQI=;
+	s=korg; t=1768966490;
+	bh=ScEalZyjv8zDetdJD9xJjMeipA7Ul+WIoQns9eOmf7Q=;
 	h=Date:To:From:Subject:From;
-	b=eOa3C/oQ3ZA9EctqCCMc6l0D+pdbLXTZ4xG+X9EVc8dldnD+TQqgz/y3Dmxj/H6r3
-	 TX1pHECYfuc1Rw/MJTh3xR0cxSvvqD0OIkq1DuaIv1MufBHId+sqgE17MVaxB0c6X4
-	 Rdo4MZSZiH6YDWeee4WCboncJ6t0ikQZvRk5ning=
-Date: Tue, 20 Jan 2026 19:34:12 -0800
-To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,sdf@fomichev.me,npiggin@gmail.com,martin.lau@linux.dev,lance.yang@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,lirongqing@baidu.com,akpm@linux-foundation.org
+	b=j/xp/QZMsPdOnX0OMxoNtELStiOX7mA8tEdk9kxGghxHDzPuSFnC5k+HzqkIteIox
+	 hJ/9P+qXb3GVoIfHQaMQY56k0Kxe06t6RziM+evcuYQiMA6dC8jciobaGMkPh9PYtI
+	 Xd0pGtkV5nC+MEqoDrUxpv+XMLte+WAhekLcr3nA=
+Date: Tue, 20 Jan 2026 19:34:50 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,lkp@intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2.patch removed from -mm tree
-Message-Id: <20260121033412.D0556C16AAE@smtp.kernel.org>
+Subject: [folded-merged] kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix.patch removed from -mm tree
+Message-Id: <20260121033450.A5CE8C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
+     Subject: kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix
 has been removed from the -mm tree.  Its filename was
-     watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2.patch
+     kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix.patch
 
-This patch was dropped because it was folded into watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds.patch
+This patch was dropped because it was folded into kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup.patch
 
 ------------------------------------------------------
-From: Li RongQing <lirongqing@baidu.com>
-Subject: watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
-Date: Thu, 18 Dec 2025 02:43:00 -0500
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix
+Date: Tue Jan 13 09:46:56 AM PST 2026
 
-add a temp variable thresh_count
-chang config to 0 in kernel/configs/debug.config 
+fix loongarch
 
-Link: https://lkml.kernel.org/r/20251218074300.4080-1-lirongqing@baidu.com
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Yonghong Song <yonghong.song@linux.dev>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202601140159.I4b0kwpE-lkp@intel.com/
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/configs/debug.config |    2 +-
- kernel/watchdog.c           |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/loongarch/net/bpf_jit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/configs/debug.config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
-+++ a/kernel/configs/debug.config
-@@ -84,7 +84,7 @@ CONFIG_SLUB_DEBUG_ON=y
- # Debug Oops, Lockups and Hangs
- #
- CONFIG_BOOTPARAM_HUNG_TASK_PANIC=0
--# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=0
- CONFIG_DEBUG_ATOMIC_SLEEP=y
- CONFIG_DETECT_HUNG_TASK=y
- CONFIG_PANIC_ON_OOPS=y
---- a/kernel/watchdog.c~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
-+++ a/kernel/watchdog.c
-@@ -774,8 +774,8 @@ static enum hrtimer_restart watchdog_tim
- {
- 	unsigned long touch_ts, period_ts, now;
- 	struct pt_regs *regs = get_irq_regs();
--	int duration;
- 	int softlockup_all_cpu_backtrace;
-+	int duration, thresh_count;
- 	unsigned long flags;
+--- a/arch/loongarch/net/bpf_jit.c~kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup-fix
++++ a/arch/loongarch/net/bpf_jit.c
+@@ -1319,7 +1319,7 @@ int bpf_arch_text_poke(void *ip, enum bp
+ 	/* Only poking bpf text is supported. Since kernel function entry
+ 	 * is set up by ftrace, we rely on ftrace to poke kernel functions.
+ 	 */
+-	if (!__bpf_address_lookup((unsigned long)ip, &size, &offset, namebuf))
++	if (!bpf_address_lookup((unsigned long)ip, &size, &offset, namebuf))
+ 		return -ENOTSUPP;
  
- 	if (!watchdog_enabled)
-@@ -879,9 +879,9 @@ static enum hrtimer_restart watchdog_tim
- 
- 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
- 		sys_info(softlockup_si_mask & ~SYS_INFO_ALL_BT);
--		duration = duration / get_softlockup_thresh();
-+		thresh_count = duration / get_softlockup_thresh();
- 
--		if (softlockup_panic && duration >= softlockup_panic)
-+		if (softlockup_panic && thresh_count >= softlockup_panic)
- 			panic("softlockup: hung tasks");
- 	}
- 
+ 	image = ip - offset;
 _
 
-Patches currently in -mm which might be from lirongqing@baidu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds.patch
+memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
+mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix.patch
+mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
+mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+kallsyms-bpf-rename-__bpf_address_lookup-to-bpf_address_lookup.patch
+list-add-primitives-for-private-list-manipulations-fix.patch
+init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning-fix.patch
 
