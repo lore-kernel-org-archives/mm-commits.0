@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32F3F3469FC
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE95930F958
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967361; cv=none; b=s0/46N7AaToX0Sb9QGpIi0m7Wd+/Wpa7mQZd+yi5yZcc7yOknrooBtQQp/advI0/e7aMR+TFXve5PTd2nefg+IMxUMEEvU7Gpiqn/X8BGMeakbe4zAbsqTV6C+ikJedEXRq83rSHIJ8KfsvyiQpPRH+d2w756SY7iTvQQ4el1J8=
+	t=1768967362; cv=none; b=J21vrjNmVyzY8x/fBU2ySLdNT7hsNXqdKh3pAMAjC1QXGF8fjKS7r92aoRCYURwt477rEF1ij/mQ33Nmd32eis4Ic1CtQu75+dIjNqF/QR2ea7oOGUkZdpE/hKXe2oGid7HmmFHN6yPO6aXzrsG6uCxlZZbOp9NAfMWEau2ValU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967361; c=relaxed/simple;
-	bh=7jNhfCnXvwWTmPl4R86RIxn21fRJ3P99FxaKKCa+8Xs=;
-	h=Date:To:From:Subject:Message-Id; b=fmHCmhJJTNXRLtq3oC3c7N+ZZ7PKgpEr/Yb9V92vKlobxy8Jyr/ovkfC8RI+6FbpPg0IH31zDqlb9yhaMgCnnPE4/G9BOKACAJEj5CaAeFZAROy72XHjfR8FANcA8vI1Mz8SfsL7vmA6O748X85/r0k9i25JAAamQXe9MW5Pc+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kSkdyk3y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967362; c=relaxed/simple;
+	bh=Yn32Bd+YllPW8MvqV8WyC3xRcOJTbo8UOOt74AweI3I=;
+	h=Date:To:From:Subject:Message-Id; b=M3UBTIKHTnR0Dm5UeXc4KkIcVFq22WIUClibvCVPTi1wvX/QoprS/GAbncOutkPSL1QMJTUs1s6XgM0wLLR5hBCNLC0Rmntaw8vVwtD2FYUHjvJYaKaL91cV8Gx8LeUcmvRSvk5Q/1tUQr5CKhWZQhDBi5gBTnrhozg3WUExZuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1qZOQ/FV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kSkdyk3y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 080E8C19424;
-	Wed, 21 Jan 2026 03:49:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1qZOQ/FV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A5CAC16AAE;
+	Wed, 21 Jan 2026 03:49:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967361;
-	bh=7jNhfCnXvwWTmPl4R86RIxn21fRJ3P99FxaKKCa+8Xs=;
+	s=korg; t=1768967362;
+	bh=Yn32Bd+YllPW8MvqV8WyC3xRcOJTbo8UOOt74AweI3I=;
 	h=Date:To:From:Subject:From;
-	b=kSkdyk3y35fUPsR0UvNIw5L81xXK1gT6QpZcgblsKzutUUMDbIillPybZ5mIihOur
-	 cyCqOCKkR2qigOG8Yl+XW5w3BGB2Or1UcbSHu2GVa1nUarShZ19hCZGJptBAEB2zhU
-	 F3JKDJKZsywZtsaHxMSNuR+koSphVXjKNRF68/nc=
-Date: Tue, 20 Jan 2026 19:49:20 -0800
-To: mm-commits@vger.kernel.org,tamird@gmail.com,skhawaja@google.com,rppt@kernel.org,rientjes@google.com,pratyush@kernel.org,pmladek@suse.com,kees@kernel.org,graf@amazon.com,dmatlack@google.com,davidgow@google.com,corbet@lwn.net,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=1qZOQ/FViT8eybKUOH1m/YmHbawhYUpbMjRvwUXEUw7/NRmP3TsD43qAgpVIDvjTb
+	 JqPxKfkC+9P8QILEi+70i5DjZ+KPTy0h8XKKnkjAE4dZegRgSJnq56P+T+1M7nFTn1
+	 ElyHc2iCx7m+CB7D4Ka8mezmfbhFvVQ3yt3X03ks=
+Date: Tue, 20 Jan 2026 19:49:21 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stefani@seibold.net,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] tests-liveupdate-add-in-kernel-liveupdate-test.patch removed from -mm tree
-Message-Id: <20260121034921.080E8C19424@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kfifo-fix-kmalloc_array_node-argument-order.patch removed from -mm tree
+Message-Id: <20260121034922.7A5CAC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,326 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tests/liveupdate: add in-kernel liveupdate test
+     Subject: kfifo: fix kmalloc_array_node() argument order
 has been removed from the -mm tree.  Its filename was
-     tests-liveupdate-add-in-kernel-liveupdate-test.patch
+     kfifo-fix-kmalloc_array_node-argument-order.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: tests/liveupdate: add in-kernel liveupdate test
-Date: Thu, 18 Dec 2025 10:57:52 -0500
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: kfifo: fix kmalloc_array_node() argument order
+Date: Fri, 19 Dec 2025 21:45:41 -0800
 
-Introduce an in-kernel test module to validate the core logic of the Live
-Update Orchestrator's File-Lifecycle-Bound feature.  This provides a
-low-level, controlled environment to test FLB registration and callback
-invocation without requiring userspace interaction or actual kexec
-reboots.
+To be consistent, pass the kmalloc_array_node() parameters in the order
+(number_of_elements, element_size).  Since only the product of the two
+values is used, this is not a bug fix.
 
-The test is enabled by the CONFIG_LIVEUPDATE_TEST Kconfig option.
-
-Link: https://lkml.kernel.org/r/20251218155752.3045808-6-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: David Gow <davidgow@google.com>
-Cc: David Matlack <dmatlack@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Samiullah Khawaja <skhawaja@google.com>
-Cc: Tamir Duberstein <tamird@gmail.com>
+Link: https://lkml.kernel.org/r/20251220054541.2295599-1-rdunlap@infradead.org
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=216015
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stefani Seibold <stefani@seibold.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                      |    1 
- include/linux/kho/abi/luo.h      |    5 
- kernel/liveupdate/luo_file.c     |    8 +
- kernel/liveupdate/luo_internal.h |    8 +
- lib/Kconfig.debug                |   23 ++++
- lib/tests/Makefile               |    1 
- lib/tests/liveupdate.c           |  158 +++++++++++++++++++++++++++++
- 7 files changed, 203 insertions(+), 1 deletion(-)
+ lib/kfifo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kho/abi/luo.h~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/include/linux/kho/abi/luo.h
-@@ -239,4 +239,9 @@ struct luo_flb_ser {
- 	u64 count;
- } __packed;
+--- a/lib/kfifo.c~kfifo-fix-kmalloc_array_node-argument-order
++++ a/lib/kfifo.c
+@@ -41,7 +41,7 @@ int __kfifo_alloc_node(struct __kfifo *f
+ 		return -EINVAL;
+ 	}
  
-+/* Kernel Live Update Test ABI */
-+#ifdef CONFIG_LIVEUPDATE_TEST
-+#define LIVEUPDATE_TEST_FLB_COMPATIBLE(i)	"liveupdate-test-flb-v" #i
-+#endif
-+
- #endif /* _LINUX_KHO_ABI_LUO_H */
---- a/kernel/liveupdate/luo_file.c~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/kernel/liveupdate/luo_file.c
-@@ -864,6 +864,8 @@ int liveupdate_register_file_handler(str
- 	list_add_tail(&ACCESS_PRIVATE(fh, list), &luo_file_handler_list);
- 	luo_session_resume();
+-	fifo->data = kmalloc_array_node(esize, size, gfp_mask, node);
++	fifo->data = kmalloc_array_node(size, esize, gfp_mask, node);
  
-+	liveupdate_test_register(fh);
-+
- 	return 0;
- 
- err_resume:
-@@ -895,8 +897,10 @@ int liveupdate_unregister_file_handler(s
- 	if (!liveupdate_enabled())
- 		return -EOPNOTSUPP;
- 
-+	liveupdate_test_unregister(fh);
-+
- 	if (!luo_session_quiesce())
--		return -EBUSY;
-+		goto err_register;
- 
- 	if (!list_empty(&ACCESS_PRIVATE(fh, flb_list)))
- 		goto err_resume;
-@@ -909,5 +913,7 @@ int liveupdate_unregister_file_handler(s
- 
- err_resume:
- 	luo_session_resume();
-+err_register:
-+	liveupdate_test_register(fh);
- 	return err;
- }
---- a/kernel/liveupdate/luo_internal.h~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/kernel/liveupdate/luo_internal.h
-@@ -107,4 +107,12 @@ int __init luo_flb_setup_outgoing(void *
- int __init luo_flb_setup_incoming(void *fdt);
- void luo_flb_serialize(void);
- 
-+#ifdef CONFIG_LIVEUPDATE_TEST
-+void liveupdate_test_register(struct liveupdate_file_handler *fh);
-+void liveupdate_test_unregister(struct liveupdate_file_handler *fh);
-+#else
-+static inline void liveupdate_test_register(struct liveupdate_file_handler *fh) { }
-+static inline void liveupdate_test_unregister(struct liveupdate_file_handler *fh) { }
-+#endif
-+
- #endif /* _LINUX_LUO_INTERNAL_H */
---- a/lib/Kconfig.debug~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/lib/Kconfig.debug
-@@ -2817,6 +2817,29 @@ config LINEAR_RANGES_TEST
- 
- 	  If unsure, say N.
- 
-+config LIVEUPDATE_TEST
-+	bool "Live Update Kernel Test"
-+	default n
-+	depends on LIVEUPDATE
-+	help
-+	  Enable a built-in kernel test module for the Live Update
-+	  Orchestrator.
-+
-+	  This module validates the File-Lifecycle-Bound subsystem by
-+	  registering a set of mock FLB objects with any real file handlers
-+	  that support live update (such as the memfd handler).
-+
-+	  When live update operations are performed, this test module will
-+	  output messages to the kernel log (dmesg), confirming that its
-+	  registration and various callback functions (preserve, retrieve,
-+	  finish, etc.) are being invoked correctly.
-+
-+	  This is a debugging and regression testing tool for developers
-+	  working on the Live Update subsystem. It should not be enabled in
-+	  production kernels.
-+
-+	  If unsure, say N
-+
- config CMDLINE_KUNIT_TEST
- 	tristate "KUnit test for cmdline API" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
-diff --git a/lib/tests/liveupdate.c a/lib/tests/liveupdate.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/liveupdate.c
-@@ -0,0 +1,158 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+/*
-+ * Copyright (c) 2025, Google LLC.
-+ * Pasha Tatashin <pasha.tatashin@soleen.com>
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME " test: " fmt
-+
-+#include <linux/cleanup.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/liveupdate.h>
-+#include <linux/module.h>
-+#include "../../kernel/liveupdate/luo_internal.h"
-+
-+static const struct liveupdate_flb_ops test_flb_ops;
-+#define DEFINE_TEST_FLB(i) {						\
-+	.ops = &test_flb_ops,						\
-+	.compatible = LIVEUPDATE_TEST_FLB_COMPATIBLE(i),		\
-+}
-+
-+/* Number of Test FLBs to register with every file handler */
-+#define TEST_NFLBS 3
-+static struct liveupdate_flb test_flbs[TEST_NFLBS] = {
-+	DEFINE_TEST_FLB(0),
-+	DEFINE_TEST_FLB(1),
-+	DEFINE_TEST_FLB(2),
-+};
-+
-+#define TEST_FLB_MAGIC_BASE 0xFEEDF00DCAFEBEE0ULL
-+
-+static int test_flb_preserve(struct liveupdate_flb_op_args *argp)
-+{
-+	ptrdiff_t index = argp->flb - test_flbs;
-+
-+	pr_info("%s: preserve was triggered\n", argp->flb->compatible);
-+	argp->data = TEST_FLB_MAGIC_BASE + index;
-+
-+	return 0;
-+}
-+
-+static void test_flb_unpreserve(struct liveupdate_flb_op_args *argp)
-+{
-+	pr_info("%s: unpreserve was triggered\n", argp->flb->compatible);
-+}
-+
-+static int test_flb_retrieve(struct liveupdate_flb_op_args *argp)
-+{
-+	ptrdiff_t index = argp->flb - test_flbs;
-+	u64 expected_data = TEST_FLB_MAGIC_BASE + index;
-+
-+	if (argp->data == expected_data) {
-+		pr_info("%s: found flb data from the previous boot\n",
-+			argp->flb->compatible);
-+		argp->obj = (void *)argp->data;
-+	} else {
-+		pr_err("%s: ERROR - incorrect data handle: %llx, expected %llx\n",
-+		       argp->flb->compatible, argp->data, expected_data);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static void test_flb_finish(struct liveupdate_flb_op_args *argp)
-+{
-+	ptrdiff_t index = argp->flb - test_flbs;
-+	void *expected_obj = (void *)(TEST_FLB_MAGIC_BASE + index);
-+
-+	if (argp->obj == expected_obj) {
-+		pr_info("%s: finish was triggered\n", argp->flb->compatible);
-+	} else {
-+		pr_err("%s: ERROR - finish called with invalid object\n",
-+		       argp->flb->compatible);
-+	}
-+}
-+
-+static const struct liveupdate_flb_ops test_flb_ops = {
-+	.preserve	= test_flb_preserve,
-+	.unpreserve	= test_flb_unpreserve,
-+	.retrieve	= test_flb_retrieve,
-+	.finish		= test_flb_finish,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static void liveupdate_test_init(void)
-+{
-+	static DEFINE_MUTEX(init_lock);
-+	static bool initialized;
-+	int i;
-+
-+	guard(mutex)(&init_lock);
-+
-+	if (initialized)
-+		return;
-+
-+	for (i = 0; i < TEST_NFLBS; i++) {
-+		struct liveupdate_flb *flb = &test_flbs[i];
-+		void *obj;
-+		int err;
-+
-+		err = liveupdate_flb_get_incoming(flb, &obj);
-+		if (err && err != -ENODATA && err != -ENOENT) {
-+			pr_err("liveupdate_flb_get_incoming for %s failed: %pe\n",
-+			       flb->compatible, ERR_PTR(err));
-+		}
-+	}
-+	initialized = true;
-+}
-+
-+void liveupdate_test_register(struct liveupdate_file_handler *fh)
-+{
-+	int err, i;
-+
-+	liveupdate_test_init();
-+
-+	for (i = 0; i < TEST_NFLBS; i++) {
-+		struct liveupdate_flb *flb = &test_flbs[i];
-+
-+		err = liveupdate_register_flb(fh, flb);
-+		if (err) {
-+			pr_err("Failed to register %s %pe\n",
-+			       flb->compatible, ERR_PTR(err));
-+		}
-+	}
-+
-+	err = liveupdate_register_flb(fh, &test_flbs[0]);
-+	if (!err || err != -EEXIST) {
-+		pr_err("Failed: %s should be already registered, but got err: %pe\n",
-+		       test_flbs[0].compatible, ERR_PTR(err));
-+	}
-+
-+	pr_info("Registered %d FLBs with file handler: [%s]\n",
-+		TEST_NFLBS, fh->compatible);
-+}
-+
-+void liveupdate_test_unregister(struct liveupdate_file_handler *fh)
-+{
-+	int err, i;
-+
-+	for (i = 0; i < TEST_NFLBS; i++) {
-+		struct liveupdate_flb *flb = &test_flbs[i];
-+
-+		err = liveupdate_unregister_flb(fh, flb);
-+		if (err) {
-+			pr_err("Failed to unregister %s %pe\n",
-+			       flb->compatible, ERR_PTR(err));
-+		}
-+	}
-+
-+	pr_info("Unregistered %d FLBs from file handler: [%s]\n",
-+		TEST_NFLBS, fh->compatible);
-+}
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pasha Tatashin <pasha.tatashin@soleen.com>");
-+MODULE_DESCRIPTION("In-kernel test for LUO mechanism");
---- a/lib/tests/Makefile~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/lib/tests/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_LIST_PRIVATE_KUNIT_TEST) +=
- obj-$(CONFIG_KFIFO_KUNIT_TEST) += kfifo_kunit.o
- obj-$(CONFIG_TEST_LIST_SORT) += test_list_sort.o
- obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
-+obj-$(CONFIG_LIVEUPDATE_TEST) += liveupdate.o
- 
- CFLAGS_longest_symbol_kunit.o += $(call cc-disable-warning, missing-prototypes)
- obj-$(CONFIG_LONGEST_SYM_KUNIT_TEST) += longest_symbol_kunit.o
---- a/MAINTAINERS~tests-liveupdate-add-in-kernel-liveupdate-test
-+++ a/MAINTAINERS
-@@ -14651,6 +14651,7 @@ F:	include/linux/liveupdate.h
- F:	include/linux/liveupdate/
- F:	include/uapi/linux/liveupdate.h
- F:	kernel/liveupdate/
-+F:	lib/tests/liveupdate.c
- F:	mm/memfd_luo.c
- F:	tools/testing/selftests/liveupdate/
- 
+ 	if (!fifo->data) {
+ 		fifo->mask = 0;
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
