@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7089205E3B
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 01:51:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AF4C3101C0
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 01:52:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768960281; cv=none; b=bTJN3aFyefSgH472H5JOSKsc9fX53qZnoXcCTMbNhOivufwscN7S/3u8AgvWAgS1oM+RjLEC7exPOebsFMmhz0JzuY7PkYNocRk/XlXcfPEHitx349685X6J0tjfK1dtGoFaSAXF4cyga1R9jGUnlJdJwi2Hz6+aEgBOmB5d3ag=
+	t=1768960336; cv=none; b=jY34ftKuzDy2r2hGwqepnxXKyUCbpgYzvuZS+4SKc+s+BdTzDtAXhpKIU+LpYDK05JLBts+CiJ+HGcDhVbvW0TsxO/WPdNq/BOktFmzWLo9STxC4n9K9Iej8U/Z6mSsX8dQz2jFSzXQGiMFFSSIu4l1J5GtgmdhXGJyWDEjtHA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768960281; c=relaxed/simple;
-	bh=mrD0Nx8MwZWhrVyKPAo9/Pmx7BJ0HDIJueMTtuXGDCw=;
-	h=Date:To:From:Subject:Message-Id; b=n54FzF7dDBjLXn6hh1Ms8r4qrbtwwPehfzAcNbF0sDex8E73OmUKga9+/uMQU4r4MUiFyB6zfePx2CeOEUvH0xZZlLE51Vq55Dk/tmtpIVqtK5FFr5FcTREuE3Zvx82iac07ZseTazq0XANiGmGFpPVODsfYHGIJytjZr6Yp2LM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hw3HHL/F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768960336; c=relaxed/simple;
+	bh=zKAN8juLw1dik56/kLp8G5KuLvfNgDAJjCNB3tgDMSA=;
+	h=Date:To:From:Subject:Message-Id; b=OAC9X79/aKRbXOkFIB2VfrkBzr2LZDIwK6cMrHzhyR3X02dixr7W5Ml+LTrcs1MzFohr7fZc9ywi7BiI3pmL1fIuBNip43q4GtXvWUAXtUTvobg6K0RfUr98+HAxRHU/7oW1xQfuT/0M4rhBxZzIxwa+wLY6mvc/RkSsmwStKLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dMgcGHoZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hw3HHL/F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C44E7C16AAE;
-	Wed, 21 Jan 2026 01:51:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dMgcGHoZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 832FDC19423;
+	Wed, 21 Jan 2026 01:52:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768960279;
-	bh=mrD0Nx8MwZWhrVyKPAo9/Pmx7BJ0HDIJueMTtuXGDCw=;
+	s=korg; t=1768960335;
+	bh=zKAN8juLw1dik56/kLp8G5KuLvfNgDAJjCNB3tgDMSA=;
 	h=Date:To:From:Subject:From;
-	b=hw3HHL/Frvh6vBhFYruBgNg7vU/KOHWJg2tUooFB4r65MHqk/Ve2/dEzyE31pgADn
-	 uBikfnwg0/SMMoYLF4qVaUbWgmgDmxtMpP199+kaFUhmp1PNSGgdqcpz6UP4KwAquB
-	 J6Mnrntnwr4jlQQ6MC1osfmiIx16MMF5Sx0I3+4Y=
-Date: Tue, 20 Jan 2026 17:51:19 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,rppt@kernel.org,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizhe.67@bytedance.com,Liam.Howlett@oracle.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,akpm@linux-foundation.org,ankur.a.arora@oracle.com,akpm@linux-foundation.org
+	b=dMgcGHoZ9JIbMK040hRjNTRysBI5bNiHVZApZlvTVor9kxKsEAgawsRyvZwRDyRBc
+	 x8SrmyWplgu2vT0npmXjhC+sJ8DydLAjP3IVSMyv2a26/FOE52SVbDwmpHiCXBd+cn
+	 OdJAlZoViAxnxJs5xq23/72n9s2TlSEG+2GrmhRc=
+Date: Tue, 20 Jan 2026 17:52:14 -0800
+To: mm-commits@vger.kernel.org,clm@meta.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-folio_zero_user-clear-page-ranges-fix.patch removed from -mm tree
-Message-Id: <20260121015119.C44E7C16AAE@smtp.kernel.org>
+Subject: [folded-merged] mm-damon-core-introduce-nr_snapshots-damos-stat-fix.patch removed from -mm tree
+Message-Id: <20260121015215.832FDC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-folio_zero_user-clear-page-ranges-fix
+     Subject: mm/damon/core: fix wrong list_is_last() call in damons_is_last_region()
 has been removed from the -mm tree.  Its filename was
-     mm-folio_zero_user-clear-page-ranges-fix.patch
+     mm-damon-core-introduce-nr_snapshots-damos-stat-fix.patch
 
-This patch was dropped because it was folded into mm-folio_zero_user-clear-page-ranges.patch
+This patch was dropped because it was folded into mm-damon-core-introduce-nr_snapshots-damos-stat.patch
 
 ------------------------------------------------------
-From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: mm-folio_zero_user-clear-page-ranges-fix
-Date: Wed, 7 Jan 2026 22:04:06 -0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: fix wrong list_is_last() call in damons_is_last_region()
+Date: Wed, 14 Jan 2026 06:57:38 -0800
 
-Move the unit computation and make it a const. Also, clean up the
-comment a little bit.
+damon_is_last_region() is calling list_is_last() with swapped arguments. 
+As a result, it works like damon_is_first_region().  Not that this is not
+making user-visible impact, because the function is only used to increment
+nr_snapshots stat once per DAMOS' regions iteration, and the stat is
+exposed users only after the iteration is completed.  That's why it passed
+a user space test.  Nonetheless, the bug is a bug and could cause real
+user issues in future.  Fix it by correcting the order of arguments for
+list_lis_last().
 
-Use SZ_32M to define PROCESS_PAGES_NON_PREEMPT_BATCH instead
-of hand coding the computation.
-
-Link: https://lkml.kernel.org/r/20260108060406.1693853-1-ankur.a.arora@oracle.com
-Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Raghavendra K T <raghavendra.kt@amd.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20260114152049.99727-1-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Chris Mason <clm@meta.com>
+Closes: https://lore.kernel.org/20260114122959.1164957-1-clm@meta.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/memory.c        |   20 ++++++++++----------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-folio_zero_user-clear-page-ranges-fix
-+++ a/include/linux/mm.h
-@@ -4242,7 +4242,7 @@ static inline void clear_pages(void *add
-  * (See comment above clear_pages() for why preemption latency is a concern
-  * here.)
-  */
--#define PROCESS_PAGES_NON_PREEMPT_BATCH		(32 << (20 - PAGE_SHIFT))
-+#define PROCESS_PAGES_NON_PREEMPT_BATCH		(SZ_32M >> PAGE_SHIFT)
- #else /* !clear_pages */
- /*
-  * The architecture does not provide a clear_pages() implementation. Assume
---- a/mm/memory.c~mm-folio_zero_user-clear-page-ranges-fix
-+++ a/mm/memory.c
-@@ -7243,19 +7243,19 @@ static inline int process_huge_page(
- static void clear_contig_highpages(struct page *page, unsigned long addr,
- 				   unsigned int nr_pages)
+--- a/mm/damon/core.c~mm-damon-core-introduce-nr_snapshots-damos-stat-fix
++++ a/mm/damon/core.c
+@@ -160,7 +160,7 @@ void damon_destroy_region(struct damon_r
+ static bool damon_is_last_region(struct damon_region *r,
+ 		struct damon_target *t)
  {
--	unsigned int i, unit, count;
--
--	might_sleep();
-+	unsigned int i, count;
- 	/*
--	 * When clearing we want to operate on the largest extent possible since
--	 * that allows for extent based architecture specific optimizations.
-+	 * When clearing we want to operate on the largest extent possible to
-+	 * allow for architecture specific extent based optimizations.
- 	 *
--	 * However, since the clearing interfaces (clear_user_highpages(),
--	 * clear_user_pages(), clear_pages()), do not call cond_resched(), we
--	 * limit the batch size when running under non-preemptible scheduling
--	 * models.
-+	 * However, since clear_user_highpages() (and primitives clear_user_pages(),
-+	 * clear_pages()), do not call cond_resched(), limit the unit size when
-+	 * running under non-preemptible scheduling models.
- 	 */
--	unit = preempt_model_preemptible() ? nr_pages : PROCESS_PAGES_NON_PREEMPT_BATCH;
-+	const unsigned int unit = preempt_model_preemptible() ?
-+				   nr_pages : PROCESS_PAGES_NON_PREEMPT_BATCH;
-+
-+	might_sleep();
+-	return list_is_last(&t->regions_list, &r->list);
++	return list_is_last(&r->list, &t->regions_list);
+ }
  
- 	for (i = 0; i < nr_pages; i += count) {
- 		cond_resched();
+ /*
 _
 
-Patches currently in -mm which might be from ankur.a.arora@oracle.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-introduce-clear_pages-and-clear_user_pages.patch
-highmem-introduce-clear_user_highpages.patch
-x86-mm-simplify-clear_page_.patch
-x86-clear_page-introduce-clear_pages.patch
-mm-folio_zero_user-clear-pages-sequentially.patch
-mm-folio_zero_user-clear-page-ranges.patch
-mm-folio_zero_user-cache-neighbouring-pages.patch
+mm-damon-core-introduce-nr_snapshots-damos-stat.patch
+mm-damon-sysfs-schemes-introduce-nr_snapshots-damos-stat-file.patch
+docs-mm-damon-design-update-for-nr_snapshots-damos-stat.patch
+docs-admin-guide-mm-damon-usage-update-for-nr_snapshots-damos-stat.patch
+docs-abi-damon-update-for-nr_snapshots-damos-stat.patch
+mm-damon-update-damos-kerneldoc-for-stat-field.patch
+mm-damon-core-implement-max_nr_snapshots.patch
+mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch
+docs-mm-damon-design-update-for-max_nr_snapshots.patch
+docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch
+docs-abi-damon-update-for-max_nr_snapshots.patch
+mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch
+mm-damon-tests-core-kunit-add-test-cases-for-multiple-regions-in-damon_test_split_regions_of-fix.patch
+mm-damon-core-introduce-active-memory-ratio-damos-quota-goal-metric.patch
+mm-damon-sysfs-schemes-support-damos_quota_active_mem_bp.patch
+docs-mm-damon-design-document-damos_quota_active_mem_bp.patch
+mm-damon-paddr-activate-damos_lru_prio-targets-instead-of-marking-accessed.patch
+mm-damon-lru_sort-consider-age-for-quota-prioritization.patch
+mm-damon-lru_sort-support-young-page-filters.patch
+docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages.patch
+mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch
+mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning-fix.patch
+docs-admin-guide-mm-damon-lru_sort-document-active_mem_bp-parameter.patch
+mm-damon-lru_sort-add-monitoring-intervals-auto-tuning-parameter.patch
+docs-admin-guide-mm-damon-lru_sort-document-intervals-autotuning.patch
+mm-damon-core-implement-damon_kdamond_pid.patch
+mm-damon-sysfs-use-damon_kdamond_pid.patch
+mm-damon-lru_sort-use-damon_kdamond_pid.patch
+mm-damon-reclaim-use-damon_kdamond_pid.patch
+mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch
+mm-vma-temporary-build-fix.patch
+selftests-damon-sysfs_memcg_path_leaksh-use-kmemleak.patch
+selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
+selftests-damon-access_memory-add-repeat-mode.patch
+selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
+selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
+mm-damon-remove-damon_operations-cleanup.patch
+mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch
+mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch
+mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch
+mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch
+mm-damon-core-rename-damos_filter_out-to-damos_core_filter_out.patch
+mm-damon-rename-damon_min_region-to-damon_min_region_sz.patch
+mm-damon-rename-min_sz_region-of-damon_ctx-to-min_region_sz.patch
+docs-mm-damon-index-simplify-the-intro.patch
+docs-mm-damon-design-link-repology-instead-of-fedora-package.patch
+docs-mm-damon-design-document-damon-sample-modules.patch
+docs-mm-damon-design-add-reference-to-damon_stat-usage.patch
+docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch
+docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch
+docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch
+docs-mm-damon-maintainer-profile-remove-damon-tests-perf-suggestion.patch
 
