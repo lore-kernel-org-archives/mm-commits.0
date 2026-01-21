@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E6933B6FE
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DEEE23A564
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967329; cv=none; b=Vj7uYnbuVlFnd5MgqvnZ3FeYIAiuv4jiEbp62UaiyBDTpJIiSP62PWzhcKZ5AZtcPsMZ+9tV/FOdULLwpSK4fCXF40COoiU29u1WWDZQ//eLyr5dGhzsnfwm3cSs2zeZvAcMeHTW1GKb1enaJ6etZd3IjR43i0JN4Z/zL+ILQUk=
+	t=1768967331; cv=none; b=e96kr47nUpTNfl3Rhk+jwYlUVwF3i4MgH5l7N50yc4I6iQlBTZ9EZ5wXmf0fSiA/v+5e+YutZKAS/svhoNsOivO9gzj+gTGglx2/wUVxAjsNcCyhQnh9928qlnjSdHsStbF7/ehwoZ2ePIktSPYWN4kYbqK8VPMObtBEmZfkhLI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967329; c=relaxed/simple;
-	bh=cginHxK4ZcVvRM32tf0dBtrFXWfnT5iSYyl2yuFu7vY=;
-	h=Date:To:From:Subject:Message-Id; b=NxxyTkRyt5XH2DWXTLJALZZrjHg8zm0xquhqVHq90/2DUZESvQpFdTmtVxRym1i+o8Pp+8uAlplDm7ZcHaMfSNecnpUbVYPPaL4d5sXsxLkcbzkGSZa6h0uk6233lf8lwwOEDDzgXEH2INHjOJy9anbfvAACzNkThYCUHT85cGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kpc/qcP/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967331; c=relaxed/simple;
+	bh=oWp2EAg1obXz/yR/pKriNCl+9dZ8l1tt8z01yAcVAzQ=;
+	h=Date:To:From:Subject:Message-Id; b=m2z2mRDbFHCICxXrwkRiH1DV+zymJUM483gH1sAPtR8Gtx35Cbbuh5CWOix/amIxnHa+aphOTpgMo2w/9TTs/RaTZn+sKrB8quQ/PbdpPnIDJJhw0BXKnxiZdmrER3Ozfp+5eyr4rb+y1m5X16SavpbZke0NnTjCXrTqt68kkYk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EV08dktG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kpc/qcP/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BEAC16AAE;
-	Wed, 21 Jan 2026 03:48:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EV08dktG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47447C16AAE;
+	Wed, 21 Jan 2026 03:48:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967329;
-	bh=cginHxK4ZcVvRM32tf0dBtrFXWfnT5iSYyl2yuFu7vY=;
+	s=korg; t=1768967330;
+	bh=oWp2EAg1obXz/yR/pKriNCl+9dZ8l1tt8z01yAcVAzQ=;
 	h=Date:To:From:Subject:From;
-	b=kpc/qcP/GfX09J1C86JHOlM4bLTnPd/S4gf8nmmzQWCm0Uc/PFM+CPm66qePM92HZ
-	 b/O7qZhxumOtWtMg0bJXN+Xd4dj6f5Mwfpg9/TimzR2dRdeTJSoQbtfTiklabCeXrg
-	 QyvmfD9T0rZDdpskI5jnhUxBaODbptVvSk9icQh8=
-Date: Tue, 20 Jan 2026 19:48:48 -0800
+	b=EV08dktGhdrld4EZ4nd5ROI+F11OCeKLm1ABszvgmulbaR+3H7lCoD5YiFoEVAYxg
+	 zXiLZTyoKsU+wI6At7RvF2bZoVbw4/ZrnZnZPzvvWH4h1R4if+tGJcS6XrM1YFrCQC
+	 KAdzqS0CnQKogTWgiK6AaOpUGTs4TwmTrLMOQagE=
+Date: Tue, 20 Jan 2026 19:48:49 -0800
 To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,akpm@linux-foundation.org,pnina.feder@mobileye.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-vmcoreinfo-allocate-vmcoreinfo_data-based-on-vmcoreinfo_bytes.patch removed from -mm tree
-Message-Id: <20260121034849.24BEAC16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-crash-handle-multi-page-vmcoreinfo-in-crash-kernel-copy.patch removed from -mm tree
+Message-Id: <20260121034850.47447C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel: vmcoreinfo: allocate vmcoreinfo_data based on VMCOREINFO_BYTES
+     Subject: kernel/crash: handle multi-page vmcoreinfo in crash kernel copy
 has been removed from the -mm tree.  Its filename was
-     kernel-vmcoreinfo-allocate-vmcoreinfo_data-based-on-vmcoreinfo_bytes.patch
+     kernel-crash-handle-multi-page-vmcoreinfo-in-crash-kernel-copy.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pnina Feder <pnina.feder@mobileye.com>
-Subject: kernel: vmcoreinfo: allocate vmcoreinfo_data based on VMCOREINFO_BYTES
-Date: Tue, 16 Dec 2025 15:28:00 +0200
+Subject: kernel/crash: handle multi-page vmcoreinfo in crash kernel copy
+Date: Tue, 16 Dec 2025 15:28:01 +0200
 
-Patch series "vmcoreinfo: support VMCOREINFO_BYTES larger than PAGE_SIZE".
+kimage_crash_copy_vmcoreinfo() currently assumes vmcoreinfo fits in a
+single page.  This breaks if VMCOREINFO_BYTES exceeds PAGE_SIZE.
 
-VMCOREINFO_BYTES is defined as a configurable size, but multiple
-code paths implicitly assume it always fits into a single page.
+Allocate the required order of control pages and vmap all pages needed to
+safely copy vmcoreinfo into the crash kernel image.
 
-This series removes that assumption by allocating and mapping
-vmcoreinfo based on its actual size.
-
-Patch 1 updates vmcoreinfo allocation to use get_order(VMCOREINFO_BYTES).
-Patch 2 updates crash kernel handling to correctly allocate and map
-multiple pages when copying vmcoreinfo.
-
-This makes vmcoreinfo size consistent across the kernel and avoids
-future breakage if VMCOREINFO_BYTES grows.
-
-(No functional change when VMCOREINFO_BYTES == PAGE_SIZE.)
-
-
-This patch (of 2):
-
-VMCOREINFO_BYTES defines the size of vmcoreinfo data, but the current
-implementation assumes a single page allocation.
-
-Allocate vmcoreinfo_data using get_order(VMCOREINFO_BYTES) so that
-vmcoreinfo can safely grow beyond PAGE_SIZE.
-
-This avoids hidden assumptions and keeps vmcoreinfo size consistent across
-the kernel.
-
-Link: https://lkml.kernel.org/r/20251216132801.807260-1-pnina.feder@mobileye.com
-Link: https://lkml.kernel.org/r/20251216132801.807260-2-pnina.feder@mobileye.com
+Link: https://lkml.kernel.org/r/20251216132801.807260-3-pnina.feder@mobileye.com
 Signed-off-by: Pnina Feder <pnina.feder@mobileye.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Baoquan He <bhe@redhat.com>
@@ -86,30 +62,46 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/vmcore_info.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/crash_core.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/kernel/vmcore_info.c~kernel-vmcoreinfo-allocate-vmcoreinfo_data-based-on-vmcoreinfo_bytes
-+++ a/kernel/vmcore_info.c
-@@ -137,7 +137,9 @@ EXPORT_SYMBOL_GPL(hwerr_log_error_type);
+--- a/kernel/crash_core.c~kernel-crash-handle-multi-page-vmcoreinfo-in-crash-kernel-copy
++++ a/kernel/crash_core.c
+@@ -44,9 +44,15 @@ note_buf_t __percpu *crash_notes;
  
- static int __init crash_save_vmcoreinfo_init(void)
+ int kimage_crash_copy_vmcoreinfo(struct kimage *image)
  {
--	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
-+	int order;
+-	struct page *vmcoreinfo_page;
++	struct page *vmcoreinfo_base;
++	struct page *vmcoreinfo_pages[DIV_ROUND_UP(VMCOREINFO_BYTES, PAGE_SIZE)];
++	unsigned int order, nr_pages;
++	int i;
+ 	void *safecopy;
+ 
++	nr_pages = DIV_ROUND_UP(VMCOREINFO_BYTES, PAGE_SIZE);
 +	order = get_order(VMCOREINFO_BYTES);
-+	vmcoreinfo_data = (unsigned char *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
- 	if (!vmcoreinfo_data) {
- 		pr_warn("Memory allocation for vmcoreinfo_data failed\n");
++
+ 	if (!IS_ENABLED(CONFIG_CRASH_DUMP))
+ 		return 0;
+ 	if (image->type != KEXEC_TYPE_CRASH)
+@@ -61,12 +67,15 @@ int kimage_crash_copy_vmcoreinfo(struct
+ 	 * happens to generate vmcoreinfo note, hereby we rely on
+ 	 * vmap for this purpose.
+ 	 */
+-	vmcoreinfo_page = kimage_alloc_control_pages(image, 0);
+-	if (!vmcoreinfo_page) {
++	vmcoreinfo_base = kimage_alloc_control_pages(image, order);
++	if (!vmcoreinfo_base) {
+ 		pr_warn("Could not allocate vmcoreinfo buffer\n");
  		return -ENOMEM;
-@@ -146,7 +148,7 @@ static int __init crash_save_vmcoreinfo_
- 	vmcoreinfo_note = alloc_pages_exact(VMCOREINFO_NOTE_SIZE,
- 						GFP_KERNEL | __GFP_ZERO);
- 	if (!vmcoreinfo_note) {
--		free_page((unsigned long)vmcoreinfo_data);
-+		free_pages((unsigned long)vmcoreinfo_data, order);
- 		vmcoreinfo_data = NULL;
- 		pr_warn("Memory allocation for vmcoreinfo_note failed\n");
+ 	}
+-	safecopy = vmap(&vmcoreinfo_page, 1, VM_MAP, PAGE_KERNEL);
++	for (i = 0; i < nr_pages; i++)
++		vmcoreinfo_pages[i] = vmcoreinfo_base + i;
++
++	safecopy = vmap(vmcoreinfo_pages, nr_pages, VM_MAP, PAGE_KERNEL);
+ 	if (!safecopy) {
+ 		pr_warn("Could not vmap vmcoreinfo buffer\n");
  		return -ENOMEM;
 _
 
