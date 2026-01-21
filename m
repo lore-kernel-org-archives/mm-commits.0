@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F33AB21ABBB
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 19:36:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27664319852;
+	Wed, 21 Jan 2026 19:45:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769024207; cv=none; b=jh37VRarODczt+U84MHbS4BwilD00cvaJ1m7z7FMJMtA+5vatvHrI+41Rl+wfQRkxMhjE2RyNS1m3EqQK6KxKSv/Z/ZWmQXF46dhRmObn8sBud4f8IXcCna96mSexlzu5jjLgN8wXB34OlpsrkYkcN0rAmUMg4iG3EP17UUmvs8=
+	t=1769024706; cv=none; b=Ht2LAReElszTSf2YOMYJngSrIE3SmRHOtHT+NvFQkAZ6HSUQLzdu8k7LQ4mVDOapQcmULqCMR9FmQ7loX9h9waXe06y92X7uQqdwRDA7l7TCBx66Yup+SbEyXsaOmD+cl4UquCnms/kKdpslfG0pna14zHgRpepmqr3T+PWrkCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769024207; c=relaxed/simple;
-	bh=1wVoZcqysCxHRvp8u1hBKNex6WnDO+ChzTCNRXaE0us=;
-	h=Date:To:From:Subject:Message-Id; b=nn5sxZUEcpRMILTL8Ys1tdNOYQUOC2G3MJfCzUiu12wBH6gVWAVRWb5N9/uBfiETa9z1EN/ihy5DYsZ1bcQUyjUlCi5mk2daPJJJQbxvw9AwqEf6hBACyfqwV+uArdEIzdDr1n0d3o/7DIS+A8ASONjjHrBJQKMZcGSCOzatWPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0hbf8r3N; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769024706; c=relaxed/simple;
+	bh=J3Q3hUaP6eRIs6EPdWpRz02ClajqzwenrVDWIA29nYw=;
+	h=Date:To:From:Subject:Message-Id; b=iyq0JNiGaxa7SMkzV7+5EXm6Pjgus47UfsYkEPiGiDdVumlHJNnL8osETbfie0JqVDRv0veuy80EZGXnWgMMJHbus/hLABOSR7WfzXjW0gDlJ7hVEi/qTchmvYVF/+7nbQH4tfcQqA345klZmPvXsf1hz5xHd3SkOY9aqtO8tE4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cv7abE+0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0hbf8r3N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58144C4CEF1;
-	Wed, 21 Jan 2026 19:36:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cv7abE+0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1178EC4CEF1;
+	Wed, 21 Jan 2026 19:45:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769024206;
-	bh=1wVoZcqysCxHRvp8u1hBKNex6WnDO+ChzTCNRXaE0us=;
+	s=korg; t=1769024705;
+	bh=J3Q3hUaP6eRIs6EPdWpRz02ClajqzwenrVDWIA29nYw=;
 	h=Date:To:From:Subject:From;
-	b=0hbf8r3NldNN801R+foZoak+kQajOIT6DfZeRrN2miJY8kRjPG8vQw6qu3quRHB5k
-	 9Ik8VkETNy1lj2WEEsAqSRdv1HIAKxW9C/qNxfRAd1foCNhF9Fx99Yxg+L1y80VL61
-	 KtJOledT+2MMwp6uZJ+qP5ggbhVFNMlu/X/b4hgE=
-Date: Wed, 21 Jan 2026 11:36:45 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,songmuchun@bytedance.com,lkp@intel.com,kartikey406@gmail.com,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Cv7abE+0vyX4RuD2AgoRjWXYBKbGF4L2j1m+reTq/eXNaXyZYkNYSqHuPGH2Z0BsE
+	 8ORD2THX5/nalEJ20ctC81i/c3swreEbPXuCw99pwn/bQRAD4l8GOxBAjadlIyxS71
+	 6KCttju1zzBj7R9A3WVDJL9u36wXdnXXvHKMoBHU=
+Date: Wed, 21 Jan 2026 11:45:04 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,rostedt@goodmis.org,richard.weiyang@gmail.com,paulmck@kernel.org,david@kernel.org,bigeasy@linutronix.de,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch removed from -mm tree
-Message-Id: <20260121193646.58144C4CEF1@smtp.kernel.org>
+Subject: + mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260121194505.1178EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,54 +34,117 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch
+The patch titled
+     Subject: mm/mm_init: don't call cond_resched() in deferred_init_memmap_chunk() if rcu_preempt_depth() set
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix
-Date: Thu Jan 15 12:37:55 PM PST 2026
+From: Waiman Long <longman@redhat.com>
+Subject: mm/mm_init: don't call cond_resched() in deferred_init_memmap_chunk() if rcu_preempt_depth() set
+Date: Wed, 21 Jan 2026 14:10:36 -0500
 
-add missed rcu_unlock(), needed by "mm/swap_cgroup: fix kernel BUG in
-swap_cgroup_record".
+Commit 3acb913c9d5b ("mm/mm_init: use deferred_init_memmap_chunk() in
+deferred_grow_zone()") made deferred_grow_zone() call
+deferred_init_memmap_chunk() within a pgdat_resize_lock() critical section
+with irqs disabled.  It did check for irqs_disabled() in
+deferred_init_memmap_chunk() to avoid calling cond_resched().  For a
+PREEMPT_RT kernel build, however, spin_lock_irqsave() does not disable
+interrupt but rcu_read_lock() is called.  This leads to the following bug
+report.
 
-Reported-by: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Deepanshu Kartikey <kartikey406@gmail.com>
+  BUG: sleeping function called from invalid context at mm/mm_init.c:2091
+  in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 1, name: swapper/0
+  preempt_count: 0, expected: 0
+  RCU nest depth: 1, expected: 0
+  3 locks held by swapper/0/1:
+   #0: ffff80008471b7a0 (sched_domains_mutex){+.+.}-{4:4}, at: sched_domains_mutex_lock+0x28/0x40
+   #1: ffff003bdfffef48 (&pgdat->node_size_lock){+.+.}-{3:3}, at: deferred_grow_zone+0x140/0x278
+   #2: ffff800084acf600 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1b4/0x408
+  CPU: 0 UID: 0 PID: 1 Comm: swapper/0 Tainted: G        W           6.19.0-rc6-test #1 PREEMPT_{RT,(full)
+}
+  Tainted: [W]=WARN
+  Call trace:
+   show_stack+0x20/0x38 (C)
+   dump_stack_lvl+0xdc/0xf8
+   dump_stack+0x1c/0x28
+   __might_resched+0x384/0x530
+   deferred_init_memmap_chunk+0x560/0x688
+   deferred_grow_zone+0x190/0x278
+   _deferred_grow_zone+0x18/0x30
+   get_page_from_freelist+0x780/0xf78
+   __alloc_frozen_pages_noprof+0x1dc/0x348
+   alloc_slab_page+0x30/0x110
+   allocate_slab+0x98/0x2a0
+   new_slab+0x4c/0x80
+   ___slab_alloc+0x5a4/0x770
+   __slab_alloc.constprop.0+0x88/0x1e0
+   __kmalloc_node_noprof+0x2c0/0x598
+   __sdt_alloc+0x3b8/0x728
+   build_sched_domains+0xe0/0x1260
+   sched_init_domains+0x14c/0x1c8
+   sched_init_smp+0x9c/0x1d0
+   kernel_init_freeable+0x218/0x358
+   kernel_init+0x28/0x208
+   ret_from_fork+0x10/0x20
+
+Fix it by checking rcu_preempt_depth() as well to prevent calling
+cond_resched(). Note that CONFIG_PREEMPT_RCU should always be enabled
+in a PREEMPT_RT kernel.
+
+Link: https://lkml.kernel.org/r/20260121191036.461389-1-longman@redhat.com
+Fixes: 3acb913c9d5b ("mm/mm_init: use deferred_init_memmap_chunk() in deferred_grow_zone()")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/mm_init.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol-v1.c~mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix
-+++ a/mm/memcontrol-v1.c
-@@ -639,8 +639,10 @@ void memcg1_swapout(struct folio *folio,
- 	 * in swapcache, reusing the same swap entries.
- 	 */
- 	oldid = lookup_swap_cgroup_id(entry);
--	if (oldid == mem_cgroup_id(memcg))
-+	if (oldid == mem_cgroup_id(memcg)) {
-+		rcu_read_unlock();
- 		return;
-+	}
- 	VM_WARN_ON_ONCE(oldid != 0);
+--- a/mm/mm_init.c~mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set
++++ a/mm/mm_init.c
+@@ -2085,7 +2085,12 @@ deferred_init_memmap_chunk(unsigned long
  
- 	/*
+ 			spfn = chunk_end;
+ 
+-			if (irqs_disabled())
++			/*
++			 * pgdat_resize_lock() only disables irqs in non-RT
++			 * kernels but calls rcu_read_lock() in a PREEMPT_RT
++			 * kernel.
++			 */
++			if (irqs_disabled() || rcu_preempt_depth())
+ 				touch_nmi_watchdog();
+ 			else
+ 				cond_resched();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from longman@redhat.com are
 
-memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
-mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
-sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
-mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
-mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set.patch
 
