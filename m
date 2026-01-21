@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD132217F33
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 00:26:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A622A2D3725;
+	Wed, 21 Jan 2026 00:45:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768955214; cv=none; b=QkfrAkECg/DADVXcoZaEbvnN45BTHt/mw6JBRn3pRYaW3A805wQ5PjGKfKDZ7G96WhOcZs+FHA2s6MeHtWllKYt4CN2QzlH7qIUP5rdnj6hoY4KnnZHTsho7x6CVO/Lc2UoUUt53o4FHf/L4WSt+y3VNCQmRhbS0sTOGAs7a3R4=
+	t=1768956322; cv=none; b=E4K3CKeRNVtLROqeSPCXeM5Exmqw6sCsXpJe2trBIvFEEj1Ib6J4NLkwYsBAt0ASr2DQOPPQBVECdAFHR25O5j7nwnrcDPBgA0aFsWXie5rfDsf3K31rhWPrnZyJFzkQAJe9Lmtxvi6lRDh6rtgvqeA0v2STddAGoYW0LV1jpyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768955214; c=relaxed/simple;
-	bh=p/0rLkMONmpDpoT3uwNUXquD8rkFCpTBxFD7izm6/is=;
-	h=Date:To:From:Subject:Message-Id; b=X5alvVzvRJx5pC5kquH89VFvjymCvpWYRMUPFPdlBKYWNGnbV/UCbDaNDg/mZ9oE+ahfZLM9h5kcs7ioJlVYOfalZs13sjHXZQ97IUaac8L/D6nMs1sNMJVPmDy2koK6cLdS0UbL3HzUN4H5l4dQBtFcwWilxYLZy9Yd8/y0bX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZEMV+J5j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768956322; c=relaxed/simple;
+	bh=l6zuJzmyWiIcCvXIJaZjjtrFAYjAPm4n4HbNp4EbrSY=;
+	h=Date:To:From:Subject:Message-Id; b=mR1xSq8cEepbwddUvvm2uXtp5tFNzGrEmP5Mt4lAxCFFUJA55ozcTqUaZetrcKnHnSq9zcOjX5SswRrv10upOsJ/qubE6h7NTrV8tHLLgZKrU9fi4LxEnR7x0/ZvcLSNLmnDstnT3bHSMjCx3S58QEh7369ogVkbqTuBfxMNG70=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LwdkK6KM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZEMV+J5j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39C0EC16AAE;
-	Wed, 21 Jan 2026 00:26:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LwdkK6KM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D456FC16AAE;
+	Wed, 21 Jan 2026 00:45:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768955214;
-	bh=p/0rLkMONmpDpoT3uwNUXquD8rkFCpTBxFD7izm6/is=;
+	s=korg; t=1768956320;
+	bh=l6zuJzmyWiIcCvXIJaZjjtrFAYjAPm4n4HbNp4EbrSY=;
 	h=Date:To:From:Subject:From;
-	b=ZEMV+J5jgWfVg8kdd49svjgmgxJiEmqOA9UKVscEMFkdRzWEnOotHvww+hzHQWkP9
-	 t5R3j2sHSaRAdxdbNTlbFqZkCy0llvba2wGpNsincUsujRR5jYp7WqSUaFqErSWeNY
-	 sxwr3gAYdBKsTk0wbkgYkZ7914uXZa5i5DixU+oE=
-Date: Tue, 20 Jan 2026 16:26:53 -0800
-To: mm-commits@vger.kernel.org,kees@kernel.org,hch@infradead.org,cem@kernel.org,andy@kernel.org,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=LwdkK6KM/8oAyj1koBblI1I93oOQgHOQuVmHXxrE/cCwVzw/B1pUuszfp9p2qT1dZ
+	 YtZc5Jik34qovwO9G5vTs21zf25CHkiNaQIliJ6/T8s8ugNtJ0uAwJH8LXmgVEWWgc
+	 soLQcdtkTGbmjYX4QUJFTo2F97G4s9elh8lgRpMI=
+Date: Tue, 20 Jan 2026 16:45:20 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,william.roche@oracle.com,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rientjes@google.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,Liam.Howlett@oracle.com,jiaqiyan@google.com,david@kernel.org,clm@meta.com,jane.chu@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] xfs-adjust-handling-of-a-few-numerical-mount-options.patch removed from -mm tree
-Message-Id: <20260121002654.39C0EC16AAE@smtp.kernel.org>
+Subject: + mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260121004520.D456FC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,217 +34,259 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: xfs: adjust handling of a few numerical mount options
-has been removed from the -mm tree.  Its filename was
-     xfs-adjust-handling-of-a-few-numerical-mount-options.patch
+The patch titled
+     Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: xfs: adjust handling of a few numerical mount options
-Date: Thu, 8 Jan 2026 19:52:16 +0300
+From: Jane Chu <jane.chu@oracle.com>
+Subject: mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
+Date: Tue, 20 Jan 2026 16:22:33 -0700
 
-Prefer recently introduced 'memvalue()' over an ad-hoc
-'suffix_kstrtoint()' and 'suffix_kstrtoull()' to parse and basically
-validate the values passed via 'logbsize', 'allocsize', and
-'max_atomic_write' mount options, and reject non-power-of-two values
-passed via the first and second one early in 'xfs_fs_parse_param()' rather
-than in 'xfs_fs_validate_params()'.
+When a newly poisoned subpage ends up in an already poisoned hugetlb
+folio, 'num_poisoned_pages' is incremented, but the per node ->mf_stats is
+not.  Fix the inconsistency by designating action_result() to update them
+both.
 
-Link: https://lkml.kernel.org/r/20260108165216.1054625-2-dmantipov@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Cc: Andy Shevchenko <andy@kernel.org>
-Cc: Carlos Maiolino <cem@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Kees Cook <kees@kernel.org>
+While at it, define __get_huge_page_for_hwpoison() return values in terms
+of symbol names for better readibility.  Also rename
+folio_set_hugetlb_hwpoison() to hugetlb_update_hwpoison() since the
+function does more than the conventional bit setting and the fact three
+possible return values are expected.
+
+Link: https://lkml.kernel.org/r/20260120232234.3462258-1-jane.chu@oracle.com
+Fixes: 18f41fa616ee ("mm: memory-failure: bump memory failure stats to pglist_data")
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: <stable@vger.kernel.org>
+Cc: Chris Mason <clm@meta.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: William Roche <william.roche@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_super.c |  127 +++++++++----------------------------------
- 1 file changed, 29 insertions(+), 98 deletions(-)
+ mm/memory-failure.c |   93 +++++++++++++++++++++++++-----------------
+ 1 file changed, 56 insertions(+), 37 deletions(-)
 
---- a/fs/xfs/xfs_super.c~xfs-adjust-handling-of-a-few-numerical-mount-options
-+++ a/fs/xfs/xfs_super.c
-@@ -1319,77 +1319,6 @@ static const struct super_operations xfs
- 	.show_stats		= xfs_fs_show_stats,
- };
- 
--static int
--suffix_kstrtoint(
--	const char	*s,
--	unsigned int	base,
--	int		*res)
--{
--	int		last, shift_left_factor = 0, _res;
--	char		*value;
--	int		ret = 0;
--
--	value = kstrdup(s, GFP_KERNEL);
--	if (!value)
--		return -ENOMEM;
--
--	last = strlen(value) - 1;
--	if (value[last] == 'K' || value[last] == 'k') {
--		shift_left_factor = 10;
--		value[last] = '\0';
--	}
--	if (value[last] == 'M' || value[last] == 'm') {
--		shift_left_factor = 20;
--		value[last] = '\0';
--	}
--	if (value[last] == 'G' || value[last] == 'g') {
--		shift_left_factor = 30;
--		value[last] = '\0';
--	}
--
--	if (kstrtoint(value, base, &_res))
--		ret = -EINVAL;
--	kfree(value);
--	*res = _res << shift_left_factor;
--	return ret;
--}
--
--static int
--suffix_kstrtoull(
--	const char		*s,
--	unsigned int		base,
--	unsigned long long	*res)
--{
--	int			last, shift_left_factor = 0;
--	unsigned long long	_res;
--	char			*value;
--	int			ret = 0;
--
--	value = kstrdup(s, GFP_KERNEL);
--	if (!value)
--		return -ENOMEM;
--
--	last = strlen(value) - 1;
--	if (value[last] == 'K' || value[last] == 'k') {
--		shift_left_factor = 10;
--		value[last] = '\0';
--	}
--	if (value[last] == 'M' || value[last] == 'm') {
--		shift_left_factor = 20;
--		value[last] = '\0';
--	}
--	if (value[last] == 'G' || value[last] == 'g') {
--		shift_left_factor = 30;
--		value[last] = '\0';
--	}
--
--	if (kstrtoull(value, base, &_res))
--		ret = -EINVAL;
--	kfree(value);
--	*res = _res << shift_left_factor;
--	return ret;
--}
--
- static inline void
- xfs_fs_warn_deprecated(
- 	struct fs_context	*fc,
-@@ -1427,8 +1356,8 @@ xfs_fs_parse_param(
- {
- 	struct xfs_mount	*parsing_mp = fc->s_fs_info;
- 	struct fs_parse_result	result;
--	int			size = 0;
--	int			opt;
-+	int			opt, ret;
-+	unsigned long long	val;
- 
- 	BUILD_BUG_ON(XFS_QFLAGS_MNTOPTS & XFS_MOUNT_QUOTA_ALL);
- 
-@@ -1444,8 +1373,19 @@ xfs_fs_parse_param(
- 		parsing_mp->m_logbufs = result.uint_32;
- 		return 0;
- 	case Opt_logbsize:
--		if (suffix_kstrtoint(param->string, 10, &parsing_mp->m_logbsize))
-+		ret = memvalue(param->string, &val);
-+		if (ret)
-+			return ret;
-+		if (val != 0 &&
-+		    (val < XLOG_MIN_RECORD_BSIZE ||
-+		     val > XLOG_MAX_RECORD_BSIZE ||
-+		     !is_power_of_2(val))) {
-+			xfs_warn(parsing_mp,
-+				 "invalid logbsize %llu: not a power-of-two in [%u..%u]",
-+				 val, XLOG_MIN_RECORD_BSIZE, XLOG_MAX_RECORD_BSIZE);
- 			return -EINVAL;
-+		}
-+		parsing_mp->m_logbsize = val;
- 		return 0;
- 	case Opt_logdev:
- 		kfree(parsing_mp->m_logname);
-@@ -1460,9 +1400,18 @@ xfs_fs_parse_param(
- 			return -ENOMEM;
- 		return 0;
- 	case Opt_allocsize:
--		if (suffix_kstrtoint(param->string, 10, &size))
-+		ret = memvalue(param->string, &val);
-+		if (ret)
-+			return ret;
-+		if (val < (1ULL << XFS_MIN_IO_LOG) ||
-+		    val > (1ULL << XFS_MAX_IO_LOG) ||
-+		    !is_power_of_2(val)) {
-+			xfs_warn(parsing_mp,
-+				 "invalid allocsize %llu: not a power-of-two in [%u..%u]",
-+				 val, 1 << XFS_MIN_IO_LOG, 1 << XFS_MAX_IO_LOG);
- 			return -EINVAL;
--		parsing_mp->m_allocsize_log = ffs(size) - 1;
-+		}
-+		parsing_mp->m_allocsize_log = ffs(val) - 1;
- 		parsing_mp->m_features |= XFS_FEAT_ALLOCSIZE;
- 		return 0;
- 	case Opt_grpid:
-@@ -1570,12 +1519,13 @@ xfs_fs_parse_param(
- 		parsing_mp->m_features |= XFS_FEAT_NOLIFETIME;
- 		return 0;
- 	case Opt_max_atomic_write:
--		if (suffix_kstrtoull(param->string, 10,
--				     &parsing_mp->m_awu_max_bytes)) {
-+		ret = memvalue(param->string, &val);
-+		if (ret) {
- 			xfs_warn(parsing_mp,
-  "max atomic write size must be positive integer");
--			return -EINVAL;
-+			return ret;
- 		}
-+		parsing_mp->m_awu_max_bytes = val;
- 		return 0;
- 	default:
- 		xfs_warn(parsing_mp, "unknown mount option [%s].", param->key);
-@@ -1629,25 +1579,6 @@ xfs_fs_validate_params(
- 		return -EINVAL;
- 	}
- 
--	if (mp->m_logbsize != -1 &&
--	    mp->m_logbsize !=  0 &&
--	    (mp->m_logbsize < XLOG_MIN_RECORD_BSIZE ||
--	     mp->m_logbsize > XLOG_MAX_RECORD_BSIZE ||
--	     !is_power_of_2(mp->m_logbsize))) {
--		xfs_warn(mp,
--			"invalid logbufsize: %d [not 16k,32k,64k,128k or 256k]",
--			mp->m_logbsize);
--		return -EINVAL;
--	}
--
--	if (xfs_has_allocsize(mp) &&
--	    (mp->m_allocsize_log > XFS_MAX_IO_LOG ||
--	     mp->m_allocsize_log < XFS_MIN_IO_LOG)) {
--		xfs_warn(mp, "invalid log iosize: %d [not %d-%d]",
--			mp->m_allocsize_log, XFS_MIN_IO_LOG, XFS_MAX_IO_LOG);
--		return -EINVAL;
--	}
--
- 	return 0;
+--- a/mm/memory-failure.c~mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison
++++ a/mm/memory-failure.c
+@@ -1883,12 +1883,22 @@ static unsigned long __folio_free_raw_hw
+ 	return count;
  }
  
+-static int folio_set_hugetlb_hwpoison(struct folio *folio, struct page *page)
++#define	MF_HUGETLB_FREED		0	/* freed hugepage */
++#define	MF_HUGETLB_IN_USED		1	/* in-use hugepage */
++#define	MF_HUGETLB_NON_HUGEPAGE		2	/* not a hugepage */
++#define	MF_HUGETLB_FOLIO_PRE_POISONED	3	/* folio already poisoned */
++#define	MF_HUGETLB_PAGE_PRE_POISONED	4	/* exact page already poisoned */
++#define	MF_HUGETLB_RETRY		5	/* hugepage is busy, retry */
++/*
++ * Set hugetlb folio as hwpoisoned, update folio private raw hwpoison list
++ * to keep track of the poisoned pages.
++ */
++static int hugetlb_update_hwpoison(struct folio *folio, struct page *page)
+ {
+ 	struct llist_head *head;
+ 	struct raw_hwp_page *raw_hwp;
+ 	struct raw_hwp_page *p;
+-	int ret = folio_test_set_hwpoison(folio) ? -EHWPOISON : 0;
++	int ret = folio_test_set_hwpoison(folio) ? MF_HUGETLB_FOLIO_PRE_POISONED : 0;
+ 
+ 	/*
+ 	 * Once the hwpoison hugepage has lost reliable raw error info,
+@@ -1896,20 +1906,17 @@ static int folio_set_hugetlb_hwpoison(st
+ 	 * so skip to add additional raw error info.
+ 	 */
+ 	if (folio_test_hugetlb_raw_hwp_unreliable(folio))
+-		return -EHWPOISON;
++		return MF_HUGETLB_FOLIO_PRE_POISONED;
+ 	head = raw_hwp_list_head(folio);
+ 	llist_for_each_entry(p, head->first, node) {
+ 		if (p->page == page)
+-			return -EHWPOISON;
++			return MF_HUGETLB_PAGE_PRE_POISONED;
+ 	}
+ 
+ 	raw_hwp = kmalloc(sizeof(struct raw_hwp_page), GFP_ATOMIC);
+ 	if (raw_hwp) {
+ 		raw_hwp->page = page;
+ 		llist_add(&raw_hwp->node, head);
+-		/* the first error event will be counted in action_result(). */
+-		if (ret)
+-			num_poisoned_pages_inc(page_to_pfn(page));
+ 	} else {
+ 		/*
+ 		 * Failed to save raw error info.  We no longer trace all
+@@ -1957,42 +1964,39 @@ void folio_clear_hugetlb_hwpoison(struct
+ 
+ /*
+  * Called from hugetlb code with hugetlb_lock held.
+- *
+- * Return values:
+- *   0             - free hugepage
+- *   1             - in-use hugepage
+- *   2             - not a hugepage
+- *   -EBUSY        - the hugepage is busy (try to retry)
+- *   -EHWPOISON    - the hugepage is already hwpoisoned
+  */
+ int __get_huge_page_for_hwpoison(unsigned long pfn, int flags,
+ 				 bool *migratable_cleared)
+ {
+ 	struct page *page = pfn_to_page(pfn);
+ 	struct folio *folio = page_folio(page);
+-	int ret = 2;	/* fallback to normal page handling */
+ 	bool count_increased = false;
++	int ret, rc;
+ 
+-	if (!folio_test_hugetlb(folio))
++	if (!folio_test_hugetlb(folio)) {
++		ret = MF_HUGETLB_NON_HUGEPAGE;
+ 		goto out;
+-
+-	if (flags & MF_COUNT_INCREASED) {
+-		ret = 1;
++	} else if (flags & MF_COUNT_INCREASED) {
++		ret = MF_HUGETLB_IN_USED;
+ 		count_increased = true;
+ 	} else if (folio_test_hugetlb_freed(folio)) {
+-		ret = 0;
++		ret = MF_HUGETLB_FREED;
+ 	} else if (folio_test_hugetlb_migratable(folio)) {
+-		ret = folio_try_get(folio);
+-		if (ret)
++		if (folio_try_get(folio)) {
++			ret = MF_HUGETLB_IN_USED;
+ 			count_increased = true;
++		} else {
++			ret = MF_HUGETLB_FREED;
++		}
+ 	} else {
+-		ret = -EBUSY;
++		ret = MF_HUGETLB_RETRY;
+ 		if (!(flags & MF_NO_RETRY))
+ 			goto out;
+ 	}
+ 
+-	if (folio_set_hugetlb_hwpoison(folio, page)) {
+-		ret = -EHWPOISON;
++	rc = hugetlb_update_hwpoison(folio, page);
++	if (rc >= MF_HUGETLB_FOLIO_PRE_POISONED) {
++		ret = rc;
+ 		goto out;
+ 	}
+ 
+@@ -2017,10 +2021,16 @@ out:
+  * with basic operations like hugepage allocation/free/demotion.
+  * So some of prechecks for hwpoison (pinning, and testing/setting
+  * PageHWPoison) should be done in single hugetlb_lock range.
++ * Returns:
++ *	0		- not hugetlb, or recovered
++ *	-EBUSY		- not recovered
++ *	-EOPNOTSUPP	- hwpoison_filter'ed
++ *	-EHWPOISON	- folio or exact page already poisoned
++ *	-EFAULT		- kill_accessing_process finds current->mm null
+  */
+ static int try_memory_failure_hugetlb(unsigned long pfn, int flags, int *hugetlb)
+ {
+-	int res;
++	int res, rv;
+ 	struct page *p = pfn_to_page(pfn);
+ 	struct folio *folio;
+ 	unsigned long page_flags;
+@@ -2029,22 +2039,31 @@ static int try_memory_failure_hugetlb(un
+ 	*hugetlb = 1;
+ retry:
+ 	res = get_huge_page_for_hwpoison(pfn, flags, &migratable_cleared);
+-	if (res == 2) { /* fallback to normal page handling */
++	switch (res) {
++	case MF_HUGETLB_NON_HUGEPAGE:	/* fallback to normal page handling */
+ 		*hugetlb = 0;
+ 		return 0;
+-	} else if (res == -EHWPOISON) {
+-		if (flags & MF_ACTION_REQUIRED) {
+-			folio = page_folio(p);
+-			res = kill_accessing_process(current, folio_pfn(folio), flags);
+-		}
+-		action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
+-		return res;
+-	} else if (res == -EBUSY) {
++	case MF_HUGETLB_RETRY:
+ 		if (!(flags & MF_NO_RETRY)) {
+ 			flags |= MF_NO_RETRY;
+ 			goto retry;
+ 		}
+ 		return action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
++	case MF_HUGETLB_FOLIO_PRE_POISONED:
++	case MF_HUGETLB_PAGE_PRE_POISONED:
++		rv = -EHWPOISON;
++		if (flags & MF_ACTION_REQUIRED) {
++			folio = page_folio(p);
++			rv = kill_accessing_process(current, folio_pfn(folio), flags);
++		}
++		if (res == MF_HUGETLB_PAGE_PRE_POISONED)
++			action_result(pfn, MF_MSG_ALREADY_POISONED, MF_FAILED);
++		else
++			action_result(pfn, MF_MSG_HUGE, MF_FAILED);
++		return rv;
++	default:
++		WARN_ON((res != MF_HUGETLB_FREED) && (res != MF_HUGETLB_IN_USED));
++		break;
+ 	}
+ 
+ 	folio = page_folio(p);
+@@ -2055,7 +2074,7 @@ retry:
+ 		if (migratable_cleared)
+ 			folio_set_hugetlb_migratable(folio);
+ 		folio_unlock(folio);
+-		if (res == 1)
++		if (res == MF_HUGETLB_IN_USED)
+ 			folio_put(folio);
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -2064,7 +2083,7 @@ retry:
+ 	 * Handling free hugepage.  The possible race with hugepage allocation
+ 	 * or demotion can be prevented by PageHWPoison flag.
+ 	 */
+-	if (res == 0) {
++	if (res == MF_HUGETLB_FREED) {
+ 		folio_unlock(folio);
+ 		if (__page_handle_poison(p) > 0) {
+ 			page_ref_inc(p);
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from jane.chu@oracle.com are
 
-ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks.patch
-ocfs2-annotate-more-flexible-array-members-with-__counted_by_le.patch
+mm-memory-failure-fix-missing-mf_stats-count-in-hugetlb-poison.patch
+mm-memory-failure-teach-kill_accessing_process-to-accept-hugetlb-tail-page-pfn.patch
 
