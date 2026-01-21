@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE95930F958
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52CFD3587B0
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967362; cv=none; b=J21vrjNmVyzY8x/fBU2ySLdNT7hsNXqdKh3pAMAjC1QXGF8fjKS7r92aoRCYURwt477rEF1ij/mQ33Nmd32eis4Ic1CtQu75+dIjNqF/QR2ea7oOGUkZdpE/hKXe2oGid7HmmFHN6yPO6aXzrsG6uCxlZZbOp9NAfMWEau2ValU=
+	t=1768967364; cv=none; b=k+zBh9iRxzcXJSzG87etez+MXwg8+hZOWOPAQt8RfzKvrtQY+jX1w2jt31IQgFqSkvnqRNiR98h5IaMuqu7AJdWstvRBtB49iktKA3q6qzV8SjREdRE43EgcDe18S74oihQS0AqnfAZMUrnsupf2rdc72uZrVcMjlX/eHSAi9Dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967362; c=relaxed/simple;
-	bh=Yn32Bd+YllPW8MvqV8WyC3xRcOJTbo8UOOt74AweI3I=;
-	h=Date:To:From:Subject:Message-Id; b=M3UBTIKHTnR0Dm5UeXc4KkIcVFq22WIUClibvCVPTi1wvX/QoprS/GAbncOutkPSL1QMJTUs1s6XgM0wLLR5hBCNLC0Rmntaw8vVwtD2FYUHjvJYaKaL91cV8Gx8LeUcmvRSvk5Q/1tUQr5CKhWZQhDBi5gBTnrhozg3WUExZuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1qZOQ/FV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967364; c=relaxed/simple;
+	bh=reo5mQCMu6YxCJUycmNhF7HaGbIo/C3Gdbxr8GktSJU=;
+	h=Date:To:From:Subject:Message-Id; b=efST7BX64NcB9k65kDQXSjUZ5yMqNBvbYS0DG9IY2TP/K6uYyviuWngkSl7dGuf1KxO84lp7OLHFo5t8YGAginuFp4S4vMaJkB2Xo1WA4kz6uGlxa127LW3WX9GJuMRqKtc1vLVxJb2ftBn91k+KKDq4STGAmGbxMLl/4bHJ8K0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1797Ashb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1qZOQ/FV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A5CAC16AAE;
-	Wed, 21 Jan 2026 03:49:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1797Ashb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A03B2C19424;
+	Wed, 21 Jan 2026 03:49:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967362;
-	bh=Yn32Bd+YllPW8MvqV8WyC3xRcOJTbo8UOOt74AweI3I=;
+	s=korg; t=1768967363;
+	bh=reo5mQCMu6YxCJUycmNhF7HaGbIo/C3Gdbxr8GktSJU=;
 	h=Date:To:From:Subject:From;
-	b=1qZOQ/FViT8eybKUOH1m/YmHbawhYUpbMjRvwUXEUw7/NRmP3TsD43qAgpVIDvjTb
-	 JqPxKfkC+9P8QILEi+70i5DjZ+KPTy0h8XKKnkjAE4dZegRgSJnq56P+T+1M7nFTn1
-	 ElyHc2iCx7m+CB7D4Ka8mezmfbhFvVQ3yt3X03ks=
-Date: Tue, 20 Jan 2026 19:49:21 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stefani@seibold.net,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=1797AshbXN+E3NQKNOVALiAo63ybE5+7rSvSiIRgFchFiiVJ0tsa8jFjIaRLR3rrW
+	 UKVyyAJe5XIVindJEwWoYNWGidqX84FrVuKW1XYiJL5VH7jeBM7Ef12PPXWDv0FNrA
+	 dwXUkQ7N/AgBqXluCdWl4ikQTAETl8x8K3o1mMXE=
+Date: Tue, 20 Jan 2026 19:49:23 -0800
+To: mm-commits@vger.kernel.org,mic@digikod.net,masahiroy@kernel.org,ihuguet@redhat.com,danny@kdrag0n.dev,corbet@lwn.net,kari.argillander@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kfifo-fix-kmalloc_array_node-argument-order.patch removed from -mm tree
-Message-Id: <20260121034922.7A5CAC16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] editorconfig-add-rst-extension.patch removed from -mm tree
+Message-Id: <20260121034923.A03B2C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kfifo: fix kmalloc_array_node() argument order
+     Subject: editorconfig: add rst extension
 has been removed from the -mm tree.  Its filename was
-     kfifo-fix-kmalloc_array_node-argument-order.patch
+     editorconfig-add-rst-extension.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: kfifo: fix kmalloc_array_node() argument order
-Date: Fri, 19 Dec 2025 21:45:41 -0800
+From: Kari Argillander <kari.argillander@gmail.com>
+Subject: editorconfig: add rst extension
+Date: Fri, 19 Dec 2025 18:25:11 +0200
 
-To be consistent, pass the kmalloc_array_node() parameters in the order
-(number_of_elements, element_size).  Since only the product of the two
-values is used, this is not a bug fix.
+We have a lot of .rst documentation; use editorconfig rules for those. 
+This sets the default tab width to 8, which makes indentation consistent
+and avoids requiring developers to adjust editor settings manually.
 
-Link: https://lkml.kernel.org/r/20251220054541.2295599-1-rdunlap@infradead.org
-Closes: https://bugzilla.kernel.org/show_bug.cgi?id=216015
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stefani Seibold <stefani@seibold.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251219-editorconfig-rst-v1-1-58d4fa397664@gmail.com
+Signed-off-by: Kari Argillander <kari.argillander@gmail.com>
+Cc: Danny Lin <danny@kdrag0n.dev>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Mickael Salaun <mic@digikod.net>
+Cc: Íñigo Huguet <ihuguet@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kfifo.c |    2 +-
+ .editorconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/kfifo.c~kfifo-fix-kmalloc_array_node-argument-order
-+++ a/lib/kfifo.c
-@@ -41,7 +41,7 @@ int __kfifo_alloc_node(struct __kfifo *f
- 		return -EINVAL;
- 	}
+--- a/.editorconfig~editorconfig-add-rst-extension
++++ a/.editorconfig
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
  
--	fifo->data = kmalloc_array_node(esize, size, gfp_mask, node);
-+	fifo->data = kmalloc_array_node(size, esize, gfp_mask, node);
- 
- 	if (!fifo->data) {
- 		fifo->mask = 0;
+-[{*.{awk,c,dts,dtsi,dtso,h,mk,s,S},Kconfig,Makefile,Makefile.*}]
++[{*.{awk,c,dts,dtsi,dtso,h,mk,rst,s,S},Kconfig,Makefile,Makefile.*}]
+ charset = utf-8
+ end_of_line = lf
+ insert_final_newline = true
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from kari.argillander@gmail.com are
 
 
