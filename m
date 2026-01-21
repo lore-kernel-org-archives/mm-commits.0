@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5748330B04
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C59D32ED3C
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967312; cv=none; b=fMnJtF10K3kOmTdkS+GRMsvHe2w/uVk03rr24mT3xAhg3dST/jm9uDq3wp6pOrxiOVCIuusoJ8coUdu5RQjE4zJKMv5346c6ZTXK48jaS9qnZGMZZN/+wHBoHMfkV/kfNYDfS+Rr/YrEUgLQUoxkD84qdySPd0Og3usmrTTBAjA=
+	t=1768967314; cv=none; b=RMnnl146ynuIGO2TeYCC3OrtOGc/F7hSyE5HBrz3z6UqndB4LxsjBQ3D19CZugYGXcQMr9iTqej9GoUsN6/cqqwQ9oVicQwQ7oBClfqjGJXXVrd8+wxXhtjAnWIZN+MQ33wHC72xEAdn4mEUIUGTQ0ntVs9wVGoACBnbjpcaS3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967312; c=relaxed/simple;
-	bh=Q6moqageiaJFxuG3QPdsNFC0OIYyIiR7dO6GkkHeQbw=;
-	h=Date:To:From:Subject:Message-Id; b=Ee7VOeukkTn2rpKf4iUGw8cbERx2GpkqY3VtF4+whLqx4p7thz58WC5hiQJVTNO0Y8qadWINyU1A1pdf6Hm64HSJvFOO3HhcNek5hJKbJILJfywwqgwsLHZQeK1GVcTadU7aFcnAPKxkb/7ZYP2pvhlCDbssDnD3K5DzbI9i62k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vSzMf/ca; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967314; c=relaxed/simple;
+	bh=N7CmXrnWWR4VslxIQVEOAy2SCGRd9fDHKuQ7Qid0fkI=;
+	h=Date:To:From:Subject:Message-Id; b=UtSzCv0JzKfyl/zpX3IXBb+AdzHPz+0PrpTAz04SVamfTrMMUKkRXiI6YAcKnFcIJnkBVxiNqpHEJhbDtEaoo706rEkm48pOy10lCQlh/++kOTSXX1gDMRyiQ0YAdVp84sCg9V36g7PjYGkf35W8W8CvTg4jUsWS5tY0EvkfZ+M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NDIt3Z63; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vSzMf/ca"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E04AC16AAE;
-	Wed, 21 Jan 2026 03:48:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NDIt3Z63"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C44FC16AAE;
+	Wed, 21 Jan 2026 03:48:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967312;
-	bh=Q6moqageiaJFxuG3QPdsNFC0OIYyIiR7dO6GkkHeQbw=;
+	s=korg; t=1768967313;
+	bh=N7CmXrnWWR4VslxIQVEOAy2SCGRd9fDHKuQ7Qid0fkI=;
 	h=Date:To:From:Subject:From;
-	b=vSzMf/cauiHpXqUIOu6pZ15gRZBzyFwKwmoTVh0KGmMcCdqpv3d4Jv5O3zSvekWWT
-	 CdIIonpvjVOax3P+CtOWM4NOWmFZffquxiWHQ70GnvvV1y6Fx4rObyKqA8UYdhRdET
-	 QgzAsMtK8sVIEKZK/91xCSWnUDtZXFBz8YHoqqhQ=
-Date: Tue, 20 Jan 2026 19:48:31 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,kartikey406@gmail.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=NDIt3Z630LH77lAsZIaIcWB7bfVj+s9IBh24HN1Ci6IYWdHvsEaJdtJbXqyziJ9tK
+	 p0P0JKb7dPri5Wj2E0J2fufFZMmnQCCkTRY+hqDEamKJv16Hn5LIcZaKiv3gTpytvA
+	 pViHMo5BLRGmdHOYtuvvYYb4UlCVrQglr3snXttA=
+Date: Tue, 20 Jan 2026 19:48:32 -0800
+To: mm-commits@vger.kernel.org,syzbot+c818e5c4559444f88aa0@syzkaller.appspotmail.com,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,activprithvi@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks.patch removed from -mm tree
-Message-Id: <20260121034832.2E04AC16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-add-validate-function-for-slot-map-blocks.patch removed from -mm tree
+Message-Id: <20260121034833.6C44FC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,115 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: adjust ocfs2_xa_remove_entry() to match UBSAN boundary checks
+     Subject: ocfs2: add validate function for slot map blocks
 has been removed from the -mm tree.  Its filename was
-     ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks.patch
+     ocfs2-add-validate-function-for-slot-map-blocks.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: ocfs2: adjust ocfs2_xa_remove_entry() to match UBSAN boundary checks
-Date: Thu, 11 Dec 2025 18:59:49 +0300
+From: Prithvi Tambewagh <activprithvi@gmail.com>
+Subject: ocfs2: add validate function for slot map blocks
+Date: Tue, 16 Dec 2025 00:15:57 +0530
 
-After introducing 2f26f58df041 ("ocfs2: annotate flexible array members
-with __counted_by_le()"), syzbot has reported the following issue:
+When the filesystem is being mounted, the kernel panics while the data
+regarding slot map allocation to the local node, is being written to the
+disk.  This occurs because the value of slot map buffer head block number,
+which should have been greater than or equal to `OCFS2_SUPER_BLOCK_BLKNO`
+(evaluating to 2) is less than it, indicative of disk metadata corruption.
+This triggers BUG_ON(bh->b_blocknr < OCFS2_SUPER_BLOCK_BLKNO) in
+ocfs2_write_block(), causing the kernel to panic.
 
-UBSAN: array-index-out-of-bounds in fs/ocfs2/xattr.c:1955:3
-index 2 is out of range for type 'struct ocfs2_xattr_entry[]
-__counted_by(xh_count)' (aka 'struct ocfs2_xattr_entry[]')
-...
-Call Trace:
- <TASK>
- dump_stack_lvl+0x189/0x250 lib/dump_stack.c:120
- ubsan_epilogue+0xa/0x40 lib/ubsan.c:233
- __ubsan_handle_out_of_bounds+0xe9/0xf0 lib/ubsan.c:455
- ocfs2_xa_remove_entry+0x36d/0x3e0 fs/ocfs2/xattr.c:1955
- ...
+This is fixed by introducing function ocfs2_validate_slot_map_block() to
+validate slot map blocks.  It first checks if the buffer head passed to it
+is up to date and valid, else it panics the kernel at that point itself. 
+Further, it contains an if condition block, which checks if
+`bh->b_blocknr` is lesser than `OCFS2_SUPER_BLOCK_BLKNO`; if yes, then
+ocfs2_error is called, which prints the error log, for debugging purposes,
+and the return value of ocfs2_error() is returned.  If the if condition is
+false, value 0 is returned by ocfs2_validate_slot_map_block().
 
-To address this issue, 'xh_entries[]' member removal should be performed
-before actually changing 'xh_count', thus making sure that all array
-accesses matches the boundary checks performed by UBSAN.
+This function is used as validate function in calls to ocfs2_read_blocks()
+in ocfs2_refresh_slot_info() and ocfs2_map_slot_buffers().
 
-Link: https://lkml.kernel.org/r/20251211155949.774485-1-dmantipov@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: syzbot+cf96bc82a588a27346a8@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=cf96bc82a588a27346a8
+Link: https://lkml.kernel.org/r/20251215184600.13147-1-activprithvi@gmail.com
+Signed-off-by: Prithvi Tambewagh <activprithvi@gmail.com>
+Reported-by: syzbot+c818e5c4559444f88aa0@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=c818e5c4559444f88aa0
+Tested-by: <syzbot+c818e5c4559444f88aa0@syzkaller.appspotmail.com>
 Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Deepanshu Kartikey <kartikey406@gmail.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/slot_map.c |   27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-adjust-ocfs2_xa_remove_entry-to-match-ubsan-boundary-checks
-+++ a/fs/ocfs2/xattr.c
-@@ -1971,8 +1971,7 @@ static void ocfs2_xa_remove_entry(struct
- 	ocfs2_xa_wipe_namevalue(loc);
- 	loc->xl_entry = NULL;
+--- a/fs/ocfs2/slot_map.c~ocfs2-add-validate-function-for-slot-map-blocks
++++ a/fs/ocfs2/slot_map.c
+@@ -44,6 +44,9 @@ struct ocfs2_slot_info {
+ static int __ocfs2_node_num_to_slot(struct ocfs2_slot_info *si,
+ 				    unsigned int node_num);
  
--	le16_add_cpu(&xh->xh_count, -1);
--	count = le16_to_cpu(xh->xh_count);
-+	count = le16_to_cpu(xh->xh_count) - 1;
- 
- 	/*
- 	 * Only zero out the entry if there are more remaining.  This is
-@@ -1987,6 +1986,8 @@ static void ocfs2_xa_remove_entry(struct
- 		memset(&xh->xh_entries[count], 0,
- 		       sizeof(struct ocfs2_xattr_entry));
- 	}
++static int ocfs2_validate_slot_map_block(struct super_block *sb,
++					  struct buffer_head *bh);
 +
-+	xh->xh_count = cpu_to_le16(count);
+ static void ocfs2_invalidate_slot(struct ocfs2_slot_info *si,
+ 				  int slot_num)
+ {
+@@ -132,7 +135,8 @@ int ocfs2_refresh_slot_info(struct ocfs2
+ 	 * this is not true, the read of -1 (UINT64_MAX) will fail.
+ 	 */
+ 	ret = ocfs2_read_blocks(INODE_CACHE(si->si_inode), -1, si->si_blocks,
+-				si->si_bh, OCFS2_BH_IGNORE_CACHE, NULL);
++				si->si_bh, OCFS2_BH_IGNORE_CACHE,
++				ocfs2_validate_slot_map_block);
+ 	if (ret == 0) {
+ 		spin_lock(&osb->osb_lock);
+ 		ocfs2_update_slot_info(si);
+@@ -332,6 +336,24 @@ int ocfs2_clear_slot(struct ocfs2_super
+ 	return ocfs2_update_disk_slot(osb, osb->slot_info, slot_num);
  }
  
- /*
++static int ocfs2_validate_slot_map_block(struct super_block *sb,
++					  struct buffer_head *bh)
++{
++	int rc;
++
++	BUG_ON(!buffer_uptodate(bh));
++
++	if (bh->b_blocknr < OCFS2_SUPER_BLOCK_BLKNO) {
++		rc = ocfs2_error(sb,
++				 "Invalid Slot Map Buffer Head "
++				 "Block Number : %llu, Should be >= %d",
++				 (unsigned long long)bh->b_blocknr,
++				 OCFS2_SUPER_BLOCK_BLKNO);
++		return rc;
++	}
++	return 0;
++}
++
+ static int ocfs2_map_slot_buffers(struct ocfs2_super *osb,
+ 				  struct ocfs2_slot_info *si)
+ {
+@@ -383,7 +405,8 @@ static int ocfs2_map_slot_buffers(struct
+ 
+ 		bh = NULL;  /* Acquire a fresh bh */
+ 		status = ocfs2_read_blocks(INODE_CACHE(si->si_inode), blkno,
+-					   1, &bh, OCFS2_BH_IGNORE_CACHE, NULL);
++					   1, &bh, OCFS2_BH_IGNORE_CACHE,
++					   ocfs2_validate_slot_map_block);
+ 		if (status < 0) {
+ 			mlog_errno(status);
+ 			goto bail;
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from activprithvi@gmail.com are
 
 
