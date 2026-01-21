@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E620C2AD03
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 20:28:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C87733F37F
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 20:28:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769027291; cv=none; b=p1uuVUnlkS+atFBRAZ1gdy6uVCj0qA852w992YrnBaO0Hliu1qS5hZcNIf5+DWDty7D1i2gMP4XLCKrWRDKQuvV9anNBLOL5sQOnxwElkeH9QPuax/xk4OWVbB6IHQWAw+RLxdeRUh+ZP+VKDvCMFDFYiB+5wyuXT2HWSQk/i/o=
+	t=1769027293; cv=none; b=eJNsp+2QlFkQ0fiEfIK04NKl1Txty1MFqaLY3yQNQeQp+slHabmQrFjsh6tPdp1DlijNU5lwJ5SQrEav2CesK63dAukqXNPWjOnruoa/sfVNlcBUzwaTzXNPPAyEt7EzdwbF82vRne6qlJvwrZe+DNexZT2rgIOahHIWYwfWgLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769027291; c=relaxed/simple;
-	bh=ZTuB1uBRJ47sUbLu4DVWtusbP4JOcl2pPk/LWs+NNwg=;
-	h=Date:To:From:Subject:Message-Id; b=YHqiGhVwUUUdHR5PHtaOEtMdLu9sV4vLk5EAEsYfD/J3HE16R4G5AhhAnNjkJrOL7sLHPeEvDe8K+0Pd4Wimu4wYaqiOaauePI+Pl/kT5akQhec2+/XBNU+vLpC0TJsvUYR6KXgRWIZ+mnAxVZZU6iK37+FMof3LX4GyKURzCic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k6anEd7v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769027293; c=relaxed/simple;
+	bh=rve6S30OQ09Gewx1+hPRugkhxzfwi7f+XLS/126W5Mg=;
+	h=Date:To:From:Subject:Message-Id; b=DnmsfSpTTno3jJ4wIZZRIGCwkInhIKRIfB0UUcjaMXGCwZ/8I8+Gj95KTPVVe4aO563+1DZwiOoSq1fmtrcYWEi+jz4Ap/wgj1+8bjn9U6+sBInmGLDQ0E2fXeGr9rDCydn4L9cWklMvY142SaHLhvcccnXErQN5ztQwQUcbniA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ORKIgq7e; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k6anEd7v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C20DC4CEF1;
-	Wed, 21 Jan 2026 20:28:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ORKIgq7e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8191CC4CEF1;
+	Wed, 21 Jan 2026 20:28:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769027290;
-	bh=ZTuB1uBRJ47sUbLu4DVWtusbP4JOcl2pPk/LWs+NNwg=;
+	s=korg; t=1769027292;
+	bh=rve6S30OQ09Gewx1+hPRugkhxzfwi7f+XLS/126W5Mg=;
 	h=Date:To:From:Subject:From;
-	b=k6anEd7vCq28ooTQINFn89EIVScX0dYbW0LFL10Asg+Q/NFXAW8WtuPfas483Csg0
-	 gPmEW025eM8wBKzGQHLkgSpXUiXWcdXoG6bdqbFHsU5uq6cwnniDjDY4Mi10MpY9p9
-	 QDZ1Ao0mlAINTfS2rpU/Dtg0QTb5fzc6FRHMDQb8=
-Date: Wed, 21 Jan 2026 12:28:09 -0800
-To: mm-commits@vger.kernel.org,xueshuai@linux.alibaba.com,vgoyal@redhat.com,tony.luck@intel.com,osandov@osandov.com,dyoung@redhat.com,bhe@redhat.com,leitao@debian.org,akpm@linux-foundation.org
+	b=ORKIgq7e+/jxT0UBthyvg4V4lHO2zmWWV9skwo8VH2ur4iq6ERgX6ViKpqy0OUwVk
+	 qvOnn62bCXFOUrJuHWMl7wbsgFoVP4g3WLGbYuABo5DlYMDV24dp0JVT/4/N7m4rUb
+	 3zRIjLoDcLZWxkiVoJC9sA1ovDqqIu7kctg/Oxlo=
+Date: Wed, 21 Jan 2026 12:28:11 -0800
+To: mm-commits@vger.kernel.org,xueshuai@linux.alibaba.com,vgoyal@redhat.com,tony.luck@intel.com,osandov@osandov.com,leitao@debian.org,dyoung@redhat.com,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmcoreinfo-make-hwerr_data-visible-for-debugging.patch added to mm-nonmm-unstable branch
-Message-Id: <20260121202810.4C20DC4CEF1@smtp.kernel.org>
+Subject: + vmcoreinfo-make-hwerr_data-visible-for-debugging-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20260121202812.8191CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmcoreinfo: make hwerr_data visible for debugging
+     Subject: vmcoreinfo-make-hwerr_data-visible-for-debugging-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     vmcoreinfo-make-hwerr_data-visible-for-debugging.patch
+     vmcoreinfo-make-hwerr_data-visible-for-debugging-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcoreinfo-make-hwerr_data-visible-for-debugging.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcoreinfo-make-hwerr_data-visible-for-debugging-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,22 +58,14 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: vmcoreinfo: make hwerr_data visible for debugging
-Date: Wed, 21 Jan 2026 03:05:44 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmcoreinfo-make-hwerr_data-visible-for-debugging-fix
+Date: Wed Jan 21 12:23:52 PM PST 2026
 
-If the kernel is compiled with LTO, hwerr_data symbol might be lost, and
-vmcoreinfo doesn't have it dumped. This is currently seen in some
-production kernels with LTO enabled.
+add comment
 
-Remove the static qualifier from hwerr_data so that the information is
-still preserved when the kernel is built with LTO. Making hwerr_data
-a global symbol ensures its debug info survives the LTO link process and
-appears in kallsyms.
-
-Link: https://lkml.kernel.org/r/20260121-fix_vmcoreinfo-v1-1-39e96fab670e@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
 Cc: Baoquan He <bhe@redhat.com>
+Cc: Breno Leitao <leitao@debian.org>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Omar Sandoval <osandov@osandov.com>
@@ -82,23 +74,28 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/vmcore_info.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/vmcore_info.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/vmcore_info.c~vmcoreinfo-make-hwerr_data-visible-for-debugging
+--- a/kernel/vmcore_info.c~vmcoreinfo-make-hwerr_data-visible-for-debugging-fix
 +++ a/kernel/vmcore_info.c
-@@ -36,7 +36,7 @@ struct hwerr_info {
+@@ -36,6 +36,7 @@ struct hwerr_info {
  	time64_t timestamp;
  };
  
--static struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
-+struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
++/* hwerr_data[] has global scope to make it available in vmcoreinfo under LTO */
+ struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
  
  Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len)
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmcoreinfo-make-hwerr_data-visible-for-debugging.patch
+memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
+mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
+sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
+mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+vmcoreinfo-make-hwerr_data-visible-for-debugging-fix.patch
 
