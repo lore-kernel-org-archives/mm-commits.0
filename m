@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 718BD27FB28
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:26:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0A0F27FB28
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:26:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966015; cv=none; b=i5mDw/JMilbXcvP6yGlcmjKTaBpT22FMI4I+yUYiWmCA9eFKSZN9Zk43obd+5Jl2BEbW6d8Z/+aPVAGTZUPztgKTZzYwfaNgQoYrxbLuvOFH7iujlG/Zq9Gsaz3BLtE5IzGGxVEcrO1udLsrrtDfUTWbxc186EH3mcZ1J8df4QY=
+	t=1768966019; cv=none; b=VJwog+ZIIL+iBm6QeQlFOYIiiGungjOYKqEZ81G7ZkLJrmSFQqKvjD1ZzpSqt04259WKflJnhaZrB7eM+eYc4ptjKfe690JjzTedf9PXKPwxkCjmeQmqygpapJGswjSjfhVa1BANWBPBV7hDYpTFxwlWxIfBabYH6n1mttXOU+I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966015; c=relaxed/simple;
-	bh=ch89I1zO7E9FhTh5lRbGmMTgKTmBzaC6yca5gExaOiM=;
-	h=Date:To:From:Subject:Message-Id; b=QPpm79BcSU2zJbjqamP2sx2Vwf6h/OQ6ZCTqbRxNC77osDZj/5kn70UXzigcubN1Sa9qGyKsYN9+JsE2fsP+ql1eQxubqWCjDpQu5aQ4M2n7qSRqKWYsuko1CfkqGYiRCrTQM0Q4x+kQD3q332YPcHjhK3VI6SaqT5Pk+BDLOCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HcPzzEZh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966019; c=relaxed/simple;
+	bh=hn63OAyvA3NTPSgEktF77YLkr2+0qPUynVVCQmvbehU=;
+	h=Date:To:From:Subject:Message-Id; b=gqfg8+d645xQN/tzIEZ/VeIq3g3QtslUVmgQR9aqIC+kD6P5KW35WyGuhHfgh0ARDzXa0U0LxL64oR+cekGysrPU73xBi/Jj6yIjaMx22L3egG/Fpb3SJ+qM5PBiRyNpEKWk4lXJaxD/eN93ozGBjdv5y9UBsSRUzH+l2uRDN7E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SDvBzTAA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HcPzzEZh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA2D7C16AAE;
-	Wed, 21 Jan 2026 03:26:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SDvBzTAA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12EF0C16AAE;
+	Wed, 21 Jan 2026 03:26:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966015;
-	bh=ch89I1zO7E9FhTh5lRbGmMTgKTmBzaC6yca5gExaOiM=;
+	s=korg; t=1768966019;
+	bh=hn63OAyvA3NTPSgEktF77YLkr2+0qPUynVVCQmvbehU=;
 	h=Date:To:From:Subject:From;
-	b=HcPzzEZh0g88elHgnuIQA1nJ6CLEYFL+UDzEZVX1Gtz+7U4v7XJX/dRqLqoDIy3FG
-	 0f4CulMDQadQXG73SRCgre5gRDwcgpLzdP6e05tC3ODoWYKSGLnPEefxGoKKFCH1Si
-	 5sBYxidU8Y5lxcqt9Un8UXuubDOK8iG47XvbSrKA=
-Date: Tue, 20 Jan 2026 19:26:54 -0800
-To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,venkat88@linux.ibm.com,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,dwmw2@infradead.org,david@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,anshuman.khandual@arm.com,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
+	b=SDvBzTAAM7raMahV1lVxS/Sxnh3C0avEajFkUpC7dnFkh/T/mCFw8lc593PBu2UXB
+	 Rsu/n/ZDnp9tOm0hCNn381dxz4h0dncNa2RGF9nST0x9/jcIwN7nDkjl7V2gwMqlez
+	 9GhK7oZX5Z4N2HdjVGOYenmZ2Vv8AW+1SxP5NBe0=
+Date: Tue, 20 Jan 2026 19:26:58 -0800
+To: mm-commits@vger.kernel.org,hughd@google.com,baolin.wang@linux.alibaba.com,tongweilin@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-basic-tests-for-lazy_mmu.patch removed from -mm tree
-Message-Id: <20260121032654.DA2D7C16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-add-mthp-swpout-fallback-statistics-in-shmem_writeout.patch removed from -mm tree
+Message-Id: <20260121032659.12EF0C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,210 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add basic tests for lazy_mmu
+     Subject: mm/shmem: add mTHP swpout fallback statistics in shmem_writeout()
 has been removed from the -mm tree.  Its filename was
-     mm-add-basic-tests-for-lazy_mmu.patch
+     mm-shmem-add-mthp-swpout-fallback-statistics-in-shmem_writeout.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: mm: add basic tests for lazy_mmu
-Date: Mon, 15 Dec 2025 15:03:23 +0000
+From: Weilin Tong <tongweilin@linux.alibaba.com>
+Subject: mm/shmem: add mTHP swpout fallback statistics in shmem_writeout()
+Date: Mon, 15 Dec 2025 10:46:32 +0800
 
-Add basic KUnit tests for the generic aspects of the lazy MMU mode: ensure
-that it appears active when it should, depending on how enable/disable and
-pause/resume pairs are nested.
+Currently, when shmem mTHPs are split and swapped out via
+shmem_writeout(), there are no unified statistics to trace these mTHP
+swpout fallback events.  This makes it difficult to analyze the prevalence
+of mTHP splitting and fallback during swap operations, which is important
+for memory diagnostics.
 
-[akpm@linux-foundation.org: export ppc64_tlb_batch and __flush_tlb_pending to modules]
-[ritesh.list@gmail.com: use EXPORT_SYMBOL_IF_KUNIT()]
-  Link: https://lkml.kernel.org/r/87a4zhkt6h.ritesh.list@gmail.com
-[kevin.brodsky@arm.com: move MODULE_IMPORT_NS(), add comment]
-  Link: https://lkml.kernel.org/r/20251217163812.2633648-2-kevin.brodsky@arm.com
-Link: https://lkml.kernel.org/r/20251215150323.2218608-15-kevin.brodsky@arm.com
-Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Borislav Betkov <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Juegren Gross <jgross@suse.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Gleinxer <tglx@linutronix.de>
-Cc: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Here we add statistics counting for mTHP fallback to small pages when
+splitting and swapping out in shmem_writeout().
+
+Link: https://lkml.kernel.org/r/20251215024632.250149-1-tongweilin@linux.alibaba.com
+Signed-off-by: Weilin Tong <tongweilin@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/hash_tlb.c |    4 +
- mm/Kconfig                          |   12 ++++
- mm/Makefile                         |    1 
- mm/tests/lazy_mmu_mode_kunit.c      |   74 ++++++++++++++++++++++++++
- 4 files changed, 90 insertions(+), 1 deletion(-)
+ mm/shmem.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/arch/powerpc/mm/book3s64/hash_tlb.c~mm-add-basic-tests-for-lazy_mmu
-+++ a/arch/powerpc/mm/book3s64/hash_tlb.c
-@@ -25,11 +25,12 @@
- #include <asm/tlb.h>
- #include <asm/bug.h>
- #include <asm/pte-walk.h>
--
-+#include <kunit/visibility.h>
+--- a/mm/shmem.c~mm-shmem-add-mthp-swpout-fallback-statistics-in-shmem_writeout
++++ a/mm/shmem.c
+@@ -1593,11 +1593,23 @@ int shmem_writeout(struct folio *folio,
+ 	}
  
- #include <trace/events/thp.h>
- 
- DEFINE_PER_CPU(struct ppc64_tlb_batch, ppc64_tlb_batch);
-+EXPORT_SYMBOL_IF_KUNIT(ppc64_tlb_batch);
- 
- /*
-  * A linux PTE was changed and the corresponding hash table entry
-@@ -154,6 +155,7 @@ void __flush_tlb_pending(struct ppc64_tl
- 		flush_hash_range(i, local);
- 	batch->index = 0;
- }
-+EXPORT_SYMBOL_IF_KUNIT(__flush_tlb_pending);
- 
- void hash__tlb_flush(struct mmu_gather *tlb)
- {
---- a/mm/Kconfig~mm-add-basic-tests-for-lazy_mmu
-+++ a/mm/Kconfig
-@@ -1475,6 +1475,18 @@ config ARCH_HAS_LAZY_MMU_MODE
- 	  MMU-related architectural state to be deferred until the mode is
- 	  exited. See <linux/pgtable.h> for details.
- 
-+config LAZY_MMU_MODE_KUNIT_TEST
-+	tristate "KUnit tests for the lazy MMU mode" if !KUNIT_ALL_TESTS
-+	depends on ARCH_HAS_LAZY_MMU_MODE
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable this option to check that the lazy MMU mode interface behaves
-+	  as expected. Only tests for the generic interface are included (not
-+	  architecture-specific behaviours).
+ 	if (split) {
++		int order;
 +
-+	  If unsure, say N.
+ try_split:
++		order = folio_order(folio);
+ 		/* Ensure the subpages are still dirty */
+ 		folio_test_set_dirty(folio);
+ 		if (split_folio_to_list(folio, folio_list))
+ 			goto redirty;
 +
- source "mm/damon/Kconfig"
- 
- endmenu
---- a/mm/Makefile~mm-add-basic-tests-for-lazy_mmu
-+++ a/mm/Makefile
-@@ -147,3 +147,4 @@ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker
- obj-$(CONFIG_EXECMEM) += execmem.o
- obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
- obj-$(CONFIG_PT_RECLAIM) += pt_reclaim.o
-+obj-$(CONFIG_LAZY_MMU_MODE_KUNIT_TEST) += tests/lazy_mmu_mode_kunit.o
-diff --git a/mm/tests/lazy_mmu_mode_kunit.c a/mm/tests/lazy_mmu_mode_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/mm/tests/lazy_mmu_mode_kunit.c
-@@ -0,0 +1,74 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+#include <kunit/test.h>
-+#include <linux/pgtable.h>
-+
-+/* For some symbols referenced by arch_{enter,leave}_lazy_mmu_mode on powerpc */
-+MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
-+
-+static void expect_not_active(struct kunit *test)
-+{
-+	KUNIT_EXPECT_FALSE(test, is_lazy_mmu_mode_active());
-+}
-+
-+static void expect_active(struct kunit *test)
-+{
-+	KUNIT_EXPECT_TRUE(test, is_lazy_mmu_mode_active());
-+}
-+
-+static void lazy_mmu_mode_active(struct kunit *test)
-+{
-+	expect_not_active(test);
-+
-+	lazy_mmu_mode_enable();
-+	expect_active(test);
-+
-+	{
-+		/* Nested section */
-+		lazy_mmu_mode_enable();
-+		expect_active(test);
-+
-+		lazy_mmu_mode_disable();
-+		expect_active(test);
-+	}
-+
-+	{
-+		/* Paused section */
-+		lazy_mmu_mode_pause();
-+		expect_not_active(test);
-+
-+		{
-+			/* No effect (paused) */
-+			lazy_mmu_mode_enable();
-+			expect_not_active(test);
-+
-+			lazy_mmu_mode_disable();
-+			expect_not_active(test);
-+
-+			lazy_mmu_mode_pause();
-+			expect_not_active(test);
-+
-+			lazy_mmu_mode_resume();
-+			expect_not_active(test);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++		if (order >= HPAGE_PMD_ORDER) {
++			count_memcg_folio_events(folio, THP_SWPOUT_FALLBACK, 1);
++			count_vm_event(THP_SWPOUT_FALLBACK);
 +		}
++#endif
++		count_mthp_stat(order, MTHP_STAT_SWPOUT_FALLBACK);
 +
-+		lazy_mmu_mode_resume();
-+		expect_active(test);
-+	}
-+
-+	lazy_mmu_mode_disable();
-+	expect_not_active(test);
-+}
-+
-+static struct kunit_case lazy_mmu_mode_test_cases[] = {
-+	KUNIT_CASE(lazy_mmu_mode_active),
-+	{}
-+};
-+
-+static struct kunit_suite lazy_mmu_mode_test_suite = {
-+	.name = "lazy_mmu_mode",
-+	.test_cases = lazy_mmu_mode_test_cases,
-+};
-+kunit_test_suite(lazy_mmu_mode_test_suite);
-+
-+MODULE_DESCRIPTION("Tests for the lazy MMU mode");
-+MODULE_LICENSE("GPL");
+ 		folio_clear_dirty(folio);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from kevin.brodsky@arm.com are
+Patches currently in -mm which might be from tongweilin@linux.alibaba.com are
 
-selftests-mm-default-kdir-to-build-directory.patch
-selftests-mm-remove-flaky-header-check.patch
-selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh.patch
-selftests-mm-fix-usage-of-force_read-in-cow-tests.patch
-selftests-mm-introduce-helper-to-read-every-page-in-range.patch
-selftests-mm-fix-faulting-in-code-in-pagemap_ioctl-test.patch
-selftests-mm-fix-exit-code-in-pagemap_ioctl.patch
-selftests-mm-report-skip-in-pfnmap-if-a-check-fails.patch
 
