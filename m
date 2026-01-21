@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFA3E2D94A9
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:26:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 718BD27FB28
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:26:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966013; cv=none; b=Nmj4OTEfs8IvEG2rL922DqKTZovD4Sa6P8FgjPjHLUv+e8Q93rSZHOm59snVlODYogFljn1YDxS0mtBG6bqEKuVKZrvTIVrjvRQtcpxn3rHy9TayPs2Ls4xspILZrO7rTNW4rsn2on5JEDwSqYq6zUY0HhYC/0gL7E7soq1yxek=
+	t=1768966015; cv=none; b=i5mDw/JMilbXcvP6yGlcmjKTaBpT22FMI4I+yUYiWmCA9eFKSZN9Zk43obd+5Jl2BEbW6d8Z/+aPVAGTZUPztgKTZzYwfaNgQoYrxbLuvOFH7iujlG/Zq9Gsaz3BLtE5IzGGxVEcrO1udLsrrtDfUTWbxc186EH3mcZ1J8df4QY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966013; c=relaxed/simple;
-	bh=GEvTMnCM5azSNWSGRwQEBBNCcTcs6maJ8qJHgogUWLs=;
-	h=Date:To:From:Subject:Message-Id; b=Z0Gyx9c54F2digLWRdeAtuBBmXmF0SAueJsKcUfyqYssit5qcBVdwCoJnTBSiRqqcNqVKqpBvQWq5mU+tVf/ynKq9Wrw2s9TMcIizgoheM6X8O9VT+u2zjvUHQGI3mFNUf/e1yG3MKcBhkuJ4AI94oxoWKUc4VCaXxSQfPEjs3s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0w7pwTEj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966015; c=relaxed/simple;
+	bh=ch89I1zO7E9FhTh5lRbGmMTgKTmBzaC6yca5gExaOiM=;
+	h=Date:To:From:Subject:Message-Id; b=QPpm79BcSU2zJbjqamP2sx2Vwf6h/OQ6ZCTqbRxNC77osDZj/5kn70UXzigcubN1Sa9qGyKsYN9+JsE2fsP+ql1eQxubqWCjDpQu5aQ4M2n7qSRqKWYsuko1CfkqGYiRCrTQM0Q4x+kQD3q332YPcHjhK3VI6SaqT5Pk+BDLOCA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HcPzzEZh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0w7pwTEj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CE6EC16AAE;
-	Wed, 21 Jan 2026 03:26:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HcPzzEZh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA2D7C16AAE;
+	Wed, 21 Jan 2026 03:26:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966013;
-	bh=GEvTMnCM5azSNWSGRwQEBBNCcTcs6maJ8qJHgogUWLs=;
+	s=korg; t=1768966015;
+	bh=ch89I1zO7E9FhTh5lRbGmMTgKTmBzaC6yca5gExaOiM=;
 	h=Date:To:From:Subject:From;
-	b=0w7pwTEjL/ekXL8WEi0pPdfPibZAsHHpPDeKy+LHxfH4nsKzKZ8WGvr6UhntqXZnH
-	 rJF4GhdPfYqtKLBofoBIvvucr+o6siu3byF1v7OCe/HqbF647BKb2wkxUcAB8AhJ1S
-	 1WOI54+XtFbWLOEmB7jMv+yFsONX4i4pYccizaOY=
-Date: Tue, 20 Jan 2026 19:26:52 -0800
-To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,venkat88@linux.ibm.com,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,dwmw2@infradead.org,david@redhat.com,david@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,anshuman.khandual@arm.com,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
+	b=HcPzzEZh0g88elHgnuIQA1nJ6CLEYFL+UDzEZVX1Gtz+7U4v7XJX/dRqLqoDIy3FG
+	 0f4CulMDQadQXG73SRCgre5gRDwcgpLzdP6e05tC3ODoWYKSGLnPEefxGoKKFCH1Si
+	 5sBYxidU8Y5lxcqt9Un8UXuubDOK8iG47XvbSrKA=
+Date: Tue, 20 Jan 2026 19:26:54 -0800
+To: mm-commits@vger.kernel.org,yeoreum.yun@arm.com,will@kernel.org,venkat88@linux.ibm.com,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,ritesh.list@gmail.com,peterz@infradead.org,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jgross@suse.com,jannh@google.com,hpa@zytor.com,dwmw2@infradead.org,david@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,bp@alien8.de,boris.ostrovsky@oracle.com,anshuman.khandual@arm.com,andreas@gaisler.com,agordeev@linux.ibm.com,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-xen-use-lazy_mmu_state-when-context-switching.patch removed from -mm tree
-Message-Id: <20260121032653.4CE6EC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-basic-tests-for-lazy_mmu.patch removed from -mm tree
+Message-Id: <20260121032654.DA2D7C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/xen: use lazy_mmu_state when context-switching
+     Subject: mm: add basic tests for lazy_mmu
 has been removed from the -mm tree.  Its filename was
-     x86-xen-use-lazy_mmu_state-when-context-switching.patch
+     mm-add-basic-tests-for-lazy_mmu.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: x86/xen: use lazy_mmu_state when context-switching
-Date: Mon, 15 Dec 2025 15:03:22 +0000
+Subject: mm: add basic tests for lazy_mmu
+Date: Mon, 15 Dec 2025 15:03:23 +0000
 
-We currently set a TIF flag when scheduling out a task that is in lazy MMU
-mode, in order to restore it when the task is scheduled again.
+Add basic KUnit tests for the generic aspects of the lazy MMU mode: ensure
+that it appears active when it should, depending on how enable/disable and
+pause/resume pairs are nested.
 
-The generic lazy_mmu layer now tracks whether a task is in lazy MMU mode
-in task_struct::lazy_mmu_state.  We can therefore check that state when
-switching to the new task, instead of using a separate TIF flag.
-
-Link: https://lkml.kernel.org/r/20251215150323.2218608-14-kevin.brodsky@arm.com
+[akpm@linux-foundation.org: export ppc64_tlb_batch and __flush_tlb_pending to modules]
+[ritesh.list@gmail.com: use EXPORT_SYMBOL_IF_KUNIT()]
+  Link: https://lkml.kernel.org/r/87a4zhkt6h.ritesh.list@gmail.com
+[kevin.brodsky@arm.com: move MODULE_IMPORT_NS(), add comment]
+  Link: https://lkml.kernel.org/r/20251217163812.2633648-2-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20251215150323.2218608-15-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Juergen Gross <jgross@suse.com>
 Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -66,12 +68,12 @@ Cc: Borislav Betkov <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jann Horn <jannh@google.com>
+Cc: Juegren Gross <jgross@suse.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -90,49 +92,143 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/thread_info.h |    4 +---
- arch/x86/xen/enlighten_pv.c        |    3 +--
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ arch/powerpc/mm/book3s64/hash_tlb.c |    4 +
+ mm/Kconfig                          |   12 ++++
+ mm/Makefile                         |    1 
+ mm/tests/lazy_mmu_mode_kunit.c      |   74 ++++++++++++++++++++++++++
+ 4 files changed, 90 insertions(+), 1 deletion(-)
 
---- a/arch/x86/include/asm/thread_info.h~x86-xen-use-lazy_mmu_state-when-context-switching
-+++ a/arch/x86/include/asm/thread_info.h
-@@ -100,8 +100,7 @@ struct thread_info {
- #define TIF_FORCED_TF		24	/* true if TF in eflags artificially */
- #define TIF_SINGLESTEP		25	/* reenable singlestep on user return*/
- #define TIF_BLOCKSTEP		26	/* set when we want DEBUGCTLMSR_BTF */
--#define TIF_LAZY_MMU_UPDATES	27	/* task is updating the mmu lazily */
--#define TIF_ADDR32		28	/* 32-bit address space on 64 bits */
-+#define TIF_ADDR32		27	/* 32-bit address space on 64 bits */
+--- a/arch/powerpc/mm/book3s64/hash_tlb.c~mm-add-basic-tests-for-lazy_mmu
++++ a/arch/powerpc/mm/book3s64/hash_tlb.c
+@@ -25,11 +25,12 @@
+ #include <asm/tlb.h>
+ #include <asm/bug.h>
+ #include <asm/pte-walk.h>
+-
++#include <kunit/visibility.h>
  
- #define _TIF_SSBD		BIT(TIF_SSBD)
- #define _TIF_SPEC_IB		BIT(TIF_SPEC_IB)
-@@ -114,7 +113,6 @@ struct thread_info {
- #define _TIF_FORCED_TF		BIT(TIF_FORCED_TF)
- #define _TIF_BLOCKSTEP		BIT(TIF_BLOCKSTEP)
- #define _TIF_SINGLESTEP		BIT(TIF_SINGLESTEP)
--#define _TIF_LAZY_MMU_UPDATES	BIT(TIF_LAZY_MMU_UPDATES)
- #define _TIF_ADDR32		BIT(TIF_ADDR32)
+ #include <trace/events/thp.h>
  
- /* flags to check in __switch_to() */
---- a/arch/x86/xen/enlighten_pv.c~x86-xen-use-lazy_mmu_state-when-context-switching
-+++ a/arch/x86/xen/enlighten_pv.c
-@@ -426,7 +426,6 @@ static void xen_start_context_switch(str
+ DEFINE_PER_CPU(struct ppc64_tlb_batch, ppc64_tlb_batch);
++EXPORT_SYMBOL_IF_KUNIT(ppc64_tlb_batch);
  
- 	if (this_cpu_read(xen_lazy_mode) == XEN_LAZY_MMU) {
- 		arch_leave_lazy_mmu_mode();
--		set_ti_thread_flag(task_thread_info(prev), TIF_LAZY_MMU_UPDATES);
- 	}
- 	enter_lazy(XEN_LAZY_CPU);
+ /*
+  * A linux PTE was changed and the corresponding hash table entry
+@@ -154,6 +155,7 @@ void __flush_tlb_pending(struct ppc64_tl
+ 		flush_hash_range(i, local);
+ 	batch->index = 0;
  }
-@@ -437,7 +436,7 @@ static void xen_end_context_switch(struc
++EXPORT_SYMBOL_IF_KUNIT(__flush_tlb_pending);
  
- 	xen_mc_flush();
- 	leave_lazy(XEN_LAZY_CPU);
--	if (test_and_clear_ti_thread_flag(task_thread_info(next), TIF_LAZY_MMU_UPDATES))
-+	if (__task_lazy_mmu_mode_active(next))
- 		arch_enter_lazy_mmu_mode();
- }
+ void hash__tlb_flush(struct mmu_gather *tlb)
+ {
+--- a/mm/Kconfig~mm-add-basic-tests-for-lazy_mmu
++++ a/mm/Kconfig
+@@ -1475,6 +1475,18 @@ config ARCH_HAS_LAZY_MMU_MODE
+ 	  MMU-related architectural state to be deferred until the mode is
+ 	  exited. See <linux/pgtable.h> for details.
  
++config LAZY_MMU_MODE_KUNIT_TEST
++	tristate "KUnit tests for the lazy MMU mode" if !KUNIT_ALL_TESTS
++	depends on ARCH_HAS_LAZY_MMU_MODE
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  Enable this option to check that the lazy MMU mode interface behaves
++	  as expected. Only tests for the generic interface are included (not
++	  architecture-specific behaviours).
++
++	  If unsure, say N.
++
+ source "mm/damon/Kconfig"
+ 
+ endmenu
+--- a/mm/Makefile~mm-add-basic-tests-for-lazy_mmu
++++ a/mm/Makefile
+@@ -147,3 +147,4 @@ obj-$(CONFIG_SHRINKER_DEBUG) += shrinker
+ obj-$(CONFIG_EXECMEM) += execmem.o
+ obj-$(CONFIG_TMPFS_QUOTA) += shmem_quota.o
+ obj-$(CONFIG_PT_RECLAIM) += pt_reclaim.o
++obj-$(CONFIG_LAZY_MMU_MODE_KUNIT_TEST) += tests/lazy_mmu_mode_kunit.o
+diff --git a/mm/tests/lazy_mmu_mode_kunit.c a/mm/tests/lazy_mmu_mode_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/mm/tests/lazy_mmu_mode_kunit.c
+@@ -0,0 +1,74 @@
++// SPDX-License-Identifier: GPL-2.0-only
++#include <kunit/test.h>
++#include <linux/pgtable.h>
++
++/* For some symbols referenced by arch_{enter,leave}_lazy_mmu_mode on powerpc */
++MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
++
++static void expect_not_active(struct kunit *test)
++{
++	KUNIT_EXPECT_FALSE(test, is_lazy_mmu_mode_active());
++}
++
++static void expect_active(struct kunit *test)
++{
++	KUNIT_EXPECT_TRUE(test, is_lazy_mmu_mode_active());
++}
++
++static void lazy_mmu_mode_active(struct kunit *test)
++{
++	expect_not_active(test);
++
++	lazy_mmu_mode_enable();
++	expect_active(test);
++
++	{
++		/* Nested section */
++		lazy_mmu_mode_enable();
++		expect_active(test);
++
++		lazy_mmu_mode_disable();
++		expect_active(test);
++	}
++
++	{
++		/* Paused section */
++		lazy_mmu_mode_pause();
++		expect_not_active(test);
++
++		{
++			/* No effect (paused) */
++			lazy_mmu_mode_enable();
++			expect_not_active(test);
++
++			lazy_mmu_mode_disable();
++			expect_not_active(test);
++
++			lazy_mmu_mode_pause();
++			expect_not_active(test);
++
++			lazy_mmu_mode_resume();
++			expect_not_active(test);
++		}
++
++		lazy_mmu_mode_resume();
++		expect_active(test);
++	}
++
++	lazy_mmu_mode_disable();
++	expect_not_active(test);
++}
++
++static struct kunit_case lazy_mmu_mode_test_cases[] = {
++	KUNIT_CASE(lazy_mmu_mode_active),
++	{}
++};
++
++static struct kunit_suite lazy_mmu_mode_test_suite = {
++	.name = "lazy_mmu_mode",
++	.test_cases = lazy_mmu_mode_test_cases,
++};
++kunit_test_suite(lazy_mmu_mode_test_suite);
++
++MODULE_DESCRIPTION("Tests for the lazy MMU mode");
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
