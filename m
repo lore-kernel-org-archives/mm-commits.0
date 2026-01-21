@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 159FA356A14;
-	Wed, 21 Jan 2026 03:49:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8E473064A0;
+	Wed, 21 Jan 2026 03:49:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967374; cv=none; b=AnsGCaS7st0qxDzpLz63uM1fDKjxwHEUIPHdGltdod6Z8m8uXq15dXA/yeO9lwerZWyoY8ImHKNMyL9UolyoCXIZoETaxLnyKICfMn10+ybblnOX3raCWUpanUqKViCuCJjhF2vzf/vorvNlXK/2PJFPibbPUdM0q/aNPERtICk=
+	t=1768967376; cv=none; b=O1upML8jCysNmQO96OdQtWpGQNP9mUGsjm+l99oXvsr4xTX1mrZtD1YYmkBdZNK81NP8HExPNo7bmAjxSgpzNIdA2DblP1iYM6tgptYzmH6kDfyvFc5U2HAwTfORp7oZHQciw8PmRMCIGocBcUxON3aJDg4cDrB+4t+CfJ2hEJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967374; c=relaxed/simple;
-	bh=aXmLCLM5kogFA44Em6xRADnBBrNJhE1TLo+xlLhbrtM=;
-	h=Date:To:From:Subject:Message-Id; b=CUD3OfVJB5RLwEIC2qLrxSy/PcU44jo+I8g+W4unAlOI/5XMLLx9aw+hJBuPU48w6qrrEeVYM9TZ85MPKdPA0JGxjOD33eULSCM45Ky2WZq4JGMnyXPUtL3Ke/99IeGI5XosPM4xT6YbfYxfUKD76F/aEPKkokJwDy5CXTADuFI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FEgd1qa/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967376; c=relaxed/simple;
+	bh=KDqL40jpEvn1kofNO4on5/65cyTFW3AW8yICbVZ4rPA=;
+	h=Date:To:From:Subject:Message-Id; b=FhpsdlKRE2K1ip4sS9cZuOys1yAjfq2V+AbEjW8r+1sqf2ioSzRSV0NyOioP5WK7Ryg9uz5SNhardjz+6n73iuWT2n+19LfiZbP7zZSz4W0et4E9q8RTZZtnxIyQjXM6vhyYcIdNyCT9WDGlgq5WoE4NVoWVVy7QrveNtlnXwLg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JfGw/LIj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FEgd1qa/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5D44C19423;
-	Wed, 21 Jan 2026 03:49:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JfGw/LIj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94E60C16AAE;
+	Wed, 21 Jan 2026 03:49:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967373;
-	bh=aXmLCLM5kogFA44Em6xRADnBBrNJhE1TLo+xlLhbrtM=;
+	s=korg; t=1768967375;
+	bh=KDqL40jpEvn1kofNO4on5/65cyTFW3AW8yICbVZ4rPA=;
 	h=Date:To:From:Subject:From;
-	b=FEgd1qa/C1112WjhA/32BNTSqWYmiDiwlJzTRLAm4nH0//hYl+Iz+N4OjGPyHJenG
-	 gRsAQ+DMsvGyuIhhUFteMlSBkm0FaS1uLjCKdul20iIEgYh03xk/nYQYHvUjWoRYz6
-	 nXxdB3wB/d1KaH3eXu+Zw6di7zrn8fxPLqLcVGNM=
-Date: Tue, 20 Jan 2026 19:49:33 -0800
+	b=JfGw/LIjqJhMqaXqemivje6DFptMNGIRCOO4sV8t/ULMkpLEVB2HkWr0K2GBjgJxM
+	 NBXk4Cu8bJ++hPbmSR5cn7LTuEUvP6gVbe8a0ABZzhG7khMaVn/cOpzuW0kP+oqURt
+	 GPU/oy6H5hvIxm9XH58Ja8g6IkhH8pxoM5zweUBA=
+Date: Tue, 20 Jan 2026 19:49:35 -0800
 To: mm-commits@vger.kernel.org,zohar@linux.ibm.com,yifei.l.liu@oracle.com,tglx@linutronix.de,stable@vger.kernel.org,sourabhjain@linux.ibm.com,sohil.mehta@intel.com,rppt@kernel.org,paul.x.webb@oracle.com,noodles@fb.com,mingo@redhat.com,joel.granados@kernel.org,jbohac@suse.cz,hpa@zytor.com,henry.willard@oracle.com,guoweikang.kernel@gmail.com,graf@amazon.com,bp@alien8.de,bhe@redhat.com,ardb@kernel.org,harshit.m.mogalapalli@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] of-kexec-refactor-ima_get_kexec_buffer-to-use-ima_validate_range.patch removed from -mm tree
-Message-Id: <20260121034933.D5D44C19423@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer.patch removed from -mm tree
+Message-Id: <20260121034935.94E60C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: of/kexec: refactor ima_get_kexec_buffer() to use ima_validate_range()
+     Subject: x86/kexec: add a sanity check on previous kernel's ima kexec buffer
 has been removed from the -mm tree.  Its filename was
-     of-kexec-refactor-ima_get_kexec_buffer-to-use-ima_validate_range.patch
+     x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
-Subject: of/kexec: refactor ima_get_kexec_buffer() to use ima_validate_range()
-Date: Tue, 30 Dec 2025 22:16:08 -0800
+Subject: x86/kexec: add a sanity check on previous kernel's ima kexec buffer
+Date: Tue, 30 Dec 2025 22:16:09 -0800
 
-Refactor the OF/DT ima_get_kexec_buffer() to use a generic helper to
-validate the address range.  No functional change intended.
+When the second-stage kernel is booted via kexec with a limiting command
+line such as "mem=<size>", the physical range that contains the carried
+over IMA measurement list may fall outside the truncated RAM leading to a
+kernel panic.
 
-Link: https://lkml.kernel.org/r/20251231061609.907170-3-harshit.m.mogalapalli@oracle.com
+    BUG: unable to handle page fault for address: ffff97793ff47000
+    RIP: ima_restore_measurement_list+0xdc/0x45a
+    #PF: error_code(0x0000) – not-present page
+
+Other architectures already validate the range with page_is_ram(), as done
+in commit cbf9c4b9617b ("of: check previous kernel's ima-kexec-buffer
+against memory bounds") do a similar check on x86.
+
+Without carrying the measurement list across kexec, the attestation
+would fail.
+
+Link: https://lkml.kernel.org/r/20251231061609.907170-4-harshit.m.mogalapalli@oracle.com
 Signed-off-by: Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
+Fixes: b69a2afd5afc ("x86/kexec: Carry forward IMA measurement log on kexec")
+Reported-by: Paul Webb <paul.x.webb@oracle.com>
 Reviewed-by: Mimi Zohar <zohar@linux.ibm.com>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
@@ -65,7 +80,6 @@ Cc: Jiri Bohac <jbohac@suse.cz>
 Cc: Joel Granados <joel.granados@kernel.org>
 Cc: Jonathan McDowell <noodles@fb.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Paul Webb <paul.x.webb@oracle.com>
 Cc: Sohil Mehta <sohil.mehta@intel.com>
 Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
 Cc: Thomas Gleinxer <tglx@linutronix.de>
@@ -74,40 +88,27 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/kexec.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ arch/x86/kernel/setup.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/drivers/of/kexec.c~of-kexec-refactor-ima_get_kexec_buffer-to-use-ima_validate_range
-+++ a/drivers/of/kexec.c
-@@ -128,7 +128,6 @@ int __init ima_get_kexec_buffer(void **a
- {
- 	int ret, len;
- 	unsigned long tmp_addr;
--	unsigned long start_pfn, end_pfn;
- 	size_t tmp_size;
- 	const void *prop;
+--- a/arch/x86/kernel/setup.c~x86-kexec-add-a-sanity-check-on-previous-kernels-ima-kexec-buffer
++++ a/arch/x86/kernel/setup.c
+@@ -439,9 +439,15 @@ int __init ima_free_kexec_buffer(void)
  
-@@ -144,17 +143,9 @@ int __init ima_get_kexec_buffer(void **a
- 	if (!tmp_size)
+ int __init ima_get_kexec_buffer(void **addr, size_t *size)
+ {
++	int ret;
++
+ 	if (!ima_kexec_buffer_size)
  		return -ENOENT;
  
--	/*
--	 * Calculate the PFNs for the buffer and ensure
--	 * they are with in addressable memory.
--	 */
--	start_pfn = PHYS_PFN(tmp_addr);
--	end_pfn = PHYS_PFN(tmp_addr + tmp_size - 1);
--	if (!page_is_ram(start_pfn) || !page_is_ram(end_pfn)) {
--		pr_warn("IMA buffer at 0x%lx, size = 0x%zx beyond memory\n",
--			tmp_addr, tmp_size);
--		return -EINVAL;
--	}
-+	ret = ima_validate_range(tmp_addr, tmp_size);
++	ret = ima_validate_range(ima_kexec_buffer_phys, ima_kexec_buffer_size);
 +	if (ret)
 +		return ret;
++
+ 	*addr = __va(ima_kexec_buffer_phys);
+ 	*size = ima_kexec_buffer_size;
  
- 	*addr = __va(tmp_addr);
- 	*size = tmp_size;
 _
 
 Patches currently in -mm which might be from harshit.m.mogalapalli@oracle.com are
