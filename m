@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B3D827FB28
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AC153612CE
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966076; cv=none; b=pp02EPoDGfQIs1VSQFDBKxM6tV7QhJgSnh2yz2kXD2iGo4VMVV4tF/SW+YppeBxjBi1H1id2FiTUGIwBOueJwiNlqTLxBSGJ4lBxr8tfoSS/xBsSEi13Bc0BgGT/yi5S48Qz/qMlo5GGVPZxC4TV0kfZhmqkB8Grtogf8Ncf+s0=
+	t=1768966077; cv=none; b=bT6FXc2kYwu6MU/Fsvtt0gl4kwRvEXvVgYlqJSjAO92tmlA329s6qvTxke88OL1g8TaJ6hykVFhPRpXzK2jXELy/cJocZZrJ251s05LCaoqw4pW+kppaa0bjOefsvoSVH42BjxXa8gTg4df8x7NpLHc4lBeWErdEtRnfnadzaLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966076; c=relaxed/simple;
-	bh=KcbIRJixvTq1DFgV/pJVE6eMgurzbRivmRHpcpSQx7M=;
-	h=Date:To:From:Subject:Message-Id; b=HVRr5xZAz4LYNCkl1fCbOkiABJSjm3mJmMPnzRI6woUf9Ts/lzghG9cRI2GoNFnxrDw1nZWmjXwcALn+lJUQdIJmSMOpvtL/Nr7Rk2uiuq4rASvpQVNSeRzddZpMek8LjIXqS3Bu3yYYVwcw7+M+8326p/73fK0pgZUyal7IqSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ukp2rx+z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966077; c=relaxed/simple;
+	bh=cJGyFUz2Uw5vreONxc1JDuHvkeimOTDynSInxi2Z6kM=;
+	h=Date:To:From:Subject:Message-Id; b=ZeJv/QHYGnlJv3Zlv8SyA9G/nNH83t+D0VollMWxnjnianS/SA98zzqI8hoV37sqBK7PLCRI1Jx5DLlqi8WvtzJHQaVBKNgNPnCVRHHNnO4MxNg6kQ//YIxDDBO0rDjKRWeecAQ0VLaGc9yT3DpOslinZ5v6pvZRsLVWcL0ZAJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gSnBf1o4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ukp2rx+z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27245C16AAE;
-	Wed, 21 Jan 2026 03:27:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gSnBf1o4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A163C16AAE;
+	Wed, 21 Jan 2026 03:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966076;
-	bh=KcbIRJixvTq1DFgV/pJVE6eMgurzbRivmRHpcpSQx7M=;
+	s=korg; t=1768966077;
+	bh=cJGyFUz2Uw5vreONxc1JDuHvkeimOTDynSInxi2Z6kM=;
 	h=Date:To:From:Subject:From;
-	b=Ukp2rx+zAkOGqdyoKFZ+FWh/RUCH75vTKTNUn/E3Ny46os666tPx2y32Zd7duwSLi
-	 VT4yq0vSwk/gvrj1dG+KcCRJylERPx7kffZMqdulJduOF+TDdl7T0X2BP4Nk7wJ6ZC
-	 OKQyqeJsLJXZ1oJnyg/kMNXz+K27UMJSGsnZVJPw=
-Date: Tue, 20 Jan 2026 19:27:55 -0800
+	b=gSnBf1o4S4ySM6Dmrj6dr9nzYqCd/3TGzNraMmL0Se0/MyqIC4tYYjYZ8uU8XfpB2
+	 lu5h+LM6HlGwp2PtkMc7ivBg0M0O+U+fHwml9jne8mnP0mMknYmTTPQfWdKnrBXvMI
+	 +qT4tPK/vsndj33lKD7IQ6hZE8Ik7tHEqcrUw6Gk=
+Date: Tue, 20 Jan 2026 19:27:56 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch removed from -mm tree
-Message-Id: <20260121032756.27245C16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-update-for-max_nr_snapshots.patch removed from -mm tree
+Message-Id: <20260121032757.5A163C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: implement max_nr_snapshots file
+     Subject: Docs/mm/damon/design: update for max_nr_snapshots
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-implement-max_nr_snapshots-file.patch
+     docs-mm-damon-design-update-for-max_nr_snapshots.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: implement max_nr_snapshots file
-Date: Tue, 16 Dec 2025 00:01:21 -0800
+Subject: Docs/mm/damon/design: update for max_nr_snapshots
+Date: Tue, 16 Dec 2025 00:01:22 -0800
 
-Add a new DAMON sysfs file for setting and getting the newly introduced
-per-DAMON-snapshot level DAMOS deactivation control parameter,
-max_nr_snapshots.  The file has a name same to the parameter and placed
-under the damos stat directory.
+Update DAMON design document for the newly added snapshot level DAMOS
+deactivation feature, max_nr_snapshots.
 
-Link: https://lkml.kernel.org/r/20251216080128.42991-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251216080128.42991-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -67,74 +65,30 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ Documentation/mm/damon/design.rst |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-max_nr_snapshots-file
-+++ a/mm/damon/sysfs-schemes.c
-@@ -205,6 +205,7 @@ struct damon_sysfs_stats {
- 	unsigned long sz_ops_filter_passed;
- 	unsigned long qt_exceeds;
- 	unsigned long nr_snapshots;
-+	unsigned long max_nr_snapshots;
- };
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-max_nr_snapshots
++++ a/Documentation/mm/damon/design.rst
+@@ -720,6 +720,7 @@ scheme's execution.
+ - ``qt_exceeds``: Total number of times the quota of the scheme has exceeded.
+ - ``nr_snapshots``: Total number of DAMON snapshots that the scheme is tried to
+   be applied.
++- ``max_nr_snapshots``: Upper limit of ``nr_snapshots``.
  
- static struct damon_sysfs_stats *damon_sysfs_stats_alloc(void)
-@@ -275,6 +276,28 @@ static ssize_t nr_snapshots_show(struct
- 	return sysfs_emit(buf, "%lu\n", stats->nr_snapshots);
- }
+ "A scheme is tried to be applied to a region" means DAMOS core logic determined
+ the region is eligible to apply the scheme's :ref:`action
+@@ -741,6 +742,10 @@ to exclude anonymous pages and the regio
+ action is ``pageout`` while all pages of the region are unreclaimable, applying
+ the action to the region will fail.
  
-+static ssize_t max_nr_snapshots_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_stats *stats = container_of(kobj,
-+			struct damon_sysfs_stats, kobj);
++Unlike normal stats, ``max_nr_snapshots`` is set by users.  If it is set as
++non-zero and ``nr_snapshots`` be same to or greater than ``nr_snapshots``, the
++scheme is deactivated.
 +
-+	return sysfs_emit(buf, "%lu\n", stats->max_nr_snapshots);
-+}
-+
-+static ssize_t max_nr_snapshots_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_stats *stats = container_of(kobj,
-+			struct damon_sysfs_stats, kobj);
-+	unsigned long max_nr_snapshots, err = kstrtoul(buf, 0, &max_nr_snapshots);
-+
-+	if (err)
-+		return err;
-+	stats->max_nr_snapshots = max_nr_snapshots;
-+	return count;
-+}
-+
- static void damon_sysfs_stats_release(struct kobject *kobj)
- {
- 	kfree(container_of(kobj, struct damon_sysfs_stats, kobj));
-@@ -301,6 +324,9 @@ static struct kobj_attribute damon_sysfs
- static struct kobj_attribute damon_sysfs_stats_nr_snapshots_attr =
- 		__ATTR_RO_MODE(nr_snapshots, 0400);
- 
-+static struct kobj_attribute damon_sysfs_stats_max_nr_snapshots_attr =
-+		__ATTR_RW_MODE(max_nr_snapshots, 0600);
-+
- static struct attribute *damon_sysfs_stats_attrs[] = {
- 	&damon_sysfs_stats_nr_tried_attr.attr,
- 	&damon_sysfs_stats_sz_tried_attr.attr,
-@@ -309,6 +335,7 @@ static struct attribute *damon_sysfs_sta
- 	&damon_sysfs_stats_sz_ops_filter_passed_attr.attr,
- 	&damon_sysfs_stats_qt_exceeds_attr.attr,
- 	&damon_sysfs_stats_nr_snapshots_attr.attr,
-+	&damon_sysfs_stats_max_nr_snapshots_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_stats);
-@@ -2732,6 +2759,7 @@ static struct damos *damon_sysfs_mk_sche
- 		damon_destroy_scheme(scheme);
- 		return NULL;
- 	}
-+	scheme->max_nr_snapshots = sysfs_scheme->stats->max_nr_snapshots;
- 	return scheme;
- }
- 
+ To know how user-space can read the stats via :ref:`DAMON sysfs interface
+ <sysfs_interface>`, refer to :ref:s`stats <sysfs_stats>` part of the
+ documentation.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
