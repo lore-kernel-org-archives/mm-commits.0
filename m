@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E3AC35505C
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:50:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126B9352F83
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:50:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967407; cv=none; b=dVjEaQPrr8J1YBtu5uRFXh+ecv7bTMoAK7vSaSVnY8mzcm5StgEbwtocz+3aNJlRo0bB4tkPyySYNzjDKQ6LVs82+ni+Pr4px1d8VPzW8RzRS2xp/ACgvtAgj+wp3qQ8+FJHw+Iy57xwk3z6Zotm/uMAXiDccv2i/0mH5GWo058=
+	t=1768967409; cv=none; b=NWtffWFvfD9QXw59EpzT9LfwP7Yv8mmEuC66Gd6NPmDGT80pVUz6tZ8uWKAdbLUPjYlUDF09ppRK+B8Nd+iGGwAIXwzgzfpieZPOvRwUBxbjNX0kvX8iSsvKs/qQfjYcVJ/E1yYJazhvwwMsgy4+Q9fU3rfXPpqZDNvYV+hMfWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967407; c=relaxed/simple;
-	bh=uXWxw0SGCvGpSlCU6nFyyr7OLVtyy37PwYncNZEmmrs=;
-	h=Date:To:From:Subject:Message-Id; b=GPPkLUyeQO/O7QNLxizC8w6EcZ127DYWYRt14jmDiUXQGoe49GR9bwu9+QGM3vebFbqjJejNYdSzOGaN/NCapEuUBy9RMtx5CnrZABfPZwL2ysPjmYq4EEkucaVOAao4pdWBniOpveOUXffqq/ejE4blrNFwWuQimpqvwvMx3m8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wiigM7n3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967409; c=relaxed/simple;
+	bh=vKJqvIEoh2GcmArvElqCzCoVY4zh/dfZJsSGsxNzLPs=;
+	h=Date:To:From:Subject:Message-Id; b=SyfpGYProNuoimERSEv2KmtCMWbwYjoUieVQuNXkqT3W5nFGRZ8mJNocxoU+B1RDj/mEVWTzBY+YNBEXtcHxYsq3VndQDxrzoWvZIstZKauMMIjyvw//Ojy5EZPOlJ+CAS4JrqN65kzaw0j2W1BOY1WimIenIRWQD77wqP67DOo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yWMUSsTJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wiigM7n3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B4C2C116D0;
-	Wed, 21 Jan 2026 03:50:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yWMUSsTJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FB0DC116D0;
+	Wed, 21 Jan 2026 03:50:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967407;
-	bh=uXWxw0SGCvGpSlCU6nFyyr7OLVtyy37PwYncNZEmmrs=;
+	s=korg; t=1768967408;
+	bh=vKJqvIEoh2GcmArvElqCzCoVY4zh/dfZJsSGsxNzLPs=;
 	h=Date:To:From:Subject:From;
-	b=wiigM7n3GOmW+gTfDXBgGuLJC94gO96ZPwA3L23a60HvrlBRhd0sj70m4OjoxVMxF
-	 5HnaYiezFRPVp0Y05fPFpe25/61kPIOZsopWd7J9WtfJdqPs2BupSN29xDEUdYsHVq
-	 5gRSQRbNsGy1FaOUhhwpMUn4KfZIcfgQyOD2rJzk=
-Date: Tue, 20 Jan 2026 19:50:06 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,tglx@linutronix.de,sweettea-kernel@dorminy.me,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,paulmck@kernel.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,christian.koenig@amd.com,broonie@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
+	b=yWMUSsTJq3zk7Bg5/RYEPHPYahRs3rDjCqMQkfWCMb8soOx9QlkuO0o5prsKeSFiy
+	 8rQM2AdgchLfn3afXtuu0izW+6VP1Ihrqa6pN1zbrFcHeotJX5cloOrWeQuoPwwmFQ
+	 N8lDAiSy4PUwGs4Cc7DoCp6GeUznz7rn2n5L7YRM=
+Date: Tue, 20 Jan 2026 19:50:07 -0800
+To: mm-commits@vger.kernel.org,suhui@nfschina.com,martin.petersen@oracle.com,john.g.garry@oracle.com,axboe@kernel.dk,macro@orcam.me.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] tsacct-skip-all-kernel-threads.patch removed from -mm tree
-Message-Id: <20260121035007.3B4C2C116D0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] linux-log2h-reduce-instruction-count-for-is_power_of_2.patch removed from -mm tree
+Message-Id: <20260121035008.6FB0DC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tsacct: skip all kernel threads
+     Subject: linux/log2.h: reduce instruction count for is_power_of_2()
 has been removed from the -mm tree.  Its filename was
-     tsacct-skip-all-kernel-threads.patch
+     linux-log2h-reduce-instruction-count-for-is_power_of_2.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: tsacct: skip all kernel threads
-Date: Wed, 24 Dec 2025 12:38:10 -0500
+From: "Maciej W. Rozycki" <macro@orcam.me.uk>
+Subject: linux/log2.h: reduce instruction count for is_power_of_2()
+Date: Sun, 11 Jan 2026 21:21:57 +0000 (GMT)
 
-This patch is a preparation step for HPCC, for the OOM killer
-improvements.  I suspect that this patch is useful on its own, because it
-really makes no sense to sum up accounting statistics of use_mm within
-kernel threads which are only temporarily using those mm.
+Follow an observation that (n ^ (n - 1)) will only ever retain the most
+significant bit set in the word operated on if that is the only bit set in
+the first place, and use it to determine whether a number is a whole power
+of 2, avoiding the need for an explicit check for nonzero.
 
-When we hit acct_account_cputime within a irq handler over a kthread that
-happens to use a userspace mm, we end up summing up the mm's RSS into the
-tsk acct_rss_mem1, which eventually decays.
+This reduces the sequence produced to 3 instructions only across Alpha,
+MIPS, and RISC-V targets, down from 4, 5, and 4 respectively, removing a
+branch in the two latter cases.  And it's 5 instructions on POWER and
+x86-64 vs 8 and 9 respectively.  There are no branches now emitted here
+for targets that have a suitable conditional set operation, although an
+inline expansion will often end with one, depending on what code a call to
+this function is used in.
 
-I don't see a good rationale behind tracking the mm's rss in that way when
-a kthread use a userspace mm temporarily through use_mm.
+Credit goes to GCC authors for coming up with this optimisation used as
+the fallback for (__builtin_popcountl(n) == 1), equivalent to this code,
+for targets where the hardware population count operation is considered
+expensive.
 
-It causes issues with init_mm and efi_mm which only partially initialize
-their mm_struct when introducing the new hierarchical percpu counters to
-replace RSS counters, which requires a pointer dereference when reading
-the approximate counter sum.  The current percpu counters simply load a
-zeroed atomic counter, which happen to work.
-
-Skip all kernel threads in acct_account_cputime(), not just those that
-happen to have a NULL mm.
-
-This is a preparation step before introducing the hierarchical percpu
-counters.
-
-Link: https://lkml.kernel.org/r/20251224173810.648699-2-mathieu.desnoyers@efficios.com
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christan König <christian.koenig@amd.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Liam R . Howlett" <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Martin Liu <liumartin@google.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/alpine.DEB.2.21.2601111836250.30566@angie.orcam.me.uk
+Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: John Garry <john.g.garry@oracle.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: Su Hui <suhui@nfschina.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/tsacct.c |    2 +-
+ include/linux/log2.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/tsacct.c~tsacct-skip-all-kernel-threads
-+++ a/kernel/tsacct.c
-@@ -125,7 +125,7 @@ static void __acct_update_integrals(stru
+--- a/include/linux/log2.h~linux-log2h-reduce-instruction-count-for-is_power_of_2
++++ a/include/linux/log2.h
+@@ -44,7 +44,7 @@ int __ilog2_u64(u64 n)
+ static __always_inline __attribute__((const))
+ bool is_power_of_2(unsigned long n)
  {
- 	u64 time, delta;
+-	return (n != 0 && ((n & (n - 1)) == 0));
++	return n - 1 < (n ^ (n - 1));
+ }
  
--	if (!likely(tsk->mm))
-+	if (unlikely(!tsk->mm || (tsk->flags & PF_KTHREAD)))
- 		return;
- 
- 	time = stime + utime;
+ /**
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
+Patches currently in -mm which might be from macro@orcam.me.uk are
 
-mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
 
