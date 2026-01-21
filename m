@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ACFB35A938
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECA6035EDAE
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966054; cv=none; b=mzVrgBsb+I5jSRLeGEbsHJ6kXHFi17SInjrBB7qDjVWAOa+Y5ANTA0LXmhVz6l14+j1EGWhZylUMCQPt1nALMOs1jotNu8/zSr7tVeyWg0QokqwsOZgYrKfBwXFgouGQ6beP6jHWtois+tppkXFr3hHtup941T9Vj/5HO8/A7VM=
+	t=1768966056; cv=none; b=H0OPbBLFMCmlPA88+zeSjMl0FposE2MSNpXIymp0vq0YIQUf9T46fsydMH/VO7iABqBErYYrSpabXo755f9J9V11wPBYBEvD4hWJuxWuqKIFhQCnqJZeb9Pi8/DOsm2/4XwimrsWyYps+2wkKMO7tuiWr4sxSX7neBcFppeqjWw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966054; c=relaxed/simple;
-	bh=+HQOwkoAsEasF2H7IbEqiEl0mkwTaE9IzYCup/WQ0Ys=;
-	h=Date:To:From:Subject:Message-Id; b=Qu/ublwU1qoc4ANQvcchgG8YxOVSjAdjyCLHT5igHTE3vWd35GGqgsWsXmmrvH0ECfsu0JqOmBlJBzRNPQysPSRJEL8npOPd32h7lmSMS2nUcPtOTSKB+9YE/Dj5eACnoNpJkPvVL/J5yaVL6YgcgyDUGJ3zpX4hIxDdRFyBUWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IbeTGXWe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966056; c=relaxed/simple;
+	bh=Dfa/wWTY+3J1R3v/aBHf/OKfRGJ6uNoXSO4Bf1FaV8I=;
+	h=Date:To:From:Subject:Message-Id; b=q1jDFrxt082FEdpv5TovM4LDiuN30rYLB6G7ZCVXP3hzmOaKiX/b8teLrkNUUQfg8Y+LsrVm4fU0WAN8UkgXlJNxmEfra45ak4T8wx1sMekrmFgH1GFEuaKLB5j34XJ2DOH0O2Cl62wtwsVjSHLwMcXFysyq0nFibB6WNBN4ThM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QwMJmbLi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IbeTGXWe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F341FC16AAE;
-	Wed, 21 Jan 2026 03:27:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QwMJmbLi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75A99C16AAE;
+	Wed, 21 Jan 2026 03:27:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966054;
-	bh=+HQOwkoAsEasF2H7IbEqiEl0mkwTaE9IzYCup/WQ0Ys=;
+	s=korg; t=1768966055;
+	bh=Dfa/wWTY+3J1R3v/aBHf/OKfRGJ6uNoXSO4Bf1FaV8I=;
 	h=Date:To:From:Subject:From;
-	b=IbeTGXWeBYOfY8pFY2J9bLUs37zozZmdhb5vraGWRxtgDXN7niqUQjZJL9jx8nXSB
-	 8Y6nm/hQ6oTeDfFtiHvVDdaiy38FSq9sMkScrZhvRbH6zOvAt17Ggw38WFWw/7uB72
-	 WZOo5LZGJuF6MkDnEMeHezIk4a+HSAKdLE7QGn2Y=
-Date: Tue, 20 Jan 2026 19:27:33 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,rppt@kernel.org,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizhe.67@bytedance.com,Liam.Howlett@oracle.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
+	b=QwMJmbLiAJlF4jDDvAegPeB64AUdhf2aYmJ5D1qIPbnqZzh9+V5RdSrVzKD8zxcpR
+	 SGVRMvule/XR1MBO23l3heKy0un8UqOGsCDyn8rxhigPUzvKMfKyYNaVmw9URX5Hcy
+	 QYBzP1Wy/ChSpDS5rzR//RzmqpdqZyEKDkfN8rCc=
+Date: Tue, 20 Jan 2026 19:27:34 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,swarajgaikwad1925@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-folio_zero_user-cache-neighbouring-pages.patch removed from -mm tree
-Message-Id: <20260121032733.F341FC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch removed from -mm tree
+Message-Id: <20260121032735.75A99C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,155 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: folio_zero_user: cache neighbouring pages
+     Subject: mm/damon/sysfs-schemes: remove outdated TODO in target_nid_store()
 has been removed from the -mm tree.  Its filename was
-     mm-folio_zero_user-cache-neighbouring-pages.patch
+     mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: mm: folio_zero_user: cache neighbouring pages
-Date: Tue, 6 Jan 2026 23:20:09 -0800
+From: Swaraj Gaikwad <swarajgaikwad1925@gmail.com>
+Subject: mm/damon/sysfs-schemes: remove outdated TODO in target_nid_store()
+Date: Thu, 11 Dec 2025 03:27:22 +0000
 
-folio_zero_user() does straight zeroing without caring about temporal
-locality for caches.
+The TODO comment in target_nid_store() suggested adding range validation
+for target_nid.  As discussed in [1], the current behavior of accepting
+any integer value is intentional.  DAMON sysfs aims to remain flexible,
+including supporting users who prepare node IDs before future NUMA hotplug
+events.
 
-This replaced commit c6ddfb6c5890 ("mm, clear_huge_page: move order
-algorithm into a separate function") where we cleared a page at a time
-converging to the faulting page from the left and the right.
+Because this behavior matches the broader design philosophy of the DAMON
+sysfs interface, the TODO comment is now misleading.  This patch removes
+the comment without introducing any behavioral change.
 
-To retain limited temporal locality, split the clearing in three parts:
-the faulting page and its immediate neighbourhood, and the regions on its
-left and right.  We clear the local neighbourhood last to maximize chances
-of it sticking around in the cache.
+No functional changes.
 
-Performance
-===
-
-AMD Genoa (EPYC 9J14, cpus=2 sockets * 96 cores * 2 threads,
-           memory=2.2 TB, L1d=16K/thread, L2=512K/thread, L3=2MB/thread)
-
-vm-scalability/anon-w-seq-hugetlb: this workload runs with 384 processes
-(one for each CPU) each zeroing anonymously mapped hugetlb memory which is
-then accessed sequentially.  stime utime
-
-  discontiguous-page      1739.93 ( +- 6.15% )  1016.61 ( +- 4.75% )
-  contiguous-page         1853.70 ( +- 2.51% )  1187.13 ( +- 3.50% )
-  batched-pages           1756.75 ( +- 2.98% )  1133.32 ( +- 4.89% )
-  neighbourhood-last      1725.18 ( +- 4.59% )  1123.78 ( +- 7.38% )
-
-Both stime and utime largely respond somewhat expectedly.  There is a fair
-amount of run to run variation but the general trend is that the stime
-drops and utime increases.  There are a few oddities, like contiguous-page
-performing very differently from batched-pages.
-
-As such this is likely an uncommon pattern where we saturate the memory
-bandwidth (since all CPUs are running the test) and at the same time are
-cache constrained because we access the entire region.
-
-Kernel make (make -j 12 bzImage):
-
-                              stime                  utime
-
-  discontiguous-page      199.29 ( +- 0.63% )   1431.67 ( +- .04% )
-  contiguous-page         193.76 ( +- 0.58% )   1433.60 ( +- .05% )
-  batched-pages           193.92 ( +- 0.76% )   1431.04 ( +- .08% )
-  neighbourhood-last      194.46 ( +- 0.68% )   1431.51 ( +- .06% )
-
-For make the utime stays relatively flat with a fairly small (-2.4%)
-improvement in the stime.
-
-Link: https://lkml.kernel.org/r/20260107072009.1615991-9-ankur.a.arora@oracle.com
-Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
-Tested-by: Raghavendra K T <raghavendra.kt@amd.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
-Cc: Lance Yang <ioworker0@gmail.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20251211032722.4928-2-swarajgaikwad1925@gmail.com
+Link: https://lore.kernel.org/lkml/20251210150930.57679-1-sj@kernel.org/ [1]
+Signed-off-by: Swaraj Gaikwad <swarajgaikwad1925@gmail.com>
+Suggested-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   41 ++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 38 insertions(+), 3 deletions(-)
+ mm/damon/sysfs-schemes.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/memory.c~mm-folio_zero_user-cache-neighbouring-pages
-+++ a/mm/memory.c
-@@ -7265,6 +7265,15 @@ static void clear_contig_highpages(struc
- 	}
- }
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-remove-outdated-todo-in-target_nid_store
++++ a/mm/damon/sysfs-schemes.c
+@@ -2288,7 +2288,6 @@ static ssize_t target_nid_store(struct k
+ 			struct damon_sysfs_scheme, kobj);
+ 	int err = 0;
  
-+/*
-+ * When zeroing a folio, we want to differentiate between pages in the
-+ * vicinity of the faulting address where we have spatial and temporal
-+ * locality, and those far away where we don't.
-+ *
-+ * Use a radius of 2 for determining the local neighbourhood.
-+ */
-+#define FOLIO_ZERO_LOCALITY_RADIUS	2
-+
- /**
-  * folio_zero_user - Zero a folio which will be mapped to userspace.
-  * @folio: The folio to zero.
-@@ -7272,10 +7281,36 @@ static void clear_contig_highpages(struc
-  */
- void folio_zero_user(struct folio *folio, unsigned long addr_hint)
- {
--	unsigned long base_addr = ALIGN_DOWN(addr_hint, folio_size(folio));
-+	const unsigned long base_addr = ALIGN_DOWN(addr_hint, folio_size(folio));
-+	const long fault_idx = (addr_hint - base_addr) / PAGE_SIZE;
-+	const struct range pg = DEFINE_RANGE(0, folio_nr_pages(folio) - 1);
-+	const int radius = FOLIO_ZERO_LOCALITY_RADIUS;
-+	struct range r[3];
-+	int i;
-+
-+	/*
-+	 * Faulting page and its immediate neighbourhood. Will be cleared at the
-+	 * end to keep its cachelines hot.
-+	 */
-+	r[2] = DEFINE_RANGE(clamp_t(s64, fault_idx - radius, pg.start, pg.end),
-+			    clamp_t(s64, fault_idx + radius, pg.start, pg.end));
-+
-+	/* Region to the left of the fault */
-+	r[1] = DEFINE_RANGE(pg.start,
-+			    clamp_t(s64, r[2].start - 1, pg.start - 1, r[2].start));
+-	/* TODO: error handling for target_nid range. */
+ 	err = kstrtoint(buf, 0, &scheme->target_nid);
  
--	clear_contig_highpages(folio_page(folio, 0),
--				base_addr, folio_nr_pages(folio));
-+	/* Region to the right of the fault: always valid for the common fault_idx=0 case. */
-+	r[0] = DEFINE_RANGE(clamp_t(s64, r[2].end + 1, r[2].end, pg.end + 1),
-+			    pg.end);
-+
-+	for (i = 0; i < ARRAY_SIZE(r); i++) {
-+		const unsigned long addr = base_addr + r[i].start * PAGE_SIZE;
-+		const unsigned int nr_pages = range_len(&r[i]);
-+		struct page *page = folio_page(folio, r[i].start);
-+
-+		if (nr_pages > 0)
-+			clear_contig_highpages(page, addr, nr_pages);
-+	}
- }
- 
- static int copy_user_gigantic_page(struct folio *dst, struct folio *src,
+ 	return err ? err : count;
 _
 
-Patches currently in -mm which might be from ankur.a.arora@oracle.com are
+Patches currently in -mm which might be from swarajgaikwad1925@gmail.com are
 
 
