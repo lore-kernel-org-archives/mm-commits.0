@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC25827FB28
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AFA7361654
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966078; cv=none; b=GRtPL9kS1ilIsiHNTaL3khPw/qYZ9E97Dm6nDJmdkP32tGNwEMRjzR5Bkh2eTRgdmSVeuNDv5W1PE0RzYOaVfMfXcOEuJqt/cKyPZRx9jORv1sAUZuXctMUCyW5SKe1vdMU4dFaIH+sTt9hLIwxATTLaUZnLOAK1Fo+1LTIUyY8=
+	t=1768966080; cv=none; b=LTRjWxSmtnD+yIk6aBdHK72uI5ByZapCHxGkkB6bqmGZPd6snBCPoFoOlWzQZN3EExFccSS8mC/C8MPA6QoNvd78jwTcTRQFMquDFJUJehDTgmxndah+AN/WuAvS7mnrX5RcYaK2oR4TM79gmjAUJ4FgcjMD2fQhNLAO6qufAHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966078; c=relaxed/simple;
-	bh=DIyl1YLbg++JaFOqcdD4FkdF9IOJLUPEjGfec6Qqrnw=;
-	h=Date:To:From:Subject:Message-Id; b=IIe25KDSpdUoGxCbOm4GVQvt/7GiNXh+fnrzvb6o28arm2TSm2eRt6o8wUh34/korczagOhO0m9MyJSM/YsyfuqNxRU6VfcZj6Tk/EMde49Omp33TWN7ADb74KgmUZ6WJMDHpyAV5eMhnhxNfw0kycz8xaapSzFFNoFKlOeY7qc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b6wUz3kb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966080; c=relaxed/simple;
+	bh=7aDcsUHBkTLwIwcgI+8hL2I1XigfV45ickI9y0QxP2o=;
+	h=Date:To:From:Subject:Message-Id; b=uJbOtzl3ZU+WSz1PWEFq1F3mza4j1UiPCQ4/AhzSXPlrD16Fh6AScyt5OMgrIED42IQRy77TiqmYDqRwBx7nVLaEFbmKnuBJ/mYIVhmwIIEkOOtk5Yasf4YGlJXjm0oMNIrHNNXOKMgJ08q3CLJFTCVIVOF8tB5Ed8tm+w5FflE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e94X8rmW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b6wUz3kb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D65BC16AAE;
-	Wed, 21 Jan 2026 03:27:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e94X8rmW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D25E8C16AAE;
+	Wed, 21 Jan 2026 03:27:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966078;
-	bh=DIyl1YLbg++JaFOqcdD4FkdF9IOJLUPEjGfec6Qqrnw=;
+	s=korg; t=1768966079;
+	bh=7aDcsUHBkTLwIwcgI+8hL2I1XigfV45ickI9y0QxP2o=;
 	h=Date:To:From:Subject:From;
-	b=b6wUz3kbinxvwjsHj65kPaO8iNySwktBB3QdBgT2AtGKIpDnOqGusuBJgGmRLChWP
-	 Km2/gyjcNKXhCoaZcxZBCl7iI3baAm9eEzPGBH9h570LP0d5/RNDkXD15A1JsviXQm
-	 PlWBvA1Rfx0oYFyLkaLB1uUu9PFWt/a+TGD9b/2E=
-Date: Tue, 20 Jan 2026 19:27:58 -0800
+	b=e94X8rmW1xUqGNCNiN9sYW34g4t+4exFR3EQz/Ef+ChTqZYh9zbI4Fc5RgaxVbaqW
+	 421L4ZXm/9yBQitK02+mP8CfGNopYhfTXwkoxP1a63rqn4xfrHbv7zW1+SuW5t3NHp
+	 a6k10Vn0Dp4cSURLvLmxoH+PvW3PfRYjE7cXEh90=
+Date: Tue, 20 Jan 2026 19:27:59 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch removed from -mm tree
-Message-Id: <20260121032758.9D65BC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] docs-abi-damon-update-for-max_nr_snapshots.patch removed from -mm tree
+Message-Id: <20260121032759.D25E8C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update for max_nr_snapshots
+     Subject: Docs/ABI/damon: update for max_nr_snapshots
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots.patch
+     docs-abi-damon-update-for-max_nr_snapshots.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for max_nr_snapshots
-Date: Tue, 16 Dec 2025 00:01:23 -0800
+Subject: Docs/ABI/damon: update for max_nr_snapshots
+Date: Tue, 16 Dec 2025 00:01:24 -0800
 
-Update DAMON usage document for the newly added DAMON sysfs interface
-file, max_nr_snapshots.
+Update DAMON ABI document for the newly added DAMON sysfs interface file,
+max_nr_snapshots.
 
-Link: https://lkml.kernel.org/r/20251216080128.42991-11-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251216080128.42991-12-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -65,36 +65,25 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-max_nr_snapshots
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -87,7 +87,7 @@ comma (",").
-     │ │ │ │ │ │ │ │ 0/type,matching,allow,memcg_path,addr_start,addr_end,target_idx,min,max
-     │ │ │ │ │ │ │ :ref:`dests <damon_sysfs_dests>`/nr_dests
-     │ │ │ │ │ │ │ │ 0/id,weight
--    │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,sz_ops_filter_passed,qt_exceeds,nr_snapshots
-+    │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,sz_ops_filter_passed,qt_exceeds,nr_snapshots,max_nr_snapshots
-     │ │ │ │ │ │ │ :ref:`tried_regions <sysfs_schemes_tried_regions>`/total_bytes
-     │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age,sz_filter_passed
-     │ │ │ │ │ │ │ │ ...
-@@ -543,10 +543,11 @@ online analysis or tuning of the schemes
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-max_nr_snapshots
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -522,6 +522,13 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Reading this file returns the total number of DAMON snapshots
+ 		that the scheme has tried to be applied.
  
- The statistics can be retrieved by reading the files under ``stats`` directory
- (``nr_tried``, ``sz_tried``, ``nr_applied``, ``sz_applied``,
--``sz_ops_filter_passed``, ``qt_exceeds`` and ``nr_snapshots``), respectively.
--The files are not updated in real time, so you should ask DAMON sysfs interface
--to update the content of the files for the stats by writing a special keyword,
--``update_schemes_stats`` to the relevant ``kdamonds/<N>/state`` file.
-+``sz_ops_filter_passed``, ``qt_exceeds``, ``nr_snapshots`` and
-+``max_nr_snapshots``), respectively.  The files are not updated in real time,
-+so you should ask DAMON sysfs interface to update the content of the files for
-+the stats by writing a special keyword, ``update_schemes_stats`` to the
-+relevant ``kdamonds/<N>/state`` file.
- 
- .. _sysfs_schemes_tried_regions:
- 
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/max_nr_snapshots
++Date:		Dec 2025
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a number to this file sets the upper limit of
++		nr_snapshots that deactivates the scheme when the limit is
++		reached or exceeded.
++
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/tried_regions/total_bytes
+ Date:		Jul 2023
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
