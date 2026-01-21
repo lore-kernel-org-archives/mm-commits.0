@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E9A233FE35
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B78DA33E363
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967332; cv=none; b=Qq9o1+QslvY/rNanaY62CRgBQA+uZLY2nolu+//yAM7GYZJ7Z88vpju1LG3Et0klG+rYYne3IsxyU8a3w27cwnhnagm740zjuRRWGS5diqp+Za6cng4iFZaxuSsrMFNQqMwMhTImP3iXS6JeeDvngUQY/7UrlDnyviWk8yS3VN8=
+	t=1768967336; cv=none; b=jzrsyr8o82fRkdVLFyUkNP4/Fwm3sZywlWdTdQfFxyMWIGWfulskq2dGAq+fVIqSDMrvRwSlu65W52UUVMbMinSbCHS5Trq/M4qyl+RdXOr5O4JKLnVerrecDwRV2dtrV2agCFIblwLV42X8k5Sp/K0BH29YN+CEFUbjwCjHB5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967332; c=relaxed/simple;
-	bh=v2uH3PD0FW5E71oM8gPX82uebY5q0X1H0D3Yqo2HD+M=;
-	h=Date:To:From:Subject:Message-Id; b=QNZw4YrBHAAeIJlCoVjD8WTkYqMdRMDv0siJNzj3luN3EAU83FvCQr+hVNIwI1VSf2kLqlb5V6xUDYBhRcY53/WikKkrSNIKIt6tZ6JdeHBjI1L4Aow5SBmWz3oXv5tEXHN0I0ulwyTAoFMltwr3T43wARplRW3jsxIGzSa4+pA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GC5LzUFl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967336; c=relaxed/simple;
+	bh=hDdWnVkTmk+/85fMsrmXfWmQJDh0UEwbPKs599uv9x0=;
+	h=Date:To:From:Subject:Message-Id; b=d8sHsSbnyKf2v/rpcxt7d98btcpiB1kq/gdQgu/Pbj32MNPAYzKFkM8wnHt+kbu9e7tNDcC5j6lh3ZspQ0bT8D6jnTyLFxz5/s1zHBfJjO1pej+afi+R/TbRCjfqmAXLD0odFzpzLkxuxLO9C1NOBvJDBzW0lxbiUE6AT6Wzpao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qpenn1Ld; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GC5LzUFl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E3B1C16AAE;
-	Wed, 21 Jan 2026 03:48:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qpenn1Ld"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E06A7C16AAE;
+	Wed, 21 Jan 2026 03:48:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967331;
-	bh=v2uH3PD0FW5E71oM8gPX82uebY5q0X1H0D3Yqo2HD+M=;
+	s=korg; t=1768967336;
+	bh=hDdWnVkTmk+/85fMsrmXfWmQJDh0UEwbPKs599uv9x0=;
 	h=Date:To:From:Subject:From;
-	b=GC5LzUFlUS/N996M+vBx/eET3wywQAvX9GKqD+2DKsvyQNPqVJA4x9IbNlZVdgaMy
-	 sQ3Yg4N+dPVrwynIcu5SxpkEHWQLDI4kPXQjQSfzqT90TIJZCayZpo0EZObKP3Lrv9
-	 hR2Tpu/iCAr/NK1ph6OojWMt1eX4J1mmqzWutozI=
-Date: Tue, 20 Jan 2026 19:48:51 -0800
-To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,sdf@fomichev.me,npiggin@gmail.com,martin.lau@linux.dev,lance.yang@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,lirongqing@baidu.com,akpm@linux-foundation.org
+	b=Qpenn1LdugQIHUFAPkXXFAKnP9MczhO52tQiWs30YRDlIJNLdAgyGS/j/TQdrZs3c
+	 h01AqxItGz4u4dELJDSLIpiYuy5xKnF1RBVT2Nl6pDMAT8DJzFg7XU6mkeH0rOJ6fP
+	 djgFZXNPeEhgubdBDaLBGHzOSI+q+OQQZM+3nbO8=
+Date: Tue, 20 Jan 2026 19:48:55 -0800
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,brauner@kernel.org,lalitshankarch@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds.patch removed from -mm tree
-Message-Id: <20260121034851.8E3B1C16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-remove-unused-parameter.patch removed from -mm tree
+Message-Id: <20260121034855.E06A7C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,274 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: watchdog: softlockup: panic when lockup duration exceeds N thresholds
+     Subject: fat: remove unused parameter
 has been removed from the -mm tree.  Its filename was
-     watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds.patch
+     fat-remove-unused-parameter.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li RongQing <lirongqing@baidu.com>
-Subject: watchdog: softlockup: panic when lockup duration exceeds N thresholds
-Date: Tue, 16 Dec 2025 02:45:21 -0500
+From: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
+Subject: fat: remove unused parameter
+Date: Tue, 2 Dec 2025 03:14:04 +0530
 
-The softlockup_panic sysctl is currently a binary option: panic
-immediately or never panic on soft lockups.
+Remove unused inode parameter from fat_cache_alloc().
 
-Panicking on any soft lockup, regardless of duration, can be overly
-aggressive for brief stalls that may be caused by legitimate operations. 
-Conversely, never panicking may allow severe system hangs to persist
-undetected.
-
-Extend softlockup_panic to accept an integer threshold, allowing the
-kernel to panic only when the normalized lockup duration exceeds N
-watchdog threshold periods.  This provides finer-grained control to
-distinguish between transient delays and persistent system failures.
-
-The accepted values are:
-- 0: Don't panic (unchanged)
-- 1: Panic when duration >= 1 * threshold (20s default, original behavior)
-- N > 1: Panic when duration >= N * threshold (e.g., 2 = 40s, 3 = 60s.)
-
-The original behavior is preserved for values 0 and 1, maintaining full
-backward compatibility while allowing systems to tolerate brief lockups
-while still catching severe, persistent hangs.
-
-[lirongqing@baidu.com: v2]
-  Link: https://lkml.kernel.org/r/20251218074300.4080-1-lirongqing@baidu.com
-Link: https://lkml.kernel.org/r/20251216074521.2796-1-lirongqing@baidu.com
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Yonghong Song <yonghong.song@linux.dev>
+Link: https://lkml.kernel.org/r/20251201214403.90604-2-lalitshankarch@gmail.com
+Signed-off-by: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt      |   10 +++----
- arch/arm/configs/aspeed_g5_defconfig                 |    2 -
- arch/arm/configs/pxa3xx_defconfig                    |    2 -
- arch/openrisc/configs/or1klitex_defconfig            |    2 -
- arch/powerpc/configs/skiroot_defconfig               |    2 -
- drivers/gpu/drm/ci/arm.config                        |    2 -
- drivers/gpu/drm/ci/arm64.config                      |    2 -
- drivers/gpu/drm/ci/x86_64.config                     |    2 -
- kernel/configs/debug.config                          |    2 -
- kernel/watchdog.c                                    |   10 ++++---
- lib/Kconfig.debug                                    |   13 +++++-----
- tools/testing/selftests/bpf/config                   |    2 -
- tools/testing/selftests/wireguard/qemu/kernel.config |    2 -
- 13 files changed, 28 insertions(+), 25 deletions(-)
+ fs/fat/cache.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/arm/configs/aspeed_g5_defconfig~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/arch/arm/configs/aspeed_g5_defconfig
-@@ -306,7 +306,7 @@ CONFIG_SCHED_STACK_END_CHECK=y
- CONFIG_PANIC_ON_OOPS=y
- CONFIG_PANIC_TIMEOUT=-1
- CONFIG_SOFTLOCKUP_DETECTOR=y
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=y
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=1
- CONFIG_BOOTPARAM_HUNG_TASK_PANIC=1
- CONFIG_WQ_WATCHDOG=y
- # CONFIG_SCHED_DEBUG is not set
---- a/arch/arm/configs/pxa3xx_defconfig~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/arch/arm/configs/pxa3xx_defconfig
-@@ -100,7 +100,7 @@ CONFIG_PRINTK_TIME=y
- CONFIG_DEBUG_KERNEL=y
- CONFIG_MAGIC_SYSRQ=y
- CONFIG_DEBUG_SHIRQ=y
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=y
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=1
- # CONFIG_SCHED_DEBUG is not set
- CONFIG_DEBUG_SPINLOCK=y
- CONFIG_DEBUG_SPINLOCK_SLEEP=y
---- a/arch/openrisc/configs/or1klitex_defconfig~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/arch/openrisc/configs/or1klitex_defconfig
-@@ -52,5 +52,5 @@ CONFIG_LSM="lockdown,yama,loadpin,safese
- CONFIG_PRINTK_TIME=y
- CONFIG_PANIC_ON_OOPS=y
- CONFIG_SOFTLOCKUP_DETECTOR=y
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=y
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=1
- CONFIG_BUG_ON_DATA_CORRUPTION=y
---- a/arch/powerpc/configs/skiroot_defconfig~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/arch/powerpc/configs/skiroot_defconfig
-@@ -289,7 +289,7 @@ CONFIG_SCHED_STACK_END_CHECK=y
- CONFIG_DEBUG_STACKOVERFLOW=y
- CONFIG_PANIC_ON_OOPS=y
- CONFIG_SOFTLOCKUP_DETECTOR=y
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=y
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=1
- CONFIG_HARDLOCKUP_DETECTOR=y
- CONFIG_BOOTPARAM_HARDLOCKUP_PANIC=y
- CONFIG_WQ_WATCHDOG=y
---- a/Documentation/admin-guide/kernel-parameters.txt~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -6969,12 +6969,12 @@ Kernel parameters
+--- a/fs/fat/cache.c~fat-remove-unused-parameter
++++ a/fs/fat/cache.c
+@@ -54,7 +54,7 @@ void fat_cache_destroy(void)
+ 	kmem_cache_destroy(fat_cache_cachep);
+ }
  
- 	softlockup_panic=
- 			[KNL] Should the soft-lockup detector generate panics.
--			Format: 0 | 1
-+			Format: <int>
- 
--			A value of 1 instructs the soft-lockup detector
--			to panic the machine when a soft-lockup occurs. It is
--			also controlled by the kernel.softlockup_panic sysctl
--			and CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC, which is the
-+			A value of non-zero instructs the soft-lockup detector
-+			to panic the machine when a soft-lockup duration exceeds
-+			N thresholds. It is also controlled by the kernel.softlockup_panic
-+			sysctl and CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC, which is the
- 			respective build-time switch to that functionality.
- 
- 	softlockup_all_cpu_backtrace=
---- a/drivers/gpu/drm/ci/arm64.config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/drivers/gpu/drm/ci/arm64.config
-@@ -161,7 +161,7 @@ CONFIG_TMPFS=y
- CONFIG_PROVE_LOCKING=n
- CONFIG_DEBUG_LOCKDEP=n
- CONFIG_SOFTLOCKUP_DETECTOR=y
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=y
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=1
- 
- CONFIG_DETECT_HUNG_TASK=y
- 
---- a/drivers/gpu/drm/ci/arm.config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/drivers/gpu/drm/ci/arm.config
-@@ -52,7 +52,7 @@ CONFIG_TMPFS=y
- CONFIG_PROVE_LOCKING=n
- CONFIG_DEBUG_LOCKDEP=n
- CONFIG_SOFTLOCKUP_DETECTOR=n
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=n
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=0
- 
- CONFIG_FW_LOADER_COMPRESS=y
- 
---- a/drivers/gpu/drm/ci/x86_64.config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/drivers/gpu/drm/ci/x86_64.config
-@@ -47,7 +47,7 @@ CONFIG_TMPFS=y
- CONFIG_PROVE_LOCKING=n
- CONFIG_DEBUG_LOCKDEP=n
- CONFIG_SOFTLOCKUP_DETECTOR=y
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=y
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=1
- 
- CONFIG_DETECT_HUNG_TASK=y
- 
---- a/kernel/configs/debug.config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/kernel/configs/debug.config
-@@ -84,7 +84,7 @@ CONFIG_SLUB_DEBUG_ON=y
- # Debug Oops, Lockups and Hangs
- #
- CONFIG_BOOTPARAM_HUNG_TASK_PANIC=0
--# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=0
- CONFIG_DEBUG_ATOMIC_SLEEP=y
- CONFIG_DETECT_HUNG_TASK=y
- CONFIG_PANIC_ON_OOPS=y
---- a/kernel/watchdog.c~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/kernel/watchdog.c
-@@ -363,7 +363,7 @@ static struct cpumask watchdog_allowed_m
- 
- /* Global variables, exported for sysctl */
- unsigned int __read_mostly softlockup_panic =
--			IS_ENABLED(CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC);
-+			CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC;
- 
- static bool softlockup_initialized __read_mostly;
- static u64 __read_mostly sample_period;
-@@ -774,8 +774,8 @@ static enum hrtimer_restart watchdog_tim
+-static inline struct fat_cache *fat_cache_alloc(struct inode *inode)
++static inline struct fat_cache *fat_cache_alloc(void)
  {
- 	unsigned long touch_ts, period_ts, now;
- 	struct pt_regs *regs = get_irq_regs();
--	int duration;
- 	int softlockup_all_cpu_backtrace;
-+	int duration, thresh_count;
- 	unsigned long flags;
+ 	return kmem_cache_alloc(fat_cache_cachep, GFP_NOFS);
+ }
+@@ -144,7 +144,7 @@ static void fat_cache_add(struct inode *
+ 			MSDOS_I(inode)->nr_caches++;
+ 			spin_unlock(&MSDOS_I(inode)->cache_lru_lock);
  
- 	if (!watchdog_enabled)
-@@ -879,7 +879,9 @@ static enum hrtimer_restart watchdog_tim
- 
- 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
- 		sys_info(softlockup_si_mask & ~SYS_INFO_ALL_BT);
--		if (softlockup_panic)
-+		thresh_count = duration / get_softlockup_thresh();
-+
-+		if (softlockup_panic && thresh_count >= softlockup_panic)
- 			panic("softlockup: hung tasks");
- 	}
- 
-@@ -1228,7 +1230,7 @@ static const struct ctl_table watchdog_s
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
-+		.extra2		= SYSCTL_INT_MAX,
- 	},
- 	{
- 		.procname	= "softlockup_sys_info",
---- a/lib/Kconfig.debug~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/lib/Kconfig.debug
-@@ -1110,13 +1110,14 @@ config SOFTLOCKUP_DETECTOR_INTR_STORM
- 	  the CPU stats and the interrupt counts during the "soft lockups".
- 
- config BOOTPARAM_SOFTLOCKUP_PANIC
--	bool "Panic (Reboot) On Soft Lockups"
-+	int "Panic (Reboot) On Soft Lockups"
- 	depends on SOFTLOCKUP_DETECTOR
-+	default 0
- 	help
--	  Say Y here to enable the kernel to panic on "soft lockups",
--	  which are bugs that cause the kernel to loop in kernel
--	  mode for more than 20 seconds (configurable using the watchdog_thresh
--	  sysctl), without giving other tasks a chance to run.
-+	  Set to a non-zero value N to enable the kernel to panic on "soft
-+	  lockups", which are bugs that cause the kernel to loop in kernel
-+	  mode for more than (N * 20 seconds) (configurable using the
-+	  watchdog_thresh sysctl), without giving other tasks a chance to run.
- 
- 	  The panic can be used in combination with panic_timeout,
- 	  to cause the system to reboot automatically after a
-@@ -1124,7 +1125,7 @@ config BOOTPARAM_SOFTLOCKUP_PANIC
- 	  high-availability systems that have uptime guarantees and
- 	  where a lockup must be resolved ASAP.
- 
--	  Say N if unsure.
-+	  Say 0 if unsure.
- 
- config HAVE_HARDLOCKUP_DETECTOR_BUDDY
- 	bool
---- a/tools/testing/selftests/bpf/config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/tools/testing/selftests/bpf/config
-@@ -1,6 +1,6 @@
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_BOOTPARAM_HARDLOCKUP_PANIC=y
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=y
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=1
- CONFIG_BPF=y
- CONFIG_BPF_EVENTS=y
- CONFIG_BPF_JIT=y
---- a/tools/testing/selftests/wireguard/qemu/kernel.config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds
-+++ a/tools/testing/selftests/wireguard/qemu/kernel.config
-@@ -80,7 +80,7 @@ CONFIG_HARDLOCKUP_DETECTOR=y
- CONFIG_WQ_WATCHDOG=y
- CONFIG_DETECT_HUNG_TASK=y
- CONFIG_BOOTPARAM_HARDLOCKUP_PANIC=y
--CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=y
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=1
- CONFIG_BOOTPARAM_HUNG_TASK_PANIC=1
- CONFIG_PANIC_TIMEOUT=-1
- CONFIG_STACKTRACE=y
+-			tmp = fat_cache_alloc(inode);
++			tmp = fat_cache_alloc();
+ 			if (!tmp) {
+ 				spin_lock(&MSDOS_I(inode)->cache_lru_lock);
+ 				MSDOS_I(inode)->nr_caches--;
 _
 
-Patches currently in -mm which might be from lirongqing@baidu.com are
+Patches currently in -mm which might be from lalitshankarch@gmail.com are
 
 
