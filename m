@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2AD533C52F
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E6933B6FE
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967327; cv=none; b=iT4E+FQajHMndibthEW6PFXzA2WoRkLron1rcR6ckiBmtYrhM6aSJQz85QoHeSmwCGhtr4P8oTap8xALGVxI6VbNih39cG5SVjmxHBJbrl+3PTl5oCU1A1QUCyTnHTzSMX6zJKAcI+hapgkWlAskwFzTKgPd0wKhCrXu7WjW2oY=
+	t=1768967329; cv=none; b=Vj7uYnbuVlFnd5MgqvnZ3FeYIAiuv4jiEbp62UaiyBDTpJIiSP62PWzhcKZ5AZtcPsMZ+9tV/FOdULLwpSK4fCXF40COoiU29u1WWDZQ//eLyr5dGhzsnfwm3cSs2zeZvAcMeHTW1GKb1enaJ6etZd3IjR43i0JN4Z/zL+ILQUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967327; c=relaxed/simple;
-	bh=WyxwDEe/9jLBHvS1LDptJy0h1NiZBziFIFCm1f+BbUU=;
-	h=Date:To:From:Subject:Message-Id; b=W28MQcNvvxZUgWGZXFhp1DIeunTIG3gHNtNlD8WLo9hDJCsEhVPOnVGuHy4w+HTn6AatAlsRS6k5fvn1QbpCqchOOE+bS8K0UJBNC9s/a8PU3CH378sLa0tT5P47wJZJUVzhjgCYfyX18EPknaDW2EAnAGE5l/8/5eizJyRLoCU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dyGAMgXm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967329; c=relaxed/simple;
+	bh=cginHxK4ZcVvRM32tf0dBtrFXWfnT5iSYyl2yuFu7vY=;
+	h=Date:To:From:Subject:Message-Id; b=NxxyTkRyt5XH2DWXTLJALZZrjHg8zm0xquhqVHq90/2DUZESvQpFdTmtVxRym1i+o8Pp+8uAlplDm7ZcHaMfSNecnpUbVYPPaL4d5sXsxLkcbzkGSZa6h0uk6233lf8lwwOEDDzgXEH2INHjOJy9anbfvAACzNkThYCUHT85cGo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kpc/qcP/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dyGAMgXm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5FABC16AAE;
-	Wed, 21 Jan 2026 03:48:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kpc/qcP/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24BEAC16AAE;
+	Wed, 21 Jan 2026 03:48:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967326;
-	bh=WyxwDEe/9jLBHvS1LDptJy0h1NiZBziFIFCm1f+BbUU=;
+	s=korg; t=1768967329;
+	bh=cginHxK4ZcVvRM32tf0dBtrFXWfnT5iSYyl2yuFu7vY=;
 	h=Date:To:From:Subject:From;
-	b=dyGAMgXmr5KYwWPm4VoljXYy2dNoxfL1Rsts8FZg6hJmjT76ba5SMRhDZxDfPjNuS
-	 /AClu9rQhWDEkp7gcgvndRuMtvBYwpoDSHN+QK/tAWis8iSykOUbKmIIMa0d2KPYQJ
-	 W2suUjZ6iN8EOSdTvoaclfhI4w1tUMACWrYnMGYE=
-Date: Tue, 20 Jan 2026 19:48:46 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,torvalds@linux-foundation.org,mhocko@suse.com,macro@orcam.me.uk,linux@rasmusvillemoes.dk,kees@kernel.org,jannh@google.com,glider@google.com,elver@google.com,dvyukov@google.com,chris.bazley.wg14@gmail.com,alx@kernel.org,akpm@linux-foundation.org
+	b=kpc/qcP/GfX09J1C86JHOlM4bLTnPd/S4gf8nmmzQWCm0Uc/PFM+CPm66qePM92HZ
+	 b/O7qZhxumOtWtMg0bJXN+Xd4dj6f5Mwfpg9/TimzR2dRdeTJSoQbtfTiklabCeXrg
+	 QyvmfD9T0rZDdpskI5jnhUxBaODbptVvSk9icQh8=
+Date: Tue, 20 Jan 2026 19:48:48 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,akpm@linux-foundation.org,pnina.feder@mobileye.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mm-use-array_end-instead-of-open-coding-it.patch removed from -mm tree
-Message-Id: <20260121034846.C5FABC16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-vmcoreinfo-allocate-vmcoreinfo_data-based-on-vmcoreinfo_bytes.patch removed from -mm tree
+Message-Id: <20260121034849.24BEAC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: use ARRAY_END() instead of open-coding it
+     Subject: kernel: vmcoreinfo: allocate vmcoreinfo_data based on VMCOREINFO_BYTES
 has been removed from the -mm tree.  Its filename was
-     mm-use-array_end-instead-of-open-coding-it.patch
+     kernel-vmcoreinfo-allocate-vmcoreinfo_data-based-on-vmcoreinfo_bytes.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alejandro Colomar <alx@kernel.org>
-Subject: mm: use ARRAY_END() instead of open-coding it
-Date: Thu, 11 Dec 2025 11:44:04 +0100
+From: Pnina Feder <pnina.feder@mobileye.com>
+Subject: kernel: vmcoreinfo: allocate vmcoreinfo_data based on VMCOREINFO_BYTES
+Date: Tue, 16 Dec 2025 15:28:00 +0200
 
-There aren't any bugs in this code; it's purely cosmetic.
+Patch series "vmcoreinfo: support VMCOREINFO_BYTES larger than PAGE_SIZE".
 
-By using ARRAY_END(), we prevent future issues, in case the code is
-modified; it has less moving parts.  Also, it should be more readable (and
-perhaps more importantly, greppable), as there are several ways of writing
-an expression that gets the end of an array, which are unified by this API
-name.
+VMCOREINFO_BYTES is defined as a configurable size, but multiple
+code paths implicitly assume it always fits into a single page.
 
-Link: https://lkml.kernel.org/r/2335917d123891fec074ab1b3acfb517cf14b5a7.1765449750.git.alx@kernel.org
-Signed-off-by: Alejandro Colomar <alx@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christopher Bazley <chris.bazley.wg14@gmail.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Maciej W. Rozycki <macro@orcam.me.uk>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+This series removes that assumption by allocating and mapping
+vmcoreinfo based on its actual size.
+
+Patch 1 updates vmcoreinfo allocation to use get_order(VMCOREINFO_BYTES).
+Patch 2 updates crash kernel handling to correctly allocate and map
+multiple pages when copying vmcoreinfo.
+
+This makes vmcoreinfo size consistent across the kernel and avoids
+future breakage if VMCOREINFO_BYTES grows.
+
+(No functional change when VMCOREINFO_BYTES == PAGE_SIZE.)
+
+
+This patch (of 2):
+
+VMCOREINFO_BYTES defines the size of vmcoreinfo data, but the current
+implementation assumes a single page allocation.
+
+Allocate vmcoreinfo_data using get_order(VMCOREINFO_BYTES) so that
+vmcoreinfo can safely grow beyond PAGE_SIZE.
+
+This avoids hidden assumptions and keeps vmcoreinfo size consistent across
+the kernel.
+
+Link: https://lkml.kernel.org/r/20251216132801.807260-1-pnina.feder@mobileye.com
+Link: https://lkml.kernel.org/r/20251216132801.807260-2-pnina.feder@mobileye.com
+Signed-off-by: Pnina Feder <pnina.feder@mobileye.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c      |    2 +-
- mm/memcontrol-v1.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/vmcore_info.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/kmemleak.c~mm-use-array_end-instead-of-open-coding-it
-+++ a/mm/kmemleak.c
-@@ -510,7 +510,7 @@ static void mem_pool_free(struct kmemlea
+--- a/kernel/vmcore_info.c~kernel-vmcoreinfo-allocate-vmcoreinfo_data-based-on-vmcoreinfo_bytes
++++ a/kernel/vmcore_info.c
+@@ -137,7 +137,9 @@ EXPORT_SYMBOL_GPL(hwerr_log_error_type);
+ 
+ static int __init crash_save_vmcoreinfo_init(void)
  {
- 	unsigned long flags;
- 
--	if (object < mem_pool || object >= mem_pool + ARRAY_SIZE(mem_pool)) {
-+	if (object < mem_pool || object >= ARRAY_END(mem_pool)) {
- 		kmem_cache_free(object_cache, object);
- 		return;
- 	}
---- a/mm/memcontrol-v1.c~mm-use-array_end-instead-of-open-coding-it
-+++ a/mm/memcontrol-v1.c
-@@ -1794,7 +1794,7 @@ static int memcg_numa_stat_show(struct s
- 
- 	mem_cgroup_flush_stats(memcg);
- 
--	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
-+	for (stat = stats; stat < ARRAY_END(stats); stat++) {
- 		seq_printf(m, "%s=%lu", stat->name,
- 			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
- 						   false));
-@@ -1805,7 +1805,7 @@ static int memcg_numa_stat_show(struct s
- 		seq_putc(m, '\n');
- 	}
- 
--	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
-+	for (stat = stats; stat < ARRAY_END(stats); stat++) {
- 
- 		seq_printf(m, "hierarchical_%s=%lu", stat->name,
- 			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
+-	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
++	int order;
++	order = get_order(VMCOREINFO_BYTES);
++	vmcoreinfo_data = (unsigned char *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
+ 	if (!vmcoreinfo_data) {
+ 		pr_warn("Memory allocation for vmcoreinfo_data failed\n");
+ 		return -ENOMEM;
+@@ -146,7 +148,7 @@ static int __init crash_save_vmcoreinfo_
+ 	vmcoreinfo_note = alloc_pages_exact(VMCOREINFO_NOTE_SIZE,
+ 						GFP_KERNEL | __GFP_ZERO);
+ 	if (!vmcoreinfo_note) {
+-		free_page((unsigned long)vmcoreinfo_data);
++		free_pages((unsigned long)vmcoreinfo_data, order);
+ 		vmcoreinfo_data = NULL;
+ 		pr_warn("Memory allocation for vmcoreinfo_note failed\n");
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from alx@kernel.org are
+Patches currently in -mm which might be from pnina.feder@mobileye.com are
 
 
