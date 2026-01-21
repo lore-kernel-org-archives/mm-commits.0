@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D557C329E5A
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C95D2BE7DD
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966028; cv=none; b=AFnpEItsXVTfEfU0+RS/3mXw2OUs6MNFctH4YysB4QRHX13VU5k13/mdfCLMQIruWkxFp0QpB+FWM6AnapOV3/mOT0FE/UyaQaSvIIiRKNkLC0v7Y4CCTISkblChtBL+wFU5IoBmxEbuDOcKd65iiiEFn9FTSCARPp7OnijEo/M=
+	t=1768966030; cv=none; b=u3NhWzqyHCLZ2ikR+8vuWwTAeEb4aWmciNL4DJR9QLjRsWqO30kJ9RYeUxu6xztVWrRql+WrDe3qa8tGkcGIcZisIAxVKOgTXk8oqZQztpu7NGF5/5G4KYB8upJWCRoFFqT144VL/hsU+hAcjIO7pW0DJzLDus0UtSXX67IRw9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966028; c=relaxed/simple;
-	bh=678D8Zmnkh0/hYPwtwuAWfokrXK41lzqAp4bHkdx4NE=;
-	h=Date:To:From:Subject:Message-Id; b=uoaSU+UvE1bNsYw9NM68xG9+c8X40N9FkCHxa3iza6LKnVcp9phQegoIB0YwQDoL50YHcrUOJdMbbO9Jks1I2t088r9omsxUBx4IJ86tIzT8DdgLUQzI7wjMi8Jq6kfviO2EbF4Jh/fiMtJXVkgIi0+b2zp5A2jti4Ze76UvtBY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o4yE7gZV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966030; c=relaxed/simple;
+	bh=zSLIp7EyK8t5rEYa7k/EOJdwIiyY8fimrUshwa/IEIw=;
+	h=Date:To:From:Subject:Message-Id; b=s2MtMex4AW/xC8OtAEydUOZQeE93IiDmsjAaXvB1egy7pGNNSml8ry4uiiBdaq2SmGKNyol4AsKRXmO5M8giDdSe5MHpJbzoWjz1LywwMJLhx7risqClXkmcs+t5lXUeGIYLYgu1DHz4Eb6NyyGOByGTS5WAGo7oPy7OXUlO38w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tWtGbG4D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o4yE7gZV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D65EC16AAE;
-	Wed, 21 Jan 2026 03:27:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tWtGbG4D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85654C16AAE;
+	Wed, 21 Jan 2026 03:27:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966028;
-	bh=678D8Zmnkh0/hYPwtwuAWfokrXK41lzqAp4bHkdx4NE=;
+	s=korg; t=1768966029;
+	bh=zSLIp7EyK8t5rEYa7k/EOJdwIiyY8fimrUshwa/IEIw=;
 	h=Date:To:From:Subject:From;
-	b=o4yE7gZVr7ChSVVYlwXOGGUW6AfUPQpFHsUAIdQVbiIWR/h3loGrTyyiysXZsdXIC
-	 TXtAE/gzVO9ypJzhDNxFRBF5JTKzZ+9npPzEj0TxTgCm5C30Tif1WoIQ8pZtPYj3XS
-	 J5Kw38bmrVYWNqAsPpbltF8G6AULgrx/6yJ5IAvQ=
-Date: Tue, 20 Jan 2026 19:27:07 -0800
+	b=tWtGbG4DVjR4F70RAGQ+wIiCMBV3HmBGa82iBWMHNOmNJD0kzTqXIj94wE7BQfymH
+	 LejvEfVcbKW66HseVn4jidz0rW50cR3IeV9SAZ7emPU4+NhapMvkvRigi25ZqwWbSa
+	 d8Klw8D/lSc75GJ8ZeKu6to/6zulV6FOWKstsk+8=
+Date: Tue, 20 Jan 2026 19:27:09 -0800
 To: mm-commits@vger.kernel.org,stevensd@google.com,richardycc@google.com,minchan@google.com,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-switch-to-guard-for-init_lock.patch removed from -mm tree
-Message-Id: <20260121032708.5D65EC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] zram-consolidate-device-attr-declarations.patch removed from -mm tree
+Message-Id: <20260121032709.85654C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: switch to guard() for init_lock
+     Subject: zram: consolidate device-attr declarations
 has been removed from the -mm tree.  Its filename was
-     zram-switch-to-guard-for-init_lock.patch
+     zram-consolidate-device-attr-declarations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: switch to guard() for init_lock
-Date: Mon, 1 Dec 2025 18:47:53 +0900
+Subject: zram: consolidate device-attr declarations
+Date: Mon, 1 Dec 2025 18:47:54 +0900
 
-Use init_lock guard() in sysfs store/show handlers, in order to simplify
-and, more importantly, to modernize the code.
+Do not spread device attributes declarations across the file, move
+io_stat, mm_stat, debug_stat to a common device-attr section.
 
-While at it, fix up more coding styles.
-
-Link: https://lkml.kernel.org/r/20251201094754.4149975-7-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20251201094754.4149975-8-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: David Stevens <stevensd@google.com>
@@ -61,687 +59,32 @@ Cc: Richard Chang <richardycc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  211 +++++++++++---------------------
- 1 file changed, 77 insertions(+), 134 deletions(-)
+ drivers/block/zram/zram_drv.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-switch-to-guard-for-init_lock
+--- a/drivers/block/zram/zram_drv.c~zram-consolidate-device-attr-declarations
 +++ a/drivers/block/zram/zram_drv.c
-@@ -360,15 +360,14 @@ static bool page_same_filled(void *ptr,
- 	return true;
+@@ -1966,10 +1966,6 @@ static ssize_t debug_stat_show(struct de
+ 	return ret;
  }
  
--static ssize_t initstate_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+static ssize_t initstate_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
- {
- 	u32 val;
- 	struct zram *zram = dev_to_zram(dev);
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	val = init_done(zram);
--	up_read(&zram->init_lock);
- 
- 	return sysfs_emit(buf, "%u\n", val);
- }
-@@ -382,7 +381,8 @@ static ssize_t disksize_show(struct devi
- }
- 
- static ssize_t mem_limit_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+			       struct device_attribute *attr, const char *buf,
-+			       size_t len)
- {
- 	u64 limit;
- 	char *tmp;
-@@ -392,15 +392,15 @@ static ssize_t mem_limit_store(struct de
- 	if (buf == tmp) /* no chars parsed, invalid input */
- 		return -EINVAL;
- 
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 	zram->limit_pages = PAGE_ALIGN(limit) >> PAGE_SHIFT;
--	up_write(&zram->init_lock);
- 
- 	return len;
- }
- 
- static ssize_t mem_used_max_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t len)
- {
- 	int err;
- 	unsigned long val;
-@@ -410,12 +410,11 @@ static ssize_t mem_used_max_store(struct
- 	if (err || val != 0)
- 		return -EINVAL;
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	if (init_done(zram)) {
- 		atomic_long_set(&zram->stats.max_used_pages,
- 				zs_get_total_pages(zram->mem_pool));
- 	}
--	up_read(&zram->init_lock);
- 
- 	return len;
- }
-@@ -458,12 +457,11 @@ static void mark_idle(struct zram *zram,
- 	}
- }
- 
--static ssize_t idle_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+static ssize_t idle_store(struct device *dev, struct device_attribute *attr,
-+			  const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
- 	ktime_t cutoff_time = 0;
--	ssize_t rv = -EINVAL;
- 
- 	if (!sysfs_streq(buf, "all")) {
- 		/*
-@@ -476,24 +474,19 @@ static ssize_t idle_store(struct device
- 			cutoff_time = ktime_sub(ktime_get_boottime(),
- 					ns_to_ktime(age_sec * NSEC_PER_SEC));
- 		else
--			goto out;
-+			return -EINVAL;
- 	}
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	if (!init_done(zram))
--		goto out_unlock;
-+		return -EINVAL;
- 
- 	/*
- 	 * A cutoff_time of 0 marks everything as idle, this is the
- 	 * "all" behavior.
- 	 */
- 	mark_idle(zram, cutoff_time);
--	rv = len;
+-static DEVICE_ATTR_RO(io_stat);
+-static DEVICE_ATTR_RO(mm_stat);
+-static DEVICE_ATTR_RO(debug_stat);
 -
--out_unlock:
--	up_read(&zram->init_lock);
--out:
--	return rv;
-+	return len;
- }
- 
- #ifdef CONFIG_ZRAM_WRITEBACK
-@@ -546,13 +539,12 @@ static ssize_t bd_stat_show(struct devic
- 	struct zram *zram = dev_to_zram(dev);
- 	ssize_t ret;
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	ret = sysfs_emit(buf,
- 			 "%8llu %8llu %8llu\n",
- 			 FOUR_K((u64)atomic64_read(&zram->stats.bd_count)),
- 			 FOUR_K((u64)atomic64_read(&zram->stats.bd_reads)),
- 			 FOUR_K((u64)atomic64_read(&zram->stats.bd_writes)));
--	up_read(&zram->init_lock);
- 
- 	return ret;
- }
-@@ -567,14 +559,12 @@ static ssize_t writeback_compressed_stor
- 	if (kstrtobool(buf, &val))
- 		return -EINVAL;
- 
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 	if (init_done(zram)) {
--		up_write(&zram->init_lock);
- 		return -EBUSY;
- 	}
- 
- 	zram->wb_compressed = val;
--	up_write(&zram->init_lock);
- 
- 	return len;
- }
-@@ -586,9 +576,8 @@ static ssize_t writeback_compressed_show
- 	bool val;
- 	struct zram *zram = dev_to_zram(dev);
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	val = zram->wb_compressed;
--	up_read(&zram->init_lock);
- 
- 	return sysfs_emit(buf, "%d\n", val);
- }
-@@ -599,17 +588,14 @@ static ssize_t writeback_limit_enable_st
+ static void zram_meta_free(struct zram *zram, u64 disksize)
  {
- 	struct zram *zram = dev_to_zram(dev);
- 	u64 val;
--	ssize_t ret = -EINVAL;
- 
- 	if (kstrtoull(buf, 10, &val))
--		return ret;
-+		return -EINVAL;
- 
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 	zram->wb_limit_enable = val;
--	up_write(&zram->init_lock);
--	ret = len;
- 
--	return ret;
-+	return len;
- }
- 
- static ssize_t writeback_limit_enable_show(struct device *dev,
-@@ -619,9 +605,8 @@ static ssize_t writeback_limit_enable_sh
- 	bool val;
- 	struct zram *zram = dev_to_zram(dev);
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	val = zram->wb_limit_enable;
--	up_read(&zram->init_lock);
- 
- 	return sysfs_emit(buf, "%d\n", val);
- }
-@@ -632,10 +617,9 @@ static ssize_t writeback_limit_store(str
- {
- 	struct zram *zram = dev_to_zram(dev);
- 	u64 val;
--	ssize_t ret = -EINVAL;
- 
- 	if (kstrtoull(buf, 10, &val))
--		return ret;
-+		return -EINVAL;
- 
- 	/*
- 	 * When the page size is greater than 4KB, if bd_wb_limit is set to
-@@ -647,12 +631,10 @@ static ssize_t writeback_limit_store(str
- 	 */
- 	val = rounddown(val, PAGE_SIZE / 4096);
- 
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 	zram->bd_wb_limit = val;
--	up_write(&zram->init_lock);
--	ret = len;
- 
--	return ret;
-+	return len;
- }
- 
- static ssize_t writeback_limit_show(struct device *dev,
-@@ -661,9 +643,8 @@ static ssize_t writeback_limit_show(stru
- 	u64 val;
- 	struct zram *zram = dev_to_zram(dev);
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	val = zram->bd_wb_limit;
--	up_read(&zram->init_lock);
- 
- 	return sysfs_emit(buf, "%llu\n", val);
- }
-@@ -681,9 +662,8 @@ static ssize_t writeback_batch_size_stor
- 	if (!val)
- 		return -EINVAL;
- 
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 	zram->wb_batch_size = val;
--	up_write(&zram->init_lock);
- 
- 	return len;
- }
-@@ -695,9 +675,8 @@ static ssize_t writeback_batch_size_show
- 	u32 val;
- 	struct zram *zram = dev_to_zram(dev);
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	val = zram->wb_batch_size;
--	up_read(&zram->init_lock);
- 
- 	return sysfs_emit(buf, "%u\n", val);
- }
-@@ -717,37 +696,33 @@ static void reset_bdev(struct zram *zram
- }
- 
- static ssize_t backing_dev_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+				struct device_attribute *attr, char *buf)
- {
- 	struct file *file;
- 	struct zram *zram = dev_to_zram(dev);
- 	char *p;
- 	ssize_t ret;
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	file = zram->backing_dev;
- 	if (!file) {
- 		memcpy(buf, "none\n", 5);
--		up_read(&zram->init_lock);
- 		return 5;
- 	}
- 
- 	p = file_path(file, buf, PAGE_SIZE - 1);
--	if (IS_ERR(p)) {
--		ret = PTR_ERR(p);
--		goto out;
--	}
-+	if (IS_ERR(p))
-+		return PTR_ERR(p);
- 
- 	ret = strlen(p);
- 	memmove(buf, p, ret);
- 	buf[ret++] = '\n';
--out:
--	up_read(&zram->init_lock);
- 	return ret;
- }
- 
- static ssize_t backing_dev_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+				 struct device_attribute *attr, const char *buf,
-+				 size_t len)
- {
- 	char *file_name;
- 	size_t sz;
-@@ -762,7 +737,7 @@ static ssize_t backing_dev_store(struct
- 	if (!file_name)
- 		return -ENOMEM;
- 
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 	if (init_done(zram)) {
- 		pr_info("Can't setup backing device for initialized device\n");
- 		err = -EBUSY;
-@@ -810,7 +785,6 @@ static ssize_t backing_dev_store(struct
- 	zram->backing_dev = backing_dev;
- 	zram->bitmap = bitmap;
- 	zram->nr_pages = nr_pages;
--	up_write(&zram->init_lock);
- 
- 	pr_info("setup backing device %s\n", file_name);
- 	kfree(file_name);
-@@ -822,8 +796,6 @@ out:
- 	if (backing_dev)
- 		filp_close(backing_dev, NULL);
- 
--	up_write(&zram->init_lock);
--
- 	kfree(file_name);
- 
- 	return err;
-@@ -1291,33 +1263,29 @@ static ssize_t writeback_store(struct de
- 	ssize_t ret = len;
- 	int err, mode = 0;
- 
--	down_read(&zram->init_lock);
--	if (!init_done(zram)) {
--		up_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
-+	if (!init_done(zram))
- 		return -EINVAL;
--	}
- 
- 	/* Do not permit concurrent post-processing actions. */
--	if (atomic_xchg(&zram->pp_in_progress, 1)) {
--		up_read(&zram->init_lock);
-+	if (atomic_xchg(&zram->pp_in_progress, 1))
- 		return -EAGAIN;
--	}
- 
- 	if (!zram->backing_dev) {
- 		ret = -ENODEV;
--		goto release_init_lock;
-+		goto out;
- 	}
- 
- 	pp_ctl = init_pp_ctl();
- 	if (!pp_ctl) {
- 		ret = -ENOMEM;
--		goto release_init_lock;
-+		goto out;
- 	}
- 
- 	wb_ctl = init_wb_ctl(zram);
- 	if (!wb_ctl) {
- 		ret = -ENOMEM;
--		goto release_init_lock;
-+		goto out;
- 	}
- 
- 	args = skip_spaces(buf);
-@@ -1341,7 +1309,7 @@ static ssize_t writeback_store(struct de
- 			err = parse_mode(param, &mode);
- 			if (err) {
- 				ret = err;
--				goto release_init_lock;
-+				goto out;
- 			}
- 
- 			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
-@@ -1352,7 +1320,7 @@ static ssize_t writeback_store(struct de
- 			err = parse_mode(val, &mode);
- 			if (err) {
- 				ret = err;
--				goto release_init_lock;
-+				goto out;
- 			}
- 
- 			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
-@@ -1363,7 +1331,7 @@ static ssize_t writeback_store(struct de
- 			err = parse_page_index(val, nr_pages, &lo, &hi);
- 			if (err) {
- 				ret = err;
--				goto release_init_lock;
-+				goto out;
- 			}
- 
- 			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
-@@ -1374,7 +1342,7 @@ static ssize_t writeback_store(struct de
- 			err = parse_page_indexes(val, nr_pages, &lo, &hi);
- 			if (err) {
- 				ret = err;
--				goto release_init_lock;
-+				goto out;
- 			}
- 
- 			scan_slots_for_writeback(zram, mode, lo, hi, pp_ctl);
-@@ -1386,11 +1354,10 @@ static ssize_t writeback_store(struct de
- 	if (err)
- 		ret = err;
- 
--release_init_lock:
-+out:
- 	release_pp_ctl(zram, pp_ctl);
- 	release_wb_ctl(wb_ctl);
- 	atomic_set(&zram->pp_in_progress, 0);
--	up_read(&zram->init_lock);
- 
- 	return ret;
- }
-@@ -1608,9 +1575,8 @@ static ssize_t read_block_state(struct f
- 	if (!kbuf)
- 		return -ENOMEM;
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	if (!init_done(zram)) {
--		up_read(&zram->init_lock);
- 		kvfree(kbuf);
- 		return -EINVAL;
- 	}
-@@ -1646,7 +1612,6 @@ next:
- 		*ppos += 1;
- 	}
- 
--	up_read(&zram->init_lock);
- 	if (copy_to_user(buf, kbuf, written))
- 		written = -EFAULT;
- 	kvfree(kbuf);
-@@ -1713,16 +1678,14 @@ static int __comp_algorithm_store(struct
- 		return -EINVAL;
- 	}
- 
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 	if (init_done(zram)) {
--		up_write(&zram->init_lock);
- 		kfree(compressor);
- 		pr_info("Can't change algorithm for initialized device\n");
- 		return -EBUSY;
- 	}
- 
- 	comp_algorithm_set(zram, prio, compressor);
--	up_write(&zram->init_lock);
- 	return 0;
- }
- 
-@@ -1843,9 +1806,8 @@ static ssize_t comp_algorithm_show(struc
- 	struct zram *zram = dev_to_zram(dev);
- 	ssize_t sz;
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	sz = zcomp_available_show(zram->comp_algs[ZRAM_PRIMARY_COMP], buf, 0);
--	up_read(&zram->init_lock);
- 	return sz;
- }
- 
-@@ -1870,7 +1832,7 @@ static ssize_t recomp_algorithm_show(str
- 	ssize_t sz = 0;
- 	u32 prio;
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	for (prio = ZRAM_SECONDARY_COMP; prio < ZRAM_MAX_COMPS; prio++) {
- 		if (!zram->comp_algs[prio])
- 			continue;
-@@ -1878,7 +1840,6 @@ static ssize_t recomp_algorithm_show(str
- 		sz += sysfs_emit_at(buf, sz, "#%d: ", prio);
- 		sz += zcomp_available_show(zram->comp_algs[prio], buf, sz);
- 	}
--	up_read(&zram->init_lock);
- 	return sz;
- }
- 
-@@ -1924,42 +1885,38 @@ static ssize_t recomp_algorithm_store(st
- }
- #endif
- 
--static ssize_t compact_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+static ssize_t compact_store(struct device *dev, struct device_attribute *attr,
-+			     const char *buf, size_t len)
- {
- 	struct zram *zram = dev_to_zram(dev);
- 
--	down_read(&zram->init_lock);
--	if (!init_done(zram)) {
--		up_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
-+	if (!init_done(zram))
- 		return -EINVAL;
--	}
- 
- 	zs_compact(zram->mem_pool);
--	up_read(&zram->init_lock);
- 
- 	return len;
- }
- 
--static ssize_t io_stat_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+static ssize_t io_stat_show(struct device *dev, struct device_attribute *attr,
-+			    char *buf)
- {
- 	struct zram *zram = dev_to_zram(dev);
- 	ssize_t ret;
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	ret = sysfs_emit(buf,
- 			"%8llu %8llu 0 %8llu\n",
- 			(u64)atomic64_read(&zram->stats.failed_reads),
- 			(u64)atomic64_read(&zram->stats.failed_writes),
- 			(u64)atomic64_read(&zram->stats.notify_free));
--	up_read(&zram->init_lock);
- 
- 	return ret;
- }
- 
--static ssize_t mm_stat_show(struct device *dev,
--		struct device_attribute *attr, char *buf)
-+static ssize_t mm_stat_show(struct device *dev, struct device_attribute *attr,
-+			    char *buf)
- {
- 	struct zram *zram = dev_to_zram(dev);
- 	struct zs_pool_stats pool_stats;
-@@ -1969,7 +1926,7 @@ static ssize_t mm_stat_show(struct devic
- 
- 	memset(&pool_stats, 0x00, sizeof(struct zs_pool_stats));
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	if (init_done(zram)) {
- 		mem_used = zs_get_total_pages(zram->mem_pool);
- 		zs_pool_stats(zram->mem_pool, &pool_stats);
-@@ -1989,7 +1946,6 @@ static ssize_t mm_stat_show(struct devic
- 			atomic_long_read(&pool_stats.pages_compacted),
- 			(u64)atomic64_read(&zram->stats.huge_pages),
- 			(u64)atomic64_read(&zram->stats.huge_pages_since));
--	up_read(&zram->init_lock);
- 
- 	return ret;
- }
-@@ -2001,12 +1957,11 @@ static ssize_t debug_stat_show(struct de
- 	struct zram *zram = dev_to_zram(dev);
- 	ssize_t ret;
- 
--	down_read(&zram->init_lock);
-+	guard(rwsem_read)(&zram->init_lock);
- 	ret = sysfs_emit(buf,
- 			"version: %d\n0 %8llu\n",
- 			version,
- 			(u64)atomic64_read(&zram->stats.miss_free));
--	up_read(&zram->init_lock);
- 
- 	return ret;
- }
-@@ -2669,17 +2624,13 @@ static ssize_t recompress_store(struct d
- 	if (threshold >= huge_class_size)
- 		return -EINVAL;
- 
--	down_read(&zram->init_lock);
--	if (!init_done(zram)) {
--		ret = -EINVAL;
--		goto release_init_lock;
--	}
-+	guard(rwsem_read)(&zram->init_lock);
-+	if (!init_done(zram))
-+		return -EINVAL;
- 
- 	/* Do not permit concurrent post-processing actions. */
--	if (atomic_xchg(&zram->pp_in_progress, 1)) {
--		up_read(&zram->init_lock);
-+	if (atomic_xchg(&zram->pp_in_progress, 1))
- 		return -EAGAIN;
--	}
- 
- 	if (algo) {
- 		bool found = false;
-@@ -2697,26 +2648,26 @@ static ssize_t recompress_store(struct d
- 
- 		if (!found) {
- 			ret = -EINVAL;
--			goto release_init_lock;
-+			goto out;
- 		}
- 	}
- 
- 	prio_max = min(prio_max, (u32)zram->num_active_comps);
- 	if (prio >= prio_max) {
- 		ret = -EINVAL;
--		goto release_init_lock;
-+		goto out;
- 	}
- 
- 	page = alloc_page(GFP_KERNEL);
- 	if (!page) {
- 		ret = -ENOMEM;
--		goto release_init_lock;
-+		goto out;
- 	}
- 
- 	ctl = init_pp_ctl();
- 	if (!ctl) {
- 		ret = -ENOMEM;
--		goto release_init_lock;
-+		goto out;
- 	}
- 
- 	scan_slots_for_recompress(zram, mode, prio_max, ctl);
-@@ -2747,12 +2698,11 @@ next:
- 		cond_resched();
- 	}
- 
--release_init_lock:
-+out:
- 	if (page)
- 		__free_page(page);
- 	release_pp_ctl(zram, ctl);
- 	atomic_set(&zram->pp_in_progress, 0);
--	up_read(&zram->init_lock);
- 	return ret;
- }
- #endif
-@@ -2931,7 +2881,7 @@ static void zram_destroy_comps(struct zr
- 
- static void zram_reset_device(struct zram *zram)
- {
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 
- 	zram->limit_pages = 0;
- 
-@@ -2947,11 +2897,10 @@ static void zram_reset_device(struct zra
- 	reset_bdev(zram);
- 
- 	comp_algorithm_set(zram, ZRAM_PRIMARY_COMP, default_compressor);
--	up_write(&zram->init_lock);
- }
- 
--static ssize_t disksize_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+static ssize_t disksize_store(struct device *dev, struct device_attribute *attr,
-+			      const char *buf, size_t len)
- {
- 	u64 disksize;
- 	struct zcomp *comp;
-@@ -2963,18 +2912,15 @@ static ssize_t disksize_store(struct dev
- 	if (!disksize)
- 		return -EINVAL;
- 
--	down_write(&zram->init_lock);
-+	guard(rwsem_write)(&zram->init_lock);
- 	if (init_done(zram)) {
- 		pr_info("Cannot change disksize for initialized device\n");
--		err = -EBUSY;
--		goto out_unlock;
-+		return -EBUSY;
- 	}
- 
- 	disksize = PAGE_ALIGN(disksize);
--	if (!zram_meta_alloc(zram, disksize)) {
--		err = -ENOMEM;
--		goto out_unlock;
--	}
-+	if (!zram_meta_alloc(zram, disksize))
-+		return -ENOMEM;
- 
- 	for (prio = ZRAM_PRIMARY_COMP; prio < ZRAM_MAX_COMPS; prio++) {
- 		if (!zram->comp_algs[prio])
-@@ -2994,15 +2940,12 @@ static ssize_t disksize_store(struct dev
- 	}
- 	zram->disksize = disksize;
- 	set_capacity_and_notify(zram->disk, zram->disksize >> SECTOR_SHIFT);
--	up_write(&zram->init_lock);
- 
- 	return len;
- 
- out_free_comps:
- 	zram_destroy_comps(zram);
- 	zram_meta_free(zram, disksize);
--out_unlock:
--	up_write(&zram->init_lock);
- 	return err;
- }
- 
+ 	size_t num_pages = disksize >> PAGE_SHIFT;
+@@ -3008,6 +3004,9 @@ static const struct block_device_operati
+ 	.owner = THIS_MODULE
+ };
+ 
++static DEVICE_ATTR_RO(io_stat);
++static DEVICE_ATTR_RO(mm_stat);
++static DEVICE_ATTR_RO(debug_stat);
+ static DEVICE_ATTR_WO(compact);
+ static DEVICE_ATTR_RW(disksize);
+ static DEVICE_ATTR_RO(initstate);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
