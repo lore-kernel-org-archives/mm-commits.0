@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E861F192E
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0AA123717F
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967398; cv=none; b=Q0UF5ki2lt8zmbqhb++vCbNlYMpxVoLZIWCnGaWDTyptpnanDcM4soAoTisC+HQlIFVmgWXT5BPd/AJlzbSZphfobD2D2qMm2oPYpcZszb4kAaSMbyPckLQulVRM2n2wUZrUm67OMS1nEkmQlAaFE0Gq/9F6ggzHWQu4bA8JyKw=
+	t=1768967401; cv=none; b=uyOkKEq52+BPFyBNapxA8cUASimrPUgDaQVvOMasSFB38SHolQUQhWnGwHOG9ksaN3guQidvl5qquyjEbpwzihawefd5/PDbxohI40h8rdDUSeu/VbpR5M1qet+bjpCyZy7tplPyVv4zqReguXoMxaN1gwQtjAeA0M+FGYTAN/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967398; c=relaxed/simple;
-	bh=cG88pF7CkQ21QP6WqrfPkHVCqL0JGxyC6gqagKO6Xq0=;
-	h=Date:To:From:Subject:Message-Id; b=ps2lALGYBs8DRSpQIPeDWWYINLuCRb4inlXq71Q/rs/lOqft29pagiqdOdkJyhp588H4A4wvJhUylIJOL+pM8EUqQp8DrVwwV018YVhooobxl1FZgv9iOAyRshOUrCs10ZeiQrLzK+CGqt44DbbxKO0x8w90N7K0rkaGcb5bKro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0WG3bwrG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967401; c=relaxed/simple;
+	bh=5TbWSKnBWt1WUDRmc205qKoB8LSEkSaxzK55vmH/SoI=;
+	h=Date:To:From:Subject:Message-Id; b=G002ZkCAxd9s4jtWnmzowTZBdnDmuwHCYWF9WCl3zeJQabrcDBX0GdONPZ16D3KoMzRu9aiX0nT5GI5YoijX37KukltmH2C/kuoGqB6mvf/qkK3P/NJhE21WdtB7CQumA66RAAiAwOlFObIGu9p8DrNPd2rvEIR7m0uM2qkK8zU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ecji4Hcv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0WG3bwrG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F32C16AAE;
-	Wed, 21 Jan 2026 03:49:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ecji4Hcv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69202C16AAE;
+	Wed, 21 Jan 2026 03:49:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967398;
-	bh=cG88pF7CkQ21QP6WqrfPkHVCqL0JGxyC6gqagKO6Xq0=;
+	s=korg; t=1768967399;
+	bh=5TbWSKnBWt1WUDRmc205qKoB8LSEkSaxzK55vmH/SoI=;
 	h=Date:To:From:Subject:From;
-	b=0WG3bwrGWrBg8aTDHLT7n5QoGLjgQiZNJ1iK4jZ4/ICqKMQ+V6WZfOCMhFCl+yU/J
-	 BUW+M2U34yn7oojNdR4wiszIWF1llcfBF5yRdfMA/Y6jfFJUvoW0lCCuqcgDJnXesl
-	 3/Hi4a7ck6/85+huECLQYmwG1w7bnZ05biyZXGEA=
-Date: Tue, 20 Jan 2026 19:49:57 -0800
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kees@kernel.org,juri.lelli@redhat.com,jqqlijiazi@gmail.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,mingzhu.wang@transsion.com,akpm@linux-foundation.org
+	b=Ecji4Hcv3wY8FKOdUiH/kJnfB66ThFd6Vb+8IIKvgcSUOC1x/BC8VRGmCpYX4N9tw
+	 Z98wOXZHGpVdEx95XLat/KX55iiqSbDXPX9hlTKE+9yV0xaIFlRNdTcFclxW5ds2KZ
+	 5s7am3M9pR5lPAQq647VlE13EseTL+02I9vm+rK0=
+Date: Tue, 20 Jan 2026 19:49:58 -0800
+To: mm-commits@vger.kernel.org,tmgross@umich.edu,shankari.ak0208@gmail.com,pfoliadis@posteo.net,oleg@redhat.com,ojeda@kernel.org,lossin@kernel.org,gary@garyguo.net,fujita.tomonori@gmail.com,dakr@kernel.org,brauner@kernel.org,boqun.feng@gmail.com,bjorn3_gh@protonmail.com,a.hindborg@kernel.org,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm.patch removed from -mm tree
-Message-Id: <20260121034958.00F32C16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] rust-task-restrict-task-group_leader-to-current.patch removed from -mm tree
+Message-Id: <20260121034959.69202C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/fork: update obsolete use_mm references to kthread_use_mm
+     Subject: rust: task: restrict Task::group_leader() to current
 has been removed from the -mm tree.  Its filename was
-     kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm.patch
+     rust-task-restrict-task-group_leader-to-current.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: mingzhu.wang(王明珠) <mingzhu.wang@transsion.com>
-Subject: kernel/fork: update obsolete use_mm references to kthread_use_mm
-Date: Wed, 7 Jan 2026 08:15:32 +0000
+From: Alice Ryhl <aliceryhl@google.com>
+Subject: rust: task: restrict Task::group_leader() to current
+Date: Wed, 07 Jan 2026 08:28:46 +0000
 
-The comment for get_task_mm() in kernel/fork.c incorrectly references the
-deprecated function `use_mm()`, which has been renamed to
-`kthread_use_mm()` in kernel/kthread.c.
+The Task::group_leader() method currently allows you to access the
+group_leader() of any task, for example one you hold a refcount to.  But
+this is not safe in general since the group leader could change when a
+task exits.  See for example commit a15f37a40145c ("kernel/sys.c: fix the
+racy usage of task_lock(tsk->group_leader) in sys_prlimit64() paths").
 
-This patch updates the documentation to reflect the current function
-names, ensuring accuracy when developers refer to the kernel thread memory
-context API.
+All existing users of Task::group_leader() call this method on current,
+which is guaranteed running, so there's not an actual issue in Rust code
+today.  But to prevent code in the future from making this mistake,
+restrict Task::group_leader() so that it can only be called on current.
 
-No functional changes were introduced.
+There are some other cases where accessing task->group_leader is okay. 
+For example it can be safe if you hold tasklist_lock or rcu_read_lock(). 
+However, only supporting current->group_leader is sufficient for all
+in-tree Rust users of group_leader right now.  Safe Rust functionality for
+accessing it under rcu or while holding tasklist_lock may be added in the
+future if required by any future Rust module.
 
-Link: https://lkml.kernel.org/r/KUZPR04MB8965F954108B4DD7E8FFDB2B8F84A@KUZPR04MB8965.apcprd04.prod.outlook.com
-Signed-off-by: mingzhu.wang <mingzhu.wang@transsion.com>
-Cc: Ben Segall <bsegall@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiazi Li <jqqlijiazi@gmail.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This patch is a bugfix in that it prevents users of this API from writing
+incorrect code.  It doesn't change behavior of correct code.
+
+Link: https://lkml.kernel.org/r/20260107-task-group-leader-v2-1-8fbf816f2a2f@google.com
+Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Fixes: 313c4281bc9d ("rust: add basic `Task`")
+Reported-by: Oleg Nesterov <oleg@redhat.com>
+Closes: https://lore.kernel.org/all/aTLnV-5jlgfk1aRK@redhat.com/
+Reviewed-by: Boqun Feng <boqun.feng@gmail.com>
+Reviewed-by: Gary Guo <gary@garyguo.net>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Benno Lossin <lossin@kernel.org>
+Cc: "Björn Roy Baron" <bjorn3_gh@protonmail.com>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: FUJITA Tomonori <fujita.tomonori@gmail.com>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Panagiotis Foliadis <pfoliadis@posteo.net>
+Cc: Shankari Anand <shankari.ak0208@gmail.com>
+Cc: Trevor Gross <tmgross@umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ rust/kernel/task.rs |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
---- a/kernel/fork.c~kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm
-+++ a/kernel/fork.c
-@@ -1356,7 +1356,7 @@ struct file *get_task_exe_file(struct ta
-  * @task: The task.
-  *
-  * Returns %NULL if the task has no mm.  Checks PF_KTHREAD (meaning
-- * this kernel workthread has transiently adopted a user mm with use_mm,
-+ * this kernel workthread has transiently adopted a user mm with kthread_use_mm,
-  * to do its AIO) is not set and if so returns a reference to it, after
-  * bumping up the use count.  User must release the mm via mmput()
-  * after use.  Typically used by /proc and ptrace.
+--- a/rust/kernel/task.rs~rust-task-restrict-task-group_leader-to-current
++++ a/rust/kernel/task.rs
+@@ -204,18 +204,6 @@ impl Task {
+         self.0.get()
+     }
+ 
+-    /// Returns the group leader of the given task.
+-    pub fn group_leader(&self) -> &Task {
+-        // SAFETY: The group leader of a task never changes after initialization, so reading this
+-        // field is not a data race.
+-        let ptr = unsafe { *ptr::addr_of!((*self.as_ptr()).group_leader) };
+-
+-        // SAFETY: The lifetime of the returned task reference is tied to the lifetime of `self`,
+-        // and given that a task has a reference to its group leader, we know it must be valid for
+-        // the lifetime of the returned task reference.
+-        unsafe { &*ptr.cast() }
+-    }
+-
+     /// Returns the PID of the given task.
+     pub fn pid(&self) -> Pid {
+         // SAFETY: The pid of a task never changes after initialization, so reading this field is
+@@ -345,6 +333,18 @@ impl CurrentTask {
+         // `release_task()` call.
+         Some(unsafe { PidNamespace::from_ptr(active_ns) })
+     }
++
++    /// Returns the group leader of the current task.
++    pub fn group_leader(&self) -> &Task {
++        // SAFETY: The group leader of a task never changes while the task is running, and `self`
++        // is the current task, which is guaranteed running.
++        let ptr = unsafe { (*self.as_ptr()).group_leader };
++
++        // SAFETY: `current->group_leader` stays valid for at least the duration in which `current`
++        // is running, and the signature of this function ensures that the returned `&Task` can
++        // only be used while `current` is still valid, thus still running.
++        unsafe { &*ptr.cast() }
++    }
+ }
+ 
+ // SAFETY: The type invariants guarantee that `Task` is always refcounted.
 _
 
-Patches currently in -mm which might be from mingzhu.wang@transsion.com are
+Patches currently in -mm which might be from aliceryhl@google.com are
 
+vmalloc-export-vrealloc_node_align_noprof.patch
+maple_tree-update-mas_next-docs.patch
 
