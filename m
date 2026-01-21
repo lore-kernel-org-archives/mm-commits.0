@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16670339B37
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:33:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 073BA30FF1D
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:34:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966409; cv=none; b=H3lmVCFkAqKpUx2bW8l/mhpxs1pY+Ctkwoa83DoJN9AECY3B/xdpAhPgGIdGcEj6cc2cCBc6XVXeJJSJvQy3hg04mIO+bgsNlXxb3File/GZUXjJyEkkjEqm9owbTrewFkHlFtvkmZRTKXYuwPFz+IElQgj4PVWcLFDjvHSFDYo=
+	t=1768966454; cv=none; b=T2MMo0LGlJvVZA6eJLUYbkjwrWl4zqtz5xJ48Sd+JZxIRUgCaiLjjwXGoUTdyYn4FqTvWyKq38S0VlXJa8TOkeg7mA58vfxgFjP+/wIGPQneOotOq9g33gAbYdkP0qB0Uv/F+NhZujfg+VEHp1BzZhTTw512jMUnQuLn1HMdPhA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966409; c=relaxed/simple;
-	bh=xnLX2seiCUbZfcqk/WXMZ4eqRunxpoWZOPbf51GVpY4=;
-	h=Date:To:From:Subject:Message-Id; b=JYNCHkQFSfS0EI1lpLcf8DR+OcP92AhG5FPgw3dmVl9Xb9eyfJQLNXspcpZxahmYSDxI1pQE6hnMKAUhGDWyIYcrG2PcxVoKVndXtzQ3D03U9K/slcDbgsVOy+n98xTcabtfFmLSx4yubi66RgmWQpAM8M7+UK0nTpEQVxvlb4Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q9ehF2K7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966454; c=relaxed/simple;
+	bh=/P6eSHVGZuNwRarr4dMcC1gXABkkm7Y51VUQONOsjQI=;
+	h=Date:To:From:Subject:Message-Id; b=F5DmcUNGWOk6DXH0FqpA2kkOA9glYzYfL+O7wHxEtrAWNAqCjqXZ556LUfZ82d3MHTyP55rJ8hXgArt4o/4TcRr4VDImY8pL41zUPdauUMd2oXO7TsJr/ugWyphkwOu8r/K4+nZOUYsr5QEQXDKjndlRb0RQrbA3f7NbZXf56ks=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eOa3C/oQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q9ehF2K7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95850C16AAE;
-	Wed, 21 Jan 2026 03:33:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eOa3C/oQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0556C16AAE;
+	Wed, 21 Jan 2026 03:34:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966408;
-	bh=xnLX2seiCUbZfcqk/WXMZ4eqRunxpoWZOPbf51GVpY4=;
+	s=korg; t=1768966452;
+	bh=/P6eSHVGZuNwRarr4dMcC1gXABkkm7Y51VUQONOsjQI=;
 	h=Date:To:From:Subject:From;
-	b=q9ehF2K7n1Ue1uy6gJiu1rXMKH8o1vLYWdtoABEPnWtbxTQtjXUVs86Ivhhn08kb6
-	 jSqS9HsnYfN/6FtGOREyWa4HtzO6SDq3o98rX1K4+47dtREVbcd/yrSUarNOpfCWaz
-	 3jiIhxWFpugN4j372eGZwOPLIqpq0HQ9WKx4xab4=
-Date: Tue, 20 Jan 2026 19:33:28 -0800
-To: mm-commits@vger.kernel.org,sakamo.ryota@gmail.com,geert@linux-m68k.org,davidgow@google.com,brendan.higgins@linux.dev,andriy.shevchenko@linux.intel.com,lukas.bulwahn@redhat.com,akpm@linux-foundation.org
+	b=eOa3C/oQ3ZA9EctqCCMc6l0D+pdbLXTZ4xG+X9EVc8dldnD+TQqgz/y3Dmxj/H6r3
+	 TX1pHECYfuc1Rw/MJTh3xR0cxSvvqD0OIkq1DuaIv1MufBHId+sqgE17MVaxB0c6X4
+	 Rdo4MZSZiH6YDWeee4WCboncJ6t0ikQZvRk5ning=
+Date: Tue, 20 Jan 2026 19:34:12 -0800
+To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,sdf@fomichev.me,npiggin@gmail.com,martin.lau@linux.dev,lance.yang@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,lirongqing@baidu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] lib-tests-convert-test_uuid-module-to-kunit-fix.patch removed from -mm tree
-Message-Id: <20260121033328.95850C16AAE@smtp.kernel.org>
+Subject: [folded-merged] watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2.patch removed from -mm tree
+Message-Id: <20260121033412.D0556C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: adjust file entry in UUID HELPERS
+     Subject: watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
 has been removed from the -mm tree.  Its filename was
-     lib-tests-convert-test_uuid-module-to-kunit-fix.patch
+     watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2.patch
 
-This patch was dropped because it was folded into lib-tests-convert-test_uuid-module-to-kunit.patch
+This patch was dropped because it was folded into watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds.patch
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@redhat.com>
-Subject: MAINTAINERS: adjust file entry in UUID HELPERS
-Date: Wed, 17 Dec 2025 06:39:07 +0100
+From: Li RongQing <lirongqing@baidu.com>
+Subject: watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
+Date: Thu, 18 Dec 2025 02:43:00 -0500
 
-Commit e61d3add3e7f ("lib/tests: convert test_uuid module to KUnit") moves
-lib/test_uuid.c to lib/tests/uuid_kunit.c, but misses to adjust the file
-entry in the MAINTAINERS section UUID HELPERS.
+add a temp variable thresh_count
+chang config to 0 in kernel/configs/debug.config 
 
-Adjust the file entry in that section after this file movement.
-
-Link: https://lkml.kernel.org/r/20251217053907.2778515-1-lukas.bulwahn@redhat.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
-Acked-by: David Gow <davidgow@google.com>
-Acked-by: Ryota Sakamoto <sakamo.ryota@gmail.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Link: https://lkml.kernel.org/r/20251218074300.4080-1-lirongqing@baidu.com
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Song Liu <song@kernel.org>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Yonghong Song <yonghong.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/configs/debug.config |    2 +-
+ kernel/watchdog.c           |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/MAINTAINERS~lib-tests-convert-test_uuid-module-to-kunit-fix
-+++ a/MAINTAINERS
-@@ -27256,7 +27256,7 @@ R:	Andy Shevchenko <andriy.shevchenko@li
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
- F:	include/linux/uuid.h
--F:	lib/test_uuid.c
-+F:	lib/tests/uuid_kunit.c
- F:	lib/uuid.c
+--- a/kernel/configs/debug.config~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
++++ a/kernel/configs/debug.config
+@@ -84,7 +84,7 @@ CONFIG_SLUB_DEBUG_ON=y
+ # Debug Oops, Lockups and Hangs
+ #
+ CONFIG_BOOTPARAM_HUNG_TASK_PANIC=0
+-# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
++CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC=0
+ CONFIG_DEBUG_ATOMIC_SLEEP=y
+ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_PANIC_ON_OOPS=y
+--- a/kernel/watchdog.c~watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds-v2
++++ a/kernel/watchdog.c
+@@ -774,8 +774,8 @@ static enum hrtimer_restart watchdog_tim
+ {
+ 	unsigned long touch_ts, period_ts, now;
+ 	struct pt_regs *regs = get_irq_regs();
+-	int duration;
+ 	int softlockup_all_cpu_backtrace;
++	int duration, thresh_count;
+ 	unsigned long flags;
  
- UV SYSFS DRIVER
+ 	if (!watchdog_enabled)
+@@ -879,9 +879,9 @@ static enum hrtimer_restart watchdog_tim
+ 
+ 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
+ 		sys_info(softlockup_si_mask & ~SYS_INFO_ALL_BT);
+-		duration = duration / get_softlockup_thresh();
++		thresh_count = duration / get_softlockup_thresh();
+ 
+-		if (softlockup_panic && duration >= softlockup_panic)
++		if (softlockup_panic && thresh_count >= softlockup_panic)
+ 			panic("softlockup: hung tasks");
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@redhat.com are
+Patches currently in -mm which might be from lirongqing@baidu.com are
 
-lib-tests-convert-test_uuid-module-to-kunit.patch
-kho-abi-add-memblock-abi-header-fix.patch
+watchdog-softlockup-panic-when-lockup-duration-exceeds-n-thresholds.patch
 
