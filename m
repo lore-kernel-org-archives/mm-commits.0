@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5E98333439
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBE3E33AD94
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967318; cv=none; b=g3mQV493hiXeEhdl4iqWCfBlVwDSFbDqQQJSRHoo53TheUSn+B1/aYmmmOtmSjuatCAEA7wAgXu4wD/uyawy4NgntePt8UyhaZM/6GQQ22RqarAVOYI3XVmvS3TTEX87OVjHmAiHg2tij5MgepU9z+d6Nv/LvcHHlwzSai4tmSk=
+	t=1768967324; cv=none; b=CaHQMzIXvSYu29Q1GbL4Rgpb98O10Vtyd9qI+eVsfAXJzTsFTDHfMTVCqFStxaI6pngwoROc/HRmcsMXakbhKr6TBmR1e6guTQnf+g2l4nNuusqWcu0+PjfTi53NZHmR/VYu1Vv4OIWZFGKXNV3N3qAG+nHlyGJTTawvq9MUP4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967318; c=relaxed/simple;
-	bh=BURv5qJImBYQbYty5yHwlilJwgzGeMSrVAcRqF0zi/s=;
-	h=Date:To:From:Subject:Message-Id; b=f9Nf0aJq3sHsrfe8odTjZBqfOYf3oAUfdDE+vA1BuFjIquN7ttneGDYgLZRDNXxvP1wZSQL+wxKcareNkGwMG/66y01lABxTi1bNZ/Tu/tea//YPpoeYDd4Ja2ITzRebItVqR5KR96FtzVZiyygXXZr3/vo4wa/hXM7t4fWMBxE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dYRto8sD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967324; c=relaxed/simple;
+	bh=W+ZmgdgAUG6X+m/SjFIecFEnKaoq86VIqtREvpH0kYY=;
+	h=Date:To:From:Subject:Message-Id; b=e582JjtVAtGEvmVINiHfascDIIVsA14we/qqmo+erNeUqiGMFvsFzfVPgGd0eS9emeMcs0SXpzY2GtIPpGRICKlDl56e9bY3FAI/OvNef1+4ewuvHXTlAj9xOqnl2Mlhxn0SK1PLaqcudvcDO5P2rVw/LlQovnHgMt9qmU36YVA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oZ7KoXL/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dYRto8sD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D97C16AAE;
-	Wed, 21 Jan 2026 03:48:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oZ7KoXL/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E67AC16AAE;
+	Wed, 21 Jan 2026 03:48:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967317;
-	bh=BURv5qJImBYQbYty5yHwlilJwgzGeMSrVAcRqF0zi/s=;
+	s=korg; t=1768967323;
+	bh=W+ZmgdgAUG6X+m/SjFIecFEnKaoq86VIqtREvpH0kYY=;
 	h=Date:To:From:Subject:From;
-	b=dYRto8sDIaYVRi6aZ5nWg5h1y4KN4ey5mRCjHsvCHRq7jT9dlR7+dMjO+PERXQB2H
-	 aGA2LCytT2WLRb0mifr1scAlOwVJfAoGW7w2XUJKZv+BSY2aZ569ZPRgHN/1AVUPNl
-	 ZRjruVsH8W7AGmUz7TqSqscVWV1w9+qAuEhcku8I=
-Date: Tue, 20 Jan 2026 19:48:36 -0800
-To: mm-commits@vger.kernel.org,lukas.bulwahn@redhat.com,geert@linux-m68k.org,davidgow@google.com,brendan.higgins@linux.dev,andriy.shevchenko@linux.intel.com,sakamo.ryota@gmail.com,akpm@linux-foundation.org
+	b=oZ7KoXL/RzOQa0DNRQbkdY+vDLoq0rwJVk9gpM1BMTShhz16nbUe1AeYwK6h9fE2Y
+	 HR5rKBxe2er+oWhFP8ubnZ6pHWzhHPODA7iwVYCPSzHMAE/sT5/xTpNXs2si6fh4yY
+	 56c22TCRQ1ZDAPLFP1xNcYeHO8vxSLLuHwzrNXAk=
+Date: Tue, 20 Jan 2026 19:48:42 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,torvalds@linux-foundation.org,mhocko@suse.com,macro@orcam.me.uk,linux@rasmusvillemoes.dk,kees@kernel.org,jannh@google.com,glider@google.com,elver@google.com,dvyukov@google.com,chris.bazley.wg14@gmail.com,alx@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-tests-convert-test_uuid-module-to-kunit.patch removed from -mm tree
-Message-Id: <20260121034837.18D97C16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] array_sizeh-add-array_end.patch removed from -mm tree
+Message-Id: <20260121034843.0E67AC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,504 +35,123 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/tests: convert test_uuid module to KUnit
+     Subject: array_size.h: add ARRAY_END()
 has been removed from the -mm tree.  Its filename was
-     lib-tests-convert-test_uuid-module-to-kunit.patch
+     array_sizeh-add-array_end.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryota Sakamoto <sakamo.ryota@gmail.com>
-Subject: lib/tests: convert test_uuid module to KUnit
-Date: Mon, 15 Dec 2025 13:43:22 +0000
+From: Alejandro Colomar <alx@kernel.org>
+Subject: array_size.h: add ARRAY_END()
+Date: Thu, 11 Dec 2025 11:43:49 +0100
 
-Move lib/test_uuid.c to lib/tests/uuid_kunit.c and convert it to use KUnit.
+Patch series "Add ARRAY_END(), and use it to fix off-by-one bugs", v6.
 
-This change switches the ad-hoc test code to standard KUnit test cases. 
-The test data remains the same, but the verification logic is updated to
-use KUNIT_EXPECT_* macros.
+Add ARRAY_END(), and use it to fix off-by-one bugs
 
-Also remove CONFIG_TEST_UUID from arch/*/configs/* because it is no longer
-used.  The new CONFIG_UUID_KUNIT_TEST will be automatically enabled by
-CONFIG_KUNIT_ALL_TESTS.
+ARRAY_END() is a macro to calculate a pointer to one past the last element
+of an array argument.  This is a very common pointer, which is used to
+iterate over all elements of an array:
 
-[lukas.bulwahn@redhat.com: MAINTAINERS: adjust file entry in UUID HELPERS]
-  Link: https://lkml.kernel.org/r/20251217053907.2778515-1-lukas.bulwahn@redhat.com
-Link: https://lkml.kernel.org/r/20251215134322.12949-1-sakamo.ryota@gmail.com
-Signed-off-by: Ryota Sakamoto <sakamo.ryota@gmail.com>
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: David Gow <davidgow@google.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: Lukas Bulwahn <lukas.bulwahn@redhat.com>
+        for (T *p = a; p < ARRAY_END(a); p++)
+                ...
+
+Of course, this pointer should never be dereferenced.  A pointer one past
+the last element of an array should not be dereferenced; it's perfectly
+fine to hold such a pointer --and a good thing to do--, but the only thing
+it should be used for is comparing it with other pointers derived from the
+same array.
+
+Due to how special these pointers are, it would be good to use consistent
+naming.  It's common to name such a pointer 'end' --in fact, we have many
+such cases in the kernel--.  C++ even standardized this name with
+std::end().  Let's try naming such pointers 'end', and try also avoid
+using 'end' for pointers that are not the result of ARRAY_END().
+
+It has been incorrectly suggested that these pointers are dangerous, and
+that they should never be used, suggesting to use something like
+
+	#define ARRAY_LAST(a)  ((a) + ARRAY_SIZE(a) - 1)
+
+	for (T *p = a; p <= ARRAY_LAST(a); p++)
+		...
+
+This is bogus, as it doesn't scale down to arrays of 0 elements.  In the
+case of an array of 0 elements, ARRAY_LAST() would underflow the pointer,
+which not only it can't be dereferenced, it can't even be held (it
+produces Undefined Behavior).  That would be a footgun.  Such arrays don't
+exist per the ISO C standard; however, GCC supports them as an extension
+(with partial support, though; GCC has a few bugs which need to be fixed).
+
+This patch set fixes a few places where it was intended to use the array
+end (that is, one past the last element), but accidentally a pointer to
+the last element was used instead, thus wasting one byte.
+
+It also replaces other places where the array end was correctly calculated
+with ARRAY_SIZE(), by using the simpler ARRAY_END().
+
+Also, there was one drivers/ file that already defined this macro.  We
+remove that definition, to not conflict with this one.
+
+
+This patch (of 4):
+
+ARRAY_END() returns a pointer one past the end of the last element in the
+array argument.  This pointer is useful for iterating over the elements of
+an array:
+
+	for (T *p = a, p < ARRAY_END(a); p++)
+		...
+
+Link: https://lkml.kernel.org/r/cover.1765449750.git.alx@kernel.org
+Link: https://lkml.kernel.org/r/5973cfb674192bc8e533485dbfb54e3062896be1.1765449750.git.alx@kernel.org
+Signed-off-by: Alejandro Colomar <alx@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Christopher Bazley <chris.bazley.wg14@gmail.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Marco Elver <elver@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Maciej W. Rozycki <macro@orcam.me.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                          |    2 
- arch/m68k/configs/amiga_defconfig    |    1 
- arch/m68k/configs/apollo_defconfig   |    1 
- arch/m68k/configs/atari_defconfig    |    1 
- arch/m68k/configs/bvme6000_defconfig |    1 
- arch/m68k/configs/hp300_defconfig    |    1 
- arch/m68k/configs/mac_defconfig      |    1 
- arch/m68k/configs/multi_defconfig    |    1 
- arch/m68k/configs/mvme147_defconfig  |    1 
- arch/m68k/configs/mvme16x_defconfig  |    1 
- arch/m68k/configs/q40_defconfig      |    1 
- arch/m68k/configs/sun3_defconfig     |    1 
- arch/m68k/configs/sun3x_defconfig    |    1 
- arch/powerpc/configs/ppc64_defconfig |    1 
- lib/Kconfig.debug                    |   14 ++
- lib/Makefile                         |    1 
- lib/test_uuid.c                      |  134 -------------------------
- lib/tests/Makefile                   |    1 
- lib/tests/uuid_kunit.c               |  106 +++++++++++++++++++
- 19 files changed, 119 insertions(+), 152 deletions(-)
+ drivers/block/floppy.c     |    2 --
+ include/linux/array_size.h |    6 ++++++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/arch/m68k/configs/amiga_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/amiga_defconfig
-@@ -618,7 +618,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/apollo_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/apollo_defconfig
-@@ -575,7 +575,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/atari_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/atari_defconfig
-@@ -595,7 +595,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/bvme6000_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/bvme6000_defconfig
-@@ -567,7 +567,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/hp300_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/hp300_defconfig
-@@ -577,7 +577,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/mac_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/mac_defconfig
-@@ -594,7 +594,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/multi_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/multi_defconfig
-@@ -681,7 +681,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/mvme147_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/mvme147_defconfig
-@@ -567,7 +567,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/mvme16x_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/mvme16x_defconfig
-@@ -568,7 +568,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/q40_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/q40_defconfig
-@@ -584,7 +584,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/sun3_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/sun3_defconfig
-@@ -564,7 +564,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/m68k/configs/sun3x_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/m68k/configs/sun3x_defconfig
-@@ -565,7 +565,6 @@ CONFIG_ASYNC_RAID6_TEST=m
- CONFIG_TEST_HEXDUMP=m
- CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/arch/powerpc/configs/ppc64_defconfig~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/arch/powerpc/configs/ppc64_defconfig
-@@ -443,7 +443,6 @@ CONFIG_TEST_KSTRTOX=m
- CONFIG_TEST_PRINTF=m
- CONFIG_TEST_SCANF=m
- CONFIG_TEST_BITMAP=m
--CONFIG_TEST_UUID=m
- CONFIG_TEST_XARRAY=m
- CONFIG_TEST_MAPLE_TREE=m
- CONFIG_TEST_RHASHTABLE=m
---- a/lib/Kconfig.debug~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/lib/Kconfig.debug
-@@ -2499,9 +2499,6 @@ config TEST_BITMAP
+--- a/drivers/block/floppy.c~array_sizeh-add-array_end
++++ a/drivers/block/floppy.c
+@@ -4802,8 +4802,6 @@ static void floppy_release_allocated_reg
+ 	}
+ }
  
- 	  If unsure, say N.
- 
--config TEST_UUID
--	tristate "Test functions located in the uuid module at runtime"
+-#define ARRAY_END(X) (&((X)[ARRAY_SIZE(X)]))
 -
- config TEST_XARRAY
- 	tristate "Test the XArray code at runtime"
+ static int floppy_request_regions(int fdc)
+ {
+ 	const struct io_region *p;
+--- a/include/linux/array_size.h~array_sizeh-add-array_end
++++ a/include/linux/array_size.h
+@@ -10,4 +10,10 @@
+  */
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
  
-@@ -3285,6 +3282,17 @@ config RATELIMIT_KUNIT_TEST
- 
- 	  If unsure, say N.
- 
-+config UUID_KUNIT_TEST
-+	tristate "KUnit test for UUID" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  This option enables the KUnit test suite for the uuid library,
-+	  which provides functions for generating and parsing UUID and GUID.
-+	  The test suite checks parsing of UUID and GUID strings.
-+
-+	  If unsure, say N.
-+
- config INT_POW_KUNIT_TEST
- 	tristate "Integer exponentiation (int_pow) test" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
---- a/lib/Makefile~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/lib/Makefile
-@@ -89,7 +89,6 @@ ifeq ($(CONFIG_CC_IS_CLANG)$(CONFIG_KASA
- GCOV_PROFILE_test_bitmap.o := n
- endif
- 
--obj-$(CONFIG_TEST_UUID) += test_uuid.o
- obj-$(CONFIG_TEST_XARRAY) += test_xarray.o
- obj-$(CONFIG_TEST_MAPLE_TREE) += test_maple_tree.o
- obj-$(CONFIG_TEST_PARMAN) += test_parman.o
---- a/lib/tests/Makefile~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/lib/tests/Makefile
-@@ -49,5 +49,6 @@ obj-$(CONFIG_STRING_HELPERS_KUNIT_TEST)
- obj-$(CONFIG_USERCOPY_KUNIT_TEST) += usercopy_kunit.o
- obj-$(CONFIG_UTIL_MACROS_KUNIT) += util_macros_kunit.o
- obj-$(CONFIG_RATELIMIT_KUNIT_TEST) += test_ratelimit.o
-+obj-$(CONFIG_UUID_KUNIT_TEST) += uuid_kunit.o
- 
- obj-$(CONFIG_TEST_RUNTIME_MODULE)		+= module/
-diff --git a/lib/tests/uuid_kunit.c a/lib/tests/uuid_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/uuid_kunit.c
-@@ -0,0 +1,106 @@
-+// SPDX-License-Identifier: BSD-3-Clause OR GPL-2.0
-+/*
-+ * Test cases for lib/uuid.c module.
++/**
++ * ARRAY_END - get a pointer to one past the last element in array @arr
++ * @arr: array
 + */
++#define ARRAY_END(arr)  (&(arr)[ARRAY_SIZE(arr)])
 +
-+#include <kunit/test.h>
-+#include <linux/uuid.h>
-+
-+struct test_uuid_data {
-+	const char *uuid;
-+	guid_t le;
-+	uuid_t be;
-+};
-+
-+static const struct test_uuid_data test_uuid_test_data[] = {
-+	{
-+		.uuid = "c33f4995-3701-450e-9fbf-206a2e98e576",
-+		.le = GUID_INIT(0xc33f4995, 0x3701, 0x450e, 0x9f, 0xbf, 0x20, 0x6a, 0x2e, 0x98, 0xe5, 0x76),
-+		.be = UUID_INIT(0xc33f4995, 0x3701, 0x450e, 0x9f, 0xbf, 0x20, 0x6a, 0x2e, 0x98, 0xe5, 0x76),
-+	},
-+	{
-+		.uuid = "64b4371c-77c1-48f9-8221-29f054fc023b",
-+		.le = GUID_INIT(0x64b4371c, 0x77c1, 0x48f9, 0x82, 0x21, 0x29, 0xf0, 0x54, 0xfc, 0x02, 0x3b),
-+		.be = UUID_INIT(0x64b4371c, 0x77c1, 0x48f9, 0x82, 0x21, 0x29, 0xf0, 0x54, 0xfc, 0x02, 0x3b),
-+	},
-+	{
-+		.uuid = "0cb4ddff-a545-4401-9d06-688af53e7f84",
-+		.le = GUID_INIT(0x0cb4ddff, 0xa545, 0x4401, 0x9d, 0x06, 0x68, 0x8a, 0xf5, 0x3e, 0x7f, 0x84),
-+		.be = UUID_INIT(0x0cb4ddff, 0xa545, 0x4401, 0x9d, 0x06, 0x68, 0x8a, 0xf5, 0x3e, 0x7f, 0x84),
-+	},
-+};
-+
-+static const char * const test_uuid_wrong_data[] = {
-+	"c33f4995-3701-450e-9fbf206a2e98e576 ",	/* no hyphen(s) */
-+	"64b4371c-77c1-48f9-8221-29f054XX023b",	/* invalid character(s) */
-+	"0cb4ddff-a545-4401-9d06-688af53e",	/* not enough data */
-+};
-+
-+static void uuid_test_guid_valid(struct kunit *test)
-+{
-+	unsigned int i;
-+	const struct test_uuid_data *data;
-+	guid_t le;
-+
-+	for (i = 0; i < ARRAY_SIZE(test_uuid_test_data); i++) {
-+		data = &test_uuid_test_data[i];
-+		KUNIT_EXPECT_EQ(test, guid_parse(data->uuid, &le), 0);
-+		KUNIT_EXPECT_TRUE(test, guid_equal(&data->le, &le));
-+	}
-+}
-+
-+static void uuid_test_uuid_valid(struct kunit *test)
-+{
-+	unsigned int i;
-+	const struct test_uuid_data *data;
-+	uuid_t be;
-+
-+	for (i = 0; i < ARRAY_SIZE(test_uuid_test_data); i++) {
-+		data = &test_uuid_test_data[i];
-+		KUNIT_EXPECT_EQ(test, uuid_parse(data->uuid, &be), 0);
-+		KUNIT_EXPECT_TRUE(test, uuid_equal(&data->be, &be));
-+	}
-+}
-+
-+static void uuid_test_guid_invalid(struct kunit *test)
-+{
-+	unsigned int i;
-+	const char *uuid;
-+	guid_t le;
-+
-+	for (i = 0; i < ARRAY_SIZE(test_uuid_wrong_data); i++) {
-+		uuid = test_uuid_wrong_data[i];
-+		KUNIT_EXPECT_EQ(test, guid_parse(uuid, &le), -EINVAL);
-+	}
-+}
-+
-+static void uuid_test_uuid_invalid(struct kunit *test)
-+{
-+	unsigned int i;
-+	const char *uuid;
-+	uuid_t be;
-+
-+	for (i = 0; i < ARRAY_SIZE(test_uuid_wrong_data); i++) {
-+		uuid = test_uuid_wrong_data[i];
-+		KUNIT_EXPECT_EQ(test, uuid_parse(uuid, &be), -EINVAL);
-+	}
-+}
-+
-+static struct kunit_case uuid_test_cases[] = {
-+	KUNIT_CASE(uuid_test_guid_valid),
-+	KUNIT_CASE(uuid_test_uuid_valid),
-+	KUNIT_CASE(uuid_test_guid_invalid),
-+	KUNIT_CASE(uuid_test_uuid_invalid),
-+	{},
-+};
-+
-+static struct kunit_suite uuid_test_suite = {
-+	.name = "uuid",
-+	.test_cases = uuid_test_cases,
-+};
-+
-+kunit_test_suite(uuid_test_suite);
-+
-+MODULE_AUTHOR("Andy Shevchenko <andriy.shevchenko@linux.intel.com>");
-+MODULE_DESCRIPTION("Test cases for lib/uuid.c module");
-+MODULE_LICENSE("Dual BSD/GPL");
-diff --git a/lib/test_uuid.c a/lib/test_uuid.c
-deleted file mode 100644
---- a/lib/test_uuid.c
-+++ /dev/null
-@@ -1,134 +0,0 @@
--/*
-- * Test cases for lib/uuid.c module.
-- */
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
--#include <linux/init.h>
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/string.h>
--#include <linux/uuid.h>
--
--struct test_uuid_data {
--	const char *uuid;
--	guid_t le;
--	uuid_t be;
--};
--
--static const struct test_uuid_data test_uuid_test_data[] = {
--	{
--		.uuid = "c33f4995-3701-450e-9fbf-206a2e98e576",
--		.le = GUID_INIT(0xc33f4995, 0x3701, 0x450e, 0x9f, 0xbf, 0x20, 0x6a, 0x2e, 0x98, 0xe5, 0x76),
--		.be = UUID_INIT(0xc33f4995, 0x3701, 0x450e, 0x9f, 0xbf, 0x20, 0x6a, 0x2e, 0x98, 0xe5, 0x76),
--	},
--	{
--		.uuid = "64b4371c-77c1-48f9-8221-29f054fc023b",
--		.le = GUID_INIT(0x64b4371c, 0x77c1, 0x48f9, 0x82, 0x21, 0x29, 0xf0, 0x54, 0xfc, 0x02, 0x3b),
--		.be = UUID_INIT(0x64b4371c, 0x77c1, 0x48f9, 0x82, 0x21, 0x29, 0xf0, 0x54, 0xfc, 0x02, 0x3b),
--	},
--	{
--		.uuid = "0cb4ddff-a545-4401-9d06-688af53e7f84",
--		.le = GUID_INIT(0x0cb4ddff, 0xa545, 0x4401, 0x9d, 0x06, 0x68, 0x8a, 0xf5, 0x3e, 0x7f, 0x84),
--		.be = UUID_INIT(0x0cb4ddff, 0xa545, 0x4401, 0x9d, 0x06, 0x68, 0x8a, 0xf5, 0x3e, 0x7f, 0x84),
--	},
--};
--
--static const char * const test_uuid_wrong_data[] = {
--	"c33f4995-3701-450e-9fbf206a2e98e576 ",	/* no hyphen(s) */
--	"64b4371c-77c1-48f9-8221-29f054XX023b",	/* invalid character(s) */
--	"0cb4ddff-a545-4401-9d06-688af53e",	/* not enough data */
--};
--
--static unsigned total_tests __initdata;
--static unsigned failed_tests __initdata;
--
--static void __init test_uuid_failed(const char *prefix, bool wrong, bool be,
--				    const char *data, const char *actual)
--{
--	pr_err("%s test #%u %s %s data: '%s'\n",
--	       prefix,
--	       total_tests,
--	       wrong ? "passed on wrong" : "failed on",
--	       be ? "BE" : "LE",
--	       data);
--	if (actual && *actual)
--		pr_err("%s test #%u actual data: '%s'\n",
--		       prefix,
--		       total_tests,
--		       actual);
--	failed_tests++;
--}
--
--static void __init test_uuid_test(const struct test_uuid_data *data)
--{
--	guid_t le;
--	uuid_t be;
--	char buf[48];
--
--	/* LE */
--	total_tests++;
--	if (guid_parse(data->uuid, &le))
--		test_uuid_failed("conversion", false, false, data->uuid, NULL);
--
--	total_tests++;
--	if (!guid_equal(&data->le, &le)) {
--		sprintf(buf, "%pUl", &le);
--		test_uuid_failed("cmp", false, false, data->uuid, buf);
--	}
--
--	/* BE */
--	total_tests++;
--	if (uuid_parse(data->uuid, &be))
--		test_uuid_failed("conversion", false, true, data->uuid, NULL);
--
--	total_tests++;
--	if (!uuid_equal(&data->be, &be)) {
--		sprintf(buf, "%pUb", &be);
--		test_uuid_failed("cmp", false, true, data->uuid, buf);
--	}
--}
--
--static void __init test_uuid_wrong(const char *data)
--{
--	guid_t le;
--	uuid_t be;
--
--	/* LE */
--	total_tests++;
--	if (!guid_parse(data, &le))
--		test_uuid_failed("negative", true, false, data, NULL);
--
--	/* BE */
--	total_tests++;
--	if (!uuid_parse(data, &be))
--		test_uuid_failed("negative", true, true, data, NULL);
--}
--
--static int __init test_uuid_init(void)
--{
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(test_uuid_test_data); i++)
--		test_uuid_test(&test_uuid_test_data[i]);
--
--	for (i = 0; i < ARRAY_SIZE(test_uuid_wrong_data); i++)
--		test_uuid_wrong(test_uuid_wrong_data[i]);
--
--	if (failed_tests == 0)
--		pr_info("all %u tests passed\n", total_tests);
--	else
--		pr_err("failed %u out of %u tests\n", failed_tests, total_tests);
--
--	return failed_tests ? -EINVAL : 0;
--}
--module_init(test_uuid_init);
--
--static void __exit test_uuid_exit(void)
--{
--	/* do nothing */
--}
--module_exit(test_uuid_exit);
--
--MODULE_AUTHOR("Andy Shevchenko <andriy.shevchenko@linux.intel.com>");
--MODULE_DESCRIPTION("Test cases for lib/uuid.c module");
--MODULE_LICENSE("Dual BSD/GPL");
---- a/MAINTAINERS~lib-tests-convert-test_uuid-module-to-kunit
-+++ a/MAINTAINERS
-@@ -27260,7 +27260,7 @@ R:	Andy Shevchenko <andriy.shevchenko@li
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
- F:	include/linux/uuid.h
--F:	lib/test_uuid.c
-+F:	lib/tests/uuid_kunit.c
- F:	lib/uuid.c
- 
- UV SYSFS DRIVER
+ #endif  /* _LINUX_ARRAY_SIZE_H */
 _
 
-Patches currently in -mm which might be from sakamo.ryota@gmail.com are
+Patches currently in -mm which might be from alx@kernel.org are
 
 
