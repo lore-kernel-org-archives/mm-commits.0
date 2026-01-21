@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AFA7361654
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 938CB27FB28
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966080; cv=none; b=LTRjWxSmtnD+yIk6aBdHK72uI5ByZapCHxGkkB6bqmGZPd6snBCPoFoOlWzQZN3EExFccSS8mC/C8MPA6QoNvd78jwTcTRQFMquDFJUJehDTgmxndah+AN/WuAvS7mnrX5RcYaK2oR4TM79gmjAUJ4FgcjMD2fQhNLAO6qufAHM=
+	t=1768966081; cv=none; b=NtlknCGrD04XEdyTNK4mXNKlFtGJqhhGxO2JIbac3HYv2QypnGRz7ZM8D+EbUOq16mo0DzXwSFNYGOsxavcowBT5g+4C3RFitrStoG+6vjOioX8Mz6hY2++XgHmlvb7lcIiWFb2ukFDAozQxu8Aa878WWbyuekzwQDp5ga1VNIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966080; c=relaxed/simple;
-	bh=7aDcsUHBkTLwIwcgI+8hL2I1XigfV45ickI9y0QxP2o=;
-	h=Date:To:From:Subject:Message-Id; b=uJbOtzl3ZU+WSz1PWEFq1F3mza4j1UiPCQ4/AhzSXPlrD16Fh6AScyt5OMgrIED42IQRy77TiqmYDqRwBx7nVLaEFbmKnuBJ/mYIVhmwIIEkOOtk5Yasf4YGlJXjm0oMNIrHNNXOKMgJ08q3CLJFTCVIVOF8tB5Ed8tm+w5FflE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e94X8rmW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966081; c=relaxed/simple;
+	bh=64REs831HcHswm89gU90sdDriU7R/I6eWRBzW29fNQo=;
+	h=Date:To:From:Subject:Message-Id; b=ZY2Akn0Zvxw04Aq3g2yn0OoLQcLb47zGn4R6y0rJmLglVO33tsdaygmgQO2qR5CQXO/JClVwfHsT6kD03S3Yn4aIRzQPn/+lqUrRbfydLrCnFxNP+vGie/c3w4BVKbyTYJIw/ydmJ4RWfBE02OYsrwNiD1K4WDBOCaYpscnwuxE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rzchdn63; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e94X8rmW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D25E8C16AAE;
-	Wed, 21 Jan 2026 03:27:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rzchdn63"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 225F6C16AAE;
+	Wed, 21 Jan 2026 03:28:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966079;
-	bh=7aDcsUHBkTLwIwcgI+8hL2I1XigfV45ickI9y0QxP2o=;
+	s=korg; t=1768966081;
+	bh=64REs831HcHswm89gU90sdDriU7R/I6eWRBzW29fNQo=;
 	h=Date:To:From:Subject:From;
-	b=e94X8rmW1xUqGNCNiN9sYW34g4t+4exFR3EQz/Ef+ChTqZYh9zbI4Fc5RgaxVbaqW
-	 421L4ZXm/9yBQitK02+mP8CfGNopYhfTXwkoxP1a63rqn4xfrHbv7zW1+SuW5t3NHp
-	 a6k10Vn0Dp4cSURLvLmxoH+PvW3PfRYjE7cXEh90=
-Date: Tue, 20 Jan 2026 19:27:59 -0800
+	b=Rzchdn63ZnfjTXHGOfqb14eOTfzeL3jSBbCrENVzYC0/LoqOnKYkqULImAwwDFkb+
+	 qNcszAaiz0tWNbYE81xONJVadwKqOqjsA2QhPyq7LCKGbnm51hMcDk5gT+kaP2BERx
+	 MattXgfgHUkDNDdNVvFph+UCcksWLrfhPOmza0ow=
+Date: Tue, 20 Jan 2026 19:28:00 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-abi-damon-update-for-max_nr_snapshots.patch removed from -mm tree
-Message-Id: <20260121032759.D25E8C16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch removed from -mm tree
+Message-Id: <20260121032801.225F6C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/ABI/damon: update for max_nr_snapshots
+     Subject: mm/damon/core: add trace point for damos stat per apply interval
 has been removed from the -mm tree.  Its filename was
-     docs-abi-damon-update-for-max_nr_snapshots.patch
+     mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: update for max_nr_snapshots
-Date: Tue, 16 Dec 2025 00:01:24 -0800
+Subject: mm/damon/core: add trace point for damos stat per apply interval
+Date: Tue, 16 Dec 2025 00:01:25 -0800
 
-Update DAMON ABI document for the newly added DAMON sysfs interface file,
-max_nr_snapshots.
+DAMON users can read DAMOS stats via DAMON sysfs interface.  It enables
+efficient, simple and flexible usages of the stats.  Especially for
+systems not having advanced tools like perf or bpftrace, that can be
+useful.  But if the advanced tools are available, exposing the stats via
+tracepoint can reduce unnecessary reimplementation of the wheels.  Add a
+new tracepoint for DAMOS stats, namely damos_stat_after_apply_interval. 
+The tracepoint is triggered for each scheme's apply interval and exposes
+the whole stat values.  If the user needs sub-apply interval information
+for any chance, damos_before_apply tracepoint could be used.
 
-Link: https://lkml.kernel.org/r/20251216080128.42991-12-sj@kernel.org
+Link: https://lkml.kernel.org/r/20251216080128.42991-13-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -59,31 +67,98 @@ Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/trace/events/damon.h |   41 +++++++++++++++++++++++++++++++++
+ mm/damon/core.c              |   17 +++++++++++++
+ 2 files changed, 58 insertions(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-max_nr_snapshots
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -522,6 +522,13 @@ Contact:	SeongJae Park <sj@kernel.org>
- Description:	Reading this file returns the total number of DAMON snapshots
- 		that the scheme has tried to be applied.
+--- a/include/trace/events/damon.h~mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval
++++ a/include/trace/events/damon.h
+@@ -9,6 +9,47 @@
+ #include <linux/types.h>
+ #include <linux/tracepoint.h>
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/stats/max_nr_snapshots
-+Date:		Dec 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a number to this file sets the upper limit of
-+		nr_snapshots that deactivates the scheme when the limit is
-+		reached or exceeded.
++TRACE_EVENT(damos_stat_after_apply_interval,
 +
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/tried_regions/total_bytes
- Date:		Jul 2023
- Contact:	SeongJae Park <sj@kernel.org>
++	TP_PROTO(unsigned int context_idx, unsigned int scheme_idx,
++		struct damos_stat *stat),
++
++	TP_ARGS(context_idx, scheme_idx, stat),
++
++	TP_STRUCT__entry(
++		__field(unsigned int, context_idx)
++		__field(unsigned int, scheme_idx)
++		__field(unsigned long, nr_tried)
++		__field(unsigned long, sz_tried)
++		__field(unsigned long, nr_applied)
++		__field(unsigned long, sz_applied)
++		__field(unsigned long, sz_ops_filter_passed)
++		__field(unsigned long, qt_exceeds)
++		__field(unsigned long, nr_snapshots)
++	),
++
++	TP_fast_assign(
++		__entry->context_idx = context_idx;
++		__entry->scheme_idx = scheme_idx;
++		__entry->nr_tried = stat->nr_tried;
++		__entry->sz_tried = stat->sz_tried;
++		__entry->nr_applied = stat->nr_applied;
++		__entry->sz_applied = stat->sz_applied;
++		__entry->sz_ops_filter_passed = stat->sz_ops_filter_passed;
++		__entry->qt_exceeds = stat->qt_exceeds;
++		__entry->nr_snapshots = stat->nr_snapshots;
++	),
++
++	TP_printk("ctx_idx=%u scheme_idx=%u nr_tried=%lu sz_tried=%lu "
++			"nr_applied=%lu sz_tried=%lu sz_ops_filter_passed=%lu "
++			"qt_exceeds=%lu nr_snapshots=%lu",
++			__entry->context_idx, __entry->scheme_idx,
++			__entry->nr_tried, __entry->sz_tried,
++			__entry->nr_applied, __entry->sz_applied,
++			__entry->sz_ops_filter_passed, __entry->qt_exceeds,
++			__entry->nr_snapshots)
++);
++
+ TRACE_EVENT(damos_esz,
+ 
+ 	TP_PROTO(unsigned int context_idx, unsigned int scheme_idx,
+--- a/mm/damon/core.c~mm-damon-core-add-trace-point-for-damos-stat-per-apply-interval
++++ a/mm/damon/core.c
+@@ -2289,6 +2289,22 @@ static void damos_adjust_quota(struct da
+ 	quota->min_score = score;
+ }
+ 
++static void damos_trace_stat(struct damon_ctx *c, struct damos *s)
++{
++	unsigned int cidx = 0, sidx = 0;
++	struct damos *siter;
++
++	if (!trace_damos_stat_after_apply_interval_enabled())
++		return;
++
++	damon_for_each_scheme(siter, c) {
++		if (siter == s)
++			break;
++		sidx++;
++	}
++	trace_damos_stat_after_apply_interval(cidx, sidx, &s->stat);
++}
++
+ static void kdamond_apply_schemes(struct damon_ctx *c)
+ {
+ 	struct damon_target *t;
+@@ -2330,6 +2346,7 @@ static void kdamond_apply_schemes(struct
+ 			(s->apply_interval_us ? s->apply_interval_us :
+ 			 c->attrs.aggr_interval) / sample_interval;
+ 		s->last_applied = NULL;
++		damos_trace_stat(c, s);
+ 	}
+ 	mutex_unlock(&c->walk_control_lock);
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
