@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 032F433B96A
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 18:27:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED3733A960C
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 19:01:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769020032; cv=none; b=YH5wrENus7pal1SyztEUhXt/KF8ifJB6VwIvjjqpJj6fkzodfVu4gxJ41FQCtQp0NVXtgkbkAJTPt8r0QqIXFEb334bv/dF4uxlr+UFldI/POxYMZPoG003lEgAEBGjOxsuHV5rDg/eutfWX9plDa1WEXbxULQchHM1GNGXDDlk=
+	t=1769022085; cv=none; b=Xhitw/zQ2ai/OAJfgfZQfOrnyCsblMZWnI95TwwGF3nPhZW4l5s0RavjW/C8EUa4jINTp4xWq44JB4UgoP3m2DMG2TGDwGV1oD6qRDRovwiajM13wid7xs7dSNliLsr3PPq0cOBR1GHp08tPcLUCexlO5x6WDeTZ2s3MoGZ8SvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769020032; c=relaxed/simple;
-	bh=TUyWYv6RbrJu+Re3BXrDr16pqbWMQtLrIa/GLdLuD78=;
-	h=Date:To:From:Subject:Message-Id; b=NcvHMYNOpna+EdZQqzU4DVpR8SC/Mt2LzhAGfLVFinsybW5MWknQFuYNo2tRGY2sKEFaI5qO+KxmrLe6GS76aK3IAs7ErZWokdake+uapMTL5a7ZoP2pyg/NJKJuzTnRSjdezcMUnhjszQUu4PRmeb1/ntDyuxVIm3ysuMyJ+nU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oB0jUg4f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769022085; c=relaxed/simple;
+	bh=rm3g5mecbEpnjgMahoWyzYyJD8w98Pi0xI8ZIXbumSw=;
+	h=Date:To:From:Subject:Message-Id; b=aO+pgV1xO4Jdkr0FsebHBAFBYqMlqnY8MNmiDkfTtGj+BihkwTf3b2+TVkQk8M+O+dtb0sOHQRcTzjej69STJ/lIfOlBQNfRqJSpsyTUrsk4Jb3SNqdwKDPDbnX/yJdU4fZnO+REYy6ug9cjsiIue8zr7/mkZ70tTGBGtEaH6P0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h7icDZWx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oB0jUg4f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EC38C4CEF1;
-	Wed, 21 Jan 2026 18:27:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h7icDZWx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 576D4C19422;
+	Wed, 21 Jan 2026 19:01:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769020031;
-	bh=TUyWYv6RbrJu+Re3BXrDr16pqbWMQtLrIa/GLdLuD78=;
+	s=korg; t=1769022084;
+	bh=rm3g5mecbEpnjgMahoWyzYyJD8w98Pi0xI8ZIXbumSw=;
 	h=Date:To:From:Subject:From;
-	b=oB0jUg4fAAY5nBPkaRPojxQF4AfBLEz1yDWovYOAf61pr4zYqQMakXdMbd69nHXHy
-	 9E9eq1oqv269PhJcYY7LfGXVg8BkCb9ewwuRnGmUl0J9tm6B585GyrdvDVBxwlX4g4
-	 //RxgfyZciAytqIGBhaYnfoo3JUWWBOsfNhs4AU4=
-Date: Wed, 21 Jan 2026 10:27:10 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=h7icDZWxkQ4cyLRO7UzbcEd4LtSdy8cUCQhWZZOuEaErhQO87EePdl+ZPF0n9AgOi
+	 LML8c90cHeE7kv19mveSuVHmGUrBShGjmuBHCerosplxvAMrv7Hj2F7ibiHMwn0Qpr
+	 4G0SHSeM08WZe0mJtJ7Mray0dt7igfmSQTfNLmAg=
+Date: Wed, 21 Jan 2026 11:01:23 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix.patch removed from -mm tree
-Message-Id: <20260121182711.8EC38C4CEF1@smtp.kernel.org>
+Subject: + mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch added to mm-unstable branch
+Message-Id: <20260121190124.576D4C19422@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,58 +34,54 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix.patch
+The patch titled
+     Subject: mm-relocate-the-page-table-ceiling-and-floor-definitions-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-optimize-replace_free_hugepage_folios.patch
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix
-Date: Thu Jan 15 02:34:07 PM PST 2026
+Subject: mm-relocate-the-page-table-ceiling-and-floor-definitions-fix
+Date: Wed Jan 21 10:58:00 AM PST 2026
 
-use single-return-point style, tweak comment
+remove stray newline, per SeongJae
 
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/linux/pgtable.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix
-+++ a/mm/hugetlb.c
-@@ -2834,10 +2834,15 @@ int replace_free_hugepage_folios(unsigne
+--- a/include/linux/pgtable.h~mm-relocate-the-page-table-ceiling-and-floor-definitions-fix
++++ a/include/linux/pgtable.h
+@@ -1660,7 +1660,6 @@ void arch_sync_kernel_mappings(unsigned
+ #define FIRST_USER_ADDRESS	0UL
+ #endif
  
- 			nr = folio_nr_pages(folio) - folio_page_idx(folio, page);
- 
--			/* Not to disrupt normal path by vainly holding hugetlb_lock */
-+			/*
-+			 * Don't disrupt normal path by vainly holding
-+			 * hugetlb_lock
-+			 */
- 			if (folio_test_hugetlb(folio) && !folio_ref_count(folio)) {
--				if (order_is_gigantic(folio_order(folio)))
--					return -ENOMEM;
-+				if (order_is_gigantic(folio_order(folio))) {
-+					ret = -ENOMEM;
-+					break;
-+				}
- 
- 				ret = alloc_and_dissolve_hugetlb_folio(folio, &list);
- 				if (ret)
+-
+ /*
+  * No-op macros that just return the current protection value. Defined here
+  * because these macros can be used even if CONFIG_MMU is not defined.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +89,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
 mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
 sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
-mm-hugetlb-optimize-replace_free_hugepage_folios.patch
+mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
 mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch
 mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
 mm-pagewalk-use-min-to-simplify-the-code-fix.patch
