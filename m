@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 206C635F8C8
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C09F35CBBF
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966047; cv=none; b=lgeE1g2hZzlW5mvsPlucVloxi4M9XOEg79VENTGi6tPBBkSbSHsiHDtdjQBAGlKdIdLhtK95es+wdLRxlwfc3vvHVnXTl+5ide/IC+ogxHkLshZbJ/OLwJySfrDj0fnAOtaaBZOfeZOU+JhJEg3f8uvx/IU1c+tVru3140aVcAw=
+	t=1768966049; cv=none; b=uowgAEf49Qyft3t1VTtsSxyphT37JpOkfrczDy8t4xCWVJ1Qv6LyhHo3CYepfL5KUQ+3aYh3/H5hbCZycVHmXvDS8WTSSqevwcbnC83CGXR/ErTwI+zS1Y+kK0KMgGbHa3eyJ8jLI5amy14r8eJKMbGuBSB+j8M9Awqju5JrZ9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966047; c=relaxed/simple;
-	bh=EM/RNv7+Ij/RaVODS2/qb4VK+/6X14eLXG3R7FxmbS0=;
-	h=Date:To:From:Subject:Message-Id; b=D+ksTNF0QhIzK3wFLmCCSRbMO5J/l0jPuoEN6W4gOVjnkOp4GMuXSdicVh+WOUNHyKGLHMLlfVY6Xfbwn19myLfXb7xoB9WvzxLZvLj74vwoYOm1IY9xqoqRYSAu/aLZG6ZQuHMbT9XbfbH5qGzUFGrfYxgIoWXuXukk8V3lApY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UpujSCLM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966049; c=relaxed/simple;
+	bh=WpONb0wFx5eCAIEg61846pdKkJw+uX7skcx2iQZlB9Q=;
+	h=Date:To:From:Subject:Message-Id; b=hkbnM/85QhWODKVzZIh7X9YUPb5s+oz+yYfBl9rWpwStpyySx/7eE/PXP7vRqsU35vUfKlPuf65OE+WgrQI5ytdyPjbDdQagqFqPVF2gC/5HPHeGfnDTx26EAmwGxvErXaszJIEGsQCC2/sho5a9jQrutqH5ilnH5r7WWRx+edg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vQHBq+C4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UpujSCLM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8557C16AAE;
-	Wed, 21 Jan 2026 03:27:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vQHBq+C4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5038C16AAE;
+	Wed, 21 Jan 2026 03:27:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966047;
-	bh=EM/RNv7+Ij/RaVODS2/qb4VK+/6X14eLXG3R7FxmbS0=;
+	s=korg; t=1768966048;
+	bh=WpONb0wFx5eCAIEg61846pdKkJw+uX7skcx2iQZlB9Q=;
 	h=Date:To:From:Subject:From;
-	b=UpujSCLMPo/1/3L+rFnChCLjey8viQCAG01fiMSPh5gZUmGB+yBSxZ5O0PKPbEZqk
-	 46W53FdWKWaiShzGLTi4faXefvo8eYAM4GfIDJl397wXr8VoKK+CE5XPZy/qXAP5Sz
-	 Bnw4gdPQVPYJhrcxopReh9hWSEJdR+yVP5Uic7dU=
-Date: Tue, 20 Jan 2026 19:27:26 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,rppt@kernel.org,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizhe.67@bytedance.com,Liam.Howlett@oracle.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@redhat.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
+	b=vQHBq+C4pSD/3GIXcxREFSHKKvsF9/1xLdROSkk9+Icncb7dDz8v4qWHgcW+TwTvB
+	 3hCoeQbQlh7rzHGCu00+kQ7LgZueLvg/nV5wKCcjANai1voDq1u7AFg+5DqbNQAXDU
+	 /dkAUB4V6INBQLqjC5aaS8wWJEblI0q8ku7L+vfA=
+Date: Tue, 20 Jan 2026 19:27:28 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,rppt@kernel.org,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizhe.67@bytedance.com,Liam.Howlett@oracle.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] x86-clear_page-introduce-clear_pages.patch removed from -mm tree
-Message-Id: <20260121032726.E8557C16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] mm-folio_zero_user-clear-pages-sequentially.patch removed from -mm tree
+Message-Id: <20260121032728.D5038C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,139 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/clear_page: introduce clear_pages()
+     Subject: mm: folio_zero_user: clear pages sequentially
 has been removed from the -mm tree.  Its filename was
-     x86-clear_page-introduce-clear_pages.patch
+     mm-folio_zero_user-clear-pages-sequentially.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: x86/clear_page: introduce clear_pages()
-Date: Tue, 6 Jan 2026 23:20:06 -0800
+Subject: mm: folio_zero_user: clear pages sequentially
+Date: Tue, 6 Jan 2026 23:20:07 -0800
 
-Performance when clearing with string instructions (x86-64-stosq and
-similar) can vary significantly based on the chunk-size used.
+process_huge_pages(), used to clear hugepages, is optimized for cache
+locality.  In particular it processes a hugepage in 4KB page units and in
+a difficult to predict order: clearing pages in the periphery in a
+backwards or forwards direction, then converging inwards to the faulting
+page (or page specified via base_addr.)
 
-  $ perf bench mem memset -k 4KB -s 4GB -f x86-64-stosq
-  # Running 'mem/memset' benchmark:
-  # function 'x86-64-stosq' (movsq-based memset() in arch/x86/lib/memset_64.S)
-  # Copying 4GB bytes ...
+This helps maximize temporal locality at time of access.  However, while
+it keeps stores inside a 4KB page sequential, pages are ordered
+semi-randomly in a way that is not easy for the processor to predict.
 
-      13.748208 GB/sec
+This limits the clearing bandwidth to what's available in a 4KB page.
 
-  $ perf bench mem memset -k 2MB -s 4GB -f x86-64-stosq
-  # Running 'mem/memset' benchmark:
-  # function 'x86-64-stosq' (movsq-based memset() in
-  # arch/x86/lib/memset_64.S)
-  # Copying 4GB bytes ...
+Consider the baseline bandwidth:
 
-      15.067900 GB/sec
+  $ perf bench mem mmap -p 2MB -f populate -s 64GB -l 3
+  # Running 'mem/mmap' benchmark:
+  # function 'populate' (Eagerly populated mmap())
+  # Copying 64GB bytes ...
 
-  $ perf bench mem memset -k 1GB -s 4GB -f x86-64-stosq
-  # Running 'mem/memset' benchmark:
-  # function 'x86-64-stosq' (movsq-based memset() in arch/x86/lib/memset_64.S)
-  # Copying 4GB bytes ...
+      11.791097 GB/sec
 
-      38.104311 GB/sec
+  (Unless otherwise noted, all numbers are on AMD Genoa (EPYC 9J13);
+   region-size=64GB, local node; 2.56 GHz, boost=0.)
 
-(Both on AMD Milan.)
+11.79 GBps amounts to around 323ns/4KB.  With memory access latency of
+~100ns, that doesn't leave much time to help from, say, hardware
+prefetchers.
 
-With a change in chunk-size from 4KB to 1GB, we see the performance go
-from 13.7 GB/sec to 38.1 GB/sec.  For the chunk-size of 2MB the change
-isn't quite as drastic but it is worth adding a clear_page() variant that
-can handle contiguous page-extents.
+(Note that since this is a purely write workload, it's reasonable
+ to assume that the processor does not need to prefetch any cachelines.
 
-Link: https://lkml.kernel.org/r/20260107072009.1615991-6-ankur.a.arora@oracle.com
+ However, for a processor to skip the prefetch, it would need to look
+ at the access pattern, and see that full cachelines were being written.
+ This might be easily visible if clear_page() was using, say x86 string
+ instructions; less so if it were using a store loop. In any case, the
+ existence of these kind predictors or appropriately helpful threshold
+ values is implementation specific.
+
+ Additionally, even when the processor can skip the prefetch, coherence
+ protocols will still need to establish exclusive ownership
+ necessitating communication with remote caches.)
+
+With that, the change is quite straight-forward.  Instead of clearing
+pages discontiguously, clear contiguously: switch to a loop around
+clear_user_highpage().
+
+Performance
+==
+
+Testing a demand fault workload shows a decent improvement in bandwidth
+with pg-sz=2MB.  Performance of pg-sz=1GB does not change because it has
+always used straight clearing.
+
+ $ perf bench mem mmap -p $pg-sz -f demand -s 64GB -l 5
+
+                 discontiguous-pages    contiguous-pages
+		      (baseline)
+
+                   (GBps +- %stdev)      (GBps +- %stdev)
+
+   pg-sz=2MB       11.76 +- 1.10%        23.58 +- 1.95%       +100.51%
+   pg-sz=1GB       24.85 +- 2.41%        25.40 +- 1.33%          -
+
+Analysis (pg-sz=2MB)
+==
+
+At L1 data cache level, nothing changes.  The processor continues to
+access the same number of cachelines, allocating and missing them as it
+writes to them.
+
+ discontiguous-pages    7,394,341,051      L1-dcache-loads                  #  445.172 M/sec                       ( +-  0.04% )  (35.73%)
+                        3,292,247,227      L1-dcache-load-misses            #   44.52% of all L1-dcache accesses   ( +-  0.01% )  (35.73%)
+
+    contiguous-pages    7,205,105,282      L1-dcache-loads                  #  861.895 M/sec                       ( +-  0.02% )  (35.75%)
+                        3,241,584,535      L1-dcache-load-misses            #   44.99% of all L1-dcache accesses   ( +-  0.00% )  (35.74%)
+
+The L2 prefetcher, however, is now able to prefetch ~22% more cachelines
+(L2 prefetch miss rate also goes up significantly showing that we are
+backend limited):
+
+ discontiguous-pages    2,835,860,245      l2_pf_hit_l2.all                 #  170.242 M/sec                       ( +-  0.12% )  (15.65%)
+    contiguous-pages    3,472,055,269      l2_pf_hit_l2.all                 #  411.319 M/sec                       ( +-  0.62% )  (15.67%)
+
+That sill leaves a large gap between the ~22% improvement in prefetch and
+the ~100% improvement in bandwidth but better prefetching seems to
+streamline the traffic well enough that most of the data starts comes from
+the L2 leading to substantially fewer cache-misses at the LLC:
+
+ discontiguous-pages    8,493,499,137      cache-references                 #  511.416 M/sec                       ( +-  0.15% )  (50.01%)
+                          930,501,344      cache-misses                     #   10.96% of all cache refs           ( +-  0.52% )  (50.01%)
+
+    contiguous-pages    9,421,926,416      cache-references                 #    1.120 G/sec                       ( +-  0.09% )  (50.02%)
+                           68,787,247      cache-misses                     #    0.73% of all cache refs           ( +-  0.15% )  (50.03%)
+
+In addition, there are a few minor frontend optimizations: clear_pages()
+on x86 is now fully inlined, so we don't have a CALL/RET pair (which isn't
+free when using RETHUNK speculative execution mitigation as we do on my
+test system.) The loop in clear_contig_highpages() is also easier to
+predict (especially when handling faults) as compared to that in
+process_huge_pages().
+
+  discontiguous-pages       980,014,411      branches                         #   59.005 M/sec                       (31.26%)
+  discontiguous-pages       180,897,177      branch-misses                    #   18.46% of all branches             (31.26%)
+
+     contiguous-pages       515,630,550      branches                         #   62.654 M/sec                       (31.27%)
+     contiguous-pages        78,039,496      branch-misses                    #   15.13% of all branches             (31.28%)
+
+Note that although clearing contiguously is easier to optimize for the
+processor, it does not, sadly, mean that the processor will necessarily
+take advantage of it.  For instance this change does not result in any
+improvement in my tests on Intel Icelakex (Oracle X9), or on ARM64
+Neoverse-N1 (Ampere Altra).
+
+Link: https://lkml.kernel.org/r/20260107072009.1615991-7-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
+Reviewed-by: Raghavendra K T <raghavendra.kt@amd.com>
 Tested-by: Raghavendra K T <raghavendra.kt@amd.com>
-Reviewed-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
@@ -105,51 +186,61 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/page_64.h |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/memory.c |   28 +++++++++-------------------
+ 1 file changed, 9 insertions(+), 19 deletions(-)
 
---- a/arch/x86/include/asm/page_64.h~x86-clear_page-introduce-clear_pages
-+++ a/arch/x86/include/asm/page_64.h
-@@ -52,8 +52,9 @@ void __clear_pages_unrolled(void *page);
- KCFI_REFERENCE(__clear_pages_unrolled);
+--- a/mm/memory.c~mm-folio_zero_user-clear-pages-sequentially
++++ a/mm/memory.c
+@@ -7240,40 +7240,30 @@ static inline int process_huge_page(
+ 	return 0;
+ }
+ 
+-static void clear_gigantic_page(struct folio *folio, unsigned long addr_hint,
+-				unsigned int nr_pages)
++static void clear_contig_highpages(struct page *page, unsigned long addr,
++				   unsigned int nr_pages)
+ {
+-	unsigned long addr = ALIGN_DOWN(addr_hint, folio_size(folio));
+-	int i;
++	unsigned int i;
+ 
+ 	might_sleep();
+ 	for (i = 0; i < nr_pages; i++) {
+ 		cond_resched();
+-		clear_user_highpage(folio_page(folio, i), addr + i * PAGE_SIZE);
+-	}
+-}
+-
+-static int clear_subpage(unsigned long addr, int idx, void *arg)
+-{
+-	struct folio *folio = arg;
+ 
+-	clear_user_highpage(folio_page(folio, idx), addr);
+-	return 0;
++		clear_user_highpage(page + i, addr + i * PAGE_SIZE);
++	}
+ }
  
  /**
-- * clear_page() - clear a page using a kernel virtual address.
-- * @addr: address of kernel page
-+ * clear_pages() - clear a page range using a kernel virtual address.
-+ * @addr: start address of kernel page range
-+ * @npages: number of pages
-  *
-  * Switch between three implementations of page clearing based on CPU
-  * capabilities:
-@@ -81,11 +82,11 @@ KCFI_REFERENCE(__clear_pages_unrolled);
-  *
-  * Does absolutely no exception handling.
+  * folio_zero_user - Zero a folio which will be mapped to userspace.
+  * @folio: The folio to zero.
+- * @addr_hint: The address will be accessed or the base address if uncelar.
++ * @addr_hint: The address accessed by the user or the base address.
   */
--static inline void clear_page(void *addr)
-+static inline void clear_pages(void *addr, unsigned int npages)
+ void folio_zero_user(struct folio *folio, unsigned long addr_hint)
  {
--	u64 len = PAGE_SIZE;
-+	u64 len = npages * PAGE_SIZE;
- 	/*
--	 * Clean up KMSAN metadata for the page being cleared. The assembly call
-+	 * Clean up KMSAN metadata for the pages being cleared. The assembly call
- 	 * below clobbers @addr, so perform unpoisoning before it.
- 	 */
- 	kmsan_unpoison_memory(addr, len);
-@@ -106,6 +107,12 @@ static inline void clear_page(void *addr
- 			: "a" (0)
- 			: "cc", "memory");
- }
-+#define clear_pages clear_pages
-+
-+static inline void clear_page(void *addr)
-+{
-+	clear_pages(addr, 1);
-+}
+-	unsigned int nr_pages = folio_nr_pages(folio);
++	unsigned long base_addr = ALIGN_DOWN(addr_hint, folio_size(folio));
  
- void copy_page(void *to, void *from);
- KCFI_REFERENCE(copy_page);
+-	if (unlikely(nr_pages > MAX_ORDER_NR_PAGES))
+-		clear_gigantic_page(folio, addr_hint, nr_pages);
+-	else
+-		process_huge_page(addr_hint, nr_pages, clear_subpage, folio);
++	clear_contig_highpages(folio_page(folio, 0),
++				base_addr, folio_nr_pages(folio));
+ }
+ 
+ static int copy_user_gigantic_page(struct folio *dst, struct folio *src,
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
