@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64C4127FB28
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6FE8361663
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966089; cv=none; b=U5q9Y7WszrWOMgK0CSqsCldDGyLzap/j7MA746xy6Qwii6XZjJsFsm0+mLKpAq52YijgVWINFDUX+An7ecSQ/88CmNaB93a6O+vXl71MdZBlqUuVYh5CP04BFo4mCUzOEANfG6TlqzzaxHjq0UJJ+OUpD8x5HYiDEiGezj/IJUk=
+	t=1768966090; cv=none; b=qq52bWtZ7F0jWCWSJcIFTXPYtMMPm7yP2ShK8bVF12g0n7nJgRWuhD33KXSi2lskeNnLtrwZg1Vy8GVEGsPHfM5erblZILmKL+Mo+C1l7az3nqNn0BLlUlDmed+BsieMtjCGEZZWDHJPjFtiOFjWTmomhKhO78oSckfWn2LIUYY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966089; c=relaxed/simple;
-	bh=Wmk52M204kvmxhCzUE7Z37yUQdWGx8VCh/KIhY1Y+EI=;
-	h=Date:To:From:Subject:Message-Id; b=c+rZXdvcl7MP+3xpl2iZnhEps6tRWj+HLzZy6uACH/7KEwSVPJQJ0ZiUo959eW0Q0QYHlGJ3ZTgyQJQGcofVm/BuWIi+CE6ed6QxrQPn03a9r8cYamwooKba2gQTYH8eTf1MzTYfq44sFHppVuRLL8jVXWUqABdoatcSNFIJ0nA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w73z7r0c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966090; c=relaxed/simple;
+	bh=djVwbJPPS02nXrKFywkuRJYAOCocGOtN6T6jzwttTdo=;
+	h=Date:To:From:Subject:Message-Id; b=HlbgRnZCbd/0BFFQ0oulXcXqKZy8sU0Vkh1xknKyYltHyq9z2GLoM4QXWihpo7sMatLN3ERvQsbM5t8C2mJpXnK9w5fof53r4k2dGyQwsIzVsY5T5FIoRBo1ra9FyNpzdb6I13Um7fgHGaVEH1OpcFaj/3CD4gl0C9V49TaTcqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=04CysLGN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w73z7r0c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02E1BC16AAE;
-	Wed, 21 Jan 2026 03:28:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="04CysLGN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44184C16AAE;
+	Wed, 21 Jan 2026 03:28:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966089;
-	bh=Wmk52M204kvmxhCzUE7Z37yUQdWGx8VCh/KIhY1Y+EI=;
+	s=korg; t=1768966090;
+	bh=djVwbJPPS02nXrKFywkuRJYAOCocGOtN6T6jzwttTdo=;
 	h=Date:To:From:Subject:From;
-	b=w73z7r0cw/YS+edzAAH0VzC6tCxWes2DB2r8gU7z8TXAQv/s7thmb//DYIT6yLSnQ
-	 qiJT5ucZatvf6d3lwFdlOZLTDX6S7baK0ZvLRi3k8zATaRPT5nF66As76H16yKVbjv
-	 TpbhDmN+kA+MXDGZFLD3EIsyH4tUiH5xlreyY/F0=
-Date: Tue, 20 Jan 2026 19:28:08 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,ruanjinjie@huawei.com,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
+	b=04CysLGNeXSy8b45nBW1L4/RWox/qw1XZdF2g75IgxExo549321JvQ7HmioUygq7V
+	 rBy7/XTKaM4hcazoSW31ortGvPjDMOSuholy3IFKtVlL9ohNMJc9hbYi0qNhPchN6+
+	 /MjSTNVbmkqtuTcMU/rt5q78j++FMSDPi/Y7XpfQ=
+Date: Tue, 20 Jan 2026 19:28:09 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,urezki@gmail.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,raquini@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,akpm@linux-foundation.org,audra@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-remove-struct-maple_alloc.patch removed from -mm tree
-Message-Id: <20260121032809.02E1BC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch removed from -mm tree
+Message-Id: <20260121032810.44184C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,163 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: remove struct maple_alloc
+     Subject: lib/test_vmalloc.c: minor fixes to test_vmalloc.c
 has been removed from the -mm tree.  Its filename was
-     maple_tree-remove-struct-maple_alloc.patch
+     lib-test_vmallocc-minor-fixes-to-test_vmallocc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: maple_tree: remove struct maple_alloc
-Date: Wed, 3 Dec 2025 22:45:11 +0000
+From: Audra Mitchell <audra@redhat.com>
+Subject: lib/test_vmalloc.c: minor fixes to test_vmalloc.c
+Date: Mon, 1 Dec 2025 13:18:48 -0500
 
-struct maple_alloc is deprecated after the maple tree conversion to
-sheaves, remove the references from the header file.
+If PAGE_SIZE is larger than 4k and if you have a system with a large
+number of CPUs, this test can require a very large amount of memory
+leading to oom-killer firing.  Given the type of allocation, the kernel
+won't have anything to kill, causing the system to stall.
 
-Link: https://lkml.kernel.org/r/20251203224511.469978-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reviewed-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Add a parameter to the test_vmalloc driver to represent the number of
+times a percpu object will be allocated.  Calculate this in
+test_vmalloc.sh to be 90% of available memory or the current default of
+35000, whichever is smaller.
+
+Link: https://lkml.kernel.org/r/20251201181848.1216197-1-audra@redhat.com
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    8 --------
- 1 file changed, 8 deletions(-)
+ lib/test_vmalloc.c                         |   11 ++++--
+ tools/testing/selftests/mm/test_vmalloc.sh |   31 +++++++++++++++++--
+ 2 files changed, 35 insertions(+), 7 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-remove-struct-maple_alloc
-+++ a/include/linux/maple_tree.h
-@@ -129,13 +129,6 @@ struct maple_arange_64 {
- 	struct maple_metadata meta;
- };
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-minor-fixes-to-test_vmallocc
++++ a/lib/test_vmalloc.c
+@@ -58,6 +58,9 @@ __param(int, run_test_mask, 7,
+ 		/* Add a new test case description here. */
+ );
  
--struct maple_alloc {
--	unsigned long total;
--	unsigned char node_count;
--	unsigned int request_count;
--	struct maple_alloc *slot[MAPLE_ALLOC_SLOTS];
--};
--
- struct maple_topiary {
- 	struct maple_pnode *parent;
- 	struct maple_enode *next; /* Overlaps the pivot */
-@@ -306,7 +299,6 @@ struct maple_node {
- 		};
- 		struct maple_range_64 mr64;
- 		struct maple_arange_64 ma64;
--		struct maple_alloc alloc;
- 	};
- };
++__param(int, nr_pcpu_objects, 35000,
++	"Number of pcpu objects to allocate for pcpu_alloc_test");
++
+ /*
+  * This is for synchronization of setup phase.
+  */
+@@ -317,24 +320,24 @@ pcpu_alloc_test(void)
+ 	size_t size, align;
+ 	int i;
  
+-	pcpu = vmalloc(sizeof(void __percpu *) * 35000);
++	pcpu = vmalloc(sizeof(void __percpu *) * nr_pcpu_objects);
+ 	if (!pcpu)
+ 		return -1;
+ 
+-	for (i = 0; i < 35000; i++) {
++	for (i = 0; i < nr_pcpu_objects; i++) {
+ 		size = get_random_u32_inclusive(1, PAGE_SIZE / 4);
+ 
+ 		/*
+ 		 * Maximum PAGE_SIZE
+ 		 */
+-		align = 1 << get_random_u32_inclusive(1, 11);
++		align = 1 << get_random_u32_inclusive(1, PAGE_SHIFT - 1);
+ 
+ 		pcpu[i] = __alloc_percpu(size, align);
+ 		if (!pcpu[i])
+ 			rv = -1;
+ 	}
+ 
+-	for (i = 0; i < 35000; i++)
++	for (i = 0; i < nr_pcpu_objects; i++)
+ 		free_percpu(pcpu[i]);
+ 
+ 	vfree(pcpu);
+--- a/tools/testing/selftests/mm/test_vmalloc.sh~lib-test_vmallocc-minor-fixes-to-test_vmallocc
++++ a/tools/testing/selftests/mm/test_vmalloc.sh
+@@ -13,6 +13,9 @@ TEST_NAME="vmalloc"
+ DRIVER="test_${TEST_NAME}"
+ NUM_CPUS=`grep -c ^processor /proc/cpuinfo`
+ 
++# Default number of times we allocate percpu objects:
++NR_PCPU_OBJECTS=35000
++
+ # 1 if fails
+ exitcode=1
+ 
+@@ -27,6 +30,8 @@ PERF_PARAM="sequential_test_order=1 test
+ SMOKE_PARAM="test_loop_count=10000 test_repeat_count=10"
+ STRESS_PARAM="nr_threads=$NUM_CPUS test_repeat_count=20"
+ 
++PCPU_OBJ_PARAM="nr_pcpu_objects=$NR_PCPU_OBJECTS"
++
+ check_test_requirements()
+ {
+ 	uid=$(id -u)
+@@ -47,12 +52,30 @@ check_test_requirements()
+ 	fi
+ }
+ 
++check_memory_requirement()
++{
++	# The pcpu_alloc_test allocates nr_pcpu_objects per cpu. If the
++	# PAGE_SIZE is on the larger side it is easier to set a value
++	# that can cause oom events during testing. Since we are
++	# testing the functionality of vmalloc and not the oom-killer,
++	# calculate what is 90% of available memory and divide it by
++	# the number of online CPUs.
++	pages=$(($(getconf _AVPHYS_PAGES) * 90 / 100 / $NUM_CPUS))
++
++	if (($pages < $NR_PCPU_OBJECTS)); then
++		echo "Updated nr_pcpu_objects to 90% of available memory."
++		echo "nr_pcpu_objects is now set to: $pages."
++		PCPU_OBJ_PARAM="nr_pcpu_objects=$pages"
++	fi
++}
++
+ run_performance_check()
+ {
+ 	echo "Run performance tests to evaluate how fast vmalloc allocation is."
+ 	echo "It runs all test cases on one single CPU with sequential order."
+ 
+-	modprobe $DRIVER $PERF_PARAM > /dev/null 2>&1
++	check_memory_requirement
++	modprobe $DRIVER $PERF_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
+ 	echo "Done."
+ 	echo "Check the kernel message buffer to see the summary."
+ }
+@@ -63,7 +86,8 @@ run_stability_check()
+ 	echo "available test cases are run by NUM_CPUS workers simultaneously."
+ 	echo "It will take time, so be patient."
+ 
+-	modprobe $DRIVER $STRESS_PARAM > /dev/null 2>&1
++	check_memory_requirement
++	modprobe $DRIVER $STRESS_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
+ 	echo "Done."
+ 	echo "Check the kernel ring buffer to see the summary."
+ }
+@@ -74,7 +98,8 @@ run_smoke_check()
+ 	echo "Please check $0 output how it can be used"
+ 	echo "for deep performance analysis as well as stress testing."
+ 
+-	modprobe $DRIVER $SMOKE_PARAM > /dev/null 2>&1
++	check_memory_requirement
++	modprobe $DRIVER $SMOKE_PARAM $PCPU_OBJ_PARAM > /dev/null 2>&1
+ 	echo "Done."
+ 	echo "Check the kernel ring buffer to see the summary."
+ }
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from audra@redhat.com are
 
 
