@@ -1,128 +1,96 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA8EC30214D
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:50:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98C533793B1;
+	Wed, 21 Jan 2026 10:06:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967425; cv=none; b=Qv0VqYAiitsL8Nawy4HEKLE9Kjaq8AwohkcoCxAvBSWScddGqzZ9lNe12IavcfA88fga2JCMtgXMcPqRjH3GYd0fgfN6byAVJEWXgZIFU92Z+iyAEodlygfYzluuPhdlWZK5ZJPJSr6G4PCLOP47CUjtlhAFLvDS+q/VEl0YxKY=
+	t=1768990019; cv=none; b=gjsLuRNsHRhU+eh1x/JGfpQuQWFhWuxpGhQ2hfcWDIIZ4+uxf71Z7i1H+n/34z34d37wpCYH1vV4GhX5RG3gTwRddd89Yao4ewS1UkonVtowKum9i7DSPl4VrVeHcHLVZHU8YCZ8Gna/iQb6Heb6O+EcGZxwULj0TAgFzeUbimc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967425; c=relaxed/simple;
-	bh=Tr2he0AzldAxBLt56R75ZuJ5BDUX63G3yv6dmv80QFc=;
-	h=Date:To:From:Subject:Message-Id; b=fVm1rvkzD0yG13bNnkiCq+jAXjM38Ae2dMWZ/h0bDmcRz/st5Wn5CDOixMwIkGHt9rGivdMRGASIrW1+EoZSX5a/DziYahl+Yv1anbZywYZTsI8fnGMsKfiVqL/YfKcesnZ0P3nPIUuWeMvlT2eGlEV39Jsv9JYuafYb56CDYiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eFMu52Li; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768990019; c=relaxed/simple;
+	bh=Y3Xnh8IHQll1vIPX9JZT1N6XFXrjN3/oUfoUJ2R/Wms=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=deCKKz3M7NY+FPAs0Y7CBSH1OC+u/y9H5eVv/KcilK1OO5B6H5A8TGt0sDX+lxGbeJMEx/bus4o+Tmfbafpa4hQ8WW/0yQADa9KExSaOxkt724GjWL5JUeddWH+GWrJBxKwtnMRFi28n5DKKi1gj8xNSlj++sjVVTDW+hinw1Z8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WlmVHIUh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eFMu52Li"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB630C116D0;
-	Wed, 21 Jan 2026 03:50:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967424;
-	bh=Tr2he0AzldAxBLt56R75ZuJ5BDUX63G3yv6dmv80QFc=;
-	h=Date:To:From:Subject:From;
-	b=eFMu52LiJPPoPy6EsS43mIgBq666JvxFrRiv30poUmCgttg27m+rIAgkAtowKp2ee
-	 3wPIo8L9kRguoKFiJLVElOpIPBxksvHNC7E0XA60fItlqAtg43KuGFB7TjSrEz36Yy
-	 ukru/LBq/VGWonzV+SFQ+0kCMPTC1oey0DHGuH6g=
-Date: Tue, 20 Jan 2026 19:50:24 -0800
-To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,dmatlack@google.com,pratyush@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kho-print-which-scratch-buffer-failed-to-be-reserved.patch removed from -mm tree
-Message-Id: <20260121035024.BB630C116D0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WlmVHIUh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3AE9C116D0;
+	Wed, 21 Jan 2026 10:06:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1768990018;
+	bh=Y3Xnh8IHQll1vIPX9JZT1N6XFXrjN3/oUfoUJ2R/Wms=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+	b=WlmVHIUhzZmqNUem6lxGt5HS/vxCpXGhW9/eZR1YnBJ/2DXEvBX0ghI5xwj9SGubB
+	 rSXSSjh6l1zgUBZaWMbT1Kj5gmDVjgOLz6BDDNPF1YEe7DggYi7Py+UQ8PaxZlqPfz
+	 nxE5W5IV3Gp/B1CsCSxqId8uS3azGlPhegFyniT6CB25Puxqo3y0Cq/CerYUv280FB
+	 oLjFASARGAu2fcRx4lbI7UH0YlWBxABYIh3mhC8O/usdzbCrm5qybJS4aTFfs0Ssjd
+	 +teR8Hmj3mYr8ylX5CnrLQDCzR5ATlbQqN41foXTYiNp/WjEgGf9qygogFkcMjKys7
+	 pWuLCyIoQqtpQ==
+From: Pratyush Yadav <pratyush@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Pratyush Yadav <pratyush@kernel.org>,  mm-commits@vger.kernel.org,
+  surenb@google.com,  stable@vger.kernel.org,  rppt@kernel.org,
+  pasha.tatashin@soleen.com,  graf@amazon.com,  ran.xiaokai@zte.com.cn
+Subject: Re: [merged mm-hotfixes-stable]
+ kho-init-alloc-tags-when-restoring-pages-from-reserved-memory.patch
+ removed from -mm tree
+In-Reply-To: <20260120093639.3d316ff26f802b36bfe7a285@linux-foundation.org>
+	(Andrew Morton's message of "Tue, 20 Jan 2026 09:36:39 -0800")
+References: <20260119203054.70AE8C116C6@smtp.kernel.org>
+	<2vxzqzrke295.fsf@kernel.org>
+	<20260120093639.3d316ff26f802b36bfe7a285@linux-foundation.org>
+Date: Wed, 21 Jan 2026 10:06:55 +0000
+Message-ID: <2vxzy0lrb7pc.fsf@kernel.org>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain
 
+On Tue, Jan 20 2026, Andrew Morton wrote:
 
-The quilt patch titled
-     Subject: kho: print which scratch buffer failed to be reserved
-has been removed from the -mm tree.  Its filename was
-     kho-print-which-scratch-buffer-failed-to-be-reserved.patch
+> On Tue, 20 Jan 2026 15:24:06 +0000 Pratyush Yadav <pratyush@kernel.org> wrote:
+>
+>> > The quilt patch titled
+>> >      Subject: kho: init alloc tags when restoring pages from reserved memory
+>> > has been removed from the -mm tree.  Its filename was
+>> >      kho-init-alloc-tags-when-restoring-pages-from-reserved-memory.patch
+>> >
+>> > This patch was dropped because it was merged into the mm-hotfixes-stable branch
+>> > of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>> 
+>> This patch isn't quite complete. See [0]. It doesn't do anything wrong,
+>> it just doesn't fix the problem for every case.
+>> 
+>> I suggested a re-roll of this patch based on top of my cleanup patches
+>> [1], since I think with those the end result is a bit nicer.
+>> 
+>> I suppose we have 3 options:
+>> 
+>> 1. Take this patch in hotfixes and leave kho_restore_pages() path
+>>    unfixed. The fix the rest next merge window.
+>> 
+>> 2. Do a new version of this patch fixing kho_restore_pages() with the
+>>    current code, and then re-roll the clean up series to fix conflicts
+>>    for next merge window.
+>> 
+>> 3. Pull in the cleanups in hotfixes too, and then do a new revision of
+>>    this patch on top.
+>> 
+>> I don't think the end result of option 2 is too horrible, so I think
+>> that is probably the best option, but do let me know what you'd prefer.
+>
+> No probs, I removed this patch from mm-hotfixes-stable and put it back
+> into mm-hotfixes-unstable, with a note that an updated version is expected.
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thanks.
 
-------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: kho: print which scratch buffer failed to be reserved
-Date: Fri, 16 Jan 2026 16:54:11 +0000
+Ran, would you be able to send a fixup soon? We are at -rc6 and it would
+be great if this can land in 6.19. If not, then I can take it up.
 
-When scratch area fails to reserve, KHO prints a message indicating that. 
-But it doesn't say which scratch failed to allocate.  This can be useful
-information for debugging.  Even more so when the failure is hard to
-reproduce.
-
-Along with the current message, also print which exact scratch area failed
-to be reserved.
-
-Link: https://lkml.kernel.org/r/20260116165416.1262531-1-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: David Matlack <dmatlack@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Samiullah Khawaja <skhawaja@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/liveupdate/kexec_handover.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
---- a/kernel/liveupdate/kexec_handover.c~kho-print-which-scratch-buffer-failed-to-be-reserved
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -637,8 +637,10 @@ static void __init kho_reserve_scratch(v
- 	kho_scratch_cnt = num_online_nodes() + 2;
- 	size = kho_scratch_cnt * sizeof(*kho_scratch);
- 	kho_scratch = memblock_alloc(size, PAGE_SIZE);
--	if (!kho_scratch)
-+	if (!kho_scratch) {
-+		pr_err("Failed to reserve scratch array\n");
- 		goto err_disable_kho;
-+	}
- 
- 	/*
- 	 * reserve scratch area in low memory for lowmem allocations in the
-@@ -647,8 +649,10 @@ static void __init kho_reserve_scratch(v
- 	size = scratch_size_lowmem;
- 	addr = memblock_phys_alloc_range(size, CMA_MIN_ALIGNMENT_BYTES, 0,
- 					 ARCH_LOW_ADDRESS_LIMIT);
--	if (!addr)
-+	if (!addr) {
-+		pr_err("Failed to reserve lowmem scratch buffer\n");
- 		goto err_free_scratch_desc;
-+	}
- 
- 	kho_scratch[i].addr = addr;
- 	kho_scratch[i].size = size;
-@@ -657,8 +661,10 @@ static void __init kho_reserve_scratch(v
- 	/* reserve large contiguous area for allocations without nid */
- 	size = scratch_size_global;
- 	addr = memblock_phys_alloc(size, CMA_MIN_ALIGNMENT_BYTES);
--	if (!addr)
-+	if (!addr) {
-+		pr_err("Failed to reserve global scratch buffer\n");
- 		goto err_free_scratch_areas;
-+	}
- 
- 	kho_scratch[i].addr = addr;
- 	kho_scratch[i].size = size;
-@@ -669,8 +675,10 @@ static void __init kho_reserve_scratch(v
- 		addr = memblock_alloc_range_nid(size, CMA_MIN_ALIGNMENT_BYTES,
- 						0, MEMBLOCK_ALLOC_ACCESSIBLE,
- 						nid, true);
--		if (!addr)
-+		if (!addr) {
-+			pr_err("Failed to reserve nid %d scratch buffer\n", nid);
- 			goto err_free_scratch_areas;
-+		}
- 
- 		kho_scratch[i].addr = addr;
- 		kho_scratch[i].size = size;
-_
-
-Patches currently in -mm which might be from pratyush@kernel.org are
-
-kho-use-unsigned-long-for-nr_pages.patch
-kho-simplify-page-initialization-in-kho_restore_page.patch
-
+-- 
+Regards,
+Pratyush Yadav
