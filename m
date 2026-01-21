@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E970C369219
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:35:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F88366DD6
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:35:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966525; cv=none; b=bJBIM9k3aunGDItPyga6k0H2Za79pgenzBW45isuGgEH+GBAu4P69x5hM51q967tcWd2eXChkEA2chuiBf0+IhA42s+606ErIWqj3BdEszfcsye/tPZOJeZPsMw1UPfl8GndOgERoaL28FHcs2T37imfwFCQ+IizRfGMU2Hkplk=
+	t=1768966555; cv=none; b=btlbGoxpqkqLuJYJDK0sBAJZOPWFSzGZMbuKCNoQc0kn+hZJFXNWyzsMR4qwcjBNIMOponHezbSknNIX1QJmkGveE2Tor79/2Fs3I/PUovfICcnm6WXaBq8GQL7uutkuv1wUHHPECEo2w0j4oeu9GBq2kC+rD+lx8ZEtl0UuPMs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966525; c=relaxed/simple;
-	bh=k26Agjwv8zC8T+fbhpGbZOE/fWoLOlO/0V+EOL8X8bw=;
-	h=Date:To:From:Subject:Message-Id; b=iZjPBz3ET94E/Pl/Gbx/A8Ck1v3Hw8ixb68Uig9MXUqcR5q6Mu0ED0QRmUaSnyjuAesifbnq8dYYWK/lFAbyx9osMSNRcT7IhhshQSFYeJGoiq+hbrDsikHPKgUTXVwCGfm4i2HzVjzkM8dzLZ0eme80/ytK0DBTbGWazqHe3dc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dBzivgFk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966555; c=relaxed/simple;
+	bh=8yjxQV9JhWYWtBT6POmaMa5wfjwJH/IdLXcNNYrg/+4=;
+	h=Date:To:From:Subject:Message-Id; b=fdaQbFv2LIi1jCD17MjTlVsHzky/wOem9TMp+XilXQ/pUWVENswIR1qsTg8xLAcWcJOsGPqr/DKz8HljjwJUHWaYSNAzDaBFEeqdmVqV9vGJKUSPIAp6k4RhqKh9fezbTXp8YDLAPc4Q3EPl53vWJyZpi6KNVhOA4H+8bAstNuU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q2DXvmk4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dBzivgFk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69992C19423;
-	Wed, 21 Jan 2026 03:35:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q2DXvmk4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08942C16AAE;
+	Wed, 21 Jan 2026 03:35:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966524;
-	bh=k26Agjwv8zC8T+fbhpGbZOE/fWoLOlO/0V+EOL8X8bw=;
+	s=korg; t=1768966555;
+	bh=8yjxQV9JhWYWtBT6POmaMa5wfjwJH/IdLXcNNYrg/+4=;
 	h=Date:To:From:Subject:From;
-	b=dBzivgFkAgt9SqEHLYCg2Rdu7stkbxZtohBf4SsSsnUrRe6TCB8TFCv+12xyssXWQ
-	 cUk+NVdtgbbzagwCTWmQUiosSUwSvFjLQQozydX9+LmDhSxD/Jy1YAM7JNN1Wz2bQw
-	 IB2tPpgQz3pZWQN6+AJ9y1xtrKKdWdaPmsPkueOE=
-Date: Tue, 20 Jan 2026 19:35:23 -0800
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Q2DXvmk4yFPVDbFJ659kAOlp6RwLZYQ8CICWt5/JyFx779IjOsQofNsIRiSkLkAab
+	 n76REZg+/87c6ha58OnwL6V3R56u8PUhXz1lVIbMlOX/8JfC6kYQu8cxnq2QANkUXS
+	 HG2BvJetW1/vdTHz6CpM7mlxQhFkUxje94yoj0/s=
+Date: Tue, 20 Jan 2026 19:35:54 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] list-add-primitives-for-private-list-manipulations-fix.patch removed from -mm tree
-Message-Id: <20260121033524.69992C19423@smtp.kernel.org>
+Subject: [folded-merged] kho-docs-combine-concepts-and-fdt-documentation-fix.patch removed from -mm tree
+Message-Id: <20260121033555.08942C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,95 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: list-add-primitives-for-private-list-manipulations-fix
+     Subject: kho-docs-combine-concepts-and-fdt-documentation-fix
 has been removed from the -mm tree.  Its filename was
-     list-add-primitives-for-private-list-manipulations-fix.patch
+     kho-docs-combine-concepts-and-fdt-documentation-fix.patch
 
-This patch was dropped because it was folded into list-add-primitives-for-private-list-manipulations.patch
+This patch was dropped because it was folded into kho-docs-combine-concepts-and-fdt-documentation.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: list-add-primitives-for-private-list-manipulations-fix
-Date: Mon Jan  5 02:36:38 PM PST 2026
+From: Mike Rapoport <rppt@kernel.org>
+Subject: kho-docs-combine-concepts-and-fdt-documentation-fix
+Date: Wed, 7 Jan 2026 10:38:52 +0200
 
-fix kerneldoc
+fix Documentation/core-api/kho/index.rst
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Closes: https://lkml.kernel.org/r/20260105160459.013ffb1e@canb.auug.org.au
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Link: https://lkml.kernel.org/r/aV4bnHlBXGpT_FMc@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_private.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/core-api/kho/index.rst |    4 ++++
+ kernel/liveupdate/luo_core.c         |    3 +--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/linux/list_private.h~list-add-primitives-for-private-list-manipulations-fix
-+++ a/include/linux/list_private.h
-@@ -81,7 +81,7 @@
- 	list_private_entry(ACCESS_PRIVATE(pos, member).prev, typeof(*(pos)), member)
+--- a/Documentation/core-api/kho/index.rst~kho-docs-combine-concepts-and-fdt-documentation-fix
++++ a/Documentation/core-api/kho/index.rst
+@@ -1,5 +1,7 @@
+ .. SPDX-License-Identifier: GPL-2.0-or-later
  
- /**
-- * list_prev_entry_circular - get the prev element in list
-+ * list_private_prev_entry_circular - get the prev element in list
-  * @pos:	the type * to cursor.
-  * @head:	the list head to take the element from.
-  * @member:	the name of the list_head within the struct.
++.. _kho-concepts:
++
+ ========================
+ Kexec Handover Subsystem
+ ========================
+@@ -60,6 +62,8 @@ for boot memory allocations and as targe
+ of that memory region may be reserved. These reservations are irrelevant for
+ the next KHO, because kexec can overwrite even the original kernel.
+ 
++.. _kho-finalization-phase:
++
+ KHO finalization phase
+ ======================
+ 
+--- a/kernel/liveupdate/luo_core.c~kho-docs-combine-concepts-and-fdt-documentation-fix
++++ a/kernel/liveupdate/luo_core.c
+@@ -35,8 +35,7 @@
+  * iommu, interrupts, vfio, participating filesystems, and memory management.
+  *
+  * LUO uses Kexec Handover to transfer memory state from the current kernel to
+- * the next kernel. For more details see
+- * Documentation/core-api/kho/concepts.rst.
++ * the next kernel. For more details see Documentation/core-api/kho/index.rst.
+  */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
-mm-hugetlb-optimize-replace_free_hugepage_folios-v2-fix.patch
-mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios-fix.patch
-mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
-mm-pagewalk-use-min-to-simplify-the-code-fix.patch
-list-add-primitives-for-private-list-manipulations.patch
-init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning-fix.patch
+alpha-introduce-arch_zone_limits_init.patch
+arc-introduce-arch_zone_limits_init.patch
+arm-introduce-arch_zone_limits_init.patch
+arm64-introduce-arch_zone_limits_init.patch
+csky-introduce-arch_zone_limits_init.patch
+hexagon-introduce-arch_zone_limits_init.patch
+loongarch-introduce-arch_zone_limits_init.patch
+m68k-introduce-arch_zone_limits_init.patch
+microblaze-introduce-arch_zone_limits_init.patch
+mips-introduce-arch_zone_limits_init.patch
+nios2-introduce-arch_zone_limits_init.patch
+openrisc-introduce-arch_zone_limits_init.patch
+parisc-introduce-arch_zone_limits_init.patch
+powerpc-introduce-arch_zone_limits_init.patch
+riscv-introduce-arch_zone_limits_init.patch
+s390-introduce-arch_zone_limits_init.patch
+sh-introduce-arch_zone_limits_init.patch
+sparc-introduce-arch_zone_limits_init.patch
+um-introduce-arch_zone_limits_init.patch
+x86-introduce-arch_zone_limits_init.patch
+xtensa-introduce-arch_zone_limits_init.patch
+arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch
+arch-mm-consolidate-initialization-of-sparse-memory-model.patch
+mips-drop-paging_init.patch
+x86-dont-reserve-hugetlb-memory-in-setup_arch.patch
+mm-arch-consolidate-hugetlb-cma-reservation.patch
+mm-hugetlb-drop-hugetlb_cma_check.patch
+revert-mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
+kho-abi-luo-make-generated-documentation-more-coherent.patch
+kho-abi-memfd-make-generated-documentation-more-coherent.patch
+kho-docs-combine-concepts-and-fdt-documentation.patch
+kho-relocate-vmalloc-preservation-structure-to-kho-abi-header-fix.patch
+kho-abi-add-memblock-abi-header.patch
+kho-abi-add-memblock-abi-header-fix-2.patch
 
