@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35A183191CA
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7548141C72
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:28:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966110; cv=none; b=eYS6Od0b+AvZSqg8G4huJz19FQohdG8GNClGsBgsCR7S2g6EvPc7zq91LMTN531p81ceSanoyfi0GazKw32rjgWy763Sg8/VXhF/SjDgyl5ly3nRaU5t5DKdjieJUINxh7CsgQC+/1MqzXf9ZTuU685LX0pgZePM60HVTY8+I+4=
+	t=1768966111; cv=none; b=X8vHOze6sU0IVzq9IS4VZJ6erlBxuvYO9THuwlLL61l1puS8ZC0GP2pvKm+7Eu45PIRdjX9q1fOfbvfqyOtPDxsQj/xoLE26HLjNX4JQ+2E8PpxzGLUHM0itQXxRByx9ApmAjsBBumS6vAUygNSdhfoMETuY10GuWR5lypb62nE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966110; c=relaxed/simple;
-	bh=x1/kh/nuHOTVhNGc3KThbWY9VA+n2E+NohKGXz5Js30=;
-	h=Date:To:From:Subject:Message-Id; b=KLDHoE3pIonDankoRlncOUsax0tSNOJ+o3lwW/KM+JZR+KUF+uOjfgG0NszBAQQW3LwaOU8rrRXJviAcMq66Wdc1BryW9jCXlrSZVCPZ/DR9u+hUGhkZPna7gpqwgyGVTUPW6pqTkJY1/wR8xEbfPCXaTlRLC5Amai/VogTZyfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mCWu9esf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966111; c=relaxed/simple;
+	bh=VA1cDzfQsZ5Nnc2RvcQW5L6mEW2s/bYQdSzM57rq+iU=;
+	h=Date:To:From:Subject:Message-Id; b=DWV8s0YMQ0hCEQzw4vi69I+6mwMcN7yk9ASve4iNTgKV+2rufV3ID2Tm4+X/0uhfuaiW1Yd0YpVDL+wLhSGp1+96dLqNUGp4nbPIDljkKvGvy8+9WzgpFXgGsmgmh+luzLsWBBTrBGZ5eKEMLE5Zo+9kQ/vzGX2HYS/HSIrlIhM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NbftOEbj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mCWu9esf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A44CC16AAE;
-	Wed, 21 Jan 2026 03:28:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NbftOEbj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C4ABC16AAE;
+	Wed, 21 Jan 2026 03:28:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966110;
-	bh=x1/kh/nuHOTVhNGc3KThbWY9VA+n2E+NohKGXz5Js30=;
+	s=korg; t=1768966111;
+	bh=VA1cDzfQsZ5Nnc2RvcQW5L6mEW2s/bYQdSzM57rq+iU=;
 	h=Date:To:From:Subject:From;
-	b=mCWu9esfEpJ0/LcvAbIBXVi2fc+aEQbiZbhVtVSJaEiKqrAwJBcJ0D3+9D61Wplk9
-	 iN3La1apH/OceWq45MxRtgkqKU8w4N1u/06e0pIxPoZWkMVYQ18C7zcbriJhBl6kJf
-	 mSFqCTMxkvIYYVAj0+vSWHnBQBLy/3T/KJK9VjiM=
-Date: Tue, 20 Jan 2026 19:28:29 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,longman@redhat.com,david@kernel.org,broonie@kernel.org,liwang@redhat.com,akpm@linux-foundation.org
+	b=NbftOEbjd+qyow7Go7jMDxvc4N0X7LQEcSDRPWpzN3ZmxXnXOuG2L4Il45FHG+3nU
+	 lBGnAPpshLQcgRr7s1Sf4NGF+mVpjjYEwskwdHF6sGhsl+3n5nWJqDh0HVbeCxjeo6
+	 6ks4zl72XDg2FIEghcHiMR8nXUvT3l21IVh+GjoE=
+Date: Tue, 20 Jan 2026 19:28:30 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,luizcap@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,chuhu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-charge_reserved_hugetlbsh-add-waits-with-timeout-helper.patch removed from -mm tree
-Message-Id: <20260121032830.0A44CC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-va_high_addr_switchsh-return-value.patch removed from -mm tree
+Message-Id: <20260121032831.4C4ABC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,155 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm/charge_reserved_hugetlb.sh: add waits with timeout helper
+     Subject: selftests/mm: fix va_high_addr_switch.sh return value
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-charge_reserved_hugetlbsh-add-waits-with-timeout-helper.patch
+     selftests-mm-fix-va_high_addr_switchsh-return-value.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li Wang <liwang@redhat.com>
-Subject: selftests/mm/charge_reserved_hugetlb.sh: add waits with timeout helper
-Date: Sun, 21 Dec 2025 20:26:39 +0800
+From: Chunyu Hu <chuhu@redhat.com>
+Subject: selftests/mm: fix va_high_addr_switch.sh return value
+Date: Sun, 21 Dec 2025 12:00:21 +0800
 
-The hugetlb cgroup usage wait loops in charge_reserved_hugetlb.sh were
-unbounded and could hang forever if the expected cgroup file value never
-appears (e.g.  due to write_to_hugetlbfs in Error mapping).
+Patch series "Fix va_high_addr_switch.sh test failure - again", v2.
 
-=== Error log ===
-  # uname -r
-  6.12.0-xxx.el10.aarch64+64k
+The series address several issues exist for the va_high_addr_switch test:
+1) the test return value is ignored in va_high_addr_switch.sh.
+2) the va_high_addr_switch test requires 6 hugepages not 5.
+3) the reurn value of the first test in va_high_addr_switch.c can be
+   overridden by the second test.
+4) the nr_hugepages setup in run_vmtests.sh for arm64 can be done in
+   va_high_addr_switch.sh too.
+5) update a comment for check_test_requirements.
 
-  # ls /sys/kernel/mm/hugepages/hugepages-*
-  hugepages-16777216kB/  hugepages-2048kB/  hugepages-524288kB/
 
-  #./charge_reserved_hugetlb.sh -cgroup-v2
-  # -----------------------------------------
-  ...
-  # nr hugepages = 10
-  # writing cgroup limit: 5368709120
-  # writing reseravation limit: 5368709120
-  ...
-  # write_to_hugetlbfs: Error mapping the file: Cannot allocate memory
-  # Waiting for hugetlb memory reservation to reach size 2684354560.
-  # 0
-  # Waiting for hugetlb memory reservation to reach size 2684354560.
-  # 0
-  # Waiting for hugetlb memory reservation to reach size 2684354560.
-  # 0
-  # Waiting for hugetlb memory reservation to reach size 2684354560.
-  # 0
-  # Waiting for hugetlb memory reservation to reach size 2684354560.
-  # 0
-  # Waiting for hugetlb memory reservation to reach size 2684354560.
-  # 0
-  ...
+This patch: (of 5)
 
-Introduce a small helper, wait_for_file_value(), and use it for:
-  - waiting for reservation usage to drop to 0,
-  - waiting for reservation usage to reach a given size,
-  - waiting for fault usage to reach a given size.
+The return value should be return value of va_high_addr_switch, otherwise
+a test failure would be silently ignored.
 
-This makes the waits consistent and adds a hard timeout (60 tries with 1s
-sleep) so the test fails instead of stalling indefinitely.
-
-Link: https://lkml.kernel.org/r/20251221122639.3168038-4-liwang@redhat.com
-Signed-off-by: Li Wang <liwang@redhat.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>
+Link: https://lkml.kernel.org/r/20251221040025.3159990-1-chuhu@redhat.com
+Fixes: d9d957bd7b61 ("selftests/mm: alloc hugepages in va_high_addr_switch test")
+Signed-off-by: Chunyu Hu <chuhu@redhat.com>
+Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
+Cc: Luiz Capitulino <luizcap@redhat.com>
+Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/charge_reserved_hugetlb.sh |   51 +++++-----
- 1 file changed, 30 insertions(+), 21 deletions(-)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-charge_reserved_hugetlbsh-add-waits-with-timeout-helper
-+++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
-@@ -100,7 +100,7 @@ function setup_cgroup() {
-   echo writing cgroup limit: "$cgroup_limit"
-   echo "$cgroup_limit" >$cgroup_path/$name/hugetlb.${MB}MB.$fault_limit_file
- 
--  echo writing reseravation limit: "$reservation_limit"
-+  echo writing reservation limit: "$reservation_limit"
-   echo "$reservation_limit" > \
-     $cgroup_path/$name/hugetlb.${MB}MB.$reservation_limit_file
- 
-@@ -112,41 +112,50 @@ function setup_cgroup() {
-   fi
- }
- 
-+function wait_for_file_value() {
-+  local path="$1"
-+  local expect="$2"
-+  local max_tries=60
-+
-+  if [[ ! -r "$path" ]]; then
-+    echo "ERROR: cannot read '$path', missing or permission denied"
-+    return 1
-+  fi
-+
-+  for ((i=1; i<=max_tries; i++)); do
-+    local cur="$(cat "$path")"
-+    if [[ "$cur" == "$expect" ]]; then
-+      return 0
-+    fi
-+    echo "Waiting for $path to become '$expect' (current: '$cur') (try $i/$max_tries)"
-+    sleep 1
-+  done
-+
-+  echo "ERROR: timeout waiting for $path to become '$expect'"
-+  return 1
-+}
-+
- function wait_for_hugetlb_memory_to_get_depleted() {
-   local cgroup="$1"
-   local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$reservation_usage_file"
--  # Wait for hugetlbfs memory to get depleted.
--  while [ $(cat $path) != 0 ]; do
--    echo Waiting for hugetlb memory to get depleted.
--    cat $path
--    sleep 0.5
--  done
-+
-+  wait_for_file_value "$path" "0"
- }
- 
- function wait_for_hugetlb_memory_to_get_reserved() {
-   local cgroup="$1"
-   local size="$2"
--
-   local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$reservation_usage_file"
--  # Wait for hugetlbfs memory to get written.
--  while [ $(cat $path) != $size ]; do
--    echo Waiting for hugetlb memory reservation to reach size $size.
--    cat $path
--    sleep 0.5
--  done
-+
-+  wait_for_file_value "$path" "$size"
- }
- 
- function wait_for_hugetlb_memory_to_get_written() {
-   local cgroup="$1"
-   local size="$2"
--
-   local path="$cgroup_path/$cgroup/hugetlb.${MB}MB.$fault_usage_file"
--  # Wait for hugetlbfs memory to get written.
--  while [ $(cat $path) != $size ]; do
--    echo Waiting for hugetlb memory to reach size $size.
--    cat $path
--    sleep 0.5
--  done
-+
-+  wait_for_file_value "$path" "$size"
- }
- 
- function write_hugetlbfs_and_get_usage() {
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-fix-va_high_addr_switchsh-return-value
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -114,4 +114,6 @@ save_nr_hugepages
+ # 4 keep_mapped pages, and one for tmp usage
+ setup_nr_hugepages 5
+ ./va_high_addr_switch --run-hugetlb
++retcode=$?
+ restore_nr_hugepages
++exit $retcode
 _
 
-Patches currently in -mm which might be from liwang@redhat.com are
+Patches currently in -mm which might be from chuhu@redhat.com are
 
 
