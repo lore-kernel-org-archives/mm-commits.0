@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2752228DB56
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA845358D32
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967369; cv=none; b=l1HZg71GumdMIKYvXg40L7U3okMTUxAOW8gf0My8z7yFQ03lfvNugm0UE/B6SHWD4oNmE5PBl2XLvbuNy6hBykPenN8m9Psxlgu0VKh2pVCpOJ1wHI+t04+Zb37VtL3lSLI5rqIWGSOpL4CHAR5syCraQadrercngGCCpy4GLYg=
+	t=1768967370; cv=none; b=VC6AXjyzCJwrIVjqAeGyLNPO2HXiS2/Bu4p1jUwBJqbgnBNIPHW+UVNrvPU6pHXV76GezQNg57TzORUwY4lni8HXIFMmH4FuInLj31d2qGoD1Ai+C+rrgEWZA8nu7Vu9vaA7kQu4DqIV18lGBs08CfI7Mp2WGeO+GN3+2uuyBD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967369; c=relaxed/simple;
-	bh=TTsWEPKXbxTZZYCurlZ9fX0Y70hL4DYSLEJUATI65Xo=;
-	h=Date:To:From:Subject:Message-Id; b=HyUOUHz0gdL7u4VKorS7enOQLSdySWN/qvKlTy3UfJ/4TMAggUUsKQ41pwFAQF/c01WHuAYGH0qquQm+OETRmU58TwaeFJee5GBXyxFUQ92tCwTgyJ0k7hyf3nmAb1aCyfCGRNl8GlUrOA9iLzi3hN9y3NS7Rq0EfY1g1BdE2PA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZA11lLQz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967370; c=relaxed/simple;
+	bh=vHC4XL4Rz6LqcwelrVv1mTpkwh2zHuwBy1ALLl3e+JY=;
+	h=Date:To:From:Subject:Message-Id; b=u/B4fpePvwcvTsAmY0xZOuA/NY+krTiq/CCeeSw1Cn8pTaJmV7+VIdamettgA38wnAu8Vd0/a4RGbh26isOe14T5gmG/PcwSujx9awKe5CvaSa57aI5MPJWWNUtzvCCsOtofZJ8eCPAqnnoACrHR4GseFHfD1pQFNaWerFnoGaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aOa1ijAg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZA11lLQz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74827C19423;
-	Wed, 21 Jan 2026 03:49:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aOa1ijAg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A24C9C16AAE;
+	Wed, 21 Jan 2026 03:49:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967368;
-	bh=TTsWEPKXbxTZZYCurlZ9fX0Y70hL4DYSLEJUATI65Xo=;
+	s=korg; t=1768967369;
+	bh=vHC4XL4Rz6LqcwelrVv1mTpkwh2zHuwBy1ALLl3e+JY=;
 	h=Date:To:From:Subject:From;
-	b=ZA11lLQzAHXWBMtdVpojzIpF7Ei5v6qYQ4QyoHr+81YWufGMoskI7/XeX9gNrqtHv
-	 lNcuOP09dnp5h8dlHSfTTgH/35igJUCW8iMyFvzTzR+/mn8WcVP+1uUTsdNWOa5LJ/
-	 JY/XIU4EziVrG0YKpNVmOMFgVVLih2V6wXNpbLx0=
-Date: Tue, 20 Jan 2026 19:49:27 -0800
-To: mm-commits@vger.kernel.org,mario.limonciello@amd.com,chaitanyamishra.ai@gmail.com,akpm@linux-foundation.org
+	b=aOa1ijAg6ajUqSqN2zjz1ZGAolmdmldjEiz63Qcy7J/RklUKhkbc8I5vnik17/RNz
+	 j8SW97M38ebmVlaAb2oTsS/s2lKBYP1zKB1OqVerIdpozGeXdsJOIm2W4tIAuppK+O
+	 ROQ3BaG1VmiUegSUt5gUGZoAxvG5jG4V01esCobs=
+Date: Tue, 20 Jan 2026 19:49:29 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-kstrtox-fix-kstrtobool-docstring-to-mention-enabled-disabled.patch removed from -mm tree
-Message-Id: <20260121034928.74827C19423@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] liveupdate-separate-memfd-support-into-liveupdate_memfd.patch removed from -mm tree
+Message-Id: <20260121034929.A24C9C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/kstrtox: fix kstrtobool() docstring to mention enabled/disabled
+     Subject: liveupdate: separate memfd support into LIVEUPDATE_MEMFD
 has been removed from the -mm tree.  Its filename was
-     lib-kstrtox-fix-kstrtobool-docstring-to-mention-enabled-disabled.patch
+     liveupdate-separate-memfd-support-into-liveupdate_memfd.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chaitanya Mishra <chaitanyamishra.ai@gmail.com>
-Subject: lib/kstrtox: fix kstrtobool() docstring to mention enabled/disabled
-Date: Sat, 27 Dec 2025 14:52:29 +0530
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: liveupdate: separate memfd support into LIVEUPDATE_MEMFD
+Date: Tue, 30 Dec 2025 11:14:02 -0500
 
-Commit ae5b3500856f ("kstrtox: add support for enabled and disabled in
-kstrtobool()") added support for 'e'/'E' (enabled) and 'd'/'D' (disabled)
-inputs, but did not update the docstring accordingly.
+Decouple memfd preservation support from the core Live Update Orchestrator
+configuration.
 
-Update the docstring to include 'Ee' (for true) and 'Dd' (for false) in
-the list of accepted first characters.
+Previously, enabling CONFIG_LIVEUPDATE forced a dependency on CONFIG_SHMEM
+and unconditionally compiled memfd_luo.o.  However, Live Update may be
+used for purposes that do not require memfd-backed memory preservation.
 
-Link: https://lkml.kernel.org/r/20251227092229.57330-1-chaitanyamishra.ai@gmail.com
-Fixes: ae5b3500856f ("kstrtox: add support for enabled and disabled in kstrtobool()")
-Signed-off-by: Chaitanya Mishra <chaitanyamishra.ai@gmail.com>
-Cc: Mario Limonciello <mario.limonciello@amd.com>
+Introduce CONFIG_LIVEUPDATE_MEMFD to gate memfd_luo.o.  This moves the
+SHMEM and MEMFD_CREATE dependencies to the specific feature that needs
+them, allowing the base LIVEUPDATE option to be selected independently of
+shared memory support.
+
+Link: https://lkml.kernel.org/r/20251230161402.1542099-1-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/liveupdate/Kconfig |   17 ++++++++++++++++-
+ mm/Makefile               |    2 +-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
---- a/lib/kstrtox.c~lib-kstrtox-fix-kstrtobool-docstring-to-mention-enabled-disabled
-+++ a/lib/kstrtox.c
-@@ -340,8 +340,8 @@ EXPORT_SYMBOL(kstrtos8);
-  * @s: input string
-  * @res: result
-  *
-- * This routine returns 0 iff the first character is one of 'YyTt1NnFf0', or
-- * [oO][NnFf] for "on" and "off". Otherwise it will return -EINVAL.  Value
-+ * This routine returns 0 iff the first character is one of 'EeYyTt1DdNnFf0',
-+ * or [oO][NnFf] for "on" and "off". Otherwise it will return -EINVAL.  Value
-  * pointed to by res is updated upon finding a match.
-  */
- noinline
+--- a/kernel/liveupdate/Kconfig~liveupdate-separate-memfd-support-into-liveupdate_memfd
++++ a/kernel/liveupdate/Kconfig
+@@ -54,7 +54,6 @@ config KEXEC_HANDOVER_ENABLE_DEFAULT
+ config LIVEUPDATE
+ 	bool "Live Update Orchestrator"
+ 	depends on KEXEC_HANDOVER
+-	depends on SHMEM
+ 	help
+ 	  Enable the Live Update Orchestrator. Live Update is a mechanism,
+ 	  typically based on kexec, that allows the kernel to be updated
+@@ -73,4 +72,20 @@ config LIVEUPDATE
+ 
+ 	  If unsure, say N.
+ 
++config LIVEUPDATE_MEMFD
++	bool "Live update support for memfd"
++	depends on LIVEUPDATE
++	depends on MEMFD_CREATE
++	depends on SHMEM
++	default LIVEUPDATE
++	help
++	  Enable live update support for memfd regions. This allows preserving
++	  memfd-backed memory across kernel live updates.
++
++	  This can be used to back VM memory with memfds, allowing the guest
++	  memory to persist, or for other user workloads needing to preserve
++	  pages.
++
++	  If unsure, say N.
++
+ endmenu
+--- a/mm/Makefile~liveupdate-separate-memfd-support-into-liveupdate_memfd
++++ a/mm/Makefile
+@@ -100,7 +100,7 @@ obj-$(CONFIG_NUMA) += memory-tiers.o
+ obj-$(CONFIG_DEVICE_MIGRATION) += migrate_device.o
+ obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o khugepaged.o
+ obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
+-obj-$(CONFIG_LIVEUPDATE) += memfd_luo.o
++obj-$(CONFIG_LIVEUPDATE_MEMFD) += memfd_luo.o
+ obj-$(CONFIG_MEMCG_V1) += memcontrol-v1.o
+ obj-$(CONFIG_MEMCG) += memcontrol.o vmpressure.o
+ ifdef CONFIG_SWAP
 _
 
-Patches currently in -mm which might be from chaitanyamishra.ai@gmail.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
 
