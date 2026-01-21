@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70E2A2D8370
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E861F192E
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967396; cv=none; b=RaSdw5EFNnnoOu6b3HT03dQKxXxPLw3HtzyIM1stbrRH7HirQryeRYabN4NYTbNS8048x359oMoDraENCwKUYLcCEAeG6R2cxzIu64Rs9sbdQA+TFGRyRBH/31PiF76jKLTMkFoNvDLUD1El80d8fzl/TaHVBzJbOAuOIg9WY24=
+	t=1768967398; cv=none; b=Q0UF5ki2lt8zmbqhb++vCbNlYMpxVoLZIWCnGaWDTyptpnanDcM4soAoTisC+HQlIFVmgWXT5BPd/AJlzbSZphfobD2D2qMm2oPYpcZszb4kAaSMbyPckLQulVRM2n2wUZrUm67OMS1nEkmQlAaFE0Gq/9F6ggzHWQu4bA8JyKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967396; c=relaxed/simple;
-	bh=bO3mLUYO282TYPzWe1Nn/RyCh9dEwDY27ZYJChjOJU4=;
-	h=Date:To:From:Subject:Message-Id; b=HKrXWCUBm/hdLlogj7fkHzVo4g3ecf7TyuwR4j5laQ4OHjNd/m/F82wpFyAdf7Ep5a04tsq+au85isPF5VcqueFXzSm9EU3hDBbVuhlDG56JMVo9f8/SCUpXgRW4Skyaw0P+iVvRkGl5ES987d3eOXPxfWv4PUTU6VwLK12aNIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LK9ajKa9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967398; c=relaxed/simple;
+	bh=cG88pF7CkQ21QP6WqrfPkHVCqL0JGxyC6gqagKO6Xq0=;
+	h=Date:To:From:Subject:Message-Id; b=ps2lALGYBs8DRSpQIPeDWWYINLuCRb4inlXq71Q/rs/lOqft29pagiqdOdkJyhp588H4A4wvJhUylIJOL+pM8EUqQp8DrVwwV018YVhooobxl1FZgv9iOAyRshOUrCs10ZeiQrLzK+CGqt44DbbxKO0x8w90N7K0rkaGcb5bKro=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0WG3bwrG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LK9ajKa9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61F5AC16AAE;
-	Wed, 21 Jan 2026 03:49:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0WG3bwrG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F32C16AAE;
+	Wed, 21 Jan 2026 03:49:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967395;
-	bh=bO3mLUYO282TYPzWe1Nn/RyCh9dEwDY27ZYJChjOJU4=;
+	s=korg; t=1768967398;
+	bh=cG88pF7CkQ21QP6WqrfPkHVCqL0JGxyC6gqagKO6Xq0=;
 	h=Date:To:From:Subject:From;
-	b=LK9ajKa9v9BKAsWy5EvvdsxPpVkdhPwYstTGUA2HwdjV0QFPRprOPFKPQOITDLJ3+
-	 QeT7Au7lARcAc5CJP+rl/YCAKH1EahsmBFE4H8E/yftPcqcFdE7W5zVnh4NfEvl9en
-	 gqbzEMaUmLkAa1EelcEny9+Usx8Bo4sZQvk36DKA=
-Date: Tue, 20 Jan 2026 19:49:54 -0800
-To: mm-commits@vger.kernel.org,lirongqing@baidu.com,lance.yang@linux.dev,jm@machine-hall.org,tglozar@redhat.com,akpm@linux-foundation.org
+	b=0WG3bwrGWrBg8aTDHLT7n5QoGLjgQiZNJ1iK4jZ4/ICqKMQ+V6WZfOCMhFCl+yU/J
+	 BUW+M2U34yn7oojNdR4wiszIWF1llcfBF5yRdfMA/Y6jfFJUvoW0lCCuqcgDJnXesl
+	 3/Hi4a7ck6/85+huECLQYmwG1w7bnZ05biyZXGEA=
+Date: Tue, 20 Jan 2026 19:49:57 -0800
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,kees@kernel.org,juri.lelli@redhat.com,jqqlijiazi@gmail.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,mingzhu.wang@transsion.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-kconfigdebug-fix-bootparam_hung_task_panic-comment.patch removed from -mm tree
-Message-Id: <20260121034955.61F5AC16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm.patch removed from -mm tree
+Message-Id: <20260121034958.00F32C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/Kconfig.debug: fix BOOTPARAM_HUNG_TASK_PANIC comment
+     Subject: kernel/fork: update obsolete use_mm references to kthread_use_mm
 has been removed from the -mm tree.  Its filename was
-     lib-kconfigdebug-fix-bootparam_hung_task_panic-comment.patch
+     kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tomas Glozar <tglozar@redhat.com>
-Subject: lib/Kconfig.debug: fix BOOTPARAM_HUNG_TASK_PANIC comment
-Date: Tue, 6 Jan 2026 15:01:40 +0100
+From: mingzhu.wang(王明珠) <mingzhu.wang@transsion.com>
+Subject: kernel/fork: update obsolete use_mm references to kthread_use_mm
+Date: Wed, 7 Jan 2026 08:15:32 +0000
 
-The comment for CONFIG_BOOTPARAM_HUNG_TASK_PANIC says:
+The comment for get_task_mm() in kernel/fork.c incorrectly references the
+deprecated function `use_mm()`, which has been renamed to
+`kthread_use_mm()` in kernel/kthread.c.
 
-   Say N if unsure.
+This patch updates the documentation to reflect the current function
+names, ensuring accuracy when developers refer to the kernel thread memory
+context API.
 
-but since commit 9544f9e6947f ("hung_task: panic when there are more than
-N hung tasks at the same time"), N is not a valid value for the option,
-leading to a warning at build time:
+No functional changes were introduced.
 
-   .config:11736:warning: symbol value 'n' invalid for BOOTPARAM_HUNG_TASK_PANIC
-
-as well as an error when given to menuconfig.
-
-Fix the comment to say '0' instead of 'N'.
-
-Link: https://lkml.kernel.org/r/20260106140140.136446-1-tglozar@redhat.com
-Fixes: 9544f9e6947f ("hung_task: panic when there are more than N hung tasks at the same time")
-Signed-off-by: Tomas Glozar <tglozar@redhat.com>
-Reported-by: Johnny Mnemonic <jm@machine-hall.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Li RongQing <lirongqing@baidu.com>
+Link: https://lkml.kernel.org/r/KUZPR04MB8965F954108B4DD7E8FFDB2B8F84A@KUZPR04MB8965.apcprd04.prod.outlook.com
+Signed-off-by: mingzhu.wang <mingzhu.wang@transsion.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiazi Li <jqqlijiazi@gmail.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
+ kernel/fork.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-fix-bootparam_hung_task_panic-comment
-+++ a/lib/Kconfig.debug
-@@ -1274,7 +1274,7 @@ config BOOTPARAM_HUNG_TASK_PANIC
- 	  high-availability systems that have uptime guarantees and
- 	  where a hung tasks must be resolved ASAP.
- 
--	  Say N if unsure.
-+	  Say 0 if unsure.
- 
- config DETECT_HUNG_TASK_BLOCKER
- 	bool "Dump Hung Tasks Blocker"
+--- a/kernel/fork.c~kernel-fork-update-obsolete-use_mm-references-to-kthread_use_mm
++++ a/kernel/fork.c
+@@ -1356,7 +1356,7 @@ struct file *get_task_exe_file(struct ta
+  * @task: The task.
+  *
+  * Returns %NULL if the task has no mm.  Checks PF_KTHREAD (meaning
+- * this kernel workthread has transiently adopted a user mm with use_mm,
++ * this kernel workthread has transiently adopted a user mm with kthread_use_mm,
+  * to do its AIO) is not set and if so returns a reference to it, after
+  * bumping up the use count.  User must release the mm via mmput()
+  * after use.  Typically used by /proc and ptrace.
 _
 
-Patches currently in -mm which might be from tglozar@redhat.com are
+Patches currently in -mm which might be from mingzhu.wang@transsion.com are
 
 
