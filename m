@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B78DA33E363
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA4F133345A
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:48:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967336; cv=none; b=jzrsyr8o82fRkdVLFyUkNP4/Fwm3sZywlWdTdQfFxyMWIGWfulskq2dGAq+fVIqSDMrvRwSlu65W52UUVMbMinSbCHS5Trq/M4qyl+RdXOr5O4JKLnVerrecDwRV2dtrV2agCFIblwLV42X8k5Sp/K0BH29YN+CEFUbjwCjHB5o=
+	t=1768967338; cv=none; b=blhevm3Gj8aAjMV07q2kHaWjGMMfOV5CvPmrI0uD6e4XT8GsSWPC5fGwRG3y3W+XaXuWuvymuvv4nNyC+ctpJey3ZsLvSjaA4Fd0MTNtESmiZq3ixwIehMz8TO5Kx5ijhaaBbgjbTo9o397KdMHnsfxRVVex+IE39UqOafVfVSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967336; c=relaxed/simple;
-	bh=hDdWnVkTmk+/85fMsrmXfWmQJDh0UEwbPKs599uv9x0=;
-	h=Date:To:From:Subject:Message-Id; b=d8sHsSbnyKf2v/rpcxt7d98btcpiB1kq/gdQgu/Pbj32MNPAYzKFkM8wnHt+kbu9e7tNDcC5j6lh3ZspQ0bT8D6jnTyLFxz5/s1zHBfJjO1pej+afi+R/TbRCjfqmAXLD0odFzpzLkxuxLO9C1NOBvJDBzW0lxbiUE6AT6Wzpao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qpenn1Ld; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967338; c=relaxed/simple;
+	bh=lUKc7l4fxEyEcX2Y49mY4ENnfdCJG4sUXNUCaoc77dU=;
+	h=Date:To:From:Subject:Message-Id; b=KR7AT9MQfAI5e0PMRB3MMh04RdKwwDPH9Hf6q+/TlZBKXmVwr/WPD7wOkdoJjMpuVXp2RKnU5WGiHid1ZHmRlw+3YFVxZYutthkcM4Zo9nOowcmZNqL1poqr/jSOMH6Ll3BRUkFJHETvEmNY5OybhGuYeHpcyQ9kyTjwmTu1H0k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M8JQSnwC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qpenn1Ld"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E06A7C16AAE;
-	Wed, 21 Jan 2026 03:48:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M8JQSnwC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14ABCC16AAE;
+	Wed, 21 Jan 2026 03:48:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967336;
-	bh=hDdWnVkTmk+/85fMsrmXfWmQJDh0UEwbPKs599uv9x0=;
+	s=korg; t=1768967337;
+	bh=lUKc7l4fxEyEcX2Y49mY4ENnfdCJG4sUXNUCaoc77dU=;
 	h=Date:To:From:Subject:From;
-	b=Qpenn1LdugQIHUFAPkXXFAKnP9MczhO52tQiWs30YRDlIJNLdAgyGS/j/TQdrZs3c
-	 h01AqxItGz4u4dELJDSLIpiYuy5xKnF1RBVT2Nl6pDMAT8DJzFg7XU6mkeH0rOJ6fP
-	 djgFZXNPeEhgubdBDaLBGHzOSI+q+OQQZM+3nbO8=
-Date: Tue, 20 Jan 2026 19:48:55 -0800
-To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,brauner@kernel.org,lalitshankarch@gmail.com,akpm@linux-foundation.org
+	b=M8JQSnwCJY9XdDKH9qRz+U10P2if7bLxTBxLN6UPETlBAB3ipqrDtMRXLdJ51sbnq
+	 Z2p858c2dPETUp836p9Ft0xDn9UZjKdwQvxHq2/mrxNqL/U1u1ahWkV54RAig3bfIY
+	 J8AvDFzH8sCzjw0S52MrxyxvnkWlOImrMrwKe0mA=
+Date: Tue, 20 Jan 2026 19:48:56 -0800
+To: mm-commits@vger.kernel.org,mic@digikod.net,masahiroy@kernel.org,ihuguet@redhat.com,danny@kdrag0n.dev,haokexin@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fat-remove-unused-parameter.patch removed from -mm tree
-Message-Id: <20260121034855.E06A7C16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] editorconfig-respect-editorconfig-settings-from-parent-directories.patch removed from -mm tree
+Message-Id: <20260121034857.14ABCC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fat: remove unused parameter
+     Subject: .editorconfig: respect .editorconfig settings from parent directories
 has been removed from the -mm tree.  Its filename was
-     fat-remove-unused-parameter.patch
+     editorconfig-respect-editorconfig-settings-from-parent-directories.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
-Subject: fat: remove unused parameter
-Date: Tue, 2 Dec 2025 03:14:04 +0530
+From: Kevin Hao <haokexin@gmail.com>
+Subject: .editorconfig: respect .editorconfig settings from parent directories
+Date: Wed, 17 Dec 2025 12:23:27 +0800
 
-Remove unused inode parameter from fat_cache_alloc().
+Setting 'root' to 'true' prevents the editor from searching for other
+.editorconfig files in parent directories.  However, a common workflow
+involves generating a patch with 'git format-patch' and opening it in an
+editor within the kernel source directory.  In such cases, we want any
+specific settings for patch files defined in an .editorconfig located
+above the kernel source directory to remain effective.  Therefore, remove
+the 'root' setting from the kernel .editorconfig.
 
-Link: https://lkml.kernel.org/r/20251201214403.90604-2-lalitshankarch@gmail.com
-Signed-off-by: Lalit Shankar Chowdhury <lalitshankarch@gmail.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lkml.kernel.org/r/20251217-editconfig-v1-1-883e6dd6dbfa@gmail.com
+Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Cc: Íñigo Huguet <ihuguet@redhat.com>
+Cc: Danny Lin <danny@kdrag0n.dev>
+Cc: Mickaël Salaün <mic@digikod.net>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/cache.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .editorconfig |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/fs/fat/cache.c~fat-remove-unused-parameter
-+++ a/fs/fat/cache.c
-@@ -54,7 +54,7 @@ void fat_cache_destroy(void)
- 	kmem_cache_destroy(fat_cache_cachep);
- }
+--- a/.editorconfig~editorconfig-respect-editorconfig-settings-from-parent-directories
++++ a/.editorconfig
+@@ -1,7 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
  
--static inline struct fat_cache *fat_cache_alloc(struct inode *inode)
-+static inline struct fat_cache *fat_cache_alloc(void)
- {
- 	return kmem_cache_alloc(fat_cache_cachep, GFP_NOFS);
- }
-@@ -144,7 +144,7 @@ static void fat_cache_add(struct inode *
- 			MSDOS_I(inode)->nr_caches++;
- 			spin_unlock(&MSDOS_I(inode)->cache_lru_lock);
- 
--			tmp = fat_cache_alloc(inode);
-+			tmp = fat_cache_alloc();
- 			if (!tmp) {
- 				spin_lock(&MSDOS_I(inode)->cache_lru_lock);
- 				MSDOS_I(inode)->nr_caches--;
+-root = true
+-
+ [{*.{awk,c,dts,dtsi,dtso,h,mk,s,S},Kconfig,Makefile,Makefile.*}]
+ charset = utf-8
+ end_of_line = lf
 _
 
-Patches currently in -mm which might be from lalitshankarch@gmail.com are
+Patches currently in -mm which might be from haokexin@gmail.com are
 
 
