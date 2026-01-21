@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27664319852;
-	Wed, 21 Jan 2026 19:45:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF80F34CFBE;
+	Wed, 21 Jan 2026 20:18:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769024706; cv=none; b=Ht2LAReElszTSf2YOMYJngSrIE3SmRHOtHT+NvFQkAZ6HSUQLzdu8k7LQ4mVDOapQcmULqCMR9FmQ7loX9h9waXe06y92X7uQqdwRDA7l7TCBx66Yup+SbEyXsaOmD+cl4UquCnms/kKdpslfG0pna14zHgRpepmqr3T+PWrkCo=
+	t=1769026721; cv=none; b=dePfmHY/xH1kWK0HOhNypd6yaAnyvGXnsmT4FfbDrpu8v1EZW+vv/UD046NXebVW+9aCfTNWDjx8SjToEvqvWrEu1KTXNxvqhuWThU5lZ6y/eBzvrMIp4W3tntEzUylncL2D6wb0QhrzY3/FtHc9hL1CV4EQneGM89Tz0r4dfl0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769024706; c=relaxed/simple;
-	bh=J3Q3hUaP6eRIs6EPdWpRz02ClajqzwenrVDWIA29nYw=;
-	h=Date:To:From:Subject:Message-Id; b=iyq0JNiGaxa7SMkzV7+5EXm6Pjgus47UfsYkEPiGiDdVumlHJNnL8osETbfie0JqVDRv0veuy80EZGXnWgMMJHbus/hLABOSR7WfzXjW0gDlJ7hVEi/qTchmvYVF/+7nbQH4tfcQqA345klZmPvXsf1hz5xHd3SkOY9aqtO8tE4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cv7abE+0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769026721; c=relaxed/simple;
+	bh=RjVJSr08KQWPUErgvOR4YOw+Oupxn3K4eJnPIwhMvQs=;
+	h=Date:To:From:Subject:Message-Id; b=NWTAzLZZbN/GuD5FWciY6LLnLUj+udnsCfrI7zjcUaWUuT17AARPx3LMwOJYSWPgaB8jPwmtFdkzz052TZQxV9G1dB2iVmJ/qxBOIRj3pqNyIPPUn5bHhlsymOve5x3xbcws2zscQJJ5Y5TkUuvqT0VW2ElYScgT2S+6R+eADA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T9Z63GkQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cv7abE+0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1178EC4CEF1;
-	Wed, 21 Jan 2026 19:45:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T9Z63GkQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7260DC4CEF1;
+	Wed, 21 Jan 2026 20:18:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769024705;
-	bh=J3Q3hUaP6eRIs6EPdWpRz02ClajqzwenrVDWIA29nYw=;
+	s=korg; t=1769026721;
+	bh=RjVJSr08KQWPUErgvOR4YOw+Oupxn3K4eJnPIwhMvQs=;
 	h=Date:To:From:Subject:From;
-	b=Cv7abE+0vyX4RuD2AgoRjWXYBKbGF4L2j1m+reTq/eXNaXyZYkNYSqHuPGH2Z0BsE
-	 8ORD2THX5/nalEJ20ctC81i/c3swreEbPXuCw99pwn/bQRAD4l8GOxBAjadlIyxS71
-	 6KCttju1zzBj7R9A3WVDJL9u36wXdnXXvHKMoBHU=
-Date: Wed, 21 Jan 2026 11:45:04 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,rostedt@goodmis.org,richard.weiyang@gmail.com,paulmck@kernel.org,david@kernel.org,bigeasy@linutronix.de,longman@redhat.com,akpm@linux-foundation.org
+	b=T9Z63GkQZY9hfSYz55QTx9Bw8kjcMs6pAGVj74HyoAw7Iw0PvsewOQ90yqQNRzZdi
+	 DhZoptjEsWwrUP7wOxN51jpeEbpE2qg+CMfe9lrxhufJieaJw3LQp58xN/FmWr6buj
+	 TUBKUG6UVMLcdsEcxrQ8eMLgPBZJMuy1wzA8FfVQ=
+Date: Wed, 21 Jan 2026 12:18:40 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,miklos@szeredi.hu,joannelkoong@gmail.com,bernd@bsbernd.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260121194505.1178EC4CEF1@smtp.kernel.org>
+Subject: + flex_proportions-make-fprop_new_period-hardirq-safe.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260121201841.7260DC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: don't call cond_resched() in deferred_init_memmap_chunk() if rcu_preempt_depth() set
+     Subject: flex_proportions: make fprop_new_period() hardirq safe
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set.patch
+     flex_proportions-make-fprop_new_period-hardirq-safe.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/flex_proportions-make-fprop_new_period-hardirq-safe.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,93 +58,83 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/mm_init: don't call cond_resched() in deferred_init_memmap_chunk() if rcu_preempt_depth() set
-Date: Wed, 21 Jan 2026 14:10:36 -0500
+From: Jan Kara <jack@suse.cz>
+Subject: flex_proportions: make fprop_new_period() hardirq safe
+Date: Wed, 21 Jan 2026 12:27:30 +0100
 
-Commit 3acb913c9d5b ("mm/mm_init: use deferred_init_memmap_chunk() in
-deferred_grow_zone()") made deferred_grow_zone() call
-deferred_init_memmap_chunk() within a pgdat_resize_lock() critical section
-with irqs disabled.  It did check for irqs_disabled() in
-deferred_init_memmap_chunk() to avoid calling cond_resched().  For a
-PREEMPT_RT kernel build, however, spin_lock_irqsave() does not disable
-interrupt but rcu_read_lock() is called.  This leads to the following bug
-report.
+Bernd has reported a lockdep splat from flexible proportions code that is
+essentially complaining about the following race:
 
-  BUG: sleeping function called from invalid context at mm/mm_init.c:2091
-  in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 1, name: swapper/0
-  preempt_count: 0, expected: 0
-  RCU nest depth: 1, expected: 0
-  3 locks held by swapper/0/1:
-   #0: ffff80008471b7a0 (sched_domains_mutex){+.+.}-{4:4}, at: sched_domains_mutex_lock+0x28/0x40
-   #1: ffff003bdfffef48 (&pgdat->node_size_lock){+.+.}-{3:3}, at: deferred_grow_zone+0x140/0x278
-   #2: ffff800084acf600 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1b4/0x408
-  CPU: 0 UID: 0 PID: 1 Comm: swapper/0 Tainted: G        W           6.19.0-rc6-test #1 PREEMPT_{RT,(full)
-}
-  Tainted: [W]=WARN
-  Call trace:
-   show_stack+0x20/0x38 (C)
-   dump_stack_lvl+0xdc/0xf8
-   dump_stack+0x1c/0x28
-   __might_resched+0x384/0x530
-   deferred_init_memmap_chunk+0x560/0x688
-   deferred_grow_zone+0x190/0x278
-   _deferred_grow_zone+0x18/0x30
-   get_page_from_freelist+0x780/0xf78
-   __alloc_frozen_pages_noprof+0x1dc/0x348
-   alloc_slab_page+0x30/0x110
-   allocate_slab+0x98/0x2a0
-   new_slab+0x4c/0x80
-   ___slab_alloc+0x5a4/0x770
-   __slab_alloc.constprop.0+0x88/0x1e0
-   __kmalloc_node_noprof+0x2c0/0x598
-   __sdt_alloc+0x3b8/0x728
-   build_sched_domains+0xe0/0x1260
-   sched_init_domains+0x14c/0x1c8
-   sched_init_smp+0x9c/0x1d0
-   kernel_init_freeable+0x218/0x358
-   kernel_init+0x28/0x208
-   ret_from_fork+0x10/0x20
+<timer fires>
+run_timer_softirq - we are in softirq context
+  call_timer_fn
+    writeout_period
+      fprop_new_period
+        write_seqcount_begin(&p->sequence);
 
-Fix it by checking rcu_preempt_depth() as well to prevent calling
-cond_resched(). Note that CONFIG_PREEMPT_RCU should always be enabled
-in a PREEMPT_RT kernel.
+        <hardirq is raised>
+        ...
+        blk_mq_end_request()
+	  blk_update_request()
+	    ext4_end_bio()
+	      folio_end_writeback()
+		__wb_writeout_add()
+		  __fprop_add_percpu_max()
+		    if (unlikely(max_frac < FPROP_FRAC_BASE)) {
+		      fprop_fraction_percpu()
+			seq = read_seqcount_begin(&p->sequence);
+			  - sees odd sequence so loops indefinitely
 
-Link: https://lkml.kernel.org/r/20260121191036.461389-1-longman@redhat.com
-Fixes: 3acb913c9d5b ("mm/mm_init: use deferred_init_memmap_chunk() in deferred_grow_zone()")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Note that a deadlock like this is only possible if the bdi has configured
+maximum fraction of writeout throughput which is very rare in general but
+frequent for example for FUSE bdis.  To fix this problem we have to make
+sure write section of the sequence counter is irqsafe.
+
+Link: https://lkml.kernel.org/r/20260121112729.24463-2-jack@suse.cz
+Fixes: a91befde3503 ("lib/flex_proportions.c: remove local_irq_ops in fprop_new_period()")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Bernd Schubert <bernd@bsbernd.com>
+Link: https://lore.kernel.org/all/9b845a47-9aee-43dd-99bc-1a82bea00442@bsbernd.com/
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Joanne Koong <joannelkoong@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ lib/flex_proportions.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set
-+++ a/mm/mm_init.c
-@@ -2085,7 +2085,12 @@ deferred_init_memmap_chunk(unsigned long
+--- a/lib/flex_proportions.c~flex_proportions-make-fprop_new_period-hardirq-safe
++++ a/lib/flex_proportions.c
+@@ -64,13 +64,14 @@ void fprop_global_destroy(struct fprop_g
+ bool fprop_new_period(struct fprop_global *p, int periods)
+ {
+ 	s64 events = percpu_counter_sum(&p->events);
++	unsigned long flags;
  
- 			spfn = chunk_end;
+ 	/*
+ 	 * Don't do anything if there are no events.
+ 	 */
+ 	if (events <= 1)
+ 		return false;
+-	preempt_disable_nested();
++	local_irq_save(flags);
+ 	write_seqcount_begin(&p->sequence);
+ 	if (periods < 64)
+ 		events -= events >> periods;
+@@ -78,7 +79,7 @@ bool fprop_new_period(struct fprop_globa
+ 	percpu_counter_add(&p->events, -events);
+ 	p->period += periods;
+ 	write_seqcount_end(&p->sequence);
+-	preempt_enable_nested();
++	local_irq_restore(flags);
  
--			if (irqs_disabled())
-+			/*
-+			 * pgdat_resize_lock() only disables irqs in non-RT
-+			 * kernels but calls rcu_read_lock() in a PREEMPT_RT
-+			 * kernel.
-+			 */
-+			if (irqs_disabled() || rcu_preempt_depth())
- 				touch_nmi_watchdog();
- 			else
- 				cond_resched();
+ 	return true;
+ }
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-mm_init-dont-call-cond_resched-in-deferred_init_memmap_chunk-if-rcu_preempt_depth-set.patch
+flex_proportions-make-fprop_new_period-hardirq-safe.patch
 
