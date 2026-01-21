@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C3A0288535
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6209035CBBF
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:27:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768966043; cv=none; b=Ap6EW7DChw+VFwSLvhihgy7O+CK0lK7Ow+b1sB58VzfosX/95pV3nAqdLALlKsufbKXuFK01veqgZJGcZDcVA748G1/c2Z8FOXLPOD+wNhQNbercWhFkvpb+bY0dQMpPXd1KrLJtx52TRRFFC7z8JABDq5ewDzsc7CvJV+Xu2ZA=
+	t=1768966045; cv=none; b=t4aiBQP9U30IKlreQeRvhsWwSpITG0wTxdiPmMbsek3PysltjAmwQulJ/+o2eNvKpHJtWuAM+YNeVvU5oXuN98duoFNi29BUqJSPaislKQwZ9TVaFzRBML0Fx+wPU9MnslgcGIzbD/rIO9E5Xb5IzBx/zR3E8c96cEHJlIllYYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768966043; c=relaxed/simple;
-	bh=/eoHKTR9vbBI06Z8gN+hNbDqXa1j+zK7CNhsVG8RRg8=;
-	h=Date:To:From:Subject:Message-Id; b=Iea1URH0zmh0ytLGG2S+IQ7xFtKZtOAKud2EtOfkoVjrL5SW8gsUgCWKtZgI0+BwWB+9xxhHZLfxD0X2nbyLb8fxKS2DbQugit4NGiTvP9ktFKg5rZ3qme76ckLpR4posW221f8vhl7me4XKmqpg+G3My8Qhz17iiLBuhIHGQNA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V4N3/epL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768966045; c=relaxed/simple;
+	bh=HJTGV9zoBNqr5YxBOWfqZ08EKU8QEOTqIv4UplUqwW8=;
+	h=Date:To:From:Subject:Message-Id; b=nX7tRcQokHTm14QCV6GULUYpKv3euf7xAxs7rIj6HaBnKGbZUJemlCIr7xSI2I3khuwDzydg65+MX8gUDDJHpDHbg/3aGOb/SxsCKUXL3sblCOOotpEd28IiAN9y80kYb8ydRfsT0kGp4Qw6venK7TKU5DEssb0isZYcGA/ksd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dtgyaZOy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V4N3/epL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7324CC16AAE;
-	Wed, 21 Jan 2026 03:27:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dtgyaZOy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A0D7C16AAE;
+	Wed, 21 Jan 2026 03:27:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768966043;
-	bh=/eoHKTR9vbBI06Z8gN+hNbDqXa1j+zK7CNhsVG8RRg8=;
+	s=korg; t=1768966045;
+	bh=HJTGV9zoBNqr5YxBOWfqZ08EKU8QEOTqIv4UplUqwW8=;
 	h=Date:To:From:Subject:From;
-	b=V4N3/epLrskQ4HJDItPMJkZkgedkFD2rnR4AgWtBNSwKTVl0axIgb/q4zJDDRMlGC
-	 IjA0TL0LtVquGnVcAeSGXA3SWWFnydqW0aZ2Ole09rgqE/WKBgkF/4mtRbWnqfMY7O
-	 2qwhn0G/ZEoSEobaO6Xw4dhJ4G8ikRQ4RGnBeIUo=
-Date: Tue, 20 Jan 2026 19:27:22 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,rppt@kernel.org,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizhe.67@bytedance.com,Liam.Howlett@oracle.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
+	b=dtgyaZOyTyvmIaWPUjjNb9WVMsQCdI/ls6u/OWAnL41flOphMLMBwZtBYWsa7p+Kp
+	 6TXqIjW6nDGSSL5ujK3ivO0ZYMncpl8fn0Vsi8RNtZVNq5+whbMSWOC75m8B5VCnlf
+	 Zd3VkWGs62AgAQIglzh74ssUg62m8KAmmh87CaY8=
+Date: Tue, 20 Jan 2026 19:27:24 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tglx@linutronix.de,surenb@google.com,rppt@kernel.org,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,mhocko@suse.com,luto@kernel.org,lorenzo.stoakes@oracle.com,lizhe.67@bytedance.com,Liam.Howlett@oracle.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@redhat.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] highmem-introduce-clear_user_highpages.patch removed from -mm tree
-Message-Id: <20260121032723.7324CC16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] x86-mm-simplify-clear_page_.patch removed from -mm tree
+Message-Id: <20260121032725.2A0D7C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: highmem: introduce clear_user_highpages()
+     Subject: x86/mm: simplify clear_page_*
 has been removed from the -mm tree.  Its filename was
-     highmem-introduce-clear_user_highpages.patch
+     x86-mm-simplify-clear_page_.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: highmem: introduce clear_user_highpages()
-Date: Tue, 6 Jan 2026 23:20:04 -0800
+Subject: x86/mm: simplify clear_page_*
+Date: Tue, 6 Jan 2026 23:20:05 -0800
 
-Define clear_user_highpages() which uses the range clearing primitive,
-clear_user_pages().  We can safely use this when CONFIG_HIGHMEM is
-disabled and if the architecture does not have clear_user_highpage.
+clear_page_rep() and clear_page_erms() are wrappers around "REP; STOS"
+variations.  Inlining gets rid of an unnecessary CALL/RET (which isn't
+free when using RETHUNK speculative execution mitigations.) Fixup and
+rename clear_page_orig() to adapt to the changed calling convention.
 
-The first is needed to ensure that contiguous page ranges stay contiguous
-which precludes intermediate maps via HIGMEM.  The second, because if the
-architecture has clear_user_highpage(), it likely needs flushing magic
-when clearing the page, magic that we aren't privy to.
+Also add a comment from Dave Hansen detailing various clearing mechanisms
+used in clear_page().
 
-For both of those cases, just fallback to a loop around
-clear_user_highpage().
-
-Link: https://lkml.kernel.org/r/20260107072009.1615991-4-ankur.a.arora@oracle.com
+Link: https://lkml.kernel.org/r/20260107072009.1615991-5-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Tested-by: Raghavendra K T <raghavendra.kt@amd.com>
+Reviewed-by: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
@@ -77,77 +75,171 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Raghavendra K T <raghavendra.kt@amd.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |   45 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 44 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/page_32.h |    6 ++
+ arch/x86/include/asm/page_64.h |   67 ++++++++++++++++++++++++-------
+ arch/x86/lib/clear_page_64.S   |   39 +++---------------
+ 3 files changed, 66 insertions(+), 46 deletions(-)
 
---- a/include/linux/highmem.h~highmem-introduce-clear_user_highpages
-+++ a/include/linux/highmem.h
-@@ -251,7 +251,14 @@ static inline void clear_user_pages(void
- #endif
- }
+--- a/arch/x86/include/asm/page_32.h~x86-mm-simplify-clear_page_
++++ a/arch/x86/include/asm/page_32.h
+@@ -17,6 +17,12 @@ extern unsigned long __phys_addr(unsigne
  
--/* when CONFIG_HIGHMEM is not set these will be plain clear/copy_page */
+ #include <linux/string.h>
+ 
 +/**
-+ * clear_user_highpage() - clear a page to be mapped to user space
-+ * @page: start page
-+ * @vaddr: start address of the user mapping
++ * clear_page() - clear a page using a kernel virtual address.
++ * @page: address of kernel page
 + *
-+ * With !CONFIG_HIGHMEM this (and the copy_user_highpage() below) will
-+ * be plain clear_user_page() (and copy_user_page()).
++ * Does absolutely no exception handling.
 + */
- static inline void clear_user_highpage(struct page *page, unsigned long vaddr)
+ static inline void clear_page(void *page)
  {
- 	void *addr = kmap_local_page(page);
-@@ -260,6 +267,42 @@ static inline void clear_user_highpage(s
- }
- #endif /* clear_user_highpage */
+ 	memset(page, 0, PAGE_SIZE);
+--- a/arch/x86/include/asm/page_64.h~x86-mm-simplify-clear_page_
++++ a/arch/x86/include/asm/page_64.h
+@@ -48,26 +48,63 @@ static inline unsigned long __phys_addr_
  
+ #define __phys_reloc_hide(x)	(x)
+ 
+-void clear_page_orig(void *page);
+-void clear_page_rep(void *page);
+-void clear_page_erms(void *page);
+-KCFI_REFERENCE(clear_page_orig);
+-KCFI_REFERENCE(clear_page_rep);
+-KCFI_REFERENCE(clear_page_erms);
++void __clear_pages_unrolled(void *page);
++KCFI_REFERENCE(__clear_pages_unrolled);
+ 
+-static inline void clear_page(void *page)
 +/**
-+ * clear_user_highpages() - clear a page range to be mapped to user space
-+ * @page: start page
-+ * @vaddr: start address of the user mapping
-+ * @npages: number of pages
++ * clear_page() - clear a page using a kernel virtual address.
++ * @addr: address of kernel page
 + *
-+ * Assumes that all the pages in the region (@page, +@npages) are valid
-+ * so this does no exception handling.
++ * Switch between three implementations of page clearing based on CPU
++ * capabilities:
++ *
++ *  - __clear_pages_unrolled(): the oldest, slowest and universally
++ *    supported method. Zeroes via 8-byte MOV instructions unrolled 8x
++ *    to write a 64-byte cacheline in each loop iteration.
++ *
++ *  - "REP; STOSQ": really old CPUs had crummy REP implementations.
++ *    Vendor CPU setup code sets 'REP_GOOD' on CPUs where REP can be
++ *    trusted. The instruction writes 8-byte per REP iteration but
++ *    CPUs can internally batch these together and do larger writes.
++ *
++ *  - "REP; STOSB": used on CPUs with "enhanced REP MOVSB/STOSB",
++ *    which enumerate 'ERMS' and provide an implementation which
++ *    unlike "REP; STOSQ" above wasn't overly picky about alignment.
++ *    The instruction writes 1-byte per REP iteration with CPUs
++ *    internally batching these together into larger writes and is
++ *    generally fastest of the three.
++ *
++ * Note that when running as a guest, features exposed by the CPU
++ * might be mediated by the hypervisor. So, the STOSQ variant might
++ * be in active use on some systems even when the hardware enumerates
++ * ERMS.
++ *
++ * Does absolutely no exception handling.
 + */
-+static inline void clear_user_highpages(struct page *page, unsigned long vaddr,
-+					unsigned int npages)
-+{
++static inline void clear_page(void *addr)
+ {
++	u64 len = PAGE_SIZE;
+ 	/*
+ 	 * Clean up KMSAN metadata for the page being cleared. The assembly call
+-	 * below clobbers @page, so we perform unpoisoning before it.
++	 * below clobbers @addr, so perform unpoisoning before it.
+ 	 */
+-	kmsan_unpoison_memory(page, PAGE_SIZE);
+-	alternative_call_2(clear_page_orig,
+-			   clear_page_rep, X86_FEATURE_REP_GOOD,
+-			   clear_page_erms, X86_FEATURE_ERMS,
+-			   "=D" (page),
+-			   "D" (page),
+-			   "cc", "memory", "rax", "rcx");
++	kmsan_unpoison_memory(addr, len);
 +
-+#if defined(clear_user_highpage) || defined(CONFIG_HIGHMEM)
 +	/*
-+	 * An architecture defined clear_user_highpage() implies special
-+	 * handling is needed.
++	 * The inline asm embeds a CALL instruction and usually that is a no-no
++	 * due to the compiler not knowing that and thus being unable to track
++	 * callee-clobbered registers.
 +	 *
-+	 * So we use that or, the generic variant if CONFIG_HIGHMEM is
-+	 * enabled.
++	 * In this case that is fine because the registers clobbered by
++	 * __clear_pages_unrolled() are part of the inline asm register
++	 * specification.
 +	 */
-+	do {
-+		clear_user_highpage(page, vaddr);
-+		vaddr += PAGE_SIZE;
-+		page++;
-+	} while (--npages);
-+#else
-+
-+	/*
-+	 * Prefer clear_user_pages() to allow for architectural optimizations
-+	 * when operating on contiguous page ranges.
-+	 */
-+	clear_user_pages(page_address(page), vaddr, page, npages);
-+#endif
-+}
-+
- #ifndef vma_alloc_zeroed_movable_folio
- /**
-  * vma_alloc_zeroed_movable_folio - Allocate a zeroed page for a VMA.
++	asm volatile(ALTERNATIVE_2("call __clear_pages_unrolled",
++				   "shrq $3, %%rcx; rep stosq", X86_FEATURE_REP_GOOD,
++				   "rep stosb", X86_FEATURE_ERMS)
++			: "+c" (len), "+D" (addr), ASM_CALL_CONSTRAINT
++			: "a" (0)
++			: "cc", "memory");
+ }
+ 
+ void copy_page(void *to, void *from);
+--- a/arch/x86/lib/clear_page_64.S~x86-mm-simplify-clear_page_
++++ a/arch/x86/lib/clear_page_64.S
+@@ -6,30 +6,15 @@
+ #include <asm/asm.h>
+ 
+ /*
+- * Most CPUs support enhanced REP MOVSB/STOSB instructions. It is
+- * recommended to use this when possible and we do use them by default.
+- * If enhanced REP MOVSB/STOSB is not available, try to use fast string.
+- * Otherwise, use original.
++ * Zero page aligned region.
++ * %rdi	- dest
++ * %rcx	- length
+  */
+-
+-/*
+- * Zero a page.
+- * %rdi	- page
+- */
+-SYM_TYPED_FUNC_START(clear_page_rep)
+-	movl $4096/8,%ecx
+-	xorl %eax,%eax
+-	rep stosq
+-	RET
+-SYM_FUNC_END(clear_page_rep)
+-EXPORT_SYMBOL_GPL(clear_page_rep)
+-
+-SYM_TYPED_FUNC_START(clear_page_orig)
+-	xorl   %eax,%eax
+-	movl   $4096/64,%ecx
++SYM_TYPED_FUNC_START(__clear_pages_unrolled)
++	shrq   $6, %rcx
+ 	.p2align 4
+ .Lloop:
+-	decl	%ecx
++	decq	%rcx
+ #define PUT(x) movq %rax,x*8(%rdi)
+ 	movq %rax,(%rdi)
+ 	PUT(1)
+@@ -43,16 +28,8 @@ SYM_TYPED_FUNC_START(clear_page_orig)
+ 	jnz	.Lloop
+ 	nop
+ 	RET
+-SYM_FUNC_END(clear_page_orig)
+-EXPORT_SYMBOL_GPL(clear_page_orig)
+-
+-SYM_TYPED_FUNC_START(clear_page_erms)
+-	movl $4096,%ecx
+-	xorl %eax,%eax
+-	rep stosb
+-	RET
+-SYM_FUNC_END(clear_page_erms)
+-EXPORT_SYMBOL_GPL(clear_page_erms)
++SYM_FUNC_END(__clear_pages_unrolled)
++EXPORT_SYMBOL_GPL(__clear_pages_unrolled)
+ 
+ /*
+  * Default clear user-space.
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
