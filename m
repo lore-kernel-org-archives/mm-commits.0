@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 265C0352F83
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:50:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5684233EAF8
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:50:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967410; cv=none; b=Dj7UeqeRm0h2vJ/bum0YcrouHsQOZKVHj6DcgaRiYjDwR2RkQUnKWT7UpegVfjPFFs+OJfGYk2dEjm4uXYnlwh3QUcSzquvxxzs7jwZa9zLcBbDiYE//GG+tX4gV0CXqSl8BaeDj1Tv1+8wIIGdmth1Ktn/TbEmwV6m4GcchLR0=
+	t=1768967413; cv=none; b=q1qgCCN//Zfr9Bu0qkiJayOAETuwxf4eJ/5r+ubuInvsXUajByz5cVUpzJQpzSVHMoPcTiyt+3Y5gyE82sQUEbDGsT+ncdUOlmmvepae1BYg+d2kgr3oRb0JHBo0mZodp1DDfWqgjKOkd7L2K2FF4Y3TwVae+qhTAViy7bvwobc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967410; c=relaxed/simple;
-	bh=4StChh1hJFdAr6R4uIQ2ZvkTE92oOOlw1uLbiIVashY=;
-	h=Date:To:From:Subject:Message-Id; b=u73mayREuJBxHHZMbuc1WLm3rsW3b8fMw5XaifgrYRMQtSvCNgx4KjtK7H42icljn4sUkCi4Keakfs0P79w8WYvoGTlK0OGCDi4WHoJSx5SQAfTtFIgoK33BQJ4y45/E80ge9Hxvg7WEVemSePN8Cat2QaT+PwIS/6UVho7BRew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mXnJIN2/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967413; c=relaxed/simple;
+	bh=zGAQ820pW7n5VRgDmsbtdAcGPAGnFMsJVTApzbozrU4=;
+	h=Date:To:From:Subject:Message-Id; b=sYZRW/kgvpBuYLnR1x0LADwtHdkhGw7548feNJgT5dGrmeUiKGTUeQN969+JoKz2IxHeRwdCuB8dpb/imo1LqktnSjgKEoLzbRH3G6/P51TdfJj8vVKaRP+9tP4YGyb5/A2GTSm83HnsaKr3VgKZlEdJPv75x3eI9VPSAW5CniU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vYUHeLqn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mXnJIN2/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5ECEC116D0;
-	Wed, 21 Jan 2026 03:50:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vYUHeLqn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A00FC116D0;
+	Wed, 21 Jan 2026 03:50:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967409;
-	bh=4StChh1hJFdAr6R4uIQ2ZvkTE92oOOlw1uLbiIVashY=;
+	s=korg; t=1768967413;
+	bh=zGAQ820pW7n5VRgDmsbtdAcGPAGnFMsJVTApzbozrU4=;
 	h=Date:To:From:Subject:From;
-	b=mXnJIN2/l/YNWW6eK0jYN1jzUxgoF5EG7zsh8kOFJ6In/lrQjTHNir+EdmhJ9aVjd
-	 z1JB9lU/7S2sbXztLTJafwsmTOtU7IUt/rniYRYHZtdoLTwdrUuG0w03Whm4G5OuPt
-	 1CVxQsJJ7Tvh1D748gKD639w5Q53wtsr5ec5cy18=
-Date: Tue, 20 Jan 2026 19:50:09 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,tglx@kernel.org,rppt@kernel.org,mingo@kernel.org,link@vivo.com,kernel@pengutronix.de,guoweikang.kernel@gmail.com,francesco@valla.it,dianders@chromium.org,chenhuacai@kernel.org,alexander.shishkin@linux.intel.com,a.fatoum@pengutronix.de,lillian@star-ark.net,akpm@linux-foundation.org
+	b=vYUHeLqnmpSL2AALSvqeDm0PrL9vhk4A4MPiSLDyEK4atDTV/uBb1xunWcM1ZNZXq
+	 tCDa0ebXTPIk8ZLg4O6H4wrUDHh+d5hPS3ZZrtP9QAqu/K96f/M+A14gpoEkZahGmF
+	 b7Glv5pJaBZxxtLJP03iLRVX7l7GOdQbCASs/mNw=
+Date: Tue, 20 Jan 2026 19:50:12 -0800
+To: mm-commits@vger.kernel.org,tglx@kernel.org,mingo@kernel.org,sun.jian.kdev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning.patch removed from -mm tree
-Message-Id: <20260121035009.B5ECEC116D0@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] init-main-read-bootconfig-header-with-get_unaligned_le32.patch removed from -mm tree
+Message-Id: <20260121035013.2A00FC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: init/main.c: check if rdinit was explicitly set before printing warning
+     Subject: init/main: read bootconfig header with get_unaligned_le32()
 has been removed from the -mm tree.  Its filename was
-     init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning.patch
+     init-main-read-bootconfig-header-with-get_unaligned_le32.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lillian Berry <lillian@star-ark.net>
-Subject: init/main.c: check if rdinit was explicitly set before printing warning
-Date: Sun, 11 Jan 2026 07:56:35 -0500
+From: Sun Jian <sun.jian.kdev@gmail.com>
+Subject: init/main: read bootconfig header with get_unaligned_le32()
+Date: Tue, 13 Jan 2026 18:15:32 +0800
 
-The rdinit parameter is set by default, and attempted during boot even if
-not specified in the command line.  Only print the warning about rdinit
-being inaccessible if the rdinit value was found in command line; it's
-just noise otherwise.
+get_boot_config_from_initrd() scans up to 3 bytes before initrd_end to
+handle GRUB 4-byte alignment.  As a result, the bootconfig header
+immediately preceding the magic may be unaligned.
 
-[akpm@linux-foundation.org: move ramdisk_execute_command_set into __initdata]
-Link: https://lkml.kernel.org/r/20260111125635.53682-1-lillian@star-ark.net
-Signed-off-by: Lillian Berry <lillian@star-ark.net>
-Cc: Ahmad Fatoum <a.fatoum@pengutronix.de>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Francesco Valla <francesco@valla.it>
-Cc: Guo Weikang <guoweikang.kernel@gmail.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Huan Yang <link@vivo.com>
+Read the size and checksum fields with get_unaligned_le32() instead of
+casting to u32 * and using le32_to_cpu(), avoiding potential unaligned
+access and silencing sparse "cast to restricted __le32" warnings.
+
+Sparse warnings (gcc + C=1):
+  init/main.c:292:16: warning: cast to restricted __le32
+  init/main.c:293:16: warning: cast to restricted __le32
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20260113101532.1630770-1-sun.jian.kdev@gmail.com
+Signed-off-by: Sun Jian <sun.jian.kdev@gmail.com>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Cc: Sascha Hauer <kernel@pengutronix.de>
 Cc: Thomas Gleixner <tglx@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ init/main.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/init/main.c~init-mainc-check-if-rdinit-was-explicitly-set-before-printing-warning
+--- a/init/main.c~init-main-read-bootconfig-header-with-get_unaligned_le32
 +++ a/init/main.c
-@@ -162,6 +162,7 @@ static size_t initargs_offs;
+@@ -104,6 +104,7 @@
+ #include <linux/pidfs.h>
+ #include <linux/ptdump.h>
+ #include <linux/time_namespace.h>
++#include <linux/unaligned.h>
+ #include <net/net_namespace.h>
  
- static char *execute_command;
- static char *ramdisk_execute_command = "/init";
-+static bool __initdata ramdisk_execute_command_set;
+ #include <asm/io.h>
+@@ -270,7 +271,7 @@ static void * __init get_boot_config_fro
+ {
+ 	u32 size, csum;
+ 	char *data;
+-	u32 *hdr;
++	u8 *hdr;
+ 	int i;
  
- /*
-  * Used to generate warnings if static_key manipulation functions are used
-@@ -623,6 +624,7 @@ static int __init rdinit_setup(char *str
- 	unsigned int i;
+ 	if (!initrd_end)
+@@ -289,9 +290,9 @@ static void * __init get_boot_config_fro
+ 	return NULL;
  
- 	ramdisk_execute_command = str;
-+	ramdisk_execute_command_set = true;
- 	/* See "auto" comment in init_setup */
- 	for (i = 1; i < MAX_INIT_ARGS; i++)
- 		argv_init[i] = NULL;
-@@ -1699,8 +1701,9 @@ static noinline void __init kernel_init_
- 	int ramdisk_command_access;
- 	ramdisk_command_access = init_eaccess(ramdisk_execute_command);
- 	if (ramdisk_command_access != 0) {
--		pr_warn("check access for rdinit=%s failed: %i, ignoring\n",
--			ramdisk_execute_command, ramdisk_command_access);
-+		if (ramdisk_execute_command_set)
-+			pr_warn("check access for rdinit=%s failed: %i, ignoring\n",
-+				ramdisk_execute_command, ramdisk_command_access);
- 		ramdisk_execute_command = NULL;
- 		prepare_namespace();
- 	}
+ found:
+-	hdr = (u32 *)(data - 8);
+-	size = le32_to_cpu(hdr[0]);
+-	csum = le32_to_cpu(hdr[1]);
++	hdr = (u8 *)(data - 8);
++	size = get_unaligned_le32(hdr);
++	csum = get_unaligned_le32(hdr + 4);
+ 
+ 	data = ((void *)hdr) - size;
+ 	if ((unsigned long)data < initrd_start) {
 _
 
-Patches currently in -mm which might be from lillian@star-ark.net are
+Patches currently in -mm which might be from sun.jian.kdev@gmail.com are
 
 
