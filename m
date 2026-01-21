@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14F8C2D94A9
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:26:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71F1030F92E
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:26:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768965991; cv=none; b=pBGV9FuUXEvjVhPtbao1vRRQMwGI1X+oLLHkjK1GZ6kzzHavLOsyTkhHY/JxTEA3R+A/lsUozxUr16meUO6AQ3/CdX1+DdzCRyzHSs7cMKyT0dLz6eW1AB0ALjC3a+GDC1m8R11ni2PjwL3Gu95UIXRZ+f1xUoo/a9fPDs2neTQ=
+	t=1768965992; cv=none; b=SvjAT4ov4Ed3fkxdgofYlDuiiWhIGKZwk1abuUHT3ULfHe7dt94rVQEQ0kbeyNGceGNu8be4i4NueHsQo1tl8RGl639mJJ78smWKcp3eMqud5WwSaem5pD3oCDmGhRhu4zPUU7DspTrZQsFZyCKrh54pEd6Xrf1bDs2TsE6Xc+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768965991; c=relaxed/simple;
-	bh=WOAigAAudE9/qWJTrvE59B/0EF8V/25apiVn1rPWDdk=;
-	h=Date:To:From:Subject:Message-Id; b=e8ws/3O5E7OKgBx4FRP1HRySdHDzgK3nnQUIhID1iLxmAv6WSpOnL045KZUTP17nh3Gj6Aa+JJBz8+Nlr5KL9THD3d4UKvVH5AJFUvfxHHh4jvj1T/noJ4f+lE+mOkoG+JGHJGflFL1rDk/0YqEF+2055kSwIbjUJuEDS3zsxxI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IONCjnPQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768965992; c=relaxed/simple;
+	bh=DSPPePSg3F4YdNx2AZ0vsXWd8O4KNtggWjKyOpRGa4A=;
+	h=Date:To:From:Subject:Message-Id; b=ViZzelY1/sfvsOc6mYIFEJDwL7ZQdrvI2L2a8lk9rOQ2Jb71ZkgE3Ve2XAeGfvZa8rHliC1L+qQkHhAzbtbEZY+oufM2qvcHI6Q1Eyaq2V725zcr9NfBwPyY5cuvrvL59X8VKHmdef4hB1R98PU+Mjf9L8O/5/FH2PcEcVqon8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UCYZ1sVs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IONCjnPQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84049C16AAE;
-	Wed, 21 Jan 2026 03:26:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UCYZ1sVs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2883C19423;
+	Wed, 21 Jan 2026 03:26:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768965990;
-	bh=WOAigAAudE9/qWJTrvE59B/0EF8V/25apiVn1rPWDdk=;
+	s=korg; t=1768965991;
+	bh=DSPPePSg3F4YdNx2AZ0vsXWd8O4KNtggWjKyOpRGa4A=;
 	h=Date:To:From:Subject:From;
-	b=IONCjnPQmrVACKCs8ctoLLIzI86awyBrkUCzTASmh+72YONEl9hAeR2i3NYRU+mgC
-	 NK6D85iJwcDTyp6PCvq14wyt/wve2C6Vez96OWqzhCA5KzzKSHdNUyAbnun4QXrn6N
-	 xWiTy/B7OiEW6rzi6ekhAFThO/7fSucxAaaFtyi4=
-Date: Tue, 20 Jan 2026 19:26:29 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=UCYZ1sVsge08552s4I8PNpeU1w2gyvtQ+rFyPVji3LSVIqLYMrQVdv3diF1nZN2DT
+	 h9VOlkqIPg7i2n2oiMBBYhsSr06cY07+xO2BJQ5/IgRFFsnVL1HtRYmPsfnODBdr4p
+	 0EkoGure6NmwfYIFM7k/rJxoHOrN1hhDpbRdZbTg=
+Date: Tue, 20 Jan 2026 19:26:31 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,kent.overstreet@linux.dev,joel.granados@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects.patch removed from -mm tree
-Message-Id: <20260121032630.84049C16AAE@smtp.kernel.org>
+Subject: [merged mm-stable] alloc_tag-move-memory_allocation_profiling_sysctls-into-rodata.patch removed from -mm tree
+Message-Id: <20260121032631.D2883C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: fix memory leak of repeat mode damon_call_control objects
+     Subject: alloc_tag: move memory_allocation_profiling_sysctls into .rodata
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects.patch
+     alloc_tag-move-memory_allocation_profiling_sysctls-into-rodata.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: mm/damon/core: fix memory leak of repeat mode damon_call_control objects
-Date: Tue, 2 Dec 2025 16:23:40 +0800
+From: Joel Granados <joel.granados@kernel.org>
+Subject: alloc_tag: move memory_allocation_profiling_sysctls into .rodata
+Date: Mon, 15 Dec 2025 16:47:37 +0100
 
-A memory leak exists in the handling of repeat mode damon_call_control
-objects by kdamond_call().  While damon_call() correctly allows multiple
-repeat mode objects (with ->repeat set to true) to be added to the
-per-context list, kdamond_call() incorrectly processes them.
+Remove the change in file mode permissions done before initializing the
+sysctl.  It is not necessary as the writing of the kernel variable will be
+blocked by the proc_mem_profiling_handler when writing is disallowed (also
+controlled by mem_profiling_support).
 
-The function moves all repeat mode objects from the context's list to a
-temporary list (repeat_controls).  However, it only moves the first object
-back to the context's list for future calls, leaving the remaining objects
-on the temporary list where they are abandoned and leaked.
-
-This patch fixes the leak by ensuring all repeat mode objects are properly
-re-added to the context's list.
-
-Note that the leak is not in the real world, and therefore no user is
-impacted.  It is only potential for imaginaray damon_call() use cases that
-do not exist in the tree for now.  In more detail, the leak happens only
-when the multiple repeat mode objects are assumed to be deallocated by
-kdamond_call() (damon_call_control->dealloc_on_cancel is set).  There is
-no such damon_call() use cases at the moment.
-
-Link: https://lkml.kernel.org/r/20251202082340.34178-1-lienze@kylinos.cn
-Fixes: 43df7676e550 ("mm/damon/core: introduce repeat mode damon_call()")
-Signed-off-by: Enze Li <lienze@kylinos.cn>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20251215-jag-alloc_tag_const-v1-1-35ea56a1ce13@kernel.org
+Signed-off-by: Joel Granados <joel.granados@kernel.org>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ lib/alloc_tag.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-fix-memory-leak-of-repeat-mode-damon_call_control-objects
-+++ a/mm/damon/core.c
-@@ -2606,13 +2606,19 @@ static void kdamond_call(struct damon_ct
- 			list_add(&control->list, &repeat_controls);
- 		}
- 	}
--	control = list_first_entry_or_null(&repeat_controls,
--			struct damon_call_control, list);
--	if (!control || cancel)
--		return;
--	mutex_lock(&ctx->call_controls_lock);
--	list_add_tail(&control->list, &ctx->call_controls);
--	mutex_unlock(&ctx->call_controls_lock);
-+	while (true) {
-+		control = list_first_entry_or_null(&repeat_controls,
-+				struct damon_call_control, list);
-+		if (!control)
-+			break;
-+		/* Unlink from the repeate_controls list. */
-+		list_del(&control->list);
-+		if (cancel)
-+			continue;
-+		mutex_lock(&ctx->call_controls_lock);
-+		list_add(&control->list, &ctx->call_controls);
-+		mutex_unlock(&ctx->call_controls_lock);
-+	}
+--- a/lib/alloc_tag.c~alloc_tag-move-memory_allocation_profiling_sysctls-into-rodata
++++ a/lib/alloc_tag.c
+@@ -783,7 +783,7 @@ static int proc_mem_profiling_handler(co
  }
  
- /* Returns negative error code if it's not activated but should return */
+ 
+-static struct ctl_table memory_allocation_profiling_sysctls[] = {
++static const struct ctl_table memory_allocation_profiling_sysctls[] = {
+ 	{
+ 		.procname	= "mem_profiling",
+ 		.data		= &mem_alloc_profiling_key,
+@@ -798,9 +798,6 @@ static struct ctl_table memory_allocatio
+ 
+ static void __init sysctl_init(void)
+ {
+-	if (!mem_profiling_support)
+-		memory_allocation_profiling_sysctls[0].mode = 0444;
+-
+ 	register_sysctl_init("vm", memory_allocation_profiling_sysctls);
+ }
+ #else /* CONFIG_SYSCTL */
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from joel.granados@kernel.org are
 
 
