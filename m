@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7664C221723
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6223115B0
+	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 03:49:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768967391; cv=none; b=Cr3DPW2lgUP3EiwcG1iC6qfbpsgdAMGD/qz5OPN+BjXYTkwngEdFhoMTAObOWTBtSZ+pa2k2L9QRPf0vopZgpEY1IG83sr3oc7Lfg8FjBJ7RNf7rdRvfYYn9nlMGw9f4sDPHKH5t8zt19FVQTrwMksjqFoo53MXiNGeAFzEM/BU=
+	t=1768967397; cv=none; b=CJkRE6r3qFup1zcvrQJikpvQelywqxJKeL8Va//+FYXA4cznM2+Lfte0RDrB7L6AolcNyxo71j5mbV22AnOC12rts7A0d7uXhHOlSx8g0AWfcuOVz/e3yipGiCaVwfqirXkQ93tKSAz23eFHFLv0plfY8sfAe4/UzSXCjSpjATs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768967391; c=relaxed/simple;
-	bh=j8Cmua2hKWrIRPuvUQkLPL/6/3JywD8L2vFWskXgHR8=;
-	h=Date:To:From:Subject:Message-Id; b=Top39fZrUDVwIS481j7BpW01xMY1U+PqbJqNOvvMcLzWYEfPoRh4gzu48PE4WM42KCrG5h9uybmsi88FiqCzFcKYLKi5kCaANPE49s4f4NMUd2pRQvVAyvYSF20+sxxl3QdT85NA/7V+2OvDpu8LHu53TGwqTiChvbknDxEPtrs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WfbS90JR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1768967397; c=relaxed/simple;
+	bh=kzMdl0I9mAzoqnZmsFypzN+JYlWLk3behsbw1x4xvJ8=;
+	h=Date:To:From:Subject:Message-Id; b=KMm8NlcsAmbFfJB1ECqJdPXF2J+XjbwXQ/kCFr+6nO9XJ06NeJmKslvX017oqjxdECYtZR0Sa+bPquogGy/AFJ6qV3SQ0YaDMSSyXM5A0Le4qdOJvE/qq5UY2LPXJXFvtD7KGNPcwQuQaM6Oat2vZ7q/WJ0zvsPlhYcGiQwmmOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V7G/4ysJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WfbS90JR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5254C16AAE;
-	Wed, 21 Jan 2026 03:49:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V7G/4ysJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4CB4C16AAE;
+	Wed, 21 Jan 2026 03:49:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1768967391;
-	bh=j8Cmua2hKWrIRPuvUQkLPL/6/3JywD8L2vFWskXgHR8=;
+	s=korg; t=1768967396;
+	bh=kzMdl0I9mAzoqnZmsFypzN+JYlWLk3behsbw1x4xvJ8=;
 	h=Date:To:From:Subject:From;
-	b=WfbS90JRXv/78p2tdgZem/It1KjCn8sFG8lNq5OplqPh6tYuk/uu7KKxnEUvHlg9A
-	 XYlxDMIUb1gOYe3dL5GyhWUFiT9lP1xQdbcV7MjvVkc5mdq6Ry8POMjB6djSdCsTBu
-	 OtG6Ge1gkAYKylR47AEAlJF3X2C7MXcPfpbeqLuM=
-Date: Tue, 20 Jan 2026 19:49:50 -0800
-To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jasonmiu@google.com,graf@amazon.com,corbet@lwn.net,rppt@kernel.org,akpm@linux-foundation.org
+	b=V7G/4ysJioGZAgGPHIT1hZt5gljuwnyNjuCo8ShP5jOz6NtdtdeX2s5mFMHm3Aywv
+	 AcQslas/eoLpul9tc0C3NKHN8owXzEkasVB3Ffu3YQlyyn5O6T2aWz5kSuQAfsEF9m
+	 lO7vr4uhkXB4TygTG8fyCxXR3NnCJgIko9NeQieo=
+Date: Tue, 20 Jan 2026 19:49:56 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,kartikey406@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kho-abi-add-memblock-abi-header.patch removed from -mm tree
-Message-Id: <20260121034950.E5254C16AAE@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch removed from -mm tree
+Message-Id: <20260121034956.A4CB4C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,286 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho/abi: add memblock ABI header
+     Subject: ocfs2: add check for free bits before allocation in ocfs2_move_extent()
 has been removed from the -mm tree.  Its filename was
-     kho-abi-add-memblock-abi-header.patch
+     ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: kho/abi: add memblock ABI header
-Date: Mon, 5 Jan 2026 18:58:39 +0200
+From: Deepanshu Kartikey <kartikey406@gmail.com>
+Subject: ocfs2: add check for free bits before allocation in ocfs2_move_extent()
+Date: Sun, 4 Jan 2026 19:05:04 +0530
 
-Introduce KHO ABI header describing preservation ABI for memblock's
-reserve_mem regions and link the relevant documentation to KHO docs.
+Add a check to verify the group descriptor has enough free bits before
+attempting allocation in ocfs2_move_extent().  This prevents a kernel
+BUG_ON crash in ocfs2_block_group_set_bits() when the move_extents ioctl
+is called on a crafted or corrupted filesystem.
 
-[lukas.bulwahn@redhat.com: MAINTAINERS: adjust file entry in MEMBLOCK AND MEMORY MANAGEMENT INITIALIZATION]
-  Link: https://lkml.kernel.org/r/20260107090438.22901-1-lukas.bulwahn@redhat.com
-[rppt@kernel.org: update reserved_mem node description, per Pratyush]
-  Link: https://lkml.kernel.org/r/aW_M-HYZzx5SkbnZ@kernel.org
-Link: https://lkml.kernel.org/r/20260105165839.285270-7-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Jason Miu <jasonmiu@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+The existing validation in ocfs2_validate_gd_self() only checks static
+metadata consistency (bg_free_bits_count <= bg_bits) when the descriptor
+is first read from disk.  However, during move_extents operations,
+multiple allocations can exhaust the free bits count below the requested
+allocation size, triggering BUG_ON(le16_to_cpu(bg->bg_free_bits_count) <
+num_bits).
+
+The debug trace shows the issue clearly:
+  - Block group 32 validated with bg_free_bits_count=427
+  - Repeated allocations decreased count: 427 -> 171 -> 43 -> ... -> 1
+  - Final request for 2 bits with only 1 available triggers BUG_ON
+
+By adding an early check in ocfs2_move_extent() right after
+ocfs2_find_victim_alloc_group(), we return -ENOSPC gracefully instead of
+crashing the kernel.  This also avoids unnecessary work in
+ocfs2_probe_alloc_group() and __ocfs2_move_extent() when the allocation
+will fail.
+
+Link: https://lkml.kernel.org/r/20260104133504.14810-1-kartikey406@gmail.com
+Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
+Reported-by: syzbot+7960178e777909060224@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=7960178e777909060224
+Link: https://lore.kernel.org/all/20251231115801.293726-1-kartikey406@gmail.com/T/ [v1]
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/kho/abi.rst                            |    6 
- Documentation/core-api/kho/bindings/memblock/memblock.yaml    |   39 -----
- Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml |   40 -----
- MAINTAINERS                                                   |    2 
- include/linux/kho/abi/memblock.h                              |   73 ++++++++++
- mm/memblock.c                                                 |    4 
- 6 files changed, 81 insertions(+), 83 deletions(-)
+ fs/ocfs2/move_extents.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/Documentation/core-api/kho/abi.rst~kho-abi-add-memblock-abi-header
-+++ a/Documentation/core-api/kho/abi.rst
-@@ -16,6 +16,12 @@ vmalloc preservation ABI
- .. kernel-doc:: include/linux/kho/abi/kexec_handover.h
-    :doc: Kexec Handover ABI for vmalloc Preservation
+--- a/fs/ocfs2/move_extents.c~ocfs2-add-check-for-free-bits-before-allocation-in-ocfs2_move_extent
++++ a/fs/ocfs2/move_extents.c
+@@ -662,6 +662,12 @@ static int ocfs2_move_extent(struct ocfs
+ 		goto out_commit;
+ 	}
  
-+memblock preservation ABI
-+=========================
++	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
++	if (le16_to_cpu(gd->bg_free_bits_count) < len) {
++		ret = -ENOSPC;
++		goto out_commit;
++	}
 +
-+.. kernel-doc:: include/linux/kho/abi/memblock.h
-+   :doc: memblock kexec handover ABI
-+
- See Also
- ========
+ 	/*
+ 	 * probe the victim cluster group to find a proper
+ 	 * region to fit wanted movement, it even will perform
+@@ -682,7 +688,6 @@ static int ocfs2_move_extent(struct ocfs
+ 		goto out_commit;
+ 	}
  
-diff --git a/Documentation/core-api/kho/bindings/memblock/memblock.yaml a/Documentation/core-api/kho/bindings/memblock/memblock.yaml
-deleted file mode 100644
---- a/Documentation/core-api/kho/bindings/memblock/memblock.yaml
-+++ /dev/null
-@@ -1,39 +0,0 @@
--# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
--%YAML 1.2
-----
--title: Memblock reserved memory
--
--maintainers:
--  - Mike Rapoport <rppt@kernel.org>
--
--description: |
--  Memblock can serialize its current memory reservations created with
--  reserve_mem command line option across kexec through KHO.
--  The post-KHO kernel can then consume these reservations and they are
--  guaranteed to have the same physical address.
--
--properties:
--  compatible:
--    enum:
--      - reserve-mem-v1
--
--patternProperties:
--  "$[0-9a-f_]+^":
--    $ref: reserve-mem.yaml#
--    description: reserved memory regions
--
--required:
--  - compatible
--
--additionalProperties: false
--
--examples:
--  - |
--    memblock {
--      compatible = "memblock-v1";
--      n1 {
--        compatible = "reserve-mem-v1";
--        start = <0xc06b 0x4000000>;
--        size = <0x04 0x00>;
--      };
--    };
-diff --git a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml
-deleted file mode 100644
---- a/Documentation/core-api/kho/bindings/memblock/reserve-mem.yaml
-+++ /dev/null
-@@ -1,40 +0,0 @@
--# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
--%YAML 1.2
-----
--title: Memblock reserved memory regions
--
--maintainers:
--  - Mike Rapoport <rppt@kernel.org>
--
--description: |
--  Memblock can serialize its current memory reservations created with
--  reserve_mem command line option across kexec through KHO.
--  This object describes each such region.
--
--properties:
--  compatible:
--    enum:
--      - reserve-mem-v1
--
--  start:
--    description: |
--      physical address (u64) of the reserved memory region.
--
--  size:
--    description: |
--      size (u64) of the reserved memory region.
--
--required:
--  - compatible
--  - start
--  - size
--
--additionalProperties: false
--
--examples:
--  - |
--    n1 {
--      compatible = "reserve-mem-v1";
--      start = <0xc06b 0x4000000>;
--      size = <0x04 0x00>;
--    };
-diff --git a/include/linux/kho/abi/memblock.h a/include/linux/kho/abi/memblock.h
-new file mode 100644
---- /dev/null
-+++ a/include/linux/kho/abi/memblock.h
-@@ -0,0 +1,73 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef _LINUX_KHO_ABI_MEMBLOCK_H
-+#define _LINUX_KHO_ABI_MEMBLOCK_H
-+
-+/**
-+ * DOC: memblock kexec handover ABI
-+ *
-+ * Memblock can serialize its current memory reservations created with
-+ * reserve_mem command line option across kexec through KHO.
-+ * The post-KHO kernel can then consume these reservations and they are
-+ * guaranteed to have the same physical address.
-+ *
-+ * The state is serialized using Flattened Device Tree (FDT) format. Any
-+ * modification to the FDT structure, node properties, or the compatible
-+ * strings constitutes a breaking change. Such changes require incrementing the
-+ * version number in the relevant `_COMPATIBLE` string to prevent a new kernel
-+ * from misinterpreting data from an old kernel.
-+ *
-+ * Changes are allowed provided the compatibility version is incremented.
-+ * However, backward/forward compatibility is only guaranteed for kernels
-+ * supporting the same ABI version.
-+ *
-+ * FDT Structure Overview:
-+ *   The entire memblock state is encapsulated within a single KHO entry named
-+ *   "memblock".
-+ *   This entry contains an FDT with the following layout:
-+ *
-+ *   .. code-block:: none
-+ *
-+ *	/ {
-+ *		compatible = "memblock-v1";
-+ *
-+ *		n1 {
-+ *			compatible = "reserve-mem-v1";
-+ *			start = <0xc06b 0x4000000>;
-+ *			size = <0x04 0x00>;
-+ *		};
-+ *	};
-+ *
-+ * Main memblock node (/):
-+ *
-+ *   - compatible: "memblock-v1"
-+
-+ *     Identifies the overall memblock ABI version.
-+ *
-+ * reserved_mem node:
-+ *   These nodes describe all reserve_mem regions. The node name is the name
-+ *   defined by the user for a reserve_mem region.
-+ *
-+ *   - compatible: "reserve-mem-v1"
-+ *
-+ *     Identifies the ABI version of reserve_mem descriptions
-+ *
-+ *   - start: u64
-+ *
-+ *     Physical address of the reserved memory region.
-+ *
-+ *   - size: u64
-+ *
-+ *     size in bytes of the reserved memory region.
-+ */
-+
-+/* Top level memblock FDT node name. */
-+#define MEMBLOCK_KHO_FDT "memblock"
-+
-+/* The compatible string for the memblock FDT root node. */
-+#define MEMBLOCK_KHO_NODE_COMPATIBLE "memblock-v1"
-+
-+/* The compatible string for the reserve_mem FDT nodes. */
-+#define RESERVE_MEM_KHO_NODE_COMPATIBLE "reserve-mem-v1"
-+
-+#endif /* _LINUX_KHO_ABI_MEMBLOCK_H */
---- a/MAINTAINERS~kho-abi-add-memblock-abi-header
-+++ a/MAINTAINERS
-@@ -16397,7 +16397,7 @@ S:	Maintained
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rppt/memblock.git for-next
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rppt/memblock.git fixes
- F:	Documentation/core-api/boot-time-mm.rst
--F:	Documentation/core-api/kho/bindings/memblock/*
-+F:	include/linux/kho/abi/memblock.h
- F:	include/linux/memblock.h
- F:	mm/bootmem_info.c
- F:	mm/memblock.c
---- a/mm/memblock.c~kho-abi-add-memblock-abi-header
-+++ a/mm/memblock.c
-@@ -21,6 +21,7 @@
- #ifdef CONFIG_KEXEC_HANDOVER
- #include <linux/libfdt.h>
- #include <linux/kexec_handover.h>
-+#include <linux/kho/abi/memblock.h>
- #endif /* CONFIG_KEXEC_HANDOVER */
- 
- #include <asm/sections.h>
-@@ -2442,9 +2443,6 @@ int reserve_mem_release_by_name(const ch
- }
- 
- #ifdef CONFIG_KEXEC_HANDOVER
--#define MEMBLOCK_KHO_FDT "memblock"
--#define MEMBLOCK_KHO_NODE_COMPATIBLE "memblock-v1"
--#define RESERVE_MEM_KHO_NODE_COMPATIBLE "reserve-mem-v1"
- 
- static int __init reserved_mem_preserve(void)
- {
+-	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
+ 	ret = ocfs2_alloc_dinode_update_counts(gb_inode, handle, gb_bh, len,
+ 					       le16_to_cpu(gd->bg_chain));
+ 	if (ret) {
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from kartikey406@gmail.com are
 
-alpha-introduce-arch_zone_limits_init.patch
-arc-introduce-arch_zone_limits_init.patch
-arm-introduce-arch_zone_limits_init.patch
-arm64-introduce-arch_zone_limits_init.patch
-csky-introduce-arch_zone_limits_init.patch
-hexagon-introduce-arch_zone_limits_init.patch
-loongarch-introduce-arch_zone_limits_init.patch
-m68k-introduce-arch_zone_limits_init.patch
-microblaze-introduce-arch_zone_limits_init.patch
-mips-introduce-arch_zone_limits_init.patch
-nios2-introduce-arch_zone_limits_init.patch
-openrisc-introduce-arch_zone_limits_init.patch
-parisc-introduce-arch_zone_limits_init.patch
-powerpc-introduce-arch_zone_limits_init.patch
-riscv-introduce-arch_zone_limits_init.patch
-s390-introduce-arch_zone_limits_init.patch
-sh-introduce-arch_zone_limits_init.patch
-sparc-introduce-arch_zone_limits_init.patch
-um-introduce-arch_zone_limits_init.patch
-x86-introduce-arch_zone_limits_init.patch
-xtensa-introduce-arch_zone_limits_init.patch
-arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch
-arch-mm-consolidate-initialization-of-sparse-memory-model.patch
-mips-drop-paging_init.patch
-x86-dont-reserve-hugetlb-memory-in-setup_arch.patch
-mm-arch-consolidate-hugetlb-cma-reservation.patch
-mm-hugetlb-drop-hugetlb_cma_check.patch
-revert-mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
+mm-swap_cgroup-fix-kernel-bug-in-swap_cgroup_record.patch
+mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node.patch
 
