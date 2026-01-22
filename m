@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A200B387568
-	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 22:04:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D7537647B
+	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 22:11:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769119459; cv=none; b=pY0g/M2i6AWzw/sjUOAdoHwfFbG+xLsxWdXtU7DX34ZSjlFLlTrLtKZ7jmiJzqnpLzsvSqBqvMDyNjz0agAEQXJ9xNgUxOrKVDbOuo7f1nP4haZmOxt9TBtRpNoA6wXA5J0K6bsMuW+9JLKEN+4D5vobVesWAKBY+D3B/4Q3TkI=
+	t=1769119914; cv=none; b=sxhyOQpFQ9t5+SxPeSuPtBBzVTN6wbVWpXanlWbOJvomCqza/NJMhFk2dYfmJWvfg/mXvcpjNtw8fpDD+k/dSX2JJPJif66Bn5Fv0w5Sy/73UhUkvTxZms/GUZ8FPUA5lHyXSCG3ibnCuGWFirWDpyBCEZk4tPYmXLB1F/zr5rE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769119459; c=relaxed/simple;
-	bh=6sLbV8nCds3F5QbCbjsam2drL1qV4zpyz3j8rE4bmmE=;
-	h=Date:To:From:Subject:Message-Id; b=rh0to/Al62Q89qB6lFg5fEQTnIuRSg0cKtRrHCLZg/BxIuv8jZHQAh2p7IXhJhoTYMXKShZGgBdroFML3nae4akLy3b1Hr/sUDgMm8TamhoYt+ysEhXfNEDovgkGO/s5TVYQOmxCaVDfts8WVRPvsuG5kfp5Yrm7+Y0eEVqjSiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U3EjDRlU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769119914; c=relaxed/simple;
+	bh=GlXwM1uYludSVBD7w7WiWYBoCN9zqj2V+du4QL2aUsg=;
+	h=Date:To:From:Subject:Message-Id; b=c6wWjibpyE0wFyvJPuX8F69XlLMrJoIHiLhaUy9it1NCurRQl08I3KW3qr16CPHZ52zxaYqX+wRrX7u/z+FwhSKyNmiDoSHMVbe9/rTWT4VNOiCkZiOyUuQ3ZwrjbFscVlSnOIlAmKAN9Lli+BDnyJUQMGTeTSAlTFznQBPstu4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K6AJ/PkY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U3EjDRlU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4F50C116C6;
-	Thu, 22 Jan 2026 22:04:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K6AJ/PkY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7626C116C6;
+	Thu, 22 Jan 2026 22:11:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769119459;
-	bh=6sLbV8nCds3F5QbCbjsam2drL1qV4zpyz3j8rE4bmmE=;
+	s=korg; t=1769119911;
+	bh=GlXwM1uYludSVBD7w7WiWYBoCN9zqj2V+du4QL2aUsg=;
 	h=Date:To:From:Subject:From;
-	b=U3EjDRlUIdVYcqMEkgeiD9nXfclD6QeUIkWeUj+NageUxKSV+UUa/ERA0ZrN3jleV
-	 qX7vS5xSgvzMLOZncDjhtALbWaij93s6DBSvG9VDQAi8PFLtICHZ30hJHi5b9dTIqe
-	 QNzGFdprinZMcl8MNc2o5olnHfJCfbD7kYhw17wA=
-Date: Thu, 22 Jan 2026 14:04:18 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernrl.org,rppt@kernel.org,rostedt@goodmis.org,richard.weiyang@gmail.com,paulmck@kernel.org,david@kernel.org,bigeasy@linutronix.de,longman@redhat.com,akpm@linux-foundation.org
+	b=K6AJ/PkYLFDnTF+3c8wONHLbXgJLCgfuRo1AKvVeSScU5wwxs1T42CAaeYCRSaAIj
+	 bYp+vQxSbj6kikdXmX5w0ay/9hWlG8CtLips5PWFuceH/ockb5bRZD+5JI94FHAcCX
+	 eLhH5A1Jr7l5x/yTUV/MfLIuRnimp0Z8mi1pUKns=
+Date: Thu, 22 Jan 2026 14:11:51 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,maninder1.s@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-dont-cond_resched-in-deferred_init_memmap_chunk-if-called-from-deferred_grow_zone.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260122220418.D4F50C116C6@smtp.kernel.org>
+Subject: + kasan-remove-unnecessary-sync-argument-from-start_report.patch added to mm-new branch
+Message-Id: <20260122221151.D7626C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: don't cond_resched() in deferred_init_memmap_chunk() if called from deferred_grow_zone()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mm_init-dont-cond_resched-in-deferred_init_memmap_chunk-if-called-from-deferred_grow_zone.patch
+     Subject: kasan: remove unnecessary sync argument from start_report()
+has been added to the -mm mm-new branch.  Its filename is
+     kasan-remove-unnecessary-sync-argument-from-start_report.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-dont-cond_resched-in-deferred_init_memmap_chunk-if-called-from-deferred_grow_zone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-remove-unnecessary-sync-argument-from-start_report.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,121 +66,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/mm_init: don't cond_resched() in deferred_init_memmap_chunk() if called from deferred_grow_zone()
-Date: Thu, 22 Jan 2026 13:43:43 -0500
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: kasan: remove unnecessary sync argument from start_report()
+Date: Thu, 22 Jan 2026 09:45:56 +0530
 
-Commit 3acb913c9d5b ("mm/mm_init: use deferred_init_memmap_chunk() in
-deferred_grow_zone()") made deferred_grow_zone() call
-deferred_init_memmap_chunk() within a pgdat_resize_lock() critical section
-with irqs disabled.  It did check for irqs_disabled() in
-deferred_init_memmap_chunk() to avoid calling cond_resched().  For a
-PREEMPT_RT kernel build, however, spin_lock_irqsave() does not disable
-interrupt but rcu_read_lock() is called.  This leads to the following bug
-report.
+commit 7ce0ea19d50e ("kasan: switch kunit tests to console tracepoints")
+removed use of sync variable, thus removing that extra argument also.
 
-  BUG: sleeping function called from invalid context at mm/mm_init.c:2091
-  in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 1, name: swapper/0
-  preempt_count: 0, expected: 0
-  RCU nest depth: 1, expected: 0
-  3 locks held by swapper/0/1:
-   #0: ffff80008471b7a0 (sched_domains_mutex){+.+.}-{4:4}, at: sched_domains_mutex_lock+0x28/0x40
-   #1: ffff003bdfffef48 (&pgdat->node_size_lock){+.+.}-{3:3}, at: deferred_grow_zone+0x140/0x278
-   #2: ffff800084acf600 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1b4/0x408
-  CPU: 0 UID: 0 PID: 1 Comm: swapper/0 Tainted: G        W           6.19.0-rc6-test #1 PREEMPT_{RT,(full)
-}
-  Tainted: [W]=WARN
-  Call trace:
-   show_stack+0x20/0x38 (C)
-   dump_stack_lvl+0xdc/0xf8
-   dump_stack+0x1c/0x28
-   __might_resched+0x384/0x530
-   deferred_init_memmap_chunk+0x560/0x688
-   deferred_grow_zone+0x190/0x278
-   _deferred_grow_zone+0x18/0x30
-   get_page_from_freelist+0x780/0xf78
-   __alloc_frozen_pages_noprof+0x1dc/0x348
-   alloc_slab_page+0x30/0x110
-   allocate_slab+0x98/0x2a0
-   new_slab+0x4c/0x80
-   ___slab_alloc+0x5a4/0x770
-   __slab_alloc.constprop.0+0x88/0x1e0
-   __kmalloc_node_noprof+0x2c0/0x598
-   __sdt_alloc+0x3b8/0x728
-   build_sched_domains+0xe0/0x1260
-   sched_init_domains+0x14c/0x1c8
-   sched_init_smp+0x9c/0x1d0
-   kernel_init_freeable+0x218/0x358
-   kernel_init+0x28/0x208
-   ret_from_fork+0x10/0x20
-
-Fix it adding a new argument to deferred_init_memmap_chunk() to explicitly
-tell it if cond_resched() is allowed or not instead of relying on some
-current state information which may vary depending on the exact kernel
-configuration options that are enabled.
-
-Link: https://lkml.kernel.org/r/20260122184343.546627-1-longman@redhat.com
-Fixes: 3acb913c9d5b ("mm/mm_init: use deferred_init_memmap_chunk() in deferred_grow_zone()")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Suggested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: <stable@vger.kernrl.org>
+Link: https://lkml.kernel.org/r/20260122041556.341868-1-maninder1.s@samsung.com
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Acked-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/kasan/report.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-dont-cond_resched-in-deferred_init_memmap_chunk-if-called-from-deferred_grow_zone
-+++ a/mm/mm_init.c
-@@ -2059,7 +2059,7 @@ static unsigned long __init deferred_ini
-  */
- static unsigned long __init
- deferred_init_memmap_chunk(unsigned long start_pfn, unsigned long end_pfn,
--			   struct zone *zone)
-+			   struct zone *zone, bool can_resched)
+--- a/mm/kasan/report.c~kasan-remove-unnecessary-sync-argument-from-start_report
++++ a/mm/kasan/report.c
+@@ -203,7 +203,7 @@ static inline void fail_non_kasan_kunit_
+ 
+ static DEFINE_RAW_SPINLOCK(report_lock);
+ 
+-static void start_report(unsigned long *flags, bool sync)
++static void start_report(unsigned long *flags)
  {
- 	int nid = zone_to_nid(zone);
- 	unsigned long nr_pages = 0;
-@@ -2085,10 +2085,10 @@ deferred_init_memmap_chunk(unsigned long
+ 	fail_non_kasan_kunit_test();
+ 	/* Respect the /proc/sys/kernel/traceoff_on_warning interface. */
+@@ -543,7 +543,7 @@ void kasan_report_invalid_free(void *ptr
+ 	if (unlikely(!report_enabled()))
+ 		return;
  
- 			spfn = chunk_end;
+-	start_report(&flags, true);
++	start_report(&flags);
  
--			if (irqs_disabled())
--				touch_nmi_watchdog();
--			else
-+			if (can_resched)
- 				cond_resched();
-+			else
-+				touch_nmi_watchdog();
- 		}
+ 	__memset(&info, 0, sizeof(info));
+ 	info.type = type;
+@@ -581,7 +581,7 @@ bool kasan_report(const void *addr, size
+ 		goto out;
  	}
  
-@@ -2101,7 +2101,7 @@ deferred_init_memmap_job(unsigned long s
- {
- 	struct zone *zone = arg;
+-	start_report(&irq_flags, true);
++	start_report(&irq_flags);
  
--	deferred_init_memmap_chunk(start_pfn, end_pfn, zone);
-+	deferred_init_memmap_chunk(start_pfn, end_pfn, zone, true);
- }
+ 	__memset(&info, 0, sizeof(info));
+ 	info.type = KASAN_REPORT_ACCESS;
+@@ -615,7 +615,7 @@ void kasan_report_async(void)
+ 	if (unlikely(!report_enabled()))
+ 		return;
  
- static unsigned int __init
-@@ -2216,7 +2216,7 @@ bool __init deferred_grow_zone(struct zo
- 	for (spfn = first_deferred_pfn, epfn = SECTION_ALIGN_UP(spfn + 1);
- 	     nr_pages < nr_pages_needed && spfn < zone_end_pfn(zone);
- 	     spfn = epfn, epfn += PAGES_PER_SECTION) {
--		nr_pages += deferred_init_memmap_chunk(spfn, epfn, zone);
-+		nr_pages += deferred_init_memmap_chunk(spfn, epfn, zone, false);
- 	}
- 
- 	/*
+-	start_report(&flags, false);
++	start_report(&flags);
+ 	pr_err("BUG: KASAN: invalid-access\n");
+ 	pr_err("Asynchronous fault: no details available\n");
+ 	pr_err("\n");
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from maninder1.s@samsung.com are
 
-mm-mm_init-dont-cond_resched-in-deferred_init_memmap_chunk-if-called-from-deferred_grow_zone.patch
+kasan-remove-unnecessary-sync-argument-from-start_report.patch
 
