@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA0062C21EA
-	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 21:41:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF112D94A3
+	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 21:45:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769118092; cv=none; b=qyroVZoJRtdlUlhVYcrlC/j23wLt4GbrwzbsRqJzTsURF2iYh3prI6+dkpnxVLj4EEAD7ffjLY5IHWlhJhIVp4iKDJ6uwnDsxSvf5rDKMLt8gQ+jxmwa4l56Cw25ZTSsKjG745SIK4Cxp+Wwj5clWwd6pMd7zlBpeHsJIRkT7FU=
+	t=1769118318; cv=none; b=Uk4MmSCV7KYMjHqVMvzvWvaeECbUod/00jDLn9WkGHqpa5ezfFbCK40kwkXfBIcIpMpE3OFlMfvRRScG5R5KW0paPghw2fzVQGrmRvDUWnPx5m1eQMmRESUDmU/4gdtGRHtNjUN6NfCatle+2yvTIC/Zv3NFd2SWY/aUoGgyWxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769118092; c=relaxed/simple;
-	bh=y015yGT8leUzM+UjMaNvZ2O1wamfPrfyrJOcPrvYGU8=;
-	h=Date:To:From:Subject:Message-Id; b=oCxmg9sSQGLzV2NENaDBVfJdOldZJ95Puwh2RNCVpq5PhSDjXrtmrjwB02awCwi5nCptYP+/+sMrrdm36mQui3OZqj+5IGYhjt5xZmuCfXjVWrP0oN+5AYGhClWriZZj5mJo7wiL9eNz2GN0BoyuCFSkbrgjb0D0NtL3W3RR0h4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IIN3NE3F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769118318; c=relaxed/simple;
+	bh=FYhar0R+8SHVZKx61Fsd0TPJw3bpBzUixzLJXGmYWIM=;
+	h=Date:To:From:Subject:Message-Id; b=Vr9GHbwvKXlQSp5wokt1oqgXB5ptBCgSCudzMHetFioOrcSqORu5mSxIxoGIrRgNJHs4NZ7lp+DCKGlcAVzitz6i6He1MVJHoSldHUfXHNT19YMbfd9nJUmIApwWm4lzwwzhrVu3An0BGi++B/S39WPRIpFkhqd3p7wQ39WrTUg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h30N8zm0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IIN3NE3F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FD18C116C6;
-	Thu, 22 Jan 2026 21:41:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h30N8zm0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17EAEC116C6;
+	Thu, 22 Jan 2026 21:45:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769118090;
-	bh=y015yGT8leUzM+UjMaNvZ2O1wamfPrfyrJOcPrvYGU8=;
+	s=korg; t=1769118317;
+	bh=FYhar0R+8SHVZKx61Fsd0TPJw3bpBzUixzLJXGmYWIM=;
 	h=Date:To:From:Subject:From;
-	b=IIN3NE3FdL4FXR+BbBNzEwr219yazQkhAcXt5Cis1Uxs2cCWiPJ+3oJyO/IrIRBAB
-	 TloewWyHC2KpWQEztdgao/NIWe2r0uWKI1WC0Ve3lR+qmBYd+3tKuAMGCEhI1lD6fV
-	 L3SDo/6ZHEgy7+Yrf+t6f2bxTo3qRdK/DziqU4NE=
-Date: Thu, 22 Jan 2026 13:41:29 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,tzimmermann@suse.de,surenb@google.com,simona@ffwll.ch,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mripard@kernel.org,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,francois.dugast@intel.com,felix.kuehling@amd.com,david@kernel.org,dakr@kernel.org,christian.koenig@amd.com,chleroy@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,alexander.deucher@amd.com,airlied@gmail.com,matthew.brost@intel.com,akpm@linux-foundation.org
+	b=h30N8zm0VVN7ue6Q/50NmMEHUlLduWsqh7aIgQ2YI9Fd0i4DNyxGJTQ1kX8BiUgFX
+	 zD6Wace2reweNGGSt/o/inr8Wj1JoPsgQQqUqfynEJLC2tIn/U1HnIbu41UN0PcC9E
+	 xgDjtoF2/XphHPRuvH4/khzPz4ZcvrnX50GxGHDg=
+Date: Thu, 22 Jan 2026 13:45:16 -0800
+To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,shuah@kernel.org,richard.weiyang@gmail.com,kraxel@redhat.com,akpm@linux-foundation.org,zishun.yi.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zone_device-reinitialize-large-zone-device-private-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260122214130.2FD18C116C6@smtp.kernel.org>
+Subject: [obsolete] selftests-udmabuf-fix-hugepage-size-calculation.patch removed from -mm tree
+Message-Id: <20260122214517.17EAEC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,203 +34,86 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/zone_device: reinitialize large zone device private folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zone_device-reinitialize-large-zone-device-private-folios.patch
+The quilt patch titled
+     Subject: selftests: udmabuf: fix hugepage size calculation
+has been removed from the -mm tree.  Its filename was
+     selftests-udmabuf-fix-hugepage-size-calculation.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zone_device-reinitialize-large-zone-device-private-folios.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Matthew Brost <matthew.brost@intel.com>
-Subject: mm/zone_device: reinitialize large zone device private folios
-Date: Wed, 14 Jan 2026 20:19:52 +0100
+From: zishun yi <zishun.yi.dev@gmail.com>
+Subject: selftests: udmabuf: fix hugepage size calculation
+Date: Sun, 18 Jan 2026 21:51:26 +0800
 
-Reinitialize metadata for large zone device private folios in
-zone_device_page_init prior to creating a higher-order zone device private
-folio.  This step is necessary when the folio's order changes dynamically
-between zone_device_page_init calls to avoid building a corrupt folio.  As
-part of the metadata reinitialization, the dev_pagemap must be passed in
-from the caller because the pgmap stored in the folio page may have been
-overwritten with a compound head.
+udmabuf's test 6 and 7 is intended to verify the behavior of 2MB huge
+pages migration, but the helper function still calculates the size using
+standard (4KB) pages.
 
-Link: https://lkml.kernel.org/r/20260114192111.1267147-2-francois.dugast@intel.com
-Fixes: d245f9b4ab80 ("mm/zone_device: support large zone device private folios")
-Signed-off-by: Matthew Brost <matthew.brost@intel.com>
-Signed-off-by: Francois Dugast <francois.dugast@intel.com>
-Acked-by: Felix Kuehling <felix.kuehling@amd.com>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: "Christian König" <christian.koenig@amd.com>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20260118135126.102472-1-zishun.yi.dev@gmail.com
+Signed-off-by: zishun yi <zishun.yi.dev@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c       |    2 +-
- drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |    2 +-
- drivers/gpu/drm/drm_pagemap.c            |    2 +-
- drivers/gpu/drm/nouveau/nouveau_dmem.c   |    2 +-
- include/linux/memremap.h                 |    9 ++++++---
- lib/test_hmm.c                           |    4 +++-
- mm/memremap.c                            |   20 +++++++++++++++++++-
- 7 files changed, 32 insertions(+), 9 deletions(-)
+ tools/testing/selftests/drivers/dma-buf/udmabuf.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -723,7 +723,7 @@ static struct page *kvmppc_uvmem_get_pag
- 
- 	dpage = pfn_to_page(uvmem_pfn);
- 	dpage->zone_device_data = pvt;
--	zone_device_page_init(dpage, 0);
-+	zone_device_page_init(dpage, &kvmppc_uvmem_pgmap, 0);
- 	return dpage;
- out_clear:
- 	spin_lock(&kvmppc_uvmem_bitmap_lock);
---- a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
-@@ -217,7 +217,7 @@ svm_migrate_get_vram_page(struct svm_ran
- 	page = pfn_to_page(pfn);
- 	svm_range_bo_ref(prange->svm_bo);
- 	page->zone_device_data = prange->svm_bo;
--	zone_device_page_init(page, 0);
-+	zone_device_page_init(page, page_pgmap(page), 0);
- }
- 
- static void
---- a/drivers/gpu/drm/drm_pagemap.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/drm_pagemap.c
-@@ -197,7 +197,7 @@ static void drm_pagemap_get_devmem_page(
- 					struct drm_pagemap_zdd *zdd)
- {
- 	page->zone_device_data = drm_pagemap_zdd_get(zdd);
--	zone_device_page_init(page, 0);
-+	zone_device_page_init(page, zdd->dpagemap->pagemap, 0);
- }
- 
- /**
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -425,7 +425,7 @@ nouveau_dmem_page_alloc_locked(struct no
- 			order = ilog2(DMEM_CHUNK_NPAGES);
+--- a/tools/testing/selftests/drivers/dma-buf/udmabuf.c~selftests-udmabuf-fix-hugepage-size-calculation
++++ a/tools/testing/selftests/drivers/dma-buf/udmabuf.c
+@@ -69,7 +69,7 @@ static int create_udmabuf_list(int devfd
+ 	for (i = 0; i < NUM_ENTRIES; i++) {
+ 		list->list[i].memfd  = memfd;
+ 		list->list[i].offset = i * (memfd_size / NUM_ENTRIES);
+-		list->list[i].size   = getpagesize() * NUM_PAGES;
++		list->list[i].size   = page_size * NUM_PAGES;
  	}
  
--	zone_device_folio_init(folio, order);
-+	zone_device_folio_init(folio, page_pgmap(folio_page(folio, 0)), order);
- 	return page;
- }
- 
---- a/include/linux/memremap.h~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/include/linux/memremap.h
-@@ -224,7 +224,8 @@ static inline bool is_fsdax_page(const s
- }
- 
- #ifdef CONFIG_ZONE_DEVICE
--void zone_device_page_init(struct page *page, unsigned int order);
-+void zone_device_page_init(struct page *page, struct dev_pagemap *pgmap,
-+			   unsigned int order);
- void *memremap_pages(struct dev_pagemap *pgmap, int nid);
- void memunmap_pages(struct dev_pagemap *pgmap);
- void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
-@@ -234,9 +235,11 @@ bool pgmap_pfn_valid(struct dev_pagemap
- 
- unsigned long memremap_compat_align(void);
- 
--static inline void zone_device_folio_init(struct folio *folio, unsigned int order)
-+static inline void zone_device_folio_init(struct folio *folio,
-+					  struct dev_pagemap *pgmap,
-+					  unsigned int order)
- {
--	zone_device_page_init(&folio->page, order);
-+	zone_device_page_init(&folio->page, pgmap, order);
- 	if (order)
- 		folio_set_large_rmappable(folio);
- }
---- a/lib/test_hmm.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/lib/test_hmm.c
-@@ -662,7 +662,9 @@ static struct page *dmirror_devmem_alloc
- 			goto error;
+ 	list->count = NUM_ENTRIES;
+@@ -115,8 +115,8 @@ static int compare_chunks(void *addr1, v
+ 	while (i < NUM_ENTRIES) {
+ 		off = i * (memfd_size / NUM_ENTRIES);
+ 		for (j = 0; j < NUM_PAGES; j++, k++) {
+-			char1 = *((char *)addr1 + off + (j * getpagesize()));
+-			char2 = *((char *)addr2 + (k * getpagesize()));
++			char1 = *((char *)addr1 + off + (j * page_size));
++			char2 = *((char *)addr2 + (k * page_size));
+ 			if (char1 != char2) {
+ 				ret = -1;
+ 				goto err;
+@@ -126,7 +126,7 @@ static int compare_chunks(void *addr1, v
  	}
- 
--	zone_device_folio_init(page_folio(dpage), order);
-+	zone_device_folio_init(page_folio(dpage),
-+			       page_pgmap(folio_page(page_folio(dpage), 0)),
-+			       order);
- 	dpage->zone_device_data = rpage;
- 	return dpage;
- 
---- a/mm/memremap.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/mm/memremap.c
-@@ -477,10 +477,28 @@ void free_zone_device_folio(struct folio
- 	}
+ err:
+ 	munmap(addr1, memfd_size);
+-	munmap(addr2, NUM_ENTRIES * NUM_PAGES * getpagesize());
++	munmap(addr2, NUM_ENTRIES * NUM_PAGES * page_size);
+ 	return ret;
  }
  
--void zone_device_page_init(struct page *page, unsigned int order)
-+void zone_device_page_init(struct page *page, struct dev_pagemap *pgmap,
-+			   unsigned int order)
- {
-+	struct page *new_page = page;
-+	unsigned int i;
-+
- 	VM_WARN_ON_ONCE(order > MAX_ORDER_NR_PAGES);
- 
-+	for (i = 0; i < (1UL << order); ++i, ++new_page) {
-+		struct folio *new_folio = (struct folio *)new_page;
-+
-+		new_page->flags.f &= ~0xffUL;	/* Clear possible order, page head */
-+#ifdef NR_PAGES_IN_LARGE_FOLIO
-+		((struct folio *)(new_page - 1))->_nr_pages = 0;
-+#endif
-+		new_folio->mapping = NULL;
-+		new_folio->pgmap = pgmap;	/* Also clear compound head */
-+		new_folio->share = 0;   /* fsdax only, unused for device private */
-+		VM_WARN_ON_FOLIO(folio_ref_count(new_folio), new_folio);
-+		VM_WARN_ON_FOLIO(!folio_is_zone_device(new_folio), new_folio);
-+	}
-+
- 	/*
- 	 * Drivers shouldn't be allocating pages after calling
- 	 * memunmap_pages().
+@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
+ 	addr1 = mmap_fd(memfd, size);
+ 	write_to_memfd(addr1, size, 'a');
+ 	buf = create_udmabuf_list(devfd, memfd, size);
+-	addr2 = mmap_fd(buf, NUM_PAGES * NUM_ENTRIES * getpagesize());
++	addr2 = mmap_fd(buf, NUM_PAGES * NUM_ENTRIES * page_size);
+ 	write_to_memfd(addr1, size, 'b');
+ 	ret = compare_chunks(addr1, addr2, size);
+ 	if (ret < 0)
+@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
+ 	size = MEMFD_SIZE * page_size;
+ 	memfd = create_memfd_with_seals(size, true);
+ 	buf = create_udmabuf_list(devfd, memfd, size);
+-	addr2 = mmap_fd(buf, NUM_PAGES * NUM_ENTRIES * getpagesize());
++	addr2 = mmap_fd(buf, NUM_PAGES * NUM_ENTRIES * page_size);
+ 	addr1 = mmap_fd(memfd, size);
+ 	write_to_memfd(addr1, size, 'a');
+ 	write_to_memfd(addr1, size, 'b');
 _
 
-Patches currently in -mm which might be from matthew.brost@intel.com are
+Patches currently in -mm which might be from zishun.yi.dev@gmail.com are
 
-mm-zone_device-reinitialize-large-zone-device-private-folios.patch
 
