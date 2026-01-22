@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C37D3D523F
-	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 22:19:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E49F330F958
+	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 23:23:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769120373; cv=none; b=MHUXvWa46lBxJkDNkhchEE/TUiJV9v/o4tZ6wlz9ZX2iDzqUpXBK9LydEsGMhedwjx21Xym7ozPyqB3xGANWnXQaOgT3Q9T+eVcyvCDm5N2lTUwXg3tIcocj/+IoZgVxhtm40k94tsxcbvPcodsiZnXUPltG9DqwWof5UqNIF7E=
+	t=1769124229; cv=none; b=Adp/dXR1x2+mZ1lLu9EJZ8qlfthcJTcSnhQlAWVtsH9rUFhIT7q55TANKvVD+9+ngrV/EDKbydGjeiJ2s3XY3UFPNbTIqs3O8A7Acz04zyfsAm6YZWUDMv3hkOCneNrozrMpAMpH68PQDv38UH0KawI3/lTWaSM1h3CwhC/4Ces=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769120373; c=relaxed/simple;
-	bh=sOWNNzlX0QjDBc27ad0eN34UmAQc/GGJ3HhFwIfrWAs=;
-	h=Date:To:From:Subject:Message-Id; b=XMIFRQXzp67ZvYlEFSL1v2CYd5Ii4fBjmixKCnGbQw6PqIFWBHwPJ6cF+Cw4ubM8zcXvjE/XG5b07n2kbW37ZftE2UI0HUJTb+6rJ2zSa7lsaDsKjhKfKxsLOcMpeMbV/ENnNcHe6vltWJ6WmsfLDv5xUscBWBaJaSOorOS8/28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZAaDAq01; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769124229; c=relaxed/simple;
+	bh=nuYyFY9gvHxBCjDUAjgG7vuUFUqStZ/rw8C0LgGvy6w=;
+	h=Date:To:From:Subject:Message-Id; b=dGA67468kJ+044plqlK+JWPxTz7RasRT+7FTouHv8iMmHDXfO1LwbMmH9ZIhpfDLz9Mun8wLPcoMX0XxK56AvJfDUvpsbFIqwSF7x56cgvmb6eYicvw/mBb+BtH/j7Hgp6aR6uG9/MIuVyl+aQ+sLNbu95tOlLTy5dM/pBSYENE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TQODfc21; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZAaDAq01"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1231EC116C6;
-	Thu, 22 Jan 2026 22:19:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TQODfc21"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FAB3C116C6;
+	Thu, 22 Jan 2026 23:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769120371;
-	bh=sOWNNzlX0QjDBc27ad0eN34UmAQc/GGJ3HhFwIfrWAs=;
+	s=korg; t=1769124228;
+	bh=nuYyFY9gvHxBCjDUAjgG7vuUFUqStZ/rw8C0LgGvy6w=;
 	h=Date:To:From:Subject:From;
-	b=ZAaDAq018RSTfivMtYeB5PDutkVlOyIhYGBhoWtOz2X7v55Youedbe3+bmP8tezCZ
-	 yzWN+lbR7k7Zs/V0lBqtmtNVHfyfFf/iuS9KYqTK3pQ++Hpw9Juiww5OxBJKPPSPWm
-	 cJ5dh2Qr4wrg5BC38W5W1w649DrDBTW/SDPXjIDc=
-Date: Thu, 22 Jan 2026 14:19:30 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,lizhe.67@bytedance.com,akpm@linux-foundation.org
+	b=TQODfc21QNvpgxYgSeKLYy5pZ9E+1bYOtCTcj0u8U5Y9AAVQF+lZBlYlxlTVrqtOu
+	 3wZRzM8orM6hsZcqDw3QsZ/+s89YgLaCCo/kJDttVGrvRENA6VH+Z6QrfuQV5GsHcQ
+	 X+icx3qI0Ws7EI20miJ/ytCNL1Nh7LmfUym/RDAg=
+Date: Thu, 22 Jan 2026 15:23:47 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,epetron@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-increase-hugepage-reservations-when-using-node-specific-hugepages=-cmdline.patch added to mm-new branch
-Message-Id: <20260122221931.1231EC116C6@smtp.kernel.org>
+Subject: + kho-skip-memoryless-numa-nodes-when-reserving-scratch-areas.patch added to mm-nonmm-unstable branch
+Message-Id: <20260122232348.3FAB3C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: increase hugepage reservations when using node-specific "hugepages=" cmdline
-has been added to the -mm mm-new branch.  Its filename is
-     hugetlb-increase-hugepage-reservations-when-using-node-specific-hugepages=-cmdline.patch
+     Subject: kho: skip memoryless NUMA nodes when reserving scratch areas
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kho-skip-memoryless-numa-nodes-when-reserving-scratch-areas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-increase-hugepage-reservations-when-using-node-specific-hugepages=-cmdline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-skip-memoryless-numa-nodes-when-reserving-scratch-areas.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,57 +58,62 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: hugetlb: increase hugepage reservations when using node-specific "hugepages=" cmdline
-Date: Thu, 22 Jan 2026 11:50:02 +0800
+From: Evangelos Petrongonas <epetron@amazon.de>
+Subject: kho: skip memoryless NUMA nodes when reserving scratch areas
+Date: Tue, 20 Jan 2026 17:59:11 +0000
 
-Commit 3dfd02c90037 ("hugetlb: increase number of reserving hugepages via
-cmdline") raised the number of hugepages that can be reserved through the
-boot-time "hugepages=" parameter for the non-node-specific case, but left
-the node-specific form of the same parameter unchanged.
+kho_reserve_scratch() iterates over all online NUMA nodes to allocate
+per-node scratch memory.  On systems with memoryless NUMA nodes (nodes
+that have CPUs but no memory), memblock_alloc_range_nid() fails because
+there is no memory available on that node.  This causes KHO initialization
+to fail and kho_enable to be set to false.
 
-This patch extends the same optimization to node-specific reservations. 
-When HugeTLB vmemmap optimization (HVO) is enabled and a node cannot
-satisfy the requested hugepages, the code first releases ordinary
-struct-page memory of hugepages obtained from the buddy allocator,
-allowing their struct-page memory to be reclaimed and reused for
-additional hugepage reservations on that node.
+Some ARM64 systems have NUMA topologies where certain nodes contain only
+CPUs without any associated memory.  These configurations are valid and
+should not prevent KHO from functioning.
 
-This is particularly beneficial for configurations that require identical,
-large per-node hugepage reservations.  On a four-node, 384 GB x86 VM, the
-patch raises the attainable 2 MiB hugepage reservation from under 374 GB
-to more than 379 GB.
+Fix this by only counting nodes that have memory (N_MEMORY state) and skip
+memoryless nodes in the per-node scratch allocation loop.
 
-Link: https://lkml.kernel.org/r/20260122035002.79958-1-lizhe.67@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20260120175913.34368-1-epetron@amazon.de
+Signed-off-by: Evangelos Petrongonas <epetron@amazon.de>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Alexander Graf <graf@amazon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/liveupdate/kexec_handover.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-increase-hugepage-reservations-when-using-node-specific-hugepages=-cmdline
-+++ a/mm/hugetlb.c
-@@ -3435,6 +3435,13 @@ static void __init hugetlb_hstate_alloc_
+--- a/kernel/liveupdate/kexec_handover.c~kho-skip-memoryless-numa-nodes-when-reserving-scratch-areas
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -655,7 +655,7 @@ static void __init kho_reserve_scratch(v
+ 	scratch_size_update();
  
- 			folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
- 					&node_states[N_MEMORY], NULL);
-+			if (!folio && !list_empty(&folio_list) &&
-+			    hugetlb_vmemmap_optimizable_size(h)) {
-+				prep_and_add_allocated_folios(h, &folio_list);
-+				INIT_LIST_HEAD(&folio_list);
-+				folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
-+						&node_states[N_MEMORY], NULL);
-+			}
- 			if (!folio)
- 				break;
- 			list_add(&folio->lru, &folio_list);
+ 	/* FIXME: deal with node hot-plug/remove */
+-	kho_scratch_cnt = num_online_nodes() + 2;
++	kho_scratch_cnt = nodes_weight(node_states[N_MEMORY]) + 2;
+ 	size = kho_scratch_cnt * sizeof(*kho_scratch);
+ 	kho_scratch = memblock_alloc(size, PAGE_SIZE);
+ 	if (!kho_scratch) {
+@@ -691,7 +691,11 @@ static void __init kho_reserve_scratch(v
+ 	kho_scratch[i].size = size;
+ 	i++;
+ 
+-	for_each_online_node(nid) {
++	/*
++	 * Loop over nodes that have both memory and are online. Skip
++	 * memoryless nodes, as we can not allocate scratch areas there.
++	 */
++	for_each_node_state(nid, N_MEMORY) {
+ 		size = scratch_size_node(nid);
+ 		addr = memblock_alloc_range_nid(size, CMA_MIN_ALIGNMENT_BYTES,
+ 						0, MEMBLOCK_ALLOC_ACCESSIBLE,
 _
 
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
+Patches currently in -mm which might be from epetron@amazon.de are
 
-hugetlb-increase-hugepage-reservations-when-using-node-specific-hugepages=-cmdline.patch
+kho-skip-memoryless-numa-nodes-when-reserving-scratch-areas.patch
 
