@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60773326928
-	for <mm-commits@vger.kernel.org>; Wed, 21 Jan 2026 21:28:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54888322B7D
+	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 01:19:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769030894; cv=none; b=u7XYYDGSCeElCpv8zbvkmOOc10qwOQbWVo6u3wCJF03bAD5Vi9wlmHKxtDS3CzI0lTvMxlcprd3s4f+0K5LtkGMqbCt1BQBzJpFCRW/mxqNziDXaPugGHXMLRa2oi4yRNt5s7jSHbSF03qcSdmNYiu0RL3b+I7LvByEPdRKuAOA=
+	t=1769044787; cv=none; b=nep87le2IGBoF9hQq06pa5LgjOuM47S7QGVsfPTZg/YF8sbqGvaQ0iLeZ0cSkqI3mrEpoAwVb031BzjRbSkuhMtfucXioSOf0IpnIp3NrfSXQ8OM/WNB65OO1cHgWaLCZ/wn3cEXx0sJEcZCMNvOHZcVdQGTgnCgC2UAuuFWSRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769030894; c=relaxed/simple;
-	bh=6pNZJ6AhnKTRax9Zw2djQ8k0hIV1bukXm2GZWt0F0pc=;
-	h=Date:To:From:Subject:Message-Id; b=fRyw8usPT14VNd4J9cLSlVwQyl0q0dem+Y4qDvEeXdiqwAGMPZfIVnS6CXVyXmKHiAwtlk2JCYb0ARUprLrlEtzv6rWnqGxhBJLd46l8CxEpnKOM0ITHkduF/ltD+y/MRYnoknppd0dA2wXAbU6xDLhUWnHwkidRI/+n6bCQcBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AQNEEgrx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769044787; c=relaxed/simple;
+	bh=xn5FWlAVrtT/lEQeYSJcySGeeEE3lnMOcI+rqs/w1KI=;
+	h=Date:To:From:Subject:Message-Id; b=ARYzl9EGoOjpBuS8T3YGnG5RayjWh4VK4zRmL+NGeUUDY6sagn3P3FiQQqjCfow4GYwbRsUL5QNvPypWcQWDWklU8Rl9hxBOFd4iBVHEP2pGGURIs4TYsnoTDjhCqip9Hm+v06enBYC4qG/qkL4SmlMo9Tx3Toh4hIjOicDn+rE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rG4i8Jt9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AQNEEgrx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB69BC16AAE;
-	Wed, 21 Jan 2026 21:28:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rG4i8Jt9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3A87C4CEF1;
+	Thu, 22 Jan 2026 01:19:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769030891;
-	bh=6pNZJ6AhnKTRax9Zw2djQ8k0hIV1bukXm2GZWt0F0pc=;
+	s=korg; t=1769044786;
+	bh=xn5FWlAVrtT/lEQeYSJcySGeeEE3lnMOcI+rqs/w1KI=;
 	h=Date:To:From:Subject:From;
-	b=AQNEEgrxFTBYiZIayacBIeA7704+XhLa4bmCJ8GthhClPpxMsJhDRF/W9nF86qyP7
-	 494K7upm3nw0smqJsQp80oV60WyMHH3lHdHD1ET3m+wmf3464PhVPxAN/tko+bt+gC
-	 tByhjR87q1YVesMGYDCs9lrsuA+XiV4B01bGTzIo=
-Date: Wed, 21 Jan 2026 13:28:11 -0800
+	b=rG4i8Jt91vP0N0mNyLYPxO6lM5S2P4eLAUsf5N47+JvoSIiOkPm+5hy6lQwDI15c1
+	 efyDkIMjHoRDizBhXinCPL78b6KewgkkqRPdA6N9QHh39G2hye71PpArdBa9ZHH+fR
+	 Oc9GyPWDuAJakfWnT86yjg4iZXwxXXGjJgqA73+w=
+Date: Wed, 21 Jan 2026 17:19:46 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-support-batched-unmapping-for-file-large-folios-fix-2.patch added to mm-unstable branch
-Message-Id: <20260121212811.BB69BC16AAE@smtp.kernel.org>
+Subject: [alternative-merged] mm-rmap-support-batched-unmapping-for-file-large-folios-fix-2.patch removed from -mm tree
+Message-Id: <20260122011946.C3A87C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: mm: fix uffd-wp bit loss when batching file folio unmapping
-has been added to the -mm mm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-rmap-support-batched-unmapping-for-file-large-folios-fix-2.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-support-batched-unmapping-for-file-large-folios-fix-2.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an alternative patch was or shall be merged
 
 ------------------------------------------------------
 From: Dev Jain <dev.jain@arm.com>
@@ -175,5 +159,4 @@ _
 
 Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-rmap-support-batched-unmapping-for-file-large-folios-fix-2.patch
 
