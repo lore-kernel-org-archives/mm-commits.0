@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ED6637AA78
-	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 18:26:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BEEA32826F
+	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 18:26:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769106395; cv=none; b=Ztl5vGQU2M6IsgZ3K7iOwakIO6GnG4+jXgEPzOi5+IhBeeTg38r6PK20Up4x8u5T4lkaGbBoW8C455GhWV5KIWVhzkyxkmt/JRbGTsd0q+tdm0aDeqUG4HMAnGNh63mUr/mfgUVbgRU38lazBbSa5XlMkkc+CVU49i6hL9NkkCs=
+	t=1769106400; cv=none; b=R4JOodDQ+fY/iXWokWDGiiMcmnz48utS91CEhZsHBTnovOZMQvp341JBcL/UDpKaj4Op2vJYpbU4uUlFj3+e1AtJ6MIrwqkII29FhUpOzFSqjBBL19K4WlbdLLObS26I+jnEQk3bOAHwwHEyZ8tHAShFrPDOUDKI+ZfFpE/8ZnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769106395; c=relaxed/simple;
-	bh=pxMh2MMIFXcW1prT3MZXnjrig1r8GNpnqq7u1wLDNBQ=;
-	h=Date:To:From:Subject:Message-Id; b=KaTHyTifsRqW7c0nZn7sf3R+/q5yjvscnvcGzgKo7UUy8B/9BAJ5SQMNwVET+5IDo/FFeHfGx+Cu7uujaQgDp/4drMZS6TuZYTdtzpvV95HD/BxekHKha3rrhPA6JTDK2W+B0Nj4czauVmKWJvx8iDMsxfrmJI0xd0bGLESzXhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PwuFnMA6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769106400; c=relaxed/simple;
+	bh=SSNvW01SQmzqhf3lL8fOTpeHSOzCkaMthKeIwiR+/S0=;
+	h=Date:To:From:Subject:Message-Id; b=hKY6P+0m5HIm1KB8ZK8qomAeCopHgfxQxOFmakjLLypZHXavO+L5DgoEptDpNvkz0WNxg6SL2rAm26vSJeU6PocTrT5UdU9cQfZ9ik1pTwnhQ2tdIfoeZMEBgkBQBEXNMYkmBpPKTg9y+24oJicv49Te3uF63oJcvODlQ8xiyTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uF6YuoUd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PwuFnMA6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6E8CC116C6;
-	Thu, 22 Jan 2026 18:26:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uF6YuoUd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A54BC116C6;
+	Thu, 22 Jan 2026 18:26:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769106394;
-	bh=pxMh2MMIFXcW1prT3MZXnjrig1r8GNpnqq7u1wLDNBQ=;
+	s=korg; t=1769106398;
+	bh=SSNvW01SQmzqhf3lL8fOTpeHSOzCkaMthKeIwiR+/S0=;
 	h=Date:To:From:Subject:From;
-	b=PwuFnMA68GZ9bBg4fGGyQAvYGLuSbbzgS6DJ/K/ZvK4IfAS0apej22HOOrtiAManI
-	 dU0jMvD/WYiZy+pAsRD8wiB/PVqWven//wTdF7faldwzQ3CTSWf//YLdaGvtWZo2G4
-	 ofyR62yc3El543K4JvA7XfzSDm2JS/XN/5lfn9gA=
-Date: Thu, 22 Jan 2026 10:26:34 -0800
+	b=uF6YuoUd9SLhOocR1yiC+h9uoJ2zsgV9q4nUx8WC/4UjoOfCO2cIa8Oa1XSdv5lcf
+	 ABc3lN4xc4wuzIelp0oVZagQisQzRxX0wAyVXLwwmoNQCB0yupRRKvZqe2WqnkHZwX
+	 q+0BqCLXRnZaMpHwhGVvbD4PWNxgIzcM1KJe8R+Y=
+Date: Thu, 22 Jan 2026 10:26:37 -0800
 To: mm-commits@vger.kernel.org,Usama.Anjum@arm.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,pabeni@redhat.com,lorenzo.stoakes@oracle.com,linyunsheng@huawei.com,lianux.mm@gmail.com,jhubbard@nvidia.com,jgg@nvidia.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-introduce-helper-to-read-every-page.patch added to mm-unstable branch
-Message-Id: <20260122182634.A6E8CC116C6@smtp.kernel.org>
+Subject: + selftests-mm-fix-faulting-in-code-in-pagemap_ioctl-test.patch added to mm-unstable branch
+Message-Id: <20260122182638.2A54BC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: introduce helper to read every page
+     Subject: selftests/mm: fix faulting-in code in pagemap_ioctl test
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-introduce-helper-to-read-every-page.patch
+     selftests-mm-fix-faulting-in-code-in-pagemap_ioctl-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-introduce-helper-to-read-every-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-faulting-in-code-in-pagemap_ioctl-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: introduce helper to read every page
-Date: Thu, 22 Jan 2026 17:02:21 +0000
+Subject: selftests/mm: fix faulting-in code in pagemap_ioctl test
+Date: Thu, 22 Jan 2026 17:02:22 +0000
 
-FORCE_READ(*addr) ensures that the compiler will emit a load from addr. 
-Several tests need to trigger such a load for a range of pages, ensuring
-that every page is faulted in, if it wasn't already.
+One of the pagemap_ioctl tests attempts to fault in pages by memcpy()'ing
+them to an unused buffer.  This probably worked originally, but since
+commit 46036188ea1f ("selftests/mm: build with -O2") the compiler is free
+to optimise away that unused buffer and the memcpy() with it.  As a result
+there might not be any resident page in the mapping and the test may fail.
 
-Introduce a new helper force_read_pages() that does exactly that and
-replace existing loops with a call to it.
+We don't need to copy all that memory anyway.  Just fault in every page.
 
-The step size (regular/huge page size) is preserved for all loops, except
-in split_huge_page_test.  Reading every byte is unnecessary; we now read
-every huge page, matching the following call to check_huge_file().
+While at it also make sure to compute the number of pages once using
+simple integer arithmetic instead of ceilf() and implicit conversions.
 
-Link: https://lkml.kernel.org/r/20260122170224.4056513-7-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20260122170224.4056513-8-kevin.brodsky@arm.com
+Fixes: 46036188ea1f ("selftests/mm: build with -O2")
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
+Cc: Usama Anjum <Usama.Anjum@arm.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -85,91 +87,47 @@ Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Usama Anjum <Usama.Anjum@arm.com>
 Cc: wang lian <lianux.mm@gmail.com>
 Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb-madvise.c      |    9 +--------
- tools/testing/selftests/mm/pfnmap.c               |    9 +++------
- tools/testing/selftests/mm/split_huge_page_test.c |    6 +-----
- tools/testing/selftests/mm/vm_util.h              |    7 +++++++
- 4 files changed, 12 insertions(+), 19 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-introduce-helper-to-read-every-page
-+++ a/tools/testing/selftests/mm/hugetlb-madvise.c
-@@ -47,14 +47,7 @@ void write_fault_pages(void *addr, unsig
- 
- void read_fault_pages(void *addr, unsigned long nr_pages)
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-fix-faulting-in-code-in-pagemap_ioctl-test
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -1052,11 +1052,10 @@ static void test_simple(void)
+ int sanity_tests(void)
  {
--	unsigned long i;
--
--	for (i = 0; i < nr_pages; i++) {
--		unsigned long *addr2 =
--			((unsigned long *)(addr + (i * huge_page_size)));
--		/* Prevent the compiler from optimizing out the entire loop: */
--		FORCE_READ(*addr2);
--	}
-+	force_read_pages(addr, nr_pages, huge_page_size);
- }
+ 	unsigned long long mem_size, vec_size;
+-	long ret, fd, i, buf_size;
++	long ret, fd, i, buf_size, nr_pages;
+ 	struct page_region *vec;
+ 	char *mem, *fmem;
+ 	struct stat sbuf;
+-	char *tmp_buf;
  
- int main(int argc, char **argv)
---- a/tools/testing/selftests/mm/pfnmap.c~selftests-mm-introduce-helper-to-read-every-page
-+++ a/tools/testing/selftests/mm/pfnmap.c
-@@ -35,18 +35,15 @@ static void signal_handler(int sig)
+ 	/* 1. wrong operation */
+ 	mem_size = 10 * page_size;
+@@ -1167,14 +1166,14 @@ int sanity_tests(void)
+ 	if (fmem == MAP_FAILED)
+ 		ksft_exit_fail_msg("error nomem %d %s\n", errno, strerror(errno));
  
- static int test_read_access(char *addr, size_t size, size_t pagesize)
- {
--	size_t offs;
- 	int ret;
+-	tmp_buf = malloc(sbuf.st_size);
+-	memcpy(tmp_buf, fmem, sbuf.st_size);
++	nr_pages = (sbuf.st_size + page_size - 1) / page_size;
++	force_read_pages(fmem, nr_pages, page_size);
  
- 	if (signal(SIGSEGV, signal_handler) == SIG_ERR)
- 		return -EINVAL;
+ 	ret = pagemap_ioctl(fmem, sbuf.st_size, vec, vec_size, 0, 0,
+ 			    0, PAGEMAP_NON_WRITTEN_BITS, 0, PAGEMAP_NON_WRITTEN_BITS);
  
- 	ret = sigsetjmp(sigjmp_buf_env, 1);
--	if (!ret) {
--		for (offs = 0; offs < size; offs += pagesize)
--			/* Force a read that the compiler cannot optimize out. */
--			*((volatile char *)(addr + offs));
--	}
-+	if (!ret)
-+		force_read_pages(addr, size/pagesize, pagesize);
-+
- 	if (signal(SIGSEGV, SIG_DFL) == SIG_ERR)
- 		return -EINVAL;
+ 	ksft_test_result(ret >= 0 && vec[0].start == (uintptr_t)fmem &&
+-			 LEN(vec[0]) == ceilf((float)sbuf.st_size/page_size) &&
++			 LEN(vec[0]) == nr_pages &&
+ 			 (vec[0].categories & PAGE_IS_FILE),
+ 			 "%s Memory mapped file\n", __func__);
  
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-introduce-helper-to-read-every-page
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -652,11 +652,7 @@ static int create_pagecache_thp_and_fd(c
- 	}
- 	madvise(*addr, fd_size, MADV_HUGEPAGE);
- 
--	for (size_t i = 0; i < fd_size; i++) {
--		char *addr2 = *addr + i;
--
--		FORCE_READ(*addr2);
--	}
-+	force_read_pages(*addr, fd_size / pmd_pagesize, pmd_pagesize);
- 
- 	if (!check_huge_file(*addr, fd_size / pmd_pagesize, pmd_pagesize)) {
- 		ksft_print_msg("No large pagecache folio generated, please provide a filesystem supporting large folio\n");
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-introduce-helper-to-read-every-page
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -54,6 +54,13 @@ static inline unsigned int pshift(void)
- 	return __page_shift;
- }
- 
-+static inline void force_read_pages(char *addr, unsigned int nr_pages,
-+				    size_t pagesize)
-+{
-+	for (unsigned int i = 0; i < nr_pages; i++)
-+		FORCE_READ(addr[i * pagesize]);
-+}
-+
- bool detect_huge_zeropage(void);
- 
- /*
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
