@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2333542F0
-	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 18:26:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0B5437AA83
+	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 18:26:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769106391; cv=none; b=eiPbUoqKTfl59VFIygRcUvOHEC3itn5YJ6C7FZEX/R6++7uCnfoTjkZQs7TRJ0bgMugCNgLrITLxhtMj41P96kHCePuYKDzgRVXe3/onidXclmlJxKeVzL7GYgz2rkV5HvNECgEmFjLREycpklbWwKZLEZlGLjhU9c0x7QEChFU=
+	t=1769106393; cv=none; b=U2OAbFX92Erl3CQDu0OcfxhDJs8mHp4mbP2qOzI+mUffGKScXRoJPgWQXRte+XrDNrHyGZ4bDIcICxoKnsHUvtG4ObDDQVCXwUfpFRnlGUyjPVX4o2OKGHgfzeMdEpWASTLGdGzBoPghWoE4kSZ96711SskpD1mBNmGurXkZoIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769106391; c=relaxed/simple;
-	bh=QO7BGNRDcINagvDBkpWcSwMF7FXyY9YU6tygThv9sfc=;
-	h=Date:To:From:Subject:Message-Id; b=KLqH+Jjc6vVkSp2VUCFajpZWGh6srTZsbEUI37rBg6LyKl6/8VnzV1ceAoAdT33uv8Mlnz7LKdd2RshIStY0fQpfC0o6+CverBtKbobB/QBSZIO9YJVSYDcxCtQQx5tf+CdfZHv+y2KrgcmOvFU+f1zPIMbu2/z8MPw1qonSrJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I1GgVi7M; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769106393; c=relaxed/simple;
+	bh=AX7D/1NEJSVqh65EjyY7OR2EwxquXh1RlxjlcGftprk=;
+	h=Date:To:From:Subject:Message-Id; b=JHFdvR0Rn96+rMJPL+ApWXijR1Jrw8ZsPyW6Fz+Se2HV1qfiuS009oknZevY/Nmyrsr3cMpAWs2qEAXrVpzb+cRIosurD+1ZBvwxgPed0g62Clt9cc7dqaueUC3qmNTo/XytB09svcQo33i08mRuJLZn/0x9VoC+v+u41AwOCvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pU23BNxa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I1GgVi7M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EB69C116C6;
-	Thu, 22 Jan 2026 18:26:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pU23BNxa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65167C116C6;
+	Thu, 22 Jan 2026 18:26:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769106390;
-	bh=QO7BGNRDcINagvDBkpWcSwMF7FXyY9YU6tygThv9sfc=;
+	s=korg; t=1769106392;
+	bh=AX7D/1NEJSVqh65EjyY7OR2EwxquXh1RlxjlcGftprk=;
 	h=Date:To:From:Subject:From;
-	b=I1GgVi7M8J9x8pQ65bbV1CDqd7iR2taCAOm4CROI9cNiq2Ipm/AxDCJGgUWo7a+nL
-	 sd97Z8es42PnsZNZZ+45T3izTbwLwYhKO2/qQNyKWXR8LxbyOv1N+13lGAZf1Ub+yn
-	 6CX7B3YCuKTNuisK/FiKyNcvTlMAx7YaaWtilXrw=
-Date: Thu, 22 Jan 2026 10:26:29 -0800
+	b=pU23BNxaJD2wZ6bLfljUTaaa2NZ2pn9n6ySGs+RMBm6sUeKSrsB2+K2HlmbhX6hBh
+	 WYgxttzSAfuRkE0EBsDeaZ2KTt6UUXY6f3gD9U4Uad/JNbKcGtgbi5kRUce3yfg2SP
+	 xzMoYrC/WlRx9crLvH+V91MJAmQ7ygbYeXsLI1Jo=
+Date: Thu, 22 Jan 2026 10:26:31 -0800
 To: mm-commits@vger.kernel.org,Usama.Anjum@arm.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,pabeni@redhat.com,lorenzo.stoakes@oracle.com,linyunsheng@huawei.com,lianux.mm@gmail.com,jhubbard@nvidia.com,jgg@nvidia.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-usage-of-force_read-in-cow-tests.patch added to mm-unstable branch
-Message-Id: <20260122182630.1EB69C116C6@smtp.kernel.org>
+Subject: + selftests-mm-check-that-force_read-succeeded.patch added to mm-unstable branch
+Message-Id: <20260122182632.65167C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix usage of FORCE_READ() in cow tests
+     Subject: selftests/mm: check that FORCE_READ() succeeded
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-fix-usage-of-force_read-in-cow-tests.patch
+     selftests-mm-check-that-force_read-succeeded.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-usage-of-force_read-in-cow-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-that-force_read-succeeded.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,88 +59,117 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: fix usage of FORCE_READ() in cow tests
-Date: Thu, 22 Jan 2026 17:02:19 +0000
+Subject: selftests/mm: check that FORCE_READ() succeeded
+Date: Thu, 22 Jan 2026 17:02:20 +0000
 
-Commit 5bbc2b785e63 ("selftests/mm: fix FORCE_READ to read input value
-correctly") modified FORCE_READ() to take a value instead of a pointer. 
-It also changed most of the call sites accordingly, but missed many of
-them in cow.c.  In those cases, we ended up with the pointer itself being
-read, not the memory it points to.
+Many cow tests rely on FORCE_READ() to populate pages.  Introduce a helper
+to make sure that the pages are actually populated, and fail otherwise.
 
-No failure occurred as a result, so it looks like the tests work just fine
-without faulting in.  However, the huge_zeropage tests explicitly check
-that pages are populated, so those became skipped.
-
-Convert all the remaining FORCE_READ() to fault in the mapped page, as was
-originally intended.  This allows the huge_zeropage tests to run again (3
-tests in total).
-
-Link: https://lkml.kernel.org/r/20260122170224.4056513-5-kevin.brodsky@arm.com
-Fixes: 5bbc2b785e63 ("selftests/mm: fix FORCE_READ to read input value correctly")
+Link: https://lkml.kernel.org/r/20260122170224.4056513-6-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: wang lian <lianux.mm@gmail.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
+Suggested-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Usama Anjum <Usama.Anjum@arm.com>
+Cc: wang lian <lianux.mm@gmail.com>
 Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/cow.c |   43 ++++++++++++++++++++++-------
+ 1 file changed, 33 insertions(+), 10 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-fix-usage-of-force_read-in-cow-tests
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-check-that-force_read-succeeded
 +++ a/tools/testing/selftests/mm/cow.c
-@@ -1612,8 +1612,8 @@ static void run_with_huge_zeropage(non_a
+@@ -75,6 +75,18 @@ static bool range_is_swapped(void *addr,
+ 	return true;
+ }
+ 
++static bool populate_page_checked(char *addr)
++{
++	bool ret;
++
++	FORCE_READ(*addr);
++	ret = pagemap_is_populated(pagemap_fd, addr);
++	if (!ret)
++		ksft_print_msg("Failed to populate page\n");
++
++	return ret;
++}
++
+ struct comm_pipes {
+ 	int child_ready[2];
+ 	int parent_ready[2];
+@@ -1549,8 +1561,10 @@ static void run_with_zeropage(non_anon_t
+ 	}
+ 
+ 	/* Read from the page to populate the shared zeropage. */
+-	FORCE_READ(*mem);
+-	FORCE_READ(*smem);
++	if (!populate_page_checked(mem) || !populate_page_checked(smem)) {
++		log_test_result(KSFT_FAIL);
++		goto munmap;
++	}
+ 
+ 	fn(mem, smem, pagesize);
+ munmap:
+@@ -1612,8 +1626,11 @@ static void run_with_huge_zeropage(non_a
  	 * the first sub-page and test if we get another sub-page populated
  	 * automatically.
  	 */
--	FORCE_READ(mem);
--	FORCE_READ(smem);
-+	FORCE_READ(*mem);
-+	FORCE_READ(*smem);
+-	FORCE_READ(*mem);
+-	FORCE_READ(*smem);
++	if (!populate_page_checked(mem) || !populate_page_checked(smem)) {
++		log_test_result(KSFT_FAIL);
++		goto munmap;
++	}
++
  	if (!pagemap_is_populated(pagemap_fd, mem + pagesize) ||
  	    !pagemap_is_populated(pagemap_fd, smem + pagesize)) {
  		ksft_test_result_skip("Did not get THPs populated\n");
-@@ -1663,8 +1663,8 @@ static void run_with_memfd(non_anon_test
+@@ -1663,8 +1680,10 @@ static void run_with_memfd(non_anon_test
  	}
  
  	/* Fault the page in. */
--	FORCE_READ(mem);
--	FORCE_READ(smem);
-+	FORCE_READ(*mem);
-+	FORCE_READ(*smem);
+-	FORCE_READ(*mem);
+-	FORCE_READ(*smem);
++	if (!populate_page_checked(mem) || !populate_page_checked(smem)) {
++		log_test_result(KSFT_FAIL);
++		goto munmap;
++	}
  
  	fn(mem, smem, pagesize);
  munmap:
-@@ -1719,8 +1719,8 @@ static void run_with_tmpfile(non_anon_te
+@@ -1719,8 +1738,10 @@ static void run_with_tmpfile(non_anon_te
  	}
  
  	/* Fault the page in. */
--	FORCE_READ(mem);
--	FORCE_READ(smem);
-+	FORCE_READ(*mem);
-+	FORCE_READ(*smem);
+-	FORCE_READ(*mem);
+-	FORCE_READ(*smem);
++	if (!populate_page_checked(mem) || !populate_page_checked(smem)) {
++		log_test_result(KSFT_FAIL);
++		goto munmap;
++	}
  
  	fn(mem, smem, pagesize);
  munmap:
-@@ -1773,8 +1773,8 @@ static void run_with_memfd_hugetlb(non_a
+@@ -1773,8 +1794,10 @@ static void run_with_memfd_hugetlb(non_a
  	}
  
  	/* Fault the page in. */
--	FORCE_READ(mem);
--	FORCE_READ(smem);
-+	FORCE_READ(*mem);
-+	FORCE_READ(*smem);
+-	FORCE_READ(*mem);
+-	FORCE_READ(*smem);
++	if (!populate_page_checked(mem) || !populate_page_checked(smem)) {
++		log_test_result(KSFT_FAIL);
++		goto munmap;
++	}
  
  	fn(mem, smem, hugetlbsize);
  munmap:
