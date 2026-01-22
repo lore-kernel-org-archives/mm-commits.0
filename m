@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 844BF3D1CBC
-	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 17:04:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F46C3093DE
+	for <mm-commits@vger.kernel.org>; Thu, 22 Jan 2026 17:14:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769101482; cv=none; b=Z5jXwK0Rnj1JSZbpjmpSa5lO6MhPy8D56zG4EuAKaTxzJ9KaeC5ZdJ+mv80HPWx0ETorKAcecMI55LnPXIuBr/Qn24vIuUVQBb6V08ZQobul8Wqdj++rbz8VO7JSlRUGy1IJId/94JCMmlrSkKez8XGpbBQ6wjLddhvL034wzQk=
+	t=1769102093; cv=none; b=ZU5rt81O9/+Ux/29/aumSPg7WREFHShz3nEPKakNnujXGqUQjUgrq3NON6bdZi8chVXCSCukQ9PLJq/LDRMu9eR9kqDL7bgjoYEHJAwLnuEwlLw9/7XtGORT9CiyORsahCf1OPngBWqbX9giAx50ASsANeEZzH2XF65S3uQyKp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769101482; c=relaxed/simple;
-	bh=Cn9F9kgpp/q1lVL2SM5OEpeqHc6R/CE9uVKoyLXNHbI=;
-	h=Date:To:From:Subject:Message-Id; b=NSkRLzPjHKFp4HOMjjrIaT1jThAeCi+PK3dYxWzTLeOFN2tKiZnQP27g6PJf1CgAmgLtPDO9I13EnTCeZ2oSQY9SnQHOLcS06W492oC3gSeYVP4oBo5gtNPUAV+Q2hCaU2dIlUK7PVw5SMlz9H8tr9vxlcHjQMjY5lu22PZU4sQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZxHEcN9h; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769102093; c=relaxed/simple;
+	bh=MkdTTMo4p+Ya7m4u5WrvXhG9ugswQdZHFVzjL2W/6yo=;
+	h=Date:To:From:Subject:Message-Id; b=kW+SbA39jf+nizf85wl9hWo0/5HgBR/osahethmKQ48kb9LlMdnW9DdfMVwykOTCNfzvfWgR0ow381Xvani1oC87fyHEd1s/2TQcAyILN+wQnmMR8bM7oOfyUFeAA5RC7EXfFtdXU1Q6tvj849POCKYcrOeT/b73k5mr2wg+wcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zuhYSMHq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZxHEcN9h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F6CCC116C6;
-	Thu, 22 Jan 2026 17:04:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zuhYSMHq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05760C116C6;
+	Thu, 22 Jan 2026 17:14:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769101480;
-	bh=Cn9F9kgpp/q1lVL2SM5OEpeqHc6R/CE9uVKoyLXNHbI=;
+	s=korg; t=1769102093;
+	bh=MkdTTMo4p+Ya7m4u5WrvXhG9ugswQdZHFVzjL2W/6yo=;
 	h=Date:To:From:Subject:From;
-	b=ZxHEcN9hTe4GC6Y73q+jhZeTj9oCiwUkSnHoVUvsecZG2+tjwW8UvTt4ZGtu9Tprx
-	 Zm5pnB02qsxVhaRT3XQQ0Wia/frSpoFP8TcL0GIAjbbfJQ8sqo/1OMFbJSP6h9ABlg
-	 tjv4gz6QPKo0CALHGexfc1RWmnwX413mk8udGF5s=
-Date: Thu, 22 Jan 2026 09:04:39 -0800
-To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=zuhYSMHqHhp2mX14uN0zpEm/c5ZYYNgPYkaQ62ExurHbcTGjiIi2Zw3BoAaK15pGm
+	 DQN7OygGy0JkJi/kGfWLMubRh82ppQpgCaL/HRjsNspG27OyvRoOX9jzcDRGdTNH02
+	 PmAoQ3iWMf9D4I3GmAkjFjvoDKW1BiLErYFb0Zps=
+Date: Thu, 22 Jan 2026 09:14:52 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,wujianyue000@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-cleanup-error-handling-in-kho_populate.patch added to mm-nonmm-unstable branch
-Message-Id: <20260122170440.2F6CCC116C6@smtp.kernel.org>
+Subject: + mm-optimize-stat-output-for-11%-sys-time-reduce.patch added to mm-new branch
+Message-Id: <20260122171453.05760C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: cleanup error handling in kho_populate()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-cleanup-error-handling-in-kho_populate.patch
+     Subject: mm, memcg: optimize stat output for 11% sys time reduce
+has been added to the -mm mm-new branch.  Its filename is
+     mm-optimize-stat-output-for-11%-sys-time-reduce.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-cleanup-error-handling-in-kho_populate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-stat-output-for-11%-sys-time-reduce.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,147 +66,520 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: kho: cleanup error handling in kho_populate()
-Date: Thu, 22 Jan 2026 14:17:57 +0200
+From: Jianyue Wu <wujianyue000@gmail.com>
+Subject: mm, memcg: optimize stat output for 11% sys time reduce
+Date: Thu, 22 Jan 2026 19:42:42 +0800
 
-* use dedicated labels for error handling instead of checking if a pointer
-  is not null to decide if it should be unmapped
-* drop assignment of values to err that are only used to print a numeric
-  error code, there are pr_warn()s for each failure already so printing a
-  numeric error code in the next line does not add anything useful
+Replace seq_printf/seq_buf_printf with lightweight helpers to avoid printf
+parsing in memcg stats output.
 
-Link: https://lkml.kernel.org/r/20260122121757.575987-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Key changes:
+- Add memcg_seq_put_name_val() for seq_file "name value\n" formatting
+- Add memcg_seq_buf_put_name_val() for seq_buf "name value\n" formatting
+- Update __memory_events_show(), swap_events_show(),
+  memory_stat_format(), memory_numa_stat_show(), and related helpers
+- Introduce local variables to improve readability and reduce line length
+
+Performance:
+- 1M reads of memory.stat+memory.numa_stat
+- Before: real 0m9.663s, user 0m4.840s, sys 0m4.823s
+- After:  real 0m9.051s, user 0m4.775s, sys 0m4.275s (~11.4% sys drop)
+
+Tests:
+- Script:
+  for ((i=1; i<=1000000; i++)); do
+      : > /dev/null < /sys/fs/cgroup/memory.stat
+      : > /dev/null < /sys/fs/cgroup/memory.numa_stat
+  done
+
+Link: https://lkml.kernel.org/r/20260122114242.72139-1-wujianyue000@gmail.com
+Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   39 +++++++++++----------------
- 1 file changed, 17 insertions(+), 22 deletions(-)
+ mm/memcontrol-v1.c |  120 ++++++++++++++++++++-----------
+ mm/memcontrol-v1.h |    6 +
+ mm/memcontrol.c    |  162 ++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 205 insertions(+), 83 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-cleanup-error-handling-in-kho_populate
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -1455,46 +1455,40 @@ void __init kho_memory_init(void)
- void __init kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
- 			 phys_addr_t scratch_phys, u64 scratch_len)
+--- a/mm/memcontrol.c~mm-optimize-stat-output-for-11%-sys-time-reduce
++++ a/mm/memcontrol.c
+@@ -42,6 +42,7 @@
+ #include <linux/bit_spinlock.h>
+ #include <linux/rcupdate.h>
+ #include <linux/limits.h>
++#include <linux/sprintf.h>
+ #include <linux/export.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+@@ -1460,9 +1461,70 @@ static bool memcg_accounts_hugetlb(void)
+ }
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
++/* Max 2^64 - 1 = 18446744073709551615 (20 digits) */
++#define MEMCG_DEC_U64_MAX_LEN 20
++
++/**
++ * memcg_seq_put_name_val - Write a name-value pair to a seq_file
++ * @m: The seq_file to write to
++ * @name: The name string (not null-terminated required, uses seq_puts)
++ * @val: The u64 value to write
++ *
++ * This helper formats and writes a "name value\n" line to a seq_file,
++ * commonly used for cgroup statistics output. The value is efficiently
++ * converted to decimal using seq_put_decimal_ull.
++ *
++ * Output format: "<name> <value>\n"
++ * Example: "anon 1048576\n"
++ */
++void memcg_seq_put_name_val(struct seq_file *m, const char *name, u64 val)
++{
++	seq_puts(m, name);
++	/* need a space between name and value */
++	seq_put_decimal_ull(m, " ", val);
++	seq_putc(m, '\n');
++}
++
++/**
++ * memcg_seq_buf_put_name_val - Write a name-value pair to a seq_buf
++ * @s: The seq_buf to write to
++ * @name: The name string to write
++ * @val: The u64 value to write
++ *
++ * This helper formats and writes a "name value\n" line to a seq_buf.
++ * Unlike memcg_seq_put_name_val which uses seq_file's built-in formatting,
++ * this function manually converts the value to a string using num_to_str
++ * and writes it using seq_buf primitives for better performance when
++ * batching multiple writes to a seq_buf.
++ *
++ * The function checks for overflow at each step and returns early if
++ * any operation would cause the buffer to overflow.
++ *
++ * Output format: "<name> <value>\n"
++ * Example: "file 2097152\n"
++ */
++void memcg_seq_buf_put_name_val(struct seq_buf *s, const char *name, u64 val)
++{
++	char num_buf[MEMCG_DEC_U64_MAX_LEN];
++	int num_len;
++
++	num_len = num_to_str(num_buf, sizeof(num_buf), val, 0);
++	if (num_len <= 0)
++		return;
++
++	if (seq_buf_puts(s, name))
++		return;
++	if (seq_buf_putc(s, ' '))
++		return;
++	if (seq_buf_putmem(s, num_buf, num_len))
++		return;
++	seq_buf_putc(s, '\n');
++}
++
+ static void memcg_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
  {
-+	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
- 	struct kho_scratch *scratch = NULL;
- 	phys_addr_t mem_map_phys;
- 	void *fdt = NULL;
--	int err = 0;
--	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
-+	int err;
- 
- 	/* Validate the input FDT */
- 	fdt = early_memremap(fdt_phys, fdt_len);
- 	if (!fdt) {
- 		pr_warn("setup: failed to memremap FDT (0x%llx)\n", fdt_phys);
--		err = -EFAULT;
--		goto out;
-+		goto err_report;
- 	}
- 	err = fdt_check_header(fdt);
- 	if (err) {
- 		pr_warn("setup: handover FDT (0x%llx) is invalid: %d\n",
- 			fdt_phys, err);
--		err = -EINVAL;
--		goto out;
-+		goto err_unmap_fdt;
- 	}
- 	err = fdt_node_check_compatible(fdt, 0, KHO_FDT_COMPATIBLE);
- 	if (err) {
- 		pr_warn("setup: handover FDT (0x%llx) is incompatible with '%s': %d\n",
- 			fdt_phys, KHO_FDT_COMPATIBLE, err);
--		err = -EINVAL;
--		goto out;
-+		goto err_unmap_fdt;
- 	}
- 
- 	mem_map_phys = kho_get_mem_map_phys(fdt);
--	if (!mem_map_phys) {
--		err = -ENOENT;
--		goto out;
--	}
-+	if (!mem_map_phys)
-+		goto err_unmap_fdt;
- 
- 	scratch = early_memremap(scratch_phys, scratch_len);
- 	if (!scratch) {
- 		pr_warn("setup: failed to memremap scratch (phys=0x%llx, len=%lld)\n",
- 			scratch_phys, scratch_len);
--		err = -EFAULT;
--		goto out;
-+		goto err_unmap_fdt;
- 	}
+ 	int i;
++	u64 pgscan, pgsteal;
  
  	/*
-@@ -1511,7 +1505,7 @@ void __init kho_populate(phys_addr_t fdt
- 		if (WARN_ON(err)) {
- 			pr_warn("failed to mark the scratch region 0x%pa+0x%pa: %pe",
- 				&area->addr, &size, ERR_PTR(err));
--			goto out;
-+			goto err_unmap_scratch;
- 		}
- 		pr_debug("Marked 0x%pa+0x%pa as scratch", &area->addr, &size);
- 	}
-@@ -1533,13 +1527,14 @@ void __init kho_populate(phys_addr_t fdt
- 	kho_scratch_cnt = scratch_cnt;
- 	pr_info("found kexec handover data.\n");
+ 	 * Provide statistics on the state of the memory subsystem as
+@@ -1485,36 +1547,40 @@ static void memcg_stat_format(struct mem
+ 			continue;
+ #endif
+ 		size = memcg_page_state_output(memcg, memory_stats[i].idx);
+-		seq_buf_printf(s, "%s %llu\n", memory_stats[i].name, size);
++		memcg_seq_buf_put_name_val(s, memory_stats[i].name, size);
  
--out:
--	if (fdt)
--		early_memunmap(fdt, fdt_len);
--	if (scratch)
--		early_memunmap(scratch, scratch_len);
--	if (err)
--		pr_warn("disabling KHO revival: %d\n", err);
-+	return;
+ 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
+ 			size += memcg_page_state_output(memcg,
+ 							NR_SLAB_RECLAIMABLE_B);
+-			seq_buf_printf(s, "slab %llu\n", size);
++			memcg_seq_buf_put_name_val(s, "slab", size);
+ 		}
+ 	}
+ 
+ 	/* Accumulated memory events */
+-	seq_buf_printf(s, "pgscan %lu\n",
+-		       memcg_events(memcg, PGSCAN_KSWAPD) +
+-		       memcg_events(memcg, PGSCAN_DIRECT) +
+-		       memcg_events(memcg, PGSCAN_PROACTIVE) +
+-		       memcg_events(memcg, PGSCAN_KHUGEPAGED));
+-	seq_buf_printf(s, "pgsteal %lu\n",
+-		       memcg_events(memcg, PGSTEAL_KSWAPD) +
+-		       memcg_events(memcg, PGSTEAL_DIRECT) +
+-		       memcg_events(memcg, PGSTEAL_PROACTIVE) +
+-		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
++	pgscan = memcg_events(memcg, PGSCAN_KSWAPD) +
++		 memcg_events(memcg, PGSCAN_DIRECT) +
++		 memcg_events(memcg, PGSCAN_PROACTIVE) +
++		 memcg_events(memcg, PGSCAN_KHUGEPAGED);
++	pgsteal = memcg_events(memcg, PGSTEAL_KSWAPD) +
++		  memcg_events(memcg, PGSTEAL_DIRECT) +
++		  memcg_events(memcg, PGSTEAL_PROACTIVE) +
++		  memcg_events(memcg, PGSTEAL_KHUGEPAGED);
 +
-+err_unmap_scratch:
-+	early_memunmap(scratch, scratch_len);
-+err_unmap_fdt:
-+	early_memunmap(fdt, fdt_len);
-+err_report:
-+	pr_warn("disabling KHO revival\n");
++	memcg_seq_buf_put_name_val(s, "pgscan", pgscan);
++	memcg_seq_buf_put_name_val(s, "pgsteal", pgsteal);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++) {
++		u64 events;
++
+ #ifdef CONFIG_MEMCG_V1
+ 		if (memcg_vm_event_stat[i] == PGPGIN ||
+ 		    memcg_vm_event_stat[i] == PGPGOUT)
+ 			continue;
+ #endif
+-		seq_buf_printf(s, "%s %lu\n",
+-			       vm_event_name(memcg_vm_event_stat[i]),
+-			       memcg_events(memcg, memcg_vm_event_stat[i]));
++		events = memcg_events(memcg, memcg_vm_event_stat[i]);
++		memcg_seq_buf_put_name_val(s,
++					   vm_event_name(memcg_vm_event_stat[i]),
++					   events);
+ 	}
  }
  
- /* Helper functions for kexec_file_load */
+@@ -4187,10 +4253,12 @@ static void mem_cgroup_attach(struct cgr
+ 
+ static int seq_puts_memcg_tunable(struct seq_file *m, unsigned long value)
+ {
+-	if (value == PAGE_COUNTER_MAX)
++	if (value == PAGE_COUNTER_MAX) {
+ 		seq_puts(m, "max\n");
+-	else
+-		seq_printf(m, "%llu\n", (u64)value * PAGE_SIZE);
++	} else {
++		seq_put_decimal_ull(m, "", (u64)value * PAGE_SIZE);
++		seq_putc(m, '\n');
++	}
+ 
+ 	return 0;
+ }
+@@ -4216,7 +4284,8 @@ static int peak_show(struct seq_file *sf
+ 	else
+ 		peak = max(fd_peak, READ_ONCE(pc->local_watermark));
+ 
+-	seq_printf(sf, "%llu\n", peak * PAGE_SIZE);
++	seq_put_decimal_ull(sf, "", peak * PAGE_SIZE);
++	seq_putc(sf, '\n');
+ 	return 0;
+ }
+ 
+@@ -4449,16 +4518,24 @@ out:
+  */
+ static void __memory_events_show(struct seq_file *m, atomic_long_t *events)
+ {
+-	seq_printf(m, "low %lu\n", atomic_long_read(&events[MEMCG_LOW]));
+-	seq_printf(m, "high %lu\n", atomic_long_read(&events[MEMCG_HIGH]));
+-	seq_printf(m, "max %lu\n", atomic_long_read(&events[MEMCG_MAX]));
+-	seq_printf(m, "oom %lu\n", atomic_long_read(&events[MEMCG_OOM]));
+-	seq_printf(m, "oom_kill %lu\n",
+-		   atomic_long_read(&events[MEMCG_OOM_KILL]));
+-	seq_printf(m, "oom_group_kill %lu\n",
+-		   atomic_long_read(&events[MEMCG_OOM_GROUP_KILL]));
+-	seq_printf(m, "sock_throttled %lu\n",
+-		   atomic_long_read(&events[MEMCG_SOCK_THROTTLED]));
++	u64 low, high, max, oom, oom_kill;
++	u64 oom_group_kill, sock_throttled;
++
++	low = atomic_long_read(&events[MEMCG_LOW]);
++	high = atomic_long_read(&events[MEMCG_HIGH]);
++	max = atomic_long_read(&events[MEMCG_MAX]);
++	oom = atomic_long_read(&events[MEMCG_OOM]);
++	oom_kill = atomic_long_read(&events[MEMCG_OOM_KILL]);
++	oom_group_kill = atomic_long_read(&events[MEMCG_OOM_GROUP_KILL]);
++	sock_throttled = atomic_long_read(&events[MEMCG_SOCK_THROTTLED]);
++
++	memcg_seq_put_name_val(m, "low", low);
++	memcg_seq_put_name_val(m, "high", high);
++	memcg_seq_put_name_val(m, "max", max);
++	memcg_seq_put_name_val(m, "oom", oom);
++	memcg_seq_put_name_val(m, "oom_kill", oom_kill);
++	memcg_seq_put_name_val(m, "oom_group_kill", oom_group_kill);
++	memcg_seq_put_name_val(m, "sock_throttled", sock_throttled);
+ }
+ 
+ static int memory_events_show(struct seq_file *m, void *v)
+@@ -4513,7 +4590,7 @@ static int memory_numa_stat_show(struct
+ 		if (memory_stats[i].idx >= NR_VM_NODE_STAT_ITEMS)
+ 			continue;
+ 
+-		seq_printf(m, "%s", memory_stats[i].name);
++		seq_puts(m, memory_stats[i].name);
+ 		for_each_node_state(nid, N_MEMORY) {
+ 			u64 size;
+ 			struct lruvec *lruvec;
+@@ -4521,7 +4598,10 @@ static int memory_numa_stat_show(struct
+ 			lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
+ 			size = lruvec_page_state_output(lruvec,
+ 							memory_stats[i].idx);
+-			seq_printf(m, " N%d=%llu", nid, size);
++
++			seq_put_decimal_ull(m, " N", nid);
++			seq_putc(m, '=');
++			seq_put_decimal_ull(m, "", size);
+ 		}
+ 		seq_putc(m, '\n');
+ 	}
+@@ -4534,7 +4614,8 @@ static int memory_oom_group_show(struct
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 
+-	seq_printf(m, "%d\n", READ_ONCE(memcg->oom_group));
++	seq_put_decimal_ll(m, "", READ_ONCE(memcg->oom_group));
++	seq_putc(m, '\n');
+ 
+ 	return 0;
+ }
+@@ -5341,13 +5422,15 @@ static ssize_t swap_max_write(struct ker
+ static int swap_events_show(struct seq_file *m, void *v)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
++	u64 swap_high, swap_max, swap_fail;
+ 
+-	seq_printf(m, "high %lu\n",
+-		   atomic_long_read(&memcg->memory_events[MEMCG_SWAP_HIGH]));
+-	seq_printf(m, "max %lu\n",
+-		   atomic_long_read(&memcg->memory_events[MEMCG_SWAP_MAX]));
+-	seq_printf(m, "fail %lu\n",
+-		   atomic_long_read(&memcg->memory_events[MEMCG_SWAP_FAIL]));
++	swap_high = atomic_long_read(&memcg->memory_events[MEMCG_SWAP_HIGH]);
++	swap_max = atomic_long_read(&memcg->memory_events[MEMCG_SWAP_MAX]);
++	swap_fail = atomic_long_read(&memcg->memory_events[MEMCG_SWAP_FAIL]);
++
++	memcg_seq_put_name_val(m, "high", swap_high);
++	memcg_seq_put_name_val(m, "max", swap_max);
++	memcg_seq_put_name_val(m, "fail", swap_fail);
+ 
+ 	return 0;
+ }
+@@ -5533,7 +5616,8 @@ static int zswap_writeback_show(struct s
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 
+-	seq_printf(m, "%d\n", READ_ONCE(memcg->zswap_writeback));
++	seq_put_decimal_ll(m, "", READ_ONCE(memcg->zswap_writeback));
++	seq_putc(m, '\n');
+ 	return 0;
+ }
+ 
+--- a/mm/memcontrol-v1.c~mm-optimize-stat-output-for-11%-sys-time-reduce
++++ a/mm/memcontrol-v1.c
+@@ -10,7 +10,7 @@
+ #include <linux/poll.h>
+ #include <linux/sort.h>
+ #include <linux/file.h>
+-#include <linux/seq_buf.h>
++#include <linux/string.h>
+ 
+ #include "internal.h"
+ #include "swap.h"
+@@ -1817,25 +1817,36 @@ static int memcg_numa_stat_show(struct s
+ 	mem_cgroup_flush_stats(memcg);
+ 
+ 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
+-		seq_printf(m, "%s=%lu", stat->name,
+-			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
+-						   false));
+-		for_each_node_state(nid, N_MEMORY)
+-			seq_printf(m, " N%d=%lu", nid,
+-				   mem_cgroup_node_nr_lru_pages(memcg, nid,
+-							stat->lru_mask, false));
++		u64 nr_pages;
++
++		seq_puts(m, stat->name);
++		nr_pages = mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
++						   false);
++		seq_put_decimal_ull(m, "=", nr_pages);
++		for_each_node_state(nid, N_MEMORY) {
++			nr_pages = mem_cgroup_node_nr_lru_pages(memcg, nid,
++								stat->lru_mask,
++								false);
++			seq_put_decimal_ull(m, " N", nid);
++			seq_put_decimal_ull(m, "=", nr_pages);
++		}
+ 		seq_putc(m, '\n');
+ 	}
+ 
+ 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
++		u64 nr_pages;
+ 
+-		seq_printf(m, "hierarchical_%s=%lu", stat->name,
+-			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
+-						   true));
+-		for_each_node_state(nid, N_MEMORY)
+-			seq_printf(m, " N%d=%lu", nid,
+-				   mem_cgroup_node_nr_lru_pages(memcg, nid,
+-							stat->lru_mask, true));
++		seq_puts(m, "hierarchical_");
++		seq_puts(m, stat->name);
++		nr_pages = mem_cgroup_nr_lru_pages(memcg, stat->lru_mask, true);
++		seq_put_decimal_ull(m, "=", nr_pages);
++		for_each_node_state(nid, N_MEMORY) {
++			nr_pages = mem_cgroup_node_nr_lru_pages(memcg, nid,
++								stat->lru_mask,
++								true);
++			seq_put_decimal_ull(m, " N", nid);
++			seq_put_decimal_ull(m, "=", nr_pages);
++		}
+ 		seq_putc(m, '\n');
+ 	}
+ 
+@@ -1892,6 +1903,7 @@ void memcg1_stat_format(struct mem_cgrou
+ 	unsigned long memory, memsw;
+ 	struct mem_cgroup *mi;
+ 	unsigned int i;
++	u64 memory_limit, memsw_limit;
+ 
+ 	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) != ARRAY_SIZE(memcg1_stats));
+ 
+@@ -1901,17 +1913,24 @@ void memcg1_stat_format(struct mem_cgrou
+ 		unsigned long nr;
+ 
+ 		nr = memcg_page_state_local_output(memcg, memcg1_stats[i]);
+-		seq_buf_printf(s, "%s %lu\n", memcg1_stat_names[i], nr);
++		memcg_seq_buf_put_name_val(s, memcg1_stat_names[i], (u64)nr);
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
+-		seq_buf_printf(s, "%s %lu\n", vm_event_name(memcg1_events[i]),
+-			       memcg_events_local(memcg, memcg1_events[i]));
++	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++) {
++		u64 events;
+ 
+-	for (i = 0; i < NR_LRU_LISTS; i++)
+-		seq_buf_printf(s, "%s %lu\n", lru_list_name(i),
+-			       memcg_page_state_local(memcg, NR_LRU_BASE + i) *
+-			       PAGE_SIZE);
++		events = memcg_events_local(memcg, memcg1_events[i]);
++		memcg_seq_buf_put_name_val(s, vm_event_name(memcg1_events[i]),
++					   events);
++	}
++
++	for (i = 0; i < NR_LRU_LISTS; i++) {
++		u64 nr_pages;
++
++		nr_pages = memcg_page_state_local(memcg, NR_LRU_BASE + i) *
++			   PAGE_SIZE;
++		memcg_seq_buf_put_name_val(s, lru_list_name(i), nr_pages);
++	}
+ 
+ 	/* Hierarchical information */
+ 	memory = memsw = PAGE_COUNTER_MAX;
+@@ -1919,28 +1938,38 @@ void memcg1_stat_format(struct mem_cgrou
+ 		memory = min(memory, READ_ONCE(mi->memory.max));
+ 		memsw = min(memsw, READ_ONCE(mi->memsw.max));
+ 	}
+-	seq_buf_printf(s, "hierarchical_memory_limit %llu\n",
+-		       (u64)memory * PAGE_SIZE);
+-	seq_buf_printf(s, "hierarchical_memsw_limit %llu\n",
+-		       (u64)memsw * PAGE_SIZE);
++	memory_limit = (u64)memory * PAGE_SIZE;
++	memsw_limit = (u64)memsw * PAGE_SIZE;
++
++	memcg_seq_buf_put_name_val(s, "hierarchical_memory_limit",
++				   memory_limit);
++	memcg_seq_buf_put_name_val(s, "hierarchical_memsw_limit",
++				   memsw_limit);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
+ 		unsigned long nr;
+ 
+ 		nr = memcg_page_state_output(memcg, memcg1_stats[i]);
+-		seq_buf_printf(s, "total_%s %llu\n", memcg1_stat_names[i],
+-			       (u64)nr);
++		seq_buf_puts(s, "total_");
++		memcg_seq_buf_put_name_val(s, memcg1_stat_names[i], (u64)nr);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++) {
++		u64 events;
++
++		events = memcg_events(memcg, memcg1_events[i]);
++		seq_buf_puts(s, "total_");
++		memcg_seq_buf_put_name_val(s, vm_event_name(memcg1_events[i]),
++					   events);
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
+-		seq_buf_printf(s, "total_%s %llu\n",
+-			       vm_event_name(memcg1_events[i]),
+-			       (u64)memcg_events(memcg, memcg1_events[i]));
+-
+-	for (i = 0; i < NR_LRU_LISTS; i++)
+-		seq_buf_printf(s, "total_%s %llu\n", lru_list_name(i),
+-			       (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
+-			       PAGE_SIZE);
++	for (i = 0; i < NR_LRU_LISTS; i++) {
++		u64 nr_pages;
++
++		nr_pages = memcg_page_state(memcg, NR_LRU_BASE + i) * PAGE_SIZE;
++		seq_buf_puts(s, "total_");
++		memcg_seq_buf_put_name_val(s, lru_list_name(i), nr_pages);
++	}
+ 
+ #ifdef CONFIG_DEBUG_VM
+ 	{
+@@ -1955,8 +1984,8 @@ void memcg1_stat_format(struct mem_cgrou
+ 			anon_cost += mz->lruvec.anon_cost;
+ 			file_cost += mz->lruvec.file_cost;
+ 		}
+-		seq_buf_printf(s, "anon_cost %lu\n", anon_cost);
+-		seq_buf_printf(s, "file_cost %lu\n", file_cost);
++		memcg_seq_buf_put_name_val(s, "anon_cost", (u64)anon_cost);
++		memcg_seq_buf_put_name_val(s, "file_cost", (u64)file_cost);
+ 	}
+ #endif
+ }
+@@ -1990,11 +2019,14 @@ static int mem_cgroup_swappiness_write(s
+ static int mem_cgroup_oom_control_read(struct seq_file *sf, void *v)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(sf);
++	u64 oom_kill;
++
++	memcg_seq_put_name_val(sf, "oom_kill_disable",
++			       READ_ONCE(memcg->oom_kill_disable));
++	memcg_seq_put_name_val(sf, "under_oom", (bool)memcg->under_oom);
+ 
+-	seq_printf(sf, "oom_kill_disable %d\n", READ_ONCE(memcg->oom_kill_disable));
+-	seq_printf(sf, "under_oom %d\n", (bool)memcg->under_oom);
+-	seq_printf(sf, "oom_kill %lu\n",
+-		   atomic_long_read(&memcg->memory_events[MEMCG_OOM_KILL]));
++	oom_kill = atomic_long_read(&memcg->memory_events[MEMCG_OOM_KILL]);
++	memcg_seq_put_name_val(sf, "oom_kill", oom_kill);
+ 	return 0;
+ }
+ 
+--- a/mm/memcontrol-v1.h~mm-optimize-stat-output-for-11%-sys-time-reduce
++++ a/mm/memcontrol-v1.h
+@@ -4,6 +4,9 @@
+ #define __MM_MEMCONTROL_V1_H
+ 
+ #include <linux/cgroup-defs.h>
++#include <linux/seq_buf.h>
++#include <linux/seq_file.h>
++#include <linux/sprintf.h>
+ 
+ /* Cgroup v1 and v2 common declarations */
+ 
+@@ -31,6 +34,9 @@ int memory_stat_show(struct seq_file *m,
+ void mem_cgroup_private_id_get_many(struct mem_cgroup *memcg, unsigned int n);
+ struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg);
+ 
++void memcg_seq_put_name_val(struct seq_file *m, const char *name, u64 val);
++void memcg_seq_buf_put_name_val(struct seq_buf *s, const char *name, u64 val);
++
+ /* Cgroup v1-specific declarations */
+ #ifdef CONFIG_MEMCG_V1
+ 
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from wujianyue000@gmail.com are
 
-alpha-introduce-arch_zone_limits_init.patch
-arc-introduce-arch_zone_limits_init.patch
-arm-introduce-arch_zone_limits_init.patch
-arm64-introduce-arch_zone_limits_init.patch
-csky-introduce-arch_zone_limits_init.patch
-hexagon-introduce-arch_zone_limits_init.patch
-loongarch-introduce-arch_zone_limits_init.patch
-m68k-introduce-arch_zone_limits_init.patch
-microblaze-introduce-arch_zone_limits_init.patch
-mips-introduce-arch_zone_limits_init.patch
-nios2-introduce-arch_zone_limits_init.patch
-openrisc-introduce-arch_zone_limits_init.patch
-parisc-introduce-arch_zone_limits_init.patch
-powerpc-introduce-arch_zone_limits_init.patch
-riscv-introduce-arch_zone_limits_init.patch
-s390-introduce-arch_zone_limits_init.patch
-sh-introduce-arch_zone_limits_init.patch
-sparc-introduce-arch_zone_limits_init.patch
-um-introduce-arch_zone_limits_init.patch
-x86-introduce-arch_zone_limits_init.patch
-xtensa-introduce-arch_zone_limits_init.patch
-arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch
-arch-mm-consolidate-initialization-of-sparse-memory-model.patch
-mips-drop-paging_init.patch
-x86-dont-reserve-hugetlb-memory-in-setup_arch.patch
-mm-arch-consolidate-hugetlb-cma-reservation.patch
-mm-hugetlb-drop-hugetlb_cma_check.patch
-revert-mm-hugetlb-deal-with-multiple-calls-to-hugetlb_bootmem_alloc.patch
-kho-cleanup-error-handling-in-kho_populate.patch
+mm-optimize-stat-output-for-11%-sys-time-reduce.patch
 
