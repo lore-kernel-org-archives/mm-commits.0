@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7AC19C553
-	for <mm-commits@vger.kernel.org>; Fri, 23 Jan 2026 15:31:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A89A3286D7D
+	for <mm-commits@vger.kernel.org>; Fri, 23 Jan 2026 22:31:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769182277; cv=none; b=sDNgJZgA8NB3vTkszJcpg9bqYjpx6gXdHQADxmUO1EpmPHT/cUZ3bvZgAoTG3evPn0ump7iYzBaj31vFwbd6NsT221RkE8D4Ku3x44BuwHY6twcCkaRupOw1VDDGihNIUyBxM5Jf8z0qYqIGK8t/AImkRqDYPYS7KhcVr9AjQUg=
+	t=1769207485; cv=none; b=CGFnqLzYpxScJRIsYVrlh0ugHiA/9ERwP9czyiKXc/ySMp4mcTmx6+a7eTZJoP/DzUv/InGmVLLnuQJ2WcyuRmbyG9n7C+V2m2E5tA/agl0r7iZxq+AbeHjR0wsx59Uw7YKCCYNznkxiTJ0t+UGs2zFqtm8aYqdHF9Rm1Gktlso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769182277; c=relaxed/simple;
-	bh=Ni5hpBHguiLn97XS5C9+m86K9Cn2gG94DcanBwWRLes=;
-	h=Date:To:From:Subject:Message-Id; b=g73zq/EVSQ8xNzfB/uM9c9seduLZd0lp9ffebbEPZ0d7/IMm0W0w4dp/zlKVJYy74va27Eh3s/4X6thS59IAYN1QV3wn4IVzVn/LvYI1nWfhpJ0mwNaEhmSnqbX8E+xLqo+b6MRvdETQTyE0SOVZmK00SQM8WxwH6vLw0ofCj+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zbabnv6n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769207485; c=relaxed/simple;
+	bh=XEwRyIH5s1dalhFyxW/0DXW4xydzqC+BD7sq8GacNOU=;
+	h=Date:To:From:Subject:Message-Id; b=pnVRaalDLihyW35roGlnfPREdnqya35UR+FUjTIk1Iq1nxb+Q0m898iKxm944DjoI9y6/LlTEL1c9QnwZnIegqArzMuAptYaEumiSOYiKVJdvHGNkelTtkWgdY9cCTftrS05owmpgX2VwZ/4Pxc8q1JVhIyyMcxFrlPqCjR2Uos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d5nRrm03; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zbabnv6n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C3EC4CEF1;
-	Fri, 23 Jan 2026 15:31:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d5nRrm03"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BE1FC4CEF1;
+	Fri, 23 Jan 2026 22:31:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769182276;
-	bh=Ni5hpBHguiLn97XS5C9+m86K9Cn2gG94DcanBwWRLes=;
+	s=korg; t=1769207485;
+	bh=XEwRyIH5s1dalhFyxW/0DXW4xydzqC+BD7sq8GacNOU=;
 	h=Date:To:From:Subject:From;
-	b=Zbabnv6ngfoRioZq2s5/NzjaUdH3RXcxDeIZb5aXdHxReJgCUnEhSTA+rH+Mxs2kU
-	 EMwuIK92I0WJTGZUZJX+1Nh9KXVOOpm9AzXADs8WG2GTcGrlpSSjWaWv32Ttq8vXmU
-	 jvPZTtngIPFiR9Oy/adyETJgEL6oC6SWjAITmMcU=
-Date: Fri, 23 Jan 2026 07:31:15 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,shivankg@amd.com,akpm@linux-foundation.org
+	b=d5nRrm0333zn73fZZdcbd2pndJp7Ru5fNG2t5q8CtlLkmyjKr70kHJQibAqS0ZVbD
+	 PV+Rtzw9HCSCrt6/s47XXSP+nfQlfAt+Y8OpuavLZsBgRgkobRFnxgKCrwh3XU9ZyW
+	 oS5bExyzBSPJirTsydUyMwx6A6THokV3qEREkUvE=
+Date: Fri, 23 Jan 2026 14:31:24 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,cl@linux.com,cl@gentwo.org,bigeasy@linutronix.de,dennis@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] mm-khugepaged-count-small-vmas-towards-scan-limit.patch removed from -mm tree
-Message-Id: <20260123153116.44C3EC4CEF1@smtp.kernel.org>
+Subject: + percpu-add-double-free-check-to-pcpu_free_area.patch added to mm-new branch
+Message-Id: <20260123223125.1BE1FC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,101 +34,133 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/khugepaged: count small VMAs towards scan limit
-has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-count-small-vmas-towards-scan-limit.patch
+The patch titled
+     Subject: percpu: add double free check to pcpu_free_area()
+has been added to the -mm mm-new branch.  Its filename is
+     percpu-add-double-free-check-to-pcpu_free_area.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-add-double-free-check-to-pcpu_free_area.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Shivank Garg <shivankg@amd.com>
-Subject: mm/khugepaged: count small VMAs towards scan limit
-Date: Sun, 18 Jan 2026 19:22:55 +0000
+From: Dennis Zhou <dennis@kernel.org>
+Subject: percpu: add double free check to pcpu_free_area()
+Date: Fri, 23 Jan 2026 12:55:35 -0800
 
-The khugepaged_scan_mm_slot() uses a 'progress' counter to limit the
-amount of work performed and consists of three components:
-1. Transitioning to a new mm (+1).
-2. Skipping an unsuitable VMA (+1).
-3. Scanning a PMD-sized range (+HPAGE_PMD_NR).
+Percpu memory provides access via offsets into the percpu address space. 
+Offsets are essentially fixed for the lifetime of a chunk and therefore
+require all users be good samaritans.  If a user improperly handles the
+lifetime of the percpu object, it can result in corruption in a couple of
+ways:
 
-Consider a 1MB VMA sitting between two 2MB alignment boundaries:
+ - immediate double free - breaks percpu metadata accounting
+ - free after subsequent allocation
+    - corruption due to multiple owner problem (either prior owner still
+      writes or future allocation happens)
+    - potential for oops if the percpu pages are reclaimed as the
+      subsequent allocation isn't pinning the pages down
+    - can lead to page->private pointers pointing to freed chunks
 
-     vma1       vma2   vma3
-    +----------+------+----------+
-    |2M        |1M    |2M        |
-    +----------+------+----------+
-               ^      ^
-               start  end
-               ^
-          hstart,hend
+Sebastian noticed that if this happens, none of the memory debugging
+facilities add additional information [1].
 
-In this case, for vma2:
-  hstart = round_up(start, HPAGE_PMD_SIZE)  -> Next 2MB alignment
-  hend   = round_down(end, HPAGE_PMD_SIZE) -> Prev 2MB alignment
+This patch aims to catch invalid free scenarios within valid chunks.  To
+better guard free_percpu(), we can either add a magic number or some
+tracking facility to the percpu subsystem in a separate patch.
 
-Currently, since `hend <= hstart`, VMAs that are too small or unaligned to
-contain a hugepage are skipped without incrementing 'progress'.  A process
-containing a large number of such small VMAs will unfairly consume more
-CPU cycles before yielding compared to a process with fewer, larger, or
-aligned VMAs.
+The invalid free check in pcpu_free_area() validates that the allocation's
+starting bit is set in both alloc_map and bound_map.  The alloc_map bit
+test ensures the area is allocated while the bound_map bit test checks we
+are freeing from the beginning of an allocation.  We choose not to check
+the validity of the offset as that is encoded in page->private being a
+valid chunk.
 
-Fix this by incrementing progress when the `hend <= hstart` condition
-is met.
+pcpu_stats_area_dealloc() is moved later to only be on the happy path so
+stats are only updated on valid frees.
 
-Additionally, change 'progress' type to `unsigned int` to match both the
-'pages' type and the function return value.
-
-Link: https://lkml.kernel.org/r/20260118192253.9263-8-shivankg@amd.com
-Signed-off-by: Shivank Garg <shivankg@amd.com>
-Suggested-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20260123205535.35267-1-dennis@kernel.org
+Link: https://lore.kernel.org/lkml/20260119074813.ecAFsGaT@linutronix.de/ [1]
+Signed-off-by: Dennis Zhou <dennis@kernel.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Chistoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/percpu.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-count-small-vmas-towards-scan-limit
-+++ a/mm/khugepaged.c
-@@ -2403,7 +2403,7 @@ static unsigned int khugepaged_scan_mm_s
- 	struct mm_slot *slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
--	int progress = 0;
-+	unsigned int progress = 0;
+--- a/mm/percpu.c~percpu-add-double-free-check-to-pcpu_free_area
++++ a/mm/percpu.c
+@@ -1279,12 +1279,16 @@ static int pcpu_free_area(struct pcpu_ch
+ 	int bit_off, bits, end, oslot, freed;
  
- 	VM_BUG_ON(!pages);
- 	lockdep_assert_held(&khugepaged_mm_lock);
-@@ -2447,7 +2447,8 @@ static unsigned int khugepaged_scan_mm_s
- 		}
- 		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
- 		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
--		if (khugepaged_scan.address > hend) {
-+		if (khugepaged_scan.address > hend || hend <= hstart) {
-+			/* VMA already scanned or too small/unaligned for hugepage. */
- 			progress++;
- 			continue;
- 		}
+ 	lockdep_assert_held(&pcpu_lock);
+-	pcpu_stats_area_dealloc(chunk);
+ 
+ 	oslot = pcpu_chunk_slot(chunk);
+ 
+ 	bit_off = off / PCPU_MIN_ALLOC_SIZE;
+ 
++	/* check invalid free */
++	if (!test_bit(bit_off, chunk->alloc_map) ||
++	    !test_bit(bit_off, chunk->bound_map))
++		return 0;
++
+ 	/* find end index */
+ 	end = find_next_bit(chunk->bound_map, pcpu_chunk_map_bits(chunk),
+ 			    bit_off + 1);
+@@ -1303,6 +1307,8 @@ static int pcpu_free_area(struct pcpu_ch
+ 
+ 	pcpu_chunk_relocate(chunk, oslot);
+ 
++	pcpu_stats_area_dealloc(chunk);
++
+ 	return freed;
+ }
+ 
+@@ -2242,6 +2248,13 @@ void free_percpu(void __percpu *ptr)
+ 
+ 	spin_lock_irqsave(&pcpu_lock, flags);
+ 	size = pcpu_free_area(chunk, off);
++	if (size == 0) {
++		spin_unlock_irqrestore(&pcpu_lock, flags);
++
++		/* invalid percpu free */
++		WARN_ON_ONCE(1);
++		return;
++	}
+ 
+ 	pcpu_alloc_tag_free_hook(chunk, off, size);
+ 
 _
 
-Patches currently in -mm which might be from shivankg@amd.com are
+Patches currently in -mm which might be from dennis@kernel.org are
 
-mm-khugepaged-map-dirty-writeback-pages-failures-to-eagain.patch
-mm-khugepaged-retry-with-sync-writeback-for-madv_collapse.patch
-mm-khugepaged-remove-unnecessary-goto-skip-label.patch
-mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch
-mm-khugepaged-use-enum-scan_result-for-result-variables-and-return-types.patch
-mm-khugepaged-make-khugepaged_collapse_control-static.patch
+percpu-add-double-free-check-to-pcpu_free_area.patch
 
