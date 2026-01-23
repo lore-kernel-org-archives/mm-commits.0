@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DD49BA21
-	for <mm-commits@vger.kernel.org>; Fri, 23 Jan 2026 23:06:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B2263EBF3B
+	for <mm-commits@vger.kernel.org>; Fri, 23 Jan 2026 23:41:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769209585; cv=none; b=cHeCwkhe7gTaQy3fQUUhJgWXYkosn6f0iBq8v2gJ7MgN4tx3HbHBCrSNy3Afxn0CGaT2h9L5GT3WL+ZvFxt7nmyXZGzd8u5V4BO54iAa/d8c1taSs4oCTSCsqbfz5QQvNH3U9Gi+XsjH+FwC3BPZtVx4Vr0prEkJCKqiHOs5sjs=
+	t=1769211679; cv=none; b=Hf/zvfl+QDwhG3/wENkTrZpphO1QygxhdnUFOZfra2w+khq9QKQ5TpKXnmuYnvY66kOf2eXY3a1AlGCHf0e9lk1ijwCyq7fVJxfUHXKVuHgUe3yXRKI8+zYizWMdKIukafUIHQq1ogFu0z/ZzNNi+yGL/ULtLHl5jNwracOvW7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769209585; c=relaxed/simple;
-	bh=GE0nt4BxYV6P/FnemHSPkyH88wY102nPdSnYyMP4K8w=;
-	h=Date:To:From:Subject:Message-Id; b=q4V7JGSSxX58FRpThCfZO4OdsD/X8LTsN514f3jj14bD5xQ21YS9WaWEWaJgjJ8QFn39BxMRkAQyvWypOepjl+HiRU5rYc7K60BthtXAlMMf2tskiL34H1fXgdZyr9HoWJhenuqWIrPDNC6DPru2kpxXDGpQiqxqJ18j9JKDIzk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C3lR1i+/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769211679; c=relaxed/simple;
+	bh=uDuP3FvkKN5S5S9p/vJ8pw2eqylwpKxl6IXq/eMpQOU=;
+	h=Date:To:From:Subject:Message-Id; b=MbkGNvNhsXMFIh/jhfo4n82V9jwoi+NyfxYz+M2Pq7L7pBj4eUNT3DqwmoQsyXzM5ixMaw9GM/cKC47I+orD4r+jfiE12nVIhSEqsmvZTnCfpt5LYfitLNqKIJgQOEDjCHkFhpjeSrfZuYCZBHEBodhqW0W6vUVaa2qKy2brq80=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=St+Gpmvb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C3lR1i+/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B980AC4CEF1;
-	Fri, 23 Jan 2026 23:06:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="St+Gpmvb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11CC2C4CEF1;
+	Fri, 23 Jan 2026 23:41:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769209584;
-	bh=GE0nt4BxYV6P/FnemHSPkyH88wY102nPdSnYyMP4K8w=;
+	s=korg; t=1769211679;
+	bh=uDuP3FvkKN5S5S9p/vJ8pw2eqylwpKxl6IXq/eMpQOU=;
 	h=Date:To:From:Subject:From;
-	b=C3lR1i+//ytis6ebOcPcrT00bZwnSAK9WF08FxvGr6WQ+lMFzSIFBe97o/FTYDfbm
-	 SAZi82LannTK9aeYNu0ehpcWerQlLqWM2mdxMmbow9lo/tfuYUyv6JnL0g4wTysQ5x
-	 ZF3pGNDyZ0BMQN6Jcejof5ecowrfRdSMinpZvkJE=
-Date: Fri, 23 Jan 2026 15:06:24 -0800
-To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,hughd@google.com,graf@amazon.com,baolin.wang@linux.alibaba.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=St+GpmvbEGQBWerWzBqpWpQZ5MgYKs46JuIDvhrGVSdylwpTGMR/EM3pBLA9aqhvS
+	 WOjQhrpZBHgus7HYx2d6R5e5mpYZoZhc0Hr491ZAWfV7HVqY2DNsgxDYTBseJuelTg
+	 iyRGH2zCg3jMs/sg4LGD84j4pLdtCfjPynIsEsCc=
+Date: Fri, 23 Jan 2026 15:41:18 -0800
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,inwardvessel@gmail.com,hannes@cmpxchg.org,wujianyue000@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd_luo-preserve-file-seals.patch added to mm-new branch
-Message-Id: <20260123230624.B980AC4CEF1@smtp.kernel.org>
+Subject: + mm-optimize-stat-output-for-11%-sys-time-reduce.patch added to mm-new branch
+Message-Id: <20260123234119.11CC2C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memfd_luo: preserve file seals
+     Subject: mm, memcg: optimize stat output for 11% sys time reduction
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memfd_luo-preserve-file-seals.patch
+     mm-optimize-stat-output-for-11%-sys-time-reduce.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-preserve-file-seals.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-stat-output-for-11%-sys-time-reduce.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,151 +66,355 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: mm: memfd_luo: preserve file seals
-Date: Fri, 23 Jan 2026 10:58:51 +0100
+From: Jianyue Wu <wujianyue000@gmail.com>
+Subject: mm, memcg: optimize stat output for 11% sys time reduction
+Date: Fri, 23 Jan 2026 23:01:08 +0800
 
-File seals are used on memfd for making shared memory communication with
-untrusted peers safer and simpler.  Seals provide a guarantee that certain
-operations won't be allowed on the file such as writes or truncations. 
-Maintaining these guarantees across a live update will help keeping such
-use cases secure.
+Replace seq_buf_printf() calls in memcg stat formatting with a lightweight
+helper function and replace seq_printf() in numa stat output with direct
+seq operations to avoid printf format parsing overhead.
 
-These guarantees will also be needed for IOMMUFD preservation with LUO. 
-Normally when IOMMUFD maps a memfd, it pins all its pages to make sure any
-truncation operations on the memfd don't lead to IOMMUFD using freed
-memory.  This doesn't work with LUO since the preserved memfd might have
-completely different pages after a live update, and mapping them back to
-the IOMMUFD will cause all sorts of problems.  Using and preserving the
-seals allows IOMMUFD preservation logic to trust the memfd.
+Key changes:
+- Add memcg_seq_buf_print_stat() helper that embeds separator and
+  newline directly in the number buffer to reduce function calls
+- Replace seq_buf_printf() in memcg_stat_format() with
+  memcg_seq_buf_print_stat()
+- Replace seq_printf() in memory_numa_stat_show() and
+  memcg_numa_stat_show() with seq_puts() and seq_put_decimal_ull()
+- Update memory_stat_format() and related v1 stats formatting
 
-Preserve the seals by introducing a new 8-bit-wide bitfield.  There are
-currently only 6 possible seals but 2 extra bits are used to provide room
-for future expansion.  Since the seals are UAPI, it is safe to use them
-directly in the ABI.
+Performance improvement (1M reads of memory.stat + memory.numa_stat):
+- Before: real 0m9.663s, user 0m4.840s, sys 0m4.823s
+- After:  real 0m8.909s, user 0m4.661s, sys 0m4.247s
+- Result: ~11% sys time reduction
 
-Back the 8-bit field with a u64, leaving 56 unused bits.  This is done to
-keep the struct nice and aligned.  The unused bits can be used to add new
-flags later, potentially without even needing to bump the version number.
+Test script:
+  for ((i=1; i<=1000000; i++)); do
+      : > /dev/null < /sys/fs/cgroup/memory.stat
+      : > /dev/null < /sys/fs/cgroup/memory.numa_stat
+  done
 
-Since the serialization structure is changed, bump the version number to
-"memfd-v2".
-
-Link: https://lkml.kernel.org/r/20260123095854.535058-3-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Samiullah Khawaja <skhawaja@google.com>
+Link: https://lkml.kernel.org/r/20260123150108.43443-2-wujianyue000@gmail.com
+Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
+Suggested-by: JP Kobryn <inwardvessel@gmail.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Tested-by: JP Kobryn <inwardvessel@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kho/abi/memfd.h |    9 ++++++++-
- mm/memfd_luo.c                |   23 +++++++++++++++++++++--
- 2 files changed, 29 insertions(+), 3 deletions(-)
+ mm/memcontrol-v1.c |   84 +++++++++++++++++++++++------------------
+ mm/memcontrol-v1.h |    4 +
+ mm/memcontrol.c    |   88 ++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 123 insertions(+), 53 deletions(-)
 
---- a/include/linux/kho/abi/memfd.h~mm-memfd_luo-preserve-file-seals
-+++ a/include/linux/kho/abi/memfd.h
-@@ -60,6 +60,11 @@ struct memfd_luo_folio_ser {
-  * struct memfd_luo_ser - Main serialization structure for a memfd.
-  * @pos:       The file's current position (f_pos).
-  * @size:      The total size of the file in bytes (i_size).
-+ * @seals:     The seals present on the memfd. The seals are UAPI so it is safe
-+ *             to directly use them in the ABI. Note: currently there are 6
-+ *             seals possible but this field is 8 bits to leave room for future
-+ *             expansion.
-+ * @__reserved: Reserved bits. May be used later to add more flags.
-  * @nr_folios: Number of folios in the folios array.
-  * @folios:    KHO vmalloc descriptor pointing to the array of
-  *             struct memfd_luo_folio_ser.
-@@ -67,11 +72,13 @@ struct memfd_luo_folio_ser {
- struct memfd_luo_ser {
- 	u64 pos;
- 	u64 size;
-+	u64 seals:8;
-+	u64 __reserved:56;
- 	u64 nr_folios;
- 	struct kho_vmalloc folios;
- } __packed;
+--- a/mm/memcontrol.c~mm-optimize-stat-output-for-11%-sys-time-reduce
++++ a/mm/memcontrol.c
+@@ -42,6 +42,7 @@
+ #include <linux/bit_spinlock.h>
+ #include <linux/rcupdate.h>
+ #include <linux/limits.h>
++#include <linux/sprintf.h>
+ #include <linux/export.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+@@ -1460,6 +1461,53 @@ static bool memcg_accounts_hugetlb(void)
+ }
+ #endif /* CONFIG_HUGETLB_PAGE */
  
- /* The compatibility string for memfd file handler */
--#define MEMFD_LUO_FH_COMPATIBLE	"memfd-v1"
-+#define MEMFD_LUO_FH_COMPATIBLE	"memfd-v2"
- 
- #endif /* _LINUX_KHO_ABI_MEMFD_H */
---- a/mm/memfd_luo.c~mm-memfd_luo-preserve-file-seals
-+++ a/mm/memfd_luo.c
-@@ -79,6 +79,8 @@
- #include <linux/shmem_fs.h>
- #include <linux/vmalloc.h>
- #include <linux/memfd.h>
-+#include <uapi/linux/memfd.h>
++/* Max 2^64 - 1 = 18446744073709551615 (20 digits) */
++#define MEMCG_DEC_U64_MAX_LEN 20
 +
++/**
++ * memcg_seq_buf_print_stat - Write a name-value pair to a seq_buf with newline
++ * @s: The seq_buf to write to
++ * @prefix: Optional prefix string (can be NULL or "")
++ * @name: The name string to write
++ * @sep: Separator character between name and value (typically ' ' or '=')
++ * @val: The u64 value to write
++ *
++ * This helper efficiently formats and writes "<prefix><name><sep><value>\n"
++ * to a seq_buf. It manually converts the value to a string using num_to_str
++ * and embeds the separator and newline in the buffer to minimize function
++ * calls for better performance.
++ *
++ * The function checks for overflow at each step and returns early if any
++ * operation would cause the buffer to overflow.
++ *
++ * Example: memcg_seq_buf_print_stat(s, "total_", "cache", ' ', 1048576)
++ *          Output: "total_cache 1048576\n"
++ */
++void memcg_seq_buf_print_stat(struct seq_buf *s, const char *prefix,
++			      const char *name, char sep, u64 val)
++{
++	char num_buf[MEMCG_DEC_U64_MAX_LEN + 2];  /* +2 for separator and newline */
++	int num_len;
++
++	/* Embed separator at the beginning */
++	num_buf[0] = sep;
++
++	/* Convert number starting at offset 1 */
++	num_len = num_to_str(num_buf + 1, sizeof(num_buf) - 2, val, 0);
++	if (num_len <= 0)
++		return;
++
++	/* Embed newline at the end */
++	num_buf[num_len + 1] = '\n';
++
++	if (prefix && *prefix && seq_buf_puts(s, prefix))
++		return;
++	if (seq_buf_puts(s, name))
++		return;
++	/* Output separator, value, and newline in one call */
++	seq_buf_putmem(s, num_buf, num_len + 2);
++}
++
+ static void memcg_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
+ {
+ 	int i;
+@@ -1485,26 +1533,26 @@ static void memcg_stat_format(struct mem
+ 			continue;
+ #endif
+ 		size = memcg_page_state_output(memcg, memory_stats[i].idx);
+-		seq_buf_printf(s, "%s %llu\n", memory_stats[i].name, size);
++		memcg_seq_buf_print_stat(s, NULL, memory_stats[i].name, ' ', size);
+ 
+ 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
+ 			size += memcg_page_state_output(memcg,
+ 							NR_SLAB_RECLAIMABLE_B);
+-			seq_buf_printf(s, "slab %llu\n", size);
++			memcg_seq_buf_print_stat(s, NULL, "slab", ' ', size);
+ 		}
+ 	}
+ 
+ 	/* Accumulated memory events */
+-	seq_buf_printf(s, "pgscan %lu\n",
+-		       memcg_events(memcg, PGSCAN_KSWAPD) +
+-		       memcg_events(memcg, PGSCAN_DIRECT) +
+-		       memcg_events(memcg, PGSCAN_PROACTIVE) +
+-		       memcg_events(memcg, PGSCAN_KHUGEPAGED));
+-	seq_buf_printf(s, "pgsteal %lu\n",
+-		       memcg_events(memcg, PGSTEAL_KSWAPD) +
+-		       memcg_events(memcg, PGSTEAL_DIRECT) +
+-		       memcg_events(memcg, PGSTEAL_PROACTIVE) +
+-		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
++	memcg_seq_buf_print_stat(s, NULL, "pgscan", ' ',
++				 memcg_events(memcg, PGSCAN_KSWAPD) +
++				 memcg_events(memcg, PGSCAN_DIRECT) +
++				 memcg_events(memcg, PGSCAN_PROACTIVE) +
++				 memcg_events(memcg, PGSCAN_KHUGEPAGED));
++	memcg_seq_buf_print_stat(s, NULL, "pgsteal", ' ',
++				 memcg_events(memcg, PGSTEAL_KSWAPD) +
++				 memcg_events(memcg, PGSTEAL_DIRECT) +
++				 memcg_events(memcg, PGSTEAL_PROACTIVE) +
++				 memcg_events(memcg, PGSTEAL_KHUGEPAGED));
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++) {
+ #ifdef CONFIG_MEMCG_V1
+@@ -1512,9 +1560,9 @@ static void memcg_stat_format(struct mem
+ 		    memcg_vm_event_stat[i] == PGPGOUT)
+ 			continue;
+ #endif
+-		seq_buf_printf(s, "%s %lu\n",
+-			       vm_event_name(memcg_vm_event_stat[i]),
+-			       memcg_events(memcg, memcg_vm_event_stat[i]));
++		memcg_seq_buf_print_stat(s, NULL,
++					 vm_event_name(memcg_vm_event_stat[i]), ' ',
++					 memcg_events(memcg, memcg_vm_event_stat[i]));
+ 	}
+ }
+ 
+@@ -4513,7 +4561,12 @@ static int memory_numa_stat_show(struct
+ 		if (memory_stats[i].idx >= NR_VM_NODE_STAT_ITEMS)
+ 			continue;
+ 
+-		seq_printf(m, "%s", memory_stats[i].name);
++		/*
++		 * Output format: "stat_name N0=value0 N1=value1 ...\n"
++		 * Use seq_puts and seq_put_decimal_ull to avoid printf
++		 * format parsing overhead in this hot path.
++		 */
++		seq_puts(m, memory_stats[i].name);
+ 		for_each_node_state(nid, N_MEMORY) {
+ 			u64 size;
+ 			struct lruvec *lruvec;
+@@ -4521,7 +4574,8 @@ static int memory_numa_stat_show(struct
+ 			lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
+ 			size = lruvec_page_state_output(lruvec,
+ 							memory_stats[i].idx);
+-			seq_printf(m, " N%d=%llu", nid, size);
++			seq_put_decimal_ull(m, " N", nid);
++			seq_put_decimal_ull(m, "=", size);
+ 		}
+ 		seq_putc(m, '\n');
+ 	}
+--- a/mm/memcontrol-v1.c~mm-optimize-stat-output-for-11%-sys-time-reduce
++++ a/mm/memcontrol-v1.c
+@@ -10,7 +10,7 @@
+ #include <linux/poll.h>
+ #include <linux/sort.h>
+ #include <linux/file.h>
+-#include <linux/seq_buf.h>
++#include <linux/string.h>
+ 
  #include "internal.h"
+ #include "swap.h"
+@@ -1816,26 +1816,39 @@ static int memcg_numa_stat_show(struct s
  
- static int memfd_luo_preserve_folios(struct file *file,
-@@ -222,7 +224,7 @@ static int memfd_luo_preserve(struct liv
- 	struct memfd_luo_folio_ser *folios_ser;
- 	struct memfd_luo_ser *ser;
- 	u64 nr_folios;
--	int err = 0;
-+	int err = 0, seals;
+ 	mem_cgroup_flush_stats(memcg);
  
- 	inode_lock(inode);
- 	shmem_freeze(inode, true);
-@@ -234,8 +236,15 @@ static int memfd_luo_preserve(struct liv
- 		goto err_unlock;
- 	}
- 
-+	seals = memfd_get_seals(args->file);
-+	if (seals < 0) {
-+		err = seals;
-+		goto err_free_ser;
-+	}
-+
- 	ser->pos = args->file->f_pos;
- 	ser->size = i_size_read(inode);
-+	ser->seals = seals;
- 
- 	err = memfd_luo_preserve_folios(args->file, &ser->folios,
- 					&folios_ser, &nr_folios);
-@@ -444,13 +453,23 @@ static int memfd_luo_retrieve(struct liv
- 	if (!ser)
- 		return -EINVAL;
- 
--	file = memfd_alloc_file("", 0);
 +	/*
-+	 * The seals are preserved. Allow sealing here so they can be added
-+	 * later.
++	 * Output format: "stat_name=value N0=value0 N1=value1 ...\n"
++	 * Use seq_puts and seq_put_decimal_ull to avoid printf format
++	 * parsing overhead in this hot path.
 +	 */
-+	file = memfd_alloc_file("", MFD_ALLOW_SEALING);
- 	if (IS_ERR(file)) {
- 		pr_err("failed to setup file: %pe\n", file);
- 		err = PTR_ERR(file);
- 		goto free_ser;
+ 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
+-		seq_printf(m, "%s=%lu", stat->name,
+-			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
+-						   false));
+-		for_each_node_state(nid, N_MEMORY)
+-			seq_printf(m, " N%d=%lu", nid,
+-				   mem_cgroup_node_nr_lru_pages(memcg, nid,
+-							stat->lru_mask, false));
++		seq_puts(m, stat->name);
++		seq_put_decimal_ull(m, "=",
++				    mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
++							    false));
++		for_each_node_state(nid, N_MEMORY) {
++			seq_put_decimal_ull(m, " N", nid);
++			seq_put_decimal_ull(m, "=",
++					    mem_cgroup_node_nr_lru_pages(memcg, nid,
++									 stat->lru_mask,
++									 false));
++		}
+ 		seq_putc(m, '\n');
  	}
  
-+	err = memfd_add_seals(file, ser->seals);
-+	if (err) {
-+		pr_err("failed to add seals: %pe\n", ERR_PTR(err));
-+		goto put_file;
-+	}
+ 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
+-
+-		seq_printf(m, "hierarchical_%s=%lu", stat->name,
+-			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
+-						   true));
+-		for_each_node_state(nid, N_MEMORY)
+-			seq_printf(m, " N%d=%lu", nid,
+-				   mem_cgroup_node_nr_lru_pages(memcg, nid,
+-							stat->lru_mask, true));
++		seq_puts(m, "hierarchical_");
++		seq_puts(m, stat->name);
++		seq_put_decimal_ull(m, "=",
++				    mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
++							    true));
++		for_each_node_state(nid, N_MEMORY) {
++			seq_put_decimal_ull(m, " N", nid);
++			seq_put_decimal_ull(m, "=",
++					    mem_cgroup_node_nr_lru_pages(memcg, nid,
++									 stat->lru_mask,
++									 true));
++		}
+ 		seq_putc(m, '\n');
+ 	}
+ 
+@@ -1901,17 +1914,17 @@ void memcg1_stat_format(struct mem_cgrou
+ 		unsigned long nr;
+ 
+ 		nr = memcg_page_state_local_output(memcg, memcg1_stats[i]);
+-		seq_buf_printf(s, "%s %lu\n", memcg1_stat_names[i], nr);
++		memcg_seq_buf_print_stat(s, NULL, memcg1_stat_names[i], ' ', (u64)nr);
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
+-		seq_buf_printf(s, "%s %lu\n", vm_event_name(memcg1_events[i]),
+-			       memcg_events_local(memcg, memcg1_events[i]));
++		memcg_seq_buf_print_stat(s, NULL, vm_event_name(memcg1_events[i]),
++					 ' ', memcg_events_local(memcg, memcg1_events[i]));
+ 
+ 	for (i = 0; i < NR_LRU_LISTS; i++)
+-		seq_buf_printf(s, "%s %lu\n", lru_list_name(i),
+-			       memcg_page_state_local(memcg, NR_LRU_BASE + i) *
+-			       PAGE_SIZE);
++		memcg_seq_buf_print_stat(s, NULL, lru_list_name(i), ' ',
++					 memcg_page_state_local(memcg, NR_LRU_BASE + i) *
++					 PAGE_SIZE);
+ 
+ 	/* Hierarchical information */
+ 	memory = memsw = PAGE_COUNTER_MAX;
+@@ -1919,28 +1932,27 @@ void memcg1_stat_format(struct mem_cgrou
+ 		memory = min(memory, READ_ONCE(mi->memory.max));
+ 		memsw = min(memsw, READ_ONCE(mi->memsw.max));
+ 	}
+-	seq_buf_printf(s, "hierarchical_memory_limit %llu\n",
+-		       (u64)memory * PAGE_SIZE);
+-	seq_buf_printf(s, "hierarchical_memsw_limit %llu\n",
+-		       (u64)memsw * PAGE_SIZE);
++	memcg_seq_buf_print_stat(s, NULL, "hierarchical_memory_limit", ' ',
++				 (u64)memory * PAGE_SIZE);
++	memcg_seq_buf_print_stat(s, NULL, "hierarchical_memsw_limit", ' ',
++				 (u64)memsw * PAGE_SIZE);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
+ 		unsigned long nr;
+ 
+ 		nr = memcg_page_state_output(memcg, memcg1_stats[i]);
+-		seq_buf_printf(s, "total_%s %llu\n", memcg1_stat_names[i],
+-			       (u64)nr);
++		memcg_seq_buf_print_stat(s, "total_", memcg1_stat_names[i], ' ',
++					 (u64)nr);
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
+-		seq_buf_printf(s, "total_%s %llu\n",
+-			       vm_event_name(memcg1_events[i]),
+-			       (u64)memcg_events(memcg, memcg1_events[i]));
++		memcg_seq_buf_print_stat(s, "total_", vm_event_name(memcg1_events[i]),
++					 ' ', (u64)memcg_events(memcg, memcg1_events[i]));
+ 
+ 	for (i = 0; i < NR_LRU_LISTS; i++)
+-		seq_buf_printf(s, "total_%s %llu\n", lru_list_name(i),
+-			       (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
+-			       PAGE_SIZE);
++		memcg_seq_buf_print_stat(s, "total_", lru_list_name(i), ' ',
++					 (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
++					 PAGE_SIZE);
+ 
+ #ifdef CONFIG_DEBUG_VM
+ 	{
+@@ -1955,8 +1967,8 @@ void memcg1_stat_format(struct mem_cgrou
+ 			anon_cost += mz->lruvec.anon_cost;
+ 			file_cost += mz->lruvec.file_cost;
+ 		}
+-		seq_buf_printf(s, "anon_cost %lu\n", anon_cost);
+-		seq_buf_printf(s, "file_cost %lu\n", file_cost);
++		memcg_seq_buf_print_stat(s, NULL, "anon_cost", ' ', (u64)anon_cost);
++		memcg_seq_buf_print_stat(s, NULL, "file_cost", ' ', (u64)file_cost);
+ 	}
+ #endif
+ }
+--- a/mm/memcontrol-v1.h~mm-optimize-stat-output-for-11%-sys-time-reduce
++++ a/mm/memcontrol-v1.h
+@@ -4,6 +4,7 @@
+ #define __MM_MEMCONTROL_V1_H
+ 
+ #include <linux/cgroup-defs.h>
++#include <linux/seq_buf.h>
+ 
+ /* Cgroup v1 and v2 common declarations */
+ 
+@@ -31,6 +32,9 @@ int memory_stat_show(struct seq_file *m,
+ void mem_cgroup_private_id_get_many(struct mem_cgroup *memcg, unsigned int n);
+ struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg);
+ 
++void memcg_seq_buf_print_stat(struct seq_buf *s, const char *prefix,
++			      const char *name, char sep, u64 val);
 +
- 	vfs_setpos(file, ser->pos, MAX_LFS_FILESIZE);
- 	file->f_inode->i_size = ser->size;
+ /* Cgroup v1-specific declarations */
+ #ifdef CONFIG_MEMCG_V1
  
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from wujianyue000@gmail.com are
 
-memfd-export-alloc_file.patch
-mm-memfd_luo-use-memfd_alloc_file-instead-of-shmem_file_setup.patch
-mm-memfd_luo-restore-and-free-memfd_luo_ser-on-failure.patch
-memfd-export-memfd_addget_seals.patch
-mm-memfd_luo-preserve-file-seals.patch
-kho-use-unsigned-long-for-nr_pages.patch
-kho-simplify-page-initialization-in-kho_restore_page.patch
+mm-optimize-stat-output-for-11%-sys-time-reduce.patch
 
