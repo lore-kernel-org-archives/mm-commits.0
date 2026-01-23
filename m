@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B2263EBF3B
-	for <mm-commits@vger.kernel.org>; Fri, 23 Jan 2026 23:41:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 874C918BC3B;
+	Fri, 23 Jan 2026 23:47:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769211679; cv=none; b=Hf/zvfl+QDwhG3/wENkTrZpphO1QygxhdnUFOZfra2w+khq9QKQ5TpKXnmuYnvY66kOf2eXY3a1AlGCHf0e9lk1ijwCyq7fVJxfUHXKVuHgUe3yXRKI8+zYizWMdKIukafUIHQq1ogFu0z/ZzNNi+yGL/ULtLHl5jNwracOvW7Y=
+	t=1769212039; cv=none; b=XhtLkZr8OufItmngpVyog7PABKvDwXJveyuXYx9o8k6eT0SSWYNe2O099h7/iqzDQg185PRXol/9rc4jq3WSwq5uuIhcVN43kjGYAy+BGFRk/O/41jtQmdZbG7Xycf7MlW3mt+qN2EamTcqP5oSHqxH0H+FWRhtlJzHmcLs9qeE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769211679; c=relaxed/simple;
-	bh=uDuP3FvkKN5S5S9p/vJ8pw2eqylwpKxl6IXq/eMpQOU=;
-	h=Date:To:From:Subject:Message-Id; b=MbkGNvNhsXMFIh/jhfo4n82V9jwoi+NyfxYz+M2Pq7L7pBj4eUNT3DqwmoQsyXzM5ixMaw9GM/cKC47I+orD4r+jfiE12nVIhSEqsmvZTnCfpt5LYfitLNqKIJgQOEDjCHkFhpjeSrfZuYCZBHEBodhqW0W6vUVaa2qKy2brq80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=St+Gpmvb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769212039; c=relaxed/simple;
+	bh=TumnA3/S3uxDkS0YRpeWFX+7ih2OIthnuN41bLEmwas=;
+	h=Date:To:From:Subject:Message-Id; b=Jar0pFJuWtoFCBLOvMkLWXStbmxo945OQINooL1EmwWoE9UciHFy7NFuGKYnNq2AFr4rBp6iQTsIlK+SMZde9zN/LAcyktRhZQNQCldraZWWyK0rVlaPMxkbOYH1ExQG4Ft1XlD1yArgqIUY8mH3kq80NS/a7kLOxmq7/xf7ruU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DFeuhaZ8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="St+Gpmvb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11CC2C4CEF1;
-	Fri, 23 Jan 2026 23:41:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DFeuhaZ8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1554EC4CEF1;
+	Fri, 23 Jan 2026 23:47:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769211679;
-	bh=uDuP3FvkKN5S5S9p/vJ8pw2eqylwpKxl6IXq/eMpQOU=;
+	s=korg; t=1769212039;
+	bh=TumnA3/S3uxDkS0YRpeWFX+7ih2OIthnuN41bLEmwas=;
 	h=Date:To:From:Subject:From;
-	b=St+GpmvbEGQBWerWzBqpWpQZ5MgYKs46JuIDvhrGVSdylwpTGMR/EM3pBLA9aqhvS
-	 WOjQhrpZBHgus7HYx2d6R5e5mpYZoZhc0Hr491ZAWfV7HVqY2DNsgxDYTBseJuelTg
-	 iyRGH2zCg3jMs/sg4LGD84j4pLdtCfjPynIsEsCc=
-Date: Fri, 23 Jan 2026 15:41:18 -0800
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,inwardvessel@gmail.com,hannes@cmpxchg.org,wujianyue000@gmail.com,akpm@linux-foundation.org
+	b=DFeuhaZ8BBmhPUPvzHr2CwGpgxIQkeefoPpFSQ6ZlZJAOpArfcJDjcvjAUFu4X2+v
+	 PLhCDwAihy5ibV51Jpsb6kuRthHXQTyWcu1W/TZMhpdqooAvZZRXlk17SFEbr3mF7H
+	 mOR1PKB6H5kVmpn+A5aLqFTmK8Udl+d43HqRu8I0=
+Date: Fri, 23 Jan 2026 15:47:18 -0800
+To: mm-commits@vger.kernel.org,zhangjn11@chinatelecom.cn,yuanql9@chinatelecom.cn,yangyicong@hisilicon.com,wangjinchao600@gmail.com,thorsten.blum@linux.dev,sunshx@chinatelecom.cn,stable@vger.kernel.org,song@kernel.org,mingo@kernel.org,lihuafei1@huawei.com,dianders@chromium.org,realwujing@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-optimize-stat-output-for-11%-sys-time-reduce.patch added to mm-new branch
-Message-Id: <20260123234119.11CC2C4CEF1@smtp.kernel.org>
+Subject: + watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch added to mm-nonmm-unstable branch
+Message-Id: <20260123234719.1554EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, memcg: optimize stat output for 11% sys time reduction
-has been added to the -mm mm-new branch.  Its filename is
-     mm-optimize-stat-output-for-11%-sys-time-reduce.patch
+     Subject: watchdog/hardlockup: fix UAF in perf event cleanup due to migration race
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-stat-output-for-11%-sys-time-reduce.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,355 +58,236 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jianyue Wu <wujianyue000@gmail.com>
-Subject: mm, memcg: optimize stat output for 11% sys time reduction
-Date: Fri, 23 Jan 2026 23:01:08 +0800
+From: Qiliang Yuan <realwujing@gmail.com>
+Subject: watchdog/hardlockup: fix UAF in perf event cleanup due to migration race
+Date: Fri, 23 Jan 2026 01:34:07 -0500
 
-Replace seq_buf_printf() calls in memcg stat formatting with a lightweight
-helper function and replace seq_printf() in numa stat output with direct
-seq operations to avoid printf format parsing overhead.
+During the early initialization of the hardlockup detector, the
+hardlockup_detector_perf_init() function probes for PMU hardware
+availability.  It originally used hardlockup_detector_event_create(),
+which interacts with the per-cpu 'watchdog_ev' variable.
 
-Key changes:
-- Add memcg_seq_buf_print_stat() helper that embeds separator and
-  newline directly in the number buffer to reduce function calls
-- Replace seq_buf_printf() in memcg_stat_format() with
-  memcg_seq_buf_print_stat()
-- Replace seq_printf() in memory_numa_stat_show() and
-  memcg_numa_stat_show() with seq_puts() and seq_put_decimal_ull()
-- Update memory_stat_format() and related v1 stats formatting
+If the initializing task migrates to another CPU during this probe phase,
+two issues arise:
+1. The 'watchdog_ev' pointer on the original CPU is set but not cleared,
+   leaving a stale pointer to a freed perf event.
+2. The 'watchdog_ev' pointer on the new CPU might be incorrectly cleared.
 
-Performance improvement (1M reads of memory.stat + memory.numa_stat):
-- Before: real 0m9.663s, user 0m4.840s, sys 0m4.823s
-- After:  real 0m8.909s, user 0m4.661s, sys 0m4.247s
-- Result: ~11% sys time reduction
+This race condition was observed in console logs (captured by adding debug printks):
 
-Test script:
-  for ((i=1; i<=1000000; i++)); do
-      : > /dev/null < /sys/fs/cgroup/memory.stat
-      : > /dev/null < /sys/fs/cgroup/memory.numa_stat
-  done
+[23.038376] hardlockup_detector_perf_init 313 cur_cpu=2
+...
+[23.076385] hardlockup_detector_event_create 203 cpu(cur)=2 set watchdog_ev
+...
+[23.095788] perf_event_release_kernel 4623 cur_cpu=2
+...
+[23.116963] lockup_detector_reconfigure 577 cur_cpu=3
 
-Link: https://lkml.kernel.org/r/20260123150108.43443-2-wujianyue000@gmail.com
-Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
-Suggested-by: JP Kobryn <inwardvessel@gmail.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Tested-by: JP Kobryn <inwardvessel@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+The log shows the task started on CPU 2, set watchdog_ev on CPU 2,
+released the event on CPU 2, but then migrated to CPU 3 before the cleanup
+logic (which would clear watchdog_ev) could run.  This left watchdog_ev on
+CPU 2 pointing to a freed event.
+
+Later, when the watchdog is enabled/disabled on CPU 2, this stale pointer
+leads to a Use-After-Free (UAF) in perf_event_disable(), as detected by KASAN:
+[26.539140] ==================================================================
+[26.540732] BUG: KASAN: use-after-free in perf_event_ctx_lock_nested.isra.72+0x6b/0x140
+[26.542442] Read of size 8 at addr ff110006b360d718 by task kworker/2:1/94
+[26.543954]
+[26.544744] CPU: 2 PID: 94 Comm: kworker/2:1 Not tainted 4.19.90-debugkasan #11
+[26.546505] Hardware name: GoStack Foundation OpenStack Nova, BIOS 1.16.3-3.ctl3 04/01/2014
+[26.548256] Workqueue: events smp_call_on_cpu_callback
+[26.549267] Call Trace:
+[26.549936]  dump_stack+0x8b/0xbb
+[26.550731]  print_address_description+0x6a/0x270
+[26.551688]  kasan_report+0x179/0x2c0
+[26.552519]  ? perf_event_ctx_lock_nested.isra.72+0x6b/0x140
+[26.553654]  ? watchdog_disable+0x80/0x80
+[26.553657]  perf_event_ctx_lock_nested.isra.72+0x6b/0x140
+[26.556951]  ? dump_stack+0xa0/0xbb
+[26.564006]  ? watchdog_disable+0x80/0x80
+[26.564886]  perf_event_disable+0xa/0x30
+[26.565746]  hardlockup_detector_perf_disable+0x1b/0x60
+[26.566776]  watchdog_disable+0x51/0x80
+[26.567624]  softlockup_stop_fn+0x11/0x20
+[26.568499]  smp_call_on_cpu_callback+0x5b/0xb0
+[26.569443]  process_one_work+0x389/0x770
+[26.570311]  worker_thread+0x57/0x5a0
+[26.571124]  ? process_one_work+0x770/0x770
+[26.572031]  kthread+0x1ae/0x1d0
+[26.572810]  ? kthread_create_worker_on_cpu+0xc0/0xc0
+[26.573821]  ret_from_fork+0x1f/0x40
+[26.574638]
+[26.575178] Allocated by task 1:
+[26.575990]  kasan_kmalloc+0xa0/0xd0
+[26.576814]  kmem_cache_alloc_trace+0xf3/0x1e0
+[26.577732]  perf_event_alloc.part.89+0xb5/0x12b0
+[26.578700]  perf_event_create_kernel_counter+0x1e/0x1d0
+[26.579728]  hardlockup_detector_event_create+0x4e/0xc0
+[26.580744]  hardlockup_detector_perf_init+0x2f/0x60
+[26.581746]  lockup_detector_init+0x85/0xdc
+[26.582645]  kernel_init_freeable+0x34d/0x40e
+[26.583568]  kernel_init+0xf/0x130
+[26.584428]  ret_from_fork+0x1f/0x40
+[26.584429]
+[26.584430] Freed by task 0:
+[26.584433]  __kasan_slab_free+0x130/0x180
+[26.584436]  kfree+0x90/0x1a0
+[26.589641]  rcu_process_callbacks+0x2cb/0x6e0
+[26.590935]  __do_softirq+0x119/0x3a2
+[26.591965]
+[26.592630] The buggy address belongs to the object at ff110006b360d500
+[26.592630]  which belongs to the cache kmalloc-2048 of size 2048
+[26.592633] The buggy address is located 536 bytes inside of
+[26.592633]  2048-byte region [ff110006b360d500, ff110006b360dd00)
+[26.592634] The buggy address belongs to the page:
+[26.592637] page:ffd400001acd8200 count:1 mapcount:0 mapping:ff11000107c0e800 index:0x0 compound_mapcount: 0
+[26.600959] flags: 0x17ffffc0010200(slab|head)
+[26.601891] raw: 0017ffffc0010200 dead000000000100 dead000000000200 ff11000107c0e800
+[26.603541] raw: 0000000000000000 00000000800f000f 00000001ffffffff 0000000000000000
+[26.605546] page dumped because: kasan: bad access detected
+[26.606788]
+[26.607351] Memory state around the buggy address:
+[26.608556]  ff110006b360d600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.610565]  ff110006b360d680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.610567] >ff110006b360d700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.610568]                             ^
+[26.610570]  ff110006b360d780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.610573]  ff110006b360d800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.618955] ==================================================================
+
+Fix this by refactoring hardlockup_detector_event_create() to return the
+created perf event instead of directly assigning it to the per-cpu
+variable.  This allows the probe logic to reuse the creation code
+(including fallback logic) without affecting the global state, ensuring
+that task migration during probe no longer leaves stale pointers in
+'watchdog_ev'.
+
+Link: https://lkml.kernel.org/r/20260123063407.248775-1-realwujing@gmail.com
+Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
+Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
+Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
+Signed-off-by: Qiliang Yuan <yuanql9@chinatelecom.cn>
+Cc: Song Liu <song@kernel.org>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Jinchao Wang <wangjinchao600@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Li Huafei <lihuafei1@huawei.com>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: Yicong Yang <yangyicong@hisilicon.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |   84 +++++++++++++++++++++++------------------
- mm/memcontrol-v1.h |    4 +
- mm/memcontrol.c    |   88 ++++++++++++++++++++++++++++++++++---------
- 3 files changed, 123 insertions(+), 53 deletions(-)
+ kernel/watchdog_perf.c |   51 ++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 22 deletions(-)
 
---- a/mm/memcontrol.c~mm-optimize-stat-output-for-11%-sys-time-reduce
-+++ a/mm/memcontrol.c
-@@ -42,6 +42,7 @@
- #include <linux/bit_spinlock.h>
- #include <linux/rcupdate.h>
- #include <linux/limits.h>
-+#include <linux/sprintf.h>
- #include <linux/export.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
-@@ -1460,6 +1461,53 @@ static bool memcg_accounts_hugetlb(void)
+--- a/kernel/watchdog_perf.c~watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race
++++ a/kernel/watchdog_perf.c
+@@ -118,18 +118,11 @@ static void watchdog_overflow_callback(s
+ 	watchdog_hardlockup_check(smp_processor_id(), regs);
  }
- #endif /* CONFIG_HUGETLB_PAGE */
  
-+/* Max 2^64 - 1 = 18446744073709551615 (20 digits) */
-+#define MEMCG_DEC_U64_MAX_LEN 20
-+
-+/**
-+ * memcg_seq_buf_print_stat - Write a name-value pair to a seq_buf with newline
-+ * @s: The seq_buf to write to
-+ * @prefix: Optional prefix string (can be NULL or "")
-+ * @name: The name string to write
-+ * @sep: Separator character between name and value (typically ' ' or '=')
-+ * @val: The u64 value to write
-+ *
-+ * This helper efficiently formats and writes "<prefix><name><sep><value>\n"
-+ * to a seq_buf. It manually converts the value to a string using num_to_str
-+ * and embeds the separator and newline in the buffer to minimize function
-+ * calls for better performance.
-+ *
-+ * The function checks for overflow at each step and returns early if any
-+ * operation would cause the buffer to overflow.
-+ *
-+ * Example: memcg_seq_buf_print_stat(s, "total_", "cache", ' ', 1048576)
-+ *          Output: "total_cache 1048576\n"
-+ */
-+void memcg_seq_buf_print_stat(struct seq_buf *s, const char *prefix,
-+			      const char *name, char sep, u64 val)
-+{
-+	char num_buf[MEMCG_DEC_U64_MAX_LEN + 2];  /* +2 for separator and newline */
-+	int num_len;
-+
-+	/* Embed separator at the beginning */
-+	num_buf[0] = sep;
-+
-+	/* Convert number starting at offset 1 */
-+	num_len = num_to_str(num_buf + 1, sizeof(num_buf) - 2, val, 0);
-+	if (num_len <= 0)
-+		return;
-+
-+	/* Embed newline at the end */
-+	num_buf[num_len + 1] = '\n';
-+
-+	if (prefix && *prefix && seq_buf_puts(s, prefix))
-+		return;
-+	if (seq_buf_puts(s, name))
-+		return;
-+	/* Output separator, value, and newline in one call */
-+	seq_buf_putmem(s, num_buf, num_len + 2);
-+}
-+
- static void memcg_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
+-static int hardlockup_detector_event_create(void)
++static struct perf_event *hardlockup_detector_event_create(unsigned int cpu)
  {
- 	int i;
-@@ -1485,26 +1533,26 @@ static void memcg_stat_format(struct mem
- 			continue;
- #endif
- 		size = memcg_page_state_output(memcg, memory_stats[i].idx);
--		seq_buf_printf(s, "%s %llu\n", memory_stats[i].name, size);
-+		memcg_seq_buf_print_stat(s, NULL, memory_stats[i].name, ' ', size);
+-	unsigned int cpu;
+ 	struct perf_event_attr *wd_attr;
+ 	struct perf_event *evt;
  
- 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
- 			size += memcg_page_state_output(memcg,
- 							NR_SLAB_RECLAIMABLE_B);
--			seq_buf_printf(s, "slab %llu\n", size);
-+			memcg_seq_buf_print_stat(s, NULL, "slab", ' ', size);
- 		}
+-	/*
+-	 * Preemption is not disabled because memory will be allocated.
+-	 * Ensure CPU-locality by calling this in per-CPU kthread.
+-	 */
+-	WARN_ON(!is_percpu_thread());
+-	cpu = raw_smp_processor_id();
+ 	wd_attr = &wd_hw_attr;
+ 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
+ 
+@@ -143,14 +136,7 @@ static int hardlockup_detector_event_cre
+ 						       watchdog_overflow_callback, NULL);
  	}
  
- 	/* Accumulated memory events */
--	seq_buf_printf(s, "pgscan %lu\n",
--		       memcg_events(memcg, PGSCAN_KSWAPD) +
--		       memcg_events(memcg, PGSCAN_DIRECT) +
--		       memcg_events(memcg, PGSCAN_PROACTIVE) +
--		       memcg_events(memcg, PGSCAN_KHUGEPAGED));
--	seq_buf_printf(s, "pgsteal %lu\n",
--		       memcg_events(memcg, PGSTEAL_KSWAPD) +
--		       memcg_events(memcg, PGSTEAL_DIRECT) +
--		       memcg_events(memcg, PGSTEAL_PROACTIVE) +
--		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
-+	memcg_seq_buf_print_stat(s, NULL, "pgscan", ' ',
-+				 memcg_events(memcg, PGSCAN_KSWAPD) +
-+				 memcg_events(memcg, PGSCAN_DIRECT) +
-+				 memcg_events(memcg, PGSCAN_PROACTIVE) +
-+				 memcg_events(memcg, PGSCAN_KHUGEPAGED));
-+	memcg_seq_buf_print_stat(s, NULL, "pgsteal", ' ',
-+				 memcg_events(memcg, PGSTEAL_KSWAPD) +
-+				 memcg_events(memcg, PGSTEAL_DIRECT) +
-+				 memcg_events(memcg, PGSTEAL_PROACTIVE) +
-+				 memcg_events(memcg, PGSTEAL_KHUGEPAGED));
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++) {
- #ifdef CONFIG_MEMCG_V1
-@@ -1512,9 +1560,9 @@ static void memcg_stat_format(struct mem
- 		    memcg_vm_event_stat[i] == PGPGOUT)
- 			continue;
- #endif
--		seq_buf_printf(s, "%s %lu\n",
--			       vm_event_name(memcg_vm_event_stat[i]),
--			       memcg_events(memcg, memcg_vm_event_stat[i]));
-+		memcg_seq_buf_print_stat(s, NULL,
-+					 vm_event_name(memcg_vm_event_stat[i]), ' ',
-+					 memcg_events(memcg, memcg_vm_event_stat[i]));
- 	}
+-	if (IS_ERR(evt)) {
+-		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
+-			 PTR_ERR(evt));
+-		return PTR_ERR(evt);
+-	}
+-	WARN_ONCE(this_cpu_read(watchdog_ev), "unexpected watchdog_ev leak");
+-	this_cpu_write(watchdog_ev, evt);
+-	return 0;
++	return evt;
  }
  
-@@ -4513,7 +4561,12 @@ static int memory_numa_stat_show(struct
- 		if (memory_stats[i].idx >= NR_VM_NODE_STAT_ITEMS)
- 			continue;
- 
--		seq_printf(m, "%s", memory_stats[i].name);
-+		/*
-+		 * Output format: "stat_name N0=value0 N1=value1 ...\n"
-+		 * Use seq_puts and seq_put_decimal_ull to avoid printf
-+		 * format parsing overhead in this hot path.
-+		 */
-+		seq_puts(m, memory_stats[i].name);
- 		for_each_node_state(nid, N_MEMORY) {
- 			u64 size;
- 			struct lruvec *lruvec;
-@@ -4521,7 +4574,8 @@ static int memory_numa_stat_show(struct
- 			lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 			size = lruvec_page_state_output(lruvec,
- 							memory_stats[i].idx);
--			seq_printf(m, " N%d=%llu", nid, size);
-+			seq_put_decimal_ull(m, " N", nid);
-+			seq_put_decimal_ull(m, "=", size);
- 		}
- 		seq_putc(m, '\n');
- 	}
---- a/mm/memcontrol-v1.c~mm-optimize-stat-output-for-11%-sys-time-reduce
-+++ a/mm/memcontrol-v1.c
-@@ -10,7 +10,7 @@
- #include <linux/poll.h>
- #include <linux/sort.h>
- #include <linux/file.h>
--#include <linux/seq_buf.h>
-+#include <linux/string.h>
- 
- #include "internal.h"
- #include "swap.h"
-@@ -1816,26 +1816,39 @@ static int memcg_numa_stat_show(struct s
- 
- 	mem_cgroup_flush_stats(memcg);
- 
-+	/*
-+	 * Output format: "stat_name=value N0=value0 N1=value1 ...\n"
-+	 * Use seq_puts and seq_put_decimal_ull to avoid printf format
-+	 * parsing overhead in this hot path.
-+	 */
- 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
--		seq_printf(m, "%s=%lu", stat->name,
--			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
--						   false));
--		for_each_node_state(nid, N_MEMORY)
--			seq_printf(m, " N%d=%lu", nid,
--				   mem_cgroup_node_nr_lru_pages(memcg, nid,
--							stat->lru_mask, false));
-+		seq_puts(m, stat->name);
-+		seq_put_decimal_ull(m, "=",
-+				    mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
-+							    false));
-+		for_each_node_state(nid, N_MEMORY) {
-+			seq_put_decimal_ull(m, " N", nid);
-+			seq_put_decimal_ull(m, "=",
-+					    mem_cgroup_node_nr_lru_pages(memcg, nid,
-+									 stat->lru_mask,
-+									 false));
-+		}
- 		seq_putc(m, '\n');
- 	}
- 
- 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
--
--		seq_printf(m, "hierarchical_%s=%lu", stat->name,
--			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
--						   true));
--		for_each_node_state(nid, N_MEMORY)
--			seq_printf(m, " N%d=%lu", nid,
--				   mem_cgroup_node_nr_lru_pages(memcg, nid,
--							stat->lru_mask, true));
-+		seq_puts(m, "hierarchical_");
-+		seq_puts(m, stat->name);
-+		seq_put_decimal_ull(m, "=",
-+				    mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
-+							    true));
-+		for_each_node_state(nid, N_MEMORY) {
-+			seq_put_decimal_ull(m, " N", nid);
-+			seq_put_decimal_ull(m, "=",
-+					    mem_cgroup_node_nr_lru_pages(memcg, nid,
-+									 stat->lru_mask,
-+									 true));
-+		}
- 		seq_putc(m, '\n');
- 	}
- 
-@@ -1901,17 +1914,17 @@ void memcg1_stat_format(struct mem_cgrou
- 		unsigned long nr;
- 
- 		nr = memcg_page_state_local_output(memcg, memcg1_stats[i]);
--		seq_buf_printf(s, "%s %lu\n", memcg1_stat_names[i], nr);
-+		memcg_seq_buf_print_stat(s, NULL, memcg1_stat_names[i], ' ', (u64)nr);
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
--		seq_buf_printf(s, "%s %lu\n", vm_event_name(memcg1_events[i]),
--			       memcg_events_local(memcg, memcg1_events[i]));
-+		memcg_seq_buf_print_stat(s, NULL, vm_event_name(memcg1_events[i]),
-+					 ' ', memcg_events_local(memcg, memcg1_events[i]));
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_buf_printf(s, "%s %lu\n", lru_list_name(i),
--			       memcg_page_state_local(memcg, NR_LRU_BASE + i) *
--			       PAGE_SIZE);
-+		memcg_seq_buf_print_stat(s, NULL, lru_list_name(i), ' ',
-+					 memcg_page_state_local(memcg, NR_LRU_BASE + i) *
-+					 PAGE_SIZE);
- 
- 	/* Hierarchical information */
- 	memory = memsw = PAGE_COUNTER_MAX;
-@@ -1919,28 +1932,27 @@ void memcg1_stat_format(struct mem_cgrou
- 		memory = min(memory, READ_ONCE(mi->memory.max));
- 		memsw = min(memsw, READ_ONCE(mi->memsw.max));
- 	}
--	seq_buf_printf(s, "hierarchical_memory_limit %llu\n",
--		       (u64)memory * PAGE_SIZE);
--	seq_buf_printf(s, "hierarchical_memsw_limit %llu\n",
--		       (u64)memsw * PAGE_SIZE);
-+	memcg_seq_buf_print_stat(s, NULL, "hierarchical_memory_limit", ' ',
-+				 (u64)memory * PAGE_SIZE);
-+	memcg_seq_buf_print_stat(s, NULL, "hierarchical_memsw_limit", ' ',
-+				 (u64)memsw * PAGE_SIZE);
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
- 		unsigned long nr;
- 
- 		nr = memcg_page_state_output(memcg, memcg1_stats[i]);
--		seq_buf_printf(s, "total_%s %llu\n", memcg1_stat_names[i],
--			       (u64)nr);
-+		memcg_seq_buf_print_stat(s, "total_", memcg1_stat_names[i], ' ',
-+					 (u64)nr);
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
--		seq_buf_printf(s, "total_%s %llu\n",
--			       vm_event_name(memcg1_events[i]),
--			       (u64)memcg_events(memcg, memcg1_events[i]));
-+		memcg_seq_buf_print_stat(s, "total_", vm_event_name(memcg1_events[i]),
-+					 ' ', (u64)memcg_events(memcg, memcg1_events[i]));
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_buf_printf(s, "total_%s %llu\n", lru_list_name(i),
--			       (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
--			       PAGE_SIZE);
-+		memcg_seq_buf_print_stat(s, "total_", lru_list_name(i), ' ',
-+					 (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
-+					 PAGE_SIZE);
- 
- #ifdef CONFIG_DEBUG_VM
- 	{
-@@ -1955,8 +1967,8 @@ void memcg1_stat_format(struct mem_cgrou
- 			anon_cost += mz->lruvec.anon_cost;
- 			file_cost += mz->lruvec.file_cost;
- 		}
--		seq_buf_printf(s, "anon_cost %lu\n", anon_cost);
--		seq_buf_printf(s, "file_cost %lu\n", file_cost);
-+		memcg_seq_buf_print_stat(s, NULL, "anon_cost", ' ', (u64)anon_cost);
-+		memcg_seq_buf_print_stat(s, NULL, "file_cost", ' ', (u64)file_cost);
- 	}
- #endif
- }
---- a/mm/memcontrol-v1.h~mm-optimize-stat-output-for-11%-sys-time-reduce
-+++ a/mm/memcontrol-v1.h
-@@ -4,6 +4,7 @@
- #define __MM_MEMCONTROL_V1_H
- 
- #include <linux/cgroup-defs.h>
-+#include <linux/seq_buf.h>
- 
- /* Cgroup v1 and v2 common declarations */
- 
-@@ -31,6 +32,9 @@ int memory_stat_show(struct seq_file *m,
- void mem_cgroup_private_id_get_many(struct mem_cgroup *memcg, unsigned int n);
- struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg);
- 
-+void memcg_seq_buf_print_stat(struct seq_buf *s, const char *prefix,
-+			      const char *name, char sep, u64 val);
+ /**
+@@ -159,17 +145,26 @@ static int hardlockup_detector_event_cre
+  */
+ void watchdog_hardlockup_enable(unsigned int cpu)
+ {
++	struct perf_event *evt;
 +
- /* Cgroup v1-specific declarations */
- #ifdef CONFIG_MEMCG_V1
+ 	WARN_ON_ONCE(cpu != smp_processor_id());
+ 
+-	if (hardlockup_detector_event_create())
++	evt = hardlockup_detector_event_create(cpu);
++	if (IS_ERR(evt)) {
++		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
++			 PTR_ERR(evt));
+ 		return;
++	}
+ 
+ 	/* use original value for check */
+ 	if (!atomic_fetch_inc(&watchdog_cpus))
+ 		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
+ 
++	WARN_ONCE(this_cpu_read(watchdog_ev), "unexpected watchdog_ev leak");
++	this_cpu_write(watchdog_ev, evt);
++
+ 	watchdog_init_timestamp();
+-	perf_event_enable(this_cpu_read(watchdog_ev));
++	perf_event_enable(evt);
+ }
+ 
+ /**
+@@ -263,19 +258,31 @@ bool __weak __init arch_perf_nmi_is_avai
+  */
+ int __init watchdog_hardlockup_probe(void)
+ {
++	struct perf_event *evt;
++	unsigned int cpu;
+ 	int ret;
+ 
+ 	if (!arch_perf_nmi_is_available())
+ 		return -ENODEV;
+ 
+-	ret = hardlockup_detector_event_create();
++	if (!hw_nmi_get_sample_period(watchdog_thresh))
++		return -EINVAL;
+ 
+-	if (ret) {
++	/*
++	 * Test hardware PMU availability by creating a temporary perf event.
++	 * Allow migration during the check as any successfully created per-cpu
++	 * event validates PMU support. The event is released immediately.
++	 */
++	cpu = raw_smp_processor_id();
++	evt = hardlockup_detector_event_create(cpu);
++	if (IS_ERR(evt)) {
+ 		pr_info("Perf NMI watchdog permanently disabled\n");
++		ret = PTR_ERR(evt);
+ 	} else {
+-		perf_event_release_kernel(this_cpu_read(watchdog_ev));
+-		this_cpu_write(watchdog_ev, NULL);
++		perf_event_release_kernel(evt);
++		ret = 0;
+ 	}
++
+ 	return ret;
+ }
  
 _
 
-Patches currently in -mm which might be from wujianyue000@gmail.com are
+Patches currently in -mm which might be from realwujing@gmail.com are
 
-mm-optimize-stat-output-for-11%-sys-time-reduce.patch
+watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
 
