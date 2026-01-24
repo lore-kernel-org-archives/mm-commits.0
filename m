@@ -1,507 +1,176 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9643255F5E
-	for <mm-commits@vger.kernel.org>; Sat, 24 Jan 2026 23:33:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B114B27A133
+	for <mm-commits@vger.kernel.org>; Sat, 24 Jan 2026 23:36:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769297624; cv=none; b=EyO4Dp0D71/PmuIG/6g4LX8W4QowaCgsIxe/9G5DYJ1FmekRGsrmlDuXxb1nbAXCjAMkPy+zMSVMTF3o/V/dIFsOoxqTlvXRNWZoW05qjHSn823oAhCVjPenjrTk7vRN+84kKmaDswc+5mPmSvOYjfwi+FX2uhhOxINO/31TIBs=
+	t=1769297780; cv=none; b=V5bqvyGOcsImi45K7HRQgrbza+bCONIMo15OGgQNiQDkQBoTim+tsVtfsj/DC1QrrBuh6zX27G+cRaqTudKKIy95ccE3qL/4VlEcccxl8hEsqHw57vWRotdamCv/+N1dbMKj8e/Im+wdIvRurdZmaTo0ZdAJzCgUxT4sAdeT93A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769297624; c=relaxed/simple;
-	bh=Obq4V3kDv+xtJeTVANKsgLajBXXsLlgX1FlJZmcfZmU=;
-	h=Date:To:From:Subject:Message-Id; b=PgTkQGG13D56hXSkWOR0et9Fjc7C8xap1V5FRegP/jJwVlHlcPDNa+tC9Xt2NFLE7SIEtBEo8tOtpyJC9ab3L0q3YhiXgQUn187HCDvyum9GGu9LjUVTOEClFtj2o431enhsBhPHM+O9GjpGFVTsiT1qtmFrGNZwNKPK60xoGaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x9r9q/wj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769297780; c=relaxed/simple;
+	bh=F7IdeJxEuwyJhlT1kgnXqGZv2HwcrsfzSvPn/0f4rt4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=FunouD+7+VJ35tZsjKOXidL99K/jzlwHX2UkJ3GuzTLNBS3b7klTFukWSd2k9M4hidAGZd4O5zi758uLfI1ZnKzFdWOFhXmrgELiVFwGNxsA5wB8shfwXbhSVFNeTC9XLzqT5itc/5e/ssRlRQGiadtHpG2t88oulJONuhHapxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=jvmrkmAk; arc=none smtp.client-ip=209.85.208.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x9r9q/wj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4728DC116D0;
-	Sat, 24 Jan 2026 23:33:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769297624;
-	bh=Obq4V3kDv+xtJeTVANKsgLajBXXsLlgX1FlJZmcfZmU=;
-	h=Date:To:From:Subject:From;
-	b=x9r9q/wjY5MHAYQ4i/sTWkx3ni6ZcWolAX6TxlZFPbkKjxkuV5QbzRHXC+3hicJLf
-	 QykNYtbLn4B44TotRBqXzMEInJe2Plt+X+vjWBYFArH4LeEPjMs69z4WNPIu0DCyWs
-	 FDX8QcQgAbvSagl9m7TDEypsYOQcf4lgxewMrtjo=
-Date: Sat, 24 Jan 2026 15:33:43 -0800
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,svens@linux.ibm.com,pabeni@redhat.com,kuba@kernel.org,horms@kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,geert@linux-m68k.org,edumazet@google.com,davidgow@google.com,davem@davemloft.net,daniel@iogearbox.net,brendan.higgins@linux.dev,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,note351@hotmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-random32-convert-selftest-to-kunit.patch added to mm-nonmm-unstable branch
-Message-Id: <20260124233344.4728DC116D0@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="jvmrkmAk"
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-652fdd043f9so6067076a12.1
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jan 2026 15:36:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1769297775; x=1769902575; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=F7IdeJxEuwyJhlT1kgnXqGZv2HwcrsfzSvPn/0f4rt4=;
+        b=jvmrkmAk52rWWd0yhAPgJfJ6VMS8bkfnl+cVBJ4wJ53EDKKSx8TG+xsGDJ7KH9oEaO
+         7SJKE+wq2dYfWCO47z6sW6ko/XPDF8zXn4VvNzo9RsloSd3QHFH91m7wOEaNLZNdKJ2l
+         +gsQmm+tuT4xAiPtbGI3MObJ+gz5a2eZIRLE0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769297775; x=1769902575;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=F7IdeJxEuwyJhlT1kgnXqGZv2HwcrsfzSvPn/0f4rt4=;
+        b=IlhMsLVUCRJsoi/Lh3o3TGQ5w5jQLhyW40E4aoHA7NWv/w/AVq2xHbeloh+elop3N0
+         06Hgnr8J9vTnGtw02TCOui0QH5O7kCjGz7mqmTrHT5uXADkchrW8x0L3ROQuHL18o3vQ
+         FhPZ8faatV3io+zZN7Taakgnqp5mku1XI17+Ql/jAra2hiS4uA/a2E8PkmtiVA8UkNB+
+         FZctPf64Mw8kR/voNEEyrHmnT9SsBnxTCDFY4vRVyz3fYifYp2DbGW2NSyVQq8F9drUu
+         HEmnai6AxpmTsdjsyEsvE5dCv15wIYBmLCC272488UPSK3gfUtfIKLf8tidh7ty750PM
+         7tkw==
+X-Forwarded-Encrypted: i=1; AJvYcCV0bO5gotGpcB8neKJ8vxZfim1+Mo36rLv3SeiTIYV1SqBKx5s+2QORtv/xIaa+aB7/xo1HyXhOiLlF@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw0sGC5hwmU1/MNeOgTanqxUv8ico92fKczvBK30bkxVvxZ0QB4
+	2YOYc8QG2zE+0QErG/5GIT6mXfmYLJ1WkRidFdgv0H30VuNtFVh6+joPOx557LvQL0KP4fqY2SB
+	HLxX0xw==
+X-Gm-Gg: AZuq6aKfyIcZF7j1Mcflhspmmx75WAB1/Qqet5Xs76dXmHd2CQWkt0OyChfAdaP0FGr
+	d4IYI8ddYLU2gEk3pJNfVMEoX1bfx/PQ+sMabjxPz7LUtXARgSBBTpQEwAPFUKv9UzcUrypa2/e
+	zE6f3iaY5smRMJVbFZ0DPby2Q760h3s/mSVMqdwYPyHXriAZgEWIzHyo6HPHY5/2tBg1C7WeLMC
+	k8fQdA+WnW+EvUzOFikaiXT4VxVrCXQw11Yj6Gz4ZCVFx1dOBoONSdgqhRGmjW/wu9R0ro3nVZM
+	YN2muqQqDyeXqEM945M/bALYmulqDLzIcGOH0Olni+Sdy2FT3epP4T9iLGn9t4SMFEEzjYaxbo/
+	NpAT7Y04tEtA/rTvFz+9WNM1JPztjsXo/LLLnOEA6g8IyuNdac5iqwX9lyrSgqiJ/If5KTYCTH4
+	bCTpQyu9NF7OYtjdXxRUcGQv3r+qMv1dN9DirGr7tasgxsiVgQsQ==
+X-Received: by 2002:a17:906:6a23:b0:b8a:f3c0:c14 with SMTP id a640c23a62f3a-b8d4f70e1a1mr5978466b.38.1769297775443;
+        Sat, 24 Jan 2026 15:36:15 -0800 (PST)
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com. [209.85.221.42])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b885b3da4b7sm352214666b.10.2026.01.24.15.36.13
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 24 Jan 2026 15:36:13 -0800 (PST)
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-42fb6ce71c7so3153288f8f.1
+        for <mm-commits@vger.kernel.org>; Sat, 24 Jan 2026 15:36:13 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCUVQbjHaGLL51ceegTuLTmxjbRRNVbw1N/i8uJBgrlohgzIggsAExqD4+tJVk9lMDo4Fy0qxydrlziY@vger.kernel.org
+X-Received: by 2002:a5d:5f93:0:b0:435:982d:97ee with SMTP id
+ ffacd0b85a97d-435ca1afeb0mr132288f8f.57.1769297772964; Sat, 24 Jan 2026
+ 15:36:12 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <CAD=FV=WHWrKS_LVjod6nhnPdEk9_ZqeubGpft3PJOUJNMbBxfg@mail.gmail.com>
+ <20260124065719.805144-1-realwujing@gmail.com>
+In-Reply-To: <20260124065719.805144-1-realwujing@gmail.com>
+From: Doug Anderson <dianders@chromium.org>
+Date: Sat, 24 Jan 2026 15:36:01 -0800
+X-Gmail-Original-Message-ID: <CAD=FV=Vmk1jA+dAgJNVDMtxrhhrPxgnXkNxiqJXWBvgUcZZUxQ@mail.gmail.com>
+X-Gm-Features: AZwV_QjwSccMhlpIM9-YrAxACDjpiR1Rl3L9SfoYHyhRS2AZtl7vffA2Ud_GyTI
+Message-ID: <CAD=FV=Vmk1jA+dAgJNVDMtxrhhrPxgnXkNxiqJXWBvgUcZZUxQ@mail.gmail.com>
+Subject: Re: [PATCH v3] watchdog/hardlockup: Fix UAF in perf event cleanup due
+ to migration race
+To: Qiliang Yuan <realwujing@gmail.com>
+Cc: akpm@linux-foundation.org, lihuafei1@huawei.com, 
+	linux-kernel@vger.kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, 
+	song@kernel.org, stable@vger.kernel.org, sunshx@chinatelecom.cn, 
+	thorsten.blum@linux.dev, wangjinchao600@gmail.com, yangyicong@hisilicon.com, 
+	yuanql9@chinatelecom.cn, zhangjn11@chinatelecom.cn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Fri, Jan 23, 2026 at 10:57=E2=80=AFPM Qiliang Yuan <realwujing@gmail.com=
+> wrote:
+>
+> Thanks for the detailed review!
+>
+> > Wait a second... The above function hasn't existed for 2.5 years. It
+> > was removed in commit d9b3629ade8e ("watchdog/hardlockup: have the
+> > perf hardlockup use __weak functions more cleanly"). All that's left
+> > in the ToT kernel referencing that function is an old comment...
+> >
+> > Oh, and I guess I can see below that your stack traces are on 4.19,
+> > which is ancient! Things have changed a bit in the meantime. Are you
+> > certain that the problem still reproduces on ToT?
+>
+> The function hardlockup_detector_perf_init() was renamed to
+> watchdog_hardlockup_probe() in commit d9b3629ade8e ("watchdog/hardlockup:
+> have the perf hardlockup use __weak functions more cleanly").
+> Additionally, the source file was moved from kernel/watchdog_hld.c to
+> kernel/watchdog_perf.c in commit 6ea0d04211a7. The v3 commit message
+> inadvertently retained legacy terminology from the 4.19 kernel; this will
+> be updated in V4 to reflect current ToT naming.
+>
+> The core logic remains the same: the race condition persists despite the
+> renaming and cleanup of the __weak function logic.
+>
+> Regarding ToT reproducibility: while the KASAN report originated from
+> 4.19, the underlying logic is still problematic in ToT. In
+> watchdog_hardlockup_probe(), the call to
+> hardlockup_detector_event_create() still writes to the per-cpu
+> watchdog_ev. Task migration between event creation and the subsequent
+> perf_event_release_kernel() leaves a stale pointer in the watchdog_ev of
+> the original CPU.
+>
+> > Probably want a "Fixes" tag? If I had to guess, maybe?
+> >
+> > Fixes: 930d8f8dbab9 ("watchdog/perf: adapt the watchdog_perf interface
+> > for async model")
+>
+> Commit 930d8f8dbab9 introduced the async initialization which allows
+> preemption/migration during the probe phase. This tag will be included in
+> V4.
+
+The part that doesn't make a lot of sense to me, though, is that v4.19
+also doesn't have commit 930d8f8dbab9 ("watchdog/perf: adapt the
+watchdog_perf interface for async model"), which is where we are
+saying the problem was introduced.
+
+...so in v4.19 I think:
+* hardlockup_detector_perf_init() is only called from watchdog_nmi_probe()
+* watchdog_nmi_probe() is only called from lockup_detector_init()
+* lockup_detector_init() is only called from kernel_init_freeable()
+right before smp_init()
+
+Thus I'm super confused about how you could have seen the problem on
+v4.19. Maybe your v4.19 kernel has some backported patches that makes
+this possible?
+
+While I'm not saying that the v4 patch you just posted is incorrect,
+I'm just trying to make sure that:
+
+1. We actually understand the problem you were seeing.
+
+2. We are identifying the correct "Fixes" commit.
 
 
-The patch titled
-     Subject: lib/random32: convert selftest to KUnit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-random32-convert-selftest-to-kunit.patch
+> > I'm still a bit confused why this warning didn't trigger previously.
+> > Do you know why?
+>
+> In 4.19, hardlockup_detector_event_create() did not include the
+> WARN_ON(!is_percpu_thread()) check, which was added in later versions. In
+> ToT, this warning is expected to trigger if watchdog_hardlockup_probe()
+> is called from a non-per-cpu-bound thread (such as kernel_init). This
+> further justifies refactoring the creation logic to be CPU-agnostic for
+> probing.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-random32-convert-selftest-to-kunit.patch
+OK, fair enough. ...but I'm a bit curious why nobody else saw this
+WARN_ON(). I'm also curious if you have tested the hardlockup detector
+on newer kernels, or if all of your work has been done on 4.19. If all
+your work has been done on 4.19, do we need to find someone to test
+your patch on a newer kernel and make sure it works OK? If you've
+tested on a newer kernel, did the hardlockup detector init from the
+kernel's early-init code, or the retry code?
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Kir Chou <note351@hotmail.com>
-Subject: lib/random32: convert selftest to KUnit
-Date: Sat, 24 Jan 2026 14:41:33 +0900
-
-This patch converts the existing prandom selftest (lib/random32.c) to use
-the KUnit framework (lib/tests/random32_kunit.c).  Unlike typical KUnit
-tests, this file is directly #included into lib/random32.c.
-
-Only the file name "random32_kunit.c" keeps random32, "prandom" is used
-for all other places for aligning with the API semantics and avoiding
-confusion with the cryptographically secure random.c,
-
-The new test:
-- Removes the legacy CONFIG_RANDOM32_SELFTEST.
-- Adds CONFIG_PRANDOM_KUNIT_TEST (defaulting to KUNIT_ALL_TESTS).
-- Moves the test logic to lib/tests/random32_kunit.c.
-- Updates arch/s390/configs/debug_defconfig to use the new KUnit symbol.
-
-This commit is verified by `./tools/testing/kunit/kunit.py run`
-with the .kunit/.kunitconfig:
-
-CONFIG_KUNIT=y
-CONFIG_PRANDOM_KUNIT_TEST=y
-
-Link: https://lkml.kernel.org/r/20260124054134.71369-1-note351@hotmail.com
-Signed-off-by: Kir Chou <note351@hotmail.com>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: David Gow <davidgow@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Simon Horman <horms@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/s390/configs/debug_defconfig |    2 
- lib/Kconfig.debug                 |   12 +
- lib/random32.c                    |  173 ---------------------------
- lib/tests/random32_kunit.c        |  174 ++++++++++++++++++++++++++++
- 4 files changed, 189 insertions(+), 172 deletions(-)
-
---- a/arch/s390/configs/debug_defconfig~lib-random32-convert-selftest-to-kunit
-+++ a/arch/s390/configs/debug_defconfig
-@@ -827,7 +827,7 @@ CONFIG_CRYPTO_KRB5=m
- CONFIG_CRYPTO_KRB5_SELFTESTS=y
- CONFIG_CORDIC=m
- CONFIG_TRACE_MMIO_ACCESS=y
--CONFIG_RANDOM32_SELFTEST=y
-+CONFIG_PRANDOM_KUNIT_TEST=y
- CONFIG_XZ_DEC_MICROLZMA=y
- CONFIG_DMA_CMA=y
- CONFIG_CMA_SIZE_MBYTES=0
---- a/lib/Kconfig.debug~lib-random32-convert-selftest-to-kunit
-+++ a/lib/Kconfig.debug
-@@ -3432,6 +3432,18 @@ config GLOB_KUNIT_TEST
- 
- 	  If unsure, say N
- 
-+config PRANDOM_KUNIT_TEST
-+	tristate "KUnit test for prandom" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable this option to test the prandom functions at runtime.
-+
-+	  This test suite verifies the correctness of the pseudo-random number
-+	  generator across various scenarios, including edge cases.
-+
-+	  If unsure, say N
-+
- endif # RUNTIME_TESTING_MENU
- 
- config ARCH_USE_MEMTEST
---- a/lib/random32.c~lib-random32-convert-selftest-to-kunit
-+++ a/lib/random32.c
-@@ -126,175 +126,6 @@ void prandom_seed_full_state(struct rnd_
- }
- EXPORT_SYMBOL(prandom_seed_full_state);
- 
--#ifdef CONFIG_RANDOM32_SELFTEST
--static struct prandom_test1 {
--	u32 seed;
--	u32 result;
--} test1[] = {
--	{ 1U, 3484351685U },
--	{ 2U, 2623130059U },
--	{ 3U, 3125133893U },
--	{ 4U,  984847254U },
--};
--
--static struct prandom_test2 {
--	u32 seed;
--	u32 iteration;
--	u32 result;
--} test2[] = {
--	/* Test cases against taus113 from GSL library. */
--	{  931557656U, 959U, 2975593782U },
--	{ 1339693295U, 876U, 3887776532U },
--	{ 1545556285U, 961U, 1615538833U },
--	{  601730776U, 723U, 1776162651U },
--	{ 1027516047U, 687U,  511983079U },
--	{  416526298U, 700U,  916156552U },
--	{ 1395522032U, 652U, 2222063676U },
--	{  366221443U, 617U, 2992857763U },
--	{ 1539836965U, 714U, 3783265725U },
--	{  556206671U, 994U,  799626459U },
--	{  684907218U, 799U,  367789491U },
--	{ 2121230701U, 931U, 2115467001U },
--	{ 1668516451U, 644U, 3620590685U },
--	{  768046066U, 883U, 2034077390U },
--	{ 1989159136U, 833U, 1195767305U },
--	{  536585145U, 996U, 3577259204U },
--	{ 1008129373U, 642U, 1478080776U },
--	{ 1740775604U, 939U, 1264980372U },
--	{ 1967883163U, 508U,   10734624U },
--	{ 1923019697U, 730U, 3821419629U },
--	{  442079932U, 560U, 3440032343U },
--	{ 1961302714U, 845U,  841962572U },
--	{ 2030205964U, 962U, 1325144227U },
--	{ 1160407529U, 507U,  240940858U },
--	{  635482502U, 779U, 4200489746U },
--	{ 1252788931U, 699U,  867195434U },
--	{ 1961817131U, 719U,  668237657U },
--	{ 1071468216U, 983U,  917876630U },
--	{ 1281848367U, 932U, 1003100039U },
--	{  582537119U, 780U, 1127273778U },
--	{ 1973672777U, 853U, 1071368872U },
--	{ 1896756996U, 762U, 1127851055U },
--	{  847917054U, 500U, 1717499075U },
--	{ 1240520510U, 951U, 2849576657U },
--	{ 1685071682U, 567U, 1961810396U },
--	{ 1516232129U, 557U,    3173877U },
--	{ 1208118903U, 612U, 1613145022U },
--	{ 1817269927U, 693U, 4279122573U },
--	{ 1510091701U, 717U,  638191229U },
--	{  365916850U, 807U,  600424314U },
--	{  399324359U, 702U, 1803598116U },
--	{ 1318480274U, 779U, 2074237022U },
--	{  697758115U, 840U, 1483639402U },
--	{ 1696507773U, 840U,  577415447U },
--	{ 2081979121U, 981U, 3041486449U },
--	{  955646687U, 742U, 3846494357U },
--	{ 1250683506U, 749U,  836419859U },
--	{  595003102U, 534U,  366794109U },
--	{   47485338U, 558U, 3521120834U },
--	{  619433479U, 610U, 3991783875U },
--	{  704096520U, 518U, 4139493852U },
--	{ 1712224984U, 606U, 2393312003U },
--	{ 1318233152U, 922U, 3880361134U },
--	{  855572992U, 761U, 1472974787U },
--	{   64721421U, 703U,  683860550U },
--	{  678931758U, 840U,  380616043U },
--	{  692711973U, 778U, 1382361947U },
--	{  677703619U, 530U, 2826914161U },
--	{   92393223U, 586U, 1522128471U },
--	{ 1222592920U, 743U, 3466726667U },
--	{  358288986U, 695U, 1091956998U },
--	{ 1935056945U, 958U,  514864477U },
--	{  735675993U, 990U, 1294239989U },
--	{ 1560089402U, 897U, 2238551287U },
--	{   70616361U, 829U,   22483098U },
--	{  368234700U, 731U, 2913875084U },
--	{   20221190U, 879U, 1564152970U },
--	{  539444654U, 682U, 1835141259U },
--	{ 1314987297U, 840U, 1801114136U },
--	{ 2019295544U, 645U, 3286438930U },
--	{  469023838U, 716U, 1637918202U },
--	{ 1843754496U, 653U, 2562092152U },
--	{  400672036U, 809U, 4264212785U },
--	{  404722249U, 965U, 2704116999U },
--	{  600702209U, 758U,  584979986U },
--	{  519953954U, 667U, 2574436237U },
--	{ 1658071126U, 694U, 2214569490U },
--	{  420480037U, 749U, 3430010866U },
--	{  690103647U, 969U, 3700758083U },
--	{ 1029424799U, 937U, 3787746841U },
--	{ 2012608669U, 506U, 3362628973U },
--	{ 1535432887U, 998U,   42610943U },
--	{ 1330635533U, 857U, 3040806504U },
--	{ 1223800550U, 539U, 3954229517U },
--	{ 1322411537U, 680U, 3223250324U },
--	{ 1877847898U, 945U, 2915147143U },
--	{ 1646356099U, 874U,  965988280U },
--	{  805687536U, 744U, 4032277920U },
--	{ 1948093210U, 633U, 1346597684U },
--	{  392609744U, 783U, 1636083295U },
--	{  690241304U, 770U, 1201031298U },
--	{ 1360302965U, 696U, 1665394461U },
--	{ 1220090946U, 780U, 1316922812U },
--	{  447092251U, 500U, 3438743375U },
--	{ 1613868791U, 592U,  828546883U },
--	{  523430951U, 548U, 2552392304U },
--	{  726692899U, 810U, 1656872867U },
--	{ 1364340021U, 836U, 3710513486U },
--	{ 1986257729U, 931U,  935013962U },
--	{  407983964U, 921U,  728767059U },
--};
--
--static void prandom_state_selftest_seed(struct rnd_state *state, u32 seed)
--{
--#define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
--	state->s1 = __seed(LCG(seed),        2U);
--	state->s2 = __seed(LCG(state->s1),   8U);
--	state->s3 = __seed(LCG(state->s2),  16U);
--	state->s4 = __seed(LCG(state->s3), 128U);
--}
--
--static int __init prandom_state_selftest(void)
--{
--	int i, j, errors = 0, runs = 0;
--	bool error = false;
--
--	for (i = 0; i < ARRAY_SIZE(test1); i++) {
--		struct rnd_state state;
--
--		prandom_state_selftest_seed(&state, test1[i].seed);
--		prandom_warmup(&state);
--
--		if (test1[i].result != prandom_u32_state(&state))
--			error = true;
--	}
--
--	if (error)
--		pr_warn("prandom: seed boundary self test failed\n");
--	else
--		pr_info("prandom: seed boundary self test passed\n");
--
--	for (i = 0; i < ARRAY_SIZE(test2); i++) {
--		struct rnd_state state;
--
--		prandom_state_selftest_seed(&state, test2[i].seed);
--		prandom_warmup(&state);
--
--		for (j = 0; j < test2[i].iteration - 1; j++)
--			prandom_u32_state(&state);
--
--		if (test2[i].result != prandom_u32_state(&state))
--			errors++;
--
--		runs++;
--		cond_resched();
--	}
--
--	if (errors)
--		pr_warn("prandom: %d/%d self tests failed\n", errors, runs);
--	else
--		pr_info("prandom: %d self tests passed\n", runs);
--	return 0;
--}
--core_initcall(prandom_state_selftest);
-+#ifdef CONFIG_PRANDOM_KUNIT_TEST
-+#include "tests/random32_kunit.c"
- #endif
-diff --git a/lib/tests/random32_kunit.c a/lib/tests/random32_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/random32_kunit.c
-@@ -0,0 +1,174 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Test cases for random32 functions.
-+ */
-+
-+#include <kunit/test.h>
-+
-+static struct prandom_test1 {
-+	u32 seed;
-+	u32 result;
-+} test1[] = {
-+	{ 1U, 3484351685U },
-+	{ 2U, 2623130059U },
-+	{ 3U, 3125133893U },
-+	{ 4U,  984847254U },
-+};
-+
-+static struct prandom_test2 {
-+	u32 seed;
-+	u32 iteration;
-+	u32 result;
-+} test2[] = {
-+	/* Test cases against taus113 from GSL library. */
-+	{  931557656U, 959U, 2975593782U },
-+	{ 1339693295U, 876U, 3887776532U },
-+	{ 1545556285U, 961U, 1615538833U },
-+	{  601730776U, 723U, 1776162651U },
-+	{ 1027516047U, 687U,  511983079U },
-+	{  416526298U, 700U,  916156552U },
-+	{ 1395522032U, 652U, 2222063676U },
-+	{  366221443U, 617U, 2992857763U },
-+	{ 1539836965U, 714U, 3783265725U },
-+	{  556206671U, 994U,  799626459U },
-+	{  684907218U, 799U,  367789491U },
-+	{ 2121230701U, 931U, 2115467001U },
-+	{ 1668516451U, 644U, 3620590685U },
-+	{  768046066U, 883U, 2034077390U },
-+	{ 1989159136U, 833U, 1195767305U },
-+	{  536585145U, 996U, 3577259204U },
-+	{ 1008129373U, 642U, 1478080776U },
-+	{ 1740775604U, 939U, 1264980372U },
-+	{ 1967883163U, 508U,   10734624U },
-+	{ 1923019697U, 730U, 3821419629U },
-+	{  442079932U, 560U, 3440032343U },
-+	{ 1961302714U, 845U,  841962572U },
-+	{ 2030205964U, 962U, 1325144227U },
-+	{ 1160407529U, 507U,  240940858U },
-+	{  635482502U, 779U, 4200489746U },
-+	{ 1252788931U, 699U,  867195434U },
-+	{ 1961817131U, 719U,  668237657U },
-+	{ 1071468216U, 983U,  917876630U },
-+	{ 1281848367U, 932U, 1003100039U },
-+	{  582537119U, 780U, 1127273778U },
-+	{ 1973672777U, 853U, 1071368872U },
-+	{ 1896756996U, 762U, 1127851055U },
-+	{  847917054U, 500U, 1717499075U },
-+	{ 1240520510U, 951U, 2849576657U },
-+	{ 1685071682U, 567U, 1961810396U },
-+	{ 1516232129U, 557U,    3173877U },
-+	{ 1208118903U, 612U, 1613145022U },
-+	{ 1817269927U, 693U, 4279122573U },
-+	{ 1510091701U, 717U,  638191229U },
-+	{  365916850U, 807U,  600424314U },
-+	{  399324359U, 702U, 1803598116U },
-+	{ 1318480274U, 779U, 2074237022U },
-+	{  697758115U, 840U, 1483639402U },
-+	{ 1696507773U, 840U,  577415447U },
-+	{ 2081979121U, 981U, 3041486449U },
-+	{  955646687U, 742U, 3846494357U },
-+	{ 1250683506U, 749U,  836419859U },
-+	{  595003102U, 534U,  366794109U },
-+	{   47485338U, 558U, 3521120834U },
-+	{  619433479U, 610U, 3991783875U },
-+	{  704096520U, 518U, 4139493852U },
-+	{ 1712224984U, 606U, 2393312003U },
-+	{ 1318233152U, 922U, 3880361134U },
-+	{  855572992U, 761U, 1472974787U },
-+	{   64721421U, 703U,  683860550U },
-+	{  678931758U, 840U,  380616043U },
-+	{  692711973U, 778U, 1382361947U },
-+	{  677703619U, 530U, 2826914161U },
-+	{   92393223U, 586U, 1522128471U },
-+	{ 1222592920U, 743U, 3466726667U },
-+	{  358288986U, 695U, 1091956998U },
-+	{ 1935056945U, 958U,  514864477U },
-+	{  735675993U, 990U, 1294239989U },
-+	{ 1560089402U, 897U, 2238551287U },
-+	{   70616361U, 829U,   22483098U },
-+	{  368234700U, 731U, 2913875084U },
-+	{   20221190U, 879U, 1564152970U },
-+	{  539444654U, 682U, 1835141259U },
-+	{ 1314987297U, 840U, 1801114136U },
-+	{ 2019295544U, 645U, 3286438930U },
-+	{  469023838U, 716U, 1637918202U },
-+	{ 1843754496U, 653U, 2562092152U },
-+	{  400672036U, 809U, 4264212785U },
-+	{  404722249U, 965U, 2704116999U },
-+	{  600702209U, 758U,  584979986U },
-+	{  519953954U, 667U, 2574436237U },
-+	{ 1658071126U, 694U, 2214569490U },
-+	{  420480037U, 749U, 3430010866U },
-+	{  690103647U, 969U, 3700758083U },
-+	{ 1029424799U, 937U, 3787746841U },
-+	{ 2012608669U, 506U, 3362628973U },
-+	{ 1535432887U, 998U,   42610943U },
-+	{ 1330635533U, 857U, 3040806504U },
-+	{ 1223800550U, 539U, 3954229517U },
-+	{ 1322411537U, 680U, 3223250324U },
-+	{ 1877847898U, 945U, 2915147143U },
-+	{ 1646356099U, 874U,  965988280U },
-+	{  805687536U, 744U, 4032277920U },
-+	{ 1948093210U, 633U, 1346597684U },
-+	{  392609744U, 783U, 1636083295U },
-+	{  690241304U, 770U, 1201031298U },
-+	{ 1360302965U, 696U, 1665394461U },
-+	{ 1220090946U, 780U, 1316922812U },
-+	{  447092251U, 500U, 3438743375U },
-+	{ 1613868791U, 592U,  828546883U },
-+	{  523430951U, 548U, 2552392304U },
-+	{  726692899U, 810U, 1656872867U },
-+	{ 1364340021U, 836U, 3710513486U },
-+	{ 1986257729U, 931U,  935013962U },
-+	{  407983964U, 921U,  728767059U },
-+};
-+
-+static void prandom_state_test_seed(struct rnd_state *state, u32 seed)
-+{
-+#define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
-+	state->s1 = __seed(LCG(seed),        2U);
-+	state->s2 = __seed(LCG(state->s1),   8U);
-+	state->s3 = __seed(LCG(state->s2),  16U);
-+	state->s4 = __seed(LCG(state->s3), 128U);
-+}
-+
-+static void test_prandom_seed_boundary(struct kunit *test)
-+{
-+	int i;
-+	struct rnd_state state;
-+
-+	for (i = 0; i < ARRAY_SIZE(test1); i++) {
-+		prandom_state_test_seed(&state, test1[i].seed);
-+		prandom_warmup(&state);
-+		KUNIT_EXPECT_EQ(test, test1[i].result, prandom_u32_state(&state));
-+	}
-+}
-+
-+static void test_prandom_taus113(struct kunit *test)
-+{
-+	int i, j;
-+	struct rnd_state state;
-+
-+	for (i = 0; i < ARRAY_SIZE(test2); i++) {
-+		prandom_state_test_seed(&state, test2[i].seed);
-+		prandom_warmup(&state);
-+
-+		for (j = 0; j < test2[i].iteration - 1; j++)
-+			prandom_u32_state(&state);
-+
-+		KUNIT_EXPECT_EQ(test, test2[i].result, prandom_u32_state(&state));
-+	}
-+}
-+
-+static struct kunit_case prandom_test_cases[] = {
-+	KUNIT_CASE(test_prandom_seed_boundary),
-+	KUNIT_CASE(test_prandom_taus113),
-+	{}
-+};
-+
-+static struct kunit_suite prandom_test_suite = {
-+	.name = "prandom",
-+	.test_cases = prandom_test_cases,
-+};
-+
-+kunit_test_suite(prandom_test_suite);
-_
-
-Patches currently in -mm which might be from note351@hotmail.com are
-
-lib-random32-convert-selftest-to-kunit.patch
-
+-Doug
