@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA894A35
-	for <mm-commits@vger.kernel.org>; Sat, 24 Jan 2026 01:54:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68D2BAD2C;
+	Sat, 24 Jan 2026 01:55:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769219691; cv=none; b=poQP4Cb29xZS4sChVPVnhcBOizdgPZXngRwM8cDfrle0sIxAz/H+mtl3i/SEv94P42EBaCEWFHm1e+jFHlkWqwx4BmK8DN0lqxbOARfBhemcLgiTf1EZ031yolSjo0UbPC64KP2pu6FOE+cOHC0KPNl+R3KYMRKSqu3nJxSn4Aw=
+	t=1769219725; cv=none; b=HgeZhTY7KkIJNBTy7YgZKHnhhNYjcHigCZy3CwH2FUxftlZzpbi54appCLuBKhHvqQiOI/VaPOWfHL5cOyoiwwHRTwl/mQrVnmJ/35aQksBvM1B54vy++0QX0uVDUIJE6ONSUSSSeUXt0C+/Ygya5DcgrSrGl4qvL7KMxbyZfx4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769219691; c=relaxed/simple;
-	bh=g4eNP24Ok5AdYFriryHtj5HomlGJnJhma1XFwoFpGFU=;
-	h=Date:To:From:Subject:Message-Id; b=vB6PvuAAv8Ukz9ETiMcXvLYnJrIfzGeXdDqEqK3DinwgJEyQcTbzDbk+LgIFE6W7jJgQsnEy1KDeWSiAsqHXXXO+vaecRvqsnBP22S5F/3vloyVmpirc8ky0zJUYm4ZaY7ox0pMa4hUSH5qKt0H52UwYkyv6etwGkrZ9ZSKE7vE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jpIKOJHa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769219725; c=relaxed/simple;
+	bh=yQ2CRYrDIFVSia1BpTHLclEHzkwAyPyckO/9L4uqoDE=;
+	h=Date:To:From:Subject:Message-Id; b=A9jLjlbH9xHGFjvOqc7M9dfwC6EZzIFl92PxafIfm9awXeyFl+9piMSc19BMQPGedSE91dDtaSEUfLHzSSpkooBYRqUTWuCXfcePJZKxGY7kNzAXY+5wPK6bq9csdJs6CDWFeg51xpFeyaZdkSm1o2HOtLYw0z1plSGO8Z4MrM4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FMLXLcGP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jpIKOJHa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 978E4C4CEF1;
-	Sat, 24 Jan 2026 01:54:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FMLXLcGP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0626C4CEF1;
+	Sat, 24 Jan 2026 01:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769219690;
-	bh=g4eNP24Ok5AdYFriryHtj5HomlGJnJhma1XFwoFpGFU=;
+	s=korg; t=1769219725;
+	bh=yQ2CRYrDIFVSia1BpTHLclEHzkwAyPyckO/9L4uqoDE=;
 	h=Date:To:From:Subject:From;
-	b=jpIKOJHa9/RsHpokH8lWYqjOpQOrrTjzCpdpEdVy9Q1PdMfp0uuz+JoganO5cmRCZ
-	 IBXGNrUb5KgUqhjrStK+KZJyXtGoPne1okyl11nAxbT9lbjOd91rJg27MDlRiecA0p
-	 6qWCvoeSBwimAvCYFleeBK4LsNzZTnOnPh0gwfDA=
-Date: Fri, 23 Jan 2026 17:54:49 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,senozhatsky@chromium.org,rostedt@goodmis.org,pmladek@suse.com,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,corbet@lwn.net,bhe@redhat.com,pnina.feder@mobileye.com,akpm@linux-foundation.org
+	b=FMLXLcGPVp7Pz5KSAXurtn5Wt0bR57yVl0yMoNNvlo4mhOc1hemfAPHCH75LdrG67
+	 1SEtXN5Gspy0rRtXGiBbgy7Au7b2E72sJrg1bdKB3TI7HHCngJr0t0K8N7dI4hsVZS
+	 t50ML6lDL6RknnmKZ0y6GWKDZzTeb+YZAl54fEkc=
+Date: Fri, 23 Jan 2026 17:55:24 -0800
+To: mm-commits@vger.kernel.org,zhangjn11@chinatelecom.cn,yuanql9@chinatelecom.cn,wangjinchao600@gmail.com,sunshx@chinatelecom.cn,stable@vger.kernel.org,song@kernel.org,dianders@chromium.org,realwujing@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch added to mm-nonmm-unstable branch
-Message-Id: <20260124015450.978E4C4CEF1@smtp.kernel.org>
+Subject: + watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch added to mm-nonmm-unstable branch
+Message-Id: <20260124015524.E0626C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: add panic_force_cpu= parameter to redirect panic to a specific CPU
+     Subject: watchdog/hardlockup: fix UAF in perf event cleanup due to migration race
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
+     watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,309 +58,174 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pnina Feder <pnina.feder@mobileye.com>
-Subject: panic: add panic_force_cpu= parameter to redirect panic to a specific CPU
-Date: Thu, 22 Jan 2026 12:24:57 +0200
+From: Qiliang Yuan <realwujing@gmail.com>
+Subject: watchdog/hardlockup: fix UAF in perf event cleanup due to migration race
+Date: Thu, 22 Jan 2026 00:24:42 -0500
 
-Some platforms require panic handling to execute on a specific CPU for
-crash dump to work reliably.  This can be due to firmware limitations,
-interrupt routing constraints, or platform-specific requirements where
-only a single CPU is able to safely enter the crash kernel.
+During the early initialization of the hardlockup detector, the
+hardlockup_detector_perf_init() function probes for PMU hardware
+availability.  It originally used hardlockup_detector_event_create(),
+which interacts with the per-cpu 'watchdog_ev' variable.
 
-Add the panic_force_cpu= kernel command-line parameter to redirect panic
-execution to a designated CPU.  When the parameter is provided, the CPU
-that initially triggers panic forwards the panic context to the target CPU
-via IPI, which then proceeds with the normal panic and kexec flow.
+If the initializing task migrates to another CPU during this probe phase,
+two issues arise:
+1. The 'watchdog_ev' pointer on the original CPU is set but not cleared,
+   leaving a stale pointer to a freed perf event.
+2. The 'watchdog_ev' pointer on the new CPU might be incorrectly cleared.
 
-The IPI delivery is implemented as a weak function
-(panic_smp_redirect_cpu) so architectures with NMI support can override it
-for more reliable delivery.
+This race condition was observed in console logs (captured by adding debug printks):
 
-If the specified CPU is invalid, offline, or a panic is already in
-progress on another CPU, the redirection is skipped and panic continues on
-the current CPU.
+[23.038376] hardlockup_detector_perf_init 313 cur_cpu=2
+...
+[23.076385] hardlockup_detector_event_create 203 cpu(cur)=2 set watchdog_ev
+...
+[23.095788] perf_event_release_kernel 4623 cur_cpu=2
+...
+[23.116963] lockup_detector_reconfigure 577 cur_cpu=3
 
-Link: https://lkml.kernel.org/r/20260122102457.1154599-1-pnina.feder@mobileye.com
-Signed-off-by: Pnina Feder <pnina.feder@mobileye.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The log shows the task started on CPU 2, set watchdog_ev on CPU 2,
+released the event on CPU 2, but then migrated to CPU 3 before the cleanup
+logic (which would clear watchdog_ev) could run.  This left watchdog_ev on
+CPU 2 pointing to a freed event.
+
+Later, when the watchdog is enabled/disabled on CPU 2, this stale pointer
+leads to a Use-After-Free (UAF) in perf_event_disable(), as detected by KASAN:
+[26.539140] ==================================================================
+[26.540732] BUG: KASAN: use-after-free in perf_event_ctx_lock_nested.isra.72+0x6b/0x140
+[26.542442] Read of size 8 at addr ff110006b360d718 by task kworker/2:1/94
+[26.543954]
+[26.544744] CPU: 2 PID: 94 Comm: kworker/2:1 Not tainted 4.19.90-debugkasan #11
+[26.546505] Hardware name: GoStack Foundation OpenStack Nova, BIOS 1.16.3-3.ctl3 04/01/2014
+[26.548256] Workqueue: events smp_call_on_cpu_callback
+[26.549267] Call Trace:
+[26.549936]  dump_stack+0x8b/0xbb
+[26.550731]  print_address_description+0x6a/0x270
+[26.551688]  kasan_report+0x179/0x2c0
+[26.552519]  ? perf_event_ctx_lock_nested.isra.72+0x6b/0x140
+[26.553654]  ? watchdog_disable+0x80/0x80
+[26.553657]  perf_event_ctx_lock_nested.isra.72+0x6b/0x140
+[26.556951]  ? dump_stack+0xa0/0xbb
+[26.564006]  ? watchdog_disable+0x80/0x80
+[26.564886]  perf_event_disable+0xa/0x30
+[26.565746]  hardlockup_detector_perf_disable+0x1b/0x60
+[26.566776]  watchdog_disable+0x51/0x80
+[26.567624]  softlockup_stop_fn+0x11/0x20
+[26.568499]  smp_call_on_cpu_callback+0x5b/0xb0
+[26.569443]  process_one_work+0x389/0x770
+[26.570311]  worker_thread+0x57/0x5a0
+[26.571124]  ? process_one_work+0x770/0x770
+[26.572031]  kthread+0x1ae/0x1d0
+[26.572810]  ? kthread_create_worker_on_cpu+0xc0/0xc0
+[26.573821]  ret_from_fork+0x1f/0x40
+[26.574638]
+[26.575178] Allocated by task 1:
+[26.575990]  kasan_kmalloc+0xa0/0xd0
+[26.576814]  kmem_cache_alloc_trace+0xf3/0x1e0
+[26.577732]  perf_event_alloc.part.89+0xb5/0x12b0
+[26.578700]  perf_event_create_kernel_counter+0x1e/0x1d0
+[26.579728]  hardlockup_detector_event_create+0x4e/0xc0
+[26.580744]  hardlockup_detector_perf_init+0x2f/0x60
+[26.581746]  lockup_detector_init+0x85/0xdc
+[26.582645]  kernel_init_freeable+0x34d/0x40e
+[26.583568]  kernel_init+0xf/0x130
+[26.584428]  ret_from_fork+0x1f/0x40
+[26.584429]
+[26.584430] Freed by task 0:
+[26.584433]  __kasan_slab_free+0x130/0x180
+[26.584436]  kfree+0x90/0x1a0
+[26.589641]  rcu_process_callbacks+0x2cb/0x6e0
+[26.590935]  __do_softirq+0x119/0x3a2
+[26.591965]
+[26.592630] The buggy address belongs to the object at ff110006b360d500
+[26.592630]  which belongs to the cache kmalloc-2048 of size 2048
+[26.592633] The buggy address is located 536 bytes inside of
+[26.592633]  2048-byte region [ff110006b360d500, ff110006b360dd00)
+[26.592634] The buggy address belongs to the page:
+[26.592637] page:ffd400001acd8200 count:1 mapcount:0 mapping:ff11000107c0e800 index:0x0 compound_mapcount: 0
+[26.600959] flags: 0x17ffffc0010200(slab|head)
+[26.601891] raw: 0017ffffc0010200 dead000000000100 dead000000000200 ff11000107c0e800
+[26.603541] raw: 0000000000000000 00000000800f000f 00000001ffffffff 0000000000000000
+[26.605546] page dumped because: kasan: bad access detected
+[26.606788]
+[26.607351] Memory state around the buggy address:
+[26.608556]  ff110006b360d600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.610565]  ff110006b360d680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.610567] >ff110006b360d700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.610568]                             ^
+[26.610570]  ff110006b360d780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.610573]  ff110006b360d800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[26.618955] ==================================================================
+
+Fix this by making the probe logic stateless.  Use a local variable for
+the perf event and avoid accessing the per-cpu 'watchdog_ev' during
+initialization.  This ensures that the probe event is always properly
+released regardless of task migration, and no stale global state is left
+behind.
+
+Link: https://lkml.kernel.org/r/20260122052442.667394-1-realwujing@gmail.com
+Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
+Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
+Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
+Signed-off-by: Qiliang Yuan <yuanql9@chinatelecom.cn>
+Cc: Song Liu <song@kernel.org>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Jinchao Wang <wangjinchao600@gmail.com>
+Cc: Wang Jinchao <wangjinchao600@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   15 +
- include/linux/panic.h                           |    8 
- include/linux/smp.h                             |    1 
- kernel/panic.c                                  |  163 +++++++++++++-
- 4 files changed, 185 insertions(+), 2 deletions(-)
+ kernel/watchdog_perf.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4788,6 +4788,21 @@ Kernel parameters
- 	panic_on_warn=1	panic() instead of WARN().  Useful to cause kdump
- 			on a WARN().
+--- a/kernel/watchdog_perf.c~watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race
++++ a/kernel/watchdog_perf.c
+@@ -264,18 +264,38 @@ bool __weak __init arch_perf_nmi_is_avai
+ int __init watchdog_hardlockup_probe(void)
+ {
+ 	int ret;
++	struct perf_event_attr *wd_attr = &wd_hw_attr;
++	struct perf_event *evt;
++	unsigned int cpu;
  
-+	panic_force_cpu=
-+			[KNL,SMP] Force panic handling to execute on a specific CPU.
-+			Format: <cpu number>
-+			Some platforms require panic handling to occur on a
-+			specific CPU for the crash kernel to function correctly.
-+			This can be due to firmware limitations, interrupt routing
-+			constraints, or platform-specific requirements where only
-+			a particular CPU can safely enter the crash kernel.
-+			When set, panic() will redirect execution to the specified
-+			CPU before proceeding with the normal panic and kexec flow.
-+			If the target CPU is offline or unavailable, panic proceeds
-+			on the current CPU.
-+			This option should only be used for systems with the above
-+			constraints as it might cause the panic operation to be less reliable.
+ 	if (!arch_perf_nmi_is_available())
+ 		return -ENODEV;
+ 
+-	ret = hardlockup_detector_event_create();
++	/*
++	 * Test hardware PMU availability. Avoid using
++	 * hardlockup_detector_event_create() to prevent migration-related
++	 * stale pointers in the per-cpu watchdog_ev during early probe.
++	 */
++	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
++	if (!wd_attr->sample_period)
++		return -EINVAL;
+ 
+-	if (ret) {
++	/*
++	 * Use raw_smp_processor_id() for probing in preemptible init code.
++	 * Migration after reading ID is acceptable as counter creation on
++	 * the old CPU is sufficient for the probe.
++	 */
++	cpu = raw_smp_processor_id();
++	evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
++					       watchdog_overflow_callback, NULL);
++	if (IS_ERR(evt)) {
+ 		pr_info("Perf NMI watchdog permanently disabled\n");
++		ret = PTR_ERR(evt);
+ 	} else {
+-		perf_event_release_kernel(this_cpu_read(watchdog_ev));
+-		this_cpu_write(watchdog_ev, NULL);
++		perf_event_release_kernel(evt);
++		ret = 0;
+ 	}
 +
- 	panic_print=	Bitmask for printing system info when panic happens.
- 			User can chose combination of the following bits:
- 			bit 0: print all tasks info
---- a/include/linux/panic.h~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/include/linux/panic.h
-@@ -41,6 +41,14 @@ void abort(void);
-  * PANIC_CPU_INVALID means no CPU has entered panic() or crash_kexec().
-  */
- extern atomic_t panic_cpu;
-+
-+/*
-+ * panic_redirect_cpu is used when panic is redirected to a specific CPU via
-+ * the panic_force_cpu= boot parameter. It holds the CPU number that originally
-+ * triggered the panic before redirection. A value of PANIC_CPU_INVALID means
-+ * no redirection has occurred.
-+ */
-+extern atomic_t panic_redirect_cpu;
- #define PANIC_CPU_INVALID	-1
- 
- bool panic_try_start(void);
---- a/include/linux/smp.h~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/include/linux/smp.h
-@@ -62,6 +62,7 @@ int smp_call_function_single_async(int c
- void __noreturn panic_smp_self_stop(void);
- void __noreturn nmi_panic_self_stop(struct pt_regs *regs);
- void crash_smp_send_stop(void);
-+int panic_smp_redirect_cpu(int target_cpu, void *msg);
- 
- /*
-  * Call a function on all processors
---- a/kernel/panic.c~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/kernel/panic.c
-@@ -42,6 +42,7 @@
- 
- #define PANIC_TIMER_STEP 100
- #define PANIC_BLINK_SPD 18
-+#define PANIC_MSG_BUFSZ 1024
- 
- #ifdef CONFIG_SMP
- /*
-@@ -74,6 +75,9 @@ EXPORT_SYMBOL_GPL(panic_timeout);
- 
- unsigned long panic_print;
- 
-+static int panic_force_cpu = -1;
-+static char *panic_force_buf;
-+
- ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
- 
- EXPORT_SYMBOL(panic_notifier_list);
-@@ -300,6 +304,148 @@ void __weak crash_smp_send_stop(void)
+ 	return ret;
  }
  
- atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
-+atomic_t panic_redirect_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
-+
-+#if defined(CONFIG_SMP) && defined(CONFIG_CRASH_DUMP)
-+static int __init panic_force_cpu_setup(char *str)
-+{
-+	int cpu;
-+
-+	if (!str)
-+		return -EINVAL;
-+
-+	if (kstrtoint(str, 0, &cpu) || cpu < 0 || cpu >= nr_cpu_ids) {
-+		pr_warn("panic_force_cpu: invalid value '%s'\n", str);
-+		return -EINVAL;
-+	}
-+
-+	panic_force_cpu = cpu;
-+	return 0;
-+}
-+early_param("panic_force_cpu", panic_force_cpu_setup);
-+
-+static int __init panic_force_cpu_late_init(void)
-+{
-+	if (panic_force_cpu < 0)
-+		return 0;
-+
-+	panic_force_buf = kmalloc(PANIC_MSG_BUFSZ, GFP_KERNEL);
-+
-+	return 0;
-+}
-+late_initcall(panic_force_cpu_late_init);
-+
-+static void do_panic_on_target_cpu(void *info)
-+{
-+	panic("%s", (char *)info);
-+}
-+
-+/**
-+ * panic_smp_redirect_cpu - Redirect panic to target CPU
-+ * @target_cpu: CPU that should handle the panic
-+ * @msg: formatted panic message
-+ *
-+ * Default implementation uses IPI. Architectures with NMI support
-+ * can override this for more reliable delivery.
-+ *
-+ * Return: 0 on success, negative errno on failure
-+ */
-+int __weak panic_smp_redirect_cpu(int target_cpu, void *msg)
-+{
-+	static call_single_data_t panic_csd;
-+
-+	panic_csd.func = do_panic_on_target_cpu;
-+	panic_csd.info = msg;
-+
-+	return smp_call_function_single_async(target_cpu, &panic_csd);
-+}
-+
-+/**
-+ * panic_try_force_cpu - Redirect panic to a specific CPU for crash kernel
-+ * @fmt: panic message format string
-+ * @args: arguments for format string
-+ *
-+ * Some platforms require panic handling to occur on a specific CPU
-+ * for the crash kernel to function correctly. This function redirects
-+ * panic handling to the CPU specified via the panic_force_cpu= boot parameter.
-+ *
-+ * Returns false if panic should proceed on current CPU.
-+ * Returns true if panic was redirected.
-+ */
-+__printf(1, 0)
-+static bool panic_try_force_cpu(const char *fmt, va_list args)
-+{
-+	int this_cpu = raw_smp_processor_id();
-+	int old_cpu = PANIC_CPU_INVALID;
-+	const char *msg;
-+
-+	/* Feature not enabled via boot parameter */
-+	if (panic_force_cpu < 0)
-+		return false;
-+
-+	/* Already on target CPU - proceed normally */
-+	if (this_cpu == panic_force_cpu)
-+		return false;
-+
-+	/* Target CPU is offline, can't redirect */
-+	if (!cpu_online(panic_force_cpu)) {
-+		pr_warn("panic: target CPU %d is offline, continuing on CPU %d\n",
-+			panic_force_cpu, this_cpu);
-+		return false;
-+	}
-+
-+	/* Another panic already in progress */
-+	if (panic_in_progress())
-+		return false;
-+
-+	/*
-+	 * Only one CPU can do the redirect. Use atomic cmpxchg to ensure
-+	 * we don't race with another CPU also trying to redirect.
-+	 */
-+	if (!atomic_try_cmpxchg(&panic_redirect_cpu, &old_cpu, this_cpu))
-+		return false;
-+
-+	/*
-+	 * Use dynamically allocated buffer if available, otherwise
-+	 * fall back to static message for early boot panics or allocation failure.
-+	 */
-+	if (panic_force_buf) {
-+		vsnprintf(panic_force_buf, PANIC_MSG_BUFSZ, fmt, args);
-+		msg = panic_force_buf;
-+	} else {
-+		msg = "Redirected panic (buffer unavailable)";
-+	}
-+
-+	console_verbose();
-+	bust_spinlocks(1);
-+
-+	pr_emerg("panic: Redirecting from CPU %d to CPU %d for crash kernel.\n",
-+		 this_cpu, panic_force_cpu);
-+
-+	/* Dump original CPU before redirecting */
-+	if (!test_taint(TAINT_DIE) &&
-+	    oops_in_progress <= 1 &&
-+	    IS_ENABLED(CONFIG_DEBUG_BUGVERBOSE)) {
-+		dump_stack();
-+	}
-+
-+	if (panic_smp_redirect_cpu(panic_force_cpu, (void *)msg) != 0) {
-+		atomic_set(&panic_redirect_cpu, PANIC_CPU_INVALID);
-+		pr_warn("panic: failed to redirect to CPU %d, continuing on CPU %d\n",
-+			panic_force_cpu, this_cpu);
-+		return false;
-+	}
-+
-+	/* IPI/NMI sent, this CPU should stop */
-+	return true;
-+}
-+#else
-+__printf(1, 0)
-+static inline bool panic_try_force_cpu(const char *fmt, va_list args)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_SMP && CONFIG_CRASH_DUMP */
- 
- bool panic_try_start(void)
- {
-@@ -428,7 +574,7 @@ static void panic_other_cpus_shutdown(bo
-  */
- void vpanic(const char *fmt, va_list args)
- {
--	static char buf[1024];
-+	static char buf[PANIC_MSG_BUFSZ];
- 	long i, i_next = 0, len;
- 	int state = 0;
- 	bool _crash_kexec_post_notifiers = crash_kexec_post_notifiers;
-@@ -452,6 +598,15 @@ void vpanic(const char *fmt, va_list arg
- 	local_irq_disable();
- 	preempt_disable_notrace();
- 
-+	/* Redirect panic to target CPU if configured via panic_force_cpu=. */
-+	if (panic_try_force_cpu(fmt, args)) {
-+		/*
-+		 * Mark ourselves offline so panic_other_cpus_shutdown() won't wait
-+		 * for us on architectures that check num_online_cpus().
-+		 */
-+		set_cpu_online(smp_processor_id(), false);
-+		panic_smp_self_stop();
-+	}
- 	/*
- 	 * It's possible to come here directly from a panic-assertion and
- 	 * not have preempt disabled. Some functions called from here want
-@@ -484,7 +639,11 @@ void vpanic(const char *fmt, va_list arg
- 	/*
- 	 * Avoid nested stack-dumping if a panic occurs during oops processing
- 	 */
--	if (test_taint(TAINT_DIE) || oops_in_progress > 1) {
-+	if (atomic_read(&panic_redirect_cpu) != PANIC_CPU_INVALID &&
-+	    panic_force_cpu == raw_smp_processor_id()) {
-+		pr_emerg("panic: Redirected from CPU %d, skipping stack dump.\n",
-+			 atomic_read(&panic_redirect_cpu));
-+	} else if (test_taint(TAINT_DIE) || oops_in_progress > 1) {
- 		panic_this_cpu_backtrace_printed = true;
- 	} else if (IS_ENABLED(CONFIG_DEBUG_BUGVERBOSE)) {
- 		dump_stack();
 _
 
-Patches currently in -mm which might be from pnina.feder@mobileye.com are
+Patches currently in -mm which might be from realwujing@gmail.com are
 
-panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
+watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
 
