@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68D2BAD2C;
-	Sat, 24 Jan 2026 01:55:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E343F252292
+	for <mm-commits@vger.kernel.org>; Sat, 24 Jan 2026 03:02:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769219725; cv=none; b=HgeZhTY7KkIJNBTy7YgZKHnhhNYjcHigCZy3CwH2FUxftlZzpbi54appCLuBKhHvqQiOI/VaPOWfHL5cOyoiwwHRTwl/mQrVnmJ/35aQksBvM1B54vy++0QX0uVDUIJE6ONSUSSSeUXt0C+/Ygya5DcgrSrGl4qvL7KMxbyZfx4=
+	t=1769223748; cv=none; b=har2KftQirhAUdghVZ7cTY2Nmql0rz2VI24yRd5S1+Zqg5lRRZXB9Tzha0VGE8J00jx4p6nRYQruEDELfQkM8XwjgGvweT2wOMK1VeQ+hlk4GvVB/m0OW7crZ3Sk+E3Eh/ltvL+wiz55R9NjyPC3Zgr9mNsDs/4bQNKid9HfeHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769219725; c=relaxed/simple;
-	bh=yQ2CRYrDIFVSia1BpTHLclEHzkwAyPyckO/9L4uqoDE=;
-	h=Date:To:From:Subject:Message-Id; b=A9jLjlbH9xHGFjvOqc7M9dfwC6EZzIFl92PxafIfm9awXeyFl+9piMSc19BMQPGedSE91dDtaSEUfLHzSSpkooBYRqUTWuCXfcePJZKxGY7kNzAXY+5wPK6bq9csdJs6CDWFeg51xpFeyaZdkSm1o2HOtLYw0z1plSGO8Z4MrM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FMLXLcGP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769223748; c=relaxed/simple;
+	bh=H0f2HcSZFofWkFG/ES6IRPOdHL80vEBkCFBRNxD0FK0=;
+	h=Date:To:From:Subject:Message-Id; b=bC7xZ6fHamSr5L0QvoTQc4VxcSX1UrMzsQRu1QbzTQ6uTaMysr9sDqZRHI57vtrEI3RySwH9WugTo9S4UXz0Z1n9rl/M0C9vog6oz+7IJeHb4kOmLfUV3+ubcu2GmmFiWyeI176ml9chk8fXt2nhWUOyBO681sBXhKxM/cSurVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ji78NHjZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FMLXLcGP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0626C4CEF1;
-	Sat, 24 Jan 2026 01:55:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ji78NHjZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E244C4CEF1;
+	Sat, 24 Jan 2026 03:02:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769219725;
-	bh=yQ2CRYrDIFVSia1BpTHLclEHzkwAyPyckO/9L4uqoDE=;
+	s=korg; t=1769223747;
+	bh=H0f2HcSZFofWkFG/ES6IRPOdHL80vEBkCFBRNxD0FK0=;
 	h=Date:To:From:Subject:From;
-	b=FMLXLcGPVp7Pz5KSAXurtn5Wt0bR57yVl0yMoNNvlo4mhOc1hemfAPHCH75LdrG67
-	 1SEtXN5Gspy0rRtXGiBbgy7Au7b2E72sJrg1bdKB3TI7HHCngJr0t0K8N7dI4hsVZS
-	 t50ML6lDL6RknnmKZ0y6GWKDZzTeb+YZAl54fEkc=
-Date: Fri, 23 Jan 2026 17:55:24 -0800
-To: mm-commits@vger.kernel.org,zhangjn11@chinatelecom.cn,yuanql9@chinatelecom.cn,wangjinchao600@gmail.com,sunshx@chinatelecom.cn,stable@vger.kernel.org,song@kernel.org,dianders@chromium.org,realwujing@gmail.com,akpm@linux-foundation.org
+	b=ji78NHjZuvHykrTLQIoJWnbaHKL1PPbAdcdAmuliad3wikMt4/NugKmfIX7RGb3Nb
+	 KWQ1KCwuiIMZI41qMzJgprLw3o8cCHjK3fx6FI+IQkyVptp1QJrSTtrB8FOWjhboAp
+	 514quEi0nQraHi5B9cnDM/Eh4hU57K4uolBzGc8A=
+Date: Fri, 23 Jan 2026 19:02:26 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch added to mm-nonmm-unstable branch
-Message-Id: <20260124015524.E0626C4CEF1@smtp.kernel.org>
+Subject: [withdrawn] mm-khugepaged-make-khugepaged_collapse_control-a-local.patch removed from -mm tree
+Message-Id: <20260124030227.7E244C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,198 +34,79 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: watchdog/hardlockup: fix UAF in perf event cleanup due to migration race
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
+The quilt patch titled
+     Subject: mm/khugepaged: make khugepaged_collapse_control a local
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-make-khugepaged_collapse_control-a-local.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Qiliang Yuan <realwujing@gmail.com>
-Subject: watchdog/hardlockup: fix UAF in perf event cleanup due to migration race
-Date: Thu, 22 Jan 2026 00:24:42 -0500
+From: "Garg, Shivank" <shivankg@amd.com>
+Subject: mm/khugepaged: make khugepaged_collapse_control a local
+Date: Fri, 23 Jan 2026 15:03:58 +0530
 
-During the early initialization of the hardlockup detector, the
-hardlockup_detector_perf_init() function probes for PMU hardware
-availability.  It originally used hardlockup_detector_event_create(),
-which interacts with the per-cpu 'watchdog_ev' variable.
+Make this collapse_control instance local to the only function which uses
+it.
 
-If the initializing task migrates to another CPU during this probe phase,
-two issues arise:
-1. The 'watchdog_ev' pointer on the original CPU is set but not cleared,
-   leaving a stale pointer to a freed perf event.
-2. The 'watchdog_ev' pointer on the new CPU might be incorrectly cleared.
-
-This race condition was observed in console logs (captured by adding debug printks):
-
-[23.038376] hardlockup_detector_perf_init 313 cur_cpu=2
-...
-[23.076385] hardlockup_detector_event_create 203 cpu(cur)=2 set watchdog_ev
-...
-[23.095788] perf_event_release_kernel 4623 cur_cpu=2
-...
-[23.116963] lockup_detector_reconfigure 577 cur_cpu=3
-
-The log shows the task started on CPU 2, set watchdog_ev on CPU 2,
-released the event on CPU 2, but then migrated to CPU 3 before the cleanup
-logic (which would clear watchdog_ev) could run.  This left watchdog_ev on
-CPU 2 pointing to a freed event.
-
-Later, when the watchdog is enabled/disabled on CPU 2, this stale pointer
-leads to a Use-After-Free (UAF) in perf_event_disable(), as detected by KASAN:
-[26.539140] ==================================================================
-[26.540732] BUG: KASAN: use-after-free in perf_event_ctx_lock_nested.isra.72+0x6b/0x140
-[26.542442] Read of size 8 at addr ff110006b360d718 by task kworker/2:1/94
-[26.543954]
-[26.544744] CPU: 2 PID: 94 Comm: kworker/2:1 Not tainted 4.19.90-debugkasan #11
-[26.546505] Hardware name: GoStack Foundation OpenStack Nova, BIOS 1.16.3-3.ctl3 04/01/2014
-[26.548256] Workqueue: events smp_call_on_cpu_callback
-[26.549267] Call Trace:
-[26.549936]  dump_stack+0x8b/0xbb
-[26.550731]  print_address_description+0x6a/0x270
-[26.551688]  kasan_report+0x179/0x2c0
-[26.552519]  ? perf_event_ctx_lock_nested.isra.72+0x6b/0x140
-[26.553654]  ? watchdog_disable+0x80/0x80
-[26.553657]  perf_event_ctx_lock_nested.isra.72+0x6b/0x140
-[26.556951]  ? dump_stack+0xa0/0xbb
-[26.564006]  ? watchdog_disable+0x80/0x80
-[26.564886]  perf_event_disable+0xa/0x30
-[26.565746]  hardlockup_detector_perf_disable+0x1b/0x60
-[26.566776]  watchdog_disable+0x51/0x80
-[26.567624]  softlockup_stop_fn+0x11/0x20
-[26.568499]  smp_call_on_cpu_callback+0x5b/0xb0
-[26.569443]  process_one_work+0x389/0x770
-[26.570311]  worker_thread+0x57/0x5a0
-[26.571124]  ? process_one_work+0x770/0x770
-[26.572031]  kthread+0x1ae/0x1d0
-[26.572810]  ? kthread_create_worker_on_cpu+0xc0/0xc0
-[26.573821]  ret_from_fork+0x1f/0x40
-[26.574638]
-[26.575178] Allocated by task 1:
-[26.575990]  kasan_kmalloc+0xa0/0xd0
-[26.576814]  kmem_cache_alloc_trace+0xf3/0x1e0
-[26.577732]  perf_event_alloc.part.89+0xb5/0x12b0
-[26.578700]  perf_event_create_kernel_counter+0x1e/0x1d0
-[26.579728]  hardlockup_detector_event_create+0x4e/0xc0
-[26.580744]  hardlockup_detector_perf_init+0x2f/0x60
-[26.581746]  lockup_detector_init+0x85/0xdc
-[26.582645]  kernel_init_freeable+0x34d/0x40e
-[26.583568]  kernel_init+0xf/0x130
-[26.584428]  ret_from_fork+0x1f/0x40
-[26.584429]
-[26.584430] Freed by task 0:
-[26.584433]  __kasan_slab_free+0x130/0x180
-[26.584436]  kfree+0x90/0x1a0
-[26.589641]  rcu_process_callbacks+0x2cb/0x6e0
-[26.590935]  __do_softirq+0x119/0x3a2
-[26.591965]
-[26.592630] The buggy address belongs to the object at ff110006b360d500
-[26.592630]  which belongs to the cache kmalloc-2048 of size 2048
-[26.592633] The buggy address is located 536 bytes inside of
-[26.592633]  2048-byte region [ff110006b360d500, ff110006b360dd00)
-[26.592634] The buggy address belongs to the page:
-[26.592637] page:ffd400001acd8200 count:1 mapcount:0 mapping:ff11000107c0e800 index:0x0 compound_mapcount: 0
-[26.600959] flags: 0x17ffffc0010200(slab|head)
-[26.601891] raw: 0017ffffc0010200 dead000000000100 dead000000000200 ff11000107c0e800
-[26.603541] raw: 0000000000000000 00000000800f000f 00000001ffffffff 0000000000000000
-[26.605546] page dumped because: kasan: bad access detected
-[26.606788]
-[26.607351] Memory state around the buggy address:
-[26.608556]  ff110006b360d600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[26.610565]  ff110006b360d680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[26.610567] >ff110006b360d700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[26.610568]                             ^
-[26.610570]  ff110006b360d780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[26.610573]  ff110006b360d800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-[26.618955] ==================================================================
-
-Fix this by making the probe logic stateless.  Use a local variable for
-the perf event and avoid accessing the per-cpu 'watchdog_ev' during
-initialization.  This ensures that the probe event is always properly
-released regardless of task migration, and no stale global state is left
-behind.
-
-Link: https://lkml.kernel.org/r/20260122052442.667394-1-realwujing@gmail.com
-Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
-Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
-Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
-Signed-off-by: Qiliang Yuan <yuanql9@chinatelecom.cn>
-Cc: Song Liu <song@kernel.org>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Jinchao Wang <wangjinchao600@gmail.com>
-Cc: Wang Jinchao <wangjinchao600@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/ba4502f7-0c35-460e-a42c-d32dea9ab9eb@amd.com
+Signed-off-by: Shivank Garg <shivankg@amd.com>
+Suggested-by: Dev Jain <dev.jain@arm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog_perf.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ mm/khugepaged.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/kernel/watchdog_perf.c~watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race
-+++ a/kernel/watchdog_perf.c
-@@ -264,18 +264,38 @@ bool __weak __init arch_perf_nmi_is_avai
- int __init watchdog_hardlockup_probe(void)
- {
- 	int ret;
-+	struct perf_event_attr *wd_attr = &wd_hw_attr;
-+	struct perf_event *evt;
-+	unsigned int cpu;
- 
- 	if (!arch_perf_nmi_is_available())
- 		return -ENODEV;
- 
--	ret = hardlockup_detector_event_create();
-+	/*
-+	 * Test hardware PMU availability. Avoid using
-+	 * hardlockup_detector_event_create() to prevent migration-related
-+	 * stale pointers in the per-cpu watchdog_ev during early probe.
-+	 */
-+	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
-+	if (!wd_attr->sample_period)
-+		return -EINVAL;
- 
--	if (ret) {
-+	/*
-+	 * Use raw_smp_processor_id() for probing in preemptible init code.
-+	 * Migration after reading ID is acceptable as counter creation on
-+	 * the old CPU is sufficient for the probe.
-+	 */
-+	cpu = raw_smp_processor_id();
-+	evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
-+					       watchdog_overflow_callback, NULL);
-+	if (IS_ERR(evt)) {
- 		pr_info("Perf NMI watchdog permanently disabled\n");
-+		ret = PTR_ERR(evt);
- 	} else {
--		perf_event_release_kernel(this_cpu_read(watchdog_ev));
--		this_cpu_write(watchdog_ev, NULL);
-+		perf_event_release_kernel(evt);
-+		ret = 0;
- 	}
-+
- 	return ret;
+--- a/mm/khugepaged.c~mm-khugepaged-make-khugepaged_collapse_control-a-local
++++ a/mm/khugepaged.c
+@@ -827,10 +827,6 @@ static void khugepaged_alloc_sleep(void)
+ 	remove_wait_queue(&khugepaged_wait, &wait);
  }
+ 
+-struct collapse_control khugepaged_collapse_control = {
+-	.is_khugepaged = true,
+-};
+-
+ static bool hpage_collapse_scan_abort(int nid, struct collapse_control *cc)
+ {
+ 	int i;
+@@ -2618,13 +2614,16 @@ static void khugepaged_wait_work(void)
+ 
+ static int khugepaged(void *none)
+ {
++	struct collapse_control cc = {
++		.is_khugepaged = true,
++	};
+ 	struct mm_slot *slot;
+ 
+ 	set_freezable();
+ 	set_user_nice(current, MAX_NICE);
+ 
+ 	while (!kthread_should_stop()) {
+-		khugepaged_do_scan(&khugepaged_collapse_control);
++		khugepaged_do_scan(&cc);
+ 		khugepaged_wait_work();
+ 	}
  
 _
 
-Patches currently in -mm which might be from realwujing@gmail.com are
+Patches currently in -mm which might be from shivankg@amd.com are
 
-watchdog-hardlockup-fix-uaf-in-perf-event-cleanup-due-to-migration-race.patch
+mm-khugepaged-map-dirty-writeback-pages-failures-to-eagain.patch
+mm-khugepaged-retry-with-sync-writeback-for-madv_collapse.patch
+mm-khugepaged-remove-unnecessary-goto-skip-label.patch
+mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch
+mm-khugepaged-use-enum-scan_result-for-result-variables-and-return-types.patch
 
