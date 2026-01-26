@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60FDA2737F9
-	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 19:10:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA2522528FD
+	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 19:16:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769454632; cv=none; b=ThuyQeJKg8LWmzyfpYoxnsFsYgJ6/mSQJTAHnlYmgKLiHqlrCU0j1BvbKmp/PvUa/TeeCiZIoIjWnpkrh8/rrBdEh8WTB2+PafYLGX0hTRJn8UiuKfViO33GTJowiXQ4lH0m+qrqwWqg1Crr8bCYfEaH59TZdNAf3ugjSWJNff8=
+	t=1769454992; cv=none; b=jErITgnRszU1UmLtNFi2tK0vRTZmQR3zH3X3Ee9JznN2o7/e+pPgtxgE1NBmrZ1PW+QK/wySooV8Mja+2DthZrlXCjqm2NhaCgxTtss7x164HVhPVmd/sbHBAbDt3Ejec4aAwYB1/p17FRGl6ix9yqWqlzEKSs1chrM627i6X8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769454632; c=relaxed/simple;
-	bh=EF+ye5Wmxz+j0X3/uvnUno6RWPVbNi9TP0e5Z+d+ILk=;
-	h=Date:To:From:Subject:Message-Id; b=QvrQLVeDPzpDA/PFYzmpVX6LdVUlqE37/1yX20p0EbzXfrbFTleCdDK6+Ml/1XBeTTjFG0A+vFL70l6nB9Dy4AQoEEK4JKTqyO/ZCYrlPr+0j4MapvseABSN5zPMKp7REAeCeuXvaS+5sr/4x6di6FxwJ7+hRFcS1Qid4YI5fIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YCACj3qI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769454992; c=relaxed/simple;
+	bh=LyED3ZG17Os2T+Rakzy8I49qnCZElEmlZC17QKDJ2+Q=;
+	h=Date:To:From:Subject:Message-Id; b=dxW+TneuiBI/YQ3u1J42Fr4/wchivTqRl8Re7oZnoEb5yM70gPF9vnudzlX4GrdL4E3Rt8sxL+nuprAqHflIdSg/dt0M8ELR/w7OG8DHo8r5AVcTn1kHd+FmmAfSI1ipxyzD2uzPjZ8zApBx3ijY+6eUfqd/eNoLmm0YlewJ9fw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hsRW8Q2C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YCACj3qI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 000EFC116C6;
-	Mon, 26 Jan 2026 19:10:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hsRW8Q2C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 661E5C116C6;
+	Mon, 26 Jan 2026 19:16:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769454632;
-	bh=EF+ye5Wmxz+j0X3/uvnUno6RWPVbNi9TP0e5Z+d+ILk=;
+	s=korg; t=1769454992;
+	bh=LyED3ZG17Os2T+Rakzy8I49qnCZElEmlZC17QKDJ2+Q=;
 	h=Date:To:From:Subject:From;
-	b=YCACj3qIolq41K7+ZNrk0l2vLffNOK3UZX2Iw1tciGGhvbk5V3eErRWfcK3hu075W
-	 AxTsBd6qDZuX+yMyFXlFVwRz1TH6wKbOfjY5QcjhZQo3K/kUA171oDOmC6pGNaWZMD
-	 +Hzt7iemfvi8hjXORiACGll+ZgjyLZ/Xej0t1jGs=
-Date: Mon, 26 Jan 2026 11:10:31 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,david@kernel.org,davem@davemloft.net,andreas@gaisler.com,agordeev@linux.ibm.com,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=hsRW8Q2CQ+gVADgkn6GsJtoebVJzxAEk75p2352eK0wK2mXf9QPQ9Z8eo63ltV/Gx
+	 MtXNbPysHEQN3kkBDyf0kgnFQsvv2Cjc/wWvuk2dD2DnKlC1aeWFWNM+IsRydy/MPD
+	 UELqgTprhiRuMehjwCNJxmhOupS031/UlMQAmoic=
+Date: Mon, 26 Jan 2026 11:16:31 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,pnina.feder@mobileye.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-convert-vmemmap_pd_populate-to-static-functions.patch removed from -mm tree
-Message-Id: <20260126191032.000EFC116C6@smtp.kernel.org>
+Subject: + panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20260126191632.661E5C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,110 +34,72 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: convert vmemmap_p?d_populate() to static functions
-has been removed from the -mm tree.  Its filename was
-     mm-convert-vmemmap_pd_populate-to-static-functions.patch
+The patch titled
+     Subject: panic: fix unused variable warning when SMP or CRASH_DUMP disabled
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Chengkaitao <chengkaitao@kylinos.cn>
-Subject: mm: convert vmemmap_p?d_populate() to static functions
-Date: Sun, 11 Jan 2026 15:44:53 +0800
+From: Pnina Feder <pnina.feder@mobileye.com>
+Subject: panic: fix unused variable warning when SMP or CRASH_DUMP disabled
+Date: Mon, 26 Jan 2026 14:26:18 +0200
 
-Since the vmemmap_p?d_populate functions are unused outside the mm
-subsystem, we can remove their external declarations and convert them to
-static functions.
+Move panic_force_buf inside the #ifdef block to fix unused variable
+warning when CONFIG_SMP or CONFIG_CRASH_DUMP is not enabled.
 
-Link: https://lkml.kernel.org/r/20260111074453.66728-3-pilgrimtao@gmail.com
-Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20260126122618.2967950-1-pnina.feder@mobileye.com
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202601222042.OSZryOnl-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202601230908.0vB3SoHM-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202601231058.Q6hDGfoT-lkp@intel.com/
+Signed-off-by: Pnina Feder <pnina.feder@mobileye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    7 -------
- mm/sparse-vmemmap.c |   10 +++++-----
- 2 files changed, 5 insertions(+), 12 deletions(-)
+ kernel/panic.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-convert-vmemmap_pd_populate-to-static-functions
-+++ a/include/linux/mm.h
-@@ -4294,13 +4294,6 @@ unsigned long section_map_size(void);
- struct page * __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap);
--pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
--p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
--pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
--pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
--pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--			    struct vmem_altmap *altmap, unsigned long ptpfn,
--			    unsigned long flags);
- void *vmemmap_alloc_block(unsigned long size, int node);
- struct vmem_altmap;
- void *vmemmap_alloc_block_buf(unsigned long size, int node,
---- a/mm/sparse-vmemmap.c~mm-convert-vmemmap_pd_populate-to-static-functions
-+++ a/mm/sparse-vmemmap.c
-@@ -151,7 +151,7 @@ void __meminit vmemmap_verify(pte_t *pte
- 			start, end - 1);
- }
+--- a/kernel/panic.c~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix
++++ a/kernel/panic.c
+@@ -76,7 +76,6 @@ EXPORT_SYMBOL_GPL(panic_timeout);
+ unsigned long panic_print;
  
--pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
-+static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
- 				       struct vmem_altmap *altmap,
- 				       unsigned long ptpfn, unsigned long flags)
- {
-@@ -195,7 +195,7 @@ static void * __meminit vmemmap_alloc_bl
- 	return p;
- }
+ static int panic_force_cpu = -1;
+-static char *panic_force_buf;
  
--pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
-+static pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
- {
- 	pmd_t *pmd = pmd_offset(pud, addr);
- 	if (pmd_none(*pmd)) {
-@@ -208,7 +208,7 @@ pmd_t * __meminit vmemmap_pmd_populate(p
- 	return pmd;
- }
+ ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
  
--pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
-+static pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
- {
- 	pud_t *pud = pud_offset(p4d, addr);
- 	if (pud_none(*pud)) {
-@@ -221,7 +221,7 @@ pud_t * __meminit vmemmap_pud_populate(p
- 	return pud;
- }
+@@ -307,6 +306,8 @@ atomic_t panic_cpu = ATOMIC_INIT(PANIC_C
+ atomic_t panic_redirect_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
  
--p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
-+static p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ #if defined(CONFIG_SMP) && defined(CONFIG_CRASH_DUMP)
++static char *panic_force_buf;
++
+ static int __init panic_force_cpu_setup(char *str)
  {
- 	p4d_t *p4d = p4d_offset(pgd, addr);
- 	if (p4d_none(*p4d)) {
-@@ -234,7 +234,7 @@ p4d_t * __meminit vmemmap_p4d_populate(p
- 	return p4d;
- }
- 
--pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
-+static pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
- {
- 	pgd_t *pgd = pgd_offset_k(addr);
- 	if (pgd_none(*pgd)) {
+ 	int cpu;
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from pnina.feder@mobileye.com are
 
+panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
+panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch
 
