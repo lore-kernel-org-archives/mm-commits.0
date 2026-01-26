@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F071F2D879A
-	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 20:54:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F9D82D8797
+	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 20:54:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769460858; cv=none; b=FwYYswBNbX6D3+Kktb5170bN+hGF0GHWYgCvUJPwCOuXKd3p85pdpnmQ6yBT2j45BMpz1m0i3lNVzL+Q7rhvSMK1khdThi8Lu3iwsVwc0BEHLLydaBBxK6QxXe3NynxQev/o+BhdDUjix9PNIKw2Ef7EeY53yuBCezQ/UUryjhw=
+	t=1769460860; cv=none; b=jC+H5SGGruaqDcDA07zOexuS5vVFc713GMxud/QSyWMV550aMc5dVKiMKvrQ3vUAS/dlofISdTKFxrbqb97FTsxcnH66PDtFD3FZ/KS5lZX9IeH0ENDhybYdNAtBOtbWUxQ+dOyRZo0TE8RcTqEu2PfjXhyQwfP+C3gG3pw6GVQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769460858; c=relaxed/simple;
-	bh=XRmtmAlieqzR0SRf0Thf3fFmCMKDxH9POWrzqHp7o9E=;
-	h=Date:To:From:Subject:Message-Id; b=CCe5jjscjie2Eni2tv8d6weS1FodOtDEfnuGyFOxLp5vSJ41UO5qQeLBIU4fSTZrhQaLut3/pQWurk+OnGhravGL/6wrT9YaBXGErZhluQJyqeHmu+TFkobwgNv74y0D6Lszp/Amv3FcA/XWqTtZcy+i0hSL6SdX1Op1LEHXIyI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P5GAw/oL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769460860; c=relaxed/simple;
+	bh=CzbEOZb8VwkxKNLRMMjosDFcmvQK0lsf+4LVJeckToA=;
+	h=Date:To:From:Subject:Message-Id; b=c00h+FVf7zzBunjDR80F6+rnIZyoFGC5iCxeZKBrmYa9st/KKcv5kiBJio3dNN0la6UgcYU1PkGdAJjTwFRmBxCGRPlutY8WDINFuh/NiTKHLXp7tySZcEmxiW5JUdKXhe+qjj03SpVDN5kdRj80/jDK8qZRVIQM+gaWYM93NHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gc5UZw5w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P5GAw/oL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77502C19422;
-	Mon, 26 Jan 2026 20:54:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gc5UZw5w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19011C19422;
+	Mon, 26 Jan 2026 20:54:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769460857;
-	bh=XRmtmAlieqzR0SRf0Thf3fFmCMKDxH9POWrzqHp7o9E=;
+	s=korg; t=1769460860;
+	bh=CzbEOZb8VwkxKNLRMMjosDFcmvQK0lsf+4LVJeckToA=;
 	h=Date:To:From:Subject:From;
-	b=P5GAw/oLlpCzn/Oshvy9oeDEBLEHBjLYOzJycyOyl8Qj7KJETy//SQEvLgmOBQ9WK
-	 REwBKzuzpltOMjd0BYsbcq6EUhKHVll16Nqk4zjskmugNQKNvUqNbzWGMksvN9WWP8
-	 afM0UsJtl6M/enRU0g6ycEJ3IjUsFyonp2yICgLU=
-Date: Mon, 26 Jan 2026 12:54:16 -0800
+	b=Gc5UZw5wiZp3CgBXa6HR8qL3md0DycXiaC8InLWLFpo90Bfhh887EGsgaRUnPWg8W
+	 OQLYvEyHAJ5A97LZBiBxxxaceZjpua1shH+AK1KoJqfRRBbkIYAwY7q9Z0m6ohJnoP
+	 m4+vDY4GjFoLcyg54MO7cL2DjX1+cD5Ow76fZdLo=
+Date: Mon, 26 Jan 2026 12:54:19 -0800
 To: mm-commits@vger.kernel.org,steven.price@arm.com,pabeni@redhat.com,leon@kernel.org,kuba@kernel.org,horms@kernel.org,felix.kuehling@amd.com,edumazet@google.com,davem@davemloft.net,christian.koenig@amd.com,boris.brezillon@collabora.com,aliceryhl@google.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-amdgpu-dont-abuse-current-group_leader.patch added to mm-nonmm-unstable branch
-Message-Id: <20260126205417.77502C19422@smtp.kernel.org>
+Subject: + drm-amd-kill-the-outdated-only-the-pthreads-threading-model-is-supported-checks.patch added to mm-nonmm-unstable branch
+Message-Id: <20260126205420.19011C19422@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drm/amdgpu: don't abuse current->group_leader
+     Subject: drm/amd: kill the outdated "Only the pthreads threading model is supported" checks
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     drm-amdgpu-dont-abuse-current-group_leader.patch
+     drm-amd-kill-the-outdated-only-the-pthreads-threading-model-is-supported-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-amdgpu-dont-abuse-current-group_leader.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-amd-kill-the-outdated-only-the-pthreads-threading-model-is-supported-checks.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: drm/amdgpu: don't abuse current->group_leader
-Date: Sun, 25 Jan 2026 17:07:28 +0100
+Subject: drm/amd: kill the outdated "Only the pthreads threading model is supported" checks
+Date: Sun, 25 Jan 2026 17:07:36 +0100
 
-Cleanup and preparation to simplify the next changes.
+Nowadays task->group_leader->mm != task->mm is only possible if a) task is
+not a group leader and b) task->group_leader->mm == NULL because
+task->group_leader has already exited using sys_exit().
 
-- Use current->tgid instead of current->group_leader->pid
+I don't think that drm/amd tries to detect/nack this case.
 
-- Use get_task_pid(current, PIDTYPE_TGID) instead of
-  get_task_pid(current->group_leader, PIDTYPE_PID)
-
-Link: https://lkml.kernel.org/r/aXY_wKewzV5lCa5I@redhat.com
+Link: https://lkml.kernel.org/r/aXY_yLVHd63UlWtm@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
 Acked-by: Felix Kuehling <felix.kuehling@amd.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Boris Brezillon <boris.brezillon@collabora.com>
-Cc: Christan KÃ¶nig <christian.koenig@amd.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Jakub Kicinski <kuba@kernel.org>
@@ -85,32 +84,48 @@ Cc: Steven Price <steven.price@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c |    2 +-
- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c   |    3 ---
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c |   10 ----------
+ 2 files changed, 13 deletions(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c~drm-amdgpu-dont-abuse-current-group_leader
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
-@@ -1421,7 +1421,7 @@ static int init_kfd_vm(struct amdgpu_vm
- 			goto create_evict_fence_fail;
- 		}
- 
--		info->pid = get_task_pid(current->group_leader, PIDTYPE_PID);
-+		info->pid = get_task_pid(current, PIDTYPE_TGID);
- 		INIT_DELAYED_WORK(&info->restore_userptr_work,
- 				  amdgpu_amdkfd_restore_userptr_worker);
- 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c~drm-amdgpu-dont-abuse-current-group_leader
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c~drm-amd-kill-the-outdated-only-the-pthreads-threading-model-is-supported-checks
 +++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
-@@ -2554,7 +2554,7 @@ void amdgpu_vm_set_task_info(struct amdg
- 	if (current->group_leader->mm != current->mm)
- 		return;
+@@ -2551,9 +2551,6 @@ void amdgpu_vm_set_task_info(struct amdg
+ 	vm->task_info->task.pid = current->pid;
+ 	get_task_comm(vm->task_info->task.comm, current);
  
--	vm->task_info->tgid = current->group_leader->pid;
-+	vm->task_info->tgid = current->tgid;
+-	if (current->group_leader->mm != current->mm)
+-		return;
+-
+ 	vm->task_info->tgid = current->tgid;
  	get_task_comm(vm->task_info->process_name, current->group_leader);
  }
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c~drm-amd-kill-the-outdated-only-the-pthreads-threading-model-is-supported-checks
++++ a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
+@@ -833,12 +833,6 @@ struct kfd_process *kfd_create_process(s
+ 	if (!(thread->mm && mmget_not_zero(thread->mm)))
+ 		return ERR_PTR(-EINVAL);
  
+-	/* Only the pthreads threading model is supported. */
+-	if (thread->group_leader->mm != thread->mm) {
+-		mmput(thread->mm);
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+ 	/* If the process just called exec(3), it is possible that the
+ 	 * cleanup of the kfd_process (following the release of the mm
+ 	 * of the old process image) is still in the cleanup work queue.
+@@ -918,10 +912,6 @@ struct kfd_process *kfd_get_process(cons
+ 	if (!thread->mm)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	/* Only the pthreads threading model is supported. */
+-	if (thread->group_leader->mm != thread->mm)
+-		return ERR_PTR(-EINVAL);
+-
+ 	process = find_process(thread, false);
+ 	if (!process)
+ 		return ERR_PTR(-EINVAL);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
