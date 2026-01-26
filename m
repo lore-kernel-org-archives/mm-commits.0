@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B441226ED48
-	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 19:38:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4484E285C9F
+	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 19:50:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769456296; cv=none; b=XXA24QfkoE0Tuxs3qlwQFS+fBIUpV4gA58Q3L3K7o4OYxgyoCyG3GOqIRiX8hd+aJkV8ZjE4c9R+R1F/tbQM/4Lgc/3hQYiyVCgsaPUDG43v1IwF9BA/lzfqF862lbNQE5eS53oplyj5oY5hQDONAeq9+gt6E/2CGnNl58kmP1E=
+	t=1769457017; cv=none; b=M3oj7vmB5/FdzvOQ5oZrdnqW1ey6aRUdVElz4Ci2PRmVWjHy/DdoT4dXNxGGmR55ATpoBrePtOgfH127C+rD06Q4acJ1zeOhkQpL9vjSAh5JhGDlKdXZZUL8zFmfynuipaIB6b4Np30oI6v4j4NY1EqgELdkmoNXQ0kMyRXSBFg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769456296; c=relaxed/simple;
-	bh=2K5BDdzgQcEsRoCoGJ00IG0BlAE8vRI0Oozc4bQZyC8=;
-	h=Date:To:From:Subject:Message-Id; b=bsdqJBv6IdUOFoAP40ZBxWJcwOHAZufyM8ev5Xqpb27k9HiRkLZ0F6FA8WWEO4nKD6847DpT8zUXSYFyW7LyuS+jaB5n3r/KGDVFx9LvALIJknOoOOJSwyjUcgMX0bZnZ6IEL01kde6iHoetaSaIUbqwMwRy29xIx6ML1enZ8To=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TxQl/4qt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769457017; c=relaxed/simple;
+	bh=VAsvkSLfv++0u7hZ02NEP6tPJnvlfIPS7hvA8c/Gx9I=;
+	h=Date:To:From:Subject:Message-Id; b=LPrF5DDWdpITWxMKQflb4f6m26kOlN4yIrcyOCiss9tgslgytNW+fEQECCdlabGR/JLvvzONi2VoUKBkxvhjKbsWCFOPmA40uYFv8eS+8sjHqFdhtAb1yQ825R0zf4OcbtTFlTny9A85GNMpmHHoHCx15ZxfHPGbH1Lbq1ugJxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jU8piP74; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TxQl/4qt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39C99C116C6;
-	Mon, 26 Jan 2026 19:38:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jU8piP74"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE9B7C116C6;
+	Mon, 26 Jan 2026 19:50:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769456296;
-	bh=2K5BDdzgQcEsRoCoGJ00IG0BlAE8vRI0Oozc4bQZyC8=;
+	s=korg; t=1769457016;
+	bh=VAsvkSLfv++0u7hZ02NEP6tPJnvlfIPS7hvA8c/Gx9I=;
 	h=Date:To:From:Subject:From;
-	b=TxQl/4qtp6sGGtDMwwWWO9pYBC+cTTyGKVg8/G0KGShdsgOeHYKA7gcVJlYjvr1OO
-	 aTbTBrGlsGLrCS9OV6MDShUp8RgroRbyeKyIlXu56VtgqyodzYSh13WvRofiqhMSw+
-	 FRJ1E0nASyMdmfdhlxjxUs817nSM5/oBoeK943eo=
-Date: Mon, 26 Jan 2026 11:38:15 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,longman@redhat.com,liam.howlett@oracle.com,boqun.feng@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=jU8piP74gnnOfxMi0IHMXifpMHzHXmn0PicEb3v1QwEE5zJj9HWPDup9Pvhm8PmAM
+	 nAJ48bHnRuj9TgFODSeszG598hWzz1YCYRV5J3uuOm1BLbib+QPgai/IZl7KNuQMsl
+	 Kb28YVKE9wgZyMmJP26WCphRjPKbBpYX3kzEvoso=
+Date: Mon, 26 Jan 2026 11:50:16 -0800
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,tglx@linutronix.de,shuah@kernel.org,peterz@infradead.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,justinstitt@google.com,edliaw@google.com,dvhart@infradead.org,dave@stgolabs.net,colin.i.king@gmail.com,bigeasy@linutronix.de,andrealmeid@igalia.com,ywen.chen@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch added to mm-unstable branch
-Message-Id: <20260126193816.39C99C116C6@smtp.kernel.org>
+Subject: + selftests-futex-fix-the-failed-futex_requeue-test-issue.patch added to mm-nonmm-unstable branch
+Message-Id: <20260126195016.AE9B7C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
+     Subject: selftests/futex: fix the failed futex_requeue test issue
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,76 +58,182 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix
-Date: Fri, 23 Jan 2026 20:12:17 +0000
+From: Yuwen Chen <ywen.chen@foxmail.com>
+Subject: selftests/futex: fix the failed futex_requeue test issue
+Date: Mon, 26 Jan 2026 17:33:30 +0800
 
-fix function naming in comments, add comment per Vlastimil per Lorenzo
+This test item has extremely high requirements for timing and can only
+pass the test under specific conditions.  The following situations will
+lead to test failure:
 
-Link: https://lkml.kernel.org/r/7d3084d596c84da10dd374130a5055deba6439c0.1769198904.git.lorenzo.stoakes@oracle.com
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
+    MainThread                  Thread1
+        │
+  pthread_create-------------------┐
+        │                          │
+ futex_cmp_requeue                 │
+        │                     futex_wait
+        │                          │
+
+If the child thread is not waiting in the futex_wait function when the
+main thread reaches the futex_cmp_requeue function, the test will fail.
+
+This patch avoids this problem by checking whether the child thread is in
+a sleeping state in the main thread.
+
+Link: https://lkml.kernel.org/r/tencent_B9DBF2ECBE56BAB68BDAB949C6935D01CE09@qq.com
+Fixes: 7cb5dd8e2c8c ("selftests: futex: Add futex compare requeue test")
+Signed-off-by: Yuwen Chen <ywen.chen@foxmail.com>
+Co-developed-by: Edward Liaw <edliaw@google.com>
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Cc: Andre Almeida <andrealmeid@igalia.com>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: ndesaulniers@google.com <ndesaulniers@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    4 ++--
- mm/mmap_lock.c           |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/futex/functional/futex_requeue.c |   70 ++++++++--
+ 1 file changed, 59 insertions(+), 11 deletions(-)
 
---- a/include/linux/mm_types.h~mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix
-+++ a/include/linux/mm_types.h
-@@ -1011,12 +1011,12 @@ struct vm_area_struct {
- 	 * decrementing it again.
- 	 *
- 	 * VM_REFCNT_EXCLUDE_READERS_FLAG - Detached, pending
--	 * __vma_exit_exclusive_locked() completion which will decrement the
-+	 * __vma_end_exclude_readers() completion which will decrement the
- 	 * reference count to zero. IMPORTANT - at this stage no further readers
- 	 * can increment the reference count. It can only be reduced.
- 	 *
- 	 * VM_REFCNT_EXCLUDE_READERS_FLAG + 1 - A thread is either write-locking
--	 * an attached VMA and has yet to invoke __vma_exit_exclusive_locked(),
-+	 * an attached VMA and has yet to invoke __vma_end_exclude_readers(),
- 	 * OR a thread is detaching a VMA and is waiting on a single spurious
- 	 * reader in order to decrement the reference count. IMPORTANT - as
- 	 * above, no further readers can increment the reference count.
---- a/mm/mmap_lock.c~mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix
-+++ a/mm/mmap_lock.c
-@@ -46,7 +46,7 @@ EXPORT_SYMBOL(__mmap_lock_do_trace_relea
- #ifdef CONFIG_MMU
- #ifdef CONFIG_PER_VMA_LOCK
+--- a/tools/testing/selftests/futex/functional/futex_requeue.c~selftests-futex-fix-the-failed-futex_requeue-test-issue
++++ a/tools/testing/selftests/futex/functional/futex_requeue.c
+@@ -7,21 +7,27 @@
  
--/* State shared across __vma_[enter, exit]_exclusive_locked(). */
-+/* State shared across __vma_[start, end]_exclude_readers. */
- struct vma_exclude_readers_state {
- 	/* Input parameters. */
- 	struct vm_area_struct *vma;
-@@ -100,7 +100,7 @@ static unsigned int get_target_refcnt(st
-  *
-  * If ves->state is set to something other than TASK_UNINTERRUPTIBLE, the
-  * function may also return -EINTR to indicate a fatal signal was received while
-- * waiting.
-+ * waiting.  Otherwise, the function returns 0.
-  */
- static int __vma_start_exclude_readers(struct vma_exclude_readers_state *ves)
+ #include <pthread.h>
+ #include <limits.h>
++#include <stdatomic.h>
+ 
+ #include "futextest.h"
+ #include "kselftest_harness.h"
+ 
+-#define timeout_ns  30000000
+-#define WAKE_WAIT_US 10000
++#define timeout_s  3 /* 3s */
++#define WAKE_WAIT_US (10000 * 100) /* 1s */
+ 
+ volatile futex_t *f1;
++static pthread_barrier_t barrier;
+ 
+ void *waiterfn(void *arg)
  {
+ 	struct timespec to;
++	atomic_int *tid = (atomic_int *)arg;
+ 
+-	to.tv_sec = 0;
+-	to.tv_nsec = timeout_ns;
++	to.tv_sec = timeout_s;
++	to.tv_nsec = 0;
++
++	atomic_store(tid, gettid());
++	pthread_barrier_wait(&barrier);
+ 
+ 	if (futex_wait(f1, *f1, &to, 0))
+ 		printf("waiter failed errno %d\n", errno);
+@@ -29,22 +35,52 @@ void *waiterfn(void *arg)
+ 	return NULL;
+ }
+ 
++static int get_thread_state(pid_t pid)
++{
++	FILE *fp;
++	char buf[80], tag[80];
++	char val = 0;
++
++	snprintf(buf, sizeof(buf), "/proc/%d/status", pid);
++	fp = fopen(buf, "r");
++	if (!fp)
++		return -1;
++
++	while (fgets(buf, sizeof(buf), fp))
++		if (sscanf(buf, "%s %c", tag, &val) == 2 && !strcmp(tag, "State:")) {
++			fclose(fp);
++			return val;
++		}
++
++	fclose(fp);
++	return -1;
++}
++
+ TEST(requeue_single)
+ {
+ 	volatile futex_t _f1 = 0;
+ 	volatile futex_t f2 = 0;
+ 	pthread_t waiter[10];
+-	int res;
++	atomic_int tid = 0;
++	int res, state, retry = 100;
+ 
+ 	f1 = &_f1;
++	pthread_barrier_init(&barrier, NULL, 2);
+ 
+ 	/*
+ 	 * Requeue a waiter from f1 to f2, and wake f2.
+ 	 */
+-	if (pthread_create(&waiter[0], NULL, waiterfn, NULL))
++	if (pthread_create(&waiter[0], NULL, waiterfn, &tid))
+ 		ksft_exit_fail_msg("pthread_create failed\n");
+ 
+-	usleep(WAKE_WAIT_US);
++	pthread_barrier_wait(&barrier);
++	pthread_barrier_destroy(&barrier);
++	while ((state = get_thread_state(atomic_load(&tid))) != 'S') {
++		usleep(WAKE_WAIT_US / 100);
++
++		if (state < 0 || retry-- <= 0)
++			break;
++	}
+ 
+ 	ksft_print_dbg_msg("Requeuing 1 futex from f1 to f2\n");
+ 	res = futex_cmp_requeue(f1, 0, &f2, 0, 1, 0);
+@@ -69,7 +105,8 @@ TEST(requeue_multiple)
+ 	volatile futex_t _f1 = 0;
+ 	volatile futex_t f2 = 0;
+ 	pthread_t waiter[10];
+-	int res, i;
++	atomic_int tids[10] = {0};
++	int res, i, state, retry = 0;
+ 
+ 	f1 = &_f1;
+ 
+@@ -78,11 +115,22 @@ TEST(requeue_multiple)
+ 	 * At futex_wake, wake INT_MAX (should be exactly 7).
+ 	 */
+ 	for (i = 0; i < 10; i++) {
+-		if (pthread_create(&waiter[i], NULL, waiterfn, NULL))
++		pthread_barrier_init(&barrier, NULL, 2);
++
++		if (pthread_create(&waiter[i], NULL, waiterfn, &tids[i]))
+ 			ksft_exit_fail_msg("pthread_create failed\n");
+-	}
+ 
+-	usleep(WAKE_WAIT_US);
++		pthread_barrier_wait(&barrier);
++		pthread_barrier_destroy(&barrier);
++
++		retry += 10;
++		while ((state = get_thread_state(atomic_load(&tids[i]))) != 'S') {
++			usleep(WAKE_WAIT_US / 100);
++
++			if (state < 0 || retry-- <= 0)
++				break;
++		}
++	}
+ 
+ 	ksft_print_dbg_msg("Waking 3 futexes at f1 and requeuing 7 futexes from f1 to f2\n");
+ 	res = futex_cmp_requeue(f1, 0, &f2, 3, 7, 0);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ywen.chen@foxmail.com are
 
-kho-kho_preserve_vmalloc-dont-return-0-when-enomem.patch
-memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
-mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
-sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
-mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
-mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
-mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
 
