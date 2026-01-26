@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF77524A06A
-	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 18:37:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAF8926C385
+	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 19:05:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769452674; cv=none; b=g7LJHOenHjGZptfttJQCvSSzcGWCDkvKm0sbr09ppFJEv8mQ8EQcKPy+MKRsoUaYpvu4IIzj1JMUPzEnUDz9ueWPkH7REEhodhUBCJnbRwJZgWzrUZmaAsWmyu2HzawkthkQ0FMwzTGeSHnAMzdD0DxLt+njCPVek2x+foBEHt4=
+	t=1769454359; cv=none; b=k3WJhwql5nkSbAnIz/08v1zs9jN6DqSTwzONSw1NIgg9ldxf7iL4+nCa1IYcTjMAOMBbzstnmgMKYgEPTBHOCz7S/05GaFMykq6oxHzry31O6DNffuKtvBfwOSUkmr1gDm9mxLVm7kW2hMg77OfQ7oPBtFREhdfUOYRSIMJbW+k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769452674; c=relaxed/simple;
-	bh=8vMl/z0pQVoMda6M0ESjn6iV2uALG3bL9L9HkLOq0GA=;
-	h=Date:To:From:Subject:Message-Id; b=Upj2SvAOqHlBK6zkRo+9MTQQUwFf8H3uYiHnKukObDE/wfOjsneMuvbAkRO5ISQmgtQ2J8rmXfX0Wx867QTjdHrbUIlMHfTtfj0j5o5Php0pVzDtn1MRNk+je0Zk8og4anhYHf/ejIIi1MxP9rYxPe2VKQvzu1ZaC/3zSJupFD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UumUYjsI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769454359; c=relaxed/simple;
+	bh=w+xafbUrlf95EgJyBXj7iQobXXmtdTd8SWwAFFi2CLY=;
+	h=Date:To:From:Subject:Message-Id; b=JX4t2ziEozix+r5d2xI7sYQ19dIV+05KKKIlzZlnnZRwTiAAPlXyjIejD+BXs2jKX+JblK5u1Q6PkrFBYXjbVJ2U7lt8QKhPkUPC68nT/qImkaR7SIagG5dKZy0AHuB2t8pQarprLlllPLLIEMNu43Ei/OYbhq6PoZGEtfJzh+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KDG4BjQF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UumUYjsI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 577B8C116C6;
-	Mon, 26 Jan 2026 18:37:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KDG4BjQF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BDF0C116C6;
+	Mon, 26 Jan 2026 19:05:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769452674;
-	bh=8vMl/z0pQVoMda6M0ESjn6iV2uALG3bL9L9HkLOq0GA=;
+	s=korg; t=1769454359;
+	bh=w+xafbUrlf95EgJyBXj7iQobXXmtdTd8SWwAFFi2CLY=;
 	h=Date:To:From:Subject:From;
-	b=UumUYjsIizS1aRT1IZujTXU4ulQbBycPiGqXRIekrK5GX6vtRt8KLX7W0IzTsk7gB
-	 N0Fv7T8ZFdR/b5aaF2g9o5X1AF2RjBBeTqDjtWW9cqHr+m9awJ/aZRZ9aYRWLPl3fo
-	 ZbU6SSQrz2Bx7+37nQptjo4RcBxpk9Ua35lao5jU=
-Date: Mon, 26 Jan 2026 10:37:53 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,longman@redhat.com,liam.howlett@oracle.com,boqun.feng@gmail.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=KDG4BjQFQGVP6vME65DFPOZeXFASM6CfaN32EylVCsCDi8xHMj76HuLv76dmitKn+
+	 l+o3YUeL74V8ZquQnAl8OQZySfqxqmYc7PzIdESr+4T3BxS0IfuAlMKlZ3FHwuMggS
+	 mWv93bRbeyUNCv67LNF7Qdwpl1YdwmJaDWEFkm1k=
+Date: Mon, 26 Jan 2026 11:05:58 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,luto@kernel.org,lkp@intel.com,lizhe.67@bytedance.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-improve-and-document-__is_vma_write_locked-fix.patch added to mm-unstable branch
-Message-Id: <20260126183754.577B8C116C6@smtp.kernel.org>
+Subject: + mm-folio_zero_user-open-code-range-computation-in-folio_zero_user.patch added to mm-new branch
+Message-Id: <20260126190559.1BDF0C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-vma-improve-and-document-__is_vma_write_locked-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-improve-and-document-__is_vma_write_locked-fix.patch
+     Subject: mm: folio_zero_user: open code range computation in folio_zero_user()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-folio_zero_user-open-code-range-computation-in-folio_zero_user.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-improve-and-document-__is_vma_write_locked-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-folio_zero_user-open-code-range-computation-in-folio_zero_user.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,125 +66,107 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm-vma-improve-and-document-__is_vma_write_locked-fix
-Date: Mon, 26 Jan 2026 16:23:16 +0000
+From: Ankur Arora <ankur.a.arora@oracle.com>
+Subject: mm: folio_zero_user: open code range computation in folio_zero_user()
+Date: Mon, 26 Jan 2026 10:32:12 -0800
 
-minor tweaks, per Vlastimil
+riscv64-gcc-linux-gnu (v8.5) reports a compile time assert in:
 
-Link: https://lkml.kernel.org/r/3fa89c13-232d-4eee-86cc-96caa75c2c67@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
+   r[2] = DEFINE_RANGE(clamp_t(s64, fault_idx - radius, pg.start, pg.end),
+ 		       clamp_t(s64, fault_idx + radius, pg.start, pg.end));
+
+where it decides that pg.start > pg.end in:
+  clamp_t(s64, fault_idx + radius, pg.start, pg.end));
+
+where pg comes from:
+  const struct range pg = DEFINE_RANGE(0, folio_nr_pages(folio) - 1);
+
+That does not seem like it could be true. Even for pg.start == pg.end,
+we would need folio_test_large() to evaluate to false at compile time:
+
+  static inline unsigned long folio_nr_pages(const struct folio *folio)
+  {
+	if (!folio_test_large(folio))
+		return 1;
+	return folio_large_nr_pages(folio);
+  }
+
+Workaround by open coding the range computation.  Also, simplify the type
+declarations for the relevant variables.
+
+Link: https://lkml.kernel.org/r/20260126183212.2366596-1-ankur.a.arora@oracle.com
+Fixes: 93552c9a3350 ("mm: folio_zero_user: cache neighbouring pages")
+Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202601240453.QCjgGdJa-lkp@intel.com/
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ankur Arora <ankur.a.arora@oracle.com>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |    9 +++------
- mm/mmap_lock.c            |    6 +++---
- 2 files changed, 6 insertions(+), 9 deletions(-)
+ mm/memory.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-vma-improve-and-document-__is_vma_write_locked-fix
-+++ a/include/linux/mmap_lock.h
-@@ -272,8 +272,6 @@ static inline unsigned int __vma_raw_mm_
-  * write lock is held.
-  *
-  * Returns true if write-locked, otherwise false.
-- *
-- * Note that mm_lock_seq is updated only if the VMA is NOT write-locked.
-  */
- static inline bool __is_vma_write_locked(struct vm_area_struct *vma)
+--- a/mm/memory.c~mm-folio_zero_user-open-code-range-computation-in-folio_zero_user
++++ a/mm/memory.c
+@@ -7332,30 +7332,29 @@ static void clear_contig_highpages(struc
+ void folio_zero_user(struct folio *folio, unsigned long addr_hint)
  {
-@@ -284,8 +282,7 @@ static inline bool __is_vma_write_locked
- 	return vma->vm_lock_seq == __vma_raw_mm_seqnum(vma);
- }
+ 	const unsigned long base_addr = ALIGN_DOWN(addr_hint, folio_size(folio));
+-	const long fault_idx = (addr_hint - base_addr) / PAGE_SIZE;
+ 	const struct range pg = DEFINE_RANGE(0, folio_nr_pages(folio) - 1);
+-	const int radius = FOLIO_ZERO_LOCALITY_RADIUS;
++	const long fault_idx = (addr_hint - base_addr) / PAGE_SIZE;
++	const long radius = FOLIO_ZERO_LOCALITY_RADIUS;
+ 	struct range r[3];
+ 	int i;
  
--int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
--		int state);
-+int __vma_start_write(struct vm_area_struct *vma, int state);
+ 	/*
+-	 * Faulting page and its immediate neighbourhood. Will be cleared at the
+-	 * end to keep its cachelines hot.
++	 * Faulting page and its immediate neighbourhood. Cleared at the end to
++	 * keep its cachelines hot.
+ 	 */
+-	r[2] = DEFINE_RANGE(clamp_t(s64, fault_idx - radius, pg.start, pg.end),
+-			    clamp_t(s64, fault_idx + radius, pg.start, pg.end));
++	r[2] = DEFINE_RANGE(fault_idx - radius < (long)pg.start ? pg.start : fault_idx - radius,
++			    fault_idx + radius > (long)pg.end   ? pg.end   : fault_idx + radius);
++
  
- /*
-  * Begin writing to a VMA.
-@@ -297,7 +294,7 @@ static inline void vma_start_write(struc
- 	if (__is_vma_write_locked(vma))
- 		return;
+-	/* Region to the left of the fault */
+-	r[1] = DEFINE_RANGE(pg.start,
+-			    clamp_t(s64, r[2].start - 1, pg.start - 1, r[2].start));
++	/* Region to the left of the fault. */
++	r[1] = DEFINE_RANGE(pg.start, r[2].start - 1);
  
--	__vma_start_write(vma, __vma_raw_mm_seqnum(vma), TASK_UNINTERRUPTIBLE);
-+	__vma_start_write(vma, TASK_UNINTERRUPTIBLE);
- }
+ 	/* Region to the right of the fault: always valid for the common fault_idx=0 case. */
+-	r[0] = DEFINE_RANGE(clamp_t(s64, r[2].end + 1, r[2].end, pg.end + 1),
+-			    pg.end);
++	r[0] = DEFINE_RANGE(r[2].end + 1, pg.end);
  
- /**
-@@ -319,7 +316,7 @@ int vma_start_write_killable(struct vm_a
- 	if (__is_vma_write_locked(vma))
- 		return 0;
+ 	for (i = 0; i < ARRAY_SIZE(r); i++) {
+ 		const unsigned long addr = base_addr + r[i].start * PAGE_SIZE;
+-		const unsigned int nr_pages = range_len(&r[i]);
++		const long nr_pages = (long)range_len(&r[i]);
+ 		struct page *page = folio_page(folio, r[i].start);
  
--	return __vma_start_write(vma, __vma_raw_mm_seqnum(vma), TASK_KILLABLE);
-+	return __vma_start_write(vma, TASK_KILLABLE);
- }
- 
- static inline void vma_assert_write_locked(struct vm_area_struct *vma)
---- a/mm/mmap_lock.c~mm-vma-improve-and-document-__is_vma_write_locked-fix
-+++ a/mm/mmap_lock.c
-@@ -136,14 +136,14 @@ static int __vma_start_exclude_readers(s
- 	return 0;
- }
- 
--int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
--		int state)
-+int __vma_start_write(struct vm_area_struct *vma, int state)
- {
--	int err;
-+	const unsigned int mm_lock_seq = __vma_raw_mm_seqnum(vma);
- 	struct vma_exclude_readers_state ves = {
- 		.vma = vma,
- 		.state = state,
- 	};
-+	int err;
- 
- 	err = __vma_start_exclude_readers(&ves);
- 	if (err) {
+ 		if (nr_pages > 0)
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from ankur.a.arora@oracle.com are
 
-mm-rmap-improve-anon_vma_clone-unlink_anon_vmas-comments-add-asserts.patch
-mm-rmap-eliminate-partial-anon_vma-tear-down-in-anon_vma_fork.patch
-mm-rmap-skip-unfaulted-vmas-on-anon_vma-clone-unlink.patch
-mm-rmap-remove-unnecessary-root-lock-dance-in-anon_vma-clone-unmap.patch
-mm-rmap-remove-anon_vma_merge-function.patch
-mm-rmap-make-anon_vma-functions-internal.patch
-mm-mmap_lock-add-vma_is_attached-helper.patch
-mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
-mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
-selftests-mm-remove-virtual_address_range-test.patch
-mm-vma-rename-vma_lock_offset-to-vm_refcnt_exclude_readers_flag.patch
-mm-vma-document-possible-vma-vm_refcnt-values-and-reference-comment.patch
-mm-vma-rename-is_vma_write_only-separate-out-shared-refcount-put.patch
-mm-vma-adduse-vma-lockdep-acquire-release-defines.patch
-mm-vma-de-duplicate-__vma_enter_locked-error-path.patch
-mm-vma-clean-up-__vma_enter-exit_locked.patch
-mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns.patch
-mm-vma-improve-and-document-__is_vma_write_locked.patch
-mm-vma-improve-and-document-__is_vma_write_locked-fix.patch
-mm-vma-update-vma_assert_locked-to-use-lockdep.patch
-mm-vma-update-vma_assert_locked-to-use-lockdep-fix.patch
-mm-vma-add-and-use-vma_assert_stabilised.patch
-mm-vma-remove-__private-sparse-decoration-from-vma_flags_t.patch
-mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag.patch
-mm-add-mk_vma_flags-bitmap-flag-macro-helper.patch
-tools-bitmap-add-missing-bitmap_.patch
-mm-add-basic-vma-flag-operation-helper-functions.patch
-mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare.patch
-mm-update-secretmem-to-use-vma-flags-on-mmap_prepare.patch
-mm-update-shmem__file_-functions-to-use-vma_flags_t.patch
-mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t.patch
-mm-make-vm_area_desc-utilise-vma_flags_t-only.patch
-tools-testing-vma-separate-vma-userland-tests-into-separate-files.patch
-tools-testing-vma-separate-out-vma_internalh-into-logical-headers.patch
-tools-testing-vma-add-vma-userland-tests-for-vma-flag-functions.patch
+mm-folio_zero_user-open-code-range-computation-in-folio_zero_user.patch
 
