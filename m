@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE30F2571A0
-	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 21:11:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A733C238178;
+	Mon, 26 Jan 2026 21:24:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769461902; cv=none; b=AKHk2fxcCorrkv5LZQx/r4/p1UN5TseSfRbeIthwo15beyAHasUAWS3JdEUlw22Ti0hNgWJAcBqTNdpPiGNSfoNtOnkvcyCTQPG2ZwDsb5oFSEAoJ/6yvtSmskosLOsrzYmoBJ1WjGJB5BWq5XlBDO3ZdSgqkDjlLFWHVR1X8Co=
+	t=1769462694; cv=none; b=jzICdpHRkon2yvnVGtdBJUnb5Dt6euNrODhKV+TnRHBk4gS5+qAckSgaVUSqb8wPOzY/BvUWX/gAdjRXeJfO5bcvdviO/iI+ttz/7V3G8/17pwltZ1zC1JZqWzcDSEqnrclJ2RrVLiV8tPfUorc3BwqTP6fMhzVlRUbUtISjWr4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769461902; c=relaxed/simple;
-	bh=9qd06sOA/NJzGiehY0BW6Tfb3h0jVPwYEYkTxmBi/y8=;
-	h=Date:To:From:Subject:Message-Id; b=YwqJyltjWKUDU798MPRdtvB9TuCGOHCSMs7BKJWZxgs51HHqQ0N721UnSBXuV5XBuLFNEmyZ1at9NJt2K35z2luHR1LGpqpTkQI9lKRaJxdtBtP7aHzjtQua8QYa2Icitak4Rjj9Zr5hZqF2ILQz9pMvL0DBgvVrTMorBNe8up4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Drn3iU29; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769462694; c=relaxed/simple;
+	bh=0YQDQur0f03xloo9tSHreKMHtswvpRWzKG/U+pexrmc=;
+	h=Date:To:From:Subject:Message-Id; b=mQ9hNk+hVYTMee1k4BHR4NeT5dxyfd8geXfwS4ziEESxgiuB9NRLt2UPVTELG0jpmppxPBbfOjzIsFSkw3LYgSpJClUdqGgm16Z26Rix5DPDJ3b5tYfPzygvmvHMUCBPhe1tDLw3OnAsyxGV6EYU050CgvrFbb3i0i6N56JxbIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YO5dJrvv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Drn3iU29"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AA5BC116C6;
-	Mon, 26 Jan 2026 21:11:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YO5dJrvv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34DFBC116C6;
+	Mon, 26 Jan 2026 21:24:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769461902;
-	bh=9qd06sOA/NJzGiehY0BW6Tfb3h0jVPwYEYkTxmBi/y8=;
+	s=korg; t=1769462694;
+	bh=0YQDQur0f03xloo9tSHreKMHtswvpRWzKG/U+pexrmc=;
 	h=Date:To:From:Subject:From;
-	b=Drn3iU29fjNeSF1/Skl7j2P/pVxsBqgJvSw1yBXqEhZRvXYGGS1NX1B77aHB6siBq
-	 NTttraB6VLBpqkqTcupnKQxhTEH1BVGdQOF7xxEL7lIfIlJ7nQu8B806qFPujKZXWH
-	 MHIC/V1yo5XUjQabZsktYCvw0VNQPZO7ax6eE0YE=
-Date: Mon, 26 Jan 2026 13:11:41 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tujinjiang@huawei.com,dev.jain@arm.com,david@kernel.org,shardul.b@mpiricsoftware.com,akpm@linux-foundation.org
+	b=YO5dJrvvByZ8v6ip/AIijdCdsu/qqDFQGQ3wGNHiO9QW/VmMFMBDrZ/mVSRrReFPk
+	 6l3azVQYAFXDA247OIww9N4XG/FMC4klEno/TkjDi6jn4PhlDNh0gRpxkd1Eldk2Ld
+	 sy39UcK407rpfPMISg0XnF/itKIkHg1rP5Vjs/Jc=
+Date: Mon, 26 Jan 2026 13:24:53 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,stable@vger.kernel.org,mingo@redhat.com,konishi.ryusuke@gmail.com,jannh@google.com,hpa@zytor.com,glider@google.com,elver@google.com,dvyukov@google.com,dave.hansen@linux.intel.com,bp@alien8.de,andrew.cooper3@citrix.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] lib-xarray-free-unused-spare-node-in-xas_create_range.patch removed from -mm tree
-Message-Id: <20260126211142.5AA5BC116C6@smtp.kernel.org>
+Subject: + x86-kfence-fix-booting-on-32bit-non-pae-systems.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260126212454.34DFBC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,78 +34,96 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: lib: xarray: free unused spare node in xas_create_range()
-has been removed from the -mm tree.  Its filename was
-     lib-xarray-free-unused-spare-node-in-xas_create_range.patch
+The patch titled
+     Subject: x86/kfence: fix booting on 32bit non-PAE systems
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     x86-kfence-fix-booting-on-32bit-non-pae-systems.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kfence-fix-booting-on-32bit-non-pae-systems.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Shardul Bankar <shardul.b@mpiricsoftware.com>
-Subject: lib: xarray: free unused spare node in xas_create_range()
-Date: Thu, 4 Dec 2025 19:56:25 +0530
+From: Andrew Cooper <andrew.cooper3@citrix.com>
+Subject: x86/kfence: fix booting on 32bit non-PAE systems
+Date: Mon, 26 Jan 2026 21:10:46 +0000
 
-xas_create_range() is typically called in a retry loop that uses
-xas_nomem() to handle -ENOMEM errors.  xas_nomem() may allocate a spare
-xa_node and store it in xas->xa_alloc for use in the retry.
+The original patch inverted the PTE unconditionally to avoid
+L1TF-vulnerable PTEs, but Linux doesn't make this adjustment in 2-level
+paging.
 
-When the lock is dropped after xas_create_range() another thread can
-expand the xarray tree in the meantime.  On the next retry,
-xas_create_range() can then succeed without consuming the spare node
-stored in xas->xa_alloc.  If the function returns without freeing this
-spare node, it leaks.
+Adjust the logic to use the flip_protnone_guard() helper, which is a nop
+on 2-level paging but inverts the address bits in all other paging modes.
 
-xas_create_range() calls xas_create() multiple times in a loop for
-different index ranges.  A spare node that isn't needed for one range
-iteration might be needed for the next, so we cannot free it after each
-xas_create() call.  We can only safely free it after xas_create_range()
-completes.
+This doesn't matter for the Xen aspect of the original change.  Linux no
+longer supports running 32bit PV under Xen, and Xen doesn't support
+running any 32bit PV guests without using PAE paging.
 
-Fix this by calling xas_destroy() at the end of xas_create_range() to free
-any unused spare node.  This makes the API safer by default and prevents
-callers from needing to remember cleanup.
-
-This fixes a memory leak in mm/khugepaged.c and potentially other callers
-that use xas_nomem() with xas_create_range().
-
-Link: https://syzkaller.appspot.com/bug?id=a274d65fc733448ed518ad15481ed575669dd98c
-Link: https://lore.kernel.org/all/20251201074540.3576327-1-shardul.b@mpiricsoftware.com/ ("v3")
-Link: https://lkml.kernel.org/r/20251204142625.1763372-1-shardul.b@mpiricsoftware.com
-Fixes: cae106dd67b9 ("mm/khugepaged: refactor collapse_file control flow")
-Signed-off-by: Shardul Bankar <shardul.b@mpiricsoftware.com>
-Reviewed-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jinjiang Tu <tujinjiang@huawei.com>
+Link: https://lkml.kernel.org/r/20260126211046.2096622-1-andrew.cooper3@citrix.com
+Fixes: b505f1944535 ("x86/kfence: avoid writing L1TF-vulnerable PTEs")
+Reported-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Closes: https://lore.kernel.org/lkml/CAKFNMokwjw68ubYQM9WkzOuH51wLznHpEOMSqtMoV1Rn9JV_gw@mail.gmail.com/
+Signed-off-by: Andrew Cooper <andrew.cooper3@citrix.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xarray.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/kfence.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/lib/xarray.c~lib-xarray-free-unused-spare-node-in-xas_create_range
-+++ a/lib/xarray.c
-@@ -744,11 +744,16 @@ restore:
- 	xas->xa_shift = shift;
- 	xas->xa_sibs = sibs;
- 	xas->xa_index = index;
--	return;
-+	goto cleanup;
-+
- success:
- 	xas->xa_index = index;
- 	if (xas->xa_node)
- 		xas_set_offset(xas);
-+
-+cleanup:
-+	/* Free any unused spare node from xas_nomem() */
-+	xas_destroy(xas);
- }
- EXPORT_SYMBOL_GPL(xas_create_range);
+--- a/arch/x86/include/asm/kfence.h~x86-kfence-fix-booting-on-32bit-non-pae-systems
++++ a/arch/x86/include/asm/kfence.h
+@@ -42,7 +42,7 @@ static inline bool kfence_protect_page(u
+ {
+ 	unsigned int level;
+ 	pte_t *pte = lookup_address(addr, &level);
+-	pteval_t val;
++	pteval_t val, new;
  
+ 	if (WARN_ON(!pte || level != PG_LEVEL_4K))
+ 		return false;
+@@ -57,11 +57,12 @@ static inline bool kfence_protect_page(u
+ 		return true;
+ 
+ 	/*
+-	 * Otherwise, invert the entire PTE.  This avoids writing out an
++	 * Otherwise, flip the Present bit, taking care to avoid writing an
+ 	 * L1TF-vulnerable PTE (not present, without the high address bits
+ 	 * set).
+ 	 */
+-	set_pte(pte, __pte(~val));
++	new = val ^ _PAGE_PRESENT;
++	set_pte(pte, __pte(flip_protnone_guard(val, new, PTE_PFN_MASK)));
+ 
+ 	/*
+ 	 * If the page was protected (non-present) and we're making it
 _
 
-Patches currently in -mm which might be from shardul.b@mpiricsoftware.com are
+Patches currently in -mm which might be from andrew.cooper3@citrix.com are
 
+x86-kfence-fix-booting-on-32bit-non-pae-systems.patch
 
