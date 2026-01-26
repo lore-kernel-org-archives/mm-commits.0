@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4484E285C9F
-	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 19:50:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6B0629293D
+	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 19:56:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769457017; cv=none; b=M3oj7vmB5/FdzvOQ5oZrdnqW1ey6aRUdVElz4Ci2PRmVWjHy/DdoT4dXNxGGmR55ATpoBrePtOgfH127C+rD06Q4acJ1zeOhkQpL9vjSAh5JhGDlKdXZZUL8zFmfynuipaIB6b4Np30oI6v4j4NY1EqgELdkmoNXQ0kMyRXSBFg=
+	t=1769457394; cv=none; b=LE16AIYFaihmpsY9JiaVGNmzGCcJSiWfK/EYTMVzpmzApZ5S+Sqlnn6oGfLtuVoMJCIuionmhZBEM+waLvMBAzKF4YLERFBpfYDfDDup0UIV6Gjpift0vy6wq1xwciXMY3oa1VMWDDuGFMku8mVvZlRr0GaPk9relm1kTuGPU+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769457017; c=relaxed/simple;
-	bh=VAsvkSLfv++0u7hZ02NEP6tPJnvlfIPS7hvA8c/Gx9I=;
-	h=Date:To:From:Subject:Message-Id; b=LPrF5DDWdpITWxMKQflb4f6m26kOlN4yIrcyOCiss9tgslgytNW+fEQECCdlabGR/JLvvzONi2VoUKBkxvhjKbsWCFOPmA40uYFv8eS+8sjHqFdhtAb1yQ825R0zf4OcbtTFlTny9A85GNMpmHHoHCx15ZxfHPGbH1Lbq1ugJxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jU8piP74; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769457394; c=relaxed/simple;
+	bh=lLx4iA19EdAazLcGQT3b3S/9Yjv6bSjkfCvIsfLQ61w=;
+	h=Date:To:From:Subject:Message-Id; b=IP8vM2cLeDK5JMrJkECvAgVoH7x0k3JtU8yeyaExA08yT66kcsTFTUooYu7gNo0lYlHko2UI9z7KD+cU5WmbtAL7qLcxYohRgc3dOxup2uJrfyFPasVWL499rVh+xI9ub1dyOijb+ElbTkuC7tAK+gaCPker9lN2WMLo/bNyvGw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lqRuRYDI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jU8piP74"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE9B7C116C6;
-	Mon, 26 Jan 2026 19:50:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lqRuRYDI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C4A2C19425;
+	Mon, 26 Jan 2026 19:56:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769457016;
-	bh=VAsvkSLfv++0u7hZ02NEP6tPJnvlfIPS7hvA8c/Gx9I=;
+	s=korg; t=1769457394;
+	bh=lLx4iA19EdAazLcGQT3b3S/9Yjv6bSjkfCvIsfLQ61w=;
 	h=Date:To:From:Subject:From;
-	b=jU8piP74gnnOfxMi0IHMXifpMHzHXmn0PicEb3v1QwEE5zJj9HWPDup9Pvhm8PmAM
-	 nAJ48bHnRuj9TgFODSeszG598hWzz1YCYRV5J3uuOm1BLbib+QPgai/IZl7KNuQMsl
-	 Kb28YVKE9wgZyMmJP26WCphRjPKbBpYX3kzEvoso=
-Date: Mon, 26 Jan 2026 11:50:16 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,tglx@linutronix.de,shuah@kernel.org,peterz@infradead.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,justinstitt@google.com,edliaw@google.com,dvhart@infradead.org,dave@stgolabs.net,colin.i.king@gmail.com,bigeasy@linutronix.de,andrealmeid@igalia.com,ywen.chen@foxmail.com,akpm@linux-foundation.org
+	b=lqRuRYDIKj9LQte3qvmFJlbScqfRq4b7fiWs4rhDXUOerkyZwft9as71usAAhusGz
+	 ymrcOU6WNO1sBpL/hSlUg6KWEnUcHOTJmwnRRWKdjz918dwR5uQDUa0A36c4BJHD/w
+	 F4Zn+YnmFXvdVOD5PrItR8dU6Y3qNCs0LPI/8zFA=
+Date: Mon, 26 Jan 2026 11:56:34 -0800
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,songshuaishuai@tinylab.org,samuel.holland@sifive.com,rppt@kernel.org,rdunlap@infradead.org,pawan.kumar.gupta@linux.intel.com,palmer@dabbelt.com,mingo@kernel.org,lirongqing@baidu.com,leitao@debian.org,kevin.brodsky@arm.com,kees@kernel.org,fvdl@google.com,elver@google.com,cuiyunhui@bytedance.com,corbet@lwn.net,bp@alien8.de,bjorn@rivosinc.com,bhelgaas@google.com,arnd@arndb.de,aou@eecs.berkeley.edu,alex@ghiti.fr,ruanjinjie@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-futex-fix-the-failed-futex_requeue-test-issue.patch added to mm-nonmm-unstable branch
-Message-Id: <20260126195016.AE9B7C116C6@smtp.kernel.org>
+Subject: + riscv-kexec-add-support-for-crashkernel-cma-reservation.patch added to mm-nonmm-unstable branch
+Message-Id: <20260126195634.8C4A2C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/futex: fix the failed futex_requeue test issue
+     Subject: riscv: kexec: add support for crashkernel CMA reservation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
+     riscv-kexec-add-support-for-crashkernel-cma-reservation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-kexec-add-support-for-crashkernel-cma-reservation.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,182 +58,140 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yuwen Chen <ywen.chen@foxmail.com>
-Subject: selftests/futex: fix the failed futex_requeue test issue
-Date: Mon, 26 Jan 2026 17:33:30 +0800
+From: Jinjie Ruan <ruanjinjie@huawei.com>
+Subject: riscv: kexec: add support for crashkernel CMA reservation
+Date: Mon, 26 Jan 2026 16:07:38 +0800
 
-This test item has extremely high requirements for timing and can only
-pass the test under specific conditions.  The following situations will
-lead to test failure:
+Commit 35c18f2933c5 ("Add a new optional ",cma" suffix to the crashkernel=
+command line option") and commit ab475510e042 ("kdump: implement
+reserve_crashkernel_cma") added CMA support for kdump crashkernel
+reservation.  This allows the kernel to dynamically allocate contiguous
+memory for crash dumping when needed, rather than permanently reserving a
+fixed region at boot time.
 
-    MainThread                  Thread1
-        │
-  pthread_create-------------------┐
-        │                          │
- futex_cmp_requeue                 │
-        │                     futex_wait
-        │                          │
+So extend crashkernel CMA reservation support to riscv.  The following
+changes are made to enable CMA reservation:
 
-If the child thread is not waiting in the futex_wait function when the
-main thread reaches the futex_cmp_requeue function, the test will fail.
+- Parse and obtain the CMA reservation size along with other crashkernel
+  parameters.
+- Call reserve_crashkernel_cma() to allocate the CMA region for kdump.
+- Include the CMA-reserved ranges for kdump kernel to use.
+- Exclude the CMA-reserved ranges from the crash kernel memory to
+  prevent them from being exported through /proc/vmcore.
 
-This patch avoids this problem by checking whether the child thread is in
-a sleeping state in the main thread.
+Update kernel-parameters.txt to document CMA support for crashkernel on
+riscv architecture.
 
-Link: https://lkml.kernel.org/r/tencent_B9DBF2ECBE56BAB68BDAB949C6935D01CE09@qq.com
-Fixes: 7cb5dd8e2c8c ("selftests: futex: Add futex compare requeue test")
-Signed-off-by: Yuwen Chen <ywen.chen@foxmail.com>
-Co-developed-by: Edward Liaw <edliaw@google.com>
-Signed-off-by: Edward Liaw <edliaw@google.com>
-Cc: Andre Almeida <andrealmeid@igalia.com>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Colin Ian King <colin.i.king@gmail.com>
-Cc: Darren Hart <dvhart@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: ndesaulniers@google.com <ndesaulniers@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20260126080738.696723-1-ruanjinjie@huawei.com
+Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Björn Töpel <bjorn@rivosinc.com>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Li RongQing <lirongqing@baidu.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Samuel Holland <samuel.holland@sifive.com>
+Cc: Song Shuai <songshuaishuai@tinylab.org>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Yunhui Cui <cuiyunhui@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/futex/functional/futex_requeue.c |   70 ++++++++--
- 1 file changed, 59 insertions(+), 11 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 -
+ arch/riscv/kernel/machine_kexec_file.c          |   17 ++++++++++++--
+ arch/riscv/mm/init.c                            |    5 ++--
+ 3 files changed, 19 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/futex/functional/futex_requeue.c~selftests-futex-fix-the-failed-futex_requeue-test-issue
-+++ a/tools/testing/selftests/futex/functional/futex_requeue.c
-@@ -7,21 +7,27 @@
- 
- #include <pthread.h>
- #include <limits.h>
-+#include <stdatomic.h>
- 
- #include "futextest.h"
- #include "kselftest_harness.h"
- 
--#define timeout_ns  30000000
--#define WAKE_WAIT_US 10000
-+#define timeout_s  3 /* 3s */
-+#define WAKE_WAIT_US (10000 * 100) /* 1s */
- 
- volatile futex_t *f1;
-+static pthread_barrier_t barrier;
- 
- void *waiterfn(void *arg)
+--- a/arch/riscv/kernel/machine_kexec_file.c~riscv-kexec-add-support-for-crashkernel-cma-reservation
++++ a/arch/riscv/kernel/machine_kexec_file.c
+@@ -59,9 +59,9 @@ static int prepare_elf_headers(void **ad
  {
- 	struct timespec to;
-+	atomic_int *tid = (atomic_int *)arg;
+ 	struct crash_mem *cmem;
+ 	unsigned int nr_ranges;
+-	int ret;
++	int ret, i;
  
--	to.tv_sec = 0;
--	to.tv_nsec = timeout_ns;
-+	to.tv_sec = timeout_s;
-+	to.tv_nsec = 0;
+-	nr_ranges = 1; /* For exclusion of crashkernel region */
++	nr_ranges = 1 + crashk_cma_cnt; /* For exclusion of crashkernel region */
+ 	walk_system_ram_res(0, -1, &nr_ranges, get_nr_ram_ranges_callback);
+ 
+ 	cmem = kmalloc(struct_size(cmem, ranges, nr_ranges), GFP_KERNEL);
+@@ -74,11 +74,24 @@ static int prepare_elf_headers(void **ad
+ 	if (ret)
+ 		goto out;
+ 
++	for (i = 0; i < crashk_cma_cnt; i++) {
++		cmem->ranges[cmem->nr_ranges].start = crashk_cma_ranges[i].start;
++		cmem->ranges[cmem->nr_ranges].end = crashk_cma_ranges[i].end;
++		cmem->nr_ranges++;
++	}
 +
-+	atomic_store(tid, gettid());
-+	pthread_barrier_wait(&barrier);
+ 	/* Exclude crashkernel region */
+ 	ret = crash_exclude_mem_range(cmem, crashk_res.start, crashk_res.end);
+ 	if (!ret)
+ 		ret = crash_prepare_elf64_headers(cmem, true, addr, sz);
  
- 	if (futex_wait(f1, *f1, &to, 0))
- 		printf("waiter failed errno %d\n", errno);
-@@ -29,22 +35,52 @@ void *waiterfn(void *arg)
- 	return NULL;
++	for (i = 0; i < crashk_cma_cnt; ++i) {
++		ret = crash_exclude_mem_range(cmem, crashk_cma_ranges[i].start,
++					      crashk_cma_ranges[i].end);
++		if (ret)
++			goto out;
++	}
++
+ out:
+ 	kfree(cmem);
+ 	return ret;
+--- a/arch/riscv/mm/init.c~riscv-kexec-add-support-for-crashkernel-cma-reservation
++++ a/arch/riscv/mm/init.c
+@@ -1398,7 +1398,7 @@ static inline void setup_vm_final(void)
+  */
+ static void __init arch_reserve_crashkernel(void)
+ {
+-	unsigned long long low_size = 0;
++	unsigned long long low_size = 0, cma_size = 0;
+ 	unsigned long long crash_base, crash_size;
+ 	bool high = false;
+ 	int ret;
+@@ -1408,11 +1408,12 @@ static void __init arch_reserve_crashker
+ 
+ 	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+ 				&crash_size, &crash_base,
+-				&low_size, NULL, &high);
++				&low_size, &cma_size, &high);
+ 	if (ret)
+ 		return;
+ 
+ 	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
++	reserve_crashkernel_cma(cma_size);
  }
  
-+static int get_thread_state(pid_t pid)
-+{
-+	FILE *fp;
-+	char buf[80], tag[80];
-+	char val = 0;
-+
-+	snprintf(buf, sizeof(buf), "/proc/%d/status", pid);
-+	fp = fopen(buf, "r");
-+	if (!fp)
-+		return -1;
-+
-+	while (fgets(buf, sizeof(buf), fp))
-+		if (sscanf(buf, "%s %c", tag, &val) == 2 && !strcmp(tag, "State:")) {
-+			fclose(fp);
-+			return val;
-+		}
-+
-+	fclose(fp);
-+	return -1;
-+}
-+
- TEST(requeue_single)
- {
- 	volatile futex_t _f1 = 0;
- 	volatile futex_t f2 = 0;
- 	pthread_t waiter[10];
--	int res;
-+	atomic_int tid = 0;
-+	int res, state, retry = 100;
- 
- 	f1 = &_f1;
-+	pthread_barrier_init(&barrier, NULL, 2);
- 
- 	/*
- 	 * Requeue a waiter from f1 to f2, and wake f2.
- 	 */
--	if (pthread_create(&waiter[0], NULL, waiterfn, NULL))
-+	if (pthread_create(&waiter[0], NULL, waiterfn, &tid))
- 		ksft_exit_fail_msg("pthread_create failed\n");
- 
--	usleep(WAKE_WAIT_US);
-+	pthread_barrier_wait(&barrier);
-+	pthread_barrier_destroy(&barrier);
-+	while ((state = get_thread_state(atomic_load(&tid))) != 'S') {
-+		usleep(WAKE_WAIT_US / 100);
-+
-+		if (state < 0 || retry-- <= 0)
-+			break;
-+	}
- 
- 	ksft_print_dbg_msg("Requeuing 1 futex from f1 to f2\n");
- 	res = futex_cmp_requeue(f1, 0, &f2, 0, 1, 0);
-@@ -69,7 +105,8 @@ TEST(requeue_multiple)
- 	volatile futex_t _f1 = 0;
- 	volatile futex_t f2 = 0;
- 	pthread_t waiter[10];
--	int res, i;
-+	atomic_int tids[10] = {0};
-+	int res, i, state, retry = 0;
- 
- 	f1 = &_f1;
- 
-@@ -78,11 +115,22 @@ TEST(requeue_multiple)
- 	 * At futex_wake, wake INT_MAX (should be exactly 7).
- 	 */
- 	for (i = 0; i < 10; i++) {
--		if (pthread_create(&waiter[i], NULL, waiterfn, NULL))
-+		pthread_barrier_init(&barrier, NULL, 2);
-+
-+		if (pthread_create(&waiter[i], NULL, waiterfn, &tids[i]))
- 			ksft_exit_fail_msg("pthread_create failed\n");
--	}
- 
--	usleep(WAKE_WAIT_US);
-+		pthread_barrier_wait(&barrier);
-+		pthread_barrier_destroy(&barrier);
-+
-+		retry += 10;
-+		while ((state = get_thread_state(atomic_load(&tids[i]))) != 'S') {
-+			usleep(WAKE_WAIT_US / 100);
-+
-+			if (state < 0 || retry-- <= 0)
-+				break;
-+		}
-+	}
- 
- 	ksft_print_dbg_msg("Waking 3 futexes at f1 and requeuing 7 futexes from f1 to f2\n");
- 	res = futex_cmp_requeue(f1, 0, &f2, 3, 7, 0);
+ void __init paging_init(void)
+--- a/Documentation/admin-guide/kernel-parameters.txt~riscv-kexec-add-support-for-crashkernel-cma-reservation
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1119,7 +1119,7 @@ Kernel parameters
+ 			It will be ignored when crashkernel=X,high is not used
+ 			or memory reserved is below 4G.
+ 	crashkernel=size[KMG],cma
+-			[KNL, X86, ppc] Reserve additional crash kernel memory from
++			[KNL, X86, RISCV, ppc] Reserve additional crash kernel memory from
+ 			CMA. This reservation is usable by the first system's
+ 			userspace memory and kernel movable allocations (memory
+ 			balloon, zswap). Pages allocated from this memory range
 _
 
-Patches currently in -mm which might be from ywen.chen@foxmail.com are
+Patches currently in -mm which might be from ruanjinjie@huawei.com are
 
-selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
+riscv-kexec-add-support-for-crashkernel-cma-reservation.patch
 
