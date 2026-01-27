@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574A931A81F
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C23131A81F
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486757; cv=none; b=rj3rF/6JmxTo/OxMqud+l6y4Ax2v8P7RxWQpaZHC2Jk28cf6LWeyte+aNaLbNuSLhHVxk93l8Czc3QiQxCHvlrAy8Tk0BQlNVszMN7kCvExD7kKLvFHvh9rptMBjuXmrYAZJOQZy7hCKHV6NBaK9r5FAIe4g1fveFJ9CZacFR4M=
+	t=1769486758; cv=none; b=lT1zz06W6HS4SJ02ZIf+83E7JLtxpros6mjH8mtY2XM9FhUbEXez9Z9wzp25k5Ez4HFYijZS8eiyTZFTKtufTTWv6COhddIGjq8v4OKoFT9XRtlCaHdqSVvotOoXKpcMjK80suJLYBOLsccAXOHInaFpvYY8WjpXOwVh4gKKyIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486757; c=relaxed/simple;
-	bh=Y5600A1kAeU3hpGUBpFUMa2hmxe7IsTb+ya5dWr5nBo=;
-	h=Date:To:From:Subject:Message-Id; b=sqDSCcoFu/eKiim6fD7f7lQ4lVlo2iRXlX85BbU4XqSw3Ye0WQuA2suhFUuemKrfzYpU1lkGZ0Q6EGrLPKVhreQIkPA/5E9ktQE8JVL0w2wHP//lZN/qQTOAi7D/8NYkjwkNAe3mL2+XSnuaaie8wc1qin4vadaEU7emuUUjn1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FFuNYm3a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486758; c=relaxed/simple;
+	bh=amoVsVEFVW3fmnyIjUXBUS4tjzUrRwu8ocvOBHNrixs=;
+	h=Date:To:From:Subject:Message-Id; b=t+JnoXvjn+C6wacnV3wmcg9BA+/K1R8Gx2fx3YfnkveTQ361le3QeIixErKwHQjbbAoOJjxUA1WRoaPp/90OR2Ey0EVFAVUOAc2Fs8ubFZMcGzcxbbx/8fbJuncoWccqlnXd4cZanhMY7jg6ZJ0xHh54X0IKn15Jx3fPupJ2Zx8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HQroZ+4Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FFuNYm3a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30117C116C6;
-	Tue, 27 Jan 2026 04:05:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HQroZ+4Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5369EC116C6;
+	Tue, 27 Jan 2026 04:05:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486757;
-	bh=Y5600A1kAeU3hpGUBpFUMa2hmxe7IsTb+ya5dWr5nBo=;
+	s=korg; t=1769486758;
+	bh=amoVsVEFVW3fmnyIjUXBUS4tjzUrRwu8ocvOBHNrixs=;
 	h=Date:To:From:Subject:From;
-	b=FFuNYm3aPKs6UMXNlRD9ozmIrs5jkwLeqI3zMd/KkehMD9PfbUjsFiJo642TVgttC
-	 4K9clEAfDBZYpiR+olc+E30TcKtDnacDFAgHdRjRHHSvy6wT5ebJexEiegIwZ3qCsZ
-	 5Od+0ONvMI6j8o1mfkaFAAdiY1bFhM8BWcXXZCek=
-Date: Mon, 26 Jan 2026 20:05:56 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yury.norov@gmail.com,ying.huang@linux.alibaba.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,rppt@kernel.org,rakie.kim@sk.com,mkoutny@suse.com,mhocko@suse.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,longman@redhat.com,linux@rasmusvillemoes.dk,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,ynorov@nvidia.com,akpm@linux-foundation.org
+	b=HQroZ+4ZTjxbvkHoFg6rdw2ugPXKZUxvNIHAW0Hs0zX7Ctiwyp1fQz56Nmz6sYPg6
+	 HYcGyd8lqSoa+4WLDr4Rimm5ocPFF0rVrFuXZoSJ1g7uxF+l0DcyDS4NvN9W8kWi9v
+	 jwNb/m09obJ6wwAT/4m7skY5fwyg4fN12GhMZ4Tk=
+Date: Mon, 26 Jan 2026 20:05:57 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] cgroup-use-nodes_and-output-where-appropriate.patch removed from -mm tree
-Message-Id: <20260127040557.30117C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-implement-damon_kdamond_pid.patch removed from -mm tree
+Message-Id: <20260127040558.5369EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,87 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: cgroup: use nodes_and() output where appropriate
+     Subject: mm/damon/core: implement damon_kdamond_pid()
 has been removed from the -mm tree.  Its filename was
-     cgroup-use-nodes_and-output-where-appropriate.patch
+     mm-damon-core-implement-damon_kdamond_pid.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yury Norov <ynorov@nvidia.com>
-Subject: cgroup: use nodes_and() output where appropriate
-Date: Wed, 14 Jan 2026 12:22:15 -0500
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: implement damon_kdamond_pid()
+Date: Thu, 15 Jan 2026 07:20:41 -0800
 
-Now that nodes_and() returns true if the result nodemask is not empty,
-drop useless nodes_intersects() in guarantee_online_mems() and
-nodes_empty() in update_nodemasks_hier(), which both are O(N).
+Patch series "mm/damon: hide kdamond and kdamond_lock from API callers".
 
-Link: https://lkml.kernel.org/r/20260114172217.861204-4-ynorov@nvidia.com
-Signed-off-by: Yury Norov <ynorov@nvidia.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+'kdamond' and 'kdamond_lock' fields initially exposed to DAMON API callers
+for flexible synchronization and use cases.  As DAMON API became somewhat
+complicated compared to the early days, Keeping those exposed could only
+encourage the API callers to invent more creative but complicated and
+difficult-to-debug use cases.
+
+Fortunately DAMON API callers didn't invent that many creative use cases. 
+There exist only two use cases of 'kdamond' and 'kdamond_lock'.  Finding
+whether the kdamond is actively running, and getting the pid of the
+kdamond.  For the first use case, a dedicated API function, namely
+'damon_is_running()' is provided, and all DAMON API callers are using the
+function for the use case.  Hence only the second use case is where the
+fields are directly being used by DAMON API callers.
+
+To prevent future invention of complicated and erroneous use cases of the
+fields, hide the fields from the API callers.  For that, provide new
+dedicated DAMON API functions for the remaining use case, namely
+damon_kdamond_pid(), migrate DAMON API callers to use the new function,
+and mark the fields as private fields.
+
+
+This patch (of 5):
+
+'kdamond' and 'kdamond_lock' are directly being used by DAMON API callers
+for getting the pid of the corresponding kdamond.  To discourage invention
+of creative but complicated and erroneous new usages of the fields that
+require careful synchronization, implement a new API function that can
+simply be used without the manual synchronizations.
+
+Link: https://lkml.kernel.org/r/20260115152047.68415-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260115152047.68415-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cpuset.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/damon.h |    1 +
+ mm/damon/core.c       |   17 +++++++++++++++++
+ 2 files changed, 18 insertions(+)
 
---- a/kernel/cgroup/cpuset.c~cgroup-use-nodes_and-output-where-appropriate
-+++ a/kernel/cgroup/cpuset.c
-@@ -453,9 +453,8 @@ static void guarantee_active_cpus(struct
-  */
- static void guarantee_online_mems(struct cpuset *cs, nodemask_t *pmask)
- {
--	while (!nodes_intersects(cs->effective_mems, node_states[N_MEMORY]))
-+	while (!nodes_and(*pmask, cs->effective_mems, node_states[N_MEMORY]))
- 		cs = parent_cs(cs);
--	nodes_and(*pmask, cs->effective_mems, node_states[N_MEMORY]);
+--- a/include/linux/damon.h~mm-damon-core-implement-damon_kdamond_pid
++++ a/include/linux/damon.h
+@@ -972,6 +972,7 @@ bool damon_initialized(void);
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs, bool exclusive);
+ int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
+ bool damon_is_running(struct damon_ctx *ctx);
++int damon_kdamond_pid(struct damon_ctx *ctx);
+ 
+ int damon_call(struct damon_ctx *ctx, struct damon_call_control *control);
+ int damos_walk(struct damon_ctx *ctx, struct damos_walk_control *control);
+--- a/mm/damon/core.c~mm-damon-core-implement-damon_kdamond_pid
++++ a/mm/damon/core.c
+@@ -1442,6 +1442,23 @@ bool damon_is_running(struct damon_ctx *
+ 	return running;
  }
  
- /**
-@@ -2859,13 +2858,13 @@ static void update_nodemasks_hier(struct
- 	cpuset_for_each_descendant_pre(cp, pos_css, cs) {
- 		struct cpuset *parent = parent_cs(cp);
- 
--		nodes_and(*new_mems, cp->mems_allowed, parent->effective_mems);
-+		bool has_mems = nodes_and(*new_mems, cp->mems_allowed, parent->effective_mems);
- 
- 		/*
- 		 * If it becomes empty, inherit the effective mask of the
- 		 * parent, which is guaranteed to have some MEMs.
- 		 */
--		if (is_in_v2_mode() && nodes_empty(*new_mems))
-+		if (is_in_v2_mode() && !has_mems)
- 			*new_mems = parent->effective_mems;
- 
- 		/* Skip the whole subtree if the nodemask remains the same. */
++/**
++ * damon_kdamond_pid() - Return pid of a given DAMON context's worker thread.
++ * @ctx:	The DAMON context of the question.
++ *
++ * Return: pid if @ctx is running, negative error code otherwise.
++ */
++int damon_kdamond_pid(struct damon_ctx *ctx)
++{
++	int pid = -EINVAL;
++
++	mutex_lock(&ctx->kdamond_lock);
++	if (ctx->kdamond)
++		pid = ctx->kdamond->pid;
++	mutex_unlock(&ctx->kdamond_lock);
++	return pid;
++}
++
+ /*
+  * damon_call_handle_inactive_ctx() - handle DAMON call request that added to
+  *				      an inactive context.
 _
 
-Patches currently in -mm which might be from ynorov@nvidia.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-kernelh-drop-stack_magic-macro.patch
-moduleparam-include-required-headers-explicitly.patch
-kernelh-move-verify_octal_permissions-to-sysfsh.patch
-kernelh-include-linux-instruction_pointerh-explicitly.patch
-tracing-move-tracing-declarations-from-kernelh-to-a-dedicated-header.patch
+selftests-damon-sysfs_memcg_path_leaksh-use-kmemleak.patch
+selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
+selftests-damon-access_memory-add-repeat-mode.patch
+selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
+selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
+mm-damon-remove-damon_operations-cleanup.patch
+mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch
+mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch
+mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch
+mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch
+mm-damon-core-rename-damos_filter_out-to-damos_core_filter_out.patch
+mm-damon-rename-damon_min_region-to-damon_min_region_sz.patch
+mm-damon-rename-min_sz_region-of-damon_ctx-to-min_region_sz.patch
+docs-mm-damon-index-simplify-the-intro.patch
+docs-mm-damon-design-link-repology-instead-of-fedora-package.patch
+docs-mm-damon-design-document-damon-sample-modules.patch
+docs-mm-damon-design-add-reference-to-damon_stat-usage.patch
+docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch
+docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch
+docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch
+docs-mm-damon-maintainer-profile-remove-damon-tests-perf-suggestion.patch
+maple_tree-start-using-maple-copy-node-for-destination-fix.patch
 
