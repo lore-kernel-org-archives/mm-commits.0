@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45B5A2DC323;
-	Tue, 27 Jan 2026 02:57:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D37982C031B
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 02:57:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769482663; cv=none; b=mWYYbJRp1JCAyElZ0556QIE6Ilglo0O7AKDO+ZSEFsTvdoUSvPlUokKibP5kAV//7VPOLZOHhWmI5hZpR3m521TE7MjKDc0yK8u32CXe7BSeeKoVR8T4ch7PIZwW+9pKermYASOolr7KYFWUZ82bTr/A735w2nEPhPUbrczSKnw=
+	t=1769482664; cv=none; b=QQ5zeOku49gD4H9Py+tbUPHXTGauiU+Gt7KGZhG9bUU8KcwwbBljiLvj237D1BAkw3QoGUlHJV7mYUsakw7788+ixsDYLMak8CbIqDMP4NBUruxp35rKAzpdPBI1lCTuEFu3PGwL9Z8C74m5+eEHIaahFdobg4d92tAW+hSK08Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769482663; c=relaxed/simple;
-	bh=buGxmtU85jDj4rVJNcKQzToo2s/A0kRTPdKs9Zv9AjA=;
-	h=Date:To:From:Subject:Message-Id; b=grFLcNtyCT5bv7gBgaNEuNdSxBn3myBIKXrcZWGVqte62Duq7jEER5uP4CCqnShxVGQ2bHXZmJmQ3u2zibyRKlBEjFZ14qqwHHKCtryj8a6Z7zjva3A9r/qfYckNg1fBV3k1zPJM/vloV92RmVaWJyyMwNp3lLdHJOxwsZ+PPUk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yrXuP/Tv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769482664; c=relaxed/simple;
+	bh=ThbU/POH20jrJkie1st4TxaA4cyXXlITKSAz4hTLuRc=;
+	h=Date:To:From:Subject:Message-Id; b=gkP/ItQgLVLDBi9/UEKlt5j3EY/d6AMBnInVSBg10ezhWFH3A1u38oG+oznVFznDQuLktNMELUJPa8ISKmvkJZQ7XS57HLXJsUHmcaoSwDvtndEob9YT4Pwj6xcViP9WcMlxCQmMI3B1ID2luNHXr6mMz3mpXpFdTaFGp4EIeso=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EulIMANb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yrXuP/Tv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B631C116C6;
-	Tue, 27 Jan 2026 02:57:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EulIMANb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54548C19421;
+	Tue, 27 Jan 2026 02:57:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769482663;
-	bh=buGxmtU85jDj4rVJNcKQzToo2s/A0kRTPdKs9Zv9AjA=;
+	s=korg; t=1769482664;
+	bh=ThbU/POH20jrJkie1st4TxaA4cyXXlITKSAz4hTLuRc=;
 	h=Date:To:From:Subject:From;
-	b=yrXuP/TvxOn9YrlgB2/vHWj9gQhaPmNISwxQ404G/Q+K2j3il0C3+Dvy98tA61kNO
-	 qvxvx8VzZhLduMebVFbHzgMEtLRjKja2DHqGFvRdJ1tnmD4C1TKUviSc0uaqmF88dL
-	 mZtHPTFnv0qF09nEAQx/BkIPEZAJMcrPsjg3kypA=
-Date: Mon, 26 Jan 2026 18:57:42 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,miklos@szeredi.hu,joannelkoong@gmail.com,bernd@bsbernd.com,jack@suse.cz,akpm@linux-foundation.org
+	b=EulIMANbLt4E862TOyx3UeG+cNzlJKWqrVkPcNZj+9ZT/se/WRQ4VlteTi8ayvEaf
+	 a8oeX+wiA04QQSaNg1dAnp1oz7ToeOGIacVrDj3JwZYjKALLJA2SVrq0kFw8vdwSJe
+	 OPQzzLHieWq9UHJPV0sLtXd+dLYRkbAvDUrden9M=
+Date: Mon, 26 Jan 2026 18:57:43 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,hughd@google.com,baolin.wang@linux.alibaba.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] flex_proportions-make-fprop_new_period-hardirq-safe.patch removed from -mm tree
-Message-Id: <20260127025743.1B631C116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] memfd-export-alloc_file.patch removed from -mm tree
+Message-Id: <20260127025744.54548C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: flex_proportions: make fprop_new_period() hardirq safe
+     Subject: memfd: export alloc_file()
 has been removed from the -mm tree.  Its filename was
-     flex_proportions-make-fprop_new_period-hardirq-safe.patch
+     memfd-export-alloc_file.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: flex_proportions: make fprop_new_period() hardirq safe
-Date: Wed, 21 Jan 2026 12:27:30 +0100
+From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
+Subject: memfd: export alloc_file()
+Date: Thu, 22 Jan 2026 16:18:39 +0100
 
-Bernd has reported a lockdep splat from flexible proportions code that is
-essentially complaining about the following race:
+Patch series "mm: memfd_luo hotfixes".
 
-<timer fires>
-run_timer_softirq - we are in softirq context
-  call_timer_fn
-    writeout_period
-      fprop_new_period
-        write_seqcount_begin(&p->sequence);
+This series contains a couple of fixes for memfd preservation using LUO.
 
-        <hardirq is raised>
-        ...
-        blk_mq_end_request()
-	  blk_update_request()
-	    ext4_end_bio()
-	      folio_end_writeback()
-		__wb_writeout_add()
-		  __fprop_add_percpu_max()
-		    if (unlikely(max_frac < FPROP_FRAC_BASE)) {
-		      fprop_fraction_percpu()
-			seq = read_seqcount_begin(&p->sequence);
-			  - sees odd sequence so loops indefinitely
 
-Note that a deadlock like this is only possible if the bdi has configured
-maximum fraction of writeout throughput which is very rare in general but
-frequent for example for FUSE bdis.  To fix this problem we have to make
-sure write section of the sequence counter is irqsafe.
+This patch (of 3):
 
-Link: https://lkml.kernel.org/r/20260121112729.24463-2-jack@suse.cz
-Fixes: a91befde3503 ("lib/flex_proportions.c: remove local_irq_ops in fprop_new_period()")
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Bernd Schubert <bernd@bsbernd.com>
-Link: https://lore.kernel.org/all/9b845a47-9aee-43dd-99bc-1a82bea00442@bsbernd.com/
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Joanne Koong <joannelkoong@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: <stable@vger.kernel.org>
+The Live Update Orchestrator's (LUO) memfd preservation works by
+preserving all the folios of a memfd, re-creating an empty memfd on the
+next boot, and then inserting back the preserved folios.
+
+Currently it creates the file by directly calling shmem_file_setup(). 
+This leaves out other work done by alloc_file() like setting up the file
+mode, flags, or calling the security hooks.
+
+Export alloc_file() to let memfd_luo use it.  Rename it to
+memfd_alloc_file() since it is no longer private and thus needs a
+subsystem prefix.
+
+Link: https://lkml.kernel.org/r/20260122151842.4069702-1-pratyush@kernel.org
+Link: https://lkml.kernel.org/r/20260122151842.4069702-2-pratyush@kernel.org
+Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/flex_proportions.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/memfd.h |    6 ++++++
+ mm/memfd.c            |    4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/lib/flex_proportions.c~flex_proportions-make-fprop_new_period-hardirq-safe
-+++ a/lib/flex_proportions.c
-@@ -64,13 +64,14 @@ void fprop_global_destroy(struct fprop_g
- bool fprop_new_period(struct fprop_global *p, int periods)
+--- a/include/linux/memfd.h~memfd-export-alloc_file
++++ a/include/linux/memfd.h
+@@ -17,6 +17,7 @@ struct folio *memfd_alloc_folio(struct f
+  * to by vm_flags_ptr.
+  */
+ int memfd_check_seals_mmap(struct file *file, vm_flags_t *vm_flags_ptr);
++struct file *memfd_alloc_file(const char *name, unsigned int flags);
+ #else
+ static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned int a)
  {
- 	s64 events = percpu_counter_sum(&p->events);
-+	unsigned long flags;
+@@ -31,6 +32,11 @@ static inline int memfd_check_seals_mmap
+ {
+ 	return 0;
+ }
++
++static inline struct file *memfd_alloc_file(const char *name, unsigned int flags)
++{
++	return ERR_PTR(-EINVAL);
++}
+ #endif
  
- 	/*
- 	 * Don't do anything if there are no events.
- 	 */
- 	if (events <= 1)
- 		return false;
--	preempt_disable_nested();
-+	local_irq_save(flags);
- 	write_seqcount_begin(&p->sequence);
- 	if (periods < 64)
- 		events -= events >> periods;
-@@ -78,7 +79,7 @@ bool fprop_new_period(struct fprop_globa
- 	percpu_counter_add(&p->events, -events);
- 	p->period += periods;
- 	write_seqcount_end(&p->sequence);
--	preempt_enable_nested();
-+	local_irq_restore(flags);
+ #endif /* __LINUX_MEMFD_H */
+--- a/mm/memfd.c~memfd-export-alloc_file
++++ a/mm/memfd.c
+@@ -456,7 +456,7 @@ err_name:
+ 	return ERR_PTR(error);
+ }
  
- 	return true;
+-static struct file *alloc_file(const char *name, unsigned int flags)
++struct file *memfd_alloc_file(const char *name, unsigned int flags)
+ {
+ 	unsigned int *file_seals;
+ 	struct file *file;
+@@ -520,5 +520,5 @@ SYSCALL_DEFINE2(memfd_create,
+ 		return PTR_ERR(name);
+ 
+ 	fd_flags = (flags & MFD_CLOEXEC) ? O_CLOEXEC : 0;
+-	return FD_ADD(fd_flags, alloc_file(name, flags));
++	return FD_ADD(fd_flags, memfd_alloc_file(name, flags));
  }
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
+liveupdate-luo_file-do-not-clear-serialized_data-on-unfreeze.patch
+liveupdate-luo_file-remember-retrieve-status.patch
+memfd-export-memfd_addget_seals.patch
+mm-memfd_luo-preserve-file-seals.patch
+kho-use-unsigned-long-for-nr_pages.patch
+kho-simplify-page-initialization-in-kho_restore_page.patch
 
