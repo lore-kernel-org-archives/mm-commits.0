@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B7EF318EE5
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E633191D8
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486691; cv=none; b=aL29NKyrGsLXikhAZZl9HUTVf+tPOzcCK5Mz9/JpNkoNdabazjlhvw+eXNVQcWiquvtsWi4TO5vnss9EE2FUk2NuzLkLNqNEsGNRm3v1UY3oWYmJwsyCscNly0VMzZyOde5McsreSS5REQDVqG1qAQeghPo8cA7HMMUh7BP6qic=
+	t=1769486692; cv=none; b=bwW9xIT+td3l5ibZdJQ2KmtuZtQhWkNl0UDOY/1exmlyQisQvBs8fpPc/EOHZpJ9jWXVjWEnTOQUw6P+TvnMpM3zaYsmegf04IFX8h42gRrvkWPuO9RuDi5TUobTe89ELhZ+wpd07otY4BIhUE79/gE/4q1DYRozzZnGgmgG1AQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486691; c=relaxed/simple;
-	bh=2rqFBXIng06CTiP0qHN7dVRABTF2Sol6c7Ov3wAQ+bI=;
-	h=Date:To:From:Subject:Message-Id; b=jJCC8z7xvaXjP5o6FoQ3aNeJXj7vpDK/d9XdqvUbE2wrweNsAx/p+HMVEPZYcXfbV/+SWQHQeojLE//xvSMMdm43+m+gjPchvtqk95c6xHfvP+o/Ye+7XBcH8Gp+8cX2nK1PT78zyAUL43fQUawjippR7Gx8rB1VFajRCb/x3e8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f7GkNtFS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486692; c=relaxed/simple;
+	bh=pARCXiIrGn6X7OpJpZfY9kbWTPczrHBIIQKaIsKPbtg=;
+	h=Date:To:From:Subject:Message-Id; b=JMPfBSNI6xM9oGcSDyDEoJD07wnUy8ypNxDSPlPMFGm8qbP+hIg4DLIG8oaavRDUFvIffwF0FSqecJ7eNhxbMqj27oNnIiH/jYZDSKZF6RxtYy7pHYPoRmKp1ainQ56jWQ9FrflfrZXFw9ofXEYTBk6PU0WoOSCmVpkkhMiYrXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RhtqTRHP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f7GkNtFS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6A67C116C6;
-	Tue, 27 Jan 2026 04:04:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RhtqTRHP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E4CAC116C6;
+	Tue, 27 Jan 2026 04:04:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486690;
-	bh=2rqFBXIng06CTiP0qHN7dVRABTF2Sol6c7Ov3wAQ+bI=;
+	s=korg; t=1769486692;
+	bh=pARCXiIrGn6X7OpJpZfY9kbWTPczrHBIIQKaIsKPbtg=;
 	h=Date:To:From:Subject:From;
-	b=f7GkNtFS66/er5jFWJJxliFDXCXuHyQKQtEAv9gdJ5d9IFivTEb4mPyUMG4yXby9/
-	 76ZVBMR+AmsGf3+PqJLH3SY3gAMOpzSXX0yWhS6IvnLj9zNPaXs8f4iS7AHUxG90PS
-	 wR+AVWZXgQz0fCZ7jPHDw0tupcBhPI8/aJHvTaiU=
-Date: Mon, 26 Jan 2026 20:04:50 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org,houwenlong.hwl@antgroup.com,akpm@linux-foundation.org
+	b=RhtqTRHP3+4i5FSE4x/JQ87Ub7fTzpR/zwGwBUzyimKrgfC839IxQIBmrZ7QElGY+
+	 cZJrky2vUJlLOUgmtyF8ObJljsVsSv/QGB6K/vSywAQmR08VPTkboJDFlVSo7T6QeT
+	 RmBvZERACVNp/dEQ6GRktHxn4lIq+39D9icOYick=
+Date: Mon, 26 Jan 2026 20:04:51 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,houwenlong.hwl@antgroup.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-early_ioremap-print-the-starting-physical-address-in-__early_ioremap.patch removed from -mm tree
-Message-Id: <20260127040450.D6A67C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-early_ioremap-clean-up-the-use-of-warn-for-debugging.patch removed from -mm tree
+Message-Id: <20260127040452.1E4CAC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/early_ioremap: print the starting physical address in __early_ioremap()
+     Subject: mm/early_ioremap: clean up the use of WARN() for debugging
 has been removed from the -mm tree.  Its filename was
-     mm-early_ioremap-print-the-starting-physical-address-in-__early_ioremap.patch
+     mm-early_ioremap-clean-up-the-use-of-warn-for-debugging.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hou Wenlong <houwenlong.hwl@antgroup.com>
-Subject: mm/early_ioremap: print the starting physical address in __early_ioremap()
-Date: Fri, 9 Jan 2026 21:31:51 +0800
+Subject: mm/early_ioremap: clean up the use of WARN() for debugging
+Date: Mon, 12 Jan 2026 20:24:29 +0800
 
-The debug WARN() printing occurs after the while loop, so the 'phys_addr'
-reflects the last physical address rather than the actual starting
-physical address, which is not useful for debugging.  To simplify, the
-WARN() statement could be moved up before the loop instead of introducing
-a new variable to record the original 'phys_addr' value.  Additionally,
-swap the print order of 'slot_virt[slot]' and 'offset', as this will
-enhance output readability.
+Using WARN() for debugging is strange when nothing is wrong, so replace
+WARN(early_ioremap_debug) with pr_warn() + dump_stack().
 
-Link: https://lkml.kernel.org/r/aa2d44c34f44c31b50285b7592ed4fd78d6f59ba.1767965415.git.houwenlong.hwl@antgroup.com
+Link: https://lkml.kernel.org/r/d4470531ce0c03fd80f9a1be7e8d8ae1bc60fcd1.1768220636.git.houwenlong.hwl@antgroup.com
 Signed-off-by: Hou Wenlong <houwenlong.hwl@antgroup.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Hou Wenlong <houwenlong.hwl@antgroup.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -68,30 +64,47 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/early_ioremap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/early_ioremap.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/mm/early_ioremap.c~mm-early_ioremap-print-the-starting-physical-address-in-__early_ioremap
+--- a/mm/early_ioremap.c~mm-early_ioremap-clean-up-the-use-of-warn-for-debugging
 +++ a/mm/early_ioremap.c
-@@ -139,6 +139,9 @@ __early_ioremap(resource_size_t phys_add
+@@ -30,6 +30,14 @@ static int __init early_ioremap_debug_se
+ }
+ early_param("early_ioremap_debug", early_ioremap_debug_setup);
+ 
++#define early_ioremap_dbg(fmt, args...)			\
++	do {						\
++		if (unlikely(early_ioremap_debug)) {	\
++			pr_warn(fmt, ##args);		\
++			dump_stack();			\
++		}					\
++	} while (0)
++
+ static int after_paging_init __initdata;
+ 
+ pgprot_t __init __weak early_memremap_pgprot_adjust(resource_size_t phys_addr,
+@@ -139,8 +147,8 @@ __early_ioremap(resource_size_t phys_add
  	if (WARN_ON(nrpages > NR_FIX_BTMAPS))
  		return NULL;
  
-+	WARN(early_ioremap_debug, "%s(%pa, %08lx) [%d] => %08lx + %08lx\n",
-+	     __func__, &phys_addr, size, slot, slot_virt[slot], offset);
-+
+-	WARN(early_ioremap_debug, "%s(%pa, %08lx) [%d] => %08lx + %08lx\n",
+-	     __func__, &phys_addr, size, slot, slot_virt[slot], offset);
++	early_ioremap_dbg("%s(%pa, %08lx) [%d] => %08lx + %08lx\n",
++			  __func__, &phys_addr, size, slot, slot_virt[slot], offset);
+ 
  	/*
  	 * Ok, go for it..
- 	 */
-@@ -152,8 +155,6 @@ __early_ioremap(resource_size_t phys_add
- 		--idx;
- 		--nrpages;
- 	}
--	WARN(early_ioremap_debug, "%s(%pa, %08lx) [%d] => %08lx + %08lx\n",
--	     __func__, &phys_addr, size, slot, offset, slot_virt[slot]);
+@@ -185,8 +193,7 @@ void __init early_iounmap(void __iomem *
+ 		  __func__, addr, size, slot, prev_size[slot]))
+ 		return;
  
- 	prev_map[slot] = (void __iomem *)(offset + slot_virt[slot]);
- 	return prev_map[slot];
+-	WARN(early_ioremap_debug, "%s(%p, %08lx) [%d]\n",
+-	      __func__, addr, size, slot);
++	early_ioremap_dbg("%s(%p, %08lx) [%d]\n", __func__, addr, size, slot);
+ 
+ 	virt_addr = (unsigned long)addr;
+ 	if (WARN_ON(virt_addr < fix_to_virt(FIX_BTMAP_BEGIN)))
 _
 
 Patches currently in -mm which might be from houwenlong.hwl@antgroup.com are
