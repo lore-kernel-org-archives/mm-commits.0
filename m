@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EDEB318ED7
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B84531619E
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486666; cv=none; b=DWNaRQeefhp+mDvpwBiDbpcE1hwZu612S3aA3y82oNbA4HePORO7HRSxPW/5beaCJCeVtn8XeKLU1pZ4eMVRGStNwefhfRhOT755u2leAgCKFWfm/X6I+P5m6JlRDonmIWrnYUbClxj6songb/t0KrxCbygZQ+SqRO2/idl0NBY=
+	t=1769486668; cv=none; b=rMDr2Jmi2qOy1HI/D20PnovhC7UmWvBemB9tTexGUGg8gEuvCkw3ze1qPvcU1oyir6WCOJw5lnrrcM9V1Zi3gLMnHxlu5uphPJrll8tMWaSZat/enhauHwPYhQLETqrLHa89nJWM5NzD+NtH1rm9zpZeuUwd/yVuOX/5z6VCmSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486666; c=relaxed/simple;
-	bh=NwsUri7b4gK1csRkkkBwB8u/NPArhwwFEl+73Z+KOHk=;
-	h=Date:To:From:Subject:Message-Id; b=Tt6jrt0cYyM//ef07r+bDm/E4H12QebrqewZenSiEgDrL8JTUyp1TRHAFx/eWD35qfVFdVEeiKtcn7CkbHnbv3Kv9j2rCMNGY/Q1DN3x0+7FISCRu1oHwD6vYQMU/LKHxEz68UalB8lgwnQIHwDa7sl67f///ZJfWUcKKwekJ0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RFwRbBR8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486668; c=relaxed/simple;
+	bh=JKidN14Ygodo9Iw/2bEiAKGOhonXFSjyXgQu2oKIY+w=;
+	h=Date:To:From:Subject:Message-Id; b=IOwKfmKvwD8l195hH9sm4Z2xJVw8B1NeikWAiVv+yj7Gx+SqO+D/Yr1v0j9aohkmTPlx4PAlUq7JmFk6rkDb6tmHqdOZAduHLBfj0zfYJFjXs9MYPR8ZLdsoo1N91PBdZ70ht7919xbtc7bDAWpZ5c55WOSk9YyM2WKqLDv6A5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KPP+egqe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RFwRbBR8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 358B4C116C6;
-	Tue, 27 Jan 2026 04:04:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KPP+egqe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D75E5C116C6;
+	Tue, 27 Jan 2026 04:04:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486666;
-	bh=NwsUri7b4gK1csRkkkBwB8u/NPArhwwFEl+73Z+KOHk=;
+	s=korg; t=1769486667;
+	bh=JKidN14Ygodo9Iw/2bEiAKGOhonXFSjyXgQu2oKIY+w=;
 	h=Date:To:From:Subject:From;
-	b=RFwRbBR8qkswqy9DgKHwba1YDYZfayWNGJCh5CWzptdsm9aDrTejXVMsX3b0Rt0Xh
-	 i3IGAJu/kv92h8XL+lJuPzR1/meQUs0rnXiPggNl090yvDysKkhwmBRpRQt7+OPFok
-	 jD/tvMFhb87qwBthaSo6WZs/m1oWD+Jk8IJp5tnI=
-Date: Mon, 26 Jan 2026 20:04:25 -0800
+	b=KPP+egqeyPO5jcWThN0HSYVIFv+vT2eR7ZGjDD0CXkRI4Iqq+GVX4987LklC13v8m
+	 DcyhvcDL8Xd6dzG5WkL/w1sofwzq3pkc8Cgo0jCoWcJQux0KUIZztjgCb3IUIty+qa
+	 0yCS5GpbbrHCPldw2IfIWVYDvsqFByyJDeTF7Ksc=
+Date: Mon, 26 Jan 2026 20:04:27 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,mhocko@suse.com,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,chriscli@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch removed from -mm tree
-Message-Id: <20260127040426.358B4C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch removed from -mm tree
+Message-Id: <20260127040427.D75E5C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: allocate anon_vma_chain objects unlocked when possible
+     Subject: mm/rmap: separate out fork-only logic on anon_vma_clone()
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
+     mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/rmap: allocate anon_vma_chain objects unlocked when possible
-Date: Sun, 18 Jan 2026 14:50:44 +0000
+Subject: mm/rmap: separate out fork-only logic on anon_vma_clone()
+Date: Sun, 18 Jan 2026 14:50:45 +0000
 
-There is no reason to allocate the anon_vma_chain under the anon_vma write
-lock when cloning - we can in fact assign these to the destination VMA
-safely as we hold the exclusive mmap lock and therefore preclude anybody
-else accessing these fields.
+Specify which operation is being performed to anon_vma_clone(), which
+allows us to do checks specific to each operation type, as well as to
+separate out and make clear that the anon_vma reuse logic is absolutely
+specific to fork only.
 
-We only need take the anon_vma write lock when we link rbtree edges from
-the anon_vma to the newly established AVCs.
+This opens the door to further refactorings and refinements later as we
+have more information to work with.
 
-This also allows us to eliminate the weird GFP_NOWAIT, GFP_KERNEL dance
-introduced in commit dd34739c03f2 ("mm: avoid anon_vma_chain allocation
-under anon_vma lock"), further simplifying this logic.
-
-This should reduce lock anon_vma contention, and clarifies exactly where
-the anon_vma lock is required.
-
-We cannot adjust __anon_vma_prepare() in the same way as this is only
-protected by VMA read lock, so we have to perform the allocation here
-under the anon_vma write lock and page_table_lock (to protect against
-racing threads), and we wish to retain the lock ordering.
-
-With this change we can simplify cleanup_partial_anon_vmas() even further
-- since we allocate AVC's without any lock taken and do not insert
-anything into the interval tree until after the allocations are tried, we
-can remove all logic pertaining to this and just free up AVC's only.
-
-Link: https://lkml.kernel.org/r/624bf1ac0bde4871fcfca2c8c8e294b6d8f7ae7b.1768746221.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/cf7da7a2d973cdc72a1b80dd9a73260519e8fa9f.1768746221.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Chris Li <chriscli@google.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -90,150 +73,217 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   81 +++++++++++++++++++++++-----------------------------
- 1 file changed, 36 insertions(+), 45 deletions(-)
+ mm/internal.h                    |   11 +++-
+ mm/rmap.c                        |   74 +++++++++++++++++++----------
+ mm/vma.c                         |    6 +-
+ tools/testing/vma/vma_internal.h |   11 +++-
+ 4 files changed, 74 insertions(+), 28 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible
+--- a/mm/internal.h~mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone
++++ a/mm/internal.h
+@@ -244,7 +244,16 @@ static inline void anon_vma_unlock_read(
+ 
+ struct anon_vma *folio_get_anon_vma(const struct folio *folio);
+ 
+-int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src);
++/* Operations which modify VMAs. */
++enum vma_operation {
++	VMA_OP_SPLIT,
++	VMA_OP_MERGE_UNFAULTED,
++	VMA_OP_REMAP,
++	VMA_OP_FORK,
++};
++
++int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src,
++	enum vma_operation operation);
+ int anon_vma_fork(struct vm_area_struct *vma, struct vm_area_struct *pvma);
+ int  __anon_vma_prepare(struct vm_area_struct *vma);
+ void unlink_anon_vmas(struct vm_area_struct *vma);
+--- a/mm/rmap.c~mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone
 +++ a/mm/rmap.c
-@@ -146,14 +146,13 @@ static void anon_vma_chain_free(struct a
- 	kmem_cache_free(anon_vma_chain_cachep, anon_vma_chain);
+@@ -232,12 +232,13 @@ int __anon_vma_prepare(struct vm_area_st
  }
  
--static void anon_vma_chain_link(struct vm_area_struct *vma,
--				struct anon_vma_chain *avc,
--				struct anon_vma *anon_vma)
-+static void anon_vma_chain_assign(struct vm_area_struct *vma,
-+				  struct anon_vma_chain *avc,
-+				  struct anon_vma *anon_vma)
+ static void check_anon_vma_clone(struct vm_area_struct *dst,
+-				 struct vm_area_struct *src)
++				 struct vm_area_struct *src,
++				 enum vma_operation operation)
  {
- 	avc->vma = vma;
- 	avc->anon_vma = anon_vma;
- 	list_add(&avc->same_vma, &vma->anon_vma_chain);
--	anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
+ 	/* The write lock must be held. */
+ 	mmap_assert_write_locked(src->vm_mm);
+-	/* If not a fork (implied by dst->anon_vma) then must be on same mm. */
+-	VM_WARN_ON_ONCE(dst->anon_vma && dst->vm_mm != src->vm_mm);
++	/* If not a fork then must be on same mm. */
++	VM_WARN_ON_ONCE(operation != VMA_OP_FORK && dst->vm_mm != src->vm_mm);
+ 
+ 	/* If we have anything to do src->anon_vma must be provided. */
+ 	VM_WARN_ON_ONCE(!src->anon_vma && !list_empty(&src->anon_vma_chain));
+@@ -249,6 +250,40 @@ static void check_anon_vma_clone(struct
+ 	 * must be the same across dst and src.
+ 	 */
+ 	VM_WARN_ON_ONCE(dst->anon_vma && dst->anon_vma != src->anon_vma);
++	/*
++	 * Essentially equivalent to above - if not a no-op, we should expect
++	 * dst->anon_vma to be set for everything except a fork.
++	 */
++	VM_WARN_ON_ONCE(operation != VMA_OP_FORK && src->anon_vma &&
++			!dst->anon_vma);
++	/* For the anon_vma to be compatible, it can only be singular. */
++	VM_WARN_ON_ONCE(operation == VMA_OP_MERGE_UNFAULTED &&
++			!list_is_singular(&src->anon_vma_chain));
++#ifdef CONFIG_PER_VMA_LOCK
++	/* Only merging an unfaulted VMA leaves the destination attached. */
++	VM_WARN_ON_ONCE(operation != VMA_OP_MERGE_UNFAULTED &&
++			vma_is_attached(dst));
++#endif
++}
++
++static void maybe_reuse_anon_vma(struct vm_area_struct *dst,
++		struct anon_vma *anon_vma)
++{
++	/* If already populated, nothing to do.*/
++	if (dst->anon_vma)
++		return;
++
++	/*
++	 * We reuse an anon_vma if any linking VMAs were unmapped and it has
++	 * only a single child at most.
++	 */
++	if (anon_vma->num_active_vmas > 0)
++		return;
++	if (anon_vma->num_children > 1)
++		return;
++
++	dst->anon_vma = anon_vma;
++	anon_vma->num_active_vmas++;
  }
  
- /**
-@@ -210,7 +209,8 @@ int __anon_vma_prepare(struct vm_area_st
- 	spin_lock(&mm->page_table_lock);
- 	if (likely(!vma->anon_vma)) {
- 		vma->anon_vma = anon_vma;
--		anon_vma_chain_link(vma, avc, anon_vma);
-+		anon_vma_chain_assign(vma, avc, anon_vma);
-+		anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
- 		anon_vma->num_active_vmas++;
- 		allocated = NULL;
- 		avc = NULL;
-@@ -291,21 +291,33 @@ int anon_vma_clone(struct vm_area_struct
+ static void cleanup_partial_anon_vmas(struct vm_area_struct *vma);
+@@ -258,6 +293,7 @@ static void cleanup_partial_anon_vmas(st
+  * all of the anon_vma objects contained within @src anon_vma_chain's.
+  * @dst: The destination VMA with an empty anon_vma_chain.
+  * @src: The source VMA we wish to duplicate.
++ * @operation: The type of operation which resulted in the clone.
+  *
+  * This is the heart of the VMA side of the anon_vma implementation - we invoke
+  * this function whenever we need to set up a new VMA's anon_vma state.
+@@ -280,17 +316,17 @@ static void cleanup_partial_anon_vmas(st
+  *
+  * Returns: 0 on success, -ENOMEM on failure.
+  */
+-int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src)
++int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src,
++		   enum vma_operation operation)
+ {
+ 	struct anon_vma_chain *avc, *pavc;
++	struct anon_vma *active_anon_vma = src->anon_vma;
  
- 	check_anon_vma_clone(dst, src);
+-	check_anon_vma_clone(dst, src);
++	check_anon_vma_clone(dst, src, operation);
  
--	/* All anon_vma's share the same root. */
-+	/*
-+	 * Allocate AVCs. We don't need an anon_vma lock for this as we
-+	 * are not updating the anon_vma rbtree nor are we changing
-+	 * anon_vma statistics.
-+	 *
-+	 * Either src, dst have the same mm for which we hold an exclusive mmap
-+	 * write lock, or we are forking and we hold it on src->vm_mm and dst is
-+	 * not yet accessible to other threads so there's no possibliity of the
-+	 * unlinked AVC's being observed yet.
-+	 */
-+	list_for_each_entry(pavc, &src->anon_vma_chain, same_vma) {
-+		avc = anon_vma_chain_alloc(GFP_KERNEL);
-+		if (!avc)
-+			goto enomem_failure;
-+
-+		anon_vma_chain_assign(dst, avc, pavc->anon_vma);
-+	}
-+
-+	/*
-+	 * Now link the anon_vma's back to the newly inserted AVCs.
-+	 * Note that all anon_vma's share the same root.
-+	 */
- 	anon_vma_lock_write(src->anon_vma);
--	list_for_each_entry_reverse(pavc, &src->anon_vma_chain, same_vma) {
--		struct anon_vma *anon_vma;
-+	list_for_each_entry_reverse(avc, &dst->anon_vma_chain, same_vma) {
-+		struct anon_vma *anon_vma = avc->anon_vma;
+-	if (!src->anon_vma)
++	if (!active_anon_vma)
+ 		return 0;
  
--		avc = anon_vma_chain_alloc(GFP_NOWAIT);
--		if (unlikely(!avc)) {
--			anon_vma_unlock_write(src->anon_vma);
--			avc = anon_vma_chain_alloc(GFP_KERNEL);
--			if (!avc)
--				goto enomem_failure;
--			anon_vma_lock_write(src->anon_vma);
--		}
--		anon_vma = pavc->anon_vma;
--		anon_vma_chain_link(dst, avc, anon_vma);
-+		anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
- 
- 		/*
- 		 * Reuse existing anon_vma if it has no vma and only one
-@@ -321,7 +333,6 @@ int anon_vma_clone(struct vm_area_struct
- 	}
- 	if (dst->anon_vma)
- 		dst->anon_vma->num_active_vmas++;
+-	check_anon_vma_clone(dst, src);
 -
- 	anon_vma_unlock_write(src->anon_vma);
+ 	/*
+ 	 * Allocate AVCs. We don't need an anon_vma lock for this as we
+ 	 * are not updating the anon_vma rbtree nor are we changing
+@@ -318,22 +354,14 @@ int anon_vma_clone(struct vm_area_struct
+ 		struct anon_vma *anon_vma = avc->anon_vma;
+ 
+ 		anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
+-
+-		/*
+-		 * Reuse existing anon_vma if it has no vma and only one
+-		 * anon_vma child.
+-		 *
+-		 * Root anon_vma is never reused:
+-		 * it has self-parent reference and at least one child.
+-		 */
+-		if (!dst->anon_vma && src->anon_vma &&
+-		    anon_vma->num_children < 2 &&
+-		    anon_vma->num_active_vmas == 0)
+-			dst->anon_vma = anon_vma;
++		if (operation == VMA_OP_FORK)
++			maybe_reuse_anon_vma(dst, anon_vma);
+ 	}
+-	if (dst->anon_vma)
++
++	if (operation != VMA_OP_FORK)
+ 		dst->anon_vma->num_active_vmas++;
+-	anon_vma_unlock_write(src->anon_vma);
++
++	anon_vma_unlock_write(active_anon_vma);
  	return 0;
  
-@@ -391,8 +402,10 @@ int anon_vma_fork(struct vm_area_struct
- 	get_anon_vma(anon_vma->root);
- 	/* Mark this anon_vma as the one where our new (COWed) pages go. */
- 	vma->anon_vma = anon_vma;
-+	anon_vma_chain_assign(vma, avc, anon_vma);
-+	/* Now let rmap see it. */
- 	anon_vma_lock_write(anon_vma);
--	anon_vma_chain_link(vma, avc, anon_vma);
-+	anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
- 	anon_vma->parent->num_children++;
- 	anon_vma_unlock_write(anon_vma);
+  enomem_failure:
+@@ -372,7 +400,7 @@ int anon_vma_fork(struct vm_area_struct
+ 	 * First, attach the new VMA to the parent VMA's anon_vmas,
+ 	 * so rmap can find non-COWed pages in child processes.
+ 	 */
+-	rc = anon_vma_clone(vma, pvma);
++	rc = anon_vma_clone(vma, pvma, VMA_OP_FORK);
+ 	/* An error arose or an existing anon_vma was reused, all done then. */
+ 	if (rc || vma->anon_vma) {
+ 		put_anon_vma(anon_vma);
+--- a/mm/vma.c~mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone
++++ a/mm/vma.c
+@@ -530,7 +530,7 @@ __split_vma(struct vma_iterator *vmi, st
+ 	if (err)
+ 		goto out_free_vmi;
  
-@@ -403,40 +416,18 @@ int anon_vma_fork(struct vm_area_struct
-  * In the unfortunate case of anon_vma_clone() failing to allocate memory we
-  * have to clean things up.
-  *
-- * On clone we hold the exclusive mmap write lock, so we can't race
-- * unlink_anon_vmas(). Since we're cloning, we know we can't have empty
-- * anon_vma's, since existing anon_vma's are what we're cloning from.
-- *
-- * So this function needs only traverse the anon_vma_chain and free each
-- * allocated anon_vma_chain.
-+ * Since we allocate anon_vma_chain's before we insert them into the interval
-+ * trees, we simply have to free up the AVC's and remove the entries from the
-+ * VMA's anon_vma_chain.
-  */
- static void cleanup_partial_anon_vmas(struct vm_area_struct *vma)
- {
- 	struct anon_vma_chain *avc, *next;
--	struct anon_vma *root = NULL;
--
--	/*
--	 * We exclude everybody else from being able to modify anon_vma's
--	 * underneath us.
--	 */
--	mmap_assert_locked(vma->vm_mm);
+-	err = anon_vma_clone(new, vma);
++	err = anon_vma_clone(new, vma, VMA_OP_SPLIT);
+ 	if (err)
+ 		goto out_free_mpol;
  
- 	list_for_each_entry_safe(avc, next, &vma->anon_vma_chain, same_vma) {
--		struct anon_vma *anon_vma = avc->anon_vma;
--
--		/* All anon_vma's share the same root. */
--		if (!root) {
--			root = anon_vma->root;
--			anon_vma_lock_write(root);
--		}
--
--		anon_vma_interval_tree_remove(avc, &anon_vma->rb_root);
- 		list_del(&avc->same_vma);
- 		anon_vma_chain_free(avc);
- 	}
--
--	if (root)
--		anon_vma_unlock_write(root);
+@@ -628,7 +628,7 @@ static int dup_anon_vma(struct vm_area_s
+ 
+ 		vma_assert_write_locked(dst);
+ 		dst->anon_vma = src->anon_vma;
+-		ret = anon_vma_clone(dst, src);
++		ret = anon_vma_clone(dst, src, VMA_OP_MERGE_UNFAULTED);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -1901,7 +1901,7 @@ struct vm_area_struct *copy_vma(struct v
+ 		vma_set_range(new_vma, addr, addr + len, pgoff);
+ 		if (vma_dup_policy(vma, new_vma))
+ 			goto out_free_vma;
+-		if (anon_vma_clone(new_vma, vma))
++		if (anon_vma_clone(new_vma, vma, VMA_OP_REMAP))
+ 			goto out_free_mempol;
+ 		if (new_vma->vm_file)
+ 			get_file(new_vma->vm_file);
+--- a/tools/testing/vma/vma_internal.h~mm-rmap-separate-out-fork-only-logic-on-anon_vma_clone
++++ a/tools/testing/vma/vma_internal.h
+@@ -600,6 +600,14 @@ struct mmap_action {
+ 	bool hide_from_rmap_until_complete :1;
+ };
+ 
++/* Operations which modify VMAs. */
++enum vma_operation {
++	VMA_OP_SPLIT,
++	VMA_OP_MERGE_UNFAULTED,
++	VMA_OP_REMAP,
++	VMA_OP_FORK,
++};
++
+ /*
+  * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
+  * manipulate mutable fields which will cause those fields to be updated in the
+@@ -1157,7 +1165,8 @@ static inline int vma_dup_policy(struct
+ 	return 0;
  }
  
- /**
+-static inline int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src)
++static inline int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src,
++				 enum vma_operation operation)
+ {
+ 	/* For testing purposes. We indicate that an anon_vma has been cloned. */
+ 	if (src->anon_vma != NULL) {
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
