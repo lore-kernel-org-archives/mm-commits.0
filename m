@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1EA21C862F
-	for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 22:19:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8451169AD2
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 00:34:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769465978; cv=none; b=HymNXvBExmAVmVS3mXKm0IZ5luygUonxMF0LVcyNJTrNRjuQ8PePhrvKliWH8Jl+1xIk+H2uATeWSFATGTnGhK/x1bnuF5ZmwdEvPXHfUa5iO2lXylBZFDlOp4kVc6bGK1LYXffHa0zfvtofi4DhuhXPR5UGAx+13OSLAtfSE2w=
+	t=1769474075; cv=none; b=Umpb6PGCuJVbyFveD3YMa4G8He9us3NeIpHVxIS6DAAnyNtT22jqMgndFRR+VnGSF07+C15jjSFY7RUzLCufP4ZsU/MzeEIy9V9Ia+FXjwUWcGBSLQ+ohHToe5Dn6s7QpLry9ewkoe4b0ODXKyAqrF1nFhZMh8ANg5s5KoNena4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769465978; c=relaxed/simple;
-	bh=iWXkCAGOx01sPrgUHq4HoQ2SGB/+OIBGnl/Z0TRIyOQ=;
-	h=Date:To:From:Subject:Message-Id; b=WRnp+T2zNTL+aOSexVfTmaHXEs+pTh34keldZVncIUUNAbNkqc52KsN5xmomnYvlAyTU35AjXuOfcykoUAcMC3rXg3QgQm4R3dq8wWzKuOnQg5FrLmuFK4Bzj/s9advA/Z7HFt7MHatJ6XEi3tMKeb8MHROYGEhPzCdSa+qe3X0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jlelOgWR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769474075; c=relaxed/simple;
+	bh=ewuQF4JB+8x6Ofx0ZTC1PSmxLvTVLvd2MQ9kQACjaVI=;
+	h=Date:To:From:Subject:Message-Id; b=hKqLcIcMdBJe9st0fwhUdIvlshlxncMfL1ZNnp+P4R/WDFN9cQD3U6UhDW3fnZ6+xqFblKf85+qq41n/oaNDbihKj5pv4lkDe2YdTeuUgAm0CX7+0mKmjWIhAPUep7Axi4Msxh+VDG7Xa4CZoQKmqewCuotge3emiMKEUZ5EQmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QRQ5kpy2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jlelOgWR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E33CC116C6;
-	Mon, 26 Jan 2026 22:19:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QRQ5kpy2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 593FBC16AAE;
+	Tue, 27 Jan 2026 00:34:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769465978;
-	bh=iWXkCAGOx01sPrgUHq4HoQ2SGB/+OIBGnl/Z0TRIyOQ=;
+	s=korg; t=1769474075;
+	bh=ewuQF4JB+8x6Ofx0ZTC1PSmxLvTVLvd2MQ9kQACjaVI=;
 	h=Date:To:From:Subject:From;
-	b=jlelOgWREECMHZyG7xt9lSMr2LOq83iRzgVojadTUy1IAkEqVTv/YNxjI12Olnsyv
-	 T2A88w/Yqi1izDDmP0t+gcR8agBRsUqqz8m1XbaRXX6KkBHdyeBwTnSr3HxbTSw3nn
-	 2hdjFJkrhuPKRQ1q6NpxGvzgwFXifrO+CHMG6FKk=
-Date: Mon, 26 Jan 2026 14:19:37 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,tycho@kernel.org,akpm@linux-foundation.org
+	b=QRQ5kpy2sRtZ0ivJ3OAXCaZB0AdezwrQt7UZs104vYUoAXBTvD4AL/FpDFbRc2Sqo
+	 UNQVCYS0KXuu2mQErSGpIIeQ4chdQoPnOgnrFlAc+qv5RrOOcoab1FgCw1bFY0a44E
+	 hTBipOKe8ll6tOGmEgpNxCkOcu1ZDpaETkBJVecI=
+Date: Mon, 26 Jan 2026 16:34:34 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-fix-doc-for-kho_restore_pages.patch added to mm-nonmm-unstable branch
-Message-Id: <20260126221938.4E33CC116C6@smtp.kernel.org>
+Subject: + liveupdate-luo_file-do-not-clear-serialized_data-on-unfreeze.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260127003435.593FBC16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: fix doc for kho_restore_pages()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-fix-doc-for-kho_restore_pages.patch
+     Subject: liveupdate: luo_file: do not clear serialized_data on unfreeze
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     liveupdate-luo_file-do-not-clear-serialized_data-on-unfreeze.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-fix-doc-for-kho_restore_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_file-do-not-clear-serialized_data-on-unfreeze.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,39 +58,61 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Tycho Andersen (AMD)" <tycho@kernel.org>
-Subject: kho: fix doc for kho_restore_pages()
-Date: Fri, 23 Jan 2026 12:05:06 -0700
+From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
+Subject: liveupdate: luo_file: do not clear serialized_data on unfreeze
+Date: Tue, 27 Jan 2026 00:02:52 +0100
 
-This function returns NULL if kho_restore_page() returns NULL, which
-happens in a couple of corner cases.  It never returns an error code.
+The unfreeze operation is supposed to undo the effects of the freeze
+operation.  serialized_data is not set by freeze, but by preserve. 
+Consequently, the unpreserve operation needs to access serialized_data to
+undo the effects of the preserve operation.  This includes freeing the
+serialized data structures for example.
 
-Link: https://lkml.kernel.org/r/20260123190506.1058669-1-tycho@kernel.org
-Signed-off-by: Tycho Andersen (AMD) <tycho@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
+If a freeze callback fails, unfreeze is called for all frozen files.  This
+would clear serialized_data for them.  Since live update has failed, it
+can be expected that userspace aborts, releasing all sessions.  When the
+sessions are released, unpreserve will be called for all files.  The
+unfrozen files will see 0 in their serialized_data.  This is not expected
+by file handlers, and they might either fail, leaking data and state, or
+might even crash or cause invalid memory access.
+
+Do not clear serialized_data on unfreeze so it gets passed on to
+unpreserve.  There is no need to clear it on unpreserve since luo_file
+will be freed immediately after.
+
+Link: https://lkml.kernel.org/r/20260126230302.2936817-2-pratyush@kernel.org
+Fixes: 7c722a7f44e0 ("liveupdate: luo_file: implement file systems callbacks")
+Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/liveupdate/luo_file.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-fix-doc-for-kho_restore_pages
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -299,7 +299,7 @@ EXPORT_SYMBOL_GPL(kho_restore_folio);
-  * Restore a contiguous list of order 0 pages that was preserved with
-  * kho_preserve_pages().
-  *
-- * Return: 0 on success, error code on failure
-+ * Return: the first page on success, NULL on failure.
-  */
- struct page *kho_restore_pages(phys_addr_t phys, unsigned long nr_pages)
- {
+--- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-do-not-clear-serialized_data-on-unfreeze
++++ a/kernel/liveupdate/luo_file.c
+@@ -402,8 +402,6 @@ static void luo_file_unfreeze_one(struct
+ 
+ 		luo_file->fh->ops->unfreeze(&args);
+ 	}
+-
+-	luo_file->serialized_data = 0;
+ }
+ 
+ static void __luo_file_unfreeze(struct luo_file_set *file_set,
 _
 
-Patches currently in -mm which might be from tycho@kernel.org are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
-kho-fix-doc-for-kho_restore_pages.patch
+memfd-export-alloc_file.patch
+mm-memfd_luo-use-memfd_alloc_file-instead-of-shmem_file_setup.patch
+mm-memfd_luo-restore-and-free-memfd_luo_ser-on-failure.patch
+liveupdate-luo_file-do-not-clear-serialized_data-on-unfreeze.patch
+liveupdate-luo_file-remember-retrieve-status.patch
+memfd-export-memfd_addget_seals.patch
+mm-memfd_luo-preserve-file-seals.patch
+kho-use-unsigned-long-for-nr_pages.patch
+kho-simplify-page-initialization-in-kho_restore_page.patch
 
