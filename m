@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE691E5702
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 669991E5702
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486727; cv=none; b=nBPIEo+jVQ0agBNk7UcnhAUfF8PIhi4pJ0UX2/sqGPp9NWti5eDJ30QKvmVggSNtbsRuVwXJG3NlEN9m+k1UxYILPXXh/zlvrVppTD9yAquxpcPzgxqii7zbT9yt00Yj02W6SXbfc/4gVQ7vVeHffnyZBSjin1FrEyj6knEq1Rk=
+	t=1769486730; cv=none; b=nRjIXmvFJOWMfvJZD3PBRINRIh10tMpynPigfCVTjQ3eKIUrM959x6xbgR0WcfgYz0WGfMBICqTIjSAupJxYqteZPVJj6yPyqdsvfOaVWelLz2jfVTKrEbXAas+DPvIOktjCUWtmeA81XLF22PxAtITUIYqIHiS+EPN0SDyNAIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486727; c=relaxed/simple;
-	bh=Y7HHI225b5uEwF31QFO36nWCwfW3TzEdnEsZnRLfwiA=;
-	h=Date:To:From:Subject:Message-Id; b=Q8+k/FKqM93GAH4TzDQ6SB8e/xX1KPw9QF2XbjGTzggyCLB+MyGUTmC449jQ9lygNS3Yi20C6HU6SSVO8UfyATZkZp9AiswHPBiJLBSSxK6nw46OJgQfQGyR6M8+eK6VbF9XP2pC/GOs1iJCKj0AH6x6BCImoHMFiOBi+hR7QVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oSHOThDu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486730; c=relaxed/simple;
+	bh=hFNm4tToJeGktwTIVlndjfr2w+yuZ6nS+KGusaKn+iY=;
+	h=Date:To:From:Subject:Message-Id; b=pem8A9ISeNCWVxPK85qQ7PUhvNZF0mZ1Z3Ht0kx+wmhDC026EkjKj7Wlmte5tixswNGpzoou5eh7brHTgSwNGfdFgbeimWsk9LXNsZX/AUdsNRpbyBkaiGTAVmEYo9YLZtTWbQYnTBzBh53RGb+NYJ9m3S6ilb+u1ok60PHcXcI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MQpuomoU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oSHOThDu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6E33C116C6;
-	Tue, 27 Jan 2026 04:05:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MQpuomoU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F458C116C6;
+	Tue, 27 Jan 2026 04:05:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486726;
-	bh=Y7HHI225b5uEwF31QFO36nWCwfW3TzEdnEsZnRLfwiA=;
+	s=korg; t=1769486730;
+	bh=hFNm4tToJeGktwTIVlndjfr2w+yuZ6nS+KGusaKn+iY=;
 	h=Date:To:From:Subject:From;
-	b=oSHOThDuVt+Z+6Wg/x8aLTJn1yfr4jVARGP0B2gvyTolVcGlDU9Lw8iHu/WXzsiG1
-	 +dD8EZ8WVVCo4aOINN8wBagmCbtwLQUgDA8sID/p3EVVenszRY815dduKBI1Ltj6jv
-	 SBj3JUdNEbtMTkEKuWUf8pqW5iu/1m3O64eRoVTI=
-Date: Mon, 26 Jan 2026 20:05:26 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,minchan@kernel.org,herbert@gondor.apana.org.au,hannes@cmpxchg.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=MQpuomoU9dJoIs693VGmE4BQj6IqGtrJ+2Sfg2Fo7jBgDLpWF/yyqu9wcVZq/Hy0c
+	 UFMNURg8NY6lKI+IvILw3rWAj2hmo2RAm6GDxyy+X3iRg/pQhkWU1k5c07VRJ04ZBw
+	 9W/pLXZBHUum0C0IWRHucLB/al/YRRpFR7k+NB2g=
+Date: Mon, 26 Jan 2026 20:05:29 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,wangkefeng.wang@huawei.com,rakie.kim@sk.com,mgorman@suse.de,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,tujinjiang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zsmalloc-introduce-sg-list-based-object-read-api.patch removed from -mm tree
-Message-Id: <20260127040526.D6E33C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch removed from -mm tree
+Message-Id: <20260127040530.3F458C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,154 +35,116 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zsmalloc: introduce SG-list based object read API
+     Subject: mm/mempolicy: fix mpol_rebind_nodemask() for MPOL_F_NUMA_BALANCING
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-introduce-sg-list-based-object-read-api.patch
+     mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: introduce SG-list based object read API
-Date: Tue, 13 Jan 2026 12:46:45 +0900
+From: Jinjiang Tu <tujinjiang@huawei.com>
+Subject: mm/mempolicy: fix mpol_rebind_nodemask() for MPOL_F_NUMA_BALANCING
+Date: Tue, 23 Dec 2025 19:05:23 +0800
 
-Currently, zsmalloc performs address linearization on read (which
-sometimes requires memcpy() to a local buffer).  Not all zsmalloc users
-need a linear address.  For example, Crypto API supports SG-list,
-performing linearization under the hood, if needed.  In addition, some
-compressors can have native SG-list support, completely avoiding the
-linearization step.
+commit bda420b98505 ("numa balancing: migrate on fault among multiple
+bound nodes") adds new flag MPOL_F_NUMA_BALANCING to enable NUMA balancing
+for MPOL_BIND memory policy.
 
-Provide an SG-list based zsmalloc read API:
-- zs_obj_read_sg_begin()
-- zs_obj_read_sg_end()
+When the cpuset of tasks changes, the mempolicy of the task is rebound by
+mpol_rebind_nodemask().  When MPOL_F_STATIC_NODES and
+MPOL_F_RELATIVE_NODES are both not set, the behaviour of rebinding should
+be same whenever MPOL_F_NUMA_BALANCING is set or not.  So, when an
+application calls set_mempolicy() with MPOL_F_NUMA_BALANCING set but both
+MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES cleared,
+mempolicy.w.cpuset_mems_allowed should be set to
+cpuset_current_mems_allowed nodemask.  However, in current implementation,
+mpol_store_user_nodemask() wrongly returns true, causing
+mempolicy->w.user_nodemask to be incorrectly set to the user-specified
+nodemask.  Later, when the cpuset of the application changes,
+mpol_rebind_nodemask() ends up rebinding based on the user-specified
+nodemask rather than the cpuset_mems_allowed nodemask as intended.
 
-This API allows callers to obtain an SG representation of the object (one
-entry for objects that are contained in a single page and two entries for
-spanning objects), avoiding the need for a bounce buffer and memcpy.
+I can reproduce with the following steps in qemu with 4 NUMA nodes:
+1. echo '+cpuset' > /sys/fs/cgroup/cgroup.subtree_control
+2. mkdir /sys/fs/cgroup/test
+3. ./reproducer &
+4. cat /proc/$pid/numa_maps, the task is bound to NUMA 1
+5. echo $pid > /sys/fs/cgroup/test/cgroup.procs
+6. cat /proc/$pid/numa_maps, the task is bound to NUMA 0 now.
 
-[senozhatsky@chromium.org: make zs_obj_read_sg_begin() return void, per Yosry]
-  Link: https://lkml.kernel.org/r/20260117024900.792237-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20260113034645.2729998-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
-Tested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+The reproducer code:
+
+int main()
+{
+        struct bitmask *bmp;
+        int ret;
+
+        bmp = numa_parse_nodestring("1");
+        ret = set_mempolicy(MPOL_BIND | MPOL_F_NUMA_BALANCING,
+                bmp->maskp, bmp->size + 1);
+        if (ret < 0) {
+                perror("Failed to call set_mempolicy");
+                exit(-1);
+        }
+
+        while (1);
+        return 0;
+}
+
+If I call set_mempolicy() without MPOL_F_NUMA_BALANCING in the reproducer
+code.  After step 5, the task is still bound to NUMA 1.
+
+To fix this, only set mempolicy->w.user_nodemask to the user-specified
+nodemask if MPOL_F_STATIC_NODES or MPOL_F_RELATIVE_NODES is present.
+
+Link: https://lkml.kernel.org/r/20260120011018.1256654-1-tujinjiang@huawei.com
+Link: https://lkml.kernel.org/r/20251223110523.1161421-1-tujinjiang@huawei.com
+Fixes: bda420b98505 ("numa balancing: migrate on fault among multiple bound nodes")
+Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Mel Gorman <mgorman <mgorman@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zsmalloc.h |    4 ++
- mm/zsmalloc.c            |   63 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+)
+ include/uapi/linux/mempolicy.h |    3 +++
+ mm/mempolicy.c                 |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/zsmalloc.h~zsmalloc-introduce-sg-list-based-object-read-api
-+++ a/include/linux/zsmalloc.h
-@@ -22,6 +22,7 @@ struct zs_pool_stats {
- };
+--- a/include/uapi/linux/mempolicy.h~mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing
++++ a/include/uapi/linux/mempolicy.h
+@@ -39,6 +39,9 @@ enum {
+ #define MPOL_MODE_FLAGS							\
+ 	(MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES | MPOL_F_NUMA_BALANCING)
  
- struct zs_pool;
-+struct scatterlist;
++/* Whether the nodemask is specified by users */
++#define MPOL_USER_NODEMASK_FLAGS (MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES)
++
+ /* Flags for get_mempolicy */
+ #define MPOL_F_NODE	(1<<0)	/* return next IL mode instead of node mask */
+ #define MPOL_F_ADDR	(1<<1)	/* look up vma using address */
+--- a/mm/mempolicy.c~mm-mempolicy-fix-mpol_rebind_nodemask-for-mpol_f_numa_balancing
++++ a/mm/mempolicy.c
+@@ -365,7 +365,7 @@ static const struct mempolicy_operations
  
- struct zs_pool *zs_create_pool(const char *name);
- void zs_destroy_pool(struct zs_pool *pool);
-@@ -43,6 +44,9 @@ void *zs_obj_read_begin(struct zs_pool *
- 			size_t mem_len, void *local_copy);
- void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
- 		     size_t mem_len, void *handle_mem);
-+void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
-+			  struct scatterlist *sg, size_t mem_len);
-+void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle);
- void zs_obj_write(struct zs_pool *pool, unsigned long handle,
- 		  void *handle_mem, size_t mem_len);
- 
---- a/mm/zsmalloc.c~zsmalloc-introduce-sg-list-based-object-read-api
-+++ a/mm/zsmalloc.c
-@@ -30,6 +30,7 @@
- #include <linux/highmem.h>
- #include <linux/string.h>
- #include <linux/slab.h>
-+#include <linux/scatterlist.h>
- #include <linux/spinlock.h>
- #include <linux/sprintf.h>
- #include <linux/shrinker.h>
-@@ -1141,6 +1142,68 @@ void zs_obj_read_end(struct zs_pool *poo
- }
- EXPORT_SYMBOL_GPL(zs_obj_read_end);
- 
-+void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
-+			  struct scatterlist *sg, size_t mem_len)
-+{
-+	struct zspage *zspage;
-+	struct zpdesc *zpdesc;
-+	unsigned long obj, off;
-+	unsigned int obj_idx;
-+	struct size_class *class;
-+
-+	/* Guarantee we can get zspage from handle safely */
-+	read_lock(&pool->lock);
-+	obj = handle_to_obj(handle);
-+	obj_to_location(obj, &zpdesc, &obj_idx);
-+	zspage = get_zspage(zpdesc);
-+
-+	/* Make sure migration doesn't move any pages in this zspage */
-+	zspage_read_lock(zspage);
-+	read_unlock(&pool->lock);
-+
-+	class = zspage_class(pool, zspage);
-+	off = offset_in_page(class->size * obj_idx);
-+
-+	if (!ZsHugePage(zspage))
-+		off += ZS_HANDLE_SIZE;
-+
-+	if (off + mem_len <= PAGE_SIZE) {
-+		/* this object is contained entirely within a page */
-+		sg_init_table(sg, 1);
-+		sg_set_page(sg, zpdesc_page(zpdesc), mem_len, off);
-+	} else {
-+		size_t sizes[2];
-+
-+		/* this object spans two pages */
-+		sizes[0] = PAGE_SIZE - off;
-+		sizes[1] = mem_len - sizes[0];
-+
-+		sg_init_table(sg, 2);
-+		sg_set_page(sg, zpdesc_page(zpdesc), sizes[0], off);
-+
-+		zpdesc = get_next_zpdesc(zpdesc);
-+		sg = sg_next(sg);
-+
-+		sg_set_page(sg, zpdesc_page(zpdesc), sizes[1], 0);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(zs_obj_read_sg_begin);
-+
-+void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle)
-+{
-+	struct zspage *zspage;
-+	struct zpdesc *zpdesc;
-+	unsigned long obj;
-+	unsigned int obj_idx;
-+
-+	obj = handle_to_obj(handle);
-+	obj_to_location(obj, &zpdesc, &obj_idx);
-+	zspage = get_zspage(zpdesc);
-+
-+	zspage_read_unlock(zspage);
-+}
-+EXPORT_SYMBOL_GPL(zs_obj_read_sg_end);
-+
- void zs_obj_write(struct zs_pool *pool, unsigned long handle,
- 		  void *handle_mem, size_t mem_len)
+ static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
  {
+-	return pol->flags & MPOL_MODE_FLAGS;
++	return pol->flags & MPOL_USER_NODEMASK_FLAGS;
+ }
+ 
+ static void mpol_relative_nodemask(nodemask_t *ret, const nodemask_t *orig,
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from tujinjiang@huawei.com are
 
-zram-rename-init_lock-to-dev_lock.patch
-zsmalloc-make-common-caches-global.patch
 
