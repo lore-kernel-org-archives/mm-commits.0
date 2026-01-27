@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06CF1E5702
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C65291E5702
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486735; cv=none; b=d7LXbXKnaNzpQop7MrgB2e95kMNZO1EjjYH8To2+8jypuP03m3Jc0VVUaGxmWlwSMbNrwInGzUGHgX4l3ddlxrQTCOC+9zP8QNyWteZS4PQ63BSJX41VtD148O1BiRU68+FKfezKkQFtJMV/AVMzRuhsIg12hBA3N1u0CtY8MqU=
+	t=1769486736; cv=none; b=L1+0Z/l96CNWQEH709+Zr5MJS/4aaJKQ85ynVfeSKj6rvbFRJiHbxUVZcuJ8CDNjhhuNZLT0UKyavr3M+v/IkMXFd1QZd9WyAHqAOyz4gJQa8/bk6K1XzKMpp7rLxwvZmrqbRL4xhScKuxUFlXsYP5x+9uK4j6rvN4cNgXjg0I4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486735; c=relaxed/simple;
-	bh=BCffZDP/d4HRxiDLtbPX1/JCv6uoVZq3cYD0xbr9QuE=;
-	h=Date:To:From:Subject:Message-Id; b=e0agw4Eqr8/7xkwmrj+Q5tOFys7hmPMzODXF2wTDCEYwb1LdWeT11kt1xLdyjKFv6bvusRxASzEUltNuSTRlrtL/tzCoT3GR8L6AjER8YIbXFGo7OfkDUruv1cPL5W5coeO61eY/+TEZR82tR5eTE3VESqa9/mCM0tOnx2nomNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gs364B9+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486736; c=relaxed/simple;
+	bh=vDM7oZwWGHCE8Mh0wNPodRY5+/PrQqS1n07m9tnbTaI=;
+	h=Date:To:From:Subject:Message-Id; b=JquQdoDILEv/Db8FOEiK66cI+fHqZw843MG45atk9YpWE1hAcIJZL4nIc++AWNe6MEtb2LkBu8GWoADl65oA+QUusSUuyimRMGMY8uMZIVt8UFijqvPy50hFtqK+VvTC8mJs57RU7PMFRUzlCm8R9lsldWx/k5bp2sHSl5TzEE8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pBSGX+rf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gs364B9+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2923C116C6;
-	Tue, 27 Jan 2026 04:05:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pBSGX+rf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90118C116C6;
+	Tue, 27 Jan 2026 04:05:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486734;
-	bh=BCffZDP/d4HRxiDLtbPX1/JCv6uoVZq3cYD0xbr9QuE=;
+	s=korg; t=1769486736;
+	bh=vDM7oZwWGHCE8Mh0wNPodRY5+/PrQqS1n07m9tnbTaI=;
 	h=Date:To:From:Subject:From;
-	b=Gs364B9+rX5Jv7Efhwcxx8qYo+dcHw40EF7Zdu9DstNhsbZiY2smrUQBg/BgOjfgy
-	 lO6XCZpytPuK4ON0GkUEJHfXyHWd07Jpt6c7Oh+NkfXG0LRuejME7jKBwQOaPjYrKI
-	 ZgUzRQd/GR5IRrXmpqEZtedYkXvBqPbeRK1MxMkA=
-Date: Mon, 26 Jan 2026 20:05:34 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,willy@infradead.org,vishal.moola@gmail.com,thuth@redhat.com,sweettea-kernel@dorminy.me,rmclure@linux.ibm.com,ritesh.list@gmail.com,paulus@ozlabs.org,pasha.tatashin@soleen.com,npiggin@gmail.com,nicholas@linux.ibm.com,mpe@ellerman.id.au,mingo@kernel.org,maddy@linux.ibm.com,linmag7@gmail.com,kevin.brodsky@arm.com,jgg@ziepe.ca,guoweikang.kernel@gmail.com,donettom@linux.ibm.com,david@kernel.org,christophe.leroy@csgroup.eu,chleroy@kernel.org,apopple@nvidia.com,alexghiti@rivosinc.com,alex@ghiti.fr,agordeev@linux.ibm.com,ajd@linux.ibm.com,akpm@linux-foundation.org
+	b=pBSGX+rfWnXWN1FPOpVFYCu6hCdvthnQmHa5SzINvh3sb/8u6N4MB04Qezt8tXEJ/
+	 pgwLnlNdNz/EQK0jkU9CW+UWvns1BWu6uSER7gQ/8S+YWhe5HWGORFN5pTYRfS93xZ
+	 27tQqPvxzznl2nsG/4adBm5Egx5CKhO6BJHZogZE=
+Date: Mon, 26 Jan 2026 20:05:36 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,willy@infradead.org,vishal.moola@gmail.com,thuth@redhat.com,sweettea-kernel@dorminy.me,ritesh.list@gmail.com,paulus@ozlabs.org,pasha.tatashin@soleen.com,npiggin@gmail.com,nicholas@linux.ibm.com,mpe@ellerman.id.au,mingo@kernel.org,maddy@linux.ibm.com,linmag7@gmail.com,kevin.brodsky@arm.com,jgg@ziepe.ca,guoweikang.kernel@gmail.com,donettom@linux.ibm.com,david@kernel.org,christophe.leroy@csgroup.eu,chleroy@kernel.org,apopple@nvidia.com,alexghiti@rivosinc.com,alex@ghiti.fr,ajd@linux.ibm.com,agordeev@linux.ibm.com,rmclure@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-mm-add-addr-parameter-to-__ptep_get_and_clear_anysz.patch removed from -mm tree
-Message-Id: <20260127040534.C2923C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch removed from -mm tree
+Message-Id: <20260127040536.90118C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64/mm: add addr parameter to __ptep_get_and_clear_anysz()
+     Subject: mm/page_table_check: reinstate address parameter in [__]page_table_check_pud[s]_set()
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-add-addr-parameter-to-__ptep_get_and_clear_anysz.patch
+     mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Donnellan <ajd@linux.ibm.com>
-Subject: arm64/mm: add addr parameter to __ptep_get_and_clear_anysz()
-Date: Fri, 19 Dec 2025 04:09:34 +1100
+From: Rohan McLure <rmclure@linux.ibm.com>
+Subject: mm/page_table_check: reinstate address parameter in [__]page_table_check_pud[s]_set()
+Date: Fri, 19 Dec 2025 04:09:35 +1100
 
-To provide support for page table check on powerpc, we need to
-reinstate the address parameter in several functions, including
-page_table_check_{pte,pmd,pud}_clear().
+This reverts commit 6d144436d954 ("mm/page_table_check: remove unused
+parameter in [__]page_table_check_pud_set").
 
-In preparation for this, add the addr parameter to arm64's
-__ptep_get_and_clear_anysz() and change its callsites accordingly.
+Reinstate previously unused parameters for the purpose of supporting
+powerpc platforms, as many do not encode user/kernel ownership of the page
+in the pte, but instead in the address of the access.
 
-Link: https://lkml.kernel.org/r/20251219-pgtable_check_v18rebase-v18-2-755bc151a50b@linux.ibm.com
+Apply this to __page_table_check_puds_set(), page_table_check_puds_set()
+and the page_table_check_pud_set() wrapper macro.
+
+[ajd@linux.ibm.com: rebase on riscv + arm64 changes, update commit message]
+Link: https://lkml.kernel.org/r/20251219-pgtable_check_v18rebase-v18-3-755bc151a50b@linux.ibm.com
+Signed-off-by: Rohan McLure <rmclure@linux.ibm.com>
 Signed-off-by: Andrew Donnellan <ajd@linux.ibm.com>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>  # x86
+Acked-by: Alexandre Ghiti <alexghiti@rivosinc.com> # riscv
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Donet Tom <donettom@linux.ibm.com>
 Cc: Guo Weikang <guoweikang.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -78,7 +83,6 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Rohan McLure <rmclure@linux.ibm.com>
 Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
 Cc: Thomas Huth <thuth@redhat.com>
 Cc: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
@@ -86,66 +90,125 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    5 +++--
- arch/arm64/mm/hugetlbpage.c      |    7 ++++---
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ arch/arm64/include/asm/pgtable.h |    3 ++-
+ arch/riscv/include/asm/pgtable.h |    4 ++--
+ arch/x86/include/asm/pgtable.h   |    4 ++--
+ include/linux/page_table_check.h |   12 ++++++------
+ mm/page_table_check.c            |    4 ++--
+ 5 files changed, 14 insertions(+), 13 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-add-addr-parameter-to-__ptep_get_and_clear_anysz
+--- a/arch/arm64/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -1332,6 +1332,7 @@ static inline int pmdp_test_and_clear_yo
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG */
- 
- static inline pte_t __ptep_get_and_clear_anysz(struct mm_struct *mm,
-+					       unsigned long address,
- 					       pte_t *ptep,
- 					       unsigned long pgsize)
+@@ -688,7 +688,8 @@ static inline void __set_ptes_anysz(stru
+ 		break;
+ #ifndef __PAGETABLE_PMD_FOLDED
+ 	case PUD_SIZE:
+-		page_table_check_puds_set(mm, (pud_t *)ptep, pte_pud(pte), nr);
++		page_table_check_puds_set(mm, addr, (pud_t *)ptep,
++					  pte_pud(pte), nr);
+ 		break;
+ #endif
+ 	default:
+--- a/arch/riscv/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -953,7 +953,7 @@ static inline void set_pmd_at(struct mm_
+ static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+ 				pud_t *pudp, pud_t pud)
  {
-@@ -1359,7 +1360,7 @@ static inline pte_t __ptep_get_and_clear
- static inline pte_t __ptep_get_and_clear(struct mm_struct *mm,
- 				       unsigned long address, pte_t *ptep)
- {
--	return __ptep_get_and_clear_anysz(mm, ptep, PAGE_SIZE);
-+	return __ptep_get_and_clear_anysz(mm, address, ptep, PAGE_SIZE);
+-	page_table_check_pud_set(mm, pudp, pud);
++	page_table_check_pud_set(mm, addr, pudp, pud);
+ 	return __set_pte_at(mm, (pte_t *)pudp, pud_pte(pud));
  }
  
- static inline void __clear_full_ptes(struct mm_struct *mm, unsigned long addr,
-@@ -1398,7 +1399,7 @@ static inline pte_t __get_and_clear_full
- static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
- 					    unsigned long address, pmd_t *pmdp)
+@@ -1122,7 +1122,7 @@ static inline void update_mmu_cache_pud(
+ static inline pud_t pudp_establish(struct vm_area_struct *vma,
+ 				   unsigned long address, pud_t *pudp, pud_t pud)
  {
--	return pte_pmd(__ptep_get_and_clear_anysz(mm, (pte_t *)pmdp, PMD_SIZE));
-+	return pte_pmd(__ptep_get_and_clear_anysz(mm, address, (pte_t *)pmdp, PMD_SIZE));
+-	page_table_check_pud_set(vma->vm_mm, pudp, pud);
++	page_table_check_pud_set(vma->vm_mm, address, pudp, pud);
+ 	return __pud(atomic_long_xchg((atomic_long_t *)pudp, pud_val(pud)));
  }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
---- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-add-addr-parameter-to-__ptep_get_and_clear_anysz
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -155,11 +155,12 @@ static pte_t get_clear_contig(struct mm_
- 	pte_t pte, tmp_pte;
- 	bool present;
+--- a/arch/x86/include/asm/pgtable.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1221,7 +1221,7 @@ static inline void set_pmd_at(struct mm_
+ static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+ 			      pud_t *pudp, pud_t pud)
+ {
+-	page_table_check_pud_set(mm, pudp, pud);
++	page_table_check_pud_set(mm, addr, pudp, pud);
+ 	native_set_pud(pudp, pud);
+ }
  
--	pte = __ptep_get_and_clear_anysz(mm, ptep, pgsize);
-+	pte = __ptep_get_and_clear_anysz(mm, addr, ptep, pgsize);
- 	present = pte_present(pte);
- 	while (--ncontig) {
- 		ptep++;
--		tmp_pte = __ptep_get_and_clear_anysz(mm, ptep, pgsize);
-+		addr += pgsize;
-+		tmp_pte = __ptep_get_and_clear_anysz(mm, addr, ptep, pgsize);
- 		if (present) {
- 			if (pte_dirty(tmp_pte))
- 				pte = pte_mkdirty(pte);
-@@ -203,7 +204,7 @@ static void clear_flush(struct mm_struct
- 	unsigned long i, saddr = addr;
+@@ -1372,7 +1372,7 @@ static inline pmd_t pmdp_establish(struc
+ static inline pud_t pudp_establish(struct vm_area_struct *vma,
+ 		unsigned long address, pud_t *pudp, pud_t pud)
+ {
+-	page_table_check_pud_set(vma->vm_mm, pudp, pud);
++	page_table_check_pud_set(vma->vm_mm, address, pudp, pud);
+ 	if (IS_ENABLED(CONFIG_SMP)) {
+ 		return xchg(pudp, pud);
+ 	} else {
+--- a/include/linux/page_table_check.h~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/include/linux/page_table_check.h
+@@ -21,8 +21,8 @@ void __page_table_check_ptes_set(struct
+ 		unsigned int nr);
+ void __page_table_check_pmds_set(struct mm_struct *mm, pmd_t *pmdp, pmd_t pmd,
+ 		unsigned int nr);
+-void __page_table_check_puds_set(struct mm_struct *mm, pud_t *pudp, pud_t pud,
+-		unsigned int nr);
++void __page_table_check_puds_set(struct mm_struct *mm, unsigned long addr,
++		pud_t *pudp, pud_t pud, unsigned int nr);
+ void __page_table_check_pte_clear_range(struct mm_struct *mm,
+ 					unsigned long addr,
+ 					pmd_t pmd);
+@@ -86,12 +86,12 @@ static inline void page_table_check_pmds
+ }
  
- 	for (i = 0; i < ncontig; i++, addr += pgsize, ptep++)
--		__ptep_get_and_clear_anysz(mm, ptep, pgsize);
-+		__ptep_get_and_clear_anysz(mm, addr, ptep, pgsize);
+ static inline void page_table_check_puds_set(struct mm_struct *mm,
+-		pud_t *pudp, pud_t pud, unsigned int nr)
++		unsigned long addr, pud_t *pudp, pud_t pud, unsigned int nr)
+ {
+ 	if (static_branch_likely(&page_table_check_disabled))
+ 		return;
  
- 	if (mm == &init_mm)
- 		flush_tlb_kernel_range(saddr, addr);
+-	__page_table_check_puds_set(mm, pudp, pud, nr);
++	__page_table_check_puds_set(mm, addr, pudp, pud, nr);
+ }
+ 
+ static inline void page_table_check_pte_clear_range(struct mm_struct *mm,
+@@ -137,7 +137,7 @@ static inline void page_table_check_pmds
+ }
+ 
+ static inline void page_table_check_puds_set(struct mm_struct *mm,
+-		pud_t *pudp, pud_t pud, unsigned int nr)
++		unsigned long addr, pud_t *pudp, pud_t pud, unsigned int nr)
+ {
+ }
+ 
+@@ -150,6 +150,6 @@ static inline void page_table_check_pte_
+ #endif /* CONFIG_PAGE_TABLE_CHECK */
+ 
+ #define page_table_check_pmd_set(mm, pmdp, pmd)	page_table_check_pmds_set(mm, pmdp, pmd, 1)
+-#define page_table_check_pud_set(mm, pudp, pud)	page_table_check_puds_set(mm, pudp, pud, 1)
++#define page_table_check_pud_set(mm, addr, pudp, pud)	page_table_check_puds_set(mm, addr, pudp, pud, 1)
+ 
+ #endif /* __LINUX_PAGE_TABLE_CHECK_H */
+--- a/mm/page_table_check.c~mm-page_table_check-reinstate-address-parameter-in-page_table_check_pud_set
++++ a/mm/page_table_check.c
+@@ -243,8 +243,8 @@ void __page_table_check_pmds_set(struct
+ }
+ EXPORT_SYMBOL(__page_table_check_pmds_set);
+ 
+-void __page_table_check_puds_set(struct mm_struct *mm, pud_t *pudp, pud_t pud,
+-		unsigned int nr)
++void __page_table_check_puds_set(struct mm_struct *mm, unsigned long addr,
++		pud_t *pudp, pud_t pud,	unsigned int nr)
+ {
+ 	unsigned long stride = PUD_SIZE >> PAGE_SHIFT;
+ 	unsigned int i;
 _
 
-Patches currently in -mm which might be from ajd@linux.ibm.com are
+Patches currently in -mm which might be from rmclure@linux.ibm.com are
 
 
