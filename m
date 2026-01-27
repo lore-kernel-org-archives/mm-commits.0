@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C9152D3A86
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 02:57:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45B5A2DC323;
+	Tue, 27 Jan 2026 02:57:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769482662; cv=none; b=VQxmgncqsBT7iIbaOIe6d5tVbvTXCdLugS+9LNh5XmXOV9qHT7Fued39T4gSdFROUTkNWjwgnisw2IL1hsBTxuU33HMlOrEphBnonn1e+PrY6yuPsH5EUoMMu3IGL+kRDjvr8A8Z/HYAQnpjfueSx9Ck6NwLmjhZgX77gLRUl84=
+	t=1769482663; cv=none; b=mWYYbJRp1JCAyElZ0556QIE6Ilglo0O7AKDO+ZSEFsTvdoUSvPlUokKibP5kAV//7VPOLZOHhWmI5hZpR3m521TE7MjKDc0yK8u32CXe7BSeeKoVR8T4ch7PIZwW+9pKermYASOolr7KYFWUZ82bTr/A735w2nEPhPUbrczSKnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769482662; c=relaxed/simple;
-	bh=+YsnFYukajOi6TtOe9xifA15kYQ8B4ANzAzA2eY//No=;
-	h=Date:To:From:Subject:Message-Id; b=RO54t02rVsH8FXCQ9mntQtMcwViDTYE8uyimKPnFj7ONZokTE8j+/5UgaQiS4Fri9Rcd8+0qyJqN492+at2Znpt6AsOQhB0cfF+Qji3D1Jtgn2ovZo5FIWMafaCy5atLG8/pI41XI4DxZ1HOU8FQ+e4w6kWv0E+EO1a2UeX4oz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rDj00Kp1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769482663; c=relaxed/simple;
+	bh=buGxmtU85jDj4rVJNcKQzToo2s/A0kRTPdKs9Zv9AjA=;
+	h=Date:To:From:Subject:Message-Id; b=grFLcNtyCT5bv7gBgaNEuNdSxBn3myBIKXrcZWGVqte62Duq7jEER5uP4CCqnShxVGQ2bHXZmJmQ3u2zibyRKlBEjFZ14qqwHHKCtryj8a6Z7zjva3A9r/qfYckNg1fBV3k1zPJM/vloV92RmVaWJyyMwNp3lLdHJOxwsZ+PPUk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yrXuP/Tv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rDj00Kp1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C381CC116C6;
-	Tue, 27 Jan 2026 02:57:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yrXuP/Tv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B631C116C6;
+	Tue, 27 Jan 2026 02:57:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769482661;
-	bh=+YsnFYukajOi6TtOe9xifA15kYQ8B4ANzAzA2eY//No=;
+	s=korg; t=1769482663;
+	bh=buGxmtU85jDj4rVJNcKQzToo2s/A0kRTPdKs9Zv9AjA=;
 	h=Date:To:From:Subject:From;
-	b=rDj00Kp1L1xoC5qPs1gfbQus1lxcxD779HxsovOfppqV3AVlyK+9CJC6c4o4djplt
-	 Rlk6EifXOSgiXJLzOYg/FdZ43Hix9FgdP+uJnPw9EFPBDAG6R/AnxDkGASHf97mU0K
-	 xO9t+Siy5eLnC38bB4AUyBy4iwOJI3ItoXTMqMNQ=
-Date: Mon, 26 Jan 2026 18:57:41 -0800
-To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,adeep@lexina.in,akpm@linux-foundation.org
+	b=yrXuP/TvxOn9YrlgB2/vHWj9gQhaPmNISwxQ404G/Q+K2j3il0C3+Dvy98tA61kNO
+	 qvxvx8VzZhLduMebVFbHzgMEtLRjKja2DHqGFvRdJ1tnmD4C1TKUviSc0uaqmF88dL
+	 mZtHPTFnv0qF09nEAQx/BkIPEZAJMcrPsjg3kypA=
+Date: Mon, 26 Jan 2026 18:57:42 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,miklos@szeredi.hu,joannelkoong@gmail.com,bernd@bsbernd.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mailmap-add-entry-for-viacheslav-bocharov.patch removed from -mm tree
-Message-Id: <20260127025741.C381CC116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] flex_proportions-make-fprop_new_period-hardirq-safe.patch removed from -mm tree
+Message-Id: <20260127025743.1B631C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mailmap: add entry for Viacheslav Bocharov
+     Subject: flex_proportions: make fprop_new_period() hardirq safe
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entry-for-viacheslav-bocharov.patch
+     flex_proportions-make-fprop_new_period-hardirq-safe.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Viacheslav Bocharov <adeep@lexina.in>
-Subject: mailmap: add entry for Viacheslav Bocharov
-Date: Tue, 20 Jan 2026 11:21:59 +0300
+From: Jan Kara <jack@suse.cz>
+Subject: flex_proportions: make fprop_new_period() hardirq safe
+Date: Wed, 21 Jan 2026 12:27:30 +0100
 
-Map my address <adeep@lexina.in> to new personal address <v@baodeep.com>
-Old domain lexina.in will no longer be accessible due to registration
-expiration.
+Bernd has reported a lockdep splat from flexible proportions code that is
+essentially complaining about the following race:
 
-Link: https://lkml.kernel.org/r/20260120082212.364268-1-adeep@lexina.in
-Signed-off-by: Viacheslav Bocharov <adeep@lexina.in>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+<timer fires>
+run_timer_softirq - we are in softirq context
+  call_timer_fn
+    writeout_period
+      fprop_new_period
+        write_seqcount_begin(&p->sequence);
+
+        <hardirq is raised>
+        ...
+        blk_mq_end_request()
+	  blk_update_request()
+	    ext4_end_bio()
+	      folio_end_writeback()
+		__wb_writeout_add()
+		  __fprop_add_percpu_max()
+		    if (unlikely(max_frac < FPROP_FRAC_BASE)) {
+		      fprop_fraction_percpu()
+			seq = read_seqcount_begin(&p->sequence);
+			  - sees odd sequence so loops indefinitely
+
+Note that a deadlock like this is only possible if the bdi has configured
+maximum fraction of writeout throughput which is very rare in general but
+frequent for example for FUSE bdis.  To fix this problem we have to make
+sure write section of the sequence counter is irqsafe.
+
+Link: https://lkml.kernel.org/r/20260121112729.24463-2-jack@suse.cz
+Fixes: a91befde3503 ("lib/flex_proportions.c: remove local_irq_ops in fprop_new_period()")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Bernd Schubert <bernd@bsbernd.com>
+Link: https://lore.kernel.org/all/9b845a47-9aee-43dd-99bc-1a82bea00442@bsbernd.com/
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Joanne Koong <joannelkoong@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ lib/flex_proportions.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/.mailmap~mailmap-add-entry-for-viacheslav-bocharov
-+++ a/.mailmap
-@@ -850,6 +850,7 @@ Valentin Schneider <vschneid@redhat.com>
- Veera Sundaram Sankaran <quic_veeras@quicinc.com> <veeras@codeaurora.org>
- Veerabhadrarao Badiganti <quic_vbadigan@quicinc.com> <vbadigan@codeaurora.org>
- Venkateswara Naralasetty <quic_vnaralas@quicinc.com> <vnaralas@codeaurora.org>
-+Viacheslav Bocharov <v@baodeep.com> <adeep@lexina.in>
- Vikash Garodia <vikash.garodia@oss.qualcomm.com> <vgarodia@codeaurora.org>
- Vikash Garodia <vikash.garodia@oss.qualcomm.com> <quic_vgarodia@quicinc.com>
- Vincent Mailhol <mailhol@kernel.org> <mailhol.vincent@wanadoo.fr>
+--- a/lib/flex_proportions.c~flex_proportions-make-fprop_new_period-hardirq-safe
++++ a/lib/flex_proportions.c
+@@ -64,13 +64,14 @@ void fprop_global_destroy(struct fprop_g
+ bool fprop_new_period(struct fprop_global *p, int periods)
+ {
+ 	s64 events = percpu_counter_sum(&p->events);
++	unsigned long flags;
+ 
+ 	/*
+ 	 * Don't do anything if there are no events.
+ 	 */
+ 	if (events <= 1)
+ 		return false;
+-	preempt_disable_nested();
++	local_irq_save(flags);
+ 	write_seqcount_begin(&p->sequence);
+ 	if (periods < 64)
+ 		events -= events >> periods;
+@@ -78,7 +79,7 @@ bool fprop_new_period(struct fprop_globa
+ 	percpu_counter_add(&p->events, -events);
+ 	p->period += periods;
+ 	write_seqcount_end(&p->sequence);
+-	preempt_enable_nested();
++	local_irq_restore(flags);
+ 
+ 	return true;
+ }
 _
 
-Patches currently in -mm which might be from adeep@lexina.in are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
