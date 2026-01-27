@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5EC731619E
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EDEB318ED7
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486664; cv=none; b=B5C10AU1kI8epSaPysJ7x1E4PPN9zFnW8nLq6QZ2oqNayrNHonm0mEMw8rO13Ssdq1LcWxR0TQKYwWop3YV1X4Leg8j2J8qPhSl0YfPzR3KEqtduWZWB8LjZcFKGZafmQxDFt1clIjuJv1T/3XCaO8ldeW84/ke5Y+pgS2E0ZZg=
+	t=1769486666; cv=none; b=DWNaRQeefhp+mDvpwBiDbpcE1hwZu612S3aA3y82oNbA4HePORO7HRSxPW/5beaCJCeVtn8XeKLU1pZ4eMVRGStNwefhfRhOT755u2leAgCKFWfm/X6I+P5m6JlRDonmIWrnYUbClxj6songb/t0KrxCbygZQ+SqRO2/idl0NBY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486664; c=relaxed/simple;
-	bh=0aUCoWZOu7KDj75T+To4U5x6zfXzlmTKJTrBh3IVu3I=;
-	h=Date:To:From:Subject:Message-Id; b=o5QC7nnB5K7AltUkCw0Dl87XSPu8ifzprK+vvbH1/Ft7+r95fXLeWV7K8MKlulmYoW7GxyrYUlN5VkfBbgqYKgMiqY9Q8IVR6WiEwif7qYjVtGn0Rz2tWdROuQVmjNMD24Ntzn49VCtijsUp9bpKB6Pkm2swddDsDtSn7K3kQY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jAoO6cnk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486666; c=relaxed/simple;
+	bh=NwsUri7b4gK1csRkkkBwB8u/NPArhwwFEl+73Z+KOHk=;
+	h=Date:To:From:Subject:Message-Id; b=Tt6jrt0cYyM//ef07r+bDm/E4H12QebrqewZenSiEgDrL8JTUyp1TRHAFx/eWD35qfVFdVEeiKtcn7CkbHnbv3Kv9j2rCMNGY/Q1DN3x0+7FISCRu1oHwD6vYQMU/LKHxEz68UalB8lgwnQIHwDa7sl67f///ZJfWUcKKwekJ0I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RFwRbBR8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jAoO6cnk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C8D7C116D0;
-	Tue, 27 Jan 2026 04:04:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RFwRbBR8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 358B4C116C6;
+	Tue, 27 Jan 2026 04:04:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486664;
-	bh=0aUCoWZOu7KDj75T+To4U5x6zfXzlmTKJTrBh3IVu3I=;
+	s=korg; t=1769486666;
+	bh=NwsUri7b4gK1csRkkkBwB8u/NPArhwwFEl+73Z+KOHk=;
 	h=Date:To:From:Subject:From;
-	b=jAoO6cnkUUf5haNSiqV9uV71ibb2vVzSDErC8Mcg10B5wV5h3jskvC9Fa1VeDMnUh
-	 rCrwe6ZfGMRgPtuULc27kBBMBm+Y86VKEBuOP07CagvkP5+wlUgDRZVMrStVrdvC7a
-	 YS+smzUotjnGGYh2m00J6I4W4cUaTBfSz6Y044IU=
-Date: Mon, 26 Jan 2026 20:04:23 -0800
+	b=RFwRbBR8qkswqy9DgKHwba1YDYZfayWNGJCh5CWzptdsm9aDrTejXVMsX3b0Rt0Xh
+	 i3IGAJu/kv92h8XL+lJuPzR1/meQUs0rnXiPggNl090yvDysKkhwmBRpRQt7+OPFok
+	 jD/tvMFhb87qwBthaSo6WZs/m1oWD+Jk8IJp5tnI=
+Date: Mon, 26 Jan 2026 20:04:25 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,mhocko@suse.com,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,chriscli@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmap_lock-add-vma_is_attached-helper.patch removed from -mm tree
-Message-Id: <20260127040424.7C8D7C116D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch removed from -mm tree
+Message-Id: <20260127040426.358B4C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mmap_lock: add vma_is_attached() helper
+     Subject: mm/rmap: allocate anon_vma_chain objects unlocked when possible
 has been removed from the -mm tree.  Its filename was
-     mm-mmap_lock-add-vma_is_attached-helper.patch
+     mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/mmap_lock: add vma_is_attached() helper
-Date: Sun, 18 Jan 2026 14:50:43 +0000
+Subject: mm/rmap: allocate anon_vma_chain objects unlocked when possible
+Date: Sun, 18 Jan 2026 14:50:44 +0000
 
-This makes it easy to explicitly check for VMA detachment, which is useful
-for things like asserts.
+There is no reason to allocate the anon_vma_chain under the anon_vma write
+lock when cloning - we can in fact assign these to the destination VMA
+safely as we hold the exclusive mmap lock and therefore preclude anybody
+else accessing these fields.
 
-Note that we intentionally do not allow this function to be available
-should CONFIG_PER_VMA_LOCK be set - this is because vma_assert_attached()
-and vma_assert_detached() are no-ops if !CONFIG_PER_VMA_LOCK, so there is
-no correct state for vma_is_attached() to be in if this configuration
-option is not specified.
+We only need take the anon_vma write lock when we link rbtree edges from
+the anon_vma to the newly established AVCs.
 
-Therefore users elsewhere must invoke this function only after checking
-for CONFIG_PER_VMA_LOCK.
+This also allows us to eliminate the weird GFP_NOWAIT, GFP_KERNEL dance
+introduced in commit dd34739c03f2 ("mm: avoid anon_vma_chain allocation
+under anon_vma lock"), further simplifying this logic.
 
-We rework the assert functions to utilise this.
+This should reduce lock anon_vma contention, and clarifies exactly where
+the anon_vma lock is required.
 
-Link: https://lkml.kernel.org/r/0172d3bf527ca54ba27d8bce8f8476095b241ac7.1768746221.git.lorenzo.stoakes@oracle.com
+We cannot adjust __anon_vma_prepare() in the same way as this is only
+protected by VMA read lock, so we have to perform the allocation here
+under the anon_vma write lock and page_table_lock (to protect against
+racing threads), and we wish to retain the lock ordering.
+
+With this change we can simplify cleanup_partial_anon_vmas() even further
+- since we allocate AVC's without any lock taken and do not insert
+anything into the interval tree until after the allocations are tried, we
+can remove all logic pertaining to this and just free up AVC's only.
+
+Link: https://lkml.kernel.org/r/624bf1ac0bde4871fcfca2c8c8e294b6d8f7ae7b.1768746221.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
@@ -79,38 +90,150 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/rmap.c |   81 +++++++++++++++++++++++-----------------------------
+ 1 file changed, 36 insertions(+), 45 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-mmap_lock-add-vma_is_attached-helper
-+++ a/include/linux/mmap_lock.h
-@@ -251,6 +251,11 @@ static inline void vma_assert_locked(str
- 		      !__is_vma_write_locked(vma, &mm_lock_seq), vma);
+--- a/mm/rmap.c~mm-rmap-allocate-anon_vma_chain-objects-unlocked-when-possible
++++ a/mm/rmap.c
+@@ -146,14 +146,13 @@ static void anon_vma_chain_free(struct a
+ 	kmem_cache_free(anon_vma_chain_cachep, anon_vma_chain);
  }
  
-+static inline bool vma_is_attached(struct vm_area_struct *vma)
-+{
-+	return refcount_read(&vma->vm_refcnt);
-+}
+-static void anon_vma_chain_link(struct vm_area_struct *vma,
+-				struct anon_vma_chain *avc,
+-				struct anon_vma *anon_vma)
++static void anon_vma_chain_assign(struct vm_area_struct *vma,
++				  struct anon_vma_chain *avc,
++				  struct anon_vma *anon_vma)
+ {
+ 	avc->vma = vma;
+ 	avc->anon_vma = anon_vma;
+ 	list_add(&avc->same_vma, &vma->anon_vma_chain);
+-	anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
+ }
+ 
+ /**
+@@ -210,7 +209,8 @@ int __anon_vma_prepare(struct vm_area_st
+ 	spin_lock(&mm->page_table_lock);
+ 	if (likely(!vma->anon_vma)) {
+ 		vma->anon_vma = anon_vma;
+-		anon_vma_chain_link(vma, avc, anon_vma);
++		anon_vma_chain_assign(vma, avc, anon_vma);
++		anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
+ 		anon_vma->num_active_vmas++;
+ 		allocated = NULL;
+ 		avc = NULL;
+@@ -291,21 +291,33 @@ int anon_vma_clone(struct vm_area_struct
+ 
+ 	check_anon_vma_clone(dst, src);
+ 
+-	/* All anon_vma's share the same root. */
++	/*
++	 * Allocate AVCs. We don't need an anon_vma lock for this as we
++	 * are not updating the anon_vma rbtree nor are we changing
++	 * anon_vma statistics.
++	 *
++	 * Either src, dst have the same mm for which we hold an exclusive mmap
++	 * write lock, or we are forking and we hold it on src->vm_mm and dst is
++	 * not yet accessible to other threads so there's no possibliity of the
++	 * unlinked AVC's being observed yet.
++	 */
++	list_for_each_entry(pavc, &src->anon_vma_chain, same_vma) {
++		avc = anon_vma_chain_alloc(GFP_KERNEL);
++		if (!avc)
++			goto enomem_failure;
 +
- /*
-  * WARNING: to avoid racing with vma_mark_attached()/vma_mark_detached(), these
-  * assertions should be made either under mmap_write_lock or when the object
-@@ -258,12 +263,12 @@ static inline void vma_assert_locked(str
++		anon_vma_chain_assign(dst, avc, pavc->anon_vma);
++	}
++
++	/*
++	 * Now link the anon_vma's back to the newly inserted AVCs.
++	 * Note that all anon_vma's share the same root.
++	 */
+ 	anon_vma_lock_write(src->anon_vma);
+-	list_for_each_entry_reverse(pavc, &src->anon_vma_chain, same_vma) {
+-		struct anon_vma *anon_vma;
++	list_for_each_entry_reverse(avc, &dst->anon_vma_chain, same_vma) {
++		struct anon_vma *anon_vma = avc->anon_vma;
+ 
+-		avc = anon_vma_chain_alloc(GFP_NOWAIT);
+-		if (unlikely(!avc)) {
+-			anon_vma_unlock_write(src->anon_vma);
+-			avc = anon_vma_chain_alloc(GFP_KERNEL);
+-			if (!avc)
+-				goto enomem_failure;
+-			anon_vma_lock_write(src->anon_vma);
+-		}
+-		anon_vma = pavc->anon_vma;
+-		anon_vma_chain_link(dst, avc, anon_vma);
++		anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
+ 
+ 		/*
+ 		 * Reuse existing anon_vma if it has no vma and only one
+@@ -321,7 +333,6 @@ int anon_vma_clone(struct vm_area_struct
+ 	}
+ 	if (dst->anon_vma)
+ 		dst->anon_vma->num_active_vmas++;
+-
+ 	anon_vma_unlock_write(src->anon_vma);
+ 	return 0;
+ 
+@@ -391,8 +402,10 @@ int anon_vma_fork(struct vm_area_struct
+ 	get_anon_vma(anon_vma->root);
+ 	/* Mark this anon_vma as the one where our new (COWed) pages go. */
+ 	vma->anon_vma = anon_vma;
++	anon_vma_chain_assign(vma, avc, anon_vma);
++	/* Now let rmap see it. */
+ 	anon_vma_lock_write(anon_vma);
+-	anon_vma_chain_link(vma, avc, anon_vma);
++	anon_vma_interval_tree_insert(avc, &anon_vma->rb_root);
+ 	anon_vma->parent->num_children++;
+ 	anon_vma_unlock_write(anon_vma);
+ 
+@@ -403,40 +416,18 @@ int anon_vma_fork(struct vm_area_struct
+  * In the unfortunate case of anon_vma_clone() failing to allocate memory we
+  * have to clean things up.
+  *
+- * On clone we hold the exclusive mmap write lock, so we can't race
+- * unlink_anon_vmas(). Since we're cloning, we know we can't have empty
+- * anon_vma's, since existing anon_vma's are what we're cloning from.
+- *
+- * So this function needs only traverse the anon_vma_chain and free each
+- * allocated anon_vma_chain.
++ * Since we allocate anon_vma_chain's before we insert them into the interval
++ * trees, we simply have to free up the AVC's and remove the entries from the
++ * VMA's anon_vma_chain.
   */
- static inline void vma_assert_attached(struct vm_area_struct *vma)
+ static void cleanup_partial_anon_vmas(struct vm_area_struct *vma)
  {
--	WARN_ON_ONCE(!refcount_read(&vma->vm_refcnt));
-+	WARN_ON_ONCE(!vma_is_attached(vma));
+ 	struct anon_vma_chain *avc, *next;
+-	struct anon_vma *root = NULL;
+-
+-	/*
+-	 * We exclude everybody else from being able to modify anon_vma's
+-	 * underneath us.
+-	 */
+-	mmap_assert_locked(vma->vm_mm);
+ 
+ 	list_for_each_entry_safe(avc, next, &vma->anon_vma_chain, same_vma) {
+-		struct anon_vma *anon_vma = avc->anon_vma;
+-
+-		/* All anon_vma's share the same root. */
+-		if (!root) {
+-			root = anon_vma->root;
+-			anon_vma_lock_write(root);
+-		}
+-
+-		anon_vma_interval_tree_remove(avc, &anon_vma->rb_root);
+ 		list_del(&avc->same_vma);
+ 		anon_vma_chain_free(avc);
+ 	}
+-
+-	if (root)
+-		anon_vma_unlock_write(root);
  }
  
- static inline void vma_assert_detached(struct vm_area_struct *vma)
- {
--	WARN_ON_ONCE(refcount_read(&vma->vm_refcnt));
-+	WARN_ON_ONCE(vma_is_attached(vma));
- }
- 
- static inline void vma_mark_attached(struct vm_area_struct *vma)
+ /**
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
