@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35A842D97A4;
-	Tue, 27 Jan 2026 02:57:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC422DC359
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 02:57:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769482671; cv=none; b=jFEFNcKOAsIVK8+q8tQ6+pGoOMI5uKW3PxMtm3P4dhkBcT6Wo8SGutr+/UqtmWwok4gX6kkzMj7VBmxn7X5k2fIgLLWkBpIWoMRU35M7irZR+ZtIwYIwRvqUJA8QfhUpJyMZ31adljBvUQmi+mWuCwIIJ8iHeMVvlXXsIr/+yf8=
+	t=1769482672; cv=none; b=d4jjgUKgTWPtF3mpnVxXQAIWdno6NKSdQTqAJ9sM7H4iH1fhX5yJQqyUByzH3eLxEwk2SL7iybx09ogYUqrOU6Fw/yvaLqPlN/GybLa/lBpiBZk1yMmBkXOR6n3oWlrjIkVN8xRffISRtm/17adWvOoY9KyCqOVWchwpKGhoNLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769482671; c=relaxed/simple;
-	bh=xxVVmvV15zSYzwVYT6lrc56XfX4XhWSQtjw5RcY2PVQ=;
-	h=Date:To:From:Subject:Message-Id; b=NVkRGhs+d9Nn1dFHk11HZPXifUKo5WPpVWYG+xv/DKQHoxQfL/dq4nnzOett31Ew1OIHBfZvLU4KbAuc8gf7OMxAWd8TBMLSQ4m+pf0V+GEr9QAOuvTZLQ8NuRvh1MNqpgNUTUkQFF3z1YRGKMf26kZnEfpI/M4vWeidMmgiVvo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jgXBvqEe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769482672; c=relaxed/simple;
+	bh=tAqLRk9Ur7XKmepebkA++KUgvbV71gYMLt/1aPQXoa4=;
+	h=Date:To:From:Subject:Message-Id; b=ClEq4xoj9d/RvFYmdNfGyKz636pA5q3P2u8ZENk+cx2c1EPvITsokGAn0oHq8P8uAEUbuiTbBnpSzlHov7Cb1vu22CsmGzFNsSzcpD/BjFg+doNt4MogsepnvLuT8t6IUcXMUYjL1ZtkfoJ8OrhQCXByRD4TIHTgfucOxG4O8dA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SK4TsK+S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jgXBvqEe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C27AFC2BC87;
-	Tue, 27 Jan 2026 02:57:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SK4TsK+S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2540EC2BCAF;
+	Tue, 27 Jan 2026 02:57:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769482670;
-	bh=xxVVmvV15zSYzwVYT6lrc56XfX4XhWSQtjw5RcY2PVQ=;
+	s=korg; t=1769482672;
+	bh=tAqLRk9Ur7XKmepebkA++KUgvbV71gYMLt/1aPQXoa4=;
 	h=Date:To:From:Subject:From;
-	b=jgXBvqEenzS1YAJR6vQ+8OgMBRnpggGaw8CnrMntcD1KvRpkpqzM9/PPSqcRjdO+y
-	 5Quj5+3oHXgZDt2BWots+EQmv8MrKJ5TDSzIFlXzQG+k7H5VR7tPTAOGuueKCnVtQP
-	 k4DEWPKPvRorj8IWcgHH88mm2m7E964uJR00zmEo=
-Date: Mon, 26 Jan 2026 18:57:50 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kees@kernel.org,gregkh@linuxfoundation.org,glider@google.com,ernesto.martinezgarcia@tugraz.at,elver@google.com,dvyukov@google.com,pimyn@google.com,akpm@linux-foundation.org
+	b=SK4TsK+SSCdilJBrRU7u6var7MjlrTujdddO+64Ge/wQm3jsNVWnfnDu34Uid9GXv
+	 AQjBxddCI2TEzej5VYNVwoOT5rTsR58zfRhl6pmUkRlQ+Bv6k/8H8iytOFAmOH38LL
+	 hln1uuiZo3U0a036lJhS/C7gSoZvmsKsRS1ZxUuI=
+Date: Mon, 26 Jan 2026 18:57:51 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernrl.org,rppt@kernel.org,rostedt@goodmis.org,richard.weiyang@gmail.com,paulmck@kernel.org,david@kernel.org,bigeasy@linutronix.de,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kfence-randomize-the-freelist-on-initialization.patch removed from -mm tree
-Message-Id: <20260127025750.C27AFC2BC87@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mm_init-dont-cond_resched-in-deferred_init_memmap_chunk-if-called-from-deferred_grow_zone.patch removed from -mm tree
+Message-Id: <20260127025752.2540EC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,95 +35,129 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/kfence: randomize the freelist on initialization
+     Subject: mm/mm_init: don't cond_resched() in deferred_init_memmap_chunk() if called from deferred_grow_zone()
 has been removed from the -mm tree.  Its filename was
-     mm-kfence-randomize-the-freelist-on-initialization.patch
+     mm-mm_init-dont-cond_resched-in-deferred_init_memmap_chunk-if-called-from-deferred_grow_zone.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pimyn Girgis <pimyn@google.com>
-Subject: mm/kfence: randomize the freelist on initialization
-Date: Tue, 20 Jan 2026 17:15:10 +0100
+From: Waiman Long <longman@redhat.com>
+Subject: mm/mm_init: don't cond_resched() in deferred_init_memmap_chunk() if called from deferred_grow_zone()
+Date: Thu, 22 Jan 2026 13:43:43 -0500
 
-Randomize the KFENCE freelist during pool initialization to make
-allocation patterns less predictable.  This is achieved by shuffling the
-order in which metadata objects are added to the freelist using
-get_random_u32_below().
+Commit 3acb913c9d5b ("mm/mm_init: use deferred_init_memmap_chunk() in
+deferred_grow_zone()") made deferred_grow_zone() call
+deferred_init_memmap_chunk() within a pgdat_resize_lock() critical section
+with irqs disabled.  It did check for irqs_disabled() in
+deferred_init_memmap_chunk() to avoid calling cond_resched().  For a
+PREEMPT_RT kernel build, however, spin_lock_irqsave() does not disable
+interrupt but rcu_read_lock() is called.  This leads to the following bug
+report.
 
-Additionally, ensure the error path correctly calculates the address range
-to be reset if initialization fails, as the address increment logic has
-been moved to a separate loop.
+  BUG: sleeping function called from invalid context at mm/mm_init.c:2091
+  in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 1, name: swapper/0
+  preempt_count: 0, expected: 0
+  RCU nest depth: 1, expected: 0
+  3 locks held by swapper/0/1:
+   #0: ffff80008471b7a0 (sched_domains_mutex){+.+.}-{4:4}, at: sched_domains_mutex_lock+0x28/0x40
+   #1: ffff003bdfffef48 (&pgdat->node_size_lock){+.+.}-{3:3}, at: deferred_grow_zone+0x140/0x278
+   #2: ffff800084acf600 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1b4/0x408
+  CPU: 0 UID: 0 PID: 1 Comm: swapper/0 Tainted: G        W           6.19.0-rc6-test #1 PREEMPT_{RT,(full)
+}
+  Tainted: [W]=WARN
+  Call trace:
+   show_stack+0x20/0x38 (C)
+   dump_stack_lvl+0xdc/0xf8
+   dump_stack+0x1c/0x28
+   __might_resched+0x384/0x530
+   deferred_init_memmap_chunk+0x560/0x688
+   deferred_grow_zone+0x190/0x278
+   _deferred_grow_zone+0x18/0x30
+   get_page_from_freelist+0x780/0xf78
+   __alloc_frozen_pages_noprof+0x1dc/0x348
+   alloc_slab_page+0x30/0x110
+   allocate_slab+0x98/0x2a0
+   new_slab+0x4c/0x80
+   ___slab_alloc+0x5a4/0x770
+   __slab_alloc.constprop.0+0x88/0x1e0
+   __kmalloc_node_noprof+0x2c0/0x598
+   __sdt_alloc+0x3b8/0x728
+   build_sched_domains+0xe0/0x1260
+   sched_init_domains+0x14c/0x1c8
+   sched_init_smp+0x9c/0x1d0
+   kernel_init_freeable+0x218/0x358
+   kernel_init+0x28/0x208
+   ret_from_fork+0x10/0x20
 
-Link: https://lkml.kernel.org/r/20260120161510.3289089-1-pimyn@google.com
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Signed-off-by: Pimyn Girgis <pimyn@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Ernesto Martnez Garca <ernesto.martinezgarcia@tugraz.at>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: <stable@vger.kernel.org>
+Fix it adding a new argument to deferred_init_memmap_chunk() to explicitly
+tell it if cond_resched() is allowed or not instead of relying on some
+current state information which may vary depending on the exact kernel
+configuration options that are enabled.
+
+Link: https://lkml.kernel.org/r/20260122184343.546627-1-longman@redhat.com
+Fixes: 3acb913c9d5b ("mm/mm_init: use deferred_init_memmap_chunk() in deferred_grow_zone()")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Suggested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: <stable@vger.kernrl.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ mm/mm_init.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-randomize-the-freelist-on-initialization
-+++ a/mm/kfence/core.c
-@@ -596,7 +596,7 @@ static void rcu_guarded_free(struct rcu_
- static unsigned long kfence_init_pool(void)
+--- a/mm/mm_init.c~mm-mm_init-dont-cond_resched-in-deferred_init_memmap_chunk-if-called-from-deferred_grow_zone
++++ a/mm/mm_init.c
+@@ -2056,7 +2056,7 @@ static unsigned long __init deferred_ini
+  */
+ static unsigned long __init
+ deferred_init_memmap_chunk(unsigned long start_pfn, unsigned long end_pfn,
+-			   struct zone *zone)
++			   struct zone *zone, bool can_resched)
  {
- 	unsigned long addr, start_pfn;
--	int i;
-+	int i, rand;
+ 	int nid = zone_to_nid(zone);
+ 	unsigned long nr_pages = 0;
+@@ -2082,10 +2082,10 @@ deferred_init_memmap_chunk(unsigned long
  
- 	if (!arch_kfence_init_pool())
- 		return (unsigned long)__kfence_pool;
-@@ -647,13 +647,27 @@ static unsigned long kfence_init_pool(vo
- 		INIT_LIST_HEAD(&meta->list);
- 		raw_spin_lock_init(&meta->lock);
- 		meta->state = KFENCE_OBJECT_UNUSED;
--		meta->addr = addr; /* Initialize for validation in metadata_to_pageaddr(). */
--		list_add_tail(&meta->list, &kfence_freelist);
-+		/* Use addr to randomize the freelist. */
-+		meta->addr = i;
+ 			spfn = chunk_end;
  
- 		/* Protect the right redzone. */
--		if (unlikely(!kfence_protect(addr + PAGE_SIZE)))
-+		if (unlikely(!kfence_protect(addr + 2 * i * PAGE_SIZE + PAGE_SIZE)))
- 			goto reset_slab;
-+	}
-+
-+	for (i = CONFIG_KFENCE_NUM_OBJECTS; i > 0; i--) {
-+		rand = get_random_u32_below(i);
-+		swap(kfence_metadata_init[i - 1].addr, kfence_metadata_init[rand].addr);
-+	}
- 
-+	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
-+		struct kfence_metadata *meta_1 = &kfence_metadata_init[i];
-+		struct kfence_metadata *meta_2 = &kfence_metadata_init[meta_1->addr];
-+
-+		list_add_tail(&meta_2->list, &kfence_freelist);
-+	}
-+	for (i = 0; i < CONFIG_KFENCE_NUM_OBJECTS; i++) {
-+		kfence_metadata_init[i].addr = addr;
- 		addr += 2 * PAGE_SIZE;
+-			if (irqs_disabled())
+-				touch_nmi_watchdog();
+-			else
++			if (can_resched)
+ 				cond_resched();
++			else
++				touch_nmi_watchdog();
+ 		}
  	}
  
-@@ -666,6 +680,7 @@ static unsigned long kfence_init_pool(vo
- 	return 0;
+@@ -2098,7 +2098,7 @@ deferred_init_memmap_job(unsigned long s
+ {
+ 	struct zone *zone = arg;
  
- reset_slab:
-+	addr += 2 * i * PAGE_SIZE;
- 	for (i = 0; i < KFENCE_POOL_SIZE / PAGE_SIZE; i++) {
- 		struct page *page;
+-	deferred_init_memmap_chunk(start_pfn, end_pfn, zone);
++	deferred_init_memmap_chunk(start_pfn, end_pfn, zone, true);
+ }
  
+ static unsigned int __init
+@@ -2213,7 +2213,7 @@ bool __init deferred_grow_zone(struct zo
+ 	for (spfn = first_deferred_pfn, epfn = SECTION_ALIGN_UP(spfn + 1);
+ 	     nr_pages < nr_pages_needed && spfn < zone_end_pfn(zone);
+ 	     spfn = epfn, epfn += PAGES_PER_SECTION) {
+-		nr_pages += deferred_init_memmap_chunk(spfn, epfn, zone);
++		nr_pages += deferred_init_memmap_chunk(spfn, epfn, zone, false);
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from pimyn@google.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
 
