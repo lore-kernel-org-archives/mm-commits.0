@@ -1,215 +1,172 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23797283FFB
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 21:37:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B99D26ED25
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 23:31:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769549867; cv=none; b=L8d5Y7nT+MBGyiVMmYHIaAQcBxwam4MFVybIU/dtgWid+m7jAtMZsH4wTsJzTFZHf0Js8LgsUTTtpXrTm8Ua3hnP61p7KXaxneqnOtYWNIEUCqHrEkK5F232X7gdfLV9baTpetgyQI3XO0d6nOkDfn27J/9OzYMlA6LyDPl6ZlM=
+	t=1769556696; cv=none; b=pGBTDA63uwgWCcTeW+5wd28/dI9wdNGnVuoujDcuRKrrV9lWsWsV6mv9ZBadTWwdCYO/V6Ff/PafkQK0SgMdit6vUaWFgSYMGFtRhboyC/HqobnEXu3msNnVp+Zf8TO4JDM30jOO8o8R1YUMW1ZrEm4L7LiZTrQ0ZUAB9Qxw/+w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769549867; c=relaxed/simple;
-	bh=k24rl2pwV9S8wdx5Q4EogcGa3+wRhwsfuFNfVIXD2zU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=HFPpvCQJPmTt5BbsXvccXgtgRijBi3mf7xzPAYZEacSyaIhHlwnC5A4Q3vAiE+dl9aF/7/6ED48DJf4b5m6sKD1lsaZ+caZ/6S8yG24T+tY2vokjiHJmmSF72LPjbcu0qdsmF69sEjQXhK7ei6cNdec62tN/3ZGM19/b2U8qu/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=MDa8iGtn; arc=none smtp.client-ip=209.85.208.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1769556696; c=relaxed/simple;
+	bh=isRBxgB25WZh5bZXDVUhxcO9TA2rl2I05rSvtVBvGgg=;
+	h=Date:To:From:Subject:Message-Id; b=imNiuvjtgSSqoGfDLDdCVeefIXoDjeb/zIyVpi3L8kX7WSIiSl1fRzSixNkSuK3u1XUHZf1s+P3IIOfpl+OS3fpl2FVbqgE0bPCOCgtDrv/EMgoO7eC/K1NAUemRx16L9rttppypvxk4XORf/6hj9Q5UjVkQaWrl615Vac0TlxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krMEScug; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="MDa8iGtn"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-64b791b5584so9159230a12.0
-        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 13:37:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1769549862; x=1770154662; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RxlQ2VzYf/wW3fAaLmPPug/KF1BdVRcmQSMFTpedgt8=;
-        b=MDa8iGtn+BFB5NWhX5JY9J4tHEGcIcWD8pjpYgikefJ7lFYRFsWzvxCDwEUfHKL9UB
-         kGf2qqitQ6hYcQ88RU/qNClUT5fF5/5P2YwnDDbFluqEqINecC3GnwxST5u5q2UJ0Q7z
-         wl9huOTUJLTaulEWuj7SdgKR3K6KEQbg3j8Bk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769549862; x=1770154662;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=RxlQ2VzYf/wW3fAaLmPPug/KF1BdVRcmQSMFTpedgt8=;
-        b=vOF984LjgvbRFoHdkYzMiRPDMPibne7Ry9HIF+1LIuwhTgK7PVY/KuG7j/mn0+O7JV
-         INydl3vM2YUB99nY+GW37Roja3eDwYI8k+Lm9bPPolAWtQ0U0Fu0VoBitZmGqOR64Rqu
-         mvpnEHC3mh1snlxRh0AjRIrSrCPt/QefzgplViNdNQ2urBoJFcCV8fZ3Gm6MMBdHIEEn
-         dkA/IrodVYQT++b6GXA7xJ7AwWzI1YPDKK3cVdyG5DrHhKdue1P+dIxo4o2FrU2tzvPh
-         RE6P/isSTE19VXTbwAqiwcbWTwaGqFdOrwIXI1ieiITerSJxO1M8zhkbN7obmVfQCftq
-         BJIw==
-X-Forwarded-Encrypted: i=1; AJvYcCUl5fsabasdCnTJ4EHLiWD+9FXRUcKNWBQcolRrBncGXXnAsO15/O8SWzLx4HNZMCO44YJkLOduIv9E@vger.kernel.org
-X-Gm-Message-State: AOJu0YzzBJkdZRcWcIaRyumthiZFZcoYnxVxrlfe/nJ5qH8rjIB/j6K0
-	JDWAVHCJeT8+2D8TExfOqnWhiEI2P7/DT2sbM4C2pfzVZg0jxCEWpy0FJYqXqkEcCLk5xa0cKov
-	RhnZaEQT7
-X-Gm-Gg: AZuq6aIhQsI8ygGSUV6CYluFg0QspPdfuc0zwPCa/5oLB/qIzyq6mvh/kZ8qS5aG5pW
-	EFwRfTTPK/EjcbAcpbLC9kv0oTjNX757MwlSHhOrDf32PprNUcYhNMk6/MOIFos2aUHz3JfA3dM
-	VaLEIMlgAzcD6Hsa4VD7McN1ysVm2kToOD58mvMPZzOPZ/W0CEHkrwvLmYQcsvuf+wWoWB2D/Av
-	1ux7/CwiH2i+ihWvr19ZUjl0lxoxEJhm4ZuPU9ms1O5qD2ZH1EfcIDCSHL+p46+BxYJeAdoyXSv
-	/Hd220bUYrAr9nD4K1Em2UR1DX53P3Oy+XnE1Sn46H15Mof35g3i93KYwwunhMS6Z75h6Pg9m8W
-	NzjsxO0b9HZd1Ke8UFmD7IOUY6intae9EmkFQ6WxdnL+akcq6QFs+6TsL4GOSOsqSzAbzDwCCyo
-	I2DpGhc2kYsCm6pDOJqH6rzUssbkJ00WI8PJ0Jh5se27jaWw+GLp+agI1brt5m
-X-Received: by 2002:a05:6402:4504:b0:640:a9b1:870b with SMTP id 4fb4d7f45d1cf-658a6053beemr1939459a12.14.1769549862133;
-        Tue, 27 Jan 2026 13:37:42 -0800 (PST)
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com. [209.85.128.41])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-658b4691dbfsm431207a12.20.2026.01.27.13.37.40
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 27 Jan 2026 13:37:40 -0800 (PST)
-Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-47ee07570deso47523625e9.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 13:37:40 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCWMs1aqVigqLBdF3FsawPhVbCFDr6+LfKLclnyVzQKNeDHNJ5B61zvMuICJG1pR9TSfG12lnTsUDJOD@vger.kernel.org
-X-Received: by 2002:a05:600c:4fd4:b0:47e:e807:a05a with SMTP id
- 5b1f17b1804b1-48069c98d9fmr34891525e9.33.1769549859984; Tue, 27 Jan 2026
- 13:37:39 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krMEScug"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99483C116C6;
+	Tue, 27 Jan 2026 23:31:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1769556695;
+	bh=isRBxgB25WZh5bZXDVUhxcO9TA2rl2I05rSvtVBvGgg=;
+	h=Date:To:From:Subject:From;
+	b=krMEScug7B/va/zKUeXNX6GCshj+R7zpxNoHC5M4QR87EjkskN23F9ivUCsa5F3s7
+	 wBc+9wLilknvH5kwzqA0NCl1+o07M0CQCr+sP7LRSQ6QGR6SPI6LIcwEoVXkRCSDSx
+	 BIPZEQwNNHpJ/zcsVZxmVz2zLhB/QUF+NH9Eh88c=
+Date: Tue, 27 Jan 2026 15:31:35 -0800
+To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,ubizjak@gmail.com,sdf@fomichev.me,peterz@infradead.org,paulmck@kernel.org,ojeda@kernel.org,nilay@linux.ibm.com,nathan@kernel.org,namjain@linux.microsoft.com,martin.lau@linux.dev,kpsingh@kernel.org,kees@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,jason@zx2c4.com,hpa@zytor.com,hca@linux.ibm.com,haoluo@google.com,elver@google.com,eddyz87@gmail.com,daniel@iogearbox.net,bvanassche@acm.org,ast@kernel.org,andrii.nakryiko@gmail.com,alan.maguire@oracle.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format.patch added to mm-nonmm-unstable branch
+Message-Id: <20260127233135.99483C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <CAD=FV=WVtFAPZ3=6pPnOV=vbMhFwfH9LaZ5oNgAKtcj5hA0q2Q@mail.gmail.com>
- <20260127021711.1180952-1-realwujing@gmail.com>
-In-Reply-To: <20260127021711.1180952-1-realwujing@gmail.com>
-From: Doug Anderson <dianders@chromium.org>
-Date: Tue, 27 Jan 2026 13:37:28 -0800
-X-Gmail-Original-Message-ID: <CAD=FV=U6sM71UuPbYZRWV87=p1ZO8-gpv3yzK8eMEv3dRNVgdA@mail.gmail.com>
-X-Gm-Features: AZwV_QiU8gpalCQDsUTyyF4ZWe7CLPzTE1Lpz8wLHzb0knYx6-2dFCpdGvU65rM
-Message-ID: <CAD=FV=U6sM71UuPbYZRWV87=p1ZO8-gpv3yzK8eMEv3dRNVgdA@mail.gmail.com>
-Subject: Re: [PATCH v4] watchdog/hardlockup: Fix UAF in perf event cleanup due
- to migration race
-To: Qiliang Yuan <realwujing@gmail.com>
-Cc: akpm@linux-foundation.org, lihuafei1@huawei.com, 
-	linux-kernel@vger.kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, 
-	song@kernel.org, stable@vger.kernel.org, sunshx@chinatelecom.cn, 
-	thorsten.blum@linux.dev, wangjinchao600@gmail.com, yangyicong@hisilicon.com, 
-	yuanql9@chinatelecom.cn, zhangjn11@chinatelecom.cn
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Jan 26, 2026 at 6:17=E2=80=AFPM Qiliang Yuan <realwujing@gmail.com>=
- wrote:
->
-> Hi Doug,
->
-> Thanks for your insightful follow-up! It's great to have the openEuler vs=
-. Mainline
-> timing differences clarified=E2=80=94it definitely explains why we hit th=
-is so reliably
-> in our downstream environment.
->
-> On Mon, Jan 26, 2026 at 5:14 PM Doug Anderson <dianders@chromium.org> wro=
-te:
-> > OK, so I think the answer is: you haven't actually seen the problem
-> > (or the WARN_ON) on a mainline kernel, only on the openEuler 4.19
-> > kernel...
-> >
-> > ...actually, I looked and now think the problem doesn't exist on a
-> > mainline kernel. Specificaly, when we run lockup_detector_retry_init()
-> > we call schedule_work() to do the work. That schedules work on the
-> > "system_percpu_wq". While the work ends up being queued with
-> > "WORK_CPU_UNBOUND", I believe that we still end up running on a thread
-> > that's bound to just one CPU in the end. This is presumably why
-> > nobody has reported that "WARN_ON(!is_percpu_thread())" actually
-> > hitting on mainline.
->
-> You are right that in the latest mainline, schedule_work() has been updat=
-ed
-> to use 'system_percpu_wq'. However, in many LTS kernels (including 4.19),
-> schedule_work() still submits to 'system_wq', which lacks the per-cpu
-> guarantee.
-
-Really, it matters what schedule_work() does on anyone who happens to
-have commit 930d8f8dbab9 ("watchdog/perf: adapt the watchdog_perf
-interface for async model")... While I can sympathize with supporting
-older kernels and doing backports, we have to focus on supporting the
-mainline kernel here. If we're claiming that we're fixing a bug (and
-even your newest CL says it's fixing a UAF and has a Fixes tag) then
-the bug has to actually be there.
 
 
-> More importantly, even on 'system_percpu_wq', the worker threads do not
-> carry the PF_PERCPU_THREAD flag. is_percpu_thread() specifically checks
-> (current->flags & PF_PERCPU_THREAD), which is reserved for kthreads
-> specifically pinned via kthread_create_on_cpu().
+The patch titled
+     Subject: kcsan, compiler_types: avoid duplicate type issues in BPF Type Format
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format.patch
 
-I think we need to keep the focus on mainline or at least the kernel
-as of commit 930d8f8dbab9. The grep for "PF_PERCPU_THREAD" has no hits
-in either. In both cases, it is:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format.patch
 
-return (current->flags & PF_NO_SETAFFINITY) &&
-    (current->nr_cpus_allowed  =3D=3D 1);
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-> Therefore, the
-> WARN_ON(!is_percpu_thread()) in hardlockup_detector_event_create() is
-> still violated in the retry path even on mainline.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-To ask directly: have you seen this WARN_ON in mainline, or is this
-all speculative?
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-I'm going to assert that the WARN_ON is _not_ seen on mainline and
-wasn't there as of commit 930d8f8dbab9. Specifically, the same set of
-patches that added the "retry" for the hardlockup detector had the
-WARN_ON(). It feels highly unlikely the WARN_ON was firing at that
-point in time. You can see the whole series of patches at:
+------------------------------------------------------
+From: Alan Maguire <alan.maguire@oracle.com>
+Subject: kcsan, compiler_types: avoid duplicate type issues in BPF Type Format
+Date: Fri, 16 Jan 2026 09:17:30 +0000
 
-https://lore.kernel.org/linux-arm-kernel/20220903093415.15850-1-lecopzer.ch=
-en@mediatek.com/
+Enabling KCSAN is causing a large number of duplicate types in BTF for
+core kernel structs like task_struct [1].  This is due to the definition
+in include/linux/compiler_types.h
 
-...yes, I ended up rebasing them and included them when I landed the
-buddy lockup detector where they landed, but they should have been
-equivalent to Lecopzer's patches.
+`#ifdef __SANITIZE_THREAD__
+...
+`#define __data_racy volatile
+..
+`#else
+...
+`#define __data_racy
+...
+`#endif
 
+Because some objects in the kernel are compiled without KCSAN flags
+(KCSAN_SANITIZE) we sometimes get the empty __data_racy annotation for
+objects; as a result we get multiple conflicting representations of the
+associated structs in DWARF, and these lead to multiple instances of core
+kernel types in BTF since they cannot be deduplicated due to the
+additional modifier in some instances.
 
-> The UAF risk stems from the fact that preemption is enabled during the
-> probe. If the worker thread (even if on a per-cpu wq) is preempted or
-> if the logic assumes the task cannot migrate (which is_percpu_thread
-> usually guarantees), we have a logical gap. By making the probe path
-> stateless and using cpu_hotplug_disable(), we eliminate this dependency
-> entirely.
->
-> > If that's the case, we'd definitely want to at least change the
-> > description and presumably _remove_ the Fixes tag? I actually still
-> > think the code looks nicer after your CL and (maybe?) we could even
-> > remove the whole schedule_work() for running this code? Maybe it was
-> > only added to deal with this exact problem? ...but the CL description
-> > would definitely need to be updated.
->
-> The schedule_work() in lockup_detector_retry_init() (added by 930d8f8dbab=
-9)
-> is necessary for platforms where the PMU or other dependencies aren't rea=
-dy
-> during early init.
->
-> I agree that the commit description should be updated to clarify that
-> while the issue was caught in a downstream kernel with shifted init timin=
-gs,
-> it identifies a latent race condition in the mainline retry path.
->
-> Regarding the 'Fixes' tag, since 930d8f8dbab9 introduced the asynchronous
-> retry path which calls the probe logic from a non-percpu-thread context,
-> it still seems like the appropriate target for the "root cause" of the
-> vulnerability.
->
-> I'll refactor the commit message in V5 to better reflect this context
-> and remove the emphasis on ToT being "broken" out-of-the-box (since early
-> init is indeed safe there).
->
-> How does that sound to you?
+Moving the __data_racy definition under CONFIG_KCSAN avoids this problem,
+since the volatile modifier will be present for both KCSAN and
+KCSAN_SANITIZE objects in a CONFIG_KCSAN=y kernel.
 
-I'm still not convinced that there was ever a UAF in mainline nor that
-this actually "Fixes" anything in mainline. I do agree that the code
-is better by not having it write the per-cpu variable at probe time,
-but unless you can say that you've actually tested _on mainline_ and
-demonstrated that the WARN_ON() is truly hitting _on mainline_ by
-providing a printout of it happening _on mainline_ or somehow shown
-the UAF actually happening _on mainline_ then we simply can't claim
-that this is a Fix. Although I supposed I'd also be OK with doing any
-of the above on any pure upstream kernel after commit 930d8f8dbab9, as
-well.
+Link: https://lkml.kernel.org/r/20260116091730.324322-1-alan.maguire@oracle.com
+Fixes: 31f605a308e6 ("kcsan, compiler_types: Introduce __data_racy type qualifier")
+Signed-off-by: Alan Maguire <alan.maguire@oracle.com>
+Reported-by: Nilay Shroff <nilay@linux.ibm.com>
+Tested-by: Nilay Shroff <nilay@linux.ibm.com>
+Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Acked-by: Yonghong Song <yonghong.song@linux.dev>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrii Nakryiko <andrii.nakryiko@gmail.com>
+Cc: Bart van Assche <bvanassche@acm.org>
+Cc: Daniel Borkman <daniel@iogearbox.net>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jason A. Donenfeld <jason@zx2c4.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Naman Jain <namjain@linux.microsoft.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Uros Bizjak <ubizjak@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
--Doug
+ include/linux/compiler_types.h |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
+
+--- a/include/linux/compiler_types.h~kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format
++++ a/include/linux/compiler_types.h
+@@ -303,6 +303,22 @@ struct ftrace_likely_data {
+ # define __no_kasan_or_inline __always_inline
+ #endif
+ 
++#ifdef CONFIG_KCSAN
++/*
++ * Type qualifier to mark variables where all data-racy accesses should be
++ * ignored by KCSAN. Note, the implementation simply marks these variables as
++ * volatile, since KCSAN will treat such accesses as "marked".
++ *
++ * Defined here because defining __data_racy as volatile for KCSAN objects only
++ * causes problems in BPF Type Format (BTF) generation since struct members
++ * of core kernel data structs will be volatile in some objects and not in
++ * others.  Instead define it globally for KCSAN kernels.
++ */
++# define __data_racy volatile
++#else
++# define __data_racy
++#endif
++
+ #ifdef __SANITIZE_THREAD__
+ /*
+  * Clang still emits instrumentation for __tsan_func_{entry,exit}() and builtin
+@@ -314,16 +330,9 @@ struct ftrace_likely_data {
+  * disable all instrumentation. See Kconfig.kcsan where this is mandatory.
+  */
+ # define __no_kcsan __no_sanitize_thread __disable_sanitizer_instrumentation
+-/*
+- * Type qualifier to mark variables where all data-racy accesses should be
+- * ignored by KCSAN. Note, the implementation simply marks these variables as
+- * volatile, since KCSAN will treat such accesses as "marked".
+- */
+-# define __data_racy volatile
+ # define __no_sanitize_or_inline __no_kcsan notrace __maybe_unused
+ #else
+ # define __no_kcsan
+-# define __data_racy
+ #endif
+ 
+ #ifdef __SANITIZE_MEMORY__
+_
+
+Patches currently in -mm which might be from alan.maguire@oracle.com are
+
+kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format.patch
+
