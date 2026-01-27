@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1B2D1F3D56
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 02:54:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5811B2D061C;
+	Tue, 27 Jan 2026 02:57:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769482467; cv=none; b=YfD1qZCHSYl38Fso/p2r92tIdakQwaDK+BF8Wh0XWcqk1Yh2QbNubOyn7VKvGuRuhqoSt63uL0N9F0jIeFggyMEkZRxyWd1ttjxSOHVNopNY0quJlS5n927Dgg6whUqVIPijbVqLUXarPlILzvz7eRL/phV3xz7HRmcqF/OLBUI=
+	t=1769482653; cv=none; b=E/nghvkKGyudpAE5WzSENzpydQ6+EKvSd9DUG0W6vq4ZYX/9CPMn9Xth6GjLy0yqP5f3zhZlGdsG3X3ANB+dfOKTHwch4rwNi4CuNpY2a2AvlZrtn9p6lxntYE+O5n5oBAVhL+HHq5t8O4m2yhsm2YECjvOKb+elqMRT6Q1QJCY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769482467; c=relaxed/simple;
-	bh=nMQ7QX7+R7xu8r+55fVyMgdQAH9Sn7ksgK6NRHc84ko=;
-	h=Date:To:From:Subject:Message-Id; b=t2JULGPcNboY3Vu0vOTBQRVPBKHLjEF0J84A1phfYjTjLrv766R4yZXpFMEEPJWVUvWemt3/cB0FkhLvEFz9ZN62TAKMxL9MiuXPm6zkHlDJ10OTUm/Oqt3vpZtmTpYeL7vxxC68sKmiZuZiGKWq02KyqRGDp1VpqX/R/90EIUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tn9dTAL0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769482653; c=relaxed/simple;
+	bh=bp8EhhDl2LQSzBNM23pqjJLxrBerJl7VRHPlIWMkS4k=;
+	h=Date:To:From:Subject:Message-Id; b=o+ILKEie2ZzIFlTCOVMc5k6uIyTm4G6xlDgo2vECQOczGR+3PufYLpl9Hems47/u4lpuVUbtLJSkCg9RGFbO6deq2EKB47n8tqiupfwIPxJ4JeJISma6k+t0YX4ga3qidrRSoDe+nF4QRC1CIyTJMErcWpKrM8iQt4An9FeXjPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ePuPhgj2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tn9dTAL0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E28C19421;
-	Tue, 27 Jan 2026 02:54:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ePuPhgj2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6C00C116C6;
+	Tue, 27 Jan 2026 02:57:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769482467;
-	bh=nMQ7QX7+R7xu8r+55fVyMgdQAH9Sn7ksgK6NRHc84ko=;
+	s=korg; t=1769482653;
+	bh=bp8EhhDl2LQSzBNM23pqjJLxrBerJl7VRHPlIWMkS4k=;
 	h=Date:To:From:Subject:From;
-	b=tn9dTAL04qTNZdE3UkMdndp9+I2EICb7OrrjLMCRz20oSDQQbfkcjUgbx0k86lRix
-	 Fttq4FjBsQNxOVq+9KZwb2cJe+eDruPq+sFKLjLAj9F2dsIU7jp4vjzTe1JSVdZT2U
-	 jlA+Jz9p2XaD7B1Q3gDhBFFfjYSbE8oOaGTkyyR0=
-Date: Mon, 26 Jan 2026 18:54:26 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,maze@google.com,maciej.wieczor-retman@intel.com,joonki.min@samsung-slsi.corp-partner.google.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,ryabinin.a.a@gmail.com,akpm@linux-foundation.org
+	b=ePuPhgj2eSW5TJUfkS+Ow7L3ryedBpzc6gbNno9OQokoBNIG6w9q9T8dUUsKBQ5yK
+	 uCdcPlvMuLQMR71dYXLX7r4EsXl1DP90ChsS+ishw5pEH2YCL2pwtyff8EWw1UBDR+
+	 d4mm4UkA3h7Vbp7JIdgHEBJyUFDaGF/Hw29udj1c=
+Date: Mon, 26 Jan 2026 18:57:32 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-kasan-fix-kasan-poisoning-in-vrealloc-fix.patch removed from -mm tree
-Message-Id: <20260127025427.46E28C19421@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch removed from -mm tree
+Message-Id: <20260127025732.E6C00C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,161 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-kasan-fix-kasan-poisoning-in-vrealloc-fix
+     Subject: mm/shmem, swap: fix race of truncate and swap entry split
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-fix-kasan-poisoning-in-vrealloc-fix.patch
+     mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
 
-This patch was dropped because it was folded into mm-kasan-fix-kasan-poisoning-in-vrealloc.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Subject: mm-kasan-fix-kasan-poisoning-in-vrealloc-fix
-Date: Mon, 19 Jan 2026 15:45:09 +0100
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/shmem, swap: fix race of truncate and swap entry split
+Date: Tue, 20 Jan 2026 00:11:21 +0800
 
-Move kasan_enabled() check to header function to avoid function call if
-kasan disabled via boot cmdline.
+The helper for shmem swap freeing is not handling the order of swap
+entries correctly.  It uses xa_cmpxchg_irq to erase the swap entry, but it
+gets the entry order before that using xa_get_order without lock
+protection, and it may get an outdated order value if the entry is split
+or changed in other ways after the xa_get_order and before the
+xa_cmpxchg_irq.
 
-Move __kasan_vrealloc() to common.c to fix CONFIG_KASAN_HW_TAGS=y
+And besides, the order could grow and be larger than expected, and cause
+truncation to erase data beyond the end border.  For example, if the
+target entry and following entries are swapped in or freed, then a large
+folio was added in place and swapped out, using the same entry, the
+xa_cmpxchg_irq will still succeed, it's very unlikely to happen though.
 
-Link: https://lkml.kernel.org/r/20260119144509.32767-1-ryabinin.a.a@gmail.com
-Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: <joonki.min@samsung-slsi.corp-partner.google.com>
-Cc: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
-Cc: Maciej Żenczykowski <maze@google.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+To fix that, open code the Xarray cmpxchg and put the order retrieval and
+value checking in the same critical section.  Also, ensure the order won't
+exceed the end border, skip it if the entry goes across the border.
+
+Skipping large swap entries crosses the end border is safe here.  Shmem
+truncate iterates the range twice, in the first iteration,
+find_lock_entries already filtered such entries, and shmem will swapin the
+entries that cross the end border and partially truncate the folio (split
+the folio or at least zero part of it).  So in the second loop here, if we
+see a swap entry that crosses the end order, it must at least have its
+content erased already.
+
+I observed random swapoff hangs and kernel panics when stress testing
+ZSWAP with shmem.  After applying this patch, all problems are gone.
+
+Link: https://lkml.kernel.org/r/20260120-shmem-swap-fix-v3-1-3d33ebfbc057@tencent.com
+Fixes: 809bc86517cc ("mm: shmem: support large folio swap out")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   10 +++++++++-
- mm/kasan/common.c     |   21 +++++++++++++++++++++
- mm/kasan/shadow.c     |   24 ------------------------
- 3 files changed, 30 insertions(+), 25 deletions(-)
+ mm/shmem.c |   45 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 34 insertions(+), 11 deletions(-)
 
---- a/include/linux/kasan.h~mm-kasan-fix-kasan-poisoning-in-vrealloc-fix
-+++ a/include/linux/kasan.h
-@@ -641,9 +641,17 @@ kasan_unpoison_vmap_areas(struct vm_stru
- 		__kasan_unpoison_vmap_areas(vms, nr_vms, flags);
- }
- 
--void kasan_vrealloc(const void *start, unsigned long old_size,
-+void __kasan_vrealloc(const void *start, unsigned long old_size,
- 		unsigned long new_size);
- 
-+static __always_inline void kasan_vrealloc(const void *start,
-+					unsigned long old_size,
-+					unsigned long new_size)
-+{
-+	if (kasan_enabled())
-+		__kasan_vrealloc(start, old_size, new_size);
-+}
+--- a/mm/shmem.c~mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split
++++ a/mm/shmem.c
+@@ -962,17 +962,29 @@ static void shmem_delete_from_page_cache
+  * being freed).
+  */
+ static long shmem_free_swap(struct address_space *mapping,
+-			    pgoff_t index, void *radswap)
++			    pgoff_t index, pgoff_t end, void *radswap)
+ {
+-	int order = xa_get_order(&mapping->i_pages, index);
+-	void *old;
++	XA_STATE(xas, &mapping->i_pages, index);
++	unsigned int nr_pages = 0;
++	pgoff_t base;
++	void *entry;
 +
- #else /* CONFIG_KASAN_VMALLOC */
- 
- static inline void kasan_populate_early_vm_area_shadow(void *start,
---- a/mm/kasan/common.c~mm-kasan-fix-kasan-poisoning-in-vrealloc-fix
-+++ a/mm/kasan/common.c
-@@ -606,4 +606,25 @@ void __kasan_unpoison_vmap_areas(struct
- 			__kasan_unpoison_vmalloc(addr, size, flags | KASAN_VMALLOC_KEEP_TAG);
- 	}
- }
-+
-+void __kasan_vrealloc(const void *addr, unsigned long old_size,
-+		unsigned long new_size)
-+{
-+	if (new_size < old_size) {
-+		kasan_poison_last_granule(addr, new_size);
-+
-+		new_size = round_up(new_size, KASAN_GRANULE_SIZE);
-+		old_size = round_up(old_size, KASAN_GRANULE_SIZE);
-+		if (new_size < old_size)
-+			__kasan_poison_vmalloc(addr + new_size,
-+					old_size - new_size);
-+	} else if (new_size > old_size) {
-+		old_size = round_down(old_size, KASAN_GRANULE_SIZE);
-+		__kasan_unpoison_vmalloc(addr + old_size,
-+					new_size - old_size,
-+					KASAN_VMALLOC_PROT_NORMAL |
-+					KASAN_VMALLOC_VM_ALLOC |
-+					KASAN_VMALLOC_KEEP_TAG);
++	xas_lock_irq(&xas);
++	entry = xas_load(&xas);
++	if (entry == radswap) {
++		nr_pages = 1 << xas_get_order(&xas);
++		base = round_down(xas.xa_index, nr_pages);
++		if (base < index || base + nr_pages - 1 > end)
++			nr_pages = 0;
++		else
++			xas_store(&xas, NULL);
 +	}
-+}
- #endif
---- a/mm/kasan/shadow.c~mm-kasan-fix-kasan-poisoning-in-vrealloc-fix
-+++ a/mm/kasan/shadow.c
-@@ -651,30 +651,6 @@ void __kasan_poison_vmalloc(const void *
- 	kasan_poison(start, size, KASAN_VMALLOC_INVALID, false);
++	xas_unlock_irq(&xas);
+ 
+-	old = xa_cmpxchg_irq(&mapping->i_pages, index, radswap, NULL, 0);
+-	if (old != radswap)
+-		return 0;
+-	free_swap_and_cache_nr(radix_to_swp_entry(radswap), 1 << order);
++	if (nr_pages)
++		free_swap_and_cache_nr(radix_to_swp_entry(radswap), nr_pages);
+ 
+-	return 1 << order;
++	return nr_pages;
  }
  
--void kasan_vrealloc(const void *addr, unsigned long old_size,
--		unsigned long new_size)
--{
--	if (!kasan_enabled())
--		return;
--
--	if (new_size < old_size) {
--		kasan_poison_last_granule(addr, new_size);
--
--		new_size = round_up(new_size, KASAN_GRANULE_SIZE);
--		old_size = round_up(old_size, KASAN_GRANULE_SIZE);
--		if (new_size < old_size)
--			__kasan_poison_vmalloc(addr + new_size,
--					old_size - new_size);
--	} else if (new_size > old_size) {
--		old_size = round_down(old_size, KASAN_GRANULE_SIZE);
--		__kasan_unpoison_vmalloc(addr + old_size,
--					new_size - old_size,
--					KASAN_VMALLOC_PROT_NORMAL |
--					KASAN_VMALLOC_VM_ALLOC |
--					KASAN_VMALLOC_KEEP_TAG);
--	}
--}
--
- #else /* CONFIG_KASAN_VMALLOC */
+ /*
+@@ -1124,8 +1136,8 @@ static void shmem_undo_range(struct inod
+ 			if (xa_is_value(folio)) {
+ 				if (unfalloc)
+ 					continue;
+-				nr_swaps_freed += shmem_free_swap(mapping,
+-							indices[i], folio);
++				nr_swaps_freed += shmem_free_swap(mapping, indices[i],
++								  end - 1, folio);
+ 				continue;
+ 			}
  
- int kasan_alloc_module_shadow(void *addr, size_t size, gfp_t gfp_mask)
+@@ -1191,12 +1203,23 @@ whole_folios:
+ 			folio = fbatch.folios[i];
+ 
+ 			if (xa_is_value(folio)) {
++				int order;
+ 				long swaps_freed;
+ 
+ 				if (unfalloc)
+ 					continue;
+-				swaps_freed = shmem_free_swap(mapping, indices[i], folio);
++				swaps_freed = shmem_free_swap(mapping, indices[i],
++							      end - 1, folio);
+ 				if (!swaps_freed) {
++					/*
++					 * If found a large swap entry cross the end border,
++					 * skip it as the truncate_inode_partial_folio above
++					 * should have at least zerod its content once.
++					 */
++					order = shmem_confirm_swap(mapping, indices[i],
++								   radix_to_swp_entry(folio));
++					if (order > 0 && indices[i] + (1 << order) > end)
++						continue;
+ 					/* Swap was replaced by page: retry */
+ 					index = indices[i];
+ 					break;
 _
 
-Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-kasan-fix-kasan-poisoning-in-vrealloc.patch
-mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc.patch
-mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc-fix.patch
+mm-swap-rename-__read_swap_cache_async-to-swap_cache_alloc_folio.patch
+mm-swap-split-swap-cache-preparation-loop-into-a-standalone-helper.patch
+mm-swap-never-bypass-the-swap-cache-even-for-swp_synchronous_io.patch
+mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
+mm-swap-simplify-the-code-and-reduce-indention.patch
+mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
+mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
+mm-swap-swap-entry-of-a-bad-slot-should-not-be-considered-as-swapped-out.patch
+mm-swap-consolidate-cluster-reclaim-and-usability-check.patch
+mm-swap-split-locked-entry-duplicating-into-a-standalone-helper.patch
+mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer.patch
+mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer-fix.patch
+mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
+mm-swap-cleanup-swap-entry-management-workflow.patch
+mm-swap-cleanup-swap-entry-management-workflow-fix.patch
+mm-swap-add-folio-to-swap-cache-directly-on-allocation.patch
+mm-swap-check-swap-table-directly-for-checking-cache.patch
+mm-swap-clean-up-and-improve-swap-entries-freeing.patch
+mm-swap-drop-the-swap_has_cache-flag.patch
+mm-swap-remove-no-longer-needed-_swap_info_get.patch
 
