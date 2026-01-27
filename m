@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B2283191B9
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC4B93191B9
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486698; cv=none; b=nEtVb/240ClM4vk+oOBfgwP2LwInMUmdoyvFLgEf/xwEqlltZcqrXgzCn24TGrvlr6qIApsbzHACPq9VtdesAiEs2GoycZiwnoLy8qzL7fGvczDApjdnKrkPyGijrJz0VRDFdC2OowXux9ZmcZ21aKZpt+Fl6W1lCyAsMdNqJ7U=
+	t=1769486699; cv=none; b=StY5GXkeRJMAxdg4ACCCBN/tmikFGG36zYp6DCL3yS/qYWBE+z/JWn9TwsNtgh7u3+/dMGyDbMyTAqTiPh0/pb17kW1PVkcBJr89AJWArW9D3PgLPSLzRkosu39wnK1w59Jp9RYSahHGo0itq6R8i6LUUvSDreARCk47MNPrOFs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486698; c=relaxed/simple;
-	bh=wmglTrKzmdzf+Su74rSEJujLdZitXtc+FExtBXTGfxQ=;
-	h=Date:To:From:Subject:Message-Id; b=aI/dBKAvZiEGVC0KXaQ1W56nW8Owfw26ciOsHPCHOStcpriwKNpWsJVzmm5o7uXRgbAzZ6kjh7eMIvrrlFIDTjCIsgZb+cxy18nTlmRzK9ZE5jbOFTWp8z0DSQC07+oNq0C0mfgzC4T3aNHTx4iBFBnGo6QNbEpn7fGLCnCdgRw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sKw6+25q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486699; c=relaxed/simple;
+	bh=CfUX8KEFWxlt/2Mdpi0pqwTfa9MQ4uLw8TfKliKVRGQ=;
+	h=Date:To:From:Subject:Message-Id; b=F987RTRMjqQCdkMzuOwLvIKCeRxxT5wtxdFd9M5Z5atlOSJMj3PbI/w3t0LmojVgPGDuUi3158J8PL/Y247TXHVa89o5ovyn6bicSZzU2d+KwLclo0y/3ug2cqPpoEAAgM4GEF189vRSgEofowWPyI2Osu4V2kT5B1GTz1KBafU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H9bxWMD6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sKw6+25q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEA06C116C6;
-	Tue, 27 Jan 2026 04:04:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H9bxWMD6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66806C116C6;
+	Tue, 27 Jan 2026 04:04:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486697;
-	bh=wmglTrKzmdzf+Su74rSEJujLdZitXtc+FExtBXTGfxQ=;
+	s=korg; t=1769486699;
+	bh=CfUX8KEFWxlt/2Mdpi0pqwTfa9MQ4uLw8TfKliKVRGQ=;
 	h=Date:To:From:Subject:From;
-	b=sKw6+25qupBNkljOY6wfadnSw/u9xmjfQbpHSUTf2Z+C2TWag4ltSCI8/7w9N5aSw
-	 ZdlcJr5fy36DEsBMqAvbC3XdOERRKrE50UuGrINPtbuRtJc/vgBHdk8/9wBMHWPpDU
-	 Jon921TbXk+yA6WjQ3lkFDZTT/wQkUIQBwicKtqo=
-Date: Mon, 26 Jan 2026 20:04:57 -0800
+	b=H9bxWMD6RxvL1xXzEeJy8iBw0P6GDPP+4PXaNu/HzupVdurbdS4I35gdRXxTrrD6N
+	 pTcCJTSes608RpyFCrHK2bjxUW6vyPXcmnWP8ZRw/90CU7s7jn4VjXawe0kUu3pmW9
+	 4oZiMaGDKWVloUKSifxOI3qv4zezeIi4QfOP9Ib0=
+Date: Mon, 26 Jan 2026 20:04:58 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,claudiu.beznea.uj@bp.renesas.com,broonie@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-cma-kill-cma_pages_valid.patch removed from -mm tree
-Message-Id: <20260127040457.CEA06C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-add-alloc_contig_frozen_rangepages.patch removed from -mm tree
+Message-Id: <20260127040459.66806C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,126 +35,485 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: cma: kill cma_pages_valid()
+     Subject: mm: page_alloc: add alloc_contig_frozen_{range,pages}()
 has been removed from the -mm tree.  Its filename was
-     mm-cma-kill-cma_pages_valid.patch
+     mm-page_alloc-add-alloc_contig_frozen_rangepages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: cma: kill cma_pages_valid()
-Date: Fri, 9 Jan 2026 17:31:33 +0800
+Subject: mm: page_alloc: add alloc_contig_frozen_{range,pages}()
+Date: Fri, 9 Jan 2026 17:31:34 +0800
 
-Kill cma_pages_valid() which only used in cma_release(), also cleanup code
-duplication between cma pages valid checking and cma memrange finding.
+In order to allocate given range of pages or allocate compound pages
+without incrementing their refcount, adding two new helper
+alloc_contig_frozen_{range,pages}() which may be beneficial to some users
+(eg hugetlb).
 
-Link: https://lkml.kernel.org/r/20260109093136.1491549-4-wangkefeng.wang@huawei.com
+The new alloc_contig_{range,pages} only take !__GFP_COMP gfp now, and the
+free_contig_range() is refactored to only free non-compound pages, the
+only caller to free compound pages in cma_free_folio() is changed
+accordingly, and the free_contig_frozen_range() is provided to match the
+alloc_contig_frozen_range(), which is used to free frozen pages.
+
+Link: https://lkml.kernel.org/r/20260109093136.1491549-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Jane Chu <jane.chu@oracle.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jane Chu <jane.chu@oracle.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Claudiu Beznea <claudiu.beznea.uj@bp.renesas.com>
 Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |    1 
- mm/cma.c            |   48 +++++++++---------------------------------
- 2 files changed, 11 insertions(+), 38 deletions(-)
+ include/linux/gfp.h |   50 ++++-------
+ mm/cma.c            |    9 +-
+ mm/hugetlb.c        |    9 +-
+ mm/internal.h       |   13 ++
+ mm/page_alloc.c     |  186 ++++++++++++++++++++++++++++++------------
+ 5 files changed, 183 insertions(+), 84 deletions(-)
 
---- a/include/linux/cma.h~mm-cma-kill-cma_pages_valid
-+++ a/include/linux/cma.h
-@@ -49,7 +49,6 @@ extern int cma_init_reserved_mem(phys_ad
- 					struct cma **res_cma);
- extern struct page *cma_alloc(struct cma *cma, unsigned long count, unsigned int align,
- 			      bool no_warn);
--extern bool cma_pages_valid(struct cma *cma, const struct page *pages, unsigned long count);
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned long count);
+--- a/include/linux/gfp.h~mm-page_alloc-add-alloc_contig_frozen_rangepages
++++ a/include/linux/gfp.h
+@@ -436,40 +436,30 @@ typedef unsigned int __bitwise acr_flags
+ #define ACR_FLAGS_CMA ((__force acr_flags_t)BIT(0)) // allocate for CMA
  
- extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
---- a/mm/cma.c~mm-cma-kill-cma_pages_valid
-+++ a/mm/cma.c
-@@ -942,36 +942,6 @@ struct folio *cma_alloc_folio(struct cma
- 	return page ? page_folio(page) : NULL;
- }
- 
--bool cma_pages_valid(struct cma *cma, const struct page *pages,
--		     unsigned long count)
--{
--	unsigned long pfn, end;
--	int r;
--	struct cma_memrange *cmr;
--	bool ret;
+ /* The below functions must be run on a range from a single zone. */
+-extern int alloc_contig_range_noprof(unsigned long start, unsigned long end,
+-				     acr_flags_t alloc_flags, gfp_t gfp_mask);
+-#define alloc_contig_range(...)			alloc_hooks(alloc_contig_range_noprof(__VA_ARGS__))
 -
--	if (!cma || !pages || count > cma->count)
--		return false;
--
--	pfn = page_to_pfn(pages);
--	ret = false;
--
--	for (r = 0; r < cma->nranges; r++) {
--		cmr = &cma->ranges[r];
--		end = cmr->base_pfn + cmr->count;
--		if (pfn >= cmr->base_pfn && pfn < end) {
--			ret = pfn + count <= end;
--			break;
--		}
--	}
--
--	if (!ret)
--		pr_debug("%s(page %p, count %lu)\n",
--				__func__, (void *)pages, count);
--
--	return ret;
--}
--
- /**
-  * cma_release() - release allocated pages
-  * @cma:   Contiguous memory region for which the allocation is performed.
-@@ -991,23 +961,27 @@ bool cma_release(struct cma *cma, const
- 
- 	pr_debug("%s(page %p, count %lu)\n", __func__, (void *)pages, count);
- 
--	if (!cma_pages_valid(cma, pages, count))
-+	if (!cma || !pages || count > cma->count)
- 		return false;
- 
- 	pfn = page_to_pfn(pages);
--	end_pfn = pfn + count;
- 
- 	for (r = 0; r < cma->nranges; r++) {
- 		cmr = &cma->ranges[r];
--		if (pfn >= cmr->base_pfn &&
--		    pfn < (cmr->base_pfn + cmr->count)) {
--			VM_BUG_ON(end_pfn > cmr->base_pfn + cmr->count);
--			break;
-+		end_pfn = cmr->base_pfn + cmr->count;
-+		if (pfn >= cmr->base_pfn && pfn < end_pfn) {
-+			if (pfn + count <= end_pfn)
-+				break;
+-extern struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
+-					      int nid, nodemask_t *nodemask);
+-#define alloc_contig_pages(...)			alloc_hooks(alloc_contig_pages_noprof(__VA_ARGS__))
++int alloc_contig_frozen_range_noprof(unsigned long start, unsigned long end,
++		acr_flags_t alloc_flags, gfp_t gfp_mask);
++#define alloc_contig_frozen_range(...)	\
++	alloc_hooks(alloc_contig_frozen_range_noprof(__VA_ARGS__))
 +
-+			VM_WARN_ON_ONCE(1);
- 		}
++int alloc_contig_range_noprof(unsigned long start, unsigned long end,
++		acr_flags_t alloc_flags, gfp_t gfp_mask);
++#define alloc_contig_range(...)	\
++	alloc_hooks(alloc_contig_range_noprof(__VA_ARGS__))
++
++struct page *alloc_contig_frozen_pages_noprof(unsigned long nr_pages,
++		gfp_t gfp_mask, int nid, nodemask_t *nodemask);
++#define alloc_contig_frozen_pages(...) \
++	alloc_hooks(alloc_contig_frozen_pages_noprof(__VA_ARGS__))
++
++struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
++		int nid, nodemask_t *nodemask);
++#define alloc_contig_pages(...)	\
++	alloc_hooks(alloc_contig_pages_noprof(__VA_ARGS__))
+ 
++void free_contig_frozen_range(unsigned long pfn, unsigned long nr_pages);
+ void free_contig_range(unsigned long pfn, unsigned long nr_pages);
+ #endif
+ 
+-#ifdef CONFIG_CONTIG_ALLOC
+-static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
+-							int nid, nodemask_t *node)
+-{
+-	struct page *page;
+-
+-	if (WARN_ON(!order || !(gfp & __GFP_COMP)))
+-		return NULL;
+-
+-	page = alloc_contig_pages_noprof(1 << order, gfp, nid, node);
+-
+-	return page ? page_folio(page) : NULL;
+-}
+-#else
+-static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
+-							int nid, nodemask_t *node)
+-{
+-	return NULL;
+-}
+-#endif
+-/* This should be paired with folio_put() rather than free_contig_range(). */
+-#define folio_alloc_gigantic(...) alloc_hooks(folio_alloc_gigantic_noprof(__VA_ARGS__))
+-
+ DEFINE_FREE(free_page, void *, free_page((unsigned long)_T))
+ 
+ #endif /* __LINUX_GFP_H */
+--- a/mm/cma.c~mm-page_alloc-add-alloc_contig_frozen_rangepages
++++ a/mm/cma.c
+@@ -836,7 +836,7 @@ static int cma_range_alloc(struct cma *c
+ 		spin_unlock_irq(&cma->lock);
+ 
+ 		mutex_lock(&cma->alloc_mutex);
+-		ret = alloc_contig_range(pfn, pfn + count, ACR_FLAGS_CMA, gfp);
++		ret = alloc_contig_frozen_range(pfn, pfn + count, ACR_FLAGS_CMA, gfp);
+ 		mutex_unlock(&cma->alloc_mutex);
+ 		if (!ret)
+ 			break;
+@@ -904,6 +904,7 @@ static struct page *__cma_alloc(struct c
+ 	trace_cma_alloc_finish(name, page ? page_to_pfn(page) : 0,
+ 			       page, count, align, ret);
+ 	if (page) {
++		set_pages_refcounted(page, count);
+ 		count_vm_event(CMA_ALLOC_SUCCESS);
+ 		cma_sysfs_account_success_pages(cma, count);
+ 	} else {
+@@ -983,7 +984,11 @@ bool cma_release(struct cma *cma, const
+ 		return false;
  	}
  
--	if (r == cma->nranges)
-+	if (r == cma->nranges) {
-+		pr_debug("%s(page %p, count %lu, no cma range matches the page range)\n",
-+			 __func__, (void *)pages, count);
- 		return false;
-+	}
- 
- 	free_contig_range(pfn, count);
+-	free_contig_range(pfn, count);
++	if (PageHead(pages))
++		__free_pages((struct page *)pages, compound_order(pages));
++	else
++		free_contig_range(pfn, count);
++
  	cma_clear_bitmap(cma, cmr, pfn, count);
+ 	cma_sysfs_account_release_pages(cma, count);
+ 	trace_cma_release(cma->name, pfn, pages, count);
+--- a/mm/hugetlb.c~mm-page_alloc-add-alloc_contig_frozen_rangepages
++++ a/mm/hugetlb.c
+@@ -1428,12 +1428,17 @@ static struct folio *alloc_gigantic_foli
+ retry:
+ 	folio = hugetlb_cma_alloc_folio(order, gfp_mask, nid, nodemask);
+ 	if (!folio) {
++		struct page *page;
++
+ 		if (hugetlb_cma_exclusive_alloc())
+ 			return NULL;
+ 
+-		folio = folio_alloc_gigantic(order, gfp_mask, nid, nodemask);
+-		if (!folio)
++		page = alloc_contig_frozen_pages(1 << order, gfp_mask, nid, nodemask);
++		if (!page)
+ 			return NULL;
++
++		set_page_refcounted(page);
++		folio = page_folio(page);
+ 	}
+ 
+ 	if (folio_ref_freeze(folio, 1))
+--- a/mm/internal.h~mm-page_alloc-add-alloc_contig_frozen_rangepages
++++ a/mm/internal.h
+@@ -580,6 +580,19 @@ static inline void set_page_refcounted(s
+ 	set_page_count(page, 1);
+ }
+ 
++static inline void set_pages_refcounted(struct page *page, unsigned long nr_pages)
++{
++	unsigned long pfn = page_to_pfn(page);
++
++	if (PageHead(page)) {
++		set_page_refcounted(page);
++		return;
++	}
++
++	for (; nr_pages--; pfn++)
++		set_page_refcounted(pfn_to_page(pfn));
++}
++
+ /*
+  * Return true if a folio needs ->release_folio() calling upon it.
+  */
+--- a/mm/page_alloc.c~mm-page_alloc-add-alloc_contig_frozen_rangepages
++++ a/mm/page_alloc.c
+@@ -6889,7 +6889,7 @@ static int __alloc_contig_migrate_range(
+ 	return (ret < 0) ? ret : 0;
+ }
+ 
+-static void split_free_pages(struct list_head *list, gfp_t gfp_mask)
++static void split_free_frozen_pages(struct list_head *list, gfp_t gfp_mask)
+ {
+ 	int order;
+ 
+@@ -6901,11 +6901,10 @@ static void split_free_pages(struct list
+ 			int i;
+ 
+ 			post_alloc_hook(page, order, gfp_mask);
+-			set_page_refcounted(page);
+ 			if (!order)
+ 				continue;
+ 
+-			split_page(page, order);
++			__split_page(page, order);
+ 
+ 			/* Add all subpages to the order-0 head, in sequence. */
+ 			list_del(&page->lru);
+@@ -6949,8 +6948,14 @@ static int __alloc_contig_verify_gfp_mas
+ 	return 0;
+ }
+ 
++static void __free_contig_frozen_range(unsigned long pfn, unsigned long nr_pages)
++{
++	for (; nr_pages--; pfn++)
++		free_frozen_pages(pfn_to_page(pfn), 0);
++}
++
+ /**
+- * alloc_contig_range() -- tries to allocate given range of pages
++ * alloc_contig_frozen_range() -- tries to allocate given range of frozen pages
+  * @start:	start PFN to allocate
+  * @end:	one-past-the-last PFN to allocate
+  * @alloc_flags:	allocation information
+@@ -6965,12 +6970,15 @@ static int __alloc_contig_verify_gfp_mas
+  * pageblocks in the range.  Once isolated, the pageblocks should not
+  * be modified by others.
+  *
+- * Return: zero on success or negative error code.  On success all
+- * pages which PFN is in [start, end) are allocated for the caller and
+- * need to be freed with free_contig_range().
++ * All frozen pages which PFN is in [start, end) are allocated for the
++ * caller, and they could be freed with free_contig_frozen_range(),
++ * free_frozen_pages() also could be used to free compound frozen pages
++ * directly.
++ *
++ * Return: zero on success or negative error code.
+  */
+-int alloc_contig_range_noprof(unsigned long start, unsigned long end,
+-			      acr_flags_t alloc_flags, gfp_t gfp_mask)
++int alloc_contig_frozen_range_noprof(unsigned long start, unsigned long end,
++		acr_flags_t alloc_flags, gfp_t gfp_mask)
+ {
+ 	const unsigned int order = ilog2(end - start);
+ 	unsigned long outer_start, outer_end;
+@@ -7086,19 +7094,18 @@ int alloc_contig_range_noprof(unsigned l
+ 	}
+ 
+ 	if (!(gfp_mask & __GFP_COMP)) {
+-		split_free_pages(cc.freepages, gfp_mask);
++		split_free_frozen_pages(cc.freepages, gfp_mask);
+ 
+ 		/* Free head and tail (if any) */
+ 		if (start != outer_start)
+-			free_contig_range(outer_start, start - outer_start);
++			__free_contig_frozen_range(outer_start, start - outer_start);
+ 		if (end != outer_end)
+-			free_contig_range(end, outer_end - end);
++			__free_contig_frozen_range(end, outer_end - end);
+ 	} else if (start == outer_start && end == outer_end && is_power_of_2(end - start)) {
+ 		struct page *head = pfn_to_page(start);
+ 
+ 		check_new_pages(head, order);
+ 		prep_new_page(head, order, gfp_mask, 0);
+-		set_page_refcounted(head);
+ 	} else {
+ 		ret = -EINVAL;
+ 		WARN(true, "PFN range: requested [%lu, %lu), allocated [%lu, %lu)\n",
+@@ -7108,16 +7115,40 @@ done:
+ 	undo_isolate_page_range(start, end);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(alloc_contig_range_noprof);
++EXPORT_SYMBOL(alloc_contig_frozen_range_noprof);
+ 
+-static int __alloc_contig_pages(unsigned long start_pfn,
+-				unsigned long nr_pages, gfp_t gfp_mask)
++/**
++ * alloc_contig_range() -- tries to allocate given range of pages
++ * @start:	start PFN to allocate
++ * @end:	one-past-the-last PFN to allocate
++ * @alloc_flags:	allocation information
++ * @gfp_mask:	GFP mask.
++ *
++ * This routine is a wrapper around alloc_contig_frozen_range(), it can't
++ * be used to allocate compound pages, the refcount of each allocated page
++ * will be set to one.
++ *
++ * All pages which PFN is in [start, end) are allocated for the caller,
++ * and should be freed with free_contig_range() or by manually calling
++ * __free_page() on each allocated page.
++ *
++ * Return: zero on success or negative error code.
++ */
++int alloc_contig_range_noprof(unsigned long start, unsigned long end,
++			      acr_flags_t alloc_flags, gfp_t gfp_mask)
+ {
+-	unsigned long end_pfn = start_pfn + nr_pages;
++	int ret;
+ 
+-	return alloc_contig_range_noprof(start_pfn, end_pfn, ACR_FLAGS_NONE,
+-					 gfp_mask);
++	if (WARN_ON(gfp_mask & __GFP_COMP))
++		return -EINVAL;
++
++	ret = alloc_contig_frozen_range_noprof(start, end, alloc_flags, gfp_mask);
++	if (!ret)
++		set_pages_refcounted(pfn_to_page(start), end - start);
++
++	return ret;
+ }
++EXPORT_SYMBOL(alloc_contig_range_noprof);
+ 
+ static bool pfn_range_valid_contig(struct zone *z, unsigned long start_pfn,
+ 				   unsigned long nr_pages, bool skip_hugetlb,
+@@ -7186,7 +7217,7 @@ static bool zone_spans_last_pfn(const st
+ }
+ 
+ /**
+- * alloc_contig_pages() -- tries to find and allocate contiguous range of pages
++ * alloc_contig_frozen_pages() -- tries to find and allocate contiguous range of frozen pages
+  * @nr_pages:	Number of contiguous pages to allocate
+  * @gfp_mask:	GFP mask. Node/zone/placement hints limit the search; only some
+  *		action and reclaim modifiers are supported. Reclaim modifiers
+@@ -7194,22 +7225,25 @@ static bool zone_spans_last_pfn(const st
+  * @nid:	Target node
+  * @nodemask:	Mask for other possible nodes
+  *
+- * This routine is a wrapper around alloc_contig_range(). It scans over zones
+- * on an applicable zonelist to find a contiguous pfn range which can then be
+- * tried for allocation with alloc_contig_range(). This routine is intended
+- * for allocation requests which can not be fulfilled with the buddy allocator.
++ * This routine is a wrapper around alloc_contig_frozen_range(). It scans over
++ * zones on an applicable zonelist to find a contiguous pfn range which can then
++ * be tried for allocation with alloc_contig_frozen_range(). This routine is
++ * intended for allocation requests which can not be fulfilled with the buddy
++ * allocator.
+  *
+  * The allocated memory is always aligned to a page boundary. If nr_pages is a
+  * power of two, then allocated range is also guaranteed to be aligned to same
+  * nr_pages (e.g. 1GB request would be aligned to 1GB).
+  *
+- * Allocated pages can be freed with free_contig_range() or by manually calling
+- * __free_page() on each allocated page.
++ * Allocated frozen pages need be freed with free_contig_frozen_range(),
++ * or by manually calling free_frozen_pages() on each allocated frozen
++ * non-compound page, for compound frozen pages could be freed with
++ * free_frozen_pages() directly.
+  *
+- * Return: pointer to contiguous pages on success, or NULL if not successful.
++ * Return: pointer to contiguous frozen pages on success, or NULL if not successful.
+  */
+-struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
+-				 int nid, nodemask_t *nodemask)
++struct page *alloc_contig_frozen_pages_noprof(unsigned long nr_pages,
++		gfp_t gfp_mask, int nid, nodemask_t *nodemask)
+ {
+ 	unsigned long ret, pfn, flags;
+ 	struct zonelist *zonelist;
+@@ -7231,13 +7265,15 @@ retry:
+ 						   &skipped_hugetlb)) {
+ 				/*
+ 				 * We release the zone lock here because
+-				 * alloc_contig_range() will also lock the zone
+-				 * at some point. If there's an allocation
+-				 * spinning on this lock, it may win the race
+-				 * and cause alloc_contig_range() to fail...
++				 * alloc_contig_frozen_range() will also lock
++				 * the zone at some point. If there's an
++				 * allocation spinning on this lock, it may
++				 * win the race and cause allocation to fail.
+ 				 */
+ 				spin_unlock_irqrestore(&zone->lock, flags);
+-				ret = __alloc_contig_pages(pfn, nr_pages,
++				ret = alloc_contig_frozen_range_noprof(pfn,
++							pfn + nr_pages,
++							ACR_FLAGS_NONE,
+ 							gfp_mask);
+ 				if (!ret)
+ 					return pfn_to_page(pfn);
+@@ -7260,30 +7296,80 @@ retry:
+ 	}
+ 	return NULL;
+ }
++EXPORT_SYMBOL(alloc_contig_frozen_pages_noprof);
+ 
+-void free_contig_range(unsigned long pfn, unsigned long nr_pages)
++/**
++ * alloc_contig_pages() -- tries to find and allocate contiguous range of pages
++ * @nr_pages:	Number of contiguous pages to allocate
++ * @gfp_mask:	GFP mask.
++ * @nid:	Target node
++ * @nodemask:	Mask for other possible nodes
++ *
++ * This routine is a wrapper around alloc_contig_frozen_pages(), it can't
++ * be used to allocate compound pages, the refcount of each allocated page
++ * will be set to one.
++ *
++ * Allocated pages can be freed with free_contig_range() or by manually
++ * calling __free_page() on each allocated page.
++ *
++ * Return: pointer to contiguous pages on success, or NULL if not successful.
++ */
++struct page *alloc_contig_pages_noprof(unsigned long nr_pages, gfp_t gfp_mask,
++		int nid, nodemask_t *nodemask)
++{
++	struct page *page;
++
++	if (WARN_ON(gfp_mask & __GFP_COMP))
++		return NULL;
++
++	page = alloc_contig_frozen_pages_noprof(nr_pages, gfp_mask, nid,
++						nodemask);
++	if (page)
++		set_pages_refcounted(page, nr_pages);
++
++	return page;
++}
++EXPORT_SYMBOL(alloc_contig_pages_noprof);
++
++/**
++ * free_contig_frozen_range() -- free the contiguous range of frozen pages
++ * @pfn:	start PFN to free
++ * @nr_pages:	Number of contiguous frozen pages to free
++ *
++ * This can be used to free the allocated compound/non-compound frozen pages.
++ */
++void free_contig_frozen_range(unsigned long pfn, unsigned long nr_pages)
+ {
+-	unsigned long count = 0;
+-	struct folio *folio = pfn_folio(pfn);
++	struct page *first_page = pfn_to_page(pfn);
++	const unsigned int order = ilog2(nr_pages);
+ 
+-	if (folio_test_large(folio)) {
+-		int expected = folio_nr_pages(folio);
++	if (WARN_ON_ONCE(first_page != compound_head(first_page)))
++		return;
+ 
+-		if (nr_pages == expected)
+-			folio_put(folio);
+-		else
+-			WARN(true, "PFN %lu: nr_pages %lu != expected %d\n",
+-			     pfn, nr_pages, expected);
++	if (PageHead(first_page)) {
++		WARN_ON_ONCE(order != compound_order(first_page));
++		free_frozen_pages(first_page, order);
+ 		return;
+ 	}
+ 
+-	for (; nr_pages--; pfn++) {
+-		struct page *page = pfn_to_page(pfn);
++	__free_contig_frozen_range(pfn, nr_pages);
++}
++EXPORT_SYMBOL(free_contig_frozen_range);
+ 
+-		count += page_count(page) != 1;
+-		__free_page(page);
+-	}
+-	WARN(count != 0, "%lu pages are still in use!\n", count);
++/**
++ * free_contig_range() -- free the contiguous range of pages
++ * @pfn:	start PFN to free
++ * @nr_pages:	Number of contiguous pages to free
++ *
++ * This can be only used to free the allocated non-compound pages.
++ */
++void free_contig_range(unsigned long pfn, unsigned long nr_pages)
++{
++	if (WARN_ON_ONCE(PageHead(pfn_to_page(pfn))))
++		return;
++
++	for (; nr_pages--; pfn++)
++		__free_page(pfn_to_page(pfn));
+ }
+ EXPORT_SYMBOL(free_contig_range);
+ #endif /* CONFIG_CONTIG_ALLOC */
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
