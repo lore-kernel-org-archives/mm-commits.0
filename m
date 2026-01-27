@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98DB42E424F
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 02:57:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93D72315D3A
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 03:55:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769482676; cv=none; b=F4ns6YF9LHEmADbHk0M78YEPg/idZ83mc6O5AS3S8X7wS7fiGYM6USlu7iecSpcSOSj4vEXHTFZaOy+DX7ZuWWHbJagpH513CKWww9+9nyKcRQFcBoHvG8wLDfAP3gNaz4clh7Y1ZrZlbO95kQR1UjnPkkXYoTXjCXO4PxFG7MQ=
+	t=1769486144; cv=none; b=SxYULNHTey/ITEWTTBBxzgI0qYZTHK1MWg8pfp3WC7y1MWmq/Zrtig52+0sHKbpMXBhFE84B8zZFiBZZ56+jA9pR2ye74wEW8VQrMmMpg8VLTOZYnD/43r3J7cmEO5z1jMZk4v/KgelBA5ifCuCwoZT5O7y95ev9azrSKnkxsa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769482676; c=relaxed/simple;
-	bh=rO+r/c+e6vmUpk68oILiibtVwD5Zf9DT3Tro0+y812c=;
-	h=Date:To:From:Subject:Message-Id; b=iIvic3/+rQyubEOPiN3of13a68UsRy3nMQAcY1MUv9sLvCEbsM2V/0wwBsIYC5psD+EXXfLbi9dQ0QSBhSPsyNcodRInLwLHXsKVFcUhcokT9lVr3qwvEosIIkH3JrbKIiyGMIYi/zG+0U2Sg96TDye/g/D3cHenSVcu4TMQY7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HH2apGW1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486144; c=relaxed/simple;
+	bh=ci0QcFzsG+9D9KgcPRvJhhwRhIsWPOHg5GugN7bNyq0=;
+	h=Date:To:From:Subject:Message-Id; b=W0j7kbzeuOAi90cBKaLmIyXprWXw+AeTnhv5sEUodSfgji5VXrs+SlopOeIgHl1z5yTk8ZhYbbqUqpp01gTsTRclreeWsa2/XXeJtiSuop5eDrHzV9Z7eetNTwM90g6gcdNcWyJBE25MaEvBz3gpia+2wJwNQO0PoK561YXYJ4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jwp7Evp0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HH2apGW1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25B43C116C6;
-	Tue, 27 Jan 2026 02:57:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jwp7Evp0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 433AAC116C6;
+	Tue, 27 Jan 2026 03:55:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769482676;
-	bh=rO+r/c+e6vmUpk68oILiibtVwD5Zf9DT3Tro0+y812c=;
+	s=korg; t=1769486144;
+	bh=ci0QcFzsG+9D9KgcPRvJhhwRhIsWPOHg5GugN7bNyq0=;
 	h=Date:To:From:Subject:From;
-	b=HH2apGW1XPcGzwhH+UtWswUwuhl1qUWomLAaJmkuuwe9gmzs5ZEHXHBEmR2CsdvrN
-	 iCqp8GeypWdrw+tWVBYbzWE6K89TO37c/Q1RKW89CJcFli3Ijc1AM67IuJ13m4v0KZ
-	 AL/KkPwaHHtNMEiBL4o+Kj6L+OVlcC7laL4595R0=
-Date: Mon, 26 Jan 2026 18:57:55 -0800
-To: mm-commits@vger.kernel.org,zhiquan1.li@intel.com,xueshuai@linux.alibaba.com,vgoyal@redhat.com,tony.luck@intel.com,osandov@osandov.com,dyoung@redhat.com,bhe@redhat.com,leitao@debian.org,akpm@linux-foundation.org
+	b=Jwp7Evp0A45lrX4NqUjh/T3wrcjE4PLfoudvbsCryPX/t8MoXrsYLgRZA1hjrAw4r
+	 xxWCJt47op5U8g7qkcLFoKEw9l3KfElyY7OfUqKsErA49W565dGqgM7VdVP3k1uCLw
+	 kAy64OBLt4Ygrl0hCPk5FsuSFZgdiSMh2SHLEqRs=
+Date: Mon, 26 Jan 2026 19:55:43 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] vmcoreinfo-make-hwerr_data-visible-for-debugging.patch removed from -mm tree
-Message-Id: <20260127025756.25B43C116C6@smtp.kernel.org>
+Subject: [folded-merged] memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix.patch removed from -mm tree
+Message-Id: <20260127035544.433AAC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vmcoreinfo: make hwerr_data visible for debugging
+     Subject: memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix
 has been removed from the -mm tree.  Its filename was
-     vmcoreinfo-make-hwerr_data-visible-for-debugging.patch
+     memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was folded into memcg-rename-mem_cgroup_ino-to-mem_cgroup_id.patch
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: vmcoreinfo: make hwerr_data visible for debugging
-Date: Thu, 22 Jan 2026 02:39:36 -0800
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix
+Date: Mon, 12 Jan 2026 13:34:27 -0800
 
-If the kernel is compiled with LTO, hwerr_data symbol might be lost, and
-vmcoreinfo doesn't have it dumped.  This is currently seen in some
-production kernels with LTO enabled.
+replace ino with id, per SeongJae
 
-Remove the static qualifier from hwerr_data so that the information is
-still preserved when the kernel is built with LTO.  Making hwerr_data a
-global symbol ensures its debug info survives the LTO link process and
-appears in kallsyms.  Also document it, so it doesn't get removed in
-the future as suggested by akpm.
-
-Link: https://lkml.kernel.org/r/20260122-fix_vmcoreinfo-v2-1-2d6311f9e36c@debian.org
-Fixes: 3fa805c37dd4 ("vmcoreinfo: track and log recoverable hardware errors")
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Omar Sandoval <osandov@osandov.com>
-Cc: Shuai Xue <xueshuai@linux.alibaba.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Zhiquan Li <zhiquan1.li@intel.com>
+Link: https://lkml.kernel.org/r/flkqanhyettp5uq22bjwg37rtmnpeg3mghznsylxcxxgaafpl4@nov2x7tagma7
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/vmcore_info.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/memcontrol.c            |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/vmcore_info.c~vmcoreinfo-make-hwerr_data-visible-for-debugging
-+++ a/kernel/vmcore_info.c
-@@ -36,7 +36,11 @@ struct hwerr_info {
- 	time64_t timestamp;
- };
+--- a/include/linux/memcontrol.h~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix
++++ a/include/linux/memcontrol.h
+@@ -835,7 +835,7 @@ static inline u64 mem_cgroup_id(struct m
+ 	return memcg ? cgroup_id(memcg->css.cgroup) : 0;
+ }
  
--static struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
-+/*
-+ * The hwerr_data[] array is declared with global scope so that it remains
-+ * accessible to vmcoreinfo even when Link Time Optimization (LTO) is enabled.
-+ */
-+struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
+-struct mem_cgroup *mem_cgroup_get_from_id(u64 ino);
++struct mem_cgroup *mem_cgroup_get_from_id(u64 id);
  
- Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len)
+ static inline struct mem_cgroup *mem_cgroup_from_seq(struct seq_file *m)
+ {
+@@ -1293,7 +1293,7 @@ static inline u64 mem_cgroup_id(struct m
+ 	return 0;
+ }
+ 
+-static inline struct mem_cgroup *mem_cgroup_get_from_id(u64 ino)
++static inline struct mem_cgroup *mem_cgroup_get_from_id(u64 id)
+ {
+ 	return NULL;
+ }
+--- a/mm/memcontrol.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix
++++ a/mm/memcontrol.c
+@@ -3615,7 +3615,7 @@ struct mem_cgroup *mem_cgroup_from_priva
+ 	return xa_load(&mem_cgroup_private_ids, id);
+ }
+ 
+-struct mem_cgroup *mem_cgroup_get_from_id(u64 ino)
++struct mem_cgroup *mem_cgroup_get_from_id(u64 id)
+ {
+ 	struct cgroup *cgrp;
+ 	struct cgroup_subsys_state *css;
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
+memcg-introduce-private-id-api-for-in-kernel-users.patch
+memcg-expose-mem_cgroup_ino-and-mem_cgroup_get_from_ino-unconditionally.patch
+memcg-mem_cgroup_get_from_ino-returns-null-on-error.patch
+memcg-use-cgroup_id-instead-of-cgroup_ino-for-memcg-id.patch
+mm-damon-use-cgroup-id-instead-of-private-memcg-id.patch
+mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface.patch
+memcg-remove-unused-mem_cgroup_id-and-mem_cgroup_from_id.patch
+memcg-rename-mem_cgroup_ino-to-mem_cgroup_id.patch
 
