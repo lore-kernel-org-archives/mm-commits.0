@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19B2B1A9FB4
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 02:57:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98DB42E424F
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 02:57:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769482675; cv=none; b=bVGNYJMWFHonarygXycrgU0zae2uUfujVc/GLuYnvM8xhaS9NNTbeJtlMHx3ND5aHc6ZqgtL/lCh8BlNJ/uPVpbWjeRBQqK+v7zh4Ylu2uFCiN3SOUW5KfGyzYRsAEqCN40udQuLOUHtExVliMuN5Dv5orD9DRgLzfA4ACDLGKY=
+	t=1769482676; cv=none; b=F4ns6YF9LHEmADbHk0M78YEPg/idZ83mc6O5AS3S8X7wS7fiGYM6USlu7iecSpcSOSj4vEXHTFZaOy+DX7ZuWWHbJagpH513CKWww9+9nyKcRQFcBoHvG8wLDfAP3gNaz4clh7Y1ZrZlbO95kQR1UjnPkkXYoTXjCXO4PxFG7MQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769482675; c=relaxed/simple;
-	bh=nsfl4vmEcc40czzyXPXEIf2ccB/2ioDZcpKc/COOWGA=;
-	h=Date:To:From:Subject:Message-Id; b=A3toCncOoZ6UBSrOi3LWUpDqeNIeNtXbtUhppgSxuiTvE+wgOXGBsAKqJLpYqbUpYVgcxzCy5244OCA8up92AP58NztBMGNrSERK6XREgOsxmEqPJ1alMzIg4F3AK7MLZiC2FWm1xvnUrx1jsgNsh5O3xfCHLscRA0YLl+cytrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pbsvQenJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769482676; c=relaxed/simple;
+	bh=rO+r/c+e6vmUpk68oILiibtVwD5Zf9DT3Tro0+y812c=;
+	h=Date:To:From:Subject:Message-Id; b=iIvic3/+rQyubEOPiN3of13a68UsRy3nMQAcY1MUv9sLvCEbsM2V/0wwBsIYC5psD+EXXfLbi9dQ0QSBhSPsyNcodRInLwLHXsKVFcUhcokT9lVr3qwvEosIIkH3JrbKIiyGMIYi/zG+0U2Sg96TDye/g/D3cHenSVcu4TMQY7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HH2apGW1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pbsvQenJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DEBEC116C6;
-	Tue, 27 Jan 2026 02:57:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HH2apGW1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25B43C116C6;
+	Tue, 27 Jan 2026 02:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769482674;
-	bh=nsfl4vmEcc40czzyXPXEIf2ccB/2ioDZcpKc/COOWGA=;
+	s=korg; t=1769482676;
+	bh=rO+r/c+e6vmUpk68oILiibtVwD5Zf9DT3Tro0+y812c=;
 	h=Date:To:From:Subject:From;
-	b=pbsvQenJUu+vkzYf+B+lRGjaW6xklma1ECLBFoBm972t7v5yPJsakV/lWF49qkjuz
-	 5OhIkZdgnvsb7+USXXLJjNASV0lWY00yiZgdl7UphJD1GACuAqE1ahGRyiF08uPBSS
-	 mBLUeJWmU9kQGu4cocwO0ukG6EQ+O23CbONYiJxc=
-Date: Mon, 26 Jan 2026 18:57:54 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,tzimmermann@suse.de,surenb@google.com,simona@ffwll.ch,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mripard@kernel.org,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,lyude@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,francois.dugast@intel.com,felix.kuehling@amd.com,david@kernel.org,dakr@kernel.org,christian.koenig@amd.com,chleroy@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,alexander.deucher@amd.com,akpm@linux-foundation.org,airlied@gmail.com,matthew.brost@intel.com,akpm@linux-foundation.org
+	b=HH2apGW1XPcGzwhH+UtWswUwuhl1qUWomLAaJmkuuwe9gmzs5ZEHXHBEmR2CsdvrN
+	 iCqp8GeypWdrw+tWVBYbzWE6K89TO37c/Q1RKW89CJcFli3Ijc1AM67IuJ13m4v0KZ
+	 AL/KkPwaHHtNMEiBL4o+Kj6L+OVlcC7laL4595R0=
+Date: Mon, 26 Jan 2026 18:57:55 -0800
+To: mm-commits@vger.kernel.org,zhiquan1.li@intel.com,xueshuai@linux.alibaba.com,vgoyal@redhat.com,tony.luck@intel.com,osandov@osandov.com,dyoung@redhat.com,bhe@redhat.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-zone_device-reinitialize-large-zone-device-private-folios.patch removed from -mm tree
-Message-Id: <20260127025754.8DEBEC116C6@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] vmcoreinfo-make-hwerr_data-visible-for-debugging.patch removed from -mm tree
+Message-Id: <20260127025756.25B43C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,206 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zone_device: reinitialize large zone device private folios
+     Subject: vmcoreinfo: make hwerr_data visible for debugging
 has been removed from the -mm tree.  Its filename was
-     mm-zone_device-reinitialize-large-zone-device-private-folios.patch
+     vmcoreinfo-make-hwerr_data-visible-for-debugging.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Matthew Brost <matthew.brost@intel.com>
-Subject: mm/zone_device: reinitialize large zone device private folios
-Date: Fri, 16 Jan 2026 12:10:16 +0100
+From: Breno Leitao <leitao@debian.org>
+Subject: vmcoreinfo: make hwerr_data visible for debugging
+Date: Thu, 22 Jan 2026 02:39:36 -0800
 
-Reinitialize metadata for large zone device private folios in
-zone_device_page_init prior to creating a higher-order zone device private
-folio.  This step is necessary when the folio's order changes dynamically
-between zone_device_page_init calls to avoid building a corrupt folio.  As
-part of the metadata reinitialization, the dev_pagemap must be passed in
-from the caller because the pgmap stored in the folio page may have been
-overwritten with a compound head.
+If the kernel is compiled with LTO, hwerr_data symbol might be lost, and
+vmcoreinfo doesn't have it dumped.  This is currently seen in some
+production kernels with LTO enabled.
 
-Without this fix, individual pages could have invalid pgmap fields and
-flags (with PG_locked being notably problematic) due to prior different
-order allocations, which can, and will, result in kernel crashes.
+Remove the static qualifier from hwerr_data so that the information is
+still preserved when the kernel is built with LTO.  Making hwerr_data a
+global symbol ensures its debug info survives the LTO link process and
+appears in kallsyms.  Also document it, so it doesn't get removed in
+the future as suggested by akpm.
 
-Link: https://lkml.kernel.org/r/20260116111325.1736137-2-francois.dugast@intel.com
-Fixes: d245f9b4ab80 ("mm/zone_device: support large zone device private folios")
-Signed-off-by: Matthew Brost <matthew.brost@intel.com>
-Signed-off-by: Francois Dugast <francois.dugast@intel.com>
-Acked-by: Felix Kuehling <felix.kuehling@amd.com>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: "Christian König" <christian.koenig@amd.com>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Lyude Paul <lyude@redhat.com>
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20260122-fix_vmcoreinfo-v2-1-2d6311f9e36c@debian.org
+Fixes: 3fa805c37dd4 ("vmcoreinfo: track and log recoverable hardware errors")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Omar Sandoval <osandov@osandov.com>
+Cc: Shuai Xue <xueshuai@linux.alibaba.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Zhiquan Li <zhiquan1.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c       |    2 -
- drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |    2 -
- drivers/gpu/drm/drm_pagemap.c            |    2 -
- drivers/gpu/drm/nouveau/nouveau_dmem.c   |    2 -
- include/linux/memremap.h                 |    9 +++--
- lib/test_hmm.c                           |    4 +-
- mm/memremap.c                            |   35 ++++++++++++++++++++-
- 7 files changed, 47 insertions(+), 9 deletions(-)
+ kernel/vmcore_info.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -723,7 +723,7 @@ static struct page *kvmppc_uvmem_get_pag
+--- a/kernel/vmcore_info.c~vmcoreinfo-make-hwerr_data-visible-for-debugging
++++ a/kernel/vmcore_info.c
+@@ -36,7 +36,11 @@ struct hwerr_info {
+ 	time64_t timestamp;
+ };
  
- 	dpage = pfn_to_page(uvmem_pfn);
- 	dpage->zone_device_data = pvt;
--	zone_device_page_init(dpage, 0);
-+	zone_device_page_init(dpage, &kvmppc_uvmem_pgmap, 0);
- 	return dpage;
- out_clear:
- 	spin_lock(&kvmppc_uvmem_bitmap_lock);
---- a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
-@@ -217,7 +217,7 @@ svm_migrate_get_vram_page(struct svm_ran
- 	page = pfn_to_page(pfn);
- 	svm_range_bo_ref(prange->svm_bo);
- 	page->zone_device_data = prange->svm_bo;
--	zone_device_page_init(page, 0);
-+	zone_device_page_init(page, page_pgmap(page), 0);
- }
+-static struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
++/*
++ * The hwerr_data[] array is declared with global scope so that it remains
++ * accessible to vmcoreinfo even when Link Time Optimization (LTO) is enabled.
++ */
++struct hwerr_info hwerr_data[HWERR_RECOV_MAX];
  
- static void
---- a/drivers/gpu/drm/drm_pagemap.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/drm_pagemap.c
-@@ -197,7 +197,7 @@ static void drm_pagemap_get_devmem_page(
- 					struct drm_pagemap_zdd *zdd)
- {
- 	page->zone_device_data = drm_pagemap_zdd_get(zdd);
--	zone_device_page_init(page, 0);
-+	zone_device_page_init(page, page_pgmap(page), 0);
- }
- 
- /**
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -425,7 +425,7 @@ nouveau_dmem_page_alloc_locked(struct no
- 			order = ilog2(DMEM_CHUNK_NPAGES);
- 	}
- 
--	zone_device_folio_init(folio, order);
-+	zone_device_folio_init(folio, page_pgmap(folio_page(folio, 0)), order);
- 	return page;
- }
- 
---- a/include/linux/memremap.h~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/include/linux/memremap.h
-@@ -224,7 +224,8 @@ static inline bool is_fsdax_page(const s
- }
- 
- #ifdef CONFIG_ZONE_DEVICE
--void zone_device_page_init(struct page *page, unsigned int order);
-+void zone_device_page_init(struct page *page, struct dev_pagemap *pgmap,
-+			   unsigned int order);
- void *memremap_pages(struct dev_pagemap *pgmap, int nid);
- void memunmap_pages(struct dev_pagemap *pgmap);
- void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
-@@ -234,9 +235,11 @@ bool pgmap_pfn_valid(struct dev_pagemap
- 
- unsigned long memremap_compat_align(void);
- 
--static inline void zone_device_folio_init(struct folio *folio, unsigned int order)
-+static inline void zone_device_folio_init(struct folio *folio,
-+					  struct dev_pagemap *pgmap,
-+					  unsigned int order)
- {
--	zone_device_page_init(&folio->page, order);
-+	zone_device_page_init(&folio->page, pgmap, order);
- 	if (order)
- 		folio_set_large_rmappable(folio);
- }
---- a/lib/test_hmm.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/lib/test_hmm.c
-@@ -662,7 +662,9 @@ static struct page *dmirror_devmem_alloc
- 			goto error;
- 	}
- 
--	zone_device_folio_init(page_folio(dpage), order);
-+	zone_device_folio_init(page_folio(dpage),
-+			       page_pgmap(folio_page(page_folio(dpage), 0)),
-+			       order);
- 	dpage->zone_device_data = rpage;
- 	return dpage;
- 
---- a/mm/memremap.c~mm-zone_device-reinitialize-large-zone-device-private-folios
-+++ a/mm/memremap.c
-@@ -477,10 +477,43 @@ void free_zone_device_folio(struct folio
- 	}
- }
- 
--void zone_device_page_init(struct page *page, unsigned int order)
-+void zone_device_page_init(struct page *page, struct dev_pagemap *pgmap,
-+			   unsigned int order)
- {
-+	struct page *new_page = page;
-+	unsigned int i;
-+
- 	VM_WARN_ON_ONCE(order > MAX_ORDER_NR_PAGES);
- 
-+	for (i = 0; i < (1UL << order); ++i, ++new_page) {
-+		struct folio *new_folio = (struct folio *)new_page;
-+
-+		/*
-+		 * new_page could have been part of previous higher order folio
-+		 * which encodes the order, in page + 1, in the flags bits. We
-+		 * blindly clear bits which could have set my order field here,
-+		 * including page head.
-+		 */
-+		new_page->flags.f &= ~0xffUL;	/* Clear possible order, page head */
-+
-+#ifdef NR_PAGES_IN_LARGE_FOLIO
-+		/*
-+		 * This pointer math looks odd, but new_page could have been
-+		 * part of a previous higher order folio, which sets _nr_pages
-+		 * in page + 1 (new_page). Therefore, we use pointer casting to
-+		 * correctly locate the _nr_pages bits within new_page which
-+		 * could have modified by previous higher order folio.
-+		 */
-+		((struct folio *)(new_page - 1))->_nr_pages = 0;
-+#endif
-+
-+		new_folio->mapping = NULL;
-+		new_folio->pgmap = pgmap;	/* Also clear compound head */
-+		new_folio->share = 0;   /* fsdax only, unused for device private */
-+		VM_WARN_ON_FOLIO(folio_ref_count(new_folio), new_folio);
-+		VM_WARN_ON_FOLIO(!folio_is_zone_device(new_folio), new_folio);
-+	}
-+
- 	/*
- 	 * Drivers shouldn't be allocating pages after calling
- 	 * memunmap_pages().
+ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
+ 			  void *data, size_t data_len)
 _
 
-Patches currently in -mm which might be from matthew.brost@intel.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
 
